@@ -1,0 +1,21 @@
+LIVE SITE PROOF — requirements.md item 2, done against the real production Servex after merge + restart
+(not a bare harness — the actual POST /api/session/new and /api/session/say routes, the actual session-backend.txt toggle)
+
+session: v-s9g6vd1  (file: public/framework/ai/v-s9g6vd1.jsonl)
+switch: session-backend.txt = "openrouter" for this test, deleted afterward (back to default "claude")
+backing_model recorded on the session: {"fast":"openai/gpt-6-luna","smart":"openai/gpt-6-luna"}
+
+1. owner: "Can you hear me? This is a live-site test of the model switch."
+   smart: "Yes, I can hear you."
+
+2. owner: "What page am I on, and what does this folder's readme say it is for?"
+   smart: "You're on /framework/. Its readme says this folder is for an organized, visual,
+            browsable guide to everything the framework offers, with layouts that work from
+            mobile up to 3440px."
+   (real tool use: it actually read the readme to answer this, through the real site)
+
+3. owner: "Last one: confirm you are the fast or smart assistant and name the model you are running on."
+   smart: "I'm the smart assistant, running on OpenAI GPT-6 Luna."
+
+Three real sentences, three real replies, through the live site's own API, with the switch on.
+session-backend.txt removed after this test — the live site is back to the default "claude" backend.

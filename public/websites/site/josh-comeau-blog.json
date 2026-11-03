@@ -1,0 +1,1517 @@
+{
+	"name": "josh-comeau-blog",
+	"url": "https://www.joshwcomeau.com/",
+	"title": "Josh W. Comeau",
+	"category": "blog",
+	"captured_at": "2026-09-08T05:48:12.138Z",
+	"embed": "allowed",
+	"embed_note": "no x-frame-options and no restrictive frame-ancestors",
+	"shots": {
+		"400": "site/josh-comeau-blog/400.jpg",
+		"1280": "site/josh-comeau-blog/1280.jpg",
+		"1920": "site/josh-comeau-blog/1920.jpg",
+		"3440": "site/josh-comeau-blog/3440.jpg",
+		"long": "site/josh-comeau-blog/long.jpg"
+	},
+	"layout": {
+		"400": "1-flow",
+		"1280": "2-sidebar",
+		"1920": "2-sidebar",
+		"3440": "2-sidebar"
+	},
+	"sections": [
+		{
+			"name": "header",
+			"layout": "1-flow",
+			"css": "flex row",
+			"note": "logo, four links, then four icon buttons (search, read-aloud, theme, RSS); it sits on a painted sky-and-clouds illustration that runs the full width at every size."
+		},
+		{
+			"name": "article list + sidebar",
+			"layout": "2-sidebar right",
+			"css": "grid, two FIXED tracks (627px + 313px)",
+			"note": "the grid's two columns never change width as the window grows — only the empty margin on both sides grows, which is why the page reads centred rather than fluid; below about 950px it collapses to the single 353px track and the sidebar's contents move to the very bottom of the page in DOM order."
+		},
+		{
+			"name": "browse/popular sidebar",
+			"layout": "1-flow",
+			"css": "block, position: sticky",
+			"note": "a tag list and a top-10 link list; sticky in the right column on desktop, a plain block after every article on a phone."
+		},
+		{
+			"name": "footer",
+			"layout": "1-flow",
+			"css": "flex column",
+			"note": "stacks the same way at every width; the page's only region that does not follow the two-column grid above it."
+		}
+	],
+	"tags": [
+		"2-sidebar",
+		"1-flow",
+		"2 column grid",
+		"right",
+		"sticky sidebar",
+		"max-width",
+		"dark",
+		"blog"
+	],
+	"responsive": {
+		"strategy": "A fixed-width two-column grid (article column 627px, sidebar 313px) that sits centred on the page — a desktop screen just gets bigger empty margins on both sides, the same trick as a 1-centered page, but built from two measured grid tracks instead of one. Below about 950px the grid drops to a single track and the sidebar's tag list and top-10 list move to the bottom of the page, after every article, rather than disappearing.",
+		"breakpoints": [
+			500,
+			700,
+			950
+		]
+	},
+	"scan": {
+		"scanned_at": "2026-09-08T05:48:24.753Z",
+		"css": {
+			"sheets": 8,
+			"bytes": 197674,
+			"inline_bytes": 6455
+		},
+		"media": [
+			"(hover:hover) and (pointer:fine){",
+			"(hover:hover){",
+			"(max-width:20rem){",
+			"(max-width:21rem){",
+			"(max-width:22rem){",
+			"(max-width:24rem){",
+			"(max-width:25rem){",
+			"(max-width:27.5rem){",
+			"(max-width:28.75rem){",
+			"(max-width:28rem){",
+			"(max-width:30rem){",
+			"(max-width:32.5rem){",
+			"(max-width:34rem){",
+			"(max-width:35.1875rem){",
+			"(max-width:43.75rem){",
+			"(max-width:48rem){",
+			"(max-width:49rem){",
+			"(max-width:500px){",
+			"(max-width:50rem){",
+			"(max-width:51.6875rem){",
+			"(max-width:54rem){",
+			"(max-width:55.25rem){",
+			"(max-width:55rem){",
+			"(max-width:56.25rem){",
+			"(max-width:58rem){",
+			"(max-width:66.5rem){",
+			"(max-width:67.125rem){",
+			"(max-width:67.5rem){",
+			"(max-width:68.75rem){",
+			"(max-width:680px){",
+			"(max-width:700px){",
+			"(max-width:71.875rem){",
+			"(max-width:73rem){",
+			"(max-width:75rem){",
+			"(max-width:98.125rem){",
+			"(min-device-width:600px){",
+			"(min-width:100rem){",
+			"(min-width:1106px){",
+			"(min-width:115rem){",
+			"(min-width:20.015625rem){",
+			"(min-width:20rem) and (max-width:35.1875rem){",
+			"(min-width:35.1875rem) and (max-width:48rem){",
+			"(min-width:35.203125rem){",
+			"(min-width:47.125rem){",
+			"(min-width:48.015625rem) and (max-width:66.5rem){",
+			"(min-width:48.015625rem){",
+			"(min-width:48.01rem){",
+			"(min-width:48rem) and (max-width:75rem){",
+			"(min-width:48rem){",
+			"(min-width:61.625rem){",
+			"(min-width:66.51rem){",
+			"(min-width:67.125rem){",
+			"(min-width:75.015625rem){",
+			"(min-width:75rem) and (max-width:98.125rem){",
+			"(min-width:768px){",
+			"(min-width:90rem){",
+			"(min-width:950px){",
+			"(min-width:98.140625rem){",
+			"(pointer:fine) and (min-width:48.015625rem){",
+			"(prefers-reduced-motion:no-preference){",
+			"(prefers-reduced-motion:reduce){",
+			"not (pointer:coarse){",
+			"not (pointer:fine){",
+			"not (pointer:none){",
+			"print{"
+		],
+		"container": [
+			"(min-width: 25rem){",
+			"(min-width: 42.875rem){"
+		],
+		"breakpoints_seen": [
+			{
+				"px": 500,
+				"count": 1
+			},
+			{
+				"px": 600,
+				"count": 1
+			},
+			{
+				"px": 680,
+				"count": 1
+			},
+			{
+				"px": 700,
+				"count": 1
+			},
+			{
+				"px": 768,
+				"count": 1
+			},
+			{
+				"px": 950,
+				"count": 1
+			},
+			{
+				"px": 1106,
+				"count": 1
+			}
+		],
+		"widths": {
+			"400": {
+				"doc": [
+					385,
+					6153
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "wisp6v7",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							16,
+							16,
+							353,
+							48
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "n1yknzbp",
+						"display": "block",
+						"rect": [
+							16,
+							328,
+							353,
+							4131
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "w124ae9d",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							16,
+							388,
+							353,
+							314
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "w124ae9d",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							16,
+							750,
+							353,
+							332
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "w124ae9d",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							16,
+							1130,
+							353,
+							260
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "w124ae9d",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							16,
+							1438,
+							353,
+							284
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "w124ae9d",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							16,
+							1770,
+							353,
+							257
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "w124ae9d",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							16,
+							2075,
+							353,
+							281
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "w124ae9d",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							16,
+							2404,
+							353,
+							314
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "w124ae9d",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							16,
+							2766,
+							353,
+							307
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "w124ae9d",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							16,
+							3121,
+							353,
+							266
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "w124ae9d",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							16,
+							3435,
+							353,
+							332
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "w124ae9d",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							16,
+							3815,
+							353,
+							257
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "w124ae9d",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							16,
+							4120,
+							353,
+							281
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"display": "block",
+						"rect": [
+							16,
+							4523,
+							353,
+							184
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "sr4thyc",
+						"display": "block",
+						"position": "sticky",
+						"rect": [
+							16,
+							4771,
+							353,
+							518
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "w1e2q9l8",
+						"role": "contentinfo",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							5384,
+							385,
+							769
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "a17ksbvo",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							385,
+							6153
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "w1tujqyh",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							0,
+							385,
+							6153
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							385,
+							5384
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "m4jraz6 watium4",
+						"display": "grid",
+						"cols": "353px",
+						"rows": "80px 4034.5px 184px 517.5px",
+						"position": "relative",
+						"rect": [
+							0,
+							248,
+							385,
+							5136
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "wgvwonx",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							16,
+							388,
+							353,
+							4071
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1280": {
+				"doc": [
+					1265,
+					4143
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "wisp6v7",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							115,
+							48,
+							1036,
+							48
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "swt4a33 w1nm8v5u",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							311,
+							48,
+							394,
+							48
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "n1yknzbp",
+						"display": "block",
+						"rect": [
+							115,
+							472,
+							627,
+							3042
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "w124ae9d",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							115,
+							532,
+							627,
+							209
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "w124ae9d",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							115,
+							789,
+							627,
+							235
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "w124ae9d",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							115,
+							1072,
+							627,
+							187
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "w124ae9d",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							115,
+							1306,
+							627,
+							211
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "w124ae9d",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							115,
+							1565,
+							627,
+							185
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "w124ae9d",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							115,
+							1798,
+							627,
+							209
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "w124ae9d",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							115,
+							2055,
+							627,
+							185
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "w124ae9d",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							115,
+							2288,
+							627,
+							211
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "w124ae9d",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							115,
+							2546,
+							627,
+							161
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "w124ae9d",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							115,
+							2755,
+							627,
+							235
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "w124ae9d",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							115,
+							3038,
+							627,
+							185
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "w124ae9d",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							115,
+							3271,
+							627,
+							185
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"display": "block",
+						"rect": [
+							837,
+							568,
+							313,
+							130
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "sr4thyc",
+						"display": "block",
+						"position": "sticky",
+						"rect": [
+							837,
+							762,
+							313,
+							546
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "w1e2q9l8",
+						"role": "contentinfo",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							3610,
+							1265,
+							533
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "a17ksbvo",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							1265,
+							4143
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "w1tujqyh",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							0,
+							1265,
+							4143
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							1265,
+							3610
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "m4jraz6 watium4",
+						"display": "grid",
+						"cols": "626.656px 313.344px",
+						"rows": "0px 130px 2751.5px",
+						"position": "relative",
+						"rect": [
+							83,
+							472,
+							1100,
+							3138
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "svg",
+						"class": "swqn97u",
+						"display": "block",
+						"rect": [
+							-1927,
+							81,
+							5120,
+							456
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1920": {
+				"doc": [
+					1905,
+					4143
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "wisp6v7",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							435,
+							48,
+							1036,
+							48
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "swt4a33 w1nm8v5u",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							631,
+							48,
+							394,
+							48
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "n1yknzbp",
+						"display": "block",
+						"rect": [
+							435,
+							472,
+							627,
+							3042
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "w124ae9d",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							435,
+							532,
+							627,
+							209
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "w124ae9d",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							435,
+							789,
+							627,
+							235
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "w124ae9d",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							435,
+							1072,
+							627,
+							187
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "w124ae9d",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							435,
+							1306,
+							627,
+							211
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "w124ae9d",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							435,
+							1565,
+							627,
+							185
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "w124ae9d",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							435,
+							1798,
+							627,
+							209
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "w124ae9d",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							435,
+							2055,
+							627,
+							185
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "w124ae9d",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							435,
+							2288,
+							627,
+							211
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "w124ae9d",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							435,
+							2546,
+							627,
+							161
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "w124ae9d",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							435,
+							2755,
+							627,
+							235
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "w124ae9d",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							435,
+							3038,
+							627,
+							185
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "w124ae9d",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							435,
+							3271,
+							627,
+							185
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"display": "block",
+						"rect": [
+							1157,
+							568,
+							313,
+							130
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "sr4thyc",
+						"display": "block",
+						"position": "sticky",
+						"rect": [
+							1157,
+							762,
+							313,
+							546
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "w1e2q9l8",
+						"role": "contentinfo",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							3610,
+							1905,
+							533
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "a17ksbvo",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							1905,
+							4143
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "w1tujqyh",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							0,
+							1905,
+							4143
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							1905,
+							3610
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "m4jraz6 watium4",
+						"display": "grid",
+						"cols": "626.656px 313.344px",
+						"rows": "0px 130px 2751.5px",
+						"position": "relative",
+						"rect": [
+							403,
+							472,
+							1100,
+							3138
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "svg",
+						"class": "swqn97u",
+						"display": "block",
+						"rect": [
+							-1607,
+							81,
+							5120,
+							456
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"3440": {
+				"doc": [
+					3425,
+					4143
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "wisp6v7",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							1195,
+							48,
+							1036,
+							48
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "swt4a33 w1nm8v5u",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1391,
+							48,
+							394,
+							48
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "n1yknzbp",
+						"display": "block",
+						"rect": [
+							1195,
+							472,
+							627,
+							3042
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "w124ae9d",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1195,
+							532,
+							627,
+							209
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "w124ae9d",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1195,
+							789,
+							627,
+							235
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "w124ae9d",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1195,
+							1072,
+							627,
+							187
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "w124ae9d",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1195,
+							1306,
+							627,
+							211
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "w124ae9d",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1195,
+							1565,
+							627,
+							185
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "w124ae9d",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1195,
+							1798,
+							627,
+							209
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "w124ae9d",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1195,
+							2055,
+							627,
+							185
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "w124ae9d",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1195,
+							2288,
+							627,
+							211
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "w124ae9d",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1195,
+							2546,
+							627,
+							161
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "w124ae9d",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1195,
+							2755,
+							627,
+							235
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "w124ae9d",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1195,
+							3038,
+							627,
+							185
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "w124ae9d",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1195,
+							3271,
+							627,
+							185
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"display": "block",
+						"rect": [
+							1917,
+							568,
+							313,
+							130
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "sr4thyc",
+						"display": "block",
+						"position": "sticky",
+						"rect": [
+							1917,
+							762,
+							313,
+							546
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "w1e2q9l8",
+						"role": "contentinfo",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							3610,
+							3425,
+							533
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "a17ksbvo",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							3425,
+							4143
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "w1tujqyh",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							0,
+							3425,
+							4143
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							3425,
+							3610
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "m4jraz6 watium4",
+						"display": "grid",
+						"cols": "626.656px 313.344px",
+						"rows": "0px 130px 2751.5px",
+						"position": "relative",
+						"rect": [
+							1163,
+							472,
+							1100,
+							3138
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "svg",
+						"class": "swqn97u",
+						"display": "block",
+						"rect": [
+							-847,
+							81,
+							5120,
+							456
+						],
+						"side_by_side": 1
+					}
+				]
+			}
+		}
+	},
+	"notes": "This blog puts two things on the page at once above 950px: a column of article summaries on the left and a narrower sidebar of categories and popular posts on the right, both a fixed number of pixels wide. Because neither column stretches, a giant ultrawide monitor does not get a wider layout — it just gets more empty space on the left and right, so the page always looks the same width. Below about 950px, the two columns become one: the sidebar's content does not vanish, it just moves down to the bottom of the page, after the last article. The scout guessed this page would be a plain single centred column (`1-centered`), but the scan shows a real two-track CSS grid the whole time — a case where the picture alone (a column with a wide right margin) could be read either way, and only the CSS settles it.",
+	"wire": {
+		"role": "page",
+		"kids": [
+			{
+				"role": "header",
+				"h": "25em"
+			},
+			{
+				"role": "main",
+				"dir": "row",
+				"center": true,
+				"floor": "59rem",
+				"kids": [
+					{
+						"role": "main",
+						"w": "39em",
+						"lines": 9
+					},
+					{
+						"role": "aside",
+						"w": "20em",
+						"lines": 8
+					}
+				]
+			},
+			{
+				"role": "footer",
+				"h": "5em"
+			}
+		]
+	}
+}

@@ -13,7 +13,7 @@ export default {
         div.c("pad", () => {
             a.c("page-back btn bg mb", "Back").href("../");
 
-            h1("Normal CSS").ac("mb").style("color", "var(--prim)");
+            h1("Normal CSS").ac("mb").style("color", "var(--prime)");
 
             p("Everything on this site so far uses either `framework.css`'s own classes or inline `.style()` calls, but you can always write completely normal CSS too:");
             p("Write a `.css` file, anywhere you like.");

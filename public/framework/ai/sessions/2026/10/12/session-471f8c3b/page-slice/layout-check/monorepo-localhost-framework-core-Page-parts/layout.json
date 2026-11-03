@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/core/Page/parts/",
+ "widths": {
+  "1280": {
+   "empty": 0.746,
+   "widest_text": 440,
+   "widest_text_sample": ". Add, move or remove a line and every o",
+   "overflow_x": false,
+   "items": 60,
+   "narrow_share": 0.2
+  },
+  "1920": {
+   "empty": 0.826,
+   "widest_text": 468,
+   "widest_text_sample": ". Add, move or remove a line and every o",
+   "overflow_x": false,
+   "items": 60,
+   "narrow_share": 1
+  },
+  "2560": {
+   "empty": 0.844,
+   "widest_text": 526,
+   "widest_text_sample": ". Add, move or remove a line and every o",
+   "overflow_x": false,
+   "items": 60,
+   "narrow_share": 1
+  },
+  "3440": {
+   "empty": 0.878,
+   "widest_text": 526,
+   "widest_text_sample": ". Add, move or remove a line and every o",
+   "overflow_x": false,
+   "items": 60,
+   "narrow_share": 1
+  }
+ },
+ "errors": []
+}

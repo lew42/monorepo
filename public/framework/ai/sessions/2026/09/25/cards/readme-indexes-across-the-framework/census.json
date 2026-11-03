@@ -1,0 +1,6283 @@
+{
+ "made": "2026-09-25T21:49:52.014Z",
+ "counts": {
+  "ok": 28,
+  "noindex": 159,
+  "none": 326,
+  "total": 513
+ },
+ "tree": {
+  "path": ".",
+  "name": "framework",
+  "readme": true,
+  "index": true,
+  "children_dirs": [
+   "core",
+   "dev",
+   "ext",
+   "faq",
+   "start",
+   "styles",
+   "ui",
+   "util",
+   "ux",
+   "versus"
+  ],
+  "missing": [],
+  "children": [
+   {
+    "path": "core",
+    "name": "core",
+    "readme": true,
+    "index": true,
+    "children_dirs": [
+     "App",
+     "Item",
+     "Layout",
+     "List",
+     "Page",
+     "Router",
+     "Search",
+     "Section",
+     "Sidebar",
+     "View",
+     "new"
+    ],
+    "missing": [],
+    "children": [
+     {
+      "path": "core/App",
+      "name": "App",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "core/Item",
+      "name": "Item",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "core/Layout",
+      "name": "Layout",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "core/List",
+      "name": "List",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "core/Page",
+      "name": "Page",
+      "readme": true,
+      "index": true,
+      "children_dirs": [
+       "generator",
+       "jsonl",
+       "old",
+       "overview"
+      ],
+      "missing": [],
+      "children": [
+       {
+        "path": "core/Page/generator",
+        "name": "generator",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       },
+       {
+        "path": "core/Page/jsonl",
+        "name": "jsonl",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       },
+       {
+        "path": "core/Page/old",
+        "name": "old",
+        "readme": true,
+        "index": true,
+        "children_dirs": [
+         "children",
+         "flow",
+         "intro",
+         "nav",
+         "overview",
+         "previews",
+         "shell"
+        ],
+        "missing": [
+         "children",
+         "flow",
+         "intro",
+         "nav",
+         "previews",
+         "shell"
+        ],
+        "children": [
+         {
+          "path": "core/Page/old/children",
+          "name": "children",
+          "readme": false,
+          "index": false,
+          "children_dirs": [],
+          "missing": [],
+          "children": [],
+          "mark": "✗"
+         },
+         {
+          "path": "core/Page/old/flow",
+          "name": "flow",
+          "readme": false,
+          "index": false,
+          "children_dirs": [],
+          "missing": [],
+          "children": [],
+          "mark": "✗"
+         },
+         {
+          "path": "core/Page/old/intro",
+          "name": "intro",
+          "readme": false,
+          "index": false,
+          "children_dirs": [],
+          "missing": [],
+          "children": [],
+          "mark": "✗"
+         },
+         {
+          "path": "core/Page/old/nav",
+          "name": "nav",
+          "readme": false,
+          "index": false,
+          "children_dirs": [],
+          "missing": [],
+          "children": [],
+          "mark": "✗"
+         },
+         {
+          "path": "core/Page/old/overview",
+          "name": "overview",
+          "readme": true,
+          "index": false,
+          "children_dirs": [
+           "add",
+           "catalog",
+           "children",
+           "dashboard",
+           "deep",
+           "docs",
+           "labels",
+           "landing",
+           "page",
+           "route",
+           "shapes",
+           "site",
+           "strip",
+           "wall"
+          ],
+          "missing": [
+           "add",
+           "catalog",
+           "children",
+           "dashboard",
+           "deep",
+           "docs",
+           "labels",
+           "landing",
+           "page",
+           "route",
+           "shapes",
+           "site",
+           "strip",
+           "wall"
+          ],
+          "children": [
+           {
+            "path": "core/Page/old/overview/add",
+            "name": "add",
+            "readme": false,
+            "index": false,
+            "children_dirs": [],
+            "missing": [],
+            "children": [],
+            "mark": "✗"
+           },
+           {
+            "path": "core/Page/old/overview/catalog",
+            "name": "catalog",
+            "readme": false,
+            "index": false,
+            "children_dirs": [],
+            "missing": [],
+            "children": [],
+            "mark": "✗"
+           },
+           {
+            "path": "core/Page/old/overview/children",
+            "name": "children",
+            "readme": false,
+            "index": false,
+            "children_dirs": [],
+            "missing": [],
+            "children": [],
+            "mark": "✗"
+           },
+           {
+            "path": "core/Page/old/overview/dashboard",
+            "name": "dashboard",
+            "readme": false,
+            "index": false,
+            "children_dirs": [],
+            "missing": [],
+            "children": [],
+            "mark": "✗"
+           },
+           {
+            "path": "core/Page/old/overview/deep",
+            "name": "deep",
+            "readme": false,
+            "index": false,
+            "children_dirs": [],
+            "missing": [],
+            "children": [],
+            "mark": "✗"
+           },
+           {
+            "path": "core/Page/old/overview/docs",
+            "name": "docs",
+            "readme": false,
+            "index": false,
+            "children_dirs": [],
+            "missing": [],
+            "children": [],
+            "mark": "✗"
+           },
+           {
+            "path": "core/Page/old/overview/labels",
+            "name": "labels",
+            "readme": false,
+            "index": false,
+            "children_dirs": [],
+            "missing": [],
+            "children": [],
+            "mark": "✗"
+           },
+           {
+            "path": "core/Page/old/overview/landing",
+            "name": "landing",
+            "readme": false,
+            "index": false,
+            "children_dirs": [],
+            "missing": [],
+            "children": [],
+            "mark": "✗"
+           },
+           {
+            "path": "core/Page/old/overview/page",
+            "name": "page",
+            "readme": false,
+            "index": false,
+            "children_dirs": [],
+            "missing": [],
+            "children": [],
+            "mark": "✗"
+           },
+           {
+            "path": "core/Page/old/overview/route",
+            "name": "route",
+            "readme": false,
+            "index": false,
+            "children_dirs": [],
+            "missing": [],
+            "children": [],
+            "mark": "✗"
+           },
+           {
+            "path": "core/Page/old/overview/shapes",
+            "name": "shapes",
+            "readme": false,
+            "index": false,
+            "children_dirs": [],
+            "missing": [],
+            "children": [],
+            "mark": "✗"
+           },
+           {
+            "path": "core/Page/old/overview/site",
+            "name": "site",
+            "readme": false,
+            "index": false,
+            "children_dirs": [],
+            "missing": [],
+            "children": [],
+            "mark": "✗"
+           },
+           {
+            "path": "core/Page/old/overview/strip",
+            "name": "strip",
+            "readme": false,
+            "index": false,
+            "children_dirs": [],
+            "missing": [],
+            "children": [],
+            "mark": "✗"
+           },
+           {
+            "path": "core/Page/old/overview/wall",
+            "name": "wall",
+            "readme": false,
+            "index": false,
+            "children_dirs": [],
+            "missing": [],
+            "children": [],
+            "mark": "✗"
+           }
+          ],
+          "mark": "~"
+         },
+         {
+          "path": "core/Page/old/previews",
+          "name": "previews",
+          "readme": false,
+          "index": false,
+          "children_dirs": [],
+          "missing": [],
+          "children": [],
+          "mark": "✗"
+         },
+         {
+          "path": "core/Page/old/shell",
+          "name": "shell",
+          "readme": false,
+          "index": false,
+          "children_dirs": [],
+          "missing": [],
+          "children": [],
+          "mark": "✗"
+         }
+        ],
+        "mark": "✓"
+       },
+       {
+        "path": "core/Page/overview",
+        "name": "overview",
+        "readme": true,
+        "index": false,
+        "children_dirs": [
+         "catalog",
+         "children",
+         "columns",
+         "crumbs",
+         "dashboard",
+         "docs",
+         "flush",
+         "full",
+         "grid",
+         "inset",
+         "labels",
+         "landing",
+         "list",
+         "measure",
+         "mounts",
+         "page",
+         "prose",
+         "rail",
+         "region",
+         "render",
+         "replace",
+         "route",
+         "shell",
+         "site",
+         "strip",
+         "tabs",
+         "vtabs",
+         "wall",
+         "width"
+        ],
+        "missing": [
+         "catalog",
+         "children",
+         "columns",
+         "crumbs",
+         "dashboard",
+         "docs",
+         "flush",
+         "full",
+         "grid",
+         "inset",
+         "labels",
+         "landing",
+         "list",
+         "measure",
+         "mounts",
+         "page",
+         "prose",
+         "rail",
+         "region",
+         "render",
+         "replace",
+         "route",
+         "shell",
+         "site",
+         "strip",
+         "tabs",
+         "vtabs",
+         "wall",
+         "width"
+        ],
+        "children": [
+         {
+          "path": "core/Page/overview/catalog",
+          "name": "catalog",
+          "readme": false,
+          "index": false,
+          "children_dirs": [],
+          "missing": [],
+          "children": [],
+          "mark": "✗"
+         },
+         {
+          "path": "core/Page/overview/children",
+          "name": "children",
+          "readme": false,
+          "index": false,
+          "children_dirs": [],
+          "missing": [],
+          "children": [],
+          "mark": "✗"
+         },
+         {
+          "path": "core/Page/overview/columns",
+          "name": "columns",
+          "readme": false,
+          "index": false,
+          "children_dirs": [
+           "examples",
+           "finder",
+           "panels",
+           "refs",
+           "uses"
+          ],
+          "missing": [
+           "examples",
+           "finder",
+           "panels",
+           "refs",
+           "uses"
+          ],
+          "children": [
+           {
+            "path": "core/Page/overview/columns/examples",
+            "name": "examples",
+            "readme": false,
+            "index": false,
+            "children_dirs": [
+             "grids",
+             "looks"
+            ],
+            "missing": [
+             "grids",
+             "looks"
+            ],
+            "children": [
+             {
+              "path": "core/Page/overview/columns/examples/grids",
+              "name": "grids",
+              "readme": false,
+              "index": false,
+              "children_dirs": [
+               "flush-wall",
+               "grid-detail",
+               "list-large",
+               "measure-3440"
+              ],
+              "missing": [
+               "flush-wall",
+               "grid-detail",
+               "list-large",
+               "measure-3440"
+              ],
+              "children": [
+               {
+                "path": "core/Page/overview/columns/examples/grids/flush-wall",
+                "name": "flush-wall",
+                "readme": false,
+                "index": false,
+                "children_dirs": [],
+                "missing": [],
+                "children": [],
+                "mark": "✗"
+               },
+               {
+                "path": "core/Page/overview/columns/examples/grids/grid-detail",
+                "name": "grid-detail",
+                "readme": false,
+                "index": false,
+                "children_dirs": [],
+                "missing": [],
+                "children": [],
+                "mark": "✗"
+               },
+               {
+                "path": "core/Page/overview/columns/examples/grids/list-large",
+                "name": "list-large",
+                "readme": false,
+                "index": false,
+                "children_dirs": [],
+                "missing": [],
+                "children": [],
+                "mark": "✗"
+               },
+               {
+                "path": "core/Page/overview/columns/examples/grids/measure-3440",
+                "name": "measure-3440",
+                "readme": false,
+                "index": false,
+                "children_dirs": [],
+                "missing": [],
+                "children": [],
+                "mark": "✗"
+               }
+              ],
+              "mark": "✗"
+             },
+             {
+              "path": "core/Page/overview/columns/examples/looks",
+              "name": "looks",
+              "readme": false,
+              "index": false,
+              "children_dirs": [
+               "backgrounds",
+               "padding",
+               "scrollbars"
+              ],
+              "missing": [
+               "backgrounds",
+               "padding",
+               "scrollbars"
+              ],
+              "children": [
+               {
+                "path": "core/Page/overview/columns/examples/looks/backgrounds",
+                "name": "backgrounds",
+                "readme": false,
+                "index": false,
+                "children_dirs": [],
+                "missing": [],
+                "children": [],
+                "mark": "✗"
+               },
+               {
+                "path": "core/Page/overview/columns/examples/looks/padding",
+                "name": "padding",
+                "readme": false,
+                "index": false,
+                "children_dirs": [],
+                "missing": [],
+                "children": [],
+                "mark": "✗"
+               },
+               {
+                "path": "core/Page/overview/columns/examples/looks/scrollbars",
+                "name": "scrollbars",
+                "readme": false,
+                "index": false,
+                "children_dirs": [],
+                "missing": [],
+                "children": [],
+                "mark": "✗"
+               }
+              ],
+              "mark": "✗"
+             }
+            ],
+            "mark": "✗"
+           },
+           {
+            "path": "core/Page/overview/columns/finder",
+            "name": "finder",
+            "readme": false,
+            "index": false,
+            "children_dirs": [],
+            "missing": [],
+            "children": [],
+            "mark": "✗"
+           },
+           {
+            "path": "core/Page/overview/columns/panels",
+            "name": "panels",
+            "readme": false,
+            "index": false,
+            "children_dirs": [],
+            "missing": [],
+            "children": [],
+            "mark": "✗"
+           },
+           {
+            "path": "core/Page/overview/columns/refs",
+            "name": "refs",
+            "readme": false,
+            "index": false,
+            "children_dirs": [],
+            "missing": [],
+            "children": [],
+            "mark": "✗"
+           },
+           {
+            "path": "core/Page/overview/columns/uses",
+            "name": "uses",
+            "readme": false,
+            "index": false,
+            "children_dirs": [
+             "docs",
+             "inbox",
+             "split",
+             "workbench"
+            ],
+            "missing": [
+             "docs",
+             "inbox",
+             "split",
+             "workbench"
+            ],
+            "children": [
+             {
+              "path": "core/Page/overview/columns/uses/docs",
+              "name": "docs",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/Page/overview/columns/uses/inbox",
+              "name": "inbox",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/Page/overview/columns/uses/split",
+              "name": "split",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/Page/overview/columns/uses/workbench",
+              "name": "workbench",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             }
+            ],
+            "mark": "✗"
+           }
+          ],
+          "mark": "✗"
+         },
+         {
+          "path": "core/Page/overview/crumbs",
+          "name": "crumbs",
+          "readme": false,
+          "index": false,
+          "children_dirs": [],
+          "missing": [],
+          "children": [],
+          "mark": "✗"
+         },
+         {
+          "path": "core/Page/overview/dashboard",
+          "name": "dashboard",
+          "readme": false,
+          "index": false,
+          "children_dirs": [],
+          "missing": [],
+          "children": [],
+          "mark": "✗"
+         },
+         {
+          "path": "core/Page/overview/docs",
+          "name": "docs",
+          "readme": false,
+          "index": false,
+          "children_dirs": [],
+          "missing": [],
+          "children": [],
+          "mark": "✗"
+         },
+         {
+          "path": "core/Page/overview/flush",
+          "name": "flush",
+          "readme": false,
+          "index": false,
+          "children_dirs": [],
+          "missing": [],
+          "children": [],
+          "mark": "✗"
+         },
+         {
+          "path": "core/Page/overview/full",
+          "name": "full",
+          "readme": false,
+          "index": false,
+          "children_dirs": [],
+          "missing": [],
+          "children": [],
+          "mark": "✗"
+         },
+         {
+          "path": "core/Page/overview/grid",
+          "name": "grid",
+          "readme": false,
+          "index": false,
+          "children_dirs": [],
+          "missing": [],
+          "children": [],
+          "mark": "✗"
+         },
+         {
+          "path": "core/Page/overview/inset",
+          "name": "inset",
+          "readme": false,
+          "index": false,
+          "children_dirs": [],
+          "missing": [],
+          "children": [],
+          "mark": "✗"
+         },
+         {
+          "path": "core/Page/overview/labels",
+          "name": "labels",
+          "readme": false,
+          "index": false,
+          "children_dirs": [],
+          "missing": [],
+          "children": [],
+          "mark": "✗"
+         },
+         {
+          "path": "core/Page/overview/landing",
+          "name": "landing",
+          "readme": false,
+          "index": false,
+          "children_dirs": [],
+          "missing": [],
+          "children": [],
+          "mark": "✗"
+         },
+         {
+          "path": "core/Page/overview/list",
+          "name": "list",
+          "readme": false,
+          "index": false,
+          "children_dirs": [],
+          "missing": [],
+          "children": [],
+          "mark": "✗"
+         },
+         {
+          "path": "core/Page/overview/measure",
+          "name": "measure",
+          "readme": false,
+          "index": false,
+          "children_dirs": [],
+          "missing": [],
+          "children": [],
+          "mark": "✗"
+         },
+         {
+          "path": "core/Page/overview/mounts",
+          "name": "mounts",
+          "readme": false,
+          "index": false,
+          "children_dirs": [],
+          "missing": [],
+          "children": [],
+          "mark": "✗"
+         },
+         {
+          "path": "core/Page/overview/page",
+          "name": "page",
+          "readme": false,
+          "index": false,
+          "children_dirs": [],
+          "missing": [],
+          "children": [],
+          "mark": "✗"
+         },
+         {
+          "path": "core/Page/overview/prose",
+          "name": "prose",
+          "readme": false,
+          "index": false,
+          "children_dirs": [],
+          "missing": [],
+          "children": [],
+          "mark": "✗"
+         },
+         {
+          "path": "core/Page/overview/rail",
+          "name": "rail",
+          "readme": false,
+          "index": false,
+          "children_dirs": [],
+          "missing": [],
+          "children": [],
+          "mark": "✗"
+         },
+         {
+          "path": "core/Page/overview/region",
+          "name": "region",
+          "readme": false,
+          "index": false,
+          "children_dirs": [],
+          "missing": [],
+          "children": [],
+          "mark": "✗"
+         },
+         {
+          "path": "core/Page/overview/render",
+          "name": "render",
+          "readme": false,
+          "index": false,
+          "children_dirs": [],
+          "missing": [],
+          "children": [],
+          "mark": "✗"
+         },
+         {
+          "path": "core/Page/overview/replace",
+          "name": "replace",
+          "readme": false,
+          "index": false,
+          "children_dirs": [],
+          "missing": [],
+          "children": [],
+          "mark": "✗"
+         },
+         {
+          "path": "core/Page/overview/route",
+          "name": "route",
+          "readme": false,
+          "index": false,
+          "children_dirs": [],
+          "missing": [],
+          "children": [],
+          "mark": "✗"
+         },
+         {
+          "path": "core/Page/overview/shell",
+          "name": "shell",
+          "readme": false,
+          "index": false,
+          "children_dirs": [],
+          "missing": [],
+          "children": [],
+          "mark": "✗"
+         },
+         {
+          "path": "core/Page/overview/site",
+          "name": "site",
+          "readme": false,
+          "index": false,
+          "children_dirs": [],
+          "missing": [],
+          "children": [],
+          "mark": "✗"
+         },
+         {
+          "path": "core/Page/overview/strip",
+          "name": "strip",
+          "readme": false,
+          "index": false,
+          "children_dirs": [],
+          "missing": [],
+          "children": [],
+          "mark": "✗"
+         },
+         {
+          "path": "core/Page/overview/tabs",
+          "name": "tabs",
+          "readme": false,
+          "index": false,
+          "children_dirs": [],
+          "missing": [],
+          "children": [],
+          "mark": "✗"
+         },
+         {
+          "path": "core/Page/overview/vtabs",
+          "name": "vtabs",
+          "readme": false,
+          "index": false,
+          "children_dirs": [],
+          "missing": [],
+          "children": [],
+          "mark": "✗"
+         },
+         {
+          "path": "core/Page/overview/wall",
+          "name": "wall",
+          "readme": false,
+          "index": false,
+          "children_dirs": [],
+          "missing": [],
+          "children": [],
+          "mark": "✗"
+         },
+         {
+          "path": "core/Page/overview/width",
+          "name": "width",
+          "readme": false,
+          "index": false,
+          "children_dirs": [],
+          "missing": [],
+          "children": [],
+          "mark": "✗"
+         }
+        ],
+        "mark": "~"
+       }
+      ],
+      "mark": "✓"
+     },
+     {
+      "path": "core/Router",
+      "name": "Router",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "core/Search",
+      "name": "Search",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "core/Section",
+      "name": "Section",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "core/Sidebar",
+      "name": "Sidebar",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "core/View",
+      "name": "View",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "core/new",
+      "name": "new",
+      "readme": true,
+      "index": true,
+      "children_dirs": [
+       "1"
+      ],
+      "missing": [],
+      "children": [
+       {
+        "path": "core/new/1",
+        "name": "1",
+        "readme": true,
+        "index": false,
+        "children_dirs": [
+         "site"
+        ],
+        "missing": [
+         "site"
+        ],
+        "children": [
+         {
+          "path": "core/new/1/site",
+          "name": "site",
+          "readme": false,
+          "index": false,
+          "children_dirs": [
+           "a11y",
+           "async",
+           "budget",
+           "chrome",
+           "columns",
+           "compose",
+           "compound",
+           "content",
+           "council",
+           "deep",
+           "dynamic",
+           "forms",
+           "full",
+           "kit",
+           "library",
+           "motion",
+           "mutation",
+           "nav",
+           "patterns",
+           "perf",
+           "replace",
+           "sitemap",
+           "start",
+           "state",
+           "tabs",
+           "urls",
+           "versus"
+          ],
+          "missing": [
+           "a11y",
+           "async",
+           "budget",
+           "chrome",
+           "columns",
+           "compose",
+           "compound",
+           "content",
+           "council",
+           "deep",
+           "dynamic",
+           "forms",
+           "full",
+           "kit",
+           "library",
+           "motion",
+           "mutation",
+           "nav",
+           "patterns",
+           "perf",
+           "replace",
+           "sitemap",
+           "start",
+           "state",
+           "tabs",
+           "urls",
+           "versus"
+          ],
+          "children": [
+           {
+            "path": "core/new/1/site/a11y",
+            "name": "a11y",
+            "readme": false,
+            "index": false,
+            "children_dirs": [
+             "announce",
+             "current",
+             "focus",
+             "headings",
+             "inert",
+             "motion",
+             "skip",
+             "tabs"
+            ],
+            "missing": [
+             "announce",
+             "current",
+             "focus",
+             "headings",
+             "inert",
+             "motion",
+             "skip",
+             "tabs"
+            ],
+            "children": [
+             {
+              "path": "core/new/1/site/a11y/announce",
+              "name": "announce",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/a11y/current",
+              "name": "current",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/a11y/focus",
+              "name": "focus",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/a11y/headings",
+              "name": "headings",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/a11y/inert",
+              "name": "inert",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/a11y/motion",
+              "name": "motion",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/a11y/skip",
+              "name": "skip",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/a11y/tabs",
+              "name": "tabs",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             }
+            ],
+            "mark": "✗"
+           },
+           {
+            "path": "core/new/1/site/async",
+            "name": "async",
+            "readme": false,
+            "index": false,
+            "children_dirs": [
+             "arrangements",
+             "inflight",
+             "marking",
+             "rule",
+             "shapes",
+             "states",
+             "stream",
+             "trap"
+            ],
+            "missing": [
+             "arrangements",
+             "inflight",
+             "marking",
+             "rule",
+             "shapes",
+             "states",
+             "stream",
+             "trap"
+            ],
+            "children": [
+             {
+              "path": "core/new/1/site/async/arrangements",
+              "name": "arrangements",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/async/inflight",
+              "name": "inflight",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/async/marking",
+              "name": "marking",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/async/rule",
+              "name": "rule",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/async/shapes",
+              "name": "shapes",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/async/states",
+              "name": "states",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/async/stream",
+              "name": "stream",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/async/trap",
+              "name": "trap",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             }
+            ],
+            "mark": "✗"
+           },
+           {
+            "path": "core/new/1/site/budget",
+            "name": "budget",
+            "readme": false,
+            "index": false,
+            "children_dirs": [
+             "check",
+             "ladder",
+             "source"
+            ],
+            "missing": [
+             "check",
+             "ladder",
+             "source"
+            ],
+            "children": [
+             {
+              "path": "core/new/1/site/budget/check",
+              "name": "check",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/budget/ladder",
+              "name": "ladder",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/budget/source",
+              "name": "source",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             }
+            ],
+            "mark": "✗"
+           },
+           {
+            "path": "core/new/1/site/chrome",
+            "name": "chrome",
+            "readme": false,
+            "index": false,
+            "children_dirs": [
+             "crumbs",
+             "drawer",
+             "focus",
+             "marks",
+             "palette",
+             "siblings",
+             "sidebar",
+             "topbar"
+            ],
+            "missing": [
+             "crumbs",
+             "drawer",
+             "focus",
+             "marks",
+             "palette",
+             "siblings",
+             "sidebar",
+             "topbar"
+            ],
+            "children": [
+             {
+              "path": "core/new/1/site/chrome/crumbs",
+              "name": "crumbs",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/chrome/drawer",
+              "name": "drawer",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/chrome/focus",
+              "name": "focus",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/chrome/marks",
+              "name": "marks",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/chrome/palette",
+              "name": "palette",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/chrome/siblings",
+              "name": "siblings",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/chrome/sidebar",
+              "name": "sidebar",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/chrome/topbar",
+              "name": "topbar",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             }
+            ],
+            "mark": "✗"
+           },
+           {
+            "path": "core/new/1/site/columns",
+            "name": "columns",
+            "readme": false,
+            "index": false,
+            "children_dirs": [
+             "child"
+            ],
+            "missing": [
+             "child"
+            ],
+            "children": [
+             {
+              "path": "core/new/1/site/columns/child",
+              "name": "child",
+              "readme": false,
+              "index": false,
+              "children_dirs": [
+               "grandchild"
+              ],
+              "missing": [
+               "grandchild"
+              ],
+              "children": [
+               {
+                "path": "core/new/1/site/columns/child/grandchild",
+                "name": "grandchild",
+                "readme": false,
+                "index": false,
+                "children_dirs": [],
+                "missing": [],
+                "children": [],
+                "mark": "✗"
+               }
+              ],
+              "mark": "✗"
+             }
+            ],
+            "mark": "✗"
+           },
+           {
+            "path": "core/new/1/site/compose",
+            "name": "compose",
+            "readme": false,
+            "index": false,
+            "children_dirs": [
+             "component",
+             "embed",
+             "fragments",
+             "labels",
+             "limits",
+             "slots",
+             "state"
+            ],
+            "missing": [
+             "component",
+             "embed",
+             "fragments",
+             "labels",
+             "limits",
+             "slots",
+             "state"
+            ],
+            "children": [
+             {
+              "path": "core/new/1/site/compose/component",
+              "name": "component",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/compose/embed",
+              "name": "embed",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/compose/fragments",
+              "name": "fragments",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/compose/labels",
+              "name": "labels",
+              "readme": false,
+              "index": false,
+              "children_dirs": [
+               "api",
+               "first-run",
+               "rate-limits"
+              ],
+              "missing": [
+               "api",
+               "first-run",
+               "rate-limits"
+              ],
+              "children": [
+               {
+                "path": "core/new/1/site/compose/labels/api",
+                "name": "api",
+                "readme": false,
+                "index": false,
+                "children_dirs": [],
+                "missing": [],
+                "children": [],
+                "mark": "✗"
+               },
+               {
+                "path": "core/new/1/site/compose/labels/first-run",
+                "name": "first-run",
+                "readme": false,
+                "index": false,
+                "children_dirs": [],
+                "missing": [],
+                "children": [],
+                "mark": "✗"
+               },
+               {
+                "path": "core/new/1/site/compose/labels/rate-limits",
+                "name": "rate-limits",
+                "readme": false,
+                "index": false,
+                "children_dirs": [],
+                "missing": [],
+                "children": [],
+                "mark": "✗"
+               }
+              ],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/compose/limits",
+              "name": "limits",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/compose/slots",
+              "name": "slots",
+              "readme": false,
+              "index": false,
+              "children_dirs": [
+               "fixed"
+              ],
+              "missing": [
+               "fixed"
+              ],
+              "children": [
+               {
+                "path": "core/new/1/site/compose/slots/fixed",
+                "name": "fixed",
+                "readme": false,
+                "index": false,
+                "children_dirs": [],
+                "missing": [],
+                "children": [],
+                "mark": "✗"
+               }
+              ],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/compose/state",
+              "name": "state",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             }
+            ],
+            "mark": "✗"
+           },
+           {
+            "path": "core/new/1/site/compound",
+            "name": "compound",
+            "readme": false,
+            "index": false,
+            "children_dirs": [
+             "columns-in-full",
+             "crumbs",
+             "drilling-tabs",
+             "master-detail",
+             "overlay",
+             "steps",
+             "tabs-in-a-column",
+             "three-layers",
+             "tree-from-route",
+             "two-bars"
+            ],
+            "missing": [
+             "columns-in-full",
+             "crumbs",
+             "drilling-tabs",
+             "master-detail",
+             "overlay",
+             "steps",
+             "tabs-in-a-column",
+             "three-layers",
+             "tree-from-route",
+             "two-bars"
+            ],
+            "children": [
+             {
+              "path": "core/new/1/site/compound/columns-in-full",
+              "name": "columns-in-full",
+              "readme": false,
+              "index": false,
+              "children_dirs": [
+               "left",
+               "right"
+              ],
+              "missing": [
+               "left",
+               "right"
+              ],
+              "children": [
+               {
+                "path": "core/new/1/site/compound/columns-in-full/left",
+                "name": "left",
+                "readme": false,
+                "index": false,
+                "children_dirs": [
+                 "deeper"
+                ],
+                "missing": [
+                 "deeper"
+                ],
+                "children": [
+                 {
+                  "path": "core/new/1/site/compound/columns-in-full/left/deeper",
+                  "name": "deeper",
+                  "readme": false,
+                  "index": false,
+                  "children_dirs": [],
+                  "missing": [],
+                  "children": [],
+                  "mark": "✗"
+                 }
+                ],
+                "mark": "✗"
+               },
+               {
+                "path": "core/new/1/site/compound/columns-in-full/right",
+                "name": "right",
+                "readme": false,
+                "index": false,
+                "children_dirs": [],
+                "missing": [],
+                "children": [],
+                "mark": "✗"
+               }
+              ],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/compound/crumbs",
+              "name": "crumbs",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/compound/drilling-tabs",
+              "name": "drilling-tabs",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/compound/master-detail",
+              "name": "master-detail",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/compound/overlay",
+              "name": "overlay",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/compound/steps",
+              "name": "steps",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/compound/tabs-in-a-column",
+              "name": "tabs-in-a-column",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/compound/three-layers",
+              "name": "three-layers",
+              "readme": false,
+              "index": false,
+              "children_dirs": [
+               "left",
+               "right"
+              ],
+              "missing": [
+               "left",
+               "right"
+              ],
+              "children": [
+               {
+                "path": "core/new/1/site/compound/three-layers/left",
+                "name": "left",
+                "readme": false,
+                "index": false,
+                "children_dirs": [],
+                "missing": [],
+                "children": [],
+                "mark": "✗"
+               },
+               {
+                "path": "core/new/1/site/compound/three-layers/right",
+                "name": "right",
+                "readme": false,
+                "index": false,
+                "children_dirs": [],
+                "missing": [],
+                "children": [],
+                "mark": "✗"
+               }
+              ],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/compound/tree-from-route",
+              "name": "tree-from-route",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/compound/two-bars",
+              "name": "two-bars",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             }
+            ],
+            "mark": "✗"
+           },
+           {
+            "path": "core/new/1/site/content",
+            "name": "content",
+            "readme": false,
+            "index": false,
+            "children_dirs": [
+             "article",
+             "blog",
+             "book",
+             "index",
+             "order",
+             "search",
+             "tags",
+             "toc"
+            ],
+            "missing": [
+             "article",
+             "blog",
+             "book",
+             "index",
+             "order",
+             "search",
+             "tags",
+             "toc"
+            ],
+            "children": [
+             {
+              "path": "core/new/1/site/content/article",
+              "name": "article",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/content/blog",
+              "name": "blog",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/content/book",
+              "name": "book",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/content/index",
+              "name": "index",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/content/order",
+              "name": "order",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/content/search",
+              "name": "search",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/content/tags",
+              "name": "tags",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/content/toc",
+              "name": "toc",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             }
+            ],
+            "mark": "✗"
+           },
+           {
+            "path": "core/new/1/site/council",
+            "name": "council",
+            "readme": false,
+            "index": false,
+            "children_dirs": [
+             "a11y",
+             "async",
+             "chrome",
+             "content",
+             "eric",
+             "forms",
+             "librarian",
+             "motion",
+             "patterns",
+             "perf",
+             "steve",
+             "tim",
+             "urls",
+             "versus"
+            ],
+            "missing": [
+             "a11y",
+             "async",
+             "chrome",
+             "content",
+             "eric",
+             "forms",
+             "librarian",
+             "motion",
+             "patterns",
+             "perf",
+             "steve",
+             "tim",
+             "urls",
+             "versus"
+            ],
+            "children": [
+             {
+              "path": "core/new/1/site/council/a11y",
+              "name": "a11y",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/council/async",
+              "name": "async",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/council/chrome",
+              "name": "chrome",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/council/content",
+              "name": "content",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/council/eric",
+              "name": "eric",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/council/forms",
+              "name": "forms",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/council/librarian",
+              "name": "librarian",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/council/motion",
+              "name": "motion",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/council/patterns",
+              "name": "patterns",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/council/perf",
+              "name": "perf",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/council/steve",
+              "name": "steve",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/council/tim",
+              "name": "tim",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/council/urls",
+              "name": "urls",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/council/versus",
+              "name": "versus",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             }
+            ],
+            "mark": "✗"
+           },
+           {
+            "path": "core/new/1/site/deep",
+            "name": "deep",
+            "readme": false,
+            "index": false,
+            "children_dirs": [
+             "alias",
+             "chrome",
+             "edges",
+             "errors",
+             "gap",
+             "history",
+             "nav",
+             "nesting",
+             "orphan",
+             "race",
+             "scale",
+             "state"
+            ],
+            "missing": [
+             "alias",
+             "chrome",
+             "edges",
+             "errors",
+             "gap",
+             "history",
+             "nav",
+             "nesting",
+             "orphan",
+             "race",
+             "scale",
+             "state"
+            ],
+            "children": [
+             {
+              "path": "core/new/1/site/deep/alias",
+              "name": "alias",
+              "readme": false,
+              "index": false,
+              "children_dirs": [
+               "view"
+              ],
+              "missing": [
+               "view"
+              ],
+              "children": [
+               {
+                "path": "core/new/1/site/deep/alias/view",
+                "name": "view",
+                "readme": false,
+                "index": false,
+                "children_dirs": [],
+                "missing": [],
+                "children": [],
+                "mark": "✗"
+               }
+              ],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/deep/chrome",
+              "name": "chrome",
+              "readme": false,
+              "index": false,
+              "children_dirs": [
+               "sealed"
+              ],
+              "missing": [
+               "sealed"
+              ],
+              "children": [
+               {
+                "path": "core/new/1/site/deep/chrome/sealed",
+                "name": "sealed",
+                "readme": false,
+                "index": false,
+                "children_dirs": [],
+                "missing": [],
+                "children": [],
+                "mark": "✗"
+               }
+              ],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/deep/edges",
+              "name": "edges",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/deep/errors",
+              "name": "errors",
+              "readme": false,
+              "index": false,
+              "children_dirs": [
+               "badimport",
+               "boom"
+              ],
+              "missing": [
+               "badimport",
+               "boom"
+              ],
+              "children": [
+               {
+                "path": "core/new/1/site/deep/errors/badimport",
+                "name": "badimport",
+                "readme": false,
+                "index": false,
+                "children_dirs": [],
+                "missing": [],
+                "children": [],
+                "mark": "✗"
+               },
+               {
+                "path": "core/new/1/site/deep/errors/boom",
+                "name": "boom",
+                "readme": false,
+                "index": false,
+                "children_dirs": [],
+                "missing": [],
+                "children": [],
+                "mark": "✗"
+               }
+              ],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/deep/gap",
+              "name": "gap",
+              "readme": false,
+              "index": false,
+              "children_dirs": [
+               "eager"
+              ],
+              "missing": [
+               "eager"
+              ],
+              "children": [
+               {
+                "path": "core/new/1/site/deep/gap/eager",
+                "name": "eager",
+                "readme": false,
+                "index": false,
+                "children_dirs": [],
+                "missing": [],
+                "children": [],
+                "mark": "✗"
+               }
+              ],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/deep/history",
+              "name": "history",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/deep/nav",
+              "name": "nav",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/deep/nesting",
+              "name": "nesting",
+              "readme": false,
+              "index": false,
+              "children_dirs": [
+               "a"
+              ],
+              "missing": [
+               "a"
+              ],
+              "children": [
+               {
+                "path": "core/new/1/site/deep/nesting/a",
+                "name": "a",
+                "readme": false,
+                "index": false,
+                "children_dirs": [
+                 "b"
+                ],
+                "missing": [
+                 "b"
+                ],
+                "children": [
+                 {
+                  "path": "core/new/1/site/deep/nesting/a/b",
+                  "name": "b",
+                  "readme": false,
+                  "index": false,
+                  "children_dirs": [
+                   "c"
+                  ],
+                  "missing": [
+                   "c"
+                  ],
+                  "children": [
+                   {
+                    "path": "core/new/1/site/deep/nesting/a/b/c",
+                    "name": "c",
+                    "readme": false,
+                    "index": false,
+                    "children_dirs": [
+                     "d"
+                    ],
+                    "missing": [
+                     "d"
+                    ],
+                    "children": [
+                     {
+                      "path": "core/new/1/site/deep/nesting/a/b/c/d",
+                      "name": "d",
+                      "readme": false,
+                      "index": false,
+                      "children_dirs": [
+                       "e",
+                       "e2"
+                      ],
+                      "missing": [
+                       "e",
+                       "e2"
+                      ],
+                      "children": [
+                       {
+                        "path": "core/new/1/site/deep/nesting/a/b/c/d/e",
+                        "name": "e",
+                        "readme": false,
+                        "index": false,
+                        "children_dirs": [],
+                        "missing": [],
+                        "children": [],
+                        "mark": "✗"
+                       },
+                       {
+                        "path": "core/new/1/site/deep/nesting/a/b/c/d/e2",
+                        "name": "e2",
+                        "readme": false,
+                        "index": false,
+                        "children_dirs": [],
+                        "missing": [],
+                        "children": [],
+                        "mark": "✗"
+                       }
+                      ],
+                      "mark": "✗"
+                     }
+                    ],
+                    "mark": "✗"
+                   }
+                  ],
+                  "mark": "✗"
+                 }
+                ],
+                "mark": "✗"
+               }
+              ],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/deep/orphan",
+              "name": "orphan",
+              "readme": false,
+              "index": false,
+              "children_dirs": [
+               "lonely",
+               "region"
+              ],
+              "missing": [
+               "lonely",
+               "region"
+              ],
+              "children": [
+               {
+                "path": "core/new/1/site/deep/orphan/lonely",
+                "name": "lonely",
+                "readme": false,
+                "index": false,
+                "children_dirs": [],
+                "missing": [],
+                "children": [],
+                "mark": "✗"
+               },
+               {
+                "path": "core/new/1/site/deep/orphan/region",
+                "name": "region",
+                "readme": false,
+                "index": false,
+                "children_dirs": [
+                 "inner"
+                ],
+                "missing": [
+                 "inner"
+                ],
+                "children": [
+                 {
+                  "path": "core/new/1/site/deep/orphan/region/inner",
+                  "name": "inner",
+                  "readme": false,
+                  "index": false,
+                  "children_dirs": [],
+                  "missing": [],
+                  "children": [],
+                  "mark": "✗"
+                 }
+                ],
+                "mark": "✗"
+               }
+              ],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/deep/race",
+              "name": "race",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/deep/scale",
+              "name": "scale",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/deep/state",
+              "name": "state",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             }
+            ],
+            "mark": "✗"
+           },
+           {
+            "path": "core/new/1/site/dynamic",
+            "name": "dynamic",
+            "readme": false,
+            "index": false,
+            "children_dirs": [],
+            "missing": [],
+            "children": [],
+            "mark": "✗"
+           },
+           {
+            "path": "core/new/1/site/forms",
+            "name": "forms",
+            "readme": false,
+            "index": false,
+            "children_dirs": [
+             "autosave",
+             "exit",
+             "guard",
+             "optimistic",
+             "submit",
+             "survives",
+             "unload",
+             "wizard"
+            ],
+            "missing": [
+             "autosave",
+             "exit",
+             "guard",
+             "optimistic",
+             "submit",
+             "survives",
+             "unload",
+             "wizard"
+            ],
+            "children": [
+             {
+              "path": "core/new/1/site/forms/autosave",
+              "name": "autosave",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/forms/exit",
+              "name": "exit",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/forms/guard",
+              "name": "guard",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/forms/optimistic",
+              "name": "optimistic",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/forms/submit",
+              "name": "submit",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/forms/survives",
+              "name": "survives",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/forms/unload",
+              "name": "unload",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/forms/wizard",
+              "name": "wizard",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             }
+            ],
+            "mark": "✗"
+           },
+           {
+            "path": "core/new/1/site/full",
+            "name": "full",
+            "readme": false,
+            "index": false,
+            "children_dirs": [
+             "left",
+             "right"
+            ],
+            "missing": [
+             "left",
+             "right"
+            ],
+            "children": [
+             {
+              "path": "core/new/1/site/full/left",
+              "name": "left",
+              "readme": false,
+              "index": false,
+              "children_dirs": [
+               "deeper"
+              ],
+              "missing": [
+               "deeper"
+              ],
+              "children": [
+               {
+                "path": "core/new/1/site/full/left/deeper",
+                "name": "deeper",
+                "readme": false,
+                "index": false,
+                "children_dirs": [],
+                "missing": [],
+                "children": [],
+                "mark": "✗"
+               }
+              ],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/full/right",
+              "name": "right",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             }
+            ],
+            "mark": "✗"
+           },
+           {
+            "path": "core/new/1/site/kit",
+            "name": "kit",
+            "readme": false,
+            "index": false,
+            "children_dirs": [],
+            "missing": [],
+            "children": [],
+            "mark": "✗"
+           },
+           {
+            "path": "core/new/1/site/library",
+            "name": "library",
+            "readme": false,
+            "index": false,
+            "children_dirs": [],
+            "missing": [],
+            "children": [],
+            "mark": "✗"
+           },
+           {
+            "path": "core/new/1/site/motion",
+            "name": "motion",
+            "readme": false,
+            "index": false,
+            "children_dirs": [
+             "arrangements",
+             "baseline",
+             "direction",
+             "discrete",
+             "head-start",
+             "reduced",
+             "release",
+             "view-transitions"
+            ],
+            "missing": [
+             "arrangements",
+             "baseline",
+             "direction",
+             "discrete",
+             "head-start",
+             "reduced",
+             "release",
+             "view-transitions"
+            ],
+            "children": [
+             {
+              "path": "core/new/1/site/motion/arrangements",
+              "name": "arrangements",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/motion/baseline",
+              "name": "baseline",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/motion/direction",
+              "name": "direction",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/motion/discrete",
+              "name": "discrete",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/motion/head-start",
+              "name": "head-start",
+              "readme": false,
+              "index": false,
+              "children_dirs": [
+               "slow"
+              ],
+              "missing": [
+               "slow"
+              ],
+              "children": [
+               {
+                "path": "core/new/1/site/motion/head-start/slow",
+                "name": "slow",
+                "readme": false,
+                "index": false,
+                "children_dirs": [],
+                "missing": [],
+                "children": [],
+                "mark": "✗"
+               }
+              ],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/motion/reduced",
+              "name": "reduced",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/motion/release",
+              "name": "release",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/motion/view-transitions",
+              "name": "view-transitions",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             }
+            ],
+            "mark": "✗"
+           },
+           {
+            "path": "core/new/1/site/mutation",
+            "name": "mutation",
+            "readme": false,
+            "index": false,
+            "children_dirs": [
+             "autosave",
+             "concurrent",
+             "outliving",
+             "recovery",
+             "undo"
+            ],
+            "missing": [
+             "autosave",
+             "concurrent",
+             "outliving",
+             "recovery",
+             "undo"
+            ],
+            "children": [
+             {
+              "path": "core/new/1/site/mutation/autosave",
+              "name": "autosave",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/mutation/concurrent",
+              "name": "concurrent",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/mutation/outliving",
+              "name": "outliving",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/mutation/recovery",
+              "name": "recovery",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/mutation/undo",
+              "name": "undo",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             }
+            ],
+            "mark": "✗"
+           },
+           {
+            "path": "core/new/1/site/nav",
+            "name": "nav",
+            "readme": false,
+            "index": false,
+            "children_dirs": [
+             "cards",
+             "chain",
+             "children",
+             "cols",
+             "container",
+             "dynamic",
+             "full",
+             "inline",
+             "links",
+             "naming",
+             "replace",
+             "tabs"
+            ],
+            "missing": [
+             "cards",
+             "chain",
+             "children",
+             "cols",
+             "container",
+             "dynamic",
+             "full",
+             "inline",
+             "links",
+             "naming",
+             "replace",
+             "tabs"
+            ],
+            "children": [
+             {
+              "path": "core/new/1/site/nav/cards",
+              "name": "cards",
+              "readme": false,
+              "index": false,
+              "children_dirs": [
+               "one",
+               "two"
+              ],
+              "missing": [
+               "one",
+               "two"
+              ],
+              "children": [
+               {
+                "path": "core/new/1/site/nav/cards/one",
+                "name": "one",
+                "readme": false,
+                "index": false,
+                "children_dirs": [],
+                "missing": [],
+                "children": [],
+                "mark": "✗"
+               },
+               {
+                "path": "core/new/1/site/nav/cards/two",
+                "name": "two",
+                "readme": false,
+                "index": false,
+                "children_dirs": [],
+                "missing": [],
+                "children": [],
+                "mark": "✗"
+               }
+              ],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/nav/chain",
+              "name": "chain",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/nav/children",
+              "name": "children",
+              "readme": false,
+              "index": false,
+              "children_dirs": [
+               "eager",
+               "lazy"
+              ],
+              "missing": [
+               "eager",
+               "lazy"
+              ],
+              "children": [
+               {
+                "path": "core/new/1/site/nav/children/eager",
+                "name": "eager",
+                "readme": false,
+                "index": false,
+                "children_dirs": [],
+                "missing": [],
+                "children": [],
+                "mark": "✗"
+               },
+               {
+                "path": "core/new/1/site/nav/children/lazy",
+                "name": "lazy",
+                "readme": false,
+                "index": false,
+                "children_dirs": [],
+                "missing": [],
+                "children": [],
+                "mark": "✗"
+               }
+              ],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/nav/cols",
+              "name": "cols",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/nav/container",
+              "name": "container",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/nav/dynamic",
+              "name": "dynamic",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/nav/full",
+              "name": "full",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/nav/inline",
+              "name": "inline",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/nav/links",
+              "name": "links",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/nav/naming",
+              "name": "naming",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/nav/replace",
+              "name": "replace",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/nav/tabs",
+              "name": "tabs",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             }
+            ],
+            "mark": "✗"
+           },
+           {
+            "path": "core/new/1/site/patterns",
+            "name": "patterns",
+            "readme": false,
+            "index": false,
+            "children_dirs": [
+             "api",
+             "dashboard",
+             "docs",
+             "gallery",
+             "onboarding",
+             "settings",
+             "shop",
+             "wiki"
+            ],
+            "missing": [
+             "api",
+             "dashboard",
+             "docs",
+             "gallery",
+             "onboarding",
+             "settings",
+             "shop",
+             "wiki"
+            ],
+            "children": [
+             {
+              "path": "core/new/1/site/patterns/api",
+              "name": "api",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/patterns/dashboard",
+              "name": "dashboard",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/patterns/docs",
+              "name": "docs",
+              "readme": false,
+              "index": false,
+              "children_dirs": [
+               "guide",
+               "reference",
+               "tutorials"
+              ],
+              "missing": [
+               "guide",
+               "reference",
+               "tutorials"
+              ],
+              "children": [
+               {
+                "path": "core/new/1/site/patterns/docs/guide",
+                "name": "guide",
+                "readme": false,
+                "index": false,
+                "children_dirs": [
+                 "concepts",
+                 "install"
+                ],
+                "missing": [
+                 "concepts",
+                 "install"
+                ],
+                "children": [
+                 {
+                  "path": "core/new/1/site/patterns/docs/guide/concepts",
+                  "name": "concepts",
+                  "readme": false,
+                  "index": false,
+                  "children_dirs": [
+                   "batches",
+                   "fan-out"
+                  ],
+                  "missing": [
+                   "batches",
+                   "fan-out"
+                  ],
+                  "children": [
+                   {
+                    "path": "core/new/1/site/patterns/docs/guide/concepts/batches",
+                    "name": "batches",
+                    "readme": false,
+                    "index": false,
+                    "children_dirs": [],
+                    "missing": [],
+                    "children": [],
+                    "mark": "✗"
+                   },
+                   {
+                    "path": "core/new/1/site/patterns/docs/guide/concepts/fan-out",
+                    "name": "fan-out",
+                    "readme": false,
+                    "index": false,
+                    "children_dirs": [],
+                    "missing": [],
+                    "children": [],
+                    "mark": "✗"
+                   }
+                  ],
+                  "mark": "✗"
+                 },
+                 {
+                  "path": "core/new/1/site/patterns/docs/guide/install",
+                  "name": "install",
+                  "readme": false,
+                  "index": false,
+                  "children_dirs": [],
+                  "missing": [],
+                  "children": [],
+                  "mark": "✗"
+                 }
+                ],
+                "mark": "✗"
+               },
+               {
+                "path": "core/new/1/site/patterns/docs/reference",
+                "name": "reference",
+                "readme": false,
+                "index": false,
+                "children_dirs": [],
+                "missing": [],
+                "children": [],
+                "mark": "✗"
+               },
+               {
+                "path": "core/new/1/site/patterns/docs/tutorials",
+                "name": "tutorials",
+                "readme": false,
+                "index": false,
+                "children_dirs": [],
+                "missing": [],
+                "children": [],
+                "mark": "✗"
+               }
+              ],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/patterns/gallery",
+              "name": "gallery",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/patterns/onboarding",
+              "name": "onboarding",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/patterns/settings",
+              "name": "settings",
+              "readme": false,
+              "index": false,
+              "children_dirs": [
+               "notifications"
+              ],
+              "missing": [
+               "notifications"
+              ],
+              "children": [
+               {
+                "path": "core/new/1/site/patterns/settings/notifications",
+                "name": "notifications",
+                "readme": false,
+                "index": false,
+                "children_dirs": [],
+                "missing": [],
+                "children": [],
+                "mark": "✗"
+               }
+              ],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/patterns/shop",
+              "name": "shop",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/patterns/wiki",
+              "name": "wiki",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             }
+            ],
+            "mark": "✗"
+           },
+           {
+            "path": "core/new/1/site/perf",
+            "name": "perf",
+            "readme": false,
+            "index": false,
+            "children_dirs": [
+             "css",
+             "hidden",
+             "lazy",
+             "mark",
+             "memo",
+             "paint",
+             "prefetch",
+             "walk"
+            ],
+            "missing": [
+             "css",
+             "hidden",
+             "lazy",
+             "mark",
+             "memo",
+             "paint",
+             "prefetch",
+             "walk"
+            ],
+            "children": [
+             {
+              "path": "core/new/1/site/perf/css",
+              "name": "css",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/perf/hidden",
+              "name": "hidden",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/perf/lazy",
+              "name": "lazy",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/perf/mark",
+              "name": "mark",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/perf/memo",
+              "name": "memo",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/perf/paint",
+              "name": "paint",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/perf/prefetch",
+              "name": "prefetch",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/perf/walk",
+              "name": "walk",
+              "readme": false,
+              "index": false,
+              "children_dirs": [
+               "a"
+              ],
+              "missing": [
+               "a"
+              ],
+              "children": [
+               {
+                "path": "core/new/1/site/perf/walk/a",
+                "name": "a",
+                "readme": false,
+                "index": false,
+                "children_dirs": [
+                 "b"
+                ],
+                "missing": [
+                 "b"
+                ],
+                "children": [
+                 {
+                  "path": "core/new/1/site/perf/walk/a/b",
+                  "name": "b",
+                  "readme": false,
+                  "index": false,
+                  "children_dirs": [
+                   "c"
+                  ],
+                  "missing": [
+                   "c"
+                  ],
+                  "children": [
+                   {
+                    "path": "core/new/1/site/perf/walk/a/b/c",
+                    "name": "c",
+                    "readme": false,
+                    "index": false,
+                    "children_dirs": [
+                     "d"
+                    ],
+                    "missing": [
+                     "d"
+                    ],
+                    "children": [
+                     {
+                      "path": "core/new/1/site/perf/walk/a/b/c/d",
+                      "name": "d",
+                      "readme": false,
+                      "index": false,
+                      "children_dirs": [
+                       "e"
+                      ],
+                      "missing": [
+                       "e"
+                      ],
+                      "children": [
+                       {
+                        "path": "core/new/1/site/perf/walk/a/b/c/d/e",
+                        "name": "e",
+                        "readme": false,
+                        "index": false,
+                        "children_dirs": [],
+                        "missing": [],
+                        "children": [],
+                        "mark": "✗"
+                       }
+                      ],
+                      "mark": "✗"
+                     }
+                    ],
+                    "mark": "✗"
+                   }
+                  ],
+                  "mark": "✗"
+                 }
+                ],
+                "mark": "✗"
+               }
+              ],
+              "mark": "✗"
+             }
+            ],
+            "mark": "✗"
+           },
+           {
+            "path": "core/new/1/site/replace",
+            "name": "replace",
+            "readme": false,
+            "index": false,
+            "children_dirs": [
+             "child"
+            ],
+            "missing": [
+             "child"
+            ],
+            "children": [
+             {
+              "path": "core/new/1/site/replace/child",
+              "name": "child",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             }
+            ],
+            "mark": "✗"
+           },
+           {
+            "path": "core/new/1/site/sitemap",
+            "name": "sitemap",
+            "readme": false,
+            "index": false,
+            "children_dirs": [
+             "canonical",
+             "links",
+             "rule-one"
+            ],
+            "missing": [
+             "canonical",
+             "links",
+             "rule-one"
+            ],
+            "children": [
+             {
+              "path": "core/new/1/site/sitemap/canonical",
+              "name": "canonical",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/sitemap/links",
+              "name": "links",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/sitemap/rule-one",
+              "name": "rule-one",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             }
+            ],
+            "mark": "✗"
+           },
+           {
+            "path": "core/new/1/site/start",
+            "name": "start",
+            "readme": false,
+            "index": false,
+            "children_dirs": [
+             "cols",
+             "files",
+             "lazy",
+             "links",
+             "next",
+             "second",
+             "tree"
+            ],
+            "missing": [
+             "cols",
+             "files",
+             "lazy",
+             "links",
+             "next",
+             "second",
+             "tree"
+            ],
+            "children": [
+             {
+              "path": "core/new/1/site/start/cols",
+              "name": "cols",
+              "readme": false,
+              "index": false,
+              "children_dirs": [
+               "left",
+               "right"
+              ],
+              "missing": [
+               "left",
+               "right"
+              ],
+              "children": [
+               {
+                "path": "core/new/1/site/start/cols/left",
+                "name": "left",
+                "readme": false,
+                "index": false,
+                "children_dirs": [],
+                "missing": [],
+                "children": [],
+                "mark": "✗"
+               },
+               {
+                "path": "core/new/1/site/start/cols/right",
+                "name": "right",
+                "readme": false,
+                "index": false,
+                "children_dirs": [],
+                "missing": [],
+                "children": [],
+                "mark": "✗"
+               }
+              ],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/start/files",
+              "name": "files",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/start/lazy",
+              "name": "lazy",
+              "readme": false,
+              "index": false,
+              "children_dirs": [
+               "one",
+               "two"
+              ],
+              "missing": [
+               "one",
+               "two"
+              ],
+              "children": [
+               {
+                "path": "core/new/1/site/start/lazy/one",
+                "name": "one",
+                "readme": false,
+                "index": false,
+                "children_dirs": [],
+                "missing": [],
+                "children": [],
+                "mark": "✗"
+               },
+               {
+                "path": "core/new/1/site/start/lazy/two",
+                "name": "two",
+                "readme": false,
+                "index": false,
+                "children_dirs": [],
+                "missing": [],
+                "children": [],
+                "mark": "✗"
+               }
+              ],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/start/links",
+              "name": "links",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/start/next",
+              "name": "next",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/start/second",
+              "name": "second",
+              "readme": false,
+              "index": false,
+              "children_dirs": [
+               "ghost"
+              ],
+              "missing": [
+               "ghost"
+              ],
+              "children": [
+               {
+                "path": "core/new/1/site/start/second/ghost",
+                "name": "ghost",
+                "readme": false,
+                "index": false,
+                "children_dirs": [],
+                "missing": [],
+                "children": [],
+                "mark": "✗"
+               }
+              ],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/start/tree",
+              "name": "tree",
+              "readme": false,
+              "index": false,
+              "children_dirs": [
+               "deep"
+              ],
+              "missing": [
+               "deep"
+              ],
+              "children": [
+               {
+                "path": "core/new/1/site/start/tree/deep",
+                "name": "deep",
+                "readme": false,
+                "index": false,
+                "children_dirs": [],
+                "missing": [],
+                "children": [],
+                "mark": "✗"
+               }
+              ],
+              "mark": "✗"
+             }
+            ],
+            "mark": "✗"
+           },
+           {
+            "path": "core/new/1/site/state",
+            "name": "state",
+            "readme": false,
+            "index": false,
+            "children_dirs": [
+             "accident",
+             "scroll",
+             "shared",
+             "stale",
+             "stores"
+            ],
+            "missing": [
+             "accident",
+             "scroll",
+             "shared",
+             "stale",
+             "stores"
+            ],
+            "children": [
+             {
+              "path": "core/new/1/site/state/accident",
+              "name": "accident",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/state/scroll",
+              "name": "scroll",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/state/shared",
+              "name": "shared",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/state/stale",
+              "name": "stale",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/state/stores",
+              "name": "stores",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             }
+            ],
+            "mark": "✗"
+           },
+           {
+            "path": "core/new/1/site/tabs",
+            "name": "tabs",
+            "readme": false,
+            "index": false,
+            "children_dirs": [
+             "api",
+             "guide",
+             "overview"
+            ],
+            "missing": [
+             "api",
+             "guide",
+             "overview"
+            ],
+            "children": [
+             {
+              "path": "core/new/1/site/tabs/api",
+              "name": "api",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/tabs/guide",
+              "name": "guide",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/tabs/overview",
+              "name": "overview",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             }
+            ],
+            "mark": "✗"
+           },
+           {
+            "path": "core/new/1/site/urls",
+            "name": "urls",
+            "readme": false,
+            "index": false,
+            "children_dirs": [
+             "alias",
+             "dimension",
+             "hash",
+             "query",
+             "schema",
+             "slash",
+             "static",
+             "ugly"
+            ],
+            "missing": [
+             "alias",
+             "dimension",
+             "hash",
+             "query",
+             "schema",
+             "slash",
+             "static",
+             "ugly"
+            ],
+            "children": [
+             {
+              "path": "core/new/1/site/urls/alias",
+              "name": "alias",
+              "readme": false,
+              "index": false,
+              "children_dirs": [
+               "start"
+              ],
+              "missing": [
+               "start"
+              ],
+              "children": [
+               {
+                "path": "core/new/1/site/urls/alias/start",
+                "name": "start",
+                "readme": false,
+                "index": false,
+                "children_dirs": [],
+                "missing": [],
+                "children": [],
+                "mark": "✗"
+               }
+              ],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/urls/dimension",
+              "name": "dimension",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/urls/hash",
+              "name": "hash",
+              "readme": false,
+              "index": false,
+              "children_dirs": [
+               "long"
+              ],
+              "missing": [
+               "long"
+              ],
+              "children": [
+               {
+                "path": "core/new/1/site/urls/hash/long",
+                "name": "long",
+                "readme": false,
+                "index": false,
+                "children_dirs": [],
+                "missing": [],
+                "children": [],
+                "mark": "✗"
+               }
+              ],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/urls/query",
+              "name": "query",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/urls/schema",
+              "name": "schema",
+              "readme": false,
+              "index": false,
+              "children_dirs": [
+               "inverse"
+              ],
+              "missing": [
+               "inverse"
+              ],
+              "children": [
+               {
+                "path": "core/new/1/site/urls/schema/inverse",
+                "name": "inverse",
+                "readme": false,
+                "index": false,
+                "children_dirs": [],
+                "missing": [],
+                "children": [],
+                "mark": "✗"
+               }
+              ],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/urls/slash",
+              "name": "slash",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/urls/static",
+              "name": "static",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/urls/ugly",
+              "name": "ugly",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             }
+            ],
+            "mark": "✗"
+           },
+           {
+            "path": "core/new/1/site/versus",
+            "name": "versus",
+            "readme": false,
+            "index": false,
+            "children_dirs": [
+             "container",
+             "council",
+             "css",
+             "field",
+             "lineage",
+             "lines",
+             "pager",
+             "verdict"
+            ],
+            "missing": [
+             "container",
+             "council",
+             "css",
+             "field",
+             "lineage",
+             "lines",
+             "pager",
+             "verdict"
+            ],
+            "children": [
+             {
+              "path": "core/new/1/site/versus/container",
+              "name": "container",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/versus/council",
+              "name": "council",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/versus/css",
+              "name": "css",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/versus/field",
+              "name": "field",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/versus/lineage",
+              "name": "lineage",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/versus/lines",
+              "name": "lines",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/versus/pager",
+              "name": "pager",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             },
+             {
+              "path": "core/new/1/site/versus/verdict",
+              "name": "verdict",
+              "readme": false,
+              "index": false,
+              "children_dirs": [],
+              "missing": [],
+              "children": [],
+              "mark": "✗"
+             }
+            ],
+            "mark": "✗"
+           }
+          ],
+          "mark": "✗"
+         }
+        ],
+        "mark": "~"
+       }
+      ],
+      "mark": "✓"
+     }
+    ],
+    "mark": "✓"
+   },
+   {
+    "path": "dev",
+    "name": "dev",
+    "readme": true,
+    "index": true,
+    "children_dirs": [
+     "Claim",
+     "DevBar",
+     "Socket"
+    ],
+    "missing": [],
+    "children": [
+     {
+      "path": "dev/Claim",
+      "name": "Claim",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "dev/DevBar",
+      "name": "DevBar",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "dev/Socket",
+      "name": "Socket",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     }
+    ],
+    "mark": "✓"
+   },
+   {
+    "path": "ext",
+    "name": "ext",
+    "readme": true,
+    "index": true,
+    "children_dirs": [
+     "AITask",
+     "Ask",
+     "CSSDoc",
+     "Chat",
+     "DesignTool",
+     "Doc",
+     "Draggable",
+     "Dropdown",
+     "JSONL",
+     "Omnibox",
+     "Panel",
+     "Research",
+     "Saver",
+     "Timeline",
+     "catalog",
+     "demo",
+     "depth",
+     "drawer",
+     "editor",
+     "files",
+     "grip",
+     "highlight",
+     "layout",
+     "markdown",
+     "tabs",
+     "toc"
+    ],
+    "missing": [],
+    "children": [
+     {
+      "path": "ext/AITask",
+      "name": "AITask",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "ext/Ask",
+      "name": "Ask",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "ext/CSSDoc",
+      "name": "CSSDoc",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "ext/Chat",
+      "name": "Chat",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "ext/DesignTool",
+      "name": "DesignTool",
+      "readme": true,
+      "index": true,
+      "children_dirs": [
+       "diff",
+       "journey",
+       "knowledge",
+       "library",
+       "taste",
+       "tests",
+       "vision",
+       "widths"
+      ],
+      "missing": [],
+      "children": [
+       {
+        "path": "ext/DesignTool/diff",
+        "name": "diff",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       },
+       {
+        "path": "ext/DesignTool/journey",
+        "name": "journey",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       },
+       {
+        "path": "ext/DesignTool/knowledge",
+        "name": "knowledge",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       },
+       {
+        "path": "ext/DesignTool/library",
+        "name": "library",
+        "readme": true,
+        "index": false,
+        "children_dirs": [
+         "bad"
+        ],
+        "missing": [
+         "bad"
+        ],
+        "children": [
+         {
+          "path": "ext/DesignTool/library/bad",
+          "name": "bad",
+          "readme": false,
+          "index": false,
+          "children_dirs": [],
+          "missing": [],
+          "children": [],
+          "mark": "✗"
+         }
+        ],
+        "mark": "~"
+       },
+       {
+        "path": "ext/DesignTool/taste",
+        "name": "taste",
+        "readme": true,
+        "index": false,
+        "children_dirs": [
+         "corpus"
+        ],
+        "missing": [
+         "corpus"
+        ],
+        "children": [
+         {
+          "path": "ext/DesignTool/taste/corpus",
+          "name": "corpus",
+          "readme": false,
+          "index": false,
+          "children_dirs": [],
+          "missing": [],
+          "children": [],
+          "mark": "✗"
+         }
+        ],
+        "mark": "~"
+       },
+       {
+        "path": "ext/DesignTool/tests",
+        "name": "tests",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       },
+       {
+        "path": "ext/DesignTool/vision",
+        "name": "vision",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       },
+       {
+        "path": "ext/DesignTool/widths",
+        "name": "widths",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       }
+      ],
+      "mark": "✓"
+     },
+     {
+      "path": "ext/Doc",
+      "name": "Doc",
+      "readme": true,
+      "index": true,
+      "children_dirs": [
+       "overview"
+      ],
+      "missing": [],
+      "children": [
+       {
+        "path": "ext/Doc/overview",
+        "name": "overview",
+        "readme": true,
+        "index": false,
+        "children_dirs": [
+         "urls"
+        ],
+        "missing": [
+         "urls"
+        ],
+        "children": [
+         {
+          "path": "ext/Doc/overview/urls",
+          "name": "urls",
+          "readme": false,
+          "index": false,
+          "children_dirs": [],
+          "missing": [],
+          "children": [],
+          "mark": "✗"
+         }
+        ],
+        "mark": "~"
+       }
+      ],
+      "mark": "✓"
+     },
+     {
+      "path": "ext/Draggable",
+      "name": "Draggable",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "ext/Dropdown",
+      "name": "Dropdown",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "ext/JSONL",
+      "name": "JSONL",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "ext/Omnibox",
+      "name": "Omnibox",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "ext/Panel",
+      "name": "Panel",
+      "readme": true,
+      "index": true,
+      "children_dirs": [
+       "Workspace",
+       "demo",
+       "playground"
+      ],
+      "missing": [
+       "demo"
+      ],
+      "children": [
+       {
+        "path": "ext/Panel/Workspace",
+        "name": "Workspace",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       },
+       {
+        "path": "ext/Panel/demo",
+        "name": "demo",
+        "readme": false,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "✗"
+       },
+       {
+        "path": "ext/Panel/playground",
+        "name": "playground",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       }
+      ],
+      "mark": "✓"
+     },
+     {
+      "path": "ext/Research",
+      "name": "Research",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "ext/Saver",
+      "name": "Saver",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "ext/Timeline",
+      "name": "Timeline",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "ext/catalog",
+      "name": "catalog",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "ext/demo",
+      "name": "demo",
+      "readme": true,
+      "index": true,
+      "children_dirs": [
+       "shell"
+      ],
+      "missing": [],
+      "children": [
+       {
+        "path": "ext/demo/shell",
+        "name": "shell",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       }
+      ],
+      "mark": "✓"
+     },
+     {
+      "path": "ext/depth",
+      "name": "depth",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "ext/drawer",
+      "name": "drawer",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "ext/editor",
+      "name": "editor",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "ext/files",
+      "name": "files",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "ext/grip",
+      "name": "grip",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "ext/highlight",
+      "name": "highlight",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "ext/layout",
+      "name": "layout",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "ext/markdown",
+      "name": "markdown",
+      "readme": true,
+      "index": true,
+      "children_dirs": [
+       "open"
+      ],
+      "missing": [],
+      "children": [
+       {
+        "path": "ext/markdown/open",
+        "name": "open",
+        "readme": true,
+        "index": false,
+        "children_dirs": [
+         "columns"
+        ],
+        "missing": [
+         "columns"
+        ],
+        "children": [
+         {
+          "path": "ext/markdown/open/columns",
+          "name": "columns",
+          "readme": false,
+          "index": false,
+          "children_dirs": [],
+          "missing": [],
+          "children": [],
+          "mark": "✗"
+         }
+        ],
+        "mark": "~"
+       }
+      ],
+      "mark": "✓"
+     },
+     {
+      "path": "ext/tabs",
+      "name": "tabs",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "ext/toc",
+      "name": "toc",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     }
+    ],
+    "mark": "✓"
+   },
+   {
+    "path": "faq",
+    "name": "faq",
+    "readme": true,
+    "index": false,
+    "children_dirs": [],
+    "missing": [],
+    "children": [],
+    "mark": "~"
+   },
+   {
+    "path": "start",
+    "name": "start",
+    "readme": true,
+    "index": true,
+    "children_dirs": [
+     "example"
+    ],
+    "missing": [],
+    "children": [
+     {
+      "path": "start/example",
+      "name": "example",
+      "readme": true,
+      "index": false,
+      "children_dirs": [
+       "about"
+      ],
+      "missing": [
+       "about"
+      ],
+      "children": [
+       {
+        "path": "start/example/about",
+        "name": "about",
+        "readme": false,
+        "index": false,
+        "children_dirs": [
+         "team"
+        ],
+        "missing": [
+         "team"
+        ],
+        "children": [
+         {
+          "path": "start/example/about/team",
+          "name": "team",
+          "readme": false,
+          "index": false,
+          "children_dirs": [],
+          "missing": [],
+          "children": [],
+          "mark": "✗"
+         }
+        ],
+        "mark": "✗"
+       }
+      ],
+      "mark": "~"
+     }
+    ],
+    "mark": "✓"
+   },
+   {
+    "path": "styles",
+    "name": "styles",
+    "readme": true,
+    "index": true,
+    "children_dirs": [
+     "elements",
+     "layers",
+     "layouts",
+     "rules",
+     "sections",
+     "stacks",
+     "system"
+    ],
+    "missing": [],
+    "children": [
+     {
+      "path": "styles/elements",
+      "name": "elements",
+      "readme": true,
+      "index": true,
+      "children_dirs": [
+       "code",
+       "forms",
+       "lists",
+       "media",
+       "misc",
+       "table",
+       "text"
+      ],
+      "missing": [],
+      "children": [
+       {
+        "path": "styles/elements/code",
+        "name": "code",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       },
+       {
+        "path": "styles/elements/forms",
+        "name": "forms",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       },
+       {
+        "path": "styles/elements/lists",
+        "name": "lists",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       },
+       {
+        "path": "styles/elements/media",
+        "name": "media",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       },
+       {
+        "path": "styles/elements/misc",
+        "name": "misc",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       },
+       {
+        "path": "styles/elements/table",
+        "name": "table",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       },
+       {
+        "path": "styles/elements/text",
+        "name": "text",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       }
+      ],
+      "mark": "✓"
+     },
+     {
+      "path": "styles/layers",
+      "name": "layers",
+      "readme": true,
+      "index": true,
+      "children_dirs": [
+       "base",
+       "site",
+       "theme",
+       "util"
+      ],
+      "missing": [],
+      "children": [
+       {
+        "path": "styles/layers/base",
+        "name": "base",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       },
+       {
+        "path": "styles/layers/site",
+        "name": "site",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       },
+       {
+        "path": "styles/layers/theme",
+        "name": "theme",
+        "readme": true,
+        "index": false,
+        "children_dirs": [
+         "guide",
+         "lew42"
+        ],
+        "missing": [
+         "guide",
+         "lew42"
+        ],
+        "children": [
+         {
+          "path": "styles/layers/theme/guide",
+          "name": "guide",
+          "readme": true,
+          "index": false,
+          "children_dirs": [],
+          "missing": [],
+          "children": [],
+          "mark": "~"
+         },
+         {
+          "path": "styles/layers/theme/lew42",
+          "name": "lew42",
+          "readme": true,
+          "index": false,
+          "children_dirs": [],
+          "missing": [],
+          "children": [],
+          "mark": "~"
+         }
+        ],
+        "mark": "~"
+       },
+       {
+        "path": "styles/layers/util",
+        "name": "util",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       }
+      ],
+      "mark": "✓"
+     },
+     {
+      "path": "styles/layouts",
+      "name": "layouts",
+      "readme": true,
+      "index": true,
+      "children_dirs": [
+       "400",
+       "anatomy",
+       "apidoc",
+       "bold-editorial",
+       "carousel",
+       "chat",
+       "cols",
+       "dashboard",
+       "docs",
+       "document",
+       "feed",
+       "fit",
+       "flex",
+       "gallery",
+       "grid",
+       "hero",
+       "home",
+       "landing",
+       "mail",
+       "masonry",
+       "model",
+       "overlay",
+       "pricing",
+       "screens",
+       "set",
+       "shell",
+       "sidebar",
+       "space",
+       "spec",
+       "split",
+       "stack",
+       "toc-studio",
+       "wire"
+      ],
+      "missing": [],
+      "children": [
+       {
+        "path": "styles/layouts/400",
+        "name": "400",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       },
+       {
+        "path": "styles/layouts/anatomy",
+        "name": "anatomy",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       },
+       {
+        "path": "styles/layouts/apidoc",
+        "name": "apidoc",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       },
+       {
+        "path": "styles/layouts/bold-editorial",
+        "name": "bold-editorial",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       },
+       {
+        "path": "styles/layouts/carousel",
+        "name": "carousel",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       },
+       {
+        "path": "styles/layouts/chat",
+        "name": "chat",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       },
+       {
+        "path": "styles/layouts/cols",
+        "name": "cols",
+        "readme": true,
+        "index": true,
+        "children_dirs": [
+         "matrix"
+        ],
+        "missing": [],
+        "children": [
+         {
+          "path": "styles/layouts/cols/matrix",
+          "name": "matrix",
+          "readme": true,
+          "index": false,
+          "children_dirs": [],
+          "missing": [],
+          "children": [],
+          "mark": "~"
+         }
+        ],
+        "mark": "✓"
+       },
+       {
+        "path": "styles/layouts/dashboard",
+        "name": "dashboard",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       },
+       {
+        "path": "styles/layouts/docs",
+        "name": "docs",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       },
+       {
+        "path": "styles/layouts/document",
+        "name": "document",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       },
+       {
+        "path": "styles/layouts/feed",
+        "name": "feed",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       },
+       {
+        "path": "styles/layouts/fit",
+        "name": "fit",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       },
+       {
+        "path": "styles/layouts/flex",
+        "name": "flex",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       },
+       {
+        "path": "styles/layouts/gallery",
+        "name": "gallery",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       },
+       {
+        "path": "styles/layouts/grid",
+        "name": "grid",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       },
+       {
+        "path": "styles/layouts/hero",
+        "name": "hero",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       },
+       {
+        "path": "styles/layouts/home",
+        "name": "home",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       },
+       {
+        "path": "styles/layouts/landing",
+        "name": "landing",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       },
+       {
+        "path": "styles/layouts/mail",
+        "name": "mail",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       },
+       {
+        "path": "styles/layouts/masonry",
+        "name": "masonry",
+        "readme": true,
+        "index": true,
+        "children_dirs": [
+         "packed"
+        ],
+        "missing": [],
+        "children": [
+         {
+          "path": "styles/layouts/masonry/packed",
+          "name": "packed",
+          "readme": true,
+          "index": false,
+          "children_dirs": [],
+          "missing": [],
+          "children": [],
+          "mark": "~"
+         }
+        ],
+        "mark": "✓"
+       },
+       {
+        "path": "styles/layouts/model",
+        "name": "model",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       },
+       {
+        "path": "styles/layouts/overlay",
+        "name": "overlay",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       },
+       {
+        "path": "styles/layouts/pricing",
+        "name": "pricing",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       },
+       {
+        "path": "styles/layouts/screens",
+        "name": "screens",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       },
+       {
+        "path": "styles/layouts/set",
+        "name": "set",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       },
+       {
+        "path": "styles/layouts/shell",
+        "name": "shell",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       },
+       {
+        "path": "styles/layouts/sidebar",
+        "name": "sidebar",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       },
+       {
+        "path": "styles/layouts/space",
+        "name": "space",
+        "readme": true,
+        "index": true,
+        "children_dirs": [
+         "compose",
+         "hunt",
+         "words"
+        ],
+        "missing": [],
+        "children": [
+         {
+          "path": "styles/layouts/space/compose",
+          "name": "compose",
+          "readme": true,
+          "index": false,
+          "children_dirs": [],
+          "missing": [],
+          "children": [],
+          "mark": "~"
+         },
+         {
+          "path": "styles/layouts/space/hunt",
+          "name": "hunt",
+          "readme": true,
+          "index": false,
+          "children_dirs": [],
+          "missing": [],
+          "children": [],
+          "mark": "~"
+         },
+         {
+          "path": "styles/layouts/space/words",
+          "name": "words",
+          "readme": true,
+          "index": false,
+          "children_dirs": [],
+          "missing": [],
+          "children": [],
+          "mark": "~"
+         }
+        ],
+        "mark": "✓"
+       },
+       {
+        "path": "styles/layouts/spec",
+        "name": "spec",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       },
+       {
+        "path": "styles/layouts/split",
+        "name": "split",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       },
+       {
+        "path": "styles/layouts/stack",
+        "name": "stack",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       },
+       {
+        "path": "styles/layouts/toc-studio",
+        "name": "toc-studio",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       },
+       {
+        "path": "styles/layouts/wire",
+        "name": "wire",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       }
+      ],
+      "mark": "✓"
+     },
+     {
+      "path": "styles/rules",
+      "name": "rules",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "styles/sections",
+      "name": "sections",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "styles/stacks",
+      "name": "stacks",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "styles/system",
+      "name": "system",
+      "readme": true,
+      "index": true,
+      "children_dirs": [
+       "studies"
+      ],
+      "missing": [],
+      "children": [
+       {
+        "path": "styles/system/studies",
+        "name": "studies",
+        "readme": true,
+        "index": true,
+        "children_dirs": [
+         "color",
+         "lists",
+         "padding",
+         "scale",
+         "size",
+         "spacing",
+         "system",
+         "themes",
+         "type",
+         "vocabulary"
+        ],
+        "missing": [],
+        "children": [
+         {
+          "path": "styles/system/studies/color",
+          "name": "color",
+          "readme": true,
+          "index": false,
+          "children_dirs": [
+           "palette",
+           "sections"
+          ],
+          "missing": [
+           "palette",
+           "sections"
+          ],
+          "children": [
+           {
+            "path": "styles/system/studies/color/palette",
+            "name": "palette",
+            "readme": false,
+            "index": false,
+            "children_dirs": [],
+            "missing": [],
+            "children": [],
+            "mark": "✗"
+           },
+           {
+            "path": "styles/system/studies/color/sections",
+            "name": "sections",
+            "readme": false,
+            "index": false,
+            "children_dirs": [],
+            "missing": [],
+            "children": [],
+            "mark": "✗"
+           }
+          ],
+          "mark": "~"
+         },
+         {
+          "path": "styles/system/studies/lists",
+          "name": "lists",
+          "readme": true,
+          "index": false,
+          "children_dirs": [],
+          "missing": [],
+          "children": [],
+          "mark": "~"
+         },
+         {
+          "path": "styles/system/studies/padding",
+          "name": "padding",
+          "readme": true,
+          "index": false,
+          "children_dirs": [
+           "one-rule"
+          ],
+          "missing": [
+           "one-rule"
+          ],
+          "children": [
+           {
+            "path": "styles/system/studies/padding/one-rule",
+            "name": "one-rule",
+            "readme": false,
+            "index": false,
+            "children_dirs": [],
+            "missing": [],
+            "children": [],
+            "mark": "✗"
+           }
+          ],
+          "mark": "~"
+         },
+         {
+          "path": "styles/system/studies/scale",
+          "name": "scale",
+          "readme": true,
+          "index": false,
+          "children_dirs": [],
+          "missing": [],
+          "children": [],
+          "mark": "~"
+         },
+         {
+          "path": "styles/system/studies/size",
+          "name": "size",
+          "readme": true,
+          "index": false,
+          "children_dirs": [],
+          "missing": [],
+          "children": [],
+          "mark": "~"
+         },
+         {
+          "path": "styles/system/studies/spacing",
+          "name": "spacing",
+          "readme": true,
+          "index": false,
+          "children_dirs": [
+           "ceilings",
+           "nesting"
+          ],
+          "missing": [
+           "ceilings",
+           "nesting"
+          ],
+          "children": [
+           {
+            "path": "styles/system/studies/spacing/ceilings",
+            "name": "ceilings",
+            "readme": false,
+            "index": false,
+            "children_dirs": [],
+            "missing": [],
+            "children": [],
+            "mark": "✗"
+           },
+           {
+            "path": "styles/system/studies/spacing/nesting",
+            "name": "nesting",
+            "readme": false,
+            "index": false,
+            "children_dirs": [],
+            "missing": [],
+            "children": [],
+            "mark": "✗"
+           }
+          ],
+          "mark": "~"
+         },
+         {
+          "path": "styles/system/studies/system",
+          "name": "system",
+          "readme": true,
+          "index": false,
+          "children_dirs": [],
+          "missing": [],
+          "children": [],
+          "mark": "~"
+         },
+         {
+          "path": "styles/system/studies/themes",
+          "name": "themes",
+          "readme": true,
+          "index": false,
+          "children_dirs": [],
+          "missing": [],
+          "children": [],
+          "mark": "~"
+         },
+         {
+          "path": "styles/system/studies/type",
+          "name": "type",
+          "readme": true,
+          "index": false,
+          "children_dirs": [
+           "anchors"
+          ],
+          "missing": [
+           "anchors"
+          ],
+          "children": [
+           {
+            "path": "styles/system/studies/type/anchors",
+            "name": "anchors",
+            "readme": false,
+            "index": false,
+            "children_dirs": [],
+            "missing": [],
+            "children": [],
+            "mark": "✗"
+           }
+          ],
+          "mark": "~"
+         },
+         {
+          "path": "styles/system/studies/vocabulary",
+          "name": "vocabulary",
+          "readme": true,
+          "index": false,
+          "children_dirs": [],
+          "missing": [],
+          "children": [],
+          "mark": "~"
+         }
+        ],
+        "mark": "✓"
+       }
+      ],
+      "mark": "✓"
+     }
+    ],
+    "mark": "✓"
+   },
+   {
+    "path": "ui",
+    "name": "ui",
+    "readme": true,
+    "index": true,
+    "children_dirs": [
+     "accordion",
+     "alert",
+     "avatar",
+     "background",
+     "badge",
+     "card",
+     "controls",
+     "crumbs",
+     "decision",
+     "dialog",
+     "field",
+     "kbd",
+     "menu",
+     "pagination",
+     "panel",
+     "progress",
+     "stats",
+     "table",
+     "tags",
+     "timeline",
+     "toolbar",
+     "tooltip",
+     "tree",
+     "words"
+    ],
+    "missing": [],
+    "children": [
+     {
+      "path": "ui/accordion",
+      "name": "accordion",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "ui/alert",
+      "name": "alert",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "ui/avatar",
+      "name": "avatar",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "ui/background",
+      "name": "background",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "ui/badge",
+      "name": "badge",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "ui/card",
+      "name": "card",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "ui/controls",
+      "name": "controls",
+      "readme": true,
+      "index": true,
+      "children_dirs": [
+       "study"
+      ],
+      "missing": [],
+      "children": [
+       {
+        "path": "ui/controls/study",
+        "name": "study",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       }
+      ],
+      "mark": "✓"
+     },
+     {
+      "path": "ui/crumbs",
+      "name": "crumbs",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "ui/decision",
+      "name": "decision",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "ui/dialog",
+      "name": "dialog",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "ui/field",
+      "name": "field",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "ui/kbd",
+      "name": "kbd",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "ui/menu",
+      "name": "menu",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "ui/pagination",
+      "name": "pagination",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "ui/panel",
+      "name": "panel",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "ui/progress",
+      "name": "progress",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "ui/stats",
+      "name": "stats",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "ui/table",
+      "name": "table",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "ui/tags",
+      "name": "tags",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "ui/timeline",
+      "name": "timeline",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "ui/toolbar",
+      "name": "toolbar",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "ui/tooltip",
+      "name": "tooltip",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "ui/tree",
+      "name": "tree",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "ui/words",
+      "name": "words",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     }
+    ],
+    "mark": "✓"
+   },
+   {
+    "path": "util",
+    "name": "util",
+    "readme": true,
+    "index": true,
+    "children_dirs": [
+     "is",
+     "markup",
+     "source"
+    ],
+    "missing": [],
+    "children": [
+     {
+      "path": "util/is",
+      "name": "is",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "util/markup",
+      "name": "markup",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "util/source",
+      "name": "source",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     }
+    ],
+    "mark": "✓"
+   },
+   {
+    "path": "ux",
+    "name": "ux",
+    "readme": true,
+    "index": true,
+    "children_dirs": [
+     "Auth",
+     "Content",
+     "Course",
+     "Dictate",
+     "Filter",
+     "Menu",
+     "Pagination",
+     "Popover",
+     "Tags",
+     "Tree",
+     "Wizard"
+    ],
+    "missing": [],
+    "children": [
+     {
+      "path": "ux/Auth",
+      "name": "Auth",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "ux/Content",
+      "name": "Content",
+      "readme": true,
+      "index": true,
+      "children_dirs": [
+       "Decision",
+       "Disclosure",
+       "Question",
+       "Quotation",
+       "Spend",
+       "catalog",
+       "plan"
+      ],
+      "missing": [],
+      "children": [
+       {
+        "path": "ux/Content/Decision",
+        "name": "Decision",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       },
+       {
+        "path": "ux/Content/Disclosure",
+        "name": "Disclosure",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       },
+       {
+        "path": "ux/Content/Question",
+        "name": "Question",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       },
+       {
+        "path": "ux/Content/Quotation",
+        "name": "Quotation",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       },
+       {
+        "path": "ux/Content/Spend",
+        "name": "Spend",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       },
+       {
+        "path": "ux/Content/catalog",
+        "name": "catalog",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       },
+       {
+        "path": "ux/Content/plan",
+        "name": "plan",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       }
+      ],
+      "mark": "✓"
+     },
+     {
+      "path": "ux/Course",
+      "name": "Course",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "ux/Dictate",
+      "name": "Dictate",
+      "readme": true,
+      "index": false,
+      "children_dirs": [
+       "demo"
+      ],
+      "missing": [
+       "demo"
+      ],
+      "children": [
+       {
+        "path": "ux/Dictate/demo",
+        "name": "demo",
+        "readme": false,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "✗"
+       }
+      ],
+      "mark": "~"
+     },
+     {
+      "path": "ux/Filter",
+      "name": "Filter",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "ux/Menu",
+      "name": "Menu",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "ux/Pagination",
+      "name": "Pagination",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "ux/Popover",
+      "name": "Popover",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "ux/Tags",
+      "name": "Tags",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     },
+     {
+      "path": "ux/Tree",
+      "name": "Tree",
+      "readme": true,
+      "index": true,
+      "children_dirs": [
+       "drag"
+      ],
+      "missing": [],
+      "children": [
+       {
+        "path": "ux/Tree/drag",
+        "name": "drag",
+        "readme": true,
+        "index": false,
+        "children_dirs": [],
+        "missing": [],
+        "children": [],
+        "mark": "~"
+       }
+      ],
+      "mark": "✓"
+     },
+     {
+      "path": "ux/Wizard",
+      "name": "Wizard",
+      "readme": true,
+      "index": false,
+      "children_dirs": [],
+      "missing": [],
+      "children": [],
+      "mark": "~"
+     }
+    ],
+    "mark": "✓"
+   },
+   {
+    "path": "versus",
+    "name": "versus",
+    "readme": true,
+    "index": false,
+    "children_dirs": [],
+    "missing": [],
+    "children": [],
+    "mark": "~"
+   }
+  ],
+  "mark": "✓"
+ }
+}

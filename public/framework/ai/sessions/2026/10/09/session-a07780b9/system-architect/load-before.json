@@ -1,0 +1,393 @@
+{
+	"at": "2026-10-09T21:33:25.271Z",
+	"claude": [
+		{
+			"file": "CLAUDE.md",
+			"lines": 112,
+			"words": 3758
+		},
+		{
+			"file": "public/framework/ai/CLAUDE.md",
+			"lines": 63,
+			"words": 1428
+		},
+		{
+			"file": "~/.claude/CLAUDE.md",
+			"lines": 4,
+			"words": 60
+		}
+	],
+	"memory": {
+		"lines": 91,
+		"words": 2287
+	},
+	"readmeChain": [
+		{
+			"file": "readme.md",
+			"lines": 74,
+			"words": 550
+		},
+		{
+			"file": "public/framework/readme.md",
+			"lines": 50,
+			"words": 510
+		},
+		{
+			"file": "public/framework/ai/readme.md",
+			"lines": 100,
+			"words": 1128
+		}
+	],
+	"skillDescWords": 1961,
+	"skills": [
+		{
+			"skill": "mastermind",
+			"lines": 532,
+			"words": 7959,
+			"descWords": 66,
+			"extra": "improvements.md"
+		},
+		{
+			"skill": "sub-mastermind",
+			"lines": 269,
+			"words": 4555,
+			"descWords": 78,
+			"extra": "improvements.md"
+		},
+		{
+			"skill": "ui-test",
+			"lines": 292,
+			"words": 4115,
+			"descWords": 76,
+			"extra": "drive.mjs improvements.md"
+		},
+		{
+			"skill": "minion",
+			"lines": 143,
+			"words": 4082,
+			"descWords": 77,
+			"extra": "improvements.md"
+		},
+		{
+			"skill": "fork-claude-session",
+			"lines": 321,
+			"words": 2938,
+			"descWords": 74,
+			"extra": "improvements.md"
+		},
+		{
+			"skill": "servex-mastermind",
+			"lines": 128,
+			"words": 1906,
+			"descWords": 58,
+			"extra": "improvements.md"
+		},
+		{
+			"skill": "finish-task",
+			"lines": 101,
+			"words": 1525,
+			"descWords": 71,
+			"extra": "improvements.md"
+		},
+		{
+			"skill": "research",
+			"lines": 148,
+			"words": 1464,
+			"descWords": 74,
+			"extra": "improvements.md"
+		},
+		{
+			"skill": "new-task",
+			"lines": 92,
+			"words": 1316,
+			"descWords": 92,
+			"extra": "improvements.md"
+		},
+		{
+			"skill": "documentation",
+			"lines": 87,
+			"words": 1163,
+			"descWords": 58,
+			"extra": "improvements.md"
+		},
+		{
+			"skill": "review",
+			"lines": 87,
+			"words": 921,
+			"descWords": 57,
+			"extra": ""
+		},
+		{
+			"skill": "every-prompt",
+			"lines": 73,
+			"words": 874,
+			"descWords": 82,
+			"extra": "cards.md headless.md page-assistant.md say.mjs tiers.md trouble.md"
+		},
+		{
+			"skill": "auditor",
+			"lines": 72,
+			"words": 782,
+			"descWords": 83,
+			"extra": "improvements.md"
+		},
+		{
+			"skill": "clarity",
+			"lines": 53,
+			"words": 752,
+			"descWords": 60,
+			"extra": "flags.jsonl improvements.md scratch scratch-lines.json"
+		},
+		{
+			"skill": "new-page",
+			"lines": 64,
+			"words": 751,
+			"descWords": 37,
+			"extra": "improvements.md"
+		},
+		{
+			"skill": "check-claude-usage",
+			"lines": 102,
+			"words": 748,
+			"descWords": 71,
+			"extra": "improvements.md"
+		},
+		{
+			"skill": "decide",
+			"lines": 47,
+			"words": 637,
+			"descWords": 62,
+			"extra": ""
+		},
+		{
+			"skill": "master-assistant",
+			"lines": 58,
+			"words": 593,
+			"descWords": 70,
+			"extra": "improvements.md"
+		},
+		{
+			"skill": "log-assistant",
+			"lines": 59,
+			"words": 565,
+			"descWords": 77,
+			"extra": "improvements.md"
+		},
+		{
+			"skill": "code",
+			"lines": 40,
+			"words": 494,
+			"descWords": 67,
+			"extra": "improvements.md"
+		},
+		{
+			"skill": "skill-improvement",
+			"lines": 39,
+			"words": 337,
+			"descWords": 54,
+			"extra": "improvements.md"
+		},
+		{
+			"skill": "prompt-refine",
+			"lines": 19,
+			"words": 296,
+			"descWords": 41,
+			"extra": ""
+		},
+		{
+			"skill": "system-architect",
+			"lines": 19,
+			"words": 234,
+			"descWords": 48,
+			"extra": ""
+		},
+		{
+			"skill": "naming",
+			"lines": 14,
+			"words": 226,
+			"descWords": 41,
+			"extra": ""
+		},
+		{
+			"skill": "css",
+			"lines": 27,
+			"words": 222,
+			"descWords": 63,
+			"extra": "caveats.md improvements.md strategy.md"
+		},
+		{
+			"skill": "content",
+			"lines": 18,
+			"words": 198,
+			"descWords": 42,
+			"extra": ""
+		},
+		{
+			"skill": "performance",
+			"lines": 15,
+			"words": 170,
+			"descWords": 42,
+			"extra": ""
+		},
+		{
+			"skill": "page",
+			"lines": 14,
+			"words": 154,
+			"descWords": 58,
+			"extra": "improvements.md"
+		},
+		{
+			"skill": "layout",
+			"lines": 15,
+			"words": 136,
+			"descWords": 37,
+			"extra": "caveats.md improvements.md"
+		},
+		{
+			"skill": "navigation",
+			"lines": 13,
+			"words": 108,
+			"descWords": 29,
+			"extra": "improvements.md"
+		},
+		{
+			"skill": "color",
+			"lines": 13,
+			"words": 99,
+			"descWords": 19,
+			"extra": "improvements.md"
+		},
+		{
+			"skill": "ui",
+			"lines": 13,
+			"words": 97,
+			"descWords": 18,
+			"extra": "improvements.md"
+		},
+		{
+			"skill": "new-css-class",
+			"lines": 13,
+			"words": 86,
+			"descWords": 49,
+			"extra": "improvements.md"
+		},
+		{
+			"skill": "openrouter",
+			"lines": 8,
+			"words": 52,
+			"descWords": 30,
+			"extra": ""
+		}
+	],
+	"hooks": [
+		{
+			"event": "PreToolUse",
+			"matcher": "Bash|PowerShell",
+			"script": "junction-guard.mjs",
+			"lines": 114,
+			"blockSites": 1
+		},
+		{
+			"event": "PreToolUse",
+			"matcher": "Bash|PowerShell",
+			"script": "git-guard.mjs",
+			"lines": 119,
+			"blockSites": 2
+		},
+		{
+			"event": "PreToolUse",
+			"matcher": "Bash|PowerShell",
+			"script": "jsonl-guard.mjs",
+			"lines": 54,
+			"blockSites": 2
+		},
+		{
+			"event": "PreToolUse",
+			"matcher": "Bash|PowerShell",
+			"script": "server-guard.mjs",
+			"lines": 93,
+			"blockSites": 4
+		},
+		{
+			"event": "PreToolUse",
+			"matcher": "Write|Edit|MultiEdit|NotebookEdit",
+			"script": "jsonl-guard.mjs",
+			"lines": 54,
+			"blockSites": 2
+		},
+		{
+			"event": "SessionStart",
+			"matcher": "resume",
+			"script": "ledger.mjs",
+			"lines": 299,
+			"blockSites": 2
+		},
+		{
+			"event": "PostToolUse",
+			"matcher": "Edit|Write|NotebookEdit",
+			"script": "ledger.mjs",
+			"lines": 299,
+			"blockSites": 2
+		},
+		{
+			"event": "PostToolUse",
+			"matcher": "Skill",
+			"script": "ledger.mjs",
+			"lines": 299,
+			"blockSites": 2
+		},
+		{
+			"event": "PostToolUse",
+			"matcher": "Bash",
+			"script": "ledger.mjs",
+			"lines": 299,
+			"blockSites": 2
+		},
+		{
+			"event": "Stop",
+			"matcher": "*",
+			"script": "ledger.mjs",
+			"lines": 299,
+			"blockSites": 2
+		},
+		{
+			"event": "Stop",
+			"matcher": "*",
+			"script": "reply-relay.mjs",
+			"lines": 188,
+			"blockSites": 1
+		},
+		{
+			"event": "Stop",
+			"matcher": "*",
+			"script": "AISessionAudit.mjs",
+			"lines": 403,
+			"blockSites": 4
+		},
+		{
+			"event": "SessionEnd",
+			"matcher": "*",
+			"script": "ledger.mjs",
+			"lines": 299,
+			"blockSites": 2
+		},
+		{
+			"event": "UserPromptSubmit",
+			"matcher": "*",
+			"script": "prompt-relay.mjs",
+			"lines": 308,
+			"blockSites": 1
+		}
+	],
+	"base": 10254,
+	"profiles": {
+		"minion (minion + code)": 14830,
+		"task mastermind (sub-mastermind + code + finish-task + documentation)": 17991,
+		"page builder (code + page + layout + css + new-page + finish-task)": 13536
+	},
+	"totals": {
+		"skillWords": 40555,
+		"skillLines": 3008,
+		"skillCount": 34
+	}
+}

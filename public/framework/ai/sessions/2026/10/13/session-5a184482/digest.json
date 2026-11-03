@@ -1,0 +1,40 @@
+{
+ "id": "5a184482-e07e-484d-8f8e-443dca84783e",
+ "first": "2026-10-13T21:43:08.589Z",
+ "last": "2026-10-13T21:43:31.424Z",
+ "models": {
+  "claude-sonnet-5-5": 4
+ },
+ "sizes": {
+  "raw": 121228,
+  "content": 341,
+  "stripped": 219,
+  "owner_only": 61
+ },
+ "usd": 0.189954,
+ "usd_main": 0.189954,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 8,
+  "output": 524,
+  "cache_read": 202689,
+  "cache_write": 36040,
+  "w5": 0,
+  "w1": 36040
+ },
+ "messages": 4,
+ "subagent_files": 0,
+ "prompts": [
+  {
+   "at": "2026-10-13T21:43:09.699Z",
+   "t": "[from: owner]\n[on /] Hello, can you hear me?\n(the owner has stopped: quiet for 2.5 s)"
+  },
+  {
+   "at": "2026-10-13T21:43:27.455Z",
+   "t": "[from: owner]\n[on /] What models are you guys using?\n(the owner has stopped: quiet for 2.5 s)"
+  }
+ ],
+ "result": "### Models in this session\n\n- **Me (smart assistant):** `claude-sonnet-5-5`, going by my environment.\n- **Fast assistant:** I can't see which model it runs on.\n- **Spawned agents:** Per the current override, masterminds, minions and helpers run on OpenRouter models, not Claude. The week's spend is in `public/framework/ai/openrouter-usage.json`, and the model list is at `/framework/ai/models`.",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.215Z"
+}

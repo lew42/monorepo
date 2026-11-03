@@ -1,0 +1,198 @@
+[
+  {
+    "file": "public/framework/core/Page/layout/switcher/doc/decisions.md",
+    "verdict": "record",
+    "reason": "Design decision doc for switcher CSS namespace, kept in module's doc/",
+    "evidence": "2026-09-29 e7cb389e5, linked from switcher/readme.md",
+    "home": null
+  },
+  {
+    "file": "public/framework/core/Page/navigation/doc/alternatives.md",
+    "verdict": "record",
+    "reason": "Design doc listing navigation pattern alternatives, part of core module",
+    "evidence": "2026-09-29, navigation/readme.md index",
+    "home": null
+  },
+  {
+    "file": "public/framework/core/Page/navigation/doc/prior-work.md",
+    "verdict": "record",
+    "reason": "Design doc tracking prior navigation work inventory, linked from readme",
+    "evidence": "2026-09-29, navigation/readme.md",
+    "home": null
+  },
+  {
+    "file": "public/framework/core/Page/parts/Part.js",
+    "verdict": "runtime-loaded",
+    "reason": "Shim maintaining backward compatibility for old Part.js imports (2026-10-12)",
+    "evidence": "core/Page/parts/Part.js comment: keeps old imports loading",
+    "home": null
+  },
+  {
+    "file": "public/framework/core/Page/parts/doc/architecture.md",
+    "verdict": "record",
+    "reason": "Architecture doc for Page parts system, updates reflect 2026-10-12 refactor",
+    "evidence": "2026-10-12, parts/readme.md index",
+    "home": null
+  },
+  {
+    "file": "public/framework/core/Search/doc/decisions.md",
+    "verdict": "record",
+    "reason": "Design decision doc tracking what shipped vs didn't in Search system",
+    "evidence": "2026-09-06, Search/readme.md link",
+    "home": null
+  },
+  {
+    "file": "public/framework/core/Shell/Shell.css",
+    "verdict": "runtime-loaded",
+    "reason": "CSS loaded at runtime via View.stylesheet(import.meta, 'Shell.css')",
+    "evidence": "core/Shell/Shell.js line 1",
+    "home": null
+  },
+  {
+    "file": "public/framework/core/new/1/agents/eric/proposal.md",
+    "verdict": "record",
+    "reason": "Council proposal for new/1 design; design proof kept for architectural history",
+    "evidence": "2026-08-03 yea, readme: design shipped, keep as reference",
+    "home": null
+  },
+  {
+    "file": "public/framework/core/new/1/agents/steve/proposal.md",
+    "verdict": "record",
+    "reason": "Council proposal for new/1 design; part of design council round",
+    "evidence": "2026-08-03 yea, new/1/readme.md",
+    "home": null
+  },
+  {
+    "file": "public/framework/core/new/1/agents/tim/proposal.md",
+    "verdict": "record",
+    "reason": "Council proposal for new/1 design; part of design council round",
+    "evidence": "2026-08-03 yea, new/1/readme.md",
+    "home": null
+  },
+  {
+    "file": "public/framework/core/new/1/agents/urls/router.md",
+    "verdict": "record",
+    "reason": "Router design specification; prototyped and proven before shipping",
+    "evidence": "2026-08-04 big ai work, new/1/readme.md design docs",
+    "home": null
+  },
+  {
+    "file": "public/framework/core/new/1/agents/urls/schema.md",
+    "verdict": "record",
+    "reason": "URL schema design doc; part of new/1 design proof",
+    "evidence": "2026-08-04 big ai work, new/1/readme.md",
+    "home": null
+  },
+  {
+    "file": "public/framework/core/new/1/server.js",
+    "verdict": "record",
+    "reason": "Dev-only server for new/1 teaching prototype; documents design proof setup",
+    "evidence": "2026-08-03 yea, new/1 is kept design proof not imported",
+    "home": null
+  },
+  {
+    "file": "public/framework/core/new/1/site/app.js",
+    "verdict": "runtime-loaded",
+    "reason": "Entry point for new/1 teaching site; loads new/1 pages and routes",
+    "evidence": "2026-08-04, imports from new/1/App.js, exports new/1/Page",
+    "home": null
+  },
+  {
+    "file": "public/framework/core/new/1/site/budget/budget.js",
+    "verdict": "runtime-loaded",
+    "reason": "Budget config loaded by perf pages within new/1 teaching site",
+    "evidence": "2026-08-04, imports show it's used within new/1",
+    "home": null
+  },
+  {
+    "file": "public/framework/core/new/1/site/compose/compose.css",
+    "verdict": "runtime-loaded",
+    "reason": "CSS for new/1 site composition; loaded by pages within prototype",
+    "evidence": "2026-08-04, part of new/1 site demo",
+    "home": null
+  },
+  {
+    "file": "public/framework/core/new/1/site/content/book/capture.md",
+    "verdict": "record",
+    "reason": "Teaching book chapter documenting View.captor pattern, design documentation",
+    "evidence": "2026-08-04, new/1 design proof",
+    "home": null
+  },
+  {
+    "file": "public/framework/core/new/1/site/content/book/manifest.md",
+    "verdict": "record",
+    "reason": "Teaching book chapter on data vs doors pattern, design documentation",
+    "evidence": "2026-08-04, new/1 design proof",
+    "home": null
+  },
+  {
+    "file": "public/framework/core/new/1/site/content/content.css",
+    "verdict": "runtime-loaded",
+    "reason": "CSS for content rendering in new/1 teaching site",
+    "evidence": "2026-08-04, loaded by content pages",
+    "home": null
+  },
+  {
+    "file": "public/framework/core/new/1/site/kit/page.css",
+    "verdict": "runtime-loaded",
+    "reason": "CSS for kit demo page within new/1 site",
+    "evidence": "2026-08-04, kit page styling",
+    "home": null
+  },
+  {
+    "file": "public/framework/core/new/1/site/library/library.css",
+    "verdict": "runtime-loaded",
+    "reason": "CSS for library demo within new/1 teaching site",
+    "evidence": "2026-08-04, loaded by library demo",
+    "home": null
+  },
+  {
+    "file": "public/framework/core/new/1/site/motion/baseline/baseline.css",
+    "verdict": "runtime-loaded",
+    "reason": "CSS for motion demo baseline within new/1 site",
+    "evidence": "2026-08-04, demo styling",
+    "home": null
+  },
+  {
+    "file": "public/framework/core/new/1/site/patterns/patterns.css",
+    "verdict": "runtime-loaded",
+    "reason": "CSS for patterns demo within new/1 teaching site",
+    "evidence": "2026-08-04, demo styling",
+    "home": null
+  },
+  {
+    "file": "public/framework/core/new/1/site/perf/ui.js",
+    "verdict": "runtime-loaded",
+    "reason": "Perf UI module loaded by budget pages; loads perf.css",
+    "evidence": "2026-08-04, imports perf.css via View.stylesheet",
+    "home": null
+  },
+  {
+    "file": "public/framework/ext/Ask/mic.js",
+    "verdict": "dead",
+    "reason": "Explicitly superseded 2026-09-19 by ux/Dictate; old mic button replaced",
+    "evidence": "mic.js header comment, ux/Dictate/page.md notes",
+    "home": null
+  },
+  {
+    "file": "public/framework/ext/Chat/index.js",
+    "verdict": "runtime-loaded",
+    "reason": "Export index file; modules import Chat exports through this",
+    "evidence": "ext/Chat/ usage patterns, index re-exports Chat.js",
+    "home": null
+  },
+  {
+    "file": "public/framework/ext/Collab/collab.css",
+    "verdict": "runtime-loaded",
+    "reason": "CSS for Collab module; likely loaded via View.stylesheet pattern",
+    "evidence": "2026-09-28, Collab.js stylesheet pattern",
+    "home": null
+  },
+  {
+    "file": "public/framework/ext/Collab/demo/collab/haiku-a/1-brief.md",
+    "verdict": "record",
+    "reason": "Demo brief showing collaboration run example output",
+    "evidence": "2026-09-28, demo file",
+    "home": null
+  }
+]

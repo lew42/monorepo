@@ -1,0 +1,19 @@
+{"log":{"at":"2026-08-26T11:53:43-05:00","task":"drawer-sharing-note","msg":"task opened - readme note on sharing the one rail between modules"}}
+{"log":{"at":"2026-08-26T11:58:30-05:00","task":"drawer-sharing-note","msg":"landed - Sharing it in the drawer readme, Sharing the rail in decisions, churn measured flat over 1700 fills"}}
+{"log":{"at":"2026-08-26T14:34:32-05:00","task":"column-pages","msg":"task opened - mastermind run: columnar paging system overhaul"}}
+{"log":{"at":"2026-08-26T14:46:00-05:00","task":"column-core","msg":"task opened - graduate .page.columns into core/Page (S1 of the column-pages run)"}}
+{"log":{"at":"2026-08-26T14:46:00-05:00","task":"page-generator","msg":"task opened - page generator at core/Page/generator/, seeded DSL to a real virtual Page tree"}}
+{"log":{"at":"2026-08-26T14:45:50-05:00","task":"ux-inner-tabs","msg":"task opened - inner Doc renders vertical tabs to fix ux/* alternating bands"}}
+{"log":{"at":"2026-08-26T15:12:56-05:00","task":"ux-inner-tabs","msg":"landed - nested Doc renders vertical rail automatically, 12/12 blast-radius hits fixed, zero regressions"}}
+{"log":{"at":"2026-08-26T15:13:43-05:00","task":"page-generator","msg":"landed - page generator at core/Page/generator/: seed to spec string to a real virtual Page tree, nine block words + core width words, #seed addressable, bit-identical proof on the page"}}
+{"log":{"at":"2026-08-26T15:14:14-05:00","task":"column-core","msg":"landed - .page.columns is a core page shape: columns(), four width words, crumbs() from chain(); old/overview/columns deleted (class-name collision)"}}
+{"log":{"at":"2026-08-26T15:21:00-05:00","task":"overview-palette","msg":"task opened - overview wall becomes a palette of static miniature pictures"}}
+{"log":{"at":"2026-08-26T15:21:30-05:00","task":"grids-lab","msg":"task opened - grid-column pairings for column pages at examples/grids/"}}
+{"log":{"at":"2026-08-26T15:21:05-05:00","task":"looks-lab","msg":"task opened — LOOKS lab: background/padding/scrollbar recipes for column pages"}}
+{"log":{"at":"2026-08-26T15:24:30-05:00","task":"generator-wall","msg":"task opened - generator wave 2: permutation wall, typed spec, pairing rules"}}
+{"log":{"at":"2026-08-26T15:42:03-05:00","task":"generator-wall","msg":"landed - permutation wall (24 rolls, 24 distinct pictures), typed spec box, pairing rules as data; all six proof seeds moved on purpose, chaos 1 reproduces v1"}}
+{"log":{"at":"2026-08-26T15:49:55-05:00","task":"overview-palette","msg":"landed - core/Page Overview is the palette: 29 cards, every one a static picture (ext/demo/mini.js), 9 new block-word pages, columns+crumbs in the API"}}
+{"log":{"at":"2026-08-26T16:15:30-05:00","task":"looks-lab","msg":"landed - three column-page appearance recipes (backgrounds, padding, seams+scrollbars) at examples/looks/, zero console errors 1280/1920/3440"}}
+{"log":{"at":"2026-08-26T16:15:56-05:00","task":"grids-lab","msg":"landed - 4 grid-column pairings shipped at examples/grids/, zero console errors, real measured numbers for pairing 3"}}
+{"log":{"at":"2026-08-26T16:24:16-05:00","task":"generator-wall","msg":"follow-up - the deep-url 404 is the declared seed move (crumbs -> rail at seed 1234), not a regression; no code change, six seeds unmoved"}}
+{"log":{"at":"2026-08-26T16:26:16-05:00","task":"column-pages","msg":"landed - columns a core shape (width words, crumbs), generator + wall at core/Page/generator/, Overview = 29-miniature palette, 2 example labs, ux bands fixed; 7 sub-tasks, ~2.19M subagent tokens"}}

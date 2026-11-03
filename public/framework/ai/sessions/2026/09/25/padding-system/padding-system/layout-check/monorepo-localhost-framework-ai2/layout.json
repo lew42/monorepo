@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ai2/",
+ "widths": {
+  "1280": {
+   "empty": 0.426,
+   "widest_text": 8050,
+   "widest_text_sample": "Most agents need nothing beyond a fresh ",
+   "overflow_x": false,
+   "items": 361,
+   "narrow_share": 0.011
+  },
+  "1920": {
+   "empty": 0.532,
+   "widest_text": 8567,
+   "widest_text_sample": "Most agents need nothing beyond a fresh ",
+   "overflow_x": false,
+   "items": 361,
+   "narrow_share": 0.05
+  },
+  "2560": {
+   "empty": 0.506,
+   "widest_text": 9638,
+   "widest_text_sample": "Most agents need nothing beyond a fresh ",
+   "overflow_x": false,
+   "items": 361,
+   "narrow_share": 0.05
+  },
+  "3440": {
+   "empty": 0.619,
+   "widest_text": 9638,
+   "widest_text_sample": "Most agents need nothing beyond a fresh ",
+   "overflow_x": false,
+   "items": 361,
+   "narrow_share": 0.986
+  }
+ },
+ "errors": []
+}

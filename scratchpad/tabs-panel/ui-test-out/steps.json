@@ -1,0 +1,442 @@
+[
+ {
+  "n": 1,
+  "step": "goto",
+  "verb": "goto",
+  "args": [],
+  "png": "01-goto.png",
+  "value": null,
+  "error": null,
+  "errors": [],
+  "flags": [],
+  "doc": {
+   "sw": 1280,
+   "cw": 1280,
+   "sh": 900,
+   "ch": 900
+  },
+  "rects": {
+   ".page.doc-page > .tabs > .tab-panel": {
+    "before": null,
+    "after": {
+     "x": 229,
+     "y": 72,
+     "w": 1051,
+     "h": 4247
+    },
+    "moved": null
+   }
+  }
+ },
+ {
+  "n": 2,
+  "step": "eval (() => { const p = document.querySelector('.page.doc-page > .tabs > .tab-panel'); const a = document.querySelector('.page.doc-page > .tabs > .tab-bar > .tab.active, .page.doc-page > .tabs > .tab-bar > .tab.in-path:not(.tab-default)'); const cs = getComputedStyle(p); const cas = getComputedStyle(a); return { tab: a && a.textContent.trim(), panelBg: cs.backgroundColor, tabBottomBorder: cas.borderBottomColor, match: cs.backgroundColor === cas.borderBottomColor, rect: p.getBoundingClientRect().toJSON(), h1: p.querySelector('h1,h2,h3')?.textContent?.trim() }; })()",
+  "verb": "eval",
+  "args": [
+   "(() => { const p = document.querySelector('.page.doc-page > .tabs > .tab-panel'); const a = document.querySelector('.page.doc-page > .tabs > .tab-bar > .tab.active, .page.doc-page > .tabs > .tab-bar > .tab.in-path:not(.tab-default)'); const cs = getComputedStyle(p); const cas = getComputedStyle(a); return { tab: a && a.textContent.trim(), panelBg: cs.backgroundColor, tabBottomBorder: cas.borderBottomColor, match: cs.backgroundColor === cas.borderBottomColor, rect: p.getBoundingClientRect().toJSON(), h1: p.querySelector('h1,h2,h3')?.textContent?.trim() }; })()"
+  ],
+  "png": "02-eval.png",
+  "value": {
+   "tab": "Overview",
+   "panelBg": "rgb(242, 242, 242)",
+   "tabBottomBorder": "rgb(242, 242, 242)",
+   "match": true,
+   "rect": {
+    "x": 228.59375,
+    "y": 72.359375,
+    "width": 1051.40625,
+    "height": 4246.5,
+    "top": 72.359375,
+    "right": 1280,
+    "bottom": 4318.859375,
+    "left": 228.59375
+   },
+   "h1": "Tabs"
+  },
+  "error": null,
+  "errors": [],
+  "flags": [],
+  "doc": {
+   "sw": 1280,
+   "cw": 1280,
+   "sh": 900,
+   "ch": 900
+  },
+  "rects": {
+   ".page.doc-page > .tabs > .tab-panel": {
+    "before": {
+     "x": 229,
+     "y": 72,
+     "w": 1051,
+     "h": 4247
+    },
+    "after": {
+     "x": 229,
+     "y": 72,
+     "w": 1051,
+     "h": 4247
+    },
+    "moved": {
+     "dx": 0,
+     "dy": 0,
+     "dw": 0,
+     "dh": 0
+    }
+   }
+  }
+ },
+ {
+  "n": 3,
+  "step": "click \".page.doc-page > .tabs > .tab-bar > .tab[href='/framework/ext/tabs/api/']\"",
+  "verb": "click",
+  "args": [
+   ".page.doc-page > .tabs > .tab-bar > .tab[href='/framework/ext/tabs/api/']"
+  ],
+  "png": "03-click.png",
+  "value": null,
+  "error": null,
+  "errors": [],
+  "flags": [],
+  "doc": {
+   "sw": 1280,
+   "cw": 1280,
+   "sh": 900,
+   "ch": 900
+  },
+  "rects": {
+   ".page.doc-page > .tabs > .tab-panel": {
+    "before": {
+     "x": 229,
+     "y": 72,
+     "w": 1051,
+     "h": 4247
+    },
+    "after": {
+     "x": 229,
+     "y": 72,
+     "w": 1051,
+     "h": 2527
+    },
+    "moved": {
+     "dx": 0,
+     "dy": 0,
+     "dw": 0,
+     "dh": -1720
+    }
+   },
+   ".page.doc-page > .tabs > .tab-bar > .tab[href='/framework/ext/tabs/api/']": {
+    "before": {
+     "x": 492,
+     "y": 32,
+     "w": 69,
+     "h": 41
+    },
+    "after": {
+     "x": 492,
+     "y": 32,
+     "w": 69,
+     "h": 41
+    },
+    "moved": {
+     "dx": 0,
+     "dy": 0,
+     "dw": 0,
+     "dh": 0
+    }
+   }
+  }
+ },
+ {
+  "n": 4,
+  "step": "eval (() => { const p = document.querySelector('.page.doc-page > .tabs > .tab-panel'); const a = document.querySelector('.page.doc-page > .tabs > .tab-bar > .tab.active, .page.doc-page > .tabs > .tab-bar > .tab.in-path:not(.tab-default)'); const cs = getComputedStyle(p); const cas = getComputedStyle(a); return { tab: a && a.textContent.trim(), panelBg: cs.backgroundColor, tabBottomBorder: cas.borderBottomColor, match: cs.backgroundColor === cas.borderBottomColor, rect: p.getBoundingClientRect().toJSON(), h1: p.querySelector('h1,h2,h3')?.textContent?.trim() }; })()",
+  "verb": "eval",
+  "args": [
+   "(() => { const p = document.querySelector('.page.doc-page > .tabs > .tab-panel'); const a = document.querySelector('.page.doc-page > .tabs > .tab-bar > .tab.active, .page.doc-page > .tabs > .tab-bar > .tab.in-path:not(.tab-default)'); const cs = getComputedStyle(p); const cas = getComputedStyle(a); return { tab: a && a.textContent.trim(), panelBg: cs.backgroundColor, tabBottomBorder: cas.borderBottomColor, match: cs.backgroundColor === cas.borderBottomColor, rect: p.getBoundingClientRect().toJSON(), h1: p.querySelector('h1,h2,h3')?.textContent?.trim() }; })()"
+  ],
+  "png": "04-eval.png",
+  "value": {
+   "tab": "API",
+   "panelBg": "rgb(242, 242, 242)",
+   "tabBottomBorder": "rgb(242, 242, 242)",
+   "match": true,
+   "rect": {
+    "x": 228.59375,
+    "y": 72.359375,
+    "width": 1051.40625,
+    "height": 2527.015625,
+    "top": 72.359375,
+    "right": 1280,
+    "bottom": 2599.375,
+    "left": 228.59375
+   },
+   "h1": "Tabs"
+  },
+  "error": null,
+  "errors": [],
+  "flags": [],
+  "doc": {
+   "sw": 1280,
+   "cw": 1280,
+   "sh": 900,
+   "ch": 900
+  },
+  "rects": {
+   ".page.doc-page > .tabs > .tab-panel": {
+    "before": {
+     "x": 229,
+     "y": 72,
+     "w": 1051,
+     "h": 2527
+    },
+    "after": {
+     "x": 229,
+     "y": 72,
+     "w": 1051,
+     "h": 2527
+    },
+    "moved": {
+     "dx": 0,
+     "dy": 0,
+     "dw": 0,
+     "dh": 0
+    }
+   }
+  }
+ },
+ {
+  "n": 5,
+  "step": "click \".page.doc-page > .tabs > .tab-bar > .tab[href='/framework/ext/tabs/doc/']\"",
+  "verb": "click",
+  "args": [
+   ".page.doc-page > .tabs > .tab-bar > .tab[href='/framework/ext/tabs/doc/']"
+  ],
+  "png": "05-click.png",
+  "value": null,
+  "error": null,
+  "errors": [],
+  "flags": [],
+  "doc": {
+   "sw": 1280,
+   "cw": 1280,
+   "sh": 900,
+   "ch": 900
+  },
+  "rects": {
+   ".page.doc-page > .tabs > .tab-panel": {
+    "before": {
+     "x": 229,
+     "y": 72,
+     "w": 1051,
+     "h": 2527
+    },
+    "after": {
+     "x": 229,
+     "y": 72,
+     "w": 1051,
+     "h": 1098
+    },
+    "moved": {
+     "dx": 0,
+     "dy": 0,
+     "dw": 0,
+     "dh": -1429
+    }
+   },
+   ".page.doc-page > .tabs > .tab-bar > .tab[href='/framework/ext/tabs/doc/']": {
+    "before": {
+     "x": 561,
+     "y": 32,
+     "w": 84,
+     "h": 41
+    },
+    "after": {
+     "x": 561,
+     "y": 32,
+     "w": 84,
+     "h": 41
+    },
+    "moved": {
+     "dx": 0,
+     "dy": 0,
+     "dw": 0,
+     "dh": 0
+    }
+   }
+  }
+ },
+ {
+  "n": 6,
+  "step": "eval (() => { const p = document.querySelector('.page.doc-page > .tabs > .tab-panel'); const a = document.querySelector('.page.doc-page > .tabs > .tab-bar > .tab.active, .page.doc-page > .tabs > .tab-bar > .tab.in-path:not(.tab-default)'); const cs = getComputedStyle(p); const cas = getComputedStyle(a); return { tab: a && a.textContent.trim(), panelBg: cs.backgroundColor, tabBottomBorder: cas.borderBottomColor, match: cs.backgroundColor === cas.borderBottomColor, rect: p.getBoundingClientRect().toJSON(), h1: p.querySelector('h1,h2,h3')?.textContent?.trim() }; })()",
+  "verb": "eval",
+  "args": [
+   "(() => { const p = document.querySelector('.page.doc-page > .tabs > .tab-panel'); const a = document.querySelector('.page.doc-page > .tabs > .tab-bar > .tab.active, .page.doc-page > .tabs > .tab-bar > .tab.in-path:not(.tab-default)'); const cs = getComputedStyle(p); const cas = getComputedStyle(a); return { tab: a && a.textContent.trim(), panelBg: cs.backgroundColor, tabBottomBorder: cas.borderBottomColor, match: cs.backgroundColor === cas.borderBottomColor, rect: p.getBoundingClientRect().toJSON(), h1: p.querySelector('h1,h2,h3')?.textContent?.trim() }; })()"
+  ],
+  "png": "06-eval.png",
+  "value": {
+   "tab": "Docs",
+   "panelBg": "rgb(242, 242, 242)",
+   "tabBottomBorder": "rgb(242, 242, 242)",
+   "match": true,
+   "rect": {
+    "x": 228.59375,
+    "y": 72.359375,
+    "width": 1051.40625,
+    "height": 1098.171875,
+    "top": 72.359375,
+    "right": 1280,
+    "bottom": 1170.53125,
+    "left": 228.59375
+   },
+   "h1": "Tabs"
+  },
+  "error": null,
+  "errors": [],
+  "flags": [],
+  "doc": {
+   "sw": 1280,
+   "cw": 1280,
+   "sh": 900,
+   "ch": 900
+  },
+  "rects": {
+   ".page.doc-page > .tabs > .tab-panel": {
+    "before": {
+     "x": 229,
+     "y": 72,
+     "w": 1051,
+     "h": 1098
+    },
+    "after": {
+     "x": 229,
+     "y": 72,
+     "w": 1051,
+     "h": 1098
+    },
+    "moved": {
+     "dx": 0,
+     "dy": 0,
+     "dw": 0,
+     "dh": 0
+    }
+   }
+  }
+ },
+ {
+  "n": 7,
+  "step": "click \".page.doc-page > .tabs > .tab-bar > .tab[href='/framework/ext/tabs/']\"",
+  "verb": "click",
+  "args": [
+   ".page.doc-page > .tabs > .tab-bar > .tab[href='/framework/ext/tabs/']"
+  ],
+  "png": "07-click.png",
+  "value": null,
+  "error": null,
+  "errors": [],
+  "flags": [],
+  "doc": {
+   "sw": 1280,
+   "cw": 1280,
+   "sh": 900,
+   "ch": 900
+  },
+  "rects": {
+   ".page.doc-page > .tabs > .tab-panel": {
+    "before": {
+     "x": 229,
+     "y": 72,
+     "w": 1051,
+     "h": 1098
+    },
+    "after": {
+     "x": 229,
+     "y": 72,
+     "w": 1051,
+     "h": 4247
+    },
+    "moved": {
+     "dx": 0,
+     "dy": 0,
+     "dw": 0,
+     "dh": 3149
+    }
+   },
+   ".page.doc-page > .tabs > .tab-bar > .tab[href='/framework/ext/tabs/']": {
+    "before": {
+     "x": 372,
+     "y": 32,
+     "w": 120,
+     "h": 41
+    },
+    "after": {
+     "x": 372,
+     "y": 32,
+     "w": 120,
+     "h": 41
+    },
+    "moved": {
+     "dx": 0,
+     "dy": 0,
+     "dw": 0,
+     "dh": 0
+    }
+   }
+  }
+ },
+ {
+  "n": 8,
+  "step": "eval (() => { const p = document.querySelector('.page.doc-page > .tabs > .tab-panel'); const a = document.querySelector('.page.doc-page > .tabs > .tab-bar > .tab.active, .page.doc-page > .tabs > .tab-bar > .tab.in-path:not(.tab-default)'); const cs = getComputedStyle(p); const cas = getComputedStyle(a); return { tab: a && a.textContent.trim(), panelBg: cs.backgroundColor, tabBottomBorder: cas.borderBottomColor, match: cs.backgroundColor === cas.borderBottomColor, rect: p.getBoundingClientRect().toJSON(), h1: p.querySelector('h1,h2,h3')?.textContent?.trim() }; })()",
+  "verb": "eval",
+  "args": [
+   "(() => { const p = document.querySelector('.page.doc-page > .tabs > .tab-panel'); const a = document.querySelector('.page.doc-page > .tabs > .tab-bar > .tab.active, .page.doc-page > .tabs > .tab-bar > .tab.in-path:not(.tab-default)'); const cs = getComputedStyle(p); const cas = getComputedStyle(a); return { tab: a && a.textContent.trim(), panelBg: cs.backgroundColor, tabBottomBorder: cas.borderBottomColor, match: cs.backgroundColor === cas.borderBottomColor, rect: p.getBoundingClientRect().toJSON(), h1: p.querySelector('h1,h2,h3')?.textContent?.trim() }; })()"
+  ],
+  "png": "08-eval.png",
+  "value": {
+   "tab": "Overview",
+   "panelBg": "rgb(242, 242, 242)",
+   "tabBottomBorder": "rgb(242, 242, 242)",
+   "match": true,
+   "rect": {
+    "x": 228.59375,
+    "y": 72.359375,
+    "width": 1051.40625,
+    "height": 4246.5,
+    "top": 72.359375,
+    "right": 1280,
+    "bottom": 4318.859375,
+    "left": 228.59375
+   },
+   "h1": "Tabs"
+  },
+  "error": null,
+  "errors": [],
+  "flags": [],
+  "doc": {
+   "sw": 1280,
+   "cw": 1280,
+   "sh": 900,
+   "ch": 900
+  },
+  "rects": {
+   ".page.doc-page > .tabs > .tab-panel": {
+    "before": {
+     "x": 229,
+     "y": 72,
+     "w": 1051,
+     "h": 4247
+    },
+    "after": {
+     "x": 229,
+     "y": 72,
+     "w": 1051,
+     "h": 4247
+    },
+    "moved": {
+     "dx": 0,
+     "dy": 0,
+     "dw": 0,
+     "dh": 0
+    }
+   }
+  }
+ }
+]

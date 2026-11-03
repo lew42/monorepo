@@ -1,0 +1,947 @@
+diff --git a/Servex/Processes.js b/Servex/Processes.js
+new file mode 100644
+index 00000000..8becbeb8
+--- /dev/null
++++ b/Servex/Processes.js
+@@ -0,0 +1,358 @@
++import os from "os";
++import fs from "fs";
++import path from "path";
++import { spawn } from "child_process";
++import Events from "../Server/Events.js";
++import { stamp, place } from "./home.js";
++
++/* THE PROCESS MONITOR — every process on the machine, which of them are OURS,
++ * and which task each of ours works for (process-monitor, 2026-09-30).
++ *
++ * The owner, 2026-09-30: "wherever we're listing currently running tasks, it
++ * should be based on the claude.exe … we definitely want a summary of all of our
++ * spawned memory … how much of that is associated with each task."
++ *
++ * Every 10 s ONE long-lived hidden PowerShell prints one line: every process's
++ * pid, parent pid, name, working set, CPU seconds and start time, and the
++ * command line of each process it has not printed before. Node turns CPU
++ * seconds into CPU % (of the whole machine, as Task Manager shows it) and sorts
++ * every process into a GROUP:
++ *
++ *   task <key>       an agent's claude.exe and everything under it, for the task
++ *                    that agent (or its nearest ancestor agent) works for.
++ *                    The PID comes from Agents.spawn_claude; the session id on
++ *                    the command line is the fallback.
++ *   front desk      the assistants, managers and sessions (agents/Agents.js STANDING)
++ *   servex          Servex itself, its supervisor, and its other children
++ *   session <pid>   a Claude Code session Servex did not start (a VS Code tab),
++ *                   and everything under it
++ *   dev servers     the detached servers Servex started (procs/*.json, gate.mjs)
++ *                   and any process from this repo or a worktree whose parent is gone
++ *   orphans         a leftover of ours: a waiter (bash, tail, grep, sleep …) whose
++ *                   parent is gone and whose command line points at this repo,
++ *                   Claude's own dirs, or Git for Windows' own bin. Reaped once
++ *                   idle past `reap_after_ms` (10 min).
++ *   (everything else is "other": the owner's apps, never touched)
++ *
++ * Kept: the latest snapshot (`this.now`), an hour of 10-second points
++ * (`this.history`), and one line a minute on the `processes` log. */
++
++// Names that are ours when their parent chain leads to us.
++const OUR_KINDS = /^(claude|node|bash|sh|tail|grep|sleep|git|cmd|conhost|powershell|cat|head|sed|awk|timeout|find|python|whisper-server|npm|npx)\.exe$/i;
++// Leftovers that do nothing on their own: safe to end once their parent is gone.
++const WAITERS = /^(bash|sh|tail|grep|sleep|cat|head|sed|awk|timeout|find)\.exe$/i;
++// A command line that points into this system: the repo, a worktree, Claude's temp dirs and shell snapshots.
++const OUR_PATHS = /lew42|[\\/]\.claude[\\/]|[\\/]Temp[\\/]claude[\\/]|shell-snapshots/i;
++// Git for Windows' own tools (tail, grep, sleep …): nobody else starts these here, so one whose parent is gone is a leftover.
++const GIT_TOOLS = /[\\/]Git[\\/](usr[\\/])?bin[\\/]/i;
++const ours_cmd = p => OUR_PATHS.test(p.cmd) || (WAITERS.test(p.name ?? "") && GIT_TOOLS.test(p.cmd));
++const SESSION = /--(?:resume|session-id)[= ]"?([0-9a-f-]{36})/i;
++
++export default class Processes extends Events {
++
++	initialize(){
++		this.every ??= Number(process.env.SERVEX_PROCESSES_EVERY_MS) || 10000;
++		this.keep ??= 360;                                   // one hour at 10 s
++		this.reap_after_ms ??= Number(process.env.SERVEX_REAP_ORPHANS_MS) || 10 * 60000;
++		this.reaping ??= process.env.SERVEX_REAP_ORPHANS !== "0";
++		this.procs = new Map();        // pid -> { pid, ppid, name, mb, cpu_s, born, cmd, cpu, idle_since }
++		this.history = [];
++		this.now = null;
++		this.reaped = [];              // the last 50 reaps, newest last
++		this.cores = os.cpus().length || 1;
++		this.children = {};
++	}
++
++	start(){
++		this.loop();
++		this.writer = setInterval(() => this.write(), 60000);
++		this.writer.unref();
++		return this;
++	}
++
++	stop(){
++		this.stopped = true;
++		clearInterval(this.writer);
++		for (const child of Object.values(this.children)) try { child.kill(); } catch {}
++	}
++
++	log(entry){ return this.servex?.log?.append("processes", entry).catch(() => {}); }
++
++	/* ── the loop ─────────────────────────────────────────────────────── */
++
++	loop(){
++		if (this.stopped) return;
++		const script = PS.replace("__PARENT__", String(process.pid)).replace("__EVERY__", String(this.every / 1000));
++		const child = spawn("powershell.exe", ["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
++			"-EncodedCommand", Buffer.from(script, "utf16le").toString("base64")], { windowsHide: true, stdio: ["ignore", "pipe", "pipe"] });
++		this.children.ps = child;
++		lines(child.stdout, line => { try { this.take(JSON.parse(line)); } catch (e) { this.error = e.message; } });
++		child.stderr.on("data", () => {});
++		child.on("error", e => this.log({ type: "monitor", msg: `process loop failed to start: ${e.message}` }));
++		child.on("exit", code => {
++			if (this.stopped) return;
++			this.log({ type: "monitor", msg: `process loop exited (${code}); restarting in 10 s` });
++			setTimeout(() => this.loop(), 10000).unref();
++		});
++	}
++
++	/* One line from the loop: rows of [pid, ppid, name, mb, cpu_s, born, cmd?]. */
++	take({ rows = [], self, msys }){
++		this.msys(msys);
++		const at = Date.now(), dt = this.last_at ? (at - this.last_at) / 1000 : 0;
++		this.last_at = at;
++		const next = new Map();
++		for (const [pid, ppid, name, mb, cpu_s, born, cmd] of rows){
++			const prev = this.procs.get(pid);
++			const same = prev && prev.born === born;
++			const cpu = same && dt > 0 ? Math.max(0, round(100 * (cpu_s - prev.cpu_s) / dt / this.cores, 1)) : 0;
++			const busy = !same || cpu_s - prev.cpu_s > 0.05;
++			next.set(pid, { pid, ppid, name, mb, cpu_s, born, cpu,
++				cmd: cmd ?? (same ? prev.cmd : null) ?? "",
++				idle_since: busy ? at : prev.idle_since });
++		}
++		this.procs = next;
++		this.cost = typeof self === "number" ? self : null;
++		this.now = this.sort(at);
++		this.history.push(this.point(this.now));
++		if (this.history.length > this.keep) this.history.splice(0, this.history.length - this.keep);
++		if (this.reaping) this.reap();
++		this.emit("tick", this.now);
++	}
++
++	/* GIT BASH'S OWN PARENTS. A Git Bash tool starts by `exec`, so Windows names a
++	 * parent that has already exited even while the pipeline is alive and read
++	 * (a `tail -f | grep` under a live Claude session looks parentless). Git's
++	 * own `ps -e` keeps the true tree: PID, PPID and the Windows pid of each.
++	 * `this.real` maps a Windows pid to its true parent's Windows pid, or 0 when
++	 * that parent is gone. A process at the top of Git Bash's tree (PPID 1)
++	 * keeps its Windows parent. */
++	msys(rows){
++		if (!Array.isArray(rows) || !rows.length) return;
++		const winpid = new Map(rows.map(([pid, , win]) => [pid, win]));
++		this.real = new Map();
++		for (const [, ppid, win] of rows) if (ppid !== 1) this.real.set(win, winpid.get(ppid) ?? 0);
++	}
++
++	/* ── sorting every process into a group ───────────────────────────── */
++
++	sort(at){
++		const procs = this.procs, kids = new Map(), group = new Map(), groups = new Map();
++		// a parent pid only counts if that process was born before the child (Windows reuses pids)
++		const parent = p => {
++			if (this.real?.has(p.pid)){ const w = this.real.get(p.pid); return w ? procs.get(w) ?? null : null; }
++			const q = procs.get(p.ppid); return q && (!q.born || !p.born || q.born <= p.born) ? q : null;
++		};
++		for (const p of procs.values()){ const q = parent(p); if (q) (kids.get(q.pid) ?? kids.set(q.pid, []).get(q.pid)).push(p.pid); }
++		const claim = (pid, key) => {
++			for (const stack = [pid]; stack.length;){
++				const x = stack.pop();
++				if (group.has(x)) continue;
++				group.set(x, key);
++				stack.push(...(kids.get(x) ?? []));
++			}
++		};
++		const meet = (key, info) => groups.get(key) ?? groups.set(key, { key, ...info, n: 0, mb: 0, cpu: 0, pids: [] }).get(key);
++
++		// 1. every live agent's own claude.exe, for its task
++		const agents = this.agents();
++		for (const a of agents){
++			const pid = a.pid && procs.get(a.pid)?.name?.toLowerCase() === "claude.exe" ? a.pid : null;
++			if (!pid) continue;
++			meet(a.group, { kind: a.kind, label: a.label, agents: [] }).agents.push({ id: a.id, pid, state: a.state });
++			claim(pid, a.group);
++		}
++		// 2. Servex, the node that supervises it, and its other children
++		meet("servex", { kind: "servex", label: "Servex" });
++		for (let p = procs.get(process.pid); p && p.name?.toLowerCase() === "node.exe"; p = parent(p)) group.set(p.pid, "servex");
++		group.delete(process.pid); claim(process.pid, "servex");
++		// 3. Claude Code sessions Servex did not start
++		for (const p of procs.values())
++			if (p.name?.toLowerCase() === "claude.exe" && !group.has(p.pid) && parent(p)?.name?.toLowerCase() !== "claude.exe"){
++				const key = `session ${p.pid}`;
++				meet(key, { kind: "session", label: `Claude Code session (pid ${p.pid})`, parent: parent(p)?.name ?? null });
++				claim(p.pid, key);
++			}
++		// 4. the detached servers Servex started
++		for (const pid of this.detached()) if (procs.has(pid)){ meet("dev servers", { kind: "servers", label: "Dev servers" }); claim(pid, "dev servers"); }
++		// 5. whatever is ours but whose parent is gone
++		for (const p of procs.values()){
++			if (group.has(p.pid) || parent(p) || !OUR_KINDS.test(p.name ?? "") || !ours_cmd(p)) continue;
++			const waiter = WAITERS.test(p.name) && tree(p.pid, kids).every(x => /^conhost.exe$/i.test(procs.get(x)?.name ?? "") || WAITERS.test(procs.get(x)?.name ?? ""))   // a console host ends with its process;
++			const key = waiter ? "orphans" : "dev servers";
++			meet(key, waiter ? { kind: "orphans", label: "Orphans (parent gone)" } : { kind: "servers", label: "Dev servers" });
++			claim(p.pid, key);
++		}
++
++		const ours = { n: 0, mb: 0, cpu: 0 }, other = { n: 0, mb: 0, cpu: 0 }, names = new Map();
++		for (const p of procs.values()){
++			const key = group.get(p.pid);
++			const g = key ? groups.get(key) ?? meet(key, { kind: "other", label: key }) : null;
++			for (const t of g ? [g, ours] : [other]){ t.n++; t.mb += p.mb; t.cpu += p.cpu; }
++			if (g) g.pids.push(p.pid);
++			else if (p.pid){ const n = names.get(p.name) ?? names.set(p.name, { name: p.name, n: 0, mb: 0, cpu: 0 }).get(p.name); n.n++; n.mb += p.mb; n.cpu += p.cpu; }
++		}
++		const tidy = t => ({ ...t, mb: Math.round(t.mb), cpu: round(t.cpu, 1) });
++		const list = [...groups.values()].filter(g => g.n).map(tidy).sort((a, b) => b.mb - a.mb);
++		const orphans = (groups.get("orphans")?.pids ?? []).map(pid => this.row(procs.get(pid), at));
++		const free_mb = Math.round(os.freemem() / 1024 ** 2), total_mb = Math.round(os.totalmem() / 1024 ** 2);
++		return {
++			at: stamp(), every_s: this.every / 1000,
++			total_mb, free_mb, used_mb: total_mb - free_mb,
++			ours: tidy(ours), other: tidy(other),
++			groups: list,
++			other_top: [...names.values()].map(tidy).sort((a, b) => b.mb - a.mb).slice(0, 8),
++			orphans, reaped: this.reaped.slice(-10),
++			running: agents.map(a => ({ id: a.id, state: a.state, group: a.group, pid: a.pid && procs.has(a.pid) ? a.pid : null,
++				mb: a.pid ? procs.get(a.pid)?.mb ?? null : null, lost: (a.state === "working" || a.state === "idle") && !(a.pid && procs.has(a.pid)) })),
++			monitor_cost_s: this.cost
++		};
++	}
++
++	row(p, at = Date.now()){
++		return p && { pid: p.pid, ppid: p.ppid, name: p.name, mb: p.mb, cpu: p.cpu, born: p.born,
++			idle_min: p.idle_since ? Math.round((at - p.idle_since) / 60000) : null, cmd: String(p.cmd).slice(0, 300) };
++	}
++
++	/* Every live agent: its claude.exe's pid, and the group it counts for. */
++	agents(){
++		const host = this.servex?.agents, live = [...(host?.live?.values() ?? [])];
++		const Agent = host?.constructor?.Agent;
++		const by_session = new Map();
++		for (const p of this.procs.values()){ const m = SESSION.exec(p.cmd ?? ""); if (m && p.name?.toLowerCase() === "claude.exe") by_session.set(m[1], p.pid); }
++		const standing = /^(assistant-|manager-|master-assistant|session-|dispatcher$)/;
++		const task_of = a => {
++			for (let x = a, hops = 0; x && hops < 8; x = host?.live?.get(x.parent), hops++){
++				const dir = x.task?.dir ?? host?.task_dir_of?.(x.id) ?? null;
++				if (dir) return task_key(dir);
++			}
++			return null;
++		};
++		return live.filter(a => a.state !== "stopped" && (!Agent || a instanceof Agent)).map(a => {
++			const pid = a.claude_pid && this.procs.has(a.claude_pid) ? a.claude_pid : by_session.get(a.session_id) ?? a.claude_pid ?? null;
++			if (pid && pid !== a.claude_pid && this.procs.get(pid)){ a.claude_pid = pid; }   // learned from the command line
++			const task = standing.test(a.id) ? null : task_of(a);
++			return { id: a.id, state: a.state, pid,
++				group: standing.test(a.id) ? "front desk" : task ? `task ${task}` : `agent ${a.id}`,
++				kind: standing.test(a.id) ? "desk" : task ? "task" : "agent",
++				label: standing.test(a.id) ? "Front desk" : task ?? a.id };
++		});
++	}
++
++	/* The detached servers: procs/*.json (Process.js) and the port-80 gate. */
++	detached(){
++		const out = [];
++		try { for (const f of fs.readdirSync(place("procs"))) try { out.push(JSON.parse(fs.readFileSync(path.join(place("procs"), f), "utf8")).pid); } catch {} } catch {}
++		for (const p of this.procs.values()) if (/gate\.mjs/i.test(p.cmd)) out.push(p.pid);
++		return out.filter(Boolean);
++	}
++
++	/* ── orphans ──────────────────────────────────────────────────────── */
++
++	/* End an orphan only when all of this holds: a waiter kind (never node, never
++	 * an app), its parent gone, its command line ours, and not a whisker of CPU
++	 * for `reap_after_ms`. One line on the `processes` log for each. */
++	reap(){
++		const at = Date.now();
++		for (const o of this.now?.orphans ?? []){
++			const p = this.procs.get(o.pid);
++			if (!p || !WAITERS.test(p.name) || !ours_cmd(p) || !p.idle_since || at - p.idle_since < this.reap_after_ms) continue;
++			let ok = true; try { process.kill(p.pid); } catch (e) { ok = e.code === "ESRCH"; }
++			const entry = { type: "reaped", at: stamp(), pid: p.pid, name: p.name, mb: p.mb, idle_min: Math.round((at - p.idle_since) / 60000), cmd: String(p.cmd).slice(0, 200), ok };
++			this.reaped.push(entry);
++			if (this.reaped.length > 50) this.reaped.shift();
++			this.procs.delete(p.pid);
++			this.log(entry);
++		}
++	}
++
++	/* ── what is kept ─────────────────────────────────────────────────── */
++
++	point(s){
++		const cpu = round(s.ours.cpu + s.other.cpu, 1);
++		return { at: s.at, cpu, ours_mb: s.ours.mb, ours_cpu: s.ours.cpu, other_mb: s.other.mb, free_mb: s.free_mb,
++			groups: Object.fromEntries(s.groups.map(g => [g.key, [g.mb, g.cpu]])) };
++	}
++
++	write(){
++		const s = this.now;
++		if (!s) return;
++		this.log({ type: "minute", free_mb: s.free_mb, used_mb: s.used_mb, ours: s.ours, other: s.other,
++			groups: s.groups.map(({ key, n, mb, cpu }) => ({ key, n, mb, cpu })),
++			orphans: s.orphans.length, other_top: s.other_top.slice(0, 5) });
++	}
++
++	/* What `/api/processes` and `system_health` hand out. */
++	summary({ history = true } = {}){
++		return { ...(this.now ?? { at: null, groups: [], orphans: [] }),
++			worktrees: this.servex?.worktrees?.summary() ?? null,     // Worktrees.js: the count, and what was removed
++			history: history ? this.history : undefined };
++	}
++
++	/* One line for system_health and the flag message. */
++	line(){
++		const s = this.now;
++		if (!s) return "Processes: no sample yet (the first comes 10 s after Servex starts).";
++		const gb = mb => (mb / 1024).toFixed(1);
++		const top = s.groups.filter(g => g.kind === "task").slice(0, 3).map(g => `${g.label} ${gb(g.mb)} GB`).join(", ");
++		return `Ours ${gb(s.ours.mb)} GB in ${s.ours.n} processes, everything else ${gb(s.other.mb)} GB, ${gb(s.free_mb)} GB free.`
++			+ (top ? ` Top tasks: ${top}.` : "")
++			+ (s.orphans.length ? ` ${s.orphans.length} orphaned process${s.orphans.length === 1 ? "" : "es"}.` : "")
++			+ (this.servex?.worktrees ? ` ${this.servex.worktrees.line()}` : "");
++	}
++}
++
++const round = (n, places = 1) => Math.round(n * 10 ** places) / 10 ** places;
++
++/** "…/public/framework/ai/2026-09-30/process-monitor" -> "2026-09-30/process-monitor" */
++export function task_key(dir){
++	const parts = String(dir).split(/[\\/]+/), i = parts.lastIndexOf("ai");
++	return i >= 0 ? parts.slice(i + 1).join("/") : parts.slice(-2).join("/");
++}
++
++function tree(pid, kids){
++	const out = [];
++	for (const stack = [pid]; stack.length;){ const x = stack.pop(); out.push(x); stack.push(...(kids.get(x) ?? [])); }
++	return out;
++}
++
++function lines(stream, each){
++	let rest = "";
++	stream.setEncoding("utf8");
++	stream.on("data", chunk => {
++		const parts = (rest + chunk).split(/\r?\n/);
++		rest = parts.pop();
++		for (const part of parts) if (part.trim()) each(part.trim());
++	});
++}
++
++/* The loop. One CIM query per round (about 0.2 s of CPU) and Git's `ps -e`; a
++ * command line crosses the pipe only the first time a process is seen. Exits
++ * when Servex is gone. */
++const PS = String.raw`
++$ErrorActionPreference = 'SilentlyContinue'
++$parent = __PARENT__
++$every = __EVERY__
++$seen = @{}
++$msysps = $null
++try { $d = Split-Path (Get-Command git.exe -ErrorAction Stop).Source; for ($i = 0; $i -lt 4 -and $d -and -not $msysps; $i++) { if (Test-Path "$d/usr/bin/ps.exe") { $msysps = "$d/usr/bin/ps.exe" }; $d = Split-Path $d } } catch {}
++while ($true) {
++  if (-not (Get-Process -Id $parent -ErrorAction SilentlyContinue)) { exit }
++  $now = @{}
++  $rows = New-Object System.Collections.Generic.List[object]
++  foreach ($p in Get-CimInstance Win32_Process -Property ProcessId,ParentProcessId,Name,WorkingSetSize,CreationDate,KernelModeTime,UserModeTime,CommandLine) {
++    $born = $null; if ($p.CreationDate) { $born = [DateTimeOffset]::new($p.CreationDate).ToUnixTimeMilliseconds() }
++    $key = "$($p.ProcessId)|$born"; $now[$key] = 1
++    $r = @($p.ProcessId, $p.ParentProcessId, $p.Name, [math]::Round($p.WorkingSetSize / 1MB, 1), [math]::Round(($p.KernelModeTime + $p.UserModeTime) / 1e7, 2), $born)
++    if (-not $seen.ContainsKey($key)) { $r += ,[string]$p.CommandLine }
++    $rows.Add($r)
++  }
++  $seen = $now
++  $msys = New-Object System.Collections.Generic.List[object]
++  if ($msysps) { foreach ($l in (& $msysps -e 2>$null | Select-Object -Skip 1)) { $f = -split $l; if ($f.Count -ge 4) { $msys.Add(@([int]$f[0], [int]$f[1], [int]$f[3])) } } }
++  $me = Get-Process -Id $PID
++  [Console]::Out.WriteLine((@{ rows = $rows; msys = $msys; self = [math]::Round($me.CPU, 2) } | ConvertTo-Json -Compress -Depth 3))
++  [Console]::Out.Flush()
++  Start-Sleep -Seconds $every
++}
++`;
+diff --git a/Servex/Servex.js b/Servex/Servex.js
+index 735df8c7..c1b95699 100644
+--- a/Servex/Servex.js
++++ b/Servex/Servex.js
+@@ -9,6 +9,8 @@ import Server from "../Server/Server.js";
+ import Events from "../Server/Events.js";
+ import Log from "./Log.js";
+ import Monitor from "./Monitor.js";
++import Processes from "./Processes.js";
++import Worktrees from "./Worktrees.js";
+ import TaskLoop from "./TaskLoop.js";
+ import Heartbeat from "./Heartbeat.js";
+ import Usage from "./Usage.js";
+@@ -194,6 +196,12 @@ export default class Servex extends Events {
+             this.checks.push(spec => this.monitor.flag ? this.monitor.flag.reason : null);
+             this.monitor.on("tick", () => this.drain());
+         }
++        /* THE PROCESS MONITOR (process-monitor, 2026-09-30): every process, ours vs.
++         * everything else, RAM and CPU per task, orphans reaped. Processes.js says how. */
++        if (!process.env.SERVEX_NO_PROCESSES) this.procmon = new this.constructor.Processes({ servex: this }).start();
++        /* WORKTREE CLEAN-UP (same task): a finished worktree is removed, its branch kept,
++         * and Servex forgets its project, port and subdomain. Worktrees.js says when. */
++        if (!process.env.SERVEX_NO_WORKTREES) this.worktrees = new this.constructor.Worktrees({ servex: this }).start();
+ 
+         /* THE TASK LOOP (task-loop, 2026-09-28): every SERVEX_TASKLOOP_EVERY_MIN
+          * minutes, chase an open task quiet past SERVEX_TASKLOOP_QUIET_MIN, or whose
+@@ -579,6 +587,11 @@ export default class Servex extends Events {
+         /* The machine monitor's latest sample, verdict, flag and spawn queue. */
+         router.get("/api/system", cors, (req, res) => res.json(this.health()));
+ 
++        /* The process monitor: the latest snapshot and an hour of 10-second points
++         * (`?history=0` leaves them out). The Live card draws its graph from it. */
++        router.get("/api/processes", cors, (req, res) => res.json(this.procmon
++            ? this.procmon.summary({ history: req.query.history !== "0" }) : { off: "SERVEX_NO_PROCESSES=1" }));
++
+         /* The worktree pool: { K, N_hours, slots: [...] } — the Live card reads it. */
+         router.get("/api/worktrees", cors, (req, res) => res.json(this.pool ? this.pool.list() : { K: 0, N_hours: 0, slots: [] }));
+ 
+@@ -645,7 +658,8 @@ export default class Servex extends Events {
+                 + " the top 5 processes by CPU, claude/node/chrome counts, live agents (working, and idle ones still holding a"
+                 + " claude process), GPU load/temperature/fan, and a one-line verdict. While the flag is up, new agents are"
+                 + " queued instead of started — `queue` lists them. The three optional numbers change the flag's thresholds"
+-                + " for this Servex until it restarts.",
++                + " for this Servex until it restarts. `processes` is the process monitor (this.procmon): RAM and CPU that are ours vs. everything"
++                + " else, per task, and orphaned processes (Servex/doc/processes.md).",
+             inputSchema: { type: "object", properties: {
+                 hot_cpu: { type: "number", description: "Flag when total CPU % stays at or above this. Default 90." },
+                 hot_seconds: { type: "number", description: "…for this many seconds. Default 60." },
+@@ -679,8 +693,10 @@ export default class Servex extends Events {
+     }
+ 
+     health(){
+-        if (!this.monitor) return { verdict: "The monitor is off (SERVEX_NO_MONITOR=1).", queue: this.queued() };
+-        return { ...this.monitor.health(), queue: this.queued() };
++        const processes = this.procmon ? { line: this.procmon.line(), ...this.procmon.summary({ history: false }) } : null;
++        if (!this.monitor) return { verdict: "The monitor is off (SERVEX_NO_MONITOR=1).", processes, queue: this.queued() };
++        const h = this.monitor.health();
++        return { ...h, verdict: processes ? `${h.verdict} ${processes.line}` : h.verdict, processes, queue: this.queued() };
+     }
+ 
+     /* ── the spawn gate ───────────────────────────────────────────────── */
+@@ -973,6 +989,8 @@ export default class Servex extends Events {
+         const down = () => {
+             this.agents.closing = true;   // wake_parent writes the inbox but revives nobody while everything stops
+             try { this.monitor?.stop(); } catch {}
++            try { this.procmon?.stop(); } catch {}
++            try { this.worktrees?.stop(); } catch {}
+             try { this.task_loop?.stop(); } catch {}
+             try { this.heartbeat?.stop(); } catch {}
+             for (const agent of this.agents.live.values()) try { agent.stop(); } catch {}
+@@ -1137,6 +1155,8 @@ Servex.Global = Global;
+ Servex.External = External;
+ Servex.MCP = MCP;
+ Servex.Monitor = Monitor;
++Servex.Processes = Processes;
++Servex.Worktrees = Worktrees;
+ Servex.TaskLoop = TaskLoop;
+ Servex.Heartbeat = Heartbeat;
+ Servex.Pool = Pool;
+diff --git a/Servex/Worktrees.js b/Servex/Worktrees.js
+new file mode 100644
+index 00000000..48386784
+--- /dev/null
++++ b/Servex/Worktrees.js
+@@ -0,0 +1,256 @@
++import fs from "fs";
++import path from "path";
++import { execFile } from "child_process";
++import { fileURLToPath } from "url";
++import Events from "../Server/Events.js";
++import { stamp, place } from "./home.js";
++
++/* WORKTREE CLEAN-UP — a worktree is temporary (process-monitor, 2026-09-30).
++ *
++ * Every folder in C:/Code/lew42/worktrees/ with a package.json becomes a Servex
++ * project: a port, a `<name>.localhost`, sometimes a running dev server. Nothing
++ * removed them; 57 had piled up, 17 of them already merged.
++ *
++ * Every 10 minutes each worktree there gets one STATE:
++ *
++ *   pool         qf-*: the quick-fix pool recycles these itself (Pool.js). Never touched here.
++ *   locked       `git worktree lock`ed by someone. Never touched.
++ *   in use       a live or dormant agent works inside it, or git touched it in the
++ *                last 2 hours (a Claude Code tab Servex does not know may be in it).
++ *   no branch    a detached HEAD: nothing would keep its commits. Never touched.
++ *   uncommitted  it has real changes git would lose. Never touched; shown so a person can look.
++ *                LOG NOISE does not count: a worktree's own dev server appends to the
++ *                site's `*.jsonl` logs (files.jsonl, page.jsonl, board.jsonl …) and makes
++ *                card folders under public/framework/ai/. Before a worktree with only
++ *                noise is removed, the noise is copied to Servex's
++ *                `salvage/worktrees/<name>-<date>/` (a diff plus the new files).
++ *   open         its branch holds commits michael/dev does not, and no landed task owns it.
++ *   finished     its branch is merged into michael/dev (or applied by merge.mjs), or
++ *                the task that took it has landed and no agent of it is alive.
++ *
++ * A FINISHED worktree is removed: its dev server stopped, `git worktree remove`
++ * (--force only when every change is log noise already saved; otherwise git
++ * itself refuses anything unclean), and Servex forgets the
++ * project, its port and its subdomain. The BRANCH is kept, so `git revert` and
++ * `git log` still work. Nothing is removed unless `Server/junction-check.mjs`
++ * passes first: a worktree whose node_modules is a junction into main would take
++ * main's node_modules with it (2026-09-22, 2026-09-29). SERVEX_WORKTREE_CLEANUP=0
++ * only reports. */
++export default class Worktrees extends Events {
++
++	initialize(){
++		this.main ??= path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
++		this.dir ??= path.resolve(this.main, "..", "worktrees");
++		this.base ??= "michael/dev";
++		this.every ??= Number(process.env.SERVEX_WORKTREES_EVERY_MS) || 10 * 60000;
++		this.removing ??= process.env.SERVEX_WORKTREE_CLEANUP !== "0";
++		this.quiet_hours ??= Number(process.env.SERVEX_WORKTREE_QUIET_HOURS) || 2;
++		this.removed = [];       // { at, name, branch, why }
++		this.last = null;        // the latest pass: { at, items, junctions }
++	}
++
++	start(){
++		this.first = setTimeout(() => this.tick(), 2 * 60000); this.first.unref?.();
++		this.timer = setInterval(() => this.tick(), this.every); this.timer.unref?.();
++		return this;
++	}
++
++	stop(){ clearTimeout(this.first); clearInterval(this.timer); }
++
++	log(entry){ return this.servex?.log?.append("servex", { type: "worktrees", ...entry }).catch(() => {}); }
++
++	git(args, cwd = this.main){
++		return new Promise(resolve => execFile("git", ["-C", cwd, ...args], { windowsHide: true, encoding: "utf8", maxBuffer: 16 << 20 },
++			(e, out, err) => resolve({ ok: !e, out: String(e ? err || out : out).trimEnd() })));   // trimEnd: a porcelain line starts with a space
++	}
++
++	/* `git worktree list --porcelain`, only the ones under `this.dir`. */
++	async list(){
++		const out = (await this.git(["worktree", "list", "--porcelain"])).out, rows = [];
++		for (const block of out.split(/\n\s*\n/)){
++			const wt = block.match(/^worktree (.+)$/m)?.[1];
++			if (!wt || !same_or_under(wt, this.dir) || norm(wt) === norm(this.dir)) continue;
++			rows.push({ path: wt, name: path.basename(wt), branch: block.match(/^branch refs\/heads\/(.+)$/m)?.[1] ?? null,
++				head: block.match(/^HEAD (\w+)/m)?.[1] ?? null, locked: /^locked/m.test(block), prunable: /^prunable/m.test(block) });
++		}
++		return rows;
++	}
++
++	/* One worktree's state, with the reason in words. */
++	async judge(wt, tasks){
++		if (/^qf-\d+$/.test(wt.name)) return { state: "pool", why: "the quick-fix pool recycles it" };
++		if (wt.locked) return { state: "locked", why: "locked with git worktree lock" };
++		if (wt.prunable || !fs.existsSync(wt.path)) return { state: "finished", why: "its folder is already gone", prune: true };
++		const agent = this.agent_in(wt.path);
++		if (agent) return { state: "in use", why: `${agent.id} (${agent.state}) works in it` };
++		if (!wt.branch) return { state: "no branch", why: "a detached HEAD; its commits would have no name" };
++		// a session Servex does not know about (a VS Code tab) may be working in it: wait for 2 quiet hours of git
++		const quiet = this.quiet_min(wt);
++		if (quiet === null) return { state: "in use", why: "cannot tell when git last touched it, so it is left alone" };
++		if (quiet < this.quiet_hours * 60) return { state: "in use", why: `git was used in it ${quiet} min ago (waits for ${this.quiet_hours} quiet hours)` };
++		const changes = await this.changes(wt.path);
++		const real = changes.filter(c => !noise(c));
++		if (real.length) return { state: "uncommitted", why: `${real.length} changed file(s): ${real.slice(0, 3).map(c => c.path).join(", ")}` };
++		const done = why => ({ state: "finished", noise: changes,
++			why: why + (changes.length ? ` (plus ${changes.length} log file(s) its own server wrote, kept in salvage)` : "") });
++		if ((await this.git(["merge-base", "--is-ancestor", wt.branch, this.base])).ok) return done(`${wt.branch} is merged into ${this.base}`);
++		if (this.applied(wt.head)) return done(`${wt.branch} was applied to ${this.base} by merge.mjs`);
++		const task = tasks.get(norm(wt.path));
++		if (task?.landed && !this.alive(task.agent)) return done(`its task ${task.key} landed and ${task.agent ?? "its owner"} has stopped`);
++		return { state: "open", why: `${wt.branch} holds commits ${this.base} does not` + (task ? `, for ${task.key}${task.landed ? "" : " (not landed)"}` : "") };
++	}
++
++	/* `git status --porcelain` as { code, path }; untracked folders are listed file by file. */
++	async changes(dir){
++		const out = (await this.git(["status", "--porcelain", "--untracked-files=all"], dir)).out;
++		return out ? out.split("\n").map(l => ({ code: l.slice(0, 2), path: l.slice(3).replace(/^"|"$/g, "") })) : [];
++	}
++
++	/* Copy a worktree's log noise out before it goes: the diff of the changed logs, and every new file. */
++	async salvage(item){
++		const to = path.join(place("salvage"), "worktrees", `${item.name}-${stamp().slice(0, 16).replace(/[:T]/g, "-")}`);
++		fs.mkdirSync(to, { recursive: true });
++		const changed = item.noise.filter(c => c.code !== "??").map(c => c.path);
++		if (changed.length) fs.writeFileSync(path.join(to, "changes.diff"), (await this.git(["diff", "--", ...changed], item.path)).out + "\n");
++		for (const c of item.noise.filter(c => c.code === "??")){
++			const dest = path.join(to, "new", c.path);
++			fs.mkdirSync(path.dirname(dest), { recursive: true });
++			fs.copyFileSync(path.join(item.path, c.path), dest);
++		}
++		return to;
++	}
++
++	/* Minutes since git last touched this worktree: its index, HEAD or logs/HEAD
++	 * under main's .git/worktrees/<name>/ (a commit, a checkout, a status refresh). */
++	quiet_min(wt){
++		if (!this.common) return null;
++		const gitdir = path.join(this.common, "worktrees", wt.name);
++		let last = 0;
++		for (const f of ["index", "HEAD", path.join("logs", "HEAD")]) try { last = Math.max(last, fs.statSync(path.join(gitdir, f)).mtimeMs); } catch {}
++		return last ? Math.round((Date.now() - last) / 60000) : null;
++	}
++
++	agent_in(dir){
++		for (const a of this.servex?.agents?.live?.values() ?? [])
++			if (a.state !== "stopped" && a.cwd && same_or_under(a.cwd, dir)) return a;
++		return null;
++	}
++
++	alive(id){ const a = id && this.servex?.agents?.live?.get(id); return !!a && a.state !== "stopped"; }
++
++	applied(head){
++		try { return !!head && JSON.parse(fs.readFileSync(path.join(this.main, ".merge-landed.json"), "utf8")).some(e => e.head === head); }
++		catch { return false; }
++	}
++
++	/* Which task took which worktree: `{assign: {worktree}}` in its task.jsonl
++	 * (Lifecycle.took writes it). Only the last three weeks of task dirs. */
++	tasks(){
++		const ai = path.join(this.main, "public", "framework", "ai"), out = new Map();
++		const since = Date.now() - 21 * 86400000;
++		let days = []; try { days = fs.readdirSync(ai).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d) && Date.parse(d) >= since); } catch {}
++		for (const day of days){
++			let slugs = []; try { slugs = fs.readdirSync(path.join(ai, day)); } catch {}
++			for (const slug of slugs){
++				let text; try { text = fs.readFileSync(path.join(ai, day, slug, "task.jsonl"), "utf8"); } catch { continue; }
++				if (!text.includes("\"worktree\"")) continue;
++				const t = { key: `${day}/${slug}`, landed: false, agent: null, worktree: null };
++				for (const line of text.split("\n")){
++					let a; try { a = JSON.parse(line).assign; } catch { continue; }
++					if (!a) continue;
++					if (a.worktree) t.worktree = a.worktree;
++					if (a.agent) t.agent = a.agent;
++					if (a.landed_at) t.landed = true;
++				}
++				if (t.worktree) out.set(norm(t.worktree), t);
++			}
++		}
++		return out;
++	}
++
++	/* `node Server/junction-check.mjs`: exit 0 means no link under the worktree roots lands in main. */
++	junctions(){
++		return new Promise(resolve => execFile(process.execPath, [path.join(this.main, "Server", "junction-check.mjs")], { cwd: this.main, windowsHide: true, encoding: "utf8" },
++			(e, out) => resolve({ ok: !e, out: String(out ?? "").trim().split("\n").slice(-3).join(" ") })));
++	}
++
++	async tick(){
++		if (this.busy) return this.last;
++		this.busy = true;
++		try {
++			// main's own .git, even when this Servex runs from a worktree (where .git is a file)
++			this.common ??= path.resolve(this.main, (await this.git(["rev-parse", "--git-common-dir"])).out || ".git");
++			const tasks = this.tasks(), items = [];
++			for (const wt of await this.list()) items.push({ name: wt.name, path: wt.path, branch: wt.branch, ...(await this.judge(wt, tasks)) });
++			const finished = items.filter(i => i.state === "finished");
++			let junctions = null;
++			if (finished.length && this.removing){
++				junctions = await this.junctions();
++				if (!junctions.ok) this.log({ msg: `worktrees: ${finished.length} finished, none removed — junction-check failed: ${junctions.out}` });
++				else for (const i of finished) await this.remove(i);
++			}
++			this.last = { at: stamp(), items, junctions };
++			this.emit("tick", this.last);
++			return this.last;
++		} finally { this.busy = false; }
++	}
++
++	/* Stop its server, remove the folder (git refuses anything unclean), forget the project. */
++	async remove(item){
++		const sx = this.servex, name = item.name;
++		try { await sx?.processes?.get(name)?.terminate?.(); } catch {}
++		let kept = null;
++		if (item.noise?.length){
++			try { kept = await this.salvage(item); }
++			catch (e){ item.state = "open"; item.why = `its log files could not be saved first: ${e.message}`; return false; }
++		}
++		// --force only when every change is log noise, and only after it was saved; otherwise git itself refuses
++		const r = item.prune ? await this.git(["worktree", "prune"])
++			: await this.git(["worktree", "remove", ...(item.noise?.length ? ["--force"] : []), item.path]);
++		if (!r.ok){ item.state = "open"; item.why = `git refused to remove it: ${r.out.split("\n")[0]}`; this.log({ msg: `worktrees: ${name} not removed: ${r.out}` }); return false; }
++		this.forget(name);
++		item.state = "removed";
++		const entry = { at: stamp(), name, branch: item.branch, why: item.why, salvage: kept };
++		this.removed.push(entry);
++		if (this.removed.length > 200) this.removed.shift();
++		this.log({ msg: `worktrees: removed ${name} (${item.why}); branch ${item.branch} kept`, ...entry });
++		return true;
++	}
++
++	/* Servex forgets the project: its runner, its place in the list, its port. */
++	forget(name){
++		const sx = this.servex;
++		if (!sx) return;
++		sx.processes?.delete?.(name);
++		const i = sx.projects?.findIndex(p => p.name === name && !p.self);
++		if (i >= 0) sx.projects.splice(i, 1);
++		if (sx.ports?.ports?.[name] !== undefined){ delete sx.ports.ports[name]; try { sx.ports.save(); } catch {} }
++	}
++
++	/* What the process monitor shows. */
++	summary(){
++		const items = this.last?.items ?? [], count = s => items.filter(i => i.state === s).length;
++		const today = new Date().toDateString();
++		return {
++			at: this.last?.at ?? null, total: items.filter(i => i.state !== "removed").length,
++			pool: count("pool"), in_use: count("in use"), open: count("open"), uncommitted: count("uncommitted"),
++			finished: count("finished"), removed_today: this.removed.filter(r => new Date(r.at).toDateString() === today).length,
++			junctions_ok: this.last?.junctions ? this.last.junctions.ok : null,
++			items: items.map(({ name, branch, state, why }) => ({ name, branch, state, why }))
++		};
++	}
++
++	line(){
++		const s = this.summary();
++		if (!s.at) return "Worktrees: not counted yet (the first pass runs 2 minutes after Servex starts).";
++		return `Worktrees: ${s.total} (${s.pool} pool, ${s.in_use} in use, ${s.open} open, ${s.uncommitted} uncommitted), ${s.removed_today} removed today.`;
++	}
++}
++
++/* A change the worktree's own server or hooks made: a *.jsonl log anywhere,
++ * or a new file under public/framework/ai/ (a card folder, a screenshot). Never a rename or a deletion. */
++export const noise = c => !/[RCD]/.test(c.code) && !c.path.includes(" -> ")
++	&& (/(^|\/)[^/]+\.jsonl$/.test(c.path) || (c.code === "??" && c.path.startsWith("public/framework/ai/")));
++
++const norm = p => path.resolve(String(p)).replace(/\\/g, "/").replace(/\/+$/, "").toLowerCase();
++const same_or_under = (p, dir) => { const a = norm(p), b = norm(dir); return a === b || a.startsWith(b + "/"); };
+diff --git a/Servex/agents/Agents.js b/Servex/agents/Agents.js
+index 0f8673a1..7838a400 100644
+--- a/Servex/agents/Agents.js
++++ b/Servex/agents/Agents.js
+@@ -1,5 +1,6 @@
+ import { query, getSessionInfo, getSessionMessages } from "@anthropic-ai/claude-agent-sdk";
+ import fs from "node:fs";
++import { spawn } from "node:child_process";
+ import { randomUUID } from "node:crypto";
+ import os from "node:os";
+ import path from "node:path";
+@@ -757,11 +758,40 @@ Agents.Agent = class Agent {
+ 			...(this.resume ? { resume: this.resume } : {}),
+ 			...(this.resume && this.fork ? { forkSession: true } : {}),
+ 			...(this.minted ? { sessionId: this.session_id } : {}),
++			spawnClaudeCodeProcess: o => this.spawn_claude(o),
+ 			...this.sdk,
+ 			...(this.one_shot ? this.refusal() : {})
+ 		};
+ 	}
+ 
++	/* THE REAL PROCESS (process-monitor, 2026-09-30). Servex starts the claude.exe
++	 * itself, the way the SDK's own local spawn does (pipes, hidden window, the
++	 * SDK's forwarded abort signal), so it knows the PID: `claude_pid` on the
++	 * agent and its registry row, and a `process` line in the agent's log.
++	 * "Running" on the dashboards means this PID is alive (Servex/Processes.js).
++	 * stderr is drained here (an unread pipe would stall the child); its last
++	 * 4 KB stay on the agent as `stderr_tail`, and a spec's own `sdk.stderr`
++	 * still hears every chunk. */
++	spawn_claude({ command, args, cwd, env, signal }){
++		const child = spawn(command, args, { cwd, env, signal, stdio: ["pipe", "pipe", "pipe"], windowsHide: true });
++		child.on("error", e => this.emit({ type: "process", state: "failed", error: e.message }));
++		child.stderr.setEncoding("utf8");
++		child.stderr.on("data", d => {
++			this.stderr_tail = ((this.stderr_tail ?? "") + d).slice(-4000);
++			try { this.sdk?.stderr?.(d); } catch {}
++		});
++		const pid = child.pid ?? null;
++		this.claude_pid = pid;
++		this.claude_started = stamp();
++		this.emit({ type: "process", state: "started", pid, gen: this.gen ?? null });
++		try { this.host?.register(this); } catch {}
++		child.on("exit", (code, sig) => {
++			if (this.claude_pid === pid) this.claude_pid = null;
++			this.emit({ type: "process", state: "exited", pid, code, signal: sig ?? null });
++		});
++		return child;
++	}
++
+ 	/* MINIONS THAT SPAWN MINIONS, in one method.
+ 	 *
+ 	 * An agent running inside Servex is handed Servex's own `/mcp` url two ways,
+diff --git a/Servex/agents/registry.js b/Servex/agents/registry.js
+index 2a7d52d3..ac878408 100644
+--- a/Servex/agents/registry.js
++++ b/Servex/agents/registry.js
+@@ -48,6 +48,7 @@ export default class Registry {
+ 		return { id, role, name: name ?? null, topics: topics ?? null, page: page ?? null,
+ 			state, visibility, session_id, started_at, parent: parent ?? null,
+ 			last_at: stamp(), boot: agent.host?.boot ?? null, pid: process.pid,
++			claude_pid: agent.claude_pid ?? null,   // the agent's own claude.exe (Agents.spawn_claude); pid is the HOST's
+ 			revivable: agent.revivable?.() ?? false,
+ 			model: model ?? null, effort: effort ?? null, cwd: cwd ?? null,
+ 			permission_mode: permission_mode ?? null, allowed_tools: allowed_tools ?? null,
+diff --git a/Servex/doc/processes.md b/Servex/doc/processes.md
+new file mode 100644
+index 00000000..f4ccb130
+--- /dev/null
++++ b/Servex/doc/processes.md
+@@ -0,0 +1,56 @@
++# The process monitor, orphans, and worktree clean-up
++
++**What it answers:** how much RAM and CPU is ours, how much belongs to everything else, which task uses how much, and what was left behind.
++
++Every 10 seconds Servex reads every process on the machine. It sorts each one into a group:
++
++| group | what is in it |
++|---|---|
++| **task** `<date>/<slug>` | an agent's claude.exe and everything under it (bash, git, node, tail …), for the task that agent, or its nearest parent agent, works for |
++| **front desk** | the assistants, managers and session agents |
++| **Servex** | Servex itself, the node that supervises it, and its other children |
++| **Claude Code session** | a claude.exe Servex did not start (a VS Code tab) and its shells |
++| **dev servers** | the servers Servex started detached, and any process from this repo or a worktree whose parent is gone |
++| **orphans** | a leftover waiter of ours (bash, tail, grep, sleep …) whose parent is gone |
++| *other* | everything else: Chrome, VS Code, Windows. Counted, never touched. |
++
++Ask with `system_health` (its first line now ends "Ours 6.1 GB in 124 processes, everything else 14.2 GB …"), or `GET /api/processes` for the whole snapshot plus an hour of 10-second points. The Live card draws it. One line a minute goes to the `processes` log.
++
++## Running means a real process
++
++Servex starts every agent's claude.exe itself (`Agents.spawn_claude`, through the SDK's `spawnClaudeCodeProcess`), so it knows the PID from the first moment:
++- `claude_pid` is on the agent and on its registry row;
++- `{type: "process", state: "started" | "exited", pid}` goes in the agent's log.
++
++The monitor checks that PID every 10 seconds. An agent that says `working` or `idle` but has no live claude.exe is shown as **lost**. A dormant agent has no process on purpose ([dormant.md](./dormant.md)).
++
++## Orphans: flagged, and ours reaped
++
++- **Flagged:** a process of our kinds whose parent is gone, and whose command line points into this repo, a worktree, Claude's own folders, or Git for Windows' own tools.
++- **Reaped** after 10 minutes with no CPU (`SERVEX_REAP_ORPHANS_MS`), and only if it is a waiter: bash, sh, tail, grep, sleep, cat, head, sed, awk, timeout or find. A node process with no parent is shown under dev servers, never killed. `SERVEX_REAP_ORPHANS=0` only flags.
++- **Every reap** writes one line to the `processes` log and shows under `reaped`.
++
++⚠ **Windows lies about Git Bash parents.** A Git Bash tool starts through `exec`, so Windows names a parent that already exited, even while the pipeline is alive and being read. A `tail -f | grep` under a live Claude session looks parentless. So the monitor also reads Git's own `ps -e`, which keeps the true tree, and trusts it over Windows. Without that, a live session's monitor would be killed. The proof plants both a dead and a live pipeline: [proof.txt](/framework/ai/2026-09-30/process-monitor/proof.txt).
++
++## Worktree clean-up
++
++Every folder in `C:/Code/lew42/worktrees/` becomes a Servex project with its own port and `<name>.localhost`. Every 10 minutes `Worktrees.js` gives each one a state:
++
++- **pool** (`qf-*`): the quick-fix pool recycles these. Never touched here.
++- **in use**: an agent works in it, or git touched it in the last 2 hours (a VS Code tab may be in it).
++- **uncommitted**: it has real changes. Never touched.
++- **open**: its branch has commits michael/dev does not.
++- **finished**: its branch is merged or applied by merge.mjs, or the task that took it has landed and its owner has stopped.
++
++A **finished** worktree is removed:
++1. `Server/junction-check.mjs` must pass first.
++2. Its dev server is stopped.
++3. Log noise its own server wrote (`*.jsonl` lines, card folders) is copied to `salvage/worktrees/<name>-<date>/`.
++4. `git worktree remove` runs. The **branch is kept**, so `git revert` still works.
++5. Servex forgets the project, its port and its subdomain.
++
++`SERVEX_WORKTREE_CLEANUP=0` only reports. The count shows in `system_health` and on the Live card.
++
++## Cost
++
++One long-lived hidden PowerShell: one process query (about 0.2 s of CPU) and Git's `ps -e` every 10 seconds. A command line crosses the pipe only the first time a process is seen.
+diff --git a/Servex/processes.test.mjs b/Servex/processes.test.mjs
+new file mode 100644
+index 00000000..1087d7c5
+--- /dev/null
++++ b/Servex/processes.test.mjs
+@@ -0,0 +1,93 @@
++/* The process monitor's sorting, on made-up rows (no PowerShell, no Servex):
++ *   node Servex/processes.test.mjs
++ * Rows are [pid, ppid, name, mb, cpu_s, born, cmd]. */
++import assert from "node:assert/strict";
++import Processes, { task_key } from "./Processes.js";
++
++let pass = 0;
++const ok = (cond, what) => { assert.ok(cond, what); pass++; };
++
++const GIT = "C:\\Program Files\\Git\\usr\\bin\\";
++const me = process.pid;
++const task = { dir: "C:/Code/lew42/monorepo/public/framework/ai/2026-09-30/process-monitor" };
++const agents = new Map([
++	["task-mastermind-x", { id: "task-mastermind-x", state: "working", claude_pid: 100, task }],
++	["minion-x", { id: "minion-x", state: "idle", parent: "task-mastermind-x", session_id: "11111111-2222-3333-4444-555555555555" }],
++	["assistant-fast", { id: "assistant-fast", state: "idle", claude_pid: 300 }],
++	["minion-lost", { id: "minion-lost", state: "working", claude_pid: 999, task }]
++]);
++const p = new Processes({ reaping: false, servex: { agents: { live: agents } } });
++p.detached = () => [500];
++
++const rows = [
++	[me, 1, "node.exe", 200, 1, 1000, "node Servex/index.js"],
++	[100, me, "claude.exe", 300, 1, 2000, "claude.exe --output-format stream-json"],
++	[101, 100, "bash.exe", 6, 0, 2100, "bash -c source /c/Users/x/.claude/shell-snapshots/s.sh"],
++	[200, me, "claude.exe", 250, 1, 2000, "claude.exe --session-id 11111111-2222-3333-4444-555555555555"],
++	[300, me, "claude.exe", 150, 1, 2000, "claude.exe"],
++	[400, 77, "claude.exe", 180, 1, 900, "c:\\Users\\x\\.vscode\\claude.exe"],   // a VS Code session: parent 77 is gone
++	[401, 400, "bash.exe", 6, 0, 950, "bash -c source shell-snapshots"],
++	[402, 9999, "tail.exe", 5, 0, 960, GIT + "tail.exe -f /c/Users/x/AppData/Local/Temp/claude/out"],   // exec'd: Windows parent gone, Git's parent is 401
++	[500, 88, "cmd.exe", 5, 0, 800, "cmd /c node server.js"],
++	[501, 500, "node.exe", 60, 5, 810, "node server.js"],
++	[600, 55, "tail.exe", 5, 0, 700, GIT + "tail.exe -F c:/Code/lew42/monorepo/page.jsonl"],   // an orphan
++	[601, 56, "grep.exe", 5, 0, 700, GIT + "grep.exe --line-buffered prompt"],                 // its partner, Git's parent gone too
++	[602, 57, "node.exe", 50, 0, 700, "node C:\\Code\\lew42\\worktrees\\qf-4\\Server\\run.js"], // ours, parent gone, not a waiter
++	[700, 1, "chrome.exe", 400, 9, 100, "chrome.exe"],
++	[701, 1, "tail.exe", 5, 0, 100, "C:\\cygwin\\bin\\tail.exe -f C:\\other.log"]              // the owner's own: never ours
++];
++const msys = [[10, 1, 401], [11, 10, 402], [20, 18, 600], [21, 19, 601]];   // Git: 402's parent is 401; 600/601's parents are gone
++
++p.take({ rows, msys });
++const s = p.now, by = key => s.groups.find(g => g.key === key), of = pid => s.groups.find(g => g.pids.includes(pid))?.key;
++
++ok(task_key(task.dir) === "2026-09-30/process-monitor", "task_key cuts at ai/");
++ok(of(100) === "task 2026-09-30/process-monitor" && of(101) === of(100), "an agent's claude.exe and its bash count for its task");
++ok(of(200) === of(100), "a minion with no task counts for its parent's, found by its session id");
++ok(agents.get("minion-x").claude_pid === 200, "the pid learned from the session id is kept on the agent");
++ok(of(300) === "front desk", "the front desk is its own group");
++ok(of(me) === "servex", "Servex itself");
++ok(of(400) === "session 400" && of(401) === "session 400", "a VS Code Claude session and its shell");
++ok(of(402) === "session 400", "a Git Bash tool whose Windows parent is gone stays with its session through Git's own tree");
++ok(of(500) === "dev servers" && of(501) === "dev servers", "a detached dev server and its child");
++ok(of(600) === "orphans" && of(601) === "orphans", "a tail|grep whose parents are gone is an orphan");
++ok(of(602) === "dev servers", "a parentless node of ours is shown, never called an orphan");
++ok(!of(700) && !of(701), "chrome and a stranger's tail are not ours");
++ok(s.orphans.map(o => o.pid).sort().join() === "600,601", "the orphan list");
++ok(by("task 2026-09-30/process-monitor").mb === 556, "a task's RAM is the sum of its processes");
++ok(s.ours.mb + s.other.mb === rows.reduce((t, r) => t + r[3], 0), "ours + other = everything");
++ok(s.running.find(r => r.id === "minion-lost").lost === true, "a working agent with no live process is flagged lost");
++ok(s.running.find(r => r.id === "task-mastermind-x").pid === 100 && !s.running.find(r => r.id === "task-mastermind-x").lost, "a working agent with its process");
++
++// CPU: a second sample 10 s later, 2 s more CPU on chrome
++p.last_at = Date.now() - 10000;
++p.take({ rows: rows.map(r => r[0] === 700 ? [...r.slice(0, 4), r[4] + 2, ...r.slice(5)] : r), msys });
++ok(p.procs.get(700).cpu === Math.round(1000 * 2 / 10 / p.cores) / 10, "CPU % is of the whole machine");
++
++// reaping: only the waiters, only after the idle time, never the node
++const killed = [];
++const real = process.kill;
++process.kill = pid => { killed.push(pid); };
++try {
++	p.reaping = true; p.reap_after_ms = 60000;
++	for (const q of p.procs.values()) q.idle_since = Date.now() - 120000;
++	p.reap();
++} finally { process.kill = real; }
++ok(killed.sort().join() === "600,601", "reaps the idle orphaned waiters and nothing else");
++ok(p.reaped.length === 2 && p.reaped[0].ok, "each reap is recorded");
++
++ok(p.history.length === 2 && typeof p.history[1].ours_mb === "number", "an hour of points is kept");
++ok(/Ours .* GB/.test(p.line()), "one line for system_health");
++console.log(`processes.test: ${pass} checks pass`);
++
++// ── worktree clean-up: what counts as log noise, and forgetting a project ──
++const { noise, default: Worktrees } = await import("./Worktrees.js");
++const n = (code, path) => noise({ code, path });
++ok(n(" M", "public/files.jsonl") && n(" M", ".claude/skills/clarity/flags.jsonl") && n("??", "public/framework/ai/2026/09/25/x/page.jsonl"), "logs anywhere are noise");
++ok(n("??", "public/framework/ai/2026-09-25/x/shot.png"), "a new file under ai/ (a screenshot, a card folder) is noise");
++ok(!n(" M", "Server/layout-check.mjs") && !n("??", "undefined/a.png") && !n(" M", "public/framework/ai2/ai2.css"), "code is never noise");
++ok(!n(" D", "public/files.jsonl") && !n("R ", "a.jsonl -> b.jsonl"), "a deletion or a rename is never noise");
++const sx = { projects: [{ name: "gone-wt" }, { name: "monorepo" }], processes: new Map([["gone-wt", {}]]), ports: { ports: { "gone-wt": 3150, monorepo: 3104 }, save(){ this.saved = true; } } };
++new Worktrees({ servex: sx }).forget("gone-wt");
++ok(sx.projects.length === 1 && !sx.processes.has("gone-wt") && !("gone-wt" in sx.ports.ports) && sx.ports.saved, "a removed worktree's project, runner and port are forgotten");
++console.log(`processes.test (with worktrees): ${pass} checks pass`);
+diff --git a/Servex/readme.md b/Servex/readme.md
+index f6858095..9976a1e2 100644
+--- a/Servex/readme.md
++++ b/Servex/readme.md
+@@ -131,6 +131,12 @@ wait in its own list the same way. The owner's assistants and their helpers are
+ never queued (the comment above `admission()` in `Servex.js` says why). CPU temperature and fan speed need admin
+ on this machine, so the sample says `null` and gives the reason.
+ 
++**Whose RAM is it?** `Processes.js` sorts every process into ours (by task, the front
++desk, Servex, Claude Code sessions, dev servers) or everything else, every 10 seconds,
++records each agent's claude.exe PID at spawn, and reaps orphaned waiters (tail, grep,
++sleep …) of ours. `Worktrees.js` removes worktrees whose work is merged, keeping the
++branch. `GET /api/processes`; see [`doc/processes.md`](./doc/processes.md).
++
+ ## Where things live
+ 
+ Outside the repo, one folder per machine — `%LOCALAPPDATA%/lew42/servex/`:

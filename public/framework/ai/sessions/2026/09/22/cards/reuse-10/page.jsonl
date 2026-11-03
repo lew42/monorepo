@@ -1,0 +1,4 @@
+{"class":"/framework/ai2/card.js","title":"Cluster 10 (ux interaction components) done - all 10 readmes were already fresh, no edits needed.","type":"card","id":"2026/09/22/reuse-10","created":"2026-09-22T15:12:05-05:00","by":"reuse-10","tags":[]}
+{"legacy":"reuse-10"}
+{"status":"done"}
+{"text":"Found one real small duplicate: ui/tooltip (CSS-only hover bubble) and ux/Popover's own tooltip() helper are two separate implementations of the same hover-text case. ux/Menu vs ui/menu confirmed as one job by design, not a duplicate."}

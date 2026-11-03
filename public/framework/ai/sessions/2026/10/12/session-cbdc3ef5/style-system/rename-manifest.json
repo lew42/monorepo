@@ -1,0 +1,2349 @@
+{
+ "applied": true,
+ "at": "2026-10-12T19:10:22.428Z",
+ "files": 377,
+ "replacements": 1305,
+ "manifest": [
+  {
+   "file": "public/alex/styles.css",
+   "hits": {
+    "--prim": 10,
+    "var(--bg)": 2
+   }
+  },
+  {
+   "file": "public/alex/styles/bem/page.js",
+   "hits": {
+    "--prim": 8
+   }
+  },
+  {
+   "file": "public/alex/styles/html/toggle-switch.css",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/app.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/arya/styles.css",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/arya/styles/build/page.js",
+   "hits": {
+    "--prim": 3
+   }
+  },
+  {
+   "file": "public/arya/styles/forms/page.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/arya/styles/page.js",
+   "hits": {
+    "--prim": 3
+   }
+  },
+  {
+   "file": "public/blog/blog.css",
+   "hits": {
+    "--prim-ink": 5,
+    "--prim": 5
+   }
+  },
+  {
+   "file": "public/castin/main.css",
+   "hits": {
+    "--prim": 1,
+    "var(--bg)": 1
+   }
+  },
+  {
+   "file": "public/castin/styles/page.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/edric/components/page.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/edric/framework/app/page.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/edric/framework/page.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/edric/framework/view/page.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/edric/page.js",
+   "hits": {
+    "--prim": 3
+   }
+  },
+  {
+   "file": "public/edric/style/buttons/page.js",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/edric/style/colors/page.js",
+   "hits": {
+    "--prim": 14
+   }
+  },
+  {
+   "file": "public/edric/style/css/page.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/edric/style/example/page.js",
+   "hits": {
+    "--prim": 3
+   }
+  },
+  {
+   "file": "public/edric/style/forms/page.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/edric/style/layout/page.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/edric/style/media/page.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/edric/style/page.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/edric/style/spacing/page.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/edric/style/tailwind/page.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/edric/style/typography/page.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/edric/style/utilities/page.js",
+   "hits": {
+    "--prim": 3
+   }
+  },
+  {
+   "file": "public/framework/ai/2026-08-12/apps/columns/columns.css",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/framework/ai/2026-08-12/apps/editor/editor.css",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/framework/ai/2026-08-12/apps/parts.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ai/2026-08-12/unify/page.js",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/framework/ai/2026-08-13/panel/templates.md",
+   "hits": {
+    "--prim": 4
+   }
+  },
+  {
+   "file": "public/framework/ai/2026-08-14/editor-panel-review/review.css",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/framework/ai/2026-08-16/layout-generator-rules/hunt.md",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/framework/ai/2026-08-16/panel-icon-buttons/doc/proposal.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ai/2026-08-17/designtool-ui/design.md",
+   "hits": {
+    "--prim": 3
+   }
+  },
+  {
+   "file": "public/framework/ai/2026-08-17/human-ranking/rank/rank.css",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ai/2026-08-17/layout-primitives/changes.js",
+   "hits": {
+    "--prim-ink": 6,
+    "--prim": 4
+   }
+  },
+  {
+   "file": "public/framework/ai/2026-08-17/layout-wave-3/requirements.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ai/2026-08-17/report/report.css",
+   "hits": {
+    "--prim": 3
+   }
+  },
+  {
+   "file": "public/framework/ai/2026-08-17/sweep-harvest/proposal.md",
+   "hits": {
+    "--prim-ink": 1,
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/framework/ai/2026-08-17/vision-browse/vision-browse.css",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ai/2026-08-18/css-audit/audit.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ai/2026-08-18/figma/questions.md",
+   "hits": {
+    "--prim-ink": 1,
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ai/2026-08-21/ux-system-plan/page.js",
+   "hits": {
+    "--prim-ink": 1
+   }
+  },
+  {
+   "file": "public/framework/ai/2026-08-21/ux-system-plan/requirements.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ai/2026-08-26/ux-inner-tabs/requirements.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ai/2026-08-27/pg-interactions/requirements.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ai/2026-08-30/alpha-flip/requirements.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ai/2026-09-04/paging-core/requirements.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ai/2026-09-04/paging/requirements.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ai/2026-09-05/mastermind-night/requirements.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ai/2026-09-05/paging-mechanisms-v2/ext-tabs-proposal.md",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/framework/ai/2026-09-05/tabs-panel/requirements.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ai/2026-09-06/graduate-plan/plan.md",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/framework/ai/2026-09-06/ui-theme/requirements.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ai/2026-09-19/background-layer/requirements.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ai/2026-09-19/day-audit/page.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ai/2026-09-19/devbar-chat/test/chat-test.css",
+   "hits": {
+    "--prim": 7
+   }
+  },
+  {
+   "file": "public/framework/ai/2026-09-22/layout-analysis/la.css",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ai/2026-09-22/open-mic/requirements.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ai/2026-09-22/tiers-design/page.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ai/2026-09-24/assistant-layers/page.js",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/framework/ai/2026-09-24/concurrency/page.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ai/2026-09-28/figma-sept-frame/ui-reuse.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ai/2026-09-29/cards-and-logs/review-fix-2/review.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ai/2026-09-29/cards-and-logs/review/report.md",
+   "hits": {
+    "--prim": 3
+   }
+  },
+  {
+   "file": "public/framework/ai/2026-09-30/grip-zones/review/report.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ai/2026-09-30/icon-system/audit/audit.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ai/2026-09-30/one-dictation/minion-card/requirements.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ai/2026-09-30/one-dictation/minion-dot/requirements.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ai/2026-09-30/one-dictation/minion-dot/review/report.md",
+   "hits": {
+    "--prim": 6
+   }
+  },
+  {
+   "file": "public/framework/ai/2026-09-30/one-dictation/minion-drawer-chat/review/report.md",
+   "hits": {
+    "--prim-ink": 1,
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ai/2026-09-30/one-dictation/owner-check.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ai/2026-09-30/review/proof/review/report.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ai/2026-09-30/selection/review/report.md",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/framework/ai/2026-10-02/framework-home/weight-badges/review/report.md",
+   "hits": {
+    "--prim-ink": 1,
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ai/2026-10-03/push-to-talk/ptt-wiring/requirements.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ai/2026-10-03/push-to-talk/review/report.md",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/framework/ai/2026-10-12/style-system/requirements.md",
+   "hits": {
+    "--prim": 3
+   }
+  },
+  {
+   "file": "public/framework/ai/asks/asks.css",
+   "hits": {
+    "--prim": 3
+   }
+  },
+  {
+   "file": "public/framework/ai/dashboard/dashboard.css",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/framework/ai/rail/Processes.js",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/framework/ai/rail/processes.css",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ai/rail/rail.css",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ai/v/2/v2.css",
+   "hits": {
+    "--prim-ink": 2,
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/framework/ai/v/3/page.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ai/v/3/v3.css",
+   "hits": {
+    "--prim-ink": 5,
+    "--prim": 16
+   }
+  },
+  {
+   "file": "public/framework/ai2/ai2.css",
+   "hits": {
+    "--prim": 6
+   }
+  },
+  {
+   "file": "public/framework/audio/MicStream/MicStream.css",
+   "hits": {
+    "--prim-ink": 3,
+    "--prim": 4
+   }
+  },
+  {
+   "file": "public/framework/audio/Part.css",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/audio/Voice/Voice.css",
+   "hits": {
+    "--prim-ink": 1,
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/audio/v1/LevelMeter/LevelMeter.css",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/audio/v1/PushToTalk/PushToTalk.css",
+   "hits": {
+    "--prim-ink": 1,
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/core/App/mode.css",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/framework/core/Page/Page.css",
+   "hits": {
+    "--prim-ink": 5,
+    "--prim": 7
+   }
+  },
+  {
+   "file": "public/framework/core/Page/card/card.css",
+   "hits": {
+    "--prim": 6,
+    "var(--bg)": 2
+   }
+  },
+  {
+   "file": "public/framework/core/Page/card/doc/inventory.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/core/Page/card/doc/system.md",
+   "hits": {
+    "--prim": 6
+   }
+  },
+  {
+   "file": "public/framework/core/Page/card/grounds/page.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/core/Page/card/log/whisper/Transcript.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/core/Page/doc/css.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/core/Page/generator/generator.css",
+   "hits": {
+    "--prim-ink": 3,
+    "--prim": 16
+   }
+  },
+  {
+   "file": "public/framework/core/Page/layout/floating/floating.js",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/framework/core/Page/overview/columns/uses/uses.css",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/framework/core/Page/overview/full/page.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/core/Search/Search.css",
+   "hits": {
+    "--prim": 7
+   }
+  },
+  {
+   "file": "public/framework/core/Section/Section.css",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/core/Sidebar/Sidebar.css",
+   "hits": {
+    "--prim": 5,
+    "var(--bg)": 2
+   }
+  },
+  {
+   "file": "public/framework/core/Sidebar/doc/comp.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/core/Sidebar/doc/tokens.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/core/new/1/agents/content/page.js",
+   "hits": {
+    "--prim": 3
+   }
+  },
+  {
+   "file": "public/framework/core/new/1/site/styles.css",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/core/new/1/site/versus/council/page.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/dev/Claim/claim.css",
+   "hits": {
+    "--prim": 4
+   }
+  },
+  {
+   "file": "public/framework/dev/Claim/claim.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/dev/Claim/doc/decisions.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/dev/Claim/doc/file/claim.css.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/dev/Claim/doc/file/claim.js.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/dev/Claim/readme.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/dev/DevBar/devbar.css",
+   "hits": {
+    "--prim-ink": 3,
+    "--prim": 39
+   }
+  },
+  {
+   "file": "public/framework/dev/DevBar/doc/decisions.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/dev/DevBar/doc/file/devbar.css.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/dev/DevBar/doc/file/layout.js.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/dev/DevShell/DevShell.css",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ext/AITask/ai.css",
+   "hits": {
+    "--prim-ink": 7,
+    "--prim": 23
+   }
+  },
+  {
+   "file": "public/framework/ext/AITask/nested.css",
+   "hits": {
+    "--prim": 8
+   }
+  },
+  {
+   "file": "public/framework/ext/AITask/nested.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ext/Ask/ask.css",
+   "hits": {
+    "--prim": 5
+   }
+  },
+  {
+   "file": "public/framework/ext/Ask/doc/file/ask.css.md",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/framework/ext/Chat/Chat.css",
+   "hits": {
+    "--prim-ink": 4,
+    "--prim": 7
+   }
+  },
+  {
+   "file": "public/framework/ext/DesignTool/DesignTool.css",
+   "hits": {
+    "--prim": 7
+   }
+  },
+  {
+   "file": "public/framework/ext/DesignTool/taste/corpus/page.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ext/DesignTool/taste/page.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ext/DesignTool/vision/vision.css",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ext/Draggable/draggable.css",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ext/Dropdown/dropdown.css",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/framework/ext/Panel/controls.css",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/framework/ext/Panel/display.css",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ext/Panel/doc/decisions.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ext/Panel/doc/file/panel.css.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ext/Panel/doc/file/properties.js.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ext/Panel/doc/file/templates.css.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ext/Panel/doc/file/text.css.md",
+   "hits": {
+    "--prim": 4
+   }
+  },
+  {
+   "file": "public/framework/ext/Panel/doc/focus.md",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/framework/ext/Panel/doc/templates.md",
+   "hits": {
+    "--prim": 3
+   }
+  },
+  {
+   "file": "public/framework/ext/Panel/flow.css",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ext/Panel/focus.css",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/framework/ext/Panel/glyphs.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ext/Panel/grip.css",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/framework/ext/Panel/insert.css",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/framework/ext/Panel/playground/playground.css",
+   "hits": {
+    "--prim-ink": 1
+   }
+  },
+  {
+   "file": "public/framework/ext/Panel/repeat.css",
+   "hits": {
+    "--prim": 3
+   }
+  },
+  {
+   "file": "public/framework/ext/Panel/split.css",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/framework/ext/Panel/templates.css",
+   "hits": {
+    "--prim": 12
+   }
+  },
+  {
+   "file": "public/framework/ext/Panel/templates.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ext/Panel/text.css",
+   "hits": {
+    "--prim": 6
+   }
+  },
+  {
+   "file": "public/framework/ext/Research/Research.css",
+   "hits": {
+    "--prim-ink": 6,
+    "--prim": 7
+   }
+  },
+  {
+   "file": "public/framework/ext/Timeline/Timeline.css",
+   "hits": {
+    "--prim": 10
+   }
+  },
+  {
+   "file": "public/framework/ext/Timeline/doc/decisions.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ext/catalog/catalog.css",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ext/demo/app.css",
+   "hits": {
+    "--prim": 4
+   }
+  },
+  {
+   "file": "public/framework/ext/demo/demo.css",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/framework/ext/demo/mini.css",
+   "hits": {
+    "--prim": 9
+   }
+  },
+  {
+   "file": "public/framework/ext/demo/shell.css",
+   "hits": {
+    "var(--bg)": 1
+   }
+  },
+  {
+   "file": "public/framework/ext/demo/stage.css",
+   "hits": {
+    "--prim": 3
+   }
+  },
+  {
+   "file": "public/framework/ext/drawer/drawer.css",
+   "hits": {
+    "--prim-ink": 1,
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ext/drawer/rail.css",
+   "hits": {
+    "--prim-ink": 1,
+    "--prim": 4
+   }
+  },
+  {
+   "file": "public/framework/ext/editor/editor.css",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/framework/ext/files/files.css",
+   "hits": {
+    "--prim": 3
+   }
+  },
+  {
+   "file": "public/framework/ext/filesystem/filesystem.css",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ext/grip/doc/decisions.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ext/grip/grip.css",
+   "hits": {
+    "--prim": 3
+   }
+  },
+  {
+   "file": "public/framework/ext/highlight/editor.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ext/highlight/highlight.css",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/framework/ext/layout/layout.css",
+   "hits": {
+    "--prim": 3
+   }
+  },
+  {
+   "file": "public/framework/ext/markdown/md.css",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ext/tabs/doc/decisions.md",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/framework/ext/tabs/doc/file/tabs.css.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ext/tabs/page.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ext/tabs/tabs.css",
+   "hits": {
+    "--prim": 6
+   }
+  },
+  {
+   "file": "public/framework/ext/toc/toc.css",
+   "hits": {
+    "--prim-ink": 2,
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/framework/faq/page.js",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/framework/framework.css",
+   "hits": {
+    "--prim-ink": 2,
+    "--prim": 15,
+    "var(--bg)": 2,
+    "--bg:": 1
+   }
+  },
+  {
+   "file": "public/framework/servex/lifecycle/page.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/styles/doc/decisions.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/styles/doc/ownership.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/styles/doc/stacking.md",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/framework/styles/doc/theme.md",
+   "hits": {
+    "--prim": 3
+   }
+  },
+  {
+   "file": "public/framework/styles/elements/doc/framework-css.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/styles/elements/forms/page.js",
+   "hits": {
+    "--prim": 4
+   }
+  },
+  {
+   "file": "public/framework/styles/elements/media/page.js",
+   "hits": {
+    "--prim": 3
+   }
+  },
+  {
+   "file": "public/framework/styles/elements/misc/page.js",
+   "hits": {
+    "--prim": 3
+   }
+  },
+  {
+   "file": "public/framework/styles/elements/text/page.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/styles/layers/theme/guide/doc/decisions.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/styles/layers/theme/guide/page.js",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/framework/styles/layers/theme/guide/paper.css",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/styles/layers/theme/guide/readme.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/styles/layers/theme/guide/terminal.css",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/framework/styles/layers/theme/lew42/doc/port.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/styles/layers/theme/lew42/lew42.css",
+   "hits": {
+    "--prim-ink": 1,
+    "--prim": 9,
+    "--bg:": 1
+   }
+  },
+  {
+   "file": "public/framework/styles/layers/theme/page.js",
+   "hits": {
+    "--prim": 3
+   }
+  },
+  {
+   "file": "public/framework/styles/layouts/bold-editorial/page.js",
+   "hits": {
+    "--prim-ink": 4,
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/styles/layouts/cols/cols.css",
+   "hits": {
+    "--prim-ink": 1,
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/styles/layouts/home/page.js",
+   "hits": {
+    "--prim-ink": 3,
+    "--prim": 5
+   }
+  },
+  {
+   "file": "public/framework/styles/layouts/layouts.css",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/framework/styles/layouts/screens/doc/decisions.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/styles/layouts/screens/specs.js",
+   "hits": {
+    "--prim": 3
+   }
+  },
+  {
+   "file": "public/framework/styles/layouts/space/doc/decisions.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/styles/layouts/space/doc/file/spec.js.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/styles/layouts/space/model.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/styles/layouts/space/space.css",
+   "hits": {
+    "--prim": 1,
+    "var(--bg)": 1
+   }
+  },
+  {
+   "file": "public/framework/styles/layouts/space/spec.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/styles/layouts/spec/page.js",
+   "hits": {
+    "--prim": 4
+   }
+  },
+  {
+   "file": "public/framework/styles/rules/cascade.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/styles/sections/changelog.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/styles/sections/contact.js",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/framework/styles/sections/doc/decisions.md",
+   "hits": {
+    "--prim": 3
+   }
+  },
+  {
+   "file": "public/framework/styles/sections/faq.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/styles/sections/features.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/styles/sections/hero.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/styles/sections/logos.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/styles/sections/page.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/styles/sections/pricing.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/styles/sections/signup.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/styles/sections/split.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/styles/sections/stats.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/styles/sections/team.js",
+   "hits": {
+    "--prim": 3
+   }
+  },
+  {
+   "file": "public/framework/styles/sections/testimonials.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/styles/sections/tone.js",
+   "hits": {
+    "--prim": 3
+   }
+  },
+  {
+   "file": "public/framework/styles/stacks/doc/decisions.md",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/framework/styles/stacks/page.js",
+   "hits": {
+    "--prim": 4
+   }
+  },
+  {
+   "file": "public/framework/styles/stacks/stacks.css",
+   "hits": {
+    "--prim": 2,
+    "var(--bg)": 1
+   }
+  },
+  {
+   "file": "public/framework/styles/system/doc/rest.md",
+   "hits": {
+    "--prim-ink": 2,
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/framework/styles/system/page.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/styles/system/studies/color/adaptive.js",
+   "hits": {
+    "--prim": 3
+   }
+  },
+  {
+   "file": "public/framework/styles/system/studies/color/color-study.css",
+   "hits": {
+    "--prim": 3
+   }
+  },
+  {
+   "file": "public/framework/styles/system/studies/color/decisions.md",
+   "hits": {
+    "--prim-ink": 1,
+    "--prim": 3
+   }
+  },
+  {
+   "file": "public/framework/styles/system/studies/color/page.js",
+   "hits": {
+    "--prim": 4
+   }
+  },
+  {
+   "file": "public/framework/styles/system/studies/color/palette/page.js",
+   "hits": {
+    "--prim-ink": 2,
+    "--prim": 11
+   }
+  },
+  {
+   "file": "public/framework/styles/system/studies/color/sections/decisions.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/styles/system/studies/color/sections/sections.js",
+   "hits": {
+    "--prim-ink": 1,
+    "--prim": 4
+   }
+  },
+  {
+   "file": "public/framework/styles/system/studies/color/study.js",
+   "hits": {
+    "--prim-ink": 1,
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/framework/styles/system/studies/lists/lists.css",
+   "hits": {
+    "--prim-ink": 2,
+    "--prim": 7
+   }
+  },
+  {
+   "file": "public/framework/styles/system/studies/padding/page.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/styles/system/studies/scale/page.js",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/framework/styles/system/studies/size/size.css",
+   "hits": {
+    "--prim-ink": 1,
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/styles/system/studies/spacing/nesting/nesting.css",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/styles/system/studies/system/page.js",
+   "hits": {
+    "--prim": 4
+   }
+  },
+  {
+   "file": "public/framework/styles/system/studies/themes/generate.js",
+   "hits": {
+    "--prim-ink": 3,
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/styles/system/studies/themes/mock.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/styles/system/studies/themes/page.js",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/framework/styles/system/studies/themes/themes.css",
+   "hits": {
+    "--prim-ink": 6,
+    "--prim": 9,
+    "--bg:": 5
+   }
+  },
+  {
+   "file": "public/framework/styles/system/studies/type/anchors/anchors.css",
+   "hits": {
+    "--prim-ink": 1,
+    "--prim": 3
+   }
+  },
+  {
+   "file": "public/framework/styles/system/studies/type/anchors/decisions.md",
+   "hits": {
+    "--prim-ink": 1,
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/framework/styles/system/studies/type/page.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ui/alert/alert.js",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/framework/ui/alert/page.js",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/framework/ui/avatar/avatar.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ui/background/background.js",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/framework/ui/background/page.css",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ui/badge/badge.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ui/badge/page.js",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/framework/ui/card/page.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ui/controls/doc/grammar.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ui/datagrid/datagrid.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ui/decision/decision.js",
+   "hits": {
+    "--prim": 5
+   }
+  },
+  {
+   "file": "public/framework/ui/decision/page.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ui/decision/readme.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ui/doc/decisions.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ui/doc/file/badge/badge.js.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ui/doc/file/progress/page.js.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ui/doc/method/timeline.md",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/framework/ui/doc/record.md",
+   "hits": {
+    "--prim": 3
+   }
+  },
+  {
+   "file": "public/framework/ui/field/page.js",
+   "hits": {
+    "--prim": 3
+   }
+  },
+  {
+   "file": "public/framework/ui/icon/icon.js",
+   "hits": {
+    "--prim": 3
+   }
+  },
+  {
+   "file": "public/framework/ui/item/item.js",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/framework/ui/menu/menu.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ui/progress/page.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ui/stats/page.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ui/timeline/page.js",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/framework/ui/timeline/timeline.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ui/tree/tree.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ui/words/words.js",
+   "hits": {
+    "--prim-ink": 2,
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/framework/ux/Card/Card.css",
+   "hits": {
+    "--prim-ink": 1,
+    "--prim": 13
+   }
+  },
+  {
+   "file": "public/framework/ux/Content/Decision/decision.css",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ux/Content/catalog/catalog.css",
+   "hits": {
+    "--prim": 3
+   }
+  },
+  {
+   "file": "public/framework/ux/Content/content.css",
+   "hits": {
+    "--prim": 13
+   }
+  },
+  {
+   "file": "public/framework/ux/Dictate/Dictate.css",
+   "hits": {
+    "--prim": 3
+   }
+  },
+  {
+   "file": "public/framework/ux/Dictate/FloatingMic.css",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ux/Dictate/Widget.css",
+   "hits": {
+    "--prim-ink": 1,
+    "--prim": 6
+   }
+  },
+  {
+   "file": "public/framework/ux/Dictate/doc/widget.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ux/Dictate/playground/Playground.css",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/framework/ux/Dictate/readme.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ux/Dictate/variants/v1/Dictate.css",
+   "hits": {
+    "--prim": 3
+   }
+  },
+  {
+   "file": "public/framework/ux/Inbox/Inbox.css",
+   "hits": {
+    "--prim-ink": 2,
+    "--prim": 5
+   }
+  },
+  {
+   "file": "public/framework/ux/Objects/Objects.css",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/framework/ux/Rename/Rename.css",
+   "hits": {
+    "--prim": 3
+   }
+  },
+  {
+   "file": "public/framework/ux/Tree/Tree.css",
+   "hits": {
+    "--prim": 4
+   }
+  },
+  {
+   "file": "public/framework/ux/Wizard/page.js",
+   "hits": {
+    "--prim": 3
+   }
+  },
+  {
+   "file": "public/framework/ux/doc/decisions.md",
+   "hits": {
+    "--prim-ink": 2,
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/framework/ux/ux.css",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/imagine/blogx/blogx.css",
+   "hits": {
+    "--prim-ink": 12,
+    "--prim": 13
+   }
+  },
+  {
+   "file": "public/imagine/codrops/expand-menu/expand-menu.css",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/imagine/codrops/layer-reveal/layer-reveal.css",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/imagine/codrops/shape-swap/shape-swap.css",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/imagine/codrops/warp-cursor/warp-cursor.css",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/imagine/decks/decks.css",
+   "hits": {
+    "--prim-ink": 4,
+    "--prim": 12
+   }
+  },
+  {
+   "file": "public/imagine/decks/slides.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/imagine/design/color/color-study.css",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/imagine/design/size/size.css",
+   "hits": {
+    "--prim-ink": 1,
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/imagine/design/themes/generate.js",
+   "hits": {
+    "--prim-ink": 3,
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/imagine/design/themes/mock.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/imagine/design/themes/themes.css",
+   "hits": {
+    "--prim-ink": 6,
+    "--prim": 9,
+    "--bg:": 5
+   }
+  },
+  {
+   "file": "public/imagine/design/type/page.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/imagine/feeds/feeds.css",
+   "hits": {
+    "--prim": 8
+   }
+  },
+  {
+   "file": "public/imagine/imagine.css",
+   "hits": {
+    "--prim-ink": 8,
+    "--prim": 20
+   }
+  },
+  {
+   "file": "public/imagine/importance/doc/decisions.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/imagine/importance/importance.css",
+   "hits": {
+    "--prim-ink": 5,
+    "--prim": 8
+   }
+  },
+  {
+   "file": "public/imagine/importance/ranked/ranked.css",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/imagine/mag/doc/decisions.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/imagine/mag/mag.css",
+   "hits": {
+    "--prim-ink": 2,
+    "--prim": 8
+   }
+  },
+  {
+   "file": "public/imagine/paging/make/make.css",
+   "hits": {
+    "--prim-ink": 2,
+    "--prim": 5
+   }
+  },
+  {
+   "file": "public/imagine/paging/navigation/navigation.css",
+   "hits": {
+    "--prim-ink": 4,
+    "--prim": 6
+   }
+  },
+  {
+   "file": "public/imagine/paging/paging.css",
+   "hits": {
+    "--prim-ink": 18,
+    "--prim": 27
+   }
+  },
+  {
+   "file": "public/imagine/paging/templates/templates.css",
+   "hits": {
+    "--prim-ink": 1
+   }
+  },
+  {
+   "file": "public/imagine/paging/templates/theming/page.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/imagine/scenes/scenes.css",
+   "hits": {
+    "--prim-ink": 1,
+    "--prim": 5
+   }
+  },
+  {
+   "file": "public/imagine/screens/screens.css",
+   "hits": {
+    "--prim-ink": 3,
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/imagine/sections/sections.css",
+   "hits": {
+    "--prim-ink": 4,
+    "--prim": 7
+   }
+  },
+  {
+   "file": "public/imagine/shells/Shell.css",
+   "hits": {
+    "--prim": 7
+   }
+  },
+  {
+   "file": "public/imagine/stream/stream.css",
+   "hits": {
+    "--prim": 7
+   }
+  },
+  {
+   "file": "public/imagine/vary/colstyles/colstyles.css",
+   "hits": {
+    "--prim": 6
+   }
+  },
+  {
+   "file": "public/imagine/vary/colstyles/ink/page.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/imagine/vary/place/place.css",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/imagine/vary/tone/tone.css",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/imagine/youtube/youtube.css",
+   "hits": {
+    "--prim-ink": 1,
+    "--prim": 5,
+    "var(--bg)": 1
+   }
+  },
+  {
+   "file": "public/layouts/browse/browse.css",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/layouts/labs/blogx/blogx.css",
+   "hits": {
+    "--prim-ink": 12,
+    "--prim": 13
+   }
+  },
+  {
+   "file": "public/layouts/labs/decks/decks.css",
+   "hits": {
+    "--prim-ink": 4,
+    "--prim": 12
+   }
+  },
+  {
+   "file": "public/layouts/labs/decks/slides.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/layouts/labs/mag/doc/decisions.md",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/layouts/labs/mag/mag.css",
+   "hits": {
+    "--prim-ink": 2,
+    "--prim": 8
+   }
+  },
+  {
+   "file": "public/layouts/labs/screens/screens.css",
+   "hits": {
+    "--prim-ink": 3,
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/layouts/labs/sections/sections.css",
+   "hits": {
+    "--prim-ink": 4,
+    "--prim": 7
+   }
+  },
+  {
+   "file": "public/layouts/labs/shells/Shell.css",
+   "hits": {
+    "--prim": 7
+   }
+  },
+  {
+   "file": "public/layouts/labs/trees/trees.css",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/layouts/layouts.css",
+   "hits": {
+    "--prim-ink": 1,
+    "--prim": 4
+   }
+  },
+  {
+   "file": "public/layouts/practice/catalog/page.js",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/layouts/practice/doc/decisions.md",
+   "hits": {
+    "--prim-ink": 1,
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/layouts/practice/practice.css",
+   "hits": {
+    "--prim-ink": 2,
+    "--prim": 6
+   }
+  },
+  {
+   "file": "public/layouts/practice/reader/page.js",
+   "hits": {
+    "--prim-ink": 1,
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/layouts/practice/workbench/page.js",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/layouts/shell/shell.css",
+   "hits": {
+    "--prim-ink": 2,
+    "--prim": 4,
+    "var(--bg)": 1
+   }
+  },
+  {
+   "file": "public/michael/branding/page.js",
+   "hits": {
+    "--prim": 3
+   }
+  },
+  {
+   "file": "public/michael/layout/containers/page.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/michael/styles.css",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/notes/an-element-browser/page.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/notes/column-vs-swap/page.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/notes/doodles/doodles.css",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/notes/edge-selection/page.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/notes/layouts-need-fit/page.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/notes/nested-rendering/page.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/notes/notebook-cooked/page.js",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/notes/notes.css",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/notes/page-nav-from-sub/page.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/notes/property-screens/page.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/notes/right-click-hug-fill/page.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/notes/right-people-not-many/page.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/notes/tabs-vs-breadcrumbs/page.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/notes/the-editor/page.js",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/notes/visual-context/page.js",
+   "hits": {
+    "--prim": 1
+   }
+  },
+  {
+   "file": "public/styles.css",
+   "hits": {
+    "--prim": 5
+   }
+  },
+  {
+   "file": "public/web/nav/doc/study/navigation.css",
+   "hits": {
+    "--prim-ink": 1
+   }
+  },
+  {
+   "file": "public/websites/Site.css",
+   "hits": {
+    "--prim": 2
+   }
+  },
+  {
+   "file": "public/websites/patterns/patterns.css",
+   "hits": {
+    "--prim": 3
+   }
+  }
+ ]
+}

@@ -1,0 +1,11 @@
+Live run of role-system-proof.mjs, 2026-10-23, claude-haiku-4-5, agent SDK 0.3.280, settingSources [] (scratch cwd).
+systemPrompt = { type: "preset", preset: "claude_code", append: "...Your role codeword is PELICAN-7..." }
+
+fresh   ~400 words on deltas                         $0.013
+resume  "What is your role codeword?" -> PELICAN-7   $0.018 (cumulative)
+/compact  pre_tokens 25,885 -> post_tokens 1,334, trigger manual, 13 s; preserved_messages set (a tail is kept)
+after   codeword -> PELICAN-7; UserPromptSubmit additionalContext reminder word -> HERON-3   $0.041 total
+
+Conclusion: the preset's append survives resume and /compact (it is re-rendered from the launch options), and
+hook additionalContext reaches the model on the next prompt. A first run with maxTurns: 1 and a 2-sentence
+conversation failed to compact ("summarization produced empty response"): too little to summarize, not a defect here.

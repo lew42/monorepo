@@ -1,0 +1,47 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/2026-10-04/",
+ "widths": {
+  "1280": {
+   "empty": 0.555,
+   "widest_text": 597,
+   "widest_text_sample": "You clean up one chunk of dictated (spee",
+   "overflow_x": false,
+   "items": 275,
+   "narrow_share": 0.047
+  },
+  "1920": {
+   "empty": 0.726,
+   "widest_text": 635,
+   "widest_text_sample": "You clean up one chunk of dictated (spee",
+   "overflow_x": false,
+   "items": 275,
+   "narrow_share": 0.116
+  },
+  "2560": {
+   "empty": 0.757,
+   "widest_text": 714,
+   "widest_text_sample": "You clean up one chunk of dictated (spee",
+   "overflow_x": false,
+   "items": 275,
+   "narrow_share": 0.116
+  },
+  "3440": {
+   "empty": 0.822,
+   "widest_text": 714,
+   "widest_text_sample": "You clean up one chunk of dictated (spee",
+   "overflow_x": false,
+   "items": 275,
+   "narrow_share": 0.116
+  }
+ },
+ "errors": [
+  "2560: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "2560: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "3440: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "3440: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "1920: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1920: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "1280: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1280: Failed to load resource: net::ERR_CONNECTION_REFUSED"
+ ]
+}

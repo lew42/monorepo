@@ -1,0 +1,82 @@
+{
+  "twoColVisibleWithoutScroll": true,
+  "variantVisibleWithoutScroll": true,
+  "variantHref": "/layouts/explorer/two-columns/2-equal/",
+  "test1": {
+    "clicksToVariant": 2,
+    "clicksBackToTop": 1,
+    "urlAfterCat": "http://localhost:61596/layouts/explorer/two-columns/",
+    "urlAtVariant": "http://localhost:61596/layouts/explorer/two-columns/2-equal/",
+    "urlAfterBackClick": "http://localhost:61596/layouts/explorer/",
+    "totalElapsedMs": 3228
+  },
+  "test2": {
+    "urlA": "http://localhost:61596/layouts/explorer/two-columns/",
+    "urlA_afterReload": "http://localhost:61596/layouts/explorer/two-columns/",
+    "sameA": true,
+    "urlB": "http://localhost:61596/layouts/explorer/two-columns/2-equal/",
+    "urlB_afterReload": "http://localhost:61596/layouts/explorer/two-columns/2-equal/",
+    "sameB": true,
+    "urlAfterBack": "http://localhost:61596/layouts/explorer/two-columns/",
+    "backLandedOnA": true,
+    "urlAfterBackReload": "http://localhost:61596/layouts/explorer/two-columns/",
+    "sameAfterBackReload": true
+  },
+  "test4": {
+    "anyVisibleExplorerLinkAtRoot": true,
+    "clickable400": true,
+    "urlAfter400Click": "http://localhost:61596/layouts/explorer/"
+  },
+  "test5": {
+    "picks": [
+      "/layouts/explorer/three-columns/",
+      "/layouts/explorer/mega/",
+      "/layouts/explorer/decide/"
+    ],
+    "visited": [
+      {
+        "href": "/layouts/explorer/three-columns/",
+        "shot": "review-08-three-columns.png",
+        "newErrorCount": 0,
+        "bodyTextLen": 540,
+        "mediaElCount": 8
+      },
+      {
+        "href": "/layouts/explorer/mega/",
+        "shot": "review-08-mega.png",
+        "newErrorCount": 0,
+        "bodyTextLen": 513,
+        "mediaElCount": 13
+      },
+      {
+        "href": "/layouts/explorer/decide/",
+        "shot": "review-08-decide.png",
+        "newErrorCount": 0,
+        "bodyTextLen": 525,
+        "mediaElCount": 14
+      }
+    ]
+  },
+  "errors": [
+    {
+      "label": "test2",
+      "type": "requestfailed",
+      "text": "http://localhost:61596/framework/core/Page/overview/width/ :: net::ERR_ABORTED"
+    },
+    {
+      "label": "test2",
+      "type": "requestfailed",
+      "text": "http://localhost:61596/layouts/shell/ :: net::ERR_ABORTED"
+    },
+    {
+      "label": "test2",
+      "type": "requestfailed",
+      "text": "http://localhost:61596/layouts/decide/ :: net::ERR_ABORTED"
+    },
+    {
+      "label": "test2",
+      "type": "requestfailed",
+      "text": "http://localhost:61596/layouts/doc/studies/approved/ :: net::ERR_ABORTED"
+    }
+  ]
+}

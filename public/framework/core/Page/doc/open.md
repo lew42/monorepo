@@ -1,0 +1,67 @@
+# Where a clicked link opens — the page decides
+
+A link carries no target. When you click a link inside the app, the Router asks **the
+page that holds the link** where it should go, by calling that page's `open_link(link)`.
+The page returns a url to navigate to, or nothing when it showed the link itself.
+
+See all three at once: [/framework/ext/markdown/open/](/framework/ext/markdown/open/).
+
+| the page | what `open_link()` does with a link to a `.md` |
+|---|---|
+| any page (the default) | navigates to the doc's own page, `<module>/md/…/` ([markdown.md](/framework/core/Page/doc/markdown.md)) |
+| a page in a columns tree | opens a doc from its own folder as **the next column**: one column deep opens column two, three deep opens column four |
+| a card, or any small box | whatever it says. `open_link(link){ return this.swap_link(link); }` draws the doc inside the card, with a Back button |
+
+A link that isn't to a `.md` navigates as it always did.
+
+## The pieces
+
+- `open_link(link)`: the one seam. Override it on any page.
+- `swap_link(link)`: draws the doc inside this page, over what it was showing, with Back, and gives it the url `md/<doc>/`.
+- `md_files(names)`: this page's own `.md` files as a list of links. Pass `names` if you
+  know them (a card's own file lines); otherwise it reads the dev server's file list,
+  which production doesn't have.
+- `md_dir()`: the real folder this page's docs live in: `folder` if the page says one,
+  else its url. A card whose url is a view of a folder elsewhere overrides it.
+- `Page.of(element)`: the page that drew an element. `render()` records it.
+
+## Why not a `target` on the link
+
+HTML's way is a `target` on each link. It is explicit, but every link author then has to
+know the layout the link will be clicked in, and the link breaks when its page moves into
+columns or into a card. Here a doc's links are plain markdown, and the same doc reads
+correctly in all three places.
+
+## Watch out
+
+- **A swap has a url — `<page>/md/<doc>/`.** `swap_link` pushes it with `history.pushState`, so the
+  address bar is honest, Back closes the swap, and a reload lands on that doc (as the page's `md/`
+  child, shown beside its parent in columns). Forward does not re-open the swap. Any new in-place
+  view should get its address the same way: route everything.
+- **In columns, a doc opens headed by its file name** (`alpha`), and keeps its own `# Alpha`
+  heading underneath. A doc in a subfolder opens through the page's `md/` column.
+- **A deep reload of a column doc** (`…/columns/alpha/`) probes `alpha/page.js` first and
+  logs one 404, the old cost of core's "`x/` renders `x.md`" fallback. A click never does.
+- **Hidden pages still load their iframes.** A page's ancestors stay in the DOM, hidden,
+  so the demo sets an iframe's url only once it is on screen (it nested itself 160 deep
+  otherwise).
+
+## Comments moved out of Page.class.js (2026-10-12)
+
+Wording kept as it was; the code keeps a one-line pointer here. Plan: [comment-plan.md](./comment-plan.md).
+
+### A .md file's page when nothing nearer claims it: its module's md/. The
+
+*was Page.class.js line 1008*
+
+A .md file's page when nothing nearer claims it: its module's md/. The module is
+the folder above `doc/`, or else the file's own folder.
+
+    /framework/ext/Panel/readme.md    → /framework/ext/Panel/md/readme/
+    /framework/ext/Panel/doc/flow.md  → /framework/ext/Panel/md/doc/flow/
+
+⚠ THE TRAILING SLASH IS LOAD-BEARING. ext/Panel documents `flow.js` in
+  `doc/file/flow.js.md`, and a url ending in `.js` is answered as a FILE — a 404,
+  never the app. Ending in `/`, every route reaches the SPA fallback.
+⚠ A guess: 68 of 2,276 .md files (13 folders with no page.js, measured 2026-09-24)
+  sit where no page is, and a link to one 404s.

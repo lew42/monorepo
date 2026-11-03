@@ -1,0 +1,13 @@
+# The restart-recovery sweep never touches an agent that started after the restart or has not had a turn yet
+
+Budget: $3. Sonnet. Load the `minion` and `code` skills. Your log is this dir's `task.jsonl`.
+
+**Why (`public/framework/ai/todo.md`, the 2026-10-18 17:58 line):** after `node Servex/sustain.mjs --restart` (17:32:37), `helper-spawn-always-task` was spawned at 17:33:56. At 17:33:59 Servex sent it "Servex restarted mid-turn; your last tool call may not have finished. Check and continue." on its very first turn; the resume failed with "No conversation found with session ID", the process exited with code 1 at 17:34:14, and the agent died at $0 (`%LOCALAPPDATA%\lew42\servex\logs\agent-helper-spawn-always-task.jsonl`). The sweep that sends that message runs on a delay after boot and picks every agent in a working state, including ones that did not exist before the restart. Find it: `grep -n "restarted mid-turn" Servex/*.js Servex/agents/*.js`. Read `Servex/agents/readme.md` and `Servex/doc/restart.md` (or the doc the readme names for restarts).
+
+## Deliverable
+
+1. **The rule:** the sweep skips an agent whose `started_at` is later than the restart's boot time, and any agent with zero completed api turns (a first turn in progress is not "mid-turn across a restart"); it logs one line per skipped agent the first time. A `decision` line names the alternative (a longer boot delay) and why it is worse (a delay still races a spawn).
+2. **Proof on a private Servex** (`SERVEX_API_PORT`, `SERVEX_HOME`, from your worktree): boot it, spawn one minion immediately with a bare prompt, trigger the sweep (call its function directly or wait its delay), and show the agent got no restart message and finished its first turn (its agent log: `process started`, a `result ok:true`, no `error`); then a planted agent registered as `working` with a `started_at` before boot does get the message. A unit test for the two predicates if the sweep's selection is a pure function; make it one if it is not.
+3. One line in the restart doc; strike the todo line (`~~`, the landing commit named). Worktree, `node --check`, `Server/smoke.mjs` clean, `merge.mjs` (`--no-review` naming your review if the gate cannot see this 2026-10-13 task dir), a `finish` line with the proof's two agent ids checked with `tail -1`, `git status` clean for your paths. **Never restart the live Servex** (the mastermind does after your merge; say so in the finish line); never drive the owner's tabs.
+
+Fence: the sweep's file in `Servex/` or `Servex/agents/`, its test, the restart doc line, the todo line, this task dir. Nothing else.

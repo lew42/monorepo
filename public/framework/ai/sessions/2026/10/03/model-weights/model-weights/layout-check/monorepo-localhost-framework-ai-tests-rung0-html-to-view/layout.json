@@ -1,0 +1,47 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/tests/rung0-html-to-view/",
+ "widths": {
+  "1280": {
+   "empty": 0.954,
+   "widest_text": 379,
+   "widest_text_sample": "Page Load Error",
+   "overflow_x": false,
+   "items": 12,
+   "narrow_share": 1
+  },
+  "1920": {
+   "empty": 0.973,
+   "widest_text": 403,
+   "widest_text_sample": "Page Load Error",
+   "overflow_x": false,
+   "items": 12,
+   "narrow_share": 1
+  },
+  "2560": {
+   "empty": 0.972,
+   "widest_text": 453,
+   "widest_text_sample": "Page Load Error",
+   "overflow_x": false,
+   "items": 12,
+   "narrow_share": 1
+  },
+  "3440": {
+   "empty": 0.978,
+   "widest_text": 453,
+   "widest_text_sample": "Page Load Error",
+   "overflow_x": false,
+   "items": 12,
+   "narrow_share": 1
+  }
+ },
+ "errors": [
+  "1280: TypeError: this.container is not a function\n    at AITest.activate (http://monorepo.localhost/framework/core/Page/Page.class.js:1046:26)\n    at http://monorepo.localhost/framework/core/Router/Router.j",
+  "1280: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "3440: TypeError: this.container is not a function\n    at AITest.activate (http://monorepo.localhost/framework/core/Page/Page.class.js:1046:26)\n    at http://monorepo.localhost/framework/core/Router/Router.j",
+  "3440: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1920: TypeError: this.container is not a function\n    at AITest.activate (http://monorepo.localhost/framework/core/Page/Page.class.js:1046:26)\n    at http://monorepo.localhost/framework/core/Router/Router.j",
+  "1920: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "2560: TypeError: this.container is not a function\n    at AITest.activate (http://monorepo.localhost/framework/core/Page/Page.class.js:1046:26)\n    at http://monorepo.localhost/framework/core/Router/Router.j",
+  "2560: Failed to load resource: the server responded with a status of 404 (Not Found)"
+ ]
+}

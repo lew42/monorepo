@@ -1,0 +1,5 @@
+{"tag":"kind/agent","at":"2026-10-16T06:30:56.959Z","by":"digest-pipeline","session":"ce511fd2-40f7-460a-a02a-43ef51a4f6a8"}
+{"tag":"model/sonnet","at":"2026-10-16T06:30:56.960Z","by":"digest-pipeline","session":"ce511fd2-40f7-460a-a02a-43ef51a4f6a8"}
+{"tag":"work/read-only","at":"2026-10-16T06:30:56.960Z","by":"digest-pipeline","session":"ce511fd2-40f7-460a-a02a-43ef51a4f6a8"}
+{"tag":"task/refine-explain","at":"2026-10-16T06:30:56.960Z","by":"digest-pipeline","session":"ce511fd2-40f7-460a-a02a-43ef51a4f6a8"}
+{"tag":"framework/refine","at":"2026-10-16T06:31:19.437Z","by":"digest-pipeline","session":"ce511fd2-40f7-460a-a02a-43ef51a4f6a8"}

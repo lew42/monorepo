@@ -1,0 +1,625 @@
+{
+ "url": "http://127.0.0.1:3217/framework/dev/",
+ "widths": {
+  "400": {
+   "empty": 0.435,
+   "widest_text": 342,
+   "widest_text_sample": "no-op. Production is plain static files;",
+   "overflow_x": false,
+   "items": 22,
+   "narrow_share": 0.227,
+   "layout": "wall",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 28,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 28
+      }
+     ]
+    },
+    "p": {
+     "total": 28,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 28
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 72,
+     "h": 40,
+     "share": 0.04,
+     "ink": 0.225,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 154,
+     "h": 76,
+     "share": 0.076,
+     "ink": 0.775,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 257,
+     "h": 25,
+     "share": 0.025,
+     "ink": 0.5,
+     "big_empty": false
+    },
+    {
+     "cls": "pre",
+     "y": 307,
+     "h": 53,
+     "share": 0.053,
+     "ink": 0.425,
+     "big_empty": false
+    },
+    {
+     "cls": "page-previews",
+     "y": 374,
+     "h": 584,
+     "share": 0.584,
+     "ink": 0.558,
+     "big_empty": false
+    },
+    {
+     "cls": "h2",
+     "y": 1035,
+     "h": 39,
+     "share": 0.039,
+     "ink": 0.9,
+     "big_empty": false
+    },
+    {
+     "cls": "code-block",
+     "y": 1099,
+     "h": 43,
+     "share": 0.043,
+     "ink": 0.825,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 1170,
+     "h": 202,
+     "share": 0.202,
+     "ink": 0.771,
+     "big_empty": false
+    },
+    {
+     "cls": "h2",
+     "y": 1435,
+     "h": 79,
+     "share": 0.079,
+     "ink": 0.658,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 1541,
+     "h": 151,
+     "share": 0.151,
+     "ink": 0.69,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 1720,
+     "h": 101,
+     "share": 0.101,
+     "ink": 0.692,
+     "big_empty": false
+    },
+    {
+     "cls": "md-details",
+     "y": 1870,
+     "h": 37,
+     "share": 0.037,
+     "ink": 0.075,
+     "big_empty": false
+    },
+    {
+     "cls": "page-open",
+     "y": 1933,
+     "h": 31,
+     "share": 0.031,
+     "ink": 0.212,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "h2",
+     "cls": "h2",
+     "text": "Three packages, all dev-only",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-rail-ai",
+     "text": "✦AI",
+     "lines": 3.2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-rail-menu",
+     "text": "⋯More",
+     "lines": 3.2
+    }
+   ]
+  },
+  "1200": {
+   "empty": 0.591,
+   "widest_text": 581,
+   "widest_text_sample": "no-op. Production is plain static files;",
+   "overflow_x": false,
+   "items": 47,
+   "narrow_share": 0.277,
+   "layout": "wall",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 38,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 38
+      }
+     ]
+    },
+    "p": {
+     "total": 38,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 38
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 38,
+     "h": 49,
+     "share": 0.049,
+     "ink": 0.3,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 132,
+     "h": 54,
+     "share": 0.054,
+     "ink": 0.5,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 216,
+     "h": 27,
+     "share": 0.027,
+     "ink": 0.237,
+     "big_empty": false
+    },
+    {
+     "cls": "pre",
+     "y": 270,
+     "h": 56,
+     "share": 0.056,
+     "ink": 0.292,
+     "big_empty": false
+    },
+    {
+     "cls": "page-previews",
+     "y": 341,
+     "h": 240,
+     "share": 0.24,
+     "ink": 0.536,
+     "big_empty": false
+    },
+    {
+     "cls": "h2",
+     "y": 663,
+     "h": 42,
+     "share": 0.042,
+     "ink": 0.35,
+     "big_empty": false
+    },
+    {
+     "cls": "code-block",
+     "y": 733,
+     "h": 46,
+     "share": 0.046,
+     "ink": 0.425,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 809,
+     "h": 134,
+     "share": 0.134,
+     "ink": 0.469,
+     "big_empty": false
+    },
+    {
+     "cls": "h2",
+     "y": 1010,
+     "h": 42,
+     "share": 0.042,
+     "ink": 0.425,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 1082,
+     "h": 107,
+     "share": 0.107,
+     "ink": 0.367,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 1219,
+     "h": 81,
+     "share": 0.081,
+     "ink": 0.358,
+     "big_empty": false
+    },
+    {
+     "cls": "md-details",
+     "y": 1352,
+     "h": 39,
+     "share": 0.039,
+     "ink": 0.037,
+     "big_empty": false
+    },
+    {
+     "cls": "page-open",
+     "y": 1418,
+     "h": 31,
+     "share": 0.031,
+     "ink": 0.175,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.7
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  },
+  "1920": {
+   "empty": 0.669,
+   "widest_text": 623,
+   "widest_text_sample": "no-op. Production is plain static files;",
+   "overflow_x": false,
+   "items": 47,
+   "narrow_share": 0.894,
+   "layout": "wall",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 67,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 67
+      }
+     ]
+    },
+    "p": {
+     "total": 67,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 67
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 48,
+     "h": 53,
+     "share": 0.053,
+     "ink": 0.212,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 160,
+     "h": 58,
+     "share": 0.058,
+     "ink": 0.362,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 258,
+     "h": 29,
+     "share": 0.029,
+     "ink": 0.3,
+     "big_empty": false
+    },
+    {
+     "cls": "pre",
+     "y": 321,
+     "h": 60,
+     "share": 0.06,
+     "ink": 0.237,
+     "big_empty": false
+    },
+    {
+     "cls": "page-previews",
+     "y": 406,
+     "h": 121,
+     "share": 0.121,
+     "ink": 0.6,
+     "big_empty": false
+    },
+    {
+     "cls": "h2",
+     "y": 622,
+     "h": 45,
+     "share": 0.045,
+     "ink": 0.362,
+     "big_empty": false
+    },
+    {
+     "cls": "code-block",
+     "y": 702,
+     "h": 50,
+     "share": 0.05,
+     "ink": 0.175,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 792,
+     "h": 144,
+     "share": 0.144,
+     "ink": 0.39,
+     "big_empty": false
+    },
+    {
+     "cls": "h2",
+     "y": 1008,
+     "h": 45,
+     "share": 0.045,
+     "ink": 0.3,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 1092,
+     "h": 115,
+     "share": 0.115,
+     "ink": 0.275,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 1247,
+     "h": 86,
+     "share": 0.086,
+     "ink": 0.242,
+     "big_empty": false
+    },
+    {
+     "cls": "md-details",
+     "y": 1403,
+     "h": 42,
+     "share": 0.042,
+     "ink": 0.025,
+     "big_empty": false
+    },
+    {
+     "cls": "page-open",
+     "y": 1477,
+     "h": 31,
+     "share": 0.031,
+     "ink": 0.063,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.7
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  },
+  "3440": {
+   "empty": 0.794,
+   "widest_text": 700,
+   "widest_text_sample": "no-op. Production is plain static files;",
+   "overflow_x": false,
+   "items": 47,
+   "narrow_share": 0.894,
+   "layout": "wall",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 90,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 90
+      }
+     ]
+    },
+    "p": {
+     "total": 90,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 90
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 54,
+     "h": 59,
+     "share": 0.059,
+     "ink": 0.163,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 181,
+     "h": 65,
+     "share": 0.065,
+     "ink": 0.233,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 291,
+     "h": 32,
+     "share": 0.032,
+     "ink": 0.125,
+     "big_empty": false
+    },
+    {
+     "cls": "pre",
+     "y": 362,
+     "h": 68,
+     "share": 0.068,
+     "ink": 0.175,
+     "big_empty": false
+    },
+    {
+     "cls": "page-previews",
+     "y": 473,
+     "h": 136,
+     "share": 0.136,
+     "ink": 0.335,
+     "big_empty": false
+    },
+    {
+     "cls": "h2",
+     "y": 733,
+     "h": 51,
+     "share": 0.051,
+     "ink": 0.2,
+     "big_empty": false
+    },
+    {
+     "cls": "code-block",
+     "y": 823,
+     "h": 56,
+     "share": 0.056,
+     "ink": 0.125,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 924,
+     "h": 162,
+     "share": 0.162,
+     "ink": 0.235,
+     "big_empty": false
+    },
+    {
+     "cls": "h2",
+     "y": 1167,
+     "h": 51,
+     "share": 0.051,
+     "ink": 0.2,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 1263,
+     "h": 130,
+     "share": 0.13,
+     "ink": 0.181,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 1437,
+     "h": 97,
+     "share": 0.097,
+     "ink": 0.125,
+     "big_empty": false
+    },
+    {
+     "cls": "md-details",
+     "y": 1613,
+     "h": 47,
+     "share": 0.047,
+     "ink": 0.05,
+     "big_empty": false
+    },
+    {
+     "cls": "page-open",
+     "y": 1693,
+     "h": 31,
+     "share": 0.031,
+     "ink": 0.025,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.8
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  }
+ },
+ "errors": [
+  "400: WebSocket connection to 'ws://127.0.0.1:3217/' failed: Error during WebSocket handshake: Unexpected response code: 200",
+  "400: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1200: WebSocket connection to 'ws://127.0.0.1:3217/' failed: Error during WebSocket handshake: Unexpected response code: 200",
+  "1200: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "3440: WebSocket connection to 'ws://127.0.0.1:3217/' failed: Error during WebSocket handshake: Unexpected response code: 200",
+  "3440: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1920: WebSocket connection to 'ws://127.0.0.1:3217/' failed: Error during WebSocket handshake: Unexpected response code: 200",
+  "1920: Failed to load resource: the server responded with a status of 404 (Not Found)"
+ ]
+}

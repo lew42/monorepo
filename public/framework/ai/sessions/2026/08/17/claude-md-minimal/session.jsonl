@@ -1,0 +1,18 @@
+{"assign": {"session_id": "f4bc3a9e-dcfa-429b-97ee-931bb9e17fbf", "tab": "Port fly directory and a… - monorepo", "group": "instructions", "request": "Rewrite CLAUDE.md to be absolutely minimal under three new laws (less is more / clarity / prioritize); analyze all skills against them; fix the CSS @layer restatement; doc/ vs docs/; propose before rewriting", "requested_at": "2026-08-17T11:15:20-05:00", "model": "claude-fable-5", "window": {"before": 0.28}, "now": "investigating — skills, layer usage, hooks, branch protection", "steps": ["Investigate", "Write proposal.md", "Mike approves", "Rewrite CLAUDE.md", "Merge code skills + retune descriptions", "CSS: one @layer statement", "Readme retreat plan"], "step": 1}}
+{"action":{"at":"2026-08-17T11:20:27-05:00","did":"edit","files":["public/framework/ai/2026-08-17/claude-md-minimal/proposal.md"]}}
+{"log": {"at": "2026-08-17T11:32:00-05:00", "msg": "verified in live tab: framework.css is first in document.styleSheets, so the 91 @layer restatements are redundant; fly/index.html (hand-linked css) is the one exception -> prepend the link in View.js"}}
+{"log": {"at": "2026-08-17T11:32:00-05:00", "msg": "skill loads across 209 transcripts: usage 47, new-task 31, code-architecture 31, fork 26, documentation 9, layout-design 7, css-strategy 1, claim-tab 0"}}
+{"assign": {"now": "proposal.md written; awaiting Mike", "step": 3, "links": [{"url": "/framework/ai/2026-08-17/claude-md-minimal/", "label": "task + proposal.md"}]}}
+{"assign": {"step": 7, "landed_at": "2026-08-17T11:36:00-05:00", "outcome": "**Proposal delivered, nothing rewritten** — proposal.md: a 36-line CLAUDE.md draft (183 today), 9 decisions for Mike, skills table by real load counts (css-strategy 1, claim-tab 0 → merge into one `code` skill), the @layer DRY fix (91 redundant restatements; prepend framework.css link), doc/→docs/ rename costed, readme-retreat shape. Steps 4–7 (rewrite CLAUDE.md, merge skills, @layer sweep, readme retreat) are DEFERRED to a follow-up task in group `instructions` once Mike approves.", "window": {"before": 0.28, "after": 0.30}, "tokens": 3833560, "usage": {"input": 84, "cache_write": 114675, "cache_read": 3672172, "output": 46629, "calls": 40}}}
+{"action":{"at":"2026-08-17T11:54:16-05:00","did":"edit","files":[".claude/skills/code-architecture/SKILL.md"]}}
+{"action":{"at":"2026-08-17T12:02:26-05:00","did":"edit","files":[".claude/skills/documentation/SKILL.md"]}}
+{"action":{"at":"2026-08-17T12:03:57-05:00","did":"edit","files":["Server/README.md"]}}
+{"action":{"at":"2026-08-17T12:25:45-05:00","did":"edit","files":[".claude/skill-notes.md"]}}
+{"action":{"at":"2026-08-17T12:27:48-05:00","did":"edit","files":["public/framework/core/View/View.js"]}}
+{"action":{"at":"2026-08-17T12:28:05-05:00","did":"edit","files":["public/framework/core/View/doc/framework-css.md"]}}
+{"action":{"at":"2026-08-17T12:28:13-05:00","did":"edit","files":["public/framework/core/View/readme.md"]}}
+{"action":{"at":"2026-08-17T12:31:00-05:00","did":"edit","files":["public/framework/ui/parts.js"]}}
+{"action":{"at":"2026-08-17T12:31:07-05:00","did":"edit","files":["public/framework/styles/page.js"]}}
+{"action":{"at":"2026-08-17T12:31:17-05:00","did":"edit","files":["public/framework/framework.css"]}}
+{"action":{"at":"2026-08-17T12:31:28-05:00","did":"edit","files":["public/framework/styles/readme.md"]}}
+{"action":{"at":"2026-08-17T12:31:54-05:00","did":"edit","files":[".claude/skills/css-strategy/SKILL.md"]}}

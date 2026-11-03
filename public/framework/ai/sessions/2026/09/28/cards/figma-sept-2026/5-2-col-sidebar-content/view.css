@@ -1,0 +1,121 @@
+/* Card 5 — 2-Col: Sidebar + Content. A scaled recreation, not a reflowed one —
+   see the note at the top of view.js. Every number below is an `em`,
+   converted from the Figma's own pixels at its 856px canvas (16px = 1em there),
+   so `ui-scale-body`'s own font-size (from `ui/scale`, set from the
+   container's width) carries every size in this file down or up together.
+   Every class carries this card's own `figma-dash-` prefix (review finding 1). */
+@layer site {
+
+	.figma-dash-panel {
+		border-radius: 0.5em;
+		padding: 2.25em 2em;   /* 36px / 32px at the Figma's own width */
+	}
+
+	.figma-dash-widget {
+		display: grid;
+		grid-template-columns: 33% 1fr;   /* the Figma's 280:576 sidebar/content split */
+		border-radius: 0.5em;
+		overflow: hidden;
+		border: 1px solid var(--line);
+		font-size: 1em;
+	}
+
+	.figma-dash-sidebar {
+		display: flex;
+		flex-direction: column;
+		background: var(--prim);
+		color: var(--surface);
+		padding: 1.5em;
+		gap: 0.6em;
+	}
+
+	.figma-dash-title { font-size: 1.35em; font-weight: 600; margin-bottom: 0.4em; }
+
+	.figma-dash-nav { display: flex; flex-direction: column; gap: 0.2em; }
+
+	.figma-dash-nav-item { padding: 0.6em 0.7em; border-radius: 0.4em; }
+	.figma-dash-nav-item.active { background: var(--lighten-2); font-weight: 600; }
+
+	.figma-dash-user {
+		display: flex;
+		align-items: center;
+		gap: 0.6em;
+		margin-top: auto;
+		padding: 0.6em;
+		border-radius: 0.5em;
+		background: var(--darken-2);
+	}
+
+	.figma-dash-user-avatar {
+		width: 2em; height: 2em;
+		border-radius: 50%;
+		background: var(--ink);
+		flex-shrink: 0;
+	}
+
+	.figma-dash-user-info { display: flex; flex-direction: column; gap: 0.1em; }
+	.figma-dash-user-name { font-weight: 700; font-size: 0.8em; }
+	.figma-dash-user-role { font-size: 0.75em; opacity: 0.85; }
+
+	.figma-dash-content {
+		display: flex;
+		flex-direction: column;
+		gap: 1em;
+		background: var(--surface);
+		color: var(--ink);
+		padding: 1.5em;
+	}
+
+	.figma-dash-content-title { font-size: 1.9em; font-weight: 700; }
+
+	.figma-dash-stats { display: flex; gap: 0.7em; }
+
+	.figma-dash-tile {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		gap: 0.3em;
+		background: var(--wash);
+		border-radius: 0.4em;
+		padding: 0.9em;
+	}
+
+	.figma-dash-tile-label {
+		font-size: 0.65em;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: var(--subtle);
+	}
+
+	.figma-dash-tile-value { font-size: 1.4em; font-weight: 600; }
+
+	.figma-dash-activity {
+		display: flex;
+		flex-direction: column;
+		gap: 0.6em;
+		background: var(--wash);
+		border-radius: 0.4em;
+		padding: 1em;
+	}
+
+	.figma-dash-activity-title {
+		font-size: 0.65em;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: var(--subtle);
+	}
+
+	.figma-dash-activity-row {
+		display: flex;
+		align-items: center;
+		gap: 0.6em;
+		background: var(--surface);
+		border-radius: 0.35em;
+		padding: 0.6em 0.75em;
+		font-size: 0.9em;
+	}
+
+	.figma-dash-activity-bar { width: 0.25em; align-self: stretch; background: var(--prim); border-radius: 999px; }
+}

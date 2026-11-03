@@ -1,0 +1,336 @@
+[
+  {
+    "url": "/imagine/",
+    "name": "Imagine",
+    "what": "A place made of column pages: a hub rail shows four grouped categories of sections, each opening as a column beside the rail in one row.",
+    "parts": [
+      "Rail navigator",
+      "Default Start column with card previews",
+      "Column regions (one per open section)",
+      "Category grouping system",
+      "24 nested pages across four groups"
+    ],
+    "features": [
+      "Column-based navigation opens sections in the same row",
+      "Grouped sections (Tools, Worlds, Shapes, Studies) organize the 24 pages",
+      "State remembered by URL using page.store()",
+      "One crumb strip for the entire hierarchy",
+      "Depth 1 prevents expensive page loads"
+    ],
+    "demos": [
+      {
+        "url": "/imagine/",
+        "shows": "The hub itself with rail navigator and Start card wall showing grouped sections",
+        "covers": 70
+      }
+    ],
+    "coverage": 70,
+    "gaps": [
+      "How state persistence works across reloads",
+      "Deep nesting three levels down (e.g. person->board->task)",
+      "Interaction with child pages (team, game, gallery)"
+    ],
+    "blurb": "Column host with grouped rail, one row, four categories.",
+    "clarity": 4,
+    "stage": {
+      "kind": "column",
+      "cap": null,
+      "should_cap": null
+    },
+    "reads": [
+      "public/imagine/readme.md",
+      "public/imagine/page.js"
+    ]
+  },
+  {
+    "url": "/imagine/scenes/",
+    "name": "Scenes",
+    "what": "A 3D pager where the page tree is the scene graph; clicking objects in the canvas navigates to different 3D worlds with live miniature previews on portal doors.",
+    "parts": [
+      "3D canvas (transparent over CSS sky)",
+      "Scene graph hierarchy",
+      "Portal doors with live miniatures",
+      "Five grain variations (world, object, region, light, all)",
+      "Tour cue engine with navigation"
+    ],
+    "features": [
+      "Click 3D objects to navigate between scenes",
+      "Swap different parts of the scene (world, object, region, light, all together)",
+      "Take a guided tour with automatic navigation and timeline cues",
+      "Portal doors show live previews of their contents",
+      "Fog, lighting, and camera control per scene"
+    ],
+    "demos": [
+      {
+        "url": "/imagine/scenes/",
+        "shows": "The foyer rotunda with five portal doors and live miniature previews",
+        "covers": 85
+      },
+      {
+        "url": "/imagine/scenes/tour/",
+        "shows": "Automatic navigation through all five grains of swap",
+        "covers": 95
+      }
+    ],
+    "coverage": 90,
+    "gaps": [
+      "Detailed slot mechanism and diff algorithm",
+      "Why random numbers must use stage.rand() instead of Math.random()",
+      "Aspect ratio and FOV widening behavior on ultrawide screens"
+    ],
+    "blurb": "3D pager: page tree is scene graph, click objects to navigate.",
+    "clarity": 4,
+    "stage": {
+      "kind": "full bleed",
+      "cap": null,
+      "should_cap": "No, full bleed is correct for 3D canvas."
+    },
+    "reads": [
+      "public/imagine/scenes/readme.md",
+      "public/imagine/scenes/page.js",
+      "public/imagine/scenes/doc/atmosphere.md",
+      "public/imagine/scenes/doc/decisions.md",
+      "public/imagine/scenes/doc/grains.md",
+      "public/imagine/scenes/doc/observatory.md",
+      "public/imagine/scenes/doc/slots.md",
+      "public/imagine/scenes/doc/tour.md"
+    ]
+  },
+  {
+    "url": "/imagine/stream/",
+    "name": "Stream",
+    "what": "A page edited in one browser tab appears live in every other tab within 9 ms, using append-only deltas streamed over a socket from a JSONL log.",
+    "parts": [
+      "Snapshot JSON file (data/wire.json)",
+      "Append-only JSONL delta log (data/wire.jsonl)",
+      "Socket subscription system",
+      "Two-window demo with independent readers",
+      "Compact and clear operations"
+    ],
+    "features": [
+      "Edit a page's state in one window and see it live in others",
+      "Append-only deltas with set/del/append operations",
+      "Reload preserves state from snapshot plus all deltas",
+      "Compact operation folds log back into snapshot",
+      "Clear operation discards log and reverts to snapshot"
+    ],
+    "demos": [
+      {
+        "url": "/imagine/stream/",
+        "shows": "Two independently subscribed windows on the same data, one showing edits live in the other",
+        "covers": 80
+      },
+      {
+        "url": "/imagine/stream/wire/",
+        "shows": "Interactive wire demo where users can edit state",
+        "covers": 85
+      },
+      {
+        "url": "/imagine/stream/deck/",
+        "shows": "Streamed slide deck with live updates",
+        "covers": 75
+      },
+      {
+        "url": "/imagine/stream/blocks/",
+        "shows": "Streamed region demo with live editing",
+        "covers": 75
+      }
+    ],
+    "coverage": 80,
+    "gaps": [
+      "Why editors must not apply their own edits before the server confirms",
+      "Offline behavior (socket degrades to fetch on non-localhost)",
+      "How hidden tabs handle the lack of requestAnimationFrame"
+    ],
+    "blurb": "Edit in one tab, live in every other, no reload.",
+    "clarity": 4,
+    "stage": {
+      "kind": "wide",
+      "cap": null,
+      "should_cap": "No, wide layout suits the hero card with two windows."
+    },
+    "reads": [
+      "public/imagine/stream/readme.md",
+      "public/imagine/stream/page.js",
+      "public/imagine/stream/doc/decisions.md",
+      "public/imagine/stream/doc/wire.md",
+      "public/imagine/stream/doc/durable-objects.md"
+    ]
+  },
+  {
+    "url": "/imagine/team/",
+    "name": "Team",
+    "what": "A roster rail of six team members, where selecting a person shows their task board with draggable cards organized by four lanes, state remembered across reloads.",
+    "parts": [
+      "Roster rail with member cards",
+      "Person column with profile and assignments",
+      "Board with four lanes (Queued, In hand, Review, Landed)",
+      "Draggable task chips with point counts",
+      "Density and sort controls"
+    ],
+    "features": [
+      "Drag tasks between lanes with visual feedback",
+      "Switch between density (comfy/compact) views",
+      "Sort tasks by name or load",
+      "Board follows person selection",
+      "State persisted in localStorage with one key per page URL"
+    ],
+    "demos": [
+      {
+        "url": "/imagine/team/",
+        "shows": "The full roster, board, and draggable task interface in one view",
+        "covers": 100
+      }
+    ],
+    "coverage": 100,
+    "gaps": [
+      "How page.store() keys work with localStorage",
+      "The role of this.topic() for cross-column communication",
+      "Why Draggable.under() filter is needed to avoid landing on chips"
+    ],
+    "blurb": "Roster, boards, draggable tasks remembered by URL.",
+    "clarity": 5,
+    "stage": {
+      "kind": "measure",
+      "cap": null,
+      "should_cap": "No, measured columns are appropriate here."
+    },
+    "reads": [
+      "public/imagine/team/page.js",
+      "public/imagine/team/team.css"
+    ]
+  },
+  {
+    "url": "/imagine/vary/",
+    "name": "Vary",
+    "what": "Four labs showing column-page layout variations across four questions: scroll behavior, background hierarchy, child display method, and column styling looks.",
+    "parts": [
+      "Scroll lab with scrollbar variations",
+      "Tone lab with background hierarchy",
+      "Place lab with child display methods",
+      "Colstyles lab with four looks (Finder, Cards, Ink, Glass)",
+      "Preview card wall navigator"
+    ],
+    "features": [
+      "Browse variations visually in a card wall",
+      "Click a card to view the full variation page",
+      "See one-line verdict at the end of each variation",
+      "Compare different styling approaches side by side",
+      "Test how columns behave at different widths"
+    ],
+    "demos": [
+      {
+        "url": "/imagine/vary/",
+        "shows": "Preview wall with four labs, each showing 3-4 variations",
+        "covers": 80
+      },
+      {
+        "url": "/imagine/vary/scroll/",
+        "shows": "Scrollbar variations including full bleed edge case",
+        "covers": 90
+      },
+      {
+        "url": "/imagine/vary/tone/",
+        "shows": "Background hierarchy different approaches",
+        "covers": 85
+      },
+      {
+        "url": "/imagine/vary/place/",
+        "shows": "How children get displayed in column pages",
+        "covers": 85
+      },
+      {
+        "url": "/imagine/vary/colstyles/",
+        "shows": "Four visual looks on the same tree structure",
+        "covers": 90
+      }
+    ],
+    "coverage": 90,
+    "gaps": [
+      "Why width: full collapses /imagine/'s own sidebar",
+      "The CSS rules and container query logic behind each lab",
+      "Performance implications of different styling approaches"
+    ],
+    "blurb": "Four labs: scroll, tone, place, four column looks.",
+    "clarity": 4,
+    "stage": {
+      "kind": "wide",
+      "cap": null,
+      "should_cap": "No, wide layout fits all four preview cards in one row at 3440."
+    },
+    "reads": [
+      "public/imagine/vary/readme.md",
+      "public/imagine/vary/page.js"
+    ]
+  },
+  {
+    "url": "/imagine/youtube/",
+    "name": "YouTube",
+    "what": "Six labs demonstrating the YouTube IFrame Player API and a timeline cue engine that drives different UI patterns without loading iframes until play is pressed.",
+    "parts": [
+      "Player wrapper with lazy-load iframe",
+      "Cue timeline engine (Clock, Cues)",
+      "Panel lab (control panel interface)",
+      "Course lab (chapter navigation)",
+      "Yield lab (video aside design)",
+      "Split, Chat, Marks labs"
+    ],
+    "features": [
+      "Lazy-load YouTube iframes only on play",
+      "Drive UI with timeline cue engine at 4x per second",
+      "Mark video boundaries with M key and copy array",
+      "Multiple UI patterns on the same video and engine",
+      "Keyboard controls (Space, arrows, J/L, M, 0-9)"
+    ],
+    "demos": [
+      {
+        "url": "/imagine/youtube/panel/",
+        "shows": "Control panel interface driving video playback",
+        "covers": 85
+      },
+      {
+        "url": "/imagine/youtube/course/",
+        "shows": "Chapter navigation mode automatic or manual",
+        "covers": 80
+      },
+      {
+        "url": "/imagine/youtube/yield/",
+        "shows": "Video scaled and translated with aside content",
+        "covers": 75
+      },
+      {
+        "url": "/imagine/youtube/split/",
+        "shows": "Split layout with video and synchronized content",
+        "covers": 75
+      },
+      {
+        "url": "/imagine/youtube/marks/",
+        "shows": "Stopwatch for marking video boundaries",
+        "covers": 60
+      }
+    ],
+    "coverage": 80,
+    "gaps": [
+      "PostMessage cross-origin behavior and timing",
+      "Why backward scrub replays every cue from the start",
+      "Hidden tab behavior with polling and requestAnimationFrame",
+      "Container query reordering in panel for narrow widths"
+    ],
+    "blurb": "Six API labs: panel, course, yield, split, chat, marks.",
+    "clarity": 4,
+    "stage": {
+      "kind": "wide",
+      "cap": null,
+      "should_cap": "No, wide layout suits the video and control panels."
+    },
+    "reads": [
+      "public/imagine/youtube/readme.md",
+      "public/imagine/youtube/page.js",
+      "public/imagine/youtube/doc/api.md",
+      "public/imagine/youtube/doc/cues.md",
+      "public/imagine/youtube/doc/decisions.md",
+      "public/imagine/youtube/doc/marks.md",
+      "public/imagine/youtube/doc/yield.md"
+    ]
+  }
+]

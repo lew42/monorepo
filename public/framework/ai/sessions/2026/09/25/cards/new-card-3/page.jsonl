@@ -1,0 +1,4 @@
+{"class":"/framework/ai2/card.js","title":"New card","type":"card","id":"2026/09/25/new-card-3","created":"2026-09-25T15:16:17-05:00","by":"owner","tags":[]}
+{"prompt":{"id":"p-muheiflg4k","at":"2026-09-25T15:16:19-05:00","by":"owner","on":"2026/09/25/new-card-3","raw":"typed hello one","text":"typed hello one","via":"typed","url":"/framework/ai2/2026/09/25/new-card-3/"}}
+{"prompt":{"id":"p-muheigtmio","at":"2026-09-25T15:16:21-05:00","by":"owner","on":"2026/09/25/new-card-3","raw":"dictated words two","text":"dictated words two","via":"typed","url":"/framework/ai2/2026/09/25/new-card-3/"}}
+{"message":{"by":"assistant-new-card-3","text":"Got both messages: \"typed hello one\" and \"dictated words two\". Nothing to build here yet. Tell me what you'd like on this card.","kind":"reply","at":"2026-09-25T15:16:29-05:00"}}

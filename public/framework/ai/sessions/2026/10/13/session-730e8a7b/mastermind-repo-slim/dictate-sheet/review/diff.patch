@@ -1,0 +1,90 @@
+diff --git a/public/framework/ext/drawer/rail.css b/public/framework/ext/drawer/rail.css
+index 312dd94c9..407fd81f8 100644
+--- a/public/framework/ext/drawer/rail.css
++++ b/public/framework/ext/drawer/rail.css
+@@ -321,4 +321,16 @@
+ 	.drawer-rail-sheet .ux-dictate-widget-bubbles { gap: 0.15em; }
+ 	.drawer-rail-sheet .chatbox-text + .chatbox-text { margin-block-start: 0.3em; }
+ 	.drawer-rail-sheet .chatbox-log { margin-block-end: 0.15em; }
++
++	/* FULL STATE TABS: the drawer's own tab row + body under the chat (rail.js mount_tabs). */
++	.drawer-rail-sheet-tabs { flex: 0 1 45%; min-block-size: 0; border-top: 1px solid var(--line); }
++	.drawer-rail-sheet-tabrow { flex: 0 0 auto; flex-wrap: wrap; gap: 0.1em; padding-block: 0.3em; }
++	.drawer-rail-sheet-tabrow .drawer-tab {
++		font: inherit; font-size: 0.85em; padding: 0.35em 0.7em; min-block-size: 2.2rem;
++		color: var(--ink-muted, var(--ink)); background: none; border: 0; border-radius: calc(var(--radius) / 2);
++	}
++	.drawer-rail-sheet-tabrow .drawer-tab.on { color: var(--ink); background: var(--fill-a08); font-weight: 600; }
++	.drawer-rail-sheet-tabbody { flex: 1 1 auto; min-block-size: 0; overflow: auto; }
++	.drawer-rail-sheet-chat-only { }
++	.drawer-rail-sheet-chat-only .drawer-rail-sheet-tabs { flex: 0 0 auto; }
+ }
+diff --git a/public/framework/ext/drawer/rail.js b/public/framework/ext/drawer/rail.js
+index 7dd9aa303..473517ae2 100644
+--- a/public/framework/ext/drawer/rail.js
++++ b/public/framework/ext/drawer/rail.js
+@@ -638,6 +638,44 @@ export class DrawerRailSheetChat extends DrawerRailSheetPanel {
+ 		setTimeout(() => this.mount?.nav(drawer.page(), this.active_card()?.id ?? null));
+ 	}
+ 
++	// Full state = the whole sidebar: the chat above stays mounted (mic keeps running), the drawer's own tab row and tab body sit below it.
++	state(mode){
++		super.state(mode);
++		mode === "full" ? this.mount_tabs() : this.unmount_tabs();
++		return this;
++	}
++
++	mount_tabs(){
++		if (this.$tabs?.el.isConnected) return;
++		this.$tabs = div.c("drawer-rail-sheet-tabs flex v");
++		this.$tabs.el.append(...(() => {
++			const row = div.c("drawer-tabs drawer-rail-sheet-tabrow flex"), body = div.c("drawer-rail-sheet-tabbody");
++			this.$tabrow = row; this.$tabbody = body;
++			return [row.el, body.el];
++		})());
++		this.el.append(this.$tabs.el);
++		this.pick(tabs.current?.name ?? "ai");
++	}
++
++	unmount_tabs(){
++		this.$tabs?.el.remove();
++		this.$tabs = null;
++	}
++
++	pick(name){
++		const shown = tabs.shown();
++		const tab = shown.find(t => t.name === name) ?? shown[0];
++		this.$tabrow.empty(() => {
++			shown.forEach(t => button.c("drawer-tab", t.label).attr("type", "button").ac(t === tab && "on").click(() => this.pick(t.name)));
++		});
++		if (tab.name === "ai"){ this.$tabbody.empty(); this.ac("drawer-rail-sheet-chat-only"); return; }   // the chat above IS the AI tab
++		this.rc("drawer-rail-sheet-chat-only");
++		const ctx = tabs.context(), body = this.$tabbody;
++		body.empty(() => { span.c("drawer-wait muted", "loading…"); });
++		tab.load().then(m => { if (this.$tabbody === body) body.empty(() => { m.default(ctx); }); })
++			.catch(e => body.empty(() => { span.c("drawer-wait muted", "This tab could not load: " + e.message); }));
++	}
++
+ 	new_session_button(){
+ 		return chat_new_session_button(() => this.mount)
+ 			.ac("drawer-rail-sheet-link drawer-rail-sheet-new")
+diff --git a/public/framework/ux/Dictate/doc/next.md b/public/framework/ux/Dictate/doc/next.md
+index 9470df405..3649426ad 100644
+--- a/public/framework/ux/Dictate/doc/next.md
++++ b/public/framework/ux/Dictate/doc/next.md
+@@ -1,4 +1,4 @@
+-# Next: make the phone sheet the sidebar's collapsed form (brief, 2026-10-13)
++# Next: make the phone sheet the sidebar's collapsed form (brief, 2026-10-13) — DONE: section 1 landed in commit 4cb0adf91 (`DrawerRailSheetChat.state()` mounts the drawer tab row in `full`; mic proof passes, 400 px shot in the dictate-sheet task dir)
+ 
+ **Owner's design:** on mobile a small sheet holds only the transcribe button and the text area, resizable; expanded, it becomes the whole sidebar (chat plus the AI, sessions, … tabs). Findings and what is already shared: [asks.md](asks.md#2026-10-13--does-it-work-today-and-is-the-phone-sheet-the-sidebars-small-form).
+ 
+diff --git a/public/framework/ux/Dictate/doc/surfaces.md b/public/framework/ux/Dictate/doc/surfaces.md
+index c44e6fda7..568001829 100644
+--- a/public/framework/ux/Dictate/doc/surfaces.md
++++ b/public/framework/ux/Dictate/doc/surfaces.md
+@@ -36,3 +36,5 @@ Both times the registry shows the agent `working` within a second of the sentenc
+ 5. **Two dictation widgets:** the Dictation tab embeds the playground widget while the chat uses `Widget` (already named in [voice-architecture.md](voice-architecture.md)).
+ 
+ The merge itself is a later brief: [next.md](next.md).
++
++**Update 2026-10-13:** the phone sheet and the sidebar are now one component: the sheet's `full` state mounts the drawer's own tab row ([next.md](next.md)).

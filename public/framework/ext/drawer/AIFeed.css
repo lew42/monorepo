@@ -1,0 +1,8 @@
+/* AIFeed (AIFeed.js): the page's events as quiet one-line rows among the chat bubbles. */
+@layer theme {
+	.drawer-ai-feed:empty { display: none; }
+	.drawer-ai-feed-row { gap: .5em; font-size: .85em; line-height: 1.35; padding-inline: .25em; }
+	.drawer-ai-feed-icon { flex: 0 0 auto; inline-size: 1.2em; text-align: center; }
+	.drawer-ai-feed-text { flex: 1 1 auto; min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: inherit; }
+	.drawer-ai-feed-at { flex: 0 0 auto; font-variant-numeric: tabular-nums; opacity: .7; }
+}

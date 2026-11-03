@@ -1,0 +1,694 @@
+{
+  "module": "framework/core (Page, Page/generator, Sidebar, Layout, Section, new)",
+  "paths": [
+    "framework/core/Page",
+    "framework/core/Sidebar",
+    "framework/core/Layout",
+    "framework/core/Section",
+    "framework/core/new"
+  ],
+  "lines": {
+    "css": 4557,
+    "jsBlocks": 0
+  },
+  "clusters": [
+    {
+      "id": "page-arrangement-contract",
+      "file": "framework/core/Page/Page.css",
+      "from": 1,
+      "to": 50,
+      "lines": 50,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "The one place a page's visibility is decided (@layer util); every page depends on it and no other class does this.",
+      "saves": 0
+    },
+    {
+      "id": "page-regions",
+      "file": "framework/core/Page/Page.css",
+      "from": 51,
+      "to": 101,
+      "lines": 51,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "The .pages scroll region and the default-page rules; the region is core's own box, no framework.css class covers it.",
+      "saves": 0
+    },
+    {
+      "id": "page-shell-grid",
+      "file": "framework/core/Page/Page.css",
+      "from": 102,
+      "to": 208,
+      "lines": 107,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "THE page shell (.page grid, .wide, .bleed, --gutter-x). It is the base vocabulary the whole site sits on; nothing else defines it.",
+      "saves": 0
+    },
+    {
+      "id": "page-related-aside",
+      "file": "framework/core/Page/Page.css",
+      "from": 209,
+      "to": 288,
+      "lines": 80,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "Only used by the related: word (6 files mention page-related); a sticky third grid track has no equivalent in framework.css. unverified whether the 4 small link-row rules (276-287) could be .flex.v.gap.",
+      "saves": 0
+    },
+    {
+      "id": "page-solo",
+      "file": "framework/core/Page/Page.css",
+      "from": 289,
+      "to": 299,
+      "lines": 11,
+      "verdict": "DUPLICATE",
+      "target": ".page.fill (Page.css:1107)",
+      "evidence": "Page.css:298 `.page.solo { align-self: stretch; overflow: auto; min-height: 100% }` is declaration-for-declaration Page.css:1107 `.page.fill { align-self: stretch; overflow: auto; min-height: 100% }`. Two words, one rule; make one an alias (`.page.solo, .page.fill {...}`) and drop the duplicate block.",
+      "saves": 3
+    },
+    {
+      "id": "columns-host-and-row",
+      "file": "framework/core/Page/Page.css",
+      "from": 300,
+      "to": 408,
+      "lines": 109,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "Finder-style columns host, crumb bar and scrolling row; the core shape of the columns arrangement. Unique.",
+      "saves": 0
+    },
+    {
+      "id": "column-body-and-width-words",
+      "file": "framework/core/Page/Page.css",
+      "from": 409,
+      "to": 571,
+      "lines": 163,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "Column sizing, six width words and the even mode; page-specific to the columns system, driven by Page.class.js tokens.",
+      "saves": 0
+    },
+    {
+      "id": "column-grab-and-full-collapse",
+      "file": "framework/core/Page/Page.css",
+      "from": 572,
+      "to": 616,
+      "lines": 45,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "The drag seam and the `full` ancestor collapse; behaviour glue with no framework.css equivalent (ext/grip is JS-driven, not this rule).",
+      "saves": 0
+    },
+    {
+      "id": "column-head-close-prose-bleed",
+      "file": "framework/core/Page/Page.css",
+      "from": 617,
+      "to": 716,
+      "lines": 100,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "Sticky head, close button, prose cap and column-scope bleed; component parts of the columns system.",
+      "saves": 0
+    },
+    {
+      "id": "column-item-row",
+      "file": "framework/core/Page/Page.css",
+      "from": 717,
+      "to": 763,
+      "lines": 47,
+      "verdict": "GENERALIZE",
+      "target": "nav-row (one clickable list row: icon + label, hover overlay, active edge mark) in ux/ or framework.css",
+      "evidence": "Same 'row with an icon, quiet ink, hover fill and a 2px inline-end mark on .active/.in-path' is written four times: Page.css:725-763 `.page-column-item`, generator.css:212-226 `.page-gen-item`, uses.css:22-36 `.page-uses-row`, and Page.css:961 `.page-row`. Build once, wear everywhere.",
+      "saves": 20
+    },
+    {
+      "id": "crumbs-and-phone-query",
+      "file": "framework/core/Page/Page.css",
+      "from": 764,
+      "to": 788,
+      "lines": 25,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "Breadcrumb trail (page-crumbs, 8 files) and the < 32em one-column-at-a-time container query; specific to the columns row.",
+      "saves": 0
+    },
+    {
+      "id": "page-surface-bg-words",
+      "file": "framework/core/Page/Page.css",
+      "from": 789,
+      "to": 831,
+      "lines": 43,
+      "verdict": "DUPLICATE",
+      "target": ".tint (framework.css:508), .surface/.card (framework.css:456-460), .wash (framework.css:503)",
+      "evidence": "Of five values, `plain` is transparent, `tint` is `.tint` (framework.css:508 `background: var(--tint)`), `card` is `.surface` (framework.css:456-461: surface bg, --line border, --radius). Only `prim` (10% mix) and `dark` (color-scheme island) are new. Stamp `tint`/`surface` instead of page-surface-*/page-bg-* for those and keep only prim + dark. 11 files touch the names.",
+      "saves": 18
+    },
+    {
+      "id": "page-type-and-width-words",
+      "file": "framework/core/Page/Page.css",
+      "from": 832,
+      "to": 856,
+      "lines": 25,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "type_size and page-w words: 12 lines, 2 files use page-type-*, page-w-narrow used by 1 file (unverified; likely stamped dynamically by word_classes). `.page-type-regular` (font-size:1em) is a no-op worth a look.",
+      "saves": 0
+    },
+    {
+      "id": "page-frame-shells",
+      "file": "framework/core/Page/Page.css",
+      "from": 857,
+      "to": 962,
+      "lines": 106,
+      "verdict": "DUPLICATE",
+      "target": ".flex.v + .gap (framework.css:832, 865, 1023)",
+      "evidence": "`.page-frame`, `.page-frame-mid`, `.page-canvas`, `.page-slot`, `.page-rail/.panel/.aside`, `.page-bar`, `.page-rows` are each `display:flex; flex-direction:column|row; gap: calc(var(--gap)*N); min-width:0` — the words `.flex .v .gap .flex-1` (framework.css:832, 865, 1023, 856) already say that. What is left (measure cap on prose, container on frame body, side-box --pad) is ~25 lines. Frame.js would add util classes instead.",
+      "saves": 12
+    },
+    {
+      "id": "nav-height-reserve",
+      "file": "framework/core/Page/Page.css",
+      "from": 963,
+      "to": 979,
+      "lines": 17,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "One shared grid cell so a swap can't resize the box (visibility, not display); unique trick.",
+      "saves": 0
+    },
+    {
+      "id": "rail",
+      "file": "framework/core/Page/Page.css",
+      "from": 980,
+      "to": 1053,
+      "lines": 74,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "`.rail` is one of the five layout words (sticky side region + container query); defined here, not in framework.css.",
+      "saves": 0
+    },
+    {
+      "id": "wall-and-stage",
+      "file": "framework/core/Page/Page.css",
+      "from": 1054,
+      "to": 1101,
+      "lines": 48,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "`.wall` and `.stage` are two of the five layout words; .wall is auto-FILL by measured decision (a near-twin of `.grid.auto`, framework.css:966-980, but deliberately different).",
+      "saves": 0
+    },
+    {
+      "id": "shell-words-and-page-link",
+      "file": "framework/core/Page/Page.css",
+      "from": 1102,
+      "to": 1125,
+      "lines": 24,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "`.page.full` (30 files) and `.page-link` (252 files) are heavily used; small and specific.",
+      "saves": 0
+    },
+    {
+      "id": "previews-wall-and-gutter-payback",
+      "file": "framework/core/Page/Page.css",
+      "from": 1126,
+      "to": 1173,
+      "lines": 48,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "page-previews class, group heading and the gutter payback for a bled wall; fixes a real measured bug, page-specific.",
+      "saves": 0
+    },
+    {
+      "id": "preview-card",
+      "file": "framework/core/Page/Page.css",
+      "from": 1174,
+      "to": 1284,
+      "lines": 111,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "THE preview card component (thumb, link overlay, ring, active mark); hundreds of pages render it. Could adopt .card's tokens later but unique behaviour (ring, ::after link cover).",
+      "saves": 0
+    },
+    {
+      "id": "gen-panel-contract",
+      "file": "framework/core/Page/generator/generator.css",
+      "from": 1,
+      "to": 24,
+      "lines": 24,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "@layer util twin of the arrangement contract for the generator's tab panel; ext/tabs has a similar rule (unverified, not read) so it may be a DUPLICATE of ext/tabs.",
+      "saves": 0
+    },
+    {
+      "id": "gen-controls-chrome",
+      "file": "framework/core/Page/generator/generator.css",
+      "from": 25,
+      "to": 173,
+      "lines": 149,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "Lab-specific layout of the controls column, dials, seed, export row and hint (lines unread in detail); page-specific tool UI. unverified.",
+      "saves": 0
+    },
+    {
+      "id": "gen-tune-and-pick-chips",
+      "file": "framework/core/Page/generator/generator.css",
+      "from": 174,
+      "to": 202,
+      "lines": 29,
+      "verdict": "DUPLICATE",
+      "target": ".size-small (framework.css:694) + .flex.wrap.gap (framework.css:832-833, 1023)",
+      "evidence": "`.page--generator button.page-gen-pick { padding:.1em .45em; font-size:.7em; border:1px solid var(--line); border-radius:3px }` hand-shrinks a button that the control grammar already shrinks with one word: `.size-small` (framework.css:694, --size .75 scales height, padding, corner and text together). `.page-gen-tune/.page-gen-set` are flex-wrap rows with gaps = `.flex.wrap.gap`.",
+      "saves": 18
+    },
+    {
+      "id": "gen-nav-item",
+      "file": "framework/core/Page/generator/generator.css",
+      "from": 203,
+      "to": 232,
+      "lines": 30,
+      "verdict": "GENERALIZE",
+      "target": "nav-row (see column-item-row)",
+      "evidence": "generator.css:212-226 `.page-gen-item` is the same icon+label row with hover fill and active edge mark as Page.css:725-763; `.page-gen-nav` (203, 209) is `.flex.v` (framework.css:865).",
+      "saves": 22
+    },
+    {
+      "id": "gen-content-sketch-parts",
+      "file": "framework/core/Page/generator/generator.css",
+      "from": 233,
+      "to": 290,
+      "lines": 58,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "Bars, media, chips and panel/inline containers that fake page content; only meaning is inside the generator lab.",
+      "saves": 0
+    },
+    {
+      "id": "gen-tabs-vtabs",
+      "file": "framework/core/Page/generator/generator.css",
+      "from": 291,
+      "to": 340,
+      "lines": 50,
+      "verdict": "GENERALIZE",
+      "target": "tabs (existing ext/tabs, `.tabs` / `.tabs.vertical`)",
+      "evidence": "Page.css:717-719 says `.page-column-item` is `.tabs.vertical`'s own declarations 'restated'; `.page-gen-tabs` and `.page-gen-vtabs` (selectors at generator.css:295-340) are the same tab strips a third time. One tabs component should be wearable by nav anchors.",
+      "saves": 30
+    },
+    {
+      "id": "gen-list-and-wall",
+      "file": "framework/core/Page/generator/generator.css",
+      "from": 341,
+      "to": 400,
+      "lines": 60,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "List and wall entry shapes driven by --gen-gap/--column tokens on top of the framework's own `grid auto gap` words; specific.",
+      "saves": 0
+    },
+    {
+      "id": "gen-roll-sketch",
+      "file": "framework/core/Page/generator/generator.css",
+      "from": 401,
+      "to": 472,
+      "lines": 72,
+      "verdict": "GENERALIZE",
+      "target": "layout-sketch (a miniature that draws a layout as filled boxes) — one component in ext/ or ui/",
+      "evidence": "generator.css:431-467 `.page-gen-sk*` (2px lines, flex-grow by word, inline-start mark) and Layout.css:158-178 `.page-layout-picture/.page-layout-block` (wash fill, inset hairline, flex 1 1 0 tracks) both draw a page layout as boxes. Same job, two sheets.",
+      "saves": 40
+    },
+    {
+      "id": "gen-rules-cards-save",
+      "file": "framework/core/Page/generator/generator.css",
+      "from": 473,
+      "to": 578,
+      "lines": 106,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "Rules table, good/bad pairs, saved cards and save buttons (unread in detail). Cards may be replaceable by `.card` (framework.css:456-489) — unverified.",
+      "saves": 0
+    },
+    {
+      "id": "gen-look-recipes",
+      "file": "framework/core/Page/generator/generator.css",
+      "from": 579,
+      "to": 629,
+      "lines": 51,
+      "verdict": "GENERALIZE",
+      "target": "column-looks (one 'background recipe' word set for a columns row: tint / surface / card / ink)",
+      "evidence": "generator.css:579-623 `.page-gen-look-cards` / `.page-gen-look-ink` re-implement per-column backgrounds; looks.css:8-11 does `.page--tint`/`.page--surface` on `.page-column-body`, and Page.css:820-830 has `page-bg-card` / `page-bg-dark`. Three mechanisms for 'give the columns a look'.",
+      "saves": 25
+    },
+    {
+      "id": "old-tab-invert",
+      "file": "framework/core/Page/old/old.css",
+      "from": 1,
+      "to": 9,
+      "lines": 9,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "Inverts the tab strip for one demo page (old/overview); page-specific.",
+      "saves": 0
+    },
+    {
+      "id": "grids-grid-detail",
+      "file": "framework/core/Page/overview/columns/examples/grids/grids.css",
+      "from": 1,
+      "to": 30,
+      "lines": 30,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "One lab's tile grid over column items (page--grid-detail); page-specific demo.",
+      "saves": 0
+    },
+    {
+      "id": "looks-recipes",
+      "file": "framework/core/Page/overview/columns/examples/looks/looks.css",
+      "from": 1,
+      "to": 23,
+      "lines": 23,
+      "verdict": "GENERALIZE",
+      "target": "column-looks (see gen-look-recipes)",
+      "evidence": "looks.css:8-11 `.page--tint > .page-column-body {background: var(--tint)}` etc. is the column background-recipe word set; `.looks-swatch` (border/radius = `.surface`, framework.css:456) is a demo swatch.",
+      "saves": 8
+    },
+    {
+      "id": "uses-inbox-rows",
+      "file": "framework/core/Page/overview/columns/uses/uses.css",
+      "from": 1,
+      "to": 58,
+      "lines": 58,
+      "verdict": "GENERALIZE",
+      "target": "nav-row (see column-item-row)",
+      "evidence": "uses.css:22-36 `.page-uses-row` = flex row, padding, ink, hover `--tint` fill, `border-inline-end: 2px solid transparent` turning `--prim` on .active/.in-path/[aria-current] — the identical row in Page.css:725-760.",
+      "saves": 30
+    },
+    {
+      "id": "uses-docs-split-log",
+      "file": "framework/core/Page/overview/columns/uses/uses.css",
+      "from": 59,
+      "to": 78,
+      "lines": 20,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "Tab padding inside a column, the 2:1 stage/console split and the log lines; page-specific demo.",
+      "saves": 0
+    },
+    {
+      "id": "sidebar-box-and-width",
+      "file": "framework/core/Sidebar/Sidebar.css",
+      "from": 1,
+      "to": 40,
+      "lines": 40,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "The `.sidebar` box and its --sidebar-w clamp (component's own width token, documented).",
+      "saves": 0
+    },
+    {
+      "id": "sidebar-rail",
+      "file": "framework/core/Sidebar/Sidebar.css",
+      "from": 41,
+      "to": 67,
+      "lines": 27,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "Sticky full-height rail so header/footer stay pinned; structural.",
+      "saves": 0
+    },
+    {
+      "id": "sidebar-brand",
+      "file": "framework/core/Sidebar/Sidebar.css",
+      "from": 68,
+      "to": 101,
+      "lines": 34,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "Logo + title lockup; specific to this component.",
+      "saves": 0
+    },
+    {
+      "id": "sidebar-menu-and-scroller",
+      "file": "framework/core/Sidebar/Sidebar.css",
+      "from": 102,
+      "to": 114,
+      "lines": 13,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "Flex-column menu and the one scrolling region; near `.flex.v` but with min-height:0 details, unverified equivalence.",
+      "saves": 0
+    },
+    {
+      "id": "sidebar-tree-rows",
+      "file": "framework/core/Sidebar/Sidebar.css",
+      "from": 115,
+      "to": 194,
+      "lines": 80,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "Dresses ux/Tree rows for a dark rail. Note: 8 `color-mix(in srgb, var(--sidebar-ink) N%, transparent)` lines here are white-alpha rungs (see footer cluster).",
+      "saves": 0
+    },
+    {
+      "id": "sidebar-footer-row",
+      "file": "framework/core/Sidebar/Sidebar.css",
+      "from": 195,
+      "to": 232,
+      "lines": 38,
+      "verdict": "DUPLICATE",
+      "target": "--paper-a08/a16/a32 (framework.css:145-147) + .flex.split.v-center (framework.css:832, 868-869)",
+      "evidence": "`color-mix(in srgb, var(--sidebar-ink,#fff) 15% / 25% / 10% / 70%, transparent)` on lines 199, 219-220, 239-240 are the white-alpha ladder rungs `--paper-a16` / `--paper-a32` / `--paper-a08` that framework.css:144-147 already defines; the row itself is `display:flex; align-items:center; justify-content:space-between`. Say the rung, not the mix.",
+      "saves": 8
+    },
+    {
+      "id": "sidebar-avatar",
+      "file": "framework/core/Sidebar/Sidebar.css",
+      "from": 233,
+      "to": 252,
+      "lines": 20,
+      "verdict": "GENERALIZE",
+      "target": "avatar (anonymous-person circle) in ux/",
+      "evidence": "A round avatar with an anonymous head+body drawn in two pseudo-elements; sidebar-avatar appears in 3 files. Nothing in framework.css draws an avatar, so it should be a reusable ux component, not sidebar CSS.",
+      "saves": 0
+    },
+    {
+      "id": "sidebar-burger-button",
+      "file": "framework/core/Sidebar/Sidebar.css",
+      "from": 253,
+      "to": 272,
+      "lines": 20,
+      "verdict": "GENERALIZE",
+      "target": "icon-button / burger (three-bar toggle) in ux/",
+      "evidence": "`.sidebar-toggle` + `.sidebar-toggle-bar` hand-draw a three-bar menu button and fight the theme's button rule at (0,2,0); sidebar-toggle appears in 3 files. One burger component.",
+      "saves": 0
+    },
+    {
+      "id": "sidebar-grip-and-filter",
+      "file": "framework/core/Sidebar/Sidebar.css",
+      "from": 273,
+      "to": 306,
+      "lines": 34,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "Comment about ext/grip (no CSS) plus the filter bar's padding and nav padding; already leans on `.darken-1` (framework.css:530).",
+      "saves": 0
+    },
+    {
+      "id": "sidebar-narrow-media",
+      "file": "framework/core/Sidebar/Sidebar.css",
+      "from": 307,
+      "to": 350,
+      "lines": 44,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "Below 52em the panel becomes a sticky top bar with a dropdown menu; specific responsive behaviour.",
+      "saves": 0
+    },
+    {
+      "id": "layout-header-tree",
+      "file": "framework/core/Layout/Layout.css",
+      "from": 1,
+      "to": 20,
+      "lines": 20,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "Header comment plus `.page-layout-tree { align-items:flex-start }`; one line of real CSS.",
+      "saves": 0
+    },
+    {
+      "id": "layout-page-and-host",
+      "file": "framework/core/Layout/Layout.css",
+      "from": 21,
+      "to": 57,
+      "lines": 37,
+      "verdict": "DUPLICATE",
+      "target": ".pad (framework.css:822) + .flex-1 (framework.css:856) + .size-small (framework.css:694)",
+      "evidence": "`.page-layout-host { padding: var(--pad); min-width: 0 }` is `.pad` (framework.css:822 `.pad { padding: var(--pad) }`) plus min-width:0; `.page-layout-aside { flex:1 1 18em; min-width:0 }` is `.flex-1`/`.basis` (framework.css:856, 863); `.page-layout-chip` shrinks a control by hand where `.size-small` (framework.css:694) does it.",
+      "saves": 12
+    },
+    {
+      "id": "layout-fixture-kinds",
+      "file": "framework/core/Layout/Layout.css",
+      "from": 58,
+      "to": 96,
+      "lines": 39,
+      "verdict": "DUPLICATE",
+      "target": "base `table` rules (framework.css:613-623) + .flex.wrap.gap (framework.css:832-833, 1023)",
+      "evidence": "`.page-layout-table { border-collapse: collapse; width: max-content }` restates framework.css:614 and 616 verbatim; its `th, td` padding/border-bottom is framework.css:620's `th, td` rule. `.page-layout-tokens` is `display:flex; gap; flex-wrap:wrap` = `.flex.wrap.gap`.",
+      "saves": 14
+    },
+    {
+      "id": "layout-strip-props",
+      "file": "framework/core/Layout/Layout.css",
+      "from": 97,
+      "to": 120,
+      "lines": 24,
+      "verdict": "DUPLICATE",
+      "target": "base `table` + .table-equal (framework.css:613-623, 951)",
+      "evidence": "`.page-layout-props { border-collapse: collapse; width: 100% }` is `table` (framework.css:614) with the full-width variant `table.table-equal` (framework.css:951); `.page-layout-pane-head` is `.flex.wrap.gap`.",
+      "saves": 8
+    },
+    {
+      "id": "layout-violation-and-verdict",
+      "file": "framework/core/Layout/Layout.css",
+      "from": 121,
+      "to": 155,
+      "lines": 35,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "Dashed outline + warn badge and the fixture verdict rows; specific to layout checking, no framework equivalent.",
+      "saves": 0
+    },
+    {
+      "id": "layout-picture",
+      "file": "framework/core/Layout/Layout.css",
+      "from": 156,
+      "to": 179,
+      "lines": 24,
+      "verdict": "GENERALIZE",
+      "target": "layout-sketch (see gen-roll-sketch)",
+      "evidence": "Layout.css:158-178 `.page-layout-picture/.page-layout-block` draws a layout as wash boxes with an inset hairline; generator.css:431-467 does the same job. Build the miniature once.",
+      "saves": 0
+    },
+    {
+      "id": "section-box",
+      "file": "framework/core/Section/Section.css",
+      "from": 1,
+      "to": 21,
+      "lines": 21,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "The default div: relative + 2.5em min-height, one component's whole base.",
+      "saves": 0
+    },
+    {
+      "id": "section-editing-overlay",
+      "file": "framework/core/Section/Section.css",
+      "from": 22,
+      "to": 71,
+      "lines": 50,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "Hover-reveal corner overlay that costs zero layout; same idea measured in ext/Playground (per its comment) — a shared component candidate, unverified.",
+      "saves": 0
+    },
+    {
+      "id": "section-render-slot-page",
+      "file": "framework/core/Section/Section.css",
+      "from": 72,
+      "to": 100,
+      "lines": 29,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "min-width:0 tracks and the child-page gutter reset (`.page-section .page { --gutter-x:0px }`); component-specific.",
+      "saves": 0
+    },
+    {
+      "id": "section-picker-list",
+      "file": "framework/core/Section/Section.css",
+      "from": 101,
+      "to": 124,
+      "lines": 24,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "Picker cap, note and unfit row; `.page-section-unfit` flex gap = `.flex.v-center.gap` in principle, but the row also owns opacity and cursor, so left as is.",
+      "saves": 0
+    },
+    {
+      "id": "new-1-site-styles",
+      "file": "framework/core/new/1/site/styles.css",
+      "from": 1,
+      "to": 221,
+      "lines": 221,
+      "verdict": "DELETE",
+      "target": "",
+      "evidence": "Unused sandbox. `grep -rnE \"core/new/|\\.\\./new/|\\./new/\" --include=*.js --include=*.css --include=*.html --include=*.mjs public Server` (excluding core/new itself, ai/<date>/, directory.json, findings.json) finds ZERO imports — only prose in comments/docs. core/page.js:9 `children: \"View Page Router App Sidebar Search Layout Section Item List\"` has no `new`, so no route reaches it. core/new/page.js itself says \"None of it is imported\". Keep readme.md and page.js as the record; delete the CSS.",
+      "saves": 221
+    },
+    {
+      "id": "new-1-other-css",
+      "file": "framework/core/new/1/**/*.css (29 more files)",
+      "from": 1,
+      "to": 1630,
+      "lines": 1630,
+      "verdict": "DELETE",
+      "target": "",
+      "evidence": "Same proof as new-1-site-styles: zero importers, unreachable route. 29 sheets under new/1/site/** sum to 1630 lines (wc over `find core/new -name '*.css'` = 1851 minus styles.css 221). Also 38 css( call-sites in new/1/**/page.js demo pages are dead with them (JS lines not counted here).",
+      "saves": 1630
+    }
+  ],
+  "totals": {
+    "DUPLICATE": 327,
+    "GENERALIZE": 395,
+    "KEEP": 1984,
+    "DELETE": 1851
+  },
+  "proposal": "Delete the whole core/new sandbox stylesheet set first: 1,851 lines, zero importers, and no route reaches it, which is 41% of everything audited here for the price of one grep. Next, build three small shared pieces once: a nav-row (one clickable row with an icon, a hover fill and an active mark, written four times today), a layout-sketch (the miniature that draws a layout as boxes, written twice), and a column-looks word set (three mechanisms for column backgrounds). Then swap hand-written flex shells, tables, padding and shrunk buttons for words framework.css already has: .flex.v.gap, .pad, .size-small, the base table rules, and the --paper-aNN rungs that Sidebar re-mixes with color-mix. The rest (the page shell, columns system, rail, wall, stage and preview card) is genuinely core's own vocabulary and should be KEPT, not shrunk. Note that core/Search (185 lines) and core/App/mode.css (21) sit in core but outside this audit's named dirs.",
+  "generalize": [
+    {
+      "name": "nav-row",
+      "wouldReplace": [
+        "framework/core/Page/Page.css:717",
+        "framework/core/Page/generator/generator.css:203",
+        "framework/core/Page/overview/columns/uses/uses.css:1"
+      ]
+    },
+    {
+      "name": "layout-sketch",
+      "wouldReplace": [
+        "framework/core/Page/generator/generator.css:401",
+        "framework/core/Layout/Layout.css:156"
+      ]
+    },
+    {
+      "name": "column-looks",
+      "wouldReplace": [
+        "framework/core/Page/generator/generator.css:579",
+        "framework/core/Page/overview/columns/examples/looks/looks.css:1"
+      ]
+    },
+    {
+      "name": "tabs (nav anchors wearing ext/tabs)",
+      "wouldReplace": [
+        "framework/core/Page/generator/generator.css:291",
+        "framework/core/Page/Page.css:717"
+      ]
+    },
+    {
+      "name": "avatar",
+      "wouldReplace": [
+        "framework/core/Sidebar/Sidebar.css:233"
+      ]
+    },
+    {
+      "name": "burger-button",
+      "wouldReplace": [
+        "framework/core/Sidebar/Sidebar.css:253"
+      ]
+    }
+  ],
+  "risk": "low for the core/new delete (zero importers); medium for the Frame/word-class swaps because Page.class.js and Frame.js stamp the class names; several generator.css clusters were read only by selector list and are marked unverified."
+}

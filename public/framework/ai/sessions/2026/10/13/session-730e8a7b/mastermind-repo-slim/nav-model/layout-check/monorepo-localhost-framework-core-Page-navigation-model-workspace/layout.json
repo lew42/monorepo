@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/core/Page/navigation/model/workspace/",
+ "widths": {
+  "1280": {
+   "empty": 0.804,
+   "widest_text": 592,
+   "widest_text_sample": "kind: \"workspace\" — the page fills the r",
+   "overflow_x": false,
+   "items": 70,
+   "narrow_share": 0.229
+  },
+  "1920": {
+   "empty": 0.863,
+   "widest_text": 772,
+   "widest_text_sample": "kind: \"workspace\" — the page fills the r",
+   "overflow_x": false,
+   "items": 70,
+   "narrow_share": 1
+  },
+  "2560": {
+   "empty": 0.846,
+   "widest_text": 868,
+   "widest_text_sample": "kind: \"workspace\" — the page fills the r",
+   "overflow_x": false,
+   "items": 70,
+   "narrow_share": 1
+  },
+  "3440": {
+   "empty": 0.874,
+   "widest_text": 868,
+   "widest_text_sample": "kind: \"workspace\" — the page fills the r",
+   "overflow_x": false,
+   "items": 70,
+   "narrow_share": 1
+  }
+ },
+ "errors": []
+}

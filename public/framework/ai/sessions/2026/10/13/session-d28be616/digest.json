@@ -1,0 +1,32 @@
+{
+ "id": "d28be616-ba9b-40e4-a110-40f224e9407e",
+ "first": "2026-10-13T01:53:29.329Z",
+ "last": "2026-10-13T21:08:15.453Z",
+ "task": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/ds-screens",
+ "models": {
+  "claude-sonnet-5-5": 57
+ },
+ "sizes": {
+  "raw": 1298769,
+  "content": 60890,
+  "stripped": 10881,
+  "owner_only": 0
+ },
+ "usd": 4.038675,
+ "usd_main": 4.038675,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 114,
+  "output": 51370,
+  "cache_read": 5539354,
+  "cache_write": 604219,
+  "w5": 0,
+  "w1": 604219
+ },
+ "messages": 57,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "Idle, nothing running. The `DS · 6 Screens` brief is done and `kit/ds-screens.md` is committed. The prototype links haven't been tested in Present mode.",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.292Z"
+}

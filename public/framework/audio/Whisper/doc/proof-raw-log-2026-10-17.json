@@ -1,0 +1,44 @@
+[
+ {
+  "type": "whisper",
+  "kind": "interim",
+  "ms": 347,
+  "text": "And so, my fellow Americans,",
+  "raw": " And so, my fellow Americans,\n",
+  "bytes": 59948,
+  "seconds": 1.872,
+  "req": 1,
+  "segment": 0,
+  "session": "",
+  "floor": "done"
+ },
+ {
+  "type": "whisper",
+  "kind": "final",
+  "ms": 265,
+  "text": "And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country.",
+  "raw": " And so, my fellow Americans, ask not what your country can\n do for you, ask what you can do for your country.\n",
+  "bytes": 245804,
+  "seconds": 7.68,
+  "req": 7,
+  "segment": 0,
+  "session": "",
+  "segments": [
+   {
+    "start": 0.07,
+    "end": 3.98,
+    "text": " And so, my fellow Americans, ask not what your country can",
+    "avg_logprob": -0.007115023676306009,
+    "no_speech_prob": 1.4604104384141614e-11
+   },
+   {
+    "start": 3.98,
+    "end": 6.8500000000000005,
+    "text": " do for you, ask what you can do for your country.",
+    "avg_logprob": -0.037972450256347656,
+    "no_speech_prob": 0
+   }
+  ],
+  "floor": "done"
+ }
+]

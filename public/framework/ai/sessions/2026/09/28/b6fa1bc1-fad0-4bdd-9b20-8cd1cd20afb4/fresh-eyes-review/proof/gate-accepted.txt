@@ -1,0 +1,8 @@
+
+!!! --skip-smoke: NO SMOKE TEST WILL RUN. This flag is for proofs on a scratch repo only. !!!
+
+DRY RUN: computing only; no lock, no hold, nothing written.
+merge.mjs found 1 changed page(s) from the diff: /framework/scratch/fer-gate-proof/
+
+no overlap with the main tree's uncommitted edits: would run git merge --no-ff (merge-tree says clean). Files:
+  public/framework/scratch/fer-gate-proof/page.js

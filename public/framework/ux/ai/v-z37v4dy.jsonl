@@ -1,0 +1,4 @@
+{"session":{"id":"v-z37v4dy","home":"/framework/ux/","at":"2026-09-29T19:47:54.379-05:00","host":"10.0.0.135:8481","fast":null,"smart":null,"backing":{"fast":"d53c76c3-56c2-435b-b362-c593884ad173","smart":"a41c3b39-17a1-489e-a057-2b544d844be4"}}}
+{"chat":{"at":"2026-09-29T19:47:54.000-05:00","session":"v-z37v4dy","path":"/framework/ux/","from":{"kind":"owner"},"via":"voice","text":"can you hear me?"}}
+{"chat":{"at":"2026-09-29T19:47:56.000-05:00","session":"v-z37v4dy","path":"/framework/ux/","from":{"kind":"assistant","id":"fast","agent":"session-fast-v-z37v4dy"},"via":"text","text":"I'm the fast assistant for this session; you're on /framework/ux/. Yes, I hear you!"}}
+{"chat":{"at":"2026-09-29T19:47:58.000-05:00","session":"v-z37v4dy","path":"/framework/ux/","from":{"kind":"assistant","id":"smart","agent":"session-smart-v-z37v4dy"},"via":"text","text":"Yes, I can hear you. You're on /framework/ext/ now, so tell me what you'd like and I'll take it from there."}}

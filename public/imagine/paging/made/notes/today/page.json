@@ -1,0 +1,18 @@
+{
+	"title": "Today",
+	"icon": "description",
+	"description": "A page you made.",
+	"mode": {
+		"navigation": "none",
+		"content": "article",
+		"room": "reading",
+		"arrangement": "plain",
+		"surface": "plain",
+		"background": "plain",
+		"type": "regular"
+	},
+	"children": [
+		"new-page",
+		"new-page-2"
+	]
+}

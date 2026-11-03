@@ -1,0 +1,503 @@
+<title>Replay Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Martian+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a lab bench. One live world on top, two "tapes" (saved logs) side by side below, each rebuilt on Reload. */
+:root {
+  --bg: #f3f5f8; --surface: #ffffff; --tape: #eceff4; --ink: #17202e; --muted: #556073; --line: #d6dbe3;
+  --changes: #2153bf; --changes-soft: #e6edfb; --calls: #a8441c; --calls-soft: #f7e9e2;
+  --good: #1b7547; --good-soft: #e3f3ea; --bad: #b92c26; --bad-soft: #fbe6e4;
+  --font-body: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Martian Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --r: 10px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0f131a; --surface: #161b24; --tape: #11161e; --ink: #e5e9f0; --muted: #9ba5b6; --line: #29313e;
+  --changes: #82a6ff; --changes-soft: #1a2541; --calls: #f2905f; --calls-soft: #34211a;
+  --good: #52c690; --good-soft: #14291f; --bad: #ff7468; --bad-soft: #351817; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0f131a; --surface: #161b24; --tape: #11161e; --ink: #e5e9f0; --muted: #9ba5b6; --line: #29313e;
+  --changes: #82a6ff; --changes-soft: #1a2541; --calls: #f2905f; --calls-soft: #34211a;
+  --good: #52c690; --good-soft: #14291f; --bad: #ff7468; --bad-soft: #351817; color-scheme: dark }
+
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--ink); font: 16px/1.5 var(--font-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 24px 48px }
+.wrap { max-width: 1080px; margin: 0 auto; display: grid; gap: 20px }
+h1 { font-size: 1.9rem; line-height: 1.15; margin: 0; text-wrap: balance; letter-spacing: -0.01em }
+h2 { font-size: 1.05rem; margin: 0 }
+p { margin: 0 }
+.lede { max-width: 66ch; color: var(--muted); font-size: 1.05rem }
+.lede b { color: var(--ink) }
+code, .mono { font-family: var(--font-mono); font-size: 0.78em }
+
+.tabs { display: flex; flex-wrap: wrap; gap: 6px }
+.tabs a { text-decoration: none; color: var(--ink); padding: 7px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); font-weight: 700; font-size: 0.92rem }
+.tabs a[aria-current="page"] { background: var(--ink); color: var(--bg); border-color: var(--ink) }
+.tabs a:focus-visible, button:focus-visible, input:focus-visible { outline: 3px solid var(--changes); outline-offset: 2px }
+
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; display: grid; gap: 12px; min-width: 0 }
+.scenario-intro { display: grid; gap: 4px; max-width: 70ch }
+.look { color: var(--muted) }
+.look b { color: var(--ink) }
+
+.bench { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 16px; align-items: start }
+@media (max-width: 760px) { .bench { grid-template-columns: minmax(0, 1fr) } }
+.actions { display: flex; flex-wrap: wrap; gap: 8px }
+button { font: 700 0.92rem var(--font-body); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 8px 13px; cursor: pointer }
+button:hover { border-color: var(--muted) }
+button.two { border-style: dashed }
+button.reload { background: var(--ink); color: var(--bg); border-color: var(--ink); font-size: 1rem; padding: 11px 18px }
+button.quiet { font-weight: 400; color: var(--muted) }
+.opts { display: grid; gap: 6px; font-size: 0.92rem }
+.opts label { display: flex; gap: 8px; align-items: flex-start }
+.opts input { margin-top: 4px }
+.hint { font-size: 0.88rem; color: var(--muted) }
+
+.eyebrow { font: 600 0.68rem var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted) }
+
+/* worlds */
+.world { display: grid; gap: 8px }
+.task-card { display: grid; gap: 6px }
+.row { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline }
+.pill { font: 600 0.72rem var(--font-mono); padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line); text-transform: uppercase; letter-spacing: 0.05em }
+.pill.running { background: var(--good-soft); color: var(--good); border-color: transparent }
+.pill.stopped { background: var(--tape); color: var(--muted) }
+.big { font: 600 1.6rem/1 var(--font-mono); font-variant-numeric: tabular-nums }
+.kv { color: var(--muted); font-size: 0.9rem }
+.kv b { color: var(--ink); font-family: var(--font-mono); font-size: 0.82rem; font-weight: 600 }
+.stage { position: relative; height: 150px; border-radius: 8px; background: var(--tape); border: 1px solid var(--line); overflow: hidden }
+.layer { position: absolute; width: 56px; height: 56px; border-radius: 6px; background: var(--changes); display: grid; place-items: center; color: var(--surface); font: 600 0.7rem var(--font-mono); touch-action: none; user-select: none }
+.layer.hidden { background: transparent; border: 2px dashed var(--muted); color: var(--muted) }
+.live .layer { cursor: grab }
+.summary { font-size: 0.95rem; max-width: 60ch }
+.summary.empty { color: var(--muted); font-style: italic }
+
+/* tapes */
+.tapes { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px }
+@media (max-width: 760px) { .tapes { grid-template-columns: minmax(0, 1fr) } }
+.tape { border-top: 4px solid var(--c); }
+.tape.changes { --c: var(--changes); --cs: var(--changes-soft) }
+.tape.calls { --c: var(--calls); --cs: var(--calls-soft) }
+.tape h2 { color: var(--c) }
+.tape-head { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; flex-wrap: wrap }
+.log { background: var(--tape); border-radius: 8px; padding: 8px 10px; max-height: 190px; overflow: auto; font: 0.72rem/1.65 var(--font-mono); min-height: 52px }
+.log div { white-space: nowrap }
+.log .n { color: var(--muted); display: inline-block; min-width: 2.2em }
+.log .tab { color: var(--c); font-weight: 600 }
+.log .empty { color: var(--muted); white-space: normal; font-family: var(--font-body); font-size: 0.85rem }
+.after { border: 1px solid var(--line); border-radius: 8px; padding: 12px; display: grid; gap: 10px; background: var(--cs) }
+.after[hidden] { display: none }
+.verdict { border-radius: 8px; padding: 8px 10px; font-size: 0.92rem; display: grid; gap: 4px }
+.verdict.ok { background: var(--good-soft); color: var(--good) }
+.verdict.bad { background: var(--bad-soft); color: var(--bad) }
+.verdict ul { margin: 0; padding-left: 1.1em }
+.why { font-size: 0.92rem }
+
+.rule { display: grid; gap: 10px }
+.rule ol { margin: 0; padding-left: 1.3em; display: grid; gap: 4px; max-width: 72ch }
+.tablewrap { overflow-x: auto }
+table { border-collapse: collapse; font-size: 0.92rem; min-width: 520px }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top }
+th { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted) }
+.c { color: var(--changes); font-weight: 700 } .k { color: var(--calls); font-weight: 700 }
+a { color: var(--changes) }
+@media (prefers-reduced-motion: no-preference) { .after { animation: drop .25s ease-out } @keyframes drop { from { transform: translateY(-4px); opacity: .6 } to { transform: none; opacity: 1 } } }
+</style>
+
+<div class="wrap">
+  <header style="display:grid;gap:8px">
+    <span class="eyebrow">Lew42 design · D14, D17</span>
+    <h1>Replay Lab</h1>
+    <p class="lede">Do something below, then press <b>Reload</b>. Every action is saved two ways at once: <span class="c">as the changes it made</span> and <span class="k">as the method call</span>. Reload rebuilds the page from each log, so you can see what each one brings back and what it does a second time.</p>
+  </header>
+
+  <nav class="tabs" id="tabs" aria-label="Examples"></nav>
+
+  <section class="panel" id="live-panel" aria-labelledby="live-title">
+    <div class="scenario-intro">
+      <h2 id="live-title"></h2>
+      <p class="look" id="look"></p>
+    </div>
+    <div class="bench">
+      <div class="world live" id="live-world"></div>
+      <div style="display:grid;gap:12px">
+        <div class="actions" id="actions"></div>
+        <div class="opts" id="opts"></div>
+        <div class="actions"><button class="reload" id="reload">Reload the page</button><button class="quiet" id="reset">Start over</button></div>
+        <p class="hint" id="hint"></p>
+      </div>
+    </div>
+  </section>
+
+  <div class="tapes">
+    <section class="panel tape changes" aria-labelledby="t-changes">
+      <div class="tape-head"><h2 id="t-changes">Saved as changes</h2><span class="eyebrow" id="n-changes"></span></div>
+      <p class="hint">On reload: assign the values. No method runs.</p>
+      <div class="log" id="log-changes"></div>
+      <div class="after" id="after-changes" hidden></div>
+    </section>
+    <section class="panel tape calls" aria-labelledby="t-calls">
+      <div class="tape-head"><h2 id="t-calls">Saved as calls</h2><span class="eyebrow" id="n-calls"></span></div>
+      <p class="hint">On reload: run each method again.</p>
+      <div class="log" id="log-calls"></div>
+      <div class="after" id="after-calls" hidden></div>
+    </section>
+  </div>
+
+  <section class="panel rule" aria-labelledby="rule-title">
+    <h2 id="rule-title">What the examples add up to</h2>
+    <ol>
+      <li><b>Save the changes by default.</b> Reload assigns values, so nothing runs twice and old history keeps its meaning.</li>
+      <li><b>The screen follows the values.</b> A task that is running looks running, after a click, after another tab's change and after a reload. No method has to run for that.</li>
+      <li><b>Outside effects run once, where someone acted</b> (spawn an agent, ask an AI), and their result is saved as a value (<code>agent_id</code>, the summary text).</li>
+      <li><b>Save what the person meant.</b> A visibility button means "hide it", so save <code>visible: false</code>, not <code>toggle()</code>. A +1 button means "add one", so the call must reach the server, which runs it and saves the result.</li>
+    </ol>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Example</th><th>Changes</th><th>Calls</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr><td>Start a task that spawns an agent</td><td class="c">right</td><td class="k">spawns again, timer restarts</td><td>replay re-runs the outside effect and re-reads the clock</td></tr>
+          <tr><td>Toggle visibility in two tabs at once</td><td class="c">right</td><td class="k">flips back</td><td>both people meant "hide"; two toggles cancel out</td></tr>
+          <tr><td>Drag a layer</td><td class="c">1 line per drag</td><td class="k">1 line per mouse move</td><td>both rebuild the position; calls are noisy and one lost line drifts</td></tr>
+          <tr><td>+1 in two tabs at once</td><td class="k">loses a click</td><td class="c">right</td><td>both tabs computed 1 + old value; the calls keep both intents</td></tr>
+          <tr><td>Ask an AI for a summary</td><td class="c">right</td><td class="k">new text, paid again</td><td>an outside answer must be saved, not asked again</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="hint">Walkthrough in words, with more examples (selection, sort, games): Phase 1 design §2.3 in the <a href="https://claude.ai/artifact/JwAL71fvKRDUTHYyz1LJLx" target="_blank" rel="noopener">research app</a>. The decisions are D14, D17 and D18.</p>
+  </section>
+</div>
+
+<script>
+"use strict";
+// ---------- the outside world: anything here counts as a side effect ----------
+let agent_seq = 0;
+const SUMMARIES = [
+  "Ship the sync fix first, then the snapshot work; hiring waits until January.",
+  "Three risks: the socket drop, the log size, and the October deadline.",
+  "The team agreed to move search to SQLite and keep the item core.",
+  "Most of the meeting was about naming; the one decision was snake_case.",
+  "Budget is fine; the open question is who owns the dev server.",
+];
+let summary_seq = 0;
+const world = {
+  spawn_agent(ctx) { ctx.effects.agents++; return "agent-" + (++agent_seq); },
+  ask_ai(ctx) { ctx.effects.ai++; ctx.effects.cost += 0.03; return SUMMARIES[(summary_seq++) % SUMMARIES.length]; },
+};
+const opts = { guard: true, flag: false };
+
+// ---------- a tiny Item: get / set, and a set() that records what changed ----------
+class Item {
+  constructor(ctx) { this.ctx = ctx; this.data = { ...this.constructor.defaults }; }
+  get(k) { return this.data[k]; }
+  set(obj) {
+    for (const [k, v] of Object.entries(obj)) {
+      if (this.data[k] === v) continue;
+      this.data[k] = v;
+      if (this.ctx.changes) this.ctx.changes[k] = v;
+    }
+  }
+  assign(line) { Object.assign(this.data, line); }   // replaying changes: plain assignment
+}
+
+class Task extends Item {
+  static defaults = { title: "Write the weekly report", state: "idle", started_at: null, banked: 0, agent_id: null };
+  start() {
+    if (opts.guard && this.get("state") === "running") return;     // your guard: "already running? do nothing"
+    this.set({ state: "running", started_at: Date.now() });
+    if (this.ctx.replaying && opts.flag) return;                    // the replaying flag: skip outside effects
+    this.set({ agent_id: world.spawn_agent(this.ctx) });
+  }
+  stop() {
+    if (this.get("state") !== "running") return;
+    this.set({ state: "stopped", banked: this.get("banked") + (Date.now() - this.get("started_at")), started_at: null });
+  }
+}
+class Layer extends Item {
+  static defaults = { visible: true, x: 24, y: 40 };
+  show() { this.set({ visible: true }); }
+  hide() { this.set({ visible: false }); }
+  toggle() { this.set({ visible: !this.get("visible") }); }
+  move(dx, dy) { this.set({ x: this.get("x") + dx, y: this.get("y") + dy }); }
+}
+class Counter extends Item {
+  static defaults = { count: 0 };
+  increment() { this.set({ count: this.get("count") + 1 }); }
+}
+class Doc extends Item {
+  static defaults = { title: "Q3 planning notes", summary: "" };
+  summarize() {
+    if (opts.guard && this.get("summary")) return;                  // guard: "already summarized? do nothing"
+    if (this.ctx.replaying && opts.flag) return;
+    this.set({ summary: world.ask_ai(this.ctx) });
+  }
+}
+
+// ---------- formatting ----------
+const pad = (n) => String(n).padStart(2, "0");
+const clock = (ms) => { if (ms == null) return "—"; const d = new Date(ms); return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`; };
+const dur = (ms) => { const s = Math.max(0, Math.floor(ms / 1000)); return `${Math.floor(s / 60)}:${pad(s % 60)}`; };
+const elapsed = (d) => d.banked + (d.state === "running" && d.started_at ? Date.now() - d.started_at : 0);
+const pos = (d) => `left:clamp(0px, ${d.x}px, calc(100% - 56px));top:clamp(0px, ${d.y}px, 94px)`;   // keep the square in view; the data keeps the real numbers
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const show_line = (line) => JSON.stringify(line, (k, v) => (k.endsWith("_at") && typeof v === "number" ? clock(v) : k === "banked" ? dur(v) : v));
+
+// ---------- the four examples ----------
+const SCENARIOS = {
+  task: {
+    tab: "Start a task", cls: Task,
+    title: "Start a task that spawns an agent",
+    look: "<b>Start</b>, wait a few seconds, then <b>Reload</b>. After a reload it should look running, keep its time, and not spawn a second agent.",
+    hint: "Try the two boxes: your guard, and a flag that skips outside effects while loading.",
+    options: true,
+    actions: [["Start", "start"], ["Stop", "stop"]],
+    keys: [["state", (v) => v], ["started_at", clock], ["agent_id", (v) => v || "none"], ["time", null]],
+    render(d) {
+      return `<div class="task-card"><div class="row"><b>${esc(d.title)}</b><span class="pill ${d.state}">${d.state}</span></div>
+        <div class="row"><span class="big" data-clock>${dur(elapsed(d))}</span><span class="kv">started <b>${clock(d.started_at)}</b></span><span class="kv">agent <b>${esc(d.agent_id || "none")}</b></span></div></div>`;
+    },
+    why(mode, r) {
+      if (mode === "changes") return "The values were assigned and no method ran. The screen follows the state, so the task looks running, its time is right, and no agent was spawned.";
+      if (r.effects.agents && opts.guard) return "Your guard didn't help: a reload starts from an empty task, so “already running?” is false when start() runs again. It spawned another agent and restarted the clock.";
+      if (r.effects.agents) return "start() ran again: it spawned another agent and stamped the reload time as the start.";
+      if (opts.flag) return "The flag stopped the second agent, but the agent's id was never saved, so the task looks running with no agent. And the start time is still the reload time.";
+      return "";
+    },
+  },
+  layer: {
+    tab: "Toggle and drag", cls: Layer,
+    title: "Show, hide, toggle and drag a layer",
+    look: "Press <b>Another tab toggles too</b>, then <b>Reload</b>. Then drag the square and watch how many lines each log gets.",
+    hint: "“Another tab toggles too” means you and someone else both pressed Toggle at the same moment, both seeing it visible. Both meant “hide it”.",
+    actions: [["Show", "show"], ["Hide", "hide"], ["Toggle", "toggle"], ["Another tab toggles too", "toggle_both", "two"]],
+    keys: [["visible", (v) => (v ? "visible" : "hidden")], ["x", (v) => v], ["y", (v) => v]],
+    render(d, live) {
+      return `<div class="stage" ${live ? 'id="stage"' : ""}><div class="layer ${d.visible ? "" : "hidden"}" ${live ? 'id="sq"' : ""} style="${pos(d)}">${d.visible ? "layer" : "hidden"}</div></div>
+        <div class="row"><span class="kv">visible <b>${d.visible}</b></span><span class="kv">x <b>${d.x}</b></span><span class="kv">y <b>${d.y}</b></span></div>`;
+    },
+    why(mode, r, bad) {
+      if (!bad.length) return mode === "changes" ? "Each line holds the result, so a repeated or simultaneous line is harmless." : "Same result. Note the line count after a drag: one line per mouse move.";
+      return mode === "calls" ? "Two toggle() calls cancel out, so it is visible again though both people hid it. Save what they meant: visible: false." : "";
+    },
+  },
+  counter: {
+    tab: "+1 from two tabs", cls: Counter,
+    title: "A like button pressed in two tabs at once",
+    look: "Press <b>+1 in two tabs at once</b>, then <b>Reload</b>. Here the calls win.",
+    hint: "Both tabs show the same number and both add one, so the right answer goes up by 2.",
+    actions: [["+1", "increment"], ["+1 in two tabs at once", "increment_both", "two"]],
+    keys: [["count", (v) => v]],
+    render(d) { return `<div class="row"><span class="big">${d.count}</span><span class="kv">likes</span></div>`; },
+    why(mode, r, bad) {
+      if (mode === "changes") return bad.length ? "Each tab computed “old value + 1” and saved the same number, so one click is lost. Fix: send the call to the server; it runs increment() and saves the result." : "Right, because nobody else pressed at the same moment.";
+      return bad.length ? "" : "Each call adds one, so both clicks count. (The server must still refuse a call it has already seen, by request id: D4.)";
+    },
+  },
+  ai: {
+    tab: "Ask an AI", cls: Doc,
+    title: "Ask an AI to summarize a document",
+    look: "Press <b>Summarize</b>, then <b>Reload</b> two or three times. Watch the text and the money.",
+    hint: "The fake AI gives a different answer each time and costs $0.03 a call.",
+    options: true,
+    actions: [["Summarize", "summarize"]],
+    keys: [["summary", (v) => (v ? `“${v.slice(0, 38)}…”` : "none")]],
+    render(d) { return `<div class="task-card"><b>${esc(d.title)}</b><p class="summary ${d.summary ? "" : "empty"}">${esc(d.summary || "No summary yet.")}</p></div>`; },
+    why(mode, r) {
+      if (mode === "changes") return "The summary text was saved, so a reload just shows it. Nothing was asked again.";
+      if (r.effects.ai) return "summarize() asked the AI again: different text, and paid again on every reload.";
+      if (opts.flag) return "The flag stopped the AI call, but the text was never saved, so the summary is gone.";
+      return "";
+    },
+  },
+};
+
+// ---------- per-example state ----------
+const state = {};
+function fresh(id) {
+  const S = SCENARIOS[id];
+  const ctx = { replaying: false, changes: null, effects: { agents: 0, ai: 0, cost: 0 } };
+  state[id] = { item: new S.cls(ctx), ctx, logs: { changes: [], calls: [] }, reloads: 0, after: null, drag: null };
+}
+let cur = "task";
+
+function act(method, args = [], tab = null) {
+  const st = state[cur], ctx = st.ctx;
+  ctx.changes = {};
+  st.item[method](...args);
+  const ch = ctx.changes; ctx.changes = null;
+  if (!Object.keys(ch).length) return false;           // a call that changed nothing saves nothing (as act() does today)
+  st.logs.calls.push({ line: { [method + "()"]: args }, tab });
+  st.logs.changes.push({ line: ch, tab });
+  return true;
+}
+
+const SPECIAL = {
+  toggle_both() {                                      // you and tab B press Toggle at the same moment
+    const st = state.layer, v = st.item.get("visible");
+    for (const tab of ["you", "tab B"]) {
+      st.logs.changes.push({ line: { visible: !v }, tab });
+      st.logs.calls.push({ line: { "toggle()": [] }, tab });
+    }
+    st.item.data.visible = !v;                         // what both people meant
+  },
+  increment_both() {
+    const st = state.counter, n = st.item.get("count");
+    for (const tab of ["you", "tab B"]) {
+      st.logs.changes.push({ line: { count: n + 1 }, tab });
+      st.logs.calls.push({ line: { "increment()": [] }, tab });
+    }
+    st.item.data.count = n + 2;                        // two clicks
+  },
+};
+
+function replay(mode) {
+  const st = state[cur], S = SCENARIOS[cur];
+  const ctx = { replaying: true, changes: null, effects: { agents: 0, ai: 0, cost: 0 } };
+  const item = new S.cls(ctx);
+  for (const { line } of st.logs[mode]) {
+    if (mode === "changes") item.assign(line);
+    else { const [k, args] = Object.entries(line)[0]; item[k.slice(0, -2)](...args); }
+  }
+  ctx.replaying = false;
+  return { item, effects: ctx.effects };
+}
+
+function diff(S, a, b) {
+  const out = [];
+  for (const [k, f] of S.keys) {
+    if (k === "time") {
+      const ea = Math.floor(elapsed(a) / 1000), eb = Math.floor(elapsed(b) / 1000);
+      if (Math.abs(ea - eb) > 1) out.push(`time shows ${dur(eb * 1000)}, it should be ${dur(ea * 1000)}`);
+      continue;
+    }
+    if (a[k] !== b[k]) out.push(`${k} is ${f(b[k])}, it should be ${f(a[k])}`);
+  }
+  return out;
+}
+
+// ---------- rendering ----------
+const $ = (id) => document.getElementById(id);
+
+function render_tabs() {
+  $("tabs").innerHTML = Object.entries(SCENARIOS).map(([id, S]) => `<a href="#${id}" ${id === cur ? 'aria-current="page"' : ""}>${S.tab}</a>`).join("");
+}
+function render_controls() {
+  const S = SCENARIOS[cur];
+  $("live-title").textContent = S.title;
+  $("look").innerHTML = S.look;
+  $("hint").textContent = S.hint;
+  $("actions").innerHTML = S.actions.map(([label, m, cls]) => `<button data-m="${m}" class="${cls || ""}">${label}</button>`).join("");
+  $("opts").innerHTML = S.options ? `
+    <label><input type="checkbox" id="opt-guard" ${opts.guard ? "checked" : ""}> <span>Your guard: the method does nothing if it is already done</span></label>
+    <label><input type="checkbox" id="opt-flag" ${opts.flag ? "checked" : ""}> <span>Replaying flag: skip outside effects while the page is loading</span></label>` : "";
+}
+function render_live() {
+  const S = SCENARIOS[cur], st = state[cur];
+  $("live-world").innerHTML = `<span class="eyebrow">Live, before reload</span>` + S.render(st.item.data, true);
+  if (cur === "layer") wire_drag();
+}
+function render_logs() {
+  const st = state[cur];
+  for (const mode of ["changes", "calls"]) {
+    const lines = st.logs[mode];
+    const shown = lines.slice(-200);
+    const start = lines.length - shown.length;
+    $("log-" + mode).innerHTML = lines.length
+      ? shown.map((l, i) => `<div><span class="n">${start + i + 1}</span>${l.tab ? `<span class="tab">${esc(l.tab)}</span> ` : ""}${esc(show_line(l.line))}</div>`).join("")
+      : `<p class="empty">Nothing saved yet.</p>`;
+    $("log-" + mode).scrollTop = 1e9;
+    $("n-" + mode).textContent = `${lines.length} line${lines.length === 1 ? "" : "s"}`;
+  }
+}
+function render_after() {
+  const st = state[cur], S = SCENARIOS[cur];
+  for (const mode of ["changes", "calls"]) {
+    const box = $("after-" + mode);
+    if (!st.after) { box.hidden = true; box.innerHTML = ""; continue; }
+    const r = st.after[mode];
+    const bad = diff(S, st.item.data, r.item.data);
+    const fx = [];
+    if (r.effects.agents) fx.push(`spawned ${r.effects.agents} more agent${r.effects.agents > 1 ? "s" : ""}`);
+    if (r.effects.ai) fx.push(`asked the AI ${r.effects.ai} more time${r.effects.ai > 1 ? "s" : ""} ($${r.effects.cost.toFixed(2)})`);
+    const ok = !bad.length && !fx.length;
+    box.hidden = false;
+    box.innerHTML = `<span class="eyebrow">After reload ${st.reloads > 1 ? "#" + st.reloads : ""}</span>
+      ${S.render(r.item.data, false)}
+      <div class="verdict ${ok ? "ok" : "bad"}">${ok ? "<b>Same as before the reload. Nothing ran twice.</b>" :
+        `<b>${fx.length ? "Did it again: " + fx.join(", ") + "." : "Different from before the reload."}</b>${bad.length ? `<ul>${bad.map((b) => `<li>${esc(b)}</li>`).join("")}</ul>` : ""}`}</div>
+      <p class="why">${S.why(mode, r, bad)}</p>`;
+  }
+}
+function render_all() { render_tabs(); render_controls(); render_live(); render_logs(); render_after(); }
+
+// the clock is a view: it ticks from started_at, nothing is saved
+setInterval(() => {
+  if (cur !== "task") return;
+  const st = state.task;
+  const live_clock = document.querySelector("#live-world [data-clock]");
+  if (live_clock) live_clock.textContent = dur(elapsed(st.item.data));
+  if (st.after) for (const mode of ["changes", "calls"]) {
+    const el = document.querySelector(`#after-${mode} [data-clock]`);
+    if (el) el.textContent = dur(elapsed(st.after[mode].item.data));
+  }
+}, 500);
+
+// ---------- dragging the layer: calls get one move() per pointer move; changes get one line per drag ----------
+function wire_drag() {
+  const sq = $("sq"); if (!sq) return;
+  sq.addEventListener("pointerdown", (e) => {
+    const st = state.layer;
+    sq.setPointerCapture(e.pointerId);
+    st.drag = { px: e.clientX, py: e.clientY, line: null };
+    e.preventDefault();
+  });
+  sq.addEventListener("pointermove", (e) => {
+    const st = state.layer, d = st.drag; if (!d) return;
+    const dx = Math.round(e.clientX - d.px), dy = Math.round(e.clientY - d.py);
+    if (!dx && !dy) return;
+    d.px += dx; d.py += dy;
+    st.item.move(dx, dy);
+    st.logs.calls.push({ line: { "move()": [dx, dy] } });
+    if (!d.line) { d.line = { line: {} }; st.logs.changes.push(d.line); }
+    d.line.line = { x: st.item.get("x"), y: st.item.get("y") };   // coalesced: the drag's final position
+    sq.style.cssText = pos(st.item.data);
+    render_logs();
+  });
+  const end = () => { const st = state.layer; if (st.drag) { st.drag = null; render_live(); } };
+  sq.addEventListener("pointerup", end);
+  sq.addEventListener("pointercancel", end);
+}
+
+// ---------- events ----------
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-m]");
+  if (!b) return;
+  const m = b.dataset.m;
+  if (SPECIAL[m]) SPECIAL[m](); else act(m);
+  render_live(); render_logs();
+});
+document.addEventListener("change", (e) => {
+  if (e.target.id === "opt-guard") opts.guard = e.target.checked;
+  if (e.target.id === "opt-flag") opts.flag = e.target.checked;
+  if (state[cur].after) $("reload").click();
+});
+$("reload").addEventListener("click", () => {
+  const st = state[cur];
+  st.reloads++;
+  st.after = { changes: replay("changes"), calls: replay("calls") };
+  render_after();
+});
+$("reset").addEventListener("click", () => { fresh(cur); render_all(); });
+
+function route() {
+  const id = location.hash.slice(1);
+  cur = SCENARIOS[id] ? id : "task";
+  render_all();
+}
+for (const id of Object.keys(SCENARIOS)) fresh(id);
+window.addEventListener("hashchange", route);
+route();
+</script>

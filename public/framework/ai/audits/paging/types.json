@@ -1,0 +1,494 @@
+{
+ "about": "The page-type library. Pick a type, most-used first; every page made with a type bumps its uses by one. Layout ids come from /layouts/layouts.json. template = the Page words (navigation, width, arrangement, surface) that build the type, with no page-specific CSS.",
+ "types": [
+  {
+   "id": "1",
+   "name": "Module page",
+   "tags": [
+    "module",
+    "doc"
+   ],
+   "layout": "2-sidebar",
+   "navigation": "tabs across the top, rail inside a tab",
+   "content_order": [
+    "title",
+    "live overview",
+    "API",
+    "Docs",
+    "Files"
+   ],
+   "example": "/framework/ext/Doc/",
+   "builder": "new Doc (ext/Doc)",
+   "uses": 61,
+   "variants": [
+    {
+     "id": "1.1",
+     "name": "Tabs + rail",
+     "tags": [
+      "tabs",
+      "rail"
+     ],
+     "layout": "2-sidebar",
+     "navigation": "parent children: line, tabs, rail",
+     "content_order": [
+      "title",
+      "live overview",
+      "tabs"
+     ],
+     "example": "/framework/ext/Doc/",
+     "builder": "new Doc",
+     "uses": 61,
+     "template": "navigation: tabs; arrangement: rail-left; width: reading",
+     "slug": "tabs-rail"
+    }
+   ],
+   "template": "navigation: tabs; width: reading",
+   "slug": "module"
+  },
+  {
+   "id": "2",
+   "name": "Doc page",
+   "tags": [
+    "markdown",
+    "reading"
+   ],
+   "layout": "1-centered",
+   "navigation": "module Docs tab and rail",
+   "content_order": [
+    "heading",
+    "one plain sentence",
+    "table or example",
+    "links"
+   ],
+   "example": "/framework/core/Page/doc/words/",
+   "builder": "doc/<topic>.md",
+   "uses": 1109,
+   "template": "width: reading; arrangement: rail-left",
+   "slug": "doc",
+   "variants": [
+    {
+     "id": "2.1",
+     "slug": "1-centered",
+     "uses": 0,
+     "layout": "1-centered",
+     "name": "1-centered",
+     "tags": [
+      "1 column",
+      "measure"
+     ],
+     "example": "/layouts/1-centered/",
+     "source": "layouts.json"
+    },
+    {
+     "id": "2.2",
+     "slug": "1-flow",
+     "uses": 0,
+     "layout": "1-flow",
+     "name": "1-flow",
+     "tags": [
+      "1 column",
+      "stack"
+     ],
+     "example": "/layouts/1-flow/",
+     "source": "layouts.json"
+    },
+    {
+     "id": "2.3",
+     "slug": "2-sidebar",
+     "uses": 0,
+     "layout": "2-sidebar",
+     "name": "2-sidebar",
+     "tags": [
+      "2 columns",
+      "rail"
+     ],
+     "example": "/layouts/2-sidebar/",
+     "source": "layouts.json"
+    }
+   ]
+  },
+  {
+   "id": "3",
+   "name": "Index / catalog wall",
+   "tags": [
+    "wall",
+    "previews"
+   ],
+   "layout": "n-wall",
+   "navigation": "from a parent; each preview links one click down",
+   "content_order": [
+    "title",
+    "one line",
+    "wall of previews"
+   ],
+   "example": "/layouts/",
+   "builder": "catalog(), browse()",
+   "uses": 31,
+   "variants": [
+    {
+     "id": "3.1",
+     "name": "Wall",
+     "tags": [
+      "wall",
+      "wide"
+     ],
+     "layout": "n-wall",
+     "navigation": "preview links down",
+     "content_order": [
+      "title",
+      "wall"
+     ],
+     "example": "/layouts/browse/",
+     "builder": "browse()",
+     "uses": 20,
+     "template": "arrangement: wall; width: wide",
+     "slug": "wall"
+    },
+    {
+     "id": "3.2",
+     "name": "Rail catalog",
+     "tags": [
+      "rail",
+      "catalog"
+     ],
+     "layout": "2-sidebar",
+     "navigation": "rail beside previews",
+     "content_order": [
+      "title",
+      "rail",
+      "previews"
+     ],
+     "example": "/layouts/",
+     "builder": "catalog()",
+     "uses": 11,
+     "template": "navigation: rail; width: wide",
+     "slug": "rail-catalog"
+    },
+    {
+     "id": "3.4",
+     "slug": "2-equal",
+     "uses": 0,
+     "layout": "2-equal",
+     "name": "2-equal",
+     "tags": [
+      "2 columns",
+      "cards"
+     ],
+     "example": "/layouts/2-equal/",
+     "source": "layouts.json"
+    },
+    {
+     "id": "3.5",
+     "slug": "3-equal",
+     "uses": 0,
+     "layout": "3-equal",
+     "name": "3-equal",
+     "tags": [
+      "3 columns",
+      "cards"
+     ],
+     "example": "/layouts/3-equal/",
+     "source": "layouts.json"
+    },
+    {
+     "id": "3.6",
+     "slug": "4-1",
+     "uses": 0,
+     "layout": "4-1",
+     "name": "4-1",
+     "tags": [
+      "mosaic",
+      "spans"
+     ],
+     "example": "/layouts/4-1/",
+     "source": "layouts.json"
+    }
+   ],
+   "template": "navigation: rail; width: wide; arrangement: wall",
+   "slug": "index"
+  },
+  {
+   "id": "4",
+   "name": "Demo page",
+   "tags": [
+    "demo",
+    "live"
+   ],
+   "layout": "1-centered",
+   "navigation": "linked from module Overview",
+   "content_order": [
+    "live demo",
+    "code tab",
+    "a line of words"
+   ],
+   "example": "/framework/ext/demo/",
+   "builder": "demo()",
+   "uses": 110,
+   "variants": [
+    {
+     "id": "4.1",
+     "name": "Standard",
+     "tags": [
+      "standard"
+     ],
+     "layout": "1-centered",
+     "navigation": "from Overview",
+     "content_order": [
+      "demo",
+      "code",
+      "words"
+     ],
+     "example": "/framework/ext/demo/",
+     "builder": "demo()",
+     "uses": 80,
+     "template": "width: wide",
+     "slug": "standard"
+    },
+    {
+     "id": "4.2",
+     "name": "Full",
+     "tags": [
+      "full",
+      "wide"
+     ],
+     "layout": "1-flow",
+     "navigation": "from Overview",
+     "content_order": [
+      "demo fills the page"
+     ],
+     "example": "/framework/core/Page/overview/columns/",
+     "builder": "demo()",
+     "uses": 30,
+     "template": "width: full",
+     "slug": "full"
+    },
+    {
+     "id": "4.3",
+     "slug": "finder",
+     "uses": 0,
+     "layout": "1-centered",
+     "name": "Look: finder",
+     "tags": [
+      "look",
+      "finder"
+     ],
+     "example": "/imagine/vary/colstyles/finder/",
+     "source": "imagine/vary/colstyles"
+    },
+    {
+     "id": "4.4",
+     "slug": "cards",
+     "uses": 0,
+     "layout": "1-centered",
+     "name": "Look: cards",
+     "tags": [
+      "look",
+      "cards"
+     ],
+     "example": "/imagine/vary/colstyles/cards/",
+     "source": "imagine/vary/colstyles"
+    },
+    {
+     "id": "4.5",
+     "slug": "ink",
+     "uses": 0,
+     "layout": "1-centered",
+     "name": "Look: ink",
+     "tags": [
+      "look",
+      "ink"
+     ],
+     "example": "/imagine/vary/colstyles/ink/",
+     "source": "imagine/vary/colstyles"
+    },
+    {
+     "id": "4.6",
+     "slug": "glass",
+     "uses": 0,
+     "layout": "1-centered",
+     "name": "Look: glass",
+     "tags": [
+      "look",
+      "glass"
+     ],
+     "example": "/imagine/vary/colstyles/glass/",
+     "source": "imagine/vary/colstyles"
+    }
+   ],
+   "template": "width: wide",
+   "slug": "demo"
+  },
+  {
+   "id": "5",
+   "name": "Board / card",
+   "tags": [
+    "board",
+    "chat",
+    "inbox"
+   ],
+   "layout": "3-holy-grail",
+   "navigation": "click a card in the rail; every card has a URL",
+   "content_order": [
+    "status",
+    "latest note",
+    "composer",
+    "tabs"
+   ],
+   "example": "/framework/ai/",
+   "builder": "ai2/card.js",
+   "uses": 2,
+   "template": "navigation: columns; arrangement: rail-left; width: wide",
+   "slug": "board",
+   "variants": [
+    {
+     "id": "5.1",
+     "slug": "n-wall",
+     "uses": 0,
+     "layout": "n-wall",
+     "name": "n-wall",
+     "tags": [
+      "wall",
+      "cards"
+     ],
+     "example": "/layouts/n-wall/",
+     "source": "layouts.json"
+    },
+    {
+     "id": "5.2",
+     "slug": "1-rows",
+     "uses": 0,
+     "layout": "1-rows",
+     "name": "1-rows",
+     "tags": [
+      "rows",
+      "sticky header"
+     ],
+     "example": "/layouts/1-rows/",
+     "source": "layouts.json"
+    }
+   ]
+  },
+  {
+   "id": "6",
+   "name": "Task / report page",
+   "tags": [
+    "report",
+    "one screen"
+   ],
+   "layout": "1-centered",
+   "navigation": "day log and board",
+   "content_order": [
+    "headline outcome",
+    "picture or link",
+    "what was left"
+   ],
+   "example": "/framework/ai/2026-09-24/concurrency/",
+   "builder": "finish-task",
+   "uses": 101,
+   "template": "width: reading",
+   "slug": "task",
+   "variants": [
+    {
+     "id": "6.1",
+     "slug": "1-centered",
+     "uses": 0,
+     "layout": "1-centered",
+     "name": "1-centered",
+     "tags": [
+      "1 column",
+      "measure"
+     ],
+     "example": "/layouts/1-centered/",
+     "source": "layouts.json"
+    },
+    {
+     "id": "6.2",
+     "slug": "2-sidebar",
+     "uses": 0,
+     "layout": "2-sidebar",
+     "name": "2-sidebar",
+     "tags": [
+      "2 columns",
+      "rail"
+     ],
+     "example": "/layouts/2-sidebar/",
+     "source": "layouts.json"
+    }
+   ]
+  },
+  {
+   "id": "7",
+   "name": "Program world",
+   "tags": [
+    "realm",
+    "wall"
+   ],
+   "layout": "2-sidebar",
+   "navigation": "realm home wall, then children",
+   "content_order": [
+    "wall",
+    "topic",
+    "labs"
+   ],
+   "example": "/imagine/",
+   "builder": "Page + catalog()",
+   "uses": 340,
+   "template": "navigation: columns; arrangement: rail-left; width: wide",
+   "slug": "program",
+   "variants": [
+    {
+     "id": "7.1",
+     "slug": "scroll",
+     "uses": 0,
+     "layout": "2-sidebar",
+     "name": "Lab: scroll",
+     "tags": [
+      "lab",
+      "scroll"
+     ],
+     "example": "/imagine/vary/scroll/",
+     "source": "imagine/vary"
+    },
+    {
+     "id": "7.2",
+     "slug": "tone",
+     "uses": 0,
+     "layout": "2-sidebar",
+     "name": "Lab: tone",
+     "tags": [
+      "lab",
+      "tone"
+     ],
+     "example": "/imagine/vary/tone/",
+     "source": "imagine/vary"
+    },
+    {
+     "id": "7.3",
+     "slug": "place",
+     "uses": 0,
+     "layout": "2-sidebar",
+     "name": "Lab: place",
+     "tags": [
+      "lab",
+      "place"
+     ],
+     "example": "/imagine/vary/place/",
+     "source": "imagine/vary"
+    },
+    {
+     "id": "7.4",
+     "slug": "colstyles",
+     "uses": 0,
+     "layout": "2-sidebar",
+     "name": "Lab: colstyles",
+     "tags": [
+      "lab",
+      "colstyles"
+     ],
+     "example": "/imagine/vary/colstyles/",
+     "source": "imagine/vary"
+    }
+   ]
+  }
+ ]
+}

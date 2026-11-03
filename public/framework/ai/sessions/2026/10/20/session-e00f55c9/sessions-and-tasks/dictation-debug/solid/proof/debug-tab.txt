@@ -1,0 +1,28 @@
+  phone: /framework/ext/drawer/ai/debug/ mic=ok whisper=ok transcripts=ok sentence=ok sent=ok llm=ok wire=ok page=ok
+ok   picking Debug routes the sheet to <path>/ai/debug/ (/framework/ext/drawer/ai/debug/)
+ok   all eight lights are green while dictating: mic=ok whisper=ok transcripts=ok sentence=ok sent=ok llm=ok wire=ok page=ok
+  fit: {"lights":8,"rows":2,"log_h":432,"log_bottom":830,"chat":89,"lines":36,"heard":16,"one_line":true}
+ok   eight lights in 2 row(s) at 390
+ok   the log has 432px under the lights, the chat 89px above
+ok   a compact log: 36 lines, 16 of them Whisper answers, each one line
+ok   a click on a Whisper line shows its raw answer: { "kind": "interim", "text": "And so,", "ms": 89, "whisper": { "text": " And so,\n" } }
+ok   a Send line has raw data one click down: { "text": "And so, my fellow Americans, ask not what your country can 
+ok   a Reply line has the raw session line one click down: { "chat": { "at": "2026-10-25T09:43:20.069-05:00", "from": { "kind": "
+ok   the Sentence line keeps its letters: left the draft: “And so, my fellow Americans, ask not what your country can d”
+ok   a tap on Send: “Is the text being sent to the AI? sent “And so, my fellow Americans, a”, 4 Send lines only
+ok   the handle between the chat and Debug drags: 651px → 501px
+  after reload: {"path":"/framework/ext/drawer/ai/debug/","debug":true,"full":true}
+ok   a reload opens the full sheet on the Debug tab again
+ok   the dragged height survives the reload: 501px → 501px
+ok   no page errors on the phone: 
+  1920: /framework/ext/drawer/ai/debug/ mic=ok whisper=ok transcripts=ok sentence=ok sent=ok llm=ok wire=ok page=ok
+ok   the Debug view shows the eight lights at 1920, all green: mic=ok whisper=ok transcripts=ok sentence=ok sent=ok llm=ok wire=ok page=ok
+ok   a reload at 1920 keeps the Debug view (/framework/ext/drawer/ai/debug/)
+ok   no page errors at 1920: 
+ok   390: the old link /framework/ext/drawer/?drawer=dictation opens Debug at /framework/ext/drawer/ai/debug/
+ok   390: the old link /framework/ext/drawer/ai/dictation/ opens Debug at /framework/ext/drawer/ai/debug/
+ok   no page errors on the old links at 390: 
+ok   1920: the old link /framework/ext/drawer/?drawer=dictation opens Debug at /framework/ext/drawer/ai/debug/
+ok   1920: the old link /framework/ext/drawer/ai/dictation/ opens Debug at /framework/ext/drawer/ai/debug/
+ok   no page errors on the old links at 1920: 
+all passed

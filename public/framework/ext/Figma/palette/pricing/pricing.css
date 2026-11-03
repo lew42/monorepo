@@ -1,0 +1,48 @@
+@layer base, theme, site, util;
+
+@layer theme {
+	/* The page's own content wraps edge to edge under `width: "full"`. */
+	.prc-page {
+		grid-column: 1 / -1;
+		max-width: none;
+		display: flex;
+		flex-direction: column;
+		gap: var(--flow);
+	}
+
+	.prc-header {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.5em;
+		text-align: center;
+	}
+
+	/* `h4` already gives uppercase, bold, small, letter-spaced — only the
+	   accent colour is unique to a plan name. */
+	.prc-plan-name { color: var(--prime); }
+
+	.prc-price { font-size: 2.5em; font-weight: 900; }
+
+	.prc-pricing-card button { width: 100%; }
+
+	.prc-checkmark { color: var(--prime); flex-shrink: 0; }
+
+	.prc-dashboard { align-items: stretch; }
+
+	.prc-sidebar { width: 280px; flex-shrink: 0; }
+
+	.prc-nav-item { padding: 0.5em 0.75em; border-radius: var(--radius); cursor: pointer; }
+
+	.prc-avatar { width: 2em; height: 2em; border-radius: 50%; background: var(--prime); flex-shrink: 0; }
+
+	.prc-user-box { display: flex; flex-direction: row; gap: var(--gap); align-items: center; }
+
+	.prc-main { min-width: 0; }
+
+	.prc-kpi-value { font-size: 1.5em; font-weight: 600; }
+
+	.prc-activity-row { align-items: center; }
+
+	.prc-activity-bar { width: 4px; height: 1.25em; border-radius: 2px; background: var(--prime); flex-shrink: 0; }
+}

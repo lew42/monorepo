@@ -1,0 +1,246 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/",
+ "widths": {
+  "400": {
+   "empty": 0.187,
+   "widest_text": 368,
+   "widest_text_sample": "working — fix already written in worktre",
+   "overflow_x": false,
+   "items": 253,
+   "narrow_share": 0,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 14,
+     "layers": [
+      {
+       "cls": "v3-head",
+       "px": 14
+      }
+     ]
+    },
+    "p": {
+     "total": 0,
+     "layers": []
+    }
+   },
+   "bands": [
+    {
+     "cls": "v3",
+     "y": 51,
+     "h": 20692,
+     "share": 20.692,
+     "ink": 0.852,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "v3-agents-row",
+     "text": "task-mastermind-content-module",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "v3-agents-row",
+     "text": "task-mastermind-assistant-laye",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "v3-agents-row",
+     "text": "task-mastermind-feedback-counc",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "v3-agents-row",
+     "text": "task-mastermind-padding-system",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "v3-agents-row",
+     "text": "task-mastermind-quickfix-workt",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "v3-agents-row",
+     "text": "task-mastermind-commit-live-sy",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "v3-agents-row",
+     "text": "task-mastermind-shared-browser",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "v3-agents-row",
+     "text": "assistant-from-dictation-to-a-",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "v3-agents-row",
+     "text": "manager-from-dictation-to-a-br",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "v3-agents-row",
+     "text": "task-mastermind-node-reliabili",
+     "lines": 2
+    }
+   ]
+  },
+  "1200": {
+   "empty": 0.259,
+   "widest_text": 767,
+   "widest_text_sample": "working — fix already written in worktre",
+   "overflow_x": false,
+   "items": 269,
+   "narrow_share": 0.015,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 15,
+     "layers": [
+      {
+       "cls": "v3-head",
+       "px": 15
+      }
+     ]
+    },
+    "p": {
+     "total": 0,
+     "layers": []
+    }
+   },
+   "bands": [
+    {
+     "cls": "v3",
+     "y": 0,
+     "h": 13190,
+     "share": 13.19,
+     "ink": 0.632,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.7
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  },
+  "1920": {
+   "empty": 0.365,
+   "widest_text": 797,
+   "widest_text_sample": "working — fix already written in worktre",
+   "overflow_x": false,
+   "items": 269,
+   "narrow_share": 0.167,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 26,
+     "layers": [
+      {
+       "cls": "v3-head",
+       "px": 26
+      }
+     ]
+    },
+    "p": {
+     "total": 0,
+     "layers": []
+    }
+   },
+   "bands": [
+    {
+     "cls": "v3",
+     "y": 0,
+     "h": 14046,
+     "share": 14.046,
+     "ink": 0.464,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.7
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  },
+  "3440": {
+   "empty": 0.539,
+   "widest_text": 810,
+   "widest_text_sample": "— every page layout mapped to code, api,",
+   "overflow_x": false,
+   "items": 269,
+   "narrow_share": 0.331,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 62,
+     "layers": [
+      {
+       "cls": "v3-head",
+       "px": 62
+      }
+     ]
+    },
+    "p": {
+     "total": 0,
+     "layers": []
+    }
+   },
+   "bands": [
+    {
+     "cls": "v3",
+     "y": 0,
+     "h": 16948,
+     "share": 16.948,
+     "ink": 0.298,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.8
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  }
+ },
+ "errors": []
+}

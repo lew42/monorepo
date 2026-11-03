@@ -1,0 +1,36 @@
+{
+ "id": "4632a095-0b3e-4352-bb30-5cb77a6b2495",
+ "first": "2026-10-13T22:46:22.894Z",
+ "last": "2026-10-13T22:49:53.397Z",
+ "models": {
+  "claude-haiku-5-5": 1
+ },
+ "sizes": {
+  "raw": 159825,
+  "content": 26641,
+  "stripped": 26641,
+  "owner_only": 13730
+ },
+ "usd": 0.369368,
+ "usd_main": 0.369368,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 2,
+  "output": 59043,
+  "cache_read": 20671,
+  "cache_write": 36042,
+  "w5": 0,
+  "w1": 36042
+ },
+ "messages": 1,
+ "subagent_files": 0,
+ "prompts": [
+  {
+   "at": "2026-10-13T22:46:22.917Z",
+   "t": "Below is a brief (numbered asks a mastermind would act on) refined from the owner's raw words, then the raw words. For EACH numbered ask, give two confidences.\nScale (a probability that the statement is right): 0.5 = not sure (your default; start there). Below 0.3 = probably wrong. Above 0.7 ONLY with evidence: name what in the raw words makes it unmistakable. Never answer 0.9 out of habit.\n- ask_clear: how sure are we what was actually requested?\n- outcome_clear: how sure are we what a finished job would look like (a checkable end state)? Often lower than ask_clear.\nReply with ONLY a JSON array, one object per ask: {\"n\":<ask number>,\"kind\":\"command\"|\"question\"|\"directive\",\"ask\":\"<under 15 words>\",\"quote\":\"<6-12 words copied from the raw>\",\"ask_clear\":{\"p\":<0-1>,\"evidence\":\"<under 15 words>\"},\"outcome_clear\":{\"p\":<0-1>,\"evidence\":\"<under 15 words>\"}}\n\nBRIEF:\n1. **Standing rules, chat and …  `ai/readmes/`, Servex's `readme_chain` code (`Servex/agents/`; how does it work, does it work, what does it inject into an agent), `CLAUDE.md`'s readme rules. Report what is true vs what the pages claim; make the skill reference the readmes syst\n\"\"\""
+  }
+ ],
+ "result": "[\n{\"n\":1,\"kind\":\"directive\",\"ask\":\"Batch reads, let scripts read raw data, keep chat to one sentence.\",\"quote\":\"Batch reads; scripts read raw data; chat = one sentence.\",\"ask_clear\":{\"p\":0.75,\"evidence\":\"Three rules stated verbatim in the brief header.\"},\"outcome_clear\":{\"p\":0.3,\"evidence\":\"Behavioural rule; no checkable end state.\"}},\n{\"n\":2,\"kind\":\"directive\",\"ask\":\"Site files go through worktree and merge gate, landed with finish-task.\",\"quote\":\"Worktree + merge gate for site files\",\"ask_clear\":{\"p\":0.75,\"evidence\":\"Explicit rule naming worktree, merge gate, finish-task.\"},\"outcome_clear\":{\"p\":0.4,\"evidence\":\"Checkable via merge log, but no end state given.\"}},\n{\"n\":3,\"kind\":\"directive\",\"ask\":\"Commit after each step with attribution; leave no loose files.\",\"quote\":\"commit with attribution; no loose files\",\"ask_clear\":{\"p\":0.75,\"evidence\":\"Rule explicit; attribution format given elsewhere.\"},\"outcome_clear\":{\"p\":0.6,\"evidence\":\"Clean git status and attributed commits are checkable.\"}},\n{\"n\":4,\"kind\":\"directive\",\"ask\":\"Run worktree, diff review and merge cycle often.\",\"quote\":\"Run the full cycle (worktree, diff review, merge) often.\",\"ask_clear\":{\"p\":0.7,\"evidence\":\"Steps named; 'often' has no threshold.\"},\"outcome_clear\":{\"p\":0.4,\"evidence\":\"Frequency vague, so completion hard to verify.\"}},\n{\"n\":5,\"kind\":\"directive\",\"ask\":\"Owner items go on a Note card and in findings.md.\",\"quote\":\"Anything needing the owner → `Note:` card on the AI board\",\"ask_clear\":{\"p\":0.8,\"evidence\":\" …",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.354Z"
+}

@@ -1,0 +1,202 @@
+[
+ {
+  "id": "419d725cbd",
+  "sort": "obsolete",
+  "module": "",
+  "title": "",
+  "note": "",
+  "evidence": "One-time question about Figma dev mode vs design mode; answered in chat, no file or standing rule to track."
+ },
+ {
+  "id": "b2ae81b112",
+  "sort": "obsolete",
+  "module": "",
+  "title": "",
+  "note": "",
+  "evidence": "One-time request to compare dev mode and design mode briefly; answered in chat, nothing to build or record."
+ },
+ {
+  "id": "2e72539770",
+  "sort": "task",
+  "module": "ext/Figma",
+  "title": "Replace the old blue layers on Figma page seven with prime",
+  "note": "",
+  "evidence": "The blue layers live in the Figma file, not the repo. No record in ext/Figma that they were replaced; the open task is ext/Figma/tasks/read-the-root-frame-on-page-seven-for-th/."
+ },
+ {
+  "id": "b68758458d",
+  "sort": "note",
+  "module": "ext/Figma",
+  "title": "",
+  "note": "The palette page is one palette component system: three solid bases, each with a fixed set of approved tints.",
+  "evidence": "public/framework/ext/Figma/palette/spec-1-schemes.md:6 - Three solid bases. A fixed set of approved tints. Every stack is explicit."
+ },
+ {
+  "id": "c26cdbe2ce",
+  "sort": "task",
+  "module": "ext/Figma",
+  "title": "Build each palette as one master component duplicated onto four containers",
+  "note": "",
+  "evidence": "public/framework/ext/Figma/doc/refined-asks.md:152 - Build one master component system for color variations (still open). Related open task: ext/Figma/tasks/possibly-duplicate-the-four-column-syste/."
+ },
+ {
+  "id": "8018056cd9",
+  "sort": "note",
+  "module": "ext/Figma",
+  "title": "",
+  "note": "A palette master edit must reach all four duplicates, so each one stays an instance of the master.",
+  "evidence": "public/framework/ext/Figma/doc/refined-asks.md:151 - Ensure editing the master once updates all four columns (still open)."
+ },
+ {
+  "id": "0cae5bbc03",
+  "sort": "task",
+  "module": "ext/Figma",
+  "title": "Apply the master-and-duplicate method to the rest of the UI space",
+  "note": "",
+  "evidence": "Only the palette uses this so far; refined-asks.md:153 is still open and ext/Figma/tasks/make-everything-an-instance-of-a-compone/ is open."
+ },
+ {
+  "id": "b6a0863da5",
+  "sort": "note",
+  "module": "ext/Figma",
+  "title": "",
+  "note": "Show all four permutations only where colour stacking and contrast need observing, not on every card.",
+  "evidence": "Owner rule; the condensed-views ask at public/framework/ext/Figma/doc/refined-asks.md:11 is the related open item."
+ },
+ {
+  "id": "11d0af4338",
+  "sort": "task",
+  "module": "ext/Figma",
+  "title": "Build a full-colour section with opaque cards on top to test contrast",
+  "note": "",
+  "evidence": "A search of ext/Figma markdown for opaque found nothing; refined-asks.md:149 is still open."
+ },
+ {
+  "id": "73fc13b3f1",
+  "sort": "task",
+  "module": "ext/Figma",
+  "title": "Decide how the primary scheme is handled across the palette",
+  "note": "",
+  "evidence": "Open task ext/Figma/tasks/explore-the-prime-background-in-both-lig/; palette/spec-1-schemes.md:12 only defines the prime base, and no decision is recorded."
+ },
+ {
+  "id": "e3eb920220",
+  "sort": "task",
+  "module": "ext/Figma",
+  "title": "Define what content goes into each colour scheme",
+  "note": "",
+  "evidence": "palette/spec-1-schemes.md:12 defines content for the prime base; a search found no content spec for the other schemes."
+ },
+ {
+  "id": "9619a38363",
+  "sort": "task",
+  "module": "ext/Figma",
+  "title": "Decide when colour permutations show full breakouts or one locked permutation",
+  "note": "",
+  "evidence": "No decision recorded; the condensed-views ask at refined-asks.md:11 is open."
+ },
+ {
+  "id": "064abde320",
+  "sort": "task",
+  "module": "ext/Figma",
+  "title": "Determine whether colours can be dragged from the permutation views",
+  "note": "",
+  "evidence": "No doc covers dragging from permutation views; ext/Figma/doc/builder.md:9 covers drag only for the mobile builder toolbox."
+ },
+ {
+  "id": "9a4047b7db",
+  "sort": "task",
+  "module": "ext/Figma",
+  "title": "Investigate why nested layers confuse and why opaque cards match across columns",
+  "note": "",
+  "evidence": "ext/Figma/doc/observations.md:7 explains only the alpha nested shades; no doc explains identical opaque cards; refined-asks.md:135 is open."
+ },
+ {
+  "id": "d637a6a159",
+  "sort": "task",
+  "module": "ext/Figma",
+  "title": "Evaluate whether lighten and darken make card colours adapt",
+  "note": "",
+  "evidence": "refined-asks.md:148 is open. styles/system/studies/color/adaptive.js:1 is the site bg-lighten lab, not a test of Figma card colours."
+ },
+ {
+  "id": "631af9ce85",
+  "sort": "task",
+  "module": "ext/Figma",
+  "title": "Build a colour scheme stack that runs each colour through full permutations",
+  "note": "",
+  "evidence": "A search of ext/Figma found no stack view; refined-asks.md:11 is open."
+ },
+ {
+  "id": "cf659dcbd7",
+  "sort": "task",
+  "module": "ext/Figma",
+  "title": "Add light, dark, prime and white permutations to the stack view",
+  "note": "",
+  "evidence": "Depends on the stack view above; no permutation list for it exists in ext/Figma."
+ },
+ {
+  "id": "5d7755dcb1",
+  "sort": "note",
+  "module": "ext/Figma",
+  "title": "",
+  "note": "The full permutation stack exists only to make every variation visible, not to pick one.",
+  "evidence": "Owner statement; no conflicting record found in ext/Figma."
+ },
+ {
+  "id": "629d86a302",
+  "sort": "task",
+  "module": "ext/Figma",
+  "title": "Filter out overly subtle colour variations using automatic contrast ratios",
+  "note": "",
+  "evidence": "ext/Figma/scripts/contrast.figma.txt:9 grades ratios as invisible or decorative, but nothing filters on them; ext/Figma/readme.md:53 says the script is read-only."
+ },
+ {
+  "id": "7246c112ac",
+  "sort": "note",
+  "module": "core/Page",
+  "title": "",
+  "note": "Each page puts its most important content above the fold, at the top, as on the web.",
+  "evidence": "public/framework/core/Page/layout/switcher/page.js:29 - Show, don't tell (layout skill: level 1 above the fold). No sitewide check was confirmed."
+ },
+ {
+  "id": "2cf72981f0",
+  "sort": "note",
+  "module": "ai",
+  "title": "",
+  "note": "The owner does not read chat replies, so replies put everything under headings in the table of contents.",
+  "evidence": "Owner feedback 2026-09-18/22, recorded in the owner-dictates-report-answers memory note."
+ },
+ {
+  "id": "52e7a3995d",
+  "sort": "task",
+  "module": "ui/icon",
+  "title": "Load Material Symbols on the site, or record why it stays Icons",
+  "note": "",
+  "evidence": "public/framework/ui/icon/doc/icons.md:17 - The site loads Material Icons; Figma draws with Material Symbols. styles/layouts/apidoc/page.js:226 says the same. Figma loads Symbols (ext/Figma/tokens/page.js:7), the site does not."
+ },
+ {
+  "id": "c0857ae773",
+  "sort": "done",
+  "module": "",
+  "title": "",
+  "note": "",
+  "evidence": "public/framework/ext/Figma/doc/icons.md:1 - # Icons in Figma: one Icon component, a dropdown of glyphs (2026-10-13)"
+ },
+ {
+  "id": "88f6dccbde",
+  "sort": "done",
+  "module": "",
+  "title": "",
+  "note": "",
+  "evidence": "public/framework/ext/Figma/doc/icons.md:7 - the INSTANCE_SWAP property Icon#229:0 (preferred values = all glyphs) is the dropdown; variants cover only Size, Style, Fill and Tone."
+ },
+ {
+  "id": "425f6fa353",
+  "sort": "done",
+  "module": "",
+  "title": "",
+  "note": "",
+  "evidence": "public/framework/ext/Figma/doc/icons.md:19 - kit and DS pages draw icons as Icon instances (a main's icon is an exposed instance, so Icon#229:0 is overridable per instance)."
+ }
+]

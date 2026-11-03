@@ -1,0 +1,47 @@
+# Which big thing does each proposed task plainly serve? (25 tasks)
+
+You sort; you do not build. Do NOT edit any file. This brief has everything you need: do not search the repo. Your final message is ONLY the JSON array described below (the runner saves it to `public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/proposals/batches/05-priority/results.json`).
+
+The owner has three big things:
+
+1. **See and approve the work** — One page per day where the owner sees every session, opens a demo, and approves a whole session with one press. Approving a session approves everything inside it. Spend that never gets approved shows red, as a leak. What is ready to merge sits on the same page. - **Now:** the review page is being built on the AI dashboard ([/framework/ai/], brief: [review-page]). The Merge list is live at [/framework/ai/merge/] and folds into the review page. - **Inside it:** the phone pages for sessions ([sessions/v/mobile]) and the design picks they follow ([mobile-cards.md]); the session page with its tasks; a time filter (Today, Week, Month, Year) inside a session; the 19 closed worktrees whose commits n
+2. **Every ask becomes a task that finishes** — Each thing the owner asks for is filed as a task the first time, runs step by step, and ends done or documented, with its proof. Nothing is lost between sessions. - **Now:** the 230 proposed tasks from old asks are being sorted under these three things (accepted into a priority, or parked in a backlog the owner can approve in one press). Process names are decided (*step*, one class per template, handoff by moving the task) and the rename is under way. - **Inside it:** prompt records (each prompt split into parts, its completion computed: [prompt-records.md]); processes ([process.md]); task resolution ([resolution.md]); node chases a started task that goes quiet (the "task chase" and "status 
+3. **Agents that know the rules** — Every agent knows where things go and what was decided, from short readmes it can trust, and the right model does each job. - **Now:** the documentation rule is written (documentation skill §4: `readme.md` is the index, a sibling `<topic>.md` for an often-read topic, `doc/` for the rest; no dated logs in readmes; the mastermind owns its area's docs). Next: a cheap pass that makes every readme follow it. The model experiment: one Opus builder that designs and builds a whole slice, compared with an Opus planner plus Sonnet builders ([models]). - **Inside it:** the readme system ([doc/readme-system.md]); seeing which readmes, skills and tools each agent got ([agent-context.md], the readmes page
+
+For each task below answer ONE question: which of the three big things does finishing it **plainly** serve: 1, 2, 3, or none? Answer `none` when in doubt. A task that merely touches the same folder is `none`; it must plainly be part of the thing's own description above.
+
+## Output
+
+A JSON array, one object per task, same ids, nothing else in your message:
+
+```json
+[{"id":"abc1234567","priority":1,"why":"one short line"}]   // priority is 1, 2, 3 or "none"
+```
+
+## The 25 tasks
+
+1. `184a12298f` [design/layout] Study what can sit before and after each mobile layout — styles/layouts/400 holds five class strings (module list); no before/after alignment study found. Explore it under design/layout.
+2. `0d51d23075` [styles/layouts/sidebar] Create layouts that use the harmonized sidebar — No layout uses it: harmonise appears only in public/framework/ext/Figma/tasks/work-out-how-to-harmonise-the-figma-desi/task.jsonl. styles/layouts/sidebar holds only page.js, readme.md and files.jsonl.
+3. `d76bcef237` [design/color] Show the designs in different color schemes — public/framework/styles/system/studies/themes/page.js:75 - Phosphor declares color-scheme dark with no light/dark pair, so its schemes are not shown.
+4. `1e4eec84c9` [design/color] Lean into color schemes where possible and set a mode for them — color-scheme is set by hand in core/Shell/Shell.css and core/Page/card/card.css; no site-wide mode switch found.
+5. `4342b60be4` [styles/layouts] Explore which layouts can sit before and after each other on mobile — No mobile adjacency rule found in styles/layouts docs (grep for before/after returned nothing).
+6. `05c228418d` [design/layout] Use the default --pad tokens for standard container padding — styles/system/studies/color/sections/sections.css:36 - .color-sections-ground { padding: var(--pad); }, but color-study.css:25 says its paddings are in em, and no mobile card-mode scaling was found.
+7. `e6b4858ffc` [styles/layouts] Create layouts that use the harmonized sidebar — styles/layouts/sidebar has only page.js and readme.md; the harmonized sidebar (the core/Sidebar redesign) is not built yet.
+8. `e51714b461` [ext/Figma] Harmonise Figma and the browser into one system for developing new UI and… — public/framework/ext/Figma/doc/figma-browser-loop.md:24 - The loop needs one more mode: a Figma frame vs its built page; until then, compare by eye.
+9. `f3fce43d18` [ext/Shots] Report a closeness score for two screenshots, not only an overlay — Missing: ext/Shots/readme.md:3 draws an overlay of what changed, but no closeness number. Grep for score, percent, similar in ext/Shots and ext/DesignTool/vision/run.mjs found none.
+10. `d753c97963` [ext/Figma] Join the browser and Figma into one loop for new UI and broken layouts — Missing: no Figma reference anywhere in ext/DesignTool (grep empty). ext/Figma/doc/architecture.md:63 says this module covers auto layout, components, variables and the MCP, not the browser.
+11. `1734eda909` [core/Sidebar] Build one minimal set of layout tokens for all left sidebar menus — Partial: framework.css:221 declares only --sidebar: 19em, a width token. No shared spacing token set for sidebars was found.
+12. `718e253e5c` [ai] Stop keeping V2 and V3 as two divergent sidebar layouts and converge them — Still divergent: ai/v/2/v2.css and ai/v/3/v3.css both match sidebar and hold their own sidebar rules.
+13. `b9987330d2` [ai] Find one in-between padding that suits both V2 and V3 sidebars — Not built: both ai/v/2/v2.css and ai/v/3/v3.css hold sidebar rules, and no shared padding token was found.
+14. `e45dd8e9a7` [styles] Make the framework's mobile layout stronger and every page phone-friendly — Partial: styles/layouts/400/page.js covers the 400px case only. No site-wide phone pass was found.
+15. `da0b5e5780` [ux/Tree] Build a tree UI with icons using the Google Material icons library — ux/Tree/Tree.js:352 - icon(){ return span.c("ui-tree-icon", $icon => { if (this.node.icon != null) $icon.append(this.node.icon); }); }; the icon set is Material, ui/icon/page.js:150 - md("Material Icons are fixed width (24×24); frame an icon only for a click target, centring in a taller box, or a gr
+16. `005fd4cd3b` [ux/Tree] Explore more list UI styles, especially a mobile-friendly tree of layers — Not done: ux/Tree/readme.md offers only drill-down (adapt: true), with no mobile list style. The only sheet is a Figma mockup at ext/Figma/doc/use-figma.md:73.
+17. `18c5ef86d3` [ux/Tree] Build the layer tree sheet that selects the matching item on the screen above — Not built: only a Figma mockup exists (ext/Figma/doc/use-figma.md:73, Tree in a sheet). No live sheet that selects the item above was found.
+18. `718de70d33` [core/Sidebar] Redesign the sidebar so the many icon items and sections lay out cleanly — Missing: no chosen layout for many icon items and sections. core/Sidebar/variants/page.js:24 covers only the brand row ('Four takes on the brand row'), and core/Sidebar/doc/sidebar-notes.md:6 lists only the brand header.
+19. `ae37818bfb` [core/Sidebar] Add the website's logo SVG to the top left of the sidebar — Missing: no logo*.svg exists under public/ (Glob empty). The brand row at core/Sidebar/Sidebar.js:45 takes this.logo or else the page favicon (Sidebar.js:308-310), so the site's own logo SVG is not wired in.
+20. `25c6e22c63` [styles/layouts] Consider resizing the columns slightly to fit better — Not built: no column fit change recorded; looked only at styles/layouts/cols and its doc folder.
+21. `878105a662` [ai] Add a clean-tree check to wrap-up so no files are left untracked — No wrap-up clean-tree rule in CLAUDE.md (grep for untracked, uncommitted, git-ignored: no match). git status --short is empty in this worktree now, so only the standing check is missing.
+22. `02b81c8f92` [ai] Add the file-change rule to the mastermind skill — The mastermind skill is .claude/skills/mastermind, 47 KB (public/framework/ai/systems-map.md:24). Grep of monorepo/.claude/skills for git-ignored, untracked, uncommitted returned other skills first (10-hit cap); the rule is not confirmed in the mastermind file.
+23. `23c41f9080` [ai] Put the file-change rule in CLAUDE.md, the file every agent reads — CLAUDE.md (monorepo root) has no such rule (grep: no match). systems-map.md:19 says CLAUDE.md is read by every agent, so it is the place that reaches all of them. The skill copy is covered by ask 02b81c8f92.
+24. `2104fca85e` [design/color] Set a default background-contrast hierarchy for index pages and their children — Not built: a grep of styles/layers/site for hierarch|transparent returned nothing, so no background hierarchy rule exists.
+25. `b5a243242d` [design/color] Audit which pages are transparent and which share the light-gray background — No audit record: the same grep of styles/layers/site found no transparent or hierarchy rule to compare against.

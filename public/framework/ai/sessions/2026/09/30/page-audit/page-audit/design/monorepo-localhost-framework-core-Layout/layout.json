@@ -1,0 +1,426 @@
+{
+ "url": "http://monorepo.localhost/framework/core/Layout/",
+ "widths": {
+  "400": {
+   "empty": 0.164,
+   "widest_text": 334,
+   "widest_text_sample": "Every way this site arranges a page, in ",
+   "overflow_x": false,
+   "items": 134,
+   "narrow_share": 0.06,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 28,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 28
+      }
+     ]
+    },
+    "p": {
+     "total": 28,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 28
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 72,
+     "h": 40,
+     "share": 0.04,
+     "ink": 0.35,
+     "big_empty": false
+    },
+    {
+     "cls": "p",
+     "y": 154,
+     "h": 126,
+     "share": 0.126,
+     "ink": 0.869,
+     "big_empty": false
+    },
+    {
+     "cls": "browse",
+     "y": 308,
+     "h": 7581,
+     "share": 7.581,
+     "ink": 0.441,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "drawer-rail-ai",
+     "text": "✦AI",
+     "lines": 3.2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-rail-menu",
+     "text": "⋯More",
+     "lines": 3.2
+    }
+   ]
+  },
+  "1200": {
+   "empty": 0.625,
+   "widest_text": 591,
+   "widest_text_sample": "Every way this site arranges a page, in ",
+   "overflow_x": false,
+   "items": 190,
+   "narrow_share": 0.5,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 38,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 38
+      }
+     ]
+    },
+    "p": {
+     "total": 38,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 38
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 38,
+     "h": 49,
+     "share": 0.049,
+     "ink": 0.35,
+     "big_empty": false
+    },
+    {
+     "cls": "p",
+     "y": 132,
+     "h": 81,
+     "share": 0.081,
+     "ink": 0.55,
+     "big_empty": false
+    },
+    {
+     "cls": "browse",
+     "y": 243,
+     "h": 2119,
+     "share": 2.119,
+     "ink": 0.277,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 2391,
+     "h": 107,
+     "share": 0.107,
+     "ink": 0.5,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 2529,
+     "h": 54,
+     "share": 0.054,
+     "ink": 0.338,
+     "big_empty": false
+    },
+    {
+     "cls": "md-details",
+     "y": 2635,
+     "h": 39,
+     "share": 0.039,
+     "ink": 0.037,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.7
+    },
+    {
+     "tag": "button",
+     "cls": "flex",
+     "text": "docs-three-region4",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "flex",
+     "text": "rail-and-content4",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "flex",
+     "text": "Approved and draft30",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  },
+  "1920": {
+   "empty": 0.713,
+   "widest_text": 634,
+   "widest_text_sample": "Every way this site arranges a page, in ",
+   "overflow_x": false,
+   "items": 190,
+   "narrow_share": 0.979,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 67,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 67
+      }
+     ]
+    },
+    "p": {
+     "total": 67,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 67
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 48,
+     "h": 53,
+     "share": 0.053,
+     "ink": 0.263,
+     "big_empty": false
+    },
+    {
+     "cls": "p",
+     "y": 160,
+     "h": 86,
+     "share": 0.086,
+     "ink": 0.392,
+     "big_empty": false
+    },
+    {
+     "cls": "browse",
+     "y": 286,
+     "h": 1755,
+     "share": 1.755,
+     "ink": 0.242,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 2081,
+     "h": 115,
+     "share": 0.115,
+     "ink": 0.35,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 2236,
+     "h": 58,
+     "share": 0.058,
+     "ink": 0.283,
+     "big_empty": false
+    },
+    {
+     "cls": "md-details",
+     "y": 2363,
+     "h": 42,
+     "share": 0.042,
+     "ink": 0.025,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.7
+    },
+    {
+     "tag": "button",
+     "cls": "flex",
+     "text": "docs-three-region4",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "flex",
+     "text": "rail-and-content4",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "flex",
+     "text": "Approved and draft30",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  },
+  "3440": {
+   "empty": 0.801,
+   "widest_text": 713,
+   "widest_text_sample": "Every way this site arranges a page, in ",
+   "overflow_x": false,
+   "items": 190,
+   "narrow_share": 0.979,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 90,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 90
+      }
+     ]
+    },
+    "p": {
+     "total": 90,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 90
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 54,
+     "h": 59,
+     "share": 0.059,
+     "ink": 0.188,
+     "big_empty": false
+    },
+    {
+     "cls": "p",
+     "y": 181,
+     "h": 97,
+     "share": 0.097,
+     "ink": 0.267,
+     "big_empty": false
+    },
+    {
+     "cls": "browse",
+     "y": 323,
+     "h": 1209,
+     "share": 1.209,
+     "ink": 0.231,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 1577,
+     "h": 130,
+     "share": 0.13,
+     "ink": 0.294,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 1752,
+     "h": 65,
+     "share": 0.065,
+     "ink": 0.233,
+     "big_empty": false
+    },
+    {
+     "cls": "md-details",
+     "y": 1895,
+     "h": 47,
+     "share": 0.047,
+     "ink": 0.113,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.8
+    },
+    {
+     "tag": "button",
+     "cls": "flex",
+     "text": "docs-three-region4",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "flex",
+     "text": "horizontal-scroll1",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "flex",
+     "text": "rail-and-content4",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "flex",
+     "text": "single-column8",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "flex",
+     "text": "Approved and draft30",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "flex",
+     "text": "Three columns6",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  }
+ },
+ "errors": []
+}

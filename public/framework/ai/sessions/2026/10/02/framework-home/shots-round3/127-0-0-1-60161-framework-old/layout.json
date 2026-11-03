@@ -1,0 +1,634 @@
+{
+ "url": "http://127.0.0.1:60161/framework/old/",
+ "widths": {
+  "400": {
+   "empty": 0.508,
+   "widest_text": 338,
+   "widest_text_sample": "has the method, and the column where Rea",
+   "overflow_x": false,
+   "items": 16,
+   "narrow_share": 0,
+   "layout": "standard",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 28,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 28
+      }
+     ]
+    },
+    "p": {
+     "total": 28,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 28
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 72,
+     "h": 40,
+     "share": 0.04,
+     "ink": 0.8,
+     "big_empty": false
+    },
+    {
+     "cls": "h1",
+     "y": 238,
+     "h": 185,
+     "share": 0.185,
+     "ink": 0.642,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 450,
+     "h": 76,
+     "share": 0.076,
+     "ink": 0.767,
+     "big_empty": false
+    },
+    {
+     "cls": "bleed",
+     "y": 554,
+     "h": 300,
+     "share": 0.3,
+     "ink": 0.219,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 882,
+     "h": 76,
+     "share": 0.076,
+     "ink": 0.925,
+     "big_empty": false
+    },
+    {
+     "cls": "grid",
+     "y": 986,
+     "h": 309,
+     "share": 0.309,
+     "ink": 0.414,
+     "big_empty": false
+    },
+    {
+     "cls": "h2",
+     "y": 1357,
+     "h": 39,
+     "share": 0.039,
+     "ink": 0.55,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 1425,
+     "h": 76,
+     "share": 0.076,
+     "ink": 0.708,
+     "big_empty": false
+    },
+    {
+     "cls": "code-block",
+     "y": 1525,
+     "h": 81,
+     "share": 0.081,
+     "ink": 0.35,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 1634,
+     "h": 25,
+     "share": 0.025,
+     "ink": 0.35,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 1687,
+     "h": 50,
+     "share": 0.05,
+     "ink": 0.675,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 1766,
+     "h": 101,
+     "share": 0.101,
+     "ink": 0.617,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 1895,
+     "h": 76,
+     "share": 0.076,
+     "ink": 0.667,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "h1",
+     "cls": "h1",
+     "text": "A no-build, native-ESM web fra",
+     "lines": 4
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-rail-ai",
+     "text": "✦AI",
+     "lines": 3.2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-rail-menu",
+     "text": "⋯More",
+     "lines": 3.2
+    }
+   ]
+  },
+  "1200": {
+   "empty": 0.679,
+   "widest_text": 533,
+   "widest_text_sample": "A no-build, native-ESM web framework",
+   "overflow_x": false,
+   "items": 36,
+   "narrow_share": 0.25,
+   "layout": "standard",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 38,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 38
+      }
+     ]
+    },
+    "p": {
+     "total": 38,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 38
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 38,
+     "h": 49,
+     "share": 0.049,
+     "ink": 0.55,
+     "big_empty": false
+    },
+    {
+     "cls": "h1",
+     "y": 222,
+     "h": 98,
+     "share": 0.098,
+     "ink": 0.508,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 350,
+     "h": 54,
+     "share": 0.054,
+     "ink": 0.442,
+     "big_empty": false
+    },
+    {
+     "cls": "bleed",
+     "y": 434,
+     "h": 300,
+     "share": 0.3,
+     "ink": 0.167,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 764,
+     "h": 54,
+     "share": 0.054,
+     "ink": 0.388,
+     "big_empty": false
+    },
+    {
+     "cls": "grid",
+     "y": 847,
+     "h": 239,
+     "share": 0.239,
+     "ink": 0.193,
+     "big_empty": false
+    },
+    {
+     "cls": "h2",
+     "y": 1153,
+     "h": 42,
+     "share": 0.042,
+     "ink": 0.2,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 1225,
+     "h": 54,
+     "share": 0.054,
+     "ink": 0.5,
+     "big_empty": false
+    },
+    {
+     "cls": "code-block",
+     "y": 1306,
+     "h": 87,
+     "share": 0.087,
+     "ink": 0.1,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 1422,
+     "h": 27,
+     "share": 0.027,
+     "ink": 0.125,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 1479,
+     "h": 27,
+     "share": 0.027,
+     "ink": 0.3,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 1536,
+     "h": 54,
+     "share": 0.054,
+     "ink": 0.425,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 1619,
+     "h": 54,
+     "share": 0.054,
+     "ink": 0.5,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.7
+    },
+    {
+     "tag": "h1",
+     "cls": "h1",
+     "text": "A no-build, native-ESM web fra",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  },
+  "1920": {
+   "empty": 0.78,
+   "widest_text": 572,
+   "widest_text_sample": "A no-build, native-ESM web framework",
+   "overflow_x": false,
+   "items": 36,
+   "narrow_share": 0.806,
+   "layout": "standard",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 67,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 67
+      }
+     ]
+    },
+    "p": {
+     "total": 67,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 67
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 48,
+     "h": 53,
+     "share": 0.053,
+     "ink": 0.388,
+     "big_empty": false
+    },
+    {
+     "cls": "h1",
+     "y": 245,
+     "h": 106,
+     "share": 0.106,
+     "ink": 0.375,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 390,
+     "h": 58,
+     "share": 0.058,
+     "ink": 0.375,
+     "big_empty": false
+    },
+    {
+     "cls": "bleed",
+     "y": 487,
+     "h": 300,
+     "share": 0.3,
+     "ink": 0.131,
+     "big_empty": true
+    },
+    {
+     "cls": "md",
+     "y": 827,
+     "h": 58,
+     "share": 0.058,
+     "ink": 0.233,
+     "big_empty": false
+    },
+    {
+     "cls": "grid",
+     "y": 924,
+     "h": 244,
+     "share": 0.244,
+     "ink": 0.118,
+     "big_empty": false
+    },
+    {
+     "cls": "h2",
+     "y": 1240,
+     "h": 45,
+     "share": 0.045,
+     "ink": 0.15,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 1325,
+     "h": 58,
+     "share": 0.058,
+     "ink": 0.275,
+     "big_empty": false
+    },
+    {
+     "cls": "code-block",
+     "y": 1418,
+     "h": 93,
+     "share": 0.093,
+     "ink": 0.092,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 1550,
+     "h": 29,
+     "share": 0.029,
+     "ink": 0.1,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 1619,
+     "h": 29,
+     "share": 0.029,
+     "ink": 0.35,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 1687,
+     "h": 58,
+     "share": 0.058,
+     "ink": 0.313,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 1784,
+     "h": 58,
+     "share": 0.058,
+     "ink": 0.233,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.7
+    },
+    {
+     "tag": "h1",
+     "cls": "h1",
+     "text": "A no-build, native-ESM web fra",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  },
+  "3440": {
+   "empty": 0.861,
+   "widest_text": 643,
+   "widest_text_sample": "A no-build, native-ESM web framework",
+   "overflow_x": false,
+   "items": 36,
+   "narrow_share": 0.806,
+   "layout": "standard",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 90,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 90
+      }
+     ]
+    },
+    "p": {
+     "total": 90,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 90
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 54,
+     "h": 59,
+     "share": 0.059,
+     "ink": 0.263,
+     "big_empty": false
+    },
+    {
+     "cls": "h1",
+     "y": 275,
+     "h": 119,
+     "share": 0.119,
+     "ink": 0.237,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 439,
+     "h": 65,
+     "share": 0.065,
+     "ink": 0.167,
+     "big_empty": false
+    },
+    {
+     "cls": "bleed",
+     "y": 549,
+     "h": 300,
+     "share": 0.3,
+     "ink": 0.089,
+     "big_empty": true
+    },
+    {
+     "cls": "md",
+     "y": 894,
+     "h": 65,
+     "share": 0.065,
+     "ink": 0.225,
+     "big_empty": false
+    },
+    {
+     "cls": "grid",
+     "y": 1004,
+     "h": 290,
+     "share": 0.29,
+     "ink": 0.091,
+     "big_empty": true
+    },
+    {
+     "cls": "h2",
+     "y": 1375,
+     "h": 51,
+     "share": 0.051,
+     "ink": 0.1,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 1471,
+     "h": 65,
+     "share": 0.065,
+     "ink": 0.192,
+     "big_empty": false
+    },
+    {
+     "cls": "code-block",
+     "y": 1575,
+     "h": 105,
+     "share": 0.105,
+     "ink": 0.092,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 1724,
+     "h": 32,
+     "share": 0.032,
+     "ink": 0.075,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 1802,
+     "h": 32,
+     "share": 0.032,
+     "ink": 0.225,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 1879,
+     "h": 65,
+     "share": 0.065,
+     "ink": 0.133,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 1989,
+     "h": 65,
+     "share": 0.065,
+     "ink": 0.183,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.8
+    },
+    {
+     "tag": "h1",
+     "cls": "h1",
+     "text": "A no-build, native-ESM web fra",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  }
+ },
+ "errors": []
+}

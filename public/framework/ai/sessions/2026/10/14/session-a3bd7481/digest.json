@@ -1,0 +1,35 @@
+{
+ "id": "a3bd7481-1f14-41b0-89cf-0aa808b8745b",
+ "first": "2026-10-14T01:47:27.727Z",
+ "last": "2026-10-14T01:49:45.148Z",
+ "task": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/compaction-dryrun",
+ "models": {
+  "claude-sonnet-5-5": 13
+ },
+ "sizes": {
+  "raw": 166486,
+  "content": 25291,
+  "stripped": 10346,
+  "owner_only": 0
+ },
+ "usd": 0.552644,
+ "usd_main": 0.552644,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 26,
+  "output": 14536,
+  "cache_read": 846500,
+  "cache_write": 59483,
+  "w5": 0,
+  "w1": 59483
+ },
+ "messages": 13,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "The compaction dry run is built and committed (`2bccf5abb`). Applied to August and September, it would save 4.5 MB of 11.4 MB (4,681,567 of 11,934,035 bytes). Nothing was applied; there is no `--apply`.\n\n- **Eligible:** 931 of 1,022 task logs pass the rule from `repo-size.md` (landed, no open ask, no reversed decision, quiet over 7 days).\n- **Noise versus decisions:** 59% of all lines are `log`/`action` noise and 3.4% are decisions.\n- **Scan check:** the two counts agree: 648 tasks scanned and 648 task dirs in September, 374 and 374 in August.\n- **The test:** `Server/Compact.test.mjs` passes. It checks the keep set, the folded line counts and an open ask blocking a log.\n- **Landing line:** the line I appended to this task's own log is the last line, confirmed with `tail -1`. Compacted output always ends on an original line, so the same check works there.\n\nOne caveat: the saving is measured on file bytes with a placeholder commit hash. Git already compresses these logs, so the real saving in the pack will be smaller.\n\nThe decision note is pinned to your inbox. The numbers and the rule are at the top of `ai/sessions/doc/compaction.md`, linked from the sessions readme and `repo-size.md`. The per-task tables sit in this task dir (`compaction-2026-08.md` and `compaction-2026-09.md`).",
+ "edited": [
+  "Server/Compact.mjs",
+  "Server/Compact.test.mjs"
+ ],
+ "digested_at": "2026-10-16T06:28:10.268Z"
+}

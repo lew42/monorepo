@@ -1,0 +1,67 @@
+[
+  {
+    "id": "bare-reserve",
+    "text": "A bare line in css-scopes.txt (.flex, .card, .pad) reserves that exact class name AND any suffixed variant (.flex-*, .card-*, .pad-*); nothing else may use those names",
+    "certainty": "settled"
+  },
+  {
+    "id": "namespace-reserve",
+    "text": "A line ending with a dash (ui-, panel-, page-) reserves a namespace for that module; new classes there are .prefix-<thing>, not bare or with different prefixes",
+    "certainty": "settled"
+  },
+  {
+    "id": "framework-block",
+    "text": "The framework block (lines 5–67 of css-scopes.txt) is off limits — no new classes may be added there; additions belong in their owning module's namespace",
+    "certainty": "settled"
+  },
+  {
+    "id": "module-prefix",
+    "text": "Every new class must be prefixed with its owning module's namespace (.panel-grip, not .grip) unless the selector already contains the module's own class",
+    "certainty": "settled"
+  },
+  {
+    "id": "view-class-minting",
+    "text": "View subclasses automatically mint CSS class names via View.classify() — a class Stage becomes .stage, LayoutsPair becomes .layouts-pair; these minted names must be prefixed like any declared class (PagingStage → .paging-stage)",
+    "certainty": "settled"
+  },
+  {
+    "id": "concat-prefix-inside",
+    "text": "When building a class name by concatenating a variable (type-anchors-post + variant.key), the module prefix must be inside the string ('type-anchors-' + key), not just typed literally; test every possible variable value against the census",
+    "certainty": "settled"
+  },
+  {
+    "id": "double-dash-page",
+    "text": "The page instance stamp uses TWO dashes (.page--<slug>), so never start a module class with single page- unless you are core/Page; core modules extending Page may take page-<module>- as a sub-namespace",
+    "certainty": "settled"
+  },
+  {
+    "id": "namespace-registration",
+    "text": "When opening a new module namespace, add one line to css-scopes.txt (prefix-   /owner); if css-scopes.txt is outside your write fence, document it in the module's doc/decisions.md under Open so the next agent finds it",
+    "certainty": "settled"
+  },
+  {
+    "id": "card-not-tile",
+    "text": "Before naming a -card, -tile, or -box class, check that .card is not already in use as a framework.css spacing word (a padded surface primitive, distinct from .pad and em-based controls)",
+    "certainty": "likely"
+  },
+  {
+    "id": "census-collision",
+    "text": "Census the live CSS with grep to detect collisions: grep -rhoE \"\\.<name>[a-z0-9-]*\" public --include=*.css --include=*.js | sort -u; a hit in another module vetoes the name, but check WHERE the hit is first (vendored bundles like three.js may match unrelated words)",
+    "certainty": "likely"
+  },
+  {
+    "id": "list-view-classes",
+    "text": "List every View class you declare (grep -n 'class [A-Z]' your files) and check each minted name against the census; View.classify() turns constructor chains into kebab-case classes automatically",
+    "certainty": "likely"
+  },
+  {
+    "id": "spacing-primitives",
+    "text": "Three spacing words are framework primitives: .pad (page region), .card (framed box), and em-based sizing for controls and rows; these are not optional variants and predate hand-rolled -tile/-box classes",
+    "certainty": "likely"
+  },
+  {
+    "id": "open-questions-exist",
+    "text": "The rules do not specify precedence when multiple prefixes could apply, which retired classes (if any) should be scavenged, or whether certain compound modifiers on bare classes (.tabs.underline) follow different rules",
+    "certainty": "open"
+  }
+]

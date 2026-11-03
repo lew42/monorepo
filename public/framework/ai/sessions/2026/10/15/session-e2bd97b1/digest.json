@@ -1,0 +1,31 @@
+{
+ "id": "e2bd97b1-dc81-49b4-bfe4-252060368275",
+ "first": "2026-10-15T00:39:03.806Z",
+ "last": "2026-10-15T00:39:29.153Z",
+ "models": {
+  "claude-haiku-5-5": 1
+ },
+ "sizes": {
+  "raw": 89311,
+  "content": 39,
+  "stripped": 39,
+  "owner_only": 0
+ },
+ "usd": 0.094739,
+ "usd_main": 0.094739,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 2,
+  "output": 13,
+  "cache_read": 0,
+  "cache_write": 47336,
+  "w5": 0,
+  "w1": 47336
+ },
+ "messages": 1,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "Standing by for the owner's words.",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.300Z"
+}

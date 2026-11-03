@@ -1,0 +1,27 @@
+
+public/framework/ai/sessions/2026/10/25/v-sq8y7db/session.jsonl — none mirror (0/2217 {chat} lines), 2381 lines built in memory by ChatToMessages.plan() (never --apply'd) to compare against
+  1314 bubbles via V1, 1314 bubbles via the adapter
+  0 differing bubbles of 1314
+
+public/framework/ai/sessions/2026/10/25/v-9dvbbrn/session.jsonl — none mirror (0/1320 {chat} lines), 2273 lines built in memory by ChatToMessages.plan() (never --apply'd) to compare against
+  765 bubbles via V1, 765 bubbles via the adapter
+  0 differing bubbles of 765
+
+public/framework/ai/sessions/2026/11/01/v-u48msei/session.jsonl — partial mirror (65/311 {chat} lines), 397 lines built in memory by ChatToMessages.plan() (never --apply'd) to compare against
+  278 bubbles via V1, 278 bubbles via the adapter
+  0 differing bubbles of 278
+
+public/framework/ai/sessions/2026/10/05/v-yxnts4l/session.jsonl — none mirror (0/275 {chat} lines), 275 lines built in memory by ChatToMessages.plan() (never --apply'd) to compare against
+  215 bubbles via V1, 215 bubbles via the adapter
+  0 differing bubbles of 215
+
+public/framework/ai/sessions/2026/10/19/v-timqv56/session.jsonl — none mirror (0/214 {chat} lines), 214 lines built in memory by ChatToMessages.plan() (never --apply'd) to compare against
+  170 bubbles via V1, 170 bubbles via the adapter
+  0 differing bubbles of 170
+
+--- totals ---
+public/framework/ai/sessions/2026/10/25/v-sq8y7db/session.jsonl: none mirror, 1314 via V1, 1314 via the adapter, 0 differing
+public/framework/ai/sessions/2026/10/25/v-9dvbbrn/session.jsonl: none mirror, 765 via V1, 765 via the adapter, 0 differing
+public/framework/ai/sessions/2026/11/01/v-u48msei/session.jsonl: partial mirror, 278 via V1, 278 via the adapter, 0 differing
+public/framework/ai/sessions/2026/10/05/v-yxnts4l/session.jsonl: none mirror, 215 via V1, 215 via the adapter, 0 differing
+public/framework/ai/sessions/2026/10/19/v-timqv56/session.jsonl: none mirror, 170 via V1, 170 via the adapter, 0 differing

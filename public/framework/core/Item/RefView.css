@@ -1,0 +1,25 @@
+@layer base, theme, site, util;
+
+@layer site {
+	/* One row: state icon, where (the other file's root), ›, what (the target). Narrow: where on top, small; what below, full width. */
+	.ref-view { display: grid; grid-template-columns: auto minmax(0, max-content) auto minmax(0, 1fr); align-items: center; gap: .5em; min-width: 0; }
+	.ref-view-state { flex: none; }
+	.ref-view-state.is-complete { color: var(--green, #2e7d32); }
+	.ref-view-where { max-width: 24em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: inherit; opacity: .75; }
+	.ref-view-sep { opacity: .5; }
+	.ref-view-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: inherit; }
+	.ref-view-gone, .ref-view-wait { grid-column: 2 / -1; }
+	.ref-view.is-gone { opacity: .8; }
+	.ref-view-gone { font-style: italic; }
+	/* A heading naming the file once over its rows (RefView with where: false), e.g. one child session over its tasks. */
+	.ref-view-group { display: flex; align-items: center; gap: .5em; min-width: 0; margin: .6em 0 .15em; font-size: .85em; }
+	.ref-view-group .ref-view-where { max-width: none; }
+
+	@media (max-width: 40em) {
+		.ref-view { grid-template-columns: auto minmax(0, 1fr); row-gap: 0; align-items: start; }
+		.ref-view-where { grid-column: 2; max-width: none; font-size: .85em; }
+		.ref-view-sep { display: none; }
+		.ref-view-title { grid-column: 2; white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+		.ref-view-gone { white-space: normal; }
+	}
+}

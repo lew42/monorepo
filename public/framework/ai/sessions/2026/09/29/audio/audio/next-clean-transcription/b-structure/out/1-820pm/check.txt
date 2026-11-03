@@ -1,0 +1,7 @@
+sentences 79, bullets 33, deepest level 1, cited twice: none, never cited: none
+# Decisions Tab and Dictate Pipeline
+## UX (Decisions tab)
+## Decision Policy
+## Structured Refinement
+## Clean Transcription Mode
+## Streaming and Audio Cues

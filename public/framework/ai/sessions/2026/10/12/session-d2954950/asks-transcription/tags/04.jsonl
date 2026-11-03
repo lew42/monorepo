@@ -1,0 +1,17 @@
+{"module":"voice","quote":"make sure the voice agents are not using Anthropic models","ask":"Verify voice agents are not using Anthropic models","id":460,"topic":"model-switching"}
+{"module":"voice","quote":"switch over to non-anthropic models for voice assistants","ask":"Switch all voice assistants to non-Anthropic models","id":461,"topic":"model-switching"}
+{"module":"voice","quote":"Explain the exact prompt refinement flow its role","ask":"Explain prompt refinement flow and smart/fast assistant partnership","id":463,"topic":"prompt-refinement-flow"}
+{"module":"voice","quote":"Trace how voice smart assistant session prompt instructions","ask":"Trace how voice smart assistant session prompt is assembled","id":465,"topic":"voice-system-prompt"}
+{"module":"voice","quote":"Investigate duplicate owner messages in voice chat trace","ask":"Investigate why duplicate messages appear in voice chat","id":472,"topic":"duplicate-messages"}
+{"module":"voice","quote":"look at the chat log for voice dictation conversation","ask":"Check chat log for voice dictation with assistants","id":475,"topic":"chat-log-review"}
+{"module":"voice","quote":"Is whisper running Monorepo and whisper should start","ask":"Verify Whisper runs when Servex starts","id":476,"topic":"whisper-startup"}
+{"module":"voice","quote":"get that transcription web-based transcription working","ask":"Get web-based transcription working again","id":481,"topic":"web-transcription"}
+{"module":"voice","quote":"smart assistant for voice chat is reporting sonnet 5","ask":"Verify smart voice assistant uses best model","id":484,"topic":"model-selection"}
+{"module":"voice","quote":"systems I want to focus on are transcriptions need","ask":"Consolidate transcription and dictate systems","id":489,"topic":"transcription-consolidation"}
+{"module":"voice","quote":"consolidate and create single place for transcription systems","ask":"Document all transcription/dictate system pieces","id":490,"topic":"transcription-consolidation"}
+{"module":"voice","quote":"Where were we at with prompt refinement stuff echo agent","ask":"Explain prompt refinement system status","id":511,"topic":"prompt-refinement-status"}
+{"module":"voice","quote":"transcribing on the site were still duplicate bubbles","ask":"Fix duplicate bubbles in voice chat","id":522,"topic":"duplicate-messages"}
+{"module":"voice","quote":"should be using the same dictation widget refine page","ask":"Use same dictation widget on refine page","id":526,"topic":"widget-unification"}
+{"module":"voice","quote":"refine page should show cleaned text right away","ask":"Show cleaned text immediately then refinement later","id":541,"topic":"refine-ux"}
+{"module":"voice","quote":"whisper log should be its own thing like a class","ask":"Implement whisper log as a class","id":543,"topic":"whisper-log-class"}
+{"module":"voice","quote":"clarity score is one on every transcription request","ask":"Add clarity score to each whisper result","id":545,"topic":"clarity-scoring"}

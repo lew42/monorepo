@@ -1,0 +1,36 @@
+{
+ "id": "8d442dd5-66ef-40dd-9f7e-9856c11c48ee",
+ "first": "2026-10-14T02:58:01.565Z",
+ "last": "2026-10-14T02:59:21.533Z",
+ "agent": "minion-arch-mention",
+ "task": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/architecture-md/minion-brief.md",
+ "models": {
+  "claude-haiku-5-5": 9
+ },
+ "sizes": {
+  "raw": 152035,
+  "content": 22689,
+  "stripped": 6971,
+  "owner_only": 0
+ },
+ "usd": 0.195207,
+ "usd_main": 0.195207,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 18,
+  "output": 7083,
+  "cache_read": 538957,
+  "cache_write": 52939,
+  "w5": 0,
+  "w1": 52939
+ },
+ "messages": 9,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "`ext/Mention` now has `doc/architecture.md` (71 lines), linked from its readme's `## More` line, committed as `9b9aa631c`.\n\n- **File:** `public/framework/ext/Mention/doc/architecture.md`, 71 lines, 10 decisions, each checked against `Mention.js`, `View.js` and `Server/plugins/MentionSync.js`.\n- **Code mismatches:** no `⚠` code mismatches. One CSS-order `⚠` is kept as a warning, since it holds today but is easy to break. The census decision names `registry.js`, which is stale; the doc uses the real `maps/refs.js` and `maps/people.js`.\n- **Extras:** `doc/files.jsonl` already held one entry for each file, so there was nothing to dedupe. I left `page.js` alone as you asked, so its `notes:` does not list `architecture`. I also did not add an `architecture` entry there.\n\nOutside my fence: `core/Page/PageContent.js` (line 107) and `Mention-notes.md` point to `doc/decisions.md`, which doesn't exist in `ext/Mention`. The census decision also links to `/framework/ai/sessions/2026/10/03/list-events/mention-auto-sync/`, which I did not open.",
+ "edited": [
+  "public/framework/ext/Mention/doc/architecture.md",
+  "public/framework/ext/Mention/readme.md"
+ ],
+ "digested_at": "2026-10-16T06:28:10.340Z"
+}

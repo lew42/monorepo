@@ -1,0 +1,553 @@
+{
+ "at": "2026-10-25T06:55:24.802Z",
+ "applied": true,
+ "rows": [
+  {
+   "id": "v-0kfikyu",
+   "from": "public/ai/v-0kfikyu.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/08/v-0kfikyu/session.jsonl",
+   "summary": {
+    "from": "public/ai/v-0kfikyu.summary.json",
+    "to": "public/framework/ai/sessions/2026/10/08/v-0kfikyu/session.summary.json"
+   },
+   "status": "moved"
+  },
+  {
+   "id": "v-jag436k",
+   "from": "public/ai/v-jag436k.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/13/v-jag436k/session.jsonl",
+   "summary": {
+    "from": "public/ai/v-jag436k.summary.json",
+    "to": "public/framework/ai/sessions/2026/10/13/v-jag436k/session.summary.json"
+   },
+   "status": "moved"
+  },
+  {
+   "id": "v-timqv56",
+   "from": "public/ai/v-timqv56.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/19/v-timqv56/session.jsonl",
+   "summary": null,
+   "status": "moved"
+  },
+  {
+   "id": "v-yxnts4l",
+   "from": "public/ai/v-yxnts4l.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/05/v-yxnts4l/session.jsonl",
+   "summary": {
+    "from": "public/ai/v-yxnts4l.summary.json",
+    "to": "public/framework/ai/sessions/2026/10/05/v-yxnts4l/session.summary.json"
+   },
+   "status": "moved"
+  },
+  {
+   "id": "v-bn4knay",
+   "from": "public/framework/ai/ai/v-bn4knay.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/14/v-bn4knay/session.jsonl",
+   "summary": null,
+   "status": "moved"
+  },
+  {
+   "id": "v-g6wux1j",
+   "from": "public/framework/ai/ai/v-g6wux1j.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/19/v-g6wux1j/session.jsonl",
+   "summary": {
+    "from": "public/framework/ai/ai/v-g6wux1j.summary.json",
+    "to": "public/framework/ai/sessions/2026/10/19/v-g6wux1j/session.summary.json"
+   },
+   "status": "moved"
+  },
+  {
+   "id": "v-nk0cumu",
+   "from": "public/framework/ai/sessions/2026/09/19/cards/a-153628/ai/v-nk0cumu.jsonl",
+   "to": "public/framework/ai/sessions/2026/09/30/v-nk0cumu/session.jsonl",
+   "summary": {
+    "from": "public/framework/ai/sessions/2026/09/19/cards/a-153628/ai/v-nk0cumu.summary.json",
+    "to": "public/framework/ai/sessions/2026/09/30/v-nk0cumu/session.summary.json"
+   },
+   "status": "moved"
+  },
+  {
+   "id": "v-38kqoi8",
+   "from": "public/framework/ai/sessions/2026/09/24/cards/prompt-mechanics-2/ai/v-38kqoi8.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/12/v-38kqoi8/session.jsonl",
+   "summary": {
+    "from": "public/framework/ai/sessions/2026/09/24/cards/prompt-mechanics-2/ai/v-38kqoi8.summary.json",
+    "to": "public/framework/ai/sessions/2026/10/12/v-38kqoi8/session.summary.json"
+   },
+   "status": "moved"
+  },
+  {
+   "id": "v-8kgkv8g",
+   "from": "public/framework/ai/sessions/2026/09/24/cards/prompt-mechanics-2/ai/v-8kgkv8g.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/12/v-8kgkv8g/session.jsonl",
+   "summary": {
+    "from": "public/framework/ai/sessions/2026/09/24/cards/prompt-mechanics-2/ai/v-8kgkv8g.summary.json",
+    "to": "public/framework/ai/sessions/2026/10/12/v-8kgkv8g/session.summary.json"
+   },
+   "status": "moved"
+  },
+  {
+   "id": "v-l6hpooy",
+   "from": "public/framework/ai/sessions/2026/09/24/cards/prompt-mechanics-2/ai/v-l6hpooy.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/12/v-l6hpooy/session.jsonl",
+   "summary": {
+    "from": "public/framework/ai/sessions/2026/09/24/cards/prompt-mechanics-2/ai/v-l6hpooy.summary.json",
+    "to": "public/framework/ai/sessions/2026/10/12/v-l6hpooy/session.summary.json"
+   },
+   "status": "moved"
+  },
+  {
+   "id": "v-yez756h",
+   "from": "public/framework/ai/sessions/2026/09/30/dictation-stream/dictation-stream/ai/v-yez756h.jsonl",
+   "to": "public/framework/ai/sessions/2026/09/30/v-yez756h/session.jsonl",
+   "summary": {
+    "from": "public/framework/ai/sessions/2026/09/30/dictation-stream/dictation-stream/ai/v-yez756h.summary.json",
+    "to": "public/framework/ai/sessions/2026/09/30/v-yez756h/session.summary.json"
+   },
+   "status": "moved"
+  },
+  {
+   "id": "v-pl3m2ih",
+   "from": "public/framework/ai/sessions/2026/10/01/cards/remote-access-install-tailscale-on-pc-an/ai/v-pl3m2ih.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/01/v-pl3m2ih/session.jsonl",
+   "summary": {
+    "from": "public/framework/ai/sessions/2026/10/01/cards/remote-access-install-tailscale-on-pc-an/ai/v-pl3m2ih.summary.json",
+    "to": "public/framework/ai/sessions/2026/10/01/v-pl3m2ih/session.summary.json"
+   },
+   "status": "moved"
+  },
+  {
+   "id": "v-u13er2e",
+   "from": "public/framework/ai/sessions/2026/10/04/message-cost/message-cost/ai/v-u13er2e.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/03/v-u13er2e/session.jsonl",
+   "summary": null,
+   "status": "moved"
+  },
+  {
+   "id": "v-g7vhxik",
+   "from": "public/framework/ai/sessions/ai/v-g7vhxik.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/04/v-g7vhxik/session.jsonl",
+   "summary": {
+    "from": "public/framework/ai/sessions/ai/v-g7vhxik.summary.json",
+    "to": "public/framework/ai/sessions/2026/10/04/v-g7vhxik/session.summary.json"
+   },
+   "status": "moved"
+  },
+  {
+   "id": "v-ih8xwwd",
+   "from": "public/framework/ai/v-ih8xwwd.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/13/v-ih8xwwd/session.jsonl",
+   "summary": {
+    "from": "public/framework/ai/v-ih8xwwd.summary.json",
+    "to": "public/framework/ai/sessions/2026/10/13/v-ih8xwwd/session.summary.json"
+   },
+   "status": "moved"
+  },
+  {
+   "id": "v-s6za79d",
+   "from": "public/framework/ai/v-s6za79d.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/13/v-s6za79d/session.jsonl",
+   "summary": null,
+   "status": "moved"
+  },
+  {
+   "id": "v-vnsnak7",
+   "from": "public/framework/ai/v-vnsnak7.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/13/v-vnsnak7/session.jsonl",
+   "summary": {
+    "from": "public/framework/ai/v-vnsnak7.summary.json",
+    "to": "public/framework/ai/sessions/2026/10/13/v-vnsnak7/session.summary.json"
+   },
+   "status": "moved"
+  },
+  {
+   "id": "v-dsrwu6k",
+   "from": "public/framework/audio/sound-recorder/ai/v-dsrwu6k.jsonl",
+   "to": "public/framework/ai/sessions/2026/09/30/v-dsrwu6k/session.jsonl",
+   "summary": null,
+   "status": "moved"
+  },
+  {
+   "id": "v-w462yca",
+   "from": "public/framework/ext/Chat/ai/v-w462yca.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/09/v-w462yca/session.jsonl",
+   "summary": {
+    "from": "public/framework/ext/Chat/ai/v-w462yca.summary.json",
+    "to": "public/framework/ai/sessions/2026/10/09/v-w462yca/session.summary.json"
+   },
+   "status": "moved"
+  },
+  {
+   "id": "v-wx5i3ph",
+   "from": "public/framework/ext/Chat/ai/v-wx5i3ph.jsonl",
+   "to": "public/framework/ai/sessions/2026/09/29/v-wx5i3ph/session.jsonl",
+   "summary": null,
+   "status": "moved"
+  },
+  {
+   "id": "v-519tckm",
+   "from": "public/framework/ext/drawer/ai/v-519tckm.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/17/v-519tckm/session.jsonl",
+   "summary": null,
+   "status": "moved"
+  },
+  {
+   "id": "v-8sqhbnl",
+   "from": "public/framework/ext/drawer/ai/v-8sqhbnl.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/17/v-8sqhbnl/session.jsonl",
+   "summary": null,
+   "status": "moved"
+  },
+  {
+   "id": "v-qyb352y",
+   "from": "public/framework/ext/drawer/ai/v-qyb352y.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/17/v-qyb352y/session.jsonl",
+   "summary": {
+    "from": "public/framework/ext/drawer/ai/v-qyb352y.summary.json",
+    "to": "public/framework/ai/sessions/2026/10/17/v-qyb352y/session.summary.json"
+   },
+   "status": "moved"
+  },
+  {
+   "id": "v-w49myh4",
+   "from": "public/framework/ext/drawer/ai/v-w49myh4.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/17/v-w49myh4/session.jsonl",
+   "summary": {
+    "from": "public/framework/ext/drawer/ai/v-w49myh4.summary.json",
+    "to": "public/framework/ai/sessions/2026/10/17/v-w49myh4/session.summary.json"
+   },
+   "status": "moved"
+  },
+  {
+   "id": "v-xtcntyl",
+   "from": "public/framework/ext/drawer/ai/v-xtcntyl.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/17/v-xtcntyl/session.jsonl",
+   "summary": null,
+   "status": "moved"
+  },
+  {
+   "id": "v-ypn9wa4",
+   "from": "public/framework/ext/drawer/ai/v-ypn9wa4.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/17/v-ypn9wa4/session.jsonl",
+   "summary": {
+    "from": "public/framework/ext/drawer/ai/v-ypn9wa4.summary.json",
+    "to": "public/framework/ai/sessions/2026/10/17/v-ypn9wa4/session.summary.json"
+   },
+   "status": "moved"
+  },
+  {
+   "id": "v-d2pkfij",
+   "from": "public/framework/ext/Session/ai/v-d2pkfij.jsonl",
+   "to": "public/framework/ai/sessions/2026/09/29/v-d2pkfij/session.jsonl",
+   "summary": null,
+   "status": "moved"
+  },
+  {
+   "id": "v-kfhnzp5",
+   "from": "public/framework/ux/ai/v-kfhnzp5.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/03/v-kfhnzp5/session.jsonl",
+   "summary": null,
+   "status": "moved"
+  },
+  {
+   "id": "v-z37v4dy",
+   "from": "public/framework/ux/ai/v-z37v4dy.jsonl",
+   "to": "public/framework/ai/sessions/2026/09/29/v-z37v4dy/session.jsonl",
+   "summary": null,
+   "status": "moved"
+  },
+  {
+   "id": "v-03nd2g8",
+   "from": "public/framework/ux/Dictate/ai/v-03nd2g8.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/04/v-03nd2g8/session.jsonl",
+   "summary": null,
+   "status": "moved"
+  },
+  {
+   "id": "v-2joydc7",
+   "from": "public/framework/ux/Dictate/ai/v-2joydc7.jsonl",
+   "to": "public/framework/ai/sessions/2026/09/30/v-2joydc7/session.jsonl",
+   "summary": {
+    "from": "public/framework/ux/Dictate/ai/v-2joydc7.summary.json",
+    "to": "public/framework/ai/sessions/2026/09/30/v-2joydc7/session.summary.json"
+   },
+   "status": "moved"
+  },
+  {
+   "id": "v-4eumhe6",
+   "from": "public/framework/ux/Dictate/ai/v-4eumhe6.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/16/v-4eumhe6/session.jsonl",
+   "summary": {
+    "from": "public/framework/ux/Dictate/ai/v-4eumhe6.summary.json",
+    "to": "public/framework/ai/sessions/2026/10/16/v-4eumhe6/session.summary.json"
+   },
+   "status": "moved"
+  },
+  {
+   "id": "v-54vvocd",
+   "from": "public/framework/ux/Dictate/ai/v-54vvocd.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/16/v-54vvocd/session.jsonl",
+   "summary": {
+    "from": "public/framework/ux/Dictate/ai/v-54vvocd.summary.json",
+    "to": "public/framework/ai/sessions/2026/10/16/v-54vvocd/session.summary.json"
+   },
+   "status": "moved"
+  },
+  {
+   "id": "v-5ey9a9r",
+   "from": "public/framework/ux/Dictate/ai/v-5ey9a9r.jsonl",
+   "to": "public/framework/ai/sessions/2026/09/30/v-5ey9a9r/session.jsonl",
+   "summary": {
+    "from": "public/framework/ux/Dictate/ai/v-5ey9a9r.summary.json",
+    "to": "public/framework/ai/sessions/2026/09/30/v-5ey9a9r/session.summary.json"
+   },
+   "status": "moved"
+  },
+  {
+   "id": "v-6jvcrk2",
+   "from": "public/framework/ux/Dictate/ai/v-6jvcrk2.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/01/v-6jvcrk2/session.jsonl",
+   "summary": {
+    "from": "public/framework/ux/Dictate/ai/v-6jvcrk2.summary.json",
+    "to": "public/framework/ai/sessions/2026/10/01/v-6jvcrk2/session.summary.json"
+   },
+   "status": "moved"
+  },
+  {
+   "id": "v-8053d33",
+   "from": "public/framework/ux/Dictate/ai/v-8053d33.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/16/v-8053d33/session.jsonl",
+   "summary": {
+    "from": "public/framework/ux/Dictate/ai/v-8053d33.summary.json",
+    "to": "public/framework/ai/sessions/2026/10/16/v-8053d33/session.summary.json"
+   },
+   "status": "moved"
+  },
+  {
+   "id": "v-8slfpnj",
+   "from": "public/framework/ux/Dictate/ai/v-8slfpnj.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/16/v-8slfpnj/session.jsonl",
+   "summary": {
+    "from": "public/framework/ux/Dictate/ai/v-8slfpnj.summary.json",
+    "to": "public/framework/ai/sessions/2026/10/16/v-8slfpnj/session.summary.json"
+   },
+   "status": "moved"
+  },
+  {
+   "id": "v-9hcjtbw",
+   "from": "public/framework/ux/Dictate/ai/v-9hcjtbw.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/16/v-9hcjtbw/session.jsonl",
+   "summary": {
+    "from": "public/framework/ux/Dictate/ai/v-9hcjtbw.summary.json",
+    "to": "public/framework/ai/sessions/2026/10/16/v-9hcjtbw/session.summary.json"
+   },
+   "status": "moved"
+  },
+  {
+   "id": "v-9xsb941",
+   "from": "public/framework/ux/Dictate/ai/v-9xsb941.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/16/v-9xsb941/session.jsonl",
+   "summary": {
+    "from": "public/framework/ux/Dictate/ai/v-9xsb941.summary.json",
+    "to": "public/framework/ai/sessions/2026/10/16/v-9xsb941/session.summary.json"
+   },
+   "status": "moved"
+  },
+  {
+   "id": "v-avgc5tq",
+   "from": "public/framework/ux/Dictate/ai/v-avgc5tq.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/16/v-avgc5tq/session.jsonl",
+   "summary": null,
+   "status": "moved"
+  },
+  {
+   "id": "v-bb219z5",
+   "from": "public/framework/ux/Dictate/ai/v-bb219z5.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/16/v-bb219z5/session.jsonl",
+   "summary": {
+    "from": "public/framework/ux/Dictate/ai/v-bb219z5.summary.json",
+    "to": "public/framework/ai/sessions/2026/10/16/v-bb219z5/session.summary.json"
+   },
+   "status": "moved"
+  },
+  {
+   "id": "v-ca4839r",
+   "from": "public/framework/ux/Dictate/ai/v-ca4839r.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/16/v-ca4839r/session.jsonl",
+   "summary": null,
+   "status": "moved"
+  },
+  {
+   "id": "v-cmb22vz",
+   "from": "public/framework/ux/Dictate/ai/v-cmb22vz.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/16/v-cmb22vz/session.jsonl",
+   "summary": {
+    "from": "public/framework/ux/Dictate/ai/v-cmb22vz.summary.json",
+    "to": "public/framework/ai/sessions/2026/10/16/v-cmb22vz/session.summary.json"
+   },
+   "status": "moved"
+  },
+  {
+   "id": "v-d71jyg1",
+   "from": "public/framework/ux/Dictate/ai/v-d71jyg1.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/16/v-d71jyg1/session.jsonl",
+   "summary": {
+    "from": "public/framework/ux/Dictate/ai/v-d71jyg1.summary.json",
+    "to": "public/framework/ai/sessions/2026/10/16/v-d71jyg1/session.summary.json"
+   },
+   "status": "moved"
+  },
+  {
+   "id": "v-dk4x6ha",
+   "from": "public/framework/ux/Dictate/ai/v-dk4x6ha.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/16/v-dk4x6ha/session.jsonl",
+   "summary": {
+    "from": "public/framework/ux/Dictate/ai/v-dk4x6ha.summary.json",
+    "to": "public/framework/ai/sessions/2026/10/16/v-dk4x6ha/session.summary.json"
+   },
+   "status": "moved"
+  },
+  {
+   "id": "v-e0tifok",
+   "from": "public/framework/ux/Dictate/ai/v-e0tifok.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/16/v-e0tifok/session.jsonl",
+   "summary": null,
+   "status": "moved"
+  },
+  {
+   "id": "v-ee5vql4",
+   "from": "public/framework/ux/Dictate/ai/v-ee5vql4.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/16/v-ee5vql4/session.jsonl",
+   "summary": null,
+   "status": "moved"
+  },
+  {
+   "id": "v-f4eh22m",
+   "from": "public/framework/ux/Dictate/ai/v-f4eh22m.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/16/v-f4eh22m/session.jsonl",
+   "summary": {
+    "from": "public/framework/ux/Dictate/ai/v-f4eh22m.summary.json",
+    "to": "public/framework/ai/sessions/2026/10/16/v-f4eh22m/session.summary.json"
+   },
+   "status": "moved"
+  },
+  {
+   "id": "v-g2roikw",
+   "from": "public/framework/ux/Dictate/ai/v-g2roikw.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/04/v-g2roikw/session.jsonl",
+   "summary": null,
+   "status": "moved"
+  },
+  {
+   "id": "v-h07426y",
+   "from": "public/framework/ux/Dictate/ai/v-h07426y.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/01/v-h07426y/session.jsonl",
+   "summary": {
+    "from": "public/framework/ux/Dictate/ai/v-h07426y.summary.json",
+    "to": "public/framework/ai/sessions/2026/10/01/v-h07426y/session.summary.json"
+   },
+   "status": "moved"
+  },
+  {
+   "id": "v-hg4z3e9",
+   "from": "public/framework/ux/Dictate/ai/v-hg4z3e9.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/17/v-hg4z3e9/session.jsonl",
+   "summary": null,
+   "status": "moved"
+  },
+  {
+   "id": "v-hssqp4x",
+   "from": "public/framework/ux/Dictate/ai/v-hssqp4x.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/17/v-hssqp4x/session.jsonl",
+   "summary": {
+    "from": "public/framework/ux/Dictate/ai/v-hssqp4x.summary.json",
+    "to": "public/framework/ai/sessions/2026/10/17/v-hssqp4x/session.summary.json"
+   },
+   "status": "moved"
+  },
+  {
+   "id": "v-jmyg239",
+   "from": "public/framework/ux/Dictate/ai/v-jmyg239.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/04/v-jmyg239/session.jsonl",
+   "summary": {
+    "from": "public/framework/ux/Dictate/ai/v-jmyg239.summary.json",
+    "to": "public/framework/ai/sessions/2026/10/04/v-jmyg239/session.summary.json"
+   },
+   "status": "moved"
+  },
+  {
+   "id": "v-js3vqn5",
+   "from": "public/framework/ux/Dictate/ai/v-js3vqn5.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/12/v-js3vqn5/session.jsonl",
+   "summary": null,
+   "status": "moved"
+  },
+  {
+   "id": "v-lvyx7mv",
+   "from": "public/framework/ux/Dictate/ai/v-lvyx7mv.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/17/v-lvyx7mv/session.jsonl",
+   "summary": {
+    "from": "public/framework/ux/Dictate/ai/v-lvyx7mv.summary.json",
+    "to": "public/framework/ai/sessions/2026/10/17/v-lvyx7mv/session.summary.json"
+   },
+   "status": "moved"
+  },
+  {
+   "id": "v-mbb25ve",
+   "from": "public/framework/ux/Dictate/ai/v-mbb25ve.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/17/v-mbb25ve/session.jsonl",
+   "summary": {
+    "from": "public/framework/ux/Dictate/ai/v-mbb25ve.summary.json",
+    "to": "public/framework/ai/sessions/2026/10/17/v-mbb25ve/session.summary.json"
+   },
+   "status": "moved"
+  },
+  {
+   "id": "v-mu0xaq1",
+   "from": "public/framework/ux/Dictate/ai/v-mu0xaq1.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/16/v-mu0xaq1/session.jsonl",
+   "summary": {
+    "from": "public/framework/ux/Dictate/ai/v-mu0xaq1.summary.json",
+    "to": "public/framework/ai/sessions/2026/10/16/v-mu0xaq1/session.summary.json"
+   },
+   "status": "moved"
+  },
+  {
+   "id": "v-qdb0cdv",
+   "from": "public/framework/ux/Dictate/ai/v-qdb0cdv.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/17/v-qdb0cdv/session.jsonl",
+   "summary": {
+    "from": "public/framework/ux/Dictate/ai/v-qdb0cdv.summary.json",
+    "to": "public/framework/ai/sessions/2026/10/17/v-qdb0cdv/session.summary.json"
+   },
+   "status": "moved"
+  },
+  {
+   "id": "v-qlknb2y",
+   "from": "public/framework/ux/Dictate/ai/v-qlknb2y.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/17/v-qlknb2y/session.jsonl",
+   "summary": {
+    "from": "public/framework/ux/Dictate/ai/v-qlknb2y.summary.json",
+    "to": "public/framework/ai/sessions/2026/10/17/v-qlknb2y/session.summary.json"
+   },
+   "status": "moved"
+  },
+  {
+   "id": "v-smq3u2d",
+   "from": "public/framework/ux/Dictate/ai/v-smq3u2d.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/17/v-smq3u2d/session.jsonl",
+   "summary": null,
+   "status": "moved"
+  },
+  {
+   "id": "v-tsaxzkm",
+   "from": "public/framework/ux/Dictate/ai/v-tsaxzkm.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/16/v-tsaxzkm/session.jsonl",
+   "summary": {
+    "from": "public/framework/ux/Dictate/ai/v-tsaxzkm.summary.json",
+    "to": "public/framework/ai/sessions/2026/10/16/v-tsaxzkm/session.summary.json"
+   },
+   "status": "moved"
+  }
+ ]
+}

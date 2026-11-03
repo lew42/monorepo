@@ -1,0 +1,58 @@
+/* Figma "Typography" section — the one rounded darken panel every section
+   sits in, tight 36px rhythm (the Figma spec's own gap, not the page's
+   fluid --flow), and a dark-ink/accent-text chip instead of the site's
+   orange pill badge. Every class here is prefixed `figma-typo-`, this
+   card's own name, so it can never collide with another card's rule when
+   every card's stylesheet is loaded onto the same AI 2 board at once
+   (review finding 1). */
+@layer site {
+	.figma-typo-panel {
+		border-radius: var(--radius);
+		padding: 2.25em 2em;   /* 36px / 32px at the root size */
+	}
+
+	/* The Figma frame's own gap (36px) read cramped at the site's own type
+	   scale, which runs smaller — ~0.6x (20px) reads the same, and the
+	   links row keeps its own slightly bigger gap above it (24px), same
+	   as the Figma. Flat, not `--flow`: that scales with font-size and the
+	   viewport, and measured 2-3x too tall here. */
+	.figma-typo-panel > * + * { margin-top: 20px; }
+	.figma-typo-panel > :first-child { margin-top: 0; }
+	.figma-typo-panel > .figma-typo-links { margin-top: 24px; }
+	.figma-typo-panel h1,
+	.figma-typo-panel h2,
+	.figma-typo-panel h3,
+	.figma-typo-panel h4,
+	.figma-typo-panel p { margin: 0; }
+
+	/* A dark ink box, small radius, accent uppercase text — not `.ui-pill`'s
+	   fully-rounded orange fill. */
+	.figma-typo-chip {
+		display: inline-block;
+		background: var(--bg);
+		color: var(--prim);
+		font-size: 0.8em;
+		font-weight: 700;
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
+		border-radius: 0.375em;
+		padding: 0.4em 0.75em;
+	}
+
+	/* `flex-wrap` so a narrow card wraps to a SECOND ROW, never inside one
+	   link's own text — `white-space: nowrap` is what stops "Learn more"
+	   breaking into "Learn" / "more" when the row itself has no room left. */
+	.figma-typo-links {
+		flex-wrap: wrap;
+		gap: 16px;
+	}
+	.figma-typo-links .figma-typo-link {
+		color: var(--ink);
+		font-weight: 600;
+		white-space: nowrap;
+		text-decoration-line: underline;
+		text-decoration-color: var(--prim);
+		text-decoration-thickness: 0.2em;
+		text-underline-offset: 0.2em;
+	}
+}

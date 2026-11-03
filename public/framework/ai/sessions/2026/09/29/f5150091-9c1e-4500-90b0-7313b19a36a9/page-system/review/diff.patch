@@ -1,0 +1,825 @@
+diff --git a/.claude/skills/css/improvements.md b/.claude/skills/css/improvements.md
+index cf1209c6..2913fdeb 100644
+--- a/.claude/skills/css/improvements.md
++++ b/.claude/skills/css/improvements.md
+@@ -11,3 +11,5 @@ A recurring line is a rule waiting to be written; the owner promotes.
+ - **`getComputedStyle().getPropertyValue("--x")` hands back the TOKEN TEXT, never a length** (layout-analysis, 2026-09-22). Rule 6 says to smoke-test and read a computed style back; rule 1's last line says to verify a word by reading a computed style rather than inferring it. Neither says that an unregistered custom property has no computed length, so `parseFloat(getPropertyValue("--gutter-x"))` is `NaN` → 0, and a probe reports every page's gutter as zero while looking like it worked. The ways out, in order: read the page's own resolved `gridTemplateColumns` (its px numbers are ground truth — but strip the LINE NAMES first, `[bleed-start] 41.6px …`, or the first "word" parses to 0); or size a scratch element with `width: var(--x)` and read its rect back — which is exact only for a percentage-free token, for the reason in the line above.
+ 2026-09-22 (ai2-master-detail round 2) . the skill's rule for a util-layer collision is "drop the utility from the markup, never fight it in the sheet" — and that advice is unavailable when the markup belongs to ANOTHER MODULE. I moved `ux/Dictate`'s info block (its own `div.c("ux-dictate-info flex v")`) into my composer as a popover and hid it with `display: none` in `@layer theme`; `.flex { display: flex }` in `@layer util` won, so the popover stayed laid out and invisible, `position: absolute` over the row below it, and swallowed every click on two buttons. The symptom is the expensive part: both buttons reported `checkVisibility() === true`, looked perfect in the screenshot, and `elementFromPoint` at their own centres returned `SPAN.ux-dictate-engine`; Playwright resolved the right element and then timed out after 30 s "attempting click action". Worth one line beside the existing util-layer warning: when you cannot edit the markup, hide with `visibility: hidden` + `pointer-events: none` instead — neither is a property any utility sets — and after hiding anything that overlaps, hit-test it (`document.elementFromPoint` at the centre of whatever is underneath), because `display` is the only one of the three that also stops taking clicks.
+ - 2026-09-22 (padding-law): **Two adjacent line-name brackets in `grid-template-columns` are a parse error, and the declaration is dropped in silence.** `... var(--gutter-x) [bleed-end] [toc-start] 15rem ...` is invalid; the names for one grid line must share ONE bracket — `[bleed-end toc-start]`. Nothing throws, `node --check` does not read CSS, the rule's other declarations still apply, and the page just keeps the template it had. It cost a full re-measure. After writing any `grid-template-columns`, read `getComputedStyle(el).gridTemplateColumns` back from the live page and count the tracks against what you typed.
++
++2026-09-29 (page-switcher) . a native <details> element decides at the browser level whether its non-summary content is even in the render tree, and that is NOT the same thing as a display value — `display: contents` on a closed <details>, with real content nested inside it, made getComputedStyle report `display: flex; visibility: visible` on every descendant while the whole box painted at ZERO HEIGHT, completely empty, nothing thrown. No CSS override (not `!important`, not a higher layer) forces a closed <details> to show its non-summary children again once the browser has decided not to render them; MDN itself warns display:contents on native/form-associated widgets is unreliable. The fix was structural, not a CSS fix: never nest real content inside a <details> you plan to restyle around — keep the disclosure element EMPTY but for its own <summary>, put the real content as a SIBLING, and read the toggle open/closed state off that sibling with the `~` combinator (page-switcher, core/Page/layout/switcher/doc/decide.md §2).
+diff --git a/public/framework/core/Page/layout/page.js b/public/framework/core/Page/layout/page.js
+index 07a543a5..f9f36f59 100644
+--- a/public/framework/core/Page/layout/page.js
++++ b/public/framework/core/Page/layout/page.js
+@@ -13,7 +13,7 @@ export default new Page({
+ 	description: "The layout hub: the five shapes, how to choose one, and every layout page on the site.",
+ 	icon: "dashboard_customize",
+ 
+-	children: "floating v1",
++	children: "floating switcher v1",
+ 
+ 	content(){
+ 		section({
+diff --git a/public/framework/core/Page/layout/readme.md b/public/framework/core/Page/layout/readme.md
+index 8c241759..9f5f91eb 100644
+--- a/public/framework/core/Page/layout/readme.md
++++ b/public/framework/core/Page/layout/readme.md
+@@ -25,6 +25,7 @@ drawn live, with demos, at [/layouts/decide/](/layouts/decide/).
+ [core/Layout](/framework/core/Layout/) — the catalogue: 30 named arrangements, each proven at seven widths
+ [sidebar variant](/framework/styles/layouts/sidebar/) — the `.basis + .flex-1` sidebar shape
+ [floating page](/framework/core/Page/layout/floating/) — this module's own inner-sidebar shape, `floating()`
++[switcher](/framework/core/Page/layout/switcher/) — a routed list switches the content beside it (vertical tabs, a file tree, a left nav are its three skins); collapses to a mobile dropdown with no active-class rewrite
+ [layout explorer](/layouts/explorer/) — one tree of every layout on the site, siblings/selected/children in three columns
+ [v1](/framework/core/Page/layout/v1/) — this hub's first version, kept as reference
+ [doc/words](/framework/core/Page/doc/words/) — Standard and Top-down shape, in words
+diff --git a/public/framework/core/Page/layout/switcher/cmp-w-app/page.js b/public/framework/core/Page/layout/switcher/cmp-w-app/page.js
+new file mode 100644
+index 00000000..47e87b90
+--- /dev/null
++++ b/public/framework/core/Page/layout/switcher/cmp-w-app/page.js
+@@ -0,0 +1,15 @@
++import { Page, p } from "/app.js";
++
++/**
++ * See cmp-w-index/page.js.
++ */
++export default new Page({
++	meta: import.meta,
++	title: "app.js",
++	description: "Demo file for the switcher's wide comparison frame.",
++	icon: "description",
++
++	content(){
++		p("Click back to index.js in the list beside this — the url changes, and the .active mark moves with it. Router did that, not this page.");
++	},
++});
+diff --git a/public/framework/core/Page/layout/switcher/cmp-w-index/page.js b/public/framework/core/Page/layout/switcher/cmp-w-index/page.js
+new file mode 100644
+index 00000000..3200884a
+--- /dev/null
++++ b/public/framework/core/Page/layout/switcher/cmp-w-index/page.js
+@@ -0,0 +1,20 @@
++import { Page, p } from "/app.js";
++
++/**
++ * The wide side of the "wide vs narrow" comparison — a SEPARATE route from
++ * wide-index/page.js (used by the skins section further down the same page.js),
++ * even though the label is the same. Calling `this.switcher()` twice with the SAME
++ * child names on one page overwrites the first call's mounting region — this pair
++ * exists so the comparison demo and the vertical-tabs skin demo never collide. See
++ * core/Page/layout/switcher/page.js and doc/decide.md.
++ */
++export default new Page({
++	meta: import.meta,
++	title: "index.js",
++	description: "Demo file for the switcher's wide comparison frame.",
++	icon: "description",
++
++	content(){
++		p("This is the file the wide frame shows first — a stand-in, so the switcher pattern has something real to route between.");
++	},
++});
+diff --git a/public/framework/core/Page/layout/switcher/doc/decide.md b/public/framework/core/Page/layout/switcher/doc/decide.md
+new file mode 100644
+index 00000000..2b3bc0a0
+--- /dev/null
++++ b/public/framework/core/Page/layout/switcher/doc/decide.md
+@@ -0,0 +1,124 @@
++# Decide: can the collapse be done without touching the active-class logic?
++
++**Yes.** The narrow-width dropdown is a CSS-only, container-query addition in
++[switcher.css](../switcher.css) that reacts to classes core/Router already sets; nothing in
++switcher.js or switcher.css sets, reads differently, or overrides how those classes get decided.
++
++## 1. Where "which one is current" actually lives today
++
++Two classes mark pages, two mark links, and one CSS rule is the only place any of the four
++change what's on screen:
++
++- **`Router.mark()`** — [`core/Router/Router.js:128-135`](/framework/core/Router/Router.js) —
++  un-marks the page chain it marked last time, then marks the new one: `.active-page` on the
++  leaf, `.active-ancestor` on everything above it. Two `classList` calls; no other state.
++- **`Router.mark_links()`** — [`core/Router/Router.js:139-153`](/framework/core/Router/Router.js)
++  — walks every real `<a href>` under `$app` and toggles `.active` (exact url match) and
++  `.in-path` (an ancestor's url) on each one. This is what lights up a tab or a nav link; it has
++  no idea it's inside a tab bar, a file tree or a switcher.
++- **The one display rule** — [`core/Page/Page.css:27-29`](/framework/core/Page/Page.css) — `.page
++  :not(.active-page, .active-ancestor, .default) { display: none; }`. This is the *entire*
++  show/hide mechanism for a page. It is in `@layer util`, so nothing in any component's own
++  `@layer theme` — including switcher.css — can out-rank it, only build on top of it.
++
++`ext/tabs` already proves the point once: `tabs.js` never sets `.active` itself — see the
++comment at [`ext/tabs/tabs.js:54`](/framework/ext/tabs/tabs.js), "these links were built after
++mark() ran, so they missed the pass" — it just re-runs Router's own `mark_links()`. Its CSS,
++[`ext/tabs/tabs.css:260-302`](/framework/ext/tabs/tabs.css), already turns a vertical rail into a
++horizontal row under a *media* query (`@media (max-width: 64em)`) by doing nothing but reading
++`.tab.active` / `.tab.in-path` — proof, already shipped, that a layout can adapt around these
++classes with zero new JavaScript.
++
++## 2. What switcher.css adds, and why it's still zero new JS-for-state
++
++The gap between what `ext/tabs` already does and what the owner asked for is real: a media-query
++row of *all* the tabs, scrollable, is not "a one-row header showing only the active item, tap to
++open the rest." Closing that gap needed exactly one more idea — **`<details>`**, whose open/closed
++state is native, not something Router or any script has to track — plus a CSS rule that hides
++every tab *except* the one already carrying `.active` or `.in-path` while it's closed:
++
++```css
++/* switcher.css:70-72 */
++.switcher-drop:not([open]) ~ .tabs.vertical > .tab-bar > .tab:not(.active, .in-path) {
++	display: none;
++}
++```
++
++That's the whole trick. It's a `:not()` on classes Router already put there — this rule doesn't
++know or care *how* `.active` got set, only that it's the one class not to hide. Tapping the
++toggle flips the browser's own `[open]` attribute (no listener needed for that part either);
++[switcher.js](../switcher.js)'s one small script only closes it again after a link is clicked,
++reading `e.target.closest("a.tab")` — which link was clicked — never reading or writing `.active`.
++Delete that listener and the pattern still works; the reader just has to tap the toggle a second
++time to close it.
++
++**Two real traps turned up building this, both instructive, neither about the active-class
++question — they're both about `<details>` and containers, which is why they belong here:**
++
++- **A native `<details>` will not reliably show CSS-nested content again, even when the CSS says
++  it should.** The first version put `this.tabs(names)` *inside* the `<details>`, with
++  `.switcher-drop { display: contents }` meant to make it inert at wide widths. `getComputedStyle`
++  reported everything as expected — `display: flex`, `visibility: visible` — and yet the box
++  painted at **zero height**, completely empty. `<details>` decides whether its non-summary
++  content is even in the render tree at the browser level, and that decision is not the same
++  thing as a `display` value; no CSS in any layer can force it back open once the element is
++  closed and unstyled that way (MDN's own caution about `display: contents` on native
++  form-associated widgets). The fix was structural, not a workaround: `.switcher-drop` (the
++  `<details>`, holding nothing but its own `<summary>`) sits **beside** `.tabs.vertical` as a
++  sibling, never wrapping it, and the CSS reads the toggle's `[open]` state off that sibling with
++  the `~` combinator — [switcher.js](../switcher.js)'s own header comment tells this story too, so
++  the next person who reaches for `<details>` around real content sees it before repeating it.
++- **A `@container` rule can't restyle the box that declares the container — and this bit the fix
++  for the first trap, too.** Once the toggle and the list were siblings, the OPEN dropdown needed
++  `position: absolute` against their shared parent, `.switcher` — so `.switcher` needed
++  `position: relative`. That rule was first written *inside* `@container switcher (width < 30em)`,
++  targeting `.switcher` itself: exactly the self-referential case the css skill already names
++  ("a box cannot restyle its own container"). It silently never applied — `getComputedStyle`
++  confirmed `.switcher`'s `position` stayed `static`, and the dropdown positioned itself against
++  `<body>` instead, landing near the top of the page. The fix: `position: relative` moved to
++  `.switcher`'s own unconditional rule at [switcher.css:30](../switcher.css), outside the query —
++  harmless at every width, since nothing uses it as a positioning anchor until the query's own
++  rules need one.
++
++The container query itself — `@container switcher (width < 30em)` at
++[switcher.css:44](../switcher.css) — is declared on the box that opens the container
++(`.switcher`, [switcher.css:30](../switcher.css)) and read on its descendants (`.switcher-drop`,
++`.tabs.vertical`), never on `.switcher` itself for anything that needs the query to actually fire.
++
++**Two more `<details>`/container quirks turned up fusing the toggle and the label into one row
++(2026-09-29), same family as the two above — still nothing to do with the active-class answer:**
++
++- **An absolutely positioned `<summary>` sized only by `inset: 0 0 auto 0` measured `width: 0` in
++  Chromium**, even though `left` and `right` both computed to `0px` (verified with
++  `getComputedStyle` — a plain CSS2.1 abs-pos box with both inline insets set should fill its
++  containing block regardless of `display`). The fix was to stop relying on that: the toggle is
++  now a small `width: 2.4em` chevron button pinned to the row's end (`right: 0`) with an explicit
++  size, not a full-row overlay — simpler, and it sidesteps the bug rather than explaining it.
++- **The row measured full width on an actual 400px BROWSER but shrink-wrapped to its own label
++  (115px in a 332px switcher) on a 1920/3440 browser with the same ~400px demo FRAME.** The cause:
++  `ext/tabs/tabs.css`'s own vertical-rail collapse sets `align-items: stretch` under
++  `@media (max-width: 64em)` — a *viewport* query — which this module's `@container switcher
++  (width < 30em)` had been quietly relying on. A container query can match on a wide viewport (an
++  880px frame shrunk into a narrow card), where that media query never fires. Fix:
++  `align-items: stretch` is now stated directly on `.switcher-drop ~ .tabs.vertical`, inside the
++  container query itself, so the collapse no longer depends on the page's own width.
++
++## 3. What this proves
++
++The exact same `.active-page` / `.active-ancestor` / `.active` / `.in-path` marks that drive every
++tab strip and every nav link on the site reshape into a collapsing mobile dropdown — a full-width
++sticky header showing the current item's label and a real toggle icon, tap to open the rest — using
++CSS alone (plus one optional, state-reading-only script that only ever reads which link was
++clicked, never `.active`/`.in-path`). See the live demo on [the pattern page](../page.js), "Wide vs
++narrow, side by side": the same `switcher()` call, unmodified, framed at ~880px and ~400px on one
++page, no window resize needed. The label-and-chevron fusion once listed here as "not proven" is
++done (2026-09-29) — the two quirks above are what it took.
++
++## Converging with task-mastermind-file-system
++
++Its brief (`public/framework/ai/2026-09-29/file-system/minion-b/requirements.md`, deliverable 4)
++says only "at 400 the tree folds away behind a button" — no class named yet. This page names one:
++once `ext/filesystem`/`ext/files` is on `michael/dev`, its mobile explorer should call
++`this.switcher(names, { skin: "tree" })` (or add a fourth skin here if the file tree needs
++something `.switcher-skin-tree` doesn't give it) instead of building a second collapse mechanism.
++Its task dir: `public/framework/ai/2026-09-29/file-system/`.
+diff --git a/public/framework/core/Page/layout/switcher/doc/decisions.md b/public/framework/core/Page/layout/switcher/doc/decisions.md
+new file mode 100644
+index 00000000..c73885b8
+--- /dev/null
++++ b/public/framework/core/Page/layout/switcher/doc/decisions.md
+@@ -0,0 +1,48 @@
++# Decisions
++
++## Open
++
++- **CSS namespace reservation, not yet written to `css-scopes.txt`.** That file is outside this
++  task's fence (`core/Page/layout/switcher/**` only), so the line is recorded here instead
++  (`new-css-class` skill, step 5's own instruction for exactly this case). The next agent who can
++  write `public/framework/styles/css-scopes.txt` should add, under the `core` block:
++
++  ```
++  switcher-    core/Page/layout/switcher
++  ```
++
++  Census run before choosing the name: `grep -rhoE "\.switcher[a-z0-9-]*" public --include=*.css
++  --include=*.js` returned one hit, `ux/Auth/Auth.js`'s `this.switcher(...)` — a method call on an
++  unrelated `Auth` view, not a CSS class or a stylesheet rule, so it isn't a real collision.
++
++## Decided
++
++- **Built on `ext/tabs`, not a rewrite of it.** `switcher()` calls `this.tabs(names).ac("vertical")`
++  rather than reimplementing routing/marking — see [decide.md](decide.md). Reuse over a second
++  mechanism, per `code#3` (parts/behaviour reuse) and the owner's own "could you just reuse the
++  layout?" in the brief's source transcript.
++- **The demo's ten child pages are deliberately content-free filler** (`cmp-w-index`, `cmp-w-app`,
++  `wide-index`, `wide-app`, `narrow-index`, `narrow-app`, `tree-styles`, `tree-router`, `nav-home`,
++  `nav-settings`) — they exist only to give `switcher()` real routes to switch between on this
++  pattern page, not as documentation subjects of their own. No `doc/` under any of them.
++- **`leaf: true` on the pattern page** keeps all ten filler pages out of the site nav rail (they
++  used to flood it — "index.js" and "app.js" each showed three times under "Switcher") while
++  keeping the pattern page itself listed in `core/Page/layout/`'s hub exactly as before. `leaf`
++  only hides a page's OWN children from the rail tree (`Page.class.js:1044`, `ux/Tree/Tree.js`) —
++  it does not touch routing, so `this.switcher()` still resolves every name normally. Same pattern
++  as `audit/page.js`. No hide-just-from-nav flag exists for a single child; `leaf` on the whole
++  page was the fit here because every child on this page is filler, not real content.
++- **The "wide vs narrow" and "three skins" demo rows both take `.ac("wide")`.** Without it they sit
++  in the page's default `main` track (the prose measure), and two ~880px+400px cards side by side
++  don't fit there — `flex wrap` drops the narrow one onto its own line below the wide one instead
++  of beside it, at every width including 3440 (layout skill: "two or more columns of content never
++  live in main").
++- **Each demo child's own `h1.page-title` is shrunk to `h3` size, inside the switcher's demo frames
++  only** (`switcher.css`'s two `.switcher-demo-frame-* .page h1.page-title` rules) — a whole-page
++  display heading is the wrong size for a one-line stand-in file in an 880px or 400px box; nowhere
++  else on the site is `h1.page-title` touched.
++- **The collapsed header shows the current item's label, full width, with a real toggle icon** —
++  not a bare chevron above a second, separate row. `switcher.js`/`switcher.css` still never set or
++  read `.active`/`.in-path`; see decide.md §2 for exactly what changed and two more `<details>`
++  quirks it took to get there (a zero-width absolutely-positioned `<summary>`, and a header that
++  measured full width only on an actually-narrow BROWSER, not a narrow container on a wide one).
+diff --git a/public/framework/core/Page/layout/switcher/narrow-app/page.js b/public/framework/core/Page/layout/switcher/narrow-app/page.js
+new file mode 100644
+index 00000000..9d15417d
+--- /dev/null
++++ b/public/framework/core/Page/layout/switcher/narrow-app/page.js
+@@ -0,0 +1,15 @@
++import { Page, p } from "/app.js";
++
++/**
++ * See narrow-index/page.js.
++ */
++export default new Page({
++	meta: import.meta,
++	title: "app.js",
++	description: "Demo file for the switcher's narrow comparison frame.",
++	icon: "description",
++
++	content(){
++		p("At this width the list above collapsed to a one-row header showing just the active file. Tap it to see the other one.");
++	},
++});
+diff --git a/public/framework/core/Page/layout/switcher/narrow-index/page.js b/public/framework/core/Page/layout/switcher/narrow-index/page.js
+new file mode 100644
+index 00000000..2e290d85
+--- /dev/null
++++ b/public/framework/core/Page/layout/switcher/narrow-index/page.js
+@@ -0,0 +1,18 @@
++import { Page, p } from "/app.js";
++
++/**
++ * The same two-file demo as wide-index/wide-app, but routed separately so this
++ * frame's own tabs() call gets its own regions — a SEPARATE instance of the exact
++ * same pattern, boxed to about 400px to prove the container-query collapse without
++ * resizing the window. See core/Page/layout/switcher/page.js.
++ */
++export default new Page({
++	meta: import.meta,
++	title: "index.js",
++	description: "Demo file for the switcher's narrow comparison frame.",
++	icon: "description",
++
++	content(){
++		p("Same file, same label as the wide frame's — a different route under the hood, so both frames can be live on this page at once.");
++	},
++});
+diff --git a/public/framework/core/Page/layout/switcher/nav-home/page.js b/public/framework/core/Page/layout/switcher/nav-home/page.js
+new file mode 100644
+index 00000000..7a249346
+--- /dev/null
++++ b/public/framework/core/Page/layout/switcher/nav-home/page.js
+@@ -0,0 +1,17 @@
++import { Page, p } from "/app.js";
++
++/**
++ * A demo page for the "left nav" skin of the switcher pattern — a plain sidebar
++ * feel (a soft fill on the current item, no flowing tab accent). See
++ * core/Page/layout/switcher/page.js.
++ */
++export default new Page({
++	meta: import.meta,
++	title: "Home",
++	description: "Demo page for the switcher's left-nav skin.",
++	icon: "home",
++
++	content(){
++		p("A left nav is the same switcher again — a list on the left routes the content on the right — dressed as a quiet sidebar instead of a tab strip.");
++	},
++});
+diff --git a/public/framework/core/Page/layout/switcher/nav-settings/page.js b/public/framework/core/Page/layout/switcher/nav-settings/page.js
+new file mode 100644
+index 00000000..b18c33ef
+--- /dev/null
++++ b/public/framework/core/Page/layout/switcher/nav-settings/page.js
+@@ -0,0 +1,15 @@
++import { Page, p } from "/app.js";
++
++/**
++ * See nav-home/page.js.
++ */
++export default new Page({
++	meta: import.meta,
++	title: "Settings",
++	description: "Demo page for the switcher's left-nav skin.",
++	icon: "settings",
++
++	content(){
++		p("Same routing, same active marks — only the CSS in .switcher-skin-nav changed.");
++	},
++});
+diff --git a/public/framework/core/Page/layout/switcher/page.js b/public/framework/core/Page/layout/switcher/page.js
+new file mode 100644
+index 00000000..ae1ec26d
+--- /dev/null
++++ b/public/framework/core/Page/layout/switcher/page.js
+@@ -0,0 +1,91 @@
++import { Page, div, h3, p, span, a, code, md } from "/app.js";
++import "./switcher.js";
++
++/**
++ * The Switcher, live: a list on the left switches the content on the right. Show,
++ * don't tell — the two demos below ARE the pattern; readme.md underneath is the
++ * words. See core/Page/layout/page.js ("the hub") for where this sits, and
++ * doc/decide.md for the one question this page exists to answer.
++ */
++export default new Page({
++	meta: import.meta,
++	title: "Switcher",
++	description: "One routed list-switches-content pattern, in three skins, that collapses to a mobile dropdown with no change to how the active item is decided.",
++	icon: "view_sidebar",
++
++	// `leaf: true`: these 10 children are content-free filler that only exist to give
++	// switcher() something real to route between (doc/decisions.md) — not pages of
++	// their own the reader should ever browse to from the site rail. `leaf` hides a
++	// page's OWN children from the nav tree while it still shows itself in its
++	// parent's row (Page.class.js:1044, same pattern as audit/page.js) — so "Switcher"
++	// still lists in core/Page/layout/'s hub exactly as before, and the rail no longer
++	// shows "index.js" three times and "app.js" three times underneath it. Routing is
++	// untouched: this.switcher() below still resolves every name from `this.children`.
++	leaf: true,
++
++	children: "cmp-w-index cmp-w-app narrow-index narrow-app wide-index wide-app tree-styles tree-router nav-home nav-settings",
++
++	content(){
++		p("Vertical tabs, a file tree beside its code, and a plain left nav are all the same thing: a list on the left routes to real, url'd content on the right. Below, the same switcher() call proves it two ways — first that shrinking it needs no new JavaScript, then that the same list wears three different skins.");
++
++		h3("Wide vs narrow, side by side");
++		p("Two live instances of the exact same pattern, framed at fixed widths so the collapse is visible without resizing the window. Tap the narrow one's header to open its list.");
++
++		// `.ac("wide")`: two ~880px/~400px cards side by side need the page's WIDE
++		// track, not the default `main` measure — squeezed into `main` at 1920/3440
++		// they don't fit and `flex wrap` stacks the narrow one below the wide one
++		// instead of beside it (layout skill: "two or more columns of content never
++		// live in main").
++		div.c("flex wrap gap", () => {
++			div.c("card switcher-demo-frame-wide", () => {
++				p.c("muted", "~880px");
++				this.switcher("cmp-w-index cmp-w-app");
++			});
++			div.c("card switcher-demo-frame-narrow", () => {
++				p.c("muted", "~400px");
++				this.switcher("narrow-index narrow-app");
++			});
++		}).ac("wide");
++
++		h3("Three skins, one mechanism");
++		p("Same routing, same .active marks, only the CSS changes.");
++
++		div.c("flex wrap gap", () => {
++			div.c("card switcher-demo-frame-wide", () => {
++				p.c("muted", 'Vertical tabs (the default)');
++				this.switcher("wide-index wide-app");
++			});
++			div.c("card switcher-demo-frame-wide", () => {
++				p.c("muted", 'File tree — skin: "tree"');
++				this.switcher("tree-styles tree-router", { skin: "tree" });
++			});
++			div.c("card switcher-demo-frame-wide", () => {
++				p.c("muted", 'Left nav — skin: "nav"');
++				this.switcher("nav-home nav-settings", { skin: "nav" });
++			});
++		}).ac("wide");
++
++		h3("The answer");
++		p(() => {
++			span("Can the collapse be done without touching the active-class logic? ");
++			span.c("code", "Yes");
++			span(" — switcher.js never sets or reads .active-page, .active-ancestor, .active or .in-path; switcher.css only reacts to them. The full proof, with files and lines, is ");
++			code("doc/decide.md");
++			span(".");
++		});
++		a("Read the proof →").href("doc/decide.md");
++
++		h3("Converging with /fs");
++		p(() => {
++			span("task-mastermind-file-system is building the first real instance of this shape — the mobile file explorer at ");
++			code("/fs");
++			span(". Its work (task dir: ");
++			code("public/framework/ai/2026-09-29/file-system/");
++			span(") is not on michael/dev yet, so this page names the class instead of wiring to it: once its branch merges, reuse ");
++			code('this.switcher(names, { skin: "tree" })');
++			span(" there instead of a second collapse mechanism — see doc/decide.md's last section.");
++		});
++
++		div().append(md.file(import.meta, "readme.md", { h1: false }));
++	},
++});
+diff --git a/public/framework/core/Page/layout/switcher/readme.md b/public/framework/core/Page/layout/switcher/readme.md
+new file mode 100644
+index 00000000..d73e5459
+--- /dev/null
++++ b/public/framework/core/Page/layout/switcher/readme.md
+@@ -0,0 +1,52 @@
++# Switcher — one list-switches-content pattern, three skins
++
++Vertical tabs, a file tree beside its code, and a plain left nav all do the same job: a list on
++the left, or above on a phone, routes the content on the right. Vertical tabs is the CSS-flush
++skin, a file tree adds a monospace/file-glyph skin, a left nav adds a quiet-sidebar skin — the
++routing underneath is identical, and that identity is the whole point of this module.
++
++## Use
++
++```js page.js
++import "/framework/core/Page/layout/switcher/switcher.js";   // once, anywhere in your app
++
++content(){ this.switcher("guide api reference"); }                    // vertical tabs (default)
++content(){ this.switcher("index-js router-js", { skin: "tree" }); }   // file tree
++content(){ this.switcher("home settings", { skin: "nav" }); }         // left nav
++```
++
++`names` is the same space-separated child-name string `this.tabs()` already takes (ext/tabs) —
++`switcher()` calls `this.tabs(names).ac("vertical")` for you and wraps it. Every name needs a
++real child page (a `children:` line and its own folder), because a switcher IS routing: each
++choice gets a real url, the same as any other page on the site.
++
++## Why this needed its own module, and not just a CSS class on `ext/tabs`
++
++The owner had been uneasy about `ext/tabs`'s active/in-path classes for a while — not because
++they don't work, but because adapting them for a phone (turning a left nav into a sticky
++dropdown) sounded like it would mean rewriting how "which one is current" gets decided. It
++doesn't: [doc/decide.md](doc/decide.md) is the proof, with the files and lines. `switcher.js`
++adds exactly one behaviour ext/tabs doesn't have — a container-query collapse to a one-row
++sticky header — and touches zero of Router's or Page.css's own code to do it.
++
++## Watch out
++
++- **This is presentation on top of `ext/tabs`, not a replacement for it.** A plain `this.tabs()`
++  call still works everywhere it always has; reach for `switcher()` only when the list itself
++  needs to collapse into a dropdown on a narrow container.
++- **The container query needs a sized ancestor.** `.switcher` declares `container-type:
++  inline-size` on itself; if the box around it has no defined width (a flex item with no
++  `flex-basis`, say), the query has nothing to measure against. See `doc/decide.md`.
++- **`switcher.js` closes the `<details>` after a click purely as a courtesy** — it reads which
++  link was clicked, never which one carries `.active`. Delete that one listener and the pattern
++  still works; the list just stays open until the reader taps the header again.
++- **The three skins are demos, not a closed set.** A fourth skin is a fourth CSS block in
++  `switcher.css` under `.switcher-skin-<name>`; nothing in `switcher.js` needs to change.
++
++## More
++
++- [doc/decide.md](doc/decide.md) — the proof: can the collapse be added without touching the
++  active-class logic, with the files and lines
++- [core/Router](/framework/core/Router/) — `mark()` / `mark_links()`, the classes this module reads
++- [core/Page/layout](/framework/core/Page/layout/) — the hub this page sits in, beside `floating`
++- [ext/tabs](/framework/ext/tabs/) — the routing and the vertical-rail styling this builds on
+diff --git a/public/framework/core/Page/layout/switcher/switcher.css b/public/framework/core/Page/layout/switcher/switcher.css
+new file mode 100644
+index 00000000..75faf025
+--- /dev/null
++++ b/public/framework/core/Page/layout/switcher/switcher.css
+@@ -0,0 +1,163 @@
++/* The Switcher — a routed list that switches the content beside it. Structure and
++   tokens only; every colour comes from the theme through --surface/--line/--fill-a08.
++
++   ⚠ The routing and the four classes that show which item is current — .active-page,
++   .active-ancestor (core/Router, core/Page/Page.css's arrangement contract) and
++   .active, .in-path (Router.mark_links(), stamped on the <a> tags ext/tabs builds) —
++   are NOT declared anywhere in this file and switcher.js never touches them either.
++   Everything below reacts to those four classes; nothing here sets them. That is the
++   whole answer to doc/decide.md's question, in code.
++
++   ⚠ `.switcher-drop` (the <details> toggle) is a SIBLING of `.tabs.vertical`, never
++   its parent — see switcher.js's own comment and doc/decide.md §2. A native
++   `<details>` decides on its own, at the browser level, whether its non-summary
++   content is even in the render tree; that is not the same thing as a `display`
++   value, and no CSS in this file can force it back open. Reading the toggle's
++   `[open]` state off a SIBLING with `~` sidesteps the whole problem. */
++
++@layer theme {
++
++	/* The container query boundary. ⚠ Declared HERE and read on a DESCENDANT
++	   (.switcher-drop, .tabs.vertical) below — a box can never restyle its own
++	   container (the css skill's "the other half": a `@container` rule whose subject
++	   IS the box that declares the container never fires, and nothing throws — this
++	   is also why `position: relative` sits right here, UNCONDITIONALLY, rather than
++	   inside the query below: a first version put it inside `@container switcher
++	   (...)`, targeting `.switcher` itself, and it silently never applied — the
++	   dropdown positioned itself against `<body>` instead of its own switcher and
++	   landed near the top of the page. Harmless at wide widths; only used once the
++	   query below actually needs a containing block for the open dropdown.) */
++	.switcher { container-type: inline-size; container-name: switcher; min-width: 0; position: relative; }
++
++	/* WIDE (the default, before the query below ever matches): the toggle stays
++	   hidden, since there is nothing to disclose at this width — `.tabs.vertical`
++	   right beside it is a perfectly normal element and already lays out exactly as
++	   it does anywhere else on the site (ext/tabs/tabs.css); nothing here touches it. */
++	.switcher-toggle { display: none; }
++
++	/* NARROW: the list becomes a one-row sticky header holding only the CURRENT item;
++	   tapping the toggle above it opens the full list as a dropdown over the content
++	   below. 30em was picked so the ~400px narrow demo frame on this module's own
++	   page.js matches it with room to spare, and a normal phone viewport (which also
++	   carries ext/tabs' own 64em media-query collapse) matches both at once with no
++	   conflict — see doc/decide.md. */
++	@container switcher (width < 30em) {
++
++		.switcher-drop {
++			display: block;
++			position: sticky; top: 0; z-index: 2;
++		}
++
++		/* CLOSED: `.switcher-drop`'s own box collapses to zero height — no separate
++		   chevron row — and its <summary> becomes just the chevron button, pinned to
++		   the end of the row that the one surviving tab (below) now spans full width.
++		   Together they read as ONE header ("index.js ▾"): the label is the tab's own
++		   text, never duplicated here; tapping the chevron opens the list. ⚠ Tried
++		   first as an inset:0 overlay spanning the WHOLE row (so a tap anywhere would
++		   open it) — Chromium measured that box at width:0 despite explicit left:0;
++		   right:0 (a <details>/<summary> sizing quirk, the same family doc/decide.md
++		   §2 already hit once). An EXPLICIT width sidesteps it. */
++		.switcher-drop:not([open]) { height: 0; }
++		.switcher-drop:not([open]) .switcher-toggle {
++			position: absolute; top: 0; right: 0; width: 2.4em; height: 2.4em;
++			padding: 0; background: none; border: none;
++		}
++
++		.switcher-toggle {
++			display: flex; align-items: center; justify-content: center;
++			list-style: none; cursor: pointer;
++			padding: 0.4em; background: var(--surface); border-bottom: 1px solid var(--line);
++		}
++		.switcher-toggle::-webkit-details-marker { display: none; }
++
++		/* ⚠ `align-items: stretch` matters here: without it the row only shrink-wraps
++		   its own label (`align-items: flex-start` is `.tabs.vertical`'s own default,
++		   from tabs.css) — invisible on an actually-narrow BROWSER, since tabs.css's
++		   own `@media (max-width: 64em)` sets `stretch` there anyway, but this
++		   CONTAINER query can match on a wide screen too (an 880px demo frame shrunk
++		   to fit a phone-sized CARD) where that media query never fires, and the
++		   header row measured 115px wide in a 332px switcher instead of spanning it
++		   (2026-09-29 proof run). Stated here so the container query's own narrow
++		   state never depends on the page's viewport width, only the switcher's. */
++		.switcher-drop ~ .tabs.vertical { flex-direction: column; gap: 0; align-items: stretch; }
++		.switcher-drop ~ .tabs.vertical > .tab-bar {
++			flex-direction: row; flex: 0 0 auto;
++			position: sticky; top: 2.4em; z-index: 1;
++			max-height: none;
++			background: var(--surface);
++			border-inline-end: none; border-bottom: 1px solid var(--line);
++			mask-image: none;
++		}
++
++		/* CLOSED: every tab but the one CURRENTLY SHOWING is gone, so this row IS the
++		   header. "Currently showing" reads the exact same test ext/tabs' own CSS
++		   already uses for its highlight everywhere else on the site (tabs.css): a
++		   real `.active`/`.in-path` mark when Router set one, else — a set with
++		   nothing of its own in the url yet, e.g. a second switcher() on one host
++		   page, since `this.default_tab` (ext/tabs/tabs.js) is a single field that
++		   only the FIRST switcher()/tabs() call on a page can own — the first tab,
++		   same as `.tab-bar:not(:has(...)) > .tab:first-child` in tabs.css. Neither
++		   branch is new logic; both are copied from what tabs.css already reads.
++		   The survivor also spans the row's whole width and keeps clear of the
++		   chevron button pinned over its end (above), so together they read as one
++		   header ("index.js ▾"), not a lone list item. */
++		.switcher-drop:not([open]) ~ .tabs.vertical > .tab-bar { top: 0; }
++
++		.switcher-drop:not([open]) ~ .tabs.vertical > .tab-bar:has(.tab.active, .tab:is(.in-path, [aria-current]):not(.tab-default)) > .tab:not(.active, .in-path) {
++			display: none;
++		}
++		.switcher-drop:not([open]) ~ .tabs.vertical > .tab-bar:not(:has(.tab.active, .tab:is(.in-path, [aria-current]):not(.tab-default))) > .tab:not(:first-child) {
++			display: none;
++		}
++
++		.switcher-drop:not([open]) ~ .tabs.vertical > .tab-bar > .tab:is(.active, .in-path),
++		.switcher-drop:not([open]) ~ .tabs.vertical > .tab-bar:not(:has(.tab.active, .tab:is(.in-path, [aria-current]):not(.tab-default))) > .tab:first-child {
++			flex: 1 1 auto; padding-inline-end: 2.4em;
++		}
++
++		/* OPEN: the full list drops down over whatever is below it. ⚠ `top: 2.4em`, not
++		   `100%` — `.switcher` (its containing block, above) wraps the toggle AND the
++		   panel together, so `100%` would be the height of the WHOLE switcher, not the
++		   toggle row alone. 2.4em matches the toggle's own rendered height (an icon
++		   plus 0.4em of padding on each side — the grammar's own control floor). */
++		.switcher-drop[open] ~ .tabs.vertical > .tab-bar {
++			flex-direction: column;
++			position: absolute; inset-inline: 0; top: 2.4em;
++			background: var(--surface); border: 1px solid var(--line);
++			max-height: 60vh; overflow: auto; z-index: 2;
++		}
++
++		.switcher-drop ~ .tabs.vertical > .tab-panel { padding-top: 1rem; }
++	}
++
++	/* ── Three skins, one mechanism: only the paint changes below ── */
++
++	/* Tree — a file-explorer feel: monospace labels, a small file glyph. */
++	.switcher-skin-tree .tabs.vertical .tab { font-family: monospace; font-size: 0.9em; }
++	.switcher-skin-tree .tabs.vertical .tab::before { content: "\1F4C4"; margin-inline-end: 0.4em; }
++
++	/* Nav — a plain sidebar: no flowing tab accent, a soft fill on the current item. */
++	.switcher-skin-nav .tabs.vertical > .tab-bar > .tab { border-inline-end-color: transparent; border-radius: var(--radius); }
++	.switcher-skin-nav .tabs.vertical > .tab-bar > .tab.active,
++	.switcher-skin-nav .tabs.vertical > .tab-bar > .tab:is(.in-path, [aria-current]):not(.tab-default) {
++		background: var(--fill-a08); border-inline-end-color: transparent;
++	}
++
++	/* ── Demo chrome for this module's own page.js only — two fixed-width frames so
++	     the collapse is visible side by side without resizing the browser window.
++	     Nothing a real caller of switcher() needs; `.card` (framework.css) gives the
++	     border/background/padding, these two classes only fix the width. */
++	.switcher-demo-frame-wide { width: 880px; max-width: 100%; }
++	.switcher-demo-frame-narrow { width: 400px; max-width: 100%; }
++
++	/* Each demo child's own `title` still draws its usual `h1.page-title` (Page.class.js
++	   line 560) — right everywhere else, but a whole-page display heading is the wrong
++	   size for a one-line stand-in file inside an 880px or 400px demo frame. Shrunk to
++	   the `h3, .h3` size (framework.css) here only: three classes deep beats
++	   `.page h1.page-title`'s own (0,2,1) regardless of file load order, in the same
++	   `theme` layer. */
++	.switcher-demo-frame-wide .page h1.page-title,
++	.switcher-demo-frame-narrow .page h1.page-title {
++		font-size: 1em; font-weight: 700;
++	}
++}
+diff --git a/public/framework/core/Page/layout/switcher/switcher.js b/public/framework/core/Page/layout/switcher/switcher.js
+new file mode 100644
+index 00000000..864a04c3
+--- /dev/null
++++ b/public/framework/core/Page/layout/switcher/switcher.js
+@@ -0,0 +1,51 @@
++import { Page, View, div, details, summary, icon } from "/app.js";
++import "/framework/ext/tabs/tabs.js";
++
++// css: .switcher, .switcher-drop, .switcher-toggle, .switcher-skin-* — all in switcher.css.
++View.stylesheet(import.meta, "switcher.css");
++
++/**
++ * switcher() — a routed list that switches the content beside it. Vertical tabs, a
++ * file tree and a left nav are three CSS SKINS of this one mechanism, nothing more:
++ *
++ *     content(){ this.switcher("guide api reference"); }               // vertical tabs (default)
++ *     content(){ this.switcher("index-js router-js", { skin: "tree" }); } // file tree
++ *     content(){ this.switcher("home settings", { skin: "nav" }); }       // left nav
++ *
++ * It is built entirely on `this.tabs(names).ac("vertical")` (ext/tabs) — the exact
++ * same routing, the exact same `.active-page` / `.active-ancestor` (core/Router,
++ * Page.css) and `.active` / `.in-path` (Router.mark_links()) classes that already
++ * run every tab strip and every nav link on the site. This file never sets or reads
++ * any of those four classes — see doc/decide.md for the proof, with the files and
++ * lines that make it true.
++ *
++ * The one thing switcher.js adds is presentational: a `<details>` TOGGLE (empty but
++ * for its own `<summary>`) sits BESIDE the tab list, never wrapped around it —
++ * `<details>`'s native "hide my content unless open" behaviour is not reliably
++ * overridable by CSS (a first version nested the list inside it and it silently
++ * measured 0px tall; doc/decide.md §2 has the story). switcher.css instead reads the
++ * toggle's `[open]` state off its NEXT SIBLING with the `~` combinator, only inside a
++ * container query, to turn the list into a one-row sticky header on a narrow box.
++ * Design record: readme.md.
++ */
++Page.prototype.switcher = function(names, opts = {}){
++	const skin = opts.skin ? " switcher-skin-" + opts.skin : "";
++
++	return div.c("switcher" + skin, ($switcher) => {
++		const $drop = details.c("switcher-drop", () => {
++			summary.c("switcher-toggle", () => icon("expand_more"));
++		});
++
++		this.tabs(names).ac("vertical");
++
++		// ⚠ Only closes the toggle once a choice is made, so the next narrow visit
++		// starts collapsed again — it reads which link was clicked, never which one
++		// carries ".active": Router decides that on its own, after this returns. Skip
++		// this and the pattern still works; it only saves the reader a second tap.
++		$switcher.el.addEventListener("click", e => {
++			if (e.target.closest("a.tab")) $drop.el.removeAttribute("open");
++		});
++	});
++};
++
++export default Page.prototype.switcher;
+diff --git a/public/framework/core/Page/layout/switcher/tree-router/page.js b/public/framework/core/Page/layout/switcher/tree-router/page.js
+new file mode 100644
+index 00000000..fc23eb24
+--- /dev/null
++++ b/public/framework/core/Page/layout/switcher/tree-router/page.js
+@@ -0,0 +1,15 @@
++import { Page, p } from "/app.js";
++
++/**
++ * See tree-styles/page.js.
++ */
++export default new Page({
++	meta: import.meta,
++	title: "router.js",
++	description: "Demo file for the switcher's file-tree skin.",
++	icon: "description",
++
++	content(){
++		p("This is what /fs will eventually route to for real — file_link() from task-mastermind-file-system's work once it lands (see doc/decide.md's convergence note).");
++	},
++});
+diff --git a/public/framework/core/Page/layout/switcher/tree-styles/page.js b/public/framework/core/Page/layout/switcher/tree-styles/page.js
+new file mode 100644
+index 00000000..5dc3ddff
+--- /dev/null
++++ b/public/framework/core/Page/layout/switcher/tree-styles/page.js
+@@ -0,0 +1,17 @@
++import { Page, p } from "/app.js";
++
++/**
++ * A demo file for the "file tree" skin of the switcher pattern — same mechanism as
++ * the vertical-tabs demos, only the CSS in switcher.css's `.switcher-skin-tree`
++ * rules differ. See core/Page/layout/switcher/page.js.
++ */
++export default new Page({
++	meta: import.meta,
++	title: "styles.css",
++	description: "Demo file for the switcher's file-tree skin.",
++	icon: "description",
++
++	content(){
++		p("The list beside this is the same routed switcher as the tabs above, wearing the tree skin instead — monospace labels, a file glyph, nothing about how it routes changed.");
++	},
++});
+diff --git a/public/framework/core/Page/layout/switcher/wide-app/page.js b/public/framework/core/Page/layout/switcher/wide-app/page.js
+new file mode 100644
+index 00000000..c373dacb
+--- /dev/null
++++ b/public/framework/core/Page/layout/switcher/wide-app/page.js
+@@ -0,0 +1,16 @@
++import { Page, p } from "/app.js";
++
++/**
++ * The second file in the switcher's WIDE demo frame. See wide-index/page.js and
++ * core/Page/layout/switcher/page.js.
++ */
++export default new Page({
++	meta: import.meta,
++	title: "app.js",
++	description: "Demo file for the switcher's wide comparison frame.",
++	icon: "description",
++
++	content(){
++		p("Click back to index.js in the list on the left — the url changes, and the .active mark moves with it. Router did that, not this page.");
++	},
++});
+diff --git a/public/framework/core/Page/layout/switcher/wide-index/page.js b/public/framework/core/Page/layout/switcher/wide-index/page.js
+new file mode 100644
+index 00000000..d01c904a
+--- /dev/null
++++ b/public/framework/core/Page/layout/switcher/wide-index/page.js
+@@ -0,0 +1,17 @@
++import { Page, p } from "/app.js";
++
++/**
++ * A stand-in file for the switcher's WIDE demo frame — one of two real, routed
++ * children the "wide vs narrow" comparison on core/Page/layout/switcher/ switches
++ * between. See core/Page/layout/switcher/page.js.
++ */
++export default new Page({
++	meta: import.meta,
++	title: "index.js",
++	description: "Demo file for the switcher's wide comparison frame.",
++	icon: "description",
++
++	content(){
++		p("This is the file the wide frame shows first — a stand-in, so the switcher pattern has something real to route between.");
++	},
++});

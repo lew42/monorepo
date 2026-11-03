@@ -1,0 +1,8 @@
+# Item and Page readmes: one persistence system; indexing is the tool's job; JSONL growth noted
+
+Budget: $8. Sonnet, medium effort. Owner's asks of 2026-10-20 16:50 (essence: [ai/doc/owner-2026-10-20-who-makes-tasks.md](/framework/ai/doc/owner-2026-10-20-who-makes-tasks.md) section 13; words in the tab's prompt log). Docs only, plus the smallest code check; no new files except where named.
+
+1. **`core/Item/readme.md` and `core/Page/readme.md`** each state, near the top, that they are one persistence system: `Page extends Item`; Item is the generic log-backed object (one JSONL log, `set(delta)`, replay, children saving through their parent, `live()` tailing), Page adds routing, parts, layout and the inbox. Say what goes in which readme. The Item readme lists the core classes that extend it today (find them: `grep -rn "extends Item" public/framework`), one line each with a link.
+2. **Indexing is the tool's job**, in the Item readme: a tool that creates or moves an item appends to the index itself (`Server/AIIndexStream.mjs`, the day `index.jsonl`); an agent never has to remember to index. Check that `tasks.add` through the item tool and the session/task creators already do this after the index-stream build (commit 745697025); list which do and which do not, one line each, as a "Watch out".
+3. **JSONL growth**, in `ext/JSONL/readme.md` (or its doc/): sizes are fine to a few MB; loading a hundred logs at once is a processing load; auto-compaction is one strategy and loses deltas; a size watch is the first step. One short section, no build.
+4. Verify every link you write resolves on the site (`check_page` on both readme pages), commit, merge with `node Server/merge.mjs`, land with `finish-task`.

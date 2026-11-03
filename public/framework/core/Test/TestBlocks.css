@@ -1,0 +1,24 @@
+@layer base, theme, site, util;
+
+/* TestBlocks.js: a test file on a page, one block per test. Same green and red as TestView. */
+@layer site {
+	.core-test-blocks { display: flex; flex-direction: column; gap: var(--gap); }
+	.core-test-blocks-tally { margin: 0; }
+	.core-test-blocks-tally .is-pass, .core-test-block-check.is-pass, .core-test-block.is-pass > summary .core-test-block-mark { color: var(--green, green); }
+	.core-test-blocks-tally .is-fail, .core-test-block-check.is-fail, .core-test-block.is-fail > summary .core-test-block-mark { color: var(--red, crimson); }
+
+	.core-test-block { border: 1px solid var(--border, color-mix(in srgb, currentColor 18%, transparent)); border-radius: .5em; padding: .6em .8em; min-width: 0; }
+	.core-test-block.is-edge { border-style: dashed; }
+	.core-test-block.is-skip { opacity: .7; }
+	.core-test-block-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: .5em; cursor: pointer; background: none; border: 0; padding: 0; box-shadow: none; }
+	.core-test-block-mark { min-width: 1em; }
+	.core-test-block-name { font-weight: 600; overflow-wrap: anywhere; }
+	.core-test-block-tag { font-size: .75em; padding: 0 .5em; border-radius: 1em; background: color-mix(in srgb, currentColor 12%, transparent); }
+	.core-test-block-count { margin-inline-start: auto; color: var(--subtle); font-size: .85em; }
+	.core-test-block-checks { display: flex; flex-direction: column; gap: .15em; margin-top: .6em; font-size: .9em; }
+	.core-test-block-check { overflow-wrap: anywhere; }
+	.core-test-block-views { margin-top: .6em; }
+	.core-test-block-views:empty { display: none; }
+	.core-test-block-label { display: block; font-size: .8em; color: var(--subtle); margin-bottom: .2em; }
+	.core-test-block-thing { min-width: 0; }
+}

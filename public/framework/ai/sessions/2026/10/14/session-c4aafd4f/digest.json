@@ -1,0 +1,32 @@
+{
+ "id": "c4aafd4f-5623-4425-8332-49935c5767dd",
+ "first": "2026-10-14T02:55:13.920Z",
+ "last": "2026-10-14T03:05:58.866Z",
+ "task": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/scripts-rename-2",
+ "models": {
+  "claude-sonnet-5-5": 27
+ },
+ "sizes": {
+  "raw": 230830,
+  "content": 48309,
+  "stripped": 10753,
+  "owner_only": 0
+ },
+ "usd": 1.00302,
+ "usd_main": 1.00302,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 54,
+  "output": 13166,
+  "cache_read": 2529939,
+  "cache_write": 91316,
+  "w5": 0,
+  "w1": 91316
+ },
+ "messages": 27,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "The landing line is now in `task.jsonl`, and I posted the one-screen reply on the card. The line is committed, and `tail -1` shows it.\n\nFive scripts are renamed to their class names (`DaySpend`, `DayPromptsRefine`, `RepoSize`, `Ai2Overview`, `ModelsNow`). 16 stay listed in `Server/doc/scripts.md`. I skipped three:\n- **`audit.mjs`:** a case-only rename that `merge.mjs` can't handle on Windows.\n- **`crawl.mjs`:** its name also matches another file.\n- **`retire-files.mjs`:** touched 59 minutes earlier.\n\nThe live Servex still needs the restart, which is yours to do.",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.285Z"
+}

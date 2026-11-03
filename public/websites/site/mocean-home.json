@@ -1,0 +1,1376 @@
+{
+	"name": "mocean-home",
+	"url": "https://moceanla.com/",
+	"title": "Home | Mocean",
+	"category": "marketing",
+	"captured_at": "2026-09-08T05:58:34.593Z",
+	"embed": "allowed",
+	"embed_note": "no x-frame-options and no restrictive frame-ancestors",
+	"shots": {
+		"400": "site/mocean-home/400.jpg",
+		"1280": "site/mocean-home/1280.jpg",
+		"1920": "site/mocean-home/1920.jpg",
+		"3440": "site/mocean-home/3440.jpg",
+		"long": "site/mocean-home/long.jpg"
+	},
+	"layout": {
+		"400": "1-bands",
+		"1280": "1-bands",
+		"1920": "1-bands",
+		"3440": "1-bands"
+	},
+	"sections": [
+		{
+			"name": "hero",
+			"layout": "1-flow",
+			"css": "block, pinned via GSAP ScrollTrigger",
+			"note": "a noisy red-to-teal gradient filling 91.875% of the viewport height, with the Mocean wordmark and \"See Change\" tagline centred on it. This is the ONLY thing visible in all four of our screenshots, including the full-page one. The DOM wraps it in a `pin-spacer` div, the fingerprint GSAP's ScrollTrigger leaves behind when it pins a section during scroll."
+		},
+		{
+			"name": "header nav",
+			"layout": "1-flow",
+			"css": "flex",
+			"note": "the scan finds a real, laid-out row of 6 nav links from 1280 up — but it never appears in any screenshot. It is almost certainly held invisible (opacity 0, or off-screen) until a scroll-linked reveal fires, and none of our shots scroll."
+		},
+		{
+			"name": "services",
+			"layout": "n-wall",
+			"css": "grid of @container cards at 1280+, a single flex column below lg",
+			"note": "four service panels the scan finds sitting directly below the hero, each its own CSS container-query box. Confirmed only through measurements, not sight — this band is beneath the pinned hero and no picture we took reaches it."
+		},
+		{
+			"name": "footer",
+			"layout": "1-flow",
+			"css": "grid",
+			"note": "a link grid that the scan shows as 2 columns wide on the phone-width pass and 6 columns wide at 1280 and up — again, DOM evidence only, never actually seen."
+		}
+	],
+	"tags": [
+		"1-bands",
+		"1-flow",
+		"4 column grid",
+		"gradient",
+		"full-bleed",
+		"scroll-pinned hero",
+		"dark",
+		"marketing"
+	],
+	"responsive": {
+		"strategy": "We cannot honestly describe this site's responsive behaviour from the pictures, because every one of our four screenshots shows the identical thing: a full-height gradient hero, cropped to the viewport but otherwise unchanged between a phone and an ultrawide monitor. The measurements say there IS more page underneath — a services grid that drops from 4 cards to a single stacked column, and a footer link grid that drops from 6 columns to 2 — but nothing in this capture set can show exactly where those changes happen, because the hero is pinned to the screen (via a GSAP ScrollTrigger) until a visitor scrolls, and our screenshots never do.",
+		"breakpoints": [
+			640,
+			1024,
+			1280
+		]
+	},
+	"scan": {
+		"scanned_at": "2026-09-08T05:58:44.689Z",
+		"css": {
+			"sheets": 2,
+			"bytes": 67449,
+			"inline_bytes": 5117
+		},
+		"media": [
+			"(hover:hover){",
+			"(hover:none){",
+			"(min-width:40rem){",
+			"(min-width:48rem){",
+			"(min-width:64rem){",
+			"(min-width:80rem){",
+			"(min-width:96rem){",
+			"(orientation:landscape){",
+			"\\(hover\\:hover\\)\\]\\:bg-black\\/20{",
+			"\\(hover\\:hover\\)\\]\\:flex{",
+			"\\(hover\\:hover\\)\\]\\:group-hover\\:bg-black\\/20:is(:where(.group):hover *){",
+			"\\(hover\\:hover\\)\\]\\:group-hover\\:opacity-100:is(:where(.group):hover *){",
+			"\\(hover\\:hover\\)\\]\\:group-hover\\:scale-100:is(:where(.group):hover *){",
+			"\\(hover\\:hover\\)\\]\\:hidden{",
+			"\\(hover\\:hover\\)\\]\\:opacity-0{",
+			"\\(hover\\:hover\\)\\]\\:scale-110{",
+			"\\(hover\\:none\\)\\]\\:bg-black\\/20{"
+		],
+		"container": [],
+		"breakpoints_seen": [],
+		"widths": {
+			"400": {
+				"doc": [
+					400,
+					3148
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "fixed top-0",
+						"role": "banner",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							400,
+							70
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"class": "block space-y-1",
+						"role": "main",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							400,
+							2304
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "relative h-[91.875dvh]",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							4,
+							4,
+							392,
+							775
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "lg:hidden",
+						"display": "block",
+						"rect": [
+							4,
+							783,
+							392,
+							749
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "flex flex-col",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							4,
+							1537,
+							392,
+							764
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "relative z-10",
+						"role": "contentinfo",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							2304,
+							400,
+							844
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "grid auto-cols-max",
+						"display": "grid",
+						"cols": "82.4062px 82.4062px",
+						"rows": "14.2969px 14.2969px 14.2969px 14.2969px",
+						"rect": [
+							16,
+							3045,
+							169,
+							87
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "service-panel-null",
+						"class": "text-black",
+						"role": "tabpanel",
+						"display": "block",
+						"rect": [
+							-32,
+							2066,
+							360,
+							114
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "pin-spacer",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							400,
+							2304
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "bg-off-black fixed",
+						"display": "block",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							400,
+							844
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "flex size-full",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							0,
+							400,
+							844
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "absolute inset-0",
+						"display": "block",
+						"position": "absolute",
+						"rect": [
+							0,
+							0,
+							400,
+							844
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "canvas",
+						"class": "size-full overflow-hidden",
+						"display": "block",
+						"rect": [
+							4,
+							4,
+							392,
+							836
+						],
+						"side_by_side": 0
+					}
+				]
+			},
+			"1280": {
+				"doc": [
+					1280,
+					3143
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "fixed top-0",
+						"role": "banner",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							1280,
+							110
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "py-auto hidden",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							833,
+							40,
+							407,
+							30
+						],
+						"side_by_side": 6
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"class": "block space-y-1",
+						"role": "main",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							1280,
+							2343
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "relative h-[91.875dvh]",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							4,
+							4,
+							1272,
+							735
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "relative hidden",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							4,
+							743,
+							1272,
+							792
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "flex flex-col",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							4,
+							1539,
+							1272,
+							800
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "relative z-10",
+						"role": "contentinfo",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							2343,
+							1280,
+							800
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "grid auto-cols-max",
+						"display": "grid",
+						"cols": "42.8594px 70.0469px 59.9844px 40.1094px 82.4062px 41.8125px ",
+						"rows": "14.2969px",
+						"rect": [
+							18,
+							3113,
+							490,
+							14
+						],
+						"side_by_side": 7
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "@container relative",
+						"role": "region",
+						"display": "block",
+						"position": "sticky",
+						"rect": [
+							4,
+							743,
+							315,
+							792
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "relative flex",
+						"role": "button",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							4,
+							743,
+							315,
+							800
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "@container relative",
+						"role": "region",
+						"display": "block",
+						"position": "sticky",
+						"rect": [
+							323,
+							743,
+							315,
+							792
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "relative flex",
+						"role": "button",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							323,
+							743,
+							315,
+							800
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "@container relative",
+						"role": "region",
+						"display": "block",
+						"position": "sticky",
+						"rect": [
+							642,
+							743,
+							315,
+							792
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "relative flex",
+						"role": "button",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							642,
+							743,
+							315,
+							800
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "@container relative",
+						"role": "region",
+						"display": "block",
+						"position": "sticky",
+						"rect": [
+							961,
+							743,
+							315,
+							792
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "relative flex",
+						"role": "button",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							961,
+							743,
+							315,
+							800
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "service-panel-null",
+						"class": "text-black",
+						"role": "tabpanel",
+						"display": "block",
+						"rect": [
+							696,
+							1882,
+							492,
+							114
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "pin-spacer",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							1280,
+							2343
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "bg-off-black fixed",
+						"display": "block",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							1280,
+							800
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "flex size-full",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							0,
+							1280,
+							800
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "absolute inset-0",
+						"display": "block",
+						"position": "absolute",
+						"rect": [
+							0,
+							0,
+							1280,
+							800
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "flex gap-x-1",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							4,
+							743,
+							1272,
+							792
+						],
+						"side_by_side": 4
+					}
+				]
+			},
+			"1920": {
+				"doc": [
+					1920,
+					4240
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "fixed top-0",
+						"role": "banner",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							1920,
+							110
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "py-auto hidden",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							1473,
+							40,
+							407,
+							30
+						],
+						"side_by_side": 6
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"class": "block space-y-1",
+						"role": "main",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							1920,
+							3160
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "relative h-[91.875dvh]",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							4,
+							4,
+							1912,
+							992
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "relative hidden",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							4,
+							1000,
+							1912,
+							1072
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "flex flex-col",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							4,
+							2076,
+							1912,
+							1080
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "relative z-10",
+						"role": "contentinfo",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							3160,
+							1920,
+							1080
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "grid auto-cols-max",
+						"display": "grid",
+						"cols": "42.8594px 70.0469px 59.9844px 40.1094px 82.4062px 41.8125px ",
+						"rows": "14.2969px",
+						"rect": [
+							18,
+							4210,
+							490,
+							14
+						],
+						"side_by_side": 7
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "@container relative",
+						"role": "region",
+						"display": "block",
+						"position": "sticky",
+						"rect": [
+							4,
+							1000,
+							475,
+							1072
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "relative flex",
+						"role": "button",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							4,
+							1000,
+							475,
+							1080
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "@container relative",
+						"role": "region",
+						"display": "block",
+						"position": "sticky",
+						"rect": [
+							483,
+							1000,
+							475,
+							1072
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "relative flex",
+						"role": "button",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							483,
+							1000,
+							475,
+							1080
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "@container relative",
+						"role": "region",
+						"display": "block",
+						"position": "sticky",
+						"rect": [
+							962,
+							1000,
+							475,
+							1072
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "relative flex",
+						"role": "button",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							962,
+							1000,
+							475,
+							1080
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "@container relative",
+						"role": "region",
+						"display": "block",
+						"position": "sticky",
+						"rect": [
+							1441,
+							1000,
+							475,
+							1072
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "relative flex",
+						"role": "button",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							1441,
+							1000,
+							475,
+							1080
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "service-panel-null",
+						"class": "text-black",
+						"role": "tabpanel",
+						"display": "block",
+						"rect": [
+							1118,
+							2572,
+							640,
+							88
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "pin-spacer",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							1920,
+							3160
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "bg-off-black fixed",
+						"display": "block",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							1920,
+							1080
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "flex size-full",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							0,
+							1920,
+							1080
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "absolute inset-0",
+						"display": "block",
+						"position": "absolute",
+						"rect": [
+							0,
+							0,
+							1920,
+							1080
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "flex gap-x-1",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							4,
+							1000,
+							1912,
+							1072
+						],
+						"side_by_side": 4
+					}
+				]
+			},
+			"3440": {
+				"doc": [
+					3440,
+					5651
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "fixed top-0",
+						"role": "banner",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							3440,
+							110
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "py-auto hidden",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							2993,
+							40,
+							407,
+							30
+						],
+						"side_by_side": 6
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"class": "block space-y-1",
+						"role": "main",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							3440,
+							4211
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "relative h-[91.875dvh]",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							4,
+							4,
+							3432,
+							1323
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "relative hidden",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							4,
+							1331,
+							3432,
+							1432
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "flex flex-col",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							4,
+							2767,
+							3432,
+							1440
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "relative z-10",
+						"role": "contentinfo",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							4211,
+							3440,
+							1440
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "grid auto-cols-max",
+						"display": "grid",
+						"cols": "42.8594px 70.0469px 59.9844px 40.1094px 82.4062px 41.8125px ",
+						"rows": "14.2969px",
+						"rect": [
+							18,
+							5621,
+							490,
+							14
+						],
+						"side_by_side": 7
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "@container relative",
+						"role": "region",
+						"display": "block",
+						"position": "sticky",
+						"rect": [
+							4,
+							1331,
+							855,
+							1432
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "relative flex",
+						"role": "button",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							4,
+							1331,
+							855,
+							1440
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "@container relative",
+						"role": "region",
+						"display": "block",
+						"position": "sticky",
+						"rect": [
+							863,
+							1331,
+							855,
+							1432
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "relative flex",
+						"role": "button",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							863,
+							1331,
+							855,
+							1440
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "@container relative",
+						"role": "region",
+						"display": "block",
+						"position": "sticky",
+						"rect": [
+							1722,
+							1331,
+							855,
+							1432
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "relative flex",
+						"role": "button",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							1722,
+							1331,
+							855,
+							1440
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "@container relative",
+						"role": "region",
+						"display": "block",
+						"position": "sticky",
+						"rect": [
+							2581,
+							1331,
+							855,
+							1432
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "relative flex",
+						"role": "button",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							2581,
+							1331,
+							855,
+							1440
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "service-panel-null",
+						"class": "text-black",
+						"role": "tabpanel",
+						"display": "block",
+						"rect": [
+							2296,
+							3443,
+							640,
+							88
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "pin-spacer",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							3440,
+							4211
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "bg-off-black fixed",
+						"display": "block",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							3440,
+							1440
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "flex size-full",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							0,
+							3440,
+							1440
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "absolute inset-0",
+						"display": "block",
+						"position": "absolute",
+						"rect": [
+							0,
+							0,
+							3440,
+							1440
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "flex gap-x-1",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							4,
+							1331,
+							3432,
+							1432
+						],
+						"side_by_side": 4
+					}
+				]
+			}
+		}
+	},
+	"notes": "This one is a genuine gap worth being upfront about. Mocean is a design agency's homepage, and every picture we took of it — a phone, a laptop, a desktop and even the special \"whole page\" shot — shows nothing but a grainy, colour-shifting gradient with the word \"Mocean\" on it. That is not a broken capture: the page's own code confirms a real header, a row of four service cards, and a six-column footer all exist further down, they are just being held off-screen or invisible by an animation library (GSAP) that only reveals them once a real visitor scrolls the page. Our tool loads the page and waits, but it never scrolls, so it only ever sees the intro. The lesson for anyone reading this record is: for a small number of sites built as one long scroll-triggered animation, a screenshot proves less than it usually does, and the measurements become the more trustworthy half of the evidence, not the picture.",
+	"wire": {
+		"role": "page",
+		"kids": [
+			{
+				"role": "hero",
+				"h": "58em"
+			},
+			{
+				"role": "cards",
+				"dir": "row",
+				"h": "14em",
+				"floor": "64rem",
+				"n": 4
+			},
+			{
+				"role": "footer",
+				"dir": "row",
+				"h": "10em",
+				"floor": "40rem",
+				"kids": [
+					{
+						"role": "nav",
+						"w": 1
+					},
+					{
+						"role": "nav",
+						"w": 1
+					},
+					{
+						"role": "nav",
+						"w": 1
+					},
+					{
+						"role": "nav",
+						"w": 1
+					},
+					{
+						"role": "nav",
+						"w": 1
+					},
+					{
+						"role": "nav",
+						"w": 1
+					}
+				]
+			}
+		]
+	}
+}

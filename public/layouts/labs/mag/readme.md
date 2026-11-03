@@ -1,0 +1,75 @@
+# Mag — a small magazine, made only of column words
+
+[Issue 01, *The Column*](/layouts/labs/mag/) is six real articles you can read. Nothing in it is
+a new mechanism: it is the seven column labs' vocabulary — width words, `index`, `bleed`,
+resizable seams, the tone verdicts, the feeds filter — composed into one thing a visitor
+uses rather than inspects.
+
+## The shape
+
+Three columns of one row, and the row is `/imagine/`'s.
+
+| | url | word | tone |
+|---|---|---|---|
+| Cover | `/layouts/labs/mag/` | `full`, then `38.2%`, then `20%` | the most veil |
+| Contents | `…/contents/` | `large` + `index: true` | less |
+| Article | `…/contents/<slug>/` | none — the 40em measure | none, the only white column |
+
+The cover is one page in three CSS states: alone it is the screen, with the contents open
+it takes the minor share of the golden pair, and once you are reading it steps back to a
+fifth so the article keeps its measure. No second render, no state — one `:has()` each.
+Alone, it also names the six pieces inside it — coverlines, the one thing a poster with a
+single button was missing — and that block disappears the moment a child opens.
+
+## Use
+
+Every word and number lives in `issue.json`, fetched once by `issue.js` and never again.
+Add an article by adding an entry:
+
+```json
+{ "slug": "…", "section": "Craft", "title": "…", "standfirst": "…",
+  "body": [{ "p": "…" }, { "h": "…" }, { "quote": "…", "by": "…" },
+           { "figure": ["1", "0.382 0.618"], "caption": "…" }] }
+```
+
+Its url, its place on the contents, the `03 / 06` on its own head, and which article the
+last one hops to all follow from where it sits in the array — nothing counts the issue out
+loud. `"kind": "data"` plus a `data` block makes it the chart piece instead
+([`Article.js`](./Article.js) — `Article.Data`).
+
+Reading is a line, both directions: every article offers the next one (the sixth loops to
+the cover) and, since 2026-08-31, the previous one too (`Article.prev()`/`prev_hop()`) —
+nothing on the first article, which already sits beside the contents column. Clicked
+through headless — six hops forward to `/layouts/labs/mag/`, and back again, no console errors.
+
+The contents page also remembers what you have opened — a quiet mark per entry, a
+"N of 6 read" line, one `page.store()` key, and a reset. [`doc/decisions.md`](/layouts/labs/mag/doc/decisions/).
+
+## Watch out
+
+- **`issue.js` uses a top-level `await`,** and it has to: children are declared, never
+  crawled, so an article that appears after a promise would 404 on a cold load.
+- **A subclass field runs after `super()`** — that is where `Page` does its `assign()` — so
+  `no = ""` on `Article` would erase the number handed in. Defaults go in `initialize()`.
+- **The theme sizes generic headings at (0,2,0)** (`.theme-lew42 :is(h2, .h2)`, 2.25em), so
+  a plain `.mag-title` loses and a two-class selector only ties. The headline scale is
+  written at (0,3,0) on purpose.
+- **Three tone rungs, all opaque.** The row paints its empty slots *behind* the columns; a
+  translucent body lets the hairlines through.
+- **Every hop here is core's `launch`** — a real child column, [the same primitive
+  `/imagine/paging/`](/imagine/paging/) teaches by that name — but the cover's own shrink,
+  from a full poster down to a 38.2% then a 20% share, is **not** one of paging's four words.
+  It is bespoke CSS, invented for this one page, and it has no name outside this file: say so
+  here rather than let a reader go looking for "recede" on the paging hub and not find it.
+
+Detail, measurements and what was tried and dropped: [`doc/decisions.md`](/layouts/labs/mag/doc/decisions/).
+
+## More
+
+- [`page.js`](./page.js) the cover · [`contents/page.js`](./contents/page.js) the index ·
+  [`Article.js`](./Article.js) one article and the data piece · [`mag.css`](./mag.css) ·
+  [`issue.json`](./issue.json) the whole issue · [`doc/page.js`](/layouts/labs/mag/doc/) the one
+  record, routed rather than declared
+- Where the words came from: [the findings](/framework/core/Page/doc/findings/) ·
+  [`columns.md`](/framework/core/Page/doc/columns/) · [Screens](/layouts/labs/screens/) ·
+  [Tone](/imagine/vary/tone/) · [Feeds · Data](/imagine/feeds/data/)

@@ -1,0 +1,7 @@
+@layer base, theme, site, util;
+
+@layer theme {
+	/* The one thing nothing else gives you: a plain decorative square, the brand mark,
+	   painted in the accent so it still reads as --prime if the theme retints it. */
+	.pal-square { width: 7.5em; height: 7.5em; background: var(--prime); border-radius: 0.75em; }
+}

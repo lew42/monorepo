@@ -1,0 +1,201 @@
+diff --git a/Servex/Follow-skip.test.mjs b/Servex/Follow-skip.test.mjs
+new file mode 100644
+index 000000000..5a979e05c
+--- /dev/null
++++ b/Servex/Follow-skip.test.mjs
+@@ -0,0 +1,28 @@
++// node Servex/Follow-skip.test.mjs — an agent tailing its OWN log (`skip_by`) is not woken by its own lines.
++import assert from "assert";
++import Follow from "./Follow.js";
++
++const L = o => JSON.stringify(o);
++const me = "session-smart-v-1";
++const lines = [
++	L({ chat: { text: "owner words", from: { kind: "owner" } } }),
++	L({ chat: { text: "my reply", from: { kind: "assistant", agent: me } } }),
++	L({ place: { to: "same" }, by: "voice-assistant-v-1" }),
++	L({ p1: { title: "refined" }, by: me }),
++	"not json"
++];
++assert.deepEqual(Follow.without(lines, [me]), [lines[0], lines[2], lines[4]], "own chat and own `by` lines are dropped");
++assert.equal(Follow.without(lines, undefined), lines, "no skip_by: untouched");
++
++const sent = [];
++const f = new Follow({ subs: [], agents: { live: new Map([[me, { state: "idle" }]]), send: (a, m) => sent.push([a, m]) } });
++f.save = f.rescope = () => {};
++f.follow({ agent: me, path: "public/framework/ai/sessions/2026/10/25/v-1/session.jsonl", gather_ms: 5, skip_by: [me] });
++assert.deepEqual(f.list(me)[0].skip_by, [me], "skip_by is stored on the subscription");
++const sub = f.list(me)[0];
++f.queue(sub, { file: "x.jsonl", lines: [lines[1], lines[3]] });
++assert.equal(f.pending.size, 0, "only own lines: nothing queued, no wake");
++f.queue(sub, { file: "x.jsonl", lines: lines.slice(0, 4) });
++assert.equal(f.pending.get(me)[0].lines.length, 2, "owner and fast lines still queued");
++f.stop();
++console.log("ok Follow.skip_by");
+diff --git a/Servex/Follow.js b/Servex/Follow.js
+index 210c6572f..6d60cdf4f 100644
+--- a/Servex/Follow.js
++++ b/Servex/Follow.js
+@@ -73,6 +73,12 @@ export default class Follow {
+ 			.map(l => l.length > this.LINE_MAX ? l.slice(0, this.LINE_MAX) + "…" : l);
+ 	}
+ 
++	/** Lines not written by `skip_by` (agent ids): a top-level `by`, or a chat line's `from.agent`. An agent tailing its OWN log skips itself, or its replies wake it. */
++	static without(lines, skip_by){
++		if (!skip_by?.length) return lines;
++		return lines.filter(l => { try { const j = JSON.parse(l); return !skip_by.includes(j.by) && !skip_by.includes(j.chat?.from?.agent); } catch { return true; } });
++	}
++
+ 	/** The kind of one jsonl line: "state", "pointer", "watcher" or "other". */
+ 	static kind(line){
+ 		let j; try { j = JSON.parse(line); } catch { return "other"; }
+@@ -113,13 +119,13 @@ export default class Follow {
+ 	/* ── the three verbs ──────────────────────────────────────────────── */
+ 
+ 	/* `of`: the agent whose log this is (a parent tailing its child, Agents.follow_child); the row ends when that agent stops. */
+-	follow({ agent, path: rel, gather_ms = 2000, of } = {}){
++	follow({ agent, path: rel, gather_ms = 2000, of, skip_by } = {}){
+ 		if (!agent) throw new Error("follow needs an agent (or a caller Servex already knows).");
+ 		const why = refused(rel);
+ 		if (why) throw new Error(why);
+ 		const clean = norm(rel);
+ 		if (!this.subs.some(s => s.agent === agent && s.path === clean))
+-			this.subs.push({ agent, path: clean, gather_ms, ...(of ? { of } : {}) });
++			this.subs.push({ agent, path: clean, gather_ms, ...(of ? { of } : {}), ...(skip_by?.length ? { skip_by: [].concat(skip_by) } : {}) });
+ 		this.save();
+ 		this.rescope();
+ 		return this.list(agent);
+@@ -279,8 +285,9 @@ export default class Follow {
+ 	queue(sub, item){
+ 		// a parent tailing its child (`of`) is told the work, not the housekeeping: heartbeat and bare commit lines wake nobody (2026-10-20)
+ 		if (sub.of && item.lines){ item = { ...item, lines: this.constructor.worth_waking(item.lines) }; if (!item.lines.length) return; }
++		if (sub.skip_by && item.lines){ item = { ...item, lines: this.constructor.without(item.lines, sub.skip_by) }; if (!item.lines.length) return; }
+ 		const bucket = this.pending.get(sub.agent) ?? this.pending.set(sub.agent, []).get(sub.agent);
+-		bucket.push({ ...item, under: sub.path, ...(sub.of ? { of: sub.of } : {}) });
++		bucket.push({ ...item, under: sub.path, ...(sub.of ? { of: sub.of } : {}), ...(sub.skip_by ? { skip_by: sub.skip_by } : {}) });
+ 		if (!this.timers.has(sub.agent))
+ 			this.timers.set(sub.agent, setTimeout(() => this.flush(sub.agent), sub.gather_ms ?? 2000));
+ 	}
+@@ -311,7 +318,7 @@ export default class Follow {
+ 			if (!item.lines || done.has(item.file)) continue;
+ 			done.add(item.file);
+ 			const more = this.new_lines(abs(item.file));
+-			const wake = item.of ? this.constructor.worth_waking(more) : more;
++			const wake = this.constructor.without(item.of ? this.constructor.worth_waking(more) : more, item.skip_by);
+ 			if (wake.length) item.lines.push(...wake);
+ 		}
+ 		/* An id that is not a live Claude session and not a registered
+@@ -377,6 +384,7 @@ export default class Follow {
+ 				description: "Watch a file or directory and get told what changes, one message per burst (default"
+ 					+ " every 2s). A .jsonl file's new complete lines arrive verbatim; anything else arrives as its path.",
+ 				inputSchema: { type: "object", required: ["path"], properties: { agent: AGENT, path: PATH,
++					skip_by: { type: "array", items: { type: "string" }, description: "Agent ids whose own lines are not delivered (a line's `by`, or a chat line's `from.agent`). Set it to yourself when you follow your own log, or your replies wake you." },
+ 					gather_ms: { type: "number", description: "Collect changes this long after the first one, then send one message. Default 2000." } } },
+ 				handler: (args = {}, ctx = {}) => JSON.stringify(this.follow({ ...args, agent: args.agent ?? ctx.caller }), null, 2) },
+ 			{ name: "unfollow",
+diff --git a/Servex/agents/Sessions.js b/Servex/agents/Sessions.js
+index d2a9962ae..a6aa5e29b 100644
+--- a/Servex/agents/Sessions.js
++++ b/Servex/agents/Sessions.js
+@@ -270,22 +270,40 @@ export default class Sessions {
+ 		const prompt = lines[lines.length - 1]?.prompt;
+ 		s.smart_re = lines[lines.length - 1].at;
+ 		this.save();
+-		this.wake(s, "smart");
++		const fresh = this.wake(s, "smart");
+ 		this.mark_sent(s, "smart", lines);
++		const tailing = s.tail ? this.tail_log(s) : false;
++		if (tailing && !fresh) return;   // awake and tailing its own file: Follow already delivers these lines raw
+ 		this.send(s, "smart", nav + lines.map(l => `${selected_prefix(l.selection)}[on ${l.path} at ${l.at}] ${l.text}`).join("\n") + `\n(${why})` + (prompt ? `\n(prompt ${prompt})` : ""));
+ 	}
+ 
++	/* TAIL MODE (opt-in, `s.tail`, 2026-10-25): the smart seat follows its OWN session.jsonl through Servex/Follow.js and hears the
++	 * owner's raw lines as they land, instead of a prompt built from them. `skip_by` keeps its own writes (and the fast seat's) out, so
++	 * its replies never wake it. Follow drops the row when the agent stops; the next feed_smart (the wake gate still revives a sleeping
++	 * seat) subscribes again. Returns true when the subscription is in place. */
++	tail_log(s){
++		const follow = this.servex.follow, agent = s.smart;
++		if (!follow || !agent || !s.file) return false;
++		const rel = path.relative(process.cwd(), this.disk(s.file)).split(path.sep).join("/");
++		if (follow.list(agent).some(f => f.path === rel)) return true;
++		try {
++			follow.follow({ agent, path: rel, gather_ms: s.tail_ms ?? 1500, skip_by: [agent, s.fast, "fast", "smart"].filter(Boolean) });
++			return true;
++		} catch (e){ console.error(`sessions: tail ${s.id}: ${e.message}`); return false; }
++	}
++
+ 	/* The knobs of one session (dictation widget settings panel): POST /api/session/settings {session, gap_ms?, every?};
+ 	 * null drops a knob back to the default. Returns the knobs now in force. */
+-	settings({ session, gap_ms, every } = {}){
++	settings({ session, gap_ms, every, tail } = {}){
+ 		const s = this.get(session);
++		if (tail !== undefined){ tail ? s.tail = true : delete s.tail; }
+ 		const patch = {};
+ 		if (gap_ms !== undefined) patch.gap_ms = gap_ms;
+ 		if (every !== undefined) patch.every = every;
+ 		const next = this.waker.checked(s.id, patch);
+ 		Object.keys(next).length ? s.wake = next : delete s.wake;
+ 		this.save();
+-		return { ok: true, ...this.waker.knobs(s.id) };
++		return { ok: true, ...this.waker.knobs(s.id), ...(s.tail ? { tail: true } : {}) };
+ 	}
+ 
+ 	install(){
+diff --git a/Servex/agents/WakePolicy.test.mjs b/Servex/agents/WakePolicy.test.mjs
+index ec60a749f..e05bc8366 100644
+--- a/Servex/agents/WakePolicy.test.mjs
++++ b/Servex/agents/WakePolicy.test.mjs
+@@ -245,5 +245,21 @@ check("Sessions: settings() stores the knobs on the session, validated, and they
+ 	assert.equal("wake" in s.map[made.session], false);
+ });
+ 
++check("Sessions: tail mode follows session.jsonl once and stops sending the batches the smart seat already hears raw", () => {
++	sent.length = 0;
++	const { s, made } = make();
++	const subs = [];
++	s.servex.follow = { list: agent => subs.filter(f => f.agent === agent), follow: sub => subs.push(sub) };
++	assert.deepEqual(s.settings({ session: made.session, tail: true }), { ok: true, ...GAP6, tail: true });
++	for (const t of ["One.", "Two.", "Three.", "Four.", "Five.", "Six."]) speak(s, made, t);
++	assert.equal(subs.length, 1, "one subscription, however many batches");
++	assert.match(subs[0].path, /session\.jsonl$/);
++	assert.ok(subs[0].skip_by.includes(`session-smart-${made.session}`), "the seat's own lines are skipped");
++	const first = smart_prompts().length;
++	for (const t of ["Seven.", "Eight.", "Nine.", "Ten.", "Eleven.", "Twelve."]) speak(s, made, t);
++	assert.equal(smart_prompts().length, first, "an awake seat gets no second batch message: Follow carries it");
++	assert.deepEqual(s.settings({ session: made.session, tail: false }), { ok: true, ...GAP6 });
++});
++
+ console.log(`WakePolicy.test.mjs: ${checks} checks passed`);
+ process.exit(0);
+diff --git a/Servex/doc/follow.md b/Servex/doc/follow.md
+index e2d6e62e0..0dc47e142 100644
+--- a/Servex/doc/follow.md
++++ b/Servex/doc/follow.md
+@@ -175,6 +175,10 @@ event never fires (the trap above) still delivers every line.
+ 
+ A subscription made by `Agents.follow_child` (it has `of:`) is filtered: `Follow.worth_waking` forwards only the lines `Follow.kind` calls `state` (a task added, started, waiting, complete) or `pointer` (a file the owner should know about, a shot, a review verdict), each cut to 600 characters. Steps, actions, decisions, commits, heartbeat and `worktree-watch:` lines are dropped, and a burst with nothing left sends no message, so it wakes nobody. A subscription you make yourself with the `follow` tool still gets every line. Test: `node Servex/Follow-kind.test.mjs`; cost: `node Server/FollowCost.mjs` (the rule and the measured numbers: `public/framework/ai/doc/task-buckets.md`).
+ 
++## An agent following its own log: `skip_by`
++
++`follow({agent, path, skip_by: ["<agent id>", …]})` drops every line whose top-level `by`, or `chat.from.agent`, is in `skip_by`, so an agent tailing its own session file is not woken by its own replies (`Follow.without`; test `node Servex/Follow-skip.test.mjs`). It is set when the subscription is made and not updated on an existing one. The smart voice seat uses it in tail mode: [wake-policy.md](/framework/ux/Dictate/doc/wake-policy.md). A real run showed a session reads its new lines this way verbatim, about 3 s after they are written (the `updates` tool is for external sessions only; a spawned agent gets the lines as messages from `servex-follow`).
++
+ ## Where it lives
+ 
+ The whole mechanism is one class, [`Servex/Follow.js`](../Follow.js) — one
+diff --git a/public/framework/ux/Dictate/doc/wake-policy.md b/public/framework/ux/Dictate/doc/wake-policy.md
+index cd40348b4..fc54445f5 100644
+--- a/public/framework/ux/Dictate/doc/wake-policy.md
++++ b/public/framework/ux/Dictate/doc/wake-policy.md
+@@ -30,7 +30,11 @@ A typed line is a deliberate send, so it waits only the short `quiet_ms` (1.5 s)
+ 
+ See `wake/report.md`. Short version: the recorded sessions are mostly short spoken questions ("can you hear me?"), which are asked-wakes by design, so the saving there is small; it is large for a continuous dictation of many sentences.
+ 
+-## Next: the smart seat tails its own session log (asked 2026-10-25, not built)
++## Next: the smart seat tails its own session log (opt-in built 2026-10-25, policy not yet replaced)
++
++**Built, off by default.** `POST /api/session/settings {session, tail: true}` (`tail: false` turns it off) makes [`Sessions.js`](../../../../../Servex/agents/Sessions.js) `tail_log()` give the smart seat a Follow subscription on its own `session.jsonl` (`gather_ms` 1500, or `tail_ms` on the session) with `skip_by` set to the seat, the fast seat and the words `fast` and `smart`, so its own lines never wake it. `feed_smart()` still wakes a sleeping seat through the policy (and sends that first batch); once it is awake, the policy's batch message is skipped and Follow delivers the raw lines. Test: `node Servex/agents/WakePolicy.test.mjs` (last check). Needs a Servex restart, at a time the owner picks.
++
++**Caveats of the opt-in:** the policy still decides when a sleeping seat wakes and still records what it sent; every Follow delivery is a paid turn, so `gather_ms` is the cost knob; lines written while the seat slept are not replayed on a resume (a fresh spawn reads the last 40); `skip_by` is fixed when the subscription is made. **Still to do:** the Prompt-record shape for the fast seat's `{place}` lines, and deleting `waker` / `WakePolicy.js` once a live call proves tail mode.
+ 
+ The owner wants one mechanism instead of this policy: the smart assistant follows its own `session.jsonl` with the existing follow tool ([`Servex/Follow.js`](../../../../../Servex/Follow.js)), with a gather window that can be set, and no separate message path.
+ 

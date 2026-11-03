@@ -1,0 +1,1 @@
+`this.logs.push(value)` — the whole method. A `{"log": {…}}` line's value arrives exactly as written; nothing here inspects or reshapes it, so the field names (`at`, `msg`, or whatever a writer chose) are a convention between the writer and whatever renders `.logs` later, not a contract this method enforces.

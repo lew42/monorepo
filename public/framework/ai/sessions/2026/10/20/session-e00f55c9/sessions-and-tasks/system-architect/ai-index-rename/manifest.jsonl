@@ -1,0 +1,3 @@
+{"from":"Server/State.mjs","to":"Server/AIIndex.mjs"}
+{"from":"Server/State.test.mjs","to":"Server/AIIndex.test.mjs"}
+{"from":"Server/doc/state.md","to":"Server/doc/ai-index.md"}

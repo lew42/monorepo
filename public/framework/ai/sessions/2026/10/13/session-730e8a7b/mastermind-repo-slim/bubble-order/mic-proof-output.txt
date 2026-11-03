@@ -1,0 +1,2 @@
+{"phone-sheet":true,"desktop-chat":true,"refine-page":true}
+PASS: the same words on all three surfaces

@@ -1,0 +1,3911 @@
+[
+ {
+  "module": "ai",
+  "topic": "where-you-are-readmes-from-the",
+  "count": 7,
+  "first": "2026-09-29T15:51",
+  "last": "2026-09-29T16:02",
+  "ask": "Where you are: readmes from the root down to public/framework/ai/2026-09-29/servex-mastermind/audit/skills readme.md (truncated — read the rest a...",
+  "also": [
+   "Where you are: readmes from the root down to public/framework/ai/2026-09-29/servex-mastermind/audit/tools readme.md (truncated — read the rest at...",
+   "Where you are: readmes from the root down to public/framework/ai/2026-09-29/servex-mastermind/audit/loose-ends readme.md (truncated — read the re...",
+   "Where you are: readmes from the root down to public/framework/ai/2026/09/29/personal-errands readme.md (truncated — read the rest at this path) #..."
+  ],
+  "sources": [
+   ".claude/prompts/2026-09-29.jsonl",
+   ".claude/prompts/2026-09-29.jsonl",
+   ".claude/prompts/2026-09-29.jsonl",
+   ".claude/prompts/2026-09-29.jsonl",
+   ".claude/prompts/2026-09-29.jsonl",
+   ".claude/prompts/2026-09-29.jsonl",
+   ".claude/prompts/2026-09-29.jsonl"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "class-architecture",
+  "count": 3,
+  "first": "2026-10-01T14:26",
+  "last": "2026-10-01T14:39",
+  "ask": "Provide overview of page, item, content, list relationships.",
+  "also": [
+   "Show class definitions with minimal syntax.",
+   "Include item items array in architecture docs."
+  ],
+  "sources": [
+   ".claude/prompts/2026-10-01.jsonl",
+   ".claude/prompts/2026-10-01.jsonl",
+   ".claude/prompts/2026-10-01.jsonl"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "layout-browser",
+  "count": 2,
+  "first": "2026-09-06T14:56",
+  "last": "2026-09-17T21:40",
+  "ask": "Build layout browser: separate global layouts from component templates, enable approval workflow.",
+  "also": [
+   "Build layout browser to browse and approve/improve every layout on site; separate global layouts from templates."
+  ],
+  "sources": [
+   "claude-session:e938046a-4711-446c-9b36-6713cd4e869f.jsonl:d8f7aebe-81e5-42cf-b223-15fc7412c642",
+   "claude-session:0d555c50-fa3c-40f9-90c1-d1951297c880.jsonl:534b8723-d1a1-4eab-a4b6-c1b3a8138351"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "openrouter-benchmarking",
+  "count": 2,
+  "first": "2026-10-01T01:23",
+  "last": "2026-10-01T14:40",
+  "ask": "Compare OpenRouter models against Claude models.",
+  "also": [
+   "Test cheap models on OpenRouter."
+  ],
+  "sources": [
+   ".claude/prompts/2026-10-01.jsonl",
+   ".claude/prompts/2026-10-01.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "git-merge",
+  "count": 1,
+  "first": "2026-09-01T15:59",
+  "last": "2026-09-01T15:59",
+  "ask": "Pull and merge GitHub branch into michael/dev, don't merge to main yet.",
+  "also": [],
+  "sources": [
+   "claude-session:f825457a-2f19-4006-af89-83c5df126d07.jsonl:55a643a0-f76b-48fb-b84d-d1d842092509"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "spacing-clamp",
+  "count": 1,
+  "first": "2026-09-01T17:39",
+  "last": "2026-09-01T17:39",
+  "ask": "Use % clamp for gaps and padding on containers, fix homepage spacing at 3440.",
+  "also": [],
+  "sources": [
+   "claude-session:f825457a-2f19-4006-af89-83c5df126d07.jsonl:ce68b541-3946-47a5-9183-6d9681f54dc0"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "layout-skill-audit",
+  "count": 1,
+  "first": "2026-09-01T17:39",
+  "last": "2026-09-01T17:39",
+  "ask": "Edit layout skill to fix broken layouts and spacing; extreme care required not to repeat errors.",
+  "also": [],
+  "sources": [
+   "claude-session:f825457a-2f19-4006-af89-83c5df126d07.jsonl:ce68b541-3946-47a5-9183-6d9681f54dc0"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "mastermind-relay",
+  "count": 1,
+  "first": "2026-09-04T20:58",
+  "last": "2026-09-04T20:58",
+  "ask": "Mastermind should only relay questions to other sessions, not execute skills itself.",
+  "also": [],
+  "sources": [
+   "claude-session:e938046a-4711-446c-9b36-6713cd4e869f.jsonl:b29febee-55a2-47d5-b773-4faaf489f8c4"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "silence-tools",
+  "count": 1,
+  "first": "2026-09-04T20:58",
+  "last": "2026-09-04T20:58",
+  "ask": "Provide way to silence tool calls in VS Code sidebar chat.",
+  "also": [],
+  "sources": [
+   "claude-session:e938046a-4711-446c-9b36-6713cd4e869f.jsonl:b29febee-55a2-47d5-b773-4faaf489f8c4"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "table-columns",
+  "count": 1,
+  "first": "2026-09-04T21:10",
+  "last": "2026-09-04T21:10",
+  "ask": "Make class to equalize column widths for tables, add to platform MVP page.",
+  "also": [],
+  "sources": [
+   "claude-session:e938046a-4711-446c-9b36-6713cd4e869f.jsonl:6c14d00c-9113-42ac-9a7c-7e6e1d4446a6"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "paging-styles",
+  "count": 1,
+  "first": "2026-09-04T21:40",
+  "last": "2026-09-04T21:40",
+  "ask": "Add imagine/paging/ page exploring page transitions, navigation structures, and content variations.",
+  "also": [],
+  "sources": [
+   "claude-session:e938046a-4711-446c-9b36-6713cd4e869f.jsonl:5cd2ab3b-17b6-45e8-b06e-caf27889d92b"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "column-sizing",
+  "count": 1,
+  "first": "2026-09-04T22:38",
+  "last": "2026-09-04T22:38",
+  "ask": "Screenshot imagine/platform/cloudflare/verdict at 3440; fix research column too large, right columns too small.",
+  "also": [],
+  "sources": [
+   "claude-session:e938046a-4711-446c-9b36-6713cd4e869f.jsonl:95ae5a2b-c397-4ab2-ae8d-e70f214c4779"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "clarity-law",
+  "count": 1,
+  "first": "2026-09-04T23:03",
+  "last": "2026-09-04T23:03",
+  "ask": "Update CLAUDE.md clarity law: emphasize clear explanations, plain sentences, no minimal speak.",
+  "also": [],
+  "sources": [
+   "claude-session:e938046a-4711-446c-9b36-6713cd4e869f.jsonl:8af8b124-155a-406a-a291-5a56d08f866b"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "page-audit",
+  "count": 1,
+  "first": "2026-09-04T23:03",
+  "last": "2026-09-04T23:03",
+  "ask": "Have minion review imagine pages for layout and clarity; spawn managers for UI tests on each page.",
+  "also": [],
+  "sources": [
+   "claude-session:e938046a-4711-446c-9b36-6713cd4e869f.jsonl:8af8b124-155a-406a-a291-5a56d08f866b"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "paging-stacks",
+  "count": 1,
+  "first": "2026-09-05T06:31",
+  "last": "2026-09-05T06:31",
+  "ask": "Improve paging UX: focus on stacks vs splits, fix vertical spacing, ensure non-jarring transitions.",
+  "also": [],
+  "sources": [
+   "claude-session:e938046a-4711-446c-9b36-6713cd4e869f.jsonl:32ac2009-8269-4cf8-8e47-643ff5b17d3a"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "page-simplicity",
+  "count": 1,
+  "first": "2026-09-05T18:24",
+  "last": "2026-09-05T18:24",
+  "ask": "Refactor pages for clarity: one-page demos explaining single concepts, stay above fold.",
+  "also": [],
+  "sources": [
+   "claude-session:e938046a-4711-446c-9b36-6713cd4e869f.jsonl:42af34e2-fd4f-4468-b23b-09019d3d43f3"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "multicolumn-sections",
+  "count": 1,
+  "first": "2026-09-05T20:46",
+  "last": "2026-09-05T20:46",
+  "ask": "Build multi-column section UI: 2/3/4 column layouts that utilize 3440 width well, varied arrangements.",
+  "also": [],
+  "sources": [
+   "claude-session:e938046a-4711-446c-9b36-6713cd4e869f.jsonl:220ff54e-08b4-4663-a609-f15d49a02eae"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "swap-page-fix",
+  "count": 1,
+  "first": "2026-09-05T20:53",
+  "last": "2026-09-05T20:53",
+  "ask": "Fix imagine/paging/mechanisms/swap page: icons out of alignment, toolbar sprawling, consolidate with dropdowns.",
+  "also": [],
+  "sources": [
+   "claude-session:e938046a-4711-446c-9b36-6713cd4e869f.jsonl:1315a35a-35ad-4795-a39b-5d3bc9c18895"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "demo-system",
+  "count": 1,
+  "first": "2026-09-06T14:56",
+  "last": "2026-09-06T14:56",
+  "ask": "Consolidate demo/stage/playground/workspace into unified system with viewport, toolbar, footer.",
+  "also": [],
+  "sources": [
+   "claude-session:e938046a-4711-446c-9b36-6713cd4e869f.jsonl:d8f7aebe-81e5-42cf-b223-15fc7412c642"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "layout-rules",
+  "count": 1,
+  "first": "2026-09-06T15:02",
+  "last": "2026-09-06T15:02",
+  "ask": "Identify layout restrictions: content scale vs container size, responsive breakpoints, never-break layouts.",
+  "also": [],
+  "sources": [
+   "claude-session:e938046a-4711-446c-9b36-6713cd4e869f.jsonl:6b95bac9-cf06-4b36-a1ba-6cd985ee26a3"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "bleed-grid",
+  "count": 1,
+  "first": "2026-09-06T16:07",
+  "last": "2026-09-06T16:07",
+  "ask": "Fix doodles page: bleed grid needs padding, items butting viewport edge.",
+  "also": [],
+  "sources": [
+   "claude-session:e938046a-4711-446c-9b36-6713cd4e869f.jsonl:3168fb3e-6834-43e0-ad2c-6f0ba39c0214"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "paging-routing",
+  "count": 1,
+  "first": "2026-09-06T16:22",
+  "last": "2026-09-06T16:22",
+  "ask": "Add URL bar to paging demo showing current path, fix default content routing.",
+  "also": [],
+  "sources": [
+   "claude-session:e938046a-4711-446c-9b36-6713cd4e869f.jsonl:58514ef4-2830-4be1-8180-6bd4845700ec"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "sidebar-padding",
+  "count": 1,
+  "first": "2026-09-06T16:22",
+  "last": "2026-09-06T16:22",
+  "ask": "Fix paging left sidebar padding; may need to use container queries for % of self.",
+  "also": [],
+  "sources": [
+   "claude-session:e938046a-4711-446c-9b36-6713cd4e869f.jsonl:58514ef4-2830-4be1-8180-6bd4845700ec"
+  ]
+ },
+ {
+  "module": "other",
+  "topic": "playwright-research",
+  "count": 1,
+  "first": "2026-09-08T04:57",
+  "last": "2026-09-08T04:57",
+  "ask": "Research Playwright: document common uses, create demos, write blog post about automation possibilities.",
+  "also": [],
+  "sources": [
+   "claude-session:080bcce3-f367-4e60-9a6b-dc6f0a5d45ff.jsonl:6c0f0bee-2a70-45e6-8116-23a73c83d768"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "website-layouts",
+  "count": 1,
+  "first": "2026-09-08T04:57",
+  "last": "2026-09-08T04:57",
+  "ask": "Browse external sites, document responsive layout patterns and CSS techniques by resolution.",
+  "also": [],
+  "sources": [
+   "claude-session:080bcce3-f367-4e60-9a6b-dc6f0a5d45ff.jsonl:6c0f0bee-2a70-45e6-8116-23a73c83d768"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "paging-scroll",
+  "count": 1,
+  "first": "2026-09-08T14:50",
+  "last": "2026-09-08T14:50",
+  "ask": "Fix imagine/paging page: CSS overflow rule prevents paging-home page from scrolling.",
+  "also": [],
+  "sources": [
+   "claude-session:080bcce3-f367-4e60-9a6b-dc6f0a5d45ff.jsonl:59895819-531e-41fb-84d2-3b11fbd64eea"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "ai-board-filter",
+  "count": 1,
+  "first": "2026-09-08T15:50",
+  "last": "2026-09-08T15:50",
+  "ask": "Filter framework/ai page to show only major accomplishments with icons by default.",
+  "also": [],
+  "sources": [
+   "claude-session:080bcce3-f367-4e60-9a6b-dc6f0a5d45ff.jsonl:d15dbf88-de44-4118-9cc7-e56b2116d3c5"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "redactions-page",
+  "count": 1,
+  "first": "2026-09-08T16:57",
+  "last": "2026-09-08T16:57",
+  "ask": "Make notes/redactions page showing exactly what was removed verbatim with links to original images.",
+  "also": [],
+  "sources": [
+   "claude-session:080bcce3-f367-4e60-9a6b-dc6f0a5d45ff.jsonl:31d7297d-9647-4359-bdda-8872ddf89fb0"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "mvp-routing",
+  "count": 1,
+  "first": "2026-09-08T23:15",
+  "last": "2026-09-08T23:15",
+  "ask": "Fix imagine/platform: URL should say imagine/platform/mvp/ when MVP launches automatically.",
+  "also": [],
+  "sources": [
+   "claude-session:21949cd9-4ce4-4c07-bdb4-adf045bf9dd3.jsonl:c1ef78eb-59a1-4a7a-bf67-b8745f5e0926"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "mvp-table",
+  "count": 1,
+  "first": "2026-09-08T23:15",
+  "last": "2026-09-08T23:15",
+  "ask": "Fix MVP page table: first column chopped off, no horizontal scroll, layout too cramped.",
+  "also": [],
+  "sources": [
+   "claude-session:21949cd9-4ce4-4c07-bdb4-adf045bf9dd3.jsonl:c1ef78eb-59a1-4a7a-bf67-b8745f5e0926"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "page-crud",
+  "count": 1,
+  "first": "2026-09-13T22:40",
+  "last": "2026-09-13T22:40",
+  "ask": "Enable create/edit sub pages via UI plus socket, either via page.jsonl append or real /path/page.js.",
+  "also": [],
+  "sources": [
+   "claude-session:e60106d0-4cf3-4e0c-9fad-c9b5234d90ab.jsonl:2964bbdf-b1b1-4438-9f5b-f611311efc6a"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "notes-heading",
+  "count": 1,
+  "first": "2026-09-14T00:05",
+  "last": "2026-09-14T00:05",
+  "ask": "Add h1 'Notes' to Notes page for clarity.",
+  "also": [],
+  "sources": [
+   "claude-session:e60106d0-4cf3-4e0c-9fad-c9b5234d90ab.jsonl:f70846fd-55d2-4cf7-b4f6-4e31996f4431"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "sidebar-styling",
+  "count": 1,
+  "first": "2026-09-14T00:05",
+  "last": "2026-09-14T00:05",
+  "ask": "Fix Page sidebar: add white bg (not hovering), fix column widths, Today/Later shouldn't be 300px.",
+  "also": [],
+  "sources": [
+   "claude-session:e60106d0-4cf3-4e0c-9fad-c9b5234d90ab.jsonl:f70846fd-55d2-4cf7-b4f6-4e31996f4431"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "importance-system",
+  "count": 1,
+  "first": "2026-09-14T00:06",
+  "last": "2026-09-14T00:06",
+  "ask": "Build importance system: typed graph for topics/questions/options/caveats with collaborative judging of what matters most.",
+  "also": [],
+  "sources": [
+   "claude-session:e60106d0-4cf3-4e0c-9fad-c9b5234d90ab.jsonl:41648baa-29ad-4122-929d-6e249a1b209c"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "logging-revamp",
+  "count": 1,
+  "first": "2026-09-17T21:40",
+  "last": "2026-09-17T21:40",
+  "ask": "Revamp AI logging: show every ask summarized with links to original prompts as visual previews with iceberg UX.",
+  "also": [],
+  "sources": [
+   "claude-session:0d555c50-fa3c-40f9-90c1-d1951297c880.jsonl:534b8723-d1a1-4eab-a4b6-c1b3a8138351"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "design-tokens",
+  "count": 1,
+  "first": "2026-09-18T02:52",
+  "last": "2026-09-18T02:52",
+  "ask": "Create minimal design system with padding tokens; document design system foundation.",
+  "also": [],
+  "sources": [
+   "claude-session:0d555c50-fa3c-40f9-90c1-d1951297c880.jsonl:4b924c0c-abdb-4e77-b9cf-2e27a07f562a"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "approve-system",
+  "count": 1,
+  "first": "2026-09-18T04:07",
+  "last": "2026-09-18T04:07",
+  "ask": "Build 'approve or improve' feedback system for decisions; decisions documented as structured page tree.",
+  "also": [],
+  "sources": [
+   "claude-session:0d555c50-fa3c-40f9-90c1-d1951297c880.jsonl:2bd784fd-9054-4da7-8fcf-8de9e336da50"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "column-count",
+  "count": 1,
+  "first": "2026-09-18T04:07",
+  "last": "2026-09-18T04:07",
+  "ask": "Focus on N even columns: auto-compute column count based on min/max width and available space.",
+  "also": [],
+  "sources": [
+   "claude-session:0d555c50-fa3c-40f9-90c1-d1951297c880.jsonl:2bd784fd-9054-4da7-8fcf-8de9e336da50"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "tree-sidebar",
+  "count": 1,
+  "first": "2026-09-18T04:14",
+  "last": "2026-09-18T04:14",
+  "ask": "Build/merge tree UI component for left sidebar: expandable/collapsible navigation for deep nesting.",
+  "also": [],
+  "sources": [
+   "claude-session:0d555c50-fa3c-40f9-90c1-d1951297c880.jsonl:cb18011d-e085-4819-85a7-badbb134824f"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "typography-colors",
+  "count": 1,
+  "first": "2026-09-18T04:19",
+  "last": "2026-09-18T04:19",
+  "ask": "Explore typography and color permutations: test font size/weight/color with background variations, document in layout skill.",
+  "also": [],
+  "sources": [
+   "claude-session:0d555c50-fa3c-40f9-90c1-d1951297c880.jsonl:e08ff302-b4ce-4583-88df-24265c3dca3f"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "mastermind-decides",
+  "count": 1,
+  "first": "2026-09-18T17:23",
+  "last": "2026-09-18T17:23",
+  "ask": "Mastermind should make decisions and document alternatives; never defer decisions, keep context clean.",
+  "also": [],
+  "sources": [
+   "claude-session:0d555c50-fa3c-40f9-90c1-d1951297c880.jsonl:a9c5a5a4-6e54-4789-b803-9f2ce71049a6"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "token-pacing",
+  "count": 1,
+  "first": "2026-09-18T17:26",
+  "last": "2026-09-18T17:26",
+  "ask": "Lean into Sonnet and Opus when low on tokens; downgrade level/effort when needed to manage usage.",
+  "also": [],
+  "sources": [
+   "claude-session:0d555c50-fa3c-40f9-90c1-d1951297c880.jsonl:1b65882e-746d-4539-a90f-ee35e78149af"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "sidebar-nav",
+  "count": 1,
+  "first": "2026-09-18T17:26",
+  "last": "2026-09-18T17:26",
+  "ask": "Design and build left sidebar navigation with tree structure for deep multi-level nested systems.",
+  "also": [],
+  "sources": [
+   "claude-session:0d555c50-fa3c-40f9-90c1-d1951297c880.jsonl:1b65882e-746d-4539-a90f-ee35e78149af"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "list-ui",
+  "count": 1,
+  "first": "2026-09-18T17:30",
+  "last": "2026-09-18T17:30",
+  "ask": "Explore list UI variations: single-column hierarchy, accordion, expandable, drag-and-drop team management.",
+  "also": [],
+  "sources": [
+   "claude-session:0d555c50-fa3c-40f9-90c1-d1951297c880.jsonl:c885850c-58c6-4190-b4ee-af6482687052"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "mastermind-reports",
+  "count": 1,
+  "first": "2026-09-18T17:35",
+  "last": "2026-09-18T17:35",
+  "ask": "Mastermind: put work in detailed reports with visual nav/hierarchy, not long-winded chat replies.",
+  "also": [],
+  "sources": [
+   "claude-session:0d555c50-fa3c-40f9-90c1-d1951297c880.jsonl:467cb12e-2ad2-4999-9594-7d711e6fb5aa"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "realtime-ui",
+  "count": 1,
+  "first": "2026-09-18T17:39",
+  "last": "2026-09-18T17:39",
+  "ask": "Build real-time task creation and UI while owner dictates: tasks appear on screen as they speak.",
+  "also": [],
+  "sources": [
+   "claude-session:0d555c50-fa3c-40f9-90c1-d1951297c880.jsonl:af3f99de-7562-43e9-ab93-45ea30963986"
+  ]
+ },
+ {
+  "module": "voice",
+  "topic": "voice-interface",
+  "count": 1,
+  "first": "2026-09-18T17:39",
+  "last": "2026-09-18T17:39",
+  "ask": "Implement voice-driven workflow: click microphone in web UI to talk about what's done and plan next.",
+  "also": [],
+  "sources": [
+   "claude-session:0d555c50-fa3c-40f9-90c1-d1951297c880.jsonl:af3f99de-7562-43e9-ab93-45ea30963986"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "platform-workflows",
+  "count": 1,
+  "first": "2026-09-18T17:41",
+  "last": "2026-09-18T17:41",
+  "ask": "Document platform workflows with grid of workflow cards; show registration, login, auth flow designs.",
+  "also": [],
+  "sources": [
+   "claude-session:0d555c50-fa3c-40f9-90c1-d1951297c880.jsonl:7b4f0c78-1c8c-4a52-b3db-88c7d807295d"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "usage-buffer",
+  "count": 1,
+  "first": "2026-09-18T17:43",
+  "last": "2026-09-18T17:43",
+  "ask": "Maintain 20% buffer below usage pace: stay at pace minus 20% to give freedom for decisions.",
+  "also": [],
+  "sources": [
+   "claude-session:0d555c50-fa3c-40f9-90c1-d1951297c880.jsonl:3efd506d-0853-4568-af14-a2b23ac5fd7c"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "realtime-transcription",
+  "count": 1,
+  "first": "2026-09-18T17:55",
+  "last": "2026-09-18T17:55",
+  "ask": "Show task/request structure in real-time while dictating; live updates to chat/board visible as they speak.",
+  "also": [],
+  "sources": [
+   "claude-session:0d555c50-fa3c-40f9-90c1-d1951297c880.jsonl:0c33b989-b086-4e62-83b1-d39120bb7284"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "demo-text-layout",
+  "count": 1,
+  "first": "2026-09-18T18:02",
+  "last": "2026-09-18T18:02",
+  "ask": "Explore two-column demo plus text layout; lead-in text should relate to demos for clarity.",
+  "also": [],
+  "sources": [
+   "claude-session:0d555c50-fa3c-40f9-90c1-d1951297c880.jsonl:f69982e3-2613-45b6-bd43-12bae441ea20"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "sidebar-related",
+  "count": 1,
+  "first": "2026-09-18T18:04",
+  "last": "2026-09-18T18:04",
+  "ask": "Explore internal right sidebar for related topics: icon and title imports that auto-update.",
+  "also": [],
+  "sources": [
+   "claude-session:0d555c50-fa3c-40f9-90c1-d1951297c880.jsonl:7b65e863-9710-4ced-88a3-22ca96969eb8"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "import-tracking",
+  "count": 1,
+  "first": "2026-09-18T18:04",
+  "last": "2026-09-18T18:04",
+  "ask": "Build import tracking system: auto-update import paths when pages dragged/dropped to new locations.",
+  "also": [],
+  "sources": [
+   "claude-session:0d555c50-fa3c-40f9-90c1-d1951297c880.jsonl:7b65e863-9710-4ced-88a3-22ca96969eb8"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "reply-threads",
+  "count": 1,
+  "first": "2026-09-18T18:06",
+  "last": "2026-09-18T18:06",
+  "ask": "Reply threads should fold shut when they get long to keep log concise.",
+  "also": [],
+  "sources": [
+   "claude-session:0d555c50-fa3c-40f9-90c1-d1951297c880.jsonl:370145aa-1029-444b-acf7-7075481b1cc5"
+  ]
+ },
+ {
+  "module": "voice",
+  "topic": "mic-timeout",
+  "count": 1,
+  "first": "2026-09-18T18:06",
+  "last": "2026-09-18T18:06",
+  "ask": "Microphone should stop recording automatically after 30 seconds of silence.",
+  "also": [],
+  "sources": [
+   "claude-session:0d555c50-fa3c-40f9-90c1-d1951297c880.jsonl:370145aa-1029-444b-acf7-7075481b1cc5"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "flowchart-canvas",
+  "count": 1,
+  "first": "2026-09-18T18:13",
+  "last": "2026-09-18T18:13",
+  "ask": "Build infinite canvas layout system (like Whimsical): vertical/horizontal scrolling, zoom, auto-layout for flowcharts.",
+  "also": [],
+  "sources": [
+   "claude-session:cfca18c9-a470-4295-a088-a13479fdd040.jsonl:22b4d3a2-76f1-4fb2-8a36-5ed2e4c01d4f"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "json-pages",
+  "count": 1,
+  "first": "2026-09-18T18:21",
+  "last": "2026-09-18T18:21",
+  "ask": "Allow page.js with JSON flag to auto-load page.json; flexible hybrid for dynamic pages.",
+  "also": [],
+  "sources": [
+   "claude-session:cfca18c9-a470-4295-a088-a13479fdd040.jsonl:d637ddc0-b13b-45bc-a404-c0a54a46b473"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "reload-debug",
+  "count": 1,
+  "first": "2026-09-19T19:28",
+  "last": "2026-09-19T19:28",
+  "ask": "Debug and fix page reload issue; figure out what's writing to filesystem and causing reloads.",
+  "also": [],
+  "sources": [
+   "claude-session:cfca18c9-a470-4295-a088-a13479fdd040.jsonl:7f2143df-a408-4073-9556-bfa164107575"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "server-restart",
+  "count": 1,
+  "first": "2026-09-19T19:28",
+  "last": "2026-09-19T19:28",
+  "ask": "Enable dev server restart capability: spin up second dev server on different port independent of running server.",
+  "also": [],
+  "sources": [
+   "claude-session:cfca18c9-a470-4295-a088-a13479fdd040.jsonl:7f2143df-a408-4073-9556-bfa164107575"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "dashboard-naming",
+  "count": 1,
+  "first": "2026-09-19T19:47",
+  "last": "2026-09-19T19:47",
+  "ask": "Rename dashboard versions cleanly: V1 and V2; create automatically with button clicks.",
+  "also": [],
+  "sources": [
+   "claude-session:cfca18c9-a470-4295-a088-a13479fdd040.jsonl:7b2c40b0-2eb1-4728-8853-4e074cb31a1a"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "sidebar-layout",
+  "count": 1,
+  "first": "2026-09-19T20:00",
+  "last": "2026-09-19T20:00",
+  "ask": "Fix sidebar layout: footer should be one row not 50% of height; icon alignment should be vertically centered.",
+  "also": [],
+  "sources": [
+   "claude-session:cfca18c9-a470-4295-a088-a13479fdd040.jsonl:783bbb00-26e4-45c7-b367-eda5d167149d"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "session-history",
+  "count": 1,
+  "first": "2026-09-19T20:15",
+  "last": "2026-09-19T20:15",
+  "ask": "Ability to read past session transcripts; access all VS Code Claude Code sessions.",
+  "also": [],
+  "sources": [
+   "claude-session:cfca18c9-a470-4295-a088-a13479fdd040.jsonl:f215db04-e81b-484d-8987-db49e11252f0"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "assistant-mode",
+  "count": 1,
+  "first": "2026-09-19T20:28",
+  "last": "2026-09-19T20:28",
+  "ask": "Create assistant mode: relays user messages to mastermind, keeps context minimal for faster responses.",
+  "also": [],
+  "sources": [
+   "claude-session:cfca18c9-a470-4295-a088-a13479fdd040.jsonl:e539df36-598c-41dd-b77f-4b4bc88e0e43"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "assistant-relay",
+  "count": 1,
+  "first": "2026-09-19T20:41",
+  "last": "2026-09-19T20:41",
+  "ask": "Assistant should automatically relay every prompt to mastermind; every prompt uses assistant skill.",
+  "also": [],
+  "sources": [
+   "claude-session:ae22125c-045d-4a26-8de1-9c10c973904a.jsonl:29b85028-ff75-48d3-8c19-132e359baac3"
+  ]
+ },
+ {
+  "module": "voice",
+  "topic": "transcribe-log",
+  "count": 1,
+  "first": "2026-09-19T20:41",
+  "last": "2026-09-19T20:41",
+  "ask": "Transcribe dictations in real-time into log; verbatim text, timestamps, optional audio recording.",
+  "also": [],
+  "sources": [
+   "claude-session:ae22125c-045d-4a26-8de1-9c10c973904a.jsonl:29b85028-ff75-48d3-8c19-132e359baac3"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "generally-what-makes-a-lot-of",
+  "count": 1,
+  "first": "2026-09-23T00:58",
+  "last": "2026-09-23T00:58",
+  "ask": "Generally, what makes a lot of sense to me is that the data structures should be simple and clear and you know they might have to adapt a little bit.",
+  "also": [],
+  "sources": [
+   "claude-session:e2b82220-72fd-4fec-b8a6-5f985c9cbefa.jsonl:5fa3fefa-7f20-4ac4-a5ce-6845edbcd077"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "but-yeah-to-finish-up-on",
+  "count": 1,
+  "first": "2026-09-23T05:12",
+  "last": "2026-09-23T05:12",
+  "ask": "But yeah, to finish up on that last question that I was kind of looking into is what what kind of hooks are we using? What are we relying like.",
+  "also": [],
+  "sources": [
+   "claude-session:e2b82220-72fd-4fec-b8a6-5f985c9cbefa.jsonl:48efff76-a162-4646-9e78-6c6108f1b43d"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "explain-simply-how-all-the-different",
+  "count": 1,
+  "first": "2026-09-23T05:57",
+  "last": "2026-09-23T05:57",
+  "ask": "Explain simply how all the different masterminds and assistants and whatever, how they speak to each other. Is it is basically via the SDK and the ...",
+  "also": [],
+  "sources": [
+   "claude-session:e2b82220-72fd-4fec-b8a6-5f985c9cbefa.jsonl:ce7af7c7-1e55-49cd-929c-05c3321d56e0"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "so-you-just-described-uh-both",
+  "count": 1,
+  "first": "2026-09-23T06:04",
+  "last": "2026-09-23T06:04",
+  "ask": "So you just described uh, both ways, uh, adding the Servex MCP to the agent. So it uses HTTP to do things, which if it's just coming back to its.",
+  "also": [],
+  "sources": [
+   "claude-session:e2b82220-72fd-4fec-b8a6-5f985c9cbefa.jsonl:700948b2-ed90-4f7c-b1b5-f436bbda3066"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "well-just-uh-make-note-in",
+  "count": 1,
+  "first": "2026-09-23T06:12",
+  "last": "2026-09-23T06:12",
+  "ask": "Well, just uh, make note in the whole system architecture readmes or documentation or whatever about... Uh, I'm not sure where our system documenta...",
+  "also": [],
+  "sources": [
+   "claude-session:e2b82220-72fd-4fec-b8a6-5f985c9cbefa.jsonl:5a5cc763-0c6e-406b-8e00-5415844196fb"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "does-the-servex-mcp-have-a",
+  "count": 1,
+  "first": "2026-09-23T17:02",
+  "last": "2026-09-23T17:02",
+  "ask": "does the servex mcp have a way to restart itself, after updates? does that need to shut down and restart any running servers, to get the new handle...",
+  "also": [],
+  "sources": [
+   "claude-session:e2b82220-72fd-4fec-b8a6-5f985c9cbefa.jsonl:eda1e512-5106-4191-b786-cf89dfe0eeb6"
+  ]
+ },
+ {
+  "module": "voice",
+  "topic": "add-this-as-an-important-design",
+  "count": 1,
+  "first": "2026-09-23T17:19",
+  "last": "2026-09-23T17:19",
+  "ask": "add this as an important design caveat that could/should be addressed later. this makes the monorepo server a dependency? also, we don't really wan...",
+  "also": [],
+  "sources": [
+   "claude-session:e2b82220-72fd-4fec-b8a6-5f985c9cbefa.jsonl:abe70ca6-e877-4fa7-824a-6e617850c0c4"
+  ]
+ },
+ {
+  "module": "voice",
+  "topic": "look-at-the-ext-slash-editor",
+  "count": 1,
+  "first": "2026-09-23T19:27",
+  "last": "2026-09-23T19:27",
+  "ask": "look at the ext slash editor and what kind of dependencies it has it looks like it's rendering a tree of icon items it's got some sort of inspector...",
+  "also": [],
+  "sources": [
+   "claude-session:bdcef106-dedf-4282-9126-34e2cd46a17e.jsonl:7e4beb9b-f00d-47b7-a02e-e2ba41853a47"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "i-dont-like-these-small-scrollable",
+  "count": 1,
+  "first": "2026-09-23T19:30",
+  "last": "2026-09-23T19:30",
+  "ask": "I don't like these small scrollable areas. We have the needs you column uh, on the AI2 page is short and scrollable. I don't know why it's so short...",
+  "also": [],
+  "sources": [
+   "claude-session:bdcef106-dedf-4282-9126-34e2cd46a17e.jsonl:76aaee05-efbd-42cb-b1e7-bc9016ff9ea2"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "figure-out-why-the-frameworkai2-new",
+  "count": 1,
+  "first": "2026-09-23T20:01",
+  "last": "2026-09-23T20:01",
+  "ask": "figure out why the framework/ai2/ new card -> dictation, which works, but the fast assistant isn't able to respond? my statements properly appear (...",
+  "also": [],
+  "sources": [
+   "claude-session:7eb632b1-db54-4dac-b8ba-274f2f979a2e.jsonl:cc40c3bd-25ec-4695-9b5c-db280e72028f"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "we-sort-of-have-a-servex",
+  "count": 1,
+  "first": "2026-09-23T20:03",
+  "last": "2026-09-23T20:03",
+  "ask": "we sort of have a Servex claude sdk thing... but i don't really trust it, not even sure how to use it right now. don't make any changes, don't spawn.",
+  "also": [],
+  "sources": [
+   "claude-session:bdcef106-dedf-4282-9126-34e2cd46a17e.jsonl:915cd1bc-3a36-41bc-b23d-90b4977a218e"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "go-ahead-and-delete-the-worktrees",
+  "count": 1,
+  "first": "2026-09-24T18:20",
+  "last": "2026-09-24T18:20",
+  "ask": "go ahead and delete the worktrees, i committed. yes, remove that file, but also look into the assistant system. what model does it spawn? does the ...",
+  "also": [],
+  "sources": [
+   "claude-session:731a9d1f-1491-4aa6-a966-79c22cdc5fdc.jsonl:9edde006-a072-411e-9b55-d193fffaa464"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "explain-very-briefly-the-mastermind-syst",
+  "count": 1,
+  "first": "2026-09-24T18:33",
+  "last": "2026-09-24T18:33",
+  "ask": "Explain very briefly the mastermind system in terms of skills and roles. Like when you spawn an agent with a role, what does that mean? Is, is this...",
+  "also": [],
+  "sources": [
+   "claude-session:731a9d1f-1491-4aa6-a966-79c22cdc5fdc.jsonl:5b51422e-9c58-4d95-a6a9-e9d0d14420c1"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "if-we-want-any-ai-dashboard",
+  "count": 1,
+  "first": "2026-09-24T19:01",
+  "last": "2026-09-24T19:01",
+  "ask": "if we want any ai dashboard card to be able to have any number of child cards, with their own child cards, we probably want to use directories over...",
+  "also": [],
+  "sources": [
+   "claude-session:731a9d1f-1491-4aa6-a966-79c22cdc5fdc.jsonl:55e85c46-3c65-4e9d-99e2-97729175baf4"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "yeah-and-just-to-reiterate-um",
+  "count": 1,
+  "first": "2026-09-24T19:30",
+  "last": "2026-09-24T19:30",
+  "ask": "Yeah, and just to reiterate um, on the multi-column layouts, sometimes they should be full screen, like fill width, fill height. Uh, sometimes they...",
+  "also": [],
+  "sources": [
+   "claude-session:731a9d1f-1491-4aa6-a966-79c22cdc5fdc.jsonl:5ee42930-f3b6-4e43-bc5b-b0e3b3af36ea"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "all-right-so-im-really-struggling",
+  "count": 1,
+  "first": "2026-09-24T21:23",
+  "last": "2026-09-24T21:23",
+  "ask": "All right, so I'm really struggling with this paging system, even at like the core level. So a page.js can import modules and render custom user in...",
+  "also": [],
+  "sources": [
+   "claude-session:731a9d1f-1491-4aa6-a966-79c22cdc5fdc.jsonl:57b35ce2-0baf-4039-81ef-1f38a2292191"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "all-right-so-give-me-a",
+  "count": 1,
+  "first": "2026-09-24T21:33",
+  "last": "2026-09-24T21:33",
+  "ask": "All right, so give me a quick overview of, you know, how this would work. Uh, in particular, the JSON-L data structure. Um, what I think might be t...",
+  "also": [],
+  "sources": [
+   "claude-session:731a9d1f-1491-4aa6-a966-79c22cdc5fdc.jsonl:03c77064-aff5-4015-b179-f0e943e95d76"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "yeah-go-ahead-and-write-the",
+  "count": 1,
+  "first": "2026-09-24T21:43",
+  "last": "2026-09-24T21:43",
+  "ask": "Yeah, go ahead and write the handoff too, and also add to it your session ID. And so if the new mastermind wants to ask any questions about my inte...",
+  "also": [],
+  "sources": [
+   "claude-session:731a9d1f-1491-4aa6-a966-79c22cdc5fdc.jsonl:e05efdb9-be22-4a26-a9d6-bdb48833105a"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "also-uh-while-youre-doing-this",
+  "count": 1,
+  "first": "2026-09-24T21:47",
+  "last": "2026-09-24T21:47",
+  "ask": "Also, uh, while you're doing this, try to make the, uh, well, try and make it clear how the MCP Servex system should work. I mean, it sounds like w...",
+  "also": [],
+  "sources": [
+   "claude-session:731a9d1f-1491-4aa6-a966-79c22cdc5fdc.jsonl:848eaae7-15d8-4668-a5b5-4a1bbe0e8146"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "all-right-heres-what-i-want",
+  "count": 1,
+  "first": "2026-09-25T16:35",
+  "last": "2026-09-25T16:35",
+  "ask": "All right, here's what I want you to do. For the audits in terms of like things that we've built and kind of overlapping content and merging things...",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-25.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "i-dont-like-these-text-tables",
+  "count": 1,
+  "first": "2026-09-25T16:40",
+  "last": "2026-09-25T16:40",
+  "ask": "I don't like these text tables you're making. If you're making a table, make a real, you just use a real table. and it's still not clear to me like.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-25.jsonl"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "all-right-so-im-finally-looking",
+  "count": 1,
+  "first": "2026-09-25T16:46",
+  "last": "2026-09-25T16:46",
+  "ask": "All right, so I'm finally looking at the content, UX content page, and there's no padding on this three column area here where it demos the questio...",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-25.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "well-its-definitely-work-on-staying",
+  "count": 1,
+  "first": "2026-09-25T16:47",
+  "last": "2026-09-25T16:47",
+  "ask": "Well, it's definitely work on staying under budget on tokens. Like, um, I mean, I, I think if, if there's a use for burning tokens, like if we have a.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-25.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "all-right-so-yeah-focusing-on",
+  "count": 1,
+  "first": "2026-09-25T16:50",
+  "last": "2026-09-25T16:50",
+  "ask": "All right, so yeah, focusing on the paging system. The, the system, the Servex mastermind should be involved in, you know, this process. Like, let'...",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-25.jsonl"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "i-dont-know-if-we-necessarily",
+  "count": 1,
+  "first": "2026-09-25T16:51",
+  "last": "2026-09-25T16:51",
+  "ask": "I don't know if we necessarily need to create a, a database or anything right now. It's sort of just uh, you know tra tracking, creating different ...",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-25.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "yeah-dont-dont-clobber-the-the",
+  "count": 1,
+  "first": "2026-09-25T16:54",
+  "last": "2026-09-25T16:54",
+  "ask": "Yeah, don't don't clobber the the core page overview previews. This grid is actually really good. I haven't really studied this enough. There's the...",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-25.jsonl"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "could-we-make-a-css-uh",
+  "count": 1,
+  "first": "2026-09-25T16:58",
+  "last": "2026-09-25T16:58",
+  "ask": "Could we make a CSS uh, before, like pseudo element before every, uh, like element on our site? maybe not everyone, but maybe maybe if we put a cla...",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-25.jsonl"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "so-the-uh-the-core-page",
+  "count": 1,
+  "first": "2026-09-25T16:59",
+  "last": "2026-09-25T16:59",
+  "ask": "So the uh, the core page overview tab is now three equal columns, which is good. The vertical rhythm here is a little there's a huge amount of spac...",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-25.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "but-lets-lets-go-ahead-and",
+  "count": 1,
+  "first": "2026-09-25T17:04",
+  "last": "2026-09-25T17:04",
+  "ask": "but let's let's go ahead and create a new card uh put a new card at the top of my my inbox here",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-25.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "this-um-this-new-card-well",
+  "count": 1,
+  "first": "2026-09-25T17:08",
+  "last": "2026-09-25T17:08",
+  "ask": "This um, this new card well so all the cards in this template is it has this little expando thing the summary element that says more this cards fil...",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-25.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "all-right-so-we-need-in",
+  "count": 1,
+  "first": "2026-09-25T17:12",
+  "last": "2026-09-25T17:12",
+  "ask": "All right, so we need in the inbox for cards that are resurfacing. It's like a sub, it's like a notification with, creating a grid of navigation li...",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-25.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "i-thought-we-were-supposed-to",
+  "count": 1,
+  "first": "2026-09-25T17:16",
+  "last": "2026-09-25T17:16",
+  "ask": "I thought we were supposed to have for every new task a work tree where the changes get tested and you know smoke tested for, for at least for load...",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-25.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "so-remind-me-is-there-a",
+  "count": 1,
+  "first": "2026-09-25T17:18",
+  "last": "2026-09-25T17:18",
+  "ask": "So remind me, is there a like a systems mastermind in addition to just a normal mastermind? Like, when you ask the uh, you know the Servex SDK to s...",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-25.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "all-right-so-this-is-important",
+  "count": 1,
+  "first": "2026-09-25T17:23",
+  "last": "2026-09-25T17:23",
+  "ask": "All right, so this is important. We don't want to be making, uh, you know, like UI that is in the wrong place, essentially. So this um, who's who e...",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-25.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "yeah-the-uh-if-i-hadnt",
+  "count": 1,
+  "first": "2026-09-25T17:27",
+  "last": "2026-09-25T17:27",
+  "ask": "yeah, the uh, if I hadn't said it, master assistant should be Opus too. I would say the master assistant could make edits, especially if it's just ...",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-25.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "in-terms-of-spawning-like-the",
+  "count": 1,
+  "first": "2026-09-25T17:30",
+  "last": "2026-09-25T17:30",
+  "ask": "In terms of spawning like the quick fixes, I'm thinking that any mastermind could use, hmm, how would that work? I was thinking like a mastermind c...",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-25.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "all-right-so-create-a-new",
+  "count": 1,
+  "first": "2026-09-25T17:31",
+  "last": "2026-09-25T17:31",
+  "ask": "All right, so create a new card on the on the dashboard and call it now, I guess. Um, I wanna I wanna play around with how quickly we can.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-25.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "follow-up-from-manager-now-same-card-sam",
+  "count": 1,
+  "first": "2026-09-25T17:44",
+  "last": "2026-09-25T17:44",
+  "ask": "Follow-up from manager-now, same card, same fence, same rules (hold on/off, headless only, windowsHide). The owner's new request (card dir public/f...",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-25.jsonl"
+  ]
+ },
+ {
+  "module": "voice",
+  "topic": "your-fix-works-on-dictate-but",
+  "count": 1,
+  "first": "2026-09-25T18:21",
+  "last": "2026-09-25T18:21",
+  "ask": "Your fix works on Dictate but not in general. On /framework/ai2/2026/09/24/system-design/ the Overview shows 0 delivered and 7 to do, with raw slug...",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-25.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "are-you-in-mastermind-mode-are",
+  "count": 1,
+  "first": "2026-09-25T18:43",
+  "last": "2026-09-25T18:43",
+  "ask": "Are you in mastermind mode? Are you like managing usage and uh, I mean, our weekly usage is actually kind of higher than it maybe should be. So we ...",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-25.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "httpmonorepolocalhostframeworkai20260924",
+  "count": 1,
+  "first": "2026-09-28T10:55",
+  "last": "2026-09-28T10:55",
+  "ask": "http://monorepo.localhost/framework/ai/2026/09/24/system-design/servex/ 404's (no servex/page.js or servex.md)",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-28.jsonl"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "why-didnt-we-test-these-pages",
+  "count": 1,
+  "first": "2026-09-28T10:56",
+  "last": "2026-09-28T10:56",
+  "ask": "why didn't we test these pages? a smoke test should show this, and we should always be doing full review (screenshot every page...?)",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-28.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "just-got-a-usersmikeappdatalocal-termina",
+  "count": 1,
+  "first": "2026-09-28T10:58",
+  "last": "2026-09-28T10:58",
+  "ask": "just got a users/mike/appdata/local terminal popup... ask servex mastermind why we still get these terminal popups... make them hidden please",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-28.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "the-uh-system-design-card-just",
+  "count": 1,
+  "first": "2026-09-28T11:02",
+  "last": "2026-09-28T11:02",
+  "ask": "the uh, system, design card, just dropped off my inbox. I was actually looking for it and I couldn't see it in the inbox. I was scrolling up and down.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-28.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "all-right-i-want-you-to",
+  "count": 1,
+  "first": "2026-09-28T12:04",
+  "last": "2026-09-28T12:04",
+  "ask": "All right, I want you to spawn, create a task, a mastermind. Um, I don't know if it's the orchestrator and the, I mean, you use the research system...",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-28.jsonl"
+  ]
+ },
+ {
+  "module": "voice",
+  "topic": "all-right-so-for-the-dictation",
+  "count": 1,
+  "first": "2026-09-28T12:07",
+  "last": "2026-09-28T12:07",
+  "ask": "All right, so for the dictation uh, playground, this should be right at the, the default dictation page. We should have a little playground to crea...",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-28.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "uh-short-messages-that-sh-you",
+  "count": 1,
+  "first": "2026-09-28T12:08",
+  "last": "2026-09-28T12:08",
+  "ask": "Uh, short messages that sh you know tell me that you heard what I said and that you know you've updated a UI card, for example, uh, or just give.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-28.jsonl"
+  ]
+ },
+ {
+  "module": "voice",
+  "topic": "all-right-so-the-uh-for",
+  "count": 1,
+  "first": "2026-09-28T12:17",
+  "last": "2026-09-28T12:17",
+  "ask": "All right, so the uh, for the dictation thing, right? So the, there's the audio input, there's the uh, live transcription. So I want the live trans...",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-28.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "httpswwwfigmacomdesignqyn0g2ursbhyh5i06m",
+  "count": 1,
+  "first": "2026-09-28T12:58",
+  "last": "2026-09-28T12:58",
+  "ask": "https://www.figma.com/design/QYN0G2URSBHYH5I06MOjxU/Sept-2026?node-id=43-12913&t=zxLkbVIHIU5Irk4Z-4 You should have access to this via the Figma MC...",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-28.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "what-is-the-uh-css-system",
+  "count": 1,
+  "first": "2026-09-28T13:12",
+  "last": "2026-09-28T13:12",
+  "ask": "What is the uh, CSS system for resizable columns right now? Look at the imagine paging uh, column system. I think that might be kind of unique. I'm...",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-28.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "so-weve-had-some-audits-of",
+  "count": 1,
+  "first": "2026-09-28T13:22",
+  "last": "2026-09-28T13:22",
+  "ask": "So we've had some audits of lots of different things lately. Um, one of them recently was just look at everything that was asked over the last few ...",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-28.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "uh-one-layout-that-i-think",
+  "count": 1,
+  "first": "2026-09-28T13:33",
+  "last": "2026-09-28T13:33",
+  "ask": "Uh, one layout that I think I, you know, I'd like to add to the uh, the paging mastermind here is the inner left navigation. And so the, with the.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-28.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "all-right-so-i-believe-we",
+  "count": 1,
+  "first": "2026-09-28T13:37",
+  "last": "2026-09-28T13:37",
+  "ask": "All right, so I believe we did a research task about using uh, using the um, open router stuff, right? So what I want you to do is spawn a.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-28.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "the-fresh-eyes-review-said-fix-its",
+  "count": 1,
+  "first": "2026-09-28T13:57",
+  "last": "2026-09-28T13:57",
+  "ask": "The fresh-eyes review said \"fix\". It's at public/framework/ai/2026-09-28/organization/review.md. Same worktree (qf-1), same fence. Do these four th...",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-28.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "second-review-reviewmd-says-fix-there",
+  "count": 1,
+  "first": "2026-09-28T14:00",
+  "last": "2026-09-28T14:00",
+  "ask": "Second review (review.md) says fix. There are three small changes, all in qf-1, same fence: (1) Finding 1, which is the owner's own ask (\"this is a...",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-28.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "yeah-so-we-dont-just-want",
+  "count": 1,
+  "first": "2026-09-28T14:02",
+  "last": "2026-09-28T14:02",
+  "ask": "Yeah, so we don't just want to have like only one runner up. We want to be able to, okay, so generally the decisions, we should just assume that th...",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-28.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "so-just-something-i-want-to",
+  "count": 1,
+  "first": "2026-09-28T14:06",
+  "last": "2026-09-28T14:06",
+  "ask": "So just something I want to reiterate, uh, I was talking about like a context, uh, a content system that's like very structured, you know, visu uh,...",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-28.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "oh-yeah-so-i-was-talking",
+  "count": 1,
+  "first": "2026-09-28T14:12",
+  "last": "2026-09-28T14:12",
+  "ask": "Oh yeah, so I was talking about the documentation system and writing content. And so for all of these tasks, I think I was saying, you know, I thin...",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-28.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "all-right-so-heres-something-to",
+  "count": 1,
+  "first": "2026-09-28T14:17",
+  "last": "2026-09-28T14:17",
+  "ask": "All right, so here's something to consider. I'm, I'm thinking through the way the masterminds uh, communicate with each other, like in memory, they...",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-28.jsonl"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "all-right-so-part-of-the",
+  "count": 1,
+  "first": "2026-09-28T14:23",
+  "last": "2026-09-28T14:23",
+  "ask": "All right, so part of the, the research process that I want to really, uh, you know, add to here it, about collaborative planning and just, you kno...",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-28.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "im-thinking-in-the-ai2-dashboard",
+  "count": 1,
+  "first": "2026-09-28T14:27",
+  "last": "2026-09-28T14:27",
+  "ask": "I'm thinking in the AI2 dashboard on the the preview rail, we have an overview button that kind of links to a whole different view. And I, I'm tryi...",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-28.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "your-mastermind-judged-your-shots-the",
+  "count": 1,
+  "first": "2026-09-28T14:29",
+  "last": "2026-09-28T14:29",
+  "ask": "Your mastermind judged your shots. The top tabs are right. Two misses against the brief, same worktree (qf-1), same fence: (1) Deliverable 6, the L...",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-28.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "yeah-so-for-the-inbox-uh",
+  "count": 1,
+  "first": "2026-09-28T14:32",
+  "last": "2026-09-28T14:32",
+  "ask": "Yeah, so for the inbox uh, rail thing that I'm talking about, um, if there's an existing page, then we shouldn't need to make a new page. We should...",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-28.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "-autonomous-loop-tick-dynamic-pacing",
+  "count": 1,
+  "first": "2026-09-28T15:10",
+  "last": "2026-09-28T15:10",
+  "ask": "# Autonomous loop tick (dynamic pacing) Run the autonomous check using the loop instructions established earlier in this conversation. If you canno...",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-28.jsonl"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "all-right-so-the-whole-thing",
+  "count": 1,
+  "first": "2026-09-28T23:47",
+  "last": "2026-09-28T23:47",
+  "ask": "All right, so the whole thing here is about taking over the left sidebar. Uh, don't remember exactly what I said so far. Um, generally, the idea is...",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-28.jsonl"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "all-right-so-i-dont-know",
+  "count": 1,
+  "first": "2026-09-28T23:54",
+  "last": "2026-09-28T23:54",
+  "ask": "All right, so I don't know where our layout system is at in terms of like making the decisions to produce the right layout. And so I wanted to, I.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-28.jsonl"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "on-a-3440px-screen-should-this",
+  "count": 1,
+  "first": "2026-09-28T23:58",
+  "last": "2026-09-28T23:58",
+  "ask": "On a 3440px screen, should this page use columns? If yes, exactly how many, what goes in each one, and why that split?",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-28.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "round-two-same-worktree-and-fence",
+  "count": 1,
+  "first": "2026-09-29T00:01",
+  "last": "2026-09-29T00:01",
+  "ask": "Round two, same worktree and fence (plus public/framework/ai2/overview.js for fix 3 only, one line). The reviewer found: 1. Most quotes are agent t...",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-29.jsonl"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "lets-move-the-floating-page-thing",
+  "count": 1,
+  "first": "2026-09-29T00:06",
+  "last": "2026-09-29T00:06",
+  "ask": "Let's move the floating page thing to the actual page itself. And so basically that's just a slight page layout difference. You're basically going ...",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-29.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "one-small-fix-same-worktree-and",
+  "count": 1,
+  "first": "2026-09-29T00:14",
+  "last": "2026-09-29T00:14",
+  "ask": "One small fix, same worktree and fence: the smoke test found the Overview links to /Server/review.mjs, which the static site can't serve. In Server...",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-29.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "merged-to-michaeldev-this-last-fix",
+  "count": 1,
+  "first": "2026-09-29T00:19",
+  "last": "2026-09-29T00:19",
+  "ask": "Merged to michael/dev; this last fix goes in the MAIN tree C:\\Code\\lew42\\monorepo (the worktree is done), file Server/ai2-overview.mjs only, then r...",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-29.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "all-right-so-for-things-that",
+  "count": 1,
+  "first": "2026-09-29T12:57",
+  "last": "2026-09-29T12:57",
+  "ask": "All right, so for things that we've, uh, you know, spent money on and haven't, you know, published, look into why they're not being finished proper...",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-29.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "well-i-mean-you-dont-want",
+  "count": 1,
+  "first": "2026-09-29T12:59",
+  "last": "2026-09-29T12:59",
+  "ask": "Well, I mean, you don't want to demand that the mastermind land it or say why. It's more like just first ask for a status update, and if it doesn't.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-29.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "you-already-have-websearch-and-webfetch",
+  "count": 1,
+  "first": "2026-09-29T13:17",
+  "last": "2026-09-29T13:17",
+  "ask": "You already have WebSearch and WebFetch enabled and approved for this session — use them right away, do not ask for permission or say you need it...",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-29.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "all-right-well-im-not-sure",
+  "count": 1,
+  "first": "2026-09-29T13:18",
+  "last": "2026-09-29T13:18",
+  "ask": "All right, well, I'm not sure what you just said in terms of where we're at with the open router stuff, but let's definitely move forward with it. ...",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-29.jsonl"
+  ]
+ },
+ {
+  "module": "voice",
+  "topic": "just-to-add-to-that-last",
+  "count": 1,
+  "first": "2026-09-29T13:22",
+  "last": "2026-09-29T13:22",
+  "ask": "Just to add to that last comment, uh, because I think, especially given this transcription uh, kind of mode that I'm leaning into, the way that we ...",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-29.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "all-right-so-we-need-to",
+  "count": 1,
+  "first": "2026-09-29T13:30",
+  "last": "2026-09-29T13:30",
+  "ask": "All right, so we need to create a little filters UX for the AI2 inbox. Right now, the listing is more of a log of everything. And I guess that's.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-29.jsonl"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "all-right-so-ive-tried-to",
+  "count": 1,
+  "first": "2026-09-29T13:42",
+  "last": "2026-09-29T13:42",
+  "ask": "All right, so I've tried to design a layout explorer in the past, and it hasn't really worked. We have a lot of pages with layout previews, page pr...",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-29.jsonl"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "yeah-so-we-need-our-navigation",
+  "count": 1,
+  "first": "2026-09-29T15:02",
+  "last": "2026-09-29T15:02",
+  "ask": "Yeah, so we need our navigation back. The uh, the homepage navigation, the, the the hamburger menu on mobile should be the homepage, like on the ho...",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-29.jsonl"
+  ]
+ },
+ {
+  "module": "voice",
+  "topic": "but-yeah-so-so-what-i",
+  "count": 1,
+  "first": "2026-09-29T15:02",
+  "last": "2026-09-29T15:02",
+  "ask": "But yeah, so so what I want you to be able to do is link me to a specific page. Uh, I have to copy and paste. The, actually, let's.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-29.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "but-just-to-summarize-my-intention",
+  "count": 1,
+  "first": "2026-09-29T15:15",
+  "last": "2026-09-29T15:15",
+  "ask": "But just to summarize my intention here and what I want to see happen is I, I want the mastermind system, you know, the Cervex, you know, system to...",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-29.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "but-but-again-to-clarify-the",
+  "count": 1,
+  "first": "2026-09-29T15:22",
+  "last": "2026-09-29T15:22",
+  "ask": "But but again, to clarify the intent of this uh, per directory mastermind thing, um, you know, if we're using the dictation, we need the fast assis...",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-29.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "all-right-so-for-the-page",
+  "count": 1,
+  "first": "2026-09-29T15:29",
+  "last": "2026-09-29T15:29",
+  "ask": "All right, so for the page mastermind system, as I was just explaining, for, I'm kind of torn between whether it should be a checkpoint, like a ses...",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-29.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "all-right-so-im-im-thinking",
+  "count": 1,
+  "first": "2026-09-29T15:34",
+  "last": "2026-09-29T15:34",
+  "ask": "All right, so I'm, I'm thinking again about this page mastermind and how this should actually work. So I do think the page, the core page README is...",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-29.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "yeah-so-the-page-uh-the",
+  "count": 1,
+  "first": "2026-09-29T15:50",
+  "last": "2026-09-29T15:50",
+  "ask": "yeah, so the page, uh, the page system, you know, the, the core page class is so fun foundational to this whole thing, to this whole system that we...",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-29.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "this-is-an-interesting-idea-so",
+  "count": 1,
+  "first": "2026-09-29T15:59",
+  "last": "2026-09-29T15:59",
+  "ask": "This is an interesting idea. So for any higher level session that I wanted to talk to, so let's say we create a, even, I don't know, let's just say.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-29.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "so-yeah-to-kind-of-reiterate",
+  "count": 1,
+  "first": "2026-09-29T16:05",
+  "last": "2026-09-29T16:05",
+  "ask": "So yeah, to kind of reiterate my last uh, message there, I was saying how we could create a assistant in front of any higher level agent and do that.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-29.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "well-one-thing-to-think-about",
+  "count": 1,
+  "first": "2026-09-29T16:08",
+  "last": "2026-09-29T16:08",
+  "ask": "Well, one thing to think about with the transcription process, uh, a note to be made in the whole dictation and, you know, so, so part of the AI sy...",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-29.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "claude-md-clarity-rules",
+  "count": 1,
+  "first": "2026-09-29T16:30",
+  "last": "2026-09-29T16:30",
+  "ask": "Add clarity, simplicity, and naming rules to claude.md.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-29.jsonl"
+  ]
+ },
+ {
+  "module": "voice",
+  "topic": "microphone-access-issue",
+  "count": 1,
+  "first": "2026-09-29T16:32",
+  "last": "2026-09-29T16:32",
+  "ask": "Fix microphone listing issue, possibly HTTPS-related.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-29.jsonl"
+  ]
+ },
+ {
+  "module": "voice",
+  "topic": "api-path-generalization",
+  "count": 1,
+  "first": "2026-09-29T16:36",
+  "last": "2026-09-29T16:36",
+  "ask": "Generalize API URLs and paths for drawer use.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-29.jsonl"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "dictate-page-spacing",
+  "count": 1,
+  "first": "2026-09-29T16:44",
+  "last": "2026-09-29T16:44",
+  "ask": "Fix spacing issues on dictate page, especially mobile.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-29.jsonl"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "layout-analysis-screenshot",
+  "count": 1,
+  "first": "2026-09-29T16:44",
+  "last": "2026-09-29T16:44",
+  "ask": "Have minions analyze layout screenshot of dictate page.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-29.jsonl"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "flexible-padding-system",
+  "count": 1,
+  "first": "2026-09-29T16:44",
+  "last": "2026-09-29T16:44",
+  "ask": "Implement flexible padding using clamp and container queries.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-29.jsonl"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "ip-address-linking",
+  "count": 1,
+  "first": "2026-09-29T16:52",
+  "last": "2026-09-29T16:52",
+  "ask": "Use IP address for links instead of localhost.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-29.jsonl"
+  ]
+ },
+ {
+  "module": "voice",
+  "topic": "page-load-performance",
+  "count": 1,
+  "first": "2026-09-29T16:55",
+  "last": "2026-09-29T16:55",
+  "ask": "Investigate and fix slow table rendering on page.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-29.jsonl"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "dashboard-card-layout",
+  "count": 1,
+  "first": "2026-09-29T16:58",
+  "last": "2026-09-29T16:58",
+  "ask": "Clean up AI dashboard card layouts on mobile.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-29.jsonl"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "page-jsonl-directory-data",
+  "count": 1,
+  "first": "2026-09-29T17:00",
+  "last": "2026-09-29T17:00",
+  "ask": "Make each page.jsonl contain directory data.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-29.jsonl"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "responsive-column-layout",
+  "count": 1,
+  "first": "2026-09-29T17:09",
+  "last": "2026-09-29T17:09",
+  "ask": "Generalize responsive two-column layout as vertical tabs.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-29.jsonl"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "page-task-integration",
+  "count": 1,
+  "first": "2026-09-29T17:15",
+  "last": "2026-09-29T17:15",
+  "ask": "Show open tasks and AI activity on each page.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-29.jsonl"
+  ]
+ },
+ {
+  "module": "voice",
+  "topic": "mobile-dictation-ui",
+  "count": 1,
+  "first": "2026-09-29T18:03",
+  "last": "2026-09-29T18:03",
+  "ask": "Make mobile dictation sheet feature parity with desktop.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-29.jsonl"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "mobile-button-placement",
+  "count": 1,
+  "first": "2026-09-29T18:03",
+  "last": "2026-09-29T18:03",
+  "ask": "Move AI button to right side of mobile rail.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-29.jsonl"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "preview-card-height",
+  "count": 1,
+  "first": "2026-09-29T18:06",
+  "last": "2026-09-29T18:06",
+  "ask": "Use auto height for preview cards instead.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-29.jsonl"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "spacing-association",
+  "count": 1,
+  "first": "2026-09-29T18:06",
+  "last": "2026-09-29T18:06",
+  "ask": "Fix spacing to show card association with labels.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-29.jsonl"
+  ]
+ },
+ {
+  "module": "voice",
+  "topic": "framework-audio-module",
+  "count": 1,
+  "first": "2026-09-29T18:17",
+  "last": "2026-09-29T18:17",
+  "ask": "Create framework/audio directory for audio components.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-29.jsonl"
+  ]
+ },
+ {
+  "module": "voice",
+  "topic": "transcription-dictation-split",
+  "count": 1,
+  "first": "2026-09-29T18:17",
+  "last": "2026-09-29T18:17",
+  "ask": "Separate transcription module from dictation module.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-29.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "context-aware-mastermind",
+  "count": 1,
+  "first": "2026-09-29T18:25",
+  "last": "2026-09-29T18:25",
+  "ask": "Make mastermind context-aware of page navigation.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-29.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "mastermind-caching-strategy",
+  "count": 1,
+  "first": "2026-09-29T18:31",
+  "last": "2026-09-29T18:31",
+  "ask": "Cache mastermind spawning for same directory and prompt.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-29.jsonl"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "class-template-visualization",
+  "count": 1,
+  "first": "2026-09-29T18:41",
+  "last": "2026-09-29T18:41",
+  "ask": "Create visual templates showing class state simply.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-29.jsonl"
+  ]
+ },
+ {
+  "module": "voice",
+  "topic": "whisper-streaming-class",
+  "count": 1,
+  "first": "2026-09-29T18:45",
+  "last": "2026-09-29T18:45",
+  "ask": "Create Whisper class with streaming audio and chunking.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-29.jsonl"
+  ]
+ },
+ {
+  "module": "voice",
+  "topic": "transcription-logging-strategy",
+  "count": 1,
+  "first": "2026-09-29T19:00",
+  "last": "2026-09-29T19:00",
+  "ask": "Log finalized transcriptions to persistent storage.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-29.jsonl"
+  ]
+ },
+ {
+  "module": "voice",
+  "topic": "whisper-api-evaluation",
+  "count": 1,
+  "first": "2026-09-29T19:02",
+  "last": "2026-09-29T19:02",
+  "ask": "Evaluate Whisper.cpp API vs server for streaming.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-29.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "merge-candidates-queue",
+  "count": 1,
+  "first": "2026-09-30T14:18",
+  "last": "2026-09-30T14:18",
+  "ask": "Queue a future merge process task when tokens are available.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-30.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "readme-documentation",
+  "count": 1,
+  "first": "2026-09-30T14:19",
+  "last": "2026-09-30T14:19",
+  "ask": "Document the README system in framework/ai documentation.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-30.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "servex-review-readme",
+  "count": 1,
+  "first": "2026-09-30T14:19",
+  "last": "2026-09-30T14:19",
+  "ask": "Get Servex mastermind review of README documentation after building.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-30.jsonl"
+  ]
+ },
+ {
+  "module": "other",
+  "topic": "forward-slash-paths",
+  "count": 1,
+  "first": "2026-09-30T14:23",
+  "last": "2026-09-30T14:23",
+  "ask": "Use forward slash as path reference character in markdown and comments.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-30.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "inform-mastermind-tasks",
+  "count": 1,
+  "first": "2026-09-30T14:26",
+  "last": "2026-09-30T14:26",
+  "ask": "Tell Servex mastermind about in-flight documentation and system upgrade tasks.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-30.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "blocker-clarity",
+  "count": 1,
+  "first": "2026-09-30T14:28",
+  "last": "2026-09-30T14:28",
+  "ask": "Remove blocker marking if it is not actually blocking work.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-30.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "inbox-clearing",
+  "count": 1,
+  "first": "2026-09-30T14:36",
+  "last": "2026-09-30T14:36",
+  "ask": "Enable ability to clear or zero out inbox items.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-30.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "card-search",
+  "count": 1,
+  "first": "2026-09-30T14:36",
+  "last": "2026-09-30T14:36",
+  "ask": "Add search functionality to AI card pages.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-30.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "dashboard-merge",
+  "count": 1,
+  "first": "2026-09-30T14:36",
+  "last": "2026-09-30T14:36",
+  "ask": "Eventually merge AI2 dashboard into framework/ai page.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-30.jsonl"
+  ]
+ },
+ {
+  "module": "voice",
+  "topic": "unified-dictation-ui",
+  "count": 1,
+  "first": "2026-09-30T14:50",
+  "last": "2026-09-30T14:50",
+  "ask": "Consolidate dictation UI systems into one unified interface everywhere.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-30.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "ai-page-system-tab",
+  "count": 1,
+  "first": "2026-09-30T15:14",
+  "last": "2026-09-30T15:14",
+  "ask": "Add system tab to framework/ai page for documentation and skills.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-30.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "task-process-listing",
+  "count": 1,
+  "first": "2026-09-30T15:29",
+  "last": "2026-09-30T15:29",
+  "ask": "Show running tasks based on claude.exe process list with memory info.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-30.jsonl"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "tree-ui-dev-bar",
+  "count": 1,
+  "first": "2026-09-30T15:40",
+  "last": "2026-09-30T15:40",
+  "ask": "Add tree UI with icon items to the dev bar.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-30.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "ui-system-class",
+  "count": 1,
+  "first": "2026-09-30T15:40",
+  "last": "2026-09-30T15:40",
+  "ask": "Define UI as a system class analogous to page system.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-30.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "keep-working-rule",
+  "count": 1,
+  "first": "2026-09-30T15:55",
+  "last": "2026-09-30T15:55",
+  "ask": "Clarify in CLAUDE.md that agents must keep working without waiting.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-30.jsonl"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "named-preview-rail",
+  "count": 1,
+  "first": "2026-09-30T16:06",
+  "last": "2026-09-30T16:06",
+  "ask": "Establish preview rail as named standard layout with proper terminology.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-30.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "inbox-priority-filter",
+  "count": 1,
+  "first": "2026-09-30T16:13",
+  "last": "2026-09-30T16:13",
+  "ask": "Filter inbox to show only top priority items by importance score.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-30.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "page-monitor-agent",
+  "count": 1,
+  "first": "2026-09-30T16:20",
+  "last": "2026-09-30T16:20",
+  "ask": "Create monitor agent that runs Playwright to screenshot page changes.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-30.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "new-now-card",
+  "count": 1,
+  "first": "2026-09-30T16:24",
+  "last": "2026-09-30T16:24",
+  "ask": "Create a now card at framework/ai/now for live work discussion.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-30.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "inbox-importance-audit",
+  "count": 1,
+  "first": "2026-09-30T16:26",
+  "last": "2026-09-30T16:26",
+  "ask": "Audit last 20 AI2 inbox messages to assess importance scoring.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-30.jsonl"
+  ]
+ },
+ {
+  "module": "other",
+  "topic": "link-formatting",
+  "count": 1,
+  "first": "2026-09-30T16:29",
+  "last": "2026-09-30T16:29",
+  "ask": "Fix link formatting to work properly on both mobile and PC.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-30.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "inbox-priority-threshold",
+  "count": 1,
+  "first": "2026-09-30T16:30",
+  "last": "2026-09-30T16:30",
+  "ask": "Set inbox priority threshold at 90 or above to reduce clutter.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-30.jsonl"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "dictation-ui-screenshot",
+  "count": 1,
+  "first": "2026-09-30T16:36",
+  "last": "2026-09-30T16:36",
+  "ask": "Screenshot dictation UI at 3440x1440 to review layout quality.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-30.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "sub-agent-status-check",
+  "count": 1,
+  "first": "2026-09-30T17:27",
+  "last": "2026-09-30T17:27",
+  "ask": "Check card-measure-gap sub-agent progress and unblock if needed.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-30.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "prioritize-by-value",
+  "count": 1,
+  "first": "2026-09-30T22:52",
+  "last": "2026-09-30T22:52",
+  "ask": "Prioritize tasks by value not just token burn to stay efficient.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-30.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "open-router-setup",
+  "count": 1,
+  "first": "2026-09-30T22:52",
+  "last": "2026-09-30T22:52",
+  "ask": "Set up Open Router as alternative model provider.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-30.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "open-router-test-status",
+  "count": 1,
+  "first": "2026-09-30T23:16",
+  "last": "2026-09-30T23:16",
+  "ask": "Check progress with Open Router model testing agent.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-30.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "model-compliance-test",
+  "count": 1,
+  "first": "2026-09-30T23:29",
+  "last": "2026-09-30T23:29",
+  "ask": "Test that models properly follow Claude.md rules and features.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-30.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "model-comparison-tests",
+  "count": 1,
+  "first": "2026-09-30T23:29",
+  "last": "2026-09-30T23:29",
+  "ask": "Create tests with known answers to compare model performance.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-30.jsonl"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "universal-weight-system",
+  "count": 1,
+  "first": "2026-09-30T23:30",
+  "last": "2026-09-30T23:30",
+  "ask": "Implement weight system applicable to any object in page system.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-30.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "process-documentation",
+  "count": 1,
+  "first": "2026-09-30T23:39",
+  "last": "2026-09-30T23:39",
+  "ask": "Focus on documenting entire AI system process from prompt to execution.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-30.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "weighted-list-system",
+  "count": 1,
+  "first": "2026-09-30T23:55",
+  "last": "2026-09-30T23:55",
+  "ask": "Implement weighted list system to prioritize and converge on important items.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-09-30.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "model-compliance-priority",
+  "count": 1,
+  "first": "2026-10-01T00:04",
+  "last": "2026-10-01T00:04",
+  "ask": "Prioritize testing whether models properly use Claude features.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-01.jsonl"
+  ]
+ },
+ {
+  "module": "voice",
+  "topic": "dictate-demo-layout",
+  "count": 1,
+  "first": "2026-10-01T00:13",
+  "last": "2026-10-01T00:13",
+  "ask": "Fix broken chat bubble layout in dictate demo.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-01.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "model-test-tasks",
+  "count": 1,
+  "first": "2026-10-01T00:33",
+  "last": "2026-10-01T00:33",
+  "ask": "Create concrete model test tasks with clear outcomes.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-01.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "web-search-efficiency",
+  "count": 1,
+  "first": "2026-10-01T00:37",
+  "last": "2026-10-01T00:37",
+  "ask": "Figure out how to do web search efficiently across models.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-01.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "web-search-tool",
+  "count": 1,
+  "first": "2026-10-01T00:44",
+  "last": "2026-10-01T00:44",
+  "ask": "Research Cloudflare web page to markdown API.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-01.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "model-benchmarking",
+  "count": 1,
+  "first": "2026-10-01T00:49",
+  "last": "2026-10-01T00:49",
+  "ask": "Compare tasks between different models for cost and performance.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-01.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "model-fan-out",
+  "count": 1,
+  "first": "2026-10-01T00:57",
+  "last": "2026-10-01T00:57",
+  "ask": "Deploy multiple models to work on priority tasks.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-01.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "thinking-level-test",
+  "count": 1,
+  "first": "2026-10-01T01:04",
+  "last": "2026-10-01T01:04",
+  "ask": "Test models at two thinking levels around 33% and 66%.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-01.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "tool-call-efficiency",
+  "count": 1,
+  "first": "2026-10-01T01:06",
+  "last": "2026-10-01T01:06",
+  "ask": "Make tool call passing between minions programmatic.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-01.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "thinking-token-cost",
+  "count": 1,
+  "first": "2026-10-01T01:09",
+  "last": "2026-10-01T01:09",
+  "ask": "Clarify how thinking level affects token consumption.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-01.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "consensus-testing",
+  "count": 1,
+  "first": "2026-10-01T01:15",
+  "last": "2026-10-01T01:15",
+  "ask": "Use multiple LLMs to identify consensus answers.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-01.jsonl"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "page-system-tools",
+  "count": 1,
+  "first": "2026-10-01T01:23",
+  "last": "2026-10-01T01:23",
+  "ask": "Create tools for page system available on any page.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-01.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "token-efficiency",
+  "count": 1,
+  "first": "2026-10-01T01:26",
+  "last": "2026-10-01T01:26",
+  "ask": "Find token optimization to make fifty dollars last longer.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-01.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "openrouter-providers",
+  "count": 1,
+  "first": "2026-10-01T01:35",
+  "last": "2026-10-01T01:35",
+  "ask": "Research which providers are available on OpenRouter.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-01.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "model-differentiation",
+  "count": 1,
+  "first": "2026-10-01T01:38",
+  "last": "2026-10-01T01:38",
+  "ask": "Create tests that differentiate model capabilities.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-01.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "prompt-essence-analysis",
+  "count": 1,
+  "first": "2026-10-01T02:22",
+  "last": "2026-10-01T02:22",
+  "ask": "Analyze past prompts to extract keys to success.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-01.jsonl"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "page-card-distinction",
+  "count": 1,
+  "first": "2026-10-01T14:00",
+  "last": "2026-10-01T14:00",
+  "ask": "Define when to create pages versus embedded cards.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-01.jsonl"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "granular-page-updates",
+  "count": 1,
+  "first": "2026-10-01T14:00",
+  "last": "2026-10-01T14:00",
+  "ask": "Implement efficient granular updates to pages.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-01.jsonl"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "content-jsonl-updates",
+  "count": 1,
+  "first": "2026-10-01T14:06",
+  "last": "2026-10-01T14:06",
+  "ask": "Show how content can be updated granularly through JSON-L.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-01.jsonl"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "content-class-design",
+  "count": 1,
+  "first": "2026-10-01T14:07",
+  "last": "2026-10-01T14:07",
+  "ask": "Design content class extending list for editing.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-01.jsonl"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "content-item-ui",
+  "count": 1,
+  "first": "2026-10-01T14:10",
+  "last": "2026-10-01T14:10",
+  "ask": "Add sortable drag-and-drop with borders to items.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-01.jsonl"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "item-page-integration",
+  "count": 1,
+  "first": "2026-10-01T14:17",
+  "last": "2026-10-01T14:17",
+  "ask": "Integrate item persistence into page system.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-01.jsonl"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "page-item-hydration",
+  "count": 1,
+  "first": "2026-10-01T14:22",
+  "last": "2026-10-01T14:22",
+  "ask": "Harmonize page and item hydration systems.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-01.jsonl"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "page-item-hierarchy",
+  "count": 1,
+  "first": "2026-10-01T14:23",
+  "last": "2026-10-01T14:23",
+  "ask": "Show example of page-item relationship.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-01.jsonl"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "list-naming",
+  "count": 1,
+  "first": "2026-10-01T14:32",
+  "last": "2026-10-01T14:32",
+  "ask": "Use list terminology consistently not collection.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-01.jsonl"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "list-view-pattern",
+  "count": 1,
+  "first": "2026-10-01T14:36",
+  "last": "2026-10-01T14:36",
+  "ask": "Keep list and view separate with view property.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-01.jsonl"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "class-api-documentation",
+  "count": 1,
+  "first": "2026-10-01T14:37",
+  "last": "2026-10-01T14:37",
+  "ask": "Document class properties using bracket notation.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-01.jsonl"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "readme-architecture",
+  "count": 1,
+  "first": "2026-10-01T14:43",
+  "last": "2026-10-01T14:43",
+  "ask": "Put class architecture in README with heading.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-01.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "model-cost-research",
+  "count": 1,
+  "first": "2026-10-01T14:47",
+  "last": "2026-10-01T14:47",
+  "ask": "Research cheapest models on OpenRouter.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-01.jsonl"
+  ]
+ },
+ {
+  "module": "voice",
+  "topic": "dictate-consistency",
+  "count": 1,
+  "first": "2026-10-01T15:23",
+  "last": "2026-10-01T15:23",
+  "ask": "Fix inconsistencies between dictate widget and chat.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-01.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "context-cards-system",
+  "count": 1,
+  "first": "2026-10-01T15:23",
+  "last": "2026-10-01T15:23",
+  "ask": "Build system for creating reusable UI cards.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-01.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "model-token-tracking",
+  "count": 1,
+  "first": "2026-10-01T15:26",
+  "last": "2026-10-01T15:26",
+  "ask": "Track token consumption per model.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-01.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "free-model-testing",
+  "count": 1,
+  "first": "2026-10-01T15:28",
+  "last": "2026-10-01T15:28",
+  "ask": "Test free models and monitor rate limiting.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-01.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "local-ai-inventory",
+  "count": 1,
+  "first": "2026-10-01T15:31",
+  "last": "2026-10-01T15:31",
+  "ask": "Create page documenting local AI tools.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-01.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "ai-dashboard-merge",
+  "count": 1,
+  "first": "2026-10-01T15:32",
+  "last": "2026-10-01T15:32",
+  "ask": "Merge inbox view into default AI dashboard.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-01.jsonl"
+  ]
+ },
+ {
+  "module": "voice",
+  "topic": "dictate-sheet-bug",
+  "count": 1,
+  "first": "2026-10-01T15:36",
+  "last": "2026-10-01T15:36",
+  "ask": "Fix abort error and UI shift issues.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-01.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "code-review-process",
+  "count": 1,
+  "first": "2026-10-02T19:37",
+  "last": "2026-10-02T19:37",
+  "ask": "Update mastermind skill to read diffs first and spawn reviewers only when needed.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-02.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "process-cleanup",
+  "count": 1,
+  "first": "2026-10-02T19:44",
+  "last": "2026-10-02T19:44",
+  "ask": "Fix phantom processes that remain alive after being stopped in Servex.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-02.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "model-defaults",
+  "count": 1,
+  "first": "2026-10-02T19:44",
+  "last": "2026-10-02T19:44",
+  "ask": "Ensure reviewers use Sonnet by default when under token pace, not Opus.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-02.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "system-documentation",
+  "count": 1,
+  "first": "2026-10-02T20:52",
+  "last": "2026-10-02T20:52",
+  "ask": "Document configurable saving patterns and clarify AI session logging and data storage.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-02.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "task-approval",
+  "count": 1,
+  "first": "2026-10-02T20:52",
+  "last": "2026-10-02T20:52",
+  "ask": "Add Approve and Unclear buttons to each task card for auditing.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-02.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "module-cards",
+  "count": 1,
+  "first": "2026-10-02T20:52",
+  "last": "2026-10-02T20:52",
+  "ask": "Show module cards in Inbox when work lands on a module.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-02.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "inbox-categories",
+  "count": 1,
+  "first": "2026-10-02T20:52",
+  "last": "2026-10-02T20:52",
+  "ask": "Replace score hack with plain categories: blocking, review, fyi.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-02.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "task-naming",
+  "count": 1,
+  "first": "2026-10-02T20:52",
+  "last": "2026-10-02T20:52",
+  "ask": "Name all task cards and titles as module-colon-outcome format.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-02.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "sessions-grid",
+  "count": 1,
+  "first": "2026-10-02T20:52",
+  "last": "2026-10-02T20:52",
+  "ask": "Build Sessions tab as a data grid of every session with session detail pages routed.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-02.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "preview-levels",
+  "count": 1,
+  "first": "2026-10-02T20:52",
+  "last": "2026-10-02T20:52",
+  "ask": "Document three preview levels for class views: inline, card, detail.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-02.jsonl"
+  ]
+ },
+ {
+  "module": "voice",
+  "topic": "prompt-refinement",
+  "count": 1,
+  "first": "2026-10-02T21:03",
+  "last": "2026-10-02T21:03",
+  "ask": "Build a system to summarize and structure the owner's dictated prompts into cards.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-02.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "session-architecture",
+  "count": 1,
+  "first": "2026-10-02T21:08",
+  "last": "2026-10-02T21:08",
+  "ask": "Propose class architecture for logging AI sessions and clarify if sessions are committed.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-02.jsonl"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "card-weight-sizing",
+  "count": 1,
+  "first": "2026-10-02T21:08",
+  "last": "2026-10-02T21:08",
+  "ask": "Make card size follow module weight; show core API for big modules.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-02.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "module-unread-badges",
+  "count": 1,
+  "first": "2026-10-02T21:08",
+  "last": "2026-10-02T21:08",
+  "ask": "Show unread badge counts rolled up from Inbox items by module.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-02.jsonl"
+  ]
+ },
+ {
+  "module": "voice",
+  "topic": "prompt-sentence-ids",
+  "count": 1,
+  "first": "2026-10-02T21:09",
+  "last": "2026-10-02T21:09",
+  "ask": "Give every prompt sentence an id; asks cite sentence ids; requirements cite ask ids.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-02.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "prompt-confidence",
+  "count": 1,
+  "first": "2026-10-02T21:09",
+  "last": "2026-10-02T21:09",
+  "ask": "Each ask should carry a confidence level; low becomes a clarification question.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-02.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "every-prompt-skill",
+  "count": 1,
+  "first": "2026-10-02T21:11",
+  "last": "2026-10-02T21:11",
+  "ask": "Fix every-prompt skill: load once as system prompt, remove per-message re-invoke.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-02.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "prompt-refinement-hook",
+  "count": 1,
+  "first": "2026-10-02T21:21",
+  "last": "2026-10-02T21:21",
+  "ask": "Create a hook system to audit prompts without requiring agent tool calls.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-02.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "prompt-inbox-card",
+  "count": 1,
+  "first": "2026-10-02T21:24",
+  "last": "2026-10-02T21:24",
+  "ask": "Create a pinned Inbox card showing latest prompt topics with newest-first timeline.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-02.jsonl"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "live-page-updates",
+  "count": 1,
+  "first": "2026-10-02T21:39",
+  "last": "2026-10-02T21:39",
+  "ask": "Pages must update themselves in real-time via page.jsonl when agents modify them.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-02.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "prompt-delivery",
+  "count": 1,
+  "first": "2026-10-02T21:39",
+  "last": "2026-10-02T21:39",
+  "ask": "Verify that owner prompts are delivered programmatically to both assistant pair members.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-02.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "log-auditing",
+  "count": 1,
+  "first": "2026-10-02T21:39",
+  "last": "2026-10-02T21:39",
+  "ask": "Audit AI logs for any place where AI writes raw JSON or copies files via tool call.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-02.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "cloud-execution",
+  "count": 1,
+  "first": "2026-10-02T21:41",
+  "last": "2026-10-02T21:41",
+  "ask": "Document what tasks are acceptable to run on cloud VMs and what limitations apply.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-02.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "known-issues-page",
+  "count": 1,
+  "first": "2026-10-02T21:58",
+  "last": "2026-10-02T21:58",
+  "ask": "Create a live known issues page where masterminds report problems without duplication.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-02.jsonl"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "ask-placement",
+  "count": 1,
+  "first": "2026-10-02T21:58",
+  "last": "2026-10-02T21:58",
+  "ask": "Refiner should propose where each ask should live and in what form by weight.",
+  "also": [],
+  "sources": [
+   ".claude/prompts/2026-10-02.jsonl"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "mobile-tab-responsive",
+  "count": 1,
+  "first": "2026-10-05T03:20",
+  "last": "2026-10-05T03:20",
+  "ask": "Make tabs responsive on mobile by using dropdown or scrollable view instead of wrapping flex layout.",
+  "also": [],
+  "sources": [
+   "claude-session:60d9def6-907a-4f71-adf9-110075b719eb.jsonl:a3e35e47-ea98-4945-ab98-fec1dedeb05d"
+  ]
+ },
+ {
+  "module": "voice",
+  "topic": "dictate-oo-class-system",
+  "count": 1,
+  "first": "2026-10-05T03:23",
+  "last": "2026-10-05T03:23",
+  "ask": "Refactor dictate system as object-oriented with debug views showing class methods and instance properties.",
+  "also": [],
+  "sources": [
+   "claude-session:60d9def6-907a-4f71-adf9-110075b719eb.jsonl:06b59a99-69ca-40ef-a2c1-927c04adea2f"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "local-models-availability",
+  "count": 1,
+  "first": "2026-10-05T03:53",
+  "last": "2026-10-05T03:53",
+  "ask": "Audit which local models are available and which have been tested for performance.",
+  "also": [],
+  "sources": [
+   "claude-session:60d9def6-907a-4f71-adf9-110075b719eb.jsonl:0e9f7d14-fca8-42e7-b6d2-f3d2df877470"
+  ]
+ },
+ {
+  "module": "voice",
+  "topic": "sentence-boundary-detection",
+  "count": 1,
+  "first": "2026-10-05T04:01",
+  "last": "2026-10-05T04:01",
+  "ask": "Use cheap lightweight model to detect sentence boundaries in real-time whisper stream and auto-submit.",
+  "also": [],
+  "sources": [
+   "claude-session:60d9def6-907a-4f71-adf9-110075b719eb.jsonl:19fa1ee1-4685-406f-81d3-0264fba071a3"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "global-session-namespace",
+  "count": 1,
+  "first": "2026-10-05T04:06",
+  "last": "2026-10-05T04:06",
+  "ask": "Implement global session namespace accessible from any page instead of page-specific session paths.",
+  "also": [],
+  "sources": [
+   "claude-session:60d9def6-907a-4f71-adf9-110075b719eb.jsonl:ce0e9155-3c48-424c-892b-28443b3ceb57"
+  ]
+ },
+ {
+  "module": "voice",
+  "topic": "chat-dictate-architecture",
+  "count": 1,
+  "first": "2026-10-05T04:14",
+  "last": "2026-10-05T04:14",
+  "ask": "Document class architecture overview for chat and dictate systems showing hierarchy and data flow.",
+  "also": [],
+  "sources": [
+   "claude-session:60d9def6-907a-4f71-adf9-110075b719eb.jsonl:58777db5-666e-4514-851c-d31b48f5bf97"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "session-resume-timeouts",
+  "count": 1,
+  "first": "2026-10-05T04:18",
+  "last": "2026-10-05T04:18",
+  "ask": "Implement tiered session resumption: auto-resume within 10 min, prompt within 60 min, auto-new after.",
+  "also": [],
+  "sources": [
+   "claude-session:60d9def6-907a-4f71-adf9-110075b719eb.jsonl:865afe48-e6d8-47e9-99e7-21945d464b6b"
+  ]
+ },
+ {
+  "module": "voice",
+  "topic": "new-session-ui-controls",
+  "count": 1,
+  "first": "2026-10-05T04:22",
+  "last": "2026-10-05T04:22",
+  "ask": "Add easily accessible new-session button or control in session management UI.",
+  "also": [],
+  "sources": [
+   "claude-session:60d9def6-907a-4f71-adf9-110075b719eb.jsonl:5f9cee97-e517-4fa2-9715-a15771dcbd1c"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "voice-session-mastermind",
+  "count": 1,
+  "first": "2026-10-05T04:25",
+  "last": "2026-10-05T04:25",
+  "ask": "Add Opus mastermind to oversee voice sessions, handle recovery, and manage reliability issues.",
+  "also": [],
+  "sources": [
+   "claude-session:60d9def6-907a-4f71-adf9-110075b719eb.jsonl:10afaa1b-199c-492a-a86e-27cb99c4a275"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "token-conservation",
+  "count": 1,
+  "first": "2026-10-05T04:29",
+  "last": "2026-10-05T04:29",
+  "ask": "Reduce token usage by using cheaper models and offloading to OpenRouter and local models.",
+  "also": [],
+  "sources": [
+   "claude-session:60d9def6-907a-4f71-adf9-110075b719eb.jsonl:12b8ffad-5365-4271-a546-27d0e9dd67de"
+  ]
+ },
+ {
+  "module": "voice",
+  "topic": "real-time-transcription-pipeline",
+  "count": 1,
+  "first": "2026-10-05T04:44",
+  "last": "2026-10-05T04:44",
+  "ask": "Implement atomic operations transferring raw transcription to text area, then refined text to chat bubbles.",
+  "also": [],
+  "sources": [
+   "claude-session:60d9def6-907a-4f71-adf9-110075b719eb.jsonl:8779ba8a-2eba-4a26-88c0-5e994e88bcb7"
+  ]
+ },
+ {
+  "module": "voice",
+  "topic": "microphone-api-encapsulation",
+  "count": 1,
+  "first": "2026-10-05T04:50",
+  "last": "2026-10-05T04:50",
+  "ask": "Encapsulate microphone and web audio APIs as a clear OO class with proper boundaries.",
+  "also": [],
+  "sources": [
+   "claude-session:60d9def6-907a-4f71-adf9-110075b719eb.jsonl:e690cd96-d1be-483d-8c6d-f94dab78910b"
+  ]
+ },
+ {
+  "module": "voice",
+  "topic": "voice-ui-streaming-docs",
+  "count": 1,
+  "first": "2026-10-05T04:54",
+  "last": "2026-10-05T04:54",
+  "ask": "Document web API usage in classes and implement real-time voice-to-UI streaming pipeline.",
+  "also": [],
+  "sources": [
+   "claude-session:60d9def6-907a-4f71-adf9-110075b719eb.jsonl:61c04c5a-54a1-4552-bbe0-be5775a39ebb"
+  ]
+ },
+ {
+  "module": "voice",
+  "topic": "whisper-flow-verification",
+  "count": 1,
+  "first": "2026-10-05T05:01",
+  "last": "2026-10-05T05:01",
+  "ask": "Verify whisper transcription works end-to-end, chunk on sentence boundaries, debug current issues.",
+  "also": [],
+  "sources": [
+   "claude-session:60d9def6-907a-4f71-adf9-110075b719eb.jsonl:f38b1db4-a033-4709-9778-bfd851fa313e"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "site-change-monitoring",
+  "count": 1,
+  "first": "2026-10-05T05:03",
+  "last": "2026-10-05T05:03",
+  "ask": "Implement file-change monitoring that tests dependent pages and detects issues before user sees.",
+  "also": [],
+  "sources": [
+   "claude-session:60d9def6-907a-4f71-adf9-110075b719eb.jsonl:40e32bab-d926-4120-8da7-b0d638d373d1"
+  ]
+ },
+ {
+  "module": "voice",
+  "topic": "class-hierarchy-visualization",
+  "count": 1,
+  "first": "2026-10-05T18:17",
+  "last": "2026-10-05T18:17",
+  "ask": "Create tree view visualization showing class hierarchy and live instances with nested structure.",
+  "also": [],
+  "sources": [
+   "claude-session:60d9def6-907a-4f71-adf9-110075b719eb.jsonl:28883e28-31db-4a74-841a-0dea0c2832dc"
+  ]
+ },
+ {
+  "module": "voice",
+  "topic": "microphone-status-display",
+  "count": 1,
+  "first": "2026-10-05T18:27",
+  "last": "2026-10-05T18:27",
+  "ask": "Add status line or tray for microphone connection state and expand to show logs on click.",
+  "also": [],
+  "sources": [
+   "claude-session:60d9def6-907a-4f71-adf9-110075b719eb.jsonl:6b633862-f8a7-4a3f-8c9b-fdff572215ff"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "class-documentation-views",
+  "count": 1,
+  "first": "2026-10-05T18:35",
+  "last": "2026-10-05T18:35",
+  "ask": "Create card-based documentation views for core classes showing methods and live property values.",
+  "also": [],
+  "sources": [
+   "claude-session:60d9def6-907a-4f71-adf9-110075b719eb.jsonl:143a6010-2463-4269-9ebc-5587bac82071"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "model-config-testing",
+  "count": 1,
+  "first": "2026-10-05T18:38",
+  "last": "2026-10-05T18:38",
+  "ask": "Enable model and configuration testing with visibility into test runs and different prompt sets.",
+  "also": [],
+  "sources": [
+   "claude-session:60d9def6-907a-4f71-adf9-110075b719eb.jsonl:6614cf65-704c-4ccf-b5be-2d9e99c91b75"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "token-conservation-shutdown",
+  "count": 1,
+  "first": "2026-10-05T18:46",
+  "last": "2026-10-05T18:46",
+  "ask": "Shut down Servex mastermind temporarily to conserve tokens during high usage periods.",
+  "also": [],
+  "sources": [
+   "claude-session:60d9def6-907a-4f71-adf9-110075b719eb.jsonl:b5c94870-f37d-4214-b137-a94bcd2626dc"
+  ]
+ },
+ {
+  "module": "voice",
+  "topic": "dictation-system-overview",
+  "count": 1,
+  "first": "2026-10-05T18:46",
+  "last": "2026-10-05T18:46",
+  "ask": "Provide system architecture overview of web dictation UI and session management.",
+  "also": [],
+  "sources": [
+   "claude-session:60d9def6-907a-4f71-adf9-110075b719eb.jsonl:a6b1c5d5-72eb-4096-99d4-ba7252b3840e"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "dictation-config-interface",
+  "count": 1,
+  "first": "2026-10-05T18:50",
+  "last": "2026-10-05T18:50",
+  "ask": "Create UI to configure and test different assistant models and system prompts for dictation.",
+  "also": [],
+  "sources": [
+   "claude-session:60d9def6-907a-4f71-adf9-110075b719eb.jsonl:11347eaf-a77b-49bd-9e63-ab6cf31e73b1"
+  ]
+ },
+ {
+  "module": "voice",
+  "topic": "web-dictation-migration",
+  "count": 1,
+  "first": "2026-10-05T18:54",
+  "last": "2026-10-05T18:54",
+  "ask": "Prioritize testing different models with remaining tokens and migrate to web-based dictation.",
+  "also": [],
+  "sources": [
+   "claude-session:60d9def6-907a-4f71-adf9-110075b719eb.jsonl:fbee7339-192d-4fc2-a015-9c3d25715f35"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "usage-projection-hierarchy",
+  "count": 1,
+  "first": "2026-10-05T18:58",
+  "last": "2026-10-05T18:58",
+  "ask": "Project token burnout timeline and document hierarchical mastermind system with delegation patterns.",
+  "also": [],
+  "sources": [
+   "claude-session:60d9def6-907a-4f71-adf9-110075b719eb.jsonl:c9757791-3b57-4789-aa99-727509b071e1"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "openrouter-config-template",
+  "count": 1,
+  "first": "2026-10-05T19:04",
+  "last": "2026-10-05T19:04",
+  "ask": "Switch voice assistants to OpenRouter models now with selectable config template dropdown.",
+  "also": [],
+  "sources": [
+   "claude-session:60d9def6-907a-4f71-adf9-110075b719eb.jsonl:53f98666-98f3-46c5-bf82-723405a99f86"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "token-management-oversight",
+  "count": 1,
+  "first": "2026-10-05T19:08",
+  "last": "2026-10-05T19:08",
+  "ask": "Monitor web dictation for issues, manage token consumption conservatively, coordinate work.",
+  "also": [],
+  "sources": [
+   "claude-session:e3ade6ce-fbb5-4674-922c-566ef86fabb3.jsonl:fe988163-a1f7-4985-b52f-4184c765cbe0"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "session-notification-queue",
+  "count": 1,
+  "first": "2026-10-05T19:14",
+  "last": "2026-10-05T19:14",
+  "ask": "Implement session notification queue with batched updates every few minutes for web chat tracking.",
+  "also": [],
+  "sources": [
+   "claude-session:e3ade6ce-fbb5-4674-922c-566ef86fabb3.jsonl:40ab3643-fb26-4184-b9a7-2200a653372c"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "mastermind-permissions",
+  "count": 1,
+  "first": "2026-10-05T19:17",
+  "last": "2026-10-05T19:17",
+  "ask": "Configure permission mode to allow mastermind autonomous editing without approval prompts.",
+  "also": [],
+  "sources": [
+   "claude-session:e3ade6ce-fbb5-4674-922c-566ef86fabb3.jsonl:a8e451a9-1d06-4e53-a7b9-448b853efea2"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "mastermind-autonomy",
+  "count": 1,
+  "first": "2026-10-05T19:17",
+  "last": "2026-10-05T19:17",
+  "ask": "Ensure mastermind works without requiring approval for every action and edit.",
+  "also": [],
+  "sources": [
+   "claude-session:e3ade6ce-fbb5-4674-922c-566ef86fabb3.jsonl:058016cf-7bca-451a-ad20-a5b133ebdfc1"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "voice-model-provider-switch",
+  "count": 1,
+  "first": "2026-10-05T19:18",
+  "last": "2026-10-05T19:18",
+  "ask": "Ensure voice agents use non-Anthropic models only to conserve Anthropic tokens.",
+  "also": [],
+  "sources": [
+   "claude-session:e3ade6ce-fbb5-4674-922c-566ef86fabb3.jsonl:f5c9e8ea-c882-4faf-bfd2-e767910fd018"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "voice-openrouter-audit",
+  "count": 1,
+  "first": "2026-10-05T19:20",
+  "last": "2026-10-05T19:20",
+  "ask": "Verify voice system uses non-Anthropic models, update handover file, coordinate with other mastermind.",
+  "also": [],
+  "sources": [
+   "claude-session:60d9def6-907a-4f71-adf9-110075b719eb.jsonl:ccfd84d6-b588-485f-939e-8854b8a74ab3"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "readme-visibility",
+  "count": 1,
+  "first": "2026-10-09T01:13",
+  "last": "2026-10-09T01:13",
+  "ask": "Ensure all masterminds know about and can find the README documentation system.",
+  "also": [],
+  "sources": [
+   "claude-session:87bec773-d6dd-421c-92cc-fdd8a9eb5103.jsonl:3f273d1d-f984-4426-be08-b2473a473c79"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "session-folder-structure",
+  "count": 1,
+  "first": "2026-10-09T01:14",
+  "last": "2026-10-09T01:14",
+  "ask": "Move scattered session data into /ai/sessions/ organized by year/month/day using procedural scripts.",
+  "also": [],
+  "sources": [
+   "claude-session:87bec773-d6dd-421c-92cc-fdd8a9eb5103.jsonl:b3409c88-4136-44fb-940b-8304bf8b21e0"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "sessions-realtime-update",
+  "count": 1,
+  "first": "2026-10-09T01:17",
+  "last": "2026-10-09T01:17",
+  "ask": "Update the sessions tab to show real-time representation of what tasks are in flight.",
+  "also": [],
+  "sources": [
+   "claude-session:87bec773-d6dd-421c-92cc-fdd8a9eb5103.jsonl:c024365d-2856-4fb8-8ca8-c1c4a0199207"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "session-card-sidebar",
+  "count": 1,
+  "first": "2026-10-09T01:24",
+  "last": "2026-10-09T01:24",
+  "ask": "Store sessions in /ai/sessions/ hierarchy and open them in right sidebar column on click.",
+  "also": [],
+  "sources": [
+   "claude-session:87bec773-d6dd-421c-92cc-fdd8a9eb5103.jsonl:0df3205c-1a11-4670-a00f-4924984272a9"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "openrouter-accounting",
+  "count": 1,
+  "first": "2026-10-09T02:15",
+  "last": "2026-10-09T02:15",
+  "ask": "Properly track OpenRouter spending as real dollars separate from Claude API equivalent.",
+  "also": [],
+  "sources": [
+   "claude-session:87bec773-d6dd-421c-92cc-fdd8a9eb5103.jsonl:59d325be-4820-4f4d-b646-30c780f5313e"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "object-oriented-code",
+  "count": 1,
+  "first": "2026-10-09T02:21",
+  "last": "2026-10-09T02:21",
+  "ask": "Refactor AI code to use object-oriented patterns with clear class hierarchies throughout.",
+  "also": [],
+  "sources": [
+   "claude-session:87bec773-d6dd-421c-92cc-fdd8a9eb5103.jsonl:81c71fc3-788c-410e-bea1-24746e3a12d3"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "session-index-jsonl",
+  "count": 1,
+  "first": "2026-10-09T02:49",
+  "last": "2026-10-09T02:49",
+  "ask": "Convert session index from JSON to JSONL format to support real-time tail operations.",
+  "also": [],
+  "sources": [
+   "claude-session:87bec773-d6dd-421c-92cc-fdd8a9eb5103.jsonl:ab7a630f-79c4-415d-baa9-6df93e8a20c5"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "session-directory-indexing",
+  "count": 1,
+  "first": "2026-10-09T02:51",
+  "last": "2026-10-09T02:51",
+  "ask": "Create index files at year/month/day levels for quick session querying and browsing.",
+  "also": [],
+  "sources": [
+   "claude-session:87bec773-d6dd-421c-92cc-fdd8a9eb5103.jsonl:03cc25ce-3553-450e-9e85-1b5ec5345435"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "session-index-compacting",
+  "count": 1,
+  "first": "2026-10-09T03:16",
+  "last": "2026-10-09T03:16",
+  "ask": "Batch and compact session index writes to prevent file bloat and sync issues.",
+  "also": [],
+  "sources": [
+   "claude-session:87bec773-d6dd-421c-92cc-fdd8a9eb5103.jsonl:75bee3e7-e368-47a9-a34c-50fc2838f309"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "session-snapshot-structure",
+  "count": 1,
+  "first": "2026-10-09T03:25",
+  "last": "2026-10-09T03:25",
+  "ask": "Create snapshot indices at month/day/session levels showing what data exists at each tier.",
+  "also": [],
+  "sources": [
+   "claude-session:87bec773-d6dd-421c-92cc-fdd8a9eb5103.jsonl:931331d4-3da2-4b10-a43e-309495e57e35"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "sessions-query-tool",
+  "count": 1,
+  "first": "2026-10-09T03:30",
+  "last": "2026-10-09T03:30",
+  "ask": "Create MCP tool interface for agents to programmatically query sessions by criteria.",
+  "also": [],
+  "sources": [
+   "claude-session:87bec773-d6dd-421c-92cc-fdd8a9eb5103.jsonl:049fdda9-5a23-4836-9564-c400e93fc21c"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "prompt-class-tagging",
+  "count": 1,
+  "first": "2026-10-09T03:47",
+  "last": "2026-10-09T03:47",
+  "ask": "Create Prompt class and tag prompts by directory/class name path for filtering.",
+  "also": [],
+  "sources": [
+   "claude-session:87bec773-d6dd-421c-92cc-fdd8a9eb5103.jsonl:df1aeb1f-5cb0-45d7-8e47-c86a8c981d40"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "openrouter-suspend",
+  "count": 1,
+  "first": "2026-10-09T03:49",
+  "last": "2026-10-09T03:49",
+  "ask": "Avoid using OpenRouter credits due to accounting uncertainty.",
+  "also": [],
+  "sources": [
+   "claude-session:87bec773-d6dd-421c-92cc-fdd8a9eb5103.jsonl:d00cb51c-569e-4c23-902f-38eb3d1782a0"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "aisession-class-refactor",
+  "count": 1,
+  "first": "2026-10-09T04:08",
+  "last": "2026-10-09T04:08",
+  "ask": "Refactor session class to framework/ai/AISession/AISession.js with AISession class name.",
+  "also": [],
+  "sources": [
+   "claude-session:87bec773-d6dd-421c-92cc-fdd8a9eb5103.jsonl:9b661c99-f87c-4b0e-ab2e-485eea341b08"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "prompt-tagging-system",
+  "count": 1,
+  "first": "2026-10-09T04:14",
+  "last": "2026-10-09T04:14",
+  "ask": "Implement prompt refinement tagging system to identify and filter prompts by module.",
+  "also": [],
+  "sources": [
+   "claude-session:87bec773-d6dd-421c-92cc-fdd8a9eb5103.jsonl:09214026-c74b-44f0-9483-4071e8057f23"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "update-handover",
+  "count": 1,
+  "first": "2026-10-09T19:41",
+  "last": "2026-10-09T19:41",
+  "ask": "Update handover file with current in-flight work and priorities before ending session.",
+  "also": [],
+  "sources": [
+   "claude-session:87bec773-d6dd-421c-92cc-fdd8a9eb5103.jsonl:e0f22343-938a-444f-814f-bd9467772b7e"
+  ]
+ },
+ {
+  "module": "ai",
+  "topic": "site-stability-debug",
+  "count": 1,
+  "first": "2026-10-09T21:23",
+  "last": "2026-10-09T21:23",
+  "ask": "Investigate and fix site crashes during transcription and page reload failures.",
+  "also": [],
+  "sources": [
+   "claude-session:87bec773-d6dd-421c-92cc-fdd8a9eb5103.jsonl:d3bc306b-f948-4992-819e-b3e12b7c2b8e"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "session-detail-fill",
+  "count": 1,
+  "first": "2026-10-09T21:33",
+  "last": "2026-10-09T21:33",
+  "ask": "Make session detail sidebar content fill available width with proper responsive padding.",
+  "also": [],
+  "sources": [
+   "claude-session:7efd07d5-7a58-434d-8847-1a1d7b640390.jsonl:6734d6ee-41d9-4970-a6ba-073caf2e617c"
+  ]
+ },
+ {
+  "module": "ui",
+  "topic": "dictation-response-screen",
+  "count": 1,
+  "first": "2026-10-09T21:35",
+  "last": "2026-10-09T21:35",
+  "ask": "Display identified topics on screen immediately as they're spoken in voice dictation.",
+  "also": [],
+  "sources": [
+   "claude-session:7efd07d5-7a58-434d-8847-1a1d7b640390.jsonl:58d30aa1-6904-4017-bffc-e3876a9c23d5"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "session-page-realtime",
+  "count": 1,
+  "first": "2026-10-09T21:39",
+  "last": "2026-10-09T21:39",
+  "ask": "Update session detail page in real-time as new messages arrive without page refresh.",
+  "also": [],
+  "sources": [
+   "claude-session:7efd07d5-7a58-434d-8847-1a1d7b640390.jsonl:37910fca-a1b7-4f91-8ee1-6be45f189627"
+  ]
+ },
+ {
+  "module": "ui",
+  "topic": "dictation-widget-layout",
+  "count": 1,
+  "first": "2026-10-09T21:42",
+  "last": "2026-10-09T21:42",
+  "ask": "Fix dictation widget so button position is stable and doesn't grow or move while typing.",
+  "also": [],
+  "sources": [
+   "claude-session:7efd07d5-7a58-434d-8847-1a1d7b640390.jsonl:363b79bf-fc84-4163-9321-ab91d7fb7974"
+  ]
+ },
+ {
+  "module": "voice",
+  "topic": "voice-chat-realtime",
+  "count": 1,
+  "first": "2026-10-09T21:50",
+  "last": "2026-10-09T21:50",
+  "ask": "Enable live transcription and real-time prompt refinement display during voice chat.",
+  "also": [],
+  "sources": [
+   "claude-session:7efd07d5-7a58-434d-8847-1a1d7b640390.jsonl:5149bf17-960d-4b44-b662-9cc748b92f38"
+  ]
+ },
+ {
+  "module": "page",
+  "topic": "sidebar-nav-indexing",
+  "count": 1,
+  "first": "2026-10-09T21:54",
+  "last": "2026-10-09T21:54",
+  "ask": "Build sidebar navigation index so unloaded pages are searchable and load faster.",
+  "also": [],
+  "sources": [
+   "claude-session:7efd07d5-7a58-434d-8847-1a1d7b640390.jsonl:64339ea9-8883-44b1-8eb0-d005a74feead"
+  ]
+ }
+]

@@ -1,0 +1,6 @@
+@layer base, theme, site, util;
+@layer site {
+	.bench-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; padding: 2px 6px; }
+	.bench-row span { padding: 2px 4px; border: 1px solid currentColor; }
+	.bench-row span.hot { background: color-mix(in srgb, gold 40%, transparent); }
+}

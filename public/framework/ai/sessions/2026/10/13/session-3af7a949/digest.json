@@ -1,0 +1,32 @@
+{
+ "id": "3af7a949-7b5f-4a07-b328-c8befb82bca7",
+ "first": "2026-10-13T19:58:53.865Z",
+ "last": "2026-10-13T21:50:23.556Z",
+ "task": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/transcribe",
+ "models": {
+  "claude-sonnet-5-5": 57
+ },
+ "sizes": {
+  "raw": 1442133,
+  "content": 80959,
+  "stripped": 10339,
+  "owner_only": 0
+ },
+ "usd": 3.153561,
+ "usd_main": 3.153561,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 114,
+  "output": 95752,
+  "cache_read": 6098903,
+  "cache_write": 244008,
+  "w5": 0,
+  "w1": 244008
+ },
+ "messages": 57,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "Still idle: the task is landed (`03256814c`, update `eccf4b617`) and I have no open work.",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.199Z"
+}

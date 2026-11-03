@@ -1,0 +1,11 @@
+@layer base, theme, site, util;
+
+@layer site {
+	.whisper-log { display: grid; gap: 0.4em; }
+	.whisper-log-rows { block-size: 14em; overflow: auto; font-size: 0.85em; border: 1px solid color-mix(in srgb, currentColor 20%, transparent); border-radius: 0.4em; padding: 0.4em; }
+	.whisper-log-row { display: grid; grid-template-columns: 7.5em 4.5em 4.5em 1fr; gap: 0.5em; padding-block: 0.1em; }
+	.whisper-log-row.is-interim { opacity: 0.6; }
+	.whisper-log-row.is-open { opacity: 0.45; }
+	.whisper-log-kind { font-weight: 600; }
+	.whisper-log-at, .whisper-log-ms { font-variant-numeric: tabular-nums; opacity: 0.7; }
+}

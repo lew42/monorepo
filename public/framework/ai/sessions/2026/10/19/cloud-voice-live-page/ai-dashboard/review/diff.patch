@@ -1,0 +1,613 @@
+diff --git a/public/framework/ai/AIDashboard/AIDashboard.css b/public/framework/ai/AIDashboard/AIDashboard.css
+new file mode 100644
+index 000000000..d1d89097f
+--- /dev/null
++++ b/public/framework/ai/AIDashboard/AIDashboard.css
+@@ -0,0 +1,53 @@
++@layer site {
++	.page.ad-page { --measure: none; --page-pad: 1.5em clamp(0.8em, 3%, 3em); }
++	.ad-dash { display: flex; flex-direction: column; gap: 0.6em; padding: 0.8em clamp(0.6em, 3cqi, 1.5em) 2em; }
++	.ad-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.2em 1em; }
++	.ad-title { display: flex; align-items: center; gap: 0.3em; margin: 0; font-size: 1.4em; }
++	.ad-sum { font-size: 0.9em; opacity: 0.75; }
++	.ad-strip, .ad-chips { display: flex; flex-wrap: wrap; gap: 0.3em; }
++	.ad-chips { flex-direction: column; }
++	.ad-chip { font: inherit; font-size: 0.85em; padding: 0.15em 0.7em; border: 1px solid var(--line); border-radius: 2em; background: transparent; color: inherit; cursor: pointer; }
++	.ad-chip:hover { background: var(--tint); }
++	.ad-chip-on { background: var(--prime); border-color: var(--prime); color: var(--prime-ink); font-weight: 600; }
++	.ad-chips > .ad-strip { display: flex; }
++	.ad-find { font: inherit; padding: 0.3em 0.7em; border: 1px solid var(--line); border-radius: 0.4em; background: transparent; color: inherit; width: 100%; box-sizing: border-box; }
++	.ad-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 26em), 1fr)); gap: 0 2em; align-items: start; }
++	.ad-col { min-width: 0; }
++	.ad-group { display: flex; justify-content: space-between; margin-top: 0.8em; padding-bottom: 0.2em; border-bottom: 1px solid var(--line); font-weight: 600; font-size: 0.9em; }
++	.ad-group-fold { cursor: pointer; }
++	.ad-row { display: block; padding: 0.35em 0; border-bottom: 1px solid color-mix(in srgb, var(--line) 50%, transparent); }
++	.ad-row .ad-row .ad-row-main, .ad-row .ad-row .ad-row-sub { padding-inline-start: 1.2em; }
++	.ad-depth-1 { padding-inline-start: 0.8em; }
++	.ad-depth-2, .ad-depth-3 { padding-inline-start: 0.8em; }
++	.ad-row-main { display: flex; align-items: center; gap: 0.4em; min-width: 0; }
++	.ad-fold { flex: none; width: 1.1em; padding: 0; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; text-align: center; }
++	.ad-origin { flex: none; }
++	.ad-dot { flex: none; width: 0.5em; height: 0.5em; border-radius: 50%; background: var(--line); }
++	.ad-dot-live { background: var(--ok); box-shadow: 0 0 0.4em var(--ok); }
++	.ad-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: inherit; text-decoration: none; }
++	.ad-name:hover { text-decoration: underline; }
++	.ad-usd { flex: none; font-variant-numeric: tabular-nums; font-size: 0.9em; }
++	.ad-row-sub { padding-inline-start: 2.8em; font-size: 0.78em; opacity: 0.65; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
++	.ad-kids { border-inline-start: 1px solid var(--line); margin-inline-start: 0.7em; }
++	.ad-kids > .ad-row:last-child { border-bottom: 0; }
++	.ad-usage { gap: 0.3em 1.5em; font-size: 0.85em; }
++	.ad-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.6em 1.5em; align-items: start; }
++	.ad-days { display: flex; flex-direction: column; gap: 0.5em; }
++	.ad-main { display: flex; flex-direction: column; gap: 0.6em; min-width: 0; }
++	.ad-date { font: inherit; padding: 0.25em 0.6em; border: 1px solid var(--line); border-radius: 0.4em; background: transparent; color: inherit; width: 100%; box-sizing: border-box; }
++	.ad-days .ad-strip { display: none; }
++	@media (min-width: 46em) {
++		.ad-body { grid-template-columns: 9em minmax(0, 1fr); }
++		.ad-days .ad-strip { display: flex; flex-direction: column; gap: 0.2em; }
++		.ad-days .ad-chip { text-align: start; border-radius: 0.4em; }
++	}
++	@media (max-width: 45.99em) {
++		.ad-usage { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.4em; font-size: 0.7em; }
++		.ad-usage .up-head { flex-direction: column; gap: 0; }
++		.ad-usage .up-head > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
++		.ad-chips .ad-strip { flex-wrap: nowrap; overflow-x: auto; }
++		.ad-chip { white-space: nowrap; flex: none; }
++	}
++	.ad-none { padding: 2em 0; opacity: 0.6; }
++	.ad-foot { display: flex; flex-wrap: wrap; gap: 0.4em 1.2em; margin-top: 1em; font-size: 0.9em; }
++}
+diff --git a/public/framework/ai/AIDashboard/AIDashboard.js b/public/framework/ai/AIDashboard/AIDashboard.js
+new file mode 100644
+index 000000000..6c064eb78
+--- /dev/null
++++ b/public/framework/ai/AIDashboard/AIDashboard.js
+@@ -0,0 +1,101 @@
++import { View, div, span, a, input } from "/app.js";
++import SessionStore from "./SessionStore.js";
++import SessionTree from "./SessionTree.js";
++import SessionRow from "./SessionRow.js";
++import DayStrip from "./DayStrip.js";
++import OriginChips from "./OriginChips.js";
++import UsageLine from "./UsageLine.js";
++
++View.stylesheet(import.meta, "AIDashboard.css");
++
++/** AIDashboard — the default /framework/ai/ page: one day's sessions grouped by origin (cloud voice, VS Code / remote, Servex), nested by who spawned whom, each cost rolled up.
++ *  It reads the one store through SessionStore and keeps its state in the url (`?day=&origin=&live&open=&find=`). Plan and class table: ai/doc/ai-dashboard-plan.md */
++export default class AIDashboard extends View {
++	static AI = "/framework/ai/";
++	static DAY = /^\d{4}-\d{2}-\d{2}$/;
++
++	get classes(){ return "ad-dash"; }
++
++	// ⚠ render() runs inside View's constructor, before class fields exist: set up here, then draw.
++	initialize(){
++		this.store = new SessionStore();
++		this.days = SessionStore.days();
++		this.q = this.read();
++		super.initialize();
++	}
++
++	/** The query the url names. `open` is the set of session ids unfolded. */
++	read(){
++		const p = new URLSearchParams(location.search), day = p.get("day");
++		return { day: AIDashboard.DAY.test(day ?? "") ? day : this.days[0], origin: p.get("origin"), live: p.has("live"), find: p.get("find") ?? "", open: new Set((p.get("open") ?? "").split(",").filter(Boolean)) };
++	}
++	write(){
++		const { day, origin, live, find, open } = this.q, p = new URLSearchParams();
++		if (day !== this.days[0]) p.set("day", day);
++		if (origin) p.set("origin", origin);
++		if (find) p.set("find", find);
++		if (open.size) p.set("open", [...open].join(","));
++		const rest = p.toString(), s = [live && "live", rest].filter(Boolean).join("&");
++		history.replaceState(history.state, "", location.pathname + (s ? "?" + s : ""));
++	}
++	set(change){ Object.assign(this.q, change); this.write(); "day" in change ? this.store.open(this.q.day) : this.paint(); }
++	toggle(id){ this.q.open.has(id) ? this.q.open.delete(id) : this.q.open.add(id); this.write(); this.paint(); }
++
++	render(){
++		new UsageLine();
++		div.c("ad-body", () => {
++			div.c("ad-days", () => {
++				new DayStrip({ dash: this });
++				input.c("ad-date").attr("type", "date").attr("max", this.days[0]).attr("value", this.q.day).attr("title", "Any day").on("change", e => e.target.value && this.set({ day: e.target.value }));
++			});
++			div.c("ad-main", () => {
++				this.$sum = div.c("ad-sum");
++				this.$chips = div.c("ad-chips");
++				input.c("ad-find").attr("type", "search").attr("placeholder", "Find a session…").attr("value", this.q.find).on("input", e => { this.q.find = e.target.value; this.write(); this.paint(); });
++				this.$list = div.c("ad-list");
++			});
++		});
++		div.c("ad-foot", () => a.c("ad-link").href(AIDashboard.AI + "inbox/").attr("target", "_self").attr("title", "The old Inbox, with its tabs, tasks and sessions").text("Old Inbox →"));
++		this.store.on(() => this.paint());
++		this.store.open(this.q.day);
++	}
++
++	/** The roots the query keeps: by origin, live and find (a root stays when any session under it matches). */
++	visible(){
++		const find = this.q.find.trim().toLowerCase(), hit = n => `${n.s.title} ${n.s.agent} ${n.s.folder} ${n.s.id}`.toLowerCase().includes(find) || n.kids.some(hit);
++		return this.store.tree.roots.filter(r => (!this.q.origin || r.origin === this.q.origin) && (!this.q.live || r.live) && (!find || hit(r)));
++	}
++
++	/** The computed header line: counts that must add up, red when they do not. */
++	summary(tree){
++		const all = [...tree.nodes.values()], usd = tree.roots.reduce((s, r) => s + r.rolled, 0), own = all.reduce((s, n) => s + n.own, 0);
++		const lost = tree.unattached().length, tasks = this.store.tasks, live = tree.roots.filter(r => r.live).length;
++		const bits = [`${all.length} sessions`, SessionRow.usd(usd), live && `${live} live`, lost && `${lost} unattached`, tasks?.in_flight && `${tasks.in_flight} task${tasks.in_flight > 1 ? "s" : ""} in flight`].filter(Boolean);
++		return { text: bits.join(" · "), bad: Math.abs(usd - own) > 0.01 || tree.roots.reduce((s, r) => s + r.count, 0) !== all.length };
++	}
++
++	paint(){
++		const { tree, ok } = this.store;
++		if (!tree) return;
++		const sum = this.summary(tree);
++		this.$sum.empty(() => { const t = span(sum.text); if (sum.bad) t.el.style.color = "var(--error)"; });
++		this.$chips.empty(() => new OriginChips({ dash: this }));
++		this.$list.empty(() => {
++			const rows = this.visible();
++			if (!ok) return div.c("ad-none", "No session index for this day.");
++			if (!rows.length) return div.c("ad-none", "Nothing matches.");
++			Object.entries(SessionTree.ORIGINS).forEach(([k, o]) => {
++				const list = rows.filter(r => r.origin === k);
++				if (!list.length) return;
++				// Routine is cheap and plentiful: one folded line until you open it (or pick its chip).
++				const folded = k === "routine" && !this.q.open.has("routine") && this.q.origin !== "routine" && !this.q.find;
++				div.c("ad-col", () => {
++					const usd = list.reduce((sum, r) => sum + r.rolled, 0);
++					const head = div.c("ad-group", () => { span(`${folded ? "▸ " : ""}${o.icon} ${o.label}`).attr("title", o.hint); span.c("ad-usd", `${list.length} · ${SessionRow.usd(usd)}`); });
++					if (k === "routine") head.on("click", () => this.toggle("routine")).ac("ad-group-fold");
++					if (!folded) list.forEach(node => new SessionRow({ node, dash: this }));
++				});
++			});
++		});
++	}
++}
+diff --git a/public/framework/ai/AIDashboard/DayStrip.js b/public/framework/ai/AIDashboard/DayStrip.js
+new file mode 100644
+index 000000000..cd604a112
+--- /dev/null
++++ b/public/framework/ai/AIDashboard/DayStrip.js
+@@ -0,0 +1,12 @@
++import { View, button } from "/app.js";
++
++/** DayStrip — the last seven days as chips (Today, Yesterday, then the weekday). Picking one writes `?day=` through the dashboard. */
++export default class DayStrip extends View {
++	get classes(){ return "ad-strip"; }
++	static label(day, i){ return i === 0 ? "Today" : i === 1 ? "Yesterday" : new Date(day + "T12:00:00").toLocaleDateString("en-US", { weekday: "short", day: "numeric" }); }
++
++	render(){
++		const { dash } = this;
++		dash.days.forEach((day, i) => button.c("ad-chip" + (day === dash.q.day ? " ad-chip-on" : ""), DayStrip.label(day, i)).attr("type", "button").attr("title", day).on("click", () => dash.set({ day })));
++	}
++}
+diff --git a/public/framework/ai/AIDashboard/OriginChips.js b/public/framework/ai/AIDashboard/OriginChips.js
+new file mode 100644
+index 000000000..ebf954465
+--- /dev/null
++++ b/public/framework/ai/AIDashboard/OriginChips.js
+@@ -0,0 +1,16 @@
++import { View, button } from "/app.js";
++import SessionTree from "./SessionTree.js";
++import SessionRow from "./SessionRow.js";
++
++/** OriginChips — one chip per origin with its count and rolled-up cost, plus Live. Picking one writes `?origin=` (none picked = all). */
++export default class OriginChips extends View {
++	get classes(){ return "ad-strip"; }
++
++	render(){
++		const { dash } = this, t = dash.store.tree.totals();
++		button.c("ad-chip" + (!dash.q.origin ? " ad-chip-on" : ""), "All").attr("type", "button").on("click", () => dash.set({ origin: null }));
++		Object.entries(SessionTree.ORIGINS).forEach(([key, o]) => t[key].roots && button.c("ad-chip" + (dash.q.origin === key ? " ad-chip-on" : ""),
++			`${o.icon} ${o.label} ${t[key].roots} · ${SessionRow.usd(t[key].usd)}`).attr("type", "button").attr("title", o.hint).on("click", () => dash.set({ origin: key })));
++		button.c("ad-chip" + (dash.q.live ? " ad-chip-on" : ""), "● Live").attr("type", "button").attr("title", "Working now, or active in the last 10 minutes").on("click", () => dash.set({ live: !dash.q.live }));
++	}
++}
+diff --git a/public/framework/ai/AIDashboard/SessionRow.js b/public/framework/ai/AIDashboard/SessionRow.js
+new file mode 100644
+index 000000000..70537f097
+--- /dev/null
++++ b/public/framework/ai/AIDashboard/SessionRow.js
+@@ -0,0 +1,31 @@
++import { View, div, span, a, button } from "/app.js";
++import { age } from "/framework/core/Page/ext/Inbox/Inbox.js";
++import { dur } from "/framework/ai/AITask/stats.js";
++import SessionTree from "./SessionTree.js";
++
++/** SessionRow — one session in the dashboard: a node of the SessionTree, with its children nested under it when open.
++ *  Line 1: fold arrow, origin icon, live dot, name, cost (rolled up through its children).
++ *  Line 2: when, how long, model, children and own cost. Phone-first: two short lines, nothing else. Doc: doc/ai-dashboard-plan.md */
++export default class SessionRow extends View {
++	static MAX_DEPTH = 3;
++	static usd(n){ return n >= 100 ? "$" + Math.round(n) : n >= 1 ? "$" + n.toFixed(2) : n > 0 ? "$" + n.toFixed(2) : "$0"; }
++
++	// Getters, not fields: prerender() runs inside View's constructor, before a subclass's fields exist.
++	get classes(){ return "ad-row ad-depth-" + Math.min(this.node.depth, SessionRow.MAX_DEPTH) + (this.node.live ? " ad-row-live" : ""); }
++
++	render(){
++		const { node: n, dash } = this, s = n.s, open = dash.q.open.has(s.id), kids = n.kids.length, origin = SessionTree.ORIGINS[n.origin];
++		div.c("ad-row-main", () => {
++			if (kids) button.c("ad-fold", open ? "▾" : "▸").attr("type", "button").attr("title", open ? "Hide " + kids + " below" : "Show " + kids + " below").on("click", () => dash.toggle(s.id));
++			else span.c("ad-fold");
++			span.c("ad-origin", origin.icon).attr("title", origin.label);
++			span.c("ad-dot" + (n.live ? " ad-dot-live" : "")).attr("title", n.live ? "working now" : s.state);
++			a.c("ad-name").href("/framework/ai/sessions/" + s.id + "/").text(s.title || s.agent || s.folder || s.id.slice(0, 8));
++			span.c("ad-usd", SessionRow.usd(n.rolled)).attr("title", kids ? `own ${SessionRow.usd(n.own)}, with ${n.count - 1} below ${SessionRow.usd(n.rolled)}` : "cost");
++		});
++		const bits = [s.last_activity ? age(s.last_activity) : null, s.wall_ms ? dur(s.wall_ms) : null, s.model?.split(" · ")[0], s.agent && s.agent !== s.title ? s.agent : null,
++			kids ? `${n.count - 1} below · own ${SessionRow.usd(n.own)}` : null].filter(Boolean);
++		div.c("ad-row-sub", bits.join(" · "));
++		if (kids && open) div.c("ad-kids", () => n.kids.forEach(k => new SessionRow({ node: k, dash })));
++	}
++}
+diff --git a/public/framework/ai/AIDashboard/SessionStore.js b/public/framework/ai/AIDashboard/SessionStore.js
+new file mode 100644
+index 000000000..b09d9d669
+--- /dev/null
++++ b/public/framework/ai/AIDashboard/SessionStore.js
+@@ -0,0 +1,49 @@
++import Day from "/framework/core/Session/Day.js";
++import DashState from "../rail/DashState.js";
++import SessionTree from "./SessionTree.js";
++
++/** SessionStore — reads the one store (sessions/YYYY/MM/DD/index.json, written only by AISessionIndex) for a day and builds its SessionTree.
++ *  It streams: each new line on ai/tasks/state.jsonl (DashState) reloads the day, so the page never needs an agent or a timer. */
++export default class SessionStore {
++	static DAYS = 7;
++	static url(day){ return new URL(`../sessions/${Day.path(day)}/index.json`, import.meta.url).pathname; }
++
++	day = null; tree = null; ok = true; tasks = null;
++	listeners = new Set();
++
++	on(fn){ this.listeners.add(fn); return () => this.listeners.delete(fn); }
++
++	/** The seven days ending today, newest first. */
++	static days(today = Day.of()){
++		const base = new Date(today + "T12:00:00");
++		return Array.from({ length: SessionStore.DAYS }, (_, i) => Day.of(new Date(base.getTime() - i * 864e5)));
++	}
++
++	async open(day){
++		this.day = day;
++		await this.load();
++		if (!this.dash){
++			this.dash = new DashState();
++			this.dash.on(d => { this.tasks = d.full?.counts?.tasks ?? null; this.load(); });
++			this.dash.start();
++		}
++	}
++
++	/** One fetch at a time; a stream line that lands mid-fetch asks for one more after it. */
++	async load(){
++		if (this.loading) return void (this.again = true);
++		this.loading = true;
++		try {
++			const day = this.day, res = await fetch(SessionStore.url(day), { cache: "no-store" }).catch(() => null);
++			const json = res?.ok && !(res.headers.get("content-type") ?? "").includes("html") ? await res.json().catch(() => null) : null;
++			if (day === this.day){
++				this.ok = !!json;
++				this.tree = new SessionTree(json?.snapshots ?? []);
++				this.listeners.forEach(fn => fn(this));
++			}
++		} finally {
++			this.loading = false;
++			if (this.again){ this.again = false; this.load(); }
++		}
++	}
++}
+diff --git a/public/framework/ai/AIDashboard/SessionTree.js b/public/framework/ai/AIDashboard/SessionTree.js
+new file mode 100644
+index 000000000..bf88eae58
+--- /dev/null
++++ b/public/framework/ai/AIDashboard/SessionTree.js
+@@ -0,0 +1,67 @@
++import AISessionBuckets from "../AISession/AISessionBuckets.js";
++
++/** SessionTree — one day's session snapshots (sessions/YYYY/MM/DD/index.json) as a tree: who spawned whom, each node's own cost and the cost rolled up through its children.
++ *  Plain code, no DOM. The join and the roll-up live here for slice 1; the plan moves them into AISessionIndex (doc/ai-dashboard-plan.md, fixes 1 to 4). */
++export default class SessionTree {
++	static ORIGINS = {
++		cloud:   { icon: "☁", label: "Voice",            hint: "The Claude app, by voice, through the Servex MCP" },
++		code:    { icon: "⌨", label: "VS Code",          hint: "A VS Code sidebar or remote-control tab, phone or PC" },
++		servex:  { icon: "⚙", label: "Servex",           hint: "Agents Servex spawned for a task" },
++		routine: { icon: "·", label: "Scheduled",        hint: "Clarity, cleaners, reviewers, quick fixes: cheap and plentiful" },
++	};
++	static LIVE_MS = 10 * 60000;
++
++	/** Where a root session came from. A child takes its root's origin. */
++	static origin(s){
++		if (s.parent === "voice-app" || /^cloud-voice/.test(s.folder ?? "")) return "cloud";
++		const kind = AISessionBuckets.kind_of(s);
++		if (kind === "owner-tab") return "code";
++		return AISessionBuckets.KINDS.find(k => k.key === kind)?.routine ? "routine" : "servex";
++	}
++
++	nodes = new Map();   // id -> { s, kids, own, rolled, origin, depth }
++	roots = [];
++	by_agent = new Map();
++
++	constructor(snaps, now = Date.now()){
++		this.now = now;
++		snaps.forEach(s => this.nodes.set(s.id, { s, kids: [], own: s.usd ?? 0, rolled: s.usd ?? 0, origin: null, depth: 0 }));
++		snaps.forEach(s => { if (s.agent) this.by_agent.set(s.agent, this.nodes.get(s.id)); });   // a session's `parent` is an agent name, not a session id
++		this.nodes.forEach(n => {
++			const up = this.parent_of(n);
++			if (up) up.kids.push(n); else this.roots.push(n);
++		});
++		this.roots.forEach(r => this.settle(r, SessionTree.origin(r.s), 0));
++		this.sort(this.roots);
++	}
++
++	/** The parent node, or null when it is a root. A parent that is not a session (voice-app) or a loop makes a root. */
++	parent_of(n){
++		const name = n.s.parent;
++		const up = name && this.by_agent.get(name);
++		if (!up || up === n) return null;
++		for (let x = up; x; x = x.up) if (x === n) return null;   // never a cycle
++		n.up = up;
++		return up;
++	}
++
++	settle(n, origin, depth){
++		n.origin = origin; n.depth = depth;
++		n.rolled = n.own + n.kids.reduce((sum, k) => sum + this.settle(k, origin, depth + 1), 0);
++		n.count = 1 + n.kids.reduce((sum, k) => sum + k.count, 0);
++		n.last = Math.max(Date.parse(n.s.last_activity ?? "") || 0, ...n.kids.map(k => k.last));
++		n.live = n.s.state === "active" || this.now - n.last < SessionTree.LIVE_MS;
++		return n.rolled;
++	}
++	sort(list){ list.sort((a, b) => b.last - a.last); list.forEach(n => this.sort(n.kids)); }
++
++	/** Servex agents with no parent that look spawned: a minion or reviewer nobody owns. The plan's "unattached". */
++	unattached(){ return this.roots.filter(r => r.origin === "servex" && /^(minion|reviewer|checker|voter)/.test(r.s.agent ?? "")); }
++
++	/** Per-origin totals over the roots: { cloud: { n, usd, live }, ... }. */
++	totals(){
++		const t = Object.fromEntries(Object.keys(SessionTree.ORIGINS).map(k => [k, { roots: 0, n: 0, usd: 0, live: 0 }]));
++		this.roots.forEach(r => { const o = t[r.origin]; o.roots++; o.n += r.count; o.usd += r.rolled; if (r.live) o.live++; });
++		return t;
++	}
++}
+diff --git a/public/framework/ai/AIDashboard/UsageLine.js b/public/framework/ai/AIDashboard/UsageLine.js
+new file mode 100644
+index 000000000..5a6f50de0
+--- /dev/null
++++ b/public/framework/ai/AIDashboard/UsageLine.js
+@@ -0,0 +1,19 @@
++import { View } from "/app.js";
++import UsagePace from "/framework/ai/usage/UsagePace.js";
++
++View.stylesheet(import.meta, "../usage/usage.css");
++
++/** UsageLine — the one-line usage meter at the top of the dashboard: each limit as the existing pace meter (UsagePace.ratio), read from ai/usage.json. Hidden when there is no file. */
++export default class UsageLine extends View {
++	static DATA = new URL("../usage.json", import.meta.url);
++	get classes(){ return "ad-usage up-set"; }
++
++	render(){
++		const $box = this.el; // captured now, filled after the fetch (no DOM after an await)
++		fetch(UsageLine.DATA).then(r => r.json()).catch(() => null).then(u => {
++			const limits = u?.utilization?.limits;
++			if (!limits?.length) return $box.remove();
++			this.append(() => limits.forEach(l => UsagePace.ratio(UsagePace.of(l))));
++		});
++	}
++}
+diff --git a/public/framework/ai/AIDashboard/files.jsonl b/public/framework/ai/AIDashboard/files.jsonl
+new file mode 100644
+index 000000000..d46727be5
+--- /dev/null
++++ b/public/framework/ai/AIDashboard/files.jsonl
+@@ -0,0 +1,9 @@
++{"file":"SessionStore.js"}
++{"file":"SessionTree.js"}
++{"file":"SessionRow.js"}
++{"file":"DayStrip.js"}
++{"file":"OriginChips.js"}
++{"file":"AIDashboard.js"}
++{"file":"AIDashboard.css"}
++{"file":"UsageLine.js"}
++{"file":"readme.md"}
+diff --git a/public/framework/ai/AIDashboard/readme.md b/public/framework/ai/AIDashboard/readme.md
+new file mode 100644
+index 000000000..4e562d5a2
+--- /dev/null
++++ b/public/framework/ai/AIDashboard/readme.md
+@@ -0,0 +1,30 @@
++# AIDashboard `ai/AIDashboard/`
++
++The default page at `/framework/ai/`: one day's agent sessions, grouped by where they came from, nested by who spawned whom, each cost added up the chain. Plan and the approved page: [doc/ai-dashboard-plan.md](../doc/ai-dashboard-plan.md). The old Inbox is one link away at `/framework/ai/inbox/`.
++
++## Structure (one class per file)
++
++| File | Class | Job |
++|---|---|---|
++| `AIDashboard.js` | `AIDashboard extends View` | the page body: reads the url, draws the parts, repaints on change |
++| `SessionStore.js` | `SessionStore` | loads a day's `index.json`; reloads on every `DashState` tick (a stream, no timer) |
++| `SessionTree.js` | `SessionTree` | plain class: joins parent (an agent name) to child, computes origin and the cost roll-up |
++| `SessionRow.js` | `SessionRow extends View` | one session, with its children nested when open |
++| `DayStrip.js` | `DayStrip extends View` | the last seven days (a side list on desktop) |
++| `OriginChips.js` | `OriginChips extends View` | Voice / VS Code / Servex / Scheduled chips, count and cost, and Live |
++| `UsageLine.js` | `UsageLine extends View` | the usage meters, via `ai/usage/UsagePace.js` |
++| `AIDashboard.css` | | all rules `ad-` prefixed, in `@layer site` |
++
++`page.js` shows it when the path is exactly `/framework/ai/`; nothing else changed there.
++
++## Data: read only, no store of its own
++
++- **Reads** `ai/sessions/YYYY/MM/DD/index.json` (writer: `AISessionIndex`, gitignored, so a static deploy has no data until it is generated), the tick from `ai/tasks/state.jsonl` through `DashState` (writer: `Server/State.mjs`), and `ai/usage.json`.
++- **State lives in the url:** `?day=YYYY-MM-DD&origin=cloud|code|servex|routine&live&find=&open=id,id`.
++- **Origin** (`SessionTree.origin`): `cloud` = parent `voice-app` or a `cloud-voice*` folder; `code` = a transcript with no agent; `routine` = the cheap buckets from `AISessionBuckets.KINDS`; otherwise `servex`.
++
++## Watch out
++
++- `index.json` `parent` is an agent **name**, not a session id, and `children`/`tree_usd` are empty; the browser does the join and the roll-up here until `AISessionIndex` does (slice 2). Servex roots whose agent is a minion/reviewer/checker/voter count as "unattached" in the header line.
++- `render()` runs before subclass fields exist: set state in `initialize()`, use getters for `classes`.
++- Links to the Inbox use `target=_self` so the root page rebuilds.
+diff --git a/public/framework/ai/doc/ai-dashboard-plan.md b/public/framework/ai/doc/ai-dashboard-plan.md
+index 2d11881c5..17856793b 100644
+--- a/public/framework/ai/doc/ai-dashboard-plan.md
++++ b/public/framework/ai/doc/ai-dashboard-plan.md
+@@ -1,4 +1,12 @@
+-# The AI dashboard: a plan (nothing here is built yet)
++# The AI dashboard: plan, approved page, and what slice 1 shipped
++
++**Built (slice 1, 2026-10-19):** `/framework/ai/` is now the dashboard; its structure is in [AIDashboard/readme.md](../AIDashboard/readme.md). The sections below are the plan it was built from. Where they differ, the approved page just below wins.
++
++## The approved page (the owner, 2026-10-19: "get working on something, we will fix it later")
++
++Top to bottom: **(1)** one usage line (the existing pace meters); **(2)** the chosen day's sessions grouped by origin, **Voice** (cloud voice agent), **VS Code**, **Scheduled** (plus **Servex**, the agents a task spawned that are not yet under their parent), one row each: plain-words name, when, cost, state, tap to open; **(3)** inside a session: his words, agents spawned nested with costs rolled up, what landed; **(4)** older days: a day list beside the page on desktop, a date picker on the phone.
++Not on it: top tabs, inbox cards, active-task lists (a count and a link only), snippets. The old Inbox is **one** link at the bottom.
++**Slice 1 does 1, 2 and 4.** Part 3 is the existing `/framework/ai/sessions/<id>/` page the row opens; its "his words / nested / landed" layout is the next slice. The class table in section 4 is as built except that `AIDashboard` is a `View` (the root page keeps `page.js`), and `UsageLine` is added.
+ 
+ **What you asked (2026-10-19):** open `/framework/ai/` and click through everything the agents did today and yesterday. Group it by session and by where it came from (a cloud voice agent, or a VS Code / phone tab acting as a mastermind), nested: each one spawns sub-masterminds and minions. Compact, mobile first, no top tabs, cost added up the parent chain, nothing unaccounted for. One data store.
+ Task and brief: [ai-dashboard task](/framework/ai/sessions/2026/10/19/cloud-voice-live-page/ai-dashboard/task.jsonl) · past work found: [past-work.md](/framework/ai/sessions/2026/10/19/cloud-voice-live-page/ai-dashboard/past-work.md).
+@@ -120,11 +128,12 @@ Home: **`public/framework/ai/AIDashboard/`** (the name `ai/dashboard/` is taken
+ 
+ | Class | Job | Relation |
+ |---|---|---|
+-| `AIDashboard extends Page` | the page `/framework/ai/`: reads the url (day, origin, state, open), owns the store, draws the day strip, chips and the tree. **The orchestrator.** | extends `core/Page`; composes the four below |
++| `AIDashboard extends View` | the page body `/framework/ai/`: reads the url (day, origin, state, open), owns the store, draws the day strip, chips and the tree. **The orchestrator.** | extends `core/View`; composes the others |
+ | `SessionStore` | loads one day's `index.json` and `state.json`, fixes the join (agent id → session id), computes `origin` and the roll-up; `rows(day)` returns the tree. Dies in slice 2 when `AISessionIndex` does this and the store only reads. | composes `ext/JSONL` / `DashState` for the live tail (code streams, [law](/CLAUDE.md)) |
+ | `SessionTree` | a node: `{session, children, own, rolled, depth}`, `open` set, `walk()` | plain class, no DOM; the thing the page's debug view prints |
+ | `SessionRow extends View` | the one row (fields above), draws itself from a `SessionTree` node | extends `core/View`; **reuses `AISessionView`'s cell helpers and `DashRow`'s state dot** rather than a second row type |
+ | `DayStrip extends View` | the day links, totals, ‹ › | uses `Day.of` ([core/Session/Day.js](/framework/core/Session/Day.js)) so "today" is the same local day as `State` |
++| `UsageLine extends View` | the one-line meter: `UsagePace.ratio` per limit from `ai/usage.json` | reuses `ai/usage/UsagePace.js`, no second meter |
+ | `OriginChips extends View` | origin and state chips, written to the url | reuses the `DashChips` url mechanism (its `read()`/`write()` shape), not a second one |
+ 
+ Reused as is: `DashRow` (state mapping), `DashState` (the `state.json` stream), `AISessionBuckets` (folding routine rows), `ext/DataGrid` only for the wide detail pane if it earns it. **Show the class** (CLAUDE.md): the page's `?debug` shows the `SessionTree` of the day beside the rendered list.
+diff --git a/public/framework/ai/doc/ai-dashboard-plan/shots3/localhost-51718-framework-ai/1200.png b/public/framework/ai/doc/ai-dashboard-plan/shots3/localhost-51718-framework-ai/1200.png
+new file mode 100644
+index 000000000..582beb88d
+Binary files /dev/null and b/public/framework/ai/doc/ai-dashboard-plan/shots3/localhost-51718-framework-ai/1200.png differ
+diff --git a/public/framework/ai/doc/ai-dashboard-plan/shots3/localhost-51718-framework-ai/1920.png b/public/framework/ai/doc/ai-dashboard-plan/shots3/localhost-51718-framework-ai/1920.png
+new file mode 100644
+index 000000000..040b42cdc
+Binary files /dev/null and b/public/framework/ai/doc/ai-dashboard-plan/shots3/localhost-51718-framework-ai/1920.png differ
+diff --git a/public/framework/ai/doc/ai-dashboard-plan/shots3/localhost-51718-framework-ai/3440.png b/public/framework/ai/doc/ai-dashboard-plan/shots3/localhost-51718-framework-ai/3440.png
+new file mode 100644
+index 000000000..db35561c7
+Binary files /dev/null and b/public/framework/ai/doc/ai-dashboard-plan/shots3/localhost-51718-framework-ai/3440.png differ
+diff --git a/public/framework/ai/doc/ai-dashboard-plan/shots3/localhost-51718-framework-ai/400.png b/public/framework/ai/doc/ai-dashboard-plan/shots3/localhost-51718-framework-ai/400.png
+new file mode 100644
+index 000000000..d8ae6d1f7
+Binary files /dev/null and b/public/framework/ai/doc/ai-dashboard-plan/shots3/localhost-51718-framework-ai/400.png differ
+diff --git a/public/framework/ai/doc/ai-dashboard-plan/shots4/localhost-51718-framework-ai/1920.png b/public/framework/ai/doc/ai-dashboard-plan/shots4/localhost-51718-framework-ai/1920.png
+new file mode 100644
+index 000000000..8bcc92054
+Binary files /dev/null and b/public/framework/ai/doc/ai-dashboard-plan/shots4/localhost-51718-framework-ai/1920.png differ
+diff --git a/public/framework/ai/doc/ai-dashboard-plan/shots5/localhost-51718-framework-ai/1200.png b/public/framework/ai/doc/ai-dashboard-plan/shots5/localhost-51718-framework-ai/1200.png
+new file mode 100644
+index 000000000..44be94cc3
+Binary files /dev/null and b/public/framework/ai/doc/ai-dashboard-plan/shots5/localhost-51718-framework-ai/1200.png differ
+diff --git a/public/framework/ai/doc/ai-dashboard-plan/shots5/localhost-51718-framework-ai/400.png b/public/framework/ai/doc/ai-dashboard-plan/shots5/localhost-51718-framework-ai/400.png
+new file mode 100644
+index 000000000..4fccbe620
+Binary files /dev/null and b/public/framework/ai/doc/ai-dashboard-plan/shots5/localhost-51718-framework-ai/400.png differ
+diff --git a/public/framework/ai/page.js b/public/framework/ai/page.js
+index b2da57d8a..7e3f22f91 100644
+--- a/public/framework/ai/page.js
++++ b/public/framework/ai/page.js
+@@ -13,6 +13,7 @@ import { board_route } from "/framework/ai/v/3/page.js";   // the board's five v
+ import { CONCEPTS } from "./concepts.js";   // the AI system, one entry per concept: the tiles and their pages
+ import { AIOverview } from "./AIOverview.js";   // the top tabs: Overview · System · Skills · Objects · Authoring · CLAUDE.md
+ import StoreFolder from "./AISession/StoreFolder.js";   // old ai/<date>/<task>/ addresses redirect into the sessions store
++import AIDashboard from "./AIDashboard/AIDashboard.js";   // the default page: today's sessions by origin, nested, cost rolled up
+ 
+ // "tests" → "Tests" — the label a detected tab wears when nobody says otherwise.
+ const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+@@ -20,6 +21,10 @@ const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+ // `?v1` — the original board; read fresh on every call. Doc: doc/ai-page-notes.md.
+ const v1 = () => new URLSearchParams(location.search).has("v1");
+ 
++// The bare url draws the AI dashboard; every other url under it (inbox/, a card, a day) keeps the rail. The Inbox link is a hard
++// navigation (target=_self), because the root page is built once per load. Doc: doc/ai-dashboard-plan.md.
++const is_dash = () => !v1() && location.pathname.replace(/\/?$/, "/") === "/framework/ai/";
++
+ export default new Page({
+ 	meta: import.meta,
+ 	title: "AI",
+@@ -29,12 +34,13 @@ export default new Page({
+ 	// One nav link, whatever the date children say: the rail below is the way in.
+ 	leaf: true,
+ 	// The page is the band and the rail, and nothing scrolls but their columns (ux/Inbox).
+-	classes: v1() ? undefined : "full fill",
++	classes: v1() ? undefined : is_dash() ? "ad-page" : "full fill",
+ 	children: "tasks classes AISession quick-fix asks process review council audits tests local models usage",   // day folders moved into sessions/ (ai/doc/task-folders.md); old day urls redirect in route()
+ 
+ 	// `board_drawn` stays true so the board's own hand-back (v/3/page.js) never paints it here. Doc: doc/ai-page-notes.md.
+ 	board_drawn: true,
+ 	content(){
++		if (is_dash()) return void new AIDashboard();
+ 		if (!v1()){
+ 			// Inbox owns the bare URL and wears `.tab-default`; the band is the title and tabs. Doc: doc/ai-page-notes.md.
+ 			div.c("inbox-head", () => {
+diff --git a/public/framework/ai/readme.md b/public/framework/ai/readme.md
+index 394abc052..f9583c173 100644
+--- a/public/framework/ai/readme.md
++++ b/public/framework/ai/readme.md
+@@ -16,7 +16,7 @@ The AI system: Servex runs the agents, the readme chain is their memory, each ta
+ 
+ Accounting first. Each link is that system's own short readme; follow it to go one level deeper.
+ 
+-- **The AI dashboard, planned** (2026-10-19: sessions by origin, nested by parent, cost rolled up, mobile first; the data audit, the class architecture, the first slice; not built yet): [doc/ai-dashboard-plan.md](doc/ai-dashboard-plan.md)
++- **The AI dashboard** (the default page at `/framework/ai/` since 2026-10-19: sessions by origin, nested by parent, cost rolled up, mobile first): structure [AIDashboard/readme.md](AIDashboard/readme.md) · plan and data audit [doc/ai-dashboard-plan.md](doc/ai-dashboard-plan.md)
+ - **Tasks** (a task is a folder with a `task.jsonl` log, in the session store or a module's `tasks/`; who makes one, how to see them): [doc/tasks.md](doc/tasks.md) · lifecycle proposal: [doc/task-lifecycle.md](doc/task-lifecycle.md) · [tasks/readme.md](tasks/readme.md) · [/framework/ai/tasks/](/framework/ai/tasks/)
+ - **Accounting**: [token accounting](doc/tokens/tokens.md) · [spend per session](sessions/readme.md) · [budgets](/framework/servex/doc/budget.md) · agent logs: `%LOCALAPPDATA%/lew42/servex/logs/agent-<id>.jsonl`, one per Servex agent, with a `turn_cost` line per turn since 2026-10-13 ([what is in them](sessions/2026/10/16/voice-20261016/accounting/answers.md))
+ - **Cloudflare** (what we would use, what it costs, the token you give us, the runaway guard): [doc/cloudflare.md](doc/cloudflare.md)
+diff --git a/public/framework/ai/sessions/2026/10/19/cloud-voice-live-page/ai-dashboard/review/report.md b/public/framework/ai/sessions/2026/10/19/cloud-voice-live-page/ai-dashboard/review/report.md
+new file mode 100644
+index 000000000..c95935688
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/19/cloud-voice-live-page/ai-dashboard/review/report.md
+@@ -0,0 +1,49 @@
++verdict: pass
++1. [note] The task's own `shots/` folder is empty (task.jsonl names `shots/127-0-0-1-51718-framework-ai/sheet.png`, widths 400/1200/1920, but no file is there, and there is no `requirements.md`), so this review used the builder's own set in `doc/ai-dashboard-plan/shots3/` (400, 1200, 1920, 3440 plus `layout.json`) and the owner's words quoted in `doc/ai-dashboard-plan.md`.
++2. [note] The diff commits four PNGs under `doc/ai-dashboard-plan/shots3/`: `.gitignore` only ignores `ai/**/shots/`, and `doc/repo-size.md` found screenshots are 84% of git history. Leave them out or move them under a `shots/` path.
++3. [note] `layout.json` errors: one 404 on every width. It is likely a day with no `index.json` or a missing asset; it does not show on the page, but it should be named or fixed.
++4. [note] The Scheduled group is folded to its header (`AIDashboard.paint`). At 1920 that leaves an empty right column under "· Scheduled 69 · $39.20" with no ▸ to show it opens (shots3/1920.png, lower right).
++5. [note] Hard-coded colours: the live dot `#2e9e5b` and the red mismatch header `#c62828`, set as an inline style. Both should be tokens (colour questions).
++6. [note] The plan's class table now reads "`AIDashboard extends View` … | extends `core/Page`", which contradicts itself. The plan also promises a `?debug` view of the `SessionTree` ("Show the class"), and slice 1 has none.
++7. [note] At 400 the origin chips wrap to three rows (shots3/400.png, chip band, about 110 px). This is acceptable for slice 1; a single horizontally scrolling row would save the space.
++
++## Requirements
++- 1 "open /framework/ai/ and click through everything the agents did today and yesterday" — yes — shots3/1200.png: Today/Yesterday/older days list, and every row is a link to `/framework/ai/sessions/<id>/`
++- 2 "Group it … by where it came from (a cloud voice agent, or a VS Code / phone tab)" — yes — groups Voice 5, VS Code 1, Servex 10, Scheduled 69 (shots3/1920.png)
++- 3 "nested: each one spawns sub-masterminds and minions" — yes — "Connection test ▸ … 5 below · own $3.53" (shots3/1200.png); open state is in `?open=`; no shot shows a tree opened
++- 4 "Compact, mobile first" — yes — shots3/400.png: usage line, date picker, chips, find and five Voice rows sit above the fold; two short lines per row
++- 5 "no top tabs" — yes — layout.json tab_rows 0 at every width
++- 6 "cost added up the parent chain, nothing unaccounted for" — yes — `SessionTree.settle` rolls up the cost; the header turns red when the sum of roots ≠ the sum of own costs; $15.04+$646+$38.87+$39.20 = $739 matches the header
++- 7 "One data store" — yes — reads only `sessions/YYYY/MM/DD/index.json` plus the `DashState` stream, with no store of its own (AIDashboard/readme.md)
++- 8 Approved page: "(3) inside a session: his words, agents nested, what landed" — n/a — deferred to the next slice, and the plan says so
++- 9 Approved page: "The old Inbox is one link at the bottom" — yes — `ad-foot` "Old Inbox →" (below the fold in every shot)
++## Page structure
++- page 1 (title says what it is) — yes — "AI" title, then the dashboard is the whole page
++- page (one takeaway) — yes — today's sessions and their cost, top to bottom
++- page (level 1 above the fold) — yes — shots3/1200.png: usage, days, chips, the first group, all in the first screen
++## Navigation
++- identify — site sidebar, a day list beside the page (desktop) / date picker (phone), filter chips, a find box, fold arrows
++- route everything — yes — `?day&origin&live&find&open` written with `replaceState`; a reload lands in the same place (filters do not add history steps)
++- persistent vs switching — yes — the day list and chips mark the current item with `ad-chip-on` (shots3/1200.png "Today")
++- tabs — n/a
++## Layout
++- the layout fits the content — yes — 9em day column + list; the list goes to two columns at 1920 (`auto-fit minmax(26em)`)
++- nothing overflows — yes — layout.json overflow_x false at all widths
++## Sizing
++- line length — yes — widest_text 352/401/436/484 px at 400/1200/1920/3440
++- wasted width — note — empty 0.538 at 1200 and 0.577 at 3440; the folded Scheduled column leaves a hole at 1920 (finding 4)
++## Wrapping
++- unwanted wraps — no page wraps — the layout.json wraps are chrome only (drawer-rail, mode-btn, chatbox); the origin chips take three rows at 400 (finding 7); sub-lines ellipsize ("5 below · ow…" at 1920)
++## Spacing and padding
++- page padding — yes — left_stack h1 12/29/41/54 px, which scales with width
++- band rhythm — yes — rows 0.35em, groups 0.8em; a large gap under the "AI" title at 400 (title band y 72, dash y 154)
++## Colour and contrast
++- tokens — no (note) — `#2e9e5b` and `#c62828` are hard-coded (finding 5); the rest use `--line`, `--prime` and `--prime-ink`
++- contrast — yes — the sub-line at 0.65 opacity is still readable in shots3/1200.png
++## Flow
++- most important first — yes — usage, then today's groups, Voice first, newest first
++- a live update without a timer — yes — `SessionStore` reloads on each `DashState` line (a stream, no `setInterval`)
++## Words
++- plain names — yes — Voice / VS Code / Servex / Scheduled with hover hints; row titles are plain words
++- owner's names — yes — "cloud voice", "VS Code", nested, cost rolled up; "Scheduled" for the routine bucket is new but explained in its hint
++- readme — yes — AIDashboard/readme.md gives the structure, data writers, url state and traps; ai/readme.md links it

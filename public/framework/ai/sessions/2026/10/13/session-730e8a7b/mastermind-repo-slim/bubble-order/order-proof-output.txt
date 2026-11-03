@@ -1,0 +1,20 @@
+[before] DOM order:
+  First sentence. @1
+  Reply to one. @2
+  Third, said while the bot  @3
+  Reply to three. @4
+  Reply to five. @6
+  Fifth sentence, late. @5
+  Seventh, provisional time. @99
+  Reply to seven. @8
+[before] FAIL: DOM order differs from file order
+[after] DOM order:
+  First sentence. @1
+  Reply to one. @2
+  Third, said while the bot  @3
+  Reply to three. @4
+  Fifth sentence, late. @5
+  Reply to five. @6
+  Seventh, provisional time. @7
+  Reply to seven. @8
+[after] PASS: DOM order equals file order

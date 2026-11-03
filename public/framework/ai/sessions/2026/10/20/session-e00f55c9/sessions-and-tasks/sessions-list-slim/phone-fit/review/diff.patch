@@ -1,0 +1,271 @@
+diff --git a/public/framework/ai/AISession/AISessionDetail.js b/public/framework/ai/AISession/AISessionDetail.js
+index 7d6c142d2..99b818fcf 100644
+--- a/public/framework/ai/AISession/AISessionDetail.js
++++ b/public/framework/ai/AISession/AISessionDetail.js
+@@ -29,6 +29,7 @@ import Day from "/framework/core/Session/Day.js";
+ import SessionOverview from "./SessionOverview.js";
+ import SessionOutlineView from "./SessionOutlineView.js";
+ import SessionTimeline from "./SessionTimeline.js";
++import SessionPopover from "./SessionPopover.js";
+ import "/framework/core/Page/parts/kinds.js";   // the kinds the page tool adds register themselves by import: one list
+ 
+ // One session's own page, opened at its dated folder /framework/ai/sessions/YYYY/MM/DD/<folder>/ (StoreFolder.child builds it with `segs`);
+@@ -226,21 +227,30 @@ export default class AISessionDetail extends Page {
+ 		let $role, $box, $voice, $conv, $related, $costs, $spawn, $session, $trace, $coverage, $tasks, $work, work;
+ 		const ready = new Promise(resolve => this.work_ready = resolve);   // the loaded SessionWork, for the stats bar and the Overview
+ 		// Tabs, not columns: one full-width panel at a time, so no table is ever squeezed (doc/detail-layout.md). The tab is in ?tab= so a reload lands on it.
+-		const TABS = [["overview", "Overview"], ["timeline", "Timeline"], ["board", "Board"], ["tasks", "Tasks"], ["chat", "Chat"], ["coverage", "Coverage"], ["cost", "Cost"], ["models", "Models and tokens"], ["related", "Related"]];
++		const MAIN = [["overview", "Overview"], ["timeline", "Timeline"], ["chat", "Chat"], ["tasks", "Tasks"]], MORE = [["board", "Board"], ["coverage", "Coverage"], ["cost", "Cost"], ["models", "Models and tokens"], ["related", "Related"]], TABS = [...MAIN, ...MORE];
+ 		const old_keys = { work: "tasks", conversation: "chat" }, asked = new URLSearchParams(location.search).get("tab"), want = old_keys[asked] ?? asked, panels = {}, buttons = {};
++		let $more;
+ 		const show = key => {
+ 			if (!this.chat_ok && (key === "chat" || key === "coverage")) key = "overview";   // a child session has no chat or coverage: only a VS Code tab (or a session with prompts.jsonl) does
+-			for (const [k] of TABS){ panels[k].el.hidden = k !== key; buttons[k].el.classList.toggle("sessions-chip-on", k === key); }
+-				if (key === "timeline") this.timeline?.shown();
++			for (const [k] of TABS){ panels[k].el.hidden = k !== key; buttons[k].el.classList.toggle(MORE.some(([m]) => m === k) ? "sov-menu-on" : "sessions-chip-on", k === key); }
++			$more?.el.classList.toggle("sessions-chip-on", MORE.some(([k]) => k === key));
++			if (key === "timeline") this.timeline?.shown();
+ 			const q = new URLSearchParams(location.search); key === "overview" ? q.delete("tab") : q.set("tab", key);
+ 			history.replaceState(history.state, "", location.pathname + (q.size ? "?" + q : "") + location.hash);
+ 		};
+ 		const row_p = AISessionDetail.load_row(url, id);   // this session's sessions.json row: the stats bar says "this tab" from its source
+ 		new SessionStats({ ready, row: row_p, open_cost: () => show("cost") });   // Figma band E: stats first, sticky, on every tab
+-		div.c("sessions-tabs flex gap-50 wrap", () => {
+-			TABS.forEach(([k, label]) => buttons[k] = button.c("sessions-chip", label).on("click", () => show(k)));
+-			a.c("sessions-chip", "Task queue →").href("/framework/ai/queue/").attr("target", "_self");
+-			button.c("sessions-chip sov-fs-on", icon("fullscreen")).attr("title", "Full screen").on("click", () => this.full_screen(true));
++		div.c("sessions-tabs flex gap-50", () => {   // one line: Overview · Timeline · Chat · Tasks · More ▾ (the rest, in a SessionPopover)
++			MAIN.forEach(([k, label]) => buttons[k] = button.c("sessions-chip", label).on("click", () => show(k)));
++			$more = button.c("sessions-chip sov-more", "More ▾").attr("type", "button");
++			const page = this;
++			SessionPopover.open($more, function(){
++				div.c("sov-menu", () => {
++					MORE.forEach(([k, label]) => buttons[k] = button.c("sov-menu-item", label).attr("type", "button").on("click", () => { show(k); this.close(); }));
++					a.c("sov-menu-item", "Task queue →").href("/framework/ai/queue/").attr("target", "_self");
++					button.c("sov-menu-item", () => { icon("fullscreen"); span(" Full screen"); }).attr("type", "button").on("click", () => { page.full_screen(true); this.close(); });
++				});
++			}, "sov-more-pop");
+ 		});
+ 		div.c("sov-float", () => {   // Figma band E, C: in full screen the head is gone, so back and the session menu float over the page
+ 			button.c("sov-float-btn", icon("arrow_back")).attr("title", "Leave full screen").on("click", () => this.full_screen(false));
+@@ -286,7 +296,6 @@ export default class AISessionDetail extends Page {
+ 			conv.session = session_id;
+ 			const coverage = new AISessionCoverage(session_id);
+ 			$coverage.append(coverage.view);
+-			this.log_urls().then(() => PromptLog.read(session_id)).then(lines => coverage.read_records(PromptLog.fold(lines))).catch(() => {});   // the prompt records, when the session has them (ext/Refine/doc/prompt-records.md)
+ 			this.show_role($role, row, session_id);   // the Role class: this session's role and its properties
+ 			voice.follow(session_id);   // a phone has no dev socket: it follows Servex's voice stream
+ 			this.record_if_there().then(file => { if (file && !this.tasks_log) this.tasks_log = new SessionTasks({ url: file, $box: $tasks, on_session: (s, lines) => { this.feed?.record(s); this.timeline?.record(lines); } }).live(); else if (!file) this.timeline?.settle("record"); });
+@@ -312,7 +321,7 @@ export default class AISessionDetail extends Page {
+ 			const own_dir = AISession.dir_url(session_id).pathname, own = own_dir;   // the slug's folder, or <day>/<uuid>/ when the day index has none
+ 			if (this.filled === own_dir) return;   // the folder event folder_from_day raises runs fill() again: once per folder
+ 			this.filled = own_dir;
+-			if (!this.prompt_tail) this.prompt_tail = new SessionTimeline.Tail({ url: own_dir + "prompts.jsonl", on_lines: lines => this.timeline?.prompts(lines) }).live();   // the prompt log, followed live for the Timeline
++			if (!this.prompt_tail) this.prompt_tail = new SessionTimeline.Tail({ url: own_dir + "prompts.jsonl", on_lines: lines => { this.timeline?.prompts(lines); coverage.read_records(PromptLog.fold(lines)); } }).live();   // the prompt log, followed live: the Timeline rows and the Coverage records both read this one tail (ext/Refine/doc/prompt-records.md)
+ 			if (!this.work){ this.work = true; work = new SessionWork({ dir: own_dir, id: session_id, snap: AISession.all.get(session_id)?.ix ? { id: session_id, ...AISession.all.get(session_id).ix } : null }); $work.append(work); work.loaded.then(() => this.work_ready(work)); }
+ 			const old_dir = () => AISessionDetail.dir_index().then(index => AISessionDetail.dir_of(index, session_id));   // the slow directory.json walk is only the fallback, never in front of the own folder
+ 			const [costs, trace] = await Promise.all([
+diff --git a/public/framework/ai/AISession/SessionOverview.css b/public/framework/ai/AISession/SessionOverview.css
+index e6b4f07e8..0a9c0b000 100644
+--- a/public/framework/ai/AISession/SessionOverview.css
++++ b/public/framework/ai/AISession/SessionOverview.css
+@@ -11,6 +11,17 @@
+ 	.sov-bar .task-seg { flex: 1 1 0; }
+ 	.sov-bar .task-meter, .sov-card .task-meter { flex: 1 1 auto; width: auto; height: .45em; }
+ 
++	.sov-line { display: none; }
++	/* a phone: the stats bar is one line; the grid, bar, caption and links open with a tap, and then scroll away with the page */
++	@media (max-width: 599px) {
++		.sov-stats { padding: .4em .75em; gap: .4em; }
++		.sov-line { display: flex; align-items: baseline; gap: 0; width: 100%; padding: 0; margin: 0; font: inherit; font-size: .95rem; text-align: start; color: inherit; background: none; border: 0; border-radius: 0; box-shadow: none; min-height: 0; white-space: nowrap; overflow: hidden; }
++		.sov-line-cost { font-weight: 700; overflow: hidden; text-overflow: ellipsis; }
++		.sov-line-more { margin-inline-start: auto; padding-inline-start: .5em; flex: none; }
++		.sov-stats:not(.sov-open) > :not(.sov-line) { display: none; }
++		.sov-stats.sov-open { position: static; }
++	}
++
+ 	/* the page grid keeps its children in a 40em main column; the stats, tabs and panels take the wide span, so the cards can sit side by side */
+ 	.page > .sov-stats, .page > .sessions-tabs, .page > .sessions-detail-body { grid-column: wide-start / wide-end; }
+ 	.session-parts:empty { display: none; }   /* no page parts: no empty block (and its margin) between the title and the stats */
+@@ -41,5 +52,10 @@
+ 	.page.sov-full > .sov-float { display: flex; order: -1; position: sticky; top: .75rem; height: 0; margin-bottom: -1rem; grid-column: bleed-start / bleed-end; justify-content: space-between; padding-inline: .75rem; z-index: 30; pointer-events: none; }
+ 	.page.sov-full > .sov-float > * { pointer-events: auto; }
+ 	.sov-float-btn { width: 2.5rem; height: 2.5rem; padding: 0; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--mob-line); background: var(--surface); box-shadow: 0 1px 4px rgba(0, 0, 0, .15); cursor: pointer; }
+-	.sov-fs-on { margin-left: auto; }
++	.sov-more-pop .sov-menu { display: flex; flex-direction: column; min-inline-size: 12rem; }
++	.sov-menu-item { display: flex; align-items: center; gap: .4rem; font: inherit; padding: .5rem .6rem; text-align: start; color: inherit; text-decoration: none; background: none; border: 0; border-radius: 4px; box-shadow: none; width: 100%; min-height: 0; cursor: pointer; }
++	.sov-menu-item:hover, .sov-menu-on { background: var(--tint); }
++	.sov-menu-on { font-weight: 600; }
++	.sessions-tabs { flex-wrap: nowrap; }
++	.sessions-tabs .sessions-chip { flex: none; white-space: nowrap; }
+ }
+diff --git a/public/framework/ai/AISession/SessionStats.js b/public/framework/ai/AISession/SessionStats.js
+index 27c8b7c63..bba39bb21 100644
+--- a/public/framework/ai/AISession/SessionStats.js
++++ b/public/framework/ai/AISession/SessionStats.js
+@@ -1,4 +1,4 @@
+-import View, { div, span, small, strong, a } from "/framework/core/View/View.js";
++import View, { div, span, small, strong, a, button } from "/framework/core/View/View.js";
+ import { names } from "/framework/core/Router/listing.js";
+ import TaskView from "/framework/core/Task/TaskView.js";
+ import Task from "/framework/core/Task/Task.js";
+@@ -39,23 +39,34 @@ export default class SessionStats extends View {
+ 		if (open) $v.attr("title", "Open the Cost tab: what this session spent and every child session behind the total").on("click", open);
+ 	}
+ 
++	/** The running time into `$run`: the session index's wall and active time, else the Task's banked time. */
++	static running($run, work, root){
++		const own = SessionStats.elapsed(root.ms());   // the Task's banked time, only if the index has no row for this session
++		if (!work.id) return void $run.text(own);
++		AISessionRows.load_index("/framework/ai/sessions/").then(index => {
++			const ix = AISessionRows.row_of(index, work.id), ok = ix?.wall_ms > 0;
++			$run.text(ok ? span_active(ix.wall_ms, ix.active_ms) : own).attr("title", ok ? "From the session's first line to its last (a stop and restart does not reset it), and the hours it was working: the session index's wall_ms and active_ms" : "This session is not in the session index yet, so this is the Task's banked running time");
++		}).catch(() => $run.text(own));   // an index that fails to load keeps the banked time, never a stuck ellipsis
++	}
++
+ 	draw(work){
+ 		const { tree } = work;
+ 		if (!tree) return void (this.el.hidden = true);
+ 		const root = tree.root, part = SessionWork.split(root);
+ 		const { done, total } = Task.progress_of(part.counted);
+ 		this.empty(() => {
++			// A phone shows only this line (cost · state · running); tapping it opens the full grid below (SessionOverview.css, max-width 599px).
++			button.c("sov-line", () => {
++				SessionStats.cost(span.c("sov-line-cost", "…"), work, { row: this.row });
++				const state = tree.snap?.state ?? root.state; if (state && state !== "unknown") span.c("sov-line-state", " · " + state);
++				span.c("sov-line-run", " · "); SessionStats.running(span.c("", "…"), work, root);
++				span.c("sov-line-more", "▾");
++			}).attr("type", "button").attr("title", "Show every figure").on("click", () => this.el.classList.toggle("sov-open"));
+ 			div.c("sov-stat-row", () => {
+ 				div.c("sov-stat", () => { small.c("sov-k", "Cost"); SessionStats.cost(strong.c("sov-v" + (this.open_cost ? " sov-link" : ""), "…"), work, { row: this.row, open: this.open_cost }); });
+ 				div.c("sov-stat", () => { small.c("sov-k", "Model"); strong.c("sov-v", tree.snap?.model ?? "—"); });
+ 				div.c("sov-stat", () => {
+-					small.c("sov-k", "Running for"); const $run = strong.c("sov-v", "…");
+-					const own = SessionStats.elapsed(root.ms());   // the Task's banked time, only if the index has no row for this session
+-					if (!work.id) return void $run.text(own);
+-					AISessionRows.load_index("/framework/ai/sessions/").then(index => {
+-						const ix = AISessionRows.row_of(index, work.id), ok = ix?.wall_ms > 0;
+-						$run.text(ok ? span_active(ix.wall_ms, ix.active_ms) : own).attr("title", ok ? "From the session's first line to its last (a stop and restart does not reset it), and the hours it was working: the session index's wall_ms and active_ms" : "This session is not in the session index yet, so this is the Task's banked running time");
+-					}).catch(() => $run.text(own));   // an index that fails to load keeps the banked time, never a stuck ellipsis
++					small.c("sov-k", "Running for"); SessionStats.running(strong.c("sov-v", "…"), work, root);
+ 				});
+ 				div.c("sov-stat", () => { small.c("sov-k", "Task folders done"); strong.c("sov-v", total ? `${done} of ${total}` : "no task folders"); });
+ 			});
+diff --git a/public/framework/ai/AISession/SessionTimeline.css b/public/framework/ai/AISession/SessionTimeline.css
+index 261ebe29b..a504362b3 100644
+--- a/public/framework/ai/AISession/SessionTimeline.css
++++ b/public/framework/ai/AISession/SessionTimeline.css
+@@ -30,6 +30,11 @@
+ 	.stl-n { margin-inline-start: auto; font-variant-numeric: tabular-nums; }
+ 	.ux-popover.stl-pop { max-inline-size: min(22rem, calc(100vw - 1rem)); }
+ 
++	/* On a phone the page scrolls, not the list: one scroll area (the list's own box stays on a wide screen, where the panel is short beside the sticky bar). */
++	@media (max-width: 599px) {
++		.stl-list { max-height: none; overflow-y: visible; overscroll-behavior: auto; }
++	}
++
+ 	@media (min-width: 900px) {
+ 		.stl { --stl-cols: 5rem 1.25rem minmax(0, 1fr); }
+ 		.stl-row, .stl-sum { column-gap: .75rem; }
+diff --git a/public/framework/ai/AISession/SessionTimeline.js b/public/framework/ai/AISession/SessionTimeline.js
+index d28ee1f30..c75de8fa6 100644
+--- a/public/framework/ai/AISession/SessionTimeline.js
++++ b/public/framework/ai/AISession/SessionTimeline.js
+@@ -15,19 +15,13 @@ View.stylesheet(import.meta, "SessionTimeline.css");
+  *  popover (SessionPopover). Readme: ai/AISession/readme.md. */
+ export default class SessionTimeline extends View {
+ 
+-	/** The kinds, the hidden ones and the landed states live in SessionTimelineRows; the view uses them by these names. */
+-	static KINDS = SessionTimelineRows.KINDS;
+-	static HIDDEN = SessionTimelineRows.HIDDEN;
+-	static rows = (...a) => SessionTimelineRows.rows(...a);
+-	static landed_of = k => SessionTimelineRows.landed_of(k);
+-
+ 	// ---- the view ------------------------------------------------------------------------------------------------------------
+ 
+ 	initialize(){
+ 		this.ac("stl");
+ 		this.lines = []; this.prompt_lines = []; this.kids = []; this.costs = new Map(); this.seen = new Set(); this.stick = true;
+ 		setTimeout(() => { this.seen.add("record").add("prompts"); this.later(); }, 4000);   // a missing file may never answer: after this, an empty list says so (a line arriving later still redraws)
+-		this.on = new Set(SessionTimeline.KINDS.map(k => k[0]).filter(k => !SessionTimeline.HIDDEN.includes(k)));
++		this.on = new Set(SessionTimelineRows.KINDS.map(k => k[0]).filter(k => !SessionTimelineRows.HIDDEN.includes(k)));
+ 		this.counts = {};
+ 		this.empty(() => {
+ 			div.c("stl-head", () => {
+@@ -41,7 +35,7 @@ export default class SessionTimeline extends View {
+ 
+ 	filter_menu(){
+ 		div.c("stl-menu", () => {
+-			for (const [kind, text] of SessionTimeline.KINDS) label.c("stl-filter", () => {
++			for (const [kind, text] of SessionTimelineRows.KINDS) label.c("stl-filter", () => {
+ 				const box = input().attr("type", "checkbox");
+ 				box.el.checked = this.on.has(kind);
+ 				box.on("change", () => { box.el.checked ? this.on.add(kind) : this.on.delete(kind); this.draw(); });
+@@ -61,15 +55,18 @@ export default class SessionTimeline extends View {
+ 	settle(source){ this.seen.add(source); }
+ 
+ 	later(){ if (this.queued) return; this.queued = setTimeout(() => { this.queued = null; this.draw(); }, 30); }
+-	at_bottom(){ const e = this.$list.el; return e.scrollHeight - e.scrollTop - e.clientHeight < 48; }
++	/** The rows scroll in the list's own box on a wide screen; on a phone the list grows with the page (SessionTimeline.css), and the page is never scrolled for it, so the stats bar and tabs stay on the first screen. */
++	boxed(){ const e = this.$list.el; return e.scrollHeight > e.clientHeight && /auto|scroll/.test(getComputedStyle(e).overflowY); }
++	at_bottom(){ const e = this.$list.el; return !this.boxed() || e.scrollHeight - e.scrollTop - e.clientHeight < 48; }
++	to_end(){ if (this.boxed()) this.$list.el.scrollTop = this.$list.el.scrollHeight; }
+ 	/** The tab was opened: its list is laid out now, so land on the newest row. */
+-	shown(){ this.stick = true; this.$list.el.scrollTop = this.$list.el.scrollHeight; }
++	shown(){ this.stick = true; this.to_end(); }
+ 
+ 	draw(){
+-		const all = SessionTimeline.rows(this.lines, this.prompt_lines, SessionTimeline.landed_of(this.kids)), per = {};
++		const all = SessionTimelineRows.rows(this.lines, this.prompt_lines, SessionTimelineRows.landed_of(this.kids)), per = {};
+ 		all.forEach(r => per[r.kind] = (per[r.kind] ?? 0) + 1);
+ 		const rows = all.filter(r => this.on.has(r.kind)), stick = this.stick || this.at_bottom();
+-		for (const [kind] of SessionTimeline.KINDS) if (this.counts[kind]) this.counts[kind].el.textContent = per[kind] ?? 0;
++		for (const [kind] of SessionTimelineRows.KINDS) if (this.counts[kind]) this.counts[kind].el.textContent = per[kind] ?? 0;
+ 		this.$count.el.textContent = !all.length ? (this.seen.size >= 2 ? "No events" : "Reading this session's record…") : rows.length === all.length ? `${all.length} event${all.length === 1 ? "" : "s"}` : `${rows.length} of ${all.length} events`;
+ 		this.el.dataset.total = all.length;
+ 		this.$list.empty(() => {
+@@ -83,7 +80,7 @@ export default class SessionTimeline extends View {
+ 			}
+ 		});
+ 		this.el.dataset.rows = rows.length;
+-		if (stick) this.$list.el.scrollTop = this.$list.el.scrollHeight;
++		if (stick) this.to_end();
+ 	}
+ 
+ 	kid(id){ return this.kids.find(c => c.id === id || c.name === id || c.key === id) ?? null; }
+@@ -98,7 +95,7 @@ export default class SessionTimeline extends View {
+ 
+ 	icon_of(kind){
+ 		if (kind === "done") return SessionOutlineView.state_icon("complete");
+-		return icon(SessionTimeline.KINDS.find(k => k[0] === kind)?.[2] ?? "more_horiz").ac("stl-icon");
++		return icon(SessionTimelineRows.KINDS.find(k => k[0] === kind)?.[2] ?? "more_horiz").ac("stl-icon");
+ 	}
+ 
+ 	row(r, d){
+diff --git a/public/framework/ai/sessions/doc/ui/classes.md b/public/framework/ai/sessions/doc/ui/classes.md
+index a85c17ccd..c4425b4e4 100644
+--- a/public/framework/ai/sessions/doc/ui/classes.md
++++ b/public/framework/ai/sessions/doc/ui/classes.md
+@@ -7,6 +7,9 @@ All of them live in [`ai/AISession/`](../../AISession/) (renamed from `Session*`
+ | [`AISession.js`](../../AISession/AISession.js) | `AISession` | The ONE class for a session's data (extends [`core/Session`](../../../core/Session/), which owns the dated folder: `locate`, `scan`, `dir_url`): load, sum costs, process. Same logic on server and client (node:fs is imported lazily). `AISession.View = AISessionView` is attached after the class. See [session-class](session-class.md). |
+ | [`AISessionsPage.js`](../../AISession/AISessionsPage.js) | `AISessionsPage extends Page` | The tab: header, stats, in-flight strip, filters, grid, the live stream. `route(id)` opens a detail page. |
+ | [`AISessionDetail.js`](../../AISession/AISessionDetail.js) | `AISessionDetail extends Page` | One session's page (`new AISessionDetail({ home, id })`). Statics load its files. |
++| [`SessionStats.js`](../../AISession/SessionStats.js) | `SessionStats extends View` | The sticky stats bar: cost, model, running for, done X of Y; one line on a phone. |
++| [`SessionTimeline.js`](../../AISession/SessionTimeline.js), [`SessionTimelineRows.js`](../../AISession/SessionTimelineRows.js) | `SessionTimeline`, `SessionTimelineRows (statics)` | The Timeline tab (rows built with no DOM by `SessionTimelineRows`); its `Tail` also feeds Coverage. |
++| [`SessionOutlineView.js`](../../AISession/SessionOutlineView.js), [`SessionOverview.js`](../../AISession/SessionOverview.js), [`SessionWork.js`](../../AISession/SessionWork.js), [`SessionPopover.js`](../../AISession/SessionPopover.js) | the Overview, Board and Tasks tabs, and the one popover | Overview groups by child session; Board is four cards; Tasks is the nested work; every menu uses `SessionPopover.open`. |
+ | [`AISessionView.js`](../../AISession/AISessionView.js) | `AISessionView extends View` | One grid row. Statics draw the cost cell and the detail section. |
+ | [`AISessionRows.js`](../../AISession/AISessionRows.js) | `AISessionRows (statics only)` | The data: fetch, merge, sort, nest, totals. Draws nothing. |
+ | [`AISessionTrace.js`](../../AISession/AISessionTrace.js) | `AISessionTrace (statics only)` | The cost chart, the per-tool table, the waste checks, the spawn section. |
+diff --git a/public/framework/ai/sessions/doc/ui/detail-layout.md b/public/framework/ai/sessions/doc/ui/detail-layout.md
+index 1a1898d36..5428faef3 100644
+--- a/public/framework/ai/sessions/doc/ui/detail-layout.md
++++ b/public/framework/ai/sessions/doc/ui/detail-layout.md
+@@ -1,6 +1,7 @@
+ # Session detail layout (2026-10-12)
+ 
+-**Chosen:** tabs on top (Conversation, Cost, Models and tokens, Related), `?tab=` in the URL. Conversation is the main tab; the chat fills the view and scrolls inside itself, so no other panel can push it away.
++**Chosen (updated 2026-10-25):** one tab row, `?tab=` in the URL: **Overview · Timeline · Chat · Tasks · More ▾**. More ▾ (a `SessionPopover`) holds Board, Coverage, Cost, Models and tokens, Related, Task queue → and Full screen; when the open tab is one of those, More shows as on. Chat and Coverage are hidden for a session with no chat (`chat_ok`). Old keys `work` and `conversation` still map to `tasks` and `chat`.
++**On a phone (under 600 px):** the sticky stats bar is one line (cost · state · running); a tap opens the full grid, unsticky. The Timeline's list grows and the page scrolls, so there is one scroll area; on a wide screen the list keeps its own 72dvh box because the panel is short beside the sticky bar.
+ **Alternative recorded:** a left nav (same panels, always visible). Rejected: the detail already sits beside the session list, and a third column cramps the chat.
+ **Dropped:** the "All sessions" back button and the id + `session-detail.js` line (the page title already names the session).
+ **Footer** ("N open tasks on this page"): kept, but a compact chip with its own background; it re-reads `tasks.json` on every render so landed tasks vanish ([page-work-line.md](../../../core/Page/ai/doc/page-work-line.md)). It is not a stream yet.

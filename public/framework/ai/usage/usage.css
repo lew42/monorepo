@@ -1,0 +1,18 @@
+@layer theme {
+	/* Pace meters: a bar that reads "used ÷ pace" (doc: readme.md). `.up-*` stays inside ai/usage. */
+	.up-set { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(18em, 100%), 1fr)); gap: var(--gap) var(--flow); }
+	.up-meter { display: flex; flex-direction: column; gap: .15em; min-width: 0; }
+	.up-head { display: flex; justify-content: space-between; gap: 1em; }
+	.up-num { font-weight: 700; font-variant-numeric: tabular-nums; }
+	.up-track { position: relative; height: .6em; border-radius: 999px; background: color-mix(in srgb, currentColor 12%, transparent); overflow: hidden; }
+	.up-track::after { content: ""; position: absolute; inset-block: 0; left: 50%; width: 2px; translate: -50% 0; background: currentColor; opacity: .7; }
+	.up-fill { height: 100%; width: var(--w, 0%); background: var(--prime); transition: width .3s ease; }
+	.up-gap .up-fill { position: absolute; left: 50%; }
+	.up-gap .up-fill.under { left: auto; right: 50%; }
+	.up-fill.calm { background: var(--ok); }
+	.up-fill.warm { background: var(--warn); }
+	.up-fill.hot { background: var(--hot); }
+	.up-fill.burning { background: var(--error); }
+	.up-big { font-size: 1.6em; font-weight: 700; }
+	.up-big.calm { color: var(--ok); } .up-big.warm { color: var(--warn); } .up-big.hot { color: var(--hot); } .up-big.burning { color: var(--error); }
+}

@@ -1,0 +1,20 @@
+     400 ai/ strip: widgets 2 (visible 0) feeds 2 (visible 0) in page+sheet
+FAIL 400 /framework/ext/drawer/ai/ at strip: one chat, one feed
+     400 ai/ split: widgets 2 (visible 1) feeds 2 (visible 1) in page+sheet
+FAIL 400 /framework/ext/drawer/ai/ at split: one chat, one feed
+     400 ai/ full: widgets 2 (visible 1) feeds 2 (visible 1) in page+sheet
+FAIL 400 /framework/ext/drawer/ai/ at full: one chat, one feed
+     400 tap ✦: widgets 2 (visible 0) feeds 2 (visible 0) in page+sheet
+FAIL 400 tapping ✦: one chat, one feed
+     400 then full: widgets 2 (visible 1) feeds 2 (visible 1) in page+sheet
+FAIL 400 ✦ then full: one chat, one feed
+     400 core/Page/ai/: widgets 0 (visible 0) feeds 0 (visible 0) in 
+ok   400 core/Page/ai/: at most one chat, one feed
+     1200 drawer ai/ 1200: widgets 1 (visible 1) feeds 1 (visible 1) in page
+ok   1200 drawer ai/ 1200: at most one chat, one feed
+     1200 core/Page/ai/ 1200: widgets 0 (visible 0) feeds 0 (visible 0) in 
+ok   1200 core/Page/ai/ 1200: at most one chat, one feed
+     1920 dock 1920: widgets 1 (visible 1) feeds 1 (visible 1) in dock
+ok   1920 dock 1920: at most one chat, one feed
+     1920 dock 1920 ai/: widgets 2 (visible 2) feeds 2 (visible 2) in page+dock
+FAIL 1920 dock 1920 ai/: at most one chat, one feed

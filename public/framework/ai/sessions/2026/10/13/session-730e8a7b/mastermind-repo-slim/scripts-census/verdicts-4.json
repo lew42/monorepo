@@ -1,0 +1,170 @@
+[
+  {
+    "file": "Server/refine.mjs",
+    "verdict": "live",
+    "reason": "Heavily referenced in skills (every-prompt, new-task, servex-mastermind, sub-mastermind) and Server scripts; documented in doc/refine.md; recent (2026-10-12)",
+    "evidence": ".claude/skills/every-prompt/SKILL.md"
+  },
+  {
+    "file": "Server/repo-size.mjs",
+    "verdict": "misnamed",
+    "reason": "Class in lowercase file violates naming rule (lowerCaseClass: true; classes require CapitalizedFilename.mjs format)",
+    "evidence": "lowerCaseClass: true"
+  },
+  {
+    "file": "Server/retire-files.mjs",
+    "verdict": "misnamed",
+    "reason": "Class in lowercase file violates naming rule (lowerCaseClass: true; classes require CapitalizedFilename.mjs format)",
+    "evidence": "lowerCaseClass: true"
+  },
+  {
+    "file": "Server/review.mjs",
+    "verdict": "live",
+    "reason": "Heavily referenced in skills (finish-task, mastermind, minion, review, sub-mastermind) and Server docs; used for review gates and merge flow; recent (2026-10-12)",
+    "evidence": ".claude/skills/finish-task/SKILL.md"
+  },
+  {
+    "file": "Server/review.test.mjs",
+    "verdict": "tool",
+    "reason": "Test script for widthsFor() and splitPatch(); designed for hand execution with no dependencies; recent enough (2026-10-02)",
+    "evidence": "header: node Server/review.test.mjs"
+  },
+  {
+    "file": "Server/session-buckets.mjs",
+    "verdict": "tool",
+    "reason": "Analysis script designed for manual execution; reads indexes and builds bucket summaries; recent (2026-10-12)",
+    "evidence": "header: Reads every day's index.json under ai/sessions"
+  },
+  {
+    "file": "Server/session-cost.mjs",
+    "verdict": "stale",
+    "reason": "Explicitly superseded by public/framework/ai/AISession/AISessionAudit.mjs; stub shim marked for removal one release after rename",
+    "evidence": "header: Shim: moved to AISessionAudit.mjs"
+  },
+  {
+    "file": "Server/session-dup.mjs",
+    "verdict": "tool",
+    "reason": "READ-ONLY analysis script measuring session data duplication; designed for manual execution; recent (2026-10-13)",
+    "evidence": "header: READ-ONLY. How much owner-prompt text does the repo store"
+  },
+  {
+    "file": "Server/session-flags.mjs",
+    "verdict": "live",
+    "reason": "Referenced in AI session system (AISessionFlags, AISessionRows, AISessionSource); computes session properties from transcripts; recent (2026-10-09)",
+    "evidence": "public/framework/ai/AISession/AISessionFlags.js"
+  },
+  {
+    "file": "Server/session-gap.mjs",
+    "verdict": "stale",
+    "reason": "No active references (refs: 0); appears to be one-off analysis script with no ongoing use; unmaintained (2026-10-08)",
+    "evidence": "refs: 0"
+  },
+  {
+    "file": "Server/session-latency.mjs",
+    "verdict": "tool",
+    "reason": "Measurement script for end-to-end headless path latency; designed for manual profiling execution; recent (2026-10-08)",
+    "evidence": "header: measure the real-time path end to end, headless"
+  },
+  {
+    "file": "Server/session-links.mjs",
+    "verdict": "live",
+    "reason": "Referenced in AISessionIndex.mjs for session folder and link tracking; part of AI session system; recent (2026-10-09)",
+    "evidence": "public/framework/ai/AISession/AISessionIndex.mjs"
+  },
+  {
+    "file": "Server/session-migrate.mjs",
+    "verdict": "live",
+    "reason": "Documented migration script per owner decision (2026-10-08); referenced in test and refine runs; implemented session day-based reorganization; recent (2026-10-10)",
+    "evidence": "public/framework/ext/Refine/runs/2026-10-10/brief.md"
+  },
+  {
+    "file": "Server/session-migrate.test.mjs",
+    "verdict": "tool",
+    "reason": "Test script for session migration; builds fake checkout, validates folder arrival, reverses changes; designed for hand verification; recent (2026-10-09)",
+    "evidence": "header: node Server/session-migrate.test.mjs"
+  },
+  {
+    "file": "Server/session-patterns.mjs",
+    "verdict": "tool",
+    "reason": "Analysis script counting session data locations and printing summary table; designed for manual execution with optional --write flag; recent (2026-10-09)",
+    "evidence": "header: Counts every place a session's data lives today"
+  },
+  {
+    "file": "Server/session-place.mjs",
+    "verdict": "tool",
+    "reason": "Migration script moving flat session folders into day structure; referenced by patterns analysis and test; designed for hand execution; recent (2026-10-08)",
+    "evidence": "header: Moves every flat session folder into its day"
+  },
+  {
+    "file": "Server/session-place.test.mjs",
+    "verdict": "tool",
+    "reason": "Test script verifying day layout migration and record survival; designed for hand verification; recent (2026-10-08)",
+    "evidence": "header: The day layout test"
+  },
+  {
+    "file": "Server/session-query.mjs",
+    "verdict": "live",
+    "reason": "Referenced in Servex/agents/tools.js for Sessions dashboard queries; actively used for session lookup and cost reporting; recent (2026-10-09)",
+    "evidence": "Servex/agents/tools.js"
+  },
+  {
+    "file": "Server/session-rename.mjs",
+    "verdict": "tool",
+    "reason": "One-time rename script for Session class migration to public/framework/ai/AISession/; designed for single hand execution; recent (2026-10-08)",
+    "evidence": "header: one scripted rename of the Session classes"
+  },
+  {
+    "file": "Server/session-summary.mjs",
+    "verdict": "live",
+    "reason": "Heavily referenced in AI session system (AISessionIndex, AISessionRows, AISessionAudit) and Servex; provides cost calculation for sessions; documented; recent (2026-10-09)",
+    "evidence": "public/framework/ai/AISession/AISessionAudit.mjs"
+  },
+  {
+    "file": "Server/session-summary.test.mjs",
+    "verdict": "tool",
+    "reason": "Test script for session cost calculation; designed for manual execution with optional session-id argument; recent (2026-10-08)",
+    "evidence": "header: node Server/session-summary.test.mjs"
+  },
+  {
+    "file": "Server/shots.mjs",
+    "verdict": "live",
+    "reason": "Actively referenced in merge flow, DevBar, Figma comparison, and Shots component system; documented; used for screenshot and comparison management; recent (2026-10-12)",
+    "evidence": "Server/merge.mjs"
+  },
+  {
+    "file": "Server/sidebar-index-check.mjs",
+    "verdict": "tool",
+    "reason": "Validation script measuring sidebar search index performance; documented in Sidebar docs; designed for manual index audits; recent (2026-10-12)",
+    "evidence": "public/framework/core/Sidebar/doc/index.md"
+  },
+  {
+    "file": "Server/smoke.mjs",
+    "verdict": "live",
+    "reason": "Heavily referenced in hooks (server-guard), skills (mastermind, minion, sub-mastermind), and Steps; actively used for smoke testing worktrees; recent (2026-10-13)",
+    "evidence": ".claude/hooks/server-guard.mjs"
+  },
+  {
+    "file": "Server/sources.mjs",
+    "verdict": "live",
+    "reason": "Referenced in sources system documentation, readme, and page.js; provides source library tool for look-before-fetch pattern; recent (2026-09-28)",
+    "evidence": "public/framework/sources/page.js"
+  },
+  {
+    "file": "Server/spend-tree.mjs",
+    "verdict": "live",
+    "reason": "Referenced in AI session system (AISessionAudit, AISessionRows, AISessionTrace, AISessionsPage) and task cost tracking; documents spawn hierarchy and costs; recent (2026-10-12)",
+    "evidence": "public/framework/ai/AISession/AISessionAudit.mjs"
+  },
+  {
+    "file": "Server/systems-beat.mjs",
+    "verdict": "tool",
+    "reason": "Heartbeat script for organizational systems (ext/System/); documented in organization docs; designed for manual execution of one cycle; recent (2026-10-12)",
+    "evidence": "public/framework/ai/doc/organization.md"
+  },
+  {
+    "file": "Server/task-cost.mjs",
+    "verdict": "live",
+    "reason": "Heavily referenced in Servex budget, cost tracking, and Echo agent; calculates task costs from Servex root agent time; documented; recent (2026-10-13)",
+    "evidence": "Servex/Budget.js"
+  }
+]

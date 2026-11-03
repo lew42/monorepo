@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ux/Browse/architecture/",
+ "widths": {
+  "1280": {
+   "empty": 0.527,
+   "widest_text": 595,
+   "widest_text_sample": "A list on the left, the thing you clicke",
+   "overflow_x": false,
+   "items": 94,
+   "narrow_share": 0.372
+  },
+  "1920": {
+   "empty": 0.696,
+   "widest_text": 633,
+   "widest_text_sample": "A list on the left, the thing you clicke",
+   "overflow_x": false,
+   "items": 94,
+   "narrow_share": 0.798
+  },
+  "2560": {
+   "empty": 0.753,
+   "widest_text": 712,
+   "widest_text_sample": "A list on the left, the thing you clicke",
+   "overflow_x": false,
+   "items": 94,
+   "narrow_share": 0.809
+  },
+  "3440": {
+   "empty": 0.813,
+   "widest_text": 712,
+   "widest_text_sample": "A list on the left, the thing you clicke",
+   "overflow_x": false,
+   "items": 94,
+   "narrow_share": 0.809
+  }
+ },
+ "errors": []
+}

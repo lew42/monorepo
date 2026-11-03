@@ -1,0 +1,189 @@
+diff --git a/Servex/agents/ChatWriter.js b/Servex/agents/ChatWriter.js
+index 232203ac3..6c0b449a3 100644
+--- a/Servex/agents/ChatWriter.js
++++ b/Servex/agents/ChatWriter.js
+@@ -83,4 +83,15 @@ export default class ChatWriter {
+ 	}
+ 
+ 	held(key){ return this.sessions.get(key)?.held.length ?? 0; }
++
++	/* A `{place}` line from the fast seat (ux/Dictate/doc/voice-assistant.md), as the line that updates the chat list: its cleaned
++	 * `text` (edit "improve" or "both") becomes that sentence's cleaned text on the Prompt that holds it, IN PLACE: the Prompt keeps its
++	 * position and its raw words. `session` is the replayed Session; null when there is no text, or no sentence with that `at`.
++	 * Where the sentence goes (`to`, `where`) is not mirrored: the list's order never changes. */
++	static place(session, place){
++		if (!place || !["improve", "both"].includes(place.edit) || !String(place.text ?? "").trim() || !place.re) return null;
++		const s = [...(session?._sentences ?? [])].find(x => x.at === place.re);
++		const p = s && session._messages?.messages.find(m => m.sentences?.includes?.(s.id));
++		return p ? { messages: { [p.id]: { clean: { [s.id]: String(place.text) } } } } : null;
++	}
+ }
+diff --git a/Servex/agents/chat-messages.test.mjs b/Servex/agents/chat-messages.test.mjs
+index 64ccc41e9..34cc940ea 100644
+--- a/Servex/agents/chat-messages.test.mjs
++++ b/Servex/agents/chat-messages.test.mjs
+@@ -127,6 +127,21 @@ try {
+ 	});
+ 	r = await run_item({ path: URL_ }, { caller: "t" });
+ 	check("a read of the session answers the chat: its count and the last messages", () => assert.equal(r.state.messages.count, back.length));
++
++	// The fast seat's {place} lines (ux/Dictate/doc/voice-assistant.md): an improve updates the sentence's text in place.
++	const owner_ats = owner_v1.map(l => l.chat.at), replay = () => Session.replay(fs.readFileSync(FILE, "utf8").split("\n").filter(Boolean).map(l => JSON.parse(l))).messages.messages;
++	const before = replay();
++	await run_item({ path: URL_, delta: { place: { re: owner_ats[1], to: "same", edit: "improve", text: "On my phone (an iPhone)." } } }, { caller: "voice-assistant-t" });
++	await run_item({ path: URL_, delta: { place: { re: owner_ats[0], to: "same", edit: "both", text: "The tab bar is broken!" } } }, { caller: "voice-assistant-t" });
++	await run_item({ path: URL_, delta: { place: { re: owner_ats[2], to: "card", where: "beside", edit: "nothing" } } }, { caller: "voice-assistant-t" });
++	const after = replay(), raw = fs.readFileSync(FILE, "utf8").split("\n").filter(Boolean).map(l => JSON.parse(l));
++	check("a {place} improve updates the sentence's text in its Prompt, in place: same position, raw words kept, V1's {place} line still written", () => {
++		assert.deepEqual(after.map(m => m.id), before.map(m => m.id), "no message moved, none added");
++		assert.equal(after[0].cleaned, "The tab bar is broken! On my phone (an iPhone).", "two improves on two sentences merge");
++		assert.equal(after[0].said, "The tab bar is broken. On my phone.", "the raw words stay");
++		assert.equal(raw.filter(l => l.place).length, 3, "every {place} line is written as before");
++		assert.equal(raw.filter(l => l.messages && Object.values(l.messages).some(v => v?.clean)).length, 2, "an edit with no text (\"nothing\") adds no chat line");
++	});
+ } finally { fs.rmSync(DIR, { recursive: true, force: true }); }
+ 
+ console.log(`chat-messages.test.mjs: ${checks} checks passed`);
+diff --git a/Servex/agents/page_tools.js b/Servex/agents/page_tools.js
+index 130ac1dfb..df2ad51d5 100644
+--- a/Servex/agents/page_tools.js
++++ b/Servex/agents/page_tools.js
+@@ -8,6 +8,7 @@ import TaskHomes from "../../Server/TaskHomes.mjs";
+ import Task from "../../public/framework/core/Task/Task.js";
+ import Item from "../../public/framework/core/Item/Item.js";
+ import RecordWriter from "../../public/framework/core/Item/RecordWriter.js";
++import ChatWriter from "./ChatWriter.js";
+ import LogLine from "../../Server/LogLine.mjs";
+ 
+ const HERE = path.dirname(fileURLToPath(import.meta.url));
+@@ -1322,6 +1323,8 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
+ 		const print = t => ({ state: t.state, completion: t.completion, data: t.data, kids: every_task(t._tasks).map(k => [k.id, k.state, k.data]) });
+ 		const was = verb ? steady(print(root())) : null;
+ 		put(nest(at.target, { ...stamp_ids(body, ids), by, ts: stamp() }), !!tasky);
++		// THE REAL CHAT LIST (core/Session/Chat): a {place} with a cleaned text also updates that sentence's text on its Prompt, in place.
++		if (kind === "Session" && !at.target.length && is_plain(body.place)) try { const m = ChatWriter.place(root(), body.place); if (m){ const keep = line; put({ ...m, by, ts: stamp() }); line = keep; } } catch {}
+ 		if (verb && steady(print(root())) === was) unchanged = `"${verb}" was written but changed nothing: the task (or the child it names) is in a state that refuses it, or no child has that id`;
+ 	} else if (size === undefined) size = size_of(at.file);
+ 	// An approve line starts a templated task's agent (TaskLoop.launch); never awaited into the answer, a failure never reaches the tool.
+diff --git a/Servex/doc/item-tool.md b/Servex/doc/item-tool.md
+index 148057533..71d9d020f 100644
+--- a/Servex/doc/item-tool.md
++++ b/Servex/doc/item-tool.md
+@@ -7,7 +7,7 @@
+ - **`improvements.jsonl`** (2026-10-22): a url naming `<folder>/improvements.jsonl` is class `Improvements` (`core/Task/Improvements.js`, a Task); `tasks.add` always nests there (no folder). The same title proposed again is merged by the class's own list (its `add` reinforces the existing task, on write and on replay), so the tool writes the add as sent; the answer says `merged: [{title, into, weight}]`. The rule for writing one is in `Servex/agents/roles/mastermind.md`, "Improvements".
+ - **Item vs log, settled 2026-10-22** ([code-shape.md](/framework/ai/doc/code-shape.md)): `item` is for files a class reads (Task, Session, Process, Page, improvements): node replays the class, checks the delta or method against it, writes, and answers with what it wrote (`{ok, ids, line, size, now: {state, completion}}` for a Task, Session or Process; a Page write still answers its page). The full computed state is a read, with no delta. `log` (the Servex MCP `log` tool) is the plainly named raw append for any other JSONL record: node adds time, author and session and checks the line against the log's schema. Neither makes the model write bookkeeping.
+ - **No delta** returns the state; Task: `{class, state, completion, data, tasks}` from `Task.replay`. A Session also answers `messages: {count, last}` (its chat's last 20 messages, `{id, type, by, at, text}`) when it has any.
+-- **The chat list** (2026-11-01): a Session takes `messages` and `sentences` (its chat, [core/Session/Chat](/framework/core/Session/Chat/readme.md)): `{"messages":{"add":{"type":"Reply","by":"smart","text":"…"}}}` appends; `{"messages":{"<id>":{"title":…,"text":…}}}` refines a message in place. Servex writes the owner's sentences and the seats' replies there itself.
++- **The chat list** (2026-11-01): a Session takes `messages` and `sentences` (its chat, [core/Session/Chat](/framework/core/Session/Chat/readme.md)): `{"messages":{"add":{"type":"Reply","by":"smart","text":"…"}}}` appends; `{"messages":{"<id>":{"title":…,"text":…}}}` refines a message in place. Servex writes the owner's sentences and the seats' replies there itself; a `{place}` with a cleaned `text` also writes that sentence's cleaned text onto its Prompt, in place (`ChatWriter.place`).
+ - **Dot paths:** `"now.preview": x` becomes `{now: {preview: x}}`, and `"tasks.a.tasks.b.title": x` sets three levels down; the line is written nested, never dotted. `target` takes the same path (`"tasks.a.tasks.b"`, or a list of hops) and is walked level by level through each level's own `get` (a property, a named List, a List's member), so it reaches any list, not only `tasks` ([ids-and-paths.md](/framework/core/Session/tasks/data-shapes/ids-and-paths.md), DECIDED). Watch out: when a key names both a data field holding an object and a child with that id, the field wins (`hop` in `page_tools.js` asks `get` before `member`); random ids make that clash unlikely.
+ - **Ids** (2026-10-28): an id the tool makes is `Item.short_id()`, 8 random letters and digits with a letter first, redrawn on a clash among siblings; never a slug of the title. An explicit `id` is kept; one a sibling already has, or one holding a dot, is refused. The same title twice under one parent is refused as the same ask (the answer names it as `existing`), except where the class merges it (Improvements). A task with its own folder still gets a readable folder name from its title (`<module>/tasks/<slug>/`): that is a path on disk, not an id.
+ - **Verdicts:** `{"approve":"ok"}` is written as sent; `Task.replay_line` passes the string to the verb.
+diff --git a/public/framework/core/Session/Chat/Prompt.js b/public/framework/core/Session/Chat/Prompt.js
+index 864b6f999..7009a00c8 100644
+--- a/public/framework/core/Session/Chat/Prompt.js
++++ b/public/framework/core/Session/Chat/Prompt.js
+@@ -28,6 +28,20 @@ export class Prompt extends Message {
+ 	}
+ 	/** The words as said: its sentences joined, the full dictation. */
+ 	get said(){ return this.sentence_items.map(s => s.text).join(" "); }
++	/** {<sentence id>: text}: the fast seat's cleaned text per sentence (a `{place}` with edit "improve"); the raw words stay in `sentences`. */
++	get clean(){ return { ...(this.get_one("clean") ?? {}) }; }
++	/** The words with each sentence's cleaned text where it has one: what a view shows by default. */
++	get cleaned(){ const c = this.clean; return this.sentence_items.map(s => c[s.id] ?? s.text).join(" "); }
++
++	/** Set the cleaned text of some sentences: `{clean: {"s-2": "…"}}` MERGES into what is there (the latest text for a sentence wins). */
++	merge_clean(value){
++		if (!value || typeof value !== "object" || Array.isArray(value)) return this;
++		const old = this.clean;
++		this.put("clean", { ...old, ...value });
++		this.emit("change", "clean", this.clean, old);
++		this.emit("delta", { clean: value }, this);
++		return this;
++	}
+ 
+ 	/** Grow it by one or more sentence ids: `{sentences: {push: "s-2"}}` or `{sentences: ["s-2"]}`. Nothing ever removes a sentence. */
+ 	push_sentences(value){
+@@ -39,7 +53,11 @@ export class Prompt extends Message {
+ 		this.emit("delta", { sentences: { push: more } }, this);
+ 		return this;
+ 	}
+-	set_one(key, value){ return key === "sentences" ? void this.push_sentences(value) : super.set_one(key, value); }
++	set_one(key, value){
++		if (key === "sentences") return void this.push_sentences(value);
++		if (key === "clean") return void this.merge_clean(value);
++		return super.set_one(key, value);
++	}
+ 	wire(){ return "Prompt"; }
+ }
+ 
+diff --git a/public/framework/core/Session/Chat/readme.md b/public/framework/core/Session/Chat/readme.md
+index 0362b24b9..d9653631a 100644
+--- a/public/framework/core/Session/Chat/readme.md
++++ b/public/framework/core/Session/Chat/readme.md
+@@ -12,12 +12,12 @@ session.messages:  Chat               // the conversation, in order (class Chat
+ 
+ class Sentence extends Item { text, via: "voice"|"text", at, raw? }                // ./Sentence.js
+ class Message  extends Item { by: "owner"|"smart"|"fast"|"system", at, text }      // ./Message.js
+-class Prompt   extends Message { sentences: [ids], title?, text?, state, prompt?, said }  // ./Prompt.js
++class Prompt   extends Message { sentences: [ids], clean: {<sentence id>: text}, title?, text?, state, prompt?, said, cleaned }  // ./Prompt.js
+ class Reply    extends Message { re?: {to: <sentence id>}, level?, thread? }       // ./Reply.js
+ class Chat     extends List { messages, last }                                      // ./Chat.js
+ ```
+ 
+-- **A Prompt** is what the owner said in one go. It holds its sentences **by id** and grows while the owner keeps talking. `said` is the words joined (the full dictation); `title` and `text` are a refined version, once someone writes one (then `state` is `"refined"`). `prompt` links today's Prompt *task* in `session.tasks` (Chat V2/V3).
++- **A Prompt** is what the owner said in one go. It holds its sentences **by id** and grows while the owner keeps talking. `said` is the words joined (the full dictation); `clean` holds the fast seat's cleaned text per sentence and `cleaned` is the words with those in place (what a view shows by default); `title` and `text` are a refined version, once someone writes one (then `state` is `"refined"`). `prompt` links today's Prompt *task* in `session.tasks` (Chat V2/V3).
+ - **A Reply** is an assistant's answer, anchored to the sentence it answers (`re.to`). `level` marks a refined restatement (`Sessions.line` with a level).
+ - **A plain Message** is a note, e.g. Servex saying an assistant could not be reached.
+ - **Order is the list's order.** Nothing is sorted by time. A message's text may change in place; its position never does.
+@@ -37,6 +37,7 @@ Lines in the session's `session.jsonl`, each right after the V1 line it mirrors.
+ {"sentences":{"add":{"id":"s-1","at":"…19:43:21.551-05:00","text":"The tab bar is broken.","via":"voice"}},"messages":{"add":{"type":"Prompt","id":"m-1","by":"owner","at":"…","sentences":["s-1"],"prompt":"p-1"}},"by":"servex","ts":"…"}
+ {"sentences":{"add":{"id":"s-2","text":"On my phone.",…}},"messages":{"m-1":{"sentences":{"push":"s-2"}}},"by":"servex","ts":"…"}     ← the Prompt grows
+ {"messages":{"add":{"id":"m-2","type":"Reply","by":"smart","at":"…","text":"Which phone?","re":{"to":"s-1"}}},"by":"servex","ts":"…"}
++{"messages":{"m-1":{"clean":{"s-2":"On my phone (an iPhone)."}}},"by":"voice-assistant-…","ts":"…"}                       ← a {place} improve: one sentence cleaned, in place
+ {"messages":{"m-1":{"title":"Fix the mobile tab bar","text":"…"}},"by":"smart","ts":"…"}                                      ← refined in place
+ ```
+ 
+@@ -50,7 +51,7 @@ Ids: `s-<ms>` and `m-<ms>` from Servex; the item tool gives an agent's add an 8-
+   - A reply never splits a message in progress: while the owner is mid-thought (`Sessions.mid_thought`: the floor is `speaking`, or a thought is held), a reply waits in the writer and is appended when the thought ends (`release_thought`, or the floor going `done`), below the owner's last words.
+   - Known edge: a reply held at the moment Servex restarts is lost from the list (V1 still has it).
+ - **Any agent, through the item tool:** `item({path: <session url>, delta: {messages: {add: {type: "Reply", by: "smart", text: "…"}}}})`, or `{messages: {"<id>": {title, text}}}` to refine a message in place. A read of the session (`item({path})`) answers `messages: {count, last}` (the last 20).
+-- **Not mirrored:** the fast seat's `{place}` lines. The seat is off by default since 2026-11-01; if it comes back, its cleaned text becomes `{text}` on the Prompt.
++- **The fast seat's `{place}` lines** (written by the voice assistant through the item tool): one with a cleaned `text` (edit `improve` or `both`) also writes `{"messages":{"<prompt id>":{"clean":{"<sentence id>":"…"}}}}`, so that sentence's text updates on its Prompt **in place**: the Prompt keeps its position and its raw words, and a later improve of the same sentence wins (`ChatWriter.place`, called from the item tool, `page_tools.js`). Where a sentence goes (`to`, `where`) is not mirrored: the list's order never changes.
+ 
+ ## How a view reads it
+ 
+@@ -60,7 +61,7 @@ Ids: `s-<ms>` and `m-<ms>` from Servex; the item tool gives an agent's add an 8-
+ 
+ ## Check it
+ 
+-- `node Servex/agents/chat-messages.test.mjs` (12 checks): a mixed session through the real `Sessions.js` (spoken sentences with the floor, a reply mid-thought, a refined line, typed, a Servex note), then replayed twice and through a snapshot: the same list, same order, no twins; two counts that must agree (owner `{chat}` lines = sentences; other `{chat}` lines = replies and notes); the item tool's add and in-place edit.
++- `node Servex/agents/chat-messages.test.mjs` (13 checks; the last: two `{place}` improves through the real item tool merge on one Prompt, nothing moves, and an edit with no text writes no chat line): a mixed session through the real `Sessions.js` (spoken sentences with the floor, a reply mid-thought, a refined line, typed, a Servex note), then replayed twice and through a snapshot: the same list, same order, no twins; two counts that must agree (owner `{chat}` lines = sentences; other `{chat}` lines = replies and notes); the item tool's add and in-place edit.
+ - On a copy of the biggest real voice session (`v-9dvbbrn`, 2026-11-01): 1,004 owner lines gave 1,004 sentences in 330 Prompts, 316 replies gave 316 Replies; the replay took 86 ms.
+ 
+ ## Migration (written, not run)
+diff --git a/public/framework/ext/Chat/list/ChatList.js b/public/framework/ext/Chat/list/ChatList.js
+index 0c6a0bf1d..328350499 100644
+--- a/public/framework/ext/Chat/list/ChatList.js
++++ b/public/framework/ext/Chat/list/ChatList.js
+@@ -54,7 +54,7 @@ export default class ChatList extends JSONL {
+ 		who.textContent = kind === "prompt" ? "You" : kind === "reply" ? `${m.by} assistant${m.level ? " · " + (this.constructor.LEVELS[m.level] ?? m.level) : ""}` : m.by ?? "note";
+ 		const text = document.createElement("div"); text.className = "chatlist-text md";
+ 		if (kind === "prompt" && m.title) { const t = document.createElement("strong"); t.textContent = m.title; el.append(who, t); } else el.append(who);
+-		md_into(text, kind === "prompt" ? (m.text || m.said) : m.text);
++		md_into(text, kind === "prompt" ? (m.text || m.cleaned) : m.text);
+ 		el.append(text);
+ 	}
+ }
+diff --git a/public/framework/ux/Dictate/doc/voice-assistant.md b/public/framework/ux/Dictate/doc/voice-assistant.md
+index 2814eab9d..3ed7f7def 100644
+--- a/public/framework/ux/Dictate/doc/voice-assistant.md
++++ b/public/framework/ux/Dictate/doc/voice-assistant.md
+@@ -32,7 +32,7 @@ item({ path: "<session file>", delta: { place: { re: "<the sentence's at>", to:
+ ```
+ Sessions            Servex/agents/Sessions.js       the orchestrator: writes each {chat} line, wakes the voice assistant
+  └ voice assistant  roles.js row "voice-assistant"  the agent: one placement per sentence (.claude/skills/voice-assistant/)
+-item tool           Servex/agents/page_tools.js     writes the {place} and {summary} lines into the session file: `place` and `summary` are in SESSION_KEYS, and a `{summary:{card,…}}` is written as a line, not run as the summary query (proof: item_tool.test.mjs)
++item tool           Servex/agents/page_tools.js     writes the {place} and {summary} lines into the session file: `place` and `summary` are in SESSION_KEYS, and a `{summary:{card,…}}` is written as a line, not run as the summary query (proof: item_tool.test.mjs); a `place` with a cleaned `text` is also written into the session's chat list, that sentence's text updated in place ([core/Session/Chat](/framework/core/Session/Chat/readme.md))
+ chat()              ux/Dictate/chat.js              tails the session file; hands {chat}, {para}, {place}, {summary} to the widget
+ Widget.Thread       ux/Dictate/Widget.js            draws the bubbles; live() = the draft piece in place; place() = apply a placement
+ ```

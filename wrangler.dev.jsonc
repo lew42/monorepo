@@ -1,0 +1,31 @@
+// wrangler.dev.jsonc — DEV ONLY. Never deploys: passed explicitly with `-c`, and
+// nothing in package.json or CI ever runs `wrangler deploy` against it.
+// wrangler.jsonc (the real one) must NEVER gain a `main` — that file deploys on
+// every push, and adding one there would turn this harness into the live site.
+{
+    "name": "monorepo-dev",
+    "compatibility_date": "2026-07-09",
+    "main": "worker/dev.js",
+
+    "assets": {
+        "directory": "./public",
+        "not_found_handling": "single-page-application",
+        "binding": "ASSETS",
+        "run_worker_first": ["/api/*"]
+    },
+
+    "d1_databases": [
+        { "binding": "DB", "database_name": "local-dev", "database_id": "local-dev-0000-0000-0000-000000000000" }
+    ],
+
+    "durable_objects": {
+        "bindings": [{ "name": "ROOM", "class_name": "Room" }]
+    },
+    "migrations": [
+        { "tag": "v1", "new_sqlite_classes": ["Room"] }
+    ],
+
+    "vars": {
+        "DEV_LOGIN": "1"
+    }
+}

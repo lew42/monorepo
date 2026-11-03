@@ -1,0 +1,1 @@
+{"title": "Hidden", "icon": "visibility_off", "content": "This tab is missing from the strip because of one line on the PARENT: `{\"tab\": {\"name\": \"hidden\", \"nav\": false}}`. It is still a real page at this real url (you're looking at it) — `nav: false` just drops it from the bar, the same word the drawer's \"Appears in navigation\" checkbox writes for a whole page."}

@@ -1,0 +1,307 @@
+diff --git a/public/framework/ai/AISession/AISessionsPage.js b/public/framework/ai/AISession/AISessionsPage.js
+index 0f472f10a..5554aaf74 100644
+--- a/public/framework/ai/AISession/AISessionsPage.js
++++ b/public/framework/ai/AISession/AISessionsPage.js
+@@ -31,8 +31,7 @@ View.stylesheet("/framework/ai/AITask/ai.css");   // the usage rail's bars
+ // computed files session-index.json, session-tree.json, spend-tree.json (written by scripts under Server/).
+ //
+ // The list is one ext/DataGrid, a table or a rail of cards (its `view` setting; ext/DataGrid/doc/architecture.md).
+-// `width` follows the view: "fill" for the table, "small" for the rail. `columns()`: the detail opens beside the list
+-// as a master-detail (core/Page doc/columns.md).
++// `width` follows the view: "fill" for the table, "small" for the rail. A clicked row opens its detail as a full page in place of the list (design/navigation: previews plus detail views).
+ //
+ // Page/Item name clashes found while converting this from an object config: none. The members this class adds
+ // (content, route, activated, deactivated, render_*, toggle_sort, filter_rows, draw, plus data fields such as
+@@ -54,8 +53,6 @@ export default class AISessionsPage extends Page {
+ 		}, ...args);
+ 	}
+ 
+-	initialize(){ this.columns(); }
+-
+ 	content(){
+ 		const panel = new Panel2({ title: "Sessions" }).ac("wide sessions-frame");   // `wide`: a plain Page's track is the narrow prose column; its header is hidden (sessions.css), the tab names it
+ 		this.$asof = null;
+diff --git a/public/framework/ai/AITask/AITask.js b/public/framework/ai/AITask/AITask.js
+index 46fc0e174..65684a293 100644
+--- a/public/framework/ai/AITask/AITask.js
++++ b/public/framework/ai/AITask/AITask.js
+@@ -18,6 +18,7 @@ import { breakdown } from "./cost.js";
+ import { streamed as reply_streamed } from "../../ext/Ask/reply.js";
+ import { fold } from "./message.js";
+ import TaskViews from "./TaskViews.js";
++import { TaskTree } from "./nested.js";
+ import Task from "../../core/Task/Task.js";
+ import { tree_for_task } from "./tree.js";
+ 
+@@ -145,16 +146,28 @@ export class AITask extends Page {
+ 			["report", "Report", () => { this.$live = div.c("ai-live flow"); this.refresh(m); }],
+ 			["session", "Session", () => { this.chat(m); this.log(m); }],
+ 		];
++		// The tasks inside this one, as preview cards: each opens that task's own full page (design/navigation).
++		const kids = (this.roots ?? []).flatMap(r => r.children ?? []);
++		if (kids.length) sections.splice(1, 0, ["tasks", "Tasks · " + kids.length, () => this.task_cards(kids)]);
+ 		// After Asks, before Report: what was wanted, the brief, what was chosen, the answer.
+ 		if (this.roots) sections.splice(sections.length - 1, 0, ["tree", "Tree", () => TaskViews.from_url(this.roots).draw()]);
+ 		if (m.decisions?.length) sections.splice(1, 0, ["decisions", "Decisions", () => this.decisions(m)]);
+ 		if (m.asks?.length) sections.unshift(["asks", "Asks", () => this.asks(m, to_prompt)]);
+ 
+ 		const message = wanted_message();
+-		tabs = tab_bar(sections, message ? "session" : this.roots && new URLSearchParams(location.search).has("view") ? "tree" : m.asks?.length ? "asks" : "report");
++		tabs = tab_bar(sections, message ? "session" : this.roots && new URLSearchParams(location.search).has("view") ? "tree" : m.asks?.length ? "asks" : kids.length ? "tasks" : "report");
+ 		if (message) reveal(message);
+ 	}
+ 
++	task_cards(kids){
++		return div.c("page-previews bleed", () => kids.forEach(n => this.preview_card({
++			label: n.title || n.agent || "untitled",
++			url: TaskTree.url(n),
++			icon: "receipt_long",
++			description: ({ landed: "Done", stopped: "Stopped", waiting: "Waiting" }[n.state] ?? TaskTree.pct(n) + "%") + (n.children?.length ? " · " + n.children.length + " tasks inside" : ""),
++		})));
++	}
++
+ 	asks(m, to_prompt){
+ 		const sign = () => JSON.stringify([m.ranks ?? {}, needs_of(m, this.base()).map(n => n.id + n.minutes)]);
+ 
+diff --git a/public/framework/core/Page/Frame.js b/public/framework/core/Page/Frame.js
+index eef4e37f8..cc973cb32 100644
+--- a/public/framework/core/Page/Frame.js
++++ b/public/framework/core/Page/Frame.js
+@@ -55,7 +55,6 @@ export default class PageFrame extends View {
+ 		const page = this.page;
+ 
+ 		if (page.navigation === "expand") this.expander();
+-		else if (page.navigation === "columns" || page.navigation === "takeover") this.rows();
+ 
+ 		return page.render_content();
+ 	}
+@@ -76,7 +75,7 @@ export default class PageFrame extends View {
+ 		});
+ 	}
+ 
+-	// One drawing: rows in rail, expand, columns, takeover.
++	// One drawing: rows in rail and expand.
+ 	rows(){
+ 		const page = this.page;
+ 
+diff --git a/public/framework/core/Page/Page.class.js b/public/framework/core/Page/Page.class.js
+index d7229ba21..7de0afdd4 100644
+--- a/public/framework/core/Page/Page.class.js
++++ b/public/framework/core/Page/Page.class.js
+@@ -668,7 +668,8 @@ export class Page extends Item {
+ 
+ 	// Asked at render time, never walked. ⚠ A page under a tab strip is a tab, not a column. (doc/decisions.md)
+ 	column_host(){
+-		const chain = this.chain(), at = chain.findIndex(page => page.columnar);
++		// `navigation: "columns"` is the word for calling `columns()`: the first time a render asks, it does.
++		const chain = this.chain(), at = chain.findIndex(page => page.columnar || page.navigation === "columns" && page.columns().columnar);
+ 		if (at < 0 || chain.slice(at, -1).some(page => page.navigation === "tabs")) return undefined;
+ 		return chain[at];
+ 	}
+diff --git a/public/framework/core/Page/doc/Frame-notes.md b/public/framework/core/Page/doc/Frame-notes.md
+index 057f5aa0d..0b7b5e4d5 100644
+--- a/public/framework/core/Page/doc/Frame-notes.md
++++ b/public/framework/core/Page/doc/Frame-notes.md
+@@ -20,7 +20,7 @@ It is the graduated half of `imagine/paging/stage.js` — the lab's renderer, on
+ 
+ ## SWAPS: which navigation words rearrange the box
+ 
+-`expand` grows the row, `columns` is `Page.columns()` and `takeover` is `width: "full"`: all three are MEANT to move things, and reserving there would hide the very thing they do.
++`expand` grows the row, `columns` is `Page.columns()` and the retired `takeover` was `width: "full"`: all three were MEANT to move things, and reserving there would hide the very thing they do.
+ 
+ ⚠ `tabs` IS DELIBERATELY NOT HERE — LEAVE IT OUT. It is the one place this list differs from the paging lab's own `swaps` flag, and the difference is not an oversight: `ext/tabs` brings its OWN panel and fills this same `regions` Map, so adding `tabs` here reserves a second panel and the child is drawn twice, once in each. Whoever reads the lab's list and this one side by side: the lab reserves for `tabs` because the lab draws its own tab strip; core delegates to `ext/tabs`, which has already done it. (Decided 2026-09-06, slice 2.)
+ 
+@@ -38,7 +38,7 @@ The box is the ONLY element wearing the CONTENT colour, which is the second of t
+ 
+ A page with content of its own AND tabs: its content becomes the first tab (the page's own url), so a child tab replaces it instead of stacking above it. A page with only children keeps today's shape. (2026-10-09)
+ 
+-The page's own content is drawn, plus the child list when the navigation word draws that list INSIDE the box: `expand` draws the rows themselves, and `columns` and `takeover` list the rows you navigate FROM.
++The page's own content is drawn, plus the child list when the navigation word draws that list INSIDE the box: `expand` draws the rows themselves, and `rail` lists the rows you navigate FROM (`columns` is drawn by `Columns.js`, and `takeover` is retired).
+ 
+ ## Navigation vs arrangement
+ 
+@@ -46,7 +46,7 @@ The page's own content is drawn, plus the child list when the navigation word dr
+ 
+ ## rows(): the same list, drawn in three places
+ 
+-THE SAME ROWS, LISTED INSIDE THE BOX — what `columns` and `takeover` navigate from, and what the rail is made of. One drawing, so a label here is the label everywhere else: `nav_for()` is the page's own answer for a child's url, label and icon.
++THE SAME ROWS, LISTED INSIDE THE BOX — what the rail and `expand` are made of. One drawing, so a label here is the label everywhere else: `nav_for()` is the page's own answer for a child's url, label and icon.
+ 
+ ⚠ A LIST WITH NOTHING IN IT SAYS SO. A page with no children handing back an empty box is how the lab ended up listing four strangers on somebody's page.
+ 
+diff --git a/public/framework/core/Page/doc/words.md b/public/framework/core/Page/doc/words.md
+index 72c0ad89b..85c20f246 100644
+--- a/public/framework/core/Page/doc/words.md
++++ b/public/framework/core/Page/doc/words.md
+@@ -11,7 +11,7 @@ dropdown, a card, a url and this table cannot disagree about what a word means.
+ 
+ | word | what it does | its values |
+ |---|---|---|
+-| `navigation` | what a click on a child does, and how the children are drawn | `none` `tabs` `rail` `rail-right` `expand` `columns` `takeover` |
++| `navigation` | what a click on a child does, and how the children are drawn | `none` `tabs` `rail` `rail-right` `expand` `columns` (`takeover` retired: it is `none`) |
+ | `content` | what is in the box | a function · a string · **an address** (`/notes/x.md`, `/imagine/paging/made/notes/`) |
+ | `width` | how much of the region the page takes (older key: `room`) | `narrow` `reading` `wide` `full` |
+ | `arrangement` | where the page's other parts sit around the box | `plain` `bar-top` `bar-bottom` `rail-left` `rail-right` `main-aside` `wall` |
+@@ -23,7 +23,7 @@ core has always done; the word is what makes them sayable from a page's declarat
+ instead of from a method body.
+ 
+ - `navigation` stamps `.page-nav-*` — and `tabs` is [`ext/tabs`](/framework/ext/tabs/),
+-  `columns` is `Page.columns()`, `takeover` is `width: "full"`. Only `expand` was new.
++  `columns` is `Page.columns()` (the word calls it), and `takeover` is retired: a page that says it gets `none`, and `width: "full"` is the real full-screen page. Only `expand` was new.
+ - `content` is read by `render_content()`: an address is fetched and drawn, two levels
+   deep, and the third hands over a link.
+ - `width` stamps `.page-w-*`; `reading` writes nothing and `full` is `.page.solo`.
+diff --git a/public/framework/core/Page/readme.md b/public/framework/core/Page/readme.md
+index 52d5a6887..231a76a9f 100644
+--- a/public/framework/core/Page/readme.md
++++ b/public/framework/core/Page/readme.md
+@@ -30,6 +30,8 @@ Then add `"hello"` to the **parent** page's `children:`. A page nobody declares
+ 
+ The Router ([core/Router](/framework/core/Router/)) calls `page = await page.child(name)` once per folder name. `child()` tries, in order: memory (`this.children`) → a declared `page.jsonl` → the built-in `md/` and `fs/` → the page's `route(name)` → `page.js` → a bare `.md` file → not found (the Router falls back to a real navigation). A declared child skips `route()`. Code and the two traps: [doc/loading.md](doc/loading.md).
+ 
++**Where a child opens:** a page shows its children as preview cards (`page.previews()`), and a click opens that child's full page in place of the list; the address changes, so Back returns to the list. A page with its own navigation (tabs, a rail) keeps it and the child opens inside it. A linked markdown page follows the same rule. Miller columns are opt-in code: a page that calls `columns()` itself gets them. The rule, the seven ways a page can navigate and their shots: [design/navigation](/framework/design/navigation/readme.md).
++
+ ## How a line reaches the screen (streaming)
+ 
+ ```
+diff --git a/public/framework/core/Page/tasks/page-mastermind/nav-rule/columns-1920-after.png b/public/framework/core/Page/tasks/page-mastermind/nav-rule/columns-1920-after.png
+new file mode 100644
+index 000000000..99ab4f457
+Binary files /dev/null and b/public/framework/core/Page/tasks/page-mastermind/nav-rule/columns-1920-after.png differ
+diff --git a/public/framework/core/Page/tasks/page-mastermind/nav-rule/columns-1920-before.png b/public/framework/core/Page/tasks/page-mastermind/nav-rule/columns-1920-before.png
+new file mode 100644
+index 000000000..37e469d8c
+Binary files /dev/null and b/public/framework/core/Page/tasks/page-mastermind/nav-rule/columns-1920-before.png differ
+diff --git a/public/framework/core/Page/tasks/page-mastermind/nav-rule/columns-3440-after.png b/public/framework/core/Page/tasks/page-mastermind/nav-rule/columns-3440-after.png
+new file mode 100644
+index 000000000..3d82cb20a
+Binary files /dev/null and b/public/framework/core/Page/tasks/page-mastermind/nav-rule/columns-3440-after.png differ
+diff --git a/public/framework/core/Page/tasks/page-mastermind/nav-rule/columns-3440-before.png b/public/framework/core/Page/tasks/page-mastermind/nav-rule/columns-3440-before.png
+new file mode 100644
+index 000000000..197f7bb91
+Binary files /dev/null and b/public/framework/core/Page/tasks/page-mastermind/nav-rule/columns-3440-before.png differ
+diff --git a/public/framework/core/Page/tasks/page-mastermind/nav-rule/deputy-1920-after.png b/public/framework/core/Page/tasks/page-mastermind/nav-rule/deputy-1920-after.png
+new file mode 100644
+index 000000000..bbc275591
+Binary files /dev/null and b/public/framework/core/Page/tasks/page-mastermind/nav-rule/deputy-1920-after.png differ
+diff --git a/public/framework/core/Page/tasks/page-mastermind/nav-rule/deputy-400-after.png b/public/framework/core/Page/tasks/page-mastermind/nav-rule/deputy-400-after.png
+new file mode 100644
+index 000000000..5b9883fe4
+Binary files /dev/null and b/public/framework/core/Page/tasks/page-mastermind/nav-rule/deputy-400-after.png differ
+diff --git a/public/framework/core/Page/tasks/page-mastermind/nav-rule/roles-1920-after.png b/public/framework/core/Page/tasks/page-mastermind/nav-rule/roles-1920-after.png
+new file mode 100644
+index 000000000..797759d16
+Binary files /dev/null and b/public/framework/core/Page/tasks/page-mastermind/nav-rule/roles-1920-after.png differ
+diff --git a/public/framework/core/Page/tasks/page-mastermind/nav-rule/roles-1920-before.png b/public/framework/core/Page/tasks/page-mastermind/nav-rule/roles-1920-before.png
+new file mode 100644
+index 000000000..6ea1f3572
+Binary files /dev/null and b/public/framework/core/Page/tasks/page-mastermind/nav-rule/roles-1920-before.png differ
+diff --git a/public/framework/core/Page/tasks/page-mastermind/nav-rule/roles-400-after.png b/public/framework/core/Page/tasks/page-mastermind/nav-rule/roles-400-after.png
+new file mode 100644
+index 000000000..2102f6c36
+Binary files /dev/null and b/public/framework/core/Page/tasks/page-mastermind/nav-rule/roles-400-after.png differ
+diff --git a/public/framework/core/Page/tasks/page-mastermind/nav-rule/roles-400-before.png b/public/framework/core/Page/tasks/page-mastermind/nav-rule/roles-400-before.png
+new file mode 100644
+index 000000000..3b32a1889
+Binary files /dev/null and b/public/framework/core/Page/tasks/page-mastermind/nav-rule/roles-400-before.png differ
+diff --git a/public/framework/core/Page/tasks/page-mastermind/nav-rule/roles-child-1920-after.png b/public/framework/core/Page/tasks/page-mastermind/nav-rule/roles-child-1920-after.png
+new file mode 100644
+index 000000000..f2ef627f2
+Binary files /dev/null and b/public/framework/core/Page/tasks/page-mastermind/nav-rule/roles-child-1920-after.png differ
+diff --git a/public/framework/core/Page/tasks/page-mastermind/nav-rule/roles-child-400-after.png b/public/framework/core/Page/tasks/page-mastermind/nav-rule/roles-child-400-after.png
+new file mode 100644
+index 000000000..0e4742398
+Binary files /dev/null and b/public/framework/core/Page/tasks/page-mastermind/nav-rule/roles-child-400-after.png differ
+diff --git a/public/framework/core/Page/tasks/page-mastermind/nav-rule/session-uuid-1920-after.png b/public/framework/core/Page/tasks/page-mastermind/nav-rule/session-uuid-1920-after.png
+new file mode 100644
+index 000000000..569539c29
+Binary files /dev/null and b/public/framework/core/Page/tasks/page-mastermind/nav-rule/session-uuid-1920-after.png differ
+diff --git a/public/framework/core/Page/tasks/page-mastermind/nav-rule/sessions-1920-after.png b/public/framework/core/Page/tasks/page-mastermind/nav-rule/sessions-1920-after.png
+new file mode 100644
+index 000000000..9b72dc628
+Binary files /dev/null and b/public/framework/core/Page/tasks/page-mastermind/nav-rule/sessions-1920-after.png differ
+diff --git a/public/framework/core/Page/words.js b/public/framework/core/Page/words.js
+index 3eab6ef68..8d28de7ce 100644
+--- a/public/framework/core/Page/words.js
++++ b/public/framework/core/Page/words.js
+@@ -30,7 +30,7 @@
+      `key` / `label` would have rewritten nine files that draw these lists.        */
+ 
+ /* ── NAVIGATION ────────────────────────────────────────────────────────────────
+-   ONE WORD, SEVEN ANSWERS, and each settles two questions at once: how the children
++   ONE WORD, SIX ANSWERS, and each settles two questions at once: how the children
+    are DRAWN, and what a click on one DOES.
+ 
+    `stable` — does this move what I was already looking at? A stable word never does.
+@@ -50,11 +50,10 @@ export const NAVIGATION = [
+ 	{ id: "rail-right", title: "Right rail", icon: "view_sidebar", stable: true,  swaps: true,
+ 	  means: "The list on the other side, so your eye keeps its home edge on the left." },
+ 	{ id: "expand",     title: "Expand",     icon: "expand_more",  stable: false,
+-	  means: "Each child is a row you open in place. The row grows downward, everything below it moves down, and the address never changes — so an opened row cannot be linked to." },
++	  means: "Each child is a row you open in place. The row grows downward, everything below it moves down, and the address never changes — so an opened row cannot be linked to. For details that are not pages (an FAQ answer), never for a child page." },
+ 	{ id: "columns",    title: "Columns",    icon: "view_column",  stable: false,
+-	  means: "Each child is a row you click, and it opens as a new column to the right. Everything already on screen shifts left to make room." },
+-	{ id: "takeover",   title: "Takeover",   icon: "open_in_full", stable: false,
+-	  means: "The child fills the whole screen and everything behind it collapses into the trail at the top." },
++	  means: "Each child is a row you click, and it opens as a new column to the right. The same as the page calling `columns()`; opt-in only, since the owner dropped Miller columns as the default on 2026-10-23." },
++	// `takeover` was retired 2026-10-24: a page that says it gets what `none` gets (the child replaces the page). Only the /imagine/paging lab keeps its own copy (paging/blocks.js).
+ ];
+ 
+ /* THE TWO WORDS FOR THE SPLIT ABOVE, spelled once — three files used to re-type the
+diff --git a/public/framework/design/navigation/readme.md b/public/framework/design/navigation/readme.md
+index e56531737..d9b468a64 100644
+--- a/public/framework/design/navigation/readme.md
++++ b/public/framework/design/navigation/readme.md
+@@ -2,6 +2,30 @@
+ 
+ Navigation is how a reader gets anywhere on the site and finds their way back: tabs, a rail, a sidebar, a sheet, a modal, full screen. Moved here from the old `page` skill's Navigation questions.
+ 
++## The one rule: previews, then a full detail view
++
++**A page shows its children as a list of preview cards. Clicking a card opens that child's full page in place of the list.** The child has its own address, so the back button returns to the list. Nothing splits the screen into side-by-side panes. This is the owner's call of 2026-10-23: Miller columns did not work (on a task page the first column was cut off), so previews plus full detail views replace them as the default.
++
++A page that has its own navigation (tabs, a sidebar, a rail) keeps it on screen, and the card list or the detail opens inside it; a page without navigation is replaced by its child. A linked markdown page follows the same rule and never brings navigation of its own (the `md/` explorer's file list is the one exception).
++
++Seen on the real pages: a task with tasks inside it has a **Tasks** tab of preview cards ([deputy at 1920](../../core/Page/tasks/page-mastermind/nav-rule/deputy-1920-after.png), [at 400](../../core/Page/tasks/page-mastermind/nav-rule/deputy-400-after.png)); clicking a card opens that task's own page ([roles at 1920](../../core/Page/tasks/page-mastermind/nav-rule/roles-1920-after.png), [at 400](../../core/Page/tasks/page-mastermind/nav-rule/roles-400-after.png)). Before, the same page was a row of columns that scrolled the first ones out of sight ([roles before at 1920](../../core/Page/tasks/page-mastermind/nav-rule/roles-1920-before.png)).
++
++**Miller columns are kept as code, opt-in only:** a page gets them by calling `columns()` itself, like [/framework/core/Page/overview/columns/](/framework/core/Page/overview/columns/). The even-columns default was tried and dropped on 2026-10-23 ([shots at 1920 and 3440](../../core/Page/tasks/page-mastermind/nav-rule/columns-1920-after.png)).
++
++The seven ways a page can navigate today (shots live in [core/Page/tasks/page-mastermind/](/framework/core/Page/tasks/page-mastermind/)):
++
++| Way | What stays on screen | What changes | Shot |
++|---|---|---|---|
++| **Top tabs** | the tab strip | the one panel under it | [tabs at 1920](../../core/Page/tasks/page-mastermind/nav-tabs-1920.png) |
++| **Left sidebar** | the site's page tree | the content area beside it | the same shot, left side |
++| **Rail** | a list on the left or right | the panel beside it | no real page uses it (only the `/imagine/paging/` labs) |
++| **List and detail** (`ux/Browse`) | the list | the detail pane | [md/ explorer at 1400](../../core/Page/tasks/page-mastermind/md-explorer-1400.png) |
++| **Miller columns** (`Page.columns()`, opt-in) | every open column | a new column opens to the right | [even at 3440](../../core/Page/tasks/page-mastermind/nav-columns-even-3440.png), [measured at 3440](../../core/Page/tasks/page-mastermind/nav-columns-measured-3440.png) |
++| **No navigation** | nothing of the page | the child replaces the page | [at 1920](../../core/Page/tasks/page-mastermind/nav-takeover-1920.png) |
++| **Expand** | the row | the row grows in place; the address does not change | [expand at 1920](../../core/Page/tasks/page-mastermind/nav-expand-1920.png) |
++
++**Expand is for things that are not pages**, like an FAQ answer: it changes no address, so whatever it opens cannot be linked to. Never use it for a child page.
++
+ ## Use
+ 
+ **Route everything.** Any view a click reaches — a tab, a selected item, an open panel — has its own URL, so a reload or the back button lands in the same place. This is the single rule everything else here checks.
+diff --git a/public/imagine/paging/blocks.js b/public/imagine/paging/blocks.js
+index 6c5ed4882..28cd04224 100644
+--- a/public/imagine/paging/blocks.js
++++ b/public/imagine/paging/blocks.js
+@@ -40,10 +40,15 @@
+      `CONTROLS` below — which lists `NAVIGATION` and friends — would have thrown
+      `NAVIGATION is not defined` on the first import of this file, with every page in
+      the realm blank. */
+-import { NAVIGATION, ROOM, ARRANGEMENT, SURFACES, TYPE, STABLE, DYNAMIC, nav_of, arrangement_of, layout_url }
++import { NAVIGATION as CORE_NAVIGATION, ROOM, ARRANGEMENT, SURFACES, TYPE, STABLE, DYNAMIC, arrangement_of, layout_url }
+ 	from "/framework/core/Page/words.js";
+ 
+-export { NAVIGATION, ROOM, ARRANGEMENT, SURFACES, TYPE, STABLE, DYNAMIC, nav_of, arrangement_of, layout_url };
++// Core retired `takeover` (2026-10-24, it means `none` there); this lab's stage.js still runs it, so the lab's list keeps the entry.
++export const NAVIGATION = [...CORE_NAVIGATION, { id: "takeover", title: "Takeover", icon: "open_in_full", stable: false,
++	means: "The child fills the whole screen and everything behind it collapses into the trail at the top." }];
++export const nav_of = id => NAVIGATION.find(nav => nav.id === id) ?? NAVIGATION[0];
++
++export { ROOM, ARRANGEMENT, SURFACES, TYPE, STABLE, DYNAMIC, arrangement_of, layout_url };
+ 
+ /* ── 3 · CONTENT — what is in the box ─────────────────────────────────────────
+    Eight kinds, and every one of them is REAL: the renderer is a module this site

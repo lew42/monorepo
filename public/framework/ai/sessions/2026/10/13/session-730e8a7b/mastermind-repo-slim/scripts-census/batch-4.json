@@ -1,0 +1,395 @@
+[
+ {
+  "file": "Server/refine.mjs",
+  "bytes": 57142,
+  "header": "refine.mjs — a raw dictation, turned into a brief a mastermind can act on, with nothing lost",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-12",
+  "refs": 47,
+  "refFiles": [
+   ".claude/skills/every-prompt/SKILL.md",
+   ".claude/skills/new-task/SKILL.md",
+   ".claude/skills/servex-mastermind/SKILL.md",
+   ".claude/skills/sub-mastermind/SKILL.md",
+   "Server/ask-each.mjs",
+   "Server/collab.mjs",
+   "Server/day-prompts-refine.mjs",
+   "Server/doc/refine.md"
+  ]
+ },
+ {
+  "file": "Server/repo-size.mjs",
+  "bytes": 11523,
+  "header": "repo-size.mjs — what the repo weighs, by path, in git history and on disk. Read-only: never writes to git.",
+  "kind": "class",
+  "lowerCaseClass": true,
+  "last": "2026-10-13",
+  "refs": 2,
+  "refFiles": [
+   "public/framework/ai/doc/repo-size.md",
+   "public/framework/ai/readme.md"
+  ]
+ },
+ {
+  "file": "Server/retire-files.mjs",
+  "bytes": 2855,
+  "header": "Server/retire-files.mjs — moves the owner-approved `dead` files aside (git mv), never deletes. Doc: public/framework/ai/doc/unreferenced-verdicts.md",
+  "kind": "class",
+  "lowerCaseClass": true,
+  "last": "2026-10-13",
+  "refs": 1,
+  "refFiles": [
+   "public/framework/ai/doc/unreferenced-verdicts.md"
+  ]
+ },
+ {
+  "file": "Server/review.mjs",
+  "bytes": 54282,
+  "header": "`node Server/review.mjs <taskdir> [<worktree dir>] [--range A..B] [--size none|light|full] [--why \"...\"] [--model <id>] [--widths 1200,1920]`",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-12",
+  "refs": 42,
+  "refFiles": [
+   ".claude/skills/finish-task/SKILL.md",
+   ".claude/skills/mastermind/SKILL.md",
+   ".claude/skills/minion/SKILL.md",
+   ".claude/skills/minion/improvements.md",
+   ".claude/skills/review/SKILL.md",
+   ".claude/skills/review/improvements.md",
+   ".claude/skills/sub-mastermind/SKILL.md",
+   "Server/README.md"
+  ]
+ },
+ {
+  "file": "Server/review.test.mjs",
+  "bytes": 4489,
+  "header": "node Server/review.test.mjs — widthsFor() and splitPatch(), no git, no network, no fs writes.",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-10-02",
+  "refs": 0,
+  "refFiles": []
+ },
+ {
+  "file": "Server/session-buckets.mjs",
+  "bytes": 2211,
+  "header": "Reads every day's index.json under ai/sessions, builds the bucket indexes, prints a measured summary, writes",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-10-12",
+  "refs": 0,
+  "refFiles": []
+ },
+ {
+  "file": "Server/session-cost.mjs",
+  "bytes": 198,
+  "header": "Shim: moved to public/framework/ai/AISession/AISessionAudit.mjs (rename-manifest.json). Removed one release after the rename.",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-10-08",
+  "refs": 13,
+  "refFiles": [
+   "Server/doc/task-cost.md",
+   "Server/session-rename.mjs",
+   "Server/week-cost.mjs",
+   "public/framework/ai/AISession/AISessionAudit.mjs",
+   "public/framework/ai/AISession/rename-manifest.json",
+   "public/framework/ext/Refine/runs/2026-10-08/brief.md",
+   "public/framework/ext/Refine/runs/2026-10-08/clean.md",
+   "public/framework/ext/Refine/runs/2026-10-08/confidence.json"
+  ]
+ },
+ {
+  "file": "Server/session-dup.mjs",
+  "bytes": 7560,
+  "header": "Server/session-dup.mjs — READ-ONLY. How much owner-prompt text does the repo store that the SDK session files already hold?",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-10-13",
+  "refs": 0,
+  "refFiles": []
+ },
+ {
+  "file": "Server/session-flags.mjs",
+  "bytes": 6823,
+  "header": "Server/session-flags.mjs — what each Claude session IS and what looks wrong with it, computed from the real transcripts.",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-09",
+  "refs": 4,
+  "refFiles": [
+   "public/framework/ai/AISession/AISessionFlags.js",
+   "public/framework/ai/AISession/AISessionRows.js",
+   "public/framework/ai/AISession/AISessionSource.mjs",
+   "public/framework/ai/systems-map.md"
+  ]
+ },
+ {
+  "file": "Server/session-gap.mjs",
+  "bytes": 2001,
+  "header": "Server/session-gap.mjs — compute, don't recall: how many raw Claude transcripts have no session cache?",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-08",
+  "refs": 0,
+  "refFiles": []
+ },
+ {
+  "file": "Server/session-latency.mjs",
+  "bytes": 4872,
+  "header": "Server/session-latency.mjs — measure the real-time path end to end, headless:",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-10-08",
+  "refs": 0,
+  "refFiles": []
+ },
+ {
+  "file": "Server/session-links.mjs",
+  "bytes": 1902,
+  "header": "Server/session-links.mjs — what a session's own folder holds, and which other sessions it is tied to.",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-09",
+  "refs": 1,
+  "refFiles": [
+   "public/framework/ai/AISession/AISessionIndex.mjs"
+  ]
+ },
+ {
+  "file": "Server/session-migrate.mjs",
+  "bytes": 13379,
+  "header": "Server/session-migrate.mjs — one folder per session: ai/sessions/YYYY/MM/DD/<slug>/  (owner decision 2026-10-08, doc/data-architecture-2026-10-08.md section 12)",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-10",
+  "refs": 9,
+  "refFiles": [
+   "Server/TaskDirs.mjs",
+   "Server/session-migrate.test.mjs",
+   "public/framework/ext/Refine/runs/2026-10-10/brief.md",
+   "public/framework/ext/Refine/runs/2026-10-10/clean.md",
+   "public/framework/ext/Refine/runs/2026-10-10/coverage.md",
+   "public/framework/ext/Refine/runs/2026-10-10/input.txt",
+   "public/framework/ext/Refine/runs/2026-10-10/raw.txt",
+   "public/framework/ext/Refine/runs/2026-10-10/structured-haiku.md"
+  ]
+ },
+ {
+  "file": "Server/session-migrate.test.mjs",
+  "bytes": 3596,
+  "header": "node Server/session-migrate.test.mjs — builds a tiny fake checkout, migrates it, checks every folder arrived, then undoes it.",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-10-09",
+  "refs": 6,
+  "refFiles": [
+   "public/framework/ext/Refine/runs/2026-10-10/clean.md",
+   "public/framework/ext/Refine/runs/2026-10-10/coverage.md",
+   "public/framework/ext/Refine/runs/2026-10-10/input.txt",
+   "public/framework/ext/Refine/runs/2026-10-10/raw.txt",
+   "public/framework/ext/Refine/runs/2026-10-10/structured-haiku.md",
+   "public/framework/ext/Refine/runs/2026-10-10/structured.md"
+  ]
+ },
+ {
+  "file": "Server/session-patterns.mjs",
+  "bytes": 6810,
+  "header": "node Server/session-patterns.mjs [--write]   Counts every place a session's data lives today and prints the table",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-10-09",
+  "refs": 0,
+  "refFiles": []
+ },
+ {
+  "file": "Server/session-place.mjs",
+  "bytes": 2276,
+  "header": "Moves every flat session folder (ai/sessions/<id>/) into its day (ai/sessions/YYYY/MM/DD/<id>/), the day of its",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-10-08",
+  "refs": 2,
+  "refFiles": [
+   "Server/session-patterns.mjs",
+   "Server/session-place.test.mjs"
+  ]
+ },
+ {
+  "file": "Server/session-place.test.mjs",
+  "bytes": 2747,
+  "header": "The day layout: a flat session folder is moved into its first_at day by the first writer, and the record survives the move.",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-10-08",
+  "refs": 0,
+  "refFiles": []
+ },
+ {
+  "file": "Server/session-query.mjs",
+  "bytes": 6386,
+  "header": "Server/session-query.mjs — find past sessions the way the Sessions dashboard does, and say what they cost.",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-09",
+  "refs": 1,
+  "refFiles": [
+   "Servex/agents/tools.js"
+  ]
+ },
+ {
+  "file": "Server/session-rename.mjs",
+  "bytes": 4693,
+  "header": "node Server/session-rename.mjs [--apply] — the one scripted rename of the Session classes into public/framework/ai/AISession/.",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-10-08",
+  "refs": 0,
+  "refFiles": []
+ },
+ {
+  "file": "Server/session-summary.mjs",
+  "bytes": 12843,
+  "header": "Server/session-summary.mjs — ask a script, not a file: what did one Claude session cost?",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-09",
+  "refs": 15,
+  "refFiles": [
+   ".gitignore",
+   "Server/plugins/AILogs.js",
+   "Server/session-gap.mjs",
+   "Server/session-summary.test.mjs",
+   "Servex/agents/tools.js",
+   "public/framework/ai/AISession/AISessionIndex.mjs",
+   "public/framework/ai/AISession/AISessionRows.js",
+   "public/framework/ext/Refine/runs/2026-10-08/brief.md"
+  ]
+ },
+ {
+  "file": "Server/session-summary.test.mjs",
+  "bytes": 4021,
+  "header": "node Server/session-summary.test.mjs [session-id]",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-10-08",
+  "refs": 0,
+  "refFiles": []
+ },
+ {
+  "file": "Server/shots.mjs",
+  "bytes": 6658,
+  "header": "`node Server/shots.mjs <url or path> [widths] [--note \"...\"] [--css \"rules\"] [--vs <round id>]",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-12",
+  "refs": 14,
+  "refFiles": [
+   ".gitignore",
+   "Server/Steps.mjs",
+   "Server/merge.mjs",
+   "public/framework/ai/doc/unreferenced-verdicts.md",
+   "public/framework/ai/doc/unreferenced.md",
+   "public/framework/dev/DevBar/shots.js",
+   "public/framework/ext/Figma/FigmaComparePage.js",
+   "public/framework/ext/Shots/Shots.mjs"
+  ]
+ },
+ {
+  "file": "Server/sidebar-index-check.mjs",
+  "bytes": 1655,
+  "header": "Sidebar search index: size, load time, and whether every declared child of the `leaf: true`",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-10-12",
+  "refs": 1,
+  "refFiles": [
+   "public/framework/core/Sidebar/doc/index.md"
+  ]
+ },
+ {
+  "file": "Server/smoke.mjs",
+  "bytes": 28938,
+  "header": "`node Server/smoke.mjs <worktree dir> [paths...] [--port N | --base URL] [--main <repo>]`",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-13",
+  "refs": 27,
+  "refFiles": [
+   ".claude/hooks/server-guard.mjs",
+   ".claude/hooks/server-guard.test.mjs",
+   ".claude/skills/every-prompt/page-assistant.md",
+   ".claude/skills/mastermind/SKILL.md",
+   ".claude/skills/minion/improvements.md",
+   ".claude/skills/sub-mastermind/SKILL.md",
+   "Server/README.md",
+   "Server/Steps.mjs"
+  ]
+ },
+ {
+  "file": "Server/sources.mjs",
+  "bytes": 11628,
+  "header": "sources.mjs — the source library's own tool: look before you fetch, and the fetcher itself.",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-09-28",
+  "refs": 3,
+  "refFiles": [
+   "public/framework/sources/doc/decisions.md",
+   "public/framework/sources/page.js",
+   "public/framework/sources/readme.md"
+  ]
+ },
+ {
+  "file": "Server/spend-tree.mjs",
+  "bytes": 18719,
+  "header": "Server/spend-tree.mjs — who spawned whom, why, and what it cost, nested.",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-12",
+  "refs": 7,
+  "refFiles": [
+   ".gitignore",
+   "Server/doc/task-cost.md",
+   "public/framework/ai/AISession/AISessionAudit.mjs",
+   "public/framework/ai/AISession/AISessionRows.js",
+   "public/framework/ai/AISession/AISessionTrace.js",
+   "public/framework/ai/AISession/AISessionsPage.js",
+   "public/framework/ai/past-work-index.md"
+  ]
+ },
+ {
+  "file": "Server/systems-beat.mjs",
+  "bytes": 904,
+  "header": "systems-beat.mjs — one heartbeat cycle of the organizational systems (public/framework/ext/System/).",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-10-12",
+  "refs": 2,
+  "refFiles": [
+   "public/framework/ai/doc/organization.md",
+   "public/framework/ext/System/doc/system.md"
+  ]
+ },
+ {
+  "file": "Server/task-cost.mjs",
+  "bytes": 18050,
+  "header": "task-cost.mjs — the dollar cost of a task: its share of its Servex root agent's time, plus every",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-13",
+  "refs": 21,
+  "refFiles": [
+   "Server/day-spend.mjs",
+   "Server/doc/task-cost.md",
+   "Server/page-ai-cost.mjs",
+   "Server/spend-tree.mjs",
+   "Servex/Budget.js",
+   "Servex/Servex.js",
+   "Servex/agents/Echo.js",
+   "Servex/asks/tasks.js"
+  ]
+ }
+]

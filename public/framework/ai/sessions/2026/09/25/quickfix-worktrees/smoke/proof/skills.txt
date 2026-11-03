@@ -1,0 +1,17 @@
++++ b/.claude/skills/minion/SKILL.md
++**Nothing merges into michael/dev without a smoke test.** `node Server/merge.mjs <worktree> [pages]` loads the pages you touched, plus `/framework/` and `/framework/ai2/`, on the worktree's own server, and merges only with zero console errors, page errors and failed module requests. A full UI test is not needed to merge.
++## Quick fixes: take, write, smoke-test, merge, return
++1. Call the Servex MCP tool `take_worktree()`; it gives `{id, path, branch, url}`.
++2. Write into `path` and commit there.
++3. Run `node Server/merge.mjs <path> <pages you touched>`: the smoke test plus the serialized merge. On a failure, fix and rerun.
++4. Call `return_worktree(id)` when done or unused.
++5. Servex always keeps one ready, so don't start your own worktree for a small fix.
++++ b/.claude/skills/sub-mastermind/SKILL.md
++**Nothing merges into michael/dev without a smoke test.** `node Server/merge.mjs <worktree> [pages]` loads the pages you touched, plus `/framework/` and `/framework/ai2/`, on the worktree's own server, and merges only with zero console errors, page errors and failed module requests. A full UI test is not needed to merge.
++## Quick fixes: take, write, smoke-test, merge, return
++1. Call the Servex MCP tool `take_worktree()`; it gives `{id, path, branch, url}`.
++2. Write into `path` and commit there.
++3. Run `node Server/merge.mjs <path> <pages you touched>`: the smoke test plus the serialized merge. On a failure, fix and rerun.
++4. Call `return_worktree(id)` when done or unused.
++5. Servex always keeps one ready, so don't start your own worktree for a small fix.
++- The merge itself is `node Server/merge.mjs <worktree> [pages]`: it locks, smoke-tests, holds reloads and merges.

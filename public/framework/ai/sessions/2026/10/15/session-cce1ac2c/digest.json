@@ -1,0 +1,36 @@
+{
+ "id": "cce1ac2c-ba21-4631-ac3f-0d901cfd9a7c",
+ "first": "2026-10-15T21:44:02.735Z",
+ "last": "2026-10-15T22:43:27.503Z",
+ "task": "public/framework/ai/sessions/2026/10/15/voice-20261015/loose-ends",
+ "models": {
+  "claude-haiku-5-5": 27
+ },
+ "sizes": {
+  "raw": 335357,
+  "content": 39658,
+  "stripped": 4848,
+  "owner_only": 0
+ },
+ "usd": 0.530179,
+ "usd_main": 0.530179,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 54,
+  "output": 16570,
+  "cache_read": 2045690,
+  "cache_write": 121353,
+  "w5": 0,
+  "w1": 121353
+ },
+ "messages": 27,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "Item D is done and committed as `c8ed18eb0`; I'm idle, with nothing else running on this task.",
+ "edited": [
+  "public/framework/ai/sessions/2026/10/15/voice-20261015/loose-ends/scan-left.mjs",
+  "public/framework/ai/sessions/2026/10/15/voice-20261015/loose-ends/answer.md",
+  "C:/Users/mike/AppData/Local/Temp/loose-ends-item-d-lines.json"
+ ],
+ "digested_at": "2026-10-16T06:28:10.290Z"
+}

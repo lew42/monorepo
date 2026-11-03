@@ -1,0 +1,31 @@
+{
+ "id": "310f0a3f-d79a-4e80-b45d-d263a51d94df",
+ "first": "2026-10-14T17:18:51.002Z",
+ "last": "2026-10-14T17:19:11.732Z",
+ "models": {
+  "claude-haiku-5-5": 1
+ },
+ "sizes": {
+  "raw": 89581,
+  "content": 59,
+  "stripped": 59,
+  "owner_only": 0
+ },
+ "usd": 0.095228,
+ "usd_main": 0.095228,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 2,
+  "output": 32,
+  "cache_read": 0,
+  "cache_write": 47533,
+  "w5": 0,
+  "w1": 47533
+ },
+ "messages": 1,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "Standing by. I'll wait for the owner's next words and turn them into cards as they arrive.",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.194Z"
+}

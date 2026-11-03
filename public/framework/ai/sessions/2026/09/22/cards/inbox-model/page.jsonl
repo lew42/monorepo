@@ -1,0 +1,6 @@
+{"class":"/framework/ai2/card.js","title":"Note: sub-cards in the next column — tomorrow's first build","type":"card","id":"2026/09/22/inbox-model","created":"2026-09-22T17:44:12-05:00","by":"ai2-master-detail","tags":[]}
+{"legacy":"inbox-model"}
+{"icon":"inbox"}
+{"text":"Heard and written up as the first brief for tomorrow: the rail stays resizable, the detail page takes the rest with a measure, and a sub-card (a task, a proposal, a transcript paragraph) opens in a third column to its right with the address as the path — dig down, come back up; the detail page carries a table of contents of its sub-cards; the footer shrinks to one line with a proper edge; the two scrollbars become one. It starts on the per-card storage decided at 19:42, with a migration that counts every event in and out."}
+{"status":"working"}
+{"links":[{"url":"/framework/ai/2026-09-22/ai2-nested/requirements.md","label":"the brief"}]}

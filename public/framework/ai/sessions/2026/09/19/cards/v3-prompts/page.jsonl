@@ -1,0 +1,7 @@
+{"class":"/framework/ai2/card.js","title":"Approval, batching, grid lines","type":"card","id":"2026/09/19/v3-prompts","created":"2026-09-19T16:42:57-05:00","by":"assistant","tags":[]}
+{"legacy":"v3-prompts"}
+{"status":"working"}
+{"icon":"rule"}
+{"re":"o-170808"}
+{"parent":"v3-notes"}
+{"text":"You want an approval step on the dashboard, and live transcription batched with a debounce and a configurable wait, not reprocessed per word. The timeline still has no grid lines, and it needs a way to prioritize."}

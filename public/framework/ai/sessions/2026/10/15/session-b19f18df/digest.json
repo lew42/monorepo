@@ -1,0 +1,34 @@
+{
+ "id": "b19f18df-416a-4213-9f77-85f510f64268",
+ "first": "2026-10-15T21:44:14.886Z",
+ "last": "2026-10-15T22:38:30.326Z",
+ "task": "public/framework/ai/sessions/2026/10/15/voice-20261015/sessions-data",
+ "models": {
+  "claude-haiku-5-5": 15
+ },
+ "sizes": {
+  "raw": 184033,
+  "content": 25888,
+  "stripped": 5094,
+  "owner_only": 0
+ },
+ "usd": 0.313015,
+ "usd_main": 0.313015,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 30,
+  "output": 13202,
+  "cache_read": 1048072,
+  "cache_write": 71084,
+  "w5": 0,
+  "w1": 71084
+ },
+ "messages": 15,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "Done and idle. `answers.md` is committed as `5ea75dd47`, and nothing is running.",
+ "edited": [
+  "public/framework/ai/sessions/2026/10/15/voice-20261015/sessions-data/answers.md"
+ ],
+ "digested_at": "2026-10-16T06:28:10.276Z"
+}

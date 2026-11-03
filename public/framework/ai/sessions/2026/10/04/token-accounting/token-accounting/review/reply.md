@@ -1,0 +1,1 @@
+1. [accept] The empty-column shape is pre-existing to the Sessions page shell at every width, not something this diff's new section caused or widened, and it's already named for the owning layout task in doc/decisions.md rather than silently dropped.

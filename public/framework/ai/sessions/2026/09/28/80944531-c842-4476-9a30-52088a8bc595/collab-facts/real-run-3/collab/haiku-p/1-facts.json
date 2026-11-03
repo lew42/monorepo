@@ -1,0 +1,42 @@
+[
+  {
+    "id": "screenshot-full-only",
+    "text": "Screenshots at 1280, 1920, 3440 are required ONLY for a 'full' size review: when a new page, module, tool, or Servex change exists. Light (code, no new page) and none (CSS/docs ≤20 lines) skip screenshots.",
+    "certainty": "settled"
+  },
+  {
+    "id": "merge-gate-always",
+    "text": "Server/merge.mjs ALWAYS enforces a review gate: it refuses any light or full branch that lacks a review newer than its last commit, or carries unanswered [fix] findings. This is non-negotiable.",
+    "certainty": "settled"
+  },
+  {
+    "id": "review-by-size",
+    "text": "A merge requires a review UNLESS the change is 'none' size: CSS or docs only, 20 lines or fewer, and no new file. No review → no gate for 'none' size.",
+    "certainty": "settled"
+  },
+  {
+    "id": "mastermind-override-only",
+    "text": "Only the task mastermind may lower the review size (e.g., from full to light, or full to none), and only by running --why 'self-evident: <one line>' to document the override in the log. A minion agent cannot unilaterally skip the gate.",
+    "certainty": "settled"
+  },
+  {
+    "id": "review-ancestor-ok",
+    "text": "A review of the branch head OR any commit the head descends from satisfies the gate. Once a review passes, new commits that only apply fixes can land without a second review round.",
+    "certainty": "settled"
+  },
+  {
+    "id": "css-shared-screenshot",
+    "text": "If CSS changes are shared across pages (not localized), the change may exceed 20 lines and move from 'none' to 'light' size, triggering a review but NOT screenshots — only the code diff is reviewed by Sonnet, not visual output.",
+    "certainty": "likely"
+  },
+  {
+    "id": "gate-is-mastermind-judgment",
+    "text": "The 'self-evident' override is the mastermind's judgment call. It is not a hard rule that certain changes always skip; it is discretionary and recorded, so decisions are auditable.",
+    "certainty": "settled"
+  },
+  {
+    "id": "no-agent-gate-bypass",
+    "text": "No agent (minion, mastermind, or reviewer) can skip the merge gate by claiming confidence. The gate is a process, not a safety check that skill can waive.",
+    "certainty": "settled"
+  }
+]

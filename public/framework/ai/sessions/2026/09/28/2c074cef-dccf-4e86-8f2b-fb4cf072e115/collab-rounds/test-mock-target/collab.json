@@ -1,0 +1,9 @@
+{
+  "question": "Design a small Stopwatch class: start, stop, reset, elapsed time.",
+  "kind": "design",
+  "target": {"module": "ext/Stopwatch", "class": "Stopwatch"},
+  "members": [
+    {"id": "haiku-a", "model": "claude-haiku-4-5-20251001"},
+    {"id": "sonnet-b", "model": "claude-sonnet-5"}
+  ]
+}

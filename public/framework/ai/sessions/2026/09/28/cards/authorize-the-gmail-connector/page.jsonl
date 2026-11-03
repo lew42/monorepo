@@ -1,0 +1,2 @@
+{"class":"/framework/ai2/card.js","title":"Authorize the Gmail connector?","type":"card","id":"2026/09/28/authorize-the-gmail-connector","created":"2026-09-28T14:20:07-05:00","by":"minion-waiting-sweep","tags":[]}
+{"ask":{"id":"a-mulmttovwx","title":"Authorize the Gmail connector?","question":"Will you authorize the Gmail connector in your claude.ai connector settings, since a non-interactive session can't run that sign-in itself?","at":"2026-09-28T14:20:12-05:00"}}

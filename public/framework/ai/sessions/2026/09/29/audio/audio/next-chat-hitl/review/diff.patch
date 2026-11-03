@@ -1,0 +1,820 @@
+diff --git a/public/framework/ext/Chat/Chat.css b/public/framework/ext/Chat/Chat.css
+index 33f118be..72a5fdda 100644
+--- a/public/framework/ext/Chat/Chat.css
++++ b/public/framework/ext/Chat/Chat.css
+@@ -284,4 +284,43 @@
+ 	.chatbox-text > :first-child { margin-block-start: 0; }
+ 	.chatbox-text :is(ul, ol) { padding-inline-start: 1.3em; }
+ 	.chatbox-text pre { overflow-x: auto; }
++
++	/* A REVISION PAIR (Chat.js's `revision_pair_node()`): the raw words, muted,
++	   right above the tidied-up version — one click swaps to showing ONLY the
++	   raw line, full weight ("back to raw"); a second click returns to the
++	   pair. `.chatbox-revision-raw`'s own `.chatbox-text` margin (above) still
++	   applies since this wrapper carries that class too. */
++	.chatbox-revision-pair { cursor: pointer; }
++	.chatbox-revision-raw { opacity: 0.6; font-size: 0.92em; }
++	.chatbox-revision-pair.showraw .chatbox-revision-raw { opacity: 1; font-size: 1em; }
++	.chatbox-revision-pair.showraw .chatbox-revision-revised { display: none; }
++	.chatbox-revision-revised { margin-block-start: 0.15em; }
++
++	/* SELECTED (Chat.js's `select_bubble()`) — one bubble at a time, a visible
++	   ring, a tap or Esc away from clearing it (requirements.md deliverable 2). */
++	.chatbox-selectable { cursor: pointer; }
++	.chatbox-selected { outline: 2px solid var(--prim); outline-offset: 2px; }
++
++	/* RENAME (deliverable 3) — the button and dropdown a selected bubble grows,
++	   the same shape `ux/Rename`'s own dropdown uses. */
++	.chatbox-rename-btn {
++		display: block;
++		margin-block-start: 0.3em;
++		font: inherit;
++		font-size: 0.8em;
++		padding: 0.15em 0.5em;
++	}
++	.chatbox-rename-select {
++		display: block;
++		margin-block-start: 0.3em;
++		font: inherit;
++		max-width: 100%;
++	}
++	.chatbox-rename-fixtures { display: block; margin-block-start: 0.2em; font-size: 0.8em; }
++
++	/* ✓/? MARKS (deliverable 4) — `ux/Understand`'s own colours: green clear,
++	   yellow unclear. */
++	.chatbox-mark { font-size: 0.95em; }
++	.chatbox-mark-ok { color: var(--ok); }
++	.chatbox-mark-unclear { color: var(--warn); }
+ }
+diff --git a/public/framework/ext/Chat/Chat.js b/public/framework/ext/Chat/Chat.js
+index 99555150..42b00e4b 100644
+--- a/public/framework/ext/Chat/Chat.js
++++ b/public/framework/ext/Chat/Chat.js
+@@ -79,11 +79,21 @@ function label_via($label, via){
+    bubble EXPLICITLY once it is built instead. A module that fails to load (a
+    bad url, a missing file) says so in the card's own place, not silently. */
+ function place_card(place){
+-	const { module, ...rest } = place ?? {};
++	// `on_chosen` (the ✓/? loop-back, below) is OURS, never the module's own
++	// constructor prop — pulled off before `rest` reaches `new mod.default(...)`.
++	const { module, on_chosen, ...rest } = place ?? {};
+ 	const box = el("chatbox-text chatbox-place");
+ 	if (!module){ box.textContent = "(no module named)"; return box; }
+ 	import(module).then(mod => {
+ 		const view = new mod.default({ ...rest, capture: false });
++		// The module's own `write()` is its ONE seam for "an option got picked"
++		// (`ux/Content/ContentModule`'s own doc comment) — wrapping it, rather
++		// than adding a second prop the module has to know about, is the same
++		// "reuse, never rebuild" rule the rename/marks features already follow.
++		if (on_chosen){
++			const original_write = view.write.bind(view);
++			view.write = line => { on_chosen(line); return original_write(line); };
++		}
+ 		box.append(view.el);
+ 	}).catch(err => {
+ 		box.textContent = "(could not load " + module + ")";
+@@ -92,12 +102,57 @@ function place_card(place){
+ 	return box;
+ }
+ 
++/** A REVISION, drawn as a PAIR under its raw line (the owner, 2026-09-29:
++ *  "the revised text right under its raw line, raw greyed"): the raw words
++ *  stay, muted, above the tidied-up version. A click toggles `.showraw` —
++ *  the revised line hides and the raw one loses its muting, "back to raw" —
++ *  a second click returns to the pair. `pc.revision` is `{text, level}`,
++ *  set by `chat_line()` below when a revision line's `re` matches this
++ *  piece's own `at`. */
++function revision_pair_node(pc){
++	const wrap = el("chatbox-text chatbox-revision-pair");
++	wrap.dataset.level = pc.revision.level ?? "";
++	wrap.append(
++		para("chatbox-revision-raw muted", pc.text),
++		para("chatbox-revision-revised", pc.revision.text),
++	);
++	wrap.title = "click to see the raw words";
++	wrap.addEventListener("click", () => wrap.classList.toggle("showraw"));
++	return wrap;
++}
++
+ /** One piece of a bubble's own text — a `place` card if it has one, else its
+- *  markdown. The via mark (if the piece carries one) is on the bubble's own
+- *  sender label instead — see `label_via()` above. */
++ *  markdown, or (once a revision has landed) the raw/revised PAIR above. The
++ *  via mark (if the piece carries one) is on the bubble's own sender label
++ *  instead — see `label_via()` above. */
++/** A ✓/? mark (`ux/Understand`'s own shape, `{mark: "ok"|"unclear", purpose}`),
++ *  glued after the sentence's OWN LAST WORD, not on a line of its own — the
++ *  owner's own words, "a green check mark after it." A non-breaking space is
++ *  `ux/Understand`'s own trick for this (`Understand.js`'s `row()`): it makes
++ *  the mark wrap like a word instead of a block dropping onto its own line. */
++function mark_badge(m){
++	const b = el("chatbox-mark " + (m.mark === "ok" ? "chatbox-mark-ok" : "chatbox-mark-unclear"), "span");
++	b.title = m.purpose || (m.mark === "ok" ? "Reads as clear." : "This sentence might mean more than one thing.");
++	b.textContent = m.mark === "ok" ? "✓" : "?";
++	return b;
++}
++
++/* `md_into` (Markdown) renders `pc.text` as one or more BLOCK elements (a `<p>`,
++   a list, …) inside `node` — appending the mark to `node` itself lands it AFTER
++   that block, on its own line. Landing it inside the LAST block's own last
++   child, with a non-breaking space in front, keeps it on the sentence's own
++   line, right after the last word, the way `ux/Understand` already draws it. */
++function append_mark(node, m){
++	const last = node.lastElementChild ?? node;
++	last.append(" ", mark_badge(m));
++}
++
+ function piece_node(pc){
+ 	if (pc.place) return place_card(pc.place);
+-	return para("chatbox-text", pc.text);
++	if (pc.revision) return revision_pair_node(pc);
++	const node = para("chatbox-text", pc.text);
++	if (pc.mark) append_mark(node, pc.mark);
++	return node;
+ }
+ 
+ function fill(b){
+@@ -129,8 +184,10 @@ function fill(b){
+ 	}
+ }
+ 
+-/** Draw one message: a new bubble, or a paragraph on the bubble it merges into. */
+-export function speak($box, { cls, who, text, sender, at, id }){
++/** Draw one message: a new bubble, or a paragraph on the bubble it merges into.
++ *  `onmount(el)` fires once, only for a brand-new bubble — `chat()`'s own
++ *  selection wiring (below) hangs off it. */
++export function speak($box, { cls, who, text, sender, at, id, onmount }){
+ 	at = Date.parse(at ?? 0) || Date.now();
+ 	const last = mergeable($box, sender, at), piece = { id, text, at };
+ 	if (last){
+@@ -145,6 +202,7 @@ export function speak($box, { cls, who, text, sender, at, id }){
+ 			if (who && who !== "task") who_label(who);
+ 			bubbles.set($b.el, { pieces: [piece], refined: null });
+ 			fill($b.el);
++			onmount?.($b.el);
+ 		});
+ 	});
+ }
+@@ -176,7 +234,7 @@ const key = e => e.chat
+ 	? "chat|" + e.chat.at + "|" + (e.chat.fix ? "fix|" + e.chat.text : "line") + "|" + (e.chat.session ?? "")
+ 	: (e.type === "prompt" && e.id ? "prompt|" + e.id : [e.type, e.id, e.at, e.ref, e.text].join("|"));
+ 
+-export function chat({ source, keep = () => true, answer = () => {} } = {}){
++export function chat({ source, keep = () => true, answer = () => {}, on_select, rename, marks: fetch_marks, on_unclear } = {}){
+ 	let $script;
+ 	const seen = new Set();
+ 
+@@ -212,9 +270,107 @@ export function chat({ source, keep = () => true, answer = () => {} } = {}){
+ 	let pinning = false;
+ 	const follow = fn => { fn(); if (pinning) return; pinning = true; queueMicrotask(() => { pinning = false; down(); }); requestAnimationFrame(down); };
+ 
++	/* SELECTION (the owner: "when you click on a specific card, first it kind of
++	   selects that card"). One bubble at a time, in THIS log; a second tap on the
++	   same bubble, or Esc, clears it — added on top of whatever a bubble's own
++	   click already does (opening a refined bubble, a place card's own clicks),
++	   never instead of it: two listeners on the SAME element both still fire even
++	   when one of them calls `stopPropagation()` (that only blocks bubbling up to
++	   an ANCESTOR, never a sibling listener on the same node — requirements.md's
++	   own "a tap selects AND opens what's inside"). */
++	let $selected = null;
++	function deselect(){
++		if (!$selected) return;
++		$selected.classList.remove("chatbox-selected");
++		$selected.querySelector(":scope > .chatbox-rename-btn")?.remove();
++		$selected.querySelector(":scope > .chatbox-rename-select")?.remove();
++		$selected.querySelector(":scope > .chatbox-rename-fixtures")?.remove();
++		$selected = null;
++		on_select?.(null);
++	}
++	function title_node($b){ return $b.querySelector(":scope > .chatbox-head") ?? $b.querySelector(":scope > .chatbox-text"); }
++	function select_bubble($b){
++		if ($selected === $b) return deselect();
++		deselect();
++		$selected = $b;
++		$b.classList.add("chatbox-selected");
++		on_select?.({ el: $b, text: title_node($b)?.textContent ?? "" });
++		if (rename) add_rename_button($b);
++	}
++	function make_selectable($b){
++		$b.classList.add("chatbox-selectable");
++		$b.tabIndex = 0;
++		$b.addEventListener("click", e => { if (e.target.closest("select, .chatbox-rename-btn")) return; select_bubble($b); });
++	}
++	if (typeof document !== "undefined") document.addEventListener("keydown", e => { if (e.key === "Escape") deselect(); });
++
++	/* RENAME (`ux/Rename`'s own ask, reused — never rebuilt here): `rename.options(text)`
++	   is `rename_options` from `ux/Rename/Rename.js`, handed in by the caller
++	   (`ChatPanel`) so this file never imports `ux/` itself. Choosing a name calls
++	   `rename.on_renamed({el, piece}, name)` — the CALLER delivers the new title
++	   the normal way (a `fix` line, same `at`, so latest wins everywhere the log
++	   is read); `chat_line()`'s own fix handling below then redraws the title
++	   from that line, same as any other correction. */
++	function add_rename_button($b){
++		const $btn = document.createElement("button");
++		$btn.type = "button"; $btn.className = "chatbox-rename-btn"; $btn.textContent = "Rename";
++		$btn.addEventListener("click", e => { e.stopPropagation(); start_rename($b); });
++		$b.appendChild($btn);
++	}
++	async function start_rename($b){
++		const $title = title_node($b);
++		const $btn = $b.querySelector(":scope > .chatbox-rename-btn");
++		if (!$title || !rename) return;
++		const current = ($title.textContent ?? "").replace(/\s*[✓?]\s*$/, "").trim();
++		if ($btn) $btn.disabled = true;
++		const out = await rename.options(current);
++		$btn?.remove();
++		if ($selected !== $b) return;   // deselected while the answer was in flight
++		const $sel = document.createElement("select");
++		$sel.className = "chatbox-rename-select";
++		const opt = (label, value, extra) => Object.assign(document.createElement("option"), { textContent: label, value, ...extra });
++		$sel.append(opt("Pick a name…", "", { disabled: true, selected: true }), opt("Keep current — " + current, "__keep"));
++		(out.names ?? []).forEach(name => $sel.append(opt(name, name)));
++		$sel.addEventListener("click", e => e.stopPropagation());
++		$sel.addEventListener("change", () => {
++			const name = $sel.value;
++			$sel.remove();
++			$b.querySelector(":scope > .chatbox-rename-fixtures")?.remove();
++			if (name && name !== "__keep") rename.on_renamed?.({ el: $b, piece: bubbles.get($b)?.pieces[0] }, name);
++			deselect();
++		});
++		$b.appendChild($sel);
++		if (out.source === "fixtures"){
++			const note = document.createElement("small");
++			note.className = "muted chatbox-rename-fixtures";
++			note.textContent = "fixtures: Servex /api/hitl not reachable";
++			$b.appendChild(note);
++		}
++	}
++
++	/* ✓/? MARKS (`ux/Understand`'s own `marks()`, reused — never rebuilt here):
++	   after each of YOUR OWN lines, asked once, in the background ("the smart
++	   assistant, no hurry" — requirements.md). `fetch_marks` is `marks` from
++	   `ux/Understand/Understand.js`, handed in by `ChatPanel` the same way
++	   `rename` is, so this file never imports `ux/` either. The mark is stored
++	   ON THE PIECE (`piece.mark`) and drawn by `piece_node()` above, so a later
++	   `fill()` keeps showing it without asking again. An UNCLEAR sentence also
++	   calls `on_unclear(chat_line, mark)` once, so the caller can drop a
++	   clarification card into the flow. */
++	function mark_owner_piece(bubble, piece, c){
++		if (!fetch_marks) return;
++		fetch_marks([c.text]).then(out => {
++			const m = out?.marks?.[0];
++			if (!m) return;
++			piece.mark = m;
++			fill(bubble);
++			if (m.mark === "unclear" && m.question) on_unclear?.(c, m);
++		}).catch(() => {});
++	}
++
+ 	function add(cls, who, text, sender, at, id){
+ 		if (!text) return;
+-		follow(() => speak($script, { cls, who, text, sender, at, id }));
++		follow(() => speak($script, { cls, who, text, sender, at, id, onmount: make_selectable }));
+ 	}
+ 
+ 	/* A REPLY'S HEADING (the owner, 2026-09-24): a `heading` field, or a first line
+@@ -223,12 +379,13 @@ export function chat({ source, keep = () => true, answer = () => {} } = {}){
+ 		let head = e.heading, body = e.text ?? "";
+ 		const nl = body.search(/[\r\n]/), first = (nl < 0 ? body : body.slice(0, nl)).trim();
+ 		if (!head && first.startsWith("#")){ head = first.replace(/^#+\s*/, ""); body = nl < 0 ? "" : body.slice(nl + 1).trim(); }
+-		if (!head) return follow(() => speak($script, { cls: "chatbox-reply", who: e.by, text: body, sender: e.by, at: e.at, id: e.id }));
++		if (!head) return follow(() => speak($script, { cls: "chatbox-reply", who: e.by, text: body, sender: e.by, at: e.at, id: e.id, onmount: make_selectable }));
+ 		follow(() => $script.append(() => {
+-			p.c("chatbox chatbox-reply", () => {
++			p.c("chatbox chatbox-reply", $b => {
+ 				who_label(e.by);
+ 				span.c("chatbox-head", $t => { md_into($t.el, head, true); });
+ 				if (body) div.c("chatbox-text md", $t => { md_into($t.el, body); });
++				make_selectable($b.el);
+ 			});
+ 		}));
+ 	}
+@@ -254,6 +411,7 @@ export function chat({ source, keep = () => true, answer = () => {} } = {}){
+ 				});
+ 				const entry = { $q, choices, at: Date.parse(e.at ?? 0) || 0 };
+ 				asks.push(entry);
++				make_selectable($q.el);
+ 			});
+ 		}));
+ 	}
+@@ -302,6 +460,24 @@ export function chat({ source, keep = () => true, answer = () => {} } = {}){
+ 			// its own line rather than dropping it.
+ 		}
+ 
++		/* A REVISION (`ext/Chat/readme.md`'s "revision line"): `c.re` names the
++		   RAW line's own `at` this tidies up, `c.level` says how much — never a
++		   `fix` (a correction to what was actually said) and never its own
++		   bubble. Keyed on the LINE'S SHAPE alone (`re` + `level`, no `fix`), not
++		   on who wrote it, so `ChatPanel`'s own `handle_revision()` and a later
++		   voice-sessions assistant writing the identical shape both land here
++		   with no change. */
++		if (c.re && c.level && !c.fix){
++			const hit = fix_index.get(c.re);
++			if (hit){
++				hit.piece.revision = { text: c.text, level: c.level };
++				return follow(() => fill(hit.bubble));
++			}
++			// The raw line isn't on screen (a page opened mid-conversation) —
++			// still shown, as a plain reply, rather than a revision nobody can see.
++			return follow(() => speak($script, { cls: "chatbox-reply", who: "", text: c.text, sender: "", at: c.at, id: "revision-" + at }));
++		}
++
+ 		follow(() => {
+ 			const last = mergeable($script, who, at);
+ 			const piece = { id: c.at, text: c.text, at, via: c.via, place: c.place };
+@@ -310,6 +486,7 @@ export function chat({ source, keep = () => true, answer = () => {} } = {}){
+ 				last.dataset.at = at;
+ 				fill(last);
+ 				fix_index.set(c.at, { bubble: last, piece });
++				if (cls === "chatbox-you") mark_owner_piece(last, piece, c);
+ 				return;
+ 			}
+ 			$script.append(() => {
+@@ -319,6 +496,8 @@ export function chat({ source, keep = () => true, answer = () => {} } = {}){
+ 					bubbles.set($b.el, { pieces: [piece], refined: null });
+ 					fill($b.el);
+ 					fix_index.set(c.at, { bubble: $b.el, piece });
++					make_selectable($b.el);
++					if (cls === "chatbox-you") mark_owner_piece($b.el, piece, c);
+ 				});
+ 			});
+ 		});
+@@ -342,6 +521,23 @@ export function chat({ source, keep = () => true, answer = () => {} } = {}){
+ 		locked: () => locked,
+ 		/** Kept so callers still work: your words are drawn once, when they are logged, never twice. */
+ 		echo(){},
++		/** Start (or re-start) the rename flow on whatever is currently selected —
++		 *  the composer's "rename this" hooks here (`ChatPanel.js`'s `try_command`),
++		 *  so typing it never ALSO sends it as a message. `false` when nothing is
++		 *  selected — the caller decides what to do then (send it as a plain line). */
++		rename_selected(){ if (!$selected) return false; start_rename($selected); return true; },
++		/** The ✓/? LOOP-BACK: a clarification card's own answer (`place_card()`'s
++		 *  wrapped `write()`) calls this with the ORIGINAL line's `at` and a new
++		 *  mark — flips that sentence's ? back to a ✓ in place, same as choosing
++		 *  an answer in `ux/Understand`'s own demo does. `false` when the piece
++		 *  isn't on screen any more (a page opened after it scrolled off). */
++		resolve_mark(at, mark){
++			const hit = fix_index.get(at);
++			if (!hit) return false;
++			hit.piece.mark = mark;
++			fill(hit.bubble);
++			return true;
++		},
+ 		sync(){
+ 			const fresh = source().filter(e => {
+ 				const k = key(e);
+diff --git a/public/framework/ext/Chat/ChatPanel.js b/public/framework/ext/Chat/ChatPanel.js
+index 98abc5bc..2a4072db 100644
+--- a/public/framework/ext/Chat/ChatPanel.js
++++ b/public/framework/ext/Chat/ChatPanel.js
+@@ -1,6 +1,9 @@
+ import { View } from "/app.js";
+ import { chat } from "./Chat.js";
+ import { composer } from "./Composer.js";
++import { watch as watch_session } from "/framework/ext/Session/Session.js";
++import { rename_options } from "/framework/ux/Rename/Rename.js";
++import { marks } from "/framework/ux/Understand/Understand.js";
+ 
+ View.stylesheet(import.meta, "Chat.css");
+ 
+@@ -35,16 +38,45 @@ export class ChatPanel extends View {
+ 		// Kept even when a real `source` is given, so `say()` always works and a
+ 		// caller that never wires one up (the demo, a quick page) still can.
+ 		this.entries = local;
++		// The last few RAW owner lines this panel has said, for pairing a later
++		// revision to the right one — `handle_revision()`'s own doc has the why.
++		this.raw_recent = [];
+ 
+ 		// Both factories are bare calls, not wrapped in a capture callback: `render()`
+ 		// is already running inside its own `append_fn` (`code` skill's own captor
+ 		// note), the captor is still `this`, and `div.c(...)` inside each one appends
+ 		// itself the moment it is built — a second, manual `this.append()` here would
+ 		// only move the same element a second time.
++		// `watch` — an `ext/Session` file url: every RAW `{chat:{...}}` line it
++		// polls (Session.watch()) lands in `local` UNCHANGED — never through
++		// `Session.entry()`, which flattens to the old `{type,by,text}` shape and
++		// would drop `re`/`level` on the floor. This is what lets a future
++		// voice-sessions assistant's own revision lines pair the exact same way
++		// a Dictate-fed one does (`readme.md`'s "revision line", agreed with
++		// mastermind-servex-7, 2026-09-29): `chat_line()` only reads the shape.
++		if (this.watch) this.stop_watch = watch_session(this.watch, line => {
++			if (line.chat) local.push(line);
++			this.sync();
++		});
++
++		// `local` is read even when a real `source` is given (merged in) — both
++		// `say()`'s own writes (a revision this panel paired itself) and a
++		// watched session's lines need somewhere to land that `source()` alone,
++		// reading only a card's own persisted entries, would never show.
+ 		this.talk = chat({
+-			source: this.source ?? (() => local),
++			source: this.source ? () => [...local, ...this.source()] : () => local,
+ 			keep: this.keep,
+ 			answer: this.answer ?? (() => {}),
++			// SELECT (deliverable 2): one bubble at a time, tracked here only so
++			// `handle_rename()` knows nothing else — `chat()` itself owns the DOM.
++			on_select: sel => { this.selected = sel; },
++			// RENAME (deliverable 3): `ux/Rename`'s own ask, reused as-is; `chat()`
++			// draws the button and the dropdown, this panel only delivers the pick.
++			rename: { options: rename_options, on_renamed: (info, name) => this.deliver_rename(info, name) },
++			// ✓/? MARKS (deliverable 4): behind its own option, `ux/Understand`'s
++			// own ask, reused as-is.
++			marks: this.marks ? marks : undefined,
++			on_unclear: (c, m) => this.handle_unclear(c, m),
+ 		});
+ 
+ 		// ⚠ THE LINE A FUTURE REFINE-LEVEL OPTION EXTENDS (voice-sessions
+@@ -53,7 +85,13 @@ export class ChatPanel extends View {
+ 		// added to this call is the one place it would reach every host of
+ 		// `ChatPanel` at once.
+ 		this.compose = composer({
+-			deliver: this.deliver ?? (async entry => { local.push(entry); this.sync(); return true; }),
++			// The default (no real `deliver`): the universal chat-line shape, straight
++			// through `say()` — so even the plain demo remembers its raw line and can
++			// pair a revision to it, same as every other caller.
++			deliver: this.deliver ?? (async entry => {
++				this.say({ chat: { at: entry.at ?? new Date().toISOString(), from: { kind: "owner" }, via: entry.via, text: entry.text } });
++				return true;
++			}),
+ 			re: this.re,
+ 			mic: this.mic,
+ 			autostart: this.autostart,
+@@ -63,6 +101,19 @@ export class ChatPanel extends View {
+ 			sent: this.sent ?? "sent",
+ 			failed: this.failed ?? "nothing was sent",
+ 			on_text: text => this.on_text?.(text),
++			// PASSED THROUGH UNCHANGED (2026-09-29 reconcile): clean-transcription's
++			// own composer already defaults `revise` to `false` and AI 2 turns on
++			// `"clean"` itself — a default of `"edit"` HERE used to fight that and
++			// force every host into a mode it never asked for. A revision pair
++			// (below) draws for a LINE that carries `re` + `level`, never for the
++			// mode alone, so removing this default costs the pair nothing.
++			revise: this.revise,
++			on_revised: (text, meta) => this.handle_revision(text, meta.raw, meta.level),
++			// RENAME (deliverable 3): "rename this" is a command, not a message —
++			// `chat()`'s own `rename_selected()` starts the dropdown on whatever is
++			// selected and reports whether there WAS one; nothing selected falls
++			// through and this text sends as a plain line, same as any typo would.
++			try_command: text => /^rename this[.!]?$/i.test(text) && this.talk.rename_selected(),
+ 		});
+ 
+ 		this.sync();
+@@ -71,8 +122,79 @@ export class ChatPanel extends View {
+ 	/** Draw whatever is new since the last call — same contract as `chat().sync()`. */
+ 	sync(){ this.talk.sync(); return this; }
+ 
+-	/** Add one entry to the panel's OWN list (ignored once a real `source` is given) and draw it. */
+-	say(entry){ this.entries.push(entry); return this.sync(); }
++	/** Add one entry to the panel's OWN list (ignored once a real `source` is given) and draw it.
++	 *  A fresh RAW owner line (`{chat: {from: {kind: "owner"}, text, …}}`, no `re` of its own) is
++	 *  also remembered — see `handle_revision()` below. */
++	say(entry){
++		if (entry.chat && entry.chat.from?.kind === "owner" && !entry.chat.re) this.remember_raw(entry.chat);
++		this.entries.push(entry);
++		return this.sync();
++	}
++
++	remember_raw(c){
++		this.raw_recent.push({ at: c.at, text: c.text });
++		if (this.raw_recent.length > 20) this.raw_recent.shift();
++	}
++
++	/** A REVISION of something already said — `ux/Revise` running in the
++	 *  background off `ux/Dictate`'s own `revise:` option, a moment after the
++	 *  raw words landed. Paired to its raw line by a `re` (the raw line's own
++	 *  `at`) + `level` on the chat line itself (`ext/Chat/readme.md`'s
++	 *  "revision line"), not by who wrote it — a future voice-sessions
++	 *  assistant writing that same shape into a session file needs no change
++	 *  here (the mastermind, 2026-09-29).
++	 *
++	 *  `raw` is the RAW TEXT `ux/Dictate` revised, not an id — `on_revised`'s
++	 *  own shape (`ux/Dictate/readme.md`) hands back the words, not a chunk
++	 *  id, so the match is by TEXT against the panel's own `raw_recent` (most
++	 *  recent unpaired match wins). A caller with its own real session log
++	 *  (a card's persisted thread, not this panel's local list) needs its own
++	 *  `deliver` to remember its raw lines the same way for this to find them
++	 *  — `readme.md`'s "Left open" note. */
++	handle_revision(text, raw, level){
++		const hit = [...this.raw_recent].reverse().find(r => r.text === raw && !r.used);
++		if (!hit) return;   // no raw line to pair with — never shown as a standalone line either (readme.md)
++		hit.used = true;
++		this.say({ chat: { at: new Date().toISOString(), from: { kind: "owner" }, text, re: hit.at, level } });
++	}
++
++	/** RENAME (deliverable 3): a name chosen on a selected bubble's dropdown
++	 *  (`ux/Rename`'s own ask — `Chat.js`'s `chat()` draws it, this only answers
++	 *  the pick). Delivers the SAME `at` as the renamed piece, `fix: true`, and
++	 *  the new title — the exact shape any other correction uses, so latest
++	 *  wins everywhere the log is read (readme.md). `this.deliver` is asked
++	 *  first, same as a typed message would be, so a real caller (a card, a
++	 *  session) can persist it for real; with none, `say()` writes it straight
++	 *  to this panel's own list, same as the demo. */
++	async deliver_rename(info, name){
++		const at = info.piece?.id ?? new Date().toISOString();
++		const entry = { at, type: "prompt", by: "owner", text: name, via: "typed", fix: true };
++		if (this.deliver){ try { await this.deliver(entry); } catch (e){ console.error("chat: rename delivery failed", e); } }
++		else this.say({ chat: { at, from: { kind: "owner" }, text: name, fix: true } });
++	}
++
++	/** ✓/? MARKS (deliverable 4, behind `marks: true`): an UNCLEAR line drops
++	 *  ONE clarification card into the flow — `place`-d at `ux/Content/Decision`,
++	 *  the exact same card `ux/Understand`'s own demo already uses, unmodified. */
++	handle_unclear(c, m){
++		this.say({ chat: {
++			at: new Date().toISOString(),
++			from: { kind: "assistant" },
++			place: {
++				module: "/framework/ux/Content/Decision/Decision.js",
++				id: "clarify-" + c.at,
++				ask: m.question.ask,
++				options: m.question.options.map(say => ({ say })),
++				// THE LOOP-BACK: a real pick (not the "clear it" unchoose, which
++				// writes `option: null`) flips the ORIGINAL sentence's ? back to a
++				// ✓ — `Chat.js`'s own `resolve_mark()`, keyed on that line's `at`.
++				on_chosen: line => {
++					if (line.chose?.option == null) return;
++					this.talk.resolve_mark(c.at, { mark: "ok", purpose: "Clarified: " + line.chose.option });
++				},
++			},
++		} });
++	}
+ }
+ // On the prototype (`code` skill §4: `classify()` runs inside `super()`, before a
+ // class field would exist) — the one class this View mints, matching Chat.js's
+diff --git a/public/framework/ext/Chat/Composer.js b/public/framework/ext/Chat/Composer.js
+index c487c93b..292c25b0 100644
+--- a/public/framework/ext/Chat/Composer.js
++++ b/public/framework/ext/Chat/Composer.js
+@@ -29,6 +29,8 @@ export function composer({
+ 	deliver, re = () => null, on_text, mic: with_mic = true, autostart, max = MAX_PROMPT,
+ 	placeholder = "say something", hint = "", sent = "sent", failed = "nothing was sent",
+ 	revise = false,   // "clean" | "edit" | "summary" | false (default) — forwarded to `ux/Dictate`'s own option, ai/2026-09-29/audio/
++	on_revised,        // (text, {raw, level}) => … — forwarded the same way, straight from `ux/Dictate`; does nothing unset
++	try_command,       // (text) => boolean — an HITL command ("rename this") the box swallows instead of sending; true = handled
+ } = {}){
+ 	let $box, $input, $note, $raw_btn, mic;
+ 
+@@ -43,6 +45,7 @@ export function composer({
+ 				deliver,
+ 				on_text: text => on_text?.(text),
+ 				revise,
++				on_revised,
+ 				field: $input,
+ 				on_error: e => note(String(e?.message ?? e)),
+ 				// Deliverable 2 - "if Servex/tidy fails, send raw and say so in the hint line":
+@@ -98,6 +101,12 @@ export function composer({
+ 		const msg = $input.el.value.trim();
+ 		// The box is everything on screen, the moving guess included; an empty box says so, never a silent nothing.
+ 		if (!msg) return note("nothing to send — the box is empty");
++		// "rename this" on a selected card is a COMMAND, not a message (requirements.md
++		// deliverable 3: "itself must not also be sent as a chat message"). `try_command`
++		// only swallows it when it actually did something (something was selected) — with
++		// nothing selected, "rename this" has no target, so it falls through and sends
++		// as a plain line, same as any other typo'd command would.
++		if (try_command?.(msg)){ mic?.consume_sent(); $input.el.value = ""; return note("renaming…"); }
+ 		if (msg.length > max) return note("That is " + msg.length + " characters — over the " + max + " limit, so nothing was sent. Trim it and press Send again.");
+ 		mic?.consume_sent();
+ 		$input.el.value = "";
+diff --git a/public/framework/ext/Chat/doc/decisions.md b/public/framework/ext/Chat/doc/decisions.md
+index bf71b5b2..925772c8 100644
+--- a/public/framework/ext/Chat/doc/decisions.md
++++ b/public/framework/ext/Chat/doc/decisions.md
+@@ -1,5 +1,44 @@
+ # Decisions
+ 
++## Select, Rename, ✓/? marks (2026-09-29, `ai/2026-09-29/audio/next-chat-hitl/chat-wire/`)
++
++**What it is:** `readme.md`'s "Select, Rename, ✓/? marks" section is the summary; this
++is the how and the trade-offs.
++
++- **Select and rename live in `Chat.js`, not `ChatPanel.js`,** because the DOM they
++  need (which bubble, its title node) only exists there — `ChatPanel` hands `chat()`
++  two small seams (`on_select`, `rename: {options, on_renamed}`) instead of reaching
++  into `chat()`'s own private elements from outside.
++- **Rename never rebuilds `ux/Rename`'s dropdown markup** — `chat()` draws its own
++  `<select>` (same "pick a name… / keep current / 5 names" shape) because a chat
++  bubble is a plain DOM node from `Chat.js`, not a `View` tree `ux/Rename`'s own
++  `Rename` class could mount into without a second render pipeline. What IS reused,
++  for real, is the only part that matters: `rename_options()` — the network call and
++  the fixtures fallback.
++- **The renamed piece is the bubble's FIRST piece** (`bubbles.get($b).pieces[0]`) —
++  "the heading, or the first line" (requirements.md). A bubble merges several
++  messages from the same sender close together (`MERGE_GAP_MS`); renaming always
++  targets the line the bubble opened with, never a later merged paragraph.
++- **The rename fix line always carries `from: {kind: "owner"}`** — same as
++  `ux/Rename`'s own log, which carries no `from` at all. The owner is who renames a
++  card, even a card the assistant said.
++- **Marks are stored ON THE PIECE** (`piece.mark`), not drawn once and forgotten —
++  `piece_node()` renders it every `fill()` (a merge, a fix), so a redraw never loses
++  the badge or asks `marks()` again.
++- **Left open:** choosing a clarification card's option does not flip its sentence's
++  ? back to a ✓ the way `ux/Understand`'s own demo does (`on_chosen`) — that demo
++  wires a card straight to its sentence's badge; here the card is a `place` line,
++  loaded asynchronously and generically (any `ux/Content` module), with no return
++  path back to the piece that asked for it. Worth building once a real caller
++  actually needs the loop closed, not guessed at now.
++- **Left open:** the "Rename" fix line goes through `this.deliver` when the host gave
++  one (a real card, a real session), same as any composer message — but no live
++  caller yet reads a `fix: true` line and skips re-asking the assistant for it (only
++  `Chat.js`'s own `chat_line()` does, for what's already on screen). A caller with
++  its own persisted log needs to treat a `fix` line as "replace, don't re-answer",
++  the same way `readme.md`'s "revision line" section already flags for a real
++  session file — this is the same shape, applied to a title instead of a sentence.
++
+ ## ChatPanel (2026-09-29, `ai/2026-09-29/audio/c-chat/`)
+ 
+ **What it is:** `ChatPanel.js`, a `View` subclass wrapping `chat()` (the log) and
+diff --git a/public/framework/ext/Chat/panel/page.js b/public/framework/ext/Chat/panel/page.js
+index f309d15e..e8960bff 100644
+--- a/public/framework/ext/Chat/panel/page.js
++++ b/public/framework/ext/Chat/panel/page.js
+@@ -1,4 +1,4 @@
+-import { Page, p, demo, div } from "/app.js";
++import { Page, p, md, demo, div } from "/app.js";
+ import { ChatPanel } from "../ChatPanel.js";
+ import { chat } from "../Chat.js";
+ import { composer } from "../Composer.js";
+@@ -34,7 +34,7 @@ export default new Page({
+ 	content(){
+ 		p("`ChatPanel` is `chat()` (the scrolling log) plus `composer()` (the box, the mic, Send) as ONE class, so the drawer's AI tab and the mobile sheet can build the exact same widget instead of two hand-rolled ones. `new ChatPanel({ source, deliver })` — with neither, it keeps its own list, which is all this page needed to show it.");
+ 
+-		p("**Variable height, no JS measuring:** the panel is only as tall as its content, up to a ceiling (`--chatbox-panel-max`, set by whatever hosts it) — a short conversation stays short; a long one stops growing and only the log scrolls, the composer staying put at the bottom. Below, the same panel with 1 message and with 30, at two widths: narrow like the mobile sheet (its ceiling `70vh`), wide like the desktop drawer (its ceiling the drawer's own height, simulated here as the frame's).");
++		md("**Variable height, no JS measuring:** the panel is only as tall as its content, up to a ceiling (`--chatbox-panel-max`, set by whatever hosts it) — a short conversation stays short; a long one stops growing and only the log scrolls, the composer staying put at the bottom. Below, the same panel with 1 message and with 30, at two widths: narrow like the mobile sheet (its ceiling `70vh`), wide like the desktop drawer (its ceiling the drawer's own height, simulated here as the frame's).");
+ 
+ 		demo(() => {
+ 			div.c("flex wrap gap", () => {
+@@ -66,6 +66,20 @@ export default new Page({
+ 			});
+ 		}, "The same component, a taller ceiling (`--chatbox-panel-max: 100%` of a full-height host, the way the drawer will set it) — a short thread still starts short; the panel never claims the whole frame just because it is allowed to.");
+ 
++		md("**Human in the loop (2026-09-29):** tap any bubble to select it — a border shows it, a second tap or Esc clears it. With a bubble selected, its own Rename button (or typing \"rename this\" in the box below) turns its title into ux/Rename's own dropdown of 5 names; picking one updates it everywhere the log is read. Behind `marks: true` (below), your own lines get a quiet check mark or a yellow question mark from ux/Understand, and an unclear one drops its own clarification card right into the flow.");
++
++		demo(() => {
++			frame(420, 560, () => {
++				p.c("muted", "marks: true — tap a bubble to select it; try \"rename this\" once one is selected");
++				const panel = new ChatPanel({ placeholder: "say something", marks: true }).style("--chatbox-panel-max", "70vh");
++				panel.say({ chat: { at: "2026-09-29T20:00:00Z", from: { kind: "owner" }, text: "Let's ship the basic version first." } });
++				panel.say({ chat: { at: "2026-09-29T20:00:05Z", from: { kind: "owner" }, text: "Maybe we should also handle the edge case, I think." } });
++				panel.say({ chat: { at: "2026-09-29T20:01:00Z", from: { kind: "owner" }, text: "um so i think we should uh go with option two" } });
++				panel.say({ chat: { at: "2026-09-29T20:01:05Z", from: { kind: "owner" }, text: "Let's go with option two.", re: "2026-09-29T20:01:00Z", level: "edit" } });
++				panel.say({ chat: { at: "2026-09-29T20:01:30Z", from: { kind: "assistant" }, text: "# Objective marks for each statement\nSounds good, I'll mark each sentence as we go." } });
++			});
++		}, "Select any bubble (the last one has a heading — its own title to rename); the revision pair (`re` + `level`) draws the tidied-up line right under its raw words; the hedging sentence should pick up a yellow question mark and its own clarification card once `marks()` answers (fixtures today, `/api/hitl` once Servex is restarted).");
++
+ 		p("**v1, kept reachable:** before `ChatPanel`, the drawer's AI tab wired `chat()` and `composer()` by hand, with the log's own fixed `30vh` ceiling — that assembly still works, unchanged, below. `ChatPanel` is v2: the same two parts, now one class, a variable ceiling instead of a fixed one.");
+ 
+ 		demo(() => {
+diff --git a/public/framework/ext/Chat/readme.md b/public/framework/ext/Chat/readme.md
+index 5f7bcf63..c577ea13 100644
+--- a/public/framework/ext/Chat/readme.md
++++ b/public/framework/ext/Chat/readme.md
+@@ -72,6 +72,65 @@ keeps working exactly as before; a universal `{chat: {...}}` line is a
+ completely separate path through `chat()`, so nothing about the old one
+ changed. Demo, both shapes in one log: [/framework/ext/Chat/](/framework/ext/Chat/).
+ 
++## The revision line — a tidied-up PAIR under the raw one (2026-09-29)
++
++A revision is the SAME universal shape, plus two fields: `re` (the raw line's own `at` — which
++line this tidies up) and `level` (`"clean"`/`"edit"`/`"summary"`, `ux/Revise`'s own name for how
++much):
++
++```json
++{"chat": {"at": "2026-09-29T19:02:11Z", "from": {"kind": "owner"}, "text": "the tidied-up words", "re": "2026-09-29T19:02:08Z", "level": "edit"}}
++```
++
++`chat()` never draws this as its own bubble — it finds the piece whose own `at` equals `re` and
++draws the revised text right under the raw words, raw greyed. A click toggles `.showraw`: the
++revised line hides and the raw one takes the full weight back; a second click returns to the
++pair. **Keyed on the SHAPE alone** (`re` + `level`, no `fix`) — not on who wrote it, so this
++works identically whether `ux/Dictate`'s `on_revised` produced it (today, via `ChatPanel`'s own
++`handle_revision()`) or a future voice-sessions smart assistant writes the exact same shape
++straight into a session file (`ext/Session` isn't built yet — the mastermind, 2026-09-29).
++
++**Left open:** `ChatPanel.handle_revision()` pairs by matching the raw TEXT against its own
++`raw_recent` list (`on_revised` hands back the words, not an id) — this only sees raw lines said
++through `ChatPanel.say()` itself. A caller with its own real, persisted log (a card's session,
++not this panel's local list) needs to remember its own raw `at`s the same way for a revision to
++find them; nothing here does that yet for the card-connected mobile sheet.
++
++## Select, Rename, ✓/? marks (2026-09-29, human in the loop)
++
++Three things a chat needs when the assistant has to DO something to a card, not just
++answer in text — the owner's own words: "I could click on a title and say, hey, can
++we rename this?"; "when you click on a specific card, first it kind of selects that
++card"; "a green check mark after it… a yellow question mark… the smart assistant
++could add clarification UI into the chat." All three live in `Chat.js`'s `chat()` and
++are reused, not rebuilt, from the two widgets a sibling task already built:
++[`ux/Rename`](/framework/ux/Rename/) and [`ux/Understand`](/framework/ux/Understand/).
++
++- **Select:** a tap on any bubble (or a placed card inside one) selects it — a visible
++  border, one at a time, a second tap or Esc clears it. Added on top of whatever the
++  bubble's own click already did (opening a refined bubble, a place card's clicks),
++  never instead of it.
++- **Rename:** a selected bubble grows a small Rename button; pressing it, or typing
++  "rename this" into the composer (which never also sends it as a message), asks
++  `ux/Rename`'s own `rename_options()` and turns the bubble's title (its heading, or
++  its first line) into that same 5-name dropdown. Picking one delivers the SAME `at`
++  as the renamed line, `fix: true`, and the new title — the exact shape any other
++  correction uses, so latest wins everywhere the log is read.
++- **✓/? marks:** behind `marks: true` on `ChatPanel` (on in the panel demo, the
++  drawer's AI tab and the ✦ sheet) — after each of your own lines, `ux/Understand`'s
++  `marks()` runs once, in the background, and a quiet ✓ or a yellow **?** lands after
++  it. An unclear line drops ONE clarification card (`ux/Content/Decision`, unmodified)
++  right into the flow, `place`-d the normal way.
++
++Try all three: [`/framework/ext/Chat/panel/`](/framework/ext/Chat/panel/)'s "Human in
++the loop" demo.
++
++**Reconciled with clean-transcription (2026-09-29):** `ChatPanel` used to default
++`revise` to `"edit"`, which fought clean mode's own default of `false` (AI 2 is the
++only caller that wants `"clean"`). `revise` now passes straight through unchanged; a
++revision pair still only draws for a LINE that carries `re` + `level`, never for a
++mode alone.
++
+ ## Watch out
+ 
+ - Smart scroll: at the bottom it follows; scroll up and it freezes; scroll back down and it follows again. [doc/scroll.md](./doc/scroll.md)
+diff --git a/public/framework/ext/drawer/rail.js b/public/framework/ext/drawer/rail.js
+index f3065499..79a8d1ef 100644
+--- a/public/framework/ext/drawer/rail.js
++++ b/public/framework/ext/drawer/rail.js
+@@ -615,6 +615,7 @@ export class DrawerRailSheetPanel extends DrawerRailSheet {
+ 						source: () => card.chat_entries(),
+ 						answer: choice => say(choice, card.id),
+ 						re: () => card.id,
++						marks: true,
+ 						placeholder: "talk into this card",
+ 						sent: "sent — the reply lands in the thread above",
+ 						failed: "Servex is not answering, so nothing was sent",
+@@ -647,6 +648,7 @@ export class DrawerRailSheetPanel extends DrawerRailSheet {
+ 				placeholder: "say something",
+ 				sent: "sent",
+ 				failed: "not sent",
++				marks: true,
+ 				answer: choice => this.on_resume_choice(choice),
+ 				deliver: entry => this.voice_deliver(entry),
+ 			});
+diff --git a/public/framework/ext/drawer/tabs/ai.js b/public/framework/ext/drawer/tabs/ai.js
+index 5ef031b8..baec85ff 100644
+--- a/public/framework/ext/drawer/tabs/ai.js
++++ b/public/framework/ext/drawer/tabs/ai.js
+@@ -255,6 +255,7 @@ export default function ai({ page, card, tabs }){
+ 						source: () => card.chat_entries(),
+ 						answer: choice => say(choice, card.id),
+ 						re: () => card.id,
++						marks: true,
+ 						placeholder: "talk into this card",
+ 						sent: "sent — the reply lands in the thread above",
+ 						failed: "Servex is not answering, so nothing was sent",
+@@ -276,6 +277,7 @@ export default function ai({ page, card, tabs }){
+ 					placeholder: "ask about this page",
+ 					sent: "sent",
+ 					failed: "not sent",
++					marks: true,
+ 					// `on_text` only hides the intro hint — the owner's own bubble is added
+ 					// in `deliver` below, where `entry.via` is there to mark it 🎤/⌨.
+ 					on_text: () => $hint?.el.remove(),
+diff --git a/public/framework/ux/page.js b/public/framework/ux/page.js
+index f50a85a8..f4e9bef6 100644
+--- a/public/framework/ux/page.js
++++ b/public/framework/ux/page.js
+@@ -107,7 +107,7 @@ export default new Page({
+ 			});
+ 		});
+ 
+-		md("**Eleven classes live here — one real page each, not a tab.** Hover a card to flag it.");
++		md("**Fourteen classes live here — one real page each, not a tab.** Hover a card to flag it.");
+ 
+ 		wall(this);
+ 
+diff --git a/public/framework/ux/readme.md b/public/framework/ux/readme.md
+index e7f7ae18..cd5b680d 100644
+--- a/public/framework/ux/readme.md
++++ b/public/framework/ux/readme.md
+@@ -12,14 +12,16 @@ Every module here, and what you would use it for.
+ - [Menu](./Menu/) — a dropdown menu that closes after a pick and on an outside click.
+ - [Pagination](./Pagination/) — a row of page buttons that remembers the current page and drives real content.
+ - [Popover](./Popover/) — one popup anchored to a trigger, in the browser's top layer so no z-index fights it.
++- [Rename](./Rename/) — tap a title, ask to rename it, pick from a dropdown of 5 suggestions.
+ - [Tags](./Tags/) — a chip row where you add and remove tags.
+ - [Tree](./Tree/) — nested rows you can open, drag and drill into, from an array or a `Page`'s children.
++- [Understand](./Understand/) — a ✓ or ? after every sentence, a clarifying question right in the flow.
+ - [Wizard](./Wizard/) — the generic multi-step engine that lessons, courses and signup extend.
+ - [doc](./doc/) — the tier's written rules: [system.md](./doc/system/) and [decisions.md](./doc/decisions/) (a docs folder, no readme).
+ 
+ A **ux** is a *workflow* — signup, login, a wizard, a course, a game lobby — assembled from
+ `ui/` templates and responsive from a phone to 3440. It is a class so that the next case is
+-a subclass, not a fork. Eleven live today, each its own real page under `/framework/ux/` — the
++a subclass, not a fork. Fourteen live today, each its own real page under `/framework/ux/` — the
+ index is a wall of cards, never a tab strip (2026-09-22).
+ 
+ |  | [`ui/`](/framework/ui/) | `ux/` |
+@@ -28,7 +30,7 @@ index is a wall of cards, never a tab strip (2026-09-22).
+ | has | no listener, no state, no lifecycle | all three |
+ | you get | markup, with a copy button | an instance, and every method is a seam |
+ | a variant is | a child page — a different **thing**, not a different value | a named subclass — `class CardHero extends Card` |
+-| today | 20 components | 11 — [Auth](/framework/ux/Auth/) · [Wizard](/framework/ux/Wizard/) · [Tree](/framework/ux/Tree/) · [Course](/framework/ux/Course/) · [Filter](/framework/ux/Filter/) · [Menu](/framework/ux/Menu/) · [Pagination](/framework/ux/Pagination/) · [Tags](/framework/ux/Tags/) · [Dictate](/framework/ux/Dictate/) · [Popover](/framework/ux/Popover/) · [Content](/framework/ux/Content/) |
++| today | 20 components | 14 — [Auth](/framework/ux/Auth/) · [Wizard](/framework/ux/Wizard/) · [Tree](/framework/ux/Tree/) · [Course](/framework/ux/Course/) · [Filter](/framework/ux/Filter/) · [Menu](/framework/ux/Menu/) · [Pagination](/framework/ux/Pagination/) · [Tags](/framework/ux/Tags/) · [Dictate](/framework/ux/Dictate/) · [Popover](/framework/ux/Popover/) · [Content](/framework/ux/Content/) |
+ 
+ ## Use
+ 

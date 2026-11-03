@@ -1,0 +1,1044 @@
+Currently selected nodes:
+- 43:12913: Section · darken
+
+
+<symbol id="43:12913" name="Section · darken" x="-961" y="-999" width="856" height="7773">
+  <text id="43:12769" name="Darken" x="0" y="0" width="856" height="54" />
+  <frame id="43:12770" name="Typography" x="0" y="90" width="856" height="576">
+    <frame id="43:12771" name="Chip Row" x="32" y="36" width="136" height="32">
+      <text id="43:12772" name="TYPOGRAPHY" x="12" y="6" width="112" height="20" />
+    </frame>
+    <text id="43:12773" name="Heading One" x="32" y="104" width="792" height="59" />
+    <text id="43:12774" name="Heading Two" x="32" y="199" width="792" height="54" />
+    <text id="43:12775" name="Heading Three" x="32" y="289" width="792" height="34" />
+    <text id="43:12776" name="Heading four" x="32" y="359" width="792" height="20" />
+    <text id="43:12777" name="Body text uses the scheme text color, adapting across Light, Dark, Prime, and PrimeInvert without any manual overrides." x="32" y="415" width="792" height="58" />
+    <frame id="43:12778" name="Links" x="32" y="509" width="792" height="31">
+      <frame id="43:12779" name="Learn more" x="0" y="0" width="96" height="31">
+        <text id="43:12780" name="Learn more" x="0" y="0" width="96" height="29" />
+        <rounded-rectangle id="43:12781" name="underline" x="0" y="29" width="96" height="2" />
+      </frame>
+      <frame id="43:12782" name="Documentation" x="112" y="0" width="132" height="31">
+        <text id="43:12783" name="Documentation" x="0" y="0" width="132" height="29" />
+        <rounded-rectangle id="43:12784" name="underline" x="0" y="29" width="132" height="2" />
+      </frame>
+      <frame id="43:12785" name="Get started" x="260" y="0" width="94" height="31">
+        <text id="43:12786" name="Get started" x="0" y="0" width="94" height="29" />
+        <rounded-rectangle id="43:12787" name="underline" x="0" y="29" width="94" height="2" />
+      </frame>
+    </frame>
+  </frame>
+  <frame id="43:12788" name="Lists" x="0" y="702" width="856" height="272">
+    <frame id="43:12789" name="Unordered List" x="32" y="36" width="378" height="200">
+      <text id="43:12790" name="Features" x="0" y="0" width="378" height="20" />
+      <frame id="43:12791" name="Group · 4 items" x="0" y="36" width="378" height="164">
+        <frame id="43:12792" name="Adaptive color schemes" x="0" y="0" width="378" height="29">
+          <text id="43:12793" name="●" x="0" y="9.5" width="8" height="10" />
+          <text id="43:12794" name="Adaptive color schemes" x="24" y="0" width="354" height="29" />
+        </frame>
+        <frame id="43:12795" name="Nested lighten / darken" x="0" y="45" width="378" height="29">
+          <text id="43:12796" name="●" x="0" y="9.5" width="8" height="10" />
+          <text id="43:12797" name="Nested lighten / darken" x="24" y="0" width="354" height="29" />
+        </frame>
+        <frame id="43:12798" name="Variable-bound tokens" x="0" y="90" width="378" height="29">
+          <text id="43:12799" name="●" x="0" y="9.5" width="8" height="10" />
+          <text id="43:12800" name="Variable-bound tokens" x="24" y="0" width="354" height="29" />
+        </frame>
+        <frame id="43:12801" name="One-click theme switching" x="0" y="135" width="378" height="29">
+          <text id="43:12802" name="●" x="0" y="9.5" width="8" height="10" />
+          <text id="43:12803" name="One-click theme switching" x="24" y="0" width="354" height="29" />
+        </frame>
+      </frame>
+    </frame>
+    <frame id="43:12804" name="Ordered List" x="446" y="36" width="378" height="200">
+      <text id="43:12805" name="Steps" x="0" y="0" width="378" height="20" />
+      <frame id="43:12806" name="Group · 4 items" x="0" y="36" width="378" height="164">
+        <frame id="43:12807" name="Pick a base color" x="0" y="0" width="378" height="29">
+          <text id="43:12808" name="1" x="0" y="4.5" width="6" height="20" />
+          <text id="43:12809" name="Pick a base color" x="22" y="0" width="356" height="29" />
+        </frame>
+        <frame id="43:12810" name="Set up scheme modes" x="0" y="45" width="378" height="29">
+          <text id="43:12811" name="2" x="0" y="4.5" width="9" height="20" />
+          <text id="43:12812" name="Set up scheme modes" x="25" y="0" width="353" height="29" />
+        </frame>
+        <frame id="43:12813" name="Bind variables to layers" x="0" y="90" width="378" height="29">
+          <text id="43:12814" name="3" x="0" y="4.5" width="9" height="20" />
+          <text id="43:12815" name="Bind variables to layers" x="25" y="0" width="353" height="29" />
+        </frame>
+        <frame id="43:12816" name="Switch and verify" x="0" y="135" width="378" height="29">
+          <text id="43:12817" name="4" x="0" y="4.5" width="10" height="20" />
+          <text id="43:12818" name="Switch and verify" x="26" y="0" width="352" height="29" />
+        </frame>
+      </frame>
+    </frame>
+  </frame>
+  <frame id="43:12819" name="Form Elements" x="0" y="1010" width="856" height="604">
+    <text id="43:12820" name="FORM ELEMENTS" x="32" y="36" width="792" height="20" />
+    <frame id="43:12821" name="Full Name" x="32" y="92" width="792" height="99">
+      <text id="43:12822" name="Full Name" x="0" y="0" width="792" height="20" />
+      <frame id="43:12823" name="Input" x="0" y="36" width="792" height="63">
+        <text id="43:12824" name="Jane Cooper" x="27" y="17" width="738" height="29" />
+      </frame>
+    </frame>
+    <frame id="43:12825" name="Email" x="32" y="227" width="792" height="99">
+      <text id="43:12826" name="Email" x="0" y="0" width="792" height="20" />
+      <frame id="43:12827" name="Input" x="0" y="36" width="792" height="63">
+        <text id="43:12828" name="you@example.com" x="27" y="17" width="738" height="29" />
+      </frame>
+    </frame>
+    <frame id="43:12829" name="Message" x="32" y="362" width="792" height="116">
+      <text id="43:12830" name="Message" x="0" y="0" width="792" height="20" />
+      <frame id="43:12831" name="Textarea" x="0" y="36" width="792" height="80">
+        <text id="43:12832" name="Tell us about your project..." x="27" y="17" width="738" height="29" />
+      </frame>
+    </frame>
+    <frame id="43:12833" name="Buttons" x="32" y="514" width="792" height="54">
+      <frame id="43:12834" name="Submit" x="0" y="0" width="115" height="52">
+        <text id="43:12835" name="Submit" x="26" y="16" width="63" height="20" />
+      </frame>
+      <frame id="43:12836" name="Cancel" x="131" y="0" width="119" height="54">
+        <text id="43:12837" name="Cancel" x="27" y="17" width="65" height="20" />
+      </frame>
+    </frame>
+  </frame>
+  <frame id="17:1051" name="2-Col: Pricing" x="0" y="1650" width="856" height="506">
+    <frame id="17:1052" name="Starter" x="0" y="0" width="416" height="416">
+      <text id="17:1053" name="STARTER" x="32" y="32" width="352" height="20" />
+      <text id="17:1054" name="$9" x="32" y="68" width="352" height="59" />
+      <text id="17:1055" name="per month" x="32" y="143" width="352" height="29" />
+      <rounded-rectangle id="17:1056" name="Rectangle" x="32" y="188" width="352" height="1" />
+      <frame id="17:1057" name="5 projects" x="32" y="205" width="352" height="29">
+        <text id="17:1058" name="✓" x="0" y="4.5" width="12" height="20" />
+        <text id="17:1059" name="5 projects" x="22" y="0" width="80" height="29" />
+      </frame>
+      <frame id="17:1060" name="10GB storage" x="32" y="250" width="352" height="29">
+        <text id="17:1061" name="✓" x="0" y="4.5" width="12" height="20" />
+        <text id="17:1062" name="10GB storage" x="22" y="0" width="107" height="29" />
+      </frame>
+      <frame id="17:1063" name="Email support" x="32" y="295" width="352" height="29">
+        <text id="17:1064" name="✓" x="0" y="4.5" width="12" height="20" />
+        <text id="17:1065" name="Email support" x="22" y="0" width="115" height="29" />
+      </frame>
+      <frame id="17:1066" name="CTA" x="32" y="340" width="352" height="44">
+        <text id="17:1067" name="Choose Plan" x="117" y="12" width="118" height="20" />
+      </frame>
+    </frame>
+    <frame id="17:1068" name="Pro" x="440" y="0" width="416" height="506">
+      <text id="17:1069" name="PRO" x="32" y="32" width="352" height="20" />
+      <text id="17:1070" name="$29" x="32" y="68" width="352" height="59" />
+      <text id="17:1071" name="per month" x="32" y="143" width="352" height="29" />
+      <rounded-rectangle id="17:1072" name="Rectangle" x="32" y="188" width="352" height="1" />
+      <frame id="17:1073" name="Unlimited projects" x="32" y="205" width="352" height="29">
+        <text id="17:1074" name="✓" x="0" y="4.5" width="12" height="20" />
+        <text id="17:1075" name="Unlimited projects" x="22" y="0" width="151" height="29" />
+      </frame>
+      <frame id="17:1076" name="100GB storage" x="32" y="250" width="352" height="29">
+        <text id="17:1077" name="✓" x="0" y="4.5" width="12" height="20" />
+        <text id="17:1078" name="100GB storage" x="22" y="0" width="117" height="29" />
+      </frame>
+      <frame id="17:1079" name="Priority support" x="32" y="295" width="352" height="29">
+        <text id="17:1080" name="✓" x="0" y="4.5" width="12" height="20" />
+        <text id="17:1081" name="Priority support" x="22" y="0" width="127" height="29" />
+      </frame>
+      <frame id="17:1082" name="Custom domains" x="32" y="340" width="352" height="29">
+        <text id="17:1083" name="✓" x="0" y="4.5" width="12" height="20" />
+        <text id="17:1084" name="Custom domains" x="22" y="0" width="139" height="29" />
+      </frame>
+      <frame id="17:1085" name="API access" x="32" y="385" width="352" height="29">
+        <text id="17:1086" name="✓" x="0" y="4.5" width="12" height="20" />
+        <text id="17:1087" name="API access" x="22" y="0" width="86" height="29" />
+      </frame>
+      <frame id="17:1088" name="CTA" x="32" y="430" width="352" height="44">
+        <text id="17:1089" name="Choose Plan" x="117" y="12" width="118" height="20" />
+      </frame>
+    </frame>
+  </frame>
+  <frame id="17:977" name="2-Col: Sidebar + Content" x="0" y="2192" width="856" height="542">
+    <frame id="17:978" name="Sidebar" x="0" y="0" width="280" height="542">
+      <text id="17:979" name="Dashboard" x="24" y="32" width="232" height="34" />
+      <frame id="17:980" name="Overview" x="24" y="90" width="232" height="45">
+        <text id="17:981" name="Overview" x="12" y="8" width="77" height="29" />
+      </frame>
+      <frame id="17:982" name="Analytics" x="24" y="159" width="232" height="45">
+        <text id="17:983" name="Analytics" x="12" y="8" width="74" height="29" />
+      </frame>
+      <frame id="17:984" name="Settings" x="24" y="228" width="232" height="45">
+        <text id="17:985" name="Settings" x="12" y="8" width="68" height="29" />
+      </frame>
+      <frame id="17:986" name="Team" x="24" y="297" width="232" height="45">
+        <text id="17:987" name="Team" x="12" y="8" width="45" height="29" />
+      </frame>
+      <frame id="17:988" name="Billing" x="24" y="366" width="232" height="45">
+        <text id="17:989" name="Billing" x="12" y="8" width="52" height="29" />
+      </frame>
+      <frame id="17:990" name="User" x="24" y="435" width="232" height="75">
+        <ellipse id="17:991" name="Ellipse" x="12" y="21.5" width="32" height="32" />
+        <frame id="17:992" name="Info" x="54" y="12" width="166" height="51">
+          <text id="17:993" name="Jane Cooper" x="0" y="0" width="116" height="20" />
+          <text id="17:994" name="Admin" x="0" y="22" width="55" height="29" />
+        </frame>
+      </frame>
+    </frame>
+    <frame id="17:995" name="Content" x="280" y="0" width="576" height="542">
+      <text id="17:996" name="Overview" x="32" y="32" width="512" height="54" />
+      <frame id="17:997" name="Stats" x="32" y="106" width="512" height="92">
+        <frame id="17:998" name="REVENUE" x="0" y="0" width="162.6666717529297" height="92">
+          <text id="17:999" name="REVENUE" x="16" y="16" width="77" height="20" />
+          <text id="17:1000" name="$12,450" x="16" y="42" width="91" height="34" />
+        </frame>
+        <frame id="17:1001" name="USERS" x="174.6666717529297" y="0" width="162.66665649414062" height="92">
+          <text id="17:1002" name="USERS" x="16" y="16" width="53" height="20" />
+          <text id="17:1003" name="1,247" x="16" y="42" width="59" height="34" />
+        </frame>
+        <frame id="17:1004" name="GROWTH" x="349.33331298828125" y="0" width="162.66665649414062" height="92">
+          <text id="17:1005" name="GROWTH" x="16" y="16" width="74" height="20" />
+          <text id="17:1006" name="+18.2%" x="16" y="42" width="80" height="34" />
+        </frame>
+      </frame>
+      <frame id="17:1007" name="Recent Activity" x="32" y="218" width="512" height="229">
+        <text id="17:1008" name="RECENT ACTIVITY" x="16" y="16" width="480" height="20" />
+        <frame id="17:1009" name="New signup: alex@demo.com" x="16" y="46" width="480" height="49">
+          <rounded-rectangle id="17:1010" name="Rectangle" x="12" y="14.5" width="4" height="20" />
+          <text id="17:1011" name="New signup: alex@demo.com" x="24" y="10" width="242" height="29" />
+        </frame>
+        <frame id="17:1012" name="Payment received: $299" x="16" y="105" width="480" height="49">
+          <rounded-rectangle id="17:1013" name="Rectangle" x="12" y="14.5" width="4" height="20" />
+          <text id="17:1014" name="Payment received: $299" x="24" y="10" width="194" height="29" />
+        </frame>
+        <frame id="17:1015" name="Team invite accepted" x="16" y="164" width="480" height="49">
+          <rounded-rectangle id="17:1016" name="Rectangle" x="12" y="14.5" width="4" height="20" />
+          <text id="17:1017" name="Team invite accepted" x="24" y="10" width="174" height="29" />
+        </frame>
+      </frame>
+    </frame>
+  </frame>
+  <frame id="43:12838" name="UI Controls" x="0" y="2770" width="856" height="1311">
+    <text id="43:12839" name="UI Controls" x="32" y="36" width="792" height="34" />
+    <frame id="43:12840" name="Toggles" x="32" y="106" width="792" height="155">
+      <text id="43:12841" name="Toggles" x="0" y="0" width="792" height="20" />
+      <frame id="43:12842" name="Group · 3 items" x="0" y="36" width="792" height="119">
+        <frame id="43:12843" name="Dark mode" x="0" y="0" width="792" height="29">
+          <frame id="43:12844" name="Track" x="0" y="2.5" width="44" height="24">
+            <ellipse id="43:12845" name="Thumb" x="22" y="2" width="20" height="20" />
+          </frame>
+          <text id="43:12846" name="Dark mode" x="60" y="0" width="732" height="29" />
+        </frame>
+        <frame id="43:12847" name="Notifications" x="0" y="45" width="792" height="29">
+          <frame id="43:12848" name="Track" x="0" y="2.5" width="44" height="24">
+            <ellipse id="43:12849" name="Thumb" x="2" y="2" width="20" height="20" />
+          </frame>
+          <text id="43:12850" name="Notifications" x="60" y="0" width="732" height="29" />
+        </frame>
+        <frame id="43:12851" name="Auto-save" x="0" y="90" width="792" height="29">
+          <frame id="43:12852" name="Track" x="0" y="2.5" width="44" height="24">
+            <ellipse id="43:12853" name="Thumb" x="22" y="2" width="20" height="20" />
+          </frame>
+          <text id="43:12854" name="Auto-save" x="60" y="0" width="732" height="29" />
+        </frame>
+      </frame>
+    </frame>
+    <frame id="43:12855" name="Chips" x="32" y="297" width="792" height="82">
+      <text id="43:12856" name="Tags &amp; Chips" x="0" y="0" width="792" height="20" />
+      <frame id="43:12857" name="Chip Row" x="0" y="36" width="792" height="46">
+        <frame id="43:12858" name="Design" x="12" y="6" width="86" height="32">
+          <text id="43:12859" name="Design" x="12" y="6" width="62" height="20" />
+        </frame>
+        <frame id="43:12860" name="Tokens" x="114" y="6" width="92" height="34">
+          <text id="43:12861" name="Tokens" x="13" y="7" width="66" height="20" />
+        </frame>
+        <frame id="43:12862" name="Variables" x="222" y="6" width="116" height="32">
+          <text id="43:12863" name="Variables" x="12" y="6" width="92" height="20" />
+        </frame>
+        <frame id="43:12864" name="Themes" x="354" y="6" width="92" height="34">
+          <text id="43:12865" name="Themes" x="13" y="7" width="66" height="20" />
+        </frame>
+        <frame id="43:12866" name="Mobile" x="462" y="6" width="90" height="34">
+          <text id="43:12867" name="Mobile" x="13" y="7" width="64" height="20" />
+        </frame>
+        <frame id="43:12868" name="Adaptive" x="568" y="6" width="107" height="32">
+          <text id="43:12869" name="Adaptive" x="12" y="6" width="83" height="20" />
+        </frame>
+      </frame>
+    </frame>
+    <frame id="43:12870" name="Progress" x="32" y="415" width="792" height="140">
+      <text id="43:12871" name="Progress &amp; Sliders" x="0" y="0" width="792" height="20" />
+      <frame id="43:12872" name="Upload" x="0" y="36" width="792" height="44">
+        <frame id="43:12873" name="Label Row" x="0" y="0" width="792" height="20">
+          <text id="43:12874" name="Upload" x="0" y="0" width="396" height="20" />
+          <text id="43:12875" name="72%" x="396" y="0" width="396" height="20" />
+        </frame>
+        <frame id="43:12876" name="Track" x="0" y="36" width="792" height="8">
+          <frame id="43:12877" name="Fill" x="2" y="2" width="216" height="8" />
+        </frame>
+      </frame>
+      <frame id="43:12878" name="Processing" x="0" y="96" width="792" height="44">
+        <frame id="43:12879" name="Label Row" x="0" y="0" width="792" height="20">
+          <text id="43:12880" name="Processing" x="0" y="0" width="396" height="20" />
+          <text id="43:12881" name="45%" x="396" y="0" width="396" height="20" />
+        </frame>
+        <frame id="43:12882" name="Track" x="0" y="36" width="792" height="8">
+          <frame id="43:12883" name="Fill" x="2" y="2" width="135" height="8" />
+        </frame>
+      </frame>
+    </frame>
+    <frame id="43:12884" name="Progress" x="32" y="591" width="792" height="266">
+      <text id="43:12885" name="Progress &amp; Sliders" x="32" y="36" width="728" height="34" />
+      <frame id="43:12886" name="Upload" x="32" y="106" width="728" height="44">
+        <frame id="43:12887" name="Label Row" x="0" y="0" width="728" height="20">
+          <text id="43:12888" name="Upload" x="0" y="0" width="364" height="20" />
+          <text id="43:12889" name="72%" x="364" y="0" width="364" height="20" />
+        </frame>
+        <frame id="43:12890" name="Track" x="0" y="36" width="728" height="8">
+          <frame id="43:12891" name="Fill" x="2" y="2" width="216" height="8" />
+        </frame>
+      </frame>
+      <frame id="43:12892" name="Processing" x="32" y="186" width="728" height="44">
+        <frame id="43:12893" name="Label Row" x="0" y="0" width="728" height="20">
+          <text id="43:12894" name="Processing" x="0" y="0" width="364" height="20" />
+          <text id="43:12895" name="45%" x="364" y="0" width="364" height="20" />
+        </frame>
+        <frame id="43:12896" name="Track" x="0" y="36" width="728" height="8">
+          <frame id="43:12897" name="Fill" x="2" y="2" width="135" height="8" />
+        </frame>
+      </frame>
+    </frame>
+    <frame id="44:15254" name="Progress" x="32" y="893" width="792" height="266">
+      <text id="44:15255" name="Progress &amp; Sliders" x="32" y="36" width="728" height="34" />
+      <frame id="44:15256" name="Upload" x="32" y="106" width="728" height="44">
+        <frame id="44:15257" name="Label Row" x="0" y="0" width="728" height="20">
+          <text id="44:15258" name="Upload" x="0" y="0" width="364" height="20" />
+          <text id="44:15259" name="72%" x="364" y="0" width="364" height="20" />
+        </frame>
+        <frame id="44:15260" name="Track" x="0" y="36" width="728" height="8">
+          <frame id="44:15261" name="Fill" x="2" y="2" width="216" height="8" />
+        </frame>
+      </frame>
+      <frame id="44:15262" name="Processing" x="32" y="186" width="728" height="44">
+        <frame id="44:15263" name="Label Row" x="0" y="0" width="728" height="20">
+          <text id="44:15264" name="Processing" x="0" y="0" width="364" height="20" />
+          <text id="44:15265" name="45%" x="364" y="0" width="364" height="20" />
+        </frame>
+        <frame id="44:15266" name="Track" x="0" y="36" width="728" height="8">
+          <frame id="44:15267" name="Fill" x="2" y="2" width="135" height="8" />
+        </frame>
+      </frame>
+    </frame>
+    <frame id="43:12898" name="Badges" x="32" y="1195" width="792" height="80">
+      <text id="43:12899" name="Badges &amp; Counters" x="0" y="0" width="792" height="20" />
+      <frame id="43:12900" name="Badge Row" x="0" y="36" width="792" height="44">
+        <frame id="43:12901" name="Inbox" x="0" y="0" width="125" height="44">
+          <text id="43:12902" name="Inbox" x="12" y="7.5" width="46" height="29" />
+          <frame id="43:12903" name="Count" x="74" y="6" width="39" height="32">
+            <text id="43:12904" name="12" x="12" y="6" width="15" height="20" />
+          </frame>
+        </frame>
+        <frame id="43:12905" name="Updates" x="141" y="0" width="142" height="44">
+          <text id="43:12906" name="Updates" x="12" y="7.5" width="69" height="29" />
+          <frame id="43:12907" name="Count" x="97" y="6" width="33" height="32">
+            <text id="43:12908" name="3" x="12" y="6" width="9" height="20" />
+          </frame>
+        </frame>
+        <frame id="43:12909" name="Tasks" x="299" y="0" width="128" height="44">
+          <text id="43:12910" name="Tasks" x="12" y="7.5" width="45" height="29" />
+          <frame id="43:12911" name="Count" x="73" y="6" width="43" height="32">
+            <text id="43:12912" name="28" x="12" y="6" width="19" height="20" />
+          </frame>
+        </frame>
+      </frame>
+    </frame>
+  </frame>
+  <frame id="78:13555" name="Task Management &amp; AI Patterns" x="0" y="4117" width="856" height="3656">
+    <frame id="78:13556" name="Section introduction" x="0" y="36" width="856" height="120">
+      <text id="78:13557" name="Title" x="0" y="0" width="856" height="54" />
+      <text id="78:13558" name="Description" x="108" y="62" width="640" height="58" />
+    </frame>
+    <frame id="78:13559" name="Task cards and progress" x="0" y="184" width="856" height="528">
+      <frame id="78:13560" name="Section label" x="32" y="36" width="123" height="32">
+        <text id="78:13561" name="Label" x="10" y="6" width="103" height="20" />
+      </frame>
+      <frame id="78:13562" name="Task card examples" x="32" y="92" width="792" height="257">
+        <frame id="78:13563" name="Simple task example" x="0" y="0" width="330" height="174">
+          <text id="78:13564" name="Type label" x="0" y="0" width="236" height="20" />
+          <frame id="78:13565" name="Simple task card" x="0" y="28" width="330" height="146">
+            <frame id="78:13566" name="Card state" x="16" y="16" width="298" height="20">
+              <frame id="78:13567" name="Badge" x="0" y="0" width="55" height="20">
+                <text id="78:13568" name="Label" x="8" y="4" width="39" height="12" />
+              </frame>
+              <frame id="78:14024" name="more-horizontal" x="282" y="2" width="16" height="16" />
+            </frame>
+            <text id="78:13570" name="Description" x="16" y="48" width="298" height="44" />
+            <frame id="78:13571" name="Task metadata" x="16" y="104" width="298" height="26">
+              <frame id="78:13572" name="Worktree path" x="0" y="6.5" width="146" height="13">
+                <frame id="78:14027" name="git-branch" x="0" y="0" width="13" height="13" />
+                <text id="78:13574" name="Path" x="19" y="0.5" width="127" height="12" />
+              </frame>
+              <frame id="78:13575" name="Agents" x="252" y="0" width="46" height="26">
+                <frame id="78:13576" name="Agent" x="0" y="0" width="26" height="26">
+                  <text id="78:13577" name="Initials" x="6" y="7.5" width="14" height="11" />
+                </frame>
+                <frame id="78:13578" name="Agent" x="20" y="0" width="26" height="26">
+                  <text id="78:13579" name="Initials" x="7.5" y="7.5" width="11" height="11" />
+                </frame>
+              </frame>
+            </frame>
+          </frame>
+        </frame>
+        <frame id="78:13580" name="Complex task example" x="342" y="0" width="450" height="257">
+          <text id="78:13581" name="Type label" x="0" y="0" width="185" height="20" />
+          <frame id="78:13582" name="Complex task card" x="0" y="28" width="450" height="229">
+            <frame id="78:13583" name="Task heading" x="16" y="16" width="418" height="20">
+              <frame id="78:13584" name="Title group" x="0" y="0" width="266" height="20">
+                <frame id="78:13585" name="Badge" x="0" y="0" width="67" height="20">
+                  <text id="78:13586" name="Label" x="8" y="4" width="51" height="12" />
+                </frame>
+                <text id="78:13587" name="Title" x="75" y="0" width="191" height="20" />
+              </frame>
+              <text id="78:13588" name="Completion" x="393" y="3.5" width="25" height="13" />
+            </frame>
+            <text id="78:13589" name="Description" x="16" y="48" width="418" height="38" />
+            <frame id="78:13590" name="Sub-tasks" x="16" y="98" width="418" height="77">
+              <frame id="78:13591" name="Sub-task" x="0" y="0" width="418" height="14">
+                <frame id="78:14030" name="circle-check" x="0" y="0" width="14" height="14" />
+                <text id="78:13593" name="Label" x="22" y="0.5" width="396" height="13" />
+              </frame>
+              <frame id="78:13594" name="Sub-task" x="0" y="21" width="418" height="14">
+                <frame id="78:14033" name="circle-check" x="0" y="0" width="14" height="14" />
+                <text id="78:13596" name="Label" x="22" y="0.5" width="396" height="13" />
+              </frame>
+              <frame id="78:13597" name="Sub-task" x="0" y="42" width="418" height="14">
+                <frame id="78:14036" name="circle" x="0" y="0" width="14" height="14" />
+                <text id="78:13599" name="Label" x="22" y="0.5" width="396" height="13" />
+              </frame>
+              <frame id="78:13600" name="Sub-task" x="0" y="63" width="418" height="14">
+                <frame id="78:14039" name="circle" x="0" y="0" width="14" height="14" />
+                <text id="78:13602" name="Label" x="22" y="0.5" width="396" height="13" />
+              </frame>
+            </frame>
+            <frame id="78:13603" name="Task metadata" x="16" y="187" width="418" height="26">
+              <frame id="78:13604" name="Worktree path" x="0" y="6.5" width="180" height="13">
+                <frame id="78:14042" name="git-branch" x="0" y="0" width="13" height="13" />
+                <text id="78:13606" name="Path" x="19" y="0.5" width="161" height="12" />
+              </frame>
+              <frame id="78:13607" name="Agents" x="352" y="0" width="66" height="26">
+                <frame id="78:13608" name="Agent" x="0" y="0" width="26" height="26">
+                  <text id="78:13609" name="Initials" x="5" y="7.5" width="16" height="11" />
+                </frame>
+                <frame id="78:13610" name="Agent" x="20" y="0" width="26" height="26">
+                  <text id="78:13611" name="Initials" x="7.5" y="7.5" width="11" height="11" />
+                </frame>
+                <frame id="78:13612" name="Agent" x="40" y="0" width="26" height="26">
+                  <text id="78:13613" name="Initials" x="6.5" y="7.5" width="13" height="11" />
+                </frame>
+              </frame>
+            </frame>
+          </frame>
+        </frame>
+      </frame>
+      <frame id="78:13614" name="Progress treatments" x="32" y="373" width="792" height="119">
+        <text id="78:13615" name="Group title" x="0" y="0" width="201" height="20" />
+        <frame id="78:13616" name="Progress examples" x="0" y="30" width="792" height="89">
+          <frame id="78:13617" name="Step segments" x="0" y="0" width="256" height="80">
+            <frame id="78:13618" name="Progress heading" x="14" y="14" width="228" height="13">
+              <text id="78:13619" name="Label" x="0" y="0" width="95" height="13" />
+              <text id="78:13620" name="Value" x="192" y="0.5" width="36" height="12" />
+            </frame>
+            <frame id="78:13621" name="Progress segments" x="14" y="37" width="228" height="7">
+              <rounded-rectangle id="78:13622" name="Step segment" x="0" y="0" width="41.599998474121094" height="7" />
+              <rounded-rectangle id="78:13623" name="Step segment" x="46.599998474121094" y="0" width="41.599998474121094" height="7" />
+              <rounded-rectangle id="78:13624" name="Step segment" x="93.19999694824219" y="0" width="41.599998474121094" height="7" />
+              <rounded-rectangle id="78:13625" name="Step segment" x="139.79998779296875" y="0" width="41.599998474121094" height="7" />
+              <rounded-rectangle id="78:13626" name="Step segment" x="186.39999389648438" y="0" width="41.599998474121094" height="7" />
+            </frame>
+            <text id="78:13627" name="Caption" x="14" y="54" width="228" height="12" />
+          </frame>
+          <frame id="78:13628" name="Linear progress" x="268" y="0" width="256" height="80">
+            <frame id="78:13629" name="Progress heading" x="14" y="14" width="228" height="13">
+              <text id="78:13630" name="Label" x="0" y="0" width="56" height="13" />
+              <text id="78:13631" name="Value" x="206" y="0" width="22" height="12" />
+            </frame>
+            <frame id="78:13632" name="Progress track" x="14" y="37" width="228" height="7">
+              <rounded-rectangle id="78:13633" name="Progress fill" x="0" y="0" width="148" height="7" />
+            </frame>
+            <text id="78:13634" name="Caption" x="14" y="54" width="228" height="12" />
+          </frame>
+          <frame id="78:13635" name="Milestone progress" x="536" y="0" width="256" height="89">
+            <text id="78:13636" name="Label" x="14" y="14" width="63" height="13" />
+            <frame id="78:13637" name="Milestone row" x="14" y="37" width="228" height="16">
+              <frame id="78:13638" name="Milestone group" x="0" y="0" width="57" height="16">
+                <frame id="78:13639" name="Milestone" x="0" y="0" width="16" height="16">
+                  <frame id="78:14045" name="check" x="3" y="3" width="10" height="10" />
+                </frame>
+                <rounded-rectangle id="78:13641" name="Connector" x="16" y="7" width="41" height="2" />
+              </frame>
+              <frame id="78:13642" name="Milestone group" x="57" y="0" width="57" height="16">
+                <frame id="78:13643" name="Milestone" x="0" y="0" width="16" height="16">
+                  <frame id="78:14048" name="check" x="3" y="3" width="10" height="10" />
+                </frame>
+                <rounded-rectangle id="78:13645" name="Connector" x="16" y="7" width="41" height="2" />
+              </frame>
+              <frame id="78:13646" name="Milestone group" x="114" y="0" width="57" height="16">
+                <frame id="78:13647" name="Milestone" x="0" y="0" width="16" height="16">
+                  <frame id="78:14051" name="check" x="3" y="3" width="10" height="10" />
+                </frame>
+                <rounded-rectangle id="78:13649" name="Connector" x="16" y="7" width="41" height="2" />
+              </frame>
+              <frame id="78:13650" name="Milestone group" x="171" y="0" width="57" height="16">
+                <frame id="78:13651" name="Milestone" x="0" y="0" width="16" height="16" />
+              </frame>
+            </frame>
+            <text id="78:13652" name="Caption" x="14" y="63" width="228" height="12" />
+          </frame>
+        </frame>
+      </frame>
+    </frame>
+    <frame id="78:13653" name="Timeline preview" x="0" y="740" width="856" height="555">
+      <frame id="78:13654" name="Section heading" x="32" y="36" width="792" height="32">
+        <frame id="78:13655" name="Section label" x="0" y="0" width="179" height="32">
+          <text id="78:13656" name="Label" x="10" y="6" width="159" height="20" />
+        </frame>
+        <frame id="78:13657" name="View controls" x="672" y="8.5" width="120" height="15">
+          <frame id="78:14054" name="calendar-days" x="0" y="0" width="15" height="15" />
+          <text id="78:13659" name="Date" x="23" y="1" width="97" height="13" />
+        </frame>
+      </frame>
+      <frame id="78:13660" name="Timeline" x="32" y="88" width="792" height="382">
+        <frame id="78:13661" name="Time marking" x="0" y="0" width="792" height="42">
+          <text id="78:13662" name="Time" x="0" y="0" width="64" height="42" />
+          <rounded-rectangle id="78:13663" name="Grid line" x="76" y="0" width="716" height="1" />
+        </frame>
+        <frame id="78:13664" name="Time marking" x="0" y="42" width="792" height="42">
+          <text id="78:13665" name="Time" x="0" y="0" width="64" height="42" />
+          <rounded-rectangle id="78:13666" name="Grid line" x="76" y="0" width="716" height="1" />
+        </frame>
+        <frame id="78:13667" name="Time marking" x="0" y="84" width="792" height="42">
+          <text id="78:13668" name="Time" x="0" y="0" width="64" height="42" />
+          <rounded-rectangle id="78:13669" name="Grid line" x="76" y="0" width="716" height="1" />
+        </frame>
+        <frame id="78:13670" name="Time marking" x="0" y="126" width="792" height="42">
+          <text id="78:13671" name="Time" x="0" y="0" width="64" height="42" />
+          <rounded-rectangle id="78:13672" name="Grid line" x="76" y="0" width="716" height="1" />
+        </frame>
+        <frame id="78:13673" name="Time marking" x="0" y="168" width="792" height="42">
+          <text id="78:13674" name="Time" x="0" y="0" width="64" height="42" />
+          <rounded-rectangle id="78:13675" name="Grid line" x="76" y="0" width="716" height="1" />
+        </frame>
+        <frame id="78:13676" name="Time marking" x="0" y="210" width="792" height="42">
+          <text id="78:13677" name="Time" x="0" y="0" width="64" height="42" />
+          <rounded-rectangle id="78:13678" name="Grid line" x="76" y="0" width="716" height="1" />
+        </frame>
+        <frame id="78:13679" name="Time marking" x="0" y="252" width="792" height="42">
+          <text id="78:13680" name="Time" x="0" y="0" width="64" height="42" />
+          <rounded-rectangle id="78:13681" name="Grid line" x="76" y="0" width="716" height="1" />
+        </frame>
+        <frame id="78:13682" name="Time marking" x="0" y="294" width="792" height="42">
+          <text id="78:13683" name="Time" x="0" y="0" width="64" height="42" />
+          <rounded-rectangle id="78:13684" name="Grid line" x="76" y="0" width="716" height="1" />
+        </frame>
+        <frame id="78:13685" name="Time marking" x="0" y="336" width="792" height="42">
+          <text id="78:13686" name="Time" x="0" y="0" width="64" height="42" />
+          <rounded-rectangle id="78:13687" name="Grid line" x="76" y="0" width="716" height="1" />
+        </frame>
+        <frame id="78:13688" name="Scheduled task" x="92" y="28" width="230" height="86">
+          <frame id="78:13689" name="Schedule" x="11" y="9" width="208" height="26">
+            <text id="78:13690" name="Time" x="0" y="7.5" width="53" height="11" />
+            <frame id="78:13691" name="Agents" x="182" y="0" width="26" height="26">
+              <frame id="78:13692" name="Agent" x="0" y="0" width="26" height="26">
+                <text id="78:13693" name="Initials" x="5" y="7.5" width="16" height="11" />
+              </frame>
+            </frame>
+          </frame>
+          <text id="78:13694" name="Title" x="11" y="40" width="208" height="14" />
+          <frame id="78:13695" name="Worktree path" x="11" y="59" width="84" height="10">
+            <frame id="78:14057" name="git-branch" x="0" y="0" width="10" height="10" />
+            <text id="78:13697" name="Path" x="14" y="0" width="70" height="10" />
+          </frame>
+        </frame>
+        <frame id="78:13698" name="Scheduled task" x="342" y="70" width="244" height="112">
+          <frame id="78:13699" name="Schedule" x="11" y="9" width="222" height="26">
+            <text id="78:13700" name="Time" x="0" y="7.5" width="49" height="11" />
+            <frame id="78:13701" name="Agents" x="196" y="0" width="26" height="26">
+              <frame id="78:13702" name="Agent" x="0" y="0" width="26" height="26">
+                <text id="78:13703" name="Initials" x="7.5" y="7.5" width="11" height="11" />
+              </frame>
+            </frame>
+          </frame>
+          <text id="78:13704" name="Title" x="11" y="40" width="222" height="14" />
+          <frame id="78:13705" name="Worktree path" x="11" y="59" width="92" height="10">
+            <frame id="78:14060" name="git-branch" x="0" y="0" width="10" height="10" />
+            <text id="78:13707" name="Path" x="14" y="0" width="78" height="10" />
+          </frame>
+        </frame>
+        <frame id="78:13708" name="Scheduled task" x="170" y="224" width="252" height="92">
+          <frame id="78:13709" name="Schedule" x="11" y="9" width="230" height="26">
+            <text id="78:13710" name="Time" x="0" y="7.5" width="49" height="11" />
+            <frame id="78:13711" name="Agents" x="204" y="0" width="26" height="26">
+              <frame id="78:13712" name="Agent" x="0" y="0" width="26" height="26">
+                <text id="78:13713" name="Initials" x="6" y="7.5" width="14" height="11" />
+              </frame>
+            </frame>
+          </frame>
+          <text id="78:13714" name="Title" x="11" y="40" width="230" height="14" />
+          <frame id="78:13715" name="Worktree path" x="11" y="59" width="83" height="10">
+            <frame id="78:14063" name="git-branch" x="0" y="0" width="10" height="10" />
+            <text id="78:13717" name="Path" x="14" y="0" width="69" height="10" />
+          </frame>
+        </frame>
+        <frame id="78:13718" name="Current time marker" x="74" y="202" width="716" height="8">
+          <rounded-rectangle id="78:13719" name="Marker dot" x="0" y="0" width="8" height="8" />
+          <rounded-rectangle id="78:13720" name="Marker line" x="14" y="3" width="702" height="2" />
+        </frame>
+      </frame>
+      <text id="78:13721" name="Timeline note" x="32" y="490" width="792" height="29" />
+    </frame>
+    <frame id="78:13722" name="Details and priority" x="0" y="1323" width="856" height="951">
+      <frame id="78:13723" name="Section label" x="32" y="36" width="184" height="32">
+        <text id="78:13724" name="Label" x="10" y="6" width="164" height="20" />
+      </frame>
+      <frame id="78:13725" name="Task details" x="32" y="92" width="792" height="375">
+        <frame id="78:13726" name="Simple detail example" x="0" y="0" width="390" height="361">
+          <text id="78:13727" name="Type label" x="0" y="0" width="107" height="20" />
+          <frame id="78:13728" name="Simple task detail" x="0" y="28" width="390" height="333">
+            <frame id="78:13729" name="Detail heading" x="18" y="18" width="354" height="20">
+              <frame id="78:13730" name="Badge" x="0" y="0" width="77" height="20">
+                <text id="78:13731" name="Label" x="8" y="4" width="61" height="12" />
+              </frame>
+              <frame id="78:14066" name="x" x="338" y="2" width="16" height="16" />
+            </frame>
+            <text id="78:13733" name="Title" x="18" y="52" width="354" height="46" />
+            <frame id="78:13734" name="Task metadata" x="18" y="112" width="354" height="26">
+              <frame id="78:13735" name="Worktree path" x="0" y="6.5" width="146" height="13">
+                <frame id="78:14069" name="git-branch" x="0" y="0" width="13" height="13" />
+                <text id="78:13737" name="Path" x="19" y="0.5" width="127" height="12" />
+              </frame>
+              <frame id="78:13738" name="Agents" x="308" y="0" width="46" height="26">
+                <frame id="78:13739" name="Agent" x="0" y="0" width="26" height="26">
+                  <text id="78:13740" name="Initials" x="6" y="7.5" width="14" height="11" />
+                </frame>
+                <frame id="78:13741" name="Agent" x="20" y="0" width="26" height="26">
+                  <text id="78:13742" name="Initials" x="7.5" y="7.5" width="11" height="11" />
+                </frame>
+              </frame>
+            </frame>
+            <rounded-rectangle id="78:13743" name="Divider" x="18" y="152" width="354" height="1" />
+            <frame id="78:13744" name="Fields" x="18" y="167" width="354" height="62">
+              <frame id="78:13745" name="Detail field" x="0" y="0" width="354" height="14">
+                <frame id="78:14072" name="calendar" x="0" y="0" width="14" height="14" />
+                <text id="78:13747" name="Label" x="22" y="1" width="84" height="12" />
+                <text id="78:13748" name="Value" x="114" y="0.5" width="240" height="13" />
+              </frame>
+              <frame id="78:13749" name="Detail field" x="0" y="24" width="354" height="14">
+                <frame id="78:14075" name="flag" x="0" y="0" width="14" height="14" />
+                <text id="78:13751" name="Label" x="22" y="1" width="84" height="12" />
+                <text id="78:13752" name="Value" x="114" y="0.5" width="240" height="13" />
+              </frame>
+              <frame id="78:13753" name="Detail field" x="0" y="48" width="354" height="14">
+                <frame id="78:14078" name="tag" x="0" y="0" width="14" height="14" />
+                <text id="78:13755" name="Label" x="22" y="1" width="84" height="12" />
+                <text id="78:13756" name="Value" x="114" y="0.5" width="240" height="13" />
+              </frame>
+            </frame>
+            <frame id="78:13757" name="Latest activity" x="18" y="243" width="354" height="72">
+              <text id="78:13758" name="Activity label" x="12" y="12" width="87" height="11" />
+              <text id="78:13759" name="Activity" x="12" y="28" width="330" height="32" />
+            </frame>
+          </frame>
+        </frame>
+        <frame id="78:13760" name="Complex detail example" x="402" y="0" width="390" height="375">
+          <text id="78:13761" name="Type label" x="0" y="0" width="126" height="20" />
+          <frame id="78:13762" name="Complex task detail" x="0" y="28" width="390" height="347">
+            <frame id="78:13763" name="Detail heading" x="18" y="18" width="354" height="20">
+              <frame id="78:13764" name="Badge" x="0" y="0" width="92" height="20">
+                <text id="78:13765" name="Label" x="8" y="4" width="76" height="12" />
+              </frame>
+              <frame id="78:14081" name="x" x="338" y="2" width="16" height="16" />
+            </frame>
+            <text id="78:13767" name="Title" x="18" y="52" width="354" height="23" />
+            <text id="78:13768" name="Description" x="18" y="89" width="354" height="34" />
+            <frame id="78:13769" name="Task metadata" x="18" y="137" width="354" height="26">
+              <frame id="78:13770" name="Worktree path" x="0" y="6.5" width="180" height="13">
+                <frame id="78:14084" name="git-branch" x="0" y="0" width="13" height="13" />
+                <text id="78:13772" name="Path" x="19" y="0.5" width="161" height="12" />
+              </frame>
+              <frame id="78:13773" name="Agents" x="288" y="0" width="66" height="26">
+                <frame id="78:13774" name="Agent" x="0" y="0" width="26" height="26">
+                  <text id="78:13775" name="Initials" x="5" y="7.5" width="16" height="11" />
+                </frame>
+                <frame id="78:13776" name="Agent" x="20" y="0" width="26" height="26">
+                  <text id="78:13777" name="Initials" x="7.5" y="7.5" width="11" height="11" />
+                </frame>
+                <frame id="78:13778" name="Agent" x="40" y="0" width="26" height="26">
+                  <text id="78:13779" name="Initials" x="6.5" y="7.5" width="13" height="11" />
+                </frame>
+              </frame>
+            </frame>
+            <frame id="78:13780" name="Sub-task detail" x="18" y="177" width="354" height="132">
+              <frame id="78:13781" name="Sub-task" x="0" y="0" width="354" height="27">
+                <frame id="78:14087" name="circle-check" x="9" y="7" width="13" height="13" />
+                <text id="78:13783" name="Label" x="30" y="7.5" width="297" height="12" />
+                <text id="78:13784" name="Owner" x="335" y="8" width="10" height="11" />
+              </frame>
+              <frame id="78:13785" name="Sub-task" x="0" y="35" width="354" height="27">
+                <frame id="78:14090" name="circle-check" x="9" y="7" width="13" height="13" />
+                <text id="78:13787" name="Label" x="30" y="7.5" width="297" height="12" />
+                <text id="78:13788" name="Owner" x="335" y="8" width="10" height="11" />
+              </frame>
+              <frame id="78:13789" name="Sub-task" x="0" y="70" width="354" height="27">
+                <frame id="78:14093" name="circle" x="9" y="7" width="13" height="13" />
+                <text id="78:13791" name="Label" x="30" y="7.5" width="294" height="12" />
+                <text id="78:13792" name="Owner" x="332" y="8" width="13" height="11" />
+              </frame>
+              <frame id="78:13793" name="Sub-task" x="0" y="105" width="354" height="27">
+                <frame id="78:14096" name="circle" x="9" y="7" width="13" height="13" />
+                <text id="78:13795" name="Label" x="30" y="7.5" width="297" height="12" />
+                <text id="78:13796" name="Owner" x="335" y="8" width="10" height="11" />
+              </frame>
+            </frame>
+            <frame id="78:13797" name="Progress track" x="18" y="323" width="354" height="6">
+              <rounded-rectangle id="78:13798" name="Progress fill" x="0" y="0" width="168" height="6" />
+            </frame>
+          </frame>
+        </frame>
+      </frame>
+      <rounded-rectangle id="78:13799" name="Section divider" x="32" y="491" width="792" height="1" />
+      <frame id="78:13800" name="Prioritized view" x="32" y="516" width="792" height="399">
+        <frame id="78:13801" name="Priority introduction" x="0" y="0" width="792" height="51">
+          <frame id="78:13802" name="Priority copy" x="0" y="0" width="220" height="51">
+            <text id="78:13803" name="Title" x="0" y="0" width="196" height="34" />
+            <text id="78:13804" name="Description" x="0" y="38" width="220" height="13" />
+          </frame>
+          <text id="78:13805" name="Sort mode" x="688" y="39" width="104" height="12" />
+        </frame>
+        <frame id="78:13806" name="Priority board" x="0" y="63" width="792" height="336">
+          <frame id="78:13807" name="Primary priority" x="0" y="0" width="480" height="220">
+            <frame id="78:13808" name="Priority task" x="0" y="0" width="480" height="220">
+              <frame id="78:13809" name="Priority heading" x="22" y="22" width="436" height="20">
+                <frame id="78:13810" name="Badge" x="0" y="0" width="94" height="20">
+                  <text id="78:13811" name="Label" x="8" y="4" width="78" height="12" />
+                </frame>
+                <frame id="78:14099" name="grip-vertical" x="421" y="2.5" width="15" height="15" />
+              </frame>
+              <text id="78:13813" name="Title" x="22" y="69.66666412353516" width="436" height="30" />
+              <text id="78:13814" name="Description" x="22" y="127.33332824707031" width="436" height="17" />
+              <frame id="78:13815" name="Task metadata" x="22" y="172" width="436" height="26">
+                <frame id="78:13816" name="Worktree path" x="0" y="6.5" width="118" height="13">
+                  <frame id="78:14102" name="git-branch" x="0" y="0" width="13" height="13" />
+                  <text id="78:13818" name="Path" x="19" y="0.5" width="99" height="12" />
+                </frame>
+                <frame id="78:13819" name="Agents" x="370" y="0" width="66" height="26">
+                  <frame id="78:13820" name="Agent" x="0" y="0" width="26" height="26">
+                    <text id="78:13821" name="Initials" x="5" y="7.5" width="16" height="11" />
+                  </frame>
+                  <frame id="78:13822" name="Agent" x="20" y="0" width="26" height="26">
+                    <text id="78:13823" name="Initials" x="7.5" y="7.5" width="11" height="11" />
+                  </frame>
+                  <frame id="78:13824" name="Agent" x="40" y="0" width="26" height="26">
+                    <text id="78:13825" name="Initials" x="6.5" y="7.5" width="13" height="11" />
+                  </frame>
+                </frame>
+              </frame>
+            </frame>
+          </frame>
+          <frame id="78:13826" name="Secondary priorities" x="492" y="0" width="300" height="336">
+            <frame id="78:13827" name="Priority task" x="0" y="0" width="300" height="132">
+              <frame id="78:13828" name="Priority heading" x="14" y="14" width="272" height="20">
+                <frame id="78:13829" name="Badge" x="0" y="0" width="67" height="20">
+                  <text id="78:13830" name="Label" x="8" y="4" width="51" height="12" />
+                </frame>
+                <frame id="78:14105" name="grip-vertical" x="257" y="2.5" width="15" height="15" />
+              </frame>
+              <text id="78:13832" name="Title" x="14" y="53" width="272" height="20" />
+              <frame id="78:13833" name="Task metadata" x="14" y="92" width="272" height="26">
+                <frame id="78:13834" name="Worktree path" x="0" y="6.5" width="116" height="13">
+                  <frame id="78:14108" name="git-branch" x="0" y="0" width="13" height="13" />
+                  <text id="78:13836" name="Path" x="19" y="0.5" width="97" height="12" />
+                </frame>
+                <frame id="78:13837" name="Agents" x="246" y="0" width="26" height="26">
+                  <frame id="78:13838" name="Agent" x="0" y="0" width="26" height="26">
+                    <text id="78:13839" name="Initials" x="7.5" y="7.5" width="11" height="11" />
+                  </frame>
+                </frame>
+              </frame>
+            </frame>
+            <frame id="78:13840" name="Priority task" x="0" y="142" width="300" height="92">
+              <frame id="78:13841" name="Priority heading" x="14" y="14" width="272" height="20">
+                <frame id="78:13842" name="Badge" x="0" y="0" width="30" height="20">
+                  <text id="78:13843" name="Label" x="8" y="4" width="14" height="12" />
+                </frame>
+                <frame id="78:14111" name="grip-vertical" x="257" y="2.5" width="15" height="15" />
+              </frame>
+              <text id="78:13845" name="Title" x="14" y="35.5" width="272" height="15" />
+              <frame id="78:13846" name="Task metadata" x="14" y="52" width="272" height="26">
+                <frame id="78:13847" name="Worktree path" x="0" y="6.5" width="131" height="13">
+                  <frame id="78:14114" name="git-branch" x="0" y="0" width="13" height="13" />
+                  <text id="78:13849" name="Path" x="19" y="0.5" width="112" height="12" />
+                </frame>
+                <frame id="78:13850" name="Agents" x="246" y="0" width="26" height="26">
+                  <frame id="78:13851" name="Agent" x="0" y="0" width="26" height="26">
+                    <text id="78:13852" name="Initials" x="7.5" y="7.5" width="11" height="11" />
+                  </frame>
+                </frame>
+              </frame>
+            </frame>
+            <frame id="78:13853" name="Priority task" x="0" y="244" width="300" height="92">
+              <frame id="78:13854" name="Priority heading" x="14" y="14" width="272" height="20">
+                <frame id="78:13855" name="Badge" x="0" y="0" width="30" height="20">
+                  <text id="78:13856" name="Label" x="8" y="4" width="14" height="12" />
+                </frame>
+                <frame id="78:14117" name="grip-vertical" x="257" y="2.5" width="15" height="15" />
+              </frame>
+              <text id="78:13858" name="Title" x="14" y="35.5" width="272" height="15" />
+              <frame id="78:13859" name="Task metadata" x="14" y="52" width="272" height="26">
+                <frame id="78:13860" name="Worktree path" x="0" y="6.5" width="96" height="13">
+                  <frame id="78:14120" name="git-branch" x="0" y="0" width="13" height="13" />
+                  <text id="78:13862" name="Path" x="19" y="0.5" width="77" height="12" />
+                </frame>
+                <frame id="78:13863" name="Agents" x="246" y="0" width="26" height="26">
+                  <frame id="78:13864" name="Agent" x="0" y="0" width="26" height="26">
+                    <text id="78:13865" name="Initials" x="7.5" y="7.5" width="11" height="11" />
+                  </frame>
+                </frame>
+              </frame>
+            </frame>
+          </frame>
+        </frame>
+      </frame>
+    </frame>
+    <frame id="78:13866" name="AI feedback patterns" x="0" y="2302" width="856" height="1318">
+      <frame id="78:13867" name="Section label" x="32" y="36" width="131" height="32">
+        <text id="78:13868" name="Label" x="10" y="6" width="111" height="20" />
+      </frame>
+      <frame id="78:13869" name="Feedback entry states" x="32" y="92" width="792" height="181">
+        <frame id="78:13870" name="Compact state" x="0" y="0" width="300" height="181">
+          <text id="78:13871" name="State label" x="0" y="0" width="152" height="20" />
+          <frame id="78:13872" name="Task card with toolbar" x="0" y="28" width="300" height="153">
+            <frame id="78:13873" name="Task preview" x="0" y="0" width="300" height="112">
+              <frame id="78:13874" name="Badge" x="14" y="14" width="77" height="20">
+                <text id="78:13875" name="Label" x="8" y="4" width="61" height="12" />
+              </frame>
+              <text id="78:13876" name="Title" x="14" y="44" width="272" height="18" />
+              <frame id="78:13877" name="Task metadata" x="14" y="72" width="272" height="26">
+                <frame id="78:13878" name="Worktree path" x="0" y="6.5" width="106" height="13">
+                  <frame id="78:14123" name="git-branch" x="0" y="0" width="13" height="13" />
+                  <text id="78:13880" name="Path" x="19" y="0.5" width="87" height="12" />
+                </frame>
+                <frame id="78:13881" name="Agents" x="246" y="0" width="26" height="26">
+                  <frame id="78:13882" name="Agent" x="0" y="0" width="26" height="26">
+                    <text id="78:13883" name="Initials" x="7.5" y="7.5" width="11" height="11" />
+                  </frame>
+                </frame>
+              </frame>
+            </frame>
+            <frame id="78:13884" name="Compact AI footer toolbar" x="0" y="112" width="300" height="41">
+              <frame id="78:13885" name="AI feedback action" x="10" y="8" width="71" height="25">
+                <frame id="78:14126" name="sparkles" x="9" y="6" width="13" height="13" />
+                <text id="78:13887" name="Label" x="28" y="6.5" width="34" height="12" />
+              </frame>
+              <frame id="78:13888" name="Footer actions" x="224" y="13.5" width="66" height="14">
+                <frame id="78:14129" name="message-circle" x="0" y="0" width="14" height="14" />
+                <frame id="78:14132" name="paperclip" x="26" y="0" width="14" height="14" />
+                <frame id="78:14135" name="more-horizontal" x="52" y="0" width="14" height="14" />
+              </frame>
+            </frame>
+          </frame>
+        </frame>
+        <frame id="78:13892" name="Expanded state" x="312" y="0" width="480" height="110">
+          <text id="78:13893" name="State label" x="0" y="0" width="189" height="20" />
+          <frame id="78:13894" name="Expanded AI composer" x="0" y="28" width="480" height="82">
+            <text id="78:13895" name="Prompt" x="12" y="12" width="456" height="18" />
+            <frame id="78:13896" name="Composer controls" x="12" y="40" width="456" height="30">
+              <frame id="78:13897" name="Input tools" x="0" y="2.5" width="97" height="25">
+                <frame id="78:13898" name="Dictation" x="0" y="0" width="75" height="25">
+                  <frame id="78:14138" name="mic" x="8" y="6" width="13" height="13" />
+                  <text id="78:13900" name="Label" x="26" y="7" width="41" height="11" />
+                </frame>
+                <frame id="78:14141" name="paperclip" x="83" y="5.5" width="14" height="14" />
+              </frame>
+              <frame id="78:13902" name="Send" x="426" y="0" width="30" height="30">
+                <frame id="78:14144" name="arrow-up" x="7.5" y="7.5" width="15" height="15" />
+              </frame>
+            </frame>
+          </frame>
+        </frame>
+      </frame>
+      <frame id="78:13904" name="AI conversation" x="32" y="297" width="792" height="985">
+        <frame id="78:13905" name="AI session header" x="0" y="0" width="792" height="52">
+          <frame id="78:13906" name="Session selector" x="14" y="12" width="197" height="28">
+            <frame id="78:14147" name="sparkles" x="0" y="6.5" width="15" height="15" />
+            <text id="78:13908" name="Session title" x="23" y="6" width="116" height="16" />
+            <frame id="78:14150" name="chevron-down" x="147" y="7" width="14" height="14" />
+            <frame id="78:13910" name="New session" x="169" y="0" width="28" height="28">
+              <frame id="78:14153" name="plus" x="7" y="7" width="14" height="14" />
+            </frame>
+          </frame>
+          <frame id="78:13912" name="Session actions" x="762" y="18" width="16" height="16">
+            <frame id="78:14156" name="x" x="0" y="0" width="16" height="16" />
+          </frame>
+        </frame>
+        <frame id="78:13914" name="Conversation messages" x="0" y="52" width="792" height="827">
+          <frame id="78:13915" name="Chat message" x="16" y="16" width="760" height="131">
+            <frame id="78:13916" name="Message avatar" x="0" y="0" width="30" height="30">
+              <frame id="78:14159" name="sparkles" x="8" y="8" width="14" height="14" />
+            </frame>
+            <frame id="78:13918" name="Message content" x="40" y="0" width="720" height="131">
+              <frame id="78:13919" name="Message metadata" x="14" y="14" width="692" height="12">
+                <text id="78:13920" name="Author" x="0" y="0" width="11" height="12" />
+                <text id="78:13921" name="Timestamp" x="668" y="0" width="24" height="11" />
+              </frame>
+              <text id="78:13922" name="Question" x="14" y="36" width="692" height="19" />
+              <frame id="78:13923" name="Inline task references" x="14" y="65" width="292" height="13">
+                <frame id="78:13924" name="Task reference" x="0" y="0" width="127" height="13">
+                  <frame id="78:14162" name="square-check-big" x="0" y="0" width="13" height="13" />
+                  <text id="78:13926" name="Reference" x="18" y="0" width="109" height="13" />
+                </frame>
+                <frame id="78:13927" name="Task reference" x="139" y="0" width="153" height="13">
+                  <frame id="78:14165" name="square-check-big" x="0" y="0" width="13" height="13" />
+                  <text id="78:13929" name="Reference" x="18" y="0" width="135" height="13" />
+                </frame>
+              </frame>
+              <frame id="78:13930" name="Question controls" x="14" y="88" width="692" height="29">
+                <frame id="78:13931" name="Button" x="528" y="0" width="74" height="29">
+                  <text id="78:13932" name="Label" x="12" y="8" width="50" height="13" />
+                </frame>
+                <frame id="78:13933" name="Button" x="610" y="0" width="82" height="29">
+                  <frame id="78:14168" name="play" x="12" y="8" width="13" height="13" />
+                  <text id="78:13935" name="Label" x="31" y="8" width="39" height="13" />
+                </frame>
+              </frame>
+            </frame>
+          </frame>
+          <frame id="78:13936" name="Chat message" x="16" y="161" width="760" height="160">
+            <frame id="78:13937" name="Message avatar" x="0" y="0" width="30" height="30">
+              <text id="78:13938" name="Initial" x="4.5" y="9.5" width="21" height="11" />
+            </frame>
+            <frame id="78:13939" name="Message content" x="40" y="0" width="720" height="160">
+              <frame id="78:13940" name="Message metadata" x="14" y="14" width="692" height="12">
+                <text id="78:13941" name="Author" x="0" y="0" width="19" height="12" />
+                <text id="78:13942" name="Timestamp" x="668" y="0" width="24" height="11" />
+              </frame>
+              <text id="78:13943" name="Response" x="14" y="36" width="692" height="19" />
+              <frame id="78:13944" name="Code block" x="14" y="65" width="692" height="81">
+                <frame id="78:13945" name="Code header" x="0" y="0" width="692" height="25">
+                  <text id="78:13946" name="Language" x="10" y="7" width="58" height="11" />
+                  <frame id="78:13947" name="Copy code" x="644" y="7" width="38" height="11">
+                    <frame id="78:14171" name="copy" x="0" y="0" width="11" height="11" />
+                    <text id="78:13949" name="Label" x="15" y="0" width="23" height="11" />
+                  </frame>
+                </frame>
+                <frame id="78:13950" name="Code body" x="0" y="25" width="692" height="56">
+                  <text id="78:13951" name="Code" x="12" y="12" width="668" height="32" />
+                </frame>
+              </frame>
+            </frame>
+          </frame>
+          <frame id="78:13952" name="Chat message" x="16" y="335" width="760" height="152">
+            <frame id="78:13953" name="Message avatar" x="0" y="0" width="30" height="30">
+              <frame id="78:14174" name="sparkles" x="8" y="8" width="14" height="14" />
+            </frame>
+            <frame id="78:13955" name="Message content" x="40" y="0" width="720" height="152">
+              <frame id="78:13956" name="Message metadata" x="14" y="14" width="692" height="12">
+                <text id="78:13957" name="Author" x="0" y="0" width="11" height="12" />
+                <text id="78:13958" name="Timestamp" x="668" y="0" width="24" height="11" />
+              </frame>
+              <text id="78:13959" name="Feedback" x="14" y="36" width="692" height="38" />
+              <frame id="78:13960" name="Embedded task alternative" x="14" y="84" width="692" height="54">
+                <frame id="78:13961" name="Task state" x="12" y="12" width="30" height="30">
+                  <frame id="78:14177" name="square-check-big" x="7.5" y="7.5" width="15" height="15" />
+                </frame>
+                <frame id="78:13963" name="Task copy" x="54" y="13" width="542" height="28">
+                  <text id="78:13964" name="Title" x="0" y="0" width="542" height="13" />
+                  <frame id="78:13965" name="Task path" x="0" y="17" width="111" height="11">
+                    <frame id="78:14180" name="git-branch" x="0" y="0" width="11" height="11" />
+                    <text id="78:13967" name="Path" x="16" y="0" width="95" height="11" />
+                  </frame>
+                </frame>
+                <frame id="78:13968" name="Agents" x="608" y="14" width="46" height="26">
+                  <frame id="78:13969" name="Agent" x="0" y="0" width="26" height="26">
+                    <text id="78:13970" name="Initials" x="7.5" y="7.5" width="11" height="11" />
+                  </frame>
+                  <frame id="78:13971" name="Agent" x="20" y="0" width="26" height="26">
+                    <text id="78:13972" name="Initials" x="6" y="7.5" width="14" height="11" />
+                  </frame>
+                </frame>
+                <frame id="78:14183" name="arrow-up-right" x="666" y="20" width="14" height="14" />
+              </frame>
+            </frame>
+          </frame>
+          <frame id="78:13974" name="Chat message" x="16" y="501" width="760" height="69">
+            <frame id="78:13975" name="Message avatar" x="0" y="0" width="30" height="30">
+              <text id="78:13976" name="Initial" x="4.5" y="9.5" width="21" height="11" />
+            </frame>
+            <frame id="78:13977" name="Message content" x="40" y="0" width="720" height="69">
+              <frame id="78:13978" name="Message metadata" x="14" y="14" width="692" height="12">
+                <text id="78:13979" name="Author" x="0" y="0" width="19" height="12" />
+                <text id="78:13980" name="Timestamp" x="668" y="0" width="24" height="11" />
+              </frame>
+              <text id="78:13981" name="Response" x="14" y="36" width="692" height="19" />
+            </frame>
+          </frame>
+          <frame id="78:13982" name="Chat message" x="16" y="584" width="760" height="227">
+            <frame id="78:13983" name="Message avatar" x="0" y="0" width="30" height="30">
+              <frame id="78:14186" name="sparkles" x="8" y="8" width="14" height="14" />
+            </frame>
+            <frame id="78:13985" name="Message content" x="40" y="0" width="720" height="227">
+              <frame id="78:13986" name="Message metadata" x="14" y="14" width="692" height="12">
+                <text id="78:13987" name="Author" x="0" y="0" width="11" height="12" />
+                <text id="78:13988" name="Timestamp" x="668" y="0" width="24" height="11" />
+              </frame>
+              <frame id="78:13989" name="Review summary" x="14" y="36" width="692" height="20">
+                <text id="78:13990" name="Title" x="0" y="2.5" width="100" height="15" />
+                <frame id="78:13991" name="Badge" x="610" y="0" width="82" height="20">
+                  <text id="78:13992" name="Label" x="8" y="4" width="66" height="12" />
+                </frame>
+              </frame>
+              <frame id="78:13993" name="Code block" x="14" y="66" width="692" height="81">
+                <frame id="78:13994" name="Code header" x="0" y="0" width="692" height="25">
+                  <text id="78:13995" name="Language" x="10" y="7" width="58" height="11" />
+                  <frame id="78:13996" name="Copy code" x="644" y="7" width="38" height="11">
+                    <frame id="78:14189" name="copy" x="0" y="0" width="11" height="11" />
+                    <text id="78:13998" name="Label" x="15" y="0" width="23" height="11" />
+                  </frame>
+                </frame>
+                <frame id="78:13999" name="Code body" x="0" y="25" width="692" height="56">
+                  <text id="78:14000" name="Code" x="12" y="12" width="668" height="32" />
+                </frame>
+              </frame>
+              <text id="78:14001" name="Feedback" x="14" y="157" width="692" height="17" />
+              <frame id="78:14002" name="Review controls" x="14" y="184" width="692" height="29">
+                <frame id="78:14003" name="Button" x="383" y="0" width="89" height="29">
+                  <frame id="78:14192" name="x" x="12" y="8" width="13" height="13" />
+                  <text id="78:14005" name="Label" x="31" y="8" width="46" height="13" />
+                </frame>
+                <frame id="78:14006" name="Button" x="480" y="0" width="101" height="29">
+                  <frame id="78:14195" name="wand-sparkles" x="12" y="8" width="13" height="13" />
+                  <text id="78:14008" name="Label" x="31" y="8" width="58" height="13" />
+                </frame>
+                <frame id="78:14009" name="Button" x="589" y="0" width="103" height="29">
+                  <frame id="78:14198" name="check" x="12" y="8" width="13" height="13" />
+                  <text id="78:14011" name="Label" x="31" y="8" width="60" height="13" />
+                </frame>
+              </frame>
+            </frame>
+          </frame>
+        </frame>
+        <frame id="78:14012" name="Conversation composer" x="0" y="879" width="792" height="106">
+          <frame id="78:14013" name="Expanded AI composer" x="12" y="12" width="768" height="82">
+            <text id="78:14014" name="Prompt" x="12" y="12" width="744" height="18" />
+            <frame id="78:14015" name="Composer controls" x="12" y="40" width="744" height="30">
+              <frame id="78:14016" name="Input tools" x="0" y="2.5" width="97" height="25">
+                <frame id="78:14017" name="Dictation" x="0" y="0" width="75" height="25">
+                  <frame id="78:14201" name="mic" x="8" y="6" width="13" height="13" />
+                  <text id="78:14019" name="Label" x="26" y="7" width="41" height="11" />
+                </frame>
+                <frame id="78:14204" name="paperclip" x="83" y="5.5" width="14" height="14" />
+              </frame>
+              <frame id="78:14021" name="Send" x="714" y="0" width="30" height="30">
+                <frame id="78:14207" name="arrow-up" x="7.5" y="7.5" width="15" height="15" />
+              </frame>
+            </frame>
+          </frame>
+        </frame>
+      </frame>
+    </frame>
+  </frame>
+</symbol>
+IMPORTANT: After you call this tool, you MUST call get_design_context if trying to implement the design, since this tool only returns metadata. If you do not call get_design_context, the agent will not be able to implement the design.

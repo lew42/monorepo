@@ -1,0 +1,51 @@
+import Socket from "/framework/dev/Socket/Socket.js";
+import { edit } from "../Ask/edit.js";
+import Saver from "./Saver.js";
+
+export default class FileSaver extends Saver {
+
+	// A missing document is `null`, not an error — the first save creates it.
+	// Anything else that goes wrong REJECTS instead, so a caller can tell
+	// "not saved yet" apart from "couldn't check."
+	async load(){
+		const response = await fetch(this.path);
+		if (response.status === 404) return null;
+		if (!response.ok) throw new Error(`FileSaver: ${this.path} failed to load (${response.status}).`);
+
+		try {
+			return await response.json();
+		} catch (error){
+			console.warn(`FileSaver: ${this.path} did not parse as JSON — treating it as absent.`, error);
+			return null;
+		}
+	}
+
+	async write(item){
+		if (!edit()) return this.read_only();
+
+		// The one file API (ext/filesystem/FsFile.js) does the write and warns on a refusal.
+		const { default: FsFile } = await import("../filesystem/FsFile.js");
+		return new FsFile({ path: this.path }).write(JSON.stringify(item, null, "\t"));
+	}
+
+	// Fire and forget: `rm` has a reply nobody waits on, so `true` means sent.
+	async delete(){
+		const socket = Socket.singleton();
+		if (!edit()) return this.read_only();
+
+		socket.rpc("rm", this.path);
+		return true;
+	}
+
+	// ⚠ Static hosting has no dev server. Warn ONCE — a save loop would otherwise
+	// fill the console — and never throw: the page stays usable, read-only.
+	read_only(){
+		if (!FileSaver.warned){
+			FileSaver.warned = true;
+			console.warn("FileSaver: no dev socket, so nothing is being written. Mount a LocalStorageSaver to persist off localhost.");
+		}
+		return false;
+	}
+}
+
+FileSaver.warned = false;

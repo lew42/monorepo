@@ -1,7 +1,3 @@
-/* Layer order, restated IN FULL — a short list would misplace `site`.
-   See the header of framework.css. */
-@layer base, theme, site, util;
-
 /* One object: the code, what it renders, and the sentence about it. Reading order
    is code → result → caption — prose is a caption, not a preamble. */
 @layer theme {
@@ -22,7 +18,7 @@
 	   halfway down the box. */
 
 	.demo-bar {
-		display: flex; align-items: center; gap: 0.5em;
+		display: flex; align-items: center; gap: calc(var(--gap) * 0.5);   /* was gap 0.5em - 2026-09-05 ramps */
 		padding: 0.35em var(--demo-pad);
 		font-size: 0.85em;
 		background: var(--tint);
@@ -32,37 +28,24 @@
 	.demo-label { font-weight: 600; color: var(--subtle); }
 	.demo-spacer { flex: 1 1 auto; }
 
+	/* ⚠ `background: none` here, plus lew42's `border: none` beating the transparent
+	     border below, left these with no fill and no edge — 64 of the 101 invisible
+	     pairs the 2026-08-30 hunt found were this one rule, on every demo on the site.
+	     A rung reads on the bar (`--tint`), on a card and inside a dark island, and
+	     `:hover`/`.on` still work by taking the border they always meant to. */
 	.demo-btn {
 		display: flex; align-items: center;
 		padding: 0.2em 0.5em;
 		font-size: 0.9em; font-family: var(--mono);
 		color: var(--subtle);
-		background: none;
+		background: var(--fill-a08);
 		border: 1px solid transparent;
 		border-radius: var(--radius);
 		cursor: pointer;
 	}
 	.demo-btn:hover { color: var(--ink); border-color: var(--line); }
-	.demo-btn.on { color: var(--prim); border-color: var(--prim); }
+	.demo-btn.on { color: var(--prime); border-color: var(--prime); }
 	.demo-btn .icon { font-size: 1.1em; }
-
-	/* Both rules are about `select` defaults in framework.css.
-	   ⚠ `width: auto` — base gives every select `width: 100%`, which in a flex bar
-	     eats the row and collapses the spacer beside it.
-	   ⚠ `background-origin: padding-box` — theme paints the arrow at 100% of the
-	     CONTENT box, so on a shrink-to-fit select every em of padding-right moved
-	     the arrow an em LEFT, onto the text. */
-	.demo-zoom {
-		width: auto;
-		padding: 0.1em 1.4em 0.1em 0.5em;
-		background-origin: padding-box;
-		font-size: 0.9em;
-		color: var(--subtle);
-		border-color: var(--line);
-		border-radius: var(--radius);
-		cursor: pointer;
-	}
-	.demo-zoom:hover { color: var(--ink); border-color: var(--prim); }
 
 	/* `flex-wrap` and a basis, not a query: "room" is the BOX's width, which is the
 	   thing that varies. `.ac("stack")` is the veto for long lines. */
@@ -90,76 +73,84 @@
 
 	.demo.stack .demo-panes { display: block; }
 
-	/* ── the stage: what you resize ──
-	   Why three boxes and not one: demo.js.
-	   ⚠ `margin-inline-end` is exactly the handle's overhang — `.demo` clips, so a
-	   pill sitting half outside would be half missing AND half unclickable. */
-	.demo-stage {
-		position: relative;
-		margin-inline-end: 0.125em;
-		max-width: 100%;
-	}
+	/* `quoted` — the veto on the `wide` demo() and demo.stage() carry: this box is a
+	   quoted aside, not an exhibit, so it stays on the page's reading measure.
+	   ⚠ Four classes deep on purpose — `.page.standard > .wide` is three, and at a tie
+	     the winner would be whichever stylesheet the browser linked last. */
+	.page.standard > .demo.quoted,
+	.page.standard > .demo-stage.quoted { grid-column: main; }
 
-	/* The viewport. The padding is HERE, not on `.demo-render` — that is what makes
-	   the readout honest: the render is the bare content box. */
-	.demo-screen { padding: var(--demo-pad); overflow-x: auto; }
-
-	/* ⚠ Deliberately NO `overflow`: the x-axis cannot be set without forcing y off
-	   `visible` too, and a demo may overflow on purpose — a tooltip, a popover. */
-	.demo-render { min-width: 0; }
-
-	/* `--subtle`, not white: a white pill on `--surface` is invisible, and at 4px
-	   wide a border is most of the shape rather than an outline on it. */
-	.demo-handle {
-		position: absolute; top: 50%; inset-inline-end: -0.125em;
-		width: 0.25em; height: 2em;
-		transform: translateY(-50%);
-		background: var(--subtle);
-		border-radius: 1em;
-		cursor: ew-resize;
-		touch-action: none;          /* or the browser pans instead of dragging */
-	}
-	.demo-handle:hover { background: var(--prim); }
-
-	/* The width the example is laid out at, which is not the width you see when the
-	   zoom is off 100%. That gap is the whole point of having both controls. */
-	.demo-size {
-		margin-top: 0.6em;
-		font-size: 0.62em;
-		letter-spacing: 0.1em;
-		text-align: end;
-		color: var(--subtle);
-		font-family: var(--mono);
-	}
-
-	/* the caption — the sentence that belongs to THIS example */
+	/* the caption — the sentence that belongs to THIS example.
+	   ⚠ TWO elements: the BAND, and the TEXT in it. The band is the box's last strip and
+	     has to reach both of its edges; the sentence is prose and has to stay on the
+	     measure. `max-width` on the band itself did both jobs badly — measured on the
+	     homepage's centrepiece the tint painted 648px of a 1443px box at 3440 (45%,
+	     stopping 795px short) while reading as correct at every width under ~1300, which
+	     is why it survived. demo.js builds the pair. */
 	.demo-note {
 		margin: 0;
-		padding: var(--demo-pad);
 		font-size: 0.9em;
 		color: var(--subtle);
+	}
+
+	.demo-note-text { margin: 0; max-width: var(--measure, none); }
+
+	/* ⚠ Inside a box the caption is the box's last strip; on a PAGE (demo.exhibit)
+	   it is a paragraph under the source, and a tinted band with a hairline over it
+	   would be drawing an edge onto nothing. The padding is `--demo-pad`, which only
+	   `.demo` declares — unscoped it resolved to nothing and the strip had none. */
+	.demo > .demo-note {
+		padding: var(--demo-pad);
 		background: var(--tint);
 		border-top: 1px solid var(--line);
 	}
 
 	.demo-error { padding: 0.8em 1em; color: var(--error); border-color: var(--error); }
 
-	/* A band demo: the one thing a full-width section is FOR is reaching the edge,
+	/* ── the source block ──
+	   ONE code surface: `page.demo()`'s peer column and every `demo.source()` are
+	   this, so the shell's column and a leaf page's block cannot drift apart.
+
+	   It was a `<details>` until demo-merge step 2, and the callers that mattered all
+	   wrote `.attr("open", "")` — a disclosure nobody ever wanted disclosed. Code
+	   beside a render is half the lesson; an aside is what a caption is for. */
+	.demo-source { display: flex; flex-direction: column; gap: calc(var(--gap) * 0.35); }   /* was gap 0.35em - 2026-09-05 ramps */
+
+	.demo-source-head {
+		display: flex; align-items: baseline; gap: calc(var(--gap) * 0.5);   /* was gap 0.5em - 2026-09-05 ramps */
+		font-family: var(--mono); font-size: 0.78em;
+		color: var(--subtle);
+	}
+
+	.demo-source-body {
+		overflow: auto;
+		background: var(--surface);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+	}
+
+	/* ⚠ `max-height` on the SOURCE only, never on a render: code is reference and
+	   scrolls, the specimen is the subject and must be whole. */
+	.demo-source-body > pre {
+		max-height: 34em;
+		margin: 0;
+		padding: 1em;
+		font-size: 0.78em; line-height: 1.55; tab-size: 4;
+	}
+
+	/* Pushed to the end of the header row — the label and the file link read first. */
+	.demo-copy { margin-inline-start: auto; padding: 0.1em 0.35em; }
+
+	/* The whole file, for the reader who wants the imports the lesson leaves out. */
+	.demo-file { margin-inline-start: 0.8em; font-family: var(--mono); }
+
+	/* ── the stage, from inside a `.demo` ──
+	   `.demo-stage` / `.demo-screen` are stage.js's, styled in stage.css; the three
+	   rules below only steer them. demo.js imports that module.
+
+	   A band demo: the one thing a full-width section is FOR is reaching the edge,
 	   so `.bleed` hands the screen's inset back. Pair with `.stack`. */
 	.demo.bleed .demo-screen { padding: 0; }
-
-	/* ── the whole window ──
-	   A toggle, not a url — this is a way of looking at the box, not a place. A demo
-	   whose page offers `{ full: this }` gets a real link instead (demo.js). */
-	.demo.max {
-		position: fixed; inset: 0; z-index: 30;
-		display: flex; flex-direction: column;
-		border-radius: 0;
-		overflow: auto;
-		margin: 0;               /* the page's owl rule reaches a fixed box too */
-	}
-	.demo.max .demo-stage { flex: 1 1 auto; }
-	.demo.max .demo-screen { min-height: 100%; }
 }
 
 /* `.checkered` — the transparency board — was born here and promoted to

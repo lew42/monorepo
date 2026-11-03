@@ -1,0 +1,4 @@
+{"class":"/framework/ai2/card.js","title":"The stash restore is done: 1,008 of the 1,389 pre-reset files are back on disk.","type":"card","id":"2026/09/20/stash-restore","created":"2026-09-20T10:39:38-05:00","by":"stash-restore","tags":[]}
+{"legacy":"stash-restore"}
+{"status":"done"}
+{"text":"301 were already there, 80 were left alone on purpose because they're newer than the stash. Report at /framework/ai/2026-09-20/stash-restore/."}

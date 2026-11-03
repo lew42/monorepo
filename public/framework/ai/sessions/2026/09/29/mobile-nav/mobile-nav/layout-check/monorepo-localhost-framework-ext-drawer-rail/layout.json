@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ext/drawer/rail/",
+ "widths": {
+  "1280": {
+   "empty": 0.569,
+   "widest_text": 601,
+   "widest_text_sample": "Below 52em (about 832px), every page gro",
+   "overflow_x": false,
+   "items": 80,
+   "narrow_share": 0.325
+  },
+  "1920": {
+   "empty": 0.711,
+   "widest_text": 639,
+   "widest_text_sample": "Below 52em (about 832px), every page gro",
+   "overflow_x": false,
+   "items": 80,
+   "narrow_share": 0.9
+  },
+  "2560": {
+   "empty": 0.743,
+   "widest_text": 719,
+   "widest_text_sample": "Below 52em (about 832px), every page gro",
+   "overflow_x": false,
+   "items": 80,
+   "narrow_share": 0.9
+  },
+  "3440": {
+   "empty": 0.809,
+   "widest_text": 719,
+   "widest_text_sample": "Below 52em (about 832px), every page gro",
+   "overflow_x": false,
+   "items": 80,
+   "narrow_share": 0.9
+  }
+ },
+ "errors": []
+}

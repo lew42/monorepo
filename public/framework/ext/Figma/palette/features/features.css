@@ -1,0 +1,28 @@
+@layer base, theme, site, util;
+
+@layer theme {
+	/* `width: "full"` needs the page's own box to span the grid; the look is `.card`. */
+	.fea-page { grid-column: 1 / -1; max-width: none; box-sizing: border-box; }
+
+	.fea-header { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+
+	.fea-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; background: var(--prime); }
+	.card.bg-prime .fea-dot { background: currentColor; }
+
+	/* The eyebrow tag reads in the accent — except on the prime ground itself, where
+	   accent-on-accent is the exact mistake architecture.md §2 calls out; it keeps the
+	   ground's own forced ink there instead. */
+	.fea-accent { color: var(--prime); }
+	.card.bg-prime .fea-accent { color: inherit; }
+
+	.fea-marker { flex-shrink: 0; align-self: flex-start; }
+
+	.fea-divider { height: 1px; }
+
+	.fea-button {
+		text-transform: uppercase;
+		letter-spacing: 0.07em;
+		align-self: stretch;
+		width: 100%;
+	}
+}

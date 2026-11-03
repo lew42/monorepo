@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/core/Page/parts/example/",
+ "widths": {
+  "1280": {
+   "empty": 0.423,
+   "widest_text": 952,
+   "widest_text_sample": "// ✅ a Store attached (core/Item/Store.j",
+   "overflow_x": false,
+   "items": 158,
+   "narrow_share": 0.494
+  },
+  "1920": {
+   "empty": 0.617,
+   "widest_text": 1014,
+   "widest_text_sample": "// ✅ a Store attached (core/Item/Store.j",
+   "overflow_x": false,
+   "items": 158,
+   "narrow_share": 0.823
+  },
+  "2560": {
+   "empty": 0.652,
+   "widest_text": 1140,
+   "widest_text_sample": "// ✅ a Store attached (core/Item/Store.j",
+   "overflow_x": false,
+   "items": 158,
+   "narrow_share": 0.823
+  },
+  "3440": {
+   "empty": 0.734,
+   "widest_text": 1140,
+   "widest_text_sample": "// ✅ a Store attached (core/Item/Store.j",
+   "overflow_x": false,
+   "items": 158,
+   "narrow_share": 0.829
+  }
+ },
+ "errors": []
+}

@@ -1,0 +1,74 @@
+/* ux/Dictate — states you can SEE. Layout is plain framework.css utilities
+ * (flex, gap, muted); everything here is the two things a utility class can't
+ * give a button: a level meter driven by a number set from JS every audio
+ * frame, and a plain still-image pulse for the one engine with no level to
+ * read. doc/decisions.md has the "why a level meter, why capped at 240 chars"
+ * calls. */
+@layer theme {
+
+	/* "on" is a solid, still fact — the owner's own complaint was the button
+	 * flickering with every sound. Same look for both engines; only the level
+	 * bar beside the icon (below) moves. */
+	.ux-dictate-btn.listening { color: var(--prime); box-shadow: 0 0 0 3px var(--prime); }
+
+	/* The level bar: real loudness for whisper (`--ux-dictate-level`, set every
+	 * audio frame in on_level()), a plain still pulse for the browser engine
+	 * (SpeechRecognition owns the mic, not this page — there is no level to
+	 * read, same as ext/Ask/mic.js before it). Invisible off, or before an
+	 * engine is chosen (`--ux-dictate-level` defaults to 0). */
+	.ux-dictate-level {
+		display: inline-block; width: 3px; margin-inline-start: .35em; border-radius: 2px;
+		background: var(--prime); vertical-align: -.1em;
+		height: calc(4px + var(--ux-dictate-level, 0) * 16px);
+	}
+	.ux-dictate-btn.listening[data-engine="whisper"] .ux-dictate-level { transition: height 80ms linear; }
+	.ux-dictate-btn.listening[data-engine="browser"] .ux-dictate-level { animation: ux-dictate-pulse 1.4s ease-in-out infinite; }
+	.ux-dictate-btn:not(.listening) .ux-dictate-level { height: 4px; opacity: 0; }
+
+	/* the last segment is still in flight after the owner pressed stop. */
+	.ux-dictate-btn.transcribing { animation: ux-dictate-pulse .8s ease-in-out infinite; }
+
+	/* asked for, not yet on — a permission prompt or a device still opening. Same pulse
+	 * as "transcribing" (both mean "wait, something is happening"), never the solid
+	 * "listening" look, which the owner's own bug report is why this state exists at all:
+	 * the mic must never LOOK live before it really is. */
+	.ux-dictate-btn.connecting { animation: ux-dictate-pulse .8s ease-in-out infinite; }
+
+	@keyframes ux-dictate-pulse { 50% { opacity: .5; } }
+
+	.ux-dictate-status.error { color: var(--error); }
+
+	/* an idle caption takes no space rather than leaving an empty muted line. */
+	.ux-dictate-caption:empty { display: none; }
+
+	/* ---- the page's own pipeline tiles (page.js) ------------------------------ */
+	.ux-dictate-pipeline-tile { min-width: 10em; text-decoration: none; color: inherit; }
+	.ux-dictate-pipeline-arrow { align-self: center; font-size: 1.3em; }
+
+	/* ---- wide layout (page.js; doc/wide.md) ------------------------------------
+	 * Below 1920 the wrapper repeats the page shell's own two tracks (a 40em reading column
+	 * and the wide track beside it) and lead/rest vanish into it (`contents`), so every child
+	 * sits where it did before the wrapper existed. From 1920 up the workbench sits on the
+	 * left and the rest flows into 28em columns. */
+	.ux-dictate-page { display: grid; grid-template-columns: [bleed-start wide-start main-start] min(40em, 100%) [main-end] minmax(0, 1fr) [wide-end bleed-end]; align-content: start; }
+	.ux-dictate-page > *, .ux-dictate-lead > *, .ux-dictate-rest > * { grid-column: main; min-width: 0; }
+	.ux-dictate-page .wide { grid-column: wide; }
+	.ux-dictate-page .bleed { grid-column: bleed; margin-inline: calc(var(--gutter-x) * -1); }
+	.ux-dictate-lead, .ux-dictate-rest { display: contents; }
+	@media (min-width: 1920px) {
+		.ux-dictate-page { grid-template-columns: minmax(0, 30em) minmax(0, 1fr); gap: 3rem; align-items: start; }
+		.ux-dictate-lead, .ux-dictate-rest { display: block; grid-column: auto; }
+		.ux-dictate-page > .ux-dictate-lead { grid-column: 1; }
+		.ux-dictate-page > .ux-dictate-rest { grid-column: 2; }
+		.ux-dictate-lead > *, .ux-dictate-rest > * { grid-column: auto; }
+		.ux-dictate-rest { columns: 28em; column-gap: 3rem; }
+		.ux-dictate-rest > * { break-inside: avoid; }
+		.ux-dictate-rest > :is(h2, h3) { break-after: avoid; }
+	}
+}
+
+/* util layer: the util `:first-child { margin: 0 }` reset beats theme. Below 1920 the rest begins a block the lead's `.flow` used to space; from 1920 it is a column top. */
+@layer util {
+	.ux-dictate-rest > :first-child { margin-block-start: var(--flow); }
+	@media (min-width: 1920px) { .ux-dictate-lead > :first-child, .ux-dictate-rest > :first-child { margin-block-start: 0; } }
+}

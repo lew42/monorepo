@@ -1,0 +1,296 @@
+import { spawn } from "child_process";
+import TaskDirs from "../TaskDirs.mjs";
+import { randomUUID } from "crypto";
+import fs from "fs";
+import path from "path";
+import stamp from "../stamp.js";
+import Assistant from "./Assistant.js";
+import SessionRecord from "../SessionRecord.mjs";
+
+const now = () => stamp();
+
+/* card_answer {id, answer} — the doorbell for a card that asked the owner a question
+ * (`say.mjs --ask`, `.claude/skills/every-prompt/say.mjs`). A SIBLING of Assistant.js
+ * rather than a change to it: Assistant.js's own header says "this is a plain module,
+ * not a Socket plugin — nothing here listens on the wire directly", and this file is
+ * the one thing in this task that DOES need an `rpc:` handler, so keeping it separate
+ * keeps that line true and stays the same one-purpose shape as Append.js and Ask.js.
+ * It reuses Assistant.board()/.append() rather than re-deriving the board path, since
+ * Assistant.js already owns that.
+ *
+ * WIRED in Server/run.js beside its neighbours:
+ *     import CardAnswer from "./plugins/CardAnswer.js";
+ *     DevSocket.Socket.use(CardAnswer);
+ *
+ * Three things happen, in this order, for every answer — see `ai/2026-09-19/
+ * card-replies/requirements.md` for the brief this was built from:
+ *
+ *   (a) the answer lands on the board, appended onto the SAME card id — V3's board
+ *       reader merges card lines by id, so the question card GROWS an
+ *       answer/answered_at/status instead of a second card appearing beside it.
+ *   (b) one `chat` line reaches the mastermind's inbox: the newest unlanded
+ *       mastermind run's own task.jsonl (under ai/<date>/mastermind-<slug>), the exact
+ *       file say.mjs's own `run()` finds (this file has its own tiny copy of that
+ *       search — see `mastermind_run()` below for why it isn't imported from say.mjs).
+ *   (c) the RING: one tiny headless `claude -p` turn, given ONLY the `SendMessage`
+ *       tool, told to send the target session (`ask_to` — written onto the question
+ *       card by `say.mjs --ask` at the moment it asked) one line naming the card and
+ *       the answer.
+ *
+ * (a) and (b) happen synchronously and the rpc ACKs before the ring is even started —
+ * the ring can take several seconds and nothing about it belongs in a button click's
+ * own round trip. A failed ring is logged and NEVER thrown back at the browser as an
+ * error on this request; a `card_rung` push tells whichever tab is listening how the
+ * ring actually went, for a page that wants to show that timing.
+ *
+ * ⚠ Env overrides — the SAME two names Assistant.js already reads, so a private test
+ * server's card_answer never touches the owner's real board or the real mastermind's
+ * real inbox:
+ *   ASSISTANT_BOARD    the board.jsonl (a) appends to — Assistant.board().
+ *   ASSISTANT_LEDGER   when set, (b) appends directly here instead of searching for a
+ *                       real mastermind run — the same override Assistant.relay() honours. */
+export default class CardAnswer {
+
+	static setup(socket){ new CardAnswer(socket); }
+
+	constructor(socket){
+		this.socket = socket;
+		socket.on("rpc:card_answer", (args, index) => this.card_answer(args[0] || {}, index));
+		socket.on("rpc:card_say", (args, index) => this.card_say(args[0] || {}, index));
+	}
+
+	/* card_say {id, say, note, quote} — the AI 2 inbox's one write (`public/framework/ai2/`,
+	 * 2026-09-22). Three words, and only three, because an inbox has only three things to
+	 * record about a card:
+	 *
+	 *   read     the owner opened it. Private bookkeeping — nobody is told, nothing rings.
+	 *   improve  the owner flagged it: "not this", with their own sentence, and optionally
+	 *            the exact span of text they had selected when they pressed the flag.
+	 *   reopen   they pressed the flag again and withdrew that.
+	 *
+	 * Every one of them is ONE LINE on `verdicts.jsonl` — the same append-only file, the
+	 * same `{verdict: {id, say, at, by}}` shape, the same merge-by-id rule V3's board
+	 * already reads. Nothing is ever edited or deleted: a flag withdrawn is a second line
+	 * saying `reopen`, exactly as an Approve undone already was.
+	 *
+	 * `improve` and `reopen` also reach the mastermind, the same two ways an answered card
+	 * already does: a `chat` line in the open run's own inbox (b), and a ring (c) — one tiny
+	 * headless turn that pokes that run's live session so it looks. The ring TARGET is read
+	 * off the run's own launch line rather than off the card (`ask_to`), because a flag can
+	 * land on any card at all, including one nobody addressed to anybody.
+	 *
+	 * ⚠ Env override, the same shape Assistant.js's two already have:
+	 *   AI_VERDICTS   the verdicts.jsonl this appends to, so a private test server can write
+	 *                  somewhere harmless. */
+	static SAYS = { read: false, improve: true, reopen: true };   // value = does the mastermind hear about it
+
+	static verdicts(){ return path.resolve(process.env.AI_VERDICTS || "public/framework/ai/verdicts.jsonl"); }
+
+	async card_say({ id, say, note, quote }, index){
+		if (!id || !(say in CardAnswer.SAYS))
+			return this.socket.send({ index, error: "card_say needs {id, say} where say is read, improve or reopen" });
+
+		const at = now();
+		const line = { verdict: { id, say, at, by: "owner" } };
+		if (note) line.verdict.note = note;
+		if (quote) line.verdict.quote = quote;
+
+		const file = CardAnswer.verdicts();
+		fs.mkdirSync(path.dirname(file), { recursive: true });
+		fs.appendFileSync(file, JSON.stringify(line) + "\n");
+
+		// Fast ack, same contract as card_answer above — the ring takes seconds and no
+		// button click should wait on it.
+		this.socket.send({ index, ok: true });
+		if (!CardAnswer.SAYS[say]) return;
+
+		const title = CardAnswer.find_card(id)?.title || id;
+		const said = [`${say} — ${title}`, quote ? `on "${quote}"` : null, note].filter(Boolean).join(" — ");
+		CardAnswer.inbox({ at, from: "owner", via: "flag", card: id, msg: said });
+
+		const run = process.env.ASSISTANT_LEDGER ? null : CardAnswer.mastermind_run();
+		const ask_to = run && CardAnswer.mastermind_session(run);
+		if (!ask_to){
+			console.warn(`CardAnswer: no open mastermind session to ring for ${id} — the inbox line still landed.`);
+			return;
+		}
+		CardAnswer.ring(ask_to, `From the owner, via the AI 2 inbox: ${said} (card ${id})`)
+			.then(() => this.socket.rpc("card_rung", { id, ok: true }))
+			.catch(e => {
+				console.warn(`CardAnswer: ring to ${ask_to} failed —`, e.message || e);
+				this.socket.rpc("card_rung", { id, ok: false, error: String(e.message || e) });
+			});
+	}
+
+	/* The live session id of a running mastermind — its own launch line's `session_id`, the
+	 * one `assign` field every task.jsonl in this repo is opened with. Newest wins, so a run
+	 * that was resumed under a new id rings at the new one. */
+	static mastermind_session(file){
+		let id = null;
+		for (const line of fs.readFileSync(file, "utf8").split("\n")){
+			if (!line.trim()) continue;
+			let e; try { e = JSON.parse(line); } catch { continue; }
+			if (e.assign?.session_id) id = e.assign.session_id;
+		}
+		return id;
+	}
+
+	async card_answer({ id, answer }, index){
+		if (!id || answer === undefined || answer === null)
+			return this.socket.send({ index, error: "card_answer needs {id, answer}" });
+
+		const at = now();
+		const asked = CardAnswer.find_card(id);
+		const title = asked?.title || id;
+		const ask_to = asked?.ask_to || null;
+
+		// (a) the board — merges onto the question card's own id.
+		Assistant.append({ card: { id, answer, answered_at: at, author: "owner", status: "done" } });
+
+		// (b) the mastermind's inbox.
+		CardAnswer.inbox({ at, from: "owner", via: "card", card: id, msg: `${title} → ${answer}` });
+
+		// The ack is fast on purpose — see the file header. `ask_to` rides along so a
+		// caller can tell at once whether a ring is even going to happen.
+		this.socket.send({ index, ok: true, ask_to });
+
+		// (c) the ring — fire-and-forget from here; failures are logged, never re-thrown.
+		if (!ask_to){
+			console.warn(`CardAnswer: card ${id} has no ask_to — ring skipped.`);
+			this.socket.rpc("card_rung", { id, ok: false, error: "no ask_to on the card" });
+			return;
+		}
+		CardAnswer.ring(ask_to, `From the owner, via a card: ${title} → ${answer} (card ${id})`)
+			.then(() => this.socket.rpc("card_rung", { id, ok: true }))
+			.catch(e => {
+				console.warn(`CardAnswer: ring to ${ask_to} failed —`, e.message || e);
+				this.socket.rpc("card_rung", { id, ok: false, error: String(e.message || e) });
+			});
+	}
+
+	/* The newest line on the board naming this id, fields merged shallowly — say.mjs
+	 * writes the question card with `title`/`ask`/`ask_to` already on it, and this is
+	 * the read-side of that same file (never a second store to keep in sync). */
+	static find_card(id){
+		const file = Assistant.board();
+		if (!fs.existsSync(file)) return null;
+		let found = null;
+		for (const line of fs.readFileSync(file, "utf8").split("\n")){
+			if (!line.trim()) continue;
+			let e; try { e = JSON.parse(line); } catch { continue; }
+			if (e.card?.id === id) found = { ...found, ...e.card };
+		}
+		return found;
+	}
+
+	static inbox(chat){
+		const ledger = process.env.ASSISTANT_LEDGER;
+		const file = ledger ? path.resolve(ledger) : CardAnswer.mastermind_run();
+		if (!file){ console.warn("CardAnswer: no open mastermind run — inbox line NOT delivered."); return; }
+		fs.mkdirSync(path.dirname(file), { recursive: true });
+		fs.appendFileSync(file, JSON.stringify({ chat }) + "\n");
+	}
+
+	/* The newest mastermind run that has not landed — the exact same rule say.mjs's own
+	 * `run()` uses. Not imported from say.mjs: that file is a CLI script with no
+	 * exports, and the one verb it DOES export behaviour through (`relay`) writes a
+	 * fixed shape (`via: "assistant"`, no `card` field) that isn't the line this
+	 * doorbell needs to write — spawning it would still leave this search duplicated
+	 * one level up. Ten lines, read-only, kept beside its one caller. */
+	static mastermind_run(){
+		// both task shapes, newest day first: the sessions store and any old ai/YYYY-MM-DD/ (Server/TaskDirs.mjs)
+		for (const { dir: d } of TaskDirs.list(30).filter(t => t.slug.startsWith("mastermind-"))){
+			const file = SessionRecord.log_or_old(d);
+			if (!fs.existsSync(file)) continue;
+			const lines = fs.readFileSync(file, "utf8").split("\n").flatMap(l => { try { return l.trim() ? [JSON.parse(l)] : []; } catch { return []; } });
+			const state = Object.assign({}, ...lines.filter(e => e.assign).map(e => e.assign));
+			if (!state.landed_at) return file;
+		}
+		return null;
+	}
+
+	/* The ring queue — one per TARGET session, so answering two cards addressed to two
+	 * different sessions never makes one wait on the other, but two answers for the
+	 * SAME session in quick succession coalesce into one turn instead of racing two
+	 * spawns at once. "Never more than one ring in flight" (the brief), scoped per
+	 * target rather than globally — the one target that exists today (the mastermind)
+	 * behaves identically either way; per-target is the version that doesn't invent a
+	 * problem for a future second target. */
+	static rings = new Map();
+
+	static ring(ask_to, text){
+		let state = CardAnswer.rings.get(ask_to);
+		if (!state) CardAnswer.rings.set(ask_to, state = { busy: false, queue: [] });
+		return new Promise((resolve, reject) => {
+			state.queue.push({ text, resolve, reject });
+			if (!state.busy) CardAnswer.drain(ask_to, state);
+		});
+	}
+
+	static async drain(ask_to, state){
+		state.busy = true;
+		while (state.queue.length){
+			const batch = state.queue.splice(0, state.queue.length);
+			const msg = batch.map(b => b.text).join("\n");
+			try { await CardAnswer.send_ring(ask_to, msg); batch.forEach(b => b.resolve()); }
+			catch (e){ batch.forEach(b => b.reject(e)); }
+		}
+		state.busy = false;
+	}
+
+	/* One headless turn, given ONLY the SendMessage tool — `--tools SendMessage` plus
+	 * `--strict-mcp-config`, the same belt-and-braces Ask.js's "assistant" preset needed
+	 * (its own args() comment: `--tools` alone does not stop the `.mcp.json` `site`
+	 * server from still reaching a headless turn). Haiku: proven during this task with
+	 * a scratch run against a fake session name — it called SendMessage with the right
+	 * `to`/`message`, got back `{"success":false,"message":"No agent named …"}` (the
+	 * fake name), and reported that failure correctly in its own reply; this task's log
+	 * has the captured stream. 60s hard timeout; every turn is fresh — nothing here is
+	 * worth resuming a session for. */
+	static MODEL = "haiku";
+
+	static send_ring(ask_to, text){
+		return new Promise((resolve, reject) => {
+			const args = ["-p", "--output-format", "stream-json", "--verbose",
+				"--model", CardAnswer.MODEL, "--tools", "SendMessage", "--effort", "low",
+				"--strict-mcp-config", "--session-id", randomUUID()];
+			const child = spawn(process.env.CLAUDE_BIN || "claude", args, { windowsHide: true });   // inherit the server's console: claude runs hooks, and a console-less claude pops a window per hook (2026-09-22)
+			const prompt = `Call the SendMessage tool exactly once: to: ${JSON.stringify(ask_to)}, message: ${JSON.stringify(text)}. Do nothing else -- no other tool, no extra reply.`;
+			child.stdin.end(prompt);
+
+			let buf = "", err = "", used = false, success = null, done = false;
+			const timer = setTimeout(() => {
+				if (done) return;
+				done = true; child.kill();
+				reject(new Error("ring timed out after 60s"));
+			}, 60000);
+
+			child.stdout.on("data", d => {
+				buf += d;
+				const lines = buf.split("\n");
+				buf = lines.pop();
+				for (const line of lines){
+					if (!line.trim()) continue;
+					let e; try { e = JSON.parse(line); } catch { continue; }
+					if (e.type === "assistant") for (const c of e.message?.content ?? [])
+						if (c.type === "tool_use" && c.name === "SendMessage") used = true;
+					if (e.type === "user") for (const c of e.message?.content ?? [])
+						if (c.type === "tool_result"){
+							const rtext = c.content?.[0]?.text ?? (typeof c.content === "string" ? c.content : "");
+							try { const r = JSON.parse(rtext); if (typeof r.success === "boolean") success = r.success; } catch {}
+						}
+				}
+			});
+			child.stderr.on("data", d => { err += d; });
+			child.on("error", e => { if (!done){ done = true; clearTimeout(timer); reject(e); } });
+			child.on("close", code => {
+				if (done) return;
+				done = true; clearTimeout(timer);
+				if (code === 0 && used && success === true) resolve();
+				else reject(new Error(!used ? "the turn never called SendMessage"
+					: success === false ? "SendMessage reported failure"
+					: `claude exited ${code}${err ? ": " + err.trim().slice(-300) : ""}`));
+			});
+		});
+	}
+}

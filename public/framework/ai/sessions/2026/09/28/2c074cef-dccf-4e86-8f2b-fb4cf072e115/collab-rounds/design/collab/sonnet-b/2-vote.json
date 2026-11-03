@@ -1,0 +1,1 @@
+{"pick": "haiku-a", "caveat": "add a static Source.load(topic) / instance save() pair so the class itself knows how to read and append its own index.jsonl row, instead of leaving all file I/O to an unspecified external loader"}

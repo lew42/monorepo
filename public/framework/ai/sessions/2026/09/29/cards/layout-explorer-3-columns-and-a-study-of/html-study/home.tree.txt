@@ -1,0 +1,81 @@
+body  [block 1920x1080@0,0]
+  div.dev-bar.flex.v  [flex 272x1080@1936,0]  ⚑ fixed
+    div.dev-tabs.flex  [flex 271x6@1937,112]
+    div.dev-body.flex.v  [flex 271x961@1937,119]
+    … 2 more (content)
+  div.app.theme-lew42  [flex 1920x1080@0,0]
+    div.pages  [flex 1920x1080@0,0]  ⚑ WRAPPER(same box as only child)
+      div.page.topic.flex.fill.page-homepage.hides-nav.active-page  [flex 1920x1080@0,0]
+        div.sidebar  [flex 256x1080@0,0]
+          div.sidebar-rail  [flex 255x1080@0,0]  ⚑ sticky
+            div.sidebar-bar  [flex 255x57@0,0]
+              button.sidebar-toggle  [none]  ⚑ NONE
+                span.sidebar-toggle-bar  [inline 0x0@0,0]
+                span.sidebar-toggle-bar  [inline 0x0@0,0]
+                span.sidebar-toggle-bar  [inline 0x0@0,0]
+              … 1 more (content)
+            div.sidebar-menu  [flex 255x1023@0,57]
+              div.filter.flex.wrap.gap.v-center.sidebar-filter.darken-2  [flex 255x46@0,57]
+                … 1 more (content)
+              div.sidebar-nav  [flex 255x942@0,103]
+                … 1 more (content)
+              div.sidebar-footer  [flex 255x34@0,1046]
+                div.sidebar-avatar  [block 24x24@215,1051]
+                … 1 more (content)
+          … 1 more (content)
+        div.pages  [flex 1664x1080@256,0]  ⚑ WRAPPER(same box as only child)
+          div.default  [block 1664x1080@256,0]
+            div.home-front  [grid 1504x966@336,48]
+              div.home-hero.flow  [block 416x665@336,48]
+                h1.page-title  [block 416x158@336,48]
+                … 2 more (content)
+              div.home-stage  [block 616x665@768,48]  ⚑ WRAPPER(same box as only child)
+                div.demo.wide  [block 616x665@768,48]
+                  div.demo-stage  [block 612x345@769,308]
+                    div.demo-screen.checkered  [block 612x277@769,352]
+                      … 1 more (content)
+                    … 3 more (content)
+                  … 3 more (content)
+              div.home-blog  [block 440x665@1400,48]
+                div.flex.v.gap  [flex 440x514@1400,83]
+                  a.page-preview  [flex 440x159@1400,83]
+                    div.page-preview-title  [block 408x29@1416,98]
+                    div.page-preview-desc  [flow-root 408x58@1416,171]
+                    … 1 more (content)
+                  a.page-preview  [flex 440x159@1400,260]
+                    div.page-preview-title  [block 408x29@1416,275]
+                    div.page-preview-desc  [flow-root 408x58@1416,348]
+                    … 1 more (content)
+                  a.page-preview  [flex 440x159@1400,438]
+                    div.page-preview-title  [block 408x29@1416,452]
+                    div.page-preview-desc  [flow-root 408x58@1416,525]
+                    … 1 more (content)
+                … 1 more (content)
+              div.home-nav  [block 1504x241@336,729]  ⚑ WRAPPER(same box as only child)
+                div.flex.auto.gap  [flex 1504x241@336,729]
+                  a.page-preview  [flex 200x126@336,729]
+                    div.page-preview-title  [block 168x29@352,744]
+                    div.page-preview-desc  [flow-root 168x58@352,783]
+                  a.page-preview  [flex 200x126@553,729]
+                    div.page-preview-title  [block 168x29@569,744]
+                    div.page-preview-desc  [flow-root 168x58@569,783]
+                  a.page-preview  [flex 200x126@771,729]
+                    div.page-preview-title  [block 168x29@787,744]
+                    div.page-preview-desc  [flow-root 168x58@787,783]
+                  a.page-preview  [flex 200x126@988,729]
+                    div.page-preview-title  [block 168x29@1004,744]
+                    div.page-preview-desc  [flow-root 168x58@1004,783]
+                  a.page-preview  [flex 200x126@1206,729]
+                    div.page-preview-title  [block 168x29@1222,744]
+                    div.page-preview-desc  [flow-root 168x58@1222,783]
+                  a.page-preview  [flex 200x126@1423,729]
+                    div.page-preview-title  [block 168x29@1439,744]
+                    div.page-preview-desc  [flow-root 168x58@1439,783]
+                  a.page-preview  [flex 200x126@1640,729]
+                    div.page-preview-title  [block 168x29@1656,744]
+                    div.page-preview-desc  [flow-root 168x58@1656,783]
+                  a.page-preview  [flex 1504x97@336,873]
+                    div.page-preview-title  [block 1472x29@352,887]
+                    div.page-preview-desc  [flow-root 1472x29@352,927]
+              … 1 more (content)
+    button.drawer-menu  [flex 35x35@1877,8]  ⚑ fixed

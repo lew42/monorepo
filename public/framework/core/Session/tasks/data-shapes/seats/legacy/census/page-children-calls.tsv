@@ -1,0 +1,234 @@
+file	line	use	zone	text
+public/blog/Post.js	47	assign	sites (imagine, layouts, web, ...)	if (this.parts) this.children = this.part_pages();
+public/blog/Post.js	74	values	sites (imagine, layouts, web, ...)	part_default(){ return [...this.children.values()].find(p => p?.classes?.includes("default")); }
+public/blog/Post.js	183	keys	sites (imagine, layouts, web, ...)	const names = [...this.children.keys()];
+public/blog/Post.js	249	values	sites (imagine, layouts, web, ...)	return this.parts && ([...this.children.values()].find(open) ?? this.part_default());
+public/blog/Post.js	253	values	sites (imagine, layouts, web, ...)	const parts = [...(this.children?.values() ?? [])];
+public/blog/Post.js	268	values	sites (imagine, layouts, web, ...)	const parts = [...(this.children?.values() ?? [])];
+public/framework/ai/AIOverview.js	100	keys	framework (live)	const candidates = [...new Set([...BUILT_IN_CANDIDATES, ...root.children.keys(),
+public/framework/ai/AISession/AISessionDetail.js	218	get	framework (live)	if (name === "settings" && !this.children.get(name)){   // the session menu's first entry (core/Session/doc/me
+public/framework/ai/AISession/AISessionDetail.js	224	get	framework (live)	if (dir && !(this.children.get(name) instanceof Page)){
+public/framework/ai/AISession/AISessionDetail.js	577	delete	framework (live)	if (gone){ dirs.delete(name); this.page.unlink_child(name); this.page.children.delete(name); }
+public/framework/ai/AISession/StoreFolder.js	102	get	framework (live)	if (this.segs.length === 3 && !name.includes(".") && name !== "cards" && !this.children.get(name) && !StoreFol
+public/framework/ai/AITask/dashboard.js	127	keys	framework (live)	const names = dirs?.map(kid => kid.name) ?? [...page.children.keys()];
+public/framework/ai/AITask/dashboard.js	131	get	framework (live)	page.children.get(name), page.nav_for(name), live)));
+public/framework/ai/cards/card.js	219	get	framework (live)	if (this.children.get(name) || name === "md" || this.is_tab(name)) return super.child(name, levels);   // md/ 
+public/framework/ai/cards/card.js	532	get	framework (live)	const outline = this.children.get("outline") ?? this.add("outline", this.route("outline"));
+public/framework/ai/cards/card.js	561	forEach	framework (live)	this.children.forEach((page, name) => {
+public/framework/ai/cards/card.js	1088	get	framework (live)	if (this.children.get(name)) return super.child(name, levels);
+public/framework/ai/v/NewVersion.js	71	keys	framework (live)	const nums = [...vpage.children.keys()].map(Number).filter(Number.isFinite);
+public/framework/ai/v/Versions.js	23	keys	framework (live)	const nums = [...vpage.children.keys()].map(Number).filter(Number.isFinite).sort((a, b) => a - b);
+public/framework/core/Layout/Layout.js	141	get	framework (live)	const kin = (names ?? []).map(name => this.parent?.children.get(name)).filter(Boolean);
+public/framework/core/Page/Columns.js	39	values	core/Page	default(){ return [...this.page.children.values()].find(child => child?.classes?.split(/\s+/).includes("defaul
+public/framework/core/Page/Columns.js	60	forEach	core/Page	if (!page.index && !tabbed) page.children.forEach((child, name) => {
+public/framework/core/Page/Columns.js	66	size	core/Page	if (child?.children.size) icon("chevron_right");
+public/framework/core/Page/Frame.js	50	forEach	core/Page	page.children.forEach((child, name) => this.regions().set(name, $panel));
+public/framework/core/Page/Frame.js	83	size	core/Page	if (!page.children.size) return void p.c("muted page-no-pages", "No pages under this one yet.");
+public/framework/core/Page/Frame.js	85	forEach	core/Page	page.children.forEach((child, name) => {
+public/framework/core/Page/Frame.js	101	size	core/Page	if (!page.children.size) return void p.c("muted page-no-pages", "No pages under this one yet.");
+public/framework/core/Page/Frame.js	103	forEach	core/Page	page.children.forEach((child, name) => {
+public/framework/core/Page/Frame.js	130	get	core/Page	const child = page.children.get(name)?.assign({ app: page.app });
+public/framework/core/Page/generator/controls.js	47	size	core/Page	const words = page.children.size ? BLOCKS.filter(word => word !== "prose") : BLOCKS;
+public/framework/core/Page/generator/export.js	58	values	core/Page	const kids = page => [...page.children.values()].filter(kid => kid?.at);
+public/framework/core/Page/generator/page.js	55	forEach	core/Page	this.children.forEach(child => child?.view?.el.remove());
+public/framework/core/Page/generator/page.js	56	assign	core/Page	this.children = new Map();
+public/framework/core/Page/generator/page.js	191	values	core/Page	const root = [...this.children.values()].find(kid => kid?.at);
+public/framework/core/Page/generator/page.js	246	values	core/Page	const root = [...this.children.values()].find(kid => kid?.at);
+public/framework/core/Page/generator/page.js	290	values	core/Page	const kids = [...page.parent?.children.values() ?? []].filter(kid => kid?.at);
+public/framework/core/Page/generator/page.js	305	values	core/Page	page = [...page.children.values()].filter(kid => kid?.at)[i];
+public/framework/core/Page/generator/tree.js	97	forEach	core/Page	return page.children.forEach((child, name) => {
+public/framework/core/Page/generator/tree.js	103	size	core/Page	else if (child?.children.size) icon("chevron_right");
+public/framework/core/Page/generator/tree.js	133	size	core/Page	if (page.children.size || page.block !== "prose") nav(page, hash, wall);
+public/framework/core/Page/generator/tree.js	137	size	core/Page	if (page.block !== "list" || !page.children.size) fill(page.key, page.block === "prose");
+public/framework/core/Page/generator/tree.js	150	size	core/Page	const $nav = div.c("page-gen-nav", () => page.children.size ? items(page, hash) : empty(page.block));
+public/framework/core/Page/generator/tree.js	156	size	core/Page	div.c("page-gen-nav", () => page.children.size ? items(page, hash) : empty(page.block));
+public/framework/core/Page/Jsonl.js	91	has	core/Page	if (!this.page.children.has(dir)) this.page.children.set(dir, null);
+public/framework/core/Page/Jsonl.js	91	set	core/Page	if (!this.page.children.has(dir)) this.page.children.set(dir, null);
+public/framework/core/Page/Jsonl.js	96	delete	core/Page	this.page.children.delete(key);
+public/framework/core/Page/Jsonl.js	109	has	core/Page	if (!page.children.has(name)) page.children.set(name, null);
+public/framework/core/Page/Jsonl.js	109	set	core/Page	if (!page.children.has(name)) page.children.set(name, null);
+public/framework/core/Page/Jsonl.js	113	get	core/Page	const had = page.children.get(name);
+public/framework/core/Page/Jsonl.js	149	get	core/Page	if (this.Page.WORDS.includes(key) || key === "tab" || key === "title" || this.page.children.get(key)?.from_tab
+public/framework/core/Page/Links.js	28	has	core/Page	if (!page.children.has(name)) page.add(name, this.page.constructor.md_page(file));
+public/framework/core/Page/Markdown.js	23	get	core/Page	const known = this.children.get(name);
+public/framework/core/Page/overview/catalog/page.js	29	get	core/Page	return site.children.get("html");
+public/framework/core/Page/overview/columns/examples/looks/backgrounds/page.js	23	get	core/Page	return root.children.get(Page.slug(childTitle));
+public/framework/core/Page/overview/columns/examples/looks/scrollbars/page.js	18	get	core/Page	return root.children.get("long");
+public/framework/core/Page/overview/columns/examples/looks/scrollbars/page.js	35	get	core/Page	return root.children.get("intro");
+public/framework/core/Page/overview/columns/page.js	56	get	core/Page	return site.children.get("docs").children.get("guide");   // arrive three columns in
+public/framework/core/Page/overview/columns/page.js	56	get	core/Page	return site.children.get("docs").children.get("guide");   // arrive three columns in
+public/framework/core/Page/overview/columns/panels/page.js	41	forEach	core/Page	activated(){ this.children.forEach(page => page.activate()); },
+public/framework/core/Page/overview/columns/uses/inbox/page.js	89	forEach	core/Page	$rows.empty(() => this.children.forEach((mail, name) => {
+public/framework/core/Page/overview/columns/uses/split/page.js	60	forEach	core/Page	activated(){ this.children.forEach(page => page.activate()); },
+public/framework/core/Page/overview/docs/page.js	12	get	core/Page	const next = this.parent.children.get(this.next);
+public/framework/core/Page/overview/labels/page.js	35	forEach	core/Page	div.c("basis flex v gap", () => this.children.forEach((page, name) => {
+public/framework/core/Page/overview/list/page.js	15	forEach	core/Page	div.c("flex v gap", () => this.children.forEach(page => page.link()))
+public/framework/core/Page/overview/strip/page.js	16	forEach	core/Page	return div.c("flex gap", () => this.children.forEach((page, name) =>
+public/framework/core/Page/Page.class.js	137	set	core/Page	entries.forEach(([name, page]) => this.children.set(name, page));
+public/framework/core/Page/Page.class.js	279	has	core/Page	this.child_source = async () => [...(await Page.listing(this.url))?.pages.keys() ?? []].filter(name => !this.c
+public/framework/core/Page/Page.class.js	287	set	core/Page	if (is.str(child)) return this.children.set(this.child_file(child), null);   // "kid/page.jsonl" → kid
+public/framework/core/Page/Page.class.js	291	has	core/Page	if (this.children.has(name))
+public/framework/core/Page/Page.class.js	299	set	core/Page	if (value === null) return this.children.set(name, null);
+public/framework/core/Page/Page.class.js	321	put	core/Page	stub ? this.pages.replace(stub, page) : this.children.put(page);
+public/framework/core/Page/Page.class.js	354	get	core/Page	const known = this.children.get(name);
+public/framework/core/Page/Page.class.js	646	get	core/Page	const child = this.children.get(name);
+public/framework/core/Page/Page.class.js	670	keys	core/Page	const walk = () => Promise.all([...this.children.keys()].map(name =>
+public/framework/core/Page/page.js	51	has	core/Page	.filter(name => name === "doc" ? Doc.names(this.notes).length > 0 : this.children.has(name));
+public/framework/core/Page/page.js	59	keys	core/Page	const rest = [...this.children.keys()].filter(name => !order.includes(name));
+public/framework/core/Page/page.js	61	has	core/Page	[...order, ...rest].forEach(name => { if (this.children.has(name)) ordered.set(name, this.children.get(name));
+public/framework/core/Page/page.js	61	get	core/Page	[...order, ...rest].forEach(name => { if (this.children.has(name)) ordered.set(name, this.children.get(name));
+public/framework/core/Page/page.js	62	assign	core/Page	this.children = ordered;
+public/framework/core/Page/page.js	137	size	core/Page	item({ name: ".children", end: `${subject.children?.size ?? 0}` });
+public/framework/core/Page/Previews.js	15	read	core/Page	list(pages = this.page.children, opts = {}){
+public/framework/core/Page/Previews.js	42	forEach	core/Page	this.page.children.forEach((child, name) => {
+public/framework/core/Page/Previews.js	43	size	core/Page	if (!child?.children.size || child.leaf) return;
+public/framework/core/Section/Section.js	63	forEach	framework (live)	this.children.forEach((child, name) => {
+public/framework/core/Section/Section.js	121	get	framework (live)	const child = this.children.get(name);
+public/framework/core/Sidebar/variants/page.js	25	read	framework (live)	this.previews(pick(this.children, "a b c d"));
+public/framework/core/Sidebar/variants/page.js	29	read	framework (live)	this.previews(pick(this.children, "rail"));
+public/framework/core/Sidebar/variants/preview-nav.js	17	keys	framework (live)	[...root.children.keys()].slice(0, count).forEach(name => {
+public/framework/ext/Ask/pick.js	243	values	framework (live)	for (const child of page?.children?.values() ?? []){
+public/framework/ext/Ask/pick.js	243	iterate	framework (live)	for (const child of page?.children?.values() ?? []){
+public/framework/ext/catalog/browse.js	64	get	framework (live)	const parent = owner ? page.children.get(owner) : page;
+public/framework/ext/catalog/browse.js	65	get	framework (live)	const child = parent?.children.get(name);
+public/framework/ext/catalog/catalog.js	29	iterate	framework (live)	const rest = [...this.children];
+public/framework/ext/catalog/catalog.js	31	clear	framework (live)	this.children.clear();
+public/framework/ext/catalog/catalog.js	40	set	framework (live)	rest.forEach(([name, page]) => this.children.set(name, page));
+public/framework/ext/catalog/catalog.js	58	values	framework (live)	const first = this.children.values().next().value?.assign({ app: this.app });
+public/framework/ext/Chat/Drill.js	174	forEach	framework (live)	card.children.forEach(child => page.append(this.tile(path, child)));
+public/framework/ext/demo/exhibit.js	77	iterate	framework (live)	const pages = chrome.length ? new Map([...page.children].filter(([name]) => !chrome.includes(name))) : page.ch
+public/framework/ext/demo/shell.js	72	size	framework (live)	this.app ??= !this.run && this.page.children.size > 0;
+public/framework/ext/Doc/Doc.js	45	get	framework (live)	if (this.children.get("docs")) return super.child(name, levels);   // a real "docs" child wins
+public/framework/ext/Doc/Doc.js	249	get	framework (live)	const parent = segments.reduce((page, seg) => page.children.get(seg) ?? page.add(seg, {
+public/framework/ext/Doc/Doc.js	254	has	framework (live)	if (parent.children.has(leaf))
+public/framework/ext/Doc/Doc.js	307	keys	framework (live)	const middle = [...this.children.keys()]
+public/framework/ext/Doc/Doc.js	315	has	framework (live)	.filter(name => name === "doc" ? Doc.names(this.notes).length > 0 : name === "md" || this.children.has(name));
+public/framework/ext/Doc/Doc.js	335	iterate	framework (live)	return this.previews(new Map([...this.children].filter(([name]) => !Doc.SECTIONS.includes(name))));
+public/framework/ext/drawer/Sheet.js	107	has	framework (live)	const real = here?.children?.has("ai") && !(here.children.get("ai") instanceof AIPage);
+public/framework/ext/drawer/Sheet.js	107	get	framework (live)	const real = here?.children?.has("ai") && !(here.children.get("ai") instanceof AIPage);
+public/framework/ext/tabs/tabs.js	18	keys	framework (live)	const list = names ? names.trim().split(/\s+/) : [...this.children.keys()];
+public/framework/ext/tabs/tabs.js	47	get	framework (live)	const page = this.children.get(name);
+public/framework/ext/tabs/tabs.js	98	get	framework (live)	const first = this.children.get(this.default_tab)?.assign({ app: this.app });
+public/framework/library/Item.js	27	keys	framework (live)	const names = [...this.page.children.keys()].filter(name => !this.constructor.CHROME.includes(name));
+public/framework/library/Library.js	37	keys	framework (live)	const keys = [...ui.children.keys()].filter(key => !ui.constructor.SECTIONS?.includes(key));
+public/framework/library/Library.js	50	keys	framework (live)	return Promise.all([...ux.children.keys()].map(async key => [key, await ux.child(key)]));
+public/framework/library/Library.js	63	keys	framework (live)	const pages = await Promise.all([...sections.children.keys()].map(async key => [key, await sections.child(key)
+public/framework/page.js	132	forEach	framework (other)	root.children.forEach((page, name) => {
+public/framework/page.js	133	size	framework (other)	if (!page?.children.size) return;   // childless (Start here, FAQ, Versus…) stays sidebar-only
+public/framework/page.js	143	forEach	framework (other)	page.children.forEach((child, child_name) => {
+public/framework/styles/layouts/page.js	55	iterate	framework (live)	return [...this.children]
+public/framework/styles/sections/page.js	78	forEach	framework (live)	whole(){ this.children.forEach(page => page.section?.(page.tone)); },
+public/framework/styles/system/studies/system/page.js	52	size	framework (live)	body: "`one` — a single thing to read. `many` — a repeating set. `parts` — several unlike regions used togethe
+public/framework/ui/page.js	54	has	framework (live)	bar(){ return Doc.SECTIONS.filter(name => this.children.has(name)); },
+public/framework/ui/page.js	65	forEach	framework (live)	this.children.forEach((page, name) => this.regions.set(name, $panel));
+public/framework/ux/Content/Object/InstanceTree.js	89	values	framework (live)	return [...(of.children?.values() ?? [])].filter(Boolean);
+public/framework/ux/page.js	57	iterate	framework (live)	[...page.children].forEach(([name, child]) => {
+public/framework/ux/Tree/page.js	174	values	framework (live)	const pages_in = p => [...p.children.values()].reduce((n, child) => n + 1 + (child?.children ? pages_in(child)
+public/framework/ux/Tree/Tree.js	119	keys	framework (live)	return (names ?? [...page.children.keys()]).filter(name => page.children.has(name)).map(name => this.node_of(p
+public/framework/ux/Tree/Tree.js	119	has	framework (live)	return (names ?? [...page.children.keys()]).filter(name => page.children.has(name)).map(name => this.node_of(p
+public/framework/ux/Tree/Tree.js	135	get	framework (live)	const child = page.children.get(name);
+public/framework/ux/Tree/Tree.js	138	size	framework (live)	const deeper = child && (pinned ? pinned.length : !child.leaf && (child.child_source || child.children?.size))
+public/framework/ux/Tree/Tree.js	146	size	framework (live)	count: child?.children.size,
+public/imagine/blogx/Blog.js	99	forEach	sites (imagine, layouts, web, ...)	lab.children.forEach((child, name) => a.c("blogx-lab-link", child?.title ?? name).href(lab.url + name + "/"));
+public/imagine/blogx/finder/page.js	93	get	sites (imagine, layouts, web, ...)	demo.app(notes.children.get("latest")).ac("blogx-app");
+public/imagine/blogx/parts/page.js	48	size	sites (imagine, layouts, web, ...)	const deepest = page => page.children.size ? deepest([...page.children.values()][0]) : page;
+public/imagine/blogx/parts/page.js	48	values	sites (imagine, layouts, web, ...)	const deepest = page => page.children.size ? deepest([...page.children.values()][0]) : page;
+public/imagine/cms/json/edit/page.js	99	get	sites (imagine, layouts, web, ...)	for (let i = 1; i < path.length; i += 2) page = page?.children.get(path[i]);
+public/imagine/cms/page.js	88	iterate	sites (imagine, layouts, web, ...)	[...this.children].forEach(([name, page]) => {
+public/imagine/feeds/video/page.js	65	forEach	sites (imagine, layouts, web, ...)	div.c("feeds-picks", () => this.children.forEach((talk, name) => {
+public/imagine/gallery/answers/page.js	51	values	sites (imagine, layouts, web, ...)	row("Children resolved", [...page.children.values()].filter(Boolean).length);
+public/imagine/generated/page.js	50	size	sites (imagine, layouts, web, ...)	if (page?.children?.size) div.c("generated-seed-shape flex v gap", () => {
+public/imagine/generated/page.js	52	forEach	sites (imagine, layouts, web, ...)	div.c("generated-branches", () => page.children.forEach((child, cname) => {
+public/imagine/generated/page.js	87	forEach	sites (imagine, layouts, web, ...)	this.children.forEach((page, name) => seed_card(this, name, page));
+public/imagine/importance/ranked/ranked.js	108	forEach	sites (imagine, layouts, web, ...)	this.children.forEach((child, name) => {
+public/imagine/importance/ranked/ranked.js	119	size	sites (imagine, layouts, web, ...)	if (child?.children.size || child?.child_source)
+public/imagine/mag/Article.js	133	values	sites (imagine, layouts, web, ...)	const order = [...this.parent.children.values()];
+public/imagine/mag/Article.js	139	values	sites (imagine, layouts, web, ...)	const order = [...this.parent.children.values()];
+public/imagine/mag/Article.js	150	values	sites (imagine, layouts, web, ...)	const order = [...(this.parent?.children.values() ?? [])];
+public/imagine/page.js	102	forEach	sites (imagine, layouts, web, ...)	if (!this.index) this.children.forEach((child, name) => {
+public/imagine/page.js	113	size	sites (imagine, layouts, web, ...)	if (child?.children.size) icon("chevron_right");
+public/imagine/page.js	140	iterate	sites (imagine, layouts, web, ...)	this.parent.previews(new Map([...this.parent.children].filter(([name]) => name !== this.name)))
+public/imagine/paging/make/page.js	165	get	sites (imagine, layouts, web, ...)	url_of: kid => this.children?.get(kid.name)?.url,
+public/imagine/paging/make/page.js	281	assign	sites (imagine, layouts, web, ...)	regrow(){ this.children = new Map(); return this.declare(grow(this.tree ?? [], this)); },
+public/imagine/paging/make/page.js	454	get	sites (imagine, layouts, web, ...)	for (const name of path) page = page?.children?.get(name);
+public/imagine/paging/make/page.js	619	get	sites (imagine, layouts, web, ...)	const props = stage_props(node, { page: this, url_of: kid => page?.children?.get(kid.name)?.url });
+public/imagine/paging/make/real.js	191	get	sites (imagine, layouts, web, ...)	if (plan.out !== plan.into && plan.into.children?.get(plan.name) !== undefined)
+public/imagine/paging/make/real.js	432	delete	sites (imagine, layouts, web, ...)	plan.out.children.delete(plan.name);
+public/imagine/paging/make/real.js	434	iterate	sites (imagine, layouts, web, ...)	const entries = [...plan.into.children].filter(([name]) => name !== plan.name);
+public/imagine/paging/make/select.js	128	iterate	sites (imagine, layouts, web, ...)	const kids = [...$md.children].filter(el => BLOCKISH.includes(el.tagName));
+public/imagine/paging/navigation/columns/page.js	52	get	sites (imagine, layouts, web, ...)	return root.children.get("guide").children.get("setup");
+public/imagine/paging/navigation/columns/page.js	52	get	sites (imagine, layouts, web, ...)	return root.children.get("guide").children.get("setup");
+public/imagine/paging/navigation/screen.js	50	forEach	sites (imagine, layouts, web, ...)	this.children.forEach((child, name) => this.regions.set(name, this.$centre));
+public/imagine/paging/navigation/screen.js	61	forEach	sites (imagine, layouts, web, ...)	this.children.forEach((child, name) => {
+public/imagine/paging/navigation/screen.js	89	keys	sites (imagine, layouts, web, ...)	Promise.resolve(this.child([...this.children.keys()][0]))
+public/imagine/paging/templates/families.js	72	keys	sites (imagine, layouts, web, ...)	shells(){ return [...this.parent.children.keys()].slice(0, 5).map(name => this.parent.nav_for(name)); },
+public/imagine/scenes/quarters/page.js	92	forEach	sites (imagine, layouts, web, ...)	grove(dt, group, t){ group.children.forEach((tree, i) => tree.rotation.z = Math.sin(t + i) * 0.03); },
+public/imagine/scenes/Scene.js	103	size	sites (imagine, layouts, web, ...)	const from = page.children.size ? page : page.parent;
+public/imagine/scenes/Scene.js	115	keys	sites (imagine, layouts, web, ...)	[...from.children.keys()].forEach(name => {
+public/imagine/shells/columns/page.js	75	get	sites (imagine, layouts, web, ...)	demo.app(library.children.get("verdict")).ac("shell-app");
+public/imagine/shells/Shell.js	118	keys	sites (imagine, layouts, web, ...)	shells(){ return [...this.parent.children.keys()].map(name => this.parent.nav_for(name)); }
+public/imagine/vary/colstyles/hooks/trees.js	107	get	sites (imagine, layouts, web, ...)	return root.children.get("b");
+public/imagine/vary/colstyles/tree.js	37	get	sites (imagine, layouts, web, ...)	return root.children.get("fiction").children.get("selected");
+public/imagine/vary/colstyles/tree.js	37	get	sites (imagine, layouts, web, ...)	return root.children.get("fiction").children.get("selected");
+public/imagine/vary/tone/alt/page.js	26	get	sites (imagine, layouts, web, ...)	return root.children.get("depth-2").children.get("depth-3");
+public/imagine/vary/tone/alt/page.js	26	get	sites (imagine, layouts, web, ...)	return root.children.get("depth-2").children.get("depth-3");
+public/imagine/vary/tone/down/page.js	26	get	sites (imagine, layouts, web, ...)	return root.children.get("depth-2").children.get("depth-3");
+public/imagine/vary/tone/down/page.js	26	get	sites (imagine, layouts, web, ...)	return root.children.get("depth-2").children.get("depth-3");
+public/imagine/vary/tone/flip/page.js	26	get	sites (imagine, layouts, web, ...)	return root.children.get("depth-2").children.get("depth-3");
+public/imagine/vary/tone/flip/page.js	26	get	sites (imagine, layouts, web, ...)	return root.children.get("depth-2").children.get("depth-3");
+public/imagine/vary/tone/live/page.js	35	get	sites (imagine, layouts, web, ...)	return root.children.get("depth-2").children.get("depth-3");
+public/imagine/vary/tone/live/page.js	35	get	sites (imagine, layouts, web, ...)	return root.children.get("depth-2").children.get("depth-3");
+public/imagine/vary/tone/up/page.js	27	get	sites (imagine, layouts, web, ...)	return root.children.get("depth-2").children.get("depth-3");
+public/imagine/vary/tone/up/page.js	27	get	sites (imagine, layouts, web, ...)	return root.children.get("depth-2").children.get("depth-3");
+public/imagine/youtube/page.js	31	iterate	sites (imagine, layouts, web, ...)	this.previews(new Map([...this.children].filter(([name]) => name !== "panel")));
+public/layouts/labs/blogx/Blog.js	99	forEach	sites (imagine, layouts, web, ...)	lab.children.forEach((child, name) => a.c("blogx-lab-link", child?.title ?? name).href(lab.url + name + "/"));
+public/layouts/labs/blogx/finder/page.js	92	get	sites (imagine, layouts, web, ...)	demo.app(notes.children.get("latest")).ac("blogx-app");
+public/layouts/labs/blogx/parts/page.js	47	size	sites (imagine, layouts, web, ...)	const deepest = page => page.children.size ? deepest([...page.children.values()][0]) : page;
+public/layouts/labs/blogx/parts/page.js	47	values	sites (imagine, layouts, web, ...)	const deepest = page => page.children.size ? deepest([...page.children.values()][0]) : page;
+public/layouts/labs/decks/page.js	48	values	sites (imagine, layouts, web, ...)	[...new Set([...this.children.values()].map(page => page?.group).filter(Boolean))].forEach(name => {
+public/layouts/labs/decks/page.js	49	iterate	sites (imagine, layouts, web, ...)	const subset = new Map([...this.children].filter(([, page]) => page?.group === name));
+public/layouts/labs/mag/Article.js	133	values	sites (imagine, layouts, web, ...)	const order = [...this.parent.children.values()];
+public/layouts/labs/mag/Article.js	139	values	sites (imagine, layouts, web, ...)	const order = [...this.parent.children.values()];
+public/layouts/labs/mag/Article.js	150	values	sites (imagine, layouts, web, ...)	const order = [...(this.parent?.children.values() ?? [])];
+public/layouts/labs/screens/page.js	48	get	sites (imagine, layouts, web, ...)	const page = this.children.get(exp.slug);
+public/layouts/labs/shells/columns/page.js	75	get	sites (imagine, layouts, web, ...)	demo.app(library.children.get("verdict")).ac("shell-app");
+public/layouts/labs/shells/Shell.js	118	keys	sites (imagine, layouts, web, ...)	shells(){ return [...this.parent.children.keys()].map(name => this.parent.nav_for(name)); }
+public/layouts/shell/page.js	98	values	sites (imagine, layouts, web, ...)	return [...this.children.values()].find(child => child?.classes?.split(/\s+/).includes("default"));
+public/layouts/shell/Shell.js	70	get	sites (imagine, layouts, web, ...)	const root = this.page.children.get("home");
+public/layouts/shell/Shell.js	87	values	sites (imagine, layouts, web, ...)	children: [...page.children.values()].filter(Boolean).map(child => this.node(child)),
+public/michael/page/links/page.js	19	read	sites (imagine, layouts, web, ...)	(this.parent?.children || []).forEach(sib => sib.link());
+public/web/layout/screens/page.js	70	forEach	sites (imagine, layouts, web, ...)	this.children.forEach((_, name) => {
+public/web/layout/screens/page.js	79	get	sites (imagine, layouts, web, ...)	}).children.get("board");
+public/web/nav/bar/page.js	30	forEach	sites (imagine, layouts, web, ...)	div.c("flex gap", () => this.children.forEach((page, name) => {
+public/web/nav/bar/page.js	40	get	sites (imagine, layouts, web, ...)	}).children.get("product");
+public/web/nav/crumbs/page.js	37	get	sites (imagine, layouts, web, ...)	}).children.get("papers").children.get("1959").children.get("letters");
+public/web/nav/crumbs/page.js	37	get	sites (imagine, layouts, web, ...)	}).children.get("papers").children.get("1959").children.get("letters");
+public/web/nav/crumbs/page.js	37	get	sites (imagine, layouts, web, ...)	}).children.get("papers").children.get("1959").children.get("letters");
+public/web/nav/drawer/page.js	47	forEach	sites (imagine, layouts, web, ...)	$drawer = div.c("basis flex v gap pad wash", () => this.children.forEach((page, name) => {
+public/web/nav/drawer/page.js	56	get	sites (imagine, layouts, web, ...)	}).children.get("inbox");
+public/web/nav/drill/page.js	11	forEach	sites (imagine, layouts, web, ...)	const cards = site => site.children.forEach(page => { if (page.children.size) page.content = function(){
+public/web/nav/drill/page.js	11	size	sites (imagine, layouts, web, ...)	const cards = site => site.children.forEach(page => { if (page.children.size) page.content = function(){
+public/web/nav/drill/page.js	18	get	sites (imagine, layouts, web, ...)	return site.children.get("html");
+public/web/nav/drill/page.js	36	size	sites (imagine, layouts, web, ...)	const at = page.children.size ? page : page.parent;
+public/web/nav/drill/page.js	49	size	sites (imagine, layouts, web, ...)	if (page.children.size) page.content = function(){ md(`**${this.title}** — the rail beside this is *its* pages
+public/web/nav/drill/page.js	51	forEach	sites (imagine, layouts, web, ...)	page.children.forEach(stamp);
+public/web/nav/drill/page.js	54	forEach	sites (imagine, layouts, web, ...)	site.children.forEach(stamp);
+public/web/nav/drill/page.js	55	get	sites (imagine, layouts, web, ...)	return site.children.get("html");
+public/web/nav/drill/page.js	62	forEach	sites (imagine, layouts, web, ...)	site.children.forEach(page => { if (page.children.size)
+public/web/nav/drill/page.js	62	size	sites (imagine, layouts, web, ...)	site.children.forEach(page => { if (page.children.size)
+public/web/nav/drill/page.js	65	get	sites (imagine, layouts, web, ...)	return site.children.get("css").children.get("layout");
+public/web/nav/drill/page.js	65	get	sites (imagine, layouts, web, ...)	return site.children.get("css").children.get("layout");
+public/web/nav/footer/page.js	7	keys	sites (imagine, layouts, web, ...)	const names = [...page.parent.children.keys()];
+public/web/nav/footer/page.js	37	get	sites (imagine, layouts, web, ...)	}).children.get("setup");
+public/web/nav/jumps/page.js	4	forEach	sites (imagine, layouts, web, ...)	const links = page => div.c("flex gap", () => page.parent.children.forEach((_, name) => {
+public/web/nav/jumps/page.js	34	get	sites (imagine, layouts, web, ...)	}).children.get("home");
+public/web/nav/jumps/page.js	50	forEach	sites (imagine, layouts, web, ...)	this.children.forEach((_, name) => {
+public/web/nav/jumps/page.js	59	get	sites (imagine, layouts, web, ...)	}).children.get("home");
+public/web/nav/rail/page.js	20	get	sites (imagine, layouts, web, ...)	}).children.get("css");
+public/web/nav/sidebar/page.js	36	forEach	sites (imagine, layouts, web, ...)	this.children.forEach((page, name) => {
+public/web/nav/sidebar/page.js	40	size	sites (imagine, layouts, web, ...)	if (page?.children.size)
+public/web/nav/sidebar/page.js	41	forEach	sites (imagine, layouts, web, ...)	div.c("flex v gap", () => page.children.forEach((_, sub) => {
+public/web/nav/sidebar/page.js	51	get	sites (imagine, layouts, web, ...)	}).children.get("guides").children.get("regions");
+public/web/nav/sidebar/page.js	51	get	sites (imagine, layouts, web, ...)	}).children.get("guides").children.get("regions");
+public/web/nav/tabs/page.js	8	forEach	sites (imagine, layouts, web, ...)	div.c("tab-bar", () => page.children.forEach((_, name) => {
+public/web/nav/tabs/page.js	21	values	sites (imagine, layouts, web, ...)	}).children.values().next().value;

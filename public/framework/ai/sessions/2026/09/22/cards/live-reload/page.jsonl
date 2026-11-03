@@ -1,0 +1,6 @@
+{"class":"/framework/ai2/card.js","title":"A hold is a fence now, not a switch","type":"card","id":"2026/09/22/live-reload","created":"2026-09-22T17:34:01-05:00","by":"","tags":[]}
+{"legacy":"live-reload"}
+{"icon":"sync"}
+{"text":"A minion declares the files it is writing, and only those are held; your own saves anywhere else reload you at once — proven: a change on AI 2 reloaded its tab in half a second while a held change on the old board reached nobody. The dev bar says exactly what is held. With the earlier fix (215 reloads a day, 203 for nothing), the reload problem is closed."}
+{"status":"done"}
+{"links":[{"url":"/framework/ai/2026-09-22/reload-rethink/","label":"the numbers"}]}

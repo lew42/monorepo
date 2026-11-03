@@ -1,0 +1,7 @@
+@layer base, theme, site, util;
+
+/* Pages rebuilt from the Figma Sept-2026 file use the SITE's tokens (`--prime`, `--dark`,
+   dark ink on `.bg-prime`); only the one "prime-bound text" specimen line lives here. */
+@layer theme {
+	.figma-scheme .fs-prime-text { color: var(--prime); font-weight: 700; font-size: .75em; letter-spacing: .07em; text-transform: uppercase; }
+}

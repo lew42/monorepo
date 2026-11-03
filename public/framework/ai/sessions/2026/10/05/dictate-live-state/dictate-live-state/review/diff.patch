@@ -1,0 +1,1436 @@
+diff --git a/Servex/agents/Assistant.js b/Servex/agents/Assistant.js
+index e73a594c6..a48bfb30f 100644
+--- a/Servex/agents/Assistant.js
++++ b/Servex/agents/Assistant.js
+@@ -125,7 +125,7 @@ export default class Assistant {
+ 	words(prompt){
+ 		const lines = (prompt.sentences ?? [prompt.text ?? ""]).map((s, i) => `${i}. ${s}`).join("\n");
+ 		const selected = prompt.selected ? `selected: ${prompt.selected}\n` : "";
+-		// The rhythm (ux/Dictate/floor.js), e.g. "(paused 1.2 s, 0.4 s; spoke 6.1 s)": a long pause is where a thought ended.
++		// The rhythm (ux/Dictate/Floor.js), e.g. "(paused 1.2 s, 0.4 s; spoke 6.1 s)": a long pause is where a thought ended.
+ 		const sec = ms => (ms / 1000).toFixed(1) + " s", c = prompt.cues;
+ 		const rhythm = c ? `\n(${c.pauses?.length ? "paused " + c.pauses.slice(0, 8).map(q => sec(q.ms)).join(", ") + "; " : ""}spoke ${sec(c.speaking_ms ?? 0)})` : "";
+ 		/* ⚠ This last line is what the model obeys, over its brief: while it always
+diff --git a/Servex/agents/Sessions.js b/Servex/agents/Sessions.js
+index 33ed1d0a2..fffb527b9 100644
+--- a/Servex/agents/Sessions.js
++++ b/Servex/agents/Sessions.js
+@@ -202,7 +202,7 @@ export default class Sessions {
+ 			idle_ms: env("SERVEX_SESSION_IDLE_MS", 5 * 60000), resume_ms: env("SERVEX_SESSION_RESUME_MS", 60 * 60000),
+ 			max_pairs: env("SERVEX_SESSION_MAX_PAIRS", 2), floor_wait_ms: env("SERVEX_SESSION_FLOOR_WAIT_MS", 8000),
+ 			/* THE THOUGHT (dictation-stream, 2026-09-30): a spoken line is held from BOTH assistants until the
+-			 * owner has been quiet `answer_quiet_ms` (the browser's `quiet` event, ux/Dictate/floor.js's
++			 * owner has been quiet `answer_quiet_ms` (the browser's `quiet` event, ux/Dictate/Floor.js's
+ 			 * mark), or `hold_max_ms` passed with no such event (the browser engine has no level meter).
+ 			 * `thoughts` holds those lines; `held` (below, the floor) holds a fast REPLY. */
+ 			answer_quiet_ms: env("SERVEX_SESSION_ANSWER_QUIET_MS", 2500), hold_max_ms: env("SERVEX_SESSION_HOLD_MAX_MS", 8000),
+diff --git a/public/framework/dev/Socket/Socket.js b/public/framework/dev/Socket/Socket.js
+index 0621e7b70..58d156a5a 100644
+--- a/public/framework/dev/Socket/Socket.js
++++ b/public/framework/dev/Socket/Socket.js
+@@ -97,6 +97,13 @@ export default class Socket {
+ 		this.hide_reconnecting();
+ 		this.ready.resolve();
+ 		this.rpc("hello", window.location.pathname, this.tab());
++		// `"open"`/`"close"` (dictate-live-state, 2026-10-04): the generic `on()`/`emit()`
++		// pub-sub below already existed for `"data"`/`"skipped"` — nothing subscribed to a
++		// connection change before this, so a reader of `connected` (`ux/Dictate/Dictate.js`'s
++		// own status line) only ever saw it on its NEXT unrelated check (a mic press), not the
++		// moment it actually happened — exactly the "never say connected when we're not"
++		// complaint this task's `doc/status-signals.md` exists to answer.
++		this.emit("open");
+ 	}
+ 
+ 	// A stable name for THIS tab, minted once. Two tabs on one page are otherwise
+@@ -128,6 +135,11 @@ export default class Socket {
+ 		// 250ms, 500ms, 1s, 2s ... capped at 10s
+ 		const delay = Math.min(250 * 2 ** this.fails++, 10000);
+ 		console.warn(`Socket closed, reconnecting in ${delay}ms.`);
++		// Fires once per real scheduled retry (the guard above already refuses a repeat
++		// call while one is already pending) — `this.fails` is already incremented, so a
++		// listener reading it right now (`ux/Dictate/Dictate.js`'s own `socket_status()`)
++		// sees the attempt THIS emit is about, not the previous one.
++		this.emit("close");
+ 		this.retry = setTimeout(() => this.connect(), delay);
+ 	}
+ 
+diff --git a/public/framework/ext/Chat/Mic.js b/public/framework/ext/Chat/Mic.js
+index 7e9475d8f..8c54fb83a 100644
+--- a/public/framework/ext/Chat/Mic.js
++++ b/public/framework/ext/Chat/Mic.js
+@@ -768,8 +768,29 @@ export class ComposerMic extends Dictate {
+ 		try { return await super.stop(); }
+ 		finally {
+ 			const mode = this.mode_now();
+-			if (mode !== "manual") this.send_sentences();
+-			if (mode === "pause") this.send_screen(); else if (mode === "sentences") this.flush_held();
++			/* ⚠ THE OWNER'S OWN BUBBLE, REPEATED (dictate-live-state, 2026-10-04 — reproduced
++			 * through the REAL capture -> whisper -> widget path, a real clip, the real 900ms
++			 * resend ticks, not fed text). `stop()` used to call `send_sentences()` for EVERY
++			 * mode except "manual" — including "pause", the default — and THEN, for "pause",
++			 * also call `send_screen()`. `send_sentences()` runs with no argument, so its own
++			 * default (`n = Math.max(1, SETTINGS.sentences_per_send | 0)`) is 1 even when
++			 * `sentences_per_send` is OFF (0, the default) — it is not a no-op there, it finds
++			 * every finished sentence in `held` and sends each one as ITS OWN message. In
++			 * "pause" mode that message and `send_screen()`'s own send of "everything visible"
++			 * (the SAME finished sentence, already sitting in the box via `push_to_target()`)
++			 * are two independent sends for the same words, each awaiting its own ~5s
++			 * clean-up (`await_clean()`) before reaching `post_held()` — so the two can land
++			 * more than `ComposerMic.DUP_WINDOW_MS` (4s) apart by nothing but clean-up timing
++			 * jitter, and `same_as_last_send()`'s de-dupe (built for THIS exact shape of bug,
++			 * 2026-10-04 round 1) misses them. "pause" mode's own ongoing sends (`auto_check()`)
++			 * never call `send_sentences()` either — only `send_screen()` — so calling it here
++			 * was the one place this mode's stop path disagreed with how it runs the rest of
++			 * the time. Fixed by only ever calling ONE send path per mode: `send_screen()` for
++			 * "pause", `send_sentences()` + `flush_held()` for "sentences" (unchanged — a
++			 * different mode, not the one reported, and not reproduced here).
++			 * Proof: `ai/2026-10-04/dictate-live-state/task.jsonl`. */
++			if (mode === "pause") this.send_screen();
++			else if (mode === "sentences"){ this.send_sentences(); this.flush_held(); }
+ 			// ⚠ NOT when `set_error()` already beeped (dictate-stop-sound, 2026-10-01). Whisper
+ 			// going unreachable while THIS stop is still sending its last segment
+ 			// (`Dictate.close_segment()`'s own catch) calls `set_error()` while `this.state` is
+diff --git a/public/framework/ext/Chat/doc/floor.md b/public/framework/ext/Chat/doc/floor.md
+index a181710b7..4b7bbae1f 100644
+--- a/public/framework/ext/Chat/doc/floor.md
++++ b/public/framework/ext/Chat/doc/floor.md
+@@ -56,7 +56,7 @@ it to Servex (`ext/Session`'s `report_quiet()`), which is what lets its assistan
+ 
+ ## Where it comes from
+ 
+-[`ux/Dictate/floor.js`](/framework/ux/Dictate/floor.js): Dictate's own level meter feeds it (one
++[`ux/Dictate/Floor.js`](/framework/ux/Dictate/Floor.js): Dictate's own level meter feeds it (one
+ reading every 8 ms), and `post_prompt()` stamps both fields. So every composer gets them
+ without any code of its own, `ComposerMic` included. How the signals were chosen:
+ [`c-cues/research.md`](/framework/ai/2026-09-29/audio/next-clean-transcription/c-cues/research.md).
+diff --git a/public/framework/ext/Session/Session.js b/public/framework/ext/Session/Session.js
+index ce1578fd2..b366998f4 100644
+--- a/public/framework/ext/Session/Session.js
++++ b/public/framework/ext/Session/Session.js
+@@ -1,5 +1,5 @@
+ import { servex_url } from "/framework/dev/servex_url.js";
+-import mic_floor from "/framework/ux/Dictate/floor.js";   // `floor` is the verb below
++import mic_floor from "/framework/ux/Dictate/Floor.js";   // `floor` is the verb below
+ 
+ /* VOICE SESSIONS, the browser half (Servex/agents/Sessions.js is the other).
+  *
+@@ -83,7 +83,7 @@ export const react = ({ session, re, emoji = "", at }) => post("react", { sessio
+  *  invisible `{quiet}` line, and it is what lets the held assistants answer. */
+ export const quiet = ({ session, ms, mic_off = false, path = location.pathname }) => post("quiet", { session, ms, mic_off, path });
+ 
+-/** Every silence mark of the mic's floor (`ux/Dictate/floor.js`, `on_quiet`), posted to `session()`
++/** Every silence mark of the mic's floor (`ux/Dictate/Floor.js`, `on_quiet`), posted to `session()`
+  *  (asked fresh each time; null = no session yet). Returns `stop()`. */
+ export const report_quiet = session => mic_floor.on_quiet((ms, { mic_off }) => {
+ 	const id = session();
+@@ -93,9 +93,9 @@ export const report_quiet = session => mic_floor.on_quiet((ms, { mic_off }) => {
+ /** THE MIC'S OWN PAUSE (one-dictation, item 2) — distinct from an ordinary mid-sentence quiet
+  *  gap `report_quiet` already reports: the mic stopping altogether, and starting again later,
+  *  maybe minutes apart. `phase: "start"` reuses the exact moment `report_quiet` already catches
+- *  (`floor.js`'s own `mic_off`, which fires `on_quiet` with `mic_off: true` — nothing new is
++ *  (`Floor.js`'s own `mic_off`, which fires `on_quiet` with `mic_off: true` — nothing new is
+  *  needed for that half). `phase: "end"` has no existing hook to reuse (nothing fires when the
+- *  mic turns back ON), so this polls `floor.js`'s own public `owner` field at a light interval —
++ *  mic turns back ON), so this polls `Floor.js`'s own public `owner` field at a light interval —
+  *  a mic button is pressed by a person, never machine-gunned, so missing it by a few hundred ms
+  *  is fine. Posted to `session()` (asked fresh each time; null = no session yet, and nothing is
+  *  sent). Returns `stop()`. */
+diff --git a/public/framework/ext/Session/doc/markers.md b/public/framework/ext/Session/doc/markers.md
+index ca91d3222..3232f9c33 100644
+--- a/public/framework/ext/Session/doc/markers.md
++++ b/public/framework/ext/Session/doc/markers.md
+@@ -17,7 +17,7 @@ because each changes how an EARLIER bubble is drawn or decorated (see their own
+ | `para` | the fast assistant decides a thought it just heard starts a new topic, not a continuation | tells [`ux/Dictate/Widget.js`](/framework/ux/Dictate/)'s `Thread` to split that paragraph, and everything merged in after it, out of its bubble into a new one — `doc/chat.md`'s "The para marker" |
+ | `refined` | right after any owner line, in the background — the fast assistant ran the shared Refine engine on it | tells `Thread` to draw a small, collapsed "refined" block right under that owner's own bubble: the sentences grouped under headings, with each sentence's id, and what the model calls cost |
+ 
+-`pause` is written by `report_pause()`, which every chat mount turns on (`ux/Dictate/chat.js`). It hears the mic itself turn off and back on (`floor.js`), so no caller reports it by hand. `select` comes from the drawer's pick-an-element tool (`ext/drawer/select.js`). `para` is written by `Servex/agents/Sessions.js`'s `heard()`, the moment the fast assistant's reply starts with `(new paragraph)` (`Servex/agents/session-fast.md`'s own rule). `refined` is written by that same file's `say()`, through its own `refine()` method — the SAME shared engine `Echo.js` already runs for VS Code prompts (`ext/Refine/engine.js`'s `clean()` + `structure.js`'s `structure()`, never a second one, law 6), called through `servex.echo.call()` so every model session it opens is one Echo's own loop guard (`machine`/`inflight`) already knows about.
++`pause` is written by `report_pause()`, which every chat mount turns on (`ux/Dictate/chat.js`). It hears the mic itself turn off and back on (`Floor.js`), so no caller reports it by hand. `select` comes from the drawer's pick-an-element tool (`ext/drawer/select.js`). `para` is written by `Servex/agents/Sessions.js`'s `heard()`, the moment the fast assistant's reply starts with `(new paragraph)` (`Servex/agents/session-fast.md`'s own rule). `refined` is written by that same file's `say()`, through its own `refine()` method — the SAME shared engine `Echo.js` already runs for VS Code prompts (`ext/Refine/engine.js`'s `clean()` + `structure.js`'s `structure()`, never a second one, law 6), called through `servex.echo.call()` so every model session it opens is one Echo's own loop guard (`machine`/`inflight`) already knows about.
+ 
+ `nav`, `pause` and `select` are written by `Session.js` and never turned into a chat bubble —
+ `Session.entry()` skips them on purpose, the same way it already skips `quiet` and `skip`
+diff --git a/public/framework/ext/Session/doc/sessions.md b/public/framework/ext/Session/doc/sessions.md
+index fa05ca46f..e40721f62 100644
+--- a/public/framework/ext/Session/doc/sessions.md
++++ b/public/framework/ext/Session/doc/sessions.md
+@@ -102,7 +102,7 @@ A `say` from a different page than the last one also writes a `nav` line first.
+ A `say` with `via: "voice"` and a `floor` is **held** from both assistants. It is released, both
+ lines and assistants at once, when the owner has been quiet `SERVEX_SESSION_ANSWER_QUIET_MS`
+ (2.5 s): either the line itself arrives that quiet (`quiet_ms`), or a later `quiet` event says so
+-(`ux/Dictate/floor.js` fires it; `report_quiet()` posts it), or the mic went off. With no such
++(`ux/Dictate/Floor.js` fires it; `report_quiet()` posts it), or the mic went off. With no such
+ event it goes after `SERVEX_SESSION_HOLD_MAX_MS` (8 s). The released message ends with
+ `(the owner has stopped: quiet for 2.6 s)`. A typed line, or one from a page too old to send
+ `floor`, goes out at once as before. Proof: [sessions-test.txt](/framework/ai/2026-09-30/dictation-stream/proof/sessions-test.txt).
+diff --git a/public/framework/ext/drawer/rail.js b/public/framework/ext/drawer/rail.js
+index 790e59e0e..889212481 100644
+--- a/public/framework/ext/drawer/rail.js
++++ b/public/framework/ext/drawer/rail.js
+@@ -1,7 +1,7 @@
+ import { View, div, span, button } from "/framework/core/View/View.js";
+ import Dictate from "/framework/ux/Dictate/Dictate.js";
+ import grip from "/framework/ext/grip/grip.js";
+-import floor from "/framework/ux/Dictate/floor.js";
++import floor from "/framework/ux/Dictate/Floor.js";
+ import Widget from "/framework/ux/Dictate/Widget.js";
+ import chat, { ago, new_session_button as chat_new_session_button } from "/framework/ux/Dictate/chat.js";
+ import Inbox from "./inbox.js";
+diff --git a/public/framework/ext/drawer/tabs/ai.js b/public/framework/ext/drawer/tabs/ai.js
+index 8283cdf6e..67bcfb4b7 100644
+--- a/public/framework/ext/drawer/tabs/ai.js
++++ b/public/framework/ext/drawer/tabs/ai.js
+@@ -11,7 +11,7 @@ import drawer from "../drawer.js";
+ import { DEV } from "../tabs.js";
+ import Inbox from "../inbox.js";   // the page's inbox, at the top of this tab (doc/inbox.md)
+ import * as Session from "/framework/ext/Session/Session.js";
+-import floor from "/framework/ux/Dictate/floor.js";
++import floor from "/framework/ux/Dictate/Floor.js";
+ 
+ // The SAME key `ext/drawer/rail.js`'s own ✦ sheet uses for its `sessionStorage`
+ // slot — "the SAME widget and the SAME session pair as the ✦ sheet" (the owner,
+diff --git a/public/framework/ux/Dictate/ChatController.js b/public/framework/ux/Dictate/ChatController.js
+new file mode 100644
+index 000000000..932ada474
+--- /dev/null
++++ b/public/framework/ux/Dictate/ChatController.js
+@@ -0,0 +1,150 @@
++import floor from "./Floor.js";
++import * as Session from "/framework/ext/Session/Session.js";
++import { track } from "../../core/track/track.js";
++
++// The sessionStorage key a `persist: true` controller reads/writes — see the class doc.
++const SESSION_KEY = "lew42-voice-session";
++
++function read_saved(){
++	try { return JSON.parse(sessionStorage.getItem(SESSION_KEY) || "null"); }
++	catch { return null; }
++}
++function write_saved(v){
++	try { v ? sessionStorage.setItem(SESSION_KEY, JSON.stringify(v)) : sessionStorage.removeItem(SESSION_KEY); }
++	catch {}
++}
++
++/**
++ * class ChatController — the one conversation, however many mounts show it. `chat.js`'s
++ * `chat(el, opts)` builds exactly two kinds: `GLOBAL` (`persist: true`, one per browser
++ * tab, shared by every `keep: true` mount — the ✦ sheet, the ☰ drawer, every card
++ * sidebar) and a fresh, page-local one (`persist: false`) for each `keep: false` mount
++ * (a demo's own "never remembered" session). A `persist: false` controller never touches
++ * `sessionStorage`, so it can never be read back by a later mount — "coming back starts
++ * fresh" (the owner's own words). Nothing about the SHAPE of a controller changes between
++ * the two; only whether it reads/writes the shared storage key.
++ *
++ * **Was a factory function returning a bag of closures** (`create_controller()`, inside
++ * `chat.js`) until this task (dictate-live-state, 2026-10-04) made it a real class, moved
++ * into its own file — folder = file = class name, same rule `Dictate.js`/`Capture.js`
++ * beside it already follow (CLAUDE.md: "a lowercase file never holds a class someone will
++ * look for"). Every method below is the same function `create_controller()` used to
++ * build, just reached through `this` instead of a closure. `track()`-ed so the Live tab
++ * (`live/page.js`) can list every one that exists right now, `GLOBAL` included.
++ *
++ * `ctl` stays one nested object (not flattened onto `this` directly) because `chat.js`'s
++ * own `chat()` function, and a couple of outside readers (`window`'s own `selection-change`
++ * listener), reach into `owner.ctl.session`/`.file`/`.selection` directly — flattening
++ * those would touch every one of those call sites for no behaviour change, so it stayed.
++ */
++export class ChatController {
++
++	constructor({ persist }){
++		this.persist = persist;
++		this.ctl = {
++			session: null,
++			file: null,
++			starting: null,   // a pending Session.start() promise — two mounts' first sentence at once share ONE session
++			nav_path: null,   // the path last actually reported to the session (report_nav's own dedupe)
++			nav_card: null,   // the card last actually reported alongside it (item 1, one-dictation)
++			selection: null,  // the reader's last picked element, `{kind, label, text, selector}` or null (item 6) — GLOBAL only, see chat.js
++		};
++		this.listeners = new Set();   // every live mount's own re-sync — see `subscribe()`/`broadcast()`
++		this.floor_watch = null;
++		this.sync_from_storage();
++		this.constructor.track?.(this);
++	}
++
++	sync_from_storage(){
++		if (!this.persist || this.ctl.session) return;
++		const saved = read_saved();
++		if (saved?.session && saved?.file){ this.ctl.session = saved.session; this.ctl.file = saved.file; }
++	}
++
++	// Called whenever THIS controller's session changes (a first start, a resume, a
++	// reset), so every open mount sharing it notices, not just the one that caused the
++	// change. A `keep: false` controller usually has only one mount listening (its own),
++	// but the shape costs nothing to share.
++	subscribe(fn){ this.listeners.add(fn); return () => this.listeners.delete(fn); }
++	broadcast(){ for (const fn of this.listeners) fn(); }
++
++	// The ONE real navigation report, whoever calls it — deduped against `ctl.nav_path` so
++	// the rail's own `navigated()` hook AND a fresh mount noticing a new path never both
++	// send the same move twice. `card` (item 1, one-dictation) is the card selected right
++	// now, or undefined for none — it travels with every nav report so a refinement
++	// written later can be attributed to the right card even after the owner has since
++	// moved on (`doc/sessions.md`'s "Refinement goes to the card selected at the time").
++	report_nav(path, card){
++		if (!this.ctl.session){ this.ctl.nav_path = path; this.ctl.nav_card = card; return; }
++		if (path === this.ctl.nav_path && card === this.ctl.nav_card) return;
++		const from = this.ctl.nav_path;
++		this.ctl.nav_path = path; this.ctl.nav_card = card;
++		Session.nav({ session: this.ctl.session, from, to: path, card }).catch(() => {});
++	}
++
++	// The first sentence, from any mount sharing THIS controller, starts (or silently
++	// resumes, inside `Session.start()` itself) the one session it will ever use until a
++	// reset. For a `keep: false` controller this really does call the server and really
++	// does start two real agents (`rail.js`'s own note on `start()`) — a page-local
++	// session is still a REAL session, just not a remembered one.
++	//
++	// A plain `ChatController` has no screen of its own to log onto — several mounts
++	// (several `Widget`s, each with its own `$diag` line) can share ONE controller, so
++	// "which mount's status line says this" is a question only `chat.js`'s own `deliver`
++	// closure can answer (it calls `stage("session", …)` right around this call —
++	// `doc/status-signals.md`'s "session" row, the console trail AND the on-screen line
++	// both, through `Dictate.js`'s own `log_step()`). This method stays plain data-layer
++	// code.
++	async ensure(target){
++		this.sync_from_storage();
++		if (this.ctl.session) return;
++		if (!this.ctl.starting){
++			this.ctl.starting = Session.start({ path: target.path, card: target.card }).then(made => {
++				this.ctl.session = made.session; this.ctl.file = made.file;
++				write_saved({ session: made.session, file: made.file });
++				this.broadcast();
++			}).finally(() => { this.ctl.starting = null; });
++		}
++		return this.ctl.starting;
++	}
++
++	// The mic held a sentence back while the owner kept talking (`entry.floor ===
++	// "speaking"`) — watch the mic's OWN floor state until it settles, then say so once, so
++	// the fast assistant's held reply lands. One watcher per controller, not one per mount.
++	watch_floor(){
++		clearInterval(this.floor_watch);
++		const session = this.ctl.session, started = Date.now();
++		this.floor_watch = setInterval(() => {
++			if (session !== this.ctl.session || Date.now() - started > 30000) return clearInterval(this.floor_watch);
++			if (floor.state() !== "done") return;
++			clearInterval(this.floor_watch);
++			Session.floor({ session, floor: "done" }).catch(() => {});
++		}, 250);
++	}
++
++	// Continue an OLDER session by id — the resume-offer's own "yes", and `tabs/sessions.js`'s
++	// click on a past voice session. Every open mount sharing this controller hears about it.
++	async resume_to(session){
++		const made = await Session.resume(session);
++		this.ctl.session = made.session; this.ctl.file = made.file;
++		write_saved({ session: made.session, file: made.file });
++		this.broadcast();
++	}
++
++	// "New session" — drops this controller's own session id; the NEXT sentence said, from
++	// whichever mount it comes from, starts a fresh one. For `keep: false` there is nothing
++	// saved to drop — this just clears the in-memory id, same effect.
++	reset(){
++		this.ctl.session = null; this.ctl.file = null; this.ctl.starting = null;
++		write_saved(null);
++		this.broadcast();
++	}
++
++	current(){ return this.ctl.session; }
++}
++
++ChatController.icon = "forum";
++ChatController.weights = { properties: "persist ctl" };   // order for the Live tab's inspect() — see Dictate.js's own note
++track(ChatController);
++
++export default ChatController;
+diff --git a/public/framework/ux/Dictate/Dictate.js b/public/framework/ux/Dictate/Dictate.js
+index 8b08f0adb..b20d84f6e 100644
+--- a/public/framework/ux/Dictate/Dictate.js
++++ b/public/framework/ux/Dictate/Dictate.js
+@@ -2,9 +2,10 @@ import { View, div, span, button, label, input } from "../../core/View/View.js";
+ import Capture from "./capture.js";
+ import Revise from "../Revise/Revise.js";
+ import { servex_url } from "/framework/dev/servex_url.js";
+-import floor from "./floor.js";
++import floor from "./Floor.js";
+ import FsFile from "/framework/ext/filesystem/FsFile.js";
+ import Socket from "/framework/dev/Socket/Socket.js";
++import { track } from "../../core/track/track.js";
+ 
+ View.stylesheet(import.meta, "Dictate.css");
+ 
+@@ -113,7 +114,7 @@ async function fetch_timeout(url, opts, ms){
+  *  prompt", not two.
+  *
+  *  Every entry also gets `floor` ("speaking" | "done") and, after a dictation,
+- *  `cues` (its pauses and speaking time) stamped on here — `floor.js`, and the
++ *  `cues` (its pauses and speaking time) stamped on here — `Floor.js`, and the
+  *  contract for readers in `ext/Chat/doc/floor.md`. */
+ export async function post_prompt(entry, url = servex_url("/log/prompts")){
+ 	floor.stamp(entry);
+@@ -180,7 +181,10 @@ export async function post_prompt(entry, url = servex_url("/log/prompts")){
+  */
+ export default class Dictate extends View {
+ 
++	static icon = "mic";
++
+ 	render(){
++		this.constructor.track?.(this);   // the Live tab's own list — `page.js`, core/track
+ 		this.ac("ux-dictate flex v-center gap");
+ 		this.state = "idle";
+ 		this.settled = "";
+@@ -209,7 +213,12 @@ export default class Dictate extends View {
+ 				// or a headless check reading this same text — can see exactly where it stopped
+ 				// instead of guessing. `log_step()` below is the one place that updates it.
+ 				this.$diag = span.c("ux-dictate-diag muted");
+-				this.steps = { mic: "idle", socket: "", whisper: "" };
++				// `session`/`assistants` (dictate-live-state, 2026-10-04 — `doc/status-signals.md`):
++				// a plain `Dictate` (no chat wired up) never touches these two and they stay at
++				// their honest defaults forever, same as `socket` reads "—" with no dev socket —
++				// `chat.js`'s `ensure()`/`draw()`/the stream handler are the only callers of
++				// `log_step("session"|"assistants", …)`, through `panel.dictate` (`Widget.Composer`).
++				this.steps = { mic: "idle", socket: "", whisper: "", session: "none", assistants: "" };
+ 
+ 				if (this.mode !== "open") label.c("ux-dictate-pause-opt flex v-center muted", () => {
+ 					this.$send_on_pause = input().attr("type", "checkbox")
+@@ -224,9 +233,31 @@ export default class Dictate extends View {
+ 		this.hotkey_bound = e => this.hotkey(e);
+ 		document.addEventListener("keydown", this.hotkey_bound);
+ 
++		this.watch_socket();
+ 		this.init();
+ 	}
+ 
++	/** **The socket word, kept live** (review round 7, finding 1 — "nothing listens to the
++	 *  socket's own open and close events," so `$diag` kept saying `connected` for a
++	 *  while after a real drop, or `retrying 1` forever while the real count climbed).
++	 *  `Socket.js`'s own `"open"`/`"close"` events (added by this same task) fire the
++	 *  instant the real transition happens — this just redraws `$diag` with the current
++	 *  `socket_status()` right then, instead of waiting for the next `detect_engine()`
++	 *  call (a mic press, or page load). Same no-unmount-hook workaround `hotkey()` above
++	 *  already uses: the listener checks `this.el.isConnected` on its OWN next firing and
++	 *  unsubscribes itself once this instance has left the page, rather than needing a
++	 *  cleanup call nothing here has a hook to make. */
++	watch_socket(){
++		const s = Socket.singleton?.();
++		if (!s?.on) return;   // no dev socket (production), or a Socket.js too old to have on() — nothing to watch
++		const redraw = () => {
++			if (!this.el.isConnected){ unsub_open(); unsub_close(); return; }
++			this.log_step("socket", this.socket_status());
++		};
++		const unsub_open = s.on("open", redraw);
++		const unsub_close = s.on("close", redraw);
++	}
++
+ 	/* `Ctrl+Shift+M` (or `Cmd+Shift+M`) toggles THIS instance — checked against
+ 	 * the site's other global keys before picking it: `/` and `Ctrl+K` open the
+ 	 * omnibox, `Ctrl+\` toggles the dev bar, none of them "M". Scoped so several
+@@ -290,15 +321,21 @@ export default class Dictate extends View {
+ 	draw_diag(){
+ 		if (!this.$diag) return;
+ 		const s = this.steps;
+-		this.$diag.text(`mic: ${s.mic || "idle"} · socket: ${s.socket || "—"} · whisper: ${s.whisper || "—"}`);
++		this.$diag.text(`mic: ${s.mic || "idle"} · socket: ${s.socket || "—"} · whisper: ${s.whisper || "—"} · session: ${s.session || "none"} · assistants: ${s.assistants || "—"}`);
+ 	}
+ 
+-	/* "connected" / "retrying" — read straight off the dev socket singleton (the one the
+-	 * owner named: "a reconnect race"). A production build (no dev socket) reads "—": this
+-	 * stage is diagnostic, never something dictation itself depends on. */
++	/* "connected" / "retrying N" — read straight off the dev socket singleton (the one the
++	 * owner named: "a reconnect race"). `s.fails` is the socket's own reconnect-attempt
++	 * counter (`Socket.reconnect()`'s `this.fails++`, reset to 0 on `open()`) — the brief's
++	 * own words: "'retrying n' on close" (`doc/status-signals.md`'s "socket" row), not just
++	 * "retrying" with no count. A production build (no dev socket) reads "—": this stage is
++	 * diagnostic, never something dictation itself depends on. */
+ 	socket_status(){
+-		try { const s = Socket.singleton?.(); return s ? (s.connected ? "connected" : "retrying") : "—"; }
+-		catch { return "—"; }
++		try {
++			const s = Socket.singleton?.();
++			if (!s) return "—";
++			return s.connected ? "connected" : `retrying ${s.fails ?? 0}`;
++		} catch { return "—"; }
+ 	}
+ 
+ 	/* Re-checked on every press, not just once — the owner may start
+@@ -528,7 +565,7 @@ export default class Dictate extends View {
+ 		const was_listening = this.state === "listening";
+ 		this.state = state;
+ 		(state === "listening" || state === "connecting") ? LIVE.add(this) : LIVE.delete(this);
+-		if (state === "listening" && !was_listening) floor.mic_on(this);   // the floor: `floor.js`
++		if (state === "listening" && !was_listening) floor.mic_on(this);   // the floor: `Floor.js`
+ 		else if (state !== "listening" && was_listening) floor.mic_off(this);
+ 		this.$button.rc("listening transcribing connecting").ac(["listening", "transcribing", "connecting"].includes(state) ? state : "");
+ 		this.$status.rc("error").text({ listening: "listening…", transcribing: "finishing…", connecting: "connecting…" }[state] ?? "");
+@@ -1100,3 +1137,18 @@ Dictate.prototype.on_revise_failed = null;   // ({raw, level, chunk_id, why}) =>
+ /** `dictate(() => this.$input, opts)` — the drop-in shape `ext/Ask/mic.js`'s
+  *  `mic()` used, for callers that just want the button. */
+ export function dictate($input, opts = {}){ return new Dictate({ $input, ...opts }); }
++
++// THE LIVE TAB (dictate-live-state, 2026-10-04): `track(Dictate)` installs
++// `Dictate.track(instance)`/`Dictate.instances()` (`core/track/track.js`) — opt-in, one
++// line, the same mechanism `Page` already uses. `render()`, above, calls `Dictate.track(this)`
++// once per instance. Nothing here changes behaviour for any existing caller — `instances()`
++// is read-only and only `page.js`'s own Live tab calls it.
++track(Dictate);
++
++// Properties shown FIRST on the Live tab (`doc/status-signals.md`'s own stage order) — the
++// simplest form of "a weight decides the order" the owner asked for: an explicit, named list,
++// read by `page.js`'s own `inspect()` calls instead of object-key order (which is "whatever
++// `render()` happened to assign first" — true today, but not a promise). Not a new mechanism
++// on `ObjectCard`/`InspectCard` (`ux/Content/Object`) — those already take `properties:`/
++// `methods:` lists exactly like this; this is just THIS class's own list, named once, here.
++Dictate.weights = { properties: "state engine mode settled partial_text steps device_id send_on_pause" };
+diff --git a/public/framework/ux/Dictate/Floor.js b/public/framework/ux/Dictate/Floor.js
+new file mode 100644
+index 000000000..ac7880bc8
+--- /dev/null
++++ b/public/framework/ux/Dictate/Floor.js
+@@ -0,0 +1,151 @@
++import { track } from "../../core/track/track.js";
++
++/**
++ * **class Floor — who has the floor, and the rhythm of the talking.** One small, shared
++ * record of the microphone, so an assistant reading the prompts log can tell "the owner is
++ * still talking, hold your reply" from "the owner has finished".
++ *
++ * `Dictate` feeds it (mic on, every level frame, mic off), and `post_prompt()`
++ * stamps two fields onto every entry it posts:
++ *
++ *     entry.floor = "speaking" | "done"
++ *     entry.cues  = { mic_on_at, pauses: [{start, end, ms}], speaking_ms }
++ *
++ * `start`/`end` are milliseconds since the mic turned on. `pauses` holds only the
++ * pauses since the PREVIOUS stamped entry, so each entry carries the rhythm of its
++ * own words. A pause still running when the entry is sent has `end: null` and is
++ * SPLIT there: the next entry reports the rest of it, starting at the cut, so no
++ * quiet is ever counted twice. Only a mic entry (`via: "whisper"`) takes cues;
++ * a typed one is always "done" and leaves them for the next dictated entry.
++ * The contract, for whoever reads the log: `ext/Chat/doc/floor.md`.
++ *
++ * **One instance for the whole page** (`export const floor = new Floor()`, at the bottom)
++ * — there is one microphone, and every `Dictate` on the page (ComposerMic included) reaches
++ * it without any wiring of its own. This was plain module state (a bare object literal)
++ * until this task (dictate-live-state, 2026-10-04) made it a class with the SAME methods,
++ * so the Live tab can show it as one real, named, inspectable object instead of nothing —
++ * this file's own default export (`floor`, the one shared instance) is unchanged, so every
++ * caller keeps `import floor from ".../Floor.js"` with nothing else to change but the path's
++ * capital F (folder = file = class name — CLAUDE.md's own rule for a file that holds a class).
++ */
++export class Floor {
++
++	min_pause_ms = 300;     // a quiet stretch shorter than this is between words, not a pause
++	done_after_ms = 1500;   // quiet this long ends the thought (ext/Chat's paragraph pause, break_pause_ms)
++
++	owner = null;           // the Dictate instance whose mic is on, or null
++	on_at = 0;              // performance.now() when the mic turned on
++	mic_on_at = null;       // the same moment, as an ISO string for the log
++	pauses = [];            // closed pauses not yet stamped onto an entry
++	quiet_since = null;     // performance.now() the current quiet began, or null while loud
++	heard = false;          // any speech yet this session (quiet before the first word is not a pause)
++	split = false;          // the current quiet was cut by a send: its remainder is reported however short
++	speaking_ms = 0;        // loud time since the previous stamped entry
++	last_at = 0;            // the previous level frame's time
++
++	/* THE SILENCE EVENT (dictation-stream, 2026-09-30; the owner: "the duration since last word...
++	 * should be an event that fires into... the LLM"). Once the owner has spoken, each quiet stretch
++	 * fires every listener of `on_quiet()` once per mark it reaches: `fn(ms, {mic_off})`. Mic off
++	 * after speech fires it too. `silent_at` is when the quiet REALLY began: `stamp()`'s split moves
++	 * `quiet_since` for the cues, never this. A voice session posts it to Servex, which then lets
++	 * its assistants answer (`ext/Session`, `Servex/agents/Sessions.js`). */
++	quiet_marks = [2500];
++	silent_at = null;
++	fired = 0;
++	listeners = new Set();
++
++	constructor(){ this.constructor.track?.(this); }
++
++	on_quiet(fn){ this.listeners.add(fn); return () => this.listeners.delete(fn); }
++	/** How long the owner has been quiet right now, in ms; null with the mic off. */
++	quiet_ms(){ return !this.owner ? null : this.silent_at == null ? 0 : Math.round(performance.now() - this.silent_at); }
++	quiet(ms, mic_off = false){ for (const fn of this.listeners) try { fn(Math.round(ms), { mic_off }); } catch (e){ console.error("floor: on_quiet listener failed", e); } }
++
++	/** The mic really is on (Dictate's own "listening"). */
++	mic_on(owner){
++		const now = performance.now();
++		Object.assign(this, { owner, on_at: now, mic_on_at: new Date().toISOString(), pauses: [],
++			quiet_since: now, heard: false, split: false, speaking_ms: 0, last_at: now, silent_at: now, fired: this.quiet_marks.length });
++		this.post("speaking", owner);
++	}
++
++	/** One level frame (about every 8 ms). `loud` is Dictate's own speech test. */
++	level(owner, loud){
++		if (owner !== this.owner) return;
++		const now = performance.now();
++		if (loud){
++			if (this.quiet_since != null && this.heard) this.close_pause(now);
++			this.quiet_since = null;
++			this.split = false;
++			this.speaking_ms += now - this.last_at;
++			this.heard = true;
++			this.silent_at = null;
++			this.fired = 0;
++		} else {
++			if (this.quiet_since == null) this.quiet_since = now;
++			this.silent_at ??= now;
++			while (this.fired < this.quiet_marks.length && now - this.silent_at >= this.quiet_marks[this.fired]) this.quiet(this.quiet_marks[this.fired++]);
++		}
++		this.last_at = now;
++	}
++
++	close_pause(now){
++		const ms = now - this.quiet_since;
++		if (ms >= this.min_pause_ms || (this.split && ms > 0)) this.pauses.push({ start: Math.round(this.quiet_since - this.on_at), end: Math.round(now - this.on_at), ms: Math.round(ms) });
++	}
++
++	/** The mic is off (stopped, errored, or stopping). Only its own owner can end it. */
++	mic_off(owner){
++		if (owner !== this.owner) return;
++		this.owner = null;
++		if (this.fired < this.quiet_marks.length){ this.fired = this.quiet_marks.length; this.quiet(performance.now() - (this.silent_at ?? performance.now()), true); }
++		this.post("idle", owner);
++	}
++
++	/** "speaking" while the mic is on and the current quiet is shorter than `done_after_ms`. */
++	state(){
++		if (!this.owner) return "done";
++		const quiet = this.quiet_since == null ? 0 : performance.now() - this.quiet_since;
++		return quiet >= this.done_after_ms ? "done" : "speaking";
++	}
++
++	/** Adds `floor` and (after any mic session) `cues` to an entry, then starts the next
++	 *  entry's rhythm fresh. An entry that already has them is left as it is. */
++	stamp(entry){
++		if (!entry || typeof entry !== "object" || entry.type === "floor" || "floor" in entry) return entry;
++		if (entry.chat){ entry.floor = this.state(); return entry; }   // a revision line: the floor now, but it never takes the cues
++		if (!this.voice(entry)){ entry.floor = "done"; return entry; }  // typed: finished by definition, and the cues wait for the next dictated entry
++		entry.floor = this.state();
++		if (!this.mic_on_at) return entry;   // no mic this page load: a typed entry, nothing to report
++		const now = performance.now();
++		const pauses = [...this.pauses];
++		const open = now - (this.quiet_since ?? now);
++		if (this.owner && this.quiet_since != null && this.heard && (open >= this.min_pause_ms || (this.split && open > 0))){
++			pauses.push({ start: Math.round(this.quiet_since - this.on_at), end: null, ms: Math.round(open) });
++			this.quiet_since = now;   // split here: the next entry reports only the rest
++			this.split = true;
++		}
++		entry.cues = { mic_on_at: this.mic_on_at, pauses, speaking_ms: Math.round(this.speaking_ms) };
++		this.pauses = [];
++		this.speaking_ms = 0;
++		if (!this.owner) this.mic_on_at = null;   // the last entry of a finished session took its cues; a later typed one gets none
++		return entry;
++	}
++
++	/** A mic entry: Dictate and ComposerMic both post `via: "whisper"` (the browser engine too). */
++	voice(entry){ return entry.via === "whisper" || entry.via === "voice"; }
++
++	/** `{type:"floor", state}` to the prompts log — Servex stamps `at` on arrival. Every
++	 *  reader of that log ignores a type it does not know (checked: the fold, the fast
++	 *  assistant, the Dispatcher), so this makes no card and no reply. Set by Dictate.js. */
++	post(state, owner){}
++}
++
++Floor.icon = "hearing";
++Floor.weights = { properties: "owner heard speaking_ms mic_on_at silent_at pauses" };   // order for the Live tab's inspect() — see Dictate.js's own note; real own fields only, "state()"/"quiet_ms()" are methods, not values to list here
++track(Floor);
++
++/** The one shared instance — same name, same import, as before this task made it a class. */
++export const floor = new Floor();
++
++export default floor;
+diff --git a/public/framework/ux/Dictate/ai/files.jsonl b/public/framework/ux/Dictate/ai/files.jsonl
+index 948b1a60a..2d9a41b94 100644
+--- a/public/framework/ux/Dictate/ai/files.jsonl
++++ b/public/framework/ux/Dictate/ai/files.jsonl
+@@ -1 +1,2 @@
+ {"file":"chat.jsonl"}
++{"file":"chat.jsonl","gone":true}
+diff --git a/public/framework/ux/Dictate/chat.js b/public/framework/ux/Dictate/chat.js
+index 0df2dcfd6..76cd8eda9 100644
+--- a/public/framework/ux/Dictate/chat.js
++++ b/public/framework/ux/Dictate/chat.js
+@@ -1,7 +1,8 @@
+ import { View, button } from "../../core/View/View.js";
+ import Widget from "./Widget.js";
+-import floor from "./floor.js";
++import floor from "./Floor.js";
+ import * as Session from "/framework/ext/Session/Session.js";
++import { ChatController } from "./ChatController.js";
+ 
+ /**
+  * ONE chat box, one conversation, every surface. `chat(el, {path, card, placeholder})`
+@@ -16,7 +17,6 @@ import * as Session from "/framework/ext/Session/Session.js";
+ 
+ // The font fix for a drawer mounted before `.app` exists lives in `ext/drawer/drawer.js`
+ // now, not here — see `doc/chat.md`.
+-const SESSION_KEY = "lew42-voice-session";
+ const RESUME_OFFER_MS = 60 * 60 * 1000;   // matches Servex's own SERVEX_SESSION_RESUME_MS default
+ 
+ // A rough "how long ago" — "1 day ago", never a bare timestamp. THE one copy (review
+@@ -33,118 +33,11 @@ function ago(at){
+ 	return days === 1 ? "1 day ago" : days + " days ago";
+ }
+ 
+-function read_saved(){
+-	try { return JSON.parse(sessionStorage.getItem(SESSION_KEY) || "null"); }
+-	catch { return null; }
+-}
+-function write_saved(v){
+-	try { v ? sessionStorage.setItem(SESSION_KEY, JSON.stringify(v)) : sessionStorage.removeItem(SESSION_KEY); }
+-	catch {}
+-}
+-
+-/* THE CONTROLLER FACTORY (item 2, one-dictation: `keep`). Everything this file used to
+- * do with one module-level singleton now lives here instead, so it can be built TWICE:
+- * once, here below, as `GLOBAL` — the one conversation per browser tab, shared by every
+- * `chat()` call made with `keep: true` (the default) — and once PER MOUNT, fresh, never
+- * saved anywhere, for a call made with `keep: false`. A `persist: false` controller never
+- * touches `sessionStorage`, so it can never be read back by a later mount — which is
+- * exactly "coming back starts fresh" (the owner's own words, `owner-words.md`). Nothing
+- * about the SHAPE of a controller changes between the two; only whether it reads/writes
+- * the shared storage key. */
+-function create_controller({ persist }){
+-	const ctl = {
+-		session: null,
+-		file: null,
+-		starting: null,   // a pending Session.start() promise — two mounts' first sentence at once share ONE session
+-		nav_path: null,   // the path last actually reported to the session (report_nav's own dedupe)
+-		nav_card: null,   // the card last actually reported alongside it (item 1, one-dictation)
+-		selection: null,  // the reader's last picked element, `{kind, label, text, selector}` or null (item 6) — GLOBAL only, see below
+-	};
+-
+-	function sync_from_storage(){
+-		if (!persist || ctl.session) return;
+-		const saved = read_saved();
+-		if (saved?.session && saved?.file){ ctl.session = saved.session; ctl.file = saved.file; }
+-	}
+-	sync_from_storage();
+-
+-	// Every live mount's own re-sync — called whenever THIS controller's session changes
+-	// (a first start, a resume, a reset), so every open mount sharing it notices, not just
+-	// the one that caused the change. A `keep: false` controller usually has only one mount
+-	// listening (its own), but the shape costs nothing to share.
+-	const listeners = new Set();
+-	function subscribe(fn){ listeners.add(fn); return () => listeners.delete(fn); }
+-	function broadcast(){ for (const fn of listeners) fn(); }
+-
+-	// The ONE real navigation report, whoever calls it — deduped against `ctl.nav_path` so
+-	// the rail's own `navigated()` hook AND a fresh mount noticing a new path never both
+-	// send the same move twice. `card` (item 1, one-dictation) is the card selected right
+-	// now, or undefined for none — it travels with every nav report so a refinement
+-	// written later can be attributed to the right card even after the owner has since
+-	// moved on (`doc/sessions.md`'s "Refinement goes to the card selected at the time").
+-	function report_nav(path, card){
+-		if (!ctl.session){ ctl.nav_path = path; ctl.nav_card = card; return; }
+-		if (path === ctl.nav_path && card === ctl.nav_card) return;
+-		const from = ctl.nav_path;
+-		ctl.nav_path = path; ctl.nav_card = card;
+-		Session.nav({ session: ctl.session, from, to: path, card }).catch(() => {});
+-	}
+-
+-	// The first sentence, from any mount sharing THIS controller, starts (or silently
+-	// resumes, inside `Session.start()` itself) the one session it will ever use until a
+-	// reset. For a `keep: false` controller this really does call the server and really
+-	// does start two real agents (`rail.js`'s own note on `start()`) — a page-local
+-	// session is still a REAL session, just not a remembered one.
+-	async function ensure(target){
+-		sync_from_storage();
+-		if (ctl.session) return;
+-		if (!ctl.starting){
+-			ctl.starting = Session.start({ path: target.path, card: target.card }).then(made => {
+-				ctl.session = made.session; ctl.file = made.file;
+-				write_saved({ session: made.session, file: made.file });
+-				broadcast();
+-			}).finally(() => { ctl.starting = null; });
+-		}
+-		return ctl.starting;
+-	}
+-
+-	// The mic held a sentence back while the owner kept talking (`entry.floor ===
+-	// "speaking"`) — watch the mic's OWN floor state until it settles, then say so once, so
+-	// the fast assistant's held reply lands. One watcher per controller, not one per mount.
+-	let floor_watch = null;
+-	function watch_floor(){
+-		clearInterval(floor_watch);
+-		const session = ctl.session, started = Date.now();
+-		floor_watch = setInterval(() => {
+-			if (session !== ctl.session || Date.now() - started > 30000) return clearInterval(floor_watch);
+-			if (floor.state() !== "done") return;
+-			clearInterval(floor_watch);
+-			Session.floor({ session, floor: "done" }).catch(() => {});
+-		}, 250);
+-	}
+-
+-	// Continue an OLDER session by id — the resume-offer's own "yes", and `tabs/sessions.js`'s
+-	// click on a past voice session. Every open mount sharing this controller hears about it.
+-	async function resume_to(session){
+-		const made = await Session.resume(session);
+-		ctl.session = made.session; ctl.file = made.file;
+-		write_saved({ session: made.session, file: made.file });
+-		broadcast();
+-	}
+-
+-	// "New session" — drops this controller's own session id; the NEXT sentence said, from
+-	// whichever mount it comes from, starts a fresh one. For `keep: false` there is nothing
+-	// saved to drop — this just clears the in-memory id, same effect.
+-	function reset(){
+-		ctl.session = null; ctl.file = null; ctl.starting = null;
+-		write_saved(null);
+-		broadcast();
+-	}
+-
+-	function current(){ return ctl.session; }
+-
+-	return { ctl, persist, subscribe, broadcast, report_nav, ensure, watch_floor, resume_to, reset, current, sync_from_storage };
+-}
++// THE CONTROLLER CLASS (item 2, one-dictation: `keep`) now lives in its own file,
++// `ChatController.js` — folder = file = class name, same rule every other class in this
++// directory already follows (dictate-live-state, 2026-10-04). `create_controller()` stays
++// here as the one place this file ever builds one, from two call sites below.
++function create_controller(opts){ return new ChatController(opts); }
+ 
+ // THE ONE GLOBAL CONTROLLER — one per browser tab, module-level (ES modules are
+ // singletons, so every importer of this file shares this one object). Built once, here,
+@@ -211,6 +104,16 @@ export default function chat(el, { path = location.pathname, card, placeholder,
+ 	// factory already dedupes its `source()` lines (`at` + whether it's a `fix` + the text).
+ 	let seen_chat = new Set();
+ 
++	// STAGE LOGGING (dictate-live-state, 2026-10-04 — `doc/status-signals.md`'s "session"
++	// and "assistants" rows, review finding 1: "the status line on screen still shows only
++	// mic/socket/whisper"). `panel.dictate` is this mount's real `ComposerMic` (a `Dictate`
++	// subclass) — its own `log_step(stage, detail)` is the ONE place that both prints the
++	// `[dictate] …` console line AND redraws `$diag`, the always-visible status line
++	// (`Dictate.js`). Routing session/assistant events through that SAME method (instead of
++	// a second, console-only `console.log` here) is what makes them show up on screen too,
++	// not just in the trail.
++	function stage(name, detail){ panel.dictate?.log_step(name, detail) ?? console.log(`[dictate] ${name}: ${detail}`); }
++
+ 	new View({ el, capture: false }).append(() => {
+ 		panel = new Widget({
+ 			placeholder, level, source, debug, revision, models, mode,
+@@ -218,11 +121,14 @@ export default function chat(el, { path = location.pathname, card, placeholder,
+ 			deliver: async entry => {
+ 				try {
+ 					owner.sync_from_storage();
++					if (!owner.ctl.session) stage("session", "starting…");
+ 					await owner.ensure(target);
+ 					if (!owner.ctl.session) return false;
++					stage("session", "started");
+ 					const via = entry.via === "typed" ? "text" : "voice";
+ 					floor.stamp(entry);
+ 					const thread = entry.thread ? { re: entry.thread, thread: true } : {};
++					stage("assistants", "thinking…");
+ 					const r = await Session.say({ session: owner.ctl.session, path: target.path, text: entry.text,
+ 						via, raw: entry.raw, floor: entry.floor, cues: entry.cues, selection: owner.ctl.selection, ...thread });
+ 					own_ats.add(r.at);
+@@ -232,7 +138,7 @@ export default function chat(el, { path = location.pathname, card, placeholder,
+ 				} catch { return false; }
+ 			},
+ 			answer: choice => {
+-				if (choice === resume_label) owner.resume_to(resume_session).catch(() => {});
++				if (choice === resume_label) owner.resume_to(resume_session).then(() => stage("session", "resumed")).catch(() => {});
+ 			},
+ 			react: r => owner.ctl.session
+ 				? Session.react({ session: owner.ctl.session, ...r })
+@@ -259,6 +165,10 @@ export default function chat(el, { path = location.pathname, card, placeholder,
+ 		const key = line.chat.at + (line.chat.fix ? "|fix|" + line.chat.text : "");
+ 		if (seen_chat.has(key)) return;
+ 		seen_chat.add(key);
++		// STAGE LOGGING (`doc/status-signals.md`'s "assistants" row) — a real, settled
++		// assistant line (never `fix`, which is a still-streaming token — `stream()` below
++		// logs that one) is the one event allowed to say "replied".
++		if (line.chat.from?.kind === "assistant" && !line.chat.fix) stage("assistants", "replied");
+ 		panel.say({ chat: line.chat });
+ 	}
+ 
+@@ -294,10 +204,28 @@ export default function chat(el, { path = location.pathname, card, placeholder,
+ 		seen_chat = new Set();
+ 		panel.reset();
+ 		if (!owner.ctl.session){ maybe_offer(); return; }
++		// A session restored from `sessionStorage` (`sync_from_storage()`, above) never
++		// passed through `ensure()`, so without this line the status line kept saying
++		// "session: none" even though one really was picked back up — then jumped straight
++		// to "started" on the next Send, as if it were new (review round 6, note 3: "the
++		// optimistic word req 1 forbids, in a quieter form"). This is the one other real
++		// event allowed to say "started": the controller already HAS a session the instant
++		// this mount attaches to it.
++		stage("session", "started");
+ 		stop_watch = Session.watch(owner.ctl.file, draw);
++		let streaming = false;
+ 		stop_stream = Session.stream(owner.ctl.session, ev => {
+-			if (ev.kind === "stream") panel.stream(ev.role, ev.text);
+-			else if (ev.kind === "line") draw(ev.line);
++			if (ev.kind === "stream"){
++				// The FIRST token of a reply is the one real "it started answering" event —
++				// `doc/status-signals.md`'s "assistants: answering" row. Reset the flag once the
++				// settled line lands (`draw()` logs "replied" there) so the next exchange logs
++				// its own first token again.
++				if (!streaming){ streaming = true; stage("assistants", "answering"); }
++				panel.stream(ev.role, ev.text);
++			} else if (ev.kind === "line"){
++				if (ev.line?.chat?.from?.kind === "assistant" && !ev.line.chat.fix) streaming = false;
++				draw(ev.line);
++			}
+ 		});
+ 	}
+ 
+diff --git a/public/framework/ux/Dictate/demo/page.js b/public/framework/ux/Dictate/demo/page.js
+index 6c6b1d3ea..f1060abd7 100644
+--- a/public/framework/ux/Dictate/demo/page.js
++++ b/public/framework/ux/Dictate/demo/page.js
+@@ -24,7 +24,11 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
+ 
+ export default new Page({
+ 	meta: import.meta,
+-	title: "Send modes",
++	// "Modes", not "Send modes" (dictate-live-state, 2026-10-04) — a seventh tab, LIVE,
++	// pushed the strip to two rows at 1200 (review round 5); shortening this one label
++	// was enough to fit all seven back on one row without touching ext/tabs' own
++	// overflow story (no grouping, no "more ▾" — out of this task's fence).
++	title: "Modes",
+ 	description: "Fake dictation you can watch: the same words, three ways of deciding when they are sent.",
+ 	icon: "send",
+ 
+diff --git a/public/framework/ux/Dictate/doc/files.jsonl b/public/framework/ux/Dictate/doc/files.jsonl
+index 0571c36d9..99392cbb5 100644
+--- a/public/framework/ux/Dictate/doc/files.jsonl
++++ b/public/framework/ux/Dictate/doc/files.jsonl
+@@ -2,3 +2,6 @@
+ {"file":"handover.md"}
+ {"file":"https-lan.md"}
+ {"file":"silence.md"}
++{"file":"chat.md"}
++{"file":"widget.md"}
++{"file":"status-signals.md"}
+diff --git a/public/framework/ux/Dictate/doc/status-signals.md b/public/framework/ux/Dictate/doc/status-signals.md
+new file mode 100644
+index 000000000..7675e8418
+--- /dev/null
++++ b/public/framework/ux/Dictate/doc/status-signals.md
+@@ -0,0 +1,90 @@
++# Status signals — every word is earned
++
++The owner, 2026-10-04: "the socket said, like, reconnecting or something... I thought it
++said whisper was connected... we don't want to say connected when we're not connected. We
++need exactly the right signal." This page lists every word the Dictate widget can show, and
++the one real event that is allowed to produce it. Nothing here is shown because something
++is *expected* to be true — only because it just happened.
++
++## The five stages
++
++| Stage | Word shown | The real event that earns it |
++|---|---|---|
++| **mic** | `idle` | `Dictate.render()` — nothing asked for yet |
++| | `checking the engine…` | `start()` begins — before anything is opened |
++| | `requesting…` | `detect_engine()` picked an engine; `getUserMedia()`/`SpeechRecognition.start()` about to be called |
++| | `ok` | `open_engine()`'s promise resolved — the device really opened |
++| | `refused: …` | `getUserMedia()`/`open_engine()` threw, or the up-front insecure-context/whisper-down check failed |
++| | `abort right after reload — retrying once…` | `open_engine()` caught an `AbortError` (the previous page's mic still releasing) |
++| | `timed out waiting for the device` | 8s passed in `"connecting"` — a permission prompt nobody answered |
++| **socket** (dev only) | `connected` | `Socket.singleton().connected` is `true` right now — read live, never cached |
++| | `retrying N` | the same flag is `false`; `N` is the socket's own reconnect-attempt counter (`Socket.js`'s `fails`, reset to 0 on `open()`) — never a bare "retrying" with no count |
++| | `—` | no dev socket exists (a production build, or `Socket.singleton` threw) — **never "connected"/"retrying N" as a guess** |
++| **whisper** | `checking…` / `checking again…` | `detect_engine()` is mid-request to `whisper-server`'s health check |
++| | `answering` | its `/` health check returned `r.ok` — the SERVER answered, which is all this word claims; it says nothing about any one transcription (that is `worth_sending()`/`transcribe()`'s own job, not a status word today) |
++| | `not reachable` | both health-check attempts failed |
++| | `stopped answering: …` | a live segment's `/inference` call itself failed mid-session (`close_segment()`'s catch) |
++| **session** (voice conversation) | `starting…` | `chat.js`'s `ensure()` called `Session.start()` and is still awaiting it |
++| | `started` | that promise resolved — `ctl.session` is a real id Servex gave back |
++| | `resumed` | `resume_to()` resolved — an older session's id, not a fresh one |
++| | `none` | no session has been asked for yet this page load |
++| **assistants** | `thinking…` | `Session.say()` was sent and nothing has come back yet |
++| | `answering` | `chat.js`'s `draw()` first drew a `{chat:{from:{kind:"assistant"}}}` line for this exchange, or a `stream()` token arrived |
++| | `replied` | that assistant line finished (not `fix: true`, or the stream's final token) |
++
++Every row above is read, live, off the real object that owns it — never a flag set in
++advance "because it should work by now." All five print through ONE method, `Dictate.js`'s
++own `log_step(stage, detail)`: it writes the `[dictate] stage: detail` console line AND
++redraws `$diag`, the always-visible status line under the mic — so **mic**, **socket** and
++**whisper** (there since round 2, `doc/decisions.md`) and **session**/**assistants** (added
++by this task) show up on screen in the SAME place, not split between a line the reader sees
++and a trail only the console does. `chat.js`'s own `deliver`/`draw`/stream handler call
++`panel.dictate.log_step("session"|"assistants", …)` at the real event (`Session.start()`
++going out, that promise resolving, a reply's first token, a settled reply landing) — there
++is no second, console-only path left. A real reply reads, on screen:
++
++```
++mic: idle · socket: connected · whisper: answering · session: started · assistants: replied
++```
++
++(proof: `ai/2026-10-04/dictate-live-state/shots/overview-status-line-1920.png`).
++
++## Reading the trail
++
++Every stage change prints `console.log("[dictate] <stage>: <word>")`. Loading the Dictate
++page and pressing the mic once produces, in order:
++
++```
++[dictate] socket: retrying 1          (or "connected", or "—")
++[dictate] whisper: checking…
++[dictate] whisper: answering          (or "not reachable")
++[dictate] mic: checking the engine…
++[dictate] mic: requesting…
++[dictate] mic: ok
++[dictate] session: starting…
++[dictate] session: started
++[dictate] assistants: thinking…
++[dictate] assistants: replied
++```
++
++A headless load can `page.on("console", …)` and assert this exact order — the proof for
++this task did ([`ai/2026-10-04/dictate-live-state/task.jsonl`](/framework/ai/2026-10-04/dictate-live-state/)).
++
++## Watch out
++
++- **"connected"/"retrying N" redraw the moment the real transition happens, not just on
++  the next mic press.** Round 7 found this was NOT true yet: `socket_status()` only ever
++  ran from `detect_engine()` (page load, or a press), so a socket that dropped mid-session
++  left `$diag` saying "connected" until something else happened to re-check it. Fixed by
++  giving `Socket.js` two new events, `"open"`/`"close"` (nothing listened to a connection
++  change before; `emit()`/`on()` already existed for `"data"`/`"skipped"`) — every
++  `Dictate` instance's own `watch_socket()` redraws `$diag` the instant either fires.
++- **"connected" is never shown from a cache.** `socket_status()` reads `Socket.singleton().connected`
++  fresh, every call — see `doc/decisions.md`'s note on why nothing here stores a believed state.
++- **A machine with no dev socket at all shows `—`, not a guess.** Production is static hosting
++  with nothing to connect to (`dev/Socket/Socket.js`'s own header comment) — `—` says "not
++  applicable here," which is different from "down."
++- **`session`/`assistants` are per-conversation, not per-page.** A `keep: true` mount (the ✦
++  sheet, the global session) can already be `started`/`replied` the instant a NEW mount attaches
++  to it — `chat.js`'s `attach()` redraws the whole thread at that point, same as it always did;
++  the stage words just narrate what was already happening.
+diff --git a/public/framework/ux/Dictate/doc/widget.md b/public/framework/ux/Dictate/doc/widget.md
+index e1104e009..6251d59ed 100644
+--- a/public/framework/ux/Dictate/doc/widget.md
++++ b/public/framework/ux/Dictate/doc/widget.md
+@@ -41,7 +41,7 @@ settled lines (the bubbles above already show them) and leaves the muted guess l
+ under the mic button.
+ 
+ **Not wired into the ✦ sheet or the drawer yet** — both (`ext/drawer/rail.js`,
+-`ux/Dictate/floor.js`) were mid-merge with a sibling task (voice-sessions-2) as this landed,
++`ux/Dictate/Floor.js`) were mid-merge with a sibling task (voice-sessions-2) as this landed,
+ so `Widget` was built in new files and used here first, per that task's own fence. Swapping
+ the sheet's hand-built mic/thread for `new Widget({...})` is the next step, once that merge
+ lands — see `readme.md`'s own "Widget" section for the short version, and `Widget.js` itself
+diff --git a/public/framework/ux/Dictate/files.jsonl b/public/framework/ux/Dictate/files.jsonl
+index 5c6d0d502..0a2536c9b 100644
+--- a/public/framework/ux/Dictate/files.jsonl
++++ b/public/framework/ux/Dictate/files.jsonl
+@@ -13,3 +13,21 @@
+ {"file":"ai/"}
+ {"file":"ai/","gone":true}
+ {"file":"ai/"}
++{"file":"chat.js"}
++{"file":"FloatingMic.css"}
++{"file":"floor.js"}
++{"file":"push-to-talk.js"}
++{"file":"surfaces/page.js"}
++{"file":"v1/page.js"}
++{"file":"weight.jsonl"}
++{"file":"Widget.css"}
++{"file":"Widget.js"}
++{"file":"live/page.js"}
++{"file":"Floor.js"}
++{"file":"ChatController.js"}
++{"file":"floor.js","gone":true}
++{"file":"floor.js"}
++{"file":"floor.js","gone":true}
++{"file":"floor.js"}
++{"file":"floor.js","gone":true}
++{"file":"floor.js"}
+diff --git a/public/framework/ux/Dictate/floor.js b/public/framework/ux/Dictate/floor.js
+deleted file mode 100644
+index 6fb8645f9..000000000
+--- a/public/framework/ux/Dictate/floor.js
++++ /dev/null
+@@ -1,132 +0,0 @@
+-/**
+- * **Who has the floor, and the rhythm of the talking.** One small, shared record
+- * of the microphone, so an assistant reading the prompts log can tell "the owner
+- * is still talking, hold your reply" from "the owner has finished".
+- *
+- * `Dictate` feeds it (mic on, every level frame, mic off), and `post_prompt()`
+- * stamps two fields onto every entry it posts:
+- *
+- *     entry.floor = "speaking" | "done"
+- *     entry.cues  = { mic_on_at, pauses: [{start, end, ms}], speaking_ms }
+- *
+- * `start`/`end` are milliseconds since the mic turned on. `pauses` holds only the
+- * pauses since the PREVIOUS stamped entry, so each entry carries the rhythm of its
+- * own words. A pause still running when the entry is sent has `end: null` and is
+- * SPLIT there: the next entry reports the rest of it, starting at the cut, so no
+- * quiet is ever counted twice. Only a mic entry (`via: "whisper"`) takes cues;
+- * a typed one is always "done" and leaves them for the next dictated entry.
+- * The contract, for whoever reads the log: `ext/Chat/doc/floor.md`.
+- *
+- * It is module state on purpose: there is one microphone, and every `Dictate` on
+- * the page (ComposerMic included) reaches this without any wiring of its own.
+- */
+-export const floor = {
+-	min_pause_ms: 300,     // a quiet stretch shorter than this is between words, not a pause
+-	done_after_ms: 1500,   // quiet this long ends the thought (ext/Chat's paragraph pause, break_pause_ms)
+-
+-	owner: null,           // the Dictate instance whose mic is on, or null
+-	on_at: 0,              // performance.now() when the mic turned on
+-	mic_on_at: null,       // the same moment, as an ISO string for the log
+-	pauses: [],            // closed pauses not yet stamped onto an entry
+-	quiet_since: null,     // performance.now() the current quiet began, or null while loud
+-	heard: false,          // any speech yet this session (quiet before the first word is not a pause)
+-	split: false,          // the current quiet was cut by a send: its remainder is reported however short
+-	speaking_ms: 0,        // loud time since the previous stamped entry
+-	last_at: 0,            // the previous level frame's time
+-
+-	/* THE SILENCE EVENT (dictation-stream, 2026-09-30; the owner: "the duration since last word...
+-	 * should be an event that fires into... the LLM"). Once the owner has spoken, each quiet stretch
+-	 * fires every listener of `on_quiet()` once per mark it reaches: `fn(ms, {mic_off})`. Mic off
+-	 * after speech fires it too. `silent_at` is when the quiet REALLY began: `stamp()`'s split moves
+-	 * `quiet_since` for the cues, never this. A voice session posts it to Servex, which then lets
+-	 * its assistants answer (`ext/Session`, `Servex/agents/Sessions.js`). */
+-	quiet_marks: [2500],
+-	silent_at: null,
+-	fired: 0,
+-	listeners: new Set(),
+-	on_quiet(fn){ this.listeners.add(fn); return () => this.listeners.delete(fn); },
+-	/** How long the owner has been quiet right now, in ms; null with the mic off. */
+-	quiet_ms(){ return !this.owner ? null : this.silent_at == null ? 0 : Math.round(performance.now() - this.silent_at); },
+-	quiet(ms, mic_off = false){ for (const fn of this.listeners) try { fn(Math.round(ms), { mic_off }); } catch (e){ console.error("floor: on_quiet listener failed", e); } },
+-
+-	/** The mic really is on (Dictate's own "listening"). */
+-	mic_on(owner){
+-		const now = performance.now();
+-		Object.assign(this, { owner, on_at: now, mic_on_at: new Date().toISOString(), pauses: [],
+-			quiet_since: now, heard: false, split: false, speaking_ms: 0, last_at: now, silent_at: now, fired: this.quiet_marks.length });
+-		this.post("speaking", owner);
+-	},
+-
+-	/** One level frame (about every 8 ms). `loud` is Dictate's own speech test. */
+-	level(owner, loud){
+-		if (owner !== this.owner) return;
+-		const now = performance.now();
+-		if (loud){
+-			if (this.quiet_since != null && this.heard) this.close_pause(now);
+-			this.quiet_since = null;
+-			this.split = false;
+-			this.speaking_ms += now - this.last_at;
+-			this.heard = true;
+-			this.silent_at = null;
+-			this.fired = 0;
+-		} else {
+-			if (this.quiet_since == null) this.quiet_since = now;
+-			this.silent_at ??= now;
+-			while (this.fired < this.quiet_marks.length && now - this.silent_at >= this.quiet_marks[this.fired]) this.quiet(this.quiet_marks[this.fired++]);
+-		}
+-		this.last_at = now;
+-	},
+-
+-	close_pause(now){
+-		const ms = now - this.quiet_since;
+-		if (ms >= this.min_pause_ms || (this.split && ms > 0)) this.pauses.push({ start: Math.round(this.quiet_since - this.on_at), end: Math.round(now - this.on_at), ms: Math.round(ms) });
+-	},
+-
+-	/** The mic is off (stopped, errored, or stopping). Only its own owner can end it. */
+-	mic_off(owner){
+-		if (owner !== this.owner) return;
+-		this.owner = null;
+-		if (this.fired < this.quiet_marks.length){ this.fired = this.quiet_marks.length; this.quiet(performance.now() - (this.silent_at ?? performance.now()), true); }
+-		this.post("idle", owner);
+-	},
+-
+-	/** "speaking" while the mic is on and the current quiet is shorter than `done_after_ms`. */
+-	state(){
+-		if (!this.owner) return "done";
+-		const quiet = this.quiet_since == null ? 0 : performance.now() - this.quiet_since;
+-		return quiet >= this.done_after_ms ? "done" : "speaking";
+-	},
+-
+-	/** Adds `floor` and (after any mic session) `cues` to an entry, then starts the next
+-	 *  entry's rhythm fresh. An entry that already has them is left as it is. */
+-	stamp(entry){
+-		if (!entry || typeof entry !== "object" || entry.type === "floor" || "floor" in entry) return entry;
+-		if (entry.chat){ entry.floor = this.state(); return entry; }   // a revision line: the floor now, but it never takes the cues
+-		if (!this.voice(entry)){ entry.floor = "done"; return entry; }  // typed: finished by definition, and the cues wait for the next dictated entry
+-		entry.floor = this.state();
+-		if (!this.mic_on_at) return entry;   // no mic this page load: a typed entry, nothing to report
+-		const now = performance.now();
+-		const pauses = [...this.pauses];
+-		const open = now - (this.quiet_since ?? now);
+-		if (this.owner && this.quiet_since != null && this.heard && (open >= this.min_pause_ms || (this.split && open > 0))){
+-			pauses.push({ start: Math.round(this.quiet_since - this.on_at), end: null, ms: Math.round(open) });
+-			this.quiet_since = now;   // split here: the next entry reports only the rest
+-			this.split = true;
+-		}
+-		entry.cues = { mic_on_at: this.mic_on_at, pauses, speaking_ms: Math.round(this.speaking_ms) };
+-		this.pauses = [];
+-		this.speaking_ms = 0;
+-		if (!this.owner) this.mic_on_at = null;   // the last entry of a finished session took its cues; a later typed one gets none
+-		return entry;
+-	},
+-
+-	/** A mic entry: Dictate and ComposerMic both post `via: "whisper"` (the browser engine too). */
+-	voice(entry){ return entry.via === "whisper" || entry.via === "voice"; },
+-
+-	/** `{type:"floor", state}` to the prompts log — Servex stamps `at` on arrival. Every
+-	 *  reader of that log ignores a type it does not know (checked: the fold, the fast
+-	 *  assistant, the Dispatcher), so this makes no card and no reply. Set by Dictate.js. */
+-	post: (state, owner) => {},
+-};
+-
+-export default floor;
+diff --git a/public/framework/ux/Dictate/live/files.jsonl b/public/framework/ux/Dictate/live/files.jsonl
+new file mode 100644
+index 000000000..cf4934c19
+--- /dev/null
++++ b/public/framework/ux/Dictate/live/files.jsonl
+@@ -0,0 +1,2 @@
++{"file":"page.js"}
++{"file":"readme.md"}
+diff --git a/public/framework/ux/Dictate/live/page.js b/public/framework/ux/Dictate/live/page.js
+new file mode 100644
+index 000000000..a22439664
+--- /dev/null
++++ b/public/framework/ux/Dictate/live/page.js
+@@ -0,0 +1,156 @@
++import { Page, md, div } from "/app.js";
++import { item } from "../../../ui/item/item.js";
++import { inspect } from "../../Content/Object/Inspect.js";
++import Dictate from "../Dictate.js";
++import { Floor } from "../Floor.js";
++import { ChatController } from "../ChatController.js";
++
++// **One stable key per live instance** — every tick throws away the whole tree and
++// rebuilds it from `Klass.instances()` (a fresh array each time), so a plain array
++// index can't tell "the same mic, read again" from "a different mic" across two
++// ticks. A `WeakMap` gives each real object one id, made once, the first time this
++// page ever sees it — review round 1, finding 1: without this, a row the owner
++// opened to read its properties snapped shut on the very next tick.
++const IDS = new WeakMap();
++let next_id = 1;
++function key_for(obj){
++	if (!IDS.has(obj)) IDS.set(obj, "k" + next_id++);
++	return IDS.get(obj);
++}
++
++/**
++ * **Live** — the running Dictate SYSTEM, drawn from its own real objects, not a diagram of
++ * them. The owner, 2026-10-04: "use icon items in a hierarchical way to render the actual
++ * instances... a good default view for the instance should show all the properties and the
++ * current state." `item()` (`ui/item/item.js`) is the hierarchy — the same file-tree row
++ * every other tree on this site uses, nested here as **Dictate → its parts**; `inspect()`
++ * (`ux/Content/Object/Inspect.js`) is the instance/class card inside each row — both reused
++ * whole (CLAUDE.md law 6), neither rebuilt. Each class below opted in to being listed at all
++ * with ONE line, `core/track/track.js`'s `track(Klass)` — most classes never do this;
++ * `Dictate`/`Floor`/`ChatController` now do, just for this tab.
++ *
++ * `Klass.weights` (set once, beside each class — `Dictate.js`/`Floor.js`/`ChatController.js`'s
++ * own bottom lines) is the simplest form of "a weight decides the order": a named list of
++ * properties, read here and handed straight to `inspect()`'s own `properties:` option —
++ * `ux/Content/Object`'s existing mechanism, not a new one.
++ */
++export default new Page({
++	meta: import.meta,
++	title: "Live",
++	description: "The running Dictate system — every mic, the floor, every chat session — as real, live objects, nested.",
++	icon: "visibility",
++
++	content(){
++		md("**What is actually running right now**, nested the way the parts actually relate — the Dictate SYSTEM is the root; its mic(s), the one shared `Floor`, and every open chat session are its children. No mic pressed yet means `state: \"idle\"` really is what the object says, not a guess. Updates every second. Beside it: the three classes themselves, API first.");
++
++		// SIDE BY SIDE ON A WIDE SCREEN, STACKED ON A NARROW ONE (review round 2 finding 2,
++		// round 3 finding 1: a plain `flex gap` with no `wrap` held the two columns side by
++		// side even at 400, clipping the right one instead of dropping it below). `wide`
++		// escapes `.page`'s own measure cap so this row can use a 1920/3440 screen; the
++		// `26em`/`20em` flex bases are each column's own natural width, so `wrap` drops the
++		// second one below the first the moment they can no longer both fit.
++		// `0 1 <em>` on BOTH columns (review round 6, finding 1): `grow > 0` on either one let
++		// it eat whatever space the row had left, so the two drifted 600px apart at 3440
++		// instead of sitting together. Neither column grows now — each keeps its own width,
++		// and the row's own leftover space (there's plenty, at 3440) collects after them,
++		// not between them.
++		div.c("wide flex gap wrap", () => {
++			this.$live = div.c("ux-dictate-live").style("flex", "0 1 34em");
++			div.c("ux-dictate-live-classes flex v gap", () => {
++				md("#### The three classes, API first");
++				md("The owner's own rule: \"a good default view for any class should show all the methods.\" `inspect(Klass)` is the class card: same icon, every property NAME a fresh instance will have (most with no value yet — those are only set once it is actually used), every method it answers to.");
++				inspect(Dictate, { properties: Dictate.weights?.properties, doc: "/framework/ux/Dictate/" });
++				inspect(Floor, { properties: Floor.weights?.properties, doc: "/framework/ux/Dictate/" });
++				inspect(ChatController, { properties: ChatController.weights?.properties, doc: "/framework/ux/Dictate/" });
++			}).style("flex", "0 1 26em");
++		});
++
++		// WHICH ROWS ARE OPEN SURVIVES A REDRAW (review round 1, finding 1) — every real
++		// `<details>` this tree draws gets `data-key` (below); the native `toggle` event
++		// doesn't bubble, so this listens in the CAPTURE phase on the one container instead
++		// of one listener per row.
++		this.open_keys = new Set();
++		// Open by default (review round 4, note 3: "the default view never shows an
++		// instance's properties") — seeded ONCE, into the same `open_keys` a later close
++		// removes from, so a reader who closes it stays closed across the next redraw
++		// too, instead of a hardcoded `open: true` snapping it back every tick.
++		const first_floor = Floor.instances?.()[0];
++		if (first_floor) this.open_keys.add(key_for(first_floor));
++		this.$live.el.addEventListener("toggle", e => {
++			const key = e.target?.dataset?.key;
++			if (!key) return;
++			e.target.open ? this.open_keys.add(key) : this.open_keys.delete(key);
++		}, true);
++		this.redraw();
++		this.timer = setInterval(() => this.redraw(), 1000);
++		// No framework-wide "unmount" hook (`Dictate.js`'s own `hotkey()` doc names the same
++		// gap) — stop the interval once this page's own box leaves the DOM, the same
++		// `MutationObserver` trick `page.js`'s own `demo_mount()` already uses.
++		const mo = new MutationObserver(() => {
++			if (this.$live.el.isConnected) return;
++			mo.disconnect();
++			clearInterval(this.timer);
++		});
++		mo.observe(document.body, { childList: true, subtree: true });
++
++		md.details(import.meta, "readme.md", "Readme");
++	},
++
++	/** Redrawn every tick — one tree, `Dictate` at the root, every live instance nested
++	 *  under the part it belongs to (`item()`'s own `children`, `ui/item/item.js`). Nested
++	 *  `inspect()` cards stay closed by default (a tick never re-opens something the reader
++	 *  had open); the whole tree is rebuilt each tick (`empty()` first) — the same cost any
++	 *  live list on this site already pays (`ai2/live.js`). */
++	redraw(){
++		const mics = Dictate.instances?.() ?? [];
++		const floors = Floor.instances?.() ?? [];
++		const sessions = ChatController.instances?.() ?? [];
++		const is_open = key => this.open_keys.has(key);
++
++		this.$live.empty(() => {
++			item({
++				// "The Dictate system" (review round 2, note 7), not bare "Dictate" — `Floor`
++				// and the chat sessions are not parts of any ONE `Dictate` instance, they are
++				// parts of the system `Dictate` is the front door of.
++				icon: Dictate.icon, name: "The Dictate system", open: true,
++				children: () => {
++					item({
++						icon: "mic", name: `mic${mics.length === 1 ? "" : "s"} (${mics.length})`, open: true,
++						children: () => mics.length
++							? mics.forEach((d, i) => {
++								const key = key_for(d);
++								// A bare "idle" repeated N times can't be told apart (review round 1,
++								// note 5) — `mode` (open mic vs the typed box) is the one real
++								// difference this page can read without a caller naming its own
++								// surface; the index keeps every row unique either way.
++								const name = `#${i + 1} ${d.state}` + (d.mode ? ` · ${d.mode}` : "");
++								item({ icon: Dictate.icon, name, open: is_open(key),
++									children: () => inspect(d, { properties: Dictate.weights?.properties }) }).attr("data-key", key);
++							})
++							: md("*none on this page right now*"),
++					});
++					item({
++						icon: Floor.icon, name: "floor — who has the mic", open: true,
++						// There is only ever ONE `Floor` (one shared instance, `Floor.js`'s own
++						// class doc) — open it by default, so this page shows at least one real
++						// instance's properties without a click (review round 4, note 3: "the
++						// default view never shows an instance's properties").
++						children: () => floors.forEach(f => {
++							const key = key_for(f);
++							item({ icon: Floor.icon, name: f.owner ? "someone has the floor" : "idle", open: is_open(key),
++								children: () => inspect(f, { properties: Floor.weights?.properties }) }).attr("data-key", key);
++						}),
++					});
++					item({
++						icon: ChatController.icon, name: `chat session${sessions.length === 1 ? "" : "s"} (${sessions.length})`, open: true,
++						children: () => sessions.forEach(s => {
++							const key = key_for(s);
++							item({ icon: ChatController.icon, name: s.ctl.session ? "started" : "none yet", open: is_open(key),
++								children: () => inspect(s, { properties: ChatController.weights?.properties }) }).attr("data-key", key);
++						}),
++					});
++				},
++			});
++		});
++	},
++});
+diff --git a/public/framework/ux/Dictate/live/readme.md b/public/framework/ux/Dictate/live/readme.md
+new file mode 100644
+index 000000000..83cce67b0
+--- /dev/null
++++ b/public/framework/ux/Dictate/live/readme.md
+@@ -0,0 +1,50 @@
++# Live — the running Dictate system, as real objects
++
++What it is, shown at [`/framework/ux/Dictate/live/`](/framework/ux/Dictate/live/): one
++nested tree, `Dictate` at the root, its mic(s), the one shared `Floor`, and every open
++chat session underneath — each row a real, live object (`inspect()`,
++[`ux/Content/Object`](/framework/ux/Content/Object/)), not a diagram of one. Beside the
++tree on a wide screen (below it once the screen is too narrow to hold both), the same
++three classes as class cards — same icon, every property NAME a fresh instance will
++have, every method it answers to.
++
++## Use
++
++A class joins the tree with one line, the same opt-in `core/track/track.js` already
++offers every class on the site:
++
++```js
++import { track } from "/framework/core/track/track.js";
++track(MyClass);                       // once, at module scope
++class MyClass { constructor(){ MyClass.track(this); } }
++MyClass.instances()                   // → every live one, read by live/page.js's redraw()
++```
++
++`Klass.weights = { properties: "a b c" }` (a plain static, read by `inspect()`'s own
++`properties:` option) decides which properties show, and in what order — the simplest
++form of "a weight decides the order."
++
++## Watch out
++
++- Rebuilt every second (`setInterval`, stopped on unmount via the same `MutationObserver`
++  trick `../page.js`'s own `demo_mount()` uses) — a row you opened stays open (a `WeakMap`
++  key per live object plus a captured `toggle` listener, `redraw()`'s own `open_keys`), but
++  everything inside it still repaints from the real object's current values each tick.
++- Only `Dictate`, `Floor` (`../Floor.js`) and `ChatController` (`../ChatController.js`)
++  opted in — most classes never call `track()`, and show up nowhere here on purpose.
++- Six mic rows all read `#1 idle … #6 idle` with no word for which SURFACE each one is
++  mounted on (the ✦ sheet, the drawer, this page's own demo) — a real gap, left open: no
++  `Dictate`/`ComposerMic` instance carries that today, and giving every one of the half
++  dozen call sites a new `surface:` label is a change this task's fence doesn't reach.
++- **A seventh tab (LIVE) still wraps to two rows at 400** (round 4 shortened `demo/page.js`'s
++  own tab title, "Send modes" → "Modes", which was enough to fit all seven at 1200 and up —
++  but not at 400, where every tab label is naturally tighter). The real fix is `ext/tabs`'
++  own overflow story (today: scroll only, no grouping, no "more ▾" — `ext/tabs/readme.md`'s
++  "Watch out"), a site-wide component this task's fence doesn't reach. Left as a named
++  trade-off, not silently dropped.
++
++## More
++
++- [`doc/status-signals.md`](/framework/ux/Dictate/doc/status-signals/) — the status words
++  this same trio's `Dictate` instance earns, and the one real event behind each
++- [`../readme.md`](/framework/ux/Dictate/) — Dictate itself
+diff --git a/public/framework/ux/Dictate/page.js b/public/framework/ux/Dictate/page.js
+index 03e639e59..102ff38b4 100644
+--- a/public/framework/ux/Dictate/page.js
++++ b/public/framework/ux/Dictate/page.js
+@@ -12,6 +12,7 @@ const CONCEPTS = [
+ 	{ name: "The mic button", icon: "mic", href: "demo/", blurb: "press it, watch the state — idle → listening → transcribing" },
+ 	{ name: "Playground", icon: "science", href: "playground/", blurb: "raw whisper text, the fast assistant's corrections, and the live diff" },
+ 	{ name: "Variants", icon: "style", href: "variants/", blurb: "v1, Cards, Compact — same engine, three different looks" },
++	{ name: "Live", icon: "visibility", href: "live/", blurb: "the running system as real objects — every mic, the floor, every chat session" },
+ 	{ name: "Decisions", icon: "menu_book", href: "doc/decisions/", blurb: "the install, the segment/resend mechanics, who starts whisper-server" },
+ ];
+ 
+@@ -129,6 +130,7 @@ export default new Doc({
+ 		"playground",
+ 		"variants",
+ 		"surfaces",
++		"live",
+ 		"v1",
+ 	],
+ 
+diff --git a/public/framework/ux/Dictate/readme.md b/public/framework/ux/Dictate/readme.md
+index 2133b8f35..e7caea4a7 100644
+--- a/public/framework/ux/Dictate/readme.md
++++ b/public/framework/ux/Dictate/readme.md
+@@ -200,7 +200,7 @@ own log — see `Server/doc/refine.md`'s "Ask 1" section. See "Voice → log" in
+ 
+ Every entry `post_prompt()` sends carries `floor` (`"speaking"` or `"done"`) and, after a
+ dictation, `cues` (its pauses and speaking time), so an assistant can hold its reply while the
+-owner is mid-thought. [`floor.js`](floor.js) reads this component's own level meter; mic on
++owner is mid-thought. [`Floor.js`](Floor.js) reads this component's own level meter; mic on
+ and off also post a `{type: "floor"}` line. `floor.on_quiet(fn)` fires once each time the owner
+ goes quiet for 2.5 s: a voice session's assistants answer on it. The contract for readers:
+ [`ext/Chat/doc/floor.md`](/framework/ext/Chat/).

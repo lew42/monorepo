@@ -1,0 +1,597 @@
+@layer theme {
+
+	/* THE CHAT — the look of ext/Chat (`Chat.js`, `Composer.js`). Everything is
+	   `chatbox-*`; a page that hosts it (ai2) only places it: where it sits, how
+	   tall its log may grow. Why: `doc/ai2.md`. */
+
+	/* THE PANEL (`ChatPanel.js`): the log and the composer as one box, sized by
+	   its own content up to `--chatbox-panel-max`, then only the log scrolls —
+	   the same widget in the desktop drawer and the mobile sheet (the owner,
+	   2026-09-29: "the height should be variable so that it could start small
+	   and grow to a maximum height and then be scrollable").
+
+	   HOW: a flex COLUMN with no height of its own (so it is only ever as tall
+	   as its children) and a `max-height` ceiling; the log inside is the one
+	   child allowed to shrink (`min-height: 0`, `flex: 1 1 auto`) and it already
+	   scrolls on its own (`.chatbox-log` above). Past the ceiling the composer
+	   keeps its size and the log gives up whatever room that takes — no JS
+	   measures anything. A host sets `--chatbox-panel-max` to change the ceiling:
+	   the drawer sets it to its own full height, the mobile sheet to 70vh (both
+	   `drawer.css`/`rail.css`, once wired). */
+	.chatbox-panel {
+		display: flex;
+		flex-direction: column;
+		max-height: var(--chatbox-panel-max, 70vh);
+		overflow: hidden;
+	}
+	/* The panel's own ceiling replaces the log's fixed 30vh one above — inside a
+	   panel, the PANEL decides where the scrolling starts. */
+	.chatbox-panel > .chatbox-log {
+		flex: 1 1 auto;
+		min-height: 0;
+		max-height: none;
+	}
+	.chatbox-panel > .chatbox-compose {
+		flex: none;
+	}
+
+	/* ONE BOX ON TOP, FULL WIDTH; ONE ROW BELOW IT (one-dictation, 2026-10-01 — the
+	   owner, on a phone: "the text area was kind of partial width and would grow
+	   really tall and then create this big void of empty space… if the text area
+	   is gonna grow, it needs to be like full width… the send button could be
+	   below it"). This replaced an earlier layout that only dropped the buttons to
+	   their own row once the box and the buttons together did not fit one line —
+	   now it is ALWAYS a column, at every width, so every composer on the site
+	   (this one, `ux/Dictate`'s own, AI 2's card composer) reads the same way.
+	   `padding-inline` is the "a little side padding on a phone" the owner asked
+	   for — small enough that a wide screen never notices it. */
+	/* THE COMPOSER IS ITS OWN PANEL (drawer-chat, one-dictation, 2026-10-02 — the owner:
+	   "the bottom bar still has this text area that probably needs a different background
+	   color to separate it from the chat area, the whole panel area where the controls
+	   are"). `--fill-a08` reads over any background it sits on (it is a translucent tint,
+	   not a flat colour — `color` skill), so this panel reads as its own region whether the
+	   chat feed above it is the page's own background, a `.card`'s `--surface`, or anything
+	   else a host wraps this in — no host-specific colour to keep in sync. The top border is
+	   the one extra cue a tint alone might miss on a low-contrast screen. */
+	.chatbox-compose {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		gap: 0.35em;
+		padding: 0.5em 0.3em;
+		background: var(--fill-a08);
+		border-block-start: 1px solid var(--line);
+	}
+	.chatbox-compose-row {
+		flex: none;
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 0.4em;
+	}
+	.chatbox-compose-more svg { inline-size: 1.15em; block-size: 1.15em; fill: currentColor; vertical-align: middle; }
+	.chatbox-compose-more:hover,
+	.chatbox-compose-more:focus-visible { opacity: 1; }
+
+	.chatbox-field {
+		width: 100%;
+	}
+
+	/* THE TYPED BUFFER — full width, growing with what is said (`.auto` is
+	   `field-sizing: content`) from two lines up to a CEILING (`max-height`, below),
+	   then it scrolls; no empty void underneath a short line, and no fixed height
+	   either. The mic is its own button in the row below now (`.chatbox-mic`), never
+	   glued to this box's own border — `Mic.js`'s `dress()` keeps this ceiling in
+	   sync when the gear's own "box lines" setting changes live. */
+	/* ⚠ `width: 100%`, not just `flex: 1` (found on ChatPanel's own demo page,
+	   `panel-1920-demo4.png`, 2026-09-29): `.auto` (`field-sizing: content`,
+	   framework.css) sizes BOTH axes to content whenever an axis's `width`/
+	   `height` is `auto` — `flex: 1`'s basis alone left `width` at its initial
+	   `auto`, so the box sized itself to its short placeholder text instead of
+	   filling the row, no matter how wide the row was. An explicit `width: 100%`
+	   gives the width axis a real value, so `field-sizing: content` is left to
+	   do only what the comment above says it is for — the HEIGHT. */
+	/* ONE LINE WHEN EMPTY, 3 LINES THEN SCROLLS (one-input, 2026-10-12 — the mastermind's
+	   decided shape, `doc/one-input-2026-10-12.md`: a textarea, not a single-line `<input>`
+	   that scrolls sideways, because the raw-while-speaking reference needs a paragraph).
+	   Was capped at 2-3 lines (round 2, 2026-10-04 — the owner: "as I hit transcribe, the
+	   text area grows… gets so big I can't read anything else"); before that `7lh`.
+	   `Mic.js`'s own `SETTINGS.box_lines` is read live by `dress()`, kept in sync if the
+	   gear changes it. The box still never pushes the row below it — it only ever grows
+	   UP to this ceiling, then scrolls inside itself. */
+	.chatbox-compose-input {
+		width: 100%;
+		min-width: 0;
+		min-height: 1.7em;
+		max-height: 3lh;
+		resize: none;
+		overflow-y: auto;
+		font: inherit;
+	}
+
+	/* shrinks so a long mic message ("not allowed to use the microphone…") wraps instead of running off a 400 px screen (voice-e2e-review) */
+	.chatbox-mic {
+		flex: 0 1 auto;
+		min-width: 0;
+	}
+	.chatbox-mic .ux-dictate-info { min-width: 0; }
+
+	/* The status line beside the mic (ux/Dictate/ChatStatus.js): one small word, truncates rather than widen the row. */
+	.chatbox-compose-status { flex: 0 1 auto; min-inline-size: 0; max-inline-size: 9em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.75em; }
+	.chatbox-compose-status:empty { display: none; }
+
+	.chatbox-compose-send,
+	.chatbox-compose-more {
+		flex: none;
+		white-space: nowrap;
+	}
+	/* Send sits at the row's own far end — mic, then the gear (and "raw" when it shows),
+	   land at the start; Send is the one thing pushed to the end (drawer-chat,
+	   one-dictation, 2026-10-02 — the owner: "the microphone and send and settings buttons
+	   are kind of just floating awkwardly down there"). */
+	.chatbox-compose-send { margin-inline-start: auto; }
+
+	.chatbox-compose-more {
+		padding: 0 0.45em;
+		border: 0;
+		background: none;
+		color: inherit;
+		font: inherit;
+		line-height: 1;
+		opacity: 0.45;
+		cursor: pointer;
+	}
+
+	/* The "raw" dig-back toggle (deliverable 3, ai/2026-09-29/audio/next-clean-transcription/
+	   a-clean-mode) stays lit while it is showing Whisper's raw words instead of the clean-up. */
+	.chatbox-compose-raw.active { opacity: 1; color: var(--prime); }
+
+	/* THE STATUS NOTE — a plain small line under the row (chat-menu-merge, 2026-10-01).
+	   It used to be folded out of sight behind the `⋯` button — hidden with `visibility`
+	   until the row was "open" — even though `Composer.js`'s own `note()` already puts the
+	   SAME words in the box's placeholder; now that there is no `⋯`/"open" state at all
+	   (merged into the one ⚙ menu below), the note is just always visible, in flow. */
+	.chatbox-compose-note { display: block; }
+
+	/* ONE STATUS LINE (round 2, 2026-10-04): the mic/connection/whisper health line
+	   (`ux/Dictate`'s own `$diag`, pulled out of its hidden full-screen menu by
+	   `Composer.js`) sits right above the send-flow note, always one line, muted so it
+	   reads as background information until it actually says something worth noticing. */
+	.chatbox-compose-diag { display: block; font-size: 0.85em; }
+
+	/* ONE FULL-SCREEN MENU (chat-menu-merge, 2026-10-01 — the owner, looking at the gear and
+	   the `⋯` button: "I think the gear and that more button should be merged together into
+	   one menu... it maybe should swap out the entire UI, right? Like full screen"). ONE ⚙
+	   button (`Composer.js`'s own `open_menu()`) opens this instead of two small popovers —
+	   it holds Dictate's own engine/status/"stop after a pause" info block AND the settings
+	   grid (`Mic.js`'s own `settings_panel()`, `.chatbox-mic-settings` below), both in NORMAL
+	   FLOW now, no absolute positioning or `visibility` trick needed since the whole panel is
+	   either on screen or `hidden`. Same full-screen shape as `Drill.js`'s own `.chatbox-drill`
+	   (`position: fixed; inset: 0`), appended to <body> the same way. */
+	.chatbox-compose-menu-panel {
+		position: fixed;
+		inset: 0;
+		z-index: 50;
+		display: flex;
+		flex-direction: column;
+		background: var(--surface);
+		color: var(--ink);
+	}
+	.chatbox-compose-menu-panel[hidden] { display: none; }
+	.chatbox-compose-menu-head {
+		flex: 0 0 auto;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75em;
+		padding-block: 0.6em;
+		padding-inline: max(var(--pad-card), (100% - 40em) / 2);
+		border-block-end: 1px solid var(--line);
+	}
+	.chatbox-compose-menu-title { margin: 0; font-size: 1.15em; font-weight: 600; }
+	.chatbox-compose-menu-close { flex: 0 0 auto; font: inherit; padding: 0.3em 0.7em; }
+	.chatbox-compose-menu-body {
+		flex: 1 1 auto;
+		overflow-y: auto;
+		box-sizing: border-box;
+		padding: var(--pad-card);
+		max-inline-size: 40em;
+		margin-inline: auto;
+		width: 100%;
+		display: flex;
+		flex-direction: column;
+		gap: 0.75em;
+	}
+	/* Dictate's own info block needs no rule here at all: it already carries its
+	   own `flex v` utility classes (`Dictate.js`'s `ux-dictate-info flex v`), and
+	   `@layer util` always beats a `@layer theme` rule regardless of specificity
+	   (`css` skill, rule 3) — the OLD popover had to fight that with `visibility`
+	   instead of `display`; this plain-flow version has nothing left to fight. */
+	/* The settings grid (`Mic.js`'s `settings_panel()`) — used to carry its own
+	   inline `position: absolute` popover styles; now a plain in-flow grid. */
+	.chatbox-mic-settings {
+		display: grid;
+		grid-template-columns: auto auto;
+		gap: 0.4em 0.75em;
+		align-items: center;
+		font-size: 0.95em;
+	}
+
+	/* ⚠ `min-height`, not `height` — the old fixed `5.5em` reserved room for
+	   three lines even on a card nobody has spoken into yet; it is a floor, not a collapse. */
+	/* ⚠ The max grew from 3.5em to 30vh on 2026-09-23: the footer became the
+	   card's chat (chat.js), and a chat you can only see two lines of is not
+	   one. It still starts at one line and only grows once there is talk. */
+	.chatbox-log {
+		min-height: 1.5em;
+		max-height: 30vh;
+		overflow-y: auto;
+		overflow-x: hidden;   /* never a side scroll */
+		min-inline-size: 0;
+		overflow-wrap: anywhere;
+		margin-block-end: 0.35em;
+		font-size: 0.9em;
+		position: relative;   /* the containing block for `.chatbox-jump` below */
+	}
+
+	/* THE JUMP-TO-BOTTOM BUTTON (`Chat.js`'s own `sticky_scroll()`, shared with
+	   `ux/Dictate/Widget.js`'s `Thread`) — shows only once the reader has scrolled away
+	   from the bottom; a click jumps back down and the log starts following again. It is
+	   `position: absolute` inside the scrolling box itself (which needs `position:
+	   relative`, above, or on `Widget.css`'s own `.ux-dictate-widget-thread`), floating at
+	   a fixed spot in the box's own VIEWPORT, not in its scrolled content — scrolling the
+	   box never moves it. */
+	/* sticky, not absolute: an absolute box inside a scroller scrolls away with the content (seen mid-bubble, 2026-10-20) */
+	.chatbox-jump {
+		position: sticky;
+		inset-block-end: 0.5em;
+		z-index: 2;
+		display: block;
+		inline-size: 1.75rem;
+		block-size: 1.75rem;
+		margin: 0 0.5em 0.25em auto;   /* small, at the bottom right of the box */
+		align-self: flex-end;   /* a flex-column box (the bubbles thread, a `.flex.v` util) zeroes the auto margin: this keeps it on the right there too */
+		padding: 0;
+		border-radius: 50%;
+		border: 0;
+		background: var(--ink);
+		color: var(--surface);
+		box-shadow: 0 1px 6px rgb(0 0 0 / 0.3);
+		cursor: pointer;
+		font: inherit;
+		font-size: 0.95em;
+		font-weight: 600;
+		line-height: 1;
+	}
+	.chatbox-jump:not([hidden]) { display: grid; place-items: center; }
+	.chatbox-jump[hidden] { display: none; }
+
+	/* ONE LINE PER THING SAID — who, then what. Updates are quieter than talk. */
+	.chatbox {
+		margin-block: 0.2em;
+	}
+
+	.chatbox-who {
+		font-weight: 600;
+		margin-inline-end: 0.45em;
+	}
+
+	/* THE AVATAR (the owner, 2026-09-30: "get the messages on the same line as
+	   the icon"): a small round icon floated at the start of the bubble, so the
+	   words begin on the same line beside it. It is tinted with the role's own
+	   colour (the `chatbox-who-*` colours below), and its tooltip is the name.
+	   The bubble is a `flow-root` so a one-line message still wraps the icon. */
+	.chatbox-you .chatbox-who,
+	.chatbox-reply .chatbox-who {
+		float: inline-start;
+		display: grid;
+		place-items: center;
+		inline-size: 1.6em;
+		block-size: 1.6em;
+		margin: 0.05em 0 0;
+		margin-inline-end: 0.45em;
+		border-radius: 50%;
+		overflow: hidden;
+		background: color-mix(in srgb, currentColor 16%, transparent);
+		font-size: 0.95em;
+		font-weight: 400;
+		line-height: 1;
+		padding: 0.15em;   /* the glyph sits inside the circle, never flush with its edge (smoke.mjs text-touching check) */
+	}
+	.chatbox-avatar img { inline-size: 100%; block-size: 100%; object-fit: cover; }
+	/* One colour per role, all from theme tokens (each reads in light and dark);
+	   an unknown role stays the ink colour. */
+	.chatbox-who-you       { color: var(--prime-ink); }
+	.chatbox-who-assistant { color: var(--ok); }
+	.chatbox-who-manager   { color: var(--warn); }
+	.chatbox-who-master    { color: color-mix(in srgb, var(--syn-fn) 45%, var(--ink)); }   /* the theme purple, darkened toward ink so it reads on white */
+	.chatbox-who-minion    { color: var(--subtle); }
+
+	/* Text-message style: your words on the right, everyone else on the left.
+	   A role label sits above each message (below). */
+	/* SIZE AND FILL (the owner, 2026-11-02, "follow Claude's chat UI"): see bubbles.css, the one rule set for all three views.
+	   Your bubble hugs its text up to `--bubble-max`; the assistant's text is plain. This file keeps only what is V1's own. */
+	.chatbox-log { display: flex; flex-direction: column; }
+
+	/* A short conversation sits at the BOTTOM of a tall log, next to the box you type
+	   in, the way a chat app reads — never a void between the last line and the box.
+	   `margin: auto` on the first line, not `justify-content: flex-end`, which would
+	   push the oldest lines above the top where no scroll can reach them. */
+	.chatbox-log > :first-child { margin-block-start: auto; }
+	.chatbox-you,
+	.chatbox-reply {
+		position: relative;   /* the reaction chips and picker are placed against the bubble */
+		display: flow-root;
+	}
+	.chatbox-update {
+		font-size: 0.85em;
+		opacity: 0.65;
+	}
+
+	/* A reply's heading: a few bold words above the body. */
+	.chatbox-head {
+		display: block;
+		font-weight: 700;
+	}
+
+	.chatbox-head + .chatbox-text {
+		display: block;
+		margin-block-start: 0.1em;
+	}
+
+	/* A question for you: buttons under the words; a picked one stays lit. */
+	.chatbox-choices {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4em;
+		margin-block: 0.4em 0.2em;
+	}
+
+	.chatbox-choice.picked {
+		background: var(--prime);
+		color: var(--surface);
+	}
+
+	.chatbox-ask.answered .chatbox-choice:not(.picked) {
+		opacity: 0.45;
+	}
+
+	/* Markdown inside a chat bubble stays bubble-sized: no stacked paragraph margins. */
+	.chatbox-text > :is(p, ul, ol, pre, blockquote, h1, h2, h3, h4, h5, h6) { margin-block: 0.25em 0; font-size: 1em; }
+	/* REFINED bubbles: sections that cite raw words open in place; the whole bubble opens too. */
+	.chatbox-refined { cursor: pointer; }
+	.chatbox-sec + .chatbox-sec { margin-block-start: 0.5em; }
+	.chatbox-sec-open-able { cursor: pointer; border-inline-start: 2px solid transparent; padding-inline-start: 0.4em; margin-inline-start: -0.4em; }
+	.chatbox-sec-open-able:hover, .chatbox-sec-open-able.open { border-inline-start-color: var(--prime); }
+	.chatbox-from, .chatbox-pieces {
+		margin-block-start: 0.3em;
+		padding-inline-start: 0.6em;
+		border-inline-start: 2px solid var(--line);
+		font-size: 0.9em;
+		opacity: 0.8;
+	}
+	.chatbox-from[hidden], .chatbox-pieces[hidden] { display: none; }
+	.chatbox-text + .chatbox-text { margin-block-start: 0.5em; }   /* merged messages are paragraphs of one bubble */
+	/* THE UNIVERSAL CHAT LINE (Chat.js's `chat_line()`): `via` — said (🎤) or
+	   typed (⌨) — reads " · 🎤" on the sender label itself (`chatbox-who`,
+	   above — `label_via()` in Chat.js), not on every piece; `place` is a
+	   ux/Content card (Question, Decision, …) drawn in the piece's place
+	   instead of text. */
+	.chatbox-place { font-size: 1rem; }   /* the card sets its own type size; the bubble's 0.9em would shrink it twice */
+	.chatbox .chatbox-text > :is(h1, h2, h3, h4, h5, h6) { font-size: 1.05em; line-height: 1.3; }   /* beats the skin's heading size (same layer, higher specificity) */
+	.chatbox-text > :first-child { margin-block-start: 0; }
+	.chatbox-text :is(ul, ol) { padding-inline-start: 1.3em; }
+	.chatbox-text pre { overflow-x: auto; }
+
+	/* A REVISION PAIR (Chat.js's `revision_pair_node()`): the raw words, muted,
+	   right above the tidied-up version — one click swaps to showing ONLY the
+	   raw line, full weight ("back to raw"); a second click returns to the
+	   pair. `.chatbox-revision-raw`'s own `.chatbox-text` margin (above) still
+	   applies since this wrapper carries that class too. */
+	.chatbox-revision-pair { cursor: pointer; }
+	.chatbox-revision-raw { opacity: 0.6; font-size: 0.92em; }
+	.chatbox-revision-pair.showraw .chatbox-revision-raw { opacity: 1; font-size: 1em; }
+	.chatbox-revision-pair.showraw .chatbox-revision-revised { display: none; }
+	.chatbox-revision-revised { margin-block-start: 0.15em; }
+
+	/* SELECTED (Chat.js's `select_bubble()`) — one bubble at a time, a visible
+	   ring, a tap or Esc away from clearing it (requirements.md deliverable 2). */
+	.chatbox-selectable { cursor: pointer; }
+	.chatbox-selected { outline: 2px solid var(--prime); outline-offset: 2px; }
+
+	/* RENAME (deliverable 3) — the button and dropdown a selected bubble grows,
+	   the same shape `ux/Rename`'s own dropdown uses. */
+	.chatbox-rename-btn {
+		display: block;
+		margin-block-start: 0.3em;
+		font: inherit;
+		font-size: 0.8em;
+		padding: 0.15em 0.5em;
+	}
+	.chatbox-rename-select {
+		display: block;
+		margin-block-start: 0.3em;
+		font: inherit;
+		max-width: 100%;
+	}
+	.chatbox-rename-fixtures { display: block; margin-block-start: 0.2em; font-size: 0.8em; }
+
+	/* ✓/? MARKS (deliverable 4) — `ux/Understand`'s own colours: green clear,
+	   yellow unclear. */
+	.chatbox-mark { font-size: 0.95em; }
+	.chatbox-mark-ok { color: var(--ok); }
+	.chatbox-mark-unclear { color: var(--warn); }
+
+	/* THREADS (Chat.js's `thread_item()`): the replies to one bubble sit right under
+	   it, indented, folded to "▸ N replies" until opened. */
+	.chatbox-thread { margin-block: 0 0.3em; padding-inline-start: 1.2em; }
+	.chatbox-thread-toggle {
+		padding: 0.1em 0.4em;
+		border: 0;
+		background: none;
+		color: var(--prime-ink);
+		font: inherit;
+		font-size: 0.85em;
+		cursor: pointer;
+	}
+	.chatbox-thread-body { display: flex; flex-direction: column; border-inline-start: 2px solid var(--line); padding-inline-start: 0.5em; --bubble-max: 100%; }
+	.chatbox-thread-body[hidden] { display: none; }
+	.chatbox-thread-btn { display: inline-block; margin-block-start: 0.3em; margin-inline-start: 0.4em; font: inherit; font-size: 0.8em; padding: 0.15em 0.5em; }
+	/* "Replying to …" above the box, while a reply is pending. */
+	.chatbox-replying { display: flex; align-items: center; gap: 0.4em; padding: 0.2em 0.5em; font-size: 0.85em; color: var(--prime-ink); }
+	.chatbox-replying[hidden] { display: none; }
+	.chatbox-replying-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	.chatbox-replying-x { border: 0; background: none; color: inherit; font: inherit; cursor: pointer; }
+	.chatbox-panel > .chatbox-replying { flex: none; }
+
+	/* THE VIA MARK: 🎤 said or ⌨ typed, small and faint after the last word. */
+	.chatbox-via { font-size: 0.7em; opacity: 0.45; white-space: nowrap; }
+
+	/* REACTIONS (Chat.js's `react_on()`): an SMS tap-back. The chips sit on the
+	   bubble's top corner, the one nearest the middle of the chat; a bubble with
+	   any gets a little more room above so the chips never cover the bubble
+	   before it. */
+	.chatbox-has-reacts { margin-block-start: 0.95em; }
+	.chatbox-reacts {
+		position: absolute;
+		top: -0.95em;
+		display: flex;
+		gap: 0.2em;
+		padding: 0.05em 0.35em;
+		border: 1px solid var(--line);
+		border-radius: 1em;
+		background: var(--surface);
+		font-size: 0.9em;
+		line-height: 1.35;
+		white-space: nowrap;
+		cursor: default;
+	}
+	.chatbox-reply .chatbox-reacts { inset-inline-end: -0.4em; }
+	.chatbox-you .chatbox-reacts { inset-inline-start: -0.4em; }
+	.chatbox-react.mine { text-shadow: 0 0 0.5em color-mix(in srgb, var(--prime) 60%, transparent); }
+
+	/* The row of choices: above the bubble, or below it when the bubble sits at
+	   the top of the log (`.below`, decided when it opens) so the log never clips it. */
+	.chatbox-react-picker {
+		position: absolute;
+		z-index: 5;
+		bottom: calc(100% + 0.3em);
+		display: flex;
+		gap: 0.1em;
+		padding: 0.2em 0.35em;
+		border: 1px solid var(--line);
+		border-radius: 2em;
+		background: var(--surface);
+		box-shadow: 0 4px 14px rgb(0 0 0 / 0.2);
+	}
+	.chatbox-react-picker.below { bottom: auto; top: calc(100% + 0.3em); }
+	.chatbox-reply .chatbox-react-picker { inset-inline-start: 0; }
+	.chatbox-you .chatbox-react-picker { inset-inline-end: 0; }
+	.chatbox-react-pick {
+		padding: 0.15em 0.25em;
+		border: 0;
+		border-radius: 50%;
+		background: none;
+		font-size: 1.4em;
+		line-height: 1;
+		cursor: pointer;
+	}
+	.chatbox-react-pick:hover { background: color-mix(in srgb, currentColor 10%, transparent); }
+	.chatbox-react-pick.mine { background: color-mix(in srgb, var(--prime) 28%, transparent); }
+
+	/* The desktop way in: a faint smiley beside the bubble, on hover only. A
+	   phone has no hover, so there it never shows; a long hold opens the row. */
+	.chatbox-react-btn {
+		position: absolute;
+		top: 0.15em;
+		visibility: hidden;
+		padding: 0 0.25em;
+		border: 0;
+		background: none;
+		color: inherit;
+		font-size: 1.1em;
+		line-height: 1.2;
+		opacity: 0.55;
+		cursor: pointer;
+	}
+	.chatbox-reply .chatbox-react-btn { inset-inline-end: -1.7em; }
+	.chatbox-you .chatbox-react-btn { inset-inline-start: -1.7em; }
+	@media (hover: hover){
+		.chatbox:hover > .chatbox-react-btn,
+		.chatbox-react-btn:focus-visible { visibility: visible; }
+	}
+	/* A phone's long hold opens the reactions, not the browser's copy menu. */
+	@media (hover: none){
+		.chatbox-selectable { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+	}
+	/* LIVE BUBBLES (`chat().live()`/`.stream()`, dictation-stream 2026-09-30): your words while you
+	   speak, and a reply while it is written. The still-moving guess is grey; a sent bubble fades
+	   until its real line replaces it; a streaming reply ends in a caret. */
+	.chatbox-draft .chatbox-text { white-space: pre-wrap; }
+	.chatbox-guess { color: var(--draft-ink); }   /* framework.css: the dim-to-strong pair */
+	/* "sent, waiting" is its own cue (a left rule, not the text's own opacity/colour) — found
+	   2026-10-25: this bubble-wide fade used to dim the SAME text opacity the live "heard, not
+	   sent yet" state uses (`.chatbox-guess`, above), so a sentence that had already turned
+	   black (sent) read as reverting to gray during the cleaning wait. The text now stays full
+	   strength once sent; only the rule and the "cleaning…"/"sent, waiting" label change. */
+	.chatbox-live-sent { opacity: 1; border-inline-start: 2px solid var(--line); padding-inline-start: 0.5em; }
+	.chatbox-live-sent > :not(.chatbox-live-mark) { opacity: 1; }
+	.chatbox-live-mark { display: block; font-size: 0.8em; opacity: 0.65; }
+	.chatbox-streaming .chatbox-text > :last-child::after { content: "▍"; opacity: 0.5; }
+
+	/* DRILL IN (Drill.js, doc/drill.md) — the Open button a selected card grows,
+	   and the shell it opens: full screen (fixed, over the ✦ sheet at z 41), or
+	   over the desktop drawer at its full height (.chatbox-drill-in-drawer:
+	   the .drawer is position: fixed, so it is the containing block). */
+	.chatbox-open-btn {
+		display: inline-block;
+		margin-block-start: 0.3em; margin-inline-start: 0.4em;
+		font: inherit; font-size: 0.8em;
+		padding: 0.15em 0.5em;
+	}
+	.chatbox-rename-btn { display: inline-block; }   /* beside Open, on one row */
+	.chatbox-drill {
+		position: fixed; inset: 0; z-index: 50;
+		display: flex; flex-direction: column;
+		background: var(--surface); color: var(--ink);
+	}
+	.chatbox-drill.chatbox-drill-in-drawer { position: absolute; }
+	.chatbox-drill-head {
+		flex: 0 0 auto;
+		display: flex; align-items: center; gap: 0.75em;
+		/* The same centred column as the page below it, on a wide screen. */
+		padding-block: 0.6em; padding-inline: max(var(--pad-card), (100% - 40em) / 2);
+		border-block-end: 1px solid var(--line);
+	}
+	.chatbox-drill-back { flex: 0 0 auto; font: inherit; padding: 0.3em 0.7em; }
+	.chatbox-drill-heading { min-inline-size: 0; }
+	.chatbox-drill-crumbs { font-size: 0.85em; color: var(--subtle); overflow-wrap: anywhere; }
+	.chatbox-drill-crumb {
+		font: inherit; color: inherit; background: none; border: 0; padding: 0;
+		text-decoration: underline; text-underline-offset: 2px; cursor: pointer;
+		text-align: start;   /* a button centres its text; a wrapped crumb must not */
+	}
+	.chatbox-drill-title { margin: 0; font-size: 1.15em; font-weight: 600; line-height: 1.3; overflow-wrap: anywhere; }
+	.chatbox-drill-body { flex: 1 1 auto; min-block-size: 0; overflow-y: auto; padding: var(--pad-card); }
+	.chatbox-drill-page {
+		max-inline-size: 40em; margin-inline: auto;
+		display: flex; flex-direction: column; gap: 0.75em;
+	}
+	.chatbox-drill-card {
+		display: block; inline-size: 100%; text-align: start;
+		font: inherit; color: inherit;
+		padding: var(--pad-card);
+		background: var(--tint); border: 1px solid var(--line); border-radius: var(--radius);
+	}
+	.chatbox-drill-deep { cursor: pointer; }
+	.chatbox-drill-deep:hover { background: var(--wash); }
+	.chatbox-drill-more { display: block; margin-block-start: 0.4em; font-size: 0.85em; color: var(--prime-ink); }
+	.chatbox-drill-text > :first-child { margin-block-start: 0; }
+	.chatbox-drill-text > :last-child { margin-block-end: 0; }
+}
+
+@layer theme {
+	.chatbox-earlier { align-self: center; margin-block: var(--gap-35); cursor: pointer; }
+}
+
+/* The two moving cursors (✓/🧠) are one shared class set now: ext/Chat/cursors.css, loaded by Chat.js. */

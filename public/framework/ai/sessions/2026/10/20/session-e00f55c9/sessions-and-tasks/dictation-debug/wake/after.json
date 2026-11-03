@@ -1,0 +1,150 @@
+{
+ "computed_at": "2026-10-25T07:19:15.284Z",
+ "knobs": {
+  "gap_ms": 6000,
+  "every": 6
+ },
+ "method": "owner lines + quiet events of the real session files; old rule rebuilt and checked against observed wakes; new rule = WakePolicy on a fake clock, told when the owner is speaking (the floor); tokens = real tokens per wake x new wake count",
+ "totals": {
+  "dictation_minutes": 15.89,
+  "before": {
+   "wakes": 44,
+   "wakes_per_min": 2.77,
+   "tokens": 3239920,
+   "tokens_per_min": 203897,
+   "usd": 1.14
+  },
+  "after": {
+   "wakes": 35,
+   "wakes_per_min": 2.2,
+   "tokens": 2558978,
+   "tokens_per_min": 161043,
+   "usd": 0.91
+  }
+ },
+ "sessions": [
+  {
+   "runs": [
+    {
+     "at": "2026-10-25T00:19:57.883Z",
+     "minutes": 0.17,
+     "lines": 1,
+     "old_wakes": 1,
+     "new_wakes": 1
+    },
+    {
+     "at": "2026-10-25T00:21:39.515Z",
+     "minutes": 0.17,
+     "lines": 1,
+     "old_wakes": 1,
+     "new_wakes": 1
+    },
+    {
+     "at": "2026-10-25T01:42:25.253Z",
+     "minutes": 0.17,
+     "lines": 1,
+     "old_wakes": 1,
+     "new_wakes": 1
+    },
+    {
+     "at": "2026-10-25T05:14:01.921Z",
+     "minutes": 2.46,
+     "lines": 7,
+     "old_wakes": 5,
+     "new_wakes": 5
+    },
+    {
+     "at": "2026-10-25T05:46:58.964Z",
+     "minutes": 0.37,
+     "lines": 3,
+     "old_wakes": 2,
+     "new_wakes": 2
+    },
+    {
+     "at": "2026-10-25T05:52:14.802Z",
+     "minutes": 2.07,
+     "lines": 9,
+     "old_wakes": 8,
+     "new_wakes": 5
+    }
+   ],
+   "id": "v-zg6h7hl",
+   "dictation_minutes": 5.4,
+   "owner_lines": 22,
+   "before": {
+    "observed_wakes": 18,
+    "modelled_wakes": 18,
+    "wakes_per_min": 3.33,
+    "tokens": 1041012,
+    "tokens_per_min": 192780,
+    "usd": 0.4938
+   },
+   "after": {
+    "wakes": 15,
+    "wakes_per_min": 2.78,
+    "tokens": 867510,
+    "tokens_per_min": 160650,
+    "usd": 0.4115,
+    "by_reason": {
+     "asked": 8,
+     "paused": 5,
+     "the mic went off": 1,
+     "6 sentences": 1
+    },
+    "sentences_per_wake": 1.9
+   }
+  },
+  {
+   "runs": [
+    {
+     "at": "2026-10-25T05:54:22.355Z",
+     "minutes": 2.42,
+     "lines": 6,
+     "old_wakes": 5,
+     "new_wakes": 4
+    },
+    {
+     "at": "2026-10-25T05:58:31.853Z",
+     "minutes": 6.98,
+     "lines": 24,
+     "old_wakes": 14,
+     "new_wakes": 12
+    },
+    {
+     "at": "2026-10-25T06:14:01.062Z",
+     "minutes": 1.08,
+     "lines": 9,
+     "old_wakes": 5,
+     "new_wakes": 4
+    }
+   ],
+   "id": "v-xhx7fmx",
+   "dictation_minutes": 10.49,
+   "owner_lines": 39,
+   "before": {
+    "observed_wakes": 26,
+    "modelled_wakes": 24,
+    "wakes_per_min": 2.48,
+    "tokens": 2198908,
+    "tokens_per_min": 209619,
+    "usd": 0.6507
+   },
+   "after": {
+    "wakes": 20,
+    "wakes_per_min": 1.91,
+    "tokens": 1691468,
+    "tokens_per_min": 161246,
+    "usd": 0.5005,
+    "by_reason": {
+     "asked": 3,
+     "paused": 10,
+     "8 sentences": 1,
+     "6 sentences": 3,
+     "10 sentences": 1,
+     "7 sentences": 2
+    },
+    "sentences_per_wake": 4.5
+   }
+  }
+ ]
+}

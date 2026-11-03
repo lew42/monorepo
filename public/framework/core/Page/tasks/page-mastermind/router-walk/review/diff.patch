@@ -1,0 +1,131 @@
+diff --git a/Server/plugins/FolderNames.js b/Server/plugins/FolderNames.js
+new file mode 100644
+index 000000000..956c3bdfb
+--- /dev/null
++++ b/Server/plugins/FolderNames.js
+@@ -0,0 +1,38 @@
++import fs from "fs";
++import path from "path";
++
++/* FolderNames — GET /api/folder-names?dir=/framework/ai/sessions/2026/10/20/
++ * answers {names:[...]}: the entry names of ONE folder under `public/`, always a 200
++ * (a missing folder is `[]`). The router walk (ai/AITask `has()`) asks it once per
++ * folder instead of probing `session.jsonl`, `task.jsonl`, `page.js` and
++ * `requirements.md` with a HEAD each, where every miss was a 404 in the console and
++ * in the smoke. Dev server only, like the rest of `Server/`. Only names are shown, and
++ * only for folders the static server already serves, so there is no loopback guard.
++ */
++
++const PUBLIC = path.resolve(process.cwd(), "public");
++
++const denied = name => name.startsWith(".") || name === "node_modules";
++
++export default class FolderNames {
++
++	static setup(server){ new FolderNames(server); }
++
++	constructor(server){
++		server.on("express", () => this.route(server));
++	}
++
++	route(server){
++		server.router.get("/api/folder-names", (req, res) => {
++			const segments = decodeURIComponent(String(req.query.dir ?? "")).split("/").filter(Boolean);
++			if (segments.some(denied)) return res.status(403).end();
++
++			const abs = path.resolve(PUBLIC, ...segments);
++			if (abs !== PUBLIC && !abs.startsWith(PUBLIC + path.sep)) return res.status(403).end();
++
++			fs.readdir(abs, (error, names) => {
++				res.set("Cache-Control", "no-store").json({ names: error ? [] : names });
++			});
++		});
++	}
++}
+diff --git a/Server/run.js b/Server/run.js
+index 9e1cea644..58f282aba 100644
+--- a/Server/run.js
++++ b/Server/run.js
+@@ -9,6 +9,7 @@ import Directory from "./plugins/Directory.js";
+ import MentionSync from "./plugins/MentionSync.js";   // auto-syncs ext/Mention/maps/refs.js's icon — Server/plugins/MentionSync.js
+ import PageFiles from "./plugins/PageFiles.js";
+ import DevSource from "./plugins/DevSource.js";   // read-only Servex/Server browsing — Server/plugins/DevSource.js
++import FolderNames from "./plugins/FolderNames.js";   // /api/folder-names?dir= — one folder's names, so the router walk probes nothing
+ import DevSocket from "./plugins/DevSocket/DevSocket.js";
+ import Runtime from "./plugins/SocketServer/Runtime.js";
+ import AILogs from "./plugins/AILogs.js";
+@@ -47,6 +48,7 @@ Server.use(Directory);
+ Server.use(MentionSync);
+ Server.use(PageFiles);   // appends {"file"} lines to page.jsonl — Server/plugins/PageFiles.js
+ Server.use(DevSource);   // /devsource.json + /devsource/<path> — Servex/Server source, read-only
++Server.use(FolderNames);
+ Server.use(AILogs);
+ Server.use(AISessionTailer);   // follows transcripts, writes index.json files - ai/AISession/AISessionIndex.mjs
+ Server.use(MCP);
+diff --git a/public/framework/ai/AITask/AITask.js b/public/framework/ai/AITask/AITask.js
+index 801b0fbe2..cbfde5e2e 100644
+--- a/public/framework/ai/AITask/AITask.js
++++ b/public/framework/ai/AITask/AITask.js
+@@ -70,6 +70,8 @@ function tab_bar(sections, active){
+ 
+ export class AITask extends Page {
+ 
++	static listed = new Map();   // folder url -> {names, at}; see has()
++
+ 	static into(base, ...args){
+ 		const task = new this({ title: base.split("/").filter(Boolean).at(-1), url: base, src: base + "session.json" }, ...args);
+ 		task.content();
+@@ -85,7 +87,33 @@ export class AITask extends Page {
+ 		return new AITask({ title: sub, icon: "receipt_long", url: this.url + sub + "/", src: this.url + sub + "/session.json" });
+ 	}
+ 
++	// Does this file exist? Asked of the dev server's folder listing — ONE request per folder,
++	// cached a few seconds, and always a 200 — so a missing session.jsonl / task.jsonl /
++	// page.js / requirements.md is never a 404 probe. Off the dev server (no /api/folder-names)
++	// it falls back to a HEAD probe.
+ 	static has(url){
++		const cut = url.lastIndexOf("/") + 1;
++		const names = AITask.names_in(url.slice(0, cut));
++		return names ? names.includes(url.slice(cut)) : AITask.probe(url);
++	}
++
++	static names_in(dir){
++		if (AITask.no_listing) return null;
++		const hit = AITask.listed.get(dir);
++		if (hit && Date.now() - hit.at < 3000) return hit.names;
++
++		const x = new XMLHttpRequest();
++		x.open("GET", "/api/folder-names?dir=" + encodeURIComponent(dir), false);
++		try { x.send(); } catch { return null; }
++		const json = x.status === 200 && (x.getResponseHeader("content-type") ?? "").includes("json");
++		if (!json) return (AITask.no_listing = true, null);
++
++		const names = JSON.parse(x.responseText).names;
++		AITask.listed.set(dir, { names, at: Date.now() });
++		return names;
++	}
++
++	static probe(url){
+ 		const x = new XMLHttpRequest();
+ 		x.open("HEAD", url, false);
+ 		try { x.send(); } catch { return false; }
+@@ -101,7 +129,10 @@ export class AITask extends Page {
+ 	}
+ 
+ 	async session(){
+-		const t = new TaskJSONL({ url: this.base() + "task.jsonl" });
++		// The record is session.jsonl or task.jsonl, mixed per folder: name the one that is there,
++		// so Store.record_url never HEADs the wrong one (a 404). Neither yet: task.jsonl, as before.
++		const record = AITask.has(this.base() + "session.jsonl") ? "session.jsonl" : "task.jsonl";
++		const t = new TaskJSONL({ url: this.base() + record });
+ 		// Keep the parsed lines the stream already read, so this.task replays them without a second fetch.
+ 		const read = t.read.bind(t), reset = t.reset.bind(t);
+ 		t.read = entries => { (t.entries ??= []).push(...entries); this.task = Task.replay(t.entries); return read(entries); };
+@@ -130,6 +161,7 @@ export class AITask extends Page {
+ 
+ 	async requirements(){
+ 		if (Array.isArray(this.known_files) && !this.known_files.includes("requirements.md")) return null;
++		if (AITask.names_in(this.base()) && !AITask.has(this.base() + "requirements.md")) return null;
+ 		const res = await fetch(this.base() + "requirements.md").catch(() => null);
+ 		return res?.ok && !res.headers.get("content-type")?.includes("html") ? res.text() : null;
+ 	}

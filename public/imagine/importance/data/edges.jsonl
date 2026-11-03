@@ -1,0 +1,7 @@
+{"src": "car", "rel": "asks", "dst": "q1"}
+{"src": "car", "rel": "asks", "dst": "q2"}
+{"src": "c1", "rel": "qualifies", "dst": "q1"}
+{"src":"tmu0st0xlclc","rel":"asks","dst":"qmu0st419951"}
+{"src":"tmu0st0xlclc","rel":"asks","dst":"qmu0st42qrcn"}
+{"src":"tmu0st0xlclc","rel":"asks","dst":"qmu0st445hrj"}
+{"src":"c1","rel":"qualifies","dst":"qmu0st419951"}

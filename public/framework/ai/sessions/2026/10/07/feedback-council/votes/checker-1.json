@@ -1,0 +1,55 @@
+{
+  "name": "checker-1",
+  "votes": {
+    "A1": {
+      "v": "partly",
+      "e": "Headless cold load of http://monorepo.localhost/framework/ai2/ lands directly on /live/ (no extra click needed, that part improved) but takes ~6.4s at 1920 including app boot + data (shots/checker-1-A1-live-1920.png). Card claims ~0.5s.",
+      "f": "Defer/lazy-render the heavy Processes chart and By-task list on first paint so Live is interactive well under 1s; keep the cold full-boot number separate from the claimed figure."
+    },
+    "A2": {
+      "v": "partly",
+      "e": "Live page at 3440 still has 36 text blocks over 400 characters (shots/checker-1-A2-live-3440.png) — same text-wall pattern as the 2026-09-25 finding.",
+      "f": "Trim the Live log/chat column to short summaries with a 'read more' or link, not full prose inline."
+    },
+    "A3": {
+      "v": "done",
+      "e": "At 3440: /framework/ai2/ fills the width with rail + main (Running now / Processes) + a right 'Working on' column, no empty state (shots/checker-1-A3-ai2-3440.png). /framework/ext/files/ now shows a full 3-pane layout (nav, file tree, content) using the full width, not a narrow stuck column (shots/checker-1-A3-files-3440.png). Both pages auto-land on real content instead of an empty picker state.",
+      "f": ""
+    },
+    "A4": {
+      "v": "done",
+      "e": "On /framework/ai/dashboard/ and /framework/ai2/, the real content regions (class 'surface pad') use padding: clamp(16px, 2.6% - 17.6px, 64px) — the sitewide spacing-clamp system is applied, not 0px. (Earlier evidence measured 0px only because it checked /framework/about/, which is a 404 — see B15.)",
+      "f": ""
+    },
+    "A5": {
+      "v": "done",
+      "e": "The two URLs named in the prior evidence (/framework/core/Panel/md/doc/decisions/ and /framework/ai/ai-dashboard/) are both 404 ('Page Load Error 404') — they were never real routes. The real pages are /framework/ext/Panel/doc/decisions/ (overflow 60550px on DIV.pages, real scroller) and /framework/ai/dashboard/ (overflow 4808px on MAIN.panel2-main, real scroller) — both scroll correctly (shots/checker-1-A5-decisions-1920.png, shots/checker-1-A5-dashboard-1920.png).",
+      "f": "Update the ask's recorded URLs to the real paths (ai/dashboard, ext/Panel/doc/decisions) so future checks don't flag a 404 as a scroll bug."
+    },
+    "A6": {
+      "v": "done",
+      "e": "No '[object Object]' text found anywhere on /framework/ai2/ (checked full body text); Live and other cards show real headline/summary text (shots/checker-1-A6-ai2-1920.png).",
+      "f": ""
+    },
+    "B11": {
+      "v": "partly",
+      "e": "Rail rows on /framework/ai2/ (20 rows found) are still flush with 0px gap between them, same as the 2026-09-25 finding; this is fine as a deliberate flat-list style but is inconsistent if other card surfaces elsewhere use gapped, individually-rounded boxes (shots/checker-1-B11-rail-1920.png).",
+      "f": "Pick one rule sitewide: either every card row gets a gap + its own rounding, or rounding applies only to the outer stack — apply it to both the rail and any card-row surfaces that still differ."
+    },
+    "B12": {
+      "v": "partly",
+      "e": "Not independently re-tested this run (stopping Servex to test the static/no-Servex path is explicitly off-limits for a minion — 'never kill or restart the dev server'). AI2's own code imports a 'servex_up' check (public/framework/ai2/rail.js and inbox.js), implying a fallback path exists, but its behavior with Servex down was not exercised live.",
+      "f": "A future check needs a safe way to simulate Servex-down (e.g. a flag/mock) without actually stopping the shared dev server, then confirm AI2 degrades gracefully."
+    },
+    "B13": {
+      "v": "partly",
+      "e": "The Inbox rail at /framework/ai2/ shows an 'archived (16)' filter link (shots/checker-1-B11-rail-1920.png, bottom-left: 'views · notes · archived (16) · clear all'), confirming archiving exists and works as a filter, but there is no visible default count proving finished/landed cards are excluded from the main list by default (no 'Cards (NNN)' label found in the current UI to compare against).",
+      "f": "Add a visible default-list count (e.g. 'Open (N)') next to 'archived (N)' so it's provable at a glance that landed cards leave the default view."
+    },
+    "B15": {
+      "v": "not done",
+      "e": "No site-wide 'about' page exists: both http://monorepo.localhost/about/ and http://monorepo.localhost/framework/about/ render the SPA's own 404 ('Page Load Error 404 — nothing matches...'). The only 'about' found is an unrelated docs page inside ext/Files (/framework/ext/files/ → 'about' tab, a doc explaining the Files component's `about` callback) which has no back-button layout relevant to this ask.",
+      "f": "Confirm what page the owner meant by 'the about page' (it may have been renamed, merged into another page, or never built) before re-checking back-button alignment; if it no longer exists, close this ask as resolved-by-removal."
+    }
+  }
+}

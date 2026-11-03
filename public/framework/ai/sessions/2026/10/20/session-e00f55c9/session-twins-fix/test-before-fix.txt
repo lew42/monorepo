@@ -1,0 +1,8 @@
+FAIL a session whose only folder is a slug gets that slug, not a new session-<id8>
+FAIL a Servex record folder (line 1 assign with an agent) is its session's folder
+ok a tab-era task folder (assign with no agent) is a task of that session, not its folder
+ok locate finds the uuid folder
+FAIL after a rename under a running process, locate gives the new folder
+ok and the old path is not made again
+FAIL AISessionIndex.write never brings a vanished cached folder back
+FAIL it writes into the folder that holds the id

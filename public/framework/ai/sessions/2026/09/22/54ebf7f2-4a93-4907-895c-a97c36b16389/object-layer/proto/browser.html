@@ -1,0 +1,63 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>object-layer — describe() in the browser</title>
+<style>
+	body { font: 14px/1.5 monospace; margin: 2em; background: #fff; color: #111; }
+	pre { white-space: pre-wrap; }
+</style>
+<h1>describe() reading JSDoc from a fetched module, in the browser</h1>
+<p>No build step here — the module is served as-is, so this parses its own source
+text the same way <code>proto/objects.mjs</code> parses its own, on the Node side.</p>
+<pre id="out">running…</pre>
+<script type="module">
+	// Same technique as proto/objects.mjs, inlined: this file has to stand alone —
+	// no shared import between the Node prototype and the browser one.
+	function class_body(source, name){
+		const m = source.match(new RegExp(`class\\s+${name}\\b[^{]*{`));
+		if (!m) return "";
+		let i = m.index + m[0].length, depth = 1;
+		const start = i;
+		while (depth > 0 && i < source.length) depth += source[i] === "{" ? 1 : source[i] === "}" ? -1 : 0, i++;
+		return source.slice(start, i - 1);
+	}
+
+	// Same fix as proto/objects.mjs: find THIS method's own line, then look
+	// immediately above it for a doc comment — a scan from the top of the class
+	// grabs the wrong comment the moment a class has two methods.
+	function jsdoc(body, method){
+		const def = body.match(new RegExp(`(?:^|\\n)[ \\t]*${method}\\s*\\(`));
+		if (!def) return null;
+		const before = body.slice(0, def.index).trimEnd();
+		if (!before.endsWith("*/")) return null;
+		const open = before.lastIndexOf("/**");
+		if (open === -1) return null;
+		const lines = before.slice(open + 3, -2).split("\n").map(l => l.replace(/^\s*\*\s?/, "").trim()).filter(Boolean);
+		const tags = lines.filter(l => l.startsWith("@"));
+		return { summary: lines.filter(l => !l.startsWith("@")).join(" "), public: tags.some(t => t.startsWith("@public")) };
+	}
+
+	function describe(obj, source){
+		const body = class_body(source, obj.constructor.name);
+		return Object.getOwnPropertyNames(Object.getPrototypeOf(obj))
+			.filter(name => name !== "constructor" && typeof obj[name] === "function")
+			.map(method => ({ method, ...jsdoc(body, method) }))
+			.filter(m => m?.public);
+	}
+
+	const t0 = performance.now();
+	const url = new URL("./browser-target.mjs", import.meta.url);
+	const [source, mod] = await Promise.all([
+		fetch(url).then(r => r.text()),
+		import(url.href),
+	]);
+	const widget = new mod.default();
+	const rows = describe(widget, source);
+	const ms = performance.now() - t0;
+
+	document.getElementById("out").textContent =
+		`describe(Widget) — a real View subclass — from its own fetched source, in ${ms.toFixed(1)}ms:\n`
+		+ JSON.stringify(rows, null, 2)
+		+ `\n\nlive call through it: widget.label() = "${widget.label()}"`;
+
+	window.PROTO_DONE = { ms, rows };
+</script>

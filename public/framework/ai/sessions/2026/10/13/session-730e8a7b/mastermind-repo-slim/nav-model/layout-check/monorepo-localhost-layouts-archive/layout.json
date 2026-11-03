@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/layouts/archive/",
+ "widths": {
+  "1280": {
+   "empty": 0.908,
+   "widest_text": 373,
+   "widest_text_sample": "These layouts are variations of the four",
+   "overflow_x": false,
+   "items": 4,
+   "narrow_share": 1
+  },
+  "1920": {
+   "empty": 0.929,
+   "widest_text": 397,
+   "widest_text_sample": "These layouts are variations of the four",
+   "overflow_x": false,
+   "items": 4,
+   "narrow_share": 1
+  },
+  "2560": {
+   "empty": 0.93,
+   "widest_text": 447,
+   "widest_text_sample": "These layouts are variations of the four",
+   "overflow_x": false,
+   "items": 4,
+   "narrow_share": 1
+  },
+  "3440": {
+   "empty": 0.946,
+   "widest_text": 447,
+   "widest_text_sample": "These layouts are variations of the four",
+   "overflow_x": false,
+   "items": 4,
+   "narrow_share": 1
+  }
+ },
+ "errors": []
+}

@@ -1,0 +1,57 @@
+would  agent-a26ce54dac0bc7bef
+salvage agent-a3c7fdb6298cb9b59: 1 file(s) -> one commit on worktree-agent-a3c7fdb6298cb9b59, e.g. public/framework/ai/sessions/2026/10/12/session-87bec773/screenshot-system/task.jsonl
+would  agent-a7d2d39bc12acdec7
+salvage agent-aa071c45801e00b21: 1 file(s) -> one commit on michael/bags-rail, e.g. public/framework/ai/2026-10-02/card-pipeline/task.jsonl
+salvage agent-abb091b2425c042b2: 13 file(s) -> one commit on michael/bags-misc, e.g. assemble.cjs, conv.cjs, fold.json
+would  agent-ae2ff71d0568101da
+salvage models-asks: 6 file(s) -> one commit on michael/models-asks, e.g. public/framework/ai/2026-10-12/claude-md-consolidate/review/task.jsonl, public/framework/ai/2026-10-12/page-ai-api/build/task.jsonl, public/framework/ai/2026-10-12/servex-health/task.jsonl
+salvage relay-2: 1 file(s) -> one commit on worktree/relay-2, e.g. public/framework/ai/usage.jsonl
+salvage claude-md-consolidate: 1 file(s) -> one commit on worktree/claude-md-consolidate, e.g. public/framework/ai/2026-10-12/claude-md-consolidate/review/report.md
+salvage content-list: 719 file(s) -> one commit on worktree/content-list, e.g. .scratch-cl/ab.txt, .scratch-cl/ai2.mjs, .scratch-cl/ans.json
+would  data-grid-3
+salvage data-grid-4: 1 file(s) -> one commit on worktree/data-grid-4, e.g. public/framework/ai/2026-10-12/data-grid/review/diff.patch
+would  data-grid-5
+would  fig-btn-hug
+would  fig-controls
+would  fig-ground
+would  fig-layouts
+would  fig-select
+skip   inbox-ranking: branch not merged into michael/dev
+skip   orphans: branch not merged into michael/dev
+would  owner-inbox
+would  page-ai-api
+salvage page-mm: 1 file(s) -> one commit on worktree/page-mm, e.g. public/framework/ai/sessions/session-flags.json
+would  page-split-2
+would  page-split-3
+salvage part-link-run: 4 file(s) -> one commit on worktree/part-link-run, e.g. public/framework/ai/2026-10-12/part-link/proof-1200.png, public/framework/ai/2026-10-12/part-link/proof-1920.png, public/framework/ai/2026-10-12/part-link/proof-3440.png
+skip   qf-1: named like a pool slot: the Pool recycles it (recycle_orphans)
+skip   qf-2: named like a pool slot: the Pool recycles it (recycle_orphans)
+skip   qf-3: named like a pool slot: the Pool recycles it (recycle_orphans)
+skip   qf-4: named like a pool slot: the Pool recycles it (recycle_orphans)
+skip   qf-5: locked
+skip   qf-6: a pool slot (the Pool removes its own)
+skip   qf-7: a pool slot (the Pool removes its own)
+skip   qf-8: a pool slot (the Pool removes its own)
+skip   readmeaudit: branch not merged into michael/dev
+skip   refine-demo: branch not merged into michael/dev
+would  refine-parse-fix
+salvage refine-session-log2: 1 file(s) -> one commit on worktree/refine-session-log2, e.g. public/framework/ai/sessions/session-flags.json
+salvage refine-v3: 1 file(s) -> one commit on worktree/refine-v3, e.g. public/framework/ai/sessions/session-flags.json
+would  screenshot-build-a
+would  screenshot-build-c
+would  server-query-cost
+would  sessions-detail
+would  sessions-fixes
+would  step-runner
+would  style-system
+would  transcription-crash
+would  ui-library
+salvage voice-asks-2: 8 file(s) -> one commit on worktree/voice-asks-2, e.g. public/framework/ai/2026-10-12/claude-md-consolidate/review/task.jsonl, public/framework/ai/2026-10-12/page-ai-api/build/task.jsonl, public/framework/ai/2026-10-12/page-split-2/task.jsonl
+salvage voice-verify: 2 file(s) -> one commit on worktree/voice-verify, e.g. public/framework/ai/errors/2026-10-12.jsonl, public/framework/ai/whisper/2026-10-12.jsonl
+would  page-ai-api-proof
+would  wt-readme-audit
+would  wt-refine-haiku-live
+would  wt-task-folders
+would  comment-prune-3
+manifest: C:/Users/mike/AppData/Local/Temp/wtc/manifest-dry.json (14)
+dry run; 55 worktree(s) remain

@@ -1,0 +1,9 @@
+{"class":"/framework/ai2/card.js","title":"The toolbar, and I can ask you things now","type":"card","id":"2026/09/19/v3-timeline","created":"2026-09-19T16:39:09-05:00","by":"mastermind","tags":[]}
+{"legacy":"v3-timeline"}
+{"status":"done"}
+{"icon":"timeline"}
+{"re":"o-163905"}
+{"parent":"v3-notes"}
+{"text":"Live toggle, a pinned strip so needs-you cards cannot be buried by the stream, and a filter by who wrote a card, all in the one head row. Cards can carry Yes/No buttons, so a question reaches you where you already are. Usage bars are back in a footer."}
+{"links":[{"url":"/framework/ai/v/3/?view=timeline","label":"open it"}]}
+{"focus":true}

@@ -1,0 +1,6 @@
+ok   /framework/
+ok   /framework/ai2/
+ok   /framework/core/Page/weight/
+FAIL /framework/ai/  17 errors
+ok   /framework/dev/
+ok   /framework/ux/Dictate/

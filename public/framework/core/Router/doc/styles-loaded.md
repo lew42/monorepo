@@ -15,5 +15,15 @@ subsequent navigation.
 The chain's `loading` promises are awaited in the same spot, for the same three
 reasons: draw once with real titles instead of names-then-sharpen, keep
 `activate()` synchronous, and never let a broken child block navigation
-(`allSettled` again). The full record — including what the redraws used to look
-like and why waiting won — is in `core/Page/readme.md` §"Draw once".
+(`allSettled` again). `loading` is every page's declared subtree, imported at
+construction — the full record, including what the old redraws looked like and why
+waiting won, is in `core/Page/doc/declaring.md`.
+
+**Order matters: `loading` first, `styles_loaded()` second.** Importing a module is
+what runs its own `View.stylesheet()` call, pushing a new promise onto
+`View.stylesheets` — so `styles_loaded()` only ever awaits whatever is in that array
+at the moment it's called. Calling it before the chain finishes loading misses any
+stylesheet a child only registers once its own import lands (a day page's task
+cards, an `ai2` `RealPage`'s embedded page), and `activate()` then paints that
+child's preview before its CSS has arrived — a flash of unstyled content, found
+2026-10-03 (`ai/sessions/2026/10/03/list-events/flash-fix/`).

@@ -1,0 +1,84 @@
+{
+ "files": 5094,
+ "same": 4268,
+ "changed_between_runs": 0,
+ "different": 825,
+ "missing": 1,
+ "total_ms": {
+  "before": 3890,
+  "after": 499
+ },
+ "slowest": [
+  {
+   "file": "public/framework/ai/sessions/2026/10/25/v-sq8y7db/session.jsonl",
+   "lines": 8360,
+   "before_ms": 2672.6,
+   "after_ms": 196.2
+  },
+  {
+   "file": "public/framework/ai/sessions/2026/10/25/v-9dvbbrn/session.jsonl",
+   "lines": 5625,
+   "before_ms": 794.1,
+   "after_ms": 71.3
+  },
+  {
+   "file": "public/framework/ai/sessions/2026/10/02/cards/page.jsonl",
+   "lines": 9760,
+   "before_ms": 111.1,
+   "after_ms": 18.9
+  },
+  {
+   "file": "public/framework/ai/sessions/2026/10/20/session-e00f55c9/session.jsonl",
+   "lines": 1069,
+   "before_ms": 87.5,
+   "after_ms": 37.3
+  },
+  {
+   "file": "public/framework/core/Page/ext/page.jsonl",
+   "lines": 15,
+   "before_ms": 76.6,
+   "after_ms": 48.2
+  }
+ ]
+}
+DIFF {"file":"public/framework/ai/2026/10/20/note-the-servex-connector-in-the-claude/page.jsonl","before":"b7434fc589","after":"93b61bcf8c"}
+DIFF {"file":"public/framework/ai/sessions/2026/09/19/cards/a-153628/page.jsonl","before":"299c269b5b","after":"2b807bf1df"}
+DIFF {"file":"public/framework/ai/sessions/2026/09/19/cards/a-153650/page.jsonl","before":"ca5ee74eac","after":"3aa4e1ad35"}
+DIFF {"file":"public/framework/ai/sessions/2026/09/19/cards/a-153705/page.jsonl","before":"d4c2b56bb1","after":"27694ca93d"}
+DIFF {"file":"public/framework/ai/sessions/2026/09/19/cards/a-153715/page.jsonl","before":"abb6181f22","after":"a61e13c6fc"}
+DIFF {"file":"public/framework/ai/sessions/2026/09/19/cards/a-153732/page.jsonl","before":"92aea38649","after":"8b89b0c31a"}
+DIFF {"file":"public/framework/ai/sessions/2026/09/19/cards/a-153736/page.jsonl","before":"d79387e865","after":"063b4fb5d4"}
+DIFF {"file":"public/framework/ai/sessions/2026/09/19/cards/a-153809/page.jsonl","before":"dd01d38311","after":"e4d63ff075"}
+DIFF {"file":"public/framework/ai/sessions/2026/09/19/cards/a-153853/page.jsonl","before":"85b4bd4dde","after":"39f72d52f9"}
+DIFF {"file":"public/framework/ai/sessions/2026/09/19/cards/a-153927/page.jsonl","before":"efe0507c88","after":"311afd25ee"}
+DIFF {"file":"public/framework/ai/sessions/2026/09/19/cards/a-153949/page.jsonl","before":"87cc4260dc","after":"df87f52e2a"}
+DIFF {"file":"public/framework/ai/sessions/2026/09/19/cards/a-154001/page.jsonl","before":"8feffb633d","after":"0a1fb0f84a"}
+DIFF {"file":"public/framework/ai/sessions/2026/09/19/cards/a-154150/page.jsonl","before":"49ead54d4d","after":"14dc108949"}
+DIFF {"file":"public/framework/ai/sessions/2026/09/19/cards/a-154209/page.jsonl","before":"a9d7db7bef","after":"4991ea9807"}
+DIFF {"file":"public/framework/ai/sessions/2026/09/19/cards/a-154312/page.jsonl","before":"1bf5714175","after":"182d1fd7fc"}
+DIFF {"file":"public/framework/ai/sessions/2026/09/19/cards/a-154315/page.jsonl","before":"dd3f745289","after":"33d54dac49"}
+DIFF {"file":"public/framework/ai/sessions/2026/09/19/cards/a-154328/page.jsonl","before":"ecdf63a32b","after":"feefcc8a01"}
+DIFF {"file":"public/framework/ai/sessions/2026/09/19/cards/a-154429/page.jsonl","before":"ebe0ce3be6","after":"69e701d3d9"}
+DIFF {"file":"public/framework/ai/sessions/2026/09/19/cards/a-154438/page.jsonl","before":"89e74a6f0b","after":"1e7a02044a"}
+DIFF {"file":"public/framework/ai/sessions/2026/09/19/cards/a-154623/page.jsonl","before":"3376167918","after":"0382a2229e"}
+DIFF {"file":"public/framework/ai/sessions/2026/09/19/cards/a-154646/page.jsonl","before":"c5154500b8","after":"ed78e44bdd"}
+DIFF {"file":"public/framework/ai/sessions/2026/09/19/cards/a-154817/page.jsonl","before":"a674ce3b89","after":"18fbd29233"}
+DIFF {"file":"public/framework/ai/sessions/2026/09/19/cards/a-154941/page.jsonl","before":"472d15f405","after":"d5a8f3a58d"}
+DIFF {"file":"public/framework/ai/sessions/2026/09/19/cards/a-155031/page.jsonl","before":"f3a723af63","after":"b19e3b4f0d"}
+DIFF {"file":"public/framework/ai/sessions/2026/09/19/cards/a-155150/page.jsonl","before":"65eb0aa0a2","after":"4c9cadf84d"}
+DIFF {"file":"public/framework/ai/sessions/2026/09/19/cards/a-155223/page.jsonl","before":"af91e910b3","after":"7ed9696bb9"}
+DIFF {"file":"public/framework/ai/sessions/2026/09/19/cards/a-155333/page.jsonl","before":"235c280cdb","after":"b94d634895"}
+DIFF {"file":"public/framework/ai/sessions/2026/09/19/cards/a-155355/page.jsonl","before":"e45f30bd27","after":"ca897ad6bc"}
+DIFF {"file":"public/framework/ai/sessions/2026/09/19/cards/a-155637/page.jsonl","before":"c0d460c5af","after":"a0251d36a8"}
+DIFF {"file":"public/framework/ai/sessions/2026/09/19/cards/a-155906/page.jsonl","before":"9248fedf33","after":"6b00c88bbe"}
+DIFF {"file":"public/framework/ai/sessions/2026/09/19/cards/a-160204/page.jsonl","before":"144806b3d0","after":"fe69e2a4e1"}
+DIFF {"file":"public/framework/ai/sessions/2026/09/19/cards/a-160442/page.jsonl","before":"5845e0bf0b","after":"a05138ed13"}
+DIFF {"file":"public/framework/ai/sessions/2026/09/19/cards/a-160605/page.jsonl","before":"ec71d189e5","after":"9c076a89b4"}
+DIFF {"file":"public/framework/ai/sessions/2026/09/19/cards/a-160738/page.jsonl","before":"620864f330","after":"1e9fe0dbc9"}
+DIFF {"file":"public/framework/ai/sessions/2026/09/19/cards/a-160845/page.jsonl","before":"7bb424f1f5","after":"ffaedc3bbe"}
+DIFF {"file":"public/framework/ai/sessions/2026/09/19/cards/answer-cards/page.jsonl","before":"8d9f2e61ae","after":"2181c48ce6"}
+DIFF {"file":"public/framework/ai/sessions/2026/09/19/cards/ask-on-board/page.jsonl","before":"1dc3a83e53","after":"8e5ac55e73"}
+DIFF {"file":"public/framework/ai/sessions/2026/09/19/cards/asks-log/page.jsonl","before":"f26c1d5a4c","after":"6097ed8f47"}
+DIFF {"file":"public/framework/ai/sessions/2026/09/19/cards/assistant/page.jsonl","before":"5497e65296","after":"07b6817c9f"}
+DIFF {"file":"public/framework/ai/sessions/2026/09/19/cards/assistant-cards/page.jsonl","before":"cf458ca57a","after":"d569a149df"}
+MISSING public/framework/ai/sessions/2026/10/22/.prompt-tasks-test-39184/session.jsonl

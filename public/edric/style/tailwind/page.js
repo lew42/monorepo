@@ -12,7 +12,7 @@ export default {
         div.c("pad", () => {
             a.c("page-back btn bg mb", "Back").href("../");
 
-            h1("Tailwind CSS").ac("mb").style("color", "var(--prim)");
+            h1("Tailwind CSS").ac("mb").style("color", "var(--prime)");
 
             p("Tailwind is a different styling approach, utility classes for everything (`bg-blue-500`, `p-4`, `flex`...). Yes, you can use it here too, styling is entirely opt-in per page.");
             p("This framework has no build step, so the realistic way to add Tailwind is its CDN script, not the full CLI/PostCSS setup most Tailwind projects use.");

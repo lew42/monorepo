@@ -1,0 +1,22 @@
+[
+	{ "name": "Burj Khalifa", "place": "Dubai, UAE", "year": 2010, "height_m": 828, "type": "skyscraper", "architect": "Adrian Smith" },
+	{ "name": "Shanghai Tower", "place": "Shanghai, China", "year": 2015, "height_m": 632, "type": "skyscraper", "architect": "Gensler" },
+	{ "name": "Petronas Towers", "place": "Kuala Lumpur, Malaysia", "year": 1998, "height_m": 452, "type": "skyscraper", "architect": "Cesar Pelli" },
+	{ "name": "One World Trade Center", "place": "New York, USA", "year": 2014, "height_m": 541, "type": "skyscraper", "architect": "David Childs" },
+	{ "name": "Empire State Building", "place": "New York, USA", "year": 1931, "height_m": 443, "type": "skyscraper", "architect": "Shreve, Lamb & Harmon" },
+	{ "name": "Eiffel Tower", "place": "Paris, France", "year": 1889, "height_m": 330, "type": "tower", "architect": "Gustave Eiffel" },
+	{ "name": "CN Tower", "place": "Toronto, Canada", "year": 1976, "height_m": 553, "type": "tower", "architect": "WZMH Architects" },
+	{ "name": "Tokyo Skytree", "place": "Tokyo, Japan", "year": 2012, "height_m": 634, "type": "tower", "architect": "Nikken Sekkei" },
+	{ "name": "Sagrada Família", "place": "Barcelona, Spain", "year": 1882, "height_m": 172, "type": "religious", "architect": "Antoni Gaudí" },
+	{ "name": "Notre-Dame Cathedral", "place": "Paris, France", "year": 1345, "height_m": 96, "type": "religious", "architect": "multiple" },
+	{ "name": "Hagia Sophia", "place": "Istanbul, Türkiye", "year": 537, "height_m": 55, "type": "religious", "architect": "Isidore of Miletus" },
+	{ "name": "Taj Mahal", "place": "Agra, India", "year": 1653, "height_m": 73, "type": "palace", "architect": "Ustad Ahmad Lahauri" },
+	{ "name": "Palace of Versailles", "place": "Versailles, France", "year": 1682, "height_m": 32, "type": "palace", "architect": "Louis Le Vau" },
+	{ "name": "Forbidden City", "place": "Beijing, China", "year": 1420, "height_m": 35, "type": "palace", "architect": "multiple" },
+	{ "name": "Golden Gate Bridge", "place": "San Francisco, USA", "year": 1937, "height_m": 227, "type": "bridge", "architect": "Joseph Strauss" },
+	{ "name": "Sydney Harbour Bridge", "place": "Sydney, Australia", "year": 1932, "height_m": 134, "type": "bridge", "architect": "John Bradfield" },
+	{ "name": "Wembley Stadium", "place": "London, UK", "year": 2007, "height_m": 133, "type": "stadium", "architect": "Populous" },
+	{ "name": "Allianz Arena", "place": "Munich, Germany", "year": 2005, "height_m": 50, "type": "stadium", "architect": "Herzog & de Meuron" },
+	{ "name": "Louvre Pyramid", "place": "Paris, France", "year": 1989, "height_m": 21, "type": "museum", "architect": "I. M. Pei" },
+	{ "name": "Guggenheim Museum Bilbao", "place": "Bilbao, Spain", "year": 1997, "height_m": 50, "type": "museum", "architect": "Frank Gehry" }
+]

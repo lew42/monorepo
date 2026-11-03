@@ -1,0 +1,4 @@
+{"class":"/framework/ai2/card.js","title":"the typed box now reaches the fast assistant, top of the Prompts tab","type":"card","id":"2026/09/22/talk-to-assistant","created":"2026-09-22T17:37:14-05:00","by":"talk-to-assistant","tags":[]}
+{"legacy":"talk-to-assistant"}
+{"status":"done"}
+{"text":"Proven at 400/1280: a real send names itself in ~2s, and pointing it at a dead Servex port shows the old-assistant fallback note instead."}

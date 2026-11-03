@@ -1,0 +1,73 @@
+{
+ "label": "after-warm4s",
+ "extra": {
+  "WARM_MS": "4000"
+ },
+ "rel": {
+  "say_returned": 26,
+  "line_session": 166,
+  "line_backing": 166,
+  "line_chat_owner": 166,
+  "line_chat_assistant:fast": 1710
+ },
+ "ags": [
+  {
+   "id": "dispatcher",
+   "role": "dispatcher",
+   "model": null,
+   "state": "idle",
+   "visibility": "team",
+   "started_at": "2026-10-14T00:40:44.785Z",
+   "turns": 0,
+   "session_id": null,
+   "cost": 0,
+   "parent": null
+  },
+  {
+   "id": "sessions",
+   "role": "sessions",
+   "model": null,
+   "state": "idle",
+   "visibility": "team",
+   "started_at": "2026-10-14T00:40:44.824Z",
+   "turns": 0,
+   "session_id": null,
+   "cost": 0,
+   "parent": null
+  },
+  {
+   "id": "session-fast-v-vuru49i",
+   "role": "session-fast",
+   "model": "claude-haiku-5-5",
+   "state": "idle",
+   "visibility": "team",
+   "started_at": "2026-10-14T00:40:46.989Z",
+   "stopped_at": null,
+   "turns": 1,
+   "session_id": "4bbd0ff4-1b29-4803-b7e2-0a10e3ba7959",
+   "cost": 0.015378,
+   "parent": "sessions",
+   "revivable": false,
+   "forked_from": null,
+   "resumed_from": null,
+   "context": 1699
+  },
+  {
+   "id": "session-smart-v-vuru49i",
+   "role": "session-smart",
+   "model": "claude-sonnet-5-5",
+   "state": "working",
+   "visibility": "team",
+   "started_at": "2026-10-14T00:40:51.000Z",
+   "stopped_at": null,
+   "turns": 0,
+   "session_id": "cbe26a84-0cbe-4e63-a6d9-107f39ff3da9",
+   "cost": 0,
+   "parent": "sessions",
+   "revivable": false,
+   "forked_from": null,
+   "resumed_from": null,
+   "context": null
+  }
+ ]
+}

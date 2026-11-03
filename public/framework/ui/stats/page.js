@@ -1,0 +1,62 @@
+import { Page, md, demo, div, icon } from "/app.js";
+
+// The template, verbatim — rendered on the stage AND printed as the source, so the
+// code on the page is the code that ran.
+const stats = () => {
+	const items = [["npm deps", "3"], ["build steps", "0"], ["core classes", "5"], ["tokens", "16"]];
+
+	return div.c("grid gap auto", () => items.forEach(([label, value]) =>
+		div.c("card flex v", () => {
+			div.c("h4 muted", label);
+			div.c("h2", value);
+		}).style("--gap", "calc(var(--gap) * 0.1)"))).style("--column", "9em");
+};
+
+const with_icons = () => div.c("grid gap auto", () => [
+	["trending_up", "requests", "1.2M"],
+	["schedule", "p95", "84ms"],
+].forEach(([glyph, label, value]) => div.c("card flex v", () => {
+	div.c("flex v-center gap", () => {
+		icon(glyph).style({ color: "var(--prime)", fontSize: "1em" });
+		div.c("h4 muted", label);
+	}).style("--gap", "calc(var(--gap) * 0.4)");
+	div.c("h2", value);
+}).style("--gap", "calc(var(--gap) * 0.1)"))).style("--column", "10em");
+
+export default new Page({
+	specimen: stats,
+	meta: import.meta,
+	title: "Stat tiles",
+	description: "A template, not a function — a card wall with one token retuned.",
+	icon: "bar_chart",
+
+	children: [
+		demo.page("icons", with_icons, {
+			note: "The label row becomes a `flex v-center gap` with an `icon()` in it — the change that made the old `ui.stats()` function useless to its own documentation page, because a function has no room in it for a row you didn't anticipate." }),
+	],
+
+	content(){
+
+		demo.exhibit({
+			page: this,
+			stage: steer => demo.stage(stats, steer).ac("bleed"),
+			def: stats,
+			file: new URL("page.js", import.meta.url).pathname,
+			note: "**There is no `ui.stats()`.** It had zero call sites while **three** hand-rolled copies of the tile existed on this site — `sections/parts.js`'s `stat()`, the versus page, and one on this very page, which abandoned the function the moment it wanted an icon in the label row. A function that its own documentation page stops using is finished.",
+		});
+
+		md("## A token override where a rule was expected");
+
+		md("`grid auto` wraps on `--column`, so **shrinking that token is what turns a two-up card grid into a four-up tile strip** — `9em` above instead of the `14em` default, and no selector was written. Drag the stage and the strip re-counts its own columns. `16em` is a two-up summary; that used to be a variant page of its own, which is one number pretending to be a second component.");
+
+		md("`h4` for the label and `h2` for the number — the [type scale](/framework/styles/layers/theme/) is the whole vocabulary, so a tile never invents a font-size. `muted` is the only colour, and it is derived from the ink it sits on rather than named.");
+
+		md("## The tile is the card again");
+
+		md("A tile is [Card](/framework/ui/card/) with a `--gap` of `0.1em` and two lines in it; the strip is `grid gap auto`. There was never a component here — there was a wall, and the wall is one class.");
+
+		md("Next: [Badges](/framework/ui/badge/) — and the first thing the token set cannot do.");
+	},
+
+	preview(nav){ return this.preview_card(nav, () => div.c("zoom-50 pad", stats)); },
+});

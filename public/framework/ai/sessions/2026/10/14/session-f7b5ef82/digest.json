@@ -1,0 +1,52 @@
+{
+ "id": "f7b5ef82-0f48-4d6c-8221-5d19ebc1b52f",
+ "first": "2026-10-14T03:53:55.736Z",
+ "last": "2026-10-14T03:55:04.546Z",
+ "models": {
+  "claude-haiku-5-5": 5
+ },
+ "sizes": {
+  "raw": 10462,
+  "content": 283,
+  "stripped": 283,
+  "owner_only": 225
+ },
+ "usd": 0.005438,
+ "usd_main": 0.005438,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 10,
+  "output": 103,
+  "cache_read": 7370,
+  "cache_write": 2088,
+  "w5": 0,
+  "w1": 2088
+ },
+ "messages": 5,
+ "subagent_files": 0,
+ "prompts": [
+  {
+   "at": "2026-10-14T03:53:55.762Z",
+   "t": "[from: owner]\n[on /framework/] This is an end-to-end test of the dictation.\n(the owner has stopped: quiet for 7.9 s)"
+  },
+  {
+   "at": "2026-10-14T03:54:02.176Z",
+   "t": "[from: owner]\n[on /framework/] flow.\n[on /framework/] Smart Assistant, which page lists all the sessions.\n(the owner has stopped: quiet for 2.5 s)"
+  },
+  {
+   "at": "2026-10-14T03:54:16.979Z",
+   "t": "[from: owner]\n[on /framework/] The sheet should show every bubble in the order I set it.\n(the owner has stopped: quiet for 2.5 s)"
+  },
+  {
+   "at": "2026-10-14T03:54:30.949Z",
+   "t": "[from: owner]\n[on /framework/] Smart assistant, please reply with one short line to end the test.\n(the owner has stopped: quiet for 2.5 s)"
+  },
+  {
+   "at": "2026-10-14T03:55:03.555Z",
+   "t": "[from: owner]\n[on /framework/] This is a an end-to-end test of the dictation flow.\n(the owner has stopped: the mic went off)"
+  }
+ ],
+ "result": "(listening)",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.316Z"
+}

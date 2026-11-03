@@ -1,0 +1,236 @@
+diff --git a/Servex/Servex.js b/Servex/Servex.js
+index cd3babaf2..273193b63 100644
+--- a/Servex/Servex.js
++++ b/Servex/Servex.js
+@@ -670,7 +670,7 @@ export default class Servex extends Events {
+         router.options("/api/refine", cors, (req, res) => res.status(204).end());
+ 
+         router.post("/api/refine", cors, express.json({ limit: "64kb" }), async (req, res) => {
+-            res.json(await run_refine(req.body ?? {}));
++            res.json(await run_refine({ ...(req.body ?? {}), inbox: this.inbox }));
+         });
+ 
+         router.get("/api/logs", (req, res) => res.json(this.log.names()));
+diff --git a/Servex/ext/refine/TagRouter.js b/Servex/ext/refine/TagRouter.js
+new file mode 100644
+index 000000000..b81c45f0a
+--- /dev/null
++++ b/Servex/ext/refine/TagRouter.js
+@@ -0,0 +1,74 @@
++import fs from "node:fs";
++import path from "node:path";
++
++/**
++ * class TagRouter — sends a refined prompt's tags to the pages they name (the owner, 2026-10-12: "when a
++ * refined prompt card is tagged with a module, the item should reach that module's own page automatically").
++ *
++ *   const r = new TagRouter({ inbox: servex.inbox });         // the one Inbox (`Servex/agents/inbox.js`), no second inbox
++ *   r.route({ session, prompt, notes });                      // notes: [{ i, tags: ["ext/Refine"] }] as Annotator writes them
++ *   // -> { sent: [{ tag, path, id, sentences: [2, 5] }], unrouted: ["Nope/Thing"], already: ["core/Page"] }
++ *
++ * The tag -> page map is read from the real tree on every call (`page_for`), never recalled: a tag names a page
++ * only when `public/framework/<tag>/` (or `public/<tag>/`) holds a `page.js` or `page.jsonl`. A tag with no page
++ * gets no note and comes back in `unrouted`. The note is written by `Inbox.note` onto the page's own `page.jsonl`
++ * as a `{"note": ...}` line, which the page's rail (`core/Page/ext/Inbox`) shows. It carries a link to the source
++ * prompt (session + sentence numbers) and never a copy of the text. One note per tag per prompt: a re-run of the
++ * same prompt finds its own note and adds nothing.
++ */
++export default class TagRouter {
++
++	constructor({ inbox, repo = inbox?.repo } = {}){
++		if (!inbox) throw new Error("TagRouter needs the Servex inbox");
++		this.inbox = inbox;
++		this.repo = repo;
++	}
++
++	/** The site path of the page a tag names (`/framework/ext/Refine/`), or null. */
++	page_for(tag){
++		const rel = String(tag ?? "").trim().replace(/\\/g, "/").replace(/^\/+|\/+$/g, "");
++		if (!rel || rel.split("/").some(p => !p || p === "." || p === "..")) return null;
++		for (const base of ["framework", ""]){
++			const disk = path.join(this.repo, "public", base, rel);
++			if (fs.existsSync(path.join(disk, "page.js")) || fs.existsSync(path.join(disk, "page.jsonl")))
++				return "/" + [base, rel].filter(Boolean).join("/") + "/";
++		}
++		return null;
++	}
++
++	/** tag -> the 0-based sentence indexes that carry it. */
++	groups(notes){
++		const by = new Map();
++		for (const n of notes ?? []) for (const t of n?.tags ?? []){
++			const tag = String(t).trim();
++			if (tag) by.set(tag, [...(by.get(tag) ?? []), n.i]);
++		}
++		return by;
++	}
++
++	/** The note text: a link to the source prompt, sentence numbers (1-based, as the page shows them), the tag. */
++	text({ session, prompt, tag, indexes }){
++		const s = [...new Set(indexes)].sort((a, b) => a - b).map(i => "S" + (i + 1)).join(", ");
++		return `A refined prompt tagged ${tag}: /framework/ai/sessions/${session}/ (prompt ${prompt}, sentences ${s}).`;
++	}
++
++	has_note(page, prompt){
++		try {
++			const file = path.join(this.repo, "public", ...page.split("/").filter(Boolean), "page.jsonl");
++			return fs.readFileSync(file, "utf8").split("\n").some(l => l.includes('"note"') && l.includes(`(prompt ${prompt},`));
++		} catch { return false; }
++	}
++
++	route({ session, prompt, notes } = {}){
++		const out = { sent: [], unrouted: [], already: [] };
++		if (!session || !prompt) return out;
++		for (const [tag, indexes] of this.groups(notes)){
++			const page = this.page_for(tag);
++			if (!page){ out.unrouted.push(tag); continue; }
++			if (this.has_note(page, prompt)){ out.already.push(tag); continue; }
++			const r = this.inbox.note({ path: page, text: this.text({ session, prompt, tag, indexes }), from: "refine" });
++			out.sent.push({ tag, path: page, id: r.id, sentences: [...new Set(indexes)].sort((a, b) => a - b).map(i => i + 1) });
++		}
++		return out;
++	}
++}
+diff --git a/Servex/ext/refine/run.js b/Servex/ext/refine/run.js
+index 68b8fbf72..eb1119487 100644
+--- a/Servex/ext/refine/run.js
++++ b/Servex/ext/refine/run.js
+@@ -12,6 +12,7 @@ import RefineCall from "./RefineCall.js";
+ import ClarityScorer from "./ClarityScorer.js";
+ import Annotator from "./Annotator.js";
+ import Outline from "../../../public/framework/ext/Refine/Outline.js";
++import TagRouter from "./TagRouter.js";
+ import PromptLog from "../../../public/framework/ai/AISession/PromptLog.js";
+ 
+ const MODEL = "claude-sonnet-5-5";   // measured fastest of the cheap models that do the job: doc/refine-v3-2026-10-09.md
+@@ -20,7 +21,7 @@ const MODEL = "claude-sonnet-5-5";   // measured fastest of the cheap models tha
+  * (ai/AISession/PromptLog.js): raw first and untouched, then the clean sentences set as final, then
+  * the refined cards citing sentence indexes, then the Haiku notes (clarity, alternates, names, tags).
+  * Logging never fails the refine: a refusal comes back as `log_error`. */
+-export async function run_refine({ text, model = MODEL, clarity_model = "claude-haiku-5-5", session = "", prompt = "", source = "typed" } = {}){
++export async function run_refine({ text, model = MODEL, clarity_model = "claude-haiku-5-5", session = "", prompt = "", source = "typed", inbox = null } = {}){
+ 	if (typeof text !== "string" || !text.trim()) return { ok: false, why: "text must be a non-empty string" };
+ 	if (text.length > 20000) return { ok: false, why: "text is over 20000 characters" };
+ 	try {
+@@ -28,6 +29,7 @@ export async function run_refine({ text, model = MODEL, clarity_model = "claude-
+ 		const stages = {};
+ 		const id = session ? (prompt || PromptLog.new_id()) : "";
+ 		const log_errors = [];
++		let tag_notes = null;
+ 		const log = async line => { if (id) try { await PromptLog.add(session, { prompt: id, ...line }, "refine"); } catch (e){ log_errors.push(String(e.message ?? e)); } };
+ 		await log({ stage: "raw", text, source });
+ 		const [result, runs] = await RefineCall.collect(async () => {
+@@ -46,15 +48,17 @@ export async function run_refine({ text, model = MODEL, clarity_model = "claude-
+ 				const parsed = Outline.parse(s?.md ?? "");
+ 				await log({ stage: "refined", subject: parsed.subject, cards: Outline.indexes(parsed.sections) });
+ 				const by = new Map(notes.map(n => [n.i, n]));
+-				await log({ stage: "notes", notes: c.sentences.map((x, i) => {
++				const rows = c.sentences.map((x, i) => {
+ 					const cl = clar.find(k => k.n === x.n);
+ 					return { i, clarity: cl?.clarity ?? null, why: cl?.why ?? "", alternates: by.get(i)?.alternates ?? [], names: by.get(i)?.names ?? [], tags: by.get(i)?.tags ?? [] };
+-				}) });
++				});
++				await log({ stage: "notes", notes: rows });
++				if (inbox) try { tag_notes = new TagRouter({ inbox }).route({ session, prompt: id, notes: rows }); } catch (e){ log_errors.push("tag notes: " + String(e.message ?? e)); }
+ 			}
+ 			return { c, s, clar, notes };
+ 		});
+ 		return {
+-			ok: true, ms: Date.now() - t0, stages, ...(id ? { prompt: id, session, log_errors } : {}), clean: result.c, structure: result.s, clarity: result.clar, ...(id ? { notes: result.notes } : {}),
++			ok: true, ms: Date.now() - t0, stages, ...(id ? { prompt: id, session, log_errors, tag_notes } : {}), clean: result.c, structure: result.s, clarity: result.clar, ...(id ? { notes: result.notes } : {}),
+ 			runs: runs.map(r => ({ stage: r.stage, model: r.model, session_id: r.session_id, cost_usd: r.cost_usd, duration_ms: r.duration_ms, tokens: r.tokens })),
+ 		};
+ 	} catch (e){
+diff --git a/Servex/ext/refine/test/tag-router.mjs b/Servex/ext/refine/test/tag-router.mjs
+new file mode 100644
+index 000000000..4a94b1a68
+--- /dev/null
++++ b/Servex/ext/refine/test/tag-router.mjs
+@@ -0,0 +1,30 @@
++/* `node Servex/ext/refine/test/tag-router.mjs` — no model, no server. A throwaway repo tree with two pages and the
++ * REAL Inbox class (`Servex/agents/inbox.js`): a tagged prompt leaves one note on the page its tag names, none for
++ * a tag with no page (listed instead), and a re-run adds nothing. */
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import { Inbox } from "../../../agents/inbox.js";
++import TagRouter from "../TagRouter.js";
++
++const repo = fs.mkdtempSync(path.join(os.tmpdir(), "tagrouter-"));
++for (const d of ["public/framework/ext/Refine", "public/framework/core/Page"]){ fs.mkdirSync(path.join(repo, d), { recursive: true }); fs.writeFileSync(path.join(repo, d, "page.js"), "// page\n"); }
++fs.mkdirSync(path.join(repo, "public/framework/ext/NoPage"), { recursive: true });   // a folder, not a page
++
++const router = new TagRouter({ inbox: new Inbox({ repo }) });
++const notes = [{ i: 1, tags: ["ext/Refine"] }, { i: 4, tags: ["ext/Refine", "ext/NoPage"] }, { i: 2, tags: ["Nope/Thing", "../etc"] }];
++const session = "11111111-2222-3333-4444-555555555555", prompt = "pfixture";
++let fail = 0;
++const check = (name, ok, extra) => { console.log(ok ? "PASS" : "FAIL", name, extra ? JSON.stringify(extra) : ""); if (!ok) fail++; };
++
++const r1 = router.route({ session, prompt, notes });
++const file = path.join(repo, "public/framework/ext/Refine/page.jsonl");
++const lines = fs.readFileSync(file, "utf8").trim().split("\n").map(l => JSON.parse(l));
++check("one note for the tag that names a page", r1.sent.length === 1 && r1.sent[0].path === "/framework/ext/Refine/" && lines.length === 1, r1);
++check("sentence numbers are 1-based, merged per tag", r1.sent[0].sentences.join() === "2,5");
++check("the note links the source prompt, no retyped text", lines[0].note.text.includes(`/framework/ai/sessions/${session}/`) && lines[0].note.text.includes("S2, S5") && lines[0].note.from === "refine", lines[0].note.text);
++check("tags with no page are listed, no note", r1.unrouted.join() === "ext/NoPage,Nope/Thing,../etc" && !fs.existsSync(path.join(repo, "public/framework/core/Page/page.jsonl")), r1.unrouted);
++const r2 = router.route({ session, prompt, notes });
++check("a re-run adds nothing", r2.sent.length === 0 && r2.already.join() === "ext/Refine" && fs.readFileSync(file, "utf8").trim().split("\n").length === 1, r2);
++fs.rmSync(repo, { recursive: true, force: true });
++process.exit(fail ? 1 : 0);
+diff --git a/public/framework/ai/2026-10-12/tag-notes/requirements.md b/public/framework/ai/2026-10-12/tag-notes/requirements.md
+new file mode 100644
+index 000000000..2ab59c391
+--- /dev/null
++++ b/public/framework/ai/2026-10-12/tag-notes/requirements.md
+@@ -0,0 +1,9 @@
++# Refine: tagged prompts reach their module's page inbox
++
++The owner's words (2026-10-12, relayed): when a refined prompt card is tagged with a module (ext/Refine, core/Page, ext/Figma ...), the item should reach that module's own page automatically, programmatically (compute, don't recall), as a note in that page's inbox: reuse the existing Inbox class (core/Page/ext/Inbox, one class two views, rail + compact; written by Servex page_note onto the target page's page.jsonl as a {"note": ...} line); do not build a second inbox. Map tag -> page path with a script from the real tree; a tag with no page gets no note but is listed. The note carries a link to the source prompt (session + sentence indexes), never a retyped copy. Smallest slice: one tag, one note, visible in that page's rail. Commit each step.
++
++1. tag -> page map computed from the tree: `TagRouter.page_for`.
++2. one note per tag through the existing Inbox writer.
++3. no page: no note, listed in `tag_notes.unrouted`.
++4. the note links session + sentence numbers.
++5. test + doc.
+diff --git a/public/framework/ai/2026-10-12/tag-notes/task.jsonl b/public/framework/ai/2026-10-12/tag-notes/task.jsonl
+new file mode 100644
+index 000000000..3912b3089
+--- /dev/null
++++ b/public/framework/ai/2026-10-12/tag-notes/task.jsonl
+@@ -0,0 +1 @@
++{"assign":{"session_id":"48083d9d-2275-4dcb-882a-a37e9fec4e76","tab":"task-mastermind-refine-dictate-ui","group":"refine","request":"Refine: a tagged prompt leaves a note on the module page its tag names, through the existing Inbox.","model":"claude-sonnet-5-5","now":"review","steps":["TagRouter","wire /api/refine","test","doc"]}}
+diff --git a/public/framework/ext/Refine/doc/tag-notes-2026-10-12.md b/public/framework/ext/Refine/doc/tag-notes-2026-10-12.md
+new file mode 100644
+index 000000000..b14b240d7
+--- /dev/null
++++ b/public/framework/ext/Refine/doc/tag-notes-2026-10-12.md
+@@ -0,0 +1,17 @@
++# Tag notes: a tagged prompt reaches its module's page
++
++The owner's ask (2026-10-12): when a refined prompt card is tagged with a module (`ext/Refine`, `core/Page`, `ext/Figma`), the item reaches that module's own page by itself, as a note in that page's inbox. No second inbox.
++
++## How it works
++- The Haiku notes (`Servex/ext/refine/Annotator.js`) already tag each sentence with repo paths.
++- `Servex/ext/refine/TagRouter.js` turns tag -> page by looking at the real tree on every run: `public/framework/<tag>/` (or `public/<tag>/`) with a `page.js` or `page.jsonl`. Nothing is remembered or hand-listed.
++- Each tag with a page gets one note, written by the existing `Inbox.note` (`Servex/agents/inbox.js`, the `page_note` writer) as a `{"note": ...}` line on that page's `page.jsonl`. The page's rail (`core/Page/ext/Inbox`) shows it.
++- The note holds a link to the source (`/framework/ai/sessions/<session>/`, the prompt id, sentence numbers like S2, S5), never the prompt's words.
++- A tag with no page gets no note; `/api/refine` returns it in `tag_notes.unrouted`. A re-run of the same prompt adds nothing (`tag_notes.already`).
++
++## Proof
++`Servex/ext/refine/test/tag-router.mjs`: a throwaway tree with the real `Inbox`; one note on the right page, none for a tag with no page, nothing on a re-run. Not yet seen on a live page rail after a real refine; that needs a Servex restart.
++
++## Not built
++- Cards (not just sentences) as the unit: today the tags come from the sentence notes.
++- A `to:` agent for the wake: the Inbox wakes the page's coordinator when one exists, which is the intended route.
+diff --git a/public/framework/ext/Refine/readme.md b/public/framework/ext/Refine/readme.md
+index 7e8dbf177..2d1083ac8 100644
+--- a/public/framework/ext/Refine/readme.md
++++ b/public/framework/ext/Refine/readme.md
+@@ -57,6 +57,7 @@ today, so paste is the stand-in; see the page's own doc comment (`try/page.js`)
+ - [ErrorLog](/framework/ext/ErrorLog/) — UI errors become a log line a session can follow; design in `ErrorLog/doc/design.md`
+ - [Prompt](/framework/ext/Refine/md/doc/prompt/) — the class: what it holds, how scores are computed, what is not built yet (`doc/prompt.md`)
+ - [Session log](/framework/ext/Refine/md/doc/session-log-2026-10-10/) — each prompt kept as raw, clean, refined and notes in the session's `prompts.jsonl` (`doc/session-log-2026-10-10.md`)
++- [Tag notes](/framework/ext/Refine/md/doc/tag-notes-2026-10-12/) — a tagged prompt leaves a note on the module page its tag names, through the one Inbox (`Servex/ext/refine/TagRouter.js`, `doc/tag-notes-2026-10-12.md`)
+ - [Echo](/framework/servex/doc/echo.md) — the running pipeline that uses this engine on every prompt you type in VS Code: triggers, output, cost, and the gaps against the vision (`Servex/doc/echo.md`)
+ - [Overview](/framework/ext/Refine/) — run C live by default (the longest of the four runs, and the one with a dropped sentence AND a thin citation on its very first screen — `runs/sample` alone has neither); `?run=` picks any other run, including the small hand-built fixture
+ - `doc/vision-2026-10-08.md` — the owner's intended pipeline (raw → clean → refined cards, every sentence accounted, context cards); check the built state against it

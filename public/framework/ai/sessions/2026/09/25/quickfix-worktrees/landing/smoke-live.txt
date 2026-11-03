@@ -1,0 +1,9 @@
+ok   /framework/
+ok   /framework/ai2/
+  warn console: Access to fetch at 'http://127.0.0.1:8090/api/worktrees' from origin 'http://monorepo.localhost' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.  (http://monorepo.localhost/framework/ai2/live/)
+  warn request failed: http://127.0.0.1:8090/api/worktrees  (net::ERR_FAILED)
+  warn console: Failed to load resource: net::ERR_FAILED  (http://127.0.0.1:8090/api/worktrees)
+ok   /framework/ai2/live/
+  warn console: Access to fetch at 'http://127.0.0.1:8090/api/worktrees' from origin 'http://monorepo.localhost' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.  (http://monorepo.localhost/framework/ai2/live/)
+  warn request failed: http://127.0.0.1:8090/api/worktrees  (net::ERR_FAILED)
+  warn console: Failed to load resource: net::ERR_FAILED  (http://127.0.0.1:8090/api/worktrees)

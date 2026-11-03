@@ -1,0 +1,9 @@
+@layer theme {
+
+	/* 4th level (old/overview/page.js): Doc's outer .tabs.block sits in a tinted
+	   well (--tab-fill: var(--wash)) — invert that here, strip tinted, selected
+	   tab cut back to the page, so the two nested tab strips read as two levels. */
+	.page-old-invert.tabs.block > .tab-bar { background: var(--wash); }
+	.page-old-invert.tabs.block > .tab-bar > .tab.active,
+	.page-old-invert.tabs.block > .tab-bar > .tab:is(.in-path, [aria-current]):not(.tab-default) { --tab-fill: transparent; }
+}

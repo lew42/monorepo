@@ -1,0 +1,7 @@
+{"class":"/framework/ai2/card.js","title":"Reuse: the components are merged; 739 files are dead","type":"card","id":"2026/09/22/reuse-audit","created":"2026-09-22T14:54:13-05:00","by":"reuse-audit","tags":[]}
+{"legacy":"reuse-audit"}
+{"icon":"content_copy"}
+{"text":"The drag, resize, tree and store you named are each one implementation now. What is left is 739 dead files (14,354 lines) behind 26 moved /imagine pages, and one card shape written 27 times. Sixteen readmes written. Say 'prune' and the dead files go in one command."}
+{"status":"needs-you"}
+{"links":[{"url":"/framework/ai/2026-09-22/reuse-audit/","label":"the report"}]}
+{"ask":{"id":"a-mulmt48l54","title":"Delete the 739 dead files?","question":"May I delete the 739 dead files (14,354 lines) left behind when /imagine/ pages moved, since they are byte-identical to their moved copies?","options":["prune","wait"],"at":"2026-09-28T14:19:39-05:00"}}

@@ -1,0 +1,1 @@
+The ☰ in the top right of every page. `app.js` calls `menu(app)` once in `render()` and `menu.navigated()` after every navigation. One click opens the drawer on its tabs, a second shuts it; a url carrying `?drawer=<tab>` opens on that tab once the styles are in. Not drawn inside a frame. [doc/tabs.md](/framework/ext/drawer/doc/tabs/).

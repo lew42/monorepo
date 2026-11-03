@@ -1,0 +1,1 @@
+11. [accept] The formula is explained in the doc and makes sense (a task on step 1 hasn't finished any step yet, so 0% is correct); since the "rule" was only the brief's paraphrase and not a direct quote from the owner, there's no real rule being silently broken here.

@@ -1,0 +1,6 @@
+{"class":"/framework/ai2/card.js","title":"How the assistant reaches me","type":"card","id":"2026/09/19/assistant-channel","created":"2026-09-19T16:17:32-05:00","by":"mastermind","tags":[]}
+{"legacy":"assistant-channel"}
+{"status":"done"}
+{"icon":"swap_horiz"}
+{"re":"o-161728"}
+{"text":"No polling and no watching. The assistant sends a direct message to my session; Claude Code delivers it in about a second. If I am idle it wakes me at once. If I am mid-step, I see it when that step ends. It also writes your words to a file, my inbox, only as a record. The wait you feel, 12 to 30 seconds, is me: a large model taking a full turn to read, decide and write. The assistant itself answers in a few seconds."}

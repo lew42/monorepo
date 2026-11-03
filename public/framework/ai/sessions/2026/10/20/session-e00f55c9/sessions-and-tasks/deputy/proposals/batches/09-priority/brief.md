@@ -1,0 +1,47 @@
+# Which big thing does each proposed task plainly serve? (25 tasks)
+
+You sort; you do not build. Do NOT edit any file. This brief has everything you need: do not search the repo. Your final message is ONLY the JSON array described below (the runner saves it to `public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/proposals/batches/09-priority/results.json`).
+
+The owner has three big things:
+
+1. **See and approve the work** — One page per day where the owner sees every session, opens a demo, and approves a whole session with one press. Approving a session approves everything inside it. Spend that never gets approved shows red, as a leak. What is ready to merge sits on the same page. - **Now:** the review page is being built on the AI dashboard ([/framework/ai/], brief: [review-page]). The Merge list is live at [/framework/ai/merge/] and folds into the review page. - **Inside it:** the phone pages for sessions ([sessions/v/mobile]) and the design picks they follow ([mobile-cards.md]); the session page with its tasks; a time filter (Today, Week, Month, Year) inside a session; the 19 closed worktrees whose commits n
+2. **Every ask becomes a task that finishes** — Each thing the owner asks for is filed as a task the first time, runs step by step, and ends done or documented, with its proof. Nothing is lost between sessions. - **Now:** the 230 proposed tasks from old asks are being sorted under these three things (accepted into a priority, or parked in a backlog the owner can approve in one press). Process names are decided (*step*, one class per template, handoff by moving the task) and the rename is under way. - **Inside it:** prompt records (each prompt split into parts, its completion computed: [prompt-records.md]); processes ([process.md]); task resolution ([resolution.md]); node chases a started task that goes quiet (the "task chase" and "status 
+3. **Agents that know the rules** — Every agent knows where things go and what was decided, from short readmes it can trust, and the right model does each job. - **Now:** the documentation rule is written (documentation skill §4: `readme.md` is the index, a sibling `<topic>.md` for an often-read topic, `doc/` for the rest; no dated logs in readmes; the mastermind owns its area's docs). Next: a cheap pass that makes every readme follow it. The model experiment: one Opus builder that designs and builds a whole slice, compared with an Opus planner plus Sonnet builders ([models]). - **Inside it:** the readme system ([doc/readme-system.md]); seeing which readmes, skills and tools each agent got ([agent-context.md], the readmes page
+
+For each task below answer ONE question: which of the three big things does finishing it **plainly** serve: 1, 2, 3, or none? Answer `none` when in doubt. A task that merely touches the same folder is `none`; it must plainly be part of the thing's own description above.
+
+## Output
+
+A JSON array, one object per task, same ids, nothing else in your message:
+
+```json
+[{"id":"abc1234567","priority":1,"why":"one short line"}]   // priority is 1, 2, 3 or "none"
+```
+
+## The 25 tasks
+
+1. `dda95b5cff` [ai/v/2] Reject unknown verbs on AI v2 lines against the schema — Not built. grep for unknown verb, validator or schema under ai/v/2 finds nothing. The only schema is .claude/hooks/jsonl-schema.mjs:10, and it is not applied to ai/v/2 lines.
+2. `83b2c033e1` [ai/AISession] Pick one name for the sessions tab and use it everywhere — No agreed name found; doc/ui/views.md is absent under public/framework/ai/doc/ui/. Looked in ai/AISession/AISessionsPage.js.
+3. `50895c9f4a` [ai/AISession] Consider making the right sidebar scroll independently — public/framework/ai/sessions/sessions.css:43 - 'One scroller: the page column scrolls', which decides against independent scrolling.
+4. `afdc30ec2b` [ext/Refine] Check the chat bubble's refine-with-haiku link and fix it — No refine link in ai/AISession/*.js; grep for haiku hits only pricing and PromptLog comments. The bubble link was not located.
+5. `fffc8104c7` [ai/AISession] Check how sessions are indexed and whether indexing is correct — AISessionIndex.mjs and AISessionIndex.test.mjs exist; commit 364e8940c changed indexing, but no correctness check is recorded.
+6. `ff81c3fefe` [ai/AISession] Show stored session fields the sessions table leaves out — AISessionsPage.js:165 - static WIDTHS = { state, name, cost, updated, duration, role, source, model }; no stored field is named as the target.
+7. `a9e07c29e8` [ai/AISession] Check whether the sessions cost breakdown is current and accurate — Cost code is in ai/AISession/AISessionCost.mjs (with a test); haiku price at AISession.js:31-32 is marked verified:false; no check against real data is recorded.
+8. `3a72a31aa0` [ai/AISession] Remove the All sessions back link from the session detail page — Not verified gone: no 'All sessions' text in ai/AISession except the grid's own trail comment at AISessionsPage.js:114. Confirm on the live detail page.
+9. `3a5903dc42` [ai/AISession] Drop the repeated session-ID line above the session detail title — The repeat line is not located in AISessionDetail.js; the title is set at lines 32 and 64. A live check is needed to confirm the top line is gone.
+10. `48a22399cb` [ai/AISession] Fix the page load error that appears after refresh — The ask names no error or page; nothing in ai/AISession points to it. Needs a reproduction on a refreshed session page.
+11. `309613f33c` [ai] Make all sessions items visible and clickable — public/framework/ai/sessions/sessions.css:43 - The list is ext/DataGrid; the 2026-10-12 fix addressed width and scrolling, not clickability. 'All items' is decided here as every row of that list.
+12. `95b02c7b13` [design/layout] Pad coloured areas and fix broken elements, starting with the sessions grid — Missing: the ask sweeps the whole site with no single testable outcome. Earlier check: sessions.css:46-65 has padding rules, but no record that the coloured areas, wasted space or the sessions data grid are fixed.
+13. `36de0de1d6` [ai] Give the sessions tab clear hierarchy and place its text properly — Missing: only a layout commit (8f10408ce 'fixed flight row height') exists; no record says hierarchy and text placement are finished. Looked at public/framework/ai/sessions/sessions.css:43-47 (per earlier check).
+14. `4e1b8d8f84` [ai] Make every item visible and clickable in the sessions list — Missing: no test or doc records that every sessions-list item is visible and clickable; only search commit e956898c5 was found.
+15. `725a20941d` [ai] Work out how to make use of the contents of thousands of sessions — public/framework/ai/sessions/doc/refined-asks.md exists and AskTally is named in public/framework/ai/sessions/doc/session-record.md, but no target says what 'make use of' the session contents means.
+16. `a90087394d` [core/Router] Route paths with no page.jsonl through the pages walk — public/framework/core/Page/doc/loading.md:43-48 says an undeclared folder with only a page.jsonl is found only if files.jsonl is loaded. No 'pages route' is defined in the repo.
+17. `a35455a5f8` [core/Page/ext] Let inbox items be read, then archived or cleared — core/Page/ext/Inbox/Rail.js:159 - this.$archived = button.c("inbox-word inbox-archived-word"); Rail.js:161 - button.c("inbox-word inbox-clear-all"); Rail.js:226 - this.store_set(this.key + "-read-ids", JSON.stringify([...set]));
+18. `6cab9e0155` [core/Page/settings] Page settings must persist properly — core/Page/settings/settings.js:1-13 - settings.jsonl first, page.jsonl fallback; no persistence test found.
+19. `75774baa20` [core/Page/Template] Decide whether templates are cloned and how mock data gets rewired to real data — Cloning is built (public/framework/core/Page/Template/Template.js:49 - clone(data){), but there is no mock or rewire decision: grepped public/framework/core/Page/doc for mock and rewire with no hits. Still open at public/framework/core/Page/doc/refined-asks.md:9.
+20. `c6adcf7143` [ext/Refine] Check the voice refine pipeline and get it running end to end — No pipeline status record found. The newest run is public/framework/ext/Refine/runs/2026-10-13/, and the queue is public/framework/ext/Refine/queue/asks.jsonl (line 225 is the queued loop ask).
+21. `99f4432968` [ai] Log the backup location as a checkable AI inbox item — public/framework/ai/inbox.jsonl:58 holds only this ask's own text (id i-mv8szpdl6k0); no backup location is recorded there, so the location itself is still unlogged.
+22. `8309c41534` [ui] UI: /framework/ui/ overhaul (later) — public/framework/ui/readme.md:1 - # UI — the template tier: twenty components in four bands. The readme describes the tier only; no document names the overhaul's changes.
+23. `cc8bce2fc0` [servex] Record minion count, model, effort and output for each agent tier — Servex/agents/tiers.js exists; Servex/agents/readme.md:52 mentions only a medium-effort override; public/framework/ai/system/models/now.json covers the model per role and nothing else.
+24. `f0506cbf0e` [core/Property] Add tests that Property emits on real change and never serves stale values — core/Property/doc/architecture.md:21 'Emit only on actual change' is a rule, not a test; grep of core/Test for Property finds only task logs, no test file.
+25. `a2d01a32d6` [ai/AITask] Review the ext/AI task system — There is no ext/AI folder. ext/AITask is a pointer to ai/AITask (moved 2026-10-13), and no review record was found.

@@ -1,0 +1,368 @@
+{
+ "url": "http://monorepo.localhost/layouts/",
+ "widths": {
+  "400": {
+   "empty": 0.525,
+   "widest_text": 343,
+   "widest_text_sample": "Two columns is one decision: is the room",
+   "overflow_x": false,
+   "items": 300,
+   "narrow_share": 0.377,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 28,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 28
+      }
+     ]
+    },
+    "p": {
+     "total": 28,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 28
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 21,
+     "h": 40,
+     "share": 0.04,
+     "ink": 0.4,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 103,
+     "h": 151,
+     "share": 0.151,
+     "ink": 0.74,
+     "big_empty": false
+    },
+    {
+     "cls": "std-tree",
+     "y": 282,
+     "h": 4074,
+     "share": 4.074,
+     "ink": 0.34,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "drawer-rail-ai",
+     "text": "✦AI",
+     "lines": 3.2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-rail-menu",
+     "text": "⋯More",
+     "lines": 3.2
+    }
+   ]
+  },
+  "1200": {
+   "empty": 0.739,
+   "widest_text": 1091,
+   "widest_text_sample": "One column. The only questions are how w",
+   "overflow_x": false,
+   "items": 300,
+   "narrow_share": 0.75,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 48,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 48
+      }
+     ]
+    },
+    "p": {
+     "total": 48,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 48
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 45,
+     "h": 49,
+     "share": 0.049,
+     "ink": 0.2,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 139,
+     "h": 107,
+     "share": 0.107,
+     "ink": 0.412,
+     "big_empty": false
+    },
+    {
+     "cls": "std-tree",
+     "y": 276,
+     "h": 2167,
+     "share": 2.167,
+     "ink": 0.269,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 2473,
+     "h": 134,
+     "share": 0.134,
+     "ink": 0.435,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 2637,
+     "h": 81,
+     "share": 0.081,
+     "ink": 0.358,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 2747,
+     "h": 81,
+     "share": 0.081,
+     "ink": 0.5,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 2858,
+     "h": 107,
+     "share": 0.107,
+     "ink": 0.506,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 2995,
+     "h": 81,
+     "share": 0.081,
+     "ink": 0.5,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  },
+  "1920": {
+   "empty": 0.815,
+   "widest_text": 1745,
+   "widest_text_sample": "The count is not a number: the layout na",
+   "overflow_x": false,
+   "items": 300,
+   "narrow_share": 0.9,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 77,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 77
+      }
+     ]
+    },
+    "p": {
+     "total": 77,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 77
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 48,
+     "h": 53,
+     "share": 0.053,
+     "ink": 0.138,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 160,
+     "h": 115,
+     "share": 0.115,
+     "ink": 0.35,
+     "big_empty": false
+    },
+    {
+     "cls": "std-tree",
+     "y": 315,
+     "h": 1990,
+     "share": 1.99,
+     "ink": 0.217,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 2345,
+     "h": 144,
+     "share": 0.144,
+     "ink": 0.29,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 2529,
+     "h": 86,
+     "share": 0.086,
+     "ink": 0.325,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 2655,
+     "h": 86,
+     "share": 0.086,
+     "ink": 0.342,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 2781,
+     "h": 115,
+     "share": 0.115,
+     "ink": 0.294,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 2936,
+     "h": 86,
+     "share": 0.086,
+     "ink": 0.35,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  },
+  "3440": {
+   "empty": 0.867,
+   "widest_text": 2389,
+   "widest_text_sample": "The count is not a number: the layout na",
+   "overflow_x": false,
+   "items": 300,
+   "narrow_share": 0.953,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 90,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 90
+      }
+     ]
+    },
+    "p": {
+     "total": 90,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 90
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 54,
+     "h": 59,
+     "share": 0.059,
+     "ink": 0.087,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 181,
+     "h": 130,
+     "share": 0.13,
+     "ink": 0.175,
+     "big_empty": false
+    },
+    {
+     "cls": "std-tree",
+     "y": 355,
+     "h": 2220,
+     "share": 2.22,
+     "ink": 0.123,
+     "big_empty": true
+    },
+    {
+     "cls": "md",
+     "y": 2620,
+     "h": 162,
+     "share": 0.162,
+     "ink": 0.18,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 2827,
+     "h": 97,
+     "share": 0.097,
+     "ink": 0.15,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 2969,
+     "h": 97,
+     "share": 0.097,
+     "ink": 0.225,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  }
+ },
+ "errors": []
+}

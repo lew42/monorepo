@@ -1,0 +1,573 @@
+[
+ {
+  "task": "ai-daily-log-convention.md",
+  "date": "2026-08-08",
+  "link": "/framework/ai/2026-08-13/panel/",
+  "title": "framework/ai/<date>/ holds one page per working day (session summary, decisions, queued tasks); /report/ is deleted — it became ai/2026-08-08/",
+  "status": "landed"
+ },
+ {
+  "task": "ai-server-stack-2026-08-15.md",
+  "date": "2026-08-15",
+  "link": "/framework/ai/2026-08-15/plan-task-queue/",
+  "title": "The streaming/hooks/MCP stack shipped 2026-08-15 — what changed for every future session, and what still waits on the user",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "`shot` (loopback-fenced). `.mcp.json` is checked in; pending the user's one-time",
+   "awaits three the user decisions: bless the sessionless launch line, queue"
+  ]
+ },
+ {
+  "task": "auto-merge-and-restart.md",
+  "date": "",
+  "link": "",
+  "title": "Owner allows agents to merge worktree branches into michael/dev and restart Servex (sustain.mjs --restart) without asking",
+  "status": "landed"
+ },
+ {
+  "task": "browser-cli-bridge.md",
+  "date": "2026-08-14",
+  "link": "/framework/ai/2026-08-14/browser-cli-bridge/",
+  "title": "ext/Ask lets a browser run one headless claude turn; the dev socket was unauthenticated and is now origin-checked",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "**2026-08-18:** each turn is now bound to the asking tab (tab id in the system prompt, MCP tools take `tab:`, server claims the tab) — see [[mastermind-run-3-2026-08-18]]; server half awaits the owner's dev-server restar"
+  ]
+ },
+ {
+  "task": "browser-testing-headless.md",
+  "date": "",
+  "link": "",
+  "title": "Never drive the user's live browser tabs to test — use headless Playwright; the site MCP's eval/pages are read-only tools on THEIR session",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "returns\"* and they measure in 10–14 ms. Also hoist any `await import()` into its"
+  ]
+ },
+ {
+  "task": "claude-process-spin.md",
+  "date": "",
+  "link": "",
+  "title": "Fans blazing = the lew42 dev server (chokidar watchers flooded by fs.watch events — profiled 2026-08-19, source of the flood still unnamed), a sibling session's",
+  "status": "landed"
+ },
+ {
+  "task": "cli-minion-launch-lessons.md",
+  "date": "2026-09-19",
+  "link": "/framework/ai/2026-09-19/system-eval/",
+  "title": "What the first minion started as a real `claude --session-id` CLI session (2026-09-19, system-eval) found about launching, permissions, the ledger and the fence",
+  "status": "landed"
+ },
+ {
+  "task": "code-skill-soft-limits.md",
+  "date": "",
+  "link": "",
+  "title": "Numeric limits in this repo's instructions are signals to look, not caps — the owner softened both the 100-line file rule and the 30-line readme rule on 2026-08",
+  "status": "landed"
+ },
+ {
+  "task": "column-pages-2026-08-26.md",
+  "date": "2026-08-26",
+  "link": "/framework/ai/2026-08-26/column-pages/",
+  "title": "Columns are a core Page shape; page generator at core/Page/generator/; Overview = miniature palette; all uncommitted",
+  "status": "landed"
+ },
+ {
+  "task": "council-process-lessons.md",
+  "date": "",
+  "link": "",
+  "title": "What worked and what to correct when running /design-council on this repo",
+  "status": "landed"
+ },
+ {
+  "task": "cssdoc-2026-08-18.md",
+  "date": "2026-08-18",
+  "link": "/framework/ai/2026-08-18/cssdoc/",
+  "title": "ext/CSSDoc renders every CSS rule that lands on an element, read live from the CSSOM; getComputedStyle IS the cascade, and cssdoc(target) does NOT generalise ye",
+  "status": "landed"
+ },
+ {
+  "task": "design-program-2026-08-17.md",
+  "date": "2026-08-17",
+  "link": "",
+  "title": "The user's 2026-08-17 design program — curated catalog + image-scoring baseline + DesignTool rename, and the order it must happen in",
+  "status": "landed"
+ },
+ {
+  "task": "dev-server-rce.md",
+  "date": "",
+  "link": "",
+  "title": "the dev server's rpc:cmd was remote code execution reachable from the LAN — guard applied 2026-08-17, and only MCP.js had ever had the loopback check",
+  "status": "landed"
+ },
+ {
+  "task": "doc-system-2026-08-15.md",
+  "date": "2026-08-15",
+  "link": "",
+  "title": "ext/classdoc became ext/doc, renamed ext/Doc 2026-08-17; notes route is /<module>/doc/ (was /docs/), tab label Docs (Doc extends Page, subject = class/function/",
+  "status": "landed"
+ },
+ {
+  "task": "every-line-audit-method.md",
+  "date": "",
+  "link": "",
+  "title": "The fan-out method that audited all 232 framework files in one session (Aug 2026) — rubric, coverage manifests, read-then-write waves, warm-agent reuse",
+  "status": "landed"
+ },
+ {
+  "task": "fable-budget-protocol.md",
+  "date": "",
+  "link": "",
+  "title": "The user's standing rule — Fable orchestrates only, Opus minions do all reading/writing; pace every window by used% ≤ elapsed% (no fixed cap); plan for resets",
+  "status": "landed"
+ },
+ {
+  "task": "figma-workflow-2026-08-18.md",
+  "date": "2026-08-18",
+  "link": "/framework/ai/2026-08-18/figma/",
+  "title": "The priced Figma→framework workflow: get_metadata + one screenshot (~5.3k), skip get_design_context, and REUSE beats building — 3 of 9 designs needed zero new c",
+  "status": "landed"
+ },
+ {
+  "task": "framework-design-prefs.md",
+  "date": "",
+  "link": "",
+  "title": "The user's design preferences for the Lew42 framework (composition over App-subclassing, minimalism)",
+  "status": "landed"
+ },
+ {
+  "task": "framework-overhaul-2026-08-12.md",
+  "date": "2026-08-12",
+  "link": "/framework/ai/2026-08-12/strategy/",
+  "title": "The 2026-08-12 employer-ready overhaul — what shipped (uncommitted), where the record is, and the decisions still reserved for the user",
+  "status": "landed"
+ },
+ {
+  "task": "hidden-tab-no-layout.md",
+  "date": "",
+  "link": "",
+  "title": "a tab driven through the site MCP eval is always hidden, and hidden tabs run no rAF and deliver no ResizeObserver — geometry reads are frozen and silent",
+  "status": "landed"
+ },
+ {
+  "task": "idle-critique-loop.md",
+  "date": "",
+  "link": "",
+  "title": "Mastermind idle cycles become critique cycles - analyze what was built, suggest improvements (owner 2026-08-30)",
+  "status": "landed"
+ },
+ {
+  "task": "in-process-tools.md",
+  "date": "2026-09-22",
+  "link": "/framework/ai/2026-09-22/tiers-design/",
+  "title": "Project 2026-09-23: agents Servex spawns get tools as in-process node functions (SDK tool() + createSdkMcpServer), never HTTP to their own host; skills are the ",
+  "status": "landed"
+ },
+ {
+  "task": "instruments-find-themselves.md",
+  "date": "",
+  "link": "",
+  "title": "point a new measuring tool at real work and the first thing it finds is its own defects — budget for that, and never retune a model off one run",
+  "status": "landed"
+ },
+ {
+  "task": "layout-browser-run-2026-09-17.md",
+  "date": "2026-09-17",
+  "link": "/framework/ai/2026-09-17/mastermind-layout-browser/",
+  "title": "Mastermind run 2026-09-17: the ask verb + Asks tab on a task page (the owner's asks as preview cards linked to the prompt), /layouts/browse/ with Approve/Improv",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "- **Navigation:** today's worst click moves an open column 242px / a nav link 170px (1280). Lab `/imagine/design/navigation/` shows the stable row (0/0). Core proposal at `ai/2026-09-17/nav-stability/proposal.md`: Page.c"
+  ]
+ },
+ {
+  "task": "layout-design-skill.md",
+  "date": "",
+  "link": "",
+  "title": "layout skill (was layout-design, renamed 2026-08-17) exists — three sizing questions + vertical rhythm; load before any page/preview/dashboard layout work",
+  "status": "landed"
+ },
+ {
+  "task": "layout-taste-tier.md",
+  "date": "",
+  "link": "",
+  "title": "ext/LayoutTool/taste rates what is GOOD (11 weighted ideal ranges) where analyze() only says what is broken; the layout generator searches against it",
+  "status": "landed"
+ },
+ {
+  "task": "layout-tool.md",
+  "date": "",
+  "link": "",
+  "title": "ext/DesignTool (renamed from LayoutTool 2026-08-17) measures layouts numerically; a mass finding usually means the RULE is wrong, and no tier is ground truth ye",
+  "status": "landed"
+ },
+ {
+  "task": "mastermind-decides-not-asks.md",
+  "date": "",
+  "link": "",
+  "title": "Feedback 2026-09-17: the mastermind never asks approval for non-dangerous work; architectural questions get the best decision plus the alternative; only credent",
+  "status": "landed"
+ },
+ {
+  "task": "mastermind-relays-not-executes.md",
+  "date": "",
+  "link": "",
+  "title": "The owner (2026-09-04) wants the mastermind chat clean: hands-on work goes to minions, not tool calls in the sidebar — the mastermind relays, judges and reports",
+  "status": "landed"
+ },
+ {
+  "task": "mastermind-run-3-2026-08-18.md",
+  "date": "2026-08-18",
+  "link": "/framework/ai/2026-08-18/mastermind-run-3/",
+  "title": "The 2026-08-18 evening run — Panel words + panel-flow shipped, DevBar AI bound to its tab (awaits restart), drawer provenance + resize, four proposals waiting o",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "description: \"The 2026-08-18 evening run — Panel words + panel-flow shipped, DevBar AI bound to its tab (awaits restart), drawer provenance + resize, four proposals waiting on the owner; where everything is\"",
+   "**Waiting on the owner (proposals, do NOT do autonomously):** Panel park/delete ~950 lines (`panel-complexity/proposal.md` §2 — reverses 08-16 \"see all tools\" decisions); CSS audit's 5 (`css-audit/audit.md` — scroll/stic",
+   "**How to apply:** next Panel step per the accepted strategy = park/delete (owner's call) → guides as flows → mini-app `T` entry. Parked smalls: bar dice can't offer a preset (one line in workspace.js), `gen()` emits no g"
+  ]
+ },
+ {
+  "task": "mastermind-run-lessons.md",
+  "date": "2026-08-16",
+  "link": "/framework/ai/2026-08-16/mastermind-run/",
+  "title": "What actually worked orchestrating ~20 agents in one mastermind run — brief scoping, tier discrimination, and the two-mastermind hazard",
+  "status": "landed"
+ },
+ {
+  "task": "model-speed-and-append-rule.md",
+  "date": "2026-09-19",
+  "link": "/framework/ai/2026-09-19/model-latency/",
+  "title": "Measured 2026-09-19 — Sonnet is 4-10x faster than Haiku on small tasks because it does no thinking; appending lines is concurrency-safe, read-modify-write silen",
+  "status": "landed"
+ },
+ {
+  "task": "night-run-2026-09-05.md",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/mastermind-night/",
+  "title": "The overnight run on the owner's second brief: /imagine/layouts/ (stacks vs splits, 18 numbered layouts), templates integrated into paging, swap on a visible st",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "**Awaiting the owner:** the spacing ceiling (1x/1.5x/2x), the fill-yields columns rule, the column-head padding, five core/ext proposals with diffs (grouped card wall per group, a Page head slot for the mark, ext modules"
+  ]
+ },
+ {
+  "task": "open-mic-servex-testing-lessons.md",
+  "date": "2026-09-22",
+  "link": "/framework/ai/2026-09-22/open-mic/",
+  "title": "Testing against a real private Servex instance can spawn real Dispatcher agents and other pitfalls found landing open-mic mode (2026-09-22)",
+  "status": "landed"
+ },
+ {
+  "task": "owner-dictates-report-answers.md",
+  "date": "2026-09-22",
+  "link": "/framework/ai/2026-09-22/inbox-model/",
+  "title": "Feedback 2026-09-18, sharpened 2026-09-22: the owner dictates and rarely reads chat replies - do the things asked; explanations go on the board as 'Note:' cards",
+  "status": "landed"
+ },
+ {
+  "task": "owner-layout-naming.md",
+  "date": "",
+  "link": "",
+  "title": "The owner's design direction for the layout encyclopedia (2026-09-08) - names not numbers, each word defined to describe many layouts, variations are tags, no n",
+  "status": "landed"
+ },
+ {
+  "task": "owner-named-things-are-deliverables.md",
+  "date": "",
+  "link": "",
+  "title": "Feedback 2026-09-04: when the owner names specific things (mag, blog, screens, shells into paging) each one is its own deliverable checked against the ask verba",
+  "status": "landed"
+ },
+ {
+  "task": "page-cms-run-2026-09-13.md",
+  "date": "2026-09-13",
+  "link": "/framework/ai/2026-09-13/mastermind-page-cms/",
+  "title": "Mastermind run 2026-09-13: Make rebuilt as one three-pane page CMS (tree | live page | settings, drag-and-drop), the 3440 flow ceiling cut to 2.5em, the importa",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "description: \"Mastermind run 2026-09-13: Make rebuilt as one three-pane page CMS (tree | live page | settings, drag-and-drop), the 3440 flow ceiling cut to 2.5em, the importance system built at /imagine/importance/ (type",
+   "- Core proposal, not applied: `/framework/core/Page/doc/data-children/` — `children` as a function returning a promise (proposed, ~22 core lines, 63 net out of Make + cms/json); `Page.redraw()` refuted.",
+   "**Awaiting the owner:** the core seam (say yes/no on the doc), the gap/pad/measure decisions, Make's Description field (shows nowhere on the screen), keyboard drag. Related: [[presentation-newcomer-rule]], [[paging-loop-"
+  ],
+  "resolved_evidence": "unresolved: core/Page/doc/data-children/ has no md files"
+ },
+ {
+  "task": "page-columns-2026-08-18.md",
+  "date": "2026-08-18",
+  "link": "/framework/ai/2026-08-18/page-columns/",
+  "title": "Miller-columns Page demo shipped 2026-08-18 at core/Page/overview/columns — nested pages lay out as equal peers via display: contents; four owner calls still op",
+  "status": "landed"
+ },
+ {
+  "task": "page-docs-overhaul-2026-08-19.md",
+  "date": "2026-08-19",
+  "link": "/framework/ai/2026-08-19/page-docs-mastermind/",
+  "title": "core/Page Overview is a browse() wall (20 live cards, Old tab + rail); the opt-in-grid proposal + before/after deck await the owner's verdict; demos mark .defau",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "description: \"core/Page Overview is a browse() wall (20 live cards, Old tab + rail); the opt-in-grid proposal + before/after deck await the owner's verdict; demos mark .default never .active-page; Panel page- stamps stil",
+   "**Pending the owner's verdict:** the opt-in grid — `standard` is already stamped on 137/144 pages with no CSS rule; proposal at `ai/2026-08-19/page-layout-audit/proposal.md` §5, deck + exact patch at `ai/2026-08-19/page-"
+  ]
+ },
+ {
+  "task": "page-routing-system.md",
+  "date": "",
+  "link": "",
+  "title": "How routing actually works in the Lew42 framework — children auto-import at construction, undeclared urls probe the disk; Pager tier is dead code in core/legacy",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "awaits the chain's `loading`), and an **undeclared** name falls through"
+  ]
+ },
+ {
+  "task": "paging-loop-2026-09-05.md",
+  "date": "2026-09-05",
+  "link": "",
+  "title": "The paging system reached the owner's bar by an audit -> fix loop (eight rounds, two Opus critics each) on 2026-09-05; what the realm IS now, the loop method th",
+  "status": "landed"
+ },
+ {
+  "task": "paging-program-2026-09-04.md",
+  "date": "2026-09-04",
+  "link": "/framework/ai/2026-09-04/paging/",
+  "title": "The paging program at /imagine/paging/ — four mechanisms (launch/expand/swap/takeover) with fixed icons, five surfaces, two size axes, a mode toolbar, a live co",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "**Columns lesson, measured three times:** `fill` is `flex: 1 1 100%` with no ceiling — it also claims the leftover from a column opened UNDER it (a verdict beside a fill Research sat at its 288px floor). `fill` is for a "
+  ]
+ },
+ {
+  "task": "panel-swiss-army-2026-08-16.md",
+  "date": "2026-08-16",
+  "link": "/framework/ai/2026-08-16/panel-swiss-army/",
+  "title": "ext/Panel became a direct-manipulation layout tool — 12 gestures, text persistence, per-axis sizing, live duplicates; what was rejected and why",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "**Parked for the user:** the `--rail-push` token hoist into `framework.css` (the reservation"
+  ]
+ },
+ {
+  "task": "panel-system-2026-08-13.md",
+  "date": "2026-08-13",
+  "link": "/framework/ai/2026-08-13/panel/",
+  "title": "ext/Panel shipped 2026-08-13, overhauled 2026-08-15 — hover-overlay toolbar, 0px hug/fill seams, seeded layout generator, structure(seed) real-panel translator,",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "**zero commits** on either dir. **Awaiting the user's yes:** rename `ext/editor` →",
+   "awaiting the user). Evening wave (same day, tasks properties-region → panel-polish"
+  ]
+ },
+ {
+  "task": "pending-measure-verdict.md",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/layout-primitives/",
+  "title": "PENDING VERDICT — --measure 40em + five layout words shipped 2026-08-17 as a previewable change (accept screen at ai/2026-08-17/layout-primitives); their verdic",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "**Awaiting the user's decision (opened 2026-08-16):** `public/framework/styles/doc/measure.md`",
+   "and not applied.",
+   "`/framework/ai/2026-08-17/layout-primitives/`; revert is one number in `Page.css`. Still pending:"
+  ],
+  "resolved_evidence": "unverified: ai/2026-09-20/* task.jsonl mention measure; no verdict line found"
+ },
+ {
+  "task": "persistence-stack-2026-08-13.md",
+  "date": "2026-08-13",
+  "link": "/framework/ai/2026-08-13/persistence/",
+  "title": "The Item/List/Saver/Draggable/Editor stack landed 2026-08-13 — spec at ai/2026-08-13/persistence/requirements.md; all uncommitted on michael/dev",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "them the same day. All uncommitted on michael/dev, pending the user's review."
+  ]
+ },
+ {
+  "task": "platform-program-2026-09-04.md",
+  "date": "2026-09-04",
+  "link": "/framework/ai/2026-09-04/mastermind-platform/",
+  "title": "The platform brief (topics as worlds, omnibox, users, Cloudflare, data, levels, payments) runs as a research program at /imagine/platform/ — research → decision",
+  "status": "landed"
+ },
+ {
+  "task": "playground-2026-08-19.md",
+  "date": "2026-08-19",
+  "link": "/framework/ai/2026-08-27/playground-mastermind/",
+  "title": "ext/Playground — the layout lab; 2026-08-27 overhaul: zero-jank chrome, edge-insert model (edge = sibling that side), pad/gap viewing floors, sizes write nothin",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "description: \"ext/Playground — the layout lab; 2026-08-27 overhaul: zero-jank chrome, edge-insert model (edge = sibling that side), pad/gap viewing floors, sizes write nothing by default, holy-grail seed; axis chips + ma",
+   "**How to apply:** extend Playground, don't grow Panel (still read-only pending the owner). The `ui-test` skill proves gestures headless — its Traps section grew 7 lines on 2026-08-27 (LiveReload mid-run, occlusion vs mov"
+  ]
+ },
+ {
+  "task": "presentation-newcomer-rule.md",
+  "date": "",
+  "link": "",
+  "title": "Feedback 2026-09-05: always the overwhelmed newcomer - level 1 is one screen, shown not told, detail nested one click down; reports to the owner are one screen ",
+  "status": "landed"
+ },
+ {
+  "task": "readme-shape-2026-08-17.md",
+  "date": "2026-08-17",
+  "link": "",
+  "title": "Every framework readme is the reader's index (what · Use · Watch out · More) — as short and simple as it can be, not a hard 30-line cap; the record lives verbat",
+  "status": "landed"
+ },
+ {
+  "task": "reload-on-read-and-ai-v2-2026-09-19.md",
+  "date": "2026-09-19",
+  "link": "/framework/ai/2026-09-19/server-self/",
+  "title": "2026-09-19 - page loads reloaded themselves because a file READ fires fs.watch change on Windows; AI v2 live board at /framework/ai/v/2/; local Whisper + ux/Dic",
+  "status": "landed"
+ },
+ {
+  "task": "research-system-2026-08-18.md",
+  "date": "2026-08-18",
+  "link": "",
+  "title": "ext/Research shipped 2026-08-18 — append-only research.jsonl per topic, validated CLI + MCP writers, live page; rounds = scouts → skeptic/builder → verdicts; th",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "**How to apply:** for any \"research X / decide X / write a report on X\" ask, open a topic and run the rounds; brief minions with the CLI lines and the fence; never let them read `research.jsonl` raw. Parked: owner input "
+  ]
+ },
+ {
+  "task": "servex-owns-port-80.md",
+  "date": "",
+  "link": "",
+  "title": "since 2026-09-23 Servex's proxy holds port 80; localhost = Servex dashboard, monorepo.localhost = the site",
+  "status": "landed"
+ },
+ {
+  "task": "shared-headed-browser.md",
+  "date": "",
+  "link": "",
+  "title": "How to open a headed Chrome the owner and Claude both drive (shopping, external sites) — dedicated profile, sandbox on, CDP reattach; what blocks it",
+  "status": "landed"
+ },
+ {
+  "task": "silent-render-traps.md",
+  "date": "",
+  "link": "",
+  "title": "Six traps that render wrong without throwing — `**/` closing a block comment, container queries, raw-append factories, trusting a screenshot, and two framework.",
+  "status": "landed"
+ },
+ {
+  "task": "site-crawl-verification.md",
+  "date": "",
+  "link": "",
+  "title": "How to read a sitewide playwright crawl — sandbox dirs error by design, demo hrefs 404 by design",
+  "status": "landed"
+ },
+ {
+  "task": "site-programs-2026-08-30.md",
+  "date": "2026-08-30",
+  "link": "/framework/ai/2026-08-30/blog-program/",
+  "title": "The blog (live, meta-verified), depth lazy-loading, demo 6 variants, alpha fills, cols words, json/streaming pages, the research program (320 entries) - all pus",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "- **Data**: page.json pages (snapshot + jsonl deltas + compaction, Page.declare seam); streaming pages 5ms via existing Tail (+Append.js wired, Runtime mute — BOTH await the owner's next server start); CMS slice via rpc:",
+   "**Run CLOSED by the owner 08-31 ~23:53** (landing line in ai/2026-08-30/blog-program/task.jsonl — the full report). Late waves: generator round 2 (copy/hints/save-spec; caught set()→patch() erasure) + EXPORT endgame (tre",
+   "Still owner-only: server restart (activates mute + Append), undo verdict, generator deeper-arrival, new-css-class step-6 proposal, the yield audio check, Cloudflare MCP OAuth. Related: [[column-pages-2026-08-26]], [[idle"
+  ]
+ },
+ {
+  "task": "skills-2026-08-17.md",
+  "date": "2026-08-17",
+  "link": "",
+  "title": "The skill set after the 2026-08-17 overhaul: reference skills (code, css, layout, fork, mastermind) load once; trigger skills (new-task, new-page, new-css-class",
+  "status": "landed"
+ },
+ {
+  "task": "spacing-clamp-2026-09-01.md",
+  "date": "2026-09-01",
+  "link": "/framework/ai/2026-09-01/spacing-clamp/",
+  "title": "Spacing is clamps sitewide now — root --pad/--gap-default, columns cqi pads + scaling width words, bleed-is-for-paint; the approved five-layout set",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "- The five approved layouts + the gate: /imagine/design/layout/approved/. The one-rule card padding (`clamp(0.75em, 3.5cqi, 2.5em)`, needs the slot to be a container) is a PROPOSAL on /imagine/design/padding/one-rule/ — "
+  ]
+ },
+ {
+  "task": "spawn-means-tracked-cli-session.md",
+  "date": "2026-09-19",
+  "link": "/framework/ai/2026-09-19/system-eval/",
+  "title": "feedback 2026-09-19 — \\\"spawn minions\\\" means a claude CLI session with a chosen, recorded session id that can be resumed later, not an in-process Agent-tool su",
+  "status": "landed"
+ },
+ {
+  "task": "spawn-requirements-protocol.md",
+  "date": "2026-08-08",
+  "link": "/framework/ai/2026-08-08/page/",
+  "title": "How to run parallel worker sessions — the new-task repo skill, requirements.md briefs + session.json manifests under framework/ai/<date>/<slug>/, explicit file ",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "**How to apply:** In every brief: (1) name the exact files the worker may NOT touch (sibling ownership) — this is what made 4-way concurrency conflict-free; (2) shared readmes get \"append a numbered section at the END; m"
+  ]
+ },
+ {
+  "task": "subagent-effort-routes.md",
+  "date": "2026-09-19",
+  "link": "/framework/ai/2026-09-19/model-latency/",
+  "title": "The Agent tool has a model parameter and no effort parameter; effort for a spawned worker comes from an agent definition, the CLI flag, or Workflow agent()",
+  "status": "landed"
+ },
+ {
+  "task": "theme-behavior-verdict.md",
+  "date": "",
+  "link": "",
+  "title": "Settled — a Lew42 theme is a CSS class; its behavior is a plain exported function the site calls. Never a class, never an App subclass.",
+  "status": "landed"
+ },
+ {
+  "task": "two-dashboards-two-datastores.md",
+  "date": "2026-09-19",
+  "link": "/framework/ai/2026-09-19/day-audit/",
+  "title": "project 2026-09-19 — the AI v3 dashboard reads its own board.jsonl while the original dashboard reads task.jsonl + directory.json; the owner wants one data sour",
+  "status": "landed"
+ },
+ {
+  "task": "ui-ux-program-2026-08-21.md",
+  "date": "2026-08-21",
+  "link": "",
+  "title": "The ux/ behavior tier (8 Doc modules) + ui config words + Playground zero-to-hero landed autonomously 2026-08-21, uncommitted; all 7 follow-up proposals approve",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "- **Still parked**: lew42.css button-padding one-liner (`var(--pad-control, 0.7em 1.4em)` in the theme's site layer — out of every 2026-08-21 fence), per-file doc prose for 7 Files tabs, grid ROW handles untested, long-p"
+  ]
+ },
+ {
+  "task": "unified-demo-system.md",
+  "date": "2026-08-09",
+  "link": "/framework/ai/2026-08-09/proposal/",
+  "title": "The 2026-08-09 convergence verdict — five blocks for all demos/previews; previews clickable and above the fold, no code; recursive gallery; right contextual pan",
+  "status": "landed"
+ },
+ {
+  "task": "usage-guardrail.md",
+  "date": "",
+  "link": "",
+  "title": "The one pacing rule, every window: used% ≤ elapsed% — no fixed cap (the old 50%/75% numbers were examples, not limits); say the cost before a fan-out",
+  "status": "landed"
+ },
+ {
+  "task": "verdict-firmness.md",
+  "date": "",
+  "link": "",
+  "title": "The owner's rule — prior recorded decisions are revisable, not laws; write never/always only for things that actually break; dictations are suggestions (should/",
+  "status": "landed"
+ },
+ {
+  "task": "vision-runner-2026-08-17.md",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/vision-measure/",
+  "title": "ext/DesignTool/vision/ is the ScreenshotTool — run.mjs (capture regions × widths, fresh claude -p per image, vision.jsonl) + browse page; measured costs; cost i",
+  "status": "landed"
+ },
+ {
+  "task": "websites-layouts-program-2026-09-08.md",
+  "date": "2026-09-08",
+  "link": "/framework/ai/2026-09-08/mastermind-playwright/",
+  "title": "The overnight run of 2026-09-08 built /layouts/ (the layout encyclopedia, N-name ids) and /websites/ (47 real sites shot at four widths, scanned, tagged, wire-f",
+  "status": "landed"
+ }
+]

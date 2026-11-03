@@ -1,0 +1,48 @@
+{
+ "id": "61eaf539-e0ca-47a3-8a6b-2dc1531519fc",
+ "first": "2026-10-13T21:43:08.589Z",
+ "last": "2026-10-13T21:43:29.503Z",
+ "models": {
+  "claude-sonnet-5-5": 4
+ },
+ "sizes": {
+  "raw": 8559,
+  "content": 181,
+  "stripped": 181,
+  "owner_only": 120
+ },
+ "usd": 0.010306,
+ "usd_main": 0.010306,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 8,
+  "output": 78,
+  "cache_read": 4991,
+  "cache_write": 2128,
+  "w5": 0,
+  "w1": 2128
+ },
+ "messages": 4,
+ "subagent_files": 0,
+ "prompts": [
+  {
+   "at": "2026-10-13T21:43:08.614Z",
+   "t": "[from: owner]\n[on /] Hello, can you hear me?\n(the owner has stopped: quiet for 2.5 s)"
+  },
+  {
+   "at": "2026-10-13T21:43:10.252Z",
+   "t": "[from: owner]\n[on /] Hello.\n[on /] can you hear me?\n(the owner has stopped: quiet for 2.5 s)"
+  },
+  {
+   "at": "2026-10-13T21:43:16.889Z",
+   "t": "[from: owner]\n[on /] you hear me now.\n(the owner has stopped: quiet for 2.5 s)"
+  },
+  {
+   "at": "2026-10-13T21:43:27.455Z",
+   "t": "[from: owner]\n[on /] What models are you guys using?\n(the owner has stopped: quiet for 2.5 s)"
+  }
+ ],
+ "result": "I'm claude-sonnet-5-5 as the fast assistant; I don't know which model the smart assistant runs.",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.221Z"
+}

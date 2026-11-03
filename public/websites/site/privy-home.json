@@ -1,0 +1,557 @@
+{
+	"name": "privy-home",
+	"url": "https://privy.io/",
+	"title": "Privy – Digital asset infrastructure for global financial products",
+	"category": "marketing",
+	"captured_at": "2026-09-08T05:58:33.288Z",
+	"embed": "allowed",
+	"embed_note": "no x-frame-options and no restrictive frame-ancestors",
+	"shots": {
+		"400": "site/privy-home/400.jpg",
+		"1280": "site/privy-home/1280.jpg",
+		"1920": "site/privy-home/1920.jpg",
+		"3440": "site/privy-home/3440.jpg",
+		"long": "site/privy-home/long.jpg"
+	},
+	"layout": {
+		"400": "1-flow",
+		"1280": "1-bands",
+		"1920": "1-bands",
+		"3440": "1-bands"
+	},
+	"sections": [
+		{
+			"name": "header nav",
+			"layout": "1-flow",
+			"css": "flex row",
+			"note": "logo left, links centre-right, buttons far right on a laptop and up; at 400 the links are gone and only a hamburger icon remains — the exact breakpoint could not be measured (see below)."
+		},
+		{
+			"name": "hero band",
+			"layout": "2-equal",
+			"css": "flex/grid, 2 equal-ish columns",
+			"note": "headline and copy on the left, a purple gradient panel with a phone-and-dashboard screenshot on the right, roughly half and half; at 400 the screenshot drops below the text as one column."
+		},
+		{
+			"name": "logo marquee band",
+			"layout": "1-flow",
+			"css": "row, full-bleed, the logo set repeats",
+			"note": "the same run of partner logos (Hyperliquid, Stripe, ramp...) appears twice back to back in the row at 1920 and 3440 — the usual way an endlessly scrolling logo strip is built — and the band bleeds edge to edge at every width."
+		},
+		{
+			"name": "feature cards",
+			"layout": "2-equal",
+			"css": "flex/grid row",
+			"note": "at least two cards ('Bring digital assets to every user', 'Build high-performance trading systems') sit side by side at 1920/3440, each with its own illustration; the shots do not show whether a phone stacks them, but every other band on this page does."
+		}
+	],
+	"tags": [
+		"1-flow",
+		"1-bands",
+		"2-equal",
+		"logo marquee",
+		"cards",
+		"full-bleed",
+		"hamburger",
+		"marketing"
+	],
+	"responsive": {
+		"strategy": "This page is built with Framer, a site builder that generates its own CSS, and the scanner found zero readable media queries here despite 286KB of inline style rules — so this whole picture comes from comparing screenshots, not from reading breakpoints. What is visible: the hero is a two-column band (text, then a product screenshot) from 1280 up, and one stacked column at 400. A full-bleed strip of partner logos repeats its own logo list back to back, which is how an infinite marquee is usually built, and it looks the same at every width. A row of feature cards lower on the page follows the same side-by-side-on-desktop pattern as the hero.",
+		"breakpoints": [
+			400,
+			1280
+		],
+		"queries": []
+	},
+	"scan": {
+		"scanned_at": "2026-09-08T05:58:50.875Z",
+		"css": {
+			"sheets": 0,
+			"bytes": 286241,
+			"inline_bytes": 286241
+		},
+		"media": [],
+		"container": [],
+		"breakpoints_seen": [],
+		"widths": {
+			"400": {
+				"doc": [
+					400,
+					10030
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "framer-fd0Cw framer-Bm96Z",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							8121,
+							400,
+							1909
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "main",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							400,
+							10030
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "framer-0lrzL framer-JxAJX",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							400,
+							10030
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "framer-v14dq0",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							937,
+							400,
+							3666
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "framer-rlhsbs",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							20,
+							1277,
+							360,
+							3294
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "framer-pbyy2u",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							4603,
+							400,
+							2170
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1280": {
+				"doc": [
+					1280,
+					5553
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "framer-fd0Cw framer-Bm96Z",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							4972,
+							1280,
+							581
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "main",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							1280,
+							5553
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "framer-0lrzL framer-JxAJX",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							1280,
+							5553
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "framer-v14dq0",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							40,
+							854,
+							1200,
+							1642
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "framer-rlhsbs",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							80,
+							1050,
+							1120,
+							1414
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "framer-pbyy2u",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							2496,
+							1280,
+							982
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1920": {
+				"doc": [
+					1920,
+					5459
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "framer-fd0Cw framer-Bm96Z",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							4878,
+							1920,
+							581
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "main",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							1920,
+							5459
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "framer-0lrzL framer-JxAJX",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							1920,
+							5459
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "framer-v14dq0",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							240,
+							934,
+							1440,
+							1642
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "framer-pbyy2u",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							2576,
+							1920,
+							982
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "framer-1sw6hbq",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							2576,
+							1920,
+							982
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"3440": {
+				"doc": [
+					3440,
+					5581
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "framer-fd0Cw framer-Bm96Z",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							5000,
+							3440,
+							581
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "main",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							3440,
+							5581
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "framer-0lrzL framer-JxAJX",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							3440,
+							5581
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "framer-pbyy2u",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							2512,
+							3440,
+							1075
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "framer-1sw6hbq",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							2512,
+							3440,
+							1075
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "framer-v6vnj8",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							72,
+							3440,
+							694
+						],
+						"side_by_side": 1
+					}
+				]
+			}
+		}
+	},
+	"notes": "This is Privy's marketing homepage, and it happens to be built with Framer, a website builder — which matters here because Framer generates its CSS by machine, and this tool could not read out any breakpoints from it, so everything below comes from comparing the four pictures rather than the code. At the top, the headline sits beside a phone-and-dashboard screenshot, side by side on a laptop screen or wider, and stacked one above the other on a phone. Just under that is a strip of partner logos that repeats its own list twice in a row — the standard trick for making a logo strip scroll forever without a seam. Further down, a pair of feature cards sits side by side the same way the hero does, which is a strong hint that the whole page is built from a repeating recipe: two columns on a big screen, one column on a small one.",
+	"wire": {
+		"role": "page",
+		"kids": [
+			{
+				"role": "header",
+				"h": "4.5em"
+			},
+			{
+				"role": "hero",
+				"dir": "row",
+				"h": "34em",
+				"floor": "80rem",
+				"kids": [
+					{
+						"role": "hero",
+						"w": 1
+					},
+					{
+						"role": "image",
+						"w": 1
+					}
+				]
+			},
+			{
+				"role": "main",
+				"dir": "row",
+				"h": "4em",
+				"floor": "none",
+				"kids": [
+					{
+						"role": "image",
+						"w": 1
+					},
+					{
+						"role": "image",
+						"w": 1
+					},
+					{
+						"role": "image",
+						"w": 1
+					},
+					{
+						"role": "image",
+						"w": 1
+					},
+					{
+						"role": "image",
+						"w": 1
+					},
+					{
+						"role": "image",
+						"w": 1
+					}
+				]
+			},
+			{
+				"role": "cards",
+				"dir": "row",
+				"h": "20em",
+				"floor": "80rem",
+				"kids": [
+					{
+						"role": "card",
+						"w": 1
+					},
+					{
+						"role": "card",
+						"w": 1
+					}
+				]
+			}
+		]
+	}
+}

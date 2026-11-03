@@ -1,0 +1,459 @@
+{
+ "day": "2026-10-06",
+ "scale": 2,
+ "truncated": false,
+ "sources": [
+  "sessions/2026/10/06/feedback-council/requirements.md",
+  "sessions/2026/10/06/markdown-explorer-and-class-cards/requirements.md"
+ ],
+ "asks": [
+  {
+   "n": 1,
+   "kind": "command",
+   "ask": "Give each of five checkers the feedback-council brief",
+   "quote": "Feedback council — brief for each of the five checkers",
+   "ask_clear": {
+    "p": 0.6,
+    "evidence": "Brief text exists; spawn mechanics and checker count are spelled out"
+   },
+   "outcome_clear": {
+    "p": 0.6,
+    "evidence": "Five votes files appear; the checker count is only implied"
+   }
+  },
+  {
+   "n": 2,
+   "kind": "command",
+   "ask": "Check the owner's brief for the three features",
+   "quote": "Brief recorded verbatim from the owner's dictation on 2026-10-06",
+   "ask_clear": {
+    "p": 0.4,
+    "evidence": "Check never defines what to verify in the brief"
+   },
+   "outcome_clear": {
+    "p": 0.3,
+    "evidence": "No checkable end state; verbatim match is the only criterion"
+   }
+  },
+  {
+   "n": 3,
+   "kind": "command",
+   "ask": "Check new asks from words.jsonl plus open council asks not done",
+   "quote": "Asks to check: new asks extracted from",
+   "ask_clear": {
+    "p": 0.6,
+    "evidence": "'open' and 'latest verdict' depend on unseen file format"
+   },
+   "outcome_clear": {
+    "p": 0.55,
+    "evidence": "Every listed ask gets a verdict; the list itself is not enumerated"
+   }
+  },
+  {
+   "n": 4,
+   "kind": "directive",
+   "ask": "Give every ask one verdict after checking the real result",
+   "quote": "For EVERY ask, LOOK at the real result and give one verdict",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Four-verdict set and one-line evidence format are explicitly listed"
+   },
+   "outcome_clear": {
+    "p": 0.65,
+    "evidence": "Each ask has a verdict line; 'real result' standard is loose"
+   }
+  },
+  {
+   "n": 5,
+   "kind": "directive",
+   "ask": "Search for existing work before marking anything missing",
+   "quote": "Prove before you call something missing.",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Names search sources and calls false not-done the common failure"
+   },
+   "outcome_clear": {
+    "p": 0.6,
+    "evidence": "A search trail per not-done verdict; hard to verify afterwards"
+   }
+  },
+  {
+   "n": 6,
+   "kind": "directive",
+   "ask": "Check the live site at monorepo.localhost, never localhost",
+   "quote": "The live site: http://monorepo.localhost (never http://localhost/).",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Exact URL and forbidden alternative both named"
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Each check cites a monorepo.localhost URL; easy to audit"
+   }
+  },
+  {
+   "n": 7,
+   "kind": "directive",
+   "ask": "Use headless Playwright at 1920 and 3440 for visual asks",
+   "quote": "Visual asks: headless Playwright at 1920 and 3440.",
+   "ask_clear": {
+    "p": 0.75,
+    "evidence": "Widths and tool named; never the owner's tabs is explicit"
+   },
+   "outcome_clear": {
+    "p": 0.6,
+    "evidence": "Screenshots at two widths; what counts as passing is unstated"
+   }
+  },
+  {
+   "n": 8,
+   "kind": "command",
+   "ask": "Time the Live card load and measure scroll overflow on named URLs",
+   "quote": "Check scroll on the named URLs with real overflow measures.",
+   "ask_clear": {
+    "p": 0.4,
+    "evidence": "'named URLs' are never listed in the brief"
+   },
+   "outcome_clear": {
+    "p": 0.35,
+    "evidence": "No load-time target and no URL list, so no pass line"
+   }
+  },
+  {
+   "n": 9,
+   "kind": "directive",
+   "ask": "Launch no visible windows: use windowsHide and hidden window style",
+   "quote": "No window may pop up: `windowsHide: true`, `-WindowStyle Hidden`.",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Exact flags named; the rule is unambiguous"
+   },
+   "outcome_clear": {
+    "p": 0.6,
+    "evidence": "Flags checkable in code; a pop-up is seen only live"
+   }
+  },
+  {
+   "n": 10,
+   "kind": "directive",
+   "ask": "Edit no repo file; scratch in scratchpad, at most 12 screenshots",
+   "quote": "Do NOT edit any repo file. Scratch goes in your scratchpad",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Prohibition, scratch location and 12-shot cap all explicit"
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "git status shows only votes and shots changed"
+   }
+  },
+  {
+   "n": 11,
+   "kind": "command",
+   "ask": "Scan words.jsonl for up to eight extra asks, same verdict format",
+   "quote": "add up to 8 **extra asks** the owner made there",
+   "ask_clear": {
+    "p": 0.75,
+    "evidence": "Cap of eight and verdict format are stated"
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Extra array holds zero to eight entries, each with a verdict"
+   }
+  },
+  {
+   "n": 12,
+   "kind": "command",
+   "ask": "Write one votes JSON file in the run directory",
+   "quote": "Return Write ONE json file `<run-dir>/votes/<your-name>.json`:",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Exact path and JSON shape spelled out"
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "One file parses; 'A1' keys map to no listed ask IDs"
+   }
+  },
+  {
+   "n": 13,
+   "kind": "command",
+   "ask": "After the votes file, reply done in one line and return",
+   "quote": "Then reply \"done\" in one line.",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Exact reply word and length stated; sequence is explicit"
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Final message is one line reading done; transcript shows it"
+   }
+  },
+  {
+   "n": 14,
+   "kind": "directive",
+   "ask": "Never write the owner's name in any output",
+   "quote": "Never write the owner's name anywhere.",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Absolute prohibition; matches the global name rule in CLAUDE.md"
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Grep the votes file and shots for the name finds nothing"
+   }
+  },
+  {
+   "n": 15,
+   "kind": "directive",
+   "ask": "Keep each checker near two dollars; be quick, do not over-explore",
+   "quote": "Budget about $2 each: be quick, do not over-explore.",
+   "ask_clear": {
+    "p": 0.6,
+    "evidence": "Dollar figure given; 'about' and no spend meter named"
+   },
+   "outcome_clear": {
+    "p": 0.3,
+    "evidence": "Spend is not reported in the votes file schema"
+   }
+  },
+  {
+   "n": 16,
+   "kind": "directive",
+   "ask": "Load minion skill only if no conflict; edit only votes and shots",
+   "quote": "Load the `minion` skill first only if it does not conflict",
+   "ask_clear": {
+    "p": 0.6,
+    "evidence": "Conditional load; 'conflict' left to each checker's judgment"
+   },
+   "outcome_clear": {
+    "p": 0.5,
+    "evidence": "Edit-scope is checkable; the skill-load choice is not"
+   }
+  },
+  {
+   "n": 17,
+   "kind": "command",
+   "ask": "Settle on three command characters, one kind of thing each",
+   "quote": "Command Characters & Mention Namespaces (`ext/Mention`)",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Raw names three characters and one kind each; settling is already done"
+   },
+   "outcome_clear": {
+    "p": 0.65,
+    "evidence": "Checkable: the mention parser recognises exactly these three characters"
+   }
+  },
+  {
+   "n": 18,
+   "kind": "directive",
+   "ask": "Slash prefix maps 1:1 to real paths, no alias",
+   "quote": "Strictly 1:1 with the actual file system",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Example path given; no-alias rule stated; 'disk/URL' slightly loose"
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Typing the example path should resolve straight to that page"
+   }
+  },
+  {
+   "n": 19,
+   "kind": "directive",
+   "ask": "@ mentions name users and agents only",
+   "quote": "Reserved for users and agents (`@owner`, `@mastermind`, `@minion-*`).",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Kinds and three example handles given explicitly"
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Each example handle resolves to an actor; checkable in the UI"
+   }
+  },
+  {
+   "n": 20,
+   "kind": "directive",
+   "ask": "# mentions name classes and framework concepts",
+   "quote": "Reserved for object-oriented classes and framework concepts",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Scope and three examples given; 'concepts' has no list"
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "#Page, #Item, #List each resolve to their class card"
+   }
+  },
+  {
+   "n": 21,
+   "kind": "directive",
+   "ask": "Give each mention kind a distinct icon and color theme",
+   "quote": "Each kind gets a distinct icon + color theme",
+   "ask_clear": {
+    "p": 0.6,
+    "evidence": "'Distinct' required, but no specific icons or colors named"
+   },
+   "outcome_clear": {
+    "p": 0.5,
+    "evidence": "Visual judgement of distinctness; no measurable pass line"
+   }
+  },
+  {
+   "n": 22,
+   "kind": "directive",
+   "ask": "Class mentions use framed icon and dark .page-surface-dark card",
+   "quote": "Class mentions get an upgraded framed icon and dark card surface",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Names the exact class .page-surface-dark and the framed icon"
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Class mention computed style shows dark surface and frame"
+   }
+  },
+  {
+   "n": 23,
+   "kind": "directive",
+   "ask": "Class title card is an icon item matching mention and tree row",
+   "quote": "The class itself is represented by an icon item card",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Three surfaces named as matching: title card, mention, tree row"
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Side-by-side screenshot of title, mention and tree row"
+   }
+  },
+  {
+   "n": 24,
+   "kind": "directive",
+   "ask": "Class card members are unboxed icon items, no nested boxes",
+   "quote": "properties and methods are rendered as clean, unboxed icon items",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Unboxed, no nested borders stated; applies inside the class card"
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Computed borders on member rows can be measured to confirm"
+   }
+  },
+  {
+   "n": 25,
+   "kind": "directive",
+   "ask": "Own methods first, inherited base-class methods listed below",
+   "quote": "Inherited base class methods appear below it",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Ordering rule stated, with a Page then Item example"
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Page card lists Page methods before inherited Item methods"
+   }
+  },
+  {
+   "n": 26,
+   "kind": "directive",
+   "ask": "Put a five-to-seven item Core API block at the top",
+   "quote": "The top of the card shows the **Core API**",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Position and 5–7 count stated explicitly"
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Top block item count checkable; 'most critical' is judgement"
+   }
+  },
+  {
+   "n": 27,
+   "kind": "directive",
+   "ask": "Rank members by importance and usage, manual rank first",
+   "quote": "ranked by importance/usage weight (manually ranked in docs/metadata first)",
+   "ask_clear": {
+    "p": 0.55,
+    "evidence": "Manual-first rule clear; usage-weight source not defined"
+   },
+   "outcome_clear": {
+    "p": 0.5,
+    "evidence": "Order checkable; the weight method is unspecified"
+   }
+  },
+  {
+   "n": 28,
+   "kind": "command",
+   "ask": "Upgrade every module's md/ subpath into a full Markdown Explorer",
+   "quote": "so it operates as a full Markdown Explorer",
+   "ask_clear": {
+    "p": 0.7,
+    "evidence": "Premise that every module has md/ is asserted, not verified"
+   },
+   "outcome_clear": {
+    "p": 0.65,
+    "evidence": "Checkable: md/ shows readme pane plus doc list; 'full' undefined"
+   }
+  },
+  {
+   "n": 29,
+   "kind": "directive",
+   "ask": "Explorer main pane renders the module's primary readme.md",
+   "quote": "Main Content Pane**: Renders the module's primary `readme.md`.",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Single explicit rule: primary readme renders in main pane"
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Opening md/ shows readme.md body in the main pane"
+   }
+  },
+  {
+   "n": 30,
+   "kind": "directive",
+   "ask": "Sidebar lists every sub-markdown file for quick jumping",
+   "quote": "Lists all sub-markdown files (`doc/*.md`, sibling `.md` files)",
+   "ask_clear": {
+    "p": 0.7,
+    "evidence": "File scope explicit; swap_link mechanism is not defined here"
+   },
+   "outcome_clear": {
+    "p": 0.65,
+    "evidence": "Sidebar items match doc/*.md and siblings; click swaps content"
+   }
+  },
+  {
+   "n": 31,
+   "kind": "directive",
+   "ask": "Show an md tab on modules that contain markdown files",
+   "quote": "Expose an `md` tab on modules that have markdown files",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Tab, condition (has markdown files) and purpose all stated"
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Tab appears on modules with .md files; absent on those without"
+   }
+  },
+  {
+   "n": 32,
+   "kind": "directive",
+   "ask": "Pure-Markdown docs with links must render raw and rich",
+   "quote": "to create dynamic, interconnected documentation that is both served raw",
+   "ask_clear": {
+    "p": 0.5,
+    "evidence": "A stated benefit, not a concrete deliverable; 'dynamic' conflicts with no JS"
+   },
+   "outcome_clear": {
+    "p": 0.5,
+    "evidence": "Checkable with a pure .md file; the rich rendering is undefined"
+   }
+  }
+ ]
+}

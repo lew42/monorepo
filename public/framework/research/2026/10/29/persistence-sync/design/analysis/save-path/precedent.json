@@ -1,0 +1,203 @@
+{
+  "dilemma": "save-path",
+  "lens": "precedent",
+  "by": "analyst-save-precedent",
+  "options": [
+    {
+      "id": "bubble-events",
+      "label": "bubble-events: the item emits a delta event; each parent re-emits it up to the root, whose store listens and writes the line (today)",
+      "wins_when": [
+        {
+          "scenario": "Task.child_changed: a child task completes and its parent auto-completes with no wiring, because the child's delta climbs past the parent on its way to the root.",
+          "why": "The parent reacts to a change it does not own and does not need to know the child. Today's Task and Ref rely on exactly this."
+        },
+        {
+          "scenario": "A new class anywhere in the tree calls emit('delta', line) and is saved without touching any store object.",
+          "why": "The event is one funnel that covers every writer under the root, so new code cannot forget to save."
+        }
+      ],
+      "fails_when": [
+        {
+          "scenario": "An embedded tab page sets bubbles() to false; an edit inside it never reaches the store, and a reload shows the old text (gap 9 in phase-1).",
+          "severity": 5,
+          "recoverable": false,
+          "why": "The line was never written, so the log cannot hold it. The save depends on event wiring that breaks silently."
+        },
+        {
+          "scenario": "Two tabs tail the same forward line; both run Ref.settle or Task.complete and each writes the same follow-up line with a different ran_ms (gap 1, reproduced).",
+          "severity": 3,
+          "recoverable": true,
+          "why": "Side effects that run on replay write new lines. The duplicates sit in the log, so a reader can see and undo them."
+        },
+        {
+          "scenario": "task.wait({on, what}) writes 7 lines, because each set emits one delta per level of depth and nothing merges them within a tick (gap 2, reproduced).",
+          "severity": 2,
+          "recoverable": true,
+          "why": "The cost is log size and per-level event work, not lost data."
+        }
+      ],
+      "precedent": [
+        {
+          "tool": "mobx-keystone",
+          "how": "emitPatch walks fastGetParentPath from the changed object up to the root, notifying listeners at every ancestor and prefixing each patch with that ancestor's path. onPatches can attach to any node, so a subtree root gets patches for its own subtree.",
+          "src": "xaviergonz_mobx-keystone/packages/lib/src/patch/emitPatch.ts#L309-L337 and #L158-L159 (clone checked)"
+        },
+        {
+          "tool": "Backbone",
+          "how": "A collection subscribes to each model's 'all' event and re-triggers it on itself, one level only. A model's set() fires 'change' once per call, after all attribute changes, not once per attribute.",
+          "src": "jashkenas_backbone/backbone.js#L1278, #L1294-L1306, #L596-L609 (clone checked; the direction is model to collection)"
+        },
+        {
+          "tool": "MobX-state-tree",
+          "how": "onPatch(target, fn) delivers patches whose path is relative to the listener, so the same listener shape as keystone. The save would sit on the root listener.",
+          "src": "persistence-sync/notes/signals_reactivity_lists.md line 147 (from notes; MST not cloned)"
+        }
+      ]
+    },
+    {
+      "id": "direct-call",
+      "label": "direct-call: the changed item calls the store at once with its payload, store.change(item, payload, source); the store is found by a getter and builds the path from the parent chain at that moment (phase-1 F6 as written)",
+      "wins_when": [
+        {
+          "scenario": "An embedded tab page (gap 9): the edit calls the page's store directly, so it saves whether or not any event climbs.",
+          "why": "The save no longer depends on event wiring, which is the part that broke silently."
+        },
+        {
+          "scenario": "A button calls task.start(); the setter reads this.store.change(this, payload, 'local') in plain sight, so a new coder can see where the save happens.",
+          "why": "This matches the show-don't-tell law and the direct save calls in tldraw (store.put), Meteor (collection.update) and Replicache (tx.set)."
+        },
+        {
+          "scenario": "A list verb (add, move, remove) and a field set use one entry point, store.change(item, payload, source).",
+          "why": "Verbs are not dirty fields, so any design still needs a call for them. Direct-call makes that call the only path, so there is one funnel for data and verbs."
+        }
+      ],
+      "fails_when": [
+        {
+          "scenario": "A setter or a new class is written without the store call; its value lives in memory and is gone after a reload.",
+          "severity": 5,
+          "recoverable": false,
+          "why": "Without a bubbling funnel, every writer has to remember the call. Only a test per setter catches the omission."
+        },
+        {
+          "scenario": "An item with no parent chain to a store (removed from its list, or never attached) calls this.store?.change and gets undefined, so nothing is written.",
+          "severity": 5,
+          "recoverable": false,
+          "why": "The silent drop is the same failure as Colyseus's this.root?.enqueueChangeTree (see the store-ref precedents), and the change is gone."
+        },
+        {
+          "scenario": "A loop calls store.change once per item (for example 40 Task sets in one tick) and the store does not queue by microtask.",
+          "severity": 2,
+          "recoverable": true,
+          "why": "One line per call. The F6 design queues per microtask, which fixes this only if the queue is kept."
+        }
+      ],
+      "precedent": [
+        {
+          "tool": "tldraw store",
+          "how": "A write is a direct call on the one store (put or update, inside atomic). Listeners receive squashed, source-tagged diffs. Records are flat and keyed by id, so no change climbs a tree.",
+          "src": "persistence-sync/lessons/object-model.md section 4, linking tldraw@38e6c84 packages/store/src/lib/Store.ts (from notes; the tldraw clone is nearly empty, not checked)"
+        },
+        {
+          "tool": "Meteor",
+          "how": "collection.update(selector, modifier) on a remote collection calls _callMutatorMethod('update', args); on a local one it calls _collection.update directly. The client also runs a stub of the same call, so the write is a named call with arguments, not a diff. Mongo modifiers use dotted keys for paths, the same key shape as lew42 lines.",
+          "src": "meteor_meteor/packages/mongo/collection/methods_sync.js#L236-L256; meteor_meteor/packages/ddp-client/common/livedata_connection.js#L636-L638 (clone checked)"
+        },
+        {
+          "tool": "Replicache / Zero",
+          "how": "Named mutators receive a tx, and writes go through that transaction object (the TransactionImpl wraps the Replicache WriteTransaction). Each push sends {name, args} per mutation, so the call is the unit that travels.",
+          "src": "rocicorp_mono/packages/zero-client/src/client/make-replicache-mutators.ts#L76-L88 (clone checked); persistence-sync/lessons/sync-protocol.md section 3"
+        },
+        {
+          "tool": "LiveStore",
+          "how": "Events are committed to the store, persisted locally, and applied to SQLite by materializers. Each change is one commit call.",
+          "src": "persistence-sync/notes/sync_engines_crdts.md LiveStore section, lines 157-169 (from notes; not checked against source)"
+        },
+        {
+          "tool": "Linear (reverse-engineered)",
+          "how": "Property setters call propertyChanged, which builds an UpdateTransaction on a MobX object graph persisted to IndexedDB.",
+          "src": "persistence-sync/notes/sync_engines_crdts.md line 429 (secondary source)"
+        }
+      ]
+    },
+    {
+      "id": "store-ref",
+      "label": "store-ref: each item holds a pointer to its store, set when it is attached and passed down to its children; a change marks the item dirty on that store, and the store builds the lines at flush",
+      "wins_when": [
+        {
+          "scenario": "task.set({state, started_at, ran_ms}) and wait() (7 writes) in one tick become one line per item, because the store collects the dirty fields and writes once.",
+          "why": "This fixes gap 2 structurally. Colyseus merges ops per field per tick, and Yjs gathers one transaction."
+        },
+        {
+          "scenario": "Replay and remote lines (gap 1): the store knows it is applying a line, so the reader marks nothing dirty and writes nothing.",
+          "why": "One source check in the store replaces a guard at each side effect. tldraw's ChangeSource and Loro's 'by' do the same job."
+        },
+        {
+          "scenario": "An embedded tab page (gap 9) receives the parent page's store pointer on attach, so its edits are marked dirty and saved.",
+          "why": "No event has to reach the root, so a stopped event cannot lose the save."
+        }
+      ],
+      "fails_when": [
+        {
+          "scenario": "A parent Task reacts to a child's change (Task.child_changed). The child only marks itself dirty, so the parent hears nothing unless the child also notifies it.",
+          "severity": 3,
+          "recoverable": true,
+          "why": "A missing side effect shows as a stale parent until someone re-runs the check. Today's event climb gives this for free, so it must be replaced explicitly."
+        },
+        {
+          "scenario": "Two sets of one field in one tick (title 'a' then 'b') log only 'b'; the intermediate value never reaches the log.",
+          "severity": 2,
+          "recoverable": false,
+          "why": "The log holds the latest value per field per tick, not every call. This is the D14 question (does a line hold the call or the change), and it must be decided first."
+        },
+        {
+          "scenario": "An item moves to another page but keeps its old store pointer; its later edits land in the old file, and the new page reloads without them.",
+          "severity": 4,
+          "recoverable": true,
+          "why": "The lines exist in the old file's log, so a repath could move them. The pointer must be reset on every move."
+        },
+        {
+          "scenario": "The flush is throttled (for example to 500 ms) and the tab closes inside that window.",
+          "severity": 5,
+          "recoverable": false,
+          "why": "Dirty items live only in memory until the flush. A microtask flush, as today, keeps the window to milliseconds."
+        }
+      ],
+      "precedent": [
+        {
+          "tool": "ZODB",
+          "how": "An object gets _p_jar (its connection) when it joins one. Attribute assignment marks it changed and registers it with that connection. Commit writes only the changed registered objects, appended as one transaction record, and the jar finds each object by oid.",
+          "src": "zopefoundation_ZODB/src/ZODB/Connection.py#L213-L221, #L805-L830, #L525-L545 (clone checked). The attribute-marks-dirty step is from persistence-sync/notes/object_dbs_file_layouts.md (the persistent package is not cloned)."
+        },
+        {
+          "tool": "Colyseus Schema",
+          "how": "setRoot gives each child the root pointer on attach, cascading through a child callback. A field write records the op on the object, then calls this.root?.enqueueChangeTree(this), and the root queues it for the tick's encode. The save does not use parentRef, which only tracks membership. A detached object has root undefined, so nothing is queued.",
+          "src": "colyseus_schema/src/encoder/changeTree/treeAttachment.ts#L13-L14, #L157; colyseus_schema/src/encoder/ChangeTree.ts#L776-L779; colyseus_schema/src/encoder/Root.ts#L326-L332 (clone checked). The once-per-tick encode is from persistence-sync/lessons/object-model.md section 3."
+        },
+        {
+          "tool": "Yjs",
+          "how": "callTypeObservers walks _item.parent up to the root and records the event against each ancestor in the transaction. Deep observers fire once at transaction cleanup, and one root 'update' event carries the whole transaction.",
+          "src": "yjs_yjs/src/ynode.js#L644-L656; yjs_yjs/src/utils/Transaction.js#L242 and #L316-L320 (clone checked)"
+        },
+        {
+          "tool": "automerge-repo",
+          "how": "Each document handle gets one heads-changed save listener when it is attached, and saves go through a per-document throttle. A failed save keeps the change in memory, and the next save includes it.",
+          "src": "automerge_automerge-repo/packages/automerge-repo/src/StorageSource.ts#L38-L41 and #L87-L110 (clone checked)"
+        },
+        {
+          "tool": "Loro",
+          "how": "One event batch per commit, with the absolute path to each changed container, delivered at the document root. The batch says whether the change was local or imported.",
+          "src": "persistence-sync/lessons/object-model.md section 6 (from notes; links loro-dev/loro crates/loro-wasm/src/lib.rs and crates/loro-internal/src/event.rs)"
+        },
+        {
+          "tool": "tldraw sync (one Durable Object per file)",
+          "how": "Each room is one server-authoritative store of records in one Cloudflare Durable Object, and the store's listeners batch the diffs. This is the planned Lew42 layout, one DO per page in front of R2.",
+          "src": "persistence-sync/lessons/sync-protocol.md section 1 (from notes)"
+        }
+      ]
+    }
+  ],
+  "recommended": "store-ref",
+  "confidence": 4,
+  "surprise": "Under every option a set() on an item with no store is silently unsaved: Colyseus records the op and then calls this.root?.enqueueChangeTree, so with no root nothing is queued, and lew42's bubbles() false (gap 9) is the same failure. Whichever option wins, a set() on an item with no store should warn once rather than return quietly.",
+  "notes": "Closest in save mechanics is ZODB: each object holds its connection, marks itself dirty, and the commit appends only the dirty objects as one record, which is lew42's page file plus flush. Colyseus is closest in ownership (one server-ordered room, LWW per field, a root pointer cascaded on attach), while keystone and MST match the path-line format but bubble an event per ancestor, the cost lew42 pays today. The persisting precedents (ZODB, Colyseus, Yjs, automerge) collect at a root instead of bubbling per level, so store-ref removes gaps 9 and 2 structurally and reduces gap 1 to one source check; verbs (add, move, act) still need one store call, so keep F6's store.change(...) as that single entry point."
+}

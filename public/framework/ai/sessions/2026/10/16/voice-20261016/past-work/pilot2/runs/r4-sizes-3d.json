@@ -1,0 +1,58 @@
+{
+ "window": "last 3 days",
+ "sessions": 573,
+ "secs": 6.95,
+ "tokens, raw file": {
+  "p10": 17263,
+  "p50": 134171,
+  "p90": 1075157,
+  "p99": 3975463,
+  "max": 20729293
+ },
+ "tokens, content blocks only": {
+  "p10": 89,
+  "p50": 13849,
+  "p90": 67774,
+  "p99": 219147,
+  "max": 1662566
+ },
+ "tokens, stripped (owner + assistant text)": {
+  "p10": 78,
+  "p50": 3250,
+  "p90": 11592,
+  "p99": 55142,
+  "max": 560679
+ },
+ "tokens, owner words only": {
+  "p10": 0,
+  "p50": 0,
+  "p90": 680,
+  "p99": 28206,
+  "max": 358361
+ },
+ "sessions over 100k tokens": {
+  "raw": 355,
+  "content": 27,
+  "stripped": 1
+ },
+ "sessions over 30k tokens": {
+  "raw": 495,
+  "content": 167,
+  "stripped": 14
+ },
+ "total tokens (all sessions)": {
+  "raw": 242132286,
+  "content": 18304131,
+  "stripped": 4258584
+ },
+ "stripped is x% of raw": "2%",
+ "stripped is x% of content": "23%",
+ "where the content goes (chars)": {
+  "owner": "5%",
+  "brief": "14%",
+  "assistant": "4%",
+  "thinking": "0%",
+  "tool_use": "27%",
+  "tool_result": "50%"
+ }
+}

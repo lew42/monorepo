@@ -1,0 +1,56 @@
+diff --git a/Server/TaskMigrate.mjs b/Server/TaskMigrate.mjs
+index 6995991b5..835f515f7 100644
+--- a/Server/TaskMigrate.mjs
++++ b/Server/TaskMigrate.mjs
+@@ -242,14 +242,16 @@ export default class TaskMigrate {
+ 		const old = Task.replay(t.lines);
+ 		const data = { ...old.data };
+ 		const brief = TaskMigrate.framework_rel(d.signals.brief ? data.brief : "") || (t.requirements != null ? path.relative(this.framework, path.join(t.dir, "requirements.md")).split(path.sep).join("/") : "");
++		// No `source`: it now means WHO asked (task-system step 3d). The brief's path goes in data.brief; an old doc-path `source` too.
+ 		const line1 = {
+ 			id: d.slug, path: d.url, parent: d.list, title: d.title, module: d.module,
+ 			...(d.tags.length ? { tags: d.tags } : {}),
+-			source: brief ? `/framework/${brief}` : t.url,
+ 			sessions: [{ id: old.session ?? null, task: t.url }],
+ 			by: TaskMigrate.BY, ts: new Date(this.now).toISOString(),
+ 		};
+ 		const set = Object.fromEntries(Object.entries(data).filter(([k]) => !TaskMigrate.OWN_KEYS.has(k)));
++		if (brief) set.brief = `/framework/${brief}`;
++		else if (typeof data.source === "string" && data.source.includes("/")) set.brief = data.source;
+ 		const out = [line1];
+ 		if (Object.keys(set).length) out.push({ set });
+ 		const hashes = [...old.commits];
+diff --git a/Server/TaskMigrate.test.mjs b/Server/TaskMigrate.test.mjs
+index 0bb1efe83..c9695e3f4 100644
+--- a/Server/TaskMigrate.test.mjs
++++ b/Server/TaskMigrate.test.mjs
+@@ -63,6 +63,7 @@ test("apply: every move gets a home, the old file only grows by one line, the ro
+ 		const hl = lines(path.join(dir_of(root, home), "task.jsonl"));
+ 		assert.deepEqual(hl[0].sessions.map(s => s.task), [t.old]);
+ 		assert.equal(hl[0].module, t.module);
++		assert.equal(hl[0].source, undefined, "source means who asked (step 3d); the migration never writes it");
+ 		assert.ok(fs.existsSync(path.join(dir_of(root, home), "page.js")));
+ 		const list = lines(path.join(path.dirname(dir_of(root, home)), "task.jsonl"));
+ 		assert.equal(list[0].id, "tasks");
+diff --git a/public/framework/ai/sessions/2026/10/16/voice-20261016/task-migrate/plan.md b/public/framework/ai/sessions/2026/10/16/voice-20261016/task-migrate/plan.md
+index 29efc3d9c..83dfa0f37 100644
+--- a/public/framework/ai/sessions/2026/10/16/voice-20261016/task-migrate/plan.md
++++ b/public/framework/ai/sessions/2026/10/16/voice-20261016/task-migrate/plan.md
+@@ -20,7 +20,7 @@
+ 
+ | Where | What | Why |
+ |---|---|---|
+-| `<module>/tasks/<slug>/task.jsonl` (new) | line 1: `{id, path, parent, title, module, tags, source, sessions, by:"task-migrate", ts}` | the task's identity in the new system |
++| `<module>/tasks/<slug>/task.jsonl` (new) | line 1: `{id, path, parent, title, module, tags, sessions, by:"task-migrate", ts}`, then `{"set":{…, brief}}` | the task's identity in the new system |
+ | same file | `{"set":{…}}`: the old task's replayed data (outcome, landed_at, steps, cost, model, card, …) | the facts, copied by code, not retyped |
+ | same file | `{"commit":"<hash>"}` per commit | `Task.commits` |
+ | same file | one verb line with the **original** time: `complete` (landed), `stop` (closed, or open and stale, with a why) | the state, with the right timestamps |
+@@ -32,7 +32,7 @@
+ | `ai/sessions/task-migrations.jsonl` | one ledger line: old path, home, module, signals, the old file's sha256 and line count | the record of what was done |
+ 
+ - **`sessions`** (new field, added to `Task.FIELDS`): `[{"id":"<session uuid or null>","task":"<old app path>"}]`. **`home`** is a new string field and a new `task.jsonl` verb in `jsonl-schema.mjs`, so the old folder's replay carries `data.home`.
+-- **`source`** follows today's homes (the brief's app path, else the old folder). Amendment 4 wants `source` to name who asked; when step 3d lands, the migration's line 1 can gain that without a rewrite.
++- **`source`** is not written. Step 3d makes `source` mean who asked (voice-app, vscode, servex:<id>), filled in by node, so the brief's app path goes in `brief` instead (task-system confirmed, 2026-10-16). An old doc-path `source` is kept as `brief` when there is no brief.
+ - **Not `{"task":…}` in the old file:** in `Task.replay` that line makes a *child*, so the old task would show itself as its own subtask. `home` says "this task lives there now".
+ 
+ ## 3. Open old tasks

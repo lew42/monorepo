@@ -1,0 +1,4 @@
+{"class":"/framework/ai2/card.js","title":"The page broke twice. There is an alarm now.","type":"card","id":"2026/09/19/page-broke","created":"2026-09-19T15:09:33-05:00","by":"","tags":[]}
+{"legacy":"page-broke"}
+{"status":"done"}
+{"text":"At 14:51 and again at 15:05 the sidebar minion put backticks in a comment inside a CSS template in ui/tree/tree.js. That file does not parse with a backtick there, every page imports it, so every page went blank. I fixed it both times within about three minutes.\nTelling the minion was not enough, it did it again. So now a hook checks every JavaScript file the moment any agent writes it. If the file no longer parses, the agent is stopped on the spot and told to fix it before anything else. Tested: a broken file is caught, good files pass, about 70 ms a write.\nYou asked for more than a patch: a minion is now auditing WHY the skills let this happen, with the brief to reshape or remove rules rather than pile new ones on."}

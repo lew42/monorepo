@@ -1,0 +1,30 @@
+verdict: fix
+1. [fix] A released say is not written "the way heard() writes one today" (requirement 3): `release_say` (Servex/agents/Sessions.js:823-839) attaches `re` only when the agent passes one, while heard() falls back to `s.smart_re` (Sessions.js:1699), and it drops heard()'s `thread: true` for a threaded owner line and the lone-emoji `react` (Sessions.js:1722-1726). A `say` without `re` therefore lands unlinked to the owner's line and outside its thread. Default `re` to `s.smart_re` and build the line with the same `threaded`/react logic, ideally by sharing one helper with heard().
+2. [fix] Stale doc: public/framework/ux/Dictate/doc/single-voice-assistant.md:13-14 still says "That turn's text becomes the reply" at the pause cue, and the Sessions.js:75-76 header comment still says the single seat answers "only on a pause cue". After this change, plain text is never a reply and only `say` is. Both need a line pointing at the say gate and the Servex/agents/readme.md section.
+3. [fix] The task never reported or landed. The folder's session.jsonl ends with "session ended (other) without landing" twice. There are no report log lines (what changed, test output, choices made) and no message to the mastermind, which requirements.md "Report" asks for. A fresh agent has to rebuild the state from git log; this review is the only summary.
+4. [note] Do not merge this before the brief rewrite. Servex/agents/single-voice-assistant.md is unchanged (it was fenced off on purpose), so the live seat never calls `say`. Every reply it gives becomes a muted `skip`, and the owner hears nothing until the next step lands.
+5. [note] "Configurable per session settings" (requirement 4) is only half done: the three gates are read from env at boot (Sessions.js:280-281). Sessions.js has no per-session override, and neither does `single_pause_ms`, the pattern the brief pointed to. Say that in the report, or add the override when the chat-settings step lands.
+6. [note] The tool handlers in Servex/agents/tools.js:207-240 are never exercised. Every test calls `Sessions.queue_say` directly, so nothing proves that the caller-id match `single-voice-assistant-<session>` (tools.js:212) finds the session. Check 5b in Servex/agents/say-tools.test.mjs:127-133 asserts nothing at all. Reading `Agents.name()` (Agents.js:628), the id does match, except after a `-2` collision suffix, which `caller_session` shares. One test that calls the `say` handler with `ctx.caller` set would close this.
+7. [note] The tools are registered for every agent that has the Servex door, not "only" the single seat. They refuse other callers (tools.js:207-213), and that choice is documented in the readme. But a generic `mcp__servex__nothing` now sits in every mastermind's and minion's tool list. The alternative is the `disallowedTools` filter Global.js:164 uses.
+8. [note] The `nothing` tool's description (tools.js:229-231) says calling it "skips even" the skip line. It doesn't: heard() can't tell `nothing` was called, so any text after the call still writes a `skip`. The readme (Servex/agents/readme.md:115-116) and the tool text also say "5+ sentences" for the long gate, while the code (Sessions.js:804) uses more than 5, which means 6 or more.
+9. [note] The branch diff carries about 160 unrelated generated `files.jsonl` appends from commit 6475107f6 ("wip: local generated index appends"), which is only on worktree/qf-2. The real change is 5 files (git diff 22ad8e267 HEAD). The merge should expect that churn.
+10. [note] `node Servex/agents/say-tools.test.mjs` passes all 11 checks but takes 1.5 s wall time. The brief asked for "under a second". Sessions.single.test.mjs passes 11, Sessions.test.mjs 29 and Sessions.plugins.test.mjs 4. The edited single-seat test (Sessions.single.test.mjs:130-153) changed correctly for the new rule.
+
+No page changed (server-side only, no shots), so only Requirements and Words are answered.
+
+## Requirements
+- 1 "Three tools for the single seat (and only it)" — yes, with a caveat. tools.js:215-240 adds `say` (returns `{id}`), `nothing` and `retract_say`. They are visible to every door agent but work only for the single seat (finding 7).
+- 2 "Plain text is never a reply" — yes. Sessions.js:1689-1693 writes a muted `skip`, and an empty turn writes nothing. The `cue_open` reply path is gone.
+- 3 "A say is queued, not spoken… same write() -> mirror_chat -> ChatWriter path" — partly. It is queued in `s.says` and released through `write()`, and the replay test sees a Reply. But `re` and the thread differ from heard() (finding 1).
+- 4 "The gate is the page's own pause signal… 1500 / 600 / 3000… configurable per session settings and at boot" — partly. `set_floor` arms and cancels the timer (Sessions.js:1315-1317) and the three bands are right (Sessions.js:802-806). Only the boot env settings exist (finding 5).
+- 5 "Newest first, one at a time… stale dropped with skip why stale" — yes. Sessions.js:823-839, proven by say-tools.test.mjs checks 4 and 7.
+- 6 "(pause) cue no longer asks for a reply; leave it sending" — yes. `single_cue` is untouched and `cue_open` no longer makes a reply (Sessions.single.test.mjs:149-152).
+- Proofs — yes, except two. All proofs are present and pass, but `nothing` (5b) is a vacuous check and the tool handlers are untested (finding 6).
+- Document it (readme section + file:line) — yes. Servex/agents/readme.md:111-119, and its line numbers match the code. The ux/Dictate doc is now stale (finding 2).
+- Report in the task log + line to the mastermind — no (finding 3).
+- Can you open a page that shows the class's live instances? — n/a (no class added; methods on Sessions).
+
+## Words
+- content: plain sentences — yes. The readme section and tool descriptions are clear sentences, though long. The readme bullet is 9 lines in an index of one-liners and could move to a doc/ file with a link.
+- content: numbers match — no. The readme and tool text say "5+", the code says more than 5 (finding 8).
+- content: owner's words used — yes. "Newest first", "floor", "say_gate_ms" match the brief.

@@ -1,0 +1,37 @@
+[
+  {
+    "n": 0,
+    "pass": true,
+    "note": "the floating mic is attached to the page."
+  },
+  {
+    "n": 1,
+    "pass": true,
+    "note": "mousedown button 4 -> showing=true within 1s; mouseup -> hidden after settle=true."
+  },
+  {
+    "n": 2,
+    "pass": true,
+    "note": "Ctrl+Shift+M -> showing=true; a push-to-talk tap during it -> still showing=true (overlap rule held); Ctrl+Shift+M again -> hidden=true."
+  },
+  {
+    "n": 3,
+    "pass": true,
+    "note": "SIMULATED (not real audio — see the two reasons above) on a throwaway element carrying the real `.ux-dictate-ptt-mic` class, through the real stylesheet rule (no inline override): --mic-level set to 0.7 reads back as \"0.7\"; computed transform at level 0 was \"matrix(1, 0, 0, 1, 0, 0)\", 150ms after moving to 0.7 (past the CSS transition) is \"matrix(1.231, 0, 0, 1.231, 0, 0)\" (FloatingMic.css documents scale 1 -> 1.33, i.e. ~1.231 at 0.7 — matches)."
+  },
+  {
+    "n": 4,
+    "pass": true,
+    "note": "click on the mic -> <html> has dev-shell-open=true; the shell's own tab row shows \"ai\" selected=true."
+  },
+  {
+    "n": 5,
+    "pass": true,
+    "note": "before rebind: \"Push to talk\" read \"Mouse button 4\", \"Toggle dictation (open mic)\" read \"Ctrl+Shift+M\". After clicking its own \"press a key or button…\" and sending a Digit9 keydown, the row now reads \"9\" (expected \"9\")."
+  },
+  {
+    "n": 6,
+    "pass": false,
+    "note": "console errors: [\"ux/Dictate: The microphone stopped (AbortError: Unable to load a worklet's module.) — press 🎤 again, or reload the page if it keeps happening.\",\"Failed to load resource: the server responded with a status of 404 (Not Found)\",\"Failed to load resource: the server responded with a status of 404 (Not Found)\",\"Failed to load resource: the server responded with a status of 404 (Not Found)\"]; page errors: []; failed/4xx/5xx requests: [\"http://push-to-talk.localhost/framework/ux/Hotkeys/page.jsonl :: 404\",\"http://push-to-talk.localhost/framework/ux/Hotkeys/page.jsonl :: net::ERR_ABORTED\",\"http://push-to-talk.localhost/framework/ux/Hotkeys/page.jsonl :: 404\",\"http://push-to-talk.localhost/framework/ux/Hotkeys/page.jsonl :: net::ERR_ABORTED\",\"http://push-to-talk.localhost/framework/ux/Hotkeys/page.jsonl :: 404\",\"http://push-to-talk.localhost/framework/ux/Hotkeys/page.jsonl :: net::ERR_ABORTED\"]"
+  }
+]

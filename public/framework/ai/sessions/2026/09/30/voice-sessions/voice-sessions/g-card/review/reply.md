@@ -1,0 +1,3 @@
+2. [accept] The route handler is only a thin pass-through to `recent()` plus a `card_home()` lookup already proven directly; the error-status change is trivial and the first live GET exercises the wiring anyway.
+3. [accept] Storing the raw `card` as sent is defensible since it's only used for traceability, not lookups — the normalized `home` is what everything actually keys on; fine to leave on the left-open list.
+4. [accept] Card pages live under `/framework/ai2/`, not `/framework/ai/`, so the scenario (a plain session's `visited` naming `/framework/ai/<card>/`) can't happen in practice today; the stale comment is worth a follow-up but not a blocking fix.

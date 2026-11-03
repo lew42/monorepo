@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/2026-09-25/css-audit/tokens/",
+ "widths": {
+  "1280": {
+   "empty": 0.358,
+   "widest_text": 600,
+   "widest_text_sample": "Pure proportion: 2.5% of the column, flo",
+   "overflow_x": false,
+   "items": 90,
+   "narrow_share": 0.267
+  },
+  "1920": {
+   "empty": 0.394,
+   "widest_text": 863,
+   "widest_text_sample": "Pure proportion: 2.5% of the column, flo",
+   "overflow_x": false,
+   "items": 90,
+   "narrow_share": 0.411
+  },
+  "2560": {
+   "empty": 0.362,
+   "widest_text": 971,
+   "widest_text_sample": "Pure proportion: 2.5% of the column, flo",
+   "overflow_x": false,
+   "items": 90,
+   "narrow_share": 0.411
+  },
+  "3440": {
+   "empty": 0.378,
+   "widest_text": 971,
+   "widest_text_sample": "Pure proportion: 2.5% of the column, flo",
+   "overflow_x": false,
+   "items": 90,
+   "narrow_share": 0.411
+  }
+ },
+ "errors": []
+}

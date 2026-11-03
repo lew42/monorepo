@@ -1,0 +1,16 @@
+{
+  "url": "http://localhost/framework/ext/drawer/",
+  "viewport": { "width": 1280, "height": 900 },
+  "watch": [".drawer", ".drawer .grip"],
+  "out": "C:/Users/mike/AppData/Local/Temp/claude/c--Code-lew42-monorepo/fd78d27e-a28b-4bfe-bb68-7a73578f4f05/scratchpad/ui-test-grip",
+  "steps": [
+    "click \"text=Open the rail\"",
+    "wait 400",
+    "move 982 450",
+    "down",
+    "move 982 450 1",
+    "move 832 450 20",
+    "up",
+    "eval getComputedStyle(document.querySelector('.app')).getPropertyValue('--drawer-w')"
+  ]
+}

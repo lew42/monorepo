@@ -1,0 +1,20 @@
+@layer theme {
+	/* The one rule that decides how many columns exist — sprawl.js reads this exact
+	   track width back (TRACK_REM) so its own column count can never disagree with
+	   what this CSS actually draws. `min(100%, 60rem)`: the floor can't overflow a
+	   narrow screen, the ceiling is the 60rem track itself. `auto-fit`, not
+	   `auto-fill` — a page with few sections should let them stretch wide rather
+	   than reserving empty tracks for a count nothing is there to fill
+	   (design/layout/doc/rules.md's auto-fit-vs-auto-fill rule). */
+	.sprawl {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 60rem), 1fr));
+		gap: var(--gap);
+		align-items: start;   /* a short column's last row never stretches to match a tall sibling */
+	}
+
+	/* No rule of its own yet beyond the shared `flex v gap` utility classes sprawl.js
+	   already puts on every column — named so a future column-specific need (a
+	   border between columns, say) has somewhere to land without a rename. */
+	.sprawl-column { min-width: 0; }
+}

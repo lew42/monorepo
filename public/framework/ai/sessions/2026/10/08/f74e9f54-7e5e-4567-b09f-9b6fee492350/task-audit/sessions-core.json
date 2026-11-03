@@ -1,0 +1,83 @@
+[
+ {
+  "session": "3f5a5fec-dbf0-4a4b-8573-560f281a0be3",
+  "first": "2026-10-08T19:49:05.474Z",
+  "last": "2026-10-08T21:30:22.345Z",
+  "files": 9,
+  "core": [
+   "/Server/session-summary.test.mjs",
+   "/public/framework/ai/sessions/page.js",
+   "/public/framework/ai/sessions/Session.js"
+  ]
+ },
+ {
+  "session": "fa3e829d-47c1-47d8-8183-b33c78e4757e",
+  "first": "2026-10-08T20:56:54.075Z",
+  "last": "2026-10-08T20:56:54.075Z",
+  "files": 1,
+  "core": [
+   "/public/framework/ai/system-classes.js"
+  ]
+ },
+ {
+  "session": "87bec773-d6dd-421c-92cc-fdd8a9eb5103",
+  "first": "2026-10-08T04:06:03.613Z",
+  "last": "2026-10-08T20:15:07.221Z",
+  "files": 1,
+  "core": [
+   "/CLAUDE.md"
+  ]
+ },
+ {
+  "session": "9a3c2746-17fe-4205-b099-0d52fa274ac8",
+  "first": "2026-10-08T19:29:11.643Z",
+  "last": "2026-10-08T19:39:30.038Z",
+  "files": 2,
+  "core": [
+   "/Servex/Servex.js",
+   "/lines-lnp.json"
+  ]
+ },
+ {
+  "session": "eddd03ac-6629-475a-abff-58fbe7b6b14b",
+  "first": "2026-10-08T05:23:36.912Z",
+  "last": "2026-10-08T05:36:04.394Z",
+  "files": 3,
+  "core": [
+   "/Servex/ext/openrouter/evals/known-answer.mjs",
+   "/Servex/ext/openrouter/evals/facts.mjs",
+   "/public/framework/ai/readme.md"
+  ]
+ },
+ {
+  "session": "49560f03-56a3-4537-a2f5-ee0943b64369",
+  "first": "2026-10-08T05:22:03.265Z",
+  "last": "2026-10-08T05:35:52.969Z",
+  "files": 2,
+  "core": [
+   "/public/framework/dev/mobile/mobile.md",
+   "/public/framework/dev/mobile/readme.md"
+  ]
+ },
+ {
+  "session": "d624553d-39c3-4257-952b-5add43601bb3",
+  "first": "2026-10-08T04:56:36.824Z",
+  "last": "2026-10-08T04:57:00.055Z",
+  "files": 2,
+  "core": [
+   "/landing-docs-vs-code-audit.json",
+   "/daylog-docs-vs-code-audit.json"
+  ]
+ },
+ {
+  "session": "b719daae-31dd-4850-8b9f-adac8a0034a2",
+  "first": "2026-10-08T03:34:43.300Z",
+  "last": "2026-10-08T03:57:48.540Z",
+  "files": 3,
+  "core": [
+   "/Server/session-cost.mjs",
+   "/Servex/agents/tools.js",
+   "/public/framework/ai/sessions/readme.md"
+  ]
+ }
+]

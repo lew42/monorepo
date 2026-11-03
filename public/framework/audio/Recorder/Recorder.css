@@ -1,0 +1,6 @@
+@layer base, theme, site, util;
+
+@layer theme {
+	.audio-recorder-btn.on { color: var(--error); }
+	.audio-recorder audio { inline-size: 100%; max-inline-size: 24em; }
+}

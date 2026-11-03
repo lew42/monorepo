@@ -16,17 +16,23 @@ async previews(){
     return div.c("page-previews", () => children.forEach(c => c.preview()));
 }
 
-// RIGHT — container captured NOW, filled later, target named explicitly
+// RIGHT — container captured NOW, filled inside a callback that RE-CAPTURES
 previews(){
     return div.c("page-previews", async ($previews) => {
         const children = await Promise.all(names.map(n => this.child(n)));
-        children.forEach(c => $previews.append(c.preview()));
+        $previews.append(() => children.forEach(c => c.preview()));
     });
 }
 ```
 
 **The mechanical check: a factory call textually after an `await` is wrong.** No
-judgement required — scan for it.
+judgement required — scan for it. Note that the fix obeys its own rule: every
+factory call sits inside the `append(fn)` callback, never loose after the `await`.
+
+`$previews.append(c.preview())` would *also* put the card in the right place, and
+it is still wrong — the element is built under whatever the captor has drifted to
+and then moved. It survives only while the call stays in argument position, so it
+is a shape that breaks the first time someone splits the line.
 
 **Verdict: do not try to make async capture work.** A per-async-context captor
 would need `AsyncLocalStorage`, which the browser doesn't have. Sync-render-then-

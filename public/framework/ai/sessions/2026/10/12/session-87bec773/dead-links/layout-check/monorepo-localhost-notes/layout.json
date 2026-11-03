@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/notes/",
+ "widths": {
+  "1280": {
+   "empty": 0.206,
+   "widest_text": 590,
+   "widest_text_sample": "Anything that isn't documentation but ev",
+   "overflow_x": false,
+   "items": 75,
+   "narrow_share": 0.053
+  },
+  "1920": {
+   "empty": 0.311,
+   "widest_text": 628,
+   "widest_text_sample": "Anything that isn't documentation but ev",
+   "overflow_x": false,
+   "items": 75,
+   "narrow_share": 1
+  },
+  "2560": {
+   "empty": 0.335,
+   "widest_text": 707,
+   "widest_text_sample": "Anything that isn't documentation but ev",
+   "overflow_x": false,
+   "items": 75,
+   "narrow_share": 1
+  },
+  "3440": {
+   "empty": 0.372,
+   "widest_text": 707,
+   "widest_text_sample": "Anything that isn't documentation but ev",
+   "overflow_x": false,
+   "items": 75,
+   "narrow_share": 1
+  }
+ },
+ "errors": []
+}

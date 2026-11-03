@@ -1,0 +1,831 @@
+diff --git a/Servex/agents/Sessions.js b/Servex/agents/Sessions.js
+index 217fe75e..c12461a8 100644
+--- a/Servex/agents/Sessions.js
++++ b/Servex/agents/Sessions.js
+@@ -35,6 +35,15 @@ export function check_dir_line(line){
+ 	return { [kind]: { ...body, at: body.at ?? now_ms() } };
+ }
+ 
++/* A REACTION (ai/2026-09-30/chat-reactions): an SMS tap-back on one line of the
++ * session, its own line in the file, never an edit of the line it marks:
++ *   {"react": {at, session, re, emoji, from: {kind, id?}}}
++ * `re` is the marked line's `at`; the newest reaction from a sender for a line wins,
++ * and an empty `emoji` takes it off. An assistant reacts by making its WHOLE reply
++ * one emoji (`LONE_EMOJI`): that reply becomes a reaction on the owner's line
++ * instead of a bubble. */
++export const LONE_EMOJI = /^\p{Extended_Pictographic}[\uFE0F\u{1F3FB}-\u{1F3FF}]*(\u200D\p{Extended_Pictographic}\uFE0F?)*$/u;
++
+ const env = (name, dflt) => { const n = Number(process.env[name]); return process.env[name] != null && process.env[name] !== "" && Number.isFinite(n) ? n : dflt; };
+ 
+ /* Local time with its offset AND milliseconds — `2026-09-29T19:30:12.345-05:00`.
+@@ -57,6 +66,7 @@ export const now_ms = () => {
+  *   then     {"chat": {at, session, path, from: {kind, id, agent?}, via, text, re?, floor?, cues?}}
+  *            {"nav":  {at, from, to}}
+  *            {"backing": {at, fast, smart, how}}   (a respawn; the latest one wins)
++ *            {"react": {at, session, re, emoji, from}}   (a tap-back on line `re`; see LONE_EMOJI)
+  *
+  * THE FOLDER INDEX: every folder the session reaches gets a presence line in its own
+  * `ai/log.jsonl`, `{"session": {id, event: "started", title, file, at}}`; every one of
+@@ -85,7 +95,11 @@ export default class Sessions {
+ 	assign(...args){ return Object.assign(this, ...args); }
+ 
+ 	defaults(){
++		/* fast_wait_ms: the fast assistant's reply waits this long after the owner spoke,
++		 * so that, when the smart one answers (or reacts) first, only ONE acknowledgement
++		 * goes out (the owner, 2026-09-30). `hold_fast()` below. */
+ 		return { repo: REPO, file: process.env.SERVEX_SESSIONS_FILE || null, quiet_ms: env("SERVEX_SESSION_QUIET_MS", 1500),
++			fast_wait_ms: env("SERVEX_SESSION_FAST_WAIT_MS", 8000),
+ 			idle_ms: env("SERVEX_SESSION_IDLE_MS", 5 * 60000), resume_ms: env("SERVEX_SESSION_RESUME_MS", 60 * 60000),
+ 			max_pairs: env("SERVEX_SESSION_MAX_PAIRS", 2), floor_wait_ms: env("SERVEX_SESSION_FLOOR_WAIT_MS", 8000),
+ 			map: {}, by_agent: new Map(), waiting: new Map(), held: new Map(), floor_timers: new Map() };
+@@ -350,15 +364,28 @@ export default class Sessions {
+ 
+ 	/* `floor` and `cues` (ext/Chat/doc/floor.md) are optional and stored on the owner's line;
+ 	 * a say with no floor counts as "done", as before the floor existed. */
+-	say({ session, path: at, text, via = "text", floor, cues } = {}){
++	/* A THREADED reply (the owner pressed Reply on a bubble): `re` = that bubble's `at`,
++	 * `thread: true`. It is kept on the owner's line, the assistants are told which line
++	 * it answers, and their replies to it are threaded under the same bubble. */
++	say({ session, path: at, text, via = "text", floor, cues, re, thread } = {}){
+ 		const s = this.get(session);
+ 		if (!String(text ?? "").trim()) throw Object.assign(new Error("text is required"), { status: 400 });
+ 		if (floor != null && !FLOORS.includes(floor)) throw Object.assign(new Error(`floor is ${FLOORS.join(" or ")}`), { status: 400 });
+ 		const site = page_path(at) ?? s.path;
+ 		if (site !== s.path) this.nav({ session, from: s.path, to: site });
+ 		const line = { at: now_ms(), session, path: site, from: { kind: "owner" }, via, text,
+-			...(floor ? { floor } : {}), ...(cues && typeof cues === "object" ? { cues } : {}) };
++			...(floor ? { floor } : {}), ...(cues && typeof cues === "object" ? { cues } : {}),
++			...(thread && re ? { re: String(re), thread: true } : {}) };
+ 		this.write(s, { chat: line });
++		if (line.thread){
++			(s.threaded ??= []).push(line.at);
++			if (s.threaded.length > 50) s.threaded.shift();
++			const parent = this.find_line(s, line.re);
++			const whose = !parent ? "an earlier line" : parent.from?.kind === "owner" ? "their own earlier line" : `the ${parent.from?.id ?? "assistant"} assistant's line`;
++			((s.notes ??= {}).fast ??= []).push(`(this is a reply to ${whose}${parent?.text ? ` "${String(parent.text).replace(/\s+/g, " ").slice(0, 120)}"` : ""})`);
++			s.notes.smart ??= [];
++			s.notes.smart.push(s.notes.fast[s.notes.fast.length - 1]);
++		}
+ 		this.set_floor(s, floor ?? "done");
+ 		s.fast_re = line.at;
+ 		this.wake(s, "fast");
+@@ -411,10 +438,50 @@ export default class Sessions {
+ 		const h = this.held.get(s.id);
+ 		if (!h) return false;
+ 		this.held.delete(s.id);
+-		this.write(s, { chat: { at: now_ms(), ...h } });
++		this.hold_fast(s, h.re, h.line);   // still gives way to a smart answer, if one came
+ 		return true;
+ 	}
+ 
++	/* A reaction on one line of the session. From the owner (the browser's default):
++	 * both assistants are told in their next prompt (`notes`), and a ❓ on an
++	 * assistant's line asks the smart one to explain, at once. */
++	react({ session, re, emoji = "", at, from = { kind: "owner" } } = {}){
++		const s = this.get(session);
++		if (!re) throw Object.assign(new Error("re is required: the `at` of the line being reacted to"), { status: 400 });
++		emoji = String(emoji ?? "").trim();
++		if (emoji && !LONE_EMOJI.test(emoji)) throw Object.assign(new Error("emoji must be one emoji, or empty to take a reaction off"), { status: 400 });
++		const when = at && !Number.isNaN(Date.parse(at)) ? at : now_ms();
++		this.write(s, { react: { at: when, session: s.id, re, emoji, from } });
++		if (from?.kind === "owner" && emoji) this.owner_reacted(s, re, emoji);
++		return { ok: true, at: when };
++	}
++
++	/* What the owner's reaction means, told to the assistants in plain words. */
++	owner_reacted(s, re, emoji){
++		const line = this.find_line(s, re);
++		const whose = !line ? "a line" : line.from?.kind === "owner" ? "their own line" : `the ${line.from?.id ?? "assistant"} assistant's line`;
++		const quote = line?.text ? ` "${String(line.text).replace(/\s+/g, " ").slice(0, 120)}"` : "";
++		const note = `(the owner reacted ${emoji} to ${whose}${quote})`;
++		for (const role of ["fast", "smart"]) ((s.notes ??= {})[role] ??= []).push(note);
++		this.save();
++		if (emoji === "❓" && line && line.from?.kind !== "owner"){
++			this.wake(s, "smart");
++			this.send(s, "smart", "The owner wants more on that line: explain it in two or three plain sentences.");
++		}
++	}
++
++	/* The chat line whose `at` is `re`, read back from the session file. */
++	find_line(s, re){
++		try {
++			const lines = fs.readFileSync(this.disk(s.file), "utf8").split("\n");
++			for (let i = lines.length - 1; i >= 0; i--){
++				if (!lines[i].includes(re)) continue;
++				try { const c = JSON.parse(lines[i]).chat; if (c?.at === re) return c; } catch {}
++			}
++		} catch {}
++		return null;
++	}
++
+ 	/* The smart assistant hears a thought, not its fragments: lines gathered over a
+ 	 * quiet gap (Layers.hear()'s pattern), with where the owner went since. The gap
+ 	 * restarts while the owner still has the floor. */
+@@ -437,6 +504,8 @@ export default class Sessions {
+ 	}
+ 
+ 	send(s, role, text){
++		const notes = s.notes?.[role]?.splice(0) ?? [];
++		if (notes.length){ text = notes.join("\n") + "\n" + text; this.save(); }
+ 		try { this.servex.agents.send(s[role], text, { from: "owner" }); }
+ 		catch (e){ this.write(s, { chat: { at: now_ms(), session: s.id, path: s.path, from: { kind: "system", id: "servex" }, via: "text", text: `The ${role} assistant could not be reached: ${e.message}` } }); }
+ 	}
+@@ -550,9 +619,35 @@ export default class Sessions {
+ 		const text = String(event.text ?? agent.last_text ?? "").trim();
+ 		if (!text) return;
+ 		const re = s[`${who.role}_re`];
+-		const chat = { session: s.id, path: s.path, from: { kind: "assistant", id: who.role, agent: agent.id }, via: "text", text, ...(re ? { re } : {}) };
+-		if (who.role === "fast" && this.speaking(s)) return void this.held.set(s.id, chat);   // the owner is still talking
+-		this.write(s, { chat: { at: now_ms(), ...chat } });
++		const from = { kind: "assistant", id: who.role, agent: agent.id };
++		// An answer to a threaded owner line goes into the same thread.
++		const threaded = re && s.threaded?.includes(re) ? { thread: true } : {};
++		const line = () => LONE_EMOJI.test(text) && re
++			? { react: { at: now_ms(), session: s.id, re, emoji: text, from } }
++			: { chat: { at: now_ms(), session: s.id, path: s.path, from, via: "text", text, ...(re ? { re } : {}), ...threaded } };
++		if (who.role === "smart"){
++			s.smart_said_re = re ?? now_ms();
++			return this.write(s, line());
++		}
++		// The owner is still talking: hold the newest fast reply until the floor is "done" (release()).
++		if (this.speaking(s)) return void this.held.set(s.id, { re, line });
++		this.hold_fast(s, re, line);
++	}
++
++	/* ONE ACKNOWLEDGEMENT, NOT TWO (the owner, 2026-09-30: "the fast assistant could
++	 * wait for the smart assistant"). The fast reply waits until `fast_wait_ms` after
++	 * the owner spoke. If by then the smart one has answered or reacted to that line
++	 * (or a later one), the fast reply is dropped; if not, it goes out as usual.
++	 * A reply held by the floor (above) comes here when the floor is released. */
++	hold_fast(s, re, line){
++		const said = Date.parse(re ?? 0) || Date.now();
++		const release = () => {
++			if (s.smart_said_re && Date.parse(s.smart_said_re) >= said) return;   // the smart one already answered
++			try { this.write(s, line()); } catch (e){ console.error(`sessions: ${e.message}`); }
++		};
++		const wait = said + this.fast_wait_ms - Date.now();
++		if (wait <= 0) return release();
++		setTimeout(release, wait).unref?.();
+ 	}
+ 
+ 	// ── routes ───────────────────────────────────────────────────────────────
+@@ -564,7 +659,7 @@ export default class Sessions {
+ 		/* The browser's host: the dev server's proxy forwards it (x-forwarded-host); a page on
+ 		 * localhost calls Servex directly, so there the body carries its own `location.host`. */
+ 		const host_of = (req, b) => req.headers["x-forwarded-host"] ?? b.host ?? req.headers.host ?? null;
+-		for (const [verb, fn] of [["new", "create"], ["say", "say"], ["nav", "nav"], ["resume", "resume"], ["floor", "floor"]]){
++		for (const [verb, fn] of [["new", "create"], ["say", "say"], ["nav", "nav"], ["resume", "resume"], ["floor", "floor"], ["react", "react"]]){
+ 			router.options(`/api/session/${verb}`, cors, (req, res) => res.status(204).end());
+ 			router.post(`/api/session/${verb}`, cors, async (req, res) => {
+ 				try { const b = await body(req); res.json(this[fn](verb === "new" ? { ...b, host: host_of(req, b) } : b)); }
+diff --git a/Servex/agents/session-fast.md b/Servex/agents/session-fast.md
+index 115e6bf7..798e1c00 100644
+--- a/Servex/agents/session-fast.md
++++ b/Servex/agents/session-fast.md
+@@ -8,4 +8,9 @@ Your whole job: answer each message with ONE short line, at once, so the owner k
+ - Never build, never plan, never answer a technical question, never promise work. The session's SMART assistant hears the same words and does all of that; say "the smart assistant will answer that" if it helps.
+ - No markdown, no lists, no headings. One line, under 25 words.
+ 
++- Your reply waits about 8 seconds before it is shown. If the smart assistant answers first, yours is dropped, so only one acknowledgement goes out.
++- If the smart one might be slow, make your line a best guess in a few words ("I think that'd be okay", "not sure what's wrong here"), not a promise.
++- A REACTION instead of words: if the message only needs "heard you" or "okay" (thanks, a plain yes, "got it"), reply with ONE emoji and nothing else: ✅ for "okay, done/agreed", 👍 for "heard you". A reply that is exactly one emoji is pinned on the owner's message as a tap-back, not sent as a message.
++- A line like `(the owner reacted 👍 to …)` at the top of a message is the owner's tap-back on an earlier line: 👍 or ✅ means acknowledged, ❓ means explain more, 👎 means that was wrong. Don't answer the note itself.
++
+ Your reply text IS the message the owner sees; there is no tool to call.
+diff --git a/Servex/agents/session-smart.md b/Servex/agents/session-smart.md
+index a9a81890..7a62c540 100644
+--- a/Servex/agents/session-smart.md
++++ b/Servex/agents/session-smart.md
+@@ -24,4 +24,8 @@ Presence and decisions only, one line each: never step-by-step progress. When yo
+ - For a technical question about one folder, ask a fresh directory mastermind with `ask_directory({dir, question, session: "<this session id>"})` rather than reading everything yourself (`Servex/agents/doc/directory.md`).
+ - Keep what you learn: this session is long-lived, and later messages refer back. If you were started fresh after a pause, the session's last lines are in this prompt; read the whole file when you need more.
+ 
+-**How you answer:** your final text in each turn is posted to the owner as your reply; there is no reply tool to call for an ordinary answer. Write one to three plain sentences, no headings, no lists unless the owner asked for a list. A file or page you name is its site path (`/framework/ext/Chat/`). If there is nothing worth saying (the fast assistant already covered it), reply with one short sentence anyway. Use `session_line` only for a refined version of the owner's words.
++**How you answer:** your final text in each turn is posted to the owner as your reply; there is no reply tool to call for an ordinary answer. Write one to three plain sentences, no headings, no lists unless the owner asked for a list. A file or page you name is its site path (`/framework/ext/Chat/`). Use `session_line` only for a refined version of the owner's words.
++
++**React instead of writing, when that is all it needs.** If the owner's words only need "heard you" or "okay, we'll do that", make your whole final text ONE emoji: ✅ for "okay, agreed / done", 👍 for "heard you". A reply that is exactly one emoji is pinned on the owner's message as a tap-back (like SMS), not sent as a message. You make this call: the fast assistant waits about 8 seconds for you and stays quiet if you answered first, so only one acknowledgement goes out.
++
++**The owner's reactions.** A line like `(the owner reacted 👍 to the smart assistant's line "…")` at the top of a message is the owner's tap-back on an earlier line: 👍 or ✅ means acknowledged (nothing more to say), ❓ means explain that line more, 👎 means it was wrong or unwanted. A ❓ reaches you at once, with a request to explain.
+diff --git a/public/framework/ext/Chat/Chat.css b/public/framework/ext/Chat/Chat.css
+index c9067498..df001f0b 100644
+--- a/public/framework/ext/Chat/Chat.css
++++ b/public/framework/ext/Chat/Chat.css
+@@ -35,18 +35,34 @@
+ 		flex: none;
+ 	}
+ 
++	/* ⚠ WRAPS ON A PHONE (the owner, 2026-09-30, on a phone: "the text area is
++	   about 50% of my screen's width… a massive void of space to the right of
++	   it, above the three or four buttons"). The box asks for 18em; when the row
++	   cannot give that AND the buttons, the button group (`.chatbox-compose-actions`,
++	   one unit so it never splits) drops to its own row under the box, pushed
++	   right, and the box takes the whole width. `align-items: flex-end` keeps the buttons level with
++	   the bottom of a tall box, never floating in the middle of empty space. */
+ 	.chatbox-compose {
+ 		position: relative;
+ 		display: flex;
++		flex-wrap: wrap;
++		align-items: flex-end;
++		gap: 0.35em;
++	}
++	.chatbox-compose-actions {
++		flex: none;
++		display: flex;
+ 		align-items: center;
+ 		gap: 0.35em;
++		margin-inline-start: auto;
+ 	}
++	.chatbox-compose-more svg { inline-size: 1.15em; block-size: 1.15em; fill: currentColor; vertical-align: middle; }
+ 
+ 	/* The field and the microphone are ONE control: the mic is absolutely placed
+ 	   at the field's right end and the input reserves room for it. */
+ 	.chatbox-field {
+ 		position: relative;
+-		flex: 1;
++		flex: 1 1 18em;
+ 		min-width: 0;
+ 		display: flex;
+ 		align-items: stretch;
+@@ -182,15 +198,29 @@
+ 		margin-inline-end: 0.45em;
+ 	}
+ 
+-	/* THE ROLE LABEL: on its own line above a message, once per message. One
+-	   colour per role, all from theme tokens (each reads in light and dark);
+-	   an unknown role stays the ink colour. */
++	/* THE AVATAR (the owner, 2026-09-30: "get the messages on the same line as
++	   the icon"): a small round icon floated at the start of the bubble, so the
++	   words begin on the same line beside it. It is tinted with the role's own
++	   colour (the `chatbox-who-*` colours below), and its tooltip is the name.
++	   The bubble is a `flow-root` so a one-line message still wraps the icon. */
+ 	.chatbox-you .chatbox-who,
+ 	.chatbox-reply .chatbox-who {
+-		display: block;
+-		margin: 0;
+-		font-size: 0.7em;
++		float: inline-start;
++		display: grid;
++		place-items: center;
++		inline-size: 1.6em;
++		block-size: 1.6em;
++		margin: 0.05em 0.45em 0 0;
++		border-radius: 50%;
++		overflow: hidden;
++		background: color-mix(in srgb, currentColor 16%, transparent);
++		font-size: 0.95em;
++		font-weight: 400;
++		line-height: 1;
+ 	}
++	.chatbox-avatar img { inline-size: 100%; block-size: 100%; object-fit: cover; }
++	/* One colour per role, all from theme tokens (each reads in light and dark);
++	   an unknown role stays the ink colour. */
+ 	.chatbox-who-you       { color: var(--prim-ink); }
+ 	.chatbox-who-assistant { color: var(--ok); }
+ 	.chatbox-who-manager   { color: var(--warn); }
+@@ -212,6 +242,8 @@
+ 	.chatbox-log > :first-child { margin-block-start: auto; }
+ 	.chatbox-you,
+ 	.chatbox-reply {
++		position: relative;   /* the reaction chips and picker are placed against the bubble */
++		display: flow-root;
+ 		width: var(--chat-bubble);
+ 		padding: 0.3em 0.7em;
+ 		border-radius: 0.9em;
+@@ -324,6 +356,108 @@
+ 	.chatbox-mark-ok { color: var(--ok); }
+ 	.chatbox-mark-unclear { color: var(--warn); }
+ 
++	/* THREADS (Chat.js's `thread_item()`): the replies to one bubble sit right under
++	   it, indented, folded to "▸ N replies" until opened. */
++	.chatbox-thread { margin-block: 0 0.3em; padding-inline-start: 1.2em; }
++	.chatbox-thread-toggle {
++		padding: 0.1em 0.4em;
++		border: 0;
++		background: none;
++		color: var(--prim-ink);
++		font: inherit;
++		font-size: 0.85em;
++		cursor: pointer;
++	}
++	.chatbox-thread-body { display: flex; flex-direction: column; border-inline-start: 2px solid var(--line); padding-inline-start: 0.5em; --chat-bubble: 100%; }
++	.chatbox-thread-body[hidden] { display: none; }
++	.chatbox-thread-btn { display: inline-block; margin-block-start: 0.3em; margin-inline-start: 0.4em; font: inherit; font-size: 0.8em; padding: 0.15em 0.5em; }
++	/* "Replying to …" above the box, while a reply is pending. */
++	.chatbox-replying { display: flex; align-items: center; gap: 0.4em; padding: 0.2em 0.5em; font-size: 0.85em; color: var(--prim-ink); }
++	.chatbox-replying[hidden] { display: none; }
++	.chatbox-replying-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
++	.chatbox-replying-x { border: 0; background: none; color: inherit; font: inherit; cursor: pointer; }
++	.chatbox-panel > .chatbox-replying { flex: none; }
++
++	/* THE VIA MARK: 🎤 said or ⌨ typed, small and faint after the last word. */
++	.chatbox-via { font-size: 0.7em; opacity: 0.45; white-space: nowrap; }
++
++	/* REACTIONS (Chat.js's `react_on()`): an SMS tap-back. The chips sit on the
++	   bubble's top corner, the one nearest the middle of the chat; a bubble with
++	   any gets a little more room above so the chips never cover the bubble
++	   before it. */
++	.chatbox-has-reacts { margin-block-start: 0.95em; }
++	.chatbox-reacts {
++		position: absolute;
++		top: -0.95em;
++		display: flex;
++		gap: 0.2em;
++		padding: 0.05em 0.35em;
++		border: 1px solid var(--line);
++		border-radius: 1em;
++		background: var(--surface);
++		font-size: 0.9em;
++		line-height: 1.35;
++		white-space: nowrap;
++		cursor: default;
++	}
++	.chatbox-reply .chatbox-reacts { inset-inline-end: -0.4em; }
++	.chatbox-you .chatbox-reacts { inset-inline-start: -0.4em; }
++	.chatbox-react.mine { text-shadow: 0 0 0.5em color-mix(in srgb, var(--prim) 60%, transparent); }
++
++	/* The row of choices: above the bubble, or below it when the bubble sits at
++	   the top of the log (`.below`, decided when it opens) so the log never clips it. */
++	.chatbox-react-picker {
++		position: absolute;
++		z-index: 5;
++		bottom: calc(100% + 0.3em);
++		display: flex;
++		gap: 0.1em;
++		padding: 0.2em 0.35em;
++		border: 1px solid var(--line);
++		border-radius: 2em;
++		background: var(--surface);
++		box-shadow: 0 4px 14px rgb(0 0 0 / 0.2);
++	}
++	.chatbox-react-picker.below { bottom: auto; top: calc(100% + 0.3em); }
++	.chatbox-reply .chatbox-react-picker { inset-inline-start: 0; }
++	.chatbox-you .chatbox-react-picker { inset-inline-end: 0; }
++	.chatbox-react-pick {
++		padding: 0.15em 0.25em;
++		border: 0;
++		border-radius: 50%;
++		background: none;
++		font-size: 1.4em;
++		line-height: 1;
++		cursor: pointer;
++	}
++	.chatbox-react-pick:hover { background: color-mix(in srgb, currentColor 10%, transparent); }
++	.chatbox-react-pick.mine { background: color-mix(in srgb, var(--prim) 28%, transparent); }
++
++	/* The desktop way in: a faint smiley beside the bubble, on hover only. A
++	   phone has no hover, so there it never shows; a long hold opens the row. */
++	.chatbox-react-btn {
++		position: absolute;
++		top: 0.15em;
++		visibility: hidden;
++		padding: 0 0.25em;
++		border: 0;
++		background: none;
++		color: inherit;
++		font-size: 1.1em;
++		line-height: 1.2;
++		opacity: 0.55;
++		cursor: pointer;
++	}
++	.chatbox-reply .chatbox-react-btn { inset-inline-end: -1.7em; }
++	.chatbox-you .chatbox-react-btn { inset-inline-start: -1.7em; }
++	@media (hover: hover){
++		.chatbox:hover > .chatbox-react-btn,
++		.chatbox-react-btn:focus-visible { visibility: visible; }
++	}
++	/* A phone's long hold opens the reactions, not the browser's copy menu. */
++	@media (hover: none){
++		.chatbox-selectable { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
++	}
+ 	/* DRILL IN (Drill.js, doc/drill.md) — the Open button a selected card grows,
+ 	   and the shell it opens: full screen (fixed, over the ✦ sheet at z 41), or
+ 	   over the desktop drawer at its full height (.chatbox-drill-in-drawer:
+diff --git a/public/framework/ext/Chat/Chat.js b/public/framework/ext/Chat/Chat.js
+index 3f188d59..02673f60 100644
+--- a/public/framework/ext/Chat/Chat.js
++++ b/public/framework/ext/Chat/Chat.js
+@@ -57,17 +57,16 @@ function raw_list(cls, pieces){
+ 	return box;
+ }
+ 
+-/* THE VIA MARK — a small " · 🎤" (said) or " · ⌨" (typed), for a universal chat
+-   line (below) that carries `via`. It goes on the SENDER LABEL, once per
+-   bubble ("You · 🎤"), not on every piece's own text: a piece-level mark sat on
+-   its own row above the words, adding a whole extra line per message inside a
+-   merged bubble (the task mastermind, 2026-09-29, judging this task's own
+-   proof shots). `label_via()` is called once, when a bubble's label is built;
+-   `piece_node()` (below) no longer touches `via` at all. */
++/* THE VIA MARK — a small, faint 🎤 (said) or ⌨ (typed) TRAILING each message's
++   last word (the owner, 2026-09-30: the mark stays, "small and trailing"), for
++   a universal chat line (below) that carries `via`. Glued after the last word
++   like the ✓/? mark, so it never takes a row of its own. */
+ function via_text(via){ return via === "voice" ? "🎤" : "⌨"; }
+-function label_via($label, via){
+-	if ($label && via) $label.append(" · " + via_text(via));
+-	return $label;
++function via_badge(via){
++	const b = el("chatbox-via", "span");
++	b.textContent = via_text(via);
++	b.title = via === "voice" ? "said" : "typed";
++	return b;
+ }
+ 
+ /* A PLACE CARD — `place: {module, id, ...}` swaps a piece's text for that
+@@ -148,10 +147,17 @@ function append_mark(node, m){
+ }
+ 
+ function piece_node(pc){
++	const node = piece_body(pc);
++	if (pc.id != null) node.dataset.re = pc.id;
++	return node;
++}
++
++function piece_body(pc){
+ 	if (pc.place) return place_card(pc.place);
+ 	if (pc.revision) return revision_pair_node(pc);
+ 	const node = para("chatbox-text", pc.text);
+ 	if (pc.mark) append_mark(node, pc.mark);
++	if (pc.via) (node.lastElementChild ?? node).append(" ", via_badge(pc.via));
+ 	return node;
+ }
+ 
+@@ -184,6 +190,55 @@ function fill(b){
+ 	}
+ }
+ 
++/* REACTIONS — an SMS tap-back (the owner, 2026-09-30: "long hold on a message
++   and thumbs up or a green check mark… just kind of like an acknowledged").
++   A reaction is its own log line, never an edit of the message:
++
++     {"react": {"at": "…", "re": "<the message's at or id>", "emoji": "👍", "from": {"kind": "owner"}}}
++
++   ONE PER PERSON PER MESSAGE: the newest line from a sender for a message wins,
++   and an empty `emoji` takes that sender's reaction off. `reacts_of` holds, per
++   bubble, message id -> sender -> {emoji, at}; `draw_reacts()` pins the result
++   on the bubble's top corner. */
++export const REACTIONS = ["👍", "✅", "❤️", "😂", "❓", "👎"];
++const reacts_of = new WeakMap();
++const sender_of = from => String(from?.id || from?.kind || "someone");
++
++/** Apply one reaction line to a bubble. False when it is older than what is already there. */
++export function react_on(b, r){
++	if (!b) return false;
++	const all = reacts_of.get(b) ?? new Map();
++	reacts_of.set(b, all);
++	const re = String(r.re), who = sender_of(r.from), at = Date.parse(r.at ?? 0) || Date.now();
++	const on = all.get(re) ?? new Map();
++	all.set(re, on);
++	const was = on.get(who);
++	if (was && was.at > at) return false;
++	on.set(who, { emoji: r.emoji || "", at });
++	draw_reacts(b);
++	return true;
++}
++
++/** What `who` has on message `re` right now ("" for nothing). */
++export function reaction_of(b, re, who = "owner"){ return reacts_of.get(b)?.get(String(re))?.get(who)?.emoji ?? ""; }
++
++function draw_reacts(b){
++	b.querySelector(":scope > .chatbox-reacts")?.remove();
++	const counts = new Map();   // emoji -> [who, …]
++	for (const on of (reacts_of.get(b) ?? new Map()).values())
++		for (const [who, r] of on) if (r.emoji) counts.set(r.emoji, [...(counts.get(r.emoji) ?? []), who]);
++	b.classList.toggle("chatbox-has-reacts", counts.size > 0);
++	if (!counts.size) return;
++	const box = el("chatbox-reacts", "span");
++	for (const [emoji, whos] of counts){
++		const chip = el("chatbox-react" + (whos.includes("owner") ? " mine" : ""), "span");
++		chip.textContent = emoji + (whos.length > 1 ? whos.length : "");
++		chip.title = whos.map(w => (w === "owner" ? "you" : w) + " " + emoji).join(", ");
++		box.append(chip);
++	}
++	b.append(box);
++}
++
+ /** Draw one message: a new bubble, or a paragraph on the bubble it merges into.
+  *  `onmount(el)` fires once, only for a brand-new bubble — `chat()`'s own
+  *  selection wiring (below) hangs off it. */
+@@ -194,10 +249,12 @@ export function speak($box, { cls, who, text, sender, at, id, onmount }){
+ 		bubbles.get(last).pieces.push(piece);
+ 		last.dataset.at = at;
+ 		fill(last);
+-		return;
++		return last;
+ 	}
++	let made = null;
+ 	$box.append(() => {
+ 		p.c("chatbox " + cls, $b => {
++			made = $b.el;
+ 			if (sender){ $b.el.dataset.sender = sender; $b.el.dataset.at = at; }
+ 			if (who && who !== "task") who_label(who);
+ 			bubbles.set($b.el, { pieces: [piece], refined: null });
+@@ -205,6 +262,7 @@ export function speak($box, { cls, who, text, sender, at, id, onmount }){
+ 			onmount?.($b.el);
+ 		});
+ 	});
++	return made;
+ }
+ 
+ /** A refined line: the latest one whose `of` ids are in a bubble replaces its raw paragraphs. */
+@@ -227,7 +285,9 @@ export function refine($box, e){
+    duplicate. `at` plus whether this line is a `fix` is enough: two ordinary
+    lines never legitimately share an `at`, and a fix always differs from its
+    original by that one flag. */
+-const key = e => e.chat
++const key = e => e.react
++	? "react|" + e.react.at + "|" + e.react.re + "|" + sender_of(e.react.from) + "|" + (e.react.emoji ?? "")
++	: e.chat
+ 	// A fix line's key includes its TEXT: latest wins, so a later fix reading
+ 	// different words for the same `at` is never dropped as a duplicate of an
+ 	// earlier placeholder ("waiting for the page's assistant…" then the real
+@@ -263,7 +323,7 @@ export function card_of(b){
+ 	return { key: bubble_key(b), title: title || "(untitled)", who: b.querySelector(":scope > .chatbox-who, :scope > .who")?.textContent ?? "", children };
+ }
+ 
+-export function chat({ source, keep = () => true, answer = () => {}, on_select, rename, marks: fetch_marks, on_unclear, on_open } = {}){
++export function chat({ source, keep = () => true, answer = () => {}, on_select, rename, marks: fetch_marks, on_unclear, on_open, on_react, on_reply } = {}){
+ 	let $script;
+ 	const seen = new Set();
+ 
+@@ -315,6 +375,7 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select,
+ 		$selected.querySelector(":scope > .chatbox-rename-select")?.remove();
+ 		$selected.querySelector(":scope > .chatbox-rename-fixtures")?.remove();
+ 		$selected.querySelector(":scope > .chatbox-open-btn")?.remove();
++		$selected.querySelector(":scope > .chatbox-thread-btn")?.remove();
+ 		$selected = null;
+ 		on_select?.(null);
+ 	}
+@@ -327,6 +388,67 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select,
+ 		on_select?.({ el: $b, text: title_node($b)?.textContent ?? "" });
+ 		if (rename) add_rename_button($b);
+ 		if (on_open && card_of($b)?.children.length) add_open_button($b);
++		if (on_reply) add_reply_button($b);
++	}
++
++	/* THREADS (the owner, 2026-09-30: "a reply is attached to its parent bubble,
++	   shown as a thread under it, collapsed to N replies, not appended at the
++	   bottom out of context"). A selected bubble grows a Reply button; pressing
++	   it hands `on_reply({re, title})` to the caller, whose next message then
++	   carries `re` = that bubble's key and `thread: true`. Such a line is drawn
++	   in a small thread right under its parent (`thread_item()`, below), never
++	   at the bottom. A reply to a message that is itself in a thread joins the
++	   same thread: threads are one level deep. `thread: true` is what marks it:
++	   an ordinary assistant reply also carries `re` (the line it answers) and
++	   stays in the main flow. */
++	function key_of($b){ return String(bubbles.get($b)?.key ?? bubbles.get($b)?.pieces[0]?.id ?? $b.dataset.re ?? ""); }
++	function add_reply_button($b){
++		const $btn = document.createElement("button");
++		$btn.type = "button"; $btn.className = "chatbox-thread-btn"; $btn.textContent = "Reply ↩";
++		$btn.addEventListener("click", e => {
++			e.stopPropagation();
++			const k = key_of($b), re = root_of.get(k) ?? k;
++			on_reply({ re, title: (title_node($b)?.textContent ?? "").replace(/[\s✓?🎤⌨]+$/u, "").trim().slice(0, 80) });
++			deselect();
++		});
++		$b.appendChild($btn);
++	}
++	const threads = new Map(), root_of = new Map();   // root key -> thread; a thread item's at -> its root key
++	function thread_for(root){
++		let t = threads.get(root);
++		if (t) return t;
++		const $parent = targets.get(root);
++		if (!$parent) return null;
++		let $wrap, $body, $toggle;
++		$script.append(() => {
++			$wrap = div.c("chatbox-thread", () => {
++				$toggle = button.c("chatbox-thread-toggle").attr("type", "button");
++				$body = div.c("chatbox-thread-body");
++			});
++		});
++		$parent.after($wrap.el);
++		t = { $wrap, $body, $toggle, count: 0, open: false };
++		const show = () => {
++			$toggle.el.textContent = (t.open ? "▾ " : "▸ ") + t.count + (t.count === 1 ? " reply" : " replies");
++			$body.el.hidden = !t.open;
++			$toggle.attr("aria-expanded", String(t.open));
++		};
++		t.show = show;
++		$toggle.el.addEventListener("click", e => { e.stopPropagation(); t.open = !t.open; show(); });
++		threads.set(root, t);
++		return t;
++	}
++	function thread_item(c, cls, who, at){
++		const $p = targets.get(String(c.re));
++		const root = root_of.get(String(c.re)) ?? ($p ? key_of($p) : String(c.re));
++		const t = thread_for(root);
++		if (!t) return false;
++		root_of.set(String(c.at), root);
++		t.count++;
++		if (Date.now() - at < 120000) t.open = true;   // a reply from the last two minutes opens its thread, so it is seen
++		t.show();
++		put_line(t.$body, c, cls, who, at);
++		return true;
+ 	}
+ 
+ 	/* DRILL IN (`doc/drill.md`, 2026-09-30): a selected bubble that HAS contents
+@@ -342,7 +464,90 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select,
+ 	function make_selectable($b){
+ 		$b.classList.add("chatbox-selectable");
+ 		$b.tabIndex = 0;
+-		$b.addEventListener("click", e => { if (e.target.closest("select, .chatbox-rename-btn, .chatbox-open-btn")) return; select_bubble($b); });
++		$b.addEventListener("click", e => {
++			if (e.target.closest("select, .chatbox-rename-btn, .chatbox-open-btn, .chatbox-thread-btn, .chatbox-thread-toggle, .chatbox-react-picker, .chatbox-react-btn")) return;
++			// The click that ends a long-press opened the picker: it is not also a
++			// select, and it must not reach the document, which closes an open picker.
++			if (pressed){ pressed = false; e.stopPropagation(); return; }
++			select_bubble($b);
++		});
++		if (on_react) reactable($b);
++	}
++
++	/* REACTING (the owner, 2026-09-30). Three ways to open the row of reactions on
++	   a bubble: hold it (a phone, about half a second), right-click it (a
++	   desktop; an Android long-press fires the same event), or the small smiley
++	   button that shows on hover. A tap on an emoji pins it on the bubble's
++	   corner; the same emoji again takes it off. `on_react({re, emoji, at})` is
++	   how the caller saves it (a line in the session log); it is drawn here at once. */
++	const HOLD_MS = 450;
++	let pressed = false, $picker = null;
++	function target_of($b, node){
++		return node?.closest?.("[data-re]")?.dataset.re ?? $b.dataset.re
++			?? [...$b.querySelectorAll(":scope > [data-re]")].pop()?.dataset.re ?? null;
++	}
++	function close_picker(){ $picker?.remove(); $picker = null; }
++	function open_picker($b, node){
++		close_picker();
++		const re = target_of($b, node);
++		if (re == null) return;
++		const mine = reaction_of($b, re);
++		$picker = el("chatbox-react-picker");
++		$picker.setAttribute("role", "toolbar");
++		$picker.setAttribute("aria-label", "react");
++		REACTIONS.forEach(emoji => {
++			const btn = el("chatbox-react-pick" + (emoji === mine ? " mine" : ""), "button");
++			btn.type = "button"; btn.textContent = emoji; btn.title = emoji === mine ? "take it off" : "react " + emoji;
++			btn.addEventListener("click", e => {
++				e.stopPropagation();
++				const r = { at: new Date().toISOString(), re, emoji: emoji === mine ? "" : emoji, from: { kind: "owner" } };
++				react_on($b, r);
++				close_picker();
++				Promise.resolve(on_react({ re, emoji: r.emoji, at: r.at })).catch(err => console.error("chat: reaction not saved", err));
++			});
++			$picker.append(btn);
++		});
++		$b.append($picker);
++		// Near the top of the log there is no room above: open below, so the log never clips it.
++		const room = $b.getBoundingClientRect().top - $script.el.getBoundingClientRect().top;
++		if (room < $picker.offsetHeight + 8) $picker.classList.add("below");
++	}
++	function reactable($b){
++		const $btn = el("chatbox-react-btn", "button");
++		$btn.type = "button"; $btn.textContent = "☺"; $btn.title = "react"; $btn.setAttribute("aria-label", "react");
++		$btn.addEventListener("click", e => { e.stopPropagation(); $picker?.parentNode === $b ? close_picker() : open_picker($b, null); });
++		$b.append($btn);
++		$b.addEventListener("contextmenu", e => { e.preventDefault(); pressed = false; open_picker($b, e.target); });
++		let timer = null, x0 = 0, y0 = 0;
++		const cancel = () => { clearTimeout(timer); timer = null; };
++		$b.addEventListener("pointerdown", e => {
++			if (e.pointerType === "mouse" || e.target.closest(".chatbox-react-picker, .chatbox-react-btn")) return;
++			x0 = e.clientX; y0 = e.clientY; cancel();
++			timer = setTimeout(() => { timer = null; pressed = true; open_picker($b, e.target); }, HOLD_MS);
++		});
++		$b.addEventListener("pointermove", e => { if (timer && Math.hypot(e.clientX - x0, e.clientY - y0) > 10) cancel(); });
++		["pointerup", "pointercancel", "pointerleave"].forEach(t => $b.addEventListener(t, cancel));
++	}
++	if (typeof document !== "undefined"){
++		document.addEventListener("click", e => { if ($picker && !e.target.closest(".chatbox-react-picker, .chatbox-react-btn")) close_picker(); });
++		document.addEventListener("keydown", e => { if (e.key === "Escape") close_picker(); });
++	}
++
++	/* Which bubble holds each message id (a chat line's `at`, an old line's `id`),
++	   so a reaction line finds its bubble. A reaction that arrives before its
++	   message waits in `early` until the message is drawn. */
++	const targets = new Map(), early = new Map();
++	function target(id, $b){
++		if (id == null || !$b) return;
++		id = String(id);
++		targets.set(id, $b);
++		const wait = early.get(id);
++		if (wait){ early.delete(id); wait.forEach(r => react_on($b, r)); }
++	}
++	function react_line(r){
++		const $b = targets.get(String(r.re));
++		if ($b) return react_on($b, r);
++		early.set(String(r.re), [...(early.get(String(r.re)) ?? []), r]);
+ 	}
+ 	if (typeof document !== "undefined") document.addEventListener("keydown", e => { if (e.key === "Escape") deselect(); });
+ 
+@@ -412,7 +617,7 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select,
+ 
+ 	function add(cls, who, text, sender, at, id){
+ 		if (!text) return;
+-		follow(() => speak($script, { cls, who, text, sender, at, id, onmount: make_selectable }));
++		follow(() => target(id, speak($script, { cls, who, text, sender, at, id, onmount: make_selectable })));
+ 	}
+ 
+ 	/* A REPLY'S HEADING (the owner, 2026-09-24): a `heading` field, or a first line
+@@ -421,12 +626,13 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select,
+ 		let head = e.heading, body = e.text ?? "";
+ 		const nl = body.search(/[\r\n]/), first = (nl < 0 ? body : body.slice(0, nl)).trim();
+ 		if (!head && first.startsWith("#")){ head = first.replace(/^#+\s*/, ""); body = nl < 0 ? "" : body.slice(nl + 1).trim(); }
+-		if (!head) return follow(() => speak($script, { cls: "chatbox-reply", who: e.by, text: body, sender: e.by, at: e.at, id: e.id, onmount: make_selectable }));
++		if (!head) return follow(() => target(e.id, speak($script, { cls: "chatbox-reply", who: e.by, text: body, sender: e.by, at: e.at, id: e.id, onmount: make_selectable })));
+ 		follow(() => $script.append(() => {
+ 			p.c("chatbox chatbox-reply", $b => {
+ 				who_label(e.by);
+ 				span.c("chatbox-head", $t => { md_into($t.el, head, true); });
+ 				if (body) div.c("chatbox-text md", $t => { md_into($t.el, body); });
++				if (e.id != null){ $b.el.dataset.re = e.id; target(e.id, $b.el); }
+ 				// Never `fill()`-ed (its markup is drawn right here); kept so `card_of()`
+ 				// can open it — its title is the heading, its one child the body.
+ 				bubbles.set($b.el, { pieces: body ? [{ id: e.id ?? e.at, text: body, at: e.at }] : [], refined: null, head, key: e.id ?? e.at });
+@@ -456,6 +662,8 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select,
+ 				});
+ 				const entry = { $q, choices, at: Date.parse(e.at ?? 0) || 0 };
+ 				asks.push(entry);
++				const id = e.id ?? e.at;
++				if (id != null){ $q.el.dataset.re = id; target(id, $q.el); }
+ 				make_selectable($q.el);
+ 			});
+ 		}));
+@@ -523,32 +731,47 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select,
+ 			return follow(() => speak($script, { cls: "chatbox-reply", who: "", text: c.text, sender: "", at: c.at, id: "revision-" + at }));
+ 		}
+ 
+-		follow(() => {
+-			const last = mergeable($script, who, at);
++		// A THREADED reply (`thread: true` + `re`) goes under its parent; with the
++		// parent not on screen, it falls through to the main flow rather than vanish.
++		if (c.thread && c.re){
++			let placed = false;
++			follow(() => { placed = thread_item(c, cls, who, at); });
++			if (placed) return;
++		}
++
++		follow(() => put_line($script, c, cls, who, at));
++	}
++
++	/** One universal chat line into `$box` (the log, or a thread's body): a paragraph
++	 *  on the bubble it merges into, or a new bubble. */
++	function put_line($box, c, cls, who, at){
++			const last = mergeable($box, who, at);
+ 			const piece = { id: c.at, text: c.text, at, via: c.via, place: c.place };
+ 			if (last){
+ 				bubbles.get(last).pieces.push(piece);
+ 				last.dataset.at = at;
+ 				fill(last);
+ 				fix_index.set(c.at, { bubble: last, piece });
++				target(c.at, last);
+ 				if (cls === "chatbox-you") mark_owner_piece(last, piece, c);
+ 				return;
+ 			}
+-			$script.append(() => {
++			$box.append(() => {
+ 				p.c("chatbox " + cls, $b => {
+ 					$b.el.dataset.sender = who; $b.el.dataset.at = at;
+-					if (who) label_via(who_label(who), c.via);
++					if (who) who_label(who);
+ 					bubbles.set($b.el, { pieces: [piece], refined: null });
+ 					fill($b.el);
+ 					fix_index.set(c.at, { bubble: $b.el, piece });
+ 					make_selectable($b.el);
++					target(c.at, $b.el);
+ 					if (cls === "chatbox-you") mark_owner_piece($b.el, piece, c);
+ 				});
+ 			});
+-		});
+ 	}
+ 
+ 	function draw(e){
++		if (e.react) return react_line(e.react);
+ 		if (e.chat) return chat_line(e.chat);
+ 		if (e.type === "ask" || (e.type === "prompt" && e.choices?.length)) return ask(e);
+ 		if (e.type === "prompt") answered(e);
+@@ -601,5 +824,6 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select,
+ }
+ 
+ export { md_into, who_label };
++export { set_avatar, avatar_of, AVATARS } from "./roles.js";
+ export { role_key } from "./roles.js";
+ export default chat;
+diff --git a/public/framework/ext/Chat/ChatPanel.js b/public/framework/ext/Chat/ChatPanel.js
+index 68ea6412..f2e619ad 100644
+--- a/public/framework/ext/Chat/ChatPanel.js
++++ b/public/framework/ext/Chat/ChatPanel.js
+@@ -1,4 +1,4 @@
+-import { View } from "/app.js";
++import { View, div, span, button } from "/app.js";
+ import { chat } from "./Chat.js";
+ import { composer } from "./Composer.js";
+ import { watch as watch_session } from "/framework/ext/Session/Session.js";
+@@ -60,7 +60,7 @@ export class ChatPanel extends View {
+ 		// a Dictate-fed one does (`readme.md`'s "revision line", agreed with
+ 		// mastermind-servex-7, 2026-09-29): `chat_line()` only reads the shape.
+ 		if (this.watch) this.stop_watch = watch_session(this.watch, line => {
+-			if (line.chat) local.push(line);
++			if (line.chat || line.react) local.push(line);
+ 			this.sync();
+ 		});
+ 
+@@ -85,6 +85,20 @@ export class ChatPanel extends View {
+ 			// DRILL IN (doc/drill.md): "Open" on a selected card takes it full

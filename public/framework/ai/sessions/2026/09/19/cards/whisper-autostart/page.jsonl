@@ -1,0 +1,5 @@
+{"class":"/framework/ai2/card.js","title":"Landed: the dev server starts Whisper by itself","type":"card","id":"2026/09/19/whisper-autostart","created":"2026-09-19T15:30:58-05:00","by":"","tags":[]}
+{"legacy":"whisper-autostart"}
+{"status":"done"}
+{"text":"After your one server restart, dictation just works: the dev server starts the Whisper server on boot and stops it when it stops. If one is already running it leaves it alone. If Whisper is not installed it says so in one line and Dictate falls back to the browser's engine. A crash is retried three times, then it goes quiet. Nothing here can take the dev server down.\nThe minion proved each case on a private server with a test port, and the Whisper server you are using now was never touched."}
+{"links":[{"url":"/framework/ux/Dictate/","label":"Dictate"}]}

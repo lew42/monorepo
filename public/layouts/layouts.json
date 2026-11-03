@@ -1,0 +1,711 @@
+{
+	"about": "The layout standard. An id is N-name: N is how many columns the layout has at the widest screen it is meant for, and the name says how the room is divided. Names are CSS-agnostic - a flex row and a grid that produce the same picture are the SAME layout, and the technique is a tag. A number instead of a name (4-1) means nobody could name it honestly yet. This file is the authority; every page under /layouts/ is drawn from it. Adding a layout: doc/naming.md. The wire spec: doc/wire.md.",
+	"rule": "An id names the DIVISION of the room. Paint (cards, tint), proportion (golden, two-thirds), technique (flex, grid, multicol, float) and side (left, right) are TAGS, never part of the id. That is why there is no id called 3-cards - cards is paint, so it is a tag that 2-equal, 3-equal and n-wall all carry, and /layouts/tag/cards/ is the page that shows you all of them at once.",
+	"branches": {
+		"1": "One column. The only questions are how wide it may get, and whether its HEIGHT is divided instead. Start here even for a big screen: 21 of the 47 real sites next door lay out a whole page this way.",
+		"2": "Two columns is one decision: is the room shared evenly, or does one column support the other?",
+		"3": "Three columns is where a layout gets a middle. Which side the narrow columns sit on is the whole difference between these three.",
+		"4": "Four columns, and the honest question becomes whether the count should be fixed at all.",
+		"n": "The count is not a number: the layout names a column WIDTH and lets the room decide how many fit, so these two respond with no breakpoint written anywhere. Both go INSIDE a page rather than being one - of 47 real sites, not one is a wall from top to bottom."
+	},
+	"words": [
+		{
+			"word": "flow",
+			"kind": "division",
+			"means": "Rows follow each other down the page, each one the full width of the column and as tall as its own content. Nothing is divided - this is what a plain div does on its own."
+		},
+		{
+			"word": "centered",
+			"kind": "division",
+			"means": "One column with a ceiling on how wide it may get, and the leftover room split evenly either side of it."
+		},
+		{
+			"word": "rows",
+			"kind": "division",
+			"means": "A fixed height is divided down the block axis: some rows take exactly their content's height and one row takes everything left over."
+		},
+		{
+			"word": "bands",
+			"kind": "division",
+			"means": "The page is a stack of full-width sections, each painting its own background edge to edge and holding its own smaller layout inside."
+		},
+		{
+			"word": "equal",
+			"kind": "division",
+			"means": "Every column gets the same share of the room. Nothing in the layout says which column is the important one. Any count can be equal, so `N-equal` is a FAMILY, not a list: `2-equal` and `3-equal` are drawn because those are the ones real pages use, and `5-equal` is a legal id the moment a page needs it - one real footer in 47 sites does. Past three, a fixed count is usually a mistake and `n-wall` is what was wanted; a footer, where the count is deliberate, is the exception."
+		},
+		{
+			"word": "sidebar",
+			"kind": "division",
+			"means": "A narrow column beside a wide one, where the narrow one supports the wide one - navigation, filters, metadata, ads. Which side it is on is a tag, not a different layout."
+		},
+		{
+			"word": "holy-grail",
+			"kind": "division",
+			"means": "Narrow, wide, narrow: one support column on each side of the main one. The name is historic - this arrangement was genuinely hard to build before flexbox and grid, and the name stuck."
+		},
+		{
+			"word": "wall",
+			"kind": "division",
+			"means": "The layout names a column WIDTH instead of a column count, so the room decides how many fit. This is the only arrangement here that responds without a single breakpoint."
+		},
+		{
+			"word": "newspaper",
+			"kind": "division",
+			"means": "One piece of content poured into several columns: it fills the first, then continues at the top of the next. Every other layout puts different things in each column; this one puts the same thing across all of them."
+		},
+		{
+			"word": "mosaic",
+			"kind": "division",
+			"candidate": true,
+			"means": "A fixed grid whose tiles are different sizes - one spans two columns, another spans two rows. Recorded as a CANDIDATE name only: it has not been adopted, so the layout keeps the number 4-1 until a word survives being explained to someone who has never seen one."
+		},
+		{
+			"word": "cards",
+			"kind": "paint",
+			"means": "Each column has a visible background of its own and padding inside it. A gap is usual - a rounded corner needs one to be seen - but it is not required: columns may butt against each other and be told apart by a border. Cards is PAINT, not a division, so it describes many layouts at once: any equal row and any wall can wear it. That is why it is a tag rather than an id.",
+			"answers": "the question `3-cards`. There is no id by that name: a three-column row of cards is `3-equal` wearing this tag, and every layout drawn below is one that can wear it."
+		},
+		{
+			"word": "measure",
+			"kind": "trait",
+			"means": "A ceiling on line length, about 40em or 80 characters, past which a line of text gets hard to come back to. A column carrying prose should have one."
+		},
+		{
+			"word": "hero",
+			"kind": "trait",
+			"means": "The first band on a page: tall, usually with one big claim, one picture and one button. It is a band with a job, not a layout of its own."
+		},
+		{
+			"word": "rail",
+			"kind": "trait",
+			"means": "A sidebar whose width is a fixed measurement rather than a share of the room, so it stays the same width on a phone and on a 3440 screen. A list does not get more readable when it gets wider, which is why a rail is measured and a content column is shared."
+		},
+		{
+			"word": "split",
+			"kind": "behaviour",
+			"means": "Each piece owns its own height and scrolls on its own, so the page itself does not scroll. A mail app is a split; an article beside a sidebar usually is not."
+		},
+		{
+			"word": "sticky",
+			"kind": "behaviour",
+			"means": "A piece that scrolls with the page until it reaches an edge, and then stays put while the rest keeps going - a header that stays on top, a sidebar that stops beside a long article. It is one CSS declaration (`position: sticky` plus the edge it sticks to) and it changes nothing about how the room is divided, which is why it is a behaviour and not a layout. Its harder cousin is `position: fixed`, which takes the piece out of the page entirely so it never scrolls at all, not even once."
+		},
+		{
+			"word": "carousel",
+			"kind": "behaviour",
+			"means": "The other answer to a row that will not fit. A row of equal items normally wraps onto a second line and then stacks; a carousel refuses to - it keeps every item on one line, wider than the room, and the reader scrolls or swipes sideways to reach the rest. So the division is unchanged (still a row of equal columns) and only the OVERFLOW answer differs: stack, or scroll. Seven of the 47 sites in the corpus next door carry it, always on a strip of cards."
+		},
+		{
+			"word": "stack",
+			"kind": "fallback",
+			"means": "What every multi-column layout becomes when the room runs out: one column, in DOM order. Naming the stack is half of naming the layout - the responsive story of nearly every entry here ends at 1-flow."
+		},
+		{
+			"word": "gap",
+			"kind": "trait",
+			"means": "Space between columns that belongs to the row rather than to the columns. No gap is a real choice: columns that butt, separated by a border, read as one object divided rather than as several objects."
+		},
+		{
+			"word": "golden",
+			"kind": "proportion",
+			"means": "Two columns at 61.8 / 38.2 instead of some round number. A proportion is a tag: it changes how the layout looks, never how the room is divided."
+		}
+	],
+	"layouts": [
+		{
+			"id": "1-flow",
+			"n": 1,
+			"name": "flow",
+			"title": "Flow",
+			"aliases": ["1-stack", "stack", "single column", "document"],
+			"summary": "One column. Every row is the full width of the column and as tall as its own content, and they follow each other down the page in the order they were written.",
+			"when": "The default, and the right answer for anything read top to bottom - an article, a form, a feed, a phone screen.",
+			"responds": "1-flow",
+			"responds_note": "Nothing changes; it is already one column. A flow is what every other layout in this book becomes when the room runs out, which is why it sits at the bottom of the tree.",
+			"tags": ["1 column", "flow", "stack", "fluid", "no gap", "1 column flex", "1 column grid"],
+			"framework": {
+				"recipe": "new Page({ content(){ p(\"First\"); p(\"Second\"); } })",
+				"note": "A page already is one - write no class and you get this, with the rhythm between rows coming from --flow.",
+				"href": "/framework/styles/doc/layout-system.md"
+			},
+			"css": [
+				{
+					"tag": "1 column",
+					"rules": "/* nothing at all */\ndisplay: block;",
+					"note": "A div stacks its children on its own. Everything else on this page is a way to add spacing to it."
+				},
+				{
+					"tag": "1 column flex",
+					"rules": "display: flex;\nflex-direction: column;\ngap: var(--gap);",
+					"wrap": "There is nothing to wrap - one column is already the wrapped state."
+				},
+				{
+					"tag": "1 column grid",
+					"rules": "display: grid;\ngap: var(--gap);",
+					"note": "One track by default, so a grid with no template is a flow with a gap."
+				}
+			],
+			"wire": {
+				"role": "page",
+				"scroll": true,
+				"kids": [
+					{"role": "header", "h": "4em"},
+					{"role": "main", "lines": 9},
+					{"role": "footer", "h": "5em"}
+				]
+			}
+		},
+		{
+			"id": "1-centered",
+			"n": 1,
+			"name": "centered",
+			"title": "Centered",
+			"aliases": ["1-measure", "measure", "reading column", "container"],
+			"summary": "One column with a ceiling on how wide it may get, and the leftover room split evenly on both sides. The column stops growing; the page does not.",
+			"when": "Anything made of sentences. Past about 80 characters a line gets hard to come back to, so a reading page caps its column and lets a wide screen keep the margins.",
+			"responds": "1-flow",
+			"responds_note": "Below the cap there is no leftover to split, so it is a plain flow with the page's own padding either side.",
+			"tags": ["1 column", "centered", "measure", "fluid", "1 column grid", "1 column flex"],
+			"framework": {
+				"recipe": "div.c(\"measure\", () => { ... })",
+				"note": ".measure declares its own --measure (34em) and centres itself. A page's main track already does this, so a reading page needs no class at all.",
+				"href": "/framework/styles/doc/layout-system.md"
+			},
+			"css": [
+				{
+					"tag": "1 column",
+					"rules": "max-width: 40em;\nmargin-inline: auto;",
+					"note": "The two-line version. min(40em, 100%) instead of 40em if the box might be narrower than the cap."
+				},
+				{
+					"tag": "1 column grid",
+					"rules": "display: grid;\ngrid-template-columns: min(40em, 100%);\njustify-content: center;\ngap: var(--gap);",
+					"note": "One track that is never wider than 40em, centred in the leftover."
+				},
+				{
+					"tag": "1 column flex",
+					"rules": "display: flex;\nflex-direction: column;\nalign-items: center;\ngap: var(--gap);",
+					"wrap": "Nothing wraps. The children must carry width: min(40em, 100%) themselves - align-items: center only centres them, it does not cap them."
+				}
+			],
+			"wire": {
+				"role": "page",
+				"kids": [
+					{"role": "header", "h": "4em"},
+					{
+						"role": "main",
+						"dir": "row",
+						"center": true,
+						"floor": "none",
+						"kids": [
+							{"role": "text", "w": "40em", "lines": 9}
+						]
+					},
+					{"role": "footer", "h": "5em"}
+				]
+			}
+		},
+		{
+			"id": "1-rows",
+			"n": 1,
+			"name": "rows",
+			"title": "Rows",
+			"aliases": ["1-shell", "app shell", "sticky footer", "header main footer"],
+			"summary": "One column split down the OTHER axis: the header and the footer take exactly the height of their content and the middle takes everything left over. The height being divided is the screen, so the footer sits on the bottom edge even when the middle is nearly empty.",
+			"when": "Any screen that must fill the window exactly once - an app, a dialog, a panel - and any page whose footer must not float up when the article is short.",
+			"responds": "1-rows",
+			"responds_note": "It does not change. What changes is what is INSIDE the middle row, which is usually a two- or three-column layout that stacks.",
+			"tags": ["1 column", "rows", "full height", "sticky", "sticky header", "inner scroll", "grid rows", "flex column", "1 column grid", "1 column flex"],
+			"framework": {
+				"recipe": "new Page({ width: \"full\", content(){ div.c(\"page full fill flex v\", () => { ... }); } })",
+				"note": "The shell arrangement: a full-height page whose middle region takes the leftover.",
+				"href": "/framework/styles/layouts/shell/"
+			},
+			"css": [
+				{
+					"tag": "1 column grid",
+					"rules": "display: grid;\ngrid-template-rows: auto minmax(0, 1fr) auto;\nheight: 100dvh;",
+					"note": "minmax(0, 1fr), never plain 1fr: a track floored at its content's height cannot scroll, it grows."
+				},
+				{
+					"tag": "1 column flex",
+					"rules": "display: flex;\nflex-direction: column;\nheight: 100dvh;\n/* the middle child */ flex: 1;\nmin-height: 0;\noverflow: auto;",
+					"wrap": "Never wrap this one - a wrapped column puts the footer beside the header."
+				}
+			],
+			"wire": {
+				"role": "page",
+				"kids": [
+					{"role": "header", "h": "4em"},
+					{"role": "main", "lines": 4, "scroll": true},
+					{"role": "footer", "h": "4em"}
+				]
+			}
+		},
+		{
+			"id": "1-bands",
+			"n": 1,
+			"name": "bands",
+			"title": "Bands",
+			"aliases": ["1-sections", "sections", "landing page", "marketing page"],
+			"summary": "One column of full-width sections, each painting its own background from edge to edge and holding its own smaller layout inside. A reader scrolls from one to the next, and the change of background is what tells them a new idea started. Learn this one first. Counted across the 47 real sites in the corpus next door on 2026-09-08 it was the second most common whole-page layout - 11 of 47, behind 2-sidebar's 13 - and the only arrangement other than a plain flow that a phone leaves alone: 8 of those 11 are still bands at 400px. The count is recounted live at /websites/patterns/.",
+			"when": "A page that introduces or sells something - a homepage, a product page, a tour. Not for reference material, where a reader wants to land in the middle and find their way.",
+			"responds": "1-bands",
+			"responds_note": "The bands stay bands; each band's own inner layout stacks. That is the whole responsive story of most marketing sites, and the corpus agrees: 8 of the 11 sites built this way are still bands on a phone, where every other multi-column layout has collapsed to one.",
+			"tags": ["1 column", "bands", "hero", "bleed", "full height", "scroll snap"],
+			"framework": {
+				"recipe": "div.c(\"bleed\", () => { ... })",
+				"note": "In a page grid, .bleed on a direct child spends the gutter tracks and reaches the viewport edge. The band pays the inset back inside itself.",
+				"href": "/framework/styles/doc/layout-system.md"
+			},
+			"css": [
+				{
+					"tag": "1 column",
+					"rules": "/* the page */ display: block;\n\n/* each band */\nwidth: 100%;\nbackground: var(--band-bg);\npadding-block: clamp(3em, 8vh, 7em);\n\n/* the track inside it */\nmax-width: 70em;\nmargin-inline: auto;",
+					"note": "Two boxes per band: the painted one, full width, and a centred track inside it. That pair is the whole technique."
+				},
+				{
+					"tag": "scroll snap",
+					"rules": "/* the page */\nheight: 100dvh;\noverflow-y: auto;\nscroll-snap-type: y proximity;\n\n/* each band */\nmin-height: 100dvh;\nscroll-snap-align: start;",
+					"note": "Optional, and easy to overdo - snapping takes the scroll away from the reader."
+				}
+			],
+			"wire": {
+				"role": "page",
+				"kids": [
+					{"role": "header", "h": "3.5em"},
+					{"role": "hero", "h": "16em"},
+					{
+						"role": "main",
+						"h": "10em",
+						"tone": "a04",
+						"dir": "row",
+						"center": true,
+						"floor": "none",
+						"kids": [
+							{"role": "text", "w": "44em", "lines": 3}
+						]
+					},
+					{"role": "cards", "h": "11em", "n": 3},
+					{"role": "footer", "h": "6em"}
+				]
+			}
+		},
+		{
+			"id": "2-equal",
+			"n": 2,
+			"name": "equal",
+			"title": "Equal",
+			"aliases": ["2-half", "2-cards", "50/50", "two up"],
+			"summary": "Two columns that get the same share of the room. Neither column is the subject, which is exactly right for a comparison and exactly wrong for a page that has a main thing.",
+			"when": "Two things of the same kind side by side - before and after, code and its result, two plans, a picture beside the paragraph about it.",
+			"responds": "1-flow",
+			"responds_note": "Below about 34rem the two columns stack, the first one on top.",
+			"tags": ["2 columns", "equal", "gap", "cards", "fluid", "2 column flex", "2 column grid", "float", "stack"],
+			"framework": {
+				"recipe": "div.c(\"cols half gap\", () => { div(\"Left\"); div(\"Right\"); })",
+				"note": ".cols carries the stack floor (--cols-floor, 34rem) so the row falls to one column on its own.",
+				"href": "/framework/styles/layouts/cols/"
+			},
+			"css": [
+				{
+					"tag": "2 column grid",
+					"rules": "display: grid;\ngrid-template-columns: repeat(2, minmax(0, 1fr));\ngap: var(--gap);",
+					"note": "minmax(0, 1fr) rather than 1fr: a plain 1fr track is floored at its content's width, so one long word or one <pre> pushes the row wider than the page."
+				},
+				{
+					"tag": "2 column flex",
+					"rules": "display: flex;\nflex-wrap: wrap;\ngap: var(--gap);\n\n/* each child */\nflex: 1 1 20em;\nmin-width: 0;",
+					"wrap": "The basis is the threshold. Two children at flex: 1 1 20em need 40em plus one gap on one line - about 41em, or 656px at a 16px root - so below that the row wraps and this becomes 1-flow. Grid does not wrap at all; if a layout must fall back on its own, that is the reason to pick flex."
+				},
+				{
+					"tag": "float",
+					"rules": "/* each child */\nfloat: left;\nwidth: 50%;\n\n/* the row */\noverflow: hidden;",
+					"note": "How this was built before 2015. Kept here because you will meet it in old CSS, not because you should write it."
+				}
+			],
+			"wire": {
+				"role": "page",
+				"kids": [
+					{"role": "header", "h": "4em"},
+					{
+						"role": "main",
+						"dir": "row",
+						"kids": [
+							{"role": "main", "w": 1, "lines": 7},
+							{"role": "main", "w": 1, "lines": 7}
+						]
+					},
+					{"role": "footer", "h": "5em"}
+				]
+			}
+		},
+		{
+			"id": "2-sidebar",
+			"n": 2,
+			"name": "sidebar",
+			"title": "Sidebar",
+			"aliases": ["2-rail", "2-main-aside", "2-golden", "2-fixed-fluid", "nav + main", "docs layout", "list + detail"],
+			"summary": "Two columns of different weight: a narrow one beside a wide one. The narrow column holds navigation, filters, metadata or ads; the wide one holds the thing the reader came for.",
+			"when": "The commonest two-column page on the web - documentation, a shop with filters, a mail app, an admin screen, a blog with a sidebar.",
+			"responds": "1-flow",
+			"responds_note": "Below about 40rem the sidebar goes above the main column, or off screen behind a menu button - a drawer.",
+			"tags": [
+				"2 columns",
+				"sidebar",
+				"left",
+				"right",
+				"rail",
+				"fixed width",
+				"fluid",
+				"golden",
+				"sticky",
+				"2 column grid",
+				"2 column flex",
+				"stack"
+			],
+			"framework": {
+				"recipe": "div.c(\"cols main-aside gap\", () => { div(\"Main\"); div(\"Aside\"); })",
+				"note": ".cols.main-aside is 68 / 32 with the aside capped at 26rem, because a share of 3440px hands a list 1100px it cannot use. For a measured rail instead, div.c(\"flex gap\", () => { div.c(\"basis\"); div.c(\"flex-1\"); }).",
+				"href": "/framework/styles/layouts/cols/"
+			},
+			"css": [
+				{
+					"tag": "2 column grid",
+					"rules": "display: grid;\ngrid-template-columns: 16em minmax(0, 1fr);\ngap: var(--gap);",
+					"note": "A measured rail: 16em never changes width, so it is a PLACE the reader learns. Swap the two track values to move it to the right."
+				},
+				{
+					"tag": "2 column grid",
+					"rules": "display: grid;\ngrid-template-columns: minmax(0, 1fr) minmax(0, min(32%, 26rem));\ngap: var(--gap);",
+					"note": "A shared aside instead: 32% of the room, but never more than 26rem. The cap is the part people forget."
+				},
+				{
+					"tag": "2 column flex",
+					"rules": "display: flex;\nflex-wrap: wrap;\ngap: var(--gap);\n\n/* the rail */\nflex: 0 1 16em;\n\n/* the body */\nflex: 1 1 24em;\nmin-width: 0;",
+					"wrap": "The row needs 16em + 24em + a gap on one line - about 41em, or 656px. Below that the rail wraps above the body and this becomes 1-flow with the sidebar first. Put the rail second in the DOM and give it order: -1 if you want the body first on a phone."
+				}
+			],
+			"wire": {
+				"role": "page",
+				"kids": [
+					{"role": "header", "h": "4em"},
+					{
+						"role": "main",
+						"dir": "row",
+						"floor": "40rem",
+						"kids": [
+							{"role": "aside", "w": "16em"},
+							{"role": "main", "w": 1, "lines": 8}
+						]
+					},
+					{"role": "footer", "h": "5em"}
+				]
+			}
+		},
+		{
+			"id": "3-equal",
+			"n": 3,
+			"name": "equal",
+			"title": "Equal",
+			"aliases": ["3-thirds", "3-cards", "thirds", "three up"],
+			"summary": "Three columns that get the same share of the room. Three is the last count where equal columns still read as peers rather than as a wall of tiles.",
+			"when": "Three things of the same kind - three plans, three steps, three features, a footer's three link lists.",
+			"responds": "1-flow",
+			"responds_note": "Below about 52rem all three stack. Falling to two and leaving one orphan underneath looks like a mistake, so the floor is worth writing.",
+			"tags": ["3 columns", "equal", "cards", "gap", "fluid", "3 column grid", "3 column flex", "stack"],
+			"framework": {
+				"recipe": "div.c(\"grid three gap\", () => { div(); div(); div(); })",
+				"note": ".grid.three holds three tracks until the row is too narrow for three --column widths, then goes straight to one.",
+				"href": "/framework/framework.css"
+			},
+			"css": [
+				{
+					"tag": "3 column grid",
+					"rules": "display: grid;\ngrid-template-columns: repeat(3, minmax(0, 1fr));\ngap: var(--gap);",
+					"note": "Grid never wraps. To make it fall back you either write one media query, or you stop naming a count and name a column width instead - and naming a width is `n-wall`, a different layout with a different id."
+				},
+				{
+					"tag": "3 column flex",
+					"rules": "display: flex;\nflex-wrap: wrap;\ngap: var(--gap);\n\n/* each child */\nflex: 1 1 16em;\nmin-width: 0;",
+					"wrap": "Three at flex: 1 1 16em need 48em plus two gaps - about 50em, or 800px. Between 34em and 50em the row breaks to 2 + 1, which usually looks broken; the fix is a floor that jumps straight to one column: flex: 1 1 calc((52rem - 100%) * 999)."
+				},
+				{
+					"tag": "cards",
+					"rules": "/* the row, as above, plus on each child */\nbackground: var(--surface);\nborder: 1px solid var(--line);\nborder-radius: var(--radius);\npadding: var(--pad);",
+					"note": "This is all the word cards means: a background and padding on each column. It is paint on top of 3-equal, not a different layout - which is why /layouts/tag/cards/ has more than one entry in it."
+				}
+			],
+			"wire": {
+				"role": "page",
+				"kids": [
+					{"role": "header", "h": "4em"},
+					{
+						"role": "main",
+						"dir": "row",
+						"floor": "52rem",
+						"kids": [
+							{"role": "main", "w": 1, "lines": 6},
+							{"role": "main", "w": 1, "lines": 6},
+							{"role": "main", "w": 1, "lines": 6}
+						]
+					},
+					{"role": "footer", "h": "5em"}
+				]
+			}
+		},
+		{
+			"id": "3-holy-grail",
+			"n": 3,
+			"name": "holy-grail",
+			"title": "Holy grail",
+			"aliases": ["3-rail-main-aside", "narrow wide narrow", "nav content toc"],
+			"summary": "Three columns where the wide one is in the middle and a narrow one sits on each side. The middle is the subject; the two beside it are about it - navigation on one side, a table of contents or a properties panel on the other.",
+			"when": "Documentation, an editor, a mail client, an admin screen - anywhere a reader has to keep their place while walking through something long.",
+			"responds": "2-sidebar",
+			"responds_note": "The far column drops first, usually the table of contents, leaving nav plus content. Below that it is 1-flow with both rails behind buttons.",
+			"tags": [
+				"3 columns",
+				"holy-grail",
+				"sidebar",
+				"rail",
+				"fixed width",
+				"sticky",
+				"full height",
+				"inner scroll",
+				"3 column grid",
+				"3 column flex"
+			],
+			"framework": {
+				"recipe": "div.c(\"cols-row cols-rail-main-aside\", () => { ... })",
+				"note": "The lab's three-track word: a measured rail, then 70 / 30 of what is left with the aside capped at 22rem.",
+				"href": "/framework/styles/layouts/cols/"
+			},
+			"css": [
+				{
+					"tag": "3 column grid",
+					"rules": "display: grid;\ngrid-template-columns: 16em minmax(0, 1fr) 18em;\ngap: var(--gap);",
+					"note": "The two outside tracks are measurements, not shares - both hold lists, and a list does not get better at 600px wide."
+				},
+				{
+					"tag": "3 column flex",
+					"rules": "display: flex;\nflex-wrap: wrap;\ngap: var(--gap);\n\n/* the rails */\nflex: 0 1 16em;\n\n/* the middle */\nflex: 1 1 28em;\nmin-width: 0;",
+					"wrap": "The row needs 16 + 28 + 18em plus two gaps - about 64em, or 1024px - so a laptop already drops a rail. Order the DOM nav, main, aside and the aside wraps first, which is the fallback you want."
+				},
+				{
+					"tag": "full height",
+					"rules": "/* on the row */\nheight: 100dvh;\n\n/* on each column */\noverflow-y: auto;\nmin-height: 0;",
+					"note": "Add this and it becomes a split: three columns that scroll independently and a page that does not scroll at all."
+				}
+			],
+			"wire": {
+				"role": "page",
+				"kids": [
+					{"role": "header", "h": "4em"},
+					{
+						"role": "main",
+						"dir": "row",
+						"floor": "64rem",
+						"kids": [
+							{"role": "nav", "w": "16em"},
+							{"role": "main", "w": 1, "lines": 8},
+							{"role": "aside", "w": "13em"}
+						]
+					},
+					{"role": "footer", "h": "5em"}
+				]
+			}
+		},
+		{
+			"id": "3-sidebar",
+			"n": 3,
+			"name": "sidebar",
+			"title": "Sidebar, twice",
+			"aliases": ["3-main-aside-aside", "main + two asides", "two sidebars"],
+			"summary": "One wide column with two narrow ones stacked beside it on the SAME side. It is the sidebar layout with a second support column - nothing sits on the far side of the main column, which is what makes it not a holy grail.",
+			"when": "A blog or a shop with more to put beside the article than one column can hold - related posts and an ad, or filters and a basket.",
+			"responds": "1-flow",
+			"responds_note": "The two narrow columns go under the main one, in order. Dropping only the outer one first gives you 2-sidebar on the way down.",
+			"tags": ["3 columns", "sidebar", "right", "left", "fixed width", "3 column grid", "3 column flex", "stack"],
+			"framework": {
+				"recipe": "div.c(\"flex gap\", () => { div.c(\"flex-1\"); div.c(\"basis\"); div.c(\"basis\").style(\"--basis\", \"12em\"); })",
+				"note": ".flex-1 is the fluid track and .basis is a measured one; --basis overrides its width.",
+				"href": "/framework/framework.css"
+			},
+			"css": [
+				{
+					"tag": "3 column grid",
+					"rules": "display: grid;\ngrid-template-columns: minmax(0, 1fr) 15em 12em;\ngap: var(--gap);",
+					"note": "Put the two measurements last and the fluid track first, and the main column keeps every pixel the sidebars do not need."
+				},
+				{
+					"tag": "3 column flex",
+					"rules": "display: flex;\nflex-wrap: wrap;\ngap: var(--gap);\n\n/* main */ flex: 1 1 28em; min-width: 0;\n/* aside */ flex: 0 1 15em;\n/* aside */ flex: 0 1 12em;",
+					"wrap": "About 57em, or 912px, for all three on a line. The outer aside wraps first because it is last, and it lands under the main column at full width."
+				}
+			],
+			"wire": {
+				"role": "page",
+				"kids": [
+					{"role": "header", "h": "4em"},
+					{
+						"role": "main",
+						"dir": "row",
+						"floor": "57rem",
+						"kids": [
+							{"role": "main", "w": 1, "lines": 8},
+							{"role": "aside", "w": "15em"},
+							{"role": "aside", "w": "12em"}
+						]
+					},
+					{"role": "footer", "h": "5em"}
+				]
+			}
+		},
+		{
+			"id": "4-1",
+			"n": 4,
+			"name": "1",
+			"title": "4-1",
+			"unnamed": true,
+			"aliases": ["bento", "mosaic", "dashboard tiles", "feature grid"],
+			"summary": "A fixed grid - four tracks at its widest - whose tiles are deliberately different sizes: one spans two columns, another spans two rows, the rest take one cell each. The picture is a mosaic, not a row.",
+			"when": "A feature section or a dashboard where some tiles genuinely matter more than others, and a row of equal boxes would flatten that difference.",
+			"responds": "1-flow",
+			"responds_note": "The tiles lose their spans and stack in DOM order. A mosaic under about 40rem is just a list, so put the important tile first.",
+			"tags": ["4 columns", "mosaic", "cards", "gap", "4 column grid", "spans", "unnamed"],
+			"why_a_number": "This is the only entry in the book with a number instead of a name. bento is what the industry currently calls it, but it is a fashion word, not a description of how the room divides - it tells a newcomer nothing. mosaic is the best candidate so far and is kept as an alias. The namespace reserves a number for exactly this case: a real, common layout that nobody has named honestly yet. Name it and the number retires, with 4-1 kept as an alias.",
+			"framework": {
+				"recipe": "no word yet",
+				"note": "Nothing in framework.css says spans. This one is written by hand, or it is a proposal.",
+				"href": "/framework/styles/layouts/wire/"
+			},
+			"css": [
+				{
+					"tag": "4 column grid",
+					"rules": "display: grid;\ngrid-template-columns: repeat(4, minmax(0, 1fr));\ngrid-auto-rows: 12em;\ngap: var(--gap);\n\n/* the big one */\ngrid-column: span 2;\ngrid-row: span 2;",
+					"note": "grid-auto-rows is what makes a span downward mean anything - without a row height, span 2 spans two content-sized rows and the picture collapses."
+				},
+				{
+					"tag": "spans",
+					"rules": "grid-template-columns: repeat(auto-fit, minmax(min(16em, 100%), 1fr));\n\n/* every span, below the fold width */\n@media (width < 40em) { grid-column: auto; grid-row: auto; }",
+					"note": "The responsive half: drop every span at once, or a two-column span in a one-column grid overflows."
+				}
+			],
+			"wire": {
+				"role": "page",
+				"kids": [
+					{"role": "header", "h": "4em"},
+					{
+						"role": "main",
+						"kids": [
+							{
+								"role": "cards",
+								"dir": "row",
+								"h": "9em",
+								"floor": "40rem",
+								"kids": [
+									{"role": "card", "w": 2},
+									{"role": "card", "w": 1},
+									{"role": "card", "w": 1}
+								]
+							},
+							{
+								"role": "cards",
+								"dir": "row",
+								"h": "9em",
+								"floor": "40rem",
+								"kids": [
+									{"role": "card", "w": 1},
+									{"role": "card", "w": 2},
+									{"role": "card", "w": 1}
+								]
+							}
+						]
+					},
+					{"role": "footer", "h": "5em"}
+				]
+			}
+		},
+		{
+			"id": "n-wall",
+			"n": "n",
+			"name": "wall",
+			"title": "Wall",
+			"aliases": ["n-cards", "card grid", "tile grid", "auto-fill", "gallery", "4-equal"],
+			"summary": "The layout names a column WIDTH instead of a column count, and the room decides how many fit. One column on a phone, six on a 3440 screen, and not one breakpoint written anywhere. Note the word REGION below: this is what you put INSIDE a page, never a shape for a whole one. Across the 47 real sites next door (read 2026-09-08) it names a section 17 times and a whole page zero times - not one of them is a wall from top to bottom.",
+			"when": "Any REGION of same-shaped children - an index, a gallery, a shop, a dashboard of tiles. If you are about to write three media queries for a card grid, this is the thing you actually wanted.",
+			"responds": "n-wall",
+			"responds_note": "It responds by itself. The count falls as the room narrows and reaches one, which is 1-flow, with nothing written to make that happen.",
+			"tags": ["many columns", "wall", "cards", "equal", "gap", "carousel", "auto-fill grid", "many column flex", "multicol", "fluid", "stack"],
+			"framework": {
+				"recipe": "div.c(\"wall\").style(\"--column\", \"18em\", () => items.forEach(card))",
+				"note": "One of the five layout words. --column is the only number, and the count is never written down.",
+				"href": "/framework/styles/doc/layout-system.md"
+			},
+			"css": [
+				{
+					"tag": "auto-fill grid",
+					"rules": "display: grid;\ngrid-template-columns: repeat(auto-fill, minmax(min(14em, 100%), 1fr));\ngap: var(--gap);",
+					"note": "min(14em, 100%) is the part that stops it overflowing a box narrower than one column. auto-FILL keeps the empty tracks empty; auto-FIT collapses them and hands the leftover to whatever is there, so a wall of one card becomes one enormous card."
+				},
+				{
+					"tag": "many column flex",
+					"rules": "display: flex;\nflex-wrap: wrap;\ngap: var(--gap);\n\n/* each child */\nflex: 1 1 14em;\nmin-width: 0;",
+					"wrap": "The flex version stretches the last row's children to fill it, so three items in a four-track row become three wide ones. Right for a control bar, wrong for a card wall - use the grid."
+				},
+				{
+					"tag": "multicol",
+					"rules": "columns: 14em;\ngap: var(--gap);\n\n/* each child */\nbreak-inside: avoid;",
+					"note": "The masonry version: rows do not line up, and items read top-to-bottom within each column rather than left to right. Fine for a wall nobody reads in order."
+				}
+			],
+			"wire": {
+				"role": "page",
+				"kids": [
+					{"role": "header", "h": "4em"},
+					{"role": "cards", "n": 9, "column": "14em"},
+					{"role": "footer", "h": "5em"}
+				]
+			}
+		},
+		{
+			"id": "n-newspaper",
+			"n": "n",
+			"name": "newspaper",
+			"title": "Newspaper",
+			"aliases": ["n-columns", "multicol", "text columns"],
+			"summary": "One piece of content poured into several columns: it fills the first, then continues at the top of the next, the way a newspaper reads. Every other layout here puts different things in each column - this one puts the same thing across all of them.",
+			"when": "A long list of short items - a footer's links, an index, a glossary, a tag cloud. Rarely right for prose on a screen, because the reader has to scroll back up to reach the next column.",
+			"responds": "1-flow",
+			"responds_note": "The column width is a minimum, so when only one fits there is one, and the content reads straight down.",
+			"tags": ["many columns", "newspaper", "multicol", "fluid", "stack"],
+			"framework": {
+				"recipe": "div.c(\"masonry\", () => { ... })",
+				"note": ".masonry is this with break-inside: avoid on the children - the same mechanism used for a wall of cards rather than for text.",
+				"href": "/framework/styles/layouts/masonry/"
+			},
+			"css": [
+				{
+					"tag": "multicol",
+					"rules": "columns: 18em;\ncolumn-gap: var(--gap);",
+					"note": "One declaration, and the count follows the room. columns: 3 fixes the count instead, which is what a print layout usually wants."
+				},
+				{
+					"tag": "multicol",
+					"rules": "column-rule: 1px solid var(--line);\n\n/* on a child that must not be split */\nbreak-inside: avoid;",
+					"note": "column-rule is the newspaper's own divider, and it costs no element. break-inside is what stops a card being cut in half between two columns."
+				}
+			],
+			"wire": {
+				"role": "page",
+				"kids": [
+					{"role": "header", "h": "4em"},
+					{"role": "main", "columns": "16em", "lines": 26},
+					{"role": "footer", "h": "5em"}
+				]
+			}
+		}
+	]
+}

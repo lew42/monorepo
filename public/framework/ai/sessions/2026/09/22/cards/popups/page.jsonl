@@ -1,0 +1,6 @@
+{"class":"/framework/ai2/card.js","title":"Note: the windows — the root cause, this time","type":"card","id":"2026/09/22/popups","created":"2026-09-22T15:35:55-05:00","by":"","tags":[]}
+{"legacy":"popups"}
+{"icon":"warning"}
+{"text":"On Windows, a process started 'hidden' has no console, and every child it starts then opens a visible one. That flag was on six spawners here, so grandchildren — server restarts, test copies, Claude hooks — popped windows. Now the roots get a hidden console that everything below inherits, nothing below hides itself, and every hidden server is restarted on the new code. A last burst was possible during that restart (18:23-25). If one appears after 18:26, tell me the title."}
+{"status":"done"}
+{"links":[{"url":"/framework/ai/2026-09-22/servex-integrate/","label":"servex-integrate log"}]}

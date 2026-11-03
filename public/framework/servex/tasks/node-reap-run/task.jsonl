@@ -1,0 +1,3 @@
+{"id":"node-reap-run","path":"/framework/servex/tasks/node-reap-run/","parent":"/framework/servex/tasks/","title":"Servex: free the RAM held by idle dev servers, now","module":"servex","sessions":[{"id":null,"task":"/framework/ai/sessions/2026/10/03/node-reap-run/"}],"by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"set":{"now":"queued","brief":"/framework/ai/sessions/2026/10/03/node-reap-run/requirements.md","owner":"mastermind-servex","queue":"top (vscode-mastermind, 01:37)","model":"claude-sonnet-5","effort":"medium"}}
+{"stop":{"at":null,"why":"migrated: never landed or closed; last line unknown"}}

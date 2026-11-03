@@ -1,0 +1,314 @@
+import { Page, View, div, span, a, icon, md, is } from "/app.js";
+import { Stage } from "./stage.js";
+import { Toolbar } from "./toolbar.js";
+import { RAIL } from "./rail.js";
+import { MECHANISMS } from "./words.js";
+
+/* ⚠ RE-EXPORTED, not vestigial: three pages in /imagine/codrops/ import `MECHANISMS`
+     from this module by name to say which of the four gestures they rebuilt. Moving
+     it would break another realm silently. */
+export { MECHANISMS };
+
+View.stylesheet(import.meta, "paging.css");
+
+/* ── THE PAGING REALM IS AN APP ────────────────────────────────────────────────
+
+   `/imagine/paging/` is one screen: a left rail that never moves, and a middle that
+   swaps. Every page in the realm is a page of that app — same url, same back
+   button, same cold load — and clicking anything in the rail changes exactly one
+   thing, the middle.
+
+     Realm    the app itself. It owns the rail and the middle, and the middle IS
+              `this.$pages`, so every descendant page mounts there by core's own
+              container() rule and nothing had to be taught about it.
+
+     Paging   the base class every page in the realm extends. It is a plain page in
+              the middle — never a column — and it can put a `stage()` on screen.
+
+   ⚠ WHY NOT COLUMNS. /imagine/ is a columns host, so by default every page under it
+     opens as one more column of that row, and a deep link opens two columns at once
+     (the owner, 2026-09-05: "a lot of links launch 2 columns at once… quite
+     jarring"). Here the middle is one region, so the arrangement contract shows the
+     DEEPEST page and hides its ancestors — a link three levels down still changes
+     one thing. The rail is outside the region, so it cannot move at all.
+     doc/decisions.md, "the realm is an app".                                     */
+
+/* ⚠ A CLICKABLE THAT IS NOT A `<button>`. The site theme styles every `button` as a
+     small uppercase CTA — `.theme-lew42 :is(button, .btn)` at (0,2,0), in the same
+     layer — so a chip cannot win that at its own specificity, and the answer the
+     styles docs already reached is a clickable span. The keyboard half is what a
+     `<button>` gave for free, so it is restated here. */
+export const press = (view, act) => view
+	.attr("role", "button").attr("tabindex", "0")
+	.click(act)
+	.on("keydown", event => {
+		if (event.key !== "Enter" && event.key !== " ") return;
+		event.preventDefault();
+		act();
+	});
+
+/* ── ONE STORAGE NAMESPACE, and almost nothing in it ──────────────────────────
+   Demos in this realm do not persist: a refresh puts every one of them back to the
+   page it is (decision 4, 2026-09-05). The only writers left are the two EDITORS,
+   Make and Build, whose drafts are things you made on purpose — and they still land
+   under this one prefix, so one call forgets the realm and nothing else on the site.
+   doc/persistence.md. */
+export const NS = "paging:";
+export const FULL_NS = "lew42:" + NS;
+
+// ⚠ Collect the keys FIRST: `localStorage.key(i)` re-indexes on every removal, so
+//   removing inside the walk skips every other match.
+export function reset(){
+	const keys = [];
+
+	try {
+		for (let i = 0; i < localStorage.length; i++){
+			const key = localStorage.key(i);
+			if (key?.startsWith(FULL_NS)) keys.push(key);
+		}
+		keys.forEach(key => localStorage.removeItem(key));
+	} catch { /* private mode: nothing was persisted, so nothing needs clearing */ }
+
+	return keys.length;
+}
+
+/* ── A PAGE IN THE MIDDLE ─────────────────────────────────────────────────────── */
+export class Paging extends Page {
+
+	/* ⚠ THE ONE LINE THAT TAKES THIS REALM OUT OF THE COLUMNS ROW. `column_host()`
+	     finds the shallowest columnar ancestor and /imagine/ is one, so without this
+	     every page here renders as a column of that row again. */
+	column_host(){ return undefined; }
+
+	/* ⚠ A `.md` FILE BESIDE A PAGE IS A PAGE — core's last-resort fallback. `Page.file()`
+	     returns a plain object, so `add()` wraps it in a CORE `Page`, whose `column_host()`
+	     finds /imagine/ and renders it as a column of that row — stepping straight out of
+	     the app. `/imagine/paging/readme/` did exactly that (measured 2026-09-05: one
+	     column body on a page that should have had none). One field on the child, which is
+	     the deliberate version of the shadowing this realm keeps meeting by accident. */
+	async child(name, levels){
+		const kid = await super.child(name, levels);
+		if (kid && !(kid instanceof Paging)) kid.column_host = () => undefined;
+		return kid;
+	}
+
+	/* THE SURFACE WORD a page may wear, stamped on its own view rather than on a
+	   column body — there is no column body any more.
+
+	   ⚠ AND NO `h1`. Core opens every page with `h1.page-title` written from its title,
+	     and on a page whose whole point is the demo that heading is the first 193px of
+	     the screen at 1280 before anything happens (measured before this change: the
+	     h1 at 41.6px down, 49.6px tall, then a 45px rhythm gap, then the sentence, then
+	     30px more). The owner, 2026-09-06: *"we don't need to write the h1, taking up so
+	     much space. instead, let's go straight into the demo."* So the demo starts at
+	     the top of the page, and the title is still said in the two places it already
+	     was: the BROWSER TAB (`Router` writes `document.title` on every navigation) and
+	     the RAIL TILE, which `Router.mark_links()` lights `.active` as you arrive.
+	   ⚠ A DOCUMENT IS NOT A DEMO. `heading: true` keeps the h1 — `doc/` renders its
+	     markdown with `{ h1: false }`, so core's heading IS that page's title, and a
+	     record with no title is not a record. Set it on anything that is prose. */
+	render(){
+		const view = super.render();
+
+		if (!this.heading) view.el.querySelector(":scope > h1.page-title")?.remove();
+
+		if (this.surface) view.ac("page-surface-" + this.surface);
+		return view;
+	}
+
+	/* ONE SENTENCE, saying what to DO — and it goes UNDER the demo, small.
+
+	   ⚠ CALL IT AFTER `stage()`, NEVER BEFORE. A sentence above the demo pushes the
+	     demo down the screen, which is the whole thing the 2026-09-06 pass removed; and
+	     a reader who can understand the sentence did not need it first anyway. So the
+	     order on every page in this realm is: the demo, then the line that says what to
+	     do with it. If you write `this.lede(...)` at the top of a `content()` you have
+	     put prose above the fold again — move it below the `stage()` call.
+	   ⚠ AND SAY *ABOVE*, NOT *BELOW*. Every sentence that pointed at "the page below"
+	     was rewritten on 2026-09-06 when it moved under the stage. */
+	lede(text){
+		const words = text ?? this.takeaway;
+		return words ? md(words).ac("paging-lede") : null;
+	}
+
+	/* ── A PREMISE THAT IS NO LONGER THE DIRECTION ───────────────────────────
+	   ONE line at the very top of a page whose demo still runs and still teaches,
+	   but whose premise the owner has since moved away from. The page is not
+	   rebuilt and not deleted — the reader is simply told, before they read it,
+	   and handed the page that IS the direction.
+
+	   The owner, 2026-09-17: N even columns and fixed navigation are the
+	   direction; continuous Miller columns are not. So a page that teaches
+	   elastic shares of a row is not wrong about what the code does today — it is
+	   wrong about what to reach for — and that is exactly what one line can say.
+	   Call it FIRST in `content()`, above the demo. */
+	supersedes(says, url = "/web/nav/doc/study/"){
+		return md("**Superseded 2026-09-17 by even columns.** " + says + " [The direction, measured](" + url + ")")
+			.ac("paging-superseded");
+	}
+
+	/* ⚠ A PAGE IN THIS REALM IS BUILT ONCE and then shown again — core caches it, and
+	     `activate()` re-appends the view it already has rather than rebuilding it. So a
+	     stage that read the address when it was BUILT is still showing that answer the
+	     second time you arrive, and a link carrying a configuration does nothing.
+	     `reopen()` re-reads it (`stage.js`); when the address says nothing about this
+	     page the stage goes back to the page's own words, which is the realm's rule
+	     that a demo does not persist (`doc/decisions.md`, decision 4). */
+	activated(){ this.$stage?.reopen(); }
+
+	/* PUT A CONFIGURED PAGE ON SCREEN — the stage, its hover toolbar, and the drawer
+	   button. One call, and it is the same call on the hub, on a preset, on a block
+	   page and on a made page. `config` is the seven words; anything else is handed
+	   to the Stage (its own `pages`, for instance).
+
+	   ⚠ `.wide` — inside the middle's page grid, `main` is capped at the 40em reading
+	     measure and a stage in it would waste every pixel past it at 1920 and 3440.
+	     `wide` starts on the same left edge as the prose and takes all the leftover.
+	     (Measured 2026-09-05: the old hub used 1551px of a 3440 row — 55% dead.) */
+	stage(config, extra){
+		let stage;
+
+		/* ⚠ THE BAR IS DRAWN FIRST, ABOVE THE STAGE — and the empty `$bar` is why. The
+		     Toolbar needs the Stage to exist before it can be built, but it has to sit
+		     BEFORE it in the DOM: above it on screen, and before it in the tab order.
+		     So the slot is claimed first and filled after. (The alternative, `order:
+		     -1` in CSS, moves the picture and leaves a reader tabbing into the stage
+		     before its own controls.)
+		     Until 2026-09-05 the bar was absolutely placed OVER the stage's top edge
+		     and revealed on hover, which put it on top of the demo's tab strip —
+		     paging-audit-2's break #1. It reserves its height now. */
+		div.c("paging-frame wide", () => {
+			/* ⚠ `size-small` IS THE FRAMEWORK'S OWN SIZE WORD, and it is worth a line.
+			     `framework.css` gives every control one box whose height is a `min-height`
+			     in `em`, and `--size` scales that em: `.size-small` on any container takes
+			     every control inside it to exactly 0.75x — 36.09px to 27.06px at 1280, and
+			     43.19px to 32.39px at 3440. This bar is seven dropdowns and two buttons
+			     over a demo; it is chrome, not the subject, so it takes the small size and
+			     gives the pixels back to the page under it. */
+			const $bar = div.c("paging-toolbar-slot size-small");
+
+			stage = this.$stage = new Stage({ config, ...extra, page: this });
+
+			$bar.append(() => { this.$toolbar = new Toolbar({ stage, page: this }); });
+		});
+
+		return stage;
+	}
+}
+
+/* ── THE APP ──────────────────────────────────────────────────────────────────── */
+export class Realm extends Paging {
+
+	/* ⚠ THE FRONT PAGE NEVER ACTIVATES. Core activates only what CHANGED, so going from
+	     a child of this realm back to the realm's own page leaves THIS page in the
+	     shared part of the chain and `activated()` never fires — for the one page that
+	     needs it most, since the app's home is built at boot and only hidden afterwards.
+	     A click on a link to my own url IS the arrival, so that is what this listens
+	     for. (`cross/`'s nine cells are exactly such links: `/imagine/paging/?…`.)
+	   ⚠ Capture phase and a microtask: `url.js` records the clicked link in the same
+	     phase, and core's Router acts in the bubble phase — the microtask runs after
+	     both, so the query is recorded and the navigation is under way. */
+	initialize(){
+		document.addEventListener("click", event => {
+			const link = event.target?.closest?.("a[href]");
+			if (link && link.origin === location.origin && link.pathname === this.url)
+				queueMicrotask(() => this.activated());
+		}, true);
+	}
+
+	// A shell is its own screen, not a column: mounting beside the row's host is the
+	// arrangement contract's own sibling rule, and /imagine/ stands down. The same
+	// line /layouts/labs/shells/Shell.js uses, for the same reason.
+	container(){ return this.mounts_in(this.app.$pages, "app.$pages — the paging realm is its own screen"); }
+
+	/* ⚠ Overriding render() is ALSO what skips core's `render_column()`. The rail is
+	     built ONCE, outside `$pages`, so no navigation can touch it; `$pages` is the
+	     middle, which is what makes every descendant mount there with no page in the
+	     realm knowing anything about it (core's `container()` walks up for `$pages`).
+	   ⚠ `.pages` on the middle is deliberate, not decoration: core's Router scrolls
+	     `view.closest(".pages")` back to the top on every navigation, and Page.css
+	     gives a `.pages` region its own scrollbar. Without the class the middle would
+	     keep the last page's scroll position on arrival. */
+	render(){
+		if (this.view) return this.view;
+
+		this.view = div.c("page paging-app", () => {
+			/* ⚠ THE FIRST THING THE TAB KEY FINDS. The rail is forty tiles, so a keyboard
+			     reached the bar over the page after about forty-five presses — on the one
+			     control every page in this realm is about (paging-audit-5, item 8). One
+			     link, invisible until it has focus, and the middle takes it: the toolbar
+			     slot is the first thing inside it. */
+			a.c("paging-skip").href("#paging-middle").append(() => span("Skip the rail — go to the page and its controls"));
+
+			this.$rail = div.c("paging-app-rail", () => { this.rail(); });
+
+			// `tabindex: -1` so the skip link can put FOCUS here, not just the scroll
+			// position — otherwise the next Tab starts from the rail again.
+			this.$pages = div.c("pages paging-app-centre", () => {
+				this.$home = div.c("paging-home flow", () => {
+					this.content.render();
+				});
+			}).attr("id", "paging-middle").attr("tabindex", "-1");
+		});
+
+		return this.view;
+	}
+
+	// ── the rail ─────────────────────────────────────────────────────────────
+	// Sections of nav grids — the owner's own ask ("I like these nav grids… multiple
+	// sections of nav grids could be useful"). The data is `rail.js`; this is the paint.
+	rail(){
+		a.c("paging-app-home").href("/imagine/paging/").append(() => {
+			icon("auto_stories");
+			span("Paging");
+		});
+
+		RAIL.forEach(section => this.section(section));
+
+		a.c("paging-app-out").href("/imagine/").append(() => {
+			icon("arrow_back");
+			span("Back to Imagine");
+		});
+	}
+
+	// ⚠ NO SECTION NOTE. Each section used to carry a sentence saying what it was
+	//   about to show ("whole pages, already configured"); the tiles under it say it
+	//   better, and the seven sentences put the last three sections below the fold at
+	//   3440 (paging-audit-2). The heading is the label; the grid is the answer.
+	section({ title, items }){
+		return div.c("paging-sec", () => {
+			span.c("paging-sec-head", title);
+			div.c("paging-grid", () => items.forEach(item => this.tile(item)));
+		});
+	}
+
+	// One nav-grid tile: an icon and a label, and the whole tile is the link.
+	tile({ url, title, icon: glyph }){
+		return a.c("paging-tile").href(url).append(() => {
+			icon(glyph ?? "description").ac("paging-tile-icon");
+			span.c("paging-tile-words", title);
+		});
+	}
+}
+
+/* ── ONE ROW — a child, and the icon of what clicking it does ─────────────────
+   The last survivor of the old stage. `templates/families.js` draws the navigation
+   family out of it (four rows, each wearing its mechanism's glyph), and `.paging-item`
+   is still in the stylesheet for it. Everything else that used it went in the
+   2026-09-05 rebuild. */
+Paging.Item = class PagingItem extends View {
+
+	render(){
+		this.attr("href", this.url);           // nullish writes nothing
+		this.ac(this.chosen && "paging-item-on");
+
+		if (this.glyph) icon(this.glyph);
+		span.c("paging-item-words", this.words);
+		icon(this.sign).ac("paging-sign");
+
+		if (this.act) press(this, this.act);
+	}
+};
+
+export default Paging;
+export { Stage, Toolbar };

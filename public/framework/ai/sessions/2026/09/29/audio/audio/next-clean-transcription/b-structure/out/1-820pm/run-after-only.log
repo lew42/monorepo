@@ -1,0 +1,11 @@
+compare-structured: --after-only, reusing clean.md (79 sentences) and structured-before.md
+compare-structured: new prompt (structuredPromptDefault, live from refine.mjs)...
+sentences 79, bullets 33, deepest level 1, cited twice: none, never cited: none
+# Decisions Tab and Dictate Pipeline
+## UX (Decisions tab)
+## Decision Policy
+## Structured Refinement
+## Clean Transcription Mode
+## Streaming and Audio Cues
+
+compare-structured: wrote C:\Code\lew42\worktrees\qf-6\public\framework\ai\2026-09-29\audio\next-clean-transcription\b-structure\out\1-820pm — cost $0.2277 (clean $0.0000, old $0.0000, new $0.2277)

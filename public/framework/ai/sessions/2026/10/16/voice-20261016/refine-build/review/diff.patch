@@ -1,0 +1,556 @@
+diff --git a/public/framework/ext/Chat/Composer.js b/public/framework/ext/Chat/Composer.js
+index f1b84138f..0bbdd7b56 100644
+--- a/public/framework/ext/Chat/Composer.js
++++ b/public/framework/ext/Chat/Composer.js
+@@ -23,6 +23,7 @@ export function composer({
+ 	session,           // this mount's own session id (a string, or a function read fresh) — forwarded to `ComposerMic`'s live-refine
+ 	                    // calls (`Mic.js`'s `refine_tick`/`refine_final`) so the outline lands under `/framework/ai/sessions/<id>/`
+ 	                    // same as every other stage (`contract.md`). Unset is fine — the live call just has no session to attach to.
++	per_sentence,      // true: every finished sentence leaves the box at once while the next is still being transcribed (`ComposerMic.sentences_per_send`, Mic.js); unset follows the gear setting
+ 	on_refine_live,    // (answer) => … — forwarded straight to `ComposerMic`'s own `on_refine_live`: the live `/api/refine/live`
+ 	                    // answer (`{ md, outline, slots, … }`), the instant one arrives, for a host that draws the growing outline
+ 	                    // (the Refine demo feeds `answer.md`/`outline` into its own `Prompt.View`).
+@@ -46,6 +47,7 @@ export function composer({
+ 				on_send_start,
+ 				on_meter, device_id,
+ 				on_refine_live,
++				sentences_per_send: per_sentence ? 1 : undefined,
+ 				refine_session_id: typeof session === "function" ? session : () => session,
+ 				field: $input,
+ 				on_error: e => console.warn("[dictate] composer:", e),
+diff --git a/public/framework/ext/Chat/Mic.js b/public/framework/ext/Chat/Mic.js
+index 773aa44e8..dcc578c64 100644
+--- a/public/framework/ext/Chat/Mic.js
++++ b/public/framework/ext/Chat/Mic.js
+@@ -489,7 +489,8 @@ export class ComposerMic extends Dictate {
+ 			return;
+ 		}
+ 		this.chunk_start ??= performance.now();
+-		if (SETTINGS.sentences_per_send | 0) this.send_sentences(SETTINGS.sentences_per_send | 0); else this.check_chunk();
++		const per = this.sentences_per_send ?? SETTINGS.sentences_per_send;   // a caller can set one mic apart from the gear panel (`composer({ per_sentence })`)
++		if (per | 0) this.send_sentences(per | 0); else this.check_chunk();
+ 	}
+ 
+ 	// Safety chunk: words past chunk_ms or chunk_chars go out at the next sentence end.
+diff --git a/public/framework/ext/Chat/doc/mic-notes.md b/public/framework/ext/Chat/doc/mic-notes.md
+index a73bdaaac..0f5d0eebe 100644
+--- a/public/framework/ext/Chat/doc/mic-notes.md
++++ b/public/framework/ext/Chat/doc/mic-notes.md
+@@ -286,6 +286,8 @@ that will never be theirs to send.
+ 
+ ## send_sentences
+ 
++`composer({ per_sentence: true })` sets this mic's `sentences_per_send` to 1, apart from the gear panel: every finished sentence goes out at once while the next is still being heard (the Refine page; `ext/Refine/test/composer-flow.mjs`).
++
+ The finished sentences among the held words go out now, `sentences_per_send` to a message; the
+ 
+ 
+diff --git a/public/framework/ext/Refine/Cleaner.js b/public/framework/ext/Refine/Cleaner.js
+index c52fe707c..40d734547 100644
+--- a/public/framework/ext/Refine/Cleaner.js
++++ b/public/framework/ext/Refine/Cleaner.js
+@@ -230,6 +230,15 @@ async function clean_text(text, { prev = "", onFlag, call, cwd, model } = {}){
+ }
+ 
+ // Instant clean (no model): drop fillers + stutters, capitalise, add punctuation
++// "the the" is a stutter; "had had" and "very very" are real words said twice (a comma between, "so, so", is a stutter either way).
++function stutter(word, rest){ return /,/.test(rest) || (word.length <= 3 && word.toLowerCase() !== "had"); }
++
++// Only a short sentence that opens like a question is one ("what I want is a page..." is a statement, and so is a long chunk).
++function is_question(x){
++	if (x.split(/\s+/).length > 20) return false;
++	return /^(is|are|do|does|did|can|could|should|would|will)\b/i.test(x) || /^(who|what|when|where|why|how)\s+(is|are|do|does|did|can|could|should|would|will)\b/i.test(x);
++}
++
+ function quick_clean_text(text){
+ 	const t = String(text ?? "").replace(/\s+/g, " ").trim();
+ 	if (!t) return [];
+@@ -237,13 +246,14 @@ function quick_clean_text(text){
+ 		.replace(/\b(?:um+|uh+|ah+|er+|erm|hmm+)\b[,.]?\s*/gi, "")
+ 		.replace(/\byou know,?\s*/gi, "")
+ 		.replace(/\blike,\s*/gi, "")
+-		.replace(/\b(\w+)(?:,?\s+\1\b)+/gi, "$1")
++		.replace(/\b(\w+)((?:,?\s+\1\b)+)/gi, (all, w, rest) => stutter(w, rest) ? w : all)
+ 		.replace(/\s+([,.!?;:])/g, "$1")
++		.replace(/,+\s*([.!?])/g, "$1")
+ 		.replace(/\s+/g, " ").trim();
+ 	return mechanicalSplit(cleaned).map((s, i) => {
+-		let x = s.replace(/^[\s,;:-]+/, "");
++		let x = s.replace(/^[\s,;:-]+/, "").replace(/[\s,;:-]+$/, "");
+ 		x = x.charAt(0).toUpperCase() + x.slice(1);
+-		if (!/[.!?]$/.test(x)) x += /^(who|what|when|where|why|how|is|are|do|does|can|could|should|would)\b/i.test(x) ? "?" : ".";
++		if (!/[.!?]$/.test(x)) x += is_question(x) ? "?" : ".";
+ 		return { n: i + 1, text: x };
+ 	}).filter(s => s.text.length > 1);
+ }
+diff --git a/public/framework/ext/Refine/Prompt.css b/public/framework/ext/Refine/Prompt.css
+index f650b2937..5d729e6d8 100644
+--- a/public/framework/ext/Refine/Prompt.css
++++ b/public/framework/ext/Refine/Prompt.css
+@@ -65,10 +65,19 @@
+ }
+ 
+ @layer site {
+-	.refine-toolbar, .refine-foot { padding-inline: .6em; }
++	.refine-toolbar, .refine-foot { padding-inline: clamp(.4em, 1vw, .9em); }
+ 	/* The Whisper log grows with every chunk; uncapped it covered the Refine button on a phone (voice-verify walk, 2026-10-12). */
+ 	.refine-foot { max-block-size: 30vh; overflow: auto; }
+ 	@media (max-width: 700px) { .refine-foot { position: static; } }
+ 	/* The five-step row is hidden on a phone, so its one-line twin shows instead: mic, Whisper and restart problems are said in a sentence. */
+ 	@media (max-width: 700px) { .refine-toolbar .voice-strip[data-template="full"] .voice-strip-say { display: block; } }
+ }
++
++@layer site {
++	/* The demo is a page-level bleed (edge to edge); everything but the toolbar and footer keeps a side padding. */
++	.refine-demo > :not(.refine-toolbar, .refine-foot) { padding-inline: clamp(.4em, 1vw, .9em); }
++	.refine-input-note:empty { display: none; }
++	.refine-demo .refine-prompt-raw { font-size: .9em; margin: 0; }
++	.refine-demo .refine-prompt-h { display: flex; flex-wrap: wrap; gap: 0 .6em; align-items: baseline; font-size: .85em; text-transform: uppercase; letter-spacing: .04em; }
++	.refine-demo .refine-prompt-h > span:first-child { opacity: .7; }
++}
+diff --git a/public/framework/ext/Refine/Prompt.js b/public/framework/ext/Refine/Prompt.js
+index 2a9144116..d895ae976 100644
+--- a/public/framework/ext/Refine/Prompt.js
++++ b/public/framework/ext/Refine/Prompt.js
+@@ -149,14 +149,14 @@ Prompt.View = class extends View {
+ 			const st = Prompt.View.STAGES[key];
+ 			return div.c("refine-section", () => {
+ 				h4.c("refine-prompt-h", () => { span(st.title); if (note) span.c("refine-s-scores", note); });
+-				p.c("refine-what", () => { span(st.what + " "); a(st.by).href(st.href).ac("refine-class-key"); });
++				if (!this.compact) p.c("refine-what", () => { span(st.what + " "); a(st.by).href(st.href).ac("refine-class-key"); });   // `compact`: the stage title is the only label
+ 				fn();
+ 			});
+ 		};
+ 
+ 		if (working) p.c("refine-working", `Refining with ${prompt.model || "a model"}… usually about 8 s and about 3 cents. The cleaned text is already usable.`);
+ 		if (prompt.status === "error") p.c("refine-error", "Could not refine: " + prompt.error);
+-		if (this.show_raw !== false) section("said", "", () => p.c("refine-prompt-raw", prompt.raw));
++		if (this.show_raw !== false) section("said", "", () => prompt.raw ? p.c("refine-prompt-raw", prompt.raw) : p.c("refine-empty", "Nothing said yet."));
+ 
+ 		section("clean", empty ? "" : prompt.quick || working ? `instant, ${prompt.timings.quick_ms ?? 0} ms, no model` : `by ${prompt.model || "a model"}, ${secs(prompt.stages.clean_ms ?? 0)}`, () => {
+ 			if (empty) return p.c("refine-empty", "Waiting for words.");
+diff --git a/public/framework/ext/Refine/RefineDemo.js b/public/framework/ext/Refine/RefineDemo.js
+index 9cc82c34a..70eaf067e 100644
+--- a/public/framework/ext/Refine/RefineDemo.js
++++ b/public/framework/ext/Refine/RefineDemo.js
+@@ -54,17 +54,14 @@ export default class RefineDemo extends View {
+ 					this.$model.el.addEventListener("change", () => { this.system.model = this.$model.el.value; });
+ 				});
+ 				this.$cost = span.c("refine-cost");
++				a("Watch live ↗").href(this.system.page_url).ac("refine-watch").attr("title", "Watch it on the session page").attr("aria-label", "Watch it on the session page");
+ 			});
+-			div.c("refine-said", () => {
+-				span.c("refine-said-label", "1 · Said: speak, or type or paste here — the same input as everywhere else");
+-				this.$note = span.c("refine-input-note");
+-				a("Watch it on the session page →").href(this.system.page_url).ac("refine-watch");
+-			});
++			this.$note = div.c("refine-input-note");
+ 			// THE composer: mic, gear, Send. Typing or dictating runs the instant `quick()` clean on every
+ 			// change (below); Send (or the mic's own pause auto-send) runs the real Refine (`go()`).
+ 			this.$compose = composer({
+ 				placeholder: "speak with the mic, or type or paste a prompt here…",
+-				mic: true, revise: "clean",
++				mic: true, revise: "clean", per_sentence: true,   // each finished sentence goes out and into the transcript while the next is still being heard
+ 				// `entry.text` is captured BEFORE `Composer.js`'s own `send()` clears the box (typed) or
+ 				// `consume_sent()` empties it (dictated) — reading `this.transcript()` here instead would
+ 				// see an already-empty box, so this runs the real Refine straight off what was sent.
+@@ -73,20 +70,19 @@ export default class RefineDemo extends View {
+ 					if (!text) return (this.$note.text("Nothing to refine yet."), false);
+ 					this.system.source = entry.via === "whisper" ? "dictated" : "typed";
+ 					this.$note.text("");
+-					if (this.prompt.status === "done") this.system.next();   // a new Refine starts a new prompt
+ 					this.system.go(text);
+ 					return true;
+ 				},
+ 				on_live: undefined,   // real box, not a ghost chat bubble — this demo shows raw IN the box, like before
+ 				on_text: () => this.quick(),
+ 				on_revised: () => this.quick(),
+-				on_send_start: () => this.quick(),
++				on_send_start: text => text ? this.system.sending_start(text) : this.quick(),   // sent words stay on the page while the last live call runs
+ 				on_meter: () => {},
+ 				session: () => this.system.session_id,
+ 				// THE LIVE OUTLINE (law 2): `Mic.js`'s own `refine_tick`/`refine_final` already posted this —
+ 				// write it onto the SAME `Prompt` `RefineSystem.live()` would, so `draw()` below redraws it
+ 				// through the one `on_change` path, never a second.
+-				on_refine_live: out => this.system.prompt.set({ subject: out.outline?.subject ?? this.prompt.subject, refined: out.outline?.sections ?? this.prompt.refined }),
++				on_refine_live: out => this.system.set_live(out),
+ 			});
+ 			this.dictate = this.$compose.mic;   // a `ComposerMic` (`Dictate` subclass) — same shape `VoiceStrip.dictate` was
+ 			this.$box = this.$compose.$input;
+@@ -111,18 +107,13 @@ export default class RefineDemo extends View {
+ 		this.draw_whisper();
+ 	}
+ 
+-	/** The one transcript the owner sees: whatever Dictate has committed into the box, plus the
+-	 *  grey still-moving guess if the mic has not settled it yet. */
+-	transcript(){
+-		const boxed = this.$box.el.value.trim();
+-		const guess = (this.dictate?.partial_text || "").trim();
+-		return guess && !boxed.endsWith(guess) ? (boxed + " " + guess).trim() : boxed;
+-	}
++	/** The words in the box. The composer's mic already types its still-moving guess INTO the box, and its `partial_text` keeps the
++	 *  guess of a sentence that was just sent, so adding it here repeated that sentence (found with the fake-mic run). */
++	transcript(){ return this.$box.el.value.trim(); }
+ 
+ 	/** Instant stage: show the cleaned text now, with no model. */
+ 	quick(){
+-		const text = this.transcript();
+-		if (text) this.system.quick(text);
++		this.system.quick(this.transcript());   // empty text clears the box's share, the sent sentences stay
+ 	}
+ 
+ 	async go(){
+@@ -134,7 +125,7 @@ export default class RefineDemo extends View {
+ 		const text = this.transcript();
+ 		if (!text) return this.$note.text("Nothing to refine yet.");
+ 		this.$note.text("");
+-		if (this.prompt.status === "done") this.system.next();   // a new Refine starts a new prompt
++		this.$box.el.value = "";   // sent: the words now live in the transcript, not the box
+ 		this.system.go(text);
+ 	}
+ 
+@@ -148,7 +139,7 @@ export default class RefineDemo extends View {
+ 
+ 	draw(){
+ 		const prompt = this.prompt;
+-		this.$result.empty(() => new Prompt.View({ subject: prompt, show_raw: false }));
++		this.$result.empty(() => new Prompt.View({ subject: prompt, show_raw: true, compact: true }));
+ 		const st = prompt.status;
+ 		this.conn?.set("refine", st === "done" ? "ok" : st === "error" ? "bad" : st === "working" ? "wait" : "idle",
+ 			st === "done" ? `done, ${(prompt.ms / 1000).toFixed(1)} s` : st === "error" ? "error: " + String(prompt.error).slice(0, 60) : st === "working" ? "working…" : "not yet");
+diff --git a/public/framework/ext/Refine/RefineSystem.js b/public/framework/ext/Refine/RefineSystem.js
+index 82812e65f..3a43d8aba 100644
+--- a/public/framework/ext/Refine/RefineSystem.js
++++ b/public/framework/ext/Refine/RefineSystem.js
+@@ -5,7 +5,7 @@ import { quick_clean } from "./engine.js";
+ 
+ /**
+  * class RefineSystem — the boss of the refine system (`doc/architecture.md`). It owns ONE live
+- * `Prompt` and runs it through the steps: text in (typed, or from the dictation source) →
++ * `Prompt` (built from `chunks`, one per send, so earlier sentences are never replaced) and runs it through the steps: text in (typed, or from the dictation source) →
+  * Servex `/api/refine` (the Cleaner, then the Structurer) → `Prompt.load()` (which runs the
+  * `Scorer`). A page only ever talks to this class:
+  *
+@@ -60,6 +60,10 @@ export default class RefineSystem {
+ 	model = "";                                     // empty: the server picks (Haiku, or OpenRouter when session-backend.txt says so): ai/doc/models.md
+ 	session_id = RefineSystem.session_id();            // the session whose log keeps this page's prompts (ai/AISession/PromptLog.js)
+ 	prompt_id = RefineSystem.new_prompt_id();          // names this prompt on the session page (`voice-<id>`); a new one per prompt
++	chunks = [];            // one per SENT utterance { raw, clean, refined, subject, runs, stages, ms, status }: the transcript gains one each send, nothing is overwritten
++	pending = "";           // the words still in the box (not sent yet)
++	sending = null;         // { text, sections }: sent, but its chunk does not exist yet (Mic.js waits on a last live call first)
++	live_sections = [];     // the live outline of the box (local sentence numbers)
+ 	history = [];                                   // finished prompts of this page visit (plain summaries), newest last
+ 
+ 	constructor(...args){
+@@ -101,38 +105,100 @@ export default class RefineSystem {
+ 		}, 150);
+ 	}
+ 
+-	/** Show the cleaned text NOW, with no model: the instant stage. Cheap enough to run on every chunk. */
++	/** The words still in the box, cleaned instantly with no model. Cheap enough to run on every chunk. Empty text clears the box's share. */
+ 	quick(text){
+ 		const t0 = performance.now();
++		this.pending = this.unsent(String(text ?? "").trim());
++		this.compose(+(performance.now() - t0).toFixed(2));
++		if (this.pending) this.stream(this.pending);
++	}
++
++	/** The box empties a moment AFTER a sentence is delivered, so a box event in between still holds the words just sent: leave those out. */
++	unsent(text){
++		const last = this.chunks.at(-1);
++		if (!last || !text || performance.now() - last.at > 5000) return text;
++		const w = t => t.split(/\s+/).filter(Boolean), norm = x => x.toLowerCase().replace(/[^\p{L}\p{N}]/gu, "");
++		const sent = w(last.raw), now = w(text);
++		return sent.length && sent.every((x, i) => norm(x) === norm(now[i] ?? "")) ? now.slice(sent.length).join(" ") : text;
++	}
++
++	/** A send has started (Mic.js waits on a last live call before `deliver`): keep those words on the page meanwhile. */
++	sending_start(text){
++		text = String(text ?? "").trim();
++		if (!text) return;
++		this.sending = { text, sections: this.live_sections };
++		clearTimeout(this._sending_timer);
++		this._sending_timer = setTimeout(() => { if (this.sending){ this.sending = null; this.compose(); } }, 20000);   // a send dropped as a duplicate never reaches go()
++		this.compose();
++	}
++
++	/** The live outline of the box (`/api/refine/live`), kept apart so a sent chunk can take it along. */
++	set_live(out){
++		this.live_sections = out?.outline?.sections ?? this.live_sections;
++		this.compose();
++	}
++
++	/** Shift every S-number in a card tree: a chunk's local sentence numbers become the transcript's. */
++	static shift(cards, d){ return (cards ?? []).map(c => ({ ...c, cites: (c.cites ?? []).map(n => n + d), cards: RefineSystem.shift(c.cards, d) })); }
++
++	static rows(text){ return quick_clean(text).map(t => ({ n: t.n, text: t.text, clarity: null, weight: 0, flags: [], alternates: [], names: [], tags: [], card: "", why: "" })); }
++
++	/** Rebuild the one `Prompt` from every sent chunk, then the sentence in flight, then the box: sentences only ever get added. */
++	compose(quick_ms){
++		const clean = [], refined = [], raws = [];
++		let at = 0, working = false, error = "", ms = 0;
++		const add = (sentences, sections) => {
++			sentences.forEach(s => clean.push({ ...s, n: s.n + at }));
++			refined.push(...RefineSystem.shift(sections, at));
++			at += sentences.length;
++		};
++		for (const c of this.chunks){ raws.push(c.raw); add(c.clean, c.refined); working ||= c.status === "working"; error = c.error || error; ms += c.ms; }
++		if (this.sending){ raws.push(this.sending.text); add(RefineSystem.rows(this.sending.text), this.sending.sections); }
++		if (this.pending){ raws.push(this.pending); add(RefineSystem.rows(this.pending), this.live_sections); }
++		const last = this.chunks.at(-1);
++		const status = working ? "working" : error ? "error" : this.chunks.length ? "done" : "empty";
+ 		const prompt = this.prompt;
+-		if (prompt.status === "done") return;   // a finished result is not overwritten by later chunks
+-		prompt.raw = text;
+-		prompt.load_quick(quick_clean(text), +(performance.now() - t0).toFixed(2));
+-		this.stream(text);
++		prompt.timings = { ...prompt.timings, ...(quick_ms != null ? { quick_ms } : {}) };
++		prompt.set({
++			status, raw: raws.join(" "), clean, refined, error, ms,
++			quick: !!(this.sending || this.pending) || working,
++			subject: this.chunks.find(c => c.subject)?.subject ?? "",
++			runs: this.chunks.flatMap(c => c.runs), stages: last?.stages ?? {}, model: this.model,
++			prompt_id: last?.prompt_id ?? "", session: last ? this.session_id : "",
++		});
+ 	}
+ 
+-	/** Refine one prompt. Never throws: a failure becomes `prompt.status === "error"`. */
++	/** Refine one SENT utterance: it becomes a chunk, its sentences numbered after the ones already there.
++	 *  Never throws: a failure is shown on the page and the chunk keeps its instant clean. */
+ 	async go(text, { url } = {}){
+-		const prompt = this.prompt;
++		text = String(text ?? "").trim();
++		if (!text) return this.prompt;
+ 		const t_start = performance.now();
+-			if (!prompt.quick || prompt.raw !== text) this.quick(text);
+-			prompt.set({ status: "working", model: this.model, raw: text, subject: "", refined: [], error: "", ms: 0, runs: [], stages: {} });
++		const chunk = { raw: text, clean: RefineSystem.rows(text), refined: this.sending?.text === text ? this.sending.sections : this.live_sections, subject: "", runs: [], stages: {}, ms: 0, status: "working", error: "", prompt_id: this.prompt_id, at: performance.now() };
++		this.chunks.push(chunk);
++		this.sending = null; this.pending = ""; this.live_sections = [];
++		this.prompt_id = RefineSystem.new_prompt_id();   // the next utterance is its own prompt on the session page
++		this.compose();
+ 		try {
+ 			if (!url){
+ 				const { servex_url } = await import("/framework/dev/servex_url.js");
+ 				url = servex_url("/api/refine");
+ 			}
+-			const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, model: this.model || undefined, session: this.session_id, prompt: this.prompt_id, source: this.source ?? "typed" }) });
++			const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, model: this.model || undefined, session: this.session_id, prompt: chunk.prompt_id, source: this.source ?? "typed" }) });
+ 			const out = await res.json();
+ 			if (!out?.ok) throw new Error(out?.why ?? `Servex answered ${res.status}`);
+-			prompt.load(out);
+-			prompt.timings = { ...prompt.timings, total_ms: Math.round(performance.now() - t_start) };
+-			this.history.push({ at: new Date().toISOString(), words: text.split(/\s+/).length, total_ms: prompt.timings.total_ms, cost_usd: +prompt.runs.reduce((a, r) => a + r.cost_usd, 0).toFixed(4), runs: prompt.runs.length });
++			const one = new Prompt();   // scores this chunk alone (`Prompt.load`), then compose() renumbers it into the transcript
++			one.load(out);
++			Object.assign(chunk, { clean: one.clean, refined: one.refined, subject: one.subject, runs: one.runs, stages: one.stages, ms: one.ms, status: "done" });
++			const total_ms = Math.round(performance.now() - t_start);
++			this.prompt.timings = { ...this.prompt.timings, total_ms };
++			this.history.push({ at: new Date().toISOString(), words: text.split(/\s+/).length, total_ms, cost_usd: +one.runs.reduce((a, r) => a + r.cost_usd, 0).toFixed(4), runs: one.runs.length });
+ 		} catch (e){
+-			prompt.set({ status: "error", error: String(e?.message ?? e) });
++			Object.assign(chunk, { status: "failed", error: String(e?.message ?? e) });
+ 			ErrorLog.report(e, { where: "RefineSystem.go" });
+ 		}
+-		return prompt;
++		this.compose();
++		return this.prompt;
+ 	}
+ 
+ 	/** Live refine for THIS prompt (`RefineSystem.post_live()` above): keeps only the newest `seq` (a reply
+@@ -146,13 +212,14 @@ export default class RefineSystem {
+ 		if ((out.seq ?? 0) < (this._live_seq ?? -1)) return null;
+ 		this._live_seq = out.seq ?? 0;
+ 		this.live_md = out.md; this.live_outline = out.outline; this.live_slots = out.slots;
+-		if (out.outline) this.prompt.set({ subject: out.outline.subject ?? this.prompt.subject, refined: out.outline.sections ?? this.prompt.refined });
++		if (out.outline) this.set_live(out);
+ 		return out;
+ 	}
+ 
+ 	/** Start over: the same Prompt object, emptied (so the debug tree keeps showing the live one). */
+ 	next(){
+ 		this.prompt_id = RefineSystem.new_prompt_id();
++		this.chunks = []; this.pending = ""; this.sending = null; this.live_sections = [];
+ 		this.prompt.set({ status: "empty", raw: "", subject: "", clean: [], refined: [], error: "", ms: 0, runs: [], stages: {}, timings: {}, quick: false });
+ 	}
+ }
+diff --git a/public/framework/ext/Refine/doc/architecture.md b/public/framework/ext/Refine/doc/architecture.md
+index d895033df..d614bbb05 100644
+--- a/public/framework/ext/Refine/doc/architecture.md
++++ b/public/framework/ext/Refine/doc/architecture.md
+@@ -3,7 +3,7 @@
+ Read this first. One system, a handful of small classes, one boss. Written before the demo was reshaped (owner rule, 2026-10-08); the demo's class card draws this same table from `RefineSystem.parts`.
+ 
+ ## The boss: `RefineSystem`
+-`RefineSystem` (`ext/Refine/RefineSystem.js`) orchestrates one prompt at a time. It **composes** the parts below, owns the one live `Prompt`, and is the only thing a page talks to: `go(text)`, `next()`, `prompt`. The demo page is just a view of it.
++`RefineSystem` (`ext/Refine/RefineSystem.js`) orchestrates one prompt at a time. It **composes** the parts below, owns the one live `Prompt` (the sum of its `chunks`, one per `go(text)`, so a second send adds sentences and never replaces the first), and is the only thing a page talks to: `go(text)`, `quick(text)`, `next()`, `prompt`. The demo page is just a view of it.
+ 
+ ## The parts
+ 
+diff --git a/public/framework/ext/Refine/doc/redesign.md b/public/framework/ext/Refine/doc/redesign.md
+index d15cf0f23..4b5d2d790 100644
+--- a/public/framework/ext/Refine/doc/redesign.md
++++ b/public/framework/ext/Refine/doc/redesign.md
+@@ -1,4 +1,6 @@
+-# Refine redesign: one compact page, raw then clean then refined (proposal, not built)
++# Refine redesign: one compact page, raw then clean then refined (slice built 2026-10-16)
++
++**Built 2026-10-16** ([task](/framework/ai/sessions/2026/10/16/voice-20261016/refine-build/)): steps 1, 2 and 4 below, plus the per-sentence flow: `RefineSystem` keeps one chunk per send so every sentence stays (`chunks`), the composer's `per_sentence` option sends each finished sentence out of the box while the next is still heard, and `test/composer-flow.mjs` proves it with a fake microphone. **Not done:** the page `h1` still sits above the toolbar (step 3), the stage titles are still "1 · Said / 2 · Cleaned / 3 · Outline / 4 · Scores", and a one-sentence utterance gets its live outline only about 8 s after the send. The rest of this page is the original proposal.
+ 
+ Asked by the owner's voice sessions 6e9eb755, a7df214f and 29c40ff7. Facts behind it: [audit-2026-10-15.md](audit-2026-10-15.md). What the page looks like today at phone width (400 px):
+ 
+@@ -67,4 +69,4 @@ Each step is one commit, and each can be viewed alone.
+ 3. Toolbar and footer `bleed`; the title moves into the toolbar row.
+ 4. Accumulate utterances in `RefineSystem` (the fix for the vanishing first sentence). This is the only step with risk; it comes last and gets a live-mic test.
+ 
+-**Not in the slice:** mentions (`@`, `/`, `!` plus a path becoming a linked block; today nothing produces them, see the audit), a per-sentence clean call, and the page padding change.
++**Not in the slice (still true):** mentions (`@`, `/`, `!` plus a path becoming a linked block; today nothing produces them, see the audit), a per-sentence clean call, and the page padding change.
+diff --git a/public/framework/ext/Refine/inbox.jsonl b/public/framework/ext/Refine/inbox.jsonl
+index 237bab185..043e489c6 100644
+--- a/public/framework/ext/Refine/inbox.jsonl
++++ b/public/framework/ext/Refine/inbox.jsonl
+@@ -44,3 +44,8 @@
+ {"id":"i-mv8szppehrp","at":"2026-10-15T00:31:27.458Z","essence":"Add cleaned sentences into the existing structure rather than a wall of text, so everything is tracked","source":"/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p10745","from":"refine-queue"}
+ {"id":"i-mv8szppes7v","at":"2026-10-15T00:31:27.458Z","essence":"Get a basic working refinement first, then iterate","source":"/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p10745","from":"refine-queue"}
+ {"id":"i-mv8szppfg0a","at":"2026-10-15T00:31:27.459Z","essence":"How to get real-time incremental refinement working","source":"/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p10745","from":"refine-queue"}
++{"resolves":"i-mv8szppehrp","status":"done","how":"RefineSystem keeps one chunk per sentence-batch; every cleaned sentence is added to the existing list on the Refine page, never replacing it (test/composer-flow.mjs proves it).","by":"mastermind-refine-build","at":"2026-10-16T06:16:16.540Z","task":"/framework/ai/sessions/2026/10/16/voice-20261016/refine-build/"}
++{"resolves":"i-mv8szppes7v","status":"done","how":"The basic working refinement (raw, clean, outline, scores) runs on the Refine page; this slice only changed how sentences accumulate.","by":"mastermind-refine-build","at":"2026-10-16T06:16:16.540Z","task":"/framework/ai/sessions/2026/10/16/voice-20261016/refine-build/"}
++{"resolves":"i-mv8szppc9ew","status":"partial","how":"Cleaning is instant per word and the live outline ticks per batch; a one-sentence utterance still waits about 8 s for its outline.","by":"mastermind-refine-build","at":"2026-10-16T06:16:16.540Z","task":"/framework/ai/sessions/2026/10/16/voice-20261016/refine-build/"}
++{"resolves":"i-mv8szppdowp","status":"partial","how":"The live outline (LiveRefine) already amends incrementally; Refine now keeps earlier sentences while it does.","by":"mastermind-refine-build","at":"2026-10-16T06:16:16.540Z","task":"/framework/ai/sessions/2026/10/16/voice-20261016/refine-build/"}
++{"resolves":"i-mv8szp4e8si","status":"partial","how":"Per chunk: instant clean per word, outline per live batch, Refine per sent sentence. Cards per chunk are not built.","by":"mastermind-refine-build","at":"2026-10-16T06:16:16.540Z","task":"/framework/ai/sessions/2026/10/16/voice-20261016/refine-build/"}
+diff --git a/public/framework/ext/Refine/page.js b/public/framework/ext/Refine/page.js
+index fe0fbf6af..f8d1f38ff 100644
+--- a/public/framework/ext/Refine/page.js
++++ b/public/framework/ext/Refine/page.js
+@@ -14,7 +14,7 @@ export default new Page({
+ 	children: "try ladder runs cleaner",
+ 
+ 	content(){
+-		new RefineDemo().ac("wide");
++		new RefineDemo().ac("bleed");
+ 		p(() => {
+ 			a("Saved long run (ladder)").href(new URL("ladder/", import.meta.url).pathname);
+ 			span(" · ");
+diff --git a/public/framework/ext/Refine/readme.md b/public/framework/ext/Refine/readme.md
+index 87e99b272..477c1060b 100644
+--- a/public/framework/ext/Refine/readme.md
++++ b/public/framework/ext/Refine/readme.md
+@@ -35,7 +35,7 @@ prompt_modes({ raw, sentences, structured, fallback_text });   // see its own do
+ - **Dropped rows are warm (`--warn`), never `--error`/`--hot`.** A dropped sentence is worth a look, not a failure — the owner's rule for the whole view.
+ 
+ ## Architectural Recommendations
+-1. **Refine as a Formal Class (`class Refine extends View`):** Currently a functional factory. Transitioning to a standard class with `ext/Doc` integration gives the page proper method/property documentation and API exploration tabs.
++1. **The ladder view as a class (`class Refine extends View`):** `Refine.js` is still a functional factory (the live demo is already classes: `RefineSystem`, `Prompt`, `RefineDemo`). A class gives it `ext/Doc` method tabs.
+ 2. **Server-Side Grouped Outline Emission:** `Server/refine.mjs` prompt specifies `## Subheading` markers, but models occasionally drop headers under token pressure. Enforce markdown header AST parsing or synthetic topic clustering to guarantee hierarchical trees rather than flat bullet lists.
+ 3. **Dropped & Flagged Drawer:** Elevate the strip into a collapsable sidebar drawer with one-click sentence filter toggles.
+ 
+@@ -50,6 +50,7 @@ pulling a sample straight from a recent voice session — no index of raw dictat
+ today, so paste is the stand-in; see the page's own doc comment (`try/page.js`) for why.
+ 
+ ## More
++- [Redesign slice, built 2026-10-16](doc/redesign.md) — every sentence kept as a chunk in `RefineSystem.chunks`, the composer's `per_sentence` option, compact `Prompt.View`; proof `test/composer-flow.mjs` (fake mic, needs Whisper `:8178` and Servex; capped at 6 refine calls and 90 s per run, `MAX_REFINE_CALLS` / `MAX_SECONDS`, because each call is a real Haiku session): `PWENTRY=<playwright/index.mjs> node test/composer-flow.mjs <base-url>`
+ - [Audit 2026-10-15](doc/audit-2026-10-15.md) — the owner's rules checked against the code (present / partial / missing), why a first sentence vanished, the S1. leak and the clipped box, 400 px screenshots; and [the redesign proposal](doc/redesign.md): one compact page, raw then clean then refined (`doc/audit-2026-10-15.md`, `doc/redesign.md`)
+ - [Cleaner](/framework/ext/Refine/cleaner/) — the class that cleans a chunk (`Cleaner.js`): instant `quick_clean`, model `clean`, live demo with its instance; `engine.js` keeps the old function names
+ - [How it works](doc/how-it-works.md) — the classes, the two steps (clean, then refine), how Dictate feeds it, and what is known broken
+@@ -70,7 +71,7 @@ today, so paste is the stand-in; see the page's own doc comment (`try/page.js`)
+ - [Refine style](/framework/ext/Refine/md/doc/refine-style-2026-10-12/) — the one shared rule fragment (`RefineStyle.js`) every refine prompt uses, so refined prompts read as short, iconned, ordered overviews (`doc/refine-style-2026-10-12.md`)
+ - [Voice stages on the session page](/framework/ext/Refine/stages/readme.md) — raw, clean, structure, refined and cards drawn live on `/framework/ai/sessions/<id>/` as you speak or type (`stages/readme.md`, `stages/doc/voice-to-page.md`); try it on a phone: [`ux/Dictate/doc/try-it.md`](/framework/ux/Dictate/doc/try-it/)
+ - [Echo](../../../../Servex/doc/echo.md) — the running pipeline that uses this engine on every prompt you type in VS Code: triggers, output, cost, and the gaps against the vision (`Servex/doc/echo.md`)
+-- [Overview](/framework/ext/Refine/) — run C live by default (the longest of the four runs, and the one with a dropped sentence AND a thin citation on its very first screen — `runs/sample` alone has neither); `?run=` picks any other run, including the small hand-built fixture
++- [Saved-run ladder](/framework/ext/Refine/ladder/) (was the page's Overview before the live demo took over) — run C live by default (the longest of the four runs, and the one with a dropped sentence AND a thin citation on its very first screen — `runs/sample` alone has neither); `?run=` picks any other run, including the small hand-built fixture
+ - `doc/vision-2026-10-08.md` — the owner's intended pipeline (raw → clean → refined cards, every sentence accounted, context cards); check the built state against it
+ - `doc/raw-match.md` — the word-overlap heuristic that lights up Raw, worked example
+ - `Server/doc/refine.md` — what `refine.mjs` writes, and why each file looks the way it does
+diff --git a/public/framework/ext/Refine/test/composer-flow.mjs b/public/framework/ext/Refine/test/composer-flow.mjs
+new file mode 100644
+index 000000000..15f7e3d50
+--- /dev/null
++++ b/public/framework/ext/Refine/test/composer-flow.mjs
+@@ -0,0 +1,64 @@
++// Proof that the Refine page keeps every sentence: dictate with a fake microphone (the jfk.wav recording),
++// let the mic auto-send, then type and send a second line. The Cleaned list must hold BOTH, in order.
++//
++//   PWENTRY=<path to playwright/index.mjs> node public/framework/ext/Refine/test/composer-flow.mjs <base-url> [shot.png]
++//
++// HARD CAPS (each /api/refine call is a real Haiku session, 64 of them ran in 3 minutes on 2026-10-16): at most MAX_REFINE_CALLS
++// (env, default 6) refine requests per run, the rest are aborted at the browser; the whole run is killed after MAX_SECONDS (default 90).
++//
++// Needs the local Whisper server (:8178) and Servex for the refine call. Headless only: never the owner's tabs.
++import { pathToFileURL } from "url";
++
++const [base = "http://monorepo.localhost", shot] = process.argv.slice(2);
++const wav = process.env.WAV ?? new URL("../../../ai/recordings/jfk.wav", import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1");
++const { chromium } = await import(pathToFileURL(process.env.PWENTRY).href);
++const browser = await chromium.launch({ args: ["--use-fake-ui-for-media-stream", "--use-fake-device-for-media-stream", `--use-file-for-fake-audio-capture=${wav}`] });
++const ctx = await browser.newContext({ viewport: { width: 400, height: 1000 }, permissions: ["microphone"] });
++const page = await ctx.newPage();
++const MAX_CALLS = +(process.env.MAX_REFINE_CALLS ?? 6), MAX_SECONDS = +(process.env.MAX_SECONDS ?? 90);
++let calls = 0, aborted = 0;
++await page.route("**/api/refine**", route => { if (route.request().method() !== "POST") return route.continue(); if (++calls > MAX_CALLS){ aborted++; return route.abort(); } route.continue(); });
++const kill = setTimeout(() => { console.log("FAIL run longer than MAX_SECONDS, killed"); process.exit(2); }, MAX_SECONDS * 1000);
++const errors = [];
++page.on("pageerror", e => errors.push(String(e).slice(0, 200)));
++
++const read = () => page.evaluate(() => ({
++	clean: [...document.querySelectorAll(".refine-result .refine-sentence .refine-s-text")].map(e => e.textContent),
++	raw: document.querySelector(".refine-result .refine-prompt-raw")?.textContent ?? "",
++	box: document.querySelector(".refine-toolbar textarea")?.value ?? "",
++}));
++const fail = msg => { console.log("FAIL", msg, errors); process.exitCode = 1; };
++
++await page.goto(base + "/framework/ext/Refine/", { waitUntil: "networkidle" });
++await page.waitForSelector(".refine-toolbar textarea", { timeout: 15000 });
++await page.locator(".chatbox-mic .ux-dictate-btn, .chatbox-mic button").first().click();
++
++// 1. dictation: words stream in, then the first utterance auto-sends and the box empties while the Cleaned list keeps it.
++let first = null, sent = false;
++for (let i = 0; i < 40 && !sent; i++){
++	await page.waitForTimeout(1000);
++	const s = await read();
++	if (s.clean.length && s.box) first = s.clean.slice();
++	if (first && !s.box && s.clean.length) sent = true;
++}
++if (!first) fail("no words reached the Cleaned list while dictating");
++else if (!sent) fail("the first utterance never auto-sent (box never emptied)");
++else console.log("ok 1: dictated, auto-sent, box empty; Cleaned =", JSON.stringify((await read()).clean));
++
++// 2. stop the mic, type a second line and send it: the first sentence must still be there.
++await page.locator(".chatbox-mic .ux-dictate-btn, .chatbox-mic button").first().click();
++await page.waitForTimeout(2500);
++const before = (await read()).clean;
++await page.locator(".refine-toolbar textarea").fill("Now the second line is typed. It has two sentences.");
++await page.locator(".refine-toolbar button", { hasText: /^Send$/ }).first().click();
++await page.waitForTimeout(1500);
++const after = (await read()).clean;
++if (after.length < before.length + 2) fail(`second send did not add its sentences (before ${before.length}, after ${after.length})`);
++else if (before.some((t, i) => after[i] !== t && !/^$/.test(t)) && !after.join(" ").includes(before[0].slice(0, 12))) fail("an earlier sentence was overwritten");
++else console.log("ok 2: typed send added sentences, earlier ones kept:", JSON.stringify(after));
++
++if (shot) await page.screenshot({ path: shot, fullPage: true });
++clearTimeout(kill);
++await browser.close();
++console.log(`refine calls: ${Math.min(calls, MAX_CALLS)} sent, ${aborted} aborted (cap ${MAX_CALLS})`);
++if (!process.exitCode) console.log("PASS");
+diff --git a/public/framework/ux/Dictate/inbox.jsonl b/public/framework/ux/Dictate/inbox.jsonl
+index bd1c65175..0c627797a 100644
+--- a/public/framework/ux/Dictate/inbox.jsonl
++++ b/public/framework/ux/Dictate/inbox.jsonl
+@@ -18,3 +18,7 @@
+ {"id":"i-mv8szpdywu6","at":"2026-10-15T00:31:27.046Z","essence":"Remove each finished sentence from the text area and send it off, while the next sentence is still transcribing.","source":"/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p4916","from":"refine-queue"}
+ {"id":"i-mv8szpdzd5q","at":"2026-10-15T00:31:27.047Z","essence":"Show before/after states of the streaming UI, including half-finished vs finished sentences and each sentence's transition into the refined prompt.","source":"/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p4916","from":"refine-queue"}
+ {"id":"i-mva2fkpve14","at":"2026-10-15T21:43:30.211Z","essence":"The web voice dictation page is broken; the owner wants to work on fixing it as part of the prompt refinement and chat system (ext/Refine, chat surfaces), not as a standalone fix.","source":"/framework/ai/sessions/2026/10/15/voice-20261015/ask-8c18b60c.md","from":"mastermind-voice-20261015","size":"small"}
++{"resolves":"i-mva2fkpve14","status":"done","how":"The Dictate page dictates, sends each finished sentence as a bubble and clears the box; the sentence-tracking and layout defects were fixed on the shared composer (per_sentence) and Refine page.","by":"mastermind-refine-build","at":"2026-10-16T06:16:16.540Z","task":"/framework/ai/sessions/2026/10/16/voice-20261016/refine-build/"}
++{"resolves":"i-mv8szpdywu6","status":"done","how":"per_sentence composer option: each finished sentence leaves the box while the next is still heard (Refine page, tested with a fake mic).","by":"mastermind-refine-build","at":"2026-10-16T06:16:16.540Z","task":"/framework/ai/sessions/2026/10/16/voice-20261016/refine-build/"}
++{"resolves":"i-mv8szpdx9fo","status":"done","how":"The composer box streams raw words in as they are heard and sends on the sentence end; the Refine page shows the same text.","by":"mastermind-refine-build","at":"2026-10-16T06:16:16.540Z","task":"/framework/ai/sessions/2026/10/16/voice-20261016/refine-build/"}
++{"resolves":"i-mv8szpci7w8","status":"done","how":"Transcription streams word by word (verified with a fake mic on both the Refine and Dictate pages).","by":"mastermind-refine-build","at":"2026-10-16T06:16:16.540Z","task":"/framework/ai/sessions/2026/10/16/voice-20261016/refine-build/"}
+diff --git a/public/framework/ux/Dictate/readme.md b/public/framework/ux/Dictate/readme.md
+index 46e17fcdb..2b5fc2dda 100644
+--- a/public/framework/ux/Dictate/readme.md
++++ b/public/framework/ux/Dictate/readme.md
+@@ -30,4 +30,6 @@ ever appeared — no error, no clue why.
+ 
+ ## More
+ 
++- **Sentence-per-send on the shared composer** (2026-10-16): `composer({ per_sentence: true })` makes each finished sentence leave the box while the next is still heard; the Refine page uses it, this page's `chat()` keeps the default (pause mode already sends each sentence as a bubble). Proof: `ext/Refine/test/composer-flow.mjs` and a fake-mic run of this page.
++
+ - [`doc/architecture.md`](./doc/architecture.md) — the decisions that hold today, and why

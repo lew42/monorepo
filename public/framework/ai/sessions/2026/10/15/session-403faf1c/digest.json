@@ -1,0 +1,34 @@
+{
+ "id": "403faf1c-21e9-4e29-bf2d-3ecb4f204b97",
+ "first": "2026-10-15T21:05:54.667Z",
+ "last": "2026-10-15T21:24:04.927Z",
+ "task": "public/framework/ai/sessions/2026/10/15/voice-opus/past-work-audit",
+ "models": {
+  "claude-haiku-5-5": 15
+ },
+ "sizes": {
+  "raw": 181334,
+  "content": 30851,
+  "stripped": 10857,
+  "owner_only": 0
+ },
+ "usd": 0.316811,
+ "usd_main": 0.316811,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 30,
+  "output": 8987,
+  "cache_read": 1003617,
+  "cache_write": 85742,
+  "w5": 0,
+  "w1": 85742
+ },
+ "messages": 15,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "Findings are done and committed (`b4d7268fa`), but I haven't written a landing line to this task's `task.jsonl` in the main tree, so the task still shows open. I'm stopping here.",
+ "edited": [
+  "public/framework/ai/sessions/2026/10/15/voice-opus/past-work-audit/findings.md"
+ ],
+ "digested_at": "2026-10-16T06:28:10.353Z"
+}

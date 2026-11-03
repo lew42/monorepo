@@ -1,0 +1,533 @@
+diff --git a/public/framework/ai2/doc/groups.md b/public/framework/ai2/doc/groups.md
+index 865af3c9..22c94acd 100644
+--- a/public/framework/ai2/doc/groups.md
++++ b/public/framework/ai2/doc/groups.md
+@@ -57,8 +57,9 @@ or the words you said into the group card itself. The order changes only while t
+ 
+ ## What the page reads
+ 
+-- **Tasks:** every task dir of today and yesterday with a `task.jsonl`, from the dev server's
+-  `directory.json`. Today's stream live; yesterday's are read once.
++- **Tasks:** every task dir of today and yesterday with a `task.jsonl`. The day folder's own
++  `page.jsonl` names its task folders, and each task folder's names its files (`Page.listing()`);
++  only a day with no log falls back to `directory.json`. Today's stream live; yesterday's are read once.
+ - **Cards:** a card's `group` line is only in its own log, so the page asks Servex for the folded
+   state (`GET /card?id=`) of the group cards and of every card touched today or yesterday, once
+   per change of that card's `last` time. ⚠ Filing a card does not change its `last`, so a card
+diff --git a/public/framework/ai2/groups.js b/public/framework/ai2/groups.js
+index 8313952c..41594021 100644
+--- a/public/framework/ai2/groups.js
++++ b/public/framework/ai2/groups.js
+@@ -1,6 +1,7 @@
+ import { TaskJSONL } from "/framework/ext/JSONL/JSONL.js";
+ import { resolve_card, today_str, plain, headline, first_sentence } from "./inbox.js";
+ import { total } from "/framework/ext/AITask/cost.js";
++import { PageLog } from "/framework/core/Page/Log.js";
+ 
+ /**
+  * THE GROUPS — a few familiar names the work is filed under (the owner,
+@@ -78,6 +79,8 @@ export class Groups {
+ 		this.tasks = new Map();     // "<date>/<slug>" → Member
+ 		this.folds = new Map();     // card id → { key, fold }
+ 		this.readers = new Set();
++		this.task_files = new Map();   // "<date>/<slug>" → the task folder's file names
++		this.looking = new Map();      // base → "pending" | "done": task_at() asked for its listing
+ 	}
+ 
+ 	on(fn){ this.readers.add(fn); return () => this.readers.delete(fn); }
+@@ -91,7 +94,11 @@ export class Groups {
+ 		this.by_id = new Map(this.list.map(g => [g.id, g]));
+ 		this.by_card = new Map(this.list.map(g => [g.card, g]));
+ 		folders?.on(() => this.read_cards());
+-		socket?.on?.("data", path => { if (String(path).endsWith("/directory.json")) this.read_tasks(); });
++		socket?.on?.("data", path => {
++			const day = String(path).match(/\/framework\/ai\/(\d{4}-\d\d-\d\d)\/page\.jsonl$/)?.[1];
++			if (day && this.dates().includes(day)) this.read_tasks(day);
++			else if (String(path).endsWith("/directory.json") && this.dir){ this.reading = null; this.read_tasks(); }
++		});
+ 		await Promise.all([this.read_tasks(), this.read_cards()]);
+ 		this.changed();
+ 		return this;
+@@ -108,31 +115,58 @@ export class Groups {
+ 		return out;
+ 	}
+ 
+-	/* Every task dir with a task.jsonl, from the dev server's directory listing
+-	   (the same one the task board reads). ⚠ The SPA fallback answers a miss
+-	   with index.html — the content-type is the 404. */
+-	async read_tasks(){
+-		const res = await fetch("/framework/directory.json").catch(() => null);
+-		const dir = res?.ok && !(res.headers.get("content-type") ?? "").includes("html") ? await res.json().catch(() => null) : null;
+-		const ai = dir?.files?.find(f => f.name === "ai")?.children ?? [];
+-		this.dir = ai;
++	/* Every task dir with a task.jsonl, for the days shown. Each day folder's own
++	   page.jsonl names its task folders, and each task folder's names its files —
++	   a few small fetches instead of the whole site's directory.json, which is read
++	   only for a day that has no page.jsonl yet. `fresh` (a day) refetches that
++	   day's list: a task folder was added to it. */
++	async read_tasks(fresh){
+ 		const today = today_str();
+ 		const loads = [];
+-		for (const date of this.dates()){
+-			const day = ai.find(d => d.name === date);
+-			for (const kid of day?.children ?? []){
+-				if (kid.type !== "dir" || !kid.children?.some(k => k.name === "task.jsonl")) continue;
+-				const key = date + "/" + kid.name;
+-				if (this.tasks.has(key)) continue;
+-				const m = new Member({ url: `/framework/ai/${key}/task.jsonl`, date, slug: kid.name, files: kid.children.map(k => k.name) });
+-				this.tasks.set(key, m);
+-				loads.push(date === today ? m.live(() => this.changed()) : m.load());
+-			}
+-		}
++		const days = await Promise.all(this.dates().map(date => this.day(date, date === fresh)));
++		days.flat().forEach(({ date, slug, files }) => {
++			const key = date + "/" + slug;
++			this.task_files.set(key, files);
++			if (this.tasks.has(key)) return;
++			const m = new Member({ url: `/framework/ai/${key}/task.jsonl`, date, slug, files });
++			this.tasks.set(key, m);
++			loads.push(date === today ? m.live(() => this.changed()) : m.load());
++		});
+ 		await Promise.all(loads);
+ 		if (loads.length) this.changed();
+ 	}
+ 
++	/** One day's task folders that hold a task.jsonl: [{ date, slug, files }]. */
++	async day(date, fresh){
++		const listing = await PageLog.listing(`/framework/ai/${date}/`, fresh);
++		if (!listing) return this.day_from_tree(date);
++
++		const slugs = [...listing.dirs, ...listing.pages.keys()].filter(slug => !this.tasks.has(date + "/" + slug));
++		const logs = await Promise.all(slugs.map(slug => PageLog.listing(`/framework/ai/${date}/${slug}/`)));
++		return slugs.map((slug, i) => ({ date, slug, files: logs[i] && this.constructor.names(logs[i]) }))
++			.filter(task => task.files?.includes("task.jsonl"));
++	}
++
++	// A listing's entries as one list of names, files and folders alike.
++	static names(listing){ return [...listing.files, ...listing.dirs, ...listing.pages.keys()]; }
++
++	/* THE FALLBACK — the dev server's directory.json, read once, for a day or a
++	   task with no page.jsonl. ⚠ The SPA fallback answers a miss with
++	   index.html — the content-type is the 404. */
++	tree(){
++		return this.reading ??= fetch("/framework/directory.json")
++			.then(res => res?.ok && !(res.headers.get("content-type") ?? "").includes("html") ? res.json() : null)
++			.catch(() => null)
++			.then(dir => this.dir = dir?.files?.find(f => f.name === "ai")?.children ?? []);
++	}
++
++	async day_from_tree(date){
++		const day = (await this.tree()).find(d => d.name === date);
++		return (day?.children ?? [])
++			.filter(kid => kid.type === "dir" && kid.children?.some(k => k.name === "task.jsonl"))
++			.map(kid => ({ date, slug: kid.name, files: kid.children.map(k => k.name) }));
++	}
++
+ 	/* A card's `group` line is only in its own log, so the folds of the cards
+ 	   touched lately are read through Servex, once per change of their `last`.
+ 	   The group cards are always read: a prompt filed into one moves it. */
+@@ -197,12 +231,32 @@ export class Groups {
+ 	    nothing until the directory listing is in, so the task page is never
+ 	    drawn without knowing which of its files exist. */
+ 	task_at(base){
+-		if (!base || !this.dir) return [];
++		if (!base) return [];
+ 		const [date, slug] = base.split("/").filter(Boolean).slice(-2);
+-		const files = this.dir.find(d => d.name === date)?.children?.find(k => k.name === slug)?.children?.map(k => k.name);
++		const known = this.task_files.get(date + "/" + slug);
++		if (known) return [{ base, files: known }];
++		if (this.looking.get(base) !== "done"){
++			this.look(base, date + "/" + slug);
++			return [];
++		}
++
++		// No page.jsonl there: the directory.json fallback look() read.
++		const files = this.dir?.find(d => d.name === date)?.children?.find(k => k.name === slug)?.children?.map(k => k.name);
+ 		return [{ base, files: files ?? [] }];
+ 	}
+ 
++	// Its own page.jsonl, fetched once (a task older than `days` was never read); then the view redraws.
++	look(base, key){
++		if (this.looking.has(base)) return;
++		this.looking.set(base, "pending");
++		PageLog.listing(base).then(async listing => {
++			if (listing) this.task_files.set(key, this.constructor.names(listing));
++			else await this.tree();
++			this.looking.set(base, "done");
++			this.changed();
++		});
++	}
++
+ 	/** The loaded task a task-page url (`/framework/ai/<date>/<slug>/`) points at, or null —
+ 	    null too for a task older than `days`, which is never read. */
+ 	task_member(url){
+diff --git a/public/framework/core/Page/Log.js b/public/framework/core/Page/Log.js
+index 189eabcb..fa24086d 100644
+--- a/public/framework/core/Page/Log.js
++++ b/public/framework/core/Page/Log.js
+@@ -207,8 +207,9 @@ export class PageLog {
+ 		const reader = new this.Reader({ url: url + "page.jsonl" });
+ 		await reader.open();
+ 
++		// A log whose line 1 is a `file` line is a folder's listing, not a page.
+ 		const [first] = reader.entries;
+-		if (!first) { reader.close(); return null; }
++		if (!first || typeof first.file === "string") { reader.close(); return null; }
+ 
+ 		const Class = first.class ? await this.log_class(first.class, url) : this;
+ 		const { class: _, ...line } = first;
+@@ -219,6 +220,26 @@ export class PageLog {
+ 		return page;
+ 	}
+ 
++	/* A FOLDER'S OWN FILE LIST, from its page.jsonl — what used to cost the whole
++	   site's directory.json. `url` is the folder (a trailing `/` is added). One fetch
++	   per folder, memoised (`fresh` refetches); no page is built. Null when the folder
++	   has no page.jsonl: the caller falls back. A log with no `file` lines is an empty folder.
++	   ⚠ Not live: a file added after the fetch is missing until `fresh`. */
++	static listing(url, fresh){
++		url = String(url).replace(/\/?$/, "/");
++		const memo = PageLog.listings ??= new Map();
++		if (fresh || !memo.has(url)) memo.set(url, new PageLog.Reader({ url: url + "page.jsonl" }).load()
++			.then(reader => reader.loaded ? PageLog.Listing.from(reader.entries) : null)
++			.then(listing => { (PageLog.loaded_listings ??= new Map()).set(url, listing); return listing; }));
++		return memo.get(url);
++	}
++
++	// The listing, only if a `listing()` call has already brought it in; never fetches.
++	// undefined = not asked yet, null = asked, no page.jsonl.
++	static loaded_listing(url){
++		return PageLog.loaded_listings?.get(String(url).replace(/\/?$/, "/"));
++	}
++
+ 	static async log_class(module, url){
+ 		const Class = (await import(new URL(module, location.origin + url).href)).default;
+ 		if (Class?.prototype instanceof PageLog) return Class;
+@@ -291,4 +312,38 @@ PageLog.Reader = class PageLogReader {
+ 	}
+ };
+ 
++/* WHAT `listing()` ANSWERS — the entries directly inside one folder, replayed the way
++   file() replays them (keyed by first segment, latest line wins, `gone` removes):
++       files  ["readme.md", …]         plain files
++       dirs   ["doc", …]               plain folders (each may have its own page.jsonl)
++       pages  Map { "kid" → "js" }     child pages, and which file makes each one
++       page   true/false               is this log itself a page (line 1 is not a file line)? */
++PageLog.Listing = class PageListing {
++
++	files = [];
++	dirs = [];
++	pages = new Map();
++
++	static from(entries){
++		const latest = new Map();
++		for (const { file, gone } of entries){
++			if (typeof file !== "string") continue;
++			gone ? latest.delete(key_of(file)) : latest.set(key_of(file), file);
++		}
++
++		const listing = new this();
++		listing.page = !!entries[0] && typeof entries[0].file !== "string";   // line 1 builds a page; a listing-only log starts with a file line
++		latest.forEach((name, key) => {
++			const kind = name.match(CHILD)?.[2];
++			if (kind) listing.pages.set(key, kind);
++			else if (name.includes("/")) listing.dirs.push(key);
++			else listing.files.push(name);
++		});
++		return listing;
++	}
++
++	// Is `name` a folder here, page or not?
++	folder(name){ return this.dirs.includes(name) || this.pages.has(name); }
++};
++
+ export default PageLog;
+diff --git a/public/framework/core/Page/Markdown.js b/public/framework/core/Page/Markdown.js
+index 383e69bf..03ce47ee 100644
+--- a/public/framework/core/Page/Markdown.js
++++ b/public/framework/core/Page/Markdown.js
+@@ -20,12 +20,12 @@ export default class PageMarkdown extends Page {
+ 
+ 		// The file list answers first, so no folder is fetched as `<folder>.md` and 404s.
+ 		// With no list (production), try the file, and a miss is taken as a folder.
+-		const [dir, md] = await Promise.all([name + "/", name + ".md"].map(path => this.constructor.node(this.folder + path)));
++		const { dir, md } = await this.constructor.where(this.folder, name);
+ 
+-		const file = dir?.type !== "dir" && md !== null && await Page.file(this.folder + name + ".md");
++		const file = dir !== true && md !== false && await Page.file(this.folder + name + ".md");
+ 		if (file) return this.add(name, { ...file, folder: this.folder }).load_all_children(levels);
+ 
+-		if (dir === null || dir?.type === "file") return null;
++		if (dir === false) return null;
+ 		return this.add(name, new this.constructor({ folder: this.folder + name + "/" })).load_all_children(levels);
+ 	}
+ 
+@@ -65,7 +65,43 @@ export default class PageMarkdown extends Page {
+ 		});
+ 	}
+ 
+-	// ════ THE FILE LIST — the dev server's directory.json ════════════════════
++	// ════ THE FILE LIST — each folder's own page.jsonl (Page.listing()) ════════
++
++	// Is `name` in `folder` a folder, a `.md` file, or unknown (undefined)? The listing
++	// answers; a name it does not know may still be a new .md, so the file is tried.
++	static async where(folder, name){
++		const listing = await Page.listing(folder);
++		if (listing) return { dir: listing.folder(name), md: listing.files.includes(name + ".md") || undefined };
++
++		const [dir, md] = await Promise.all([name + "/", name + ".md"].map(path => this.node(folder + path)));
++		return { dir: dir === undefined ? undefined : dir?.type === "dir", md: md === undefined ? undefined : md !== null };
++	}
++
++	// Every .md under `dir`, as paths relative to it. A folder that is a page is
++	// another page, with its own md/ — so it is not listed here.
++	static async files(dir){
++		const found = await this.walk(dir, { keep: name => name.endsWith(".md") });
++		return found && found.sort((x, y) => x.split("/").length - y.split("/").length || x.localeCompare(y));
++	}
++
++	/* Every file under `dir` that `keep` wants, relative to `dir`: one page.jsonl per
++	   folder, each level's folders fetched in parallel. `pages: true` walks into child
++	   pages too (ext/files' /fs/). A folder with no page.jsonl is read from the old
++	   directory.json instead. Undefined when neither exists (production).
++	   ⚠ A `kid/page.jsonl` line may be a plain folder whose log is only a listing, so
++	     it is looked into, and skipped only if its log turns out to be a page. */
++	static async walk(dir, { keep = () => true, pages = false, rel = "" } = {}){
++		dir = dir.replace(/\/?$/, "/");
++		const listing = await Page.listing(dir);
++		if (!listing) return this.walk_tree(await this.node(dir), { keep, pages, rel });
++		if (rel && !pages && listing.page) return [];
++
++		const into = [...listing.dirs, ...[...listing.pages].filter(([, kind]) => pages || kind === "jsonl").map(([name]) => name)];
++		const deeper = await Promise.all(into.map(name => this.walk(dir + name + "/", { keep, pages, rel: rel + name + "/" })));
++		return [...listing.files.filter(keep).map(name => rel + name), ...deeper.flatMap(found => found ?? [])];
++	}
++
++	// ════ THE FALLBACK — the dev server's directory.json, the whole site in one file ══
+ 	static tree(){ return PageMarkdown.reading ??= Page.read_json("/directory.json"); }
+ 
+ 	static async node(dir){
+@@ -78,20 +114,16 @@ export default class PageMarkdown extends Page {
+ 		return node;
+ 	}
+ 
+-	// Every .md under `dir`, as paths relative to it. A folder with its own page.js is
+-	// another page, with its own md/ — so it is not listed here.
+-	static async files(dir){
+-		const node = await this.node(dir);
+-		if (node === undefined) return null;
++	static walk_tree(node, { keep, pages, rel }){
++		if (node === undefined) return undefined;
+ 
+ 		const found = [];
+ 		const walk = (node, rel) => (node?.children ?? []).forEach(child => {
+-			if (child.type === "file" && child.name.endsWith(".md")) found.push(rel + child.name);
+-			else if (child.type === "dir" && !child.children?.some(c => c.name === "page.js")) walk(child, rel + child.name + "/");
++			if (child.type === "file" && keep(child.name)) found.push(rel + child.name);
++			else if (child.type === "dir" && (pages || !child.children?.some(c => c.name === "page.js"))) walk(child, rel + child.name + "/");
+ 		});
+-		walk(node, "");
+-
+-		return found.sort((x, y) => x.split("/").length - y.split("/").length || x.localeCompare(y));
++		walk(node, rel);
++		return found;
+ 	}
+ }
+ 
+diff --git a/public/framework/core/Page/Page.class.js b/public/framework/core/Page/Page.class.js
+index f20cc143..32fc7d46 100644
+--- a/public/framework/core/Page/Page.class.js
++++ b/public/framework/core/Page/Page.class.js
+@@ -222,9 +222,31 @@ export class Page extends PageLog {
+ 		const claimed = known === undefined && is.fn(this.route) && this.route(name);
+ 		if (claimed) return this.add(name, claimed).load_all_children(levels);
+ 
++		// My folder's own page.jsonl (Log.js listing()), IF something already loaded it,
++		// says which file makes `name`, so the probe that would 404 is skipped. Not
++		// fetched here: every folder the Router walks would pay a fetch, and a folder
++		// with no log a 404. A name it does not list keeps the probe order below: a
++		// stale list must never hide a real page.
++		const [listing, docs] = [Page.loaded_listing(this.url), Page.loaded_listing(this.md_dir())];
++		const kind = listing?.pages.get(name);
++		const md = !kind && docs?.files.includes(name + ".md");
++
++		if (kind === "jsonl") {
++			const page = await Page.jsonl(this.url + name + "/");
++			if (page) return this.add(name, page).load_all_children(levels);
++		}
++
++		const doc = md && await this.child_md(name, levels);
++		if (doc) return doc;
++
+ 		const page = await Page.load(this.url + name + "/", 0);
+ 		if (page) return this.add(name, page).load_all_children(levels);
+ 
++		return md ? null : this.child_md(name, levels);
++	}
++
++	// `name.md` beside me, as a page — the last probe, or the first when my list names it.
++	async child_md(name, levels){
+ 		const file = await Page.file(this.md_dir() + name + ".md");
+ 		return file ? this.add(name, { ...file, folder: this.md_dir() }).load_all_children(levels) : null;
+ 	}
+diff --git a/public/framework/core/Page/doc/markdown.md b/public/framework/core/Page/doc/markdown.md
+index 02bf9020..c49107d3 100644
+--- a/public/framework/core/Page/doc/markdown.md
++++ b/public/framework/core/Page/doc/markdown.md
+@@ -41,9 +41,11 @@ reserved, but it gives no index and no subfolders. The choice and its reasons ar
+   `route()`, so even a page that routes every name still has one.
+ - **The trailing slash matters.** `ext/Panel` documents `flow.js` in `doc/file/flow.js.md`,
+   and a url ending in `.js` is answered as a file (a 404), never as the app.
+-- **The index reads the dev server's `/directory.json`.** Production has no such file, so
+-  there the index shows the folder's `readme.md` instead, and a folder name nobody has
+-  checked opens as an empty folder rather than a 404.
++- **The index reads each folder's own `page.jsonl`** (its `file` lines, through `Page.listing()`),
++  one folder at a time, and looks inside a sub-folder by that folder's own log. A folder with
++  no log falls back to the dev server's `/directory.json`; with neither, the index shows the
++  folder's `readme.md` instead, and a folder name nobody has checked opens as an empty
++  folder rather than a 404.
+ - **The module is a guess.** 68 of 2,276 `.md` files (in 13 folders with no `page.js`,
+   measured 2026-09-24) sit where no page is, and a link to one of them 404s.
+ - **A folder with its own `page.js` isn't listed** in its parent's index, because it has its
+diff --git a/public/framework/dev/DevBar/ask.js b/public/framework/dev/DevBar/ask.js
+index 995fd777..7b4dab0d 100644
+--- a/public/framework/dev/DevBar/ask.js
++++ b/public/framework/dev/DevBar/ask.js
+@@ -1,5 +1,6 @@
+ import { div, span, button, icon } from "../../core/View/View.js";
+ import { TaskJSONL } from "../../ext/JSONL/JSONL.js";
++import { PageLog } from "../../core/Page/Log.js";
+ import { available, thread } from "../../ext/Ask/Ask.js";
+ import { chat } from "../../ext/Ask/chat.js";
+ import { settings, set } from "./settings.js";
+@@ -60,9 +61,22 @@ const json = url => fetch(url)
+ // The dir listing IS the index — nothing declares a thread and nothing crawls.
+ async function threads(url){
+ 	const dir = url.replace(/^\//, "") + "ai";
+-	const listing = walk((await json("/directory.json"))?.files ?? [], dir.split("/").filter(Boolean));
+ 
+-	return (listing?.children ?? [])
++	// Each folder's own page.jsonl names its sub-folders; each thread's names its task.jsonl.
++	// The page's own list first: a page with no ai/ folder costs one fetch, not a 404.
++	const own = await PageLog.listing("/" + dir.replace(/ai$/, ""));
++	if (own && !own.folder("ai")) return [];
++	const listing = own && await PageLog.listing("/" + dir + "/");
++	if (listing){
++		const kids = [...listing.dirs, ...listing.pages.keys()];
++		const logs = await Promise.all(kids.map(kid => PageLog.listing(`/${dir}/${kid}/`)));
++		return kids.filter((kid, i) => logs[i]?.files.includes("task.jsonl")).map(slug => ({ slug, task: `${dir}/${slug}` }));
++	}
++
++	// No page.jsonl there yet: the whole site's directory.json.
++	const tree = walk((await json("/directory.json"))?.files ?? [], dir.split("/").filter(Boolean));
++
++	return (tree?.children ?? [])
+ 		.filter(kid => kid.type === "dir" && kid.children?.some(file => file.name === "task.jsonl"))
+ 		.map(kid => ({ slug: kid.name, task: `${dir}/${kid.name}` }));
+ }
+diff --git a/public/framework/dev/DevBar/doc/threads.md b/public/framework/dev/DevBar/doc/threads.md
+index 262573e7..8576a48e 100644
+--- a/public/framework/dev/DevBar/doc/threads.md
++++ b/public/framework/dev/DevBar/doc/threads.md
+@@ -12,9 +12,10 @@ that happens to start here shows up anywhere else `task.jsonl` is read.
+ 
+ ## Nothing declares a thread; the directory listing is the index
+ 
+-`ask.js`'s `threads()` fetches `/directory.json` (the dev server's own
+-listing, gitignored, dev-only) and walks it to `<page>ai/`, returning every
+-child directory that holds a `task.jsonl`. No manifest, no registration call
++`ask.js`'s `threads()` reads the page folder's own `page.jsonl`, then
++`<page>ai/`'s, and returns every child directory whose own log lists a
++`task.jsonl` (`Page.listing()`). With no log there it falls back to
++`/directory.json` (the dev server's own listing, gitignored, dev-only). No manifest, no registration call
+ — dropping a `task.jsonl` in the right place is what makes a thread exist,
+ the same rule `children:` follows for pages elsewhere in the framework.
+ 
+diff --git a/public/framework/ext/drawer/tabs/sessions.js b/public/framework/ext/drawer/tabs/sessions.js
+index 7399ece8..14ca58a5 100644
+--- a/public/framework/ext/drawer/tabs/sessions.js
++++ b/public/framework/ext/drawer/tabs/sessions.js
+@@ -1,6 +1,7 @@
+ import { div, span, button, small, a, h4 } from "/framework/core/View/View.js";
+ import { TaskJSONL } from "/framework/ext/JSONL/JSONL.js";
+ import { thread, available } from "/framework/ext/Ask/Ask.js";
++import { PageLog } from "/framework/core/Page/Log.js";
+ 
+ /* THE SESSIONS TAB — every thread on this page. A thread is the dev bar Ask's own
+    store: a dir `<page>ai/<slug>/` holding a `task.jsonl`, whose `chat` lines are the
+@@ -25,8 +26,21 @@ const walk = (files, [head, ...rest]) => {
+ /** This page's threads, newest file listing order: [{slug, task}]. The dir listing IS the index. */
+ export async function threads(url){
+ 	const dir = url.replace(/^\//, "") + "ai";
+-	const listing = walk((await json("/directory.json"))?.files ?? [], dir.split("/").filter(Boolean));
+-	return (listing?.children ?? [])
++
++	// Each folder's own page.jsonl names its sub-folders; each thread's names its task.jsonl.
++	// The page's own list first: a page with no ai/ folder costs one fetch, not a 404.
++	const own = await PageLog.listing("/" + dir.replace(/ai$/, ""));
++	if (own && !own.folder("ai")) return [];
++	const listing = own && await PageLog.listing("/" + dir + "/");
++	if (listing){
++		const kids = [...listing.dirs, ...listing.pages.keys()];
++		const logs = await Promise.all(kids.map(kid => PageLog.listing(`/${dir}/${kid}/`)));
++		return kids.filter((kid, i) => logs[i]?.files.includes("task.jsonl")).map(slug => ({ slug, task: `${dir}/${slug}` }));
++	}
++
++	// No page.jsonl there yet: the whole site's directory.json.
++	const tree = walk((await json("/directory.json"))?.files ?? [], dir.split("/").filter(Boolean));
++	return (tree?.children ?? [])
+ 		.filter(kid => kid.type === "dir" && kid.children?.some(file => file.name === "task.jsonl"))
+ 		.map(kid => ({ slug: kid.name, task: `${dir}/${kid.name}` }));
+ }
+diff --git a/public/framework/ext/files/fs.js b/public/framework/ext/files/fs.js
+index 4bc93917..6b7d3507 100644
+--- a/public/framework/ext/files/fs.js
++++ b/public/framework/ext/files/fs.js
+@@ -34,7 +34,7 @@ export default class PageFiles extends Page {
+ 
+ 			return this.constructor.list(this.folder ?? this.url).then(names => () => {
+ 				if (names === null)
+-					return void p.c("muted", "This server has no file list (`/directory.json`) — /fs/ only works on the dev server, never on the live site.");
++					return void p.c("muted", "This server has no file list (no `page.jsonl`, no `/directory.json`) — /fs/ only works on the dev server, never on the live site.");
+ 				if (!names.length)
+ 					return void p.c("muted", "No files under " + (this.folder ?? this.url) + ".");
+ 
+@@ -45,27 +45,19 @@ export default class PageFiles extends Page {
+ 
+ 	// Every real file under `dir` (a site-root path, e.g. "/framework/ext/files/"),
+ 	// as paths relative to the site root — what `files()` wants when handed
+-	// `{ url: location.origin + "/" }` instead of a page's own `import.meta`. Walks
+-	// the same `/directory.json` tree `PageMarkdown` already reads
+-	// (`core/Page/Markdown.js`), just without its `.md`-only filter — every file,
+-	// not only the markdown ones.
+-	// ⚠ `undefined` (no `/directory.json` at all — production, no dev server) reads
+-	//   differently from `null` (the folder itself isn't in the tree): the caller
++	// `{ url: location.origin + "/" }` instead of a page's own `import.meta`. The
++	// same walk `PageMarkdown` does (`core/Page/Markdown.js`): each folder's own
++	// page.jsonl, a level at a time in parallel, into child pages too, and every
++	// file, not only the markdown ones.
++	// ⚠ `null` (no file list at all — production, no page.jsonl and no
++	//   directory.json) reads differently from `[]` (nothing here): the caller
+ 	//   shows a different message for each.
+ 	static async list(dir){
+-		const node = await PageMarkdown.node(dir);
+-		if (node === undefined) return null;
+-		if (!node) return [];
++		const found = await PageMarkdown.walk(dir, { pages: true });
++		if (found === undefined) return null;
+ 
+ 		const root = dir.replace(/^\/+/, "");
+-		const found = [];
+-
+-		const walk = (node, rel) => (node?.children ?? []).forEach(child => {
+-			if (child.type === "file") found.push(root + rel + child.name);
+-			else if (child.type === "dir") walk(child, rel + child.name + "/");
+-		});
+-		walk(node, "");
+-
+-		return found.sort((x, y) => x.split("/").length - y.split("/").length || x.localeCompare(y));
++		return found.map(name => root + name)
++			.sort((x, y) => x.split("/").length - y.split("/").length || x.localeCompare(y));
+ 	}
+ }
+

@@ -1,0 +1,5 @@
+verdict: pass
+1. [note] The diff touches `ext/drawer/rail/shots/files.jsonl` and `ext/drawer/walkthrough/shots/files.jsonl` (outside the fence), appending `"gone":true` lines for files that are still listed above them; harmless but unrelated noise, and the requirement said shots are never committed.
+2. [note] `after.txt` shows the counts at strip, split, full, 1200 page and 1920 dock all at 1 widget and 1 feed, and the fake mic check says "3 sentences" where the ask said two (after.txt:21-24); each appears once, so it meets the intent.
+3. [note] The fix adds a fair amount of coordination (`holder()`, `moved`, `shut`, `resized`, a `drawer-chat` event, `release_chat`) in `AIPage.js:22-107`; a single owner of the chat that the sheet, page and dock all ask would be simpler, but the alternative is recorded in task.jsonl (4 `decision` lines) and the behaviour is proven.
+4. [note] `AIPage.js:47` calls `m.default(...)` with `this.mounting` as the only guard against the dock's own `drawer-chat` event; a throw inside `ai()` is covered by `finally`, so this is fine, just worth knowing if the event gains other listeners.

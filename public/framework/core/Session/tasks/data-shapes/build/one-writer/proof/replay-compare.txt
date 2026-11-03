@@ -1,0 +1,43 @@
+{
+ "files": 9626,
+ "same": 9626,
+ "changed_between_runs": 0,
+ "different": 0,
+ "missing": 0,
+ "total_ms": {
+  "before": 952,
+  "after": 852
+ },
+ "slowest": [
+  {
+   "file": "public/framework/ai/sessions/2026/10/25/v-sq8y7db/session.jsonl",
+   "lines": 8360,
+   "before_ms": 248.8,
+   "after_ms": 275.2
+  },
+  {
+   "file": "public/framework/ai/sessions/2026/10/25/v-9dvbbrn/session.jsonl",
+   "lines": 5625,
+   "before_ms": 116,
+   "after_ms": 127.1
+  },
+  {
+   "file": "public/framework/core/Page/ext/page.jsonl",
+   "lines": 15,
+   "before_ms": 77.4,
+   "after_ms": 4.8
+  },
+  {
+   "file": "public/framework/ai/sessions/2026/10/20/session-e00f55c9/session.jsonl",
+   "lines": 1076,
+   "before_ms": 59.1,
+   "after_ms": 46.2
+  },
+  {
+   "file": "public/framework/ai/sessions/2026/10/02/cards/page.jsonl",
+   "lines": 9760,
+   "before_ms": 20.6,
+   "after_ms": 19.1
+  }
+ ]
+}

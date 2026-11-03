@@ -1,0 +1,1342 @@
+diff --git a/public/alex/examples/subpage/nested/page.js b/public/alex/examples/subpage/nested/page.js
+index 864e159ab..bb6293899 100644
+--- a/public/alex/examples/subpage/nested/page.js
++++ b/public/alex/examples/subpage/nested/page.js
+@@ -20,7 +20,7 @@ export default {
+   full() {
+     a.c("page-back", "Back").href("../");
+     this.preview();
+-    this.content();
++    this.content.render();
+   },
+   render() {
+     this.full();
+diff --git a/public/blog/Post.js b/public/blog/Post.js
+index d15e7f1b5..29d114e1f 100644
+--- a/public/blog/Post.js
++++ b/public/blog/Post.js
+@@ -158,7 +158,7 @@ export class Post extends Page {
+ 	read(){
+ 		if (this.parts) return this.part_default()?.assign({ app: this.app }).render();
+ 
+-		return is.fn(this.content) ? this.content() : this.prose(md.file(this.meta, "post.md", { h1: false }));
++		return this.has_content() ? this.content.render() : this.prose(md.file(this.meta, "post.md", { h1: false }));
+ 	}
+ 
+ 	/* One markdown file, dressed as the two-track reading grid (blog.css). The class
+diff --git a/public/framework/ai/2026-08-17/report/page.js b/public/framework/ai/2026-08-17/report/page.js
+index 0ff47547f..3828adeba 100644
+--- a/public/framework/ai/2026-08-17/report/page.js
++++ b/public/framework/ai/2026-08-17/report/page.js
+@@ -23,7 +23,7 @@ export default new Page({
+ 	     this page ran 2248px of prose at 3440, about 250 characters a line. The shell
+ 	     caps `main` and every band below claims `wide`. */
+ 	render(){
+-		return this.view ??= div.c("page", () => this.content())
++		return this.view ??= div.c("page", () => this.content.render())
+ 			.ac(this.name && "page--" + this.name);
+ 	},
+ 
+diff --git a/public/framework/ai/2026-08-17/vision-browse/page.js b/public/framework/ai/2026-08-17/vision-browse/page.js
+index 049373f38..d581c7904 100644
+--- a/public/framework/ai/2026-08-17/vision-browse/page.js
++++ b/public/framework/ai/2026-08-17/vision-browse/page.js
+@@ -15,7 +15,7 @@ export default new Page({
+ 	   ai/2026-08-17/report/page.js does — 18 screenshots beside their scores
+ 	   need width a task page's region never gives. Own title, per core/Page/doc/layout.md. */
+ 	render(){
+-		return this.view ??= div.c("page full", () => this.content()).ac(this.name && "page--" + this.name);
++		return this.view ??= div.c("page full", () => this.content.render()).ac(this.name && "page--" + this.name);
+ 	},
+ 
+ 	content(){
+diff --git a/public/framework/ai/2026-10-12/content-list/STATE.md b/public/framework/ai/2026-10-12/content-list/STATE.md
+new file mode 100644
+index 000000000..10cd473ef
+--- /dev/null
++++ b/public/framework/ai/2026-10-12/content-list/STATE.md
+@@ -0,0 +1,17 @@
++# content-list: state (2026-10-12)
++
++Step 1 of [content.md](../../core/Page/doc/content.md) is built and ready to merge: [what was built](../../core/Page/doc/content-list-step-1.md), live at [/framework/core/Page/content-shapes/](/framework/core/Page/content-shapes/). Branch `worktree/content-list`.
++
++## Proof
++
++- **Baseline vs new, 56 pages** (40 sampled, 10 string/address, jsonl-content pages; 4 widths on the main ones; fixed page clock): **0 state diffs, 0 error diffs.** The only text/outline/screenshot differences are ones the unchanged code also shows against itself (same code run twice: 18 text, 10 screenshot diffs, all sidebar ordering races and live chrome), plus the intended edit to `address-2`'s doc line.
++- **Targeted A/B, old vs new code, same minute, on the pages that looked suspicious** (`/framework/core/Page/`, `/framework/ai/2026-10-12/`, `page-split-2`): old and new match exactly at all widths. The `/framework/core/Page/` 1920/3440 screenshot differs between two runs of the *old* code too (live chrome).
++- **New ability**: [both/](/framework/core/Page/content-shapes/both/) shows the class's `content()` (heading and paragraph) and the jsonl paragraph as two rows.
++- **smoke.mjs**: clean except `/framework/ai2/live/`, which 404s `directory.json` and `ai/2026-10-11/*.jsonl`. Those files are gitignored in this worktree, nothing the change touches.
++- **stream-proof.mjs**: heading 13 ms, card 34 ms, text 31 ms. `update` and `title` steps report NOT SEEN with the old code too (identical result), so no change.
++
++## Review (fresh Opus, first pass) and what changed
++
++- **Index page showed nothing below its heading** and the sidebar listed it twice under the wrong url (`/page-content-every-shape/`): the fixture lacked `meta: import.meta`. Fixed; the folder is now `core/Page/content-shapes/` (a child named `content` also clashes with `page.content`), and the index lists every child with a link.
++- **`part-text` row is a white card at 1200 and plain text at 1920**: unchanged behaviour of the rows code moved verbatim from `render_content_list` (`part-text` has no View of its own). Left as is; not part of step 1.
++- **Tab bar wraps on `/framework/core/Page/`**: present before this change too.
+diff --git a/public/framework/ai/2026-10-12/content-list/baseline.mjs b/public/framework/ai/2026-10-12/content-list/baseline.mjs
+new file mode 100644
+index 000000000..0dc43d9fa
+--- /dev/null
++++ b/public/framework/ai/2026-10-12/content-list/baseline.mjs
+@@ -0,0 +1,109 @@
++// node baseline.mjs <label> [port]   → saves state + screenshots under $OUT/<label>/ ; node baseline.mjs diff <a> <b>
++// Replay state = every Page in Page.log_pages (the jsonl pages) plus the routed chain, serialised; DOM = a normalised outline.
++import fs from "node:fs";
++import path from "node:path";
++import crypto from "node:crypto";
++import { browser, close } from "../../../../../Server/browser.mjs";
++
++const OUT = process.env.OUT ?? path.join(process.env.TEMP, "content-list");
++// New ability by design: these differ between old and new code; diff skips them.
++const NEW = new Set(["/framework/core/Page/content-shapes/both/"]);
++const WIDTHS = [400, 1200, 1920, 3440];
++const FULL = new Set(["/framework/core/Page/content-shapes/", "/framework/core/Page/content-shapes/string-1/", "/framework/core/Page/content-shapes/address-1/", "/framework/core/Page/content-shapes/class-body/", "/framework/core/Page/content-shapes/code/", "/framework/core/Page/", "/framework/ai/", "/imagine/paging/", "/framework/core/Page/overview/columns/", "/framework/ext/markdown/open/", "/framework/core/Page/parts/example/", "/framework/ai/2026-10-12/page-ai-api/build/", "/framework/ai/sessions/"]);
++
++const URLS = (process.env.ONLY ? process.env.ONLY.split(",") : null) ?? [
++	"/framework/", "/framework/core/", "/framework/core/Page/", "/framework/core/View/", "/framework/core/Router/", "/framework/core/App/",
++	"/framework/core/Page/overview/columns/", "/framework/core/Page/overview/tabs/", "/framework/core/Page/overview/rail/", "/framework/core/Page/overview/wall/",
++	"/framework/core/Page/overview/grid/", "/framework/core/Page/overview/prose/", "/framework/core/Page/overview/width/", "/framework/core/Page/overview/site/",
++	"/framework/core/Page/parts/", "/framework/core/Page/parts/example/", "/framework/core/Page/jsonl/", "/framework/core/Page/jsonl/live/",
++	"/framework/ai/", "/framework/ai/sessions/", "/framework/ai/sessions/2026/10/", "/framework/ai/cards/", "/framework/ai/rail/", "/framework/ai/classes/",
++	"/framework/ai/2026-10-12/page-ai-api/build/", "/framework/ai/2026-10-12/page-split-2/", "/framework/ai/2026-10-12/page-split-3/", "/framework/ai/2026-10-12/",
++	"/framework/ext/markdown/open/", "/framework/ext/markdown/open/columns/", "/framework/ext/JSONL/", "/framework/ext/Refine/",
++	"/framework/core/Page/content-shapes/", "/framework/core/Page/content-shapes/code/", "/framework/core/Page/content-shapes/class-body/",
++	"/framework/core/Page/content-shapes/string-1/", "/framework/core/Page/content-shapes/string-2/", "/framework/core/Page/content-shapes/string-3/", "/framework/core/Page/content-shapes/string-4/", "/framework/core/Page/content-shapes/string-5/",
++	"/framework/core/Page/content-shapes/address-1/", "/framework/core/Page/content-shapes/address-2/", "/framework/core/Page/content-shapes/address-3/", "/framework/core/Page/content-shapes/address-4/", "/framework/core/Page/content-shapes/address-5/",
++	"/framework/core/Page/tool/", "/framework/ai/sessions/2026/10/03/71eead80-a869-421f-83bb-eba7ff83510e/task/", "/framework/ai/sessions/2026/10/12/session-3c35b6e2/seeds/",
++	"/framework/core/Page/content-shapes/both/",
++	"/imagine/paging/", "/imagine/paging/arrangement/", "/imagine/", "/framework/ux/Dictate/", "/framework/ux/Inbox/", "/framework/ui/", "/framework/styles/", "/web/",
++];
++
++const outline = `(() => {
++	const walk = (el, depth) => depth > 12 ? "" : "<" + el.tagName.toLowerCase() + "." + [...el.classList].filter(c => !/^(active|hover|focus)/.test(c)).sort().join(".") + ">" + [...el.children].map(c => walk(c, depth + 1)).join("");
++	return walk(document.body, 0);
++})()`;
++
++const state = async () => {
++	const { default: Page } = await import("/framework/core/Page/Page.class.js").then(m => ({ default: m.Page ?? m.default }));
++	const ser = page => ({
++		url: page.url, name: page.name, title: page.title, nav: page.navigation, width: page.width, arr: page.arrangement, surface: page.surface, bg: page.background, ts: page.type_size,
++		lines: page.jsonl_lines, listed: [...page.listed ?? []], placed: page.placed, kinds: [...page.child_kinds ?? []], tabs: [...page.tabs_state ?? []],
++		children: [...page.children.keys()], data: page.data, unknown: page.unknown, contents: (page.content?.items ?? []).filter(i => !i.transient).length,
++		jsonl_url: page.jsonl_url, has_view: !!page.view,
++	});
++	const logs = [...Page.log_pages ?? []].map(([k, p]) => [k, ser(p)]).sort((a, b) => a[0].localeCompare(b[0]));
++	const chain = (window.app?.router?.chain?.() ?? []).map(p => p.url);
++	return { logs, chain, path: location.pathname };
++};
++
++async function run(label, base){
++	const dir = path.join(OUT, label);
++	fs.mkdirSync(dir, { recursive: true });
++	const b = await browser();
++	const summary = {};
++	for (const url of URLS){
++		const key = url.replace(/\W+/g, "_");
++		const rec = { errors: [], shots: {} };
++		for (const w of WIDTHS){
++			if (w !== 1200 && !FULL.has(url)) continue;
++			const ctx = await b.newContext({ viewport: { width: w, height: 900 } });
++			await ctx.clock.setFixedTime(new Date("2026-10-12T12:00:00-05:00"));   // page clocks stop being diff noise
++			const page = await ctx.newPage();
++			const errors = [];
++			page.on("pageerror", e => errors.push("pageerror: " + String(e.message).slice(0, 200)));
++			page.on("console", m => { if (m.type() === "error" && !/404|Failed to load resource/.test(m.text())) errors.push("console: " + m.text().slice(0, 200)); });
++			try {
++				await page.goto(base + url, { waitUntil: "load", timeout: 30000 });
++				await page.waitForTimeout(1800);
++				if (w === 1200){
++					rec.state = await page.evaluate(state).catch(e => ({ error: String(e) }));
++					rec.outline = crypto.createHash("md5").update(await page.evaluate(outline)).digest("hex");
++					rec.lines = (await page.evaluate(() => document.body.innerText)).split("\n");
++					rec.text = crypto.createHash("md5").update(rec.lines.join("\n")).digest("hex");
++				}
++				const png = await page.screenshot({ path: path.join(dir, `${key}-${w}.png`) });
++				rec.shots[w] = crypto.createHash("md5").update(png).digest("hex");
++			} catch (e){ errors.push("load: " + e.message.slice(0, 200)); }
++			rec.errors.push(...errors.map(e => `${w}: ${e}`));
++			await ctx.close();
++		}
++		summary[url] = rec;
++		console.log(url, rec.errors.length ? "ERR " + rec.errors.length : "ok", Object.keys(rec.shots).length + " shots", rec.state?.logs?.length ?? "-" + " logs");
++	}
++	fs.writeFileSync(path.join(dir, "summary.json"), JSON.stringify(summary, null, 1));
++	await close();
++}
++
++function diff(a, c){
++	const A = JSON.parse(fs.readFileSync(path.join(OUT, a, "summary.json"))), C = JSON.parse(fs.readFileSync(path.join(OUT, c, "summary.json")));
++	let state = 0, outline = 0, text = 0, shots = 0, errs = 0, total = 0;
++	for (const url of URLS){
++		if (NEW.has(url)) continue;
++		const x = A[url], y = C[url];
++		if (!x || !y) { console.log("MISSING", url); continue; }
++		total++;
++		const sd = JSON.stringify(x.state) !== JSON.stringify(y.state), od = x.outline !== y.outline, td = x.text !== y.text;
++		const shd = Object.keys(x.shots).filter(w => x.shots[w] !== y.shots[w]);
++		const ed = JSON.stringify(x.errors) !== JSON.stringify(y.errors);
++		if (sd) state++; if (od) outline++; if (td) text++; if (shd.length) shots += shd.length; if (ed) errs++;
++		if (sd || od || td || shd.length || ed) console.log(url, { state: sd, outline: od, text: td, shots: shd, errors: ed ? [x.errors, y.errors] : false });
++		if (td && x.lines && y.lines){
++			const gone = x.lines.filter(l => !y.lines.includes(l)).slice(0, 4), came = y.lines.filter(l => !x.lines.includes(l)).slice(0, 4);
++			console.log("   lines -", JSON.stringify(gone), "+", JSON.stringify(came));
++		}
++	}
++	console.log(`\n${total} pages: ${state} state diffs, ${outline} outline diffs, ${text} text diffs, ${shots} screenshot diffs, ${errs} error diffs`);
++}
++
++const [cmd, a, b] = process.argv.slice(2);
++if (cmd === "diff") diff(a, b);
++else await run(cmd, `http://localhost:${a ?? 51858}`);
+diff --git a/public/framework/ai/2026-10-12/content-list/stream-proof.mjs b/public/framework/ai/2026-10-12/content-list/stream-proof.mjs
+new file mode 100644
+index 000000000..1ed69340b
+--- /dev/null
++++ b/public/framework/ai/2026-10-12/content-list/stream-proof.mjs
+@@ -0,0 +1,40 @@
++// node stream-proof.mjs <port> <out.json> — appends page_set-shaped lines to a scratch page and times when a watching headless browser shows each (core/Page/doc/ai-api.md, "The live proof").
++import fs from "node:fs";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++import { browser, close } from "../../../../../Server/browser.mjs";
++
++const here = path.dirname(fileURLToPath(import.meta.url));
++const file = path.join(here, "../../../core/Page/jsonl/live/page.jsonl");   // the page-tools demo page: a routed page.jsonl
++const [port = "51858", out = "stream-proof.json"] = process.argv.slice(2);
++const b = await browser();
++const page = await (await b.newContext({ viewport: { width: 1200, height: 900 } })).newPage();
++const errors = [];
++page.on("pageerror", e => errors.push(String(e.message)));
++page.on("console", m => { if (m.type() === "error" && !/404|Failed to load/.test(m.text())) errors.push(m.text()); });
++await page.goto(`http://localhost:${port}/framework/core/Page/jsonl/live/`, { waitUntil: "load" });
++await page.waitForTimeout(2500);
++
++const steps = [
++	["heading", { content: { add: { type: "part-heading", text: "Proof heading", id: "h1" } } }, "Proof heading"],
++	["card", { content: { add: { type: "part-card", title: "Cache", text: "Hit rate 92%.", id: "c1" } } }, "Hit rate 92%."],
++	["update", { c1: { text: "Hit rate 95%." } }, "Hit rate 95%."],
++	["text", { content: { add: { type: "part-text", text: "A **markdown** line.", id: "t1" } } }, "A markdown line."],
++	["title", { title: "Stream proof renamed" }, "Stream proof renamed"],
++];
++const result = [];
++for (const [name, delta, expect] of steps){
++	const line = { ...delta, by: "mastermind-page-split-3", ts: new Date().toISOString() };
++	const wrote = Date.now();
++	fs.appendFileSync(file, JSON.stringify(line) + "\n");
++	let seen = null;
++	while (Date.now() - wrote < 5000){
++		if (await page.evaluate(t => document.body.innerText.includes(t), expect)){ seen = Date.now() - wrote; break; }
++		await page.waitForTimeout(20);
++	}
++	result.push({ name, ms: seen });
++	console.log(name, seen === null ? "NOT SEEN in 5 s" : seen + " ms");
++}
++fs.writeFileSync(path.join(here, out), JSON.stringify({ result, errors }, null, 1));
++await page.screenshot({ path: path.join(here, out.replace(/\.json$/, ".png")) });
++await close();
+diff --git a/public/framework/ai/cards/card.js b/public/framework/ai/cards/card.js
+index 9be9c530c..13e588f56 100644
+--- a/public/framework/ai/cards/card.js
++++ b/public/framework/ai/cards/card.js
+@@ -120,19 +120,7 @@ export default class Card extends Page {
+ 	   `{"type": "refined", "text", "by", "at", …}` to a card; through core's `set()`
+ 	   its `type` would turn the card into a "refined" and its `text` and `by` would
+ 	   overwrite the card's own. It is kept whole instead, the latest wins. */
+-	/* ⚠ "CONTENT" NAMES TWO DIFFERENT THINGS (found 2026-10-03, building the properties
+-	   sidebar): core's `Page.set()` treats any `{"content": …}` line as a DATA delta —
+-	   the moment one arrives it makes `page.content` a `List` and keeps adding to it
+-	   (`ensure_content()`) — but every Card ALSO defines `content()` as its own RENDER
+-	   METHOD (how its outline, tabs and sidebar draw). A card whose log uses
+-	   `page_add()`'s content list (the Now card's whole dashboard: "Working on now",
+-	   "Fixed today" …) would have that first line silently REPLACE the render method
+-	   with a plain List — content() never runs again, so `$pages` never gets handed to
+-	   its sub-card, which is why the Now card's one sub-card opens as a takeover
+-	   instead of a second column (ux/Card/readme.md has the fuller story). The exact
+-	   "a POJO key collides with a Page method" trap CLAUDE.md already names for
+-	   `render` — here for `content`. Redirected to `this.dashboard` instead, a List of
+-	   its own; `dashboard_list()` below draws it, reusing core's own row look. */
++	// A card's `content()` is its render method, so `{"content":…}` log lines go to `this.dashboard` instead: core/Page/doc/content-list-step-1.md.
+ 	set(obj){
+ 		if (obj?.type === "refined"){ this.refined = obj; return this; }
+ 		// ⚠ EVERY line with a `content` key, not only the first — `page_add()` appends one
+@@ -160,9 +148,7 @@ export default class Card extends Page {
+ 	 *  `this.content` onto `this.dashboard` only for the one call that reads it. */
+ 	dashboard_list(){
+ 		if (!(this.dashboard instanceof List)) return;
+-		const real = this.content;
+-		this.content = this.dashboard;
+-		try { return this.render_content_list(); } finally { this.content = real; }
++		return this.render_content_list(this.dashboard);
+ 	}
+ 
+ 	/* ── the vocabulary: one method per kind of line ─────────────────────── */
+diff --git a/public/framework/core/Item/live/page.js b/public/framework/core/Item/live/page.js
+index 3e8b07b94..6f035eab8 100644
+--- a/public/framework/core/Item/live/page.js
++++ b/public/framework/core/Item/live/page.js
+@@ -33,13 +33,9 @@ export default new Page({
+ 	// ⚠ ASYNC on purpose: `page.file(name)` called from CODE (not a replayed line)
+ 	//   returns a Promise<FsFile> (Log.js, deliverable 4/11) — core never statically
+ 	//   imports ext/filesystem, so the file class arrives by dynamic import either way.
+-	//   `ensure_content()` runs FIRST, synchronously, before the first `await` — so
+-	//   `page.content` is already a (still empty) List by the time `render()`
+-	//   runs, moments later; the four seed rows pop in when the file finishes
+-	//   loading, through the same "add" events the UI already listens for.
++	//   `page.content` is always a List (still empty here); the four seed rows pop in
++	//   when the file finishes loading, through the same "add" events the UI listens for.
+ 	async initialize(){
+-		this.ensure_content();
+-
+ 		const file = await this.file("demo.jsonl");
+ 		this.file_store = file.store;             // Item.Store.for(url) — one per file
+ 		await this.file_store.open();              // actually fetches/streams demo.jsonl's lines into it
+diff --git a/public/framework/core/Page/Columns.js b/public/framework/core/Page/Columns.js
+index 8fa87ec88..d2ff26792 100644
+--- a/public/framework/core/Page/Columns.js
++++ b/public/framework/core/Page/Columns.js
+@@ -51,7 +51,7 @@ export default class PageColumns {
+ 			// ⚠ `render_content()`, not a hand-written two-branch copy: one reader decides what is in the box. (doc/decisions.md)
+ 			const tabbed = page.navigation === "tabs" && is.fn(page.tabs);
+ 			if (tabbed) page.tabs(undefined, { home: () => div.c("page-column-prose flow", () => page.render_content()) });
+-			else if (page.content)
++			else if (page.has_content?.())
+ 				div.c("page-column-prose flow", () => page.render_content());
+ 
+ 			// ⚠ `index: true` — my content already shows my children, so no rail. A field, not a method. (doc/watch-out.md)
+diff --git a/public/framework/core/Page/Frame.js b/public/framework/core/Page/Frame.js
+index 2c4c005ec..71fff17e4 100644
+--- a/public/framework/core/Page/Frame.js
++++ b/public/framework/core/Page/Frame.js
+@@ -55,7 +55,7 @@ export default class PageFrame extends View {
+ 				// A page with content of its own AND tabs: its content is the first tab
+ 				// (the page's own url), so a child tab replaces it instead of stacking
+ 				// above it. A page with only children keeps today's shape. (2026-10-09)
+-				if (page.navigation === "tabs" && page.content !== undefined) return void this.tabs({ home: () => this.box() });
++				if (page.navigation === "tabs" && page.has_content()) return void this.tabs({ home: () => this.box() });
+ 				if (page.navigation === "tabs") this.tabs();
+ 				this.box();
+ 			});
+diff --git a/public/framework/core/Page/Jsonl.js b/public/framework/core/Page/Jsonl.js
+index fa33aeaff..b6351debf 100644
+--- a/public/framework/core/Page/Jsonl.js
++++ b/public/framework/core/Page/Jsonl.js
+@@ -41,7 +41,7 @@ export default class PageJsonl {
+ 			const { class: _, ...line } = first;
+ 			const page = new Class(line, { url, jsonl_url: reader.url });
+ 
+-			page.content ??= page.log_view;
++			if (!page.has_content()) page.content.fallback(page.log_view);
+ 			reader.attach(page);
+ 			(this.Page.log_pages ??= new Map()).set(page.log_folder(), page);   // listing() reads it for free
+ 			return page;
+@@ -113,7 +113,7 @@ export default class PageJsonl {
+ 		if (had instanceof this.Page){
+ 			const { content: text, ...labels } = data;
+ 			if (Object.keys(labels).length) had.set(labels);
+-			if (text !== undefined && !(had.content instanceof List)) had.content = text;
++			if (text !== undefined && !had.content.has_parts) had.content = text;
+ 			had.rerender();
+ 			if (page.view) queueMicrotask(() => page.nav_redraw?.());
+ 			return;
+diff --git a/public/framework/core/Page/Page.class.js b/public/framework/core/Page/Page.class.js
+index 9c881f23b..2b159df1e 100644
+--- a/public/framework/core/Page/Page.class.js
++++ b/public/framework/core/Page/Page.class.js
+@@ -14,6 +14,7 @@ import PagePreviews from "./Previews.js";
+ import PageColumns from "./Columns.js";
+ import PageLinks from "./Links.js";
+ import PageJsonl from "./Jsonl.js";
++import PageContent from "./PageContent.js";
+ 
+ View.stylesheet(import.meta, "Page.css");
+ 
+@@ -26,9 +27,7 @@ const marked = el => el?.matches(".page.active-page, .page.active-ancestor, .pag
+ // `tint` used to be `wash`. Read on the way in; never mentioned again.
+ const ALIAS = { surface: "card", wash: "tint" };
+ 
+-// A `content` string that starts with `/` is an ADDRESS, not text; a `.md` one is
+-// prose, anything else is the `page.json` at that address.
+-const is_address = value => is.str(value) && value.startsWith("/");
++// A `.md` address is prose, anything else is the `page.json` at that address.
+ const is_md = url => /\.md(\?|#|$)/i.test(url);
+ 
+ // Page extends Item directly (no PageLog middle class). (doc/decisions.md)
+@@ -42,6 +41,7 @@ export class Page extends Item {
+ 	// ⚠ Nothing is FETCHED here: a module page constructs itself at import. The caller budgets (doc/declaring.md).
+ 	constructor(...args){
+ 		super(...args);
++		this.hoist_content();
+ 		this.assign(...args);
+ 		if (!this.data || typeof this.data !== "object" || Array.isArray(this.data)) this.data = Object.create(null);
+ 		Page.track(this);
+@@ -81,22 +81,47 @@ export class Page extends Item {
+ 		this.emit("line", obj);
+ 		obj = this.take_words(obj);
+ 
+-		if ("content" in obj && !(this.content instanceof List)){
++		if ("content" in obj){
+ 			const { content, ...rest } = obj;
+-			this.ensure_content().set(content);
++			this.content.fill(content);
+ 			return super.set(rest);
+ 		}
+ 
+-		// Compat, one release (2026-10-03): an old {"at": "content/…"} line needs page.content to exist first. (doc/decisions.md)
+-		if (typeof obj.at === "string" && obj.at.split("/")[0] === "content") this.ensure_content();
+-
+ 		return super.set(obj);
+ 	}
+ 
+-	// Made on the first content delta, never up front. (doc/jsonl.md)
+-	ensure_content(){
+-		return this.content instanceof List ? this.content
+-			: (this.content = new List({ owner: this, name: "content" }));
++	// ════ CONTENT — one PageContent List for the page's life; a function, string or address is one item in it (doc/content.md) ═══
++	get content(){ return this._content ??= new this.constructor.Content({ owner: this, name: "content" }); }
++	set content(value){ this.content.fill(value); }
++
++	// A class-body `content(){}` would hide the accessor: move it into the list and put the accessor on the instance.
++	hoist_content(){
++		const own = Object.getOwnPropertyDescriptor(this, "content");
++		let method;
++		for (let proto = Object.getPrototypeOf(this); proto && proto !== Page.prototype; proto = Object.getPrototypeOf(proto)){
++			const desc = Object.getOwnPropertyDescriptor(proto, "content");
++			if (desc) { method = desc.value; break; }
++		}
++		if (!own && !method) return;
++
++		Object.defineProperty(this, "content", Object.getOwnPropertyDescriptor(Page.prototype, "content"));
++		if (method) this.content.fill(method);
++		if (own && "value" in own) this.content.fill(own.value);
++	}
++
++	// Anything to draw? An empty list with no parts draws nothing.
++	has_content(){ return !!this._content?.drawn; }
++
++	// Hand the list away and start a new one (ext/catalog moves the old content into its intro).
++	take_content(){ const list = this._content; this._content = undefined; return list; }
++
++	get(key){ return key === "content" ? this.content : super.get(key); }
++
++	// The content list is a saved list only when it holds parts; code, addresses and text live in the page's code.
++	lists(){
++		const { _content, ...lists } = super.lists();
++		if (_content?.items.some(item => !item.transient)) lists.content = _content;
++		return lists;
+ 	}
+ 
+ 	// My sub-pages, the real storage. `of: null` keeps a stub plain. (doc/jsonl.md)
+@@ -632,78 +657,11 @@ export class Page extends Item {
+ 		return this.view;
+ 	}
+ 
+-	// What is in the box: a function, text, or a "/…" address to render (Frame draws it too).
+-	// ⚠ A plain string becomes a paragraph, never a bare text node (the grid has no track for it). (doc/decisions.md)
+-	render_content(){
+-		if (this.content instanceof List) return this.render_content_list();
+-		if (is_address(this.content)) return this.content_at(this.content);
+-		if (is.str(this.content)) return p(this.content);
+-		return is.fn(this.content) ? this.content() : this.content;
+-	}
+-
+-	// ════ A CONTENT LIVELIST, DRAWN — one row per item, drag to reorder (ext/Draggable, dynamic import) ═══
+-	// ⚠ `item: { items: list }` on the container's Sortable, `item` on each row's. (doc/content.md)
+-	render_content_list(){
+-		const list = this.content;
+-		let $rows;
+-		// Drag-to-reorder is OPT-IN (the owner, 2026-10-03): only a list that is a ranking
+-		// the reader may override says `{"sortable": true}` on its page. A plain card body
+-		// is read, not rearranged, so it gets no grab cursor and no drag.
+-		const sortable = !!this.get?.("sortable");
+-
+-		// ⚠ `Item.View` does not exist yet (no default view) — so a plain, untyped
+-		//   item (its class has no `View`) falls back to its own title or
+-		//   text, read straight off its data bag, rather than drawing an empty row.
+-		const draw_row = item => {
+-			// A kind with its own `View` draws itself in a bare row; a plain item gets the card chrome.
+-			const Draw = item.constructor.View;
+-			const $row = div.c("page-content-row" + (Draw ? "" : " card"), () => {
+-				// A ref row ({"ref": "/framework/core/Page/"}) is drawn as that page's dark class card. (doc/decisions.md)
+-				const ref = item.get("ref");
+-				const title = item.get("title"), text = item.get("text");
+-				// The text under the title, as markdown (dynamic import; the box is captured now, filled in the callback). (doc/decisions.md)
+-				const draw_body = () => {
+-					if (title || !text) h4.c("page-content-title", title ?? String(item.id));
+-					if (text){
+-						const $text = div.c("page-content-text");
+-						import("../../ext/markdown/md.js").then(({ default: md }) => $text.append(md(text)));
+-					}
+-				};
+-				if (ref){
+-					// A ref row is the inline "#Page" chip upgraded to a card; only its header links through. (doc/decisions.md)
+-					const $card = div.c("page-content-ref card page-surface-dark");
+-					import("../../ext/Mention/Mention.js").then(({ ref_entry, build_row }) => {
+-						const entry = ref_entry(ref) ?? { name: ref, icon: "link", url: ref };
+-						// build_row nulls View.captor and returns the raw element: appended by hand so draw_body() can follow. (doc/content.md)
+-						$card.append(() => { $card.append(build_row(entry.name, entry, "mention")); draw_body(); });
+-					});
+-					return;
+-				}
+-				// The View is reached through `constructor` (the code skill's view pattern),
+-				// so a subclass can swap it; it captures into this row on construction.
+-				if (Draw) return void new Draw({ item });
+-				draw_body();
+-			});
+-			if (sortable) import("../../ext/Draggable/Sortable.js").then(({ default: Sortable }) => {
+-				new Sortable({ view: $row, item });
+-			});
+-			return $row;
+-		};
+-
+-		// ⚠ A block body, not `() => list.forEach(draw_row)`: forEach's return value would append "[object Object]". (doc/decisions.md)
+-		const box = div.c("page-content-list flow", () => {
+-			$rows = div.c("page-content-rows", () => { list.forEach(draw_row); }).ac(sortable && "drag-items sortable");
+-		});
+-
+-		if (sortable) import("../../ext/Draggable/Sortable.js").then(({ default: Sortable }) => {
+-			new Sortable({ view: $rows, handle: false, $items: $rows, item: { items: list, root(){ return this; } } });
+-		});
+-
+-		const redraw = () => $rows.empty(() => { list.forEach(draw_row); });
+-		["add", "remove", "move", "order"].forEach(verb => list.on(verb, redraw));
++	// What is in the box: the content list draws its items in order; the page does not know the kinds. (doc/content.md)
++	render_content(){ return this.content.render(); }
+ 
+-		return box;
+-	}
++	// The row box for any List (the Now card's dashboard too): one row per item, redrawn from the list's events. (doc/content.md)
++	render_content_list(list = this.content){ return new this.constructor.Content.View({ list, page: this, box: true }).result; }
+ 
+ 	// A page or file at an address, drawn in this page's box (`content: "/notes/x.md"`).
+ 	// ⚠ A loop fuse: two levels draw, the third is a link. (doc/decisions.md)
+@@ -836,6 +794,7 @@ Page.Reader = PageLogReader;
+ Page.Listing = PageListing;
+ Page.Prefs = PagePrefs;
+ Page.Jsonl = PageJsonl;
++Page.Content = PageContent;
+ PageJsonl.Page = Page;
+ Page.Related = PageRelated;
+ Page.Previews = PagePreviews;
+diff --git a/public/framework/core/Page/PageAddress.js b/public/framework/core/Page/PageAddress.js
+new file mode 100644
+index 000000000..561b9ed86
+--- /dev/null
++++ b/public/framework/core/Page/PageAddress.js
+@@ -0,0 +1,9 @@
++import PageContentItem from "./PageContentItem.js";
++
++// A "/…" address as content: a markdown file or another page, drawn in this page's box. doc/content.md
++export default class PageAddress extends PageContentItem {
++	get value(){ return this.address; }
++}
++PageAddress.View = class PageAddressView extends PageContentItem.View {
++	draw(){ return this.item.parent.content_at(this.item.address); }
++};
+diff --git a/public/framework/core/Page/PageCode.js b/public/framework/core/Page/PageCode.js
+new file mode 100644
+index 000000000..75792b57f
+--- /dev/null
++++ b/public/framework/core/Page/PageCode.js
+@@ -0,0 +1,9 @@
++import PageContentItem from "./PageContentItem.js";
++
++// A function as content: `content(){ h1("Hi") }`. It runs with the page as `this`. doc/content.md
++export default class PageCode extends PageContentItem {
++	get value(){ return this.fn; }
++}
++PageCode.View = class PageCodeView extends PageContentItem.View {
++	draw(){ return this.item.fn.call(this.item.parent); }
++};
+diff --git a/public/framework/core/Page/PageContent.js b/public/framework/core/Page/PageContent.js
+new file mode 100644
+index 000000000..f630c47aa
+--- /dev/null
++++ b/public/framework/core/Page/PageContent.js
+@@ -0,0 +1,134 @@
++import List from "../List/List.js";
++import View, { div, h4, is } from "../View/View.js";
++import PageContentItem from "./PageContentItem.js";
++import PageCode from "./PageCode.js";
++import PageAddress from "./PageAddress.js";
++import PageParagraph from "./PageParagraph.js";
++
++// A page's `content`: one List for the page's life, drawn by its View. doc/content.md
++export default class PageContent extends List {
++
++	static is_address = value => is.str(value) && value.startsWith("/");
++
++	// The ways a value reaches content: a function, string or address is the page's one bare item (a new one replaces it);
++	// an array or object goes to set(), like a page.jsonl line.
++	fill(value){
++		const Kind = this.constructor;
++		if (value == null || value === this) return this;
++		if (value instanceof PageContent) return this.bare(PageCode, { fn: () => value.render() });
++		if (value instanceof List){ value.items.forEach(item => this.insert(item)); return this; }
++		if (is.fn(value)) return this.bare(PageCode, { fn: value });
++		if (is.str(value)) return Kind.is_address(value) ? this.bare(PageAddress, { address: value }) : this.bare(PageParagraph, { text: value });
++		if (value.el || is.promise(value) || (typeof Node !== "undefined" && value instanceof Node)) return this.bare(PageCode, { fn: () => value });
++		return this.set(value);
++	}
++
++	// First in the list, added quietly: a function cannot be written to page.jsonl, so no event.
++	bare(Kind, props){
++		this.items.filter(item => item instanceof PageContentItem).forEach(item => this.release(item));
++		this.insert(new Kind({ id: "content-" + Kind.name.replace("Page", "").toLowerCase(), ...props }), { after: null });
++		return this;
++	}
++
++	// A page.jsonl page with no code of its own draws its log; real parts replace that default.
++	fallback(fn){
++		this.bare(PageCode, { fn });
++		this.items.at(0).fallback = true;
++		return this;
++	}
++
++	adopted(item){ if (!item.transient) this.drop_fallback(); }
++	drop_fallback(){ this.items.filter(item => item.fallback).forEach(item => this.release(item)); }
++
++	// A set() means the page has parts: it draws the row box even while empty.
++	set(delta){
++		this.boxed = true;
++		this.drop_fallback();
++		return super.set(delta);
++	}
++
++	get has_parts(){ return this.items.some(item => !item.transient); }
++
++	// Does it draw anything? (A page with no content draws nothing.)
++	// The page's own function, string or address, as it was given (a section hands it on).
++	get value(){ return this.items.find(item => item.transient)?.value; }
++
++	get drawn(){ return !!this.boxed || this.length > 0; }
++
++	// Only items that can be written down: the bare kinds live in the page's code.
++	toJSON(){ return this.items.filter(item => !item.transient); }
++
++	render(){ return new this.constructor.View({ list: this, page: this.owner }).result; }
++}
++
++// Bare items (code, address, paragraph) draw straight into the page's box. A list with any real part draws the row box and redraws on events.
++PageContent.View = class PageContentView extends PageContentItem.View {
++	draw(){
++		const { list } = this;
++		return this.box || list.has_parts || list.boxed ? this.rows() : this.bare_items();
++	}
++
++	bare_items(){
++		let result;
++		this.list.items.forEach(item => {
++			if (result !== undefined) View.captor.append(result);
++			result = new item.constructor.View({ item }).result;
++		});
++		return result;
++	}
++
++	// ⚠ `item: { items: list }` on the container's Sortable, `item` on each row's. doc/content.md
++	rows(){
++		const { list, page } = this;
++		let $rows;
++		const sortable = !!page?.get?.("sortable");
++
++		// A kind with its own `View` draws itself in a bare row; a plain item gets the card chrome.
++		const draw_row = item => {
++			const Draw = item.constructor.View;
++			const $row = div.c("page-content-row" + (Draw ? "" : " card"), () => {
++				const ref = item.get("ref");
++				const title = item.get("title"), text = item.get("text");
++				const draw_body = () => {
++					if (title || !text) h4.c("page-content-title", title ?? String(item.id));
++					if (text){
++						const $text = div.c("page-content-text");
++						import("../../ext/markdown/md.js").then(({ default: md }) => $text.append(md(text)));
++					}
++				};
++				if (ref){
++					// A ref row is the inline "#Page" chip upgraded to a card. doc/decisions.md
++					const $card = div.c("page-content-ref card page-surface-dark");
++					import("../../ext/Mention/Mention.js").then(({ ref_entry, build_row }) => {
++						const entry = ref_entry(ref) ?? { name: ref, icon: "link", url: ref };
++						$card.append(() => { $card.append(build_row(entry.name, entry, "mention")); draw_body(); });
++					});
++					return;
++				}
++				if (Draw){
++					const made = new Draw({ item });
++					return made.result;
++				}
++				draw_body();
++			});
++			if (sortable) import("../../ext/Draggable/Sortable.js").then(({ default: Sortable }) => {
++				new Sortable({ view: $row, item });
++			});
++			return $row;
++		};
++
++		// ⚠ A block body, not `() => list.forEach(draw_row)`: forEach's return value would append "[object Object]".
++		const box = div.c("page-content-list flow", () => {
++			$rows = div.c("page-content-rows", () => { list.forEach(draw_row); }).ac(sortable && "drag-items sortable");
++		});
++
++		if (sortable) import("../../ext/Draggable/Sortable.js").then(({ default: Sortable }) => {
++			new Sortable({ view: $rows, handle: false, $items: $rows, item: { items: list, root(){ return this; } } });
++		});
++
++		const redraw = () => $rows.empty(() => { list.forEach(draw_row); });
++		["add", "remove", "move", "order"].forEach(verb => list.on(verb, redraw));
++
++		return box;
++	}
++};
+diff --git a/public/framework/core/Page/PageContentItem.js b/public/framework/core/Page/PageContentItem.js
+new file mode 100644
+index 000000000..71e99f260
+--- /dev/null
++++ b/public/framework/core/Page/PageContentItem.js
+@@ -0,0 +1,14 @@
++import Item from "../Item/Item.js";
++import View from "../View/View.js";
++
++// The base of the three kinds a page's own code or config makes (PageCode, PageAddress, PageParagraph). doc/content.md
++export default class PageContentItem extends Item {
++	transient = true;   // never written to page.jsonl
++}
++
++// A view that draws in place: no wrapper element, it adds to whatever box is being drawn. `result` is what draw() returned.
++PageContentItem.View = class PageContentItemView extends View {
++	prerender(){}   // no element
++	initialize(){ this.result = this.draw(); }
++	draw(){}
++};
+diff --git a/public/framework/core/Page/PageParagraph.js b/public/framework/core/Page/PageParagraph.js
+new file mode 100644
+index 000000000..bb43011ab
+--- /dev/null
++++ b/public/framework/core/Page/PageParagraph.js
+@@ -0,0 +1,10 @@
++import PageContentItem from "./PageContentItem.js";
++import { p } from "../View/View.js";
++
++// A plain string as content: one paragraph. doc/content.md
++export default class PageParagraph extends PageContentItem {
++	get value(){ return this.text; }
++}
++PageParagraph.View = class PageParagraphView extends PageContentItem.View {
++	draw(){ return p(this.item.text); }
++};
+diff --git a/public/framework/core/Page/content-shapes/both/page.jsonl b/public/framework/core/Page/content-shapes/both/page.jsonl
+new file mode 100644
+index 000000000..80a8c2e89
+--- /dev/null
++++ b/public/framework/core/Page/content-shapes/both/page.jsonl
+@@ -0,0 +1,2 @@
++{"title":"Code and a line","class":"../class-body/ClassBody.js"}
++{"content":{"add":{"id":"line","type":"part-text","text":"This paragraph is a `page.jsonl` line. The code above it is the class's `content()`."}}}
+diff --git a/public/framework/core/Page/content-shapes/class-body/ClassBody.js b/public/framework/core/Page/content-shapes/class-body/ClassBody.js
+new file mode 100644
+index 000000000..60cd84b95
+--- /dev/null
++++ b/public/framework/core/Page/content-shapes/class-body/ClassBody.js
+@@ -0,0 +1,5 @@
++import { Page, p, h4 } from "/app.js";
++
++export default class ContentClassBody extends Page {
++	content(){ h4("A class-body content()"); p("Defined in the class body, not in a config object."); }
++}
+diff --git a/public/framework/core/Page/content-shapes/class-body/page.jsonl b/public/framework/core/Page/content-shapes/class-body/page.jsonl
+new file mode 100644
+index 000000000..c9f688825
+--- /dev/null
++++ b/public/framework/core/Page/content-shapes/class-body/page.jsonl
+@@ -0,0 +1,2 @@
++{"title":"Class body","class":"./ClassBody.js"}
++{"file":"ClassBody.js"}
+diff --git a/public/framework/core/Page/content-shapes/files.jsonl b/public/framework/core/Page/content-shapes/files.jsonl
+new file mode 100644
+index 000000000..4c7c7e417
+--- /dev/null
++++ b/public/framework/core/Page/content-shapes/files.jsonl
+@@ -0,0 +1,5 @@
++{"file":"page.js"}
++{"file":"readme.md"}
++{"file":"class-body/"}
++{"file":"class-body/page.jsonl"}
++{"file":"both/page.jsonl"}
+diff --git a/public/framework/core/Page/content-shapes/page.js b/public/framework/core/Page/content-shapes/page.js
+new file mode 100644
+index 000000000..701a9e98f
+--- /dev/null
++++ b/public/framework/core/Page/content-shapes/page.js
+@@ -0,0 +1,32 @@
++import { Page, md, p, h4 } from "/app.js";
++
++// Every shape `content` can take, one child page each. Proof of core/Page/doc/content-list-step-1.md (readme.md here).
++const STRINGS = ["The first plain sentence.", "A second sentence, so the hash differs.", "Third: short.", "Fourth, with `backticks` in the text.", "Fifth and last."];
++const ADDRESSES = ["/framework/core/Page/doc/ai-api.md", "/framework/core/Page/parts/readme.md", "/framework/core/Item/readme.md", "/framework/core/Page/jsonl/", "/framework/core/Page/parts/"];
++
++export default new Page({
++	meta: import.meta,
++	title: "Page content, every shape",
++	icon: "view_list",
++	description: "A function, a string, an address, parts in page.jsonl, or code and parts together: one child page each.",
++
++	children: [
++		["Code", { content(){ h4("A function"); p("Written as content(){…}, drawn as one code item."); } }],
++		...STRINGS.map((text, i) => [`String ${i + 1}`, { content: text }]),
++		...ADDRESSES.map((url, i) => [`Address ${i + 1}`, { content: url }]),
++		"both/page.jsonl",
++		"class-body/page.jsonl",
++	],
++
++	content(){
++		h4("Every link below is one shape of page content");
++		const link = (label, note) => `- [${label}](${this.url}${label.toLowerCase().replace(/ /g, "-")}/): ${note}`;
++		md([
++			link("Code", "a function, `content(){…}`"),
++			...STRINGS.map((text, i) => link(`String ${i + 1}`, `a string`)),
++			...ADDRESSES.map((url, i) => link(`Address ${i + 1}`, `the address ${url}`)),
++			link("Both", "code and a `page.jsonl` line, both shown"),
++			link("Class body", "`content(){…}` written in the class body"),
++		].join("\n"));
++	},
++});
+diff --git a/public/framework/core/Page/content-shapes/readme.md b/public/framework/core/Page/content-shapes/readme.md
+new file mode 100644
+index 000000000..942f1bf88
+--- /dev/null
++++ b/public/framework/core/Page/content-shapes/readme.md
+@@ -0,0 +1,11 @@
++# content — every shape a page's `content` can take, one child page each
++
++Live: [/framework/core/Page/content-shapes/](/framework/core/Page/content-shapes/). The design: [doc/content.md](../doc/content.md), "Design: `content` is always a List".
++
++## Use
++`page.content` is one List for the life of the page. A function (`content(){…}`), a string, an address or a list of parts all end up as items in it; `{"content": …}` lines in `page.jsonl` add parts beside them.
++
++## Index
++- Children `Code`, `String 1-5`, `Address 1-5`: the old shapes, each drawn as before.
++- [both/](/framework/core/Page/content-shapes/both/): a class with `content(){…}` and a `page.jsonl` line; both show.
++- [class-body/](/framework/core/Page/content-shapes/class-body/): a class that defines `content(){…}` in its body.
+diff --git a/public/framework/core/Page/doc/ai-api.md b/public/framework/core/Page/doc/ai-api.md
+index e7135dd74..f20ea6e7f 100644
+--- a/public/framework/core/Page/doc/ai-api.md
++++ b/public/framework/core/Page/doc/ai-api.md
+@@ -13,6 +13,7 @@ page.jsonl          one JSON line per change, appended, never rewritten
+ A delta is applied key by key:
+ 
+ - **A plain key is a property**: `{"title":"Notes"}` sets the title.
++- **Code and parts share one list**: a page's `content(){…}` is one item in `page.content` and `{"content":{"add":…}}` lines add more beside it; both show ([live](/framework/core/Page/content-shapes/both/)).
+ - **A key naming a method calls it**: `{"content":{"add":{…}}}` calls `add` on the content list.
+ - **A key that is an id walks into that item**: `{"c1":{"text":"new"}}` changes the card `c1`.
+ 
+diff --git a/public/framework/core/Page/doc/content-list-step-1.md b/public/framework/core/Page/doc/content-list-step-1.md
+new file mode 100644
+index 000000000..306a73583
+--- /dev/null
++++ b/public/framework/core/Page/doc/content-list-step-1.md
+@@ -0,0 +1,29 @@
++# content is always a List: step 1, as built (2026-10-12)
++
++Step 1 of [content.md](content.md), "Design: `content` is always a List". Steps 2 and 3 (`children`) are not built. Live: [/framework/core/Page/content-shapes/](/framework/core/Page/content-shapes/), proof in [STATE.md](../../ai/2026-10-12/content-list/STATE.md).
++
++## The classes
++
++```js
++class PageContent extends List          // page.content, the same object for the page's life
++class PageContentItem extends Item      // a bare item: draws straight into the page, no wrapper
++class PageCode extends PageContentItem      // a function:   View.draw() = fn.call(page)
++class PageAddress extends PageContentItem   // "/x.md":      View.draw() = page.content_at(address)
++class PageParagraph extends PageContentItem // "some text":  View.draw() = p(text)
++```
++
++Each has a `View` attached after the class (`PageCode.View = …`). `PageContent.View` draws the list. `Page.render_content()` is `this.content.render()`, with no type-switch.
++
++## Where it differs from the design text
++
++- **No extra DOM.** A list that holds only bare items draws them straight into the page box, so the 1,096 `content(){}` pages produce the same DOM as before. A list with real parts (or a `set()`) uses the old `.page-content-list` rows box.
++- **Bare items are `transient`.** `Item.Store` persists content events, and a function cannot be written to a jsonl file. `PageContent.toJSON()` and `Page.lists()` skip transient items, so a code-only page serialises as before.
++- **One bare item at a time.** A new function, string or address replaces the previous bare one (`bare()` releases it first), as assigning `content` always did.
++- **A class-body `content(){}` is hoisted.** It shadows the `Page.prototype` accessor, so the constructor moves it into the list and puts the accessor on the instance (`hoist_content()`). `ai/cards/card.js` and the other class-body pages keep working untouched.
++- **`page.jsonl` default.** `Jsonl.js` used `page.content ??= page.log_view`; it now adds `log_view` as a `fallback` item, dropped when real parts arrive (what the old replace did).
++- **`Page` assigns twice** (once inside `super()`); the setter replaces, so one item results.
++- **Callers.** `this.content()` became `this.content.render()` in about 25 files; truthiness tests on `page.content` became `page.has_content()`; `ext/Doc` and `ext/catalog` read `page.content.value` / `take_content()` for the raw function.
++
++## New ability
++
++A page with `content(){…}` and a `{"content":…}` jsonl line shows both: [/framework/core/Page/content-shapes/both/](/framework/core/Page/content-shapes/both/). Before, the line replaced the function.
+diff --git a/public/framework/core/Page/doc/content.md b/public/framework/core/Page/doc/content.md
+index 7714a41ad..a8c75e75c 100644
+--- a/public/framework/core/Page/doc/content.md
++++ b/public/framework/core/Page/doc/content.md
+@@ -72,6 +72,8 @@ return is.fn(this.content) ? this.content() : this.content;            // conten
+ 
+ ### 1. `page.content` never changes type
+ 
++**Built 2026-10-12** (step 1 only; steps 2 and 3 are not): [content-list-step-1.md](content-list-step-1.md) has what was built and where it differs from the text below. Live: [/framework/core/Page/content-shapes/](/framework/core/Page/content-shapes/).
++
+ ```js
+ page.content                                  // always a List, the same object for the page's life
+ new Page({ content(){ h1("Hi") } })           // a function  -> one PageCode item added to the list
+diff --git a/public/framework/core/Page/doc/files.jsonl b/public/framework/core/Page/doc/files.jsonl
+index 165c4bca0..5d6957720 100644
+--- a/public/framework/core/Page/doc/files.jsonl
++++ b/public/framework/core/Page/doc/files.jsonl
+@@ -63,3 +63,6 @@
+ {"file":"readme-full-2026-10-12.md"}
+ {"file":"split-measure.mjs"}
+ {"file":"split-plan.md"}
++{"file":"comment-move.mjs"}
++{"file":"split-extract-2.mjs"}
++{"file":"content-list-step-1.md"}
+diff --git a/public/framework/core/Page/overview/columns/uses/docs/page.js b/public/framework/core/Page/overview/columns/uses/docs/page.js
+index 05d96532b..34e6d5577 100644
+--- a/public/framework/core/Page/overview/columns/uses/docs/page.js
++++ b/public/framework/core/Page/overview/columns/uses/docs/page.js
+@@ -32,7 +32,7 @@ const chapter = config => ({
+ 				a.c("page-column-close", () => icon("close")).href(this.parent.url);
+ 			});
+ 
+-			div.c("page-column-prose flow", () => this.content());
++			div.c("page-column-prose flow", () => this.content.render());
+ 		});
+ 	},
+ });
+diff --git a/public/framework/core/Page/page.js b/public/framework/core/Page/page.js
+index f27b171e2..ddbf8d3db 100644
+--- a/public/framework/core/Page/page.js
++++ b/public/framework/core/Page/page.js
+@@ -63,7 +63,7 @@ export default new Doc({
+ 	// `jsonl` stays declared here, at its existing url — "Make a page › page.jsonl"
+ 	// links to it, same as before. `settings` (same day, tabs-settings task): tabs
+ 	// that manage themselves via a `tab` line, and a page's own nav switch.
+-	children: "make layout navigation tool/page.jsonl parts/page.jsonl ai dynamic weight card generator old jsonl/page.jsonl settings/page.jsonl ext/page.jsonl audit",
++	children: "make layout navigation tool/page.jsonl parts/page.jsonl content-shapes ai dynamic weight card generator old jsonl/page.jsonl settings/page.jsonl ext/page.jsonl audit",
+ 	overview: Object.values(BANDS).flatMap(b => b.split(" ")).join(" "),
+ 
+ 	// Every member, in the order a reader meets them: the tree, then rendering,
+@@ -163,7 +163,7 @@ export default new Doc({
+ 			title: this.title,
+ 			icon: this.icon,
+ 			children: Array.isArray(this.overview) ? this.overview : Doc.names(this.overview),
+-			content: this.content,
++			content: this.content.value,
+ 
+ 			// ⚠ THE PALETTE IS DRAWN HERE, not by the 29 pages. `add()` is the one place
+ 			// a child becomes a Page, so stamping the card as it arrives is one seam
+@@ -184,7 +184,7 @@ export default new Doc({
+ 				// paying its own 3em on 2026-09-29 (that 3em was for a bare tab strip with no
+ 				// `.doc-section` below it; here there always is one). Zeroing it here, like this
+ 				// section used to, left the tiles flush against the tab bar — fixed 2026-09-29.
+-				return this.view ??= div.c("page doc-section flow", () => this.content())
++				return this.view ??= div.c("page doc-section flow", () => this.content.render())
+ 					.ac("page--" + this.name);
+ 			},
+ 		});
+diff --git a/public/framework/core/Page/parts/doc/architecture.md b/public/framework/core/Page/parts/doc/architecture.md
+index d8bf5378c..dba2d4b6a 100644
+--- a/public/framework/core/Page/parts/doc/architecture.md
++++ b/public/framework/core/Page/parts/doc/architecture.md
+@@ -16,7 +16,7 @@ The owner's idea: a page's body is a list of views loaded from the page's own JS
+ | `CardPart` | `CardPart.js` | `part-card`, a boxed title and a line. | extends `Part` |
+ | `MdToParts` | `MdToParts.mjs` | Script: markdown file to parts lines (so no AI retypes a page). | standalone |
+ 
+-`PartsPage` composes `Page`'s own `content` `List` (made by `ensure_content()`); its `Part` items are hydrated from the `type` on each `add` line by `Item.hydrate`. Storage, the live tail, and a second tab are all the existing `Page.Reader` / `Item.Store`: nothing was added there.
++`PartsPage` composes `Page`'s own `content` `List` (`page.content`, a `PageContent`); its `Part` items are hydrated from the `type` on each `add` line by `Item.hydrate`. Storage, the live tail, and a second tab are all the existing `Page.Reader` / `Item.Store`: nothing was added there.
+ 
+ ## Decisions
+ - **`page.jsonl` with a class line, not `page.js`.** Today most pages are code; here the page is data, and the only code is one shared class. Alternative kept: `page.js` calling `content()`.
+diff --git a/public/framework/core/Page/parts/readme.md b/public/framework/core/Page/parts/readme.md
+index 18a4711e8..640f219d4 100644
+--- a/public/framework/core/Page/parts/readme.md
++++ b/public/framework/core/Page/parts/readme.md
+@@ -11,7 +11,7 @@ Make a folder with a `page.jsonl`; line 1 names the class, later lines are the p
+ {"content":{"move":{"id":"t","after":null}}}
+ {"content":{"remove":"h"}}
+ ```
+-Agents write these with `page_set` / `page_add`; code calls the content list: `page.ensure_content().add(...)`, `.move(...)`, `.remove(...)`. A plain `Page` draws them; `"class": "./Parts.js"` still works (an empty `PartsPage` subclass).
++Agents write these with `page_set` / `page_add`; code calls the content list: `page.content.add(...)`, `.move(...)`, `.remove(...)`. A plain `Page` draws them; `"class": "./Parts.js"` still works (an empty `PartsPage` subclass).
+ 
+ ## Index
+ - Classes: `PageHeading`, `PageText`, `PageCard`, each an `Item` with its own `View` (no base class); `Part.js`, `HeadingPart.js`, `TextPart.js`, `CardPart.js` and `Parts.js` (`PartsPage`) are shims for the old names — [doc/architecture.md](doc/architecture.md), [../doc/content.md](../doc/content.md)
+diff --git a/public/framework/core/Page/readme.md b/public/framework/core/Page/readme.md
+index dae17b66a..3dd62c293 100644
+--- a/public/framework/core/Page/readme.md
++++ b/public/framework/core/Page/readme.md
+@@ -34,7 +34,7 @@ A page is a folder, and the folder is its storage:
+ 
+ How a line travels from a writer to the screen, and who may write: [`doc/streaming.md`](doc/streaming.md).
+ The classes and the decisions (log growth, big collections, file vs database): [`doc/architecture.md`](doc/architecture.md).
+-**A page body as a list of parts** (heading, text, card; each one a line in `page.jsonl`): [`parts/`](parts/readme.md), [architecture](parts/doc/architecture.md). **Pages, content, parts: one way each, and the plan for `children` and `content`:** [`doc/content.md`](doc/content.md).
++**A page body as a list of parts** (heading, text, card; each one a line in `page.jsonl`): [`parts/`](parts/readme.md), [architecture](parts/doc/architecture.md). **Pages, content, parts: one way each, and the plan for `children` and `content`:** [`doc/content.md`](doc/content.md); step 1 built: [`doc/content-list-step-1.md`](doc/content-list-step-1.md).
+ **Agents change any page with one tool**, `page_set(path, delta)`: a property, a card, a subpage; `page_read(path)` shows the result. The model and the "to do X, send delta Y" table: [`doc/ai-api.md`](doc/ai-api.md). Live demo: [tool](./tool/).
+ 
+ - **Architecture** — moved to [doc/readme-full-2026-10-12.md](doc/readme-full-2026-10-12.md#architecture), verbatim.
+diff --git a/public/framework/ext/Doc/Doc.js b/public/framework/ext/Doc/Doc.js
+index feea8d870..a6ac6cc24 100644
+--- a/public/framework/ext/Doc/Doc.js
++++ b/public/framework/ext/Doc/Doc.js
+@@ -1,4 +1,4 @@
+-import { View, div, h1, code, span, a, icon } from "../../core/View/View.js";
++import { View, div, h1, code, span, a, icon, is } from "../../core/View/View.js";
+ import { Page } from "../../core/Page/Page.class.js";
+ import PageWork from "../../core/Page/ai/PageWork.js";
+ import { member, patched, dedent } from "../../util/source/source.js";
+@@ -124,11 +124,11 @@ export class Doc extends Page {
+ 		return this.section("overview", "Overview", {
+ 			title: this.title,
+ 			icon: this.icon,
+-			content: typeof this.content === "function" ? this.content.bind(this) : this.content,
++			content: is.fn(this.content.value) ? this.content.value.bind(this) : this.content.value,
+ 			children: Array.isArray(this.overview) ? this.overview : Doc.names(this.overview),
+ 			initialize(){ this.catalog(); },
+ 			render(){
+-				return this.view ??= div.c("page doc-section", () => this.content())
++				return this.view ??= div.c("page doc-section", () => this.content.render())
+ 					.ac("page--" + this.name);
+ 			},
+ 		});
+diff --git a/public/framework/ext/catalog/catalog.js b/public/framework/ext/catalog/catalog.js
+index 16d11ec94..3885b5693 100644
+--- a/public/framework/ext/catalog/catalog.js
++++ b/public/framework/ext/catalog/catalog.js
+@@ -27,14 +27,14 @@ View.stylesheet(import.meta, "catalog.css");
+ Page.prototype.catalog = function(){
+ 	// Rebuilt rather than appended to: the intro leads the rail, and `add()` sets last.
+ 	const rest = [...this.children];
+-	const content = this.content;
++	const content = this.has_content() ? this.take_content() : undefined;
+ 	this.children.clear();
+ 
+ 	// ⚠ The content keeps MY `this`. It was written as a method of this page, so
+ 	// `this.whole()` and `this.parent` must still mean what the author typed.
+ 	this.add("intro", {
+ 		title: this.title, label: this.label ?? this.title, icon: this.icon,
+-		content: is.fn(content) ? () => content.call(this) : content,
++		content,
+ 	});
+ 
+ 	rest.forEach(([name, page]) => this.children.set(name, page));
+diff --git a/public/framework/styles/layouts/page.js b/public/framework/styles/layouts/page.js
+index 2557043ac..c06eb3e12 100644
+--- a/public/framework/styles/layouts/page.js
++++ b/public/framework/styles/layouts/page.js
+@@ -35,7 +35,7 @@ export default new Page({
+ 	   ⚠ No `fill`/`solo`: that is a region height plus scrolling, which this page does
+ 	     not need — the region scrolls and the rail sticks. */
+ 	render(){
+-		return this.view ??= div.c("page", () => this.content())
++		return this.view ??= div.c("page", () => this.content.render())
+ 			.ac(this.name && "page--" + this.name);
+ 	},
+ 
+diff --git a/public/imagine/blogx/Blog.js b/public/imagine/blogx/Blog.js
+index 1ad5f9f69..08e59f3a1 100644
+--- a/public/imagine/blogx/Blog.js
++++ b/public/imagine/blogx/Blog.js
+@@ -63,7 +63,7 @@ export class Blog extends Page {
+ 		}).ac(this.classes);
+ 	}
+ 
+-	main(){ return div.c("blogx-main", () => this.content()); }
++	main(){ return div.c("blogx-main", () => this.content.render()); }
+ 
+ 	// ── every post is a page ────────────────────────────────────────────────
+ 	// route() is consulted for UNDECLARED names only, so a candidate that declares
+diff --git a/public/imagine/blogx/swap/page.js b/public/imagine/blogx/swap/page.js
+index 5aa6a689f..32df13e54 100644
+--- a/public/imagine/blogx/swap/page.js
++++ b/public/imagine/blogx/swap/page.js
+@@ -24,7 +24,7 @@ import { lead, when } from "../posts.js";
+ 
+ const Part = class BlogxSwapPart extends Page {
+ 	render(){
+-		return this.view ??= div.c("page blogx-part", () => this.content());
++		return this.view ??= div.c("page blogx-part", () => this.content.render());
+ 	}
+ };
+ 
+diff --git a/public/imagine/decks/deck.js b/public/imagine/decks/deck.js
+index befc0197d..6f53e4d4e 100644
+--- a/public/imagine/decks/deck.js
++++ b/public/imagine/decks/deck.js
+@@ -31,7 +31,7 @@ export class Deck extends Page {
+ 	   on a full screen the REGIONS are the navigation. */
+ 	column(host){
+ 		return div.c("page-column-body decks-screen", () => {
+-			const $slice = div.c("decks-slice", () => this.content());
++			const $slice = div.c("decks-slice", () => this.content.render());
+ 
+ 			/* A presentation advances when you click it. ⚠ A real link inside the slide
+ 			   has to win, or a click on the strip would step forwards instead of going
+diff --git a/public/imagine/feeds/video/page.js b/public/imagine/feeds/video/page.js
+index 55d96020a..0f1302a43 100644
+--- a/public/imagine/feeds/video/page.js
++++ b/public/imagine/feeds/video/page.js
+@@ -60,7 +60,7 @@ export default new Page({
+ 		return div.c("page-column-body page-column-small", () => {
+ 			div.c("page-column-head", () => span.c("page-column-title", this.title));
+ 
+-			if (this.content) div.c("page-column-prose flow", () => this.content());
++			if (this.has_content()) div.c("page-column-prose flow", () => this.content.render());
+ 
+ 			div.c("feeds-picks", () => this.children.forEach((talk, name) => {
+ 				a.c("feeds-pick").href(this.nav_for(name).url).append(() => {
+diff --git a/public/imagine/gallery/foreign.js b/public/imagine/gallery/foreign.js
+index 1d1091ef9..d30b8f1de 100644
+--- a/public/imagine/gallery/foreign.js
++++ b/public/imagine/gallery/foreign.js
+@@ -69,7 +69,7 @@ export function body(path){
+ 
+ 	load(path).then(page => $box.empty(() => {
+ 		if (!page) return p.c("muted", path + " did not load.");
+-		return is.fn(page.content) ? page.content.call(page) : page.content;
++		return page.render_content();
+ 	}));
+ 
+ 	return $box;
+diff --git a/public/imagine/importance/ranked/ranked.js b/public/imagine/importance/ranked/ranked.js
+index 4ebb3dc54..05fb855b7 100644
+--- a/public/imagine/importance/ranked/ranked.js
++++ b/public/imagine/importance/ranked/ranked.js
+@@ -101,7 +101,7 @@ export function ranked_column(host){
+ 			if (this !== host) a.c("page-column-close", () => icon("close")).href(this.parent.url);
+ 		});
+ 
+-		if (this.content)
++		if (this.has_content())
+ 			div.c("page-column-prose flow", () => this.render_content());
+ 
+ 		let place = 0;
+diff --git a/public/imagine/page.js b/public/imagine/page.js
+index 750128a87..290d2ee01 100644
+--- a/public/imagine/page.js
++++ b/public/imagine/page.js
+@@ -96,7 +96,7 @@ export default new Page({
+ 				if (this !== host) a.c("page-column-close", () => icon("close")).href(this.parent.url);
+ 			});
+ 
+-			if (this.content)
++			if (this.has_content())
+ 				div.c("page-column-prose flow", () => this.render_content());
+ 
+ 			if (!this.index) this.children.forEach((child, name) => {
+diff --git a/public/imagine/paging/navigation/screen.js b/public/imagine/paging/navigation/screen.js
+index 159b25e56..2516ecf39 100644
+--- a/public/imagine/paging/navigation/screen.js
++++ b/public/imagine/paging/navigation/screen.js
+@@ -101,7 +101,7 @@ export class PagingNavSub extends Page {
+ 
+ 		this.view = div.c("page flow paging-nav-sub", () => {
+ 			if (this.title) h1.c("page-title", this.title);
+-			typeof this.content === "function" ? this.content() : this.content;
++			this.content.render();
+ 		});
+ 
+ 		return this.view;
+diff --git a/public/imagine/paging/paging.js b/public/imagine/paging/paging.js
+index a97a0ff29..5ccd62fb0 100644
+--- a/public/imagine/paging/paging.js
++++ b/public/imagine/paging/paging.js
+@@ -246,7 +246,7 @@ export class Realm extends Paging {
+ 			// position — otherwise the next Tab starts from the rail again.
+ 			this.$pages = div.c("pages paging-app-centre", () => {
+ 				this.$home = div.c("paging-home flow", () => {
+-					if (is.fn(this.content)) this.content();
++					this.content.render();
+ 				});
+ 			}).attr("id", "paging-middle").attr("tabindex", "-1");
+ 		});
+diff --git a/public/imagine/screens/screen.js b/public/imagine/screens/screen.js
+index ee180a0f2..434fe54f9 100644
+--- a/public/imagine/screens/screen.js
++++ b/public/imagine/screens/screen.js
+@@ -27,7 +27,7 @@ export class Screen extends Page {
+ 	   on a full screen the REGIONS are the navigation and the crumb strip is the way
+ 	   back, so a second set of chrome would only say it again, smaller. */
+ 	column(host){
+-		return div.c("page-column-body screens-screen", () => this.content())
++		return div.c("page-column-body screens-screen", () => this.content.render())
+ 			.ac("page-column-" + (this.width ?? "full"));
+ 	}
+ 
+diff --git a/public/imagine/shells/Shell.js b/public/imagine/shells/Shell.js
+index 4fe152a55..a21f75b35 100644
+--- a/public/imagine/shells/Shell.js
++++ b/public/imagine/shells/Shell.js
+@@ -89,7 +89,7 @@ export class Shell extends Page {
+ 	// overrides this; everything else gets the same document.
+ 	main(){
+ 		return div.c("shell-main", () => div.c("shell-doc flow", () => {
+-			this.content();
++			this.content.render();
+ 			this.verdict();
+ 		}));
+ 	}
+diff --git a/public/imagine/shells/inner-bar/page.js b/public/imagine/shells/inner-bar/page.js
+index d201ba759..318e67f67 100644
+--- a/public/imagine/shells/inner-bar/page.js
++++ b/public/imagine/shells/inner-bar/page.js
+@@ -22,7 +22,7 @@ export default new Shell({
+ 		return div.c("shell-main shell-stage", () => {
+ 			div.c("shell-pane", () => {
+ 				div.c("shell-doc flow", () => {
+-					this.content();
++					this.content.render();
+ 					this.verdict();
+ 				});
+ 
+diff --git a/public/imagine/shells/inner-rail/page.js b/public/imagine/shells/inner-rail/page.js
+index 92c6ac3eb..74de996ff 100644
+--- a/public/imagine/shells/inner-rail/page.js
++++ b/public/imagine/shells/inner-rail/page.js
+@@ -32,7 +32,7 @@ export default new Shell({
+ 
+ 				div.c("shell-inner-body", () => {
+ 					div.c("shell-doc flow", () => {
+-						this.content();
++						this.content.render();
+ 						this.verdict();
+ 					});
+ 				});
+diff --git a/public/imagine/team/page.js b/public/imagine/team/page.js
+index fa9143a36..0f6e56954 100644
+--- a/public/imagine/team/page.js
++++ b/public/imagine/team/page.js
+@@ -130,7 +130,7 @@ const quiet_column = function(){
+ 			a.c("page-column-close", () => icon("close")).href(this.parent.url);
+ 		});
+ 
+-		div.c("page-column-prose flow", () => this.content());
++		div.c("page-column-prose flow", () => this.content.render());
+ 	});
+ };
+ 
+diff --git a/public/layouts/labs/blogx/Blog.js b/public/layouts/labs/blogx/Blog.js
+index 3df1e5225..5dbe9d6bb 100644
+--- a/public/layouts/labs/blogx/Blog.js
++++ b/public/layouts/labs/blogx/Blog.js
+@@ -63,7 +63,7 @@ export class Blog extends Page {
+ 		}).ac(this.classes);
+ 	}
+ 
+-	main(){ return div.c("blogx-main", () => this.content()); }
++	main(){ return div.c("blogx-main", () => this.content.render()); }
+ 
+ 	// ── every post is a page ────────────────────────────────────────────────
+ 	// route() is consulted for UNDECLARED names only, so a candidate that declares
+diff --git a/public/layouts/labs/blogx/swap/page.js b/public/layouts/labs/blogx/swap/page.js
+index bd4507493..f0e717662 100644
+--- a/public/layouts/labs/blogx/swap/page.js
++++ b/public/layouts/labs/blogx/swap/page.js
+@@ -24,7 +24,7 @@ import { lead, when } from "../posts.js";
+ 
+ const Part = class BlogxSwapPart extends Page {
+ 	render(){
+-		return this.view ??= div.c("page blogx-part", () => this.content());
++		return this.view ??= div.c("page blogx-part", () => this.content.render());
+ 	}
+ };
+ 
+diff --git a/public/layouts/labs/decks/deck.js b/public/layouts/labs/decks/deck.js
+index bd18dcbc1..5af6adf9c 100644
+--- a/public/layouts/labs/decks/deck.js
++++ b/public/layouts/labs/decks/deck.js
+@@ -31,7 +31,7 @@ export class Deck extends Page {
+ 	   on a full screen the REGIONS are the navigation. */
+ 	column(host){
+ 		return div.c("page-column-body decks-screen", () => {
+-			const $slice = div.c("decks-slice", () => this.content());
++			const $slice = div.c("decks-slice", () => this.content.render());
+ 
+ 			/* A presentation advances when you click it. ⚠ A real link inside the slide
+ 			   has to win, or a click on the strip would step forwards instead of going
+diff --git a/public/layouts/labs/screens/screen.js b/public/layouts/labs/screens/screen.js
+index ee180a0f2..434fe54f9 100644
+--- a/public/layouts/labs/screens/screen.js
++++ b/public/layouts/labs/screens/screen.js
+@@ -27,7 +27,7 @@ export class Screen extends Page {
+ 	   on a full screen the REGIONS are the navigation and the crumb strip is the way
+ 	   back, so a second set of chrome would only say it again, smaller. */
+ 	column(host){
+-		return div.c("page-column-body screens-screen", () => this.content())
++		return div.c("page-column-body screens-screen", () => this.content.render())
+ 			.ac("page-column-" + (this.width ?? "full"));
+ 	}
+ 
+diff --git a/public/layouts/labs/shells/Shell.js b/public/layouts/labs/shells/Shell.js
+index b8c7f25a5..1e82b2446 100644
+--- a/public/layouts/labs/shells/Shell.js
++++ b/public/layouts/labs/shells/Shell.js
+@@ -89,7 +89,7 @@ export class Shell extends Page {
+ 	// overrides this; everything else gets the same document.
+ 	main(){
+ 		return div.c("shell-main", () => div.c("shell-doc flow", () => {
+-			this.content();
++			this.content.render();
+ 			this.verdict();
+ 		}));
+ 	}
+diff --git a/public/layouts/labs/shells/inner-bar/page.js b/public/layouts/labs/shells/inner-bar/page.js
+index 36cb2018b..c38b82888 100644
+--- a/public/layouts/labs/shells/inner-bar/page.js
++++ b/public/layouts/labs/shells/inner-bar/page.js
+@@ -22,7 +22,7 @@ export default new Shell({
+ 		return div.c("shell-main shell-stage", () => {
+ 			div.c("shell-pane", () => {
+ 				div.c("shell-doc flow", () => {
+-					this.content();
++					this.content.render();
+ 					this.verdict();
+ 				});
+ 
+diff --git a/public/layouts/labs/shells/inner-rail/page.js b/public/layouts/labs/shells/inner-rail/page.js
+index 92c6ac3eb..74de996ff 100644
+--- a/public/layouts/labs/shells/inner-rail/page.js
++++ b/public/layouts/labs/shells/inner-rail/page.js
+@@ -32,7 +32,7 @@ export default new Shell({
+ 
+ 				div.c("shell-inner-body", () => {
+ 					div.c("shell-doc flow", () => {
+-						this.content();
++						this.content.render();
+ 						this.verdict();
+ 					});
+ 				});
+diff --git a/public/michael/page.js b/public/michael/page.js
+index 44396d78b..ff918ee2a 100644
+--- a/public/michael/page.js
++++ b/public/michael/page.js
+@@ -31,7 +31,7 @@ export default new Page({
+ 			});
+ 
+ 			this.$pages = div.c("pages", () => {
+-				div.c("default flow", () => { h1.c("page-title", this.title); this.content(); });
++				div.c("default flow", () => { h1.c("page-title", this.title); this.content.render(); });
+ 			});
+ 		}).ac(this.classes);
+ 	},
+diff --git a/public/page.js b/public/page.js
+index cc39ca042..cc0632e9d 100644
+--- a/public/page.js
++++ b/public/page.js
+@@ -47,7 +47,7 @@ export default new Page({
+ 
+ 			// bare `pages` — the region default IS the sheet now (Page.css)
+ 			div.c("pages", () => {
+-				div.c("default", () => this.content());
++				div.c("default", () => this.content.render());
+ 			});
+ 		}).ac(this.classes);
+ 	},
+diff --git a/public/resume/page.js b/public/resume/page.js
+index 9c01e3ce5..f4dad3d1b 100644
+--- a/public/resume/page.js
++++ b/public/resume/page.js
+@@ -57,7 +57,7 @@ export default new Page({
+ 		// transforms (perspective applies to its children), so a page that was also
+ 		// the card left that card as the one flat thing on a page about depth.
+ 		// The card is now a layer inside it.
+-		return this.view ??= div.c("page flow page-resume", () => this.content());
++		return this.view ??= div.c("page flow page-resume", () => this.content.render());
+ 	},
+ 
+ 	/* ⚠ `.depth()` BARE, never `.depth(n)` — passing the number writes an inline

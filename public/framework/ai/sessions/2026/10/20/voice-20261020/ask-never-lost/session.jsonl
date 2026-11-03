@@ -1,0 +1,7 @@
+{"assign":{"session_id":"91b1f69e-d8c3-45cb-bf43-423b691edd79","agent":"mastermind-ask-never-lost","brief":"public/framework/ai/sessions/2026/10/20/voice-20261020/ask-never-lost/requirements.md","model":"claude-sonnet-5-5","parent_task":"public/framework/ai/sessions/2026/10/20/voice-20261020","home":"/Servex/ext/remote/","requested_at":"2026-10-20T18:50:18-05:00","now":"starting"}}
+{"commit":"0ea18341e788"}
+{"commit":"ddfb50d5c17b"}
+{"log":{"at":"2026-10-20T18:52:17-05:00","msg":"landed: RemoteMCP.js gives every answer to the inbox (give), notifications/cancelled stops the wait (open map), sweep() delivers unmarked remote-replies/*.txt at boot (.delivered markers; first run only marks). INSTRUCTIONS + both docs updated; 3 new test cases pass. Takes effect after a Servex restart (not done)."}}
+{"finish":{"at":"2026-10-20T18:52:17-05:00"}}
+{"log":{"at":"2026-10-20T18:52:22-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-20T18:52:55-05:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}

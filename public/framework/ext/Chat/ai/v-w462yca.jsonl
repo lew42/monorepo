@@ -1,0 +1,8 @@
+{"session":{"id":"v-w462yca","home":"/framework/ext/Chat/","at":"2026-10-09T16:18:20.954-05:00","project":"dup-bubbles","host":"localhost:54923","fast":null,"smart":null,"backing":{"fast":null,"smart":null}}}
+{"chat":{"at":"2026-10-09T16:18:20.958-05:00","session":"v-w462yca","path":"/framework/ext/Chat/","from":{"kind":"owner"},"via":"text","text":"hello there friend","floor":"done"}}
+{"backing":{"at":"2026-10-09T16:18:21.126-05:00","fast":"8a9f6d9f-05f1-4b8d-9bff-24d91da64cf0","smart":null,"how":{"fast":"new"}}}
+{"backing":{"at":"2026-10-09T16:18:22.904-05:00","fast":"8a9f6d9f-05f1-4b8d-9bff-24d91da64cf0","smart":"b6655ec5-1511-43df-a014-88c0ed45a534","how":{"smart":"new"}}}
+{"chat":{"at":"2026-10-09T16:18:29.392-05:00","session":"v-w462yca","path":"/framework/ext/Chat/","from":{"kind":"assistant","id":"fast","agent":"session-fast-v-w462yca"},"via":"text","text":"I'm the fast assistant for this session; you're on /framework/ext/Chat/.","re":"2026-10-09T16:18:20.958-05:00"}}
+{"chat":{"at":"2026-10-09T16:18:32.347-05:00","session":"v-w462yca","path":"/framework/ext/Chat/","from":{"kind":"owner"},"via":"text","text":"hello there friend","floor":"done"}}
+{"skip":{"at":"2026-10-09T16:18:34.199-05:00","role":"fast","text":"(listening)","re":"2026-10-09T16:18:32.347-05:00"}}
+{"chat":{"at":"2026-10-09T16:18:39.477-05:00","session":"v-w462yca","path":"/framework/ext/Chat/","from":{"kind":"assistant","id":"smart","agent":"session-smart-v-w462yca"},"via":"text","text":"Hello! I can hear you on `/framework/ext/Chat/`. Nothing is running right now, so tell me what you want next.","re":"2026-10-09T16:18:32.347-05:00"}}

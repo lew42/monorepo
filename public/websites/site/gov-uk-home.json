@@ -1,0 +1,1147 @@
+{
+	"name": "gov-uk-home",
+	"url": "https://www.gov.uk/",
+	"title": "Welcome to GOV.UK",
+	"category": "system",
+	"captured_at": "2026-09-08T06:14:45.770Z",
+	"embed": "blocked",
+	"embed_note": "x-frame-options: SAMEORIGIN",
+	"shots": {
+		"400": "site/gov-uk-home/400.jpg",
+		"1280": "site/gov-uk-home/1280.jpg",
+		"1920": "site/gov-uk-home/1920.jpg",
+		"3440": "site/gov-uk-home/3440.jpg",
+		"long": "site/gov-uk-home/long.jpg"
+	},
+	"layout": {
+		"400": "1-flow",
+		"1280": "1-centered",
+		"1920": "1-centered",
+		"3440": "1-centered"
+	},
+	"sections": [
+		{
+			"name": "cookie banner",
+			"layout": "1-flow",
+			"css": "block, full-width",
+			"note": "sits above the blue header in every one of these four shots and dominates the fold at 400."
+		},
+		{
+			"name": "hero band",
+			"layout": "1-centered",
+			"css": "block, blue full-bleed band",
+			"note": "the headline and search box sit inside the same fixed-width column as the rest of the page, on a full-bleed blue background."
+		},
+		{
+			"name": "popular links grid",
+			"layout": "3-equal",
+			"css": "grid",
+			"note": "three columns of icon-plus-link pairs at every desktop width tested (1280, 1920 and 3440 all show 3); it stacks to one column at 400."
+		},
+		{
+			"name": "services + featured",
+			"layout": "2-sidebar",
+			"css": "float, FIXED pixel widths (not a percentage)",
+			"note": "the scan measures the main list at exactly 660px and the 'Featured' box at exactly 300px — the same two numbers at 1280, 1920 AND 3440. Most 2-sidebar pages share the room as a percentage; this one simply freezes both columns and lets a wider screen add margin instead."
+		}
+	],
+	"tags": [
+		"1-flow",
+		"1-centered",
+		"2-sidebar",
+		"3-equal",
+		"max-width",
+		"system"
+	],
+	"responsive": {
+		"strategy": "The whole page is capped at an exact, famous number: the scan measures the main content wrapper at precisely 960px wide at 1280, 1920 AND 3440 alike — not roughly similar, the identical pixel value on three very different screens, with all the extra room becoming margin. Inside that fixed column, the two-column 'Services' + 'Featured' split is ALSO built from fixed pixel widths (660px and 300px) rather than a percentage, so nothing about the page's content changes at all above 1280px, only the blank space around it grows. Below that point everything collapses to one column.",
+		"breakpoints": [
+			1020,
+			1280
+		],
+		"queries": [
+			"(forced-colors: active){",
+			"(hover: hover)and (pointer: fine)and (prefers-reduced-motion: no-preference){",
+			"(hover: hover)and (pointer: fine){",
+			"(hover: none),(pointer: coarse){",
+			"(hover: none){",
+			"(max-width: 19.99em){",
+			"(max-width: 40.0525em)and (min-width: 40.0625em){",
+			"(max-width: 40.0525em){",
+			"(max-width: 48.0525em){",
+			"(min-width: 1020px){",
+			"(min-width: 1281px){",
+			"(min-width: 20em)and (min-width: 40.0625em){",
+			"(min-width: 20em){",
+			"(min-width: 22.5em){",
+			"(min-width: 40.0625em)and (max-width: 48.0525em){",
+			"(min-width: 40.0625em){",
+			"(min-width: 48.0625em){",
+			"(prefers-reduced-motion: no-preference){",
+			"only screen and (-webkit-min-device-pixel-ratio: 2),only screen and (min-resolut",
+			"print and (max-width: 40.0525em){",
+			"print and (min-width: 40.0625em){",
+			"print{",
+			"screen and (-ms-high-contrast: active),(-ms-high-contrast: none){",
+			"screen and (forced-colors: active),(-ms-high-contrast: active){",
+			"screen and (forced-colors: active){",
+			"screen\\0  and (min-width: 40.0625em){",
+			"screen\\0 {",
+			"screen{"
+		]
+	},
+	"scan": {
+		"scanned_at": "2026-09-08T06:15:00.173Z",
+		"css": {
+			"sheets": 2,
+			"bytes": 390731,
+			"inline_bytes": 0
+		},
+		"media": [
+			"(forced-colors: active){",
+			"(hover: hover)and (pointer: fine)and (prefers-reduced-motion: no-preference){",
+			"(hover: hover)and (pointer: fine){",
+			"(hover: none),(pointer: coarse){",
+			"(hover: none){",
+			"(max-width: 19.99em){",
+			"(max-width: 40.0525em)and (min-width: 40.0625em){",
+			"(max-width: 40.0525em){",
+			"(max-width: 48.0525em){",
+			"(min-width: 1020px){",
+			"(min-width: 1281px){",
+			"(min-width: 20em)and (min-width: 40.0625em){",
+			"(min-width: 20em){",
+			"(min-width: 22.5em){",
+			"(min-width: 40.0625em)and (max-width: 48.0525em){",
+			"(min-width: 40.0625em){",
+			"(min-width: 48.0625em){",
+			"(prefers-reduced-motion: no-preference){",
+			"only screen and (-webkit-min-device-pixel-ratio: 2),only screen and (min-resolut",
+			"print and (max-width: 40.0525em){",
+			"print and (min-width: 40.0625em){",
+			"print{",
+			"screen and (-ms-high-contrast: active),(-ms-high-contrast: none){",
+			"screen and (forced-colors: active),(-ms-high-contrast: active){",
+			"screen and (forced-colors: active){",
+			"screen\\0  and (min-width: 40.0625em){",
+			"screen\\0 {",
+			"screen{"
+		],
+		"container": [
+			"(width < 360px){",
+			"(width < 560px){",
+			"(width < 660px){",
+			"page (width > 1020px){",
+			"page{"
+		],
+		"breakpoints_seen": [
+			{
+				"px": 1020,
+				"count": 1
+			},
+			{
+				"px": 1281,
+				"count": 1
+			}
+		],
+		"widths": {
+			"400": {
+				"doc": [
+					400,
+					7761
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"display": "block",
+						"rect": [
+							0,
+							463,
+							400,
+							62
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "gem-c-layout-super-navigation-header__content js-module-initialised",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "wrap",
+						"rect": [
+							15,
+							464,
+							370,
+							61
+						],
+						"side_by_side": 4
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"id": "content",
+						"class": "govuk-main-wrapper govuk-!-padding-top-0",
+						"display": "block",
+						"rect": [
+							0,
+							525,
+							400,
+							5297
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "homepage-header",
+						"display": "block",
+						"rect": [
+							0,
+							525,
+							400,
+							334
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "homepage-section homepage-section__popular-links",
+						"display": "block",
+						"rect": [
+							0,
+							859,
+							400,
+							462
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "homepage-section homepage-section--services-and-info",
+						"display": "block",
+						"rect": [
+							15,
+							1321,
+							370,
+							2254
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "homepage-section homepage-section--promotion-slots",
+						"display": "block",
+						"rect": [
+							15,
+							3576,
+							370,
+							705
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "homepage-section homepage-section__government-activity",
+						"display": "block",
+						"rect": [
+							15,
+							4280,
+							370,
+							913
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "homepage-section homepage-section__more-on-govuk",
+						"display": "block",
+						"rect": [
+							15,
+							5193,
+							370,
+							550
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "gem-c-layout-footer govuk-footer",
+						"display": "block",
+						"rect": [
+							0,
+							6018,
+							400,
+							1743
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "global-cookie-message",
+						"class": "gem-c-cookie-banner govuk-clearfix",
+						"role": "region",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							400,
+							464
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "form",
+						"role": "search",
+						"display": "block",
+						"rect": [
+							24,
+							741,
+							352,
+							90
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "govuk-width-container",
+						"display": "block",
+						"rect": [
+							15,
+							1321,
+							370,
+							4421
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "govuk-grid-row",
+						"display": "block",
+						"rect": [
+							0,
+							1321,
+							400,
+							2959
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "border-top-blue-from-desktop",
+						"display": "block",
+						"rect": [
+							15,
+							1321,
+							370,
+							2959
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "govuk-grid-column-full govuk-grid-column-two-thirds-from-desktop",
+						"display": "block",
+						"rect": [
+							0,
+							1321,
+							400,
+							2254
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "govuk-grid-row",
+						"display": "block",
+						"rect": [
+							9,
+							1371,
+							382,
+							2204
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1280": {
+				"doc": [
+					1280,
+					4874
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"display": "block",
+						"rect": [
+							0,
+							324,
+							1280,
+							62
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "gem-c-layout-super-navigation-header__content js-module-initialised",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "wrap",
+						"rect": [
+							160,
+							325,
+							960,
+							61
+						],
+						"side_by_side": 4
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"id": "content",
+						"class": "govuk-main-wrapper govuk-!-padding-top-0",
+						"display": "block",
+						"rect": [
+							0,
+							386,
+							1280,
+							3507
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "homepage-header",
+						"display": "block",
+						"rect": [
+							0,
+							386,
+							1280,
+							377
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "homepage-section homepage-section__popular-links",
+						"display": "block",
+						"rect": [
+							0,
+							763,
+							1280,
+							321
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "homepage-section homepage-section--services-and-info",
+						"display": "block",
+						"rect": [
+							160,
+							1087,
+							630,
+							1939
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "homepage-section homepage-section--promotion-slots",
+						"display": "block",
+						"rect": [
+							820,
+							1087,
+							300,
+							814
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "homepage-section homepage-section__government-activity",
+						"display": "block",
+						"rect": [
+							160,
+							3030,
+							630,
+							823
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "homepage-section homepage-section__more-on-govuk",
+						"display": "block",
+						"rect": [
+							820,
+							3030,
+							300,
+							680
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "gem-c-layout-footer govuk-footer",
+						"display": "block",
+						"rect": [
+							0,
+							4031,
+							1280,
+							843
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "global-cookie-message",
+						"class": "gem-c-cookie-banner govuk-clearfix",
+						"role": "region",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							1280,
+							325
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "form",
+						"role": "search",
+						"display": "block",
+						"rect": [
+							160,
+							633,
+							630,
+							90
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "govuk-width-container",
+						"display": "block",
+						"rect": [
+							160,
+							1083,
+							960,
+							2770
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "govuk-grid-row",
+						"display": "block",
+						"rect": [
+							145,
+							1087,
+							990,
+							1939
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "border-top-blue-from-desktop",
+						"display": "block",
+						"rect": [
+							160,
+							1083,
+							960,
+							1943
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "govuk-grid-column-full govuk-grid-column-two-thirds-from-desktop",
+						"display": "block",
+						"float": "left",
+						"rect": [
+							145,
+							1087,
+							660,
+							1939
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "govuk-grid-row",
+						"display": "block",
+						"rect": [
+							145,
+							1147,
+							640,
+							1819
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1920": {
+				"doc": [
+					1920,
+					4923
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"display": "block",
+						"rect": [
+							0,
+							324,
+							1920,
+							62
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "gem-c-layout-super-navigation-header__content js-module-initialised",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "wrap",
+						"rect": [
+							480,
+							325,
+							960,
+							61
+						],
+						"side_by_side": 4
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"id": "content",
+						"class": "govuk-main-wrapper govuk-!-padding-top-0",
+						"display": "block",
+						"rect": [
+							0,
+							386,
+							1920,
+							3556
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "homepage-header",
+						"display": "block",
+						"rect": [
+							0,
+							386,
+							1920,
+							425
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "homepage-section homepage-section__popular-links",
+						"display": "block",
+						"rect": [
+							0,
+							811,
+							1920,
+							321
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "homepage-section homepage-section--services-and-info",
+						"display": "block",
+						"rect": [
+							480,
+							1136,
+							630,
+							1939
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "homepage-section homepage-section--promotion-slots",
+						"display": "block",
+						"rect": [
+							1140,
+							1136,
+							300,
+							814
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "homepage-section homepage-section__government-activity",
+						"display": "block",
+						"rect": [
+							480,
+							3079,
+							630,
+							823
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "homepage-section homepage-section__more-on-govuk",
+						"display": "block",
+						"rect": [
+							1140,
+							3079,
+							300,
+							680
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "gem-c-layout-footer govuk-footer",
+						"display": "block",
+						"rect": [
+							0,
+							4080,
+							1920,
+							843
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "global-cookie-message",
+						"class": "gem-c-cookie-banner govuk-clearfix",
+						"role": "region",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							1920,
+							325
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "form",
+						"role": "search",
+						"display": "block",
+						"rect": [
+							480,
+							661,
+							630,
+							90
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "govuk-width-container",
+						"display": "block",
+						"rect": [
+							480,
+							1132,
+							960,
+							2770
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "govuk-grid-row",
+						"display": "block",
+						"rect": [
+							465,
+							1136,
+							990,
+							1939
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "border-top-blue-from-desktop",
+						"display": "block",
+						"rect": [
+							480,
+							1132,
+							960,
+							1943
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "govuk-grid-column-full govuk-grid-column-two-thirds-from-desktop",
+						"display": "block",
+						"float": "left",
+						"rect": [
+							465,
+							1136,
+							660,
+							1939
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "govuk-grid-row",
+						"display": "block",
+						"rect": [
+							465,
+							1196,
+							640,
+							1819
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"3440": {
+				"doc": [
+					3440,
+					4923
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"display": "block",
+						"rect": [
+							0,
+							324,
+							3440,
+							62
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "gem-c-layout-super-navigation-header__content js-module-initialised",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "wrap",
+						"rect": [
+							1240,
+							325,
+							960,
+							61
+						],
+						"side_by_side": 4
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"id": "content",
+						"class": "govuk-main-wrapper govuk-!-padding-top-0",
+						"display": "block",
+						"rect": [
+							0,
+							386,
+							3440,
+							3556
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "homepage-header",
+						"display": "block",
+						"rect": [
+							0,
+							386,
+							3440,
+							425
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "homepage-section homepage-section__popular-links",
+						"display": "block",
+						"rect": [
+							0,
+							811,
+							3440,
+							321
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "homepage-section homepage-section--services-and-info",
+						"display": "block",
+						"rect": [
+							1240,
+							1136,
+							630,
+							1939
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "homepage-section homepage-section--promotion-slots",
+						"display": "block",
+						"rect": [
+							1900,
+							1136,
+							300,
+							814
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "homepage-section homepage-section__government-activity",
+						"display": "block",
+						"rect": [
+							1240,
+							3079,
+							630,
+							823
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "homepage-section homepage-section__more-on-govuk",
+						"display": "block",
+						"rect": [
+							1900,
+							3079,
+							300,
+							680
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "gem-c-layout-footer govuk-footer",
+						"display": "block",
+						"rect": [
+							0,
+							4080,
+							3440,
+							843
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "global-cookie-message",
+						"class": "gem-c-cookie-banner govuk-clearfix",
+						"role": "region",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							3440,
+							325
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "form",
+						"role": "search",
+						"display": "block",
+						"rect": [
+							1240,
+							661,
+							630,
+							90
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "govuk-width-container",
+						"display": "block",
+						"rect": [
+							1240,
+							1132,
+							960,
+							2770
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "govuk-grid-row",
+						"display": "block",
+						"rect": [
+							1225,
+							1136,
+							990,
+							1939
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "border-top-blue-from-desktop",
+						"display": "block",
+						"rect": [
+							1240,
+							1132,
+							960,
+							1943
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "govuk-grid-column-full govuk-grid-column-two-thirds-from-desktop",
+						"display": "block",
+						"float": "left",
+						"rect": [
+							1225,
+							1136,
+							660,
+							1939
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "govuk-grid-row",
+						"display": "block",
+						"rect": [
+							1225,
+							1196,
+							640,
+							1819
+						],
+						"side_by_side": 1
+					}
+				]
+			}
+		}
+	},
+	"notes": "The UK government's homepage is one of the most disciplined layouts captured tonight: everything is capped at exactly 960 pixels wide, and that number does not change at all whether the screen is a laptop, a desktop, or a giant ultrawide monitor — the scan finds the identical 960 three times over. Inside that fixed column, the list of services on the left and the 'Featured' box on the right also use fixed pixel widths rather than a percentage split, so nothing about the page's content changes above 1280 pixels wide, only the quiet margin around it grows. Below that point everything stacks into one plain column, and the grid of 'Popular on GOV.UK' links goes from three columns down to one. A large cookie-consent banner also sits above the blue header in every one of these screenshots, which is worth knowing when comparing them.",
+	"wire": {
+		"role": "page",
+		"kids": [
+			{
+				"role": "text",
+				"h": "22em",
+				"lines": 3,
+				"fill": "text"
+			},
+			{
+				"role": "header",
+				"h": "4em"
+			},
+			{
+				"role": "hero",
+				"h": "22em"
+			},
+			{
+				"role": "nav",
+				"dir": "row",
+				"center": true,
+				"floor": "64rem",
+				"h": "8em",
+				"kids": [
+					{
+						"role": "nav",
+						"w": 1
+					},
+					{
+						"role": "nav",
+						"w": 1
+					},
+					{
+						"role": "nav",
+						"w": 1
+					}
+				]
+			},
+			{
+				"role": "main",
+				"dir": "row",
+				"center": true,
+				"floor": "64rem",
+				"h": "14em",
+				"kids": [
+					{
+						"role": "main",
+						"w": "41.25em"
+					},
+					{
+						"role": "aside",
+						"w": "18.75em"
+					}
+				]
+			},
+			{
+				"role": "footer",
+				"h": "6em"
+			}
+		]
+	}
+}

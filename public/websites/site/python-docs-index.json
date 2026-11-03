@@ -1,0 +1,655 @@
+{
+	"name": "python-docs-index",
+	"url": "https://docs.python.org/3/",
+	"title": "3.14.7 Documentation",
+	"category": "documentation",
+	"captured_at": "2026-09-08T05:55:04.191Z",
+	"embed": "allowed",
+	"embed_note": "no x-frame-options and no restrictive frame-ancestors",
+	"shots": {
+		"400": "site/python-docs-index/400.jpg",
+		"1280": "site/python-docs-index/1280.jpg",
+		"1920": "site/python-docs-index/1920.jpg",
+		"3440": "site/python-docs-index/3440.jpg",
+		"long": "site/python-docs-index/long.jpg"
+	},
+	"layout": {
+		"400": "1-flow",
+		"1280": "2-sidebar",
+		"1920": "2-sidebar",
+		"3440": "2-sidebar"
+	},
+	"sections": [
+		{
+			"name": "top bar",
+			"layout": "1-flow",
+			"css": "flex",
+			"note": "the Python logo, a language/version picker, and a search box, plus a hamburger icon that only shows below 1024px."
+		},
+		{
+			"name": "sidebar",
+			"layout": "2-sidebar left",
+			"css": "block, off-canvas drawer below 1024px",
+			"note": "Download / Docs by version / Other resources, in a column fixed at roughly 320-350px. Below 1024px the scan shows it moved to x=-310 — pushed off the left edge of the screen rather than removed, ready to slide in from a menu button."
+		},
+		{
+			"name": "body",
+			"layout": "2-equal",
+			"css": "block, with a 2 column grid table of links",
+			"note": "the welcome text and a 2-column table of \"Documentation sections\" links. The prose column itself is a FIXED 819px, not a percentage — it stays exactly as wide on a 3440 monitor as on a 1280 laptop, so all the extra room on a big screen becomes unused blank space on the right rather than a wider reading column. At 400 the table drops to one column."
+		},
+		{
+			"name": "footer",
+			"layout": "1-flow",
+			"css": "block",
+			"note": "a copyright and license line, the same width as the top bar."
+		}
+	],
+	"tags": [
+		"2-sidebar",
+		"1-flow",
+		"left",
+		"drawer",
+		"hamburger",
+		"fixed content width",
+		"2 column grid",
+		"rail",
+		"documentation"
+	],
+	"responsive": {
+		"strategy": "One breakpoint does all the work, at exactly 1024px (the site's own CSS says so directly). Above it, two fixed-width columns sit side by side: an about-320px sidebar and an 819px reading column, and neither one grows when the window does — a 3440 screen just gets a huge unused strip of blank space to the right of the text. Below 1024px the sidebar does not restack above the content, it slides off the left edge of the screen entirely (we can see its box sitting at x=-310, off-canvas) ready to reopen from the hamburger button, and the two-column link table in the body becomes one column.",
+		"breakpoints": [
+			1024
+		]
+	},
+	"scan": {
+		"scanned_at": "2026-09-08T05:55:13.576Z",
+		"css": {
+			"sheets": 6,
+			"bytes": 51319,
+			"inline_bytes": 725
+		},
+		"media": [
+			"(max-width: 1023px) {",
+			"(min-width: 1024px) {",
+			"print {"
+		],
+		"container": [],
+		"breakpoints_seen": [
+			{
+				"px": 1023,
+				"count": 1
+			},
+			{
+				"px": 1024,
+				"count": 1
+			}
+		],
+		"widths": {
+			"400": {
+				"doc": [
+					400,
+					2046
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "nav-content",
+						"role": "navigation",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "absolute",
+						"rect": [
+							0,
+							0,
+							400,
+							40
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "menu",
+						"role": "navigation",
+						"display": "block",
+						"rect": [
+							-310,
+							0,
+							300,
+							1131
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "body",
+						"role": "main",
+						"display": "block",
+						"rect": [
+							16,
+							40,
+							368,
+							1772
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "document",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							16,
+							40,
+							368,
+							1772
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "documentwrapper",
+						"display": "block",
+						"float": "left",
+						"rect": [
+							16,
+							40,
+							368,
+							1772
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "bodywrapper",
+						"display": "block",
+						"rect": [
+							16,
+							40,
+							368,
+							1772
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "menu-wrapper",
+						"display": "block",
+						"position": "fixed",
+						"rect": [
+							-310,
+							0,
+							300,
+							844
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "contentstable",
+						"display": "grid",
+						"cols": "331.188px",
+						"rows": "348px 290px",
+						"rect": [
+							34,
+							200,
+							331,
+							638
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1280": {
+				"doc": [
+					1280,
+					1572
+				],
+				"elements": [
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "related",
+						"role": "navigation",
+						"display": "block",
+						"rect": [
+							16,
+							7,
+							1248,
+							45
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "body",
+						"role": "main",
+						"display": "block",
+						"rect": [
+							336,
+							70,
+							819,
+							1276
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "sphinxsidebar",
+						"role": "navigation",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "sticky",
+						"rect": [
+							16,
+							70,
+							320,
+							800
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "related",
+						"role": "navigation",
+						"display": "block",
+						"rect": [
+							16,
+							1353,
+							1248,
+							45
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "document",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							16,
+							70,
+							1248,
+							1276
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "documentwrapper",
+						"display": "block",
+						"float": "left",
+						"rect": [
+							16,
+							70,
+							1248,
+							1276
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "bodywrapper",
+						"display": "block",
+						"rect": [
+							336,
+							70,
+							928,
+							1276
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "contentstable",
+						"display": "grid",
+						"cols": "344px 344px",
+						"rows": "396px",
+						"rect": [
+							395,
+							231,
+							720,
+							396
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "sphinxsidebarwrapper",
+						"display": "block",
+						"rect": [
+							16,
+							70,
+							308,
+							800
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1920": {
+				"doc": [
+					1920,
+					1572
+				],
+				"elements": [
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "related",
+						"role": "navigation",
+						"display": "block",
+						"rect": [
+							16,
+							7,
+							1888,
+							45
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "body",
+						"role": "main",
+						"display": "block",
+						"rect": [
+							366,
+							70,
+							819,
+							1276
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "sphinxsidebar",
+						"role": "navigation",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "sticky",
+						"rect": [
+							16,
+							70,
+							350,
+							1080
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "related",
+						"role": "navigation",
+						"display": "block",
+						"rect": [
+							16,
+							1353,
+							1888,
+							45
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "document",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							16,
+							70,
+							1888,
+							1276
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "documentwrapper",
+						"display": "block",
+						"float": "left",
+						"rect": [
+							16,
+							70,
+							1888,
+							1276
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "bodywrapper",
+						"display": "block",
+						"rect": [
+							366,
+							70,
+							1538,
+							1276
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "sphinxsidebarwrapper",
+						"display": "block",
+						"rect": [
+							16,
+							70,
+							338,
+							1080
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "footer",
+						"display": "block",
+						"rect": [
+							16,
+							1392,
+							1878,
+							180
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"3440": {
+				"doc": [
+					3440,
+					1572
+				],
+				"elements": [
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "related",
+						"role": "navigation",
+						"display": "block",
+						"rect": [
+							16,
+							7,
+							3408,
+							45
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "body",
+						"role": "main",
+						"display": "block",
+						"rect": [
+							366,
+							70,
+							819,
+							1276
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "sphinxsidebar",
+						"role": "navigation",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "sticky",
+						"rect": [
+							16,
+							70,
+							350,
+							1276
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "related",
+						"role": "navigation",
+						"display": "block",
+						"rect": [
+							16,
+							1353,
+							3408,
+							45
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "document",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							16,
+							70,
+							3408,
+							1276
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "documentwrapper",
+						"display": "block",
+						"float": "left",
+						"rect": [
+							16,
+							70,
+							3408,
+							1276
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "bodywrapper",
+						"display": "block",
+						"rect": [
+							366,
+							70,
+							3058,
+							1276
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "footer",
+						"display": "block",
+						"rect": [
+							16,
+							1392,
+							3398,
+							180
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "sphinxsidebarwrapper",
+						"display": "block",
+						"rect": [
+							16,
+							70,
+							338,
+							1276
+						],
+						"side_by_side": 1
+					}
+				]
+			}
+		}
+	},
+	"notes": "This is the official Python documentation home page, and it is one of the oldest, plainest layouts in this set: a navigation list on the left and the reading text on the right. The surprising part only shows up when you compare the screenshots at different sizes side by side — the paragraph of text is exactly the same width on a laptop, a desktop monitor and an ultrawide screen. It does not get wider or narrower; the page just leaves a big empty strip of white space on the right on a large screen instead of using it. Most modern sites either stretch the text or cap it and centre it in the middle; this page caps it and pins it to the left instead, which is a real (if old-fashioned) design choice. On a phone the whole left-hand navigation list disappears behind a small hamburger icon instead of moving underneath the text, which is a slightly different trick from most sidebars in this set.",
+	"wire": {
+		"role": "page",
+		"kids": [
+			{
+				"role": "header",
+				"h": "3.5em"
+			},
+			{
+				"role": "main",
+				"dir": "row",
+				"floor": "64rem",
+				"kids": [
+					{
+						"role": "nav",
+						"w": "21em",
+						"tone": "a08",
+						"lines": 14
+					},
+					{
+						"role": "main",
+						"w": "51em",
+						"lines": 16
+					}
+				]
+			},
+			{
+				"role": "footer",
+				"h": "3em"
+			}
+		]
+	}
+}

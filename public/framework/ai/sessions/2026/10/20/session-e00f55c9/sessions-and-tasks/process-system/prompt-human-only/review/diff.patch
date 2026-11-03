@@ -1,0 +1,95 @@
+diff --git a/Servex/agents/PromptTasks.js b/Servex/agents/PromptTasks.js
+index 81b4b9ea0..47cdf013a 100644
+--- a/Servex/agents/PromptTasks.js
++++ b/Servex/agents/PromptTasks.js
+@@ -1,6 +1,7 @@
+ import fs from "node:fs";
+ import path from "node:path";
+ import { fileURLToPath } from "node:url";
++import os from "node:os";
+ import { place } from "../home.js";
+ 
+ const HERE = path.dirname(fileURLToPath(import.meta.url));
+@@ -18,6 +19,9 @@ const AI = path.resolve(HERE, "..", "..", "public", "framework", "ai");
+  * ONLY THE OWNER'S OWN VS CODE TABS (the owner, 2026-10-22): the page_add caller must be "owner" (prompt-relay.mjs, which skips
+  * Servex-started sessions) and the record's line 1 must say kind "vscode-tab" (session-page.mjs, which also skips them). An SDK
+  * agent's prompt is never refined here.
++ * ONLY TURNS A PERSON TYPED (vscode-mastermind, 2026-10-22: 13 tasks were filed from a tab's CronCreate check-ins, "Mastermind check: …"):
++ * the transcript stamps every user turn with `turnOrigin` ("human", "scheduled", "task_notification"); `human()` finds the prompt's
++ * line there and refines it only when it says "human". No transcript line found (an older Claude Code, a test) = refined as before.
+  * ON/OFF: `node Servex/agents/PromptTasks.js off` (or `on`, `status`) writes or removes prompt-tasks.off in the Servex home,
+  * read on every prompt, so it switches without a restart. SERVEX_NO_PROMPT_TASKS=1 turns it off for a whole Servex run.
+  * Doc: core/Session/doc/prompt-tasks.md. */
+@@ -37,11 +41,36 @@ export default class PromptTasks {
+ 		if (!p?.text || this.seen.has(key) || p.text.trim().length < PromptTasks.MIN_CHARS || /^\s*\//.test(p.text)) return this.chain;   // "try again?" and /commands hold no task
+ 		if (p.by !== "owner" || (this.off ?? PromptTasks.off)()) return this.chain;   // only the owner's own prompts, and only while switched on
+ 		this.seen.add(key);
+-		return this.chain = this.chain.then(() => this.run(p))
++		return this.chain = this.chain.then(async () => {
++			const rec = this.record_for(p.file);
++			if (rec && await this.human(rec.uuid, p.text) === false) return { ok: true, skipped: "not typed by a person (turnOrigin)" };
++			return this.run(p);
++		})
+ 			.then(r => { if (r?.ok === false) this.say?.(`prompt-tasks: ${p.file}:${p.line} not filed: ${r.why ?? r.error ?? "refine failed"}`); return r; })   // never quiet (a renamed card folder, a failed refine)
+ 			.catch(e => this.say?.(`prompt-tasks: ${e.message || e}`));
+ 	}
+ 
++	static TRANSCRIPTS = () => path.join(os.homedir(), ".claude", "projects");
++	/* Was this prompt typed by a person? The tab's transcript line for it carries `turnOrigin`. true / false, or null when no line
++	 * with that text is found. The hook fires before Claude Code writes the line, so it looks again for up to ~3 s. A test passes `transcript`. */
++	async human(uuid, text, { tries = 4, wait = 750 } = {}){
++		const file = this.transcript?.(uuid) ?? (() => { try { for (const d of fs.readdirSync(PromptTasks.TRANSCRIPTS())){ const f = path.join(PromptTasks.TRANSCRIPTS(), d, uuid + ".jsonl"); if (fs.existsSync(f)) return f; } } catch {} return null; })();
++		if (!file) return null;
++		const want = String(text).trim();
++		for (let i = 0; i < tries; i++){
++			let lines = []; try { lines = fs.readFileSync(file, "utf8").split("\n"); } catch {}
++			for (let j = lines.length - 1; j >= 0; j--){
++				if (!lines[j].includes('"type":"user"')) continue;
++				let l; try { l = JSON.parse(lines[j]); } catch { continue; }
++				const c = l.message?.content, said = typeof c === "string" ? c : Array.isArray(c) ? c.filter(x => x.type === "text").map(x => x.text).join("\n") : "";
++				if (said.trim() !== want) continue;
++				return l.turnOrigin ? l.turnOrigin === "human" : null;
++			}
++			if (i < tries - 1) await new Promise(r => setTimeout(r, wait));
++		}
++		return null;
++	}
++
+ 	// The session's record for a prompt page: ai/YYYY/MM/DD/<slug>/page.jsonl -> ai/sessions/YYYY/MM/DD/<slug>/session.jsonl.
+ 	record_for(page_file){
+ 		const rel = path.relative(this.ai, path.dirname(page_file)).split(path.sep).join("/");
+diff --git a/Servex/agents/prompt-tasks.test.mjs b/Servex/agents/prompt-tasks.test.mjs
+index 5c490e9d9..ffd848e48 100644
+--- a/Servex/agents/prompt-tasks.test.mjs
++++ b/Servex/agents/prompt-tasks.test.mjs
+@@ -73,6 +73,17 @@ try {
+ 		fs.writeFileSync(path.join(SDK_REC, "session.jsonl"), JSON.stringify({ session: "bare-string" }) + "\n");
+ 		ok(pt.record_for(path.join(SDK_PAGE, "page.jsonl")) === null, "no id on line 1: skipped, never a made-up session path");
+ 	} finally { fs.rmSync(SDK_PAGE, { recursive: true, force: true }); fs.rmSync(SDK_REC, { recursive: true, force: true }); }
++
++	// 3c. Only a turn a person typed: the transcript's turnOrigin. A scheduled check-in (CronCreate) is not the owner's words.
++	const TR = path.join(REC_DIR, "transcript.jsonl"), CHECK = "Mastermind check: status of the architect and whether the branch merged", TYPED = "Build the merge button on the session page, please";
++	const user = (text, turnOrigin) => JSON.stringify({ type: "user", turnOrigin, message: { role: "user", content: text } });
++	fs.writeFileSync(TR, [user(CHECK, "scheduled"), user(TYPED, "human")].join("\n") + "\n");
++	pt.transcript = () => TR; pt.asked_n = 0;
++	await pt.prompted({ ...heard[0], line: 4, text: CHECK });
++	ok(calls() === 0, "a scheduled check-in (turnOrigin scheduled) is never refined");
++	await pt.prompted({ ...heard[0], line: 5, text: TYPED });
++	ok(calls() === 1, "a turn a person typed (turnOrigin human) is refined");
++	pt.transcript = null;
+ 	PromptTasks.OFF_FILE = () => path.join(REC_DIR, "prompt-tasks.off");   // never the real Servex home
+ 	const off_now = (PromptTasks.set(false), PromptTasks.off()); PromptTasks.set(true);
+ 	ok(off_now === true && PromptTasks.off() === false, "the runtime switch file turns it off and back on");
+diff --git a/public/framework/core/Session/doc/prompt-tasks.md b/public/framework/core/Session/doc/prompt-tasks.md
+index 6d3ef4a47..e1dc14c52 100644
+--- a/public/framework/core/Session/doc/prompt-tasks.md
++++ b/public/framework/core/Session/doc/prompt-tasks.md
+@@ -7,7 +7,7 @@
+ ## How a prompt becomes a task
+ 
+ 1. **The prompt is logged.** `.claude/hooks/prompt-relay.mjs` (the UserPromptSubmit hook) adds it as a `Prompt` item to the session's card page, `public/framework/ai/YYYY/MM/DD/session-<id8>/page.jsonl`, through Servex's `page_add` tool.
+-2. **Servex hears it.** `page_add` calls `hooks.prompted` (`Servex/agents/page_tools.js`) for a `Prompt` item. Servex hands it to `PromptTasks` (`Servex/agents/PromptTasks.js`), which works through prompts one at a time. It skips prompts under 30 characters, `/commands`, any prompt whose `page_add` caller is not `owner`, and any session whose record does not start with `{"session":{"kind":"vscode-tab","id":…}}`. So only your own VS Code tabs count; an SDK agent's prompt never does.
++2. **Servex hears it.** `page_add` calls `hooks.prompted` (`Servex/agents/page_tools.js`) for a `Prompt` item. Servex hands it to `PromptTasks` (`Servex/agents/PromptTasks.js`), which works through prompts one at a time. It skips prompts under 30 characters, `/commands`, any prompt whose `page_add` caller is not `owner`, and any session whose record does not start with `{"session":{"kind":"vscode-tab","id":…}}`. It also skips a turn you did not type: the tab's transcript stamps each user turn with `turnOrigin`, and only `"human"` is refined (a scheduled CronCreate check-in is `"scheduled"`; no line found = refined as before). So only what you type in your own VS Code tabs counts; an SDK agent's prompt never does.
+ 3. **The prompt's record starts, and one cheap call splits it** (since 2026-10-23; before, `RefineQueue.one()` brief v3 filed one flat task per sentence, directions included). The `live` process of `Server/PromptRecords.mjs` writes the raw text and numbered sentences into the session's `prompts.jsonl`, then one Haiku call (`PARTS_BRIEF`) splits the prompt into parts: 1 to 3 main asks with their details nested, rules, questions, ideas, conversation ([prompt records](/framework/ext/Refine/doc/prompt-records.md)).
+ 4. **Each top-level ask is filed as a proposal** (rules and questions stay on the record; nested details go in the description) in the session's own record, `public/framework/ai/sessions/YYYY/MM/DD/session-<id8>/session.jsonl` (same day and folder name as the card page), through the item tool with caller `prompt-tasks`:
+    `{"tasks":{"add":{"title","state":"waiting","waiting_on":"owner","from":"owner","source":{"session","line","prompt","part"},"description","module_hint"}}}`. Routed a prompt's proposals yourself? `node Server/PromptRecords.mjs <session> --handled <prompt id> --to <task path>` completes them as "routed to …" and marks the prompt handled.

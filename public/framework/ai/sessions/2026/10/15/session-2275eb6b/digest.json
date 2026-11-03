@@ -1,0 +1,42 @@
+{
+ "id": "2275eb6b-2233-4cec-a41e-84d2b04f8927",
+ "first": "2026-10-15T23:59:20.972Z",
+ "last": "2026-10-16T00:21:52.574Z",
+ "task": "public/framework/ai/sessions/2026/10/15/voice-20261015/live-present",
+ "models": {
+  "claude-sonnet-5-5": 40
+ },
+ "sizes": {
+  "raw": 302247,
+  "content": 39397,
+  "stripped": 5936,
+  "owner_only": 0
+ },
+ "usd": 1.217906,
+ "usd_main": 1.217906,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 80,
+  "output": 15541,
+  "cache_read": 3574458,
+  "cache_write": 86861,
+  "w5": 0,
+  "w1": 86861
+ },
+ "messages": 40,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "The `voice-20261015/live-present` task is landed, so the heartbeat can stop chasing it. I had finished the work but never wrote the landing line.\n\nThe line is in its `task.jsonl` and committed. The code is `1b96fb2b4` on michael/dev.\n\nThe clear call is `page_set` with `path: \"/live/\"` and `delta: {\"content\":{\"clear\":true}}`. The one open item is a Servex restart, which I did not do. It is needed for the new RemoteMCP text and for `page_read` to honour a clear.",
+ "edited": [
+  "public/framework/core/List/List.js",
+  "public/framework/core/Page/PageContent.js",
+  "public/live/Live.js",
+  "public/live/Live.css",
+  "Servex/agents/page_tools.js",
+  "Servex/ext/remote/RemoteMCP.js",
+  "public/live/readme.md",
+  "public/live/doc/presentation.md",
+  "public/framework/core/Page/doc/ai-api.md"
+ ],
+ "digested_at": "2026-10-16T06:28:10.188Z"
+}

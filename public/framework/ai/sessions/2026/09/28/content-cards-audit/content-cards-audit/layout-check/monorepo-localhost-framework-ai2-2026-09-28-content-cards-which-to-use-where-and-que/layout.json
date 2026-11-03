@@ -1,0 +1,43 @@
+{
+ "url": "http://monorepo.localhost/framework/ai2/2026/09/28/content-cards-which-to-use-where-and-que/",
+ "widths": {
+  "1280": {
+   "empty": 0.234,
+   "widest_text": 4157,
+   "widest_text_sample": "Step 5 done: the object card is live. On",
+   "overflow_x": false,
+   "items": 514,
+   "narrow_share": 0.125
+  },
+  "1920": {
+   "empty": 0.263,
+   "widest_text": 4423,
+   "widest_text_sample": "Step 5 done: the object card is live. On",
+   "overflow_x": false,
+   "items": 514,
+   "narrow_share": 0.154
+  },
+  "2560": {
+   "empty": 0.268,
+   "widest_text": 4976,
+   "widest_text_sample": "Step 5 done: the object card is live. On",
+   "overflow_x": false,
+   "items": 514,
+   "narrow_share": 0.156
+  },
+  "3440": {
+   "empty": 0.375,
+   "widest_text": 4976,
+   "widest_text_sample": "Step 5 done: the object card is live. On",
+   "overflow_x": false,
+   "items": 514,
+   "narrow_share": 0.883
+  }
+ },
+ "errors": [
+  "3440: TypeError: this[verb] is not a function",
+  "2560: TypeError: this[verb] is not a function",
+  "1920: TypeError: this[verb] is not a function",
+  "1280: TypeError: this[verb] is not a function"
+ ]
+}

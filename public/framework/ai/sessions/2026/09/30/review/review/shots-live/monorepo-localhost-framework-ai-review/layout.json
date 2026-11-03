@@ -1,0 +1,386 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/review/",
+ "widths": {
+  "400": {
+   "empty": 0.39,
+   "widest_text": 335,
+   "widest_text_sample": "Review questions",
+   "overflow_x": false,
+   "items": 111,
+   "narrow_share": 0.054,
+   "layout": "standard",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 28,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 28
+      }
+     ]
+    },
+    "p": {
+     "total": 28,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 28
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 72,
+     "h": 40,
+     "share": 0.04,
+     "ink": 0.875,
+     "big_empty": false
+    },
+    {
+     "cls": "p",
+     "y": 154,
+     "h": 50,
+     "share": 0.05,
+     "ink": 0.708,
+     "big_empty": false
+    },
+    {
+     "cls": "wide",
+     "y": 232,
+     "h": 196,
+     "share": 0.196,
+     "ink": 0.546,
+     "big_empty": false
+    },
+    {
+     "cls": "h2",
+     "y": 491,
+     "h": 39,
+     "share": 0.039,
+     "ink": 0.65,
+     "big_empty": false
+    },
+    {
+     "cls": "card",
+     "y": 558,
+     "h": 80,
+     "share": 0.08,
+     "ink": 0.675,
+     "big_empty": false
+    },
+    {
+     "cls": "wide",
+     "y": 666,
+     "h": 12585,
+     "share": 12.585,
+     "ink": 0.669,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "drawer-rail-ai",
+     "text": "✦AI",
+     "lines": 3.2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-rail-menu",
+     "text": "⋯More",
+     "lines": 3.2
+    }
+   ]
+  },
+  "1200": {
+   "empty": 0.458,
+   "widest_text": 560,
+   "widest_text_sample": "Every question a fresh reviewer asks, pe",
+   "overflow_x": false,
+   "items": 127,
+   "narrow_share": 0.142,
+   "layout": "standard",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 38,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 38
+      }
+     ]
+    },
+    "p": {
+     "total": 38,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 38
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 38,
+     "h": 49,
+     "share": 0.049,
+     "ink": 0.575,
+     "big_empty": false
+    },
+    {
+     "cls": "p",
+     "y": 132,
+     "h": 27,
+     "share": 0.027,
+     "ink": 0.575,
+     "big_empty": false
+    },
+    {
+     "cls": "wide",
+     "y": 189,
+     "h": 79,
+     "share": 0.079,
+     "ink": 0.692,
+     "big_empty": false
+    },
+    {
+     "cls": "h2",
+     "y": 335,
+     "h": 42,
+     "share": 0.042,
+     "ink": 0.338,
+     "big_empty": false
+    },
+    {
+     "cls": "card",
+     "y": 407,
+     "h": 85,
+     "share": 0.085,
+     "ink": 0.392,
+     "big_empty": false
+    },
+    {
+     "cls": "wide",
+     "y": 521,
+     "h": 7632,
+     "share": 7.632,
+     "ink": 0.584,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.7
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  },
+  "1920": {
+   "empty": 0.588,
+   "widest_text": 600,
+   "widest_text_sample": "Every question a fresh reviewer asks, pe",
+   "overflow_x": false,
+   "items": 127,
+   "narrow_share": 0.283,
+   "layout": "standard",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 67,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 67
+      }
+     ]
+    },
+    "p": {
+     "total": 67,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 67
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 48,
+     "h": 53,
+     "share": 0.053,
+     "ink": 0.412,
+     "big_empty": false
+    },
+    {
+     "cls": "p",
+     "y": 160,
+     "h": 29,
+     "share": 0.029,
+     "ink": 0.4,
+     "big_empty": false
+    },
+    {
+     "cls": "wide",
+     "y": 229,
+     "h": 38,
+     "share": 0.038,
+     "ink": 0.8,
+     "big_empty": false
+    },
+    {
+     "cls": "h2",
+     "y": 339,
+     "h": 45,
+     "share": 0.045,
+     "ink": 0.237,
+     "big_empty": false
+    },
+    {
+     "cls": "card",
+     "y": 424,
+     "h": 90,
+     "share": 0.09,
+     "ink": 0.192,
+     "big_empty": false
+    },
+    {
+     "cls": "wide",
+     "y": 554,
+     "h": 5305,
+     "share": 5.305,
+     "ink": 0.55,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.7
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  },
+  "3440": {
+   "empty": 0.633,
+   "widest_text": 675,
+   "widest_text_sample": "Every question a fresh reviewer asks, pe",
+   "overflow_x": false,
+   "items": 127,
+   "narrow_share": 0.291,
+   "layout": "standard",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 90,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 90
+      }
+     ]
+    },
+    "p": {
+     "total": 90,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 90
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 54,
+     "h": 59,
+     "share": 0.059,
+     "ink": 0.287,
+     "big_empty": false
+    },
+    {
+     "cls": "p",
+     "y": 181,
+     "h": 32,
+     "share": 0.032,
+     "ink": 0.263,
+     "big_empty": false
+    },
+    {
+     "cls": "wide",
+     "y": 258,
+     "h": 43,
+     "share": 0.043,
+     "ink": 0.55,
+     "big_empty": false
+    },
+    {
+     "cls": "h2",
+     "y": 382,
+     "h": 51,
+     "share": 0.051,
+     "ink": 0.163,
+     "big_empty": false
+    },
+    {
+     "cls": "card",
+     "y": 478,
+     "h": 101,
+     "share": 0.101,
+     "ink": 0.144,
+     "big_empty": false
+    },
+    {
+     "cls": "wide",
+     "y": 624,
+     "h": 4201,
+     "share": 4.201,
+     "ink": 0.48,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.8
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  }
+ },
+ "errors": []
+}

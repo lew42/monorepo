@@ -1,0 +1,513 @@
+diff --git a/public/framework/ai/AIDashboard/AIDashboard.css b/public/framework/ai/AIDashboard/AIDashboard.css
+index bb3c9d7ff..596a6b6f6 100644
+--- a/public/framework/ai/AIDashboard/AIDashboard.css
++++ b/public/framework/ai/AIDashboard/AIDashboard.css
+@@ -1,53 +1,46 @@
+ @layer site {
+ 	.page.ad-page { --measure: none; --page-pad: 1.5em clamp(0.8em, 3%, 3em); }
+-	.ad-dash { display: flex; flex-direction: column; gap: 0.6em; padding: 0.8em 0 2em; }
+-	.ad-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.2em 1em; }
+-	.ad-title { display: flex; align-items: center; gap: 0.3em; margin: 0; font-size: 1.4em; }
+-	.ad-sum { font-size: 0.9em; opacity: 0.75; }
+-	.ad-strip, .ad-chips { display: flex; flex-wrap: wrap; gap: 0.3em; }
+-	.ad-chips { flex-direction: column; }
+-	.ad-chip { font: inherit; font-size: 0.85em; padding: 0.15em 0.7em; border: 1px solid var(--line); border-radius: 2em; background: transparent; color: inherit; cursor: pointer; }
+-	.ad-chip:hover { background: var(--tint); }
+-	.ad-chip-on { background: var(--prime); border-color: var(--prime); color: var(--prime-ink); font-weight: 600; }
+-	.ad-chips > .ad-strip { display: flex; }
+-	.ad-find { font: inherit; padding: 0.3em 0.7em; border: 1px solid var(--line); border-radius: 0.4em; background: transparent; color: inherit; width: 100%; box-sizing: border-box; }
+-	.ad-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 26em), 1fr)); gap: 0 2em; align-items: start; }
+-	.ad-col { min-width: 0; }
+-	.ad-group { display: flex; justify-content: space-between; margin-top: 0.8em; padding-bottom: 0.2em; border-bottom: 1px solid var(--line); font-weight: 600; font-size: 0.9em; }
+-	.ad-group-fold { cursor: pointer; }
+-	.ad-row { display: block; padding: 0.35em 0; border-bottom: 1px solid color-mix(in srgb, var(--line) 50%, transparent); }
+-	.ad-row .ad-row .ad-row-main, .ad-row .ad-row .ad-row-sub { padding-inline-start: 1.2em; }
+-	.ad-depth-1 { padding-inline-start: 0.8em; }
+-	.ad-depth-2, .ad-depth-3 { padding-inline-start: 0.8em; }
+-	.ad-row-main { display: flex; align-items: center; gap: 0.4em; min-width: 0; }
+-	.ad-fold { flex: none; width: 1.1em; padding: 0; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; text-align: center; }
+-	.ad-origin { flex: none; }
+-	.ad-dot { flex: none; width: 0.5em; height: 0.5em; border-radius: 50%; background: var(--line); }
+-	.ad-dot-live { background: var(--ok); box-shadow: 0 0 0.4em var(--ok); }
+-	.ad-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: inherit; text-decoration: none; }
+-	.ad-name:hover { text-decoration: underline; }
+-	.ad-usd { flex: none; font-variant-numeric: tabular-nums; font-size: 0.9em; }
+-	.ad-row-sub { padding-inline-start: 2.8em; font-size: 0.78em; opacity: 0.65; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+-	.ad-kids { border-inline-start: 1px solid var(--line); margin-inline-start: 0.7em; }
+-	.ad-kids > .ad-row:last-child { border-bottom: 0; }
+-	.ad-usage { gap: 0.3em 1.5em; font-size: 0.85em; }
+-	.ad-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.6em 1.5em; align-items: start; }
+-	.ad-days { display: flex; flex-direction: column; gap: 0.5em; }
+-	.ad-main { display: flex; flex-direction: column; gap: 0.6em; min-width: 0; }
+-	.ad-date { font: inherit; padding: 0.25em 0.6em; border: 1px solid var(--line); border-radius: 0.4em; background: transparent; color: inherit; width: 100%; box-sizing: border-box; }
+-	.ad-days .ad-strip { display: none; }
+-	@media (min-width: 46em) {
+-		.ad-body { grid-template-columns: 9em minmax(0, 1fr); }
+-		.ad-days .ad-strip { display: flex; flex-direction: column; gap: 0.2em; }
+-		.ad-days .ad-chip { text-align: start; border-radius: 0.4em; }
++	.ad-dash { display: flex; flex-direction: column; gap: 1em; padding: 0.8em 0 2em; }
++	.ad-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1em; align-items: start; }
++	.ad-col { display: flex; flex-direction: column; gap: 1em; min-width: 0; }
++	.ad-sec { display: flex; flex-direction: column; gap: 0.5em; min-width: 0; padding: 0.8em 1em; border: 1px solid var(--line); border-radius: 0.5em; }
++	.ad-h { margin: 0; font-size: 0.85em; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; opacity: 0.65; }
++	.ad-needs { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18em), 1fr)); gap: 0.5em 1.5em; }
++	.ad-needs > .ad-h { grid-column: 1 / -1; }
++	.ad-block { display: flex; flex-direction: column; gap: 0.25em; min-width: 0; align-content: start; }
++	.ad-kind { flex: none; opacity: 0.6; }
++	.ad-big { display: flex; align-items: baseline; gap: 0.4em; color: inherit; text-decoration: none; }
++	.ad-num { font-size: 2.2em; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
++	.ad-what { font-size: 1em; }
++	.ad-big:hover .ad-what { text-decoration: underline; }
++	.ad-sub { font-size: 0.85em; opacity: 0.75; }
++	.ad-line { display: flex; gap: 0.5em; min-width: 0; padding: 0.25em 0; border-top: 1px solid color-mix(in srgb, var(--line) 50%, transparent); font-size: 0.9em; color: inherit; text-decoration: none; }
++	.ad-line:hover { text-decoration: underline; }
++	.ad-line .ad-usd { margin-inline-start: auto; flex: none; font-variant-numeric: tabular-nums; opacity: 0.75; }
++	.ad-rank { flex: none; opacity: 0.6; font-variant-numeric: tabular-nums; }
++	.ad-none { padding: 0.6em 0; opacity: 0.6; }
++	.ad-saybox { min-width: 0; }
++	.ad-bigrows { display: flex; flex-direction: column; gap: 0.7em; }
++	.ad-bigrow { display: flex; flex-direction: column; gap: 0.15em; }
++	.ad-bigtitle { display: flex; gap: 0.5em; align-items: baseline; font-weight: 600; }
++	.ad-bign { flex: none; min-width: 1.6em; padding: 0.15em 0.3em; border-radius: 1em; background: var(--prime); color: var(--prime-ink); font-size: 0.85em; text-align: center; line-height: 1.2; }
++	.ad-now { font-size: 0.9em; }
++	.ad-label { font-weight: 600; opacity: 0.7; }
++	.ad-more { font-size: 0.85em; color: inherit; }
++	.ad-running .an-now { padding: 0; gap: 0.5em; }
++	.ad-running .an-foot { display: none; }
++	.ad-usage-sec .ad-usage { gap: 0.3em 1.5em; font-size: 0.85em; }
++	.ad-col-a { grid-area: a; } .ad-col-b { grid-area: b; } .ad-col-c { grid-area: c; }
++	.ad-grid { grid-template-areas: "a" "b" "c"; }
++	@media (min-width: 60em) {
++		.ad-grid { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); grid-template-areas: "a c" "b c"; }
++	}
++	@media (min-width: 80em) {
++		.ad-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-areas: "a b c"; }
+ 	}
+ 	@media (max-width: 45.99em) {
+ 		.ad-usage { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.4em; font-size: 0.7em; }
+ 		.ad-usage .up-head { flex-direction: column; gap: 0; }
+ 		.ad-usage .up-head > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+-		.ad-chips .ad-strip { flex-wrap: nowrap; overflow-x: auto; }
+-		.ad-chip { white-space: nowrap; flex: none; }
+ 	}
+-	.ad-none { padding: 2em 0; opacity: 0.6; }
+-	.ad-foot { display: flex; flex-wrap: wrap; gap: 0.4em 1.2em; margin-top: 1em; font-size: 0.9em; }
+ }
+diff --git a/public/framework/ai/AIDashboard/AIDashboard.js b/public/framework/ai/AIDashboard/AIDashboard.js
+index d86b0ae72..74fdea46d 100644
+--- a/public/framework/ai/AIDashboard/AIDashboard.js
++++ b/public/framework/ai/AIDashboard/AIDashboard.js
+@@ -1,117 +1,56 @@
+-import { View, div, span, a, input } from "/app.js";
+-import SessionStore from "./SessionStore.js";
+-import SessionTree from "./SessionTree.js";
+-import SessionRow from "./SessionRow.js";
+-import DayStrip from "./DayStrip.js";
+-import OriginChips from "./OriginChips.js";
++import { View, div, h2 } from "/app.js";
++import chat from "/framework/ux/Dictate/chat.js";
++import AINow from "../now/AINow.js";
++import DashNeeds from "./DashNeeds.js";
++import DashBig from "./DashBig.js";
++import DashQueue from "./DashQueue.js";
+ import UsageLine from "./UsageLine.js";
+ import PageNav from "./PageNav.js";
+ 
+ View.stylesheet(import.meta, "AIDashboard.css");
+ 
+-/** AIDashboard — the default /framework/ai/ page: one day's sessions grouped by origin (cloud voice, VS Code / remote, Servex), nested by who spawned whom, each cost rolled up.
+- *  It reads the one store through SessionStore and keeps its state in the url (`?day=&origin=&live&open=&find=`). Plan and class table: ai/doc/ai-dashboard-plan.md */
++/** AIDashboard — the default /framework/ai/ page: what matters most, in order. A place to say something; what needs the owner; the big things now; what is running; the task queue; usage pace.
++ *  The day's sessions list is one click down, on the Sessions tab. Every section reads real state and says so when it cannot: nothing is drawn from a failed read.
++ *  The page's one live source is `AINow` (the "inflight" query); the queue, the waiting list, the merge list and priority.md are each read once. Class table: readme.md */
+ export default class AIDashboard extends View {
+-	static AI = "/framework/ai/";
+-	static DAY = /^\d{4}-\d{2}-\d{2}$/;
+ 	// This page is a leaf, so `children:` draws no links: every page below that people need is linked here. Merge first, it is the one that needs a decision.
+ 	static NAV = [
+ 		PageNav.merge_link(),
++		{ href: "/framework/ai/sessions/", label: "Sessions", title: "Every session, newest first, with filters" },
+ 		{ href: "/framework/ai/now/", label: "Now", title: "Every session active in the last hour" },
+ 		{ href: "/framework/ai/tasks/", label: "Tasks", title: "The task log and board" },
+ 		{ href: "/framework/ai/queue/", label: "Queue", title: "Every accepted task, ranked: what it is, why, its cost and its priority" },
+-		{ href: "/framework/ai/sessions/", label: "Sessions", title: "Every session, newest first, with filters" },
+ 		{ href: "/framework/ai/asks/", label: "Asks", title: "Every ask, who owns it, whether it landed" },
+ 		{ href: "/framework/ai/review/", label: "Review", title: "Review pages" },
+ 		{ href: "/framework/ai/readmes/", label: "Readmes", title: "What an agent in each folder is given to read" },
+ 		{ href: "/framework/ai/usage/", label: "Usage", title: "Usage pace against each limit" },
+ 		{ href: "/framework/ai/quick-fix/", label: "Quick fix", title: "The quick-fix pool" },
+ 		{ href: "/framework/ai/process/", label: "Processes", title: "Tasks run as ordered steps" },
++		{ href: "/framework/ai/inbox/", label: "Old Inbox", title: "The old Inbox, with its tabs, tasks and sessions" },
+ 	];
+ 
+ 	get classes(){ return "ad-dash"; }
+ 
+-	// ⚠ render() runs inside View's constructor, before class fields exist: set up here, then draw.
+-	initialize(){
+-		this.store = new SessionStore();
+-		this.days = SessionStore.days();
+-		this.q = this.read();
+-		super.initialize();
+-	}
+-
+-	/** The query the url names. `open` is the set of session ids unfolded. */
+-	read(){
+-		const p = new URLSearchParams(location.search), day = p.get("day");
+-		return { day: AIDashboard.DAY.test(day ?? "") ? day : this.days[0], origin: p.get("origin"), live: p.has("live"), find: p.get("find") ?? "", open: new Set((p.get("open") ?? "").split(",").filter(Boolean)) };
+-	}
+-	write(){
+-		const { day, origin, live, find, open } = this.q, p = new URLSearchParams();
+-		if (day !== this.days[0]) p.set("day", day);
+-		if (origin) p.set("origin", origin);
+-		if (find) p.set("find", find);
+-		if (open.size) p.set("open", [...open].join(","));
+-		const rest = p.toString(), s = [live && "live", rest].filter(Boolean).join("&");
+-		history.replaceState(history.state, "", location.pathname + (s ? "?" + s : ""));
+-	}
+-	set(change){ Object.assign(this.q, change); this.write(); "day" in change ? this.store.open(this.q.day) : this.paint(); }
+-	toggle(id){ this.q.open.has(id) ? this.q.open.delete(id) : this.q.open.add(id); this.write(); this.paint(); }
+-
+ 	render(){
+-		new UsageLine();
+-		div.c("ad-body", () => {
+-			div.c("ad-days", () => {
+-				new DayStrip({ dash: this });
+-				input.c("ad-date").attr("type", "date").attr("max", this.days[0]).attr("value", this.q.day).attr("title", "Any day").on("change", e => e.target.value && this.set({ day: e.target.value }));
+-			});
+-			div.c("ad-main", () => {
+-				new PageNav({ links: AIDashboard.NAV });
+-				this.$sum = div.c("ad-sum");
+-				this.$chips = div.c("ad-chips");
+-				input.c("ad-find").attr("type", "search").attr("placeholder", "Find a session…").attr("value", this.q.find).on("input", e => { this.q.find = e.target.value; this.write(); this.paint(); });
+-				this.$list = div.c("ad-list");
++		div.c("ad-grid", () => {
++			div.c("ad-col ad-col-a", () => {
++				div.c("ad-sec ad-say", () => {
++					h2.c("ad-h", "Say something");
++					const $box = div.c("ad-saybox");
++					chat($box.el, { placeholder: "Say something: it goes to the assistant and is kept.", keep: true });
++				});
++				new DashNeeds();
+ 			});
+-		});
+-		div.c("ad-foot", () => a.c("ad-link").href(AIDashboard.AI + "inbox/").attr("target", "_self").attr("title", "The old Inbox, with its tabs, tasks and sessions").text("Old Inbox →"));
+-		this.store.on(() => this.paint());
+-		this.store.open(this.q.day);
+-	}
+-
+-	/** The roots the query keeps: by origin, live and find (a root stays when any session under it matches). */
+-	visible(){
+-		const find = this.q.find.trim().toLowerCase(), hit = n => `${n.s.title} ${n.s.agent} ${n.s.folder} ${n.s.id}`.toLowerCase().includes(find) || n.kids.some(hit);
+-		return this.store.tree.roots.filter(r => (!this.q.origin || r.origin === this.q.origin) && (!this.q.live || r.live) && (!find || hit(r)));
+-	}
+-
+-	/** The computed header line: counts that must add up, red when they do not. */
+-	summary(tree){
+-		const all = [...tree.nodes.values()], usd = tree.roots.reduce((s, r) => s + r.rolled, 0), own = all.reduce((s, n) => s + n.own, 0);
+-		const lost = tree.unattached().length, tasks = this.store.tasks, live = tree.roots.filter(r => r.live).length;
+-		const bits = [`${all.length} sessions`, SessionRow.usd(usd), live && `${live} live`, lost && `${lost} unattached`, tasks?.in_flight && `${tasks.in_flight} task${tasks.in_flight > 1 ? "s" : ""} in flight`].filter(Boolean);
+-		return { text: bits.join(" · "), bad: Math.abs(usd - own) > 0.01 || tree.roots.reduce((s, r) => s + r.count, 0) !== all.length };
+-	}
+-
+-	paint(){
+-		const { tree, ok } = this.store;
+-		if (!tree) return;
+-		const sum = this.summary(tree);
+-		this.$sum.empty(() => { const t = span(sum.text); if (sum.bad) t.el.style.color = "var(--error)"; });
+-		this.$chips.empty(() => new OriginChips({ dash: this }));
+-		this.$list.empty(() => {
+-			const rows = this.visible();
+-			if (!ok) return div.c("ad-none", "No session index for this day.");
+-			if (!rows.length) return div.c("ad-none", "Nothing matches.");
+-			Object.entries(SessionTree.ORIGINS).forEach(([k, o]) => {
+-				const list = rows.filter(r => r.origin === k);
+-				if (!list.length) return;
+-				// Routine is cheap and plentiful: one folded line until you open it (or pick its chip).
+-				const folded = k === "routine" && !this.q.open.has("routine") && this.q.origin !== "routine" && !this.q.find;
+-				div.c("ad-col", () => {
+-					const usd = list.reduce((sum, r) => sum + r.rolled, 0);
+-					const head = div.c("ad-group", () => { span(`${folded ? "▸ " : ""}${o.icon} ${o.label}`).attr("title", o.hint); span.c("ad-usd", `${list.length} · ${SessionRow.usd(usd)}`); });
+-					if (k === "routine") head.on("click", () => this.toggle("routine")).ac("ad-group-fold");
+-					if (!folded) list.forEach(node => new SessionRow({ node, dash: this }));
++			div.c("ad-col ad-col-b", () => new DashBig());
++			div.c("ad-col ad-col-c", () => {
++				div.c("ad-sec ad-running", () => {
++					h2.c("ad-h", "What is running");
++					new AINow();
+ 				});
++				new DashQueue();
+ 			});
+ 		});
++		div.c("ad-sec ad-usage-sec", () => { h2.c("ad-h", "Usage pace"); new UsageLine(); });
++		new PageNav({ links: AIDashboard.NAV });
+ 	}
+ }
+diff --git a/public/framework/ai/AIDashboard/DashBig.js b/public/framework/ai/AIDashboard/DashBig.js
+new file mode 100644
+index 000000000..1d2b50f13
+--- /dev/null
++++ b/public/framework/ai/AIDashboard/DashBig.js
+@@ -0,0 +1,45 @@
++import { View, div, span, a, h2 } from "/app.js";
++
++/** DashBig — the big things now: each "### N. Title" in ai/priority.md with its "Now" line, cut short and linked to the full text. Read once from the file; the file is the only source. */
++export default class DashBig extends View {
++	static URL = new URL("../priority.md", import.meta.url).pathname;
++	static NOW = 260;
++
++	get classes(){ return "ad-sec ad-bigs"; }
++
++	render(){
++		h2.c("ad-h", "The big things now");
++		this.$list = div.c("ad-bigrows", () => div.c("ad-none", "Reading priority.md…"));
++		fetch(DashBig.URL).then(r => r.ok ? r.text() : "").catch(() => "").then(text => this.paint(DashBig.parse(text)));
++	}
++
++	/** [{n, title, now}] from the markdown; links and emphasis come out as plain words. */
++	static parse(text){
++		return String(text).split(/^### /m).slice(1).map(sec => {
++			const lines = sec.split(/\r?\n/), head = /^(\d+)\.\s*(.+)$/.exec(lines[0]);
++			if (!head) return null;
++			const now = lines.find(l => l.startsWith("- **Now:**")) ?? "";
++			return { n: head[1], title: head[2].trim(), now: DashBig.cut(DashBig.plain(now.replace("- **Now:**", ""))) };
++		}).filter(Boolean);
++	}
++
++	static plain(s){ return String(s).replace(/\[([^\]]+)\]\([^)]*\)/g, "$1").replace(/[*`_]/g, "").replace(/\s+/g, " ").trim(); }
++
++	/** Whole sentences up to NOW characters. */
++	static cut(s){
++		if (s.length <= DashBig.NOW) return s;
++		const ends = [...s.matchAll(/[.!?](?=\s|$)/g)].map(m => m.index + 1).filter(i => i <= DashBig.NOW);
++		return ends.length ? s.slice(0, ends.at(-1)) : s.slice(0, DashBig.NOW).replace(/\s+\S*$/, "") + "…";
++	}
++
++	paint(rows){
++		this.$list.empty(() => {
++			if (!rows.length) return void div.c("ad-none", "priority.md did not load.");
++			rows.forEach(r => div.c("ad-bigrow", () => {
++				div.c("ad-bigtitle", () => { span.c("ad-bign", r.n); span(r.title); });
++				if (r.now) div.c("ad-now", () => { span.c("ad-label", "Now "); span(r.now); });
++			}));
++			a.c("ad-more").href(DashBig.URL).attr("target", "_self").text("priority.md, in full →");
++		});
++	}
++}
+diff --git a/public/framework/ai/AIDashboard/DashNeeds.js b/public/framework/ai/AIDashboard/DashNeeds.js
+new file mode 100644
+index 000000000..5ee506163
+--- /dev/null
++++ b/public/framework/ai/AIDashboard/DashNeeds.js
+@@ -0,0 +1,49 @@
++import { View, div, span, a, h2 } from "/app.js";
++import { servex_url } from "/framework/dev/servex_url.js";
++import CardDir from "../cards/CardDir.js";
++
++/** DashNeeds — what waits on the owner: the decisions and questions agents asked (Servex `GET /waiting`, the same rule as the Inbox's "Needs you") and the branches ready to merge (Servex `GET /api/ready-to-merge`).
++ *  Each is read once when the page opens: no live query, so the page's one live source stays free for "what is running". */
++export default class DashNeeds extends View {
++	static KINDS = { decision: "decision", question: "question", blocker: "blocker", fyi: "asked you" };
++	static TOP = 3;
++
++	get classes(){ return "ad-sec ad-needs"; }
++
++	render(){
++		h2.c("ad-h", "Needs you");
++		this.$waiting = div.c("ad-block", () => div.c("ad-none", "Asking Servex…"));
++		this.$merge = div.c("ad-block", () => div.c("ad-none", "Asking Servex…"));
++		this.read(servex_url("/waiting")).then(rows => this.paint_waiting(rows));
++		this.read(servex_url("/api/ready-to-merge")).then(rows => this.paint_merge(rows));
++	}
++
++	/** The rows, or null when Servex does not answer: a count is never drawn from a failed read. */
++	read(url){
++		return fetch(url, { signal: AbortSignal.timeout(15000) }).then(r => r.ok ? r.json() : null).then(rows => Array.isArray(rows) ? rows : null).catch(() => null);
++	}
++
++	title(r){ return String(r.title || r.question || r.card || "").replace(/\s+/g, " ").slice(0, 90); }
++
++	paint_waiting(rows){
++		this.$waiting.empty(() => {
++			if (!rows) return void div.c("ad-none", "Servex did not answer, so the waiting count is not shown.");
++			const by = {};
++			rows.forEach(r => by[r.kind] = (by[r.kind] ?? 0) + 1);
++			const kinds = Object.entries(by).map(([k, n]) => `${n} ${DashNeeds.KINDS[k] ?? k}${n > 1 && k !== "fyi" ? "s" : ""}`).join(" · ");
++			a.c("ad-big").href("/framework/ai/inbox/").attr("target", "_self").attr("title", "The old Inbox lists them with the answer controls")
++				.append(() => { span.c("ad-num", String(rows.length)); span.c("ad-what", "waiting on you"); });
++			if (kinds) div.c("ad-sub", kinds);
++			rows.slice(0, DashNeeds.TOP).forEach(r => a.c("ad-line").href(r.card ? CardDir.page(r.card) : "/framework/ai/inbox/").attr("target", "_self").append(() => { span.c("ad-kind", DashNeeds.KINDS[r.kind] ?? r.kind); span(this.title(r)); }));
++		});
++	}
++
++	paint_merge(rows){
++		this.$merge.empty(() => {
++			if (!rows) return void div.c("ad-none", "Servex did not answer, so the ready-to-merge count is not shown.");
++			a.c("ad-big").href("/framework/ai/merge/").attr("target", "_self").attr("title", "Each branch an agent marked ready, with a Merge button")
++				.append(() => { span.c("ad-num", String(rows.length)); span.c("ad-what", rows.length === 1 ? "branch ready to merge" : "branches ready to merge"); });
++			rows.slice(0, DashNeeds.TOP).forEach(r => a.c("ad-line").href("/framework/ai/merge/").attr("target", "_self").text(r.title || r.branch));
++		});
++	}
++}
+diff --git a/public/framework/ai/AIDashboard/DashQueue.js b/public/framework/ai/AIDashboard/DashQueue.js
+new file mode 100644
+index 000000000..605eb6468
+--- /dev/null
++++ b/public/framework/ai/AIDashboard/DashQueue.js
+@@ -0,0 +1,44 @@
++import { View, div, span, a, h2 } from "/app.js";
++import QueryClient from "/framework/ext/Query/QueryClient.js";
++
++/** DashQueue — the task queue in three lines: how many tasks are queued and the top few by score (the dev server's "taskqueue" source, the same rows as /framework/ai/queue/).
++ *  It asks ONCE and never listens: a QueryClient takes over the page's single `QueryClient.current`, so this one hands the slot straight back and the live "what is running" list keeps the pushes. */
++export default class DashQueue extends View {
++	static TOP = 3;
++	static usd(n){ return "$" + (n || 0).toFixed(2); }
++
++	get classes(){ return "ad-sec ad-queue"; }
++
++	// ⚠ render() runs inside View's constructor, before class fields exist: set state in initialize().
++	initialize(){
++		const live = QueryClient.current;
++		this.client = new QueryClient("taskqueue");
++		QueryClient.current = live;   // hand the page's live slot back: this client never listens
++		super.initialize();
++	}
++
++	render(){
++		h2.c("ad-h", "Task queue");
++		this.$body = div.c("ad-block", () => div.c("ad-none", "Reading the task records…"));
++		this.ask();
++	}
++
++	async ask(){
++		let res = await this.client.ask({ sort: { by: "score", dir: "desc" }, limit: DashQueue.TOP }, { timeout: 30000 });
++		if (res.error === "timeout") res = await this.client.ask({ sort: { by: "score", dir: "desc" }, limit: DashQueue.TOP }, { timeout: 30000 });
++		this.paint(res);
++	}
++
++	paint(res){
++		this.$body.empty(() => {
++			if (res.error) return void div.c("ad-none", res.error === "no socket" ? "The queue needs the dev server." : "The dev server did not answer with the queue: " + res.error);
++			a.c("ad-big").href("/framework/ai/queue/").attr("target", "_self").attr("title", "Every queued task, ranked")
++				.append(() => { span.c("ad-num", String(res.total ?? res.rows.length)); span.c("ad-what", "tasks queued"); });
++			res.rows.forEach(r => a.c("ad-line").href(r.url).attr("target", "_self").append(() => {
++				span.c("ad-rank", "#" + r.rank);
++				span(r.title);
++				span.c("ad-usd", DashQueue.usd(r.est_usd));
++			}));
++		});
++	}
++}
+diff --git a/public/framework/ai/AIDashboard/PageNav.css b/public/framework/ai/AIDashboard/PageNav.css
+index 15197ce69..d1ce533dc 100644
+--- a/public/framework/ai/AIDashboard/PageNav.css
++++ b/public/framework/ai/AIDashboard/PageNav.css
+@@ -6,6 +6,8 @@
+ 	.pn-link:hover { background: var(--tint); }
+ 	.pn-primary { background: var(--prime); border-color: var(--prime); color: var(--prime-ink); font-weight: 600; padding-block: 0.4em; font-size: 1em; }
+ 	.pn-primary:hover { background: var(--prime); filter: brightness(0.95); }
++	.pn-link { white-space: nowrap; }
+ 	.pn-count { display: none; }
++	@media (max-width: 45.99em) { .pn { flex-wrap: nowrap; overflow-x: auto; } .pn-link { flex: none; } }
+ 	.pn-count-on { display: inline-block; min-width: 1.4em; padding: 0 0.4em; border-radius: 1em; background: var(--prime-ink); color: var(--prime); font-size: 0.85em; text-align: center; font-variant-numeric: tabular-nums; }
+ }
+diff --git a/public/framework/ai/AIDashboard/UsageLine.js b/public/framework/ai/AIDashboard/UsageLine.js
+index 5a6f50de0..76b5faf1d 100644
+--- a/public/framework/ai/AIDashboard/UsageLine.js
++++ b/public/framework/ai/AIDashboard/UsageLine.js
+@@ -12,7 +12,7 @@ export default class UsageLine extends View {
+ 		const $box = this.el; // captured now, filled after the fetch (no DOM after an await)
+ 		fetch(UsageLine.DATA).then(r => r.json()).catch(() => null).then(u => {
+ 			const limits = u?.utilization?.limits;
+-			if (!limits?.length) return $box.remove();
++			if (!limits?.length) return ($box.closest(".ad-sec") ?? $box).remove();
+ 			this.append(() => limits.forEach(l => UsagePace.ratio(UsagePace.of(l))));
+ 		});
+ 	}
+diff --git a/public/framework/ai/AIDashboard/readme.md b/public/framework/ai/AIDashboard/readme.md
+index 8669997cb..42f7f6301 100644
+--- a/public/framework/ai/AIDashboard/readme.md
++++ b/public/framework/ai/AIDashboard/readme.md
+@@ -1,32 +1,40 @@
+ # AIDashboard `ai/AIDashboard/`
+ 
+-The default page at `/framework/ai/`: one day's agent sessions, grouped by where they came from, nested by who spawned whom, each cost added up the chain. Plan and the approved page: [doc/ai-dashboard-plan.md](../doc/ai-dashboard-plan.md). The old Inbox is one link away at `/framework/ai/inbox/`.
++The default page at `/framework/ai/`: what matters most, in order. A place to say something, what needs the owner, the big things now, what is running, the task queue, usage pace. The day's sessions list is one click down, at `/framework/ai/sessions/`; the old Inbox is at `/framework/ai/inbox/`. Brief and shots: [ai-dashboard task](../../core/Page/tasks/page-mastermind/ai-dashboard/requirements.md).
+ 
+ ## Structure (one class per file)
+ 
+ | File | Class | Job |
+ |---|---|---|
+-| `AIDashboard.js` | `AIDashboard extends View` | the page body: reads the url, draws the parts, repaints on change |
+-| `SessionStore.js` | `SessionStore` | loads a day's `index.json`; reloads on every `DashState` tick (a stream, no timer) |
+-| `SessionTree.js` | `SessionTree` | plain class: joins parent (an agent name) to child, computes origin and the cost roll-up |
+-| `SessionRow.js` | `SessionRow extends View` | one session, with its children nested when open |
+-| `DayStrip.js` | `DayStrip extends View` | the last seven days (a side list on desktop) |
+-| `OriginChips.js` | `OriginChips extends View` | Voice / VS Code / Servex / Scheduled chips, count and cost, and Live |
+-| `UsageLine.js` | `UsageLine extends View` | the usage meters, via `ai/usage/UsagePace.js` |
+-| `PageNav.js` | `PageNav extends View` | a row of pill links (`links: [{href, label, title, primary, count}]`); the dashboard, the sessions page and `/live/` use it, so every page below them has a click. `PageNav.merge_link()` is the Merge pill with the waiting count (`GET /api/ready-to-merge`) |
++| `AIDashboard.js` | `AIDashboard extends View` | the page body: a three-column grid (two columns at 60em, one on a phone), then usage pace, then the pill row |
++| `DashNeeds.js` | `DashNeeds extends View` | "Needs you": waiting count + top 3 rows, and the ready-to-merge count + top 3 |
++| `DashBig.js` | `DashBig extends View` | "The big things now": each `### N. Title` in `ai/priority.md` with its `- **Now:**` line, cut to whole sentences |
++| `DashQueue.js` | `DashQueue extends View` | "Task queue": count and the top 3 by score |
++| `UsageLine.js` | `UsageLine extends View` | usage pace, one line (`ai/usage/UsagePace.js`); removes its whole section when there is no `usage.json` |
++| `PageNav.js` | `PageNav extends View` | a row of pill links (`links: [{href, label, title, primary, count}]`); the dashboard, the sessions page and `/live/` use it. `PageNav.merge_link()` is the Merge pill with the waiting count |
+ | `AIDashboard.css` | | all rules `ad-` prefixed, in `@layer site` |
+-| `PageNav.css` | | the pill row, `pn-` prefixed, in `@layer site` |
++| `PageNav.css` | | the pill row, `pn-` prefixed; on a phone the row is one line that scrolls sideways |
++| `SessionStore.js`, `SessionTree.js`, `SessionRow.js`, `DayStrip.js`, `OriginChips.js` | | **not used by this page any more** (it used to be the sessions list). Kept, not deleted; nothing imports them |
+ 
+-`page.js` shows it when the path is exactly `/framework/ai/`; nothing else changed there.
++`page.js` shows the dashboard when the path is exactly `/framework/ai/`. Plan history: [doc/ai-dashboard-plan.md](../doc/ai-dashboard-plan.md).
+ 
+-## Data: read only, no store of its own
++## Where each section reads from (verified against the code)
+ 
+-- **Reads** `ai/sessions/YYYY/MM/DD/index.json` (writer: `AISessionIndex`, gitignored, so a static deploy has no data until it is generated), the tick from `ai/index.jsonl` through `DashState` (writer: `Server/AIIndex.mjs`), and `ai/usage.json`.
+-- **State lives in the url:** `?day=YYYY-MM-DD&origin=cloud|code|servex|routine&live&find=&open=id,id`.
+-- **Origin** (`SessionTree.origin`): `cloud` = parent `voice-app` or a `cloud-voice*` folder; `code` = a transcript with no agent; `routine` = the cheap buckets from `AISessionBuckets.KINDS`; otherwise `servex`.
++| Section | Source | How |
++|---|---|---|
++| Say something | `ux/Dictate/chat.js` (`chat(el, {keep:true})`), the one global chat box | reused, not rebuilt |
++| Needs you: waiting | Servex `GET /waiting` (decisions, questions, blockers, asks) | read once |
++| Needs you: ready to merge | Servex `GET /api/ready-to-merge` (`Server/ReadyToMerge.mjs`), the same list as `/framework/ai/merge/` | read once |
++| Big things now | `ai/priority.md` | fetched once |
++| What is running | `AINow` (`ai/now/AINow.js`), the "inflight" query | **the page's one live source** |
++| Task queue | the "taskqueue" query, as on `/framework/ai/queue/` | asked once; the client hands `QueryClient.current` straight back |
++| Usage pace | `ai/usage.json` | read once |
++
++A failed read is said out loud ("Servex did not answer…"); a count is never drawn from a failure.
+ 
+ ## Watch out
+ 
+-- `index.json` `parent` is an agent **name**, not a session id, and `children`/`tree_usd` are empty; the browser does the join and the roll-up here until `AISessionIndex` does (slice 2). Servex roots whose agent is a minion/reviewer/checker/voter count as "unattached" in the header line.
++- **Only one live `QueryClient` per page.** Pushes route by `QueryClient.current`, so `DashQueue` saves and restores it. A second live client would starve "what is running".
+ - `render()` runs before subclass fields exist: set state in `initialize()`, use getters for `classes`.
+-- Links to the Inbox use `target=_self` so the root page rebuilds.
++- Links to other ai pages use `target=_self` so the root page rebuilds.
++- A worktree server lacks the gitignored `index.json`, `usage.json`, `tasks.json`; those 404 there (allow-listed warnings), so a worktree shows layout, not data.
+diff --git a/public/framework/ai/doc/dashboard-layout-asks.md b/public/framework/ai/doc/dashboard-layout-asks.md
+index eceee06bd..d2c08fedc 100644
+--- a/public/framework/ai/doc/dashboard-layout-asks.md
++++ b/public/framework/ai/doc/dashboard-layout-asks.md
+@@ -11,6 +11,7 @@ The AI page ([/framework/ai/](/framework/ai/)) keeps coming back too crowded: a
+ | 5 | 2026-09-22 | two scrollbars | The "talk to this card" footer; two scrollbars |
+ | 6 | 2026-09-24 | "I don't like these independently scrollable areas" | One column, no little scroll boxes |
+ | 7 | 2026-10-19 | "the worst page I've ever seen": header + tabs + sticky toolbar ate ~80% of the screen, "waiting on you" scrolled inside the scroll, tabs stacked on a phone, no link to the tasks view | this note |
++| 8 | 2026-10-24 | "the inbox is horribly broken… default to a dashboard": `/framework/ai/` is now [AIDashboard](../AIDashboard/readme.md): say-something box, needs you, big things now, what is running, task queue, usage pace; sessions moved one click down | session-e00f55c9 page.jsonl line 402 |
+ 
+ ## What the page is now (2026-10-19)
+ 
+diff --git a/public/framework/ai/now/AINow.js b/public/framework/ai/now/AINow.js
+index 4eee4bc3a..b83846f86 100644
+--- a/public/framework/ai/now/AINow.js
++++ b/public/framework/ai/now/AINow.js
+@@ -66,7 +66,7 @@ export default class AINow extends View {
+ 			if (this.error) return void p.c("an-empty", this.error === "no socket" || this.error === "no source"
+ 				? "This list needs the dev server (a static copy has no one to ask). Today's sessions are on the page linked below."
+ 				: "Could not ask the server: " + this.error);
+-			if (!rows.length) return void p.c("an-empty", "Nothing is running right now. The day's sessions are linked below.");
++			if (!rows.length) return void p.c("an-empty", "Nothing is running right now.");
+ 			rows.forEach(r => div.c("an-row" + (hot(r) ? "" : " an-quiet"), () => {
+ 				div.c("an-top", () => {
+ 					span.c("an-dot").attr("title", hot(r) ? "working now" : "quiet for a while");

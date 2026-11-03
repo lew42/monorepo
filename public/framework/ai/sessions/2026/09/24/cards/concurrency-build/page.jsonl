@@ -1,0 +1,4 @@
+{"class":"/framework/ai2/card.js","title":"Agents can now ask a copy of themselves a question and keep working, and they survive a Servex restart.","type":"card","id":"2026/09/24/concurrency-build","created":"2026-09-24T17:54:28-05:00","by":"concurrency-build","tags":[]}
+{"legacy":"concurrency-build"}
+{"status":"done"}
+{"text":"Both are proven by scripts: the copy answered from 98 percent cached context for about a cent, and an agent killed mid-command came back under the same name and finished. Committed in the concurrency worktree, not merged yet."}

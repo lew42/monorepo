@@ -1,0 +1,43 @@
+{
+ "url": "http://monorepo.localhost/framework/ext/Figma/",
+ "widths": {
+  "1280": {
+   "empty": 0.789,
+   "widest_text": 414,
+   "widest_text_sample": "Figma files the owner tracks. Pick one t",
+   "overflow_x": false,
+   "items": 58,
+   "narrow_share": 0.069
+  },
+  "1920": {
+   "empty": 0.847,
+   "widest_text": 441,
+   "widest_text_sample": "Figma files the owner tracks. Pick one t",
+   "overflow_x": false,
+   "items": 58,
+   "narrow_share": 1
+  },
+  "2560": {
+   "empty": 0.859,
+   "widest_text": 496,
+   "widest_text_sample": "Figma files the owner tracks. Pick one t",
+   "overflow_x": false,
+   "items": 58,
+   "narrow_share": 1
+  },
+  "3440": {
+   "empty": 0.886,
+   "widest_text": 496,
+   "widest_text_sample": "Figma files the owner tracks. Pick one t",
+   "overflow_x": false,
+   "items": 58,
+   "narrow_share": 1
+  }
+ },
+ "errors": [
+  "1280: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "2560: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "3440: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1920: Failed to load resource: the server responded with a status of 404 (Not Found)"
+ ]
+}

@@ -1,0 +1,261 @@
+diff --git a/public/framework/core/Item/Store.js b/public/framework/core/Item/Store.js
+index b4293f20c..e6b8e9d87 100644
+--- a/public/framework/core/Item/Store.js
++++ b/public/framework/core/Item/Store.js
+@@ -62,6 +62,10 @@ export class Store {
+ 	   core/ reads BOTH always; the node tools and dashboards listed in the doc read only the bare spelling yet, so the switch stays
+ 	   off until they are updated. */
+ 	static marked_lines = false;
++	/* TYPING COALESCE (doc/batch.md): how long a data line waits for the next keystroke on the same item. On in a browser; off (null)
++	   in node, so the item tool, scripts and tests keep their one-tick timing. null = every line goes on the next tick. */
++	static coalesce = typeof document !== "undefined" ? { idle: 300, max: 2000 } : null;
++	static typists = new Set();   // the stores holding typing right now
+ 	static holders = new Set();   // the stores a batch is holding right now (Store.send_held)
+ 
+ 	// What is applying a change right now, for Item.source: "replay" (a load) or "remote" (a line read live); null = local code.
+@@ -354,11 +358,45 @@ export class Store {
+ 	// warns, once, that nothing was written to disk.
+ 	append(line){
+ 		(this._queue ??= []).push(line);
++		if (this.holding) return;
++		if (this.constructor.coalesce && this.typing(line)) return;   // per Store class: a subclass may turn it off (LabTape.Store)
++		if (this._typing) return this.end_typing();   // any other line: what typing held goes first, in order, with it
++		if (this._flushing) return;
++		this._flushing = true;
++		queueMicrotask(() => this.flush());
++	}
++
++	/* TYPING (phase-1 design §11, doc/batch.md): a data line is held instead of sent, and the next data line on the same item joins
++	   it (the fold makes them one line), until a pause of `idle` ms, at most `max` ms after the first, a blur or a page hide
++	   (Store.flush_typing), or any other line. The item itself changes at once; only the save waits. Answers true when `line` is held. */
++	typing(line){
++		const found = data_line(line);
++		if (!found || (this._flushing && !this._typing)) return false;   // not data, or a flush already queued for other lines
++		const key = JSON.stringify(found.path), now = Date.now();
++		if (this._typing && this._typing.key !== key) return false;   // another item: append() ends the held group
++		const t = this._typing ??= { key, since: now, timer: null };
++		Store.typists.add(this);
++		Store.listen_for_hide();
++		clearTimeout(t.timer);
++		t.timer = setTimeout(() => this.end_typing(), Math.max(0, Math.min(this.constructor.coalesce.idle, t.since + this.constructor.coalesce.max - now)));
++		return true;
++	}
++
++	// Send what typing held (on the next microtask, folded).
++	end_typing(){
++		const t = this._typing;
++		if (!t) return;
++		clearTimeout(t.timer);
++		this._typing = null;
++		Store.typists.delete(this);
+ 		if (this._flushing || this.holding) return;
+ 		this._flushing = true;
+ 		queueMicrotask(() => this.flush());
+ 	}
+ 
++	// Every store's held typing, now: on blur (focusout) and when the page is hidden or closed.
++	static flush_typing(){ for (const store of [...Store.typists]) store.end_typing(); }
++
+ 	/* BATCH (spec T2, doc/batch.md): while held, lines queue and nothing is sent; the last release() flushes them on the next
+ 	   microtask, folded (Store.merge). Item.batch(fn) holds its store for as long as fn runs, an async fn until it settles. */
+ 	hold(){ this.holding = (this.holding ?? 0) + 1; Store.holders.add(this); Store.listen_for_hide(); return this; }
+@@ -383,8 +421,10 @@ export class Store {
+ 	static listen_for_hide(){
+ 		if (Store.listening || typeof document === "undefined") return;
+ 		Store.listening = true;
+-		addEventListener("pagehide", () => Store.send_held());
+-		document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") Store.send_held(); });
++		const hide = () => { Store.flush_typing(); Store.send_held(); };
++		addEventListener("pagehide", hide);
++		document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") hide(); });
++		document.addEventListener("focusout", () => Store.flush_typing(), true);   // leaving a field ends its typing
+ 	}
+ 
+ 	async flush(){
+diff --git a/public/framework/core/Item/batch.test.mjs b/public/framework/core/Item/batch.test.mjs
+index 032e1a6ce..d3ebfc06b 100644
+--- a/public/framework/core/Item/batch.test.mjs
++++ b/public/framework/core/Item/batch.test.mjs
+@@ -7,8 +7,8 @@
+ //  3. item.batch(fn) holds the store until fn ends, also across an await: one line per item touched.
+ //  4. Every "change" event ends with {source}: "local" for code, "replay" while lines are replayed, "remote" for a line read live.
+ //  5. (edge) A reaction to a line read live (a "read" listener that sets data) saves nothing: the tab that wrote the line owns it.
+-import { register } from "node:module";
+-register("../../../../Servex/agents/site-hooks.mjs", import.meta.url);
++// In node, site-hooks resolves the site's /absolute imports (Page needs them); a browser resolves them itself.
++if (typeof document === "undefined") (await import("node:module")).register("../../../../Servex/agents/site-hooks.mjs", import.meta.url);
+ const { test } = await import("../Test/Test.js");
+ const { default: Item } = await import("./Item.js");
+ const { default: Store } = await import("./Store.js");
+@@ -16,6 +16,7 @@ const { default: List } = await import("../List/List.js");
+ const { default: Task } = await import("../Task/Task.js");
+ const { default: Page } = await import("../Page/Page.class.js");
+ await import("../Page/parts/kinds.js");
++Store.coalesce = null;   // typing has its own test (coalesce.test.mjs); here a flush is the next tick, in a browser too
+ 
+ const J = x => JSON.stringify(x);
+ const tick = () => new Promise(r => setTimeout(r, 0));
+diff --git a/public/framework/core/Item/coalesce.test.mjs b/public/framework/core/Item/coalesce.test.mjs
+new file mode 100644
+index 000000000..0df3e9be8
+--- /dev/null
++++ b/public/framework/core/Item/coalesce.test.mjs
+@@ -0,0 +1,74 @@
++// Typing does not bloat the log (phase-1 design §11): rapid sets on one item are held and saved as ONE line, sent after a pause,
++// at most every `max` ms, on blur, or before any other line. Node: `node public/framework/core/Item/coalesce.test.mjs`.
++// Store.coalesce is on in a browser ({idle: 300, max: 2000}) and off in node (null), so every other test keeps its one-tick
++// timing; these tests switch it on with short times.
++//  1. Ten keystrokes 5 ms apart save one line, with the last text, after the pause; a replay gives the same text.
++//  2. Typing without a pause is still saved every `max` ms.
++//  3. Any other line (a list add) sends what is held first, in order.
++//  4. Blur (Store.flush_typing, what focusout and pagehide call) sends at once.
++//  5. (edge) Off (null): every set goes on the next tick, as before.
++import { test } from "../Test/Test.js";
++import Item from "./Item.js";
++import Store from "./Store.js";
++import List from "../List/List.js";
++
++const J = x => JSON.stringify(x);
++const wait = ms => new Promise(r => setTimeout(r, ms));
++let n = 0;
++const wired = host => {
++	const store = new Store({ url: `/coalesce-test/${++n}.jsonl` }), sent = [];
++	Object.defineProperty(store, "writable", { value: true });
++	store.deliver = async (path, lines) => { sent.push(...JSON.parse(J(lines))); return true; };
++	store.attach(host);
++	return { store, sent };
++};
++class Note extends Item { constructor(...a){ super(...a); this.tags = new List({ owner: this, name: "tags" }); } }
++Item.register(Note, "CoalesceNote");
++const on = async (opts, fn) => { const was = Store.coalesce; Store.coalesce = opts; try { await fn(); } finally { Store.coalesce = was; } };
++
++test("ten keystrokes save one line, after the pause", async t => on({ idle: 40, max: 1000 }, async () => {
++	const note = new Note({ id: "n" }), { sent } = wired(note);
++	let text = "";
++	for (const ch of "hello there"){ text += ch; note.set({ text }); await wait(5); }
++	t.eq(sent.length, 0, "nothing sent while typing");
++	t.eq(note.get("text"), "hello there", "the item has every key at once");
++	await wait(80);
++	t.eq(J(sent), J([{ set: { text: "hello there" } }]), "one line, the last text");
++	t.eq(Note.replay([{ id: "n" }, ...sent]).get("text"), "hello there", "it replays");
++}));
++
++test("typing without a pause is still saved every max ms", async t => on({ idle: 40, max: 100 }, async () => {
++	const note = new Note({ id: "n" }), { sent } = wired(note);
++	for (let i = 0; i < 25; i++){ note.set({ text: "x".repeat(i + 1) }); await wait(10); }
++	await wait(80);
++	t.ok(sent.length >= 2 && sent.length <= 5, `a few lines, not 25 and not 1 (got ${sent.length})`);
++	t.eq(sent.at(-1)?.set?.text, "x".repeat(25), "the last line has the last text");
++}));
++
++test("any other line sends what is held first, in order", async t => on({ idle: 1000, max: 5000 }, async () => {
++	const note = new Note({ id: "n" }), { sent } = wired(note);
++	note.set({ text: "a" }); await wait(5);
++	note.set({ text: "ab" }); await wait(5);
++	note.tags.add({ id: "t1", data: { name: "red" } });
++	await wait(10);
++	t.eq(sent.length, 2, "two lines");
++	t.eq(J(sent[0]), J({ set: { text: "ab" } }), "the held text first");
++	t.ok(!!sent[1]?.tags?.add, "then the add");
++}));
++
++test("blur sends at once", async t => on({ idle: 1000, max: 5000 }, async () => {
++	const note = new Note({ id: "n" }), { sent } = wired(note);
++	note.set({ text: "typed" });
++	await wait(5);
++	t.eq(sent.length, 0, "held");
++	Store.flush_typing();
++	await wait(5);
++	t.eq(J(sent), J([{ set: { text: "typed" } }]), "sent on blur");
++}));
++
++test.optional("edge: off (null) saves on the next tick as before", async t => on(null, async () => {
++	const note = new Note({ id: "n" }), { sent } = wired(note);
++	note.set({ text: "a" }); await wait(2);
++	note.set({ text: "ab" }); await wait(2);
++	t.eq(sent.length, 2, "two lines");
++}));
+diff --git a/public/framework/core/Item/doc/batch.md b/public/framework/core/Item/doc/batch.md
+index 24c645742..cddf97672 100644
+--- a/public/framework/core/Item/doc/batch.md
++++ b/public/framework/core/Item/doc/batch.md
+@@ -1,4 +1,4 @@
+-# One action, one line: the fold, `batch()`, and where a change came from
++# One action, one line: the fold, `batch()`, typing, and where a change came from
+ 
+ **In one line:** a click that changes three fields of one card saves one line, not three, and every `change` event says whether it came from this tab, from loading the log, or from another writer.
+ 
+@@ -27,6 +27,19 @@ await card.batch(async () => {
+ 
+ A batch that throws still releases the store. No store (node, a detached item): `fn` just runs. Held lines live only in memory until they reach the Outbox (which keeps them through a reload), so when the page is hidden or closed (`pagehide`, `visibilitychange`) everything a batch holds is sent at once (`Store.send_held`); the batch goes on, and its later lines are sent at its end.
+ 
++## Typing: many keystrokes, one line
++
++Typing in a field calls `set({text})` on every key, and each one used to be a saved line. In a browser the store now **holds** a data line instead of sending it, and the next data line on the same item joins it (the fold makes them one line). It is sent:
++
++- after a **pause** of `idle` ms (300) since the last keystroke;
++- at the latest `max` ms (2000) after the first, so a long burst is still saved every 2 seconds;
++- on **blur** (any `focusout` in the page) and when the page is **hidden or closed** (`pagehide`, `visibilitychange`): `Store.flush_typing()`;
++- **before any other line**: a verb, a list change, or a change to another item sends what is held first, in order.
++
++The item changes at once (the screen updates on every key); only the save waits. `store.pending` counts held lines, so a "saving…" sign stays honest. The setting is `Store.coalesce = {idle, max}`, read per Store class (`this.constructor.coalesce`), so a subclass can turn it off: the Replay Lab's `LabTape.Store` does, because it shows every line the moment it is made. It is `null` in node (the item tool, scripts and tests keep their one-tick timing), and `null` in a browser turns it off. Measured in `coalesce.test.mjs`: 11 keystrokes 5 ms apart save one line with the last text, and it replays.
++
++**Caveat:** a held line lives only in memory for up to 2 seconds. A crash of the tab (not a close: `pagehide` sends it) in that window loses it. Alternative not taken: send the first keystroke at once and hold only the ones after it (no delay for a lone change, but two lines per burst instead of one).
++
+ ## `source` on every change (spec T1)
+ 
+ Every `change` event now ends with `{source}`: `"local"` (code in this tab), `"replay"` (a log being loaded) or `"remote"` (a line another writer saved, read live after the store's first load). `Item.source` answers the same at any moment. A view can use it to skip an animation on load; a side effect can use it to run only for a local change.
+diff --git a/public/framework/core/Item/readme.md b/public/framework/core/Item/readme.md
+index 98d707ba5..896c010f8 100644
+--- a/public/framework/core/Item/readme.md
++++ b/public/framework/core/Item/readme.md
+@@ -90,6 +90,7 @@ new RefView({ ref });         // a row: "child › task", redrawn when either ch
+ - **`unset(...keys)` clears a field so a reload agrees (T5):** one line `{"unset":["color"]}`; `set({color: undefined})` is the same; a key never set writes nothing; hooks are not run: [doc/line-format.md](./doc/line-format.md#clearing-a-field-unset). Test: `unset.test.mjs`.
+ - **A read line that names something not there is reported, never refused (T6):** a List id that is no member, or an object under a list member that names no method, field or data; still stored as data, counted in `Item.unknown_keys`, warned in node: [doc/line-format.md](./doc/line-format.md#a-line-that-names-something-that-is-not-there). Test: `unknown-key.test.mjs`.
+ - **One action saves one line per item (T2), and every change says where it came from (T1):** `Store.flush` folds the data lines that name the same item (a page edit: 2 lines, not 3; `Task.wait()`: 1, not 8); `item.batch(fn)` holds the store across an await; every `change` event ends with `{source: "local" | "replay" | "remote"}`; a reaction to a line read live is not saved: [doc/batch.md](./doc/batch.md). Test: `batch.test.mjs`.
++- **Typing saves one line, not one per key (phase-1 §11):** in a browser a data line waits for the next keystroke on the same item (300 ms pause, 2 s at most, blur, page hide, or any other line), then goes as one folded line; off in node (`Store.coalesce = null`): [doc/batch.md](./doc/batch.md#typing-many-keystrokes-one-line). Test: `coalesce.test.mjs`.
+ - **`as_call(name, [args], body)` saves a method as one line (D14),** outermost only, never on replay: [doc/call.md](./doc/call.md). Test: `call.test.mjs`.
+ - **While any store replays, no store saves** (`Store.replay_depth`); `set()` refuses a function, DOM node or cycle; a throwing view listener cannot stop a save; a running task's `ran_since` is saved data: [doc/core-fixes.md](./doc/core-fixes.md). Test: `item-core.test.mjs`.
+ 
+@@ -103,6 +104,7 @@ Each test file below opens as a page: one block per test, its checks as green/re
+ - [call.test.mjs](/framework/core/Test/view/?file=core/Item/call.test.mjs) — `as_call` saves a method as one line (D14)
+ - [unknown-key.test.mjs](/framework/core/Test/view/?file=core/Item/unknown-key.test.mjs) — a line naming a missing member or an unknown verb is reported, still stored (T6)
+ - [batch.test.mjs](/framework/core/Test/view/?file=core/Item/batch.test.mjs) — one line per item per action, `batch()`, the `source` of a change (T1, T2)
++- [coalesce.test.mjs](/framework/core/Test/view/?file=core/Item/coalesce.test.mjs) — typing: many keystrokes, one saved line
+ - [unset.test.mjs](/framework/core/Test/view/?file=core/Item/unset.test.mjs) — clearing a field replays, also from a snapshot (T5)
+ - [item-core.test.mjs](/framework/core/Test/view/?file=core/Item/item-core.test.mjs) — the core's safety fixes
+ - [bind.test.mjs](/framework/core/Test/view/?file=core/View/bind.test.mjs) — `view.bind(item, key, fn)`: binds now and on change, one draw per frame, unbinds on remove (D7, built; in `core/View`)
+diff --git a/public/framework/core/Item/replay/LabTape.js b/public/framework/core/Item/replay/LabTape.js
+index 7ad36939a..09caed2dc 100644
+--- a/public/framework/core/Item/replay/LabTape.js
++++ b/public/framework/core/Item/replay/LabTape.js
+@@ -45,6 +45,7 @@ export default class LabTape {
+ // The real Store (replay, attach, the nesting of each line) with only the disk and the network cut out: it opens from a
+ // LabTape instead of fetch(), and flushes into one instead of FsFile.
+ LabTape.Store = class LabStore extends Store {
++	static coalesce = null;   // the lab shows every line the moment it is made: no typing hold (Store.coalesce, doc/batch.md)
+ 	open(){
+ 		return this.opening ??= Promise.resolve().then(() => {
+ 			const { tape, tab, write } = LabTape.sources.get(this.url);
+diff --git a/public/framework/core/doc/status.md b/public/framework/core/doc/status.md
+index 0406d5d8a..786fa1ec7 100644
+--- a/public/framework/core/doc/status.md
++++ b/public/framework/core/doc/status.md
+@@ -11,7 +11,7 @@ The research planned six phases ([design/phase-1.md](/framework/research/2026/10
+ | Phase | Status |
+ |---|---|
+ | **0. Stop silent losses** ([design/fixes.md](/framework/research/2026/10/29/persistence-sync/design/fixes.md) 1–5) | **Done, as of 2026-11-01.** Each fix, and its proof: below. |
+-| **1. Solid streaming, robust data, bindings** | **Most of it (2026-11-02).** Done: every saved line is numbered per tab (`{client, n}`), acknowledged, resent after a reconnect and deduplicated; unsent lines survive a reload; a heartbeat; saving no longer breaks when a view throws; `act()` mutes only its own object; `set()` refuses values that can't be saved; the new line spelling is *read* everywhere, and an unknown `name()` or `#id` is refused with a warning; `view.bind` (views redraw themselves). Built but off: *writing* the new spelling (`Store.marked_lines`, below). Also done (2026-11-02): `unset` (a cleared field is saved as `{"unset":["k"]}` and replays, [line-format.md](../Item/doc/line-format.md#clearing-a-field-unset)); a read line that names a missing list member or an unknown verb is counted and warned, never refused ([line-format.md](../Item/doc/line-format.md#a-line-that-names-something-that-is-not-there)); recovery after a file is rewritten (the gap check; a reader never double-applies a line it already has: [reset.md](../Item/doc/reset.md); `epoch` skipped on purpose, same doc). One saved line per item per action (`Store.merge`, `batch()`), and the `source` of every change ([batch.md](../Item/doc/batch.md)). Not built: merging keystrokes while typing, `Room` + `FileJournal`. |
++| **1. Solid streaming, robust data, bindings** | **Most of it (2026-11-02).** Done: every saved line is numbered per tab (`{client, n}`), acknowledged, resent after a reconnect and deduplicated; unsent lines survive a reload; a heartbeat; saving no longer breaks when a view throws; `act()` mutes only its own object; `set()` refuses values that can't be saved; the new line spelling is *read* everywhere, and an unknown `name()` or `#id` is refused with a warning; `view.bind` (views redraw themselves). Built but off: *writing* the new spelling (`Store.marked_lines`, below). Also done (2026-11-02): `unset` (a cleared field is saved as `{"unset":["k"]}` and replays, [line-format.md](../Item/doc/line-format.md#clearing-a-field-unset)); a read line that names a missing list member or an unknown verb is counted and warned, never refused ([line-format.md](../Item/doc/line-format.md#a-line-that-names-something-that-is-not-there)); recovery after a file is rewritten (the gap check; a reader never double-applies a line it already has: [reset.md](../Item/doc/reset.md); `epoch` skipped on purpose, same doc). One saved line per item per action (`Store.merge`, `batch()`), and the `source` of every change ([batch.md](../Item/doc/batch.md)). Typing saves one line per burst, not one per key ([batch.md](../Item/doc/batch.md#typing-many-keystrokes-one-line)). Not built: `Room` + `FileJournal` (one door for tabs and agents; next phase of work). |
+ | **2. The cloud, and more than one person** | **One piece:** snapshots (`<file>.snapshot.json`, loaded as snapshot + the lines after it; made by hand with `Server/Snapshots.mjs`). Not built: presence and soft locks, a schema line, a Durable Object journal, a SQLite journal. |
+ | **3–5. Scale and history; throwaway streams; merging** | Not started. |
+ | **Built, in no phase** | The Replay Lab on the real classes; visual tests (`test(name, fn)`); `set_<key>` hooks; `as_call` (a method saved as one call); the Files tab (list, create, upload, rename, move with undo); deploy safety tests. |
+@@ -46,7 +46,7 @@ The owner's worry: the session and task system is the biggest body of work, it b
+ 1. **On the PC:** pull `michael/dev`, restart Servex and the dev server, then open `/framework/ai/sessions/`, a recent session, a task page and `/framework/ai/`; start and stop a task and check its `.jsonl` gets the line. Anything wrong: compare with `9bc81edc4`.
+ 2. **Phase 0:** the five small "stop silent losses" fixes ([design/fixes.md](/framework/research/2026/10/29/persistence-sync/design/fixes.md) 1–5), each with its failing test first.
+ 3. **Turn on marked lines** after step 1 looks right (steps in [line-format.md](../Item/doc/line-format.md)).
+-4. **The rest of Phase 1:** ~~`unset`~~ (done 2026-11-02); ~~a warning for unknown bare keys~~ (done 2026-11-02); ~~`reset`/`epoch` and the gap check~~ (done 2026-11-02, [reset.md](../Item/doc/reset.md)); ~~`source` + `batch()`~~ (done 2026-11-02, [batch.md](../Item/doc/batch.md)); typing coalesce.
++4. **The rest of Phase 1:** ~~`unset`~~ (done 2026-11-02); ~~a warning for unknown bare keys~~ (done 2026-11-02); ~~`reset`/`epoch` and the gap check~~ (done 2026-11-02, [reset.md](../Item/doc/reset.md)); ~~`source` + `batch()`~~ (done 2026-11-02, [batch.md](../Item/doc/batch.md)); ~~typing coalesce~~ (done 2026-11-02, [batch.md](../Item/doc/batch.md#typing-many-keystrokes-one-line)). Phase 1 is done except `Room` + `FileJournal`.
+ 5. **The owner's open calls** (ten small decisions): end of the task record's `plan.md` (`ai/sessions/2026/10/31/session-e3fd9043/item-mvp/plan.md`, dev server only), summarized in [build.md](/framework/research/2026/10/29/persistence-sync/build.md#asked-for-or-planned-not-done-nothing-here-was-started).
+ 
+ **Where the classes live today:** `core/Item`, `core/List`, `core/Page`, `core/Task` and `core/Session` are still in `core/`. The AI-only parts are in `ai/AISession/` and `ai/AITask/`. The owner has asked whether Session and Task belong under `ai/` (they're mostly AI sessions and tasks) or should stay core with an AI layer on top; open, in [framework tasks](../../tasks/readme.md).

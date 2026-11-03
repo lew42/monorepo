@@ -1,0 +1,5 @@
+{"class":"/framework/ai2/card.js","title":"Page health watcher: landed","type":"card","id":"2026/09/19/page-health","created":"2026-09-19T16:20:25-05:00","by":"mastermind","tags":[]}
+{"legacy":"page-health"}
+{"status":"done"}
+{"icon":"monitor_heart"}
+{"text":"A hidden browser now checks the pages an edit could break, and the agent who broke one is told at its next write. The unknown verb note errors are gone. Findings live at the health page."}

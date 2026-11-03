@@ -1,0 +1,64 @@
+{
+ "id": "e99e8190-8739-4852-8815-55749208d659",
+ "first": "2026-10-16T06:18:45.159Z",
+ "last": "2026-10-16T06:26:25.337Z",
+ "models": {
+  "claude-sonnet-5-5": 10
+ },
+ "sizes": {
+  "raw": 79341,
+  "content": 804,
+  "stripped": 644,
+  "owner_only": 546
+ },
+ "usd": 0.129448,
+ "usd_main": 0.129448,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 20,
+  "output": 432,
+  "cache_read": 355860,
+  "cache_write": 13479,
+  "w5": 0,
+  "w1": 13479
+ },
+ "messages": 10,
+ "subagent_files": 0,
+ "prompts": [
+  {
+   "at": "2026-10-16T06:18:45.179Z",
+   "t": "[from: owner]\n[on /framework/ux/Dictate/] And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country.\n(the owner has stopped: no quiet event for 8 s)"
+  },
+  {
+   "at": "2026-10-16T06:19:44.968Z",
+   "t": "[from: owner]\n[on /framework/ux/Dictate/] And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country.\n(the owner has stopped: no quiet event for 8 s)"
+  },
+  {
+   "at": "2026-10-16T06:20:52.401Z",
+   "t": "[from: owner]\n[on /framework/ux/Dictate/] And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country.\n(the owner has stopped: no quiet event for 8 s)"
+  },
+  {
+   "at": "2026-10-16T06:22:01.447Z",
+   "t": "[from: owner]\n[on /framework/ux/Dictate/] And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country.\n(the owner has stopped: no quiet event for 8 s)"
+  },
+  {
+   "at": "2026-10-16T06:22:56.869Z",
+   "t": "[from: owner]\n[on /framework/ux/Dictate/] And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country.\n(the owner has stopped: no quiet event for 8 s)"
+  },
+  {
+   "at": "2026-10-16T06:24:13.063Z",
+   "t": "[from: owner]\n[on /framework/ux/Dictate/] And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country.\n(the owner has stopped: no quiet event for 8 s)"
+  },
+  {
+   "at": "2026-10-16T06:25:12.314Z",
+   "t": "[from: owner]\n[on /framework/ux/Dictate/] And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country.\n(the owner has stopped: no quiet event for 8 s)"
+  },
+  {
+   "at": "2026-10-16T06:26:24.196Z",
+   "t": "[from: owner]\n[on /framework/ux/Dictate/] And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country.\n(the owner has stopped: no quiet event for 8 s)"
+  }
+ ],
+ "result": "👍",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.305Z"
+}

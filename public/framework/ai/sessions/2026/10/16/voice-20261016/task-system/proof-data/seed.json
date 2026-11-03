@@ -1,0 +1,89 @@
+{
+  "_about": "Step 17: today's dictations as tasks. One goal per module (key = module path under public/framework/). Only asks are tasks; ideas, opinions and principles stay in their notes. seed.mjs applies this through the item tool. A child's `source` is a link to its note and #heading, never a copy of the text; a goal with `steps` also takes its children from the plan's step table, and their state is computed from the task-system task.jsonl commit lines.",
+  "goals": {
+    "core/Task": {
+      "title": "Task system build",
+      "source": "/framework/core/Task/doc/owner-2026-10-16-task-system.md",
+      "steps_from_commits": "/framework/ai/sessions/2026/10/16/voice-20261016/task-system/",
+      "steps": [
+        { "step": "1", "title": "Task.replay and the waiting state" },
+        { "step": "2", "title": "TaskLoop and TaskState read state through Task.replay" },
+        { "step": "3", "title": "Fields: expected, priority, commits, session, module, completion" },
+        { "step": "3b", "title": "complete, the verdicts, series or parallel mode, content, settled()" },
+        { "step": "4", "title": "Task.View (renders a task)", "folded": "Folded into 15: the checkbox row is the Task.View step now." },
+        { "step": "5", "title": "The item tool: item({path, delta})" },
+        { "step": "6", "title": "Commit lines from a post-commit hook", "folded": "Folded into 16: the tool files the references, the hook files the commits." },
+        { "step": "7", "title": "Session extends Item, with tasks and progress" },
+        { "step": "8", "title": "Refine makes a task for each refined ask" },
+        { "step": "9", "title": "Module homes: <module>/tasks/, listed on the module page", "folded": "Folded into 14b: homes and the module list are built there." },
+        { "step": "10", "title": "The skills and readmes use the item tool, these names and the grouping rule" },
+        { "step": "11", "title": "TaskPage, the thin route over a task" },
+        { "step": "12", "title": "The item tool in-process for local SDK agents" },
+        { "step": "13", "title": "Item owns replay; tags, expected, approve starts the task" },
+        { "step": "14a", "title": "Task homes, node side: the child's own folder and a reference line" },
+        { "step": "14b", "title": "Browser references, the module Tasks tab, Task.rank" },
+        { "step": "15", "title": "Task.View as a checkbox row with segmented progress; the /live Tasks card" },
+        { "step": "16", "title": "The item tool files the caller's session reference and gives the grouping rule" },
+        { "step": "17", "title": "Proof data: today's dictations as tasks under goals" }
+      ],
+      "children": [
+        { "title": "Cost per task is the sum of the agents that ran on it", "source": "/framework/core/Task/doc/owner-2026-10-16-ui.md#where-and-the-session-reference" },
+        { "title": "/live: a presentation mode and a prioritised grid, with tabs to switch", "source": "/framework/core/Task/doc/owner-2026-10-16-ui.md#the-views" },
+        { "title": "complete() checks each expected string, yes or no, by the reviewer", "source": "/framework/core/Task/doc/owner-2026-10-16-top-down.md#expected" }
+      ]
+    },
+    "servex": {
+      "title": "Servex tools and live agent control",
+      "source": "/Servex/doc/owner-2026-10-16-tools.md",
+      "children": [
+        { "title": "Local agents get a small in-process toolset, not all ~80 MCP tools", "source": "/Servex/doc/owner-2026-10-16-tools.md#one-toolset-two-pathways" },
+        { "title": "Track every tool call: how often, with what parameters, and whether the procedure was followed", "source": "/Servex/doc/owner-2026-10-16-tools.md#tools-over-skills" },
+        { "title": "One overview of how sessions, tools, skills, MCPs and tasks fit together", "source": "/Servex/agents/doc/owner-2026-10-16-realtime-interrupt.md#the-confusion-to-clear-up" },
+        { "title": "Real-time interrupt: browser events queue into the right agent, without polluting its context", "source": "/Servex/agents/doc/owner-2026-10-16-realtime-interrupt.md#real-time-interrupt-for-a-voice-session" },
+        { "title": "Test what the SDK does with several queued messages in one turn (dump or trickle)", "source": "/Servex/agents/doc/owner-2026-10-16-realtime-interrupt.md#does-the-queue-dump-or-trickle" },
+        { "title": "Node-prompted procedures: a trigger (a code commit runs the documentation skill) and a task outcome to check against", "source": ["/Servex/agents/doc/owner-2026-10-16-realtime-interrupt.md#node-prompted-procedures", "/framework/ai/doc/owner-2026-10-16-indexing.md#documentation-skill-rules-same-dictation"] }
+      ]
+    },
+    "audio/Voice": {
+      "title": "Voice conversation",
+      "source": "/framework/audio/Voice/doc/owner-2026-10-16-voice-conversation.md",
+      "children": [
+        { "title": "Interjection: a short interjection, then yield, then continue only on a positive pause", "source": "/framework/audio/Voice/doc/owner-2026-10-16-voice-conversation.md#interjection" },
+        { "title": "Said is not heard: on an interruption only the spoken part reaches the context", "source": "/framework/audio/Voice/doc/owner-2026-10-16-voice-conversation.md#said-is-not-heard" },
+        { "title": "A voice alt string: a spoken rendering of a reply, separate from the shown text", "source": "/framework/audio/Voice/doc/owner-2026-10-16-voice-conversation.md#two-renderings-of-one-reply" }
+      ]
+    },
+    "ai": {
+      "title": "Indexing and finding past work",
+      "source": "/framework/ai/doc/owner-2026-10-16-indexing.md",
+      "children": [
+        { "title": "Every directory carries an index of what is inside it, kept by node", "source": "/framework/ai/doc/owner-2026-10-16-indexing.md#every-directory-has-an-index" },
+        { "title": "A Related list in each readme, one mention per line, so a search for one thing finds the other", "source": "/framework/ai/doc/owner-2026-10-16-indexing.md#related-items" },
+        { "title": "Class architecture overviews write the full extends chain inline", "source": "/framework/ai/doc/owner-2026-10-16-indexing.md#documentation-skill-rules-same-dictation" },
+        { "title": "A node-built index of all tasks (ai/tasks/), rebuilt from the logs", "source": "/framework/core/Task/doc/owner-2026-10-16-top-down.md#where-tasks-live-and-no-duplicate-data" },
+        { "title": "A \"where ideas go\" line at the top of ai/readme.md, naming the home module per topic", "source": "/framework/ext/Refine/doc/card-types.md#the-design-smell-the-owner-named" }
+      ]
+    },
+    "ext/Refine": {
+      "title": "Refine: dictation to cards and tasks",
+      "source": "/framework/ext/Refine/doc/card-types.md",
+      "children": [
+        { "title": "A placement step per sentence after cleaning: append to the previous paragraph, or start a new one", "source": "/framework/core/Task/doc/owner-2026-10-16-top-down.md#refine-filed-to-extrefines-inbox" },
+        { "title": "The input box shows Whisper typing and clears when the sentence is sent", "source": "/framework/core/Task/doc/owner-2026-10-16-top-down.md#refine-filed-to-extrefines-inbox" },
+        { "title": "Refine looks up past work as a step, then searches the indexes", "source": "/framework/ai/doc/owner-2026-10-16-indexing.md#refine-looks-up-past-work" },
+        { "title": "Interactive cards: buttons, forms and data saved against the card", "source": "/framework/ext/Refine/doc/card-types.md#interactive-cards-controls-forms-and-data-saved-against-the-card" },
+        { "title": "A Decision holds a ranked live List of Options (one LLM pass sets the weights first)", "source": "/framework/ext/Refine/doc/card-types.md#a-decision-has-options-options-are-a-ranked-live-list" },
+        { "title": "The selected card is the voice context: a system message names it, and dictation goes into it", "source": "/framework/ext/Refine/doc/card-types.md#cards-are-items-the-selected-card-is-the-voice-context" }
+      ]
+    }
+  },
+  "notes_not_tasks": [
+    "core/Task owner-2026-10-16-task-system.md: Back burner (a rough Git UI, a system of ideas); Seen today (three unconnected things named Task; ~170 salvage branches) are observations.",
+    "core/Task owner-2026-10-16-composition.md: series vs parallel, content, events vs promises, the word complete are all built (steps 3b, 13); a flag-or-subclass opinion is settled.",
+    "core/Task owner-2026-10-16-top-down.md: Classes, Names are the code, Item owns replay, Creating, Lifecycle, The view, Streaming and Page vs view are decisions already built or principles; the one-socket-channel question is open.",
+    "core/Task owner-2026-10-16-ui.md: The simplest path and Group, do not scatter are principles (the item tool rules carry them).",
+    "Servex tools.md: item tool, set(), tool instructions, prompt refinement produces tasks are built (steps 5, 8, 12, 16); MCP dislike is an opinion.",
+    "ai indexing.md: 'a skill tied to one task is suspicious' is an opinion.",
+    "card-types.md: the vocabulary, certainty, weight words, purpose, referencing (check ext/Mention first), context cards and 'the system is dynamic, so classes' are vocabulary and principles."
+  ]
+}

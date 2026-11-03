@@ -1,0 +1,2572 @@
+{
+	"about": "Every layout on the site, in three tiers. Built once from the realms' own manifests by ai/2026-09-17/layout-browser/; the realms themselves were not edited. A card's picture is either a wire (drawn live from layouts.json) or a jpeg in shots/.",
+	"built": "2026-09-17T21:54:41.562Z",
+	"tiers": [
+		{
+			"id": "global",
+			"name": "Global",
+			"say": "Whole-page layouts: the shape of the page itself, from its gutters in."
+		},
+		{
+			"id": "sections",
+			"name": "Sections",
+			"say": "Bands and templates INSIDE a page: what goes where between the header and the footer."
+		},
+		{
+			"id": "components",
+			"name": "Components",
+			"say": "The pieces a section is made of - the mobile-card-UI tier."
+		}
+	],
+	"items": [
+		{
+			"id": "approved-rail-content",
+			"tier": "global",
+			"name": "1 · Rail + content",
+			"say": "any reading page — docs, notes, an article without a ToC.",
+			"url": "/layouts/doc/studies/approved/",
+			"source": "layouts/doc/studies/approved",
+			"shot": "/layouts/doc/studies/shots/tax-rail-content.jpg",
+			"badge": "approved by the owner, 2026-09-01",
+			"shot_at": {
+				"w": 1280,
+				"h": 900,
+				"label": "1280",
+				"means": "a laptop"
+			}
+		},
+		{
+			"id": "approved-reading-column",
+			"tier": "global",
+			"name": "2 · Docs three-region",
+			"say": "an article long enough to want its own ToC — every blog post has it free.",
+			"url": "/layouts/doc/studies/approved/",
+			"source": "layouts/doc/studies/approved",
+			"shot": "/layouts/doc/studies/shots/tax-reading-column.jpg",
+			"badge": "approved by the owner, 2026-09-01",
+			"shot_at": {
+				"w": 1280,
+				"h": 900,
+				"label": "1280",
+				"means": "a laptop"
+			}
+		},
+		{
+			"id": "approved-columns-row",
+			"tier": "global",
+			"name": "3 · Columns row (Finder)",
+			"say": "a world of peers you walk sideways — /imagine/, a workbench, a browser.",
+			"url": "/layouts/doc/studies/approved/",
+			"source": "layouts/doc/studies/approved",
+			"shot": "/layouts/doc/studies/shots/tax-columns-row.jpg",
+			"badge": "approved by the owner, 2026-09-01",
+			"shot_at": {
+				"w": 1280,
+				"h": 900,
+				"label": "1280",
+				"means": "a laptop"
+			}
+		},
+		{
+			"id": "approved-tile-wall",
+			"tier": "global",
+			"name": "4 · Tile wall",
+			"say": "a region of same-shaped children — an index, a dashboard, a gallery.",
+			"url": "/layouts/doc/studies/approved/",
+			"source": "layouts/doc/studies/approved",
+			"shot": "/layouts/doc/studies/shots/tax-tile-wall.jpg",
+			"badge": "approved by the owner, 2026-09-01",
+			"shot_at": {
+				"w": 1280,
+				"h": 900,
+				"label": "1280",
+				"means": "a laptop"
+			}
+		},
+		{
+			"id": "approved-solo",
+			"tier": "global",
+			"name": "5 · Solo",
+			"say": "the one page that opts all the way out (/resume/). Budget: about one per site.",
+			"url": "/layouts/doc/studies/approved/",
+			"source": "layouts/doc/studies/approved",
+			"shot": "/layouts/doc/studies/shots/tax-solo.jpg",
+			"badge": "approved by the owner, 2026-09-01",
+			"shot_at": {
+				"w": 1280,
+				"h": 900,
+				"label": "1280",
+				"means": "a laptop"
+			}
+		},
+		{
+			"id": "layout-1-flow",
+			"tier": "global",
+			"name": "1-flow",
+			"say": "The default, and the right answer for anything read top to bottom - an article, a form, a feed, a phone screen.",
+			"url": "/layouts/1-flow/",
+			"source": "layouts",
+			"wire": "1-flow",
+			"why": [
+				"/layouts/readme.md",
+				"/layouts/doc/decisions.md"
+			]
+		},
+		{
+			"id": "layout-1-centered",
+			"tier": "global",
+			"name": "1-centered",
+			"say": "Anything made of sentences. Past about 80 characters a line gets hard to come back to, so a reading page caps its column and lets a wide screen keep the margins.",
+			"url": "/layouts/1-centered/",
+			"source": "layouts",
+			"wire": "1-centered",
+			"why": [
+				"/layouts/readme.md",
+				"/layouts/doc/decisions.md"
+			]
+		},
+		{
+			"id": "layout-1-rows",
+			"tier": "global",
+			"name": "1-rows",
+			"say": "Any screen that must fill the window exactly once - an app, a dialog, a panel - and any page whose footer must not float up when the article is short.",
+			"url": "/layouts/1-rows/",
+			"source": "layouts",
+			"wire": "1-rows",
+			"why": [
+				"/layouts/readme.md",
+				"/layouts/doc/decisions.md"
+			]
+		},
+		{
+			"id": "layout-1-bands",
+			"tier": "global",
+			"name": "1-bands",
+			"say": "A page that introduces or sells something - a homepage, a product page, a tour. Not for reference material, where a reader wants to land in the middle and find their way.",
+			"url": "/layouts/1-bands/",
+			"source": "layouts",
+			"wire": "1-bands",
+			"why": [
+				"/layouts/readme.md",
+				"/layouts/doc/decisions.md"
+			]
+		},
+		{
+			"id": "layout-2-equal",
+			"tier": "global",
+			"name": "2-equal",
+			"say": "Two things of the same kind side by side - before and after, code and its result, two plans, a picture beside the paragraph about it.",
+			"url": "/layouts/2-equal/",
+			"source": "layouts",
+			"wire": "2-equal",
+			"why": [
+				"/layouts/readme.md",
+				"/layouts/doc/decisions.md"
+			]
+		},
+		{
+			"id": "layout-2-sidebar",
+			"tier": "global",
+			"name": "2-sidebar",
+			"say": "The commonest two-column page on the web - documentation, a shop with filters, a mail app, an admin screen, a blog with a sidebar.",
+			"url": "/layouts/2-sidebar/",
+			"source": "layouts",
+			"wire": "2-sidebar",
+			"why": [
+				"/layouts/readme.md",
+				"/layouts/doc/decisions.md"
+			]
+		},
+		{
+			"id": "layout-3-equal",
+			"tier": "global",
+			"name": "3-equal",
+			"say": "Three things of the same kind - three plans, three steps, three features, a footer's three link lists.",
+			"url": "/layouts/3-equal/",
+			"source": "layouts",
+			"wire": "3-equal",
+			"why": [
+				"/layouts/readme.md",
+				"/layouts/doc/decisions.md"
+			]
+		},
+		{
+			"id": "layout-3-holy-grail",
+			"tier": "global",
+			"name": "3-holy-grail",
+			"say": "Documentation, an editor, a mail client, an admin screen - anywhere a reader has to keep their place while walking through something long.",
+			"url": "/layouts/3-holy-grail/",
+			"source": "layouts",
+			"wire": "3-holy-grail",
+			"why": [
+				"/layouts/readme.md",
+				"/layouts/doc/decisions.md"
+			]
+		},
+		{
+			"id": "layout-3-sidebar",
+			"tier": "global",
+			"name": "3-sidebar",
+			"say": "A blog or a shop with more to put beside the article than one column can hold - related posts and an ad, or filters and a basket.",
+			"url": "/layouts/3-sidebar/",
+			"source": "layouts",
+			"wire": "3-sidebar",
+			"why": [
+				"/layouts/readme.md",
+				"/layouts/doc/decisions.md"
+			]
+		},
+		{
+			"id": "layout-4-1",
+			"tier": "global",
+			"name": "4-1",
+			"say": "A feature section or a dashboard where some tiles genuinely matter more than others, and a row of equal boxes would flatten that difference.",
+			"url": "/layouts/4-1/",
+			"source": "layouts",
+			"wire": "4-1",
+			"why": [
+				"/layouts/readme.md",
+				"/layouts/doc/decisions.md"
+			]
+		},
+		{
+			"id": "layout-n-wall",
+			"tier": "global",
+			"name": "n-wall",
+			"say": "Any REGION of same-shaped children - an index, a gallery, a shop, a dashboard of tiles. If you are about to write three media queries for a card grid, this is the thing you actually wanted.",
+			"url": "/layouts/n-wall/",
+			"source": "layouts",
+			"wire": "n-wall",
+			"why": [
+				"/layouts/readme.md",
+				"/layouts/doc/decisions.md"
+			]
+		},
+		{
+			"id": "layout-n-newspaper",
+			"tier": "global",
+			"name": "n-newspaper",
+			"say": "A long list of short items - a footer's links, an index, a glossary, a tag cloud. Rarely right for prose on a screen, because the reader has to scroll back up to reach the next column.",
+			"url": "/layouts/n-newspaper/",
+			"source": "layouts",
+			"wire": "n-newspaper",
+			"why": [
+				"/layouts/readme.md",
+				"/layouts/doc/decisions.md"
+			]
+		},
+		{
+			"id": "arrangement-1-stack",
+			"tier": "global",
+			"name": "1.stack · Stack",
+			"say": "Reach for it whenever the page is a sequence — an article, a form, a feed. It is the default, so it costs no CSS.",
+			"url": "/layouts/1-flow/",
+			"source": "layouts",
+			"why": [
+				"/layouts/1-flow/",
+				"/layouts/1-flow/"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					633
+				],
+				"1920": [
+					768,
+					432
+				],
+				"3440": [
+					963,
+					403
+				]
+			}
+		},
+		{
+			"id": "arrangement-1-measure",
+			"tier": "global",
+			"name": "1.measure · Measure",
+			"say": "Every reading page. It is the site's own default page track, and the reason a 3440 screen does not hand a paragraph a 3410px line.",
+			"url": "/layouts/1-centered/",
+			"source": "layouts",
+			"why": [
+				"/layouts/1-centered/",
+				"/layouts/1-centered/"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					633
+				],
+				"1920": [
+					768,
+					432
+				],
+				"3440": [
+					963,
+					403
+				]
+			}
+		},
+		{
+			"id": "arrangement-1-rows",
+			"tier": "global",
+			"name": "1.rows · Rows",
+			"say": "Any screen that must fill its room exactly once: an app shell, a panel, a takeover. The body is the only piece allowed to scroll.",
+			"url": "/layouts/1-rows/",
+			"source": "layouts",
+			"why": [
+				"/layouts/1-rows/",
+				"/layouts/1-rows/"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					633
+				],
+				"1920": [
+					768,
+					432
+				],
+				"3440": [
+					963,
+					403
+				]
+			}
+		},
+		{
+			"id": "arrangement-1-sections",
+			"tier": "global",
+			"name": "1.sections · Scroll sections",
+			"say": "A story you walk through in order — a landing page, a tour, a deck. Never for reference material, where a reader wants to land mid-page.",
+			"url": "/layouts/1-bands/",
+			"source": "layouts",
+			"why": [
+				"/layouts/1-bands/",
+				"/layouts/1-bands/"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					633
+				],
+				"1920": [
+					768,
+					432
+				],
+				"3440": [
+					963,
+					403
+				]
+			}
+		},
+		{
+			"id": "arrangement-2-equal",
+			"tier": "global",
+			"name": "2.equal · Equal",
+			"say": "Two things of the same kind side by side — before and after, code and result, two options.",
+			"url": "/layouts/2-equal/",
+			"source": "layouts",
+			"why": [
+				"/layouts/2-equal/",
+				"/layouts/2-equal/"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					633
+				],
+				"1920": [
+					768,
+					432
+				],
+				"3440": [
+					963,
+					403
+				]
+			}
+		},
+		{
+			"id": "arrangement-2-golden",
+			"tier": "global",
+			"name": "2.golden · Golden",
+			"say": "A page with a clear main thing and a real second thing — an article with a wide sidebar, a picture with its story.",
+			"url": "/layouts/2-sidebar/",
+			"source": "layouts",
+			"why": [
+				"/layouts/2-sidebar/",
+				"/layouts/2-sidebar/"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					633
+				],
+				"1920": [
+					768,
+					432
+				],
+				"3440": [
+					963,
+					403
+				]
+			}
+		},
+		{
+			"id": "arrangement-2-main-aside",
+			"tier": "global",
+			"name": "2.main-aside · Main + aside",
+			"say": "The commonest two-column page there is: content, and a rail of links or metadata beside it.",
+			"url": "/layouts/2-sidebar/",
+			"source": "layouts",
+			"why": [
+				"/layouts/2-sidebar/",
+				"/layouts/2-sidebar/"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					633
+				],
+				"1920": [
+					768,
+					432
+				],
+				"3440": [
+					963,
+					403
+				]
+			}
+		},
+		{
+			"id": "arrangement-2-fixed-fluid",
+			"tier": "global",
+			"name": "2.fixed-fluid · Fixed + fluid",
+			"say": "A navigation rail beside a body. The rail is `em` on purpose — it holds type, and type on this site scales with the viewport.",
+			"url": "/layouts/2-sidebar/",
+			"source": "layouts",
+			"why": [
+				"/layouts/2-sidebar/",
+				"/layouts/2-sidebar/"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					633
+				],
+				"1920": [
+					768,
+					432
+				],
+				"3440": [
+					963,
+					403
+				]
+			}
+		},
+		{
+			"id": "arrangement-2-fr",
+			"tier": "global",
+			"name": "2.fr · fr tracks",
+			"say": "Whenever you want a named ratio and nothing needs to wrap. Grid does not wrap; if it must, the answer is flex.",
+			"url": "/layouts/2-sidebar/",
+			"source": "layouts",
+			"why": [
+				"/layouts/2-sidebar/",
+				"/layouts/2-sidebar/"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					633
+				],
+				"1920": [
+					768,
+					432
+				],
+				"3440": [
+					963,
+					403
+				]
+			}
+		},
+		{
+			"id": "arrangement-3-thirds",
+			"tier": "global",
+			"name": "3.thirds · Thirds",
+			"say": "Three things of the same kind: three tiers, three steps, three panels of one dashboard.",
+			"url": "/layouts/3-equal/",
+			"source": "layouts",
+			"why": [
+				"/layouts/3-equal/",
+				"/layouts/3-equal/"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					633
+				],
+				"1920": [
+					768,
+					432
+				],
+				"3440": [
+					963,
+					403
+				]
+			}
+		},
+		{
+			"id": "arrangement-3-rail-main-aside",
+			"tier": "global",
+			"name": "3.rail-main-aside · Rail + main + aside",
+			"say": "A documentation site: navigation, the article, its table of contents. The shape core's own docs pages wear.",
+			"url": "/layouts/3-holy-grail/",
+			"source": "layouts",
+			"why": [
+				"/layouts/3-holy-grail/",
+				"/layouts/3-holy-grail/"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					633
+				],
+				"1920": [
+					768,
+					432
+				],
+				"3440": [
+					963,
+					403
+				]
+			}
+		},
+		{
+			"id": "arrangement-3-card",
+			"tier": "global",
+			"name": "3.card · The card",
+			"say": "Any time you are SHOWING something and talking about it at once — a demo, a specimen, a measured result. It works at 3440 and at any height.",
+			"url": "/layouts/3-holy-grail/",
+			"source": "layouts",
+			"why": [
+				"/layouts/3-holy-grail/",
+				"/layouts/3-holy-grail/"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					633
+				],
+				"1920": [
+					768,
+					432
+				],
+				"3440": [
+					963,
+					403
+				]
+			}
+		},
+		{
+			"id": "arrangement-3-rows-in-columns",
+			"tier": "global",
+			"name": "3.rows-in-columns · Rows in columns",
+			"say": "When one column carries two unrelated things of different weight: a preview above its properties, a chart above its legend.",
+			"url": "/layouts/3-holy-grail/",
+			"source": "layouts",
+			"why": [
+				"/layouts/3-holy-grail/",
+				"/layouts/3-holy-grail/"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					633
+				],
+				"1920": [
+					768,
+					432
+				],
+				"3440": [
+					963,
+					403
+				]
+			}
+		},
+		{
+			"id": "arrangement-3-scroll",
+			"tier": "global",
+			"name": "3.scroll · Scrolling centre",
+			"say": "A reader who must keep their bearings while walking a long thing — a mail app, a spec beside its examples, a deck with notes.",
+			"url": "/layouts/3-holy-grail/",
+			"source": "layouts",
+			"why": [
+				"/layouts/3-holy-grail/",
+				"/layouts/3-holy-grail/"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					633
+				],
+				"1920": [
+					768,
+					432
+				],
+				"3440": [
+					963,
+					403
+				]
+			}
+		},
+		{
+			"id": "arrangement-4-quarters",
+			"tier": "global",
+			"name": "4.quarters · Quarters",
+			"say": "Exactly four things that belong together and must stay on one line — four metrics, four steps.",
+			"url": "/layouts/n-wall/",
+			"source": "layouts",
+			"why": [
+				"/layouts/n-wall/",
+				"/layouts/n-wall/"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					633
+				],
+				"1920": [
+					768,
+					432
+				],
+				"3440": [
+					963,
+					403
+				]
+			}
+		},
+		{
+			"id": "arrangement-4-quad",
+			"tier": "global",
+			"name": "4.quad · Quad (2 x 2)",
+			"say": "Four panels that pair up: two comparisons, or a chart with its controls above two readouts.",
+			"url": "/layouts/2-equal/",
+			"source": "layouts",
+			"why": [
+				"/layouts/2-equal/",
+				"/layouts/2-equal/"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					633
+				],
+				"1920": [
+					768,
+					432
+				],
+				"3440": [
+					963,
+					403
+				]
+			}
+		},
+		{
+			"id": "arrangement-4-wall",
+			"tier": "global",
+			"name": "4.wall · Wall",
+			"say": "A region of same-shaped children — an index, a gallery, a dashboard of tiles. The one arrangement that scales without a single breakpoint.",
+			"url": "/layouts/n-wall/",
+			"source": "layouts",
+			"why": [
+				"/layouts/n-wall/",
+				"/layouts/n-wall/"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					633
+				],
+				"1920": [
+					768,
+					432
+				],
+				"3440": [
+					963,
+					403
+				]
+			}
+		},
+		{
+			"id": "arrangement-4-shell",
+			"tier": "global",
+			"name": "4.shell · Shell",
+			"say": "A real application screen. It is `1.rows` and `3.rail-main-aside` composed, which is why neither of them needed a fifth word.",
+			"url": "/layouts/1-rows/",
+			"source": "layouts",
+			"why": [
+				"/layouts/1-rows/",
+				"/layouts/1-rows/"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					633
+				],
+				"1920": [
+					768,
+					432
+				],
+				"3440": [
+					963,
+					403
+				]
+			}
+		},
+		{
+			"id": "shell-left",
+			"tier": "global",
+			"name": "Left rail",
+			"say": "The default app shape — nav on the reading edge, content beside it.",
+			"url": "/layouts/labs/shells/left/",
+			"source": "layouts/labs/shells",
+			"why": [
+				"/layouts/labs/shells/readme.md",
+				"/layouts/labs/shells/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					633
+				],
+				"1920": [
+					768,
+					432
+				],
+				"3440": [
+					963,
+					403
+				]
+			}
+		},
+		{
+			"id": "shell-right",
+			"tier": "global",
+			"name": "Right rail",
+			"say": "The same nav on the far edge — and it stops reading as the way through.",
+			"url": "/layouts/labs/shells/right/",
+			"source": "layouts/labs/shells",
+			"why": [
+				"/layouts/labs/shells/readme.md",
+				"/layouts/labs/shells/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					633
+				],
+				"1920": [
+					768,
+					432
+				],
+				"3440": [
+					963,
+					403
+				]
+			}
+		},
+		{
+			"id": "shell-both",
+			"tier": "global",
+			"name": "Both rails",
+			"say": "Nav left, inspector right — and 26em of chrome before a word is read.",
+			"url": "/layouts/labs/shells/both/",
+			"source": "layouts/labs/shells",
+			"why": [
+				"/layouts/labs/shells/readme.md",
+				"/layouts/labs/shells/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					633
+				],
+				"1920": [
+					768,
+					432
+				],
+				"3440": [
+					963,
+					403
+				]
+			}
+		},
+		{
+			"id": "shell-foot",
+			"tier": "global",
+			"name": "Footer bar",
+			"say": "No rail at all — the nav is a bar pinned to the floor of the app.",
+			"url": "/layouts/labs/shells/foot/",
+			"source": "layouts/labs/shells",
+			"why": [
+				"/layouts/labs/shells/readme.md",
+				"/layouts/labs/shells/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					633
+				],
+				"1920": [
+					768,
+					432
+				],
+				"3440": [
+					963,
+					403
+				]
+			}
+		},
+		{
+			"id": "shell-head-foot",
+			"tier": "global",
+			"name": "Header + footer",
+			"say": "Two bars framing the page — identity above, state below.",
+			"url": "/layouts/labs/shells/head-foot/",
+			"source": "layouts/labs/shells",
+			"why": [
+				"/layouts/labs/shells/readme.md",
+				"/layouts/labs/shells/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					633
+				],
+				"1920": [
+					768,
+					432
+				],
+				"3440": [
+					963,
+					403
+				]
+			}
+		},
+		{
+			"id": "shell-rail-foot",
+			"tier": "global",
+			"name": "Sidebar + footer",
+			"say": "The two of them together — and the footer has to span under the rail.",
+			"url": "/layouts/labs/shells/rail-foot/",
+			"source": "layouts/labs/shells",
+			"why": [
+				"/layouts/labs/shells/readme.md",
+				"/layouts/labs/shells/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					633
+				],
+				"1920": [
+					768,
+					432
+				],
+				"3440": [
+					963,
+					403
+				]
+			}
+		},
+		{
+			"id": "shell-canvas",
+			"tier": "global",
+			"name": "Canvas centre",
+			"say": "The app-as-tool shape — chrome on four sides, a stage that owns the leftover.",
+			"url": "/layouts/labs/shells/canvas/",
+			"source": "layouts/labs/shells",
+			"why": [
+				"/layouts/labs/shells/readme.md",
+				"/layouts/labs/shells/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					633
+				],
+				"1920": [
+					768,
+					432
+				],
+				"3440": [
+					963,
+					403
+				]
+			}
+		},
+		{
+			"id": "shell-inner-rail",
+			"tier": "global",
+			"name": "Inner rail",
+			"say": "A content area carrying its own rail — and the treatment that keeps it the area's.",
+			"url": "/layouts/labs/shells/inner-rail/",
+			"source": "layouts/labs/shells",
+			"why": [
+				"/layouts/labs/shells/readme.md",
+				"/layouts/labs/shells/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					633
+				],
+				"1920": [
+					768,
+					432
+				],
+				"3440": [
+					963,
+					403
+				]
+			}
+		},
+		{
+			"id": "shell-inner-bar",
+			"tier": "global",
+			"name": "Inner status bar",
+			"say": "A footer INSIDE the content area — and how it stays the content's, not the app's.",
+			"url": "/layouts/labs/shells/inner-bar/",
+			"source": "layouts/labs/shells",
+			"why": [
+				"/layouts/labs/shells/readme.md",
+				"/layouts/labs/shells/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					633
+				],
+				"1920": [
+					768,
+					432
+				],
+				"3440": [
+					963,
+					403
+				]
+			}
+		},
+		{
+			"id": "shell-columns",
+			"tier": "global",
+			"name": "Library",
+			"say": "A full-height columns row as the content region — rail, footer, and a row that scrolls sideways.",
+			"url": "/layouts/labs/shells/columns/",
+			"source": "layouts/labs/shells",
+			"why": [
+				"/layouts/labs/shells/readme.md",
+				"/layouts/labs/shells/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					633
+				],
+				"1920": [
+					768,
+					432
+				],
+				"3440": [
+					963,
+					403
+				]
+			}
+		},
+		{
+			"id": "sections-index",
+			"tier": "sections",
+			"name": "Sections",
+			"say": "Multi-column bands that fill a wide screen.",
+			"url": "/layouts/labs/sections/",
+			"source": "layouts/labs/sections",
+			"why": [
+				"/layouts/labs/sections/readme.md",
+				"/layouts/labs/sections/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					633
+				],
+				"1920": [
+					768,
+					432
+				],
+				"3440": [
+					963,
+					403
+				]
+			}
+		},
+		{
+			"id": "section-full",
+			"tier": "sections",
+			"name": "As one full screen",
+			"say": "The same section, sized to the screen: the middle scrolls.",
+			"url": "/layouts/labs/sections/full/",
+			"source": "layouts/labs/sections",
+			"why": [
+				"/layouts/labs/sections/readme.md",
+				"/layouts/labs/sections/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					633
+				],
+				"1920": [
+					768,
+					432
+				],
+				"3440": [
+					963,
+					403
+				]
+			}
+		},
+		{
+			"id": "section-stack",
+			"tier": "sections",
+			"name": "A stack of templates",
+			"say": "Twelve page shapes as repeating sections.",
+			"url": "/layouts/labs/sections/stack/",
+			"source": "layouts/labs/sections",
+			"why": [
+				"/layouts/labs/sections/readme.md",
+				"/layouts/labs/sections/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					633
+				],
+				"1920": [
+					768,
+					432
+				],
+				"3440": [
+					963,
+					403
+				]
+			}
+		},
+		{
+			"id": "section-nav",
+			"tier": "sections",
+			"name": "Sections with nav",
+			"say": "A nav per section: switch the middle, or open a column.",
+			"url": "/layouts/labs/sections/nav/",
+			"source": "layouts/labs/sections",
+			"why": [
+				"/layouts/labs/sections/readme.md",
+				"/layouts/labs/sections/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					633
+				],
+				"1920": [
+					768,
+					432
+				],
+				"3440": [
+					963,
+					403
+				]
+			}
+		},
+		{
+			"id": "template-magazine",
+			"tier": "sections",
+			"name": "Magazine",
+			"say": "A cover, a contents, a reading column.",
+			"url": "/imagine/paging/templates/magazine/",
+			"source": "imagine/paging/templates",
+			"why": [
+				"/imagine/paging/templates/readme.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					633
+				],
+				"1920": [
+					1056,
+					594
+				],
+				"3440": [
+					1337,
+					576
+				]
+			}
+		},
+		{
+			"id": "template-blog",
+			"tier": "sections",
+			"name": "Blog",
+			"say": "One lead, then the wall of real posts.",
+			"url": "/imagine/paging/templates/blog/",
+			"source": "imagine/paging/templates",
+			"why": [
+				"/imagine/paging/templates/readme.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					633
+				],
+				"1920": [
+					904,
+					508
+				],
+				"3440": [
+					1191,
+					576
+				]
+			}
+		},
+		{
+			"id": "template-screens",
+			"tier": "sections",
+			"name": "Screens",
+			"say": "A click divides the screen, not replaces.",
+			"url": "/imagine/paging/templates/screens/",
+			"source": "imagine/paging/templates",
+			"why": [
+				"/imagine/paging/templates/readme.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					474
+				],
+				"1920": [
+					898,
+					505
+				],
+				"3440": [
+					1195,
+					576
+				]
+			}
+		},
+		{
+			"id": "template-shells",
+			"tier": "sections",
+			"name": "Shells",
+			"say": "Chrome that outlives the page inside it.",
+			"url": "/imagine/paging/templates/shells/",
+			"source": "imagine/paging/templates",
+			"why": [
+				"/imagine/paging/templates/readme.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					633
+				],
+				"1920": [
+					975,
+					548
+				],
+				"3440": [
+					1200,
+					576
+				]
+			}
+		},
+		{
+			"id": "template-decks",
+			"tier": "sections",
+			"name": "Decks",
+			"say": "A screen cut into shares: 61.8 / 38.2.",
+			"url": "/imagine/paging/templates/decks/",
+			"source": "imagine/paging/templates",
+			"why": [
+				"/imagine/paging/templates/readme.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					633
+				],
+				"1920": [
+					890,
+					501
+				],
+				"3440": [
+					1178,
+					576
+				]
+			}
+		},
+		{
+			"id": "template-columns",
+			"tier": "sections",
+			"name": "Columns",
+			"say": "Peers in a row you walk sideways.",
+			"url": "/imagine/paging/templates/columns/",
+			"source": "imagine/paging/templates",
+			"why": [
+				"/imagine/paging/templates/readme.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					536
+				],
+				"1920": [
+					888,
+					499
+				],
+				"3440": [
+					1178,
+					576
+				]
+			}
+		},
+		{
+			"id": "template-layouts",
+			"tier": "sections",
+			"name": "Layouts",
+			"say": "The arrangement, with nothing in it.",
+			"url": "/imagine/paging/templates/layouts/",
+			"source": "imagine/paging/templates",
+			"why": [
+				"/imagine/paging/templates/readme.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					536
+				],
+				"1920": [
+					882,
+					496
+				],
+				"3440": [
+					1172,
+					576
+				]
+			}
+		},
+		{
+			"id": "template-sections",
+			"tier": "sections",
+			"name": "Sections",
+			"say": "Bands that stack into a landing page.",
+			"url": "/imagine/paging/templates/sections/",
+			"source": "imagine/paging/templates",
+			"why": [
+				"/imagine/paging/templates/readme.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					633
+				],
+				"1920": [
+					1056,
+					594
+				],
+				"3440": [
+					1203,
+					576
+				]
+			}
+		},
+		{
+			"id": "template-ui",
+			"tier": "sections",
+			"name": "UI",
+			"say": "Markup you copy - nineteen templates.",
+			"url": "/imagine/paging/templates/ui/",
+			"source": "imagine/paging/templates",
+			"why": [
+				"/imagine/paging/templates/readme.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					633
+				],
+				"1920": [
+					892,
+					502
+				],
+				"3440": [
+					1180,
+					576
+				]
+			}
+		},
+		{
+			"id": "template-ux",
+			"tier": "sections",
+			"name": "UX",
+			"say": "A class you extend, when there is state.",
+			"url": "/imagine/paging/templates/ux/",
+			"source": "imagine/paging/templates",
+			"why": [
+				"/imagine/paging/templates/readme.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					500
+				],
+				"1920": [
+					884,
+					497
+				],
+				"3440": [
+					1178,
+					576
+				]
+			}
+		},
+		{
+			"id": "template-navigation",
+			"tier": "sections",
+			"name": "Navigation",
+			"say": "The trail, and what a click does.",
+			"url": "/imagine/paging/templates/navigation/",
+			"source": "imagine/paging/templates",
+			"why": [
+				"/imagine/paging/templates/readme.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					487
+				],
+				"1920": [
+					887,
+					499
+				],
+				"3440": [
+					1176,
+					576
+				]
+			}
+		},
+		{
+			"id": "template-theming",
+			"tier": "sections",
+			"name": "Theming",
+			"say": "Five surfaces x three type scales, at once.",
+			"url": "/imagine/paging/templates/theming/",
+			"source": "imagine/paging/templates",
+			"why": [
+				"/imagine/paging/templates/readme.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					633
+				],
+				"1920": [
+					1056,
+					594
+				],
+				"3440": [
+					1376,
+					576
+				]
+			}
+		},
+		{
+			"id": "screen-divide",
+			"tier": "sections",
+			"name": "Divide",
+			"say": "Each click opens a column; the rest share the row.",
+			"url": "/layouts/labs/screens/divide/",
+			"source": "layouts/labs/screens",
+			"why": [
+				"/layouts/labs/screens/readme.md",
+				"/layouts/labs/screens/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					633
+				],
+				"1920": [
+					768,
+					432
+				],
+				"3440": [
+					963,
+					403
+				]
+			}
+		},
+		{
+			"id": "screen-stack",
+			"tier": "sections",
+			"name": "Stack",
+			"say": "The height has no row, so each band count is a new screen.",
+			"url": "/layouts/labs/screens/stack/",
+			"source": "layouts/labs/screens",
+			"why": [
+				"/layouts/labs/screens/readme.md",
+				"/layouts/labs/screens/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					633
+				],
+				"1920": [
+					768,
+					432
+				],
+				"3440": [
+					963,
+					403
+				]
+			}
+		},
+		{
+			"id": "screen-title",
+			"tier": "sections",
+			"name": "Title Slide",
+			"say": "Enter, and the title steps back to the minor share.",
+			"url": "/layouts/labs/screens/title/",
+			"source": "layouts/labs/screens",
+			"why": [
+				"/layouts/labs/screens/readme.md",
+				"/layouts/labs/screens/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					633
+				],
+				"1920": [
+					768,
+					432
+				],
+				"3440": [
+					963,
+					403
+				]
+			}
+		},
+		{
+			"id": "screen-read",
+			"tier": "sections",
+			"name": "Peek",
+			"say": "Document first; the title is a strip at the edge.",
+			"url": "/layouts/labs/screens/read/",
+			"source": "layouts/labs/screens",
+			"why": [
+				"/layouts/labs/screens/readme.md",
+				"/layouts/labs/screens/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					633
+				],
+				"1920": [
+					768,
+					432
+				],
+				"3440": [
+					963,
+					403
+				]
+			}
+		},
+		{
+			"id": "screen-deck",
+			"tier": "sections",
+			"name": "Deck",
+			"say": "Slides swapped in place, one url each.",
+			"url": "/layouts/labs/screens/deck/",
+			"source": "layouts/labs/screens",
+			"why": [
+				"/layouts/labs/screens/readme.md",
+				"/layouts/labs/screens/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					633
+				],
+				"1920": [
+					768,
+					432
+				],
+				"3440": [
+					963,
+					403
+				]
+			}
+		},
+		{
+			"id": "screen-uneven",
+			"tier": "sections",
+			"name": "Uneven",
+			"say": "Two numbers set the exact split — like 61.8/38.2.",
+			"url": "/layouts/labs/screens/uneven/",
+			"source": "layouts/labs/screens",
+			"why": [
+				"/layouts/labs/screens/readme.md",
+				"/layouts/labs/screens/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					633
+				],
+				"1920": [
+					768,
+					432
+				],
+				"3440": [
+					963,
+					403
+				]
+			}
+		},
+		{
+			"id": "screen-quad",
+			"tier": "sections",
+			"name": "Quad",
+			"say": "A 2x2 menu that stacks when a quadrant opens.",
+			"url": "/layouts/labs/screens/quad/",
+			"source": "layouts/labs/screens",
+			"why": [
+				"/layouts/labs/screens/readme.md",
+				"/layouts/labs/screens/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					633
+				],
+				"1920": [
+					768,
+					432
+				],
+				"3440": [
+					963,
+					403
+				]
+			}
+		},
+		{
+			"id": "screen-mix",
+			"tier": "sections",
+			"name": "Mix",
+			"say": "A column that splits its own height.",
+			"url": "/layouts/labs/screens/mix/",
+			"source": "layouts/labs/screens",
+			"why": [
+				"/layouts/labs/screens/readme.md",
+				"/layouts/labs/screens/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					633
+				],
+				"1920": [
+					768,
+					432
+				],
+				"3440": [
+					963,
+					403
+				]
+			}
+		},
+		{
+			"id": "ui-card",
+			"tier": "components",
+			"name": "Card",
+			"say": "A template, not a function — one div, and the class it wears belongs to framework.css.",
+			"url": "/framework/ui/card/",
+			"source": "framework/ui",
+			"band": "Surfaces",
+			"why": [
+				"/framework/ui/readme.md",
+				"/framework/ui/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					206
+				],
+				"1920": [
+					553,
+					311
+				],
+				"3440": [
+					824,
+					463
+				]
+			}
+		},
+		{
+			"id": "ui-toolbar",
+			"tier": "components",
+			"name": "Toolbar",
+			"say": "A template, not a function — groups, a growing field, and why `flex-1` beats `split`.",
+			"url": "/framework/ui/toolbar/",
+			"source": "framework/ui",
+			"band": "Surfaces",
+			"why": [
+				"/framework/ui/readme.md",
+				"/framework/ui/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					192
+				],
+				"1920": [
+					553,
+					311
+				],
+				"3440": [
+					821,
+					462
+				]
+			}
+		},
+		{
+			"id": "ui-panel",
+			"tier": "components",
+			"name": "Panel",
+			"say": "A template plus three rules — and `reverse`, the right-aligned action row nobody expects.",
+			"url": "/framework/ui/panel/",
+			"source": "framework/ui",
+			"band": "Surfaces",
+			"why": [
+				"/framework/ui/readme.md",
+				"/framework/ui/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					272
+				],
+				"1920": [
+					559,
+					315
+				],
+				"3440": [
+					831,
+					468
+				]
+			}
+		},
+		{
+			"id": "ui-stats",
+			"tier": "components",
+			"name": "Stat tiles",
+			"say": "A template, not a function — a card wall with one token retuned.",
+			"url": "/framework/ui/stats/",
+			"source": "framework/ui",
+			"band": "Surfaces",
+			"why": [
+				"/framework/ui/readme.md",
+				"/framework/ui/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					256
+				],
+				"1920": [
+					553,
+					311
+				],
+				"3440": [
+					821,
+					462
+				]
+			}
+		},
+		{
+			"id": "ui-accordion",
+			"tier": "components",
+			"name": "Accordion",
+			"say": "One at a time, with no JS — the exclusivity is an attribute you can see.",
+			"url": "/framework/ui/accordion/",
+			"source": "framework/ui",
+			"band": "Surfaces",
+			"why": [
+				"/framework/ui/readme.md",
+				"/framework/ui/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					257
+				],
+				"1920": [
+					560,
+					315
+				],
+				"3440": [
+					832,
+					468
+				]
+			}
+		},
+		{
+			"id": "ui-table",
+			"tier": "components",
+			"name": "Data table",
+			"say": "A head row and a body — the base theme had already finished this one.",
+			"url": "/framework/ui/table/",
+			"source": "framework/ui",
+			"band": "Data",
+			"why": [
+				"/framework/ui/readme.md",
+				"/framework/ui/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					212
+				],
+				"1920": [
+					556,
+					312
+				],
+				"3440": [
+					824,
+					464
+				]
+			}
+		},
+		{
+			"id": "ui-timeline",
+			"tier": "components",
+			"name": "Timeline",
+			"say": "Releases down a rail — one of three components that kept its function.",
+			"url": "/framework/ui/timeline/",
+			"source": "framework/ui",
+			"band": "Data",
+			"why": [
+				"/framework/ui/readme.md",
+				"/framework/ui/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					348
+				],
+				"1920": [
+					562,
+					316
+				],
+				"3440": [
+					830,
+					467
+				]
+			}
+		},
+		{
+			"id": "ui-tree",
+			"tier": "components",
+			"name": "Tree",
+			"say": "Icon + text rows, indented once per nesting level — a sidebar for layers, navigation, anything with children.",
+			"url": "/framework/ui/tree/",
+			"source": "framework/ui",
+			"band": "Data",
+			"why": [
+				"/framework/ui/readme.md",
+				"/framework/ui/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					228
+				],
+				"1920": [
+					557,
+					314
+				],
+				"3440": [
+					826,
+					464
+				]
+			}
+		},
+		{
+			"id": "ui-progress",
+			"tier": "components",
+			"name": "Progress",
+			"say": "A template, not a function — the component is <progress>, and the browser wrote it.",
+			"url": "/framework/ui/progress/",
+			"source": "framework/ui",
+			"band": "Data",
+			"why": [
+				"/framework/ui/readme.md",
+				"/framework/ui/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					201
+				],
+				"1920": [
+					555,
+					312
+				],
+				"3440": [
+					824,
+					464
+				]
+			}
+		},
+		{
+			"id": "ui-pagination",
+			"tier": "components",
+			"name": "Pagination",
+			"say": "A template, not a function — real buttons, and the caller holds the page number.",
+			"url": "/framework/ui/pagination/",
+			"source": "framework/ui",
+			"band": "Data",
+			"why": [
+				"/framework/ui/readme.md",
+				"/framework/ui/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					179
+				],
+				"1920": [
+					553,
+					311
+				],
+				"3440": [
+					820,
+					461
+				]
+			}
+		},
+		{
+			"id": "ui-crumbs",
+			"tier": "components",
+			"name": "Breadcrumbs",
+			"say": "A template, not a function — a trail derives from where you are, not from typed pairs.",
+			"url": "/framework/ui/crumbs/",
+			"source": "framework/ui",
+			"band": "Data",
+			"why": [
+				"/framework/ui/readme.md",
+				"/framework/ui/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					179
+				],
+				"1920": [
+					553,
+					311
+				],
+				"3440": [
+					820,
+					461
+				]
+			}
+		},
+		{
+			"id": "ui-controls",
+			"tier": "components",
+			"name": "Controls",
+			"say": "One box for every control — one height, one padding, one hairline, one corner.",
+			"url": "/framework/ui/controls/",
+			"source": "framework/ui",
+			"band": "Forms",
+			"why": [
+				"/framework/ui/readme.md",
+				"/framework/ui/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					586
+				],
+				"1920": [
+					954,
+					537
+				],
+				"3440": [
+					1295,
+					576
+				]
+			}
+		},
+		{
+			"id": "ui-field",
+			"tier": "components",
+			"name": "Form field",
+			"say": "A template, not a function — the fourth thing your form needs is always different.",
+			"url": "/framework/ui/field/",
+			"source": "framework/ui",
+			"band": "Forms",
+			"why": [
+				"/framework/ui/readme.md",
+				"/framework/ui/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					179
+				],
+				"1920": [
+					553,
+					311
+				],
+				"3440": [
+					821,
+					462
+				]
+			}
+		},
+		{
+			"id": "ui-dialog",
+			"tier": "components",
+			"name": "Dialog",
+			"say": "Native <dialog> — the browser is the component, and the CSS is the trap.",
+			"url": "/framework/ui/dialog/",
+			"source": "framework/ui",
+			"band": "Forms",
+			"why": [
+				"/framework/ui/readme.md",
+				"/framework/ui/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					179
+				],
+				"1920": [
+					553,
+					311
+				],
+				"3440": [
+					820,
+					461
+				]
+			}
+		},
+		{
+			"id": "ui-tags",
+			"tier": "components",
+			"name": "Tag input",
+			"say": "A template, plus the library's one opt-out of a base rule.",
+			"url": "/framework/ui/tags/",
+			"source": "framework/ui",
+			"band": "Forms",
+			"why": [
+				"/framework/ui/readme.md",
+				"/framework/ui/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					179
+				],
+				"1920": [
+					553,
+					311
+				],
+				"3440": [
+					821,
+					462
+				]
+			}
+		},
+		{
+			"id": "ui-menu",
+			"tier": "components",
+			"name": "Menu",
+			"say": "A <details> dropdown — the panel earns a selector, not a function.",
+			"url": "/framework/ui/menu/",
+			"source": "framework/ui",
+			"band": "Forms",
+			"why": [
+				"/framework/ui/readme.md",
+				"/framework/ui/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					179
+				],
+				"1920": [
+					553,
+					311
+				],
+				"3440": [
+					821,
+					462
+				]
+			}
+		},
+		{
+			"id": "ui-tooltip",
+			"tier": "components",
+			"name": "Tooltip",
+			"say": "Three spans and a stylesheet — the CSS is the whole component.",
+			"url": "/framework/ui/tooltip/",
+			"source": "framework/ui",
+			"band": "Forms",
+			"why": [
+				"/framework/ui/readme.md",
+				"/framework/ui/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					179
+				],
+				"1920": [
+					553,
+					311
+				],
+				"3440": [
+					821,
+					462
+				]
+			}
+		},
+		{
+			"id": "ui-badge",
+			"tier": "components",
+			"name": "Badges",
+			"say": "A template plus five variant classes — the class name is the component.",
+			"url": "/framework/ui/badge/",
+			"source": "framework/ui",
+			"band": "Marks",
+			"why": [
+				"/framework/ui/readme.md",
+				"/framework/ui/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					179
+				],
+				"1920": [
+					553,
+					311
+				],
+				"3440": [
+					820,
+					461
+				]
+			}
+		},
+		{
+			"id": "ui-alert",
+			"tier": "components",
+			"name": "Alerts",
+			"say": "A template plus six lines of CSS — a coloured edge that is one token.",
+			"url": "/framework/ui/alert/",
+			"source": "framework/ui",
+			"band": "Marks",
+			"why": [
+				"/framework/ui/readme.md",
+				"/framework/ui/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					181
+				],
+				"1920": [
+					553,
+					311
+				],
+				"3440": [
+					822,
+					462
+				]
+			}
+		},
+		{
+			"id": "ui-avatar",
+			"tier": "components",
+			"name": "Avatar",
+			"say": "One class, sized by a token — and the circle, the ring and the overlap are all CSS.",
+			"url": "/framework/ui/avatar/",
+			"source": "framework/ui",
+			"band": "Marks",
+			"why": [
+				"/framework/ui/readme.md",
+				"/framework/ui/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					179
+				],
+				"1920": [
+					553,
+					311
+				],
+				"3440": [
+					820,
+					461
+				]
+			}
+		},
+		{
+			"id": "ui-kbd",
+			"tier": "components",
+			"name": "Keys",
+			"say": "keys() is the one function here — the box and the row are markup.",
+			"url": "/framework/ui/kbd/",
+			"source": "framework/ui",
+			"band": "Marks",
+			"why": [
+				"/framework/ui/readme.md",
+				"/framework/ui/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					191
+				],
+				"1920": [
+					554,
+					311
+				],
+				"3440": [
+					824,
+					464
+				]
+			}
+		},
+		{
+			"id": "ui-words",
+			"tier": "components",
+			"name": "Config words",
+			"say": "Two classes on a section — every component inside re-skins, and no component knows.",
+			"url": "/framework/ui/words/",
+			"source": "framework/ui",
+			"band": "Marks",
+			"why": [
+				"/framework/ui/readme.md",
+				"/framework/ui/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					633
+				],
+				"1920": [
+					979,
+					551
+				],
+				"3440": [
+					1308,
+					576
+				]
+			}
+		},
+		{
+			"id": "ux-auth",
+			"tier": "components",
+			"name": "Auth",
+			"say": "Login, signup, reset and a social row as one class — view switching is the behavior that earns it.",
+			"url": "/framework/ux/Auth/",
+			"source": "framework/ux",
+			"band": "UX",
+			"why": [
+				"/framework/ux/readme.md",
+				"/framework/ux/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					463
+				],
+				"1920": [
+					635,
+					357
+				],
+				"3440": [
+					631,
+					355
+				]
+			}
+		},
+		{
+			"id": "ux-wizard",
+			"tier": "components",
+			"name": "Wizard",
+			"say": "The generic multi-step engine - steps, next/back, a validation gate, keyboard, phone to 3440. Lessons, courses and signup all extend this.",
+			"url": "/framework/ux/Wizard/",
+			"source": "framework/ux",
+			"band": "UX",
+			"why": [
+				"/framework/ux/readme.md",
+				"/framework/ux/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					316
+				],
+				"1920": [
+					593,
+					333
+				],
+				"3440": [
+					928,
+					522
+				]
+			}
+		},
+		{
+			"id": "ux-tree",
+			"tier": "components",
+			"name": "Tree",
+			"say": "ui/tree's closure, opened up — a class you extend, with keyboard roving as a named subclass.",
+			"url": "/framework/ux/Tree/",
+			"source": "framework/ux",
+			"band": "UX",
+			"why": [
+				"/framework/ux/readme.md",
+				"/framework/ux/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					546
+				],
+				"1920": [
+					603,
+					339
+				],
+				"3440": [
+					623,
+					350
+				]
+			}
+		},
+		{
+			"id": "ux-course",
+			"tier": "components",
+			"name": "The template tier",
+			"say": "Chapters of lessons: a rail, a reading column and a next-up card that coordinate — the large-screen showcase.",
+			"url": "/framework/ux/Course/",
+			"source": "framework/ux",
+			"band": "UX",
+			"why": [
+				"/framework/ux/readme.md",
+				"/framework/ux/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					633
+				],
+				"1920": [
+					791,
+					445
+				],
+				"3440": [
+					634,
+					357
+				]
+			}
+		},
+		{
+			"id": "ux-filter",
+			"tier": "components",
+			"name": "Filter",
+			"say": "A segment + search class that drives several regions at once — the coordinated-regions dashboard.",
+			"url": "/framework/ux/Filter/",
+			"source": "framework/ux",
+			"band": "UX",
+			"why": [
+				"/framework/ux/readme.md",
+				"/framework/ux/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					633
+				],
+				"1920": [
+					1056,
+					594
+				],
+				"3440": [
+					1376,
+					576
+				]
+			}
+		},
+		{
+			"id": "ux-menu",
+			"tier": "components",
+			"name": "Menu",
+			"say": "ui/menu's <details> opened up — close-on-pick and click-outside as a class, instead of a handler you write per item.",
+			"url": "/framework/ux/Menu/",
+			"source": "framework/ux",
+			"band": "UX",
+			"why": [
+				"/framework/ux/readme.md",
+				"/framework/ux/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					184
+				],
+				"1920": [
+					590,
+					332
+				],
+				"3440": [
+					611,
+					344
+				]
+			}
+		},
+		{
+			"id": "ux-pagination",
+			"tier": "components",
+			"name": "Pagination",
+			"say": "ui/pagination's row, opened up — the current page remembered on the instance, and go(n) driving real content through one wire.",
+			"url": "/framework/ux/Pagination/",
+			"source": "framework/ux",
+			"band": "UX",
+			"why": [
+				"/framework/ux/readme.md",
+				"/framework/ux/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					222
+				],
+				"1920": [
+					590,
+					332
+				],
+				"3440": [
+					612,
+					344
+				]
+			}
+		},
+		{
+			"id": "ux-tags",
+			"tier": "components",
+			"name": "Tags",
+			"say": "ui/tags's chip row, opened up — the × and the field were inert in the template; this is what wiring them looks like.",
+			"url": "/framework/ux/Tags/",
+			"source": "framework/ux",
+			"band": "UX",
+			"why": [
+				"/framework/ux/readme.md",
+				"/framework/ux/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					300,
+					196
+				],
+				"1920": [
+					589,
+					331
+				],
+				"3440": [
+					610,
+					344
+				]
+			}
+		},
+		{
+			"id": "practice-workbench",
+			"tier": "global",
+			"name": "Practice - Workbench",
+			"say": "a rail, a wall of 24 tiles and a panel that answers; the nav never moves.",
+			"url": "/layouts/practice/workbench/",
+			"source": "layouts/practice/workbench",
+			"why": [
+				"/layouts/practice/readme.md",
+				"/layouts/practice/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					400,
+					1400
+				],
+				"1920": [
+					1920,
+					1200
+				],
+				"3440": [
+					3440,
+					1500
+				]
+			}
+		},
+		{
+			"id": "practice-reader",
+			"tier": "global",
+			"name": "Practice - Reader",
+			"say": "an article at the measure, and the wide screen's leftover spent on contents, figures and notes.",
+			"url": "/layouts/practice/reader/",
+			"source": "layouts/practice/reader",
+			"why": [
+				"/layouts/practice/readme.md",
+				"/layouts/practice/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					400,
+					1400
+				],
+				"1920": [
+					1920,
+					1200
+				],
+				"3440": [
+					3440,
+					1500
+				]
+			}
+		},
+		{
+			"id": "practice-catalog",
+			"tier": "global",
+			"name": "Practice - Catalog",
+			"say": "a hero with a fold budget, a wall of twelve with no hole at any width, a footer of real links.",
+			"url": "/layouts/practice/catalog/",
+			"source": "layouts/practice/catalog",
+			"why": [
+				"/layouts/practice/readme.md",
+				"/layouts/practice/doc/decisions.md"
+			],
+			"shoot": true,
+			"sizes": {
+				"400": [
+					400,
+					1400
+				],
+				"1920": [
+					1920,
+					1200
+				],
+				"3440": [
+					3440,
+					1500
+				]
+			}
+		}
+	]
+}

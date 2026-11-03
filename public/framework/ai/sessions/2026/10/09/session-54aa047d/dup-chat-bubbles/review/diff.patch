@@ -1,0 +1,466 @@
+diff --git a/public/framework/ext/Chat/Mic.js b/public/framework/ext/Chat/Mic.js
+index 7e9475d8f..ac7d2ccc4 100644
+--- a/public/framework/ext/Chat/Mic.js
++++ b/public/framework/ext/Chat/Mic.js
+@@ -138,15 +138,43 @@ export function unfill(text){
+ 	return t;
+ }
+ 
+-/* `text` without the words `sent` already covers at its start, compared word by word
+-   ignoring case and punctuation (Whisper's final often re-punctuates its own guess).
+-   If the two do not agree, nothing is removed. */
++/* `text` without the words `sent` already covers at its start. A guess that went out with Send is
++   cumulative and Whisper's FINAL for the same speech never matches it word for word ("county" for
++   "country", "check mark" / "checkmark"), so an exact-prefix test let the whole final through as a
++   second message ~200 ms after the first — the owner's duplicate bubble (ext/Chat/doc/duplicate-bubbles.md).
++   Words are lined up with an edit distance (a word costs 0 when equal, else its letter-level distance);
++   when the two are at least 65% alike the sent part is dropped and only the words after it are returned.
++   If they do not agree, nothing is removed. */
+ export function strip_words(text, sent){
+ 	const norm = w => w.toLowerCase().replace(/[^\p{L}\p{N}]/gu, "");
+ 	const tw = text.split(/\s+/).filter(Boolean), sw = sent.split(/\s+/).filter(Boolean);
+-	let i = 0;
+-	while (i < tw.length && i < sw.length && norm(tw[i]) === norm(sw[i])) i++;
+-	return i && i === Math.min(tw.length, sw.length) ? tw.slice(i).join(" ") : text;
++	const T = tw.map(norm), S = sw.map(norm);
++	const lev = (a, b) => {
++		let prev = Array.from({ length: b.length + 1 }, (_, j) => j);
++		for (let i = 1; i <= a.length; i++){
++			const cur = [i];
++			for (let j = 1; j <= b.length; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
++			prev = cur;
++		}
++		return prev[b.length];
++	};
++	const word = (a, b) => a === b ? 0 : Math.min(1, lev(a, b) / Math.max(a.length, b.length, 1));
++	const D = Array.from({ length: S.length + 1 }, (_, i) => Array(T.length + 1).fill(i));
++	for (let j = 0; j <= T.length; j++) D[0][j] = j;
++	for (let i = 1; i <= S.length; i++) for (let j = 1; j <= T.length; j++)
++		D[i][j] = Math.min(D[i - 1][j] + 1, D[i][j - 1] + 1, D[i - 1][j - 1] + word(S[i - 1], T[j - 1]));
++	// Either all of `sent` is matched against the front of `text` (the final goes on past the guess), or all of
++	// `text` is matched against the front of `sent` (the guess ran longer than the final).
++	let best = null;
++	const consider = (i, j) => {
++		if (!i || !j) return;
++		const score = D[i][j] / Math.max(i, j);
++		if (score > 0.35 || (best && (score > best.score || (score === best.score && j <= best.j)))) return;
++		best = { score, i, j };
++	};
++	for (let j = 1; j <= T.length; j++) consider(S.length, j);
++	for (let i = 1; i <= S.length; i++) consider(i, T.length);
++	return best ? tw.slice(best.j).join(" ") : text;
+ }
+ 
+ export class ComposerMic extends Dictate {
+@@ -827,15 +855,27 @@ export class ComposerMic extends Dictate {
+ 		// Same normalisation `strip_words()` already uses above (word-for-word, ignoring
+ 		// case and punctuation) — Whisper's own re-punctuation of an identical resend
+ 		// ("turn on the lights" vs "Turn on the lights.") must still count as the same words.
+-		const norm = String(text ?? "").toLowerCase().split(/\s+/).map(w => w.replace(/[^\p{L}\p{N}]/gu, "")).filter(Boolean).join(" ");
+-		const now = performance.now();
+-		const dup = !!norm && norm === this.last_sent_norm && now - (this.last_sent_at ?? -Infinity) < ComposerMic.DUP_WINDOW_MS;
+-		this.last_sent_norm = norm; this.last_sent_at = now;
++		// Same words, or words that differ only by what Whisper mishears (`strip_words` is the one fuzzy matcher):
++		// "What is minion-kak?" then "What is minion-kaq?" 300 ms apart is ONE utterance (the owner's 4-copies bubble, 2026-10-09).
++		const now = performance.now(), prev = this.last_sent_text, t = String(text ?? "").trim();
++		const close = !!prev && !!t && now - (this.last_sent_at ?? -Infinity) < ComposerMic.DUP_WINDOW_MS;
++		const dup = close && (strip_words(t, prev) === "" || strip_words(prev, t) === "");
++		this.last_sent_text = t; this.last_sent_at = now;
+ 		return dup;
+ 	}
+ 
++	/* A repeated phrase inside ONE text ("What is it? What is it?"): Whisper's own doubling when the live guess and the
++	   final are joined. The first half is kept. Only a whole-text repeat of 2+ words counts. */
++	static collapse_repeat(text){
++		const w = String(text ?? "").trim().split(/\s+/).filter(Boolean);
++		if (w.length < 4 || w.length % 2) return text;
++		const h1 = w.slice(0, w.length / 2).join(" "), h2 = w.slice(w.length / 2).join(" ");
++		return strip_words(h2, h1) === "" ? h1 : text;
++	}
++
+ 	async post_held(item){
+-		const { text, raw } = typeof item === "string" ? { text: item, raw: null } : item;
++		const got = typeof item === "string" ? { text: item, raw: null } : item;
++		const text = ComposerMic.collapse_repeat(got.text), raw = got.raw && ComposerMic.collapse_repeat(got.raw);
+ 		if (this.same_as_last_send(text)){ console.warn("chat: dropped a duplicate send (same words, " + ComposerMic.DUP_WINDOW_MS + "ms window):", text); return; }
+ 		const entry = { type: "prompt", by: "owner", text, via: "whisper" };
+ 		if (raw && raw.trim() && raw.trim() !== text.trim()){ entry.raw = raw; entry.level = "clean"; }
+diff --git a/public/framework/ext/Chat/doc/duplicate-bubbles.md b/public/framework/ext/Chat/doc/duplicate-bubbles.md
+new file mode 100644
+index 000000000..a32261674
+--- /dev/null
++++ b/public/framework/ext/Chat/doc/duplicate-bubbles.md
+@@ -0,0 +1,17 @@
++# Duplicate text in one chat bubble
++
++**Symptom (owner, 2026-10-09):** one bubble, one icon, the same line twice (up to four times): the first copy ends in a green ✓, the next ones carry only the 🎤.
++A real case: session `v-0kfikyu`, "What is minion-kaq?" shown four times. The session file holds only two owner lines for it, so the rest was made in the browser.
++
++## Causes (three, all fixed)
++
++1. **Whisper re-hears a sent guess (`Mic.js` `strip_words`).** Send includes the live guess; Whisper's final then differs by a word ("country"/"county"), so the exact-prefix strip failed and the whole final went out as a second message. Fix: `strip_words` lines words up with an edit distance (fuzzy, 65% alike).
++2. **Near-identical resend and a doubled phrase (`Mic.js` `post_held`).** `raw` was "What is minion-kak? What is minion-kak?" and 300 ms later "What is minion-kaq?" went out again. Fix: `ComposerMic.collapse_repeat` folds a whole-text repeat; `same_as_last_send` uses the same fuzzy match inside the 4 s window.
++3. **The echo race (`ux/Dictate/chat.js`).** The typed/spoken line is drawn at once under a local `at`. The poll or stream copy of the same line can arrive before `Session.say` answers, so `own_ats` did not know its `at` yet and it was drawn again, merging into the same bubble as a second piece. Fix: texts being sent wait in `sending`; the first owner line matching one whose optimistic bubble is still on screen is that echo and is adopted (`retag`), not drawn.
++
++Earlier attempts fixed the assistant-reply copies (`seen_chat`, 2026-10-01) and the Dictate tickets (4963c7c6f). This is the owner-line side.
++
++## Proof (headless, `doc/proof/`)
++
++- `prove-dup-send.mjs` drives a real `ComposerMic` and counts what reaches `deliver()` (6 scenarios).
++- `prove-dup-bubble.mjs` mounts the real shared `chat()`, mocks only Servex, and counts how often the text shows in the DOM, typed and voice, at 400 and 1920, plus a page-change remount. Before the fix: 2x. After: 1x. Shots in `doc/proof/shots/`.
+diff --git a/public/framework/ext/Chat/doc/files.jsonl b/public/framework/ext/Chat/doc/files.jsonl
+index 30c0a240d..4b694cb89 100644
+--- a/public/framework/ext/Chat/doc/files.jsonl
++++ b/public/framework/ext/Chat/doc/files.jsonl
+@@ -5,3 +5,5 @@
+ {"file":"floor.md"}
+ {"file":"reactions.md"}
+ {"file":"panel-composition-2026-10-08.md"}
++{"file":"proof/"}
++{"file":"duplicate-bubbles.md"}
+diff --git a/public/framework/ext/Chat/doc/proof/files.jsonl b/public/framework/ext/Chat/doc/proof/files.jsonl
+new file mode 100644
+index 000000000..b17dbe8b9
+--- /dev/null
++++ b/public/framework/ext/Chat/doc/proof/files.jsonl
+@@ -0,0 +1,5 @@
++{"file":"prove-dup-send.mjs"}
++{"file":"prove-dup-bubble.mjs"}
++{"file":"shots/"}
++{"file":"dbg.mjs"}
++{"file":"dbg.mjs","gone":true}
+diff --git a/public/framework/ext/Chat/doc/proof/prove-dup-bubble.mjs b/public/framework/ext/Chat/doc/proof/prove-dup-bubble.mjs
+new file mode 100644
+index 000000000..eaf39b46b
+--- /dev/null
++++ b/public/framework/ext/Chat/doc/proof/prove-dup-bubble.mjs
+@@ -0,0 +1,68 @@
++// Proof for ext/Chat/doc/duplicate-bubbles.md — mounts the REAL shared chat() widget (ux/Dictate/chat.js), mocks only
++// Servex's session endpoints, and makes the stream/poll copy of the owner's line arrive BEFORE the send call answers.
++// Counts the owner's bubbles and how often the text appears. Usage: node prove-dup-bubble.mjs <base url> [tag]
++import { browser, close } from "file:///C:/Code/lew42/monorepo/Server/browser.mjs";
++const BASE = process.argv[2] || "http://localhost:54923", TAG = process.argv[3] || "run";
++const SHOTS = new URL("./shots/", import.meta.url).pathname.replace(/^\/(\w:)/, "$1");
++const b = await browser();
++let bad = 0;
++
++async function run(name, { via, text, reload = false, navigate = false, width = 1200 }){
++	const ctx = await b.newContext({ viewport: { width, height: 800 } }), page = await ctx.newPage();
++	page.on("pageerror", e => console.log("PAGEERROR", e.message)); page.on("console", m => m.type()==="error" && console.log("CONSOLE", m.text().slice(0,150)));
++	const lines = []; let said = false;
++	await page.route("http://127.0.0.1:8090/api/**", route => route.fulfill({ json: { ok: true, sessions: [] } }));
++	await page.route("http://127.0.0.1:8090/api/session/*", async route => {
++		const verb = route.request().url().split("/").pop();
++		const body = JSON.parse(route.request().postData() || "{}");
++		if (verb === "new") return route.fulfill({ json: { ok: true, session: "v-test", file: BASE + "/mock/v-test.jsonl", resumed: false } });
++		if (verb === "say"){
++			const at = new Date().toISOString();
++			lines.push(JSON.stringify({ chat: { at, session: "v-test", from: { kind: "owner" }, via: body.via, text: body.text } }));
++			said = true;
++			await new Promise(r => setTimeout(r, 2600));      // the answer is slow: the poll copy lands first
++			return route.fulfill({ json: { ok: true, at } });
++		}
++		return route.fulfill({ json: { ok: true } });
++	});
++	await page.route(BASE + "/mock/v-test.jsonl", route => route.fulfill({ body: lines.join("\n") + "\n", contentType: "text/plain" }));
++	await page.goto(BASE + "/framework/ext/Chat/", { waitUntil: "load" });
++	await page.evaluate(k => { window.__keep = k; sessionStorage.clear(); }, navigate);
++	await page.evaluate(async () => {
++		const { default: chat } = await import("/framework/ux/Dictate/chat.js");
++		const el = document.createElement("div"); el.id = "proof"; el.style.cssText = "height:520px;margin:1em";
++		document.body.prepend(el); window.mount = chat(el, { placeholder: "say", keep: !!window.__keep });
++	});
++	await page.waitForTimeout(400);
++	// warm-up send: the session exists before the line under test, as in the owner's long-open chat
++	await page.evaluate(() => window.mount.panel.submit_entry({ text: "warm up line", via: "typed" }));
++	await page.waitForTimeout(3600); lines.length && null;
++	await page.evaluate(({ via, text }) => { const w = window.mount.widget ?? window.mount.panel ?? window.mount; (w.submit_entry ? w : w.widget).submit_entry({ text, via, raw: text }); }, { via, text });
++	if (reload){ await page.waitForTimeout(3500); await page.evaluate(() => window.mount.reset?.()); }
++	for (let i = 0; i < 7; i++){ await page.waitForTimeout(700); if (process.env.TRACE) console.log(i, JSON.stringify(await page.evaluate(() => document.querySelector("#proof").innerText.split(String.fromCharCode(10)).join(" / ").slice(0, 160)))); }
++	if (navigate){   // the owner moved to another page: the old mount goes, a new one on the SAME session draws the history
++		await page.evaluate(async () => {
++			window.mount.remove(); document.querySelector("#proof").remove();
++			const { default: chat } = await import("/framework/ux/Dictate/chat.js");
++			const el = document.createElement("div"); el.id = "proof"; el.style.cssText = "height:520px;margin:1em";
++			document.body.prepend(el); window.mount = chat(el, { placeholder: "say", keep: true });
++		});
++		await page.waitForTimeout(4000);
++	}
++	const found = await page.evaluate(t => {
++		const root = document.querySelector("#proof"), txt = root.innerText;
++		return { count: txt.split(t).length - 1, bubbles: [...root.querySelectorAll("*")].filter(e => e.children.length === 0 && e.textContent.includes(t)).length };
++	}, text);
++	await page.screenshot({ path: `${SHOTS}${TAG}-${name}-${width}.png`, clip: undefined });
++	const dup = found.count !== 1;
++	if (dup) bad++;
++	console.log((dup ? "DUPLICATE " : "ok        ") + name + " @" + width + "  text shown " + found.count + "x");
++	await ctx.close();
++}
++for (const w of [1920, 400]){
++	await run("typed", { via: "typed", text: "ask not what your country can do for you", width: w });
++	await run("voice", { via: "voice", text: "so the green checkmark comes after the first line", width: w });
++	await run("navigate", { via: "voice", text: "What is minion-kaq?", navigate: true, width: w });
++}
++await close();
++process.exit(bad ? 1 : 0);
+diff --git a/public/framework/ext/Chat/doc/proof/prove-dup-send.mjs b/public/framework/ext/Chat/doc/proof/prove-dup-send.mjs
+new file mode 100644
+index 000000000..52da7fb66
+--- /dev/null
++++ b/public/framework/ext/Chat/doc/proof/prove-dup-send.mjs
+@@ -0,0 +1,68 @@
++// Proof for ext/Chat/doc/duplicate-bubbles.md — drives a REAL ComposerMic (no mic, no Whisper: a fake Capture
++// and a scripted transcribe) through the exact sequence behind the owner's duplicate bubbles, and counts what
++// reaches deliver(). Usage: node prove-dup-send.mjs <base url>   (exit 1 when any scenario sent a duplicate)
++import { browser, close } from "file:///C:/Code/lew42/monorepo/Server/browser.mjs";
++const BASE = process.argv[2] || "http://localhost:54923";
++const b = await browser(), page = await (await b.newContext()).newPage();
++page.on("pageerror", e => console.log("PAGEERROR", e.message));
++await page.goto(BASE + "/framework/ext/Chat/", { waitUntil: "load" });
++
++const out = await page.evaluate(async () => {
++	const { composer } = await import("/framework/ext/Chat/Composer.js");
++	const wait = ms => new Promise(r => setTimeout(r, ms));
++	// One scenario: the guess is on screen, the segment closes, Send/auto-send fires while the FINAL is still in flight,
++	// then the final arrives worded a little differently from the guess (Whisper always does this).
++	async function scenario(name, guess, final, { send_before_close = false, final_ms = 150 } = {}){
++		const sent = [];
++		const view = composer({ deliver: async e => { sent.push(e.text); return true; } });
++		document.body.append(view.el ?? view);
++		const m = view.mic;
++		m.state = "listening"; m.engine = "whisper"; m.segment_epoch = 0; m.req_seq = 0; m.applied_seq = 0;
++		m.mic = { snapshot: () => new Float32Array(16), cut(){}, loudness: () => ({ loud_ms: 999 }), wav: () => new Blob(), rate: () => 16000, stop(){} };
++		m.dump = () => {}; m.last_speech = performance.now();
++		let answer = guess;
++		m.transcribe = async () => { await wait(answer === guess ? 5 : final_ms); return answer; };
++		m.has_speech = true;
++		await m.partial_tick();                       // the grey guess appears
++		if (send_before_close) { await m.send_screen(); }
++		answer = final;
++		const closing = m.close_segment("pause");     // segment closes, final in flight
++		await wait(20);
++		if (!send_before_close) await m.send_screen();// Send / natural-pause send reads the screen: guess included
++		await closing; await wait(400);
++		await m.send_screen();                        // the next natural-pause tick sends whatever is left
++		await m.send_sentences?.(1); await wait(300);
++		return { name, sent };
++	}
++	const rows = [];
++	// expect = how many messages a correct mic sends for ONE spoken segment
++	rows.push({ expect: 1, ...await scenario("guess sent, final re-punctuated",
++		"Holy smokes. Okay. So you just responded. Okay.", "Holy smokes. Okay, so you just responded.") });
++	rows.push({ expect: 1, ...await scenario("guess sent, final one word off",
++		"ask not what your country can do for you", "Ask not what your county can do for you.") });
++	rows.push({ expect: 1, ...await scenario("guess sent, final hears two words differently",
++		"so the green check mark comes after the first line", "So the green checkmark comes after the first lime.") });
++	rows.push({ expect: 2, ...await scenario("guess sent, final adds a NEW sentence (must still go out)",
++		"There's a green check mark after the first line", "There's a green check mark after the first line. There's a microphone after that.") });
++	// The owner's real session (v-0kfikyu, 2026-10-09): a doubled raw, then the same question re-heard one letter off, 300 ms later.
++	async function direct(name, expect, items){
++		const sent = [];
++		const view = composer({ deliver: async e => { sent.push(e.text + (e.raw ? "  [raw: " + e.raw + "]" : "")); return true; } });
++		document.body.append(view.el ?? view);
++		for (const it of items){ await view.mic.post_held(it); await wait(300); }
++		return { name, sent, expect };
++	}
++	rows.push(await direct("doubled raw, then re-heard one letter off", 1, [
++		{ text: "What is minion-kak?", raw: "What is minion-kak? What is minion-kak?" }, { text: "What is minion-kaq?" }]));
++	rows.push(await direct("a real repeat of a different sentence still goes out", 2, [{ text: "Turn on the lights." }, { text: "Now turn them off please." }]));
++	return rows;
++});
++let bad = 0;
++for (const r of out){
++	const words = r.sent.join(" ").toLowerCase().replace(/[^\p{L}\p{N}\s]/gu, "").split(/\s+/).filter(Boolean);
++	const dup = r.sent.length !== r.expect;
++	if (dup) bad++;
++	console.log((dup ? "DUPLICATE " : "ok        ") + r.name + "\n    sent " + r.sent.length + ": " + JSON.stringify(r.sent));
++}
++await close();
++process.exit(bad ? 1 : 0);
+diff --git a/public/framework/ext/Chat/doc/proof/shots/after-navigate-1920.png b/public/framework/ext/Chat/doc/proof/shots/after-navigate-1920.png
+new file mode 100644
+index 000000000..c85f153d4
+Binary files /dev/null and b/public/framework/ext/Chat/doc/proof/shots/after-navigate-1920.png differ
+diff --git a/public/framework/ext/Chat/doc/proof/shots/after-navigate-400.png b/public/framework/ext/Chat/doc/proof/shots/after-navigate-400.png
+new file mode 100644
+index 000000000..e5effc79f
+Binary files /dev/null and b/public/framework/ext/Chat/doc/proof/shots/after-navigate-400.png differ
+diff --git a/public/framework/ext/Chat/doc/proof/shots/after-typed-1920.png b/public/framework/ext/Chat/doc/proof/shots/after-typed-1920.png
+new file mode 100644
+index 000000000..cb63b537c
+Binary files /dev/null and b/public/framework/ext/Chat/doc/proof/shots/after-typed-1920.png differ
+diff --git a/public/framework/ext/Chat/doc/proof/shots/after-typed-400.png b/public/framework/ext/Chat/doc/proof/shots/after-typed-400.png
+new file mode 100644
+index 000000000..2e6929536
+Binary files /dev/null and b/public/framework/ext/Chat/doc/proof/shots/after-typed-400.png differ
+diff --git a/public/framework/ext/Chat/doc/proof/shots/after-voice-1920.png b/public/framework/ext/Chat/doc/proof/shots/after-voice-1920.png
+new file mode 100644
+index 000000000..b6b880756
+Binary files /dev/null and b/public/framework/ext/Chat/doc/proof/shots/after-voice-1920.png differ
+diff --git a/public/framework/ext/Chat/doc/proof/shots/after-voice-400.png b/public/framework/ext/Chat/doc/proof/shots/after-voice-400.png
+new file mode 100644
+index 000000000..9d7106e06
+Binary files /dev/null and b/public/framework/ext/Chat/doc/proof/shots/after-voice-400.png differ
+diff --git a/public/framework/ext/Chat/doc/proof/shots/before-navigate-1920.png b/public/framework/ext/Chat/doc/proof/shots/before-navigate-1920.png
+new file mode 100644
+index 000000000..c85f153d4
+Binary files /dev/null and b/public/framework/ext/Chat/doc/proof/shots/before-navigate-1920.png differ
+diff --git a/public/framework/ext/Chat/doc/proof/shots/before-navigate-400.png b/public/framework/ext/Chat/doc/proof/shots/before-navigate-400.png
+new file mode 100644
+index 000000000..e5effc79f
+Binary files /dev/null and b/public/framework/ext/Chat/doc/proof/shots/before-navigate-400.png differ
+diff --git a/public/framework/ext/Chat/doc/proof/shots/before-typed-1920.png b/public/framework/ext/Chat/doc/proof/shots/before-typed-1920.png
+new file mode 100644
+index 000000000..b4e9c9dfd
+Binary files /dev/null and b/public/framework/ext/Chat/doc/proof/shots/before-typed-1920.png differ
+diff --git a/public/framework/ext/Chat/doc/proof/shots/before-typed-400.png b/public/framework/ext/Chat/doc/proof/shots/before-typed-400.png
+new file mode 100644
+index 000000000..81646c924
+Binary files /dev/null and b/public/framework/ext/Chat/doc/proof/shots/before-typed-400.png differ
+diff --git a/public/framework/ext/Chat/doc/proof/shots/before-voice-1920.png b/public/framework/ext/Chat/doc/proof/shots/before-voice-1920.png
+new file mode 100644
+index 000000000..f8db9bae3
+Binary files /dev/null and b/public/framework/ext/Chat/doc/proof/shots/before-voice-1920.png differ
+diff --git a/public/framework/ext/Chat/doc/proof/shots/before-voice-400.png b/public/framework/ext/Chat/doc/proof/shots/before-voice-400.png
+new file mode 100644
+index 000000000..d6f3b7c79
+Binary files /dev/null and b/public/framework/ext/Chat/doc/proof/shots/before-voice-400.png differ
+diff --git a/public/framework/ext/Chat/doc/proof/shots/dbg-typed-1920.png b/public/framework/ext/Chat/doc/proof/shots/dbg-typed-1920.png
+new file mode 100644
+index 000000000..faeac4533
+Binary files /dev/null and b/public/framework/ext/Chat/doc/proof/shots/dbg-typed-1920.png differ
+diff --git a/public/framework/ext/Chat/doc/proof/shots/dbg-typed-400.png b/public/framework/ext/Chat/doc/proof/shots/dbg-typed-400.png
+new file mode 100644
+index 000000000..78a480d3d
+Binary files /dev/null and b/public/framework/ext/Chat/doc/proof/shots/dbg-typed-400.png differ
+diff --git a/public/framework/ext/Chat/doc/proof/shots/dbg-voice-1920.png b/public/framework/ext/Chat/doc/proof/shots/dbg-voice-1920.png
+new file mode 100644
+index 000000000..0ea0995f3
+Binary files /dev/null and b/public/framework/ext/Chat/doc/proof/shots/dbg-voice-1920.png differ
+diff --git a/public/framework/ext/Chat/doc/proof/shots/dbg-voice-400.png b/public/framework/ext/Chat/doc/proof/shots/dbg-voice-400.png
+new file mode 100644
+index 000000000..78a480d3d
+Binary files /dev/null and b/public/framework/ext/Chat/doc/proof/shots/dbg-voice-400.png differ
+diff --git a/public/framework/ext/Chat/doc/proof/shots/files.jsonl b/public/framework/ext/Chat/doc/proof/shots/files.jsonl
+new file mode 100644
+index 000000000..16e3355d3
+--- /dev/null
++++ b/public/framework/ext/Chat/doc/proof/shots/files.jsonl
+@@ -0,0 +1,17 @@
++{"file":"before-typed-1920.png"}
++{"file":"before-voice-1920.png"}
++{"file":"before-typed-400.png"}
++{"file":"before-voice-400.png"}
++{"file":"dbg-typed-1920.png"}
++{"file":"dbg-voice-1920.png"}
++{"file":"dbg-typed-400.png"}
++{"file":"dbg-voice-400.png"}
++{"file":"after-typed-1920.png"}
++{"file":"after-voice-1920.png"}
++{"file":"after-typed-400.png"}
++{"file":"after-voice-400.png"}
++{"file":"after-navigate-1920.png"}
++{"file":"before-navigate-1920.png"}
++{"file":"before-navigate-400.png"}
++{"file":"after-navigate-400.png"}
++{"file":"sheet-400.png"}
+diff --git a/public/framework/ext/Chat/doc/proof/shots/sheet-400.png b/public/framework/ext/Chat/doc/proof/shots/sheet-400.png
+new file mode 100644
+index 000000000..4221cda63
+Binary files /dev/null and b/public/framework/ext/Chat/doc/proof/shots/sheet-400.png differ
+diff --git a/public/framework/ext/Chat/readme.md b/public/framework/ext/Chat/readme.md
+index d337832f0..08fdf17a0 100644
+--- a/public/framework/ext/Chat/readme.md
++++ b/public/framework/ext/Chat/readme.md
+@@ -37,4 +37,5 @@ const panel = new ChatPanel({ source: () => entries, deliver: post });
+ - [`doc/scroll.md`](./doc/scroll.md) — Follow-bottom scroll logic and resize observers.
+ - [`doc/reactions.md`](./doc/reactions.md) — Emoji tap-backs and threaded replies.
+ - [`doc/floor.md`](./doc/floor.md) — Minimum height constraints and layout sizing.
++- [`doc/duplicate-bubbles.md`](./doc/duplicate-bubbles.md) — why a dictated line showed 2-4 times in one bubble, the three fixes, and the proofs in `doc/proof/`.
+ - [`doc/panel-composition-2026-10-08.md`](./doc/panel-composition-2026-10-08.md) — the owner's idea: one Chat panel owning the whole window, dictation built into it (open design).
+diff --git a/public/framework/ext/drawer/rail.css b/public/framework/ext/drawer/rail.css
+index f599fb1d8..2f2f9eb3a 100644
+--- a/public/framework/ext/drawer/rail.css
++++ b/public/framework/ext/drawer/rail.css
+@@ -311,4 +311,14 @@
+ 		border: 0; border-radius: calc(var(--radius) / 2);
+ 		touch-action: manipulation;
+ 	}
++
++	/* COMPACT (the owner, 2026-10-09: "make the mobile dictation widget a little more compact"): the sheet's bubbles sit
++	   closer — tighter bubble padding, a thinner gap between bubbles, a smaller head. Only inside the sheet; the
++	   desktop drawer and the Chat page keep their own spacing (ext/Chat/Chat.css). */
++	.drawer-rail-sheet .chatbox-you,
++	.drawer-rail-sheet .chatbox-reply { padding: 0.2em 0.55em; border-radius: 0.8em; }
++	.drawer-rail-sheet .chatbox { margin-block: 0.1em; }
++	.drawer-rail-sheet .ux-dictate-widget-bubbles { gap: 0.15em; }
++	.drawer-rail-sheet .chatbox-text + .chatbox-text { margin-block-start: 0.3em; }
++	.drawer-rail-sheet .chatbox-log { margin-block-end: 0.15em; }
+ }
+diff --git a/public/framework/ext/drawer/rail.js b/public/framework/ext/drawer/rail.js
+index 7f6d4a96d..12898174d 100644
+--- a/public/framework/ext/drawer/rail.js
++++ b/public/framework/ext/drawer/rail.js
+@@ -339,7 +339,7 @@ export class DrawerRailSheetV1 extends View {
+ 	head(){
+ 		return div.c("drawer-rail-sheet-head flex v-center", () => {
+ 			div.c("drawer-rail-sheet-heading flex v-center wrap", () => {
+-				span.c("drawer-rail-sheet-title", "Ask, by voice");
++				span.c("drawer-rail-sheet-title", this.constructor.name);
+ 				this.$path = span.c("drawer-rail-sheet-path muted");
+ 			});
+ 			button.c("drawer-x", "✕").attr("type", "button").attr("title", "Close").click(() => this.close());
+diff --git a/public/framework/ext/drawer/readme.md b/public/framework/ext/drawer/readme.md
+index 9bed5f2e9..b12eb82db 100644
+--- a/public/framework/ext/drawer/readme.md
++++ b/public/framework/ext/drawer/readme.md
+@@ -28,7 +28,7 @@ drawer.showing();     // boolean
+ - `drawer.js` / `drawer.css`: Shell, push layout, ✕ close, and `--drawer-w` token.
+ - `menu.js`: The top-right ☰ button.
+ - `tabs.js`: Tab switcher routing (`AI`, `Dictate`, `Settings`, `Element`).
+-- `rail.js` / `rail.css`: Phone bottom rail and voice sheet.
++- `rail.js` / `rail.css`: Phone bottom rail and voice sheet. **The mobile sheet for dictation is `DrawerRailSheetChat`** (the name its title shows; it extends `DrawerRailSheetPanel` > `DrawerRailSheet` > `DrawerRailSheetV1`).
+ - `page.js`: Live interactive demo.
+ 
+ ## Doc topics
+diff --git a/public/framework/ux/Dictate/chat.js b/public/framework/ux/Dictate/chat.js
+index 0df2dcfd6..2c5bb8ec1 100644
+--- a/public/framework/ux/Dictate/chat.js
++++ b/public/framework/ux/Dictate/chat.js
+@@ -210,6 +210,11 @@ export default function chat(el, { path = location.pathname, card, placeholder,
+ 	// guard, widened to every chat line, keyed the same way `ext/Chat/Chat.js`'s own `chat()`
+ 	// factory already dedupes its `source()` lines (`at` + whether it's a `fix` + the text).
+ 	let seen_chat = new Set();
++	// IN-FLIGHT ECHO (2026-10-09, dup-chat-bubbles): the stream can push the owner's own line back BEFORE
++	// `Session.say` resolves, so `own_ats` lacks its `at` and it drew twice. Texts being sent wait here;
++	// the first owner line matching one is that echo.
++	const sending = [];
++	const flat = t => String(t ?? "").replace(/\s+/g, " ").trim();
+ 
+ 	new View({ el, capture: false }).append(() => {
+ 		panel = new Widget({
+@@ -223,8 +228,12 @@ export default function chat(el, { path = location.pathname, card, placeholder,
+ 					const via = entry.via === "typed" ? "text" : "voice";
+ 					floor.stamp(entry);
+ 					const thread = entry.thread ? { re: entry.thread, thread: true } : {};
+-					const r = await Session.say({ session: owner.ctl.session, path: target.path, text: entry.text,
+-						via, raw: entry.raw, floor: entry.floor, cues: entry.cues, selection: owner.ctl.selection, ...thread });
++					const mine = { text: flat(entry.text), at: entry.at }; sending.push(mine);
++					let r;
++					try {
++						r = await Session.say({ session: owner.ctl.session, path: target.path, text: entry.text,
++							via, raw: entry.raw, floor: entry.floor, cues: entry.cues, selection: owner.ctl.selection, ...thread });
++					} finally { const i = sending.indexOf(mine); if (i >= 0) sending.splice(i, 1); }
+ 					own_ats.add(r.at);
+ 					panel.retag(entry.at, r.at);
+ 					if (entry.floor === "speaking") owner.watch_floor();
+@@ -252,6 +261,9 @@ export default function chat(el, { path = location.pathname, card, placeholder,
+ 		// second time (law 6).
+ 		if (line?.refined) return void panel.say(Session.entry(line));
+ 		if (!line?.chat) return;
++		// Only when this send's own optimistic bubble is still on screen: after a reset it is gone, so the copy is drawn.
++		const echo = line.chat.from?.kind === "owner" && sending.find(m => m.text === flat(line.chat.text) && panel.$thread?.lines?.has(m.at));
++		if (echo){ own_ats.add(line.chat.at); panel.retag(echo.at, line.chat.at); return; }   // in-flight echo
+ 		if (own_ats.has(line.chat.at)) return;   // this mount's own send, already drawn optimistically
+ 		// `watch()` and `stream()` both call this for the SAME line (see the comment on
+ 		// `seen_chat`, above) — a `fix` carries its own text, so a later correction at the

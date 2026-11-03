@@ -1,0 +1,83 @@
+# Mention — `#Page` and `@owner` become a small icon + the word, wherever the site renders written content
+
+`#Page` is a reference to a real thing on the site — a page, a module, a doc. `@owner` is a
+person or an agent role. Write either one in any markdown or chat text and it turns into a small
+icon + the word, linking to wherever that name means — the owner's own words: *"you could
+easily convert any reference to a actual thing you could click through to and read about."*
+
+## Use
+
+```js
+import { mentions } from "/framework/ext/Mention/Mention.js";
+
+mentions(someElement);   // walk it in place, using the site's own two maps
+```
+
+You don't usually call this yourself — `md()` (every markdown render) and `ext/Chat`'s `md_into`
+(chat bubbles, Drill titles) already call it after every parse. Writing `#Page` or `@owner`
+anywhere that text goes through either of those is enough.
+
+Adding a name: open [`maps/refs.js`](maps/refs.js) (things — `#`) or
+[`maps/people.js`](maps/people.js) (people and agent roles — `@`) and add one line,
+`Name: { url, icon }`. `icon` is a [Material Symbols](https://fonts.google.com/icons) name, the
+same ones `ui.item` takes.
+
+- **Agent ids and inline code (2026-10-25):** `@mastermind-x` (or a bare `mastermind-x` alone in backticks) links to the agent's real page, its task folder in the dated store: `AgentUrl` ([ai/AISession/AgentUrl.js](/framework/ai/AISession/AgentUrl.js), one lookup built from `ai/index.json`) retargets each `a[data-agent]` once it loads; until then, and for a name with no folder, the href is `/framework/ai/sessions/<id>/`, which redirects or says "Session not found". An inline code span holding only one reference (`/framework/ai/`, `@owner`, an agent id) becomes the link; longer code and code blocks stay code. See [`doc/Mention-notes.md`](doc/Mention-notes.md).
+- **Three command characters (2026-10-19):** `/path` is a real site path (checked against the folder listings, no map), `@` an actor, `#` a class or concept, each with its own icon and colour; see [`doc/architecture.md`](doc/architecture.md) and the [demo](/framework/ext/Mention/).
+
+## Watch out
+
+- **Two separate namespaces, one per control character** — `#` only looks in `refs.js`, `@`
+  only in `people.js`. This is deliberate (the owner, 2026-09-30): a reference and a person
+  can never collide, and a third namespace later is a third map, nothing else changing.
+- **A name not in its map stays plain text** — nothing throws, nothing warns (the merge smoke
+  test fails on a console warning or error), and the name is recorded once in the exported
+  `unknown` Set with one `console.debug`. See it live on [this page](/framework/ext/Mention/),
+  under "Unknown names seen this session."
+- **`#[Name with spaces]`** is the bracket form, for a name that isn't one word:
+  [`doc/syntax.md`](doc/syntax.md) has the exact pattern and why a markdown heading (`# Title`)
+  never matches it by accident.
+- **A mention reads the LIVE page first, the cache second.** If the page a `#name` points at has
+  already been built this session (you've visited it, or it's one `/framework/`'s own wall just
+  loaded — in practice this covers most of the site, since the sidebar's own tree walk builds
+  enough of it on every page load), the mention reads that live instance's own `icon` and
+  `nav().class_card` straight off it — editing a page's icon updates its mentions on your very next
+  reload, no extra step. Only a page truly nobody has built yet falls back to `refs.js`'s cache —
+  and the dev server now keeps THAT fresh on its own (2026-10-03): the moment a watched `page.js`
+  or `page.jsonl` changes, [`Server/plugins/MentionSync.js`](/framework/servex/fs/?file=Server)
+  re-reads its icon text and rewrites `refs.js`, no script to remember. [`sync.mjs`](sync.mjs) is
+  now only needed for `class_card` (it loads each page headless for the real `nav().class_card` —
+  too expensive to do on every keystroke, and `live()` above already covers the common case).
+  `people.js` and the four concept-only `refs.js` entries that borrow another page's url
+  (`CLAUDE.md`, `skills`, `MCP`, `dev-server`) are left out of both — `doc/syntax.md` says why.
+- **A `#reference` to a class gets the same dark card a class's own module index uses** —
+  `Mention.js`'s `build_row()` and `page.js`'s demo wall both read `entry.class_card` and add
+  `page-surface-dark`, the framework's existing always-dark island (`core/Page/words.js`'s `dark`
+  SURFACE word), so `#Page` in a sentence and the `Page` card on `/framework/core/` read as the
+  one idea. ⚠ `ui/item`'s own `.item` rule resets `background: none` at the same CSS specificity,
+  in the same layer — `Mention.js` has to declare its own `.item.page-surface-dark` override
+  AFTER importing `item.js`, or the reset silently wins and the card never looks dark at all.
+- `mentions()` builds its icon rows OUTSIDE whatever `View` capture happens to be open when it
+  runs, on purpose — see the comment beside `build_row()` in [`Mention.js`](Mention.js) if a
+  future change to `View`'s capturing ever needs to know why.
+- **The class-card look is exported for reuse** — `ref_entry(url)` (the same `/path` lookup a
+  literal `/framework/core/Page/` in text already does) and `build_row(name, entry, extra)` (the
+  card itself; pass `"mention"` instead of the default `"inline mention"` to drop the
+  tightened-for-text sizing). `core/Page/Page.class.js`'s content-list `ref` row is the first
+  caller (2026-10-03: [`doc/jsonl.md`](/framework/core/Page/doc/jsonl.md#a-content-row-that-is-a-page-reference-2026-10-03)) — one card, not a second one built to match it.
+
+## More
+
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
+- [Overview](/framework/ext/Mention/) — every known name, live, and the unknown ones this
+  session has actually seen.
+- [`doc/syntax.md`](doc/syntax.md) — the exact pattern, the markdown-heading and email/colour
+  edge cases, and the derive-the-map note.
+- [`doc/ideas.md`](doc/ideas.md) — open ideas to evaluate (not decisions).
+- Back to [Ext](/framework/ext/).
+
+- Notes: [doc/Mention-notes.md](doc/Mention-notes.md) — history and lessons moved out of the code comments.
+
+## Notes from your asks
+
+- Link to pages, modules and docs wherever a mention fits, every time it fits. ([your words](/framework/ai/sessions/7efd07d5-7a58-434d-8847-1a1d7b640390/?tab=coverage#p603), 2026-10-09)

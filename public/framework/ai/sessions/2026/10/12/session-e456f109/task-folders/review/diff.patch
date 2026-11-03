@@ -1,0 +1,906 @@
+diff --git a/.claude/hooks/append.mjs b/.claude/hooks/append.mjs
+index 1fc7abb43..e2ce4d2ac 100644
+--- a/.claude/hooks/append.mjs
++++ b/.claude/hooks/append.mjs
+@@ -11,8 +11,10 @@
+ // The trailing newline is sniffed (a file written by the Write tool has none), the lines are
+ // appended, and every line of the target is re-parsed; a bad line exits non-zero and names itself.
+ // usage: node .claude/hooks/append.mjs <target.jsonl> <lines.json>
+-import { readFileSync, appendFileSync, existsSync, statSync, openSync, readSync, closeSync } from "node:fs";
++import { readFileSync, appendFileSync, existsSync, statSync, openSync, readSync, closeSync, mkdirSync } from "node:fs";
+ import { check, shape } from "./jsonl-schema.mjs";
++import { resolve as resolve_path, dirname, basename, join } from "node:path";
++import TaskDirs from "../../Server/TaskDirs.mjs";
+ 
+ const pad = n => String(n).padStart(2, "0");
+ function nowLocal(){
+@@ -26,8 +28,18 @@ function fill(v, t){
+ 	return v;
+ }
+ 
+-const [target, source] = process.argv.slice(2);
++let [target, source] = process.argv.slice(2);
+ if (!target || !source) { console.error("usage: node append.mjs <target.jsonl> <lines.json>"); process.exit(2); }
++// A task log or day log named by its OLD path (ai/YYYY-MM-DD/...) goes to where it lives now (Server/TaskDirs.mjs,
++// ai/doc/task-folders.md): a moved folder is followed; a day or task never made in the old shape is made in the new one.
++{
++	const abs = resolve_path(target), moved = TaskDirs.follow(abs);
++	const m = /[\\/]public[\\/]framework[\\/]ai[\\/](\d{4}-\d{2}-\d{2})[\\/]/.exec(abs);
++	const now = moved !== abs ? moved
++		: m && !existsSync(dirname(abs)) ? (basename(abs) === "day.jsonl" && basename(dirname(abs)) === m[1] ? join(TaskDirs.day_dir(m[1]), "day.jsonl") : join(TaskDirs.normalize(dirname(abs), process.env.CLAUDE_CODE_SESSION_ID), basename(abs)))
++		: abs;
++	if (now !== abs){ mkdirSync(dirname(now), { recursive: true }); console.error(`(old path followed: ${target} -> ${now})`); target = now; }
++}
+ const strip_bom = s => s.replace(/^﻿/, "");
+ const items = JSON.parse(strip_bom(readFileSync(source, "utf8")));
+ const list = Array.isArray(items) ? items : [items];
+diff --git a/.claude/hooks/prompt-relay.mjs b/.claude/hooks/prompt-relay.mjs
+index 382e51f7f..b6b7e5d08 100644
+--- a/.claude/hooks/prompt-relay.mjs
++++ b/.claude/hooks/prompt-relay.mjs
+@@ -2,6 +2,7 @@ import fs from "node:fs";
+ import os from "node:os";
+ import path from "node:path";
+ import { fileURLToPath } from "node:url";
++import TaskDirs from "../../Server/TaskDirs.mjs";
+ 
+ /* prompt-relay.mjs — the UserPromptSubmit hook (2026-09-19).
+  *
+@@ -175,17 +176,11 @@ function echo_context_line(session_id){
+ 
+ // The newest unlanded ai/<date>/mastermind-*/task.jsonl — copied from say.mjs's run().
+ function mastermind_inbox() {
+-	let days;
+-	try { days = fs.readdirSync(AI).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d)).sort().reverse(); } catch { return null; }
+-	for (const day of days) {
+-		let slugs;
+-		try { slugs = fs.readdirSync(path.join(AI, day)).filter(s => s.startsWith("mastermind-")).sort().reverse(); } catch { continue; }
+-		for (const slug of slugs) {
+-			const file = path.join(AI, day, slug, "task.jsonl");
+-			if (!fs.existsSync(file)) continue;
+-			const state = Object.assign({}, ...read(file).filter(e => e.assign).map(e => e.assign));
+-			if (!state.landed_at) return file;
+-		}
++	// Both shapes, newest day first (Server/TaskDirs.mjs; ai/doc/task-folders.md).
++	for (const t of TaskDirs.list(3).filter(t => t.slug.startsWith("mastermind-"))) {
++		const file = path.join(t.dir, "task.jsonl");
++		const state = Object.assign({}, ...read(file).filter(e => e.assign).map(e => e.assign));
++		if (!state.landed_at) return file;
+ 	}
+ 	return null;
+ }
+diff --git a/.claude/skills/every-prompt/say.mjs b/.claude/skills/every-prompt/say.mjs
+index 0aa1963e4..ca51dd42b 100644
+--- a/.claude/skills/every-prompt/say.mjs
++++ b/.claude/skills/every-prompt/say.mjs
+@@ -19,6 +19,7 @@
+ import fs from "node:fs";
+ import path from "node:path";
+ import { fileURLToPath } from "node:url";
++import TaskDirs from "../../../Server/TaskDirs.mjs";
+ 
+ const root = path.resolve(fileURLToPath(import.meta.url), "../../../..");
+ const AI = path.join(root, "public/framework/ai");
+@@ -39,10 +40,9 @@ const append = (file, entry) => fs.appendFileSync(file, JSON.stringify(entry) +
+ 
+ /* The newest mastermind run that has not landed: ai/<date>/mastermind-<slug>/task.jsonl. */
+ function run(){
+-	const days = fs.readdirSync(AI).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d)).sort().reverse();
+-	for (const day of days) for (const slug of fs.readdirSync(path.join(AI, day)).filter(s => s.startsWith("mastermind-")).sort().reverse()) {
+-		const file = path.join(AI, day, slug, "task.jsonl");
+-		if (!fs.existsSync(file)) continue;
++	// Both shapes, newest day first (Server/TaskDirs.mjs; ai/doc/task-folders.md).
++	for (const t of TaskDirs.list(3).filter(t => t.slug.startsWith("mastermind-"))) {
++		const file = path.join(t.dir, "task.jsonl");
+ 		const state = Object.assign({}, ...read(file).filter(e => e.assign).map(e => e.assign));
+ 		if (!state.landed_at) return file;
+ 	}
+diff --git a/.claude/skills/finish-task/SKILL.md b/.claude/skills/finish-task/SKILL.md
+index 16dcff623..b2b831c2b 100644
+--- a/.claude/skills/finish-task/SKILL.md
++++ b/.claude/skills/finish-task/SKILL.md
+@@ -86,7 +86,7 @@ with the Write tool and append that file's bytes, whatever the extension.
+ ```json
+ {"log": {"at": "<ISO>", "task": "<slug>", "msg": "landed — <one line>"}}
+ ```
+-appended to `public/framework/ai/<date>/day.jsonl`.
++appended to the day's `day.jsonl` (`node Server/TaskDirs.mjs --day` prints its folder).
+ 
+ ## What the hooks already do
+ 
+diff --git a/.claude/skills/new-task/SKILL.md b/.claude/skills/new-task/SKILL.md
+index e8c24ebfe..98ccc87e5 100644
+--- a/.claude/skills/new-task/SKILL.md
++++ b/.claude/skills/new-task/SKILL.md
+@@ -1,23 +1,23 @@
+ ---
+ name: new-task
+-description: Open a task — create its ai/<date>/<slug>/ dir, open its task.jsonl log, and give it presence on the owner's dashboard. Run this BEFORE THE FIRST EDIT in ANY Claude session in this repo — building, changing, fixing, adding, refactoring, restyling, a doc pass, a rename, a demo, a bug fix — and when an agent embarks on a distinct sub-project. Also on "new task" / "start a task". Not needed to answer a question, read, investigate, or prepare — but the moment that turns into an edit, run it. Unsure? Run it.
++description: Open a task — create its folder with node Server/TaskDirs.mjs --new <slug>, open its task.jsonl log, and give it presence on the owner's dashboard. Run this BEFORE THE FIRST EDIT in ANY Claude session in this repo — building, changing, fixing, adding, refactoring, restyling, a doc pass, a rename, a demo, a bug fix — and when an agent embarks on a distinct sub-project. Also on "new task" / "start a task". Not needed to answer a question, read, investigate, or prepare — but the moment that turns into an edit, run it. Unsure? Run it.
+ ---
+ 
+ # New task
+ 
+-Anything that changes the repo is a **task**: a dir at
+-`public/framework/ai/<YYYY-MM-DD>/<slug>/` whose append-only `task.jsonl` the day dashboard (`/framework/ai/<date>/`) renders live. Open it **before the first edit**. Format: `ext/JSONL/readme.md`; viewer: `ext/AITask/readme.md`.
++Anything that changes the repo is a **task**: a folder inside your session's folder in the sessions store,
++`public/framework/ai/sessions/YYYY/MM/DD/<session>/<slug>/`, whose append-only `task.jsonl` the board renders live. **Never type the path:** `node Server/TaskDirs.mjs --new <slug>` makes it and prints it (your session id comes from `$CLAUDE_CODE_SESSION_ID`; a child task: add `--parent <parent dir>`). Why: [`ai/doc/task-folders.md`](/framework/ai/doc/task-folders.md). The old flat `ai/<YYYY-MM-DD>/` day folders are retired; an old path still works for appends (`append.mjs` follows it). Open it **before the first edit**. Format: `ext/JSONL/readme.md`; viewer: `ext/AITask/readme.md`.
+ 
+ If your brief names a task dir, Servex already opened it: log there and skip step 1.
+ 
+ ## 1. Create the dir
+ 
+ - Slug: kebab-case, matching the VS Code tab title — `Get-Process Code -ErrorAction SilentlyContinue | Where-Object MainWindowTitle | Select-Object -ExpandProperty MainWindowTitle` lists the windows; yours matches this conversation's topic.
+-- ⚠ **Build it at an ABSOLUTE path**, or `cd` to the repo root in the same call. The Bash tool's
++- ⚠ **Run it from the repo root** (`cd` to it in the same call). The Bash tool's
+   cwd persists between calls, so an earlier `cd` into a module silently puts the whole task dir
+   under it — `mkdir -p` cannot warn you, and a minion dispatched to read the brief finds nothing.
+ - `requirements.md` — the ask **verbatim**, plus scope and file-ownership fences if agents will run.
+-- **A brief made from dictation is made with `refine.mjs`, not by hand-summarizing.** If the request started as a long spoken or typed dictation, run `node Server/refine.mjs <raw.txt | date:line> --out ai/<date>/<slug>/runs/<name>` first — it turns the raw talking into a checked `brief.md`, and its `coverage.md` proves nothing important was silently dropped or turned into a stricter rule on the way. Use `brief.md`'s numbered asks as `requirements.md`'s own content, and keep `coverage.md` sitting right beside `requirements.md` (`Server/doc/refine.md`).
++- **A brief made from dictation is made with `refine.mjs`, not by hand-summarizing.** If the request started as a long spoken or typed dictation, run `node Server/refine.mjs <raw.txt | date:line> --out <task dir>/runs/<name>` first — it turns the raw talking into a checked `brief.md`, and its `coverage.md` proves nothing important was silently dropped or turned into a stricter rule on the way. Use `brief.md`'s numbered asks as `requirements.md`'s own content, and keep `coverage.md` sitting right beside `requirements.md` (`Server/doc/refine.md`).
+ - ⚠ Scratch (probes, transcripts, intermediate JSON) goes in the session scratchpad, not the repo — and that
+   scratchpad is **shared by every agent in the session**: name scripts after your task (`md-routes-probe.mjs`),
+   or a sibling minion overwrites your `probe.mjs` mid-run (2026-08-18, it happened).
+@@ -42,7 +42,7 @@ on any other task's log.
+ 
+ **Keep state current as you go, so losing this session loses nothing.** When a step starts, append `{"assign": {"step": N, "now": "<what is happening inside it>"}}`. A fresh agent must be able to continue from the log plus the readme alone. Land with `step` at the last index.
+ 
+-- `../day.jsonl` — the DAY's log, `ai/<date>/day.jsonl`, beside your task dir (⚠ not the stale `ai/day.jsonl` one level up, which still looks current when tailed — a line went there 2026-08-29). Same route as your task log — `node .claude/hooks/append.mjs ai/<date>/day.jsonl <lines.json>` — which creates `day.jsonl` itself the first time a day opens; nothing to `mkdir` by hand (the day's own dir already exists, since your task dir sits inside it):
++- `day.jsonl` — the DAY's log, in the day's folder of the store (`node Server/TaskDirs.mjs --day` prints it, e.g. `public/framework/ai/sessions/2026/10/12`; ⚠ not the stale `ai/day.jsonl`). Same route as your task log — `node .claude/hooks/append.mjs <day dir>/day.jsonl <lines.json>`:
+ 
+ ```json
+ {"log": {"at": "<ISO>", "task": "<slug>", "msg": "task opened — <one line>"}}
+@@ -50,7 +50,7 @@ on any other task's log.
+ 
+ ## 2. Register + usage
+ 
+-- Leave the task dir **undeclared** — do NOT add it to the day page's `children:` unless the dir has its own `page.js` (a declared child skips the dynamic `route()` and 404s). The dashboard enumerates task dirs from `directory.json` either way.
++- Leave the task dir **undeclared**: the sessions store routes every folder by its path (`/framework/ai/sessions/YYYY/MM/DD/<session>/<slug>/`), and the board lists tasks with `TaskDirs.list()`.
+ - `window.before` is the 5-hour fraction from `node Server/usage-now.mjs` (it prints a percent; divide by 100). Never run the usage script or write `usage.json` yourself: Servex refreshes it every 15 minutes.
+ 
+ ## 3. While working, log
+diff --git a/Server/TaskDirs.mjs b/Server/TaskDirs.mjs
+index 954a9de6b..208b084ab 100644
+--- a/Server/TaskDirs.mjs
++++ b/Server/TaskDirs.mjs
+@@ -1,56 +1,130 @@
+ #!/usr/bin/env node
+-// Server/TaskDirs.mjs — a finished task lives INSIDE the session that ran it: ai/sessions/YYYY/MM/DD/<session>/task/
+-// (owner, 2026-10-10: "if tasks belong to sessions, put them within the session folder"). Brief: ai/2026-10-10/tasks-into-sessions/requirements.md
++// Server/TaskDirs.mjs — WHERE A TASK FOLDER LIVES. The one class every writer and reader asks; nobody types ai/<date>/ by hand.
++// Decision: public/framework/ai/doc/task-folders.md (2026-10-12). A task lives in the sessions store, inside the session that ran it:
++//   ai/sessions/YYYY/MM/DD/<session folder>/<slug>/   (no known session: ai/sessions/YYYY/MM/DD/<slug>/; a child task: <parent>/<slug>/)
++// The day is the UTC day, like the session store (core/Session/Session.js). The day's log is ai/sessions/YYYY/MM/DD/day.jsonl.
+ //
+-//   node Server/TaskDirs.mjs                dry run: what would move, what stays and why (the default; changes nothing)
+-//   node Server/TaskDirs.mjs --apply        write the snapshot (every file, size, sha1), move the folders, leave a stub, write the manifest
+-//   node Server/TaskDirs.mjs --verify       prove every snapshot file sits at its new path with the same sha1 (zero missing, zero changed)
+-//   node Server/TaskDirs.mjs --undo         move every folder back using the manifest
+-//
+-// The old folder ai/<date>/<task>/ is never gone: a stub `moved.json` {to, session} stays there, so day listings still see the task,
+-// and `TaskDirs.follow(dir)` / `TaskDirs.alias(url)` turn the old address into the new one (the dev server serves old URLs through `alias`).
+-// Only a task that is landed, quiet for QUIET_MIN minutes, and joined to a session in the store moves; everything else stays where it is.
+-// The manifest `ai/sessions/task-manifest.json` is the record: old -> new for every folder, plus each file's size and sha1.
++//   node Server/TaskDirs.mjs --new <slug> [--session <uuid>] [--parent <dir>]   make the folder, print its repo-relative path
++//   node Server/TaskDirs.mjs --day                print today's day folder (where day.jsonl goes)
++//   node Server/TaskDirs.mjs --find <slug>        print the newest task folder with that slug
++//   node Server/TaskDirs.mjs --list [days]        print every task folder of the last N days (default 7)
++//   node Server/TaskDirs.mjs --follow <old dir>   print where an old ai/YYYY-MM-DD/<slug>/ path lives now
++// Old paths keep working: every move is a line in ai/sessions/task-moves.jsonl (Server/TaskMove.mjs) or the 2026-10-10
++// ai/sessions/task-manifest.json; follow(), alias() and redirect() chain through both. The 2026-10-10 mover (plan/apply/verify/undo) is below.
+ import fs from "node:fs";
+ import path from "node:path";
+ import crypto from "node:crypto";
+ import { fileURLToPath } from "node:url";
+ 
+ const here = path.dirname(fileURLToPath(import.meta.url));
+-const REPO = path.resolve(here, ".."), AI = path.join(REPO, "public", "framework", "ai"), SESS = path.join(AI, "sessions");
+-const MANIFEST = path.join(SESS, "task-manifest.json"), STUB = "moved.json", QUIET_MIN = 240;
++const REPO = path.resolve(process.env.LEDGER_ROOT || path.resolve(here, "..")), AI = path.join(REPO, "public", "framework", "ai"), SESS = path.join(AI, "sessions");
++const MANIFEST = path.join(SESS, "task-manifest.json"), MOVES = path.join(SESS, "task-moves.jsonl"), STUB = "moved.json", QUIET_MIN = 240;
+ const slash = p => p.split(path.sep).join("/"), rel = p => slash(path.relative(REPO, p));
++const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
++const ls = d => { try { return fs.readdirSync(d, { withFileTypes: true }).filter(e => e.isDirectory()).map(e => e.name); } catch { return []; } };
+ 
+ export default class TaskDirs {
++	static REPO = REPO;
++	static AI = AI;
++	static SESS = SESS;
+ 	static MANIFEST = MANIFEST;
++	static MOVES = MOVES;
+ 	static STUB = STUB;
+-	static #cache = { mtime: 0, map: new Map() };
++	static #cache = { key: "", map: new Map() };
++
++	/** "YYYY/MM/DD" of a Date (UTC, like the session store) or of a "YYYY-MM-DD" string. */
++	static ymd(day = new Date()){ return (typeof day === "string" ? day : day.toISOString().slice(0, 10)).replace(/-/g, "/"); }
++	/** The day's folder in the store, where day.jsonl lives. Absolute. */
++	static day_dir(day){ return path.join(SESS, ...this.ymd(day).split("/")); }
++
++	/** A session's folder without the async full scan: `session-<id8>` or the uuid, on the given day or up to 3 days before;
++	 *  else the folder Session.locate() would make (`session-<id8>` under the day). Absolute. */
++	static session_dir(id, day = new Date()){
++		const t = typeof day === "string" ? new Date(day + "T12:00:00Z") : day;
++		for (let back = 0; back < 4; back++){
++			const d = this.day_dir(new Date(t.getTime() - back * 864e5));
++			for (const name of [id, "session-" + id.slice(0, 8)]) if (fs.existsSync(path.join(d, name))) return path.join(d, name);
++		}
++		return path.join(this.day_dir(t), "session-" + id.slice(0, 8));
++	}
++
++	/** WHERE A NEW TASK GOES. {slug, session_id?, parent?, day?} -> absolute dir (not created). */
++	static dir({ slug, session_id, parent, day } = {}){
++		if (!/^[a-z0-9][a-z0-9._-]*$/i.test(slug ?? "")) throw new Error("TaskDirs.dir: a slug is [a-z0-9-], got " + JSON.stringify(slug));
++		if (parent) return path.join(this.follow(path.resolve(REPO, parent)), slug);
++		if (session_id && UUID.test(session_id)) return path.join(this.session_dir(session_id, day ?? new Date()), slug);
++		return path.join(this.day_dir(day), slug);
++	}
++
++	/** Make it. Returns the absolute dir. */
++	static make(spec){ const d = this.dir(spec); fs.mkdirSync(d, { recursive: true }); return d; }
++
++	/** An old-shaped dir (ai/YYYY-MM-DD/<slug>[/rest]) that does not exist and never moved -> its new home, for writers
++	 *  (Servex open_task) handed an old-style path by a brief. Anything else comes back resolved but unchanged. */
++	static normalize(dir, session_id){
++		const abs = path.resolve(REPO, dir), f = this.follow(abs);
++		if (f !== abs || fs.existsSync(abs)) return f;
++		const m = /^public\/framework\/ai\/(\d{4}-\d{2}-\d{2})\/([^/]+)((?:\/[^/]+)*)$/.exec(rel(abs));
++		if (!m) return abs;
++		if (m[3] && fs.existsSync(path.join(AI, m[1], m[2]))) return abs;   // a child under a live old-shaped parent stays beside it
++		return path.join(this.dir({ slug: m[2], session_id }), ...m[3].split("/").filter(Boolean));
++	}
++
++	/** Every task folder (holds task.jsonl) of the last `days` days, both shapes: [{dir, day:"YYYY-MM-DD", slug, key}]. Newest day first. */
++	static list(days = 7, now = new Date()){
++		const out = [], cut = new Date(now.getTime() - days * 864e5).toISOString().slice(0, 10);
++		const push = (dir, day) => { if (fs.existsSync(path.join(dir, "task.jsonl"))) out.push({ dir, day, slug: path.basename(dir), key: slash(path.relative(AI, dir)) }); };
++		for (const y of ls(SESS).filter(n => /^\d{4}$/.test(n))) for (const m of ls(path.join(SESS, y))) for (const d of ls(path.join(SESS, y, m))){
++			const day = `${y}-${m}-${d}`; if (day < cut) continue;
++			const dd = path.join(SESS, y, m, d);
++			for (const a of ls(dd)){ push(path.join(dd, a), day); for (const b of ls(path.join(dd, a))) push(path.join(dd, a, b), day); }
++		}
++		for (const day of ls(AI).filter(n => /^\d{4}-\d{2}-\d{2}$/.test(n) && n >= cut)) for (const s of ls(path.join(AI, day))) push(path.join(AI, day, s), day);
++		return out.sort((a, b) => b.day.localeCompare(a.day));
++	}
++
++	/** The newest task folder named `slug` (either shape), or null. */
++	static find(slug, days = 60){ return this.list(days).find(t => t.slug === slug)?.dir ?? null; }
+ 
+-	/** old repo-relative dir -> {to, session}, read from the manifest (cached until its mtime changes). */
++	/** old repo-relative path -> {to}, from both manifests, chains resolved (old -> 10-10 task/ -> <slug>/). Cached by mtimes. */
+ 	static map(){
+-		let m = 0; try { m = fs.statSync(MANIFEST).mtimeMs; } catch { return new Map(); }
+-		if (m !== this.#cache.mtime){
++		const mt = f => { try { return fs.statSync(f).mtimeMs; } catch { return 0; } }, key = mt(MANIFEST) + ":" + mt(MOVES);
++		if (key !== this.#cache.key){
+ 			const map = new Map();
+ 			try { for (const e of JSON.parse(fs.readFileSync(MANIFEST, "utf8")).moves) map.set(e.from, e); } catch {}
+-			this.#cache = { mtime: m, map };
++			try { for (const l of fs.readFileSync(MOVES, "utf8").split("\n")) if (l.trim()) try { const e = JSON.parse(l); if (e.from && e.to && !e.undone) map.set(e.from, e); } catch {} } catch {}
++			for (const [from, e] of map){ let to = e.to, n = 0; while (map.has(to) && n++ < 9) to = map.get(to).to; if (to !== e.to) map.set(from, { ...e, to }); }
++			this.#cache = { key, map };
+ 		}
+ 		return this.#cache.map;
+ 	}
+ 
+-	/** An absolute task dir that may have moved -> where it lives now (itself when it never moved). */
+-	static follow(dir){
+-		const e = this.map().get(rel(path.resolve(dir)));
+-		return e ? path.join(REPO, e.to) : dir;
++	/** Any absolute path (dir or file) under a moved folder -> where it is now (itself when nothing above it moved). */
++	static follow(p){
++		const map = this.map(); if (!map.size) return p;
++		const r = rel(path.resolve(p)).split("/");
++		for (let i = r.length; i > 0; i--){ const e = map.get(r.slice(0, i).join("/")); if (e) return path.join(REPO, e.to, ...r.slice(i)); }
++		return p;
+ 	}
+ 
+ 	/** A site URL under an old task dir (/framework/ai/<date>/<task>/<rest>) -> the absolute file it now is, or null. */
+ 	static alias(url){
+-		const m = /^\/framework\/ai\/(\d{4}-\d{2}-\d{2}\/[^/]+)\/(.+)$/.exec(url);
++		const m = /^\/framework\/ai\/(\d{4}-\d{2}-\d{2}\/.+)$/.exec(url);
+ 		if (!m) return null;
+-		const e = this.map().get("public/framework/ai/" + m[1]);
+-		if (!e) return null;
+-		const file = path.join(REPO, e.to, decodeURIComponent(m[2]));
+-		return file.startsWith(path.join(REPO, e.to)) ? file : null;
++		const old = path.join(AI, ...decodeURIComponent(m[1]).split("/"));
++		if (!old.startsWith(AI)) return null;
++		const now = this.follow(old);
++		return now === old ? null : now;
++	}
++
++	/** The new URL for an old one (/framework/ai/2026-10-12/<slug>/... or the bare day), or null. Old URLs redirect through this. */
++	static redirect(url){
++		const day = /^\/framework\/ai\/(\d{4})-(\d{2})-(\d{2})\/?$/.exec(url);
++		if (day) return `/framework/ai/sessions/${day[1]}/${day[2]}/${day[3]}/`;
++		const m = /^\/framework\/ai\/(\d{4}-\d{2}-\d{2}\/[^/]+)(\/.*)?$/.exec(url);
++		if (!m) return null;
++		const old = path.join(AI, ...m[1].split("/")), now = this.follow(old);
++		return now === old ? null : "/" + slash(path.relative(path.join(REPO, "public"), now)) + (m[2] ?? "/");
+ 	}
+ 
+ 	// ---- reading the tree ----
+@@ -133,15 +207,15 @@ export default class TaskDirs {
+ }
+ 
+ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)){
+-	const flag = n => process.argv.includes(n);
+-	if (flag("--undo")) console.log(`moved back ${TaskDirs.undo()} folders`);
++	const flag = n => process.argv.includes(n), arg = n => { const i = process.argv.indexOf(n); return i > 0 ? process.argv[i + 1] : undefined; };
++	if (flag("--new")) console.log(rel(TaskDirs.make({ slug: arg("--new"), session_id: arg("--session") ?? process.env.CLAUDE_CODE_SESSION_ID, parent: arg("--parent") })));
++	else if (flag("--day")){ const d = TaskDirs.day_dir(); fs.mkdirSync(d, { recursive: true }); console.log(rel(d)); }
++	else if (flag("--find")){ const d = TaskDirs.find(arg("--find")); if (!d) process.exit(1); console.log(rel(d)); }
++	else if (flag("--list")) for (const t of TaskDirs.list(Number(arg("--list")) || 7)) console.log(t.day, rel(t.dir));
++	else if (flag("--follow")) console.log(rel(TaskDirs.follow(path.resolve(REPO, arg("--follow")))));
++	else if (flag("--undo")) console.log(`moved back ${TaskDirs.undo()} folders`);
+ 	else if (flag("--verify")){ const r = TaskDirs.verify(); console.log(`${r.folders} folders, ${r.files} files, ${r.bytes} bytes checked: ${r.bad.length} missing/changed`); if (r.bad.length){ console.log(r.bad.slice(0, 20)); process.exit(1); } }
+ 	else if (flag("--apply")) console.log(await TaskDirs.apply());
+-	else {
+-		const p = await TaskDirs.plan();
+-		const why = {}; p.stay.forEach(s => why[s.why] = (why[s.why] || 0) + 1);
+-		console.log(`move: ${p.moves.length}; stay (joined but held back): ${p.stay.length} ${JSON.stringify(why)}; no session in the store (stay): ${p.orphans}; name more than one session (move with the first): ${p.multi}`);
+-		for (const s of p.stay) console.log("  stays:", s.dir, "-", s.why);
+-		console.log("(dry run: nothing was changed)");
+-	}
++	else if (flag("--plan")){ const p = await TaskDirs.plan(); console.log(`move: ${p.moves.length}; stay: ${p.stay.length}; no session: ${p.orphans}`); }
++	else console.log("usage: --new <slug> [--session id] [--parent dir] | --day | --find <slug> | --list [days] | --follow <dir> | 2026-10-10 mover: --plan --apply --verify --undo");
+ }
+diff --git a/Server/ai2-overview.mjs b/Server/ai2-overview.mjs
+index c9fc3712b..190f1adfd 100644
+--- a/Server/ai2-overview.mjs
++++ b/Server/ai2-overview.mjs
+@@ -71,21 +71,13 @@ const CONCEPTS = [
+ const FIELDS = ["request", "requested_at", "landed_at", "outcome", "cost_usd", "group", "links", "session_id"];
+ 
+ function findTaskFiles() {
+-	const out = [];
+-	for (const dateDir of fs.readdirSync(AI_DIR, { withFileTypes: true })) {
+-		if (!dateDir.isDirectory() || !/^\d{4}-\d{2}-\d{2}$/.test(dateDir.name)) continue;
+-		const dateDirPath = path.join(AI_DIR, dateDir.name);
+-		for (const slugDir of fs.readdirSync(dateDirPath, { withFileTypes: true })) {
+-			if (!slugDir.isDirectory()) continue;
+-			const file = path.join(TaskDirs.follow(path.join(dateDirPath, slugDir.name)), "task.jsonl");
+-			if (fs.existsSync(file)) out.push({ date: dateDir.name, slug: slugDir.name, file });
+-		}
+-	}
+-	return out;
++	// Every task folder, both shapes (the sessions store and old day folders): TaskDirs is the one place that knows them.
++	return TaskDirs.list(3650).map(t => ({ date: t.day, slug: t.slug, file: path.join(t.dir, "task.jsonl") }));
+ }
+ 
+ function readTask({ date, slug, file }) {
+-	const task = { date, slug, id: `${date}/${slug}` };
++	// `url`: where the task's page is now (the sessions store or an old day folder) — readers link this, never date/slug.
++	const task = { date, slug, id: `${date}/${slug}`, url: "/" + path.relative(path.join(ROOT, "public"), path.dirname(file)).split(path.sep).join("/") + "/" };
+ 	let text;
+ 	try { text = fs.readFileSync(file, "utf8"); } catch { return task; }
+ 	for (const line of text.split("\n")) {
+diff --git a/Servex/Worktrees.js b/Servex/Worktrees.js
+index 7a59c696a..0fd70070a 100644
+--- a/Servex/Worktrees.js
++++ b/Servex/Worktrees.js
+@@ -4,6 +4,7 @@ import { execFile } from "child_process";
+ import { fileURLToPath } from "url";
+ import Events from "../Server/Events.js";
+ import { stamp, place } from "./home.js";
++import TaskDirs from "../Server/TaskDirs.mjs";
+ 
+ /* WORKTREE CLEAN-UP — a worktree is temporary (process-monitor, 2026-09-30).
+  *
+@@ -219,13 +220,10 @@ export default class Worktrees extends Events {
+ 	 * finish-task's own "done" check — the two are always written together, so this only makes
+ 	 * the signal stricter, never looser. */
+ 	tasks(){
+-		const ai = path.join(this.main, "public", "framework", "ai"), out = new Map();
+-		const since = Date.now() - 21 * 86400000;
+-		let days = []; try { days = fs.readdirSync(ai).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d) && Date.parse(d) >= since); } catch {}
+-		for (const day of days){
+-			let slugs = []; try { slugs = fs.readdirSync(path.join(ai, day)); } catch {}
+-			for (const slug of slugs){
+-				let text; try { text = fs.readFileSync(path.join(ai, day, slug, "task.jsonl"), "utf8"); } catch { continue; }
++		const out = new Map();
++		for (const { dir, day, slug } of TaskDirs.list(21)){   // both shapes: the sessions store and old day folders (ai/doc/task-folders.md)
++			{
++				let text; try { text = fs.readFileSync(path.join(dir, "task.jsonl"), "utf8"); } catch { continue; }
+ 				if (!text.includes("\"worktree\"")) continue;
+ 				const state = {};
+ 				for (const line of text.split("\n")){
+diff --git a/Servex/agents/Agents.js b/Servex/agents/Agents.js
+index db6605879..ac99e98b7 100644
+--- a/Servex/agents/Agents.js
++++ b/Servex/agents/Agents.js
+@@ -9,6 +9,7 @@ import { stamp, place } from "../home.js";
+ import Registry, { alive } from "./registry.js";
+ import { defaults as role_defaults, opening, injected } from "./roles.js";
+ import { first_prompt } from "./readme-chain.js";
++import TaskDirs from "../../Server/TaskDirs.mjs";
+ import { env_for, provider_for, real_turn_cost, generation_cost, message_cost, read_key, disallowed_tools_for, spend_guard } from "../ext/openrouter/provider.js";
+ import { env_for as local_env_for, is_local_model } from "../ext/local/provider.js";
+ 
+@@ -757,7 +758,11 @@ function directory_of(spec){
+  * assign line with the same facts, exactly like every other `assign` a task
+  * log collects over its life — never touching what came before it. */
+ function open_task(task, { session_id, agent, model, worktree, parent_dir }){
+-	const dir = path.isAbsolute(task.dir) ? task.dir : path.join(process.cwd(), task.dir);
++	// An old-shaped dir (ai/YYYY-MM-DD/<slug>/) from a brief goes to the task store instead (Server/TaskDirs.mjs,
++	// ai/doc/task-folders.md); task.dir is rewritten so everything after this (directory_of, the inbox) sees the real place.
++	const dir = TaskDirs.normalize(path.isAbsolute(task.dir) ? task.dir : path.join(process.cwd(), task.dir), session_id);
++	task.dir = path.relative(process.cwd(), dir).split(path.sep).join("/");
++	if (task.parent_task) task.parent_task = TaskDirs.follow(path.resolve(task.parent_task));
+ 	fs.mkdirSync(dir, { recursive: true });
+ 	/* NESTED TASKS: `parent_task` (the parent's task dir, repo-relative, forward
+ 	 * slashes) and `after` (sibling task dirs this one waits for) — the tree
+diff --git a/Servex/asks/tasks.js b/Servex/asks/tasks.js
+index f29fa5895..ee07ab97e 100644
+--- a/Servex/asks/tasks.js
++++ b/Servex/asks/tasks.js
+@@ -19,6 +19,7 @@ import fs from "node:fs";
+ import path from "node:path";
+ import { fileURLToPath, pathToFileURL } from "node:url";
+ import { stalled } from "./stalled.js";
++import TaskDirs from "../../Server/TaskDirs.mjs";
+ 
+ const HERE = path.dirname(fileURLToPath(import.meta.url));
+ const ROOT = path.resolve(HERE, "..", "..");
+@@ -39,6 +40,7 @@ function read_lines(file){
+  * A date dir is just its own name (`YYYY-MM-DD`) — string comparison sorts the same as date
+  * comparison, so no Date parsing is needed to pick the recent ones. */
+ export function task_dirs(days = DAYS, now = new Date(), ai_dir = AI){
++	if (ai_dir === AI) return TaskDirs.list(days, now).map(t => t.dir);   // both shapes: the sessions store and old day folders (ai/doc/task-folders.md)
+ 	if (!fs.existsSync(ai_dir)) return [];
+ 	const cutoff = new Date(now.getFullYear(), now.getMonth(), now.getDate() - days);
+ 	const cutoff_str = `${cutoff.getFullYear()}-${String(cutoff.getMonth() + 1).padStart(2, "0")}-${String(cutoff.getDate()).padStart(2, "0")}`;
+diff --git a/public/framework/ai/2026-10-12/data-grid/STATE.md b/public/framework/ai/2026-10-12/data-grid/STATE.md
+deleted file mode 100644
+index d0ace43c0..000000000
+--- a/public/framework/ai/2026-10-12/data-grid/STATE.md
++++ /dev/null
+@@ -1,15 +0,0 @@
+-# data-grid: state
+-
+-Brief: [requirements.md](requirements.md). Worktree `C:\Code\lew42\worktrees\data-grid-2`, branch `worktree/data-grid-2`.
+-(An older branch `worktree/data-grid` from 2026-10-03 still exists; its content is already on dev. Left alone.)
+-
+-## Decided
+-- Architecture: [ext/DataGrid/doc/architecture.md](/framework/ext/DataGrid/doc/architecture.md). ext/DataGrid is the base; ui/datagrid and ui/table fold in as statics with re-exports; table and rail are drawers picked by a `view` setting (url > PagePrefs > settings.jsonl > "table"); Page owns row → detail via `route(id)` + `columns()`.
+-- Seam with the sessions masterminds: page notes on /framework/ai/sessions/ (data and detail stay theirs; I take the grid drawing in AISessionsPage.js and the grid CSS).
+-
+-## Steps
+-- ✅ Architecture page, shown on /framework/ext/DataGrid/ (Docs tab + link).
+-- ⬜ grid-core minion (Sonnet): fold, drawers, hooks, rail, view setting, demo. [brief](grid-core/requirements.md)
+-- ⬜ sessions-perf minion (Sonnet): before numbers + screenshots at 400/1200/1920/3440. [brief](sessions-perf/requirements.md)
+-- ⬜ Sessions adoption minion (after grid-core).
+-- ⬜ After numbers, review diff, smoke, merge, finish-task.
+diff --git a/public/framework/ai/2026-10-12/data-grid/grid-core/requirements.md b/public/framework/ai/2026-10-12/data-grid/grid-core/requirements.md
+deleted file mode 100644
+index 3083fb142..000000000
+--- a/public/framework/ai/2026-10-12/data-grid/grid-core/requirements.md
++++ /dev/null
+@@ -1,32 +0,0 @@
+-Budget: $15
+-
+-# DataGrid core: one grid, table or rail as a setting (minion brief)
+-
+-You are a Sonnet minion for @mastermind-data-grid. Load the `minion` and `code` skills first, then `css` before any CSS.
+-
+-**Work only in the worktree `C:\Code\lew42\worktrees\data-grid-2`** (branch `worktree/data-grid-2`). Never edit the main tree at `C:\Code\lew42\monorepo`. Commit each working step there with a clear message ending `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`. The mastermind merges; you don't.
+-
+-**Read first:** the architecture you are building, `public/framework/ext/DataGrid/doc/architecture.md` (in the worktree). Follow it; if something in it can't work, build the closest thing that does and say why in your final message.
+-
+-## Your files (nobody else edits them)
+-`public/framework/ext/DataGrid/**`, `public/framework/ui/datagrid/**`, `public/framework/ui/table/**`, and the `datagrid`/`table` export lines in `public/framework/ui/ui.js` if needed. Do NOT touch `ai/AISession/*` or `ai/sessions/*` — a second minion moves Sessions onto your API after you land.
+-
+-## Build, in order (commit after each)
+-1. **Fold the markup in.** Move `ui/datagrid/datagrid.js`'s markup + its css into `ext/DataGrid` as statics `DataGrid.head(columns)`, `DataGrid.body(columns, rows)`, `DataGrid.template(columns)`, and `ui/table/table.js` as `DataGrid.table(head, rows)` (still a native `<table>`, same look, same `.c("num")`). The old files become re-exports so every existing import keeps working (`/app.js`'s `datagrid` and `table`, `core/Page/audit/page.js`, `imagine/codrops/page.js`). Watch the import direction: `ext/` may import `core/`; `ui/` re-exporting from `ext/` must not create a cycle — check `ui/parts.js`'s `component()`/`css()` and keep `table()`'s capture behaviour identical. Never delete a file.
+-2. **Drawers.** `class DataGridTable` (`DataGridTable.js`) and `class DataGridRail` (`DataGridRail.js`), attached as `DataGrid.Table` / `DataGrid.Rail`. Each draws the current `view_rows` its own way. DataGrid picks one from `this.view` (`"table"` default, `"rail"`); `grid.set_view(name)` swaps without refetching.
+-3. **Hooks a page passes instead of subclassing:**
+-   - `href(row)` → a row/card is an `<a>` to it when given (no click handlers: the Router navigates).
+-   - `cells(row)` → table: draws a row's cells (default: one `.datagrid-cell` per column via `format`). A caller may instead pass `row(row)` that returns a whole row View (Sessions' `AISessionView` is an `<a class="sessions-row">` whose cells are positional with `display: contents`).
+-   - `card(row)` → rail: draws one card's inside (default: the first column as the title, the rest as one muted line of `label value`).
+-   - `sort_rows(rows, sort)` and `natural_dir(key)` → override the default comparator (Sessions sorts nulls last with natural directions); header click cycles natural → reversed → off, same as now.
+-   - `filters: false` → no auto filter bar (Sessions has its own controls).
+-   - `set_rows(rows)` → replace the rows (a live feed redraws through this), keeping sort, scroll position and view.
+-4. **The rail look:** the rail is flush (no padding of its own), full height of its box, one `.card` per row inside a `.flush-stack`-style stack (find both in `framework.css` / `ux/Inbox/Inbox.css`; reuse, no new card class). Each card is padded, a quick snapshot of the row; the `.active` row (Router marks it) is visibly selected.
+-5. **The view setting** (architecture.md, "The view setting"): url `?view=` > `PagePrefs` (core/Page/Prefs.js) > the page's `settings.view` > `"table"`. A small toggle (two buttons, Table / Rail, `ui` skill) in the grid's own header bar writes the url (`history.replaceState`) and the pref. Column widths save to `PagePrefs` on drag end; double-click a grip resets.
+-6. **Fast:** keep windowing for fixed-height rows (`row_height` option; the current 36px default stays for the demo). For variable-height rows (`row_height: null`), render the first `page_size` (default 100) rows and load the next page when a sentinel at the end scrolls into view (IntersectionObserver), with a "show more" link as the keyboard fallback.
+-7. **The demo page** (`ext/DataGrid/page.js`): the 2,000-row grid with the toggle working, and beside or under it a debug view of the live instance (view, sort, row counts, widths) that updates as you click. Show, don't tell; keep text short. Update `readme.md` (index shape, under ~100 lines) and `ui/datagrid`/`ui/table` readmes to say they now live in `ext/DataGrid`.
+-
+-## Proof before you say done
+-- `node Server/smoke.mjs C:\Code\lew42\worktrees\data-grid-2` (or what the smoke script expects) clean for your pages, and `mcp__servex__check_page` on the worktree's own url for `/framework/ext/DataGrid/`, `/framework/ui/datagrid/`, `/framework/ui/table/`, `/framework/core/Page/audit/`: zero page errors.
+-- Screenshots of the demo in table and rail view at 1200 (`mcp__site__shot`), saved to `public/framework/ai/2026-10-12/data-grid/grid-core/` in the worktree.
+-- Final message: the commits, the new API in 6 lines (signatures only), anything you could not do.
+diff --git a/public/framework/ai/2026-10-12/data-grid/requirements.md b/public/framework/ai/2026-10-12/data-grid/requirements.md
+deleted file mode 100644
+index 6370a6e70..000000000
+--- a/public/framework/ai/2026-10-12/data-grid/requirements.md
++++ /dev/null
+@@ -1,28 +0,0 @@
+-# One DataGrid, and the preview → detail pattern as a Page mode (mastermind brief)
+-
+-**Owner (2026-10-12, dictated):** "I'm feeling the need for a data grid extension… if it's not being used for the sessions thing, it should be, but we don't want to backtrack on the sessions data grid." Sessions are like pages; we want one consistent system for design, data, files, routing and navigation, especially the **preview → detail** transition. "We don't want to have to create a new class every time we want a little bit different layout."
+-
+-**What exists (found 2026-10-12):** three grids, which breaks law 6:
+-- `ext/DataGrid/DataGrid.js` (346 lines; used only by `ai/AIOverview.js`)
+-- `ui/datagrid/datagrid.js` (142 lines)
+-- `ui/table/` (table.js 24 lines)
+-
+-The Sessions page (`ai/sessions/`, @mastermind-sessions-grid's latest round) uses none of them. Past work: `ai/2026-10-03/data-grid`, `ai/2026-10-02/sessions-grid-v2`, `ai/2026-08-26/grids-lab` (check, don't trust).
+-
+-## Done when (tick each with proof)
+-- [ ] **One grid:** fold `ui/datagrid` and `ui/table` into `ext/DataGrid` (or the reverse; pick the better base and record why). Old paths re-export or redirect; never delete.
+-- [ ] **Sessions on it without regression:** keep every feature the current sessions grid has (recency sort, live stream, month loading, column widths, resize, flags). Screenshots at 400/1200/1920/3440 and load/lag numbers (long tasks, DOM nodes) before and after; it must be no worse, ideally faster (render only visible rows).
+-- [ ] **Think it through: the class architecture page first** (CLAUDE.md), at `ext/DataGrid/doc/architecture.md`, shown on its page. Questions:
+-  - Is the preview → detail transition part of DataGrid, or of Page?
+-  - Owner's lean: Page organises this. A data grid is "just another type of page content". A page can change its layout, background and colour scheme, and can be a card inside a page.
+-  - Where do those settings live, and how do they persist?
+-  - When is extending Page for a mode right, vs a setting?
+-- [ ] **Two views of the same data, as a setting, not two classes:**
+-  - (a) the table it is now;
+-  - (b) a **rail**, like the AI inbox: flush with the left nav, filling the page; the rail itself has no padding, each item is a padded card in a stack (a quick snapshot per item), click → the detail view.
+-  
+-  The owner is drawing pictures to choose; build both as a toggle so the drawing only picks the default. Use the [style-system](../style-system/requirements.md) card word.
+-- [ ] Coordinate with @mastermind-sessions-grid and @mastermind-sessions-detail (they own sessions files: agree on a seam, one worktree if needed) and @mastermind-style-system.
+-- [ ] Smoke clean; `hold.mjs` around live batches; commit each step; merge.
+-
+-Opus 5.5 for the architecture, Sonnet to build. Worktree; `STATE.md` here; one-sentence replies; land with `finish-task`. Budget open: keep going through all of it.
+diff --git a/public/framework/ai/2026-10-12/data-grid/sessions-perf/requirements.md b/public/framework/ai/2026-10-12/data-grid/sessions-perf/requirements.md
+deleted file mode 100644
+index 174533c36..000000000
+--- a/public/framework/ai/2026-10-12/data-grid/sessions-perf/requirements.md
++++ /dev/null
+@@ -1,19 +0,0 @@
+-Budget: $6
+-
+-# Sessions page: the "before" numbers (minion brief)
+-
+-You are a minion for @mastermind-data-grid. Load the `minion` skill first. **Read-only on the site**: you write one script and its results, nothing else.
+-
+-The Sessions page (`http://monorepo.localhost/framework/ai/sessions/`) is about to move onto `ext/DataGrid`. Record how it performs **now**, with a script that can be re-run unchanged afterwards against any base url, so before and after are the same measurement.
+-
+-## Build
+-1. `public/framework/ai/2026-10-12/data-grid/sessions-perf/perf-sessions.mjs` — **write it in the worktree** `C:\Code\lew42\worktrees\data-grid-2` (commit it there, message ending `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`). Headless Playwright (see how `Server/layout-check.mjs` / `Server/browser.mjs` launch it; never the owner's tabs). Usage: `node perf-sessions.mjs <base-url> <label>`. For widths 400, 1200, 1920, 3440:
+-   - load `<base>/framework/ai/sessions/`, wait until the first session row exists (`.sessions-row`, or `.datagrid-row`/`.card` later — accept any of them; make the selector list a constant at the top);
+-   - record: time to first row (ms), long tasks (count and total ms, a `PerformanceObserver` for `longtask` installed with `addInitScript`), DOM node count (`document.getElementsByTagName("*").length`), rows drawn, JS heap if available;
+-   - then scroll the grid to the bottom in 10 steps and record long tasks during scroll;
+-   - screenshot each width to `<label>-<width>.png` beside the script;
+-   - append one JSON line per width to `results.jsonl` beside the script (`{label, width, first_row_ms, long_tasks, long_ms, dom_nodes, rows, heap_mb, scroll_long_ms, at}`).
+-2. Run it three times with label `before` against `http://monorepo.localhost` (the live main site) and print a small median table.
+-
+-## Done
+-Final message: the median table (4 widths × the numbers), the commit hash, and anything that made the numbers noisy.
+diff --git a/public/framework/ai/2026-10-12/task-folders/STATE.md b/public/framework/ai/2026-10-12/task-folders/STATE.md
+deleted file mode 100644
+index 84cfcc0ff..000000000
+--- a/public/framework/ai/2026-10-12/task-folders/STATE.md
++++ /dev/null
+@@ -1,7 +0,0 @@
+-# STATE — task-folders (mastermind-task-folders, session e456f109)
+-
+-- ✅ Decision: `ai/doc/task-folders.md` — tasks live at `ai/sessions/YYYY/MM/DD/<session folder>/<slug>/` (no session: `<day>/<slug>/`); alternative `ai/tasks/YYYY/MM/DD/` rejected.
+-- ⏳ Census of writers/readers/routing (Explore agent).
+-- ⏳ `Server/TaskMove.mjs` move + relink + redirects script (Sonnet worker in a worktree; brief `move-script.md`).
+-- ⬜ Path helper in `TaskDirs` (dir/find/follow) + writers (new-task, finish-task, append.mjs follow, Servex spawn, dashboard).
+-- ⬜ Routing redirect old URL → new; merge code; hold.mjs; pause dispatch; apply move in main tree (ignored files need main tree); verify; relink; crawl; Servex restart on private port.
+diff --git a/public/framework/ai/2026-10-12/task-folders/move-script.md b/public/framework/ai/2026-10-12/task-folders/move-script.md
+deleted file mode 100644
+index c4326f1d5..000000000
+--- a/public/framework/ai/2026-10-12/task-folders/move-script.md
++++ /dev/null
+@@ -1,45 +0,0 @@
+-# Minion brief: the task-folder move script (`Server/TaskMove.mjs`)
+-
+-Budget: $15. Parent: `mastermind-task-folders`. Decision you implement: [`ai/doc/task-folders.md`](../../doc/task-folders.md) — read it first.
+-
+-## What to build
+-
+-`Server/TaskMove.mjs`, one class `TaskMove` (static methods; CLI at the bottom like `Server/TaskDirs.mjs`, whose style and snapshot/verify/undo code you should reuse by importing `TaskDirs`, not copying). It moves every flat day folder `public/framework/ai/YYYY-MM-DD/` into the sessions store. **Write and test the script only; do NOT run `--apply` on the real tree.** The mastermind runs it.
+-
+-### 1. `TaskMove.sessions()` — id → session folder
+-Scan `public/framework/ai/sessions/YYYY/MM/DD/*/`. A folder belongs to session `<uuid>` when: its name is the uuid, or `session-<id8>`, or its `index.json` `.id` (or `cache.jsonl` first line `.summary.id`) is the uuid. Return `Map(uuid → abs dir)` plus `Map(id8 → abs dir)`. Must be fast (≈8,000 folders): read `index.json` only for folders whose name is not id-shaped.
+-
+-### 2. `TaskMove.plan()` — pure reading, the manifest
+-For each day folder `ai/YYYY-MM-DD/` (49 of them):
+-- **Task folder** `<slug>/` holding `task.jsonl` (or any folder): session id = the first `"session_id":"…"` in its `task.jsonl` (a regex is fine). Target:
+-  - session folder found → `<session folder>/<slug>/`
+-  - else → `sessions/YYYY/MM/DD/<slug>/`
+-  - target taken → append `-2`, `-3`… Record the reason.
+-- **Stub folder** holding only `moved.json` (+ maybe `files.jsonl`) — left by the 10-10 pass (`ai/sessions/task-manifest.json`). Its task already sits at `<session>/task/` or `task-N/`: plan a **rename** of that `task*/` folder to `<session>/<slug>/`, and move the stub folder to `public/framework/ai/archive/task-stubs/YYYY-MM-DD/<slug>/` (never delete).
+-- **Loose day files** (`day.jsonl`, `files.jsonl`, `page.jsonl`, `page.js`, anything else) → `sessions/YYYY/MM/DD/<name>`; if taken, `day-<name>`.
+-- Output: an array of `{kind:"task"|"rename"|"stub"|"dayfile", from, to, session, why}` (repo-relative, forward slashes), plus counts.
+-
+-### 3. `--dry` (default): print counts + write the plan to `public/framework/ai/sessions/task-moves.plan.json`. Changes nothing else.
+-
+-### 4. `--apply [--only YYYY-MM-DD,...] [--skip slug,...]`
+-- Snapshot each folder first (size + sha1, `TaskDirs.files`), append the manifest line BEFORE moving (so an interrupted run can undo): `public/framework/ai/sessions/task-moves.jsonl`, one JSON line per move `{at, kind, from, to, session, files:[…]}`.
+-- Move with `fs.renameSync` (it carries untracked and ignored files; git sees the rename on the next `git add -A <old> <new>`). Never overwrite: a taken target throws.
+-- Remove a day folder only once it is empty (`rmdirSync`, never recursive).
+-- `--only` and `--skip` let the mastermind leave live tasks for later.
+-
+-### 5. `--verify` and `--undo` — same contract as `TaskDirs`: every snapshot file at its new path with the same sha1; undo moves everything back in reverse order and renames the manifest aside.
+-
+-### 6. `TaskMove.relink(files)` and `--relink [--dry]` — rewrite links from the manifest
+-- In `.md`, `.js`, `.mjs`, `.json` and `.html` files under `public/`, `Server/`, `Servex/`, `.claude/` and the root (`readme.md`, `CLAUDE.md` is OFF LIMITS — list its hits, don't edit), excluding `node_modules`, `.claude/worktrees`, and **every `*.jsonl`** (logs are history; old paths in them resolve by redirect): replace each moved old path with the new one. Match all three spellings: `public/framework/ai/YYYY-MM-DD/<slug>`, `/framework/ai/YYYY-MM-DD/<slug>`, `ai/YYYY-MM-DD/<slug>`, and relative ones (`../2026-10-12/<slug>/`, `../../2026-09-30/x`) by resolving them against the file's own folder.
+-- **Moved files' own relative links**: a `.md` inside a moved task (e.g. `[x](../../doc/y.md)`) breaks because the folder is deeper now. For each relative link in a moved file, resolve it against the OLD location; if the target lies outside the moved folder, rewrite it relative to the NEW location (and map the target through the manifest if it moved too).
+-- `--dry` prints a count per file and 20 sample before/after pairs; without `--dry` it writes. Bare day links (`/framework/ai/2026-10-12/`) map to `/framework/ai/sessions/2026/10/12/`.
+-
+-### 7. `TaskMove.redirects()` — write `public/_redirects` lines (Cloudflare format, `/framework/ai/2026-10-12/slug/* /framework/ai/sessions/…/slug/:splat 301`) into `public/framework/ai/sessions/task-redirects.txt` (the mastermind wires it into `_redirects`). Check whether `public/_redirects` exists and say so.
+-
+-## Test (required)
+-`Server/TaskMove.test.mjs` (plain node, no deps): builds a fake repo in the OS temp dir with 3 day folders (a task with a session folder, a task without, a stub + `task/` from the 10-10 pass, a collision, loose day files, an md with relative links), runs plan → apply → verify → relink → undo → apply, and checks hashes and links. Run it. Also run `node Server/TaskMove.mjs` (dry) on the real repo and paste the counts into your report.
+-
+-## Where and how
+-- Work in a worktree (`take_worktree()` or `git worktree add`); commit there with the attribution line; tell the parent the branch name. Don't touch other files.
+-- Log progress lines to `public/framework/ai/2026-10-12/task-folders/task.jsonl` with `node .claude/hooks/append.mjs <file> <lines.json>` (`{"log":{"at":"NOW","msg":"…"}}`) every few minutes.
+-- Final reply: branch, test result, dry-run counts, anything surprising. Five lines.
+diff --git a/public/framework/ai/2026-10-12/task-folders/task.jsonl b/public/framework/ai/2026-10-12/task-folders/task.jsonl
+index ab41d7b99..846678ad5 100644
+--- a/public/framework/ai/2026-10-12/task-folders/task.jsonl
++++ b/public/framework/ai/2026-10-12/task-folders/task.jsonl
+@@ -1,6 +1 @@
+ {"assign":{"session_id":"e456f109-7284-406d-b3ec-adcd2f13e5ed","agent":"mastermind-task-folders","brief":"public/framework/ai/2026-10-12/task-folders/requirements.md","model":"claude-opus-5-5","requested_at":"2026-10-12T14:28:41-05:00","now":"starting","steps":[],"step":1}}
+-{"log":{"at":"2026-10-12T14:43:20-05:00","msg":"session resumed"}}
+-{"assign":{"cost_usd":6.7618,"cost":{"root":"mastermind-task-folders","agents":[{"id":"mastermind-task-folders","model":"claude-opus-5-5","role":"mastermind","usd":6.7618,"usd_breakdown":{"in":0.0006,"out":1.2625,"cache_read":4.028,"cache_write":1.4706},"cache_read_pct":59.5699}],"own_usd":6.76,"minions_usd":0,"parent_task":null,"open":1,"window":{"from":"2026-10-12T14:28:41-05:00","to":null},"at":"2026-10-12T14:43:51-05:00"}}}
+-{"log":{"at":"2026-10-12T14:46:37-05:00","msg":"code committed on michael/task-folders (18dbe915a): TaskDirs path helper, append.mjs + Servex open_task follow old paths, readers use TaskDirs.list, StoreFolder routes the store by path, old URLs redirect (proven headless on a private server). Waiting on the TaskMove script."}}
+-{"assign":{"now":"code on branch; TaskMove script being written by a Sonnet worker","steps":["past asks + decision","path helper + writers","move script","routes + redirects","move (main tree, hold, paused dispatch)","relink","crawl + Servex restart proof","merge + land"],"step":3}}
+-{"log":{"at":"2026-10-12T14:46:50-05:00","msg":"note: my first 4 log lines (14:31-14:34) vanished from this task.jsonl around the Servex restart; something rewrote the file (cost line writer?). Content restored in STATE.md."}}
+diff --git a/public/framework/ai/AISession/AISessionsPage.js b/public/framework/ai/AISession/AISessionsPage.js
+index ed5a2e478..dbeebbb4c 100644
+--- a/public/framework/ai/AISession/AISessionsPage.js
++++ b/public/framework/ai/AISession/AISessionsPage.js
+@@ -9,6 +9,7 @@ import AISessionLive from "./AISessionLive.js";
+ import AISession from "./AISession.js";
+ import AISessionDetail from "./AISessionDetail.js";
+ import AISessionFlags from "./AISessionFlags.js";
++import StoreFolder from "./StoreFolder.js";
+ 
+ const sessions_dir = { url: new URL("../sessions/", import.meta.url).href };   // the page's folder: its stylesheet and docs stay beside page.js
+ View.stylesheet(sessions_dir, "sessions.css");
+@@ -431,6 +432,7 @@ export default class AISessionsPage extends Page {
+ 	route(id){
+ 		if (id.includes(".")) return;   // a stray asset request, not a session id
+ 		if (id === "doc" || id === "readme") return this.docs_page(id);
++		if (/^\d{4}$/.test(id)) return new StoreFolder({ home: this, segs: [id] });   // the store by path: YYYY/MM/DD/<session>/<task>/ (ai/doc/task-folders.md)
+ 		return new AISessionDetail({ home: this, id });
+ 	}
+ 
+diff --git a/public/framework/ai/AISession/StoreFolder.js b/public/framework/ai/AISession/StoreFolder.js
+new file mode 100644
+index 000000000..77b0c5d3b
+--- /dev/null
++++ b/public/framework/ai/AISession/StoreFolder.js
+@@ -0,0 +1,72 @@
++import { Page, div, a, p } from "/app.js";
++import { AITask } from "/framework/ext/AITask/AITask.js";
++
++/* One folder of the sessions store, routed by its own path: /framework/ai/sessions/2026/10/12/<session>/<task>/.
++   Tasks live here since 2026-10-12 (ai/doc/task-folders.md); the flat /framework/ai/sessions/<id>/ session route is untouched.
++   A year, month or day lists the tasks under it; a folder with a task.jsonl opens as a task (AITask); a folder with its own
++   page.js is left to Page.child()'s probe; any other folder (a session's) lists its tasks and links the session page. */
++export default class StoreFolder extends Page {
++
++	constructor({ home, segs }){
++		super({ home, segs, title: segs.at(-1), icon: segs.length < 4 ? "calendar_month" : "folder", url: home.url + segs.join("/") + "/" });
++	}
++
++	/** Every known task folder's url: the move manifest (all older tasks) + Servex's tasks.json (the last 7 days, dev only). Loaded once. */
++	static urls(){
++		return this._urls ??= Promise.all([
++			fetch("/framework/ai/sessions/task-moves.jsonl").then(r => r.ok ? r.text() : "", () => "")
++				.then(t => t.split("\n").flatMap(l => { try { const e = JSON.parse(l); return ["task", "rename", "redirect"].includes(e.kind) ? [e.to] : []; } catch { return []; } })),
++			fetch("/framework/ai/tasks.json").then(r => r.ok ? r.json() : null, () => null).then(j => (j?.tasks ?? []).map(t => t.dir)),
++		]).then(([a, b]) => [...new Set([...a, ...b])].filter(Boolean).map(d => "/" + d.replace(/^public\//, "") + "/").sort());
++	}
++
++	/** OLD ADDRESSES: /framework/ai/2026-10-12/<task>/… -> its url in the store, or null. Read synchronously once from the move
++	    log (Server/TaskMove.mjs writes it; Server/TaskDirs.mjs redirect() is the node twin), because route() must answer now. */
++	static moved(url){
++		if (!this._moves){
++			this._moves = new Map();
++			const x = new XMLHttpRequest();
++			x.open("GET", "/framework/ai/sessions/task-moves.jsonl", false);
++			try { x.send(); } catch {}
++			if (x.status === 200 && !(x.getResponseHeader("content-type") ?? "").includes("html"))
++				for (const l of x.responseText.split("\n")) try { const e = JSON.parse(l); if (e.from && e.to && !e.undone && e.kind !== "stub") this._moves.set("/" + e.from.replace(/^public\//, ""), "/" + e.to.replace(/^public\//, "")); } catch {}
++		}
++		const m = /^(\/framework\/ai\/\d{4}-\d{2}-\d{2})(\/[^/]+)?/.exec(url);
++		if (!m) return null;
++		if (!m[2]) return [...this._moves.keys()].some(k => k.startsWith(m[1] + "/")) ? m[1].replace(/(\d{4})-(\d{2})-(\d{2})$/, "sessions/$1/$2/$3") + "/" : null;
++		let to = this._moves.get(m[1] + m[2]);
++		for (let n = 0; to && this._moves.has(to) && n < 9; n++) to = this._moves.get(to);
++		return to ? to + url.slice(m[0].length) : null;
++	}
++
++	/** A page that sends the browser on to `to` (old task and day addresses); a deeper old path keeps its tail. */
++	static redirect(url, to){
++		return new Page({ title: "Moved", icon: "move_up", url, content(){
++			const tail = location.pathname.startsWith(url) ? location.pathname.slice(url.length) : "";
++			p(() => a().href(to + tail).text("Moved to " + to + tail));
++			location.replace(to + tail + location.search + location.hash);
++		} });
++	}
++
++	route(name){
++		if (name.includes(".")) return;
++		const url = this.url + name + "/";
++		if (this.segs.length >= 3 && AITask.has(url + "page.js")) return;   // a folder with its own page: Page.child() loads it
++		if (this.segs.length >= 3 && AITask.has(url + "task.jsonl"))
++			return new AITask({ title: name, icon: "receipt_long", url, src: url + "session.json" });
++		return new StoreFolder({ home: this.home, segs: [...this.segs, name] });
++	}
++
++	content(){
++		const name = this.segs.at(-1);
++		if (this.segs.length === 4) p(() => a().href(this.home.url + name + "/").text("This session's page →"));
++		const box = div.c("flow");   // captured now: the list fills in after the fetch (no DOM after an await)
++		StoreFolder.urls().then(urls => {
++			const mine = urls.filter(u => u.startsWith(this.url) && u !== this.url);
++			box.append(() => {
++				if (!mine.length) return p.c("muted", "No tasks recorded under this folder.");
++				for (const u of mine) div(() => a().href(u).text(u.slice(this.url.length).replace(/\/$/, "")));
++			});
++		});
++	}
++}
+diff --git a/public/framework/ai/AISession/files.jsonl b/public/framework/ai/AISession/files.jsonl
+index 97f9191d7..540497a76 100644
+--- a/public/framework/ai/AISession/files.jsonl
++++ b/public/framework/ai/AISession/files.jsonl
+@@ -14,3 +14,4 @@
+ {"file":"AISessionConversation.js"}
+ {"file":"PromptLog.js"}
+ {"file":"AISessionResume.js"}
++{"file":"StoreFolder.js"}
+diff --git a/public/framework/ai/doc/task-folders.md b/public/framework/ai/doc/task-folders.md
+deleted file mode 100644
+index 36da2b8a5..000000000
+--- a/public/framework/ai/doc/task-folders.md
++++ /dev/null
+@@ -1,39 +0,0 @@
+-# Task folders: one home, inside the sessions store (2026-10-12)
+-
+-Decided by `mastermind-task-folders` (session e456f109), brief: [`requirements.md`](../2026-10-12/task-folders/requirements.md). The owner's words:
+-
+-> "Having a folder for every day inside of the AI folder… is an anti-pattern. I thought we were moving to nesting them, and actually I kind of think they should all be in the sessions folder… We cannot be having two similar but different systems where we have redundant data."
+-
+-## The decision
+-
+-A task folder lives in the sessions store, under the session that ran it:
+-
+-```
+-ai/sessions/YYYY/MM/DD/<session folder>/<task slug>/    a task whose session folder exists
+-ai/sessions/YYYY/MM/DD/<task slug>/                      a task with no known session (old ones, scripts)
+-ai/sessions/YYYY/MM/DD/day.jsonl                         the day's log (was ai/YYYY-MM-DD/day.jsonl)
+-```
+-
+-- **One class builds the path:** `TaskDirs` (`Server/TaskDirs.mjs`). `TaskDirs.dir({slug, session_id, day})` says where a new task goes; `TaskDirs.find(slug)` finds an existing one; `TaskDirs.follow(old)` maps any old path to its new home. Nobody types `ai/<date>/` again.
+-- **A minion's task nests in its parent's task** (`parent/child/`), as before.
+-- **Old addresses keep working:** every move is in a manifest; the dev server and the router redirect an old `/framework/ai/YYYY-MM-DD/<task>/` URL to the new one, and `append.mjs` follows an old `task.jsonl` path to its new file, so an agent holding an old path keeps writing to the right log.
+-
+-## The alternative, not taken
+-
+-`ai/tasks/YYYY/MM/DD/<slug>/`: a second dated tree beside `ai/sessions/YYYY/MM/DD/`. Shorter URLs and no join, but it is exactly the "two similar but different systems" the owner named. Rejected.
+-
+-Also not taken: putting a task's files straight into the session folder (no `<slug>/` level). A session's card already writes `page.jsonl` there, and one session can run several tasks.
+-
+-## The history this settles
+-
+-| When | What was asked or decided | Now |
+-|---|---|---|
+-| 2026-09-24 | Card folders by date, `ai/YYYY/MM/DD/` with index pages (`2026-09-24/card-folders/`) | the card tree; session cards moved to sessions on 10-09 |
+-| 2026-10-04 | Voice sessions in "the day folder", like VS Code sessions (`2026-10-04/voice-assistants/`) | superseded: sessions live in `ai/sessions/YYYY/MM/DD/` |
+-| 2026-10-08 | Sessions store chosen: `ai/sessions/YYYY/MM/DD/<id>/`; "no separate task folders, no second date layout" ([data-architecture.md](../sessions/doc/data/data-architecture.md)) | holds; this finishes it for tasks |
+-| 2026-10-08 | CLAUDE.md: "a child session or task lives inside its parent's directory" | holds: task inside session, minion task inside its parent task |
+-| 2026-10-09 | Session folders migrated; tasks held back because a moved task had no route ([layout.md](../sessions/doc/data/layout.md)) | the route is solved by redirect (below) |
+-| 2026-10-10 | 78 landed tasks moved to `<session>/task/` by `TaskDirs.mjs` ([tasks-in-sessions.md](../sessions/doc/data/tasks-in-sessions.md)); 994 without a session stayed | the 78 are renamed `<session>/<slug>/`; the rest move too |
+-| 2026-10-12 | The owner: no day folders in `ai/`, everything in sessions | this doc |
+-
+-The conflict that needed settling: the 10-10 pass named every task `task/` (and `task-2/`), which loses the task's name in its URL. CLAUDE.md asks that tasks "get proper names", so the folder keeps its slug.
+diff --git a/public/framework/ai/page.js b/public/framework/ai/page.js
+index 2dc337a6d..61ad0ddba 100644
+--- a/public/framework/ai/page.js
++++ b/public/framework/ai/page.js
+@@ -14,6 +14,7 @@ import { Versions } from "/framework/ai/v/Versions.js";   // the versions, and t
+ import { board_route } from "/framework/ai/v/3/page.js";   // the board's five view urls (/framework/ai/grid/ …) still route here
+ import { CONCEPTS } from "./concepts.js";   // the AI system, one entry per concept: the tiles and their pages
+ import { AIOverview } from "./AIOverview.js";   // the top tabs: Overview · System · Skills · Objects · Authoring · CLAUDE.md
++import StoreFolder from "./AISession/StoreFolder.js";   // old ai/<date>/<task>/ addresses redirect into the sessions store
+ 
+ // "tests" → "Tests" — the label a detected tab wears when nobody says otherwise.
+ const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+@@ -33,7 +34,7 @@ export default new Page({
+ 	leaf: true,
+ 	// The page is the band and the rail, and nothing scrolls but their columns (ux/Inbox).
+ 	classes: v1() ? undefined : "full fill",
+-	children: "classes quick-fix asks process review council audits tests 2026-09-28 2026-09-25 2026-09-24 2026-09-23 2026-09-22 2026-09-21 2026-09-20 2026-09-19 2026-09-18 2026-09-17 2026-09-14 2026-09-13 2026-09-08 2026-09-06 2026-09-05 2026-09-04 2026-09-01 2026-08-31 2026-08-30 2026-08-29 2026-08-28 2026-08-27 2026-08-26 2026-08-21 2026-08-19 2026-08-18 2026-08-17 2026-08-16 2026-08-15 2026-08-14 2026-08-13 2026-08-12 2026-08-11 2026-08-10 2026-08-09 2026-08-08 local",
++	children: "classes quick-fix asks process review council audits tests local",   // day folders moved into sessions/ (ai/doc/task-folders.md); old day urls redirect in route()
+ 
+ 	/* LEVEL 1 IS THE AI SYSTEM, SHOWN (the owner, 2026-09-30: "just delete the
+ 	   current AI page"). The V3 board that stood here lives on at /framework/ai/v/3/,
+@@ -143,6 +144,9 @@ export default new Page({
+ 		if (board_view) return board_view;
+ 
+ 		if (/^\d{4}-\d{2}-\d{2}$/.test(name)){
++			// Task folders moved into the sessions store (ai/doc/task-folders.md): an old day or task address redirects.
++			const day_to = StoreFolder.moved(this.url + name + "/");
++			if (day_to && !AITask.has(this.url + name + "/day.jsonl")) return StoreFolder.redirect(this.url + name + "/", day_to);
+ 			// Fired the instant this day is routed to, not when its dashboard()
+ 			// happens to render — a cold deep link straight to a task below has
+ 			// no earlier chance, and every other child() hop still ahead (this
+@@ -174,6 +178,8 @@ export default new Page({
+ 							content(){ module_detail(name, mod); },
+ 						}); },
+ 					});
++					const moved = !task.includes(".") && StoreFolder.moved(this.url + task + "/");
++					if (moved) return StoreFolder.redirect(this.url + task + "/", moved);
+ 					if (task.includes(".") || has_page_js(name, task)) return;
+ 					return new AITask({
+ 						title: task, icon: "receipt_long",
+diff --git a/public/framework/ai/sessions/doc/data/layout.md b/public/framework/ai/sessions/doc/data/layout.md
+index bebdd0364..ae1800997 100644
+--- a/public/framework/ai/sessions/doc/data/layout.md
++++ b/public/framework/ai/sessions/doc/data/layout.md
+@@ -36,6 +36,10 @@ The script is safe to run again, and never overwrites a file. The one thing it d
+ 
+ Some cards (a Servex agent's `page.jsonl`) live in the task date folders, `ai/2026/10/03/session-<id8>/` and `ai/2026-10-03/<task>/`. They are cards, not session records. The Sessions page lists them from `sessions.json` and opens them in the same detail view. The full table of patterns is in [`patterns.md`](patterns.md).
+ 
++### Tasks live here too (2026-10-12)
++
++A task folder sits inside the session that ran it, `YYYY/MM/DD/<session>/<task>/`, routed by its path (`AISession/StoreFolder.js`). Only `Server/TaskDirs.mjs` builds that path. [../../../doc/task-folders.md](../../../doc/task-folders.md).
++
+ ### Decided and not yet built
+ 
+ - **Children inside the parent's folder** (`parent/child/`): the owner's rule (2026-10-08 evening). A child can start on a later day than its parent, so the child's folder sits under the parent's day, not its own. This needs the index to carry the path rather than the day. Queued; the grid already nests children from `session-tree.json`.
+diff --git a/public/framework/ai/sessions/doc/data/tasks-in-sessions.md b/public/framework/ai/sessions/doc/data/tasks-in-sessions.md
+index 0abb4509e..45a1bcea8 100644
+--- a/public/framework/ai/sessions/doc/data/tasks-in-sessions.md
++++ b/public/framework/ai/sessions/doc/data/tasks-in-sessions.md
+@@ -1,5 +1,7 @@
+ # Tasks live inside their session (2026-10-10)
+ 
++**Superseded 2026-10-12** by [`ai/doc/task-folders.md`](../../../doc/task-folders.md): every task (not only finished, joined ones) moves into the store, the folder keeps the task's name (`<session>/<slug>/`, not `task/`), and `Server/TaskMove.mjs` did the move. The record below is the first pass.
++
+ **Ask (owner):** if a task belongs to a session, put it in the session's folder; lose nothing. Brief: `2026-10-10/tasks-into-sessions/requirements.md`.
+ 
+ ## What happens
+diff --git a/public/framework/ai/sessions/readme.md b/public/framework/ai/sessions/readme.md
+index 1c782e3d1..331cab411 100644
+--- a/public/framework/ai/sessions/readme.md
++++ b/public/framework/ai/sessions/readme.md
+@@ -44,7 +44,7 @@ opens as a side peek beside the grid instead of replacing it.
+ ## More
+ 
+ - Resume warm, cold or fresh, computed from the session's idle time and context: [doc/data/resumption.md](doc/data/resumption.md) (`Server/SessionResume.mjs`)
+-- A finished task lives inside the session that ran it (`<session>/task/`), old addresses still work: [doc/data/tasks-in-sessions.md](doc/data/tasks-in-sessions.md)
++- **Every task lives in this store** (2026-10-12): `YYYY/MM/DD/<session>/<task>/`, made by `node Server/TaskDirs.mjs --new <slug>`; the flat `ai/YYYY-MM-DD/` day folders are retired and their old addresses redirect. Why and how: [../doc/task-folders.md](../doc/task-folders.md) · the 2026-10-10 first pass: [doc/data/tasks-in-sessions.md](doc/data/tasks-in-sessions.md)
+ 
+ Every Sessions doc, by subsystem: [`doc/readme.md`](doc/readme.md).
+ 
+diff --git a/public/framework/ext/AITask/AITask.js b/public/framework/ext/AITask/AITask.js
+index b21da7464..50ec45d36 100644
+--- a/public/framework/ext/AITask/AITask.js
++++ b/public/framework/ext/AITask/AITask.js
+@@ -119,11 +119,21 @@ export class AITask extends Page {
+ 	route(sub){
+ 		if (sub.includes(".")) return;
+ 		const at = this.url?.match(/\/framework\/ai\/(\d{4}-\d{2}-\d{2}\/.+?)\/?$/)?.[1];
+-		const list = at && names(`${at}/${sub}`);
+-		if (!list?.includes("task.jsonl") || list.includes("page.js")) return;
++		const list = at ? names(`${at}/${sub}`) : null;
++		if (list ? (!list.includes("task.jsonl") || list.includes("page.js"))
++			: (!AITask.has(this.url + sub + "/task.jsonl") || AITask.has(this.url + sub + "/page.js"))) return;   // the sessions store: no listing, so ask the server
+ 		return new AITask({ title: sub, icon: "receipt_long", url: this.url + sub + "/", src: this.url + sub + "/session.json" });
+ 	}
+ 
++	/** Does this file exist? One synchronous HEAD, because route() must answer now (Page.child() never awaits it).
++	    Used where no directory listing exists: task folders in the sessions store (ai/doc/task-folders.md). */
++	static has(url){
++		const x = new XMLHttpRequest();
++		x.open("HEAD", url, false);
++		try { x.send(); } catch { return false; }
++		return x.status >= 200 && x.status < 300 && !(x.getResponseHeader("content-type") ?? "").includes("html");
++	}
++
+ 	/* ⚠ `wide`, not the default `main` track. A task page is not prose: it is a
+ 	   wall of ask cards, a conversation with a rail beside it, and four tables of
+ 	   figures, and at 1280 the reading column gave all of that 602px — two of the

@@ -1,0 +1,30 @@
+{
+ "lines": [
+  {
+   "title": "probe 1",
+   "by": "owner",
+   "ts": "2026-10-28T23:50:32.102Z"
+  },
+  {
+   "title": "probe 2",
+   "by": "owner",
+   "ts": "2026-10-28T23:50:32.103Z"
+  }
+ ],
+ "sent": [
+  "{\"title\":\"probe 1\"}",
+  "{\"title\":\"probe 2\"}"
+ ],
+ "logs": [
+  "HTTP 404 http://localhost:49570/framework/ai/page-work.json",
+  "error: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "HTTP 404 http://localhost:49570/framework/ai/tasks.json",
+  "error: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "HTTP 404 http://localhost:49570/framework/ai/tasks.json",
+  "error: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "HTTP 404 http://localhost:49570/framework/ai/tasks.json",
+  "error: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "HTTP 404 http://localhost:49570/framework/ai/tasks.json",
+  "error: Failed to load resource: the server responded with a status of 404 (Not Found)"
+ ]
+}

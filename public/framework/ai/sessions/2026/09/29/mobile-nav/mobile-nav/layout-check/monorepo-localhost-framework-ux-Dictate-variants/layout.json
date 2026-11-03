@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ux/Dictate/variants/",
+ "widths": {
+  "1280": {
+   "empty": 0.722,
+   "widest_text": 542,
+   "widest_text_sample": "— press its 🎤 right on the card. Open a",
+   "overflow_x": false,
+   "items": 48,
+   "narrow_share": 0.354
+  },
+  "1920": {
+   "empty": 0.786,
+   "widest_text": 576,
+   "widest_text_sample": "— press its 🎤 right on the card. Open a",
+   "overflow_x": false,
+   "items": 48,
+   "narrow_share": 1
+  },
+  "2560": {
+   "empty": 0.792,
+   "widest_text": 648,
+   "widest_text_sample": "— press its 🎤 right on the card. Open a",
+   "overflow_x": false,
+   "items": 48,
+   "narrow_share": 1
+  },
+  "3440": {
+   "empty": 0.837,
+   "widest_text": 648,
+   "widest_text_sample": "— press its 🎤 right on the card. Open a",
+   "overflow_x": false,
+   "items": 48,
+   "narrow_share": 1
+  }
+ },
+ "errors": []
+}

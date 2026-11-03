@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/models/",
+ "widths": {
+  "1280": {
+   "empty": 0.437,
+   "widest_text": 939,
+   "widest_text_sample": "2602 agents counted, 2602 registry rows:",
+   "overflow_x": false,
+   "items": 411,
+   "narrow_share": 0.659
+  },
+  "1920": {
+   "empty": 0.597,
+   "widest_text": 1527,
+   "widest_text_sample": "2602 agents counted, 2602 registry rows:",
+   "overflow_x": false,
+   "items": 411,
+   "narrow_share": 0.813
+  },
+  "2560": {
+   "empty": 0.672,
+   "widest_text": 2090,
+   "widest_text_sample": "2602 agents counted, 2602 registry rows:",
+   "overflow_x": false,
+   "items": 411,
+   "narrow_share": 0.813
+  },
+  "3440": {
+   "empty": 0.748,
+   "widest_text": 2090,
+   "widest_text_sample": "2602 agents counted, 2602 registry rows:",
+   "overflow_x": false,
+   "items": 411,
+   "narrow_share": 0.859
+  }
+ },
+ "errors": []
+}

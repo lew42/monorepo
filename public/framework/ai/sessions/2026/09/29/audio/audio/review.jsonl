@@ -1,0 +1,24 @@
+{"phase":{"at":"2026-09-29T19:33:42-05:00","n":1,"kind":"findings","status":"start"}}
+{"finding":{"at":"2026-09-29T19:33:42-05:00","n":1,"kind":"fix","text":"reviewer failed to run: spawn_agent did not return an id"}}
+{"phase":{"at":"2026-09-29T19:33:42-05:00","n":1,"kind":"findings","status":"done","verdict":"fix","cost":0,"model":"claude-opus-5-5"}}
+{"phase":{"at":"2026-09-29T19:45:22-05:00","n":2,"kind":"answers","status":"start"}}
+{"answer":{"at":"2026-09-29T19:45:22-05:00","n":1,"reply":"fixed: the reviewer could not start through Servex (its spawn sat queued for memory), so a fresh in-session Opus reviewer ran instead with the owner prompt prefixed; its 10 findings are in task.jsonl (4 fixed in cd52f394, 6 handed to next-chat-hitl)."}}
+{"phase":{"at":"2026-09-29T19:45:22-05:00","n":2,"kind":"answers","status":"done"}}
+{"phase":{"at":"2026-09-29T20:12:52-05:00","n":2,"kind":"answers","status":"start"}}
+{"answer":{"at":"2026-09-29T20:12:52-05:00","n":1,"reply":"declined: rebuilding Dictate itself was decided against (task.jsonl decision, 19:15): Dictate is used by the drawer, sheet, AI 2 and Ask, so the rebuild ships as the Dictate/Parts variant and the owner switches the default after trying it; handed on in next-clean-transcription."}}
+{"answer":{"at":"2026-09-29T20:12:52-05:00","n":2,"reply":"declined: the drawer and the new sheet pass no revise level on purpose: nothing draws the revised text there yet, so it would cost a model call per sentence for nothing (first review, finding 4). Raw/revised pairs in ChatPanel are the chat-hitl task's first job."}}
+{"answer":{"at":"2026-09-29T20:12:52-05:00","n":3,"reply":"fixed: cd52f394, TIDY_URL = servex_url('/api/tidy')."}}
+{"answer":{"at":"2026-09-29T20:12:52-05:00","n":4,"reply":"noted: the V1 sheet's raw card plus revised card is superseded by the pairs; handed to next-chat-hitl."}}
+{"answer":{"at":"2026-09-29T20:12:52-05:00","n":5,"reply":"noted: 400 px shots of the sheet with the chat panel exist, c-chat/shots/sheet-400-1msg.png and sheet-400-30msg.png, beside drawer-1920-*.png."}}
+{"answer":{"at":"2026-09-29T20:12:52-05:00","n":6,"reply":"noted: real, small; the literal ** on ext/Chat/panel/ goes to next-chat-hitl, which edits that page first."}}
+{"answer":{"at":"2026-09-29T20:12:52-05:00","n":7,"reply":"noted: demo-before-code on the three assembly pages, handed to next-clean-transcription."}}
+{"answer":{"at":"2026-09-29T20:12:52-05:00","n":8,"reply":"noted"}}
+{"answer":{"at":"2026-09-29T20:12:52-05:00","n":9,"reply":"noted: already in next-chat-hitl's open notes."}}
+{"answer":{"at":"2026-09-29T20:12:52-05:00","n":10,"reply":"noted: already in next-chat-hitl's open notes."}}
+{"answer":{"at":"2026-09-29T20:12:52-05:00","n":11,"reply":"noted: sample() try/finally handed to next-clean-transcription."}}
+{"answer":{"at":"2026-09-29T20:12:52-05:00","n":12,"reply":"noted"}}
+{"phase":{"at":"2026-09-29T20:12:52-05:00","n":2,"kind":"answers","status":"done"}}
+{"phase":{"at":"2026-09-29T20:12:52-05:00","n":3,"kind":"replies","status":"start"}}
+{"reply":{"at":"2026-09-29T20:12:52-05:00","n":1,"stance":"hold","text":"reviewer gave no answer for finding 1 (spawn failed or wrote nothing)","cost":0}}
+{"reply":{"at":"2026-09-29T20:12:52-05:00","n":2,"stance":"hold","text":"reviewer gave no answer for finding 2 (spawn failed or wrote nothing)","cost":0}}
+{"phase":{"at":"2026-09-29T20:12:52-05:00","n":3,"kind":"replies","status":"done"}}

@@ -1,0 +1,10 @@
+@layer base, theme, site, util;
+
+@layer site {
+	.stg { min-inline-size: 0; }
+	.stg-head { padding-block: .25em; }
+	.stg-title { color: inherit; text-decoration: none; }
+	.stg-title:hover { text-decoration: underline; }
+	.stg .datagrid-ext { max-inline-size: 100%; overflow-x: auto; }   /* a phone scrolls the grid in its own box, never the page */
+	.stg .datagrid-cell:is([data-key="day"], [data-key="kind"]) { white-space: nowrap; }
+}

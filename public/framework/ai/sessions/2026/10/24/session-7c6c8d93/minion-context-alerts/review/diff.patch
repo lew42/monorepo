@@ -1,0 +1,151 @@
+diff --git a/Server/PromptGroup.test.mjs b/Server/PromptGroup.test.mjs
+new file mode 100644
+index 000000000..35b9a6868
+--- /dev/null
++++ b/Server/PromptGroup.test.mjs
+@@ -0,0 +1,46 @@
++// A prompt's asks group under one outcome task. `node Server/PromptGroup.test.mjs`. Doc: core/Session/doc/prompt-breakdown.md.
++import assert from "node:assert";
++import fs from "node:fs";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++import PromptRecords from "./PromptRecords.mjs";
++import TaskHomes from "./TaskHomes.mjs";
++import { ledgers } from "../Servex/agents/page_tools.js";
++
++const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
++const SLUG = ".prompt-group-test-" + process.pid, DIR = path.join(ROOT, "public/framework/ai/sessions/2026/10/25", SLUG), REC = path.join(DIR, "session.jsonl");
++ledgers.task_moves = path.join(DIR, "task-moves.jsonl"); TaskHomes.INDEX = path.join(DIR, "homes.jsonl");
++const read = f => fs.readFileSync(f, "utf8").trim().split("\n").map(l => JSON.parse(l));
++let n = 0; const ok = (c, m) => { assert.ok(c, m); n++; console.log("ok", m); };
++fs.mkdirSync(DIR, { recursive: true });
++fs.writeFileSync(REC, JSON.stringify({ session: { id: "00000000-0000-4000-8000-0000000000aa", kind: "vscode-tab", at: "2026-10-25T01:00:00Z" } }) + "\n");
++try {
++	const pr = new PromptRecords("00000000-0000-4000-8000-0000000000aa", { process: "review", folder: DIR });
++	const parts = (...t) => t.map((x, i) => ({ id: `a${i + 1}`, cites: [i], kind: "ask", text: x, outcome: { is: "open" } }));
++	const put = async (id, subject, ps) => { await pr.add({ prompt: id, stage: "raw", text: id }); await pr.add({ prompt: id, stage: "parts", subject, parts: ps }); return { id, uuid: id, line: 1, at: "2026-10-25T01:00:00Z", text: id }; };
++	pr.attach_to = async () => null;
++	const roots = () => read(REC).filter(l => l.tasks?.add);
++	const refs = id => Object.values(pr.rows()).find(r => r.id === id).parts.map(x => x.outcome.ref);
++
++	const three = await put("p3", "Fix the menu.", parts("add a menu", "fix the footer", "rename the tab"));
++	await pr.file([three]);
++	ok(roots().length === 1 && roots()[0].tasks.add.title === "Fix the menu" && !roots()[0].tasks.add.source.part, "a 3-ask prompt gives ONE root task, titled from its subject");
++	const nested = read(REC).filter(l => Object.values(l).some(v => v?.tasks?.add?.source?.part));
++	ok(nested.length === 3, "its three asks are subtasks of that root");
++	const state = pr.task_state();
++	ok(refs("p3").every(r => state(r) === "idle"), "task_state resolves a subtask by its ref");
++	const sub = refs("p3")[0];
++	fs.appendFileSync(REC, JSON.stringify({ [sub]: { complete: { outcome: "done" } } }) + "\n");
++	ok(pr.task_state()(sub) === "complete" && pr.task_state()(refs("p3")[1]) === "idle", "a completed subtask reads complete, its siblings stay open");
++
++	const one = await put("p1", "One thing.", parts("do the one thing"));
++	await pr.file([one]);
++	ok(roots().length === 2 && roots()[1].tasks.add.source.part === "a1", "a 1-ask prompt files as a plain root, no wrapper");
++
++	const root0 = roots()[0].tasks.add.id;
++	pr.attach_to = async () => root0;
++	const more = await put("p2", "More menu.", parts("menu icons", "menu colors"));
++	await pr.file([more]);
++	ok(roots().length === 2 && read(REC).filter(l => l[root0]?.tasks?.add).length === 5, "attach_to files the asks under the existing open task, no new parent");
++	console.log(`${n} passed`);
++} finally { fs.rmSync(DIR, { recursive: true, force: true }); }
+diff --git a/Servex/Follow.js b/Servex/Follow.js
+index 733528470..210c6572f 100644
+--- a/Servex/Follow.js
++++ b/Servex/Follow.js
+@@ -64,7 +64,7 @@ export default class Follow {
+ 	 * `pointer` = a file the owner should know about (a log whose message names a file or starts show:/ready:/wrote:, a shot, a review's verdict line).
+ 	 * Everything else (steps, actions, decisions, node's worktree-watch lines) is `other` and costs the parent a paid turn for nothing. */
+ 	static STATE = /^(assign|start|resume|wait|complete|finish|stop|pause|task|tasks|landed)$/;
+-	static POINTER = /^(show|ready|wrote):|^[\w./-]+\.(md|mjs|js|jsonl|css|html|png)\b/;
++	static POINTER = /^(show|ready|wrote|alert):|^[\w./-]+\.(md|mjs|js|jsonl|css|html|png)\b/;
+ 	static LINE_MAX = 600;
+ 
+ 	/** The lines of a child's log a parent is woken for: not heartbeat or commit housekeeping, only state and pointer lines, each cut to LINE_MAX characters. */
+diff --git a/Servex/agents/Agents.js b/Servex/agents/Agents.js
+index 92f21952e..47bfb9a18 100644
+--- a/Servex/agents/Agents.js
++++ b/Servex/agents/Agents.js
+@@ -2216,6 +2216,7 @@ Agents.Agent = class Agent {
+ 		const c = this.last_usage;
+ 		if (c) this.context = (c.input_tokens ?? 0) + (c.cache_read_input_tokens ?? 0)
+ 			+ (c.cache_creation_input_tokens ?? 0) + (c.output_tokens ?? 0);
++		this.context_alert();
+ 		this.host?.register?.(this);
+ 		this.settle();
+ 		/* ONE-SHOT (a fork): its first result is its answer — the wake above has
+@@ -2282,6 +2283,21 @@ Agents.Agent = class Agent {
+ 		return true;
+ 	}
+ 
++	/* CONTEXT ALERTS (agent-base item 12; ai/doc/context.md): the first time a child's context passes 50% and then 75% of the window,
++	 * one line lands in its own session log, which its parent already tails, so the parent decides. A compaction re-arms both. */
++	context_alert(){
++		if (!this.parent || this.parent === this.id || this.one_shot || !this.task?.dir) return;
++		const window = this.host?.window_tokens ?? (Number(process.env.SERVEX_WINDOW_TOKENS) || WINDOW_TOKENS), context = Math.max(this.context ?? 0, 0);
++		if (context < window * ALERT_PCTS[0] / 100) this.context_alerted = [];
++		for (const pct of ALERT_PCTS){
++			if (context < window * pct / 100 || (this.context_alerted ??= []).includes(pct)) continue;
++			this.context_alerted.push(pct);
++			const msg = `alert: context ${Math.round(context / window * 100)}% (${context.toLocaleString("en-US")} of ${window.toLocaleString("en-US")} tokens): ${this.id}. Wind down: finish, compact (send it the compact nudge) or give the next phase to a fresh agent.`;
++			try { fs.appendFileSync(SessionRecord.log_file(path.resolve(MAIN_ROOT, this.task.dir)) ?? path.resolve(MAIN_ROOT, this.task.dir, "task.jsonl"), JSON.stringify({ log: { at: stamp(), msg } }) + "\n"); } catch {}
++			this.emit({ type: "context_alert", pct, context });
++		}
++	}
++
+ 	/* The end of a `/compact` turn: logged, no parent woken, the last turn's words kept. */
+ 	compact_done(message){
+ 		const c = this.compacting;
+@@ -2328,6 +2344,7 @@ export function renewal_text(id, replaces, why){
+ 		"Read public/framework/ai/readme.md and public/framework/ai/priority.md, then your feedback inbox (module_inbox, module \"ai\"), and continue. Any message that woke you comes next.";
+ }
+ 
++export const ALERT_PCTS = [50, 75];   // % of the window at which a child's parent is told (context_alert)
+ export const REMIND_TOKENS = 100000;   // a role reminder each time the context grows this much (SERVEX_REMIND_TOKENS)
+ export const SLEEP_COMPACT_TOKENS = 100000;   // compact before going dormant past this (capped at half the window)
+ export const WINDOW_TOKENS = 1000000;   // the model window the step reminders are a share of (SERVEX_WINDOW_TOKENS overrides)
+diff --git a/Servex/agents/context-alert.test.mjs b/Servex/agents/context-alert.test.mjs
+new file mode 100644
+index 000000000..877eeb475
+--- /dev/null
++++ b/Servex/agents/context-alert.test.mjs
+@@ -0,0 +1,23 @@
++// node Servex/agents/context-alert.test.mjs — a child's context crossing 50% and 75% puts one line in its session log, and the parent's follow forwards it.
++import assert from "node:assert"; import fs from "node:fs"; import os from "node:os"; import path from "node:path";
++process.env.SERVEX_HOME = fs.mkdtempSync(path.join(os.tmpdir(), "servex-alert-"));
++const { Agents } = await import("./Agents.js");
++const Follow = (await import("../Follow.js")).default;
++const dir = "public/framework/ai/sessions/_context-alert-test/c1", log = path.join(dir, "session.jsonl");
++fs.mkdirSync(dir, { recursive: true }); fs.writeFileSync(log, "{\"assign\":{\"agent\":\"c1\"}}\n");
++const events = [];
++const mk = over => Object.assign(Object.create(Agents.Agent.prototype), { id: "c1", parent: "p", context: 0, task: { dir }, host: { window_tokens: 1000000 }, emit: e => events.push(e) }, over);
++const lines = () => fs.readFileSync(log, "utf8").trim().split("\n").slice(1);
++try {
++	const a = mk();
++	a.context = 499000; a.context_alert(); assert.equal(lines().length, 0, "under 50%: silent");
++	a.context = 520000; a.context_alert(); a.context = 530000; a.context_alert(); assert.equal(lines().length, 1, "50% once");
++	assert.match(lines()[0], /context 52% \(520,000 of 1,000,000 tokens\): c1/);
++	a.context = 760000; a.context_alert(); assert.equal(lines().length, 2, "75% once");
++	assert.deepEqual(events.map(e => e.pct), [50, 75]);
++	assert.equal(Follow.worth_waking(lines()).length, 2, "the parent's follow forwards both");
++	a.context = 100000; a.context_alert(); a.context = 510000; a.context_alert(); assert.equal(lines().length, 3, "a compaction re-arms 50%");
++	mk({ parent: null, context: 900000 }).context_alert(); mk({ one_shot: true, context: 900000 }).context_alert();
++	assert.equal(lines().length, 3, "no parent / one-shot fork: no line");
++	console.log("context-alert: ok");
++} finally { fs.rmSync("public/framework/ai/sessions/_context-alert-test", { recursive: true, force: true }); }
+diff --git a/public/framework/ai/doc/context.md b/public/framework/ai/doc/context.md
+index b47c208d1..8709b196d 100644
+--- a/public/framework/ai/doc/context.md
++++ b/public/framework/ai/doc/context.md
+@@ -22,6 +22,10 @@ Yes. Servex records `context` on every agent: the tokens the last turn had in it
+ 
+ Servex compacts for you in three places, all described in [compaction.md](compaction.md): before an agent sleeps (over 100k), when an idle agent is nudged and chooses to (a mastermind at 150k), and at a safety ceiling (400k tokens or 500 MB). The Claude CLI has its own auto-compact near the full window, which Servex never turns off. A compaction is a turn that replaces the conversation with a summary of about 10 to 20k tokens.
+ 
++## Context alerts to the parent
++
++The nudge above talks to the agent itself. A child with a parent also tells the parent: the first time its context passes 50% of the window, and again at 75%, `context_alert()` (Agents.js) appends one `alert: context 52% (520,000 of 1,000,000 tokens): <id>. Wind down: …` line to the child's own session log. The parent already tails that log (a `alert:` line is one Follow forwards), so the parent decides: wind the child down, send it the compact nudge, or give the next phase to a fresh agent. A compaction that drops the context below 50% re-arms both levels. No parent, or a one-shot fork: no line.
++
+ ## Context dependency: a fresh agent knows only what was written down
+ 
+ Whatever the last agent had read is gone when it is replaced: a new session, a renewed mastermind, a minion that ends, a compaction. The only things that carry over are the system prompt and CLAUDE.md, the files in the repo, and the logs. So:

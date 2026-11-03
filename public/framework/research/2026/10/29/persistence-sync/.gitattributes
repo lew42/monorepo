@@ -1,0 +1,2 @@
+# JSONL files are append-only op logs: merge by keeping both sides lines
+*.jsonl merge=union

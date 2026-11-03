@@ -1,0 +1,344 @@
+[
+ {
+  "u": "/framework/ai/",
+  "w": 1200,
+  "status": 200,
+  "errs": 0,
+  "over": false,
+  "len": 7399,
+  "nf": false
+ },
+ {
+  "u": "/framework/ai/system/",
+  "w": 1200,
+  "status": 200,
+  "errs": 0,
+  "over": false,
+  "len": 7353,
+  "nf": false
+ },
+ {
+  "u": "/framework/ai/asks/",
+  "w": 1200,
+  "status": 200,
+  "errs": 0,
+  "over": false,
+  "len": 10361,
+  "nf": false
+ },
+ {
+  "u": "/framework/ai2/live/",
+  "w": 1200,
+  "status": 200,
+  "errs": 0,
+  "over": false,
+  "len": 7348,
+  "nf": false
+ },
+ {
+  "u": "/framework/ux/Dictate/",
+  "w": 1200,
+  "status": 200,
+  "errs": 0,
+  "over": false,
+  "len": 6095,
+  "nf": false
+ },
+ {
+  "u": "/framework/ai/2026-10-12/claude-md-consolidate/md/review/",
+  "w": 1200,
+  "status": 200,
+  "errs": 0,
+  "over": false,
+  "len": 503,
+  "nf": false
+ },
+ {
+  "u": "/framework/ai/2026-10-12/claude-md-consolidate/md/manifest/",
+  "w": 1200,
+  "status": 200,
+  "errs": 0,
+  "over": false,
+  "len": 6058,
+  "nf": false
+ },
+ {
+  "u": "/framework/ai/doc/",
+  "w": 1200,
+  "status": 200,
+  "errs": 0,
+  "over": false,
+  "len": 60,
+  "nf": true
+ },
+ {
+  "u": "/framework/ai/2026-10-12/claude-md-consolidate/review/md/report/",
+  "w": 1200,
+  "status": 200,
+  "errs": 0,
+  "over": false,
+  "len": 0,
+  "nf": false
+ },
+ {
+  "u": "/framework/ext/Figma/",
+  "w": 1200,
+  "status": 200,
+  "errs": 0,
+  "over": false,
+  "len": 1547,
+  "nf": false
+ },
+ {
+  "u": "/framework/ext/Figma/palette/",
+  "w": 1200,
+  "status": 200,
+  "errs": 0,
+  "over": false,
+  "len": 2195,
+  "nf": false
+ },
+ {
+  "u": "/framework/ext/Figma/autolayout/",
+  "w": 1200,
+  "status": 200,
+  "errs": 0,
+  "over": false,
+  "len": 1516,
+  "nf": false
+ },
+ {
+  "u": "/framework/ai/2026-10-12/page-content-unify/md/STATE/",
+  "w": 1200,
+  "status": 200,
+  "errs": 0,
+  "over": false,
+  "len": 1780,
+  "nf": false
+ },
+ {
+  "u": "/framework/core/Page/weight/",
+  "w": 1200,
+  "status": 200,
+  "errs": 0,
+  "over": false,
+  "len": 5425,
+  "nf": false
+ },
+ {
+  "u": "/framework/ai/2026-10-12/page-context-asks/proof/",
+  "w": 1200,
+  "status": 200,
+  "errs": 0,
+  "over": false,
+  "len": 91,
+  "nf": true
+ },
+ {
+  "u": "/framework/core/Page/",
+  "w": 1200,
+  "status": 200,
+  "errs": 0,
+  "over": false,
+  "len": 2069,
+  "nf": false
+ },
+ {
+  "u": "/framework/ext/Refine/stages/",
+  "w": 1200,
+  "status": 200,
+  "errs": 0,
+  "over": false,
+  "len": 71,
+  "nf": true
+ },
+ {
+  "u": "/framework/ext/Refine/md/doc/refine-style-2026-10-12/",
+  "w": 1200,
+  "status": 200,
+  "errs": 0,
+  "over": false,
+  "len": 3028,
+  "nf": false
+ },
+ {
+  "u": "/framework/ext/Refine/md/doc/tag-notes-2026-10-12/",
+  "w": 1200,
+  "status": 200,
+  "errs": 0,
+  "over": false,
+  "len": 3119,
+  "nf": false
+ },
+ {
+  "u": "/framework/ai/",
+  "w": 400,
+  "status": 200,
+  "errs": 0,
+  "over": false,
+  "len": 1399,
+  "nf": false
+ },
+ {
+  "u": "/framework/ai/system/",
+  "w": 400,
+  "status": 200,
+  "errs": 0,
+  "over": false,
+  "len": 6987,
+  "nf": false
+ },
+ {
+  "u": "/framework/ai/asks/",
+  "w": 400,
+  "status": 200,
+  "errs": 0,
+  "over": false,
+  "len": 9995,
+  "nf": false
+ },
+ {
+  "u": "/framework/ai2/live/",
+  "w": 400,
+  "status": 200,
+  "errs": 0,
+  "over": false,
+  "len": 1332,
+  "nf": false
+ },
+ {
+  "u": "/framework/ux/Dictate/",
+  "w": 400,
+  "status": 200,
+  "errs": 0,
+  "over": false,
+  "len": 5240,
+  "nf": false
+ },
+ {
+  "u": "/framework/ai/2026-10-12/claude-md-consolidate/md/review/",
+  "w": 400,
+  "status": 200,
+  "errs": 0,
+  "over": false,
+  "len": 137,
+  "nf": false
+ },
+ {
+  "u": "/framework/ai/2026-10-12/claude-md-consolidate/md/manifest/",
+  "w": 400,
+  "status": 200,
+  "errs": 0,
+  "over": false,
+  "len": 6086,
+  "nf": false
+ },
+ {
+  "u": "/framework/ai/doc/",
+  "w": 400,
+  "status": 200,
+  "errs": 0,
+  "over": false,
+  "len": 64,
+  "nf": true
+ },
+ {
+  "u": "/framework/ai/2026-10-12/claude-md-consolidate/review/md/report/",
+  "w": 400,
+  "status": 200,
+  "errs": 0,
+  "over": false,
+  "len": 110,
+  "nf": true
+ },
+ {
+  "u": "/framework/ext/Figma/",
+  "w": 400,
+  "status": 200,
+  "errs": 0,
+  "over": false,
+  "len": 387,
+  "nf": false
+ },
+ {
+  "u": "/framework/ext/Figma/palette/",
+  "w": 400,
+  "status": 200,
+  "errs": 0,
+  "over": false,
+  "len": 828,
+  "nf": false
+ },
+ {
+  "u": "/framework/ext/Figma/autolayout/",
+  "w": 400,
+  "status": 200,
+  "errs": 0,
+  "over": false,
+  "len": 356,
+  "nf": false
+ },
+ {
+  "u": "/framework/ai/2026-10-12/page-content-unify/md/STATE/",
+  "w": 400,
+  "status": 200,
+  "errs": 0,
+  "over": false,
+  "len": 1808,
+  "nf": false
+ },
+ {
+  "u": "/framework/core/Page/weight/",
+  "w": 400,
+  "status": 200,
+  "errs": 0,
+  "over": false,
+  "len": 4492,
+  "nf": false
+ },
+ {
+  "u": "/framework/ai/2026-10-12/page-context-asks/proof/",
+  "w": 400,
+  "status": 200,
+  "errs": 0,
+  "over": false,
+  "len": 95,
+  "nf": true
+ },
+ {
+  "u": "/framework/core/Page/",
+  "w": 400,
+  "status": 200,
+  "errs": 0,
+  "over": false,
+  "len": 1136,
+  "nf": true
+ },
+ {
+  "u": "/framework/ext/Refine/stages/",
+  "w": 400,
+  "status": 200,
+  "errs": 0,
+  "over": false,
+  "len": 75,
+  "nf": true
+ },
+ {
+  "u": "/framework/ext/Refine/md/doc/refine-style-2026-10-12/",
+  "w": 400,
+  "status": 200,
+  "errs": 0,
+  "over": false,
+  "len": 1889,
+  "nf": false
+ },
+ {
+  "u": "/framework/ext/Refine/md/doc/tag-notes-2026-10-12/",
+  "w": 400,
+  "status": 200,
+  "errs": 0,
+  "over": false,
+  "len": 1980,
+  "nf": false
+ }
+]

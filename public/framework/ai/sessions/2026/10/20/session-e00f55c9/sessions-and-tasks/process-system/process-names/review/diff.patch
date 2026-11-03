@@ -1,0 +1,1127 @@
+diff --git a/Server/rename-phase-to-step.mjs b/Server/rename-phase-to-step.mjs
+new file mode 100644
+index 000000000..32731ac40
+--- /dev/null
++++ b/Server/rename-phase-to-step.mjs
+@@ -0,0 +1,50 @@
++// Renames "phase" to "step" in the process system only (core/Task/doc/process-names.md). `node Server/rename-phase-to-step.mjs --dry-run` prints and changes nothing.
++// Each file lists the lines it may touch (a regex, or all). Every change is written to rename-manifest.md in the task folder: file:line, old, new.
++// "phase" elsewhere (review phases, SDK, requirements "Phase 2") is never in the list. process-names.md is edited by hand: it names the old word on purpose.
++// Old logs are never rewritten: readers accept the old `phase` field (Process.replay_line).
++import fs from "node:fs";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++
++const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
++const dry = process.argv.includes("--dry-run");
++const TASK_DIR = "public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/process-names";
++
++const FILES = [
++	{ file: "public/framework/core/Task/Process.js" },
++	{ file: "Servex/ProcessRunner.js" },
++	{ file: "Servex/ProcessRunner.test.mjs" },
++	{ file: "public/framework/core/Task/doc/process.md" },
++	{ file: "public/framework/core/Task/readme.md", only: /Process\.js/ },
++	{ file: "Servex/agents/page_tools.js", only: /Process|per phase|phase: task\.phase/ },
++	{ file: "Servex/agents/Agents.js", only: /process phase/ },
++	{ file: "Servex/Servex.js", only: /THE PROCESS RUNNER/ },
++];
++// Specific renames first (the `phases:` override option would collide with the `steps` argument), then the plain words.
++const RULES = [
++	[/phases: over = \{\}/g, "steps_over: over = {}"],
++	[/`phases` overrides/g, "`steps_over` overrides"],
++	[/\bphases\b/g, "steps"], [/\bPhases\b/g, "Steps"],
++	[/\bphase\b/g, "step"], [/\bPhase\b/g, "Step"],
++	[/\bPHASE_LINES\b/g, "STEP_LINES"],
++];
++
++const manifest = [`# rename-manifest: phase to step${dry ? " (dry run)" : ""}`, ""];
++for (const { file, only } of FILES){
++	const abs = path.join(root, file);
++	if (!fs.existsSync(abs)){ manifest.push(`- ${file}: missing, skipped`); continue; }
++	const src = fs.readFileSync(abs, "utf8").split("\n");
++	const out = src.map((line, i) => {
++		if (only && !only.test(line)) return line;
++		let n = line;
++		for (const [re, to] of RULES) n = n.replace(re, to);
++		if (n !== line) manifest.push(`- ${file}:${i + 1}: \`${line.trim().slice(0, 110)}\` -> \`${n.trim().slice(0, 110)}\``);
++		return n;
++	});
++	if (!dry) fs.writeFileSync(abs, out.join("\n"));
++}
++console.log(manifest.join("\n"));
++if (!dry){
++	fs.mkdirSync(path.join(root, TASK_DIR), { recursive: true });
++	fs.writeFileSync(path.join(root, TASK_DIR, "rename-manifest.md"), manifest.join("\n") + "\n");
++}
+diff --git a/Servex/ProcessRunner.js b/Servex/ProcessRunner.js
+index 73a56d6a4..302c7136c 100644
+--- a/Servex/ProcessRunner.js
++++ b/Servex/ProcessRunner.js
+@@ -4,8 +4,8 @@ import { stamp } from "./home.js";
+ import Process from "../public/framework/core/Task/Process.js";
+ import { move_home } from "./agents/page_tools.js";
+ 
+-/* THE PROCESS RUNNER: a process's phases run in order because node runs them, never because an agent remembers.
+- * Process.next() (core/Task/Process.js) decides; this class writes the line it asks for and launches the phase's session.
++/* THE PROCESS RUNNER: a process's steps run in order because node runs them, never because an agent remembers.
++ * Process.next() (core/Task/Process.js) decides; this class writes the line it asks for and launches the step's session.
+  * Woken by the item tool after any write to a process (page_tools hooks.changed), by an agent's turn end (Agents.js),
+  * and by the TaskLoop tick (the retry, and the resume after a restart). Doc: public/framework/core/Task/doc/process.md.
+  * Not Processes.js, which watches OS processes. */
+@@ -17,10 +17,10 @@ export default class ProcessRunner {
+ 		this.root ??= process.cwd();
+ 		this.public ??= path.join(this.root, "public");
+ 		this.chains = new Map();     // file -> the step in flight, so two wakes never step one file at once
+-		this.by_agent = new Map();   // agent id -> the process file whose running phase it holds
++		this.by_agent = new Map();   // agent id -> the process file whose running step it holds
+ 		this.files = new Set();      // every process file seen since boot
+ 		this.pending = new Map();    // "<file>#<agent>" -> the after-turn wake already queued
+-		this.grace = new Set();      // "<file>#<phase>": sent to an agent mid-turn, so the turn that ends next is not this phase's
++		this.grace = new Set();      // "<file>#<step>": sent to an agent mid-turn, so the turn that ends next is not this step's
+ 		this.pulse_after_ms ??= 1500;
+ 	}
+ 
+@@ -60,14 +60,14 @@ export default class ProcessRunner {
+ 			const a = p.next();
+ 			if (!a) return;
+ 			if (a.start === true) await this.write(file, { start: {} });
+-			else if (a.complete){ await this.write(file, { complete: {} }); this.tell(p.creator, `Process ${this.url(file)} is complete: every phase is done.`); return; }
++			else if (a.complete){ await this.write(file, { complete: {} }); this.tell(p.creator, `Process ${this.url(file)} is complete: every step is done.`); return; }
+ 			else if (a.wait){
+-				const ph = p.phases.find(x => x.id === a.wait);
++				const ph = p.steps.find(x => x.id === a.wait);
+ 				await this.write(file, { [a.wait]: { wait: { on: "owner", what: ph?.get_one("do") ?? a.wait } } });
+ 				this.tell(p.creator, `Process ${this.url(file)} waits on the owner: ${ph?.get_one("title") ?? a.wait}.`);
+ 			}
+ 			else if (a.halt){
+-				const agent = p.phases.find(x => x.id === a.halt)?.get_one("spawned")?.agent;
++				const agent = p.steps.find(x => x.id === a.halt)?.get_one("spawned")?.agent;
+ 				try { if (agent) this.servex?.agents?.stop?.(agent, { by: "process-runner" }); } catch {}
+ 				await this.write(file, { [a.halt]: { stop: { why: `the process was stopped${agent ? `; its agent ${agent} was stopped too` : ""}` } } });
+ 			}
+@@ -85,43 +85,43 @@ export default class ProcessRunner {
+ 		}
+ 	}
+ 
+-	// Start the phase's session: fresh (spawn), same (the previous phase's agent), owner (the process's creator). False = held back.
++	// Start the step's session: fresh (spawn), same (the previous step's agent), owner (the process's creator). False = held back.
+ 	async launch(file, p, id){
+-		const ph = p.phases.find(x => x.id === id), s = ph.get_one("session") ?? {}, run = p.run_of(ph);
++		const ph = p.steps.find(x => x.id === id), s = ph.get_one("session") ?? {}, run = p.run_of(ph);
+ 		const prompt = p.prompt(id, this.url(file)), agents = this.servex?.agents;
+ 		if (!agents) return false;
+ 		if (run === "fresh"){
+ 			const hot = this.servex.monitor?.flag?.reason;
+-			if (hot){ if (!ph.get_one("queued")) await this.write(file, { queue: { phase: id, why: hot } }); return false; }
++			if (hot){ if (!ph.get_one("queued")) await this.write(file, { queue: { step: id, why: hot } }); return false; }
+ 			const agent = agents.spawn({
+ 				role: s.role ?? "helper", name: `${p.id}-${id}`.slice(0, 40), model: s.model, effort: s.effort,
+ 				permission_mode: s.permission_mode ?? "bypassPermissions", prompt,
+ 				task: { dir: this.rel(path.join(path.dirname(file), id)), title: `${p.get_one("title") ?? p.id}: ${ph.get_one("title") ?? id}`, ...(p.get_one("brief") ? { brief: p.get_one("brief") } : {}) },
+ 			});
+-			await this.write(file, { spawn: { phase: id, run, agent: agent.id, session_id: agent.session_id ?? null, cost_before: 0 } });
++			await this.write(file, { spawn: { step: id, run, agent: agent.id, session_id: agent.session_id ?? null, cost_before: 0 } });
+ 			this.by_agent.set(agent.id, file);
+ 			return true;
+ 		}
+ 		const to = run === "same" ? this.previous_agent(p, id) : p.creator;
+ 		try {
+-			if (!to) throw new Error(run === "same" ? "no earlier phase has an agent" : "the process names no creator");
+-			if (agents.live?.get?.(to)?.state === "working") this.grace.add(`${file}#${id}`);   // run 1: the plan phase was pulsed by the investigate turn's own end
++			if (!to) throw new Error(run === "same" ? "no earlier step has an agent" : "the process names no creator");
++			if (agents.live?.get?.(to)?.state === "working") this.grace.add(`${file}#${id}`);   // run 1: the plan step was pulsed by the investigate turn's own end
+ 			agents.send(to, prompt, { from: "process-runner" });
+-		} catch (e){   // nobody to send it to: the phase waits on whoever made the process, and says why
+-			await this.write(file, { [id]: { wait: { on: p.creator ?? "owner", what: `run the ${id} phase (${e.message || e})` } } });
++		} catch (e){   // nobody to send it to: the step waits on whoever made the process, and says why
++			await this.write(file, { [id]: { wait: { on: p.creator ?? "owner", what: `run the ${id} step (${e.message || e})` } } });
+ 			return false;
+ 		}
+-		await this.write(file, { spawn: { phase: id, run, agent: to, session_id: null, cost_before: this.cost_of(to) } });
++		await this.write(file, { spawn: { step: id, run, agent: to, session_id: null, cost_before: this.cost_of(to) } });
+ 		this.by_agent.set(to, file);
+ 		return true;
+ 	}
+ 
+ 	previous_agent(p, id){
+-		const at = p.phases.findIndex(x => x.id === id);
+-		return p.phases.slice(0, at).reverse().find(x => x.get_one("spawned")?.agent)?.get_one("spawned").agent ?? null;
++		const at = p.steps.findIndex(x => x.id === id);
++		return p.steps.slice(0, at).reverse().find(x => x.get_one("spawned")?.agent)?.get_one("spawned").agent ?? null;
+ 	}
+ 
+-	remember(p, file){ for (const ph of p.phases){ const a = ph.get_one("spawned")?.agent; if (a && ph.state === "running") this.by_agent.set(a, file); } }
++	remember(p, file){ for (const ph of p.steps){ const a = ph.get_one("spawned")?.agent; if (a && ph.state === "running") this.by_agent.set(a, file); } }
+ 
+ 	cost_of(id){
+ 		const live = this.servex?.agents?.live?.get?.(id);
+@@ -129,14 +129,14 @@ export default class ProcessRunner {
+ 		return Number.isFinite(n) ? n : 0;
+ 	}
+ 
+-	// An agent ended a turn (Agents.js result). Measure what it finished; pulse a phase it left open.
++	// An agent ended a turn (Agents.js result). Measure what it finished; pulse a step it left open.
+ 	turn_ended(agent){
+ 		const file = this.by_agent.get(agent?.id);
+ 		if (!file) return;
+ 		setTimeout(() => this.queue_turn(file, agent.id), this.pulse_after_ms).unref?.();
+ 	}
+ 
+-	// After-turn work joins the file's chain, so two turn ends never both measure one phase (run 1 wrote review's cost twice).
++	// After-turn work joins the file's chain, so two turn ends never both measure one step (run 1 wrote review's cost twice).
+ 	// A second wake for the same agent while one is still queued is the same turn end (run 1 got two): it joins the first.
+ 	queue_turn(file, id){
+ 		file = path.resolve(file);
+@@ -152,28 +152,28 @@ export default class ProcessRunner {
+ 		const p = this.read(file);
+ 		if (!p) return;
+ 		const url = this.url(file);
+-		// Still working: a message queued during the turn (the next phase's prompt, a pulse) starts another turn, which ends here again.
++		// Still working: a message queued during the turn (the next step's prompt, a pulse) starts another turn, which ends here again.
+ 		const busy = this.servex?.agents?.live?.get?.(id)?.state === "working";
+ 		let holds = false;
+-		for (const ph of p.phases){
++		for (const ph of p.steps){
+ 			const sp = ph.get_one("spawned");
+ 			if (sp?.agent !== id) continue;
+ 			if (ph.state === "complete" && !ph.get_one("measure")){
+ 				const usd = Math.max(0, this.cost_of(id) - (Number(sp.cost_before) || 0));
+-				await this.write(file, { measure: { phase: ph.id, agent: id, usd: Number(usd.toFixed(4)), shared: sp.run !== "fresh" } });
++				await this.write(file, { measure: { step: ph.id, agent: id, usd: Number(usd.toFixed(4)), shared: sp.run !== "fresh" } });
+ 			}
+ 			if (ph.state !== "running") continue;
+ 			holds = true;
+ 			if (busy) continue;
+-			if (this.grace.delete(`${path.resolve(file)}#${ph.id}`)) continue;   // that turn began before this phase was sent
++			if (this.grace.delete(`${path.resolve(file)}#${ph.id}`)) continue;   // that turn began before this step was sent
+ 			const n = Number(ph.get_one("pulses")) || 0;
+ 			if (n < 1){
+ 				const line = `item({path: "${url}", delta: {"${ph.id}": {"complete": {"outcome": "…", "evidence": ["…"]}}}})`;
+-				try { this.servex.agents.send(id, `The ${ph.id} phase of ${url} is not recorded as complete. If it is done, record it: ${line}. If something blocks it, write {"${ph.id}": {"wait": {"on": "<who>", "what": "<what you need>"}}} with the same tool.`, { from: "process-runner" }); } catch {}
+-				await this.write(file, { pulse: { phase: ph.id, n: n + 1, agent: id } });
++				try { this.servex.agents.send(id, `The ${ph.id} step of ${url} is not recorded as complete. If it is done, record it: ${line}. If something blocks it, write {"${ph.id}": {"wait": {"on": "<who>", "what": "<what you need>"}}} with the same tool.`, { from: "process-runner" }); } catch {}
++				await this.write(file, { pulse: { step: ph.id, n: n + 1, agent: id } });
+ 			} else {
+-				await this.write(file, { [ph.id]: { wait: { on: p.creator ?? "owner", what: `the ${ph.id} agent (${id}) ended ${n + 1} turns without completing the phase` } } });
+-				this.tell(p.creator, `Process ${url}: the ${ph.id} phase stalled (${id} ended ${n + 1} turns without completing it). It now waits on you.`);
++				await this.write(file, { [ph.id]: { wait: { on: p.creator ?? "owner", what: `the ${ph.id} agent (${id}) ended ${n + 1} turns without completing the step` } } });
++				this.tell(p.creator, `Process ${url}: the ${ph.id} step stalled (${id} ended ${n + 1} turns without completing it). It now waits on you.`);
+ 			}
+ 		}
+ 		if (!holds) this.by_agent.delete(id);
+diff --git a/Servex/ProcessRunner.test.mjs b/Servex/ProcessRunner.test.mjs
+index da28bc52e..f3fff3c8c 100644
+--- a/Servex/ProcessRunner.test.mjs
++++ b/Servex/ProcessRunner.test.mjs
+@@ -1,4 +1,4 @@
+-// A build process end to end on a fake agent host: one item call creates it, node runs every phase, completion rolls up. `node Servex/ProcessRunner.test.mjs`
++// A build process end to end on a fake agent host: one item call creates it, node runs every step, completion rolls up. `node Servex/ProcessRunner.test.mjs`
+ import assert from "node:assert";
+ import fs from "node:fs";
+ import path from "node:path";
+@@ -7,7 +7,7 @@ import { run_item, hooks, ledgers } from "./agents/page_tools.js";
+ import TaskHomes from "../Server/TaskHomes.mjs";
+ import ProcessRunner from "./ProcessRunner.js";
+ import Task from "../public/framework/core/Task/Task.js";
+-import "../public/framework/core/Task/Process.js";
++import "../public/framework/core/Task/processes/index.js";
+ 
+ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+ const REL = "public/framework/ai/sessions/2026/10/22/.process-test-" + process.pid;
+@@ -34,12 +34,15 @@ fs.mkdirSync(DIR, { recursive: true });
+ ledgers.task_moves = path.join(DIR, "task-moves.jsonl"); TaskHomes.INDEX = path.join(DIR, "homes.jsonl");   // never the real ledgers
+ fs.writeFileSync(SESSION, JSON.stringify({ assign: { session_id: "sess", agent: "mm1", title: "Test session" } }) + "\n");
+ try {
+-	const Process = (await import("../public/framework/core/Task/Process.js")).default;
+-	const clash = Object.values(Process.DEFINITIONS).flat().filter(ph => typeof Process.prototype[ph.id] === "function" || Task.FIELDS.includes(ph.id) || ["tasks", "content", "set", "file", "task", "log", "spawn", "queue", "pulse", "measure"].includes(ph.id));
+-	ok(!clash.length, "no phase id names a Task verb, field or line key: " + clash.map(c => c.id));
++	const Process = (await import("../public/framework/core/Task/processes/index.js")).default;
++	const clash = Process.names().flatMap(n => Process.template(n).steps).filter(ph => typeof Process.prototype[ph.id] === "function" || Task.FIELDS.includes(ph.id) || ["tasks", "content", "set", "file", "task", "log", "spawn", "queue", "pulse", "measure"].includes(ph.id));
++	ok(!clash.length, "no step id names a Task verb, field or line key: " + clash.map(c => c.id));
+ 	const fs_ = Process.from_steps(["file", { title: "Improve", id: "improve" }, "Write the docs"]), fl = Process.lines({ process: "<unknown>", steps: ["file", "log"] });
+ 	ok(fs_?.map(x => x.id).join() === "file-step,improve-step,write-the-docs", "from_steps: a step id that is a line key or verb gets -step, not a refusal");
+ 	ok(fl?.[0].process === "steps" && fl.length === 3, "lines(): own steps under an unknown process name become process \"steps\"");
++	ok(["build", "design", "investigate"].every(n => Process.template(n)?.prototype instanceof Process) && Process.names().length === 3 && !Process.template("nope"), "Process.template(name) finds one subclass per template; names() lists them");
++	const old_ = Process.replay([...Process.lines({ process: "build" }), { spawn: { phase: "plan", agent: "a9" } }, { spawn: { step: "investigate", agent: "a8" } }]);
++	ok(old_.steps.find(x => x.id === "plan").get_one("spawned")?.agent === "a9" && old_.steps.find(x => x.id === "investigate").get_one("spawned")?.agent === "a8", "an old {spawn:{phase}} line still lands on its step; a new {spawn:{step}} line does too");
+ 	let r = await item({ tasks: { add: { title: "Fix X", process: "nope" } } }, "mm1");
+ 	ok(r.ok === false && /no process "nope"/.test(r.why), "an unknown process is refused, nothing written");
+ 
+@@ -49,9 +52,9 @@ try {
+ 	ok(read(SESSION).some(l => l.task === PURL), "the session's record references it");
+ 	await settle(FILE);
+ 	let L = read(FILE);
+-	ok(L[0].class === "Process" && L[0].process === "build" && L.filter(l => l.tasks?.add).length === 7, "line 1 is a Process, seven phase lines");
+-	ok(L.some(l => l.start) && L.some(l => l.investigate?.start) && L.some(l => l.spawn?.phase === "investigate" && l.spawn.agent === "a1"), "node started it and spawned the investigate session");
+-	ok(spawned[0].model === "claude-sonnet-5-5" && spawned[0].task.dir.endsWith("fix-x/investigate") && spawned[0].prompt.includes(`"investigate": {"complete"`), "the spawn carries the phase's model, a folder inside the process, and the completing line");
++	ok(L[0].class === "Process" && L[0].process === "build" && L.filter(l => l.tasks?.add).length === 7, "line 1 is a Process, seven step lines");
++	ok(L.some(l => l.start) && L.some(l => l.investigate?.start) && L.some(l => l.spawn?.step === "investigate" && l.spawn.agent === "a1"), "node started it and spawned the investigate session");
++	ok(spawned[0].model === "claude-sonnet-5-5" && spawned[0].task.dir.endsWith("fix-x/investigate") && spawned[0].prompt.includes(`"investigate": {"complete"`), "the spawn carries the step's model, a folder inside the process, and the completing line");
+ 
+ 	const step = async (delta, caller) => { await item(delta, caller, PURL); await settle(FILE); };
+ 	await step({ investigate: { complete: { outcome: "found the cause in X.js", evidence: ["test"] } } }, "a1");
+@@ -61,11 +64,11 @@ try {
+ 	live.set("a1", { state: "idle", cost: 0.5 });
+ 	await Promise.all([runner.queue_turn(FILE, "a1"), runner.queue_turn(FILE, "a1")]);   // two wakes for one turn end
+ 	L = read(FILE);
+-	ok(L.filter(l => l.measure?.phase === "investigate" && l.measure.usd === 0.5).length === 1, "investigate's cost is measured by node, once however many wakes");
++	ok(L.filter(l => l.measure?.step === "investigate" && l.measure.usd === 0.5).length === 1, "investigate's cost is measured by node, once however many wakes");
+ 	ok(!L.some(l => l.pulse), "the turn that ends first is investigate's own (plan was sent mid-turn): no pulse");
+ 	await runner.after_turn(FILE, "a1");
+ 	L = read(FILE);
+-	ok(L.some(l => l.pulse?.phase === "plan" && l.pulse.n === 1) && sent.at(-1).text.includes("not recorded as complete"), "the next turn that ends with plan open gets one pulse");
++	ok(L.some(l => l.pulse?.step === "plan" && l.pulse.n === 1) && sent.at(-1).text.includes("not recorded as complete"), "the next turn that ends with plan open gets one pulse");
+ 
+ 	await step({ plan: { complete: { outcome: "plan.md written", evidence: ["test"] } } }, "a1");
+ 	ok(spawned[1]?.role === "reviewer", "improve is a fresh reviewer");
+@@ -76,12 +79,12 @@ try {
+ 	await step({ execute: { complete: { outcome: "branch task/fix-x, 2 commits", evidence: ["test"] } } }, "a3");
+ 	await step({ review: { complete: { outcome: "ready to merge: task/fix-x", evidence: ["test"] } } }, "a4");
+ 	let p = runner.read(FILE);
+-	ok(p.phase.id === "merge" && p.phase.state === "waiting" && p.state === "running", "merge waits on the owner; the process is not complete");
++	ok(p.step.id === "merge" && p.step.state === "waiting" && p.state === "running", "merge waits on the owner; the process is not complete");
+ 	ok(sent.at(-1).id === "mm1" && sent.at(-1).text.includes("waits on the owner"), "the creator is told");
+ 
+ 	await step({ merge: { complete: { outcome: "merged", evidence: ["test"] } } }, "owner");
+ 	p = runner.read(FILE);
+-	ok(p.state === "complete" && p.completion === 1, "the last phase completes the process");
++	ok(p.state === "complete" && p.completion === 1, "the last step completes the process");
+ 	const sess = Task.replay(read(SESSION));
+ 	ok(sess.completion === 1 && sess._tasks.find("fix-x")?.constructor.name === "Process", "the session's completion counts it (replayed as a Process)");
+ 
+@@ -89,7 +92,7 @@ try {
+ 	await new ProcessRunner({ servex: { agents, say(){} }, root: ROOT, files: new Set() }).step(FILE);
+ 	ok(read(FILE).length === before, "a restart re-steps a finished process and writes nothing");
+ 
+-	// A stall: the phase agent ends two turns without completing; the phase then waits on the creator.
++	// A stall: the step agent ends two turns without completing; the step then waits on the creator.
+ 	await item({ tasks: { add: { title: "Look into Y", process: "investigate" } } }, "mm1");
+ 	const Q = path.join(DIR, "look-into-y", "task.jsonl");
+ 	await settle(Q);
+@@ -98,7 +101,7 @@ try {
+ 	await runner.after_turn(Q, q);
+ 	await runner.after_turn(Q, q);
+ 	p = runner.read(Q);
+-	ok(p.phase.id === "questions" && p.phase.state === "waiting" && p.phase.get_one("waiting_on") === "mm1", "two silent turn ends: the phase waits on the creator");
++	ok(p.step.id === "questions" && p.step.state === "waiting" && p.step.get_one("waiting_on") === "mm1", "two silent turn ends: the step waits on the creator");
+ 
+ 	// Draft in the session, then move home: a process naming a module moves to <module>/tasks/<id>/ once its plan is approved.
+ 	const MOD = "ai/process-test-" + process.pid;   // a module name has no dots (MODULE_NAME); removed in finally
+@@ -114,7 +117,7 @@ try {
+ 	await settle(HOME); await settle(HOME);
+ 	ok(!fs.existsSync(G) && fs.existsSync(HOME), "approved: the process folder moved to <module>/tasks/go-home/");
+ 	p = runner.read(HOME);
+-	ok(p.get_one("path").endsWith(`/${MOD}/tasks/go-home/`) && p.phase.id === "execute" && p.phase.get_one("spawned"), "it records its new path and the run goes on there (execute spawned)");
++	ok(p.get_one("path").endsWith(`/${MOD}/tasks/go-home/`) && p.step.id === "execute" && p.step.get_one("spawned"), "it records its new path and the run goes on there (execute spawned)");
+ 	const s2 = Task.replay(read(SESSION));
+ 	ok(s2._tasks.find("go-home")?.get_one("path")?.endsWith(`/${MOD}/tasks/go-home/`) && [...s2._tasks].filter(t => t.id === "go-home").length === 1, "the session's later reference replaces the old one: one child, at its new home");
+ 	ok(read(path.join(ROOT, "public/framework", MOD, "tasks", "task.jsonl")).some(l => l.task?.endsWith(`/${MOD}/tasks/go-home/`)), "the module's tasks list references it");
+@@ -127,7 +130,7 @@ try {
+ 	ok(Task.replay(imp)._tasks.find("move-x-into-y").weight === 2 && state.tasks.length === 1, "its weight is 2, computed on replay");
+ 
+ 	r = await run_item({ path: PURL }, { caller: "mm1" });
+-	ok(r.state.class === "Process" && r.state.state === "complete" && r.state.tasks.length === 7, "item({path}) reads the process back: class, state, phases");
++	ok(r.state.class === "Process" && r.state.state === "complete" && r.state.tasks.length === 7, "item({path}) reads the process back: class, state, steps");
+ 
+ 	// A SIMPLE PROCESS THROUGH THE TOOL (the owner, 2026-10-22): create it with your own steps, node prompts step 1, then step 2 when step 1 returns.
+ 	r = await item({ tasks: { add: { title: "Dup", steps: [{ title: "Same" }, { title: "Same" }] } } }, "mm1");
+@@ -136,7 +139,7 @@ try {
+ 	const SF = path.join(DIR, "two-steps", "task.jsonl"), SURL = URL + "two-steps/";
+ 	await settle(SF);
+ 	let S = read(SF), sent0 = sent.length;
+-	ok(r.ok && S[0].class === "Process" && S[0].process === "steps" && S.filter(l => l.tasks?.add).length === 2, "one call: a Process with the two steps as its phases");
++	ok(r.ok && S[0].class === "Process" && S[0].process === "steps" && S.filter(l => l.tasks?.add).length === 2, "one call: a Process with the two steps as its steps");
+ 	ok(S.some(l => l["write-the-note"]?.start) && sent.at(-1).id === "mm1" && sent.at(-1).text.includes("write note.md") && sent.at(-1).text.includes(`"write-the-note": {"complete"`), "node starts step 1 and prompts the creator with it");
+ 	await item({ "write-the-note": { complete: { outcome: "note.md written", evidence: ["test"] } } }, "mm1", SURL); await settle(SF);
+ 	ok(sent.length === sent0 + 1 && sent.at(-1).text.includes("read note.md back") && sent.at(-1).text.includes("note.md written"), "step 1 returns: node prompts step 2, with step 1's outcome");
+@@ -153,19 +156,19 @@ try {
+ 	r = await item({ "build-it": { complete: { outcome: "built" } } }, "mm1", BURL);
+ 	ok(r.ok === false && /evidence/.test(r.why ?? "") && read(BF).length === blen, "complete without evidence is refused, nothing written");
+ 	await item({ "build-it": { complete: { outcome: "built", evidence: ["commit abc"] } } }, "mm1", BURL); await settle(BF);
+-	ok(runner.read(BF).phases.find(x => x.id === "build-it").state === "complete" && sent.at(-1).text.includes("review"), "step 1 completes with evidence; step 2 is prompted");
++	ok(runner.read(BF).steps.find(x => x.id === "build-it").state === "complete" && sent.at(-1).text.includes("review"), "step 1 completes with evidence; step 2 is prompted");
+ 	ok(runner.read(BF).state !== "complete", "the process is not complete after the first step");
+ 	await item({ "review-it": { complete: { outcome: "approved", evidence: ["review.md"] } } }, "mm1", BURL); await settle(BF);
+ 	const bl = read(BF);
+ 	ok(runner.read(BF).state === "complete" && bl.some(l => l["build-it"]?.complete?.evidence?.[0] === "commit abc") && bl.some(l => l["review-it"]?.complete?.evidence?.[0] === "review.md"), "the last step completes the process; both steps' evidence is in the log");
+ 
+-	// Stopping a process stops the agent of the phase it spawned (found live, 2026-10-22: the phase agent kept going), never the creator.
++	// Stopping a process stops the agent of the step it spawned (found live, 2026-10-22: the step agent kept going), never the creator.
+ 	await item({ tasks: { add: { title: "Stop me", process: "investigate" } } }, "mm1");
+ 	const T = path.join(DIR, "stop-me", "task.jsonl"); await settle(T);
+ 	const ta = spawned.at(-1).id;
+ 	await item({ stop: { why: "not needed" } }, "mm1", URL + "stop-me/"); await settle(T);
+ 	const tp = runner.read(T);
+-	ok(agents.stopped.includes(ta) && tp.state === "stopped" && tp.phases.find(x => x.id === "questions").state === "stopped" && !agents.stopped.includes("mm1"), "a stopped process stops its running phase and that phase's agent");
++	ok(agents.stopped.includes(ta) && tp.state === "stopped" && tp.steps.find(x => x.id === "questions").state === "stopped" && !agents.stopped.includes("mm1"), "a stopped process stops its running step and that step's agent");
+ } finally {
+ 	fs.rmSync(DIR, { recursive: true, force: true });
+ 	fs.rmSync(path.join(ROOT, "public/framework/ai/process-test-" + process.pid), { recursive: true, force: true });
+diff --git a/Servex/Servex.js b/Servex/Servex.js
+index 28c4b184b..3f099b8ef 100644
+--- a/Servex/Servex.js
++++ b/Servex/Servex.js
+@@ -283,7 +283,7 @@ export default class Servex extends Events {
+         this.task_loop = new this.constructor.TaskLoop({ servex: this, root: REPO });
+         if (!process.env.SERVEX_NO_TASKLOOP) this.task_loop.start();
+         page_tool_hooks.approved = file => this.task_loop.launch(file);   // an approve line starts a templated task's agent (doc/templates.md)
+-        /* THE PROCESS RUNNER (process-system, 2026-10-22): a process's phases run in order because node runs them. Woken by
++        /* THE PROCESS RUNNER (process-system, 2026-10-22): a process's steps run in order because node runs them. Woken by
+          * any item-tool write to a process, by an agent's turn end, and by the TaskLoop tick (resume after a restart).
+          * Doc: public/framework/core/Task/doc/process.md. */
+         this.process_runner = new ProcessRunner({ servex: this, root: REPO });
+diff --git a/Servex/agents/Agents.js b/Servex/agents/Agents.js
+index 28d251490..1dcfcbe3d 100644
+--- a/Servex/agents/Agents.js
++++ b/Servex/agents/Agents.js
+@@ -1560,7 +1560,7 @@ Agents.Agent = class Agent {
+ 			: this.one_shot && event.ok === false ? "error"
+ 			: this.last_text?.startsWith("BLOCKED") ? "blocked" : "done");
+ 		if (event.type === "error") this.host?.wake_parent?.(this, "error");
+-		if (event.type === "result") try { this.host?.servex?.process_runner?.turn_ended(this); } catch {}   // a process phase this agent holds is measured, or pulsed if left open
++		if (event.type === "result") try { this.host?.servex?.process_runner?.turn_ended(this); } catch {}   // a process step this agent holds is measured, or pulsed if left open
+ 		return event;
+ 	}
+ 
+diff --git a/Servex/agents/page_tools.js b/Servex/agents/page_tools.js
+index cc14ea606..588f1da46 100644
+--- a/Servex/agents/page_tools.js
++++ b/Servex/agents/page_tools.js
+@@ -351,7 +351,7 @@ const FILE_CLASS = { "task.jsonl": "Task", "session.jsonl": "Session", "page.jso
+ const LOADERS = {
+ 	Task: async () => (await import("../../public/framework/core/Task/Task.js")).default,
+ 	Session: async () => (await import("../../public/framework/core/Session/Session.js")).default,
+-	Process: async () => (await import("../../public/framework/core/Task/Process.js")).default,
++	Process: async () => (await import("../../public/framework/core/Task/processes/index.js")).default,
+ };
+ const CLASS_SOURCES = { Task: ["core/Task/Task.js", "core/Item/Item.js"], Session: ["core/Session/Session.js", "core/Item/Item.js"], Process: ["core/Task/Process.js", "core/Task/Task.js", "core/Item/Item.js"] };
+ // Fields a Session line may carry: its identity, a title, and its tasks.
+@@ -476,12 +476,12 @@ function make_child(parent_dir, add, ctx, home){
+ }
+ 
+ /* A process (core/Task/doc/process.md) always gets its own folder inside the caller's folder, never a module home: line 1 and one
+- * add per phase come from Process.DEFINITIONS, and ProcessRunner starts it (hooks.changed). Refused: an unknown process, a taken slug. */
++ * add per step come from the Process template (core/Task/processes/), and ProcessRunner starts it (hooks.changed). Refused: an unknown process, a taken slug. */
+ async function process_home(parent_dir, add){
+ 	const Process = await LOADERS.Process();
+-	if (!Process.DEFINITIONS[add.process] && !Process.from_steps(add.steps)) return { why: add.steps
++	if (!Process.template(add.process) && !Process.from_steps(add.steps)) return { why: add.steps
+ 		? "`steps` must be a non-empty list of {title, do, session?} with distinct titles (an id that is a line key or verb, like file or improve, gets -step added)"
+-		: `no process "${add.process}"; the processes are: ${Object.keys(Process.DEFINITIONS).join(", ")}, or give your own \`steps\`` };
++		: `no process "${add.process}"; the processes are: ${Process.names().join(", ")}, or give your own \`steps\`` };
+ 	const slug = slug_of(add.id ?? add.title), dir = path.join(parent_dir, slug);
+ 	// A folder that only holds a brief is fine (write the brief, then start the process in it); one with a log is taken.
+ 	if (["task.jsonl", "session.jsonl"].some(f => fs.existsSync(path.join(dir, f)))) return { why: `"${slug}" already holds a task in this folder; nothing was written. Give the process another id or title.` };
+@@ -665,7 +665,7 @@ function advance(root, line){
+ 
+ function task_state(Task, task){
+ 	const tasks = [...(task._tasks ?? [])].map(t => ({ id: t.id, title: t.get_one("title"), state: t.state }));
+-	if (Task.name === "Process") return { class: "Process", process: task.process, state: task.state, phase: task.phase?.id ?? null, next: task.next(), completion: task.completion, data: { ...task.data }, tasks: [...(task._tasks ?? [])].map(t => ({ id: t.id, title: t.get_one("title"), state: t.state, outcome: t.get_one("outcome") ?? null })) };
++	if (Task.name === "Process") return { class: "Process", process: task.process, state: task.state, step: task.step?.id ?? null, next: task.next(), completion: task.completion, data: { ...task.data }, tasks: [...(task._tasks ?? [])].map(t => ({ id: t.id, title: t.get_one("title"), state: t.state, outcome: t.get_one("outcome") ?? null })) };
+ 	if (Task.name === "Session") return { class: "Session", completion: task.completion, progress: task.progress(), data: { ...task.data }, tasks };
+ 	return { class: "Task", state: task.state, completion: task.completion, data: { ...task.data }, tasks };
+ }
+diff --git a/Servex/agents/roles/mastermind.md b/Servex/agents/roles/mastermind.md
+index 693467735..77ddeb06a 100644
+--- a/Servex/agents/roles/mastermind.md
++++ b/Servex/agents/roles/mastermind.md
+@@ -18,7 +18,7 @@ You are the executive tier: you decide what is worth doing, brief workers, judge
+ - **The system architect keeps the AI-system docs** (the owner, 2026-10-22): `mastermind-system-architect` owns the maps ([ai/doc/readme.md, Maps](/framework/ai/doc/readme.md#maps-read-one-before-you-dig)) and the AI-system readmes; another agent that finds one wrong fixes it in its own task and tells the architect in one log line.
+ - **Improvements, one list per folder** (the owner, 2026-10-22). When a readme sanity check (or any read) finds a fix or a move you will not make now, propose it as an improvement in that folder: `item({path: "<folder url>/improvements.jsonl", delta: {tasks: {add: {title: "<the change>", why: "<what is wrong now>"}}}})`. Node stamps it; each improvement is a nested Task in that one file (never a folder), so the site can list, filter and close them; reading the list back is `item({path: "<folder url>/improvements.jsonl"})`. The owner named the file `improvements.md`; it is JSONL because it is a record written through the item tool, and records are JSONL while prose is markdown ([where AI code lives](/framework/ai/doc/code-shape.md)).
+ - **Document per prompt, as curated knowledge** (the owner, 2026-10-22). A new direction, preference or question from the owner is written down right away where it belongs: the readme or `doc/` note of the module it concerns, as instruction not restriction, with the certainty the owner used ("never"/"always" only for what has actually broken things). Refine the existing note instead of adding a second one; when the owner says it again, mark that note *reinforced (date)*. Prefer one line in an existing readme to a new file, and never leave a file nothing links. Anything you had to dig for (grep, many reads) was under-documented: add it to the readme you started from. Thorough docs come after the design settles.
+-- **Multi-phase work runs as a process** (`item({path: <your session>, delta: {tasks: {add: {title, process: "build", brief}}}})`): node then runs each phase's session in order, pulses a stalled one, and the task completes only when every phase has, the merge included ([core/Task/doc/process.md](/framework/core/Task/doc/process.md)). A one-off fix needs no process.
++- **Multi-phase work runs as a process** (`item({path: <your session>, delta: {tasks: {add: {title, process: "build", brief}}}})`): node then runs each phase's session in order, pulses a stalled one, and the task completes only when every phase has, the merge included ([core/Task/doc/process.md](/framework/core/Task/doc/process.md)). A one-off fix needs no process. To start work, name a process template, or give your own steps.
+ - **Track your own experiments** — only small ones, checkable at a glance. Log `{"experiment":{"try","measure","result"}}` in task.jsonl.
+ 
+ **Read `public/framework/ai/priority.md` and `public/framework/ai/readme.md` when you start** (the owner, 2026-10-22): the ranked list of what matters now, and how the AI system fits together. Update the list's "Now" column as work lands.
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/process-names/rename-manifest.md b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/process-names/rename-manifest.md
+new file mode 100644
+index 000000000..f456cadc4
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/process-names/rename-manifest.md
+@@ -0,0 +1,119 @@
++# rename-manifest: phase to step
++
++- public/framework/core/Task/Process.js:1: `// A Process: a Task whose children are named phases, run in series by node (doc/process.md). Data plus one de` -> `// A Process: a Task whose children are named steps, run in series by node (doc/process.md). Data plus one dec`
++- public/framework/core/Task/Process.js:5: `// Lines only node writes, each naming the phase it is about: {"spawn":{"phase":"plan","agent":…}}.` -> `// Lines only node writes, each naming the step it is about: {"spawn":{"step":"plan","agent":…}}.`
++- public/framework/core/Task/Process.js:6: `const PHASE_LINES = { spawn: "spawned", queue: "queued", pulse: "pulses", measure: "measure" };` -> `const STEP_LINES = { spawn: "spawned", queue: "queued", pulse: "pulses", measure: "measure" };`
++- public/framework/core/Task/Process.js:10: `// Phases always run in series, and only node starts them: Task's in-memory auto-start is off, so state comes ` -> `// Steps always run in series, and only node starts them: Task's in-memory auto-start is off, so state comes f`
++- public/framework/core/Task/Process.js:17: `get phases(){ return [...(this._tasks ?? [])]; }` -> `get steps(){ return [...(this._tasks ?? [])]; }`
++- public/framework/core/Task/Process.js:18: `// The phase being worked on: the first one not complete, or null once all are.` -> `// The step being worked on: the first one not complete, or null once all are.`
++- public/framework/core/Task/Process.js:19: `get phase(){ return this.phases.find(p => p.state !== "complete") ?? null; }` -> `get step(){ return this.steps.find(p => p.state !== "complete") ?? null; }`
++- public/framework/core/Task/Process.js:24: `// Stopped with a phase still running in a fresh session it spawned: halt that phase (node stops its agent). T` -> `// Stopped with a step still running in a fresh session it spawned: halt that step (node stops its agent). The`
++- public/framework/core/Task/Process.js:25: `if (this.state === "stopped"){ const h = this.phases.find(p => p.state === "running" && p.get_one("spawned")?.` -> `if (this.state === "stopped"){ const h = this.steps.find(p => p.state === "running" && p.get_one("spawned")?.r`
++- public/framework/core/Task/Process.js:27: `const p = this.phase;` -> `const p = this.step;`
++- public/framework/core/Task/Process.js:36: `// How a phase is run (doc/process.md, "A phase's session"): its own session.run; a step with none runs fresh,` -> `// How a step is run (doc/process.md, "A step's session"): its own session.run; a step with none runs fresh, e`
++- public/framework/core/Task/Process.js:39: `// Draft in the session, then move home (doc/owner-2026-10-20-projects-and-completion.md §6): once a phase mar` -> `// Draft in the session, then move home (doc/owner-2026-10-20-projects-and-completion.md §6): once a step mark`
++- public/framework/core/Task/Process.js:44: `if (!this.phases.some(p => p.get_one("home_after") && p.state === "complete")) return false;` -> `if (!this.steps.some(p => p.get_one("home_after") && p.state === "complete")) return false;`
++- public/framework/core/Task/Process.js:48: `// The prompt node sends the phase's session: the job, the brief, what earlier phases found, and the one line ` -> `// The prompt node sends the step's session: the job, the brief, what earlier steps found, and the one line th`
++- public/framework/core/Task/Process.js:50: `const p = this.phases.find(x => x.id === id);` -> `const p = this.steps.find(x => x.id === id);`
++- public/framework/core/Task/Process.js:52: `const done = this.phases.filter(x => x.state === "complete" && x.get_one("outcome"));` -> `const done = this.steps.filter(x => x.state === "complete" && x.get_one("outcome"));`
++- public/framework/core/Task/Process.js:55: ``You are running the "${p.get_one("title") ?? id}" phase of the ${this.process ?? "process"} process "${this.g` -> ``You are running the "${p.get_one("title") ?? id}" step of the ${this.process ?? "process"} process "${this.ge`
++- public/framework/core/Task/Process.js:57: `done.length ? `What the earlier phases recorded:\n${done.map(x => `- ${x.id}: ${x.get_one("outcome")}`).join("` -> `done.length ? `What the earlier steps recorded:\n${done.map(x => `- ${x.id}: ${x.get_one("outcome")}`).join("\`
++- public/framework/core/Task/Process.js:58: ``Your job in this phase: ${p.get_one("do") ?? "(not described)"}`,` -> ``Your job in this step: ${p.get_one("do") ?? "(not described)"}`,`
++- public/framework/core/Task/Process.js:59: ``When the phase is done, record it with the item tool; this is what moves the process on, and nothing else doe` -> ``When the step is done, record it with the item tool; this is what moves the process on, and nothing else does`
++- public/framework/core/Task/Process.js:64: `// The lines that make a new process from a definition: line-1 fields, then one add per phase. `phases` overri` -> `// The lines that make a new process from a definition: line-1 fields, then one add per step. `steps_over` ove`
++- public/framework/core/Task/Process.js:66: `static lines({ process, phases: over = {}, steps, ...fields } = {}){` -> `static lines({ process, steps_over: over = {}, steps, ...fields } = {}){`
++- public/framework/core/Task/Process.js:78: `// Steps written by the caller, as phases. Refused (null) when empty or when two share an id. An id that would` -> `// Steps written by the caller, as steps. Refused (null) when empty or when two share an id. An id that would `
++- public/framework/core/Task/Process.js:89: `// Node's own lines: each records a fact on the phase it names. Everything else is a Task line.` -> `// Node's own lines: each records a fact on the step it names. Everything else is a Task line.`
++- public/framework/core/Task/Process.js:92: `if (line.class === "Process" && typeof line.by === "string") this.put("creator", line.by);   // line 1's write` -> `if (line.class === "Process" && typeof line.by === "string") this.put("creator", line.by);   // line 1's write`
++- public/framework/core/Task/Process.js:93: `for (const [key, field] of Object.entries(PHASE_LINES)){` -> `for (const [key, field] of Object.entries(STEP_LINES)){`
++- public/framework/core/Task/Process.js:95: `const kid = body && typeof body === "object" && typeof body.phase === "string" ? this._tasks?.find(body.phase)` -> `const kid = body && typeof body === "object" && typeof body.step === "string" ? this._tasks?.find(body.step) :`
++- public/framework/core/Task/Process.js:96: `if (kid){ const { phase: _p, ...rest } = body; kid.put(field, key === "pulse" ? rest.n ?? 1 : { ...rest, at: r` -> `if (kid){ const { step: _p, ...rest } = body; kid.put(field, key === "pulse" ? rest.n ?? 1 : { ...rest, at: re`
++- public/framework/core/Task/Process.js:102: `// The small core set. A phase id never names a Task verb or field (`improve` would call improve()). A phase: ` -> `// The small core set. A step id never names a Task verb or field (`improve` would call improve()). A step: id`
++- public/framework/core/Task/Process.js:113: `do: "Read plan.md. Complete this phase with outcome 'approved' (plus any caveat), or 'changes: …' naming what ` -> `do: "Read plan.md. Complete this step with outcome 'approved' (plus any caveat), or 'changes: …' naming what t`
++- public/framework/core/Task/Process.js:115: `do: "Build the plan on its own branch in a worktree Servex serves: take one with the take_worktree tool (it ha` -> `do: "Build the plan on its own branch in a worktree Servex serves: take one with the take_worktree tool (it ha`
++- Servex/ProcessRunner.js:7: `/* THE PROCESS RUNNER: a process's phases run in order because node runs them, never because an agent remember` -> `/* THE PROCESS RUNNER: a process's steps run in order because node runs them, never because an agent remembers`
++- Servex/ProcessRunner.js:8: `* Process.next() (core/Task/Process.js) decides; this class writes the line it asks for and launches the phase` -> `* Process.next() (core/Task/Process.js) decides; this class writes the line it asks for and launches the step'`
++- Servex/ProcessRunner.js:20: `this.by_agent = new Map();   // agent id -> the process file whose running phase it holds` -> `this.by_agent = new Map();   // agent id -> the process file whose running step it holds`
++- Servex/ProcessRunner.js:23: `this.grace = new Set();      // "<file>#<phase>": sent to an agent mid-turn, so the turn that ends next is not` -> `this.grace = new Set();      // "<file>#<step>": sent to an agent mid-turn, so the turn that ends next is not `
++- Servex/ProcessRunner.js:63: `else if (a.complete){ await this.write(file, { complete: {} }); this.tell(p.creator, `Process ${this.url(file)` -> `else if (a.complete){ await this.write(file, { complete: {} }); this.tell(p.creator, `Process ${this.url(file)`
++- Servex/ProcessRunner.js:65: `const ph = p.phases.find(x => x.id === a.wait);` -> `const ph = p.steps.find(x => x.id === a.wait);`
++- Servex/ProcessRunner.js:70: `const agent = p.phases.find(x => x.id === a.halt)?.get_one("spawned")?.agent;` -> `const agent = p.steps.find(x => x.id === a.halt)?.get_one("spawned")?.agent;`
++- Servex/ProcessRunner.js:88: `// Start the phase's session: fresh (spawn), same (the previous phase's agent), owner (the process's creator).` -> `// Start the step's session: fresh (spawn), same (the previous step's agent), owner (the process's creator). F`
++- Servex/ProcessRunner.js:90: `const ph = p.phases.find(x => x.id === id), s = ph.get_one("session") ?? {}, run = p.run_of(ph);` -> `const ph = p.steps.find(x => x.id === id), s = ph.get_one("session") ?? {}, run = p.run_of(ph);`
++- Servex/ProcessRunner.js:95: `if (hot){ if (!ph.get_one("queued")) await this.write(file, { queue: { phase: id, why: hot } }); return false;` -> `if (hot){ if (!ph.get_one("queued")) await this.write(file, { queue: { step: id, why: hot } }); return false; `
++- Servex/ProcessRunner.js:101: `await this.write(file, { spawn: { phase: id, run, agent: agent.id, session_id: agent.session_id ?? null, cost_` -> `await this.write(file, { spawn: { step: id, run, agent: agent.id, session_id: agent.session_id ?? null, cost_b`
++- Servex/ProcessRunner.js:107: `if (!to) throw new Error(run === "same" ? "no earlier phase has an agent" : "the process names no creator");` -> `if (!to) throw new Error(run === "same" ? "no earlier step has an agent" : "the process names no creator");`
++- Servex/ProcessRunner.js:108: `if (agents.live?.get?.(to)?.state === "working") this.grace.add(`${file}#${id}`);   // run 1: the plan phase w` -> `if (agents.live?.get?.(to)?.state === "working") this.grace.add(`${file}#${id}`);   // run 1: the plan step wa`
++- Servex/ProcessRunner.js:110: `} catch (e){   // nobody to send it to: the phase waits on whoever made the process, and says why` -> `} catch (e){   // nobody to send it to: the step waits on whoever made the process, and says why`
++- Servex/ProcessRunner.js:111: `await this.write(file, { [id]: { wait: { on: p.creator ?? "owner", what: `run the ${id} phase (${e.message || ` -> `await this.write(file, { [id]: { wait: { on: p.creator ?? "owner", what: `run the ${id} step (${e.message || e`
++- Servex/ProcessRunner.js:114: `await this.write(file, { spawn: { phase: id, run, agent: to, session_id: null, cost_before: this.cost_of(to) }` -> `await this.write(file, { spawn: { step: id, run, agent: to, session_id: null, cost_before: this.cost_of(to) } `
++- Servex/ProcessRunner.js:120: `const at = p.phases.findIndex(x => x.id === id);` -> `const at = p.steps.findIndex(x => x.id === id);`
++- Servex/ProcessRunner.js:121: `return p.phases.slice(0, at).reverse().find(x => x.get_one("spawned")?.agent)?.get_one("spawned").agent ?? nul` -> `return p.steps.slice(0, at).reverse().find(x => x.get_one("spawned")?.agent)?.get_one("spawned").agent ?? null`
++- Servex/ProcessRunner.js:124: `remember(p, file){ for (const ph of p.phases){ const a = ph.get_one("spawned")?.agent; if (a && ph.state === "` -> `remember(p, file){ for (const ph of p.steps){ const a = ph.get_one("spawned")?.agent; if (a && ph.state === "r`
++- Servex/ProcessRunner.js:132: `// An agent ended a turn (Agents.js result). Measure what it finished; pulse a phase it left open.` -> `// An agent ended a turn (Agents.js result). Measure what it finished; pulse a step it left open.`
++- Servex/ProcessRunner.js:139: `// After-turn work joins the file's chain, so two turn ends never both measure one phase (run 1 wrote review's` -> `// After-turn work joins the file's chain, so two turn ends never both measure one step (run 1 wrote review's `
++- Servex/ProcessRunner.js:155: `// Still working: a message queued during the turn (the next phase's prompt, a pulse) starts another turn, whi` -> `// Still working: a message queued during the turn (the next step's prompt, a pulse) starts another turn, whic`
++- Servex/ProcessRunner.js:158: `for (const ph of p.phases){` -> `for (const ph of p.steps){`
++- Servex/ProcessRunner.js:163: `await this.write(file, { measure: { phase: ph.id, agent: id, usd: Number(usd.toFixed(4)), shared: sp.run !== "` -> `await this.write(file, { measure: { step: ph.id, agent: id, usd: Number(usd.toFixed(4)), shared: sp.run !== "f`
++- Servex/ProcessRunner.js:168: `if (this.grace.delete(`${path.resolve(file)}#${ph.id}`)) continue;   // that turn began before this phase was ` -> `if (this.grace.delete(`${path.resolve(file)}#${ph.id}`)) continue;   // that turn began before this step was s`
++- Servex/ProcessRunner.js:172: `try { this.servex.agents.send(id, `The ${ph.id} phase of ${url} is not recorded as complete. If it is done, re` -> `try { this.servex.agents.send(id, `The ${ph.id} step of ${url} is not recorded as complete. If it is done, rec`
++- Servex/ProcessRunner.js:173: `await this.write(file, { pulse: { phase: ph.id, n: n + 1, agent: id } });` -> `await this.write(file, { pulse: { step: ph.id, n: n + 1, agent: id } });`
++- Servex/ProcessRunner.js:175: `await this.write(file, { [ph.id]: { wait: { on: p.creator ?? "owner", what: `the ${ph.id} agent (${id}) ended ` -> `await this.write(file, { [ph.id]: { wait: { on: p.creator ?? "owner", what: `the ${ph.id} agent (${id}) ended `
++- Servex/ProcessRunner.js:176: `this.tell(p.creator, `Process ${url}: the ${ph.id} phase stalled (${id} ended ${n + 1} turns without completin` -> `this.tell(p.creator, `Process ${url}: the ${ph.id} step stalled (${id} ended ${n + 1} turns without completing`
++- Servex/ProcessRunner.test.mjs:1: `// A build process end to end on a fake agent host: one item call creates it, node runs every phase, completio` -> `// A build process end to end on a fake agent host: one item call creates it, node runs every step, completion`
++- Servex/ProcessRunner.test.mjs:39: `ok(!clash.length, "no phase id names a Task verb, field or line key: " + clash.map(c => c.id));` -> `ok(!clash.length, "no step id names a Task verb, field or line key: " + clash.map(c => c.id));`
++- Servex/ProcessRunner.test.mjs:52: `ok(L[0].class === "Process" && L[0].process === "build" && L.filter(l => l.tasks?.add).length === 7, "line 1 i` -> `ok(L[0].class === "Process" && L[0].process === "build" && L.filter(l => l.tasks?.add).length === 7, "line 1 i`
++- Servex/ProcessRunner.test.mjs:53: `ok(L.some(l => l.start) && L.some(l => l.investigate?.start) && L.some(l => l.spawn?.phase === "investigate" &` -> `ok(L.some(l => l.start) && L.some(l => l.investigate?.start) && L.some(l => l.spawn?.step === "investigate" &&`
++- Servex/ProcessRunner.test.mjs:54: `ok(spawned[0].model === "claude-sonnet-5-5" && spawned[0].task.dir.endsWith("fix-x/investigate") && spawned[0]` -> `ok(spawned[0].model === "claude-sonnet-5-5" && spawned[0].task.dir.endsWith("fix-x/investigate") && spawned[0]`
++- Servex/ProcessRunner.test.mjs:64: `ok(L.filter(l => l.measure?.phase === "investigate" && l.measure.usd === 0.5).length === 1, "investigate's cos` -> `ok(L.filter(l => l.measure?.step === "investigate" && l.measure.usd === 0.5).length === 1, "investigate's cost`
++- Servex/ProcessRunner.test.mjs:68: `ok(L.some(l => l.pulse?.phase === "plan" && l.pulse.n === 1) && sent.at(-1).text.includes("not recorded as com` -> `ok(L.some(l => l.pulse?.step === "plan" && l.pulse.n === 1) && sent.at(-1).text.includes("not recorded as comp`
++- Servex/ProcessRunner.test.mjs:79: `ok(p.phase.id === "merge" && p.phase.state === "waiting" && p.state === "running", "merge waits on the owner; ` -> `ok(p.step.id === "merge" && p.step.state === "waiting" && p.state === "running", "merge waits on the owner; th`
++- Servex/ProcessRunner.test.mjs:84: `ok(p.state === "complete" && p.completion === 1, "the last phase completes the process");` -> `ok(p.state === "complete" && p.completion === 1, "the last step completes the process");`
++- Servex/ProcessRunner.test.mjs:92: `// A stall: the phase agent ends two turns without completing; the phase then waits on the creator.` -> `// A stall: the step agent ends two turns without completing; the step then waits on the creator.`
++- Servex/ProcessRunner.test.mjs:101: `ok(p.phase.id === "questions" && p.phase.state === "waiting" && p.phase.get_one("waiting_on") === "mm1", "two ` -> `ok(p.step.id === "questions" && p.step.state === "waiting" && p.step.get_one("waiting_on") === "mm1", "two sil`
++- Servex/ProcessRunner.test.mjs:117: `ok(p.get_one("path").endsWith(`/${MOD}/tasks/go-home/`) && p.phase.id === "execute" && p.phase.get_one("spawne` -> `ok(p.get_one("path").endsWith(`/${MOD}/tasks/go-home/`) && p.step.id === "execute" && p.step.get_one("spawned"`
++- Servex/ProcessRunner.test.mjs:130: `ok(r.state.class === "Process" && r.state.state === "complete" && r.state.tasks.length === 7, "item({path}) re` -> `ok(r.state.class === "Process" && r.state.state === "complete" && r.state.tasks.length === 7, "item({path}) re`
++- Servex/ProcessRunner.test.mjs:139: `ok(r.ok && S[0].class === "Process" && S[0].process === "steps" && S.filter(l => l.tasks?.add).length === 2, "` -> `ok(r.ok && S[0].class === "Process" && S[0].process === "steps" && S.filter(l => l.tasks?.add).length === 2, "`
++- Servex/ProcessRunner.test.mjs:156: `ok(runner.read(BF).phases.find(x => x.id === "build-it").state === "complete" && sent.at(-1).text.includes("re` -> `ok(runner.read(BF).steps.find(x => x.id === "build-it").state === "complete" && sent.at(-1).text.includes("rev`
++- Servex/ProcessRunner.test.mjs:162: `// Stopping a process stops the agent of the phase it spawned (found live, 2026-10-22: the phase agent kept go` -> `// Stopping a process stops the agent of the step it spawned (found live, 2026-10-22: the step agent kept goin`
++- Servex/ProcessRunner.test.mjs:168: `ok(agents.stopped.includes(ta) && tp.state === "stopped" && tp.phases.find(x => x.id === "questions").state ==` -> `ok(agents.stopped.includes(ta) && tp.state === "stopped" && tp.steps.find(x => x.id === "questions").state ===`
++- public/framework/core/Task/doc/process.md:1: `# Process — a task whose children are named phases, and node runs them in order` -> `# Process — a task whose children are named steps, and node runs them in order`
++- public/framework/core/Task/doc/process.md:5: `A **process** is a standard way of doing a kind of work: *build* is investigate → plan → improve → approve → e` -> `A **process** is a standard way of doing a kind of work: *build* is investigate → plan → improve → approve → e`
++- public/framework/core/Task/doc/process.md:15: `└─ Process extends Task               core/Task      children = phases, always in series; a phase is a plain T` -> `└─ Process extends Task               core/Task      children = steps, always in series; a step is a plain Tas`
++- public/framework/core/Task/doc/process.md:16: `Process.DEFINITIONS              data           { build: [...phases], investigate: [...phases] }` -> `Process.DEFINITIONS              data           { build: [...steps], investigate: [...steps] }`
++- public/framework/core/Task/doc/process.md:17: `process.next()                   pure           what should happen now: {start: phase} | {complete} | {wait} |` -> `process.next()                   pure           what should happen now: {start: step} | {complete} | {wait} | `
++- public/framework/core/Task/doc/process.md:18: `ProcessRunner                            Servex/        node: writes the line next() asks for, launches the ph` -> `ProcessRunner                            Servex/        node: writes the line next() asks for, launches the st`
++- public/framework/core/Task/doc/process.md:19: `pulses a stalled phase, measures each phase's cost` -> `pulses a stalled step, measures each step's cost`
++- public/framework/core/Task/doc/process.md:22: `**Process is data plus one decision, `next()`.** It never changes itself: every transition (a phase starting, ` -> `**Process is data plus one decision, `next()`.** It never changes itself: every transition (a step starting, a`
++- public/framework/core/Task/doc/process.md:31: `…one add line per phase…` -> `…one add line per step…`
++- public/framework/core/Task/doc/process.md:34: `{"spawn":{"phase":"investigate","agent":"helper-x","session_id":"…","at":"…"}}` -> `{"spawn":{"step":"investigate","agent":"helper-x","session_id":"…","at":"…"}}`
++- public/framework/core/Task/doc/process.md:35: `{"investigate":{"complete":{"outcome":"…"}},"by":"helper-x"}          ← the phase agent, through the item tool` -> `{"investigate":{"complete":{"outcome":"…"}},"by":"helper-x"}          ← the step agent, through the item tool`
++- public/framework/core/Task/doc/process.md:36: `{"measure":{"phase":"investigate","agent":"helper-x","usd":0.41}}     ← node, from the agent's own cost` -> `{"measure":{"step":"investigate","agent":"helper-x","usd":0.41}}     ← node, from the agent's own cost`
++- public/framework/core/Task/doc/process.md:40: `**Creating one is one call** (never two steps): `item({path: <your session>, delta: {tasks: {add: {title, proc` -> `**Creating one is one call** (never two steps): `item({path: <your session>, delta: {tasks: {add: {title, proc`
++- public/framework/core/Task/doc/process.md:44: `A process starts as a draft in the session that made it. When it names a `module` (`tasks.add: {title, process` -> `A process starts as a draft in the session that made it. When it names a `module` (`tasks.add: {title, process`
++- public/framework/core/Task/doc/process.md:52: `The later phases (execute, review, merge) then run in the new home. If the target folder already exists, the m` -> `The later steps (execute, review, merge) then run in the new home. If the target folder already exists, the mo`
++- public/framework/core/Task/doc/process.md:54: `## A phase's session` -> `## A step's session`
++- public/framework/core/Task/doc/process.md:56: `Each phase names how its session is run, so the process carries the agent architecture, not the agent's memory` -> `Each step names how its session is run, so the process carries the agent architecture, not the agent's memory:`
++- public/framework/core/Task/doc/process.md:58: `| `session.run` | Who does the phase |` -> `| `session.run` | Who does the step |`
++- public/framework/core/Task/doc/process.md:60: `| `fresh` | a new Servex session (`model`, `effort`, `role`), its folder inside the process (`<process>/<phase` -> `| `fresh` | a new Servex session (`model`, `effort`, `role`), its folder inside the process (`<process>/<step>`
++- public/framework/core/Task/doc/process.md:61: `| `same` | the session that ran the previous phase, sent the next phase's prompt (its context is reused: cheap` -> `| `same` | the session that ran the previous step, sent the next step's prompt (its context is reused: cheaper`
++- public/framework/core/Task/doc/process.md:62: `| `owner` | the agent that created the process (the mastermind), sent the phase's prompt |` -> `| `owner` | the agent that created the process (the mastermind), sent the step's prompt |`
++- public/framework/core/Task/doc/process.md:63: `| `wait` | nobody: the phase waits on the owner (`merge`); the process stays running, not complete, until the ` -> `| `wait` | nobody: the step waits on the owner (`merge`); the process stays running, not complete, until the s`
++- public/framework/core/Task/doc/process.md:65: `The prompt node sends is built from the phase's `do`, the brief, and the outcomes of the phases before it, and` -> `The prompt node sends is built from the step's `do`, the brief, and the outcomes of the steps before it, and i`
++- public/framework/core/Task/doc/process.md:71: `- **investigate**: questions (rank them; name what is known as class sketches) → scout (Haiku scouts, one per ` -> `- **investigate**: questions (rank them; name what is known as class sketches) → scout (Haiku scouts, one per `
++- public/framework/core/Task/doc/process.md:73: `A phase id never names a Task verb or field (`improve` would call `Task.improve()`); the test checks every def` -> `A step id never names a Task verb or field (`improve` would call `Task.improve()`); the test checks every defi`
++- public/framework/core/Task/doc/process.md:79: `| a phase agent ends its turn without completing the phase | ProcessRunner hears the turn end (`Agents` result` -> `| a step agent ends its turn without completing the step | ProcessRunner hears the turn end (`Agents` result e`
++- public/framework/core/Task/doc/process.md:82: `| a phase's result only in chat | the outcome is the `complete` line's `outcome`; the next phase's prompt is b` -> `| a step's result only in chat | the outcome is the `complete` line's `outcome`; the next step's prompt is bui`
++- public/framework/core/Task/doc/process.md:95: `Every phase change, spawn, pulse and cost is a line node writes. `measure` lines give each phase's share of th` -> `Every step change, spawn, pulse and cost is a line node writes. `measure` lines give each step's share of the `
++- public/framework/core/Task/doc/process.md:100: `- **Task templates** ([templates.md](templates.md)) are the per-task version (one agent, approve → spawn); a p` -> `- **Task templates** ([templates.md](templates.md)) are the per-task version (one agent, approve → spawn); a s`
++- public/framework/core/Task/doc/process.md:101: `- **Steps** ([Servex/doc/steps.md](/Servex/doc/steps.md)) are steps inside one agent's session; a Process whos` -> `- **Steps** ([Servex/doc/steps.md](/Servex/doc/steps.md)) are steps inside one agent's session; a Process whos`
++- public/framework/core/Task/doc/process.md:106: `The brief: [run-1/readmes-page/requirements.md](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-an` -> `The brief: [run-1/readmes-page/requirements.md](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-an`
++- public/framework/core/Task/doc/process.md:108: `| Phase | Session | Measured cost |` -> `| Step | Session | Measured cost |`
++- public/framework/core/Task/doc/process.md:121: `- **Plan was pulsed before it had started.** The plan prompt was sent while investigate's turn was still runni` -> `- **Plan was pulsed before it had started.** The plan prompt was sent while investigate's turn was still runni`
++- public/framework/core/Task/doc/process.md:129: `- The approve phase had no live creator to send to, so it waited on the creator instead of being lost.` -> `- The approve step had no live creator to send to, so it waited on the creator instead of being lost.`
++- public/framework/core/Task/doc/process.md:147: `- ⬜ Next: a phase that is itself a process (investigate inside build); parallel phases (scouts); the plan's ta` -> `- ⬜ Next: a step that is itself a process (investigate inside build); parallel steps (scouts); the plan's task`
++- public/framework/core/Task/readme.md:8: `- **Built (2026-10-22, branch `task/process-system`):** [Process.js](Process.js) (`Process extends Task`: name` -> `- **Built (2026-10-22, branch `task/process-system`):** [Process.js](Process.js) (`Process extends Task`: name`
++- Servex/agents/page_tools.js:479: `* add per phase come from Process.DEFINITIONS, and ProcessRunner starts it (hooks.changed). Refused: an unknow` -> `* add per step come from Process.DEFINITIONS, and ProcessRunner starts it (hooks.changed). Refused: an unknown`
++- Servex/agents/page_tools.js:668: `if (Task.name === "Process") return { class: "Process", process: task.process, state: task.state, phase: task.` -> `if (Task.name === "Process") return { class: "Process", process: task.process, state: task.state, step: task.s`
++- Servex/agents/Agents.js:1563: `if (event.type === "result") try { this.host?.servex?.process_runner?.turn_ended(this); } catch {}   // a proc` -> `if (event.type === "result") try { this.host?.servex?.process_runner?.turn_ended(this); } catch {}   // a proc`
++- Servex/Servex.js:286: `/* THE PROCESS RUNNER (process-system, 2026-10-22): a process's phases run in order because node runs them. Wo` -> `/* THE PROCESS RUNNER (process-system, 2026-10-22): a process's steps run in order because node runs them. Wok`
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/process-names/requirements.md b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/process-names/requirements.md
+new file mode 100644
+index 000000000..6caa6584c
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/process-names/requirements.md
+@@ -0,0 +1,22 @@
++# Process names: adopt the three proposals (step, template subclasses, handoff)
++
++Brief from mastermind-system-architect-3 for a Sonnet minion. Budget about $9. The ask came from mastermind-deputy (`../../deputy/requirements.md`, item 3). The owner said not to wait on the names: session-e00f55c9 `prompts.jsonl`, prompt at 2026-10-23T23:51:53Z ("I just want you to go ahead and build stuff").
++
++## What to build, in this order (commit after each)
++
++1. **Mark the proposals decided.** In `public/framework/core/Task/doc/process-names.md`, mark each **proposed** row as **decided 2026-10-23**, citing that prompt. Change the title and intro so the page reads as the record of a decision, not a request for approval. Mark the "role / kind / process template" table decided too.
++2. **Write the rename script `Server/rename-phase-to-step.mjs`.** It takes `--dry-run` (print and change nothing) and writes a manifest of every old→new change, one line per file and identifier, to the task folder's `rename-manifest.md`.
++   - Scope it to the process system only. "phase" is a common English word, so never rename it blindly. The files are `public/framework/core/Task/Process.js`, `Servex/ProcessRunner.js`, `Servex/ProcessRunner.test.mjs`, `public/framework/core/Task/doc/process.md`, `process-names.md` and the Task `readme.md`, plus any process-specific `phase` in `Servex/agents/*.js` and `Servex/Servex.js`. Read each hit first; leave the unrelated ones (review "phase", SDK code, node_modules).
++   - Renames: `phases`→`steps` (getter), `phase` getter→`step`, the `phases:` override option in `Process.lines` → `steps_over` or similar, without colliding with the existing `steps` argument. Pick a clear name and say which. Also the prompt text ("phase"→"step") and the line field `{"spawn":{"phase":…}}` / `queue` → `{"step":…}`.
++   - **Never rewrite old logs.** Readers accept the old `phase` field as an alias: in `Process` line parsing, `body.step ?? body.phase`. New writes use `step`. Add a test that an old-shape `{"spawn":{"phase":"plan"}}` line still lands on the step.
++3. **Template subclasses.** Replace `Process.DEFINITIONS` with one subclass per template: `class BuildProcess extends Process { static steps = [...] }`, one file each in `public/framework/core/Task/processes/` (`BuildProcess.js`, `DesignProcess.js`, `InvestigateProcess.js`, or whatever templates exist today). Lookup by name, for example `Process.template("build")`, comes from a small registry so the item tool's refusal still lists every template name. Keep each caller working; grep for `DEFINITIONS`.
++4. **Handoff by moving the task:** mark the row decided only. Do not build it; the item move is its own task.
++5. **Docs, kept short.** `doc/process.md` and the Task `readme.md` say "step" and list the templates with one line each. No dated log in the readme. Add one line to `Servex/agents/roles/mastermind.md`: "To start work, name a process template, or give your own steps."
++
++## Done means
++
++- `node Servex/ProcessRunner.test.mjs` and every `public/framework/core/Task/*.test.mjs` pass.
++- `node Server/review.mjs <this task dir> <your worktree>` is run **from your worktree**, every finding is answered (`{"review":{"answer":{"n":N,"reply":"fixed|declined|noted: …"}}}` appended to this folder's `session.jsonl`, then `node Server/review.mjs --turns <dir>`), and `--status` is clean.
++- The last line you append to this folder's `session.jsonl` is `{"log":{"at":"NOW","msg":"ready: <branch> <sha> — <one line>"}}`.
++- Append JSONL only through `node .claude/hooks/append.mjs <file> <lines.json>`.
++- Never merge, never restart Servex, never touch the main checkout. Message mastermind-system-architect-3 when you are done.
+diff --git a/public/framework/core/Task/Process.js b/public/framework/core/Task/Process.js
+index 482852f51..24ca3ef88 100644
+--- a/public/framework/core/Task/Process.js
++++ b/public/framework/core/Task/Process.js
+@@ -1,30 +1,30 @@
+-// A Process: a Task whose children are named phases, run in series by node (doc/process.md). Data plus one decision, next(); it never moves itself.
++// A Process: a Task whose children are named steps, run in series by node (doc/process.md). Data plus one decision, next(); it never moves itself.
+ import Task from "./Task.js";
+ import Item from "../Item/Item.js";
+ 
+-// Lines only node writes, each naming the phase it is about: {"spawn":{"phase":"plan","agent":…}}.
+-const PHASE_LINES = { spawn: "spawned", queue: "queued", pulse: "pulses", measure: "measure" };
++// Lines only node writes, each naming the step it is about: {"spawn":{"step":"plan","agent":…}}.
++const STEP_LINES = { spawn: "spawned", queue: "queued", pulse: "pulses", measure: "measure" };
+ 
+ export class Process extends Task {
+ 
+-	// Phases always run in series, and only node starts them: Task's in-memory auto-start is off, so state comes from lines alone.
++	// Steps always run in series, and only node starts them: Task's in-memory auto-start is off, so state comes from lines alone.
+ 	get mode(){ return "series"; }
+ 	start_children(){}
+ 	child_changed(){}
+ 
+ 	get process(){ return this.get_one("process") ?? null; }
+ 	get creator(){ return this.get_one("creator") ?? null; }
+-	get phases(){ return [...(this._tasks ?? [])]; }
+-	// The phase being worked on: the first one not complete, or null once all are.
+-	get phase(){ return this.phases.find(p => p.state !== "complete") ?? null; }
++	get steps(){ return [...(this._tasks ?? [])]; }
++	// The step being worked on: the first one not complete, or null once all are.
++	get step(){ return this.steps.find(p => p.state !== "complete") ?? null; }
+ 
+ 	// What node should do now, as one action; null = nothing (waiting on an agent, the owner, or finished).
+ 	next(){
+ 		if (this.state === "idle") return { start: true };
+-		// Stopped with a phase still running in a fresh session it spawned: halt that phase (node stops its agent). The creator's own session is never stopped.
+-		if (this.state === "stopped"){ const h = this.phases.find(p => p.state === "running" && p.get_one("spawned")?.run === "fresh"); return h ? { halt: h.id } : null; }
++		// Stopped with a step still running in a fresh session it spawned: halt that step (node stops its agent). The creator's own session is never stopped.
++		if (this.state === "stopped"){ const h = this.steps.find(p => p.state === "running" && p.get_one("spawned")?.run === "fresh"); return h ? { halt: h.id } : null; }
+ 		if (this.state !== "running") return null;
+-		const p = this.phase;
++		const p = this.step;
+ 		if (this.moves_home()) return { move: this.get_one("module") };
+ 		if (!p) return { complete: true };
+ 		const run = this.run_of(p);
+@@ -33,49 +33,54 @@ export class Process extends Task {
+ 		return null;
+ 	}
+ 
+-	// How a phase is run (doc/process.md, "A phase's session"): its own session.run; a step with none runs fresh, except in a process of your own steps, where it goes to the creator.
++	// How a step is run (doc/process.md, "A step's session"): its own session.run; a step with none runs fresh, except in a process of your own steps, where it goes to the creator.
+ 	run_of(p){ return p?.get_one("session")?.run ?? (this.process === "steps" ? "owner" : "fresh"); }
+ 
+-	// Draft in the session, then move home (doc/owner-2026-10-20-projects-and-completion.md §6): once a phase marked `home_after` is complete
++	// Draft in the session, then move home (doc/owner-2026-10-20-projects-and-completion.md §6): once a step marked `home_after` is complete
+ 	// (build: approve-plan), a process that names a `module` belongs in <module>/tasks/<id>/. True while it is not there yet.
+ 	moves_home(){
+ 		const mod = this.get_one("module");
+ 		if (typeof mod !== "string" || !mod || this.get_one("home_refused")) return false;   // refused once (the folder exists): it stays
+-		if (!this.phases.some(p => p.get_one("home_after") && p.state === "complete")) return false;
++		if (!this.steps.some(p => p.get_one("home_after") && p.state === "complete")) return false;
+ 		return this.get_one("path") !== `/framework/${mod.replace(/^\/+|\/+$/g, "")}/tasks/${this.id}/`;
+ 	}
+ 
+-	// The prompt node sends the phase's session: the job, the brief, what earlier phases found, and the one line that completes it.
++	// The prompt node sends the step's session: the job, the brief, what earlier steps found, and the one line that completes it.
+ 	prompt(id, url){
+-		const p = this.phases.find(x => x.id === id);
++		const p = this.steps.find(x => x.id === id);
+ 		if (!p) return null;
+-		const done = this.phases.filter(x => x.state === "complete" && x.get_one("outcome"));
++		const done = this.steps.filter(x => x.state === "complete" && x.get_one("outcome"));
+ 		const brief = this.get_one("brief");
+ 		return [
+-			`You are running the "${p.get_one("title") ?? id}" phase of the ${this.process ?? "process"} process "${this.get_one("title") ?? this.id}" (${url}).`,
++			`You are running the "${p.get_one("title") ?? id}" step of the ${this.process ?? "process"} process "${this.get_one("title") ?? this.id}" (${url}).`,
+ 			brief ? `The brief: ${brief}. Read it first.` : "",
+-			done.length ? `What the earlier phases recorded:\n${done.map(x => `- ${x.id}: ${x.get_one("outcome")}`).join("\n")}` : "",
+-			`Your job in this phase: ${p.get_one("do") ?? "(not described)"}`,
+-			`When the phase is done, record it with the item tool; this is what moves the process on, and nothing else does:`,
++			done.length ? `What the earlier steps recorded:\n${done.map(x => `- ${x.id}: ${x.get_one("outcome")}`).join("\n")}` : "",
++			`Your job in this step: ${p.get_one("do") ?? "(not described)"}`,
++			`When the step is done, record it with the item tool; this is what moves the process on, and nothing else does:`,
+ 			`item({path: "${url}", delta: {"${id}": {"complete": {"outcome": "<a few sentences: what you found or did, and the files or branch it is in>"}}}})`,
+ 		].filter(Boolean).join("\n\n");
+ 	}
+ 
+-	// The lines that make a new process from a definition: line-1 fields, then one add per phase. `phases` overrides a phase's session: {plan: {model}}.
++	// The lines that make a new process from a definition: line-1 fields, then one add per step. `steps_over` overrides a step's session: {plan: {model}}.
+ 	// No definition but `steps` ([{title, do, session?}]): an ad-hoc process (`process` defaults to "steps"); a step with no session goes to the creator (run: owner).
+-	static lines({ process, phases: over = {}, steps, ...fields } = {}){
+-		const def = this.DEFINITIONS[process] ?? this.from_steps(steps);
++	static lines({ process, steps_over: over = {}, steps, ...fields } = {}){
++		const T = this.template(process), def = T ? T.steps : this.from_steps(steps);
+ 		if (!def) return null;
+-		if (!this.DEFINITIONS[process]) process = "steps";   // own steps: whatever name came with them, no template matched
++		if (!T) process = "steps";   // own steps: whatever name came with them, no template matched
+ 		const first = { class: "Process", process, mode: "series", ...fields };
+ 		const adds = def.map(p => ({ tasks: { add: { type: "Task", ...p, ...(over[p.id] ? { session: { ...p.session, ...over[p.id] } } : {}) } } }));
+ 		return [first, ...adds];
+ 	}
+ 
++	// The process templates, by name: one subclass each in processes/ (BuildProcess…), registered by processes/index.js (import Process from there when you need the templates; Process.js cannot import them, they extend it). `names()` is what the item tool's refusal lists.
++	static TEMPLATES = {};
++	static template(name){ return this.TEMPLATES[name] ?? null; }
++	static names(){ return Object.keys(this.TEMPLATES); }
++
+ 	// Words a log line is read by (a line's own keys, and every verb): a step id like these would be mistaken for the line, so it is slugged with a suffix.
+ 	static RESERVED = ["file", "id", "log", "title", "by", "ts", "type", "task", "tasks", "assign", "state", "start", "pause", "resume", "stop", "complete", "finish", "wait", "approve", "improve", "reject"];
+ 
+-	// Steps written by the caller, as phases. Refused (null) when empty or when two share an id. An id that would name a Task verb, field or line key
++	// Steps written by the caller, as steps. Refused (null) when empty or when two share an id. An id that would name a Task verb, field or line key
+ 	// (`improve` would call improve(); `file` is a line key) gets "-step" added: `file` -> `file-step`.
+ 	static from_steps(steps){
+ 		if (!Array.isArray(steps) || !steps.length) return null;
+@@ -86,64 +91,20 @@ export class Process extends Task {
+ 	}
+ 	static reserved(id){ return this.RESERVED.includes(id) || id in Task.prototype || id in this.prototype; }
+ 
+-	// Node's own lines: each records a fact on the phase it names. Everything else is a Task line.
++	// Node's own lines: each records a fact on the step it names. Everything else is a Task line.
+ 	replay_line(line){
+ 		if (typeof line.process === "string") this.put("process", line.process);
+-		if (line.class === "Process" && typeof line.by === "string") this.put("creator", line.by);   // line 1's writer made the process: the "owner" phases go to it
+-		for (const [key, field] of Object.entries(PHASE_LINES)){
++		if (line.class === "Process" && typeof line.by === "string") this.put("creator", line.by);   // line 1's writer made the process: the "owner" steps go to it
++		for (const [key, field] of Object.entries(STEP_LINES)){
+ 			const body = line[key];
+-			const kid = body && typeof body === "object" && typeof body.phase === "string" ? this._tasks?.find(body.phase) : null;
+-			if (kid){ const { phase: _p, ...rest } = body; kid.put(field, key === "pulse" ? rest.n ?? 1 : { ...rest, at: rest.at ?? line.at ?? line.ts }); }
++			const at = body && typeof body === "object" ? body.step ?? body.phase : null;   // old logs wrote `phase`: still read, never rewritten
++			const kid = typeof at === "string" ? this._tasks?.find(at) : null;
++			if (kid){ const { step: _s, phase: _p, ...rest } = body; kid.put(field, key === "pulse" ? rest.n ?? 1 : { ...rest, at: rest.at ?? line.at ?? line.ts }); }
+ 		}
+ 		return super.replay_line(line);
+ 	}
+ }
+ 
+-// The small core set. A phase id never names a Task verb or field (`improve` would call improve()). A phase: id, title, `do` (the job), `session` ({run: fresh | same | owner | wait, role, model, effort}).
+-const SONNET = "claude-sonnet-5-5", HAIKU = "claude-haiku-5-5";
+-Process.DEFINITIONS = {
+-	build: [
+-		{ id: "investigate", title: "Investigate", session: { run: "fresh", role: "helper", model: SONNET, effort: "low" },
+-			do: "Read the brief and the readmes on the way to the code it names. Write investigation.md beside the brief: the questions that matter, ranked; what is known, as class sketches (class X extends Y, its core API) and named parts; what already exists to reuse (node Server/PastWork.mjs \"<topic>\"); risks. Mark each fact you checked in the code as checked; the rest are guesses." },
+-		{ id: "plan", title: "Plan", session: { run: "same" },
+-			do: "Write plan.md beside the brief: the class sketch, the files to change, small steps you can check, and how you will prove it works. Then re-read the owner's words in the brief and say, one line each, whether the plan covers them." },
+-		{ id: "improve-plan", title: "Improve the plan", session: { run: "fresh", role: "reviewer", model: SONNET, effort: "medium" },
+-			do: "Read the brief, investigation.md and plan.md with fresh eyes. Fix plan.md where it misses the brief, rebuilds something that exists, or is bigger than needed. List what you changed at the end of plan.md under 'Improved'." },
+-		{ id: "approve-plan", title: "Approve the plan", session: { run: "owner" }, home_after: true,
+-			do: "Read plan.md. Complete this phase with outcome 'approved' (plus any caveat), or 'changes: …' naming what the builder must change first." },
+-		{ id: "execute", title: "Execute", session: { run: "fresh", role: "helper", model: SONNET, effort: "medium" },
+-			do: "Build the plan on its own branch in a worktree Servex serves: take one with the take_worktree tool (it has its packages and a site at http://<name>.localhost/). Only if that tool is missing, use git worktree add -b task/<slug> ../worktrees/<slug> michael/dev, and say in the outcome that it is not served. Apply any 'changes:' from the approve-plan phase first. Load every page you changed with check_page at its worktree url and fix each console error. Commit each working step. Never merge. Outcome: the branch, the worktree url, the commits, and how you tested it." },
+-		{ id: "review", title: "Review", session: { run: "fresh", role: "reviewer", model: SONNET, effort: "medium" },
+-			do: "Review the branch named in the execute outcome (git diff michael/dev...<branch>) against plan.md and the brief. Fix small problems on the branch and commit; run the test the plan names. Load every changed page with check_page at the worktree url from the execute outcome (and the shot tool at 400 and 1200 px when the brief names widths). Outcome: 'ready to merge: <branch>' only when those pages loaded with no console errors; if you could not load them, 'not checked: <why>', never ready." },
+-		{ id: "merge", title: "Merge", session: { run: "wait" },
+-			do: "The owner merges the reviewed branch, or says no." },
+-	],
+-	// Design to code (the owner, 2026-10-22): more than one design per view, reviewed by screenshot, the picked variants coded as real pages
+-	// the owner clicks through on the phone. A variant is a set of changes on its parent: a subclass of its view, at <page>/v/<name>/.
+-	design: [
+-		{ id: "design", title: "Design the variants", session: { run: "fresh", role: "helper", model: SONNET, effort: "medium" },
+-			do: "Read the brief. In Figma, draw the default for each view the brief names and two to four variants of it, each named for its one change (header-scrolls-away, bar-segmented…); a variant of a variant is a sub-version. Write variants.md beside the brief: the tree (default → versions → sub-versions), each line the change and why. Outcome: the Figma page url and the tree." },
+-		{ id: "review-shots", title: "Review by screenshot", session: { run: "fresh", role: "reviewer", model: SONNET, effort: "medium" },
+-			do: "Screenshot every frame in variants.md (Figma get_screenshot). Judge each against the brief and the page, layout and color skills; mark keep or cut with one reason in variants.md. Outcome: the kept variants." },
+-		{ id: "pick", title: "Pick the variants to code", session: { run: "owner" },
+-			do: "Read variants.md and the shots. Complete with outcome 'code: <names>' (in autonomous mode the creator picks), or 'redesign: <what>'." },
+-		{ id: "code", title: "Code the picked variants", session: { run: "fresh", role: "helper", model: SONNET, effort: "medium" },
+-			do: "In a served worktree (take_worktree), code the default as a real page and each picked variant as a subpage <page>/v/<name>/ whose view extends its parent's view and changes only its difference; sub-versions nest (v/<name>/v/<sub>/). The default page lists the tree as links, so the owner can click through on the phone. Load each with check_page; commit each step; never merge. Outcome: branch, worktree url, the variant urls." },
+-		{ id: "review", title: "Review the pages", session: { run: "fresh", role: "reviewer", model: SONNET, effort: "medium" },
+-			do: "Shoot every variant page at 400 and 1200 px (the shot tool) at the worktree url, check the console, compare each with its Figma frame. Outcome: 'ready to merge: <branch>' with the shot paths, only when every page loads clean; else 'not checked: <why>'." },
+-		{ id: "merge", title: "Merge", session: { run: "wait" },
+-			do: "The owner merges the reviewed branch, or says no." },
+-	],
+-	investigate: [
+-		{ id: "questions", title: "Questions", session: { run: "fresh", role: "helper", model: SONNET, effort: "low" },
+-			do: "Write questions.md beside the brief: the questions it raises, ranked by how much each answer changes the work; for each, what is already known (with the file) and how to find out. Name the known structure as class sketches." },
+-		{ id: "scout", title: "Scout", session: { run: "fresh", role: "helper", model: HAIKU, effort: "low" },
+-			do: "Answer the top three questions in questions.md: in the repo (readmes, grep) and, for questions about the world outside, on the web (WebSearch, WebFetch). Keep each read small and stay under 100k tokens. Append each answer to questions.md with its sources." },
+-		{ id: "synthesize", title: "Synthesize", session: { run: "fresh", role: "helper", model: SONNET, effort: "low" },
+-			do: "Write findings.md: each question with its answer, marked 'checked in code', 'two sources agree' or 'guess'. Never a made-up confidence number." },
+-	],
+-};
+-
+ export default Process;
+ 
+ Item.register(Process, "Process");
+diff --git a/public/framework/core/Task/doc/process-names.md b/public/framework/core/Task/doc/process-names.md
+index 0fc615b73..2b45db760 100644
+--- a/public/framework/core/Task/doc/process-names.md
++++ b/public/framework/core/Task/doc/process-names.md
+@@ -1,17 +1,17 @@
+-# Process names and structure: a proposal for you to approve
++# Process names and structure: decided 2026-10-23
+ 
+-You asked to be in the loop on names before they harden (2026-10-22). This page lists each name, what it means, and where it lives. Each row marked **proposed** waits on your approve, improve or reject on the task "Approve the process names" (the process-system session). Nothing proposed here has been renamed yet. The long form is [process.md](process.md).
++You asked to be in the loop on names before they harden (2026-10-22). On 2026-10-23 you said not to wait on the names and to go ahead and build (session-e00f55c9 `prompts.jsonl`, prompt at 2026-10-23T23:51:53Z), so every proposal below is **decided**. This page is the record: each name, what it means, where it lives. The long form is [process.md](process.md).
+ 
+ ## The names
+ 
+ | Name | What it is | Where it lives | Status |
+ |---|---|---|---|
+ | **Process** | A task whose children are done one after another, in order, and node starts each one. | `core/Task/Process.js` (`class Process extends Task`) | built |
+-| **Step** (today's code says *phase*) | One child of a process: a title, the job (`do`), and who does it (`session.run`). A step is a plain Task. | a `tasks.add` line in the process's own log | **proposed:** call it *step*, your word. The code, the lines and the docs rename `phase` to `step` in one scripted pass. |
+-| **Process template** (today: `Process.DEFINITIONS`) | A named list of steps you can start by name: `build`, `design`, `investigate`. | today, one data object in `Process.js` | **proposed:** one subclass per template, `class BuildProcess extends Process { static steps = […] }`, one file each in `core/Task/processes/`. |
++| **Step** (today's code says *phase*) | One child of a process: a title, the job (`do`), and who does it (`session.run`). A step is a plain Task. | a `tasks.add` line in the process's own log | **decided 2026-10-23:** *step*, your word. Done by `Server/rename-phase-to-step.mjs`; old logs keep their `phase` field and are still read. |
++| **Process template** (was `Process.DEFINITIONS`) | A named list of steps you can start by name: `build`, `design`, `investigate`. | `core/Task/processes/` | **decided 2026-10-23, built:** one subclass per template, `class BuildProcess extends Process { static steps = […] }`, one file each; `Process.template("build")` finds one. |
+ | **Your own steps** | A process with no template: the caller lists the steps. | `tasks.add {title, steps: [{title, do}]}` | built 2026-10-22 (below) |
+ | **Who runs a step** (`session.run`) | `fresh` (a new session), `same` (the previous step's session), `owner` (whoever created the process), `wait` (you). | on each step | built |
+-| **Handoff** | A mastermind gives a task to a child session by moving the task into the child's folder, not by writing a requirements.md. | the item move (mastermind-item, [design](/framework/core/Item/tasks/item-move/design.md)) | **proposed**, being built |
++| **Handoff** | A mastermind gives a task to a child session by moving the task into the child's folder, not by writing a requirements.md. | the item move (mastermind-item, [design](/framework/core/Item/tasks/item-move/design.md)) | **decided 2026-10-23.** Not built here: the item move is its own task. |
+ 
+ ## Where one process is stored
+ 
+@@ -23,15 +23,15 @@ You asked to be in the loop on names before they harden (2026-10-22). This page
+ 
+ - **Ask for a template that does not exist,** and the item tool's refusal lists every template name.
+ - **[process.md](process.md)** describes each template, and it is linked from the [Task readme](../readme.md).
+-- **Proposed:** one line in the mastermind role readme: "to start work, name a process template, or give your own steps."
++- **Decided, done:** one line in the mastermind role readme: "to start work, name a process template, or give your own steps."
+ 
+-## Three overlapping "template" ideas, and the proposed one word for each
++## Three overlapping "template" ideas, and the one word for each (decided 2026-10-23)
+ 
+-| Today | What it decides | Proposed word |
++| Today | What it decides | Word |
+ |---|---|---|
+ | `ROLES` (`Servex/agents/roles.js`) | who the agent is: role readme, model, effort | **role** |
+ | `Task.TEMPLATES` (`code`, `doc`, `scan`) | the routine around one task: a worktree, commit lines, read-only | **kind** (a task's kind) |
+-| `Process.DEFINITIONS` (`build`, `design`, `investigate`) | the steps, in order | **process template** |
++| process templates (`build`, `design`, `investigate`) | the steps, in order | **process template** |
+ 
+ A spawn then names three things: the role (who), the kind (the routine), and the process template (the steps). Folding these three into one named "spawn template" is the skills-port review, next in this session's tasks.
+ 
+diff --git a/public/framework/core/Task/doc/process.md b/public/framework/core/Task/doc/process.md
+index e86131d2b..2ed672888 100644
+--- a/public/framework/core/Task/doc/process.md
++++ b/public/framework/core/Task/doc/process.md
+@@ -1,8 +1,8 @@
+-# Process — a task whose children are named phases, and node runs them in order
++# Process — a task whose children are named steps, and node runs them in order
+ 
+ **The name's scope:** here a process is a *way of working* (a Task subclass). Not `Servex/Process.js` (one supervised child program, such as a dev server), not `Servex/Processes.js` (the OS process monitor), and not the old [ai/process](/framework/ai/process/) page (how the agents' work was going, 2026-09-19, stale).
+ 
+-A **process** is a standard way of doing a kind of work: *build* is investigate → plan → improve → approve → execute → review → merge. You create a task with a process named on it, and from that moment node starts phase 1, launches the session each phase names, chases a phase that stalls, and starts the next phase when one completes. The task is complete only when every phase is. A one-off fix needs no process.
++A **process** is a standard way of doing a kind of work: *build* is investigate → plan → improve → approve → execute → review → merge. You create a task with a process named on it, and from that moment node starts step 1, launches the session each step names, chases a step that stalls, and starts the next step when one completes. The task is complete only when every step is. A one-off fix needs no process.
+ 
+ The owner's words: [the 2026-10-22 dictation](/framework/ai/sessions/2026/10/20/session-e00f55c9/) (tab transcript `e00f55c9`, 23:34 UTC) and [owner-2026-10-20 §5](owner-2026-10-20-projects-and-completion.md). Brief: [process-system](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/requirements.md).
+ 
+@@ -12,14 +12,14 @@ The owner's words: [the 2026-10-22 dictation](/framework/ai/sessions/2026/10/20/
+ Item                                     core/Item      one log; state = replay(lines)
+ └─ Task                                  core/Task      states, tasks: List, complete() refuses while a child is open
+    ├─ Project extends Task               core/Task      a long-lived goal a module keeps; holds tasks, any of them a Process
+-   └─ Process extends Task               core/Task      children = phases, always in series; a phase is a plain Task
+-        Process.DEFINITIONS              data           { build: [...phases], investigate: [...phases] }
+-        process.next()                   pure           what should happen now: {start: phase} | {complete} | {wait} | null
+-ProcessRunner                            Servex/        node: writes the line next() asks for, launches the phase's session,
+-                                                        pulses a stalled phase, measures each phase's cost
++   └─ Process extends Task               core/Task      children = steps, always in series; a step is a plain Task
++        BuildProcess, DesignProcess, ...  core/Task/processes/  one subclass per template: `static steps = [...]`; Process.template("build")
++        process.next()                   pure           what should happen now: {start: step} | {complete} | {wait} | null
++ProcessRunner                            Servex/        node: writes the line next() asks for, launches the step's session,
++                                                        pulses a stalled step, measures each step's cost
+ ```
+ 
+-**Process is data plus one decision, `next()`.** It never changes itself: every transition (a phase starting, a spawn, a pulse, the process completing) is a line node writes, so replaying the file always gives the same state. **ProcessRunner does the I/O**: it calls `next()`, writes the line, and launches the session. The decision is in the class (testable, readable in the browser); the doing is in node.
++**Process is data plus one decision, `next()`.** It never changes itself: every transition (a step starting, a spawn, a pulse, the process completing) is a line node writes, so replaying the file always gives the same state. **ProcessRunner does the I/O**: it calls `next()`, writes the line, and launches the session. The decision is in the class (testable, readable in the browser); the doing is in node.
+ 
+ ## On disk: one file
+ 
+@@ -28,20 +28,20 @@ A process lives in its own folder inside the session that made it: `<session fol
+ ```jsonl
+ {"id":"fix-x","class":"Process","process":"build","title":"Fix X","brief":"…/requirements.md","by":"<creator>","ts":"…"}
+ {"tasks":{"add":{"id":"investigate","title":"Investigate","session":{"run":"fresh","model":"claude-sonnet-5-5","effort":"low"},"do":"…"}}}
+-…one add line per phase…
++…one add line per step…
+ {"start":{},"by":"ProcessRunner"}
+ {"investigate":{"start":{}},"by":"ProcessRunner"}
+-{"spawn":{"phase":"investigate","agent":"helper-x","session_id":"…","at":"…"}}
+-{"investigate":{"complete":{"outcome":"…"}},"by":"helper-x"}          ← the phase agent, through the item tool
+-{"measure":{"phase":"investigate","agent":"helper-x","usd":0.41}}     ← node, from the agent's own cost
++{"spawn":{"step":"investigate","agent":"helper-x","session_id":"…","at":"…"}}
++{"investigate":{"complete":{"outcome":"…"}},"by":"helper-x"}          ← the step agent, through the item tool
++{"measure":{"step":"investigate","agent":"helper-x","usd":0.41}}     ← node, from the agent's own cost
+ {"plan":{"start":{}},"by":"ProcessRunner"}
+ ```
+ 
+-**Creating one is one call** (never two steps): `item({path: <your session>, delta: {tasks: {add: {title, process: "build", brief}}}})`. The item tool sees `process`, makes the folder, writes line 1 and the phase lines from the definition (the add's own `phases` overrides change a phase's session), and tells ProcessRunner, which starts phase 1.
++**Creating one is one call** (never two steps): `item({path: <your session>, delta: {tasks: {add: {title, process: "build", brief}}}})`. The item tool sees `process`, makes the folder, writes line 1 and the step lines from the definition (the add's own `steps_over` overrides change a step's session), and tells ProcessRunner, which starts step 1.
+ 
+ ## Draft in the session, then move home
+ 
+-A process starts as a draft in the session that made it. When it names a `module` (`tasks.add: {title, process, module}`), it moves to `<module>/tasks/<id>/` once the plan is approved. The phase marked `home_after` (build: approve-plan) completing makes `next()` answer `{move}`, and ProcessRunner calls `move_home` in `Servex/agents/page_tools.js`. The move does five things:
++A process starts as a draft in the session that made it. When it names a `module` (`tasks.add: {title, process, module}`), it moves to `<module>/tasks/<id>/` once the plan is approved. The step marked `home_after` (build: approve-plan) completing makes `next()` answer `{move}`, and ProcessRunner calls `move_home` in `Servex/agents/page_tools.js`. The move does five things:
+ 
+ 1. It moves the folder: `git mv` when the folder is tracked, else a plain rename.
+ 2. The process records its new `path`.
+@@ -49,37 +49,37 @@ A process starts as a draft in the session that made it. When it names a `module
+ 4. The module's `tasks/` list references the process.
+ 5. One `kind: "task"` line goes into `ai/sessions/task-moves.jsonl`, the ledger `Server/TaskMove.mjs` keeps, so the old url redirects.
+ 
+-The later phases (execute, review, merge) then run in the new home. If the target folder already exists, the move is refused, a `home_refused` line records why, and the process carries on where it is. The owner's rule: [owner-2026-10-20 §6](owner-2026-10-20-projects-and-completion.md).
++The later steps (execute, review, merge) then run in the new home. If the target folder already exists, the move is refused, a `home_refused` line records why, and the process carries on where it is. The owner's rule: [owner-2026-10-20 §6](owner-2026-10-20-projects-and-completion.md).
+ 
+-## A phase's session
++## A step's session
+ 
+-Each phase names how its session is run, so the process carries the agent architecture, not the agent's memory:
++Each step names how its session is run, so the process carries the agent architecture, not the agent's memory:
+ 
+-| `session.run` | Who does the phase |
++| `session.run` | Who does the step |
+ |---|---|
+-| `fresh` | a new Servex session (`model`, `effort`, `role`), its folder inside the process (`<process>/<phase>/`) |
+-| `same` | the session that ran the previous phase, sent the next phase's prompt (its context is reused: cheaper) |
+-| `owner` | the agent that created the process (the mastermind), sent the phase's prompt |
+-| `wait` | nobody: the phase waits on the owner (`merge`); the process stays running, not complete, until the phase is |
++| `fresh` | a new Servex session (`model`, `effort`, `role`), its folder inside the process (`<process>/<step>/`) |
++| `same` | the session that ran the previous step, sent the next step's prompt (its context is reused: cheaper) |
++| `owner` | the agent that created the process (the mastermind), sent the step's prompt |
++| `wait` | nobody: the step waits on the owner (`merge`); the process stays running, not complete, until the step is |
+ 
+-The prompt node sends is built from the phase's `do`, the brief, and the outcomes of the phases before it, and it ends with the one line that completes the phase: `item({path, delta: {"<phase>": {"complete": {"outcome": "…"}}}})`.
++The prompt node sends is built from the step's `do`, the brief, and the outcomes of the steps before it, and it ends with the one line that completes the step: `item({path, delta: {"<step>": {"complete": {"outcome": "…"}}}})`.
+ 
+-## The core set (`Process.DEFINITIONS`, kept small)
++## The templates (`core/Task/processes/`, one subclass each, kept small)
+ 
+ - **build**: investigate (fresh, Sonnet low: questions ranked, the known structure as class sketches, sources) → plan (same: tasks, class sketch, checked against the brief) → improve-plan (fresh reviewer: an independent read of the plan) → approve-plan (the creator: approve, or name changes) → execute (fresh builder, in a worktree) → review (fresh reviewer: the diff) → merge (waits on the owner).
+ - **design** (design to code, the owner 2026-10-22): design (fresh: a default plus two to four variants per view in Figma, each named for its one change, the tree in `variants.md`) → review-shots (fresh reviewer: a screenshot of every frame, keep or cut) → pick (the creator: `code: <names>`) → code (fresh, in a served worktree: the default as a real page, each picked variant a subpage `<page>/v/<name>/` whose view **extends its parent's view** and changes only its difference; sub-versions nest; the default lists the tree, so the owner clicks through on the phone) → review (shots at 400 and 1200 px of every variant page, a clean console) → merge (waits on the owner). A variant is a set of changes on its parent, so in code it is a subclass.
+-- **investigate**: questions (rank them; name what is known as class sketches) → scout (Haiku scouts, one per top question, each under 100k, web search allowed) → synthesize (answers; where two scouts agree, say so). Run on its own or, later, as build's first phase.
++- **investigate**: questions (rank them; name what is known as class sketches) → scout (Haiku scouts, one per top question, each under 100k, web search allowed) → synthesize (answers; where two scouts agree, say so). Run on its own or, later, as build's first step.
+ 
+-A phase id never names a Task verb or field (`improve` would call `Task.improve()`); the test checks every definition. More processes come from the system architect, not from each agent. A process that does not help is changed from its data (which phase was skipped, failed or cost most), not by asking agents to try harder.
++A step id never names a Task verb or field (`improve` would call `Task.improve()`); the test checks every definition. More processes come from the system architect, not from each agent. A process that does not help is changed from its data (which step was skipped, failed or cost most), not by asking agents to try harder.
+ 
+ ## Never dropped (async)
+ 
+ | Where a ball drops | Closed by |
+ |---|---|
+-| a phase agent ends its turn without completing the phase | ProcessRunner hears the turn end (`Agents` result event) and pulses it once with the phase prompt; a second silent end puts the phase `waiting` on the process's creator |
++| a step agent ends its turn without completing the step | ProcessRunner hears the turn end (`Agents` result event) and pulses it once with the step prompt; a second silent end puts the step `waiting` on the process's creator |
+ | a spawn refused (no slot, machine hot) | a `queue` line; ProcessRunner retries on the TaskLoop tick |
+ | Servex restarts mid-process | state is the file; the tick re-runs `next()` on every running process and resumes from the last line |
+-| a phase's result only in chat | the outcome is the `complete` line's `outcome`; the next phase's prompt is built from it |
++| a step's result only in chat | the outcome is the `complete` line's `outcome`; the next step's prompt is built from it |
+ 
+ ## Asking a session about itself: raw deltas in, an instance out
+ 
+@@ -92,20 +92,20 @@ So an agent asks its session for its state with `item({path: <session folder>})`
+ 
+ ## Measured, not reported
+ 
+-Every phase change, spawn, pulse and cost is a line node writes. `measure` lines give each phase's share of the process's cost, so a phase that eats the budget shows up in the data. Quality: run real tasks through a process; an AI judges only obvious failures; two independent agents agreeing beats one agent's stated confidence.
++Every step change, spawn, pulse and cost is a line node writes. `measure` lines give each step's share of the process's cost, so a step that eats the budget shows up in the data. Quality: run real tasks through a process; an AI judges only obvious failures; two independent agents agreeing beats one agent's stated confidence.
+ 
+ ## Relation to what exists
+ 
+ - **Task.mode "series"** already starts the next child in memory; Process turns that off and has node write the line instead, so state is always from the file.
+-- **Task templates** ([templates.md](templates.md)) are the per-task version (one agent, approve → spawn); a phase's `session` uses the same launch path (`TaskLoop.launch` shape).
+-- **Steps** ([Servex/doc/steps.md](/Servex/doc/steps.md)) are steps inside one agent's session; a Process whose phases all run `same` does the same job with real state. Steps stays until it is migrated.
++- **Task templates** ([templates.md](templates.md)) are the per-task version (one agent, approve → spawn); a step's `session` uses the same launch path (`TaskLoop.launch` shape).
++- **Steps** ([Servex/doc/steps.md](/Servex/doc/steps.md)) are steps inside one agent's session; a Process whose steps all run `same` does the same job with real state. Steps stays until it is migrated.
+ - **Project.STAGES** (six stage names in one field) is the same idea without children; a Project should hold a build Process instead. Not changed in this slice.
+ 
+ ## Run 1 (2026-10-22): the readmes page, through build
+ 
+-The brief: [run-1/readmes-page/requirements.md](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/readmes-page/requirements.md); its log is the `task.jsonl` beside it. It ran on a private Servex started from the worktree (`Servex/proof/process-run.mjs`). One `item` call created it. Node then ran every phase with no agent remembering anything, from 18:49 to 18:56 (7.5 minutes). It ended with `task/readmes-page` built and reviewed, and the merge phase waiting on the owner.
++The brief: [run-1/readmes-page/requirements.md](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/readmes-page/requirements.md); its log is the `task.jsonl` beside it. It ran on a private Servex started from the worktree (`Servex/proof/process-run.mjs`). One `item` call created it. Node then ran every step with no agent remembering anything, from 18:49 to 18:56 (7.5 minutes). It ended with `task/readmes-page` built and reviewed, and the merge step waiting on the owner.
+ 
+-| Phase | Session | Measured cost |
++| Step | Session | Measured cost |
+ |---|---|---|
+ | investigate | fresh helper (Sonnet low) | $0.76 |
+ | plan | the same session | $0.86 |
+@@ -118,7 +118,7 @@ The brief: [run-1/readmes-page/requirements.md](/framework/ai/sessions/2026/10/2
+ What broke, and the process fix (the agents were not asked to try harder):
+ 
+ - **Review's cost was written twice.** Two wakes arrived for one turn end. Now after-turn work is chained per file, and a second wake joins the first.
+-- **Plan was pulsed before it had started.** The plan prompt was sent while investigate's turn was still running, so the end of that same turn looked like a stalled plan. Now a phase sent mid-turn skips the pulse for that turn's end.
++- **Plan was pulsed before it had started.** The plan prompt was sent while investigate's turn was still running, so the end of that same turn looked like a stalled plan. Now a step sent mid-turn skips the pulse for that turn's end.
+ - **Review said "ready to merge" without loading the page.** Execute had built in a worktree that Servex does not serve. Now execute takes a served worktree (`take_worktree`) and loads what it changed, and review may say ready only after the pages load with no console errors; otherwise its outcome is "not checked".
+ - **Still open:** the answer to the creating call carries the instructions for the parent's class, not the new process.
+ 
+@@ -126,7 +126,7 @@ What worked:
+ 
+ - The review fixed a real bug on the branch (chain links pointed at `/public/…`).
+ - Execute fixed a skip rule that had never matched on Windows paths.
+-- The approve phase had no live creator to send to, so it waited on the creator instead of being lost.
++- The approve step had no live creator to send to, so it waited on the creator instead of being lost.
+ 
+ ## Plan, not built: the prompt audit's asks become session tasks
+ 
+@@ -144,4 +144,4 @@ The prompt audit ([ai/doc/prompt-audit.md](/framework/ai/doc/prompt-audit.md)) a
+ 
+ - ✅ Slice 1: `Process` + `ProcessRunner`, one process end to end, completion rolling up to the session; run 1 above; moving home on approval; tests `node Servex/ProcessRunner.test.mjs` (27).
+ - ✅ **Your own steps (2026-10-22):** `tasks.add {title, steps: [{title, do}]}` makes a process with no template; a step with no session goes to the creator. Names and structure, proposed for approval: [process-names.md](process-names.md).
+-- ⬜ Next: a phase that is itself a process (investigate inside build); parallel phases (scouts); the plan's tasks becoming a process of their own; the owner's merge button (priority 3b) completing the merge phase; prompt-audit asks becoming session tasks once completion is automatic.
++- ⬜ Next: a step that is itself a process (investigate inside build); parallel steps (scouts); the plan's tasks becoming a process of their own; the owner's merge button (priority 3b) completing the merge step; prompt-audit asks becoming session tasks once completion is automatic.
+diff --git a/public/framework/core/Task/files.jsonl b/public/framework/core/Task/files.jsonl
+index 0376218b4..ee58f3b72 100644
+--- a/public/framework/core/Task/files.jsonl
++++ b/public/framework/core/Task/files.jsonl
+@@ -18,3 +18,4 @@
+ {"file":"Project.test.mjs"}
+ {"file":"Process.js"}
+ {"file":"child-verb.test.mjs"}
++{"file":"processes/"}
+diff --git a/public/framework/core/Task/processes/BuildProcess.js b/public/framework/core/Task/processes/BuildProcess.js
+new file mode 100644
+index 000000000..c739a1404
+--- /dev/null
++++ b/public/framework/core/Task/processes/BuildProcess.js
+@@ -0,0 +1,27 @@
++// The "build" process template: one idea built and merged: investigate, plan, improve, approve, execute, review, merge.
++// A step: id, title, `do` (the job), `session` ({run: fresh | same | owner | wait, role, model, effort}). A step id never names a Task verb or field (`improve` would call improve()).
++import Process from "../Process.js";
++
++const SONNET = "claude-sonnet-5-5";
++
++export class BuildProcess extends Process {
++	static template = "build";
++	static steps = [
++	{ id: "investigate", title: "Investigate", session: { run: "fresh", role: "helper", model: SONNET, effort: "low" },
++		do: "Read the brief and the readmes on the way to the code it names. Write investigation.md beside the brief: the questions that matter, ranked; what is known, as class sketches (class X extends Y, its core API) and named parts; what already exists to reuse (node Server/PastWork.mjs \"<topic>\"); risks. Mark each fact you checked in the code as checked; the rest are guesses." },
++	{ id: "plan", title: "Plan", session: { run: "same" },
++		do: "Write plan.md beside the brief: the class sketch, the files to change, small steps you can check, and how you will prove it works. Then re-read the owner's words in the brief and say, one line each, whether the plan covers them." },
++	{ id: "improve-plan", title: "Improve the plan", session: { run: "fresh", role: "reviewer", model: SONNET, effort: "medium" },
++		do: "Read the brief, investigation.md and plan.md with fresh eyes. Fix plan.md where it misses the brief, rebuilds something that exists, or is bigger than needed. List what you changed at the end of plan.md under 'Improved'." },
++	{ id: "approve-plan", title: "Approve the plan", session: { run: "owner" }, home_after: true,
++		do: "Read plan.md. Complete this step with outcome 'approved' (plus any caveat), or 'changes: …' naming what the builder must change first." },
++	{ id: "execute", title: "Execute", session: { run: "fresh", role: "helper", model: SONNET, effort: "medium" },
++		do: "Build the plan on its own branch in a worktree Servex serves: take one with the take_worktree tool (it has its packages and a site at http://<name>.localhost/). Only if that tool is missing, use git worktree add -b task/<slug> ../worktrees/<slug> michael/dev, and say in the outcome that it is not served. Apply any 'changes:' from the approve-plan step first. Load every page you changed with check_page at its worktree url and fix each console error. Commit each working step. Never merge. Outcome: the branch, the worktree url, the commits, and how you tested it." },
++	{ id: "review", title: "Review", session: { run: "fresh", role: "reviewer", model: SONNET, effort: "medium" },
++		do: "Review the branch named in the execute outcome (git diff michael/dev...<branch>) against plan.md and the brief. Fix small problems on the branch and commit; run the test the plan names. Load every changed page with check_page at the worktree url from the execute outcome (and the shot tool at 400 and 1200 px when the brief names widths). Outcome: 'ready to merge: <branch>' only when those pages loaded with no console errors; if you could not load them, 'not checked: <why>', never ready." },
++	{ id: "merge", title: "Merge", session: { run: "wait" },
++		do: "The owner merges the reviewed branch, or says no." },
++	];
++}
++
++export default BuildProcess;
+diff --git a/public/framework/core/Task/processes/DesignProcess.js b/public/framework/core/Task/processes/DesignProcess.js
+new file mode 100644
+index 000000000..5b685e681
+--- /dev/null
++++ b/public/framework/core/Task/processes/DesignProcess.js
+@@ -0,0 +1,27 @@
++// The "design" process template: design to code: variants in Figma, reviewed by screenshot, the picked ones coded as pages.
++// A step: id, title, `do` (the job), `session` ({run: fresh | same | owner | wait, role, model, effort}). A step id never names a Task verb or field (`improve` would call improve()).
++// Design to code (the owner, 2026-10-22): more than one design per view, reviewed by screenshot, the picked variants coded as real pages
++// the owner clicks through on the phone. A variant is a set of changes on its parent: a subclass of its view, at <page>/v/<name>/.
++import Process from "../Process.js";
++
++const SONNET = "claude-sonnet-5-5";
++
++export class DesignProcess extends Process {
++	static template = "design";
++	static steps = [
++	{ id: "design", title: "Design the variants", session: { run: "fresh", role: "helper", model: SONNET, effort: "medium" },
++		do: "Read the brief. In Figma, draw the default for each view the brief names and two to four variants of it, each named for its one change (header-scrolls-away, bar-segmented…); a variant of a variant is a sub-version. Write variants.md beside the brief: the tree (default → versions → sub-versions), each line the change and why. Outcome: the Figma page url and the tree." },
++	{ id: "review-shots", title: "Review by screenshot", session: { run: "fresh", role: "reviewer", model: SONNET, effort: "medium" },
++		do: "Screenshot every frame in variants.md (Figma get_screenshot). Judge each against the brief and the page, layout and color skills; mark keep or cut with one reason in variants.md. Outcome: the kept variants." },
++	{ id: "pick", title: "Pick the variants to code", session: { run: "owner" },
++		do: "Read variants.md and the shots. Complete with outcome 'code: <names>' (in autonomous mode the creator picks), or 'redesign: <what>'." },
++	{ id: "code", title: "Code the picked variants", session: { run: "fresh", role: "helper", model: SONNET, effort: "medium" },
++		do: "In a served worktree (take_worktree), code the default as a real page and each picked variant as a subpage <page>/v/<name>/ whose view extends its parent's view and changes only its difference; sub-versions nest (v/<name>/v/<sub>/). The default page lists the tree as links, so the owner can click through on the phone. Load each with check_page; commit each step; never merge. Outcome: branch, worktree url, the variant urls." },
++	{ id: "review", title: "Review the pages", session: { run: "fresh", role: "reviewer", model: SONNET, effort: "medium" },
++		do: "Shoot every variant page at 400 and 1200 px (the shot tool) at the worktree url, check the console, compare each with its Figma frame. Outcome: 'ready to merge: <branch>' with the shot paths, only when every page loads clean; else 'not checked: <why>'." },
++	{ id: "merge", title: "Merge", session: { run: "wait" },
++		do: "The owner merges the reviewed branch, or says no." },
++	];
++}
++
++export default DesignProcess;
+diff --git a/public/framework/core/Task/processes/InvestigateProcess.js b/public/framework/core/Task/processes/InvestigateProcess.js
+new file mode 100644
+index 000000000..8c79c5622
+--- /dev/null
++++ b/public/framework/core/Task/processes/InvestigateProcess.js
+@@ -0,0 +1,19 @@
++// The "investigate" process template: questions, scout, synthesize: findings, nothing built.
++// A step: id, title, `do` (the job), `session` ({run: fresh | same | owner | wait, role, model, effort}). A step id never names a Task verb or field (`improve` would call improve()).
++import Process from "../Process.js";
++
++const SONNET = "claude-sonnet-5-5", HAIKU = "claude-haiku-5-5";
++
++export class InvestigateProcess extends Process {
++	static template = "investigate";
++	static steps = [
++	{ id: "questions", title: "Questions", session: { run: "fresh", role: "helper", model: SONNET, effort: "low" },
++		do: "Write questions.md beside the brief: the questions it raises, ranked by how much each answer changes the work; for each, what is already known (with the file) and how to find out. Name the known structure as class sketches." },
++	{ id: "scout", title: "Scout", session: { run: "fresh", role: "helper", model: HAIKU, effort: "low" },
++		do: "Answer the top three questions in questions.md: in the repo (readmes, grep) and, for questions about the world outside, on the web (WebSearch, WebFetch). Keep each read small and stay under 100k tokens. Append each answer to questions.md with its sources." },
++	{ id: "synthesize", title: "Synthesize", session: { run: "fresh", role: "helper", model: SONNET, effort: "low" },
++		do: "Write findings.md: each question with its answer, marked 'checked in code', 'two sources agree' or 'guess'. Never a made-up confidence number." },
++	];
++}
++
++export default InvestigateProcess;
+diff --git a/public/framework/core/Task/processes/files.jsonl b/public/framework/core/Task/processes/files.jsonl
+new file mode 100644
+index 000000000..2fee01bea
+--- /dev/null
++++ b/public/framework/core/Task/processes/files.jsonl
+@@ -0,0 +1,4 @@
++{"file":"BuildProcess.js"}
++{"file":"DesignProcess.js"}
++{"file":"InvestigateProcess.js"}
++{"file":"index.js"}
+diff --git a/public/framework/core/Task/processes/index.js b/public/framework/core/Task/processes/index.js
+new file mode 100644
+index 000000000..a81ad119d
+--- /dev/null
++++ b/public/framework/core/Task/processes/index.js
+@@ -0,0 +1,10 @@
++// The process templates, registered by name on Process.TEMPLATES (import Process from here to get the templates). A new template: a new file here and one line below.
++import Process from "../Process.js";
++import BuildProcess from "./BuildProcess.js";
++import DesignProcess from "./DesignProcess.js";
++import InvestigateProcess from "./InvestigateProcess.js";
++
++for (const T of [BuildProcess, DesignProcess, InvestigateProcess]) Process.TEMPLATES[T.template] = T;
++
++export { Process };
++export default Process;
+diff --git a/public/framework/core/Task/readme.md b/public/framework/core/Task/readme.md
+index 907e14115..cd1785010 100644
+--- a/public/framework/core/Task/readme.md
++++ b/public/framework/core/Task/readme.md
+@@ -5,7 +5,7 @@
+ - **Built and tested:** the state machine, subtasks, replay of `task.jsonl` (`node Task.test.mjs`, 53 of 53 pass), `TaskView`, `TaskPage`, `TasksPage`, references between tasks (`Task.from_ref`), module homes made by the item tool's `tasks.add`.
+ - **Wired in:** `Server/AIIndex.mjs` replays every task through `Task.replay` into `ai/index.json`; Servex `open_task` and `TaskDirs --new` make the session-store folders that `Task` reads; the Inbox shows the result.
+ - **Wired in (2026-10-20):** [Project.js](Project.js) (`Project extends Task`: six stages, `completion` 0..1 = mean of subtasks, `Project.from_lines`; `node Project.test.mjs`, 9 of 9). `Server/ProjectMove.mjs` moves a project folder into a module and indexes it: [ai/tasks/doc/projects.md](/framework/ai/tasks/doc/projects.md).
+-- **Built (2026-10-22, branch `task/process-system`):** [Process.js](Process.js) (`Process extends Task`: named phases node runs in series; `next()` decides, `Servex/ProcessRunner.js` writes the line and launches each phase's session; one `tasks.add {process: "build"}` call creates one). Design and status: [doc/process.md](doc/process.md); the names, proposed for approval: [doc/process-names.md](doc/process-names.md). Test: `node Servex/ProcessRunner.test.mjs`.
++- **Process:** [Process.js](Process.js) (`Process extends Task`: named steps node runs in series; `next()` decides, `Servex/ProcessRunner.js` writes the line and launches each step's session; one `tasks.add {process: "build"}` call creates one; or give your own `steps`). Templates, one subclass each in [processes/](processes/): `build` (investigate to merge), `design` (Figma variants coded as pages), `investigate` (questions, scout, findings). Design and status: [doc/process.md](doc/process.md); the names, decided: [doc/process-names.md](doc/process-names.md). Test: `node Servex/ProcessRunner.test.mjs`.
+ - **Concept only:** `AITask extends Task` (below), a `phase` field ([ai/doc/task-lifecycle.md](/framework/ai/doc/task-lifecycle.md)). **Not automatic:** a module home. `TaskDirs.dir()` does not know modules; only the item tool (an agent's choice), `TaskMigrate` (one-off) and `UndoneToTasks` (idle tasks from undone asks) put a task in `<module>/tasks/`.
+ 
+ ## What it is

@@ -1,0 +1,11 @@
+import { browser, close } from "../../../../../../../../../../../Server/browser.mjs";
+const b = await browser(), page = await (await b.newContext({ viewport: { width: 1920, height: 900 } })).newPage();
+page.on("console", m => console.log("c:", m.text().slice(0, 200)));
+await page.goto(process.argv[2] + "/framework/ai/sessions/", { waitUntil: "commit" });
+await page.waitForSelector("a.sessions-row", { state: "attached", timeout: 60000 }); await page.waitForTimeout(1500);
+const n = () => page.evaluate(() => document.querySelectorAll("a.sessions-row").length);
+const d = await page.evaluate(() => { const m = document.querySelector(".datagrid-ext .datagrid-more"); return m ? getComputedStyle(m).display : "none-el"; });
+console.log("more display", d, "rows", await n());
+await page.click(".datagrid-ext .datagrid-more-btn"); await page.waitForTimeout(1500);
+console.log("after click", await n());
+await close();

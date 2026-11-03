@@ -4,9 +4,10 @@
 navigating? The old Router asked `Page.registry`.
 
 **Why that's unanswerable.** A registry can only contain pages that have been
-imported. The pages it would need to answer for are precisely the ones laziness
-exists to avoid importing. The gate was structurally incapable of doing its job,
-and it worked only because the old tier eagerly imported everything.
+imported, and the set of real urls is larger than that by construction: `route()`
+mints urls from data, and `child()` probes the filesystem for names nobody declared.
+Neither can be enumerated in advance. The gate worked only because the old tier
+eagerly imported the whole tree.
 
 **Verdict: optimistic interception.** Try the walk; hand the url to the browser
 only if it genuinely doesn't resolve.

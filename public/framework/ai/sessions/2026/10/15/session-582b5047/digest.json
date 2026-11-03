@@ -1,0 +1,34 @@
+{
+ "id": "582b5047-924f-4974-a8d2-da3e99db8827",
+ "first": "2026-10-15T21:44:09.489Z",
+ "last": "2026-10-15T21:53:47.034Z",
+ "task": "public/framework/ai/sessions/2026/10/15/voice-20261015/system-map",
+ "models": {
+  "claude-opus-5-5": 51
+ },
+ "sizes": {
+  "raw": 433022,
+  "content": 86010,
+  "stripped": 5261,
+  "owner_only": 0
+ },
+ "usd": 4.665562,
+ "usd_main": 4.665562,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 102,
+  "output": 47062,
+  "cache_read": 5998584,
+  "cache_write": 165560,
+  "w5": 0,
+  "w1": 165560
+ },
+ "messages": 51,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "I've written the factual map of the agent system: [map.md](/framework/ai/sessions/2026/10/15/voice-20261015/system-map/map.md). It covers 29 systems, a table of who starts which agent with code line numbers (2,879 agents spawned since 2026-09-22), and every hook and timer. It's committed as `7fc3157e9`, task folder only.\n\n- **Skills:** 20 of the 33 are working (loaded in the last 7 days), 7 are unverifiable and 6 are stale. `make`, `log-assistant` and `fork-claude-session` show no loads in any log. Scripts did the counting from three logs: the session transcripts, the hook's skill log and Servex's own log.\n- **Docs that don't match the code:** 107 file paths named in the docs don't resolve. I also checked 13 claims about behaviour by hand; the code contradicts 12, and the 13th leaves out two of the three skill logs. Most of these are in the hooks readme, `Servex/doc/skills.md` and three lines of CLAUDE.md, which I didn't edit.\n\nSeparately, the claude.ai Gmail connector needs authorizing in your claude.ai connector settings before agents can use it.",
+ "edited": [
+  "public/framework/ai/sessions/2026/10/15/voice-20261015/system-map/map.md"
+ ],
+ "digested_at": "2026-10-16T06:28:10.214Z"
+}

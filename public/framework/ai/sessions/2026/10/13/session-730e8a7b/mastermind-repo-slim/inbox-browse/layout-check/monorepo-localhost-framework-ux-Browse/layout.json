@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ux/Browse/",
+ "widths": {
+  "1280": {
+   "empty": 0.708,
+   "widest_text": 388,
+   "widest_text_sample": "Rows read the list's width (a container ",
+   "overflow_x": false,
+   "items": 47,
+   "narrow_share": 0.085
+  },
+  "1920": {
+   "empty": 0.782,
+   "widest_text": 564,
+   "widest_text_sample": "The width is remembered; double-click th",
+   "overflow_x": false,
+   "items": 47,
+   "narrow_share": 0.915
+  },
+  "2560": {
+   "empty": 0.791,
+   "widest_text": 698,
+   "widest_text_sample": "The width is remembered; double-click th",
+   "overflow_x": false,
+   "items": 47,
+   "narrow_share": 0.915
+  },
+  "3440": {
+   "empty": 0.819,
+   "widest_text": 605,
+   "widest_text_sample": "The list stays where it is; the url chan",
+   "overflow_x": false,
+   "items": 47,
+   "narrow_share": 0.915
+  }
+ },
+ "errors": []
+}

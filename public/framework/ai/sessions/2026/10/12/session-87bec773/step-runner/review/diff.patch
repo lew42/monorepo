@@ -1,0 +1,571 @@
+diff --git a/.claude/hooks/step-prompt.mjs b/.claude/hooks/step-prompt.mjs
+new file mode 100644
+index 000000000..d72ccef66
+--- /dev/null
++++ b/.claude/hooks/step-prompt.mjs
+@@ -0,0 +1,33 @@
++// step-prompt.mjs — PostToolUse(Bash). When an append.mjs to a task.jsonl moves `step`, tell the agent that step's text
++// (Steps.prompt) as additionalContext, at no extra turn. Never throws, always exits 0, silent when there is nothing to say.
++// Plan: public/framework/ai/sessions/2026/10/12/session-87bec773/step-runner/plan.md
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import crypto from "node:crypto";
++
++try {
++	const input = JSON.parse(fs.readFileSync(0, "utf8") || "{}");
++	const cmd = String(input.tool_input?.command ?? "");
++	if (cmd.includes("append.mjs")){
++		const m = cmd.match(/(?:"([^"]*task\.jsonl)"|'([^']*task\.jsonl)'|(\S*task\.jsonl))/);
++		const raw = m && (m[1] || m[2] || m[3]);
++		if (raw){
++			const file = path.resolve(input.cwd || process.cwd(), raw);
++			if (fs.existsSync(file)){
++				const { default: Steps } = await import("../../Server/Steps.mjs");
++				const info = Steps.read(file);
++				if (info && info.steps.length && !info.landed && !info.closed){
++					const stamp = path.join(os.tmpdir(), "step-prompt-" + crypto.createHash("sha1").update(file).digest("hex").slice(0, 16));
++					let last = null; try { last = Number(fs.readFileSync(stamp, "utf8")); } catch {}
++					if (last !== info.step){
++						fs.writeFileSync(stamp, String(info.step));
++						const text = Steps.prompt(info, info.step);
++						if (text) process.stdout.write(JSON.stringify({ hookSpecificOutput: { hookEventName: "PostToolUse", additionalContext: text } }));
++					}
++				}
++			}
++		}
++	}
++} catch {}
++process.exit(0);
+diff --git a/.claude/settings.json b/.claude/settings.json
+index a4c310703..719230db3 100644
+--- a/.claude/settings.json
++++ b/.claude/settings.json
+@@ -138,6 +138,14 @@
+               "post-tool-use"
+             ],
+             "timeout": 15
++          },
++          {
++            "type": "command",
++            "command": "node",
++            "args": [
++              "${CLAUDE_PROJECT_DIR}/.claude/hooks/step-prompt.mjs"
++            ],
++            "timeout": 5
+           }
+         ]
+       }
+diff --git a/.claude/skills/mastermind/SKILL.md b/.claude/skills/mastermind/SKILL.md
+index a6115e0fc..ff14c63e3 100644
+--- a/.claude/skills/mastermind/SKILL.md
++++ b/.claude/skills/mastermind/SKILL.md
+@@ -86,7 +86,7 @@ Your own turns are the most expensive tokens in the task, so spend through cheap
+ 2. **Harvest:** judge finished agents, log `agent` outcomes, verify every deliverable is linked from where a reader already is.
+ 3. **Prioritize:** the owner's explicit asks, then unfinished tasks on `/framework/ai/`, then the prime objective (organized, visual, browsable, mobile to 3440). An empty queue sends Haiku scouts. RULE#1 surgery becomes a proposal, never an autonomous edit.
+ 4. **Spawn:** one task dir per effort (`new-task`), a `requirements.md` brief, file fences; no two agents in one file; smoke-test the seams yourself.
+-5. **Log:** `now` and `agent` lines in your run task. ⚠ Set `steps` to this cycle's plan and bump `step` as each cycle ends: the Stop hook blocks a turn whenever `step < steps.length` with no `landed_at`, and a run task never lands until the owner stands it down.
++5. **Log:** `now` and `agent` lines in your run task. ⚠ Set `steps` to this cycle's plan and bump `step` as each cycle ends (a suggestion: write each step as `"do it (N min)"`, or let `node Server/Steps.mjs --plan <dir> [--kind ui] ...` add the template steps, so the [Step runner](../../../Servex/doc/steps.md) can prompt and nudge): the Stop hook blocks a turn whenever `step < steps.length` with no `landed_at`, and a run task never lands until the owner stands it down.
+ 6. **Wakeup:** `ScheduleWakeup` with `/mastermind` only while something is in flight (1200 s fallback; a landing wakes you anyway). Idle is not a reason to wake. With nothing in flight, stop the loop; wait for a known moment (a window reset) with ONE one-shot `CronCreate`, not a chain of `noop` wakeups.
+ 
+ A `decision` line is a record the owner can overturn, not a gate: build the chosen path the same cycle. What still waits: credentials, money, deleting or force-pushing, and the owner's own config (`CLAUDE.md`, `.claude/settings.json`) when the ask did not come from them in this session.
+diff --git a/.claude/skills/minion/SKILL.md b/.claude/skills/minion/SKILL.md
+index 0dd57172d..4d5b8cb67 100644
+--- a/.claude/skills/minion/SKILL.md
++++ b/.claude/skills/minion/SKILL.md
+@@ -51,7 +51,7 @@ Run `new-task` inside the task dir your brief names — it already exists; you w
+ 
+ ## While working
+ 
+-Your plan is the `steps` of your launch line. As each step starts, append `assign` with `step` and `now`; append a `decision` (alternative named) or a `log` caveat **the moment it happens**, never at the end — if your session dies, a fresh agent resumes from the log plus the readme. Append with `node .claude/hooks/append.mjs <task.jsonl> <lines.json>` (stamps `"NOW"`, re-parses the file). Never write a `findings.md`; the task log is the only findings file. Token cost is written by Servex.
++Your plan is the `steps` of your launch line. As each step starts, append `assign` with `step`, `now` and `"at":"NOW"` (each step written `"do it (N min)"`, so the [Step runner](../../../Servex/doc/steps.md) nudges you once at 2x); append a `decision` (alternative named) or a `log` caveat **the moment it happens**, never at the end — if your session dies, a fresh agent resumes from the log plus the readme. Append with `node .claude/hooks/append.mjs <task.jsonl> <lines.json>` (stamps `"NOW"`, re-parses the file). Never write a `findings.md`; the task log is the only findings file. Token cost is written by Servex.
+ 
+ ## The reload hold — seconds, never minutes
+ 
+diff --git a/.claude/skills/sub-mastermind/SKILL.md b/.claude/skills/sub-mastermind/SKILL.md
+index 03c627937..dca43b74e 100644
+--- a/.claude/skills/sub-mastermind/SKILL.md
++++ b/.claude/skills/sub-mastermind/SKILL.md
+@@ -107,7 +107,7 @@ A built-but-unproven ask stays unticked; a smaller or easier version than named
+ - **To tell the owner anything** (a decision made on their behalf, a risk, something only they can do): call `owner_note({title, text, kind: "decision"|"risk"|"needs-you", links})`, never chat; it pins to the top of their Inbox. Keep working; Servex also posts one for the `decision` lines in your `task.jsonl` when you land.
+ - **Landed:** one screen: the headline, then plain sentences with links.
+ 
+-Everything else lives in `task.jsonl` ([`new-task`](../new-task/SKILL.md)): the plan as `steps`, a `decision` line (alternative named) and a `log` caveat the moment each happens, `step`/`now` bumped as each step starts, so a fresh mastermind can resume from the log. Ask each minion to do the same. Append with `node .claude/hooks/append.mjs`.
++Everything else lives in `task.jsonl` ([`new-task`](../new-task/SKILL.md)): the plan as `steps` (`"do it (N min)"`, [Step runner](../../../Servex/doc/steps.md)), a `decision` line (alternative named) and a `log` caveat the moment each happens, `step`/`now` bumped as each step starts, so a fresh mastermind can resume from the log. Ask each minion to do the same. Append with `node .claude/hooks/append.mjs`.
+ 
+ ## Never
+ 
+diff --git a/Server/Steps.mjs b/Server/Steps.mjs
+new file mode 100644
+index 000000000..1d458777a
+--- /dev/null
++++ b/Server/Steps.mjs
+@@ -0,0 +1,162 @@
++#!/usr/bin/env node
++// Server/Steps.mjs — THE STEP RUNNER's data class: a task's plan (`steps` + `step` in task.jsonl), where it stands, who is overdue.
++// Plan: public/framework/ai/sessions/2026/10/12/session-87bec773/step-runner/plan.md
++//   node Server/Steps.mjs --report [days]                         followed-rate over the last N days (default 7)
++//   node Server/Steps.mjs --show <task dir>                       the steps with ✅/⬜ and the current one
++//   node Server/Steps.mjs --plan <task dir> [--kind ui] "step (N min)" ...   append ONE assign line (steps + template) via append.mjs
++// A step is a string with its estimate, "Build the parser (20 min)"; strings stay strings for every other reader.
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import { spawnSync } from "node:child_process";
++import { fileURLToPath } from "node:url";
++import TaskDirs from "./TaskDirs.mjs";
++
++const here = path.dirname(fileURLToPath(import.meta.url));
++const SHOTS = "public/framework/ai/sessions/2026/10/12/session-87bec773/screenshot-system/requirements.md";
++const MIN = /\s*(?:\((\d+(?:\.\d+)?)\s*(?:min|m)\)|~\s*(\d+(?:\.\d+)?)\s*m(?:in)?)\s*$/i;
++
++export default class Steps {
++	static TEMPLATES = {
++		base: ["Smoke test (5 min)", "Commit and merge (5 min)", "Land with finish-task (5 min)"],
++		ui: ["Shoot the page at its widths (5 min)", "Read the shots and judge (5 min)", "Fix and re-shoot (15 min)", "Compare before/after (5 min)"],
++	};
++	// the note a template step carries into its prompt, keyed by the step text without its estimate
++	static NOTES = {
++		"Shoot the page at its widths": `Use the mcp__site__shot tool at 400, 1200, 1920 and 3440 (${SHOTS}).`,
++		"Read the shots and judge": `Look at every shot for wasted space and breakage (${SHOTS}).`,
++		"Fix and re-shoot": "Fix what the shots showed, then shoot again with mcp__site__shot.",
++		"Compare before/after": "Put the first and last shots side by side and say what changed.",
++		"Smoke test": "Run node Server/smoke.mjs on your worktree and your tests.",
++		"Commit and merge": "Commit by exact path, then node Server/merge.mjs.",
++		"Land with finish-task": "Run finish-task; the last line carries landed_at and an outcome.",
++	};
++
++	/** "Build it (20 min)" | {do|title, min} -> {n, do, min}. n is 1-based. */
++	static parse(steps){
++		return (Array.isArray(steps) ? steps : []).map((s, i) => {
++			if (s && typeof s === "object"){
++				const raw = String(s.do ?? s.title ?? ""), tail = MIN.exec(raw), m = s.min ?? s.minutes ?? (tail ? tail[1] ?? tail[2] : null);
++				return { n: i + 1, do: raw.replace(MIN, "").trim(), min: m !== null && m !== undefined && Number.isFinite(Number(m)) ? Number(m) : null };
++			}
++			const str = String(s), m = MIN.exec(str);
++			return { n: i + 1, do: str.replace(MIN, "").trim(), min: m ? Number(m[1] ?? m[2]) : null };
++		});
++	}
++
++	/** The steps a task gets for a kind: the given ones, then (ui) the screenshot steps, then the base close-out. */
++	static template(kind, given = []){
++		const have = new Set(given.map(g => String(g).replace(MIN, "").trim().toLowerCase()));
++		const add = [...(kind === "ui" ? this.TEMPLATES.ui : []), ...this.TEMPLATES.base].filter(t => !have.has(t.replace(MIN, "").trim().toLowerCase()));
++		return add;
++	}
++
++	/** One task.jsonl -> {state, steps, step, started_at, nudged:Set, landed, closed, kind}. null when unreadable.
++	 *  started_at (ms): lines carry no clock, so for the latest line that set the current step we take its own at/ts/requested_at,
++	 *  else the nearest EARLIER line's `at`, else the nearest later one, else line 1's requested_at, else the file's mtime. */
++	static read(file){
++		let text, mtime;
++		try { text = fs.readFileSync(file, "utf8"); mtime = fs.statSync(file).mtimeMs; } catch { return null; }
++		const state = {}, nudged = new Set(), seen = new Set(), rows = [];
++		for (const raw of text.split("\n")){
++			if (!raw.trim()) continue;
++			let o; try { o = JSON.parse(raw); } catch { continue; }
++			if (!o || typeof o !== "object") continue;
++			rows.push(o);
++			const a = o.assign;
++			if (a && typeof a === "object"){ Object.assign(state, a); if (a.step !== undefined) seen.add(Number(a.step)); }
++			if (o.log && o.log.nudge !== undefined) nudged.add(Number(o.log.nudge));
++		}
++		const steps = this.parse(state.steps), step = Number(state.step) || 1;
++		const t = o => { for (const v of [o.assign?.at, o.assign?.ts, o.at, o.ts, o.log?.at, o.assign?.requested_at, o.assign?.started_at]){ const ms = v ? Date.parse(v) : NaN; if (Number.isFinite(ms)) return ms; } return NaN; };
++		let idx = -1;
++		rows.forEach((o, i) => { if (o.assign && Number(o.assign.step) === step) idx = i; });
++		let started = NaN;
++		if (idx >= 0){
++			started = t(rows[idx]);
++			for (let i = idx - 1; i >= 0 && !Number.isFinite(started); i--) started = t(rows[i]);
++			for (let i = idx + 1; i < rows.length && !Number.isFinite(started); i++) started = t(rows[i]);
++		}
++		if (!Number.isFinite(started)) started = rows.length ? Date.parse(rows[0].assign?.requested_at ?? "") : NaN;
++		if (!Number.isFinite(started)) started = mtime;
++		const landed = !!state.landed_at && !!String(state.outcome ?? "").trim();
++		return { state, steps, step, seen, started_at: started, nudged, landed, closed: !!state.closed_by, kind: state.kind ?? null };
++	}
++
++	/** The current step when it has run past twice its estimate and has not been nudged yet; else null. */
++	static overdue(info, now = Date.now()){
++		if (!info || info.landed || info.closed) return null;
++		const cur = info.steps.find(s => s.n === info.step);
++		if (!cur || cur.min == null || info.nudged.has(cur.n)) return null;
++		const since = now - info.started_at;
++		return since >= 2 * cur.min * 60000 ? { n: cur.n, do: cur.do, min: cur.min, since_ms: since } : null;
++	}
++
++	/** What the agent is told when step n starts: the step, its estimate, its template note, how to move on. */
++	static prompt(info, n){
++		const s = info.steps.find(x => x.n === n);
++		if (!s) return "";
++		const note = this.NOTES[s.do] ? ` ${this.NOTES[s.do]}` : "";
++		const last = n >= info.steps.length;
++		return `Step ${n} of ${info.steps.length}: ${s.do}${s.min != null ? ` (~${s.min} min)` : ""}.${note} ` +
++			(last ? `This is the last step: land with a final {"assign":{"step":${n},"landed_at":"NOW","outcome":"…"}}.`
++				: `When it starts the next one, log {"assign":{"step":${n + 1},"now":"…","at":"NOW"}}.`);
++	}
++
++	/** Followed-rate over the task dirs of the last `days` days. */
++	static report(days = 7){
++		const r = { tasks: 0, with_steps: 0, with_estimates: 0, landed: 0, all_reported: 0, followed_fully: 0, rate: null, rate_all_with_steps: null };
++		let fully_steps = 0;
++		for (const t of TaskDirs.list(days)){
++			const info = this.read(path.join(t.dir, "task.jsonl"));
++			if (!info) continue;
++			r.tasks++;
++			if (!info.steps.length) continue;
++			r.with_steps++;
++			const est = info.steps.some(s => s.min != null);
++			if (est) r.with_estimates++;
++			if (info.landed) r.landed++;
++			// every step after the first was bumped to on its own line (a jump from 1 to the last does not count)
++			const reported = info.steps.every(s => s.n === 1 || info.seen.has(s.n));
++			if (reported) r.all_reported++;
++			const fully = reported && info.landed;
++			if (fully) fully_steps++;
++			if (fully && est) r.followed_fully++;
++		}
++		r.rate = r.with_estimates ? r.followed_fully / r.with_estimates : null;
++		r.rate_all_with_steps = r.with_steps ? fully_steps / r.with_steps : null;
++		return r;
++	}
++
++	/** ✅/⬜ lines for --show. */
++	static show(info){
++		return info.steps.map(s => `${s.n < info.step || info.landed ? "✅" : "⬜"} ${s.n}. ${s.do}${s.min != null ? ` (${s.min} min)` : ""}${s.n === info.step && !info.landed ? "   <- current" : ""}`).join("\n");
++	}
++
++	/** Append ONE assign line through the validated path (.claude/hooks/append.mjs). Returns the spawn result. */
++	static plan(dir, given, kind){
++		const file = path.join(path.resolve(TaskDirs.REPO, dir), "task.jsonl");
++		const line = { assign: { steps: [...given, ...this.template(kind, given)], step: 1, ...(kind ? { kind } : {}), at: "NOW" } };
++		const tmp = path.join(os.tmpdir(), `steps-plan-${process.pid}.json`);
++		fs.writeFileSync(tmp, JSON.stringify(line));
++		try { return spawnSync(process.execPath, [path.join(here, "..", ".claude", "hooks", "append.mjs"), file, tmp], { encoding: "utf8", windowsHide: true }); }
++		finally { fs.rmSync(tmp, { force: true }); }
++	}
++}
++
++if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)){
++	const argv = process.argv.slice(2), has = n => argv.includes(n), after = n => argv[argv.indexOf(n) + 1];
++	if (has("--report")){
++		const days = Number(after("--report")) || 7, r = Steps.report(days), pct = x => x == null ? "n/a" : Math.round(x * 100) + "%";
++		console.log(`Step runner, last ${days} days\n  tasks ${r.tasks} | with steps ${r.with_steps} | with estimates ${r.with_estimates} | landed ${r.landed} | all steps reported ${r.all_reported}\n  followed fully ${r.followed_fully} | rate (of estimated) ${pct(r.rate)} | rate (of all with steps) ${pct(r.rate_all_with_steps)}`);
++		console.log(JSON.stringify(r));
++	} else if (has("--show")){
++		const info = Steps.read(path.join(path.resolve(TaskDirs.REPO, after("--show")), "task.jsonl"));
++		console.log(info ? (Steps.show(info) || "(no steps)") : "no task.jsonl there");
++	} else if (has("--plan")){
++		const rest = argv.slice(argv.indexOf("--plan") + 1), dir = rest[0], kind = rest.includes("--kind") ? rest[rest.indexOf("--kind") + 1] : undefined;
++		const given = rest.slice(1).filter((x, i, a) => x !== "--kind" && a[i - 1] !== "--kind");
++		const r = Steps.plan(dir, given, kind);
++		process.stdout.write(r.stdout ?? ""); process.stderr.write(r.stderr ?? ""); process.exit(r.status ?? 1);
++	} else console.log("usage: --report [days] | --show <task dir> | --plan <task dir> [--kind ui] \"step (N min)\" ...");
++}
+diff --git a/Server/Steps.test.mjs b/Server/Steps.test.mjs
+new file mode 100644
+index 000000000..69edc2c49
+--- /dev/null
++++ b/Server/Steps.test.mjs
+@@ -0,0 +1,59 @@
++// node Server/Steps.test.mjs — parse, overdue at 2x, nudged once, report counts (plain asserts, temp fixtures).
++import assert from "node:assert/strict";
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++
++const dir = fs.mkdtempSync(path.join(os.tmpdir(), "steps-test-"));
++process.env.LEDGER_ROOT = dir;   // TaskDirs reads it at import: the fixture is the repo
++const day = new Date().toISOString().slice(0, 10), [y, m, d] = day.split("-");
++const { default: Steps } = await import("./Steps.mjs");
++
++const task = (slug, lines) => {
++	const t = path.join(dir, "public", "framework", "ai", "sessions", y, m, d, slug);
++	fs.mkdirSync(t, { recursive: true });
++	fs.writeFileSync(path.join(t, "task.jsonl"), lines.map(l => JSON.stringify(l)).join("\n") + "\n");
++	return path.join(t, "task.jsonl");
++};
++const ago = min => new Date(Date.now() - min * 60000).toISOString();
++
++// parse
++assert.deepEqual(Steps.parse(["A (20 min)", "B (5 m)", "C ~10m", "D", { do: "E", min: 3 }, { title: "F (7 min)" }]),
++	[{ n: 1, do: "A", min: 20 }, { n: 2, do: "B", min: 5 }, { n: 3, do: "C", min: 10 }, { n: 4, do: "D", min: null }, { n: 5, do: "E", min: 3 }, { n: 6, do: "F", min: 7 }]);
++
++// template
++assert.equal(Steps.template().length, 3);
++assert.equal(Steps.template("ui").length, 7);
++assert.equal(Steps.template("ui")[0], "Shoot the page at its widths (5 min)");
++
++// overdue at 2x, once
++const f1 = task("a", [{ assign: { steps: ["Do it (10 min)", "Then (5 min)"], step: 1, requested_at: ago(25) } }]);
++let info = Steps.read(f1);
++assert.equal(info.step, 1);
++assert.equal(Steps.overdue(info, Date.now() - 10 * 60000), null, "5 min in: not due");
++const due = Steps.overdue(info);
++assert.equal(due.n, 1); assert.equal(due.min, 10); assert.ok(due.since_ms >= 20 * 60000);
++fs.appendFileSync(f1, JSON.stringify({ log: { at: ago(0), msg: "nudge", nudge: 1 } }) + "\n");
++assert.equal(Steps.overdue(Steps.read(f1)), null, "nudged once: silent");
++
++// a step with no estimate is never due; a landed task is never due
++const f2 = task("b", [{ assign: { steps: ["No estimate"], step: 1, requested_at: ago(500) } }]);
++assert.equal(Steps.overdue(Steps.read(f2)), null);
++const f3 = task("c", [{ assign: { steps: ["X (1 min)"], step: 1, requested_at: ago(500) } }, { assign: { landed_at: ago(1), outcome: "ok" } }]);
++assert.equal(Steps.overdue(Steps.read(f3)), null);
++
++// a later step restarts the clock from its own at
++const f4 = task("d", [{ assign: { steps: ["A (10 min)", "B (10 min)"], step: 1, requested_at: ago(60) } }, { assign: { step: 2, at: ago(3) } }]);
++assert.equal(Steps.overdue(Steps.read(f4)), null);
++
++// prompt
++const p = Steps.prompt(Steps.read(f1), 1);
++assert.match(p, /^Step 1 of 2: Do it \(~10 min\)\./); assert.match(p, /"step":2/);
++
++// report: f1 (estimates, not landed), f2 (no estimate), f3 landed (1 step, estimate, reached), f4 (open)
++const r = Steps.report(7);
++assert.equal(r.tasks, 4); assert.equal(r.with_steps, 4); assert.equal(r.with_estimates, 3);
++assert.equal(r.landed, 1); assert.equal(r.followed_fully, 1); assert.equal(r.rate, 1 / 3);
++
++fs.rmSync(dir, { recursive: true, force: true });
++console.log("Steps.test.mjs: all checks passed");
+diff --git a/Servex/TaskLoop-steps.test.mjs b/Servex/TaskLoop-steps.test.mjs
+new file mode 100644
+index 000000000..96cc68bd3
+--- /dev/null
++++ b/Servex/TaskLoop-steps.test.mjs
+@@ -0,0 +1,42 @@
++/* node Servex/TaskLoop-steps.test.mjs — the Step runner's nudge (Servex/TaskLoop.js nudge_step, 2026-10-12):
++ * an overdue step in the NEW sessions store gets exactly one nudge across two ticks; a live agent only; slug() reads both shapes.
++ * A fake servex stands in (agents.send is a recorder); no real agent, no real git. */
++import assert from "node:assert/strict";
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++
++const dir = fs.mkdtempSync(path.join(os.tmpdir(), "taskloop-steps-test-"));
++process.env.SERVEX_HOME = dir;
++process.env.LEDGER_ROOT = dir;   // TaskDirs reads this at import: the fixture is the repo
++const { default: TaskLoop } = await import("./TaskLoop.js");
++
++const day = new Date().toISOString().slice(0, 10), [y, m, d] = day.split("-");
++const t = path.join(dir, "public", "framework", "ai", "sessions", y, m, d, "session-abcd1234", "slow-task");
++fs.mkdirSync(t, { recursive: true });
++const file = path.join(t, "task.jsonl"), ago = min => new Date(Date.now() - min * 60000).toISOString();
++fs.writeFileSync(file, JSON.stringify({ assign: { agent: "minion-x", session_id: "s1", steps: ["Slow step (5 min)", "Next (5 min)"], step: 1, heartbeat: true, requested_at: ago(30) } }) + "\n");
++
++const sent = [], logged = [];
++const servex = {
++	say(){}, heartbeat: { opted_in: s => s.heartbeat === true },
++	agents: { registry_list: () => [{ id: "minion-x", state: "working", session_id: "s1" }], send: (id, text, note) => sent.push({ id, text, note }) },
++	log: { append: async (name, rec) => logged.push({ name, rec }) },
++};
++const loop = new TaskLoop({ root: dir, servex, quiet_min: 9999 });
++
++assert.equal(loop.slug(file), "slow-task", "new shape: session folder dropped");
++assert.equal(loop.slug(path.join(dir, "public", "framework", "ai", "2026-10-12", "a", "b", "task.jsonl")), "a/b", "old shape keeps sub-task path");
++assert.deepEqual(loop.find_task_files(), [path.resolve(file)], "found in the new store");
++
++await loop.tick();
++await loop.tick();
++assert.equal(sent.length, 1, "one nudge across two ticks");
++assert.equal(sent[0].id, "minion-x"); assert.equal(sent[0].note.from, "servex-step-runner");
++assert.match(sent[0].text, /^You were on step 1 \(Slow step, 5 min\) since /);
++assert.equal(logged.length, 1); assert.equal(logged[0].name, "steps"); assert.equal(logged[0].rec.step, 1);
++assert.match(fs.readFileSync(file, "utf8"), /"nudge":1/);
++assert.equal(loop.status().nudged, 1);
++
++fs.rmSync(dir, { recursive: true, force: true });
++console.log("TaskLoop-steps.test.mjs: all checks passed");
+diff --git a/Servex/TaskLoop.js b/Servex/TaskLoop.js
+index 5c9bda678..2078a1a16 100644
+--- a/Servex/TaskLoop.js
++++ b/Servex/TaskLoop.js
+@@ -3,6 +3,8 @@ import path from "path";
+ import { spawn } from "child_process";
+ import { stamp } from "./home.js";
+ import { CHECK } from "./Heartbeat.js";
++import Steps from "../Server/Steps.mjs";
++import TaskDirs from "../Server/TaskDirs.mjs";
+ 
+ /* THE TASK LOOP — nobody should have to remember to land a task.
+  *
+@@ -33,8 +35,8 @@ export default class TaskLoop {
+         this.max_escalations ??= 5;
+         this.root ??= process.cwd();
+         this.queues = new Map();      // task.jsonl path -> write chain, one writer per file
+-        this.totals = { chased: 0, escalated: 0 };
+-        this.status_now = { open: 0, quiet: 0, chased: 0, escalated: 0, last_tick: null };
++        this.totals = { chased: 0, escalated: 0, nudged: 0 };
++        this.status_now = { open: 0, quiet: 0, chased: 0, escalated: 0, nudged: 0, last_tick: null };
+         this.first_run = false;
+     }
+ 
+@@ -67,7 +69,9 @@ export default class TaskLoop {
+                 if (!this.servex.heartbeat?.opted_in(info.state)) continue;
+                 open++;
+ 
+-                const mtime = fs.statSync(file).mtimeMs;
++                // step-runner, 2026-10-12: a step past 2x its estimate gets ONE nudge, independent of the quiet-chase below.
++                const mtime = fs.statSync(file).mtimeMs;   // read BEFORE the nudge, so a nudge line never resets the quiet chase
++                await this.nudge_step(file, info.state, registry, now);
+                 const quiet_expired = now - mtime >= this.quiet_min * 60000;
+                 if (quiet_expired) quiet++;
+                 if (info.escalated) continue;
+@@ -83,7 +87,7 @@ export default class TaskLoop {
+                 }
+             }
+ 
+-            this.status_now = { open, quiet, chased: this.totals.chased, escalated: this.totals.escalated, last_tick: stamp() };
++            this.status_now = { open, quiet, chased: this.totals.chased, escalated: this.totals.escalated, nudged: this.totals.nudged, last_tick: stamp() };
+             if (!this.first_run){
+                 this.first_run = true;
+                 this.servex.say(`task-loop: first run, ${open} open tasks today (${quiet} quiet)`);
+@@ -93,11 +97,13 @@ export default class TaskLoop {
+ 
+     /* ── finding tasks ────────────────────────────────────────────────── */
+ 
++    /* The sessions store (ai/sessions/YYYY/MM/DD/..., Server/TaskDirs.mjs) PLUS the old ai/YYYY-MM-DD/ walk, de-duplicated. */
+     find_task_files(){
+         const today = new Date(), out = [];
++        try { for (const t of TaskDirs.list(2)) out.push(path.join(t.dir, "task.jsonl")); } catch {}
+         for (const d of [today, new Date(today.getTime() - 86400000)])
+             this.walk(path.join(this.root, "public", "framework", "ai", this.date_id(d)), out);
+-        return out;
++        return [...new Set(out.map(f => path.resolve(f)))];
+     }
+ 
+     walk(dir, out){
+@@ -171,6 +177,19 @@ export default class TaskLoop {
+         this.totals.chased++;
+     }
+ 
++    /* The Step runner's nudge (Server/Steps.mjs): the current step ran past 2x its estimate and the owning agent is live. Once per step. */
++    async nudge_step(file, state, registry, now){
++        const due = Steps.overdue(Steps.read(file), now);
++        if (!due) return;
++        const id = this.owning_agent_id(state, registry);
++        if (!id || this.agent_gone(state, registry)) return;
++        const text = `You were on step ${due.n} (${due.do}, ${due.min} min) since ${this.at(now - due.since_ms)}. Is it done? If you are further along, log {"assign":{"step":<the step you are on>,"at":"NOW"}}; if not, say what is holding it.`;
++        try { this.servex.agents.send(id, text, { from: "servex-step-runner" }); } catch { return; }
++        await this.write_line(file, { log: { at: stamp(), msg: `step-runner nudge: step ${due.n}`, nudge: due.n } });
++        try { await this.servex.log?.append("steps", { type: "nudge", task: this.slug(file), step: due.n, agent: id }); } catch {}
++        this.totals.nudged++;
++    }
++
+     /* `card_ask` (waiting-on-you) called in-process once it registers a handler
+      * on the same MCP door every tool here goes through; a plain card message
+      * until then — exactly as interfaces.md agrees. */
+@@ -222,10 +241,13 @@ export default class TaskLoop {
+ 
+     relative(file){ return path.relative(this.root, file).split(path.sep).join("/"); }
+ 
+-    /* `.../ai/<date>/<slug...>/task.jsonl` -> `<slug...>`, a sub-task included. */
++    /* Old `.../ai/<date>/<slug...>/task.jsonl`, new `.../ai/sessions/Y/M/D/[session-xxxx/]<slug...>/task.jsonl` -> `<slug...>`, a sub-task included. */
+     slug(file){
+-        const parts = this.relative(file).split("/");
+-        return parts.slice(parts.indexOf("ai") + 2, -1).join("/");
++        const parts = this.relative(file).split("/"), ai = parts.indexOf("ai");
++        if (parts[ai + 1] !== "sessions") return parts.slice(ai + 2, -1).join("/");
++        let rest = parts.slice(ai + 5, -1);
++        if (rest.length > 1 && /^(session-[0-9a-f]+|[0-9a-f]{8}-[0-9a-f-]{27})$/.test(rest[0])) rest = rest.slice(1);
++        return rest.join("/");
+     }
+ 
+     /* Local time with its offset, `home.js`'s `stamp()` format for an arbitrary
+diff --git a/Servex/doc/steps.md b/Servex/doc/steps.md
+new file mode 100644
+index 000000000..46ccac3cf
+--- /dev/null
++++ b/Servex/doc/steps.md
+@@ -0,0 +1,24 @@
++# The Step runner
++
++**What it is:** the system that makes an agent follow its task's approved steps, one by one, driven by node instead of memory. It owns the `steps` / `step` fields of a `task.jsonl` and nothing else; landing a task stays with [`finish-task`](../../.claude/skills/finish-task/SKILL.md), chasing a quiet task stays with the [TaskLoop](task-loop.md).
++
++## How it works
++
++1. **Steps carry estimates.** Each step is a string ending in its time: `"Review the diff, smoke, merge (15 min)"`. Old readers (the task checklist) still show it as plain text.
++2. **Templates add the system steps.** `node Server/Steps.mjs --plan <task dir> [--kind ui] "step (N min)" ...` writes your steps plus the template's: `base` adds smoke, commit-merge and finish-task; `ui` also adds the [screenshot system](../../public/framework/ai/sessions/2026/10/12/session-87bec773/screenshot-system/requirements.md) steps (shoot, read, judge, fix, compare).
++3. **The next step is prompted.** When an agent appends a new `step` with `append.mjs`, the `step-prompt.mjs` hook (PostToolUse) puts that step's text into the agent's context, for free.
++4. **One nudge at 2×.** The [TaskLoop](task-loop.md) sends the owning agent one message when a step runs past twice its estimate ("You were on step 3 … is it done?"), logs it in the task as `{"log":{…,"nudge":3}}` and in the Servex `steps` log. Once per step, ever.
++5. **The followed rate.** `node Server/Steps.mjs --report 7` counts tasks with steps, with estimates, and *followed fully* (estimated steps, every step reached, landed with an outcome).
++
++## Its requirements and log
++
++- Brief and plan: [`step-runner/requirements.md`](../../public/framework/ai/sessions/2026/10/12/session-87bec773/step-runner/requirements.md), [`plan.md`](../../public/framework/ai/sessions/2026/10/12/session-87bec773/step-runner/plan.md)
++- Log: the Servex `steps` log (nudges), plus each task's own `task.jsonl`.
++- Code: `Server/Steps.mjs` (`class Steps`: `parse`, `read`, `overdue`, `prompt`, `template`, `report`), `.claude/hooks/step-prompt.mjs`, `Servex/TaskLoop.js` (`nudge_step`).
++- Proofs: `node Server/Steps.test.mjs`, `node Servex/TaskLoop-steps.test.mjs`, `node Servex/proof/step-runner-proof.mjs` (a private Servex on 8390).
++
++## Watch out
++
++- A step's start time is the `at` on its `assign` line; write `"at":"NOW"` with every step bump, or the nudge counts from the task's start.
++- Only a task that opted in to the heartbeat (`heartbeat.opted_in`, as for the chase) is nudged; a task with steps but no opt-in is prompted by the hook only.
++- Before this, the TaskLoop never walked the sessions store (`ai/sessions/…`), so no task there was chased; it now walks both shapes.
+diff --git a/Servex/doc/task-loop.md b/Servex/doc/task-loop.md
+index 99cceeb08..f39e00cdf 100644
+--- a/Servex/doc/task-loop.md
++++ b/Servex/doc/task-loop.md
+@@ -21,6 +21,8 @@ A task is **open** when its `task.jsonl` has no `landed_at` carrying a non-empty
+ starting from Servex's own repo root — a worktree's Servex chases the worktree's own tasks, never
+ the live site's.
+ 
++A step overdue past 2x its estimate gets one nudge too, independent of the chase: [steps.md](steps.md) (the Step runner).
++
+ ## Chase
+ 
+ Only a task that opted in is chased (the heartbeat's own `opted_in()` test, so a first live boot
+diff --git a/Servex/proof/step-runner-proof.mjs b/Servex/proof/step-runner-proof.mjs
+new file mode 100644
+index 000000000..f7b49fd55
+--- /dev/null
++++ b/Servex/proof/step-runner-proof.mjs
+@@ -0,0 +1,28 @@
++/* Proof: a private Servex (ports 8390/8389/8388, throwaway LOCALAPPDATA) boots with the Step runner's TaskLoop
++ * with the Step runner TaskLoop loaded (no ticking, so it writes nothing). Run: node Servex/proof/step-runner-proof.mjs  Doc: Servex/doc/steps.md */
++import { spawn } from "node:child_process";
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
++const local = fs.mkdtempSync(path.join(os.tmpdir(), "step-runner-"));
++fs.mkdirSync(path.join(local, "lew42", "servex"), { recursive: true });
++fs.writeFileSync(path.join(local, "lew42", "servex", "dispatch.off"), "step-runner proof\n");
++const env = { ...process.env, LOCALAPPDATA: local, SERVEX_PORT: "8390", SERVEX_PROXY_PORT: "8389", SERVEX_PROXY_INTERNAL: "8388", SERVEX_NO_GATE: "1", NO_WHISPER: "1", WHISPER_PORT: "8387", SERVEX_NO_TASKLOOP: "1", SERVEX_NO_HEARTBEAT: "1" };   // no ticking: a private copy must never write into the repo's task logs (review 2026-10-12); the tick is proven by TaskLoop-steps.test.mjs
++for (const k of ["SERVEX_HOME", "SERVEX_POLICY", "PORT"]) delete env[k];
++const child = spawn(process.execPath, ["Servex/index.js"], { cwd: REPO, env, stdio: ["ignore", fs.openSync(path.join(local, "out.log"), "w"), fs.openSync(path.join(local, "out.log"), "a")], windowsHide: true });
++const base = "http://127.0.0.1:8390", sleep = ms => new Promise(r => setTimeout(r, ms));
++const call = async (name, args = {}) => JSON.parse(await (await fetch(`${base}/mcp`, { method: "POST", headers: { "content-type": "application/json", accept: "application/json, text/event-stream" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name, arguments: args } }) })).text());
++let code = 1;
++try {
++	let up = false;
++	for (let i = 0; i < 60 && !up; i++) { try { up = Array.isArray(await (await fetch(base + "/api/agents")).json()); } catch {} if (!up) await sleep(500); }
++	console.log("private Servex up on 8390:", up);
++	let status = null;
++	for (let i = 0; i < 40; i++) { try { status = JSON.parse((await call("task_loop_status")).result.content[0].text); } catch {} if (status) break; await sleep(500); }
++	console.log("task_loop_status:", JSON.stringify(status).slice(0, 400));
++	code = up && status && JSON.stringify(status).includes("nudged") ? 0 : 1;
++	console.log(code ? "FAIL" : "PASS  boots with the Step runner TaskLoop, which reports nudged");
++} finally { child.kill(); if (code) console.log(fs.readFileSync(path.join(local, "out.log"), "utf8").slice(-1500)); }
++process.exit(code);
+diff --git a/Servex/readme.md b/Servex/readme.md
+index d45df29d3..9c625cb6c 100644
+--- a/Servex/readme.md
++++ b/Servex/readme.md
+@@ -18,6 +18,7 @@ class Servex {                       // the always-on process, :8090 (proxy on :
+   sessions: Sessions                 // voice: one fast + one smart assistant, global
+   dispatcher: Dispatcher             // routes a prompt to the right agent
+   task_loop: TaskLoop                // node-led: re-prompts and escalates a task's steps
++                                     // its step nudge: doc/steps.md (the Step runner)
+   heartbeat: Heartbeat               // status check → triage → escalate
+   lifecycle: Lifecycle               // reaps finished or stuck agents
+   pool: Pool, worktrees: Worktrees   // the quick-fix pool; per-task worktrees
+@@ -53,6 +54,7 @@ Either way it prints three URLs:
+ Everything binds `127.0.0.1` and every route refuses a non-loopback caller
+ twice over. These tools start processes; nothing here is for a network.
+ 
++- **The Step runner** — a task's steps carry estimates; node prompts each next step and nudges once at 2x: [doc/steps.md](doc/steps.md).
+ - **The six parts** — moved to [doc/readme-full-2026-10-12.md](doc/readme-full-2026-10-12.md#the-six-parts), verbatim.
+ - **The Servex mastermind is always on** — moved to [doc/readme-full-2026-10-12.md](doc/readme-full-2026-10-12.md#the-servex-mastermind-is-always-on), verbatim.
+ - **The voice pair: one standing pair, recycled** — moved to [doc/readme-full-2026-10-12.md](doc/readme-full-2026-10-12.md#the-voice-pair-one-standing-pair-recycled-the-owner-2026-10-02), verbatim.

@@ -1,0 +1,170 @@
+[
+ {
+  "file": "Server/deploy-count.mjs",
+  "verdict": "misnamed",
+  "reason": "class in lowercase file",
+  "evidence": "lowerCaseClass: true"
+ },
+ {
+  "file": "Server/doc-check.mjs",
+  "verdict": "tool",
+  "reason": "run by hand to check docs on task landing",
+  "evidence": "Server/doc/on-landing.md"
+ },
+ {
+  "file": "Server/figma-roundtrip.mjs",
+  "verdict": "live",
+  "reason": "referenced by Figma system page",
+  "evidence": "public/framework/ext/Figma/tokens/page.js"
+ },
+ {
+  "file": "Server/health-supervisor.mjs",
+  "verdict": "live",
+  "reason": "referenced in Servex and loaded by skills",
+  "evidence": "Servex/Pool.js"
+ },
+ {
+  "file": "Server/health.mjs",
+  "verdict": "live",
+  "reason": "loaded by health-guard hook",
+  "evidence": ".claude/hooks/health-guard.mjs"
+ },
+ {
+  "file": "Server/hold.mjs",
+  "verdict": "live",
+  "reason": "loaded by config in settings.json",
+  "evidence": ".claude/settings.json"
+ },
+ {
+  "file": "Server/https-cert.mjs",
+  "verdict": "misnamed",
+  "reason": "class in lowercase file",
+  "evidence": "lowerCaseClass: true"
+ },
+ {
+  "file": "Server/jsonl-keep.mjs",
+  "verdict": "tool",
+  "reason": "helper for merge.mjs, used in worktree workflow",
+  "evidence": "Server/merge.mjs"
+ },
+ {
+  "file": "Server/junction-check.mjs",
+  "verdict": "live",
+  "reason": "referenced in Servex worktree system",
+  "evidence": "Servex/Worktrees.js"
+ },
+ {
+  "file": "Server/junction-guard.mjs",
+  "verdict": "live",
+  "reason": "loaded by config in settings.json",
+  "evidence": ".claude/settings.json"
+ },
+ {
+  "file": "Server/layout-check.mjs",
+  "verdict": "tool",
+  "reason": "run by hand for layout review, documented in skills",
+  "evidence": "Server/doc/review.md"
+ },
+ {
+  "file": "Server/m4a2wav.mjs",
+  "verdict": "stale",
+  "reason": "no references, no mention anywhere",
+  "evidence": "refs: 0"
+ },
+ {
+  "file": "Server/merge.mjs",
+  "verdict": "live",
+  "reason": "heavily used by hooks and skills for worktree landing",
+  "evidence": ".claude/hooks/git-guard.mjs"
+ },
+ {
+  "file": "Server/models-now.mjs",
+  "verdict": "misnamed",
+  "reason": "class in lowercase file",
+  "evidence": "lowerCaseClass: true"
+ },
+ {
+  "file": "Server/on-landing.mjs",
+  "verdict": "live",
+  "reason": "loaded by ledger hook for task landing checks",
+  "evidence": ".claude/hooks/ledger.mjs"
+ },
+ {
+  "file": "Server/openrouter-attribute.mjs",
+  "verdict": "stale",
+  "reason": "no references, no mention anywhere",
+  "evidence": "refs: 0"
+ },
+ {
+  "file": "Server/openrouter-gap.mjs",
+  "verdict": "tool",
+  "reason": "run by hand to check OpenRouter ledger",
+  "evidence": "Servex/ext/openrouter/readme.md"
+ },
+ {
+  "file": "Server/openrouter-reconcile.mjs",
+  "verdict": "tool",
+  "reason": "reconciliation helper for OpenRouter totals",
+  "evidence": "Server/openrouter-attribute.mjs"
+ },
+ {
+  "file": "Server/owner-check.mjs",
+  "verdict": "tool",
+  "reason": "run on landing to verify task meets owner request",
+  "evidence": "Server/doc/on-landing.md"
+ },
+ {
+  "file": "Server/padding-check.mjs",
+  "verdict": "tool",
+  "reason": "layout review helper, run by hand",
+  "evidence": "Server/doc/review.md"
+ },
+ {
+  "file": "Server/page-ai-cost.mjs",
+  "verdict": "tool",
+  "reason": "compute AI work cost attribution on pages",
+  "evidence": "public/framework/core/Page/weight/page.js"
+ },
+ {
+  "file": "Server/page-files-backfill.mjs",
+  "verdict": "tool",
+  "reason": "one-time backfill for page file lists",
+  "evidence": "public/framework/core/Page/doc/jsonl.md"
+ },
+ {
+  "file": "Server/page-files-migrate.mjs",
+  "verdict": "tool",
+  "reason": "one-time migration of files from page.jsonl to files.jsonl",
+  "evidence": "public/framework/core/Page/doc/jsonl.md"
+ },
+ {
+  "file": "Server/page-refs.mjs",
+  "verdict": "tool",
+  "reason": "writes weight data to page logs, used by page-ai-cost.mjs",
+  "evidence": "Server/page-ai-cost.mjs"
+ },
+ {
+  "file": "Server/page-size.mjs",
+  "verdict": "tool",
+  "reason": "report script for large page.jsonl files",
+  "evidence": "public/framework/core/Page/jsonl/doc/size.md"
+ },
+ {
+  "file": "Server/readme-reach.mjs",
+  "verdict": "stale",
+  "reason": "no references, no mention anywhere despite recent touch",
+  "evidence": "refs: 0"
+ },
+ {
+  "file": "Server/refine-days.mjs",
+  "verdict": "tool",
+  "reason": "run to refine past days' prompts",
+  "evidence": "public/framework/ext/Refine/readme.md"
+ },
+ {
+  "file": "Server/refine-litmus.mjs",
+  "verdict": "tool",
+  "reason": "validation tool for refiner output",
+  "evidence": "public/framework/ext/Refine/doc/refine-engine.md"
+ }
+]

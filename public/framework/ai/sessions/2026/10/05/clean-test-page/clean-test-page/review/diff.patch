@@ -1,0 +1,512 @@
+diff --git a/Servex/Servex.js b/Servex/Servex.js
+index 837a36c5..c9ff9f10 100644
+--- a/Servex/Servex.js
++++ b/Servex/Servex.js
+@@ -43,6 +43,7 @@ import External from "./agents/External.js";
+ import agent_tools from "./agents/tools.js";
+ import { directory_tools } from "./agents/directory.js";
+ import tidy from "./agents/tidy.js";
++import { run_clean, model_choices, list_examples, save_example } from "./ext/clean-test/run.js";
+ import hitl from "./agents/hitl.js";
+ import Inbox from "./agents/inbox.js";
+ import { docs_list, docs_read_file } from "./pages.js";
+@@ -636,6 +637,28 @@ export default class Servex extends Events {
+             res.json(await local_chat(body));
+         });
+ 
++        /* THE "TRY IT" TAB (public/framework/ext/Refine/try/, requirements.md
++         * 2026-10-04/clean-test-page) — run the SAME `clean()` Echo runs against
++         * whichever model the dropdown picked (a local gguf file, a cheap OpenRouter
++         * model, or Haiku — Servex/ext/clean-test/run.js). GET answers the dropdown's
++         * own list and the saved example set; the two POSTs run one clean and save
++         * one example. CORS, same as `/api/tidy`/`/api/local-chat`: a browser page
++         * posts here cross-origin from its own `<name>.localhost` origin. */
++        router.options("/api/clean-test", cors, (req, res) => res.status(204).end());
++        router.options("/api/clean-test/examples", cors, (req, res) => res.status(204).end());
++
++        router.get("/api/clean-test", cors, (req, res) => res.json({ models: model_choices() }));
++
++        router.post("/api/clean-test", cors, express.json({ limit: "64kb" }), async (req, res) => {
++            res.json(await run_clean(req.body ?? {}));
++        });
++
++        router.get("/api/clean-test/examples", cors, (req, res) => res.json({ examples: list_examples() }));
++
++        router.post("/api/clean-test/examples", cors, express.json({ limit: "64kb" }), (req, res) => {
++            res.json(save_example(req.body ?? {}));
++        });
++
+         router.get("/api/logs", (req, res) => res.json(this.log.names()));
+ 
+         /* The dashboard's first paint. After this it hears about every change on
+diff --git a/Servex/ext/clean-test/run.js b/Servex/ext/clean-test/run.js
+new file mode 100644
+index 00000000..14c4bafa
+--- /dev/null
++++ b/Servex/ext/clean-test/run.js
+@@ -0,0 +1,152 @@
++/* run.js — the model call behind the "Try it" tab on /framework/ext/Refine/
++ * (public/framework/ai/2026-10-04/clean-test-page/requirements.md).
++ *
++ * THE JOB: run the SAME `clean()` Echo runs (`public/framework/ext/Refine/engine.js`)
++ * against whichever model the owner picks in the dropdown — a local gguf file, a cheap
++ * OpenRouter model, or Haiku — so "try it" shows exactly what Echo would have produced,
++ * never a second copy of the clean prompt (law 6: one clean prompt, not two).
++ *
++ * HOW: `clean(text, {call, model})` already takes a swappable `call` function instead of
++ * its own default (`Server/ask-each.mjs`'s `askOnce`, which only ever reaches real
++ * Anthropic) — see engine.js's own doc comment on `call`. This file's `call` sends the
++ * exact same combined prompt `clean()` builds to one of two plain HTTP endpoints instead:
++ *   - a local gguf file, through Servex's own local proxy (`Servex/ext/local/provider.js`,
++ *     port 8998) — the same proxy `local_chat()` and the Echo local-first trial both use.
++ *   - a cheap OpenRouter model (or Haiku, also reached through OpenRouter — the new-brain
++ *     eval that produced the brief's 7-10/10 numbers already priced Haiku this way, as
++ *     "anthropic/claude-haiku-4.5": one provider, one real cost field, for every model
++ *     that isn't local) — the same `/v1/chat/completions` call this repo's own eval
++ *     harness makes (`public/framework/ai/2026-10-03/new-brain/harness.mjs`'s
++ *     `callModel()`), reused here rather than re-derived, including its one real cost
++ *     source: OpenRouter's own `usage.cost` on the response (never the SDK's
++ *     `total_cost_usd`, which `ext/openrouter/provider.js`'s readme explains is wrong for
++ *     a proxied call).
++ *
++ * No new provider code: this file is the "smallest route needed" the brief asked for —
++ * it only wires the two providers that already exist to the one clean() this repo
++ * already has. */
++import fs from "node:fs";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++import { clean } from "../../../public/framework/ext/Refine/engine.js";
++import { read_key, spend_guard } from "../openrouter/provider.js";
++import { is_local_model, slug_of, available_models, LOCAL_PROXY_PORT } from "../local/provider.js";
++
++const HERE = path.dirname(fileURLToPath(import.meta.url));
++/* The owner's test set lives beside the model it tests, not in a global /data/ folder
++ * (memory note "data lives with its page") — ext/Refine's own fixture/ dir, next to the
++ * hand-built fixture Refine.js already reads. */
++const EXAMPLES_FILE = path.join(HERE, "../../../public/framework/ext/Refine/fixture/clean-examples.jsonl");
++
++const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
++
++/* "3-4 cheap OpenRouter ones" (requirements.md item 1) — the same slugs the new-brain
++ * eval already scored (eval-results.json, eval-results-sweep.json, 2026-10-03/04):
++ * DeepSeek v4.1 flash and Ling 3.0 flash both scored 10/10 on refining the owner's own
++ * prompts, so they lead the list; Gemini and GPT-6 Luna are the other two cheap runs
++ * that eval already has real numbers for. Haiku is its own entry, kept separate from
++ * this list (deliverable 1 names it on its own) though it is reached the same way. */
++export const CHEAP_OPENROUTER_MODELS = [
++	"deepseek/deepseek-v4.1-flash",
++	"inclusionai/ling-3.0-flash-vl",
++	"google/gemini-3.8-flash",
++	"openai/gpt-6-luna",
++];
++export const HAIKU_MODEL = "anthropic/claude-haiku-4.5";
++
++/* The dropdown's whole list: every local model file that actually exists on this
++ * machine right now (same live check `local/page.js`'s own picker uses), then the
++ * cheap OpenRouter set, then Haiku last. */
++export function model_choices(){
++	return [...available_models().map(slug => `local/${slug}`), ...CHEAP_OPENROUTER_MODELS, HAIKU_MODEL];
++}
++
++/* One HTTP call, local or OpenRouter — the two provider halves this repo already has,
++ * nothing new. Returns {answer, cost_usd, ms}; throws on a transport or HTTP failure
++ * (clean()'s own nodeCall lets that propagate, same as a direct askOnce failure would). */
++async function model_reply(model, prompt){
++	const t0 = Date.now();
++	if (is_local_model(model)){
++		const res = await fetch(`http://127.0.0.1:${LOCAL_PROXY_PORT}/v1/chat/completions`, {
++			method: "POST", headers: { "Content-Type": "application/json" },
++			body: JSON.stringify({ model: slug_of(model), messages: [{ role: "user", content: prompt }], temperature: 0.1 }),
++		});
++		if (!res.ok) throw new Error(`local proxy answered ${res.status}: ${await res.text()}`);
++		const data = await res.json();
++		return { answer: data.choices?.[0]?.message?.content ?? "", cost_usd: 0, ms: Date.now() - t0 };
++	}
++
++	const guard = spend_guard();
++	if (!guard.ok) throw new Error(guard.reason);
++
++	const key = read_key();
++	const res = await fetch(OPENROUTER_URL, {
++		method: "POST", signal: AbortSignal.timeout(60000),
++		headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json",
++			"HTTP-Referer": "https://lew42.com", "X-Title": "Lew42 Clean — Try it" },
++		body: JSON.stringify({ model, messages: [{ role: "user", content: prompt }], temperature: 0.1, usage: { include: true } }),
++	});
++	if (!res.ok) throw new Error(`OpenRouter answered ${res.status}: ${await res.text()}`);
++	const data = await res.json();
++	const cost_usd = typeof data.usage?.cost === "number" ? data.usage.cost : 0;
++	return { answer: data.choices?.[0]?.message?.content ?? "", cost_usd, ms: Date.now() - t0 };
++}
++
++/* {text, model} -> {ok:true, model, text, sentences, strikes, misheard, flags, cost_usd, ms}
++ * or {ok:false, why}. `text`/`sentences`/`strikes`/`misheard`/`flags` are exactly clean()'s
++ * own return shape — the "Try it" page reads them the same way Refine.js's own ladder does. */
++export async function run_clean({ text, model } = {}){
++	if (typeof text !== "string" || !text.trim()) return { ok: false, why: "text must be a non-empty string" };
++	if (typeof model !== "string" || !model.trim()) return { ok: false, why: "model is required" };
++	if (!model_choices().includes(model)) return { ok: false, why: `unknown model ${JSON.stringify(model)}` };
++
++	let cost_usd = 0, ms = 0;
++	const call = async prompt => {
++		const r = await model_reply(model, prompt);
++		cost_usd = r.cost_usd; ms = r.ms;
++		return { answer: r.answer, cost_usd: r.cost_usd };
++	};
++
++	try {
++		const result = await clean(text, { call, model });
++		return { ok: true, model, ...result, cost_usd, ms };
++	} catch (e){ return { ok: false, why: String(e.message || e), model }; }
++}
++
++/* THE EXAMPLE SET (owner addition, 2026-10-04: "that turns the owner's picks into the
++ * test set"). One line per example: {at, raw, good, notes, verdict}. `verdict` is
++ * "good" (this IS the clean text to aim for) or "dont" (a wrong clean, kept so a future
++ * model can be checked against the SAME mistake, not just the right answer). Appended
++ * with the exact newline-sniffed, re-verified pattern every other hand-made JSONL
++ * fixture in this repo uses (Server/decide.mjs's `append()`, copied here rather than
++ * imported — that file is a CLI script, not a module meant for another process to
++ * import) — never a hand-built JSON string. */
++export function list_examples(){
++	let text;
++	try { text = fs.readFileSync(EXAMPLES_FILE, "utf8"); } catch { return []; }
++	return text.split(/\r?\n/).filter(l => l.trim()).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
++}
++
++export function save_example({ raw, good, notes, verdict } = {}){
++	if (typeof raw !== "string" || !raw.trim()) return { ok: false, why: "raw must be a non-empty string" };
++	if (typeof good !== "string" || !good.trim()) return { ok: false, why: "good must be a non-empty string" };
++	if (verdict !== "good" && verdict !== "dont") return { ok: false, why: `verdict must be "good" or "dont", got ${JSON.stringify(verdict)}` };
++
++	const line = { at: new Date().toISOString(), raw: raw.trim(), good: good.trim(), notes: String(notes ?? "").trim(), verdict };
++	fs.mkdirSync(path.dirname(EXAMPLES_FILE), { recursive: true });
++	let out = JSON.stringify(line) + "\n";
++	if (fs.existsSync(EXAMPLES_FILE) && fs.statSync(EXAMPLES_FILE).size > 0){
++		const fd = fs.openSync(EXAMPLES_FILE, "r"), buf = Buffer.alloc(1);
++		fs.readSync(fd, buf, 0, 1, fs.statSync(EXAMPLES_FILE).size - 1); fs.closeSync(fd);
++		if (buf[0] !== 0x0a) out = "\n" + out;
++	}
++	fs.appendFileSync(EXAMPLES_FILE, out, "utf8");
++
++	const bad = fs.readFileSync(EXAMPLES_FILE, "utf8").split(/\r?\n/).filter(l => l.trim())
++		.filter(l => { try { JSON.parse(l); return false; } catch { return true; } });
++	if (bad.length) return { ok: false, why: `appended, but the file now has ${bad.length} unparseable line(s)` };
++
++	return { ok: true, examples: list_examples() };
++}
++
++export default run_clean;
+diff --git a/public/framework/ext/Refine/engine.js b/public/framework/ext/Refine/engine.js
+index 2450001c..30f846ea 100644
+--- a/public/framework/ext/Refine/engine.js
++++ b/public/framework/ext/Refine/engine.js
+@@ -362,4 +362,22 @@ export async function clean(text, { prev = "", onFlag, call, cwd, model } = {}){
+ 	};
+ }
+ 
++/* "A simple word-level diff %" (the owner, 2026-10-04, clean-test-page) — a plain Dice
++ * coefficient over each text's own set of 3+ letter words: 1.0 means the two share every
++ * word, 0 means no overlap at all. Same shape of heuristic `contentWords`/`stemsMatch`
++ * above already use, kept as its own tiny pure function (not wired into `clean()` itself)
++ * because it compares two ALREADY-CLEANED texts, not a clean sentence against the raw —
++ * a different job. Lives here, not in `Servex/ext/clean-test/run.js` or in the "Try it"
++ * page's own browser code, so the one score both of them show is computed once (law 6) —
++ * this file is already Node- and browser-safe, so both sides can import it as-is. */
++export function word_overlap_score(a, b){
++	const words = s => new Set((String(s ?? "").toLowerCase().match(/[a-z0-9']+/g) ?? []).filter(w => w.length >= 3));
++	const wa = words(a), wb = words(b);
++	if (!wa.size && !wb.size) return 1;
++	if (!wa.size || !wb.size) return 0;
++	let shared = 0;
++	for (const w of wa) if (wb.has(w)) shared++;
++	return (2 * shared) / (wa.size + wb.size);
++}
++
+ export default clean;
+diff --git a/public/framework/ext/Refine/files.jsonl b/public/framework/ext/Refine/files.jsonl
+index 06d478b0..4a909e5e 100644
+--- a/public/framework/ext/Refine/files.jsonl
++++ b/public/framework/ext/Refine/files.jsonl
+@@ -19,3 +19,5 @@
+ {"file":"engine.js"}
+ {"file":"prompt-card.js"}
+ {"file":"prompt-card.css"}
++{"file":"weight.jsonl"}
++{"file":"try/page.js"}
+diff --git a/public/framework/ext/Refine/page.js b/public/framework/ext/Refine/page.js
+index dec6cd4b..0dd19f80 100644
+--- a/public/framework/ext/Refine/page.js
++++ b/public/framework/ext/Refine/page.js
+@@ -1,15 +1,28 @@
+-import { Page, p, md } from "/app.js";
++import { Page, p, a, md } from "/app.js";
+ import refine from "./Refine.js";
+ 
++/* ⚠ NOT `navigation: "tabs"`. Tried first (review/report.md, 2026-10-04 finding 1
++ * wanted "try" reachable as a real tab) — but `ext/tabs`'s `tabs()` has no "my own
++ * content()" entry, only `this.children`, so with one child ("try") it auto-fills
++ * the WHOLE page with Try-it's content and the ladder below never renders at all
++ * (confirmed live: public/framework/ai/2026-10-04/clean-test-page/task.jsonl). Doc
++ * pages dodge this by making their own content an explicit "overview" child
++ * (`ext/Doc`'s `overview_section()`) — real surgery, not a few lines on a
++ * hand-written Page. A plain, visible link to Try it is the honest small fix:
++ * still a real page at its own url ("try" is still a declared child), just not
++ * drawn as a framework tab strip. */
+ export default new Page({
+ 	meta: import.meta,
+ 	title: "Refine",
+ 	description: "One dictation, shown as a ladder: raw → clean → structured → brief, with a coverage table proving nothing was lost.",
+ 	icon: "fact_check",
++	children: "try",
+ 
+ 	content(){
+ 		p("`Server/refine.mjs` turns a long, rambling dictation into a numbered brief a mastermind can act on — and keeps every step, so you can always ask \"wait, what did I actually say?\" Click an ask below, or a bullet in Structured, and its source sentences light up in Clean and Raw.");
+ 
++		p(() => a("Try it — run this same clean-up step against any model →").href(new URL("try/", import.meta.url).pathname));
++
+ 		// Run C (the harness dictation) is the longest of the four and the only
+ 		// one with a dropped sentence AND a thin citation both present, so the
+ 		// FIRST screen anyone lands on already shows what "dropped" looks like —
+diff --git a/public/framework/ext/Refine/readme.md b/public/framework/ext/Refine/readme.md
+index e8243422..05404159 100644
+--- a/public/framework/ext/Refine/readme.md
++++ b/public/framework/ext/Refine/readme.md
+@@ -30,6 +30,16 @@ prompt_modes({ raw, sentences, structured, fallback_text });   // see its own do
+ - **`refine-` is a new CSS class prefix**, not yet in `styles/css-scopes.txt` — that file was outside this module's fence, the same as `ask-`'s precedent (see the file's own comment there). The mastermind registers it.
+ - **Dropped rows are warm (`--warn`), never `--error`/`--hot`.** A dropped sentence is worth a look, not a failure — the owner's rule for the whole view.
+ 
++## Try it
++[Try it](/framework/ext/Refine/try/) runs the real `clean()` step (same one Echo runs) against any
++model: every local gguf file this machine has, a few cheap OpenRouter models, and Haiku — paste
++rough text, pick a model, see the cleaned result, its time and its real $ cost. "Run all" compares
++every model on one piece of text at once. A small growing test set lives beside it
++(`fixture/clean-examples.jsonl`, 2026-10-04) — save a good (or bad) clean result and "Score all
++models" ranks every model by a plain word-overlap % against the saved answer. Not built yet:
++pulling a sample straight from a recent voice session — no index of raw dictation lines exists
++today, so paste is the stand-in; see the page's own doc comment (`try/page.js`) for why.
++
+ ## More
+ - [Overview](/framework/ext/Refine/) — run C live by default (the longest of the four runs, and the one with a dropped sentence AND a thin citation on its very first screen — `runs/sample` alone has neither); `?run=` picks any other run, including the small hand-built fixture
+ - `doc/raw-match.md` — the word-overlap heuristic that lights up Raw, worked example
+diff --git a/public/framework/ext/Refine/try/files.jsonl b/public/framework/ext/Refine/try/files.jsonl
+new file mode 100644
+index 00000000..ffae31da
+--- /dev/null
++++ b/public/framework/ext/Refine/try/files.jsonl
+@@ -0,0 +1 @@
++{"file":"page.js"}
+diff --git a/public/framework/ext/Refine/try/page.js b/public/framework/ext/Refine/try/page.js
+new file mode 100644
+index 00000000..a55c83cc
+--- /dev/null
++++ b/public/framework/ext/Refine/try/page.js
+@@ -0,0 +1,208 @@
++import { Page, p, div, h2, h3, span, a, textarea, select, option, button, label, table, thead, tbody, tr, th, td } from "/app.js";
++import { servex_url } from "/framework/dev/servex_url.js";
++import { word_overlap_score } from "../engine.js";
++
++/* THE "TRY IT" TAB (public/framework/ai/2026-10-04/clean-test-page/requirements.md) —
++ * the owner's own question: "which models are being used or considered for the clean
++ * transcription step … can we test that somewhere". This page runs the SAME `clean()`
++ * Echo runs (`ext/Refine/engine.js`, via Servex's own `/api/clean-test` —
++ * `Servex/ext/clean-test/run.js`) against any model on the dropdown: every local gguf
++ * file found on this machine, a few cheap OpenRouter models, and Haiku — so what you
++ * see here is exactly what Echo would have produced, never a second clean prompt.
++ *
++ * Three things on this page:
++ *   1. Paste some dictated text, pick one model, hit Clean — see the cleaned text, how
++ *      long it took, and what it really cost (local models are always $0).
++ *   2. Run all — the same text through every model, one at a time, one row each.
++ *   3. A small test set the owner can grow: "Save as example" keeps {raw, good clean,
++ *      notes} in `fixture/clean-examples.jsonl`; "Score all models" runs every saved
++ *      example through every model and shows how close each one lands to the approved
++ *      clean text (`word_overlap_score`, `engine.js` — plain word overlap, computed in
++ *      code, never judged by a model) — the owner's own picks become the ongoing test.
++ *
++ * Run all / Score all run ONE MODEL AT A TIME (not `Promise.all`): the local proxy only
++ * holds one gguf in GPU memory at once, so firing every local model together would just
++ * make them queue behind each other anyway, and a sequential OpenRouter run is a real,
++ * visible spend cap — the review that found the first draft's `Promise.all` flagged
++ * exactly this (review/report.md finding 7, 2026-10-04).
++ *
++ * NOT built yet: "Load a real line from a recent voice session" (the owner's own
++ * addition, mid-task). There is no reliable index of recent raw-dictation lines today —
++ * Dictate.js's own `via: "voice"` tag marks the REVISED output, not the raw Whisper
++ * text, and the old dated session pages are stale — so wiring this well is its own
++ * small task, not a few lines here. Paste is the stand-in until then. */
++const ENDPOINT = "/api/clean-test";
++const EXAMPLES_ENDPOINT = "/api/clean-test/examples";
++
++const fmt_usd = n => (!n ? "$0" : n < 0.01 ? "<$0.01" : `$${n.toFixed(2)}`);
++const fmt_s = ms => `${(ms / 1000).toFixed(1)}s`;
++
++export default new Page({
++	meta: import.meta,
++	title: "Try it",
++	description: "Run the real clean() step against any model — local, cheap OpenRouter, or Haiku — and compare.",
++	icon: "science",
++
++	content(){
++		p("This runs the exact clean-up step Echo runs on everything you dictate — same prompt, same rules (fix typos, capitalization, punctuation, drop filler words; never rephrase). Paste some rough text, pick a model, and see what it does.");
++
++		let models = [], picked = null, fetchFailed = false, examples = [];
++		let $picker, $single, $all, $examplesBox, $status;
++
++		const get_text = () => document.querySelector("#clean-try-input")?.value ?? "";
++		const say = text => { $status.empty(() => { if (text) p.c("muted").text(text); }); };
++
++		async function run_one(model, text){
++			return fetch(servex_url(ENDPOINT), {
++				method: "POST", headers: { "content-type": "application/json" },
++				body: JSON.stringify({ text, model }),
++			}).then(r => r.json());
++		}
++
++		function result_card($box, model, r){
++			$box.empty(() => {
++				if (!r.ok){ p.c("muted").text(`${model} could not answer: ${r.why}`); return; }
++				p().text(r.text || "(empty)");
++				span.c("muted").text(`${model} · ${fmt_s(r.ms)} · ${fmt_usd(r.cost_usd)}${r.flags?.length ? ` · ${r.flags.length} flag${r.flags.length === 1 ? "" : "s"}` : ""}`);
++			});
++		}
++
++		const draw_picker = () => {
++			$picker.empty(() => {
++				if (fetchFailed){ p.c("muted").text("Couldn't reach Servex to list models — it may not be running this change yet."); return; }
++				if (!models.length){ p.c("muted").text("No model is available right now."); return; }
++				picked = models.includes(picked) ? picked : models[0];
++				select(() => models.forEach(m => option(m).attr("value", m))).attr("value", picked).on("change", e => { picked = e.target.value; });
++			});
++		};
++
++		div.c("card", () => {
++			h2("Clean something");
++			textarea().attr("id", "clean-try-input").attr("rows", "6").attr("placeholder", "Paste some rough, dictated text here…").style("width", "100%");
++
++			div.c("flex wrap gap", () => {
++				$picker = span();
++				draw_picker();
++
++				button("Clean").on("click", async () => {
++					const text = get_text().trim();
++					if (!text || !picked) return;
++					result_card($single, picked, { ok: true, text: "Thinking…" });
++					$single.el.querySelector("p")?.classList.add("muted");
++					result_card($single, picked, await run_one(picked, text));
++				});
++
++				button("Run all").on("click", async () => {
++					const text = get_text().trim();
++					if (!text || !models.length) return;
++					say(`Running ${models.length} models, one at a time…`);
++					const rows = [];
++					for (const m of models) rows.push({ model: m, r: await run_one(m, text) });
++					say("");
++					render_all(rows);
++				});
++			});
++		});
++
++		$status = div.c("pad");
++		$single = div();
++		$all = div();
++
++		function render_all(rows){
++			$all.empty(() => {
++				table.c("table-equal", () => {
++					thead(() => tr(() => { th().text("Model"); th().text("Cleaned text"); th().text("Time"); th().text("Cost"); }));
++					tbody(() => rows.forEach(({ model, r }) => tr(() => {
++						td().text(model);
++						td().text(r.ok ? (r.text || "(empty)") : `error: ${r.why}`);
++						td().text(r.ok ? fmt_s(r.ms) : "—");
++						td().text(r.ok ? fmt_usd(r.cost_usd) : "—");
++					})));
++				});
++			});
++		}
++
++		// ---- the growing test set: save an example, score every model against it --
++		div.c("card", () => {
++			h2("Build a test set");
++			p("Happy with (or unhappy with) a result above? Save it — the raw text plus the clean text you'd actually want — and it joins a small set every model can be scored against.");
++
++			let goodText = "", notes = "";
++			label("Good clean text — what the clean step SHOULD have said:");
++			textarea().attr("rows", "3").style("width", "100%").on("input", e => { goodText = e.target.value; });
++			label("Notes (optional):");
++			textarea().attr("rows", "1").style("width", "100%").on("input", e => { notes = e.target.value; });
++
++			div.c("flex wrap gap", () => {
++				button("Save as good example").on("click", () => save_example("good", goodText, notes));
++				button("Save as a “don't” example").on("click", () => save_example("dont", goodText, notes));
++				button("Score all models").on("click", score_all);
++			});
++		});
++
++		$examplesBox = div.c("pad");
++
++		async function save_example(verdict, good, notes){
++			const raw = get_text().trim();
++			if (!raw || !good.trim()){ say("Need both the raw text above and a good clean text."); return; }
++			const r = await fetch(servex_url(EXAMPLES_ENDPOINT), {
++				method: "POST", headers: { "content-type": "application/json" },
++				body: JSON.stringify({ raw, good, notes, verdict }),
++			}).then(r => r.json());
++			if (r.ok){ examples = r.examples; say(""); draw_examples(); }
++			else say(r.why);
++		}
++
++		function draw_examples(){
++			$examplesBox.empty(() => {
++				if (!examples.length){ p.c("muted").text("No saved examples yet."); return; }
++				h3(`${examples.length} saved example${examples.length === 1 ? "" : "s"}`);
++				table.c("table-equal", () => {
++					thead(() => tr(() => { th().text("Verdict"); th().text("Raw"); th().text("Good clean"); th().text("Notes"); }));
++					tbody(() => examples.forEach(ex => tr(() => {
++						td().text(ex.verdict);
++						td().text(ex.raw);
++						td().text(ex.good);
++						td().text(ex.notes || "");
++					})));
++				});
++			});
++		}
++
++		async function score_all(){
++			if (!examples.length){ say("Save at least one example first."); return; }
++			const goodOnly = examples.filter(ex => ex.verdict === "good");
++			if (!goodOnly.length){ say("No “good” examples to score against yet."); return; }
++
++			const total = models.length * goodOnly.length;
++			say(`Scoring ${models.length} models against ${goodOnly.length} example${goodOnly.length === 1 ? "" : "s"} — ${total} call${total === 1 ? "" : "s"}, one at a time…`);
++
++			const totals = new Map(models.map(m => [m, []]));
++			for (const ex of goodOnly){
++				for (const m of models){
++					const r = await run_one(m, ex.raw);
++					if (r.ok) totals.get(m)?.push(word_overlap_score(r.text, ex.good));
++				}
++			}
++			say("");
++
++			$examplesBox.append(() => {
++				h3(`Score — ${goodOnly.length} example${goodOnly.length === 1 ? "" : "s"}, word-overlap vs. the saved good clean`);
++				table.c("table-equal", () => {
++					thead(() => tr(() => { th().text("Model"); th().text("Average score"); }));
++					tbody(() => [...totals].forEach(([model, scores]) => tr(() => {
++						td().text(model);
++						td().text(scores.length ? `${Math.round(100 * scores.reduce((a, b) => a + b, 0) / scores.length)}%` : "no answer");
++					})));
++				});
++			});
++		}
++
++		fetch(servex_url(ENDPOINT)).then(r => r.json()).then(body => { models = body.models ?? []; draw_picker(); })
++			.catch(() => { fetchFailed = true; draw_picker(); });
++		fetch(servex_url(EXAMPLES_ENDPOINT)).then(r => r.json()).then(body => { examples = body.examples ?? []; draw_examples(); })
++			.catch(() => {});
++
++		p(() => { span("A fuller inventory of local models and what's installed: "); a("Local Models").href("/framework/ai/local/"); span("."); });
++	},
++});

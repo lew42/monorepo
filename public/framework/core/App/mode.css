@@ -1,18 +1,14 @@
-/* Layer order, restated IN FULL — a short list silently misplaces `site`.
-   See the header of framework.css. */
-@layer base, theme, site, util;
-
 @layer theme {
 
-	/* Bottom-right, over everything, and out of every layout's way — the pill form,
-	   for a site that renders `mode(app)` loose. In a Sidebar footer the same button
-	   is a row item; Sidebar.css out-specifies this placement with two classes.
-
-	   z-index 60 — the top of the ladder: above `.demo.max` (30) and
-	   `.layout-full` (20), because a control that changes the whole page must be
-	   reachable from every one of them. */
+	/* The loose pill form. In a Sidebar footer the same button is a row item, and
+	   Sidebar.css out-specifies this placement with two classes.
+	   ⚠ z-index 60 is the top of the ladder — above `.demo.max` (30) and
+	   `.layout-full` (20), because this control must be reachable from both. */
 	.mode-btn {
-		position: fixed; inset-block-end: 1.25em; inset-inline-end: 1.25em; z-index: 60;
+		position: fixed; inset-block-end: 1.25em; z-index: 60;
+		/* ⚠ Clears whatever rail is open at that edge — at z-index 60 this pill floats
+		   OVER a drawer instead of beside it. `--devbar` is the dev rail's (DevBar). */
+		inset-inline-end: calc(1.25em + var(--devbar, 0px));
 		display: flex; padding: 0.5em;
 		color: var(--subtle);
 		background: var(--surface);
@@ -20,6 +16,6 @@
 		border-radius: 999px;
 		box-shadow: 0 2px 12px rgba(0,0,0,0.12);
 	}
-	.mode-btn:hover { color: var(--prim); border-color: var(--prim); }
+	.mode-btn:hover { color: var(--prime); border-color: var(--prime); }
 	.mode-btn .icon { font-size: 1.1em; }
 }

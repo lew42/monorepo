@@ -1,0 +1,369 @@
+[
+ {
+  "module": "ai",
+  "name": "models-openrouter-cost",
+  "ask": "Cheaper models: OpenRouter/local setup, tests with known answers comparing models and thinking levels, voice agents off Anthropic, real-dollar accounting for OpenRouter, token tracking per model.",
+  "count": 34,
+  "first": "2026-09-28T13:37",
+  "last": "2026-10-09T03:49",
+  "sources": [
+   ".claude/prompts/2026-09-28.jsonl",
+   ".claude/prompts/2026-09-29.jsonl",
+   ".claude/prompts/2026-09-30.jsonl",
+   ".claude/prompts/2026-10-01.jsonl",
+   "claude-session:60d9def6-907a-4f71-adf9-110075b719eb.jsonl:0e9f7d14-fca8-42e7-b6d2-f3d2df877470",
+   "claude-session:60d9def6-907a-4f71-adf9-110075b719eb.jsonl:12b8ffad-5365-4271-a546-27d0e9dd67de",
+   "claude-session:60d9def6-907a-4f71-adf9-110075b719eb.jsonl:6614cf65-704c-4ccf-b5be-2d9e99c91b75",
+   "claude-session:60d9def6-907a-4f71-adf9-110075b719eb.jsonl:11347eaf-a77b-49bd-9e63-ab6cf31e73b1",
+   "claude-session:60d9def6-907a-4f71-adf9-110075b719eb.jsonl:53f98666-98f3-46c5-bf82-723405a99f86",
+   "claude-session:e3ade6ce-fbb5-4674-922c-566ef86fabb3.jsonl:f5c9e8ea-c882-4faf-bfd2-e767910fd018",
+   "claude-session:60d9def6-907a-4f71-adf9-110075b719eb.jsonl:ccfd84d6-b588-485f-939e-8854b8a74ab3",
+   "claude-session:87bec773-d6dd-421c-92cc-fdd8a9eb5103.jsonl:59d325be-4820-4f4d-b646-30c780f5313e",
+   "claude-session:87bec773-d6dd-421c-92cc-fdd8a9eb5103.jsonl:d00cb51c-569e-4c23-902f-38eb3d1782a0"
+  ],
+  "missing": []
+ },
+ {
+  "module": "ai",
+  "name": "mastermind-assistant-relay",
+  "ask": "Mastermind/assistant roles: an assistant in front of any mastermind that relays every prompt, a per-directory/page mastermind, mastermind relays instead of executing, clear skills+roles explanation, review diffs before spawning reviewers.",
+  "count": 21,
+  "first": "2026-09-04T20:58",
+  "last": "2026-10-02T19:44",
+  "sources": [
+   "claude-session:e938046a-4711-446c-9b36-6713cd4e869f.jsonl:b29febee-55a2-47d5-b773-4faaf489f8c4",
+   "claude-session:cfca18c9-a470-4295-a088-a13479fdd040.jsonl:e539df36-598c-41dd-b77f-4b4bc88e0e43",
+   "claude-session:ae22125c-045d-4a26-8de1-9c10c973904a.jsonl:29b85028-ff75-48d3-8c19-132e359baac3",
+   "claude-session:e2b82220-72fd-4fec-b8a6-5f985c9cbefa.jsonl:ce7af7c7-1e55-49cd-929c-05c3321d56e0",
+   "claude-session:731a9d1f-1491-4aa6-a966-79c22cdc5fdc.jsonl:5b51422e-9c58-4d95-a6a9-e9d0d14420c1",
+   ".claude/prompts/2026-09-25.jsonl",
+   ".claude/prompts/2026-09-28.jsonl",
+   ".claude/prompts/2026-09-29.jsonl",
+   ".claude/prompts/2026-10-02.jsonl"
+  ],
+  "missing": []
+ },
+ {
+  "module": "ai",
+  "name": "inbox-dashboard-cards",
+  "ask": "Inbox/dashboard/cards: filter by importance (90+), clear items, search, Now card, child cards via directories, module cards and unread badges, Approve/Unclear buttons, plain categories blocking/review/fyi, merge AI2 into framework/ai.",
+  "count": 19,
+  "first": "2026-09-08T15:50",
+  "last": "2026-10-02T21:24",
+  "sources": [
+   "claude-session:080bcce3-f367-4e60-9a6b-dc6f0a5d45ff.jsonl:d15dbf88-de44-4118-9cc7-e56b2116d3c5",
+   "claude-session:cfca18c9-a470-4295-a088-a13479fdd040.jsonl:7b2c40b0-2eb1-4728-8853-4e074cb31a1a",
+   "claude-session:731a9d1f-1491-4aa6-a966-79c22cdc5fdc.jsonl:55e85c46-3c65-4e9d-99e2-97729175baf4",
+   ".claude/prompts/2026-09-25.jsonl",
+   ".claude/prompts/2026-09-28.jsonl",
+   ".claude/prompts/2026-09-29.jsonl",
+   ".claude/prompts/2026-09-30.jsonl",
+   ".claude/prompts/2026-10-01.jsonl",
+   ".claude/prompts/2026-10-02.jsonl",
+   "claude-session:bdcef106-dedf-4282-9126-34e2cd46a17e.jsonl:76aaee05-efbd-42cb-b1e7-bc9016ff9ea2"
+  ],
+  "missing": []
+ },
+ {
+  "module": "ai",
+  "name": "sessions-system",
+  "ask": "Sessions: one /ai/sessions/ hierarchy (year/month/day), JSONL index with snapshots, sessions tab grid with detail in the sidebar, MCP query tool, global namespace, tiered resumption, AISession class.",
+  "count": 16,
+  "first": "2026-09-19T20:15",
+  "last": "2026-10-09T04:08",
+  "sources": [
+   "claude-session:cfca18c9-a470-4295-a088-a13479fdd040.jsonl:f215db04-e81b-484d-8987-db49e11252f0",
+   ".claude/prompts/2026-10-02.jsonl",
+   "claude-session:60d9def6-907a-4f71-adf9-110075b719eb.jsonl:ce0e9155-3c48-424c-892b-28443b3ceb57",
+   "claude-session:60d9def6-907a-4f71-adf9-110075b719eb.jsonl:865afe48-e6d8-47e9-99e7-21945d464b6b",
+   "claude-session:e3ade6ce-fbb5-4674-922c-566ef86fabb3.jsonl:40ab3643-fb26-4184-b9a7-2200a653372c",
+   "claude-session:87bec773-d6dd-421c-92cc-fdd8a9eb5103.jsonl:b3409c88-4136-44fb-940b-8304bf8b21e0",
+   "claude-session:87bec773-d6dd-421c-92cc-fdd8a9eb5103.jsonl:c024365d-2856-4fb8-8ca8-c1c4a0199207",
+   "claude-session:87bec773-d6dd-421c-92cc-fdd8a9eb5103.jsonl:0df3205c-1a11-4670-a00f-4924984272a9",
+   "claude-session:87bec773-d6dd-421c-92cc-fdd8a9eb5103.jsonl:ab7a630f-79c4-415d-baa9-6df93e8a20c5",
+   "claude-session:87bec773-d6dd-421c-92cc-fdd8a9eb5103.jsonl:03cc25ce-3553-450e-9e85-1b5ec5345435",
+   "claude-session:87bec773-d6dd-421c-92cc-fdd8a9eb5103.jsonl:75bee3e7-e368-47a9-a34c-50fc2838f309",
+   "claude-session:87bec773-d6dd-421c-92cc-fdd8a9eb5103.jsonl:931331d4-3da2-4b10-a43e-309495e57e35",
+   "claude-session:87bec773-d6dd-421c-92cc-fdd8a9eb5103.jsonl:049fdda9-5a23-4836-9564-c400e93fc21c",
+   "claude-session:87bec773-d6dd-421c-92cc-fdd8a9eb5103.jsonl:9b661c99-f87c-4b0e-ab2e-485eea341b08"
+  ],
+  "missing": []
+ },
+ {
+  "module": "ai",
+  "name": "docs-readmes-handover",
+  "ask": "Readmes as the cheap index, CLAUDE.md clarity/naming rules, documented AI process prompt-to-execution, handover kept current, every mastermind can find the docs.",
+  "count": 13,
+  "first": "2026-09-04T23:03",
+  "last": "2026-10-09T19:41",
+  "sources": [
+   "claude-session:e938046a-4711-446c-9b36-6713cd4e869f.jsonl:8af8b124-155a-406a-a291-5a56d08f866b",
+   "claude-session:e2b82220-72fd-4fec-b8a6-5f985c9cbefa.jsonl:5a5cc763-0c6e-406b-8e00-5415844196fb",
+   "claude-session:731a9d1f-1491-4aa6-a966-79c22cdc5fdc.jsonl:e05efdb9-be22-4a26-a9d6-bdb48833105a",
+   "claude-session:731a9d1f-1491-4aa6-a966-79c22cdc5fdc.jsonl:848eaae7-15d8-4668-a5b5-4a1bbe0e8146",
+   ".claude/prompts/2026-09-29.jsonl",
+   ".claude/prompts/2026-09-30.jsonl",
+   ".claude/prompts/2026-10-02.jsonl",
+   "claude-session:87bec773-d6dd-421c-92cc-fdd8a9eb5103.jsonl:3f273d1d-f984-4426-be08-b2473a473c79",
+   "claude-session:87bec773-d6dd-421c-92cc-fdd8a9eb5103.jsonl:e0f22343-938a-444f-814f-bd9467772b7e"
+  ],
+  "missing": []
+ },
+ {
+  "module": "ai",
+  "name": "never-wait-pace",
+  "ask": "Mastermind decides and documents the alternative instead of waiting; stays under usage pace; permission mode lets it edit without approval prompts.",
+  "count": 11,
+  "first": "2026-09-18T17:23",
+  "last": "2026-10-05T19:17",
+  "sources": [
+   "claude-session:0d555c50-fa3c-40f9-90c1-d1951297c880.jsonl:a9c5a5a4-6e54-4789-b803-9f2ce71049a6",
+   "claude-session:0d555c50-fa3c-40f9-90c1-d1951297c880.jsonl:1b65882e-746d-4539-a90f-ee35e78149af",
+   "claude-session:0d555c50-fa3c-40f9-90c1-d1951297c880.jsonl:3efd506d-0853-4568-af14-a2b23ac5fd7c",
+   ".claude/prompts/2026-09-25.jsonl",
+   ".claude/prompts/2026-09-30.jsonl",
+   "claude-session:60d9def6-907a-4f71-adf9-110075b719eb.jsonl:b5c94870-f37d-4214-b137-a94bcd2626dc",
+   "claude-session:60d9def6-907a-4f71-adf9-110075b719eb.jsonl:c9757791-3b57-4789-aa99-727509b071e1",
+   "claude-session:e3ade6ce-fbb5-4674-922c-566ef86fabb3.jsonl:a8e451a9-1d06-4e53-a7b9-448b853efea2",
+   "claude-session:e3ade6ce-fbb5-4674-922c-566ef86fabb3.jsonl:058016cf-7bca-451a-ad20-a5b133ebdfc1"
+  ],
+  "missing": []
+ },
+ {
+  "module": "ai",
+  "name": "asks-prompts-refine",
+  "ask": "Never lose an ask: log every ask against its prompt, refine prompts into asks tagged by module with a confidence, importance/weight graph, approve-or-improve decision pages.",
+  "count": 10,
+  "first": "2026-09-14T00:06",
+  "last": "2026-10-09T04:14",
+  "sources": [
+   "claude-session:e60106d0-4cf3-4e0c-9fad-c9b5234d90ab.jsonl:41648baa-29ad-4122-929d-6e249a1b209c",
+   "claude-session:0d555c50-fa3c-40f9-90c1-d1951297c880.jsonl:534b8723-d1a1-4eab-a4b6-c1b3a8138351",
+   "claude-session:0d555c50-fa3c-40f9-90c1-d1951297c880.jsonl:2bd784fd-9054-4da7-8fcf-8de9e336da50",
+   ".claude/prompts/2026-09-28.jsonl",
+   ".claude/prompts/2026-10-02.jsonl",
+   "claude-session:87bec773-d6dd-421c-92cc-fdd8a9eb5103.jsonl:df1aeb1f-5cb0-45d7-8e47-c86a8c981d40",
+   "claude-session:87bec773-d6dd-421c-92cc-fdd8a9eb5103.jsonl:09214026-c74b-44f0-9483-4071e8057f23"
+  ],
+  "missing": []
+ },
+ {
+  "module": "ai",
+  "name": "servex-infra-health",
+  "ask": "Servex/dev-server health: restartable dev server and MCP, phantom processes, hidden terminal popups, worktrees cleaned up, site crashes during transcription/reload, process list with memory.",
+  "count": 9,
+  "first": "2026-09-19T19:28",
+  "last": "2026-10-09T21:23",
+  "sources": [
+   "claude-session:cfca18c9-a470-4295-a088-a13479fdd040.jsonl:7f2143df-a408-4073-9556-bfa164107575",
+   "claude-session:e2b82220-72fd-4fec-b8a6-5f985c9cbefa.jsonl:eda1e512-5106-4191-b786-cf89dfe0eeb6",
+   "claude-session:bdcef106-dedf-4282-9126-34e2cd46a17e.jsonl:915cd1bc-3a36-41bc-b23d-90b4977a218e",
+   "claude-session:731a9d1f-1491-4aa6-a966-79c22cdc5fdc.jsonl:9edde006-a072-411e-9b55-d193fffaa464",
+   ".claude/prompts/2026-09-25.jsonl",
+   ".claude/prompts/2026-09-28.jsonl",
+   ".claude/prompts/2026-09-30.jsonl",
+   ".claude/prompts/2026-10-02.jsonl",
+   "claude-session:87bec773-d6dd-421c-92cc-fdd8a9eb5103.jsonl:d3bc306b-f948-4992-819e-b3e12b7c2b8e"
+  ],
+  "missing": []
+ },
+ {
+  "module": "ai",
+  "name": "reporting-style",
+  "ask": "Short chat replies; the report lives on a card/visual page; real tables not text tables; acknowledgements brief.",
+  "count": 6,
+  "first": "2026-09-18T17:35",
+  "last": "2026-09-28T12:08",
+  "sources": [
+   "claude-session:0d555c50-fa3c-40f9-90c1-d1951297c880.jsonl:467cb12e-2ad2-4999-9594-7d711e6fb5aa",
+   ".claude/prompts/2026-09-25.jsonl",
+   ".claude/prompts/2026-09-28.jsonl",
+   "claude-session:0d555c50-fa3c-40f9-90c1-d1951297c880.jsonl:af3f99de-7562-43e9-ab93-45ea30963986",
+   "claude-session:0d555c50-fa3c-40f9-90c1-d1951297c880.jsonl:0c33b989-b086-4e62-83b1-d39120bb7284",
+   "claude-session:0d555c50-fa3c-40f9-90c1-d1951297c880.jsonl:370145aa-1029-444b-acf7-7075481b1cc5"
+  ],
+  "missing": []
+ },
+ {
+  "module": "ai",
+  "name": "oo-classes-ai-code",
+  "ask": "AI code as classes (Prompt, AISession, class cards with live properties, preview levels inline/card/detail).",
+  "count": 6,
+  "first": "2026-10-01T15:23",
+  "last": "2026-10-09T04:08",
+  "sources": [
+   ".claude/prompts/2026-10-02.jsonl",
+   "claude-session:60d9def6-907a-4f71-adf9-110075b719eb.jsonl:143a6010-2463-4269-9ebc-5587bac82071",
+   "claude-session:87bec773-d6dd-421c-92cc-fdd8a9eb5103.jsonl:81c71fc3-788c-410e-bea1-24746e3a12d3",
+   ".claude/prompts/2026-10-01.jsonl",
+   "claude-session:87bec773-d6dd-421c-92cc-fdd8a9eb5103.jsonl:df1aeb1f-5cb0-45d7-8e47-c86a8c981d40",
+   "claude-session:87bec773-d6dd-421c-92cc-fdd8a9eb5103.jsonl:9b661c99-f87c-4b0e-ab2e-485eea341b08"
+  ],
+  "missing": []
+ },
+ {
+  "module": "ai",
+  "name": "realtime-dictation-tasks",
+  "ask": "Tasks and the board update live while the owner dictates; fast assistant answers dictation; Opus overseer for voice sessions.",
+  "count": 5,
+  "first": "2026-09-18T17:39",
+  "last": "2026-10-05T19:08",
+  "sources": [
+   "claude-session:0d555c50-fa3c-40f9-90c1-d1951297c880.jsonl:af3f99de-7562-43e9-ab93-45ea30963986",
+   "claude-session:0d555c50-fa3c-40f9-90c1-d1951297c880.jsonl:0c33b989-b086-4e62-83b1-d39120bb7284",
+   "claude-session:7eb632b1-db54-4dac-b8ba-274f2f979a2e.jsonl:cc40c3bd-25ec-4695-9b5c-db280e72028f",
+   "claude-session:60d9def6-907a-4f71-adf9-110075b719eb.jsonl:10afaa1b-199c-492a-a86e-27cb99c4a275",
+   "claude-session:e3ade6ce-fbb5-4674-922c-566ef86fabb3.jsonl:fe988163-a1f7-4985-b52f-4184c765cbe0"
+  ],
+  "missing": []
+ },
+ {
+  "module": "page",
+  "name": "item-list-content-classes",
+  "ask": "Settle the Item / List / Content / Page class architecture: simple data structures, list not collection, view kept separate, hydration harmonised, drag-sortable items, documented in the readme with minimal syntax.",
+  "count": 15,
+  "first": "2026-09-23T00:58",
+  "last": "2026-10-01T14:43",
+  "sources": [
+   ".claude/prompts/2026-10-01.jsonl",
+   ".claude/prompts/2026-09-29.jsonl",
+   ".claude/prompts/2026-09-30.jsonl",
+   "claude-session:e2b82220-72fd-4fec-b8a6-5f985c9cbefa.jsonl:5fa3fefa-7f20-4ac4-a5ce-6845edbcd077"
+  ],
+  "missing": []
+ },
+ {
+  "module": "page",
+  "name": "layout-columns-spacing",
+  "ask": "Layouts that use 3440 well: N even columns auto-computed, multi-column sections that sometimes fill, padding via clamp and container queries, no padding gaps, responsive tabs on mobile.",
+  "count": 14,
+  "first": "2026-09-01T17:39",
+  "last": "2026-10-09T21:33",
+  "sources": [
+   "claude-session:f825457a-2f19-4006-af89-83c5df126d07.jsonl:ce68b541-3946-47a5-9183-6d9681f54dc0",
+   "claude-session:e938046a-4711-446c-9b36-6713cd4e869f.jsonl:220ff54e-08b4-4663-a609-f15d49a02eae",
+   "claude-session:0d555c50-fa3c-40f9-90c1-d1951297c880.jsonl:2bd784fd-9054-4da7-8fcf-8de9e336da50",
+   "claude-session:731a9d1f-1491-4aa6-a966-79c22cdc5fdc.jsonl:5ee42930-f3b6-4e43-bc5b-b0e3b3af36ea",
+   ".claude/prompts/2026-09-25.jsonl",
+   ".claude/prompts/2026-09-28.jsonl",
+   ".claude/prompts/2026-09-29.jsonl",
+   "claude-session:60d9def6-907a-4f71-adf9-110075b719eb.jsonl:a3e35e47-ea98-4945-ab98-fec1dedeb05d",
+   "claude-session:7efd07d5-7a58-434d-8847-1a1d7b640390.jsonl:6734d6ee-41d9-4970-a6ba-073caf2e617c"
+  ],
+  "missing": []
+ },
+ {
+  "module": "page",
+  "name": "page-live-parts",
+  "ask": "Pages are streamed lists of parts: change them by small page.jsonl appends / page tools, and they update themselves while you watch (granular, not whole-file rewrites).",
+  "count": 9,
+  "first": "2026-09-18T17:26",
+  "last": "2026-10-09T21:39",
+  "sources": [
+   "claude-session:0d555c50-fa3c-40f9-90c1-d1951297c880.jsonl:1b65882e-746d-4539-a90f-ee35e78149af",
+   "claude-session:cfca18c9-a470-4295-a088-a13479fdd040.jsonl:d637ddc0-b13b-45bc-a404-c0a54a46b473",
+   ".claude/prompts/2026-09-29.jsonl",
+   ".claude/prompts/2026-10-01.jsonl",
+   ".claude/prompts/2026-10-02.jsonl",
+   ".claude/prompts/2026-09-30.jsonl",
+   "claude-session:7efd07d5-7a58-434d-8847-1a1d7b640390.jsonl:37910fca-a1b7-4f91-8ee1-6be45f189627"
+  ],
+  "missing": []
+ },
+ {
+  "module": "page",
+  "name": "sidebar-tree-nav",
+  "ask": "Left sidebar navigation: an expandable tree for deep nesting, searchable index so unloaded pages are found, nav back on the homepage/hamburger, tree in the dev bar, right-hand related-topics sidebar.",
+  "count": 9,
+  "first": "2026-09-14T00:05",
+  "last": "2026-10-09T21:54",
+  "sources": [
+   "claude-session:0d555c50-fa3c-40f9-90c1-d1951297c880.jsonl:cb18011d-e085-4819-85a7-badbb134824f",
+   "claude-session:0d555c50-fa3c-40f9-90c1-d1951297c880.jsonl:7b65e863-9710-4ced-88a3-22ca96969eb8",
+   ".claude/prompts/2026-09-28.jsonl",
+   ".claude/prompts/2026-09-29.jsonl",
+   ".claude/prompts/2026-09-30.jsonl",
+   "claude-session:7efd07d5-7a58-434d-8847-1a1d7b640390.jsonl:64339ea9-8883-44b1-8eb0-d005a74feead",
+   "claude-session:cfca18c9-a470-4295-a088-a13479fdd040.jsonl:783bbb00-26e4-45c7-b367-eda5d167149d",
+   "claude-session:e60106d0-4cf3-4e0c-9fad-c9b5234d90ab.jsonl:f70846fd-55d2-4cf7-b4f6-4e31996f4431"
+  ],
+  "missing": []
+ },
+ {
+  "module": "page",
+  "name": "layout-browser-and-rules",
+  "ask": "A layout browser/explorer: global layouts separate from component templates, approve/improve each layout, written rules for what never breaks, a minimal design system of padding tokens.",
+  "count": 7,
+  "first": "2026-09-06T14:56",
+  "last": "2026-09-30T16:06",
+  "sources": [
+   "claude-session:e938046a-4711-446c-9b36-6713cd4e869f.jsonl:d8f7aebe-81e5-42cf-b223-15fc7412c642",
+   "claude-session:e938046a-4711-446c-9b36-6713cd4e869f.jsonl:6b95bac9-cf06-4b36-a1ba-6cd985ee26a3",
+   "claude-session:0d555c50-fa3c-40f9-90c1-d1951297c880.jsonl:534b8723-d1a1-4eab-a4b6-c1b3a8138351",
+   "claude-session:0d555c50-fa3c-40f9-90c1-d1951297c880.jsonl:4b924c0c-abdb-4e77-b9cf-2e27a07f562a",
+   "claude-session:0d555c50-fa3c-40f9-90c1-d1951297c880.jsonl:e08ff302-b4ce-4583-88df-24265c3dca3f",
+   ".claude/prompts/2026-09-29.jsonl",
+   ".claude/prompts/2026-09-30.jsonl"
+  ],
+  "missing": []
+ },
+ {
+  "module": "page",
+  "name": "paging-mechanisms",
+  "ask": "The /imagine/paging/ program: stacks vs splits, transitions, URL bar, swap page, scroll fixes.",
+  "count": 6,
+  "first": "2026-09-04T21:40",
+  "last": "2026-09-08T14:50",
+  "sources": [
+   "claude-session:e938046a-4711-446c-9b36-6713cd4e869f.jsonl:5cd2ab3b-17b6-45e8-b06e-caf27889d92b",
+   "claude-session:e938046a-4711-446c-9b36-6713cd4e869f.jsonl:32ac2009-8269-4cf8-8e47-643ff5b17d3a",
+   "claude-session:e938046a-4711-446c-9b36-6713cd4e869f.jsonl:1315a35a-35ad-4795-a39b-5d3bc9c18895",
+   "claude-session:e938046a-4711-446c-9b36-6713cd4e869f.jsonl:58514ef4-2830-4be1-8180-6bd4845700ec",
+   "claude-session:080bcce3-f367-4e60-9a6b-dc6f0a5d45ff.jsonl:59895819-531e-41fb-84d2-3b11fbd64eea",
+   "claude-session:e938046a-4711-446c-9b36-6713cd4e869f.jsonl:3168fb3e-6834-43e0-ad2c-6f0ba39c0214"
+  ],
+  "missing": []
+ },
+ {
+  "module": "page",
+  "name": "page-review-and-smoke",
+  "ask": "Never ship an untested page: smoke test and screenshot every changed page, monitor file changes and test dependent pages before the owner sees breakage.",
+  "count": 5,
+  "first": "2026-09-04T21:10",
+  "last": "2026-10-05T05:03",
+  "sources": [
+   ".claude/prompts/2026-09-28.jsonl",
+   "claude-session:60d9def6-907a-4f71-adf9-110075b719eb.jsonl:40e32bab-d926-4120-8da7-b0d638d373d1",
+   ".claude/prompts/2026-09-30.jsonl",
+   "claude-session:e938046a-4711-446c-9b36-6713cd4e869f.jsonl:6c14d00c-9113-42ac-9a7c-7e6e1d4446a6",
+   "claude-session:e938046a-4711-446c-9b36-6713cd4e869f.jsonl:95ae5a2b-c397-4ab2-ae8d-e70f214c4779"
+  ],
+  "missing": []
+ },
+ {
+  "module": "page",
+  "name": "page-context-on-page",
+  "ask": "Each page shows its own open tasks / AI activity, defines pages vs embedded cards, and keeps page.jsonl with directory data.",
+  "count": 4,
+  "first": "2026-09-29T17:00",
+  "last": "2026-10-01T14:00",
+  "sources": [
+   ".claude/prompts/2026-09-29.jsonl",
+   ".claude/prompts/2026-10-01.jsonl"
+  ],
+  "missing": []
+ },
+ {
+  "module": "page",
+  "name": "weight-importance",
+  "ask": "One weight/importance system usable on any object in the page system (card size follows module weight, filters by weight).",
+  "count": 3,
+  "first": "2026-09-30T23:30",
+  "last": "2026-10-02T21:08",
+  "sources": [
+   ".claude/prompts/2026-09-30.jsonl",
+   ".claude/prompts/2026-10-02.jsonl"
+  ],
+  "missing": []
+ }
+]

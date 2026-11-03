@@ -1,0 +1,10 @@
+/* /imagine/design/ — one shared thumb rule for the front door's card wall.
+
+   Same trick as `journey/journey.css`'s `.journey-shot`: `.page-preview-thumb` is
+   `overflow: hidden` with a declared aspect (Page.css), but a plain `<img>` inside it
+   only sizes to its own natural dimensions — it doesn't fill or crop to the box. This
+   one line does both, so a real 1280×800 study screenshot fills the same card slot the
+   default icon+title card wore, whatever screenshot's own shape happens to be. */
+@layer theme {
+	.design-shot { display: block; width: 100%; height: 100%; object-fit: cover; }
+}

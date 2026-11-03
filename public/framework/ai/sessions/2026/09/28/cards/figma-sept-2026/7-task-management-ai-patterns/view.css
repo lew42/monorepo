@@ -1,0 +1,262 @@
+/* Figma "Task management" section (nodes 78:13556, 78:13559, 78:13653): the
+ * plain intro, then TWO separate rounded panels — "Task cards and progress"
+ * and "Timeline preview" — matching how the Figma frame itself draws two
+ * distinct grey bands rather than one.
+ *
+ * SCALE, DON'T REFLOW, via the shared `ui/scale` component (review finding
+ * 8). The Figma frame is 856px wide; this card's own column is ~400px.
+ * Rather than stack every row into one tall column at full size, `ui-scale`
+ * opens a size-query context and `ui-scale-body`'s font-size is `clamp(7px,
+ * 100cqi / 53.5, 16px)` — 16px exactly when the container is 856px wide
+ * (856 / 16 = 53.5), shrinking below that. Every size after this point is
+ * `em`, off that one number, so the two-up cards, the three-up progress row
+ * and the timeline grid keep the Figma's proportions at any width instead
+ * of the site's own `--gap`/`--pad`/flow rhythm (sized for a full page, not
+ * a 400px card) blowing the layout out to one long column.
+ *
+ * Every class carries this card's own `figma-tasks-` prefix (review finding
+ * 1) — `figma-badge` here used to collide with card 6's own `.figma-badge`
+ * once both cards' stylesheets loaded on the same AI 2 board.
+ */
+@layer site {
+
+	.figma-tasks-root {
+		display: flex;
+		flex-direction: column;
+		gap: 1.25em;
+	}
+
+	.figma-tasks-intro { text-align: center; display: flex; flex-direction: column; gap: 0.5em; }
+	.figma-tasks-intro h2 { margin: 0; font-size: 2em; }
+	.figma-tasks-intro p { margin: 0; font-size: 0.9em; }
+
+	.figma-tasks-panel {
+		padding: 1.5em 1.25em;
+		border-radius: 0.5em;
+		display: flex;
+		flex-direction: column;
+		gap: 1em;
+	}
+
+	.figma-tasks-group { display: flex; flex-direction: column; gap: 0.75em; }
+	.figma-tasks-label { font-size: 0.75em; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink); }
+	.figma-tasks-label.muted { color: color-mix(in srgb, currentColor 75%, transparent); }
+	.figma-tasks-caption { font-size: 0.75em; margin: 0; }
+	.figma-tasks-desc { margin: 0; font-size: 0.9em; }
+
+	/* The eyebrow chip — "a dark ink box with accent text", not a coloured
+	   pill: background and text both come from tokens the theme already
+	   guarantees read against each other. */
+	.figma-tasks-chip {
+		display: inline-block;
+		align-self: flex-start;
+		padding: 0.35em 0.7em;
+		border-radius: 0.3em;
+		background: var(--ink);
+		color: var(--prim);
+		font-weight: 700;
+		font-size: 0.85em;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+	}
+
+	.figma-tasks-row { display: flex; align-items: center; justify-content: space-between; gap: 0.5em; }
+	.figma-tasks-row-tight { display: flex; align-items: center; gap: 0.4em; font-size: 0.9em; }
+
+	/* Two fixed-width columns in the Figma (330 / 450) become an auto-fit
+	   grid: two up once the panel is wide enough for both, one column below
+	   that — proportion, not a breakpoint. */
+	.figma-tasks-cards, .figma-tasks-progress-row {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(9em, 1fr));
+		gap: 0.9em;
+	}
+	.figma-tasks-card-col { display: flex; flex-direction: column; gap: 0.4em; }
+	.figma-tasks-card-col-wide { grid-column: span 1; }
+
+	/* No font-size shrink on this box or any container below it — the one
+	   `ui-scale-body` clamp already carries the whole-panel scale, and
+	   stacking a second, third and fourth local shrink on top of it (one
+	   round of this drove avatars and icons down to a couple of px, reading
+	   as broken tiny glyphs) is the bug a mastermind review caught. Text
+	   hierarchy comes from each element's own em class instead. */
+	.figma-tasks-card-box {
+		background: var(--surface);
+		color: var(--ink);
+		border: 1px solid var(--line);
+		border-radius: 0.4em;
+		padding: 0.9em;
+		display: flex;
+		flex-direction: column;
+		gap: 0.6em;
+	}
+	.figma-tasks-card-title { font-weight: 700; }
+
+	.figma-tasks-badge {
+		display: inline-block;
+		padding: 0.2em 0.6em;
+		border-radius: 999px;
+		font-size: 0.75em;
+		font-weight: 700;
+		letter-spacing: 0.03em;
+		text-transform: uppercase;
+	}
+	/* Two small named hues beyond the one accent: the Figma's own "today"
+	   (accent) and "feature" (a light violet chip) badges read apart on
+	   sight, which is the job this one pair of colours is doing — local to
+	   this one card, not a new sitewide token (same reasoning as the
+	   timeline's agent-identity colours below). */
+	.figma-tasks-badge.accent { background: var(--prim); color: var(--surface); }
+	.figma-tasks-badge.feature { background: #ede9fe; color: #7c3aed; }
+
+	.figma-tasks-sub-tasks { display: flex; flex-direction: column; gap: 0.4em; }
+
+	/* Plain circles, not the icon font — a checkbox this small (this whole
+	   card is drawn at a fraction of full size) made "check_circle" and
+	   "radio_button_unchecked" render as unrecognisable square specks. */
+	.figma-tasks-marker {
+		width: 1em;
+		height: 1em;
+		border-radius: 999px;
+		border: 2px solid var(--line);
+		flex: 0 0 auto;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+	}
+	.figma-tasks-marker.done {
+		background: #2fa86a;
+		border-color: #2fa86a;
+	}
+	.figma-tasks-marker.done::after {
+		content: "✓";
+		color: #fff;
+		font-size: 0.6em;
+		line-height: 1;
+	}
+	.figma-tasks-done-label { color: color-mix(in srgb, currentColor 65%, transparent); text-decoration: line-through; }
+
+	.figma-tasks-path { display: flex; align-items: center; gap: 0.35em; font-size: 0.8em; }
+	.figma-tasks-path .icon { font-size: 1em; }
+	.figma-tasks-avatars { display: flex; }
+	/* Same size as the timeline's own avatars (`--avatar: 1.6em`, no local
+	   font-size) — a double-shrink here once collapsed avatars to a 7px dot
+	   (mastermind review). */
+	.figma-tasks-avatars .ui-avatar { --avatar: 1.6em; border: 2px solid var(--surface); }
+	.figma-tasks-avatars .ui-avatar:not(:first-child) { margin-inline-start: -0.5em; }
+
+	/* Agent-identity colours: fixed hues so people/agents read apart at a
+	   glance, the same job the source file's own coloured dots do. The
+	   design system has one accent (`--prim`); these are local to this one
+	   card, not a new sitewide token. */
+	.figma-tasks-avatar-purple { background: #8b5cf6; color: #fff; }
+	.figma-tasks-avatar-green { background: #2fa86a; color: #fff; }
+	.figma-tasks-avatar-orange { background: #e08a3c; color: #fff; }
+	.figma-tasks-avatar-blue { background: #4a90e2; color: #fff; }
+
+	/* Migration bar: a plain two-div track/fill instead of the native
+	   `<progress>` — a light grey track with an accent fill, guaranteed
+	   rather than left to each browser's own UA styling. */
+	.figma-tasks-track { width: 100%; height: 0.5em; border-radius: 999px; background: var(--wash); overflow: hidden; }
+	.figma-tasks-track-fill { height: 100%; background: var(--prim); border-radius: 999px; }
+
+	/* Five-step rollout: discrete segments, not one bar — a `<progress>` can
+	   only show "how far", not "which step", so this is plain divs. */
+	.figma-tasks-segments { display: flex; gap: 0.25em; }
+	.figma-tasks-segment { flex: 1; height: 0.5em; border-radius: 999px; background: var(--wash); }
+	.figma-tasks-segment.on-green { background: #2fa86a; }
+	.figma-tasks-segment.on-accent { background: var(--prim); }
+
+	/* Milestones: a dot-and-connector row, the same shape as the timeline
+	   component's own rail, drawn horizontally instead of down a column. */
+	.figma-tasks-milestones { display: flex; align-items: center; gap: 0; }
+	.figma-tasks-milestone {
+		width: 1em;
+		height: 1em;
+		border-radius: 999px;
+		background: var(--surface);
+		border: 2px solid var(--line);
+		flex: 0 0 auto;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+	.figma-tasks-milestone.on { background: var(--prim); border-color: var(--prim); }
+	.figma-tasks-milestone.on::after { content: "✓"; color: var(--surface); font-size: 0.6em; line-height: 1; }
+	.figma-tasks-connector { flex: 1 1 auto; height: 2px; background: var(--line); }
+	.figma-tasks-connector.on { background: var(--prim); }
+
+	/* Timeline preview: the same light `darken-1` panel as the task cards —
+	   the grid itself sits one shade lighter again, in an inset "surface"
+	   box, so it reads apart from the panel around it. */
+	.figma-tasks-timeline-inner {
+		background: var(--surface);
+		border-radius: 0.4em;
+		padding: 0.75em;
+	}
+
+	/* A day-grid: quarter-hour rows in a left gutter set the rhythm, a
+	   relatively positioned track to the right places each task card by
+	   its own time (top/height) and Figma x/width (left/width) — the
+	   frame's own proportions, not its pixels. The thin hour lines are ONE
+	   background on the whole grid (not a border per row in just the
+	   gutter column), so they run the full width, under the gutter AND the
+	   track, the way the Figma draws them. */
+	.figma-tasks-timeline {
+		display: grid;
+		grid-template-columns: 3em 1fr;
+		gap: 0.5em;
+		background: repeating-linear-gradient(
+			to bottom,
+			var(--line) 0, var(--line) 1px,
+			transparent 1px, transparent 2.6em
+		);
+	}
+	.figma-tasks-timeline-grid { display: flex; flex-direction: column; }
+	.figma-tasks-timeline-row { height: 2.6em; padding-top: 0.15em; }
+	.figma-tasks-time-label { font-weight: 400; text-transform: none; letter-spacing: 0; font-size: 0.75em; }
+
+	.figma-tasks-timeline-track { position: relative; }
+	.figma-tasks-timeline-card {
+		position: absolute;
+		min-height: 3em;
+		padding: 0.5em 0.6em 0.5em 0.7em;
+		border-radius: 0.3em;
+		background: var(--surface);
+		color: var(--ink);
+		border-inline-start: 3px solid var(--line);
+		box-shadow: 0 1px 4px color-mix(in srgb, black 15%, transparent);
+		display: flex;
+		flex-direction: column;
+		gap: 0.2em;
+		overflow: hidden;
+	}
+	.figma-tasks-time-range { font-size: 0.7em; font-weight: 600; }
+	.figma-tasks-timeline-avatar {
+		position: absolute;
+		top: 0.4em;
+		inset-inline-end: 0.4em;
+		--avatar: 1.6em;
+	}
+
+	.figma-tasks-timeline-card.orange { border-inline-start-color: #e08a3c; }
+	.figma-tasks-timeline-card.purple { border-inline-start-color: #8b5cf6; }
+	.figma-tasks-timeline-card.green { border-inline-start-color: #2fa86a; }
+	.figma-tasks-time-range.orange { color: #c06a1f; }
+	.figma-tasks-time-range.purple { color: #7c3aed; }
+	.figma-tasks-time-range.green { color: #218a53; }
+
+	.figma-tasks-now-line { position: absolute; inset-inline: 0; height: 2px; background: var(--prim); }
+	.figma-tasks-now-line::before {
+		content: "";
+		position: absolute;
+		inset-inline-start: -3px;
+		top: -3px;
+		width: 8px;
+		height: 8px;
+		border-radius: 999px;
+		background: var(--prim);
+	}
+
+	.figma-tasks-timeline-note { text-align: left; font-size: 0.8em; margin: 0.5em 0 0; }
+}

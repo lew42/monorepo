@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/imagine/lines/doc/filter/",
+ "widths": {
+  "1280": {
+   "empty": 0.157,
+   "widest_text": 392,
+   "widest_text_sample": "with the faint seam sample: a small grey",
+   "overflow_x": false,
+   "items": 53,
+   "narrow_share": 0.302
+  },
+  "1920": {
+   "empty": 0.268,
+   "widest_text": 570,
+   "widest_text_sample": "This is a deterministic confidence heuri",
+   "overflow_x": false,
+   "items": 53,
+   "narrow_share": 0.302
+  },
+  "2560": {
+   "empty": 0.294,
+   "widest_text": 642,
+   "widest_text_sample": "This is a deterministic confidence heuri",
+   "overflow_x": false,
+   "items": 53,
+   "narrow_share": 0.302
+  },
+  "3440": {
+   "empty": 0.428,
+   "widest_text": 642,
+   "widest_text_sample": "This is a deterministic confidence heuri",
+   "overflow_x": false,
+   "items": 53,
+   "narrow_share": 0.623
+  }
+ },
+ "errors": []
+}

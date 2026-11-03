@@ -1,0 +1,127 @@
+[
+ {
+  "id": "12417eecd0",
+  "priority": "none",
+  "why": "Button and select chevron styling is component design, not the review page, task system, or agent readmes."
+ },
+ {
+  "id": "2de3043831",
+  "priority": "none",
+  "why": "Dropdown variant study is component design; it does not serve approving sessions, tasks, or agent rules."
+ },
+ {
+  "id": "068fce0ce9",
+  "priority": "none",
+  "why": "Mobile dropdown comparison is component design; the phone pages in thing 1 are for sessions, not dropdowns."
+ },
+ {
+  "id": "80cff07123",
+  "priority": "none",
+  "why": "A darker dark colour token is colour design and does not touch the three big things."
+ },
+ {
+  "id": "b3f8e887d6",
+  "priority": "none",
+  "why": "Darken and lighten combinations are CSS colour work, not part of the three big things."
+ },
+ {
+  "id": "b47772b7bb",
+  "priority": "none",
+  "why": "Icon sizing rules are UI design; they do not serve approval, task completion, or agent knowledge."
+ },
+ {
+  "id": "0cd3f7a287",
+  "priority": "none",
+  "why": "A big icon with a title over an image is a background visual effect, not part of the three big things."
+ },
+ {
+  "id": "117c704d7f",
+  "priority": "none",
+  "why": "Dropdown content kinds are component documentation, not the review page or task system."
+ },
+ {
+  "id": "e881f4db6e",
+  "priority": "none",
+  "why": "Fixed-height dropdown behaviour is component design and does not serve the three big things."
+ },
+ {
+  "id": "921c322e09",
+  "priority": "none",
+  "why": "Default control choices are UI design rules; they do not serve approving sessions or agent readmes."
+ },
+ {
+  "id": "c77dca1bb0",
+  "priority": "none",
+  "why": "Darken and lighten together is CSS colour work, not part of the three big things."
+ },
+ {
+  "id": "9681c66828",
+  "priority": "none",
+  "why": "Colour modes around primary-background text are design-system work, not the review page or task system."
+ },
+ {
+  "id": "9c3b89d2ca",
+  "priority": "none",
+  "why": "Grouping stacking examples into sections is a styles docs page, not part of the three big things."
+ },
+ {
+  "id": "11b419bb71",
+  "priority": "none",
+  "why": "Mobile fit for layouts is layout design; it does not serve approval, tasks, or agent rules."
+ },
+ {
+  "id": "7090b3fcde",
+  "priority": "none",
+  "why": "A site CSS audit is styles work; it is not the review page, task machinery, or agent readmes."
+ },
+ {
+  "id": "14c25a45d6",
+  "priority": "none",
+  "why": "Simplifying CSS into components is styles refactoring, not one of the three big things."
+ },
+ {
+  "id": "efb4716dad",
+  "priority": "none",
+  "why": "CSS migration to a new system is styles work and names no target; it is not one of the three big things."
+ },
+ {
+  "id": "e15430f07c",
+  "priority": "none",
+  "why": "Minimal design tokens are CSS cleanup, not the review page, task process, or agent readmes."
+ },
+ {
+  "id": "b94d5198cb",
+  "priority": "none",
+  "why": "Unifying the CSS is styles work; it does not serve the three big things."
+ },
+ {
+  "id": "b7638f7e28",
+  "priority": "none",
+  "why": "Component click-through is UI behaviour; the readme line cited is about component types, not agent knowledge."
+ },
+ {
+  "id": "f133c7c3ab",
+  "priority": "none",
+  "why": "Live component behaviour on UI pages is UI work, not the review page or agent readmes."
+ },
+ {
+  "id": "a4df95a04b",
+  "priority": "none",
+  "why": "Running a CSS audit is styles work, not one of the three big things."
+ },
+ {
+  "id": "e6f8f0b992",
+  "priority": "none",
+  "why": "Migrating CSS usages to a simpler set is styles work, not one of the three big things."
+ },
+ {
+  "id": "7bcc14bf20",
+  "priority": "none",
+  "why": "Cutting shaded primary uses is colour design work, not the review page or task system."
+ },
+ {
+  "id": "d8b305a37f",
+  "priority": "none",
+  "why": "Reconciling the primary token with the M logo is colour design work, not one of the three big things."
+ }
+]

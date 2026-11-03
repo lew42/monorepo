@@ -1,0 +1,644 @@
+diff --git a/Server/SessionRecord.mjs b/Server/SessionRecord.mjs
+index 5c55d12da..e3f687874 100644
+--- a/Server/SessionRecord.mjs
++++ b/Server/SessionRecord.mjs
+@@ -1,6 +1,7 @@
+ // A session folder's one record is session.jsonl (doc: public/framework/ai/sessions/doc/session-record.md).
+ //   node Server/SessionRecord.mjs --plan [--root <repo>] [--quiet <min>]    print the plan (counts, folders, skips). Writes nothing.
+ //   node Server/SessionRecord.mjs --apply [--root <repo>] [--quiet <min>]   do it; appends the manifest; stages (never commits) the paths
++//   node Server/SessionRecord.mjs --links [--list] [--apply]   every folder below a session referenced on its parent log (count; --apply backfills)
+ //   node Server/SessionRecord.mjs --undo <manifest.jsonl> [--run <id>] [--root <repo>]   reverse one run (default: the last)
+ // As a module: SessionRecord.file(dir) is the record a reader opens (session.jsonl first, task.jsonl while a folder is not moved yet).
+ import fs from "node:fs";
+@@ -19,6 +20,7 @@ export default class SessionRecord {
+ 	static OLD = "task.jsonl";
+ 	static STORE = "public/framework/ai/sessions";
+ 	static MANIFEST = "public/framework/ai/sessions/session-record-moves.jsonl";
++	static LINKS = "public/framework/ai/sessions/session-links.jsonl";   // what `--links --apply` referenced, one row per folder
+ 	/** The verbs of the digest/record lines that session.jsonl held before the rename (AISession.LINE_TYPES, plus the digest `summary`). */
+ 	static TAG_VERBS = ["tag", "note", "alert", "weight", "closed", "question", "links", "summary"];
+ 
+@@ -51,6 +53,65 @@ export default class SessionRecord {
+ 		const a = first?.assign, spawn = a?.session_id && a?.agent, voice = first?.session?.id;   // a spawn line (only open_task writes it) or a cloud-voice line: a session at any depth
+ 		return path.join(dir, spawn || voice || (a?.session_id && this.is_session_dir(dir)) ? this.NEW : this.OLD);
+ 	}
++	/** A NEW TASK FOLDER COUNTS AS ITS PARENT'S TASK: under the sessions store, the nearest folder above `dir` that has a log (a task or the
++	 *  session itself) gets one {"task":"<url>"} reference line, the same line the item tool writes for a child folder; Session.replay and
++	 *  Task.replay read it as a subtask. Never twice, never above the session folder. Returns the parent's log file, or null. */
++	/*  Options: `parent` (an explicit parent folder, e.g. open_task's parent_task: the task that handed work to a child session) wins over
++	 *  the nearest folder; `session_id` (the full id of the session that made the folder) lets a VS Code tab's `session-<id8>/` folder,
++	 *  which has no log of its own yet, get one: its first line is {"session":{id, kind:"vscode-tab"}}, then the reference. */
++	static link_parent(dir, by = "TaskDirs", { parent = null, session_id = null } = {}){
++		const abs = path.resolve(dir), pub = slash(abs).match(/^(.*\/public)\//)?.[1];
++		const url = pub && "/" + slash(path.relative(pub, abs)) + "/";
++		if (url && parent && path.resolve(parent) !== abs){ const log = this.log_file(path.resolve(parent)); if (log) return this.add_ref(log, url, by); }
++		const m = slash(abs).match(/^(.*\/public)\/(framework\/ai\/sessions\/\d{4}\/\d\d\/\d\d\/[^/]+)(\/.+)?$/);
++		if (!m || !m[3]) return null;   // not in the store, or a session folder itself
++		const top = path.join(m[1], m[2]);
++		for (let p = path.dirname(abs); p.length >= top.length; p = path.dirname(p)){ const log = this.log_file(p); if (log) return this.add_ref(log, url, by); }
++		// No log up to the session folder: a tab's session-<id8>/ holding only its transcript cache or digest tags. Its record is session.jsonl.
++		const id8 = path.basename(top).match(/^session-([0-9a-f]{8})$/)?.[1];
++		if (!id8) return null;   // spawned/, cards/, cloud-voice-*: containers or sessions that keep their own log
++		const rec = path.join(top, this.NEW);
++		if (!fs.existsSync(rec)){
++			if (!String(session_id ?? "").startsWith(id8)) return null;   // never invent a session id
++			fs.appendFileSync(rec, JSON.stringify({ session: { id: session_id, kind: "vscode-tab", at: new Date().toISOString() }, by }) + "\n");
++		}
++		return this.add_ref(rec, url, by);
++	}
++	/** One {"task":"<url>"} line on `log`, unless it already names the url (a reference, or a tasks.add with this path). Returns `log`. */
++	static add_ref(log, url, by){
++		let text = ""; try { text = fs.readFileSync(log, "utf8"); } catch {}
++		if (text.includes(`"task":"${url}"`) || text.includes(`"path":"${url}"`)) return log;
++		fs.appendFileSync(log, (text && !text.endsWith("\n") ? "\n" : "") + JSON.stringify({ task: url, by, ts: new Date().toISOString() }) + "\n");
++		return log;
++	}
++	/** The census behind `--links`: every folder below a session folder that has a log, and whether its parent references it.
++	 *  Returns { total, linked, missing: [{dir, session_id}], unhomed: [dir] } (unhomed: no log up to the session folder and no way to start one). */
++	links(){
++		const out = { total: 0, linked: 0, missing: [], unhomed: [] }, texts = new Map();
++		const text = f => texts.has(f) ? texts.get(f) : (texts.set(f, fs.readFileSync(f, "utf8")), texts.get(f));
++		const sub = d => { try { return fs.readdirSync(d, { withFileTypes: true }).filter(e => e.isDirectory()).map(e => path.join(d, e.name)); } catch { return []; } };
++		const line1 = f => { try { return JSON.parse(fs.readFileSync(f, "utf8").split("\n", 1)[0]); } catch { return null; } };
++		const walk = (dir, top) => {
++			for (const c of sub(dir)){
++				const own = SessionRecord.log_file(c);
++				if (own){
++					out.total++;
++					const url = "/" + slash(path.relative(path.join(this.root, "public"), c)) + "/", a = line1(own)?.assign ?? {};
++					let log = null;
++					const parent = a.parent_task && path.resolve(this.root, a.parent_task);
++					if (parent && parent !== c) log = SessionRecord.log_file(parent);
++					for (let p = path.dirname(c); !log && p.length >= top.length; p = path.dirname(p)) log = SessionRecord.log_file(p);
++					if (!log && /^session-[0-9a-f]{8}$/.test(path.basename(top)) && fs.existsSync(path.join(top, SessionRecord.NEW))) log = path.join(top, SessionRecord.NEW);
++					if (log && (text(log).includes(`"task":"${url}"`) || text(log).includes(`"path":"${url}"`))) out.linked++;
++					else if (log || String(a.session_id ?? "").startsWith(path.basename(top).slice(8)) && /^session-/.test(path.basename(top))) out.missing.push({ dir: c, parent: parent && parent !== c ? parent : null, session_id: a.session_id ?? null });
++					else out.unhomed.push(c);
++				}
++				walk(c, top);
++			}
++		};
++		for (const top of this.day_children()) walk(top, top);
++		return out;
++	}
+ 	/** For a directory walker: is this entry (dir, file name) the folder's log? Counts each folder once, whichever name it holds. */
+ 	static is_log_entry(dir, name){ return this.is_record(name) && this.log_file(dir) === path.join(dir, name); }
+ 	/** The record's name in a url or a path: `…/x/task.jsonl` and `…/x/session.jsonl` are the same record. */
+@@ -200,7 +261,18 @@ export default class SessionRecord {
+ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)){
+ 	const argv = process.argv.slice(2), opt = n => { const i = argv.indexOf(n); return i < 0 ? null : argv[i + 1]; };
+ 	const sr = new SessionRecord({ root: opt("--root") ?? SELF_ROOT, quiet: Number(opt("--quiet") ?? 60) });
+-	if (argv.includes("--undo")){
++	if (argv.includes("--links")){
++		// Every task / child-session folder referenced on its parent's log (the backfill for folders made before link_parent existed).
++		const c = sr.links();
++		console.log(`folders with a log below a session: ${c.total} | referenced: ${c.linked} | missing a reference: ${c.missing.length} | no parent log and no session id to start one: ${c.unhomed.length}`);
++		for (const m of c.missing.slice(0, argv.includes("--list") ? Infinity : 5)) console.log("  missing", sr.rel(m.dir));
++		if (argv.includes("--apply")){
++			const run = new Date().toISOString(), rows = [{ run, kind: "links", count: c.missing.length }];
++			for (const m of c.missing){ const log = SessionRecord.link_parent(m.dir, "SessionRecord --links", { parent: m.parent, session_id: m.session_id }); rows.push({ run, dir: sr.rel(m.dir), log: log && sr.rel(log) }); }
++			fs.appendFileSync(path.join(sr.root, SessionRecord.LINKS), rows.map(r => JSON.stringify(r)).join("\n") + "\n");
++			console.log(`applied: ${rows.length - 1} references; manifest ${SessionRecord.LINKS}`);
++		}
++	} else if (argv.includes("--undo")){
+ 		console.log(JSON.stringify(sr.undo(path.resolve(opt("--undo")), opt("--run")), null, 1));
+ 	} else if (argv.includes("--apply")){
+ 		const plan = sr.plan(); console.log("plan:", JSON.stringify(plan.counts), "children skipped:", plan.children_skipped);
+diff --git a/Server/StaleClose.mjs b/Server/StaleClose.mjs
+index 3a2e522d7..de1727215 100644
+--- a/Server/StaleClose.mjs
++++ b/Server/StaleClose.mjs
+@@ -37,21 +37,44 @@ export default class StaleClose {
+ 	/** Every stale task silent for `hours`, as manifest rows. */
+ 	async plan_rows(){
+ 		await this.load();
+-		const s = this.state, by_id = new Map(s.agents.map(a => [a.id, a])), skipped = this.skipped = { waiting: 0, fresh: 0, agent_alive: 0, not_stale: 0 };
++		const s = this.state, by_id = new Map(s.agents.map(a => [a.id, a])), skipped = this.skipped = { waiting: 0, fresh: 0, agent_alive: 0, child_alive: 0, transcript_alive: 0, not_stale: 0 };
+ 		this.plan = [];
+ 		if (!s.agents.length) throw new Error("StaleClose: Servex's registry is empty or down, so no task can be called abandoned. Nothing planned.");
+ 		for (const t of s.tasks){
+ 			if (t.bucket === "waiting") { skipped.waiting++; continue; }
+ 			if (t.bucket !== "stale") continue;
+-			const age_h = (this.now - ms(t.last)) / 36e5;
+-			if (age_h < this.hours) { skipped.fresh++; continue; }
++			// A folder's work can sit in its child task folders (a VS Code tab's session whose own log is one line): the newest child line counts,
++			// and a child an agent is on, or one waiting on the owner, keeps the parent open.
++			const kids = s.tasks.filter(k => k.dir.startsWith(t.dir + "/"));
++			if (kids.some(k => k.bucket === "in_flight" || k.bucket === "queued" || k.bucket === "waiting")) { skipped.child_alive++; continue; }
++			const last = kids.reduce((m, k) => ms(k.last) > ms(m) ? k.last : m, t.last);
++			const age_h = (this.now - ms(last)) / 36e5;
++			if (age_h < this.hours) { skipped[last === t.last ? "fresh" : "child_alive"]++; continue; }
+ 			const a = by_id.get(t.agent);
+ 			if (a && (a.state === "working" || a.state === "queued")) { skipped.agent_alive++; continue; }   // its log names a live agent that holds another dir
+-			this.plan.push({ dir: t.dir, last: t.last, age_days: +(age_h / 24).toFixed(1), agent: t.agent ?? null, agent_state: a?.state ?? (t.agent ? "unknown" : null), reason: `stale: ${t.state}, no agent holds it, last line ${t.last}` });
++			// A session nobody registers (the owner's own VS Code tab) is alive while its transcript is being written.
++			const sid = this.session_of(t.dir), wrote = sid ? this.transcript_at(sid) : 0;
++			if (wrote && (this.now - wrote) / 36e5 < this.hours) { skipped.transcript_alive++; continue; }
++			this.plan.push({ dir: t.dir, last, age_days: +(age_h / 24).toFixed(1), agent: t.agent ?? null, agent_state: a?.state ?? (t.agent ? "unknown" : null), reason: `stale: ${t.state}, no agent holds it, last line ${last}${last === t.last ? "" : " (in a child folder)"}` });
+ 		}
+ 		return this.plan;
+ 	}
+ 
++	/** The session id on a folder's log line 1: {"session":{"id"}} (a VS Code tab, a voice session) or {"assign":{"session_id"}} (a spawn). */
++	session_of(dir){
++		const first = AIIndex.read_lines(StaleClose.log_of(dir))[0];
++		const id = first?.session?.id ?? first?.assign?.session_id;
++		return typeof id === "string" ? id : null;
++	}
++
++	/** When that session's transcript (~/.claude/projects/<cwd>/<id>.jsonl) was last written, in ms; 0 when there is none. A test passes its own. */
++	transcript_at(id){
++		const root = path.join(process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), ".claude"), "projects");
++		let dirs = []; try { dirs = fs.readdirSync(root); } catch { return 0; }
++		for (const d of dirs) try { return fs.statSync(path.join(root, d, id + ".jsonl")).mtimeMs; } catch {}
++		return 0;
++	}
++
+ 	/** Counts by age band, from the plan. */
+ 	by_age(){ return Object.fromEntries(StaleClose.AGES.map(([k, lo, hi]) => [k, this.plan.filter(r => r.age_days >= lo && r.age_days < hi).length])); }
+ 	summary(){ return { stale_before: this.state.counts.tasks.stale, planned: this.plan.length, by_age: this.by_age(), skipped: this.skipped }; }
+diff --git a/Server/TaskDirs.mjs b/Server/TaskDirs.mjs
+index b924f8516..6f8e5ed8b 100644
+--- a/Server/TaskDirs.mjs
++++ b/Server/TaskDirs.mjs
+@@ -55,7 +55,7 @@ export default class TaskDirs {
+ 	}
+ 
+ 	/** Make it. Returns the absolute dir. Refuses a folder that already holds a task (never two tasks in one log). */
+-	static make(spec){ return SESSIONS.make(this.dir(spec)); }
++	static make(spec){ const dir = SESSIONS.make(this.dir(spec)); try { SessionRecord.link_parent(dir, "TaskDirs", { parent: spec.parent && path.resolve(REPO, spec.parent), session_id: spec.session_id }); } catch {} return dir; }   // a folder under a session or task counts as its task (SessionRecord.link_parent)
+ 
+ 	/** An old-shaped dir (ai/YYYY-MM-DD/<slug>[/rest]) that does not exist and never moved -> its new home, for writers
+ 	 *  (Servex open_task) handed an old-style path by a brief. Anything else comes back resolved but unchanged. */
+diff --git a/Server/doc/stale-close.md b/Server/doc/stale-close.md
+index d782e82cf..9db58c332 100644
+--- a/Server/doc/stale-close.md
++++ b/Server/doc/stale-close.md
+@@ -10,12 +10,14 @@ node Server/StaleClose.mjs --undo     append a `start` line to every log the man
+ 
+ ## Rules
+ 
+-- **Skipped, never closed:** `waiting` tasks (a wait on the owner is its own bucket), anything silent for under 24 h (`StaleClose.HOURS`, the one constant), a task whose log names an agent that is `working` or `queued` in the registry, and everything when Servex's registry is empty or down (then every running task would look abandoned).
++- **Skipped, never closed:** `waiting` tasks (a wait on the owner is its own bucket), anything silent for under 24 h (`StaleClose.HOURS`, the one constant), a folder whose **child task folders** wrote within 24 h or hold an agent at work or a wait on the owner (a VS Code tab often keeps its work in child folders, so its own log stays one line), a session whose **transcript** (`~/.claude/projects/<cwd>/<id>.jsonl`, the id from its log's line 1) was written within 24 h (the owner's own VS Code tab is never in the registry), a task whose log names an agent that is `working` or `queued` in the registry, and everything when Servex's registry is empty or down (then every running task would look abandoned).
+ - **Checked before writing:** the log plus the stop line is folded through `Task.replay`; if it would not end `stopped` the log is left alone and the manifest gets a `refused` row.
+ - **Append-only both ways:** no log line is rewritten and the manifest `public/framework/ai/stale-closes.jsonl` only grows (`plan`, `close`, `refused`, `undo` rows).
+ - **Undo is `start`, not `resume`:** the state machine allows `resume` only from `paused`; a stopped task restarts with `start` (`CAN.start` in `core/Task/Task.js`), which puts it back in `running`, so it is `stale` again.
+ - **A closed task keeps its branch.** A stop line says no agent is on it; it does not merge or delete anything. A closed task whose branch has unmerged commits is still findable by branch name in the follow-up's full table.
+ 
++Test: `node Server/stale-close.test.mjs`. The child-folder and transcript rules come from a real miss on 2026-10-22: a live VS Code tab's session was closed because its own log had one line and all its work sat in a child folder.
++
+ ## Runs daily
+ 
+ `Servex/TaskLoop.js` `follow_up_daily()` runs `--apply` just before `FollowUp.mjs --write`. It takes effect at the next Servex restart.
+diff --git a/Server/stale-close.test.mjs b/Server/stale-close.test.mjs
+new file mode 100644
+index 000000000..680e9b31d
+--- /dev/null
++++ b/Server/stale-close.test.mjs
+@@ -0,0 +1,65 @@
++// StaleClose never closes a live VS Code tab's session or a folder whose work sits in its children; a new task folder counts as its parent's task.
++// `node Server/stale-close.test.mjs`. Doc: Server/doc/stale-close.md.
++import assert from "node:assert";
++import fs from "node:fs";
++import path from "node:path";
++import StaleClose from "./StaleClose.mjs";
++import SessionRecord from "./SessionRecord.mjs";
++import TaskDirs from "./TaskDirs.mjs";
++
++let n = 0;
++const ok = (c, m) => { assert.ok(c, m); n++; console.log("ok", m); };
++const NOW = Date.parse("2026-10-22T20:00:00Z"), ago = h => new Date(NOW - h * 36e5).toISOString();
++const S = "public/framework/ai/sessions/2026/10/20/session-x";
++const row = (dir, bucket, h, agent = null) => ({ dir, bucket, last: ago(h), state: bucket === "stale" ? "running" : bucket, agent });
++const plan = async (tasks, { transcripts = {}, sessions = {} } = {}) => {
++	const sc = new StaleClose({ now: NOW, state: { agents: [{ id: "someone", state: "idle" }], tasks } });
++	sc.session_of = dir => sessions[dir] ?? null;
++	sc.transcript_at = id => transcripts[id] ?? 0;
++	return { rows: await sc.plan_rows(), skipped: sc.skipped };
++};
++
++// 1. The bug: a VS Code tab's session whose own log is one line from two days ago, its work in a child folder.
++let r = await plan([row(S, "stale", 48), row(S + "/sessions-and-tasks", "stale", 2)]);
++ok(r.rows.length === 0 && r.skipped.child_alive === 1 && r.skipped.fresh === 1, "a session whose child folder wrote 2 h ago is not abandoned");
++r = await plan([row(S, "stale", 48), row(S + "/work", "in_flight", 48)]);
++ok(r.rows.length === 0 && r.skipped.child_alive === 1, "a child an agent is working on keeps its session open");
++r = await plan([row(S, "stale", 48), row(S + "/work", "waiting", 48)]);
++ok(r.rows.length === 0, "a child waiting on the owner keeps its session open");
++r = await plan([row(S, "stale", 48)], { sessions: { [S]: "tab-1" }, transcripts: { "tab-1": NOW - 36e5 } });
++ok(r.rows.length === 0 && r.skipped.transcript_alive === 1, "a VS Code tab whose transcript was written an hour ago is live");
++r = await plan([row(S, "stale", 48), row(S + "/old", "stale", 40)], { sessions: { [S]: "tab-1" }, transcripts: { "tab-1": NOW - 30 * 36e5 } });
++ok(r.rows.length === 2 && r.rows[0].last === ago(40) && /child folder/.test(r.rows[0].reason), "truly quiet: closed, its last line is the newest in its children");
++r = await plan([row(S + "-other", "stale", 48), row(S, "stale", 1)]);
++ok(r.rows.length === 1 && r.rows[0].dir === S + "-other", "a sibling with a shared name prefix is not a child");
++
++// 2. link_parent: a new task folder under a session gets one {"task":"<url>"} reference on the session's log.
++const DAY = path.join(TaskDirs.REPO, "public/framework/ai/sessions/2026/10/22"), SESS = path.join(DAY, ".stale-close-test-" + process.pid);
++fs.mkdirSync(path.join(SESS, "child", "grandchild"), { recursive: true });
++fs.writeFileSync(path.join(SESS, "session.jsonl"), JSON.stringify({ session: { id: "tab-2", kind: "vscode-tab" } }) + "\n");
++try {
++	const url = d => "/" + path.relative(path.join(TaskDirs.REPO, "public"), d).split(path.sep).join("/") + "/";
++	const lines = f => fs.readFileSync(f, "utf8").trim().split("\n").map(l => JSON.parse(l));
++	ok(SessionRecord.link_parent(SESS) === null, "a session folder itself has no parent to link");
++	const log = SessionRecord.link_parent(path.join(SESS, "child"));
++	ok(log === path.join(SESS, "session.jsonl") && lines(log).at(-1).task === url(path.join(SESS, "child")), "a child folder is referenced on the session's log");
++	SessionRecord.link_parent(path.join(SESS, "child"));
++	ok(lines(log).filter(l => l.task).length === 1, "never twice");
++	fs.writeFileSync(path.join(SESS, "child", "task.jsonl"), JSON.stringify({ assign: { title: "child" } }) + "\n");
++	const log2 = SessionRecord.link_parent(path.join(SESS, "child", "grandchild"));
++	ok(log2 === path.join(SESS, "child", "task.jsonl") && lines(log).filter(l => l.task).length === 1, "a grandchild goes to its nearest parent with a log, not the session");
++	ok(SessionRecord.link_parent(path.join(TaskDirs.REPO, "public/framework/core/Task/tasks/x")) === null, "outside the sessions store: nothing");
++	// An explicit parent (open_task's parent_task: a task that handed work to a child session elsewhere) wins over the nearest folder.
++	fs.mkdirSync(path.join(SESS, "other"), { recursive: true });
++	const log3 = SessionRecord.link_parent(path.join(SESS, "other"), "Servex", { parent: path.join(SESS, "child") });
++	ok(log3 === path.join(SESS, "child", "task.jsonl") && lines(log3).some(l => l.task === url(path.join(SESS, "other"))), "an explicit parent task gets the reference");
++	// A tab's session-<id8>/ with only its transcript cache: the reference starts its session.jsonl, with the full id, never an invented one.
++	const TAB = path.join(DAY, "session-abcd1234");
++	fs.mkdirSync(path.join(TAB, "work"), { recursive: true }); fs.writeFileSync(path.join(TAB, "cache.jsonl"), "{}\n");
++	try {
++		ok(SessionRecord.link_parent(path.join(TAB, "work"), "TaskDirs", { session_id: "ffff0000-x" }) === null && !fs.existsSync(path.join(TAB, "session.jsonl")), "a session id that is not this tab's: nothing written");
++		const tab = SessionRecord.link_parent(path.join(TAB, "work"), "TaskDirs", { session_id: "abcd1234-5678" });
++		ok(tab === path.join(TAB, "session.jsonl") && lines(tab)[0].session.id === "abcd1234-5678" && lines(tab)[1].task === url(path.join(TAB, "work")), "a tab session with no log gets session.jsonl: its session line, then the reference");
++	} finally { fs.rmSync(TAB, { recursive: true, force: true }); }
++} finally { fs.rmSync(SESS, { recursive: true, force: true }); }
++console.log(`${n} passing`);
+diff --git a/Servex/ProcessRunner.js b/Servex/ProcessRunner.js
+index 515e8432c..41a24c137 100644
+--- a/Servex/ProcessRunner.js
++++ b/Servex/ProcessRunner.js
+@@ -66,6 +66,11 @@ export default class ProcessRunner {
+ 				await this.write(file, { [a.wait]: { wait: { on: "owner", what: ph?.get_one("do") ?? a.wait } } });
+ 				this.tell(p.creator, `Process ${this.url(file)} waits on the owner: ${ph?.get_one("title") ?? a.wait}.`);
+ 			}
++			else if (a.halt){
++				const agent = p.phases.find(x => x.id === a.halt)?.get_one("spawned")?.agent;
++				try { if (agent) this.servex?.agents?.stop?.(agent, { by: "process-runner" }); } catch {}
++				await this.write(file, { [a.halt]: { stop: { why: `the process was stopped${agent ? `; its agent ${agent} was stopped too` : ""}` } } });
++			}
+ 			else if (a.start) await this.write(file, { [a.start]: { start: {} } });
+ 			else if (a.launch){ if (!(await this.launch(file, p, a.launch))) return; }
+ 			else if (a.move){   // approved: the draft leaves the session for <module>/tasks/<id>/, and the run goes on from there
+@@ -82,7 +87,7 @@ export default class ProcessRunner {
+ 
+ 	// Start the phase's session: fresh (spawn), same (the previous phase's agent), owner (the process's creator). False = held back.
+ 	async launch(file, p, id){
+-		const ph = p.phases.find(x => x.id === id), s = ph.get_one("session") ?? {}, run = s.run ?? "fresh";
++		const ph = p.phases.find(x => x.id === id), s = ph.get_one("session") ?? {}, run = p.run_of(ph);
+ 		const prompt = p.prompt(id, this.url(file)), agents = this.servex?.agents;
+ 		if (!agents) return false;
+ 		if (run === "fresh"){
+diff --git a/Servex/ProcessRunner.test.mjs b/Servex/ProcessRunner.test.mjs
+index 14dfcaaf3..9fbb37126 100644
+--- a/Servex/ProcessRunner.test.mjs
++++ b/Servex/ProcessRunner.test.mjs
+@@ -23,6 +23,7 @@ const agents = {
+ 	live,
+ 	spawn(spec){ const id = "a" + (spawned.length + 1); spawned.push({ id, ...spec }); live.set(id, { state: "working", cost: 0 }); return { id, session_id: "s-" + id }; },
+ 	send(id, text){ if (!live.has(id)) throw new Error(`no agent ${id}`); sent.push({ id, text }); },
++	stopped: [], stop(id){ this.stopped.push(id); },
+ };
+ const runner = new ProcessRunner({ servex: { agents, say(){} }, root: ROOT, pulse_after_ms: 0 });
+ hooks.changed = file => runner.step(file);
+@@ -124,6 +125,31 @@ try {
+ 
+ 	r = await run_item({ path: PURL }, { caller: "mm1" });
+ 	ok(r.state.class === "Process" && r.state.state === "complete" && r.state.tasks.length === 7, "item({path}) reads the process back: class, state, phases");
++
++	// A SIMPLE PROCESS THROUGH THE TOOL (the owner, 2026-10-22): create it with your own steps, node prompts step 1, then step 2 when step 1 returns.
++	r = await item({ tasks: { add: { title: "Bad", steps: [{ title: "Start" }] } } }, "mm1");
++	ok(r.ok === false && /steps/.test(r.why), "a step named for a Task verb (start) is refused, nothing written");
++	r = await item({ tasks: { add: { title: "Two steps", steps: [{ title: "Write the note", do: "write note.md" }, { title: "Check the note", do: "read note.md back" }] } } }, "mm1");
++	const SF = path.join(DIR, "two-steps", "task.jsonl"), SURL = URL + "two-steps/";
++	await settle(SF);
++	let S = read(SF), sent0 = sent.length;
++	ok(r.ok && S[0].class === "Process" && S[0].process === "steps" && S.filter(l => l.tasks?.add).length === 2, "one call: a Process with the two steps as its phases");
++	ok(S.some(l => l["write-the-note"]?.start) && sent.at(-1).id === "mm1" && sent.at(-1).text.includes("write note.md") && sent.at(-1).text.includes(`"write-the-note": {"complete"`), "node starts step 1 and prompts the creator with it");
++	await item({ "write-the-note": { complete: { outcome: "note.md written" } } }, "mm1", SURL); await settle(SF);
++	ok(sent.length === sent0 + 1 && sent.at(-1).text.includes("read note.md back") && sent.at(-1).text.includes("note.md written"), "step 1 returns: node prompts step 2, with step 1's outcome");
++	await item({ tasks: { add: { title: "Add a step", do: "a step added while it runs" } } }, "mm1", SURL); await settle(SF);
++	await item({ "check-the-note": { complete: { outcome: "checked" } } }, "mm1", SURL); await settle(SF);
++	ok(sent.at(-1).text.includes("a step added while it runs"), "a step added while the process runs is run after the others");
++	await item({ "add-a-step": { complete: { outcome: "done" } } }, "mm1", SURL); await settle(SF);
++	ok(Task.replay(read(SF)).state === "complete" && Task.replay(read(SESSION))._tasks.find("two-steps"), "every step done: the process is complete, and its session references it");
++
++	// Stopping a process stops the agent of the phase it spawned (found live, 2026-10-22: the phase agent kept going), never the creator.
++	await item({ tasks: { add: { title: "Stop me", process: "investigate" } } }, "mm1");
++	const T = path.join(DIR, "stop-me", "task.jsonl"); await settle(T);
++	const ta = spawned.at(-1).id;
++	await item({ stop: { why: "not needed" } }, "mm1", URL + "stop-me/"); await settle(T);
++	const tp = runner.read(T);
++	ok(agents.stopped.includes(ta) && tp.state === "stopped" && tp.phases.find(x => x.id === "questions").state === "stopped" && !agents.stopped.includes("mm1"), "a stopped process stops its running phase and that phase's agent");
+ } finally {
+ 	fs.rmSync(DIR, { recursive: true, force: true });
+ 	fs.rmSync(path.join(ROOT, "public/framework/ai/process-test-" + process.pid), { recursive: true, force: true });
+diff --git a/Servex/agents/Agents.js b/Servex/agents/Agents.js
+index b0257d7d4..65fbfca95 100644
+--- a/Servex/agents/Agents.js
++++ b/Servex/agents/Agents.js
+@@ -940,6 +940,8 @@ export function open_task(task, { session_id, agent, model, worktree, parent_dir
+ 		model, worktree: task.worktree ?? worktree, parent_task, after, home: task.home, requested_at: stamp(), now: "starting" }) });
+ 	/* A new session folder (directly under a day, its own session_id on line 1) starts as session.jsonl; a task folder keeps task.jsonl. */
+ 	fs.appendFileSync(SessionRecord.start_file(dir, JSON.parse(line)), line + "\n");
++	// A task folder under a session or another task counts as its task: the parent's log gets one {"task":"<url>"} reference (never twice).
++	try { SessionRecord.link_parent(dir, "Servex", { parent: parent_task && path.resolve(parent_task), session_id }); } catch {}
+ 	return dir;
+ }
+ 
+diff --git a/Servex/agents/awaken-race.test.mjs b/Servex/agents/awaken-race.test.mjs
+index 8251048d6..aaf1db0df 100644
+--- a/Servex/agents/awaken-race.test.mjs
++++ b/Servex/agents/awaken-race.test.mjs
+@@ -89,7 +89,7 @@ const plain = () => new PlainAgents({ registry_dir: path.join(dir, `reg-${++n}`)
+ // ── item 1 + the end-to-end race: awaken a dormant agent, send one message ──────────────
+ await check("awaken: the idle clock resets, so an aggressive idle sweep cannot put it back to sleep before send() delivers", () => {
+ 	const agents = fresh();
+-	const agent = agents.spawn({ id: "minion-race", role: "minion", name: "race", prompt: "go" });
++	const agent = agents.spawn({ task: false, id: "minion-race", role: "minion", name: "race", prompt: "go" });
+ 	assert.equal(agent.state, "working", "a fresh prompted spawn starts working");
+ 	agent.queue.items.shift();   // the real SDK's pump() would already have consumed the first prompt by now
+ 
+@@ -113,7 +113,7 @@ await check("awaken: the idle clock resets, so an aggressive idle sweep cannot p
+ // ── item 5: a message that still loses the race is HELD, not lost ──────────────────────
+ await check("send(): a push that finds the queue already closed is held, and replayed on the next awaken — never lost", () => {
+ 	const agents = fresh();
+-	const agent = agents.spawn({ id: "minion-held", role: "minion", name: "held", prompt: "go" });
++	const agent = agents.spawn({ task: false, id: "minion-held", role: "minion", name: "held", prompt: "go" });
+ 	agent.state = "idle";
+ 	agent.sleep("idle");
+ 	assert.equal(agent.state, "dormant");
+@@ -141,7 +141,7 @@ await check("send(): a push that finds the queue already closed is held, and rep
+ // ── item 5, second half: a message to a STARTING agent is held until its first turn ────
+ await check("send(): a message to a starting (mid-first-turn) agent queues behind it, delivered in order", () => {
+ 	const agents = fresh();
+-	const agent = agents.spawn({ id: "minion-starting", role: "minion", name: "starting", prompt: "first turn" });
++	const agent = agents.spawn({ task: false, id: "minion-starting", role: "minion", name: "starting", prompt: "first turn" });
+ 	assert.equal(agent.state, "working", "the first prompt is already in flight");
+ 	assert.equal(agent.queue.items.length, 1, "the first prompt itself is sitting in the queue — nothing has consumed it yet");
+ 	agent.send("a second thing, while the first turn is still running", { from: "test" });
+@@ -153,7 +153,7 @@ await check("send(): a message to a starting (mid-first-turn) agent queues behin
+ // ── item 2: a dead pid does not count, and is cleared exactly once ──────────────────────
+ await check("working(): a row whose claude.exe has died is excluded from the cap and cleared, logged once", () => {
+ 	const agents = plain();
+-	const agent = agents.spawn({ id: "minion-dead", role: "minion", name: "dead", prompt: "go" });
++	const agent = agents.spawn({ task: false, id: "minion-dead", role: "minion", name: "dead", prompt: "go" });
+ 	agent.queue.items.shift();   // the real SDK's pump() would already have consumed the first prompt by now
+ 	assert.equal(agents.working().some(a => a.id === agent.id), true, "alive (this test's own pid): counts");
+ 
+@@ -185,7 +185,7 @@ await check("working(): a row whose claude.exe has died is excluded from the cap
+ // ── item 3: a `starting` row that never began at all is re-queued, never dropped ───────
+ await check("Servex.requeue_stuck_start(): a starting agent re-queued at the head, with its own spec and unconsumed turns", () => {
+ 	const agents = fresh();
+-	const agent = agents.spawn({ id: "minion-stuck", role: "minion", name: "stuck", prompt: "never got anywhere", parent: "task-mastermind-x" });
++	const agent = agents.spawn({ task: false, id: "minion-stuck", role: "minion", name: "stuck", prompt: "never got anywhere", parent: "task-mastermind-x" });
+ 	agent.queue.push(agent.turn("a message that arrived before it ever truly started"));   // still unconsumed
+ 
+ 	const fake = { queue: [], log: { append: async () => ({ ok: true }) }, save_queue(){} };
+@@ -284,7 +284,7 @@ await check("Servex.drain(): a spawn the OpenRouter pace guard refuses also wait
+ //    agent.stop() itself throws partway through (a log name over Log.js's 64-char limit) ──
+ await check("Servex.requeue_stuck_start(): clears the row even when stop() throws (a bad log name)", () => {
+ 	const agents = fresh();
+-	const agent = agents.spawn({ id: "minion-lib-h1-page-nvidia-nemotron-3-5-lightning-free-17908906192690", role: "minion", name: "x", prompt: "go" });
++	const agent = agents.spawn({ task: false, id: "minion-lib-h1-page-nvidia-nemotron-3-5-lightning-free-17908906192690", role: "minion", name: "x", prompt: "go" });
+ 	let registered = 0;
+ 	agent.stop = () => { agent.state = "stopped"; throw new Error(`Bad log name "agent-${agent.id}" — letters, digits, dot, dash and underscore only.`); };
+ 
+diff --git a/Servex/agents/page_tools.js b/Servex/agents/page_tools.js
+index 0ae6cbf0c..ffee02e49 100644
+--- a/Servex/agents/page_tools.js
++++ b/Servex/agents/page_tools.js
+@@ -479,7 +479,9 @@ function make_child(parent_dir, add, ctx, home){
+  * add per phase come from Process.DEFINITIONS, and ProcessRunner starts it (hooks.changed). Refused: an unknown process, a taken slug. */
+ async function process_home(parent_dir, add){
+ 	const Process = await LOADERS.Process();
+-	if (!Process.DEFINITIONS[add.process]) return { why: `no process "${add.process}"; the processes are: ${Object.keys(Process.DEFINITIONS).join(", ")}` };
++	if (!Process.DEFINITIONS[add.process] && !Process.from_steps(add.steps)) return { why: add.steps
++		? "`steps` must be a non-empty list of {title, do, session?} with distinct titles that are not Task verbs (start, complete, improve…)"
++		: `no process "${add.process}"; the processes are: ${Object.keys(Process.DEFINITIONS).join(", ")}, or give your own \`steps\`` };
+ 	const slug = slug_of(add.id ?? add.title), dir = path.join(parent_dir, slug);
+ 	// A folder that only holds a brief is fine (write the brief, then start the process in it); one with a log is taken.
+ 	if (["task.jsonl", "session.jsonl"].some(f => fs.existsSync(path.join(dir, f)))) return { why: `"${slug}" already holds a task in this folder; nothing was written. Give the process another id or title.` };
+@@ -489,7 +491,7 @@ function make_process(parent_dir, add, ctx, home){
+ 	const [first, ...adds] = home.process.lines(add);
+ 	const h = make_child(parent_dir, first, ctx, home), file = path.join(home.dir, "task.jsonl");
+ 	for (const line of adds) write_line(file, { ...line, by: ctx.caller ?? "agent", ts: now() }, true);
+-	return { ...h, process: add.process, file };
++	return { ...h, process: first.process, file };
+ }
+ 
+ /* DRAFT IN THE SESSION, THEN MOVE HOME (core/Task/doc/owner-2026-10-20-projects-and-completion.md §6). A task folder (a process once its
+@@ -698,7 +700,7 @@ export async function run_item({ path: url, target, delta } = {}, ctx = {}, alia
+ 		const plan = [];
+ 		for (const a of [].concat(add)){
+ 			if (!is_plain(a)) return { ok: false, why: "`tasks.add` takes an object (the new task's fields)" };
+-			const home = typeof a.process === "string" ? await process_home(path.dirname(at.file), a) : path.basename(at.file) === "improvements.jsonl" ? null : task_home(path.dirname(at.file), a, ctx.module_root, url);   // an improvement nests in its folder's list (mastermind role readme)
++			const home = typeof a.process === "string" || Array.isArray(a.steps) ? await process_home(path.dirname(at.file), a) : path.basename(at.file) === "improvements.jsonl" ? null : task_home(path.dirname(at.file), a, ctx.module_root, url);   // an improvement nests in its folder's list (mastermind role readme)
+ 			if (home?.why) return { ok: false, why: home.why };
+ 			if (home?.taken) return { ok: false, why: `a task "${home.slug}" already exists under ${home.list.module}/tasks/; nothing was written. Use the id "${home.free}" (or a different title), or work on the existing one.`, suggest: home.free };
+ 			const id = home ? null : slug_of(a.id ?? a.title);
+diff --git a/Servex/ext/remote/doc/cloud-voice-agent.md b/Servex/ext/remote/doc/cloud-voice-agent.md
+index afced5323..d466ce340 100644
+--- a/Servex/ext/remote/doc/cloud-voice-agent.md
++++ b/Servex/ext/remote/doc/cloud-voice-agent.md
+@@ -40,7 +40,28 @@ Open a task for each ask you hand off, and mention its dir in the session log (`
+ 
+ 1. `spawn_agent` with `task: {dir, card, brief}` and a one-line prompt. `dir` is a path under `public/framework/ai/sessions/YYYY/MM/DD/`, `brief` is a path to the written ask. Code logs the spawn.
+ 2. `create_card` / `add_item` put the ask on the AI board for the owner.
+-3. There is no separate `task_create` tool yet.
++3. There is no separate `task_create` tool, because the item tool is the one tool for tasks (next section).
++
++## Tasks and processes in your own session: the item tool (verified end to end through the remote door, 2026-10-22)
++
++Your session folder is a task list. Use the `item` tool with `path` set to your folder's url, `/framework/ai/sessions/YYYY/MM/DD/cloud-voice-<name>/`:
++
++| You want | `delta` |
++|---|---|
++| add a task | `{"tasks":{"add":{"title":"…"}}}` (its id comes back in `ids`) |
++| add a subtask | `{"<task id>":{"tasks":{"add":{"title":"…"}}}}` |
++| start or finish one | `{"<task id>":{"start":{}}}`, `{"<task id>":{"complete":{"outcome":"…"}}}` (a subtask: nest one more id) |
++| start a process | `{"tasks":{"add":{"title":"…","process":"investigate","brief":"<path>"}}}` (it gets its own folder, and node starts phase 1) |
++| stop it | `item({path: "<process url>", delta: {"stop":{"why":"…"}}})` |
++| read it | `item({path})`, with no delta |
++
++What the check showed (session `cloud-voice-session-system-test`):
++
++- ✅ Every line was written by `voice-app`. The session's completion rose to 1 when the task completed, then fell back to 0.5 when the process was added.
++- ✅ The process got its own folder with a reference on the session's log, and node spawned phase 1.
++- ⚠ **Fixed after the check:** stopping a process used to leave its phase agent running. Now node stops it (branch `task/session-flow`).
++- ⚠ **Open:** a nested subtask gets a uuid id, while a top-level task gets a slug of its title. Reported to mastermind-item.
++- ⚠ **Open:** a phase that runs `owner` goes to the creator. For you, that is `voice-app`, which is not a Servex agent, so the phase waits on you. Read `updates` to see it.
+ 
+ ## Caveats
+ 
+diff --git a/public/framework/ai/doc/records.md b/public/framework/ai/doc/records.md
+index 8cfac0193..f5fdeb10a 100644
+--- a/public/framework/ai/doc/records.md
++++ b/public/framework/ai/doc/records.md
+@@ -48,11 +48,11 @@ State.mjs → ai/index.json                  Server/AIIndex.mjs   the one reader
+ 
+ | Who | Makes | Where | How |
+ |---|---|---|---|
+-| Servex, on every `spawn_agent` | a **session** (the agent's own folder) | `<caller's session folder>/<agent id>/`, else `<day>/spawned/<agent id>/` | `open_task` line 1, by node, before the first turn |
+-| A VS Code tab (you, the `new-task` skill) | a **task** of your session | `<day>/session-<id8>/<slug>/task.jsonl` | `node Server/TaskDirs.mjs --new <slug>` + `append.mjs` |
++| Servex, on every `spawn_agent` | a **session** (the agent's own folder) | `<caller's session folder>/<agent id>/`, else `<day>/spawned/<agent id>/` | `open_task` line 1, by node, before the first turn; the parent's log gets a `{"task":"<url>"}` reference (`SessionRecord.link_parent`) |
++| A VS Code tab (you, the `new-task` skill) | a **task** of your session | `<day>/session-<id8>/<slug>/task.jsonl` | `node Server/TaskDirs.mjs --new <slug>` + `append.mjs`; `--new` also adds a `{"task":"<url>"}` reference to the session's (or parent task's) log, so the folder counts as one of its tasks |
+ | Any agent, the item tool | a **task** in a module home | `<module>/tasks/<slug>/task.jsonl` | `tasks.add`; the caller's log gets `{"task": path}` |
+ | A cloud voice call | a **session** | `<day>/cloud-voice-<name>/session.jsonl` | `RemoteMCP.voice_session()` |
+ | A tab's transcript | a session **cache** (totals, no log) | `<day>/session-<id8>/cache.jsonl`, `index.json` | `AISessionIndex.mjs` tails `~/.claude/projects` |
+ | Scripts | idle **tasks** from undone asks; one-off moves | `<module>/tasks/` | `Server/UndoneToTasks.mjs`, `Server/TaskMigrate.mjs` |
+ 
+-**Status.** ✅ Top-level session folders hold `session.jsonl` (10-17). ✅ Readers ask `SessionRecord.log_file` for either name (10-19). ✅ A spawned agent's folder starts as `session.jsonl` at any depth (2026-10-20): `SessionRecord.start_file` calls a folder a session when line 1 is a spawn line, `assign.session_id` **and** `assign.agent`, which only Servex's `open_task` writes; a tab's task keeps `task.jsonl` ([the task](../sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/session-record/requirements.md)). Folders spawned before that day still hold `task.jsonl`; every reader accepts both names. ⬜ Old nested folders renamed by script, a task as one line in its session's log, `TaskDirs` → `SessionDirs`: slices 4 to 6 of the plan. Known gap: a session gets two folders today (its own record under its caller, and the transcript cache `session-<id8>/`); the link between them is `assign.session_id` on line 1.
++**Status.** ✅ Top-level session folders hold `session.jsonl` (10-17). ✅ Readers ask `SessionRecord.log_file` for either name (10-19). ✅ A spawned agent's folder starts as `session.jsonl` at any depth (2026-10-20): `SessionRecord.start_file` calls a folder a session when line 1 is a spawn line, `assign.session_id` **and** `assign.agent`, which only Servex's `open_task` writes; a tab's task keeps `task.jsonl` ([the task](../sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/session-record/requirements.md)). Folders spawned before that day still hold `task.jsonl`; every reader accepts both names. ⬜ Old nested folders renamed by script, a task as one line in its session's log, `TaskDirs` → `SessionDirs`: slices 4 to 6 of the plan. ✅ A folder made under a session is referenced on its parent's log by whichever tool made it, and older folders are backfilled by `node Server/SessionRecord.mjs --links --apply` ([session-record.md](../sessions/doc/session-record.md)). Known gap: a session gets two folders today (its own record under its caller, and the transcript cache `session-<id8>/`); the link between them is `assign.session_id` on line 1.
+diff --git a/public/framework/ai/sessions/doc/session-record.md b/public/framework/ai/sessions/doc/session-record.md
+index 7e09ad409..f29ed6f4b 100644
+--- a/public/framework/ai/sessions/doc/session-record.md
++++ b/public/framework/ai/sessions/doc/session-record.md
+@@ -65,7 +65,12 @@ The brief expected 588 folders holding both files; there are none. The 588 diges
+ - `session.jsonl`, when the first line is a spawn line `{"assign":{"session_id","agent"}}` (any depth, a sub-session) or `{"session":…}` (cloud voice), or a `session_id` line directly under a day; else
+ - `task.jsonl` (any task folder, deeper in a session).
+ 
+-Two writers ask it: `Servex/agents/Agents.js` (`open_task`, the launch line of `spawn_agent`) and `.claude/hooks/append.mjs` (every agent's `new-task` launch line, which still names `<dir>/task.jsonl`; the hook redirects it). `node Server/TaskDirs.mjs --new` only makes the folder, never a record. `Server/review.mjs` appends to the existing log. `Server/plugins/Start.js` makes a task folder inside a session, so it keeps `task.jsonl`. A folder made this way needs no move: `--plan` counts it as nothing to do. Tests: `Server/SessionRecord.test.mjs`, `Servex/agents/open-task.test.mjs`.
++Two writers ask it: `Servex/agents/Agents.js` (`open_task`, the launch line of `spawn_agent`) and `.claude/hooks/append.mjs` (every agent's `new-task` launch line, which still names `<dir>/task.jsonl`; the hook redirects it). `node Server/TaskDirs.mjs --new` makes the folder, never its record. Both it and `open_task` add one `{"task":"<url>"}` reference to the parent's log (`SessionRecord.link_parent`), so a folder under a session counts as one of its tasks:
++
++- **Which parent:** an explicit parent wins (`--parent`, or `open_task`'s `parent_task`, the task that handed work to a child session); else the nearest folder above with a log, up to the session folder.
++- **A tab session with no log yet** (`session-<id8>/` holding only its transcript cache): the reference starts its `session.jsonl` with `{"session":{id, kind:"vscode-tab"}}`. The id comes from the caller and must start with the folder's 8 characters, so an id is never invented.
++- **Not linked:** `spawned/<agent>/` and `cards/` are day-level containers, not sessions; an agent spawned by a caller Servex does not know lands there with no parent.
++- **Backfill and census:** `node Server/SessionRecord.mjs --links` counts every folder below a session and whether its parent references it (writes nothing; `--list` names them all). `--links --apply` adds the missing references and logs one row per folder in `ai/sessions/session-links.jsonl`. On 2026-10-22, 1101 folders were checked: 1 was referenced, 801 were missing a reference (only 13 of those were still open), and 299 had no parent log and no session id. `Server/review.mjs` appends to the existing log. `Server/plugins/Start.js` makes a task folder inside a session, so it keeps `task.jsonl`. A folder made this way needs no move: `--plan` counts it as nothing to do. Tests: `Server/SessionRecord.test.mjs`, `Servex/agents/open-task.test.mjs`.
+ 
+ ## Readers: every one accepts both names
+ 
+diff --git a/public/framework/core/Task/Process.js b/public/framework/core/Task/Process.js
+index fa3e893e0..e00e91829 100644
+--- a/public/framework/core/Task/Process.js
++++ b/public/framework/core/Task/Process.js
+@@ -21,16 +21,21 @@ export class Process extends Task {
+ 	// What node should do now, as one action; null = nothing (waiting on an agent, the owner, or finished).
+ 	next(){
+ 		if (this.state === "idle") return { start: true };
++		// Stopped with a phase still running in a fresh session it spawned: halt that phase (node stops its agent). The creator's own session is never stopped.
++		if (this.state === "stopped"){ const h = this.phases.find(p => p.state === "running" && p.get_one("spawned")?.run === "fresh"); return h ? { halt: h.id } : null; }
+ 		if (this.state !== "running") return null;
+ 		const p = this.phase;
+ 		if (this.moves_home()) return { move: this.get_one("module") };
+ 		if (!p) return { complete: true };
+-		const run = p.get_one("session")?.run ?? "fresh";
++		const run = this.run_of(p);
+ 		if (p.state === "idle") return run === "wait" ? { wait: p.id } : { start: p.id };
+ 		if (p.state === "running" && !p.get_one("spawned")) return { launch: p.id };
+ 		return null;
+ 	}
+ 
++	// How a phase is run (doc/process.md, "A phase's session"): its own session.run; a step with none runs fresh, except in a process of your own steps, where it goes to the creator.
++	run_of(p){ return p?.get_one("session")?.run ?? (this.process === "steps" ? "owner" : "fresh"); }
++
+ 	// Draft in the session, then move home (doc/owner-2026-10-20-projects-and-completion.md §6): once a phase marked `home_after` is complete
+ 	// (build: approve-plan), a process that names a `module` belongs in <module>/tasks/<id>/. True while it is not there yet.
+ 	moves_home(){
+@@ -57,14 +62,25 @@ export class Process extends Task {
+ 	}
+ 
+ 	// The lines that make a new process from a definition: line-1 fields, then one add per phase. `phases` overrides a phase's session: {plan: {model}}.
+-	static lines({ process, phases: over = {}, ...fields } = {}){
+-		const def = this.DEFINITIONS[process];
++	// No definition but `steps` ([{title, do, session?}]): an ad-hoc process (`process` defaults to "steps"); a step with no session goes to the creator (run: owner).
++	static lines({ process, phases: over = {}, steps, ...fields } = {}){
++		const def = this.DEFINITIONS[process] ?? this.from_steps(steps);
+ 		if (!def) return null;
++		process ??= "steps";
+ 		const first = { class: "Process", process, mode: "series", ...fields };
+ 		const adds = def.map(p => ({ tasks: { add: { type: "Task", ...p, ...(over[p.id] ? { session: { ...p.session, ...over[p.id] } } : {}) } } }));
+ 		return [first, ...adds];
+ 	}
+ 
++	// Steps written by the caller, as phases. Refused (null) when empty, when two share an id, or when an id would name a Task verb or field (`improve` would call improve()).
++	static from_steps(steps){
++		if (!Array.isArray(steps) || !steps.length) return null;
++		const slug = t => String(t ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40);
++		const out = steps.map((x, i) => { const o = typeof x === "string" ? { title: x } : { ...x }; o.id = slug(o.id ?? o.title) || `step-${i + 1}`; o.title ??= o.id; o.session ??= { run: "owner" }; return o; });
++		if (new Set(out.map(o => o.id)).size !== out.length || out.some(o => o.id in Task.prototype || o.id in this.prototype)) return null;
++		return out;
++	}
++
+ 	// Node's own lines: each records a fact on the phase it names. Everything else is a Task line.
+ 	replay_line(line){
+ 		if (typeof line.process === "string") this.put("process", line.process);
+diff --git a/public/framework/core/Task/doc/process-names.md b/public/framework/core/Task/doc/process-names.md
+new file mode 100644
+index 000000000..887e92295
+--- /dev/null
++++ b/public/framework/core/Task/doc/process-names.md
+@@ -0,0 +1,53 @@
++# Process names and structure: a proposal for you to approve
++
++You asked to be in the loop on names before they harden (2026-10-22). This page lists each name, what it means, and where it lives. Each row marked **proposed** waits on your approve, improve or reject on the task "Approve the process names" (the process-system session). Nothing proposed here has been renamed yet. The long form is [process.md](process.md).
++
++## The names
++
++| Name | What it is | Where it lives | Status |
++|---|---|---|---|
++| **Process** | A task whose children are done one after another, in order, and node starts each one. | `core/Task/Process.js` (`class Process extends Task`) | built |
++| **Step** (today's code says *phase*) | One child of a process: a title, the job (`do`), and who does it (`session.run`). A step is a plain Task. | a `tasks.add` line in the process's own log | **proposed:** call it *step*, your word. The code, the lines and the docs rename `phase` to `step` in one scripted pass. |
++| **Process template** (today: `Process.DEFINITIONS`) | A named list of steps you can start by name: `build`, `design`, `investigate`. | today, one data object in `Process.js` | **proposed:** one subclass per template, `class BuildProcess extends Process { static steps = […] }`, one file each in `core/Task/processes/`. |
++| **Your own steps** | A process with no template: the caller lists the steps. | `tasks.add {title, steps: [{title, do}]}` | built 2026-10-22 (below) |
++| **Who runs a step** (`session.run`) | `fresh` (a new session), `same` (the previous step's session), `owner` (whoever created the process), `wait` (you). | on each step | built |
++| **Handoff** | A mastermind gives a task to a child session by moving the task into the child's folder, not by writing a requirements.md. | the item move (mastermind-item, [design](/framework/core/Item/tasks/item-move/design.md)) | **proposed**, being built |
++
++## Where one process is stored
++
++- **One folder, one log.** A process is the folder `<session folder>/<slug>/` with its `task.jsonl`. Line 1 is `{"class":"Process", "process":"<template or steps>", …}`, followed by one line per step, and then node's lines: `start`, `spawn`, `measure`, `complete`.
++- **Its session references it.** The session's log gets `{"task":"<url>"}`, and the session's completion counts the process.
++- **It can move home.** A process that names a `module` moves to `<module>/tasks/<slug>/` once its plan is approved. The old place keeps a reference, so the move is never lost.
++
++## How agents learn which processes exist
++
++- **Ask for a template that does not exist,** and the item tool's refusal lists every template name.
++- **[process.md](process.md)** describes each template, and it is linked from the [Task readme](../readme.md).
++- **Proposed:** one line in the mastermind role readme: "to start work, name a process template, or give your own steps."
++
++## Three overlapping "template" ideas, and the proposed one word for each
++
++| Today | What it decides | Proposed word |
++|---|---|---|
++| `ROLES` (`Servex/agents/roles.js`) | who the agent is: role readme, model, effort | **role** |
++| `Task.TEMPLATES` (`code`, `doc`, `scan`) | the routine around one task: a worktree, commit lines, read-only | **kind** (a task's kind) |
++| `Process.DEFINITIONS` (`build`, `design`, `investigate`) | the steps, in order | **process template** |
++
++A spawn then names three things: the role (who), the kind (the routine), and the process template (the steps). Folding these three into one named "spawn template" is the skills-port review, next in this session's tasks.
++
++## Proven: a simple process through the tool
++
++One item call creates the process, and node does the rest:
++
++```js
++item({ path: "<your session>", delta: { tasks: { add: { title: "Two steps",
++  steps: [{ title: "Write the note", do: "write note.md" }, { title: "Check the note", do: "read note.md back" }] } } } })
++```
++
++1. Node writes line 1 and both steps, then starts step 1 and sends you its prompt. A step with no `session` goes to you, the creator.
++2. You complete it: `item({path: "<process url>", delta: {"write-the-note": {"complete": {"outcome": "…"}}}})`.
++3. Node prompts step 2 and includes step 1's outcome.
++4. A step added while the process runs comes after the others.
++5. When every step is done, the process is complete, and so is its line in the session's count.
++
++Test: `node Servex/ProcessRunner.test.mjs` (the "simple process" checks). A step named for a Task verb (`start`, `complete`, `improve`) is refused, because the line `{"start":…}` would call the verb instead.
+diff --git a/public/framework/core/Task/doc/process.md b/public/framework/core/Task/doc/process.md
+index c16fc7cb6..e86131d2b 100644
+--- a/public/framework/core/Task/doc/process.md
++++ b/public/framework/core/Task/doc/process.md
+@@ -143,4 +143,5 @@ The prompt audit ([ai/doc/prompt-audit.md](/framework/ai/doc/prompt-audit.md)) a
+ - ✅ **Fixed 2026-10-22:** a task that has landed and then gets a new open child reads `running` until that child is done, then `complete` again. `Task.state` computes it on read (`reopened()`); nothing is written. Test: `Task.test.mjs`.
+ 
+ - ✅ Slice 1: `Process` + `ProcessRunner`, one process end to end, completion rolling up to the session; run 1 above; moving home on approval; tests `node Servex/ProcessRunner.test.mjs` (27).
++- ✅ **Your own steps (2026-10-22):** `tasks.add {title, steps: [{title, do}]}` makes a process with no template; a step with no session goes to the creator. Names and structure, proposed for approval: [process-names.md](process-names.md).
+ - ⬜ Next: a phase that is itself a process (investigate inside build); parallel phases (scouts); the plan's tasks becoming a process of their own; the owner's merge button (priority 3b) completing the merge phase; prompt-audit asks becoming session tasks once completion is automatic.
+diff --git a/public/framework/core/Task/readme.md b/public/framework/core/Task/readme.md
+index 73a658a3d..bdf703d4b 100644
+--- a/public/framework/core/Task/readme.md
++++ b/public/framework/core/Task/readme.md
+@@ -5,7 +5,7 @@
+ - **Built and tested:** the state machine, subtasks, replay of `task.jsonl` (`node Task.test.mjs`, 53 of 53 pass), `TaskView`, `TaskPage`, `TasksPage`, references between tasks (`Task.from_ref`), module homes made by the item tool's `tasks.add`.
+ - **Wired in:** `Server/AIIndex.mjs` replays every task through `Task.replay` into `ai/index.json`; Servex `open_task` and `TaskDirs --new` make the session-store folders that `Task` reads; the Inbox shows the result.
+ - **Wired in (2026-10-20):** [Project.js](Project.js) (`Project extends Task`: six stages, `completion` 0..1 = mean of subtasks, `Project.from_lines`; `node Project.test.mjs`, 9 of 9). `Server/ProjectMove.mjs` moves a project folder into a module and indexes it: [ai/tasks/doc/projects.md](/framework/ai/tasks/doc/projects.md).
+-- **Built (2026-10-22, branch `task/process-system`):** [Process.js](Process.js) (`Process extends Task`: named phases node runs in series; `next()` decides, `Servex/ProcessRunner.js` writes the line and launches each phase's session; one `tasks.add {process: "build"}` call creates one). Design and status: [doc/process.md](doc/process.md). Test: `node Servex/ProcessRunner.test.mjs`.
++- **Built (2026-10-22, branch `task/process-system`):** [Process.js](Process.js) (`Process extends Task`: named phases node runs in series; `next()` decides, `Servex/ProcessRunner.js` writes the line and launches each phase's session; one `tasks.add {process: "build"}` call creates one). Design and status: [doc/process.md](doc/process.md); the names, proposed for approval: [doc/process-names.md](doc/process-names.md). Test: `node Servex/ProcessRunner.test.mjs`.
+ - **Concept only:** `AITask extends Task` (below), a `phase` field ([ai/doc/task-lifecycle.md](/framework/ai/doc/task-lifecycle.md)). **Not automatic:** a module home. `TaskDirs.dir()` does not know modules; only the item tool (an agent's choice), `TaskMigrate` (one-off) and `UndoneToTasks` (idle tasks from undone asks) put a task in `<module>/tasks/`.
+ 
+ ## What it is

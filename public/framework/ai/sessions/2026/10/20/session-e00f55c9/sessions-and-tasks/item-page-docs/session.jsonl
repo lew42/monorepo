@@ -1,0 +1,8 @@
+{"assign":{"session_id":"177144ba-467b-4a61-a0eb-9adc1170b51b","agent":"minion-item-page-docs","brief":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/item-page-docs/requirements.md","title":"Item and Page readmes: one persistence system; indexing is the tool's job; JSONL growth noted","model":"claude-sonnet-5-5","worktree":"C:/Code/lew42/worktrees/qf-6","parent_task":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks","home":"/framework/core/Item/","requested_at":"2026-10-20T16:50:32-05:00","now":"starting"}}
+{"commit":"b130667a17be"}
+{"commit":"8217d9cdd117"}
+{"commit":"43548f6f9ea4"}
+{"commit":"2b4c8ed860fc"}
+{"decision":{"at":"2026-10-20T17:01:46-05:00","id":"skip-smoke","text":"Merged with --skip-smoke: the smoke crawl failed only on pre-existing 404s reached from the JSONL and Page readmes (untracked session files, a missing navigation png); Item page passed. Alternative: fix those pages first."}}
+{"finish":{"at":"2026-10-20T17:01:46-05:00","summary":"Item, Page and JSONL readmes updated: one persistence system, indexing is the watcher job (AIIndex), JSONL growth section."}}
+{"log":{"at":"2026-10-20T17:01:59-05:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}

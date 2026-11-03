@@ -1,0 +1,1909 @@
+{
+ "note": "dictation: 60 s at 390 px over a 208-bubble saved session; throttle = CDP CPU slowdown (4 = a mid phone, estimated). real = Chrome fake mic + stubbed Whisper (the beep never pauses, so one long segment); hand = scripted captions + sentences (log_prompt, send_screen) with the real mic also opened by the sheet at 1x. Attribution is the sampling profile in each task's window (approximate: layout done by the engine itself is counted under (program) or the JS call that forced it). Load: the same measure while opening the sheet.",
+ "dictation": {
+  "freeze-1x": {
+   "mode": "real",
+   "throttle": 1,
+   "seconds": 60,
+   "bubbles_before": 208,
+   "says": 1,
+   "whisper_calls": 69,
+   "long_over_50": 0,
+   "longest_ms": 0,
+   "total_blocked_ms": 0,
+   "long_tasks": [],
+   "window_self_top": [
+    {
+     "at": "(idle) :0",
+     "ms": 57531
+    },
+    {
+     "at": "(program) :0",
+     "ms": 3883
+    },
+    {
+     "at": "getBoundingClientRect :0",
+     "ms": 537
+    },
+    {
+     "at": "setProperty :0",
+     "ms": 101
+    },
+    {
+     "at": "node.port.onmessage /framework/ux/Dictate/capture.js:62",
+     "ms": 89
+    },
+    {
+     "at": "wav /framework/ux/Dictate/capture.js:150",
+     "ms": 69
+    },
+    {
+     "at": "(garbage collector) :0",
+     "ms": 56
+    },
+    {
+     "at": "requestAnimationFrame :0",
+     "ms": 44
+    },
+    {
+     "at": "fetch :0",
+     "ms": 30
+    },
+    {
+     "at": "on_level /framework/ux/Dictate/Dictate.js:422",
+     "ms": 30
+    },
+    {
+     "at": "style /framework/core/View/View.js:289",
+     "ms": 28
+    },
+    {
+     "at": "Blob :0",
+     "ms": 24
+    },
+    {
+     "at": "on_level /framework/ext/Chat/Mic.js:113",
+     "ms": 23
+    },
+    {
+     "at": "AudioContext :0",
+     "ms": 10
+    }
+   ],
+   "window_inclusive_top": [
+    {
+     "at": "partial_tick /framework/ux/Dictate/Dictate.js:470",
+     "ms": 602
+    },
+    {
+     "at": "anchor /framework/ux/Dictate/Widget.js:250",
+     "ms": 537
+    },
+    {
+     "at": "draw_caption /framework/ext/Chat/Mic.js:198",
+     "ms": 536
+    },
+    {
+     "at": "show_live /framework/ext/Chat/Mic.js:266",
+     "ms": 532
+    },
+    {
+     "at": "composer.on_live /framework/ux/Dictate/Widget.js:713",
+     "ms": 531
+    },
+    {
+     "at": "live /framework/ux/Dictate/Widget.js:438",
+     "ms": 531
+    },
+    {
+     "at": "node.port.onmessage /framework/ux/Dictate/capture.js:62",
+     "ms": 315
+    },
+    {
+     "at": "(anon) /framework/ux/Dictate/Dictate.js:418",
+     "ms": 210
+    },
+    {
+     "at": "on_level /framework/ext/Chat/Mic.js:113",
+     "ms": 208
+    },
+    {
+     "at": "on_level /framework/ux/Dictate/Dictate.js:422",
+     "ms": 179
+    },
+    {
+     "at": "(anon) /framework/ux/Dictate/Dictate.js:291",
+     "ms": 141
+    },
+    {
+     "at": "heartbeat /framework/ux/Dictate/Dictate.js:433",
+     "ms": 140
+    },
+    {
+     "at": "transcribe /framework/ux/Dictate/Dictate.js:544",
+     "ms": 136
+    },
+    {
+     "at": "style /framework/core/View/View.js:289",
+     "ms": 130
+    },
+    {
+     "at": "wav /framework/ux/Dictate/capture.js:150",
+     "ms": 93
+    },
+    {
+     "at": "close_segment /framework/ux/Dictate/Dictate.js:490",
+     "ms": 76
+    },
+    {
+     "at": "commit /framework/ext/Chat/Mic.js:142",
+     "ms": 62
+    },
+    {
+     "at": "commit /framework/ux/Dictate/Dictate.js:674",
+     "ms": 62
+    },
+    {
+     "at": "(anon) /framework/ux/Dictate/DictationBar.js:70",
+     "ms": 51
+    },
+    {
+     "at": "mic.on_meter /framework/ux/Dictate/DictationBar.js:61",
+     "ms": 51
+    },
+    {
+     "at": "log_prompt /framework/ext/Chat/Mic.js:438",
+     "ms": 38
+    },
+    {
+     "at": "fetch_timeout /framework/ux/Dictate/Dictate.js:68",
+     "ms": 33
+    },
+    {
+     "at": "set_level /framework/ux/Dictate/MicIndicator.js:21",
+     "ms": 24
+    },
+    {
+     "at": "(anon) /framework/ux/Dictate/MicIndicator.js:23",
+     "ms": 15
+    },
+    {
+     "at": "paint /framework/ux/Dictate/MicIndicator.js:46",
+     "ms": 14
+    }
+   ]
+  },
+  "freeze-4x": {
+   "mode": "real",
+   "throttle": 4,
+   "seconds": 60,
+   "bubbles_before": 208,
+   "says": 1,
+   "whisper_calls": 68,
+   "long_over_50": 8,
+   "longest_ms": 91,
+   "total_blocked_ms": 558,
+   "long_tasks": [
+    {
+     "at_ms": 12168,
+     "dur_ms": 55,
+     "trigger_entry": [],
+     "top_inclusive": []
+    },
+    {
+     "at_ms": 22170,
+     "dur_ms": 71,
+     "trigger_entry": [
+      {
+       "at": "(anon) /framework/dev/Socket/Socket.js:63",
+       "ms": 10
+      },
+      {
+       "at": "node.port.onmessage /framework/ux/Dictate/capture.js:62",
+       "ms": 2
+      }
+     ],
+     "top_inclusive": [
+      {
+       "at": "(anon) /framework/dev/Socket/Socket.js:63",
+       "ms": 10
+      },
+      {
+       "at": "message /framework/dev/Socket/Socket.js:128",
+       "ms": 10
+      },
+      {
+       "at": "changed /framework/dev/Socket/Socket.js:218",
+       "ms": 10
+      },
+      {
+       "at": "loaded /framework/dev/Socket/Socket.js:298",
+       "ms": 10
+      },
+      {
+       "at": "node.port.onmessage /framework/ux/Dictate/capture.js:62",
+       "ms": 2
+      }
+     ]
+    },
+    {
+     "at_ms": 30307,
+     "dur_ms": 91,
+     "trigger_entry": [
+      {
+       "at": "(anon) /framework/ux/Dictate/Dictate.js:291",
+       "ms": 32
+      },
+      {
+       "at": "node.port.onmessage /framework/ux/Dictate/capture.js:62",
+       "ms": 3
+      }
+     ],
+     "top_inclusive": [
+      {
+       "at": "(anon) /framework/ux/Dictate/Dictate.js:291",
+       "ms": 32
+      },
+      {
+       "at": "heartbeat /framework/ux/Dictate/Dictate.js:433",
+       "ms": 32
+      },
+      {
+       "at": "partial_tick /framework/ux/Dictate/Dictate.js:470",
+       "ms": 25
+      },
+      {
+       "at": "transcribe /framework/ux/Dictate/Dictate.js:544",
+       "ms": 19
+      },
+      {
+       "at": "wav /framework/ux/Dictate/capture.js:150",
+       "ms": 16
+      }
+     ]
+    },
+    {
+     "at_ms": 45383,
+     "dur_ms": 77,
+     "trigger_entry": [
+      {
+       "at": "node.port.onmessage /framework/ux/Dictate/capture.js:62",
+       "ms": 7
+      },
+      {
+       "at": "(anon) /framework/ux/Dictate/DictationBar.js:70",
+       "ms": 1
+      }
+     ],
+     "top_inclusive": [
+      {
+       "at": "node.port.onmessage /framework/ux/Dictate/capture.js:62",
+       "ms": 7
+      },
+      {
+       "at": "(anon) /framework/ux/Dictate/Dictate.js:418",
+       "ms": 4
+      },
+      {
+       "at": "on_level /framework/ext/Chat/Mic.js:113",
+       "ms": 4
+      },
+      {
+       "at": "on_level /framework/ux/Dictate/Dictate.js:422",
+       "ms": 2
+      },
+      {
+       "at": "style /framework/core/View/View.js:289",
+       "ms": 2
+      }
+     ]
+    },
+    {
+     "at_ms": 48356,
+     "dur_ms": 57,
+     "trigger_entry": [
+      {
+       "at": "node.port.onmessage /framework/ux/Dictate/capture.js:62",
+       "ms": 2
+      }
+     ],
+     "top_inclusive": [
+      {
+       "at": "node.port.onmessage /framework/ux/Dictate/capture.js:62",
+       "ms": 2
+      },
+      {
+       "at": "(anon) /framework/ux/Dictate/Dictate.js:418",
+       "ms": 2
+      },
+      {
+       "at": "on_level /framework/ext/Chat/Mic.js:113",
+       "ms": 2
+      },
+      {
+       "at": "on_level /framework/ux/Dictate/Dictate.js:422",
+       "ms": 2
+      },
+      {
+       "at": "mic.on_meter /framework/ux/Dictate/DictationBar.js:61",
+       "ms": 2
+      }
+     ]
+    },
+    {
+     "at_ms": 57377,
+     "dur_ms": 69,
+     "trigger_entry": [
+      {
+       "at": "node.port.onmessage /framework/ux/Dictate/capture.js:62",
+       "ms": 4
+      },
+      {
+       "at": "(anon) /framework/ux/Dictate/DictationBar.js:70",
+       "ms": 1
+      }
+     ],
+     "top_inclusive": [
+      {
+       "at": "node.port.onmessage /framework/ux/Dictate/capture.js:62",
+       "ms": 4
+      },
+      {
+       "at": "rms /framework/ux/Dictate/capture.js:177",
+       "ms": 1
+      },
+      {
+       "at": "(anon) /framework/ux/Dictate/Dictate.js:418",
+       "ms": 1
+      },
+      {
+       "at": "on_level /framework/ext/Chat/Mic.js:113",
+       "ms": 1
+      },
+      {
+       "at": "on_level /framework/ux/Dictate/Dictate.js:422",
+       "ms": 1
+      }
+     ]
+    },
+    {
+     "at_ms": 60498,
+     "dur_ms": 73,
+     "trigger_entry": [
+      {
+       "at": "(anon) /framework/ux/Dictate/Dictate.js:291",
+       "ms": 18
+      },
+      {
+       "at": "(anon) /framework/ux/Dictate/DictationBar.js:70",
+       "ms": 3
+      }
+     ],
+     "top_inclusive": [
+      {
+       "at": "(anon) /framework/ux/Dictate/Dictate.js:291",
+       "ms": 18
+      },
+      {
+       "at": "heartbeat /framework/ux/Dictate/Dictate.js:433",
+       "ms": 18
+      },
+      {
+       "at": "partial_tick /framework/ux/Dictate/Dictate.js:470",
+       "ms": 13
+      },
+      {
+       "at": "transcribe /framework/ux/Dictate/Dictate.js:544",
+       "ms": 11
+      },
+      {
+       "at": "wav /framework/ux/Dictate/capture.js:150",
+       "ms": 8
+      }
+     ]
+    },
+    {
+     "at_ms": 61130,
+     "dur_ms": 65,
+     "trigger_entry": [
+      {
+       "at": "node.port.onmessage /framework/ux/Dictate/capture.js:62",
+       "ms": 1
+      }
+     ],
+     "top_inclusive": [
+      {
+       "at": "node.port.onmessage /framework/ux/Dictate/capture.js:62",
+       "ms": 1
+      },
+      {
+       "at": "(anon) /framework/ux/Dictate/Dictate.js:418",
+       "ms": 1
+      },
+      {
+       "at": "on_level /framework/ext/Chat/Mic.js:113",
+       "ms": 1
+      }
+     ]
+    }
+   ],
+   "window_self_top": [
+    {
+     "at": "(idle) :0",
+     "ms": 41297
+    },
+    {
+     "at": "(program) :0",
+     "ms": 15502
+    },
+    {
+     "at": "getBoundingClientRect :0",
+     "ms": 2555
+    },
+    {
+     "at": "setProperty :0",
+     "ms": 532
+    },
+    {
+     "at": "node.port.onmessage /framework/ux/Dictate/capture.js:62",
+     "ms": 345
+    },
+    {
+     "at": "wav /framework/ux/Dictate/capture.js:150",
+     "ms": 313
+    },
+    {
+     "at": "requestAnimationFrame :0",
+     "ms": 200
+    },
+    {
+     "at": "(garbage collector) :0",
+     "ms": 183
+    },
+    {
+     "at": "style /framework/core/View/View.js:289",
+     "ms": 182
+    },
+    {
+     "at": "fetch :0",
+     "ms": 134
+    },
+    {
+     "at": "on_level /framework/ext/Chat/Mic.js:113",
+     "ms": 118
+    },
+    {
+     "at": "on_level /framework/ux/Dictate/Dictate.js:422",
+     "ms": 114
+    },
+    {
+     "at": "Blob :0",
+     "ms": 61
+    },
+    {
+     "at": "set_level /framework/ux/Dictate/MicIndicator.js:21",
+     "ms": 56
+    }
+   ],
+   "window_inclusive_top": [
+    {
+     "at": "partial_tick /framework/ux/Dictate/Dictate.js:470",
+     "ms": 2862
+    },
+    {
+     "at": "draw_caption /framework/ext/Chat/Mic.js:198",
+     "ms": 2563
+    },
+    {
+     "at": "anchor /framework/ux/Dictate/Widget.js:250",
+     "ms": 2558
+    },
+    {
+     "at": "show_live /framework/ext/Chat/Mic.js:266",
+     "ms": 2542
+    },
+    {
+     "at": "composer.on_live /framework/ux/Dictate/Widget.js:713",
+     "ms": 2540
+    },
+    {
+     "at": "live /framework/ux/Dictate/Widget.js:438",
+     "ms": 2540
+    },
+    {
+     "at": "node.port.onmessage /framework/ux/Dictate/capture.js:62",
+     "ms": 1503
+    },
+    {
+     "at": "(anon) /framework/ux/Dictate/Dictate.js:418",
+     "ms": 1086
+    },
+    {
+     "at": "on_level /framework/ext/Chat/Mic.js:113",
+     "ms": 1079
+    },
+    {
+     "at": "on_level /framework/ux/Dictate/Dictate.js:422",
+     "ms": 947
+    },
+    {
+     "at": "style /framework/core/View/View.js:289",
+     "ms": 715
+    },
+    {
+     "at": "(anon) /framework/ux/Dictate/Dictate.js:291",
+     "ms": 616
+    },
+    {
+     "at": "heartbeat /framework/ux/Dictate/Dictate.js:433",
+     "ms": 615
+    },
+    {
+     "at": "transcribe /framework/ux/Dictate/Dictate.js:544",
+     "ms": 570
+    },
+    {
+     "at": "wav /framework/ux/Dictate/capture.js:150",
+     "ms": 376
+    },
+    {
+     "at": "close_segment /framework/ux/Dictate/Dictate.js:490",
+     "ms": 338
+    },
+    {
+     "at": "commit /framework/ext/Chat/Mic.js:142",
+     "ms": 279
+    },
+    {
+     "at": "commit /framework/ux/Dictate/Dictate.js:674",
+     "ms": 279
+    },
+    {
+     "at": "(anon) /framework/ux/Dictate/DictationBar.js:70",
+     "ms": 275
+    },
+    {
+     "at": "mic.on_meter /framework/ux/Dictate/DictationBar.js:61",
+     "ms": 232
+    },
+    {
+     "at": "set_level /framework/ux/Dictate/MicIndicator.js:21",
+     "ms": 182
+    },
+    {
+     "at": "log_prompt /framework/ext/Chat/Mic.js:438",
+     "ms": 156
+    },
+    {
+     "at": "fetch_timeout /framework/ux/Dictate/Dictate.js:68",
+     "ms": 125
+    },
+    {
+     "at": "(anon) /framework/ux/Dictate/MicIndicator.js:23",
+     "ms": 122
+    },
+    {
+     "at": "paint /framework/ux/Dictate/MicIndicator.js:46",
+     "ms": 116
+    }
+   ]
+  },
+  "hand-1x": {
+   "mode": "hand",
+   "throttle": 1,
+   "seconds": 60,
+   "bubbles_before": 208,
+   "says": 7,
+   "whisper_calls": 117,
+   "long_over_50": 0,
+   "longest_ms": 0,
+   "total_blocked_ms": 0,
+   "long_tasks": [],
+   "window_self_top": [
+    {
+     "at": "(idle) :0",
+     "ms": 108521
+    },
+    {
+     "at": "(program) :0",
+     "ms": 8033
+    },
+    {
+     "at": "getBoundingClientRect :0",
+     "ms": 2266
+    },
+    {
+     "at": "setProperty :0",
+     "ms": 179
+    },
+    {
+     "at": "node.port.onmessage /framework/ux/Dictate/capture.js:62",
+     "ms": 165
+    },
+    {
+     "at": "(garbage collector) :0",
+     "ms": 124
+    },
+    {
+     "at": "wav /framework/ux/Dictate/capture.js:150",
+     "ms": 117
+    },
+    {
+     "at": "style /framework/core/View/View.js:289",
+     "ms": 76
+    },
+    {
+     "at": "requestAnimationFrame :0",
+     "ms": 76
+    },
+    {
+     "at": "fetch :0",
+     "ms": 64
+    },
+    {
+     "at": "on_level /framework/ux/Dictate/Dictate.js:422",
+     "ms": 47
+    },
+    {
+     "at": "Blob :0",
+     "ms": 44
+    },
+    {
+     "at": "on_level /framework/ext/Chat/Mic.js:113",
+     "ms": 44
+    },
+    {
+     "at": "lev /framework/ext/Chat/Mic.js:82",
+     "ms": 24
+    }
+   ],
+   "window_inclusive_top": [
+    {
+     "at": "anchor /framework/ux/Dictate/Widget.js:250",
+     "ms": 2267
+    },
+    {
+     "at": "draw_caption /framework/ext/Chat/Mic.js:198",
+     "ms": 2257
+    },
+    {
+     "at": "show_live /framework/ext/Chat/Mic.js:266",
+     "ms": 2225
+    },
+    {
+     "at": "composer.on_live /framework/ux/Dictate/Widget.js:713",
+     "ms": 2213
+    },
+    {
+     "at": "live /framework/ux/Dictate/Widget.js:438",
+     "ms": 2212
+    },
+    {
+     "at": "partial_tick /framework/ux/Dictate/Dictate.js:470",
+     "ms": 1061
+    },
+    {
+     "at": "node.port.onmessage /framework/ux/Dictate/capture.js:62",
+     "ms": 547
+    },
+    {
+     "at": "(anon) /framework/ux/Dictate/Dictate.js:418",
+     "ms": 360
+    },
+    {
+     "at": "on_level /framework/ext/Chat/Mic.js:113",
+     "ms": 356
+    },
+    {
+     "at": "on_level /framework/ux/Dictate/Dictate.js:422",
+     "ms": 308
+    },
+    {
+     "at": "heartbeat /framework/ux/Dictate/Dictate.js:433",
+     "ms": 258
+    },
+    {
+     "at": "(anon) /framework/ux/Dictate/Dictate.js:291",
+     "ms": 257
+    },
+    {
+     "at": "style /framework/core/View/View.js:289",
+     "ms": 257
+    },
+    {
+     "at": "transcribe /framework/ux/Dictate/Dictate.js:544",
+     "ms": 241
+    },
+    {
+     "at": "wav /framework/ux/Dictate/capture.js:150",
+     "ms": 161
+    },
+    {
+     "at": "close_segment /framework/ux/Dictate/Dictate.js:490",
+     "ms": 123
+    },
+    {
+     "at": "(anon) /framework/ux/Dictate/DictationBar.js:70",
+     "ms": 111
+    },
+    {
+     "at": "commit /framework/ext/Chat/Mic.js:142",
+     "ms": 95
+    },
+    {
+     "at": "commit /framework/ux/Dictate/Dictate.js:674",
+     "ms": 92
+    },
+    {
+     "at": "mic.on_meter /framework/ux/Dictate/DictationBar.js:61",
+     "ms": 84
+    },
+    {
+     "at": "send_screen /framework/ext/Chat/Mic.js:561",
+     "ms": 79
+    },
+    {
+     "at": "take_out /framework/ext/Chat/Mic.js:644",
+     "ms": 74
+    },
+    {
+     "at": "log_prompt /framework/ext/Chat/Mic.js:438",
+     "ms": 73
+    },
+    {
+     "at": "on_out /framework/ux/Dictate/Widget.js:709",
+     "ms": 70
+    },
+    {
+     "at": "show_out /framework/ux/Dictate/Widget.js:77",
+     "ms": 70
+    }
+   ]
+  },
+  "hand-4x": {
+   "mode": "hand",
+   "throttle": 4,
+   "seconds": 60,
+   "bubbles_before": 207,
+   "says": 6,
+   "whisper_calls": 0,
+   "long_over_50": 22,
+   "longest_ms": 264,
+   "total_blocked_ms": 1493,
+   "long_tasks": [
+    {
+     "at_ms": 1695,
+     "dur_ms": 52,
+     "trigger_entry": [
+      {
+       "at": "(anon) /framework/ux/Dictate/DictationBar.js:70",
+       "ms": 1
+      }
+     ],
+     "top_inclusive": [
+      {
+       "at": "(anon) /framework/ux/Dictate/DictationBar.js:70",
+       "ms": 1
+      },
+      {
+       "at": "style /framework/core/View/View.js:289",
+       "ms": 1
+      }
+     ]
+    },
+    {
+     "at_ms": 5451,
+     "dur_ms": 53,
+     "trigger_entry": [
+      {
+       "at": "node.port.onmessage /framework/ux/Dictate/capture.js:62",
+       "ms": 2
+      }
+     ],
+     "top_inclusive": [
+      {
+       "at": "node.port.onmessage /framework/ux/Dictate/capture.js:62",
+       "ms": 2
+      },
+      {
+       "at": "(anon) /framework/ux/Dictate/Dictate.js:418",
+       "ms": 2
+      },
+      {
+       "at": "on_level /framework/ext/Chat/Mic.js:113",
+       "ms": 2
+      },
+      {
+       "at": "on_level /framework/ux/Dictate/Dictate.js:422",
+       "ms": 2
+      },
+      {
+       "at": "style /framework/core/View/View.js:289",
+       "ms": 2
+      }
+     ]
+    },
+    {
+     "at_ms": 6153,
+     "dur_ms": 65,
+     "trigger_entry": [
+      {
+       "at": "node.port.onmessage /framework/ux/Dictate/capture.js:62",
+       "ms": 1
+      }
+     ],
+     "top_inclusive": [
+      {
+       "at": "node.port.onmessage /framework/ux/Dictate/capture.js:62",
+       "ms": 1
+      },
+      {
+       "at": "(anon) /framework/ux/Dictate/Dictate.js:418",
+       "ms": 1
+      },
+      {
+       "at": "on_level /framework/ext/Chat/Mic.js:113",
+       "ms": 1
+      },
+      {
+       "at": "on_level /framework/ux/Dictate/Dictate.js:422",
+       "ms": 1
+      },
+      {
+       "at": "level /framework/ux/Dictate/floor.js:61",
+       "ms": 1
+      }
+     ]
+    },
+    {
+     "at_ms": 9985,
+     "dur_ms": 51,
+     "trigger_entry": [
+      {
+       "at": "node.port.onmessage /framework/ux/Dictate/capture.js:62",
+       "ms": 1
+      }
+     ],
+     "top_inclusive": [
+      {
+       "at": "node.port.onmessage /framework/ux/Dictate/capture.js:62",
+       "ms": 1
+      },
+      {
+       "at": "(anon) /framework/ux/Dictate/Dictate.js:418",
+       "ms": 1
+      },
+      {
+       "at": "on_level /framework/ext/Chat/Mic.js:113",
+       "ms": 1
+      },
+      {
+       "at": "on_level /framework/ux/Dictate/Dictate.js:422",
+       "ms": 1
+      },
+      {
+       "at": "mic.on_meter /framework/ux/Dictate/DictationBar.js:61",
+       "ms": 1
+      }
+     ]
+    },
+    {
+     "at_ms": 14602,
+     "dur_ms": 52,
+     "trigger_entry": [
+      {
+       "at": "(anon) /framework/ux/Dictate/DictationBar.js:70",
+       "ms": 1
+      }
+     ],
+     "top_inclusive": [
+      {
+       "at": "(anon) /framework/ux/Dictate/DictationBar.js:70",
+       "ms": 1
+      },
+      {
+       "at": "style /framework/core/View/View.js:289",
+       "ms": 1
+      }
+     ]
+    },
+    {
+     "at_ms": 14955,
+     "dur_ms": 74,
+     "trigger_entry": [
+      {
+       "at": "draw_caption /framework/ext/Chat/Mic.js:198",
+       "ms": 6
+      },
+      {
+       "at": "node.port.onmessage /framework/ux/Dictate/capture.js:62",
+       "ms": 1
+      }
+     ],
+     "top_inclusive": [
+      {
+       "at": "draw_caption /framework/ext/Chat/Mic.js:198",
+       "ms": 6
+      },
+      {
+       "at": "show_live /framework/ext/Chat/Mic.js:266",
+       "ms": 6
+      },
+      {
+       "at": "composer.on_live /framework/ux/Dictate/Widget.js:713",
+       "ms": 6
+      },
+      {
+       "at": "live /framework/ux/Dictate/Widget.js:438",
+       "ms": 6
+      },
+      {
+       "at": "anchor /framework/ux/Dictate/Widget.js:250",
+       "ms": 6
+      }
+     ]
+    },
+    {
+     "at_ms": 15261,
+     "dur_ms": 264,
+     "trigger_entry": [
+      {
+       "at": "draw_caption /framework/ext/Chat/Mic.js:198",
+       "ms": 73
+      },
+      {
+       "at": "node.port.onmessage /framework/ux/Dictate/capture.js:62",
+       "ms": 2
+      }
+     ],
+     "top_inclusive": [
+      {
+       "at": "draw_caption /framework/ext/Chat/Mic.js:198",
+       "ms": 73
+      },
+      {
+       "at": "show_live /framework/ext/Chat/Mic.js:266",
+       "ms": 73
+      },
+      {
+       "at": "composer.on_live /framework/ux/Dictate/Widget.js:713",
+       "ms": 73
+      },
+      {
+       "at": "live /framework/ux/Dictate/Widget.js:438",
+       "ms": 73
+      },
+      {
+       "at": "anchor /framework/ux/Dictate/Widget.js:250",
+       "ms": 72
+      }
+     ]
+    },
+    {
+     "at_ms": 15546,
+     "dur_ms": 66,
+     "trigger_entry": [],
+     "top_inclusive": []
+    },
+    {
+     "at_ms": 15913,
+     "dur_ms": 58,
+     "trigger_entry": [
+      {
+       "at": "draw_caption /framework/ext/Chat/Mic.js:198",
+       "ms": 4
+      },
+      {
+       "at": "node.port.onmessage /framework/ux/Dictate/capture.js:62",
+       "ms": 1
+      }
+     ],
+     "top_inclusive": [
+      {
+       "at": "draw_caption /framework/ext/Chat/Mic.js:198",
+       "ms": 4
+      },
+      {
+       "at": "show_live /framework/ext/Chat/Mic.js:266",
+       "ms": 3
+      },
+      {
+       "at": "composer.on_live /framework/ux/Dictate/Widget.js:713",
+       "ms": 3
+      },
+      {
+       "at": "live /framework/ux/Dictate/Widget.js:438",
+       "ms": 3
+      },
+      {
+       "at": "anchor /framework/ux/Dictate/Widget.js:250",
+       "ms": 2
+      }
+     ]
+    },
+    {
+     "at_ms": 16967,
+     "dur_ms": 50,
+     "trigger_entry": [
+      {
+       "at": "node.port.onmessage /framework/ux/Dictate/capture.js:62",
+       "ms": 1
+      }
+     ],
+     "top_inclusive": [
+      {
+       "at": "node.port.onmessage /framework/ux/Dictate/capture.js:62",
+       "ms": 1
+      },
+      {
+       "at": "(anon) /framework/ux/Dictate/Dictate.js:418",
+       "ms": 1
+      },
+      {
+       "at": "on_level /framework/ext/Chat/Mic.js:113",
+       "ms": 1
+      },
+      {
+       "at": "on_level /framework/ux/Dictate/Dictate.js:422",
+       "ms": 1
+      },
+      {
+       "at": "mic.on_meter /framework/ux/Dictate/DictationBar.js:61",
+       "ms": 1
+      }
+     ]
+    },
+    {
+     "at_ms": 17659,
+     "dur_ms": 55,
+     "trigger_entry": [
+      {
+       "at": "node.port.onmessage /framework/ux/Dictate/capture.js:62",
+       "ms": 2
+      },
+      {
+       "at": "(anon) /framework/dev/Socket/Socket.js:181",
+       "ms": 1
+      }
+     ],
+     "top_inclusive": [
+      {
+       "at": "node.port.onmessage /framework/ux/Dictate/capture.js:62",
+       "ms": 2
+      },
+      {
+       "at": "(anon) /framework/ux/Dictate/Dictate.js:418",
+       "ms": 2
+      },
+      {
+       "at": "on_level /framework/ext/Chat/Mic.js:113",
+       "ms": 2
+      },
+      {
+       "at": "on_level /framework/ux/Dictate/Dictate.js:422",
+       "ms": 2
+      },
+      {
+       "at": "style /framework/core/View/View.js:289",
+       "ms": 2
+      }
+     ]
+    },
+    {
+     "at_ms": 20125,
+     "dur_ms": 56,
+     "trigger_entry": [
+      {
+       "at": "(anon) /framework/ux/Dictate/DictationBar.js:70",
+       "ms": 2
+      }
+     ],
+     "top_inclusive": [
+      {
+       "at": "(anon) /framework/ux/Dictate/DictationBar.js:70",
+       "ms": 2
+      },
+      {
+       "at": "style /framework/core/View/View.js:289",
+       "ms": 1
+      }
+     ]
+    },
+    {
+     "at_ms": 30632,
+     "dur_ms": 57,
+     "trigger_entry": [
+      {
+       "at": "draw_caption /framework/ext/Chat/Mic.js:198",
+       "ms": 11
+      },
+      {
+       "at": "node.port.onmessage /framework/ux/Dictate/capture.js:62",
+       "ms": 1
+      }
+     ],
+     "top_inclusive": [
+      {
+       "at": "draw_caption /framework/ext/Chat/Mic.js:198",
+       "ms": 11
+      },
+      {
+       "at": "show_live /framework/ext/Chat/Mic.js:266",
+       "ms": 11
+      },
+      {
+       "at": "composer.on_live /framework/ux/Dictate/Widget.js:713",
+       "ms": 11
+      },
+      {
+       "at": "live /framework/ux/Dictate/Widget.js:438",
+       "ms": 11
+      },
+      {
+       "at": "anchor /framework/ux/Dictate/Widget.js:250",
+       "ms": 11
+      }
+     ]
+    },
+    {
+     "at_ms": 31554,
+     "dur_ms": 81,
+     "trigger_entry": [
+      {
+       "at": "draw_caption /framework/ext/Chat/Mic.js:198",
+       "ms": 1
+      }
+     ],
+     "top_inclusive": [
+      {
+       "at": "draw_caption /framework/ext/Chat/Mic.js:198",
+       "ms": 1
+      },
+      {
+       "at": "show_live /framework/ext/Chat/Mic.js:266",
+       "ms": 1
+      },
+      {
+       "at": "composer.on_live /framework/ux/Dictate/Widget.js:713",
+       "ms": 1
+      },
+      {
+       "at": "live /framework/ux/Dictate/Widget.js:438",
+       "ms": 1
+      },
+      {
+       "at": "anchor /framework/ux/Dictate/Widget.js:250",
+       "ms": 1
+      }
+     ]
+    },
+    {
+     "at_ms": 31938,
+     "dur_ms": 95,
+     "trigger_entry": [
+      {
+       "at": "draw_caption /framework/ext/Chat/Mic.js:198",
+       "ms": 59
+      }
+     ],
+     "top_inclusive": [
+      {
+       "at": "draw_caption /framework/ext/Chat/Mic.js:198",
+       "ms": 59
+      },
+      {
+       "at": "show_live /framework/ext/Chat/Mic.js:266",
+       "ms": 59
+      },
+      {
+       "at": "composer.on_live /framework/ux/Dictate/Widget.js:713",
+       "ms": 58
+      },
+      {
+       "at": "live /framework/ux/Dictate/Widget.js:438",
+       "ms": 58
+      },
+      {
+       "at": "anchor /framework/ux/Dictate/Widget.js:250",
+       "ms": 58
+      }
+     ]
+    },
+    {
+     "at_ms": 32339,
+     "dur_ms": 52,
+     "trigger_entry": [
+      {
+       "at": "draw_caption /framework/ext/Chat/Mic.js:198",
+       "ms": 31
+      },
+      {
+       "at": "(anon) /framework/dev/Socket/Socket.js:63",
+       "ms": 3
+      }
+     ],
+     "top_inclusive": [
+      {
+       "at": "draw_caption /framework/ext/Chat/Mic.js:198",
+       "ms": 31
+      },
+      {
+       "at": "show_live /framework/ext/Chat/Mic.js:266",
+       "ms": 31
+      },
+      {
+       "at": "composer.on_live /framework/ux/Dictate/Widget.js:713",
+       "ms": 31
+      },
+      {
+       "at": "live /framework/ux/Dictate/Widget.js:438",
+       "ms": 31
+      },
+      {
+       "at": "anchor /framework/ux/Dictate/Widget.js:250",
+       "ms": 30
+      }
+     ]
+    },
+    {
+     "at_ms": 32692,
+     "dur_ms": 53,
+     "trigger_entry": [
+      {
+       "at": "node.port.onmessage /framework/ux/Dictate/capture.js:62",
+       "ms": 3
+      }
+     ],
+     "top_inclusive": [
+      {
+       "at": "node.port.onmessage /framework/ux/Dictate/capture.js:62",
+       "ms": 3
+      },
+      {
+       "at": "(anon) /framework/ux/Dictate/Dictate.js:418",
+       "ms": 2
+      },
+      {
+       "at": "on_level /framework/ext/Chat/Mic.js:113",
+       "ms": 2
+      },
+      {
+       "at": "on_level /framework/ux/Dictate/Dictate.js:422",
+       "ms": 2
+      },
+      {
+       "at": "style /framework/core/View/View.js:289",
+       "ms": 2
+      }
+     ]
+    },
+    {
+     "at_ms": 34427,
+     "dur_ms": 50,
+     "trigger_entry": [
+      {
+       "at": "node.port.onmessage /framework/ux/Dictate/capture.js:62",
+       "ms": 2
+      }
+     ],
+     "top_inclusive": [
+      {
+       "at": "node.port.onmessage /framework/ux/Dictate/capture.js:62",
+       "ms": 2
+      },
+      {
+       "at": "(anon) /framework/ux/Dictate/Dictate.js:418",
+       "ms": 2
+      },
+      {
+       "at": "on_level /framework/ext/Chat/Mic.js:113",
+       "ms": 2
+      },
+      {
+       "at": "on_level /framework/ux/Dictate/Dictate.js:422",
+       "ms": 2
+      },
+      {
+       "at": "level /framework/ux/Dictate/floor.js:61",
+       "ms": 1
+      }
+     ]
+    },
+    {
+     "at_ms": 39946,
+     "dur_ms": 55,
+     "trigger_entry": [
+      {
+       "at": "node.port.onmessage /framework/ux/Dictate/capture.js:62",
+       "ms": 2
+      },
+      {
+       "at": "(anon) /framework/ux/Dictate/DictationBar.js:70",
+       "ms": 1
+      }
+     ],
+     "top_inclusive": [
+      {
+       "at": "node.port.onmessage /framework/ux/Dictate/capture.js:62",
+       "ms": 2
+      },
+      {
+       "at": "(anon) /framework/ux/Dictate/DictationBar.js:70",
+       "ms": 1
+      },
+      {
+       "at": "(anon) /framework/ux/Dictate/Dictate.js:418",
+       "ms": 1
+      },
+      {
+       "at": "on_level /framework/ext/Chat/Mic.js:113",
+       "ms": 1
+      },
+      {
+       "at": "on_level /framework/ux/Dictate/Dictate.js:422",
+       "ms": 1
+      }
+     ]
+    },
+    {
+     "at_ms": 48004,
+     "dur_ms": 52,
+     "trigger_entry": [
+      {
+       "at": "node.port.onmessage /framework/ux/Dictate/capture.js:62",
+       "ms": 2
+      }
+     ],
+     "top_inclusive": [
+      {
+       "at": "node.port.onmessage /framework/ux/Dictate/capture.js:62",
+       "ms": 2
+      },
+      {
+       "at": "(anon) /framework/ux/Dictate/Dictate.js:418",
+       "ms": 1
+      },
+      {
+       "at": "on_level /framework/ext/Chat/Mic.js:113",
+       "ms": 1
+      },
+      {
+       "at": "on_level /framework/ux/Dictate/Dictate.js:422",
+       "ms": 1
+      }
+     ]
+    },
+    {
+     "at_ms": 50449,
+     "dur_ms": 50,
+     "trigger_entry": [
+      {
+       "at": "node.port.onmessage /framework/ux/Dictate/capture.js:62",
+       "ms": 1
+      }
+     ],
+     "top_inclusive": [
+      {
+       "at": "node.port.onmessage /framework/ux/Dictate/capture.js:62",
+       "ms": 1
+      },
+      {
+       "at": "(anon) /framework/ux/Dictate/Dictate.js:418",
+       "ms": 1
+      },
+      {
+       "at": "on_level /framework/ext/Chat/Mic.js:113",
+       "ms": 1
+      },
+      {
+       "at": "on_level /framework/ux/Dictate/Dictate.js:422",
+       "ms": 1
+      },
+      {
+       "at": "mic.on_meter /framework/ux/Dictate/DictationBar.js:61",
+       "ms": 1
+      }
+     ]
+    },
+    {
+     "at_ms": 58879,
+     "dur_ms": 52,
+     "trigger_entry": [],
+     "top_inclusive": []
+    }
+   ],
+   "window_self_top": [
+    {
+     "at": "(idle) :0",
+     "ms": 80522
+    },
+    {
+     "at": "(program) :0",
+     "ms": 29413
+    },
+    {
+     "at": "getBoundingClientRect :0",
+     "ms": 6604
+    },
+    {
+     "at": "setProperty :0",
+     "ms": 965
+    },
+    {
+     "at": "node.port.onmessage /framework/ux/Dictate/capture.js:62",
+     "ms": 362
+    },
+    {
+     "at": "requestAnimationFrame :0",
+     "ms": 321
+    },
+    {
+     "at": "style /framework/core/View/View.js:289",
+     "ms": 292
+    },
+    {
+     "at": "(garbage collector) :0",
+     "ms": 260
+    },
+    {
+     "at": "on_level /framework/ext/Chat/Mic.js:113",
+     "ms": 216
+    },
+    {
+     "at": "on_level /framework/ux/Dictate/Dictate.js:422",
+     "ms": 186
+    },
+    {
+     "at": "loaded /framework/dev/Socket/Socket.js:298",
+     "ms": 104
+    },
+    {
+     "at": "set_level /framework/ux/Dictate/MicIndicator.js:21",
+     "ms": 83
+    },
+    {
+     "at": "(anon) /framework/ux/Dictate/DictationBar.js:70",
+     "ms": 81
+    },
+    {
+     "at": "URL :0",
+     "ms": 54
+    }
+   ],
+   "window_inclusive_top": [
+    {
+     "at": "anchor /framework/ux/Dictate/Widget.js:250",
+     "ms": 6611
+    },
+    {
+     "at": "draw_caption /framework/ext/Chat/Mic.js:198",
+     "ms": 6459
+    },
+    {
+     "at": "show_live /framework/ext/Chat/Mic.js:266",
+     "ms": 6427
+    },
+    {
+     "at": "composer.on_live /framework/ux/Dictate/Widget.js:713",
+     "ms": 6423
+    },
+    {
+     "at": "live /framework/ux/Dictate/Widget.js:438",
+     "ms": 6420
+    },
+    {
+     "at": "node.port.onmessage /framework/ux/Dictate/capture.js:62",
+     "ms": 2224
+    },
+    {
+     "at": "(anon) /framework/ux/Dictate/Dictate.js:418",
+     "ms": 1790
+    },
+    {
+     "at": "on_level /framework/ext/Chat/Mic.js:113",
+     "ms": 1783
+    },
+    {
+     "at": "on_level /framework/ux/Dictate/Dictate.js:422",
+     "ms": 1544
+    },
+    {
+     "at": "style /framework/core/View/View.js:289",
+     "ms": 1260
+    },
+    {
+     "at": "(anon) /framework/ux/Dictate/DictationBar.js:70",
+     "ms": 521
+    },
+    {
+     "at": "mic.on_meter /framework/ux/Dictate/DictationBar.js:61",
+     "ms": 362
+    },
+    {
+     "at": "send_screen /framework/ext/Chat/Mic.js:561",
+     "ms": 288
+    },
+    {
+     "at": "take_out /framework/ext/Chat/Mic.js:644",
+     "ms": 282
+    },
+    {
+     "at": "on_out /framework/ux/Dictate/Widget.js:709",
+     "ms": 269
+    },
+    {
+     "at": "show_out /framework/ux/Dictate/Widget.js:77",
+     "ms": 269
+    },
+    {
+     "at": "draw /framework/ux/Dictate/Widget.js:274",
+     "ms": 266
+    },
+    {
+     "at": "set_level /framework/ux/Dictate/MicIndicator.js:21",
+     "ms": 252
+    },
+    {
+     "at": "(anon) /framework/ux/Dictate/MicIndicator.js:23",
+     "ms": 164
+    },
+    {
+     "at": "(anon) /framework/dev/Socket/Socket.js:63",
+     "ms": 164
+    },
+    {
+     "at": "message /framework/dev/Socket/Socket.js:128",
+     "ms": 164
+    },
+    {
+     "at": "changed /framework/dev/Socket/Socket.js:218",
+     "ms": 161
+    },
+    {
+     "at": "loaded /framework/dev/Socket/Socket.js:298",
+     "ms": 158
+    },
+    {
+     "at": "paint /framework/ux/Dictate/MicIndicator.js:46",
+     "ms": 144
+    },
+    {
+     "at": "tick /framework/ext/Session/Session.js:205",
+     "ms": 95
+    }
+   ]
+  }
+ },
+ "open_sheet": {
+  "home-1x": [
+   {
+    "run": 1,
+    "long_tasks": [
+     {
+      "start": 1967,
+      "dur": 1335
+     }
+    ],
+    "cpu_inclusive_top": [
+     {
+      "at": "tick /framework/ext/Session/Session.js:205",
+      "incl_ms": 1329
+     },
+     {
+      "at": "say /framework/ux/Dictate/Widget.js:97",
+      "incl_ms": 1325
+     },
+     {
+      "at": "draw /framework/ux/Dictate/chat.js:203",
+      "incl_ms": 1325
+     },
+     {
+      "at": "draw /framework/ux/Dictate/Widget.js:274",
+      "incl_ms": 1323
+     },
+     {
+      "at": "anchor /framework/ux/Dictate/Widget.js:250",
+      "incl_ms": 1131
+     },
+     {
+      "at": "refresh /framework/ux/Dictate/Widget.js:319",
+      "incl_ms": 128
+     },
+     {
+      "at": "(anon) /framework/ux/Dictate/Widget.js:526",
+      "incl_ms": 84
+     },
+     {
+      "at": "follow /framework/ux/Dictate/Widget.js:263",
+      "incl_ms": 68
+     }
+    ]
+   },
+   {
+    "run": 2,
+    "long_tasks": [
+     {
+      "start": 3484,
+      "dur": 1210
+     }
+    ],
+    "cpu_inclusive_top": [
+     {
+      "at": "tick /framework/ext/Session/Session.js:205",
+      "incl_ms": 1206
+     },
+     {
+      "at": "draw /framework/ux/Dictate/chat.js:203",
+      "incl_ms": 1201
+     },
+     {
+      "at": "draw /framework/ux/Dictate/Widget.js:274",
+      "incl_ms": 1199
+     },
+     {
+      "at": "say /framework/ux/Dictate/Widget.js:97",
+      "incl_ms": 1199
+     },
+     {
+      "at": "anchor /framework/ux/Dictate/Widget.js:250",
+      "incl_ms": 1024
+     },
+     {
+      "at": "refresh /framework/ux/Dictate/Widget.js:319",
+      "incl_ms": 101
+     },
+     {
+      "at": "(anon) /framework/ux/Dictate/Widget.js:303",
+      "incl_ms": 70
+     },
+     {
+      "at": "follow /framework/ux/Dictate/Widget.js:263",
+      "incl_ms": 70
+     }
+    ]
+   },
+   {
+    "run": 3,
+    "long_tasks": [
+     {
+      "start": 2094,
+      "dur": 1565
+     },
+     {
+      "start": 6014,
+      "dur": 55
+     }
+    ],
+    "cpu_inclusive_top": [
+     {
+      "at": "tick /framework/ext/Session/Session.js:205",
+      "incl_ms": 1562
+     },
+     {
+      "at": "draw /framework/ux/Dictate/chat.js:203",
+      "incl_ms": 1558
+     },
+     {
+      "at": "draw /framework/ux/Dictate/Widget.js:274",
+      "incl_ms": 1557
+     },
+     {
+      "at": "say /framework/ux/Dictate/Widget.js:97",
+      "incl_ms": 1557
+     },
+     {
+      "at": "anchor /framework/ux/Dictate/Widget.js:250",
+      "incl_ms": 1343
+     },
+     {
+      "at": "refresh /framework/ux/Dictate/Widget.js:319",
+      "incl_ms": 134
+     },
+     {
+      "at": "draw_refined /framework/ux/Dictate/Widget.js:394",
+      "incl_ms": 73
+     },
+     {
+      "at": "(anon) /framework/ux/Dictate/Widget.js:526",
+      "incl_ms": 68
+     }
+    ]
+   }
+  ],
+  "home-4x": [
+   {
+    "run": 1,
+    "long_tasks": [
+     {
+      "start": 2786,
+      "dur": 135
+     },
+     {
+      "start": 3197,
+      "dur": 229
+     },
+     {
+      "start": 3426,
+      "dur": 318
+     },
+     {
+      "start": 5629,
+      "dur": 136
+     },
+     {
+      "start": 5813,
+      "dur": 6618
+     },
+     {
+      "start": 13238,
+      "dur": 62
+     },
+     {
+      "start": 14612,
+      "dur": 72
+     }
+    ],
+    "cpu_inclusive_top": [
+     {
+      "at": "tick /framework/ext/Session/Session.js:205",
+      "incl_ms": 6600
+     },
+     {
+      "at": "draw /framework/ux/Dictate/chat.js:203",
+      "incl_ms": 6574
+     },
+     {
+      "at": "say /framework/ux/Dictate/Widget.js:97",
+      "incl_ms": 6563
+     },
+     {
+      "at": "draw /framework/ux/Dictate/Widget.js:274",
+      "incl_ms": 6560
+     },
+     {
+      "at": "anchor /framework/ux/Dictate/Widget.js:250",
+      "incl_ms": 5661
+     },
+     {
+      "at": "refresh /framework/ux/Dictate/Widget.js:319",
+      "incl_ms": 532
+     },
+     {
+      "at": "follow /framework/ux/Dictate/Widget.js:263",
+      "incl_ms": 322
+     },
+     {
+      "at": "(anon) /framework/ux/Dictate/Widget.js:303",
+      "incl_ms": 319
+     }
+    ]
+   },
+   {
+    "run": 2,
+    "long_tasks": [
+     {
+      "start": 622,
+      "dur": 133
+     },
+     {
+      "start": 999,
+      "dur": 145
+     },
+     {
+      "start": 1146,
+      "dur": 178
+     },
+     {
+      "start": 3135,
+      "dur": 159
+     },
+     {
+      "start": 3398,
+      "dur": 6879
+     },
+     {
+      "start": 10927,
+      "dur": 55
+     },
+     {
+      "start": 11527,
+      "dur": 50
+     }
+    ],
+    "cpu_inclusive_top": [
+     {
+      "at": "tick /framework/ext/Session/Session.js:205",
+      "incl_ms": 6863
+     },
+     {
+      "at": "draw /framework/ux/Dictate/chat.js:203",
+      "incl_ms": 6844
+     },
+     {
+      "at": "say /framework/ux/Dictate/Widget.js:97",
+      "incl_ms": 6841
+     },
+     {
+      "at": "draw /framework/ux/Dictate/Widget.js:274",
+      "incl_ms": 6832
+     },
+     {
+      "at": "anchor /framework/ux/Dictate/Widget.js:250",
+      "incl_ms": 5877
+     },
+     {
+      "at": "refresh /framework/ux/Dictate/Widget.js:319",
+      "incl_ms": 594
+     },
+     {
+      "at": "(anon) /framework/ux/Dictate/Widget.js:526",
+      "incl_ms": 377
+     },
+     {
+      "at": "follow /framework/ux/Dictate/Widget.js:263",
+      "incl_ms": 345
+     }
+    ]
+   },
+   {
+    "run": 3,
+    "long_tasks": [
+     {
+      "start": 280,
+      "dur": 126
+     },
+     {
+      "start": 574,
+      "dur": 135
+     },
+     {
+      "start": 728,
+      "dur": 185
+     },
+     {
+      "start": 2731,
+      "dur": 149
+     },
+     {
+      "start": 2961,
+      "dur": 7810
+     }
+    ],
+    "cpu_inclusive_top": [
+     {
+      "at": "tick /framework/ext/Session/Session.js:205",
+      "incl_ms": 7786
+     },
+     {
+      "at": "draw /framework/ux/Dictate/chat.js:203",
+      "incl_ms": 7764
+     },
+     {
+      "at": "say /framework/ux/Dictate/Widget.js:97",
+      "incl_ms": 7759
+     },
+     {
+      "at": "draw /framework/ux/Dictate/Widget.js:274",
+      "incl_ms": 7751
+     },
+     {
+      "at": "anchor /framework/ux/Dictate/Widget.js:250",
+      "incl_ms": 6731
+     },
+     {
+      "at": "refresh /framework/ux/Dictate/Widget.js:319",
+      "incl_ms": 593
+     },
+     {
+      "at": "follow /framework/ux/Dictate/Widget.js:263",
+      "incl_ms": 356
+     },
+     {
+      "at": "(anon) /framework/ux/Dictate/Widget.js:303",
+      "incl_ms": 352
+     }
+    ]
+   }
+  ]
+ }
+}

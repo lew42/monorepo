@@ -1,0 +1,7 @@
+@layer base, theme, site, util;
+
+/* The crawl journal — a card grid over foreign jpegs, not foreign pages, so it can't
+   reuse `.page-preview-thumb`'s live-render slot; it only needs the picture to fill it. */
+@layer theme {
+	.journey-shot { display: block; width: 100%; height: 100%; object-fit: cover; }
+}

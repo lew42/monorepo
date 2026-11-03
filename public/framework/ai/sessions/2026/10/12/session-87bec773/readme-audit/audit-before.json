@@ -1,0 +1,2056 @@
+[
+ {
+  "file": "public/framework/ai/archive/ai2/readme.md",
+  "lines": 4,
+  "broken": [
+   "../../2026-10-09/ai2-merge/manifest.json"
+  ],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ai/asks/readme.md",
+  "lines": 50,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ai/cards/readme.md",
+  "lines": 16,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ai/council/readme.md",
+  "lines": 11,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ai/dashboard/readme.md",
+  "lines": 62,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ai/doc/readme.md",
+  "lines": 22,
+  "broken": [
+   "../2026-10-12/claude-md-consolidate/review.md"
+  ],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ai/health/readme.md",
+  "lines": 46,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ai/local/readme.md",
+  "lines": 52,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ai/quick-fix/readme.md",
+  "lines": 38,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ai/rail/readme.md",
+  "lines": 19,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ai/readme.md",
+  "lines": 108,
+  "broken": [
+   "all-tasks/",
+   "readmes/",
+   "overview.js",
+   "/framework/servex/doc/budget.md",
+   "/framework/servex/doc/sdk.md",
+   "/framework/servex/doc/architecture.md",
+   "/framework/servex/doc/echo.md",
+   "skills/"
+  ],
+  "missing": [
+   "AISession",
+   "audits",
+   "health",
+   "quick-fix",
+   "review",
+   "tests"
+  ]
+ },
+ {
+  "file": "public/framework/ai/review/readme.md",
+  "lines": 47,
+  "broken": [
+   "../page/questions.md"
+  ],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ai/sessions/doc/readme.md",
+  "lines": 13,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ai/sessions/readme.md",
+  "lines": 88,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ai/system/readme.md",
+  "lines": 10,
+  "broken": [
+   "../overview.js"
+  ],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ai/talk/readme.md",
+  "lines": 62,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ai/v/2/readme.md",
+  "lines": 32,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ai/v/3/readme.md",
+  "lines": 222,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ai2/readme.md",
+  "lines": 12,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/audio/MicStream/readme.md",
+  "lines": 65,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/audio/readme.md",
+  "lines": 81,
+  "broken": [],
+  "missing": [
+   "mic-to-text",
+   "sound-recorder",
+   "Voice"
+  ]
+ },
+ {
+  "file": "public/framework/audio/Recorder/readme.md",
+  "lines": 27,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/audio/Transcriber/readme.md",
+  "lines": 64,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/audio/v1/LevelMeter/readme.md",
+  "lines": 20,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/audio/v1/mic-to-text/readme.md",
+  "lines": 12,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/audio/v1/MicPicker/readme.md",
+  "lines": 28,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/audio/v1/push-to-talk/readme.md",
+  "lines": 16,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/audio/v1/PushToTalk/readme.md",
+  "lines": 26,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/audio/v1/readme.md",
+  "lines": 28,
+  "broken": [],
+  "missing": [
+   "mic-to-text",
+   "push-to-talk",
+   "sound-recorder"
+  ]
+ },
+ {
+  "file": "public/framework/audio/v1/sound-recorder/readme.md",
+  "lines": 11,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/audio/Voice/readme.md",
+  "lines": 31,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/audio/Whisper/readme.md",
+  "lines": 9,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/audit/browsable/readme.md",
+  "lines": 20,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/audit/readme.md",
+  "lines": 21,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/code/css/readme.md",
+  "lines": 48,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/code/dos-and-donts/readme.md",
+  "lines": 41,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/code/objects/readme.md",
+  "lines": 45,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/code/patterns/readme.md",
+  "lines": 53,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/code/performance/readme.md",
+  "lines": 37,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/code/readme.md",
+  "lines": 46,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/core/App/readme.md",
+  "lines": 29,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/core/Events/readme.md",
+  "lines": 59,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/core/Item/readme.md",
+  "lines": 71,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/core/Layout/readme.md",
+  "lines": 72,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/core/List/readme.md",
+  "lines": 52,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/core/new/1/readme.md",
+  "lines": 591,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/core/new/1/site/chrome/readme.md",
+  "lines": 6,
+  "broken": [],
+  "missing": [
+   "crumbs",
+   "drawer",
+   "focus",
+   "marks",
+   "palette",
+   "siblings",
+   "sidebar",
+   "topbar"
+  ]
+ },
+ {
+  "file": "public/framework/core/new/1/site/kit/readme.md",
+  "lines": 6,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/core/new/1/site/library/readme.md",
+  "lines": 6,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/core/new/readme.md",
+  "lines": 69,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/core/Page/ai/readme.md",
+  "lines": 49,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/core/Page/audit/readme.md",
+  "lines": 20,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/core/Page/card/log/readme.md",
+  "lines": 51,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/core/Page/card/log/whisper/readme.md",
+  "lines": 32,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/core/Page/card/readme.md",
+  "lines": 58,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/core/Page/content-shapes/readme.md",
+  "lines": 12,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/core/Page/dynamic/readme.md",
+  "lines": 20,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/core/Page/ext/Inbox/readme.md",
+  "lines": 99,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/core/Page/ext/readme.md",
+  "lines": 83,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/core/Page/generator/readme.md",
+  "lines": 290,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/core/Page/jsonl/readme.md",
+  "lines": 49,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/core/Page/layout/readme.md",
+  "lines": 79,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/core/Page/layout/switcher/readme.md",
+  "lines": 63,
+  "broken": [],
+  "missing": [
+   "cmp-w-app",
+   "cmp-w-index",
+   "narrow-app",
+   "narrow-index",
+   "nav-home",
+   "nav-settings",
+   "tree-router",
+   "tree-styles",
+   "wide-app",
+   "wide-index"
+  ]
+ },
+ {
+  "file": "public/framework/core/Page/layout/v2/readme.md",
+  "lines": 33,
+  "broken": [
+   "/framework/core/Layout/main-aside/"
+  ],
+  "missing": []
+ },
+ {
+  "file": "public/framework/core/Page/make/readme-page/readme.md",
+  "lines": 25,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/core/Page/navigation/readme.md",
+  "lines": 49,
+  "broken": [
+   "/framework/core/Page/api/"
+  ],
+  "missing": []
+ },
+ {
+  "file": "public/framework/core/Page/old/overview/readme.md",
+  "lines": 25,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/core/Page/old/readme.md",
+  "lines": 12,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/core/Page/overview/readme.md",
+  "lines": 12,
+  "broken": [],
+  "missing": [
+   "catalog",
+   "children",
+   "columns",
+   "dashboard",
+   "flush",
+   "folders",
+   "full",
+   "inset",
+   "labels",
+   "landing",
+   "measure",
+   "mounts",
+   "region",
+   "render",
+   "replace",
+   "route",
+   "shell",
+   "site",
+   "vtabs",
+   "width"
+  ]
+ },
+ {
+  "file": "public/framework/core/Page/parts/readme.md",
+  "lines": 23,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/core/Page/readme.md",
+  "lines": 85,
+  "broken": [],
+  "missing": [
+   "content-shapes",
+   "dynamic",
+   "generator",
+   "overview",
+   "settings",
+   "weight"
+  ]
+ },
+ {
+  "file": "public/framework/core/Page/settings/readme.md",
+  "lines": 87,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/core/Page/Template/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/core/Page/weight/readme.md",
+  "lines": 56,
+  "broken": [
+   "/framework/ai/sessions/2026/09/29/f5150091-9c1e-4500-90b0-7313b19a36a9/task/weight-brief.md"
+  ],
+  "missing": []
+ },
+ {
+  "file": "public/framework/core/Property/readme.md",
+  "lines": 12,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/core/readme.md",
+  "lines": 50,
+  "broken": [],
+  "missing": [
+   "Events",
+   "track"
+  ]
+ },
+ {
+  "file": "public/framework/core/Router/readme.md",
+  "lines": 29,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/core/Search/readme.md",
+  "lines": 51,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/core/Section/readme.md",
+  "lines": 67,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/core/Session/readme.md",
+  "lines": 10,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/core/Shell/readme.md",
+  "lines": 71,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/core/Sidebar/readme.md",
+  "lines": 50,
+  "broken": [],
+  "missing": [
+   "variants"
+  ]
+ },
+ {
+  "file": "public/framework/core/Task/readme.md",
+  "lines": 56,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/core/View/readme.md",
+  "lines": 31,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/design/color/readme.md",
+  "lines": 25,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/design/content/readme.md",
+  "lines": 42,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/design/layout/readme.md",
+  "lines": 37,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/design/navigation/readme.md",
+  "lines": 31,
+  "broken": [
+   "/framework/ai/inboxes/",
+   "/framework/ai/skills/new-page/"
+  ],
+  "missing": []
+ },
+ {
+  "file": "public/framework/design/readme.md",
+  "lines": 62,
+  "broken": [
+   "/framework/ai/skills/new-page/",
+   "/framework/ai/inboxes/"
+  ],
+  "missing": []
+ },
+ {
+  "file": "public/framework/design/ui/readme.md",
+  "lines": 27,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/dev/Claim/readme.md",
+  "lines": 24,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/dev/DevBar/readme.md",
+  "lines": 45,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/dev/DevShell/readme.md",
+  "lines": 47,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/dev/mobile/readme.md",
+  "lines": 21,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/dev/readme.md",
+  "lines": 29,
+  "broken": [],
+  "missing": [
+   "DevShell",
+   "mobile"
+  ]
+ },
+ {
+  "file": "public/framework/dev/Socket/readme.md",
+  "lines": 43,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ext/AITask/readme.md",
+  "lines": 103,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ext/Ask/readme.md",
+  "lines": 62,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ext/catalog/readme.md",
+  "lines": 29,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ext/Chat/readme.md",
+  "lines": 48,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ext/Classify/readme.md",
+  "lines": 17,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ext/Collab/readme.md",
+  "lines": 81,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ext/CSSDoc/readme.md",
+  "lines": 50,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ext/DataGrid/readme.md",
+  "lines": 41,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ext/demo/readme.md",
+  "lines": 54,
+  "broken": [
+   "/framework/ext/demo/api/"
+  ],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ext/demo/shell/readme.md",
+  "lines": 6,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ext/depth/readme.md",
+  "lines": 29,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ext/DesignTool/audit/readme.md",
+  "lines": 29,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ext/DesignTool/diff/readme.md",
+  "lines": 114,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ext/DesignTool/journey/readme.md",
+  "lines": 6,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ext/DesignTool/knowledge/readme.md",
+  "lines": 6,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ext/DesignTool/library/readme.md",
+  "lines": 21,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ext/DesignTool/readme.md",
+  "lines": 49,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ext/DesignTool/taste/readme.md",
+  "lines": 31,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ext/DesignTool/tests/readme.md",
+  "lines": 19,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ext/DesignTool/vision/readme.md",
+  "lines": 31,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ext/DesignTool/widths/readme.md",
+  "lines": 27,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ext/Doc/overview/readme.md",
+  "lines": 6,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ext/Doc/readme.md",
+  "lines": 42,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ext/Draggable/readme.md",
+  "lines": 27,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ext/drawer/readme.md",
+  "lines": 43,
+  "broken": [],
+  "missing": [
+   "walkthrough"
+  ]
+ },
+ {
+  "file": "public/framework/ext/Dropdown/readme.md",
+  "lines": 28,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ext/editor/readme.md",
+  "lines": 29,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ext/ErrorLog/readme.md",
+  "lines": 4,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ext/Figma/readme.md",
+  "lines": 48,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ext/files/readme.md",
+  "lines": 116,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ext/filesystem/readme.md",
+  "lines": 82,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ext/grip/readme.md",
+  "lines": 45,
+  "broken": [
+   "/framework/core/Layout/list-and-detail/"
+  ],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ext/highlight/readme.md",
+  "lines": 27,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ext/JSONL/readme.md",
+  "lines": 38,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ext/layout/readme.md",
+  "lines": 32,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ext/markdown/open/readme.md",
+  "lines": 6,
+  "broken": [],
+  "missing": [
+   "columns"
+  ]
+ },
+ {
+  "file": "public/framework/ext/markdown/readme.md",
+  "lines": 30,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ext/Mention/readme.md",
+  "lines": 76,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ext/Omnibox/readme.md",
+  "lines": 26,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ext/Panel/playground/readme.md",
+  "lines": 17,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ext/Panel/readme.md",
+  "lines": 48,
+  "broken": [],
+  "missing": [
+   "demo"
+  ]
+ },
+ {
+  "file": "public/framework/ext/Panel/Workspace/readme.md",
+  "lines": 33,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ext/panel2/readme.md",
+  "lines": 38,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ext/Query/readme.md",
+  "lines": 17,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ext/readme.md",
+  "lines": 46,
+  "broken": [],
+  "missing": [
+   "Classify",
+   "Collab",
+   "DataGrid",
+   "ErrorLog",
+   "filesystem",
+   "Mention",
+   "Refine"
+  ]
+ },
+ {
+  "file": "public/framework/ext/Refine/readme.md",
+  "lines": 71,
+  "broken": [
+   "/framework/servex/doc/echo.md"
+  ],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ext/Refine/stages/readme.md",
+  "lines": 12,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ext/Research/readme.md",
+  "lines": 37,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ext/Saver/readme.md",
+  "lines": 31,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ext/Session/readme.md",
+  "lines": 52,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ext/Shots/readme.md",
+  "lines": 32,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ext/sprawl/readme.md",
+  "lines": 40,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ext/System/readme.md",
+  "lines": 14,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ext/tabs/readme.md",
+  "lines": 36,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ext/Timeline/readme.md",
+  "lines": 29,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ext/toc/readme.md",
+  "lines": 31,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/faq/readme.md",
+  "lines": 6,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/lab/readme.md",
+  "lines": 17,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/library/readme.md",
+  "lines": 32,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/log/readme.md",
+  "lines": 18,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/old/readme.md",
+  "lines": 22,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/readme.md",
+  "lines": 51,
+  "broken": [],
+  "missing": [
+   "audio",
+   "design",
+   "servex",
+   "sources"
+  ]
+ },
+ {
+  "file": "public/framework/research/readme.md",
+  "lines": 6,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/servex/lifecycle/readme.md",
+  "lines": 31,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/servex/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": [
+   "lifecycle"
+  ]
+ },
+ {
+  "file": "public/framework/sources/readme.md",
+  "lines": 49,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/start/example/readme.md",
+  "lines": 6,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/start/readme.md",
+  "lines": 10,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/elements/code/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/elements/forms/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/elements/lists/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/elements/media/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/elements/misc/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/elements/readme.md",
+  "lines": 36,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/elements/table/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/elements/text/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/layers/base/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/layers/readme.md",
+  "lines": 13,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/layers/site/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/layers/theme/guide/readme.md",
+  "lines": 31,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/layers/theme/lew42/readme.md",
+  "lines": 26,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/layers/theme/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": [
+   "guide",
+   "lew42"
+  ]
+ },
+ {
+  "file": "public/framework/styles/layers/util/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/layouts/400/readme.md",
+  "lines": 30,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/layouts/anatomy/readme.md",
+  "lines": 36,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/layouts/apidoc/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/layouts/bold-editorial/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/layouts/carousel/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/layouts/chat/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/layouts/cols/matrix/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/layouts/cols/readme.md",
+  "lines": 48,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/layouts/dashboard/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/layouts/docs/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/layouts/document/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/layouts/feed/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/layouts/fit/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/layouts/flex/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/layouts/gallery/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/layouts/grid/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/layouts/hero/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/layouts/home/readme.md",
+  "lines": 36,
+  "broken": [
+   "/framework/styles/layouts/home/full/"
+  ],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/layouts/landing/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/layouts/mail/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/layouts/masonry/packed/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/layouts/masonry/readme.md",
+  "lines": 30,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/layouts/model/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/layouts/overlay/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/layouts/pricing/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/layouts/readme.md",
+  "lines": 69,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/layouts/screens/readme.md",
+  "lines": 38,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/layouts/set/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/layouts/shell/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/layouts/sidebar/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/layouts/space/compose/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/layouts/space/hunt/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/layouts/space/readme.md",
+  "lines": 32,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/layouts/space/words/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/layouts/spec/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/layouts/split/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/layouts/stack/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/layouts/toc-studio/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/layouts/wire/readme.md",
+  "lines": 37,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/readme.md",
+  "lines": 53,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/rules/readme.md",
+  "lines": 24,
+  "broken": [
+   "./doc/file/"
+  ],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/sections/readme.md",
+  "lines": 28,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/stacks/readme.md",
+  "lines": 37,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/system/readme.md",
+  "lines": 35,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/system/studies/color/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": [
+   "palette",
+   "sections"
+  ]
+ },
+ {
+  "file": "public/framework/styles/system/studies/lists/readme.md",
+  "lines": 54,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/system/studies/padding/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": [
+   "one-rule"
+  ]
+ },
+ {
+  "file": "public/framework/styles/system/studies/readme.md",
+  "lines": 48,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/system/studies/scale/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/system/studies/size/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/system/studies/spacing/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": [
+   "audit",
+   "ceilings",
+   "nesting"
+  ]
+ },
+ {
+  "file": "public/framework/styles/system/studies/system/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/system/studies/themes/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/styles/system/studies/type/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": [
+   "anchors"
+  ]
+ },
+ {
+  "file": "public/framework/styles/system/studies/vocabulary/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ui/accordion/readme.md",
+  "lines": 21,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ui/alert/readme.md",
+  "lines": 22,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ui/avatar/readme.md",
+  "lines": 20,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ui/background/readme.md",
+  "lines": 55,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ui/badge/readme.md",
+  "lines": 19,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ui/card/readme.md",
+  "lines": 41,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ui/controls/readme.md",
+  "lines": 39,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ui/controls/study/readme.md",
+  "lines": 60,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ui/crumbs/readme.md",
+  "lines": 30,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ui/datagrid/readme.md",
+  "lines": 45,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ui/decision/readme.md",
+  "lines": 30,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ui/dialog/readme.md",
+  "lines": 21,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ui/field/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ui/icon/readme.md",
+  "lines": 52,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ui/item/readme.md",
+  "lines": 45,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ui/kbd/readme.md",
+  "lines": 21,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ui/menu/readme.md",
+  "lines": 31,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ui/pagination/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ui/panel/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ui/progress/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ui/readme.md",
+  "lines": 106,
+  "broken": [],
+  "missing": [
+   "item"
+  ]
+ },
+ {
+  "file": "public/framework/ui/scale/readme.md",
+  "lines": 37,
+  "broken": [
+   "/framework/ai2/2026/09/28/figma-sept-2026/"
+  ],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ui/section/readme.md",
+  "lines": 40,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ui/stats/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ui/table/readme.md",
+  "lines": 25,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ui/tags/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ui/timeline/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ui/toolbar/readme.md",
+  "lines": 8,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ui/tooltip/readme.md",
+  "lines": 22,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ui/tree/readme.md",
+  "lines": 42,
+  "broken": [
+   "/framework/ux/Tree/keys/"
+  ],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ui/words/readme.md",
+  "lines": 34,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/util/is/readme.md",
+  "lines": 27,
+  "broken": [
+   "/framework/util/is/api/"
+  ],
+  "missing": []
+ },
+ {
+  "file": "public/framework/util/markup/readme.md",
+  "lines": 24,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/util/readme.md",
+  "lines": 12,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/util/source/readme.md",
+  "lines": 25,
+  "broken": [
+   "/framework/util/source/api/"
+  ],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ux/Auth/readme.md",
+  "lines": 40,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ux/Card/readme.md",
+  "lines": 77,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ux/Content/catalog/readme.md",
+  "lines": 19,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ux/Content/Concepts/readme.md",
+  "lines": 16,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ux/Content/Decision/readme.md",
+  "lines": 24,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ux/Content/Disclosure/readme.md",
+  "lines": 18,
+  "broken": [],
+  "missing": [
+   "variants"
+  ]
+ },
+ {
+  "file": "public/framework/ux/Content/Object/readme.md",
+  "lines": 61,
+  "broken": [
+   "/framework/core/Page/api/"
+  ],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ux/Content/plan/readme.md",
+  "lines": 20,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ux/Content/Question/readme.md",
+  "lines": 18,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ux/Content/Quotation/readme.md",
+  "lines": 18,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ux/Content/readme.md",
+  "lines": 33,
+  "broken": [],
+  "missing": [
+   "Object",
+   "structure"
+  ]
+ },
+ {
+  "file": "public/framework/ux/Content/Spend/readme.md",
+  "lines": 18,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ux/Content/structure/readme.md",
+  "lines": 18,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ux/Course/readme.md",
+  "lines": 39,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ux/Dictate/playground/readme.md",
+  "lines": 126,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ux/Dictate/readme.md",
+  "lines": 375,
+  "broken": [
+   "/framework/ux/Dictate/words/",
+   "./playground/doc/Playground-notes.md"
+  ],
+  "missing": [
+   "workspace"
+  ]
+ },
+ {
+  "file": "public/framework/ux/Dictate/surfaces/readme.md",
+  "lines": 18,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ux/Dictate/variants/readme.md",
+  "lines": 49,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ux/Filter/readme.md",
+  "lines": 64,
+  "broken": [
+   "/framework/ux/Filter/chips/",
+   "/framework/ux/Filter/words/"
+  ],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ux/Hotkeys/readme.md",
+  "lines": 65,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ux/Inbox/readme.md",
+  "lines": 50,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ux/Menu/readme.md",
+  "lines": 32,
+  "broken": [
+   "/framework/ux/Menu/words/"
+  ],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ux/Objects/readme.md",
+  "lines": 9,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ux/Pagination/readme.md",
+  "lines": 32,
+  "broken": [
+   "/framework/ux/Pagination/words/"
+  ],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ux/Popover/readme.md",
+  "lines": 42,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ux/readme.md",
+  "lines": 92,
+  "broken": [],
+  "missing": [
+   "Hotkeys",
+   "Objects",
+   "Revise"
+  ]
+ },
+ {
+  "file": "public/framework/ux/Rename/readme.md",
+  "lines": 45,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ux/Revise/readme.md",
+  "lines": 60,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ux/Tags/readme.md",
+  "lines": 32,
+  "broken": [
+   "/framework/ux/Tags/words/"
+  ],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ux/Tree/drag/readme.md",
+  "lines": 6,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ux/Tree/readme.md",
+  "lines": 56,
+  "broken": [
+   "/framework/ux/Tree/compare/",
+   "/framework/ux/Tree/keys/",
+   "/framework/ux/Tree/words/"
+  ],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ux/Understand/readme.md",
+  "lines": 41,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/ux/Wizard/readme.md",
+  "lines": 42,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "public/framework/versus/readme.md",
+  "lines": 6,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "Servex/agents/readme.md",
+  "lines": 292,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "Servex/asks/readme.md",
+  "lines": 104,
+  "broken": [
+   "/framework/ai/tasks.json"
+  ],
+  "missing": []
+ },
+ {
+  "file": "Servex/cards/readme.md",
+  "lines": 90,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "Servex/ext/local/readme.md",
+  "lines": 100,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "Servex/ext/openrouter/decisions/readme.md",
+  "lines": 6,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "Servex/ext/openrouter/readme.md",
+  "lines": 311,
+  "broken": [],
+  "missing": []
+ },
+ {
+  "file": "Servex/ext/openrouter/sources/readme.md",
+  "lines": 35,
+  "broken": [
+   "/framework/sources/openrouter/claude-code-integration-guide-openrouter.md"
+  ],
+  "missing": []
+ },
+ {
+  "file": "Servex/readme.md",
+  "lines": 100,
+  "broken": [],
+  "missing": []
+ }
+]

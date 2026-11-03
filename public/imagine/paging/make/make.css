@@ -1,0 +1,327 @@
+/* ── ONE SCREEN FOR MAKING PAGES ───────────────────────────────────────────────
+
+   Three panes: the tree you drag rows around in, the page itself, and everything
+   that page says about itself. A TOOL layout, not an article — so every space in
+   here is `--gap` (the rhythm between things in a box), never `--flow` (the rhythm
+   between paragraphs), and nothing is capped at `--measure`.
+
+   ⚠ THAT IS THE WHOLE OF THE 3440 FIX. This screen was a prose column: at 3440 the
+     middle was 3027px wide, the sentence at the top was capped at 648px, `--flow`
+     was 54px between blocks, an `h3` carried 104px of margin-top, and the list of
+     pages was 1024px inside it — an article layout wearing a tool's job (the owner,
+     2026-09-13: *"we have like 8em padding, looks bad, wastes space"*). The prose is
+     gone; what is left is three panes that use the width they are given.
+
+   ⚠ A BOX CANNOT ANSWER ITS OWN CONTAINER QUERY, so there are two elements and not
+     one: `.paging-make-screen` measures, `.paging-make-panes` is the grid that reads
+     the measurement. The same shape `build.css` used, for the same reason.
+
+   ⚠ AND THE QUERY ASKS ABOUT THE SCREEN, NOT THE WINDOW. This page is `wide` inside
+     the realm's middle, which is the window minus the rail — so a media query would
+     stack the panes at the wrong moment, and does not know about the rail at all. */
+
+@layer theme {
+
+	.paging-make-screen { container-type: inline-size; }
+
+	.paging-make-panes {
+		display: grid;
+		gap: var(--gap);
+		grid-template-columns: minmax(0, 1fr);
+		align-items: start;
+	}
+
+	/* 54rem, in rem and not em: `em` here is the body's viewport clamp (14px → 18px),
+	   so an `em` threshold stacks at a different PIXEL width on a phone than on a
+	   monitor. Above it, three tracks; below it they stack in reading order — the
+	   tree, then the page, then its settings.
+
+	   ⚠ EVERY TRACK HAS A FLOOR AND A CEILING, and the ceilings are `min(%, rem)`: a
+	     flat `26rem` cap would take a third of a 1238px row and leave the PAGE — the
+	     thing this screen is about — as the narrowest of the three. The percentage
+	     keeps the sides proportional at 1280; the rem stops them running away at
+	     3440, where every leftover pixel goes to the page in the middle. */
+	@container (min-width: 54rem) {
+		.paging-make-panes {
+			grid-template-columns:
+				minmax(11rem, min(24%, 26rem))
+				minmax(0, 1fr)
+				minmax(11rem, min(30%, 30rem));
+		}
+
+		/* THE PAGE FOLLOWS YOU DOWN. The settings pane is two or three times the
+		   height of the page it configures, so without this the middle scrolls off the
+		   top the moment you reach the blocks — on the screen whose whole claim is
+		   that you can see what you are making. `align-self: start` is what makes it
+		   possible: a stretched grid item is as tall as its area and has nowhere to
+		   stick.
+		   ⚠ A STICKY COLUMN NEEDS A CEILING. Without one, a page taller than the
+		     window pins at its own top and hangs its bottom past the viewport, painting
+		     over whatever you scrolled down to. A ceiling and its own scroll: it
+		     follows you down and stays inside the screen. This is the ONE box on this
+		     screen that scrolls on purpose. */
+		.paging-make-middle {
+			position: sticky; top: 0.5em; align-self: start;
+			max-height: calc(100vh - 1em); overflow: auto;
+		}
+	}
+
+	/* ── a pane ───────────────────────────────────────────────────────────────
+	   ⚠ `calc(var(--gap) * 0.5)`, not `0.5em`. A spacing clamp is the site's one
+	     spacing knob: it is 0.5em at the floor and 1.3em at 3440, so the panes
+	     breathe with the screen instead of staying at a 1280 constant. */
+	/* ⚠ A PANE IS A BOX, NOT A FLOAT. The owner, 2026-09-13: *"shouldn't that right
+	     sidebar have a white bg? it looks like it's hovering"* — right: a stack of
+	     controls on the page's own background reads as loose furniture, and three of
+	     them read as one confusing screen. Each pane paints its own surface, so the
+	     screen is three boxes and every control is obviously inside one of them. */
+	.paging-make-pane {
+		display: flex; flex-direction: column; gap: calc(var(--gap) * 0.5);
+		min-width: 0;
+		padding: calc(var(--gap) * 0.6);
+		background: var(--surface);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+	}
+
+	.paging-make-pane p { margin: 0; }
+
+	/* The pane's own name, and the one control that belongs to the pane rather than
+	   to a row in it. */
+	.paging-make-pane-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5em; }
+
+	.paging-make-group { display: flex; flex-direction: column; gap: 0.4em; }
+	.paging-make-group-title { font-weight: 600; font-size: 0.95em; }
+
+	/* ── THE LEFT PANE: TWO `ux/Tree`s ────────────────────────────────────────
+	   The rows, the indent, the chevron, the grip and the drag line are all `ux/Tree`'s
+	   and `ui/tree`'s — 343 lines of this module's own tree went away to get them
+	   (`tree.js`). What is left here is the two things a page tree says that a generic
+	   tree does not: which row you are editing, and that this pane is dense.
+
+	   ⚠ `.ui-tree-selected` IS THE TREE'S OWN WORD for "this row is the selected one",
+	     written by `Tree.select()`. Make only has to say what selected LOOKS like here —
+	     and it looks like the middle and the right pane, which are already showing that
+	     page: the realm's accent. */
+	.paging-make-left .ui-tree { font-size: 0.9em; }
+
+	.paging-make-left .ui-tree-row.ui-tree-selected {
+		color: var(--prime-ink);
+		background: color-mix(in srgb, var(--prime) 12%, transparent);
+		border-radius: var(--radius);
+	}
+
+	/* The panel layouts, under the pages. Their rows are LINKS out to the playground, so
+	   they are quieter than the pages, which are what this screen is about. */
+	.paging-make-docs .ui-tree { font-size: 0.85em; opacity: 0.9; }
+
+	/* REAL PAGES — the `?real=` group, and the right pane when one is selected. Same
+	   quieter tree as the documents: these are pages this screen does not edit, it only
+	   moves them. `real.js`. */
+	.paging-make-real .ui-tree { font-size: 0.85em; }
+	.paging-make-real > p { margin: 0; }
+
+	.paging-make-where-line { font-size: 0.8em; }
+
+	/* ── the middle: the page itself ──────────────────────────────────────── */
+	/* THE HEADING AND ITS CAPTION, stacked — which is the order the page itself puts
+	   them in: core's `h1.page-title` first, the address under it. */
+	.paging-make-head { display: flex; flex-direction: column; align-items: flex-start; gap: 0.15em; }
+
+	/* ⚠ THE SIZE IS CORE'S, DELIBERATELY. This used to say `font-size: 1.2em`, which
+	     made the preview open with a heading the real page does not have — the page
+	     opens at `clamp(1.75rem, 9vw, 3em)` and the picture of it opened at 19px. Only
+	     the MARGIN is overridden, because core's h1 leads a page body and this one
+	     leads a pane.
+	   ⚠ AND THE SELECTOR CARRIES THE ELEMENT: core's `.page h1.page-title` is (0,2,1)
+	     in this same layer, so a plain `.paging-make-head-title` at (0,1,0) cannot
+	     touch it at all. */
+	.paging-make-head h1.paging-make-head-title { margin: 0; }
+
+	/* THE REAL ADDRESS, as a link that opens it — the one thing a picture of a page
+	   cannot be. Small, because it is the caption and the page is the subject. */
+	.paging-make-url {
+		display: inline-flex; align-items: center; gap: 0.2em;
+		font-size: 0.78em; color: var(--subtle); text-decoration: none;
+		min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+	}
+	.paging-make-url:is(:hover, :focus-visible) { color: var(--prime-ink); }
+	.paging-make-url .icon { font-size: 1em; }
+
+	.paging-make-live { border: 1px solid var(--line); border-radius: var(--radius); }
+
+	/* ⚠ CAPPED. The middle is 1877px at 3440, and one line of prose across 1830px is
+	     a line the eye cannot get back from — the layout rule's second invariant. The
+	     pane keeps the width; the sentence in it does not. */
+	.paging-make-note { font-size: 0.8em; max-width: var(--measure, 40em); }
+
+	/* ── the settings pane ────────────────────────────────────────────────── */
+	.paging-make-field { display: flex; flex-direction: column; gap: 0.15em; }
+	.paging-make-label { font-size: 0.72em; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+
+	/* ⚠ `flex: none`, NEVER a basis. `.paging-make-field` is a flex COLUMN, so a
+	     `flex-basis: 12em` copied from a row control is read as a HEIGHT: the Title
+	     field came out a 192px-tall grey slab with the text sitting at the bottom of
+	     it, and nothing warned. A field in a column stack takes the width it is given
+	     and its own line height. */
+	.paging-make-input {
+		flex: none; width: 100%; min-width: 0;
+		padding: 0.3em 0.5em;
+		font: inherit; font-size: 0.9em;
+		color: var(--ink);
+		background: var(--surface);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+	}
+
+	/* ── THE REALM'S BAR, INSIDE A 265px PANE ─────────────────────────────────
+	   ⚠ CONSTRAIN THE GROUP, NOT ITS DROPDOWNS. `.paging-toolbar .paging-group` is
+	     `flex: none` — right across a 1040px middle, where a group sizing itself to
+	     its longest option is the whole reason the seven words fit one row. In this
+	     pane the SKIN group is three of those side by side: 279px of group in 265px of
+	     pane, so its third dropdown (TYPE SIZE) crossed the card's border by 14px and
+	     the page does not scroll sideways, so nothing warned
+	     (self-evident-critique-2, finding 7). Letting the GROUP shrink is enough —
+	     `.paging-group-row` already wraps, so the third pick drops to its own line and
+	     every dropdown keeps its own full width. */
+	.paging-make-right .paging-toolbar .paging-group { flex: 0 1 auto; max-width: 100%; }
+
+	.paging-make-line { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35em; }
+
+	/* A CLOSED LIST OF VALUES, in the shape the seven words above it use. ⚠ `flex: 1 1
+	   auto` with `min-width: 0`, NOT the bar's `flex: none; width: auto`: the bar sits
+	   across a 1040px middle where a select may size itself to its longest option, and
+	   this one sits in a 210px pane where that same rule would push its own row wider
+	   than the pane. It takes the leftover of its row and shrinks. */
+	.paging-make-select {
+		flex: 1 1 auto; min-width: 0; max-width: 100%;
+		font: inherit; font-size: 0.85em;
+	}
+	.paging-make-line-note { font-size: 0.8em; }
+
+	/* ── WHAT IS SELECTED, SAID AT THE TOP OF THE PANE ────────────────────────
+	   The same two words the badge in the middle says, so the thing you clicked and the
+	   pane that is about it cannot be read as two different things. */
+	.paging-make-sel-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.35em; }
+	.paging-make-sel-kind {
+		font-size: 0.68em; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+		color: var(--prime);
+	}
+	.paging-make-sel-what { font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+
+	/* NOTHING SELECTED. One sentence, and it names the three things you can click — an
+	   empty pane with "nothing selected" on it tells a newcomer nothing they can act on. */
+	.paging-make-empty { font-size: 0.85em; }
+
+	/* A ROW OF VALUES — the chips and the acts that belong to one word. Its own box, so a
+	   row that is too long for the pane wraps under its own label rather than pushing the
+	   label off the line. */
+	.paging-make-set { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25em; }
+
+	/* A textarea is the one control that wants its label ABOVE it rather than beside it. */
+	.paging-make-line-tall { flex-direction: column; align-items: stretch; }
+
+	/* A dead arrow (the first block cannot move up) is SHOWN, not hidden: a control that
+	   disappears leaves a row that changes shape as you move through a list. */
+	.paging-make-act-dead { opacity: 0.3; cursor: default; }
+
+	/* ── THE DELETE QUESTION ──────────────────────────────────────────────────
+	   It says what it is about to take — the page by name, and the count of pages under
+	   it — and it WRAPS. The one control whose job is to name what it destroys used to
+	   wear the tree title's `nowrap` + ellipsis and read "D…" inside a 210px pane
+	   (self-evident-critique, defect 3). */
+	/* ⚠ TWO QUESTIONS, ONE SHAPE, TWO COLOURS. `.paging-make-ask` destroys something and
+	     is `--error`; `.paging-make-confirm` moves something and is the realm's accent.
+	     A move is not a deletion, and a red box saying so would be the screen lying about
+	     what the button does. Everything about them that is not the colour is shared, so
+	     they cannot drift into two different-looking questions. */
+	.paging-make-ask, .paging-make-confirm {
+		display: flex; flex-wrap: wrap; align-items: center; gap: 0.35em;
+		padding: 0.5em;
+		border-radius: var(--radius);
+	}
+	.paging-make-ask {
+		background: color-mix(in srgb, var(--error) 8%, transparent);
+		border: 1px solid var(--error);
+	}
+	.paging-make-confirm {
+		background: color-mix(in srgb, var(--prime) 8%, transparent);
+		border: 1px solid var(--prime);
+	}
+
+	/* Every sentence in one of these takes its own full row: the box is a wrapping flex
+	   row of buttons, and a sentence sharing a line with a button reads as its label. */
+	.paging-make-ask-title,
+	.paging-make-confirm > p { flex: 1 1 100%; min-width: 0; margin: 0; }
+	.paging-make-ask-title { font-weight: 600; }
+
+	.paging-make-text {
+		width: 100%;
+		padding: 0.4em 0.5em;
+		font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+		font-size: 0.8em;
+		line-height: 1.5;
+		color: var(--ink);
+		background: var(--surface);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		resize: vertical;
+	}
+
+	/* ── THE NAME OF THE SELECTED THING, ON THE THING ─────────────────────────
+	   One badge, in the top-left corner of whatever the ring is around, saying what it is
+	   — "page · Notes", "block · prose", "element · h2". The notes that started this task
+	   named its absence as the defect: "a panel is a rectangle with no name — so the thing
+	   you selected has no label".
+
+	   ⚠ ABSOLUTE, AND ABOVE THE BOX'S TOP EDGE — `inset-block-end: 100%`, not
+	     `inset-block-start: 0`. Inside the box it painted straight over the first line of
+	     whatever it was labelling: an h2 reading "And a heading" showed as "…ing" with the
+	     badge over the rest of it (measured 2026-09-18). This realm has already measured
+	     the general form of that twice — "a control that covers the thing it controls is
+	     not a control" (paging-audit-2, break #1) — and it is why `ext/Panel`'s floating
+	     bar is deleted by this same task. It is absolute rather than in the flow because a
+	     badge in the flow would MOVE the thing it labels, and a selection that nudges the
+	     page every time you click is that same defect in miniature. `.panel-ring`
+	     (ext/Panel's focus.css) gives it the `position: relative` to sit against. */
+	.paging-make-badge {
+		position: absolute; inset-block-end: 100%; inset-inline-start: 0; z-index: 4;
+		display: inline-flex; align-items: center; gap: 0.2em;
+		padding: 0.05em 0.35em;
+		font-size: 0.65em; font-weight: 700; letter-spacing: 0.04em;
+		line-height: 1.7;
+		color: var(--prim-on, #fff);
+		background: var(--prime);
+		border-start-start-radius: var(--radius);
+		border-start-end-radius: var(--radius);
+		pointer-events: none;
+		white-space: nowrap;
+	}
+	.paging-make-badge .icon { font-size: 1.1em; }
+
+}
+
+/* ── AN ELEMENT'S OWN THREE WORDS ──────────────────────────────────────────────
+   A run of text can say three things about itself — its tone, its size, its alignment —
+   and two of them have no word on this site to borrow: `framework.css` has `.muted`
+   (which `tone` uses as-is) and no type-size or text-align utility at all.
+
+   ⚠ `@layer util`, AND THE LAYER IS THE WHOLE POINT. The skin styles every heading from
+     `.theme-lew42 :is(h2, .h2)` at (0,2,0) inside `@layer theme` — so a single-class
+     `font-size` on an h2 loses, and loses SILENTLY: the class landed on the element, the
+     button lit, and the heading did not move a pixel (measured 2026-09-18, `font-size`
+     read back 34.92px with and without). A utility sits in `util`, which beats `theme` by
+     layer order whatever the specificity, which is what a word like this has to do to be
+     worth having. That fact is `css`'s own §3.
+
+   ⚠ THEY ARE PREFIXED AND THEY LIVE HERE, not in `framework.css`. A site-wide `.center`
+     is a proposal for whoever owns the framework, not a side effect of an editor task —
+     and a page you made is drawn by `make/page.js`, which loads this sheet, so the class
+     works at the page's own url too. `doc/decisions.md` records both halves. */
+@layer util {
+
+	.paging-make-run-sm { zoom: 0.85; }
+	.paging-make-run-lg { zoom: 1.3; }
+	.paging-make-run-center { text-align: center; }
+	.paging-make-run-right { text-align: right; }
+}

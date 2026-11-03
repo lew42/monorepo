@@ -1,0 +1,5 @@
+
+!!! --skip-smoke: NO SMOKE TEST WILL RUN. This flag is for proofs on a scratch repo only. !!!
+
+DRY RUN: computing only; no lock, no hold, nothing written.
+refused: worktree/fer-gate-proof is size full and has no review; run: node Server/review.mjs <taskdir or public/framework/ai/<date>/<slug>> C:\Code\lew42\worktrees\fer-gate-proof

@@ -1,0 +1,16 @@
+@layer base, theme, site, util;
+
+/* The Docs tab (class DictateDocs): a slim bar (Back), the list of docs, then the rendered markdown. Doc: doc/docs-tab.md */
+@layer site {
+	.drawer-docs { display: flex; flex-direction: column; block-size: 100%; min-block-size: 0; }
+	.dictate-docs { gap: 0.5em; max-inline-size: 60rem; min-block-size: 0; block-size: 100%; }
+	.dictate-docs > * { flex: none; }
+	.dictate-docs-bar { gap: 0.5em 0.75em; font-size: 0.85em; }
+	.app .dictate-docs-bar button { font: inherit; padding: 0.2em 0.6em; min-block-size: 2rem; }
+	.dictate-docs-list { gap: 0.25em 0.9em; font-size: 0.9em; }
+	.dictate-docs-body { flex: 1 1 auto; min-block-size: 6em; overflow-y: auto; overflow-wrap: anywhere; }
+	.dictate-docs-body img, .dictate-docs-body pre { max-inline-size: 100%; overflow-x: auto; }
+	.app .dictate-docs-body h1 { font-size: 1.5em; line-height: 1.2; margin-block: 0.4em; }
+	.app .dictate-docs-body h2 { font-size: 1.2em; line-height: 1.2; margin-block: 0.8em 0.3em; }
+	.app .dictate-docs-body h3 { font-size: 1.05em; }
+}

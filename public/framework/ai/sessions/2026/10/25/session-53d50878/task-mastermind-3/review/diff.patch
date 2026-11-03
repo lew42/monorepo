@@ -1,0 +1,279 @@
+diff --git a/public/framework/ext/Chat/Chat.js b/public/framework/ext/Chat/Chat.js
+index 84067598b..b844c024b 100644
+--- a/public/framework/ext/Chat/Chat.js
++++ b/public/framework/ext/Chat/Chat.js
+@@ -322,7 +322,7 @@ export function card_of(b){
+ }
+ 
+ /** One sticky-bottom scroll for every chat log; call `pin()` after drawing. See doc/notes.md#sticky-scroll */
+-export function sticky_scroll(box, { observe = true, end } = {}){   // end(): scrollTop of the true bottom of the content when blank padding sits under it (Widget's Thread); default scrollHeight   // observe:false = the caller re-pins on a resize itself (ux/Dictate/Widget.js Thread.anchor)
++export function sticky_scroll(box, { observe = true } = {}){   // observe:false = the caller re-pins on a resize itself (ux/Dictate/Widget.js Thread.anchor)
+ 	let locked = true, last = 0;
+ 	// A fixed/sticky bar (the bottom toolbar) can sit over the box's bottom edge: the last line must land just above it, so the box grows tail room as tall as the overlap.
+ 	let tail = 0, tail_base = null;
+@@ -347,7 +347,7 @@ export function sticky_scroll(box, { observe = true, end } = {}){   // end(): sc
+ 	};
+ 	const bottom = () => {   // the scrollTop that shows the last line at the box's bottom, or just above an overlay bar
+ 		const ov = make_room();
+-		return Math.max(0, Math.min((end ? end() + ov : box.scrollHeight), box.scrollHeight) - box.clientHeight);
++		return Math.max(0, box.scrollHeight - box.clientHeight);
+ 	};
+ 	const at_bottom = () => bottom() - box.scrollTop < 40;   // within ~40px counts as pinned
+ 	const $btn = document.createElement("button");
+diff --git a/public/framework/ext/Chat/doc/proof/prove-scroll.mjs b/public/framework/ext/Chat/doc/proof/prove-scroll.mjs
+new file mode 100644
+index 000000000..500e1a020
+--- /dev/null
++++ b/public/framework/ext/Chat/doc/proof/prove-scroll.mjs
+@@ -0,0 +1,36 @@
++// Proof for ext/Chat/doc/scroll.md: sticky_scroll() locked by default, pinned through growth, unlocked only by a reader gesture,
++// the newest button relocks, the last line lands above a fixed bottom bar, no horizontal scroll. Usage: node prove-scroll.mjs <base url>
++const { browser, close } = await import(new URL("../../../../../../Server/Browser.mjs", import.meta.url).href);
++const BASE = process.argv[2] || "http://monorepo.localhost";
++const b = await browser(), page = await (await b.newContext({ viewport: { width: 400, height: 700 } })).newPage();
++await page.goto(BASE + "/framework/ext/Chat/", { waitUntil: "load" });
++const r = await page.evaluate(async () => {
++	const { sticky_scroll } = await import("/framework/ext/Chat/Chat.js"), wait = ms => new Promise(r => setTimeout(r, ms));
++	document.body.innerHTML = "";
++	const box = document.createElement("div"); box.style.cssText = "position:fixed;left:0;right:0;top:0;height:400px;overflow:auto;padding:4px";
++	const bar = document.createElement("div"); bar.style.cssText = "position:fixed;left:0;right:0;top:340px;height:60px;z-index:5";
++	document.body.append(box, bar);
++	const s = sticky_scroll(box), out = {}, jump = box.querySelector(".chatbox-jump");
++	for (let i = 0; i < 30; i++){ const d = document.createElement("div"); d.textContent = "line " + i; d.style.minHeight = "30px"; box.insertBefore(d, jump); }
++	await wait(200);
++	const last = () => [...box.children].filter(c => c !== jump).pop(), gap = () => 340 - (last().lastElementChild ?? last()).getBoundingClientRect().bottom;
++	out.gap_after_fill = gap();
++	last().append(Object.assign(document.createElement("div"), { style: "height:90px" })); await wait(200); out.gap_after_grow = gap();
++	last().replaceChildren("x"); await wait(200); out.gap_after_shrink = gap();
++	box.dispatchEvent(new WheelEvent("wheel", { deltaY: -100 })); box.scrollTop -= 300; await wait(200);
++	out.unlocked_after_wheel_up = !s.locked(); const st = box.scrollTop;
++	last().append(Object.assign(document.createElement("div"), { style: "height:100px" })); await wait(200); out.moved_while_unlocked = box.scrollTop - st;
++	jump.click(); await wait(200);
++	out.relocked_by_button = s.locked(); out.gap_after_button = gap(); out.hscroll = box.scrollWidth > box.clientWidth;
++	return out;
++});
++const fail = [];
++if (Math.abs(r.gap_after_fill - 4) > 2) fail.push("fill gap " + r.gap_after_fill);
++if (Math.abs(r.gap_after_grow - 4) > 2) fail.push("grow gap " + r.gap_after_grow);
++if (Math.abs(r.gap_after_shrink - 4) > 2) fail.push("shrink gap " + r.gap_after_shrink);
++if (!r.unlocked_after_wheel_up) fail.push("did not unlock on a wheel-up");
++if (r.moved_while_unlocked) fail.push("moved while unlocked: " + r.moved_while_unlocked);
++if (!r.relocked_by_button || Math.abs(r.gap_after_button - 4) > 2) fail.push("button: " + r.relocked_by_button + " gap " + r.gap_after_button);
++if (r.hscroll) fail.push("horizontal scroll");
++console.log(JSON.stringify({ ...r, fail }));
++await close?.(); process.exit(fail.length ? 1 : 0);
+diff --git a/public/framework/ext/Chat/doc/scroll.md b/public/framework/ext/Chat/doc/scroll.md
+index b690bc5b4..ecf48690f 100644
+--- a/public/framework/ext/Chat/doc/scroll.md
++++ b/public/framework/ext/Chat/doc/scroll.md
+@@ -2,8 +2,10 @@
+ 
+ The log keeps one true-or-false fact, `locked` (`talk.locked()` reads it). It starts true, which means "stay at the bottom".
+ 
+-- **Scrolling up unlocks it.** The box's `scroll` event sets `locked` to false only when the box moved UP since the last event. A reader who scrolled up is never moved again.
+-- **Reaching the bottom locks it again** (within 4px), and the next new line follows.
++- **Only the reader unlocks it** (2026-10-25). A `scroll` event unlocks only when the box moved UP within 1 s of a wheel, touch, key or pointer gesture; a redraw, a clamp or a `pin()` never counts. A reader who scrolled up is never moved again.
++- **Reaching the bottom locks it again** (within 40px), and the next new line follows.
++- **Late growth re-pins while locked** (a MutationObserver, once per frame; `observe: false` callers such as Widget's Thread do the same through their own `anchor()`).
++- **A fixed or sticky bar over the box's bottom edge** (the bottom toolbar) is measured with `elementsFromPoint`; the box gets that much tail padding, so "newest" lands the last line just above the bar.
+ - **New lines follow only while locked.** After a line is drawn, the box jumps to the bottom if `locked` is true.
+ - **A resize of the box re-pins the bottom.** A `ResizeObserver` watches the box itself: its first layout (it is 0px tall until the page is on screen) and the composer under it growing both change its size without firing any scroll event.
+ - **A small ↓ button shows while unlocked** (chat-autoscroll, 2026-10-01) — a click jumps to the bottom and relocks, same as scrolling down by hand.
+diff --git a/public/framework/ux/Dictate/Widget.js b/public/framework/ux/Dictate/Widget.js
+index fc4296b9d..19910f5b7 100644
+--- a/public/framework/ux/Dictate/Widget.js
++++ b/public/framework/ux/Dictate/Widget.js
+@@ -133,8 +133,6 @@ Widget.prototype.v1 = false;         // true = the OLD thread (one bubble per se
+ Widget.prototype.mode = "dictate";
+ Widget.MODES = MODES;
+ Widget.HISTORY = 50;   // the sheet draws only this many newest chat lines of a long session; the rest wait behind "show earlier (N)" (doc/voice-assistant.md#nothing-jumps)
+-Widget.PIN_BOTTOM = true;   // locked = pinned to the bottom on every update, live whisper line included (the owner, 2026-10-25). false = the old page-turn anchor on the newest bubble's top (doc/voice-assistant.md#nothing-jumps)
+-Widget.HEADROOM = 0.75;   // a new bubble keeps this share of the box under it before the page turns (doc/voice-assistant.md#nothing-jumps)
+ Widget.STREAM_END_MS = 15000;   // an ended stream bubble with no settled line after this long goes (the reply was dropped or became a reaction)
+ 
+ /** The old thread (v1: true): one bubble per line, never merged. */
+@@ -243,32 +241,16 @@ Widget.Thread = class WidgetThread extends View {
+ 		this.$empty = div.c("ux-dictate-widget-empty muted", "Say something, or press the mic. Your words show up here.");
+ 		this.$bubbles = div.c("ux-dictate-widget-bubbles flex v gap");
+ 		// this.el scrolls, not $bubbles (see doc/widget-notes.md#sticky-scroll)
+-		this.scroll = sticky_scroll(this.el, { observe: false, end: () => {   // the blank page under the newest bubble is not content: "newest" lands its bottom at the box bottom
+-			const b = this.$bubbles.el.lastElementChild;
+-			return b ? b.getBoundingClientRect().bottom - this.el.getBoundingClientRect().top + this.el.scrollTop : 0;
+-		} });   // its resize re-pin is bottom-only; anchor() answers a resize itself
++		this.scroll = sticky_scroll(this.el, { observe: false });   // its resize re-pin is skipped: anchor() answers resizes and mutations once per frame
+ 		if (typeof ResizeObserver === "function") new ResizeObserver(() => this.anchor()).observe(this.el);
++		if (typeof MutationObserver === "function") new MutationObserver(() => this.anchor()).observe(this.el, { childList: true, subtree: true, characterData: true });   // a live whisper line or a streamed reply grows in place: whatever draws it, the pin follows
+ 	}
+ 
+-	/** The anchor is the NEWEST bubble's top: growing never moves older lines. The box turns the page (once, as a bubble starts)
+-	 * when under HEADROOM of a box is left below it, and again, half a box at a time, for a bubble taller than the box. A reader who
+-	 * scrolled up is never moved. Rule and the alternative: doc/voice-assistant.md#nothing-jumps */
++	/** Locked = pinned to the bottom after every change, once per animation frame (a replay of 200 lines or 3 caption redraws a second
++	 * reads layout once). A reader who scrolled up is never moved. Rule: doc/voice-assistant.md#nothing-jumps */
+ 	anchor(){
+-		if (this.anchor_frame) return;   // once per animation frame: a replay of 200 lines or 3 caption redraws a second reads layout once (ux/Dictate/doc/voice-assistant.md#nothing-jumps)
+-		this.anchor_frame = requestAnimationFrame(() => { this.anchor_frame = 0; this.place_anchor(); });
+-	}
+-
+-	place_anchor(){
+-		const box = this.el, host = this.$bubbles.el, b = host.lastElementChild;
+-		if (!b || !this.scroll.locked()) return;
+-		if (Widget.PIN_BOTTOM){ this.scroll.pin(); return; }
+-		const r = b.getBoundingClientRect(), top = r.top - box.getBoundingClientRect().top + box.scrollTop, view = box.clientHeight;
+-		const room = b !== this.newest ? Math.max(r.height, view * Widget.HEADROOM) : r.height;   // a bubble that just started asks for room to grow
+-		this.newest = b;
+-		if (top + room <= box.scrollTop + view) return;   // fits: nothing moves
+-		if (this.pad !== view){ host.style.paddingBlockEnd = view + "px"; this.pad = view; }   // blank page under the newest bubble: its top can reach the box top, and shrinking text never clamps the scroll
+-		box.scrollTop = r.height < view ? top : top + r.height - view / 2;   // a page turn: a tall bubble's tail lands mid-box and grows into the blank below
+-		box.dataset.turns = (+box.dataset.turns || 0) + 1;   // for the proof (test/anchor.mjs) and for anyone debugging a jump
++		if (this.anchor_frame) return;
++		this.anchor_frame = requestAnimationFrame(() => { this.anchor_frame = 0; if (this.scroll.locked()) this.scroll.pin(); });
+ 	}
+ 
+ 	/** Lifts live bubbles out while fn runs so mergeable() never takes one for the last real bubble. */
+@@ -711,7 +693,6 @@ Widget.Thread = class WidgetThread extends View {
+ 		this.draft = null;
+ 		this.waiting = null; this.orphans = null; this.show_earlier_button();
+ 		this.$bubbles.empty();
+-		this.$bubbles.el.style.paddingBlockEnd = ""; this.pad = 0; this.newest = null;
+ 		this.$empty.show();
+ 	}
+ };
+diff --git a/public/framework/ux/Dictate/doc/voice-assistant.md b/public/framework/ux/Dictate/doc/voice-assistant.md
+index 4db9e97f0..2814eab9d 100644
+--- a/public/framework/ux/Dictate/doc/voice-assistant.md
++++ b/public/framework/ux/Dictate/doc/voice-assistant.md
+@@ -57,7 +57,7 @@ In live mode the words you are saying grow in a **separate draft bubble** at the
+ 
+ ## Nothing jumps
+ 
+-The chat thread is anchored on the **top of the newest bubble**, not on the bottom edge. Words growing inside a bubble never scroll the box, so the lines above them stay where you are reading them. The box turns a page only twice: when a new bubble starts with less than 75% of a box left under it (`Widget.HEADROOM`), and when one bubble grows taller than the box (its tail then lands mid-box, half a box at a time). If you scrolled up, nothing moves at all. The code is `Widget.Thread.anchor()` in `Widget.js` (it sets `data-turns` on the thread for the proof); the proof is `test/anchor.mjs` (fake mic, five sentences at 400): before, 27 to 38 older-line moves in the split size; after, 0 while words stream in, 5 page turns, and 0 when the reader had scrolled up. The strip has no thread to move. **Cost (2026-10-25, ask `perf`):** `anchor()` only asks for a frame; one animation frame reads layout once, however many lines were drawn or captions redrawn in it (`place_anchor()` is the old body). A replay of history refreshes the lines once after the batch (`refresh_after_batch()`), not once per line. The sheet draws only the newest `Widget.HISTORY` (50) chat lines of a long session; the rest wait behind **show earlier (N)** (`hold_history()`, `load_earlier()`: the older chunk is drawn above while the reader stays where they were; `test/earlier.mjs`). `Session.watch()` tails the file by byte range ([ext/Session/doc/watch.md](/framework/ext/Session/doc/watch.md)), and the mic's meter is written once per frame (`Dictate.paint_level()`). Measured at 4x CPU, 390 px, 207 bubbles: first bubble 8.0 to 8.8 s before, about 0.4 s after; tasks over 50 ms while talking 14 before, 0 after ([perf report](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/perf/report.md)). A placement, refinement or paragraph line in the shown part that points at a sentence still behind the button is held by that sentence (`hold_orphan()`) and applied right after it is drawn; `test/earlier.mjs` proves it on a 70-sentence fixture (`test/earlier-fixture.jsonl`). **Rejected:** pinning the newest line to the bottom (`overflow-anchor` plus scroll-to-bottom), because every added line shifts every older bubble up; and pinning the newest line at the very top at every turn, because it hides the reply you were reading the moment you speak.
++The chat thread is **pinned to the bottom while it is locked** (the owner, 2026-10-25): every change, a live whisper line growing in place included, re-pins it once per animation frame (`Widget.Thread.anchor()`, fed by a ResizeObserver and a MutationObserver). Only a deliberate scroll-up unlocks it (`sticky_scroll`, [ext/Chat/doc/scroll.md](/framework/ext/Chat/doc/scroll.md)); then nothing moves at all. The earlier design (page turns anchored on the newest bubble's top, `Widget.HEADROOM`, `data-turns`, `test/anchor.mjs`) was removed on that date; it is in git history. The strip has no thread to move. **Cost (2026-10-25, ask `perf`):** `anchor()` only asks for a frame; one animation frame reads layout once, however many lines were drawn or captions redrawn in it. A replay of history refreshes the lines once after the batch (`refresh_after_batch()`), not once per line. The sheet draws only the newest `Widget.HISTORY` (50) chat lines of a long session; the rest wait behind **show earlier (N)** (`hold_history()`, `load_earlier()`: the older chunk is drawn above while the reader stays where they were; `test/earlier.mjs`). `Session.watch()` tails the file by byte range ([ext/Session/doc/watch.md](/framework/ext/Session/doc/watch.md)), and the mic's meter is written once per frame (`Dictate.paint_level()`). Measured at 4x CPU, 390 px, 207 bubbles: first bubble 8.0 to 8.8 s before, about 0.4 s after; tasks over 50 ms while talking 14 before, 0 after ([perf report](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/perf/report.md)). A placement, refinement or paragraph line in the shown part that points at a sentence still behind the button is held by that sentence (`hold_orphan()`) and applied right after it is drawn; `test/earlier.mjs` proves it on a 70-sentence fixture (`test/earlier-fixture.jsonl`).
+ 
+ ---
+ 
+diff --git a/public/framework/ux/Dictate/readme.md b/public/framework/ux/Dictate/readme.md
+index 739d24681..f33b413e8 100644
+--- a/public/framework/ux/Dictate/readme.md
++++ b/public/framework/ux/Dictate/readme.md
+@@ -27,7 +27,7 @@ You speak and Whisper turns the sound into text, one sentence at a time. The pag
+ - `class DictateDocs` (the Docs tab: this readme and the docs, rendered in place; [DictateDocs.js](DictateDocs.js), [DictateDocs.css](DictateDocs.css); proof `test/docs-tab.mjs`)
+ - `chat.js` calls `report.init(session)` ([ext/Chat/v2/report.js](/framework/ext/Chat/v2/report.js)) once the voice session id is known.
+ - The Debug panel in the phone sheet has a resize handle whose height survives a reload ([`SheetPanel.tabs_grip`](/framework/ext/drawer/doc/sheet.md#the-debug-panel-handle-2026-10-25)).
+-- Proofs `test/errors.mjs` (every error is caught and shown), `test/stall.mjs`, `test/debug-tab.mjs`, `test/deltas.mjs`, `test/repeat.mjs` (Whisper's repeated tail), `test/order.mjs` (bubbles in the order spoken), `test/flicker.mjs` (no word vanishes or moves), `test/anchor.mjs` (the thread does not jump), `test/chat-sent.mjs` (sent marks, the scroll lock and the ↓ button, Questions under their Prompt; bubbles and Chat v2), `test/chat-gray.mjs` (gray-state labels and the faded sent bubble), `test/refresh.mjs` (reload, then dictate: [`doc/debug-tab.md#refresh-then-dictate`](doc/debug-tab.md#refresh-then-dictate)).
++- Proofs `test/errors.mjs` (every error is caught and shown), `test/stall.mjs`, `test/debug-tab.mjs`, `test/deltas.mjs`, `test/repeat.mjs` (Whisper's repeated tail), `test/order.mjs` (bubbles in the order spoken), `test/flicker.mjs` (no word vanishes or moves), `test/chat-sent.mjs` (sent marks, the scroll lock and the ↓ button, Questions under their Prompt; bubbles and Chat v2), `test/chat-gray.mjs` (gray-state labels and the faded sent bubble), `test/refresh.mjs` (reload, then dictate: [`doc/debug-tab.md#refresh-then-dictate`](doc/debug-tab.md#refresh-then-dictate)).
+ - Errors: [failures.jsonl](/framework/ux/Dictate/failures.jsonl) (dev only: git-ignored, written on this machine at the first failure).
+ 
+ **Whisper said the end twice?** A tail of 5+ words repeating the span before it is dropped, a short real repeat stays: `ux/Dictate/repeat.js`, proof `test/repeat.mjs`, [`mic-notes`](/framework/ext/Chat/doc/mic-notes.md#whisper-repeats-collapse_repeat).
+diff --git a/public/framework/ux/Dictate/test/anchor.mjs b/public/framework/ux/Dictate/test/anchor.mjs
+deleted file mode 100644
+index 48b5b6b62..000000000
+--- a/public/framework/ux/Dictate/test/anchor.mjs
++++ /dev/null
+@@ -1,106 +0,0 @@
+-// Proof that the chat thread on the phone sheet never pushes older lines while you read. Headless only; posting is stubbed.
+-//   node public/framework/ux/Dictate/test/anchor.mjs <base-url> [shots dir] [--strip] [--scrolled] [--sentences=5]
+-// Opens the sheet at 400 (split, or --strip), starts the fake mic (jfk.wav looping), waits for N delivered sentences and counts
+-// MOVES: every 50 ms the VIEWPORT top of each bubble and of the composer; a change over 1 px is one move.
+-//   default     the reader sits at the bottom (the anchor): the newest line may grow, nothing already on screen may move.
+-//   --scrolled  the reader scrolled up after the first sentence: nothing may move at all.
+-// Exit 1 on any failure.
+-import { pathToFileURL } from "url";
+-import fs from "fs";
+-
+-const flag = n => process.argv.includes("--" + n);
+-const args = process.argv.slice(2).filter(a => !a.startsWith("--"));
+-const [base = "http://monorepo.localhost", shots] = args;
+-const strip = flag("strip"), scrolled = flag("scrolled");
+-const N = +(process.argv.find(a => a.startsWith("--sentences="))?.split("=")[1] ?? 5);
+-const SIZE = strip ? "compact" : "full";
+-const PW = process.env.PWENTRY ?? "C:/Users/mike/AppData/Roaming/npm/node_modules/playwright/index.mjs";
+-const here = new URL("../../../ai/recordings/jfk.wav", import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1");
+-const wav = process.env.WAV ?? (fs.existsSync(here) ? here : "C:/Code/lew42/monorepo/public/framework/ai/recordings/jfk.wav");   // recordings/ is git-ignored: a worktree has none
+-const { chromium } = await import(pathToFileURL(PW).href);
+-const browser = await chromium.launch({ args: ["--use-fake-ui-for-media-stream", "--use-fake-device-for-media-stream", `--use-file-for-fake-audio-capture=${wav}`] });
+-const kill = setTimeout(() => { console.log("FAIL killed after 400 s"); process.exit(2); }, 400000);
+-let failed = 0;
+-const check = (ok, msg) => { console.log(ok ? "ok  " : "FAIL", msg); if (!ok) failed++; };
+-
+-const ctx = await browser.newContext({ viewport: { width: 400, height: 800 }, permissions: ["microphone"], hasTouch: true, isMobile: true });
+-const page = await ctx.newPage();
+-const errors = [], said = [];
+-page.on("pageerror", e => errors.push(String(e).slice(0, 200)));
+-// never post as the owner: every session verb is answered from here
+-await page.route(/\/api\/session\//, async route => {
+-	const req = route.request(), verb = req.url().split("/api/session/")[1].split("?")[0];
+-	let body = {}; try { body = JSON.parse(req.postData() ?? "{}"); } catch {}
+-	if (verb.endsWith("/stream")) return;   // the live wire stays pending, never refused or closed: a dead wire shows the sheet's "Servex link down" banner after 8 s, a real 52 px shift that is not streaming
+-	if (verb === "say") said.push(body.text);
+-	const out = verb === "new" || verb === "resume" ? { ok: true, session: "stub-session", file: "/stub-session.jsonl" } : verb === "say" ? { ok: true, at: new Date().toISOString() } : { ok: true };
+-	await route.fulfill({ status: 200, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: JSON.stringify(out) });
+-});
+-await page.route(/\/stub-session\.jsonl/, r => r.fulfill({ status: 200, contentType: "text/plain", body: "" }));
+-await page.route(/\/api\/sessions\?/, r => r.fulfill({ status: 200, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: JSON.stringify({ ok: true, sessions: [] }) }));
+-
+-await page.goto(base + "/framework/ext/drawer/", { waitUntil: "domcontentloaded" });
+-await page.waitForSelector(".drawer-rail-ai", { timeout: 20000 });
+-await page.evaluate(async () => { const { default: Sheet } = await import("/framework/ext/drawer/Sheet.js"); window.$sheet = Sheet.of(); await window.$sheet.to("split", { listen: false }); });
+-await page.waitForSelector(".drawer-rail-sheet.on .ux-dictate-widget", { timeout: 20000 });
+-await page.waitForTimeout(800);
+-if (strip){ await page.evaluate(() => window.$sheet.to("strip", { listen: false })); await page.waitForTimeout(600); }
+-
+-// the sampler: viewport top of every bubble (and its text pieces) and of the composer; a bubble that is clipped by the thread still counts
+-await page.evaluate(() => {
+-	const ids = new WeakMap(); let n = 0;
+-	const M = window.$M = { moves: new Map(), turns: new Map(), seen: new Map(), armed: false, log: [], nb: 0, turn_until: 0 };
+-	const sheet = document.querySelector(".drawer-rail-sheet");
+-	const name = el => el.tagName.toLowerCase() + "." + (el.className?.toString?.().split(/\s+/).slice(0, 2).join(".") ?? "");
+-	M.trace = [];
+-	setInterval(() => {
+-		const th = sheet.querySelector(".ux-dictate-widget-thread");
+-		if (M.armed && th) M.trace.push(["T" + Math.round(th.getBoundingClientRect().top), th.scrollTop, th.scrollHeight, th.clientHeight, [...th.querySelectorAll(".ux-dictate-widget-bubbles > *")].map(e => e.className.toString().split(" ")[0] + ":" + Math.round(e.getBoundingClientRect().top) + "/" + Math.round(e.getBoundingClientRect().height)).join(" ")].join(" | "));
+-		const nb = th?.dataset.turns ?? "0";
+-		if (nb !== M.nb){ M.nb = nb; M.turn_until = performance.now() + 80; }   // the thread turned a page (data-turns): a "turn"; any other move is a "stream" move, which is the failure
+-		const els = [...sheet.querySelectorAll(".ux-dictate-widget-bubbles > *, .chatbox-compose, .dictation-bar, .drawer-rail-head, .drawer-rail-sheet-live, .drawer-rail-sheet-live > *")];
+-		for (const el of els){
+-			const r = el.getBoundingClientRect();
+-			if (!r.width && !r.height) continue;
+-			const id = ids.get(el) ?? (ids.set(el, ++n), n);
+-			const top = Math.round(r.top), prev = M.seen.get(id);
+-			M.seen.set(id, top);
+-			if (M.armed && prev !== undefined && Math.abs(prev - top) > 1){
+-				const turn = performance.now() < M.turn_until, book = turn ? M.turns : M.moves;
+-				const e = book.get(id) ?? { name: name(el), moves: 0 };
+-				e.moves++; book.set(id, e);
+-				if (!turn && M.log.length < 12) M.log.push(name(el) + " " + prev + "->" + top);
+-			}
+-		}
+-	}, 50);
+-});
+-
+-const mic = page.locator(`.drawer-rail-sheet .dictation-bar[data-size=${SIZE}] .dictation-bar-mic`).first();
+-await mic.click();
+-const t0 = Date.now();
+-let armed = false;
+-while (said.length < N && Date.now() - t0 < 330000){
+-	await page.waitForTimeout(300);
+-	const ready = !scrolled || await page.evaluate(() => { const t = document.querySelector(".drawer-rail-sheet .ux-dictate-widget-thread"); return t.scrollTop > 0; });   // a reader can only scroll UP from a thread that has scrolled
+-	if (!armed && said.length >= 1 && ready){
+-		armed = true;
+-		if (scrolled) await page.evaluate(() => { const t = document.querySelector(".drawer-rail-sheet .ux-dictate-widget-thread"); t.scrollTop = 0; });
+-		await page.waitForTimeout(200);
+-		await page.evaluate(() => { $M.armed = true; $M.seen.clear(); });   // count only after the reader has settled
+-	}
+-}
+-const out = await page.evaluate(() => {
+-	const t = document.querySelector(".drawer-rail-sheet .ux-dictate-widget-thread");
+-	return { pages: +t?.dataset.turns || 0, turns: [...$M.turns.values()].reduce((a, e) => a + e.moves, 0), elements: $M.moves.size, moves: [...$M.moves.values()].reduce((a, e) => a + e.moves, 0), first: $M.log, scrollTop: t?.scrollTop, scrollHeight: t?.scrollHeight, client: t?.clientHeight, bubbles: document.querySelectorAll(".ux-dictate-widget-bubbles > *").length };
+-});
+-if (shots) await page.screenshot({ path: `${shots}/${new Date().toISOString().slice(0, 19).replace(/\D/g, "")}-${strip ? "strip" : "split"}${scrolled ? "-scrolled" : ""}.png` });
+-console.log(JSON.stringify({ sentences: said.length, ...out }));
+-if (flag("trace")) console.log((await page.evaluate(() => $M.trace.filter((r, i, a) => i === 0 || r !== a[i - 1]))).join("\n"));
+-check(said.length >= N, `${N} sentences were delivered (${said.length})`);
+-check(out.elements === 0, `no box moved while words streamed in (${out.elements} boxes, ${out.moves} moves; ${out.turns} moves in page turns, in ${out.pages} turns) ${out.first.join(" | ")}`);
+-if (scrolled) check(out.turns === 0, `the reader had scrolled up: not even a page turn moved anything (${out.turns})`);
+-check(!errors.length, "no page errors " + errors.join(" "));
+-clearTimeout(kill);
+-await browser.close();
+-console.log(failed ? `${failed} failed` : "all passed");
+-process.exit(failed ? 1 : 0);

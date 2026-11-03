@@ -1,0 +1,7 @@
+{"class":"/framework/ai2/card.js","title":"Cards only, log requests","type":"card","id":"2026/09/19/v3-cards-css","created":"2026-09-19T16:57:38-05:00","by":"assistant","tags":[]}
+{"legacy":"v3-cards-css"}
+{"status":"working"}
+{"icon":"style"}
+{"re":"o-171700"}
+{"parent":"v3-notes"}
+{"text":"From now on my answers go on the dashboard as cards, with a one-line chat note at most. The cards get no black border and a less white fill that lightens when selected. A full request log for the new masterminds is with the mastermind."}

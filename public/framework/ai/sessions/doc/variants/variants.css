@@ -1,0 +1,44 @@
+@layer site {
+	/* the shared bar (SegBar.js) */
+	.svv-bar { display: inline-flex; align-items: center; gap: .5em; flex: 0 1 12em; min-width: 6em; }
+	.svv-segs { display: flex; gap: 2px; flex: 1 1 auto; }
+	.svv-seg, .svv-meter { flex: 1 1 0; height: .5em; border-radius: 2px; background: var(--line); overflow: hidden; min-width: .4em; }
+	.svv-fill { display: block; height: 100%; background-image: linear-gradient(var(--ok, currentColor), var(--ok, currentColor)); }
+	.svv-fill.is-part { opacity: .5; }
+	.svv-pct { color: var(--subtle); font-size: .8em; white-space: nowrap; }
+
+	/* the page: three variants side by side when there is room, stacked when not */
+	.svv-picks { display: flex; flex-wrap: wrap; gap: .5em; margin-block: 1em; }
+	.svv-pick.is-on { outline: 2px solid var(--ok, currentColor); }
+	.svv-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 26em), 1fr)); gap: 2rem; align-items: start; }
+	.svv-variant { display: flex; flex-direction: column; gap: .5em; padding: 1em; border: 1px solid var(--line); border-radius: 6px; min-width: 0; }
+	.svv-variant > h3 { margin: 0; }
+	.svv-body { display: flex; flex-direction: column; gap: .75em; min-width: 0; }
+
+	/* a session or task head */
+	.svv-head { display: flex; flex-direction: column; gap: .35em; }
+	.svv-title { margin: 0; font-size: 1.3em; }
+	.svv-slug { color: var(--subtle); }
+	.svv-head .svv-bar { flex-basis: auto; max-width: 24em; }
+	.svv-facts { display: flex; flex-wrap: wrap; gap: .25em 1.25em; }
+	.svv-bullets { margin: 0; padding-left: 1.2em; color: var(--subtle); font-size: .9em; }
+	.svv-line { margin: 0; font-size: .9em; }
+
+	/* a task row: the bar sits beside a short title and wraps below a long one */
+	.svv-rows { display: flex; flex-direction: column; gap: .2em; }
+	.svv-row { display: flex; flex-wrap: wrap; align-items: center; gap: .2em .5em; padding: .3em .4em; padding-left: calc(.4em + var(--depth, 0) * 1.25em); border-radius: 4px; cursor: pointer; }
+	.svv-row:hover { background: var(--line); }
+	.svv-row.is-on { background: var(--line); font-weight: 600; }
+	.svv-row-title { flex: 1 1 10em; min-width: 0; }
+	.svv-row .svv-bar { flex: 0 0 9em; margin-left: auto; }
+	.svv-icon { color: var(--subtle); }
+	.svv-icon.is-project { color: var(--ok, currentColor); }
+	.svv-inline { margin: .25em 0 .5em calc(1.5em + var(--depth, 0) * 1.25em); padding: .6em .8em; border-left: 3px solid var(--ok, currentColor); }
+	.svv-switch { max-width: 100%; font: inherit; padding: .3em; }
+	.svv-up { cursor: pointer; font-size: .9em; }
+
+	/* C: two panes when the variant is wide enough, stacked when not */
+	.svv-panes { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16em), 1fr)); gap: 1em; }
+	.svv-left { display: flex; flex-direction: column; gap: .1em; max-height: 70vh; overflow: auto; }
+	.svv-root-row .svv-row-title { font-weight: 600; }
+}

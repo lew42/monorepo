@@ -1,0 +1,414 @@
+diff --git a/.gitignore b/.gitignore
+index cbcf99bcb..f0d644e8c 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -13,6 +13,7 @@ public/framework/ai/usage.json
+ # stalled/budget rows for the Dashboard — regenerated every ~60s by Servex/asks/tasks.js,
+ # same reason as usage.json above: machine state, not a record (stalled-and-budgets, 2026-10-02)
+ public/framework/ai/tasks.json
++public/framework/ai/page-work.json
+ 
+ # the Sessions tab's own snapshot — written by sessions.mjs from this machine's own
+ # .claude/projects/*.jsonl files, same shape as usage.json above: machine state, not
+diff --git a/Server/page-ai-cost.mjs b/Server/page-ai-cost.mjs
+index f32893757..2d7045b47 100644
+--- a/Server/page-ai-cost.mjs
++++ b/Server/page-ai-cost.mjs
+@@ -12,7 +12,7 @@
+ // page, so it keeps using that file.
+ //
+ // usage:
+-//   node Server/page-ai-cost.mjs [--root <repo>] [--dry]
++//   node Server/page-ai-cost.mjs [--root <repo>] [--dry] [--work]   (--work: only ai/page-work.json, see "open work" below)
+ //
+ // What it does, in order:
+ //   1. Walks every ai/<date>/<slug>/task.jsonl.
+@@ -140,6 +140,45 @@ for (const dir of all_task_dirs()){
+ 	}
+ }
+ 
++// ---- open work: every task not yet landed -> the pages it touched or its brief names ----
++// Written to ai/page-work.json, read by core/Page/ai/PageWork.js (a line on every page). The task
++// list comes from ai/tasks.json (Servex/asks/tasks.js derives it); this only adds the page mapping.
++const OPEN_FILE = path.join(AI, "page-work.json");
++function open_work(){
++	let tasks = [];
++	try { tasks = JSON.parse(fs.readFileSync(path.join(AI, "tasks.json"), "utf8")).tasks ?? []; } catch { return null; }
++	const pages = {};
++	for (const t of tasks){
++		if (t.landed) continue;
++		const dir = path.join(root, t.dir);
++		const found = new Map(); // page folder -> how we know ("edited" | "briefed")
++		for (const f of pages_touched(dir)) found.set(f, "edited");
++		if (t.brief && fs.existsSync(path.join(root, t.brief))){
++			const text = fs.readFileSync(path.join(root, t.brief), "utf8");
++			for (const m of text.matchAll(/public\/framework\/[\w\-./]+/g)){
++				if (/\/ai\/\d{4}-\d{2}-\d{2}\//.test(m[0])) continue; // another task dir, not a page
++				const folder = page_folder_for(m[0].replace(/[.,;:)]+$/, ""));
++				if (folder && !found.has(folder)) found.set(folder, "briefed");
++			}
++		}
++		for (const [folder, how] of found){
++			const url = "/" + path.relative(path.join(root, "public"), folder).replace(/\\/g, "/") + "/";
++			(pages[url] ??= []).push({ title: t.title, state: t.state, how, task: "/" + t.dir.replace(/^public\//, "") + "/", agent: t.agent });
++		}
++	}
++	return pages;
++}
++{
++	const pages = open_work();
++	if (pages && !dry){
++		const next = JSON.stringify(pages);
++		let prev = ""; try { prev = JSON.stringify(JSON.parse(fs.readFileSync(OPEN_FILE, "utf8")).pages); } catch {}
++		if (prev !== next) fs.writeFileSync(OPEN_FILE, JSON.stringify({ generated_at: new Date().toISOString(), note: "DERIVED by Server/page-ai-cost.mjs — open (unlanded) tasks per page folder. Never hand-edit.", pages }, null, 1) + "\n");
++		console.log("page-work: " + Object.keys(pages).length + " page(s) with open work" + (prev === next ? " (unchanged)" : " (written)"));
++	}
++}
++if (process.argv.includes("--work")) process.exit(0);   // --work: only the open-work index, no cost lines
++
+ // ---- write: one line per page, skipped when unchanged ----
+ const r2 = n => Math.round(n * 100) / 100;
+ const table = [["page", "usd", "tasks", "log"]];
+diff --git a/public/framework/ai/2026-10-12/page-context-asks/STATE.md b/public/framework/ai/2026-10-12/page-context-asks/STATE.md
+new file mode 100644
+index 000000000..4e47c3a0e
+--- /dev/null
++++ b/public/framework/ai/2026-10-12/page-context-asks/STATE.md
+@@ -0,0 +1,17 @@
++# page-context-asks: STATE
++
++Asks [#6 and #7](/framework/core/Page/doc/asks.md), both built. Requirements: [requirements.md](/framework/ai/2026-10-12/page-context-asks/requirements.md).
++
++## #6 page-context-on-page: done ([bb8d98c9f](https://github.com/lew42/monorepo/commit/bb8d98c9f))
++- ✅ Every Page and Doc page shows "N open tasks on this page · M below" (a click opens the task links): `core/Page/ai/PageWork.js`, added to `Page.class.js` and `ext/Doc/Doc.js`. Doc: [page-work-line.md](/framework/core/Page/ai/doc/page-work-line.md).
++- ✅ Data is computed, not recalled: `node Server/page-ai-cost.mjs --work` writes `ai/page-work.json` (8 pages with open work at the time).
++- ✅ Directory data apart from page.jsonl: decided as by design (`core/Page/doc/data.md`, `jsonl.md`).
++- Proof: headless probe showed the line on `/framework/dev/`, `/framework/ai/` ("6 open tasks on this page · 1 below") and the Dictate doc page; no horizontal scroll at 400/1200/1920/3440.
++- ⬜ **Blocked step:** nothing runs `--work` on a timer. Smallest next step: call it from Servex's task tick, then one batched restart proven on a private port.
++
++## #7 weight-importance: done ([632aa94e1](https://github.com/lew42/monorepo/commit/632aa94e1))
++- ✅ `core/Page/PageWeight.js`: `of(url | {url} | {weight})`, `rank`, `classes`, `apply`. `page.previews(pages, { weight: true, min })` (add-only change in `Page.class.js`).
++- ✅ Card size follows weight (w1 to w3, `weighty` past 10) and a `min` filter hides the light ones; the number is the hover title.
++- ✅ Display A (size scale) decided, B named as the alternative: [design.md](/framework/core/Page/weight/doc/design.md). Live demo: [weight/](/framework/core/Page/weight/).
++- Proof: on the private server the core/Page children came out Layout(12, weighty), Navigation(3), Generator(3), Overview(2)..., weight-1 cards hidden; screenshots at 400/1200/3440 read fine, no horizontal scroll.
++- ⚠ A weight on an Item or card is only a property; there is no `weight.jsonl` for objects that are not pages.
+diff --git a/public/framework/core/Page/Page.class.js b/public/framework/core/Page/Page.class.js
+index ba38e549a..7dce5d2cb 100644
+--- a/public/framework/core/Page/Page.class.js
++++ b/public/framework/core/Page/Page.class.js
+@@ -5,6 +5,7 @@ import List from "../List/List.js";
+ import { page_settings } from "./settings/settings.js";
+ import { track } from "../track/track.js";
+ import ai_cost from "./weight/ai-cost.js";
++import PageWork from "./ai/PageWork.js";
+ import PageChildren from "./Children.js";
+ import PageLogReader from "./Reader.js";
+ import PageListing from "./Listing.js";
+@@ -953,6 +954,9 @@ export class Page extends Item {
+ 			}));
+ 		});
+ 
++		// "N open tasks touch this page", computed into ai/page-work.json; nothing drawn when there is none. (ai/doc/page-work-line.md)
++		if (this.title && this.url) this.view.append(() => { span.c("page-open").append(PageWork.line(this.url)); });
++
+ 		Page.views.set(this.view.el, this);
+ 		this.emit("render", this.view);   // once, here — the early return above skips a second draw
+ 		return this.view;
+@@ -1259,7 +1263,7 @@ export class Page extends Item {
+ 
+ 	// ════ PREVIEWS — a card per child, a wall of rungs, one card (Previews.js, doc/previews.md) ═══
+ 	// Facades: a page overrides `preview(nav)` and calls `preview_card` (the hook below), so these stay Page methods.
+-	previews(pages){ return new this.constructor.Previews({ page: this }).list(pages); }
++	previews(pages, opts){ return new this.constructor.Previews({ page: this }).list(pages, opts); }
+ 	walls(){ return new this.constructor.Previews({ page: this }).walls(); }
+ 	wall_rungs(){ return new this.constructor.Previews({ page: this }).rungs(); }
+ 
+diff --git a/public/framework/core/Page/Page.css b/public/framework/core/Page/Page.css
+index 8c0571019..d9ece6d83 100644
+--- a/public/framework/core/Page/Page.css
++++ b/public/framework/core/Page/Page.css
+@@ -215,6 +215,12 @@
+ 	/* An app-shaped page (a Doc with tabs, a full-height board) has no reading end to sit at. */
+ 	.page:has(.doc-title) > .page-ai-cost { display: none; }
+ 
++	/* "N open tasks touch this page" — PageWork.js, from ai/page-work.json. Same place and size as the cost line; empty = no box. */
++	.page .page-open { display: block; font-size: small; padding: 0 var(--gutter-x, 1rem); }
++	.page .page-open:empty { display: none; }
++	.page-open-line summary { cursor: pointer; color: var(--muted, inherit); }
++	.page-open-rows { display: flex; flex-direction: column; gap: 0.25em; padding: 0.5em 0 var(--gap, 1rem); }
++
+ 	/* ════ RELATED — a pinned third region: links to other pages ═════════════
+ 	   `related: "/a/ /b/"` (Page.class.js's `related_aside()`,
+ 	   `doc/property/related.md`) draws one row per url — the target's own icon
+@@ -1461,4 +1467,14 @@
+ 	     overflowed the wall. It needed a `@media (max-width: 28em)` rule to undo
+ 	     itself. Two rules for one void: `vision-after/proposal.md` #6. */
+ 	.page-preview:is(.tall, .big) .page-preview-thumb { --stage: 8 / 10; --stage-max: 24em; }
++
++	/* Weighted previews (`previews(pages, { weight: true })`, PageWeight.js): the size follows the page's weight, the number is on hover (display A). `weighty` = past 10, bigger again. */
++	.page-preview.w1 .page-preview-thumb { --stage-max: 7em; }
++	.page-preview.w3 .page-preview-thumb { --stage-max: 16em; }
++	.page-preview.w1 { font-size: 0.9em; }
++	.page-preview.w3 { font-size: 1.1em; }
++	.page-preview.w3 .page-preview-title { font-weight: 600; }
++	.page-preview.weighty { font-size: 1.3em; }
++	.page-preview.weighty .page-preview-thumb { --stage-max: 22em; }
++	.page-preview[hidden] { display: none; }
+ }
+diff --git a/public/framework/core/Page/PageWeight.js b/public/framework/core/Page/PageWeight.js
+new file mode 100644
+index 000000000..3bc16bf5e
+--- /dev/null
++++ b/public/framework/core/Page/PageWeight.js
+@@ -0,0 +1,42 @@
++import { weight as page_weight } from "./weight/weight.js";
++
++// One weight for anything: a url (a page), an object with a `url`, or an object with a number `weight` (an Item, a card). 1 when it has none. (readme.md, doc/design.md)
++export default class PageWeight {
++
++	static TIERS = 3;   // sizes w1..w3, matching ux/Content icards (content.css)
++	static BIG = 10;    // past this, the thing renders bigger, not only first
++
++	static async of(target){
++		if (typeof target === "number") return target;
++		if (typeof target === "string") return (await page_weight(target)).weight;
++		if (typeof target?.weight === "number") return target.weight;
++		if (target?.url) return (await page_weight(target.url)).weight;
++		return 1;
++	}
++
++	static tier(w){ return Math.max(1, Math.min(this.TIERS, Math.round(w))); }
++	static big(w){ return w > this.BIG; }
++	static classes(w){ return `w${this.tier(w)}${this.big(w) ? " weighty" : ""}`; }
++
++	// [{ target, weight }] heaviest first (a stable sort: equal weights keep their order), dropping any under `min`.
++	static async rank(targets, { min = 0, key = t => t } = {}){
++		const rows = await Promise.all([...targets].map(async target => ({ target, weight: await this.of(key(target)) })));
++		return rows.filter(row => row.weight >= min).sort((a, b) => b.weight - a.weight);
++	}
++
++	// Rank the cards already drawn in `box` (a View) by the page url each links to: reorder, hide the light ones, stamp the size classes.
++	static async apply(box, { min = 0 } = {}){
++		const cards = [...box.el.querySelectorAll(":scope > .page-preview")]
++			.map(el => ({ el, url: el.querySelector("a.page-preview-link")?.getAttribute("href") }));
++
++		const rows = await this.rank(cards, { min: 0, key: card => card.url });
++		for (const { target, weight } of rows){
++			const { el } = target;
++			el.classList.add(...this.classes(weight).split(" "));
++			el.title = `weight ${weight}`;
++			el.hidden = weight < min;
++			box.el.append(el);
++		}
++		return rows;
++	}
++}
+diff --git a/public/framework/core/Page/Previews.js b/public/framework/core/Page/Previews.js
+index d1965dcc6..f2f111860 100644
+--- a/public/framework/core/Page/Previews.js
++++ b/public/framework/core/Page/Previews.js
+@@ -1,3 +1,4 @@
++import PageWeight from "./PageWeight.js";
+ import { View, div, p, h2, h4, a, span, icon } from "../View/View.js";
+ 
+ // The cards a page draws for its children: a card list, a wall of rungs, one card. `page.previews()` etc. build one of these. (doc/previews.md)
+@@ -10,16 +11,20 @@ export default class PagePreviews {
+ 	assign(...args){ return Object.assign(this, ...args); }
+ 
+ 	// A card per child, drawn by the child; a declared-but-unresolved one gets the default card.
+-	list(pages = this.page.children){
++	// `{ weight: true, min }` ranks the cards heaviest first, sizes them w1..w3 and hides any lighter than `min`. (weight/readme.md)
++	list(pages = this.page.children, opts = {}){
+ 		let group;
+ 
+-		return div.c("page-previews bleed", () => pages.forEach((child, name) => {
++		const $list = div.c("page-previews bleed", () => pages.forEach((child, name) => {
+ 			if (child?.group && child.group !== group)
+ 				h4.c("page-previews-group", group = child.group);
+ 
+ 			const nav = this.page.nav_for(name);
+ 			child ? child.preview(nav) : this.page.preview_card(nav);
+ 		}));
++
++		if (opts.weight) PageWeight.apply($list, opts);
++		return $list;
+ 	}
+ 
+ 	// One rung per child: its name, then ITS children as cards. ⚠ `leaf` opts a child out whole.
+diff --git a/public/framework/core/Page/ai/PageWork.js b/public/framework/core/Page/ai/PageWork.js
+new file mode 100644
+index 000000000..ba0f297a6
+--- /dev/null
++++ b/public/framework/core/Page/ai/PageWork.js
+@@ -0,0 +1,38 @@
++import { div, a, span, details, summary } from "../../View/View.js";
++
++// "N open tasks touch this page": one line under every page, from the computed index ai/page-work.json. (ai/doc/page-work-line.md)
++export default class PageWork {
++
++	static INDEX = "/framework/ai/page-work.json";
++	static #index;
++
++	// One fetch for the whole session. Fails soft: no file (production, never generated) means no line.
++	static index(){
++		return this.#index ??= fetch(this.INDEX).then(res => res.ok && !res.headers.get("content-type")?.includes("html") ? res.json() : null)
++			.then(json => json?.pages ?? {}, () => ({}));
++	}
++
++	// This page's own open tasks, and the ones on pages below it.
++	static async of(url){
++		const pages = await this.index();
++		const own = pages[url] ?? [];
++		const below = Object.keys(pages).filter(key => key !== url && key.startsWith(url) && url !== "/")
++			.flatMap(key => pages[key].map(task => ({ ...task, page: key })));
++		return { own, below };
++	}
++
++	// The view, or undefined when there is nothing to say (a page with no open work shows nothing).
++	static async line(url){
++		const { own, below } = await this.of(url);
++		if (!own.length && !below.length) return undefined;
++
++		const said = [own.length && `${own.length} open task${own.length === 1 ? "" : "s"} on this page`, below.length && `${below.length} below`];
++		return details.c("page-open-line", () => {
++			summary(said.filter(Boolean).join(" · "));
++			div.c("page-open-rows", () => [...own, ...below].forEach(task => div.c("page-open-row", () => {
++				a(task.title).href(task.task);
++				span.c("muted", ` ${task.state}${task.page ? ` · ${task.page}` : ""}`);
++			})));
++		});
++	}
++}
+diff --git a/public/framework/core/Page/ai/doc/page-work-line.md b/public/framework/core/Page/ai/doc/page-work-line.md
+new file mode 100644
+index 000000000..45c049ddd
+--- /dev/null
++++ b/public/framework/core/Page/ai/doc/page-work-line.md
+@@ -0,0 +1,12 @@
++# The open-work line: every page says what is being worked on
++
++**What you see:** under a page, one line, `2 open tasks on this page · 1 below`. Click it for the task links. A page with no open work shows nothing. This closes ask #6 in [asks.md](../../doc/asks.md).
++
++**Where it comes from (computed, never typed):**
++- `ai/tasks.json` (Servex derives it every minute) lists every task and whether it has landed.
++- `node Server/page-ai-cost.mjs --work` reads it and, for each unlanded task, finds the pages it **edited** (its `action` lines) or its brief **names**. It writes `ai/page-work.json`, a derived file that is git-ignored.
++- `core/Page/ai/PageWork.js` fetches that one file once and draws the line. `Page.render()` and `ext/Doc` (a Doc draws its own view) both call it.
++
++**Differs from [work.md](work.md):** `page_work()` is the opt-in, live, keyword-matched block with agents and parents; this line is on every page and matched by files touched, not keywords. They share no code on purpose: one is a quick signal, the other a detailed view.
++
++**Open:** nothing runs `--work` on a timer yet. Wiring it into Servex's task tick needs a Servex change, so it waits for the next batched restart (`public/framework/ai/2026-10-12/page-context-asks/STATE.md`). Until then, run the command by hand; a stale file only shows older tasks.
+diff --git a/public/framework/core/Page/ai/readme.md b/public/framework/core/Page/ai/readme.md
+index 2f823e2d1..d81a52a42 100644
+--- a/public/framework/core/Page/ai/readme.md
++++ b/public/framework/core/Page/ai/readme.md
+@@ -41,6 +41,8 @@ automatic on every Doc page) — `doc/work.md` has the shape, the two views, and
+ Live on this page itself ("Its own work", above) and on
+ [`ux/Dictate/`](/framework/ux/Dictate/).
+ 
++**Every page, one line.** `PageWork.js` draws "N open tasks on this page · M below" under every page (Doc pages too) from the computed `ai/page-work.json`; `doc/page-work-line.md` has the source and the one open step.
++
+ **More.** `doc/where.md` (the file-by-file map), `doc/sessions.md` (session ids and the
+ SDK's own classes), `doc/dictation.md`, `doc/assistant.md`, `doc/manager.md`, `doc/work.md`
+ (`page_work()` — a page's own open tasks and agents, hierarchical).
+diff --git a/public/framework/core/Page/doc/asks.md b/public/framework/core/Page/doc/asks.md
+index 6a4ed3271..90ddb9ddc 100644
+--- a/public/framework/core/Page/doc/asks.md
++++ b/public/framework/core/Page/doc/asks.md
+@@ -9,8 +9,8 @@ The owner's own prompts that touch the page system, tagged by Haiku, folded into
+ 3. **page-live-parts** (9x, 2026-09-18 to 2026-10-09, partly): Pages are streamed lists of parts: change them by small page.jsonl appends / page tools, and they update themselves while you watch (granular, not whole-file rewrites). *Open:* Build merge, Servex restart, Haiku live proof, subpages class and four-width layout check still open in page-ai-api STATE. *Unblocks:* Agents build pages granularly while the owner watches them update. Routed to @mastermind-page-ai-api. [page-ai-api/STATE.md](/framework/ai/2026-10-12/page-ai-api/STATE.md), [jsonl/readme.md](/framework/core/Page/jsonl/readme.md)
+ 4. **sidebar-tree-nav** (9x, 2026-09-14 to 2026-10-09, partly): Left sidebar navigation: an expandable tree for deep nesting, searchable index so unloaded pages are found, nav back on the homepage/hamburger, tree in the dev bar, right-hand related-topics sidebar. *Done 2026-10-12:* search finds unloaded pages (`Sidebar.index()`, `?q=` routed, keyboard). *Open:* right-hand related-topics sidebar and dev-bar tree unconfirmed. *Unblocks:* Finding any page on the site from the sidebar without knowing the path. [Sidebar/readme.md](/framework/core/Sidebar/readme.md), [navigation/readme.md](/framework/core/Page/navigation/readme.md)
+ 5. **page-review-and-smoke** (5x, 2026-09-04 to 2026-10-05, partly): Never ship an untested page: smoke test and screenshot every changed page, monitor file changes and test dependent pages before the owner sees breakage. *Open:* Smoke gate currently fails on every page (expired console-allow entries for weight/settings 404s); watch-and-test-dependents not confirmed. *Unblocks:* Trustworthy merges: breakage caught before the owner sees it. [page-content-unify/STATE.md](/framework/ai/2026-10-12/page-content-unify/STATE.md)
+-6. **page-context-on-page** (4x, 2026-09-29 to 2026-10-01, partly): Each page shows its own open tasks / AI activity, defines pages vs embedded cards, and keeps page.jsonl with directory data. *Open:* Open-tasks-per-page display not confirmed on every page; directory data still separate from page.jsonl. *Unblocks:* Every page tells you what is being worked on, without visiting the board. Routed to @mastermind-page-ai-api. [ai/readme.md](/framework/core/Page/ai/readme.md), [doc/content.md](/framework/core/Page/doc/content.md)
+-7. **weight-importance** (3x, 2026-09-30 to 2026-10-02, partly): One weight/importance system usable on any object in the page system (card size follows module weight, filters by weight). *Open:* Not usable on any object (Items, cards); card size following module weight and weight filters not confirmed; display A/B undecided. *Unblocks:* Importance-first cards and filters across all surfaces. [weight/readme.md](/framework/core/Page/weight/readme.md), [doc/design.md](/framework/core/Page/weight/doc/design.md)
++6. **page-context-on-page** (4x, 2026-09-29 to 2026-10-01, done 2026-10-12): Each page shows its own open tasks / AI activity, defines pages vs embedded cards, and keeps page.jsonl with directory data. *Done 2026-10-12 ([bb8d98c9f](https://github.com/lew42/monorepo/commit/bb8d98c9f)):* every Page and Doc page draws one line "N open tasks on this page · M below" (`core/Page/ai/PageWork.js`, added in `Page.class.js` and `ext/Doc/Doc.js`), computed by `node Server/page-ai-cost.mjs --work` into `ai/page-work.json`; proof in [page-context-asks/STATE.md](/framework/ai/2026-10-12/page-context-asks/STATE.md). *Decided, not built:* directory data stays separate from page.jsonl by design ([doc/data.md](/framework/core/Page/doc/data.md), [doc/jsonl.md](/framework/core/Page/doc/jsonl.md)). *Open:* nothing runs `--work` on a timer yet (Servex tick, waits for the batched restart). *Unblocks:* Every page tells you what is being worked on, without visiting the board. Routed to @mastermind-page-ai-api. [ai/readme.md](/framework/core/Page/ai/readme.md), [ai/doc/page-work-line.md](/framework/core/Page/ai/doc/page-work-line.md)
++7. **weight-importance** (3x, 2026-09-30 to 2026-10-02, done 2026-10-12): One weight/importance system usable on any object in the page system (card size follows module weight, filters by weight). *Done 2026-10-12 ([632aa94e1](https://github.com/lew42/monorepo/commit/632aa94e1)):* `PageWeight.of()` takes a url, an object with a `url`, or any object with a numeric `weight`; `page.previews(pages, { weight: true, min })` sorts heaviest first, sizes cards w1 to w3 (`weighty` past 10) and filters by `min`; display **A** (size, number on hover) decided, B kept in the demo. Live at [weight/](/framework/core/Page/weight/). *Open:* an Item or card has no weight log of its own, only a `weight` property. *Unblocks:* Importance-first cards and filters across all surfaces. [weight/readme.md](/framework/core/Page/weight/readme.md), [doc/design.md](/framework/core/Page/weight/doc/design.md)
+ 
+ ## Done
+ 
+diff --git a/public/framework/core/Page/weight/doc/design.md b/public/framework/core/Page/weight/doc/design.md
+index b950386d3..ec1581463 100644
+--- a/public/framework/core/Page/weight/doc/design.md
++++ b/public/framework/core/Page/weight/doc/design.md
+@@ -87,3 +87,11 @@ section above — turns out to subscribe that folder to the dev server's file wa
+ 2026-09-29 review. `weight.js` and `Server/page-refs.mjs` both try `weight.jsonl` first and fall
+ back to `page.jsonl` only for a folder with no `page.js` of its own — a real page.jsonl PAGE
+ (`core/Page/jsonl/` itself) keeps its weight lines where its content already is.
++
++## Weight on any object, and how it is shown (2026-10-12, asks.md #7)
++
++**One class, `PageWeight` (`core/Page/PageWeight.js`).** `PageWeight.of(target)` takes a url, an object with a `url`, or any object with a numeric `weight` (an Item, a card, a plain record) and answers 1 when there is none. `rank(targets, {min})` sorts heaviest first and drops anything under `min`. `classes(w)` gives `w1` to `w3` (the same tiers as the ux/Content icards), plus `weighty` past 10. `page.previews(pages, { weight: true, min })` applies all of it to a page's child cards; without `weight` nothing changes.
++
++**Display: A, a size scale with the number on hover (decided).** The alternative, B, prints the plain number on every card. A wins because size reads across a whole wall at a glance and costs no extra words on each card; B stays in the demo at `/framework/core/Page/weight/` for comparison. The reasoning is a default, not a law: if the owner prefers B, change the one CSS block at the end of `Page.css` and the `title` line in `PageWeight.apply`.
++
++**Not done:** a manual weight line for an Item or card (they carry the number as a property; there is no `weight.jsonl` beside an object that is not a page).
+diff --git a/public/framework/core/Page/weight/page.js b/public/framework/core/Page/weight/page.js
+index 4d786571c..9d80dd8dd 100644
+--- a/public/framework/core/Page/weight/page.js
++++ b/public/framework/core/Page/weight/page.js
+@@ -1,5 +1,6 @@
+ import { Page, md, h2, h3, div, a, span, icon } from "/app.js";
+ import { weight as page_weight } from "./weight.js";
++import PageWeight from "../PageWeight.js";
+ 
+ /* Weight — the owner's own words, 2026-09-29 (4:45 PM): "let's create a weight system for
+    pages... normally... a weight of one... increase that if it becomes heavier... The weight
+@@ -136,6 +137,17 @@ export default new Page({
+ 			});
+ 		});
+ 
++		h2("On any object: Items and cards carry a weight too");
++		md("**The same number works on anything with a `weight`.** `PageWeight.of(target)` takes a url, an object with a `url`, or any object with a numeric `weight` (an Item, a card), and answers 1 when there is none. `page.previews(pages, { weight: true, min: 2 })` draws a page's child cards heaviest first, sizes them w1 to w3, hides any lighter than `min`, and puts the number in the card's hover title. **Display A won** (size scale, number on hover); B's plain number stays in the demo above as the alternative. Why: size is readable at a glance across a wall, a printed number is one more thing to read on every card. [doc/design.md](/framework/core/Page/weight/doc/design.md)");
++		div.c("card pad flow wide", $box => {
++			h3("Plain objects, ranked and filtered (min 2)");
++			const things = [{ name: "Note", weight: 1 }, { name: "Task", weight: 3 }, { name: "Decision", weight: 12 }, { name: "Idea", weight: 2 }, { name: "Scrap", weight: 1 }];
++			PageWeight.rank(things, { min: 2 }).then(rows => $box.append(() => div.c("ux-content-icards", () => rows.forEach(({ target, weight }) =>
++				div.c(`ux-content-icard ${PageWeight.classes(weight)}`, () => { span(target.name); span.c("muted", " weight " + weight); }).attr("title", "weight " + weight)))));
++		});
++		h3("A page's real child cards, weighted (core/Page, min 2)");
++		this.parent?.previews?.(undefined, { weight: true, min: 2 });
++
+ 		h2("Run it yourself");
+ 		md("`node Server/page-refs.mjs <from-url> <to-url>` appends one `referenced_by` line to the target's own log — running it twice for the same pair adds one line, not two. `node Server/page-refs.mjs <to-url> --weight <N>` sets the manual number the same way. The log is `weight.jsonl` beside a `page.js` folder, or the page's own `page.jsonl` when it has no `page.js` — [`doc/design.md`](/framework/core/Page/weight/doc/design.md) has the rule and why. `weight(page_url)` (`weight.js`) reads it all back as `{ weight, refs, manual }`. Not built: wiring this into `Page`'s own real navigation menu — a core change that needs the owner's own yes first (`doc/design.md`).");
+ 	},
+diff --git a/public/framework/core/Page/weight/readme.md b/public/framework/core/Page/weight/readme.md
+index 86f515b0f..aaa8713af 100644
+--- a/public/framework/core/Page/weight/readme.md
++++ b/public/framework/core/Page/weight/readme.md
+@@ -13,6 +13,7 @@ and the "Continued, 4:55 PM" half of [`ai/2026/09/29/familiar-structure-every-na
+ 
+ ## Use
+ 
++- **`PageWeight`** (`../PageWeight.js`) — one weight for anything: `PageWeight.of(url | {url} | {weight})`, `rank(list, {min})`, `classes(w)`. `page.previews(pages, { weight: true, min: 2 })` draws a card list heaviest first, sized w1 to w3, lighter ones hidden, number on hover (display A, decided: `doc/design.md`).
+ - **`weight(page_url)`** (`weight.js`) — `await weight("/framework/core/Page/layout/")` →
+   `{ weight, refs, manual }`. Fails soft to `{ weight: 1, refs: [], manual: 0 }` for any page
+   with no log at all, including a plain `page.js` page.
+diff --git a/public/framework/ext/Doc/Doc.js b/public/framework/ext/Doc/Doc.js
+index 8044f7935..feea8d870 100644
+--- a/public/framework/ext/Doc/Doc.js
++++ b/public/framework/ext/Doc/Doc.js
+@@ -1,5 +1,6 @@
+ import { View, div, h1, code, span, a, icon } from "../../core/View/View.js";
+ import { Page } from "../../core/Page/Page.class.js";
++import PageWork from "../../core/Page/ai/PageWork.js";
+ import { member, patched, dedent } from "../../util/source/source.js";
+ import md from "../markdown/md.js";
+ import files, { nest } from "../files/files.js";
+@@ -405,12 +406,17 @@ export class Doc extends Page {
+ 	render(){
+ 		const nested = this.nested_in_doc();
+ 
+-		return this.view ??= div.c(`page ${nested ? "doc-section" : "doc-page"}`, () => {
++		const fresh = !this.view;
++		const view = this.view ??= div.c(`page ${nested ? "doc-section" : "doc-page"}`, () => {
+ 			if (!nested) this.well();
+ 			this.tabs(this.bar().join(" ")).ac(nested ? "vertical" : "block");
+ 		})
+ 			.ac(this.name && "page--" + this.name)
+ 			.ac(this.classes);
++
++		// "N open tasks touch this page" (core/Page/ai/PageWork.js); a Doc draws its own view, so Page.render()'s line never reaches it.
++		if (fresh && this.url) view.append(() => { span.c("page-open").append(PageWork.line(this.url)); });
++		return view;
+ 	}
+ }
+ 

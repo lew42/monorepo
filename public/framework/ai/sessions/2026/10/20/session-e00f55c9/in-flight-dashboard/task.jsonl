@@ -1,0 +1,39 @@
+{"review":{"answer":{"n":1,"reply":"fixed: asks ticked in requirements.md with proof; test output PASS 9 checks, shots shot-session-360.png / -1920.png in this folder"}}}
+{"review":{"answer":{"n":2,"reply":"declined: /framework/ai/ shot not possible in the worktree (no live inflight query or generated indexes there); the block shares InFlightView with the session page (shot-proved) and its query is the one AINow already runs. To be eyeballed after merge on the main site"}}}
+{"review":{"answer":{"n":3,"reply":"fixed: row added to ai/AIDashboard/readme.md"}}}
+{"review":{"answer":{"n":4,"reply":"fixed: ai/readme.md sentence rewritten"}}}
+{"review":{"answer":{"n":5,"reply":"fixed: comment corrected; the query is the 8 most recently active, no hour cutoff"}}}
+{"review":{"answer":{"n":6,"reply":"noted: second inflight query is a known choice, written in doc/in-flight.md"}}}
+{"review":{"answer":{"n":7,"reply":"noted: running tasks are chosen by recency; the session really has 36 running, so which are 'major' is not computable. A priority-aware pick is a later improvement"}}}
+{"review":{"answer":{"n":8,"reply":"noted: Next and Done are session-page only by design; documented in doc/in-flight.md"}}}
+{"review":{"answer":{"n":9,"reply":"fixed: waiting rows have no bar; titles clamp to two lines at 360 (shot-session-360.png)"}}}
+{"review":{"answer":{"n":10,"reply":"noted: Next renders only when a session has idle tasks; covered by the unit test (n1 in next), not shown in a shot"}}}
+{"review":{"answer":{"n":1,"reply":"declined: a Task has no completion date the view can rely on, so the line is an honest all-time \"N done\" (doc/in-flight.md, Choices); it is small and muted, not a list"}}}
+{"review":{"answer":{"n":2,"reply":"fixed: both shots retaken after the bar change (shot-session-360.png, shot-session-1920.png)"}}}
+{"review":{"answer":{"n":3,"reply":"declined: the shots show this record as it is; it holds no ProcessRunner or session.sessions row in running/waiting state to show. The view draws whatever the record says, proved by InFlight.test.mjs"}}}
+{"review":{"answer":{"n":4,"reply":"declined: the query is the one ai/now/AINow.js already asks and reads r.url from (AINow.js:73); a failure draws nothing by design. To be eyeballed on the main site after merge"}}}
+{"review":{"answer":{"n":5,"reply":"noted: the block sits under the sticky stats band and above the tabs; 360 shot shows it flowing normally"}}}
+{"review":{"answer":{"n":6,"reply":"fixed: running tasks with a current line or some progress rank first, then recency (InFlight.js, doc)"}}}
+{"review":{"answer":{"n":7,"reply":"noted: Next/Done omitted across sessions by design, in the doc"}}}
+{"review":{"answer":{"n":8,"reply":"noted: second inflight query is a known choice, in the doc"}}}
+{"review":{"answer":{"n":9,"reply":"noted: indexing is fine"}}}
+{"review":{"answer":{"n":10,"reply":"noted: test PASS 9 checks, run in the worktree before each commit"}}}
+{"review":{"answer":{"n":1,"reply":"declined: shots show this record as it is, and it has no ProcessRunner or session.sessions row in running or waiting state; the view draws what the record says (unit test)"}}}
+{"review":{"answer":{"n":2,"reply":"declined: a Task has no completion date; all-time \"N done\" is documented in doc/in-flight.md"}}}
+{"review":{"answer":{"n":3,"reply":"declined: the block is directly under the stats card and above the tabs, the top of the page body; the title and stats are the head"}}}
+{"review":{"answer":{"n":4,"reply":"declined: the block reads the same inflight query as AINow (r.url used there); one read at page load is by design for a summary block. Eyeball on the main site after merge"}}}
+{"review":{"answer":{"n":5,"reply":"fixed: running tasks with a current line or progress rank first (commit in this branch); bare 0% tasks only fill what is left"}}}
+{"review":{"answer":{"n":6,"reply":"declined: the files.jsonl noise are generated index diffs already on this pooled worktree branch before this task; my commits touch only the InFlight files, readmes and docs"}}}
+{"review":{"answer":{"n":7,"reply":"noted: paused is handled with idle in pick(); Prompts are excluded by class name"}}}
+{"review":{"answer":{"n":8,"reply":"noted: TaskView not reused, reason in doc"}}}
+{"review":{"answer":{"n":9,"reply":"noted: indexing ok"}}}
+{"log":{"text":"Built: core/Session/InFlight.js (pick), InFlightView.js, InFlight.css, InFlight.test.mjs (PASS 9 checks); wired into AISessionDetail.js (top of every tab) and AIDashboard.js (across active sessions). Doc: core/Session/doc/in-flight.md. Left: eyeball /framework/ai/ block on the main site after merge; Done is all-time, not today."}}
+{"review":{"answer":{"n":1,"reply":"fixed: shots retaken taller (1500 and 1300 px) so Waiting on you is in frame; this record has no ProcessRunner or rename row to show"}}}
+{"review":{"answer":{"n":2,"reply":"declined: the worktree cannot serve the live inflight query; the block shares InFlightView and the query with AINow; to be eyeballed on the main site after merge, noted in requirements.md"}}}
+{"review":{"answer":{"n":3,"reply":"declined: no completion date on a Task; documented"}}}
+{"review":{"answer":{"n":4,"reply":"fixed: a log line in task.jsonl states what was built and what is left"}}}
+{"review":{"answer":{"n":5,"reply":"noted: the empty box is an empty div; harmless"}}}
+{"review":{"answer":{"n":6,"reply":"noted: two readers of one file is cheap"}}}
+{"review":{"answer":{"n":7,"reply":"noted: titles clamp to two lines at 360"}}}
+{"review":{"answer":{"n":8,"reply":"noted: the tmp index entry is generated, not mine"}}}
+{"assign":{"outcome":"A session page now opens with an In flight block: up to 5 running tasks with progress bars, then Waiting on you. Shot at 1920 and 360. Not done: the Next row is not in the shots, Done today is all-time not today, the /framework/ai/ block was never shot. The stats card above it still says 0 running."}}

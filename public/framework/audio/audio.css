@@ -1,0 +1,9 @@
+@layer base, theme, site, util;
+
+@layer theme {
+	.audio-index-part-head { text-decoration: none; color: inherit; }
+	.audio-index-part-head:hover { text-decoration: underline; }
+
+	.audio-index-assembly { text-decoration: none; color: inherit; align-items: center; text-align: center; }
+	.audio-index-assembly-icon { font-size: 2.5em; }
+}

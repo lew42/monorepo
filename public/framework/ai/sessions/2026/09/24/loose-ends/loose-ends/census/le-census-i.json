@@ -1,0 +1,479 @@
+[
+ {
+  "task": "bleed-gutter",
+  "date": "2026-09-06",
+  "link": "/framework/ai/2026-09-06/bleed-gutter/",
+  "title": "on the doodles page, a bleed grid needs padding, the items are butting the viewport. Fix the doodles page (bleed -> wide) and the cause in core: any .bleed that",
+  "status": "landed"
+ },
+ {
+  "task": "critics-1",
+  "date": "2026-09-06",
+  "link": "/framework/ai/2026-09-06/critics-1/",
+  "title": "critics-1 — two critics walk what today built (Opus × 2, one dir each)",
+  "status": "unlanded"
+ },
+ {
+  "task": "deletions-c2",
+  "date": "2026-09-06",
+  "link": "/framework/ai/2026-09-06/deletions-c2/",
+  "title": "Delete ext/Playground/, ext/demo/layout.js, styles/layouts/full.js now that core/Layout replaces them - grep-proven, re-point any real links, stop on a real imp",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "No further deletions pending in this task so nothing to redo."
+  ]
+ },
+ {
+  "task": "demo-parts",
+  "date": "2026-09-06",
+  "link": "/framework/ai/2026-09-06/demo-parts/",
+  "title": "ext/demo gains title and footer as options a demo page may pass, rendered where shell.js's render() already promises them; byte-identical for the 202 existing c",
+  "status": "landed"
+ },
+ {
+  "task": "doc-member-routes",
+  "date": "2026-09-06",
+  "link": "/framework/ai/2026-09-06/doc-member-routes/",
+  "title": "Doc member pages (doc/method/<name>/, doc/property/<name>/) 404 from a cold load though the .md files exist. Find where ext/Doc mints routes and fix it at the c",
+  "status": "landed"
+ },
+ {
+  "task": "docs-after-size",
+  "date": "2026-09-06",
+  "link": "/framework/ai/2026-09-06/docs-after-size/",
+  "title": "docs-after-size - the docs say the size standard's names, nowhere the old ones. Grep pad-ramp/gap-ramp/flow-ramp/pad-default/gap-default/flow-default/--spacing/",
+  "status": "landed"
+ },
+ {
+  "task": "doodles",
+  "date": "2026-09-06",
+  "link": "/framework/ai/2026-09-06/doodles/",
+  "title": "try to convert doodles to SVGs and use them as decorations, icons, bg, texture, animated?",
+  "status": "landed"
+ },
+ {
+  "task": "graduate-1",
+  "date": "2026-09-06",
+  "link": "/framework/ai/2026-09-06/graduate-1/",
+  "title": "Slice 1 of the graduate plan: core/Page gains the six page words - words(), word_classes(), the render() stamps, content-as-url, Page.read_json/Page.from, Page.",
+  "status": "landed"
+ },
+ {
+  "task": "graduate-2",
+  "date": "2026-09-06",
+  "link": "/framework/ai/2026-09-06/graduate-2/",
+  "title": "Slice 2 of the graduate plan: the paging lab imports core's words and deletes its own copy - blocks.js re-exports, stage.js becomes a Page.Frame, paging.css dro",
+  "status": "landed"
+ },
+ {
+  "task": "graduate-3",
+  "date": "2026-09-06",
+  "link": "/framework/ai/2026-09-06/graduate-3/",
+  "title": "Slice 3 of the graduate plan: one copy of every word list (core/Page/words.js), the arrangement word points at the core/Layout tree, the <34em stacking query is",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "`/imagine/layouts/`'s `LayoutsCard` and `number.js` were not deleted: `core/Layout` catalogues arrangements and that realm still teaches its numbered eighteen, so replacing one with the other is the owner's call, not a side effect of this slice."
+  ]
+ },
+ {
+  "task": "graduate-plan",
+  "date": "2026-09-06",
+  "link": "/framework/ai/2026-09-06/graduate-plan/",
+  "title": "Write the plan that makes the paging lab's six words - navigation, content, room, arrangement, colour, type - the way ANY page on this site is configured, so th",
+  "status": "landed"
+ },
+ {
+  "task": "layout-a",
+  "date": "2026-09-06",
+  "link": "/framework/ai/2026-09-06/layout-a/",
+  "title": "Slice A of the layout plan: public/framework/core/Layout/ - Layout.js (Layout extends Page, View parts named PageLayout*), layouts.js (thirty ported entries, pr",
+  "status": "landed"
+ },
+ {
+  "task": "layout-study",
+  "date": "2026-09-06",
+  "link": "/framework/ai/2026-09-06/layout-study/",
+  "title": "Census every layout-ish thing on the site (ext/layout, ext/Playground, ext/Panel, ext/demo, styles/layouts, /imagine/layouts, /imagine/sections, /imagine/paging",
+  "status": "landed"
+ },
+ {
+  "task": "mastermind-graduate",
+  "date": "2026-09-06",
+  "link": "/framework/ai/2026-09-06/mastermind-graduate/",
+  "title": "ok, do it, but don't ask for my approval. you make the call, you're the mastermind. begin. (the owner, on the four recommendations: graduate paging into core Pa",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "PROPOSAL for ai-ops: the PostToolUse edit hook attributes a sibling agent's edit to whichever task.jsonl was touched last - needs the agent's own task dir, not the newest.",
+   "Third time a mastermind server dies in two days - the kill-by-pid hook proposal stands."
+  ]
+ },
+ {
+  "task": "mvp-table",
+  "date": "2026-09-06",
+  "link": "/framework/ai/2026-09-06/mvp-table/",
+  "title": "imagine platform mvp table looks broken - find what broke it today and fix the cause, census every table on the site",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Left open: whatever the owner saw at 11:35 isn't reproducible now — most likely a transient view during one of the several concurrent framework.css/Page.css edits in flight this morning, or a stale browser cache."
+  ]
+ },
+ {
+  "task": "nav-fat",
+  "date": "2026-09-06",
+  "link": "/framework/ai/2026-09-06/nav-fat/",
+  "title": "The homepage nav items got way too fat - our sizing skill/system is off. Measure first, name the cause once, fix it at the cause, write the rule. Added mid-task",
+  "status": "landed"
+ },
+ {
+  "task": "notes-pages",
+  "date": "2026-09-06",
+  "link": "/framework/ai/2026-09-06/notes-pages/",
+  "title": "Every picture in public/notes/inbox/ becomes a note page you can browse: read the photo, transcribe it, name it, link what the site already built that it refere",
+  "status": "landed"
+ },
+ {
+  "task": "notes-pages-2",
+  "date": "2026-09-06",
+  "link": "/framework/ai/2026-09-06/notes-pages-2/",
+  "title": "Images 023-038 in public/notes/inbox/ each become a note page: read the spread, transcribe it, link what the site built from it, build the UI it sketches. The o",
+  "status": "landed"
+ },
+ {
+  "task": "notes-pages-3",
+  "date": "2026-09-06",
+  "link": "/framework/ai/2026-09-06/notes-pages-3/",
+  "title": "Images 039-054 in public/notes/inbox/ each become a note page: read the spread, transcribe it, link what the site built from it, build the UI it sketches. The o",
+  "status": "landed"
+ },
+ {
+  "task": "notes-pages-4",
+  "date": "2026-09-06",
+  "link": "/framework/ai/2026-09-06/notes-pages-4/",
+  "title": "Images 055-066 in public/notes/inbox/ become note pages: read each picture, transcribe every mark, name it, link what the site already built, build the UI it de",
+  "status": "landed"
+ },
+ {
+  "task": "notes-split",
+  "date": "2026-09-06",
+  "link": "/framework/ai/2026-09-06/notes-split/",
+  "title": "make the notes pages use 50% for image, 50% for prose, make the image sticky",
+  "status": "landed"
+ },
+ {
+  "task": "omnibox-search",
+  "date": "2026-09-06",
+  "link": "/framework/ai/2026-09-06/omnibox-search/",
+  "title": "core/Search with Filters, and the Omnibox that fronts it: the corpus is every page the router declares (title, description, url, tags); Search.Filters reads the",
+  "status": "landed"
+ },
+ {
+  "task": "paging-lean",
+  "date": "2026-09-06",
+  "link": "/framework/ai/2026-09-06/paging-lean/",
+  "title": "The owner, 2026-09-06 11:40: \"these paging toolbars links don't really show anything meaningful... also, on this paging system, we don't need to write the h1, t",
+  "status": "landed"
+ },
+ {
+  "task": "platform-slice",
+  "date": "2026-09-06",
+  "link": "/framework/ai/2026-09-06/platform-slice/",
+  "title": "Make the smallest vertical slice run end to end on the local Cloudflare harness: one topic world, one page inside it, one signed-in user, one like. Write run.md",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "`/notes/auth/` §7's like sketch has the build-after-`await` bug and should be corrected; it is prior art people copy."
+  ]
+ },
+ {
+  "task": "search-tidy",
+  "date": "2026-09-06",
+  "link": "/framework/ai/2026-09-06/search-tidy/",
+  "title": "three loose ends the search build left outside its fence: rewrite /imagine/platform/omnibox/page.js, fix core/page.js's count sentence, contain the four sandbox",
+  "status": "landed"
+ },
+ {
+  "task": "section-b",
+  "date": "2026-09-06",
+  "link": "/framework/ai/2026-09-06/section-b/",
+  "title": "core/Section: a sub page that starts empty and picks an approved layout. Section extends Page; starts as a default div with min-height 2.5em; editing off by def",
+  "status": "landed"
+ },
+ {
+  "task": "server-spin",
+  "date": "2026-09-06",
+  "link": "/framework/ai/2026-09-06/server-spin/",
+  "title": "Name the flood that pins the dev server at 130%, and fix the cause. Start a private server, sample its CPU, run watchspy + profile, say what the paths have in c",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "The owner must restart their server - the fix arrives no other way."
+  ]
+ },
+ {
+  "task": "site-diff",
+  "date": "2026-09-06",
+  "link": "/framework/ai/2026-09-06/site-diff/",
+  "title": "site-diff: one command that shows what changed on the site since the last landing — baseline + compare over 40 representative pages, masking the framework live ",
+  "status": "landed"
+ },
+ {
+  "task": "site-errors",
+  "date": "2026-09-06",
+  "link": "/framework/ai/2026-09-06/site-errors/",
+  "title": "two pre-existing console errors: this.words is not a function on styles/layouts/*, and ux/Auth/'s demo.exhibit({}) calling .demo() on an undefined page. Fix eac",
+  "status": "landed"
+ },
+ {
+  "task": "size-apply",
+  "date": "2026-09-06",
+  "link": "/framework/ai/2026-09-06/size-apply/",
+  "title": "size-apply - the size standard lands: one knob, one vocabulary, 945 renames. Ladder .75/1/1.5 (not the study's 1.25). Sweep, not aliases: --pad-ramp/--gap-ramp/",
+  "status": "landed"
+ },
+ {
+  "task": "size-standard",
+  "date": "2026-09-06",
+  "link": "/framework/ai/2026-09-06/size-standard/",
+  "title": "Study the scale/gap/flow systems and collapse them into a small standard - the hypothesis is one --size knob (.size-small { --size: .75em }) with pad, gap and f",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "VERDICT: one knob yes, one ramp no."
+  ]
+ },
+ {
+  "task": "skill-decisions",
+  "date": "2026-09-06",
+  "link": "/framework/ai/2026-09-06/skill-decisions/",
+  "title": "Apply the mastermind's decision on each of the four proposals left in .claude/skills/*/improvements.md on 2026-09-05, keep each skill reading in one voice, then",
+  "status": "landed"
+ },
+ {
+  "task": "spacing-constants",
+  "date": "2026-09-06",
+  "link": "/framework/ai/2026-09-06/spacing-constants/",
+  "title": "Convert hand-typed spacing constants (padding/margin/gap/row-gap/column-gap/inset) in page.js files to the spacing ramp tokens (--pad-ramp / --gap-ramp / --flow",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "Left open: a handful of the converted `--gap`/`--pad` sit on small controls (chips/buttons inside recipe demos) which will now grow with the ramp - in tension with decision.md's \"a control hugs\" rule."
+  ],
+  "left_open": [
+   "Left open: none from the control-rule tension (fixed this round)."
+  ]
+ },
+ {
+  "task": "theme-button",
+  "date": "2026-09-06",
+  "link": "/framework/ai/2026-09-06/theme-button/",
+  "title": "the default ui (for controls, buttons) should all match each other, and match the base font size - delete the site theme's button override so it takes the gramm",
+  "status": "landed"
+ },
+ {
+  "task": "ui-theme",
+  "date": "2026-09-06",
+  "link": "/framework/ai/2026-09-06/ui-theme/",
+  "title": "we need some ui themes? ... try improving the base ui theme. stay as minimal as possible, but a little more compact, better borders and styling. the default ui ",
+  "status": "landed"
+ },
+ {
+  "task": "ai-highlights",
+  "date": "2026-09-08",
+  "link": "/framework/ai/2026-09-08/ai-highlights/",
+  "title": "can we filter the framework/ai/ page to, by default, only show major accomplishments, with icons? like... i'm looking for the ui/ux form/controls theming explor",
+  "status": "landed"
+ },
+ {
+  "task": "blog-playwright",
+  "date": "2026-09-08",
+  "link": "/framework/ai/2026-09-08/blog-playwright/",
+  "title": "Write the blog post at /blog/ai/playwright/ from the research summary, the ten demos and tonight's own use of Playwright: what Playwright is, what people use it",
+  "status": "landed"
+ },
+ {
+  "task": "capture-a",
+  "date": "2026-09-08",
+  "link": "/framework/ai/2026-09-08/capture-a/",
+  "title": "shoot, scan, look at and tag 16 websites for the /websites/ corpus - the hand half of each record only",
+  "status": "landed"
+ },
+ {
+  "task": "capture-b",
+  "date": "2026-09-08",
+  "link": "/framework/ai/2026-09-08/capture-b/",
+  "title": "capture-b: shoot, scan, look at and hand-tag 16 websites into public/websites/site/, one at a time, per public/framework/ai/2026-09-08/capture-b/requirements.md",
+  "status": "landed"
+ },
+ {
+  "task": "capture-c",
+  "date": "2026-09-08",
+  "link": "/framework/ai/2026-09-08/capture-c/",
+  "title": "capture-c - shoot, scan, look at and tag 16 websites (grafana-play-home, alistapart-home, josh-comeau-blog, simon-willison-blog, kubernetes-docs-home, svelte-do",
+  "status": "landed"
+ },
+ {
+  "task": "corpus-polish",
+  "date": "2026-09-08",
+  "link": "/framework/ai/2026-09-08/corpus-polish/",
+  "title": "corpus-polish brief: wire drawing on the site page, three hand-written wires, title shortening, sections index made clickable, two css-scopes lines + 4-equal de",
+  "status": "landed"
+ },
+ {
+  "task": "critic-3440",
+  "date": "2026-09-08",
+  "link": "/framework/ai/2026-09-08/critic-3440/",
+  "title": "critic-3440 - the newcomer at 3440 and at 400, across both tiers and the blog post; the live viewer loads on click. Four items: (1) the embed iframe must not fe",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "THE 3440 VERDICT, nine pages, every screenshot looked at with the Read tool.",
+   "THE 400 VERDICT.",
+   "It claims wide, and each of the eight verdicts is wrapped in site-best-verdict in best.md (raw div in markdown: the text inside still parses, given a blank line after the open tag and before the close).",
+   "![a verdict on /websites/patterns/best/ at 3440 - the words at their measure, the site beside them at the size it was photographed](./shots/after-best-3440x1440.jpg)"
+  ]
+ },
+ {
+  "task": "critic-layouts",
+  "date": "2026-09-08",
+  "link": "/framework/ai/2026-09-08/critic-layouts/",
+  "title": "critic-layouts - judge /layouts/ against the owner's words and 47 real sites, then fix what you find: the newcomer test, the words (incl. the 11 tags the captur",
+  "status": "landed"
+ },
+ {
+  "task": "critic-websites",
+  "date": "2026-09-08",
+  "link": "/framework/ai/2026-09-08/critic-websites/",
+  "title": "critic-websites - judge /websites/, the patterns page and the blog post against the owner's words, then fix what you find. Seven questions, each answered with e",
+  "status": "landed"
+ },
+ {
+  "task": "font-fallback",
+  "date": "2026-09-08",
+  "link": "/framework/ai/2026-09-08/font-fallback/",
+  "title": "a failed font fetch must never blank the site - reproduce, fix Font.js's silent-fallback claim so it is true, prove with before/after/normal screenshots, correc",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "docs corrected: Font.js inline comment (was: offline these silently fall back / now: names the warn + CSS fallback stack); doc/fonts.md The unresolved part paragraph; doc/file/Font.js.md improvement #1.",
+   "Docs corrected to match reality: the `Font.js` comment, `doc/fonts.md`'s \"unresolved part\" paragraph, and `doc/file/Font.js.md` improvement #1 — the three places that claimed a silent fallback."
+  ]
+ },
+ {
+  "task": "layouts-standard",
+  "date": "2026-09-08",
+  "link": "/framework/ai/2026-09-08/layouts-standard/",
+  "title": "Build /layouts/ - the encyclopedia, the global reference standard, the namespace for layouts. A layout's id is N-name: N is the number of columns at the widest,",
+  "status": "landed"
+ },
+ {
+  "task": "mastermind-playwright",
+  "date": "2026-09-08",
+  "link": "/framework/ai/2026-09-08/mastermind-playwright/",
+  "title": "playwright mastermind: research what playwright is commonly used for, and how it might be useful. create demos of how it works, documenting with screenshots. wh",
+  "status": "landed"
+ },
+ {
+  "task": "notes-redactions",
+  "date": "2026-09-08",
+  "link": "/framework/ai/2026-09-08/notes-redactions/",
+  "title": "make a notes/redactions/ page that clearly states exactly what was removed (verbatim), with a link to the original image",
+  "status": "landed"
+ },
+ {
+  "task": "paging-scroll",
+  "date": "2026-09-08",
+  "link": "/framework/ai/2026-09-08/paging-scroll/",
+  "title": "/imagine/paging/ must scroll when the hub is showing its own home — fix in paging.css only, one rule, prove with probe numbers and screenshots at 1920 and 400",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Nothing left open — the one-rule budget covered the whole bug."
+  ]
+ },
+ {
+  "task": "patterns",
+  "date": "2026-09-08",
+  "link": "/framework/ai/2026-09-08/patterns/",
+  "title": "patterns - what emerged from 47 websites: the most common layouts, and the best. A page at /websites/patterns/ whose every number is computed live from site/ind",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "The page counts categories literally, as written; the judgments merge the three into one documentation verdict and say so."
+  ]
+ },
+ {
+  "task": "platform-mvp-picture",
+  "date": "2026-09-08",
+  "link": "/framework/ai/2026-09-08/platform-mvp-picture/",
+  "title": "the imagine/platform page launches mvp automatically, which i suppose is fine, but shouldn't the url say imagine/platform/mvp/? also, the mvp page has \"Running\"",
+  "status": "landed"
+ },
+ {
+  "task": "playwright-demos",
+  "date": "2026-09-08",
+  "link": "/framework/ai/2026-09-08/playwright-demos/",
+  "title": "ten small runnable demos of what Playwright does, each with its picture, in public/blog/ai/playwright/demo/",
+  "status": "landed"
+ },
+ {
+  "task": "playwright-research",
+  "date": "2026-09-08",
+  "link": "/framework/ai/2026-09-08/playwright-research/",
+  "title": "research what playwright is commonly used for, and how it might be useful. what kinds of things can claude code + playwright do? how do people utilize this for ",
+  "status": "landed"
+ },
+ {
+  "task": "site-scout",
+  "date": "2026-09-08",
+  "link": "/framework/ai/2026-09-08/site-scout/",
+  "title": "find sixty websites worth cataloguing (six per category, no two from the same company) and prove each one loads headless, recording status/ms/title/embed",
+  "status": "landed"
+ },
+ {
+  "task": "skills-tonight",
+  "date": "2026-09-08",
+  "link": "/framework/ai/2026-09-08/skills-tonight/",
+  "title": "apply tonight's fail-safe skill improvements, delete the entries",
+  "status": "landed"
+ },
+ {
+  "task": "title-wrap",
+  "date": "2026-09-08",
+  "link": "/framework/ai/2026-09-08/title-wrap/",
+  "title": "At 400px a page title that is one long word breaks mid-word (Documentatio / n on /websites/tag/documentation/). Fix the cause once in Page.css inside its layer ",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Nothing left open."
+  ]
+ },
+ {
+  "task": "websites-db",
+  "date": "2026-09-08",
+  "link": "/framework/ai/2026-09-08/websites-db/",
+  "title": "Build /websites/ — the corpus: one json per site under public/websites/site/<name>.json with five jpeg shots, the Node tools that write them (shoot.mjs, scan.mj",
+  "status": "landed"
+ },
+ {
+  "task": "wire-a",
+  "date": "2026-09-08",
+  "link": "/framework/ai/2026-09-08/wire-a/",
+  "title": "redraw 10 named websites content-free as wire objects, from the screenshots and records already on disk; write through the merge tool; check each drawing on loc",
+  "status": "landed"
+ },
+ {
+  "task": "wire-b",
+  "date": "2026-09-08",
+  "link": "/framework/ai/2026-09-08/wire-b/",
+  "title": "redraw 10 websites content-free, from the screenshots already on disk, as a `wire` json per site, checked headless against the real screenshots",
+  "status": "landed"
+ },
+ {
+  "task": "wire-c",
+  "date": "2026-09-08",
+  "link": "/framework/ai/2026-09-08/wire-c/",
+  "title": "wire-c - redraw 9 websites content-free, from the screenshots already on disk",
+  "status": "landed"
+ },
+ {
+  "task": "wire-d",
+  "date": "2026-09-08",
+  "link": "/framework/ai/2026-09-08/wire-d/",
+  "title": "wire-d - redraw 13 websites content-free from screenshots already on disk (wire key merge): astral-codex-ten-home, bbc-news-home, framer-home, github-vscode-rep",
+  "status": "landed"
+ },
+ {
+  "skipped": []
+ }
+]

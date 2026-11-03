@@ -1,0 +1,428 @@
+{
+	"name": "hacker-news-home",
+	"url": "https://news.ycombinator.com/",
+	"title": "Hacker News",
+	"category": "app",
+	"captured_at": "2026-09-08T05:47:13.090Z",
+	"embed": "blocked",
+	"embed_note": "x-frame-options: DENY",
+	"shots": {
+		"400": "site/hacker-news-home/400.jpg",
+		"1280": "site/hacker-news-home/1280.jpg",
+		"1920": "site/hacker-news-home/1920.jpg",
+		"3440": "site/hacker-news-home/3440.jpg",
+		"long": "site/hacker-news-home/long.jpg"
+	},
+	"layout": {
+		"400": "1-flow",
+		"1280": "1-flow",
+		"1920": "1-flow",
+		"3440": "1-flow"
+	},
+	"sections": [
+		{
+			"name": "top bar",
+			"layout": "1-flow",
+			"css": "table",
+			"note": "the orange bar with the Y logo and the new/past/comments/ask/show/jobs/submit links is the table's own first row, and every link stays spelled out even at 400 — there is no hamburger menu at all."
+		},
+		{
+			"name": "story list",
+			"layout": "1-flow",
+			"css": "table",
+			"note": "each story is two table rows (the ranked title, then a smaller row with points/author/age/comments), stacked with almost no gap between one story and the next."
+		},
+		{
+			"name": "footer nav",
+			"layout": "1-flow",
+			"css": "table",
+			"note": "Guidelines/FAQ/Lists/API/Security/Legal/Apply to YC/Contact plus a search box, in one centred line below the last story; it only shows up in the taller shots because more of the list fits above it, not because of any layout change."
+		}
+	],
+	"tags": [
+		"1-flow",
+		"table",
+		"fluid",
+		"no gap",
+		"app"
+	],
+	"responsive": {
+		"strategy": "The whole page is one column at every width we shot, because it is built as one literal HTML `<table>` rather than any CSS layout system. The table holds 85% of the window's width and centres itself with an old `<center>` tag on a laptop, a desktop and an ultrawide screen alike, and there is no cap on that 85% at all — on the 3440 shot a comment thread stretches to nearly 3000px wide, which almost no modern site allows. Only on a phone-sized screen does the percentage rule stop: the table then fills the screen edge to edge with no side margin and no menu collapses into a hamburger, the links just stay put.",
+		"breakpoints": [
+			600
+		]
+	},
+	"scan": {
+		"scanned_at": "2026-09-08T05:47:22.982Z",
+		"css": {
+			"sheets": 1,
+			"bytes": 7418,
+			"inline_bytes": 0
+		},
+		"media": [
+			"only screen\nand (min-width : 300px)\nand (max-width : 750px) {",
+			"only screen and (-webkit-min-device-pixel-ratio: 2), only screen and (min-device",
+			"only screen and (min-width : 1080px) and (max-width : 1169px) {",
+			"only screen and (min-width : 1170px) and (max-width : 1259px) {",
+			"only screen and (min-width : 1260px) and (max-width : 1349px) {",
+			"only screen and (min-width : 300px) and (max-width : 389px) {",
+			"only screen and (min-width : 390px) and (max-width : 509px) {",
+			"only screen and (min-width : 510px) and (max-width : 599px) {",
+			"only screen and (min-width : 600px) and (max-width : 689px) {",
+			"only screen and (min-width : 690px) and (max-width : 809px) {",
+			"only screen and (min-width : 810px) and (max-width : 899px) {",
+			"only screen and (min-width : 900px) and (max-width : 1079px) {"
+		],
+		"container": [],
+		"breakpoints_seen": [
+			{
+				"px": 300,
+				"count": 2
+			},
+			{
+				"px": 389,
+				"count": 1
+			},
+			{
+				"px": 390,
+				"count": 1
+			},
+			{
+				"px": 509,
+				"count": 1
+			},
+			{
+				"px": 510,
+				"count": 1
+			},
+			{
+				"px": 599,
+				"count": 1
+			},
+			{
+				"px": 600,
+				"count": 1
+			},
+			{
+				"px": 689,
+				"count": 1
+			},
+			{
+				"px": 690,
+				"count": 1
+			},
+			{
+				"px": 750,
+				"count": 1
+			},
+			{
+				"px": 809,
+				"count": 1
+			},
+			{
+				"px": 810,
+				"count": 1
+			}
+		],
+		"widths": {
+			"400": {
+				"doc": [
+					400,
+					2121
+				],
+				"elements": [
+					{
+						"why": "largest",
+						"tag": "center",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							400,
+							2121
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "table",
+						"id": "hnmain",
+						"display": "table",
+						"rect": [
+							0,
+							0,
+							400,
+							2121
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "tbody",
+						"display": "table-row-group",
+						"rect": [
+							0,
+							0,
+							400,
+							2121
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "tr",
+						"id": "bigbox",
+						"display": "table-row",
+						"rect": [
+							0,
+							53,
+							400,
+							1956
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "td",
+						"display": "table-cell",
+						"rect": [
+							0,
+							53,
+							400,
+							1956
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1280": {
+				"doc": [
+					1280,
+					1217
+				],
+				"elements": [
+					{
+						"why": "largest",
+						"tag": "center",
+						"display": "block",
+						"rect": [
+							8,
+							8,
+							1264,
+							1201
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "table",
+						"id": "hnmain",
+						"display": "table",
+						"rect": [
+							103,
+							8,
+							1074,
+							1201
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "tbody",
+						"display": "table-row-group",
+						"rect": [
+							103,
+							8,
+							1074,
+							1201
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "tr",
+						"id": "bigbox",
+						"display": "table-row",
+						"rect": [
+							103,
+							42,
+							1074,
+							1076
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "td",
+						"display": "table-cell",
+						"rect": [
+							103,
+							42,
+							1074,
+							1076
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1920": {
+				"doc": [
+					1920,
+					1217
+				],
+				"elements": [
+					{
+						"why": "largest",
+						"tag": "center",
+						"display": "block",
+						"rect": [
+							8,
+							8,
+							1904,
+							1201
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "table",
+						"id": "hnmain",
+						"display": "table",
+						"rect": [
+							151,
+							8,
+							1618,
+							1201
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "tbody",
+						"display": "table-row-group",
+						"rect": [
+							151,
+							8,
+							1618,
+							1201
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "tr",
+						"id": "bigbox",
+						"display": "table-row",
+						"rect": [
+							151,
+							42,
+							1618,
+							1076
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "td",
+						"display": "table-cell",
+						"rect": [
+							151,
+							42,
+							1618,
+							1076
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"3440": {
+				"doc": [
+					3440,
+					1440
+				],
+				"elements": [
+					{
+						"why": "largest",
+						"tag": "center",
+						"display": "block",
+						"rect": [
+							8,
+							8,
+							3424,
+							1201
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "table",
+						"id": "hnmain",
+						"display": "table",
+						"rect": [
+							265,
+							8,
+							2910,
+							1201
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "tbody",
+						"display": "table-row-group",
+						"rect": [
+							265,
+							8,
+							2910,
+							1201
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "tr",
+						"id": "bigbox",
+						"display": "table-row",
+						"rect": [
+							265,
+							42,
+							2910,
+							1076
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "td",
+						"display": "table-cell",
+						"rect": [
+							265,
+							42,
+							2910,
+							1076
+						],
+						"side_by_side": 1
+					}
+				]
+			}
+		}
+	},
+	"notes": "Hacker News looks the same at every size because it barely tries to be responsive: it is one long list of stories, built with an actual HTML table the way pages were built before CSS layout existed. On a laptop, a desktop monitor or an ultrawide screen it keeps the same shape and just gets wider, with no limit on how wide a line of text is allowed to get — most sites cap that around 600-800px so a sentence stays easy to read, but Hacker News does not. On a phone the table simply touches both edges of the screen instead of leaving margins. We could not pin the exact pixel width where that switch happens from the four shots alone, so the 600px breakpoint here is a best guess from the site's own CSS, not something we saw change on screen.",
+	"wire": {
+		"role": "page",
+		"kids": [
+			{
+				"role": "header",
+				"h": "2.5em"
+			},
+			{
+				"role": "main",
+				"lines": 24
+			},
+			{
+				"role": "footer",
+				"h": "4em"
+			}
+		]
+	}
+}

@@ -1,0 +1,10 @@
+{"log":{"at":"2026-10-12T15:01:53-05:00","task":"style-system","msg":"landed — style system: 3 tokens, 4 grounds, one card; CSS 2,235 → 322 lines; merged c61c3c0a4"}}
+{"log":{"at":"2026-10-12T15:17:29-05:00","task":"refine-haiku-live","msg":"landed — Refine on Haiku by default, live refine (~9 s per sentence), one chat input everywhere; needs a Servex restart"}}
+{"log":{"at":"2026-10-12T15:21:21-05:00","task":"data-grid","msg":"landed — one DataGrid (ui/datagrid + ui/table re-export it); Sessions on it as table or rail; long tasks ~430-680 ms -> ~50-130 ms"}}
+{"log":{"at":"2026-10-12T15:32:00-05:00","task":"task-folders","msg":"landed — every ai/<date>/ task folder moved into ai/sessions/YYYY/MM/DD/<session>/<task>/; old URLs redirect"}}
+{"log":{"at":"2026-10-12T15:41:19-05:00","task":"page-templates","msg":"landed — Template + Property binding + binding.md merged"}}
+{"log":{"at":"2026-10-12T15:49:05-05:00","task":"data-grid","msg":"landed — Sessions buckets: routine sessions fold into 5 rows; grid rows 5,810 -> 347, redraw 36-39 -> 25-29 ms"}}
+{"log":{"at":"2026-10-12T16:29:56-05:00","task":"ui-library","msg":"landed — /framework/library/: six collections, three columns, wall view, padding contract"}}
+{"log":{"at":"2026-10-12T17:12:10-05:00","task":"server-query","msg":"landed — Sessions rows come from a node query (ext/Query); default on the dev socket"}}
+{"log":{"at":"2026-10-12T17:17:11-05:00","task":"data-grid","msg":"landed — Sessions grid: one scroller + solid sticky header at 3440; routine kinds as chips; search over every session; newest-then-costliest; compact header"}}
+{"log":{"at":"2026-10-12T17:21:40-05:00","task":"screenshot-system","msg":"landed — Shots live: rounds, diff overlay, Figma compare, Screenshots tab"}}

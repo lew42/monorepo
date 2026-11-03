@@ -1,0 +1,21 @@
+144 queued
+1 1.247 big1 queued $2.81 re0 ai | Fix the page load error that appears after refresh
+2 0.745 big1 queued $6.05 re0 ai | Pick one name for the sessions tab and use it everywhere
+3 0.745 big1 queued $6.05 re0 ai | Check how sessions are indexed and whether indexing is corre
+4 0.745 big1 queued $6.05 re0 ai | Drop the repeated session-ID line above the session detail t
+5 0.745 big1 queued $6.05 re0 ai | Make all sessions items visible and clickable
+6 0.745 big1 queued $6.05 re0 ai | Give the sessions tab clear hierarchy and place its text pro
+7 0.745 big1 queued $6.05 re0 ai | Make every item visible and clickable in the sessions list
+8 0.575 big1 queued $8.43 re0 ai | Check whether the sessions cost breakdown is current and acc
+9 0.497 big2 queued $6.05 re0 ai | Build a Proposal class: review, decide, and turn decisions i
+10 0.497 big2 queued $6.05 re0 ai | Apply the code-driven loop principle across all AI systems
+11 0.497 big2 queued $6.05 re0 ai | Log the backup location as a checkable AI inbox item
+12 0.497 big2 queued $6.05 re0 ai | Review the ext/AI task system
+13 0.485 big1 queued $10.36 re0 ai | Show stored session fields the sessions table leaves out
+14 0.373 bignull queued $6.05 re1 ai | Fix the model label on the night mastermind session so it sh
+15 0.373 big3 queued $6.05 re1 ai | Create an architecture.md per module, referenced from its RE
+16 0.318 bignull waiting $4.28 re0 ai | Task pages: grey checkboxes, full-width bars, reports as fre
+17 0.311 bignull queued $4.43 re0 ai | Use one global assistant rather than per-page or per-card as
+18 0.303 bignull queued $4.59 re0 ai | Audit session logs for how often each skill is used and why 
+19 0.278 bignull queued $8.81 re1 ai | Use headless Playwright to scroll the sessions data grid and
+20 0.264 big1 queued $20.76 re0 ai | Remove the All sessions back link from the session detail pa

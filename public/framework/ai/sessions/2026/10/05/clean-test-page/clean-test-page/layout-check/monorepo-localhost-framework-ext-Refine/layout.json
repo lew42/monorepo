@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ext/Refine/",
+ "widths": {
+  "1280": {
+   "empty": 0.293,
+   "widest_text": 1019,
+   "widest_text_sample": "ask #31 flagged (new words) — \"chosen\", ",
+   "overflow_x": false,
+   "items": 441,
+   "narrow_share": 0.009
+  },
+  "1920": {
+   "empty": 0.412,
+   "widest_text": 1084,
+   "widest_text_sample": "ask #31 flagged (new words) — \"chosen\", ",
+   "overflow_x": false,
+   "items": 547,
+   "narrow_share": 0.11
+  },
+  "2560": {
+   "empty": 0.515,
+   "widest_text": 1476,
+   "widest_text_sample": "So I think what would happen is if the s",
+   "overflow_x": false,
+   "items": 547,
+   "narrow_share": 0.117
+  },
+  "3440": {
+   "empty": 0.581,
+   "widest_text": 1923,
+   "widest_text_sample": "So I think what would happen is if the s",
+   "overflow_x": false,
+   "items": 547,
+   "narrow_share": 0.135
+  }
+ },
+ "errors": []
+}

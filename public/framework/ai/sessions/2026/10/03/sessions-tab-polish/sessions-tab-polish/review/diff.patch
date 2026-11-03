@@ -1,0 +1,837 @@
+diff --git a/Server/week-cost.mjs b/Server/week-cost.mjs
+index 8de004c4..33f63fd7 100644
+--- a/Server/week-cost.mjs
++++ b/Server/week-cost.mjs
+@@ -1,25 +1,32 @@
+ #!/usr/bin/env node
+-// Server/week-cost.mjs — a run-by-hand snapshot of this week's Claude $ and OpenRouter $,
+-// against the $200/week Max plan. Writes public/framework/ai/sessions/week.json.
+-//
+-// This is a POINT-IN-TIME SNAPSHOT from a manual run, not live — nothing schedules it yet
+-// (ai/sessions/doc/decisions.md notes this as an open gap). Re-run it by hand to refresh:
++// Server/week-cost.mjs — this week's REAL Claude $ and OpenRouter $, against the $200/week Max
++// plan, computed straight from the transcripts and the OpenRouter ledger (never a guess).
++// Run by hand to (re)write public/framework/ai/sessions/week.json:
+ //
+ //     node Server/week-cost.mjs
+ //
+-// usage: node Server/week-cost.mjs [--root <repo>]
++// 2026-10-03 (sessions-tab-polish): the "this week" window and an ARBITRARY {from,to} window
++// now go through the SAME function, `compute_window()` — the Sessions tab's own date-range
++// filter used to sum a different, incomplete thing client-side (whatever rows the page already
++// had, which never carry a real per-session OpenRouter $ at all — see ai/sessions/doc/decisions.md,
++// "Why OpenRouter read $0.00 in range"), so the week figure and the range figure could never
++// agree. The exported functions below are the one place that question gets answered now; nothing
++// that imports this file for them also re-runs the write-week.json side effect — that only
++// happens when this script is run directly (`node Server/week-cost.mjs`), same `is_main` pattern
++// Server/session-cost.mjs already uses.
++//
++// usage:
++//   node Server/week-cost.mjs [--root <repo>]                 this week → writes week.json
++//   node Server/week-cost.mjs --from <iso> --to <iso>          an arbitrary window → prints JSON, no write
+ import { readFileSync, readdirSync, existsSync, writeFileSync } from "node:fs";
+-import { join, dirname, basename } from "node:path";
++import { join, dirname } from "node:path";
+ import { fileURLToPath } from "node:url";
+ import { OR_LOG_PATH } from "../Servex/ext/openrouter/reconcile.mjs";
+ 
+ const here = dirname(fileURLToPath(import.meta.url));
+-const args = process.argv.slice(2);
+-const flag = name => { const i = args.indexOf(name); if (i < 0) return null; return args[i + 1]; };
+-const ROOT = flag("--root") ? flag("--root") : join(here, "..");
+-const AI = join(ROOT, "public", "framework", "ai");
++const DEFAULT_ROOT = join(here, "..");
+ 
+-const r2 = n => Math.round(n * 100) / 100;
++export const r2 = n => Math.round(n * 100) / 100;
+ 
+ const lines_of = file => existsSync(file)
+ 	? readFileSync(file, "utf8").replace(/^﻿/, "").split(/\r?\n/).filter(l => l.trim())
+@@ -29,8 +36,9 @@ const lines_of = file => existsSync(file)
+ // ---- the window: this week, per the plan's own reset clock ----
+ // usage.json's seven_day.resets_at is the NEXT reset, seven days after the window started.
+ // Fall back to the last Monday 00:00 (local) if usage.json is missing.
+-function this_week_window(){
+-	const usage_path = join(AI, "usage.json");
++export function this_week_window(root = DEFAULT_ROOT){
++	const ai = join(root, "public", "framework", "ai");
++	const usage_path = join(ai, "usage.json");
+ 	let plan_pct_used = null;
+ 	if (existsSync(usage_path)){
+ 		try {
+@@ -53,23 +61,24 @@ function this_week_window(){
+ // ---- Claude $: sum every session page.jsonl's LAST cost line, for a day inside the window ----
+ // Dated folders: public/framework/ai/<Y>/<M>/<D>/*/page.jsonl (numeric date tree — NOT the
+ // dashed task dirs like ai/2026-10-02/<slug>, which are a different, older convention).
+-function claude_spend(from, to){
++export function claude_spend(from, to, root = DEFAULT_ROOT){
++	const ai = join(root, "public", "framework", "ai");
+ 	const top = [];
+ 	let years;
+-	try { years = readdirSync(AI, { withFileTypes: true }); } catch { return { total: 0, sessions: [] }; }
++	try { years = readdirSync(ai, { withFileTypes: true }); } catch { return { total: 0, sessions: [] }; }
+ 	for (const y of years){
+ 		if (!y.isDirectory() || !/^\d{4}$/.test(y.name)) continue;
+ 		let months;
+-		try { months = readdirSync(join(AI, y.name), { withFileTypes: true }); } catch { continue; }
++		try { months = readdirSync(join(ai, y.name), { withFileTypes: true }); } catch { continue; }
+ 		for (const m of months){
+ 			if (!m.isDirectory() || !/^\d{2}$/.test(m.name)) continue;
+ 			let days;
+-			try { days = readdirSync(join(AI, y.name, m.name), { withFileTypes: true }); } catch { continue; }
++			try { days = readdirSync(join(ai, y.name, m.name), { withFileTypes: true }); } catch { continue; }
+ 			for (const d of days){
+ 				if (!d.isDirectory() || !/^\d{2}$/.test(d.name)) continue;
+ 				const day_ms = new Date(`${y.name}-${m.name}-${d.name}T00:00:00`).getTime();
+ 				if (day_ms < from - 864e5 || day_ms > to) continue;   // a day that can't possibly overlap the window
+-				const day_dir = join(AI, y.name, m.name, d.name);
++				const day_dir = join(ai, y.name, m.name, d.name);
+ 				let sessions;
+ 				try { sessions = readdirSync(day_dir, { withFileTypes: true }); } catch { continue; }
+ 				for (const s of sessions){
+@@ -91,7 +100,7 @@ function claude_spend(from, to){
+ }
+ 
+ // ---- OpenRouter $: real money already billed, summed from the run ledger ----
+-function openrouter_spend(from, to){
++export function openrouter_spend(from, to){
+ 	let total = 0;
+ 	for (const o of lines_of(OR_LOG_PATH)){
+ 		if (!o?.at) continue;
+@@ -102,30 +111,62 @@ function openrouter_spend(from, to){
+ 	return total;
+ }
+ 
+-const { from, to, plan_pct_used } = this_week_window();
+-const claude = claude_spend(from, to);
+-const openrouter_usd = r2(openrouter_spend(from, to));
+-const claude_usd = r2(claude.total);
++// THE reusable windowed computation (sessions-tab-polish, 2026-10-03) — takes any `{from,to}`
++// in ms-epoch and returns the real Claude $ + OpenRouter $ for exactly that span, built from
++// `claude_spend()`/`openrouter_spend()` above. `this_week_window()`'s own from/to is just ONE
++// caller of this; a future date-range script (or this same CLI, `--from`/`--to` below) is
++// another — both go through the same two real computations, so they can never disagree.
++export function compute_window(from, to, root = DEFAULT_ROOT){
++	const claude = claude_spend(from, to, root);
++	const openrouter_usd = r2(openrouter_spend(from, to));
++	const claude_usd = r2(claude.total);
++	const top = [...claude.sessions].sort((a, b) => b.usd - a.usd);
++	const top10 = top.slice(0, 10).map(x => ({ session: x.session, usd: r2(x.usd) }));
++	const small_usd = r2(top.slice(10).reduce((n, x) => n + x.usd, 0));
++	return {
++		claude_usd, openrouter_usd,
++		from: new Date(from).toISOString(), to: new Date(to).toISOString(),
++		top: top10, small_usd,
++	};
++}
++
++// ---- CLI ----
++const is_main = (() => {
++	try { return import.meta.url === `file:///${process.argv[1].replaceAll("\\", "/").replace(/^\//, "")}`; } catch { return false; }
++})();
+ 
+-const top = [...claude.sessions].sort((a, b) => b.usd - a.usd);
+-const top10 = top.slice(0, 10).map(x => ({ session: x.session, usd: r2(x.usd) }));
+-const small_usd = r2(top.slice(10).reduce((n, x) => n + x.usd, 0));
++if (is_main){
++	const args = process.argv.slice(2);
++	const flag = name => { const i = args.indexOf(name); return i < 0 ? null : args[i + 1]; };
++	const root = flag("--root") || DEFAULT_ROOT;
++	const from_arg = flag("--from"), to_arg = flag("--to");
+ 
+-const plan_usd = 200;
+-const usd_per_pct = plan_pct_used ? r2(claude_usd / plan_pct_used) : null;
++	if (from_arg || to_arg){
++		// An arbitrary window, printed only — this is the SAME function the "this week" path
++		// below calls; it is what a future live date-range feature would call too, instead of
++		// ever summing an incomplete client-side row list again (doc/decisions.md).
++		if (!from_arg || !to_arg) { console.error("usage: node Server/week-cost.mjs --from <iso> --to <iso>"); process.exit(2); }
++		const result = compute_window(Date.parse(from_arg), Date.parse(to_arg), root);
++		console.log(JSON.stringify(result, null, 2));
++	} else {
++		const { from, to, plan_pct_used } = this_week_window(root);
++		const result = compute_window(from, to, root);
++		const plan_usd = 200;
++		const usd_per_pct = plan_pct_used ? r2(result.claude_usd / plan_pct_used) : null;
+ 
+-const week = {
+-	claude_usd, openrouter_usd, plan_usd,
+-	plan_pct_used,
+-	usd_per_pct,
+-	top: top10,
+-	small_usd,
+-	as_of: new Date().toISOString(),
+-	// A point-in-time SNAPSHOT from a manual run of this script — nothing schedules it yet
+-	// (see ai/sessions/doc/decisions.md). The page that shows this number says so too.
+-	note: "manual snapshot, not live — re-run node Server/week-cost.mjs to refresh",
+-};
++		const week = {
++			claude_usd: result.claude_usd, openrouter_usd: result.openrouter_usd, plan_usd,
++			plan_pct_used, usd_per_pct,
++			from: result.from, to: result.to,
++			top: result.top, small_usd: result.small_usd,
++			as_of: new Date().toISOString(),
++			// A point-in-time SNAPSHOT from a manual run of this script — nothing schedules it yet
++			// (see ai/sessions/doc/decisions.md). The page that shows this number says so too.
++			note: "manual snapshot, not live — re-run node Server/week-cost.mjs to refresh",
++		};
+ 
+-const out_dir = join(AI, "sessions");
+-writeFileSync(join(out_dir, "week.json"), JSON.stringify(week, null, 2));
+-console.log(JSON.stringify(week, null, 2));
++		const out_dir = join(root, "public", "framework", "ai", "sessions");
++		writeFileSync(join(out_dir, "week.json"), JSON.stringify(week, null, 2));
++		console.log(JSON.stringify(week, null, 2));
++	}
++}
+diff --git a/public/framework/ai/2026-10-03/sessions-tab-polish/build/requirements.md b/public/framework/ai/2026-10-03/sessions-tab-polish/build/requirements.md
+new file mode 100644
+index 00000000..cba8b011
+--- /dev/null
++++ b/public/framework/ai/2026-10-03/sessions-tab-polish/build/requirements.md
+@@ -0,0 +1,171 @@
++# AI Sessions tab: cost cards up top, no empty bands, numbers that are always current
++
++Load the `minion` skill first. Your task dir (log here; it already has line 1):
++`public/framework/ai/2026-10-03/sessions-tab-polish/build/`
++
++Work in the worktree: `C:\Code\lew42\worktrees\sessions-tab-polish` (branch
++`worktree/sessions-tab-polish`, its own dev server at `http://sessions-tab-polish.localhost/`
++and `http://localhost:60008/`). Commit there as you go. Do NOT touch the main checkout
++(`C:\Code\lew42\monorepo`).
++
++## The owner's own words (2026-10-03, ~5:30pm, looking at /framework/ai/sessions/ at 3440)
++> There are three bands of space, and the scroll area starts way above the data grid. The white
++> card with the data grid is very clean, I really like it, and it lines up with the AI icon in the
++> heading. But two faint gray lines between the top tabs and the white card could just disappear.
++> The money: make the dollar sign and value big and bold, formatted correctly; maybe the cents
++> smaller than the dollars; put them on their own little dashboard cards, a horizontal preview rail
++> across the top, instead of one line of plain text. I'm not sure what "$26.65/1%" means.
++> The padding on the card is quite big (our percentage padding at maximum at 3000+ px?) and looks
++> lopsided. The date pickers are so wide and don't need to be. "1874 sessions shown" and the Claude
++> / OpenRouter spend seem stale: shouldn't this be computed in real time by node, so whenever
++> something new runs the sessions data updates and the page adds up real-time data? This shouldn't
++> be stale data.
++
++## Read first
++- `public/framework/ai/sessions/page.js`, `sessions.css`, `readme.md`, `doc/decisions.md` — the
++  whole system: live Servex rows (`GET /api/agents`, polled every 20s), a `sessions.json` snapshot
++  (`ai/2026-10-02/panel2-sessions/sessions.mjs`), `week.json` (`Server/week-cost.mjs`, a manual
++  snapshot), and per-session cost lines in each session's own `page.jsonl`
++  (`Server/session-cost.mjs`, appended by the Stop hook).
++- `public/framework/ui/stats/page.js` — the stat-tile TEMPLATE already on this site (not a
++  component function — a markup pattern): `div.c("grid gap auto", …)` of
++  `div.c("surface pad flex v gap", () => { div.c("h4 muted", label); div.c("h2", value); })`,
++  `--column` retuned for tile width. Use THIS pattern for the new cost cards — CLAUDE.md law 6, and
++  the owner's own brief line "use or extend an existing stat/pill component... rather than new
++  CSS." Also skim `public/framework/ui/badge/` (tones available) in case a pill fits a smaller
++  figure better than a full tile.
++- Prior sessions tasks' logs, for what NOT to redo or break: `public/framework/ai/2026-10-02/session-costs/task.jsonl` and
++  `public/framework/ai/2026-10-03/sessions-date-homes/task.jsonl` (its `review/report.md` already
++  found and fixed several of these exact rough edges once — Stop/Duration honesty, the 1200px
++  column clip, etc. Don't regress those fixes).
++- `public/framework/ext/panel2/panel2.css` — `.panel2-header`/`.panel2-main` chrome. The "empty
++  gray bands" and "lopsided padding" live somewhere in this chrome plus whatever wraps the Page
++  itself (the Page's own content padding, the tab strip above it) — load the page at 3440 in a
++  headless shot and look at the DOM, don't guess from the CSS alone.
++- `Server/week-cost.mjs` and `Server/session-cost.mjs` — the two cost scripts. `Server/task-cost.mjs`
++  is a DIFFERENT system (per-agent, not per-session) — don't touch it, don't merge the two.
++
++## ⚠ SCOPE NARROWED (owner follow-up, 2026-10-03, via vscode-mastermind) — read before continuing
++1. **Item 4 (fill the blanks — role/Start/Stop/Duration) is now LOW PRIORITY.** Skip it unless it's
++   a genuine one-liner. If you've already built it, keep it; if not, log it as a back-burner item
++   on the card instead of spending more time there.
++2. **Do NOT restyle the grid itself** — no column-width/resize-grip changes to `.sessions-grid`.
++   A reusable data grid is being built separately (`@task-mastermind-data-grid`) and will replace
++   this one; don't duplicate that work or fight it later in a merge.
++3. **Keep to:** the empty bands (item 1), the stat cards (item 2), compact date pickers (part of
++   item 5 — card-padding-lopsidedness still matters too, just not via the grid), and making the
++   numbers right and current (item 3) — ABOVE ALL, pin down why OpenRouter reads $0.00 in range.
++4. **New — filter labels.** "(unknown)" and "CLI" mean nothing to the owner. Give the role-filter
++   checkboxes and any place these words show plain names (e.g. "Servex agents" for a servex role,
++   "Terminal sessions" for CLI) or, if a short label would lose information, keep the short word
++   but add a `title=` attribute spelling out what it actually contains (which ids/sources count as
++   "(unknown)").
++
++## Do, in this order
++
++**1. Remove the empty bands.** Screenshot `/framework/ai/sessions/` at 1920 and 3440 first (before
++any edit) — `node Server/layout-check.mjs http://sessions-tab-polish.localhost/framework/ai/sessions/ --widths 1200,1920,3440`
++— and look at the bands in the shot: which element's margin/padding/border is making them. The
++page should scroll from the white card; the tabs stay put (sticky/fixed, whichever this page
++already uses elsewhere — check how other tabs under `/framework/ai/` handle this, don't invent a
++second mechanism).
++
++**2. A row of small stat cards across the top**, using the `ui/stats` tile pattern above (not new
++CSS — reuse `grid gap auto` + `surface pad flex v gap` + `h4 muted` / `h2`):
++   - Claude $ this week
++   - OpenRouter $ this week
++   - plan used % (this week)
++   - cost per 1% of the weekly plan — SPELL IT OUT, e.g. "$26.65 per 1% of your weekly plan" (not
++     "$26.65/1%" — the owner said plainly he didn't know what that meant)
++   - sessions shown (the current filtered count)
++   Big bold dollars, smaller cents: look at how `h2`/`h4` render a `$X.YZ` string today — if there's
++   no existing "$ big, ¢ small" convention on the site, split the string in markup (two `span`s,
++   one bigger) rather than inventing a new CSS class; check `ux/Content/Spend.js` first (law 6) —
++   it already renders $ amounts and may already have this split.
++
++**3. One source of truth, current — every figure computed by the server from the transcripts and
++usage files, recomputed when a session file changes, not a stale hand-run snapshot.** This is the
++real engineering piece. The current week line reads a snapshot (`week.json`,
++`Server/week-cost.mjs`, "re-run it by hand to refresh") and the range summary is computed
++CLIENT-SIDE from whatever rows already loaded (`page.js`'s `render_rows()`), which is why the two
++don't reconcile and why OpenRouter reads $0.00 in range (no row the client has carries a per-session
++OpenRouter $ — only the week.json snapshot sums the real OR ledger).
++   - Generalize `Server/week-cost.mjs`'s own windowed computation (`claude_spend(from, to)`,
++     `openrouter_spend(from, to)`) into a reusable function in `Server/session-cost.mjs` (or a
++     small new export `Server/week-cost.mjs` itself exposes) that takes an arbitrary `{from, to}`
++     window, not just "this week" — so the SAME function can answer both the week figure and
++     the date-range figure, and they can never disagree again.
++   - Make it ACTUALLY LIVE, not a second manual snapshot: `Server/week-cost.mjs` should watch for
++     change (the simplest honest version: re-run its own computation on every invocation — it's
++     already fast, a few hundred file reads — and the page re-fetches `week.json` on every 20s poll
++     it already does; OR, if you find the dev server already has a chokidar watcher for `public/`
++     changes you can hook a "recompute week.json + sessions.json" into, use that instead of a new
++     mechanism — check `Server/watch.js`). You are NOT adding a new HTTP route or editing
++     `Server/run.js`/`Server/Server.js` (those are out of this task's fence) — the fence is
++     `Server/session-cost.mjs` (and `week-cost.mjs`, its closest sibling, same system) plus the
++     files `sessions.mjs`/`page.js` already read. If after checking `Server/watch.js` there's truly
++     no way to trigger a server-side recompute on file change without touching `run.js`, the
++     fallback (document this as the decision, in doc/decisions.md) is: run `week-cost.mjs` and
++     `sessions.mjs` from a small script a `node Server/sessions-refresh.mjs` wraps, and have it
++     re-run the two scripts itself on a short interval via `setInterval` IF started — but do NOT
++     start a new always-on background process as part of landing this task (the never-list: no
++     process left running after your turn ends). Prefer the honest, simple fix: make the RANGE
++     figure (not just the week figure) come from the SAME real computation
++     (`week-cost.mjs`'s generalized function) instead of summing client-side rows that don't carry
++     OpenRouter $ — call it with the picked date range instead of "this week", from a small script
++     invoked the same way `sessions.mjs` already is (re-run by hand / on activation), OR — simplest
++     of all — have `page.js` just use the SAME `week.json` figure as both the week line and (when
++     the date range IS "last 7 days", the common case) the range line, and otherwise honestly label
++     the range figure "Claude $ in range (partial — sessions with a logged cost)" rather than
++     silently implying it's complete. Pick the approach that is actually true and say which you
++     picked and why in `doc/decisions.md` — CLAUDE.md law 7 (compute, don't recall) over a fake
++     "it's live" label.
++   - Find out WHY OpenRouter is $0.00 in range specifically (not just "the client doesn't have it")
++     — read `Servex/ext/openrouter/reconcile.mjs`'s `OR_LOG_PATH` and confirm whether it has any
++     entries in the selected date range at all, or whether the range computation just never reads
++     it. Say which, in doc/decisions.md.
++
++**4. Fill the blanks.**
++   - Role: for a "(unknown)" row, look at what's actually in a VS Code/CLI row's data
++     (`sessions.json`) — the tab/working-folder name, or the session's own first logged agent id —
++     and see if a better heuristic than `role_of()`'s current one (echo- prefix only) can derive a
++     real role for more of them. If genuinely nothing in the data can tell "(unknown)" apart from
++     "mastermind" vs "minion", say so in doc/decisions.md rather than guessing.
++   - Start/Stop/Duration: `sessions.mjs` (a DIFFERENT task's file, `ai/2026-10-02/panel2-sessions/`
++     — you may read it but coordinate before editing it; if it needs a change, note it in
++     doc/decisions.md and make the smallest page.js-side fix instead) should already derive
++     `started_at` from a transcript's first timestamp. Check WHY so many rows still show "—": is
++     `sessions.json` stale (re-run `node public/framework/ai/2026-10-02/panel2-sessions/sessions.mjs`
++     in the worktree and see if the count of "—" rows drops), or is the derivation itself missing
++     cases? Fix what's in your fence; name what isn't.
++
++**5. Compact controls.**
++   - Date `<input type=date>` sized to its content, not stretched full width — a date input has a
++     natural intrinsic size; find what's stretching it (a `flex: 1` or `width: 100%` somewhere in
++     `sessions.css` or a parent) and remove that, don't add a fixed px width.
++   - Card padding: use the SAME `--pad` token every other panel uses (law 6 — don't invent a
++     smaller one), but check it's applied EQUALLY on both inline sides at 1920 and 3440 — the
++     "lopsided" complaint is likely a stacked-padding bug (two ancestors each adding their own
++     padding on one side only), the kind this skill's own CLAUDE.md names as a common trap. Shoot
++     both widths, measure the gap left vs right in the screenshot, fix the real cause.
++
++**6. Screenshots.** Before you start: 1200/1920/3440 of `/framework/ai/sessions/` as it stands.
++After you land your changes: the same three widths, same page, same way the owner reaches it (the
++rail, not a direct URL paste — though for this headless proof direct URL is fine, just land on the
++real tab). If a post-review fix changes anything visible, shoot that too (sub-mastermind skill
++rule: a fix made after review gets its own screenshot).
++
++## Fence
++`public/framework/ai/sessions/` (page.js, sessions.css, readme.md, doc/), `Server/session-cost.mjs`,
++`Server/week-cost.mjs`, this task dir (`public/framework/ai/2026-10-03/sessions-tab-polish/build/`).
++Read-only elsewhere (`sessions.mjs`, `Server/run.js`, `Server/watch.js`, `ux/Content/Spend.js`,
++`ui/stats/`, `ui/badge/`) — note anything that needs a change outside this fence in
++doc/decisions.md rather than editing it.
++
++NEVER the `mcp__playwright` tools — use `node Server/layout-check.mjs` or a headless probe script
++of your own under the task's scratch dir.
++
++Model: Sonnet. Keep this to one pass — this is the whole build, not a split; commit in the worktree
++as each of the 6 items above lands, so a crash doesn't lose finished work. When all 6 are done
++(or honestly declined with why), stop and report back — don't merge yourself, don't run
++Servex/sustain.mjs, don't return the worktree.
+diff --git a/public/framework/ai/2026-10-03/sessions-tab-polish/build/task.jsonl b/public/framework/ai/2026-10-03/sessions-tab-polish/build/task.jsonl
+new file mode 100644
+index 00000000..2467e637
+--- /dev/null
++++ b/public/framework/ai/2026-10-03/sessions-tab-polish/build/task.jsonl
+@@ -0,0 +1,43 @@
++{"assign":{"session_id":"da8fec33-3b15-4d92-927a-314d20760957","agent":"minion-sessions-tab-polish-build","card":"sessions-tab-polish","brief":"public/framework/ai/2026-10-03/sessions-tab-polish/build/requirements.md","model":"claude-sonnet-5","worktree":"C:\\Code\\lew42\\worktrees\\sessions-tab-polish","parent_task":"public/framework/ai/2026-10-03/sessions-tab-polish","requested_at":"2026-10-03T17:08:51-05:00","now":"starting","steps":[],"step":1}}
++{"action":{"at":"2026-10-03T17:10:22-05:00","did":"edit","files":["public/framework/ai/2026-10-03/sessions-tab-polish/build/.append1.json"]}}
++{"log":{"at":"2026-10-03T17:10:34-05:00","msg":"skill: minion loaded. worktree build/ dir did not exist here (uncommitted main-only files) - mirrored requirements.md + task.jsonl line 1 from main into worktree so logging has a real file to append to."}}
++{"assign":{"steps":["read sessions page.js/css/readme/doc + stats/badge/Spend.js + week-cost.mjs/session-cost.mjs + prior task logs","before-shots 1200/1920/3440","1: remove empty bands","2: stat cards row","3: live single-source cost computation","4: fill role/start/stop/duration blanks","5: compact date inputs + equal padding","6: after-shots, docs, commit, report"],"step":2,"now":"reading"}}
++{"action":{"at":"2026-10-03T17:11:40-05:00","did":"edit","files":["public/framework/ai/2026-10-03/sessions-tab-polish/build/requirements.md"]}}
++{"action":{"at":"2026-10-03T17:11:46-05:00","did":"edit","files":["public/framework/ai/2026-10-03/sessions-tab-polish/build/.append2.json"]}}
++{"log":{"at":"2026-10-03T17:11:50-05:00","msg":"scope-narrowed message from task-mastermind received mid-read: item4 (role/start/stop/duration) now low priority/back-burner; do NOT touch .sessions-grid column widths/resize (a reusable data grid is replacing it, @task-mastermind-data-grid); focus = empty bands, stat cards, compact date pickers + equal padding, live/correct numbers (esp OpenRouter $0 in range); add plain labels or title= for (unknown)/CLI role filter checkboxes. Mirrored the scope-narrowed section into my worktree copy of requirements.md. Continuing from reading phase - have read page.js, sessions.css, readme.md, doc/decisions.md, ui/stats/page.js, ui/badge/badge.js, panel2.css, Server/week-cost.mjs, Server/session-cost.mjs, ux/Content/Spend/Spend.js (no $-split convention there), Server/watch.js (one fs.watch(public) handle + MtimeFilter, no per-file hook point without touching run.js)."}}
++{"action":{"at":"2026-10-03T17:12:06-05:00","did":"edit","files":["scratch-or-check.mjs"]}}
++{"action":{"at":"2026-10-03T17:15:47-05:00","did":"edit","files":["scratch-band-probe.mjs"]}}
++{"action":{"at":"2026-10-03T17:17:14-05:00","did":"edit","files":["scratch-band-probe2.mjs"]}}
++{"action":{"at":"2026-10-03T17:17:52-05:00","did":"edit","files":["scratch-band-probe3.mjs"]}}
++{"action":{"at":"2026-10-03T17:18:46-05:00","did":"edit","files":["scratch-scroll-probe.mjs"]}}
++{"action":{"at":"2026-10-03T17:19:48-05:00","did":"edit","files":["scratch-padding-probe.mjs"]}}
++{"log":{"at":"2026-10-03T17:29:30-05:00","msg":"session resumed"}}
++{"log":{"at":"2026-10-03T17:29:30-05:00","msg":"session resumed"}}
++{"action":{"at":"2026-10-03T17:31:51-05:00","did":"edit","files":["public/framework/ai/sessions/sessions.css"]}}
++{"action":{"at":"2026-10-03T17:32:12-05:00","did":"edit","files":["public/framework/ai/2026-10-03/sessions-tab-polish/build/.append3.json"]}}
++{"log":{"at":"2026-10-03T17:32:14-05:00","msg":"worktree preview server (port 60008) died in the Servex restart; list_servers/start_server don't know per-worktree names and the server-guard hook blocks a hand-run node server.js. Messaged task-mastermind-sessions-tab-polish to bring it back; not blocking, continuing with code edits using DOM measurements already taken against the live page before it died."}}
++{"log":{"at":"2026-10-03T17:32:14-05:00","msg":"item 1 (empty bands) root cause, measured headless at 3440 against live rows: .page-column-head is 51px tall and empty (title blank by design) and .page-column-prose has a 25px padding-block-start -- both from core/Page/Page.css (out of fence). Scoped override added in sessions.css: hide .page-column-head and zero .page-column-prose's top padding, but ONLY for the root column (:not(:has(.page-column-close))) so an opened session-detail column keeps its own head/close-button/inset. Confirmed via DOM probe that .page-column-body's own overflow:auto IS already the scroll container (tabs live outside it) -- so once the bands collapse, the white card starts flush under the tabs and scrolls from there with no further JS/sticky work needed."}}
++{"log":{"at":"2026-10-03T17:32:14-05:00","msg":"item 5 (date inputs) root cause: framework.css's base-layer `input:not([type=checkbox],...) { width:100% }` rule doesn't exclude type=date, so both date boxes fought for the flex row's width unevenly -- that unevenness, not the card's own padding, is what reads as 'lopsided' (measured: .panel2-main's own padding is a single equal value on all sides at both 1920 and 3440, confirmed by rect comparison, no stacked-padding bug found). Fixed with width:auto + flex:none on .sessions-daterange input[type=date]."}}
++{"action":{"at":"2026-10-03T17:32:14-05:00","did":"edit","files":["public/framework/ai/sessions/sessions.css"]}}
++{"action":{"at":"2026-10-03T17:32:14-05:00","did":"commit","files":["public/framework/ai/sessions/sessions.css"],"note":"c5483c6b: close empty bands, shrink date inputs"}}
++{"assign":{"step":3,"now":"item 2: stat cards row"}}
++{"action":{"at":"2026-10-03T17:33:56-05:00","did":"edit","files":["Server/week-cost.mjs"]}}
++{"action":{"at":"2026-10-03T17:34:08-05:00","did":"edit","files":["scratch-import-check.mjs"]}}
++{"action":{"at":"2026-10-03T17:34:40-05:00","did":"edit","files":["public/framework/ai/2026-10-03/sessions-tab-polish/build/.append4.json"]}}
++{"log":{"at":"2026-10-03T17:34:43-05:00","msg":"status: items 1+5 (empty bands, date-input width) landed+committed c5483c6b. Item 3 server half landed+committed 87d54ea6 (week-cost.mjs exports reusable compute_window(from,to), no import-time side effects, CLI behavior preserved + --from/--to mode added). Now writing page.js: stat cards row (item 2), honest range-summary relabeling + role-filter plain labels (item 3 + scope-narrow item 4). Was heads-down reading/measuring/writing code, hence the quiet gap in the log between 17:11 and now; appending more often from here."}}
++{"action":{"at":"2026-10-03T17:35:52-05:00","did":"edit","files":["public/framework/ai/sessions/page.js"]}}
++{"action":{"at":"2026-10-03T17:37:32-05:00","did":"edit","files":["public/framework/ai/2026-10-03/sessions-tab-polish/build/.append5.json"]}}
++{"action":{"at":"2026-10-03T17:37:34-05:00","did":"commit","files":["public/framework/ai/sessions/page.js","public/framework/ai/sessions/sessions.css"],"note":"0309ab1d: stat cards up top, honest range numbers, plain filter labels"}}
++{"log":{"at":"2026-10-03T17:37:34-05:00","msg":"item 2 (stat cards) done. item 3 (correct/current numbers) mostly done: diagnosed + fixed why OpenRouter read $0 in range (no row anywhere carries a per-session OpenRouter $; sessions.mjs always writes cost:null for VS Code/CLI rows) by relabeling the range summary honestly instead of showing a false zero, and pointing to the real week.json-backed stat cards for the true total. Scope-narrow item 4 (plain role labels + title=) done. Item 4 original (fill role/start/stop/duration blanks) staying back-burner per scope narrowing -- not touching it unless trivial. Next: doc/decisions.md writeup, readme.md update, then after-screenshots once the worktree server is back (still down as of this log)."}}
++{"action":{"at":"2026-10-03T17:38:22-05:00","did":"edit","files":["public/framework/ai/sessions/doc/decisions.md"]}}
++{"action":{"at":"2026-10-03T17:38:30-05:00","did":"edit","files":["public/framework/ai/sessions/readme.md"]}}
++{"action":{"at":"2026-10-03T17:40:06-05:00","did":"edit","files":["public/framework/ai/2026-10-03/sessions-tab-polish/build/.append6.json"]}}
++{"log":{"at":"2026-10-03T17:40:08-05:00","msg":"All code + docs for the 5 in-scope items are written, syntax-checked (node --check), and committed (4 commits: c5483c6b bands+date-input, 87d54ea6 week-cost export, 0309ab1d stat cards+honest numbers+role labels, d1e2c968 docs). Item 4 (fill role/start/stop/duration) intentionally skipped per the owner's mid-build scope narrowing, logged as back-burner in doc/decisions.md. The only thing left is the after-screenshot proof (item 6) and a live sanity check -- blocked on the worktree's own preview server (port 60008), which has been down since the Servex restart ~25 min ago. Not polling further; waiting for task-mastermind-sessions-tab-polish's promised ping once mastermind-servex-10 brings it back. Pausing here rather than spin on checks."}}
++{"action":{"at":"2026-10-03T17:40:38-05:00","did":"edit","files":["public/framework/ai/2026-10-03/sessions-tab-polish/build/.append7.json"]}}
++{"assign":{"step":7,"now":"5 of 6 items built, documented, committed (4 commits: c5483c6b bands+date-input, 87d54ea6 week-cost export, 0309ab1d stat cards+honest numbers+role labels, d1e2c968 docs). Item 4 (fill role/start/stop/duration) intentionally skipped per owner's mid-build scope narrowing, logged as back-burner. Only step 8 (after-shots + final live sanity check) remains, blocked on the worktree's own preview server (port 60008), down since the Servex restart; task-mastermind-sessions-tab-polish has mastermind-servex-10 on restoring it. Not landing yet -- not fabricating landed_at while the proof step is genuinely incomplete. Will finish step 8 and land the moment the server answers."}}
++{"log":{"at":"2026-10-03T17:40:46-05:00","msg":"session ended (other) without landing"}}
++{"log":{"at":"2026-10-03T17:45:27-05:00","msg":"session resumed"}}
++{"action":{"at":"2026-10-03T17:46:32-05:00","did":"edit","files":["scratch-after-top.mjs"]}}
++{"action":{"at":"2026-10-03T17:48:09-05:00","did":"edit","files":["public/framework/ai/2026-10-03/sessions-tab-polish/build/.append8.json"]}}
++{"log":{"at":"2026-10-03T17:48:11-05:00","msg":"worktree server back (task-mastermind confirmed, fixed via Server/worktree-restart.mjs). Regenerated sessions.json + week.json, ran layout-check at 1200/1920/3440, saved before/after full-page sheets + after close-up top shots to build/shots/ (gitignored by convention, public/framework/ai/**/shots/). Visual check: empty bands gone (white card flush under tabs at all 3 widths), 5 stat cards render with big bold $ + smaller cents, role filter shows plain words (UNKNOWN)/TERMINAL SESSIONS/VS CODE TABS, date inputs compact at all widths, range summary now honest ($X Claude logged in range, no false $0.00 OpenRouter). Committed task dir + brief mirror (11bcee44)."}}
++{"assign":{"step":8,"landed_at":"2026-10-03T17:47:57-05:00","outcome":"**5 of 6 items landed, 1 declined with reason.** The two empty gray bands above the Sessions card are gone (measured root cause: an empty core/Page column-head + its prose's own top padding; scoped CSS fix in sessions.css touches only this page's root column). A row of 5 stat cards now tops the page -- Claude $ this week, OpenRouter $ this week, plan used %, the plan's $-per-1% spelled out as a label (not '$26.65/1%'), and the live filtered session count -- big bold dollars, smaller cents, reusing the ui/stats tile pattern. Diagnosed and fixed why OpenRouter read $0.00 in range: no row this page loads ever carries a real per-session OpenRouter $, so the old client-side range summary was always going to be wrong there; Server/week-cost.mjs now exports a reusable compute_window(from,to) (no import-time side effects, CLI behavior preserved) so the week figure is the one trustworthy number, and the range summary is honestly relabeled instead of faking a reconciliation. Role-filter checkboxes show plain words (Terminal sessions, VS Code tabs) with title= tooltips instead of (unknown)/CLI. Date inputs are compact at all three widths; the card's own padding was checked and found NOT asymmetric (the 'lopsided' look was the date-input width bug). Declined: filling in role/Start/Stop/Duration blanks -- the owner's own mid-build message marked it back-burner since @task-mastermind-data-grid is replacing this grid's chrome soon. Full reasoning: public/framework/ai/sessions/doc/decisions.md. Before/after screenshots at 1200/1920/3440: public/framework/ai/2026-10-03/sessions-tab-polish/build/shots/ (gitignored, on disk in the worktree). 5 commits in worktree/sessions-tab-polish: c5483c6b, 87d54ea6, 0309ab1d, d1e2c968, 11bcee44. Not merged, not returned -- reporting to task-mastermind-sessions-tab-polish per the brief."}}
+diff --git a/public/framework/ai/sessions/doc/decisions.md b/public/framework/ai/sessions/doc/decisions.md
+index 0b166e23..16280e83 100644
+--- a/public/framework/ai/sessions/doc/decisions.md
++++ b/public/framework/ai/sessions/doc/decisions.md
+@@ -1,5 +1,117 @@
+ # Sessions — decisions
+ 
++## 2026-10-03 (sessions-tab-polish) — empty bands, stat cards, and why OpenRouter read $0.00 in range
++
++The owner, looking at this page at 3440 (full brief:
++[`/framework/ai/2026-10-03/sessions-tab-polish/build/requirements.md`](/framework/ai/2026-10-03/sessions-tab-polish/build/requirements.md)):
++two empty gray bands above the white card, the week line as plain text instead of dashboard cards,
++wide date pickers, "lopsided" padding, and stale-looking numbers — "shouldn't this be computed in
++real time by node?" A follow-up narrowed the scope mid-build: skip filling in role/Start/Stop/
++Duration (a separate `@task-mastermind-data-grid` task is replacing this grid's own chrome soon),
++don't touch `.sessions-grid`'s column widths, and add plain words for the role-filter's
++"(unknown)"/"CLI" labels.
++
++**The two empty bands — measured, not guessed.** Headless, 3440, against the live page with real
++rows: `.panel2` (the white card) sits inside `.page-column-prose`, inside `.page-column-body`,
++inside `core/Page`'s own column chrome. Two things sat above the card with nothing in them:
++`.page-column-head` (51px tall — a title bar that's blank, because this page's own `title: ""` is
++deliberate, the AI icon heading already says where you are) and `.page-column-prose`'s own
++`padding-block-start` (25px — the generic "a column's content is a short reading note" inset
++`core/Page/Page.css` gives every column). Both belong to `core/Page`, outside this task's fence
++(`Server/doc/review.md`'s fence rules — only `ai/sessions/` and two `Server/` scripts are editable
++here), so the fix is a scoped override in THIS page's own `sessions.css`, not an edit to
++`core/Page/Page.css`: `.page-column-head:not(:has(.page-column-close))` (the column that can never
++be closed — the root grid, never an opened session-detail column, which always HAS a close button)
++is hidden outright, and its sibling `.page-column-prose`'s top padding is zeroed the same way,
++scoped under `.page--sessions` so no other page is touched. An opened session's own detail column
++keeps its real title, its close button, and its normal inset — unaffected, since it always has a
++`.page-column-close` the selector excludes.
++
++A third thing was checked and ruled out: does the WHOLE PAGE scroll (tabs included), or just the
++card? Measured: `.page-column-body` already has its own `overflow-y: auto`, and the tab strip sits
++outside it in the DOM — so "the tabs stay put while the card scrolls" was already true before this
++task; the owner's complaint was really just the two empty bands making it LOOK like the scroll area
++started in the wrong place. No new sticky/fixed positioning was needed.
++
++**The "lopsided" padding — measured, found NOT asymmetric; the real culprit was the date inputs.**
++`.panel2-main`'s own `padding` (the `--pad` token every panel uses) measured as a single equal
++value on all four sides at both 1920 (26px) and 3440 (62px) — no stacked-padding bug, checked by
++comparing the card's content-box rect to the grid's own rect on both sides. The actual asymmetry:
++`framework.css`'s base-layer rule (`input:not([type=checkbox], [type=radio], [type=submit], …) {
++width: 100% }`) doesn't exclude `type=date`, so inside the `.sessions-daterange` flex row BOTH date
++boxes fought for the row's full width, unevenly — one grew much wider than the other. That read as
++"lopsided padding" even though the card's own padding was never the problem. Fixed with
++`width: auto; flex: none` on `.sessions-daterange input[type=date]` — the brief's own suggested fix
++(don't add a fixed px width), confirmed as the actual cause rather than assumed.
++
++**The stat cards.** Five tiles, the `ui/stats` TEMPLATE reused exactly as documented there (CLAUDE.md
++law 6 — no new component, no new CSS beyond the cents-smaller-than-dollars split): Claude $ this
++week, OpenRouter $ this week, plan used % this week, the plan's own $-per-1% (as a LABEL — "Per 1%
++of your weekly plan" above a big `$26.65` — rather than crammed into the number as `$26.65/1%`,
++which is the exact string the owner said he didn't understand), and the current filtered session
++count (updates live as filters change, via `render_rows()` calling `render_stats()`).
++`ux/Content/Spend.js` was checked first for an existing "$ big, ¢ small" convention (law 6) — it
++renders a plain `"$12.34"` string, nothing to reuse — so `money_parts()` (`page.js`) splits the
++STRING in markup, two `span`s, rather than inventing a new CSS class for the whole amount; the only
++new rule is `.sessions-stat-cents` (size/weight/colour step down, not a new type-scale step).
++
++**Why OpenRouter read $0.00 in range, and why the Claude figure in range didn't reconcile with the
++week line either.** Checked directly, not assumed: `Servex/ext/openrouter/reconcile.mjs`'s
++`OR_LOG_PATH` (`%LOCALAPPDATA%/lew42/servex/logs/openrouter.jsonl`) has 105 real entries, dated
++2026-09-30 through 2026-10-02 on this machine — OpenRouter spend is NOT zero. The $0.00 came from
++where the RANGE summary computed its number: entirely client-side, from `cost_openrouter_usd` on
++whatever rows the page already had loaded (`openrouter_usd_of()`, `page.js`) — and **no row this
++page has ever carries that field with a real number.** `merge()` defaults it to `null` and nothing
++ever sets it: `GET /api/agents` has no OpenRouter field, and `sessions.json`'s snapshot script never
++writes one either. The same is true, less obviously, for the Claude figure: `sessions.mjs`'s own
++`vscode_or_cli_rows()` writes `cost: null` for EVERY VS Code/CLI row (a plain transcript file has no
++per-session $ rolled up in it at scan time) — so the old "range" summary's Claude total was, in
++practice, only ever summing the live Servex rows' own running cost, not a real total either.
++
++**The fix picked, and why.** The brief named three options and said to pick whichever is actually
++true (CLAUDE.md law 7 over a fake "it's live" label). Building a true live per-range query was
++ruled out first: it would need either a new HTTP route (`GET /api/sessions`-shaped, explicitly out
++of this fence — `Server/run.js`/`Server/Server.js` are untouchable here) or a watcher hooked into
++the already-running dev server process (same problem — `Server/watch.js` is one shared `fs.watch`
++handle with no per-script hook point reachable without editing `run.js`). Neither is available
++inside this task's fence, so a fully live range figure is not buildable here — named as an open
++gap below, not hidden. What WAS buildable and is now built: `Server/week-cost.mjs`'s own windowed
++computation (`claude_spend(from,to)`, `openrouter_spend(from,to)`) is now `compute_window(from,to)`,
++exported with no import-time side effect (the compute/write/log path only runs when the script is
++executed directly — the same `is_main` pattern `Server/session-cost.mjs` already used) — so the
++week figure (the stat cards) and ANY future arbitrary-range figure go through the exact same real
++computation and can never disagree with each other, only with whatever a client-side row sum
++guesses. The RANGE summary line below the grid now only claims what it can actually compute (Claude
++$ from rows that already carry a logged cost, honestly labeled as partial with a `title=`
++explaining why), and points up at the real week cards for the true total — rather than showing a
++confident, wrong $0.00 OpenRouter figure next to a real non-zero one a few lines above it. The
++"cost by role" list got the same fix (OpenRouter column dropped — it was always $0.00 there too,
++for the identical reason).
++
++**What a real live range figure would still need** (open, same shape as the existing "why a script,
++not a live route" gap below): a `GET /api/sessions`-style route this task's fence has never allowed
++touching, OR `Server/week-cost.mjs`'s `compute_window()` wired into the dev server's own process so
++it can answer on demand instead of only when run by hand. The script itself is already reusable for
++this (`node Server/week-cost.mjs --from <iso> --to <iso>` prints any window's real numbers right
++now) — only the wiring from a browser request to that script, without a new route, remains
++unsolved, and stayed that way on purpose rather than growing this task past its fence.
++
++**Role-filter labels.** The owner's own follow-up: "(unknown)" and "CLI" mean nothing to him. Added
++`ROLE_LABELS` (`page.js`) — "(unknown)" → "(unknown)" (kept, since that word IS the honest fact, but
++now with a `title=` saying exactly what it means: a VS Code/CLI session with nothing in the data
++that says who was driving it), "cli" → "Terminal sessions", "vscode mastermind" → "VS Code tabs",
++"echo/refiner" → "Echo / refiner". A real Servex role (e.g. `minion-sessions-tab-polish-build`) is
++already a real, meaningful name and passes through unchanged — only the four short/guessy words
++`role_of()` can actually produce got a plainer label. Every filter checkbox and every "cost by role"
++row now carries the matching `title=`.
++
++**Item 4 (fill the role/Start/Stop/Duration blanks) — deliberately left, per the owner's own
++follow-up scope narrowing, not a miss.** The brief originally asked for this; a mid-build message
++from the owner (relayed by `task-mastermind-sessions-tab-polish`) marked it low priority and asked
++for it to be logged as a back-burner item instead, since `@task-mastermind-data-grid` is building a
++replacement grid that will own this chrome soon — duplicating that work here would just be rebuilt
++over. Not touched.
++
+ ## 2026-10-03 (sessions-date-homes) — reconciling with decisions made after the grid shipped
+ 
+ The owner (via vscode-mastermind) sent three follow-up corrections against the landed grid:
+diff --git a/public/framework/ai/sessions/page.js b/public/framework/ai/sessions/page.js
+index 00d61065..ef2e6dd2 100644
+--- a/public/framework/ai/sessions/page.js
++++ b/public/framework/ai/sessions/page.js
+@@ -177,6 +177,38 @@ export function role_of(r){
+ 	return null;
+ }
+ 
++// "$X.YZ" split into a big whole-dollar part and a smaller cents part — the
++// stat cards' own "big bold dollars, smaller cents" (the owner's own words,
++// 2026-10-03). No existing "$ big, ¢ small" convention turned up on the site
++// (`ux/Content/Spend.js` renders a plain "$12.34" string — checked first,
++// CLAUDE.md law 6) so this splits the STRING in markup, two `span`s, rather
++// than inventing a new CSS class for the whole amount.
++export function money_parts(usd){
++	const n = typeof usd === "number" && isFinite(usd) ? usd : 0;
++	const s = n.toFixed(2);
++	const dot = s.indexOf(".");
++	return { whole: "$" + s.slice(0, dot), cents: s.slice(dot) };
++}
++
++// Plain words for the role filter (the owner's own follow-up, 2026-10-03:
++// "'(unknown)' and 'CLI' mean nothing to me"). Only the two words he named,
++// plus the other two short/guessy ones `role_of()` already produces, get a
++// friendlier label here — a real Servex role (e.g. "minion-sessions-tab-
++// polish-build") is already a real, meaningful name and passes through
++// unchanged. Every entry also gets a `title=` spelling out exactly what it
++// contains, since a short label can't carry the whole explanation
++// (`role_of()`'s own doc comment has the full, honest gap this reads from).
++export const ROLE_LABELS = {
++	"(unknown)": { label: "(unknown)", title: "A VS Code or CLI session this page can't name a role for — nothing in the data it reads (sessions.json, GET /api/agents) says who was driving it." },
++	"cli": { label: "Terminal sessions", title: "A standalone `claude` run from a terminal — not a VS Code tab, not a Servex-spawned agent." },
++	"vscode mastermind": { label: "VS Code tabs", title: "An interactive VS Code tab — a human typing, not a spawned agent." },
++	"echo/refiner": { label: "Echo / refiner", title: "A session whose id starts \"echo-\" — the one naming convention this page can see." },
++};
++export function role_label(role){
++	const key = role || "(unknown)";
++	return ROLE_LABELS[key] ?? { label: key, title: "A Servex agent's own role, straight from the agent registry." };
++}
++
+ // The "amount sorted by" and "amount totalled" for a row's cost: the real
+ // split (Claude $ + OpenRouter $) when either is known, else the one older
+ // `r.cost` figure every currently-live row still carries. Returns `null`,
+@@ -400,7 +432,6 @@ export default new Page({
+ 		// (see dashboard/page.js's own note for the measured number).
+ 		const panel = new Panel2({ title: "Sessions" }).ac("wide");
+ 		panel.header.append(() => small.c("muted", "live — polls every 20s"));
+-		this.$week_line = panel.header.append(() => small.c("muted sessions-week-line"));
+ 
+ 		this.cost_sort = null;      // null | "desc" | "asc" — the Cost header's own toggle
+ 		this.role_filter = null;    // Set<string> | null (null = "everything", until the first real data arrives)
+@@ -408,6 +439,19 @@ export default new Page({
+ 		this.date_to = today.toISOString().slice(0, 10);
+ 		this.date_from = new Date(today.getTime() - 30 * 864e5).toISOString().slice(0, 10);
+ 		this.last_rows = [];        // the latest merged rows, UNFILTERED — filters/sort redraw from this
++		this.week = null;           // the real week.json figures (Server/week-cost.mjs) — the one source of truth for "this week"
++		this.filtered_count = 0;    // the current filtered row count — the "sessions shown" stat card
++
++		// The stat-card row (the owner's own words, 2026-10-03: "put them on
++		// their own little dashboard cards, a horizontal preview rail across
++		// the top" — not one line of plain text he couldn't parse). The
++		// `ui/stats` tile TEMPLATE, reused as-is (CLAUDE.md law 6: `grid gap
++		// auto` + `surface pad flex v gap` + `h4 muted` / `h2`, no new CSS) —
++		// `render_stats()` below fills it in once real data (week.json, or a
++		// filter change) arrives.
++		this.$stats = div.c("sessions-stats grid gap auto").style("--column", "11em");
++		panel.main.append(this.$stats);
++		this.render_stats();
+ 
+ 		this.$controls = div.c("sessions-controls flow");
+ 		panel.main.append(this.$controls);
+@@ -420,6 +464,43 @@ export default new Page({
+ 		this.snapshot_rows = [];
+ 	},
+ 
++	// Five small cards: Claude $ this week, OpenRouter $ this week, plan used
++	// %, the plan's own $-per-1% (spelled OUT as a label, not crammed into
++	// the number — the owner's own words: "I'm not sure what '$26.65/1%'
++	// means"), and the current filtered row count. The first four come from
++	// `this.week` (the real `week.json` snapshot, `Server/week-cost.mjs`);
++	// the fifth from `this.filtered_count`, set by `render_rows()` every time
++	// a filter changes — called from both places so either one redraws all
++	// five together, same "one function redraws everything" rule
++	// `render_rows()` already uses for the grid/summary/by-role list.
++	render_stats(){
++		if (!this.$stats) return;
++		const week = this.week;
++		const claude = money_parts(week?.claude_usd);
++		const or = money_parts(week?.openrouter_usd);
++		const per_pct = money_parts(week?.usd_per_pct);
++		const pct_text = typeof week?.plan_pct_used === "number" ? week.plan_pct_used + "%" : "—";
++		const money_body = parts => () => { span(parts.whole); span.c("sessions-stat-cents", parts.cents); };
++
++		const tile = (label_text, body, title) => {
++			const $tile = div.c("surface pad flex v gap", () => {
++				div.c("h4 muted", label_text);
++				div.c("h2", body);
++			}).style("--gap", "calc(var(--gap) * 0.1)");
++			if (title) $tile.attr("title", title);
++			return $tile;
++		};
++
++		this.$stats.empty(() => {
++			tile("Claude this week", week ? money_body(claude) : "—");
++			tile("OpenRouter this week", week ? money_body(or) : "—");
++			tile("Plan used this week", pct_text);
++			tile("Per 1% of your weekly plan", week?.usd_per_pct ? money_body(per_pct) : "—",
++				"How far $1 of Claude spend moves the plan's own weekly meter — the plan's week total divided by its own percent used.");
++			tile("Sessions shown", String(this.filtered_count));
++		});
++	},
++
+ 	render_cost_label(){
+ 		if (!this.$cost_label) return;
+ 		const arrow = this.cost_sort === "desc" ? " ↓" : this.cost_sort === "asc" ? " ↑" : "";
+@@ -446,14 +527,15 @@ export default new Page({
+ 			if (roles.length){
+ 				div.c("sessions-role-filter flex wrap gap-50", () => {
+ 					roles.forEach(role => {
+-						label.c("flex gap-35 v-center h4", () => {
++						const { label: text, title } = role_label(role);
++						label.c("flex gap-35 v-center h4").attr("title", title).append(() => {
+ 							const $box = input().attr("type", "checkbox");
+ 							$box.el.checked = this.role_filter.has(role);
+ 							$box.on("change", () => {
+ 								if ($box.el.checked) this.role_filter.add(role); else this.role_filter.delete(role);
+ 								this.render_rows();
+ 							});
+-							span(role);
++							span(text);
+ 						});
+ 					});
+ 				});
+@@ -490,19 +572,39 @@ export default new Page({
+ 			sorted.forEach(r => row_view(r, this.url, this.page_dirs));
+ 		});
+ 
++		// ⚠ Honest, not a reconciliation (2026-10-03, sessions-tab-polish — the
++		// owner's own words: "the two Claude figures don't reconcile on
++		// screen... OpenRouter shows $0.00 in range"). This total is summed
++		// client-side from whatever `cost`/`cost_claude_usd` ALREADY SITS on
++		// the rows this page has loaded — and almost none of them carry one:
++		// `sessions.mjs` writes `cost: null` for every VS Code/CLI row (it has
++		// no per-session $ to put there), so in practice this only ever totals
++		// the live Servex rows' own running cost. No row anywhere carries a
++		// real per-session OpenRouter $ at all (checked: `sessions.json` never
++		// writes `cost_openrouter_usd`, `GET /api/agents` doesn't either) — so
++		// an "OpenRouter in range" figure here would always read $0.00, not
++		// because OpenRouter spend is zero (the ledger has real entries,
++		// doc/decisions.md) but because this filtered list structurally can't
++		// see it. Rather than show a confident, wrong zero next to the REAL
++		// OpenRouter figure one scroll up (the stat card, from
++		// `Server/week-cost.mjs`'s own ledger sum), this line only claims what
++		// it can actually compute, and says so — CLAUDE.md law 7.
+ 		const claude_total = filtered.reduce((n, r) => n + claude_usd_of(r), 0);
+-		const or_total = filtered.reduce((n, r) => n + openrouter_usd_of(r), 0);
++		this.filtered_count = filtered.length;
++		this.render_stats();
+ 		this.$summary?.empty(() => {
+-			small.c("muted", `${filtered.length} session${filtered.length === 1 ? "" : "s"} shown — $${claude_total.toFixed(2)} Claude · $${or_total.toFixed(2)} OpenRouter`);
++			small.c("muted", `${filtered.length} session${filtered.length === 1 ? "" : "s"} shown — $${claude_total.toFixed(2)} Claude logged in range`)
++				.attr("title", "Only rows that already carry a logged cost (mostly live Servex agents) are counted here — most VS Code/CLI sessions don't have one yet. OpenRouter $ isn't tracked per session at all, so it can't be summed for an arbitrary date range; the real Claude $ and OpenRouter $ for THIS WEEK are the cards above, computed straight from the transcripts and the OpenRouter ledger. ai/sessions/doc/decisions.md has the full reasoning.");
+ 		});
+ 
+ 		this.$by_role?.empty(() => {
+-			const totals = by_role_totals(filtered).filter(t => t.claude_usd || t.openrouter_usd);
++			const totals = by_role_totals(filtered).filter(t => t.claude_usd);
+ 			if (!totals.length) return;
+-			small.c("muted", "Cost by role (largest first)");
++			small.c("muted", "Claude $ logged by role (largest first, same caveat as above)");
+ 			totals.forEach(t => div.c("sessions-by-role-row flex gap-50 v-center", () => {
+-				small.c("sessions-by-role-name", t.role);
+-				small.c("muted", `$${t.claude_usd.toFixed(2)} Claude · $${t.openrouter_usd.toFixed(2)} OpenRouter · ${t.count} session${t.count === 1 ? "" : "s"}`);
++				const { label: text, title } = role_label(t.role);
++				small.c("sessions-by-role-name").attr("title", title).text(text);
++				small.c("muted", `$${t.claude_usd.toFixed(2)} · ${t.count} session${t.count === 1 ? "" : "s"}`);
+ 			}));
+ 		});
+ 	},
+@@ -554,14 +656,16 @@ export default new Page({
+ 			if (this.last_rows.length) draw();
+ 		});
+ 
+-		// `week.json` (Server/week-cost.mjs) — a manual, point-in-time snapshot,
+-		// not live; degrades silently (no line shown) on a 404, i.e. the script
+-		// hasn't been run yet on this machine.
++		// `week.json` (Server/week-cost.mjs) — a manual, point-in-time snapshot
++		// of the REAL week numbers (summed straight from the transcripts and
++		// the OpenRouter ledger — the one trustworthy source this page has),
++		// not live yet (doc/decisions.md); degrades silently (the stat cards
++		// just show "—") on a 404, i.e. the script hasn't been run yet on this
++		// machine. Feeds the stat-card row, not a line of text — `render_stats()`.
+ 		get_json(this.url + "week.json").then(week => {
+-			if (!week || !this.$week_line) return;
+-			const pct = typeof week.plan_pct_used === "number" ? `, plan ${week.plan_pct_used}% used` : "";
+-			const per_pct = typeof week.usd_per_pct === "number" && week.usd_per_pct > 0 ? ` — ~$${week.usd_per_pct.toFixed(2)}/1%` : "";
+-			this.$week_line.text(`$${week.claude_usd.toFixed(2)} Claude · $${week.openrouter_usd.toFixed(2)} OpenRouter this week${pct}${per_pct}`);
++			if (!week) return;
++			this.week = week;
++			this.render_stats();
+ 		});
+ 	},
+ 
+diff --git a/public/framework/ai/sessions/readme.md b/public/framework/ai/sessions/readme.md
+index 367e9acb..609012cc 100644
+--- a/public/framework/ai/sessions/readme.md
++++ b/public/framework/ai/sessions/readme.md
+@@ -34,10 +34,15 @@ older `cost` figure:**
+ - **Claude $ next to OpenRouter $** when a row carries the split (an "OR" tag marks the real-money
+   one) — falls back to the one older `cost` figure for a row that doesn't carry it yet.
+ - **A role filter and a 30-day date filter** above the grid, with a summary line (sessions shown,
+-  total Claude $, total OpenRouter $) and a "cost by role" list, largest first — all computed from
+-  the rows already on screen, no new fetch.
+-- **A "this week" line** (Claude $, OpenRouter $, the $200 plan's own % used) — from `week.json`,
+-  a snapshot `Server/week-cost.mjs` writes by hand (see below).
++  Claude $ logged in range) and a "Claude $ logged by role" list, largest first — all computed from
++  the rows already on screen, no new fetch. Both are honestly partial, not a full range total — see
++  "Where the real dollars come from" below.
++- **Five stat cards across the top** (sessions-tab-polish, 2026-10-03): Claude $ this week,
++  OpenRouter $ this week, plan used % this week, the plan's own $-per-1% (spelled out as a label,
++  not crammed into the number), and the current filtered session count — the real `week.json`
++  figures, big bold dollars with smaller cents, not a line of plain text. `doc/decisions.md` has the
++  full reasoning for why these cards are the trustworthy number and the range summary below the
++  grid is not.
+ - **A session's own detail page** shows a compact row per logged cost line (time, tokens, $) above
+   its prompts, when `Server/session-cost.mjs` has logged one.
+ - **Below that (session-trace, 2026-10-03): a cost-over-time chart and a "what was it doing"
+@@ -63,8 +68,12 @@ Two SEPARATE scripts, neither live — both are run by hand and read by the page
+   Server/session-cost.mjs --trace-file <session-id> <out-path>` writes it as `<out-path>`, read by
+   the detail page as `<session-dir>/trace.json`. Manual/on-demand only (doc/decisions.md).
+ - [`Server/week-cost.mjs`](/code/) is a run-by-hand snapshot of this week's Claude $ and
+-  OpenRouter $ against the $200 Max plan, written to `week.json` beside this readme. Re-run it to
+-  refresh the "this week" line: `node Server/week-cost.mjs`.
++  OpenRouter $ against the $200 Max plan, written to `week.json` beside this readme — the stat
++  cards' own source. Re-run it to refresh them: `node Server/week-cost.mjs`. Its windowed
++  computation (`compute_window(from, to)`) is reusable for ANY date range, not just "this week" —
++  `node Server/week-cost.mjs --from <iso> --to <iso>` prints one straight to the terminal, no file
++  written — so a future live range feature has one real function to call instead of a second,
++  possibly-disagreeing one (`doc/decisions.md`, "Why OpenRouter read $0.00 in range").
+ 
+ This is a DIFFERENT system from `Server/task-cost.mjs` (a Servex agent's own running total, no
+ per-prompt detail) — see that script's own doc, `Server/doc/task-cost.md`, for why the two don't
+diff --git a/public/framework/ai/sessions/sessions.css b/public/framework/ai/sessions/sessions.css
+index b4bbde41..746f9c12 100644
+--- a/public/framework/ai/sessions/sessions.css
++++ b/public/framework/ai/sessions/sessions.css
+@@ -178,6 +178,37 @@
+ 
+ 	.sessions-full-id { display: block; font-family: monospace; margin-block: var(--gap-35) var(--gap); }
+ 
++	/* The two empty gray bands above the white card (the owner's own words,
++	   2026-10-03, sessions-tab-polish: "two faint gray lines between the top
++	   tabs and the white card could just disappear" — measured live, headless,
++	   at 3440: a 51px `.page-column-head` with nothing in it (this page's own
++	   title is blank on purpose — the AI icon heading above the tabs already
++	   says where you are) plus a 25px `padding-block-start` on
++	   `.page-column-prose`, the generic "a column's content is a note" inset
++	   `core/Page/Page.css` gives EVERY column (right for a short reading page,
++	   wrong for a page whose own content IS a full-width card). Both belong to
++	   `core/Page`, outside this task's fence, so the fix lives here instead,
++	   scoped tight enough to touch only THIS page and only the column that can
++	   never be closed (the root grid — `:not(:has(.page-column-close))`, since
++	   only an OPENED detail column ever gets a close button): an opened
++	   session's own detail column keeps its real head/title, its close button
++	   and its normal inset, untouched. `doc/decisions.md` has the measurements. */
++	.page--sessions .page-column-head:not(:has(.page-column-close)) { display: none; }
++	.page--sessions .page-column-body:has(> .page-column-head:not(:has(.page-column-close))) > .page-column-prose {
++		padding-block-start: 0;
++	}
++
++	/* The stat-card row (sessions-tab-polish, 2026-10-03) — the `ui/stats`
++	   tile pattern (`grid gap auto` + `surface pad flex v gap` + `h4 muted` /
++	   `h2`), reused with no new class of its own; `.sessions-stats` only sets
++	   the gap before the controls below it, same job `.sessions-controls`
++	   already does. `.sessions-stat-cents` is the one truly new rule: the
++	   owner's own words, "maybe the cents smaller than the dollars" — a plain
++	   size/weight/colour step down from the `h2` it sits inside, not a new
++	   type-scale step (the type scale itself is untouched). */
++	.sessions-stats { margin-block-end: var(--gap); }
++	.sessions-stat-cents { font-size: 0.55em; font-weight: 400; color: var(--subtle); }
++
+ 	/* Filters, the summary line and "cost by role" (session-costs
+ 	   minion-build, 2026-10-02) — plain controls above the grid, reusing the
+ 	   same `.muted`/`.card` vocabulary as every row, not a second style
+@@ -189,6 +220,18 @@
+ 	.sessions-by-role-row { padding-block: var(--gap-35); border-block-end: 1px solid var(--line); }
+ 	.sessions-by-role-name { font-weight: 600; min-width: 8em; }
+ 
++	/* Date inputs, shrunk to their own content (the owner's own words,
++	   2026-10-03: "the date pickers are so wide and don't need to be").
++	   `framework.css`'s base-layer rule gives every text-shaped input
++	   `width: 100%` by default (a `date` input isn't in that rule's own
++	   exclusion list) — inside this row's `flex` container that meant both
++	   boxes fought each other for the whole row's width, one winning far more
++	   of it than the other (the "lopsided" look, measured: the CARD's own
++	   padding is equal on both sides already, doc/decisions.md — this row was
++	   the real asymmetry). `width: auto` lets the input fall back to its own
++	   natural size; `flex: none` stops it from being stretched by the row. */
++	.sessions-daterange input[type="date"] { width: auto; flex: none; }
++
+ 	/* The cost-over-time chart (2026-10-03, session-trace) — plain inline SVG,
+ 	   same house style as `ux/Content/Spend.js`'s own $-over-time bars: a
+ 	   gridline/label class ("g"/"t"), a total-$ label class, plus two new ones

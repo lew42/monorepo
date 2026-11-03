@@ -1,0 +1,17 @@
+{"phase":{"at":"2026-10-19T20:22:20-05:00","n":1,"kind":"findings","status":"start"}}
+{"finding":{"at":"2026-10-19T20:22:20-05:00","n":1,"kind":"fix","text":"The shot of /framework/ai/tasks/ at 400 shows the INBOX tab highlighted and an empty grey body (empty 0.776, items 14) — shots/127-0-0-1-50353-framework-ai-tasks/400.png. The new Tasks tab is visible, but the page it was shot on does not show the tasks view, so the \"link to the tasks view\" ask is not proven."}}
+{"finding":{"at":"2026-10-19T20:22:20-05:00","n":2,"kind":"note","text":"requirements.md is missing from the task folder; the asks were taken from task.jsonl's title (compact header, no giant sticky toolbar, no scroll-in-scroll, link to the tasks view) and the diff's doc."}}
+{"finding":{"at":"2026-10-19T20:22:20-05:00","n":3,"kind":"note","text":"At 400 the chip row is clipped at the right edge (\"Today 0\" then a cut chip) and scrolls sideways with the scrollbar hidden — nothing says it scrolls; the bottom half of the screen is empty (400.png, below the \"views / lanes\" band)."}}
+{"finding":{"at":"2026-10-19T20:22:20-05:00","n":4,"kind":"note","text":"The rest of the AI page is not tested in the shots: only the tasks URL was shot, and the 1200/1920/3440 shots are dominated by the live/dashboard view (ai2-full share 1.41–1.51 at 1200/1920, i.e. a page taller than the screen); the inbox toolbar and the \"waiting on you\" section the diff changes are not clearly visible there."}}
+{"finding":{"at":"2026-10-19T20:22:20-05:00","n":5,"kind":"note","text":"Widths given: all four (400, 1200, 1920, 3440); the 1200–3440 wrap list names only buttons (mode-btn 1.7–1.8 lines, chatbox-compose-more 2.4 lines) that this diff did not touch."}}
+{"phase":{"at":"2026-10-19T20:22:20-05:00","n":1,"kind":"findings","status":"done","verdict":"fix","cost":0.42073040000000006,"model":"claude-sonnet-5-5"}}
+{"phase":{"at":"2026-10-19T20:22:37-05:00","n":2,"kind":"answers","status":"start"}}
+{"answer":{"at":"2026-10-19T20:22:37-05:00","n":1,"reply":"declined: the worktree has no live task data, so its inbox is empty; the Tasks tab is visible in every shot and /tasks/ redirects to the Tasks chips on main (before shots in the task folder)."}}
+{"answer":{"at":"2026-10-19T20:22:37-05:00","n":2,"reply":"noted: the brief was the owner's dictation in the spawn prompt."}}
+{"answer":{"at":"2026-10-19T20:22:37-05:00","n":3,"reply":"fixed: a soft right-edge fade on the chip row now hints it scrolls (commit fix: ai: fade hints the chip row scrolls)."}}
+{"answer":{"at":"2026-10-19T20:22:37-05:00","n":4,"reply":"noted: /framework/ai/ was shot at all four widths in layout-check (after-4widths.png), toolbar and Waiting on you visible."}}
+{"answer":{"at":"2026-10-19T20:22:37-05:00","n":5,"reply":"noted: those wrap items are untouched by this diff."}}
+{"phase":{"at":"2026-10-19T20:22:37-05:00","n":2,"kind":"answers","status":"done"}}
+{"phase":{"at":"2026-10-19T20:22:37-05:00","n":3,"kind":"replies","status":"start"}}
+{"reply":{"at":"2026-10-19T20:23:20-05:00","n":1,"stance":"accept","text":"The ask was a visible link to the tasks view, and the shot shows the new Tasks tab; the empty inbox body comes from the worktree having no task data, which is an environment limit rather than a layout fault. The /tasks/ redirect to the Tasks chips on main is a fair second proof.","cost":0.307808}}
+{"phase":{"at":"2026-10-19T20:23:20-05:00","n":3,"kind":"replies","status":"done"}}

@@ -1,0 +1,260 @@
+/* ux/Dictate/Widget — the one compact widget: a framed card, bubbles on top, a composer
+ * row at the bottom (typed box, mic, Send). Layout is plain framework.css utilities
+ * (`card`, `pad`, `flex`, `gap`, `muted`); the bespoke bits here are the bubble look, the
+ * scrolling thread, the compact meter/picker, and hiding `Dictate`'s own settled caption
+ * lines (it still draws the live, still-moving guess).
+ *
+ * `Widget.Thread`/`Widget.Composer` are built from `ext/Chat`'s own parts (`Chat.js`'s
+ * `speak()`, `Composer.js`'s `composer()`), so most of their look comes from
+ * `ext/Chat/Chat.css` now, loaded automatically by `Widget.js`'s own import. The
+ * `.ux-dictate-widget-input`/`-controls`/`-send`/`-sample` rules below are
+ * `Widget.ComposerV1`'s only (`v1: true`, kept reachable); `-meter*`/`-source` are shared
+ * by both composers. History: [`doc/chat.md`](doc/chat/). */
+@layer theme {
+
+	.ux-dictate-widget-empty:empty { display: none; }
+
+	/* THE SHELL (drawer-chat round 2, 2026-10-02) — the feed card and the composer panel
+	 * below it, as one visual block: never taller than a phone screen (the SAME ceiling
+	 * `.ux-dictate-widget-card` used to carry alone, moved up here now that the composer
+	 * is its own sibling box below the card instead of a child padded inside it), no gap
+	 * between the two (`gap` is the default on every OTHER `flex v` in this file — this is
+	 * the one place two boxes must look like one). */
+	.ux-dictate-widget-shell { display: flex; flex-direction: column; gap: 0; max-block-size: min(60vh, 32em); }
+	/* The card's own bottom edge is squared off and its bottom border dropped — the
+	 * composer's own TOP border (Chat.css's `.chatbox-compose`) is the one line between
+	 * them now, never two borders meeting. `v1: true` never reaches this selector (its
+	 * composer stays a child of the card, Widget.js's own doc on the shell above). */
+	.ux-dictate-widget-shell > .ux-dictate-widget-card {
+		border-end-start-radius: 0; border-end-end-radius: 0;
+		border-block-end: 0;
+	}
+	/* THE COMPOSER, FLUSH TO THE CARD'S OWN OUTER EDGES — `Chat.css`'s `.chatbox-compose`
+	 * is the shared background/top-border every surface gets (CLAUDE.md law 6: one
+	 * composer look, not a second one here); these extra rules are what make THIS widget's
+	 * own feed card and composer read as one continuous shape instead of a box floating
+	 * inside a box (the parent review's own bug: "the feed's bordered card holds an inset
+	 * grey panel") — the composer's side and bottom borders continue the card's own
+	 * `--line` border down and around, and its bottom corners pick up the card's own
+	 * rounding where the card's own bottom corners were just squared off, above. */
+	.ux-dictate-widget-shell > .ux-dictate-widget-composer { flex: none; }
+	.ux-dictate-widget-shell .ux-dictate-widget-composer .chatbox-compose {
+		border-inline: 1px solid var(--line);
+		border-block-end: 1px solid var(--line);
+		border-end-start-radius: var(--radius); border-end-end-radius: var(--radius);
+	}
+
+	.ux-dictate-widget-thread {
+		flex: 1 1 auto; min-block-size: 3em; max-block-size: 22em; overflow-y: auto; overflow-x: hidden; min-inline-size: 0; overflow-wrap: anywhere;
+		position: relative;   /* the containing block for `.chatbox-jump`, ext/Chat/Chat.css */
+		overflow-anchor: none;   /* Widget.Thread.anchor() owns the scroll position; the browser's own anchoring shifted it mid-sentence (doc/voice-assistant.md#nothing-jumps) */
+	}
+
+	/* The real bubbles come from `ext/Chat/Chat.css` now (`Widget.Thread` draws every
+	 * sentence through `Chat.js`'s own `speak()`), so the rules below only ever fire for
+	 * `ThreadV1`'s own bubbles and the "ask" cards. `--bubble-max` is `ext/Chat/bubbles.css`'s own
+	 * sizing variable (`.chatbox-you { max-inline-size: var(--bubble-max) }`), normally set by
+	 * `.chatbox-log`; this widget's bubbles container isn't one, so it's repeated here. */
+	.ux-dictate-widget-bubbles { --bubble-max: min(80%, 40rem); }
+
+	/* `.card.pad` is the framework's own boxed-content look — keeps a bubble from
+	 * stretching the full width of the thread. Used by `Widget.ThreadV1` (`v1: true`) and
+	 * by the "ask" choice cards both threads draw. A soft tinted BACKGROUND on each side,
+	 * no border — copied from `ext/Chat/Chat.css`'s `.chatbox-you`/`.chatbox-reply`, which
+	 * is what `Widget.Thread`'s own real bubbles now use directly. History: `doc/chat.md`. */
+	.ux-dictate-widget-bubble {
+		align-self: flex-start; max-width: 85%;
+		background: color-mix(in srgb, var(--prime) 22%, transparent);
+		border-radius: 0.9em;
+		display: flow-root;   /* a one-line message still wraps the floated icon below */
+	}
+	.ux-dictate-widget-bubble-assistant {
+		align-self: flex-end;
+		background: color-mix(in srgb, currentColor 10%, transparent);
+	}
+
+	/* THE ICON, FOR `ThreadV1` AND THE "ASK" CARDS ONLY (minion-polish, item 5, 2026-09-30)
+	   — `WidgetThreadV1.draw()` and `draw_ask()` (both threads) build this with
+	   `ext/Chat/roles.js`'s own `who_label()`, so the DOM and its classes
+	   (`chatbox-who`/`chatbox-avatar`/`chatbox-who-<role>`) are that file's, not
+	   this one's. The real `Widget.Thread`'s own bubbles (`chatbox-you`/`chatbox-reply`)
+	   need none of this — `Chat.css`'s OWN identical rule already targets them, now that
+	   this widget loads `Chat.css` for real (see the comment above). A small round tinted
+	   circle, floated at the bubble's own start, so the words begin on the same line
+	   beside it. */
+	.ux-dictate-widget-bubble .chatbox-who {
+		float: inline-start;
+		display: grid; place-items: center;
+		inline-size: 1.6em; block-size: 1.6em;
+		margin: 0.05em 0.45em 0 0;
+		border-radius: 50%;
+		overflow: hidden;
+		background: color-mix(in srgb, currentColor 16%, transparent);
+		font-size: 0.95em; font-weight: 400; line-height: 1;
+	}
+	.ux-dictate-widget-bubble .chatbox-avatar img { inline-size: 100%; block-size: 100%; object-fit: cover; }
+	.ux-dictate-widget-bubble .chatbox-who-you       { color: var(--prime-ink); }
+	.ux-dictate-widget-bubble .chatbox-who-assistant { color: var(--ok); }
+	.ux-dictate-widget-failed { font-size: 0.85em; }
+	.ux-dictate-widget-mark { font-size: 0.85em; margin-inline-start: 0.3em; }
+
+	/* THE REFINED BLOCK (minion-voice-refine) — a small collapsed `<details>` right after the
+	 * owner bubble it `re`s; closed by default, so it never competes with the raw words. */
+	.ux-dictate-widget-refined { font-size: 0.85em; margin-inline-start: 2.4em; }
+	.ux-dictate-widget-refined summary { cursor: pointer; }
+
+	/* A QUESTION FOR YOU (`answer`/choices, restored round 4) — one card, a short
+	 * heading, a row of buttons; the picked one stays visible once answered. */
+	.ux-dictate-widget-ask-heading { font-weight: 600; display: block; }
+	.ux-dictate-widget-choices { margin-top: 0.4em; }
+	.ux-dictate-widget-choice.picked { box-shadow: inset 0 0 0 1px var(--prime); font-weight: 600; }
+	.ux-dictate-widget-ask.answered .ux-dictate-widget-choice:disabled { opacity: 0.6; }
+
+	/* The model picker (`models: true`) — above the thread, same look as the drawer's own
+	 * (`ext/drawer/tabs/ai.js`, moved here round 3). */
+	.ux-dictate-widget-models { align-self: flex-end; gap: 0.4em; font-size: 0.9em; }
+
+	/* `Widget.ComposerV1` ONLY (`v1: true`) — the typed box, then the mic/Send/extras row
+	 * below it. The default composer (`Widget.Composer`) gets this same column shape from
+	 * `Chat.css` now instead. Nothing here is `position: absolute`: every child, the
+	 * live-guess caption included, sits in normal flow, so the card grows to fit it.
+	 * ⚠ Both composers build the SAME wrapper class (`this.ac("ux-dictate-widget-composer
+	 * flex v gap")`, `Widget.js`), so a bare `.ux-dictate-widget-composer` selector reaches
+	 * both — `:has(.ux-dictate-widget-input)` is what actually scopes this to v1's own
+	 * markup. Without it, this padding left a gap between the NEW composer's own bottom
+	 * edge and the shell's (drawer-chat round 2, 2026-10-02 — found while measuring the
+	 * parent review's "flush at the bottom" fix: the composer sat 5px short). */
+	.ux-dictate-widget-composer:has(.ux-dictate-widget-input) { padding-block-end: 0.3em; }
+
+	/* THE TYPED BUFFER — full width (the card's own `.pad` already gives it the "a
+	 * little side padding on mobile" the brief asks for; no separate rule needed here),
+	 * auto-height (`Widget.js`'s own `autosize()` sets `style.height` to the content's
+	 * `scrollHeight` on every keystroke), and `resize: none` so the browser's own
+	 * corner-drag handle — which would fight that auto-height — never shows. `rows="1"`
+	 * (the markup) plus this `min-block-size` is the empty box's own one-line height;
+	 * it only grows taller than that once there is more than one line typed. */
+	.ux-dictate-widget-input {
+		width: 100%; resize: none; overflow: hidden; box-sizing: border-box;
+		min-block-size: 2.4em; font: inherit; line-height: 1.35;
+	}
+
+	/* THE CONTROLS ROW — mic, Send, and the optional extras (meter, picker, Sample),
+	 * below the typed buffer. `gap: 0.4em`, not the `.gap` utility's `var(--gap)` —
+	 * `--gap` is a PAGE-scale clamp (`css` skill: "a control or row keeps its own em"),
+	 * and it measured 24.7px between just three small controls at a wide viewport — on
+	 * its own enough to push Send onto a second line. `!important`: the row's own
+	 * markup (`Widget.js`) carries the `.gap` utility class directly, which lives in
+	 * `@layer util` — a layer that beats ANY `@layer theme` rule regardless of
+	 * selector specificity (`css` skill, rule 3), so a plain `gap: 0.4em` here would be
+	 * silently ignored. */
+	.ux-dictate-widget-controls { gap: 0.4em !important; }
+	.ux-dictate-widget-send { flex: 0 0 auto; }
+	.ux-dictate-widget-sample { flex: 0 0 auto; order: 10; }
+
+	/* `Dictate`'s own markup is [button][engine/status/countdown/caption] — a settled
+	 * sentence draws one `.ux-dictate-line` per line there, which is ALREADY this widget's
+	 * own bubble above; only the `.muted` one (the still-moving guess) stays visible.
+	 *
+	 * `display: contents` on `.ux-dictate` removes ITS OWN box, so its two real children —
+	 * the mic button and the info column (engine/status/countdown + the live caption) —
+	 * become direct items of this row's own flex layout. The info column gets `order: -1`
+	 * and `flex: 1 1 100%`, so the row's own `wrap` forces it onto its own full-width
+	 * line, first; everything else — the button, Send, the optional extras — sits on one
+	 * baseline below it.
+	 *
+	 * ⚠ `!important`: `.ux-dictate` still carries the plain `.flex` UTILITY class, and
+	 * `@layer util` beats ANY `@layer theme` rule regardless of selector specificity (`css`
+	 * skill, rule 3) — without it, `display: flex` quietly wins and `.ux-dictate` never
+	 * actually goes `contents`. History: `doc/chat.md`. */
+	.ux-dictate-widget-controls .ux-dictate { display: contents !important; }
+	.ux-dictate-widget-controls .ux-dictate-info { order: -1; flex: 1 1 100%; min-width: 0; }
+	.ux-dictate-widget-composer .ux-dictate-line:not(.muted) { display: none; }
+
+	/* A second, bigger level meter (`level: true`) — small and right beside the button, never
+	 * a full-width pill. Driven by the SAME smoothed number `Dictate`'s own tiny bar reads.
+	 * `order: 10` so it drops under the trio instead of competing with it for room. */
+	.ux-dictate-widget-meter {
+		flex: 0 0 auto; order: 10; width: 2.2em; height: 0.5em; border-radius: var(--radius);
+		background: color-mix(in srgb, currentColor 15%, transparent); overflow: hidden;
+	}
+	.ux-dictate-widget-meter-fill {
+		height: 100%; width: calc(var(--ux-dictate-widget-level, 0) * 100%);
+		background: var(--prime); transition: width 80ms linear;
+	}
+
+	/* The mic picker (`source: true`) — capped width and an ellipsis, never the browser's
+	 * full-width default (the thing it replaced). */
+	.ux-dictate-widget-source {
+		flex: 0 0 auto; order: 10; max-width: 7em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+	}
+
+	.ux-dictate-widget-debug-toggle { font-size: 0.85em; }
+	.ux-dictate-widget-debug-panel { margin-top: 0.5em; }
+
+	/* THE PULSING DOT (`pulse: true`, 2026-10-01 — `Widget.Pulse`'s own class doc has the
+	 * mechanics). `.ux-dictate-widget-feed-wrap` replaces `.ux-dictate-widget-thread` as the
+	 * flex item the card's own column gives room to — the THREAD now fills it with
+	 * `inset: 0` instead of taking that flex slot directly, so the lock card and the dot
+	 * (also `inset`/bottom-right children of this SAME wrap, both outside the thread's own
+	 * scrolling box) stay lined up with the visible feed no matter how far the thread itself
+	 * has scrolled down into old history. */
+	.ux-dictate-widget-feed-wrap {
+		position: relative; flex: 1 1 auto; min-block-size: 3em; max-block-size: 22em;
+	}
+	.ux-dictate-widget-feed-wrap > .ux-dictate-widget-thread { position: absolute; inset: 0; }
+
+	/* `.ux-dictate-widget-pulse` is the dot's own positioned ancestor — `inset: 0` so its two
+	 * children can place themselves against the full feed, `pointer-events: none` so it never
+	 * blocks a scroll or a tap on the thread underneath; only the lock card and the dot
+	 * (both `pointer-events: auto`, right below) actually catch a click. */
+	.ux-dictate-widget-pulse { position: absolute; inset: 0; pointer-events: none; }
+
+	/* THE LOCK — mic off, the default: one dark card over the whole feed, "tap to talk" in
+	 * the middle. A plain `rgba` black, not a token, on purpose: the point is to read as
+	 * DARKENED in both light and dark mode, which a theme-aware token (`--ink`, light in dark
+	 * mode) would not give — `css` skill: a deliberate exception, named here so it's never
+	 * "fixed" into a token by mistake later. */
+	/* `[hidden]` here, not just `.ux-dictate-widget-pulse-lock` alone: this rule's own
+	 * `display: flex` is an AUTHOR declaration, and an author rule always beats the
+	 * browser's built-in `[hidden] { display: none }` regardless of selector specificity —
+	 * so without the attribute repeated here, `Widget.Pulse`'s own `this.$lock.el.hidden =
+	 * true` would be silently ignored and the dark card would never actually go away. */
+	.ux-dictate-widget-pulse-lock:not([hidden]) {
+		position: absolute; inset: 0; pointer-events: auto; cursor: pointer;
+		display: flex; align-items: center; justify-content: center;
+		background: rgba(0, 0, 0, 0.55); color: #fff; font-size: 0.9em;
+		border-radius: var(--radius);
+	}
+
+	/* THE DOT — mic on: small, `--prime` (the site's one accent, "orange" in the owner's own
+	 * words), bottom-right, and UNOBTRUSIVE at rest (0.85em) — the owner: "pretty small."
+	 * `transform: scale(...)` reads `--ux-dictate-widget-pulse-level` (0..1, `Widget.Pulse`'s
+	 * own `set_level()`, the SAME smoothed number `level`'s meter bar reads) so the dot
+	 * visibly grows with the live voice instead of a fixed-height bar filling up — the
+	 * mechanic this option replaces. `transition` is what makes it look like it "bounces"
+	 * with each word rather than snapping between sizes. */
+	.ux-dictate-widget-pulse-dot {
+		position: absolute; right: 0.6em; bottom: 0.6em; pointer-events: auto; cursor: pointer;
+		inline-size: 0.85em; block-size: 0.85em; border-radius: 50%;
+		background: var(--prime);
+		box-shadow: 0 0 0.5em color-mix(in srgb, var(--prime) 55%, transparent);
+		transform: scale(calc(1 + var(--ux-dictate-widget-pulse-level, 0) * 1.6));
+		transition: transform 90ms linear;
+	}
+
+	/* THE VOICE ASSISTANT (2026-10-17, doc/voice-assistant.md): the draft is the last piece of the bubble it joins; a placed card */
+	.ux-dictate-draft-piece .chatbox-text { white-space: pre-wrap; }
+	.chatbox-text + .ux-dictate-draft-piece { margin-block-start: 0.5em; }   /* the gap the settled piece will have (Chat.css: .chatbox-text + .chatbox-text) */
+	.ux-dictate-placed-card { border-inline-start: 3px solid var(--prime); }
+	.ux-dictate-placed-card[data-where="inside"] { margin-inline-start: var(--gap, 1em); }
+	.ux-dictate-placed-title { font-weight: 600; }
+	/* RAW LOOKS RAW, A SUMMARY SWALLOWS (doc/voice-assistant.md#raw-and-refined): unrefined Whisper words are muted (same font and size, so settling never re-wraps a line, 2026-10-19); a card with a summary folds its lines */
+	.ux-dictate-swallowed > [data-re] { opacity: 0.6; }
+	/* Raw words once sent are final (2026-11-01): full ink, like every view; only the guess is draft ink (Chat.css .chatbox-guess).
+	   The old 0.6 fade left a line dim until the fast seat refined it, and a line it never refined stayed dim for good; the fast seat is back on (2026-11-01) and the lines stay full ink. */
+	.ux-dictate-raw { color: var(--final-ink); }
+	.ux-dictate-swallowed:not(.open) > [data-re] { display: none; }
+	.ux-dictate-summary-text { font-weight: 500; }
+	.ux-dictate-fold-toggle { font: inherit; font-size: 0.85em; opacity: 0.7; background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline dotted; }
+	.ux-dictate-swallowed.open > .ux-dictate-summary { margin-block-end: 0.5em; }
+}

@@ -1,0 +1,386 @@
+{
+ "totals": {
+  "dirs": 33,
+  "skills": 33,
+  "words": 27522,
+  "rules": 189,
+  "dead": 7,
+  "open": 27,
+  "loads": 467
+ },
+ "rows": [
+  {
+   "skill": "mastermind",
+   "words": 3919,
+   "rules": 31,
+   "links": 7,
+   "dead": [],
+   "last": "2026-10-13",
+   "loads": 0,
+   "role": true,
+   "open": 0
+  },
+  {
+   "skill": "minion",
+   "words": 3033,
+   "rules": 32,
+   "links": 7,
+   "dead": [],
+   "last": "2026-10-13",
+   "loads": 87,
+   "role": true,
+   "open": 6
+  },
+  {
+   "skill": "sub-mastermind",
+   "words": 2479,
+   "rules": 20,
+   "links": 7,
+   "dead": [],
+   "last": "2026-10-13",
+   "loads": 50,
+   "role": true,
+   "open": 10
+  },
+  {
+   "skill": "servex-mastermind",
+   "words": 1811,
+   "rules": 12,
+   "links": 1,
+   "dead": [],
+   "last": "2026-10-12",
+   "loads": 28,
+   "role": true,
+   "open": 0
+  },
+  {
+   "skill": "research",
+   "words": 1464,
+   "rules": 10,
+   "links": 1,
+   "dead": [],
+   "last": "2026-09-29",
+   "loads": 1,
+   "role": true,
+   "open": 0
+  },
+  {
+   "skill": "finish-task",
+   "words": 1444,
+   "rules": 3,
+   "links": 4,
+   "dead": [
+    "shot.png"
+   ],
+   "last": "2026-10-13",
+   "loads": 143,
+   "role": false,
+   "open": 0
+  },
+  {
+   "skill": "documentation",
+   "words": 1357,
+   "rules": 6,
+   "links": 11,
+   "dead": [
+    "./child/",
+    "./doc/focus.md",
+    "./doc/decisions.md",
+    "./doc/generator.md",
+    "./name/"
+   ],
+   "last": "2026-10-13",
+   "loads": 29,
+   "role": false,
+   "open": 0
+  },
+  {
+   "skill": "new-task",
+   "words": 1226,
+   "rules": 6,
+   "links": 4,
+   "dead": [],
+   "last": "2026-10-12",
+   "loads": 2,
+   "role": false,
+   "open": 0
+  },
+  {
+   "skill": "review",
+   "words": 921,
+   "rules": 1,
+   "links": 19,
+   "dead": [],
+   "last": "2026-10-02",
+   "loads": 1,
+   "role": true,
+   "open": 1
+  },
+  {
+   "skill": "code",
+   "words": 905,
+   "rules": 9,
+   "links": 2,
+   "dead": [],
+   "last": "2026-10-12",
+   "loads": 16,
+   "role": false,
+   "open": 3
+  },
+  {
+   "skill": "auditor",
+   "words": 793,
+   "rules": 5,
+   "links": 1,
+   "dead": [],
+   "last": "2026-10-13",
+   "loads": 0,
+   "role": false,
+   "open": 0
+  },
+  {
+   "skill": "clarity",
+   "words": 756,
+   "rules": 6,
+   "links": 0,
+   "dead": [],
+   "last": "2026-10-12",
+   "loads": 0,
+   "role": true,
+   "open": 1
+  },
+  {
+   "skill": "new-page",
+   "words": 752,
+   "rules": 5,
+   "links": 2,
+   "dead": [],
+   "last": "2026-10-13",
+   "loads": 8,
+   "role": false,
+   "open": 1
+  },
+  {
+   "skill": "check-claude-usage",
+   "words": 711,
+   "rules": 5,
+   "links": 0,
+   "dead": [],
+   "last": "2026-10-13",
+   "loads": 30,
+   "role": false,
+   "open": 0
+  },
+  {
+   "skill": "every-prompt",
+   "words": 678,
+   "rules": 4,
+   "links": 6,
+   "dead": [
+    "improvements.md"
+   ],
+   "last": "2026-10-09",
+   "loads": 0,
+   "role": true,
+   "open": 0
+  },
+  {
+   "skill": "decide",
+   "words": 639,
+   "rules": 4,
+   "links": 1,
+   "dead": [],
+   "last": "2026-10-12",
+   "loads": 2,
+   "role": false,
+   "open": 0
+  },
+  {
+   "skill": "system-architect",
+   "words": 584,
+   "rules": 2,
+   "links": 1,
+   "dead": [],
+   "last": "2026-10-12",
+   "loads": 3,
+   "role": false,
+   "open": 0
+  },
+  {
+   "skill": "log-assistant",
+   "words": 565,
+   "rules": 3,
+   "links": 3,
+   "dead": [],
+   "last": "2026-10-12",
+   "loads": 0,
+   "role": true,
+   "open": 0
+  },
+  {
+   "skill": "master-assistant",
+   "words": 533,
+   "rules": 8,
+   "links": 1,
+   "dead": [],
+   "last": "2026-10-09",
+   "loads": 0,
+   "role": true,
+   "open": 0
+  },
+  {
+   "skill": "naming",
+   "words": 377,
+   "rules": 1,
+   "links": 0,
+   "dead": [],
+   "last": "2026-10-09",
+   "loads": 1,
+   "role": false,
+   "open": 0
+  },
+  {
+   "skill": "past-work",
+   "words": 363,
+   "rules": 2,
+   "links": 1,
+   "dead": [],
+   "last": "2026-10-12",
+   "loads": 1,
+   "role": false,
+   "open": 0
+  },
+  {
+   "skill": "ui-test",
+   "words": 345,
+   "rules": 4,
+   "links": 2,
+   "dead": [],
+   "last": "2026-10-13",
+   "loads": 1,
+   "role": false,
+   "open": 0
+  },
+  {
+   "skill": "skill-improvement",
+   "words": 337,
+   "rules": 1,
+   "links": 1,
+   "dead": [],
+   "last": "2026-08-18",
+   "loads": 2,
+   "role": false,
+   "open": 0
+  },
+  {
+   "skill": "fork-claude-session",
+   "words": 290,
+   "rules": 0,
+   "links": 1,
+   "dead": [],
+   "last": "2026-10-13",
+   "loads": 0,
+   "role": false,
+   "open": 0
+  },
+  {
+   "skill": "content",
+   "words": 269,
+   "rules": 0,
+   "links": 0,
+   "dead": [],
+   "last": "2026-10-09",
+   "loads": 3,
+   "role": false,
+   "open": 0
+  },
+  {
+   "skill": "css",
+   "words": 222,
+   "rules": 1,
+   "links": 11,
+   "dead": [],
+   "last": "2026-09-30",
+   "loads": 3,
+   "role": false,
+   "open": 1
+  },
+  {
+   "skill": "page",
+   "words": 154,
+   "rules": 0,
+   "links": 0,
+   "dead": [],
+   "last": "2026-09-30",
+   "loads": 52,
+   "role": true,
+   "open": 1
+  },
+  {
+   "skill": "layout",
+   "words": 153,
+   "rules": 1,
+   "links": 0,
+   "dead": [],
+   "last": "2026-10-12",
+   "loads": 2,
+   "role": false,
+   "open": 3
+  },
+  {
+   "skill": "navigation",
+   "words": 108,
+   "rules": 1,
+   "links": 0,
+   "dead": [],
+   "last": "2026-09-30",
+   "loads": 1,
+   "role": false,
+   "open": 0
+  },
+  {
+   "skill": "color",
+   "words": 99,
+   "rules": 3,
+   "links": 0,
+   "dead": [],
+   "last": "2026-09-30",
+   "loads": 0,
+   "role": false,
+   "open": 0
+  },
+  {
+   "skill": "ui",
+   "words": 97,
+   "rules": 2,
+   "links": 0,
+   "dead": [],
+   "last": "2026-09-30",
+   "loads": 0,
+   "role": false,
+   "open": 0
+  },
+  {
+   "skill": "new-css-class",
+   "words": 86,
+   "rules": 1,
+   "links": 2,
+   "dead": [],
+   "last": "2026-09-30",
+   "loads": 1,
+   "role": false,
+   "open": 0
+  },
+  {
+   "skill": "openrouter",
+   "words": 52,
+   "rules": 0,
+   "links": 0,
+   "dead": [],
+   "last": "2026-10-07",
+   "loads": 0,
+   "role": true,
+   "open": 0
+  }
+ ]
+}

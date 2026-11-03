@@ -1,0 +1,425 @@
+diff --git a/public/framework/ext/Chat/readme.md b/public/framework/ext/Chat/readme.md
+index caeffb9b9..5a0b6968e 100644
+--- a/public/framework/ext/Chat/readme.md
++++ b/public/framework/ext/Chat/readme.md
+@@ -28,6 +28,7 @@ const panel = new ChatPanel({ source: () => entries, deliver: post });
+ - `ChatPanel.js`: Combined view wrapping log, composer, and drill-in shell.
+ - `Composer.js`: Text buffer, input autosizing, and audio controls.
+ - `Drill.js`: Deep-dive modal shell for inspecting sub-cards.
++- [`v2/`](./v2/readme.md): Chat v2, a session's chat drawn from its `tasks` list (prompts at the root, replies and cards nested under them); read only, live demo at `/framework/ext/Chat/v2/`.
+ - `roles.js`: Sender avatars and badges.
+ 
+ ## Doc topics
+diff --git a/public/framework/ext/Chat/v2/ChatV2.css b/public/framework/ext/Chat/v2/ChatV2.css
+new file mode 100644
+index 000000000..28f053e27
+--- /dev/null
++++ b/public/framework/ext/Chat/v2/ChatV2.css
+@@ -0,0 +1,34 @@
++@layer base, theme, site, util;
++
++@layer site {
++	/* The chat column: one readable measure, centred; prompts sit at its root with no bubble or card. */
++	.chat-v2 { display: flex; flex-direction: column; gap: calc(var(--gap, 1rem) * 2); max-width: 46rem; margin-inline: auto; padding: var(--pad, 1rem); }
++	.chat-v2-empty { color: var(--subtle); }
++	.chat-v2-prompt { display: flex; flex-direction: column; gap: .6em; }
++	.chat-v2-title { margin: 0; font-size: 1.15em; }
++	.chat-v2-text, .chat-v2-reply-text, .chat-v2-answer { white-space: pre-wrap; overflow-wrap: anywhere; }
++	.chat-v2-label { color: var(--subtle); display: block; margin-top: .4em; }
++	.chat-v2-toggle { align-self: flex-start; background: none; border: 0; padding: .4em 0; min-height: 44px; color: var(--subtle); text-decoration: underline; cursor: pointer; font: inherit; font-size: .85em; }
++	.chat-v2-toggle:hover { color: inherit; }
++	.chat-v2-raw { display: flex; flex-direction: column; gap: .4em; padding-left: 1em; border-left: 2px dotted var(--line); }
++	.chat-v2-raw-line { margin: 0; color: var(--subtle); font-style: italic; overflow-wrap: anywhere; }
++	/* A sentence and the replies anchored to it: side by side when there is room, stacked on a phone. */
++	.chat-v2-sentence { display: grid; grid-template-columns: minmax(0, 1fr); gap: .4em 1.2em; }
++	.chat-v2-sentence:has(.chat-v2-beside) { grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); }
++	.chat-v2-sentence-text { overflow-wrap: anywhere; }
++	.chat-v2-mark { background-image: linear-gradient(var(--mark, #ffe58a), var(--mark, #ffe58a)); color: inherit; border-radius: 2px; padding: .1em .25em; }
++	.chat-v2-beside { display: flex; flex-direction: column; gap: .5em; }
++	/* Everything the smart assistant made from the prompt, nested under it with the brain. */
++	.chat-v2-nest { display: flex; flex-direction: column; gap: .6em; padding-left: 1.2em; border-left: 2px solid var(--line); margin-left: .5em; }
++	.chat-v2-reply, .chat-v2-child { display: flex; gap: .5em; align-items: flex-start; }
++	.chat-v2-brain { flex: 0 0 auto; }
++	.chat-v2-body { display: flex; flex-direction: column; gap: .3em; min-width: 0; flex: 1 1 auto; }
++	.chat-v2-quote { margin: 0; padding-left: .6em; border-left: 2px solid var(--line); color: var(--subtle); font-size: .9em; overflow-wrap: anywhere; }
++	.chat-v2-child-head { display: flex; align-items: center; flex-wrap: wrap; gap: .4em; }
++	.chat-v2-child-text { flex: 1 1 12em; min-width: 0; overflow-wrap: anywhere; }
++	.chat-v2-kind, .chat-v2-phase { color: var(--subtle); font-size: .8em; text-transform: uppercase; letter-spacing: .04em; }
++	.chat-v2-state { color: var(--subtle); flex: 0 0 auto; }
++	.chat-v2-state.is-complete, .chat-v2-state.is-answered { color: var(--ok, currentColor); }
++	.chat-v2-state.is-open, .chat-v2-state.is-waiting { color: var(--task-amber, #e0a100); }
++	.chat-v2-answer { padding-left: 1.6em; color: var(--subtle); }
++}
+diff --git a/public/framework/ext/Chat/v2/ChatV2.js b/public/framework/ext/Chat/v2/ChatV2.js
+new file mode 100644
+index 000000000..248513851
+--- /dev/null
++++ b/public/framework/ext/Chat/v2/ChatV2.js
+@@ -0,0 +1,102 @@
++// ChatV2.js — a session's chat, read only: its session.jsonl streamed, folded (ChatV2Model) and drawn in list order. Doc: readme.md
++import View, { div, span, button, h3, mark, blockquote, small, icon } from "/framework/core/View/View.js";
++import JSONL from "/framework/ext/JSONL/JSONL.js";
++import TaskView from "/framework/core/Task/TaskView.js";
++import ChatV2Model from "./ChatV2Model.js";
++View.stylesheet(import.meta, "ChatV2.css");
++
++export default class ChatV2 extends JSONL {
++	static Model = ChatV2Model;
++	static QUESTION_ICON = { open: "help_outline", answered: "mark_chat_unread", complete: "check_box" };
++
++	lines = [];
++	raw_open = new Set();   // prompt ids whose raw text is showing; kept here so a live redraw does not close it
++
++	// { url: the session.jsonl url, $box: the View to draw into }
++	read(entries){ this.lines.push(...entries); this.draw(); return this; }
++	reset(){ this.lines = []; return super.reset(); }
++	live(){ super.live(() => {}); return this; }
++
++	draw(){
++		this.model = this.constructor.Model.fold(this.lines);
++		const roots = this.model.roots();
++		this.$box?.empty(() => {
++			if (!roots.length) return div.c("chat-v2-empty", "Nothing said in this session yet.");
++			for (const n of roots) this.constructor.Model.kind(n) === "Prompt" ? this.prompt(n) : this.child(n);
++		});
++	}
++
++	// One prompt at the root of the chat (no bubble): the refined version, "show raw", then everything it led to, nested under the brain.
++	prompt(n){
++		const M = this.constructor.Model, refined = M.refined(n), open = this.raw_open.has(n.id);
++		const hidden = [...M.raw(n), ...(refined ? M.paragraphs(n) : [])].length > 0;
++		const sentences_shown = !refined || open;
++		const replies = M.replies(n), kids = this.model.children(n);
++		div.c("chat-v2-prompt", () => {
++			if (M.title(n)) h3.c("chat-v2-title", M.title(n));
++			if (refined && M.text(n)) div.c("chat-v2-text", M.text(n));
++			if (!refined) this.sentences(n, replies);
++			if (hidden) button.c("chat-v2-toggle", open ? "hide raw" : "show raw").attr("type", "button").attr("aria-expanded", String(open))
++				.click(() => { open ? this.raw_open.delete(n.id) : this.raw_open.add(n.id); this.draw(); });
++			if (open) div.c("chat-v2-raw", () => {
++				small.c("chat-v2-label", "What was said (raw)");
++				for (const line of M.raw(n)) blockquote.c("chat-v2-raw-line", line);
++				if (refined) { small.c("chat-v2-label", "Cleaned into paragraphs"); this.sentences(n, replies); }
++			});
++			const listed = replies.filter(r => !sentences_shown || !M.anchor(r));
++			if (listed.length || kids.length) div.c("chat-v2-nest", () => {
++				listed.forEach(r => this.reply(r, n));
++				kids.forEach(k => this.child(k));
++			});
++		}).attr("data-id", n.id);
++	}
++
++	// The paragraphs as sentence rows; a reply anchored to a sentence sits beside it (below it on a phone).
++	sentences(n, replies){
++		const M = this.constructor.Model;
++		for (const s of M.sentences(n)) {
++			const here = replies.filter(r => M.anchor(r)?.sentence === s.id);
++			div.c("chat-v2-sentence", () => {
++				div.c("chat-v2-sentence-text", () => this.words(s.text, here.map(r => M.anchor(r).words).find(Boolean)));
++				if (here.length) div.c("chat-v2-beside", () => here.forEach(r => this.reply(r, n, false)));
++			}).attr("data-sentence", s.id);
++		}
++	}
++
++	// A sentence's text, with the words a reply points at marked ([start, end): end exclusive).
++	words(text, range){
++		if (!range) return span(text);
++		const w = text.split(/\s+/), [a, b] = range;
++		if (a > 0) span(w.slice(0, a).join(" ") + " ");
++		mark.c("chat-v2-mark", w.slice(a, b).join(" "));
++		if (b < w.length) span(" " + w.slice(b).join(" "));
++	}
++
++	reply(r, prompt, quote = true){
++		const M = this.constructor.Model, a = M.anchor(r), s = a && M.sentences(prompt).find(x => x.id === a.sentence);
++		div.c("chat-v2-reply", () => {
++			span.c("chat-v2-brain", "🧠").attr("title", r.by ?? "the smart assistant");
++			div.c("chat-v2-body", () => {
++				if (quote && s) blockquote.c("chat-v2-quote", () => this.words(s.text, a.words));
++				div.c("chat-v2-reply-text", r.text);
++			});
++		}).attr("data-id", r.id);
++	}
++
++	// A Question or a Task under a prompt: its state as one icon, its text, and a Question's answer under it.
++	child(n){
++		const M = this.constructor.Model, phase = M.phase(n), question = M.kind(n) === "Question", answer = question && M.answer(n);
++		div.c("chat-v2-child", () => {
++			span.c("chat-v2-brain", "🧠");
++			div.c("chat-v2-body", () => {
++				div.c("chat-v2-child-head", () => {
++					icon(question ? this.constructor.QUESTION_ICON[phase] : TaskView.STAGE[phase] ?? "help").ac("chat-v2-state", "is-" + phase);
++					span.c("chat-v2-kind", question ? "Question" : "Task");
++					span.c("chat-v2-child-text", n.title ?? n.text ?? n.id);
++					span.c("chat-v2-phase", phase);
++				});
++				if (answer) div.c("chat-v2-answer", answer.text);
++			});
++		}).attr("data-id", n.id).attr("data-phase", phase);
++	}
++}
+diff --git a/public/framework/ext/Chat/v2/ChatV2.test.mjs b/public/framework/ext/Chat/v2/ChatV2.test.mjs
+new file mode 100644
+index 000000000..e9c8ea43c
+--- /dev/null
++++ b/public/framework/ext/Chat/v2/ChatV2.test.mjs
+@@ -0,0 +1,68 @@
++// node ChatV2.test.mjs [base-url] [shots-dir] — headless: order, nesting, show raw, live append. Needs the global playwright and the dev server.
++import { chromium } from "file:///C:/Users/mike/AppData/Roaming/npm/node_modules/playwright/index.mjs";
++import { copyFileSync, appendFileSync, rmSync, mkdirSync } from "node:fs";
++import { fileURLToPath } from "node:url";
++
++const base = process.argv[2] ?? "http://localhost:61527", shots = process.argv[3];
++const dir = fileURLToPath(new URL("./fixture/", import.meta.url)), copy = dir + "live-copy.jsonl";
++let pass = 0, fail = 0;
++const check = (name, ok, got) => { ok ? pass++ : fail++; console.log(`${ok ? "PASS" : "FAIL"} ${name}${ok ? "" : "  got: " + JSON.stringify(got)}`); };
++
++copyFileSync(dir + "session.jsonl", copy);
++const browser = await chromium.launch(), page = await browser.newPage({ viewport: { width: 1920, height: 1000 } });
++const errors = []; page.on("pageerror", e => errors.push(String(e)));
++const ids = sel => page.$$eval(sel, els => els.map(e => e.dataset.id));
++const tap = sel => page.$eval(sel, e => e.click());   // the dev drawer overlays the page at 1920: click the element itself
++const on_chat = () => page.waitForSelector(".chat-v2-prompt", { timeout: 15000 });
++
++try {
++	// 1. the fixture page: prompts in file order, replies and cards under their prompt
++	await page.goto(`${base}/framework/ext/Chat/v2/`); await on_chat();
++	check("two prompts, in file order", JSON.stringify(await ids(".chat-v2 > .chat-v2-prompt")) === JSON.stringify(["p-1761382800000", "p-1761382900000"]), await ids(".chat-v2 > .chat-v2-prompt"));
++	const first = ".chat-v2-prompt[data-id='p-1761382800000']";
++	check("refined title shown", (await page.textContent(first + " .chat-v2-title")).includes("refined prompt first"));
++	check("plain reply sits under its prompt", await page.$(first + " .chat-v2-nest [data-id='r-1761382840000']") !== null);
++	check("anchored reply is in the prompt, with its quote and marked words", (await page.textContent(first + " .chat-v2-nest [data-id='r-1761382830000'] .chat-v2-mark")) === "The raw words");
++	check("children: 2 questions + 2 tasks under the first prompt", (await page.$$(first + " .chat-v2-nest > .chat-v2-child")).length === 4);
++	check("answered question phase", await page.getAttribute(first + " [data-id='q-1761382835000']", "data-phase") === "answered");
++	check("question answered by a later line", await page.getAttribute(first + " [data-id='q-1761382836000']", "data-phase") === "answered");
++	check("done task", await page.getAttribute(first + " [data-id='t-1761382837000']", "data-phase") === "complete");
++	check("open task (running)", await page.getAttribute(first + " [data-id='t-1761382838000']", "data-phase") === "running");
++	const second = ".chat-v2-prompt[data-id='p-1761382900000']";
++	check("paragraph-only prompt shows its paragraphs as sentences", (await page.$$(second + " .chat-v2-sentence")).length === 2);
++	check("root Question with `from` sits under its prompt, open", await page.getAttribute(second + " [data-id='q-1761382910000']", "data-phase") === "open");
++	check("raw hidden by default", (await page.$(first + " .chat-v2-raw")) === null);
++	await tap(first + " .chat-v2-toggle");
++	check("show raw reveals the whisper text", (await page.textContent(first + " .chat-v2-raw")).includes("yeah so I think the chat"));
++	check("raw open: anchored reply now sits beside its sentence", await page.$(first + " .chat-v2-sentence[data-sentence='a2'] .chat-v2-beside [data-id='r-1761382830000']") !== null);
++	if (shots) {
++		mkdirSync(shots, { recursive: true });
++		// The dev drawer covers the page in a headless profile and the page scrolls inside its own frame: hide the drawer, make the window tall.
++		await page.addStyleTag({ content: ".drawer, .sheet { display: none !important; }" });
++		await page.setViewportSize({ width: 1920, height: 1500 });
++		await page.screenshot({ path: shots + "/chat-v2-1920.png" });
++		await page.setViewportSize({ width: 390, height: 2400 });
++		await page.screenshot({ path: shots + "/chat-v2-390.png" });
++		await tap(first + " .chat-v2-toggle");   // raw closed again for the live check
++		await page.setViewportSize({ width: 1920, height: 1000 });
++	} else await tap(first + " .chat-v2-toggle");
++
++	// 2. live: ?src= a copy of the fixture, append a Prompt, it appears without a reload; raw state survives the redraw
++	await page.goto(`${base}/framework/ext/Chat/v2/?src=/framework/ext/Chat/v2/fixture/live-copy.jsonl`); await on_chat();
++	check("?src= draws the copy", (await page.$$(".chat-v2 > .chat-v2-prompt")).length === 2);
++	await tap(first + " .chat-v2-toggle");
++	await page.evaluate(() => { window.__no_reload = true; });
++	appendFileSync(copy, JSON.stringify({ tasks: { add: { type: "Prompt", id: "p-1761383000000", title: "Appended live", text: "This one arrived after the page loaded.", raw: ["this one arrived"] } } }) + "\n");
++	appendFileSync(copy, JSON.stringify({ "p-1761383000000": { replies: { add: { id: "r-1761383010000", text: "Seen, live.", by: "smart" } } } }) + "\n");
++	await page.waitForSelector(".chat-v2-prompt[data-id='p-1761383000000']", { timeout: 15000 });
++	check("appended prompt appears, last, without a reload", (await ids(".chat-v2 > .chat-v2-prompt")).at(-1) === "p-1761383000000" && await page.evaluate(() => window.__no_reload === true), await ids(".chat-v2 > .chat-v2-prompt"));
++	await page.waitForSelector("[data-id='p-1761383000000'] [data-id='r-1761383010000']", { timeout: 15000 });
++	check("a reply appended to it nests under it", true);
++	check("an open 'show raw' survives the live redraw", await page.$(first + " .chat-v2-raw") !== null);
++	check("no page errors", errors.length === 0, errors);
++} finally {
++	await browser.close();
++	rmSync(copy, { force: true });
++}
++console.log(`\n${pass} passed, ${fail} failed`);
++process.exit(fail ? 1 : 0);
+diff --git a/public/framework/ext/Chat/v2/ChatV2Model.js b/public/framework/ext/Chat/v2/ChatV2Model.js
+new file mode 100644
+index 000000000..9a3886fe3
+--- /dev/null
++++ b/public/framework/ext/Chat/v2/ChatV2Model.js
+@@ -0,0 +1,80 @@
++// ChatV2Model.js — a session.jsonl folded into plain objects, in list order. Every field read the chat does is a method here, so a renamed field or the real Prompt/Question classes (core/Task/Prompt.js) change this one file. See readme.md.
++const VERB_STATE = { start: "running", pause: "paused", resume: "running", stop: "stopped", complete: "complete", finish: "complete", wait: "waiting" };
++
++export default class ChatV2Model {
++	root = [];            // entries in the order Node appended them: never sorted
++	by_id = new Map();
++
++	static fold(lines){ const m = new this(); for (const line of lines) m.apply(line); return m; }
++
++	// One line: {tasks:{add:entry}} at the root, or {"<id>":{…}} for something already in the list (any depth).
++	apply(line){
++		if (!line || typeof line !== "object") return this;
++		if (line.tasks?.add) this.add(this.root, line.tasks.add);
++		for (const [key, delta] of Object.entries(line)) {
++			const node = this.by_id.get(key);
++			if (node && delta && typeof delta === "object") this.edit(node, delta);
++		}
++		return this;
++	}
++
++	add(list, entry){
++		if (!entry || typeof entry !== "object") return;
++		const { tasks = [], ...own } = entry, node = { ...own, kids: [] };
++		if (node.id) this.by_id.set(node.id, node);
++		list.push(node);
++		for (const kid of [].concat(tasks)) this.add(node.kids, kid);
++	}
++
++	edit(node, delta){
++		for (const [k, v] of Object.entries(delta)) {
++			if (k === "tasks") { if (v?.add) this.add(node.kids, v.add); }
++			else if (k === "raw" && v && !Array.isArray(v)) { if (v.push !== undefined) (node.raw ??= []).push(v.push); }
++			else if (k === "paragraphs" && v && !Array.isArray(v)) {
++				const list = node.paragraphs ??= [];
++				if (v.add) list.push({ ...v.add });
++				if (v.append) { const p = list.find(x => x.id === v.append.id); if (p) p.text = (p.text ?? "") + v.append.text; else list.push({ ...v.append }); }
++			}
++			else if (k === "replies" && v && !Array.isArray(v)) { if (v.add) (node.replies ??= []).push({ ...v.add }); }
++			else if (VERB_STATE[k] && typeof v === "object") node.state = VERB_STATE[k];
++			else if (k === "set" && typeof v === "object") Object.assign(node, v);
++			else node[k] = v;
++		}
++	}
++
++	// --- the field reads: one small method per field ---------------------------------------------------------------------------
++	static title(n){ return n.title ?? null; }
++	static text(n){ return n.text ?? null; }
++	static refined(n){ return !!(n.title || n.text); }              // the smart assistant's version exists
++	static raw(n){ return n.raw ?? []; }
++	static paragraphs(n){ return n.paragraphs ?? []; }
++	static replies(n){ return n.replies ?? []; }
++	static anchor(reply){ return reply.anchor ?? null; }
++	static answer(n){ return n.answer ?? null; }
++	static kind(n){ return n.type ?? "Task"; }
++
++	// A Question: open (no answer) → answered (answer, not complete) → complete. A Task: its own state.
++	static phase(n){
++		if (this.kind(n) === "Question") return n.state === "complete" ? "complete" : this.answer(n) ? "answered" : "open";
++		return n.state ?? "idle";
++	}
++
++	// Sentences are computed, never stored: id = paragraph id + 1-based index (a1, a2, b1), so earlier ids survive appended text.
++	static sentences(prompt){
++		const out = [];
++		for (const para of this.paragraphs(prompt)) {
++			const parts = String(para.text ?? "").match(/[^.!?]+(?:[.!?]+["')\]]*|$)/g) ?? [];
++			parts.map(s => s.trim()).filter(Boolean).forEach((text, i) => out.push({ id: para.id + (i + 1), n: i + 1, para: para.id, text }));
++		}
++		return out;
++	}
++
++	// A prompt's children: its own tasks plus any root-level Question/Task whose `from` is its id, in list order.
++	children(prompt){ return [...prompt.kids, ...this.root.filter(n => n !== prompt && n.from === prompt.id && this.constructor.kind(n) !== "Prompt")]; }
++
++	// What the chat draws at the root: prompts, and anything whose `from` names no prompt here.
++	roots(){
++		const prompts = new Set(this.root.filter(n => this.constructor.kind(n) === "Prompt").map(n => n.id));
++		return this.root.filter(n => this.constructor.kind(n) === "Prompt" || !prompts.has(n.from));
++	}
++}
+diff --git a/public/framework/ext/Chat/v2/files.jsonl b/public/framework/ext/Chat/v2/files.jsonl
+new file mode 100644
+index 000000000..4406b1c9b
+--- /dev/null
++++ b/public/framework/ext/Chat/v2/files.jsonl
+@@ -0,0 +1,7 @@
++{"file":"fixture/"}
++{"file":"ChatV2Model.js"}
++{"file":"ChatV2.js"}
++{"file":"ChatV2.css"}
++{"file":"page.js"}
++{"file":"ChatV2.test.mjs"}
++{"file":"readme.md"}
+diff --git a/public/framework/ext/Chat/v2/fixture/files.jsonl b/public/framework/ext/Chat/v2/fixture/files.jsonl
+new file mode 100644
+index 000000000..b114c8201
+--- /dev/null
++++ b/public/framework/ext/Chat/v2/fixture/files.jsonl
+@@ -0,0 +1,13 @@
++{"file":"gen.mjs"}
++{"file":"session.jsonl"}
++{"file":"gen.mjs","gone":true}
++{"file":"live-copy.jsonl"}
++{"file":"live-copy.jsonl","gone":true}
++{"file":"live-copy.jsonl"}
++{"file":"live-copy.jsonl","gone":true}
++{"file":"live-copy.jsonl"}
++{"file":"live-copy.jsonl","gone":true}
++{"file":"live-copy.jsonl"}
++{"file":"live-copy.jsonl","gone":true}
++{"file":"live-copy.jsonl"}
++{"file":"live-copy.jsonl","gone":true}
+diff --git a/public/framework/ext/Chat/v2/fixture/session.jsonl b/public/framework/ext/Chat/v2/fixture/session.jsonl
+new file mode 100644
+index 000000000..16820eb7d
+--- /dev/null
++++ b/public/framework/ext/Chat/v2/fixture/session.jsonl
+@@ -0,0 +1,5 @@
++{"session":{"id":"chat-v2-fixture","kind":"voice","at":"2026-10-25T09:00:00Z"}}
++{"tasks":{"add":{"type":"Prompt","id":"p-1761382800000","title":"Show the refined prompt first","text":"The chat should show the cleaned-up version of what I said, with the assistant's work nested under it. The raw words stay one click away.\n\nAlso: can a question be answered later, after I have moved on?","raw":["yeah so I think the chat should show the cleaned up version first","the raw words stay one click away also can a question be answered later"],"paragraphs":[{"id":"a","text":"Yeah, so I think the chat should show the cleaned up version first. The raw words stay one click away."},{"id":"b","text":"Also, can a question be answered later?"}],"replies":[{"id":"r-1761382830000","text":"Yes: the refined text is the main view; raw and cleaned text sit behind \"show raw\".","by":"smart","ts":"2026-10-25T09:00:30Z","anchor":{"sentence":"a2","words":[0,3]}},{"id":"r-1761382840000","text":"I made two cards from this, below.","by":"smart","ts":"2026-10-25T09:00:40Z"}],"tasks":[{"type":"Question","id":"q-1761382835000","text":"Does a question extend Task?","from":"p-1761382800000","answer":{"text":"Yes. It is open until answered, answered until you tick it, then complete.","by":"smart","ts":"2026-10-25T09:00:35Z"}},{"type":"Question","id":"q-1761382836000","text":"Can a question be answered after the owner moved on?","from":"p-1761382800000"},{"type":"Task","id":"t-1761382837000","title":"Draw the prompt at the root of the chat","state":"complete"},{"type":"Task","id":"t-1761382838000","title":"Add the show-raw toggle","state":"running"}]}}}
++{"tasks":{"add":{"type":"Prompt","id":"p-1761382900000","raw":["and then one more thing the sheet should open on the latest prompt"],"paragraphs":[{"id":"c","text":"And then one more thing. The sheet should open on the latest prompt."}]}}}
++{"tasks":{"add":{"type":"Question","id":"q-1761382910000","text":"Should the sheet scroll to the newest prompt on open?","from":"p-1761382900000"}}}
++{"q-1761382836000":{"answer":{"text":"Yes: the answer lands on the question, wherever you are in the chat.","by":"smart","ts":"2026-10-25T09:02:00Z"}}}
+diff --git a/public/framework/ext/Chat/v2/page.js b/public/framework/ext/Chat/v2/page.js
+new file mode 100644
+index 000000000..ea38e378e
+--- /dev/null
++++ b/public/framework/ext/Chat/v2/page.js
+@@ -0,0 +1,16 @@
++import { Page, p, div } from "/app.js";
++import ChatV2 from "./ChatV2.js";
++
++export default new Page({
++	meta: import.meta,
++	title: "Chat v2",
++	description: "A session's chat, read only: its prompts at the root, the assistant's replies, questions and tasks nested under each.",
++	icon: "forum",
++
++	content(){
++		const src = new URLSearchParams(location.search).get("src"), url = src ?? new URL("./fixture/session.jsonl", import.meta.url).href;
++		p(src ? `This is the chat of the session file you passed in ?src= (${src}), drawn live.` : "This is a demo of Chat v2: a made-up session's conversation, read from a fixture file and drawn live. Pass ?src=<url of any session.jsonl> to draw a real one.");
++		const $box = div.c("chat-v2");
++		new ChatV2({ url, $box }).live();
++	},
++});
+diff --git a/public/framework/ext/Chat/v2/readme.md b/public/framework/ext/Chat/v2/readme.md
+new file mode 100644
+index 000000000..d61788cac
+--- /dev/null
++++ b/public/framework/ext/Chat/v2/readme.md
+@@ -0,0 +1,34 @@
++# Chat v2: a session's chat, drawn from its `tasks` list
++
++Read-only step 1 of the new chat (the owner's decision, [chat-shape.md](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/chat-shape.md)): a session's conversation is its `tasks` list in `session.jsonl`. Each Prompt sits at the root of the chat (no bubbles, no card) as the smart assistant's refined version; its replies, questions and child tasks nest under it, marked 🧠. The raw Whisper text and the fast assistant's cleaned paragraphs are one click down, "show raw", never dropped. The old chat ([Chat.js](../Chat.js), `ux/Dictate/chat.js`) is untouched until v2 replaces it.
++
++Try it: [/framework/ext/Chat/v2/](/framework/ext/Chat/v2/) draws [fixture/session.jsonl](fixture/session.jsonl); `?src=<url of any session.jsonl>` draws that session, live.
++
++## Classes
++
++- `ChatV2.js`: `class ChatV2 extends JSONL`. `read()` collects lines, `draw()` folds them and draws the roots in **list order, never sorted**, `live()` streams appends (a redraw keeps "show raw" open). Parts are its methods: `prompt`, `sentences`, `reply`, `child`.
++- `ChatV2Model.js`: folds the lines into plain objects and holds every field read (`title`, `raw`, `paragraphs`, `replies`, `answer`), the computed `sentences(prompt)` and `phase(question)`. When `core/Task/Prompt.js` and `Question.js` land, swap this file's reads for the class getters; the views do not change.
++- `ChatV2.css`: the `chat-v2-` classes, all in `@layer site`. Column max 46rem.
++- `ChatV2.test.mjs`: headless Playwright, 19 checks (order, nesting, show raw, live append): `node ChatV2.test.mjs [base-url] [shots-dir]`.
++
++## The shape it reads (one line each in `session.jsonl`)
++
++```js
++{tasks:{add:{type:"Prompt", id:"p-<ms>", title, text,          // the smart assistant's version; may be absent early
++  raw:["whisper text", …], paragraphs:[{id:"a", text}],        // one raw per utterance; the fast assistant's cleaned text
++  replies:[{id:"r-<ms>", text, by, ts, anchor?:{sentence:"a1", words?:[start,end]}}],   // end exclusive
++  tasks:[ …child Task / Question entries… ]}}}
++{tasks:{add:{type:"Question", id:"q-<ms>", text, from:"p-<ms>", answer?:{text, by, ts}}}}
++{"<id>":{answer:{…}}}  {"<id>":{complete:{}}}  {"<id>":{replies:{add:{…}}}}   // later lines edit by id
++```
++
++Sentences are computed, not stored: a sentence id is its paragraph id plus a 1-based index (`a1`, `a2`, `b1`). A Question is open (no answer), answered (answer, not complete) or complete. A prompt's children are its own `tasks` plus any root Question or Task whose `from` is its id. A prompt with no title or text draws its paragraphs; an anchored reply sits beside its sentence (below on a phone) with the words marked.
++
++## Who writes the data
++
++Not wired yet: the fast assistant writes Prompts (raw and paragraphs; `Servex/agents/Sessions.js` `voice_say`), the smart assistant writes replies, questions and tasks. Both land in step 3 of [chat-v2](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/chat-v2/requirements.md). Until then the fixture is the only data.
++
++## Decisions
++
++- Fields are read from a plain fold, not `Session.replay`: an unregistered `Prompt` hydrates as a bare Item that drops the raw strings, so the raw Whisper text would be lost. Swap to `s._tasks` once the classes land.
++- Child cards are `ChatV2.child`, not `TaskView.row`, which needs a live Task; it reuses `TaskView.STAGE` for the icons.

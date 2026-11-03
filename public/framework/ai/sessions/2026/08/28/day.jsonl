@@ -1,0 +1,4 @@
+{"log": {"at": "2026-08-28T10:48:43-05:00", "task": "panel-clock-flicker", "msg": "task opened - Panel clock template ticks on hidden pages; DevTools Styles pane flickers sitewide once a second; fix: skip the DOM write while unseen"}}
+{"log": {"at": "2026-08-28T10:52:35-05:00", "task": "panel-clock-flicker", "msg": "landed - Panel clock writes only while visible; DevTools Styles-pane flicker (1s, sitewide) gone; proven headless"}}
+{"log": {"at": "2026-08-28T11:18:57-05:00", "task": "select-chevron-auto", "msg": "task opened - fix the select chevron (edge-offset position, not content-box origin), add select.auto, sweep the five chrome selects"}}
+{"log": {"at": "2026-08-28T11:25:40-05:00", "task": "select-chevron-auto", "msg": "landed - select arrow fixed at base (edge offset, lane reserved), select.auto utility added, five chrome selects swept, form regression clean"}}

@@ -1,0 +1,6 @@
+verdict: fix
+1. [fix] The brief's target was 8 errors down to 0, but session.jsonl logs 13 -> 5: every `run-1/page.jsonl` 404 is still there, from another caller (`Page.jsonl` / `AISessionDetail.child`), so the owner's stated outcome is not met. The patch follows the brief to the letter; the missing piece is the same `names()` check at that second caller (or a decision, logged, that it is a separate task).
+2. [note] Page.class.js:231 is the right shape (filter `order` by `names(url)`, an empty list falls through to `return null`, `null` keeps today's probe), and no import cycle: Router/listing.js imports only Item/Store. The change is minimal and simpler than any alternative.
+3. [note] `names()` caches for 3 s and `listing()` memoises its result per folder, so a log created in a folder inside that window is recorded as `null` until `fresh`; the existing "not live" warning in decisions.md covers the same case, so low risk.
+4. [note] The page tests are logged as 2 passed before and one flaky failure then 2 passed after; the flake is unexplained, and the whole-sweep total rose (40845 -> 41239), though the log attributes that to sidebar probes. Worth a glance that nothing in the diff causes either.
+5. [note] decisions.md:786-791 gets one accurate sentence, as asked.

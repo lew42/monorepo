@@ -1,0 +1,29 @@
+{
+ "id": "28e4831e-08b5-46af-8d2b-29083a524f21",
+ "first": "2026-10-14T00:21:59.907Z",
+ "last": "2026-10-14T00:21:59.992Z",
+ "models": {},
+ "sizes": {
+  "raw": 3902,
+  "content": 12,
+  "stripped": 12,
+  "owner_only": 0
+ },
+ "usd": 0,
+ "usd_main": 0,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 0,
+  "output": 0,
+  "cache_read": 0,
+  "cache_write": 0,
+  "w5": 0,
+  "w1": 0
+ },
+ "messages": 0,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.352Z"
+}

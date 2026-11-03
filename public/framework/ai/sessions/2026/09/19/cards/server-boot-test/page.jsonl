@@ -1,0 +1,4 @@
+{"class":"/framework/ai2/card.js","title":"Boot-test supervisor is live","type":"card","id":"2026/09/19/server-boot-test","created":"2026-09-19T16:09:41-05:00","by":"server-boot-test","tags":[]}
+{"legacy":"server-boot-test"}
+{"status":"done"}
+{"text":"server.js now proves a Server/ change boots on a spare port before it touches the real site - all eight ugly cases pass. A hand restart of the owner's and the mastermind's own dev servers picks it up whenever convenient."}

@@ -1,0 +1,36 @@
+{
+ "id": "99e5ecb3-53ae-4ab2-a1e9-5c6afa481c04",
+ "first": "2026-10-16T06:26:53.863Z",
+ "last": "2026-10-16T06:26:59.420Z",
+ "models": {
+  "claude-sonnet-5-5": 3
+ },
+ "sizes": {
+  "raw": 71602,
+  "content": 247,
+  "stripped": 69,
+  "owner_only": 68
+ },
+ "usd": 0.073447,
+ "usd_main": 0.073447,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 6,
+  "output": 351,
+  "cache_read": 96326,
+  "cache_write": 12665,
+  "w5": 0,
+  "w1": 12665
+ },
+ "messages": 3,
+ "subagent_files": 0,
+ "prompts": [
+  {
+   "at": "2026-10-16T06:26:53.881Z",
+   "t": "[from: owner]\n[on /framework/ux/Dictate/] And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country.\n(the owner has stopped: no quiet event for 8 s)"
+  }
+ ],
+ "result": "👍",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.264Z"
+}

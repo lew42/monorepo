@@ -1,0 +1,33 @@
+[
+  {
+    "id": "c5",
+    "raw": "this message, and the last, are coming from vs code sidebar",
+    "ms": 14924,
+    "sentences": [
+      "This message, and the last, are coming from VS Code sidebar."
+    ],
+    "structured_md": "# VS Code Sidebar\n## Sidebar\n- This message, and the last, are coming from VS Code sidebar. [S1]\n",
+    "cost_usd": 0
+  },
+  {
+    "id": "c7",
+    "raw": "you're our new vs-code mastermind\n\ncan you read the handoff?",
+    "ms": 18362,
+    "sentences": [
+      "You're our new VS-Code mastermind.",
+      "Can you read the handoff?"
+    ],
+    "structured_md": "# VS-Code Mastermind\n\n## Handoff\n- Can you read the handoff? [S2]\n",
+    "cost_usd": 0
+  },
+  {
+    "id": "c10",
+    "raw": "Is is my dev server running? I just tried to access it from my phone phone and I don't know if I had typed, you know, node server.js or if if you have the ability to run the server if it's not running, please do that so that I don't have to stand up and go type it in myself.",
+    "ms": 27635,
+    "sentences": [
+      "Is my dev server running? I just tried to access it from my phone and I don't know if I had typed node server.js or if you have the ability to run the server if it's not running, please do that so that I don't have to stand up and go type it in myself."
+    ],
+    "structured_md": "# Dev Server\n## Server Status\n- Is my dev server running? [S1]\n",
+    "cost_usd": 0
+  }
+]

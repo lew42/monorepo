@@ -1,0 +1,23 @@
+# launch-audit — what breaks when lew42.com is static, and what should not be pushed
+
+Laws: less is more · clarity · prioritize. **Deliverable: `audit.md` in this dir — ≤ 2 screens (≤ 110 lines), three tables and a verdict list. Final message ≤ 20 lines.**
+
+The owner (2026-08-18), verbatim:
+
+> On the DevBar's AI system - think about how it's getting committed to the repo, currently. I don't think the devbar will be rendered in production? I suppose it could... But half it's features wouldn't work. On a similar note, the ai dashboard might not render/work properly. At one point, I thought about making a separate dev site. I need to get my site launched at lew42.com, so do an audit of what would/wouldn't work. What should/shouldn't be committed. Oh, and another thing preventing me from pushing my changes - the other devs can't access some of my AI setup. I tried to copy most of the skills into the repo. Which features would/wouldn't work for the other devs? There are definitely some claude session logs that are being served in a funky way, I'm not sure if that's safe to commit/push.
+
+Facts you can rely on: production is **static** — `public/` served as-is, no `Server/`, no socket, no `/data/*.json` writes, no `/mcp`, no `/framework/ai/*/session.json` served from anywhere but the repo. `Server/` is dev only. `.claude/` is committed (skills, hooks, settings.json); the owner's `~/.claude/` (bin scripts, `settings.json`, credentials, project transcripts under `~/.claude/projects/c--Code-lew42-monorepo/`) is NOT.
+
+## Do
+
+1. **Runtime table — what needs the dev server.** Grep `public/` for the seams: `/socket`, `WebSocket`, `rpc:`, `/data/`, `/mcp`, `session.json`, `fetch(` of anything under `Server/` or `~`, `import.meta`-relative reads of `.jsonl`. Rows = feature (DevBar, DevBar Ask tab / `ext/Ask`, `dev/Socket`, `dev/Claim`, `ext/AITask` dashboard at `/framework/ai/`, `ext/Panel` persistence, `ext/editor`, `ext/DesignTool` shots/vision, live-reload, anything else you find). Columns: works static? · degrades how (blank / error in console / silently stale) · what it would take to make it work or hide it (one clause). Verify two rows by loading the page with a **headless** Playwright browser (`npm root -g` has playwright; scratchpad `C:/Users/mike/AppData/Local/Temp/claude/c--Code-lew42-monorepo/a14ec0db-4e8c-4ce1-a14c-378e52ac01a0/scratchpad/`) against `http://localhost/` with **the socket route blocked** (`page.route('**/socket*', r => r.abort())` and `page.routeWebSocket`) — that is the closest thing to "static" you can get today. Report console errors per page.
+2. **Commit table — what is in the tree that should not ship.** `git status --porcelain` and `git ls-files` for: `public/framework/ai/**` (dated task records: `task.jsonl`, `session.json`, `*.png`, `directory.json`, `usage.json`/`usage.jsonl`), anything that embeds a Claude transcript or session id, `Server/data/`, `public/data/`. For each: committed? gitignored? size · what a stranger could read from it (transcripts contain the owner's prompts and file paths) · verdict: commit / ignore / move out of `public/`. Say specifically how `session.json` and `task.jsonl` are served today (see `ext/AITask/readme.md`, `Server/plugins/*`) and whether that path exists in production. Two numbers that must agree: count of tracked files under `public/framework/ai/` by `git ls-files | wc -l` and by your table's sum.
+3. **Other-devs table.** Read `.claude/settings.json`, `.claude/hooks/*`, `.claude/skills/*/SKILL.md` (there are ~15), `.mcp.json`. For each hook/skill/tool: depends on `~/.claude/bin/*`, on `$USERPROFILE` paths, on the owner's MCP servers (figma, site), on the dev server, on a Windows-only command? Works for a teammate who clones the repo on a Mac with a fresh Claude Code? Columns: works · needs (one clause) · fix (one clause).
+4. **Verdicts**, ≤ 10 lines: (a) ship the DevBar/AI dashboard in production, hide them, or a separate dev site — one recommendation with the reason; (b) the push blocker list — what must change before `git push` is safe; (c) what is fine as-is.
+
+## Rules
+
+- READ-ONLY on the repo outside this dir; write `audit.md` and log lines only. Never run `git add`/`commit`/`push`.
+- Run `new-task` first (dir + brief exist; write `task.jsonl` line 1 and the `day.jsonl` line; group `ai-log`); `finish-task` at the end with `"tokens": null`. A skill that misleads you gets one line in its `improvements.md` (`skill-improvement`).
+- Timestamps from the clock. Forward slashes in every path. Never write a person's name; say "the owner".
+- Wait in the foreground; never end a turn on a background monitor. Sonnet budget: keep it under ~40 tool calls.

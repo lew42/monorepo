@@ -1,0 +1,170 @@
+[
+  {
+    "file": "public/framework/core/Layout/Layout.css",
+    "verdict": "runtime-loaded",
+    "reason": "CSS stylesheet loaded by core/Layout/page.js via View.stylesheet()",
+    "evidence": "core/Layout/page.js View.stylesheet call; recent 2026-09-06"
+  },
+  {
+    "file": "public/framework/core/Layout/doc/rules-notes.md",
+    "verdict": "record",
+    "reason": "Archived code comments from Layout.js prune; historical documentation",
+    "evidence": "2026-10-12 prune: core/Layout/rules.js comments moved here"
+  },
+  {
+    "file": "public/framework/core/Layout/doc/rules.md",
+    "verdict": "record",
+    "reason": "Decision documentation for LayoutRules system and CSS authority",
+    "evidence": "2026-09-06 core Layout lands; explains three layout rules design"
+  },
+  {
+    "file": "public/framework/core/Page/ai/ai.css",
+    "verdict": "runtime-loaded",
+    "reason": "CSS for core/Page/ai module (ObjectView and agent display rules)",
+    "evidence": "Loaded by ai/page.js; core/Page/ai present in site navigation"
+  },
+  {
+    "file": "public/framework/core/Page/ai/doc/assistant.md",
+    "verdict": "record",
+    "reason": "Module documentation explaining card assistant role and lifecycle",
+    "evidence": "Recent 2026-09-29; explains Servex roles architecture"
+  },
+  {
+    "file": "public/framework/core/Page/ai/doc/sessions.md",
+    "verdict": "record",
+    "reason": "Module documentation on session IDs and SDK integration",
+    "evidence": "Recent 2026-10-12; task-folder relinking updated references"
+  },
+  {
+    "file": "public/framework/core/Page/audit/design/findings.md",
+    "verdict": "record",
+    "reason": "Audit findings from design measurement; valuable reference for layout issues",
+    "evidence": "2026-09-30 ranked findings; used for page optimization decisions"
+  },
+  {
+    "file": "public/framework/core/Page/card/card.css",
+    "verdict": "dead",
+    "reason": "Superseded 2026-10-12; card styling moved to framework.css and ui/card",
+    "evidence": "2026-10-12 readme: 'Superseded... grounds became bg-white/light/prime/dark in framework.css'"
+  },
+  {
+    "file": "public/framework/core/Page/card/doc/inventory.md",
+    "verdict": "dead",
+    "reason": "Inventory from superseded card module; replaced by ui/card system",
+    "evidence": "2026-10-12 superseded; card module replaced by ui/card/page.js"
+  },
+  {
+    "file": "public/framework/core/Page/card/doc/system.md",
+    "verdict": "dead",
+    "reason": "System documentation from superseded card module; moved to ui/card",
+    "evidence": "2026-10-12 superseded; card functionality moved to ui/card (earlier lab)"
+  },
+  {
+    "file": "public/framework/core/Page/doc/Page-notes.md",
+    "verdict": "record",
+    "reason": "Archived code comments from Page.class.js; historical design notes",
+    "evidence": "2026-10-12 prune: Page.class.js comments moved to this doc"
+  },
+  {
+    "file": "public/framework/core/Page/doc/archive/findings.md",
+    "verdict": "record",
+    "reason": "Archived column-page lab findings; historical reference for page design",
+    "evidence": "In archive folder; 2026-08-29/30 lab verdicts documented"
+  },
+  {
+    "file": "public/framework/core/Page/doc/archive/moved.md",
+    "verdict": "record",
+    "reason": "Index of archived docs explaining what was superseded and where",
+    "evidence": "2026-10-09 doc audit archived 4 superseded docs with links kept"
+  },
+  {
+    "file": "public/framework/core/Page/doc/previews.md",
+    "verdict": "record",
+    "reason": "Documentation on borrowing/importing pages; useful API documentation",
+    "evidence": "2026-08-30 lazy depth improvements; measured approaches at /imagine/gallery"
+  },
+  {
+    "file": "public/framework/core/Page/doc/readme-full-2026-10-12.md",
+    "verdict": "record",
+    "reason": "Archived full sections from readme.md trim; preserved verbatim",
+    "evidence": "2026-10-12 readme audit; archived sections with link references kept"
+  },
+  {
+    "file": "public/framework/core/Page/doc/streaming.md",
+    "verdict": "record",
+    "reason": "Technical documentation on page storage and live streaming architecture",
+    "evidence": "2026-10-09 core/Page docs audit; explains critical storage design"
+  },
+  {
+    "file": "public/framework/core/Page/ext/Inbox/doc/ranking.md",
+    "verdict": "record",
+    "reason": "Documentation on Inbox.rank() algorithm; decision on importance weighting",
+    "evidence": "2026-10-13 recent; explains 11-weight importance system"
+  },
+  {
+    "file": "public/framework/core/Page/ext/Inbox/timeline/timeline.css",
+    "verdict": "runtime-loaded",
+    "reason": "CSS for Inbox timeline view; container queries for responsive display",
+    "evidence": "timeline.css loaded by TimelinePage.js; recent 2026-10-13 updates"
+  },
+  {
+    "file": "public/framework/core/Page/ext/demo.js",
+    "verdict": "runtime-loaded",
+    "reason": "Demo script placed by page.jsonl {place} verb; proves jsonl placement works",
+    "evidence": "Placed by core/Page/ext/page.jsonl line 'place: demo.js'"
+  },
+  {
+    "file": "public/framework/core/Page/generator/doc/traps.md",
+    "verdict": "record",
+    "reason": "Documentation on generator edge cases; moved from readme 2026-10-12",
+    "evidence": "2026-10-13 readme-audit: moved verbatim from readme lines 217-262"
+  },
+  {
+    "file": "public/framework/core/Page/jsonl/doc/caveats.md",
+    "verdict": "record",
+    "reason": "Technical documentation on jsonl safety; append vs read-modify-write",
+    "evidence": "Measured 2026-09-19: 98.5% data loss on concurrent read-modify-write"
+  },
+  {
+    "file": "public/framework/core/Page/jsonl/doc/size.md",
+    "verdict": "record",
+    "reason": "Documentation on jsonl file size monitoring and growth",
+    "evidence": "Describes page-size.mjs monitoring; no auto-purge, report only"
+  },
+  {
+    "file": "public/framework/core/Page/jsonl/doc/writers.md",
+    "verdict": "record",
+    "reason": "Documentation on who writes jsonl lines; append-only system design",
+    "evidence": "Seven writers documented; dev server, append scripts, and manual appends"
+  },
+  {
+    "file": "public/framework/core/Page/jsonl/full/content.js",
+    "verdict": "runtime-loaded",
+    "reason": "Demo script placed by page.jsonl {place: content.js}; functional example",
+    "evidence": "core/Page/jsonl/full/page.jsonl line {place: ['content.js', 'note.md']}"
+  },
+  {
+    "file": "public/framework/core/Page/jsonl/full/note.md",
+    "verdict": "runtime-loaded",
+    "reason": "Demo note placed by page.jsonl {place} verb; shows placement mechanism",
+    "evidence": "Placed by full/page.jsonl line {place: ['content.js', 'note.md']}"
+  },
+  {
+    "file": "public/framework/core/Page/jsonl/note.md",
+    "verdict": "runtime-loaded",
+    "reason": "Demo note placed by page.jsonl; simple example of {place: note.md}",
+    "evidence": "core/Page/jsonl/page.jsonl line {place: 'note.md'}"
+  },
+  {
+    "file": "public/framework/core/Page/jsonl/system.js",
+    "verdict": "runtime-loaded",
+    "reason": "Level 1 of jsonl SYSTEM page; placed by page.jsonl demonstrate format",
+    "evidence": "Placed by core/Page/jsonl/page.jsonl {place: {module: system.js}}"
+  },
+  {
+    "file": "public/framework/core/Page/layout/switcher/doc/decide.md",
+    "verdict": "record",
+    "reason": "Design decision documentation on switcher collapse CSS-only approach",
+    "evidence": "2026-09-29 switcher landed; explains Router active-class interaction"
+  }
+]

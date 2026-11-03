@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ux/Content/Object/",
+ "widths": {
+  "1280": {
+   "empty": 0.548,
+   "widest_text": 594,
+   "widest_text_sample": "row per property, opening deeper the sam",
+   "overflow_x": false,
+   "items": 170,
+   "narrow_share": 0.424
+  },
+  "1920": {
+   "empty": 0.606,
+   "widest_text": 632,
+   "widest_text_sample": "row per property, opening deeper the sam",
+   "overflow_x": false,
+   "items": 170,
+   "narrow_share": 0.712
+  },
+  "2560": {
+   "empty": 0.649,
+   "widest_text": 711,
+   "widest_text_sample": "row per property, opening deeper the sam",
+   "overflow_x": false,
+   "items": 170,
+   "narrow_share": 0.712
+  },
+  "3440": {
+   "empty": 0.728,
+   "widest_text": 859,
+   "widest_text_sample": "Same icon as the instance below, in a vi",
+   "overflow_x": false,
+   "items": 170,
+   "narrow_share": 0.835
+  }
+ },
+ "errors": []
+}

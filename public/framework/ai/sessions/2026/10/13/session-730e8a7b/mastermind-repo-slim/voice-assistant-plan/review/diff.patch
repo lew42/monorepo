@@ -1,0 +1,501 @@
+diff --git a/.claude/skills/voice-assistant/SKILL.md b/.claude/skills/voice-assistant/SKILL.md
+new file mode 100644
+index 000000000..2786705ab
+--- /dev/null
++++ b/.claude/skills/voice-assistant/SKILL.md
+@@ -0,0 +1,29 @@
++---
++name: voice-assistant
++description: Become the voice assistant — the one plain assistant of a voice session. Each time the owner finishes a sentence you are woken with the whole prompt so far plus the new sentence, and you answer with ONE placement (same paragraph, own paragraph, or own card), written into the session file with the item tool. Loaded by Servex for the `voice-assistant` role; not for other agents.
++---
++
++# Voice assistant: place each sentence
++
++The owner is talking. Their sentence is already on screen, in the chat bubble, where it will stay unless you move it. Your job is to keep the chat clean and structured as they talk: one placement per sentence, nothing more. The plan: `public/framework/ux/Dictate/doc/voice-assistant.md`.
++
++## Each turn
++
++You get the whole prompt so far (each sentence with its `at`) and the new sentence. Decide, then write one line:
++
++```js
++item({ path: "<the session file you were given>", delta: { place: { re: "<the new sentence's at>", to: "same", edit: "nothing" } } })
++```
++
++- **`to`**: `same` = stays in the current paragraph. **This is the default, and the answer whenever you are unsure.** `paragraph` = a new thought on the same topic starts here. `card` = a new task or topic starts here.
++- **`where`** (only with `card`): `inside` the previous card (a detail of it) · `beside` it (a sibling) · `up` (a different topic altogether).
++- **`edit`**: `nothing` (default) · `move` · `improve` (add `text`: the sentence cleaned, never shorter in meaning) · `both`.
++- `title` (only with `card`): two to five words naming it.
++
++When `to` is `same` and `edit` is `nothing`, you may skip the write: that is what the screen already shows.
++
++## Never
++
++- Never drop a sentence or merge two into one: every raw sentence stays findable (a node check counts them).
++- Never answer the owner in chat for a placement; the placement is the answer.
++- Never place a sentence you were not given (`re` is always the new one, or one you are moving).
+diff --git a/Servex/agents/roles.js b/Servex/agents/roles.js
+index abc6a421a..36df01766 100644
+--- a/Servex/agents/roles.js
++++ b/Servex/agents/roles.js
+@@ -43,7 +43,8 @@ export const ROLES = {
+ 	"task-mastermind":  { skills: ["sub-mastermind", "page"], prefix: "task-mastermind",  alias: "sub-mastermind", tier: "manager", model: model("manager"),  effort: "medium", permission_mode: "bypassPermissions", compact_after: MASTERMIND_COMPACT },
+ 	/* mastermind: bypassPermissions too (2026-10-12, asks #6): it calls spawn_agent/page tools and edits, and nobody can approve a prompt overnight. */
+ 	mastermind:         { skill: "servex-mastermind", prefix: "mastermind",       tier: "architect", model: model("architect"), effort: "high", permission_mode: "bypassPermissions", compact_after: MASTERMIND_COMPACT },
+-	assistant:          { skill: "every-prompt",     prefix: "assistant",        alias: "every-prompt",   tier: "fast", model: model("fast"),  effort: "low",  permission_mode: "acceptEdits" },
++	/* The fast assistant (every-prompt) is retired for voice as of 2026-10-17 (`voice-assistant` below); its skill files stay on disk and this row stays for the callers that still name it. */
++	assistant:          { retired: "voice-assistant", skill: "every-prompt",     prefix: "assistant",        alias: "every-prompt",   tier: "fast", model: model("fast"),  effort: "low",  permission_mode: "acceptEdits" },
+ 	/* ONE PAIR ON EVERY PAGE (recursive-pairs, 2026-09-25/28): a page-assistant, root page
+ 	 * included, and a page-mastermind — the same two roles Layers.js now spawns for a card
+ 	 * OR any other page, scoped to a directory given in the first message (doc/page-roles.md).
+@@ -78,7 +79,13 @@ export const ROLES = {
+ 	 * with `task-mastermind` (both `every-prompt` and `sub-mastermind` carry it), but never its
+ 	 * judging-against-the-owner's-sentence or landing parts — it spawns a task mastermind to do
+ 	 * those instead of doing them itself. Detail: tiers-design/doc/roles.md. */
+-	"session-fast":     { prefix: "session-fast",     tier: "fast",      model: model("fast"),       effort: "low",    permission_mode: "bypassPermissions" },
++	/* RETIRED 2026-10-17 (the owner: "drop the fast assistant for now"; plan: public/framework/ux/Dictate/doc/voice-assistant.md):
++	 * `voice-assistant` below takes this seat. The row stays, unchanged, because Sessions.js still spawns it by name until
++	 * the Sessions brief lands (voice-assistant-plan/sessions-brief.md); `retired` names the row that replaces it. */
++	"session-fast":     { retired: "voice-assistant", prefix: "session-fast",     tier: "fast",      model: model("fast"),       effort: "low",    permission_mode: "bypassPermissions" },
++	/* THE VOICE ASSISTANT (2026-10-17, ux/Dictate/doc/voice-assistant.md): one plain assistant per voice session, the fast seat.
++	 * Per sentence it writes ONE placement, {"place":{re, to, where, edit}}, into the session file with the item tool. */
++	"voice-assistant":  { skill: "voice-assistant",  prefix: "voice-assistant",  tier: "fast",      model: model("fast"),       effort: "low",    permission_mode: "bypassPermissions" },
+ 	"session-smart":    { prefix: "session-smart",    tier: "manager",   model: model("manager"),   /* Sonnet, not Opus: the owner, 2026-10-05, saving credits; the one mastermind above the sessions stays Opus */    effort: "medium", permission_mode: "bypassPermissions" },
+ 	/* A FRESH mastermind for one folder (Servex/agents/directory.js, `ask_directory`): the task
+ 	 * mastermind's posture, opened with the folder's plain files as its first message. Spawned by
+diff --git a/public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/voice-assistant-plan/fixture/v-fixture.jsonl b/public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/voice-assistant-plan/fixture/v-fixture.jsonl
+new file mode 100644
+index 000000000..dea78b95f
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/voice-assistant-plan/fixture/v-fixture.jsonl
+@@ -0,0 +1,5 @@
++{"session":{"id":"v-fixture","home":"/framework/ux/Dictate/","at":"2026-10-17T00:00:00.000-05:00","project":"monorepo","host":"monorepo.localhost","fast":null,"smart":null,"backing":{"fast":null,"smart":null}}}
++{"chat":{"at":"2026-10-17T00:00:01.000-05:00","session":"v-fixture","path":"/framework/ux/Dictate/","from":{"kind":"owner"},"via":"voice","text":"The sheet should open at sixty percent."}}
++{"chat":{"at":"2026-10-17T00:00:04.000-05:00","session":"v-fixture","path":"/framework/ux/Dictate/","from":{"kind":"owner"},"via":"voice","text":"And it should remember the height I drag it to."}}
++{"chat":{"at":"2026-10-17T00:00:09.000-05:00","session":"v-fixture","path":"/framework/ux/Dictate/","from":{"kind":"owner"},"via":"voice","text":"Separately, the inbox labels need a count."}}
++{"place":{"re":"2026-10-17T00:00:09.000-05:00","to":"paragraph","edit":"nothing"},"by":"voice-assistant-test","ts":"2026-10-17T04:53:12.819Z"}
+diff --git a/public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/voice-assistant-plan/sessions-brief.md b/public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/voice-assistant-plan/sessions-brief.md
+new file mode 100644
+index 000000000..93dad5fef
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/voice-assistant-plan/sessions-brief.md
+@@ -0,0 +1,16 @@
++# Sessions: the voice assistant takes the fast seat (queued brief)
++
++Budget: $4. Sonnet. Work in a worktree; the parent reviews the diff and runs `merge.mjs`. Needs a Servex restart to go live: log `needs_restart`, never restart it yourself.
++
++The plan: [ux/Dictate/doc/voice-assistant.md](/framework/ux/Dictate/doc/voice-assistant.md). The owner's words: `../requirements-17.md`, asks 2 and 4.
++
++## Do
++
++1. In `Servex/agents/Sessions.js`, behind `SERVEX_SESSION_ASSISTANT` (`voice` | `fast`, default `voice` once proven, `fast` until then): spawn the fast seat with `role: "voice-assistant"` and the `voice-assistant` skill as its system text, instead of `session-fast` with `session-fast.md`. Keep the agent's id exactly what `Agents.name()` mints for the row, or it respawns on every sentence (open-mic lesson, 2026-09-22).
++2. Per owner sentence, send it the whole prompt so far (each owner line with its `at`) plus the new sentence and the session file's path. It answers by writing one `{"place"}` line with the item tool; it writes no chat reply.
++3. Keep the `(new paragraph)` → `{para}` path for `fast` mode untouched.
++4. Proof: `Sessions.test.mjs` passes; a private Servex run with three sentences writes three or fewer `{place}` lines, every `re` an owner line's `at`.
++
++## Fence
++
++`Servex/agents/Sessions.js`, its test, this task dir. Not `roles.js` (the row exists), not `ux/Dictate`.
+diff --git a/public/framework/ux/Dictate/Widget.css b/public/framework/ux/Dictate/Widget.css
+index bcb4bbb02..f6fa1a8a3 100644
+--- a/public/framework/ux/Dictate/Widget.css
++++ b/public/framework/ux/Dictate/Widget.css
+@@ -240,4 +240,11 @@
+ 		transform: scale(calc(1 + var(--ux-dictate-widget-pulse-level, 0) * 1.6));
+ 		transition: transform 90ms linear;
+ 	}
++
++	/* THE VOICE ASSISTANT (2026-10-17, doc/voice-assistant.md): the draft is the last piece of the bubble it joins; a placed card */
++	.ux-dictate-draft-piece .chatbox-text { white-space: pre-wrap; }
++	.chatbox-text + .ux-dictate-draft-piece { margin-block-start: 0.5em; }   /* the gap the settled piece will have (Chat.css: .chatbox-text + .chatbox-text) */
++	.ux-dictate-placed-card { border-inline-start: 3px solid var(--prime); }
++	.ux-dictate-placed-card[data-where="inside"] { margin-inline-start: var(--gap, 1em); }
++	.ux-dictate-placed-title { font-weight: 600; }
+ }
+diff --git a/public/framework/ux/Dictate/Widget.js b/public/framework/ux/Dictate/Widget.js
+index b5486b679..9797b9763 100644
+--- a/public/framework/ux/Dictate/Widget.js
++++ b/public/framework/ux/Dictate/Widget.js
+@@ -5,7 +5,7 @@ import { pg } from "./playground/Playground.js";
+ import { marks as fetch_marks } from "../Understand/Understand.js";
+ import { md_into } from "../../ext/Chat/md.js";
+ import { who_label } from "../../ext/Chat/roles.js";
+-import { speak, patch_piece, retag_piece, split_bubble, sticky_scroll } from "../../ext/Chat/Chat.js";
++import { speak, patch_piece, retag_piece, split_bubble, sticky_scroll, mergeable } from "../../ext/Chat/Chat.js";
+ import { composer } from "../../ext/Chat/Composer.js";
+ 
+ View.stylesheet(import.meta, "Widget.css");
+@@ -23,7 +23,7 @@ export function model(value){
+ /** One dictation widget for every surface, configured by options (see doc/widget-notes.md#widget-options-and-parts). */
+ // A mode is a named row, never a second code path (see doc/widget-notes.md#mode-presets).
+ const MODES = {
+-	dictate: {},
++	dictate: { bubble: true },   // in place (the owner, 2026-10-17): words grow in the chat bubble; the gear's "into: box" still wins
+ 	live: { into: "chat", bubble: true },
+ };
+ 
+@@ -64,6 +64,7 @@ export default class Widget extends View {
+ 	submit(text, via){
+ 		this.on_text?.(text);
+ 		const at = new Date().toISOString();
++		this.$thread?.settle_draft?.();
+ 		this.$thread?.draw({ chat: { at, from: { kind: "owner" }, via, text } });
+ 		if (typeof this.deliver !== "function") return;
+ 		// `at` rides along so a caller can retag() the bubble (see doc/widget-notes.md#retag-after-deliver)
+@@ -74,6 +75,7 @@ export default class Widget extends View {
+ 	/** The new composer's deliver; entry is {text, via, at?, raw?, level?}; returns true/false (or a promise). */
+ 	submit_entry(entry){
+ 		const at = entry.at ?? new Date().toISOString();
++		this.$thread?.settle_draft?.();   // the settled piece takes the draft's exact spot: nothing moves (doc/voice-assistant.md)
+ 		this.$thread?.draw({ chat: { at, from: { kind: "owner" }, text: entry.text, via: entry.via } });
+ 		if (typeof this.deliver !== "function") return true;
+ 		const full = { ...entry, at };
+@@ -231,8 +233,11 @@ Widget.Thread = class WidgetThread extends View {
+ 
+ 	/** Lifts live bubbles out while fn runs so mergeable() never takes one for the last real bubble. */
+ 	follow(fn){
++		const own = this.draft && !this.draft.host ? this.draft.el : null;   // a draft in its own bubble is not "the last real bubble" either
++		own?.remove();
+ 		for (const l of this.lives.values()) l.el.remove();
+ 		const result = fn();
++		if (own) this.$bubbles.el.append(own);
+ 		for (const l of this.lives.values()) this.$bubbles.el.append(l.el);
+ 		return result;
+ 	}
+@@ -241,6 +246,7 @@ Widget.Thread = class WidgetThread extends View {
+ 	draw(entry){
+ 		if (entry?.type === "ask") return this.follow(() => this.draw_ask(entry));
+ 		if (entry?.type === "refined") return this.draw_refined(entry);
++		if (entry?.place) return this.place(entry.place);
+ 		const para = entry?.para ?? (entry?.type === "para" ? entry : null);
+ 		if (para?.re) return this.split_paragraph(para.re);
+ 		const chat = entry?.chat;
+@@ -255,12 +261,6 @@ Widget.Thread = class WidgetThread extends View {
+ 		// a settled reply replaces a live bubble from the same sender
+ 		if (assistant) this.drop_live("stream:" + (chat.from?.id ?? "assistant"));
+ 
+-		// mode "live": the settled owner line replaces the faded "sent:" draft
+-		if (!assistant){
+-			const sent_key = [...this.lives.keys()].find(k => k.startsWith("sent:"));
+-			if (sent_key) this.drop_live(sent_key);
+-		}
+-
+ 		const sender = chat.from?.id || chat.from?.kind || (assistant ? "assistant" : "owner");
+ 		const who = chat.from?.id ?? (assistant ? "assistant" : "owner");
+ 		const bubble = this.follow(() => speak(this.$bubbles, {
+@@ -271,7 +271,7 @@ Widget.Thread = class WidgetThread extends View {
+ 		// the new piece is always the bubble's last child
+ 		const text_node = bubble.lastElementChild;
+ 		const ref = { id: at };
+-		this.lines.set(at, { bubble, text: text_node, ref });
++		this.lines.set(at, { bubble, text: text_node, ref, said: chat.text });   // `said`: the raw words, kept when a placement improves the text
+ 		this.scroll.pin();
+ 		// stored on the piece so it survives a later merge (see doc/widget-notes.md#thread-marks)
+ 		if (!assistant && this.widget.marks) this.mark(chat.text, bubble, ref);
+@@ -341,37 +341,70 @@ Widget.Thread = class WidgetThread extends View {
+ 		this.scroll.pin();
+ 	}
+ 
+-	/** Mode "live" only: the owner's words growing in a bubble instead of the box (see doc/widget-notes.md#live-bubble). */
+-	live({ text = "", settled = text, guess = "", sent = false } = {}){
+-		if (!text){
+-			const hit = this.lives.get("draft");
+-			if (!hit) return;
+-			if (!sent) return this.drop_live("draft");
+-			this.lives.delete("draft");
+-			hit.el.classList.add("chatbox-live-sent");
+-			this.live_sent_n = (this.live_sent_n ?? 0) + 1;
+-			const key = "sent:" + this.live_sent_n;
+-			hit.timer = setTimeout(() => this.drop_live(key), 15000);
+-			this.lives.set(key, hit);
+-			return;
+-		}
++	/** The owner's words growing in the chat while they talk (doc/voice-assistant.md#the-flow-one-sentence-at-a-time).
++	 * In place: the draft is the LAST PIECE of the owner bubble it will join (or its own bubble when none can be joined),
++	 * and settle_draft() swaps it for the settled piece in the same step, so the words never move. */
++	live({ text = "", settled = text, guess = "" } = {}){
++		if (!text) return this.drop_draft();   // sent (the settled piece already took its spot) or cancelled
+ 		this.$empty.hide();
+-		this.follow(() => {
+-			let hit = this.lives.get("draft");
+-			if (!hit){
+-				let node, text_el;
+-				this.$bubbles.append(() => {
+-					node = div.c("chatbox chatbox-you chatbox-live chatbox-draft", () => {
+-						who_label("owner");
+-						text_el = div.c("chatbox-text").el;
+-					}).el;
+-				});
+-				this.lives.set("draft", hit = { el: node, text: text_el });
++		let d = this.draft;
++		if (!d){
++			const host = this.widget.join ? this.follow(() => mergeable(this.$bubbles, "owner", Date.now())) : null;
++			let el, text_el;
++			if (host){
++				el = document.createElement("div");
++				el.className = "ux-dictate-draft-piece";
++				text_el = document.createElement("div");
++				text_el.className = "chatbox-text";
++				el.append(text_el);
++				host.append(el);
++			} else this.$bubbles.append(() => {
++				el = div.c("chatbox chatbox-you chatbox-live chatbox-draft", () => {
++					who_label("owner");
++					text_el = div.c("chatbox-text").el;
++				}).el;
++			});
++			d = this.draft = { el, text: text_el, host };
++		}
++		if (d.host && d.host.lastElementChild !== d.el) d.host.append(d.el);   // a redraw of the host (a mark) appended pieces after it
++		d.text.textContent = settled;
++		if (guess) d.text.append(span.c("chatbox-guess").text((settled ? " " : "") + guess).el);
++		this.scroll.pin();
++	}
++
++	/** The sentence is being sent: drop the draft so the settled piece lands where it was (its host stays mergeable). */
++	settle_draft(){
++		const d = this.draft;
++		if (!d) return;
++		if (d.host) d.host.dataset.at = String(Date.now());   // still talking: the 10 s merge gap counts from now, not from the last piece
++		this.drop_draft();
++	}
++
++	drop_draft(){
++		this.draft?.el.remove();
++		this.draft = null;
++	}
++
++	/** One placement from the voice assistant, {re, to, where, edit, text, title} (doc/voice-assistant.md); the latest per sentence wins.
++	 * `same` changes nothing; `paragraph` splits the bubble at `re`; `card` does that and marks the bubble a card. Raw words stay in `said`. */
++	place({ re, to = "same", where = "beside", edit = "nothing", text, title } = {}){
++		const hit = this.lines.get(re);
++		if (!hit) return false;
++		if (text && (edit === "improve" || edit === "both")) patch_piece(hit.bubble, hit.ref.id, { text });
++		if (to === "paragraph" || to === "card") this.split_paragraph(re);
++		if (to === "card"){
++			const b = this.lines.get(re).bubble;
++			b.classList.add("ux-dictate-placed-card");
++			b.dataset.where = where;
++			if (title && !b.querySelector(":scope > .ux-dictate-placed-title")){
++				const t = document.createElement("div");
++				t.className = "ux-dictate-placed-title";
++				t.textContent = title;
++				b.prepend(t);
+ 			}
+-			hit.text.textContent = settled;
+-			if (guess) hit.text.append(span.c("chatbox-guess").text((settled ? " " : "") + guess).el);
+-		});
++		}
+ 		this.scroll.pin();
++		return true;
+ 	}
+ 
+ 	/** Remove a live bubble and clear its fade timer. */
+@@ -428,6 +461,7 @@ Widget.Thread = class WidgetThread extends View {
+ 	reset(){
+ 		this.lines = new Map();
+ 		this.lives = new Map();
++		this.draft = null;
+ 		this.$bubbles.empty();
+ 		this.$empty.show();
+ 	}
+diff --git a/public/framework/ux/Dictate/chat.js b/public/framework/ux/Dictate/chat.js
+index a57ad656f..df071c977 100644
+--- a/public/framework/ux/Dictate/chat.js
++++ b/public/framework/ux/Dictate/chat.js
+@@ -166,6 +166,7 @@ export default function chat(el, { path = location.pathname, card, placeholder,
+ 	function draw(line){
+ 		if (line?.react) return void panel.say({ react: line.react });
+ 		if (line?.para) return void panel.say({ para: line.para });
++		if (line?.place) return void panel.say({ place: line.place });   // the voice assistant's placement (doc/voice-assistant.md)
+ 		if (line?.refined) return void panel.say(Session.entry(line));
+ 		if (!line?.chat) return;
+ 		const echo = line.chat.from?.kind === "owner" && sending.find(m => m.text === flat(line.chat.text) && panel.$thread?.lines?.has(m.at));
+diff --git a/public/framework/ux/Dictate/doc/voice-assistant.md b/public/framework/ux/Dictate/doc/voice-assistant.md
+new file mode 100644
+index 000000000..3209f55ba
+--- /dev/null
++++ b/public/framework/ux/Dictate/doc/voice-assistant.md
+@@ -0,0 +1,76 @@
++# The voice assistant: one assistant places each sentence as you talk (plan, 2026-10-17)
++
++**What it is.** One plain assistant, the **voice assistant**, listens to a voice session. Each time you finish a sentence, your words are already sitting in the chat bubble, exactly where they will stay. The voice assistant then decides one thing about that sentence: does it stay in the same paragraph (the default), start its own paragraph, or become its own card? It writes that decision as one line, and the screen applies it. It replaces the fast assistant, which the owner found "didn't do much".
++
++Your words: [requirements-17.md](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/requirements-17.md) (asks 1 to 6), [requirements-16.md](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/requirements-16.md) (one rolling session). Task: [voice-assistant-plan](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/voice-assistant-plan/).
++
++---
++
++## The flow, one sentence at a time
++
++1. **Whisper hears you.** Your words grow inside the chat bubble itself, not in a text box first (this already happens: `ext/Chat/Mic.js`, setting `into: "chat"`).
++2. **You reach a period.** The sentence settles **in the same spot**: the draft piece turns into a settled piece of the bubble it is already in. Nothing moves (slice b, below).
++3. **The browser sends the sentence to Servex**, which writes it to the session file as one `{"chat": …}` line (unchanged).
++4. **Servex wakes the voice assistant** with the whole prompt so far plus the new sentence.
++5. **The voice assistant answers with one placement**, written with the item tool into the session file:
++
++```js
++item({ path: "<session file>", delta: { place: { re: "<the sentence's at>", to: "paragraph", where: "inside", edit: "nothing" } } })
++```
++
++   - `to`: `same` (the default, and the answer whenever unsure) · `paragraph` · `card`
++   - `where` (cards only): `inside` the previous card · `beside` it · `up` a level (a new topic)
++   - `edit`: `nothing` (default) · `move` · `improve` (a cleaned `text`; the raw words are kept) · `both`
++6. **The chat applies it** (`Widget.Thread.place()`): `same` does nothing, `paragraph` splits the bubble there, `card` makes that paragraph a card of its own. The latest `place` line for a sentence wins.
++
++**Coverage, by code:** a sentence is never deleted, only moved or given a cleaned text beside its raw words. A node check reads the session file and confirms every owner sentence appears exactly once in the structure.
++
++---
++
++## The classes
++
++```
++Sessions            Servex/agents/Sessions.js       the orchestrator: writes each {chat} line, wakes the voice assistant
++ └ voice assistant  roles.js row "voice-assistant"  the agent: one placement per sentence (.claude/skills/voice-assistant/)
++item tool           Servex/agents/page_tools.js     writes the {place} line into the session file (works today)
++chat()              ux/Dictate/chat.js              tails the session file; hands {chat}, {para}, {place} to the widget
++Widget.Thread       ux/Dictate/Widget.js            draws the bubbles; live() = the draft piece in place; place() = apply a placement
++```
++
++**Reused, not rebuilt:** the session file and its live tail (`chat.js`, the one `GLOBAL` session per tab), the item tool (`item({path, delta})`, the grammar the task-system plan chose), `split_paragraph()` (today's `{para}` line from the fast assistant's `(new paragraph)` marker is the same thing as `to: "paragraph"`), and `ext/Chat`'s `speak()` merge. The rule-based decider `ext/Refine/Placement.js` (being built beside this task) becomes the fallback when the assistant has not answered: `same`.
++
++---
++
++## The data
++
++- **Raw sentences:** one `{"chat"}` line each in the session file, `public<home>ai/v-<id>.jsonl`. Raw Whisper replies (every 1.5 s guess) go to the Servex `whisper` log ([raw-log.md](/framework/audio/Whisper/doc/raw-log.md)).
++- **Placements:** `{"place"}` lines in the same file, appended by the item tool, stamped `by` and `ts`.
++- **Ask 1, does each browser dictation have its own folder? No.** Each browser tab has ONE voice session (`sessionStorage["lew42-voice-session"]`). Its whole record is ONE file, `ai/v-<id>.jsonl`, inside the folder of the page (or card) where you said the first sentence; every other folder it visits gets a presence line in its own `ai/log.jsonl`. There are 36 such files in the repo today, for example `/framework/ux/Dictate/ai/`. Agent sessions are different: those get dated folders under `/framework/ai/sessions/`.
++
++---
++
++## Why it jumps today (ask 3)
++
++In live mode the words you are saying grow in a **separate draft bubble** at the bottom. When the sentence is sent, `speak()` redraws the same words **inside the bubble above** (they merge as one paragraph), and the draft bubble does not vanish: it fades to a "sent" copy that stays up to 15 seconds, because the server's echo of your line only renames the piece and never removes the copy. So you see the words twice, then the copy drops out and everything below shifts. A second jump follows 1.5 to 3 s later, when the fast assistant's `(new paragraph)` moves the text into a new bubble. **The fix (slice b, done):** the draft is drawn as the last piece of the bubble it will join, and swapped for the settled piece in the same step, so the words never move. The second jump goes away when the voice assistant places sentences only when sure (`same` by default).
++
++---
++
++## Alternatives rejected, one line each
++
++- **Keep a fast and a smart assistant:** the owner dropped it; the fast one mostly said "listening".
++- **Fold the smart assistant in now too:** it loads a 44k-token context and spawns masterminds, which would slow every placement; it stays until the voice assistant proves itself.
++- **A rule-only placer, no model:** kept as the fallback, but it cannot tell a new topic from a continuation.
++- **A new placement tool:** the item tool already writes the line, so a second tool would be a second version.
++- **Placements in page.jsonl:** the sentences live in the session file; one file keeps one stream and one order.
++- **Dot paths or file paths for the delta:** settled already by the item tool (nested object, dot keys expand to it).
++
++---
++
++## The slices
++
++- ✅ **a.** The `voice-assistant` row in `roles.js` and its skill; the fast rows marked retired, not deleted.
++- ✅ **b.** A sentence settles in place in the bubble: the draft is the last piece of the bubble it joins, and the settled piece takes its exact spot (measured: same top, same bubble count, no faded copy). Every chat surface now writes your words into the bubble (`Widget.MODES.dictate`), unless the mic's gear says "into: box".
++- ✅ **c.** `{place}` lines applied by the chat (`Widget.Thread.place()`, routed by `chat.js`), default `same`.
++- **Proof:** `node ux/Dictate/test/in-place.mjs <site>` (fake mic, no agents), all checks pass at 400 and 1200.
++- ⬜ **Next brief (Servex, needs a restart):** `Sessions.js` wakes the voice assistant in the fast seat with the whole prompt plus the sentence ([brief](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/voice-assistant-plan/sessions-brief.md)).
++- ⬜ **Then:** raw versus refined look and the context card that swallows raw lines into its summary (ask 5). Half of it exists: a `{refined}` line already replaces a bubble's raw paragraphs with sections, and a click shows the raw words (`ext/Chat/Chat.js`, `refine()`).
+diff --git a/public/framework/ux/Dictate/readme.md b/public/framework/ux/Dictate/readme.md
+index 71ced4ebd..068262054 100644
+--- a/public/framework/ux/Dictate/readme.md
++++ b/public/framework/ux/Dictate/readme.md
+@@ -2,6 +2,8 @@
+ 
+ **Every voice and chat surface, one page** (screenshots, who answers, the flow, the 30-second first reply): [`surfaces/`](./surfaces/) · [long form](doc/surfaces.md).
+ 
++**The voice assistant** (one assistant places each sentence as you talk: same paragraph, own paragraph, own card; the plan and why the chat jumps): [`doc/voice-assistant.md`](doc/voice-assistant.md).
++
+ **Talking to the mastermind from the Claude app's voice mode** (why not a browser bridge; a connector instead): [`doc/voice-bridge.md`](doc/voice-bridge.md).
+ 
+ State = which engine is listening and what it has heard so far, remembered between
+diff --git a/public/framework/ux/Dictate/test/in-place.mjs b/public/framework/ux/Dictate/test/in-place.mjs
+new file mode 100644
+index 000000000..cf583713a
+--- /dev/null
++++ b/public/framework/ux/Dictate/test/in-place.mjs
+@@ -0,0 +1,88 @@
++// Proof for the voice assistant plan (doc/voice-assistant.md), slices b and c. Headless only, never the owner's tabs.
++//   PWENTRY=<playwright/index.mjs> node public/framework/ux/Dictate/test/in-place.mjs <base-url> [shots dir]
++// b. Fake mic (jfk.wav) into a bare Widget (no Servex, no agents): the words grow inside the bubble, and when the sentence
++//    is sent the settled text sits exactly where the draft was (same top, no extra bubble, no faded copy).
++// c. The fixture session file's lines are drawn, then {place} lines: same = nothing, paragraph = split, card = a card.
++//    Coverage: every owner sentence appears exactly once in the thread.
++import { pathToFileURL } from "url";
++import fs from "fs";
++
++const [base = "http://monorepo.localhost", shots] = process.argv.slice(2);
++const wav = process.env.WAV ?? new URL("../../../ai/recordings/jfk.wav", import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1");
++const fixture = new URL("../../../ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/voice-assistant-plan/fixture/v-fixture.jsonl", import.meta.url);
++const lines = fs.readFileSync(fixture, "utf8").trim().split("\n").map(l => JSON.parse(l)).filter(l => l.chat);
++const { chromium } = await import(pathToFileURL(process.env.PWENTRY).href);
++const browser = await chromium.launch({ args: ["--use-fake-ui-for-media-stream", "--use-fake-device-for-media-stream", `--use-file-for-fake-audio-capture=${wav}`] });
++const kill = setTimeout(() => { console.log("FAIL killed after 200 s"); process.exit(2); }, 200000);
++let failed = 0;
++const check = (ok, msg) => { console.log(ok ? "ok  " : "FAIL", msg); if (!ok) failed++; };
++
++for (const width of [400, 1200]){
++	const ctx = await browser.newContext({ viewport: { width, height: 900 }, permissions: ["microphone"] });
++	const page = await ctx.newPage();
++	const errors = [];
++	page.on("pageerror", e => errors.push(String(e).slice(0, 200)));
++	await page.goto(base + "/framework/start/", { waitUntil: "domcontentloaded" }).catch(() => {});
++	await page.evaluate(async () => {
++		document.body.innerHTML = '<div id="box" style="max-width:40em;margin:1em auto"></div>';
++		const { View } = await import("/framework/core/View/View.js");
++		const { default: Widget } = await import("/framework/ux/Dictate/Widget.js");
++		window.sent = [];
++		new View({ el: document.getElementById("box"), capture: false }).append(() => {
++			window.w = new Widget({ placeholder: "say something", deliver: e => { window.sent.push(e.text); return true; } });
++		});
++		// a first owner sentence already in the thread, so the dictated one joins its bubble
++		window.w.say({ chat: { at: new Date().toISOString(), from: { kind: "owner" }, via: "voice", text: "First, an earlier sentence." } });
++	});
++
++	// b. dictate: watch the draft, then the send
++	await page.locator(".chatbox-mic .ux-dictate-btn, .chatbox-mic button").first().click();
++	let draft = null, after = null;
++	for (let i = 0; i < 160 && !after; i++){
++		await page.waitForTimeout(250);
++		const s = await page.evaluate(() => {
++			const d = document.querySelector(".ux-dictate-draft-piece, .chatbox-draft");
++			const bubbles = document.querySelectorAll(".ux-dictate-widget-bubbles > .chatbox").length;
++			return { draft: d ? { top: Math.round(d.getBoundingClientRect().top), inside: d.classList.contains("ux-dictate-draft-piece"), text: d.textContent } : null,
++				bubbles, sent: window.sent.length, faded: document.querySelectorAll(".chatbox-live-sent").length,
++				last_top: (() => { const ps = document.querySelectorAll(".ux-dictate-widget-bubbles > .chatbox > .chatbox-text"); return ps.length ? Math.round(ps[ps.length - 1].getBoundingClientRect().top) : null; })() };
++		});
++		if (s.draft && !s.sent) draft = s;
++		if (draft && s.sent) after = s;
++		if (i % 20 === 19) console.log("    ", width, i, JSON.stringify(s).slice(0, 160));
++	}
++	if (shots) await page.screenshot({ path: `${shots}/in-place-${width}.png` });
++	check(!!draft, `${width}: the words grew in the chat (draft ${draft?.draft?.inside ? "inside the last bubble" : "in its own bubble"})`);
++	check(!!after, `${width}: the sentence was sent`);
++	if (draft && after){
++		check(draft.draft.inside, `${width}: the draft is the last piece of the bubble it joins`);
++		check(after.bubbles === draft.bubbles, `${width}: no extra bubble on send (${draft.bubbles} -> ${after.bubbles})`);
++		check(after.faded === 0, `${width}: no faded copy left behind`);
++		check(Math.abs(after.last_top - draft.draft.top) <= 2, `${width}: the settled words sit where the draft was (top ${draft.draft.top} -> ${after.last_top})`);
++	}
++	await page.locator(".chatbox-mic .ux-dictate-btn, .chatbox-mic button").first().click().catch(() => {});
++
++	// c. the fixture, then placements
++	const out = await page.evaluate(lines => {
++		w.reset();
++		lines.forEach(l => w.say({ chat: l.chat }));
++		const n0 = document.querySelectorAll(".ux-dictate-widget-bubbles > .chatbox").length;
++		w.say({ place: { re: lines[1].chat.at, to: "same" } });
++		const n1 = document.querySelectorAll(".ux-dictate-widget-bubbles > .chatbox").length;
++		w.say({ place: { re: lines[2].chat.at, to: "card", where: "up", title: "Inbox labels" } });
++		const bubbles = [...document.querySelectorAll(".ux-dictate-widget-bubbles > .chatbox")];
++		const text = bubbles.map(b => b.textContent).join(" | ");
++		return { n0, n1, n2: bubbles.length, card: bubbles.filter(b => b.classList.contains("ux-dictate-placed-card")).length, text };
++	}, lines);
++	if (shots) await page.screenshot({ path: `${shots}/placed-${width}.png` });
++	check(out.n0 === 1 && out.n1 === 1, `${width}: three close sentences join one bubble; "same" changes nothing`);
++	check(out.n2 === 2 && out.card === 1, `${width}: "card" moved the third sentence into a card of its own`);
++	const missing = lines.filter(l => out.text.split(l.chat.text).length !== 2);
++	check(!missing.length, `${width}: coverage, every sentence appears exactly once${missing.length ? " (missing: " + missing.map(l => l.chat.text).join("; ") + ")" : ""}`);
++	check(!errors.length, `${width}: no page errors ${errors.join(" ")}`);
++	await ctx.close();
++}
++clearTimeout(kill);
++await browser.close();
++console.log(failed ? `${failed} failed` : "all passed");
++process.exit(failed ? 1 : 0);

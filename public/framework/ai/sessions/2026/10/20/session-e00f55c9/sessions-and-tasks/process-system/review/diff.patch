@@ -1,0 +1,867 @@
+diff --git a/.claude/hooks/jsonl-schema.mjs b/.claude/hooks/jsonl-schema.mjs
+index f223b4d7c..5bdc26b40 100644
+--- a/.claude/hooks/jsonl-schema.mjs
++++ b/.claude/hooks/jsonl-schema.mjs
+@@ -146,7 +146,9 @@ export const schemas = {
+ schemas["session.jsonl"] = { ...schemas["task.jsonl"], what: "a session folder's record (public/framework/ai/sessions/YYYY/MM/DD/<session>/session.jsonl): the task log's lines plus the digest tags",
+ 	verbs: { ...schemas["task.jsonl"].verbs, tag: { type: "string", eg: "kind/agent" },
+ 		// a task is a line in its session's log (sessions-and-tasks.md, "The decided shape")
+-		task: { fields: ["title"], eg: { at: "NOW", title: "what the task is", state: "open" } } }, pending: [...(schemas["task.jsonl"].pending ?? []), "tag", "task"] };   // tag lines: read by AISession.record(), not by the task reader
++		task: { fields: ["title"], eg: { at: "NOW", title: "what the task is", state: "open" } },
++		// the session's own settings, one changed key per line, later lines win (core/Session/Session.js SETTINGS; the settings page writes it)
++		settings: { fields: [], eg: { model: "claude-sonnet-5-5" } } }, pending: [...(schemas["task.jsonl"].pending ?? []), "tag", "task"] };   // tag lines: read by AISession.record(), not by the task reader
+ 
+ /* Servex's `append_log` writes its OWN named logs (under SERVEX_HOME, never a repo file), and
+  * every one of those is an event: one flat object with a string `type`. */
+diff --git a/Servex/Servex.js b/Servex/Servex.js
+index 2c05d1d51..53c306dee 100644
+--- a/Servex/Servex.js
++++ b/Servex/Servex.js
+@@ -16,6 +16,7 @@ import Worktrees from "./Worktrees.js";
+ import TaskLoop from "./TaskLoop.js";
+ import { hooks as page_tool_hooks } from "./agents/page_tools.js";
+ import ProcessRunner from "./ProcessRunner.js";
++import Respawn from "./agents/Respawn.js";
+ import { check_page, cap } from "../Server/BrowserCheck.mjs";
+ import { pid as browser_pid } from "../Server/Browser.mjs";
+ import Heartbeat from "./Heartbeat.js";
+@@ -283,7 +284,15 @@ export default class Servex extends Events {
+          * Doc: public/framework/core/Task/doc/process.md. */
+         this.process_runner = new ProcessRunner({ servex: this, root: REPO });
+         page_tool_hooks.changed = file => this.process_runner.step(file);
++        /* FRESH ONCE A DAY (the owner, 2026-10-22): the standing system architect gets a new session when its own is a day old and
++         * it is not busy; same id, one respawn line in its task log. SERVEX_NO_RESPAWN=1 turns it off. Doc: agents/doc/lifecycle.md. */
++        if (!process.env.SERVEX_NO_RESPAWN) this.respawn = new Respawn({ servex: this, root: REPO });
+         if (!process.env.SERVEX_NO_TASKLOOP) setImmediate(() => this.process_runner.tick().catch(() => {}));
++        /* REQUESTS ARE LOGGED ITEMS (the owner, 2026-10-22: logs over chat): a task added to another agent's task is a request; its
++         * receiver hears once, and the asker hears the outcome when it completes. Doc: Servex/agents/doc/messaging.md. */
++        const notice = (to, text, from) => { if (!to || to === "owner") return; try { this.agents.send(to, text, { from: from ?? "servex" }); } catch {} };
++        page_tool_hooks.requested = r => notice(r.to, `Request from ${r.from}: "${r.title}", logged at ${r.path}. Answer on the item when it is done: item({path: "${r.path}", delta: ${r.own_folder ? `{"complete": {"outcome": "…"}}` : `{"${r.id}": {"complete": {"outcome": "…"}}}`}}). ${r.from} hears the outcome then.`, r.from);
++        page_tool_hooks.answered = r => notice(r.to, `${r.by} answered your request "${r.title}" (${r.path}): ${r.outcome ?? "done, no outcome given"}`, r.by);
+ 
+         /* THE ASKS LEDGER (asks-ledger, 2026-09-30): notices when a routed ask's owner agent
+          * stops, goes quiet, or lands its task, and marks public/framework/ai/asks.jsonl so
+diff --git a/Servex/TaskLoop.js b/Servex/TaskLoop.js
+index 60a4eb7c4..4bccadfb7 100644
+--- a/Servex/TaskLoop.js
++++ b/Servex/TaskLoop.js
+@@ -86,6 +86,7 @@ export default class TaskLoop {
+             this.handover_daily();
+             this.undone_asks_daily();
+             await this.servex.process_runner?.tick().catch(() => {});   // every process moves on, or resumes after a restart (ProcessRunner)
++            await this.servex.respawn?.tick().catch(() => {});   // a standing agent a day old and not busy gets a fresh session (agents/Respawn.js)
+             const now = Date.now(), registry = this.servex.agents.registry_list();
+             let open = 0, quiet = 0, escalations = 0;
+ 
+diff --git a/Servex/agents/Respawn.js b/Servex/agents/Respawn.js
+new file mode 100644
+index 000000000..744a74e6c
+--- /dev/null
++++ b/Servex/agents/Respawn.js
+@@ -0,0 +1,69 @@
++import fs from "node:fs";
++import path from "node:path";
++import { stamp } from "../home.js";
++
++/* RESPAWN: a long-running agent is replaced by a fresh session about once a day, so its context stays small (the owner, 2026-10-22:
++ * "respawn it fresh about once a day ... findable by that id and by its task folder and log"). Same id, so messages, process
++ * creators and requests still reach it; a new session; one `respawn` line in its task log names the session it replaces.
++ * Never mid-task: only when the agent is not working, nothing it spawned is working, and nothing waits in its queue.
++ * Run by the TaskLoop tick (Servex/TaskLoop.js). Doc: Servex/agents/doc/lifecycle.md, "Fresh once a day". */
++export default class Respawn {
++
++	// Who is kept fresh. `task` is the folder whose log holds every session of it (repo-relative).
++	static AGENTS = [{
++		id: "mastermind-system-architect", role: "mastermind", model: "claude-opus-5-5", effort: "high",
++		task: "public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system",
++		title: "Standing system architect",
++	}];
++
++	constructor(...args){ Object.assign(this, ...args); this.hours ??= Number(process.env.SERVEX_RESPAWN_HOURS) || 24; this.root ??= process.cwd(); }
++
++	// The task folder's log: session.jsonl for a task a session opened, else task.jsonl.
++	log_file(dir){
++		const abs = path.resolve(this.root, dir);
++		return ["session.jsonl", "task.jsonl"].map(f => path.join(abs, f)).find(f => fs.existsSync(f)) ?? path.join(abs, "session.jsonl");
++	}
++
++	get agents(){ return this.servex?.agents; }
++
++	async tick(now = Date.now()){
++		const out = [];
++		for (const def of this.constructor.AGENTS) try { const r = this.check(def, now); if (r) out.push(r); } catch (e){ this.servex?.say?.(`respawn: ${def.id}: ${e.message || e}`); }
++		return out;
++	}
++
++	// Why not now, or null when it may be replaced.
++	held(def, now){
++		const live = this.agents.live.get(def.id), row = this.agents.reg().read()[def.id];
++		if (!live && !row) return "never spawned";   // spawning the first one is a mastermind's call (mastermind role readme)
++		const state = live?.state ?? row.state;
++		if (state === "stopped" || row?.stopped_by) return "stopped on purpose";
++		if (state === "working" || state === "starting") return "working";
++		if (live?.queue?.items?.length) return "messages queued";
++		if ([...this.agents.live.values()].some(a => a.parent === def.id && a.state === "working")) return "a child is working";
++		const born = Date.parse(live?.started_at ?? row?.started_at ?? "") || now;
++		if (now - born < this.hours * 3600e3) return "younger than a day";
++		return null;
++	}
++
++	check(def, now){
++		if (this.held(def, now)) return null;
++		const old = this.agents.live.get(def.id) ?? this.agents.reg().read()[def.id];
++		const before = old?.session_id ?? null;
++		try { this.agents.stop(def.id, { by: "respawn" }); } catch {}
++		// stop() marks the row stopped_by; a fresh spawn under the same id writes a new row over it.
++		const url = "/" + def.task.replace(/^public\//, "") + "/";
++		const agent = this.agents.spawn({
++			id: def.id, role: def.role, model: def.model, effort: def.effort, permission_mode: "bypassPermissions",
++			task: { dir: def.task, title: def.title },
++			prompt: `You are the fresh daily session of ${def.id}, replacing session ${before ?? "(unknown)"} so your context starts small. ` +
++				`Your role is in Servex/agents/roles/mastermind.md, "A standing system architect". Your record is the task log at ${url}: ` +
++				`read its open child tasks with item({path: "${url}"}) and its last log lines, then the maps (public/framework/ai/doc/readme.md, "Maps"). ` +
++				`Do not redo finished work; answer requests as they arrive.`,
++		});
++		const tl = this.servex?.task_loop;
++		if (tl?.write_line) tl.write_line(this.log_file(def.task), { log: { respawn: { agent: def.id, session: agent.session_id ?? null, replaces: before, at: stamp() } } });
++		this.servex?.say?.(`respawn: ${def.id} is a fresh session (replaces ${before})`, { event: "respawn" });
++		return { id: def.id, session: agent.session_id ?? null, replaces: before };
++	}
++}
+diff --git a/Servex/agents/doc/lifecycle.md b/Servex/agents/doc/lifecycle.md
+index 56b9f4e78..b8ff6a04b 100644
+--- a/Servex/agents/doc/lifecycle.md
++++ b/Servex/agents/doc/lifecycle.md
+@@ -15,3 +15,13 @@ The only automatic `/compact` left is `Agent.oversized()`: a safety ceiling of `
+ Logged: `compact_nudge {context, cache}` and `compacting` (events), then `compact` (`before`/`after` tokens). Test: `agents/compact-nudge.test.mjs`. Why: [agents/doc/owner-2026-10-16-compaction.md](../agents/doc/owner-2026-10-16-compaction.md). Alternative not taken: no compaction, or restart fresh with a summary (loses the session id and cache).
+ 
+ A running Servex needs `node Servex/sustain.mjs --restart` to load this.
++
++## Fresh once a day (the owner, 2026-10-22)
++
++**The compaction policy for long-running agents, as it stands:** never mid-task. Node nudges an idle agent with its context size, and the agent decides whether to compact (above). The only forced `/compact` is the 400k safety ceiling, and it runs at a turn's end. On top of that, a standing agent gets a **fresh session about once a day**, so its context starts small instead of being compacted again and again.
++
++- **Who:** `Respawn.AGENTS` in `Servex/agents/Respawn.js`. Today that is only `mastermind-system-architect`; its record is the process-system task folder.
++- **When:** the TaskLoop tick (every 5 minutes) checks each one. Its session must be 24 hours old or more (`SERVEX_RESPAWN_HOURS`). It must not be working, nothing it spawned may be working, and nothing may wait in its queue. One stopped on purpose stays stopped, and one never spawned is not spawned here.
++- **How:** stop the old session, then spawn a fresh one under the **same id**. Messages, the processes it created and the requests addressed to it still reach it. Its first prompt names the session it replaces and points at its task log and the maps.
++- **Findable:** one `{"log": {"respawn": {agent, session, replaces}}}` line in its task log links each session to the one before. The spawn's own assign line in the same log carries the new session id.
++- Off: `SERVEX_NO_RESPAWN=1`. Test: `node Servex/agents/respawn.test.mjs`.
+diff --git a/Servex/agents/doc/messaging.md b/Servex/agents/doc/messaging.md
+index a6ffd524d..cd07bed77 100644
+--- a/Servex/agents/doc/messaging.md
++++ b/Servex/agents/doc/messaging.md
+@@ -28,6 +28,17 @@ Decision `d-how-does-a-spawned-agent` (written by `Server/Decide.mjs` into [the
+ 
+ Alternatives considered: (A) the same follow without the 60-second window or the cleanup: every log burst wakes the parent for a paid turn, and dead logs stay watched. (B) keep chat first and mirror it to the log: the report still lives mainly in a context window, and two copies drift.
+ 
++## Requests are logged items (the owner, 2026-10-22: logs over chat)
++
++A request that matters is a task on the receiver's own log, not a chat message. Then it shows in every view and can be queried later.
++
++- **To ask:** add a task to the receiver's task or session: `item({path: <its task folder>, delta: {tasks: {add: {title: "<the ask>"}}}})`. Node stamps `from: <you>` on it. The item tool's `hooks.requested` then sends the receiver one line: the ask, the path, and the exact line that answers it.
++- **To answer:** complete it on the item: `item({path, delta: {"<id>": {"complete": {"outcome": "<the answer>"}}}})`. If you need something first, use `wait` on the same item.
++- **The asker hears the answer.** When a task with a `from` completes, `hooks.answered` sends the asker the outcome in one line.
++- **Which adds count as requests:** an add counts when the caller is not the log's own agent (the task's `agent`). Tasks an agent adds to its own log are not requests.
++- **Where it is built:** `notify_requests` in `Servex/agents/page_tools.js`; the two hooks are wired in `Servex.js`. Test: `node Servex/agents/requests.test.mjs`.
++- **Still chat:** a quick clarification. Its answer also goes into the doc it belongs in (mastermind role readme, "A quick question is a documentation gap").
++
+ ## Across platforms (2026-10-20)
+ 
+ The same rule holds when the agents run in different places: a Servex agent, a VS Code tab, and a cloud voice agent in the Claude app.
+diff --git a/Servex/agents/page_tools.js b/Servex/agents/page_tools.js
+index 5c707f17c..9205364d2 100644
+--- a/Servex/agents/page_tools.js
++++ b/Servex/agents/page_tools.js
+@@ -529,6 +529,25 @@ export async function move_home(file, module, by = "ProcessRunner"){
+ 	return { from, to, file: nf };
+ }
+ 
++/* Requests are logged items (Servex/agents/doc/messaging.md). After a write: each new request goes to its receiver, and each
++ * request this write completed goes back to whoever asked (`from`), with its outcome. A completion is a `complete` line on a nested
++ * child ({"<id>": {"complete": …}}, or a target of [<id>]), or on a request that has its own folder (the file's own root). */
++function notify_requests(live, at, body, requests, by){
++	for (const r of requests) if (hooks.requested) Promise.resolve(hooks.requested(r)).catch(() => {});
++	if (!hooks.answered) return;
++	const done = [];
++	if (at.target.length === 1 && body.complete !== undefined) done.push(live._tasks?.find(at.target[0]));
++	else if (!at.target.length){
++		if (body.complete !== undefined) done.push(live);
++		for (const [k, v] of Object.entries(body)) if (is_plain(v) && v.complete !== undefined) done.push(live._tasks?.find(k));
++	}
++	for (const t of done){
++		const from = t?.get_one("from");
++		if (!from || from === by || t.state !== "complete") continue;
++		Promise.resolve(hooks.answered({ to: from, by, id: t.id, title: t.get_one("title") ?? t.id, outcome: t.get_one("outcome") ?? null, path: t === live ? (live.get_one("path") ?? app_path(path.dirname(at.file))) : app_path(path.dirname(at.file)) })).catch(() => {});
++	}
++}
++
+ // Node's resolver for Task.from_ref: an app path -> that folder's parsed task.jsonl, or null. While a root is being replayed, `collect` gathers every child file it read.
+ let collect = null;
+ const sig = file => { try { const st = fs.statSync(file); return `${st.size}:${st.mtimeMs}`; } catch { return "none"; } };
+@@ -620,7 +639,7 @@ async function give_folder(root, at, ids, ctx){
+ }
+ 
+ /* templates.md: Servex sets this to `file => task_loop.launch(file)`; run_item calls it right after an `approve` line lands. */
+-export const hooks = { approved: null, changed: null };   // changed: Servex sets it to `file => process_runner.step(file)` (a process moves on after any write)
++export const hooks = { approved: null, changed: null, requested: null, answered: null };   // requested/answered: Servex sends the one-line notices (Servex/agents/doc/messaging.md, "Requests are logged items")   // changed: Servex sets it to `file => process_runner.step(file)` (a process moves on after any write)
+ 
+ export async function run_item({ path: url, target, delta } = {}, ctx = {}, alias = false){
+ 	url ??= own_page(ctx);
+@@ -659,7 +678,7 @@ export async function run_item({ path: url, target, delta } = {}, ctx = {}, alia
+ 	const made = pages === undefined ? null : apply_pages(at, pages, url);
+ 	if (made?.why) return { ok: false, why: made.why, done: made.done };
+ 
+-	const ids = [], homes = [], by = ctx.caller ?? "agent";
++	const ids = [], homes = [], requests = [], by = ctx.caller ?? "agent";
+ 	let line = null, size;
+ 	// Every write to a Task/Session goes through here: append the line, then advance the live root with it.
+ 	const put = (l, own = true) => { const live = Class?.replay ? root() : null; size = write_line(at.file, l, own); if (live) advance(live, l); line = l; };   // root BEFORE the write: after it the file's size differs and root() would re-read
+@@ -667,6 +686,9 @@ export async function run_item({ path: url, target, delta } = {}, ctx = {}, alia
+ 	let body = pages === undefined && folder === undefined ? flat : rest;
+ 	if (Class?.replay && !at.target.length && is_plain(body.tasks) && body.tasks.add !== undefined){
+ 		const { add, ...others } = body.tasks;
++		// A REQUEST (the owner, 2026-10-22: logs over chat): a task added to another agent's task is a request to that agent. Node stamps
++		// `from` on it, tells the receiver once, and tells the sender when it completes (hooks.requested / hooks.answered, below).
++		const owner_agent = root().get_one("agent"), asker = ctx.caller && ctx.caller !== owner_agent && owner_agent ? ctx.caller : null;
+ 		// Check everything first: a refused slug writes nothing at all.
+ 		const plan = [];
+ 		for (const a of [].concat(add)){
+@@ -677,12 +699,13 @@ export async function run_item({ path: url, target, delta } = {}, ctx = {}, alia
+ 			const id = home ? null : slug_of(a.id ?? a.title);
+ 			if (id && (root()._tasks?.find(id) || plan.some(p => p.id === id)))
+ 				return { ok: false, why: `this task already has a subtask "${id}"; nothing was written. Use the id "${id}-2" (or a different title), or change the existing one.`, suggest: id + "-2" };
+-			plan.push({ a, home, id });
++			plan.push({ a: asker && a.from === undefined ? { ...a, from: asker } : a, home, id });
+ 		}
+ 		for (const { a, home, id } of plan){
+ 			if (home){
+ 				const h = home.process ? make_process(path.dirname(at.file), a, ctx, home) : make_child(path.dirname(at.file), a, ctx, home);
+ 				homes.push(h); ids.push(h.id);
++				if (asker) requests.push({ to: owner_agent, from: asker, id: h.id, title: a.title ?? h.id, path: h.path, own_folder: true });
+ 				put({ task: h.path, by, ts: now() });
+ 				await record_new_folder(path.dirname(home.dir), home.slug);
+ 				// Step 16: the caller's own log gets the same reference (never the parent twice, never an error).
+@@ -691,6 +714,7 @@ export async function run_item({ path: url, target, delta } = {}, ctx = {}, alia
+ 				// A subtask nests in this file: {"tasks":{"add":{…}}}, no folder.
+ 				const { type: _t, data, ...fields } = a;
+ 				ids.push(id);
++				if (asker) requests.push({ to: owner_agent, from: asker, id, title: a.title ?? id, path: app_path(path.dirname(at.file)) });
+ 				put({ tasks: { add: { type: "Task", ...data, ...stamp_ids(fields, ids), id } }, by, ts: now() });
+ 			}
+ 		}
+@@ -710,6 +734,7 @@ export async function run_item({ path: url, target, delta } = {}, ctx = {}, alia
+ 	if (Class?.replay && !at.target.length && body.approve !== undefined && hooks.approved) try { Promise.resolve(hooks.approved(at.file)).catch(() => {}); } catch {}
+ 	// A process moves on after any write to it, and a new one starts at once (ProcessRunner.step).
+ 	if (hooks.changed) for (const f of [...(kind === "Process" ? [at.file] : []), ...homes.filter(h => h.process).map(h => h.file)]) try { Promise.resolve(hooks.changed(f)).catch(() => {}); } catch {}
++	if (Class?.replay) try { notify_requests(root(), at, body, requests, by); } catch {}
+ 	// Node records who worked on the task: one appended line carrying the full list, only when the caller is new to it.
+ 	if (Class?.replay && Class.FIELDS?.includes("sessions") && ctx.caller && ctx.caller !== "owner") try {
+ 		const live = root(), list = live.sessions;
+diff --git a/Servex/agents/requests.test.mjs b/Servex/agents/requests.test.mjs
+new file mode 100644
+index 000000000..ff9783f6f
+--- /dev/null
++++ b/Servex/agents/requests.test.mjs
+@@ -0,0 +1,44 @@
++// Requests are logged items: a task added to another agent's task is a request; the receiver hears once, the asker hears the outcome.
++// `node Servex/agents/requests.test.mjs`. Doc: Servex/agents/doc/messaging.md, "Requests are logged items".
++import assert from "node:assert";
++import fs from "node:fs";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++import { run_item, hooks } from "./page_tools.js";
++import Task from "../../public/framework/core/Task/Task.js";
++
++const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
++const REL = "public/framework/ai/sessions/2026/10/22/.requests-test-" + process.pid;
++const DIR = path.join(ROOT, REL), FILE = path.join(DIR, "task.jsonl"), URL = "/" + REL.slice("public/".length) + "/";
++const read = f => fs.readFileSync(f, "utf8").trim().split("\n").map(l => JSON.parse(l));
++let n = 0;
++const ok = (c, m) => { assert.ok(c, m); n++; console.log("ok", m); };
++const asked = [], answered = [];
++hooks.requested = r => asked.push(r);
++hooks.answered = r => answered.push(r);
++const item = (delta, caller) => run_item({ path: URL, delta }, { caller });
++const tick = () => new Promise(r => setTimeout(r, 10));
++
++fs.mkdirSync(DIR, { recursive: true });
++fs.writeFileSync(FILE, JSON.stringify({ assign: { agent: "architect", title: "Process system" } }) + "\n");
++try {
++	await item({ tasks: { add: { title: "Answer a design question" } } }, "vscode-mastermind"); await tick();
++	ok(asked.length === 1 && asked[0].to === "architect" && asked[0].from === "vscode-mastermind" && asked[0].id === "answer-a-design-question", "a task another agent adds is a request: the receiver hears once");
++	ok(read(FILE).find(l => l.tasks?.add)?.tasks.add.from === "vscode-mastermind", "node stamps `from` on the logged item");
++
++	await item({ tasks: { add: { title: "My own note" } } }, "architect"); await tick();
++	ok(asked.length === 1, "a task the owner of the log adds itself is not a request");
++
++	await item({ "answer-a-design-question": { complete: { outcome: "yes, instantiate on the server" } } }, "architect"); await tick();
++	ok(answered.length === 1 && answered[0].to === "vscode-mastermind" && answered[0].outcome === "yes, instantiate on the server", "completing it tells the asker the outcome");
++
++	await item({ "my-own-note": { complete: { outcome: "done" } } }, "architect"); await tick();
++	ok(answered.length === 1, "completing a task nobody asked for tells nobody");
++
++	const t = Task.replay(read(FILE))._tasks.find("answer-a-design-question");
++	ok(t.state === "complete" && t.get_one("from") === "vscode-mastermind", "the record keeps who asked and the answer, for any view to query");
++} finally {
++	fs.rmSync(DIR, { recursive: true, force: true });
++}
++console.log(`${n} passing`);
++process.exit(0);
+diff --git a/Servex/agents/respawn.test.mjs b/Servex/agents/respawn.test.mjs
+new file mode 100644
+index 000000000..25e9f9de6
+--- /dev/null
++++ b/Servex/agents/respawn.test.mjs
+@@ -0,0 +1,53 @@
++// A standing agent gets a fresh session once a day, never mid-task. `node Servex/agents/respawn.test.mjs`. Doc: agents/doc/lifecycle.md.
++import assert from "node:assert";
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import Respawn from "./Respawn.js";
++
++let n = 0;
++const ok = (c, m) => { assert.ok(c, m); n++; console.log("ok", m); };
++const DAY = 24 * 3600e3, NOW = Date.parse("2026-10-23T12:00:00Z");
++const dir = fs.mkdtempSync(path.join(os.tmpdir(), "respawn-"));
++fs.writeFileSync(path.join(dir, "session.jsonl"), "{}\n");
++
++// A fake host: one live architect, a registry, spawn/stop recorded.
++function host(agent, extra = []){
++	const live = new Map([[agent.id, agent], ...extra.map(a => [a.id, a])]), rows = { [agent.id]: { ...agent } }, spawned = [], stopped = [], lines = [];
++	return {
++		spawned, stopped, lines,
++		servex: {
++			agents: { live, reg: () => ({ read: () => rows }), stop(id, { by }){ stopped.push({ id, by }); live.get(id).state = "stopped"; }, spawn(spec){ spawned.push(spec); return { id: spec.id, session_id: "new-session" }; } },
++			task_loop: { write_line: (file, line) => lines.push({ file, line }) },
++			say(){},
++		},
++	};
++}
++Respawn.AGENTS = [{ id: "arch", role: "mastermind", model: "claude-opus-5-5", effort: "high", task: dir, title: "Standing architect" }];
++const arch = (o = {}) => ({ id: "arch", state: "idle", session_id: "old-session", started_at: new Date(NOW - 2 * DAY).toISOString(), queue: { items: [] }, ...o });
++
++try {
++	let h = host(arch({ started_at: new Date(NOW - 3600e3).toISOString() }));
++	ok(!(await new Respawn({ servex: h.servex }).tick(NOW)).length && !h.spawned.length, "an hour-old session is left alone");
++
++	h = host(arch({ state: "working" }));
++	ok(!(await new Respawn({ servex: h.servex }).tick(NOW)).length, "a working one is never replaced (never mid-task)");
++
++	h = host(arch(), [{ id: "kid", parent: "arch", state: "working" }]);
++	ok(!(await new Respawn({ servex: h.servex }).tick(NOW)).length, "nor while something it spawned is working");
++
++	h = host(arch({ queue: { items: [1] } }));
++	ok(!(await new Respawn({ servex: h.servex }).tick(NOW)).length, "nor while a message waits in its queue");
++
++	h = host(arch());
++	const out = await new Respawn({ servex: h.servex }).tick(NOW);
++	ok(out.length === 1 && h.stopped[0]?.id === "arch" && h.spawned[0]?.id === "arch" && h.spawned[0].model === "claude-opus-5-5", "a day-old idle one is stopped and spawned fresh under the same id");
++	ok(h.spawned[0].prompt.includes("old-session") && h.spawned[0].task.dir === dir, "the fresh session is told the session it replaces and opens the same task folder");
++	ok(h.lines[0]?.file === path.join(dir, "session.jsonl") && h.lines[0].line.log.respawn.replaces === "old-session" && h.lines[0].line.log.respawn.session === "new-session", "one respawn line in the task log links the two sessions");
++
++	h = host(arch({ state: "stopped" }));
++	ok(!(await new Respawn({ servex: h.servex }).tick(NOW)).length, "one stopped on purpose stays stopped");
++} finally {
++	fs.rmSync(dir, { recursive: true, force: true });
++}
++console.log(`${n} passing`);
+diff --git a/Servex/agents/roles/mastermind.md b/Servex/agents/roles/mastermind.md
+index 58c1c8cae..ad1f2f09c 100644
+--- a/Servex/agents/roles/mastermind.md
++++ b/Servex/agents/roles/mastermind.md
+@@ -191,7 +191,7 @@ When your work touches another mastermind's directory, you should propose the ch
+ 
+ ## A standing system architect, and logs over chat (the owner, 2026-10-22)
+ 
+-- **You are not the system architect.** One Opus mastermind, `mastermind-system-architect`, holds the whole AI system (Servex, `ai/`, tasks, sessions, items, pages) and keeps its docs current. If none is running, spawn one; respawn it fresh about once a day so its context stays small, and let it find its predecessor by that id and by its task folder (`ai/sessions/.../process-system/`) and log. Send it system questions instead of studying the system yourself.
++- **You are not the system architect.** One Opus mastermind, `mastermind-system-architect`, holds the whole AI system (Servex, `ai/`, tasks, sessions, items, pages) and keeps its docs current. If none is running, spawn one; Servex respawns it fresh about once a day so its context stays small (`agents/Respawn.js`, never mid-task), and let it find its predecessor by that id and by its task folder (`ai/sessions/.../process-system/`) and log. Send it system questions instead of studying the system yourself.
+ - **Log, don't chat, between agents.** `send_to_agent` is fine for a quick nudge, but it is not a record. A request that matters is a logged item (a task or note in the right JSONL, through the `item` tool) that the other agent watches and answers in place, so it shows in the views and can be queried later.
+ - **In autonomous mode you approve the plans.** When the owner says to work on your own, approve, launch and finish the work yourself; bring merges and anything risky to ready-to-merge for the owner.
+ - **A quick question is a documentation gap.** When an agent has to ask another agent something, the answer also goes into the readme or doc it belongs in, so the next agent need not ask.
+diff --git a/Servex/readme.md b/Servex/readme.md
+index 522ad0e06..cebd348cc 100644
+--- a/Servex/readme.md
++++ b/Servex/readme.md
+@@ -25,6 +25,7 @@ class Servex {
+   dispatcher: Dispatcher          // agents/Dispatcher.js — routes a prompt to the right agent
+   task_loop: TaskLoop             // TaskLoop.js — runs Server/AIIndex.mjs --watch, re-prompts stalled task steps (doc/steps.md)
+   process_runner: ProcessRunner   // ProcessRunner.js — runs a work process's phases in order (public/framework/core/Task/doc/process.md)
++  respawn: Respawn                // agents/Respawn.js — the standing system architect gets a fresh session once a day, never mid-task (agents/doc/lifecycle.md)
+   heartbeat: Heartbeat            // Heartbeat.js — status check → triage → escalate
+   lifecycle: Lifecycle            // Lifecycle.js — reaps finished or stuck agents
+   pool: Pool, worktrees: Worktrees, fixer: Fixer   // the quick-fix pool and per-task worktrees
+diff --git a/public/framework/ai/AISession/AISessionDetail.js b/public/framework/ai/AISession/AISessionDetail.js
+index 747158692..2b6231f87 100644
+--- a/public/framework/ai/AISession/AISessionDetail.js
++++ b/public/framework/ai/AISession/AISessionDetail.js
+@@ -13,6 +13,8 @@ import JSONL from "/framework/ext/JSONL/JSONL.js";
+ import VoiceFlow from "/framework/ext/Refine/stages/VoiceFlow.js";
+ import Item from "/framework/core/Item/Item.js";
+ import Property from "/framework/core/Property/Property.js";
++import SessionMenu from "/framework/core/Session/SessionMenu.js";
++import SessionSettings from "/framework/core/Session/SessionSettings.js";
+ import "/framework/core/Page/parts/PageHeading.js";   // the kinds the page tool adds register themselves by import
+ import "/framework/core/Page/parts/PageText.js";
+ import "/framework/core/Page/parts/PageCard.js";
+@@ -111,11 +113,22 @@ export default class AISessionDetail extends Page {
+ 		return `${name}-${session_id.slice(0, 8)}`;
+ 	}
+ 
++	/* THE SESSION MENU (core/Session/doc/menu.md): a button at the right end of the name line, listing AISession.MENU. */
++	head_tools(){ return new SessionMenu({ session: new AISession(this.id), url: this.url, page: this }).draw(); }
++	// The session's record, session.jsonl, beside its page.jsonl in the same folder.
++	async record_url(){ const [own] = await this.log_urls(); return own ? own.replace(/page\.jsonl$/, "session.jsonl") : null; }
++	async open_log(){ const url = await this.record_url(); if (url) window.open(url, "_blank"); }
++	copy_link(){ return navigator.clipboard?.writeText(new URL(this.url, location.href).href); }
++
+ 	log_loaded(){ return this._log_loaded ??= this.log_urls().then(urls => Promise.all(urls.map(url => new AISessionDetail.Log({ url, page: this }).load()))); }
+ 
+ 	/* A subpage made by the page tool (`pages.add`) is a folder inside the session's own folder; the log's
+ 	   `file` lines say which (SessionPageLog.read → sub_dirs). It is read from there and shown at this route. */
+ 	async child(name, levels){
++		if (name === "settings" && !this.children.get(name)){   // the session menu's first entry (core/Session/doc/menu.md)
++			const file = await this.record_url();
++			if (file) return this.add(name, new SessionSettings({ file, session_class: AISession, url: this.url + name + "/" }));
++		}
+ 		await this.log_loaded();
+ 		const dir = this.sub_dirs?.get(name);
+ 		if (dir && !(this.children.get(name) instanceof Page)){
+diff --git a/public/framework/core/Item/doc/one-stream.md b/public/framework/core/Item/doc/one-stream.md
+new file mode 100644
+index 000000000..339f5a406
+--- /dev/null
++++ b/public/framework/core/Item/doc/one-stream.md
+@@ -0,0 +1,49 @@
++# One stream for the UI, node and the agents: a design (not built)
++
++**Status: design, 2026-10-22, by the system architect. Building waits:** the owner put the full nested-items work behind sessions, tasks and processes. The owner's words are the last section of [owner-2026-10-21-items-hold-items.md](owner-2026-10-21-items-hold-items.md). The aim is that **a JSONL file is the truth, and everyone who cares about an item in it hears when it changes**: a browser tab, a node class, an agent.
++
++## What exists today: three readers, two processes
++
++| Reader | Where it runs | How it hears a change | What it gets |
++|---|---|---|---|
++| A browser tab | the dev server (`Server/`) | `Server/plugins/SocketServer/Tail.js` keeps a byte offset per file and pushes new lines to every socket subscribed to that file | raw lines; `core/Item/Store.js` replays them into the page's items (`ext/JSONL/live.js`) |
++| An agent | Servex | `Servex/Follow.js` (chokidar) watches the paths it follows; a child's log is gathered over 60 seconds into one message | raw lines, batched |
++| A node class (the item tool, ProcessRunner) | Servex | it does not hear. `live_root` in `Servex/agents/page_tools.js` re-replays the whole file the next time someone asks, when the file's size or time changed. ProcessRunner is woken by the item tool's hook and a 5-minute tick | a live instance, rebuilt on demand |
++
++So the same append is noticed three ways, and a write the item tool did not make (a git pull, `append.mjs`, the browser) reaches node only by a re-read.
++
++## The design
++
++```
++JSONL file  ──append──▶  Tail (one per process: byte offset per file, chokidar)
++                              │ new lines
++                              ▼
++                       Item.Store.for(file)          core/Item/Store.js — the SAME class in browser and node
++                         host: the live instance      replay once, then advance line by line (no re-read)
++                              │ emits "change" on the item each line touched, and on each parent up to the root
++              ┌───────────────┼──────────────────────────┐
++              ▼               ▼                          ▼
++        browser socket   node class (on("change"))   agent subscription (Follow, batched per turn)
++        raw line, as     ProcessRunner, Respawn…     the changed item's CURRENT STATE, as one readable line
++        today
++```
++
++1. **One tail per process, feeding the Store.** Servex's tail (Follow's chokidar watch, made general) hands every new line to `Item.Store.for(file)`. If the Store has a live instance, the line advances it (the `advance()` the item tool already uses after its own writes), so the instance is never stale and never re-replayed.
++2. **Create the instance on first interest, not on every change.** A Store builds its instance the first time something reads or subscribes. A file nobody watches is not replayed. This answers the owner's open question: instantiating first simplifies the code paths, but only for files someone cares about. Thousands of idle session logs stay plain files.
++3. **Granular subscriptions are item events.** Items already emit `change` (Task's `adopt_child` listens to it). To subscribe to `k2` inside a parent's file, or to `k2.answers`, find that item in the instance and listen to it. It does not matter whether the item lives in its own file (a reference, `Task.from_ref`) or nested in its parent's file: the Store owns the file, and the item owns its events. Recursion comes free: a change bubbles up to every parent.
++4. **Agents subscribe through the item tool and get state, not deltas.** A proposed argument: `item({path, follow: true})`, not a delta key, because `watch` is already a Task method. Node then queues one line per changed item at the agent's next turn boundary, batched the way Follow batches today. The line is the item's state at that moment: `"<title>": running → complete, outcome "…" (3 of 5 children done)`. A coordinating agent never has to reassemble raw deltas from many writers.
++5. **Browser and Servex keep their own tail.** They are two processes, and the site is static in production. The shared part is the code (`Store` plus each class's `replay`), not one watcher. Moving the browser's socket into Servex is possible later (Servex already fronts the sites through its proxy), but it is not needed for one stream.
++
++## The owner's other two points
++
++- **Three homes for a task becomes two.** A task is either nested in its parent's file or in its own folder (`<name>/task.jsonl`). The middle step, its own `name.jsonl` beside the parent, buys nothing: once a task leaves its parent, a folder is as cheap and holds its files. Today's item tool already does exactly these two: it nests by default, and `{"folder": id}` or a module home gives a folder. A named list file such as `improvements.jsonl` is a list of items, not one task's home.
++- **Changing an item's class** (a task upgraded to a project) can be a replay rule. A `{"<id>": {"type": "Project"}}` line makes the parent replace that child with `new Project({...its data})`, keeping its children and its place. `Task.replay_line` already swaps a nested child for its own-file version (`{"file": …}` uses `tasks.replace`), so the swap has a precedent. For an item in its own file, line 1's `class` already picks the class (`Task.from_ref`). A class change in its own file is a `{"class": "Project"}` line, read the same way.
++
++## Build order, when it is time
++
++1. Servex's tail feeds `Item.Store` (advance on every append), and the item tool stops re-replaying on change. This is the smallest step, and it makes every node reader current.
++2. ProcessRunner and Respawn listen to `change` instead of being woken by hooks and ticks. The tick stays as the safety net.
++3. `item({path, follow})` for agents, delivering state lines through Follow's batching.
++4. The class-change replay rule, with the task-to-project upgrade in the UI.
++
++Related: [map.md](map.md) (every class, store and writer of items) · [Servex/agents/doc/messaging.md](/Servex/agents/doc/messaging.md) (requests are logged items) · [Servex/doc/follow.md](/Servex/doc/follow.md).
+diff --git a/public/framework/core/Item/doc/owner-2026-10-21-items-hold-items.md b/public/framework/core/Item/doc/owner-2026-10-21-items-hold-items.md
+index 1647e0c2c..f79afd0cd 100644
+--- a/public/framework/core/Item/doc/owner-2026-10-21-items-hold-items.md
++++ b/public/framework/core/Item/doc/owner-2026-10-21-items-hold-items.md
+@@ -28,3 +28,4 @@ A design-first plan: the class sketch (on-demand items, a `Ref` item, `move()`,
+ - **Three homes for a task:** embedded in its parent's JSONL, its own `name.jsonl`, or its own folder (`name/task.jsonl`). The own-file middle step may be pointless: once it leaves the parent, a folder is as cheap. It upgrades when it needs a folder for its files.
+ - **Changing an item's class** (a task upgraded to a project by a `type` delta): can replay re-create the child as the new class? An open architecture question.
+ - **Priority:** the full nested-items project is on the back burner until sessions, tasks and processes work; inter-agent chat is fine for now, structured items when they are ready.
++- **Design answer (the system architect, 2026-10-22):** [one-stream.md](one-stream.md). Create an instance on first interest; subscriptions are item `change` events; agents get state lines through Follow's batching; a task has two homes (nested or its own folder); a class change is a replay rule.
+diff --git a/public/framework/core/Item/readme.md b/public/framework/core/Item/readme.md
+index 721541088..10770ca95 100644
+--- a/public/framework/core/Item/readme.md
++++ b/public/framework/core/Item/readme.md
+@@ -108,3 +108,4 @@ A testing system is a need, not now (2026-10-20). Tests today are plain node fil
+ - `doc/method/*.md`, `doc/property/*.md` — one page per verb and field, each with its trap.
+ - Files that matter: `Item.js` (the class), `Store.js` (persistence, one per file), `page.js` (live assertions), `../List/List.js` (the ordered, announcing collection), `../Page/` (the one Item subclass with a URL).
+ - [doc/map.md](./doc/map.md) — every class, store, tool and writer that makes or saves items.
++- [doc/one-stream.md](./doc/one-stream.md) — one stream for the UI, node and agents: a file's appends advance its live instance, and subscribers hear item changes (a design, not built).
+diff --git a/public/framework/core/Page/Columns.js b/public/framework/core/Page/Columns.js
+index d2ff26792..2d594da84 100644
+--- a/public/framework/core/Page/Columns.js
++++ b/public/framework/core/Page/Columns.js
+@@ -45,6 +45,8 @@ export default class PageColumns {
+ 		return div.c("page-column-body", () => {
+ 			div.c("page-column-head", () => {
+ 				span.c("page-column-title", page.title);
++				// A page may put its own controls at the right end of its name line (a session's menu button: core/Session/SessionMenu.js).
++				if (is.fn(page.head_tools)) span.c("page-column-tools", () => page.head_tools());
+ 				if (page !== host) a.c("page-column-close", () => icon("close")).href(page.parent.url);
+ 			});
+ 
+diff --git a/public/framework/core/Page/Page.css b/public/framework/core/Page/Page.css
+index f416414e4..ea68c5b3d 100644
+--- a/public/framework/core/Page/Page.css
++++ b/public/framework/core/Page/Page.css
+@@ -658,6 +658,9 @@
+ 	.page-column-head + .page-column-item { margin-block-start: var(--page-column-pad-y, 0.7em); }
+ 
+ 	.page-column-title { font-weight: 600; font-size: 0.95em; }
++	/* a page's own controls at the right end of the name line (head_tools()); the × after them stays last */
++	.page-column-tools { display: flex; align-items: center; margin-inline-start: auto; }
++	.page-column-tools + .page-column-close { margin-inline-start: 0; }
+ 
+ 	/* ⚠ A PADDED target, not a bare glyph: the × closes this column and everything right
+ 	     of it, and at 1.05em the icon alone is a 17px tap target with no edge to aim at.
+diff --git a/public/framework/core/Session/Session.js b/public/framework/core/Session/Session.js
+index eb42222d0..56c1a6eb0 100644
+--- a/public/framework/core/Session/Session.js
++++ b/public/framework/core/Session/Session.js
+@@ -22,6 +22,26 @@ export default class Session extends Item {
+ 	set tasks(list){ this._tasks = list; }
+ 	lists(){ const { _tasks, ...rest } = super.lists(); return { ...rest, ...(_tasks ? { tasks: _tasks } : {}) }; }
+ 
++	/* THE SESSION MENU (the owner, 2026-10-22; doc/menu.md): a session DECLARES what its menu holds, as a template a subclass
++	   extends (`static MENU = [...Session.MENU, {…}]`). An entry is a sub-page (`page: true`, routed at <session url>/<name>/)
++	   or an action (`action: "<method name>"`, called on the page that draws the menu). Settings come first. */
++	static MENU = [
++		{ name: "settings", title: "Settings", icon: "settings", page: true },
++		{ name: "log", title: "Open the log", icon: "description", action: "open_log" },
++		{ name: "copy-link", title: "Copy link", icon: "link", action: "copy_link" },
++	];
++	// The settings a session has, drawn by SessionSettings as a form. Saved as {"settings":{<key>:<value>}} lines in session.jsonl.
++	static SETTINGS = [
++		{ key: "name", label: "Name", type: "text" },
++		{ key: "model", label: "Model", type: "select", options: ["", "claude-haiku-5-5", "claude-sonnet-5-5", "claude-opus-5-5"] },
++		{ key: "effort", label: "Effort", type: "select", options: ["", "low", "medium", "high"] },
++		{ key: "notify", label: "Tell me when it finishes", type: "checkbox" },
++	];
++	// The menu with each page's url filled in; `url` is the session page's own url.
++	menu(url){ return this.constructor.MENU.map(e => e.page ? { ...e, url: url + e.name + "/" } : { ...e }); }
++	// The settings now: every {"settings":{…}} line merged in order, so a later line wins. Never stored whole.
++	get settings(){ return this._settings ??= {}; }
++
+ 	progress(){ return Task.progress_of(this._tasks); }
+ 	get completion(){ const { done, total } = this.progress(); return total ? done / total : 0; }
+ 
+@@ -32,6 +52,7 @@ export default class Session extends Item {
+ 		if (typeof delta.task === "string"){ this.tasks.insert(Task.from_ref(delta.task)); delete delta.task; }   // a reference line: the live child
+ 		if (delta.tasks && typeof delta.tasks === "object") this.tasks.set(delta.tasks);
+ 		delete delta.tasks;
++		if (delta.settings && typeof delta.settings === "object"){ Object.assign(this.settings, delta.settings); delete delta.settings; }   // merged, never replaced
+ 		for (const k of Object.keys(delta)){   // a nested task changed: {"<task id>":{…}} goes to that task
+ 			const kid = delta[k] && typeof delta[k] === "object" ? this._tasks?.find(k) : undefined;
+ 			if (kid?.replay_line) { kid.replay_line(delta[k]); delete delta[k]; }
+diff --git a/public/framework/core/Session/Session.test.mjs b/public/framework/core/Session/Session.test.mjs
+index d58fc8d0c..255f8481c 100644
+--- a/public/framework/core/Session/Session.test.mjs
++++ b/public/framework/core/Session/Session.test.mjs
+@@ -27,6 +27,16 @@ check("replay: a tasks.add line adds a Task", () => {
+ 	return s.id === "r1" && s.tasks.length === 2 && s.tasks.find("t1") instanceof Task && s.progress().done === 1;
+ });
+ 
++check("settings lines merge in order, a later line wins, and never reach put()", () => {
++	const s = Session.replay([{ session: "m1" }, { settings: { model: "a", notify: true } }, { settings: { model: "b" } }]);
++	return s.settings.model === "b" && s.settings.notify === true && s.get_one?.("settings") === undefined;
++});
++
++check("the menu is a template: settings first, page entries get a url under the session's own", () => {
++	const m = new Session("m2").menu("/framework/ai/sessions/m2/");
++	return m[0].name === "settings" && m[0].url === "/framework/ai/sessions/m2/settings/" && m.some(e => e.action) && !m.find(e => e.action).url;
++});
++
+ check("Session.describe() lists tasks and progress", () => {
+ 	const d = Session.describe(), names = [...d.fields, ...d.methods.map(m => m.name)];
+ 	return names.includes("tasks") && names.includes("progress");
+diff --git a/public/framework/core/Session/SessionMenu.css b/public/framework/core/Session/SessionMenu.css
+new file mode 100644
+index 000000000..5d039d550
+--- /dev/null
++++ b/public/framework/core/Session/SessionMenu.css
+@@ -0,0 +1,15 @@
++/* The session menu button: the same quiet, padded 24px target as the column's × beside it (core/Page/Page.css .page-column-close). */
++.session-menu-button {
++	display: flex; padding: 0.25em; border: 0; border-radius: var(--radius, 4px);
++	background: none; color: var(--subtle); cursor: pointer;
++	transition: background-color 0.12s, color 0.12s;
++}
++.session-menu-button:is(:hover, :focus-visible) { color: var(--prime-ink); background: var(--page-column-hover); }
++.session-menu-button:active { background: var(--page-column-press); }
++.session-menu-button .icon { font-size: 1.05em; }
++
++/* A row: its icon, then its name. Links look like the action buttons beside them. */
++.session-menu-item { display: flex; align-items: center; gap: 0.5em; color: inherit; text-decoration: none; }
++
++.session-settings-field { align-items: center; }
++.session-settings-label { min-width: 12em; }
+diff --git a/public/framework/core/Session/SessionMenu.js b/public/framework/core/Session/SessionMenu.js
+new file mode 100644
+index 000000000..d09ccf6a9
+--- /dev/null
++++ b/public/framework/core/Session/SessionMenu.js
+@@ -0,0 +1,31 @@
++// SessionMenu.js — the button at the right end of a session's name line, opening the session's own menu (Session.MENU).
++// A page entry is a link (routed: <session url>/<name>/), an action entry calls that method on the page. Doc: doc/menu.md.
++import View, { a, button, icon, span } from "../View/View.js";
++import Popover from "../../ux/Popover/Popover.js";
++View.stylesheet(import.meta, "SessionMenu.css");   // the button, the rows, and the settings form
++
++export default class SessionMenu {
++
++	constructor(...args){ Object.assign(this, ...args); }   // { session, url, page }
++
++	entries(){ return this.session.menu(this.url); }
++
++	draw(){
++		const $btn = button.c("session-menu-button").attr("type", "button").attr("aria-haspopup", "menu").attr("title", "Session menu")
++			.append(() => icon("more_vert"));
++		const menu = this, pop = new Popover({
++			anchor: $btn.el, trigger: "click", role: "menu", place: "bottom",
++			content(){ for (const e of menu.entries()) menu.entry(e, pop); },
++		});
++		pop.draw();
++		return $btn;
++	}
++
++	// One row: a link for a page (the router opens it, so back and reload work), a button for an action.
++	entry(e, pop){
++		const face = () => { if (e.icon) icon(e.icon); span(e.title); };
++		if (e.page) return a.c("ux-popover-item session-menu-item").attr("role", "menuitem").href(e.url).append(face).click(() => pop.close());
++		return button.c("ux-popover-item session-menu-item").attr("type", "button").attr("role", "menuitem").append(face)
++			.click(() => { pop.close(); this.page?.[e.action]?.(e); });
++	}
++}
+diff --git a/public/framework/core/Session/SessionSettings.js b/public/framework/core/Session/SessionSettings.js
+new file mode 100644
+index 000000000..1b1e9b70d
+--- /dev/null
++++ b/public/framework/core/Session/SessionSettings.js
+@@ -0,0 +1,43 @@
++// SessionSettings.js — the session's Settings sub-page (the first entry of Session.MENU), at <session url>/settings/.
++// A form drawn from the session class's SETTINGS; each change appends ONE {"settings":{<key>:<value>}} line to the
++// session's session.jsonl through the dev socket (FsFile.append → rpc:append). Reading replays the file. Doc: doc/menu.md.
++import { Page, div, p, label, input, select, option, span, small } from "/app.js";
++import FsFile from "/framework/ext/filesystem/FsFile.js";
++import Session from "./Session.js";
++
++export default class SessionSettings extends Page {
++
++	// { file: the session.jsonl url, session_class: Session or a subclass }
++	constructor(...args){ super({ title: "Settings", width: "fill" }, ...args); this.session_class ??= Session; }
++
++	// The file's lines, replayed into a session; an empty session when the file does not exist yet.
++	async session(){
++		const text = await fetch(this.file, { cache: "no-store" }).then(r => r.ok ? r.text() : "", () => "");
++		const lines = text.split("\n").filter(Boolean).flatMap(l => { try { return [JSON.parse(l)]; } catch { return []; } });
++		return this.session_class.replay(lines);
++	}
++
++	// One changed key, one line. Returns true when the dev server took it.
++	save(key, value){ return FsFile.append(this.file, { settings: { [key]: value } }); }
++
++	content(){
++		const $form = div.c("flow session-settings", () => small.c("muted", "Loading…"));
++		this.session().then(s => $form.empty(() => {
++			p(`Saved to this session's log, one line per change: ${this.file}`);
++			for (const f of this.session_class.SETTINGS) this.field(f, s.settings[f.key]);
++		}));
++	}
++
++	// One labelled control, and a word after it that says whether the change was saved.
++	field(f, value){
++		label.c("session-settings-field flex gap-50", () => {
++			span.c("session-settings-label", f.label);
++			const $in = f.type === "select" ? select.c("session-settings-input", () => f.options.forEach(o => option(o || "(default)").attr("value", o)))
++				: input.c("session-settings-input").attr("type", f.type === "checkbox" ? "checkbox" : "text");
++			if (f.type === "checkbox") $in.el.checked = !!value; else $in.el.value = value ?? "";
++			const $status = span.c("muted session-settings-status");
++			$in.on("change", () => this.save(f.key, f.type === "checkbox" ? $in.el.checked : $in.el.value)
++				.then(ok => $status.el.textContent = ok ? "saved" : "not saved (is the dev server running?)"));
++		});
++	}
++}
+diff --git a/public/framework/core/Session/doc/files.jsonl b/public/framework/core/Session/doc/files.jsonl
+index af1136cb1..05c9c861f 100644
+--- a/public/framework/core/Session/doc/files.jsonl
++++ b/public/framework/core/Session/doc/files.jsonl
+@@ -1,3 +1,4 @@
+ {"file":"file/"}
+ {"file":"method/"}
+ {"file":"architecture.md"}
++{"file":"menu.md"}
+diff --git a/public/framework/core/Session/doc/menu.md b/public/framework/core/Session/doc/menu.md
+new file mode 100644
+index 000000000..a85dd79ac
+--- /dev/null
++++ b/public/framework/core/Session/doc/menu.md
+@@ -0,0 +1,34 @@
++# The session menu
++
++**What it is.** Every session page has a button at the right end of its name line. It opens the session's menu: a list of sub-pages and actions. The owner asked for it on 2026-10-22 (figma-cards Follow-up 2, "Session navigation"): the name on one line, a menu button aligned right, a templated list of actions and sub-pages, settings first, saved to `session.jsonl`.
++
++**It is a template the class declares.** The list is `Session.MENU`, so every session has the same menu, and a subclass adds its own entries:
++
++```js
++class Session extends Item
++  static MENU = [
++    { name: "settings",  title: "Settings",     icon: "settings",    page: true },        // a sub-page, routed at <session url>/settings/
++    { name: "log",       title: "Open the log", icon: "description", action: "open_log" }, // calls page.open_log()
++    { name: "copy-link", title: "Copy link",    icon: "link",        action: "copy_link" },
++  ]
++  static SETTINGS = [{ key, label, type: "text" | "select" | "checkbox", options? }, …]  // what the Settings page shows
++  menu(url)        // MENU with each page entry's url filled in
++  get settings     // every {"settings":{…}} line merged in order; a later line wins
++
++class AISession extends Session   // static MENU = [...Session.MENU, { … }] to add an entry
++```
++
++## How it is drawn and saved
++
++| Part | File | Job |
++|---|---|---|
++| the button and its list | `core/Session/SessionMenu.js` | a quiet button, and a [`ux/Popover`](/framework/ux/Popover/) list: a page entry is a link (so back and reload work), an action entry calls that method on the page |
++| the button's place | `core/Page/Columns.js` | a page with a `head_tools()` method gets its controls at the right end of its column head, before the × |
++| the Settings sub-page | `core/Session/SessionSettings.js` | a form drawn from `SETTINGS`; each change appends one `{"settings":{<key>:<value>}}` line to the session's `session.jsonl` through the dev socket (`FsFile.append`, `rpc:append`), and reading replays the file |
++| the session page | `ai/AISession/AISessionDetail.js` | `head_tools()` draws the menu; `child("settings")` routes the sub-page; `open_log()` and `copy_link()` are the two actions |
++| the line's shape | `.claude/hooks/jsonl-schema.mjs` | `settings` is a known verb in `session.jsonl`. The dev server reads this file when it starts, so a server started before it refuses the line until it restarts |
++
++## Not built yet
++
++- The settings are saved and shown, but nothing acts on them yet (the model and effort a resumed session uses, the "tell me when it finishes" notice).
++- Other shapes the owner named (tabs, a drop-down, a sheet) wait for the Figma session menu; the template stays the same, only the drawing changes.
+diff --git a/public/framework/core/Session/files.jsonl b/public/framework/core/Session/files.jsonl
+index 4523de8f0..466eecdf8 100644
+--- a/public/framework/core/Session/files.jsonl
++++ b/public/framework/core/Session/files.jsonl
+@@ -4,3 +4,6 @@
+ {"file":"doc/"}
+ {"file":"Session.test.mjs"}
+ {"file":"Day.js"}
++{"file":"SessionMenu.js"}
++{"file":"SessionSettings.js"}
++{"file":"SessionMenu.css"}
+diff --git a/public/framework/core/Session/readme.md b/public/framework/core/Session/readme.md
+index a81915306..51a3b8ba6 100644
+--- a/public/framework/core/Session/readme.md
++++ b/public/framework/core/Session/readme.md
+@@ -9,6 +9,8 @@ A `Session` is one run of an agent or a tab: an Item that lives in its own dated
+ class Session extends Item                       // ../Item/Item.js; registered as "Session"
+   static days, slugs: Map   // id -> "YYYY/MM/DD" / folder name. A subclass declares its OWN (statics inherit by reference)
+   static scanned: boolean   // true once scan() has read the tree
++  static MENU, SETTINGS     // the session menu template and its settings form (doc/menu.md)
++  menu(url), settings       // MENU with urls; {"settings":{…}} lines merged, a later line wins
+   id                        // from the constructor, or line 1 of the log
+   tasks: List<Task>         // made on first use; setter allowed
+   completion: number        // getter, 0..1 = done / total, 0 when there are no tasks. Never stored
+@@ -23,7 +25,7 @@ class Session extends Item                       // ../Item/Item.js; registered
+ // Day.js: class Day, static of(t) "YYYY-MM-DD", path(t) "YYYY/MM/DD" - the owner's LOCAL day, never UTC
+ ```
+ 
+-- **Lines it replays:** `{"session":id}`, `{"tasks":{"add":…}}`, `{"task":"<ref>"}` (a live child task), `{"<task id>":{…}}` (goes to that task), and any other key is set on the session. `by`, `ts` and `at` are dropped.
++- **Lines it replays:** `{"session":id}`, `{"tasks":{"add":…}}`, `{"task":"<ref>"}` (a live child task), `{"<task id>":{…}}` (goes to that task), `{"settings":{…}}` (merged into `settings`), and any other key is set on the session. `by`, `ts` and `at` are dropped.
+ - **Subclasses:** `AISession` (`ai/AISession/AISession.js`) adds cost, cache and transcript, and overrides `root_url()`. `RefineSession` is planned, not built.
+ - **Who calls it:** the item tool in `Servex/agents/page_tools.js` maps `session.jsonl` to `Session` and replays it; `ai/AIDashboard/SessionStore.js`, `AISessionIndex.mjs`, `AISessionLive.js`, `Server/State.mjs`, `Server/TaskDirs.mjs` and `Server/SessionDayMove.mjs` use it or `Day`.
+ - **How it loads:** a session's folder holds `session.jsonl`, written by `.claude/hooks/append.mjs`, `Agents.open_task` and the page tools, never by hand. Older folders are still found by `scan()` through `index.json`, `cache.jsonl` or the first `page.jsonl` line. Folder layout: [ai/sessions/readme.md](/framework/ai/sessions/readme.md).
+@@ -37,5 +39,6 @@ class Session extends Item                       // ../Item/Item.js; registered
+ 
+ ## More
+ 
++- [doc/menu.md](doc/menu.md): the session menu, a template (`Session.MENU`, settings first) drawn at the right end of the session's name line; settings saved as lines in `session.jsonl`
+ - [doc/architecture.md](doc/architecture.md): decisions and why
+ - [Dated folders shared by sessions and projects](/framework/core/Task/doc/owner-2026-10-20-projects-and-completion.md)
+diff --git a/public/framework/core/Task/Process.js b/public/framework/core/Task/Process.js
+index 0a9ceac59..fa3e893e0 100644
+--- a/public/framework/core/Task/Process.js
++++ b/public/framework/core/Task/Process.js
+@@ -97,6 +97,22 @@ Process.DEFINITIONS = {
+ 		{ id: "merge", title: "Merge", session: { run: "wait" },
+ 			do: "The owner merges the reviewed branch, or says no." },
+ 	],
++	// Design to code (the owner, 2026-10-22): more than one design per view, reviewed by screenshot, the picked variants coded as real pages
++	// the owner clicks through on the phone. A variant is a set of changes on its parent: a subclass of its view, at <page>/v/<name>/.
++	design: [
++		{ id: "design", title: "Design the variants", session: { run: "fresh", role: "helper", model: SONNET, effort: "medium" },
++			do: "Read the brief. In Figma, draw the default for each view the brief names and two to four variants of it, each named for its one change (header-scrolls-away, bar-segmented…); a variant of a variant is a sub-version. Write variants.md beside the brief: the tree (default → versions → sub-versions), each line the change and why. Outcome: the Figma page url and the tree." },
++		{ id: "review-shots", title: "Review by screenshot", session: { run: "fresh", role: "reviewer", model: SONNET, effort: "medium" },
++			do: "Screenshot every frame in variants.md (Figma get_screenshot). Judge each against the brief and the page, layout and color skills; mark keep or cut with one reason in variants.md. Outcome: the kept variants." },
++		{ id: "pick", title: "Pick the variants to code", session: { run: "owner" },
++			do: "Read variants.md and the shots. Complete with outcome 'code: <names>' (in autonomous mode the creator picks), or 'redesign: <what>'." },
++		{ id: "code", title: "Code the picked variants", session: { run: "fresh", role: "helper", model: SONNET, effort: "medium" },
++			do: "In a served worktree (take_worktree), code the default as a real page and each picked variant as a subpage <page>/v/<name>/ whose view extends its parent's view and changes only its difference; sub-versions nest (v/<name>/v/<sub>/). The default page lists the tree as links, so the owner can click through on the phone. Load each with check_page; commit each step; never merge. Outcome: branch, worktree url, the variant urls." },
++		{ id: "review", title: "Review the pages", session: { run: "fresh", role: "reviewer", model: SONNET, effort: "medium" },
++			do: "Shoot every variant page at 400 and 1200 px (the shot tool) at the worktree url, check the console, compare each with its Figma frame. Outcome: 'ready to merge: <branch>' with the shot paths, only when every page loads clean; else 'not checked: <why>'." },
++		{ id: "merge", title: "Merge", session: { run: "wait" },
++			do: "The owner merges the reviewed branch, or says no." },
++	],
+ 	investigate: [
+ 		{ id: "questions", title: "Questions", session: { run: "fresh", role: "helper", model: SONNET, effort: "low" },
+ 			do: "Write questions.md beside the brief: the questions it raises, ranked by how much each answer changes the work; for each, what is already known (with the file) and how to find out. Name the known structure as class sketches." },
+diff --git a/public/framework/core/Task/Task.js b/public/framework/core/Task/Task.js
+index 6674f234b..b180a17af 100644
+--- a/public/framework/core/Task/Task.js
++++ b/public/framework/core/Task/Task.js
+@@ -24,7 +24,7 @@ const CAN = {
+ // The state verbs a `task.jsonl` line may name: `{"stop":{"why":"…"}}`.
+ // Plain fields a top-level line may set (the item tool's {"expected":"…"}); legacy lines keep them under `assign`.
+ // `sessions` [{id, task}] and `home` (an old folder's pointer to its module home): Server/TaskMigrate.mjs writes them.
+-const FIELDS = ["title", "expected", "module", "mode", "now", "description", "waiting_on", "checked_by", "source", "tags", "priority", "path", "parent", "sessions", "home", "template", "agent", "outcome", "brief"];
++const FIELDS = ["title", "expected", "module", "mode", "now", "description", "waiting_on", "checked_by", "source", "tags", "priority", "path", "parent", "sessions", "home", "template", "agent", "outcome", "brief", "from"];
+ 
+ // Keys replay_line reads itself; any other object-valued key may name a nested subtask.
+ const LINE_KEYS = new Set(["assign", "tasks", "content", "priority", "verdict", "set", "file", "task", "start", "pause", "resume", "stop", "complete", "finish", "wait", "approve", "improve", "reject", "now", "tags", "reinforce"]);
+diff --git a/public/framework/core/Task/doc/process.md b/public/framework/core/Task/doc/process.md
+index d7788ff31..fec7fb007 100644
+--- a/public/framework/core/Task/doc/process.md
++++ b/public/framework/core/Task/doc/process.md
+@@ -67,6 +67,7 @@ The prompt node sends is built from the phase's `do`, the brief, and the outcome
+ ## The core set (`Process.DEFINITIONS`, kept small)
+ 
+ - **build**: investigate (fresh, Sonnet low: questions ranked, the known structure as class sketches, sources) → plan (same: tasks, class sketch, checked against the brief) → improve-plan (fresh reviewer: an independent read of the plan) → approve-plan (the creator: approve, or name changes) → execute (fresh builder, in a worktree) → review (fresh reviewer: the diff) → merge (waits on the owner).
++- **design** (design to code, the owner 2026-10-22): design (fresh: a default plus two to four variants per view in Figma, each named for its one change, the tree in `variants.md`) → review-shots (fresh reviewer: a screenshot of every frame, keep or cut) → pick (the creator: `code: <names>`) → code (fresh, in a served worktree: the default as a real page, each picked variant a subpage `<page>/v/<name>/` whose view **extends its parent's view** and changes only its difference; sub-versions nest; the default lists the tree, so the owner clicks through on the phone) → review (shots at 400 and 1200 px of every variant page, a clean console) → merge (waits on the owner). A variant is a set of changes on its parent, so in code it is a subclass.
+ - **investigate**: questions (rank them; name what is known as class sketches) → scout (Haiku scouts, one per top question, each under 100k, web search allowed) → synthesize (answers; where two scouts agree, say so). Run on its own or, later, as build's first phase.
+ 
+ A phase id never names a Task verb or field (`improve` would call `Task.improve()`); the test checks every definition. More processes come from the system architect, not from each agent. A process that does not help is changed from its data (which phase was skipped, failed or cost most), not by asking agents to try harder.
+@@ -139,5 +140,7 @@ The prompt audit ([ai/doc/prompt-audit.md](/framework/ai/doc/prompt-audit.md)) a
+ 
+ ## Status
+ 
++- ⬜ **Found 2026-10-22:** a task that has landed and then gets new open children still reads `complete` (the process-system task, after vscode-mastermind added three). Adding an open child to a complete task should reopen it, so that completion stays automatic.
++
+ - ✅ Slice 1: `Process` + `ProcessRunner`, one process end to end, completion rolling up to the session; run 1 above; moving home on approval; tests `node Servex/ProcessRunner.test.mjs` (27).
+ - ⬜ Next: a phase that is itself a process (investigate inside build); parallel phases (scouts); the plan's tasks becoming a process of their own; the owner's merge button (priority 3b) completing the merge phase; prompt-audit asks becoming session tasks once completion is automatic.
+diff --git a/public/framework/doc/rules.md b/public/framework/doc/rules.md
+index 0484585c2..c5aa2d54e 100644
+--- a/public/framework/doc/rules.md
++++ b/public/framework/doc/rules.md
+@@ -32,6 +32,17 @@ Level 1 is one page, mostly above the fold: what the thing is, **shown**; its ma
+ 
+ **Name things, and write `.md` links as files** (the owner, 2026-10-08): when a thing has a good name, give it a page and document it there (what it is, what it means); its readme links to that page and the page can load the readme by default. So always write the plain file path (`doc/flow.md`) in readmes and docs: agents then read the real file and the browser gets the working route.
+ 
++**Docs hold conclusions; logs hold the record** (the owner, 2026-10-22): a readme or `doc/*.md` states what was decided, what came out of it and what is useful later, once, in plain sentences. The dated detail (each small decision, attempt, request, timestamp) is a line in a JSONL log, and the doc links to it. Which log:
++
++| What happened | Where its lines go | Written by |
++|---|---|---|
++| work on a task or project | the task's own log: `session.jsonl` in a session's task folder, `task.jsonl` in a module's `tasks/<slug>/` | the item tool (`item`), the `log` tool |
++| what a session did, its settings | the session folder's `session.jsonl` | the `log` tool, the session's Settings page |
++| a note about a folder that belongs to no task | that folder's `ai/log.jsonl` | the `dir_log` tool |
++| an improvement idea for a folder | that folder's `improvements.jsonl` (a repeat adds weight) | the item tool |
++
++Never copy log lines into markdown, and never put a conclusion only in a log: when the work lands, the doc gets the outcome and a link to the log.
++
+ - **The readme chain:** read the readmes root to leaf before working in a directory, and again when you move to another one, or start a fresh session there (`/framework/ai/readmes/`).
+ - **Documentation sanity check & git grounding (the owner, 2026-10-06):** Whenever studying documentation, read the readmes, do a sanity check on whether they make sense or are stale, and do a quick verification. If there's an obvious easy fix, make that fix. Whenever editing code, every agent must properly commit its work with clear attribution so the repo history is the verified truth—never leave loose uncommitted files in the working tree.
+ 

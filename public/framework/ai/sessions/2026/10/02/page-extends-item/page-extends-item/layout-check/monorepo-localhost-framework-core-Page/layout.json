@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/core/Page/",
+ "widths": {
+  "1280": {
+   "empty": 0.591,
+   "widest_text": 291,
+   "widest_text_sample": ". Each card below is one block, shown ru",
+   "overflow_x": false,
+   "items": 253,
+   "narrow_share": 0.577
+  },
+  "1920": {
+   "empty": 0.717,
+   "widest_text": 456,
+   "widest_text_sample": ". Each card below is one block, shown ru",
+   "overflow_x": false,
+   "items": 253,
+   "narrow_share": 0.964
+  },
+  "2560": {
+   "empty": 0.728,
+   "widest_text": 415,
+   "widest_text_sample": "for how to shape one; every method is in",
+   "overflow_x": false,
+   "items": 253,
+   "narrow_share": 0.964
+  },
+  "3440": {
+   "empty": 0.792,
+   "widest_text": 475,
+   "widest_text_sample": ". Each card below is one block, shown ru",
+   "overflow_x": false,
+   "items": 253,
+   "narrow_share": 0.964
+  }
+ },
+ "errors": []
+}

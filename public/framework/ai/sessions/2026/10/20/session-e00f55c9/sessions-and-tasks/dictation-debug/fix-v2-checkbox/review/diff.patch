@@ -1,0 +1,41 @@
+diff --git a/public/framework/ext/Chat/v2/ChatV2.test.mjs b/public/framework/ext/Chat/v2/ChatV2.test.mjs
+index 295384a0f..1e113e8c7 100644
+--- a/public/framework/ext/Chat/v2/ChatV2.test.mjs
++++ b/public/framework/ext/Chat/v2/ChatV2.test.mjs
+@@ -112,6 +112,11 @@ try {
+ 	check("child task state change: the touched element shows the new phase", await page.getAttribute("[data-id='t-1761382838000']", "data-phase") === "complete");
+ 	check("child task state change: scroll position holds", await scroll_held());
+ 
++	// The same change addressed through the task's prompt, the way the item tool writes it ({"<prompt>":{"<task>":{…}}}).
++	live_append({ "p-1761382800000": { "t-1761382837000": { start: {} } } });
++	await page.waitForFunction(() => document.querySelector("[data-id='t-1761382837000']")?.getAttribute("data-phase") === "running", { timeout: 15000 });
++	check("task changed through its prompt: the task shows the new phase", await page.getAttribute("[data-id='t-1761382837000']", "data-phase") === "running");
++
+ 	live_append({ "q-1761382910000": { answer: { text: "Yes, every time.", by: "smart", at: "2026-10-25T09:03:00Z" } } });
+ 	await page.waitForFunction(() => document.querySelector("[data-id='q-1761382910000']")?.getAttribute("data-phase") === "answered", { timeout: 15000 });
+ 	check("question answer: other elements keep their DOM object", await untouched("q-1761382910000") === null, await untouched("q-1761382910000"));
+diff --git a/public/framework/ext/Chat/v2/ChatV2Model.js b/public/framework/ext/Chat/v2/ChatV2Model.js
+index cb9ccc6bd..8eac115ba 100644
+--- a/public/framework/ext/Chat/v2/ChatV2Model.js
++++ b/public/framework/ext/Chat/v2/ChatV2Model.js
+@@ -37,6 +37,8 @@ export default class ChatV2Model {
+ 		let touch = { id: node.id, parent: undefined, added: false };
+ 		for (const [k, v] of Object.entries(delta)) {
+ 			if (k === "tasks") { if (v?.add){ const kid = this.add(node.kids, v.add); if (kid) touch = { id: kid.id, parent: node.id, added: true }; } }
++			// A child addressed through its parent ({"<prompt>":{"<task>":{"complete":{…}}}}): the change is the child's, not a field on the parent.
++			else if (node.kids.some(c => c.id === k) && v && typeof v === "object") touch = this.edit(this.by_id.get(k), v);
+ 			else if (k === "raw" && v && !Array.isArray(v)) { if (v.push !== undefined) (node.raw ??= []).push(v.push); }
+ 			else if (k === "paragraphs" && v && !Array.isArray(v)) {
+ 				const list = node.paragraphs ??= [];
+diff --git a/public/framework/ext/Chat/v2/readme.md b/public/framework/ext/Chat/v2/readme.md
+index 512e5fc1c..e58883baa 100644
+--- a/public/framework/ext/Chat/v2/readme.md
++++ b/public/framework/ext/Chat/v2/readme.md
+@@ -20,6 +20,7 @@ Try it: [/framework/ext/Chat/v2/](/framework/ext/Chat/v2/) draws [fixture/sessio
+   tasks:[ …child Task / Question entries… ]}}}
+ {tasks:{add:{type:"Question", id:"q-<ms>", text, from:"p-<ms>", answer?:{text, by, ts}}}}
+ {"<id>":{answer:{…}}}  {"<id>":{complete:{}}}  {"<id>":{replies:{add:{…}}}}   // later lines edit by id
++{"<prompt id>":{"<task id>":{complete:{…}}}}   // or through the parent, as the item tool writes it: the change is the child's
+ ```
+ 
+ Sentences are computed, not stored: a sentence id is its paragraph id plus a 1-based index (`a1`, `a2`, `b1`). A Question is open (no answer), answered (answer, not complete) or complete. A prompt's children are its own `tasks` plus any root Question or Task whose `from` is its id. A prompt with no title or text draws its paragraphs; an anchored reply sits beside its sentence (below on a phone) with the words marked.

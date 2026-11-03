@@ -1,0 +1,3 @@
+# Approve with a bare note, and approved_by on the spawn line
+
+Child of [templates-live-proof](../../13/session-730e8a7b/mastermind-repo-slim/templates-live-proof/requirements.md) (that dir is under 10/13, which `merge.mjs` does not scan, so the review lives here). The live proof found two small causes: `{"approve":"note"}` was written but ignored on replay (verbs must be objects), and the `spawn` line's `approved_by` was always null. Fix: the item tool turns a bare-string approve/improve/reject into `{note}`; `TaskLoop.read_task` falls back to the approve line's own `by`. Tests: `Servex/agents/verb-note.test.mjs`, `Servex/TaskLoop-launch.test.mjs`. The live proof and its log: `core/Task/tasks/templates-live-proof/`.

@@ -1,0 +1,36 @@
+{
+ "id": "7d42f623-5a6b-411d-8888-9de6ae098e25",
+ "first": "2026-10-16T06:16:31.617Z",
+ "last": "2026-10-16T06:23:51.763Z",
+ "task": "public/framework/ai/sessions/2026/10/16/voice-20261016/past-work/transcripts",
+ "models": {
+  "claude-sonnet-5-5": 29
+ },
+ "sizes": {
+  "raw": 253697,
+  "content": 43374,
+  "stripped": 6372,
+  "owner_only": 0
+ },
+ "usd": 1.256064,
+ "usd_main": 1.256064,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 58,
+  "output": 31276,
+  "cache_read": 2726701,
+  "cache_write": 99462,
+  "w5": 0,
+  "w1": 99462
+ },
+ "messages": 29,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "`Server/Transcripts.mjs` works and is committed on `michael/dev`, with a doc at `Server/doc/transcripts.md` linked from `Server/readme.md`. The \"Transcripts\" card is posted on `/live/`, and I haven't pushed anything.\n\n**Last 2 days (via `--dry-run`, then the real run):**\n- **Found:** 347 sessions. 72 have a task folder. The other 275 are 32 refine/dictate tests plus 243 other, mostly clean/refine pipeline runs, duty prompts and reviewers.\n- **Size:** raw median is 1,098 KB and max 11,331 KB. Essence median is 12.8 KB and max 199 KB. 71 of 72 essences fit under 50k estimated tokens, and none of the raw files do.\n- **Cost:** $227 from the recorded `cost-state` figures: Sonnet 116, Opus 47, Fable 55, Haiku 9.6. That figure is each session's lifetime cost, not just the 2 days. My price-table estimate runs about 14% high on Opus, so use the recorded figure.\n- **Beyond the brief:** I also wrote essences for the last 7 days, which is 293 task sessions committed. The 7-day run took about a minute and no model calls.\n- **Added:** each prompt is tagged `from` owner, agent or system. Without that, `--grep` returned agent briefs instead of the owner's words.\n\n**Dedup grep:** the owner asked for chat-bubble de-duplication many times, but the grep found only 6 owner-tagged matches over 7 days. They are voice-agent relays, not the original asks. The other 1,480 sessions have no task folder, and 5 of them hold 562 of the owner's typed prompts (89 MB), including `87bec773` and `f155ecbd`. The …",
+ "edited": [
+  "Server/Transcripts.mjs",
+  "Server/doc/transcripts.md",
+  "Server/readme.md"
+ ],
+ "digested_at": "2026-10-16T06:28:10.246Z"
+}

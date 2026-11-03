@@ -1,0 +1,10 @@
+/* The rules used to live here too — a byte-for-byte copy of controls.css's own block,
+   so a fix to one never reached the other (found in the icon-system audit,
+   2026-09-30, ai/2026-09-30/icon-system/audit/audit.md, one-off #2). `workspace.js`
+   loads `controls.css` on every page that loads this one (it imports `toolbar.js`,
+   which imports this file), so there is nothing left for this sheet to declare.
+   Kept as an empty stylesheet rather than deleted: `toolbar.js`'s own
+   `View.stylesheet(import.meta, "toolbar.css")` still resolves a real file, and
+   removing the import is outside this task's fence. `.panel-bar`, `.panel-btn`,
+   `.panel-gap`, `.panel-swatch`, `.panel-pop` are all controls.css's now — see it
+   for the real rules and reasoning. */

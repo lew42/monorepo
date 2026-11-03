@@ -1,0 +1,54 @@
+# The tunnel: how the Claude app reaches Servex, and who keeps it up
+
+## What it is
+`node Server/Tunnel.mjs up` starts a free Cloudflare **quick tunnel**: a public `https://<random>.trycloudflare.com` address that forwards to a tiny gateway on this machine, which passes only `/mcp/remote/<token>` to Servex ([RemoteMCP.js](../RemoteMCP.js)). State lives in `%LOCALAPPDATA%\lew42\servex\`: `remote.tunnel.json` (pids), `remote.url` (the full URL, token included), `remote.token`.
+
+## Why it broke the connector
+A quick tunnel gets a **new random hostname every time it starts**, and nothing used to restart it. When it died (2026-10-15) the connector saved in claude.ai pointed at a dead host: "couldn't start sign in".
+
+## The keeper (built, 2026-10-20)
+[TunnelKeeper.js](../TunnelKeeper.js) runs inside Servex: at boot and every 60 s it calls `Tunnel.ensure()` ([Server/Tunnel.mjs](../../../../Server/Tunnel.mjs)).
+- A live pid in `remote.tunnel.json` is **adopted**, never touched (also after a Servex restart).
+- Otherwise `node Server/Tunnel.mjs up` is started detached, so it outlives a Servex restart.
+- Servex log events (`servex` log): `tunnel-down`, and `tunnel-up` with the host only.
+- When the host differs from the last one (`remote.lasthost`), a **Note card** is created: paste the new URL into the claude.ai connector. `remote.changed` holds the time; `Server/HandoverNow.mjs` shows `Connector: <host> (changed <time>)` in handover.md's NOW block.
+- `NO_TUNNEL=1` turns the keeper off. `node Server/Tunnel.mjs up|down|status` still work by hand. Test: `node Server/Tunnel.test.mjs`.
+
+The URL still changes on every real restart of the tunnel, so the connector still needs a re-paste then. The fix is a fixed hostname:
+
+## A stable hostname (live since 2026-10-20)
+[TunnelNamed.mjs](../../../../Server/TunnelNamed.mjs) `setup` makes the tunnel `servex`, one ingress line and one proxied CNAME per entry in `TunnelNamed.HOSTS`, then stores the run token at `remote.tunnel.token` (same folder). Safe to re-run; the running cloudflared picks up a new ingress by itself, no restart. [Tunnel.mjs](../../../../Server/Tunnel.mjs) `up` runs `cloudflared tunnel run --token` when that file exists (otherwise the quick tunnel above).
+
+| Public host | Local gateway | What passes |
+|---|---|---|
+| `servex.lew42.com` | `Tunnel.gateway()`, 127.0.0.1:8191 | `/mcp/remote/<token>` only |
+| `monorepo.lew42.com` | [SiteGateway.mjs](../../../../Server/SiteGateway.mjs), 127.0.0.1:8192 | the site, behind the key cookie |
+
+The API token in `cloudflare.env` can edit the tunnel and DNS (checked 2026-11-01). Cloudflare Access is **not enabled** on the account.
+
+## The site from anywhere: monorepo.lew42.com
+Open `https://monorepo.lew42.com/?site_key=<key>` once on a phone; the full link is in `site.url` next to the other state files. The gateway swaps the key for a 30-day HttpOnly cookie (an HMAC of the key, never the key) and drops it from the address. Without the cookie every path is a 401 "Locked" page.
+
+**One origin.** The page, the live-reload WebSocket (`wss://` same host), Whisper (`/whisper/*`) and Servex (`/servex/*`, which the dev server's [ServexProxy](../../../../Server/plugins/ServexProxy.js) forwards) all ride the one host. Pages build Servex URLs with [servex_url()](../../../../public/framework/dev/servex_url.js), which is same-origin `/servex` off localhost; `DEV_SITE` there lists the hosts where Servex is asked at all.
+
+**Why it is safe enough.** The gateway dials the dev server at this PC's **LAN address** (10.x:3104), never loopback, so the dev server treats it exactly like the owner's phone on Wi-Fi: `/mcp`, `/screenshot`, `/devsource.json`, `/ai-logs` and `/recordings` refuse it, and the socket gets push traffic only (`rpc:cmd` and `rpc:write` answer "refused"). On top, the gateway itself:
+1. requires the cookie;
+2. requires `Origin: https://monorepo.lew42.com` on every write and every WebSocket;
+3. refuses `/mcp`, `/screenshot`, `/recordings`, `/devsource.json`, `/Servex/`, `/Server/`, `/ai-logs`, `/ask` and `/push/send` outright;
+4. passes `/servex/*` only for the page routes in `SiteGateway.SERVEX` and `SERVEX_GET` (items, sessions, voice, refine, whisper, prompts, the agent list). `/servex/mcp`, merge, project start/stop and agent messages are refused.
+
+These routes still pass on purpose, because they are the features: `/api/item` (page edits), `/api/session/*` and `/api/voice*` (chat and the voice agent, which drive agents and paid model calls), `/api/page-ai`. Whoever holds the key can use them, so the key is a password: never paste `site.url` anywhere public.
+
+**Running it.** `node Server/Tunnel.mjs up` starts both gateways in named mode (the keeper does this). `node Server/SiteGateway.mjs` runs the site gateway alone. Test: `node Server/SiteGateway.test.mjs`.
+
+**No stale files on a phone (2026-11-02).** A phone kept an old `Sheet.js` and `Recite.js` for days: Chrome served them from its HTTP cache without asking (Android Chrome restoring a discarded tab prefers the cache, whatever `no-cache` says). So through this gateway, HTML, JS, CSS and JSON (and `.jsonl`) go out as `Cache-Control: no-store`: a browser has nothing to go stale, and every load asks the site. `no-store` is chosen by content type or by file name (`SiteGateway.NO_STORE_TYPE`, `NO_STORE_PATH`); every other reply without a `Cache-Control` (images, fonts) gets `no-cache`, and an event stream is left alone. For copies already stuck on a phone, a page load from a browser whose `lew42_cache_v` cookie is not `SiteGateway.CACHE_V` (now `"2"`) also gets `Clear-Site-Data: "cache"` and the cookie is set, so each browser is cleared once. On that load the gateway drops `If-None-Match` and `If-Modified-Since`, so the clear never rides a 304. Chrome may hold that one load for a moment while it clears. It clears the HTTP cache only; cookies, the site key and storage stay. To clear every browser again, bump `CACHE_V`. The clear works in the tab that loads the page fresh (a new tab or the next load); a tab already open keeps its in-memory copies for one more load. Only the gateway does this; localhost is untouched. Proof: `node Server/SiteGateway.cache.test.mjs`.
+
+*Not built, on purpose:* a deploy-version `CACHE_V` from git and an inline self-heal script (fetch `/__version`, re-fetch the page's modules, reload once). With `no-store` there is nothing to heal. Both exist in commit `70770dd3f` on branch `worktree/cache-version` if a gap shows up.
+
+*Cost of no-store (measured 2026-11-02, a 360x740 phone viewport loading `/framework/` through a gateway on this PC, no tunnel in the path):* 873 requests, about 0.5 MB, loaded in 0.4 s cold and 0.25 s warm, idle at 1.3 s. The warm load makes the same 872 requests as the cold one (before, they were conditional requests answered 304, so the request count is not new, only the bytes). Through the tunnel each of those is a round trip; the measurement is next.
+
+**Measured through the tunnel (2026-11-02, https://monorepo.lew42.com, 360x740 mobile viewport, `/framework/`):** cold 899 requests, load event at 0.95 s; two warm loads 899 requests, 0.92 s and 0.88 s. The page never reaches network idle in 30 s because the live streams stay open. Under the 2 s line, so the versioned-URL follow-up above is **not needed yet**; revisit it if a phone on a weak mobile link feels slow. If that is slow, the next step is versioned URLs: an import map that maps `/framework/` to `/v/<git hash>/framework/`, served `immutable`, with the HTML staying `no-store`.
+
+**Later: a real login.** Once Access is enabled (Zero Trust → team name → Free plan) and the token has **Access: Apps and Policies → Edit**, put an Access application with the owner's email in front of `monorepo.lew42.com`; the key cookie can then go.
+
+The whole network (processes, ports, which page calls which origin): [network-map.md](../../../../public/framework/ai/sessions/2026/10/20/session-e00f55c9/remote-site-tunnel/network-map.md).

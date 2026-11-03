@@ -1,0 +1,51 @@
+# Local Models — talk to a model running on this machine's own GPU
+
+## What
+This page (`page.js`) is a small chat box wired to Servex's **local provider**
+instead of Claude or OpenRouter: pick a model from the dropdown, type
+something, get a reply. Nothing leaves this machine and nothing costs
+anything — the model is a `.gguf` file running through `llama.cpp`
+(`llama-server.exe`), which Servex starts the first time you ask it
+something and stops again after it's been idle a while.
+
+## Use
+- The dropdown lists every model file Servex actually found on disk just
+  now (`GET /api/local-chat`) — if it's empty, no model file was found; see
+  "Watch out" below.
+- Type a message and send it. The first reply after a model has been idle
+  takes a few extra seconds (loading the model onto the GPU); after that
+  it's fast.
+- The chat box itself is `ext/Chat`'s `ChatPanel` — the same widget the
+  drawer's AI tab and the mobile ✦ sheet use (CLAUDE.md law 6, one of
+  everything) — just pointed at a different `deliver` function.
+
+## Watch out
+- **Only one model loads at a time (strict GPU limitation).** Loading `qwen3-8b` with a 32k context uses **~7.9 GB of VRAM**, pushing the RTX 4070 Super to **~95% total utilization** (alongside Windows and apps). Never attempt to run two local models in parallel: there is zero headroom, and attempting a second spawn will trigger immediate CUDA OOM crashes or stall the Whisper server.
+- **Local strategy, VRAM math, and context positioning:** Real numbers on 8B vs. 3B models, KV cache allocation, attention degradation over long context ("lost in the middle"), and tool calling results: [`doc/strategy.md`](./doc/strategy.md).
+- **Context budget and MCP tool bloat:** Local models have a combined input+output window of 32k/36k tokens. Bundling 68 MCP tool schemas consumes ~75k tokens before the prompt starts, causing immediate 400 errors. Local models must run with zero tools (`tools: []`) on self-contained snippets under 20k tokens: [`doc/context-budget.md`](./doc/context-budget.md).
+- **Context window vs. Cloud models:** Local models on this machine are capped at 32k/36k context. For large tasks requiring reading dozens of repo files (100k+ to 1M tokens), do not run locally: use dirt-cheap cloud models on OpenRouter (e.g. `qwen/qwen3-8b` with 131k context at $0.11/1M, or `qwen/qwen3.5-flash` with 1M context at $0.06/1M).
+- **A model not in the dropdown yet** means its file wasn't found where
+  `Servex/ext/local/provider.js`'s `MODELS` table looks — today that's
+  `C:\llama\models\qwen2.5-coder.gguf`, plus a search under the LM Studio
+  install and the Hugging Face cache for `gemma-3-4b` and `gemma-4-e4b`. See
+  that file's own comment for exactly where.
+- **The real plumbing lives in `Servex/ext/local/`**, not here — this page
+  is a thin UI on top of it:
+  - [`provider.js`](/Servex/ext/local/provider.js) — where the model files
+    are, the idle-unload minutes knob, and the env that points a spawned
+    agent's `ANTHROPIC_BASE_URL` at Servex's own local proxy.
+  - [`llama.js`](/Servex/ext/local/llama.js) — `Process.Llama` (starts,
+    stops and swaps `llama-server.exe`, same supervision `Process.Whisper`
+    already uses) and `LocalProxy` (the one place every request passes
+    through: it makes sure the right model is loaded, then forwards).
+  - [`chat.js`](/Servex/ext/local/chat.js) — the one-shot `local_chat()`
+    call this page's `/api/local-chat` route runs, the same shape
+    `agents/tidy.js`'s `tidy()` uses for its own one-shot cloud calls.
+- **Small models do worse, and that's expected** — the Models test ladder
+  (below) records what each one actually managed, as a finding, not a bug
+  to fix here.
+
+## More
+- The task that built this: `public/framework/ai/sessions/2026/09/24/servex-mastermind-opus/local-ai/build/`
+- Every model Servex has tried, local and cloud, side by side:
+  [`/framework/ai/system/models/`](/framework/ai/system/models/)

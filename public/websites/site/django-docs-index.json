@@ -1,0 +1,1624 @@
+{
+	"name": "django-docs-index",
+	"url": "https://docs.djangoproject.com/en/5.1/",
+	"title": "Django documentation | Django documentation | Django",
+	"category": "documentation",
+	"captured_at": "2026-09-08T05:52:33.266Z",
+	"embed": "blocked",
+	"embed_note": "x-frame-options: SAMEORIGIN",
+	"shots": {
+		"400": "site/django-docs-index/400.jpg",
+		"1280": "site/django-docs-index/1280.jpg",
+		"1920": "site/django-docs-index/1920.jpg",
+		"3440": "site/django-docs-index/3440.jpg",
+		"long": "site/django-docs-index/long.jpg"
+	},
+	"layout": {
+		"400": "1-flow",
+		"1280": "2-sidebar",
+		"1920": "2-sidebar",
+		"3440": "2-sidebar"
+	},
+	"sections": [
+		{
+			"name": "promo bands",
+			"layout": "1-flow",
+			"css": "block, full-width bands",
+			"note": "the pink 'unsupported version' warning and the green 'get PyCharm' ad are their own full-width strips above the two-column body, unrelated to the columns below."
+		},
+		{
+			"name": "top nav",
+			"layout": "1-flow",
+			"css": "block row, hidden below 768",
+			"note": "the OVERVIEW/DOWNLOAD/... nav is a plain row on a laptop and up; the landmark disappears from the scan at 400, meaning it is hidden (behind a menu button) rather than wrapped onto a second line."
+		},
+		{
+			"name": "article",
+			"layout": "2-sidebar",
+			"css": "float: left, a fluid share of the row",
+			"note": "this is the old float technique, not flex or grid — and it is fluid, not fixed: the scan measures it at 774px (1280), 1162px (1920) and 2081px (3440), which is the same ~69% share of the row every time."
+		},
+		{
+			"name": "support rail",
+			"layout": "2-sidebar right",
+			"css": "float: right, a fluid share of the row",
+			"note": "the donate/support box floats right at the same ~31% share at every desktop width (352, 528, 946px); at 400 it drops below the article instead of beside it."
+		},
+		{
+			"name": "footer links",
+			"layout": "n-wall",
+			"css": "flex row, 5 columns",
+			"note": "five equal link columns side by side at every desktop width tested; a small block separate from the two-column body above it."
+		}
+	],
+	"tags": [
+		"2-sidebar",
+		"1-flow",
+		"float",
+		"right",
+		"rail",
+		"hamburger",
+		"mega footer",
+		"fluid",
+		"documentation"
+	],
+	"responsive": {
+		"strategy": "A two-column float layout, and the columns are fluid rather than fixed-width: the article and the right-hand support box keep close to a 69/31 split whether measured on a laptop or an ultrawide screen, because both are floated at percentage widths, not pixel ones. Below about 768px the top nav row disappears from the layout (it becomes a hidden menu) and the support box drops underneath the article, so the whole page reads as one column. The promo banners above the body and the five-column footer below it do not take part in this split at all — they are their own full-width bands.",
+		"breakpoints": [
+			768
+		],
+		"queries": [
+			"(prefers-color-scheme: dark){",
+			"(prefers-color-scheme: light){",
+			"print{",
+			"screen and (max-width: 1080px){",
+			"screen and (max-width: 767px){",
+			"screen and (max-width: 768px){",
+			"screen and (min-device-width: 320px){",
+			"screen and (min-width: 1024px){",
+			"screen and (min-width: 1080px){",
+			"screen and (min-width: 1280px){",
+			"screen and (min-width: 1300px){",
+			"screen and (min-width: 1500px){",
+			"screen and (min-width: 500px){",
+			"screen and (min-width: 768px){",
+			"screen and (prefers-color-scheme: dark) and (min-width: 768px){"
+		]
+	},
+	"scan": {
+		"scanned_at": "2026-09-08T05:52:46.024Z",
+		"css": {
+			"sheets": 1,
+			"bytes": 116196,
+			"inline_bytes": 0
+		},
+		"media": [
+			"(prefers-color-scheme: dark){",
+			"(prefers-color-scheme: light){",
+			"print{",
+			"screen and (max-width: 1080px){",
+			"screen and (max-width: 767px){",
+			"screen and (max-width: 768px){",
+			"screen and (min-device-width: 320px){",
+			"screen and (min-width: 1024px){",
+			"screen and (min-width: 1080px){",
+			"screen and (min-width: 1280px){",
+			"screen and (min-width: 1300px){",
+			"screen and (min-width: 1500px){",
+			"screen and (min-width: 500px){",
+			"screen and (min-width: 768px){",
+			"screen and (prefers-color-scheme: dark) and (min-width: 768px){"
+		],
+		"container": [],
+		"breakpoints_seen": [
+			{
+				"px": 768,
+				"count": 3
+			},
+			{
+				"px": 1080,
+				"count": 2
+			},
+			{
+				"px": 320,
+				"count": 1
+			},
+			{
+				"px": 500,
+				"count": 1
+			},
+			{
+				"px": 767,
+				"count": 1
+			},
+			{
+				"px": 1024,
+				"count": 1
+			},
+			{
+				"px": 1280,
+				"count": 1
+			},
+			{
+				"px": 1300,
+				"count": 1
+			},
+			{
+				"px": 1500,
+				"count": 1
+			}
+		],
+		"widths": {
+			"400": {
+				"doc": [
+					400,
+					10294
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"id": "top",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							61,
+							400,
+							82
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "copy-banner",
+						"display": "block",
+						"rect": [
+							0,
+							143,
+							400,
+							59
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"id": "main-content",
+						"display": "block",
+						"rect": [
+							0,
+							571,
+							400,
+							5635
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "docs-content",
+						"display": "block",
+						"rect": [
+							10,
+							591,
+							380,
+							5420
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-django-documentation",
+						"display": "block",
+						"rect": [
+							10,
+							591,
+							380,
+							5420
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-first-steps",
+						"display": "block",
+						"rect": [
+							10,
+							683,
+							380,
+							295
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-getting-help",
+						"display": "block",
+						"rect": [
+							10,
+							992,
+							380,
+							288
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-how-the-documentation-is-organized",
+						"display": "block",
+						"rect": [
+							10,
+							1294,
+							380,
+							503
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-the-model-layer",
+						"display": "block",
+						"rect": [
+							10,
+							1812,
+							380,
+							505
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-the-view-layer",
+						"display": "block",
+						"rect": [
+							10,
+							2331,
+							380,
+							442
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-the-template-layer",
+						"display": "block",
+						"rect": [
+							10,
+							2787,
+							380,
+							274
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-forms",
+						"display": "block",
+						"rect": [
+							10,
+							3075,
+							380,
+							197
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-the-development-process",
+						"display": "block",
+						"rect": [
+							10,
+							3287,
+							380,
+							379
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-the-admin",
+						"display": "block",
+						"rect": [
+							10,
+							3680,
+							380,
+							190
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-security",
+						"display": "block",
+						"rect": [
+							10,
+							3884,
+							380,
+							316
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-internationalization-and-localization",
+						"display": "block",
+						"rect": [
+							10,
+							4214,
+							380,
+							223
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-performance-and-optimization",
+						"display": "block",
+						"rect": [
+							10,
+							4452,
+							380,
+							141
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-geographic-framework",
+						"display": "block",
+						"rect": [
+							10,
+							4607,
+							380,
+							127
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-common-web-application-tools",
+						"display": "block",
+						"rect": [
+							10,
+							4748,
+							380,
+							547
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-other-core-functionalities",
+						"display": "block",
+						"rect": [
+							10,
+							5309,
+							380,
+							365
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"role": "complementary",
+						"display": "block",
+						"rect": [
+							0,
+							6206,
+							400,
+							2297
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "container sidebar-right",
+						"display": "block",
+						"rect": [
+							0,
+							571,
+							400,
+							7932
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "footer",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							8503,
+							400,
+							1792
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "subfooter",
+						"display": "block",
+						"rect": [
+							0,
+							8503,
+							400,
+							1378
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "container",
+						"display": "block",
+						"rect": [
+							10,
+							8503,
+							380,
+							1378
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "column-container",
+						"display": "block",
+						"rect": [
+							10,
+							8523,
+							380,
+							1358
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1280": {
+				"doc": [
+					1280,
+					5365
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"id": "top",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							38,
+							1280,
+							82
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"display": "block",
+						"rect": [
+							192,
+							61,
+							767,
+							40
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "copy-banner",
+						"display": "block",
+						"rect": [
+							0,
+							120,
+							1280,
+							73
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"id": "main-content",
+						"display": "block",
+						"float": "left",
+						"rect": [
+							53,
+							453,
+							774,
+							4447
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "docs-content",
+						"display": "block",
+						"rect": [
+							53,
+							473,
+							727,
+							4254
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-django-documentation",
+						"display": "block",
+						"rect": [
+							53,
+							473,
+							727,
+							4254
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-first-steps",
+						"display": "block",
+						"rect": [
+							53,
+							565,
+							727,
+							211
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-getting-help",
+						"display": "block",
+						"rect": [
+							53,
+							790,
+							727,
+							225
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-how-the-documentation-is-organized",
+						"display": "block",
+						"rect": [
+							53,
+							1029,
+							727,
+							309
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-the-model-layer",
+						"display": "block",
+						"rect": [
+							53,
+							1353,
+							727,
+							337
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-the-view-layer",
+						"display": "block",
+						"rect": [
+							53,
+							1704,
+							727,
+							316
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-the-template-layer",
+						"display": "block",
+						"rect": [
+							53,
+							2034,
+							727,
+							190
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-forms",
+						"display": "block",
+						"rect": [
+							53,
+							2238,
+							727,
+							134
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-the-development-process",
+						"display": "block",
+						"rect": [
+							53,
+							2386,
+							727,
+							295
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-the-admin",
+						"display": "block",
+						"rect": [
+							53,
+							2696,
+							727,
+							169
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-security",
+						"display": "block",
+						"rect": [
+							53,
+							2879,
+							727,
+							295
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-internationalization-and-localization",
+						"display": "block",
+						"rect": [
+							53,
+							3188,
+							727,
+							155
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-performance-and-optimization",
+						"display": "block",
+						"rect": [
+							53,
+							3357,
+							727,
+							120
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-geographic-framework",
+						"display": "block",
+						"rect": [
+							53,
+							3491,
+							727,
+							85
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-common-web-application-tools",
+						"display": "block",
+						"rect": [
+							53,
+							3590,
+							727,
+							505
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"role": "complementary",
+						"display": "block",
+						"float": "right",
+						"rect": [
+							875,
+							473,
+							352,
+							2466
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "footer",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							4900,
+							1280,
+							465
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "corporate-members",
+						"display": "block",
+						"rect": [
+							875,
+							1643,
+							352,
+							1256
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "subfooter",
+						"display": "block",
+						"rect": [
+							0,
+							4900,
+							1280,
+							294
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "container",
+						"display": "block",
+						"rect": [
+							0,
+							4900,
+							1280,
+							294
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "column-container",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							53,
+							4900,
+							1173,
+							294
+						],
+						"side_by_side": 5
+					}
+				]
+			},
+			"1920": {
+				"doc": [
+					1920,
+					5092
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"id": "top",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							38,
+							1920,
+							82
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"display": "block",
+						"rect": [
+							806,
+							61,
+							767,
+							40
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "copy-banner",
+						"display": "block",
+						"rect": [
+							0,
+							120,
+							1920,
+							73
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"id": "main-content",
+						"display": "block",
+						"float": "left",
+						"rect": [
+							80,
+							453,
+							1162,
+							4174
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "docs-content",
+						"display": "block",
+						"rect": [
+							80,
+							473,
+							1091,
+							3981
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-django-documentation",
+						"display": "block",
+						"rect": [
+							80,
+							473,
+							1091,
+							3981
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-first-steps",
+						"display": "block",
+						"rect": [
+							80,
+							565,
+							1091,
+							190
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-getting-help",
+						"display": "block",
+						"rect": [
+							80,
+							769,
+							1091,
+							204
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-how-the-documentation-is-organized",
+						"display": "block",
+						"rect": [
+							80,
+							987,
+							1091,
+							267
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-the-model-layer",
+						"display": "block",
+						"rect": [
+							80,
+							1269,
+							1091,
+							295
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-the-view-layer",
+						"display": "block",
+						"rect": [
+							80,
+							1578,
+							1091,
+							295
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-the-template-layer",
+						"display": "block",
+						"rect": [
+							80,
+							1887,
+							1091,
+							190
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-forms",
+						"display": "block",
+						"rect": [
+							80,
+							2091,
+							1091,
+							134
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-the-development-process",
+						"display": "block",
+						"rect": [
+							80,
+							2239,
+							1091,
+							274
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-the-admin",
+						"display": "block",
+						"rect": [
+							80,
+							2528,
+							1091,
+							169
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-security",
+						"display": "block",
+						"rect": [
+							80,
+							2711,
+							1091,
+							274
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-internationalization-and-localization",
+						"display": "block",
+						"rect": [
+							80,
+							2999,
+							1091,
+							134
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-performance-and-optimization",
+						"display": "block",
+						"rect": [
+							80,
+							3147,
+							1091,
+							99
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-geographic-framework",
+						"display": "block",
+						"rect": [
+							80,
+							3260,
+							1091,
+							85
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-common-web-application-tools",
+						"display": "block",
+						"rect": [
+							80,
+							3359,
+							1091,
+							484
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"role": "complementary",
+						"display": "block",
+						"float": "right",
+						"rect": [
+							1312,
+							473,
+							528,
+							2093
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "footer",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							4627,
+							1920,
+							465
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "subfooter",
+						"display": "block",
+						"rect": [
+							0,
+							4627,
+							1920,
+							294
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "container",
+						"display": "block",
+						"rect": [
+							0,
+							4627,
+							1920,
+							294
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "column-container",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							80,
+							4627,
+							1760,
+							294
+						],
+						"side_by_side": 5
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "billboard",
+						"display": "block",
+						"rect": [
+							0,
+							193,
+							1920,
+							260
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"3440": {
+				"doc": [
+					3440,
+					4924
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"id": "top",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							38,
+							3440,
+							82
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"display": "block",
+						"rect": [
+							2262,
+							61,
+							767,
+							40
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "copy-banner",
+						"display": "block",
+						"rect": [
+							0,
+							120,
+							3440,
+							73
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"id": "main-content",
+						"display": "block",
+						"float": "left",
+						"rect": [
+							143,
+							453,
+							2081,
+							4006
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"id": "docs-content",
+						"display": "block",
+						"rect": [
+							143,
+							473,
+							1955,
+							3813
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-django-documentation",
+						"display": "block",
+						"rect": [
+							143,
+							473,
+							1955,
+							3813
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-first-steps",
+						"display": "block",
+						"rect": [
+							143,
+							565,
+							1955,
+							169
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-getting-help",
+						"display": "block",
+						"rect": [
+							143,
+							748,
+							1955,
+							204
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-how-the-documentation-is-organized",
+						"display": "block",
+						"rect": [
+							143,
+							966,
+							1955,
+							204
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-the-model-layer",
+						"display": "block",
+						"rect": [
+							143,
+							1185,
+							1955,
+							274
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-the-view-layer",
+						"display": "block",
+						"rect": [
+							143,
+							1473,
+							1955,
+							274
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-the-template-layer",
+						"display": "block",
+						"rect": [
+							143,
+							1761,
+							1955,
+							169
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-forms",
+						"display": "block",
+						"rect": [
+							143,
+							1944,
+							1955,
+							134
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-the-development-process",
+						"display": "block",
+						"rect": [
+							143,
+							2092,
+							1955,
+							274
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-the-admin",
+						"display": "block",
+						"rect": [
+							143,
+							2381,
+							1955,
+							169
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-security",
+						"display": "block",
+						"rect": [
+							143,
+							2564,
+							1955,
+							274
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-internationalization-and-localization",
+						"display": "block",
+						"rect": [
+							143,
+							2852,
+							1955,
+							134
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-performance-and-optimization",
+						"display": "block",
+						"rect": [
+							143,
+							3000,
+							1955,
+							99
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-geographic-framework",
+						"display": "block",
+						"rect": [
+							143,
+							3113,
+							1955,
+							64
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "s-common-web-application-tools",
+						"display": "block",
+						"rect": [
+							143,
+							3191,
+							1955,
+							484
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"role": "complementary",
+						"display": "block",
+						"float": "right",
+						"rect": [
+							2351,
+							473,
+							946,
+							1824
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "footer",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							4459,
+							3440,
+							465
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "subfooter",
+						"display": "block",
+						"rect": [
+							0,
+							4459,
+							3440,
+							294
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "container",
+						"display": "block",
+						"rect": [
+							0,
+							4459,
+							3440,
+							294
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "column-container",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							143,
+							4459,
+							3153,
+							294
+						],
+						"side_by_side": 5
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "billboard",
+						"display": "block",
+						"rect": [
+							0,
+							193,
+							3440,
+							260
+						],
+						"side_by_side": 1
+					}
+				]
+			}
+		}
+	},
+	"notes": "Django's documentation page uses the oldest trick in the book — CSS float — to put the article on the left and a small donate box on the right. What is worth noticing is that this split is fluid, not fixed: the scan shows the same roughly 69/31 share of the row on a laptop, a desktop and a giant ultrawide screen, so a wider monitor gives both columns more room rather than just adding empty margin. On a phone the nav bar hides behind a menu button and the donate box moves underneath the article, turning the page into one column. Above the two-column body sit two full-width colour bands — a warning and a promo — that have nothing to do with the columns below them, and below it is a plain five-column footer of links.",
+	"wire": {
+		"role": "page",
+		"kids": [
+			{
+				"role": "text",
+				"h": "2.25em",
+				"tone": "a08",
+				"lines": 1
+			},
+			{
+				"role": "header",
+				"h": "5em"
+			},
+			{
+				"role": "text",
+				"h": "4.25em",
+				"tone": "a16",
+				"lines": 1
+			},
+			{
+				"role": "hero",
+				"h": "16.5em",
+				"tone": "a08"
+			},
+			{
+				"role": "main",
+				"dir": "row",
+				"floor": "48rem",
+				"kids": [
+					{
+						"role": "main",
+						"w": 69,
+						"lines": 16
+					},
+					{
+						"role": "aside",
+						"w": 31,
+						"lines": 10
+					}
+				]
+			},
+			{
+				"role": "footer",
+				"dir": "row",
+				"floor": "34rem",
+				"stack": 2,
+				"h": "8em",
+				"kids": [
+					{
+						"role": "nav",
+						"w": 1
+					},
+					{
+						"role": "nav",
+						"w": 1
+					},
+					{
+						"role": "nav",
+						"w": 1
+					},
+					{
+						"role": "nav",
+						"w": 1
+					},
+					{
+						"role": "nav",
+						"w": 1
+					}
+				]
+			}
+		]
+	}
+}

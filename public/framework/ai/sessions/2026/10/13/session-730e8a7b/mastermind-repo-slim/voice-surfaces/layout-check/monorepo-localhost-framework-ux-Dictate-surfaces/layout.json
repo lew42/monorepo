@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ux/Dictate/surfaces/",
+ "widths": {
+  "1280": {
+   "empty": 0.403,
+   "widest_text": 599,
+   "widest_text_sample": "Four share one conversation (the global ",
+   "overflow_x": false,
+   "items": 118,
+   "narrow_share": 0.161
+  },
+  "1920": {
+   "empty": 0.614,
+   "widest_text": 637,
+   "widest_text_sample": "Four share one conversation (the global ",
+   "overflow_x": false,
+   "items": 118,
+   "narrow_share": 0.551
+  },
+  "2560": {
+   "empty": 0.652,
+   "widest_text": 716,
+   "widest_text_sample": "Four share one conversation (the global ",
+   "overflow_x": false,
+   "items": 118,
+   "narrow_share": 0.551
+  },
+  "3440": {
+   "empty": 0.742,
+   "widest_text": 716,
+   "widest_text_sample": "Four share one conversation (the global ",
+   "overflow_x": false,
+   "items": 118,
+   "narrow_share": 0.551
+  }
+ },
+ "errors": []
+}

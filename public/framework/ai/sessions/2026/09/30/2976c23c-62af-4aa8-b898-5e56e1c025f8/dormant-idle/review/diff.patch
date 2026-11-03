@@ -1,0 +1,738 @@
+diff --git a/Servex/Heartbeat.js b/Servex/Heartbeat.js
+index 32665141..10da4b60 100644
+--- a/Servex/Heartbeat.js
++++ b/Servex/Heartbeat.js
+@@ -107,7 +107,10 @@ export default class Heartbeat {
+         try {
+             const now = Date.now();
+             this.wrap_stop();
+-            for (const file of this.files()){
++            const files = this.files();
++            /* A task this tick no longer finds (landed, or too old for the task loop) leaves the list. */
++            for (const file of [...this.watch.keys()]) if (!files.includes(file)) this.watch.delete(file);
++            for (const file of files){
+                 const t = this.read(file);
+                 if (!t || t.done){ this.watch.delete(file); continue; }
+                 const w = this.watch.get(file) ?? {};
+@@ -139,8 +142,18 @@ export default class Heartbeat {
+ 
+     files(){
+         const out = new Set(this.servex.task_loop?.find_task_files() ?? []);
+-        for (const a of this.agents.live.values()) if (a.task?.dir) out.add(path.join(a.task.dir, "task.jsonl"));
+-        return [...out].filter(f => fs.existsSync(f));
++        /* A RESUMED agent has no `task` spec: its task dir is on its registry row (kept for the same
++         * session), so a resumed task mastermind's own task is watched and budgeted too (cards-and-logs, 09-30). */
++        let rows = {}; try { rows = this.agents.reg?.().read() ?? {}; } catch {}
++        for (const a of this.agents.live.values()){
++            const dir = a.task?.dir ?? (a.state !== "stopped" ? rows[a.id]?.task_dir : null);
++            if (dir) out.add(path.join(dir, "task.jsonl"));
++        }
++        /* ONE ROW PER TASK: the task loop gives absolute paths, an agent's task.dir is often
++         * repo-relative, so the same file came in twice (mastermind-servex-9, 2026-09-30). */
++        const one = new Map();
++        for (const f of out){ const abs = path.resolve(f); const key = abs.toLowerCase(); if (!one.has(key) && fs.existsSync(abs)) one.set(key, abs); }
++        return [...one.values()];
+     }
+ 
+     /* Line 1 names the owner and the opt-in; every assign merged says landed,
+@@ -281,10 +294,15 @@ export default class Heartbeat {
+     }
+ 
+     status(){
+-        const now = Date.now();
++        const now = Date.now(), c = this.agents.counts?.();
+         return {
++            /* the working cap (Agents.working): "working 3/5", plus how many sleep without a process */
++            working: c ? `working ${c.working}/${c.cap}` : null, idle: c?.idle ?? null, dormant: c?.dormant ?? null,
+             silent_min: this.silent_ms / 60000,
+-            tasks: [...this.watch].map(([file, w]) => ({ task: this.servex.task_loop?.slug(file), owner: w.owner,
++            /* Only tasks whose owner is running or dormant, or has a check or revive pending: a
++             * stopped owner's old task is not news (30 of 58 rows were, 2026-09-30). */
++            tasks: [...this.watch].filter(([file, w]) => (a => a && a.state !== "stopped")(this.agents.live.get(w.owner)) || w.check_at || this.queued_revive(file))
++                .map(([file, w]) => ({ task: this.servex.task_loop?.slug(file), owner: w.owner,
+                 state: this.agents.live.get(w.owner)?.state ?? "not running",
+                 silent_s: this.seen.get(w.owner) ? Math.round((now - this.seen.get(w.owner).at) / 1000) : null,
+                 mid_tool: !!this.seen.get(w.owner)?.tool_at, check_pending: !!w.check_at, answered: w.answered ?? 0 })),
+diff --git a/Servex/Monitor.js b/Servex/Monitor.js
+index 1b69ddec..0649df35 100644
+--- a/Servex/Monitor.js
++++ b/Servex/Monitor.js
+@@ -115,10 +115,13 @@ export default class Monitor extends Events {
+         const Agent = this.servex?.constructor?.Agents?.Agent;
+         const live = [...(this.servex?.agents?.live?.values() ?? [])]
+             .filter(a => (!Agent || a instanceof Agent) && a.state !== "stopped");
++        const c = this.servex?.agents?.counts?.();   // the working cap (dormant-idle, 2026-09-30)
+         return {
+             total: live.length,
+             working: live.filter(a => a.state === "working" || a.state === "starting").length,
+-            idle_holding_claude: live.filter(a => a.state === "idle").length
++            idle_holding_claude: live.filter(a => a.state === "idle").length,
++            dormant: live.filter(a => a.state === "dormant").length,
++            cap: c ? `working ${c.working}/${c.cap}` : null
+         };
+     }
+ 
+@@ -232,7 +235,9 @@ export default class Monitor extends Events {
+     verdict(sample = this.sample){
+         if (!sample) return "No sample yet: the monitor takes its first one 5 seconds after Servex starts.";
+         const gpu = sample.gpu?.temp != null ? `, GPU ${sample.gpu.temp} °C` : "";
+-        const idle = `${sample.agents.idle_holding_claude} idle agent${sample.agents.idle_holding_claude === 1 ? "" : "s"} holding claude`;
++        const idle = (sample.agents.cap ? `${sample.agents.cap}, ` : "")
++            + `${sample.agents.idle_holding_claude} idle agent${sample.agents.idle_holding_claude === 1 ? "" : "s"} holding claude`
++            + (sample.agents.dormant ? `, ${sample.agents.dormant} dormant` : "");
+         if (this.flag) return `HOT: ${this.flag.reason}. ${idle}.`;
+         return `Calm: CPU ${sample.cpu ?? "?"}%, ${sample.ram_free_gb} GB free${gpu}, ${idle}.`;
+     }
+diff --git a/Servex/agents/Agents.js b/Servex/agents/Agents.js
+index aa7f36b6..0f8673a1 100644
+--- a/Servex/agents/Agents.js
++++ b/Servex/agents/Agents.js
+@@ -236,7 +236,9 @@ export class Agents {
+ 		const out = { revived: [], told: [], gone: [], legacy: [] };
+ 		this.mark_legacy_stops(reg);
+ 		for (const row of reg.list()){
+-			if (this.live.has(row.id) || row.state === "stopped") continue;
++			/* A DORMANT row had no process to lose: it stays dormant, and the first
++			 * message reopens it (send -> wake -> reopen), never the boot. */
++			if (this.live.has(row.id) || row.state === "stopped" || row.state === "dormant") continue;
+ 			if (self_restarted(row.id)){
+ 				if (row.state !== "gone") out.gone.push(row.id);
+ 				continue;
+@@ -458,6 +460,23 @@ export class Agents {
+ 
+ 	list(){ return [...this.live.values()].map(agent => agent.card()); }
+ 
++	/* THE WORKING CAP (dormant-idle, 2026-09-30): at most `working_cap` agents
++	 * WORKING at once (SERVEX_WORKING_CAP, default 5). Every working agent counts
++	 * for itself, so a task mastermind with two working minions holds three of
++	 * the five. Not counted: the standing front desk (assistants, managers,
++	 * master-assistant, voice sessions, the Dispatcher stand-in) and an agent
++	 * blocked in wait_for_agent. Global.admit() queues a new spawn above it. */
++	get working_cap(){ return Number(process.env.SERVEX_WORKING_CAP) || 5; }
++	working(){
++		return [...this.live.values()].filter(a => (a.state === "working" || a.state === "starting")
++			&& !a.waiting_on && !STANDING.test(a.id ?? "") && a instanceof Agents.Agent);
++	}
++	counts(){
++		const all = [...this.live.values()].filter(a => a instanceof Agents.Agent);
++		const n = s => all.filter(a => a.state === s).length;
++		return { working: this.working().length, cap: this.working_cap, idle: n("idle"), dormant: n("dormant") };
++	}
++
+ 	/* Every event from every agent passes through here on its way to the log.
+ 	 * Override it — the dashboard's socket, a test's stdout — and you see the
+ 	 * whole switchboard. */
+@@ -621,6 +640,9 @@ export const SELF_RESTARTED = { prefixes: ["assistant-", "manager-", "master-ass
+ export const self_restarted = id => !process.env.SERVEX_NO_LAYERS && (
+ 	SELF_RESTARTED.ids.includes(id) || /^mastermind-servex-\d+$/.test(id) || SELF_RESTARTED.prefixes.some(prefix => id.startsWith(prefix)));
+ 
++/* The standing front desk: never counted against the working cap. */
++export const STANDING = /^(assistant-|manager-|master-assistant|session-|dispatcher$)/;
++
+ /* Drop the undefined and null fields, so a role's defaults can fill them. */
+ const strip = spec => Object.fromEntries(Object.entries(spec).filter(([, v]) => v != null));
+ 
+@@ -666,7 +688,7 @@ Agents.Agent = class Agent {
+ 		if (this.resume && !this.fork) this.session_id ??= this.resume;
+ 		else { this.session_id ??= randomUUID(); this.minted = true; }
+ 		this.query = query({ prompt: this.queue.stream(), options: this.options() });
+-		this.pump();
++		this.pump(this.gen = (this.gen ?? 0) + 1);
+ 		if (!this.prompt){ this.state = "idle"; return this; }
+ 		this.emit({ type: "agent_msg", from: "host", reply_to: null, text: this.prompt, first: true });
+ 		this.queue.push(this.turn(this.prompt));
+@@ -693,12 +715,12 @@ Agents.Agent = class Agent {
+ 	/* Resolves when this agent is idle (turn over, nothing queued) or stopped
+ 	 * — at once if it already is. `settle()` is what resolves it. */
+ 	idle(){
+-		if (this.state === "idle" || this.state === "stopped") return Promise.resolve(true);
++		if (this.state === "idle" || this.state === "stopped" || this.state === "dormant") return Promise.resolve(true);
+ 		return new Promise(resolve => (this.waiters ??= []).push(resolve));
+ 	}
+ 
+ 	settle(){
+-		if (this.state !== "idle" && this.state !== "stopped") return;
++		if (this.state !== "idle" && this.state !== "stopped" && this.state !== "dormant") return;
+ 		(this.waiters ?? []).splice(0).forEach(resolve => resolve(true));
+ 	}
+ 
+@@ -784,6 +806,7 @@ Agents.Agent = class Agent {
+ 
+ 	send(text, { from, reply_to, priority } = {}){
+ 		if (this.state === "stopped") throw new Error(`Agent ${this.id} has stopped.`);
++		if (this.state === "dormant") this.awaken(from);
+ 		this.emit({ type: "agent_msg", from: from ?? null, reply_to: reply_to ?? null, priority: priority ?? null, text });
+ 		this.queue.push(this.turn(this.envelope(text, { from, reply_to }), priority));
+ 		this.state = "working";
+@@ -792,6 +815,7 @@ Agents.Agent = class Agent {
+ 	}
+ 
+ 	async interrupt(){
++		if (this.state === "dormant") return this;   // no process, no turn to cut
+ 		try { await this.query.interrupt(); }
+ 		catch (e){ this.emit({ type: "error", where: "interrupt", text: String(e.message || e) }); }
+ 		this.state = "idle";
+@@ -800,6 +824,72 @@ Agents.Agent = class Agent {
+ 		return this;
+ 	}
+ 
++	/* DORMANT (dormant-idle, 2026-09-30). An idle agent's claude process EXITS, and
++	 * everything else stays: this same object in `live`, its id, session id, spec,
++	 * sdk hooks and in-process MCP servers, and its registry row (state `dormant`).
++	 * The next `send()` resumes the session in place (`awaken()`), so a dormant
++	 * agent answers to its id exactly as an idle one did, a few seconds later. An
++	 * idle process held 250-400 MB; a dormant one holds nothing. It is not a stop:
++	 * no result event, no parent wake, and the heartbeat and lifecycle still count
++	 * it alive. Refused while a background task runs (a Bash or Monitor it waits on
++	 * would die with the process). Global.sweep() calls it after 3 idle minutes. */
++	sleep(why = "idle"){
++		if (this.state !== "idle" || this.one_shot || !this.session_id) return false;
++		if (this.bg_tasks > 0) return false;
++		this.gen = (this.gen ?? 0) + 1;   // the old pump's end is not news
++		this.queue.close();
++		try { this.query.close(); } catch {}
++		try { this.aborter.abort(); } catch {}
++		this.state = "dormant";
++		this.dormant_at = stamp();
++		this.emit({ type: "dormant", why, context: this.context ?? null, turns: this.turns });
++		this.host?.register?.(this);
++		this.settle();
++		return true;
++	}
++
++	/* A dormant agent's session, resumed in place: a new claude process on the
++	 * same session id, cwd, model, tools and options. Nothing is sent here; the
++	 * caller's `send()` pushes the turn that woke it. */
++	awaken(by){
++		if (this.state !== "dormant") return this;
++		const slept = this.dormant_at;
++		this.assign({ resume: this.session_id, fork: false, minted: false, prompt: null, dormant_at: null, bg_tasks: 0 });
++		this.start();
++		this.emit({ type: "awake", by: by ?? null, slept_since: slept });
++		this.host?.register?.(this);
++		return this;
++	}
++
++	/* COMPACTION (dormant-idle, 2026-09-30). `/compact` as a turn of its own: the
++	 * CLI summarises the conversation and continues from the summary, so the
++	 * context, the process and the next resume all shrink. It is not a turn anyone
++	 * asked for, so it wakes no parent and keeps the last turn's words. Run at the
++	 * end of a turn when the context passes `compact_tokens` (200k) or the process
++	 * passes `compact_mb` (500 MB, measured by Global.sweep). */
++	compact(why = "context"){
++		if (this.state !== "idle" || this.one_shot || this.compacting) return false;
++		this.compacting = { why, before: this.context ?? null, rss_mb: this.rss_mb ?? null, at: Date.now() };
++		this.emit({ type: "compacting", why, context: this.context ?? null, rss_mb: this.rss_mb ?? null });
++		this.queue.push(this.turn("/compact"));
++		this.state = "working";
++		this.host?.register?.(this);
++		return true;
++	}
++
++	/* Why this agent should compact now, or null. Once per turn: a summary still
++	 * over the line is not compacted again until it has done more work. */
++	oversized(){
++		const tokens = this.host?.compact_tokens ?? (Number(process.env.SERVEX_COMPACT_TOKENS) || 200000);
++		const mb = this.host?.compact_mb ?? (Number(process.env.SERVEX_COMPACT_MB) || 500);
++		/* The front desk is never compacted: Layers.js restarts a page's assistant and manager
++		 * FRESH from a checkpoint instead ("fresh, not compacted" — the owner). */
++		if (this.one_shot || this.compacted_turn === this.turns || STANDING.test(this.id ?? "")) return null;
++		if ((this.context ?? 0) > tokens) return "context";
++		if ((this.rss_mb ?? 0) > mb) return "memory";
++		return null;
++	}
++
+ 	/* Three things end a session, and a long-lived host needs all three: close the
+ 	 * prompt stream so nothing new starts, close the query so the SDK tears its
+ 	 * transport down, and abort so the `claude` child process actually exits —
+@@ -862,14 +952,17 @@ Agents.Agent = class Agent {
+ 		return event;
+ 	}
+ 
+-	async pump(){
++	/* `gen` is which process this pump reads: a dormant agent's old process ends
++	 * AFTER the new one started (awaken), and its end must not touch the new one. */
++	async pump(gen = this.gen){
++		const mine = () => gen === this.gen;
+ 		try {
+-			for await (const message of this.query) this.receive(message);
++			for await (const message of this.query){ if (!mine()) break; this.receive(message); }
+ 		} catch (e){
+-			// the abort that `stop()` itself fires is not news — and would wake a parent with a false "error"
+-			if (this.state !== "stopped") this.emit({ type: "error", where: "session", text: String(e.message || e) });
++			// the abort that `stop()` or `sleep()` itself fires is not news — and would wake a parent with a false "error"
++			if (mine() && this.state !== "stopped" && this.state !== "dormant") this.emit({ type: "error", where: "session", text: String(e.message || e) });
+ 		}
+-		if (this.state === "stopped") return;
++		if (!mine() || this.state === "stopped" || this.state === "dormant") return;
+ 		this.state = "stopped";
+ 		this.host?.register?.(this);
+ 		this.settle();
+@@ -880,6 +973,9 @@ Agents.Agent = class Agent {
+ 	 * unrecognised type is dropped, never thrown on. */
+ 	receive(message){
+ 		if (message.type === "system" && message.subtype === "init") return this.began(message);
++		if (message.type === "system" && message.subtype === "background_tasks_changed")
++			return void (this.bg_tasks = (message.tasks ?? []).filter(t => !t.ambient).length);
++		if (message.type === "system" && message.subtype === "compact_boundary") return this.boundary(message);
+ 		if (message.type === "stream_event") return this.delta(message);
+ 		if (message.type === "assistant") return this.assistant(message);
+ 		if (message.type === "result") return this.result(message);
+@@ -895,6 +991,14 @@ Agents.Agent = class Agent {
+ 		this.host?.register?.(this);
+ 	}
+ 
++	/* The CLI compacted (our `/compact`, or its own auto-compact mid-turn). */
++	boundary(message){
++		const m = message.compact_metadata ?? {};
++		this.last_usage = null;
++		this.context = m.post_tokens ?? null;
++		this.emit({ type: "compacted", trigger: m.trigger ?? null, pre_tokens: m.pre_tokens ?? null, post_tokens: m.post_tokens ?? null });
++	}
++
+ 	delta(message){
+ 		const event = message.event;
+ 		if (event?.type !== "content_block_delta") return;
+@@ -927,6 +1031,7 @@ Agents.Agent = class Agent {
+ 	 * further input"; without that check a watcher reads the gap between two
+ 	 * queued turns as "finished" and acts on a half-done agent. */
+ 	result(message){
++		if (this.compacting) return this.compact_done(message);
+ 		this.turns += 1;
+ 		this.cost = message.total_cost_usd ?? this.cost;
+ 		this.queued = message.queued_turn_count ?? 0;
+@@ -969,6 +1074,26 @@ Agents.Agent = class Agent {
+ 		 * Servex stops it; waiters already have its words (settle() above), and the
+ 		 * session stays resumable — a message still wakes it (no `stopped_by`). */
+ 		else if (ONE_PASS.includes(this.role) && this.state === "idle") setImmediate(() => { if (this.state === "idle") this.stop(); });
++		/* Grown past a threshold: compact before anything else arrives. */
++		else if (this.state === "idle"){ const why = this.oversized(); if (why) setImmediate(() => this.compact(why)); }
++	}
++
++	/* The end of a `/compact` turn: logged, no parent woken, the last turn's words kept. */
++	compact_done(message){
++		const c = this.compacting;
++		this.compacting = null;
++		this.compacted_turn = this.turns;
++		this.cost = message.total_cost_usd ?? this.cost;
++		this.queued = message.queued_turn_count ?? 0;
++		this.state = this.queued > 0 ? "working" : "idle";
++		this.said = [];
++		this.log({ at: stamp(), agent: this.id, type: "compact", ok: !message.is_error, why: c.why, before: c.before, after: this.context ?? null,
++			rss_mb_before: c.rss_mb, duration_ms: Date.now() - c.at, cost: this.cost });
++		this.host?.register?.(this);
++		this.settle();
++		/* Compacted for MEMORY: a process keeps the heap it grew, so restart it
++		 * from the compacted session (checkpoint-and-restart). */
++		if (c.why === "memory" && this.state === "idle" && this.sleep("compacted")) this.awaken("compaction");
+ 	}
+ };
+ 
+diff --git a/Servex/agents/Global.js b/Servex/agents/Global.js
+index 52edd277..cc0cda9c 100644
+--- a/Servex/agents/Global.js
++++ b/Servex/agents/Global.js
+@@ -10,6 +10,15 @@ import { brief, remember_focus } from "./brief.js";
+ import { model } from "./tiers.js";
+ import { Policy } from "./policy.js";
+ import { queued } from "./Layers.js";
++import { STANDING } from "./Agents.js";
++import { execFile } from "child_process";
++
++/* Every claude.exe: pid, working set in MB, command line. [] when PowerShell fails. */
++export function claude_processes(){
++	const ps = "Get-CimInstance Win32_Process -Filter \"Name='claude.exe'\" | ForEach-Object { [pscustomobject]@{ pid = $_.ProcessId; mb = [math]::Round($_.WorkingSetSize / 1MB); cmd = $_.CommandLine } } | ConvertTo-Json -Compress";
++	return new Promise(resolve => execFile("powershell", ["-NoProfile", "-NonInteractive", "-Command", ps], { windowsHide: true, timeout: 20000, maxBuffer: 8 << 20 },
++		(err, out) => { try { const j = JSON.parse(out || "[]"); resolve((Array.isArray(j) ? j : [j]).map(r => ({ ...r, cmd: String(r.cmd ?? "") }))); } catch { resolve([]); } }));
++}
+ 
+ const HERE = path.dirname(fileURLToPath(import.meta.url));
+ /* The repo Servex runs from — the main tree, C:/Code/lew42/monorepo, in normal use.
+@@ -19,10 +28,8 @@ const REPO = path.join(HERE, "../..");
+  * (D3, doc/page-roles.md) — "task" (a queued-state change) is noise at this
+  * level and is dropped; a deeper page's own assistant hears its own "task". */
+ const HEARD = ["landed", "blocked", "error"];
+-/* Reaped 3 min after their last turn: EVERY agent that is not one of the long-lived kinds below, so a new one-shot role (voter, clarity, reviewer, …) is covered without being listed. `page-` covers the recursive-pairs role words (page-assistant, page-mastermind); their ids already start with assistant-/manager-. */
+-const LONG = /^(assistant|manager|master-assistant|mastermind|task-mastermind|dispatcher|page-|session-)/;
+-const is_worker = agent => !LONG.test(agent.role ?? "") && !LONG.test(agent.id ?? "");
+-const TASK_MASTERMIND = /^task-mastermind-/;
++/* The front desk's roles: their spawns are never held by the working cap. */
++const DESK = /^(assistant|manager|master-assistant|page-|session|helper)/;
+ const env = (name, dflt) => Number(process.env[name]) || dflt;
+ const today = () => new Date().toLocaleDateString("en-CA");
+ 
+@@ -51,8 +58,8 @@ export default class Global {
+ 	defaults(){
+ 		return { servex: null, master_id: "master-assistant", mastermind_id: "mastermind-servex",
+ 			batch_ms: Number(process.env.SERVEX_MASTER_BATCH_MS) || 20000,
+-			idle_ms: env("SERVEX_GLOBAL_IDLE_MS", 15 * 60000), task_idle_ms: env("SERVEX_TASK_IDLE_MS", 3 * 60000), reap_every_ms: env("SERVEX_REAP_EVERY_MS", 60000),
+-			reap_ms: env("SERVEX_REAP_MS", 180000), cap: env("SERVEX_AGENT_CAP", 30), min_free_mb: env("SERVEX_MIN_FREE_MB", 4096),
++			dormant_ms: env("SERVEX_DORMANT_MS", 180000), reap_every_ms: env("SERVEX_REAP_EVERY_MS", 60000),
++			measure_every_ms: env("SERVEX_MEASURE_EVERY_MS", 5 * 60000), last_measure: 0, cap: env("SERVEX_AGENT_CAP", 30), min_free_mb: env("SERVEX_MIN_FREE_MB", 4096),
+ 			pending: [], timer: null, last_sent: 0, touched: new Map(), idle_seen: new Map(), ready: null };
+ 	}
+ 
+@@ -232,37 +239,53 @@ export default class Global {
+ 		return Math.max(t, t ? 0 : this.idle_seen.get(key));
+ 	}
+ 
+-	/* THE REAPER — every minute: an idle minion, helper or fork that has
+-	 * finished a turn (its parent was woken then) and sat idle past `reap_ms` is
+-	 * stopped; the master, the mastermind, AND any idle `task-mastermind-*` (D5,
+-	 * 2026-09-25/28: the same 15-minute rule, not just the two global agents) are
+-	 * stopped after `idle_ms` of quiet — a task mastermind after `task_idle_ms` (3 min, 2026-09-30:
+-	 * five idle task masterminds held ~1.5 GB while their own minions queued for that memory). All of them resume on the next message —
+-	 * that wake is generic (`Agents.wake`/`reopen`, by session id), not special
+-	 * to the two ids this file spawns itself. */
++	/* THE DORMANCY SWEEP — every minute (dormant-idle, 2026-09-30; it replaces the
++	 * idle reaper of node-reliability, which STOPPED idle agents on three clocks).
++	 * EVERY agent, whatever its role, idle past `dormant_ms` (3 min) goes DORMANT
++	 * (`Agent.sleep`): its claude process exits, its object, id and session stay,
++	 * and the next message resumes it in place. Because a dormant agent is not
++	 * stopped, the heartbeat never reads it as a death, so the old 15-minute
++	 * exceptions (no-child task masterminds, the two global agents) are gone.
++	 * Kept awake: an agent with a live background task (Agent.sleep refuses).
++	 * Every `measure_every_ms` it also reads each claude.exe's memory
++	 * (`measure`), and an idle one past `compact_mb` compacts. */
+ 	reaper(){
+ 		this.reap_timer = setInterval(() => this.sweep(), this.reap_every_ms);
+ 		this.reap_timer.unref?.();
++		/* A turn ending frees a working slot: drain the spawn queue at once, not on the next monitor tick. */
++		const reg = this.agents.register?.bind(this.agents);
++		if (reg) this.agents.register = agent => { const row = reg(agent); if (agent.state !== "working" && agent.state !== "starting") this.kick(); return row; };
++	}
++
++	kick(){
++		if (this.kicked || !this.servex.queue?.length) return;
++		this.kicked = setImmediate(() => { this.kicked = null; try { this.servex.drain?.(); } catch {} });
+ 	}
+ 
+ 	sweep(now = Date.now()){
+ 		for (const agent of [...this.agents.live.values()]){
+-			if (agent.state !== "idle") continue;
+-			const worker = is_worker(agent);
+-			const global = agent.id === this.master_id || agent.id === this.mastermind_id || /^mastermind-servex-\d+$/.test(agent.id ?? "");   // 15 min idle; a message wakes them
+-			const task_mastermind = !global && TASK_MASTERMIND.test(agent.id ?? "");   // 3 min (node-reliability, 09-30), and its reap is logged
+-			if (!worker && !global && !task_mastermind) continue;
+-			if (worker && !(agent.turns >= 1)) continue;
+-			/* 3 min only while it WAITS ON A CHILD (working, or queued for memory): its child's report
+-			 * resumes it. With no child it keeps 15 min, or the heartbeat reads the stop as a death and
+-			 * revives it round and round (review, 2026-09-30). */
+-			const waiting = task_mastermind && ([...this.agents.live.values()].some(c => c.parent === agent.id && c.state !== "stopped")
+-				|| (this.servex.queue ?? []).some(e => e.spec?.parent === agent.id));
+-			if (now - this.last_active(agent, now) <= (worker ? this.reap_ms : waiting ? this.task_idle_ms : this.idle_ms)) continue;
+-			try { agent.stop(); } catch {}
+-			if (worker || task_mastermind) this.servex.log.append("servex", { type: "reaped", id: agent.id })?.catch?.(() => {});
++			if (agent.state !== "idle" || typeof agent.sleep !== "function") continue;
++			if (now - this.last_active(agent, now) <= this.dormant_ms) continue;
++			if (agent.sleep("idle")) this.servex.log.append("servex", { type: "dormant", id: agent.id, role: agent.role ?? null, context: agent.context ?? null })?.catch?.(() => {});
+ 		}
+ 		for (const key of this.idle_seen.keys()) if (!this.agents.live.get(key.split(":")[0])) this.idle_seen.delete(key);
++		if (now - this.last_measure >= this.measure_every_ms){ this.last_measure = now; this.measure().catch(() => {}); }
++	}
++
++	/* MEMORY PER AGENT: every claude.exe's working set, matched to an agent by the
++	 * session id on its command line (`--resume=<id>` or `--session-id <id>`).
++	 * Sets `agent.rss_mb`; an IDLE agent past `compact_mb` compacts now, a working
++	 * one at the end of its turn (Agent.oversized). About 1 s of PowerShell. */
++	async measure(){
++		const rows = await claude_processes();
++		const by = new Map();
++		for (const r of rows){ const sid = r.cmd.match(/--(?:resume|session-id)[= ]"?([0-9a-f-]{36})/i)?.[1]; if (sid) by.set(sid, Math.max(by.get(sid) ?? 0, r.mb)); }
++		for (const agent of this.agents.live.values()){
++			if (!agent.session_id || !by.has(agent.session_id)) continue;
++			agent.rss_mb = by.get(agent.session_id);
++			if (agent.state === "idle" && agent.oversized?.() === "memory") agent.compact("memory");
++		}
++		return by;
+ 	}
+ 
+ 	/* THE ADMISSION CHECK, when Servex has one (`servex.checks`): free memory
+@@ -276,6 +299,13 @@ export default class Global {
+ 
+ 	admit(spec = {}, free_mb = os.freemem() / 1048576){
+ 		if (free_mb < this.min_free_mb) return `only ${Math.round(free_mb)} MB of memory is free; waiting for ${this.min_free_mb} MB`;
++		/* THE WORKING CAP (Agents.working). A resume is a wake that must deliver its
++		 * message, and the front desk answers the owner: neither is held by it. */
++		const wake = !!spec.resume && !spec.fork, desk = DESK.test(spec.role ?? "") || STANDING.test(spec.id ?? "");
++		if (!wake && !desk && this.agents.working){
++			const working = this.agents.working().length, cap = this.agents.working_cap;
++			if (working >= cap) return `working ${working}/${cap}: waits for a working agent to end its turn`;
++		}
+ 		const live = [...this.agents.live.values()].filter(a => a.state !== "stopped").length;
+ 		const parent = spec.parent && this.agents.live.get(spec.parent);
+ 		if (live >= this.cap && !(parent && parent.state !== "stopped")) return `${live} agents are running, the ceiling is ${this.cap}`;
+diff --git a/Servex/agents/global.test.mjs b/Servex/agents/global.test.mjs
+index 87b31487..9c151234 100644
+--- a/Servex/agents/global.test.mjs
++++ b/Servex/agents/global.test.mjs
+@@ -23,7 +23,8 @@ function fake_servex({ registry = {}, live = [] } = {}){
+ 	const spawned = [], sent = [], logged = [], tools = new Map(), listeners = [];
+ 	const agent = spec => ({ ...spec, state: spec.state ?? "idle", turns: spec.turns ?? 0,
+ 		stop(){ this.state = "stopped"; },
+-		send(text, note){ if (this.state === "stopped") throw new Error("stopped"); sent.push({ id: this.id, text, note }); return this; } });
++		sleep(){ if (this.state !== "idle") return false; this.state = "dormant"; return true; },
++		send(text, note){ if (this.state === "stopped") throw new Error("stopped"); if (this.state === "dormant"){ this.state = "idle"; this.awoken = (this.awoken ?? 0) + 1; } sent.push({ id: this.id, text, note }); return this; } });
+ 	const agents = {
+ 		live: new Map(), policy: { rules: () => [], refused: [] },
+ 		reg: () => ({ read: () => registry }),
+@@ -186,14 +187,14 @@ const reset = () => { for (const f of ["claims.json", "global.json"]) fs.rmSync(
+ 	master.session_id = "m-sid"; g.remember(master, "master");
+ 	const mm = f.servex.agents.live.get("mastermind-servex");
+ 	mm.session_id = "mm-sid"; g.remember(mm, "mastermind");
+-	g.sweep(Date.now() + g.idle_ms + 1000);
+-	t(master.state === "stopped" && mm.state === "stopped", "master and mastermind stopped when idle");
++	g.sweep(Date.now() + g.dormant_ms + 1000);
++	t(master.state === "dormant" && mm.state === "dormant", "master and mastermind go dormant when idle");
++	const spawns = f.spawned.length;
+ 	f.servex.agents.send("mastermind-servex", "hello", { from: "owner" });
+-	const back = f.spawned.filter(s => s.id === "mastermind-servex").pop();
+-	t(back.resume === "mm-sid" && f.sent.pop().text === "hello", "a message resumes mastermind-servex");
++	t(mm.awoken === 1 && f.sent.pop().text === "hello" && f.spawned.length === spawns, "a message awakens the same mastermind-servex object in place, no new spawn");
+ 	hear("g", { message: { kind: "landed", by: "task-mastermind-x", text: "five" } });
+ 	await wait(120);
+-	t(f.spawned.filter(s => s.id === "master-assistant").pop().resume === "m-sid", "batching resumes the master");
++	t(master.awoken === 1 && f.sent.filter(s => s.id === "master-assistant").pop().text.includes("five"), "batching awakens the dormant master");
+ 	clearInterval(g.reap_timer);
+ }
+ 
+@@ -264,10 +265,10 @@ const reset = () => { for (const f of ["claims.json", "global.json"]) fs.rmSync(
+ 	const tm = f.add({ id: "task-mastermind-recursive-pairs", role: "task-mastermind", state: "idle", parent: "dispatcher", turns: 3, session_id: "tm-sid" });
+ 	f.servex.agents.live.set(tm.id, tm);
+ 	g.sweep(Date.now());
+-	t(tm.state === "idle", "not reaped before idle_ms");
+-	g.sweep(Date.now() + g.idle_ms + 1000);
+-	t(tm.state === "stopped", "an idle task-mastermind is stopped after idle_ms (15 minutes by default)");
+-	t(f.logged.some(l => l.type === "reaped" && l.id === "task-mastermind-recursive-pairs"), "its stop is logged like a worker's");
++	t(tm.state === "idle", "not dormant before dormant_ms");
++	g.sweep(Date.now() + g.dormant_ms + 1000);
++	t(tm.state === "dormant", "an idle task-mastermind goes dormant after dormant_ms (3 minutes), child or no child");
++	t(f.logged.some(l => l.type === "dormant" && l.id === "task-mastermind-recursive-pairs"), "its dormancy is logged");
+ 	clearInterval(g.reap_timer);
+ }
+ 
+@@ -283,13 +284,30 @@ const reset = () => { for (const f of ["claims.json", "global.json"]) fs.rmSync(
+ 	const mgr = a({ id: "manager-x", role: "manager", state: "idle", turns: 3 });
+ 	const now = Date.now();
+ 	g.sweep(now);
+-	t(done.state === "idle", "not reaped before reap_ms");
+-	g.sweep(now + g.reap_ms + 1);
+-	t(done.state === "stopped" && f.logged.some(l => l.type === "reaped" && l.id === "minion-done"), "idle finished minion reaped and logged");
+-	t(fresh.state === "idle" && busy.state === "working" && mgr.state === "idle", "no turn, working, or manager: kept");
++	t(done.state === "idle", "not dormant before dormant_ms");
++	g.sweep(now + g.dormant_ms + 1);
++	t(done.state === "dormant" && f.logged.some(l => l.type === "dormant" && l.id === "minion-done"), "idle finished minion goes dormant, logged");
++	t(fresh.state === "dormant" && mgr.state === "dormant", "every role goes dormant: a turn-less minion and a manager too");
++	t(busy.state === "working", "a working agent is kept");
+ 	clearInterval(g.reap_timer);
+ }
+ 
++// The working cap: a new spawn waits while `working_cap` agents work; a wake and the front desk never wait
++{
++	reset();
++	const f = fake_servex();
++	const g = new Global({ servex: f.servex, cap: 30, min_free_mb: 10 });
++	let working = 5;
++	f.servex.agents.working = () => Array.from({ length: working });
++	f.servex.agents.working_cap = 5;
++	t(g.admit({ role: "minion", parent: "task-mastermind-x" }, 8000) === "working 5/5: waits for a working agent to end its turn", "the sixth working spawn is held");
++	t(g.admit({ role: "minion", resume: "sid" }, 8000) === null, "a resume (a wake) is never held by the cap");
++	t(g.admit({ role: "minion", resume: "sid", fork: true }, 8000) !== null, "a fork is a new process: held");
++	t(g.admit({ role: "manager", id: "manager-x" }, 8000) === null && g.admit({ role: "assistant" }, 8000) === null, "the front desk is never held");
++	working = 4;
++	t(g.admit({ role: "minion" }, 8000) === null, "4 working: admitted");
++}
++
+ // The admission check: memory, then a ceiling a live parent's child skips
+ {
+ 	reset();
+diff --git a/Servex/agents/readme.md b/Servex/agents/readme.md
+index 53b1acad..1cce470c 100644
+--- a/Servex/agents/readme.md
++++ b/Servex/agents/readme.md
+@@ -48,11 +48,12 @@ The same verbs are MCP tools, and so are these. Proofs anyone can run show them
+ - **`restart_servex`, `pause_dispatch`, `resume_dispatch`** are the operator switches in `ops.js`.
+ - **Agents survive a Servex restart.** At boot, `revive()` reopens every agent the last boot
+   left open, under the same id and session. One that was mid-turn is told so.
+-- **Stop idle agents freely** (each one held open costs about 250 MB). A message to a stopped
+-  agent, or to one that exists only in the registry, wakes it first: the same id, its session, and
+-  the spawn `spec` its registry row keeps. Forks are never woken. Proof: `wake-proof.mjs`.
+-  An idle task mastermind that waits on a child (working or queued) is released after 3 minutes
+-  (`SERVEX_TASK_IDLE_MS`), so its queued minions get its memory; with no child it keeps 15; mastermind-servex keeps 15, the owner's assistants are never released.
++- **Idle agents go dormant.** After 3 idle minutes every agent's claude process exits; its id,
++  session and row stay, and the next message resumes it in place. At most 5 agents work at once
++  (`SERVEX_WORKING_CAP`), and a big agent is compacted: [`../doc/dormant.md`](../doc/dormant.md).
++- **Stopping is still free.** A message to a stopped agent, or to one that exists only in the
++  registry, wakes it first: the same id, its session, and the spawn `spec` its registry row keeps.
++  Forks are never woken. Proof: `wake-proof.mjs`.
+ - **Nothing revives what was ended on purpose.** Every path that reopens an agent (a message, a
+   child's report, the boot revive, the heartbeat) asks one guard, `Agents.blocked(row)`, and skips
+   an agent that `stop_agent` stopped (its row keeps `stopped_by`), one whose task has landed, and
+diff --git a/Servex/agents/registry.js b/Servex/agents/registry.js
+index cecb0142..2a7d52d3 100644
+--- a/Servex/agents/registry.js
++++ b/Servex/agents/registry.js
+@@ -87,7 +87,7 @@ export default class Registry {
+ 	sweep(live, boot){
+ 		const rows = this.read();
+ 		const dead = Object.values(rows).filter(row =>
+-			!["stopped", "gone"].includes(row.state) && row.pid
++			!["stopped", "gone", "dormant"].includes(row.state) && row.pid   // dormant: no process to lose, a message reopens it
+ 			&& (row.pid === process.pid ? row.boot === boot && !live.has(row.id) : !alive(row.pid)));
+ 		return this.bury(dead.map(row => row.id), "host process exited");
+ 	}
+diff --git a/Servex/agents/tools.js b/Servex/agents/tools.js
+index 8034f163..803ce14a 100644
+--- a/Servex/agents/tools.js
++++ b/Servex/agents/tools.js
+@@ -162,7 +162,14 @@ return [
+ 			timeout_s: { type: "number", description: "Give up after this many seconds and say `timed_out: true`. Default 600." }
+ 		},
+ 		["id"],
+-		async ({ id, timeout_s }) => JSON.stringify(await agents.wait(id, timeout_s ?? 600), null, 2)),
++		/* A caller blocked here is not WORKING for the cap (Agents.working): it only waits,
++		 * and counting it could hold the very child it waits for at the gate. */
++		async ({ id, timeout_s }, ctx = {}) => {
++			const me = ctx.caller && agents.live.get(ctx.caller);
++			if (me) me.waiting_on = id;
++			try { return JSON.stringify(await agents.wait(id, timeout_s ?? 600), null, 2); }
++			finally { if (me && me.waiting_on === id) me.waiting_on = null; }
++		}),
+ 
+ 	tool("send_to_agent",
+ 		"Say something to a running agent. It arrives wrapped so the agent can see who asked and"
+diff --git a/Servex/doc/dormant.md b/Servex/doc/dormant.md
+new file mode 100644
+index 00000000..f24db595
+--- /dev/null
++++ b/Servex/doc/dormant.md
+@@ -0,0 +1,75 @@
++# Dormant agents, the working cap, and compaction
++
++An idle agent costs nothing. After 3 minutes idle, its claude process exits and the agent goes
++**dormant**. It keeps its id, its session and its place in `list_agents`. The next message wakes
++it: Servex resumes the same session, and the agent answers a few seconds later with its whole
++conversation intact.
++
++At most **5 agents work at once**. A new spawn above that waits in the spawn queue until one
++of them ends its turn.
++
++An agent whose context passes **200k tokens**, or whose process passes **500 MB**, is
++**compacted** when its turn ends.
++
++## The states
++
++| state | claude process | what a message does |
++|---|---|---|
++| `starting` | yes | a fresh spawn before its first turn; held like `working` |
++| `working` | yes | waits its turn behind the current one |
++| `idle` | yes | starts a turn at once |
++| `dormant` | **no** | resumes the session (a few seconds), then starts the turn |
++| `stopped` | no | wakes it through the revive guard (`Agents.blocked`), unless it was stopped on purpose |
++
++`dormant` is not `stopped`. The heartbeat, the lifecycle reaper and the budget all count a
++dormant agent as alive, so a dormant task mastermind is never "revived" as if it had died. That is
++why the old idle release (node-reliability, 2026-09-29) needed exceptions (15 minutes for a task
++mastermind with no child, 15 for the global agents, never for assistants). Dormancy needs none:
++every role sleeps after 3 minutes.
++
++## How it works
++
++- `Agent.sleep()` (`agents/Agents.js`) closes the prompt stream, closes the query and aborts, so
++  the claude process exits. The `Agent` object stays in `live`, with its spec, SDK hooks and
++  in-process MCP servers. The registry row says `dormant`.
++- `Agent.send()` on a dormant agent calls `awaken()`: it starts a new process with
++  `resume: <its session id>`, the same cwd, model, tools and options, then pushes the message.
++- `Global.sweep()` (`agents/Global.js`) runs every minute and puts every agent idle past
++  `SERVEX_DORMANT_MS` (180000) to sleep.
++- **Kept awake:** an agent with a live background task (a background Bash or Monitor it waits
++  on would die with its process). It stays `idle`, process up, and sleeps on the first sweep
++  after the task ends. The SDK's `background_tasks_changed` message keeps that count.
++- **After a Servex restart** a dormant row stays dormant. The boot never reopens it; the first
++  message does (`send` → `wake` → `reopen`).
++
++## The working cap
++
++- `SERVEX_WORKING_CAP` (default 5). `Agents.working()` counts agents in `working` or `starting`.
++- Every agent counts for itself, so a task mastermind with two working minions holds 3 of the 5.
++- An `idle` or `dormant` agent holds no slot. It counts again only while a message has it working.
++- **Not counted:** the front desk (`assistant-*`, `manager-*`, `master-assistant`, `session-*`,
++  the Dispatcher) and an agent blocked inside `wait_for_agent`.
++- **Never held by it:** a resume (a wake must deliver its message) and a front-desk spawn.
++- The check is `Global.admit()`, one of the spawn gate's checks, so a held spawn is queued
++  exactly like one held for memory. A turn ending drains the queue at once.
++- Shown as `working N/5` in `heartbeat_status` and in `system_health`'s first line.
++
++## Compaction
++
++- At the end of a turn, `Agent.oversized()` checks the context (`SERVEX_COMPACT_TOKENS`, 200000)
++  and the process memory (`SERVEX_COMPACT_MB`, 500). Over either, the agent runs `/compact` as a
++  turn of its own. That turn wakes no parent and keeps the last turn's words.
++- Memory is read every 5 minutes (`Global.measure()`): each claude.exe's working set, matched to
++  its agent by the session id on its command line.
++- Compacted **for memory**, the process is also restarted from the compacted session
++  (checkpoint-and-restart), because a process keeps the heap it grew.
++- **Not compacted:** the front desk. Layers.js restarts a page's assistant and manager fresh
++  from a checkpoint instead ("fresh, not compacted", the owner).
++- Once per turn: a summary still over the line is not compacted again until it has worked more.
++- The context check runs the moment a turn ends, so an agent goes dormant already compacted.
++  The memory check runs every 5 minutes, so it only reaches agents still awake by then.
++
++## Proof
++
++[`/framework/ai/2026-09-30/dormant-idle/proof.txt`](/framework/ai/2026-09-30/dormant-idle/proof.txt),
++run by `proof.mjs` beside it on a private Servex (port 8190, a scratch `SERVEX_HOME`).
+diff --git a/Servex/readme.md b/Servex/readme.md
+index 0164f0e8..f37b3846 100644
+--- a/Servex/readme.md
++++ b/Servex/readme.md
+@@ -96,6 +96,8 @@ them. [`cards/readme.md`](./cards/readme.md) defines every line.
+ 
+ **Task loop and heartbeat**: `TaskLoop.js` chases an open task whose log has gone quiet. `Heartbeat.js` sends a task mastermind that has been silent for 5 minutes a neutral status check, revives a dead one from its session (with a ration), and posts on the card only when that fails. A landed task's worktree server is taken down by `Server/worktree-sweep.mjs`. See [`doc/task-loop.md`](./doc/task-loop.md). `SERVEX_NO_TASKLOOP=1` and `SERVEX_NO_HEARTBEAT=1` turn them off.
+ 
++**Dormant agents and the working cap**: an agent idle for 3 minutes goes dormant (its claude process exits; a message resumes it by session), at most 5 agents work at once, and an agent past 200k tokens or 500 MB is compacted. See [`doc/dormant.md`](./doc/dormant.md).
++
+ **Budgets**: at 100% of a task's budget its mastermind and parent are told once and new spawns under it are refused; at 150% its minions stop. See [`doc/budget.md`](./doc/budget.md).
+ 
+ **A worktree page never speaks as the owner.** A post whose Origin is a worktree (its port or `<name>.localhost`, from `.worktrees.json`) is `via: "worktree:<name>"`: a `/log/<name>` line is stamped with it and wakes neither the assistant nor the dispatcher; a card post (`/card/*`, `/log/cards/*`) or a Live-card message from there is answered as a stub, written nowhere (`Servex.via()`).
+diff --git a/public/framework/ai/2026-09-30/dormant-idle/docs-check.md b/public/framework/ai/2026-09-30/dormant-idle/docs-check.md
+new file mode 100644
+index 00000000..f3c67515
+--- /dev/null
++++ b/public/framework/ai/2026-09-30/dormant-idle/docs-check.md
+@@ -0,0 +1,35 @@
++# Docs check — dormant agents, the working cap, compaction
++
++Read: `Servex/readme.md`, `Servex/agents/readme.md`, `Servex/doc/dormant.md`.
++
++**Overall: it makes sense.** The three target questions all have a clear answer somewhere in
++the chain — idle → dormant (process exits, id/session/row kept, next message resumes it);
++dormant vs stopped (the states table in `doc/dormant.md` is the single clearest thing in all
++three files — keep pointing people at it); compaction (200k tokens or 500MB, checked at the
++end of a turn). A few gaps would save a reader from guessing:
++
++1. **`starting` is never defined.** `doc/dormant.md` says the working cap counts agents in
++   `working` or `starting`, but the states table two sections above only lists
++   `working / idle / dormant / stopped` — a reader can't find what `starting` means or when an
++   agent is in it. *Add:* "`starting`: between `spawn_agent` and the first token back — no
++   claude process failure yet, but it already holds one of the 5 slots."
++
++2. **Whether idle/dormant agents count toward the cap is implied, not stated.** The "Not
++   counted" bullet lists roles and `wait_for_agent`, but never says outright that a merely
++   `idle` or `dormant` agent (holding no turn) is *already* excluded by the `working`/`starting`
++   definition. *Add:* "An `idle` or `dormant` agent holds no slot — only when a message turns
++   it `working` does it count."
++
++3. **"Kept awake" doesn't say what state that agent is left in.** `doc/dormant.md` says an
++   agent with a live background task is kept awake through a sweep, but doesn't say whether it
++   stays `idle` (process up, not dormant, not counted against the cap) or something else.
++   *Add:* "It stays `idle` — process up, not dormant, not counted toward the cap."
++
++4. **Nothing says whether a dormant agent can be oversized and stay that way.** Compaction only
++   runs "at the end of a turn," and a dormant agent isn't running a turn — so a session that
++   crossed 200k tokens right before going dormant stays oversized until its next wake-and-turn.
++   Worth one line so nobody reads dormancy as also capping memory. *Add:* "A dormant agent is
++   not compacted while dormant — the check runs on its next turn, after it wakes."
++
++No sentence above contradicts what's there now; each just closes a question the current wording
++leaves the reader to infer.

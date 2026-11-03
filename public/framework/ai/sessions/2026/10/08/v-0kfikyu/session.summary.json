@@ -1,0 +1,14 @@
+{
+  "id": "v-0kfikyu",
+  "home": "/",
+  "title": "Duplicate chat bubbles bug",
+  "summary": "Owner reports duplicate chat bubbles in the session chat on Refine page, asked ~12 times; handing to a task mastermind.",
+  "at": "2026-10-09T16:10:22.658-05:00",
+  "visited": [
+    "/",
+    "/framework/",
+    "/framework/ai/",
+    "/framework/ai/sessions/",
+    "/framework/ext/Refine/"
+  ]
+}

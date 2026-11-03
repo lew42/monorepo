@@ -1,0 +1,24 @@
+import { chromium } from "file:///C:/Users/mike/AppData/Roaming/npm/node_modules/playwright/index.mjs";
+import fs from "node:fs";
+const REL = "framework/core/Session/tasks/data-shapes/build/one-writer/probe";
+const FILE = `C:/Code/lew42/worktrees/one-writer/public/${REL}/page.jsonl`;
+fs.mkdirSync(`C:/Code/lew42/worktrees/one-writer/public/${REL}`, { recursive: true });
+const browser = await chromium.launch();
+const page = await browser.newPage();
+const logs = [];
+page.on("console", m => logs.push(`${m.type()}: ${m.text()}`));
+page.on("response", r => r.status() >= 400 && logs.push(`HTTP ${r.status()} ${r.url()}`));
+page.on("pageerror", e => logs.push(`pageerror: ${e.message}`));
+await page.goto("http://localhost:49570/framework/core/Item/", { waitUntil: "load" });
+const r = await page.evaluate(async rel => {
+	const { Store } = await import("/framework/core/Item/Store.js");
+	const s = Store.for(`/${rel}/page.jsonl`);
+	s.append({ title: "probe 1" }); s.append({ title: "probe 2" });
+	await new Promise(r => setTimeout(r, 3000));
+	return { sent: s.sent };
+}, REL);
+await new Promise(r => setTimeout(r, 500));
+const lines = fs.existsSync(FILE) ? fs.readFileSync(FILE, "utf8").split("\n").filter(Boolean).map(l => JSON.parse(l)) : [];
+console.log(JSON.stringify({ lines, sent: r.sent, logs: logs.filter(l => /Store|RecordWriter|error|refused|HTTP/i.test(l)) }, null, 1));
+await browser.close();
+fs.rmSync(`C:/Code/lew42/worktrees/one-writer/public/${REL}`, { recursive: true, force: true });

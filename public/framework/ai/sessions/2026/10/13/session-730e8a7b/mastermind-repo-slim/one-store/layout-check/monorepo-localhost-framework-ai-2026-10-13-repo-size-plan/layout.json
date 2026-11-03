@@ -1,0 +1,47 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/2026-10-13/repo-size-plan/",
+ "widths": {
+  "1280": {
+   "empty": 1,
+   "widest_text": 0,
+   "widest_text_sample": "",
+   "overflow_x": false,
+   "items": 22,
+   "narrow_share": 1
+  },
+  "1920": {
+   "empty": 1,
+   "widest_text": 0,
+   "widest_text_sample": "",
+   "overflow_x": false,
+   "items": 22,
+   "narrow_share": 1
+  },
+  "2560": {
+   "empty": 1,
+   "widest_text": 0,
+   "widest_text_sample": "",
+   "overflow_x": false,
+   "items": 22,
+   "narrow_share": 1
+  },
+  "3440": {
+   "empty": 1,
+   "widest_text": 0,
+   "widest_text_sample": "",
+   "overflow_x": false,
+   "items": 22,
+   "narrow_share": 1
+  }
+ },
+ "errors": [
+  "1280: goto page.goto: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://monorepo.localhost/fram",
+  "1280: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1920: goto page.goto: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://monorepo.localhost/fram",
+  "1920: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "2560: goto page.goto: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://monorepo.localhost/fram",
+  "2560: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "3440: goto page.goto: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://monorepo.localhost/fram",
+  "3440: Failed to load resource: the server responded with a status of 404 (Not Found)"
+ ]
+}

@@ -1,0 +1,62 @@
+/* The tools that sit ON a panel rather than in its bar. Structure and placement only;
+   the BUTTON is controls.css's `.panel-btn`, the same box every other control wears.
+   Record: readme.md. */
+@layer theme {
+
+	/* Over the body, under the bar (3). ⚠ `inset-block-start` clears `--panel-bar-h`: the
+	   top row of arrows and the bar both want the top edge, and the bar wins — so the row
+	   sits just below it rather than underneath it. */
+	.panel-align {
+		position: absolute;
+		inset: var(--panel-bar-h) 0 0 0;
+		z-index: 2;
+
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		grid-template-rows: repeat(3, 1fr);
+		padding: var(--panel-tool-pad, 0.5em);
+		opacity: 0;
+		transition: opacity 0.12s;
+
+		/* ⚠ The overlay covers the whole body, so it must never hit-test — only its nine
+		   buttons do, or every click meant for the content under it dies here. */
+		pointer-events: none;
+	}
+
+	/* A cell IS its placement: the button aligns inside its own cell to the corner or edge
+	   its code names, so the grid's padding is what holds an arrow off the very corner and
+	   nothing computes a position. */
+	.panel-align > .panel-tool {
+		align-self: var(--tool-y);
+		justify-self: var(--tool-x);
+		pointer-events: auto;
+	}
+
+	/* Innermost wins, exactly as the bar does — hovering a leaf hovers every ancestor of
+	   it, and four sets of nine arrows in one box is not a tool. */
+	.panel:hover:not(:has(.panel:hover)) > .panel-align,
+	.panel:focus-within:not(:has(.panel:focus-within)) > .panel-align { opacity: 1; }
+
+	/* ⚠ `touch-action`, or the browser pans instead of scrubbing. `ew-resize` says the
+	   gesture is sideways before you try it. */
+	.panel-zoom { cursor: ew-resize; touch-action: none; }
+
+	/* The four edge-MIDPOINT arrows sit on the very strip split.css's edge target claims
+	   too — a corner gets to overlap it on purpose (split.css's own comment), but the
+	   midpoint IS the natural aim for a horizontal or vertical split, so each backs off
+	   past the strip's band instead of simply outranking it by z-index.
+	   ⚠ The margin has to clear `--clear + --edge` (split.css, 0.7rem + 0.9rem) or the two
+	   targets go back to overlapping — measured against a real leaf, not guessed. */
+	.panel-align > .panel-tool-tc { margin-block-start: calc(var(--gap) * 1.7); }   /* was margin-block-start 1.7rem - 2026-09-05 ramps */
+	.panel-align > .panel-tool-bc { margin-block-end: calc(var(--gap) * 1.7); }   /* was margin-block-end 1.7rem - 2026-09-05 ramps */
+	.panel-align > .panel-tool-cl { margin-inline-start: 1.7rem; }
+	.panel-align > .panel-tool-cr { margin-inline-end: 1.7rem; }
+
+	/* ⚠ OWED, and deliberately not paid here: below about 144×180 the 3×3 spilled past
+	   `.panel`'s `overflow: hidden` and went invisible AND unclickable. Two `@container`
+	   blocks used to hide the buttons under that floor, and they went with every container
+	   query in the module (2026-08-19). The overlay is OFF today — `tools(item).align` is
+	   false everywhere it ships — so nothing regressed; whoever turns it back on owes it a
+	   floor that does not measure, and `.panel-align`'s own `aspect-ratio` or a fixed
+	   button count is the likely shape. doc/decisions.md. */
+}

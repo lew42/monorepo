@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/bubble-order/mic-proof-output.txt",
+ "widths": {
+  "1280": {
+   "empty": 0.976,
+   "widest_text": 422,
+   "widest_text_sample": "{\"phone-sheet\":true,\"desktop-chat\":true,",
+   "overflow_x": false,
+   "items": 0,
+   "narrow_share": 0
+  },
+  "1920": {
+   "empty": 0.984,
+   "widest_text": 422,
+   "widest_text_sample": "{\"phone-sheet\":true,\"desktop-chat\":true,",
+   "overflow_x": false,
+   "items": 0,
+   "narrow_share": 0
+  },
+  "2560": {
+   "empty": 0.988,
+   "widest_text": 422,
+   "widest_text_sample": "{\"phone-sheet\":true,\"desktop-chat\":true,",
+   "overflow_x": false,
+   "items": 0,
+   "narrow_share": 0
+  },
+  "3440": {
+   "empty": 0.991,
+   "widest_text": 422,
+   "widest_text_sample": "{\"phone-sheet\":true,\"desktop-chat\":true,",
+   "overflow_x": false,
+   "items": 0,
+   "narrow_share": 0
+  }
+ },
+ "errors": []
+}

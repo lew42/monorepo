@@ -1,0 +1,159 @@
+import View, { div, span, button, label, input } from "../../core/View/View.js";
+import { tabs } from "./tools.js";
+import { rail, restore, set, settings } from "./settings.js";
+import { reclaim } from "../Claim/claim.js";
+import grip from "../../ext/grip/grip.js";
+import width from "./width.js";
+import { edit, set_edit } from "../../ext/Ask/edit.js";
+import pathbar from "./pathbar.js";
+import blocked from "./blocked.js";
+import hold from "./hold.js";
+import { use_v1, set_v1 } from "../DevShell/pref.js";
+
+View.stylesheet(import.meta, "devbar.css");
+
+let $bar, $tabs, $body, app;
+
+/* The dev rail — chrome for whoever is building the site, on every page.
+ *
+ * `dev-open` on <html> is the WHOLE state: the shell's push (`--devbar`, read by
+ * `.app` in framework.css), the slide and what the ✕ undoes are all CSS off that one
+ * class. Everything the rail remembers is one document in `settings.js`.
+ * Design record: readme.md.
+ *
+ * ⚠ Mounted on <body>, deliberately OUTSIDE `.app` and its theme — this is tooling,
+ * not content, and the site's type scale would otherwise size it. */
+export default function devbar(a){
+	app = a;
+
+	$bar = div.c("dev-bar flex v", () => {
+		// The width line is in the HEAD, not on a tab: it is the one piece of state
+		// every tab's content depends on, and the four buttons that set it used to
+		// live on a different screen from the readout. width.js says why.
+		div.c("dev-head flex v", () => {
+			div.c("dev-head-line flex v-center", () => {
+				pathbar(app);
+				span.c("dev-hint", "ctrl + \\");
+
+				// The READER's pause switch: "block", plus a count of the reloads it has
+				// refused. Remembered for the life of the tab — blocked.js says why, and
+				// why it is not the same thing as the hold beside it.
+				blocked();
+
+				// The WRITER's hold, read-only: "held by <who>, <n>s" whenever an agent has
+				// taken Server/hold.mjs, and an empty hidden span the rest of the time.
+				// ⚠ hold.js was written for ai/sessions/2026/09/19/reload-hold/ and this call was
+				// never added, so the readout had never once appeared on screen. Found and
+				// wired 2026-09-22 (reload-rethink).
+				hold();
+
+				// The one switch every editor control on the site reads instead of its
+				// own dev-socket check (ext/Ask/edit.js). Its own document, not
+				// settings.js, so ext/ and layouts/ modules can read it without
+				// importing the rail — readme.md, doc/decisions.md. Reloads on flip:
+				// every control decides whether to render at construction time, not
+				// live, the same reason a navigation is what applies most settings here.
+				label.c("dev-knob", () => {
+					const $box = input().attr("type", "checkbox")
+						.on("change", function(){ set_edit(this.el.checked); location.reload(); });
+
+					if (edit()) $box.attr("checked", true);
+					span("edit");
+				}).attr("title", "Edit mode — on shows drag/drop, verdicts, Make's writes and every other editor control; off previews production");
+
+				// dev/DevShell, 2026-09-30: the dark shell is the default now
+				// (pref.js), and this is how you get back to it — closes this
+				// rail, flips the remembered choice, and asks the shell to
+				// open (an event, not a direct import: DevShell.js already
+				// imports FROM this file for its right-side tabs, so calling
+				// back in here directly would be an import cycle).
+				button.c("dev-x", "shell")
+					.attr("title", "Switch to the new dark dev shell")
+					.click(() => {
+						set_v1(false);
+						toggle(false);
+						window.dispatchEvent(new CustomEvent("dev-open-shell"));
+					});
+
+				button.c("dev-x", "✕")
+					.attr("title", "Close (Ctrl + \\)")
+					.attr("aria-label", "Close the dev rail")
+					.click(() => toggle(false));
+			});
+
+			width(app);
+		});
+
+		$tabs = div.c("dev-tabs flex");
+		$body = div.c("dev-body flex v");
+
+		// The resize edge, shared with ext/drawer: it hands us the width the pointer
+		// implies, `rail()` clamps and applies it, and only the one you let go of is kept.
+		grip({ write: rail, done: width => set({ width }) });
+	});
+
+	// ⚠ Dev chrome, not the page: ext/DesignTool's probe skips anything marked
+	// this, so the rail never turns up in a measurement of the page beside it.
+	$bar.attr("data-layout-ignore", "");
+
+	// ⚠ After styles — inject() holds $app back for stylesheets, but nothing holds
+	// <body>: mounted bare, the bar paints unstyled, then visibly slides away as
+	// devbar.css's transform and its transition arrive in one style update.
+	// ⚠ And the claim ring with it: an agent editing files reloads its own claimed tab
+	// every few seconds, so the ring has to come back on boot. dev/Claim/readme.md.
+	app.styles_loaded().then(() => { $bar.append_to(View.body()); reclaim(); });
+
+	// ⚠ `code`, not only `key`: the character a backslash key produces moves with the
+	// keyboard layout; the physical key does not.
+	document.addEventListener("keydown", e => {
+		if (!(e.ctrlKey || e.metaKey) || (e.key !== "\\" && e.code !== "Backslash")) return;
+		// dev/DevShell owns this same shortcut by default (pref.js) — this
+		// rail only answers it once the "v1"/"shell" choice says so.
+		if (!use_v1()) return;
+		e.preventDefault();
+		toggle();
+	});
+
+	window.addEventListener("resize", devbar.refresh);
+
+	restore().then(devbar.refresh);
+	return $bar;
+}
+
+/* Everything in here reads the world at render time, so a navigation or a resize
+ * makes it a lie. App calls this from `navigated()` — Router's documented seam.
+ *
+ * ⚠ Only the open tab renders. That is what keeps `layout` from downloading
+ * ext/DesignTool and measuring the page on every navigation of every session. */
+devbar.refresh = function(){
+	if (!open()) return;
+
+	const [name, shown] = tabs.find(([n]) => n === settings.tab) ?? tabs[0];
+
+	$tabs?.empty(() => tabs.forEach(([n]) =>
+		button.c("dev-tab", n).ac(n === name && "on").click(() => tab(n))));
+
+	$body?.empty(() => shown.forEach(section => section(app)));
+};
+
+function tab(name){
+	set({ tab: name });
+	devbar.refresh();
+}
+
+devbar.tab = tab;
+
+const html = document.documentElement;
+
+const open = () => html.classList.contains("dev-open");
+
+function toggle(on = !open()){
+	html.classList.toggle("dev-open", on);
+	set({ open: on });
+	devbar.refresh();
+}
+
+devbar.toggle = toggle;
+devbar.open_tab = function(name){ set({ tab: name }); toggle(true); };
+
+export { devbar };

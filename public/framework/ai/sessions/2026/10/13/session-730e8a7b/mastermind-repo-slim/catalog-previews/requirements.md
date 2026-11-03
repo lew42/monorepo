@@ -1,0 +1,11 @@
+# Catalog: a still picture per card so 40 previews show in under 2 s; the live iframe only on hover
+
+Budget: $10. Load the `sub-mastermind`, `code` and `ui-test` skills first. Read `catalog/doc/next.md` first: it has the measurements (live iframes: 40th preview at 8.9 s; 4-at-a-time: 1st at 0.9 s, 40th never) and the fix it names: a small still picture per card, the live iframe on hover or click. The owner's words: `../requirements-2.md` ask 1 (a catalog of everything built, with previews) and today's rule that automated screenshots are never committed (`../requirements-11.md`): so the thumbnails live in an ignored folder (`catalog/thumbs/`, add it to `.gitignore` if `**/thumbs/` is not already there from the screenshots task), are generated locally by a script, and deploy with the site because the Workers deploy uploads the folder on disk (verify with `node Server/DeployCount.mjs` that they are counted, or say they are not). A card with no picture falls back to the 4-at-a-time iframe it has today. Your log is this dir's `task.jsonl`.
+
+## Deliverable
+
+1. **`Server/CatalogThumbs.mjs` (`class CatalogThumbs`)**: `--plan` lists the catalog entries and which have a fresh thumbnail (by the page's newest file mtime); `--apply` shoots the missing or stale ones with the existing `ext/Shots` runner at 1200 wide, saved as 600×375 webp under `catalog/thumbs/<slug>.webp` (~15 KB each; say the total); `--all` reshoots. Reuse `Server/shots.mjs`; build no second screenshot tool.
+2. **The card**: shows the webp when it exists, the iframe on hover (desktop) or tap (phone), the fallback iframe when there is no picture. Measure as `next.md` did (headless, 1920×4000, time to the 40th preview): the target is 40 in under 2 s; report before/after in `next.md` as a new section with the shots.
+3. `check_page` at 400 / 1200 / 1920 / 3440; `catalog/doc/next.md` updated; `catalog/readme.md` one line on where thumbs live and how to refresh them; card report (title "Catalog: 40 previews in N s, a picture per card"); landing line checked with `tail -1`; `merge.mjs`.
+
+Fence: `catalog/**`, `Server/CatalogThumbs.mjs` (+ test), one `.gitignore` line, this task dir. Not `core/App` (the `?preview` mode is ask-first; a `decision` line if you think it is the better road). Sonnet.

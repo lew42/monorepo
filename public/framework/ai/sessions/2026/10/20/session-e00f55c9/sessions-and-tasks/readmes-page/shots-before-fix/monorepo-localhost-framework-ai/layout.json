@@ -1,0 +1,262 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/",
+ "widths": {
+  "400": {
+   "empty": 0.315,
+   "widest_text": 310,
+   "widest_text_sample": "2h · 8m · Sonnet 5.5 · task-mastermind-w",
+   "overflow_x": false,
+   "items": 22,
+   "narrow_share": 0.045,
+   "layout": "custom",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 12,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 12
+      }
+     ]
+    },
+    "p": {
+     "total": 0,
+     "layers": []
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 72,
+     "h": 40,
+     "share": 0.04,
+     "ink": 0.125,
+     "big_empty": false
+    },
+    {
+     "cls": "ad-dash",
+     "y": 154,
+     "h": 1063,
+     "share": 1.063,
+     "ink": 0.689,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "drawer-rail-ai",
+     "text": "✦AI",
+     "lines": 3.2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-rail-menu",
+     "text": "☰Menu",
+     "lines": 3.2
+    }
+   ]
+  },
+  "1200": {
+   "empty": 0.554,
+   "widest_text": 401,
+   "widest_text_sample": "Mastermind repo cleanup and AI system re",
+   "overflow_x": false,
+   "items": 50,
+   "narrow_share": 0.3,
+   "layout": "custom",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 29,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 29
+      }
+     ]
+    },
+    "p": {
+     "total": 0,
+     "layers": []
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 22,
+     "h": 49,
+     "share": 0.049,
+     "ink": 0.275,
+     "big_empty": false
+    },
+    {
+     "cls": "ad-dash",
+     "y": 116,
+     "h": 1071,
+     "share": 1.071,
+     "ink": 0.402,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.7
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "✦",
+     "lines": 1.8
+    }
+   ]
+  },
+  "1920": {
+   "empty": 0.546,
+   "widest_text": 355,
+   "widest_text_sample": "2h · 8m · Sonnet 5.5 · task-mastermind-w",
+   "overflow_x": false,
+   "items": 55,
+   "narrow_share": 0.764,
+   "layout": "custom",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 41,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 41
+      }
+     ]
+    },
+    "p": {
+     "total": 0,
+     "layers": []
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 24,
+     "h": 53,
+     "share": 0.053,
+     "ink": 0.313,
+     "big_empty": false
+    },
+    {
+     "cls": "ad-dash",
+     "y": 136,
+     "h": 1024,
+     "share": 1.024,
+     "ink": 0.414,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.7
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "✦",
+     "lines": 1.8
+    },
+    {
+     "tag": "button",
+     "cls": "ux-dictate-widget-choice",
+     "text": "The last conversation · 2 days",
+     "lines": 3
+    },
+    {
+     "tag": "button",
+     "cls": "chatbox-compose-more",
+     "text": "",
+     "lines": 2.4
+    }
+   ]
+  },
+  "3440": {
+   "empty": 0.663,
+   "widest_text": 399,
+   "widest_text_sample": "2h · 8m · Sonnet 5.5 · task-mastermind-w",
+   "overflow_x": false,
+   "items": 55,
+   "narrow_share": 0.764,
+   "layout": "custom",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 54,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 54
+      }
+     ]
+    },
+    "p": {
+     "total": 0,
+     "layers": []
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 27,
+     "h": 59,
+     "share": 0.059,
+     "ink": 0.233,
+     "big_empty": false
+    },
+    {
+     "cls": "ad-dash",
+     "y": 154,
+     "h": 1079,
+     "share": 1.079,
+     "ink": 0.294,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.8
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "✦",
+     "lines": 1.8
+    },
+    {
+     "tag": "button",
+     "cls": "ux-dictate-widget-choice",
+     "text": "The last conversation · 2 days",
+     "lines": 3
+    },
+    {
+     "tag": "button",
+     "cls": "chatbox-compose-more",
+     "text": "",
+     "lines": 2.4
+    }
+   ]
+  }
+ },
+ "errors": []
+}

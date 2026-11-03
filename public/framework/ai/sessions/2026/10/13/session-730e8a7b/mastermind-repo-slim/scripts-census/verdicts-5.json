@@ -1,0 +1,170 @@
+[
+  {
+    "file": "Server/task-log-race.test.mjs",
+    "verdict": "live",
+    "reason": "Test script from today (2026-10-13) verifying record-file fix; part of active work",
+    "evidence": "header: proof of fix; last: 2026-10-13"
+  },
+  {
+    "file": "Server/text-check.mjs",
+    "verdict": "live",
+    "reason": "Text-checking tool actively used in clarity and finish-task skills, on-landing hooks",
+    "evidence": "6 refs: skills, Server hooks, and docs"
+  },
+  {
+    "file": "Server/untrack-pictures.mjs",
+    "verdict": "live",
+    "reason": "Recently updated script for untracking gitignored pictures; referenced in repo-size and cleanup",
+    "evidence": "last: 2026-10-13; 8 refs in Refine runs 2026-10-13"
+  },
+  {
+    "file": "Server/usage-now.mjs",
+    "verdict": "live",
+    "reason": "Core tool: THE ONE way agents check Claude usage; heavily documented",
+    "evidence": "41 refs in check-claude-usage, mastermind, servex-mastermind, new-task skills"
+  },
+  {
+    "file": "Server/week-cost.mjs",
+    "verdict": "stale",
+    "reason": "Function bag with minimal usage; not active in current workflows or handover",
+    "evidence": "refs: 2 (.gitignore, AISessionAudit.mjs only); last: 2026-10-09"
+  },
+  {
+    "file": "Server/whisper-test.mjs",
+    "verdict": "tool",
+    "reason": "Hand-run test script for transcription recordings; documented in handover for manual use",
+    "evidence": "documented in public/framework/ai/handover.md"
+  },
+  {
+    "file": "Server/window-lint.mjs",
+    "verdict": "live",
+    "reason": "Loaded by syntax-guard hook; actively used for linting windows",
+    "evidence": "loaded by .claude/hooks/syntax-guard.mjs"
+  },
+  {
+    "file": "Server/window-watch.mjs",
+    "verdict": "tool",
+    "reason": "Hand-run window watcher for popup events; documented in README",
+    "evidence": "documented in Server/README.md, Servex/readme.md; 3 refs"
+  },
+  {
+    "file": "Server/worktree-down.mjs",
+    "verdict": "live",
+    "reason": "Called by server-guard hook; core worktree lifecycle tool in worktree chain",
+    "evidence": "loaded by .claude/hooks/server-guard.mjs; 16 refs"
+  },
+  {
+    "file": "Server/worktree-leftovers.mjs",
+    "verdict": "tool",
+    "reason": "Utility script to find leftover worktree folders; recently created, meant for manual runs",
+    "evidence": "last: 2026-10-13; refs: 0 but newly created header"
+  },
+  {
+    "file": "Server/worktree-prune.mjs",
+    "verdict": "live",
+    "reason": "Active worktree cleanup tool; calls worktree-leftovers, documented in pool",
+    "evidence": "last: 2026-10-13; 3 refs in docs and worktree chain"
+  },
+  {
+    "file": "Server/worktree-restart.mjs",
+    "verdict": "live",
+    "reason": "Actively used to revive worktrees; referenced in handover and multiple Refine runs",
+    "evidence": "8 refs including handover.md; used in Refine 2026-10-10"
+  },
+  {
+    "file": "Server/worktree-sweep.mjs",
+    "verdict": "live",
+    "reason": "Core worktree cleanup integrated into on-landing and lifecycle",
+    "evidence": "8 refs in on-landing.mjs, Lifecycle.js, TaskLoop.js"
+  },
+  {
+    "file": "Server/worktree-up.mjs",
+    "verdict": "live",
+    "reason": "Core worktree creation; heavily referenced in mastermind and minion skills",
+    "evidence": "25 refs in skills, hooks, docs"
+  },
+  {
+    "file": "Servex/Budget.js",
+    "verdict": "live",
+    "reason": "Enforced budget system (node-reliability 2026-09-29); used by Heartbeat and core Servex",
+    "evidence": "8 refs in Servex, skills, docs"
+  },
+  {
+    "file": "Servex/Follow.js",
+    "verdict": "live",
+    "reason": "Core path resolution; used by Servex and session management",
+    "evidence": "12 refs in Servex, agents, session tools"
+  },
+  {
+    "file": "Servex/Games.js",
+    "verdict": "live",
+    "reason": "Process monitor for game apps; part of Processes monitoring",
+    "evidence": "5 refs including Processes.js, Servex.js"
+  },
+  {
+    "file": "Servex/Heartbeat.js",
+    "verdict": "live",
+    "reason": "Core task monitoring system; central to Servex lifecycle and TaskLoop",
+    "evidence": "14 refs in Servex, TaskLoop, Lifecycle"
+  },
+  {
+    "file": "Servex/Lifecycle.js",
+    "verdict": "live",
+    "reason": "Core resource lifecycle tracker; used by Servex and worktree scripts",
+    "evidence": "17 refs in Servex, Server, worktree chain"
+  },
+  {
+    "file": "Servex/Log.js",
+    "verdict": "live",
+    "reason": "Core logging system; central to all Servex operations",
+    "evidence": "77 refs across Servex, agents, TaskLoop"
+  },
+  {
+    "file": "Servex/LogSweeper.js",
+    "verdict": "live",
+    "reason": "Core log commit system; actively used in Servex and repo-size management",
+    "evidence": "4 refs including Servex.js; last: 2026-10-13"
+  },
+  {
+    "file": "Servex/LogSweeper.test.mjs",
+    "verdict": "tool",
+    "reason": "Test script for LogSweeper in throwaway git repo; documented for manual verification",
+    "evidence": "documented in Servex/doc/readme-full-2026-10-12.md"
+  },
+  {
+    "file": "Servex/MCP.js",
+    "verdict": "live",
+    "reason": "Core MCP endpoint manager; heavily used by Servex and plugins",
+    "evidence": "42 refs across Server plugins, hooks, Servex"
+  },
+  {
+    "file": "Servex/Monitor.js",
+    "verdict": "live",
+    "reason": "Machine monitor for system health; core Servex component",
+    "evidence": "9 refs in Servex, TaskLoop, window-watch"
+  },
+  {
+    "file": "Servex/Pool.js",
+    "verdict": "live",
+    "reason": "Core process pool manager; central to Servex operations and health",
+    "evidence": "39 refs in Servex, health docs, worktree management"
+  },
+  {
+    "file": "Servex/PortRegistry.js",
+    "verdict": "live",
+    "reason": "Port allocation tracker for projects; core Servex component",
+    "evidence": "2 refs in Servex.js, architecture docs"
+  },
+  {
+    "file": "Servex/Process.js",
+    "verdict": "live",
+    "reason": "Core supervised process class; used by Pool and Processes managers",
+    "evidence": "14 refs in Processes, health docs, Servex"
+  },
+  {
+    "file": "Servex/Processes.js",
+    "verdict": "live",
+    "reason": "Process monitor and supervisor; core to Servex machine monitoring",
+    "evidence": "7 refs in Servex, Games, system monitoring"
+  }
+]

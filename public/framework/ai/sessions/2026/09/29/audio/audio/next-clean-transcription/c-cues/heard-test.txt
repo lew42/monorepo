@@ -1,0 +1,38 @@
+— 1. speaking, speaking, done: one answer, on done, with all three
+[0.0 s] heard p1 floor=speaking via=whisper
+[0.5 s] heard p2 floor=speaking via=whisper
+[1.0 s] heard p3 floor=done via=whisper
+[1.0 s] ANSWERS:
+  prompt p3, just spoken:
+  0. So the first thing is
+  1. the button on the left.
+  2. That's it.
+  (paused 0.4 s, 1.2 s; spoke 4.5 s)
+  
+  Name what was named, card the idea, then one refined reading citing those sentence numbers.
+
+— 2. typed: answers at once
+[1.0 s] heard p4 floor=done via=typed
+[1.0 s] ANSWERS:
+  prompt p4, just spoken:
+  0. typed question
+  
+  Name what was named, card the idea, then one refined reading citing those sentence numbers.
+
+— 3. no floor field (an older client): answers at once
+[1.0 s] heard p5 floor=(none) via=undefined
+[1.0 s] ANSWERS:
+  prompt p5, just spoken:
+  0. old client
+  
+  Name what was named, card the idea, then one refined reading citing those sentence numbers.
+
+— 4. speaking, then silence: answers after 8 s
+[1.0 s] heard p6 floor=speaking via=whisper
+[9.0 s] ANSWERS:
+  prompt p6, just spoken:
+  0. and then I stopped talking
+  (paused 0.3 s; spoke 2.5 s)
+  
+  Name what was named, card the idea, then one refined reading citing those sentence numbers.
+[9.6 s] done

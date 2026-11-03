@@ -1,0 +1,954 @@
+diff --git a/.claude/skills/code/SKILL.md b/.claude/skills/code/SKILL.md
+index eec57293..2f58df29 100644
+--- a/.claude/skills/code/SKILL.md
++++ b/.claude/skills/code/SKILL.md
+@@ -206,4 +206,15 @@ Demos use the five blocks (Page, `previews()`, `ext/demo`, `ext/layout`, utiliti
+ is a proposal. A new module isn't done until it has a `page.js` its parent's `children:`
+ names. `core/new/1/` is prior art with measurements — read, never import.
+ 
++## 9. OOP: a default view for any instance
++
++Give any object a look with `view(thing)` (`ux/Content/Object/DefaultView.js`) — it
++checks `thing.constructor.View` first (a plain static, so `Thing.View = class extends
++DefaultView {...}` overrides it, and a subclass inherits its parent's automatically),
++else falls back to `DefaultView`: a tree of `ui/item` rows, one per own property,
++opened lazily so a big object graph costs nothing until clicked. A class opts its own
++instances into being findable at all with `core/track/track.js`: `track(MyClass)`
++once, then `MyClass.track(this)` — one line, in that class's own constructor — most
++classes should skip this. Live: [the Object demo](/framework/ux/Content/Object/).
++
+ Improve this skill: append to [`improvements.md`](improvements.md).
+diff --git a/public/framework/ai/collab/decisions.jsonl b/public/framework/ai/collab/decisions.jsonl
+index 77e26471..7beaff03 100644
+--- a/public/framework/ai/collab/decisions.jsonl
++++ b/public/framework/ai/collab/decisions.jsonl
+@@ -9,3 +9,4 @@
+ {"named":{"at":"2026-09-28T14:32:36-05:00","module":"ext/Collab","class":"Scoreboard","member":"overruleCount","kind":"method","collab":"2026-09-28/collab-rounds/scoreboard-design","decision":"d-1"}}
+ {"named":{"at":"2026-09-28T14:32:36-05:00","module":"ext/Collab","class":"Scoreboard","member":"retire","kind":"method","collab":"2026-09-28/collab-rounds/scoreboard-design","decision":"d-1"}}
+ {"named":{"at":"2026-09-28T14:32:36-05:00","module":"ext/Collab","class":"Scoreboard","member":"explain","kind":"method","collab":"2026-09-28/collab-rounds/scoreboard-design","decision":"d-1"}}
++{"named":{"module":"ui/item","class":"item","member":"item","kind":"function","decision":"owner"}}
+diff --git a/public/framework/core/Page/Page.class.js b/public/framework/core/Page/Page.class.js
+index c2f33982..f20cc143 100644
+--- a/public/framework/core/Page/Page.class.js
++++ b/public/framework/core/Page/Page.class.js
+@@ -1,6 +1,7 @@
+ import { View, div, p, h1, h2, h4, a, span, ul, li, button, icon, is } from "../View/View.js";
+ import PageFrame from "./Frame.js";
+ import PageLog from "./Log.js";
++import { track } from "../track/track.js";
+ 
+ View.stylesheet(import.meta, "Page.css");
+ 
+@@ -28,6 +29,7 @@ export class Page extends PageLog {
+ 	constructor(...args){
+ 		super();
+ 		this.assign(...args);
++		Page.track(this);
+ 		this.naming();
+ 		this.declare();
+ 		this.initialize?.();
+@@ -1135,6 +1137,14 @@ export class Page extends PageLog {
+ //   would shrink-wrap the frame with nothing thrown. Frame.js says it at length.
+ Page.Frame = PageFrame;
+ 
++// `track()` installs `Page.track(instance)` / `Page.instances()` — opt-in instance
++// tracking, installed once here so every Page (and every subclass that doesn't
++// override the constructor — `Section`, `Doc`, …) shares ONE list. Called from the
++// constructor above; the owner asked for exactly this by name (2026-09-29): "every
++// class can easily track its new instances by just in the constructor calling the
++// class dot track". core/track/track.js.
++track(Page);
++
+ // Where a save goes when localStorage will not take it — private mode, a full
+ // quota, a blocked third-party frame. It throws WHOLE, and a UI that loses its
+ // buttons because a save failed is worse than one that forgets: the page keeps
+diff --git a/public/framework/core/Page/object.js b/public/framework/core/Page/object.js
+new file mode 100644
+index 00000000..cdd8f3bb
+--- /dev/null
++++ b/public/framework/core/Page/object.js
+@@ -0,0 +1,21 @@
++import { view } from "../../ux/Content/Object/DefaultView.js";
++
++/**
++ * page_object(page) — a live `Page` instance, drawn as a `DefaultView` item tree:
++ * its own name, "a Page", then whatever it actually has (`.title`, `.url`,
++ * `.children`, `.nav`, `.files`… every own field, nothing hand-picked). `Page`
++ * tracks itself already (`Page.class.js`'s constructor calls `Page.track(this)`),
++ * so this file's only job is drawing ONE of those instances — not the whole list.
++ *
++ *   import { page_object } from "/framework/core/Page/object.js";
++ *   page_object(this)                 // inside a page's own content()
++ *
++ * A separate file, not inlined into `page.js`, because `page.js` here is
++ * page-system's own — this module is the one seam another page reaches for
++ * without touching that file. See `/framework/ux/Content/Object/page/` for it
++ * live, and `/framework/ux/Content/Object/doc/default-view.md` for how the tree
++ * itself works.
++ */
++export function page_object(page){ return view(page); }
++
++export default page_object;
+diff --git a/public/framework/core/track/track.js b/public/framework/core/track/track.js
+new file mode 100644
+index 00000000..245a01d7
+--- /dev/null
++++ b/public/framework/core/track/track.js
+@@ -0,0 +1,43 @@
++/**
++ * track(Klass) — installs opt-in instance tracking on a class: `Klass.track(instance)`,
++ * called once from that class's own constructor, remembers the instance;
++ * `Klass.instances()` reads them all back, live.
++ *
++ *   import { track } from "../track/track.js";
++ *   track(Widget);                              // once, at module scope
++ *   class Widget { constructor(){ Widget.track(this); } }
++ *   Widget.instances()                          // → every live Widget
++ *
++ * Not every class should do this — most never call `track()` at all, so most
++ * classes pay nothing and show up nowhere. Opt in only where "see every one of
++ * these" is actually useful (the owner, 2026-09-29).
++ *
++ * A WeakRef set, not a plain array: several classes in this framework build
++ * throwaway instances that live for one render and are then dropped (a `Page`
++ * built just to draw a preview, `Page.drew_content()`'s own copy). A plain
++ * array would hold every one of those forever and the tracked list would only
++ * grow. A `WeakRef` lets the instance go once nothing else holds it;
++ * `instances()` drops the dead ones as it reads, so the list is always
++ * "what's actually still alive" — never a leak, never stale.
++ */
++export function track(Klass){
++	const refs = new Set();
++
++	Klass.track = function(instance){
++		refs.add(new WeakRef(instance));
++		return instance;
++	};
++
++	Klass.instances = function(){
++		const live = [];
++		for (const ref of refs){
++			const instance = ref.deref();
++			instance ? live.push(instance) : refs.delete(ref);
++		}
++		return live;
++	};
++
++	return Klass;
++}
++
++export default track;
+diff --git a/public/framework/styles/css-scopes.txt b/public/framework/styles/css-scopes.txt
+index 0ce0abb9..bb0d03b8 100644
+--- a/public/framework/styles/css-scopes.txt
++++ b/public/framework/styles/css-scopes.txt
+@@ -125,6 +125,11 @@ background   ui/background (bare, not ui-background- — the owner's own word fo
+              .has-background the host's explicit opt-in (:has(> .background) is the
+              automatic one), .background-<kind> each of the ten fills)
+ 
++item         ui/item (bare, not ui-item- — the owner's own word, 2026-09-29: "we have
++             an item class." .item is the row (icon, name, right end), .item.inline
++             the chip-like variant, .item-node/-children/-icon/-caret/-name/-end its
++             parts, each with the item- prefix like any other module's own words)
++
+ # styles
+ cols-        styles/layouts/cols, the lab's remaining local words (thirds/golden/two-one/rail-main-aside)
+              (bare `.cols`, `.half`, `.main-aside` promoted to framework.css 2026-08-31 — core/new/1/site/styles.css's `.cols` is unreachable, no live conflict)
+diff --git a/public/framework/ui/item/doc/core-item.md b/public/framework/ui/item/doc/core-item.md
+new file mode 100644
+index 00000000..8377ac35
+--- /dev/null
++++ b/public/framework/ui/item/doc/core-item.md
+@@ -0,0 +1,49 @@
++# Relation to core/Item
++
++The owner's own words: "I know the item... class like core/item is based on persistence.
++However, those could be kind of merged together, but also they could be kind of separate."
++
++This looks at both and recommends: **keep them separate.** Not touched — `core/Item` itself is
++untouched by this task, on purpose (the brief's own rule).
++
++## What each one actually is
++
++| | `core/Item` | `ui/item` (this module) |
++|---|---|---|
++| Runs where | Headless — node or browser, no DOM at all | Browser only — it IS a DOM row |
++| Holds state | Yes — `data`, `items` (a `List`), a `parent`, listeners (`on`/`emit`) | No — the browser's own `<details open>` is the only state, and that's native, not this module's |
++| Wire format | `{ type, id, data, items }`, saved through a `Saver` | None — nothing to save, nothing to load |
++| Used for | A node of a document that PERSISTS: Panel, an editor Block | One line on a screen: an icon, a name, maybe a right end, maybe a fold |
++
++They share an English word by coincidence, not by design: `core/Item` is a fact about **data**
++("this thing is part of a saved tree"); `ui/item` is a fact about **a row's own markup**
++("this element is an icon, a name and an end, laid out one way"). A `core/Item` never draws
++itself — something else (`ext/Panel`'s views) reads its data and builds DOM. `ui/item` never
++persists anything — it has nothing to persist.
++
++## Why not merge
++
++1. **Different layers would gain baggage they don't need.** Every `core/Item` subclass (Panel,
++   an editor Block) would carry a DOM factory it may never call; every plain `ui.item()` call —
++   most of them, on most doc pages — would drag in `List`, a `Saver` contract and an `id` nobody
++   asked for. `core/` runs in node today (`core/Item/readme.md`: "headless, runs in node") —
++   importing `ui/item.js`, which touches `document.createElement` on its very first line via
++   `View`, would break that outright.
++2. **The wire format is a contract with real callers already.** `{ type, id, data, items }` is
++   read by `Item.open()`, every `Saver`, and `Item.register()`'s name table. Folding a rendering
++   concern into that class risks a field colliding with `data` (a saved item that happens to have
++   a property called `icon` or `name` already, for its own reasons) — a coincidence-of-name bug
++   exactly like the ones `code.js`'s "Names that collide with core" section warns about, one
++   layer down.
++3. **Nothing is lost by keeping them apart.** A `core/Item`-backed tree that wants to LOOK like
++   `.item` rows can already do that the way `ux/Tree` wears `ui/tree`'s `.ui-tree-*` classes: the
++   behavior class reads its own data and calls `ui.item({ icon: node.icon, name: node.text, … })`
++   for each row. That is a normal import, not a merge — and it is the natural next step if
++   `ext/Panel` or an editor Block ever wants this look, which this task does not build.
++
++## The recommendation
++
++**Keep `core/Item` (persistence) and `ui/item` (a row's markup) as two separate, unmerged
++things.** If a persisted tree (Panel, a future editor) wants to render its nodes as `.item` rows,
++its own view class calls `ui.item()` per node — the same relationship `ux/Tree` already has with
++`ui/tree`, and no change to either module.
+diff --git a/public/framework/ui/item/doc/reuse.md b/public/framework/ui/item/doc/reuse.md
+new file mode 100644
+index 00000000..108a871b
+--- /dev/null
++++ b/public/framework/ui/item/doc/reuse.md
+@@ -0,0 +1,68 @@
++# Reuse — could an existing row just wear `.item`?
++
++The brief's rule: "reuse, don't add a fourth tree" — study what already draws an icon-plus-name
++row, and say where `.item` could replace one CHEAPLY, without restyling anything this pass. Four
++modules looked at; one is a good, cheap fit; one is a fit with a real behavior cost; two are not
++a fit at all. Nothing below was changed — `ux/Tree`, `ext/files` and `ux/Content/Disclosure` are
++all still exactly what they were before this task.
++
++## Good, cheap fit: `ux/Content/Disclosure`'s own row
++
++[`Disclosure.js`](/framework/ux/Content/Disclosure/Disclosure.js) already builds almost exactly
++what `ui/item`'s branch case builds — a `<summary>` holding an icon and a title, native
++expand/collapse, no script:
++
++```js
++summary(() => {
++	if (it.icon) icon(it.icon);
++	span.c("ux-content-title", it.title);
++});
++```
++
++That is `.item`'s row, hand-written a second time with different class names. Swapping
++`summary.c("ux-content-disclosure", ...)`'s inner two lines for `summary.c("item", () => { icon;
++name; })` would cost one small edit and gain the caret and the icon/name alignment work already
++done here — Disclosure's own `stack`/`gap`/`box`/`scheme`/`marker` words all live on the
++CONTAINER, not the row, so they would still work unchanged. **Left undone this pass** because the
++brief says keep v1 of anything reachable reachable, and Disclosure's five new words are still
++being built (its own `variants/` page, landed the same week) — a good next task, not a same-task
++edit to a module in flight.
++
++## A fit with a real cost, not a free one: `ext/files`' tree
++
++[`files.js`](/framework/ext/files/files.js)'s rows (`.file-name`, `.file-dir-name`) are visually
++the same idea — an icon, a label, a folder that opens — but the OPEN/SHUT state is not native:
++`rows()` toggles a `.file-dir`'s own `open` CSS class by hand, in a click listener that ALSO has
++to know not to fire when the click was really a row selection (`show()`, which reads
++`e.target.closest(".file-name")` on the whole tree). Swapping the folder row for `.item`'s
++`<details>`/`<summary>` branch would mean the BROWSER now owns open/shut, which is a real rewrite
++of that click-routing, not a class swap — `.item`'s classes could still be worn on the leaf
++`.file-name` rows for the icon/name look with no behavior change at all, cheaply, but the folder
++rows are where the real saving would be and also where the real work is. **Left as a finding**,
++not a fix: worth a task of its own, not a drive-by inside this one.
++
++## Not a fit: `ux/Tree`
++
++[`Tree.js`](/framework/ux/Tree/Tree.js)'s row carries drag (a grip), a star "default" mark, `+`/
++`×` act buttons, a roving tabindex and a live selection class — five things `.item` does not have
++and was never asked to. The two ALREADY share the one idea that transfers for free — a caret and
++an icon share one square frame, centred with `line-height: 1` — because this module copied that
++exact reasoning from `ui/tree/tree.js`'s own comment rather than reinventing it. Actually wearing
++`.item` on a `Tree` row would mean either giving `.item` all five of those extra slots (turning a
++one-line component into a tree-editor component) or stripping them from `Tree` (a real feature
++loss, not a refactor). Neither is "cheap," so this stays untouched.
++
++## Not a fit: `ux/Content/Concepts`
++
++[`Concepts.js`](/framework/ux/Content/Concepts/Concepts.js)'s tiles (`a.c("btn ux-content-tile")`)
++are icon-over-or-beside-name cards in a WRAPPING GRID — "what a page is made of," meant to be
++scanned as a wall, not read down as a list. `.item` fills its row and reads top to bottom by
++design; forcing it into a tile grid would fight that default on every tile. Different shape for a
++different job — left alone.
++
++## The one-line summary
++
++Only `ux/Content/Disclosure` is a same-pass-cheap swap, and it wasn't touched because the module
++is mid-build elsewhere this week. `ext/files` is worth doing, at the cost of a real behavior
++rewire. `ux/Tree` and `ux/Content/Concepts` are not `.item` candidates at all — they solve
++different problems that happen to also involve an icon and a name.
+diff --git a/public/framework/ui/item/item.js b/public/framework/ui/item/item.js
+new file mode 100644
+index 00000000..1be88e3d
+--- /dev/null
++++ b/public/framework/ui/item/item.js
+@@ -0,0 +1,159 @@
++import { div, a, span, button, icon, details, summary, is } from "../../core/View/View.js";
++import { css } from "../parts.js";
++
++/**
++ * item({ icon, name, href, end, open, children }) — one row: an optional icon, then
++ * a name. Put the class `.item` on anything and this is the whole layout system: it
++ * fills its row by default, flat — no border, no background, a light hover wash.
++ * Add `.inline` yourself (`item({ … }).ac("inline")`) to make it hug its own content
++ * instead, like a chip sitting inside a line of text; add `.boxed` for the ordinary
++ * button look (background, border) framework.css gives every plain control.
++ *
++ *   item({ icon: "description", name: "readme.md", href: "/readme.md" })
++ *   item({ icon: "folder", name: "core", open: true, children: [
++ *       { icon: "description", name: "View.js", href: "/core/View/View.js" },
++ *   ]})
++ *   item({ name: "Page", end: "menu" })                    // a right-side ⋯ button
++ *   item({ name: "Docs", href: "/framework/", end: "arrow" }) // a right-side →, for a link
++ *
++ * `children` makes this a TREE NODE: the row becomes a native `<summary>` inside a
++ * `<details>` — the summary IS the row (the owner's words), and the browser does the
++ * expand/collapse, no script required. `href` is ignored when `children` is set; an
++ * item is a link OR a branch, never both, in this first version.
++ *
++ * `children` is an array of the same `{ icon, name, … }` shape, nested to any depth
++ * for a file-tree-style indent, or a function that draws its own content instead —
++ * called once, inside the row's children box, for a caller who wants to build that
++ * part by hand (its own loop, its own markup).
++ *
++ * `end` is `"menu"` (a small ⋯ button — wire its `click` yourself, this only draws
++ * it), `"arrow"` (a plain → glyph, for a link row), or a function that draws
++ * anything else there.
++ *
++ * A row that is one of an array `children` always reserves the caret's own width,
++ * blank when that row has no children of its own — a leaf sitting beside a branch
++ * (a file next to a folder, both children of the same folder) lines its icon up
++ * with its sibling's, the way a real file tree does. `sibling` is that flag; you
++ * never pass it by hand — the recursion above sets it for you.
++ */
++function item({ icon: glyph, name, href, end, open, children } = {}, sibling){
++	const kids = children != null;
++	const caret = kids || sibling;
++
++	// The row's own insides — shared between the plain-row and the summary-row case,
++	// so a branch and a leaf line up on the same icon and name columns.
++	const inside = () => {
++		if (caret) span.c("item-caret", kids ? "▸" : "");
++		if (glyph) icon(glyph).ac("item-icon");
++		span.c("item-name", name);
++		end_part(end);
++	};
++
++	if (kids){
++		return details.c("item-node", $node => {
++			if (open) $node.attr("open", "");
++			summary.c("item", inside);
++			div.c("item-children", () => {
++				is.fn(children) ? children() : children.forEach(child => item(child, true));
++			});
++		});
++	}
++
++	const $row = (href ? a : div).c("item", inside);
++	if (href) $row.href(href);
++	return $row;
++}
++
++function end_part(end){
++	if (!end) return;
++	if (is.fn(end)) return end();
++
++	if (end === "arrow") return icon("arrow_forward").ac("item-end");
++
++	if (end === "menu")
++		return button.c("item-end", () => icon("more_vert"))
++			.attr("type", "button").attr("aria-label", "more")
++			// Only stops THIS click from also toggling a parent <details> or firing a
++			// row click the caller wired up — wiring what the menu itself does is theirs.
++			.click(e => { e.preventDefault(); e.stopPropagation(); });
++
++	return span.c("item-end", String(end));
++}
++
++/* Padding: roughly a control's own (framework.css's `--pad-control`, 0.2em 0.8em —
++ * a plain <button> or <input>), TIGHTENED on the sides to 0.3em 0.6em. A `.item` is
++ * a row in a list, read many-in-a-column rather than one at a time, and 0.8em of
++ * side padding measured wider than the icon+name it was framing at 400px — the
++ * button padding is right for a control read alone, not for a dense tree of them. */
++css(`@layer theme {
++	/* FLAT BY DEFAULT. framework.css's own box rule reads a plain summary element as
++	   a control (background, border, a 2.4em floor, an inset-shadow hover) — right
++	   for a lone button, wrong for a tree, where it made every branch row a grey
++	   boxed bar next to the flat leaf rows below it (the owner, 2026-09-29: "reads
++	   like a stack of buttons instead of a file tree"). The class .item beats a bare
++	   summary selector on specificity alone, in the same layer, so these lines win
++	   regardless of load order — reset every property that rule set, not just the
++	   ones that looked wrong in a screenshot, or the leftover would resurface on
++	   hover (the inset shadow survives a background/border reset on its own,
++	   because nothing had reset it too — NO BACKTICKS IN THIS COMMENT, it lives
++	   inside a css(...) template literal and one backtick blanks the whole site). */
++	.item {
++		display: flex; align-items: center; gap: 0.5em;
++		width: 100%; box-sizing: border-box; min-height: 0;
++		padding: 0.3em 0.6em; border-radius: var(--radius);
++		color: inherit; text-decoration: none;
++		background: none; border: none; box-shadow: none;
++	}
++	.item.inline { display: inline-flex; width: auto; }
++
++	a.item:hover, summary.item:hover { background: var(--wash); }
++
++	/* A click still focuses a real anchor or summary row, and the UA's own focus ring
++	   is the same boxed look this whole rule exists to turn off — only a KEYBOARD
++	   focus draws the ring now. */
++	.item:focus { outline: none; }
++	.item:focus-visible { outline: 2px solid var(--prim); outline-offset: -2px; }
++
++	/* The boxed look, back as an opt-in — the exact rule .item resets above, so
++	   .item.boxed reads identically to a plain button on this site. */
++	.item.boxed { background-color: var(--fill-a08); border: 1px solid var(--fill-a32); }
++	.item.boxed:hover { border-color: var(--prim); box-shadow: inset 0 0 0 999px var(--fill-a08); }
++
++	/* The UA's own disclosure triangle is one bullet too many now that .item-caret
++	   draws the fold inside the row — Firefox and Chrome both drop it under
++	   list-style: none (the spec routes a summary's marker through display:
++	   list-item / ::marker), Safari still needs the pseudo-element told directly. */
++	summary.item { list-style: none; }
++	summary.item::-webkit-details-marker { display: none; }
++
++	/* ONE SQUARE FRAME for the fold and the icon, so a leaf (icon, no fold) and a
++	   branch (fold, then icon) still land their names on the same column — the same
++	   reasoning ui/tree's --ui-tree-frame recorded: line-height: 1 centres the glyph
++	   in a box exactly its own em square, not its taller inherited line box. */
++	.item-caret, .item-icon {
++		flex: 0 0 auto;
++		display: grid; place-items: center;
++		width: 1.3em; aspect-ratio: 1; line-height: 1;
++	}
++	.item-caret {
++		color: var(--subtle);
++		transform: rotate(0deg); transition: transform 0.1s;
++	}
++	.item-node[open] > .item > .item-caret { transform: rotate(90deg); }
++
++	.item-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
++
++	.item-end { flex: 0 0 auto; margin-inline-start: auto; display: flex; align-items: center; }
++	button.item-end {
++		background: none; border: none; padding: 0.2em; min-height: unset;
++		border-radius: var(--radius); color: inherit; cursor: pointer;
++	}
++	button.item-end:hover { background: var(--wash); }
++
++	/* Real nesting, not a depth counter — every .item-children adds one --item-indent
++	   of its own padding, the same reasoning ui/tree and ext/files both already use. */
++	.item-children { padding-inline-start: var(--item-indent, 1.25em); }
++}`);
++
++export default item;
++export { item };
+diff --git a/public/framework/ui/item/page.js b/public/framework/ui/item/page.js
+new file mode 100644
+index 00000000..db0234aa
+--- /dev/null
++++ b/public/framework/ui/item/page.js
+@@ -0,0 +1,95 @@
++import { Page, md, demo, div, span, ui } from "/app.js";
++
++/* The top exhibit: the framework's own folder shape, drawn with real item() calls —
++ * a folder tree, a couple of links, a menu end. `core` and `ui` start open, `ext`
++ * starts shut, so the picture shows both states without a click. */
++const folder_tree = () => div.c("surface pad", () => {
++	ui.item({
++		icon: "folder", name: "core", open: true, children: [
++			{ icon: "folder", name: "View", open: true, children: [
++				{ icon: "description", name: "View.js", href: "/framework/core/View/", end: "arrow" },
++			] },
++			{ icon: "description", name: "Page", href: "/framework/core/Page/", end: "arrow" },
++		],
++	});
++	ui.item({
++		icon: "folder", name: "ext", children: [
++			{ icon: "description", name: "files", href: "/framework/ext/files/", end: "arrow" },
++			{ icon: "description", name: "demo", href: "/framework/ext/demo/", end: "arrow" },
++		],
++	});
++	ui.item({
++		icon: "folder", name: "ui", open: true, children: [
++			{ icon: "description", name: "badge", href: "/framework/ui/badge/", end: "arrow" },
++			{ icon: "description", name: "readme.md", end: "menu" },
++		],
++	});
++});
++
++/* Eight small, named boxes, side by side — every genuinely different way to wear
++ * the class, on the one page the owner asked to see them on rather than split
++ * across eight child pages (page skill: a variant earns a child page by being a
++ * DIFFERENT THING, not a different value — these are all the same thing, `.item`,
++ * with different options, which is the Disclosure/variants page's own reasoning). */
++const variants = () => div.c("wide grid gap auto", $wall => {
++	const cell = (label, fn) => div.c("flex v gap-25 card", () => { span.c("muted", label); fn(); });
++
++	cell("plain", () => ui.item({ name: "Plain row" }));
++	cell("with icon", () => ui.item({ icon: "star", name: "Starred" }));
++	cell("inline — item(…).ac(\"inline\")", () => ui.item({ icon: "label", name: "chip" }).ac("inline"));
++	cell("boxed — item(…).ac(\"boxed\")", () => ui.item({ icon: "settings", name: "Settings" }).ac("boxed"));
++	cell("link, arrow end", () => ui.item({ icon: "description", name: "readme.md", href: "/framework/ui/item/", end: "arrow" }));
++	cell("menu end", () => ui.item({ icon: "description", name: "options.js", end: "menu" }));
++	cell("expandable", () => ui.item({ icon: "folder", name: "assets", children: [
++		{ icon: "description", name: "logo.svg" },
++	] }));
++	cell("nested three deep", () => ui.item({ icon: "folder", name: "a", open: true, children: [
++		{ icon: "folder", name: "b", open: true, children: [
++			{ icon: "folder", name: "c", open: true, children: [
++				{ icon: "description", name: "d.js" },
++			] },
++		] },
++	] }));
++}).style("--column", "16em");
++
++export default new Page({
++	meta: import.meta,
++	title: "Item",
++	description: "One row: an optional icon, then a name. Put .item on anything and this is the layout, the right-side end and the tree — all at once.",
++	icon: "list",
++
++	content(){
++
++		md("A `.item` is one line: an optional icon, then a name, filling its row. Give it `children` and it becomes a tree — the row turns into a native `<summary>`, so the browser opens and closes it with no script at all. This is the framework's own folder shape, drawn with `ui.item()`:");
++
++		demo.exhibit({
++			page: this,
++			stage: steer => demo.stage(folder_tree, steer).ac("bleed"),
++			def: folder_tree,
++			file: new URL("page.js", import.meta.url).pathname,
++			note: "`core` and `ui` start open (`open: true` in the data); `ext` starts shut — click its row to open it, no code involved. `View.js`, `Page`, `files` and `demo` carry `end: \"arrow\"` because each is a link (`href` is set); `readme.md` carries `end: \"menu\"` instead, to show the other end a row can have — `item()` only draws that button, wiring what it does is the caller's.",
++		});
++
++		md("## Eight ways to wear it");
++
++		md("Same class, same three slots — icon, name, end — every box below is one call to `ui.item()` with a different set of options.");
++
++		variants();
++
++		md("## Padding: a control's, tightened for a row read many at once");
++
++		md("Framework.css's own control padding — a plain `<button>` or `<input>` — is `0.2em 0.8em`. `.item` keeps the vertical number and tightens the sides to `0.6em`: a row usually sits in a column of other rows, not alone the way a button is, and the wider number read visibly loose next to the icon at 400px. [`item.js`](item.js) has the one declaration, and the reasoning beside it.");
++
++		md("## Relation to core/Item — kept separate");
++
++		md("`core/Item` is a persistence base class: a node of a document that saves. This `item()` is markup and CSS with no state of its own at all — the browser's native `<details>` element holds whatever is open, and there is nothing else to track. [`doc/core-item.md`](doc/core-item.md) has the full comparison and the recommendation.");
++
++		md("## Reuse, not a fourth tree");
++
++		md("`ux/Tree`, `ux/Content/Disclosure` and `ext/files`'s explorer each already draw a row very like this one. [`doc/reuse.md`](doc/reuse.md) looks at each in turn and says where `.item` could replace one at low risk — none of the three were touched to build this.");
++
++		md.details(import.meta, "readme.md", "Readme");
++	},
++
++	preview(nav){ return this.preview_card(nav, () => div.c("zoom-50 pad", folder_tree)); },
++});
+diff --git a/public/framework/ui/item/readme.md b/public/framework/ui/item/readme.md
+new file mode 100644
+index 00000000..949b06f9
+--- /dev/null
++++ b/public/framework/ui/item/readme.md
+@@ -0,0 +1,44 @@
++# item — one row: an optional icon, then a name
++
++The owner's own words: "it's just a single line, an icon, and a name." `item()` is that row,
++plus two things that ride along for free: a right-side end (a ⋯ menu or a → for a link), and a
++tree, when it has children — built on the browser's own `<details>`/`<summary>`, so the open and
++shut state needs no script at all.
++
++## Use
++
++```js
++import { ui } from "/app.js";
++
++ui.item({ icon: "description", name: "readme.md", href: "/framework/ui/item/" });
++
++ui.item({ icon: "folder", name: "core", open: true, children: [
++	{ icon: "description", name: "View.js", href: "/framework/core/View/", end: "arrow" },
++] });
++```
++
++`children` is an array of the same shape, nested to any depth (a file tree), or a function that
++draws its own content instead. `end` is `"menu"` (a ⋯ button — wire its click yourself, this only
++draws it), `"arrow"` (a plain →, for a link row), or a function for anything else. Add `.inline`
++yourself (`ui.item({ … }).ac("inline")`) for a row that hugs its own content instead of filling
++the line — a chip inside a line of text rather than a row in a list. Add `.boxed` for the
++background-and-border look every plain `<button>` on the site already has — `.item` is flat by
++default (no border, no background, a light hover wash), because a tree of boxed rows reads as a
++stack of buttons, not a tree.
++
++## Watch out
++
++- **`children` and `href` don't mix in this first version.** A branch is a `<summary>`, and its
++  `href` is never read — an item is a link OR a tree node, not both yet: [item.js](item.js).
++- The padding is a control's own, tightened on the sides — not a page-region `.pad` and not a
++  card's `--pad-card`, because a row's size is about its own text, the same reasoning every
++  button and nav item already follows: [item.js](item.js), the padding note beside the CSS.
++- `core/Item` is a different thing with a similar name — a persistence base class, not this.
++  Kept separate, on purpose: [doc/core-item.md](doc/core-item.md).
++
++## More
++
++- [Overview](/framework/ui/item/) — the framework's own folder tree, drawn live, and all seven variants side by side.
++- [doc/reuse.md](doc/reuse.md) — where `.item` could replace a row in `ux/Tree`, `ux/Content/Disclosure` or `ext/files`, at low risk, in a later pass.
++- [doc/core-item.md](doc/core-item.md) — `core/Item` compared, and the recommendation.
++- Back to [UI](/framework/ui/).
+diff --git a/public/framework/ui/page.js b/public/framework/ui/page.js
+index 6c229c88..e5f2f29e 100644
+--- a/public/framework/ui/page.js
++++ b/public/framework/ui/page.js
+@@ -19,7 +19,7 @@ const names = Object.values(BANDS).flatMap(band => band.split(" "));
+ export default new Doc({
+ 	meta: import.meta,
+ 	title: "UI",
+-	description: "Twenty-two in four bands — the control grammar, three functions, eighteen copy-paste templates.",
++	description: "Twenty-two in four bands — the control grammar, four functions, eighteen copy-paste templates.",
+ 	icon: "widgets",
+ 
+ 	// ⚠ Required on a Doc that is ALSO a nav section. framework/page.js's sections()
+@@ -34,8 +34,11 @@ export default new Doc({
+ 	// nav — background-layer task, 2026-09-19, ai/2026-09-19/background-layer/.
+ 	// `section` is appended the same way, for the same reason — section-variants task,
+ 	// 2026-09-28. `scale` too: a config word, not a component that belongs in a
+-	// band's own grid — 2026-09-28.
+-	children: names.join(" ") + " background scale section",
++	// band's own grid — 2026-09-28. `item` too, for a different reason: it is a real
++	// component with its own band-worthy card, but it landed the same day the bands
++	// were declared even and adding a fifth to any of them breaks that — item-ui
++	// task, 2026-09-29.
++	children: names.join(" ") + " background scale section item",
+ 
+ 	/* Overview · API · Docs · Files, and nothing else. Doc's own bar() lists every
+ 	   declared child between the Overview and the reference sections, which is right
+@@ -60,7 +63,7 @@ export default new Doc({
+ 	},
+ 
+ 	subject: ui,
+-	methods: "table timeline keys",
++	methods: "table timeline keys item",
+ 	notes: "record decisions",
+ 	files: "ui.js parts.js page.js readme.md "
+ 		+ "table/table.js table/page.js field/page.js crumbs/crumbs.js crumbs/page.js "
+@@ -87,14 +90,17 @@ export default new Doc({
+ 		   and a dialog on ~580px, which is the width each of them is actually used at. */
+ 		this.browse(BANDS, { "--column": "18em", "--gap": "var(--flow)" }).ac("bleed");
+ 
+-		md("## Three functions, sixteen templates");
++		md("## Four functions, sixteen templates");
+ 
+-		md("Only [Data table](/framework/ui/table/), [Timeline](/framework/ui/timeline/) and `keys()` on [Keys](/framework/ui/kbd/) are functions, and each is a **loop** — the one thing markup cannot express. The other eighteen pages hand you the markup with a copy button: some ship a class or two of CSS beside it, several ship none at all.");
++		md("Only [Data table](/framework/ui/table/), [Timeline](/framework/ui/timeline/), `keys()` on [Keys](/framework/ui/kbd/) and [Item](/framework/ui/item/) are functions, and each is a **loop** — the one thing markup cannot express. `item()`'s loop is the recursion down a tree of children. The other eighteen pages hand you the markup with a copy button: some ship a class or two of CSS beside it, several ship none at all.");
+ 
+ 		code.js(`import { ui } from "/app.js";
+ 
+ ui.table(["module", "lines"], [["View", "641"], ["Page", "363"]]);
+-ui.keys("Ctrl", "K");`);
++ui.keys("Ctrl", "K");
++ui.item({ icon: "folder", name: "core", children: [
++	{ icon: "description", name: "View.js", href: "/framework/core/View/" },
++] });`);
+ 
+ 		md("The bar for exporting a function is **logic a user shouldn't have to carry**: a loop over rows, a listener, a name that has to be unique, a trap that costs an afternoon. Everything else is markup, and markup is better handed over than hidden — see [`ui.table`](/framework/ui/api/table/) in the API tab for the source these three carry.");
+ 
+diff --git a/public/framework/ui/ui.js b/public/framework/ui/ui.js
+index c1f1b82f..7bc90e30 100644
+--- a/public/framework/ui/ui.js
++++ b/public/framework/ui/ui.js
+@@ -1,6 +1,7 @@
+ import { table } from "./table/table.js";
+ import { timeline } from "./timeline/timeline.js";
+ import { keys } from "./kbd/kbd.js";
++import { item } from "./item/item.js";
+ 
+ /* The css-only components: no export, a `<style>` tag, and a page that hands you
+  * the markup with a copy button. Imported here so the classes exist site-wide.
+@@ -21,11 +22,12 @@ import "./decision/decision.js";
+ import "./words/words.js";   // the config words — not a component; the same trap applies
+ import "./scale/scale.js";
+ 
+-// Three functions, because three of the twenty carry a loop. The rest are
++// Four functions now, because each carries a loop a user shouldn't have to write
++// by hand — `item()`'s is the recursion down a tree of children. The rest are
+ // copy-paste templates and deliberately have nothing to import — readme.md.
+-export const ui = { table, timeline, keys };
++export const ui = { table, timeline, keys, item };
+ 
+-export { table, timeline, keys };
++export { table, timeline, keys, item };
+ 
+ export { css, component } from "./parts.js";
+ 
+diff --git a/public/framework/ux/Content/Object/DefaultView.js b/public/framework/ux/Content/Object/DefaultView.js
+new file mode 100644
+index 00000000..d340cf83
+--- /dev/null
++++ b/public/framework/ux/Content/Object/DefaultView.js
+@@ -0,0 +1,136 @@
++import View, { div, span, details, summary } from "../../../core/View/View.js";
++import { item } from "../../../ui/item/item.js";
++
++/**
++ * class DefaultView extends View — give it any real object and it draws a tree of
++ * `.item` rows, the same shape as a file tree: a header row naming the class, then
++ * one row per own property, its name written with a leading dot (`.children`,
++ * `.title`). A property whose value is a plain value (a string, a number, a
++ * boolean) shows that value inline, right after the name. A property whose value
++ * is an object, an array or a Map becomes an EXPANDABLE row — its own properties /
++ * entries are not looked at, or drawn, until you actually click it open, so a huge
++ * object graph (a `Page`, whose `.children` holds a Map of more `Page`s, whose
++ * `.parent` points straight back) costs nothing until you go looking, and never
++ * loops forever: a value already on the path you're expanding shows "↺ already
++ * open above" instead of opening again.
++ *
++ *   new DefaultView({ subject: somePage })      // this is the whole call
++ *   view(somePage)                              // the usual way in — see below
++ *
++ * Functions, DOM/View nodes, and a property that is declared but never set
++ * (`undefined`) are skipped, same as `ObjectCard` (`Object.js`, beside this
++ * file) does — nothing to usefully show for any of the three.
++ *
++ * **The override.** A class that wants its own look defines `static View`:
++ *
++ *   class Widget { … }
++ *   Widget.View = class extends DefaultView { render(){ … } };
++ *
++ * and `view(thing)` finds it automatically — `thing.constructor.View` reaches an
++ * inherited one too, because a JS static is on the constructor's own prototype
++ * chain, the same as any other inherited member.
++ */
++export default class DefaultView extends View {
++
++	render(){
++		const subject = this.subject;
++		const klass = typeof subject === "function" ? subject : subject?.constructor;
++		const label = subject && typeof subject !== "function" ? (subject.name ?? subject.title) : null;
++		const article = /^[aeiou]/i.test(klass?.name ?? "Object") ? "an " : "a ";
++
++		item({
++			icon: "data_object",
++			name: article + (klass?.name ?? "Object"),
++			end: label ? () => span.c("item-end muted", String(label)) : undefined,
++		});
++
++		div.c("ux-content-defaultview-rows", () => this.properties(subject, new Set()));
++	}
++
++	/* Every own property worth a row, skipping the noise ObjectCard already skips:
++	 * `undefined` (declared but never set — nothing there), functions (behaviour,
++	 * not state), and DOM/View nodes (there's a live element to look at instead —
++	 * showing its guts here is never what you wanted). */
++	properties(subject, path){
++		if (!subject || typeof subject !== "object") return;
++
++		Object.keys(subject).forEach(name => {
++			const value = subject[name];
++			if (value === undefined) return;   // declared but never set — nothing to show
++			if (typeof value === "function") return;
++			if (value?.el || value instanceof Node) return;
++			this.row(name, value, path);
++		});
++	}
++
++	row(name, value, path){
++		if (value !== null && typeof value === "object") return this.expandable(name, value, path);
++
++		return item({ name: "." + name, end: () => span.c("item-end muted", this.describe(value)) });
++	}
++
++	/* An object/array/Map property: a row that looks exactly like item()'s own
++	 * `children` form (same classes, so the CSS is the same), except the inside is
++	 * built once, the first time it's actually opened — never before. `path` is
++	 * every object already being drawn above this row on THIS branch; a value
++	 * already in it is a cycle back to an ancestor, so it gets a plain note
++	 * instead of opening into itself forever. */
++	expandable(name, value, path){
++		if (path.has(value)){
++			item({ name: "." + name, end: () => span.c("item-end muted", "↺ already open above") });
++			return;
++		}
++
++		details.c("item-node", $node => {
++			summary.c("item", () => {
++				span.c("item-caret", "▸");
++				span.c("item-name", "." + name);
++				span.c("item-end muted", this.describe(value));
++			});
++
++			const $kids = div.c("item-children");
++			let opened = false;
++
++			$node.el.addEventListener("toggle", () => {
++				if (opened || !$node.el.open) return;
++				opened = true;
++				$kids.append(() => this.entries(value, new Set(path).add(value)));
++			});
++		});
++	}
++
++	entries(value, path){
++		if (Array.isArray(value)) return value.forEach((v, i) => this.row(String(i), v, path));
++		if (value instanceof Map) return value.forEach((v, k) => this.row(String(k), v, path));
++		if (value instanceof Set) return [...value].forEach((v, i) => this.row(String(i), v, path));
++		return this.properties(value, path);
++	}
++
++	/* One line for a value that ISN'T being expanded: the value itself for a
++	 * primitive, else how many things are inside, so an unopened row still says
++	 * something ("Array(3)", "Map(12)") rather than nothing at all. */
++	describe(value){
++		if (value === undefined) return "undefined";
++		if (value === null) return "null";
++		if (typeof value === "string") return this.cut(JSON.stringify(value));
++		if (typeof value === "number" || typeof value === "boolean") return String(value);
++		if (Array.isArray(value)) return `Array(${value.length})`;
++		if (value instanceof Map) return `Map(${value.size})`;
++		if (value instanceof Set) return `Set(${value.size})`;
++		if (typeof value === "object")
++			return value.constructor && value.constructor !== Object ? `${value.constructor.name} {…}` : "{…}";
++		return this.cut(String(value));
++	}
++
++	cut(text, max = 40){ return text.length <= max ? text : text.slice(0, max - 1) + "…"; }
++}
++
++/* `view(thing)` — the one call most code should use instead of `new DefaultView(…)`
++ * directly: it picks `thing.constructor.View` when that class (or one it extends)
++ * declares one, else falls back to this plain, best-guess tree. */
++export function view(thing){
++	const Klass = thing?.constructor;
++	return Klass?.View ? new Klass.View({ subject: thing }) : new DefaultView({ subject: thing });
++}
++
++export { DefaultView };
+diff --git a/public/framework/ux/Content/Object/app/page.js b/public/framework/ux/Content/Object/app/page.js
+new file mode 100644
+index 00000000..e8cde587
+--- /dev/null
++++ b/public/framework/ux/Content/Object/app/page.js
+@@ -0,0 +1,24 @@
++import { Page, md, div } from "/app.js";
++import { view } from "../DefaultView.js";
++
++/**
++ * "The App object" — the ONE running app, `this.app`, drawn as the very same item
++ * tree as everything else here. Open `.router` for the page you're on right now
++ * (`.active`); open `.root` for the whole site's page tree, lazily — nothing
++ * under it is read or drawn until you click into it, so this costs nothing extra
++ * to show even though `.root` is, transitively, every page on the site.
++ */
++export default new Page({
++	meta: import.meta,
++	title: "The App object",
++	description: "The one running App — its router, its page tree, its own settings — drawn live from window.app, not described.",
++	icon: "apps",
++
++	content(){
++		md("**There is one `App` instance for the whole site, and it is just an object like any other now.** Open `.router` below for the current route (`.active` is the page you're on); open `.root` for the site's whole page tree — lazily, so nothing under it is read until you actually click into it. The rest (`.socket`, `.logo`, `.brand`, …) is whatever [`/app.js`](/framework/core/App/) configured this app with.");
++
++		div.c("flex v gap", () => view(this.app));
++
++		md.details(import.meta, "../doc/default-view.md", "How this works");
++	},
++});
+diff --git a/public/framework/ux/Content/Object/doc/census.md b/public/framework/ux/Content/Object/doc/census.md
+new file mode 100644
+index 00000000..ce717e3f
+--- /dev/null
++++ b/public/framework/ux/Content/Object/doc/census.md
+@@ -0,0 +1,108 @@
++# Census — which classes are worth a debug view?
++
++This table walks every exported class in `core/`, `ext/` and `ux/` — anything matching
++`export class` or `export default class` at the top level of a `.js` file, skipping
++`ai/`, `core/legacy/`, `core/new/`, `dev/` and sandbox dirs (77 classes; `ui/` and `web/`
++turned up zero — they're plain page files, not classes) — and judges whether it holds
++state worth looking at, whether anything already shows that state, and whether it
++deserves a card. **Headline: 77 classes, 37 worth a view, 1 already has one** (`Page`,
++via [`ObjectCard`](/framework/ux/Content/Object/), on its own API tab). All 37 "yes"
++rows are listed first, most useful first (`Page` and `App` at the very top); the 40
++"no" rows follow, in no particular order.
++
++| class | module | object-like? | has a view today? | worth a view? |
++|---|---|---|---|---|
++| Page | core/Page | yes — url, title, children, parent, route, words (navigation/width/arrangement/surface/background/type_size) | **yes** — `ObjectCard` on the [Page API tab](/framework/core/Page/api/) | yes — the model case |
++| App | core/App | yes — root page, router, loaders, ready | no | yes — settings/root/router |
++| Router | core/Router | yes — current route, history | no | yes — current route |
++| Sidebar | core/Sidebar | yes — open state, current items | no | yes — small, useful |
++| Item | core/Item | yes — persisted value, saver, dirty state | no | yes — every Item instance |
++| List | core/List | yes — items array, order | no | yes — see the order |
++| Search | core/Search | yes — query, results, index | no | yes — query + hit count |
++| Section | core/Section | yes — a Page subclass, same shape as Page | no | yes — same as Page |
++| AITask | ext/AITask | yes — Page subclass; task log state | no | yes — task status at a glance |
++| JSONL | ext/JSONL | yes — rows, file handle, cursor | no | yes — row count + last line |
++| TaskJSONL | ext/JSONL | yes — extends JSONL with task fields | no | yes — same as JSONL |
++| Collab | ext/Collab | yes — extends JSONL, live participants | no | yes — who's connected |
++| Doc | ext/Doc | yes — Page subclass, doc sections | no | yes — same as Page |
++| Program | ext/Research | yes — Page subclass, research state | no | yes — same as Page |
++| ProgramJSONL | ext/Research | yes — extends JSONL | no | yes — same as JSONL |
++| Research | ext/Research | yes — Page subclass | no | yes — same as Page |
++| ResearchJSONL | ext/Research | yes — extends JSONL | no | yes — same as JSONL |
++| ResearchTopic | ext/Research | yes — extends Program | no | yes — same as Program |
++| PageFiles | ext/files | yes — Page subclass, file tree state | no | yes — file count + tree |
++| Saver | ext/Saver | yes — abstract, but tracks a value + dirty flag | no | yes — value + saved/dirty |
++| FileSaver | ext/Saver | yes — extends Saver, a file path | no | yes — same as Saver |
++| LocalStorageSaver | ext/Saver | yes — extends Saver, a storage key | no | yes — same as Saver |
++| MemorySaver | ext/Saver | yes — extends Saver, in-memory only | no | yes — same as Saver |
++| Panel | ext/Panel | yes — extends Item; size, position, hug/fill | no | yes — the panel's numbers |
++| PanelDrag | ext/Panel | yes — extends Sortable; drag state | no | yes — mid-drag debug only |
++| Workspace | ext/Panel/Workspace | yes — collection of Panels + layout | no | yes — panel count + layout |
++| Flow | ext/Panel | yes — recorded steps of panel gestures | no | yes — step count + current index |
++| Timeline | ext/Timeline | yes — extends View; entries, cursor | no | yes — entry count |
++| Auth | ux/Auth | yes — extends View; session/user state | no | yes — who's signed in |
++| MagicAuth | ux/Auth | yes — extends Auth, token state | no | yes — same as Auth |
++| Course | ux/Course | yes — extends View; steps, progress | no | yes — progress at a glance |
++| Dictate | ux/Dictate | yes — extends View; recording/transcript state | no | yes — the state the owner asked for by name |
++| Filter | ux/Filter | yes — extends View; active filters | no | yes — which filters are on |
++| FilterChips | ux/Filter | yes — extends Filter | no | yes — same as Filter |
++| Tags | ux/Tags | yes — extends View; tag list | no | yes — the tag list |
++| Tree | ux/Tree | yes — extends View; expanded/selected nodes | no | yes — small, useful |
++| Wizard | ux/Wizard | yes — extends View; step, answers | no | yes — current step + answers |
++| Draggable | ext/Draggable | yes — drag position, target | no | no — only useful mid-gesture |
++| Sortable | ext/Draggable | yes — extends Draggable, order | no | no — same as Draggable |
++| Capture | ux/Dictate | yes — audio buffer, level | no | no — too live/binary to render as text |
++| Playground | ux/Dictate/playground | yes — a lab harness, config + samples | no | no — a demo page, not a model |
++| TreeDrag | ux/Tree | yes — extends Tree, drag state | no | no — mid-drag debug only |
++| TreeKeys | ux/Tree | no — pure keyboard-handler mixin, no own state | n/a | no |
++| Popover | ux/Popover | yes — open/anchor state | no | no — transient UI, not a model |
++| Menu | ux/Menu | yes — extends View; open items | no | no — transient UI, not a model |
++| Pagination | ux/Pagination | yes — extends View; page/total | no | no — two numbers, not worth a card |
++| ContentModule | ux/Content | yes — base class for the Content family | no | no — abstract; subclasses matter |
++| Decision | ux/Content/Decision | yes — extends ContentModule; a decision record | no | no — it already renders its own record |
++| Decisions | ux/Content/Decision | yes — extends ContentModule; a list of decisions | no | no — same, already a list view |
++| Concepts | ux/Content/Concepts | yes — extends ContentModule | no | no — already a content view |
++| Disclosure | ux/Content/Disclosure | no — a summary/detail toggle, no model state | n/a | no |
++| Object (ObjectCard) | ux/Content/Object | no — the card itself, stateless | n/a | no — it's the tool, not a subject |
++| Question | ux/Content/Question | yes — extends ContentModule; a question record | no | no — already renders its own record |
++| Quotation | ux/Content/Quotation | no — a quote string wrapper | n/a | no |
++| Spend | ux/Content/Spend | yes — extends ContentModule; cost totals | no | no — already renders its own numbers |
++| View | core/View | no — the base of everything; too generic to be "an instance" | n/a | no — the owner named this one exactly: a view class doesn't need a list of its methods |
++| PageFrame | core/Page | no — a rendering helper for Page, not a model | n/a | no |
++| PageLog | core/Page | no — a mixin (page.jsonl loader), not a standalone model | n/a | no |
++| PageMarkdown | core/Page | no — a Page subclass that just renders markdown text | n/a | no |
++| Floating | core/Page/layout/floating | no — a positioning helper | n/a | no |
++| Omnibox | core/Search | no — a search-box widget, not a model | n/a | no |
++| Layout | core/Layout | no — a Page subclass that's really a demo/lab page | n/a | no |
++| Font | core/App | no — a static loader helper, no instance state worth seeing | n/a | no |
++| Mic (ext/Ask) | ext/Ask | no — a microphone wrapper, transient audio state | n/a | no |
++| Picker | ext/Ask | no — a small UI picker widget | n/a | no |
++| Reply | ext/Ask | no — a one-shot response wrapper | n/a | no |
++| ComposerMic | ext/Chat | no — extends Dictate for one composer box | n/a | no — covered by Dictate |
++| DrawerSelect | ext/drawer | no — a small UI widget | n/a | no |
++| DrawerTabs | ext/drawer | no — a small UI widget | n/a | no |
++| Dropdown | ext/Dropdown | no — a small UI widget | n/a | no |
++| Block | ext/editor/blocks | no — an editor node type, structural not stateful | n/a | no |
++| Section (blocks) | ext/editor/blocks | no — an empty Block subclass | n/a | no |
++| Grid (blocks) | ext/editor/blocks | no — an empty Block subclass | n/a | no |
++| Card (blocks) | ext/editor/blocks | no — an empty Block subclass | n/a | no |
++| Text (blocks) | ext/editor/blocks | no — an empty Block subclass | n/a | no |
++| History | ext/editor | no — an undo stack, not a model worth a card | n/a | no |

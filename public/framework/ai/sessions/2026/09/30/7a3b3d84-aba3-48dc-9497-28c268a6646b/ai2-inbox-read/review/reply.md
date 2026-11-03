@@ -1,0 +1,2 @@
+4. [accept] The heading redundancy is fixed, and the per-row word is doing real work — it's the only way to tell a working row from a dormant one in the same list, so it's not the same thing as the heading.
+8. [accept] Matching an existing, established control's look (the card's own clear button, the Live card's clear button) is the right call for consistency; changing that look everywhere is a separate, bigger decision than this one row.

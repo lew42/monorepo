@@ -1,0 +1,13 @@
+# Every *.jsonl file in this repo is an append-only log by convention — one JSON object
+# per line, written with fs.appendFileSync (never rewritten), and even the browser-facing
+# write path enforces it: Server/plugins/SocketServer/Append.js only accepts a path that
+# ends in ".jsonl". Two branches that each appended new lines to the SAME log (a page's
+# page.jsonl getting a new file, a task.jsonl gaining a step, a day.jsonl gaining a task)
+# have no real conflict — every line from both sides belongs in the merged file. `merge=union`
+# tells git exactly that: keep every line either side added, in the order each side had them,
+# and never stop to ask a person to pick one side over the other.
+#
+# This does NOT apply to a file that is ever REWRITTEN instead of appended to (a compacted
+# snapshot, for instance) — none of those use the .jsonl extension in this repo, which is
+# exactly why the rule can be this broad instead of naming files one at a time.
+*.jsonl merge=union

@@ -1,0 +1,1163 @@
+diff --git a/Server/PromptRecords.mjs b/Server/PromptRecords.mjs
+index 8160637b3..0206bd609 100644
+--- a/Server/PromptRecords.mjs
++++ b/Server/PromptRecords.mjs
+@@ -39,7 +39,7 @@ export default class PromptRecords {
+ 
+ 	/** The processes: the same steps, different instructions and context. Measured on tab e00f55c9 (doc, "The experiment"). */
+ 	static PROCESSES = {
+-		live:   { steps: ["sentences", "parts", "file"], parts: { model: HAIKU }, file: "proposals", file_kinds: ["ask"], file_cap: 5,
++		live:   { steps: ["sentences", "parts", "file"], parts: { model: HAIKU }, file: "proposals", file_kinds: ["ask"], file_cap: 15,
+ 		          why: "fast and blind: a prompt's asks become proposals before anything is done; no evidence search" },
+ 		review: { steps: ["sentences", "parts", "outcomes", "file"], parts: { model: HAIKU }, outcomes: { model: HAIKU, window_chars: 150_000, max_turns: 12 }, file: "open", file_kinds: ["ask", "rule"],
+ 		          why: "after the fact: parts need no context (recall 0.95-1.0 blind), outcomes read what the session did and confirm in the repo" },
+@@ -48,13 +48,14 @@ export default class PromptRecords {
+ 	/** The parts step's system prompt. The live and review processes share it: what a prompt says does not depend on what was done. */
+ 	static PARTS_BRIEF = `You break ONE prompt the owner of a web-framework repo dictated to an AI coding agent into parts. Dictation rambles and repeats; keep every want, lose nothing said. You cannot see the code.
+ A part is a run of sentences with one meaning; cite them all by number. Every sentence is cited by exactly one part.
+-- ask: something should happen. Give every ask the prompt really holds, as many as there are, and never merge two asks into one: better safe than sorry, include everything. Nest an ask's own specific suggestions, numbers and sub-asks under it in "parts" (same shape). Never invent a fix the owner did not suggest. Where the owner's words carry a degree or a qualifier ("a bit", "mostly", "at least"), or are unclear, keep them in "text" in quotation marks as the owner's words, so a later agent can go back to the source.
++- ask: something should happen. Give every ask the prompt really holds, as many as there are, and never merge two asks into one: better safe than sorry, include everything. When the owner's exact words carry a degree or a qualifier ("probably", "at least", "never"), or are unclear, quote them inside "text" in quotation marks so later agents can go back to the source. Nest an ask's own specific suggestions, numbers and sub-asks under it in "parts" (same shape). Never invent a fix the owner did not suggest.
+ - rule: a standing direction for agents ("always", "never", "we don't want X", "the mastermind manages these"). It becomes a doc note, never a task; "file" is the doc it belongs in when obvious (CLAUDE.md, a module's readme.md), else "".
+ - question: the owner wants an answer. idea: thinking aloud, a maybe, a hedge ("maybe", "I wonder"). conversation: narration, thanks, filler.
+ When the owner corrects themselves, the later word wins: cite both sentences in one part.
++A bare follow-up ("make sure that is noted", "look into it", "let me know", "do that too") is never a part of its own: cite its sentence in the part it refers to (usually the one just before it), or nest it there.
+ Answer with ONE JSON object and nothing else:
+ {"subject": "a few of the owner's words", "parts": [{"cites": [0, 1], "kind": "ask|rule|question|idea|conversation", "text": "one line, the owner's names", "file": "", "module": "", "parts": []}]}
+-"module": the site module a main ask concerns when the prompt names one (ext/Refine, core/Task, ai/sessions), else "".`;
++"module": the site module or page a main part (ask, question, rule or idea) concerns when the prompt names one (ext/Refine, core/Task, ai/sessions), else "".`;
+ 
+ 	/** The outcomes step's system prompt. */
+ 	static OUTCOMES_BRIEF = `You judge what came of the owner's prompts in ONE session of AI coding agents working on a web-framework repo (cwd is the repo). The user message gives each prompt's parts (already found, each with an id) and the condensed record of what the session did (owner prompts, the agent's replies, one line per tool call; L<n> is the transcript line).
+diff --git a/Server/PromptRecordsCompare.mjs b/Server/PromptRecordsCompare.mjs
+new file mode 100644
+index 000000000..523aa792a
+--- /dev/null
++++ b/Server/PromptRecordsCompare.mjs
+@@ -0,0 +1,44 @@
++#!/usr/bin/env node
++/**
++ * PromptRecordsCompare — the same PromptRecords sentences + parts steps (PARTS_BRIEF, PromptRecords.ask) on two models,
++ * over real prompts, read-only: it writes nothing but its own --out folder. Doc: public/framework/ai/doc/prompt-refinement-map.md
++ *
++ *   node Server/PromptRecordsCompare.mjs <prompts.jsonl> <out dir> [--ids 4d2d4974,73082125,…] [--models claude-haiku-5-5,claude-sonnet-5-5]
++ */
++import fs from "node:fs";
++import path from "node:path";
++import PromptRecords from "./PromptRecords.mjs";
++import PromptAudit from "./PromptAudit.mjs";
++import RefinedCard from "../public/framework/ext/Refine/RefinedCard.js";
++
++const [file, out] = process.argv.slice(2);
++const val = k => process.argv.includes(k) ? process.argv[process.argv.indexOf(k) + 1] : null;
++const IDS = (val("--ids") ?? "4d2d4974,a9198354,86261a04,d3e202fd,73082125,9162c602,7b07a33b,c210bb26").split(",");
++const MODELS = (val("--models") ?? "claude-haiku-5-5,claude-sonnet-5-5").split(",");
++
++const raws = {};
++for (const l of fs.readFileSync(file, "utf8").split("\n")) { if (!l) continue; const o = JSON.parse(l); if (o.stage === "raw" && o.text != null) raws[o.prompt] = o.text; }
++
++const flat = ps => ps.flatMap(x => [x, ...flat(x.parts ?? [])]);
++const results = [];
++for (const id of IDS) {
++	const text = Object.entries(raws).find(([k]) => k.startsWith(id))?.[1];
++	if (!text) { console.log(`no prompt ${id}`); continue; }
++	const sentences = RefinedCard.sentences(text);
++	for (const model of MODELS) {
++		try {
++			const r = await PromptRecords.ask(`The prompt, sentence by sentence:\n${sentences.map((s, i) => `${i}: ${s}`).join("\n")}`, { model, system: PromptRecords.PARTS_BRIEF });
++			const o = PromptAudit.json(r.text), all = flat(o.parts ?? []);
++			const cited = new Set(all.flatMap(x => x.cites ?? []));
++			const asks = all.filter(x => x.kind === "ask");
++			const row = { prompt: id, chars: text.length, model, sentences: sentences.length, parts: all.length, top_parts: (o.parts ?? []).length,
++				coverage: +(sentences.filter((_, i) => cited.has(i)).length / sentences.length).toFixed(3), asks: asks.length,
++				ask_list: asks.map(x => ({ cites: x.cites, text: x.text })), usd: +r.usd.toFixed(4) };
++			results.push(row);
++			console.log(`${id} ${model.replace("claude-", "")}: ${row.sentences} sentences, ${row.parts} parts, coverage ${row.coverage}, ${row.asks} asks, $${row.usd}`);
++		} catch (e) { console.log(`✗ ${id} ${model}: ${e.message}`); }
++	}
++}
++fs.mkdirSync(out, { recursive: true });
++fs.writeFileSync(path.join(out, "results.json"), JSON.stringify(results, null, 1));
++for (const m of MODELS) console.log(m, "total $" + results.filter(r => r.model === m).reduce((a, r) => a + r.usd, 0).toFixed(3));
+diff --git a/Servex/agents/PromptTasks.js b/Servex/agents/PromptTasks.js
+index 5266fc255..7cd87b948 100644
+--- a/Servex/agents/PromptTasks.js
++++ b/Servex/agents/PromptTasks.js
+@@ -11,11 +11,10 @@ const AI = path.resolve(HERE, "..", "..", "public", "framework", "ai");
+  * prompt-relay.mjs writes each owner prompt as a `Prompt` item on the session's page.jsonl (the old card folder,
+  * ai/YYYY/MM/DD/<slug>/); page_add calls `hooks.prompted` (page_tools.js). Here, one at a time:
+  *   1. the prompt's record is started in the session's prompts.jsonl, the `live` process of Server/PromptRecords.mjs: raw, numbered
+- *      sentences, then ONE Haiku call that splits it into parts, 1 to 3 main asks with their details nested, rules kept apart
++ *      sentences, then ONE Haiku call that splits it into parts, every ask the prompt holds, with their details nested, rules kept apart
+  *      (PromptRecords.PARTS_BRIEF; 2026-10-23: brief v3 filed one flat task per sentence, directions included);
+- *   2. each top-level ask is filed as a PROPOSED task (state waiting, on the owner; its details in the description) in the session's own record,
+- *      ai/sessions/YYYY/MM/DD/<slug>/session.jsonl, through the item tool, so the session page shows it live and the
+- *      owner approves or rejects it there (a `decide` line, core/Session/Session.js).
++ *   2. each top-level ask is filed as an idle task (its details in the description) in the session's own record,
++ *      ai/sessions/YYYY/MM/DD/<slug>/session.jsonl, through the item tool, so the session page shows it live; nothing waits on the owner.
+  * ONLY THE OWNER'S OWN VS CODE TABS (the owner, 2026-10-22): the page_add caller must be "owner" (prompt-relay.mjs, which skips
+  * Servex-started sessions) and the record's line 1 must say kind "vscode-tab" (session-page.mjs, which also skips them). An SDK
+  * agent's prompt is never refined here.
+diff --git a/Servex/agents/roles/vscode-mastermind.md b/Servex/agents/roles/vscode-mastermind.md
+index 9c5b33b07..4f4146ca6 100644
+--- a/Servex/agents/roles/vscode-mastermind.md
++++ b/Servex/agents/roles/vscode-mastermind.md
+@@ -21,9 +21,9 @@ A finished piece of work is its task's `complete`, with an `outcome` and `links`
+ 
+ ## Each owner prompt: your routine (the owner, 2026-10-24)
+ 
+-The hook has already logged the prompt and Haiku has split it into numbered sentences and parts (`prompts.jsonl`: `node Server/PromptRecords.mjs <session> --tasks` lists the splitter's tasks). Do this, in order, and keep it short:
++The hook has already logged the prompt and the splitter (the model set in the `live` process of `Server/PromptRecords.mjs`, the one place) has split it into numbered sentences and parts (`prompts.jsonl`: `node Server/PromptRecords.mjs <session> --tasks` lists the splitter's tasks). Do this, in order, and keep it short:
+ 
+-1. **Read the breakdown.** Fix a wrong title or wording with the item tool; do not retype the prompt.
+-2. **Take the asks.** The splitter filed each ask as a task on your session; start it and hand it to the deputy. Open no task of your own for the same ask (one writer: [task-buckets.md](/framework/ai/doc/task-buckets.md)).
++1. **Read the breakdown.** `follow` the session's `prompts.jsonl` rather than polling; the refined tasks show on the session page at once. Fix a wrong title or wording with the item tool, add an ask the splitter missed, and embellish a part where the detail matters; do not retype the prompt.
++2. **Take the asks.** The splitter filed each ask as a task on your session; start it and hand it to the deputy. Open no task of your own for the same ask. The splitter is the one writer ([task-buckets.md](/framework/ai/doc/task-buckets.md)).
+ 3. **Answer the questions in your reply,** with a link to where the answer lives.
+ 4. **Mark each part's outcome** (`done`, `documented`, `answered`, `task`, `no-action`): a rule goes into its doc with the link, an idea is one line in its module's doc. The rules are in the [prompt-breakdown plan](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/prompt-breakdown/plan.md); a nested detail settles with its parent.
+diff --git a/public/framework/ai/AISession/AISessionCoverage.js b/public/framework/ai/AISession/AISessionCoverage.js
+index 75b4c61e4..9ce86c549 100644
+--- a/public/framework/ai/AISession/AISessionCoverage.js
++++ b/public/framework/ai/AISession/AISessionCoverage.js
+@@ -2,6 +2,7 @@ import { div, p, span, small, a, details, summary, strong, md } from "/app.js";
+ import RefinedCard from "/framework/ext/Refine/RefinedCard.js";
+ import AISessionConversation from "./AISessionConversation.js";
+ import Prompt from "/framework/ext/Refine/Prompt.js";
++import { icon } from "/framework/core/View/View.js";
+ 
+ /**
+  * class AISessionCoverage — the session page's Coverage tab: every ask found in the owner's prompts (the `refined` cards
+@@ -19,6 +20,7 @@ import Prompt from "/framework/ext/Refine/Prompt.js";
+ export default class AISessionCoverage {
+ 
+ 	static OUTCOMES = "/framework/ai/doc/asks-outcomes.jsonl";
++	static GLYPH = { ask: "task_alt", question: "help_outline", rule: "gavel", idea: "lightbulb", conversation: "chat_bubble_outline" };
+ 	static COLOR = { "done": "var(--ok)", "partly": "var(--warn)", "not done": "var(--hot)", "open": "var(--prim-ink)", "unreviewed": "var(--ink)" };
+ 
+ 	constructor(session){
+@@ -87,39 +89,77 @@ export default class AISessionCoverage {
+ 		});
+ 	}
+ 
+-	/* PROMPT RECORDS: how many prompts are complete, then one row per prompt: its completion and every part with its outcome.
++	/* PROMPT RECORDS, drawn as a chat: a bubble per prompt (heading, coverage score, its opening words), a card per top-level part wearing
++	 * the module it concerns, its outcome and its S-cites; a click on a cite shows those raw sentences, highlighted, in the bubble. Nested
++	 * details settle with their parent (Prompt.settled looks at top-level parts only), so a card only counts them.
+ 	 * A "task" outcome counts as open here until its task is complete (the browser does not resolve task states yet). */
+ 	records_view(recs, open){
+ 		const done = recs.filter(r => r.complete()).length, loose = recs.reduce((n, r) => n + r.open().length + r.uncovered.length, 0);
+ 		div.c("flow", () => {
+ 			div.c("flex gap-50 wrap v-center", () => { strong(`${done} of ${recs.length} prompts complete`); small.c("muted", `${loose} open parts or uncited sentences · a prompt is complete when everything it asks is done or documented`); });
+ 			recs.sort((x, y) => (x.at ?? "").localeCompare(y.at ?? "")).forEach((r, i) => {
+-				const { done: d, total } = r.progress(), box = details.c("flow session-coverage-row").style({ "border-bottom": "1px solid var(--line, #8883)", margin: "0", padding: "0" });
++				const { done: d, total } = r.progress(), box = details.c("flow session-bubble").style({ margin: "0" });
+ 				box.el.id = "r" + r.prompt_id.slice(0, 8);
+ 				if (open.has(box.el.id)) box.el.open = true;
+ 				box.append(() => {
+ 					summary(() => {
+ 						AISessionCoverage.tag(r.complete() ? "done" : "open", r.complete() ? "complete" : `${d}/${total}`);
+ 						strong(` ${i + 1}. ${r.subject || r.parts.find(x => x.kind === "ask")?.text || "Prompt"}`);
++						small.c("muted", ` · ${AISessionCoverage.score(r)}% of ${r.clean.length} sentences cited`);
+ 					}).style({ border: "0", background: "none", margin: "0", padding: "0.3em 0", "box-shadow": "none" });
+-					const part = x => div.c("flex gap-50", () => {
+-						const is = x.outcome?.is ?? "open";
+-						AISessionCoverage.tag(Prompt.SETTLED.includes(is) ? "done" : is === "task" ? "partly" : "open", is);
+-						span(() => {
+-							span(`${x.kind}: ${x.text} `);
+-							small.c("muted", "S" + (x.cites ?? []).join(", S"));
+-							if (x.outcome?.ref) { span(" · "); /^\/|^[\w./-]+\.(md|js|mjs|jsonl)$/.test(x.outcome.ref) ? a.c("muted", x.outcome.ref).href(x.outcome.ref.startsWith("/") ? x.outcome.ref : "/" + x.outcome.ref.replace(/^public\//, "")) : small.c("muted", x.outcome.ref); }
+-							if (x.outcome?.why) small.c("muted", " · " + x.outcome.why);
+-						});
+-					});
+-					r.parts.forEach(part);
++					p.c("session-words", AISessionCoverage.words(r));
++					r.parts.filter(x => x.kind !== "conversation" || x.outcome?.is).forEach(x => this.card(box, r, x));
++					const hidden = r.parts.filter(x => x.kind === "conversation" && !x.outcome?.is).length;
++					if (hidden) small.c("muted", `${hidden} conversation part${hidden > 1 ? "s" : ""} hidden.`);
+ 					if (r.uncovered.length) small.c("muted", `Sentences no part cites: S${r.uncovered.join(", S")}. They keep the prompt open.`);
++					div.c("session-raw flow");
+ 					details(() => { summary("Raw prompt"); div.c("flow", () => r.clean.forEach(c => p(`S${c.n}. ${c.text}`))); });
+ 				});
+ 			});
+ 		});
+ 	}
+ 
++	/** One top-level part: its module (the card's wrapper), kind, outcome tag, text, its details counted, and the cite that opens the raw words. */
++	card(bubble, r, x){
++		const is = x.outcome?.is ?? "open", ref = x.outcome?.ref, nested = x.parts ?? [];
++		div.c("session-card", () => {
++			div.c("session-card-mod", () => {
++				icon(AISessionCoverage.GLYPH[x.kind] ?? "article");
++				span(() => { strong(x.module || "general"); small.c("muted", x.kind); });
++			});
++			div.c("session-card-body flow", () => {
++				div.c("flex gap-50 wrap v-center", () => {
++					AISessionCoverage.tag(Prompt.SETTLED.includes(is) ? "done" : is === "task" ? "partly" : "open", is);
++					span(x.text);
++				});
++				if (nested.length) small.c("muted", "+ " + nested.length + " detail" + (nested.length > 1 ? "s" : "") + ": " + nested.map(n => n.kind).join(", "));
++				div.c("flex gap-50 wrap", () => {
++					if (x.cites?.length) a.c("muted", AISessionCoverage.ranges(x.cites)).href("#" + bubble.el.id).on("click", e => { e.preventDefault(); this.show_cites(bubble, r, x.cites); });
++					if (ref) /^\/|^[\w./-]+\.(md|js|mjs|jsonl)$/.test(ref) ? a.c("muted", ref).href(ref.startsWith("/") ? ref : "/" + ref.replace(/^public\//, "")) : small.c("muted", ref);
++					if (x.outcome?.why) small.c("muted", x.outcome.why);
++				});
++			});
++		});
++	}
++
++	/** Plain DOM (a click runs outside any capture): the cited sentences, highlighted, in the bubble's raw area. */
++	show_cites(bubble, r, cites){
++		const box = bubble.el.querySelector(".session-raw"), el = (tag, text, cls) => Object.assign(document.createElement(tag), { textContent: text, ...(cls ? { className: cls } : {}) });
++		bubble.el.open = true;
++		box.replaceChildren(...r.clean.filter(c => cites.includes(c.n)).map(c => el("p", `S${c.n}. ${c.text}`, "sessions-flag")));
++		box.firstElementChild?.scrollIntoView({ block: "nearest", behavior: "smooth" });
++	}
++
++	/** Cited sentences ÷ all sentences, as a whole percent. */
++	static score(r){ return r.clean.length ? Math.round((r.clean.length - r.uncovered.length) / r.clean.length * 100) : 0; }
++	/** [4, 7, 8, 9] → "S4, S7–9". */
++	static ranges(ns){
++		const out = []; [...ns].sort((a, b) => a - b).forEach(n => { const l = out[out.length - 1]; l && n === l[1] + 1 ? l[1] = n : out.push([n, n]); });
++		return out.map(([a, b]) => a === b ? "S" + a : b === a + 1 ? `S${a}, S${b}` : `S${a}–${b}`).join(", ");
++	}
++	/** The bubble's quoted opening: the first sentences, cut. */
++	static words(r){ const t = r.clean.map(c => c.text).join(" "); return "“" + (t.length > 220 ? t.slice(0, 220).trimEnd() + "…" : t) + "”"; }
++
+ 	/** One prompt: its refined form and asks up front; the structured outline and the raw words one click down. */
+ 	prompt(c, n, open){
+ 		const box = details.c("flow session-coverage-row").style({ "border-bottom": "1px solid var(--line, #8883)", margin: "0", padding: "0" });
+diff --git a/public/framework/ai/doc/prompt-refinement-map.md b/public/framework/ai/doc/prompt-refinement-map.md
+new file mode 100644
+index 000000000..e848daad0
+--- /dev/null
++++ b/public/framework/ai/doc/prompt-refinement-map.md
+@@ -0,0 +1,71 @@
++# Prompt refinement map: every mechanism that cleans or breaks down an owner prompt
++
++Eight mechanisms touch an owner's prompt, and they write to different files. This page lists them, says how they differ, and flags the overlaps. Verified against the code on 2026-10-24.
++
++## The mechanisms
++
++| # | Mechanism | Runs when | Model | Writes (exact file) | What it does |
++|---|---|---|---|---|---|
++| 1 | **Hook** [`.claude/hooks/prompt-relay.mjs`](/.claude/hooks/prompt-relay.mjs) | every prompt typed in the owner's own VS Code tab | none | `ai/sessions/<day>/<session>/page.jsonl`: one `Prompt` item (`page_add`) | Saves the raw words. No cleaning. Everything below hangs off this line. |
++| 2 | **PromptTasks, `live` process** [`Servex/agents/PromptTasks.js`](/Servex/agents/PromptTasks.js) + [`PromptRecords.mjs`](/Server/PromptRecords.mjs) | when `page_add` lands that `Prompt` (`hooks.prompted`), human turns of a VS Code tab only, prompts of 30+ characters | Haiku (`claude-haiku-5-5`), one call, no tools | session's `prompts.jsonl` (`raw`, `clean`, `parts` lines); each top-level ask becomes an `idle` task in the session's `session.jsonl`, at most 15 | **The one breakdown that feeds tasks.** Numbered sentences (code), then parts with kinds and cites (model). |
++| 3 | **PromptRecords, `review` process** `node Server/PromptRecords.mjs <session> --process review` | by hand, after the fact | Haiku for parts; Haiku with Read/Grep for outcomes (one call per ~150k-character window of the session) | same `prompts.jsonl` (`parts` lines with outcomes); with `--file`, tasks in `session.jsonl` | Same parts step as 2, plus what came of each part. Asks and rules still open are filed. |
++| 4 | **RefineQueue** [`Server/RefineQueue.mjs`](/Server/RefineQueue.mjs) | by hand (`--days 7 --limit N`) | Haiku, one call per prompt | a `refined` card on the session page (`page_add`), `ext/Refine/queue/runs.jsonl` (cost) and `queue/asks.jsonl` (one line per ask) | The older breakdown of past prompts into cited cards (the Coverage tab's "refined" cards); no outcomes. |
++| 5 | **PromptAudit** [`Server/PromptAudit.mjs`](/Server/PromptAudit.mjs) | by hand (`--days 7`) | pass 1 Haiku per prompt; pass 2 Sonnet, one agent per session | `<session>/prompt-audit.jsonl`, `<session>/prompt-review.jsonl` | Sorts every prompt into tasks, questions, statements, updates, then judges each against what the session did. Files nothing. Its prompt filter (`PromptAudit.prompts`) is used by 2 and 3. |
++| 6 | **Echo** [`Servex/agents/Echo.js`](/Servex/agents/Echo.js) | live, for an assistant session (one always-up agent per owner session) | `clean()` and `structure()` on the local `qwen2.5-coder` first, Anthropic if it fails; the per-session agent judges `topic`, `references`, `asks_flags` | `refine_step` lines in that assistant's log | Mechanical clean and outline, then a model names the topic, the pages involved and sizes the asks. |
++| 7 | **Live dictation** Whisper in [`ux/Dictate`](/framework/ux/Dictate/) → `POST /api/refine/live` → [`LiveRefine.js`](/Servex/ext/refine/LiveRefine.js) (also `run_refine` behind `/api/refine`) | while the owner speaks | Haiku, one batched call per few seconds; optional per-sentence clean ([`LiveClean.js`](/Servex/ext/refine/LiveClean.js)), notes ([`Annotator.js`](/Servex/ext/refine/Annotator.js)), clarity ([`ClarityScorer.js`](/Servex/ext/refine/ClarityScorer.js)) | the session's `prompts.jsonl` (`raw`, `clean`, `refined`, `notes` stages) and the page via [`VoicePage.js`](/Servex/ext/refine/VoicePage.js) | Places each finished sentence into an outline as it is said. `TagRouter.js` sends tagged cards to the pages they name; `CardAsk.js` turns a card into a board card. |
++| 8 | **Day batch tools** [`refine.mjs`](/Server/refine.mjs), [`refine-days.mjs`](/Server/refine-days.mjs), [`DayPromptsRefine.mjs`](/Server/DayPromptsRefine.mjs), [`refine-litmus.mjs`](/Server/refine-litmus.mjs) | by hand | Haiku (`refine.mjs`, `refine-days.mjs`); local qwen2.5-coder (`DayPromptsRefine.mjs`); litmus compares three cheap models | `refine.mjs`: its `--out` folder (`raw.txt`, `clean.md`, `structured.md`, `brief.md`, `coverage.md`, `refine.json`); `refine-days.mjs`: `ext/Refine/runs/<day>/`; `DayPromptsRefine.mjs`: `sentences` lines on old card pages | Retroactive clean, structure and brief for whole past days. |
++
++Not a breakdown, but nearby: the **`refine_step` tool** is only how Echo's agent writes its three judgment lines (mechanism 6); the **cloud voice agent** ([cloud-voice-agent.md](/Servex/ext/remote/doc/cloud-voice-agent.md)) forwards speech to `ask_mastermind` and does not refine; **[`PromptLog.js`](/framework/ai/AISession/PromptLog.js)** is the file format for `prompts.jsonl`, not a mechanism.
++
++## The flow that matters (mechanisms 1 to 3)
++
++```
++owner types a prompt in a VS Code tab
++  → hook (prompt-relay.mjs)         one Prompt item on the session's page.jsonl           THE one writer of the raw prompt
++  → page_add fires hooks.prompted   (page_tools.js)
++  → PromptTasks.prompted            only owner, only a human turn (turnOrigin), 30+ chars, switch on
++  → PromptRecords "live"            sentences (code) → parts (Haiku) → file
++       prompts.jsonl                raw, clean sentences, parts {id, cites, kind, text, outcome, parts[]}
++       session.jsonl                one task per top-level ask (source {session, line, prompt, part}), max 15
++  → Prompt (ext/Refine/Prompt.js)   computes completion from the parts and those tasks' states
++  → session page, Coverage tab      AISessionCoverage.js draws it
++```
++
++In the session-is-a-task design the session's own `session.jsonl` already carries its tasks, so a `Prompt` instance is the parts of one prompt joined to the tasks that carry them (`source.prompt` and `source.part` are the join). The hook stays the only writer of the raw words; `PromptRecords.sentences` only copies them into `prompts.jsonl` once. Detail: [prompt-records.md](/framework/ext/Refine/doc/prompt-records.md).
++
++## Overlaps worth merging
++
++1. **RefineQueue (4) and PromptRecords (2, 3) both run one Haiku call per prompt to break it into cited cards.** PromptRecords is the newer one, adds kinds, nesting, outcomes and tasks, and measured 100% sentence coverage. Recommendation: retire the RefineQueue breakdown for new prompts and read old `refined` cards as history; keep its prompt filter.
++2. **PromptAudit (5) pass 1 does the same sorting as the parts step**, with kinds `task/question/statement/update` instead of `ask/rule/question/idea`. Recommendation: stop running it; `PromptRecords --process review` replaces both passes and its outcomes step replaces pass 2. Keep `PromptAudit.prompts/locate/read/json` as the shared helpers (PromptRecords imports them).
++3. **Live dictation (7) and Echo (6) both clean and outline a prompt as it arrives**, with two code paths (`LiveRefine` and `run_refine`/`Echo`) calling the same `clean()` and `structure()`. Recommendation: one path, `LiveRefine`, writing `prompts.jsonl`; Echo keeps only its judgment (topic, references, ask sizes) if it is still wanted.
++4. **Day batch tools (8) are a third and fourth way to refine past days** next to RefineQueue and PromptRecords review. Recommendation: replace them with `PromptRecords --process review` over the day's sessions; keep `DayPromptsRefine.mjs` only if the local model's $0 matters (see "What stays Haiku").
++
++## What stays Haiku
++
++The retroactive days (mechanisms 3, 4, 8) stay on Haiku whatever the live process uses: they run in bulk over hundreds of prompts, and the owner asked for Haiku there. In the measured run below the dollars the SDK reported were higher for Haiku 5.5 than for Sonnet 5.5, which does not fit the per-token prices in [models.md](models.md) (Haiku is 20 times cheaper per token). The likely cause is an unknown model id priced with a fallback rate, so recompute the cost from token counts with the script before the next bulk run and do not take the dollar gap as a fact.
++
++## Model comparison: Haiku 5.5 against Sonnet 5.5 on the parts step
++
++| Prompt | Chars | Sentences | Haiku parts / asks / $ | Sonnet parts / asks / $ | Coverage (Haiku / Sonnet) |
++|---|---|---|---|---|---|
++| 4d2d4974 | 450 | 7 | 3 / 0 / $0.037 | 3 / 1 / $0.0071 | 100% / 100% |
++| a9198354 | 739 | 12 | 6 / 3 / $0.0904 | 5 / 2 / $0.0249 | 100% / 100% |
++| 86261a04 | 1526 | 16 | 11 / 4 / $0.1581 | 10 / 3 / $0.037 | 100% / 100% |
++| d3e202fd | 2281 | 24 | 14 / 8 / $0.1683 | 12 / 8 / $0.0375 | 100% / 100% |
++| 73082125 | 2473 | 28 | 8 / 0 / $0.0711 | 6 / 0 / $0.0267 | 100% / 100% |
++| 9162c602 | 1893 | 25 | 14 / 8 / $0.1261 | 11 / 7 / $0.0352 | 100% / 100% |
++| 7b07a33b | 4822 | 46 | 28 / 15 / $0.1946 | 15 / 10 / $0.0573 | 100% / 100% |
++| c210bb26 | 5395 | 55 | 22 / 4 / $0.2883 | 22 / 9 / $0.0733 | 100% / 100% |
++
++Total cost for the eight prompts: Haiku $1.13, Sonnet $0.30. Raw numbers and every ask: [results.json](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/prompt-breakdown/compare/results.json); script: [Server/PromptRecordsCompare.mjs](/Server/PromptRecordsCompare.mjs) (read-only: it calls the same `PromptRecords.ask` and `PARTS_BRIEF` and writes only its output folder).
++(Asks and parts count nested ones too.)
++
++Eight real prompts from tab `e00f55c9` (7 to 55 sentences; five have 15 or more), the same loosened `PARTS_BRIEF` of 2026-10-24. Coverage is the share of sentences cited by at least one part.
++
++**Reading the asks by hand (from results.json):**
++- **Two wants merged into one ask.** Haiku: 2 cases (`c210bb26` sentences 40-42, the minion writes to its log AND the mastermind tails it; `7b07a33b` 41-43, tag modules and show them as tags). Sonnet: 6 cases (`7b07a33b` 14-16, the audit file plus its name; 20-21; 22-24; 25-32, Sonnet reads the audit plus how to handle the results; `c210bb26` 40-42, and 52-54, the DNS permission plus the remote.url).
++- **Asks missed.** On the 55-sentence prompt `c210bb26` Haiku found 4 asks and Sonnet 9: Haiku dropped "explain how sessions and tasks are saved and nested", "the difference between a session and a task" and the DNS-token ask. On the 46-sentence prompt Haiku listed 15 asks, several of them fragments of one want.
++- Both cited every sentence in every prompt (100%), so coverage does not tell them apart.
++
++**Recommendation: Sonnet 5.5 for the live process, with one known cost: it merges two wants into one ask more often than Haiku on long prompts (6 cases against 2), which the "never merge" line does not fully stop.** The SDK reported $0.30 for Sonnet against $1.13 for Haiku, but by [models.md](models.md) Haiku should be 20 times cheaper per token, so treat that dollar gap as a pricing artefact, not a finding. Sonnet cited everything, and found more asks on the hardest prompt. Haiku is enough for short prompts (under about 20 sentences, where the two agree within one ask) and is not enough for long ones: it dropped about 5 asks on the longest. This is one run of eight prompts, a small sample; rerun the script before changing a default. **The default has not changed:** `live` in `PromptRecords.mjs` still runs the parts step on Haiku; switching it to Sonnet is a one-line change for the owner to decide.
++
+diff --git a/public/framework/ai/doc/task-buckets.md b/public/framework/ai/doc/task-buckets.md
+index 038355caf..22a5ccad5 100644
+--- a/public/framework/ai/doc/task-buckets.md
++++ b/public/framework/ai/doc/task-buckets.md
+@@ -69,3 +69,16 @@ A note, a decision or a finding belongs to the task it came out of, not to chat.
+ ## One subscription system
+ 
+ Everything an agent needs to hear arrives through Servex `follow`; no second mechanism. The rule, and the two second mechanisms still to move (WorktreeWatch's direct send, the global errors folder), are in Servex/doc/follow.md, "One subscription system".
++
++## Do by default; 100% completion per session (items 22–23, the owner, 2026-10-24)
++
++**Approval defaults to "do".** An agent given a task does it, unless the owner's words say "plan" ("let's plan this", "plan first"). Only then does it write a plan and stop for the owner's look; even then the plan comes with a picture or mockup, never a bare question. A task that "needs approval" by default is a bug in the task, not a wait (CLAUDE.md law 5).
++
++**Every session is driven to 100% completion; it is always a top priority.** Each task of a session ends in exactly one of three ways, and every part of every prompt is covered by one:
++- **done** (or documented), with its link;
++- **reworded** so it can be done (a task that cannot be completed as written is rewritten, not left open);
++- **stopped**, with the reason written on it.
++
++A task is never deleted to reach 100%: a stopped one stays, with its why. The completion of each session is shown on the session's row on [the tracking page](/framework/ai/tracking/) and as the prompt completion on its Coverage tab, both computed from the records, never written by hand.
++
++*Status of the tracking-page column:* the Coverage tab's `done of N prompts complete` line exists; the tracking page's per-session column is not built yet and stays in the tracking page's own task list.
+diff --git a/public/framework/ai/readme.md b/public/framework/ai/readme.md
+index 3171db7d6..8c8b6c579 100644
+--- a/public/framework/ai/readme.md
++++ b/public/framework/ai/readme.md
+@@ -13,6 +13,7 @@
+ - **The task-bucket rule** (the owner, 2026-10-24): every agent opens a task for each piece of real work and closes it, and a tab files each owner ask as a task on its own session; every token between a task's start and complete is counted against it, the rest shows as untracked. When to open one, every agent starts with one, one writer per task: [doc/task-buckets.md](doc/task-buckets.md) (the flow: [core/Task](/framework/core/Task/readme.md), [core/Session](/framework/core/Session/readme.md)); notes on tasks and the session timeline (proposal): [doc/task-notes-proposal.md](doc/task-notes-proposal.md); the monitor: [/framework/ai/tracking/](/framework/ai/tracking/) (`node Server/TrackingCheck.mjs`). The session log holds only states and pointer lines (no `show:` lines), and a parent is woken only by those (`node Server/FollowCost.mjs` prices it): same doc.
+ - **The task queue** (a mastermind's queue is its tasks plus a priority; TaskLoop starts the top ones through Servex's 5-agent cap; handoff is a task at a path): [doc/task-queue.md](doc/task-queue.md)
+ - **The AI system mastermind** owns sessions, tasks, roles, skills and spawning: there is one, always the id `ai-system-mastermind`. Send it any question or configuration of those, and log problems for it with `module_inbox` (module `ai`, with a `fix`; the third repeat wakes it). Its role: [Servex/agents/roles/ai-system-mastermind.md](/Servex/agents/roles/ai-system-mastermind.md); its spend: `node Server/role-spend.mjs ai-system-mastermind`.
++- **Prompt refinement map** (every mechanism that cleans or breaks down an owner prompt, where each writes, overlaps to merge, Haiku against Sonnet on the parts step): [doc/prompt-refinement-map.md](doc/prompt-refinement-map.md)
+ - **Compaction and context drift** (when an agent's context is summarized and what it costs; why a long session forgets its role, and the role text in the system prompt that keeps it): [doc/compaction.md](doc/compaction.md) · [doc/context-drift.md](doc/context-drift.md)
+ - **Context** (what a context window is, its size per model, reading it live, dependency, pollution, working in context-independent phases): [doc/context.md](doc/context.md) · **Haiku, parallel and for long reads:** [doc/parallel-haiku.md](doc/parallel-haiku.md) · **planned, not built (the audit is queued, with its open question and RAM limit):** [module audit](doc/module-audit.md) · [past work via a Haiku child](doc/past-work-haiku.md) · [per-module log view](doc/module-log-view.md)
+ - **Models and costs** (Claude prices, the Haiku 100k tier checked against Sonnet, where model and effort are set, the pick per job): [doc/models.md](doc/models.md)
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/prompt-breakdown/compare/results.json b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/prompt-breakdown/compare/results.json
+new file mode 100644
+index 000000000..788ab195f
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/prompt-breakdown/compare/results.json
+@@ -0,0 +1,781 @@
++[
++ {
++  "prompt": "4d2d4974",
++  "chars": 450,
++  "model": "claude-haiku-5-5",
++  "sentences": 7,
++  "parts": 3,
++  "top_parts": 3,
++  "coverage": 1,
++  "asks": 0,
++  "ask_list": [],
++  "usd": 0.037
++ },
++ {
++  "prompt": "4d2d4974",
++  "chars": 450,
++  "model": "claude-sonnet-5-5",
++  "sentences": 7,
++  "parts": 3,
++  "top_parts": 3,
++  "coverage": 1,
++  "asks": 1,
++  "ask_list": [
++   {
++    "cites": [
++     5,
++     6
++    ],
++    "text": "Tell the owner what URL to put into the connector for the MCP; they think they'll \"have to reconnect this thing\" and need a URL for it."
++   }
++  ],
++  "usd": 0.0071
++ },
++ {
++  "prompt": "a9198354",
++  "chars": 739,
++  "model": "claude-haiku-5-5",
++  "sentences": 12,
++  "parts": 6,
++  "top_parts": 5,
++  "coverage": 1,
++  "asks": 3,
++  "ask_list": [
++   {
++    "cites": [
++     0
++    ],
++    "text": "Try the token."
++   },
++   {
++    "cites": [
++     1,
++     2
++    ],
++    "text": "The token should have DNS permissions: \"DNS view, DNS admin, I don't know\" (owner unsure which apply)."
++   },
++   {
++    "cites": [
++     5
++    ],
++    "text": "See if you can set up the DNS."
++   }
++  ],
++  "usd": 0.0904
++ },
++ {
++  "prompt": "a9198354",
++  "chars": 739,
++  "model": "claude-sonnet-5-5",
++  "sentences": 12,
++  "parts": 5,
++  "top_parts": 5,
++  "coverage": 1,
++  "asks": 2,
++  "ask_list": [
++   {
++    "cites": [
++     0
++    ],
++    "text": "Try the token"
++   },
++   {
++    "cites": [
++     5,
++     6
++    ],
++    "text": "See if you can set it up (DNS) - \"I'm guessing I need to add\" a record at servex.lu42.com"
++   }
++  ],
++  "usd": 0.0249
++ },
++ {
++  "prompt": "86261a04",
++  "chars": 1526,
++  "model": "claude-haiku-5-5",
++  "sentences": 16,
++  "parts": 11,
++  "top_parts": 9,
++  "coverage": 1,
++  "asks": 4,
++  "ask_list": [
++   {
++    "cites": [
++     5,
++     6
++    ],
++    "text": "The dictate widget must be the one creating the SDK agent, the assistant (\"it could be called a voice assistant\", then \"So I guess it's just an assistant\"), which should have its own session ID; the Whisper data \"could go into that AI's AI session\"."
++   },
++   {
++    "cites": [],
++    "text": "It \"should work with text only mode too\"."
++   },
++   {
++    "cites": [],
++    "text": "It \"should have its own session ID\", and the Whisper data \"could go into that AI's AI session\"."
++   },
++   {
++    "cites": [
++     8
++    ],
++    "text": "\"You could make a note in the README there that maybe it's better\" (Whisper in the AI directory)."
++   }
++  ],
++  "usd": 0.1581
++ },
++ {
++  "prompt": "86261a04",
++  "chars": 1526,
++  "model": "claude-sonnet-5-5",
++  "sentences": 16,
++  "parts": 10,
++  "top_parts": 10,
++  "coverage": 1,
++  "asks": 3,
++  "ask_list": [
++   {
++    "cites": [
++     5
++    ],
++    "text": "The dictate widget \"must be the one creating the SDK agent\" (the assistant, possibly called a voice assistant); it should work with text-only mode too"
++   },
++   {
++    "cites": [
++     8
++    ],
++    "text": "Make a note in the README there that \"maybe it's better\" for Whisper to live in the AI directory"
++   },
++   {
++    "cites": [
++     12
++    ],
++    "text": "The location and structure of the log \"could be useful for us to save and then review\""
++   }
++  ],
++  "usd": 0.037
++ },
++ {
++  "prompt": "d3e202fd",
++  "chars": 2281,
++  "model": "claude-haiku-5-5",
++  "sentences": 24,
++  "parts": 14,
++  "top_parts": 14,
++  "coverage": 1,
++  "asks": 8,
++  "ask_list": [
++   {
++    "cites": [
++     0,
++     1,
++     2
++    ],
++    "text": "The AI/whisper directory with dated files is 'a second system that should be using our current system' rather than rebuilding it."
++   },
++   {
++    "cites": [
++     4
++    ],
++    "text": "Whatever data system we have for the sessions ('the JSONL, the tailing, the streaming, and then the server-side querying') 'needs to be one system'."
++   },
++   {
++    "cites": [
++     5
++    ],
++    "text": "Condense the data grid system that renders it: 'we should try to condense it into one single system that works' that can be used for any new session system, 'for example, for Whisper'."
++   },
++   {
++    "cites": [
++     8
++    ],
++    "text": "The Whisper page was 'completely useless': 'three demos', the first 'didn't do anything', the second 'sort of worked' but 'didn't show me any kind of logs or like any kind of data structure'."
++   },
++   {
++    "cites": [
++     9,
++     10,
++     11,
++     12
++    ],
++    "text": "'There would have to be a session manager' to create a new session for the raw whisper logs; Whisper is 'not like an AI session', 'it's really just a, like a temporary bucket for whispered logs'."
++   },
++   {
++    "cites": [
++     14
++    ],
++    "text": "'I just want to see how it works for now.'"
++   },
++   {
++    "cites": [
++     20
++    ],
++    "text": "'Definitely want to see the whisper logs so I can understand better how that data is flowing.'"
++   },
++   {
++    "cites": [
++     21,
++     22
++    ],
++    "text": "'Trying to get our dictation thing working': 'I didn't click the dictation mode', and the owner will go figure out how it works."
++   }
++  ],
++  "usd": 0.1683
++ },
++ {
++  "prompt": "d3e202fd",
++  "chars": 2281,
++  "model": "claude-sonnet-5-5",
++  "sentences": 24,
++  "parts": 12,
++  "top_parts": 10,
++  "coverage": 1,
++  "asks": 8,
++  "ask_list": [
++   {
++    "cites": [
++     0,
++     1,
++     2
++    ],
++    "text": "The AI/whisper directory with dated files is a second system; it \"should be using our current system\""
++   },
++   {
++    "cites": [
++     4
++    ],
++    "text": "Make the session data system (JSONL, tailing, streaming, server-side querying) \"one system\""
++   },
++   {
++    "cites": [
++     5
++    ],
++    "text": "\"Try to condense\" the data grid that renders it into one single system that works well and can serve any new session system, e.g. Whisper"
++   },
++   {
++    "cites": [
++     8
++    ],
++    "text": "Fix the useless Whisper page: three demos, the first did nothing, the second \"sort of worked\" but showed no logs or data structure"
++   },
++   {
++    "cites": [
++     9,
++     10
++    ],
++    "text": "Add a session manager to create a new session where the raw Whisper logs are saved"
++   },
++   {
++    "cites": [
++     11,
++     12
++    ],
++    "text": "It is not an AI session, just a temporary bucket for whispered logs"
++   },
++   {
++    "cites": [
++     13,
++     14
++    ],
++    "text": "\"I don't really care where it's saved\"; just wants to see how it works for now"
++   },
++   {
++    "cites": [
++     20
++    ],
++    "text": "\"Definitely want to see the whisper logs\" so he can understand how the data is flowing"
++   }
++  ],
++  "usd": 0.0375
++ },
++ {
++  "prompt": "73082125",
++  "chars": 2473,
++  "model": "claude-haiku-5-5",
++  "sentences": 28,
++  "parts": 8,
++  "top_parts": 8,
++  "coverage": 1,
++  "asks": 0,
++  "ask_list": [],
++  "usd": 0.0711
++ },
++ {
++  "prompt": "73082125",
++  "chars": 2473,
++  "model": "claude-sonnet-5-5",
++  "sentences": 28,
++  "parts": 6,
++  "top_parts": 6,
++  "coverage": 1,
++  "asks": 0,
++  "ask_list": [],
++  "usd": 0.0267
++ },
++ {
++  "prompt": "9162c602",
++  "chars": 1893,
++  "model": "claude-haiku-5-5",
++  "sentences": 25,
++  "parts": 14,
++  "top_parts": 13,
++  "coverage": 1,
++  "asks": 8,
++  "ask_list": [
++   {
++    "cites": [
++     0,
++     1,
++     2
++    ],
++    "text": "Make sure the system architect, if it's not the one who created the agent-context map, sees it and indexes it so these are ready to go and can be found if asked for again"
++   },
++   {
++    "cites": [
++     3
++    ],
++    "text": "Make sure everything is indexed so it can be found properly; \"it might be stale\""
++   },
++   {
++    "cites": [
++     8
++    ],
++    "text": "Make sure you're pushing everything forward"
++   },
++   {
++    "cites": [
++     9,
++     11,
++     12,
++     17
++    ],
++    "text": "Merge the README roles (also called the README reconfiguration); the owner is \"okay with that rework\" but \"not sure if that's a URL or a page I'm supposed to have seen\""
++   },
++   {
++    "cites": [
++     18
++    ],
++    "text": "Make sure there is a system architect who is \"very well-versed in all of these systems things\" and who keeps all that documentation up to date"
++   },
++   {
++    "cites": [
++     19
++    ],
++    "text": "Let the system architect know everything that has recently been done or is about to land, \"etc.\""
++   },
++   {
++    "cites": [
++     22,
++     23
++    ],
++    "text": "Replace the cap with an estimate: \"we just want an estimate\"; \"you could call it a cap, but I think it should be an estimate\""
++   },
++   {
++    "cites": [
++     24
++    ],
++    "text": "If spending goes over the estimate, \"unless it goes like 10 times over that\", \"we should probably have some sort of hard stop\"; \"hopefully that's not encoded\""
++   }
++  ],
++  "usd": 0.1261
++ },
++ {
++  "prompt": "9162c602",
++  "chars": 1893,
++  "model": "claude-sonnet-5-5",
++  "sentences": 25,
++  "parts": 11,
++  "top_parts": 10,
++  "coverage": 1,
++  "asks": 7,
++  "ask_list": [
++   {
++    "cites": [
++     0,
++     1,
++     2,
++     3
++    ],
++    "text": "Make sure the system architect sees the agent context map (what each role loads) and indexes it so it can be found later; it \"might be stale\" but everything should still be indexed"
++   },
++   {
++    "cites": [
++     8
++    ],
++    "text": "\"Make sure you're pushing everything forward\""
++   },
++   {
++    "cites": [
++     9,
++     10,
++     11,
++     12,
++     17
++    ],
++    "text": "Merge the README roles / README reconfiguration (owner is unsure what \"task/README roles\" is but is \"okay with that rework\")"
++   },
++   {
++    "cites": [
++     18
++    ],
++    "text": "Make sure there is a system architect who is \"very well-versed in all of these systems things\" and keeps the documentation up to date"
++   },
++   {
++    "cites": [
++     19
++    ],
++    "text": "Tell the system architect everything that was recently done or is about to land"
++   },
++   {
++    "cites": [
++     20,
++     21,
++     22,
++     23
++    ],
++    "text": "Drop the $25 cap; make it an estimate rather than a cap (\"I'm not sure I like that\")"
++   },
++   {
++    "cites": [
++     24
++    ],
++    "text": "\"unless it goes like 10 times over\", then \"probably\" some sort of hard stop, but \"hopefully that's not encoded\""
++   }
++  ],
++  "usd": 0.0352
++ },
++ {
++  "prompt": "7b07a33b",
++  "chars": 4822,
++  "model": "claude-haiku-5-5",
++  "sentences": 46,
++  "parts": 28,
++  "top_parts": 25,
++  "coverage": 1,
++  "asks": 15,
++  "ask_list": [
++   {
++    "cites": [
++     7
++    ],
++    "text": "Prioritizing tasks needs a way to throw out certain things the owner has asked for ('we're going to need a way to, well, sometimes we might want to throw out certain things I've asked for')."
++   },
++   {
++    "cites": [
++     12,
++     13
++    ],
++    "text": "'the task system needs to be adaptive'. The sentence about prioritization of tasks is left unfinished ('So the prioritization of the tasks, I think, is...')."
++   },
++   {
++    "cites": [
++     14,
++     15
++    ],
++    "text": "Generate the audit per session in 'probably in a different file, like a audit.jsonl or whatever'."
++   },
++   {
++    "cites": [
++     15
++    ],
++    "text": "'Maybe call it prompt audit, just so that I can kind of jog my mind about what's in there.'"
++   },
++   {
++    "cites": [
++     16
++    ],
++    "text": "Dump all the audit output per prompt, 'and then have a whole bunch of tasks and questions or up' (unclear ending)."
++   },
++   {
++    "cites": [
++     20
++    ],
++    "text": "Get the right kind of outcomes and structure for processing those prompts, 'so that we might want to adapt it later'."
++   },
++   {
++    "cites": [
++     22
++    ],
++    "text": "Have the Haiku agents write their response per prompt to the file, one prompt at a time, so the structure is right and we know what's going where."
++   },
++   {
++    "cites": [
++     25
++    ],
++    "text": "Once Haiku is done, a Sonnet goes through all the prompt audit outputs, studies the actual code, task and project, and reads the session.jsonl log at a higher level."
++   },
++   {
++    "cites": [
++     32
++    ],
++    "text": "Sonnet looks at all the results and figures out 'the best way to handle the results of that processing'."
++   },
++   {
++    "cites": [
++     33
++    ],
++    "text": "Sonnet should work with the mastermind who designs the prompt system and the structured output (the prompt audit file), so it improves and we get 'the right data' and not 'crappy data'."
++   },
++   {
++    "cites": [
++     34,
++     35
++    ],
++    "text": "Target: '9 times out of 10' Haiku does 'at least an acceptable job' and is not completely missing things. It 'doesn't necessarily have to hit everything perfectly'."
++   },
++   {
++    "cites": [
++     36
++    ],
++    "text": "If Haiku misses, 'we need to maybe improve the wording of the instructions to be more clear', then try again."
++   },
++   {
++    "cites": [
++     38
++    ],
++    "text": "Make instructions clear enough on specific things, e.g. for a question, 'maybe you can identify the subject of the question or the specific modules'."
++   },
++   {
++    "cites": [
++     41,
++     42,
++     43
++    ],
++    "text": "Haiku 'could tag all the modules that are referenced': whenever a page, path, or module is referenced, add it as a tag (e.g. /whatever/path/file.exe). 'You could reference all the files, paths, etc.'"
++   },
++   {
++    "cites": [
++     45
++    ],
++    "text": "The tags 'could appear as like little tags'."
++   }
++  ],
++  "usd": 0.1946
++ },
++ {
++  "prompt": "7b07a33b",
++  "chars": 4822,
++  "model": "claude-sonnet-5-5",
++  "sentences": 46,
++  "parts": 15,
++  "top_parts": 14,
++  "coverage": 1,
++  "asks": 10,
++  "ask_list": [
++   {
++    "cites": [
++     0,
++     1,
++     2,
++     3,
++     4,
++     5,
++     6
++    ],
++    "text": "Distinguish tasks as 'the things that we decide should be done' from merely proposed ones. A proposed item may not be accepted into the session as a necessary task, and some are optional (\"Should we do it this way?\", \"add this feature?\"). Owner: \"maybe it is an important distinction\"."
++   },
++   {
++    "cites": [
++     7,
++     8,
++     9,
++     10,
++     11,
++     12,
++     13
++    ],
++    "text": "Make the planning, creating and prioritizing task system \"adaptive\". It needs a way to throw out or defer things the owner asked for: conflicting, can't happen, too complicated, put on a back burner, or a changed mind."
++   },
++   {
++    "cites": [
++     14,
++     15,
++     16
++    ],
++    "text": "Generate the audit per session in a separate file, \"probably\" something like audit.jsonl. Owner: \"Maybe call it prompt audit\". Dump the results per prompt, with a bunch of tasks and questions."
++   },
++   {
++    "cites": [
++     20,
++     21
++    ],
++    "text": "Get the lingo and the outcomes of prompt processing structured properly so they can be adapted later. It should be possible to add new things to identify and to restructure. Output \"probably should be JSON-L\"."
++   },
++   {
++    "cites": [
++     22,
++     23,
++     24
++    ],
++    "text": "Haiku minions write their response per prompt to the file, one prompt at a time, with \"probably just one line per prompt\" in each session, so the structure is right and it is clear what goes where."
++   },
++   {
++    "cites": [
++     25,
++     26,
++     27,
++     28,
++     29,
++     30,
++     31,
++     32
++    ],
++    "text": "After the Haiku pass, a Sonnet goes through all the prompt audits. It also studies the actual code, task and project, and reads the session.jsonl log at a higher level. Then it figures out the best way to handle the results of the processing."
++   },
++   {
++    "cites": [
++     33
++    ],
++    "text": "The Sonnet \"should probably\" work with the mastermind who is designing the whole prompt system and the structured prompt audit output, so the output improves and the data is the right data rather than crappy."
++   },
++   {
++    "cites": [
++     34,
++     35
++    ],
++    "text": "Make sure \"9 times out of 10\" the Haiku does \"at least an acceptable job\" and is not completely missing things. It does not have to hit everything perfectly."
++   },
++   {
++    "cites": [
++     36
++    ],
++    "text": "When the Haiku misses something, improve the wording of the instructions to be clearer, then try again and see if it identifies it."
++   },
++   {
++    "cites": [
++     41,
++     42,
++     43
++    ],
++    "text": "The Haiku \"generally\" could tag all the modules, pages, paths and files that are referenced, adding each as a tag with its path."
++   }
++  ],
++  "usd": 0.0573
++ },
++ {
++  "prompt": "c210bb26",
++  "chars": 5395,
++  "model": "claude-haiku-5-5",
++  "sentences": 55,
++  "parts": 22,
++  "top_parts": 22,
++  "coverage": 1,
++  "asks": 4,
++  "ask_list": [
++   {
++    "cites": [
++     8,
++     9,
++     10
++    ],
++    "text": "Give an overview of that class: its data structure, when and where it is created, and when and where it is saved."
++   },
++   {
++    "cites": [
++     29,
++     30,
++     31
++    ],
++    "text": "Set up a tail system so agents can watch any session or task log, so a mastermind can watch its minions’ logs (“I don’t think there’s a tail system set up yet”; “Maybe it exists”; “which might be helpful”). Owner thinks they may have asked for it before, and says a task in its own file “might be better” sometimes."
++   },
++   {
++    "cites": [
++     40,
++     41,
++     42
++    ],
++    "text": "Minions write updates to their own session log instead of replying to the mastermind via chat, and the mastermind that spawned them tails that log so it sees each update as it is written (“for small tasks that’s fine”; “keeps that session log up to date”)."
++   },
++   {
++    "cites": [
++     54
++    ],
++    "text": "Give the remote.url so the owner can paste it in directly."
++   }
++  ],
++  "usd": 0.2883
++ },
++ {
++  "prompt": "c210bb26",
++  "chars": 5395,
++  "model": "claude-sonnet-5-5",
++  "sentences": 55,
++  "parts": 22,
++  "top_parts": 16,
++  "coverage": 1,
++  "asks": 9,
++  "ask_list": [
++   {
++    "cites": [
++     2,
++     3,
++     4,
++     5,
++     6,
++     7,
++     8,
++     9,
++     10
++    ],
++    "text": "Explain the server/session-record.mjs class: what it does, and whether it is a class or a node script. Owner is \"not sure what that does\" and wants an immediate overview"
++   },
++   {
++    "cites": [
++     8
++    ],
++    "text": "Show the data structure"
++   },
++   {
++    "cites": [
++     9
++    ],
++    "text": "Say when and where it is created"
++   },
++   {
++    "cites": [
++     10
++    ],
++    "text": "Say when and where it is saved"
++   },
++   {
++    "cites": [
++     16,
++     51
++    ],
++    "text": "Help me understand more clearly how sessions and tasks are saved and how they should be nested (the server session record stuff)"
++   },
++   {
++    "cites": [
++     17,
++     18,
++     19
++    ],
++    "text": "Explain the difference between a session and a task in terms of whether it gets a directory"
++   },
++   {
++    "cites": [
++     29,
++     30,
++     31
++    ],
++    "text": "Set up a tail system so agents can watch session logs or task logs (\"Maybe it exists\", \"I think I've asked for it in the past\"); e.g. a mastermind watching. Agents talking to each other is not bad"
++   },
++   {
++    "cites": [
++     40,
++     41,
++     42
++    ],
++    "text": "Mastermind should subscribe functionally to its minion's session log (tailing it) so the moment the minion writes an update the mastermind sees it; minion writes everything to its session log instead of replying via chat and keeps it up to date. For small tasks writing to the session log is \"fine\""
++   },
++   {
++    "cites": [
++     52,
++     53,
++     54
++    ],
++    "text": "DNS: the token has no DNS permission, owner can create a new token or edit it to add DNS; give him the remote.url so he can paste it in directly"
++   }
++  ],
++  "usd": 0.0733
++ }
++]
+\ No newline at end of file
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/prompt-breakdown/plan.md b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/prompt-breakdown/plan.md
+index b368cd3f2..cf19b9593 100644
+--- a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/prompt-breakdown/plan.md
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/prompt-breakdown/plan.md
+@@ -48,3 +48,11 @@ Look at [chat-view-mockup.html](chat-view-mockup.html) first.
+ ## 5. Not for now
+ 
+ The voice-tab split is recorded as an open option in [role-process-skill-session.md](/framework/ai/doc/role-process-skill-session.md), no build.
++
++## 6. Built, and what the tab's review of five breakdowns added
++
++- **Built:** the Coverage tab is the chat view (`AISessionCoverage.records_view`): a bubble per prompt with its coverage score, a card per top-level part wearing its module (a per-kind glyph and the module name; the module's own `icon:` is not looked up yet), the outcome tag, the cites (`S4, S7–9`) that show those raw sentences highlighted, and the nested details as a count. Seen headless on four real prompts of session e00f55c9.
++- **Bare follow-ups** ("Make sure that's noted", "Look into it") attach to the part they refer to: a line in `PARTS_BRIEF`. It takes effect after a Servex restart (not yet done at this commit; the landing outcome of the task says when it was), and only for prompts broken down from then on.
++- **Questions, rules and ideas stay "open":** only the `review` process runs the outcomes step. Resolution order: nested parts settle with their parent (computed); run the outcomes step over the ~195 top-level open parts, not the 1,849 (about 90% are nested detail); list what is left per module and settle rules and ideas as notes in that module's doc. Start with session e00f55c9. Not built yet.
++
++- **Review of the branch, answered:** the live `file_cap` is raised from 5 to 15 so a long prompt's asks all become tasks and the tab stays out of it (one writer). The module's own `icon:` is not looked up: no module-name to icon lookup exists, so the card shows the module name with a kind glyph; building the lookup is a follow-up, listed with the chat view. The card is not `InspectCard`, because that draws one object's fields and this card draws a prompt part with cites and a count of its details; both wear an icon and name header, and the Coverage tab stays the one renderer for prompt records (agreed with the deputy: it does not touch `AISessionCoverage.js`). The comparison script keeps the SDK's reported dollars and the map says not to trust the gap; recomputing cost from tokens is queued for the next bulk run. The sample (8 prompts, hand-counted) is stated as small in the map.
+diff --git a/public/framework/ai/sessions/sessions.css b/public/framework/ai/sessions/sessions.css
+index ac0f5a9f7..d446f291a 100644
+--- a/public/framework/ai/sessions/sessions.css
++++ b/public/framework/ai/sessions/sessions.css
+@@ -385,6 +385,17 @@
+ 
+ }
+ 
++/* The Coverage tab as a chat: a bubble per prompt, a card per part (module on the left, the part and its outcome on the right). */
++@layer components {
++	.session-bubble { border: 1px solid var(--line, #8883); border-radius: .75rem; padding: .5rem .75rem; container-type: inline-size; }
++	.session-words { color: var(--muted, inherit); font-style: italic; margin: 0; }
++	.session-card { display: grid; grid-template-columns: minmax(7rem, 10rem) 1fr; gap: .5rem .75rem; padding: .5rem 0; border-top: 1px solid var(--line, #8883); }
++	.session-card-mod { display: flex; gap: .4rem; align-items: flex-start; }
++	.session-card-mod > span { display: grid; }
++	.session-raw:empty { display: none; }
++	@container (width < 40em) { .session-card { grid-template-columns: 1fr; } }
++}
++
+ /* Hides, in util so they beat `.flex`: the cache link and the date pickers (the scope trail replaces them); the ancestor
+    page's footer chips (open tasks, "Inbox · 1, 1 new", AI cost) go: the open tasks return as a chip in the status line. */
+ @layer util {

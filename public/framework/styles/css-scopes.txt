@@ -1,0 +1,275 @@
+# Reserved CSS class prefixes, one per line. `flex` reserves .flex and .flex-*.
+# A trailing dash (`ui-`) reserves a namespace: new things there are .ui-<thing>.
+# The framework block is off limits for anything new. Checked by the new-css-class skill.
+
+# framework.css — utilities, tokens as classes, the page contract
+all-1
+all-pad
+app
+auto
+basis
+bg
+bg-darken
+bg-lighten
+btn
+capitalize
+card
+checkered
+code
+cols
+css
+demo-render
+flex
+flex-1
+flow
+gap
+gap-2em
+grid
+h-center
+h1
+h2
+h3
+h4
+half
+icon
+main-aside
+masonry
+material-icons
+md
+measure
+muted
+packed
+pad
+page
+page-title
+pages
+prim
+reverse
+split
+start
+surface
+three
+uppercase
+v
+v-center
+wash
+wrap
+zoom
+zoom-responsive
+
+# framework.css — new words prefixed, not bare (see the note at the top)
+table-       framework.css (table-equal — equalize a table's columns)
+size-        framework.css (size-small · size-regular · size-large — the one --size knob, .75/1/1.5,
+             landed 2026-09-06; scales a control's own height AND every box's --pad/--gap/--flow.
+             spacing-tight/-regular/-airy and --spacing are deleted, not aliased. /framework/styles/system/studies/size/
+             also uses .size-lab/-chip/-stage for the study page that proposed it)
+darken-      framework.css (darken-1 · darken-2 · darken-3, landed 2026-09-19 — paint a ground with the
+             matching --darken-* token AND set --field-bg, so every input/select/textarea on that
+             ground is the surface colour instead of a second step down. Worked example: the
+             core/Sidebar filter bar. --lighten-* still has no class; add it here when one exists)
+
+# core
+page-        core/Page
+page-layout- core/Layout (the tree, a layout page, the fixture boxes — inside core/Page's
+             namespace on purpose: `layout-` is ext/layout's, and `Layout extends Page`)
+page-section- core/Section (the band, its overlay and slots — same namespace, same
+             reason: `section-` is /imagine/sections' and `.section` is a live rule)
+core-item-   core/Item (its demo pages: core-item-watch-*, the watch demo; core-item-replay-*, the replay lab)
+core-test-   core/Test (TestView, TestBlocks: a test on a page)
+core-shell-  core/Shell (`shell-` was reserved for /imagine/shells already; the class is `CoreShell`,
+             `Shell` is only an export alias onto it — doc/decisions.md, 2026-09-30)
+sidebar-     core/Sidebar
+omnibox-     core/Search (the one search box; the class `.omnibox` itself is the View subclass's own name)
+brand-       core/Sidebar
+looks-       core/Page/overview/columns/examples/looks
+card-        core/Page/card (card-gray/-dark/-prim the three new grounds, card-level-N the
+             nesting depth classes, card-head/-head-title/-menu-btn the header-bar-with-menu
+             pattern — bare .card itself stays the framework's, in the block above)
+log-         core/Page/card/log
+
+# ext
+ai-          ext/AITask
+collab-      ext/Collab
+cssdoc-      ext/CSSDoc
+demo-        ext/demo
+doc-         ext/Doc
+drag-        ext/Draggable
+drawer-      ext/drawer
+dropdown-    ext/Dropdown
+filter-pill-    ux/Filter
+dt-          ext/DesignTool
+editor-      ext/editor
+file-        ext/files
+files-       ext/files (a second namespace beside file- above, for files.js's own
+             columns/frame classes added 2026-09-28: .files, .files-row, .files-col*)
+fs-explorer- ext/files (explorer.js, v2 of <any path>/fs/ — the head, the per-column
+             toolbar, the multi-column layout; not the generic .switcher- below)
+switcher-    the responsive dropdown pattern in ext/files/switcher.css — deliberately
+             UNPREFIXED to its one caller today (v2's explorer.js) since a reused
+             component keeping its birth module's name would be the wrong name the
+             moment it moves; doc/switcher.md has the reuse contract
+grip-        ext/grip
+hljs-        ext/highlight (vendored)
+layout-      ext/layout
+md-          ext/markdown
+panel-       ext/Panel
+panel2-      ext/panel2
+pg-          ext/Playground
+research-    ext/Research
+sprawl-      ext/sprawl
+tab-         ext/tabs
+tabs-        ext/tabs
+             (bare compound modifiers on `.tabs`, same as `block`/`vertical`: `.tabs.underline`
+             asks for the old transparent strip now that a bounded panel is the default, 2026-09-05)
+timeline-    ext/Timeline
+toc-         ext/toc
+
+# ux
+ux-auth-     ux/Auth
+ux-content-  ux/Content
+ux-dictate-  ux/Dictate
+ux-hotkeys-  ux/Hotkeys
+ux-index-    ux/page.js (the tier's own index — the module wall, its reject flag)
+ux-popover-  ux/Popover
+ux-tree-     ux/Tree
+ux-wizard-   ux/Wizard
+
+# dev
+claim-       dev/Claim
+dev-         dev/DevBar
+dev-shell-   dev/DevShell (the dark shell, Ctrl + \; `dev-` above is DevBar's own, registered
+             2026-09-30)
+
+# ui — one component, one prefix: ui-<component>-*
+ui-          ui/
+
+background   ui/background (bare, not ui-background- — the owner's own word for the
+             primitive, and a general-purpose layer any page can drop behind its
+             content, not a ui-styled component variant. .background the layer itself,
+             .has-background the host's explicit opt-in (:has(> .background) is the
+             automatic one), .background-<kind> each of the ten fills)
+
+item         ui/item (bare, not ui-item- — the owner's own word, 2026-09-29: "we have
+             an item class." .item is the row (icon, name, right end), .item.inline
+             the chip-like variant, .item-node/-children/-icon/-caret/-name/-end its
+             parts, each with the item- prefix like any other module's own words)
+
+# styles
+cols-        styles/layouts/cols, the lab's remaining local words (thirds/golden/two-one/rail-main-aside)
+             (bare `.cols`, `.half`, `.main-aside` promoted to framework.css 2026-08-31 — core/new/1/site/styles.css's `.cols` is unreachable, no live conflict)
+space-       styles/layouts/space
+rules-       styles/rules
+stacks-      styles/stacks   (not `stack-` — ext/demo owns the bare `.stack` modifier)
+theme-       styles/layers/theme
+widths-      styles/widths (the card/flow measure lab, 2026-10-03)
+
+# imagine
+blogx-       /imagine/blogx
+codrops-     /imagine/codrops
+feeds-       /imagine/feeds
+gal-         /imagine/gallery
+design-      RETIRED 2026-09-18 (imagine-move-2). Its one class, `.design-shot`, moved to
+             core/Page/Page.css beside `.page-preview-thumb` — the studies that wear it now
+             live in five different trees, so no one of them owned the rule any more.
+journey-     /framework/ext/DesignTool/journey
+layouts-     /imagine/layouts (the numbered system: the 3-column card, the frame, the chips)
+             ⚠ NOT `layout-`, which is ext/layout above. One letter apart on purpose:
+             this realm's classes are all `.layouts-*` and none is ever `.layout-*`.
+imp-         /imagine/importance (the ranked context view, the judge screen, the propose form)
+paging-      /imagine/paging (the app: rail, stage, toolbar, the surface words)
+build-       /imagine/paging/build (the page builder: controls | stage | file)
+paging-nav-  /imagine/paging/navigation (stable vs dynamic navigation)
+             ⚠ `.paging-nav-reserve` / `-hidden` moved UP to paging.css on 2026-09-05
+             — the whole realm reserves its box that way now, so there is one copy.
+             Still declared in navigation.css: `.paging-nav-fixed` a columns host
+             whose columns stop negotiating widths · `.paging-nav-screen`/`-rail`/
+             `-centre` a full screen whose rail never moves.
+sections-    /imagine/sections (one multi-column section: .sections-band and its five
+             parts .sections-head/-side/-main/-aside/-foot, plus .sections-stack,
+             .sections-skin-* and .sections-hold, the sticky box inside a column cell)
+templates-   /imagine/paging/templates (the miniature frame and the type axis)
+baseline-    /imagine/paging/baseline.js (the "this page remembers you" mark — used by every realm that persists)
+color-       /framework/styles/system/studies/color
+themes-      /framework/styles/system/studies/themes
+             (plus five demo themes — theme-press/phosphor/bloom/oled/riso — scoped inside that page until promoted to styles/layers/theme)
+scene-       /imagine/scenes
+screens-     /imagine/screens
+shell        /imagine/shells (.shell is the frame; .shell-* its parts)
+vary-        /imagine/vary
+yt-          /imagine/youtube
+rfront-      /imagine/research (the front's own 3-column topic card — `research-` is ext/Research's)
+cms-         /imagine/cms (the landing page's own card wall)
+rethink-     /imagine/review/rethink (the second UX pass: one report card per realm)
+
+# ai task pages
+vision-      ai/2026-08-17/vision-browse
+
+# pages
+std-         /layouts (the layout standard)
+site-        /websites
+doodle       /notes/doodles (the notebook doodles as SVG: .doodle is the drawing itself,
+             .doodle-<name> one of the twenty-three, plus -draw -band -texture -corner -wall -tile)
+blog-        /blog (blogx- is the /imagine/ lab, above)
+imagine-     /imagine/ (root, team, game)
+mag-         /imagine/mag
+decks-       /imagine/decks
+home-        / (the homepage front)
+notes-   /notes/
+
+# ext/Ask — the picker, the panel, the floating ? (registered by the mastermind 2026-09-17; the minion fence excluded this file)
+ask-
+
+# web/nav/doc/study — the stable-row lab (registered by the mastermind 2026-09-17)
+dn-
+
+# framework/styles/system/studies/type — the type studies (registered by the mastermind 2026-09-17)
+type-
+
+# framework/styles/system/studies/spacing/nesting — the nesting study (registered by the mastermind 2026-09-18)
+nesting-
+
+# framework/styles/system/studies/lists — the list shapes lab (registered by the mastermind 2026-09-18)
+lists-
+
+# framework/ai/v/2 - the AI dashboard, version 2 (registered by the mastermind 2026-09-19)
+v2-
+
+# framework/ai/v/3 - the AI dashboard, version 3 (registered by the mastermind 2026-09-19)
+v3-
+classify-
+
+# public/framework/sources — the source library's authority badge, .sources-badge(-high/-medium/-low) (2026-09-28)
+sources-
+
+# public/framework/ext/Refine/prompt-card.js — the Condensed/Structured/Clean/Raw mode
+# switch, shared by ai/v/3's live thread AND ai2's "Your prompts" pinned card (2026-10-02,
+# minion-prompt-card) — moved out of ai/v/3's own `v3-` prefix once ai2 needed it too, so
+# neither tier's own prefix had to leak into the other.
+refine-modes-
+
+# public/framework/ai/2026-10-02/prompt-review — the 42-prompt review page (List/Overview/
+# Detail), 2026-10-02. Reuses `refine-modes-` (above) for the Structured/Clean/Raw switch
+# itself; this prefix is only for the page's own List rows, tag chips and group headings.
+prompt-review-
+
+# public/framework/ux/Objects — live object inspector widget (2026-10-06)
+ux-objects-
+objects-
+
+# public/framework/ext/Shots — the screenshot tree view, dev bar tab + module page (2026-10-12)
+shots-
+# public/framework/ext/Figma/guide — the coded Figma guide (2026-10-12)
+fgd-
+
+# public/framework/ext/Figma/tokens — opt-in CSS generated from the Figma variables (2026-10-12)
+fig-
+
+# public/framework/ai/sessions/v/mobile — the 400 px mobile variant of the sessions pages (2026-10-22)
+mob-
+
+# public/framework/ai/AISession — the desktop session page: Overview cards, sticky stats bar, Tasks tab (2026-10-24)
+sov-
+sw-
+soutline-
+stl-
+stg-

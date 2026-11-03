@@ -1,0 +1,5 @@
+verdict: pass
+1. [note] The diff only adds a Prompt class card (system-classes.js:22) and lists it on the classes index (ClassIndexPage.js:16). It is a small, additive step that reuses the existing `class_cards` mechanism, and no second renderer was built.
+2. [note] The Prompt api list matches ext/Refine/Prompt.js: `load`, `set`, `sentence` and `render` exist, and `raw`/`clean`/`structure`/`ms` are set in `load`. I did not confirm `raw` as a field. The `/framework/ext/Refine/` doc link and the page's "live debug tree" claim were not checked.
+3. [note] Prompt is not an AI-system or Servex class, but it sits in the shared `CLASSES` list. The default `class_cards()` call (no names) now includes it wherever it is called without a filter, which could add it to unrelated listings. Today the overview.js:107 call passes explicit names, so nothing changes.
+4. [note] This diff covers none of the larger asks in requirements.md (the restructured system page, systems-map, readmes, the SDK section, the inbox). Those would need to be in other diffs or commits.

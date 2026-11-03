@@ -1,0 +1,486 @@
+diff --git a/public/framework/ai/2026-09-29/grip-everywhere/files.jsonl b/public/framework/ai/2026-09-29/grip-everywhere/files.jsonl
+new file mode 100644
+index 00000000..60f6a6bb
+--- /dev/null
++++ b/public/framework/ai/2026-09-29/grip-everywhere/files.jsonl
+@@ -0,0 +1 @@
++{"file":"build/"}
+diff --git a/public/framework/ext/drawer/rail.css b/public/framework/ext/drawer/rail.css
+index 1d02e040..0ce81d3f 100644
+--- a/public/framework/ext/drawer/rail.css
++++ b/public/framework/ext/drawer/rail.css
+@@ -74,7 +74,10 @@
+ 	.drawer-rail-sheet {
+ 		position: fixed; z-index: 41; inset-inline: 0; inset-block-end: 0;
+ 		display: none; flex-direction: column;
+-		max-block-size: 50dvh;   /* half the phone by default (the owner, 2026-09-29) */
++		/* Half the phone by default; a height the reader dragged before, on this
++		   device, reads back here instead (rail.js's own `--sheet-h`, remembered in
++		   localStorage — grip-everywhere, 2026-09-29). */
++		max-block-size: var(--sheet-h, 50dvh);
+ 		gap: calc(var(--gap) * 0.6);
+ 		padding: 0.9em 0.9em calc(0.9em + env(safe-area-inset-bottom, 0px));
+ 		background: var(--surface);
+@@ -83,6 +86,16 @@
+ 		border-radius: calc(var(--radius) * 1.5) calc(var(--radius) * 1.5) 0 0;
+ 		box-shadow: 0 -0.3em 1em var(--fill-a16);
+ 	}
++	/* The sheet's own top-edge grip (`rail.js`'s `handle()`) is absolutely
++	   positioned, so it sits in whatever dead space the top padding above already
++	   reserves — the same trick both side rails use (grip.css's own note: "the dead
++	   strip both rails already have… so the target covers no content of its own").
++	   0.9em already clears the desktop grip (0.75rem, invisible until hover) but not
++	   the bigger touch one (1.25rem, grip.css) — bumped only where that one shows,
++	   so a mouse sees no change at all. */
++	@media (pointer: coarse), (hover: none) {
++		.drawer-rail-sheet { padding-block-start: 1.6em; }
++	}
+ 	@media (max-width: 52em) {
+ 		/* No slide transition: `display: none -> flex` never animates a `transform`
+ 		   change in the same step (the browser has nothing to transition FROM,
+diff --git a/public/framework/ext/drawer/rail.js b/public/framework/ext/drawer/rail.js
+index 2a94e2d2..77d4886e 100644
+--- a/public/framework/ext/drawer/rail.js
++++ b/public/framework/ext/drawer/rail.js
+@@ -1,5 +1,6 @@
+ import { View, div, span, button } from "/framework/core/View/View.js";
+ import Dictate from "/framework/ux/Dictate/Dictate.js";
++import grip from "/framework/ext/grip/grip.js";
+ import tabs from "./tabs.js";
+ 
+ View.stylesheet(import.meta, "rail.css");
+@@ -157,6 +158,7 @@ export class DrawerRailSheetV1 extends View {
+ 	// message — is `ux/Dictate`'s own job, not this sheet's.
+ 	render(){
+ 		this.head();
++		this.handle();
+ 		// Filled by `sync_card()` below, on every open: either the card's own real
+ 		// chat thread, or the old empty-state + growing list of local prompt cards.
+ 		this.$thread = div.c("drawer-rail-sheet-thread");
+@@ -170,6 +172,65 @@ export class DrawerRailSheetV1 extends View {
+ 		});
+ 	}
+ 
++	// THE SHEET'S OWN GRIP — its top edge, dragging the sheet's HEIGHT instead of a
++	// rail's width (grip-everywhere, 2026-09-29). `axis: "y"` is the one new thing
++	// `ext/grip` needed for this; `from` is left at its default ("end") because the
++	// sheet's own BOTTOM is what's pinned to the screen (`rail.css`'s `inset-block-
++	// end: 0`) — exactly the relationship every `from: "end"` rail already has, just
++	// read on the block axis. `write` clamps so a wild drag can't shrink the sheet
++	// past its own header or grow it past the screen; `done` is the only place a
++	// dragged height is remembered (`remember_height` below) — a height nobody
++	// dragged is never written to storage, so the untouched default keeps tracking
++	// the sheet's own content (`size()` below) instead of freezing on day one.
++	handle(){
++		return grip({
++			axis: "y",
++			write: px => {
++				const h = Math.min(Math.max(px, 160), window.innerHeight * 0.92);
++				this.style("--sheet-h", h + "px");
++				return h;
++			},
++			done: h => this.remember_height(h),
++		});
++	}
++
++	// Its own key — never the drawer's own width key (`lew42-drawer-w`, drawer.js),
++	// or the two rails could stomp each other's number on the same device. Both
++	// directions wrapped in try/catch (the owner's own words): a phone in private
++	// browsing throws on `setItem`, not only on a blocked `getItem`.
++	sheet_height_key(){ return "lew42-drawer-rail-sheet-h"; }
++
++	read_height(){
++		try {
++			const v = parseFloat(localStorage.getItem(this.sheet_height_key()));
++			return v > 0 ? v : null;
++		} catch { return null; }
++	}
++
++	remember_height(px){
++		try { localStorage.setItem(this.sheet_height_key(), String(Math.round(px))); }
++		catch {}
++	}
++
++	// Picks the sheet's own height for THIS open, written as `--sheet-h`
++	// (rail.css's `max-block-size` reads it, falling back to 50dvh if this never
++	// runs). A height the reader dragged to before, on this device, wins outright.
++	// The very first open instead starts at half the viewport, or the sheet's own
++	// natural content height if that is smaller (the owner's own words) — an empty
++	// sheet, mic and all, is nowhere near half a phone, and starting there would
++	// waste most of the screen on nothing. Called from `open()`, AFTER the mic and
++	// the thread are built (`sync_card`/`listen` below) — measured any earlier and
++	// `scrollHeight` would only see the empty head row, since `display: none`
++	// elements have no box to measure at render time at all.
++	size(){
++		const saved = this.read_height();
++		if (saved){ this.style("--sheet-h", saved + "px"); return; }
++		const half = window.innerHeight * 0.5;
++		this.style("--sheet-h", "none");   // lift the cap to read the TRUE content height
++		const content = this.el.scrollHeight;
++		this.style("--sheet-h", Math.min(half, content || half) + "px");
++	}
++
+ 	// The card the page under this sheet belongs to, or null — the exact duck
+ 	// type `ext/drawer/tabs.js`'s own `context()` uses ("is the active page AI
+ 	// 2's card.js"), read fresh on every open since this sheet is built once but
+@@ -187,6 +248,12 @@ export class DrawerRailSheetV1 extends View {
+ 		this.ac("on");
+ 		this.sync_card();
+ 		this.dictate ? this.dictate.start() : this.listen();
++		// AFTER the mic/thread above, not before: on a plain page both build
++		// synchronously, so `size()`'s content measurement sees the real mic
++		// widget and empty-state text, not an empty box. (On a CARD page the
++		// thread's own content loads async, a heartbeat later — `size()` still
++		// runs against whatever's there yet, a minor, accepted gap: doc/decisions.md.)
++		this.size();
+ 		return this;
+ 	}
+ 
+diff --git a/public/framework/ext/drawer/readme.md b/public/framework/ext/drawer/readme.md
+index e6f63ee6..6fff32e7 100644
+--- a/public/framework/ext/drawer/readme.md
++++ b/public/framework/ext/drawer/readme.md
+@@ -23,7 +23,7 @@ While it is open, a click selects any content on the page (`select.js`): its pro
+ 
+ ## On a phone
+ 
+-Below 52em a page with its own left-side sidebar (`core/Sidebar`) draws its own ☰ in that same top-right corner, so this drawer's fixed ☰ steps aside there instead of covering it. A small bar pinned to the bottom of the screen (`rail.js`, `rail.css`) is this drawer's other way in on a phone: an **✦** button opens a small sheet that starts listening (`ux/Dictate`, used only through its public API) and turns each finished sentence into its own card, and an **⋯ "More"** button opens this same drawer on its tabs — not a second ☰, since the page's own ☰ already lives at the top of the screen there. Built as a class so a later variant only overrides one method (`Sheet.card()`), and the old ☰ "Menu" look stays reachable as `DrawerRail.V1` — screenshots, the seam and the layout decision behind it: [Mobile bottom rail](/framework/ext/drawer/rail/).
++Below 52em a page with its own left-side sidebar (`core/Sidebar`) draws its own ☰ in that same top-right corner, so this drawer's fixed ☰ steps aside there instead of covering it. A small bar pinned to the bottom of the screen (`rail.js`, `rail.css`) is this drawer's other way in on a phone: an **✦** button opens a small sheet that starts listening (`ux/Dictate`, used only through its public API) and turns each finished sentence into its own card, and an **⋯ "More"** button opens this same drawer on its tabs — not a second ☰, since the page's own ☰ already lives at the top of the screen there. Built as a class so a later variant only overrides one method (`Sheet.card()`), and the old ☰ "Menu" look stays reachable as `DrawerRail.V1` — screenshots, the seam and the layout decision behind it: [Mobile bottom rail](/framework/ext/drawer/rail/). **The sheet's own top edge is a resize handle** (`ext/grip`'s `axis: "y"`) — drag it to change how much of the screen it takes; the size you let go of is remembered per device and read back on the next open (`grip-everywhere`, 2026-09-29 — `ext/grip/doc/decisions.md`).
+ 
+ ## Sharing it
+ 
+diff --git a/public/framework/ext/grip/doc/decisions.md b/public/framework/ext/grip/doc/decisions.md
+index e2b07e0e..f09db1c3 100644
+--- a/public/framework/ext/grip/doc/decisions.md
++++ b/public/framework/ext/grip/doc/decisions.md
+@@ -188,6 +188,98 @@ fixed margin, comfortably past the strip's 12px. Verified:
+ `.dev-bar.getBoundingClientRect().left − innerWidth` reads 16 both hidden and after a
+ reopen/close round trip; open, unchanged (`transform: none`, grip on the left border).
+ 
++## `axis: "x" | "y"` — the same strip, rotated (grip-everywhere, 2026-09-29)
++
++The owner's words: one resize handle, everywhere — columns (already done) AND
++vertical sections, starting with the mobile ✦ sheet's own top edge
++(`ext/drawer/rail.js`, `.drawer-rail-sheet`, capped at `50dvh` by default).
++
++**Reused, not rebuilt.** Every fact this file already recorded about `from` and
++`mirror` — which edge of the PARENT is pinned, which side of the box's OWN
++edge the strip sits on, why the strip stays wholly inside the box, why `edge`
++is read once at `pointerdown` — carries over unchanged, just read against the
++block axis (top/bottom) instead of the inline one (left/right) when
++`axis: "y"`. `on_x = axis !== "y"` is the one branch point in `grip.js`;
++every line after it either reads `rect.left/right` or `rect.top/bottom`,
++`e.clientX` or `e.clientY`, by that one flag. Leaving `axis` out takes neither
++branch's new code at all — traced line by line, it is the exact code that
++shipped before this task, same classes, same pointer math.
++
++**Two custom properties, not one, because the pill's CROSS axis flips too.**
++The x-axis pill already rode `--grip-y` (the vertical position along a
++*vertical* strip). A y-axis strip is horizontal, so its pill rides the
++*horizontal* position instead — a second property, `--grip-x`, added rather
++than repurposing the first, so a page with both an x-grip and a y-grip open
++at once (not true yet, but the "planned vertical split" the owner's brief
++names might be) can never have one overwrite the other's custom property by
++accident.
++
++**The 34em hide rule needed an exemption.** `@media (width < 34em) { .grip {
++display: none } }` exists because both SIDE rails stop being rails around
++that width — an `ew-resize` strip down an inline edge resizes nothing on a
++screen that narrow. The new `.grip-y` is the opposite case: its only caller
++so far, the ✦ sheet, exists **only** below that width (`ext/drawer/rail.js`
++is a `(max-width: 52em)` rail). Left unexempted, the rule would have hidden
++the sheet's own handle at exactly the sizes deliverable 5 tests it at (400px,
++touch). Fixed with `.grip:not(.grip-y)`.
++
++**Touch/coarse pointer, one shared rule, both axes.** A hover-only 2px line
++means nothing to a thumb — there is no hover to reveal it on touch, and 2px
++is not a target you can reliably land a finger on. `@media (pointer: coarse),
++(hover: none)` makes the strip itself bigger (0.75rem → 1.25rem) and its lit
++line thicker (2px → 4px) and visible **at rest** (opacity 0.5, not 0) — on
++whichever axis the strip is. `touch-action: none` already covered both axes
++(it was never axis-specific). Verified headless: at 1920×1080 with a real
++mouse the strip measured 12px and stayed invisible until hover; at 400×800
++with touch emulation it measured 20px and was visible immediately, before any
++pointer event at all. A narrowed **desktop** window (500px, mouse, no touch)
++still got the slim 12px hover-only strip — the rule reads pointer capability,
++never viewport width, which the owner's brief asked for explicitly ("on
++desktop keep it slim… on touch or mobile, show a visible handle").
++
++**The sheet's own height: `max-block-size`, a ceiling, not a forced size.**
++`rail.css` reads `max-block-size: var(--sheet-h, 50dvh)` — the exact property
++the owner's brief names. This is deliberately a *maximum*: a short, empty
++sheet (nothing said yet) renders at its own natural content height, however
++small, never stretched up to fill the cap. Measured headless: a brand-new
++sheet with no saved height and no messages rendered at 188px, well under the
++800px-tall test viewport's 400px half — proving the "or its content height,
++if smaller" half of deliverable 3 actually took effect, not just the 50%
++default. Dragging still works as expected once there is enough content to
++reach the cap (verified with 14 seeded messages: 188px → 337px, both the
++rendered box and `getComputedStyle().maxBlockSize` agreeing) — a real
++conversation, unlike a fresh test page, reaches this within a few exchanges.
++
++**The grip needed room of its own above the header.** The strip is absolutely
++positioned at the sheet's own top edge, inside whatever the sheet's own
++top padding reserves — the identical trick both side rails already use for
++their vertical strip (this file's rule 1, "the dead strip both rails already
++have"). `0.9em` of existing top padding already cleared the desktop strip
++(12px) but not the bigger touch one (20px), so `rail.css` bumps
++`padding-block-start` to `1.6em`, but **only** inside the same
++`(pointer: coarse), (hover: none)` query the thicker strip itself uses — a
++mouse sees no spacing change at all.
++
++**The remembered height is its own localStorage key.** `lew42-drawer-rail-
++sheet-h`, never the drawer's own `lew42-drawer-w` (`ext/drawer/drawer.js`) —
++two different rails on the same device would otherwise read and overwrite
++each other's number. Both `getItem` and `setItem` are wrapped in try/catch
++(the owner's own words) — a phone in private browsing throws on `setItem`,
++not only on a blocked `getItem`, and either one throwing should leave the
++sheet usable, just not remembering, rather than breaking the open. Only a
++REAL drag writes this key (`done`, on `pointerup`) — the automatic 50%-or-
++content default on an untouched sheet is never persisted, so it keeps
++tracking the sheet's own content on every open until the reader actually
++drags the handle once, on that device.
++
++**Verified with real pointer events, not just Playwright's touch API.**
++`page.touchscreen` alone does not reliably fire the `pointerdown`/
++`pointermove`/`pointerup` sequence this module is built entirely on, so the
++proof drives those events directly (`el.dispatchEvent(new PointerEvent(...,
++{ pointerType: "touch" }))`) — the same sequence a real phone's WebKit/Chrome
++delivers. Full run, screenshots and numbers:
++`ai/2026-09-29/grip-everywhere/build/shots/`.
++
+ ## Rejected
+ 
+ - **A `side` option.** Both rails dock at the inline end and grip their inline-start
+diff --git a/public/framework/ext/grip/grip.css b/public/framework/ext/grip/grip.css
+index 55e6fe82..fe487562 100644
+--- a/public/framework/ext/grip/grip.css
++++ b/public/framework/ext/grip/grip.css
+@@ -1,5 +1,5 @@
+ /* A rail's resize edge. No permanent splitter: a hover strip just inside the edge,
+-   and a pill that appears at the pointer's Y. Design record: readme.md. */
++   and a pill that appears at the pointer's cross axis. Design record: readme.md. */
+ @layer theme {
+ 
+ 	/* ⚠ `rem`, never `em`, for every size here: the dev rail's text is 0.8rem, so an
+@@ -61,18 +61,59 @@
+ 	html.grip-sizing .grip::before { opacity: 0.7; }
+ 	html.grip-sizing .grip-pill { height: 3rem; }
+ 
+-	/* ⚠ `--rail-ease` rather than a rule naming `.app`: the shell eases its push
+-	   (framework.css), and a drag writes the width every frame — eased, it trails the
+-	   pointer by 0.18s. This class is the whole reason grip.js touches <html>. */
+-	html.grip-sizing {
+-		--rail-ease: 0s;
+-		cursor: ew-resize;
+-		user-select: none;
++	/* Y-AXIS (grip-everywhere, 2026-09-29) — the same strip, rotated: a horizontal
++	   bar lying on the box's own BLOCK edge (its own top, by default — the ✦ sheet's
++	   own handle, ext/drawer/rail.css) instead of a vertical one standing on its own
++	   INLINE edge. `.grip-y` elements keep the plain `.grip` class too, so every rule
++	   above still applies (hover, sizing, touch-action) — this only restates the four
++	   things that differ: which pair of edges is pinned vs. stretched, which
++	   dimension is thin vs. auto, the cursor, and which custom property (`--grip-x`,
++	   the CROSS axis) the pill reads. */
++	.grip-y {
++		inset-block: 0 auto; inset-inline: 0;
++		width: auto; height: 0.75rem;
++		cursor: ns-resize;
++	}
++	.grip-y::before {
++		inset-block: 0 auto; inset-inline: 0;
++		width: auto; height: 2px;
++	}
++	.grip-y .grip-pill {
++		top: 0; inset-inline-start: var(--grip-x, 50%);
++		width: 2rem; height: 0.375rem;
++	}
++	/* During a drag the pill grows along its own LENGTH — width here, not height
++	   (the x-axis rule above grows `height`, its own length). */
++	html.grip-sizing .grip-y .grip-pill { width: 3rem; height: 0.375rem; }
++
++	/* A `from: "start"` y-grip pins the box's own TOP and drags its BOTTOM edge
++	   instead — the same mirrored relationship `.grip-start` already gives the x
++	   axis. Nothing uses this yet (the sheet is `from: "end"`, the default), kept
++	   symmetric for the next caller — "the planned vertical split" the owner's brief
++	   names, which may dock either way. */
++	.grip-start.grip-y { inset-block: auto 0; }
++	.grip-start.grip-y::before { inset-block: auto 0; }
++	.grip-start.grip-y .grip-pill { top: 100%; }
++
++	/* TOUCH / COARSE POINTER (grip-everywhere, 2026-09-29) — a hover-only hairline
++	   means nothing to a thumb: there is no hover to reveal it, and 2px is not
++	   something you can reliably land a thumb on. The bar comes on AT REST instead
++	   of waiting for hover, gets thicker, and the whole invisible strip grows around
++	   it — still wholly INSIDE the box (the rule at the top of this file), just
++	   bigger, so landing a few px off the true edge still grabs it. */
++	@media (pointer: coarse), (hover: none) {
++		.grip { width: 1.25rem; touch-action: none; }
++		.grip-y { width: auto; height: 1.25rem; }
++		.grip::before { width: 4px; opacity: 0.5; }
++		.grip-y::before { height: 4px; width: auto; opacity: 0.5; }
+ 	}
+ 
+ 	/* ⚠ Around this width both rails stop being rails — the dev bar is a bottom sheet
+ 	   (34em, devbar.css) and the drawer is the whole screen (26rem, drawer.css). An
+ 	   `ew-resize` strip down an inline edge resizes nothing there, and it is a pointer
+-	   trap on a touch screen. */
+-	@media (width < 34em) { .grip { display: none; } }
++	   trap on a touch screen. `.grip-y` is exempted: it drags a HEIGHT, not an inline
++	   width, and its one caller so far (the ✦ sheet) only ever shows BELOW this exact
++	   width — hiding it here would remove the handle from the one screen size it is
++	   for (found while wiring the sheet, grip-everywhere 2026-09-29). */
++	@media (width < 34em) { .grip:not(.grip-y) { display: none; } }
+ }
+diff --git a/public/framework/ext/grip/grip.js b/public/framework/ext/grip/grip.js
+index aaae3bfd..74c0fca0 100644
+--- a/public/framework/ext/grip/grip.js
++++ b/public/framework/ext/grip/grip.js
+@@ -6,74 +6,87 @@ const html = document.documentElement;
+ 
+ /* The resize edge for a rail docked at the screen's inline end — a strip just inside
+  * the rail's inline-start edge. There is no permanent handle: the pill exists only
+- * while your pointer is near that edge, and it rides the pointer's Y, so the control
+- * is always already under your hand and the rail is otherwise a clean line.
++ * while your pointer is near that edge, and it rides the pointer's cross axis, so the
++ * control is always already under your hand and the rail is otherwise a clean line.
+  *
+  * Mount it inside the rail's box (`dev/DevBar`, `ext/drawer` both do) and give it two
+- * functions: `write(px)` on every move — px is the width the pointer implies, and what
+- * that means is yours — and `done(width)` once, on release, to remember it. Return the
+- * width you actually applied from `write` and that is what `done` is handed. `done` is
+- * optional — skip it when `write` already persists on every call, as `size_rail()` in
+- * `/layouts/shell/page.js` does.
++ * functions: `write(px)` on every move — px is the size (a width, or a height on the
++ * `y` axis) the pointer implies, and what that means is yours — and `done(size)` once,
++ * on release, to remember it. Return the size you actually applied from `write` and
++ * that is what `done` is handed. `done` is optional — skip it when `write` already
++ * persists on every call, as `size_rail()` in `/layouts/shell/page.js` does.
+  *
+- * `reset`, also optional: fires on a double-click with no argument, for "put the width
++ * `reset`, also optional: fires on a double-click with no argument, for "put the size
+  * back" — `core/Sidebar` and `/layouts/shell/Shell.js` both had their own copy of this
+  * gesture (grab, drag, double-click-to-reset) before they were merged onto this file,
+  * 2026-09-18, and this is the one piece grip did not already have.
+  *
++ * `axis: "x" | "y"` (default `"x"`, 2026-09-29): which size the strip drags — a WIDTH,
++ * standing on its own INLINE edge and dragging sideways (every caller before today),
++ * or a HEIGHT, lying on its own BLOCK edge and dragging up/down (the mobile ✦ sheet's
++ * own top handle, `ext/drawer/rail.js`). `from` and `mirror` mean exactly what they
++ * always have, just read against the other pair of edges: `from` still names which
++ * edge of the PARENT is pinned (`"end"`, the default, is the box's own right on `x` or
++ * its own bottom on `y` — the unmoving edge for every rail today and for the sheet);
++ * `mirror` still picks which side of the box's OWN edge the strip and its lit line sit
++ * on. Leaving `axis` out is byte-identical to before it existed: same classes, same
++ * pointer math, same CSS.
++ *
+  * ⚠ No rAF throttle, unlike ext/demo's `drag()`: `pointermove` is already delivered
+  * once per frame, and this sets one custom property rather than re-laying-out a
+  * live render. Not worth importing the demo system for. */
+-export default function grip({ write, done, reset, from = "end", mirror = from === "start" }){
+-	let width, edge;
++export default function grip({ write, done, reset, from = "end", mirror = from === "start", axis = "x" }){
++	let size, edge;
++	const on_x = axis !== "y";
++
++	let cls = mirror ? "grip grip-start" : "grip";
++	if (!on_x) cls += " grip-y";
+ 
+-	// `from` picks the pointer arithmetic: which edge of the PARENT is pinned for the
+-	// whole drag. `mirror` picks the CSS side the strip and its lit line sit on
+-	// (`.grip-start`) — it defaults to matching `from`, right for every rail (the
+-	// parent's pinned edge and the strip's own edge are opposite sides of the same
+-	// box there), but a consumer whose parent never moves at all — `ai/v/3`'s column
+-	// split, positioned by its own inline `left` every frame, not by which side of a
+-	// rail it is flush against — can pass `mirror: false` to keep the strip's line
+-	// under its own local start regardless of which edge `from` pins.
+-	return div.c(mirror ? "grip grip-start" : "grip", () => span.c("grip-pill"))
++	return div.c(cls, () => span.c("grip-pill"))
+ 		.attr("title", "Drag to resize")
+ 
+ 		.on("pointerdown", function(e){
+ 			e.preventDefault();
+ 			this.el.setPointerCapture(e.pointerId);
+ 			// The rail's OTHER edge is pinned, so one read holds for the whole drag —
+-			// and reading it, rather than `innerWidth`, is what lets a rail parked
+-			// beside another one (ext/drawer, offset by `--devbar`) size to the pointer
+-			// instead of past it.
++			// and reading it, rather than `innerWidth`/`innerHeight`, is what lets a
++			// rail parked beside another one (ext/drawer, offset by `--devbar`) size to
++			// the pointer instead of past it.
+ 			const rect = this.el.parentElement.getBoundingClientRect();
+-			edge = from === "start" ? rect.left : rect.right;
++			edge = on_x
++				? (from === "start" ? rect.left : rect.right)
++				: (from === "start" ? rect.top : rect.bottom);
+ 			html.classList.add("grip-sizing");
+ 		})
+ 
+ 		// ⚠ One handler for both jobs, because capture routes the whole drag back
+ 		// here: the pill tracks the pointer whether or not a button is down.
+-		// ⚠ `--grip-y` is read by `top` on an absolutely positioned child (grip.css),
+-		// so it has to be relative to THIS box's own top, not the viewport — a plain
+-		// `e.clientY` matched the dev rail (`inset-block: 0`, its own top already IS
+-		// the viewport's) but landed ~200px low on `ai/v/3`'s column split, whose box
+-		// sits partway down the page (measured live, 2026-09-22).
++		// ⚠ `--grip-y` (x-axis grip) / `--grip-x` (y-axis grip) name the CROSS axis —
++		// the one the pill rides, not the one being dragged — and grip.css reads
++		// them on an absolutely positioned child, so the value has to be relative to
++		// THIS box's own top-left, not the viewport — a plain `e.clientY` matched the
++		// dev rail (`inset-block: 0`, its own top already IS the viewport's) but
++		// landed ~200px low on `ai/v/3`'s column split, whose box sits partway down
++		// the page (measured live, 2026-09-22).
+ 		.on("pointermove", function(e){
+ 			const rect = this.el.getBoundingClientRect();
+-			this.style("--grip-y", (e.clientY - rect.top) + "px");
++			if (on_x) this.style("--grip-y", (e.clientY - rect.top) + "px");
++			else this.style("--grip-x", (e.clientX - rect.left) + "px");
+ 			if (!html.classList.contains("grip-sizing")) return;
+-			const px = from === "start" ? e.clientX - edge : edge - e.clientX;
+-			width = write(px) ?? px;
++			const pointer = on_x ? e.clientX : e.clientY;
++			const px = from === "start" ? pointer - edge : edge - pointer;
++			size = write(px) ?? px;
+ 		})
+ 
+ 		// Written once, at the end: `write()` moves the rail every frame, and only the
+-		// width you let go of is worth remembering. `done` is optional.
++		// size you let go of is worth remembering. `done` is optional.
+ 		.on("pointerup", function(e){
+ 			this.el.releasePointerCapture(e.pointerId);
+ 			html.classList.remove("grip-sizing");
+-			if (width) done?.(width);
++			if (size) done?.(size);
+ 		})
+ 
+-		// The width back to whatever `write(undefined)` (or the caller's own default)
++		// The size back to whatever `write(undefined)` (or the caller's own default)
+ 		// means — never touched by drag, so nothing here decides what "reset" means.
+ 		.on("dblclick", () => reset?.());
+ }
+diff --git a/public/framework/ext/grip/readme.md b/public/framework/ext/grip/readme.md
+index 921b8eb9..1bafeba2 100644
+--- a/public/framework/ext/grip/readme.md
++++ b/public/framework/ext/grip/readme.md
+@@ -7,16 +7,18 @@ import grip from "/framework/ext/grip/grip.js";
+ 
+ // inside the rail's own box, which must be positioned
+ grip({
+-    write: px => size(px),    // every move: px is the width the pointer implies; return what you applied
+-    done: w => remember(w),   // optional — once, on release, the width you let go of; skip it if write() already persists on every call
+-    reset: () => size(null),  // optional — a double-click, with no argument, for "put the width back"
++    write: px => size(px),    // every move: px is the width (or height, on axis:"y") the pointer implies; return what you applied
++    done: w => remember(w),   // optional — once, on release, the size you let go of; skip it if write() already persists on every call
++    reset: () => size(null),  // optional — a double-click, with no argument, for "put the size back"
+     from: "start",            // omit for a rail docked at the screen's END (drawer, dev rail)
+     mirror: from === "start", // the default — override only if your box isn't flush against a rail edge · [doc/decisions.md](./doc/decisions.md)
++    axis: "x",                 // the default — "y" drags a HEIGHT instead, block axis instead of inline (the ✦ sheet's own top handle, ext/drawer/rail.js) · [doc/decisions.md](./doc/decisions.md)
+ });
+ ```
+ 
+ ## Watch out
+ 
++- `axis: "y"` (2026-09-29) reuses `from`/`mirror` exactly as they already work — just read against the box's top/bottom instead of its left/right. Leaving `axis` out is byte-identical to before it existed. Responsive: a mouse still gets the slim hover-only strip on either axis; touch or a coarse pointer gets a visible, thicker bar with a bigger invisible hit area, on both axes, from one shared CSS rule · [doc/decisions.md](./doc/decisions.md)
+ - `from` picks the pointer arithmetic (which edge of the PARENT is pinned); `mirror` (defaults to matching `from`) picks which side the strip and its lit line sit on. Every rail wants the default. A grip whose OWN box is repositioned every frame by the caller, not flush against a moving rail edge — `ai/v/3`'s column split — passes `mirror: false` to keep the line under its own local start regardless of `from` · [doc/decisions.md](./doc/decisions.md)
+ - A start-docked rail is stamped `.grip-start` and `grip.css` mirrors strip, lit line AND pill together; never flip the strip in your own stylesheet, which leaves the line 10px off the boundary · [doc/decisions.md](./doc/decisions.md)
+ - The pill's `top` is relative to the grip's OWN box, not the viewport — grip.js reads `getBoundingClientRect().top` on every move and subtracts it, or the pill lags by however far the grip sits down the page · [doc/decisions.md](./doc/decisions.md)

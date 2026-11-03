@@ -1,0 +1,294 @@
+{
+ "url": "http://localhost:80/framework/ai2/",
+ "widths": {
+  "400": {
+   "empty": 0.349,
+   "widest_text": 371,
+   "widest_text_sample": "1.7 GB ours of 31.7 GB total · 15.9 GB o",
+   "overflow_x": false,
+   "items": 15,
+   "narrow_share": 0,
+   "layout": "ai2",
+   "tabs_gap": 11,
+   "tab_rows": 1,
+   "left_stack": {
+    "h1": {
+     "total": 14,
+     "layers": [
+      {
+       "cls": "doc-well",
+       "px": 14
+      }
+     ]
+    },
+    "p": {
+     "total": 0,
+     "layers": []
+    }
+   },
+   "bands": [
+    {
+     "cls": "ai2-back",
+     "y": 106,
+     "h": 39,
+     "share": 0.039,
+     "ink": 0.4,
+     "big_empty": false
+    },
+    {
+     "cls": "ai2-full",
+     "y": 145,
+     "h": 1271,
+     "share": 1.271,
+     "ink": 0.636,
+     "big_empty": false
+    },
+    {
+     "cls": "ai2-live-assistant",
+     "y": 1430,
+     "h": 37,
+     "share": 0.037,
+     "ink": 0.7,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "drawer-rail-ai",
+     "text": "✦AI",
+     "lines": 3.2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-rail-menu",
+     "text": "⋯More",
+     "lines": 3.2
+    }
+   ]
+  },
+  "1200": {
+   "empty": 0.428,
+   "widest_text": 463,
+   "widest_text_sample": "1.7 GB ours of 31.7 GB total · 15.9 GB o",
+   "overflow_x": false,
+   "items": 35,
+   "narrow_share": 0.114,
+   "layout": "ai2",
+   "tabs_gap": 13,
+   "tab_rows": 1,
+   "left_stack": {
+    "h1": {
+     "total": 19,
+     "layers": [
+      {
+       "cls": "doc-well",
+       "px": 19
+      }
+     ]
+    },
+    "p": {
+     "total": 0,
+     "layers": []
+    }
+   },
+   "bands": [
+    {
+     "cls": "ai2-full",
+     "y": 58,
+     "h": 1328,
+     "share": 1.328,
+     "ink": 0.463,
+     "big_empty": false
+    },
+    {
+     "cls": "ai2-live-assistant",
+     "y": 1401,
+     "h": 39,
+     "share": 0.039,
+     "ink": 0.275,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.7
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  },
+  "1920": {
+   "empty": 0.549,
+   "widest_text": 497,
+   "widest_text_sample": "1.7 GB ours of 31.7 GB total · 15.9 GB o",
+   "overflow_x": false,
+   "items": 40,
+   "narrow_share": 0.6,
+   "layout": "ai2",
+   "tabs_gap": 27,
+   "tab_rows": 1,
+   "left_stack": {
+    "h1": {
+     "total": 33,
+     "layers": [
+      {
+       "cls": "doc-well",
+       "px": 33
+      }
+     ]
+    },
+    "p": {
+     "total": 0,
+     "layers": []
+    }
+   },
+   "bands": [
+    {
+     "cls": "ai2-full-head",
+     "y": 79,
+     "h": 35,
+     "share": 0.035,
+     "ink": 0.362,
+     "big_empty": false
+    },
+    {
+     "cls": "ai2-live-section",
+     "y": 368,
+     "h": 136,
+     "share": 0.136,
+     "ink": 0.731,
+     "big_empty": false
+    },
+    {
+     "cls": "ai2-live-run-col",
+     "y": 122,
+     "h": 1031,
+     "share": 1.031,
+     "ink": 0.44,
+     "big_empty": false
+    },
+    {
+     "cls": "ai2-live-tasks",
+     "y": 122,
+     "h": 189,
+     "share": 0.189,
+     "ink": 0.47,
+     "big_empty": false
+    },
+    {
+     "cls": "ai2-live-assistant",
+     "y": 310,
+     "h": 42,
+     "share": 0.042,
+     "ink": 0.725,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.7
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  },
+  "3440": {
+   "empty": 0.665,
+   "widest_text": 559,
+   "widest_text_sample": "1.7 GB ours of 31.7 GB total · 15.9 GB o",
+   "overflow_x": false,
+   "items": 40,
+   "narrow_share": 0.725,
+   "layout": "ai2",
+   "tabs_gap": 47,
+   "tab_rows": 1,
+   "left_stack": {
+    "h1": {
+     "total": 54,
+     "layers": [
+      {
+       "cls": "doc-well",
+       "px": 54
+      }
+     ]
+    },
+    "p": {
+     "total": 0,
+     "layers": []
+    }
+   },
+   "bands": [
+    {
+     "cls": "ai2-full-head",
+     "y": 122,
+     "h": 39,
+     "share": 0.039,
+     "ink": 0.313,
+     "big_empty": false
+    },
+    {
+     "cls": "ai2-live-section",
+     "y": 409,
+     "h": 153,
+     "share": 0.153,
+     "ink": 0.46,
+     "big_empty": false
+    },
+    {
+     "cls": "ai2-live-run-col",
+     "y": 179,
+     "h": 1135,
+     "share": 1.135,
+     "ink": 0.311,
+     "big_empty": false
+    },
+    {
+     "cls": "ai2-live-tasks",
+     "y": 179,
+     "h": 212,
+     "share": 0.212,
+     "ink": 0.371,
+     "big_empty": false
+    },
+    {
+     "cls": "ai2-live-assistant",
+     "y": 179,
+     "h": 47,
+     "share": 0.047,
+     "ink": 0.438,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.8
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  }
+ },
+ "errors": []
+}

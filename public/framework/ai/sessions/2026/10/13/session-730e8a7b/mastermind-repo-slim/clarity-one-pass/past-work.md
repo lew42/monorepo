@@ -1,0 +1,63 @@
+<!-- computed by node Server/PastWork.mjs --task; do not hand-edit. The judging step is in .claude/skills/past-work/SKILL.md -->
+# Past work: "The clarity hook never reviews a one pass agent  no reviewer of a reviewer  no heartbeat chase of a reviewer" (words: clarity, hook, never, review, one, pas, agent, reviewer, heartbeat, chase)
+
+## Tasks (8, best first)
+- 2026-10-13 [clarity-one-pass](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/clarity-one-pass/) — public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/clarity-one-pass/requirements.md
+- 2026-10-13 [Refine queue: Haiku refines your past prompts one at a time; each ses…](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/refine-pipeline/) — Your past prompts are now refined one at a time by Haiku, and each session page has a Coverage tab listing every ask you made, with a click-through to your raw words. ([doc](/framework/ext/Refine/doc/refine-queue.md)) - ✅ Server/RefineQueue.mjs: one Haiku cal…
+- 2026-10-03 [Review: an empty diff is refused, never passed unreviewed](/framework/ai/sessions/2026/10/03/review-empty-diff/) — public/framework/ai/2026-10-03/review-empty-diff/requirements.md
+- 2026-10-03 [Prompt hook: only your words get refined](/framework/ai/sessions/2026/10/04/prompt-relay-skip-agents/prompt-relay-skip-agents/) — A subagent's report is no longer logged as your prompt. The hook skipped nothing before, so four hand-backs in this tab were saved as your Prompts and refined at about $0.35 each, and your real prompt waited behind them. skip hand-backs and background notices… · paths 1/1 exist
+- 2026-10-02 [merge.mjs --quick + review.mjs widthsFor — one screenshot at the widt…](/framework/ai/sessions/2026/10/01/quick-fix-path/quick-merge/) — Applied to michael/dev's working tree (not yet committed — the owner commits): widthsFor in review.mjs, and merge.mjs --quick. widthsFor(files, numstat, pages), exported from review.mjs: 1200 alone for words, all four for anything that can reshape layout, 400…
+- 2026-10-17 [Sessions: one session.jsonl record per session folder, writers includ…](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/session-rename/) — New session folders now start as session.jsonl, so nothing created after today needs the move script. one SessionRecord.start_file decides the file: the log that exists, else session.jsonl for a new session folder (directly under a day, own session_id on line…
+- 2026-10-13 [Catalog: 228 page previews (33 new) and 55 class cards on one page](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/catalog/) — /framework/catalog/ shows every page with a UI as a preview card, 33 marked NEW, and 55 class cards; committed c016e9e1a on michael/dev. Landed by the mastermind from the agent's own answer and the merge commit (the agent ended its turn without a landing line… · paths 1/1 exist
+- 2026-10-13 [Dictation: New session really starts fresh, walked on phone and deskt…](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/voice-e2e-review/) — The dictation flow, walked on the phone and the desktop drawer: New session now really starts a new conversation. [Report](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/voice-e2e-review/review.md) ![](/framework/ai/sessions/2026/10/1… · paths 1/1 exist
+
+## Docs and readmes
+- [Rules — the layout dos and don'ts, one page each, with live…](/framework/styles/rules/readme.md) — ## Use Each rule is a url — cite it in a review instead of quoting it: /framework/styles/rules/nesting/. Reading order: Cascade → Proportio…
+- [Refine queue — the owner's past prompts, refined one at a t…](/framework/ext/Refine/doc/refine-queue.md) — The owner dictates long prompts; an agent condensing one can drop a specific suggestion. The refine queue turns every past owner prompt int…
+- [Review questions — every question a fresh reviewer asks, pe…](/framework/ai/review/readme.md) — The review skill asks nine systems of questions, in order: requirements, page structure, navigation, layout, sizing, wrapping, spacing and …
+- [The LAN rule: a phone gets push traffic, never commands](/framework/dev/Socket/doc/lan.md) — The dev socket carries rpc:cmd (runs a shell command) and file writes, so it must never be open to the network. A phone on the home Wi-Fi s…
+- [Research — a question dug by several minions into append-on…](/framework/ext/Research/readme.md) — Two shapes, one module. A topic is one question argued to a verdict, then closed. A program is several subjects dug continuously and never …
+- [Inbox architecture — a rail that never jumps, built from on…](/framework/ux/Inbox/doc/architecture.md) — The Inbox is a rail of row previews beside the page you picked. Its main class is Rail ([Rail.js](/framework/core/Page/ext/Inbox/Rail.js)),…
+- [Asks about ai: 60 open, 0 done](/framework/ai/doc/refined-asks.md) — Generated by node Server/AskIndex.mjs from the refined asks in each session's asks.jsonl; never hand-edited. Newest first. Open ones are al…
+- [Asks about Page: 61 open, 3 done](/framework/core/Page/doc/refined-asks.md) — Generated by node Server/AskIndex.mjs from the refined asks in each session's asks.jsonl; never hand-edited. Newest first. Open ones are al…
+
+## Sessions tagged with these words
+- 2026/10/14 [Clarity session naming](/framework/ai/sessions/2026/10/14/session-bfc2468f/) — kind/agent model/sonnet work/read-only task/mastermind-repo-slim dictation/clarity · $0.15
+- 2026/10/13 [AI system page documentation review](/framework/ai/sessions/2026/10/13/session-ff7e4151/) — kind/agent model/sonnet mod/ai/sessions task/mastermind-repo-slim docs/clarity · $0.22
+- 2026/10/13 [Clarity model switch](/framework/ai/sessions/2026/10/13/session-fe1d9338/) — kind/agent model/sonnet mod/ai/sessions task/mastermind-repo-slim docs/clarity · $0.15
+- 2026/10/13 [Clarity architecture](/framework/ai/sessions/2026/10/13/session-fdbfffd9/) — kind/agent model/sonnet work/read-only task/mastermind-repo-slim docs/clarity · $0.15
+- 2026/10/13 [Clarity skills review](/framework/ai/sessions/2026/10/13/session-fcfcc91a/) — kind/agent model/sonnet work/read-only task/mastermind-repo-slim docs/clarity · $0.15
+- 2026/10/13 [Figma token sync](/framework/ai/sessions/2026/10/13/session-fb580f8c/) — kind/agent model/sonnet work/read-only task/mastermind-repo-slim docs/clarity · $0.14
+
+## Owner asks
+- 2026-09-30 Review: one review skill, system questions, screenshots at 4 widths (task-mastermind-review, building)
+- 2026-09-30 Grip: show zone ~50px, grab zone 1px toward the scrollbar; names for grip, preview rail, … (task-mastermind-grip-zones, building)
+- 2026-09-30 Review: one review skill, system questions, screenshots at 4 widths (task-mastermind-review, landed)
+- 2026-09-30 Agents never take over the owner's tabs (mastermind-servex-8, landed)
+- 2026-10-15 Servex remote MCP: voice-agent directives in the MCP server instructions + ask_mastermind… (?, queued)
+
+## Commits
+- 91a9acec1 Close the five unchecked JSONL writers: Write/Edit guard, Append.js check(), ledger append_checked, flags.jso…
+- 213bbbc08 hooks + skills: land the day's edits, and the new clarity/content/page skills
+
+## If the title is not the thing's name
+
+```
+Brief for a throwaway Haiku searcher (about 46,762 tokens of reading, under the 100k limit).
+
+Question: The clarity hook never reviews a one-pass agent: no reviewer of a reviewer, no heartbeat chase of a reviewer
+
+Read these, in order, then follow at most 5 links that look relevant (a readme's own Docs line, a module's readme):
+- CLAUDE.md
+- readme.md
+- public/framework/readme.md
+- public/framework/ai/readme.md
+- public/framework/ai/past-work-index.md
+
+Also run: node Server/PastWork.mjs "The clarity hook never reviews a one-pass agent: no reviewer of a reviewer, no heartbeat chase of a reviewer"
+
+Check live code with Grep before you trust a landed note. Reply in at most 12 lines, starting with one word:
+- EXISTS at <path or url> (what it does, in one line; who uses it)
+- PARTLY at <path or url> (what is there, what is missing)
+- NEW (nothing found; the readmes you read, so the next searcher skips them)
+```

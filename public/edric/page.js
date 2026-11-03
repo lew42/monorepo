@@ -14,7 +14,7 @@ export default function() {
             a.c("btn bg", "Download Framework").href("https://github.com/lew42/monorepo").attr("target", "_blank");
         });
 
-        h1("Get Started").ac("mb").style("color", "var(--prim)");
+        h1("Get Started").ac("mb").style("color", "var(--prime)");
 
         p("New here? No worries, this page will get you up and running in a couple of minutes. No build tools, no config files to fight with.").ac("mb");
 
@@ -61,7 +61,7 @@ export default function() {
         p("A small notes widget, using `App` and `View` (Framework) together with `framework.css` classes (Style):").ac("mb");
 
         div.c("pad mb", () => {
-            h2("Quick Notes").style("color", "var(--prim)").ac("mb");
+            h2("Quick Notes").style("color", "var(--prime)").ac("mb");
 
             div.c("flex gap mb", () => {
                 img().attr("src", "/edric/image/seagul.jpeg").style({ width: "3em", height: "3em", "border-radius": "0.3em" });
@@ -83,7 +83,7 @@ export default function() {
         app.loaded().then(() => console.log("Quick Notes ready"));
 
         pre(`div.c("pad", () => {
-    h2("Quick Notes").style("color", "var(--prim)");
+    h2("Quick Notes").style("color", "var(--prime)");
 
     div.c("flex gap", () => {
         img().attr("src", "/edric/image/seagul.jpeg").style({ width: "3em", height: "3em", "border-radius": "0.3em" });

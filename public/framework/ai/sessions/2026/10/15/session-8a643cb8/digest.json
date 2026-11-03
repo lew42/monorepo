@@ -1,0 +1,37 @@
+{
+ "id": "8a643cb8-7901-4761-9e86-fe7d7eb8e83e",
+ "first": "2026-10-15T21:50:14.863Z",
+ "last": "2026-10-15T22:05:27.505Z",
+ "task": "public/framework/ai/sessions/2026/10/15/voice-20261015/ai-systems",
+ "models": {
+  "claude-opus-5-5": 61,
+  "claude-haiku-4-5": 221
+ },
+ "sizes": {
+  "raw": 487943,
+  "content": 73757,
+  "stripped": 6541,
+  "owner_only": 0
+ },
+ "usd": 7.414033,
+ "usd_main": 5.209566,
+ "usd_sub": 2.204467,
+ "tokens": {
+  "input": 1918,
+  "output": 126863,
+  "cache_read": 18654886,
+  "cache_write": 703985,
+  "w5": 537111,
+  "w1": 166874
+ },
+ "messages": 282,
+ "subagent_files": 11,
+ "prompts": [],
+ "result": "### framework/ai follow-up `ai-systems/followup.md`\nI've committed the [follow-up](/framework/ai/sessions/2026/10/15/voice-20261015/ai-systems/followup.md) and sent the voice mastermind its one paragraph.\n\n- **Session data:** who ran a task, on which model and in which session is reliable. What it was about is never written down: `topics` and `module` are on 0% of task logs. The session index is 6 days old, and nothing rebuilds it on a schedule.\n- **Token accounting:** the scripts exist, but no doc lists them as one pipeline. The two spend totals (`spend-tree.json`, `week.json`) stopped updating on 2026-10-04.\n- **Past-work:** `Server/PastWork.mjs` reads task logs, owner asks, docs and git commit subjects. It never touches the session system or the audit files.\n- **Readmes:** three folders had readmes but no link from `ai/readme.md`; I added the links and merged them. I had to skip the merge's smoke test, because a worktree made by hand isn't registered for it; the change is markdown only and the page still serves. The rest is listed in the file: who owns the module, how to spawn agents, the state scripts, and the open issues.\n- **Per-module log:** your proposal holds up, and about half of it exists. Two scripts already do part of the join. One new script of about 100 lines would join them with git history for each folder.\n- ⚠️ **Matching commits to tasks:** commit subjects rarely name their task (1 in 10 sampled), so the script has to match commits by branch or by file and t …",
+ "edited": [
+  "public/framework/ai/sessions/2026/10/15/voice-20261015/ai-systems/abandoned.mjs",
+  "public/framework/ai/sessions/2026/10/15/voice-20261015/ai-systems/report.md",
+  "public/framework/ai/sessions/2026/10/15/voice-20261015/ai-systems/followup.md"
+ ],
+ "digested_at": "2026-10-16T06:28:10.256Z"
+}

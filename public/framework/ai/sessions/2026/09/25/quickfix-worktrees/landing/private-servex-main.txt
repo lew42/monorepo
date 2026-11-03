@@ -1,0 +1,22 @@
+pid 45368
+up true
+pool tools: [ 'take_worktree', 'return_worktree' ] total tools 28
+api/worktrees: {"K":3,"N_hours":6,"slots":[{"id":"qfp-1","state":"ready","url":"http://127.0.0.1:51907/","path":"C:/Code/lew42/worktrees/qfp-1","branch":"worktree/qfp-1","taken_by":null,"taken_at":null,"idle_since":"2026-09-25T19:18:38-05:00"}]}
+take ms 57 {
+  "id": "qfp-1",
+  "path": "C:/Code/lew42/worktrees/qfp-1",
+  "branch": "worktree/qfp-1",
+  "url": "http://127.0.0.1:51907/"
+}
+return: {
+  "K": 3,
+  "N_hours": 6,
+  "slots": [
+    {
+      "id": "qfp-1",
+      "state": "ready",
+      "url": "http://127.0.0.1:51907/",
+      "path": "C:/Code/lew42/worktrees/qfp-1",
+      "branch": "work
+after: ["qfp-1:ready","qfp-2:ready"]
+stopped

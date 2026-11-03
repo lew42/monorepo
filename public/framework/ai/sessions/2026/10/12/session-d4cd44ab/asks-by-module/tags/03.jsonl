@@ -1,0 +1,35 @@
+{"id":472,"module":"ai","topic":"merge-candidates-queue","ask":"Queue a future merge process task when tokens are available.","quote":"put somewhere in like a future to do when we have more tokens"}
+{"id":473,"module":"ai","topic":"readme-documentation","ask":"Document the README system in framework/ai documentation.","quote":"the README system should be well documented in the framework slash AI"}
+{"id":473,"module":"ai","topic":"servex-review-readme","ask":"Get Servex mastermind review of README documentation after building.","quote":"get the Servex mastermind to weigh in on that page after it"}
+{"id":474,"module":"other","topic":"forward-slash-paths","ask":"Use forward slash as path reference character in markdown and comments.","quote":"we could use the forward slash as the path kind of critical character"}
+{"id":475,"module":"ai","topic":"inform-mastermind-tasks","ask":"Tell Servex mastermind about in-flight documentation and system upgrade tasks.","quote":"just tell the Servex mastermind about the in-flight tasks here"}
+{"id":476,"module":"ai","topic":"blocker-clarity","ask":"Remove blocker marking if it is not actually blocking work.","quote":"don't say it's a blocker if it's not"}
+{"id":477,"module":"ai","topic":"inbox-clearing","ask":"Enable ability to clear or zero out inbox items.","quote":"I want to be able to kind of zero these out"}
+{"id":477,"module":"ai","topic":"card-search","ask":"Add search functionality to AI card pages.","quote":"maybe we need a search somewhere in here"}
+{"id":477,"module":"ai","topic":"dashboard-merge","ask":"Eventually merge AI2 dashboard into framework/ai page.","quote":"kind of merge our AI2 dashboard into the framework slash AI page"}
+{"id":481,"module":"voice","topic":"unified-dictation-ui","ask":"Consolidate dictation UI systems into one unified interface everywhere.","quote":"I don't want two user interfaces. I don't want two systems."}
+{"id":486,"module":"ai","topic":"ai-page-system-tab","ask":"Add system tab to framework/ai page for documentation and skills.","quote":"the framework slash AI page have a system tab"}
+{"id":491,"module":"ai","topic":"task-process-listing","ask":"Show running tasks based on claude.exe process list with memory info.","quote":"wherever we're listing currently running tasks it should be based on claude.exe"}
+{"id":492,"module":"page","topic":"tree-ui-dev-bar","ask":"Add tree UI with icon items to the dev bar.","quote":"We should have a tree UI um with icon items"}
+{"id":492,"module":"ai","topic":"ui-system-class","ask":"Define UI as a system class analogous to page system.","quote":"framework slash UI should be a system if it's not"}
+{"id":497,"module":"ai","topic":"keep-working-rule","ask":"Clarify in CLAUDE.md that agents must keep working without waiting.","quote":"make sure it's abundantly clear in the claude.md"}
+{"id":501,"module":"page","topic":"named-preview-rail","ask":"Establish preview rail as named standard layout with proper terminology.","quote":"the preview rail should be a named layout"}
+{"id":502,"module":"ai","topic":"inbox-priority-filter","ask":"Filter inbox to show only top priority items by importance score.","quote":"What goes into the inbox needs to be top priority"}
+{"id":505,"module":"ai","topic":"page-monitor-agent","ask":"Create monitor agent that runs Playwright to screenshot page changes.","quote":"that whole monitor thing should almost be like its own agent"}
+{"id":509,"module":"ai","topic":"new-now-card","ask":"Create a now card at framework/ai/now for live work discussion.","quote":"Can I get a new now card in the framework slash AI slash now"}
+{"id":510,"module":"ai","topic":"inbox-importance-audit","ask":"Audit last 20 AI2 inbox messages to assess importance scoring.","quote":"Do a quick read of the last 20 messages in the AI2 inbox"}
+{"id":512,"module":"other","topic":"link-formatting","ask":"Fix link formatting to work properly on both mobile and PC.","quote":"if you can make links formatted properly using the IP address"}
+{"id":513,"module":"ai","topic":"inbox-priority-threshold","ask":"Set inbox priority threshold at 90 or above to reduce clutter.","quote":"the AI inbox needs to be only the most important things"}
+{"id":518,"module":"page","topic":"dictation-ui-screenshot","ask":"Screenshot dictation UI at 3440x1440 to review layout quality.","quote":"take a screenshot of it at 3440 by 1440"}
+{"id":519,"module":"ai","topic":"sub-agent-status-check","ask":"Check card-measure-gap sub-agent progress and unblock if needed.","quote":"Check on the card-measure-gap sub-agent and if it has reported"}
+{"id":528,"module":"ai","topic":"prioritize-by-value","ask":"Prioritize tasks by value not just token burn to stay efficient.","quote":"let's try and prioritize focus on prioritizing"}
+{"id":528,"module":"ai","topic":"open-router-setup","ask":"Set up Open Router as alternative model provider.","quote":"let's lean into Open Router and trying to get that set up"}
+{"id":530,"module":"ai","topic":"open-router-test-status","ask":"Check progress with Open Router model testing agent.","quote":"Can you talk to the agent that's doing the first test on Open Router"}
+{"id":531,"module":"ai","topic":"model-compliance-test","ask":"Test that models properly follow Claude.md rules and features.","quote":"we want to verify that different models are using Claude.md"}
+{"id":531,"module":"ai","topic":"model-comparison-tests","ask":"Create tests with known answers to compare model performance.","quote":"We can create kind of tests with known answers"}
+{"id":532,"module":"page","topic":"universal-weight-system","ask":"Implement weight system applicable to any object in page system.","quote":"the weight system should apply to pretty much anything"}
+{"id":534,"module":"ai","topic":"process-documentation","ask":"Focus on documenting entire AI system process from prompt to execution.","quote":"I want to really focus on the entire process"}
+{"id":551,"module":"ai","topic":"weighted-list-system","ask":"Implement weighted list system to prioritize and converge on important items.","quote":"if we can get weighted lists to work properly"}
+{"id":567,"module":"ai","topic":"model-compliance-priority","ask":"Prioritize testing whether models properly use Claude features.","quote":"the priority should be does the model listen to"}
+{"id":582,"module":"voice","topic":"dictate-demo-layout","ask":"Fix broken chat bubble layout in dictate demo.","quote":"the temporary transcription text is rendering like over the top"}
+{"id":595,"module":"ai","topic":"model-test-tasks","ask":"Create concrete model test tasks with clear outcomes.","quote":"let's focus on identifying very concrete tasks"}

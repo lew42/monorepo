@@ -1,0 +1,398 @@
+[
+ {
+  "branch": "_tmp_cards_and_logs_check",
+  "ahead": 6,
+  "date": "2026-09-30",
+  "files": 13,
+  "absent": 0,
+  "devMoved": 13,
+  "devUnchanged": 0
+ },
+ {
+  "branch": "audio/chat-revision-pairs-wip",
+  "ahead": 13,
+  "date": "2026-09-29",
+  "files": 12,
+  "absent": 1,
+  "devMoved": 11,
+  "devUnchanged": 0
+ },
+ {
+  "branch": "michael/bags-misc",
+  "ahead": 1,
+  "date": "2026-10-13",
+  "files": 4,
+  "absent": 4,
+  "devMoved": 0,
+  "devUnchanged": 0
+ },
+ {
+  "branch": "michael/figma-guide",
+  "ahead": 1,
+  "date": "2026-10-12",
+  "files": 2,
+  "absent": 0,
+  "devMoved": 2,
+  "devUnchanged": 0
+ },
+ {
+  "branch": "salvage/qf-3-2026-09-29",
+  "ahead": 8,
+  "date": "2026-09-29",
+  "files": 5,
+  "absent": 0,
+  "devMoved": 5,
+  "devUnchanged": 0
+ },
+ {
+  "branch": "salvage/qf-3-2026-10-09",
+  "ahead": 7,
+  "date": "2026-09-28",
+  "files": 5,
+  "absent": 0,
+  "devMoved": 5,
+  "devUnchanged": 0
+ },
+ {
+  "branch": "salvage/qf-6-2026-10-07",
+  "ahead": 6,
+  "date": "2026-10-02",
+  "files": 9,
+  "absent": 0,
+  "devMoved": 8,
+  "devUnchanged": 1
+ },
+ {
+  "branch": "salvage/qf-6-2026-10-10",
+  "ahead": 8,
+  "date": "2026-10-10",
+  "files": 6,
+  "absent": 4,
+  "devMoved": 2,
+  "devUnchanged": 0
+ },
+ {
+  "branch": "salvage/qf-7-2026-09-29",
+  "ahead": 5,
+  "date": "2026-09-29",
+  "files": 1,
+  "absent": 0,
+  "devMoved": 1,
+  "devUnchanged": 0
+ },
+ {
+  "branch": "salvage/qf-9-2026-09-29",
+  "ahead": 4,
+  "date": "2026-09-29",
+  "files": 12,
+  "absent": 0,
+  "devMoved": 12,
+  "devUnchanged": 0
+ },
+ {
+  "branch": "salvage/qf-9-2026-09-30-2",
+  "ahead": 1,
+  "date": "2026-09-30",
+  "files": 1,
+  "absent": 0,
+  "devMoved": 1,
+  "devUnchanged": 0
+ },
+ {
+  "branch": "salvage/qf-9-2026-09-30-3",
+  "ahead": 1,
+  "date": "2026-09-30",
+  "files": 2,
+  "absent": 1,
+  "devMoved": 1,
+  "devUnchanged": 0
+ },
+ {
+  "branch": "worktree/ai2-base2",
+  "ahead": 2,
+  "date": "2026-09-25",
+  "files": 17,
+  "absent": 2,
+  "devMoved": 15,
+  "devUnchanged": 0
+ },
+ {
+  "branch": "worktree/ai2-real-pages",
+  "ahead": 2,
+  "date": "2026-09-28",
+  "files": 3,
+  "absent": 0,
+  "devMoved": 3,
+  "devUnchanged": 0
+ },
+ {
+  "branch": "worktree/ai2-resurface",
+  "ahead": 5,
+  "date": "2026-10-05",
+  "files": 16,
+  "absent": 2,
+  "devMoved": 14,
+  "devUnchanged": 0
+ },
+ {
+  "branch": "worktree/ai2-row-vanish",
+  "ahead": 3,
+  "date": "2026-09-28",
+  "files": 14,
+  "absent": 2,
+  "devMoved": 12,
+  "devUnchanged": 0
+ },
+ {
+  "branch": "worktree/ai2-static",
+  "ahead": 1,
+  "date": "2026-09-25",
+  "files": 4,
+  "absent": 0,
+  "devMoved": 4,
+  "devUnchanged": 0
+ },
+ {
+  "branch": "worktree/ai2-workspace",
+  "ahead": 3,
+  "date": "2026-09-28",
+  "files": 9,
+  "absent": 1,
+  "devMoved": 8,
+  "devUnchanged": 0
+ },
+ {
+  "branch": "worktree/check-consensus",
+  "ahead": 4,
+  "date": "2026-09-28",
+  "files": 6,
+  "absent": 4,
+  "devMoved": 2,
+  "devUnchanged": 0
+ },
+ {
+  "branch": "worktree/dictate-marks",
+  "ahead": 1,
+  "date": "2026-10-05",
+  "files": 2,
+  "absent": 0,
+  "devMoved": 2,
+  "devUnchanged": 0
+ },
+ {
+  "branch": "worktree/dictate-onewidget",
+  "ahead": 3,
+  "date": "2026-10-01",
+  "files": 1,
+  "absent": 0,
+  "devMoved": 1,
+  "devUnchanged": 0
+ },
+ {
+  "branch": "worktree/fix-label",
+  "ahead": 5,
+  "date": "2026-10-01",
+  "files": 6,
+  "absent": 6,
+  "devMoved": 0,
+  "devUnchanged": 0
+ },
+ {
+  "branch": "worktree/mobile-nav",
+  "ahead": 3,
+  "date": "2026-09-29",
+  "files": 7,
+  "absent": 0,
+  "devMoved": 7,
+  "devUnchanged": 0
+ },
+ {
+  "branch": "worktree/mobile-nav-live",
+  "ahead": 4,
+  "date": "2026-09-29",
+  "files": 11,
+  "absent": 0,
+  "devMoved": 11,
+  "devUnchanged": 0
+ },
+ {
+  "branch": "worktree/orphans",
+  "ahead": 2,
+  "date": "2026-10-12",
+  "files": 6,
+  "absent": 1,
+  "devMoved": 5,
+  "devUnchanged": 0
+ },
+ {
+  "branch": "worktree/page-system",
+  "ahead": 7,
+  "date": "2026-10-05",
+  "files": 1,
+  "absent": 0,
+  "devMoved": 1,
+  "devUnchanged": 0
+ },
+ {
+  "branch": "worktree/probe-p22vkh",
+  "ahead": 1,
+  "date": "2026-10-05",
+  "files": 2,
+  "absent": 2,
+  "devMoved": 0,
+  "devUnchanged": 0
+ },
+ {
+  "branch": "worktree/probe-p25a52",
+  "ahead": 1,
+  "date": "2026-10-05",
+  "files": 2,
+  "absent": 2,
+  "devMoved": 0,
+  "devUnchanged": 0
+ },
+ {
+  "branch": "worktree/probe-p2o2q9",
+  "ahead": 2,
+  "date": "2026-10-05",
+  "files": 2,
+  "absent": 0,
+  "devMoved": 2,
+  "devUnchanged": 0
+ },
+ {
+  "branch": "worktree/probe-p2oo1g",
+  "ahead": 2,
+  "date": "2026-10-05",
+  "files": 4,
+  "absent": 2,
+  "devMoved": 2,
+  "devUnchanged": 0
+ },
+ {
+  "branch": "worktree/probe-p3wyez",
+  "ahead": 3,
+  "date": "2026-10-01",
+  "files": 4,
+  "absent": 3,
+  "devMoved": 1,
+  "devUnchanged": 0
+ },
+ {
+  "branch": "worktree/probe-p43vgu",
+  "ahead": 1,
+  "date": "2026-10-05",
+  "files": 2,
+  "absent": 2,
+  "devMoved": 0,
+  "devUnchanged": 0
+ },
+ {
+  "branch": "worktree/probe-p44yt9",
+  "ahead": 1,
+  "date": "2026-10-05",
+  "files": 4,
+  "absent": 3,
+  "devMoved": 1,
+  "devUnchanged": 0
+ },
+ {
+  "branch": "worktree/probe-p48xwa",
+  "ahead": 3,
+  "date": "2026-10-01",
+  "files": 6,
+  "absent": 5,
+  "devMoved": 1,
+  "devUnchanged": 0
+ },
+ {
+  "branch": "worktree/probe-p4fv8y",
+  "ahead": 1,
+  "date": "2026-10-05",
+  "files": 2,
+  "absent": 2,
+  "devMoved": 0,
+  "devUnchanged": 0
+ },
+ {
+  "branch": "worktree/probe-p4hnh7",
+  "ahead": 1,
+  "date": "2026-10-05",
+  "files": 4,
+  "absent": 3,
+  "devMoved": 1,
+  "devUnchanged": 0
+ },
+ {
+  "branch": "worktree/probe-p4lonn",
+  "ahead": 1,
+  "date": "2026-10-05",
+  "files": 2,
+  "absent": 2,
+  "devMoved": 0,
+  "devUnchanged": 0
+ },
+ {
+  "branch": "worktree/probe-p4o7n3",
+  "ahead": 1,
+  "date": "2026-10-05",
+  "files": 2,
+  "absent": 2,
+  "devMoved": 0,
+  "devUnchanged": 0
+ },
+ {
+  "branch": "worktree/quick-merge",
+  "ahead": 1,
+  "date": "2026-10-05",
+  "files": 1,
+  "absent": 0,
+  "devMoved": 1,
+  "devUnchanged": 0
+ },
+ {
+  "branch": "worktree/readmeaudit",
+  "ahead": 2,
+  "date": "2026-10-12",
+  "files": 1,
+  "absent": 0,
+  "devMoved": 1,
+  "devUnchanged": 0
+ },
+ {
+  "branch": "worktree/ui-system-clean-land",
+  "ahead": 8,
+  "date": "2026-10-03",
+  "files": 11,
+  "absent": 5,
+  "devMoved": 6,
+  "devUnchanged": 0
+ },
+ {
+  "branch": "worktree/ui-system-land2",
+  "ahead": 12,
+  "date": "2026-10-03",
+  "files": 14,
+  "absent": 6,
+  "devMoved": 8,
+  "devUnchanged": 0
+ },
+ {
+  "branch": "worktree/ui-system-land3",
+  "ahead": 12,
+  "date": "2026-10-03",
+  "files": 13,
+  "absent": 5,
+  "devMoved": 8,
+  "devUnchanged": 0
+ },
+ {
+  "branch": "worktree/waiting-on-you",
+  "ahead": 3,
+  "date": "2026-09-28",
+  "files": 13,
+  "absent": 2,
+  "devMoved": 11,
+  "devUnchanged": 0
+ }
+]

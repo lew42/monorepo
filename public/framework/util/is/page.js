@@ -1,10 +1,16 @@
-import { Page, is, md, demo, h2, p, pre } from "/app.js";
+import { Doc, is, md, demo, h2, p, pre } from "/app.js";
 
-export default new Page({
+export default new Doc({
 	meta: import.meta,
 	title: "is",
 	description: "Type checks that return booleans.",
 	icon: "rule",
+
+	subject: is,
+	methods: "arr obj str num bool fn def undef class pojo proto dom el promise mobile",
+	notes: "decisions",
+	files: "is.js page.js readme.md",
+
 	content(){
 
 		demo(() => {
@@ -12,7 +18,7 @@ export default new Page({
 			p(`is.arr([1,2])  → ${is.arr([1, 2])}`);
 			p(`is.fn(() => 1) → ${is.fn(() => 1)}`);
 			p(`is.pojo({})    → ${is.pojo({})}`);
-		}, "Fourteen one-line functions. They all return a boolean.");
+		}, "A handful of one-line functions. They all return a boolean.");
 
 		h2("Why it exists");
 
@@ -25,22 +31,7 @@ else this.el.append(arg)  // string, number, node`);
 
 		md("That's `View.append`. The dispatch *is* `is` — and it's why `div(\"text\", child, [more], () => …)` all works.");
 
-		h2("The checks");
-
-		md(`| check | true when |
-|---|---|
-| \`is.arr\` | \`Array.isArray\` |
-| \`is.obj\` | typeof "object", not null, not an array |
-| \`is.pojo\` | an object literal (\`constructor === Object\`) |
-| \`is.str\` \`is.num\` \`is.bool\` \`is.fn\` | typeof |
-| \`is.def\` \`is.undef\` | defined / undefined |
-| \`is.class\` | constructable — false for arrows |
-| \`is.proto\` | a constructor's \`.prototype\` |
-| \`is.promise\` | thenable |
-| \`is.dom\` \`is.el\` | a node / an element |
-| \`is.mobile()\` | mobile user-agent |
-
-Edge cases (\`is.num(NaN)\` is \`true\`, and friends) are in the design notes.`);
+		md("Every check has its own page in the **API** tab on the left: the real source, and an honest note on whether it should exist at all — `is.proto` and `is.class` both answer a narrower question than their name suggests.");
 
 		md("Next: [source](/framework/util/source/) — how a function becomes the code example you're reading.");
 

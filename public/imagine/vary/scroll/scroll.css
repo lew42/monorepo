@@ -1,0 +1,18 @@
+/* Two treatments of the same idea: a bounded scroll region living INSIDE the
+   column's own padding (boxed) vs the same region spending the column's inset
+   with `bleed` (flush, doc/columns.md). Full-viewport (the third variation)
+   needs no rule of its own — `width: "full"` and Page.css's own
+   `.page-column-body { overflow-y: auto }` are the whole story. */
+@layer theme {
+
+	.vary-scroll-box {
+		max-height: 11em; overflow-y: auto; scrollbar-width: thin;
+		padding: 0.6em 0.8em;
+		border: 1px solid var(--line); border-radius: var(--radius);
+	}
+
+	.vary-scroll-flush {
+		max-height: 11em; overflow-y: auto; scrollbar-width: thin;
+		border-block: 1px solid var(--line);
+	}
+}

@@ -1,0 +1,38 @@
+[
+	{
+		"from": ".claude/skills/mastermind/SKILL.md",
+		"to": "Servex/agents/roles/mastermind.md",
+		"words": 5251,
+		"links_rebased": 4
+	},
+	{
+		"from": ".claude/skills/servex-mastermind/SKILL.md",
+		"to": "Servex/agents/roles/servex-mastermind.md",
+		"words": 2114,
+		"links_rebased": 0
+	},
+	{
+		"from": ".claude/skills/sub-mastermind/SKILL.md",
+		"to": "Servex/agents/roles/task-mastermind.md",
+		"words": 2432,
+		"links_rebased": 4
+	},
+	{
+		"from": ".claude/skills/minion/SKILL.md",
+		"to": "Servex/agents/roles/minion.md",
+		"words": 3048,
+		"links_rebased": 1
+	},
+	{
+		"from": ".claude/skills/review/SKILL.md",
+		"to": "Servex/agents/roles/reviewer.md",
+		"words": 859,
+		"links_rebased": 0
+	},
+	{
+		"from": ".claude/skills/clarity/SKILL.md",
+		"to": "Servex/agents/roles/clarity.md",
+		"words": 689,
+		"links_rebased": 0
+	}
+]

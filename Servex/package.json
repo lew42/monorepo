@@ -1,0 +1,13 @@
+{
+  "name": "servex",
+  "private": true,
+  "type": "module",
+  "description": "The always-on process: supervises dev servers and Whisper, hosts Claude agent sessions, owns the logs, serves one /mcp endpoint.",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "latest",
+    "http-proxy": "^1.18.1"
+  }
+}

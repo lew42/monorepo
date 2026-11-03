@@ -1,0 +1,168 @@
+/* The Switcher — a routed list that switches the content beside it. Structure and
+   tokens only; every colour comes from the theme through --surface/--line/--fill-a08.
+
+   ⚠ The routing and the four classes that show which item is current — .active-page,
+   .active-ancestor (core/Router, core/Page/Page.css's arrangement contract) and
+   .active, .in-path (Router.mark_links(), stamped on the <a> tags ext/tabs builds) —
+   are NOT declared anywhere in this file and switcher.js never touches them either.
+   Everything below reacts to those four classes; nothing here sets them. That is the
+   whole answer to doc/decide.md's question, in code.
+
+   ⚠ `.switcher-drop` (the <details> toggle) is a SIBLING of `.tabs.vertical`, never
+   its parent — see switcher.js's own comment and doc/decide.md §2. A native
+   `<details>` decides on its own, at the browser level, whether its non-summary
+   content is even in the render tree; that is not the same thing as a `display`
+   value, and no CSS in this file can force it back open. Reading the toggle's
+   `[open]` state off a SIBLING with `~` sidesteps the whole problem. */
+
+@layer theme {
+
+	/* The container query boundary. ⚠ Declared HERE and read on a DESCENDANT
+	   (.switcher-drop, .tabs.vertical) below — a box can never restyle its own
+	   container (the css skill's "the other half": a `@container` rule whose subject
+	   IS the box that declares the container never fires, and nothing throws — this
+	   is also why `position: relative` sits right here, UNCONDITIONALLY, rather than
+	   inside the query below: a first version put it inside `@container switcher
+	   (...)`, targeting `.switcher` itself, and it silently never applied — the
+	   dropdown positioned itself against `<body>` instead of its own switcher and
+	   landed near the top of the page. Harmless at wide widths; only used once the
+	   query below actually needs a containing block for the open dropdown.) */
+	.switcher { container-type: inline-size; container-name: switcher; min-width: 0; position: relative; }
+
+	/* WIDE (the default, before the query below ever matches): the toggle stays
+	   hidden, since there is nothing to disclose at this width — `.tabs.vertical`
+	   right beside it is a perfectly normal element and already lays out exactly as
+	   it does anywhere else on the site (ext/tabs/tabs.css); nothing here touches it. */
+	.switcher-toggle { display: none; }
+
+	/* Every panel is a real, routed child page, and `render()` (Page.class.js) draws
+	   its own `h1.page-title` plus a "folder_open Folder" link on every one of them —
+	   right for a page reached on its own, but inside a switcher the list beside it
+	   already names the choice, so both just repeat it. The content area should hold
+	   only the content (review-switcher.md finding 3). Unconditional, not
+	   narrow-width-only: a real caller of switcher() (the /fs mobile file explorer,
+	   say) wants this at every width, not only inside this module's own demo frames. */
+	.switcher .tab-panel .page-title { display: none; }
+
+	/* ⚠ `!important`, only here: `render()` sets the Folder link's `display` with an
+	   inline `.style({ display: "inline-flex", … })`, and an inline style outranks any
+	   stylesheet rule at any specificity — confirmed by `getComputedStyle` still
+	   reading `flex` with the plain rule above. There is no rule in this file's own
+	   fence that can touch that inline style except this one. */
+	.switcher .tab-panel .page-fs-link { display: none !important; }
+
+	/* NARROW: the list becomes a one-row sticky header holding only the CURRENT item;
+	   tapping the toggle above it opens the full list as a dropdown over the content
+	   below. 30em was picked so the ~400px narrow demo frame on this module's own
+	   page.js matches it with room to spare, and a normal phone viewport (which also
+	   carries ext/tabs' own 64em media-query collapse) matches both at once with no
+	   conflict — see doc/decide.md. */
+	@container switcher (width < 30em) {
+
+		.switcher-drop {
+			display: block;
+			position: sticky; top: 0; z-index: 2;
+		}
+
+		/* CLOSED: `.switcher-drop`'s own box collapses to zero height — no separate
+		   chevron row — and its <summary> becomes just the chevron button, pinned to
+		   the end of the row that the one surviving tab (below) now spans full width.
+		   Together they read as ONE header ("index.js ▾"): the label is the tab's own
+		   text, never duplicated here; tapping the chevron opens the list. ⚠ Tried
+		   first as an inset:0 overlay spanning the WHOLE row (so a tap anywhere would
+		   open it) — Chromium measured that box at width:0 despite explicit left:0;
+		   right:0 (a <details>/<summary> sizing quirk, the same family doc/decide.md
+		   §2 already hit once). An EXPLICIT width sidesteps it. */
+		.switcher-drop:not([open]) { height: 0; }
+		.switcher-drop:not([open]) .switcher-toggle {
+			position: absolute; top: 0; right: 0; width: 2.4em; height: 2.4em;
+			padding: 0; background: none; border: none;
+		}
+
+		.switcher-toggle {
+			display: flex; align-items: center; justify-content: center;
+			list-style: none; cursor: pointer;
+			padding: 0.4em; background: var(--surface); border-bottom: 1px solid var(--line);
+		}
+		.switcher-toggle::-webkit-details-marker { display: none; }
+
+		/* ⚠ `align-items: stretch` matters here: without it the row only shrink-wraps
+		   its own label (`align-items: flex-start` is `.tabs.vertical`'s own default,
+		   from tabs.css) — invisible on an actually-narrow BROWSER, since tabs.css's
+		   own `@media (max-width: 64em)` sets `stretch` there anyway, but this
+		   CONTAINER query can match on a wide screen too (an 880px demo frame shrunk
+		   to fit a phone-sized CARD) where that media query never fires, and the
+		   header row measured 115px wide in a 332px switcher instead of spanning it
+		   (2026-09-29 proof run). Stated here so the container query's own narrow
+		   state never depends on the page's viewport width, only the switcher's. */
+		.switcher-drop ~ .tabs.vertical { flex-direction: column; gap: 0; align-items: stretch; }
+		.switcher-drop ~ .tabs.vertical > .tab-bar {
+			flex-direction: row; flex: 0 0 auto;
+			position: sticky; top: 2.4em; z-index: 1;
+			max-height: none;
+			background: var(--surface);
+			border-inline-end: none; border-bottom: 1px solid var(--line);
+			mask-image: none;
+		}
+
+		/* CLOSED: every tab but the one CURRENTLY SHOWING is gone, so this row IS the
+		   header. "Currently showing" reads the exact same test ext/tabs' own CSS
+		   already uses for its highlight everywhere else on the site (tabs.css): a
+		   real `.active`/`.in-path` mark when Router set one, else — a set with
+		   nothing of its own in the url yet, e.g. a second switcher() on one host
+		   page, since `this.default_tab` (ext/tabs/tabs.js) is a single field that
+		   only the FIRST switcher()/tabs() call on a page can own — the first tab,
+		   same as `.tab-bar:not(:has(...)) > .tab:first-child` in tabs.css. Neither
+		   branch is new logic; both are copied from what tabs.css already reads.
+		   The survivor also spans the row's whole width and keeps clear of the
+		   chevron button pinned over its end (above), so together they read as one
+		   header ("index.js ▾"), not a lone list item. */
+		.switcher-drop:not([open]) ~ .tabs.vertical > .tab-bar { top: 0; }
+
+		.switcher-drop:not([open]) ~ .tabs.vertical > .tab-bar:has(.tab.active, .tab:is(.in-path, [aria-current]):not(.tab-default)) > .tab:not(.active, .in-path) {
+			display: none;
+		}
+		.switcher-drop:not([open]) ~ .tabs.vertical > .tab-bar:not(:has(.tab.active, .tab:is(.in-path, [aria-current]):not(.tab-default))) > .tab:not(:first-child) {
+			display: none;
+		}
+
+		.switcher-drop:not([open]) ~ .tabs.vertical > .tab-bar > .tab:is(.active, .in-path),
+		.switcher-drop:not([open]) ~ .tabs.vertical > .tab-bar:not(:has(.tab.active, .tab:is(.in-path, [aria-current]):not(.tab-default))) > .tab:first-child {
+			flex: 1 1 auto; padding-inline-end: 2.4em;
+		}
+
+		/* OPEN: the full list drops down over whatever is below it. ⚠ `top: 2.4em`, not
+		   `100%` — `.switcher` (its containing block, above) wraps the toggle AND the
+		   panel together, so `100%` would be the height of the WHOLE switcher, not the
+		   toggle row alone. 2.4em matches the toggle's own rendered height (an icon
+		   plus 0.4em of padding on each side — the grammar's own control floor). */
+		.switcher-drop[open] ~ .tabs.vertical > .tab-bar {
+			flex-direction: column;
+			position: absolute; inset-inline: 0; top: 2.4em;
+			background: var(--surface); border: 1px solid var(--line);
+			max-height: 60vh; overflow: auto; z-index: 2;
+		}
+
+		.switcher-drop ~ .tabs.vertical > .tab-panel { padding-top: 1rem; }
+	}
+
+	/* ── Three skins, one mechanism: only the paint changes below ── */
+
+	/* Tree — a file-explorer feel: monospace labels, a small file glyph. */
+	.switcher-skin-tree .tabs.vertical .tab { font-family: monospace; font-size: 0.9em; }
+	.switcher-skin-tree .tabs.vertical .tab::before { content: "\1F4C4"; margin-inline-end: 0.4em; }
+
+	/* Nav — a plain sidebar: no flowing tab accent, a soft fill on the current item. */
+	.switcher-skin-nav .tabs.vertical > .tab-bar > .tab { border-inline-end-color: transparent; border-radius: var(--radius); }
+	.switcher-skin-nav .tabs.vertical > .tab-bar > .tab.active,
+	.switcher-skin-nav .tabs.vertical > .tab-bar > .tab:is(.in-path, [aria-current]):not(.tab-default) {
+		background: var(--fill-a08); border-inline-end-color: transparent;
+	}
+
+	/* ── Demo chrome for this module's own page.js only — two fixed-width frames so
+	     the collapse is visible side by side without resizing the browser window.
+	     Nothing a real caller of switcher() needs; `.card` (framework.css) gives the
+	     border/background/padding, these two classes only fix the width. */
+	.switcher-demo-frame-wide { width: 880px; max-width: 100%; }
+	.switcher-demo-frame-narrow { width: 400px; max-width: 100%; }
+}

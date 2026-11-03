@@ -1,104 +1,53 @@
-# files — design record
+# files — a tree of real files on disk, fetched, beside the one you clicked; for pages that teach a directory
 
-**question → options → weighing → verdict**, as everywhere.
+> **⚠ Converge (the owner, 2026-10-02):** file and saving code is scattered across [ext/Saver](/framework/ext/Saver/) (whole-JSON rewrites), [ext/filesystem](/framework/ext/filesystem/) (`FsFile`, `FsDir` → `Dir`), [ext/files](/framework/ext/files/) (the tree UI), [ext/JSONL](/framework/ext/JSONL/), and about 15 direct `Socket` `"append"`/`"write"` calls. Before adding to any of them, consider consolidating: ONE file object (`FsFile`: `read`, `write`, `append`, and a `store` for .jsonl) as the only caller of the dev socket. Logs are appended one line at a time, never rewritten. A `LiveList`'s change events are both the view update and the line that gets appended. Design: [page-item-design.md](/framework/ai/sessions/2026/09/30/proposal-flow/page-item-design.md).
 
----
+**Looking for the full-screen `<any path>/fs/` browser?** That's two other files,
+`fs.js` (v1) and `explorer.js` (v2, see below) — this page (`files.js`) is the small
+embeddable widget both of them are built on.
 
-## 1. Where does the example project live?
+## Use
 
-The `/framework/start/` page used to show `index.html`, `app.js` and `page.js` as
-string literals inside `code.html(...)` / `code.js(...)` calls. Three problems, all
-of them real:
+```js
+files(import.meta, "example/index.html example/app.js example/page.js")
+files(import.meta, names, { about: path => md.file(import.meta, `doc/file/${path}.md`) })
+```
 
-- **It rots.** Nothing runs those strings. `app.js`'s three lines were correct when
-  written and nobody would ever find out if they stopped being.
-- **It reads as a wall.** A full `index.html`, doctype and all, is fifteen lines of
-  which two matter — and the reader has to find them.
-- **It cannot show structure.** "A folder with a `page.js` in it is a url" is the
-  central idea, and a code block cannot show a folder.
+Two columns (tree, source); pass `about` and it is three (tree, prose, source) — how
+`ext/Doc`'s Files tab works. A folder opens and closes on click. Options: `route: false`
+keeps the selection out of the url; `fill: true` makes the box fill its parent's height
+instead of a fixed max (for a full-screen host); `open: <n>` opens folders only to depth
+`n` at start (default: every folder, as always) — a folder past that depth builds its
+rows on first click, not before, so a caller can hand this thousands of paths; `select:
+<path>` pre-selects that path instead of the first name in the list; `lines: true` gives
+the source a line-number gutter (`ext/highlight`'s own `{ lines: true }`) and makes
+`#L42` / `#L40-L48` in the url scroll to and highlight those lines — the v2 explorer,
+next, is what turns this on.
 
-| option | why not |
-|---|---|
-| keep the literals | the three problems above |
-| generate the page from the filesystem at build time | there is no build step, by constitution |
-| a JSON manifest of file contents | a hand-maintained second copy, in the worst format for the job |
-| **fetch real files** | ✓ |
+## `<any path>/fs/` — two versions
+- Moved verbatim to [doc/readme-full-2026-10-12.md](./doc/readme-full-2026-10-12.md): detail.
+## Later
 
-**Verdict: real files, fetched at view time.** `public/framework/start/example/` is
-a working site — five files, correct, importable if you pointed a server at it.
-The doc page shows the file that is actually there.
+- A per-file readme in a third column (the owner: not now).
+- The 2-column "code + rendered page" mode and its switcher bar (1 column / 2 columns / code +
+  rendered) were cut outright along with `ext/Panel`, not just re-plumbed onto plain columns —
+  it can come back on request.
 
-The cost is honest and small: a directory of files nobody imports. Its payment is
-that the "getting started" page cannot be wrong about the getting-started files.
+## More
 
-### Why they don't become routes
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
+- [Overview](/framework/ext/files/) · [doc/decisions.md](./doc/decisions.md) — the record: decisions, traps, open items, who uses it
+- [doc/fetched.md](./doc/fetched.md) — why real files, never string literals; why the examples aren't routes
+- [doc/tree.md](./doc/tree.md) — nesting, the shortened display path, selection by `data-path`, open/close
+- [doc/columns.md](./doc/columns.md) — why `ext/Panel` came out, what plain flex + `ext/grip` replaced it with
+- [doc/about.md](./doc/about.md) — the prose hook's contract, placement, capture trap
+- [doc/switcher.md](./doc/switcher.md) — the v2 explorer's responsive shell, and how to reuse it elsewhere
+- `doc/file/<path>.md` — one note per source file, shown in the Files tab
+- Files that matter: `files.js` (the embeddable widget: door, tree, columns, `#L` marking),
+  `files.css` (frame, columns, tree rows), `fs.js` (v1, full screen, no site nav),
+  `explorer.js` (v2, the default — framework nav kept, tree + code columns / mobile
+  switcher), `switcher.css` (the generic responsive shell v2 is built on)
 
-`example/page.js` looks exactly like a page module, because it is one. It is not
-reachable, because **nothing crawls the filesystem** — a page exists only if its
-parent named it in `children`, and `/framework/start/`'s children do not include
-`example`. The file is served as a static asset (which is what `fetch` wants) and
-never imported.
+- Notes: [doc/explorer-notes.md](doc/explorer-notes.md) — history and lessons moved out of the code comments.
 
----
-
-## 2. Tabs across the top, or a tree down the side?
-
-- **Tabs** reuse `.tab-bar` and cost no CSS. They also cannot show a directory,
-  and they run out of room: this ext exists partly to show `about/team/page.js`.
-- **A tree** shows nesting, which is the thing being taught.
-
-**Verdict: a tree.** The tab bar is right when the files are peers and there are
-four of them, and that case is already served by `Page.tabs()` — a second way to
-spell it would be the API bloat and not the feature.
-
----
-
-## 3. How does the display path get shortened?
-
-The files live at `example/app.js` and must read as `app.js`, or the tree teaches
-the doc folder's layout instead of a site's.
-
-- **An option** (`files(meta, { base: "example/", … })`) — API surface forever, and
-  the caller has to say the same directory twice.
-- **Strip the longest common directory** — one rule, no options, and it does the
-  right thing on every input anyone has tried. Adding `example/about/page.js` to
-  the set still leaves the common prefix at `example/`, so the tree grows an
-  `about/` folder exactly when the author adds a file in one.
-
-**Verdict: strip the common directory.** Segment-wise, never character-wise —
-a character comparison of `app.js` and `app2.js` would cut mid-name.
-
----
-
-## 4. Selection: index into the list, or read it off the row?
-
-The first version matched a clicked row to its path by index into the declared
-list. It was wrong, and it is the kind of wrong that works in every test you would
-think to write: `nest()` groups paths by directory, so tree order is declaration
-order **until two paths interleave folders** —
-`"sub/b.js a.js sub/c.js"` renders `b.js c.js a.js` and every click after the
-first is off by one.
-
-**Verdict: the row carries its own `data-path`.** The leaf of the nested map holds
-the fetchable path rather than `null`, so the thing that knows the answer is the
-thing that is asked.
-
----
-
-## 5. Kept: no expand/collapse
-
-Folders render open and stay open. A disclosure triangle is the obvious next
-feature and it should not be built: these trees have three to six entries by
-construction — a doc example that needs collapsing is a doc example that is too
-big. If one ever genuinely does, `<details>` already does this with no JS.
-
----
-
-## 6. Open
-
-- **No line numbers, and no deep link to a line.** Both are wanted the moment a
-  file gets long enough to discuss a specific line, and neither is wanted now.
-- **`max-height: 26em` on the pane** is a guess that reads well for the five
-  example files. A long file scrolls inside the box, which is right; a very short
-  one leaves the tree taller than the pane, which looks slightly odd and has not
-  been worth a rule.
+- Notes: [doc/files-notes.md](doc/files-notes.md) — history and lessons moved out of the code comments.

@@ -1,0 +1,42 @@
+/**
+ * live.js — the ONE place this doc page reads real, running agents (and
+ * cards) from.
+ *
+ * Servex (Servex/Servex.js) answers three read-only, CORS-open routes for
+ * any page to fetch, no matter what url that page is served from:
+ *   GET /api/agents         every agent this Servex process is holding right
+ *                            now — id, role, model, state, session_id,
+ *                            parent, turns, cost (Servex/agents/Agents.js,
+ *                            Agent.card()).
+ *   GET /api/card-agents?card=<id>   one card's own two agents (its fast
+ *                            assistant and its manager) — see doc/where.md.
+ *   GET /cards?view=<open|today|all|tag>   every card matching that view —
+ *                            id, title, type, status, tags, created, last
+ *                            (Servex/cards/Cards.js). Used by `work.js` to
+ *                            find a page's open tasks and notes.
+ *
+ * FAIL SOFT, always. Servex is a dev-only convenience (CLAUDE.md: "no server
+ * at runtime" in production) — a reader with it closed, or off the dev
+ * machine, must see one plain line, never a console error or a failed
+ * network request. `fetch_json` never throws; every caller gets `null` and
+ * decides what "nothing yet" looks like.
+ */
+import { servex_url } from "/framework/dev/servex_url.js";
+const BASE = () => new URLSearchParams(location.search).get("servex") || servex_url();
+
+async function fetch_json(path){
+	try {
+		const res = await fetch(BASE() + path, { signal: AbortSignal.timeout(4000) });
+		if (!res.ok) return null;
+		return await res.json();
+	} catch { return null; }
+}
+
+/** Every agent Servex is holding, or `null` when Servex cannot be reached. */
+export const agents = () => fetch_json("/api/agents");
+
+/** One card's assistant + manager rows, or `null`. */
+export const card_agents = card => fetch_json("/api/card-agents?card=" + encodeURIComponent(card));
+
+/** Every card matching `view` ("open" by default), or `null`. See `work.js`. */
+export const cards = (view = "open") => fetch_json("/cards?view=" + encodeURIComponent(view));

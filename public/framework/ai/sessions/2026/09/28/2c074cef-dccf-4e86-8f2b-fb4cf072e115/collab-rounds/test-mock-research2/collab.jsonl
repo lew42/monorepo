@@ -1,0 +1,28 @@
+{"collab":{"at":"2026-09-28T14:16:40-05:00","id":"test-mock-research2","question":"Trivial research question for a mock run.","kind":"research","members":[{"id":"haiku-a","model":"claude-haiku-4-5-20251001"},{"id":"sonnet-b","model":"claude-sonnet-5"},{"id":"haiku-c","model":"claude-haiku-4-5-20251001"}],"phases":[{"n":1,"kind":"brief"},{"n":2,"kind":"read-peers"},{"n":3,"kind":"revise"},{"n":4,"kind":"vote"}]}}
+{"phase":{"at":"2026-09-28T14:16:40-05:00","n":1,"kind":"brief","status":"start"}}
+{"member":{"at":"2026-09-28T14:16:40-05:00","id":"haiku-a","phase":1,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/haiku-a/1-brief.md","cost":0,"agent":"mock"}}
+{"member":{"at":"2026-09-28T14:16:40-05:00","id":"sonnet-b","phase":1,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/sonnet-b/1-brief.md","cost":0,"agent":"mock"}}
+{"member":{"at":"2026-09-28T14:16:40-05:00","id":"haiku-c","phase":1,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/haiku-c/1-brief.md","cost":0,"agent":"mock"}}
+{"phase":{"at":"2026-09-28T14:16:40-05:00","n":1,"kind":"brief","status":"done","cost":0}}
+{"phase":{"at":"2026-09-28T14:16:40-05:00","n":2,"kind":"read-peers","status":"start"}}
+{"member":{"at":"2026-09-28T14:16:40-05:00","id":"haiku-a","phase":2,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/haiku-a/2-read-peers.md","cost":0,"agent":"mock"}}
+{"member":{"at":"2026-09-28T14:16:40-05:00","id":"sonnet-b","phase":2,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/sonnet-b/2-read-peers.md","cost":0,"agent":"mock"}}
+{"member":{"at":"2026-09-28T14:16:40-05:00","id":"haiku-c","phase":2,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/haiku-c/2-read-peers.md","cost":0,"agent":"mock"}}
+{"phase":{"at":"2026-09-28T14:16:40-05:00","n":2,"kind":"read-peers","status":"done","cost":0}}
+{"phase":{"at":"2026-09-28T14:16:40-05:00","n":3,"kind":"revise","status":"start"}}
+{"member":{"at":"2026-09-28T14:16:40-05:00","id":"haiku-a","phase":3,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/haiku-a/3-revise.md","cost":0,"agent":"mock"}}
+{"member":{"at":"2026-09-28T14:16:40-05:00","id":"sonnet-b","phase":3,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/sonnet-b/3-revise.md","cost":0,"agent":"mock"}}
+{"member":{"at":"2026-09-28T14:16:40-05:00","id":"haiku-c","phase":3,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/haiku-c/3-revise.md","cost":0,"agent":"mock"}}
+{"phase":{"at":"2026-09-28T14:16:40-05:00","n":3,"kind":"revise","status":"done","cost":0}}
+{"decision":{"at":"2026-09-28T14:16:40-05:00","id":"d-1","phase":4,"parent":null,"ask":"Which draft wins?","package":false,"options":[{"key":"haiku-a","say":"haiku-a: # haiku-a — phase 3 (revise)","caveat":"","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/haiku-a/3-revise.md"},{"key":"sonnet-b","say":"sonnet-b: # sonnet-b — phase 3 (revise)","caveat":"","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/sonnet-b/3-revise.md"},{"key":"haiku-c","say":"haiku-c: # haiku-c — phase 3 (revise)","caveat":"","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/haiku-c/3-revise.md"}],"status":"open"}}
+{"phase":{"at":"2026-09-28T14:16:40-05:00","n":4,"kind":"vote","status":"start"}}
+{"member":{"at":"2026-09-28T14:16:40-05:00","id":"haiku-a","phase":4,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/haiku-a/4-vote.json","cost":0,"agent":"mock"}}
+{"member":{"at":"2026-09-28T14:16:40-05:00","id":"sonnet-b","phase":4,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/sonnet-b/4-vote.json","cost":0,"agent":"mock"}}
+{"member":{"at":"2026-09-28T14:16:40-05:00","id":"haiku-c","phase":4,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/haiku-c/4-vote.json","cost":0,"agent":"mock"}}
+{"phase":{"at":"2026-09-28T14:16:40-05:00","n":4,"kind":"vote","status":"done","cost":0}}
+{"vote":{"at":"2026-09-28T14:16:40-05:00","phase":4,"member":"haiku-a","pick":"haiku-c","caveat":"mock: no real caveat"}}
+{"vote":{"at":"2026-09-28T14:16:40-05:00","phase":4,"member":"sonnet-b","pick":"haiku-a","caveat":"mock: no real caveat"}}
+{"vote":{"at":"2026-09-28T14:16:40-05:00","phase":4,"member":"haiku-c","pick":"sonnet-b","caveat":"mock: no real caveat"}}
+{"tally":{"at":"2026-09-28T14:16:40-05:00","phase":4,"counts":{"haiku-c":1,"haiku-a":1,"sonnet-b":1},"winner":"haiku-c","caveats":["mock: no real caveat","mock: no real caveat","mock: no real caveat"],"rule":"tie: cheaper member","abstained":[],"thin":false}}
+{"decision":{"at":"2026-09-28T14:16:40-05:00","id":"d-1","phase":4,"status":"decided","counts":{"haiku-a":1,"sonnet-b":1,"haiku-c":1},"chosen":"haiku-c","runner_up":"haiku-a","caveats":["mock: no real caveat","mock: no real caveat","mock: no real caveat"],"tie_rule":"tie: cheaper member","abstained":[],"thin":false}}
+{"winner":{"at":"2026-09-28T14:16:40-05:00","pick":"haiku-c","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/haiku-c/3-revise.md","caveats":["mock: no real caveat","mock: no real caveat","mock: no real caveat"],"cost":0}}

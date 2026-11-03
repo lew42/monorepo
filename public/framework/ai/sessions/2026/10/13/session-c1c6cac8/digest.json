@@ -1,0 +1,33 @@
+{
+ "id": "c1c6cac8-0a6b-47db-b61c-bd1c894bef02",
+ "first": "2026-10-13T21:02:52.171Z",
+ "last": "2026-10-13T21:03:40.104Z",
+ "agent": "reviewer-inbox-ranking",
+ "task": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/inbox-ranking/requirements.md",
+ "models": {
+  "claude-sonnet-5-5": 5
+ },
+ "sizes": {
+  "raw": 301020,
+  "content": 11656,
+  "stripped": 2922,
+  "owner_only": 0
+ },
+ "usd": 0.248619,
+ "usd_main": 0.248619,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 10,
+  "output": 3644,
+  "cache_read": 231057,
+  "cache_write": 41487,
+  "w5": 0,
+  "w1": 41487
+ },
+ "messages": 5,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "The review report is written, with verdict `fix`. I judged it from the shots, `layout.json` and the diff, and made no code edits.\n\nThe two `[fix]` findings:\n- **Debug list not beside the inbox:** at 1200, 1920 and 3440 the debug list isn't visible next to the live inbox. At those widths the rail's own \"Pick something on the left\" pane fills the right side. The debug list shows up only under the rail at 400.\n- **Diff outside the fence:** the diff changes about 30 `files.jsonl` / `page.jsonl` files and `ai/rail/inbox.js`, none of which are in the Inbox fence the brief names.\n\nFour `[note]`s:\n- **Wide-width layout:** at the wide widths the page is mostly empty (64% at 1200, 74% at 1920, 82% at 3440).\n- **Debug heading:** the debug list heading is an `h1` styled as `h4`, giving the page a second `h1`.\n- **Doc example:** the `doc/ranking.md` example for the 5-hour-old pinned risk says 124, but the code gives about 130.\n- **Score override:** a row with a `score` ignores its kind weight, so the kind order only holds for rows without one.\n\nThe report is `public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/inbox-ranking/review/report.md`.",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.283Z"
+}

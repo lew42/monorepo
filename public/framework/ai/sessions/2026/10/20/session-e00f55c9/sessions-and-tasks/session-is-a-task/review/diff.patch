@@ -1,0 +1,856 @@
+diff --git a/Server/DatedFiles.mjs b/Server/DatedFiles.mjs
+index 2eaee0855..69e91dfb4 100644
+--- a/Server/DatedFiles.mjs
++++ b/Server/DatedFiles.mjs
+@@ -185,7 +185,7 @@ export default class DatedFiles extends Dated {
+ 	/** A session's folder without a scan: `session-<id8>` or the uuid, on the given day or up to 3 days before; else where a new one goes. Absolute. */
+ 	session_dir(id, day = new Date()){
+ 		const t = typeof day === "string" ? new Date(day + "T12:00:00") : day;
+-		for (let back = 0; back < 4; back++){
++		for (let back = 0; back < 31; back++){   // 4 until 2026-10-24: a tab resumed on its fifth day got a second folder (session-e00f55c9 on 10/20 and 10/24)
+ 			const d = this.day_dir(new Date(t.getTime() - back * 864e5));
+ 			for (const name of [id, "session-" + id.slice(0, 8)]) if (fs.existsSync(path.join(d, name))) return path.join(d, name);
+ 		}
+diff --git a/Servex/agents/Agents.js b/Servex/agents/Agents.js
+index f2478a816..53ec7dc1f 100644
+--- a/Servex/agents/Agents.js
++++ b/Servex/agents/Agents.js
+@@ -54,7 +54,7 @@ export class Agents {
+ 
+ 	/* `boot` names THIS host process — every registry row it writes carries it,
+ 	 * so the next boot can tell "alive a moment ago" from "long dead". */
+-	constructor(...args){ this.assign({ live: new Map(), boot: `${Date.now().toString(36)}-${process.pid}` }, ...args); Task.cost_resolver = task => this.task_cost(task); Session.agents_resolver = dir => this.agents_under(dir); setTimeout(() => { try { PastWork.tasks(); } catch {} }, 10000).unref(); }   // warms the past-work cache so the first spawn pays ~0.5 s, not 3 s
++	constructor(...args){ this.assign({ live: new Map(), boot: `${Date.now().toString(36)}-${process.pid}` }, ...args); Task.cost_resolver = task => this.task_cost(task); Session.agents_resolver = (dir, o) => this.agents_under(dir, o); Task.turns_resolver = sid => this.session_turns(sid); setTimeout(() => { try { PastWork.tasks(); } catch {} }, 10000).unref(); }   // warms the past-work cache so the first spawn pays ~0.5 s, not 3 s
+ 	assign(...args){ return Object.assign(this, ...args); }
+ 
+ 	/* THE SINGLE WRITER, and the reason an agent never opens a file itself.
+@@ -75,6 +75,8 @@ export class Agents {
+ 		if (agent.state === "stopped") try { this.servex?.lifecycle?.agent_ended(agent); } catch {}
+ 		// follow(path), 2026-09-29: a stopped agent's subscriptions end with it — Servex/Follow.js
+ 		if (agent.state === "stopped") try { this.servex?.follow?.agent_ended(agent); } catch {}
++		// A child is linked to its parent SESSION, not only to the parent's name (session-is-a-task, 2026-10-24): the id the parent runs as now.
++		if (agent.parent && agent.parent_session === undefined) agent.parent_session = this.live.get(agent.parent)?.session_id ?? this.reg().read()[agent.parent]?.session_id ?? null;
+ 		const row = this.reg().write(agent);
+ 		this.store().append("servex", { type: "registry", ...row }).catch(() => {});
+ 		return row;
+@@ -729,18 +731,35 @@ export class Agents {
+ 	}
+ 
+ 	/* The agents whose task lives in or below `dir` (a session's folder): its child sessions, found by place (Session.agents_resolver). */
+-	agents_under(dir){
+-		const root = path.resolve(MAIN_ROOT, dir).toLowerCase(), rows = this.reg().read(), out = [];
+-		for (const [k, ids] of this.task_dirs()) if (k === root || k.startsWith(root + path.sep)) for (const id of ids){
++	/* Also, with `session_id`: every agent the session itself spawned, wherever its task lives, and all they spawned (the owner, 2026-10-24:
++	 * "every agent the tab spawns is a child session"). A VS Code tab reaches Servex under a name (`vscode-mastermind`) that later tabs
++	 * reuse, so a row counts only when its parent is one of the session's names and it started at or after `since` (the session's start). */
++	agents_under(dir, { session_id = null, since = null } = {}){
++		const root = path.resolve(MAIN_ROOT, dir).toLowerCase(), rows = this.reg().read(), ids = new Set(), out = [];
++		for (const [k, list] of this.task_dirs()) if (k === root || k.startsWith(root + path.sep)) list.forEach(id => ids.add(id));
++		if (session_id){
++			const names = new Set([session_id, ...Object.entries(rows).filter(([, r]) => r?.session_id === session_id).map(([id]) => id)]);
++			// parent_session (recorded at spawn since 2026-10-24) is exact; an older row is matched by the parent's name and the session's span.
++			for (const [id, r] of Object.entries(rows)) if (!names.has(id) && (r?.parent_session ? r.parent_session === session_id : names.has(r?.parent) && (!since || String(r.started_at ?? "") >= since))) ids.add(id);
++			for (let grew = true; grew;){ grew = false; for (const [id, r] of Object.entries(rows)) if (!ids.has(id) && !names.has(id) && ids.has(r?.parent) && (!since || String(r.started_at ?? "") >= since)){ ids.add(id); grew = true; } }
++		}
++		for (const id of ids){
+ 			const r = rows[id] ?? {};
+ 			out.push({ id, parent: r.parent ?? null, role: r.role ?? null, state: this.live.get(id)?.state ?? r.state ?? null, session_id: r.session_id ?? null,
+-				cost: Math.round(this.logged_cost(id) * 100) / 100, started_at: r.started_at ?? null });
++				cost: Math.round(this.logged_cost(id, since) * 100) / 100, started_at: r.started_at ?? null });
+ 		}
+ 		return out.sort((a, b) => String(a.started_at).localeCompare(String(b.started_at)));
+ 	}
+ 
++	/* A session's own turns, [{ms, cost}], from the log of every agent that ran as it (Task.attribute buckets them by task). A VS Code tab has no agent log: []. */
++	session_turns(sid){
++		if (!sid) return [];
++		return Object.entries(this.reg().read()).filter(([, r]) => r?.session_id === sid).flatMap(([id]) => this.log_cost(id).turns ?? []);
++	}
++
+ 	/* The total recomputed from the records: every `turn_cost` in the agent's own log (Agent.result writes one per turn). */
+-	logged_cost(id){ return this.log_cost(id).cost; }
++	// `since` (an ISO time): only the turns from then on. An agent id is reused across spawns (mastermind-page logged from 2026-09-30), so a session counts only its own span.
++	logged_cost(id, since = null){ const c = this.log_cost(id), from = since ? Date.parse(since) : NaN; return isNaN(from) ? c.cost : c.turns.reduce((n, t) => n + (t.ms >= from ? t.cost : 0), 0); }
+ 
+ 	/* { cost, sdk_total } from the agent's log: its turns rebuilt by turn_costs() (turn-costs.js says why a log needs rebuilding). */
+ 	// Kept per log until its size or mtime changes: a session's item() read asks this once per task and once per child agent,
+@@ -752,7 +771,7 @@ export class Agents {
+ 		if (hit && hit.size === st.size && hit.mtime === st.mtimeMs) return hit.out;
+ 		let text; try { text = fs.readFileSync(file, "utf8"); } catch { return { cost: 0, sdk_total: 0 }; }
+ 		const { turns, sdk_total } = turn_costs(text, { openrouter: this.reg().read()[id]?.provider === "openrouter" });
+-		const out = { cost: turns.reduce((n, t) => n + t.cost, 0), sdk_total };
++		const out = { cost: turns.reduce((n, t) => n + t.cost, 0), sdk_total, turns: turns.map(t => ({ ms: Date.parse(t.line?.at ?? t.line?.ts ?? "") || 0, cost: t.cost })) };
+ 		this._log_costs.set(file, { size: st.size, mtime: st.mtimeMs, out });
+ 		return out;
+ 	}
+diff --git a/Servex/agents/Registry.js b/Servex/agents/Registry.js
+index 976cd1a96..292376172 100644
+--- a/Servex/agents/Registry.js
++++ b/Servex/agents/Registry.js
+@@ -46,7 +46,7 @@ export default class Registry {
+ 			forked_from, resumed_from, ended, context, stopped_by, stopped_at, landing_nagged, turns } = agent;
+ 		const task_dir = agent.task?.dir ? path.resolve(agent.task.dir) : null;
+ 		return { id, role, name: name ?? null, topics: topics ?? null, page: page ?? null,
+-			state, visibility, session_id, started_at, parent: parent ?? null,
++			state, visibility, session_id, started_at, parent: parent ?? null, parent_session: agent.parent_session ?? null,   // the parent's SESSION id at spawn (Agents.register): `parent` is a name a later tab can reuse
+ 			last_at: stamp(), boot: agent.host?.boot ?? null, pid: process.pid,
+ 			claude_pid: agent.claude_pid ?? null,   // the agent's own claude.exe (Agents.spawn_claude); pid is the HOST's
+ 			revivable: agent.revivable?.() ?? false,
+@@ -66,6 +66,7 @@ export default class Registry {
+ 		const row = this.row(agent);
+ 		// a reopened session has no `task` spec; keep its dir — only for the SAME session (a reused id is a new agent)
+ 		if (!row.task_dir && rows[agent.id]?.session_id && rows[agent.id].session_id === row.session_id) row.task_dir = rows[agent.id].task_dir ?? null;
++		if (!row.parent_session && rows[agent.id]?.session_id === row.session_id) row.parent_session = rows[agent.id].parent_session ?? null;   // kept across a revive, like task_dir
+ 		if (!row.landing_nagged && rows[agent.id]?.session_id === row.session_id) row.landing_nagged = rows[agent.id].landing_nagged ?? null;   // the once-flag survives a revive
+ 		if (rows[agent.id]?.session_id === row.session_id && (rows[agent.id].cost ?? 0) > row.cost) row.cost = rows[agent.id].cost;   // never shrinks
+ 		rows[agent.id] = row;
+diff --git a/Servex/agents/page_tools.js b/Servex/agents/page_tools.js
+index 942f917ec..bec62c98d 100644
+--- a/Servex/agents/page_tools.js
++++ b/Servex/agents/page_tools.js
+@@ -68,6 +68,7 @@ function resolve_file(url, item = false){
+  * file, so its segments go on the front of the target: ["notes", ...target]. Anything else
+  * resolves the plain way above. Returns { file, target } or null. */
+ const SESSION_ROUTE = /^\/?framework\/ai\/sessions\/([^/]+)\/(.*)$/;
++const SESSION_QUERIES = ["progress", "cost", "total_cost", "duration", "children", "summary"];   // Task.queries: answered from the record, never written
+ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+ 
+ async function resolve(url, target = [], item = false){
+@@ -431,6 +432,8 @@ export const RULES = [
+ const FRAMEWORK = path.join(PUBLIC, "framework");
+ const MODULE_NAME = /^[A-Za-z0-9_-]+(\/[A-Za-z0-9_-]+)*$/;
+ const app_path = dir => "/" + path.relative(PUBLIC, dir).split(path.sep).join("/") + "/";
++// The class a new subtask is written as: a known task class it names (session-is-a-task: a Project, a Process, a child Session), else Task.
++const task_type = a => ["Project", "Process", "Session"].includes(a?.type) ? a.type : "Task";
+ export const slug_of = text => String(text ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40).replace(/-+$/, "") || "task";
+ 
+ // The module an app path sits in: the nearest folder under public/framework/ with a readme.md. Never a dated ai/sessions/ folder.
+@@ -737,20 +740,26 @@ export function session_state(task, tasks = []){
+ 	// A task's cost is its folder's agents, so two tasks naming one folder (a task and its re-filed twin) count it once.
+ 	const all = every_task(task._tasks), seen = new Set(), costed = all.filter(t => Number(t.cost) > 0 && !seen.has(t.get_one("path")) && seen.add(t.get_one("path")));
+ 	const task_cost = costed.reduce((s, t) => s + t.cost, 0);
+-	const dir = task.store?.file ? path.dirname(task.store.file) : null, agents = dir ? (task.constructor.agents_resolver?.(dir) ?? []) : [];
++	// Its agents: those whose task is in its folder, and (by its uuid) those it spawned anywhere since it began.
++	const dir = task.store?.file ? path.dirname(task.store.file) : null, uuid = /^[0-9a-f]{8}-/.test(task.id ?? "") ? task.id : null;
++	const agents = dir ? (task.constructor.agents_resolver?.(dir, { session_id: uuid, since: task.first_at ? new Date(task.first_at).toISOString() : null }) ?? []) : [];
+ 	const own = dir ? own_cost(dir) : null;
+ 	const child_cost = agents.reduce((s, a) => s + (a.cost || 0), 0);
+ 	const biggest = costed.sort((a, b) => b.cost - a.cost).slice(0, 5).map(t => ({ id: t.id, title: t.get_one("title"), cost: r2(t.cost), state: t.state }));
+ 	return { class: "Session", id: task.id, completion: task.completion, progress: task.progress(), first_at: task.first_at, last_at: task.last_at, span_ms: task.span_ms,
+ 		cost: { total: r2((own?.usd ?? 0) + child_cost), own, children: r2(child_cost), tasks: r2(task_cost) },
+-		counts: { direct: counts(task._tasks ?? []), all: counts(all) }, biggest, children: nest_agents(agents), agents: agents.length, data: { ...task.data }, tasks };
++		counts: { direct: counts(task._tasks ?? []), all: counts(all) }, biggest, children: nest_agents(agents), agents: agents.length,
++		// Its own turns bucketed by the task open at the time (Task.attribute); null when no per-turn record exists (a VS Code tab today).
++		by_task: (turns => turns.length ? task.attribute(turns) : null)(task.constructor.turns_resolver?.(uuid) ?? []), data: { ...task.data }, tasks };
+ }
+ 
+ function task_state(Task, task){
+ 	const tasks = [...(task._tasks ?? [])].map(row_of);
+ 	if (Task.name === "Process") return { class: "Process", process: task.process, state: task.state, step: task.step?.id ?? null, next: task.next(), completion: task.completion, data: { ...task.data }, tasks: [...(task._tasks ?? [])].map(t => ({ id: t.id, title: t.get_one("title"), state: t.state, outcome: t.get_one("outcome") ?? null })) };
+ 	if (Task.name === "Session") return session_state(task, tasks);
+-	return { class: "Task", state: task.state, completion: task.completion, data: { ...task.data }, tasks };
++	// A task an agent works (its record names the session): that agent's turns bucketed by the subtask open at the time (Task.attribute).
++	const sid = task.session, turns = sid && Task.turns_resolver ? Task.turns_resolver(sid) : [];
++	return { class: "Task", state: task.state, completion: task.completion, ...(turns.length && task._tasks?.length ? { by_task: task.attribute(turns) } : {}), data: { ...task.data }, tasks };
+ }
+ 
+ // The first task verb anywhere in a delta ({"tasks":{"<id>":{"start":{}}}} -> "start"), or null.
+@@ -916,8 +925,15 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
+ 	url ??= own_page(ctx);
+ 	let caller_log = ctx.caller_log ?? null;
+ 	try { caller_log ??= ctx.resolve_log?.(ctx.caller) ?? null; } catch { caller_log = null; }   // a broken resolver never breaks the call
+-	const at = await resolve(url, target, true);
++	let at = await resolve(url, target, true);
+ 	if (!at) return { ok: false, why: `"${url}" is not a page under public/` };
++	// A session route's file is its page.jsonl (cards, tabs). A READ or a query there asks about the session itself, so it reads the record
++	// beside it, session.jsonl: cost, span, children, counts (core/Session/readme.md, "What item() answers"). Writes still go to the page.
++	const routed = SESSION_ROUTE.exec(String(url ?? ""));
++	if (routed && !/^\d{4}$/.test(routed[1]) && !at.target.length && path.basename(at.file) === "page.jsonl" && (delta === undefined || (is_plain(delta) && Object.keys(delta).length && Object.keys(delta).every(k => SESSION_QUERIES.includes(k))))){
++		const record = path.join(path.dirname(at.file), "session.jsonl");
++		if (fs.existsSync(record)) at = { file: record, target: [] };
++	}
+ 
+ 	const kind = class_of(at.file);
+ 	const Class = LOADERS[kind] ? await LOADERS[kind]().catch(() => null) : null;
+@@ -985,15 +1001,16 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
+ 		const owner_agent = root().get_one("agent"), asker = ctx.caller && ctx.caller !== owner_agent && owner_agent ? ctx.caller : null;
+ 		// Check everything first: a refused slug writes nothing at all.
+ 		const plan = [];
+-		for (const a of [].concat(add)){
+-			if (!is_plain(a)) return { ok: false, why: "`tasks.add` takes an object (the new task's fields)" };
++		for (let a of [].concat(add)){
++			if (typeof a === "string" && a.trim()) a = { title: a.trim() };   // a plain string is a task with that title (session-is-a-task, 2026-10-24); the line written is the object
++			if (!is_plain(a)) return { ok: false, why: "`tasks.add` takes a title (a string) or an object (the new task's fields)" };
+ 			const home = typeof a.process === "string" || Array.isArray(a.steps) ? await process_home(path.dirname(at.file), a) : path.basename(at.file) === "improvements.jsonl" ? null : task_home(path.dirname(at.file), a, ctx.module_root, url);   // an improvement nests in its folder's list (mastermind role readme)
+ 			if (home?.why) return { ok: false, why: home.why };
+ 			if (home?.taken) return { ok: false, why: `a task "${home.slug}" already exists under ${home.list.module}/tasks/; nothing was written. Use the id "${home.free}" (or a different title), or work on the existing one.`, suggest: home.free };
+ 			const id = home ? null : slug_of(a.id ?? a.title);
+ 			if (id && (root()._tasks?.find(id) || plan.some(p => p.id === id)))
+ 				return { ok: false, why: `this task already has a subtask "${id}"; nothing was written. Use the id "${id}-2" (or a different title), or change the existing one.`, suggest: id + "-2" };
+-			if (!home && Class?.replay) try { const { type: _ty, data, ...fields } = a; Class.replay([{ tasks: { add: { type: "Task", ...data, ...fields, id } } }]); } catch (e) { return { ok: false, why: `this line would not replay (${e.message}). Nothing was written. Check the fields of "${id}".` }; }
++			if (!home && Class?.replay) try { const { type: _ty, data, ...fields } = a; Class.replay([{ tasks: { add: { type: task_type(a), ...data, ...fields, id } } }]); } catch (e) { return { ok: false, why: `this line would not replay (${e.message}). Nothing was written. Check the fields of "${id}".` }; }
+ 			plan.push({ a: asker && a.from === undefined ? { ...a, from: asker } : a, home, id });
+ 		}
+ 		for (const { a, home, id } of plan){
+@@ -1010,7 +1027,7 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
+ 				const { type: _t, data, ...fields } = a;
+ 				ids.push(id);
+ 				if (asker) requests.push({ to: owner_agent, from: asker, id, title: a.title ?? id, path: app_path(path.dirname(at.file)) });
+-				put({ tasks: { add: { type: "Task", ...data, ...stamp_ids(fields, ids), id } }, by, ts: now() });
++				put({ tasks: { add: { type: task_type(a), ...data, ...stamp_ids(fields, ids), id } }, by, ts: now() });
+ 			}
+ 		}
+ 		const { tasks: _t, ...more } = body;
+diff --git a/Servex/agents/session_tasks.test.mjs b/Servex/agents/session_tasks.test.mjs
+new file mode 100644
+index 000000000..afb0b22f1
+--- /dev/null
++++ b/Servex/agents/session_tasks.test.mjs
+@@ -0,0 +1,48 @@
++// A Session is a Task, and a task added to it is there at once (session-is-a-task, 2026-10-24). `node Servex/agents/session_tasks.test.mjs`
++// Add through the item tool (a string, an object, a typed child), read the session back through the tool and by a fresh replay of its file.
++import assert from "node:assert";
++import fs from "node:fs";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++import { run_item } from "./page_tools.js";
++import Task from "../../public/framework/core/Task/Task.js";
++import Session from "../../public/framework/core/Session/Session.js";
++import "../../public/framework/core/Task/Process.js";
++
++const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
++const REL = "public/framework/ai/sessions/2026/10/16/.session-tasks-test-" + process.pid;
++const DIR = path.join(ROOT, REL), FILE = path.join(DIR, "session.jsonl"), URL = "/" + REL.slice("public/".length) + "/";
++const ID = "0f0f0f0f-1111-4222-8333-444455556666";
++let n = 0;
++const ok = (c, m) => { assert.ok(c, m); n++; console.log("PASS —", m); };
++
++fs.mkdirSync(DIR, { recursive: true });
++fs.writeFileSync(FILE, JSON.stringify({ session: { id: ID, kind: "vscode-tab", at: "2026-10-24T20:00:00.000Z" } }) + "\n");
++try {
++	ok(new Session("s") instanceof Task, "Session extends Task");
++	const plain = new Task({ id: "p" });
++	plain.tasks.add("Fix the tab bar");
++	ok(plain.tasks.find("fix-the-tab-bar")?.get_one("title") === "Fix the tab bar", "tasks.add(\"a string\") makes a Task titled by it");
++
++	let r = await run_item({ path: URL, delta: { tasks: { add: "Fix the tab bar" } } }, { caller: "t1" });
++	ok(r.ok && r.line && r.now && r.state === undefined && JSON.stringify({ ...r, instructions: undefined }).length < 2000, "a write answers with the line written (small), not the session picture");
++	r = await run_item({ path: URL }, { caller: "t1" });
++	ok(r.state.class === "Session" && r.state.tasks.some(t => t.title === "Fix the tab bar"), "the next read already lists the task");
++	const written = fs.readFileSync(FILE, "utf8").trim().split("\n").map(l => JSON.parse(l)).find(l => l.tasks?.add);
++	ok(written?.tasks.add.title === "Fix the tab bar" && typeof written.tasks.add.id === "string", "the line written is an object with an id, never a bare string");
++
++	r = await run_item({ path: URL, delta: { tasks: { add: { title: "Name the module", expected: "a name" } } } }, { caller: "t1" });
++	r = await run_item({ path: URL, delta: { tasks: { add: { type: "Process", title: "Build it", id: "build-it" } } } }, { caller: "t1" });
++	ok(r.ok, "an object, and an object with a type, are taken");
++
++	r = await run_item({ path: URL }, { caller: "t1" });
++	ok(r.state.counts.direct.created === 3 && r.state.tasks.length === 3, "read back through the tool: 3 own tasks, counted on read");
++
++	const s = Session.replay(fs.readFileSync(FILE, "utf8").trim().split("\n").map(l => JSON.parse(l)));
++	ok(s instanceof Session && s.tasks.length === 3 && s.tasks.find("build-it")?.constructor.name === "Process", "a fresh replay of the file has them, the typed one as its class");
++	ok([...s.tasks].every(t => t.created_at), "each has the time of the line that added it (for newest-first lists)");
++	ok(s.completion === 0 && s.progress().total === 3, "completion is computed from the tasks");
++	console.log(`session_tasks: ${n} checks passed`);
++} finally {
++	fs.rmSync(DIR, { recursive: true, force: true });
++}
+diff --git a/public/framework/ai/AISession/AISessionDetail.js b/public/framework/ai/AISession/AISessionDetail.js
+index 6f3516705..739429a27 100644
+--- a/public/framework/ai/AISession/AISessionDetail.js
++++ b/public/framework/ai/AISession/AISessionDetail.js
+@@ -25,6 +25,7 @@ import SessionTasks from "/framework/core/Session/SessionTasks.js";
+ import SessionWork from "./SessionWork.js";
+ import SessionStats from "./SessionStats.js";
+ import SessionOverview from "./SessionOverview.js";
++import SessionFeed from "./SessionFeed.js";
+ import "/framework/core/Page/parts/kinds.js";   // the kinds the page tool adds register themselves by import: one list
+ 
+ // One session's own page, opened at /framework/ai/sessions/<id>/ (a real route, so a reload lands on the same
+@@ -183,7 +184,7 @@ export default class AISessionDetail extends Page {
+ 		let $role, $box, $voice, $conv, $related, $costs, $spawn, $session, $trace, $coverage, $tasks, $work, work;
+ 		const ready = new Promise(resolve => this.work_ready = resolve);   // the loaded SessionWork, for the stats bar and the Overview
+ 		// Tabs, not columns: one full-width panel at a time, so no table is ever squeezed (doc/detail-layout.md). The tab is in ?tab= so a reload lands on it.
+-		const TABS = [["overview", "Overview"], ["tasks", "Tasks"], ["chat", "Chat"], ["coverage", "Coverage"], ["cost", "Cost"], ["models", "Models and tokens"], ["related", "Related"]];
++		const TABS = [["overview", "Overview"], ["board", "Board"], ["tasks", "Tasks"], ["chat", "Chat"], ["coverage", "Coverage"], ["cost", "Cost"], ["models", "Models and tokens"], ["related", "Related"]];
+ 		const old_keys = { work: "tasks", conversation: "chat" }, asked = new URLSearchParams(location.search).get("tab"), want = old_keys[asked] ?? asked, panels = {}, buttons = {};
+ 		const show = key => {
+ 			for (const [k] of TABS){ panels[k].el.hidden = k !== key; buttons[k].el.classList.toggle("sessions-chip-on", k === key); }
+@@ -202,7 +203,8 @@ export default class AISessionDetail extends Page {
+ 		});
+ 		if (new URLSearchParams(location.search).has("full")) setTimeout(() => this.full_screen(true));
+ 		div.c("sessions-detail-body", () => {
+-			panels.overview = div.c("flow sessions-panel", () => new SessionOverview({ ready, sid: id, go: show }));   // four cards: open, project, done, dropped (Figma band E)
++			panels.overview = div.c("flow sessions-panel", () => { this.feed = new SessionFeed({ ready, sid: id }); });   // every task and child session, newest first (SessionFeed)
++			panels.board = div.c("flow sessions-panel", () => new SessionOverview({ ready, sid: id, go: show }));   // four cards: open, project, done, dropped (Figma band E)
+ 			panels.tasks = div.c("flow sessions-panel", () => { $work = div.c("flow"); });   // what the session set going, nested, with Approve (SessionWork)
+ 			panels.chat = div.c("flow sessions-panel sov-chat", () => {
+ 				$tasks = div.c("flow session-tasks");   // the session's tasks, live; an owner prompt's asks arrive here as proposals (core/Session/SessionTasks.js)
+@@ -236,7 +238,7 @@ export default class AISessionDetail extends Page {
+ 			this.log_urls().then(() => PromptLog.read(session_id)).then(lines => coverage.read_records(PromptLog.fold(lines))).catch(() => {});   // the prompt records, when the session has them (ext/Refine/doc/prompt-records.md)
+ 			this.show_role($role, row, session_id);   // the Role class: this session's role and its properties
+ 			voice.follow(session_id);   // a phone has no dev socket: it follows Servex's voice stream
+-			this.record_if_there().then(file => { if (file && !this.tasks_log) this.tasks_log = new SessionTasks({ url: file, $box: $tasks }).live(); });
++			this.record_if_there().then(file => { if (file && !this.tasks_log) this.tasks_log = new SessionTasks({ url: file, $box: $tasks, on_session: s => this.feed?.record(s) }).live(); });
+ 			// FIRST, before the slow loads below: the session's own page log (tabs, layout words, AI cards), live.
+ 			this.log_urls().then(urls => {
+ 				if (this.logs) return;
+diff --git a/public/framework/ai/AISession/SessionFeed.css b/public/framework/ai/AISession/SessionFeed.css
+new file mode 100644
+index 000000000..22f6eba70
+--- /dev/null
++++ b/public/framework/ai/AISession/SessionFeed.css
+@@ -0,0 +1,20 @@
++/* The session page's Overview list (SessionFeed). Prefix sfeed-. Rows come from SessionTaskRow and TaskView.row; only the list frame is here. */
++@layer site {
++	.sfeed { width: 100%; min-width: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: .75rem; max-width: 70rem; }
++	.sfeed-head { margin: 0; font-size: 1.05rem; }
++	.sfeed-list { padding: .25rem 0; min-width: 0; max-width: 100%; box-sizing: border-box; overflow-wrap: anywhere; }
++	.sfeed-item { min-width: 0; }
++	.sfeed-item { border-top: 1px solid var(--mob-line); padding: .25rem .75rem; }
++	.sfeed-list > .sfeed-item:first-child { border-top: 0; }
++	.sfeed-item.is-dropped { opacity: .5; }
++	.sfeed-row { display: flex; flex-direction: column; flex: 1 1 auto; min-width: 0; }
++	.sfeed-sum { display: flex; align-items: flex-start; gap: .75em; cursor: pointer; list-style: none; }
++	.sfeed-sum::-webkit-details-marker { display: none; }
++	.sfeed-sum::before { content: "▸"; padding-top: .9em; color: color-mix(in srgb, var(--ink) 50%, transparent); }
++	details[open] > .sfeed-sum::before { content: "▾"; }
++	.sfeed-prog { flex: 0 0 auto; padding-top: .9em; }
++	.sfeed-title { padding: .6em 0; }
++	.sfeed-kids { margin-left: 1.25rem; border-left: 1px solid var(--mob-line); }
++	.sfeed-agent { display: flex; gap: .75em; align-items: baseline; padding: 0 0 .5em 2.5rem; }
++	.sfeed-link { font-size: .8rem; }
++}
+diff --git a/public/framework/ai/AISession/SessionFeed.js b/public/framework/ai/AISession/SessionFeed.js
+new file mode 100644
+index 000000000..8e5ddb745
+--- /dev/null
++++ b/public/framework/ai/AISession/SessionFeed.js
+@@ -0,0 +1,70 @@
++import View, { div, span, small, strong, a, p, details, summary } from "/framework/core/View/View.js";
++import TaskView from "/framework/core/Task/TaskView.js";
++import MobileData from "../sessions/v/mobile/MobileData.js";
++import SessionTaskRow from "./SessionTaskRow.js";
++
++View.stylesheet(import.meta, "SessionFeed.css");
++
++/** The session page's Overview: every task and child session of the session in one list, newest first.
++ *  Two sources are merged: the task folders (`ready`, a promise of the loaded SessionWork; its tree nodes) and the tasks in the session's own record
++ *  (`record(session)`, called with each replay of session.jsonl by SessionTasks). A folder an agent session ran draws as that session: its model, cost and a link.
++ *  A record task that points at a folder already listed is not drawn twice. Subtasks fold under their parent; a dropped task is dimmed, not hidden. */
++export default class SessionFeed extends View {
++
++	initialize(){
++		this.ac("sfeed");
++		this.ready.then(work => { this.tree = work.tree; this.draw(); });
++	}
++
++	/** Called with the replayed Session each time its record changes. */
++	record(session){ this.session = session; if (this.tree !== undefined) this.draw(); }
++
++	// A folder node's start; a record task's `created_at` (the time of the line that added it, Task.created_at), so both sort together.
++	static time(x){ return Date.parse(x?.started ?? x?.created_at ?? x?._at ?? x?._rp?.at ?? x?._last_ts ?? "") || 0; }
++
++	// The counts, computed: own = the record's direct tasks; total = record tasks with their subtasks plus the folders under the session.
++	counts(own, folders){
++		const deep = t => 1 + [...(t._tasks ?? [])].reduce((n, k) => n + deep(k), 0);
++		return { own: own.length, total: own.reduce((n, t) => n + deep(t), 0) + folders.reduce((n, k) => n + k.all().length, 0) };
++	}
++
++	draw(){
++		const folders = this.tree?.root.kids ?? [], urls = new Set(folders.flatMap(k => k.all().map(n => n.url)).filter(Boolean));
++		const own = [...(this.session?._tasks ?? [])].filter(t => !urls.has(t.get_one("path")));
++		const { own: n_own, total } = this.counts([...(this.session?._tasks ?? [])], folders);
++		const items = [...folders.map(n => ({ at: SessionFeed.time(n), n })), ...own.map((t, i) => ({ at: SessionFeed.time(t) || i, t }))].sort((a, b) => b.at - a.at);
++		this.empty(() => {
++			p.c("sfeed-head", `Own tasks: ${n_own} · Total: ${total} · newest first`);
++			if (!items.length) return void p.c("mob-empty", "No tasks or child sessions recorded for this session yet.");
++			div.c("sfeed-list mob-card", () => items.forEach(i => i.n ? this.folder(i.n) : this.task(i.t)));
++		});
++	}
++
++	// "N of M done" over a node's subtasks (dropped ones are not counted).
++	static progress(kids){ const live = kids.filter(k => k !== "stopped"); return `${live.filter(k => k === "complete").length} of ${live.length} done`; }
++
++	folder(n){
++		const kid = n.kids.length, row = () => div.c("sfeed-row", () => {
++			new SessionTaskRow({ node: n, sid: this.sid });
++			if (typeof n.session === "string") div.c("sfeed-agent", () => {
++				small.c("muted", [n.model && n.model.replace(/^claude-/, ""), n.usd != null && MobileData.usd(n.usd)].filter(Boolean).join(" · "));
++				a.c("sfeed-link", "session →").href(`/framework/ai/sessions/${n.session}/`);
++			});
++		});
++		const cls = "sfeed-item" + (n.state === "stopped" ? " is-dropped" : "");
++		if (!kid) return void div.c(cls, row);
++		details.c(cls, () => {
++			summary.c("sfeed-sum", () => { row(); small.c("muted sfeed-prog", SessionFeed.progress(n.kids.map(k => k.state))); });
++			div.c("sfeed-kids", () => [...n.kids].sort((a, b) => SessionFeed.time(b) - SessionFeed.time(a)).forEach(k => this.folder(k)));
++		});
++	}
++
++	task(t){
++		const kids = [...(t._tasks ?? [])], cls = "sfeed-item sfeed-rec" + (t.state === "stopped" ? " is-dropped" : "");
++		if (!kids.length) return void div.c(cls, () => TaskView.row(t));
++		details.c(cls, () => {
++			summary.c("sfeed-sum", () => { strong.c("sfeed-title", t.get_one("title") ?? t.id); small.c("muted sfeed-prog", SessionFeed.progress(kids.map(k => k.state))); });
++			div.c("sfeed-kids", () => [...kids].reverse().forEach(k => div.c("sfeed-item" + (k.state === "stopped" ? " is-dropped" : ""), () => TaskView.row(k))));
++		});
++	}
++}
+diff --git a/public/framework/ai/AISession/SessionStats.js b/public/framework/ai/AISession/SessionStats.js
+index ceade73ed..d6db9408c 100644
+--- a/public/framework/ai/AISession/SessionStats.js
++++ b/public/framework/ai/AISession/SessionStats.js
+@@ -1,4 +1,5 @@
+-import View, { div, span, small, strong } from "/framework/core/View/View.js";
++import View, { div, span, small, strong, a } from "/framework/core/View/View.js";
++import { names } from "/framework/core/Router/listing.js";
+ import TaskView from "/framework/core/Task/TaskView.js";
+ import Task from "/framework/core/Task/Task.js";
+ import SessionWork from "./SessionWork.js";
+@@ -47,7 +48,13 @@ export default class SessionStats extends View {
+ 					div.c("sov-stat", () => { small.c("sov-k", label); strong.c("sov-v", value); });
+ 			});
+ 			if (part.counted.length) div.c("sov-bar", () => TaskView.draw_bar(part.counted.map(n => n.state), 12));
+-			small.c("sov-caption", `${done} done · ${part.running} running · ${part.open.length - part.running} open · ${part.dropped.length} dropped (not counted)`);
++			small.c("sov-caption", `${done} done · ${part.running} running · ${total - done - part.running} queued or waiting · ${part.dropped.length} dropped (not counted)`);   // one count each, so the parts add up to the total
++			const folders = root.folders ?? [work.dir];   // the session's folders, one per day it filed work under (SessionTree.load)
++			small.c("sov-links", () => {
++				span("This session's record: ");
++				folders.forEach((f, i) => { const have = names(f), log = !have ? "session.jsonl" : ["session.jsonl", "task.jsonl"].find(n => have.includes(n)); if (!log) return; if (i) span(" · "); a.c("", folders.length > 1 ? `log, ${f.match(/\d{4}\/\d\d\/\d\d/)?.[0] ?? f}` : `the session log (${log})`).href(f + log).attr("target", "_blank"); });
++				if (work.id) { span(" · "); a.c("", "the transcript").href("/ai-logs/" + work.id).attr("target", "_blank"); }
++			});
+ 		});
+ 		this.el.hidden = false;
+ 	}
+diff --git a/public/framework/ai/AISession/readme.md b/public/framework/ai/AISession/readme.md
+index 0fc6888b1..7f5d57e26 100644
+--- a/public/framework/ai/AISession/readme.md
++++ b/public/framework/ai/AISession/readme.md
+@@ -5,7 +5,7 @@
+ - `AISession.js` — one session's cost, read from its raw transcript (browser and node).
+ - `AISessionsPage.js` · `AISessionView.js` · `AISessionRows.js` · `AISessionBuckets.js` — the grid page, its row, how rows nest and fold.
+ - `AISessionDetail.js` · `AISessionConversation.js` · `AISessionCoverage.js` · `AISessionTrace.js` — a session's own page and its tabs. A clicked row opens that session's full page in place of the list (previews plus full detail views: [design/navigation](/framework/design/navigation/readme.md)); the sessions page no longer calls `columns()`. A named agent's url (`/framework/ai/sessions/<name>/`, a `reviewer-*` or `minion-*` row) resolves the name to its session through Servex's live agent list (`AISessionDetail.agent_row`), and every load asks the folder listing first, so the page never asks for a file that is not there.
+-- The session page's tabs are **Overview · Tasks · Chat**, then Coverage, Cost, Models and tokens, Related. `?tab=work` opens Tasks and `?tab=conversation` opens Chat. Above the tabs sits the sticky stats bar (`SessionStats.js`: cost, model, running for, done X of Y, the one segmented bar); it reads the tree `SessionWork` loads, so one load serves the bar, the Overview and the Tasks tab. **A session's total cost always comes from the item tool** (`AICost.ask(folder)` → `summary.cost.total`, the same cached answer as the Report tab), never from `SessionWork`'s own sum, which adds the day snapshots' older, inflated `usd`. `SessionOverview.js` draws the Overview's four cards side by side (Open, Project, Done, Dropped), with the phone's classes (`MobileRow`, `MobileTaskRow`, `mob-` CSS); `SessionTaskRow.js` is the phone's task row that opens the task's full page and shows its cost. Their styles, and the full-screen mode with two floating buttons (`AISessionDetail.full_screen`, `?full`), are `SessionOverview.css` (prefix `sov-`).
++- The session page's tabs are **Overview · Board · Tasks · Chat**, then Coverage, Cost, Models and tokens, Related. `?tab=work` opens Tasks and `?tab=conversation` opens Chat. Above the tabs sits the sticky stats bar (`SessionStats.js`: cost, model, running for, done X of Y, the one segmented bar); it reads the tree `SessionWork` loads, so one load serves the bar, the Overview and the Tasks tab. **A session's total cost always comes from the item tool** (`AICost.ask(folder)` → `summary.cost.total`, the same cached answer as the Report tab), never from `SessionWork`'s own sum, which adds the day snapshots' older, inflated `usd`. `SessionFeed.js` (+ `SessionFeed.css`, prefix `sfeed-`) is the Overview tab: one list, newest first, of the session's task folders (a folder an agent session ran shows that session's model, cost and a link) and its record tasks (`SessionTasks` hands it each replay through `on_session`), subtasks folded under a parent with "N of M done", dropped ones dimmed, and the head line `Own tasks: N · Total: M`. `SessionOverview.js` draws the Board tab's four cards side by side (Open, Project, Done, Dropped), with the phone's classes (`MobileRow`, `MobileTaskRow`, `mob-` CSS); `SessionTaskRow.js` is the phone's task row that opens the task's full page and shows its cost. Their styles, and the full-screen mode with two floating buttons (`AISessionDetail.full_screen`, `?full`), are `SessionOverview.css` (prefix `sov-`).
+ - `SessionWork.js` (+ `.css`) — the **Tasks** tab (the old Work view; its `SessionWork.split(root)` also feeds the stats bar and the Overview): its work nested by task folder (`sessions/doc/variants/SessionTree.js` over `ai/index.json`), own and rolled cost, tasks complete of created, open tasks, the Today ▾ pill (`ux/Filter/TimeFilter`), Approve. `Approvals.js` writes `{"approve":{"at","by":"owner"}}` to the session's own `session.jsonl` plus a pointer in that day's `day.jsonl` (the line the tab streams); `Review.js` is the leak rule and its numbers (finished 1 h, over $0.50, over a day old).
+ - `AISessionLive.js` · `AISessionFollow.js` · `AISessionResume.js` · `AISessionFlags.js` — live tail, follow, resume, flags.
+ - `AISessionDigest.mjs` — one transcript boiled down by plain Node: sizes, exact cost, owner prompts, result, `digest.json` and procedural `tags()` ([round 4](sessions/2026/10/16/voice-20261016/past-work/round4-result.md)).
+diff --git a/public/framework/ai/sessions/doc/variants/SessionTree.js b/public/framework/ai/sessions/doc/variants/SessionTree.js
+index d59fc41c8..ba0e88dbc 100644
+--- a/public/framework/ai/sessions/doc/variants/SessionTree.js
++++ b/public/framework/ai/sessions/doc/variants/SessionTree.js
+@@ -16,17 +16,25 @@ export default class SessionTree {
+ 		return Promise.all([this.cache.index, this.cache[day]]);
+ 	}
+ 
++	// A folder named for its session (session-e00f55c9, mastermind-x-1a2b3c4d, or the uuid) is that session on any day; a plain name (feedback-council) is reused by unrelated work.
++	static SAME = /(^|-)[0-9a-f]{8}(-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})?$/;
++
+ 	// `day` is "2026/10/20", `folder` the session folder name.
+ 	static async load(day, folder){
+ 		const [index, dayix] = await this.files(day);
+ 		const base = `public/framework/ai/sessions/${day}/${folder}`;
+-		const rows = index.tasks.filter(t => t.dir === base || t.dir.startsWith(base + "/"));
++		// A session resumed days later could get a second folder of the same name under the later day (DatedFiles.session_dir looked back
++		// only 4 days until 2026-10-24): its tasks are this session's too, filed under "<day>/" so two days' folders never share a rel.
++		const bases = [base, ...(this.SAME.test(folder) ? [...new Set(index.tasks.map(t => /^public\/framework\/ai\/sessions\/\d{4}\/\d\d\/\d\d\/[^/]+/.exec(t.dir)?.[0]))].filter(b => b && b !== base && b.endsWith("/" + folder)).sort() : [])];
++		const home = dir => bases.find(b => dir === b || dir.startsWith(b + "/"));
++		const rows = index.tasks.filter(t => home(t.dir));
+ 		const snap = dayix.snapshots.find(s => s.folder === folder) ?? null;
+-		const own = rows.find(r => r.dir === base);
+-		const root = new SessionTree.Node({ rel: "", title: snap?.title ?? own?.title ?? folder, state: own?.state ?? snap?.state ?? "unknown", url: `/framework/ai/sessions/${day}/${folder}/`, started: snap?.first_at ?? own?.started, ended: snap?.last_activity ?? own?.last, session: true });
++		const own = rows.find(r => r.dir === base), owns = rows.filter(r => bases.includes(r.dir));
++		const latest = [snap?.last_activity ?? own?.last, ...owns.map(r => r.last)].filter(Boolean).sort((a, b) => Date.parse(a) - Date.parse(b)).at(-1);
++		const root = new SessionTree.Node({ rel: "", title: snap?.title ?? own?.title ?? folder, state: own?.state ?? snap?.state ?? "unknown", url: `/framework/ai/sessions/${day}/${folder}/`, started: snap?.first_at ?? own?.started, ended: latest, session: true, folders: bases.map(b => "/" + b.slice("public/".length) + "/") });
+ 		const nodes = new Map([["", root]]);
+-		rows.filter(r => r !== own).sort((a, b) => a.dir.length - b.dir.length || String(a.started).localeCompare(String(b.started))).forEach(r => {
+-			const rel = r.dir.slice(base.length + 1);
++		rows.filter(r => !owns.includes(r)).sort((a, b) => a.dir.length - b.dir.length || String(a.started).localeCompare(String(b.started))).forEach(r => {
++			const b = home(r.dir), rel = (b === base ? "" : b.slice("public/framework/ai/sessions/".length, -folder.length)) + r.dir.slice(b.length + 1);
+ 			const kid = r.session && r.session !== snap?.id ? dayix.snapshots.find(x => x.id === r.session) : null;   // the agent session that did this task
+ 			const node = new SessionTree.Node({ rel, title: r.title, state: r.state, url: r.url, started: r.started, ended: r.landed_at ?? r.last, landed: !!r.landed_at, line: r.line, agent: r.agent, session: r.session ?? null, snap: kid, usd: kid?.usd ?? null, model: kid?.model ?? null });
+ 			let up = rel; do { up = up.includes("/") ? up.slice(0, up.lastIndexOf("/")) : ""; } while (!nodes.has(up));   // the nearest folder above that is itself a task
+diff --git a/public/framework/ai/sessions/readme.md b/public/framework/ai/sessions/readme.md
+index 79ad7494d..4880041dd 100644
+--- a/public/framework/ai/sessions/readme.md
++++ b/public/framework/ai/sessions/readme.md
+@@ -43,7 +43,7 @@ A session folder is one of three kinds:
+ 
+ - **The page**: `page.js` builds `AISessionsPage` (`ai/AISession/`), a table or rail of cards over [ext/DataGrid](/framework/ext/DataGrid/). Rows are `AISessionView`, order and nesting `AISessionsPage.arrange()`, built from `session-tree.json` plus the live `index.json` snapshots pushed over the page's socket.
+ - **A year, month or day folder** (`/framework/ai/sessions/2026/10/`): `StoreFolder.sessions` (`ai/AISession/StoreFolder.js`). A year lists its months and a month its days, each with its session count and cost from the rolled-up `index.json`; a day lists its sessions. A folder with no rolled-up `index.json` says so in words (it is asked for only when the folder listing shows one).
+-- **One session**: `/framework/ai/sessions/<id>/` → `AISessionDetail`: a sticky stats bar, then the tabs Overview · Tasks · Chat (the Work view is the Tasks tab; `?tab=work` and `?tab=conversation` still map), then Coverage, Cost and the rest. The stats bar reads `SessionWork`'s task tree; files `SessionOverview`, `SessionStats`, `SessionTaskRow` are in [AISession](/framework/ai/AISession/readme.md). Coverage tab: [ext/Refine/doc/refine-queue.md](/framework/ext/Refine/doc/refine-queue.md).
++- **One session**: `/framework/ai/sessions/<id>/` → `AISessionDetail`: a sticky stats bar, then the tabs Overview (every task and child session of the session in one list, newest first, with own and total counts: `SessionFeed`) · Board (the four cards: open, project, done, dropped) · Tasks · Chat (the Work view is the Tasks tab; `?tab=work` and `?tab=conversation` still map), then Coverage, Cost and the rest. The stats bar reads `SessionWork`'s task tree; files `SessionOverview`, `SessionStats`, `SessionTaskRow` are in [AISession](/framework/ai/AISession/readme.md). Coverage tab: [ext/Refine/doc/refine-queue.md](/framework/ext/Refine/doc/refine-queue.md).
+ - **The class**: `class AISession extends Session` (`AISession.js`): totals, `apply_line()` per transcript line, `AISession.of(id)`, `AISession.log()`, `AISession.record(id)`. Classes of the detail page: [doc/ui/classes.md](doc/ui/classes.md).
+ - **Variants**: `/framework/ai/sessions/v/<name>/` is another look at the same data, for example [v/mobile/](/framework/ai/sessions/v/mobile/) (the phone pages: day list, nested sessions, a session, a task). `AISessionsPage.route()` passes the name `v` through to that folder instead of reading it as a session id.
+ - **Routine sessions are hidden** behind one chip per kind (prompt cleaning, short headless runs, reviews): [doc/buckets.md](doc/buckets.md).
+diff --git a/public/framework/core/Session/Session.js b/public/framework/core/Session/Session.js
+index 79e3a8c95..c8bf72eb0 100644
+--- a/public/framework/core/Session/Session.js
++++ b/public/framework/core/Session/Session.js
+@@ -6,11 +6,14 @@
+ 
+ import Item from "../Item/Item.js";
+ import Day from "./Day.js";
+-import List from "../List/List.js";
+ import Task from "../Task/Task.js";
+ import "../Task/Project.js";   // registers "Project": a proposal can be made one (decide is "project")
++import "../Task/Process.js";   // registers "Process": a task added with {type: "Process"} replays as one
+ 
+-export default class Session extends Item {
++/* A Session IS a Task (the owner, 2026-10-24, session-is-a-task): Task's states, completion, `tasks` list (strings, objects, typed
++   children: Task, Process, Project, Session), queries and cost. What a session adds: its dated folder, its record's line shape (replay_line
++   below), its menu and settings. Its own state lines are {"start"}/{"stop"} on the record, kept as they were. */
++export default class Session extends Task {
+ 	static days = new Map();     // id -> "2026/10/03"
+ 	static slugs = new Map();    // id -> folder name; a session with no slug is in an old uuid-named folder
+ 	static scanned = false;
+@@ -18,10 +21,7 @@ export default class Session extends Item {
+ 	// super() with no args: Item assigns its args onto itself, and a string id would spread into characters.
+ 	constructor(id){ super(); if (id !== undefined) this.id = id; }
+ 
+-	// A session HAS tasks, made on first use like Task.tasks; its progress is counted from them on read, never stored.
+-	get tasks(){ if (!this._tasks){ this._tasks = new List({ owner: this, name: "tasks" }); this._tasks.of = Task; } return this._tasks; }
+-	set tasks(list){ this._tasks = list; }
+-	lists(){ const { _tasks, ...rest } = super.lists(); return { ...rest, ...(_tasks ? { tasks: _tasks } : {}) }; }
++	// Its tasks are Task's own list (made on first use); its progress is counted from them on read, never stored.
+ 
+ 	/* THE SESSION MENU (the owner, 2026-10-22; doc/menu.md): a session DECLARES what its menu holds, as a template a subclass
+ 	   extends (`static MENU = [...Session.MENU, {…}]`). An entry is a sub-page (`page: true`, routed at <session url>/<name>/)
+@@ -43,11 +43,10 @@ export default class Session extends Item {
+ 	// The settings now: every {"settings":{…}} line merged in order, so a later line wins. Never stored whole.
+ 	get settings(){ return this._settings ??= {}; }
+ 
+-	progress(){ return Task.progress_of(this._tasks); }
++	progress(){ return Task.progress_of(this._tasks); }   // no tasks is 0 of 0, not Task's 0 of 1
+ 	/* The agent sessions that ran under this session's folder: dir -> [{id, role, state, session_id, cost, started_at}]. Node wires it
+ 	 * from Servex's registry (Servex/agents/Agents.js), so a child is found by where its task lives, never by a link someone had to write. */
+ 	static agents_resolver = null;
+-	get completion(){ const { done, total } = this.progress(); return total ? done / total : 0; }
+ 
+ 	// Item.replay does the loop; a session only needs its id from line 1 and its own line shape.
+ 	static replay_new(lines){
+@@ -64,6 +63,8 @@ export default class Session extends Item {
+ 	// When the session's log began and last changed (from its lines), and the span between: never stored.
+ 	get first_at(){ return this._first_at ?? null; }
+ 	get last_at(){ return this._last_at ?? null; }
++	// The record has no legacy fields to infer a state from (Task.replay_end would read it as running): its state is its own lines'.
++	replay_end(){ this._at = null; return this; }
+ 	get span_ms(){ return this._first_at && this._last_at ? Date.parse(this._last_at) - Date.parse(this._first_at) : 0; }
+ 	apply_line(delta, by){
+ 		/* THE SESSION'S OWN STATE: {"stop":{why}} closes it (StaleClose writes one for an abandoned tab); {"start":{}} reopens it and
+@@ -72,10 +73,15 @@ export default class Session extends Item {
+ 		if (delta.start && typeof delta.start === "object"){ this.put("state", "running"); this.put("why", null); this.put("stopped_at", null); delete delta.start; }
+ 		if (typeof delta.task === "string"){   // a reference line: the live child; one with the same id as a nested child replaces it (it moved home)
+ 			const kid = Task.from_ref(delta.task, delta.as), had = this._tasks?.find(kid.id);
++			kid._created_at ??= Task.clock;
+ 			if (had) this.tasks.replace(had, kid); else this.tasks.insert(kid);
+ 			delete delta.task; delete delta.as; delete delta.moved_from;
+ 		}
+-		if (delta.tasks && typeof delta.tasks === "object") this.tasks.set(delta.tasks);
++		if (delta.tasks && typeof delta.tasks === "object"){
++			const had = new Set([...(this._tasks ?? [])]);
++			this.tasks.set(delta.tasks);
++			for (const kid of this._tasks) if (!had.has(kid)) kid._created_at ??= Task.clock;   // the line's time, in memory only (never data: a move compares data): Task.created_at
++		}
+ 		delete delta.tasks;
+ 		if (delta.settings && typeof delta.settings === "object"){ Object.assign(this.settings, delta.settings); delete delta.settings; }   // merged, never replaced
+ 		// The owner's answer to a proposed task, from the session page: {"decide":{"task":id,"is":"approve"|"improve"|"reject","note"}}.
+diff --git a/public/framework/core/Session/SessionTasks.js b/public/framework/core/Session/SessionTasks.js
+index f9badef5d..1491b7db3 100644
+--- a/public/framework/core/Session/SessionTasks.js
++++ b/public/framework/core/Session/SessionTasks.js
+@@ -20,6 +20,7 @@ export default class SessionTasks extends JSONL {
+ 
+ 	draw(){
+ 		const Class = this.session_class ?? Session, s = Class.replay(this.lines), all = [...(s._tasks ?? [])];
++		this.on_session?.(s);   // the session page's Overview list reads the same replay
+ 		// A stopped task was dropped on purpose (noise, superseded, rejected): folded at the end and left out of the count (Task.progress_of).
+ 		const tasks = all.filter(t => t.state !== "stopped"), stopped = all.filter(t => t.state === "stopped");
+ 		this.$box?.empty(() => {
+diff --git a/public/framework/core/Session/doc/session-is-a-task.md b/public/framework/core/Session/doc/session-is-a-task.md
+new file mode 100644
+index 000000000..dfb0909d9
+--- /dev/null
++++ b/public/framework/core/Session/doc/session-is-a-task.md
+@@ -0,0 +1,52 @@
++# Session is a Task: the migration (2026-10-24)
++
++**What changed:** `Session extends Task` (it was `extends Item`). The owner asked for it on 2026-10-24 ("make session extend task… properly transition from whatever it is now to the new state"). The brief is [session-is-a-task/requirements.md](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/session-is-a-task/requirements.md), items 1–13.
++
++## What a Session now gets from Task, and what it keeps
++
++| | From Task | Kept in Session |
++|---|---|---|
++| `tasks` | Task's list: a string, an object, or a typed object (Project, Process, Session); children watched | — |
++| state | `state` getter, `can()`, the verbs | its record's own `{"start"}` / `{"stop"}` lines (`apply_line`), and `replay_end` (Task's would read a record with no verb lines as running) |
++| numbers | `completion`, `cost`, `summary()`, `queries` | `progress()` (no tasks reads 0 of 0, not Task's 0 of 1) |
++| times | `created_at` of each child (the time of the line that added it, in memory, never data) | `first_at`, `last_at`, `span_ms` from its lines |
++| folder | — | `days`, `slugs`, `scan()`, `locate()`, `dir_url()`, `MENU`, `SETTINGS` |
++
++A record referenced with `{"task": "<folder>"}` whose line 1 is `{"session":{…}}` replays as a `Session` (`Task.from_ref`), named by its session id. A Servex agent's own folder opens with `{"assign":{session_id,…}}`, so it replays as the Task it carries, with its `session` field. That is how a child session shows as its task.
++
++## Every caller, and what it reads (computed 2026-10-24 with a grep for imports of `core/Session/Session.js`)
++
++| Caller | Uses |
++|---|---|
++| `ai/AISession/AISession.js` | `extends Session`: adds cost, cache, transcript, `root_url()`. Its members only overlap Task's in `render` (its own view, meant to override) |
++| `core/Session/SessionTasks.js`, `SessionSettings.js`, `page.js` | `Session.replay(lines)`, `tasks`, `progress()`, `settings`, `menu()` |
++| `Servex/agents/page_tools.js` | `LOADERS.Session`: a record whose line 1 is `{"session"}` is replayed as a Session; `session_state` |
++| `Servex/agents/Agents.js` | `Session.agents_resolver` (now `(dir, {session_id, since})`) |
++| `Servex/agents/PromptTasks.js` | replays a session record to file an owner prompt's asks |
++| `Server/AskIndex.mjs`, `Server/TaskMove.mjs`, `Server/Day.test.mjs` | `scan()`, `locate()`, `Day` |
++| tests | `Session.test.mjs`, `session-task.test.mjs`, `Servex/agents/{session-state, session_tasks, handover, prompt-tasks, item_tool}.test.mjs` |
++
++The record shapes it reads are listed in the [readme](../readme.md) ("Lines it replays"); none changed.
++
++## The proof that old records still read the same
++
++- Every session record under `ai/sessions/` (97 files whose line 1 is `{"session"}`) was replayed by the old class (michael/dev) and the new one (worktree qf-4).
++- The comparison covered: tasks and their ids, every task's state, `progress()`, `completion`, `first_at`, `last_at`, the session's own state and `settings`.
++- Result: **97 of 97 the same, 0 errors.** The script and its output are in the session-is-a-task task folder ([migrate-check.mjs](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/session-is-a-task/migrate-check.mjs)).
++
++## Item writes, before and after
++
++On a copy of session-e00f55c9's record (138 KB, 182 tasks, 153 child agents):
++
++| | Before | After |
++|---|---|---|
++| a write | 20 s, answering about 45 KB (the whole session picture) | 5–7 ms, answering under 400 bytes (`{ok, ids, line, size, now}`) |
++| a full read | 21 s | 1.8 s the first time, 36 ms after (each agent log's cost is kept until the file changes) |
++
++The 20 s writes were also past the browser Store's 5 s timeout, after which the browser appended the line itself (a possible twin line).
++
++## Decisions and their alternatives
++
++- **A session is named by its id, a task by its path.** Alternative: name parents by path everywhere. That wins if sessions stop having ids of their own; today the page route, the transcript and the registry all key on the id.
++- **`parent_session` sits beside `parent` in the registry** rather than replacing it. `parent` is the agent id the child wakes when it ends, so it must stay an agent id.
++- **Old registry rows are not rewritten.** The registry is live Servex state, so instead they are matched by the parent's name within the session's span. Rewriting them is a one-off script, worth running only if the match ever proves wrong.
+diff --git a/public/framework/core/Session/readme.md b/public/framework/core/Session/readme.md
+index b0f4b191c..e28d9785d 100644
+--- a/public/framework/core/Session/readme.md
++++ b/public/framework/core/Session/readme.md
+@@ -1,6 +1,6 @@
+ # core/Session
+ 
+-A `Session` is one run of an agent or a tab: an Item that lives in its own dated folder, `<root>/YYYY/MM/DD/<slug>/`, and owns a list of tasks. Decisions: [doc/architecture.md](doc/architecture.md).
++A `Session` is one run of an agent or a tab. **It is a Task** (`Session extends Task`, since 2026-10-24): it has Task's states, completion and `tasks` list, and adds a dated folder of its own, `<root>/YYYY/MM/DD/<slug>/`. Its tasks can be plain tasks, projects, processes and child sessions. Decisions: [doc/architecture.md](doc/architecture.md); the move to a Task: [doc/session-is-a-task.md](doc/session-is-a-task.md).
+ 
+ Session is mainly an AI session class (not a web login session), so it probably belongs in the framework/ai module; not moved yet. (The owner, 2026-10-23.)
+ 
+@@ -8,14 +8,14 @@ Session is mainly an AI session class (not a web login session), so it probably
+ 
+ ```js
+ // Session.js (default export)
+-class Session extends Item                       // ../Item/Item.js; registered as "Session"
++class Session extends Task                       // ../Task/Task.js (Task extends Item); registered as "Session"
+   static days, slugs: Map   // id -> "YYYY/MM/DD" / folder name. A subclass declares its OWN (statics inherit by reference)
+   static scanned: boolean   // true once scan() has read the tree
+   static MENU, SETTINGS     // the session menu template and its settings form (doc/menu.md)
+   menu(url), settings       // MENU with urls; {"settings":{…}} lines merged, a later line wins
+   id                        // from the constructor, or line 1 of the log
+-  tasks: List<Task>         // made on first use; setter allowed
+-  completion: number        // getter, 0..1 = done / total, 0 when there are no tasks. Never stored
++  tasks: Task.List          // Task's list: add("a title"), add({title,…}), add({type: "Project"|"Process"|"Session", …}); each child knows created_at (its line's time)
++  state, completion         // Task's getters; state comes from the record's own {"start"}/{"stop"} lines, completion = done / total of its tasks. Never stored
+   progress(): {done,total,stopped}  // Task.progress_of(this._tasks), the one counting code; a stopped task counts in neither done nor total
+   first_at, last_at, span_ms  // from the lines' own times, never stored
+   static agents_resolver    // node wires it (Servex/agents/Agents.js agents_under): dir -> [{id, parent, role, state, cost, …}], the agent sessions whose task lives in that folder
+@@ -34,7 +34,34 @@ class Session extends Item                       // ../Item/Item.js; registered
+ - **Who calls it:** the item tool in `Servex/agents/page_tools.js` maps `session.jsonl` to `Session` and replays it; `ai/AIDashboard/SessionStore.js`, `AISessionIndex.mjs`, `AISessionLive.js`, `Server/State.mjs`, `Server/TaskDirs.mjs` and `Server/SessionDayMove.mjs` use it or `Day`.
+ - **How it loads:** a session's folder holds `session.jsonl`, written by `.claude/hooks/append.mjs`, `Agents.open_task` and the page tools, never by hand. Older folders are still found by `scan()` through `index.json`, `cache.jsonl` or the first `page.jsonl` line. Folder layout: [ai/sessions/readme.md](/framework/ai/sessions/readme.md).
+ - **Times are the lines' own.** While a line replays, `Task.clock` holds its `at`/`ts`, so a nested task's `completed_at` and duration are when it happened, not when the log was read.
+-- **Test:** `node Session.test.mjs` (tasks, progress, replay, `Day`). Demo page: `page.js`.
++- **Test:** `node Session.test.mjs` (tasks, progress, replay, `Day`); `node session-task.test.mjs` (a Session is a Task, `tasks.add` with a string or an object, totals from the children). Demo page: `page.js`.
++
++## How work gets into a session
++
++**An AI adds a task.** `item({path: "<session url>", delta: {"tasks": {"add": "Fix the tab bar"}}})` (a string, or an object with fields).
++- The item tool (`Servex/agents/page_tools.js`) appends one line, `{"tasks":{"add":{"type":"Task","title":…,"id":…}}}`, to the session's `session.jsonl`, and answers `{ok, ids, line, now}` in milliseconds. It never returns the whole picture; a read (no delta) does that.
++- `Session.replay` reads it. The session page's Overview (`ai/AISession/SessionFeed.js`) streams the same file, so the task shows at once.
++- Test: `node Servex/agents/session_tasks.test.mjs`.
++
++**An AI spawns a child session.** `spawn_agent` (Servex):
++- `open_task` (`Servex/agents/Agents.js`) writes the child's line 1 into its task folder.
++- `SessionRecord.link_parent` appends `{"task":"<child folder url>"}` to the parent's record.
++- The registry row records `parent_session`, the parent's session id at spawn.
++- `Agents.agents_under` finds the child for the parent's cost and children. It matches `parent_session` exactly, and older rows by the parent's name within the parent's span.
++- The child shows on the parent's page as the task it carries, with its model, cost and a link to its own session page.
++
++**References.**
++- A session is named by its **session id**: its page is `/framework/ai/sessions/<id>/`, and a child names its parent by `parent_session`.
++- A task is named by its **path**: `{"task": "<folder url>"}`.
++- `Session.locate(id)` turns an id into its folder.
++
++**A session stays on the day it began.** `DatedFiles.session_dir` looks back 31 days for the session's folder before it makes one (4 until 2026-10-24, which split session-e00f55c9 across 10/20 and 10/24). `TaskDirs --new` uses it, so it never opens a second day's record. The session page also reads a session's folders on later days.
++
++**One source of truth: the file.**
++- The `.jsonl` record is the only truth.
++- The dev server, Servex and the browser each replay it, and keep no edits of their own.
++- Every write is an append: through the item tool, or `append.mjs` for a hook.
++- A number (cost, counts, completion) is computed from the records when it is read, and never written down.
+ 
+ ## What item() answers for a session
+ 
+@@ -43,7 +70,7 @@ class Session extends Item                       // ../Item/Item.js; registered
+ | Field | What it is | Read from (written by) |
+ |---|---|---|
+ | `cost.own` | the session's own Claude spend: `usd`, `parts` (in, out, cache read, cache write), `active_ms`, `models`, `through` (last transcript line's time), `read_to` (bytes read), `at` | the newest `{"summary"}` in the folder's `cache.jsonl` (`AISessionIndex` reads the transcript's new bytes, `ai/AISession/AISession.js`). `null` until that cache exists |
+-| `children` | child agent sessions as a tree: `{id, parent, role, state, cost, total, children}` (`total` = its own plus everything under it) | the Servex registry: every agent whose task folder is inside this folder (`Agents.agents_under`, wired as `Session.agents_resolver`), nested by `parent` |
++| `children` | child agent sessions as a tree: `{id, parent, role, state, cost, total, children}` (`total` = its own plus everything under it) | the Servex registry: every agent whose task folder is inside this folder, plus every agent the session spawned since it began (by `parent_session`, else its name and span) and their descendants (`Agents.agents_under`, wired as `Session.agents_resolver`), nested by `parent`. An agent's cost counts only its turns since the session began |
+ | `cost.children`, `cost.total` | the children's spend; own plus children | the agents' own logs (`turn_cost` lines, `Agents.logged_cost`) |
+ | `cost.tasks`, `biggest` | spend per task folder (each folder once), and the five costliest tasks | `Task.cost` (the agents of the task's `path`) |
+ | `counts.direct`, `counts.all` | `{created, started, complete, stopped}` for the session's own tasks, and for every task below it | the replayed tasks |
+@@ -54,7 +81,7 @@ Test: `node Servex/agents/session-state.test.mjs`.
+ 
+ ## Rules (the owner, 2026-10-20, 16:15)
+ 
+-1. **A session has tasks**, plain tasks or projects (a project is a task with subtasks). A session gets a folder; a task is lines in the session's log. *Built:* `session.tasks`.
++1. **A session has tasks**, plain tasks or projects (a project is a task with subtasks). A session gets a folder; a task is lines in the session's log. *Built:* `session.tasks`, and since 2026-10-24 a session is itself a Task.
+ 2. **Its completion is computed from its tasks**, never typed in: `completion` is the share of tasks in state `complete`. *Built.* One gap: with no tasks it reads 0, and nothing marks the session itself finished.
+ 3. **A session is never marked complete while a loose end exists.** If something is left over, add a task for it instead of closing. *Not built yet:* no code refuses a close. Queued as step 5, "Task as a line", in [sessions-and-tasks.md](/framework/ai/doc/sessions-and-tasks.md).
+ 4. **The session system should be portable** (the owner, 2026-10-20, session-e00f55c9 prompt line 1931): "a reusable, portable system, closer to a dev server than a Servex thing". *Not built yet:* `Session` and `Day` need only `Item` and a dated folder, but the writers (the SessionStart hook, `prompt-relay.mjs`, the item tool) live in this repo's `.claude/hooks` and `Servex/`, so another project cannot use it on its own.
+diff --git a/public/framework/core/Session/session-task.test.mjs b/public/framework/core/Session/session-task.test.mjs
+new file mode 100644
+index 000000000..df5f9ea3e
+--- /dev/null
++++ b/public/framework/core/Session/session-task.test.mjs
+@@ -0,0 +1,52 @@
++// A Session is a Task (session-is-a-task, 2026-10-24): its tasks list takes a string or an object, a referenced session record replays as
++// a Session, and its numbers are computed from its children on read. Fast and DOM-free. `node public/framework/core/Session/session-task.test.mjs`
++import Test from "../Test/Test.js";
++import Task from "../Task/Task.js";
++import Session from "./Session.js";
++
++const t = new Test("Session: a Session is a Task; tasks.add takes a string or an object; totals from the children");
++const at = (h, m) => `2026-10-24T${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:00.000Z`;
++
++t.ok(new Session("s1") instanceof Task, "Session extends Task");
++
++const s = Session.replay([
++	{ session: { id: "s1", kind: "vscode-tab", at: at(10, 0) } },
++	{ tasks: { add: { type: "Task", id: "fix-the-tab-bar", title: "Fix the tab bar" } }, ts: at(10, 1) },
++	{ tasks: { add: { type: "Project", id: "sessions-page", title: "Sessions page" } }, ts: at(10, 2) },
++	{ tasks: { "fix-the-tab-bar": { complete: { outcome: "fixed", evidence: ["a shot"] } } }, ts: at(10, 3) },
++]);
++t.eq(s.tasks.length, 2, "two tasks from the record");
++t.eq(s.tasks.find("sessions-page")?.constructor.name, "Project", "a typed add replays as its class");
++t.eq(s.tasks.find("fix-the-tab-bar")?.created_at, at(10, 1), "a task knows the time of the line that added it");
++t.eq(JSON.stringify(s.progress()), JSON.stringify({ done: 1, total: 2, stopped: 0 }), "progress is counted from the tasks on read");
++t.eq(s.completion, 0.5, "completion is computed from the tasks");
++
++s.tasks.add("Name the module");
++t.eq(s.tasks.find("name-the-module")?.get_one("title"), "Name the module", "tasks.add(\"a string\") makes a Task titled by it");
++t.eq(s.completion, 1 / 3, "a new task changes the totals at once");
++
++// Tokens are bucketed by the task open at the time: the one started last wins; none open is untracked.
++const ms = (h, m) => Date.parse(at(h, m));
++const b = Session.replay([
++	{ session: { id: "s2" } },
++	{ tasks: { add: { type: "Task", id: "outer", title: "Outer" } }, ts: at(12, 0) },
++	{ tasks: { outer: { start: {} } }, ts: at(12, 0) },
++	{ tasks: { add: { type: "Task", id: "inner", title: "Inner" } }, ts: at(12, 10) },
++	{ tasks: { inner: { start: {} } }, ts: at(12, 10) },
++	{ tasks: { inner: { complete: { outcome: "done", evidence: ["t"] } } }, ts: at(12, 20) },
++	{ tasks: { outer: { complete: { outcome: "done", evidence: ["t"] } } }, ts: at(12, 30) },
++]);
++const got = b.attribute([{ ms: ms(11, 0), cost: 1 }, { ms: ms(12, 5), cost: 2 }, { ms: ms(12, 15), cost: 4 }, { ms: ms(12, 25), cost: 8 }, { ms: ms(13, 0), cost: 16 }]);
++t.eq(JSON.stringify(got.tasks.map(x => [x.id, x.usd])), JSON.stringify([["outer", 10], ["inner", 4]]), "turns go to the task open at the time, the inner one while it runs");
++t.eq(got.untracked, 17, "turns with no task open are untracked");
++
++// A child session referenced by path ({"task": "<folder>"}) replays as a Session, not a plain Task.
++const was = Task.resolver;
++Task.resolver = ref => ref === "/x/child/" ? [{ session: { id: "child-1", kind: "servex" } }, { tasks: { add: { type: "Task", id: "a", title: "A" } } }] : null;
++try {
++	const p = Session.replay([{ session: { id: "p" } }, { task: "/x/child/", ts: at(11, 0) }]);
++	const kid = p.tasks.find("child-1");   // a session is named by its session id
++	t.ok(kid instanceof Session && kid.tasks.length === 1, "a referenced session record is a child Session with its own tasks");
++} finally { Task.resolver = was; }
++
++t.done();
+diff --git a/public/framework/core/Task/Task.js b/public/framework/core/Task/Task.js
+index a1eb18d67..07fc2c116 100644
+--- a/public/framework/core/Task/Task.js
++++ b/public/framework/core/Task/Task.js
+@@ -50,10 +50,17 @@ export class Task extends Item {
+ 	// Made on first use (a replayed log rarely has subtasks). `_tasks` is hidden from
+ 	// `lists()` below so the saved key is still "tasks", which `hydrate()` assigns back.
+ 	get tasks(){
+-		if (!this._tasks){ this._tasks = new List({ owner: this, name: "tasks" }); this._tasks.of = Task; this.watch(this._tasks); }
++		if (!this._tasks){ this._tasks = new Task.List({ owner: this, name: "tasks" }); this._tasks.of = Task; this.watch(this._tasks); }
+ 		return this._tasks;
+ 	}
+ 	set tasks(list){ this._tasks = list; this.watch(list); }
++	/* A task list takes anything (the owner, 2026-10-24, session-is-a-task): a plain string is a Task with that title; an object with no
++	   `type` is a Task; an object with a `type` is that class (Process, Project, Session), through Item.hydrate. */
++	static List = class TaskList extends List {
++		make(x){ return typeof x === "string" ? super.make({ id: Task.slug(x), title: x }) : super.make(x); }
++	};
++	// The id a title makes: the item tool's slug_of (Servex/agents/page_tools.js) is the same rule.
++	static slug(text){ return String(text ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40).replace(/-+$/, "") || "task"; }
+ 	// Item.get() skips a prototype getter, so a fresh Task answered undefined for "tasks" and {tasks:{add}} was stored as data (2026-10-22; child-verb.test.mjs).
+ 	get(key){ return key === "tasks" ? this.tasks : super.get(key); }
+ 
+@@ -205,6 +212,8 @@ export class Task extends Item {
+ 		};
+ 	}
+ 	get session(){ return this.get_one("session") ?? this.get_one("session_id"); }
++	// When it was asked for: the time of the line that added it to its parent (Session.apply_line keeps it in memory), else its own record's.
++	get created_at(){ return this._created_at ?? this.get_one("requested_at") ?? this.get_one("started_at") ?? null; }
+ 	get priority(){ return this.get_one("priority") ?? null; }
+ 	get commits(){ return [...(this.data.commits ?? [])]; }
+ 	commit(hash){
+@@ -221,6 +230,25 @@ export class Task extends Item {
+ 		return this;
+ 	}
+ 
++	/* TOKENS ATTRIBUTED TO TASKS (session-is-a-task item 5): a task is a bucket, and every turn the session (or the agent working this task) spends between a task's start and
++	   its end (complete or stopped; still open = now) belongs to it. With several open, the one started last gets it (the innermost bucket);
++	   with none open, the turn is untracked. `turns` = [{ms, cost}] (node: Task.turns_resolver reads an agent's own log). Computed, never stored. */
++	attribute(turns = []){
++		const span = t => { const a = Date.parse(t.get_one("started_at") ?? t.created_at ?? ""), b = Date.parse(t.get_one("completed_at") ?? t.get_one("stopped_at") ?? ""); return isNaN(a) ? null : { t, a, b: isNaN(b) ? Infinity : b }; };
++		const spans = [], walk = list => { for (const t of list ?? []){ const s = span(t); if (s) spans.push(s); walk(t._tasks); } };
++		walk(this._tasks);
++		const by = new Map(); let untracked = 0, tracked = 0;
++		for (const { ms, cost } of turns){
++			let hit = null;
++			for (const s of spans) if (ms >= s.a && ms <= s.b && (!hit || s.a > hit.a)) hit = s;
++			if (hit){ by.set(hit.t, (by.get(hit.t) ?? 0) + cost); tracked += cost; } else untracked += cost;
++		}
++		const r2 = n => Math.round(n * 100) / 100;
++		return { tracked: r2(tracked), untracked: r2(untracked), tasks: [...by].sort((x, y) => y[1] - x[1]).map(([t, usd]) => ({ id: t.id, title: t.get_one("title") ?? t.id, usd: r2(usd) })) };
++	}
++	static turns_resolver = null;   // node: session id -> [{ms, cost}] of that session's own turns (Servex/agents/Agents.js); a VS Code tab has none recorded yet
++
++
+ 	// The owner checking the task off is final.
+ 	check({ by } = {}){
+ 		this.put("checked_by", by ?? "owner");
+@@ -377,7 +405,7 @@ export class Task extends Item {
+ 		let kid;
+ 		if (lines?.length){
+ 			this.resolving.add(ref);   // a cycle of references stops here
+-			const Own = Item.types.get(lines[0]?.class);   // line 1 may name a subclass (a Process): replay it as that, when it is loaded
++			const Own = Item.types.get(lines[0]?.class ?? (lines[0]?.session ? "Session" : undefined));   // line 1 may name a subclass (a Process), or be a session record ({session:{…}}): replay it as that, when it is loaded
+ 			try { kid = (Own && Own.prototype instanceof this ? Own : this).replay(lines); } finally { this.resolving.delete(ref); }
+ 			if (kid.id === "tasks" || kid.id === "task" || as) kid.id = id;   // a module list's line 1 says "tasks", an id-less log replays as "task": both are the same for every sibling, so the folder name stands in
+ 		} else {   // no file (node), or not read yet (browser): a stub, never a throw
+diff --git a/public/framework/core/Task/readme.md b/public/framework/core/Task/readme.md
+index cc2e9b346..7c0218084 100644
+--- a/public/framework/core/Task/readme.md
++++ b/public/framework/core/Task/readme.md
+@@ -40,8 +40,14 @@ build.complete({ outcome: "built", evidence: ["a1b2c3d"] });   // only works onc
+ 
+ build.progress();         // { done: 1, total: 1 } — computed from tasks, never stored
+ build.duration();         // ms of RUNNING time — pausing stops the clock
++
++build.tasks.add("Write the readme");                  // a string: a Task with that title (id "write-the-readme", Task.slug)
++build.tasks.add({ title: "Shoot it", expected: "…" }); // an object with no type: a Task
++build.tasks.add({ type: "Project", title: "Next" });  // a typed object: that class (Project, Process, Session)
+ ```
+ 
++The item tool takes the same three forms: `item({path, delta: {"tasks": {"add": "Write the readme"}}})`. It writes the object form. A **Session is a Task** too ([core/Session](../Session/readme.md), "How work gets into a session").
++
+ Watch it live: [core/Task/live/](/framework/core/Task/live/).
+ 
+ ## Replay, waiting, subtasks

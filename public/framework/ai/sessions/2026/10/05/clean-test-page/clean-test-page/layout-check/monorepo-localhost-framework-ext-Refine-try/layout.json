@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ext/Refine/try/",
+ "widths": {
+  "1280": {
+   "empty": 0.573,
+   "widest_text": 597,
+   "widest_text_sample": "This runs the exact clean-up step Echo r",
+   "overflow_x": false,
+   "items": 62,
+   "narrow_share": 0.194
+  },
+  "1920": {
+   "empty": 0.729,
+   "widest_text": 635,
+   "widest_text_sample": "This runs the exact clean-up step Echo r",
+   "overflow_x": false,
+   "items": 62,
+   "narrow_share": 1
+  },
+  "2560": {
+   "empty": 0.781,
+   "widest_text": 714,
+   "widest_text_sample": "This runs the exact clean-up step Echo r",
+   "overflow_x": false,
+   "items": 62,
+   "narrow_share": 1
+  },
+  "3440": {
+   "empty": 0.827,
+   "widest_text": 714,
+   "widest_text_sample": "This runs the exact clean-up step Echo r",
+   "overflow_x": false,
+   "items": 62,
+   "narrow_share": 1
+  }
+ },
+ "errors": []
+}

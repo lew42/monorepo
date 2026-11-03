@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ux/Dictate/doc/chat/",
+ "widths": {
+  "1280": {
+   "empty": 0.519,
+   "widest_text": 599,
+   "widest_text_sample": "caller today — \"the dictate page is the ",
+   "overflow_x": false,
+   "items": 237,
+   "narrow_share": 0.532
+  },
+  "1920": {
+   "empty": 0.681,
+   "widest_text": 636,
+   "widest_text_sample": "The same chat is open to an agent too: i",
+   "overflow_x": false,
+   "items": 237,
+   "narrow_share": 0.73
+  },
+  "2560": {
+   "empty": 0.727,
+   "widest_text": 716,
+   "widest_text_sample": "The same chat is open to an agent too: i",
+   "overflow_x": false,
+   "items": 237,
+   "narrow_share": 0.734
+  },
+  "3440": {
+   "empty": 0.784,
+   "widest_text": 716,
+   "widest_text_sample": "The same chat is open to an agent too: i",
+   "overflow_x": false,
+   "items": 237,
+   "narrow_share": 0.759
+  }
+ },
+ "errors": []
+}

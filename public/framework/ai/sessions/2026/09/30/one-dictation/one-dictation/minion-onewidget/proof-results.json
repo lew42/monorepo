@@ -1,0 +1,82 @@
+[
+  {
+    "name": "the demo and the sheet build the SAME widget config",
+    "ok": true,
+    "detail": "demo: {\"mode\":\"dictate\",\"join\":true,\"mic_mode_now\":\"pause\",\"pause_send_ms\":1500} | sheet: {\"mode\":\"dictate\",\"join\":true,\"mic_mode_now\":\"pause\",\"pause_send_ms\":1500}"
+  },
+  {
+    "name": "only `keep` differs — the sheet (keep:true) saves its session, the demo never does",
+    "ok": true,
+    "detail": "sessionStorage has a session: true"
+  },
+  {
+    "name": "no console/page errors (same-widget check)",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "demo: autosend — one bubble, no Send press",
+    "ok": true,
+    "detail": "1 bubble(s): \"👤\\n\\nhello there. ✓ 🎤\""
+  },
+  {
+    "name": "demo: no console/page errors (autosend)",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "sheet: autosend — one bubble, no Send press",
+    "ok": true,
+    "detail": "1 bubble(s): \"👤\\n\\nhello there. ✓ 🎤\""
+  },
+  {
+    "name": "sheet: no console/page errors (autosend)",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "a saved send_mode:\"manual\" is migrated back to \"pause\" on load",
+    "ok": true,
+    "detail": "mode_now(): pause"
+  },
+  {
+    "name": "no console/page errors (migration)",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "an old ?mode=chat link loads fine, as plain dictate",
+    "ok": true,
+    "detail": "widget.mode: dictate"
+  },
+  {
+    "name": "no console/page errors (?mode=chat)",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "typing still sends on Enter",
+    "ok": true,
+    "detail": "1 bubble(s): \"👤\\n\\ntyped by hand ⌨\""
+  },
+  {
+    "name": "no console/page errors (typed send)",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "400: no console/page errors (demo shot)",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "1920: no console/page errors (demo shot)",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "400: no console/page errors (sheet shot)",
+    "ok": true,
+    "detail": ""
+  }
+]

@@ -1,0 +1,1133 @@
+diff --git a/.claude/skills/documentation/SKILL.md b/.claude/skills/documentation/SKILL.md
+index 5e4c24dbb..a5e7fd944 100644
+--- a/.claude/skills/documentation/SKILL.md
++++ b/.claude/skills/documentation/SKILL.md
+@@ -81,6 +81,8 @@ A Doc's `notes:` land at `/module/doc/<name>/`, `methods:`/`properties:` at `/mo
+ 
+ **Where:** `readme.md` is the index (one line per thing, a link each, read whole). The detail goes in `doc/<topic>.md`, one topic per file. Decisions go in `doc/architecture.md`, a line or two each, linking the session or task where it was decided. When a folder passes about 10–15 files, group them into subfolders, each with its own small readme, so the parent stays an index.
+ 
++**Promotion:** an ask the owner made in three or more sessions is a directive: write it into the module's `doc/architecture.md`, or, if it is site-wide, propose it for the root readme as a decision line (`node Server/RefineQueue.mjs --repeats` lists today's candidates; `ext/Refine/doc/refine-queue.md`).
++
+ **Who:** the mastermind of the task keeps the docs it reads true ("Readme upkeep is yours" in `sub-mastermind`); minions report what went stale.
+ 
+ **Cleanup:** a mastermind spawns one Haiku per `doc/*.md`, given that file and the files it describes, asking "still true? duplicated elsewhere? superseded?". The mastermind reads the answers and decides. A superseded doc moves to an `archive/` folder beside it (`git mv`, one line in the readme saying why), never deleted.
+diff --git a/Server/RefineQueue.mjs b/Server/RefineQueue.mjs
+new file mode 100644
+index 000000000..f132f0027
+--- /dev/null
++++ b/Server/RefineQueue.mjs
+@@ -0,0 +1,253 @@
++#!/usr/bin/env node
++/**
++ * class RefineQueue — refines the owner's past prompts, ONE prompt per Haiku call, at most N calls at once.
++ * Node starts the next call when one finishes, so no agent's context ever holds the loop (CLAUDE.md law 7).
++ * Each result is a `refined` card (ext/Refine/RefinedCard.js) written onto that session's own page through
++ * the page tool's own `page_add` handler, so the session page's Coverage tab draws it live. Doc: ext/Refine/doc/refine-queue.md.
++ *
++ *   node Server/RefineQueue.mjs --days 7 --dry               # the queue, newest first, and its estimated cost; nothing spent
++ *   node Server/RefineQueue.mjs --days 7 --limit 10          # refine the 10 newest owner prompts not yet refined
++ *   node Server/RefineQueue.mjs <session-uuid>:<line> ...    # exactly these prompts (line = 1-based line of the session's transcript)
++ *   node Server/RefineQueue.mjs --task <dir>                 # the owner's `chat` lines in a task.jsonl instead
++ *   node Server/RefineQueue.mjs --report                     # cost per prompt and max tokens, computed from the run log
++ *   node Server/RefineQueue.mjs --repeats [--min 3]          # asks said in 3+ sessions: promotion candidates (doc/refine.md)
++ *   flags: --parallel N (default 2) · --budget $ (stop when spent) · --brief v1|v2 (default v2) · --force (redo refined ones) · --since YYYY-MM-DD
++ *
++ * Owner prompts = the user turns of VS Code tabs' transcripts (`entrypoint: claude-vscode`), minus agent relays
++ * (`[from: …]`, `[You are …]`), compaction summaries and slash-command echoes. The transcript text is never copied
++ * into a committed file: the card links to it (`/ai-logs/<id>#<line>`); the committed asks index holds one line per ask.
++ * Every Node spawn (the SDK's) sets `windowsHide: true` in the SDK itself; this file starts no process of its own.
++ */
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import { spawnSync } from "node:child_process";
++import { fileURLToPath, pathToFileURL } from "node:url";
++import RefinedCard from "../public/framework/ext/Refine/RefinedCard.js";
++
++const HERE = path.dirname(fileURLToPath(import.meta.url));
++const ROOT = path.resolve(HERE, "..");
++
++export default class RefineQueue {
++
++	static MODEL = "claude-haiku-5-5";
++	static CALLER = "refine-queue";
++	static RUNS = path.join(ROOT, "public/framework/ext/Refine/queue/runs.jsonl");   // one line per call: cost, tokens, counts; no owner text
++	static ASKS = path.join(ROOT, "public/framework/ext/Refine/queue/asks.jsonl");   // one line per ask: the committed index --repeats reads
++	static MIN_CHARS = 30;   // shorter prompts ("try again?") hold no structure worth a call
++	static PRICE = { in: 1 / 1e6, out: 5 / 1e6 };   // Haiku $/token, only for the --dry estimate; real cost comes from the SDK's result
++
++	/** The tree whose Servex has the SDK installed and whose site serves the session pages: this one, or the main tree from a worktree. */
++	static main_root(){
++		if (fs.existsSync(path.join(ROOT, "Servex/node_modules/@anthropic-ai/claude-agent-sdk"))) return ROOT;
++		const r = spawnSync("git", ["rev-parse", "--git-common-dir"], { cwd: ROOT, encoding: "utf8", windowsHide: true });
++		return path.resolve(ROOT, r.stdout.trim(), "..");
++	}
++
++	/** The SDK transcripts of this repo (the same folder Server/plugins/AILogs.js serves as /ai-logs/). */
++	static transcripts_dir(){
++		return process.env.AI_LOGS_DIR ? path.resolve(process.env.AI_LOGS_DIR)
++			: path.join(os.homedir(), ".claude", "projects", RefineQueue.main_root().replace(/[^a-zA-Z0-9]/g, "-"));
++	}
++
++	/** One user line → the owner's words, or null when it is not an owner prompt. */
++	static owner_text(l){
++		if (l?.type !== "user" || l.isMeta || l.isSidechain || l.turnOrigin === "task_notification") return null;
++		const c = l.message?.content;
++		if (Array.isArray(c) && c.some(b => b?.type === "tool_result")) return null;
++		const t = typeof c === "string" ? c : Array.isArray(c) ? c.filter(b => b?.type === "text").map(b => b.text).join("\n") : "";
++		const text = RefinedCard.strip(t);
++		if (!text || /^<(command-|local-command|task-notification)/.test(text) || /^(Caveat:|\[from: |\[You are |This session is being continued)/.test(text)) return null;
++		return text;
++	}
++
++	/** Every owner prompt in the VS Code transcripts touched since `since` (ms), newest first: { session, line, uuid, at, text }. */
++	static find({ since }){
++		const dir = RefineQueue.transcripts_dir(), out = [];
++		for (const f of fs.readdirSync(dir)){
++			if (!/^[0-9a-f-]{36}\.jsonl$/.test(f)) continue;
++			const file = path.join(dir, f);
++			if (fs.statSync(file).mtimeMs < since) continue;
++			const text = fs.readFileSync(file, "utf8");
++			if (!text.includes('"entrypoint":"claude-vscode"')) continue;
++			const session = f.slice(0, 36);
++			text.split("\n").forEach((raw, i) => {
++				if (!raw.includes('"type":"user"')) return;
++				let l; try { l = JSON.parse(raw); } catch { return; }
++				if (l.entrypoint && l.entrypoint !== "claude-vscode") return;
++				const words = RefineQueue.owner_text(l);
++				if (!words || Date.parse(l.timestamp) < since) return;
++				out.push({ session, line: i + 1, uuid: l.uuid, at: l.timestamp, text: words });
++			});
++		}
++		return out.sort((a, b) => Date.parse(b.at) - Date.parse(a.at));
++	}
++
++	/** Named prompts: `<uuid>:<line>` reads that line of the transcript. */
++	static pick(refs){
++		const dir = RefineQueue.transcripts_dir();
++		return refs.map(ref => {
++			const [session, n] = ref.split(":"), line = Number(n);
++			const raw = fs.readFileSync(path.join(dir, session + ".jsonl"), "utf8").split("\n")[line - 1];
++			const l = JSON.parse(raw), text = RefineQueue.owner_text(l);
++			if (!text) throw new Error(`${ref} is not an owner prompt`);
++			return { session, line, uuid: l.uuid, at: l.timestamp, text };
++		});
++	}
++
++	/** The owner's chat lines in a task.jsonl: `ref.session` is the task dir, its link is the task log. */
++	static from_task(dir){
++		const file = path.resolve(ROOT, dir, "task.jsonl");
++		return fs.readFileSync(file, "utf8").split("\n").flatMap((raw, i) => {
++			let l; try { l = JSON.parse(raw); } catch { return []; }
++			const c = l.chat;
++			return c?.from === "owner" && c.text ? [{ task: path.relative(ROOT, path.dirname(file)).replace(/\\/g, "/"), line: i + 1, at: c.at, text: c.text }] : [];
++		});
++	}
++
++	constructor({ parallel = 2, budget = Infinity, brief = "v2", force = false, dry = false } = {}){
++		Object.assign(this, { parallel, budget, brief, force, dry });
++		this.spent = 0; this.done = 0; this.failed = 0; this.max_tokens = 0; this.stopped = null;
++	}
++
++	/** Lazy, from the main tree: the lean one-call runner (Servex/ext/refine/RefineCall.js) and the page tool's own handlers. */
++	async tools(){
++		if (this._tools) return this._tools;
++		const main = RefineQueue.main_root(), load = p => import(pathToFileURL(path.join(main, p)).href);
++		const [{ default: RefineCall }, { page_tools }, { default: AISession }] = await Promise.all([
++			load("Servex/ext/refine/RefineCall.js"), load("Servex/agents/page_tools.js"), load("public/framework/ai/AISession/AISession.js")]);
++		const tools = page_tools(), handler = name => tools.find(t => t.name === name).handler;
++		return this._tools = { RefineCall, AISession, page_add: handler("page_add") };
++	}
++
++	/** The refined cards already on a session's page (computed from its page.jsonl, never remembered). */
++	async existing(session){
++		const { AISession } = await this.tools();
++		if (!AISession.days.has(session)){ AISession.scanned = false; await AISession.scan?.(); }
++		if (!AISession.days.has(session)) return new Map();
++		const file = fileURLToPath(new URL("page.jsonl", AISession.dir_url(session)));
++		if (!fs.existsSync(file)) return new Map();
++		const lines = fs.readFileSync(file, "utf8").split("\n").flatMap(r => { try { return [JSON.parse(r)]; } catch { return []; } });
++		return new Map(RefinedCard.from_lines(lines).map(c => [c.line, c]));
++	}
++
++	/** What will run: refined ones skipped (unless --force), short ones skipped; each with its estimated cost. */
++	async plan(prompts){
++		const seen = new Map(), out = [];
++		let skipped = { refined: 0, short: 0 };
++		for (const p of prompts){
++			if (p.text.length < RefineQueue.MIN_CHARS){ skipped.short++; continue; }
++			if (!this.force && p.session){
++				if (!seen.has(p.session)) seen.set(p.session, await this.existing(p.session));
++				if (seen.get(p.session).get(p.line)?.brief === this.brief){ skipped.refined++; continue; }
++			}
++			const tin = Math.ceil((RefinedCard.BRIEF[this.brief].length + p.text.length) / 3.6), tout = 500 + Math.ceil(p.text.length / 5);
++			out.push({ ...p, est: tin * RefineQueue.PRICE.in + tout * RefineQueue.PRICE.out });
++		}
++		return { queue: out, skipped };
++	}
++
++	/** One prompt, one Haiku call (one retry when the answer is not usable JSON), one card. */
++	async one(p){
++		const { RefineCall, page_add } = await this.tools();
++		const count = RefinedCard.sentences(p.text).length;
++		let r, parsed, usd = 0, tokens = 0, error = null;
++		for (let attempt = 0; attempt < 2 && !parsed; attempt++){
++			r = await RefineCall.run(RefinedCard.prompt(p.text, this.brief), { model: RefineQueue.MODEL, system: RefinedCard.BRIEF[this.brief], stage: "refine-queue", cwd: os.tmpdir() });
++			usd += r.cost_usd; tokens = Math.max(tokens, r.tokens.in + r.tokens.out);
++			try { parsed = RefinedCard.parse(r.answer); error = null; } catch (e){ error = e.message; }
++		}
++		this.spent += usd; this.max_tokens = Math.max(this.max_tokens, tokens);
++		const run = { at: new Date().toISOString(), session: p.session ?? p.task, line: p.line, chars: p.text.length, sentences: count,
++			brief: this.brief, model: r.model, usd: +usd.toFixed(5), tokens, ms: r.duration_ms, minion: r.session_id, ok: !!parsed,
++			...(parsed ? { asks: parsed.asks.length, uncited: RefinedCard.uncited(parsed, count).length } : { error }) };
++		RefineQueue.append(RefineQueue.RUNS, run);
++		if (!parsed){ this.failed++; return run; }
++		const ref = { session: p.session ?? p.task, line: p.line, at: p.at, uuid: p.uuid };
++		const item = { ...RefinedCard.item({ ref, parsed, count, brief: this.brief, model: r.model, usd: run.usd, tokens }), uuid: p.uuid, minion: r.session_id };
++		if (p.session) await page_add({ path: `/framework/ai/sessions/${p.session}/`, item }, { caller: RefineQueue.CALLER });
++		for (const a of parsed.asks) RefineQueue.append(RefineQueue.ASKS, { session: ref.session, line: ref.line, at: ref.at, id: a.id, ask: a.text.slice(0, 200), key: a.key, module: a.module, kind: a.kind, brief: this.brief });
++		this.done++;
++		return run;
++	}
++
++	/** Runs the queue N at a time; a slot that frees starts the next prompt. Stops starting new ones at the budget. */
++	async run(queue, { on_done } = {}){
++		let next = 0;
++		const slot = async () => {
++			while (next < queue.length){
++				if (this.spent >= this.budget){ this.stopped ??= queue[next]; return; }
++				const p = queue[next++];
++				try { on_done?.(await this.one(p), p); }
++				catch (e){ this.failed++; RefineQueue.append(RefineQueue.RUNS, { at: new Date().toISOString(), session: p.session ?? p.task, line: p.line, ok: false, error: String(e.message ?? e).slice(0, 200) }); }
++			}
++		};
++		await Promise.all(Array.from({ length: Math.max(1, this.parallel) }, slot));
++		return this;
++	}
++
++	static append(file, obj){ fs.mkdirSync(path.dirname(file), { recursive: true }); fs.appendFileSync(file, JSON.stringify(obj) + "\n"); }
++	static read(file){ return fs.existsSync(file) ? fs.readFileSync(file, "utf8").split("\n").flatMap(r => { try { return [JSON.parse(r)]; } catch { return []; } }) : []; }
++
++	/** Cost per prompt and the biggest call, computed from the run log (`--brief` filters). */
++	static report({ brief } = {}){
++		const runs = RefineQueue.read(RefineQueue.RUNS).filter(r => r.ok && (!brief || r.brief === brief));
++		const usd = runs.reduce((s, r) => s + r.usd, 0), max = runs.reduce((m, r) => Math.max(m, r.tokens ?? 0), 0);
++		return { prompts: runs.length, usd: +usd.toFixed(4), per_prompt: runs.length ? +(usd / runs.length).toFixed(4) : 0, max_tokens: max,
++			asks: runs.reduce((s, r) => s + (r.asks ?? 0), 0), sessions: new Set(runs.map(r => r.session)).size };
++	}
++
++	/** Asks said in `min`+ different sessions, grouped by their key's words: the promotion candidates (doc/refine.md, "Promotion"). */
++	static repeats({ min = 3, today } = {}){
++		const latest = new Map();   // a rerun of the same prompt replaces its asks (latest brief wins)
++		for (const a of RefineQueue.read(RefineQueue.ASKS)) latest.set(`${a.session}:${a.line}:${a.id}`, a);
++		const asks = [...latest.values()].filter(a => a.key), groups = [];
++		for (const a of asks){
++			const g = groups.find(g => g.module === a.module && RefinedCard.same_key(g.key, a.key));
++			g ? g.asks.push(a) : groups.push({ key: a.key, module: a.module, asks: [a] });
++		}
++		return groups.map(g => ({ ...g, sessions: new Set(g.asks.map(a => a.session)).size, last: g.asks.map(a => a.at).sort().at(-1) }))
++			.filter(g => g.sessions >= min && (!today || String(g.last).startsWith(today)))
++			.sort((a, b) => b.sessions - a.sessions || b.asks.length - a.asks.length);
++	}
++
++	static args(argv){
++		const a = { refs: [], days: null, since: null, limit: Infinity, parallel: 2, budget: Infinity, brief: "v2", min: 3 };
++		for (let i = 0; i < argv.length; i++){
++			const k = argv[i], v = () => argv[++i];
++			if (k === "--days") a.days = +v(); else if (k === "--since") a.since = v(); else if (k === "--limit") a.limit = +v();
++			else if (k === "--parallel") a.parallel = +v(); else if (k === "--budget") a.budget = +v(); else if (k === "--brief") a.brief = v();
++			else if (k === "--task") a.task = v(); else if (k === "--min") a.min = +v(); else if (k === "--today") a.today = v();
++			else if (k.startsWith("--")) a[k.slice(2)] = true; else a.refs.push(k);
++		}
++		if (!RefinedCard.BRIEF[a.brief]) throw new Error(`--brief must be one of ${Object.keys(RefinedCard.BRIEF).join(", ")}`);
++		return a;
++	}
++
++	static async main(argv){
++		const a = RefineQueue.args(argv);
++		if (a.report){ console.log(JSON.stringify(RefineQueue.report({ brief: a.brief === "v2" && !argv.includes("--brief") ? undefined : a.brief }), null, 1)); return; }
++		if (a.repeats){
++			const today = a.today ?? (argv.includes("--all") ? null : new Date().toLocaleDateString("en-CA"));
++			const rows = RefineQueue.repeats({ min: a.min, today });
++			console.log(`${rows.length} ask(s) said in ${a.min}+ sessions${today ? `, last said ${today}` : ""}:`);
++			for (const g of rows) console.log(`- ${g.sessions} sessions · ${g.module || "?"} · ${g.key} — e.g. "${g.asks.at(-1).ask}" (${[...new Set(g.asks.map(x => `${x.session.slice(0, 8)}:${x.line}`))].slice(0, 6).join(", ")})`);
++			return;
++		}
++		const since = a.since ? Date.parse(a.since + "T00:00:00") : Date.now() - (a.days ?? 7) * 864e5;
++		const prompts = a.task ? RefineQueue.from_task(a.task) : a.refs.length ? RefineQueue.pick(a.refs) : RefineQueue.find({ since });
++		const q = new RefineQueue({ parallel: a.parallel, budget: a.budget, brief: a.brief, force: a.force || a.refs.length > 0, dry: a.dry });
++		const { queue: all, skipped } = await q.plan(prompts);
++		const queue = all.slice(0, a.limit), est = queue.reduce((s, p) => s + p.est, 0);
++		console.log(`${prompts.length} owner prompts found; ${skipped.refined} already refined (brief ${a.brief}), ${skipped.short} under ${RefineQueue.MIN_CHARS} chars; ${queue.length} queued, ~$${est.toFixed(2)} estimated, ${a.parallel} at once.`);
++		if (a.dry){
++			for (const p of queue) console.log(`  ${p.at.slice(0, 16)} ${(p.session ?? p.task).slice(0, 8)}:${p.line}  ${String(p.text.length).padStart(6)} chars  ~$${p.est.toFixed(4)}`);
++			return;
++		}
++		await q.run(queue, { on_done: (r, p) => console.log(`${r.ok ? "✓" : "✗"} ${String(r.session).slice(0, 8)}:${r.line}  ${r.chars ?? "?"} chars → ${r.asks ?? 0} asks, ${r.uncited ?? "?"} uncited  $${r.usd ?? 0}  ${r.tokens ?? 0} tok  (spent $${q.spent.toFixed(3)})`) });
++		console.log(`done ${q.done}, failed ${q.failed}, spent $${q.spent.toFixed(3)}, max tokens per call ${q.max_tokens}${q.stopped ? `; budget reached, stopped before ${q.stopped.session.slice(0, 8)}:${q.stopped.line} (${q.stopped.at})` : ""}`);
++	}
++}
++
++if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url))
++	RefineQueue.main(process.argv.slice(2)).catch(e => { console.error(e.stack ?? e); process.exit(1); });
+diff --git a/Servex/ext/refine/RefineCall.js b/Servex/ext/refine/RefineCall.js
+index dcac8923e..24fde4b91 100644
+--- a/Servex/ext/refine/RefineCall.js
++++ b/Servex/ext/refine/RefineCall.js
+@@ -9,6 +9,7 @@ import { session_backend } from "../../agents/Sessions.js";
+  * page at `/framework/ai/sessions/<session_id>/`, and the call reports what it cost.
+  *
+  *   const r = await RefineCall.run(prompt, { model, system });
++ *   RefineCall.run(prompt, { model, system, cwd: os.tmpdir() })   // cwd outside the repo: no auto-memory in the prefix (33x cheaper)
+  *   r.answer; r.session_id; r.model; r.cost_usd; r.duration_ms; r.tokens   // plain data
+  *
+  * A model with a `/` (an OpenRouter slug, e.g. `openai/gpt-6-luna`) is one plain chat-completion instead: no session,
+@@ -28,7 +29,7 @@ export default class RefineCall {
+ 	 *  (the owner's switch for when Claude tokens run out; read per call, no restart). ai/doc/models.md */
+ 	static model(){ return session_backend() === "openrouter" ? RefineCall.OPENROUTER : RefineCall.FALLBACK; }
+ 
+-	static async run(prompt, { model = "claude-haiku-5-5", system, stage = "" } = {}){
++	static async run(prompt, { model = "claude-haiku-5-5", system, stage = "", cwd } = {}){
+ 		if (String(model).includes("/")){
+ 			try { const out = await RefineCall.run_or(prompt, { model, system, stage }); RefineCall.sink?.push(out); return out; }
+ 			catch (e){ const out = await RefineCall.run(prompt, { model: RefineCall.FALLBACK, system, stage }); out.fallback_from = model; out.fallback_why = String(e.message ?? e).slice(0, 160); return out; }
+@@ -40,6 +41,7 @@ export default class RefineCall {
+ 			maxTurns: 1, thinking: { type: "disabled" }, effort: "low", permissionMode: "bypassPermissions",
+ 			extraArgs: { "disable-slash-commands": null },
+ 			...(system ? { systemPrompt: system } : {}),
++			...(cwd ? { cwd } : {}),   // a folder outside the repo skips the project auto-memory: ~8k tokens, $0.066 → $0.002 a call (ext/Refine/doc/refine-queue.md)
+ 		} });
+ 		for await (const m of q){
+ 			if (m.type === "system" && m.subtype === "init") session_id = m.session_id;
+diff --git a/public/framework/ai/AISession/AISessionCoverage.js b/public/framework/ai/AISession/AISessionCoverage.js
+new file mode 100644
+index 000000000..763aff9d0
+--- /dev/null
++++ b/public/framework/ai/AISession/AISessionCoverage.js
+@@ -0,0 +1,128 @@
++import { div, p, span, small, a, details, summary, strong, md } from "/app.js";
++import RefinedCard from "/framework/ext/Refine/RefinedCard.js";
++import AISessionConversation from "./AISessionConversation.js";
++
++/**
++ * class AISessionCoverage — the session page's Coverage tab: every ask found in the owner's prompts (the `refined` cards
++ * `Server/RefineQueue.mjs` writes onto this session's page), each with its status and a click-through to the raw prompt,
++ * and the session's coverage score (asks with a verdict ÷ asks found). Doc: ext/Refine/doc/refine-queue.md.
++ *
++ *   const cov = new AISessionCoverage(session_id); $panel.append(cov.view);
++ *   cov.read(page_lines)        // the session's page.jsonl lines, live: refined cards arrive here
++ *   cov.add_raw(transcript)     // the transcript lines the conversation already pulled: the raw text, found by uuid
++ *
++ * Statuses come from the prompt-outcomes tally (`/framework/ai/doc/asks-outcomes.jsonl`) where it names this prompt, else "unreviewed".
++ */
++export default class AISessionCoverage {
++
++	static OUTCOMES = "/framework/ai/doc/asks-outcomes.jsonl";
++	static COLOR = { "done": "var(--ok)", "partly": "var(--warn)", "not done": "var(--hot)", "open": "var(--prim-ink)", "unreviewed": "var(--ink)" };
++
++	constructor(session){
++		this.session = session;
++		this.cards = new Map();   // card id → refined card (later write wins)
++		this.raw = new Map();     // transcript uuid → the owner's words
++		this.outcomes = null;
++		this.view = div.c("flow session-coverage");
++		AISessionCoverage.load_outcomes().then(o => { this.outcomes = o; this.draw(); });
++	}
++
++	read(lines){
++		let hit = false;
++		for (const c of RefinedCard.from_lines(lines)){ this.cards.set(c.id, c); hit = true; }
++		if (hit) this.draw();
++	}
++
++	add_raw(lines){
++		let hit = false;
++		for (const l of lines ?? []){
++			if (l?.type !== "user" || !l.uuid) continue;
++			const m = AISessionConversation.read(l);
++			if (m?.role === "owner"){ this.raw.set(l.uuid, m.text); hit = true; }
++		}
++		if (hit && this.cards.size) this.draw();
++	}
++
++	/** asks-outcomes.jsonl lines keyed `session:line` (their `source` names the transcript and line); an empty map while it does not exist. */
++	// Asked for only when its folder's files.jsonl lists it, so a missing tally is never a failed request.
++	static load_outcomes(){
++		const get = url => fetch(url).then(r => r.ok ? r.text() : "").catch(() => "");
++		return AISessionCoverage._outcomes ??= get(new URL("files.jsonl", new URL(AISessionCoverage.OUTCOMES, location.origin)).pathname)
++			.then(index => index.includes('"asks-outcomes.jsonl"') ? get(AISessionCoverage.OUTCOMES) : "")
++			.then(text => RefinedCard.outcomes(text));
++	}
++
++	// One redraw per batch (a replay of many lines paints once). Open prompts stay open across a redraw.
++	draw(){
++		if (this.pending) return;
++		this.pending = true;
++		queueMicrotask(() => {
++			this.pending = false;
++			const open = new Set([...this.view.el.querySelectorAll("details[open]")].map(d => d.id));
++			if (!open.size && /^#p\d+$/.test(location.hash)) open.add(location.hash.slice(1));
++			const cards = [...this.cards.values()].sort((x, y) => x.line - y.line);
++			this.view.empty(() => {
++				if (!cards.length) return p.c("muted", AISessionCoverage.EMPTY);
++				const s = RefinedCard.score(cards, this.outcomes);
++				div.c("card flow", () => {
++					div.c("flex gap-50 wrap v-center", () => {
++						strong(s.score == null ? "–" : Math.round(s.score * 100) + "% coverage");
++						small.c("muted", `${s.judged} of ${s.found} asks have a verdict, across ${cards.length} prompt${cards.length > 1 ? "s" : ""}`);
++					});
++					div.c("flex gap-50 wrap", () => RefinedCard.STATUSES.forEach(k => s.by[k] && AISessionCoverage.tag(k, `${k} ${s.by[k]}`)));
++					small.c("muted", "Asks found by Haiku, one call per prompt (Server/RefineQueue.mjs). A verdict comes from the asks-outcomes tally; until it names a prompt, its asks are unreviewed.");
++				});
++				cards.forEach((c, i) => this.prompt(c, i + 1, open));
++			});
++		});
++	}
++
++	/** One prompt: its refined form and asks up front; the structured outline and the raw words one click down. */
++	prompt(c, n, open){
++		const box = details.c("card flow");
++		box.el.id = "p" + c.line;
++		if (open.has(box.el.id)) box.el.open = true;
++		box.append(() => {
++			summary(() => {
++				strong(`${n}. ${c.subject || "Prompt"}`);
++				small.c("muted", ` · ${(c.asks ?? []).length} asks · ${c.at ? new Date(c.at).toLocaleString() : ""}`);
++			});
++			md(c.refined || "");
++			div.c("flow", () => (c.asks ?? []).forEach(ask => {
++				const status = RefinedCard.status_of(ask, c, this.outcomes);
++				div.c("flex gap-50 v-center wrap", () => {
++					AISessionCoverage.tag(status, status);
++					span(ask.text);
++					a.c("muted", ask.cites?.length ? "S" + ask.cites.join(", S") : "raw").href("#" + box.el.id).on("click", e => { e.preventDefault(); this.show_raw(box, ask.cites); });
++				});
++			}));
++			if (c.uncited?.length) small.c("muted", `Sentences no ask cites: S${c.uncited.join(", S")} (often filler; worth a look when a long prompt drops many).`);
++			details(() => { summary("Structured"); md(c.structured || ""); });
++			details.c("session-coverage-raw", () => {
++				summary(() => { span("Raw prompt "); a.c("muted", `transcript line ${c.line}`).href(c.raw ?? RefinedCard.raw_link(c.session, c.line)); });
++				div.c("flow");   // filled when opened: show_raw()
++			}).on("toggle", e => { if (e.target.open) this.show_raw(box); });
++		});
++	}
++
++	/** The raw words of this prompt, numbered the same way the cites are; `marks` highlights the cited sentences. */
++	show_raw(box, marks = []){
++		const card = this.cards.get("refined-" + box.el.id.slice(1)), raw = box.el.querySelector(".session-coverage-raw");
++		box.el.open = true;
++		const text = card && this.raw.get(card.uuid);
++		const $list = raw.lastElementChild;
++		raw.open = true;
++		// Plain DOM: this runs from a click, outside any capture, so a factory call would have no parent to land in.
++		const el = (tag, text, cls) => Object.assign(document.createElement(tag), { textContent: text ?? "", ...(cls ? { className: cls } : {}) });
++		if (!text) return $list.replaceChildren(el("p", AISessionCoverage.NO_RAW, "muted"));
++		const list = el("ol");
++		RefinedCard.sentences(text).forEach((sentence, i) => list.append(el("li", sentence, marks.includes(i + 1) ? "sessions-flag" : "")));
++		$list.replaceChildren(list);
++		$list.querySelector(".sessions-flag")?.scrollIntoView({ block: "center", behavior: "smooth" });
++	}
++
++	static tag(status, label){ return span.c("sessions-tag", label).style("--sessions-tag-color", AISessionCoverage.COLOR[status] ?? "var(--ink)"); }
++
++	static NO_RAW = "The raw words come from this page's own transcript (the Conversation tab loads it); it has not reached this prompt yet. The transcript link above opens the file itself (local only).";
++	static EMPTY ="No refined prompts for this session yet. `node Server/RefineQueue.mjs <session>:<line>` refines one; `--days 7` refines the week (ext/Refine/doc/refine-queue.md).";
++}
+diff --git a/public/framework/ai/AISession/AISessionDetail.js b/public/framework/ai/AISession/AISessionDetail.js
+index 4b5db4949..baf54938f 100644
+--- a/public/framework/ai/AISession/AISessionDetail.js
++++ b/public/framework/ai/AISession/AISessionDetail.js
+@@ -7,6 +7,7 @@ import AISessionFollow from "./AISessionFollow.js";
+ import AISessionTrace from "./AISessionTrace.js";
+ import AISession from "./AISession.js";
+ import AISessionConversation from "./AISessionConversation.js";
++import AISessionCoverage from "./AISessionCoverage.js";
+ import JSONL from "/framework/ext/JSONL/JSONL.js";
+ import VoiceFlow from "/framework/ext/Refine/stages/VoiceFlow.js";
+ import Item from "/framework/core/Item/Item.js";
+@@ -79,9 +80,9 @@ export default class AISessionDetail extends Page {
+ 		const { home, id } = this, url = home.url;
+ 		const $parts = div.c("flow session-parts");   // the heading, text and card parts the page tool adds (SessionParts)
+ 		this.parts = new AISessionDetail.Parts($parts);
+-		let $box, $voice, $conv, $related, $costs, $spawn, $session, $trace;
++		let $box, $voice, $conv, $related, $costs, $spawn, $session, $trace, $coverage;
+ 		// Tabs, not columns: one full-width panel at a time, so no table is ever squeezed (doc/detail-layout.md). The tab is in ?tab= so a reload lands on it.
+-		const TABS = [["conversation", "Conversation"], ["cost", "Cost"], ["models", "Models and tokens"], ["related", "Related"]];
++		const TABS = [["conversation", "Conversation"], ["coverage", "Coverage"], ["cost", "Cost"], ["models", "Models and tokens"], ["related", "Related"]];
+ 		const want = new URLSearchParams(location.search).get("tab"), panels = {}, buttons = {};
+ 		const show = key => {
+ 			for (const [k] of TABS){ panels[k].el.hidden = k !== key; buttons[k].el.classList.toggle("sessions-chip-on", k === key); }
+@@ -95,6 +96,7 @@ export default class AISessionDetail extends Page {
+ 				$voice = div.c("flow");   // spoken prompts, stage by stage, live (ext/Refine/stages)
+ 				$conv = div.c("flow sessions-conv");   // the live conversation
+ 			});
++			panels.coverage = div.c("flow sessions-panel", () => { $coverage = div.c("flow"); });   // every ask in the owner's prompts, its status, the raw words one click down (AISessionCoverage)
+ 			panels.cost = div.c("flow sessions-panel", () => { $costs = div.c("flow"); $trace = div.c("flow"); });   // logged cost, the cost-over-time chart and the per-tool table
+ 			panels.models = div.c("flow sessions-panel", () => { $session = div.c("flow"); });   // the Session class: cost tree, model + effort, tokens by purpose, audit
+ 			panels.related = div.c("flow sessions-panel", () => { $spawn = div.c("flow"); $related = div.c("flow"); });   // who spawned this and what it spawned; the other records of this session
+@@ -110,19 +112,21 @@ export default class AISessionDetail extends Page {
+ 		AISessionDetail.load_row(url, id).then(async row => {
+ 			const session_id = row?.session_id ?? id;
+ 			conv.session = session_id;
++			const coverage = new AISessionCoverage(session_id);
++			$coverage.append(coverage.view);
+ 			voice.follow(session_id);   // a phone has no dev socket: it follows Servex's voice stream
+ 			// FIRST, before the slow loads below: the session's own page log (tabs, layout words, AI cards), live.
+ 			this.log_urls().then(urls => {
+ 				if (this.logs) return;
+-				const open = url => new AISessionDetail.Log({ url, page: this, parts: this.parts, on_card: c => conv.add_card(c), on_lines: lines => voice.read(lines) }).live();   // cards inline, tabs and words onto the page, live (doc/session-cards.md)
++				const open = url => new AISessionDetail.Log({ url, page: this, parts: this.parts, on_card: c => conv.add_card(c), on_lines: lines => { voice.read(lines); coverage.read(lines); } }).live();   // cards inline, tabs and words onto the page, live (doc/session-cards.md)
+ 				const logs = this.logs = urls.map(open);
+ 				this._old_url?.then(old => { if (old && this.logs === logs) logs.push(open(old)); });
+ 			});
+ 			if (!this.follow && /^[0-9a-f]{8}-/.test(session_id)){
+-				const f = new AISessionFollow(session_id); f.on_lines = lines => conv.add(lines);   // the first pull draws the history, later pulls append live
++				const f = new AISessionFollow(session_id); f.on_lines = lines => { conv.add(lines); coverage.add_raw(lines); };   // the first pull draws the history, later pulls append live
+ 				this.follow = f.start();   // tails the log and corrects the grid row (doc/realtime.md)
+ 				this.follow.then(() => { if (!conv.count) $conv.append(() => p.c("muted", AISessionDetail.NO_TRANSCRIPT)); });
+-			} else if (!this.follow) AISessionDetail.load_lines(session_id).then(lines => { if (lines) conv.add(lines); else $conv.append(() => p.c("muted", AISessionDetail.NO_TRANSCRIPT)); });
++			} else if (!this.follow) AISessionDetail.load_lines(session_id).then(lines => { if (lines){ conv.add(lines); coverage.add_raw(lines); } else $conv.append(() => p.c("muted", AISessionDetail.NO_TRANSCRIPT)); });
+ 			Promise.all([AISessionRows.load_index(url), AISessionRows.load_tree(url)]).then(([index, tree]) => AISessionView.detail_section($session, session_id, index, tree));
+ 			AISessionRows.load_index(url).then(async () => { const snap = await AISessionDetail.load_snapshot(session_id); $related.empty(() => AISessionDetail.render_related(snap, url)); });
+ 			// the card's page.jsonl and trace.json live in the session's own folder now; the old card folder is the fallback until a checkout is migrated
+diff --git a/public/framework/ai/sessions/readme.md b/public/framework/ai/sessions/readme.md
+index 4b3a15511..8f0f83645 100644
+--- a/public/framework/ai/sessions/readme.md
++++ b/public/framework/ai/sessions/readme.md
+@@ -13,6 +13,7 @@ opens as a side peek beside the grid instead of replacing it.
+ - **Where the real dollars come from** — moved to [doc/readme-full-2026-10-12.md](doc/readme-full-2026-10-12.md#where-the-real-dollars-come-from), verbatim.
+ - **Where the data comes from** — moved to [doc/readme-full-2026-10-12.md](doc/readme-full-2026-10-12.md#where-the-data-comes-from), verbatim.
+ - **Tasks in memory** — every `task.jsonl` as a queryable row (`module`, `landed`, `text`): [Server/doc/session-index.md](/Server/doc/session-index.md).
++- **Coverage tab** on a session's own page: every ask in the owner's prompts (refined one prompt per Haiku call by `Server/RefineQueue.mjs`), its status, the cited raw sentences one click down, and the session's coverage score: [ext/Refine/doc/refine-queue.md](/framework/ext/Refine/doc/refine-queue.md).
+ - **Buckets** — thousands of routine sessions fold into a few chips with their own totals: [doc/buckets.md](doc/buckets.md).
+ ## Watch out
+ 
+diff --git a/public/framework/ext/Refine/RefinedCard.js b/public/framework/ext/Refine/RefinedCard.js
+new file mode 100644
+index 000000000..f9c3f7a16
+--- /dev/null
++++ b/public/framework/ext/Refine/RefinedCard.js
+@@ -0,0 +1,171 @@
++/**
++ * class RefinedCard — one owner prompt, refined by one Haiku call: structured prompt → refined prompt → asks.
++ * DOM-free and import-free, so the node queue (`Server/RefineQueue.mjs`) writes it and the session page's
++ * Coverage tab (`ai/AISession/AISessionCoverage.js`) reads it with the same code. Doc: `doc/refine-queue.md`.
++ *
++ *   RefinedCard.sentences(raw)                 // the raw prompt's sentences, numbered from 1: the same split everywhere
++ *   RefinedCard.prompt(raw, version)           // the whole user turn sent to Haiku (numbered sentences)
++ *   RefinedCard.BRIEF[version]                 // the system prompt (the refine essentials, under 3k tokens)
++ *   RefinedCard.parse(answer)                  // Haiku's JSON → { subject, structured, refined, asks, specifics } or throws
++ *   RefinedCard.item({ ref, parsed, ... })     // the page item the queue writes with page_add
++ *   RefinedCard.score(cards, outcomes)         // coverage: asks with a verdict ÷ asks found
++ */
++export default class RefinedCard {
++
++	static TYPE = "refined";
++
++	/** Owner text without the IDE's own tags (an opened file, a selection), which are not words the owner said. */
++	static strip(raw){
++		return String(raw ?? "").replace(/<(ide_[a-z_]+|system-reminder)>[\s\S]*?<\/\1>/g, "").trim();
++	}
++
++	/** Mechanical sentence split (engine.js's own raw split): S1 is index 0. A cite `[3]` means sentence 3. */
++	static sentences(raw){
++		return RefinedCard.strip(raw).replace(/\s+/g, " ").trim().split(/(?<=[.!?])\s+/).filter(Boolean);
++	}
++
++	/** Where the raw prompt lives: the session's own SDK transcript, served local-only by the dev server (Server/plugins/AILogs.js). */
++	static raw_link(session, line){ return `/ai-logs/${session}#${line}`; }
++
++	/** The click-through a person uses: the session page, Coverage tab, this prompt opened. */
++	static page_link(session, line){ return `/framework/ai/sessions/${session}/?tab=coverage#p${line}`; }
++
++	static SHAPE = `Answer with ONE JSON object and nothing else (no code fence):
++{
++  "subject": "the prompt's one subject, in a few of the owner's words",
++  SPECIFICS
++  "structured": "markdown: the prompt reorganised, nothing dropped. '## ' + an emoji per part, '- ' bullets in the owner's key words, each bullet ending with the sentence numbers it came from, like [3, 7]",
++  "refined": "the essence in 2 to 6 plain sentences: what the owner wants, condensed",
++  "asks": [ { "text": "one ask, one line, its action baked in", "cites": [3, 7], "key": "3 to 6 words naming the thing asked for", "module": "the site module or system it concerns (e.g. ai/sessions, ext/Refine, Servex, core/Page, Figma), or 'site' if it is site-wide", "kind": "build | fix | rule | question | idea" } ]
++}`;
++
++	static ESSENTIALS = `You refine ONE prompt the owner of a web-framework repo dictated or typed to an AI coding agent. Dictation rambles, repeats and circles back; your job is to keep everything it asks and lose only the noise.
++
++Rules:
++- An ASK is anything the owner wants done, changed, kept, checked, answered, or decided, including a preference or rule for how agents work ("always X", "never Y"). A side remark with no want in it is not an ask.
++- One ask per distinct want. Two wants in one sentence are two asks. The same want said three times is one ask citing all three sentences.
++- Keep the owner's own names for things (pages, classes, tools, models, numbers). Never generalise a specific ("Haiku under 100K tokens") into a vague one ("use a cheap model").
++- Hedged words stay hedged: "maybe", "I'm not sure", "might" become an open question or an idea, never a must.
++- Cite the numbered sentences each bullet and ask came from. Every sentence that carries a want must be cited by at least one ask.
++- Pleasantries, filler, and narration of what the owner is looking at are dropped; nothing else is.`;
++
++	static SPECIFICS = `"specifics": ["FIRST, before condensing anything: every specific suggestion, named thing, number, example and constraint in the prompt, one short line each, in the order said"],`;
++
++	/** v2's additions: the ways v1 went wrong in the 10-product review (doc/refine-queue.md, "Review"). */
++	static V2_RULES = `- Work in order: list every specific first (the "specifics" field), then write the asks so each specific lands in an ask or is plainly not a want.
++- A self-correction wins: "add it to X, oh well, probably Y" asks for Y.
++- What the owner describes seeing ("the costs go back three days", "it seems laggy") is evidence for an ask, never an ask of its own.
++- When the owner restates the agent's idea and pushes back, the ask is the pushback, not the idea.
++- Name the exact thing: "our own name for this tab" said about a chat tab means that chat tab, not a page that lists tabs.`;
++
++	/** The system prompt per brief version. v1: the essentials. v2: the same, plus list every specific first. */
++	static BRIEF = {
++		v1: RefinedCard.ESSENTIALS + "\n\n" + RefinedCard.SHAPE.replace("  SPECIFICS\n", ""),
++		v2: RefinedCard.ESSENTIALS + "\n" + RefinedCard.V2_RULES + "\n\n" + RefinedCard.SHAPE.replace("SPECIFICS", RefinedCard.SPECIFICS),
++	};
++
++	static prompt(raw, version = "v2"){
++		const s = RefinedCard.sentences(raw);
++		return `The prompt, one numbered sentence per line:\n\n${s.map((t, i) => `${i + 1}. ${t}`).join("\n")}\n\nRefine it now, as the JSON object.`;
++	}
++
++	/** Haiku's answer → the parsed card fields. Tolerates a code fence or text around the object; throws when there is no usable object. */
++	static parse(answer){
++		const text = String(answer ?? "");
++		const start = text.indexOf("{"), end = text.lastIndexOf("}");
++		if (start < 0 || end < start) throw new Error("no JSON object in the answer");
++		const o = JSON.parse(text.slice(start, end + 1));
++		if (!Array.isArray(o.asks)) throw new Error("answer has no asks list");
++		const asks = o.asks.filter(a => a && typeof a.text === "string" && a.text.trim()).map((a, i) => ({
++			id: "a" + (i + 1), text: a.text.trim(),
++			cites: (Array.isArray(a.cites) ? a.cites : []).map(Number).filter(n => Number.isInteger(n) && n > 0),
++			key: String(a.key ?? "").trim(), module: String(a.module ?? "").trim(), kind: String(a.kind ?? "").trim(),
++		}));
++		return { subject: String(o.subject ?? "").trim(), structured: String(o.structured ?? "").trim(), refined: String(o.refined ?? "").trim(),
++			asks, ...(Array.isArray(o.specifics) ? { specifics: o.specifics.map(String) } : {}) };
++	}
++
++	/** Sentences no ask cites: the mechanical half of a dropped-detail check (a sentence can be uncited and still be noise). */
++	static uncited(parsed, count){
++		const cited = new Set(parsed.asks.flatMap(a => a.cites));
++		return Array.from({ length: count }, (_, i) => i + 1).filter(n => !cited.has(n));
++	}
++
++	/** The page item: `ref` = { session, line, at }. The raw text is NOT copied in: `raw` is a link and `sentences` a count. */
++	static item({ ref, parsed, count, brief, model, usd, tokens }){
++		return {
++			type: RefinedCard.TYPE, id: `refined-${ref.line}`,
++			session: ref.session, line: ref.line, at: ref.at, raw: RefinedCard.raw_link(ref.session, ref.line), sentences: count,
++			subject: parsed.subject, structured: parsed.structured, refined: parsed.refined, asks: parsed.asks,
++			uncited: RefinedCard.uncited(parsed, count), brief, model, usd, tokens,
++		};
++	}
++
++	/** Every refined card in a page log's lines, later writes replacing earlier ones (a rerun of the same prompt wins). */
++	static from_lines(lines){
++		const cards = new Map();
++		for (const l of lines ?? []){
++			const add = l?.content?.add;
++			if (add?.type === RefinedCard.TYPE && add.id) cards.set(add.id, add);
++		}
++		return [...cards.values()].sort((a, b) => (a.line ?? 0) - (b.line ?? 0));
++	}
++
++	/** One verdict per ask, from the asks-outcomes lines (prompt-outcomes' tally) matched on session + transcript line, else "unreviewed". */
++	static STATUSES = ["done", "partly", "not done", "open", "unreviewed"];
++	static status_of(ask, card, outcomes){
++		const here = outcomes?.get?.(`${card.session}:${card.line}`) ?? [];
++		const hit = here.find(o => RefinedCard.same(o.ask ?? o.raw ?? o.text, ask.text)) ?? outcomes?.features?.find(f => RefinedCard.same_key(f.feature, ask.key));
++		return hit ? RefinedCard.verdict(hit) : "unreviewed";
++	}
++
++	/** A tally line's verdict as one of STATUSES ("contradicted" reads as open); null when it carries none. */
++	static verdict(o){
++		for (const v of [o?.status, o?.verdict, o?.state, o?.outcome]){
++			const s = String(v ?? "").toLowerCase().replace(/[_-]/g, " ").trim();
++			if (RefinedCard.STATUSES.includes(s) && s !== "unreviewed") return s;
++			if (s === "contradicted") return "open";
++		}
++		return null;
++	}
++
++	/** asks-outcomes.jsonl text → a Map `session:line` → lines, plus `.features` = the lines with a verdict, for matching by feature name. */
++	static outcomes(text){
++		const map = new Map();
++		map.features = [];
++		for (const line of String(text ?? "").split("\n")){
++			let o; try { o = JSON.parse(line); } catch { continue; }
++			if (o?.feature && RefinedCard.verdict(o)) map.features.push(o);
++			const src = String(o?.source ?? ""), id = /[0-9a-f]{8}-[0-9a-f-]{27}/.exec(src)?.[0], n = /:(\d+)\s*$/.exec(src)?.[1];
++			if (id && n) (map.get(`${id}:${n}`) ?? map.set(`${id}:${n}`, []).get(`${id}:${n}`)).push(o);
++		}
++		return map;
++	}
++
++	/** Two asks are the same when most of the shorter one's content words are in the other (a cheap, stated heuristic). */
++	static same(a, b){
++		const w = t => new Set(String(t ?? "").toLowerCase().match(/[a-z0-9]{4,}/g) ?? []);
++		const A = w(a), B = w(b), small = Math.min(A.size, B.size);
++		if (!small) return false;
++		let n = 0; for (const x of A) if (B.has(x)) n++;
++		return n / small >= 0.6;
++	}
++
++	/** Two ask keys name the same thing: at least two content words shared, and most of the LONGER key's words (stricter than same()). */
++	static same_key(a, b){
++		const w = t => new Set(String(t ?? "").toLowerCase().match(/[a-z0-9]{3,}/g)?.filter(x => !RefinedCard.STOP.has(x)) ?? []);
++		const A = w(a), B = w(b);
++		let n = 0; for (const x of A) if (B.has(x)) n++;
++		return n >= 2 && n / Math.max(A.size, B.size) >= 0.6;
++	}
++	static STOP = new Set(["the", "and", "for", "with", "from", "into", "per", "all", "not", "via", "own"]);
++
++	/** Coverage of a session: asks found, how many have a verdict, the score (with a verdict ÷ found), counts per status. */
++	static score(cards, outcomes){
++		const by = Object.fromEntries(RefinedCard.STATUSES.map(s => [s, 0]));
++		let found = 0;
++		for (const c of cards) for (const a of c.asks ?? []){ found++; by[RefinedCard.status_of(a, c, outcomes)]++; }
++		const judged = found - by.unreviewed;
++		return { found, judged, score: found ? judged / found : null, by };
++	}
++}
+diff --git a/public/framework/ext/Refine/doc/architecture.md b/public/framework/ext/Refine/doc/architecture.md
+index a4daf0da9..d895033df 100644
+--- a/public/framework/ext/Refine/doc/architecture.md
++++ b/public/framework/ext/Refine/doc/architecture.md
+@@ -17,6 +17,8 @@ Read this first. One system, a handful of small classes, one boss. Written befor
+ | `Structurer` | sentences → outline of cards that cite them (`structure.js` `structure()`) | a step of `RefineSystem` | exists as a function; named here |
+ | `DictationSource` | where words come from: the mic (`ux/Dictate`) or the text box | wraps `Dictate` | the demo wires `Dictate` directly |
+ | `Echo` | the same steps run on every VS Code prompt (`Servex/agents/Echo.js`) | a second caller of Cleaner + Structurer | built, separate |
++| `RefinedCard` | one past prompt refined by one Haiku call: brief, sentence split, parse, coverage score (`RefinedCard.js`) | plain data, DOM-free; read by the session page's Coverage tab | built 2026-10-13 |
++| `RefineQueue` | runs `RefinedCard` over the owner's past prompts, N calls at once (`Server/RefineQueue.mjs`) | node only; reuses `RefineCall` and the page tool | built 2026-10-13, [doc/refine-queue.md](refine-queue.md) |
+ 
+ Not classes yet, on purpose: `Cleaner` and `Structurer` stay the two functions that already work. Wrapping them in classes is one small step, taken when something needs more than a call (per-sentence streaming will).
+ 
+diff --git a/public/framework/ext/Refine/doc/refine-queue.md b/public/framework/ext/Refine/doc/refine-queue.md
+new file mode 100644
+index 000000000..4d1488080
+--- /dev/null
++++ b/public/framework/ext/Refine/doc/refine-queue.md
+@@ -0,0 +1,48 @@
++# Refine queue — the owner's past prompts, refined one at a time by Haiku, shown on each session's Coverage tab
++
++The owner dictates long prompts; an agent condensing one can drop a specific suggestion. The refine queue turns every past owner prompt into a **refined card**: the prompt reorganised (structured), its essence in a few sentences (refined), and every **ask** as a row that cites the raw sentences it came from. The session page's **Coverage** tab shows the cards, each ask's status, and the raw words one click down. The owner's words that started it: [requirements-6.md](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/requirements-6.md) (asks 1, 2 and 4).
++
++## Run it
++
++```
++node Server/RefineQueue.mjs --days 7 --dry          # the queue (newest first) and its estimated cost; spends nothing
++node Server/RefineQueue.mjs --days 7 --budget 10    # refine the week's prompts not yet refined; stop starting new ones at $10
++node Server/RefineQueue.mjs <session-uuid>:<line>   # one prompt (line = 1-based line of the session's SDK transcript)
++node Server/RefineQueue.mjs --report                # prompts, $ per prompt, max tokens per call: computed from queue/runs.jsonl
++node Server/RefineQueue.mjs --repeats [--all]       # asks said in 3+ sessions (today's, or --all): promotion candidates
++```
++Flags: `--parallel N` (default 2 calls at once), `--brief v1|v2` (default v2), `--limit N`, `--force` (redo refined ones), `--task <dir>` (a task.jsonl's owner `chat` lines instead of transcripts).
++
++## The classes
++
++| Class | File | Job |
++|---|---|---|
++| `RefineQueue` | `Server/RefineQueue.mjs` | finds the owner prompts, plans the queue, runs N Haiku calls at once (node starts the next, never an agent's context), writes each card, logs cost |
++| `RefinedCard` | `ext/Refine/RefinedCard.js` | the brief (`BRIEF.v1`, `BRIEF.v2`), the sentence split every cite counts by, parsing Haiku's JSON, the card item, coverage scoring. DOM-free: node and browser share it |
++| `RefineCall` | `Servex/ext/refine/RefineCall.js` | the one lean model call (no tools, no MCP, no skills) the queue reuses |
++| `AISessionCoverage` | `ai/AISession/AISessionCoverage.js` | the session page's Coverage tab |
++
++## Where things live
++
++- **Which prompts:** the user turns of VS Code tabs' SDK transcripts (`entrypoint: claude-vscode`, `~/.claude/projects/<repo>/<id>.jsonl`), minus agent relays (`[from: …]`, `[You are …]`), compaction summaries and slash-command echoes. Prompts under 30 characters are skipped. The Echo `Prompt` items in session pages were not used: none since 10-09, and 10-08's are agents' prompts labelled owner.
++- **The card:** a `{"content":{"add":{"type":"refined",…}}}` line in the session's own `page.jsonl`, written by the page tool's own `page_add` handler (so the page redraws live). That file is gitignored, like the transcript it refines; the raw text is never copied in: the card holds a link (`/ai-logs/<id>#<line>`), the transcript line's `uuid` and a sentence count.
++- **What is committed:** `queue/runs.jsonl` (one line per call: chars, asks, $ and tokens, no owner text) and `queue/asks.jsonl` (one line per ask, the ask in one line; `--repeats` reads it).
++- **Statuses** on the tab come from [`ai/doc/asks-outcomes.jsonl`](/framework/ai/doc/asks-outcomes.md) (the prompt-outcomes tally): matched by prompt (`source` naming the transcript and line), else by the tally's feature name against the ask's key. Unmatched asks are "unreviewed". Coverage score = asks with a verdict ÷ asks found.
++
++## Review: why brief v2
++
++An Opus read of 10 products against their raw prompts: v1 mean coverage 0.90, v2 0.96 ([haiku-review.md](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/refine-pipeline/haiku-review.md)). Haiku seldom **dropped** detail; it **distorted** it: narration read as an ask, a self-correction ignored, a restated idea read as the owner's. v2 lists every specific first and adds one rule for each of those.
++
++## Cost: run the call outside the repo
++
++A "lean" SDK call made with the repo as its working folder still carries ~8k tokens: the project's auto-memory, loaded whatever `settingSources` says. Measured: $0.066 a call from the repo, $0.002 from `os.tmpdir()`. `RefineCall.run(prompt, { cwd })` takes the folder; the queue passes the temp folder. Other `RefineCall` users (Echo) still run from the repo: worth the same one-word change, owned by their module.
++
++## Promotion: an ask said in three sessions is a directive
++
++As past prompts are refined, an ask that shows up in **three or more sessions** is promoted: into the module's `doc/architecture.md` (its `module` field names it), or, if it is site-wide, proposed for the root readme as a decision line. `--repeats` groups asks by their key words and module and lists the groups said in 3+ sessions; the `documentation` skill carries the rule.
++
++## Watch out
++
++- The cites are sentence numbers of `RefinedCard.sentences()` over the raw text; change that split and old cards cite the wrong sentences.
++- The Coverage tab finds the raw words in the transcript lines the Conversation tab already pulled (by `uuid`), so it never downloads a transcript twice; a session without a live transcript shows the link only.
++- A worktree has no `Servex/node_modules`: the queue then loads `RefineCall` and the page tool from the main tree, so cards land on the main site's session pages.
+diff --git a/public/framework/ext/Refine/queue/asks.jsonl b/public/framework/ext/Refine/queue/asks.jsonl
+new file mode 100644
+index 000000000..94e854b6a
+--- /dev/null
++++ b/public/framework/ext/Refine/queue/asks.jsonl
+@@ -0,0 +1,333 @@
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a1","ask":"Screenshot the current sidebar on the monorepo.localhost homepage and on the framework page.","key":"screenshot current sidebar","module":"site","kind":"build","brief":"v1"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a2","ask":"Redesign the site sidebar to fix its broken layout with many icon items and sections.","key":"redesign sidebar layout","module":"site","kind":"fix","brief":"v1"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a3","ask":"Recreate the current site sidebar in Figma, looking like the actual site sidebar.","key":"recreate sidebar in Figma","module":"Figma","kind":"build","brief":"v1"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a4","ask":"Use the site's logo SVG in the top left of the Figma sidebar, finding the file the site uses.","key":"site logo in sidebar","module":"Figma","kind":"build","brief":"v1"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a5","ask":"Keep the main site's left navigation a white sidebar.","key":"main site white sidebar","module":"site","kind":"rule","brief":"v1"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a6","ask":"Make a dark-mode left and right sidebar variant inside the Ctrl+\\ dev shell dark wrapper.","key":"dark sidebar in dev shell","module":"site","kind":"idea","brief":"v1"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a7","ask":"Harmonise the sidebar design with the designs already on the site.","key":"harmonise sidebar with site","module":"Figma","kind":"build","brief":"v1"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a8","ask":"Stop making one-off unique designs; isolate reusable core building blocks.","key":"no one-off designs","module":"Figma","kind":"rule","brief":"v1"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a9","ask":"Make a small documented card for each UI element, per style: list styles, grid styles, graphs.","key":"element cards per style","module":"Figma","kind":"build","brief":"v1"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a10","ask":"Build a mobile UI kit from those element cards and check that each works on mobile.","key":"mobile UI kit","module":"Figma","kind":"build","brief":"v1"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a11","ask":"Integrate the framework/UI and framework/UX directories with Figma for as much cohesion as possible.","key":"integrate UI and UX with Figma","module":"ui, ux","kind":"build","brief":"v1"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a12","ask":"Harmonise the framework UI system with these designs.","key":"harmonise framework UI","module":"ui","kind":"build","brief":"v1"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a13","ask":"Spawn Sonnet minions to go through each website section and build a component system in Figma.","key":"Sonnet minions build components","module":"ai","kind":"build","brief":"v1"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a14","ask":"Work out what should and should not be a Figma component, and how to convert those to real UI.","key":"decide components vs not","module":"Figma","kind":"question","brief":"v1"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a15","ask":"Figure out how Figma slots work and define slots for containers so content can be swapped.","key":"Figma slots for containers","module":"Figma","kind":"idea","brief":"v1"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a16","ask":"Keep spawning minions while usage stays under pace, working on harmonising the design system.","key":"spawn minions under pace","module":"ai","kind":"rule","brief":"v1"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a17","ask":"Create an overview page in the September 2026 folder with a runnable, clickable prototype, and make suggestions.","key":"September 2026 overview prototype","module":"Figma","kind":"build","brief":"v1"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a18","ask":"Link pages with Figma text-layer links that navigate between pages even outside prototype mode.","key":"Figma text-layer page links","module":"Figma","kind":"build","brief":"v1"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a19","ask":"Find the other Opus mastermind's session and talk to it.","key":"contact other Opus mastermind","module":"ai","kind":"build","brief":"v1"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a20","ask":"Declutter the ai/sessions tab: add visual hierarchy and stop the randomly placed lines of text.","key":"declutter sessions tab","module":"ai/sessions","kind":"fix","brief":"v1"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a21","ask":"Screenshot monorepo.localhost/framework/ai/sessions at 3440px wide.","key":"sessions screenshot at 3440","module":"ai/sessions","kind":"build","brief":"v1"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a22","ask":"Use Playwright to scroll the sessions data grid and fix gray rows scrolling up behind the sticky header.","key":"fix grid header overlap","module":"ai/sessions","kind":"fix","brief":"v1"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a23","ask":"Make the sessions data grid header more solid, maybe by fixing it.","key":"solid sessions header","module":"ai/sessions","kind":"idea","brief":"v1"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a24","ask":"Fix the sessions scrollable area, which takes about a third of the page height.","key":"fix sessions scroll area height","module":"ai/sessions","kind":"fix","brief":"v1"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a25","ask":"Make every session item visible and clickable so the owner can see all the details.","key":"all sessions visible and clickable","module":"ai/sessions","kind":"build","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3959,"at":"2026-10-12T06:42:47.119Z","id":"a1","ask":"Find one home for the AI rules and merge the duplicates into it","key":"merge rules into one home","module":"ai/rules","kind":"build","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3959,"at":"2026-10-12T06:42:47.119Z","id":"a2","ask":"Decide how many rule systems there should be, what they are called, and whether they use skills or a directory outside skills","key":"decide number and names of systems","module":"ai/rules","kind":"question","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3959,"at":"2026-10-12T06:42:47.119Z","id":"a3","ask":"Evaluate leaning away from skills toward a directory the AI can always reach, since skills depend on the AI choosing to load them","key":"evaluate moving away from skills","module":"ai/skills","kind":"idea","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3959,"at":"2026-10-12T06:42:47.119Z","id":"a4","ask":"Explore a weighted tree of statements per subsection to stop bloat and wrongly worded rules","key":"weighted tree of rule statements","module":"ai/rules","kind":"idea","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3959,"at":"2026-10-12T06:42:47.119Z","id":"a5","ask":"Explore having several models answer and reach consensus, accounting for models from one provider agreeing too much","key":"multi-model consensus","module":"ai","kind":"idea","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3959,"at":"2026-10-12T06:42:47.119Z","id":"a6","ask":"Check whether a skill-usage log exists and whether past session data can show skill usage","key":"check skill usage log","module":"ai/sessions","kind":"question","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3959,"at":"2026-10-12T06:42:47.119Z","id":"a7","ask":"Audit past session data to find skills that should be used but are not, and find out why","key":"audit unused skills","module":"ai/sessions","kind":"build","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3959,"at":"2026-10-12T06:42:47.119Z","id":"a8","ask":"Use Node functions for all AI tool calls instead of MCP","key":"node functions for all tool calls","module":"Servex","kind":"build","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3959,"at":"2026-10-12T06:42:47.119Z","id":"a9","ask":"Report where the universal page tool stands and how the SDK defines tools","key":"universal page tool status","module":"Servex","kind":"question","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3959,"at":"2026-10-12T06:42:47.119Z","id":"a10","ask":"Let an AI modify the page through a tool, and explain how that would work","key":"AI modifies page via tool","module":"core/Page","kind":"question","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3959,"at":"2026-10-12T06:42:47.119Z","id":"a11","ask":"Explore instantiating the page on the server so a node tool can act on it quickly","key":"server-side page instance","module":"core/Page","kind":"idea","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3959,"at":"2026-10-12T06:42:47.119Z","id":"a12","ask":"Determine which page functions need a live instance with loaded, up-to-date data","key":"which functions need live instance","module":"core/Page","kind":"question","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3959,"at":"2026-10-12T06:42:47.119Z","id":"a13","ask":"Let the AI read live streaming pages and data in real time","key":"AI reads live streams","module":"ai","kind":"build","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3959,"at":"2026-10-12T06:42:47.119Z","id":"a14","ask":"Do not have the AI compute state from raw JSONL deltas; use an instantiated structure instead","key":"no computing from raw deltas","module":"ai","kind":"rule","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3959,"at":"2026-10-12T06:42:47.119Z","id":"a15","ask":"Explore a page tool working on the same data structure as the browser, headless and without rendering","key":"headless shared data structure","module":"core/Page","kind":"idea","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3959,"at":"2026-10-12T06:42:47.119Z","id":"a16","ask":"Decide whether the page tool lives in Servex or behind the dev socket","key":"where page tool lives","module":"Servex","kind":"question","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3959,"at":"2026-10-12T06:42:47.119Z","id":"a17","ask":"Pick one communication system (MCP or node tool) and stop re-deciding it","key":"pick one communication system","module":"Servex","kind":"question","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3959,"at":"2026-10-12T06:42:47.119Z","id":"a18","ask":"Check whether a crash in a node tool can crash Servex, and whether it should run as a subprocess","key":"crash risk and subprocess","module":"Servex","kind":"question","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3959,"at":"2026-10-12T06:42:47.119Z","id":"a19","ask":"Check whether SDK sessions spawn child Node processes or run in the parent process","key":"SDK child process behavior","module":"Servex","kind":"question","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3959,"at":"2026-10-12T06:42:47.119Z","id":"a20","ask":"Check how claude.exe process IDs isolate failures and whether one error can crash the whole system","key":"process isolation of failures","module":"Servex","kind":"question","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3959,"at":"2026-10-12T06:42:47.119Z","id":"a21","ask":"Check how restart after a crash works, given Servex is set to come back up","key":"restart after crash","module":"Servex","kind":"question","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3959,"at":"2026-10-12T06:42:47.119Z","id":"a22","ask":"Document all the moving parts of this system","key":"document moving parts","module":"site","kind":"build","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3959,"at":"2026-10-12T06:42:47.119Z","id":"a23","ask":"Paraphrase back what the owner said","key":"paraphrase the dictation","module":"site","kind":"build","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a1","ask":"Confirm which models voice dictation is on now, and stop paying OpenRouter when Claude is enough.","key":"current dictation models","module":"ai/dictation","kind":"question","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a2","ask":"Verify that yesterday's reversal away from OpenRouter actually took effect.","key":"yesterday's OpenRouter reversal","module":"ai/dictation","kind":"fix","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a3","ask":"When Claude tokens are available, especially near expiry, run the fast and smart assistants on Haiku and Sonnet.","key":"Haiku and Sonnet for assistants","module":"ai/assistants","kind":"rule","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a4","ask":"Check whether the fast assistant is doing anything at all right now.","key":"is fast assistant active","module":"ai/assistants","kind":"question","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a5","ask":"Fall back to OpenRouter automatically when the Claude token wall is hit.","key":"OpenRouter fallback at token wall","module":"ai/models","kind":"build","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a6","ask":"Show which agent is running on which model, live.","key":"per-agent model visibility","module":"ai/sessions","kind":"build","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a7","ask":"Fix the chat bubbles so statements stay in spoken order.","key":"chat bubble order","module":"ai/dictation","kind":"fix","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a8","ask":"Check whether agents add chat cards through the built-in page tools as designed.","key":"agents using page tools","module":"ai/dictation","kind":"question","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a9","ask":"Make agents add content cards like chat bubbles only through the built-in page tools.","key":"cards via page tools","module":"ai/dictation","kind":"fix","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a10","ask":"Fine-tune and button up the whole transcription experience.","key":"finish transcription UX","module":"ai/dictation","kind":"fix","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a11","ask":"Keep the raw transcription exactly as Whisper delivers it.","key":"raw Whisper transcript","module":"ai/dictation","kind":"rule","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a12","ask":"Keep the cleaning step simple, robust, and minimal.","key":"minimal robust cleaning","module":"ai/dictation","kind":"build","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a13","ask":"Refine, structure, and create cards in real time, processing each chunk as it arrives.","key":"real-time refinement cards","module":"ai/dictation","kind":"build","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a14","ask":"Use the sentence as the baseline chunk, with commas or pauses as earlier split points.","key":"sentence baseline chunking","module":"ai/dictation","kind":"rule","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a15","ask":"Maybe chunk after a set word count, around four words.","key":"word-count chunking","module":"ai/dictation","kind":"idea","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a16","ask":"Do not process incomplete phrases or partial chunks that add no value.","key":"no partial chunks","module":"ai/dictation","kind":"rule","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a17","ask":"Explore a phrasing algorithm to detect complete phrases, as an alternative to fixed rules.","key":"phrasing algorithm","module":"ai/dictation","kind":"idea","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a18","ask":"For long run-ons without commas, find a quicker trigger than a full sentence.","key":"quicker run-on trigger","module":"ai/dictation","kind":"idea","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a19","ask":"Look into the refinement system and dictate widget, and define what goes where and how it nests.","key":"dictation architecture nesting","module":"ai/dictation","kind":"build","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a20","ask":"Unify the sidebar and mobile sheet dictation code into one process.","key":"unify sidebar and mobile sheet","module":"ai/dictation","kind":"build","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a21","ask":"Build one mic button that starts listening, with a level meter.","key":"mic button with level meter","module":"ai/dictation","kind":"build","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a22","ask":"Make desktop and mobile dictation give the same outcome: cards, processing, refinement, and action.","key":"same outcome both devices","module":"ai/dictation","kind":"build","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a23","ask":"Decide whether fast and smart assistants should be separate SDK instances with their own context.","key":"separate SDK instances","module":"ai/assistants","kind":"question","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a24","ask":"Review the fast and smart assistant role definitions and how they work together.","key":"assistant role definitions","module":"ai/assistants","kind":"build","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a25","ask":"Decide whether the fast assistant is removed or kept, and whether both assistants are needed.","key":"keep or remove fast assistant","module":"ai/assistants","kind":"question","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a26","ask":"Put the fast assistant on Haiku, staying under 100K tokens.","key":"fast assistant Haiku under 100K","module":"ai/assistants","kind":"rule","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a27","ask":"Have the fast assistant auto-compact or reset itself when it nears the limit.","key":"fast assistant auto-compact","module":"ai/assistants","kind":"build","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a28","ask":"Maybe start a new fast-assistant session after about half an hour.","key":"half-hour session reset","module":"ai/assistants","kind":"idea","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a29","ask":"Make agents always log to JSONL so their state survives, with no separate handoff file.","key":"JSONL logging for state","module":"ai/sessions","kind":"rule","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a30","ask":"Have code, not AI memory, close worktrees and move to the next task.","key":"code closes worktrees","module":"Servex","kind":"build","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a31","ask":"Have the node system reply with the next task and its description to reprompt the agent.","key":"node reprompt with next task","module":"Servex","kind":"build","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a32","ask":"Have automated reprompting update the data structures as well.","key":"reprompt updates data","module":"Servex","kind":"build","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a33","ask":"Run real-time streaming and UI refresh through automated loops with pre-programmed steps.","key":"automated loops for streaming","module":"Servex","kind":"build","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a34","ask":"Once the mastermind approves a process, have code start its steps and create the log, with each step timestamped.","key":"approved process logged steps","module":"Servex","kind":"build","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a35","ask":"Apply this code-driven pattern across all AI systems.","key":"code-driven pattern everywhere","module":"site","kind":"rule","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a36","ask":"Define the framework AI system and document its components.","key":"define framework AI system","module":"site","kind":"build","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a37","ask":"Document everything for AI first, and make it viewable for the owner.","key":"AI docs plus owner view","module":"site","kind":"build","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a38","ask":"Verify that all systems work the way the owner has asked.","key":"verify systems as asked","module":"site","kind":"question","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a39","ask":"Put true, useful AI directives in the architecture doc or README.","key":"AI directives in docs","module":"site","kind":"rule","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a40","ask":"Record efficiency rules, such as move or copy a file instead of reading and writing it.","key":"token-efficient file ops","module":"ai/sessions","kind":"rule","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a41","ask":"Answer where things stand on minion count, model, effort, and output.","key":"minion count model effort","module":"ai/sessions","kind":"question","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a42","ask":"Report the status of the AI model testing system.","key":"model testing system status","module":"ai/eval","kind":"question","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a43","ask":"Get the AI session system working so the owner can browse what was requested and when.","key":"browsable session data","module":"ai/sessions","kind":"build","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a44","ask":"Add a raw log the owner can click through and read.","key":"clickable raw logs","module":"ai/sessions","kind":"build","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a45","ask":"Run prompt refinement on past sessions, day by day in reverse.","key":"refine past sessions reverse","module":"ai/refinement","kind":"build","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a46","ask":"Layer each prompt: verbatim, then what was needed, then the outcome.","key":"verbatim to outcome layers","module":"ai/refinement","kind":"build","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a47","ask":"Score each prompt for clarity of the ask and clarity of the outcome, with confidence.","key":"clarity and outcome scores","module":"ai/refinement","kind":"build","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a48","ask":"Maybe pick a neutral start value, 0.5 or 1 as a multiplier, with confidence moving it up or down.","key":"neutral confidence start","module":"ai/refinement","kind":"idea","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a49","ask":"Make the meaning of weights explicit so no one misreads 0.9.","key":"explicit weight meaning","module":"ai/refinement","kind":"rule","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a50","ask":"Re-check existing confidence weights, since many do not match the owner's judgement.","key":"re-check existing weights","module":"ai/refinement","kind":"fix","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a51","ask":"Test these ideas.","key":"test these ideas","module":"ai/refinement","kind":"build","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a52","ask":"Use masterminds to study what exists.","key":"masterminds study existing","module":"site","kind":"build","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a53","ask":"Start with fresh sessions by default, reusing only when the cache is fresh.","key":"fresh sessions by default","module":"ai/sessions","kind":"rule","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a54","ask":"A fresh session reads READMEs and code, not the old session's context.","key":"fresh session reads docs","module":"ai/sessions","kind":"rule","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a55","ask":"Fast assistant cleans each chunk: punctuation, filler removal, and path links for references such as framework/AI.","key":"fast assistant cleaning job","module":"ai/assistants","kind":"build","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a56","ask":"Fast assistant does not reply in chat; it answers only when addressed by name.","key":"fast assistant speaks when named","module":"ai/assistants","kind":"rule","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a57","ask":"Smart assistant replies in chat and coordinates the handoff of refined prompts.","key":"smart assistant coordinates","module":"ai/assistants","kind":"rule","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a58","ask":"Smart assistant does prompt refinement, checks sense, and asks clarifying questions.","key":"smart assistant refines prompts","module":"ai/assistants","kind":"build","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a59","ask":"If the owner does not answer a question, time out and proceed with the top-ranked decision, with no council vote.","key":"timeout then top decision","module":"ai/assistants","kind":"rule","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a60","ask":"Maybe the smart assistant ranks options, possibly with a mastermind.","key":"smart ranks options","module":"ai/assistants","kind":"idea","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a61","ask":"Queue prompts to masterminds, who may use tools.","key":"queue prompts to masterminds","module":"ai/assistants","kind":"rule","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a62","ask":"Keep the smart assistant quick and light, relaying with minimal work.","key":"smart assistant stays light","module":"ai/assistants","kind":"rule","brief":"v1"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a63","ask":"Smart assistant turns raw transcripts into structured content, places it, and passes it to masterminds.","key":"smart assistant structures transcript","module":"ai/assistants","kind":"build","brief":"v1"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":5042,"at":"2026-10-13T20:54:39.902Z","id":"a1","ask":"Explain when to use a Figma slot versus swapping a component instance versus nested components, and state the trade-offs in plain terms.","key":"when to use slot vs component swap","module":"Figma","kind":"question","brief":"v1"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":5042,"at":"2026-10-13T20:54:39.902Z","id":"a2","ask":"Confirm or correct the owner's understanding of slot mechanics: a slot detaches its section with no linkage, and a component can be placed inside it.","key":"confirm slot mechanics understanding","module":"Figma","kind":"question","brief":"v1"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":5042,"at":"2026-10-13T20:54:39.902Z","id":"a3","ask":"Explain whether content inside a slot can keep template updates, or whether slot content always loses them.","key":"slot content template updates","module":"Figma","kind":"question","brief":"v1"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":5042,"at":"2026-10-13T20:54:39.902Z","id":"a4","ask":"Consider building page headers and other templated parts as their own components outside the content slot, leaving only real content inside.","key":"templated parts outside content slot","module":"Figma","kind":"idea","brief":"v1"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":5042,"at":"2026-10-13T20:54:39.902Z","id":"a5","ask":"Consider using nested components such as cards inside slot content where the content needs structure.","key":"nested components inside slot content","module":"Figma","kind":"idea","brief":"v1"}
++{"session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"at":"2026-10-09T22:26:17.742Z","id":"a1","ask":"Let the AI mastermind and the page mastermind get each other's session IDs so they can talk and collaborate","key":"masterminds share session IDs","module":"ai/masterminds","kind":"build","brief":"v1"}
++{"session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"at":"2026-10-09T22:26:17.742Z","id":"a2","ask":"Masterminds decide the open design points themselves, then use minions where appropriate to plan and build","key":"masterminds decide design, use minions","module":"ai/masterminds","kind":"rule","brief":"v1"}
++{"session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"at":"2026-10-09T22:26:17.742Z","id":"a3","ask":"Build a set of tools, at least one accepting a path and deltas","key":"delta tools accepting a path","module":"page","kind":"build","brief":"v1"}
++{"session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"at":"2026-10-09T22:26:17.742Z","id":"a4","ask":"Add a blind, simple tool that appends an entry to a JSONL file so any agent can log anything","key":"blind JSONL append tool","module":"page","kind":"idea","brief":"v1"}
++{"session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"at":"2026-10-09T22:26:17.742Z","id":"a5","ask":"Decide whether a page method should be called for logging, or whether the page tool appends to any given path","key":"page method or raw append","module":"page","kind":"question","brief":"v1"}
++{"session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"at":"2026-10-09T22:26:17.742Z","id":"a6","ask":"Decide how to control what gets logged, since the blind tool gives no control","key":"control over logged entries","module":"page","kind":"question","brief":"v1"}
++{"session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"at":"2026-10-09T22:26:17.742Z","id":"a7","ask":"Let any AI agent edit a page through deltas","key":"agents edit pages via deltas","module":"page","kind":"build","brief":"v1"}
++{"session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"at":"2026-10-09T22:26:17.742Z","id":"a8","ask":"Build pages from a list of sections: a live list inside the page, stored in page.jsonl, whose deltas get logged","key":"pages built from live section lists","module":"page","kind":"idea","brief":"v1"}
++{"session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"at":"2026-10-09T22:26:17.742Z","id":"a9","ask":"Use the pages route path for deltas even when a page has no page.jsonl of its own","key":"route path without page.jsonl","module":"page","kind":"build","brief":"v1"}
++{"session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"at":"2026-10-09T22:26:17.742Z","id":"a10","ask":"Treat the page system as the go-to storage and streaming system","key":"page system as storage and streaming","module":"page","kind":"idea","brief":"v1"}
++{"session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"at":"2026-10-09T22:26:17.742Z","id":"a11","ask":"Focus on object-oriented class architecture and keep everything simple","key":"OO class architecture, simplicity","module":"site","kind":"rule","brief":"v1"}
++{"session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"at":"2026-10-09T22:26:17.742Z","id":"a12","ask":"Make class instances visible so you can see what class each thing is and the app structure at object level, for pages, sessions and everything","key":"visible class instances everywhere","module":"site","kind":"build","brief":"v1"}
++{"session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"at":"2026-10-09T22:26:17.742Z","id":"a13","ask":"Create a system architect mastermind that studies the system and checks its object-oriented declarations","key":"system architect mastermind","module":"site","kind":"build","brief":"v1"}
++{"session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"at":"2026-10-09T22:26:17.742Z","id":"a14","ask":"Lean heavily into classes and class hierarchies over lowercase files with loose exported functions","key":"classes over exported functions","module":"site","kind":"rule","brief":"v1"}
++{"session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"at":"2026-10-09T22:26:17.742Z","id":"a15","ask":"Treat class hierarchies as the 101 documentation: class names, children, when and where instantiated, data passing, references, communication","key":"class hierarchy as 101 docs","module":"site","kind":"rule","brief":"v1"}
++{"session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"at":"2026-10-09T22:26:17.742Z","id":"a16","ask":"Give every module an architecture.md with short design decisions, the why, questions and options","key":"architecture.md per module","module":"site","kind":"build","brief":"v1"}
++{"session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"at":"2026-10-09T22:26:17.742Z","id":"a17","ask":"Check which doc systems already exist before adding new ones","key":"audit existing doc systems","module":"site","kind":"question","brief":"v1"}
++{"session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"at":"2026-10-09T22:26:17.742Z","id":"a18","ask":"Keep READMEs small as the go-to first level: generally under 100 lines, ideally 30 to 50 lines of content","key":"README length limit","module":"site","kind":"rule","brief":"v1"}
++{"session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"at":"2026-10-09T22:26:17.742Z","id":"a19","ask":"Keep docs clear, clean and compact, readable on demand","key":"compact on-demand docs","module":"site","kind":"rule","brief":"v1"}
++{"session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"at":"2026-10-09T22:26:17.742Z","id":"a20","ask":"Document the core Page class, explaining page.js versus page.json","key":"document page.js vs page.json","module":"page","kind":"build","brief":"v1"}
++{"session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"at":"2026-10-09T22:26:17.742Z","id":"a21","ask":"Document the files.json indexing system and the other systems","key":"document files.json indexing","module":"page","kind":"build","brief":"v1"}
++{"session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"at":"2026-10-09T22:26:17.742Z","id":"a22","ask":"Document generic per-directory, path-based behaviour under the page system","key":"document path-based directory behaviour","module":"page","kind":"build","brief":"v1"}
++{"session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"at":"2026-10-09T22:26:17.742Z","id":"a23","ask":"Mention the iceberg structure at least once in the skills or elsewhere","key":"iceberg structure in skills","module":"site","kind":"build","brief":"v1"}
++{"session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"at":"2026-10-09T22:26:17.742Z","id":"a24","ask":"Link to session IDs from docs, e.g. a conversation in a given VS Code session","key":"link docs to session IDs","module":"site","kind":"build","brief":"v1"}
++{"session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"at":"2026-10-09T22:26:17.742Z","id":"a25","ask":"Make things linkable by URL and use links wherever appropriate, without duplicating data or breaking coding rules","key":"everything linkable by URL","module":"site","kind":"rule","brief":"v1"}
++{"session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"at":"2026-10-09T22:26:17.742Z","id":"a26","ask":"Make links taggable and filterable","key":"tagged filterable links","module":"site","kind":"idea","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":10670,"at":"2026-10-12T19:03:18.852Z","id":"a1","ask":"Give the sessions tab its own name, distinct from the VS Code \"Usage\" and phone \"Claude versus real dollars\" labels.","key":"own name for sessions tab","module":"ai/sessions","kind":"build","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":10670,"at":"2026-10-12T19:03:18.852Z","id":"a2","ask":"Show every current session when the sessions tab is clicked, each labelled so the owner knows what it is.","key":"list all current sessions clearly","module":"ai/sessions","kind":"build","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":10670,"at":"2026-10-12T19:03:18.852Z","id":"a3","ask":"Mark which session is the one the owner is currently talking to.","key":"identify the active chat session","module":"ai/sessions","kind":"build","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":10670,"at":"2026-10-12T19:03:18.852Z","id":"a4","ask":"Check whether this session reports the model as Sonnet after it was switched to Opus, and correct the displayed model if so.","key":"verify model shown for session","module":"ai/sessions","kind":"fix","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":10670,"at":"2026-10-12T19:03:18.852Z","id":"a5","ask":"Explain or relabel the unclear labels in the sessions tab so the owner understands them.","key":"clarify sessions tab labels","module":"ai/sessions","kind":"fix","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":10670,"at":"2026-10-12T19:03:18.852Z","id":"a6","ask":"Consider hiding or separating cost entries older than three days so current sessions are easy to find.","key":"filter out stale three-day entries","module":"ai/sessions","kind":"idea","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":10670,"at":"2026-10-12T19:03:18.852Z","id":"a7","ask":"Should the sessions list update live as sessions change, or hold still while the owner reads it?","key":"live versus static session list","module":"ai/sessions","kind":"question","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3752,"at":"2026-10-12T06:12:59.063Z","id":"a1","ask":"Add the Figma extension to the navigation","key":"figma extension in nav","module":"site","kind":"fix","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3752,"at":"2026-10-12T06:12:59.063Z","id":"a2","ask":"Check whether navigation uses files.jsonl and unify it so new things add to navigation automatically","key":"unify nav with files.jsonl","module":"site","kind":"idea","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3752,"at":"2026-10-12T06:12:59.063Z","id":"a3","ask":"Decide whether a system to track everything properly is wanted, and if so design it","key":"system to track everything","module":"site","kind":"question","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3752,"at":"2026-10-12T06:12:59.063Z","id":"a4","ask":"Find out whether the dynamic index of all sub pages was built, and if not, build it","key":"dynamic sub-page index","module":"site","kind":"question","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3752,"at":"2026-10-12T06:12:59.063Z","id":"a5","ask":"Build the Figma designs out as HTML and CSS using the UI system instead of preview cards","key":"figma designs as html css","module":"Figma","kind":"build","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3752,"at":"2026-10-12T06:12:59.063Z","id":"a6","ask":"Investigate why clicking Figma cards is laggy, possibly slow embed loading, and fix it","key":"figma card click lag","module":"Figma","kind":"fix","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3752,"at":"2026-10-12T06:12:59.063Z","id":"a7","ask":"Investigate why clicking the same Figma card repeatedly happens, and fix it if it is a bug","key":"repeated figma card click","module":"Figma","kind":"fix","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3752,"at":"2026-10-12T06:12:59.063Z","id":"a8","ask":"Add a click-through on the Figma preview that shows the actual UI elements rendered out","key":"figma preview rendered ui","module":"Figma","kind":"build","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":12064,"at":"2026-10-13T19:07:20.739Z","id":"a1","ask":"Clean the working tree before wrap-up: git-ignore or commit every untracked and uncommitted file so git status is clean.","key":"clean git working tree","module":"site","kind":"fix","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":12064,"at":"2026-10-13T19:07:20.739Z","id":"a2","ask":"Add a CLAUDE.md rule: every file change made while managing work must be git-ignored or committed, so no files are lost.","key":"CLAUDE.md file-change rule","module":"site","kind":"rule","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":12064,"at":"2026-10-13T19:07:20.739Z","id":"a3","ask":"Decide whether the same file-change rule also belongs in the mastermind skill, or only in CLAUDE.md.","key":"rule home: mastermind skill or CLAUDE.md","module":"site","kind":"question","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":2689,"at":"2026-10-09T03:53:47.170Z","id":"a1","ask":"Show the class architecture of the refine page, with each class name and how the prompt, refine and related pieces fit together.","key":"refine class architecture","module":"ext/Refine","kind":"question","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":2689,"at":"2026-10-09T03:53:47.170Z","id":"a2","ask":"Choose class names and hierarchy carefully in object-oriented code, since wrong names and hierarchy have been causing things to break.","key":"careful OO naming and hierarchy","module":"site","kind":"rule","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":2689,"at":"2026-10-09T03:53:47.170Z","id":"a3","ask":"Name classes that orchestrate several other classes with system or manager words.","key":"system and manager naming words","module":"site","kind":"rule","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":2689,"at":"2026-10-09T03:53:47.170Z","id":"a4","ask":"Consider a Prompt class as a simple data structure.","key":"Prompt class as data structure","module":"ext/Refine","kind":"idea","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":2689,"at":"2026-10-09T03:53:47.170Z","id":"a5","ask":"Confirm whether raw prompts and all session data are being logged.","key":"confirm session logging coverage","module":"ai/sessions","kind":"question","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":2689,"at":"2026-10-09T03:53:47.170Z","id":"a6","ask":"Explain what data the AI/sessions folders with unique IDs contain, given there may be thousands.","key":"contents of session UUID folders","module":"ai/sessions","kind":"question","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":2689,"at":"2026-10-09T03:53:47.170Z","id":"a7","ask":"Check whether session data is saved by date directory or not.","key":"date directory storage check","module":"ai/sessions","kind":"question","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":2689,"at":"2026-10-09T03:53:47.170Z","id":"a8","ask":"Find out whether session data is duplicated.","key":"duplicate session data check","module":"ai/sessions","kind":"question","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":2689,"at":"2026-10-09T03:53:47.170Z","id":"a9","ask":"Check whether the session UUIDs match the named session directories.","key":"UUID to named directory match","module":"ai/sessions","kind":"question","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":2689,"at":"2026-10-09T03:53:47.170Z","id":"a10","ask":"Check whether similar session data is saved in both locations.","key":"same data in both locations","module":"ai/sessions","kind":"question","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":2689,"at":"2026-10-09T03:53:47.170Z","id":"a11","ask":"Decide whether two sessions can or should be merged, and whether that is decided one by one or in bulk.","key":"session merge decision","module":"ai/sessions","kind":"question","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":2689,"at":"2026-10-09T03:53:47.170Z","id":"a12","ask":"Possibly write a script that scans all sessions and pairs ones that are exactly the same.","key":"script to pair identical sessions","module":"ai/sessions","kind":"idea","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":2689,"at":"2026-10-09T03:53:47.170Z","id":"a13","ask":"Work out how to merge session JSONL files, given they are ordered, time-dependent chains and appending one to the other probably will not work.","key":"JSONL merge approach","module":"ai/sessions","kind":"question","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":2689,"at":"2026-10-09T03:53:47.170Z","id":"a14","ask":"Decide how to properly handle the session data.","key":"proper session data handling","module":"ai/sessions","kind":"build","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":2689,"at":"2026-10-09T03:53:47.170Z","id":"a15","ask":"Report where the session data work currently stands.","key":"session data status report","module":"ai/sessions","kind":"question","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3351,"at":"2026-10-10T06:37:19.998Z","id":"a1","ask":"Check whether you have access to the September 2026 page.","key":"access to September 2026 page","module":"site","kind":"question","brief":"v1"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3351,"at":"2026-10-10T06:37:19.998Z","id":"a2","ask":"Create a new page in the September 2026 document, if access allows.","key":"create new page in document","module":"site","kind":"build","brief":"v1"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a1","ask":"Screenshot the current website sidebar.","key":"screenshot current site sidebar","module":"site","kind":"build","brief":"v2"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a2","ask":"Recreate the site sidebar in Figma to match the live one: white background, icon items and sections, expand and collapse behaviour.","key":"recreate sidebar in Figma","module":"Figma","kind":"build","brief":"v2"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a3","ask":"Pull the SVG logo the website uses into the top-left of the Figma sidebar.","key":"logo SVG in sidebar","module":"Figma","kind":"build","brief":"v2"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a4","ask":"Redesign the sidebar so its many items and sections lay out cleanly, covering both the home and framework versions.","key":"redesign sidebar layout","module":"site","kind":"build","brief":"v2"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a5","ask":"Make a dark-mode variant of the sidebar.","key":"dark sidebar variant","module":"Figma","kind":"build","brief":"v2"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a6","ask":"Consider the Control-backslash dev shell dark wrapper as the spot for dark left and right sidebars.","key":"dev shell as dark sidebar spot","module":"site","kind":"idea","brief":"v2"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a7","ask":"Keep the main site's white left navigation sidebar unchanged.","key":"keep white site sidebar","module":"site","kind":"rule","brief":"v2"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a8","ask":"Harmonize the designs currently on the site.","key":"harmonize site designs","module":"site","kind":"build","brief":"v2"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a9","ask":"Do not make unique, non-reusable designs; reuse existing building blocks.","key":"no unique one-off designs","module":"site","kind":"rule","brief":"v2"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a10","ask":"Isolate the core building blocks into a section card per element, documented per style (lists, grids, graphs).","key":"section cards per element","module":"Figma","kind":"build","brief":"v2"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a11","ask":"Build a mobile UI kit as the home for the elements, and verify each works on mobile.","key":"mobile UI kit","module":"Figma","kind":"build","brief":"v2"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a12","ask":"Integrate framework/ui and framework/ux into Figma with cohesion between Figma and the UI.","key":"integrate ui and ux with Figma","module":"ui/ux","kind":"build","brief":"v2"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a13","ask":"Harmonize the framework UI system with these designs.","key":"harmonize framework UI system","module":"ui","kind":"build","brief":"v2"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a14","ask":"Spawn Sonnet minions to walk the website elements and build a component system in Figma.","key":"Sonnet minions build Figma components","module":"Figma","kind":"idea","brief":"v2"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a15","ask":"Decide whether everything should be a component.","key":"whether everything is a component","module":"Figma","kind":"question","brief":"v2"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a16","ask":"Decide what should and should not be a component, and how to convert those into actual UI.","key":"component vs not decision","module":"Figma","kind":"build","brief":"v2"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a17","ask":"Figure out how Figma slots work and whether they solve container problems, since components cannot hold arbitrary content.","key":"figure out Figma slots","module":"Figma","kind":"question","brief":"v2"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a18","ask":"Keep working with minions while usage stays under pace.","key":"minions while under pace","module":"ai","kind":"rule","brief":"v2"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a19","ask":"Make design-system suggestions.","key":"design-system suggestions","module":"Figma","kind":"build","brief":"v2"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a20","ask":"Create an overview page in the September 2026 folder (owner's name; today is October 2026), possibly a runnable prototype the owner can click through.","key":"overview page September 2026","module":"Figma","kind":"build","brief":"v2"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a21","ask":"Add text layers in Figma that link to other pages and work outside prototype mode, for multi-page navigation.","key":"Figma text-layer page links","module":"Figma","kind":"build","brief":"v2"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a22","ask":"Find and talk to the other Opus mastermind session; the owner has forgotten its session ID.","key":"find other Opus mastermind","module":"ai","kind":"build","brief":"v2"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a23","ask":"Fix the ai/sessions tab clutter: add visual hierarchy and stop randomly positioned text.","key":"sessions tab clutter and hierarchy","module":"ai/sessions","kind":"fix","brief":"v2"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a24","ask":"Take a screenshot of monorepo.localhost/framework/ai/sessions at 3440 px.","key":"sessions screenshot at 3440","module":"ai/sessions","kind":"build","brief":"v2"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a25","ask":"Fix the sessions data grid so headers lay out properly and gray rows no longer scroll behind the sticky header.","key":"sessions grid header overlap","module":"ai/sessions","kind":"fix","brief":"v2"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a26","ask":"Use headless Playwright to scroll the sessions data grid and verify the fix.","key":"Playwright scroll verification","module":"ai/sessions","kind":"build","brief":"v2"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a27","ask":"Consider making the sessions header more solid.","key":"solid sessions header","module":"ai/sessions","kind":"idea","brief":"v2"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a28","ask":"Fix the sessions scrollable area, which is only about a third of page height.","key":"sessions scroll area height","module":"ai/sessions","kind":"fix","brief":"v2"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"at":"2026-10-12T21:50:12.019Z","id":"a29","ask":"Make all sessions items visible and clickable.","key":"sessions items visible clickable","module":"ai/sessions","kind":"build","brief":"v2"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a1","ask":"Find why dictation is routed to OpenRouter tokens, restore Claude as intended, and report the current model per dictation path.","key":"dictation back on Claude tokens","module":"ai/dictation","kind":"fix","brief":"v2"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a2","ask":"When Claude tokens are available, especially near expiry, run the fast and smart assistants on Haiku and Sonnet.","key":"Haiku and Sonnet for assistants","module":"ai/models","kind":"rule","brief":"v2"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a3","ask":"Check whether the fast assistant is doing anything at all right now.","key":"is the fast assistant active","module":"ai/assistants","kind":"question","brief":"v2"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a4","ask":"Build one shared microphone button with a level meter, placed in the mobile rail and the refine and dictate tabs.","key":"one mic button with level meter","module":"ai/dictation","kind":"build","brief":"v2"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a5","ask":"Make the sidebar and mobile sheet run the same dictation code, so desktop and mobile give the same cards, processing, refinement and actions.","key":"one dictation code path","module":"ai/dictation","kind":"rule","brief":"v2"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a6","ask":"Fix chat bubble ordering so statements appear in the order spoken.","key":"chat bubble order","module":"ai/dictation","kind":"fix","brief":"v2"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a7","ask":"Have agents add chat cards and other contextual cards through the built-in page tools, not ad hoc.","key":"cards via built-in page tools","module":"ai/dictation","kind":"fix","brief":"v2"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a8","ask":"Keep the raw Whisper transcript as-is, then run a minimal, robust cleaning pass.","key":"raw then minimal cleaning","module":"ai/dictation","kind":"build","brief":"v2"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a9","ask":"Run refinement, structure and card creation in real time, per chunk.","key":"real-time per-chunk refinement","module":"ai/refine","kind":"build","brief":"v2"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a10","ask":"Test chunk boundaries: sentence as baseline, plus commas or pauses and more than four words, avoiding incomplete phrases and using a quicker trigger for long run-ons.","key":"chunk boundary trigger","module":"ai/dictation","kind":"idea","brief":"v2"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a11","ask":"Look into the refinement system and dictate widget, and decide what lives where and how dictate and chat nest together.","key":"dictate and chat architecture","module":"ai/dictation","kind":"question","brief":"v2"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a12","ask":"Show which model each agent runs and report current model choices.","key":"show model per agent","module":"ai/models","kind":"question","brief":"v2"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a13","ask":"Use OpenRouter only when the Claude token wall is hit, not when Claude is enough.","key":"OpenRouter only at token wall","module":"ai/models","kind":"rule","brief":"v2"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a14","ask":"Run the fast and smart assistants as separate SDK instances, each with its own context.","key":"separate assistant SDK instances","module":"ai/assistants","kind":"build","brief":"v2"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a15","ask":"Keep the fast assistant on Haiku, under 100K tokens, auto-compacting or resetting after about half an hour.","key":"fast assistant Haiku under 100K","module":"ai/assistants","kind":"rule","brief":"v2"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a16","ask":"Have agents log their work to JSONL as they go, so state survives without a handoff file.","key":"JSONL logging, no handoff file","module":"ai/sessions","kind":"rule","brief":"v2"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a17","ask":"Let code, not AI memory, close worktrees and move to the next task; the node system replies with the next task and updates the data structures.","key":"code drives task transitions","module":"ai/loops","kind":"rule","brief":"v2"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a18","ask":"Build a pre-programmed node loop that starts after mastermind approval and logs each step with timestamps.","key":"logged node loop","module":"ai/loops","kind":"build","brief":"v2"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a19","ask":"Apply the code-driven loop principle across all AI systems.","key":"loop principle everywhere","module":"site","kind":"rule","brief":"v2"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a20","ask":"Define the framework/AI system, documented for AI first and viewable by the owner in the systems tab or README.","key":"document framework AI system","module":"site","kind":"build","brief":"v2"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a21","ask":"Put architectural directives in the architecture doc or README, such as moving or copying files instead of reading and writing them through tokens, only where they hold true.","key":"token-efficient file directives","module":"site","kind":"rule","brief":"v2"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a22","ask":"Verify that the systems are tuned and working as asked, and answer the questions about minion count, model, effort and output.","key":"verify systems and answer minion questions","module":"ai/models","kind":"question","brief":"v2"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a23","ask":"Revisit the AI model testing system and what it shows models are good at.","key":"revisit model testing","module":"ai/models","kind":"question","brief":"v2"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a24","ask":"Make the AI session system browsable, showing what was requested and when, with clickable raw logs.","key":"browsable sessions with raw logs","module":"ai/sessions","kind":"build","brief":"v2"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a25","ask":"Run prompt refinement on past sessions, day by day in reverse, from verbatim prompts to refined directive to outcome.","key":"refine past sessions in reverse","module":"ai/refine","kind":"build","brief":"v2"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a26","ask":"Each refinement reports confidence separately for how clear the ask is and how clear the outcome is.","key":"clarity and outcome confidence","module":"ai/refine","kind":"rule","brief":"v2"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a27","ask":"Consider a confidence weight that defaults to 0.5 (or 1 as a multiplier), lowered when unsure and raised when sure.","key":"confidence default and multiplier","module":"ai/refine","kind":"idea","brief":"v2"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a28","ask":"Make the meaning of the confidence weights explicit so nobody mistakes them, e.g. 0.9 read as 90 percent confidence.","key":"explicit confidence meaning","module":"ai/refine","kind":"rule","brief":"v2"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a29","ask":"Test all of these refinement and confidence changes.","key":"test refinement changes","module":"ai/refine","kind":"build","brief":"v2"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a30","ask":"Have masterminds study what exists, starting fresh sessions and reusing one only when its cache is fresh.","key":"fresh masterminds study","module":"ai/sessions","kind":"rule","brief":"v2"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a31","ask":"Only the smart assistant replies in chat; the fast assistant stays a quiet trigger that cleans chunks, removes filler and turns references like framework/AI into path links, rather than being removed.","key":"smart replies, fast cleans","module":"ai/assistants","kind":"rule","brief":"v2"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a32","ask":"The fast assistant speaks only when called by name, replying with a short presence check.","key":"fast assistant only when called","module":"ai/assistants","kind":"rule","brief":"v2"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a33","ask":"The smart assistant coordinates the handoff, refines prompts, checks sense, asks clarifying questions, and routes to masterminds.","key":"smart assistant coordinates and refines","module":"ai/assistants","kind":"rule","brief":"v2"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a34","ask":"Clarifying questions time out, then proceed with the top-ranked decisions from a decision overview, not a council vote.","key":"timeout then top-ranked decisions","module":"ai/assistants","kind":"rule","brief":"v2"}
++{"session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"at":"2026-10-13T21:58:58.167Z","id":"a35","ask":"Masterminds take tool-heavy work through a queue, keeping the smart assistant's hands free.","key":"masterminds queue heavy work","module":"ai/assistants","kind":"rule","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3959,"at":"2026-10-12T06:42:47.119Z","id":"a1","ask":"Find one home for each rule and merge the duplicate rules","key":"one home for each rule","module":"ai/rules","kind":"build","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3959,"at":"2026-10-12T06:42:47.119Z","id":"a2","ask":"Decide how many rule systems there should be and what they are called","key":"number and names of rule systems","module":"ai/rules","kind":"question","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3959,"at":"2026-10-12T06:42:47.119Z","id":"a3","ask":"Audit rules for bloat and wrong-direction wording that makes the AIs follow bad instructions","key":"rule bloat and wrong wording","module":"ai/rules","kind":"fix","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3959,"at":"2026-10-12T06:42:47.119Z","id":"a4","ask":"Consider structuring rules as a weighted tree of statements per subsection","key":"weighted tree of rule statements","module":"ai/rules","kind":"idea","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3959,"at":"2026-10-12T06:42:47.119Z","id":"a5","ask":"Decide whether rules become skills or live in a directory outside the skill folder","key":"skills vs directory placement","module":"ai/skills","kind":"question","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3959,"at":"2026-10-12T06:42:47.119Z","id":"a6","ask":"Lean away from skills toward a more accessible location than the Claude directory","key":"move away from skills","module":"ai/skills","kind":"idea","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3959,"at":"2026-10-12T06:42:47.119Z","id":"a7","ask":"Check whether relying on the AI to choose skills is reliable enough","key":"reliability of AI skill choice","module":"ai/skills","kind":"question","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3959,"at":"2026-10-12T06:42:47.119Z","id":"a8","ask":"Audit session logs for how often each skill is used and why skipped skills go unused","key":"skill usage audit from logs","module":"ai/skills","kind":"build","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3959,"at":"2026-10-12T06:42:47.119Z","id":"a9","ask":"Consider a multi-AI setup where several models answer and a weighted consensus is reached","key":"multi-AI weighted consensus","module":"ai/consensus","kind":"idea","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3959,"at":"2026-10-12T06:42:47.119Z","id":"a10","ask":"Address that a single provider's models agree on many things because of shared training","key":"single-provider agreement bias","module":"ai/consensus","kind":"question","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3959,"at":"2026-10-12T06:42:47.119Z","id":"a11","ask":"Use Node tool functions for all tool calls instead of MCP","key":"node tools instead of MCP","module":"Servex","kind":"build","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3959,"at":"2026-10-12T06:42:47.119Z","id":"a12","ask":"Report where node tool work stands and how the SDK defines tools","key":"node tool status and SDK tool definition","module":"ai/tools","kind":"question","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3959,"at":"2026-10-12T06:42:47.119Z","id":"a13","ask":"Report whether a universal page tool exists that lets an AI modify the page","key":"universal page tool status","module":"ai/page-tool","kind":"question","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3959,"at":"2026-10-12T06:42:47.119Z","id":"a14","ask":"Instantiate the page on the server side so a node tool can act on it quickly","key":"server-side page instance","module":"core/Page","kind":"idea","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3959,"at":"2026-10-12T06:42:47.119Z","id":"a15","ask":"Decide which page functions actually need a full live instance with current data","key":"which pages need live instances","module":"core/Page","kind":"question","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3959,"at":"2026-10-12T06:42:47.119Z","id":"a16","ask":"Let the AI read live streaming pages and data in real time","key":"AI reads live streams","module":"ai/streams","kind":"build","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3959,"at":"2026-10-12T06:42:47.119Z","id":"a17","ask":"Do not have the AI interpret raw JSONL deltas to compute page state","key":"no raw delta interpretation","module":"ai/streams","kind":"rule","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3959,"at":"2026-10-12T06:42:47.119Z","id":"a18","ask":"Instantiate the page in the browser with the same data structure the page tool uses","key":"shared client-side page structure","module":"core/Page","kind":"build","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3959,"at":"2026-10-12T06:42:47.119Z","id":"a19","ask":"Make the headless server-side instance skip rendering","key":"headless instance without render","module":"core/Page","kind":"build","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3959,"at":"2026-10-12T06:42:47.119Z","id":"a20","ask":"Decide whether the headless instance runs on the Servex server or through the dev socket","key":"headless instance host","module":"Servex","kind":"question","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3959,"at":"2026-10-12T06:42:47.119Z","id":"a21","ask":"Lean into MCP if Servex runs the AI sessions and node tools execute in a separate process","key":"MCP if separate process","module":"Servex","kind":"question","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3959,"at":"2026-10-12T06:42:47.119Z","id":"a22","ask":"Pick one communication system for tool calls and stop revisiting the choice","key":"one communication system","module":"Servex","kind":"rule","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3959,"at":"2026-10-12T06:42:47.119Z","id":"a23","ask":"Decide whether node tools run as a sub process or in the parent process so a crash cannot take down the server","key":"sub process vs parent for node tools","module":"Servex","kind":"question","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3959,"at":"2026-10-12T06:42:47.119Z","id":"a24","ask":"Confirm whether SDK sessions spawn sub processes or run in the parent process, given each claude.exe has its own process ID","key":"SDK session process model","module":"Servex","kind":"question","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3959,"at":"2026-10-12T06:42:47.119Z","id":"a25","ask":"Establish whether a critical error in any of these processes can crash the whole system","key":"crash blast radius","module":"Servex","kind":"question","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3959,"at":"2026-10-12T06:42:47.119Z","id":"a26","ask":"Decide how a crashed Servex or process restarts, given Servex is set to come back up","key":"restart after crash","module":"Servex","kind":"question","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3959,"at":"2026-10-12T06:42:47.119Z","id":"a27","ask":"Document all the moving parts of the system","key":"document moving parts","module":"site","kind":"build","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3959,"at":"2026-10-12T06:42:47.119Z","id":"a28","ask":"Paraphrase the dictated points back to the owner","key":"paraphrase dictated points","module":"site","kind":"build","brief":"v2"}
++{"session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"at":"2026-10-09T22:26:17.742Z","id":"a1","ask":"Have the AI mastermind and the page mastermind exchange session IDs so they can talk and collaborate","key":"masterminds share session IDs","module":"ai/sessions","kind":"build","brief":"v2"}
++{"session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"at":"2026-10-09T22:26:17.742Z","id":"a2","ask":"Build a set of page tools, at least one that accepts a path and deltas","key":"page tools accepting path and deltas","module":"core/Page","kind":"build","brief":"v2"}
++{"session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"at":"2026-10-09T22:26:17.742Z","id":"a3","ask":"Let any AI agent edit a page through deltas","key":"any agent edits page via deltas","module":"core/Page","kind":"build","brief":"v2"}
++{"session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"at":"2026-10-09T22:26:17.742Z","id":"a4","ask":"Build a blind logging tool that appends a JSONL entry for whatever it is given","key":"blind JSONL logging tool","module":"core/Page","kind":"build","brief":"v2"}
++{"session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"at":"2026-10-09T22:26:17.742Z","id":"a5","ask":"Decide whether logging goes through a page method or appends to any path, and how to keep control over what gets logged","key":"logging control and page method","module":"core/Page","kind":"question","brief":"v2"}
++{"session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"at":"2026-10-09T22:26:17.742Z","id":"a6","ask":"Build a page as a live list of sections stored in its page.jsonl","key":"page as live sections list","module":"core/Page","kind":"build","brief":"v2"}
++{"session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"at":"2026-10-09T22:26:17.742Z","id":"a7","ask":"Log every delta applied to a page's live list","key":"log deltas to live list","module":"core/Page","kind":"build","brief":"v2"}
++{"session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"at":"2026-10-09T22:26:17.742Z","id":"a8","ask":"Route paths through the pages route even when a page has no page.jsonl of its own","key":"pages route without page.jsonl","module":"core/Page","kind":"build","brief":"v2"}
++{"session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"at":"2026-10-09T22:26:17.742Z","id":"a9","ask":"Masterminds decide the remaining design, and use minions where appropriate once decisions are made; do not wrap up the design yet","key":"masterminds decide then minions build","module":"ai","kind":"rule","brief":"v2"}
++{"session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"at":"2026-10-09T22:26:17.742Z","id":"a10","ask":"Keep the system simple and object-oriented","key":"simple object-oriented system","module":"site","kind":"rule","brief":"v2"}
++{"session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"at":"2026-10-09T22:26:17.742Z","id":"a11","ask":"Make class instances and the app structure visible at object level for pages, sessions and everything else","key":"visible object-level structure","module":"site","kind":"build","brief":"v2"}
++{"session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"at":"2026-10-09T22:26:17.742Z","id":"a12","ask":"Create a system architect mastermind that reviews OO declarations and flags lowercase files with loose exports; prefer classes and class hierarchies over them","key":"system architect reviews OO declarations","module":"ai","kind":"build","brief":"v2"}
++{"session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"at":"2026-10-09T22:26:17.742Z","id":"a13","ask":"Treat class hierarchies as the 101 documentation, recording class names, children, instantiation timing, data passing, references and communication","key":"class hierarchy as documentation","module":"site","kind":"rule","brief":"v2"}
++{"session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"at":"2026-10-09T22:26:17.742Z","id":"a14","ask":"Give every module an architecture.md recording design decisions, reasons, open questions and options, kept concise","key":"architecture.md per module","module":"site","kind":"build","brief":"v2"}
++{"session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"at":"2026-10-09T22:26:17.742Z","id":"a15","ask":"Check whether the existing doc systems already cover architecture.md","key":"existing doc systems coverage","module":"site","kind":"question","brief":"v2"}
++{"session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"at":"2026-10-09T22:26:17.742Z","id":"a16","ask":"Keep READMEs small as the first-level go-to doc, generally under 100 lines, with architecture.md allowed to run longer","key":"README small, architecture longer","module":"site","kind":"rule","brief":"v2"}
++{"session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"at":"2026-10-09T22:26:17.742Z","id":"a17","ask":"Aim for a README an agent can read whole at about 30 to 50 lines or fewer","key":"readable-whole README length","module":"site","kind":"idea","brief":"v2"}
++{"session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"at":"2026-10-09T22:26:17.742Z","id":"a18","ask":"Keep architecture.md summaries of lessons and why decisions were made, not verbose","key":"architecture.md brief lessons","module":"site","kind":"rule","brief":"v2"}
++{"session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"at":"2026-10-09T22:26:17.742Z","id":"a19","ask":"Link architecture docs to the session IDs where a conversation happened, such as a VS Code sidebar session","key":"docs link to session IDs","module":"ai/sessions","kind":"build","brief":"v2"}
++{"session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"at":"2026-10-09T22:26:17.742Z","id":"a20","ask":"Give everything a URL and tags so it can be filtered","key":"linkable and tagged everything","module":"site","kind":"rule","brief":"v2"}
++{"session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"at":"2026-10-09T22:26:17.742Z","id":"a21","ask":"Use links wherever appropriate, always","key":"use links everywhere","module":"site","kind":"rule","brief":"v2"}
++{"session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"at":"2026-10-09T22:26:17.742Z","id":"a22","ask":"Build new things so they are linkable, unless that duplicates data or breaks a coding rule","key":"build new things linkable","module":"site","kind":"rule","brief":"v2"}
++{"session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"at":"2026-10-09T22:26:17.742Z","id":"a23","ask":"Treat the page system as the go-to storage and streaming container","key":"page system as go-to storage","module":"core/Page","kind":"rule","brief":"v2"}
++{"session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"at":"2026-10-09T22:26:17.742Z","id":"a24","ask":"Document the core Page class, explaining page.js versus page.json files","key":"document Page js versus json","module":"core/Page","kind":"build","brief":"v2"}
++{"session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"at":"2026-10-09T22:26:17.742Z","id":"a25","ask":"Document the files.json indexing system","key":"document files.json indexing","module":"core/Page","kind":"build","brief":"v2"}
++{"session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"at":"2026-10-09T22:26:17.742Z","id":"a26","ask":"Document every path-based and per-directory convention under the page system","key":"document path-based conventions","module":"core/Page","kind":"build","brief":"v2"}
++{"session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"at":"2026-10-09T22:26:17.742Z","id":"a27","ask":"Keep documentation clear, clean and compact, read on demand, and mention the iceberg structure at least once in skills","key":"compact on-demand docs with iceberg","module":"site","kind":"rule","brief":"v2"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":5042,"at":"2026-10-13T20:54:39.902Z","id":"a1","ask":"Explain when to use a Figma slot versus swapping a component, and when to use a nested component instance instead.","key":"slot vs component swap guidance","module":"Figma","kind":"question","brief":"v2"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":5042,"at":"2026-10-13T20:54:39.902Z","id":"a2","ask":"Confirm that a Figma slot detaches a section from its master with no linkage afterward.","key":"slot detaches from master","module":"Figma","kind":"question","brief":"v2"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":5042,"at":"2026-10-13T20:54:39.902Z","id":"a3","ask":"Assess whether a component placed inside a slot gives sub-control over slot content without losing the template link.","key":"component in slot sub-control","module":"Figma","kind":"question","brief":"v2"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":5042,"at":"2026-10-13T20:54:39.902Z","id":"a4","ask":"Assess the nested component instance with variant switching as an alternative, including the cost of adding a variant to the master for each new page.","key":"nested instance variant switching","module":"Figma","kind":"idea","brief":"v2"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":5042,"at":"2026-10-13T20:54:39.902Z","id":"a5","ask":"Keep templated parts such as page headers as granular components outside the content slot, possibly including a page title component.","key":"templated parts as components","module":"Figma","kind":"idea","brief":"v2"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":5042,"at":"2026-10-13T20:54:39.902Z","id":"a6","ask":"Keep content inside the slot free, with components such as cards allowed inside it.","key":"content slot with components","module":"Figma","kind":"idea","brief":"v2"}
++{"session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":5042,"at":"2026-10-13T20:54:39.902Z","id":"a7","ask":"Preserve template updates so that changing an underlying templated element updates every page using it.","key":"keep template linkage","module":"Figma","kind":"idea","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":10670,"at":"2026-10-12T19:03:18.852Z","id":"a1","ask":"Give each session a clear identity so the owner can tell which one this chat is","key":"identify the current session","module":"ai/sessions","kind":"build","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":10670,"at":"2026-10-12T19:03:18.852Z","id":"a2","ask":"Show all current sessions on the sessions tab when it is clicked, each recognisable","key":"list all current sessions","module":"ai/sessions","kind":"build","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":10670,"at":"2026-10-12T19:03:18.852Z","id":"a3","ask":"Keep the in-flight list live and separate current sessions from entries older than three days","key":"live list without old entries","module":"ai/sessions","kind":"build","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":10670,"at":"2026-10-12T19:03:18.852Z","id":"a4","ask":"Consider one name for the sessions tab used consistently in the VS Code sidebar and on the phone","key":"one name for the tab","module":"ai/sessions","kind":"idea","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":10670,"at":"2026-10-12T19:03:18.852Z","id":"a5","ask":"Check whether the model label still says Sonnet after the switch to Opus and correct it if so","key":"model label after Opus upgrade","module":"ai/sessions","kind":"question","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3752,"at":"2026-10-12T06:12:59.063Z","id":"a1","ask":"Add the Figma extension to the nav.","key":"Figma extension in nav","module":"ext/Figma","kind":"fix","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3752,"at":"2026-10-12T06:12:59.063Z","id":"a2","ask":"Decide whether to add a system that tracks everything properly.","key":"tracking everything system decision","module":"site","kind":"question","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3752,"at":"2026-10-12T06:12:59.063Z","id":"a3","ask":"Check whether navigation uses the files.jsonl system.","key":"nav uses files.jsonl check","module":"site","kind":"question","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3752,"at":"2026-10-12T06:12:59.063Z","id":"a4","ask":"Possibly unify navigation so new things are added to it automatically.","key":"auto-add new items to nav","module":"site","kind":"idea","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3752,"at":"2026-10-12T06:12:59.063Z","id":"a5","ask":"Find out whether a dynamic index of all sub pages was ever built.","key":"sub-page dynamic index status","module":"site","kind":"question","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3752,"at":"2026-10-12T06:12:59.063Z","id":"a6","ask":"Build the Figma designs as HTML and CSS using our UI system.","key":"Figma designs as HTML CSS","module":"ext/Figma","kind":"build","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3752,"at":"2026-10-12T06:12:59.063Z","id":"a7","ask":"Make the Figma design preview open to show the actual UI elements rendered.","key":"Figma preview renders UI elements","module":"ext/Figma","kind":"build","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3752,"at":"2026-10-12T06:12:59.063Z","id":"a8","ask":"Find out whether the embeds cause the laggy clicking on Figma items.","key":"embed cause of click lag","module":"ext/Figma","kind":"question","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":2689,"at":"2026-10-09T03:53:47.170Z","id":"a1","ask":"Build a class architecture view on the refine page showing how the prompt, refine and related classes fit together, with their names","key":"class architecture view on refine page","module":"ext/Refine","kind":"build","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":2689,"at":"2026-10-09T03:53:47.170Z","id":"a2","ask":"Choose class names and hierarchy carefully in object-oriented code, and do not build on wrong names","key":"careful naming and hierarchy rule","module":"site","kind":"rule","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":2689,"at":"2026-10-09T03:53:47.170Z","id":"a3","ask":"Use system or manager names for classes that orchestrate multiple classes, when that is needed","key":"system or manager naming for orchestrators","module":"site","kind":"rule","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":2689,"at":"2026-10-09T03:53:47.170Z","id":"a4","ask":"Explain whether the pieces fit together and whether the design makes sense","key":"explain how the pieces fit","module":"site","kind":"question","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":2689,"at":"2026-10-09T03:53:47.170Z","id":"a5","ask":"Consider a Prompt class as a simple data structure","key":"Prompt class as data structure","module":"ext/Refine","kind":"idea","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":2689,"at":"2026-10-09T03:53:47.170Z","id":"a6","ask":"Find out where session data is actually saved, since date directories were assumed but may not be used","key":"where session data is saved","module":"ai/sessions","kind":"question","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":2689,"at":"2026-10-09T03:53:47.170Z","id":"a7","ask":"Describe what the unique-ID AI/sessions directories contain, across the possibly thousands of them","key":"contents of unique-ID session directories","module":"ai/sessions","kind":"question","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":2689,"at":"2026-10-09T03:53:47.170Z","id":"a8","ask":"Check whether UUID sessions match the named session directories, and whether similar data is saved in both","key":"UUID sessions vs named directories duplication","module":"ai/sessions","kind":"question","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":2689,"at":"2026-10-09T03:53:47.170Z","id":"a9","ask":"Decide whether sessions should be merged, case by case or in bulk","key":"decide whether to merge sessions","module":"ai/sessions","kind":"question","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":2689,"at":"2026-10-09T03:53:47.170Z","id":"a10","ask":"If feasible, write a script that goes through all sessions and pairs those identified as the same session data","key":"script to pair identical sessions","module":"ai/sessions","kind":"idea","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":2689,"at":"2026-10-09T03:53:47.170Z","id":"a11","ask":"Treat session merging as order- and time-dependent chains, not a plain append of JSONL files","key":"merge respects order and time","module":"ai/sessions","kind":"rule","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":2689,"at":"2026-10-09T03:53:47.170Z","id":"a12","ask":"Decide how session data should be properly handled, since it is not yet confirmed to be handled correctly","key":"proper handling of session data","module":"ai/sessions","kind":"build","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":2689,"at":"2026-10-09T03:53:47.170Z","id":"a13","ask":"Report where the session data work currently stands","key":"status of session data work","module":"ai/sessions","kind":"question","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":12064,"at":"2026-10-13T19:07:20.739Z","id":"a1","ask":"Before wrapping up, clear the working tree so there are no untracked or uncommitted files: git-ignore or commit each one, and find a way to keep the repo clean.","key":"clean working tree before wrap-up","module":"site","kind":"fix","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":12064,"at":"2026-10-13T19:07:20.739Z","id":"a2","ask":"Add to the mastermind skill: whenever a file is changed while managing, it must be either git-ignored or committed, so no files are lost or break things.","key":"mastermind file-change git rule","module":"mastermind skill","kind":"rule","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3351,"at":"2026-10-10T06:37:19.998Z","id":"a1","ask":"Confirm whether you can access the September 2026 page.","key":"access to September 2026 page","module":"Figma","kind":"question","brief":"v2"}
++{"session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3351,"at":"2026-10-10T06:37:19.998Z","id":"a2","ask":"Create a new page in the September 2026 document.","key":"new page in September 2026 document","module":"Figma","kind":"build","brief":"v2"}
+diff --git a/public/framework/ext/Refine/queue/files.jsonl b/public/framework/ext/Refine/queue/files.jsonl
+new file mode 100644
+index 000000000..3193bbede
+--- /dev/null
++++ b/public/framework/ext/Refine/queue/files.jsonl
+@@ -0,0 +1,2 @@
++{"file":"runs.jsonl"}
++{"file":"asks.jsonl"}
+diff --git a/public/framework/ext/Refine/queue/runs.jsonl b/public/framework/ext/Refine/queue/runs.jsonl
+new file mode 100644
+index 000000000..d94c2ea18
+--- /dev/null
++++ b/public/framework/ext/Refine/queue/runs.jsonl
+@@ -0,0 +1,20 @@
++{"at":"2026-10-13T22:24:59.637Z","session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"chars":5843,"sentences":52,"brief":"v1","model":"claude-haiku-5-5","usd":0.21377,"tokens":17202,"ms":27903,"minion":"22000675-df89-4472-9077-f393b464649f","ok":true,"asks":25,"uncited":4}
++{"at":"2026-10-13T22:25:31.687Z","session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3959,"chars":5752,"sentences":58,"brief":"v1","model":"claude-haiku-5-5","usd":0.18053,"tokens":15808,"ms":23254,"minion":"b04ce126-5e56-49ed-973c-c4532b9d6a43","ok":true,"asks":23,"uncited":8}
++{"at":"2026-10-13T22:25:41.006Z","session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"chars":15360,"sentences":122,"brief":"v1","model":"claude-haiku-5-5","usd":0.45128,"tokens":30785,"ms":69283,"minion":"7284ac76-783e-4af4-a098-49898d488eaa","ok":true,"asks":63,"uncited":6}
++{"at":"2026-10-13T22:25:55.774Z","session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":5042,"chars":2565,"sentences":22,"brief":"v1","model":"claude-haiku-5-5","usd":0.12827,"tokens":12581,"ms":14711,"minion":"d88f37b8-b516-4bcd-9ca9-e731c8a258e7","ok":true,"asks":5,"uncited":0}
++{"at":"2026-10-13T22:26:00.495Z","session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"chars":6775,"sentences":51,"brief":"v1","model":"claude-haiku-5-5","usd":0.22667,"tokens":18250,"ms":28765,"minion":"0a52e1f3-354a-482c-9408-8f2ec3cfe8c0","ok":true,"asks":26,"uncited":3}
++{"at":"2026-10-13T22:26:03.747Z","session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":10670,"chars":1327,"sentences":16,"brief":"v1","model":"claude-haiku-5-5","usd":0.09549,"tokens":10760,"ms":7942,"minion":"fe792f32-9322-4785-94a2-0c0c53444efd","ok":true,"asks":7,"uncited":8}
++{"at":"2026-10-13T22:26:12.427Z","session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3752,"chars":1241,"sentences":12,"brief":"v1","model":"claude-haiku-5-5","usd":0.11611,"tokens":11748,"ms":11878,"minion":"b1a23339-2d5a-4e88-9f64-5eb442b1dbc0","ok":true,"asks":8,"uncited":0}
++{"at":"2026-10-13T22:26:20.749Z","session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":12064,"chars":550,"sentences":4,"brief":"v1","model":"claude-haiku-5-5","usd":0.09294,"tokens":10472,"ms":8290,"minion":"85d10c3f-e57d-4492-aa01-43325f5e8bbb","ok":true,"asks":3,"uncited":0}
++{"at":"2026-10-13T22:26:24.518Z","session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":2689,"chars":2836,"sentences":30,"brief":"v1","model":"claude-haiku-5-5","usd":0.16808,"tokens":14640,"ms":20736,"minion":"e7c5ec80-40e3-4de9-8c85-4d981c830f8d","ok":true,"asks":15,"uncited":0}
++{"at":"2026-10-13T22:26:25.503Z","session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3351,"chars":107,"sentences":2,"brief":"v1","model":"claude-haiku-5-5","usd":0.07389,"tokens":9432,"ms":4722,"minion":"b1fd160b-a5a3-431d-983b-e1ee216e6cf5","ok":true,"asks":2,"uncited":0}
++{"at":"2026-10-13T22:31:35.454Z","session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":3516,"chars":5843,"sentences":52,"brief":"v2","model":"claude-haiku-5-5","usd":0.27673,"tokens":20551,"ms":39817,"minion":"a36cff41-51be-472e-8626-0439b417a5d9","ok":true,"asks":29,"uncited":1}
++{"at":"2026-10-13T22:31:45.854Z","session":"730e8a7b-4cbf-4d09-90bd-d61d2bf9384a","line":728,"chars":15360,"sentences":122,"brief":"v2","model":"claude-haiku-5-5","usd":0.35966,"tokens":26405,"ms":50229,"minion":"db79ee32-34de-447a-a7b3-eee5d121d484","ok":true,"asks":35,"uncited":3}
++{"at":"2026-10-13T22:32:12.447Z","session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3959,"chars":5752,"sentences":58,"brief":"v2","model":"claude-haiku-5-5","usd":0.23404,"tokens":18784,"ms":33422,"minion":"2bb47226-f183-40fe-9de2-c1c98abde0d6","ok":true,"asks":28,"uncited":6}
++{"at":"2026-10-13T22:32:16.193Z","session":"7efd07d5-7a58-434d-8847-1a1d7b640390","line":603,"chars":6775,"sentences":51,"brief":"v2","model":"claude-haiku-5-5","usd":0.22588,"tokens":18511,"ms":30299,"minion":"dc65df34-d465-411d-99f6-9ede3353c60b","ok":true,"asks":27,"uncited":1}
++{"at":"2026-10-13T22:32:25.726Z","session":"f155ecbd-2911-4f55-bc4c-c1cf9d7b7026","line":5042,"chars":2565,"sentences":22,"brief":"v2","model":"claude-haiku-5-5","usd":0.12152,"tokens":12544,"ms":13231,"minion":"f9ebfa9a-9669-4ff4-bf23-1bcfdf8fbe6a","ok":true,"asks":7,"uncited":5}
++{"at":"2026-10-13T22:32:28.334Z","session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":10670,"chars":1327,"sentences":16,"brief":"v2","model":"claude-haiku-5-5","usd":0.11894,"tokens":12233,"ms":12110,"minion":"eee447dd-4296-45da-8a75-68fd4381923d","ok":true,"asks":5,"uncited":1}
++{"at":"2026-10-13T22:32:39.600Z","session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3752,"chars":1241,"sentences":12,"brief":"v2","model":"claude-haiku-5-5","usd":0.12333,"tokens":12410,"ms":13847,"minion":"80d75ab3-8288-413f-9001-df5a41e75730","ok":true,"asks":8,"uncited":0}
++{"at":"2026-10-13T22:32:47.814Z","session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":2689,"chars":2836,"sentences":30,"brief":"v2","model":"claude-haiku-5-5","usd":0.15625,"tokens":14351,"ms":19447,"minion":"06b62315-05b3-4617-8e25-1911fb32d7fe","ok":true,"asks":13,"uncited":1}
++{"at":"2026-10-13T22:32:52.730Z","session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":12064,"chars":550,"sentences":4,"brief":"v2","model":"claude-haiku-5-5","usd":0.10661,"tokens":11456,"ms":13090,"minion":"bc98a3a0-d7a6-426e-aea4-35806c7cbc07","ok":true,"asks":2,"uncited":0}
++{"at":"2026-10-13T22:32:54.279Z","session":"87bec773-d6dd-421c-92cc-fdd8a9eb5103","line":3351,"chars":107,"sentences":2,"brief":"v2","model":"claude-haiku-5-5","usd":0.08695,"tokens":10386,"ms":6430,"minion":"2ff27a1d-a1dc-4d38-8762-65b9665ee49a","ok":true,"asks":2,"uncited":0}
+diff --git a/public/framework/ext/Refine/readme.md b/public/framework/ext/Refine/readme.md
+index ea6eb1a1d..a45cbf204 100644
+--- a/public/framework/ext/Refine/readme.md
++++ b/public/framework/ext/Refine/readme.md
+@@ -48,6 +48,7 @@ pulling a sample straight from a recent voice session — no index of raw dictat
+ today, so paste is the stand-in; see the page's own doc comment (`try/page.js`) for why.
+ 
+ ## More
++- [Refine queue](/framework/ext/Refine/md/doc/refine-queue/) — the owner's past prompts refined one per Haiku call, N at once (`Server/RefineQueue.mjs`), as `refined` cards (`RefinedCard.js`) on each session page's Coverage tab; the Opus review that picked brief v2; the promotion rule for asks said in 3+ sessions (`doc/refine-queue.md`)
+ - [`doc/notes.md`](./doc/notes.md) — design, implementation, and API notes for `engine.js`
+ - [Refine v3](/framework/ext/Refine/md/doc/refine-v3-2026-10-09/) — the one-screen workspace, instant clean, a session per model run, per-sentence clarity, numbers (`doc/refine-v3-2026-10-09.md`). The old saved-run ladder moved to `ladder/`.
+ - [audio/Whisper](/framework/audio/Whisper/) — the Whisper server and per-surface session classes (`Whisper`, `WhisperSession`)

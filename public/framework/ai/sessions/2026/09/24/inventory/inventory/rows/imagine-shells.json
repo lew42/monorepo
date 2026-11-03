@@ -1,0 +1,80 @@
+[
+  {
+    "area": "imagine/shells",
+    "thing": "Shells realm entry (moved stub)",
+    "path": "public/imagine/shells/page.js",
+    "purpose": "A nine-line page that only says the shells lab moved to /layouts/labs/shells/.",
+    "readme": "stale",
+    "readme_why": "readme.md in this dir still describes the lab as living at /imagine/shells/ and links to /imagine/shells/doc/decisions/; the live copy is at layouts/labs/shells/ (its readme has the corrected urls).",
+    "status": "moved-stub",
+    "duplicates": ["public/layouts/labs/shells/ - the real, live copy of the same lab (listed in layouts/labs/page.js:24 children)"],
+    "should_use": [],
+    "evidence": "public/imagine/shells/page.js:5 (description says it moved); public/imagine/page.js:46 comment says shells moved 2026-09-18",
+    "lines": 9
+  },
+  {
+    "area": "imagine/shells",
+    "thing": "Shell class + Shell.css (old copy)",
+    "path": "public/imagine/shells/Shell.js, Shell.css",
+    "purpose": "The Page subclass and one CSS grid that give each shell page its head/left/right/foot chrome; this is the pre-move copy.",
+    "readme": "stale",
+    "readme_why": "The shared readme.md points at /imagine/shells/ urls; Shell.js:29 comment names /imagine/shells/readme.md.",
+    "status": "dead",
+    "duplicates": ["public/layouts/labs/shells/Shell.js and Shell.css - near-identical (differ only in url strings and a 2026-09-05 spacing-ramp edit in the css: gap calc(var(--gap)*0.45) vs 0.45em)", "public/layouts/shell/Shell.js - a different, unrelated class of the same name (sidebar + resize handle for the homepage-design tree)"],
+    "should_use": [],
+    "evidence": "Shell.js:140 hardcodes img src /imagine/shells/shots/... ; Shell.css:66 still has the older 0.45em gap. Probably nothing imports this copy (only its own ten shell pages, which are also unreachable) - not fully grepped.",
+    "lines": 443
+  },
+  {
+    "area": "imagine/shells",
+    "thing": "Ten shell demo pages (old copies)",
+    "path": "public/imagine/shells/{both,canvas,columns,foot,head-foot,inner-bar,inner-rail,left,rail-foot,right}/page.js + shots/*.jpg",
+    "purpose": "Ten app-layout chrome demos (rails, bars, canvas, inner chrome), each a few-line page that declares its parts to Shell.",
+    "readme": "not-needed",
+    "readme_why": "",
+    "status": "orphaned",
+    "duplicates": ["public/layouts/labs/shells/<same ten names>/ - same pages and screenshots at the new home"],
+    "should_use": [],
+    "evidence": "public/imagine/shells/page.js declares no children; the stub is the only parent. The old urls only resolve by core's undeclared-child fallthrough.",
+    "lines": 200
+  },
+  {
+    "area": "imagine/shells",
+    "thing": "Shells doc (decisions record)",
+    "path": "public/imagine/shells/doc/",
+    "purpose": "The long record of measurements, rejected ideas and open questions for the shells lab.",
+    "readme": "not-needed",
+    "readme_why": "",
+    "status": "orphaned",
+    "duplicates": ["public/layouts/labs/shells/doc/ - the same decisions.md and page.js; only page.js differs (url text)"],
+    "should_use": [],
+    "evidence": "public/imagine/shells/doc/page.js comment about /imagine/shells/doc/decisions/ 404 - fixed at the old home, now copied to layouts/labs/shells/doc/",
+    "lines": 60
+  },
+  {
+    "area": "imagine/shells",
+    "thing": "Overlap: /layouts/shell/ (homepage design tree)",
+    "path": "public/layouts/shell/",
+    "purpose": "Not in this area, listed for the overlap: a resizable sidebar beside a tree of homepage designs. Different purpose from the chrome-shell lab, but it also has a Shell class and 'shell' in every name.",
+    "readme": "current",
+    "readme_why": "",
+    "status": "live",
+    "duplicates": ["public/layouts/labs/shells/Shell.js - two unrelated classes both exported as Shell; the names confuse (layouts/shell/Shell.js:21 vs imagine/shells/Shell.js:34)"],
+    "should_use": [],
+    "evidence": "public/layouts/shell/Shell.js:21 export default class Shell; readme.md line 1",
+    "lines": 993
+  },
+  {
+    "area": "imagine/shells",
+    "thing": "Imagine index mention of shells",
+    "path": "public/imagine/page.js, public/imagine/readme.md",
+    "purpose": "Question: is shells named in the imagine index? Answer: not as a child or card; page.js:46 only has a comment saying it moved to /layouts/; readme.md has no mention.",
+    "readme": "not-needed",
+    "readme_why": "",
+    "status": "moved-stub",
+    "duplicates": [],
+    "should_use": [],
+    "evidence": "public/imagine/page.js:46; the GROUPS list at page.js ~29 does not include shells",
+    "lines": 0
+  }
+]

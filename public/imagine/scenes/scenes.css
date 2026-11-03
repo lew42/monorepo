@@ -1,0 +1,251 @@
+/* Restated IN FULL - a short list silently misplaces `site`. The first @layer
+   statement in the document fixes the order; a name first seen later is appended
+   at the END. */
+@layer base, theme, site, util;
+
+/* ASCII ONLY, comments included. */
+@layer theme {
+
+	/* `/imagine/` is a columns host, so this page arrives as a `full` COLUMN and
+	   Page.column() lists its children under the content. Here that list would be a
+	   second, worse copy of `.scene-nav` - and the canvas itself is the navigation.
+	   The head and the close button stay: they are how you leave. */
+	.page.scene-page > .page-column-body > .page-column-item { display: none; }
+
+	/* A `full` column has no measure of its own, so the lead paragraph ran the whole
+	   3440. The stage, the bar and the nav want the room; the prose does not. */
+	.page.scene-page .md { max-width: 52em; }
+
+	/* THE LOBBY — an alternative tried 2026-09-05, kept. Below 100em this is a
+	   plain block: the intro, then `staging()`'s own bar/stage/nav/notes, stacked
+	   exactly as before. Past 100em there is width to spare, and the owner's
+	   3-column card shape reads much better here than one long stack: a rail
+	   (title, intro, the door switch) beside the stage, and the CURRENT door's own
+	   note as a readout on the right. That second part is the real fix — walk three
+	   doors deep today and the note explaining what you are looking at sits below a
+	   600px canvas, off the first screen; in the rail it is always in view next to
+	   the room it describes. doc/decisions.md */
+	@media (min-width: 100em) {
+		.scene-lobby {
+			display: grid;
+			grid-template-columns: clamp(14em, 20%, 18em) 1fr clamp(14em, 20%, 18em);
+			grid-template-areas:
+				"crumb crumb  crumb"
+				"intro stage  notes"
+				"nav   stage  notes";
+			column-gap: calc(var(--gap) * 1.5);   /* was column-gap 1.5em - 2026-09-05 ramps */
+			align-items: start;
+		}
+
+		.scene-lobby-intro { grid-area: intro; }
+		.scene-bar { grid-area: crumb; margin-block-end: calc(var(--gap) * 1); }   /* was margin-block-end 1em - 2026-09-05 ramps */
+		.scene-stage { grid-area: stage; }
+		.scene-nav { grid-area: nav; flex-direction: column; align-items: start; margin-block-start: calc(var(--gap) * 1); }   /* was margin-block-start 1em - 2026-09-05 ramps */
+		.scene-notes { grid-area: notes; margin-block-start: 0; }
+
+		/* Nothing is picked yet at the bare foyer url — say so instead of leaving
+		   the rail looking broken. `.scene-note`'s own render fills this the
+		   moment any door is open, so the message never overlaps real content. */
+		.scene-notes:empty::before {
+			content: "Click a door to see what it is.";
+			color: var(--subtle); font-size: 0.9em; font-style: italic;
+		}
+	}
+
+	/* THE PATH BAR. The crumbs are the REAL ones - Page.crumbs() off chain() - so
+	   the strip cannot disagree with where the world is. It only has to read like a
+	   path: the chevron Page.crumbs() emits is a material-icons ligature, so zeroing
+	   the span's font-size hides the word and ::after draws the slash instead. */
+	.scene-bar {
+		display: flex; align-items: center; gap: calc(var(--gap) * 0.1);   /* was gap 0.1em - 2026-09-05 ramps */
+		align-self: start; margin-block-end: calc(var(--gap) * 0.6);   /* was margin-block-end 0.6em - 2026-09-05 ramps */
+		padding: 0.15em 0.7em 0.15em 0.5em; border-radius: 999px;
+		background: var(--wash); font-family: var(--mono); font-size: 0.8em;
+	}
+
+	.scene-bar::before { content: "/"; color: var(--subtle); margin-inline-end: 0.15em; }
+	.scene-bar .icon { font-size: 0; width: auto; }
+	.scene-bar .icon::after { content: "/"; font-family: var(--mono); font-size: 0.8rem; color: var(--subtle); }
+	.scene-bar a { text-decoration: none; }
+	.scene-bar a:hover { text-decoration: underline; }
+
+	/* THE STAGE. Four real properties are spent here on purpose: the Stage reads
+	   them back RESOLVED to build its palette, because a custom property reads back
+	   as the literal `light-dark(...)` text that no colour parser takes.
+	     background-color -> sky and fog     color        -> ink
+	     border-color     -> lines           outline-color -> the accent
+	   `outline-color` with no `outline-style` paints nothing; it is a free slot. */
+	/* ⚠ NO `aspect-ratio`. A block box with one and a `max-height` transfers that
+	   cap back through the ratio to its WIDTH - so a 16/9 stage capped at 62vh
+	   stopped 290px short of the row at 1280 and left grey beside it. Height is a
+	   clamp; the width is whatever the container gives; the camera widens its fov
+	   when the box goes narrow (Stage.resize). */
+	.scene-stage {
+		position: relative;
+		height: clamp(15rem, 66vh, 54rem);
+		overflow: hidden;
+		border-radius: var(--radius);
+
+		/* THE SKY IS A STYLESHEET. The canvas over this box is transparent wherever
+		   the 3D world is not, so these two gradients ARE the weather of the hub and
+		   the crossroads: the accent blooming up from behind the horizon, and a wash
+		   overhead that the sky dome of a tinted world would otherwise have to paint.
+		   ⚠ `light-dark()` and not a token, because the two modes are not one picture
+		   dimmed - light wants a cool haze at the top, dark wants the top to go out. */
+		background-color: var(--surface);
+		background-image:
+			radial-gradient(85% 55% at 50% 104%, color-mix(in srgb, var(--prime) 26%, transparent), transparent 64%),
+			linear-gradient(to bottom, light-dark(rgba(88, 110, 146, 0.30), rgba(0, 0, 0, 0.55)) 0%, light-dark(rgba(88, 110, 146, 0.07), rgba(0, 0, 0, 0.12)) 78%, transparent 100%);
+		color: var(--ink);
+		border: 1px solid var(--line);
+		outline-color: var(--prime);
+	}
+
+	/* The renderer sizes the BUFFER (setSize(w, h, false)); this sizes the box.
+	   `max-width: none` because framework.css caps replaced elements at 100% of a
+	   box this one is absolutely positioned against. */
+	.scene-canvas {
+		position: absolute; inset: 0;
+		display: block; width: 100%; height: 100%; max-width: none;
+		touch-action: none;
+	}
+
+	/* The label of whatever the pointer is over - 2D chrome reading 3D state.
+	   ⚠ `left`/`top` and not the logical pair: Stage.point() writes these two in
+	   PIXELS off the canvas rect, and an inline `inset-inline-start` would flip sides
+	   under a right-to-left document while the maths did not. It follows the cursor,
+	   so it can never be told where to sit by the sheet. */
+	.scene-tip {
+		position: absolute; left: 0.9em; top: 0.7em;
+		padding: 0.15em 0.6em; border-radius: 999px;
+		background: var(--ink); color: var(--surface);
+		font-size: 0.8em; font-weight: 600; letter-spacing: 0.02em;
+		white-space: nowrap;
+		opacity: 0; transition: opacity 0.15s; pointer-events: none;
+	}
+
+	.scene-tip-on { opacity: 1; }
+
+	/* The one branch in this sheet, and it is a framing decision: at 400 a 66vh box
+	   is two thirds of the fold and the top half of it is empty sky, because a
+	   portrait canvas cannot hold both the width of a scene and its height. The
+	   shorter box crops the sky; the camera keeps the width (Stage.resize). */
+	@media (max-width: 40em) {
+		.scene-stage { height: clamp(11rem, 40vh, 22rem); }
+	}
+
+	/* A chip, not bare text: it sits over worlds that are cream one click and near
+	   black the next, and only the theme's own ink/surface pair reads on both. */
+	.scene-hint {
+		position: absolute; inset-block-end: 0.7em; inset-inline-end: 0.9em;
+		padding: 0.1em 0.6em; border-radius: 999px;
+		background: color-mix(in srgb, var(--ink) 70%, transparent); color: var(--surface);
+		font-size: 0.75em; pointer-events: none;
+	}
+
+	/* THE 2D HALF OF THE NAVIGATION - the doors out of where you are, as text. */
+	.scene-nav {
+		display: flex; flex-wrap: wrap; align-items: baseline; gap: calc(var(--gap) * 0.4);   /* was gap 0.4em - 2026-09-05 ramps */
+		margin-block-start: calc(var(--gap) * 0.8);   /* was margin-block-start 0.8em - 2026-09-05 ramps */
+	}
+
+	.scene-nav-label {
+		font-size: 0.75em; text-transform: uppercase; letter-spacing: 0.08em;
+		color: var(--subtle); margin-inline-end: 0.3em;
+	}
+
+	.scene-nav-link {
+		padding: 0.2em 0.7em; border-radius: 999px;
+		border: 1px solid var(--line); background: var(--tint);
+		font-size: 0.9em; text-decoration: none; white-space: nowrap;
+	}
+
+	.scene-nav-link:hover { background: color-mix(in srgb, var(--ink) 8%, transparent); }
+
+	.scene-nav-link.active {
+		border-color: var(--prime); color: var(--prime-ink);
+		background: color-mix(in srgb, var(--prime) 12%, transparent);
+	}
+
+	/* THE TOUR. A button in the nav row wearing the link pill, and an itinerary of
+	   nine rows under it.
+	   ⚠ The element is NAMED in the selector on purpose. The site theme styles
+	   `.theme-lew42 :is(button, .btn)` at (0,2,0) in this same layer, so load order
+	   alone would decide whether a tour key is a pill or a 0.7em uppercase CTA;
+	   `.scene-nav button.scene-tour-key` is (0,2,1) and settles it. Only the metrics
+	   are taken back - the voice stays the theme's. */
+	.scene-nav button.scene-tour-key {
+		padding: 0.2em 0.7em;
+		font-size: 0.9em; text-transform: none; letter-spacing: normal;
+		cursor: pointer;
+	}
+
+	/* One row per stop: a time, the url it walks to, and the sentence. The path column
+	   is fixed so ten of them read as a column rather than as ragged prose. */
+	.scene-tour { margin-block-start: calc(var(--gap) * 0.8); display: flex; flex-direction: column; gap: calc(var(--gap) * 0.25); }   /* was margin-block-start 0.8em; gap 0.25em - 2026-09-05 ramps */
+
+	.scene-tour-stop { display: flex; flex-wrap: wrap; align-items: baseline; gap: calc(var(--gap) * 0.6); font-size: 0.85em; }   /* was gap 0.6em - 2026-09-05 ramps */
+
+	.scene-tour-at {
+		flex: none; width: 3em;
+		font-family: var(--mono); font-variant-numeric: tabular-nums;
+		color: var(--subtle);
+	}
+
+	.scene-tour-where {
+		flex: none; min-width: 11em;
+		font-family: var(--mono); font-size: 0.9em;
+	}
+
+	.scene-tour-say { flex: 1 1 16em; min-width: 0; color: var(--subtle); }
+
+	/* THE NOTE. One shows at a time - the arrangement contract hides a marked
+	   ancestor that has a marked later sibling - so this is the leaf talking. */
+	.scene-notes { display: flex; margin-block-start: calc(var(--gap) * 0.9); }   /* was margin-block-start 0.9em - 2026-09-05 ramps */
+
+	.page.scene-note {
+		display: block; padding: 0;
+		border-inline-start: 2px solid var(--prime); padding-inline-start: 0.9em;
+	}
+
+	.page.scene-note > .page-title {
+		font-size: 1em; font-weight: 700; margin: 0;
+		text-transform: uppercase; letter-spacing: 0.06em;
+	}
+
+	.page.scene-note > .page-title + * { margin-block-start: calc(var(--gap) * 0.2); }   /* was margin-block-start 0.2em - 2026-09-05 ramps */
+	.page.scene-note p { color: var(--subtle); max-width: 44em; }
+
+	/* THE CAPTION CARD - the observatory's note, and the other half of one reading.
+	   The picture in it is the SAME `draw()` that painted the glass plate standing in
+	   the world above, run a second time into a plain <canvas>. Everything here is
+	   layout; the drawing brings its own colour.
+	   The plate wraps under the text below ~30em because the body asks for 16em and
+	   the plate is a fixed 9.5em - no query, just the sum. */
+	.scene-card { display: flex; flex-wrap: wrap; align-items: start; gap: calc(var(--gap) * 1.1); max-width: 48em; }   /* was gap 1.1em - 2026-09-05 ramps */
+	.scene-card-body { flex: 1 1 16em; min-width: 0; display: flex; flex-direction: column; gap: calc(var(--gap) * 0.6); }   /* was gap 0.6em - 2026-09-05 ramps */
+	.scene-card-body > * { margin: 0; }
+
+	/* ONE RUNG DOWN, and deliberately the opposite direction to the magazine's ladder
+	   (imagine/mag/mag.css): its rows step CLEANER as you go deeper, because a column
+	   you walk into should lift toward you. A plate is a physical object lying on a
+	   desk, so the well it sits in steps darker instead - you read INTO the picture.
+	   Mixed into `--ink`, so the step keeps its direction in dark mode. */
+	.scene-plate {
+		flex: 0 0 auto; width: 11em; padding: 0.55em;
+		border-radius: calc(var(--radius) * 0.7);
+		background: color-mix(in srgb, var(--ink) 7%, var(--surface));
+	}
+
+	.scene-plate-art { display: block; width: 100%; height: auto; border-radius: 2px; }
+
+	/* The record's own facts, in the theme's mono - the smallest type on the page and
+	   the only place a slot name is said as data rather than as prose. */
+	.scene-facts { display: flex; flex-wrap: wrap; gap: calc(var(--gap) * 0.4); }   /* was gap 0.4em - 2026-09-05 ramps */
+
+	.scene-fact {
+		padding: 0.1em 0.6em; border: 1px solid var(--line); border-radius: 999px;
+		font-family: var(--mono); font-size: 0.72em; letter-spacing: 0.03em;
+		text-transform: uppercase; color: var(--subtle); white-space: nowrap;
+	}
+}

@@ -1,0 +1,125 @@
+{
+ "at": "2026-10-13",
+ "note": "Every verdict that moved TO done (plus 3 that slid back) read against the landing lines and commits gathered as evidence. 'mine' differs from Haiku where the evidence is off-topic or the feature is broad; write() applies those as rule spot-check.",
+ "checks": [
+  {
+   "feature": "task system",
+   "haiku": "done",
+   "mine": "partly",
+   "agree": false,
+   "why": "evidence is generic merges (one-store); the asks include an audit of all task systems and nav surfacing, not shown landed"
+  },
+  {
+   "feature": "prompt refinement",
+   "haiku": "done",
+   "mine": "partly",
+   "agree": false,
+   "why": "no landing line is about refinement; commits are skills and a vision note; the 10-13 ask (track outcomes) is this very task"
+  },
+  {
+   "feature": "page jsonl format",
+   "haiku": "done",
+   "mine": "done",
+   "agree": true,
+   "why": "json-pages landed 08-30 plus page-tools wire format and Page docs commits; no ask newer than 10-09"
+  },
+  {
+   "feature": "content card",
+   "haiku": "done",
+   "mine": "partly",
+   "agree": false,
+   "why": "cited commit is architecture.md for 12 modules, not a content card; question/decision card types not evidenced"
+  },
+  {
+   "feature": "responsive layout",
+   "haiku": "done",
+   "mine": "partly",
+   "agree": false,
+   "why": "broad feature; cited commit is a design doc pass, landing lines are 08-17 mobile fixes, older than the asks"
+  },
+  {
+   "feature": "dictate indicator",
+   "haiku": "done",
+   "mine": "done",
+   "agree": true,
+   "why": "dictate-session landing 10-13: one mic indicator on every mic surface, matches the 10-01 ask"
+  },
+  {
+   "feature": "refinement ui",
+   "haiku": "done",
+   "mine": "partly",
+   "agree": false,
+   "why": "landing shows a Refine demo on surfaces page; the ask (refine page uses shared widget, labelled sections) is not evidenced"
+  },
+  {
+   "feature": "page system design",
+   "haiku": "partly",
+   "mine": "partly",
+   "agree": true,
+   "why": "evidence is off-topic vision-browse lines; partly is the safe reading"
+  },
+  {
+   "feature": "testing framework",
+   "haiku": "not done",
+   "mine": "not done",
+   "agree": true,
+   "why": "landing lines are layout/vision tools, nothing benchmarks models"
+  },
+  {
+   "feature": "dictate system",
+   "haiku": "partly",
+   "mine": "partly",
+   "agree": true,
+   "why": "10-13 landing records a sheet-vs-sidebar gap and the unify ask is still open"
+  },
+  {
+   "feature": "dev server",
+   "haiku": "done",
+   "mine": "partly",
+   "agree": false,
+   "why": "ask is desktop + mobile reachability; landing lines are the 08-15 MCP relay and commits are generated listings, no mobile proof"
+  },
+  {
+   "feature": "reference system",
+   "haiku": "done",
+   "mine": "done",
+   "agree": true,
+   "why": "the Mentions / path references line from the 09-30 audit matches the keyword-linking ask; ext/Mention exists"
+  },
+  {
+   "feature": "readme system",
+   "haiku": "done",
+   "mine": "done",
+   "agree": true,
+   "why": "audit line 'every agent reads the readme chain top-down' plus the readme-upkeep commits match the protocol ask"
+  },
+  {
+   "feature": "mobile ui kit",
+   "haiku": "done",
+   "mine": "partly",
+   "agree": false,
+   "why": "cited commit is a Figma report on the mobile builder, not the 400px kit with working navigation"
+  },
+  {
+   "feature": "qa system",
+   "haiku": "done",
+   "mine": "done",
+   "agree": true,
+   "why": "Shots (ext/Shots) landed 10-12 and screenshot checks at four widths run in merge.mjs"
+  },
+  {
+   "feature": "data map",
+   "haiku": "done",
+   "mine": "partly",
+   "agree": false,
+   "why": "ask is Map vs object for data properties; the cited inbox-data doc is about the inbox, not that decision"
+  },
+  {
+   "feature": "direct answer",
+   "haiku": "done",
+   "mine": "partly",
+   "agree": false,
+   "why": "09-19 card replies are cards asking the owner, not navigation that answers common questions"
+  }
+ ]
+}

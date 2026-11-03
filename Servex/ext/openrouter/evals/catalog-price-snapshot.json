@@ -1,0 +1,68 @@
+{
+	"openai/gpt-6-luna": {
+		"prompt": 1e-7,
+		"completion": 5e-7,
+		"cache_read": 1e-8,
+		"context": 1050000
+	},
+	"deepseek/deepseek-v4.1-flash": {
+		"prompt": 3e-9,
+		"completion": 0.0000024,
+		"cache_read": 3e-9,
+		"context": 1048576
+	},
+	"google/gemini-3.8-flash": {
+		"prompt": 7.5e-7,
+		"completion": 0.00000375,
+		"cache_read": 7.5e-8,
+		"context": 1048576
+	},
+	"z-ai/glm-5.3-flash:batch": {
+		"prompt": 6e-8,
+		"completion": 2e-7,
+		"cache_read": 1.2e-8,
+		"context": 1048576
+	},
+	"qwen/qwen3.7-flash": {
+		"prompt": 3e-8,
+		"completion": 1.3e-7,
+		"cache_read": 6e-9,
+		"context": 1000000
+	},
+	"nvidia/nemotron-3-ultra-550b-a55b:free": {
+		"prompt": 0,
+		"completion": 0,
+		"cache_read": null,
+		"context": 1000000
+	},
+	"nvidia/nemotron-3-super-120b-a12b:free": {
+		"prompt": 0,
+		"completion": 0,
+		"cache_read": null,
+		"context": 262144
+	},
+	"anthropic/claude-haiku-4.5": {
+		"prompt": 0.000001,
+		"completion": 0.000005,
+		"cache_read": 1e-7,
+		"context": 200000
+	},
+	"openai/gpt-oss-120b": {
+		"prompt": 3.7e-8,
+		"completion": 1.7e-7,
+		"cache_read": null,
+		"context": 131072
+	},
+	"openai/gpt-oss-20b": {
+		"prompt": 1.8e-8,
+		"completion": 9e-8,
+		"cache_read": 9e-9,
+		"context": 131072
+	},
+	"qwen/qwen3-235b-a22b-2507": {
+		"prompt": 8.75e-8,
+		"completion": 3.5e-7,
+		"cache_read": 1.75e-8,
+		"context": 262144
+	}
+}

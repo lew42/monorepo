@@ -1,0 +1,1043 @@
+diff --git a/Servex/agents/Agents.js b/Servex/agents/Agents.js
+index 1dcfcbe3d..3e2caa022 100644
+--- a/Servex/agents/Agents.js
++++ b/Servex/agents/Agents.js
+@@ -9,7 +9,7 @@ import { fileURLToPath } from "node:url";
+ import Log from "../Log.js";
+ import { stamp, place } from "../home.js";
+ import Registry, { alive } from "./Registry.js";
+-import { defaults as role_defaults, opening, injected, compact_after as role_compact_after } from "./roles.js";
++import { defaults as role_defaults, opening, injected, compact_after as role_compact_after, role_system, role_reminder } from "./roles.js";
+ import { OR_ONLY } from "./tiers.js";
+ import { first_prompt } from "./readme-chain.js";
+ import Task from "../../public/framework/core/Task/Task.js";
+@@ -204,10 +204,11 @@ export class Agents {
+ 		const past_work = spec.task && !again ? this.past_work(spec.task, id) : null;
+ 		const fresh = !again && !spec.system;
+ 		const dir = fresh ? directory_of(spec) : null;
+-		const opened = again || spec.system ? spec.prompt : this.whoami(id, session_id) + opening(spec.role, spec.prompt);
++		const in_system = !spec.system && process.env.SERVEX_ROLE_IN_SYSTEM !== "0" && !!role_system(spec.role);   // Agent.role_prompt() puts it there
++		const opened = again || spec.system ? spec.prompt : this.whoami(id, session_id) + opening(spec.role, spec.prompt, { in_system });
+ 		if (!again && !spec.system) {
+ 			const names = injected(spec.role);
+-			this.store().append("skills", { at: stamp(), agent: id, role: spec.role ?? null, injected: names, fallback: names.length ? undefined : true }).catch(() => {});
++			this.store().append("skills", { at: stamp(), agent: id, role: spec.role ?? null, injected: names, where: in_system ? "system" : "message", fallback: names.length ? undefined : true }).catch(() => {});
+ 		}
+ 		const base = dir ? `${first_prompt(dir)}\n\n${opened}` : opened;
+ 		const prompt = spec.task
+@@ -1138,17 +1139,71 @@ Agents.Agent = class Agent {
+ 
+ 	/* A fork's "no tools": every call not in `fork_tools` is refused before it
+ 	 * runs. The tools stay IN the prompt — removing them breaks the cache. */
+-	refusal(){
++	refusal(theirs = this.sdk?.hooks ?? {}){
+ 		const allowed = this.fork_tools ?? [];
+ 		const deny = async input => allowed.includes(input.tool_name) ? {} : {
+ 			hookSpecificOutput: { hookEventName: "PreToolUse", permissionDecision: "deny",
+ 				permissionDecisionReason: `You are a fork answering one question; ${input.tool_name} is not allowed.`
+ 					+ (allowed.length ? ` Only: ${allowed.join(", ")}.` : " Answer from what you already know.") }
+ 		};
+-		const theirs = this.sdk?.hooks ?? {};
+ 		return { hooks: { ...theirs, PreToolUse: [...(theirs.PreToolUse ?? []), { hooks: [deny] }] } };
+ 	}
+ 
++	/* THE ROLE IN THE SYSTEM PROMPT (the owner, 2026-10-23; public/framework/ai/doc/context-drift.md). The role readme and
++	 * its skills (roles.js role_system) go into the claude_code preset's `append`. A first message is summarized by
++	 * /compact; the system prompt is kept, and re-rendered from these options at each compaction. Before this, a plain
++	 * spawn passed no systemPrompt, which the SDK sends as an EMPTY custom prompt (`systemPrompt: [""]` in every Servex
++	 * transcript), so these agents ran without Claude Code's own prompt too. The SDK records the prompt on a session's first
++	 * request; an older session keeps its recorded one until its next compaction. SERVEX_ROLE_IN_SYSTEM=0 restores the
++	 * old way. */
++	role_prompt(){
++		if (process.env.SERVEX_ROLE_IN_SYSTEM === "0" || this.system) return null;
++		const append = role_system(this.role);
++		return append ? { type: "preset", preset: "claude_code", append } : null;
++	}
++
++	/* THE ROLE REMINDER (context drift, the owner 2026-10-23). A system prompt fades hundreds of thousands of tokens
++	 * later, so a few lines (roles.js role_reminder: the readme's path, its top rules and headings) are added as hook
++	 * context after each compaction and each time the context grows another `remind_tokens` (SERVEX_REMIND_TOKENS,
++	 * 100k). Carried by the next UserPromptSubmit or main-thread PostToolUse hook, so it also reaches a long turn that
++	 * no new message interrupts. SERVEX_ROLE_REMINDER=0 turns it off. */
++	reminder_text(){
++		if (process.env.SERVEX_ROLE_REMINDER === "0" || this.one_shot) return null;
++		return role_reminder(this.role);
++	}
++
++	live_context(){
++		const c = this.last_usage;
++		return c ? (c.input_tokens ?? 0) + (c.cache_read_input_tokens ?? 0) + (c.cache_creation_input_tokens ?? 0) + (c.output_tokens ?? 0) : (this.context ?? 0);
++	}
++
++	/* "compaction", "tokens" or null. */
++	reminder_due(context = this.live_context()){
++		if (!this.reminder_text()) return null;
++		if (this.remind_compacted) return "compaction";
++		const step = this.host?.remind_tokens ?? (Number(process.env.SERVEX_REMIND_TOKENS) || REMIND_TOKENS);
++		return context >= (this.reminded_context ?? 0) + step ? "tokens" : null;
++	}
++
++	remind_hook(event, input = {}){
++		if (input.agent_id) return {};   // a subagent's own tool call: the reminder is for the main thread
++		const context = this.live_context(), why = this.reminder_due(context);
++		if (!why) return {};
++		this.remind_compacted = false;
++		this.reminded_context = context;
++		this.emit({ type: "role_reminder", why, event, context });
++		return { hookSpecificOutput: { hookEventName: event, additionalContext: this.reminder_text() } };
++	}
++
++	/* The SDK hooks: the spec's own, the role reminder's two, and a fork's refusal. */
++	sdk_hooks(){
++		let h = this.sdk?.hooks ?? {};
++		if (this.reminder_text()) h = { ...h,
++			UserPromptSubmit: [...(h.UserPromptSubmit ?? []), { hooks: [async input => this.remind_hook("UserPromptSubmit", input)] }],
++			PostToolUse: [...(h.PostToolUse ?? []), { hooks: [async input => this.remind_hook("PostToolUse", input)] }] };
++		return this.one_shot ? this.refusal(h).hooks : h;
++	}
++
+ 	/* The SDK options, in one overridable place. `includePartialMessages` gives a
+ 	 * UI its token stream; `forwardSubagentText` gives it the nested transcript of
+ 	 * anything this agent itself spawns. Both names verified against 0.3.280. */
+@@ -1166,7 +1221,7 @@ Agents.Agent = class Agent {
+ 			...(this.permission_mode === "bypassPermissions" ? { allowDangerouslySkipPermissions: true } : {}),
+ 			...(this.allowed_tools ? { allowedTools: this.allowed_tools } : {}),
+ 			...(this.setting_sources ? { settingSources: this.setting_sources } : {}),
+-			...(this.system ? { systemPrompt: this.system } : {}),
++			...(this.system ? { systemPrompt: this.system } : this.role_prompt() ? { systemPrompt: this.role_prompt() } : {}),
+ 			...(this.resume ? { resume: this.resume } : {}),
+ 			...(this.resume && this.fork ? { forkSession: true } : {}),
+ 			...(this.minted ? { sessionId: this.session_id } : {}),
+@@ -1184,7 +1239,7 @@ Agents.Agent = class Agent {
+ 			...(this.provider === "openrouter" && disallowed_tools_for(this.model).length
+ 				? { disallowedTools: [...new Set([...(this.sdk?.disallowedTools ?? []), ...(door.disallowedTools ?? []), ...disallowed_tools_for(this.model)])] }
+ 				: door.disallowedTools ? { disallowedTools: [...new Set([...(this.sdk?.disallowedTools ?? []), ...door.disallowedTools])] } : {}),
+-			...(this.one_shot ? this.refusal() : {})
++			hooks: this.sdk_hooks()
+ 		};
+ 	}
+ 
+@@ -1330,6 +1385,9 @@ Agents.Agent = class Agent {
+ 		   last minute is never put back to sleep. */
+ 		if (this.awoken_at && Date.now() - this.awoken_at < 60_000) return false;
+ 		if (this.bg_tasks > 0) return false;
++		/* COMPACT BEFORE SLEEP (the owner, 2026-10-23, doc/dormant.md "Compaction"): a big context
++		 * compacts first, then sleeps, so the next wake reloads a summary, not the whole history. */
++		if (why === "idle" && this.sleep_compact() && this.compact("sleep")) return false;
+ 		this.gen = (this.gen ?? 0) + 1;   // the old pump's end is not news
+ 		/* NEVER-LOSE-A-WAKE, item 5 (fresh-eyes review finding 4): this only ever runs while
+ 		 * `state === "idle"`, which means nothing is queued behind the last turn — `result()`
+@@ -1445,6 +1503,21 @@ Agents.Agent = class Agent {
+ 		return `Context: ${context.toLocaleString("en-US")} tokens (${Math.round(context / window * 100)}% of the window), cache ${warm ? "warm" : "cold"} (last turn ${minutes} minute${minutes === 1 ? "" : "s"} ago). You are idle. Compact at your next natural break (an investigation done, no tools in flight): now, unless something in flight needs this context.`;
+ 	}
+ 
++	/* COMPACT BEFORE SLEEP (the owner, 2026-10-23): true when this agent, about to go dormant, holds more than its
++	 * sleep line: roles.js `compact_after.sleep`, else SERVEX_SLEEP_COMPACT_TOKENS (100k), never more than half the
++	 * window. Not for minions (`compact_after: null`), the front desk (STANDING), a fork, or a context already
++	 * compacted since its last turn. Runs at the sleep moment, not at turn end, so an agent that gets another message
++	 * within its idle wait keeps its context; that wait is 3 minutes or less for most roles, under the 5-minute cache
++	 * TTL, so the compaction reads a warm cache. */
++	sleep_compact(){
++		if (this.one_shot || this.compacting || this.compacted_turn === this.turns || STANDING.test(this.id ?? "")) return false;
++		const after = role_compact_after(this.role);
++		if (after === null) return false;
++		const window = this.host?.window_tokens ?? (Number(process.env.SERVEX_WINDOW_TOKENS) || WINDOW_TOKENS);
++		const line = Math.min(after?.sleep ?? this.host?.sleep_compact_tokens ?? (Number(process.env.SERVEX_SLEEP_COMPACT_TOKENS) || SLEEP_COMPACT_TOKENS), Math.round(window / 2));
++		return (this.context ?? 0) > line;
++	}
++
+ 	/* The agent's answer to the nudge (the `compact_self` tool): compact when this turn ends. */
+ 	request_compact(){
+ 		this.compact_requested = true;
+@@ -1609,6 +1682,9 @@ Agents.Agent = class Agent {
+ 		const m = message.compact_metadata ?? {};
+ 		this.last_usage = null;
+ 		this.context = m.post_tokens ?? null;
++		/* The next hook (a prompt or a tool call) carries the role reminder; the token steps restart from here. */
++		this.remind_compacted = true;
++		this.reminded_context = m.post_tokens ?? 0;
+ 		this.emit({ type: "compacted", trigger: m.trigger ?? null, pre_tokens: m.pre_tokens ?? null, post_tokens: m.post_tokens ?? null });
+ 	}
+ 
+@@ -2094,7 +2170,12 @@ Agents.Agent = class Agent {
+ 		this.settle();
+ 		/* Compacted for MEMORY: a process keeps the heap it grew, so restart it
+ 		 * from the compacted session (checkpoint-and-restart). */
+-		if (c.why === "memory" && this.state === "idle" && this.sleep("compacted")) this.awaken("compaction");
++		/* A new process starts small: forget the old heap's size, or the next check compacts again for nothing
++		 * (task-mastermind-voice-opus, 2026-10-19: three memory compactions in four minutes on a stale 698 MB). */
++		if (c.why === "memory" && this.state === "idle" && this.sleep("compacted")){ this.rss_mb = null; this.awaken("compaction"); }
++		/* Compacted on the way to sleep: now sleep (`compacted_turn` stops a second compaction). A message that
++		 * arrived meanwhile left it working, and then it stays awake for that turn. */
++		if (c.why === "sleep" && this.state === "idle" && this.sleep("idle")) try { const g = this.host?.servex?.global; g?.mark_slept(this, g.wait_ms?.(this) ?? 0); } catch {}
+ 	}
+ };
+ 
+@@ -2102,6 +2183,8 @@ Agents.Agent.WATCHDOGS = new Set(["servex-heartbeat", "servex-compact-nudge"]);
+ 
+ /* A nudged agent that declined is nudged again only after its context grew this much. */
+ export const NUDGE_GROWTH = 20000;   // the least growth between two nudges; the step is 5% of the window when that is more
++export const REMIND_TOKENS = 100000;   // a role reminder each time the context grows this much (SERVEX_REMIND_TOKENS)
++export const SLEEP_COMPACT_TOKENS = 100000;   // compact before going dormant past this (capped at half the window)
+ export const WINDOW_TOKENS = 1000000;   // the model window the step reminders are a share of (SERVEX_WINDOW_TOKENS overrides)
+ 
+ export const ONE_PASS = ["reviewer", "clarity", "checker"];
+diff --git a/Servex/agents/compact-before-sleep.test.mjs b/Servex/agents/compact-before-sleep.test.mjs
+new file mode 100644
+index 000000000..e3de206e1
+--- /dev/null
++++ b/Servex/agents/compact-before-sleep.test.mjs
+@@ -0,0 +1,86 @@
++/* node Servex/agents/compact-before-sleep.test.mjs — compact before going dormant (the owner, 2026-10-23; doc/dormant.md).
++ * A fake agent built from Agent.prototype: no process, no SDK. Checks the decision, the sleep → /compact → sleep
++ * sequence, and who is left out. */
++import assert from "node:assert";
++import fs from "fs";
++import os from "os";
++import path from "path";
++
++process.env.SERVEX_HOME = fs.mkdtempSync(path.join(os.tmpdir(), "servex-sleepcompact-"));
++delete process.env.SERVEX_SLEEP_COMPACT_TOKENS; delete process.env.SERVEX_WINDOW_TOKENS;
++const { Agents, SLEEP_COMPACT_TOKENS } = await import("./Agents.js");
++
++let n = 0;
++const t = (ok, what) => { assert.ok(ok, what); n++; };
++
++function fake(over = {}){
++	const events = [], turns = [], logs = [], slept = [];
++	const a = Object.create(Agents.Agent.prototype);
++	Object.assign(a, {
++		id: "mastermind-x", role: "mastermind", state: "idle", turns: 3, context: 0, session_id: "s-1",
++		queue: { items: [], closed: false, push(x){ this.items.push(x); turns.push(x); }, close(){ this.closed = true; } },
++		query: { close(){} }, aborter: { abort(){} },
++		turn: text => text, emit: e => events.push(e), log: l => logs.push(l), settle(){}, add_cost(){},
++		host: { register(){}, servex: { global: { mark_slept: (ag, w) => slept.push([ag.id, w]) } } },
++		...over });
++	return { a, events, turns, logs, slept };
++}
++
++t(SLEEP_COMPACT_TOKENS === 100000, "the default sleep line is 100k");
++
++{ // under the line: sleeps at once, no compaction
++	const { a, turns } = fake({ context: 90000 });
++	t(a.sleep_compact() === false, "90k: no compaction");
++	t(a.sleep("idle") === true && a.state === "dormant" && turns.length === 0, "90k: straight to dormant");
++}
++{ // over the line: /compact first, then dormant
++	const { a, turns, events, logs, slept } = fake({ context: 120000 });
++	t(a.sleep_compact() === true, "120k mastermind: compact before sleep");
++	t(a.sleep("idle") === false, "sleep() refuses while it compacts");
++	t(a.state === "working" && turns[0] === "/compact" && a.compacting?.why === "sleep", "queued /compact, why=sleep");
++	t(events.some(e => e.type === "compacting" && e.why === "sleep" && e.context === 120000), "logged compacting with the size before");
++	a.context = 15000;   // what the compaction left
++	a.compact_done({ queued_turn_count: 0 });
++	t(logs.some(l => l.type === "compact" && l.why === "sleep" && l.before === 120000 && l.after === 15000), "compact line: before and after");
++	t(a.state === "dormant", "then it sleeps");
++	t(slept.length === 1 && slept[0][0] === "mastermind-x", "the dormant line goes through Global.mark_slept");
++	t(events.filter(e => e.type === "dormant").length === 1, "exactly one sleep");
++}
++{ // a message that arrived during the compaction: it stays awake for that turn
++	const { a } = fake({ context: 120000 });
++	a.sleep("idle");
++	a.compact_done({ queued_turn_count: 1 });
++	t(a.state === "working", "a queued message keeps it awake");
++}
++{ // compacted since its last turn: not again, even if the summary is still big
++	const { a, turns } = fake({ context: 130000, compacted_turn: 3 });
++	t(a.sleep_compact() === false && a.sleep("idle") === true && turns.length === 0, "already compacted this turn: just sleeps");
++}
++{ // only the idle sleep: a landed task or the memory restart does not compact first
++	const { a, turns } = fake({ context: 300000 });
++	t(a.sleep("landed") === true && turns.length === 0, "landed: sleeps without compacting");
++}
++{ // left out: minions, the front desk, forks
++	t(fake({ role: "minion", id: "minion-x", context: 900000 }).a.sleep_compact() === false, "minion: never");
++	t(fake({ role: "master-assistant", id: "master-assistant", context: 900000 }).a.sleep_compact() === false, "front desk: never");
++	t(fake({ role: "page-assistant", id: "assistant-x", context: 900000 }).a.sleep_compact() === false, "page assistant: never");
++	t(fake({ context: 900000, one_shot: true }).a.sleep_compact() === false, "fork: never");
++}
++{ // other roles: the host default; half the window caps the line
++	t(fake({ role: "reviewer", id: "reviewer-x", context: 110000 }).a.sleep_compact() === true, "a role with no compact_after: the 100k default");
++	const small = fake({ role: "reviewer", id: "reviewer-x", context: 90000, host: { window_tokens: 160000 } }).a;
++	t(small.sleep_compact() === true, "a 160k window: the line is 80k (half the window)");
++	process.env.SERVEX_SLEEP_COMPACT_TOKENS = "200000";
++	t(fake({ role: "reviewer", id: "reviewer-x", context: 150000 }).a.sleep_compact() === false, "env raises the default line");
++	delete process.env.SERVEX_SLEEP_COMPACT_TOKENS;
++}
++{ // the memory restart forgets the old heap size (no repeat memory compactions)
++	const { a } = fake({ context: 60000, rss_mb: 698 });
++	a.awaken = function(){ this.state = "idle"; return this; };
++	a.compacting = { why: "memory", before: 60000, rss_mb: 698, at: Date.now() };
++	a.state = "working";
++	a.compact_done({ queued_turn_count: 0 });
++	t(a.rss_mb === null, "after a memory compaction rss_mb is cleared");
++	t(a.oversized() === null, "so the next check does not compact again");
++}
++console.log(`compact-before-sleep: ${n} checks passed`);
+diff --git a/Servex/agents/doc/owner-2026-10-16-compaction.md b/Servex/agents/doc/owner-2026-10-16-compaction.md
+index b28ec0585..270a91f5a 100644
+--- a/Servex/agents/doc/owner-2026-10-16-compaction.md
++++ b/Servex/agents/doc/owner-2026-10-16-compaction.md
+@@ -1,5 +1,7 @@
+ # Owner notes, 2026-10-16 (late): compaction (dictated; decision by voice-app)
+ 
++> **Current rules and every complicating factor: [`public/framework/ai/doc/compaction.md`](../../../public/framework/ai/doc/compaction.md)** (and [`context-drift.md`](../../../public/framework/ai/doc/context-drift.md)). This page stays as the record of the dictation and the decisions taken on it.
++
+ Facts today: `roles.js` `MASTERMIND_COMPACT = {tokens: 150000, minutes: 45}` (2026-10-13). `Agents.oversized()` queues a `/compact` turn at the END of a turn once a mastermind's context passes 150k, or once it is 45 minutes old with more than 20k context; minions never; everyone else at the host default of 200k. The `/compact` is a queued prompt in the same session, so messages that arrive during it run after it, in order. Whether the SDK's compaction keeps the tail of the conversation exactly is not verified; verify once.
+ 
+ ## The owner's rule
+@@ -31,4 +33,18 @@ Remind sooner and in steps: at about 30% of the window, then every 5% (on a 1M w
+ 
+ ✅ **Built (2026-10-22, `Agent.nudge()` in `Servex/agents/Agents.js`):** after the first reminder, the next comes each time the context grows another **5% of the window** (`WINDOW_TOKENS` 1M, `SERVEX_WINDOW_TOKENS` overrides): 150k, 200k, 250k… for a mastermind, up to the 400k forced compaction. Each reminder gives the size, its share of the window and the cache state, and asks for a compaction at the next natural break. **Reconsidered:** the first reminder stays at the role's line (150k for a mastermind, 200k otherwise), not 30%. With a 400k ceiling, a first reminder at 300k would leave only two before the forced one. Test: `node Servex/agents/compact-nudge.test.mjs` (24 checks).
+ 
+-**What compaction keeps (the owner's worry, 2026-10-22):** the system prompt, CLAUDE.md and tool definitions sit outside the conversation and are kept verbatim; the conversation, including a role readme or brief injected into the first message, is summarized. ⬜ So after a compaction node must re-inject the role readme and the brief verbatim (the `SessionStart:compact` hook already re-adds a line for VS Code tabs). Alternative: summarize and start a fresh session with the role readme as its first message.
++**What compaction keeps (the owner's worry, 2026-10-22):** the system prompt, CLAUDE.md and tool definitions sit outside the conversation and are kept verbatim; the conversation, including a role readme or brief injected into the first message, is summarized. ✅ (2026-10-23: the role readme now lives in the system prompt, which survives compaction, plus a short role reminder after each compaction; [context-drift.md](../../../public/framework/ai/doc/context-drift.md).) Originally: so after a compaction node must re-inject the role readme and the brief verbatim (the `SessionStart:compact` hook already re-adds a line for VS Code tabs). Alternative: summarize and start a fresh session with the role readme as its first message.
++
++## The owner, 2026-10-23: compact before sleep
++
++✅ **Built (`Agent.sleep_compact()` in `Servex/agents/Agents.js`):** going dormant used to never compact. Now an
++agent about to sleep with more than 100k tokens (or half the window, whichever is lower; per role as
++`compact_after.sleep`) runs `/compact` first, then sleeps, so it wakes small. It runs at the sleep moment, which is
++inside the cache TTL for every default idle wait, so the compaction reads a warm cache. It does not break the
++2026-10-16 rule "never compact in an interruptible way": the agent is idle and about to drop its process anyway,
++and a message that arrives during the compaction simply runs after it. Minions, the front desk and forks are
++left out. Measured: one warm compaction of 158k cost $0.24 (61 s) and left 17k. Full rule and numbers:
++[`Servex/doc/dormant.md`](../../doc/dormant.md), "Compaction".
++
++Also fixed: after a memory compaction restarts the process, the old process's memory reading is cleared. The
++stale 698 MB reading made `task-mastermind-voice-opus` compact three times in four minutes on 2026-10-19.
+diff --git a/Servex/agents/role-system.test.mjs b/Servex/agents/role-system.test.mjs
+new file mode 100644
+index 000000000..41317c650
+--- /dev/null
++++ b/Servex/agents/role-system.test.mjs
+@@ -0,0 +1,79 @@
++/* node Servex/agents/role-system.test.mjs — the role readme in the system prompt, and the role reminder against context
++ * drift (the owner, 2026-10-23; public/framework/ai/doc/context-drift.md). Fake agents from Agent.prototype: no process. */
++import assert from "node:assert";
++import fs from "fs";
++import os from "os";
++import path from "path";
++
++process.env.SERVEX_HOME = fs.mkdtempSync(path.join(os.tmpdir(), "servex-rolesys-"));
++for (const k of ["SERVEX_ROLE_IN_SYSTEM", "SERVEX_ROLE_REMINDER", "SERVEX_REMIND_TOKENS"]) delete process.env[k];
++const { Agents, REMIND_TOKENS } = await import("./Agents.js");
++const { role_system, role_reminder, opening } = await import("./roles.js");
++
++let n = 0;
++const t = (ok, what) => { assert.ok(ok, what); n++; };
++
++// roles.js
++const minion_readme = fs.readFileSync(new URL("./roles/minion.md", import.meta.url), "utf8");
++t(role_system("minion").includes('<role-readme path="Servex/agents/roles/minion.md">'), "role_system carries the role readme block");
++t(role_system("minion").includes(minion_readme.match(/^# .+$/m)[0]), "…with the readme's own text");
++t(role_system("task-mastermind").includes('<skill name="page">'), "…and the skills the row carries");
++const short = opening("minion", "do X", { in_system: true });
++t(short.length < 300 && /in your system prompt/.test(short) && short.endsWith("Now: do X"), "in_system: the first message only points at it");
++t(opening("minion", "do X").includes("<role-readme"), "without in_system: the old inline opening");
++const r = role_reminder("minion");
++t(r.includes("Servex/agents/roles/minion.md") && /Top rules:/.test(r) && r.length <= 1600, "reminder: path, top rules, short");
++t(!r.includes(minion_readme.slice(400, 800)), "reminder is not the whole readme");
++t(/Your part of the build order: build/.test(r), "a bold lead ending in ':' carries its first sentence");
++t(role_reminder("page-assistant") === null, "a role with no readme: no reminder");
++
++function fake(over = {}){
++	const events = [];
++	const a = Object.create(Agents.Agent.prototype);
++	Object.assign(a, { id: "minion-x", role: "minion", state: "working", turns: 1, context: 0, emit: e => events.push(e), ...over });
++	return { a, events };
++}
++
++{ // the system prompt option
++	const { a } = fake();
++	const sp = a.role_prompt();
++	t(sp.type === "preset" && sp.preset === "claude_code" && sp.append === role_system("minion"), "plain spawn: claude_code preset + append");
++	t(fake({ system: "brief" }).a.role_prompt() === null, "a spec with its own system prompt keeps it");
++	process.env.SERVEX_ROLE_IN_SYSTEM = "0";
++	t(fake().a.role_prompt() === null, "SERVEX_ROLE_IN_SYSTEM=0: the old way");
++	delete process.env.SERVEX_ROLE_IN_SYSTEM;
++	t(fake({ role: "nonexistent-role" }).a.role_prompt() === null, "no role text: no system prompt option");
++}
++{ // reminders by token growth
++	const { a, events } = fake({ last_usage: { input_tokens: 10, cache_read_input_tokens: 50000, output_tokens: 100 } });
++	t(a.reminder_due() === null && JSON.stringify(a.remind_hook("PostToolUse")) === "{}", "50k: nothing");
++	a.last_usage = { cache_read_input_tokens: REMIND_TOKENS + 5000 };
++	const out = a.remind_hook("PostToolUse", { tool_name: "Read" });
++	t(out.hookSpecificOutput?.hookEventName === "PostToolUse" && out.hookSpecificOutput.additionalContext === role_reminder("minion"), "past 100k: the reminder as PostToolUse additionalContext");
++	t(events.some(e => e.type === "role_reminder" && e.why === "tokens" && e.context === REMIND_TOKENS + 5000), "logged role_reminder with the context");
++	t(JSON.stringify(a.remind_hook("PostToolUse")) === "{}", "once per step");
++	a.last_usage = { cache_read_input_tokens: 2 * REMIND_TOKENS + 6000 };
++	t(a.remind_hook("UserPromptSubmit").hookSpecificOutput?.hookEventName === "UserPromptSubmit", "the next step: again, on a prompt");
++	a.last_usage = { cache_read_input_tokens: 3 * REMIND_TOKENS + 9000 };
++	t(JSON.stringify(a.remind_hook("PostToolUse", { agent_id: "sub-1" })) === "{}", "a subagent's tool call never carries it");
++}
++{ // after a compaction
++	const { a, events } = fake({ last_usage: { cache_read_input_tokens: 300000 }, reminded_context: 300000 });
++	a.boundary({ compact_metadata: { trigger: "manual", pre_tokens: 300000, post_tokens: 18000 } });
++	t(a.context === 18000 && a.reminder_due(18000) === "compaction", "compact_boundary: due at once");
++	const out = a.remind_hook("UserPromptSubmit");
++	t(/Role reminder/.test(out.hookSpecificOutput?.additionalContext ?? ""), "the first prompt after it carries the reminder");
++	t(events.some(e => e.type === "role_reminder" && e.why === "compaction"), "logged why=compaction");
++	t(a.reminder_due(18000 + REMIND_TOKENS - 1) === null && a.reminder_due(18000 + REMIND_TOKENS) === "tokens", "token steps restart from the compacted size");
++}
++{ // hooks: merged with the spec's own and a fork's refusal; off switch
++	const mine = async () => ({});
++	const h = fake({ sdk: { hooks: { PostToolUse: [{ hooks: [mine] }] } } }).a.sdk_hooks();
++	t(h.PostToolUse.length === 2 && h.PostToolUse[0].hooks[0] === mine && h.UserPromptSubmit.length === 1, "the spec's own hooks stay, reminder hooks added");
++	const fork = fake({ one_shot: true, fork_tools: [] }).a.sdk_hooks();
++	t(fork.PreToolUse?.length === 1 && !fork.UserPromptSubmit, "a fork: the refusal, no reminder");
++	process.env.SERVEX_ROLE_REMINDER = "0";
++	t(Object.keys(fake().a.sdk_hooks()).length === 0, "SERVEX_ROLE_REMINDER=0: no hooks");
++	delete process.env.SERVEX_ROLE_REMINDER;
++}
++console.log(`role-system: ${n} checks passed`);
+diff --git a/Servex/agents/roles.js b/Servex/agents/roles.js
+index f0048539f..47e9544cb 100644
+--- a/Servex/agents/roles.js
++++ b/Servex/agents/roles.js
+@@ -26,8 +26,10 @@ import { model, provider } from "./tiers.js";
+  * is {tokens}: once an IDLE agent's context passes `tokens`, Servex sends it ONE nudge (context size, cache warm/cold)
+  * and the agent decides, answering with the `compact_self` tool; it never auto-compacts mid-flight. Age is no reason.
+  * `null` = never (minions live 10-30 min). A row with no field uses the host default (SERVEX_NUDGE_TOKENS, 200k).
+- * Everyone (but minions and the front desk) is auto-compacted at turn end only past the safety ceiling (400k) or memory. */
+-export const MASTERMIND_COMPACT = { tokens: 150000 };
++ * Everyone (but minions and the front desk) is auto-compacted at turn end only past the safety ceiling (400k) or memory.
++ * `sleep` (the owner, 2026-10-23): an agent about to go dormant with more context than this compacts first, then sleeps,
++ * so it wakes small. Default SERVEX_SLEEP_COMPACT_TOKENS (100k), never above half the window (Agent.sleep_compact). */
++export const MASTERMIND_COMPACT = { tokens: 150000, sleep: 100000 };
+ export function compact_after(role){ const r = ROLES[canonical(role)]; return r && "compact_after" in r ? r.compact_after : undefined; }
+ 
+ export const ROLES = {
+@@ -143,9 +145,14 @@ function and_list(words){
+  * the top-level `query()` session an Agents.Agent runs. So the load is the first
+  * user message — the same words a person types to make Claude load one, naming
+  * every skill the role carries. */
+-export function opening(role, prompt){
++export function opening(role, prompt, { in_system = false } = {}){
+ 	const parts = parts_of(role);
+ 	if (!parts.length) return prompt;
++	/* THE ROLE TEXT IN THE SYSTEM PROMPT (the owner, 2026-10-23; public/framework/ai/doc/context-drift.md): when Agents
++	 * passes role_system() as the preset's `append`, the first message only points at it. /compact summarizes the first
++	 * message; it keeps the system prompt. */
++	if (in_system && parts.every(p => p.text !== null))
++		return `[Servex put ${and_list(parts.map(p => p.label))} in your system prompt, so it survives compaction; don't call the Skill tool for it.]\n\nNow: ${prompt}`;
+ 	/* 2026-10-12 (Servex/doc/skills.md): the text itself rides in the first message, so loading
+ 	 * is node's job, not the model's choice. A missing file falls back to the old "Load the" request. */
+ 	if (parts.some(p => p.text === null)) return `Load ${and_list(parts.map(p => p.label))}, then: ${prompt}`;
+@@ -153,6 +160,37 @@ export function opening(role, prompt){
+ 	return `[Servex loaded ${and_list(parts.map(p => p.label))} for you; the text is below, so don't call the Skill tool for it.]\n\n${blocks}\n\nNow: ${prompt}`;
+ }
+ 
++/* The role text for the system prompt (the claude_code preset's `append`): the role readme and each skill the row
++ * carries, the same blocks opening() used to put in the first message. Null when the role has none, or a file is
++ * missing (then opening()'s "Load …" fallback still applies). */
++export function role_system(role){
++	const parts = parts_of(role);
++	if (!parts.length || parts.some(p => p.text === null)) return null;
++	return `# Your role (Servex)\n\nYou are a Servex agent in the role \`${canonical(role)}\`. Your role text follows. It is part of your system prompt, so it survives compaction.\n\n${parts.map(p => p.block).join("\n\n")}`;
++}
++
++/* THE ROLE REMINDER (context drift, the owner 2026-10-23): a few lines, never the whole readme. The readme's title, the
++ * bold lead of each top paragraph (the role readmes put their top rules there), its section headings, and the path to
++ * re-read. Computed from the file, so editing the readme edits the reminder. Null when the role has no readme. */
++export function role_reminder(role){
++	const r = row(role);
++	const text = r?.readme ? role_readme(r.readme) : null;
++	if (!text) return null;
++	const file = `Servex/agents/roles/${r.readme}.md`;
++	const title = text.match(/^#\s+(.+)$/m)?.[1]?.trim() ?? r.readme;
++	/* A bold lead that ends in ":" ("**Your part of the build order:** build, test, fix.") carries its first sentence. */
++	const rules = [...text.matchAll(/^\*\*(.+?)\*\*[ \t]*([^\n]*)/gm)]
++		.map(m => /:$/.test(m[1].trim()) ? `${m[1].trim()} ${(m[2].match(/^.*?[.!?](\s|$)/)?.[0] ?? m[2]).trim().slice(0, 160)}` : m[1].trim())
++		.slice(0, 6);
++	const heads = [...text.matchAll(/^##\s+(.+)$/gm)].map(m => m[1].replace(/\s*\(.*?\)\s*$/, "").trim()).slice(0, 12);
++	const skills = skills_of(role);
++	const lines = [`[Role reminder from Servex: you are \`${canonical(role)}\` (${title.slice(0, 120)}). Your full role text is in your system prompt and at ${file}; re-read it before your next decision if you are unsure.]`];
++	if (rules.length) lines.push("Top rules:", ...rules.map(x => `- ${x}`));
++	if (heads.length) lines.push(`Sections: ${heads.join(" · ")}`);
++	if (skills.length) lines.push(`Skills you carry: ${skills.join(", ")}`);
++	return lines.join("\n").slice(0, 1600);
++}
++
+ /* The row's role readme (if it names one), then each of its skills: {name, label, text, block}. */
+ function parts_of(role){
+ 	const r = row(role), out = [];
+diff --git a/Servex/doc/dormant.md b/Servex/doc/dormant.md
+index 91f6a0a1a..5ea3c8338 100644
+--- a/Servex/doc/dormant.md
++++ b/Servex/doc/dormant.md
+@@ -12,8 +12,9 @@ for a role that is neither the voice pair nor a one-off worker, is still **3 min
+ At most **5 agents work at once**. A new spawn above that waits in the spawn queue until one
+ of them ends its turn.
+ 
+-An agent whose context passes **200k tokens**, or whose process passes **500 MB**, is
+-**compacted** when its turn ends.
++An agent about to go dormant with more than **100k tokens** of context **compacts first, then
++sleeps**, so it wakes small. Past **400k tokens** or **500 MB** it is compacted when its turn ends,
++whatever happens next. Details: "Compaction", below.
+ 
+ ## The states
+ 
+@@ -120,21 +121,16 @@ of RAM given back this way.
+ 
+ ## Compaction
+ 
+-- At the end of a turn an idle agent past its line (a mastermind 150k, others `SERVEX_NUDGE_TOKENS` 200k) gets ONE
+-  nudge message with its context size and whether its cache is warm; it compacts itself (`compact_self`) or not.
+-  See `agents/doc/lifecycle.md`, "Compaction".
+-- `Agent.oversized()` is only the safety net: past `SERVEX_COMPACT_TOKENS` (400000) or the process memory
+-  (`SERVEX_COMPACT_MB`, 500) the agent runs `/compact` as a turn of its own. That turn wakes no parent and keeps
+-  the last turn's words.
+-- Memory is read every 5 minutes (`Global.measure()`): each claude.exe's working set, matched to
+-  its agent by the session id on its command line.
+-- Compacted **for memory**, the process is also restarted from the compacted session
+-  (checkpoint-and-restart), because a process keeps the heap it grew.
+-- **Not compacted:** the front desk. Layers.js restarts a page's assistant and manager fresh
+-  from a checkpoint instead ("fresh, not compacted", the owner).
+-- Once per turn: a summary still over the line is not compacted again until it has worked more.
+-- The context check runs the moment a turn ends, so an agent goes dormant already compacted.
+-  The memory check runs every 5 minutes, so it only reaches agents still awake by then.
++All compaction rules and the factors behind them now live in one place: [`public/framework/ai/doc/compaction.md`](../../public/framework/ai/doc/compaction.md). In short:
++
++- **Compact before sleep** (2026-10-23): an agent about to go dormant with more than 100k tokens (or half the
++  window) compacts first, then sleeps, so it wakes small. `Agent.sleep_compact()`, hooked into `Agent.sleep("idle")`;
++  the line can be set per role as `compact_after.sleep`. One warm compaction of 158k cost $0.24 and left 17k.
++- **The nudge:** an idle agent past 150k (mastermind) or 200k gets one message and may `compact_self`.
++- **The ceiling:** past 400k tokens or 500 MB, compacted at turn end; a memory compaction restarts the process.
++- **Left out:** minions, the standing front desk, forks.
++- Memory is read every 5 minutes (`Global.measure()`), each claude.exe matched to its agent by session id.
++- Tests: `node Servex/agents/compact-before-sleep.test.mjs`, `node Servex/agents/compact-nudge.test.mjs`.
+ 
+ ## Proof
+ 
+diff --git a/public/framework/ai/doc/agent-context.md b/public/framework/ai/doc/agent-context.md
+index 47573ff2f..7f8e2ee9c 100644
+--- a/public/framework/ai/doc/agent-context.md
++++ b/public/framework/ai/doc/agent-context.md
+@@ -4,7 +4,7 @@ A map, checked against the code on 2026-10-22; nothing changed. Plan to make it
+ 
+ ## 1. Roles and starts → what each loads
+ 
+-Columns: **CLAUDE.md** = the SDK loads it (`setting_sources` unset). **Chain** = `first_prompt(dir)` from `readme-chain.js`, whole readmes root to `dir`, only for a fresh spawn with `spec.task.dir` or `spec.page` and no `spec.system` (`Agents.spawn`, `directory_of`). **Role text** = `opening(role, prompt)` in `roles.js` inlines `.claude/skills/<skill>/SKILL.md` before the task.
++Columns: **CLAUDE.md** = the SDK loads it (`setting_sources` unset). **Chain** = `first_prompt(dir)` from `readme-chain.js`, whole readmes root to `dir`, only for a fresh spawn with `spec.task.dir` or `spec.page` and no `spec.system` (`Agents.spawn`, `directory_of`). **Role text** = `opening(role, prompt)` in `roles.js` inlines `.claude/skills/<skill>/SKILL.md` before the task. **Since 2026-10-23** the role text (role readme plus skills) goes into the system prompt instead (`systemPrompt: {preset: "claude_code", append}`, `Agent.role_prompt()`), and the first message only points at it: [context-drift.md](context-drift.md).
+ 
+ | Start | Model | Role text | CLAUDE.md | Chain | Tools | How injected |
+ |---|---|---|---|---|---|---|
+diff --git a/public/framework/ai/doc/compaction.md b/public/framework/ai/doc/compaction.md
+new file mode 100644
+index 000000000..ac40702b9
+--- /dev/null
++++ b/public/framework/ai/doc/compaction.md
+@@ -0,0 +1,34 @@
++# Compaction: when a Servex agent's context is summarized, and what makes it hard
++
++**Compaction** means `/compact`. The CLI replaces the conversation so far with a summary of about 10-20k tokens and keeps a short tail of recent messages. The agent goes on from there. It makes every later turn cheaper and frees memory. The cost is that detail is lost: what the agent read and why it decided things.
++
++This page is the one home for Servex's compaction rules and the factors that make them hard. Its companion, [context-drift.md](context-drift.md), covers what an agent forgets *without* compaction, and what has to survive it.
++
++## The rules today (the code: `Servex/agents/Agents.js`)
++
++1. **Compact before sleep** (the owner, 2026-10-23). An agent about to go dormant compacts first if its context is over its sleep line, then sleeps. The line is 100k tokens, or half the window if that is lower (`SERVEX_SLEEP_COMPACT_TOKENS`, or per role as `compact_after.sleep` in `roles.js`). The next message then wakes a small agent. Code: `Agent.sleep_compact()`.
++2. **The nudge** (2026-10-16, with step reminders added 2026-10-22). An idle agent past its role's line (a mastermind at 150k, others at 200k) gets a message with its context size and cache state. It may compact itself with the `compact_self` tool. It is reminded again each time its context grows another 5% of the window. Node only reminds; the agent decides. Code: `Agent.nudge()`.
++3. **The safety ceiling.** Past 400k tokens (`SERVEX_COMPACT_TOKENS`) or 500 MB of process memory (`SERVEX_COMPACT_MB`), the agent compacts at the end of its turn, whatever else is going on. A memory compaction also restarts the process, because a process keeps the heap it grew. Code: `Agent.oversized()`.
++4. **Who is left out:** minions (`compact_after: null`; they live 10-30 minutes), the standing front desk (`assistant-*`, `manager-*`, `master-assistant`, `session-*`, the Dispatcher; Layers.js restarts these fresh from a checkpoint instead), and forks.
++5. **After every compaction** a short role reminder is added to the agent's next prompt or tool call. See [context-drift.md](context-drift.md).
++
++Every nudge, compaction and reminder is logged in the agent's Servex log as `compact_nudge`, `compacting` / `compact` (with `why`, the tokens `before` and `after`, `turn_cost`, `duration_ms`) and `role_reminder`.
++
++## What makes it hard: the complicating factors
++
++- **Compaction loses detail.** The owner's rule (2026-10-16): never compact a mastermind mid-work. It has read files it needs, and they are all cached. Compacting then loses that context and saves nothing. That is why the soft rules wait for idle or sleep, and only the ceiling cuts in.
++- **The cache decides the cost.** The prompt cache lasts 5 minutes. A compaction on a warm cache re-reads the history cheaply. A huge cold context woken for one small question re-writes the whole history to cache. Compacting at the sleep moment falls inside the cache's 5 minutes for every default idle wait: 3 minutes, 30 s when RAM is tight, 0 for a task mastermind.
++- **Measured cost of one compaction** (Servex's own `compact` lines): 158,513 → 16,746 tokens for **$0.24 in 61 s** (Sonnet, warm). 57k → 5k cost $0.08 in 15 s. Waking that 158k agent cold without compacting re-writes 158k to cache: about $0.59 at $3 per million input tokens. One compaction pays for itself at the first wake. An agent that never wakes again paid for its compaction for nothing.
++- **Agents can't be trusted to compact themselves.** They forget, and they often don't know their own context size. So node does the counting and the reminding.
++- **What survives a compaction.** The system prompt, CLAUDE.md and the tool definitions sit outside the conversation and are kept. The conversation is summarized, and so is anything injected into the first message. That is why the role text moved into the system prompt (2026-10-23, [context-drift.md](context-drift.md)). The SDK reports a compaction as a `compact_boundary` message: `pre_tokens`, `post_tokens`, and `preserved_messages` (the tail it kept). [Live proof](../sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/compact-before-sleep/role-system-proof.txt): 25,885 → 1,334 tokens, with the role text still there afterwards.
++- **A compaction is a turn.** `/compact` is queued like a message. A message that arrives during it runs after it, in order. A sleep-compaction that finds a message waiting stays awake for that turn.
++- **Repeat compactions.** Each rule fires at most once per turn (`compacted_turn`). A memory compaction clears the old process's memory reading, so it is not compacted again for nothing. On 2026-10-19, `task-mastermind-voice-opus` compacted three times in four minutes on a stale 698 MB reading.
++- **The CLI's own auto-compact** (`autoCompactEnabled`, `trigger: "auto"`) can still fire near the model window. Servex never turns it off.
++- **A compaction holds a working slot** while it runs (the working cap of 5, [dormant.md](/Servex/doc/dormant.md)).
++- **The system prompt is recorded once** per session (the SDK's `snapshot`). A changed role readme reaches a running session only at its next compaction.
++
++## History and sources
++
++- The owner's dictation and the decisions taken on it (2026-10-16, step reminders 2026-10-22, compact before sleep 2026-10-23): [Servex/agents/doc/owner-2026-10-16-compaction.md](/Servex/agents/doc/owner-2026-10-16-compaction.md)
++- Dormancy, the idle waits and the working cap: [Servex/doc/dormant.md](/Servex/doc/dormant.md)
++- Tests: `node Servex/agents/compact-before-sleep.test.mjs`, `node Servex/agents/compact-nudge.test.mjs`
+diff --git a/public/framework/ai/doc/context-drift.md b/public/framework/ai/doc/context-drift.md
+new file mode 100644
+index 000000000..74ebb0e36
+--- /dev/null
++++ b/public/framework/ai/doc/context-drift.md
+@@ -0,0 +1,30 @@
++# Context drift: why a long-running agent forgets its role, and what keeps it
++
++**Context drift** is what happens to a long session. The instructions it started with (its role readme, its rules) sit hundreds of thousands of tokens back, and the model gives them less and less weight. **Compaction** makes it worse: anything that was only in the conversation is summarized away. A long-running mastermind can end up working without the rules of its own role.
++
++This page lists what Servex does about it and the factors that make it hard. Its companion, [compaction.md](compaction.md), covers when an agent is compacted and what that costs.
++
++## What Servex does (the owner, 2026-10-23; code: `Servex/agents/Agents.js`, `Servex/agents/roles.js`)
++
++1. **The role text lives in the system prompt.** A plain spawn now passes `systemPrompt: {type: "preset", preset: "claude_code", append: <role text>}`. The role text is the role readme plus the skills the role carries (`roles.js` `role_system()`). The first message only says where it is. The system prompt survives compaction, and the CLI re-renders it from the same options after each one. CLAUDE.md still loads the way it did before (`setting_sources` unchanged). Code: `Agent.role_prompt()`.
++2. **A short role reminder** is added after each compaction, and each time the context grows another 100k tokens (`SERVEX_REMIND_TOKENS`). It holds the readme's path, its top rules (the bold lead of each top paragraph) and its section headings, about 1,000 characters (`roles.js` `role_reminder()`). It is never the whole readme. It rides on the next prompt or main-thread tool call as SDK hook context (`UserPromptSubmit` / `PostToolUse` `additionalContext`), so it also reaches a long turn that no new message interrupts. Code: `Agent.sdk_hooks()`, `Agent.remind_hook()`.
++3. **Off switches:** `SERVEX_ROLE_IN_SYSTEM=0` (role text back in the first message) and `SERVEX_ROLE_REMINDER=0`.
++
++[Live proof](../sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/compact-before-sleep/role-system-proof.txt), Haiku: a codeword in the preset's `append` was still answered after a resume and after a `/compact` (25,885 → 1,334 tokens), and a hook reminder word arrived on the next prompt. Test: `node Servex/agents/role-system.test.mjs`.
++
++## What makes it hard: the complicating factors
++
++- **Before 2026-10-23 there was no system prompt.** A spawn that passed none got an empty custom prompt from the SDK (`"systemPrompt":[""]` in every Servex transcript). Servex agents ran without Claude Code's own prompt too. Moving to the preset changes every spawned agent at once: Claude Code's guidance on tools, git and safety, plus a few thousand cached tokens per agent.
++- **The first message is not safe.** A role readme, a brief or a readme chain injected into the first message is summarized by `/compact`. The readme chain (`first_prompt(dir)`) and the brief still ride there. After a compaction the reminder points back to the role readme; the brief is the task folder's `requirements.md`, which the agent can re-read.
++- **The system prompt is recorded once per session** (the SDK's `snapshot`, on by default). A session started before this change keeps its empty prompt until its next compaction. A role readme edited mid-session reaches the agent only at its next compaction, while the reminder is computed fresh from the file each time.
++- **Weight fades even without compaction.** At 300k tokens, a system prompt is still there but far away. That is why the reminder also comes on token growth, not only after a compaction.
++- **A reminder costs tokens, and too many would be noise.** So it is about 1,000 characters, at most once per 100k tokens, and once after each compaction.
++- **Subagents and forks.** A subagent's own tool calls never carry the reminder (the hook skips any input with an `agent_id`). A fork answers one question and gets none.
++- **Roles with their own prompt** (`spec.system`: the voice pair, the directory mastermind, others that pass a brief) keep theirs untouched; this applies only to plain role spawns.
++- **VS Code tabs are not Servex agents.** After a compaction, their `SessionStart` hook (`.claude/hooks/session-page.mjs`) re-adds only the line naming the tab's own page. It does not re-add a role; a tab reads its role readme by hand (CLAUDE.md, "Read first").
++- **What files keep.** Nothing in context outlives the session anyway; decisions belong in files ([context-loss.md](context-loss.md)).
++
++## Sources
++
++- The owner's worry, 2026-10-22: [Servex/agents/doc/owner-2026-10-16-compaction.md](/Servex/agents/doc/owner-2026-10-16-compaction.md), "What compaction keeps"
++- What each role is given at start: [agent-context.md](agent-context.md)
+diff --git a/public/framework/ai/doc/files.jsonl b/public/framework/ai/doc/files.jsonl
+index cdff0cc4c..f6d466104 100644
+--- a/public/framework/ai/doc/files.jsonl
++++ b/public/framework/ai/doc/files.jsonl
+@@ -123,3 +123,5 @@
+ {"file":"agent-rules.md"}
+ {"file":"code-shape.md"}
+ {"file":"notes-from-asks.md"}
++{"file":"compaction.md"}
++{"file":"context-drift.md"}
+diff --git a/public/framework/ai/doc/readme.md b/public/framework/ai/doc/readme.md
+index 370233dbd..c112dbd1f 100644
+--- a/public/framework/ai/doc/readme.md
++++ b/public/framework/ai/doc/readme.md
+@@ -29,6 +29,8 @@ A map lists every piece of one system (each class, tool, writer and file) in one
+ | [`tokens/`](tokens/tokens.md) | [How cost is counted and cut](tokens/tokens.md), [context windows](tokens/context-window.md) | you spend or measure tokens |
+ | [`logs/`](logs/log-sources.md) | [Where the owner's asks live](logs/log-sources.md), [the universal log tool](logs/log-tool.md), [inbox + streaming](logs/inbox-log-streaming.md), [conversation logs](logs/conversations.md) | you read or write a log |
+ | [`sessions-and-tasks.md`](sessions-and-tasks.md) | [Sessions and tasks: a spawned agent is a session, a task is something to finish (the plan)](sessions-and-tasks.md) | you rename, spawn or count sessions and tasks |
++| [`compaction.md`](compaction.md) | [When a Servex agent's context is summarized (before sleep, the nudge, the ceiling), its cost, and every complicating factor](compaction.md) | you change compaction, or an agent's cost or memory grows |
++| [`context-drift.md`](context-drift.md) | [Why a long session forgets its role: the role text in the system prompt, the role reminder, and every complicating factor](context-drift.md) | an agent seems to have forgotten its role, or you change what a role is given |
+ | [`context-loss.md`](context-loss.md) | [A session's work survives only in files: what is lost, where to write it, what replaces a handover](context-loss.md) | you end a session, hand work on, or wonder where to write something |
+ | [`owner-2026-10-20-who-makes-tasks.md`](owner-2026-10-20-who-makes-tasks.md) | [The owner on sessions, tasks and losing work: who is who, dated module tasks/, the day list with check marks, decision cards, the class hierarchy first](owner-2026-10-20-who-makes-tasks.md) | you touch the task system, the sessions page or the day list |
+ | [`task-lifecycle.md`](task-lifecycle.md) | [Task lifecycle: session is the log, module is a query, six phases (proposal)](task-lifecycle.md) | you design how prompts become tasks |
+diff --git a/public/framework/ai/readme.md b/public/framework/ai/readme.md
+index bc578ff47..ecf8f9a48 100644
+--- a/public/framework/ai/readme.md
++++ b/public/framework/ai/readme.md
+@@ -10,6 +10,7 @@
+ - **Records** (every file in `ai/`, its writer and its reader; who makes sessions and tasks, and where): [doc/records.md](doc/records.md)
+ - **Roles and rules:** one readme per role, [Servex/agents/roles/readme.md](../../../Servex/agents/roles/readme.md) · safety and cost rules, long form: [doc/agent-rules.md](doc/agent-rules.md) · what each agent reads: [doc/readme-system.md](doc/readme-system.md)
+ - **Principle:** effective parallel work between sessions. A parent answers or hands off, helpers are reused, tasks are created, tracked, logged and finished. A spawned agent is a **session**, a task is something to finish inside it: [doc/sessions-and-tasks.md](doc/sessions-and-tasks.md).
++- **Compaction and context drift** (when an agent's context is summarized and what it costs; why a long session forgets its role, and the role text in the system prompt that keeps it): [doc/compaction.md](doc/compaction.md) · [doc/context-drift.md](doc/context-drift.md)
+ - **Context loss** (a session survives only in files; what to write where; computed state instead of a handover): [doc/context-loss.md](doc/context-loss.md) · how agents talk and what each message leaves on disk: [Servex/agents/doc/messaging.md](/Servex/agents/doc/messaging.md) · **readme rule, checked by code:** `node Server/ReadmeOrphans.mjs` lists every system the readme above it never names; add the missing one-liner whenever it prints one.
+ - **Tasks:** [tasks/readme.md](tasks/readme.md) · [doc/tasks.md](doc/tasks.md) (what a task is, two homes, who makes one) · [core/Task](/framework/core/Task/) · **processes** (a task whose phases node runs in order, completion automatic): [core/Task/doc/process.md](/framework/core/Task/doc/process.md)
+ - **Sessions:** [sessions/readme.md](sessions/readme.md) · cloud voice calls: [/Servex/ext/remote/doc/cloud-voice-agent.md](/Servex/ext/remote/doc/cloud-voice-agent.md)
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/compact-before-sleep/requirements.md b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/compact-before-sleep/requirements.md
+new file mode 100644
+index 000000000..17ed57fd2
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/compact-before-sleep/requirements.md
+@@ -0,0 +1,28 @@
++# Servex: compact before sleep
++
++**Source:** the owner's prompt `e008bc50-aaf1-4c3d-8f68-5cf167b87df6` in [`../../prompts.jsonl`](../../prompts.jsonl), routed by vscode-mastermind to mastermind-system-architect-3 (2026-10-23).
++
++## The ask
++
++Going dormant never compacted. Today Servex forces `/compact` only at the 400k ceiling or 500 MB, and nudges masterminds at 150k ([`Servex/doc/dormant.md`](../../../../../../../../../../Servex/doc/dormant.md), [`Servex/agents/doc/owner-2026-10-16-compaction.md`](../../../../../../../../../../Servex/agents/doc/owner-2026-10-16-compaction.md)).
++
++1. When an agent is about to go dormant and its context is over a threshold (100k, or 50% of the window, whichever is lower; per role in `roles.js` `compact_after`), run `/compact` first, then sleep, so it wakes small.
++2. Do it while the cache is still warm if possible.
++3. Measure the cost of one compaction.
++4. Minions and the standing front desk stay excluded.
++5. Update `dormant.md` and the compaction doc as conclusions.
++6. Worktree, test, review from the worktree, then log "ready: <branch> <sha>" and "needs restart". mastermind-deputy merges. Budget about $10.
++
++## Done
++
++- `Agent.sleep_compact()` plus a hook in `Agent.sleep("idle")`, in `Servex/agents/Agents.js`. `compact_done` sleeps afterwards. `roles.js` sets `MASTERMIND_COMPACT.sleep`.
++- Warm cache: compaction runs at the sleep moment, which falls inside the 5-minute cache TTL for every default idle wait.
++- Cost, from Servex's logs: 158k → 17k tokens for $0.24 in 61 s (Sonnet, warm).
++- Test: `node Servex/agents/compact-before-sleep.test.mjs` (23 checks).
++
++## Second ask (vscode-mastermind, 2026-10-23, the owner's next prompt in `prompts.jsonl`)
++
++7. The role readme must survive compaction. Move it from the first user message into the system prompt the SDK way: the claude_code preset with `append: <role readme>`, keeping CLAUDE.md loading as it is. Check that a resumed or compacted session still has it.
++8. Context drift: after each `compact_boundary`, and every ~N tokens on long sessions, re-inject a short role reminder (the role's top rules plus its readme path), not the whole readme.
++9. Docs: `public/framework/ai/doc/context-drift.md` and a compaction doc. Each is a short, complete list of the complicating factors; they cross-reference each other and are linked from `ai/readme.md`. Merge the existing notes (`Servex/agents/doc/owner-2026-10-16-compaction.md`, `Servex/doc/dormant.md`) into them rather than starting new.
++10. Same flow. Budget for both jobs: about $20.
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/compact-before-sleep/review.jsonl b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/compact-before-sleep/review.jsonl
+new file mode 100644
+index 000000000..5776c9403
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/compact-before-sleep/review.jsonl
+@@ -0,0 +1,7 @@
++{"phase":{"at":"2026-10-23T19:35:07-05:00","n":1,"kind":"findings","status":"start"}}
++{"finding":{"at":"2026-10-23T19:35:07-05:00","n":1,"kind":"note","text":"The compaction cost was measured on an older nudge compaction (158k → 17k, $0.24), not on a compaction this new hook triggered. That is fine as \"the cost of one compaction\" (ask 3), but the first real `why: \"sleep\"` line after the restart should be checked against it — Servex/doc/dormant.md, \"Measured cost\"."}}
++{"finding":{"at":"2026-10-23T19:35:07-05:00","n":2,"kind":"note","text":"An agent that goes to sleep and never wakes again pays for its compaction for nothing (about $0.24 at 158k). The doc says \"one compaction pays for itself at the first wake\", and that only holds when there is a wake. Worth one line in dormant.md; one-pass roles are stopped rather than slept (Agents.js:2041), so they are not affected."}}
++{"finding":{"at":"2026-10-23T19:35:07-05:00","n":3,"kind":"note","text":"After a compaction, the dormant log line records `after: 0` (Agents.js:2120, `mark_slept(this, 0)`), though the agent really waited its idle time plus the compaction. That makes the log read as if the agent slept instantly; passing the real wait would make it accurate."}}
++{"finding":{"at":"2026-10-23T19:35:07-05:00","n":4,"kind":"note","text":"Ask 6 (\"log ready: <branch> <sha>\" and \"needs restart\") is not in the diff and could not be checked here. The two commits 16943da65 and 95927b66c are in place."}}
++{"finding":{"at":"2026-10-23T19:35:07-05:00","n":5,"kind":"note","text":"The diff also fixes something nobody asked for: `rss_mb = null` after a memory restart (Agents.js:2117). It is small, has its own test and is documented, so it can stay."}}
++{"phase":{"at":"2026-10-23T19:35:07-05:00","n":1,"kind":"findings","status":"done","verdict":"pass","cost":0.6030570000000001,"model":"claude-opus-5-5"}}
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/compact-before-sleep/review.md b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/compact-before-sleep/review.md
+new file mode 100644
+index 000000000..718ce9ba3
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/compact-before-sleep/review.md
+@@ -0,0 +1,22 @@
++verdict: pass
++1. [note] The compaction cost was measured on an older nudge compaction (158k → 17k, $0.24), not on a compaction this new hook triggered. That is fine as "the cost of one compaction" (ask 3), but the first real `why: "sleep"` line after the restart should be checked against it — Servex/doc/dormant.md, "Measured cost".
++2. [note] An agent that goes to sleep and never wakes again pays for its compaction for nothing (about $0.24 at 158k). The doc says "one compaction pays for itself at the first wake", and that only holds when there is a wake. Worth one line in dormant.md; one-pass roles are stopped rather than slept (Agents.js:2041), so they are not affected.
++3. [note] After a compaction, the dormant log line records `after: 0` (Agents.js:2120, `mark_slept(this, 0)`), though the agent really waited its idle time plus the compaction. That makes the log read as if the agent slept instantly; passing the real wait would make it accurate.
++4. [note] Ask 6 ("log ready: <branch> <sha>" and "needs restart") is not in the diff and could not be checked here. The two commits 16943da65 and 95927b66c are in place.
++5. [note] The diff also fixes something nobody asked for: `rss_mb = null` after a memory restart (Agents.js:2117). It is small, has its own test and is documented, so it can stay.
++
++## Requirements
++- 1 "over 100k, or 50% of the window, whichever is lower; per role in roles.js compact_after; /compact first, then sleep" — yes — `sleep_compact()` takes `Math.min(after.sleep ?? host ?? env ?? 100k, window/2)` (Agents.js:1457-1464). `sleep("idle")` hooks it (Agents.js:1335), and `compact_done` sleeps afterwards (Agents.js:2120). roles.js sets `MASTERMIND_COMPACT.sleep: 100000`.
++- 2 "while the cache is still warm if possible" — yes — it runs at the sleep moment, after the 3-minute (or 30 s, or 0) idle wait, which is inside the 5-minute cache TTL. Waits longer than 5 minutes compact cold, and dormant.md says so.
++- 3 "Measure the cost of one compaction" — yes — $0.24 / 61 s for 158k → 17k, and $0.08 for 57k → 5k (dormant.md). See note 1.
++- 4 "Minions and the standing front desk stay excluded" — yes — `compact_after === null`, the `STANDING` regex and `one_shot` all return false. The test covers minion, master-assistant, assistant-* and fork.
++- 5 "Update dormant.md and the compaction doc as conclusions" — yes — both docs now carry a conclusion section, and the dormant.md summary line at the top is corrected (it used to say 200k).
++- 6 "Worktree, test, review, log ready + needs restart" — partly verifiable — the work is in a worktree, and `node Servex/agents/compact-before-sleep.test.mjs` passes 23/23 (re-run here). The ready log is not visible (note 4).
++
++Checked for breakage: a second compaction cannot loop. `compacted_turn === turns` holds because `result()` routes to `compact_done` before `turns += 1`. A sleep is never doubled: if the register hook's `maybe_sleep` puts the agent to sleep inside `compact_done`, the later `sleep("idle")` fails on `state !== "idle"`. A message that arrives during the compaction leaves the agent working, and the test covers that. `sleep("landed")` and `sleep("compacted")` skip the hook.
++
++Simpler way: none clearly better. The hook is one line in `sleep()` plus one decision method that mirrors `oversized()`.
++
++## Words
++- Docs are plain and conclusive, and they name the rule, who is left out, when it runs and the cost — yes — Servex/doc/dormant.md "Compaction", Servex/agents/doc/owner-2026-10-16-compaction.md.
++- No `[fix]`-level wording problems.
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/compact-before-sleep/review/diff.patch b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/compact-before-sleep/review/diff.patch
+new file mode 100644
+index 000000000..f7eaa3726
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/compact-before-sleep/review/diff.patch
+@@ -0,0 +1,267 @@
++diff --git a/Servex/agents/Agents.js b/Servex/agents/Agents.js
++index 1dcfcbe3d..b4faf9100 100644
++--- a/Servex/agents/Agents.js
+++++ b/Servex/agents/Agents.js
++@@ -1330,6 +1330,9 @@ Agents.Agent = class Agent {
++ 		   last minute is never put back to sleep. */
++ 		if (this.awoken_at && Date.now() - this.awoken_at < 60_000) return false;
++ 		if (this.bg_tasks > 0) return false;
+++		/* COMPACT BEFORE SLEEP (the owner, 2026-10-23, doc/dormant.md "Compaction"): a big context
+++		 * compacts first, then sleeps, so the next wake reloads a summary, not the whole history. */
+++		if (why === "idle" && this.sleep_compact() && this.compact("sleep")) return false;
++ 		this.gen = (this.gen ?? 0) + 1;   // the old pump's end is not news
++ 		/* NEVER-LOSE-A-WAKE, item 5 (fresh-eyes review finding 4): this only ever runs while
++ 		 * `state === "idle"`, which means nothing is queued behind the last turn — `result()`
++@@ -1445,6 +1448,21 @@ Agents.Agent = class Agent {
++ 		return `Context: ${context.toLocaleString("en-US")} tokens (${Math.round(context / window * 100)}% of the window), cache ${warm ? "warm" : "cold"} (last turn ${minutes} minute${minutes === 1 ? "" : "s"} ago). You are idle. Compact at your next natural break (an investigation done, no tools in flight): now, unless something in flight needs this context.`;
++ 	}
++ 
+++	/* COMPACT BEFORE SLEEP (the owner, 2026-10-23): true when this agent, about to go dormant, holds more than its
+++	 * sleep line: roles.js `compact_after.sleep`, else SERVEX_SLEEP_COMPACT_TOKENS (100k), never more than half the
+++	 * window. Not for minions (`compact_after: null`), the front desk (STANDING), a fork, or a context already
+++	 * compacted since its last turn. Runs at the sleep moment, not at turn end, so an agent that gets another message
+++	 * within its idle wait keeps its context; that wait is 3 minutes or less for most roles, under the 5-minute cache
+++	 * TTL, so the compaction reads a warm cache. */
+++	sleep_compact(){
+++		if (this.one_shot || this.compacting || this.compacted_turn === this.turns || STANDING.test(this.id ?? "")) return false;
+++		const after = role_compact_after(this.role);
+++		if (after === null) return false;
+++		const window = this.host?.window_tokens ?? (Number(process.env.SERVEX_WINDOW_TOKENS) || WINDOW_TOKENS);
+++		const line = Math.min(after?.sleep ?? this.host?.sleep_compact_tokens ?? (Number(process.env.SERVEX_SLEEP_COMPACT_TOKENS) || SLEEP_COMPACT_TOKENS), Math.round(window / 2));
+++		return (this.context ?? 0) > line;
+++	}
+++
++ 	/* The agent's answer to the nudge (the `compact_self` tool): compact when this turn ends. */
++ 	request_compact(){
++ 		this.compact_requested = true;
++@@ -2094,7 +2112,12 @@ Agents.Agent = class Agent {
++ 		this.settle();
++ 		/* Compacted for MEMORY: a process keeps the heap it grew, so restart it
++ 		 * from the compacted session (checkpoint-and-restart). */
++-		if (c.why === "memory" && this.state === "idle" && this.sleep("compacted")) this.awaken("compaction");
+++		/* A new process starts small: forget the old heap's size, or the next check compacts again for nothing
+++		 * (task-mastermind-voice-opus, 2026-10-19: three memory compactions in four minutes on a stale 698 MB). */
+++		if (c.why === "memory" && this.state === "idle" && this.sleep("compacted")){ this.rss_mb = null; this.awaken("compaction"); }
+++		/* Compacted on the way to sleep: now sleep (`compacted_turn` stops a second compaction). A message that
+++		 * arrived meanwhile left it working, and then it stays awake for that turn. */
+++		if (c.why === "sleep" && this.state === "idle" && this.sleep("idle")) try { this.host?.servex?.global?.mark_slept(this, 0); } catch {}
++ 	}
++ };
++ 
++@@ -2102,6 +2125,7 @@ Agents.Agent.WATCHDOGS = new Set(["servex-heartbeat", "servex-compact-nudge"]);
++ 
++ /* A nudged agent that declined is nudged again only after its context grew this much. */
++ export const NUDGE_GROWTH = 20000;   // the least growth between two nudges; the step is 5% of the window when that is more
+++export const SLEEP_COMPACT_TOKENS = 100000;   // compact before going dormant past this (capped at half the window)
++ export const WINDOW_TOKENS = 1000000;   // the model window the step reminders are a share of (SERVEX_WINDOW_TOKENS overrides)
++ 
++ export const ONE_PASS = ["reviewer", "clarity", "checker"];
++diff --git a/Servex/agents/compact-before-sleep.test.mjs b/Servex/agents/compact-before-sleep.test.mjs
++new file mode 100644
++index 000000000..e3de206e1
++--- /dev/null
+++++ b/Servex/agents/compact-before-sleep.test.mjs
++@@ -0,0 +1,86 @@
+++/* node Servex/agents/compact-before-sleep.test.mjs — compact before going dormant (the owner, 2026-10-23; doc/dormant.md).
+++ * A fake agent built from Agent.prototype: no process, no SDK. Checks the decision, the sleep → /compact → sleep
+++ * sequence, and who is left out. */
+++import assert from "node:assert";
+++import fs from "fs";
+++import os from "os";
+++import path from "path";
+++
+++process.env.SERVEX_HOME = fs.mkdtempSync(path.join(os.tmpdir(), "servex-sleepcompact-"));
+++delete process.env.SERVEX_SLEEP_COMPACT_TOKENS; delete process.env.SERVEX_WINDOW_TOKENS;
+++const { Agents, SLEEP_COMPACT_TOKENS } = await import("./Agents.js");
+++
+++let n = 0;
+++const t = (ok, what) => { assert.ok(ok, what); n++; };
+++
+++function fake(over = {}){
+++	const events = [], turns = [], logs = [], slept = [];
+++	const a = Object.create(Agents.Agent.prototype);
+++	Object.assign(a, {
+++		id: "mastermind-x", role: "mastermind", state: "idle", turns: 3, context: 0, session_id: "s-1",
+++		queue: { items: [], closed: false, push(x){ this.items.push(x); turns.push(x); }, close(){ this.closed = true; } },
+++		query: { close(){} }, aborter: { abort(){} },
+++		turn: text => text, emit: e => events.push(e), log: l => logs.push(l), settle(){}, add_cost(){},
+++		host: { register(){}, servex: { global: { mark_slept: (ag, w) => slept.push([ag.id, w]) } } },
+++		...over });
+++	return { a, events, turns, logs, slept };
+++}
+++
+++t(SLEEP_COMPACT_TOKENS === 100000, "the default sleep line is 100k");
+++
+++{ // under the line: sleeps at once, no compaction
+++	const { a, turns } = fake({ context: 90000 });
+++	t(a.sleep_compact() === false, "90k: no compaction");
+++	t(a.sleep("idle") === true && a.state === "dormant" && turns.length === 0, "90k: straight to dormant");
+++}
+++{ // over the line: /compact first, then dormant
+++	const { a, turns, events, logs, slept } = fake({ context: 120000 });
+++	t(a.sleep_compact() === true, "120k mastermind: compact before sleep");
+++	t(a.sleep("idle") === false, "sleep() refuses while it compacts");
+++	t(a.state === "working" && turns[0] === "/compact" && a.compacting?.why === "sleep", "queued /compact, why=sleep");
+++	t(events.some(e => e.type === "compacting" && e.why === "sleep" && e.context === 120000), "logged compacting with the size before");
+++	a.context = 15000;   // what the compaction left
+++	a.compact_done({ queued_turn_count: 0 });
+++	t(logs.some(l => l.type === "compact" && l.why === "sleep" && l.before === 120000 && l.after === 15000), "compact line: before and after");
+++	t(a.state === "dormant", "then it sleeps");
+++	t(slept.length === 1 && slept[0][0] === "mastermind-x", "the dormant line goes through Global.mark_slept");
+++	t(events.filter(e => e.type === "dormant").length === 1, "exactly one sleep");
+++}
+++{ // a message that arrived during the compaction: it stays awake for that turn
+++	const { a } = fake({ context: 120000 });
+++	a.sleep("idle");
+++	a.compact_done({ queued_turn_count: 1 });
+++	t(a.state === "working", "a queued message keeps it awake");
+++}
+++{ // compacted since its last turn: not again, even if the summary is still big
+++	const { a, turns } = fake({ context: 130000, compacted_turn: 3 });
+++	t(a.sleep_compact() === false && a.sleep("idle") === true && turns.length === 0, "already compacted this turn: just sleeps");
+++}
+++{ // only the idle sleep: a landed task or the memory restart does not compact first
+++	const { a, turns } = fake({ context: 300000 });
+++	t(a.sleep("landed") === true && turns.length === 0, "landed: sleeps without compacting");
+++}
+++{ // left out: minions, the front desk, forks
+++	t(fake({ role: "minion", id: "minion-x", context: 900000 }).a.sleep_compact() === false, "minion: never");
+++	t(fake({ role: "master-assistant", id: "master-assistant", context: 900000 }).a.sleep_compact() === false, "front desk: never");
+++	t(fake({ role: "page-assistant", id: "assistant-x", context: 900000 }).a.sleep_compact() === false, "page assistant: never");
+++	t(fake({ context: 900000, one_shot: true }).a.sleep_compact() === false, "fork: never");
+++}
+++{ // other roles: the host default; half the window caps the line
+++	t(fake({ role: "reviewer", id: "reviewer-x", context: 110000 }).a.sleep_compact() === true, "a role with no compact_after: the 100k default");
+++	const small = fake({ role: "reviewer", id: "reviewer-x", context: 90000, host: { window_tokens: 160000 } }).a;
+++	t(small.sleep_compact() === true, "a 160k window: the line is 80k (half the window)");
+++	process.env.SERVEX_SLEEP_COMPACT_TOKENS = "200000";
+++	t(fake({ role: "reviewer", id: "reviewer-x", context: 150000 }).a.sleep_compact() === false, "env raises the default line");
+++	delete process.env.SERVEX_SLEEP_COMPACT_TOKENS;
+++}
+++{ // the memory restart forgets the old heap size (no repeat memory compactions)
+++	const { a } = fake({ context: 60000, rss_mb: 698 });
+++	a.awaken = function(){ this.state = "idle"; return this; };
+++	a.compacting = { why: "memory", before: 60000, rss_mb: 698, at: Date.now() };
+++	a.state = "working";
+++	a.compact_done({ queued_turn_count: 0 });
+++	t(a.rss_mb === null, "after a memory compaction rss_mb is cleared");
+++	t(a.oversized() === null, "so the next check does not compact again");
+++}
+++console.log(`compact-before-sleep: ${n} checks passed`);
++diff --git a/Servex/agents/doc/owner-2026-10-16-compaction.md b/Servex/agents/doc/owner-2026-10-16-compaction.md
++index b28ec0585..8eefecdca 100644
++--- a/Servex/agents/doc/owner-2026-10-16-compaction.md
+++++ b/Servex/agents/doc/owner-2026-10-16-compaction.md
++@@ -32,3 +32,17 @@ Remind sooner and in steps: at about 30% of the window, then every 5% (on a 1M w
++ ✅ **Built (2026-10-22, `Agent.nudge()` in `Servex/agents/Agents.js`):** after the first reminder, the next comes each time the context grows another **5% of the window** (`WINDOW_TOKENS` 1M, `SERVEX_WINDOW_TOKENS` overrides): 150k, 200k, 250k… for a mastermind, up to the 400k forced compaction. Each reminder gives the size, its share of the window and the cache state, and asks for a compaction at the next natural break. **Reconsidered:** the first reminder stays at the role's line (150k for a mastermind, 200k otherwise), not 30%. With a 400k ceiling, a first reminder at 300k would leave only two before the forced one. Test: `node Servex/agents/compact-nudge.test.mjs` (24 checks).
++ 
++ **What compaction keeps (the owner's worry, 2026-10-22):** the system prompt, CLAUDE.md and tool definitions sit outside the conversation and are kept verbatim; the conversation, including a role readme or brief injected into the first message, is summarized. ⬜ So after a compaction node must re-inject the role readme and the brief verbatim (the `SessionStart:compact` hook already re-adds a line for VS Code tabs). Alternative: summarize and start a fresh session with the role readme as its first message.
+++
+++## The owner, 2026-10-23: compact before sleep
+++
+++✅ **Built (`Agent.sleep_compact()` in `Servex/agents/Agents.js`):** going dormant used to never compact. Now an
+++agent about to sleep with more than 100k tokens (or half the window, whichever is lower; per role as
+++`compact_after.sleep`) runs `/compact` first, then sleeps, so it wakes small. It runs at the sleep moment, which is
+++inside the cache TTL for every default idle wait, so the compaction reads a warm cache. It does not break the
+++2026-10-16 rule "never compact in an interruptible way": the agent is idle and about to drop its process anyway,
+++and a message that arrives during the compaction simply runs after it. Minions, the front desk and forks are
+++left out. Measured: one warm compaction of 158k cost $0.24 (61 s) and left 17k. Full rule and numbers:
+++[`Servex/doc/dormant.md`](../../doc/dormant.md), "Compaction".
+++
+++Also fixed: after a memory compaction restarts the process, the old process's memory reading is cleared. The
+++stale 698 MB reading made `task-mastermind-voice-opus` compact three times in four minutes on 2026-10-19.
++diff --git a/Servex/agents/roles.js b/Servex/agents/roles.js
++index f0048539f..72f6c4713 100644
++--- a/Servex/agents/roles.js
+++++ b/Servex/agents/roles.js
++@@ -26,8 +26,10 @@ import { model, provider } from "./tiers.js";
++  * is {tokens}: once an IDLE agent's context passes `tokens`, Servex sends it ONE nudge (context size, cache warm/cold)
++  * and the agent decides, answering with the `compact_self` tool; it never auto-compacts mid-flight. Age is no reason.
++  * `null` = never (minions live 10-30 min). A row with no field uses the host default (SERVEX_NUDGE_TOKENS, 200k).
++- * Everyone (but minions and the front desk) is auto-compacted at turn end only past the safety ceiling (400k) or memory. */
++-export const MASTERMIND_COMPACT = { tokens: 150000 };
+++ * Everyone (but minions and the front desk) is auto-compacted at turn end only past the safety ceiling (400k) or memory.
+++ * `sleep` (the owner, 2026-10-23): an agent about to go dormant with more context than this compacts first, then sleeps,
+++ * so it wakes small. Default SERVEX_SLEEP_COMPACT_TOKENS (100k), never above half the window (Agent.sleep_compact). */
+++export const MASTERMIND_COMPACT = { tokens: 150000, sleep: 100000 };
++ export function compact_after(role){ const r = ROLES[canonical(role)]; return r && "compact_after" in r ? r.compact_after : undefined; }
++ 
++ export const ROLES = {
++diff --git a/Servex/doc/dormant.md b/Servex/doc/dormant.md
++index 91f6a0a1a..7ea2ed872 100644
++--- a/Servex/doc/dormant.md
+++++ b/Servex/doc/dormant.md
++@@ -12,8 +12,9 @@ for a role that is neither the voice pair nor a one-off worker, is still **3 min
++ At most **5 agents work at once**. A new spawn above that waits in the spawn queue until one
++ of them ends its turn.
++ 
++-An agent whose context passes **200k tokens**, or whose process passes **500 MB**, is
++-**compacted** when its turn ends.
+++An agent about to go dormant with more than **100k tokens** of context **compacts first, then
+++sleeps**, so it wakes small. Past **400k tokens** or **500 MB** it is compacted when its turn ends,
+++whatever happens next. Details: "Compaction", below.
++ 
++ ## The states
++ 
++@@ -120,6 +121,34 @@ of RAM given back this way.
++ 
++ ## Compaction
++ 
+++**Compact before sleep (the owner, 2026-10-23).** When an agent is about to go dormant and its context is
+++over its sleep line, it runs `/compact` first and sleeps when that turn ends. The next message wakes it
+++with a summary of about 10-20k tokens instead of reloading the whole history.
+++
+++- **The line:** 100k tokens (`SERVEX_SLEEP_COMPACT_TOKENS`), or half the model window if that is lower.
+++  A role can set its own as `compact_after.sleep` in `agents/roles.js` (masterminds: 100k).
+++- **Who:** every agent that sleeps, except minions (`compact_after: null`), the standing front desk
+++  (`assistant-*`, `manager-*`, `master-assistant`, `session-*`, the Dispatcher) and forks.
+++- **When:** at the sleep moment (`Agent.sleep("idle")` → `Agent.sleep_compact()`), not at the turn end. An
+++  agent that gets another message within its idle wait keeps its full context. The wait is 3 minutes
+++  (30 s when RAM is tight, 0 for a task mastermind), all under the 5-minute cache TTL, so the
+++  compaction reads a warm cache. Only an agent given `dormant_after` over 300 s compacts cold, and that
+++  is still cheaper than one cold wake of the full context.
+++- **Once:** an agent already compacted since its last turn just sleeps. A sleep for a landed task
+++  (`sleep("landed")`) never compacts: that agent is not expected back.
+++- **A message during the compaction** queues behind `/compact` and runs after it; the agent stays awake
+++  for that turn and tries to sleep again after it.
+++- **Logged:** `compacting` and `compact` lines with `why: "sleep"` and the tokens before and after, then the
+++  usual `dormant` line.
+++- **Measured cost of one compaction** (Servex's own `compact` lines; `turn_cost` is the compaction turn
+++  alone): a Sonnet task mastermind went from 158,513 to 16,746 tokens for **$0.24 in 61 s**, about 1 minute
+++  after its turn ended (warm). A 57k context went to 5k for $0.08 in 15 s. Waking that 158k agent cold
+++  without compacting re-writes all 158k to cache (1.25 times the input price: about $0.59 at $3 per
+++  million input tokens), and every later turn re-reads the full history. One compaction pays for itself at the first wake.
+++- Test: `node Servex/agents/compact-before-sleep.test.mjs` (23 checks).
+++
+++**The other two rules still run:**
+++
++ - At the end of a turn an idle agent past its line (a mastermind 150k, others `SERVEX_NUDGE_TOKENS` 200k) gets ONE
++   nudge message with its context size and whether its cache is warm; it compacts itself (`compact_self`) or not.
++   See `agents/doc/lifecycle.md`, "Compaction".
++diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/compact-before-sleep/requirements.md b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/compact-before-sleep/requirements.md
++new file mode 100644
++index 000000000..6cb4951a0
++--- /dev/null
+++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/compact-before-sleep/requirements.md
++@@ -0,0 +1,21 @@
+++# Servex: compact before sleep
+++
+++**Source:** the owner's prompt `e008bc50-aaf1-4c3d-8f68-5cf167b87df6` in [`../../prompts.jsonl`](../../prompts.jsonl), routed by vscode-mastermind to mastermind-system-architect-3 (2026-10-23).
+++
+++## The ask
+++
+++Going dormant never compacted. Today Servex forces `/compact` only at the 400k ceiling or 500 MB, and nudges masterminds at 150k ([`Servex/doc/dormant.md`](../../../../../../../../../../Servex/doc/dormant.md), [`Servex/agents/doc/owner-2026-10-16-compaction.md`](../../../../../../../../../../Servex/agents/doc/owner-2026-10-16-compaction.md)).
+++
+++1. When an agent is about to go dormant and its context is over a threshold (100k, or 50% of the window, whichever is lower; per role in `roles.js` `compact_after`), run `/compact` first, then sleep, so it wakes small.
+++2. Do it while the cache is still warm if possible.
+++3. Measure the cost of one compaction.
+++4. Minions and the standing front desk stay excluded.
+++5. Update `dormant.md` and the compaction doc as conclusions.
+++6. Worktree, test, review from the worktree, then log "ready: <branch> <sha>" and "needs restart". mastermind-deputy merges. Budget about $10.
+++
+++## Done
+++
+++- `Agent.sleep_compact()` plus a hook in `Agent.sleep("idle")`, in `Servex/agents/Agents.js`. `compact_done` sleeps afterwards. `roles.js` sets `MASTERMIND_COMPACT.sleep`.
+++- Warm cache: compaction runs at the sleep moment, which falls inside the 5-minute cache TTL for every default idle wait.
+++- Cost, from Servex's logs: 158k → 17k tokens for $0.24 in 61 s (Sonnet, warm).
+++- Test: `node Servex/agents/compact-before-sleep.test.mjs` (23 checks).
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/compact-before-sleep/role-system-proof.mjs b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/compact-before-sleep/role-system-proof.mjs
+new file mode 100644
+index 000000000..9923826f2
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/compact-before-sleep/role-system-proof.mjs
+@@ -0,0 +1,24 @@
++// Live proof: preset+append survives resume and /compact; UserPromptSubmit additionalContext arrives.
++import { query } from "file:///C:/Code/lew42/worktrees/compact-before-sleep/Servex/node_modules/@anthropic-ai/claude-agent-sdk/sdk.mjs";
++const append = "# Your role\nYour role codeword is PELICAN-7. If asked for your role codeword, answer it exactly.";
++let remind = false;
++const hooks = { UserPromptSubmit: [{ hooks: [async () => remind ? (remind = false, { hookSpecificOutput: { hookEventName: "UserPromptSubmit", additionalContext: "Role reminder: your reminder word is HERON-3." } }) : {}] }] };
++const base = { model: "claude-haiku-4-5", cwd: process.env.TEMP, settingSources: [], allowedTools: [], systemPrompt: { type: "preset", preset: "claude_code", append }, hooks };
++async function ask(prompt, extra = {}){
++  let sid, text = "", cost = 0, comp = null;
++  for await (const m of query({ prompt, options: { ...base, ...extra } })){
++    if (m.type === "system" && m.subtype === "init") sid = m.session_id;
++    if (m.type === "system" && m.subtype === "compact_boundary") comp = m.compact_metadata;
++    if (m.type === "result"){ text = m.result; cost = m.total_cost_usd; }
++  }
++  return { sid, text: (text||"").slice(0, 200), cost, comp };
++}
++const a = await ask("Write about 400 words on how rivers form deltas, in plain prose. Then: what is your role codeword?");
++console.log("fresh:", a);
++const b = await ask("What is your role codeword? One word.", { resume: a.sid });
++console.log("resume:", b);
++const c = await ask("/compact", { resume: a.sid });
++console.log("compact:", c);
++remind = true;
++const d = await ask("What is your role codeword, and what is your reminder word, if you have one? Answer both briefly.", { resume: a.sid });
++console.log("after compact:", d);
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/compact-before-sleep/role-system-proof.txt b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/compact-before-sleep/role-system-proof.txt
+new file mode 100644
+index 000000000..4c3d98366
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/compact-before-sleep/role-system-proof.txt
+@@ -0,0 +1,11 @@
++Live run of role-system-proof.mjs, 2026-10-23, claude-haiku-4-5, agent SDK 0.3.280, settingSources [] (scratch cwd).
++systemPrompt = { type: "preset", preset: "claude_code", append: "...Your role codeword is PELICAN-7..." }
++
++fresh   ~400 words on deltas                         $0.013
++resume  "What is your role codeword?" -> PELICAN-7   $0.018 (cumulative)
++/compact  pre_tokens 25,885 -> post_tokens 1,334, trigger manual, 13 s; preserved_messages set (a tail is kept)
++after   codeword -> PELICAN-7; UserPromptSubmit additionalContext reminder word -> HERON-3   $0.041 total
++
++Conclusion: the preset's append survives resume and /compact (it is re-rendered from the launch options), and
++hook additionalContext reaches the model on the next prompt. A first run with maxTurns: 1 and a 2-sentence
++conversation failed to compact ("summarization produced empty response"): too little to summarize, not a defect here.
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/compact-before-sleep/task.jsonl b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/compact-before-sleep/task.jsonl
+new file mode 100644
+index 000000000..6fba4e86e
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/compact-before-sleep/task.jsonl
+@@ -0,0 +1,6 @@
++{"review":{"at":"2026-10-23T19:35:07-05:00","size":"full","verdict":"pass","findings":[{"n":1,"kind":"note","text":"The compaction cost was measured on an older nudge compaction (158k → 17k, $0.24), not on a compaction this new hook triggered. That is fine as \"the cost of one compaction\" (ask 3), but the first real `why: \"sleep\"` line after the restart should be checked against it — Servex/doc/dormant.md, \"Measured cost\"."},{"n":2,"kind":"note","text":"An agent that goes to sleep and never wakes again pays for its compaction for nothing (about $0.24 at 158k). The doc says \"one compaction pays for itself at the first wake\", and that only holds when there is a wake. Worth one line in dormant.md; one-pass roles are stopped rather than slept (Agents.js:2041), so they are not affected."},{"n":3,"kind":"note","text":"After a compaction, the dormant log line records `after: 0` (Agents.js:2120, `mark_slept(this, 0)`), though the agent really waited its idle time plus the compaction. That makes the log read as if the agent slept instantly; passing the real wait would make it accurate."},{"n":4,"kind":"note","text":"Ask 6 (\"log ready: <branch> <sha>\" and \"needs restart\") is not in the diff and could not be checked here. The two commits 16943da65 and 95927b66c are in place."},{"n":5,"kind":"note","text":"The diff also fixes something nobody asked for: `rss_mb = null` after a memory restart (Agents.js:2117). It is small, has its own test and is documented, so it can stay."}],"branch":"worktree/compact-before-sleep","head":"95927b66c8c2a776a6aa724b4aa32216b5a8bdb4","model":"claude-opus-5-5","cost":0.6030570000000001,"file":"review.md","report":null,"shots":null}}
++{"review":{"at":"2026-10-23T19:42:05-05:00","answer":{"n":1,"reply":"Agreed. compaction.md says the figure comes from an older nudge compaction; the first why:sleep line after the restart is the check."}}}
++{"review":{"at":"2026-10-23T19:42:05-05:00","answer":{"n":2,"reply":"Fixed: compaction.md now says an agent that never wakes paid for its compaction for nothing."}}}
++{"review":{"at":"2026-10-23T19:42:05-05:00","answer":{"n":3,"reply":"Fixed in 75f3e1550: the post-compaction dormant line logs Global.wait_ms(agent), not 0."}}}
++{"review":{"at":"2026-10-23T19:42:05-05:00","answer":{"n":4,"reply":"The ready + needs restart lines go on the process-system record after the second review."}}}
++{"review":{"at":"2026-10-23T19:42:05-05:00","answer":{"n":5,"reply":"Kept: small, tested, documented, and it fixes the repeat-compaction loop seen on 2026-10-19."}}}

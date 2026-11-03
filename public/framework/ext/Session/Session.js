@@ -1,0 +1,317 @@
+import { servex_url } from "/framework/dev/servex_url.js";
+import mic_floor from "/framework/ux/Dictate/floor.js";   // `floor` is the verb below
+
+/* VOICE SESSIONS, the browser half (Servex/agents/Sessions.js is the other).
+ *
+ *     const { session, file, resumed, previous } = await start({ path: location.pathname });
+ *     await resume(previous.session);                        // continue an older one
+ *     const rows = await recent("/framework/");              // [{session, home, title, summary, at, last_at}]
+ *     await say({ session, path: location.pathname, text: "can you hear me?", via: "voice", floor: "speaking" });
+ *     await floor({ session, floor: "done" });               // the owner stopped talking: the held fast reply lands
+ *     await nav({ session, from: "/a/", to: "/b/", card });   // `card` is the one selected right now, or omit it
+ *     const unlive = stream(session, ev => ...);               // replies token by token, lines as written
+ *     const unquiet = report_quiet(() => session);            // the owner's silences: when the assistants answer
+ *     const unpause = report_pause(() => session);            // the mic stopping and starting again (not just a mid-sentence gap)
+ *     await select({ session, selection });                    // the reader's picked element changed (or was cleared, null)
+ *     const rows = await recent_project({ limit: 10 });        // every session of this project, any page or card
+ *     const stop = watch(file, line => console.log(line));   // every line, old and new
+ *
+ * One ✦ press is one session. Its whole conversation is one file under the page it
+ * started on, `<home>ai/<session>.jsonl`, and `watch()` polls that file. A press on a
+ * page whose session spoke in the last hour continues that session (`resumed: true`).
+ *
+ * A CARD session: pass `card`, a card id like `2026/09/29/audio-a-library-of-…` (the id
+ * `ai2/`'s pages already use), and the session's home becomes that card's own folder,
+ * `/framework/ai/<card>/`, instead of the nearest folder to `path` — so its file sits
+ * beside the card's `page.jsonl`, and the ✦ sheet can be the card's home page. `path` is
+ * still kept as where the owner actually stood. See `doc/sessions.md` for the shape. */
+
+/** A refined line's `level`: the owner's words cleaned, edited, or summed up. */
+export const LEVELS = ["clean", "edit", "summary"];
+
+/* Every verb gives up after POST_MS with a sentence that says which call and why. Without it one
+ * request Servex never answers held the mic's send queue forever: every later sentence waited behind it
+ * and nothing said so (the stall, 2026-10-24: ux/Dictate/test/stall.mjs, ext/drawer/doc/debug-tab.md). */
+export const POST_MS = 10000;
+async function post(verb, body){
+	let res;
+	try {
+		res = await fetch(servex_url(`/api/session/${verb}`), { method: "POST", signal: AbortSignal.timeout(POST_MS),
+			headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+	} catch (e){
+		throw new Error(e?.name === "TimeoutError" || e?.name === "AbortError"
+			? `Servex did not answer session/${verb} in ${POST_MS / 1000} s`
+			: `Servex is not reachable for session/${verb} (${e?.message || "network error"})`);
+	}
+	const out = await res.json().catch(() => ({ ok: false, error: `HTTP ${res.status}` }));
+	if (!out.ok) throw new Error(`Servex refused session/${verb}: ${out.error ?? "HTTP " + res.status}`);
+	return out;
+}
+
+/** A session for `path`: the one that spoke there in the last hour (`resumed: true`), else a new one
+ *  with `previous` = the page's most recent older session `{session, title, summary, at}` or null.
+ *  `fresh: true` (the "New session" button, voice-fixes review item 1) always starts a new one,
+ *  even when a session on this page spoke in the last hour. `card` (a card id) makes the session's
+ *  home that card's own folder instead — see the file header. */
+export const start = ({ path = location.pathname, host = location.host, card, fresh } = {}) =>
+	post("new", { path, host, ...(card ? { card } : {}), ...(fresh ? { fresh: true } : {}) });
+
+/** Continue any session by id; its assistants wake if they slept. */
+export const resume = session => post("resume", { session });
+
+/** This session's own record, including its Chat settings plugin overrides (`plugins`, rebuilt from the session's own
+ *  session.jsonl: Servex/agents/Sessions.js `plugins_of`, chat-settings-session). */
+export async function get(session){
+	let res;
+	try { res = await fetch(servex_url(`/api/session/${session}`)); }
+	catch (e){ throw new Error(`Servex is not reachable for session/${session} (${e?.message || "network error"})`); }
+	const out = await res.json().catch(() => ({ ok: false, error: `HTTP ${res.status}` }));
+	if (!out.ok) throw new Error(`Servex refused session/${session}: ${out.error ?? "HTTP " + res.status}`);
+	return out;
+}
+
+/** The session's knobs (gap_ms, every, tail, assistant), and its Chat settings plugin overrides, `plugins` — the GROUPED shape
+ *  `vc.overrides_by_group()` gives: {dictate: {Name: {enabled?, config?}}, recite: {...}} (a flat object is refused with a 400;
+ *  `get()` returns the flat shape). `plugins: null` resets them (Reset to default). */
+export const settings = ({ session, ...rest }) => post("settings", { session, ...rest });
+
+/** The sessions started on, or passing through, `page`, newest first. */
+export async function recent(page = location.pathname, { limit = 10, host = location.host } = {}){
+	const q = new URLSearchParams({ page, limit, host });
+	const out = await (await fetch(servex_url(`/api/sessions?${q}`), { cache: "no-store" })).json();
+	if (!out.ok) throw new Error(out.error ?? "sessions failed");
+	return out.sessions;
+}
+
+/** One owner line into the session. `floor` ("speaking" | "done") and `cues` are the composer's
+ *  stamps (ext/Chat/doc/floor.md); a spoken line with none is stamped here from the mic's live
+ *  level meter, and also carries `quiet_ms` (how long the owner has been quiet). Servex holds a
+ *  spoken line from both assistants until the owner has been quiet 2.5 s (see `quiet()`). `raw` is
+ *  what Whisper heard, kept on the line when the clean-up changed it. No floor counts as "done".
+ *  `selection` (one-dictation, item 6) is the element the reader last picked on the page — the
+ *  same shape `ext/drawer/select.js`'s `item()` already builds, `{kind, label, text, selector}` —
+ *  passed straight through to Servex, which prefixes `[Selected: …]` ahead of the words it sends
+ *  the assistants, the way `Layers.js`'s `heard()` already does for a card's own chip. */
+/** The voice session this browser used last, in localStorage so every tab sees it and it outlives a closed tab: every `say` writes it.
+ *  The ✦ sheet follows it when it cannot ask Servex for the recent sessions (ext/drawer/Sheet.js, read_aloud; dictation-v3, 2026-11-01). */
+export const LAST_SESSION_KEY = "lew42.recite.last_session";
+export function remember(session){ if (session) try { localStorage.setItem(LAST_SESSION_KEY, session); } catch {} }
+export function last_session(){ try { return localStorage.getItem(LAST_SESSION_KEY); } catch { return null; } }
+
+export const say = async ({ session, path = location.pathname, text, via = "text", raw, floor: f, cues, re, thread, selection, said_at }) => {
+	remember(session);
+	const spoken = via === "voice";
+	f ??= spoken ? mic_floor.state() : undefined;
+	const sent = Date.now();
+	const out = await post("say", { session, path, text, via, ...(said_at ? { said_at } : {}), ...(raw && raw !== text ? { raw } : {}),
+		...(f ? { floor: f } : {}), ...(cues ? { cues } : {}), ...(spoken ? { quiet_ms: mic_floor.quiet_ms() } : {}),
+		...(re && thread ? { re, thread: true } : {}), ...(selection ? { selection } : {}) });
+	const at = Date.parse(out?.at);
+	if (at) clock.offset = at - (sent + Date.now()) / 2;
+	return out;
+};
+
+/** Servex's clock minus this device's, in ms: `at` of the latest `say` answer minus the midpoint of its request. 0 until the first answer.
+ *  `ComposerMic.stamp()` adds it, so a bubble drawn here is ordered on Servex's clock (ext/Chat/doc/notes.md#bubble-order). */
+export const clock = { offset: 0 };
+
+/** The floor changed with no new words (the owner stopped talking): "done" writes a held fast reply. */
+export const floor = ({ session, floor }) => post("floor", { session, floor });
+
+/** The owner's reaction (👍 ✅ ❤️ 😂 ❓ 👎) on one line of the session, `re` = that line's `at`.
+ *  An empty `emoji` takes the owner's reaction off. */
+export const react = ({ session, re, emoji = "", at }) => post("react", { session, re, emoji, at });
+/** THE SILENCE EVENT: the owner has been quiet for `ms` (or the mic went off). Servex writes it as an
+ *  invisible `{quiet}` line, and it is what lets the held assistants answer. */
+export const quiet = ({ session, ms, mic_off = false, path = location.pathname }) => post("quiet", { session, ms, mic_off, path });
+
+/** Every silence mark of the mic's floor (`ux/Dictate/floor.js`, `on_quiet`), posted to `session()`
+ *  (asked fresh each time; null = no session yet). Returns `stop()`. */
+export const report_quiet = session => mic_floor.on_quiet((ms, { mic_off }) => {
+	const id = session();
+	if (id) quiet({ session: id, ms, mic_off }).catch(() => {});
+});
+
+/** THE MIC'S OWN PAUSE (one-dictation, item 2) — distinct from an ordinary mid-sentence quiet
+ *  gap `report_quiet` already reports: the mic stopping altogether, and starting again later,
+ *  maybe minutes apart. `phase: "start"` reuses the exact moment `report_quiet` already catches
+ *  (`floor.js`'s own `mic_off`, which fires `on_quiet` with `mic_off: true` — nothing new is
+ *  needed for that half). `phase: "end"` has no existing hook to reuse (nothing fires when the
+ *  mic turns back ON), so this polls `floor.js`'s own public `owner` field at a light interval —
+ *  a mic button is pressed by a person, never machine-gunned, so missing it by a few hundred ms
+ *  is fine. Posted to `session()` (asked fresh each time; null = no session yet, and nothing is
+ *  sent). Returns `stop()`. */
+export function report_pause(session){
+	let on = !!mic_floor.owner;
+	const stop_quiet = mic_floor.on_quiet((ms, { mic_off }) => {
+		if (!mic_off || !on) return;
+		on = false;
+		const id = session();
+		if (id) pause({ session: id, phase: "start" }).catch(() => {});
+	});
+	const timer = setInterval(() => {
+		const live = !!mic_floor.owner;
+		if (!live || on) return;
+		on = true;
+		const id = session();
+		if (id) pause({ session: id, phase: "end" }).catch(() => {});
+	}, 400);
+	return () => { stop_quiet(); clearInterval(timer); };
+}
+
+/** An invisible marker: the mic paused (`phase: "start"`) or picked back up (`phase: "end"`) —
+ *  `report_pause()` above calls this; a caller with its own mic lifecycle can call it directly. */
+export const pause = ({ session, phase }) => post("pause", { session, phase });
+
+/** An invisible marker: the element the reader has selected on the page changed (or was cleared,
+ *  `selection: null`) — `ext/drawer/select.js`'s own event, the same shape `say()`'s own
+ *  `selection` takes. Written the moment it changes, even with nothing said yet, so the smart
+ *  assistant can later tell what was on screen at any past moment, not only at the moment of
+ *  the next sentence. */
+export const select = ({ session, selection }) => post("select", { session, selection });
+
+/** THE LIVE WIRE: `on_event` hears `{kind: "stream", role, text}` (a reply so far, whole, while it is
+ *  written; `text: ""` when it ends) and `{kind: "line", line}` (every line the moment Servex writes
+ *  it, so a reply does not wait for the next poll). Server-sent events; the browser reconnects by
+ *  itself, and each stream event carries the whole text, so a reconnect loses nothing. Returns `stop()`. */
+export function stream(session, on_event, { on_state } = {}){
+	if (typeof EventSource !== "function") return Object.assign(() => {}, { reconnect(){ return false; } });
+	let src = null, timer = null, wait = 1000, down_at = 0, stopped = false, opened_at = 0, tries = 0;
+	// `since`: when the wire went down (0 while open); `tries`: reopen attempts since then. The sheet's Reconnect label reads both.
+	const state = (s, why) => { stream.state = s; try { on_state?.(s, why, { since: down_at, tries }); } catch (e){ console.error("Session.stream on_state:", e); } };
+	function open(why){
+		clearTimeout(timer); src?.close();
+		opened_at = Date.now();
+		src = new EventSource(servex_url(`/api/session/${session}/stream`));
+		src.onopen = () => {
+			if (down_at) stream.log("reconnected", { session, why, down_ms: Date.now() - down_at });
+			down_at = 0; tries = 0; wait = 1000; state("open");
+		};
+		src.onmessage = e => { try { on_event(JSON.parse(e.data)); } catch (e){ console.error("Session.stream line:", e); } };
+		// A refused connection retries by itself; a non-200 answer (the /servex proxy's 502 while Servex
+		// restarts) CLOSES the EventSource for good, so we reopen it, 1 s then doubling to 15 s. doc: ext/drawer/doc/sheet.md
+		src.onerror = () => {
+			if (stopped) return;
+			const closed = src.readyState === EventSource.CLOSED;
+			if (!down_at){ down_at = Date.now(); stream.log("lost", { session, closed }); }
+			else { tries++; if (closed) stream.log("retry failed", { session, next_ms: wait }); }
+			state("down", closed ? "Servex answered with an error (restarting?)" : "the connection to Servex was cut or refused");
+			if (closed){ timer = setTimeout(() => open("retry"), wait); wait = Math.min(wait * 2, 15000); }
+		};
+	}
+	open("start");
+	const stop = () => { stopped = true; clearTimeout(timer); src?.close(); };
+	/** Reopen now. Never throws; a no-op once stopped, while open, or within 0.5 s of the last attempt (a double tap). */
+	stop.reconnect = () => {
+		if (stopped || !down_at || Date.now() - opened_at < 500) return false;
+		try { wait = 1000; stream.log("reconnect pressed", { session, down_ms: Date.now() - down_at }); open("button"); return true; }
+		catch (e){ console.error("Session.stream reconnect:", e); return false; }
+	};
+	return stop;
+}
+stream.state = "open";
+/** Every connection failure, one line in the Whisper bucket: written through the dev server, which is up when Servex is not.
+ *  Open it at /framework/audio/Whisper/log/. Decision and the alternative: ext/drawer/doc/sheet.md#the-log */
+stream.log = (kind, fields) => import("/framework/audio/Whisper/WhisperLog.js")
+	.then(m => m.default.event("connection", kind, fields)).catch(() => {});
+
+/** The owner moved from one page to another while the session is open. `card` (one-dictation,
+ *  item 1) is the card selected AT THAT MOMENT, or omitted for none — it is what lets the smart
+ *  assistant later work out which card a sentence was really about even after the owner has
+ *  since moved on (`doc/sessions.md`'s "Refinement goes to the card selected at the time"). This
+ *  line is invisible (`Session.entry()` never draws a `nav` line any more), but it is written
+ *  into the session file Servex reads back as context, and into the fast assistant's own notes
+ *  (`Servex/agents/Sessions.js`'s `nav()`) — before this, only the smart assistant's own
+ *  thought-batching ever mentioned a move at all. */
+export const nav = ({ session, from, to, card }) => post("nav", { session, from, to, ...(card ? { card } : {}) });
+
+/** Every session of this PROJECT, any page or card it ever touched, newest first — item 4
+ *  (one-dictation): the real project-wide list, replacing the old "ask this page's folder AND
+ *  the site root and merge" workaround (`ext/drawer/tabs/sessions.js`'s own `project_recent()`,
+ *  which could still miss an older session that passed through neither one). */
+export async function recent_project({ limit = 10, host = location.host } = {}){
+	const q = new URLSearchParams({ project: "1", limit, host });
+	const out = await (await fetch(servex_url(`/api/sessions?${q}`), { cache: "no-store" })).json();
+	if (!out.ok) throw new Error(out.error ?? "sessions failed");
+	return out.sessions;
+}
+
+/** Poll `file` every 1.5 s (never cached) and hand each new line, parsed, to `on_line`. After the first read a poll asks only for
+ *  the bytes past the last line it handled (a `Range` request, one byte early so an idle poll is a 1-byte 206, never a 416; a server
+ *  that ignores `Range` sends the whole file and the new part is cut from it): see doc/watch.md.
+ *  Returns `stop()`. A missing file (404) is just "nothing yet". `on_status(kind, detail)` hears what would otherwise be silent:
+ *  "poll_failed" (a non-404 status or a network error; heard again each failed poll), "poll_ok" (the first good poll after
+ *  failures), "bad_line" (a line that is not JSON) and "line_failed" (`on_line` threw: that line is skipped, the next ones still arrive).
+ *  `on_history(lines)` gets the whole first read as parsed lines and returns the ones to draw now (it may keep older ones back). */
+export function watch(file, on_line, { every = 1500, on_status, on_history } = {}){
+	let seen = 0, offset = 0, timer = null, stopped = false, failing = false, first = !!on_history;
+	const status = (kind, detail) => { try { on_status?.(kind, detail); } catch (e){ console.error("Session.watch on_status:", e); } };
+	const encoder = new TextEncoder(), decoder = new TextDecoder();
+	async function tick(){
+		try {
+			const res = await fetch(file, { cache: "no-store", headers: offset > 0 ? { Range: `bytes=${offset - 1}-` } : {} });
+			if (res.ok || res.status === 404 || res.status === 416){
+				if (failing){ failing = false; status("poll_ok", { status: res.status }); }
+				if (res.ok){
+					const bytes = new Uint8Array(await res.arrayBuffer());
+					const tail = decoder.decode(res.status === 206 ? bytes.subarray(1) : bytes.subarray(offset));   // 206 starts one byte early (the newline before the new part)
+					const history = first ? [] : null;   // the first read of a file is handed to on_history, which may keep some of it back
+					first = false;
+					const parts = tail.split("\n");
+					for (let i = 0; i < parts.length; i++){
+						const text = parts[i], last = i === parts.length - 1;
+						if (last && !text) break;   // the tail ended with a newline: nothing half-written
+						if (!text.trim()){ offset += encoder.encode(text).length + 1; continue; }
+						let line;
+						try { line = JSON.parse(text); } catch (e){
+							if (last) break;   // a half-written last line: read it again on the next poll
+							offset += encoder.encode(text).length + 1; seen++;
+							status("bad_line", { n: seen, text: text.slice(0, 200), error: e }); continue; }
+						offset += encoder.encode(text).length + (last ? 0 : 1); seen++;
+						if (history) history.push(line);
+						else try { on_line(line); } catch (e){ status("line_failed", { n: seen, line, error: e }); }
+					}
+					if (history){
+						let draw = history;
+						try { draw = on_history(history) ?? history; } catch (e){ status("line_failed", { n: seen, line: null, error: e }); }
+						for (const line of draw) try { on_line(line); } catch (e){ status("line_failed", { n: seen, line, error: e }); }
+					}
+				}
+			} else { failing = true; status("poll_failed", { status: res.status, error: new Error(`HTTP ${res.status}`) }); }
+		} catch (e){ failing = true; status("poll_failed", { error: e }); }
+		if (!stopped) timer = setTimeout(tick, every);
+	}
+	tick();
+	return () => { stopped = true; clearTimeout(timer); };
+}
+
+/** A session line as an ext/Chat entry: owner lines are prompts, assistant lines replies, the rest updates. */
+export function entry(line){
+	if (line.chat){
+		const c = line.chat, id = c.at + "|" + (c.from?.id ?? c.from?.kind);
+		if (c.from?.kind === "owner") return { type: "prompt", by: "owner", id, at: c.at, text: c.text };
+		const by = (c.from?.id ? `${c.from.id} assistant` : "servex") + (c.level ? ` · ${c.level}` : "");
+		return { type: "reply", by, id: id + (c.level ? "|" + c.level : ""), at: c.at, text: c.text, re: c.re, level: c.level };
+	}
+	// `nav` is invisible now (one-dictation, item 1) — same category as `quiet`/`skip`/`pause`/
+	// `select` below: real context Servex keeps, never a bubble the reader has to read past.
+	// `para` (one-dictation, the 'para' marker) is the same — never a bubble of its own — but,
+	// unlike those, it is PASSED THROUGH rather than dropped: `re` names a paragraph already on
+	// screen, and `ux/Dictate/Widget.js`'s `Thread` needs this shape to split it, and everything
+	// merged in after it, into a new bubble (`ext/Session/doc/markers.md`).
+	if (line.para) return { type: "para", at: line.para.at, re: line.para.re };
+	// `refined` (one-dictation, minion-voice-refine): the FAST assistant's own refinement of
+	// the owner line `re` names -- the same shared `ext/Refine/engine.js` + `structure.js`
+	// Echo.js already runs for VS Code prompts (law 6, no second engine), run here in the
+	// background by `Servex/agents/Sessions.js`'s `refine()`. Passed straight through to
+	// `ux/Dictate/Widget.js`'s `Thread.draw()`, which draws it as a small collapsed block
+	// under that owner bubble -- never a bubble of its own.
+	if (line.refined) return { type: "refined", at: line.refined.at, re: line.refined.re,
+		sentences: line.refined.sentences, sections: line.refined.sections,
+		flags: line.refined.flags, cost_usd: line.refined.cost_usd };
+	if (line.backing) return { type: "update", at: line.backing.at, text: "the assistants woke up" };
+	if (line.session) return { type: "update", at: line.session.at, text: `session ${line.session.id} started on ${line.session.home}` };
+	return null;
+}
+
+export default { remember, last_session, start, resume, recent, recent_project, say, floor, quiet, report_quiet, report_pause, pause, select, stream, nav, react, watch, entry, LEVELS };

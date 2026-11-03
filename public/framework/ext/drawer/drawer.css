@@ -1,0 +1,398 @@
+/* The right rail. Structure and the one thing a fixed panel cannot leave to the theme:
+   a surface, so it reads over whatever the page happens to be showing. Every colour is
+   a token. What a caller draws INSIDE it is that caller's own look. Record: readme.md. */
+@layer theme {
+
+	/* It PUSHES: `--drawer` is the inline-end strip `.app` yields (framework.css), written
+	   by drawer.js on the same element this inherits its width from, so the reserved strip
+	   and the rail are one number.
+	   ⚠ `rem`, not `em` — the shell's padding resolves against `.app`'s font-size and this
+	     width against the rail's own 0.85em, so an `em` value reserves the wrong strip.
+	   ⚠ z-index 40 sits between `.demo.max` (30) and the mode button (60): the rail has to
+	     reach over a full-screen demo without burying the scheme toggle. */
+	/* The push amount, as a TOKEN — `.app`'s own `padding-inline-end` (framework.css)
+	   computes this same formula directly; `position: fixed` opts out of that
+	   inherited layout entirely, so anything fixed (`.layout-full`) reads this back
+	   instead of restating the formula a second time. Defined here, on `.app`
+	   itself, because that element is where `--drawer`/`--devbar` already live —
+	   keep this in sync with framework.css's copy by eye; unifying THAT one too
+	   is out of this task's reach (framework.css). readme.md. */
+	.app { --rail-push: min(calc(var(--drawer, 0px) + var(--devbar, 0px)), max(0px, 100% - var(--rail-floor, 26rem))); }
+
+	.drawer {
+		position: fixed; inset-block: 0; z-index: 40;
+		/* Beside the dev rail, not under it — both dock at this edge, and the shell already
+		   reserves the sum of the two (framework.css). */
+		inset-inline-end: var(--devbar, 0px);
+		inline-size: min(var(--drawer, 19rem), 100%);
+		gap: calc(var(--gap) * 0.8);   /* was gap 0.8em - 2026-09-05 ramps */
+		/* `--drawer-pad`, not a bare number: the AI tab's footer (below, "THE FOOTER, FLUSH
+		   TO THE DRAWER'S OWN EDGES") cancels the INLINE half of this with a negative
+		   margin, so the one number only ever lives here.
+		   ⚠ No `padding-block-end` (drawer-cleanup, 2026-10-03): a negative margin on the
+		   footer alone cannot reach the drawer's true BOTTOM edge without this — `.drawer-
+		   body` has `overflow: auto` (below), and ANY box that bleeds past its own parent's
+		   edge through a negative margin is clipped (counted as scrollable overflow) the
+		   moment it crosses an ancestor that actually clips, which `.drawer-body` is.
+		   Measured live: with a bottom padding here AND a matching negative margin on the
+		   footer, the footer bled 14px past `.drawer-body`'s own bottom edge, past
+		   nothing (there is no further clipping ancestor below `.drawer-body` until
+		   `.drawer` itself, which does not clip) — so it just added 14px of dead
+		   scrollable space at the bottom instead of reaching the true edge. Dropping the
+		   bottom padding instead means `.drawer-body` already reaches `.drawer`'s true
+		   bottom edge on its own — the footer, last in its own flex chain, is flush there
+		   for free, with no margin trick needed in that direction at all. */
+		--drawer-pad: 0.9em;
+		padding-block-start: var(--drawer-pad);
+		padding-inline: var(--drawer-pad);
+		font-size: 0.85em;
+		background: var(--surface);
+		color: var(--ink);
+		border-inline-start: 1px solid var(--line);
+		transform: translateX(100%);
+		transition: transform 0.18s;
+	}
+	.drawer.on { transform: none; }
+
+	/* Below the push's own floor (`--rail-floor` default, framework.css) there is no
+	   room to push, so a partial-width overlay would leave an unusable sliver of page
+	   beside it — the rail becomes the whole sheet instead. Record: readme.md. */
+	@media (max-width: 26rem) {
+		/* `- var(--devbar, 0px)`, not a flat 100%: the box keeps its `inset-inline-end`
+		   offset from the dev rail, so its own width has to give back what that offset
+		   already claims or it overflows past the viewport's left edge. */
+		.drawer { inline-size: calc(100% - var(--devbar, 0px)); }
+	}
+
+	/* The head is pinned and the body scrolls under it — a rail whose ✕ scrolls away is a
+	   rail you cannot shut. */
+	.drawer-head { flex: 0 0 auto; gap: calc(var(--gap) * 0.5); }   /* was gap 0.5em - 2026-09-05 ramps */
+	.drawer-slot { gap: calc(var(--gap) * 0.5); min-inline-size: 0; }   /* was gap 0.5em - 2026-09-05 ramps */
+	.drawer-body { flex: 1 1 auto; min-block-size: 0; overflow: auto; gap: calc(var(--gap) * 1); }   /* was gap 1em - 2026-09-05 ramps */
+
+	/* ⚠ Two classes, so it clears the theme's `:is(button, .btn)` at 0-2-0 — which pads
+	   every button to 0.7em/1.4em and would make the ✕ four times the box it needs. */
+	.drawer .drawer-x {
+		flex: 0 0 auto;
+		display: flex; align-items: center; justify-content: center;
+		inline-size: 1.7em; block-size: 1.7em;
+		padding: 0;
+		font-size: 1em;
+		color: var(--subtle);
+		background: none;
+		border: 0;
+		border-radius: calc(var(--radius) / 2);
+		cursor: pointer;
+	}
+	.drawer .drawer-x:hover { color: var(--ink); background: var(--fill-a08); }
+
+	/* THE ☰ (menu.js) — top right of the page, on every page. Fixed, and inset by the
+	   same '--rail-push' the page yields to the rails (above), so it sits at the PAGE's
+	   corner beside an open drawer or dev bar, never on top of either. Small and quiet:
+	   page heads keep their title on the left, and this corner is empty on every layout
+	   measured (1280, 1920, 3440). z-index 39 — just under the drawer (40). */
+	.app .drawer-menu {   /* two classes: clears the theme's :is(button, .btn) padding at 0-2-0 */
+		position: fixed; z-index: 39;
+		inset-block-start: 0.5rem;
+		inset-inline-end: calc(var(--rail-push, 0px) + 0.5rem);
+		display: flex; align-items: center; justify-content: center;
+		inline-size: 2.2rem; block-size: 2.2rem;
+		min-block-size: 0;   /* the theme gives every button a 44px touch floor */
+		padding: 0;
+		font-size: 1.15rem; line-height: 1;
+		color: var(--subtle);
+		background: var(--surface);
+		border: 1px solid var(--line);
+		border-radius: calc(var(--radius) / 2);
+		cursor: pointer;
+		transition: inset-inline-end 0.18s;
+	}
+	.app .drawer-menu:hover { color: var(--ink); background: var(--fill-a08); }
+
+	/* Below 52em, a page with its own `.sidebar` (core/Sidebar) draws a NATIVE ☰ of
+	   its own — `.sidebar-toggle`, top right of the sticky bar, same corner as this
+	   fixed one. They fought for every tap: this button sits on top (z-index 39,
+	   fixed to the viewport corner) and the sidebar's own nav could never be reached
+	   on mobile (mobile-nav, 2026-09-29 — the owner: "every time I click that top
+	   right hamburger icon on mobile, it opens the kind of like AI settings"). Below
+	   the breakpoint, when the page has a `.sidebar` anywhere in it, this corner
+	   button steps aside so the tap reaches the sidebar's own toggle underneath; the
+	   mobile bottom rail (ext/drawer/rail.js) is the other way into these tabs there.
+	   v1 — this button, unconditional, in this same corner — is NOT deleted: it is
+	   still exactly what desktop gets (no `.sidebar` below 52em means nothing here
+	   changes either), and `.drawer-menu-v1` on `.app` brings the old placement back
+	   even over a mobile sidebar, for anyone who wants to compare or revert. doc/decisions.md. */
+	@media (max-width: 52em) {
+		.app:has(.sidebar) .drawer-menu { display: none; }
+		.app.drawer-menu-v1:has(.sidebar) .drawer-menu { display: flex; }
+	}
+
+	/* The tab strip, in the drawer's pinned head beside the ✕ (tabs.js). */
+	/* Every tab always visible: the strip WRAPS onto a second row when the rail is too
+	   narrow (dragged to 200px, or a big screen's larger type at 19rem), never scrolls a
+	   tab out of sight. The slot takes the room left of the ✕, so the ✕ stays top right. */
+	.drawer-slot:has(> .drawer-tabs) { flex: 1 1 auto; }
+	.drawer-tabs { flex-wrap: wrap; gap: 0.1em; min-inline-size: 0; }
+	.drawer .drawer-tab {
+		min-block-size: 0;
+		padding: 0.25em 0.3em;
+		font: inherit; font-size: 0.9em;
+		color: var(--subtle);
+		background: none;
+		border: 0;
+		border-radius: calc(var(--radius) / 2);
+		cursor: pointer;
+	}
+	.drawer .drawer-tab:hover { color: var(--ink); background: var(--fill-a08); }
+	.drawer .drawer-tab.on { color: var(--ink); background: var(--fill-a08); font-weight: 600; }
+
+	/* "Files" (tabs.js `files_href()`) is a plain link, not a tab — no body to
+	   load, no `.on` state, so it sits apart at the strip's other end. */
+	.drawer .drawer-files-link { margin-inline-start: auto; text-decoration: none; }
+
+	/* One list of rows (Sessions), one conversation (AI). */
+	.drawer-ai, .drawer-sessions, .drawer-settings, .drawer-admin, .drawer-dictation { gap: calc(var(--gap) * 0.8); }
+	.drawer-ai-head { gap: 0.5em; }
+	.drawer-model { gap: 0.4em; }
+	.drawer-ai-list { gap: 0.6em; }
+
+	/* THE SESSION HEADER STRIP (one-dictation drawer-chat, 2026-10-02 — `tabs/ai.js`'s
+	   `session_header()`): what used to be the whole separate Sessions tab, now three short
+	   lines above the chat. `flex: none` — it never grows or shrinks; `.drawer-ai-panel`
+	   right below it (above) is the one thing in this column that does. */
+	.drawer-ai-session { flex: none; gap: 0.35em; padding-block-end: 0.5em; border-block-end: 1px solid var(--line); }
+	.drawer-ai-session-head { gap: 0.5em; }
+	.drawer-ai-session-name { font-weight: 600; }
+	.drawer-ai-session-log { font-size: 0.85em; }
+	.drawer-ai-session-scope { font-size: 0.85em; }
+
+	/* THE AGENT CHIPS — "which agents are listening should be abundantly clear" (the
+	   owner). Three plain states, three quiet colours: working is the site's one accent,
+	   idle is plain text, asleep is faded further still — no new palette, just how loud
+	   each one reads. */
+	.drawer-ai-chips { gap: 0.3em; }
+	.drawer-ai-chip {
+		padding: 0.1em 0.5em;
+		font-size: 0.8em;
+		border-radius: 1em;
+		background: var(--fill-a08);
+		border: 1px solid var(--line);
+	}
+	.drawer-ai-chip-working { color: var(--prime-ink); background: color-mix(in srgb, var(--prime) 20%, var(--fill-a08)); border-color: transparent; }
+	.drawer-ai-chip-asleep { opacity: 0.6; }
+
+	.drawer-ai-switcher { gap: 0.4em; position: relative; }
+	.drawer-ai-switcher .drawer-rail-sheet-v2-chip { align-self: stretch; }   /* as tall as the switcher row beside it */
+	/* Shared with the phone sheet's head (`chat.js`'s `session_switcher()`, one-dictation item 4)
+	   — the same markup and classes as the drawer's own "Switch session" row, so one rule styles
+	   both instead of a second copy for mobile. */
+	.drawer .drawer-ai-switch-btn, .drawer-rail-sheet .drawer-ai-switch-btn {
+		min-block-size: 0;
+		padding: 0.25em 0.5em;
+		font: inherit; font-size: 0.85em;
+		color: var(--subtle);
+		background: none;
+		border: 1px solid var(--line);
+		border-radius: calc(var(--radius) / 2);
+		cursor: pointer;
+	}
+	.drawer .drawer-ai-switch-btn:hover, .drawer-rail-sheet .drawer-ai-switch-btn:hover { color: var(--ink); background: var(--fill-a08); }
+	/* RETIRED 2026-10-25: was an in-flow `<div>` list that reflowed the header while open
+	   (the same shape of bug `.drawer-inbox[hidden]`'s own comment below hit 2026-10-03).
+	   `session_switcher()` now opens `ux/Popover`'s `menu()`, a top-layer `[popover]` —
+	   nothing in-flow to style here any more. */
+
+	/* THE PANEL'S CEILING (`Widget`, `ux/Dictate/Widget.js` — was `ChatPanel`,
+	   `ai/2026-09-29/audio/c-chat/`): "the drawer's own full height" (its brief),
+	   so the composer never leaves the visible drawer as the thread grows.
+	   ⚠ A `calc(100dvh - <a guessed number of rem>)` was tried first and was
+	   wrong: the guess did not leave room for the AI tab's own head row and the
+	   chips row (present only sometimes), so at 1920×1080 with 30 messages the
+	   panel could still end up taller than `.drawer-body` actually had left,
+	   and `.drawer-body`'s own `overflow: auto` scrolled the COMPOSER out of
+	   view instead of just the log (caught by the task mastermind reviewing
+	   this task's own proof shot, 2026-09-29). No number is needed: `.drawer`
+	   is a flex COLUMN of definite height (`position: fixed; inset-block: 0`),
+	   `.drawer-body` is already `flex: 1 1 auto; min-block-size: 0` (above), so
+	   giving `.drawer-ai` and `.drawer-ai-panel` the SAME two rules makes each
+	   one fill exactly what its own flex parent actually has — real layout, not
+	   an estimate — all the way down to `.ux-dictate-widget-card` itself
+	   (`flex: 1 1 auto; min-block-size: 0; max-block-size: none`, replacing its
+	   own smaller default — `Widget.css`'s cap is for a STANDALONE widget on a
+	   long page, not one already living inside a flex column with its own real
+	   ceiling). Only the thread inside `Widget`, at the bottom of that chain,
+	   ever scrolls; the head, the chips and the composer keep their natural
+	   size and never move. */
+	.drawer-ai { flex: 1 1 auto; min-block-size: 0; }
+	.drawer-ai-head, .drawer-chips { flex: none; }
+	.drawer-ai-panel {
+		display: flex; flex-direction: column;
+		flex: 1 1 auto; min-block-size: 0;
+		/* TEXT SIZE AT WIDE SCREENS (minion-polish, item 1, 2026-09-30 — the owner's
+		   own shots: "at 3440 the drawer chat's text and composer are tiny"). The
+		   WHOLE `.drawer` sets `font-size: 0.85em` (above), on top of the chat's own
+		   several `em`-sized bits (`Widget.css`'s bubble mark, the composer info
+		   line) — two multipliers compounding down. `calc(1em / 0.85)` cancels that
+		   one multiplier exactly, so the chat panel reads at the SAME size as the
+		   rest of the page — the site's own root clamp (framework.css's `body`
+		   font-size) — instead of a new, made-up px number. */
+		font-size: calc(1em / 0.85);
+	}
+	.drawer-ai-panel > .ux-dictate-widget {
+		flex: 1 1 auto; min-block-size: 0;
+	}
+	/* `.ux-dictate-widget-shell` (drawer-chat round 2, 2026-10-02) is the new flex parent
+	 * of both the feed card and the composer panel — the shell is what needs to grow and
+	 * drop its own 60vh/32em ceiling now, same reasoning as before, just one level further
+	 * in than when the card carried this alone. The card inside it still gets its own
+	 * `min-block-size: 0` so IT is the one that actually shrinks/scrolls, never the
+	 * composer sitting below it. */
+	.drawer-ai-panel .ux-dictate-widget-shell {
+		flex: 1 1 auto; min-block-size: 0; max-block-size: none;
+	}
+	.drawer-ai-panel .ux-dictate-widget-card {
+		flex: 1 1 auto; min-block-size: 0; max-block-size: none;
+	}
+	/* THE THREAD'S OWN CEILING, un-capped too (one-dictation, 2026-09-30): the CARD
+	   above already grows to fill the drawer's real height, but `Widget.css`'s own
+	   `.ux-dictate-widget-thread { max-block-size: 22em }` is sized for a STANDALONE
+	   widget on a page, not one already living inside a flex column many times that
+	   tall — measured live at 1920×1080: the card correctly reached the bottom of the
+	   drawer, but the thread stopped growing at 22em and the composer sat stranded
+	   under it, leaving ~570px of empty card below Send (exactly the "huge empty
+	   area" CLAUDE.md law 6 — "one of everything" — and this task's own brief warn
+	   about). `flex: 1 1 auto` (already on the thread, Widget.css) does the rest: it
+	   grows to fill whatever the card has left, and the composer (no flex rule, so
+	   its natural size) stays pinned at the bottom. */
+	.drawer-ai-panel .ux-dictate-widget-thread { max-block-size: none; }
+
+	/* THE FOOTER, FLUSH TO THE DRAWER'S OWN EDGES (drawer-cleanup, 2026-10-03 — the owner:
+	   "the footer goes full width with no white border round it, its light-gray background
+	   area gets the DEFAULT padding. We don't want a unique padding value for everything.
+	   Put default padding on everything unless otherwise asked"). `Widget.css`'s own
+	   `.ux-dictate-widget-shell .ux-dictate-widget-composer .chatbox-compose` rule borders
+	   it on three sides and rounds its bottom corners — right, for a STANDALONE widget
+	   where the composer reads as the bottom of one rounded card (its own class doc). In
+	   the drawer, that same border is a second box floating inside the first (the owner's
+	   own "it looks inset, with not enough padding, and it would be double padded") — this
+	   selector is one class more specific, so it wins over that rule regardless of which
+	   file loads first (`css` skill: same layer, specificity decides). No border, no
+	   radius, ONE padding (`--pad`, the page's own default — not a made-up number). The
+	   BOTTOM edge needs no margin trick at all: `.drawer` carries no bottom padding of its
+	   own any more (above, "⚠ No `padding-block-end`"), so `.drawer-body` already reaches
+	   `.drawer`'s true bottom edge, and this footer, last in its own flex chain, is flush
+	   there for free. The SIDES still sit inset by `.drawer`'s own inline padding, same as
+	   everything else in the column, so only `margin-inline` cancels it — a negative
+	   `margin-block-end` here was tried first and measured WRONG: `.drawer-body` has
+	   `overflow: auto` (below), and a box that bleeds past its own parent's edge through a
+	   negative margin is CLIPPED (counted as scrollable overflow, never actually reaching
+	   anywhere) the moment it crosses an ancestor that clips — which `.drawer-body` is, and
+	   there is no further clipping ancestor below it to bleed past into, so the bottom
+	   margin only added 14px of dead scrollable space instead of reaching the true edge.
+	   ⚠ `!important`: this box's own PARENT carries the plain `.flex` utility class
+	   (`Widget.js`'s `"ux-dictate-widget-composer flex v gap"`), and framework.css's own
+	   `.flex > * { margin: 0 }` (`@layer util`) always beats a `@layer theme` rule
+	   regardless of specificity (`css` skill, rule 3) — measured live: padding/background/
+	   border from this same rule all applied with no `!important` needed, only `margin`
+	   was silently zeroed back out by that utility reset. Same shape as `rail.css`'s own
+	   identical fight, named there for the same reason. */
+	.drawer-ai-panel .ux-dictate-widget-shell .ux-dictate-widget-composer .chatbox-compose {
+		margin-inline: calc(var(--drawer-pad, 0px) * -1) !important;
+		padding: var(--pad);
+		background: var(--wash);
+		border: 0;
+		border-radius: 0;
+	}
+	.drawer-turn { display: flex; flex-direction: column; gap: 0.15em; }
+	.drawer-turn-who { font-size: 0.85em; }
+	.drawer-turn-you .drawer-turn-text { padding: 0.4em 0.6em; background: var(--fill-a08); border-radius: calc(var(--radius) / 2); }
+	.drawer-rows { gap: 0.35em; }
+	.drawer .drawer-row, .drawer-rail-sheet .drawer-row {
+		display: flex; flex-direction: column; align-items: flex-start; gap: 0.1em;
+		padding: 0.5em 0.6em;
+		font: inherit; text-align: start;
+		color: var(--ink);
+		background: none;
+		border: 1px solid var(--line);
+		border-radius: calc(var(--radius) / 2);
+		cursor: pointer;
+	}
+	.drawer .drawer-row:hover, .drawer .drawer-row.on,
+	.drawer-rail-sheet .drawer-row:hover, .drawer-rail-sheet .drawer-row.on { background: var(--fill-a08); }
+	.drawer-row-title { font-weight: 600; }
+	.drawer-acts { gap: 0.5em; }
+
+	/* SELECTING (select.js), only while the drawer is open on its tabs. Hover brightens the
+	   element's ground one 'lighten' rung; selected takes the next rung and a hairline
+	   ring, so it still reads on a white card where lighten alone is invisible. The glow is
+	   a box-shadow of the same colour, so the element never moves by a pixel.
+	   '.pages' in front (0-2-0), so a card's own background cannot win the tie. */
+	.pages [data-drawer-hover] {
+		background-color: var(--lighten-2);
+		box-shadow: 0 0 0 0.3em var(--lighten-2);
+		cursor: pointer;
+	}
+	.pages [data-drawer-selected] {
+		background-color: var(--lighten-3);
+		box-shadow: 0 0 0 0.3em var(--lighten-3), 0 0 0 calc(0.3em + 1px) var(--fill-a16);
+	}
+
+	/* The chips above the AI tab's input: what the next message is about. */
+	.drawer-chips { gap: 0.3em; }
+	.drawer-chips:empty { display: none; }
+	.drawer-chip {
+		gap: 0.2em;
+		max-inline-size: 100%;
+		padding: 0.1em 0.2em 0.1em 0.55em;
+		font-size: 0.9em;
+		background: var(--fill-a08);
+		border: 1px solid var(--line);
+		border-radius: 1em;
+	}
+	.drawer-chip-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	.drawer .drawer-chip-x {
+		min-block-size: 0;
+		padding: 0 0.3em;
+		font: inherit; line-height: 1.4;
+		color: var(--subtle);
+		background: none;
+		border: 0;
+		border-radius: 1em;
+		cursor: pointer;
+	}
+	.drawer .drawer-chip-x:hover { color: var(--ink); background: var(--fill-a08); }
+
+	/* The Element tab. */
+	.drawer-props { gap: calc(var(--gap) * 0.8); }
+	.drawer-props-head { gap: 0.5em; }
+	.drawer .drawer-ask { white-space: nowrap; }
+	/* The dev bar's key column is 3.6em, sized for its own short keys; "module" needs more. */
+	.drawer-props .dev-row { grid-template-columns: 4.8em 1fr; }
+	.drawer-props-title { margin: 0; }
+	.drawer-props-where { gap: 0.35em; }
+	.drawer-props-link { overflow-wrap: anywhere; }
+
+	/* The page's inbox (inbox.js), at the top of the AI tab: one row per open note. */
+	.drawer-inbox { flex: none; gap: 0.35em; }
+	/* `!important` (drawer-cleanup, 2026-10-03): `.drawer-inbox` carries `.flex` too
+	   (`Inbox.js`'s own `"drawer-inbox flex v"`), so the bare rule this comment used to
+	   describe never actually won against `@layer util`'s `.flex { display: flex }` —
+	   found by probing `.drawer-ai-switch-list`'s identical fight live, same file, same
+	   day (its own comment, above, has the measurement). Harmless the many times this box
+	   had no notes to show (an empty inbox reads the same either way), but a real one
+	   would have sat there taking up room with nothing in it. */
+	.drawer-inbox[hidden] { display: none !important; }
+	.drawer-inbox-row {
+		gap: 0.2em;
+		padding: 0.4em 0.4em 0.4em 0.6em;
+		border-radius: 0.5em;
+		background: var(--fill-a08);
+	}
+	.drawer-inbox-head { gap: 0.5em; }
+	.drawer .drawer-inbox-logo { width: 1.1em; height: 1.1em; }
+	.drawer-inbox-from { flex: 1 1 auto; min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; font-size: 0.9em; }
+	.drawer-inbox-text { overflow-wrap: anywhere; }
+	.drawer-inbox-age { flex: none; }
+	.drawer .drawer-inbox-clear, .drawer .drawer-inbox-add { flex: none; min-block-size: 0; padding: 0.15em 0.55em; font-size: 0.85em; }
+	.drawer-inbox-input { inline-size: 100%; }
+}

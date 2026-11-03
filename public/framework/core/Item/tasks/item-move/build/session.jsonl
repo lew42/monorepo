@@ -1,0 +1,4 @@
+{"assign":{"session_id":"012433ce-4b02-4801-99a3-8f5bd314e67f","agent":"minion-item-move","card":"core/Item: move_item — a task moves home with its id, history and a reference","brief":"public/framework/core/Item/tasks/item-move/build/requirements.md","model":"claude-sonnet-5-5","worktree":"C:/Code/lew42/worktrees/item-move","home":"/framework/core/Item/","requested_at":"2026-10-22T21:00:57-05:00","now":"starting"}}
+{"commit":"46cf04015924"}
+{"commit":"1e2529a1f663"}
+{"log":{"at":"2026-10-22T21:10:31-05:00","heartbeat":"check","msg":"status check sent to minion-item-move"}}

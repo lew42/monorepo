@@ -1,0 +1,112 @@
+{
+  "dilemma": "multi-user",
+  "lens": "precedent",
+  "by": "analyst-multiuser-precedent",
+  "options": [
+    {
+      "id": "lww",
+      "label": "Last write wins per field, server order, no edit lock",
+      "wins_when": [
+        {"scenario": "Mike ticks task c3 done while an agent sets c3 status. Different fields, so both land and no rule is needed.", "why": "Figma: different properties never conflict. Lew42 lines are per field, so this is the common case, and it is the case Figma and Linear are built around."},
+        {"scenario": "Two tabs edit two different tasks on the same page.", "why": "Different paths never conflict, and the Room's single seq orders both writes."},
+        {"scenario": "The owner and an agent set the same short field (a status or a date) minutes apart.", "why": "The later line wins, which is what a reload shows. Linear ships this and says conflicts are uncommon. Both lines stay in page.jsonl, so the history is not lost."}
+      ],
+      "fails_when": [
+        {"scenario": "Mike and Ana type in the same long description at the same time.", "severity": 4, "recoverable": true, "why": "The earlier paragraph vanishes from the screen. Both writes stay in the log, so it can be recovered, but no screen shows it. Strings are whole values, so nothing merges (report.md L440)."},
+        {"scenario": "An editor saves every field of an item in one line when the user presses Save.", "severity": 4, "recoverable": true, "why": "This is the Backbone save pattern: a whole-model PUT (backbone.md L45-L46). A stale form then erases the other editor's fields in one write. Per-field lines must hold in every editor, or LWW turns into whole-item LWW."},
+        {"scenario": "An agent reads a value, thinks for a while, then writes a new value based on it after the owner changed that value.", "severity": 3, "recoverable": true, "why": "The line carries no base value, so the server cannot see that the write rests on old data. The screen shows the wrong value until reload, and the agent may already have acted on it."},
+        {"scenario": "An agent writes a whole ancestor (the whole content list, or the whole item) while Mike is typing in one of its children, such as content.p9.", "severity": 4, "recoverable": true, "why": "LWW is per value, so a write to the parent replaces every child in one line, and the keystrokes in p9 are overwritten. The log keeps the line, but the screen shows only the winner. Figma avoids this by writing per property, not per subtree, and Lew42 should write children, not the list, whenever it can."}
+      ],
+      "precedent": [
+        {"tool": "Figma (2019 multiplayer post)", "how": "Per-property LWW on (object, property) values. The value that reaches the server last wins. No edit locks. Values are atomic, so text inside one value cannot merge.", "src": "https://www.figma.com/blog/how-figmas-multiplayer-technology-works/ (summarised in /home/claude/research/persistence-sync/notes/collab_app_architectures.md L16-L21)"},
+        {"tool": "tldraw sync, and its dotcom mutators", "how": "Flat records, one room per document, server clock order. Same-field conflicts are LWW with client rebase (the report's own summary, L183). Presence is a separate record type. The dotcom mutators upsert per row and replace stale client clocks with server time.", "src": "/home/claude/research/persistence-sync/report.md L183; /home/claude/research/persistence-sync/notes/collab_app_architectures.md L60-L65; /tmp/claude-0/-home-claude/e3fd9043-ad4b-5d36-9e28-17f46c3e0b52/scratchpad/repos/tldraw_tldraw/packages/dotcom-shared/src/mutators.ts L62-L68 and L226-L256 (sparse clone, mutators only)"},
+        {"tool": "Linear", "how": "Naive LWW with one global syncId. No conflict detection, no OT, no CRDT for structured data. CRDT only for issue descriptions.", "src": "/home/claude/research/persistence-sync/notes/collab_app_architectures.md L43-L52"},
+        {"tool": "Colyseus schema", "how": "Server-authoritative. setDirty records each changed field, so the wire carries per-field diffs. LWW per field: one op per field per tick.", "src": "/tmp/claude-0/-home-claude/e3fd9043-ad4b-5d36-9e28-17f46c3e0b52/scratchpad/repos/colyseus_schema/src/Schema.ts L317; /home/claude/research/persistence-sync/tools/colyseus.md L44-L45"},
+        {"tool": "Meteor DDP", "how": "Per-field changed messages carry a cleared list (unset fields). The client keeps the originals that its optimistic stub overwrote, keyed by method call, so they can be put back when the server answers.", "src": "/tmp/claude-0/-home-claude/e3fd9043-ad4b-5d36-9e28-17f46c3e0b52/scratchpad/repos/meteor_meteor/packages/ddp-common/utils.js L58-L64; .../repos/meteor_meteor/packages/ddp-client/common/livedata_connection.js L798-L800"}
+      ]
+    },
+    {
+      "id": "soft-lock",
+      "label": "Soft lock: presence says 'Mike is editing', writes still land",
+      "wins_when": [
+        {"scenario": "Mike is writing a long description. An agent sees 'Mike is editing content.p9' through presence and waits or skips instead of writing over it.", "why": "Presence is relayed and never stored, so the warning costs no log lines. It prevents most collisions, and a write that ignores it still lands, as with lww."},
+        {"scenario": "The owner has the same task open in two tabs, or on phone and laptop.", "why": "The lock shows the other tab. One person needs no data rule for this."},
+        {"scenario": "An agent's item tool asks who holds a path before it writes.", "why": "phase-1 section 12 says the tool tells the agent who holds it. That is a read, so it never blocks anyone."}
+      ],
+      "fails_when": [
+        {"scenario": "Two people ignore the warning and type in the same field.", "severity": 4, "recoverable": true, "why": "A warning does not stop a write, so the loss is the same as lww. Only how often it happens changes."},
+        {"scenario": "A tab sleeps or crashes while it holds the lock, and refuse mode is on.", "severity": 2, "recoverable": true, "why": "Other writers are refused until the 30 s timeout (phase-1 section 12). That is annoying, not data loss. WordPress post locks wait far longer (about 2.5 minutes, from memory)."},
+        {"scenario": "Presence is lost or late during a reconnect, so the lock looks free while someone types.", "severity": 3, "recoverable": true, "why": "A stale 'free' state shows the wrong picture until presence refreshes. Each tab refreshes presence at about 15 s (sync-protocol L369), so this is brief."}
+      ],
+      "precedent": [
+        {"tool": "Lew42 phase-1 section 12 (the owner's current plan)", "how": "Presence-based soft lock, 'warn' by default, 'refuse' per list. It ends on blur or 30 s after presence stops.", "src": "/home/claude/research/design/phase-1.md L547-L565"},
+        {"tool": "tldraw presence", "how": "Cursors and presence are a separate record type that never becomes document data. It is a throwaway channel, not a lock.", "src": "/home/claude/research/persistence-sync/notes/collab_app_architectures.md L62; /home/claude/research/persistence-sync/lessons/sync-protocol.md L114"},
+        {"tool": "Yjs awareness", "how": "Each client owns one entry with a clock. A peer's entry is dropped after a timeout and a null state, so a crashed tab disappears by itself.", "src": "/home/claude/research/persistence-sync/lessons/sync-protocol.md L304-L314"},
+        {"tool": "WordPress post lock (from memory, not checked in this session)", "how": "The lock is a user id and timestamp kept on the post, renewed by heartbeat. A second editor sees that someone is editing and can take over.", "src": "Memory of WordPress core wp-admin/includes/post.php (wp_check_post_lock). Not cloned, not verified."}
+      ]
+    },
+    {
+      "id": "hard-lock",
+      "label": "Hard lock: one editor holds the item, others are refused until release or timeout",
+      "wins_when": [
+        {"scenario": "A multi-step rewrite that must not interleave, such as SessionConsolidate's rewrite, which lost appends in a race (3,000 runs, 305 losses).", "why": "The lock covers the whole read-to-write span. Lew42 already chose locks for exactly these exceptions (report.md L316)."},
+        {"scenario": "A structural move, such as move_to between placements, where two writers would make two copies.", "why": "A lease stops two moves at once. Figma uses a rule for the same kind of problem: its server rejects parent updates that form a cycle (collab notes L23). A rule is cheaper than a lock."},
+        {"scenario": "A migration or schema change that must run while nobody else writes.", "why": "A lock is the simplest guarantee. Storage proposed a lockfile for this, and the team kept locks for exceptions only (report.md L271-L273)."}
+      ],
+      "fails_when": [
+        {"scenario": "Mike opens a task and leaves the tab open all afternoon.", "severity": 3, "recoverable": true, "why": "Every agent write to that task is refused until he leaves. The agents are blocked, not wrong. Lew42's agents would queue behind a human's open tab."},
+        {"scenario": "The holder's tab crashes or the laptop sleeps without releasing the lock.", "severity": 2, "recoverable": true, "why": "Needs a timeout and a takeover path, which is more code. Without them the item is frozen until someone restarts the server."},
+        {"scenario": "Two tabs of the same person: the second tab cannot edit its own item.", "severity": 2, "recoverable": true, "why": "A lock keyed by tab instead of by user blocks the person from themselves. Keying by user fixes it, but adds a rule to the Room."},
+        {"scenario": "A takeover refuses the holder's unsent typing and the client drops the rejected text.", "severity": 5, "recoverable": false, "why": "Text that never reached the log is gone. If the client keeps rejected lines and retries, this drops to severity 2."}
+      ],
+      "precedent": [
+        {"tool": "WordPress post lock with takeover (from memory, not checked in this session)", "how": "A lock on the whole post, with a takeover prompt that boots the holder. It is coarse on purpose: a whole-form save needs it.", "src": "Memory of WordPress core wp-admin/includes/post.php. Not cloned, not verified."},
+        {"tool": "Lew42 storage decision (report.md)", "how": "Storage proposed a lockfile. The team routed every write through Servex and kept locks for exceptions (SessionConsolidate, migrations).", "src": "/home/claude/research/persistence-sync/report.md L271-L273"},
+        {"tool": "Notion offline (tab-level lock)", "how": "Only one active tab writes the local SQLite cache. A SharedWorker routes queries to it, and Web Locks detect tab close. Concurrent multi-tab writes corrupted data before this.", "src": "/home/claude/research/persistence-sync/notes/collab_app_architectures.md L38"},
+        {"tool": "Figma (anti-precedent)", "how": "No per-user edit lock at all. The only server-side refusal is a parent cycle, which is a rule about the tree. Its DynamoDB lock table is server-side (one writer per file journal), not an edit lock.", "src": "https://www.figma.com/blog/how-figmas-multiplayer-technology-works/ (collab notes L19-L23)"}
+      ]
+    },
+    {
+      "id": "crdt-text",
+      "label": "CRDT (Yjs-style) for text fields only; LWW for everything else",
+      "wins_when": [
+        {"scenario": "Mike and Ana type in the same paragraph of a page body at the same time.", "why": "This is the one case LWW cannot merge. Linear uses CRDTs only for issue descriptions, and Notion's offline pages move to a CRDT model for rich text. The report names this as the lift trigger (L440)."},
+        {"scenario": "A long text field is edited offline by one person and merged later.", "why": "Yjs merges updates when they are applied (yjs.md L38), so no lock and no retry are needed."}
+      ],
+      "fails_when": [
+        {"scenario": "A text field is held both as a Yjs doc and as a plain string that the item tool sets.", "severity": 4, "recoverable": true, "why": "Two owners of one state. Each library merges its own copy and the other's edit looks like a conflict (loro.md L65; yjs.md L99). Recoverable only if the Yjs updates are also logged."},
+        {"scenario": "Every keystroke becomes a CRDT update that the log keeps.", "severity": 2, "recoverable": true, "why": "The log grows with no compaction (James Long's account: the log grows indefinitely, collab notes L100). It also breaks the one-JSON-line-per-change rule the framework relies on."},
+        {"scenario": "An agent reads and writes a description through the item tool.", "severity": 3, "recoverable": true, "why": "The item tool speaks lines, and a Yjs binary update is not a line. Agents would need a second write path, which goes against the one-of-everything law."}
+      ],
+      "precedent": [
+        {"tool": "Linear", "how": "CRDT only for issue descriptions, LWW for the rest.", "src": "/home/claude/research/persistence-sync/notes/collab_app_architectures.md L51"},
+        {"tool": "Notion offline", "how": "Pages marked offline move to a CRDT model for conflict resolution. Rich-text conflicts were the hard part.", "src": "/home/claude/research/persistence-sync/notes/collab_app_architectures.md L41"},
+        {"tool": "Outline (Yjs on Hocuspocus)", "how": "Stores Yjs state per document and applies it on load with Y.applyUpdate.", "src": "/tmp/claude-0/-home-claude/e3fd9043-ad4b-5d36-9e28-17f46c3e0b52/scratchpad/repos/outline_outline/server/collaboration/PersistenceExtension.ts L57-L60"},
+        {"tool": "AFFiNE (counter-example)", "how": "One Yjs doc per page, kept as a snapshot plus an update queue. Yjs holds the whole page store (BlockSuite), not one text field, so it is wider than the text-only option.", "src": "/home/claude/research/persistence-sync/tools/yjs.md L77; /home/claude/research/persistence-sync/notes/collab_app_architectures.md L88-L90"},
+        {"tool": "Google Docs OT (2010)", "how": "Not a CRDT. The server transforms each change against those committed since the client's last sync, with one change in flight per client. Same text-only niche.", "src": "/home/claude/research/persistence-sync/notes/collab_app_architectures.md L56-L58"}
+      ]
+    },
+    {
+      "id": "reject-stale",
+      "label": "Reject a stale write: the server refuses a line whose base is older than the field's last write",
+      "wins_when": [
+        {"scenario": "An agent reads task c3, decides to set status to done, and Mike changed status after that read.", "why": "The line says it was based on the old value, so the server refuses it. The agent re-reads and decides again. LWW hides exactly this mistake."},
+        {"scenario": "A move_to or remove based on an old tree position.", "why": "A stale position is an error, not a value to overwrite. ZODB refuses the second writer by default, and tldraw's server can answer discard as well as rebase."}
+      ],
+      "fails_when": [
+        {"scenario": "Two people type into the same field, and each batch of keystrokes is refused as stale.", "severity": 3, "recoverable": true, "why": "Every second write fails. The UI has to keep the typed text and ask keep mine or take theirs. Without that UI, the text is lost (severity 5)."},
+        {"scenario": "The mastermind and several minions write the same task often.", "severity": 2, "recoverable": true, "why": "Many refusals and retries. Each agent must re-read before it writes, which costs tokens (the cost rule in CLAUDE.md)."}
+      ],
+      "precedent": [
+        {"tool": "ZODB conflict resolution", "how": "Default: the second committer gets a ConflictError and aborts. A class may define _p_resolveConflict to merge its own state, and the ZODB docs warn that this puts integrity in the developer's hands.", "src": "/tmp/claude-0/-home-claude/e3fd9043-ad4b-5d36-9e28-17f46c3e0b52/scratchpad/repos/zopefoundation_ZODB/src/ZODB/ConflictResolution.rst L28-L32, L161"},
+        {"tool": "tldraw sync push_result", "how": "The server answers each push with commit, discard, or rebaseWithDiff. Discard is the refusal path.", "src": "/home/claude/research/persistence-sync/lessons/sync-protocol.md L71 and L340"},
+        {"tool": "Lew42 phase-1 section 8 (Room)", "how": "The reject message already carries expected, so the design has a refusal path that returns the server's value.", "src": "/home/claude/research/design/phase-1.md L451 (reject line in section 8)"},
+        {"tool": "Backbone PATCH (contrast)", "how": "patch sends only the changed attributes, with no version check. That is LWW per attribute, and no base value is sent.", "src": "/tmp/claude-0/-home-claude/e3fd9043-ad4b-5d36-9e28-17f46c3e0b52/scratchpad/repos/jashkenas_backbone/backbone.js L730-L731; /home/claude/research/persistence-sync/tools/backbone.md L45-L46"}
+      ]
+    }
+  ],
+  "recommended": "lww",
+  "confidence": 4,
+  "surprise": "Lines carry only the new value, so the server cannot tell that a write came from a stale read. phase-1 plans a was field only for remove and move (L189-L190, L327-L328) and for undo (L650). Adding was to set lines costs one field, gives the server the base that reject-stale needs, and feeds undo. Without it, an agent that decided on an old value overwrites the owner's newer value, and the log shows two ordinary sets.",
+  "notes": "Closest architecture: tldraw sync first (flat records, one room per document, server order, LWW per field, presence kept apart), then Figma (per-property LWW, no per-user edit locks); real edit locks in the precedents appear only where the write unit is a whole form or document (WordPress post locks from memory, Backbone's whole-model save), so lww plus the phase-1 presence warning fits them best. Where I disagree with the edge-cases file: its soft-lock is lww plus a badge, and its one refusal (agent writes blocked for one op) is the hard-lock loss path, so I would ship the badge as presence and keep lww. Webflow, Framer and WordPress were not checked in this session (no web search, not cloned), and the WordPress lock details are from memory only."
+}

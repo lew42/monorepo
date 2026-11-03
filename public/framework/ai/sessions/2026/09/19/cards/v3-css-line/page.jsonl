@@ -1,0 +1,7 @@
+{"class":"/framework/ai2/card.js","title":"CSS line: gone","type":"card","id":"2026/09/19/v3-css-line","created":"2026-09-19T16:49:39-05:00","by":"mastermind","tags":[]}
+{"legacy":"v3-css-line"}
+{"status":"done"}
+{"icon":"check_circle"}
+{"parent":"v3-notes"}
+{"focus":true}
+{"text":"The line-height and margin rule is deleted; the minion on that page removed it minutes after you asked. Styles swap in without a reload, so you should see it now. You are right that a one-line change must never queue: I do those at once from here."}

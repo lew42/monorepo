@@ -1,0 +1,269 @@
+@layer theme {
+
+	/* The index wall: side by side when there is room, stacked on a phone. */
+	.ux-content-wall {
+		display: grid; gap: var(--gap);
+		grid-template-columns: repeat(auto-fit, minmax(min(22em, 100%), 1fr));
+		align-items: start;
+	}
+
+	/* Decision and Question wear the ui/decision classes for the options wall (same
+	   contrast lessons); this only turns a card into a button and lays out the rest. */
+	.ux-content-decision, .ux-content-question, .ux-content-quotation {
+		display: flex; flex-direction: column; gap: var(--gap-50); min-width: 0;
+	}
+	.ux-content-decision > *, .ux-content-question > *, .ux-content-quotation > * { margin: 0; }
+
+	.ux-content-ask { font-weight: 700; }
+	.ux-content-hint, .ux-content-meta { color: var(--subtle); font-size: .9em; }
+
+	/* An option is a real button (keyboard + screen reader) that looks like the card. */
+	button.ux-content-option {
+		width: 100%; height: 100%; text-align: left; font: inherit; color: inherit; cursor: pointer;
+		align-items: stretch;
+	}
+	button.ux-content-option:hover { border-color: var(--prime); }
+	button.ux-content-option:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+	.ux-content-caveat { color: var(--subtle); font-size: .9em; }
+
+	.ux-content-edit { align-self: flex-start; }
+
+	.ux-content-field {
+		width: 100%; min-height: 4.5em; font: inherit; padding: var(--gap-50);
+		border: 2px solid var(--line); border-radius: .4em; background: var(--surface); color: inherit;
+	}
+	.ux-content-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gap-50); }
+
+	.ux-content-answer {
+		background: var(--surface); border: 2px solid var(--line); border-radius: .4em;
+		padding: var(--pad); display: flex; flex-direction: column; gap: var(--gap-25);
+	}
+	.ux-content-answer > * { margin: 0; }
+
+	.ux-content-quote {
+		margin: 0; padding-inline-start: .75em; border-inline-start: 2px solid var(--prime);
+		font-size: 1.15em;
+	}
+	.ux-content-quotation details summary { cursor: pointer; color: var(--subtle); }
+}
+
+/* Object: "oh, this is a Page and it has a property of this that equals this" —
+   one small box, full width by default; `inline` shrinks it to fit its content instead
+   of filling the grid track (a card row beside prose, not a whole wall cell). */
+@layer theme {
+	.ux-content-object {
+		display: block; width: 100%; min-width: 0; max-width: 32em;
+		background: var(--surface); border: 2px solid var(--line); border-radius: .4em;
+		padding: var(--pad-card); font-size: .95em;
+	}
+	.ux-content-object.inline { width: max-content; max-width: 100%; }
+
+	.ux-content-object-head { display: flex; align-items: baseline; gap: .5em; flex-wrap: wrap; margin-block-end: var(--gap-50); }
+	.ux-content-object-icon { font-size: 1.1em; line-height: 1; }
+	.ux-content-object-class { font-weight: 700; font-size: 1.1em; }
+	.ux-content-object-label { color: var(--subtle); font-family: var(--mono, monospace); }
+
+	.ux-content-object-group + .ux-content-object-group { margin-block-start: var(--gap-50); }
+	.ux-content-object-label-row {
+		display: block; color: var(--subtle); font-size: .8em; text-transform: uppercase;
+		letter-spacing: .04em; margin-block-end: .3em;
+	}
+
+	/* Properties read best as a column of `name = value` lines. */
+	.ux-content-object-properties { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .2em; }
+	.ux-content-object-property { display: flex; gap: .4em; font-family: var(--mono, monospace); align-items: baseline; min-width: 0; flex-wrap: wrap; }
+	.ux-content-object-name { color: var(--prime); flex: none; }
+	a.ux-content-object-name { text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--prime) 40%, transparent); }
+	a.ux-content-object-name:hover { text-decoration-color: var(--prime); }
+	.ux-content-object-eq { color: var(--subtle); flex: none; }
+	.ux-content-object-value { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+
+	/* `.chips`: no value was ever read off any of them (a bare class, mostly) — a
+	   wrapping row of chips, same look as the methods row below, reads better than
+	   13 single-word lines. */
+	.ux-content-object-properties.chips { flex-direction: row; flex-wrap: wrap; gap: .3em; }
+	.ux-content-object-properties.chips .ux-content-object-name {
+		display: inline-block; background: var(--wash); border-radius: .3em; padding: .1em .5em;
+	}
+	.ux-content-object-properties.chips a.ux-content-object-name:hover { background: color-mix(in srgb, var(--prime) 15%, var(--wash)); }
+
+	/* Methods read best as a wrapping row of chips — a card with 40 of them is still a
+	   few lines tall, not one name per row. */
+	.ux-content-object-methods { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: .3em; }
+	.ux-content-object-method { font-family: var(--mono, monospace); font-size: .9em; }
+	.ux-content-object-link {
+		display: inline-block; color: inherit; text-decoration: none; background: var(--wash);
+		border-radius: .3em; padding: .1em .5em;
+	}
+	a.ux-content-object-link { color: var(--prime); }
+	a.ux-content-object-link:hover { background: color-mix(in srgb, var(--prime) 15%, var(--wash)); }
+
+	/* "+N more" — a native <details>, same open/close as Disclosure, styled as one more
+	   row (properties) or one more chip (methods): the summary alone carries that look,
+	   set by whichever list it sits in. */
+	.ux-content-object-more > details > summary { cursor: pointer; color: var(--subtle); list-style: none; }
+	.ux-content-object-more > details > summary::-webkit-details-marker { display: none; }
+	.ux-content-object-properties .ux-content-object-more > details > summary { font-size: .9em; }
+	.ux-content-object-methods .ux-content-object-more > details > summary {
+		display: inline-block; font-family: var(--mono, monospace); font-size: .9em;
+		background: var(--wash); border-radius: .3em; padding: .1em .5em;
+	}
+	.ux-content-object-more > details[open] > summary { margin-block-end: .3em; }
+	.ux-content-object-more .ux-content-object-properties,
+	.ux-content-object-more .ux-content-object-methods { margin-block-start: .2em; }
+}
+
+/* Inspect: the render()-separate debug/inspector view (`Inspect.js`) — the same idea
+   as the card above, built to be LOOKED AT rather than used, and the one place a
+   property whose value is itself an object or array nests its OWN inspect() card
+   instead of a one-line "Array(3)". Three variants: minimal (no card at all — the
+   exact look of an inline Mention/Inbox chip, ui/item's own .inline row), card (the
+   default, pictured by the rules below), full (identical to card today — the open
+   seam is a comment in Inspect.js, not a CSS difference, because there isn't one
+   yet). A class card (inspect(SomeClass)) gets a visibly heavier frame — "looks like
+   a class definition" (the owner) — via .ux-content-inspect-classcard. */
+@layer theme {
+	.ux-content-inspect {
+		display: block; width: 100%; min-width: 0; max-width: 32em;
+		background: var(--surface); border: 2px solid var(--line); border-radius: .4em;
+		padding: var(--pad-card); font-size: .95em;
+	}
+
+	/* Minimal: strip every bit of card chrome so this reads as one inline chip, not a
+	   shrunk card — same reasoning as object()'s own .inline, taken all the way. */
+	.ux-content-inspect.ux-content-inspect-minimal {
+		width: max-content; max-width: 100%; background: none; border: none; padding: 0;
+	}
+
+	/* The class card: same icon, a heavier frame — thicker border, a wash ground, and
+	   more room, so a class definition visibly outweighs an instance of it. */
+	.ux-content-inspect.ux-content-inspect-classcard {
+		border-width: 3px; background: var(--wash); padding: calc(var(--pad-card) * 1.3);
+	}
+
+	.ux-content-inspect-head { display: flex; align-items: flex-start; gap: .6em; margin-block-end: var(--gap-50); }
+	.ux-content-inspect-icon { font-size: 1.6em; line-height: 1; }
+	.ux-content-inspect-classcard > .ux-content-inspect-head .ux-content-inspect-icon { font-size: 2.2em; }
+	.ux-content-inspect-titles { display: flex; flex-direction: column; gap: .1em; min-width: 0; }
+	.ux-content-inspect-label { color: var(--subtle); font-family: var(--mono, monospace); font-size: .85em; }
+	.ux-content-inspect-classname { font-weight: 700; font-size: 1.1em; }
+	.ux-content-inspect-classcard > .ux-content-inspect-head .ux-content-inspect-classname { font-size: 1.3em; }
+
+	.ux-content-inspect-properties, .ux-content-inspect-methods {
+		list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .3em;
+	}
+	.ux-content-inspect-methods { flex-direction: row; flex-wrap: wrap; gap: .3em; }
+	.ux-content-inspect-property {
+		display: flex; flex-wrap: wrap; align-items: baseline; gap: .4em;
+		font-family: var(--mono, monospace); min-width: 0;
+	}
+	.ux-content-inspect-name { color: var(--prime); flex: none; }
+	a.ux-content-inspect-name { text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--prime) 40%, transparent); }
+	a.ux-content-inspect-name:hover { text-decoration-color: var(--prime); }
+	.ux-content-inspect-eq { color: var(--subtle); flex: none; }
+	.ux-content-inspect-value { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+	.ux-content-inspect-method { font-family: var(--mono, monospace); font-size: .9em; }
+	.ux-content-inspect-link {
+		display: inline-block; color: inherit; text-decoration: none; background: var(--wash);
+		border-radius: .3em; padding: .1em .5em;
+	}
+	a.ux-content-inspect-link { color: var(--prime); }
+	a.ux-content-inspect-link:hover { background: color-mix(in srgb, var(--prime) 15%, var(--wash)); }
+
+	/* A property worth opening into (`nestable()` in Inspect.js said yes) draws as a
+	   closed disclosure row, reusing ui/item's own `.item-node`/`.item`/`.item-caret`
+	   classes and CSS (the caret rotation, `.item-children`'s indent) instead of a
+	   second copy of that mechanism — only this list's own OWN row needs rules here. */
+	.ux-content-inspect-expandable { min-width: 0; }
+	.ux-content-inspect-expandable > .item-node > .item { font-family: var(--mono, monospace); }
+
+	/* The nested card itself, once opened: indented by `.item-children`'s own
+	   padding already, plus a rule down its left edge so the eye can follow which
+	   property it belongs to without re-reading the name above it. `min-width: 0` on
+	   the card matters, not just decoration — without it, one long unbreakable value
+	   deep inside (a url, say) can force this box, and everything above it, wider
+	   than the viewport instead of letting the ellipsis rule below actually cut it
+	   off. */
+	.ux-content-inspect-expandable .item-children {
+		border-inline-start: 2px solid var(--line); margin-block-start: .3em;
+	}
+	.ux-content-inspect-expandable .item-children .ux-content-inspect { max-width: 100%; min-width: 0; margin-block-start: .3em; }
+	.ux-content-inspect-cycle { font-size: .9em; }
+}
+
+@layer theme {
+	.ux-content-spend { display: block; width: 100%; min-width: 0; }
+	.ux-content-spend svg { display: block; width: 100%; height: auto; }
+	.ux-content-spend rect { fill: var(--accent, #4a7bd0); }
+	.ux-content-spend .g { stroke: var(--subtle, #888); stroke-opacity: .3; }
+	.ux-content-spend .t { fill: var(--subtle, #888); font-size: 11px; }
+	.ux-content-spend .total { fill: currentColor; font-size: 14px; font-weight: 700; }
+}
+
+/* Disclosure: native <details> in a stack. The stack word decides gap, corners, dividers. */
+@layer theme {
+	.ux-content-stack { display: flex; flex-direction: column; width: 100%; min-width: 0; }
+	.ux-content-stack .ux-content-disclosure { background: light-dark(#fff, var(--surface)); min-width: 0; }
+	.ux-content-stack .ux-content-disclosure > summary {
+		display: flex; align-items: center; gap: var(--gap-50); width: 100%;
+		min-height: 0; padding: var(--pad-card, 1em); border: 0; border-radius: 0; background: none;
+		font-size: 1.15em; font-weight: 700; list-style: none;
+	}
+	.ux-content-stack .ux-content-disclosure > summary::-webkit-details-marker { display: none; }
+	.ux-content-stack .ux-content-disclosure > summary::after { content: "+"; margin-inline-start: auto; font-weight: 400; color: var(--subtle); }
+	.ux-content-stack .ux-content-disclosure[open] > summary::after { content: "\2212"; }
+	.ux-content-stack .ux-content-body { padding: 0 var(--pad-card, 1em) var(--pad-card, 1em); }
+	.ux-content-stack .ux-content-body > :first-child { margin-top: 0; }
+	.ux-content-stack .ux-content-body > :last-child { margin-bottom: 0; }
+
+	/* (a) FAQ — separate cards, a gap, each rounded. */
+	.ux-content-faq { gap: var(--gap-50); }
+	.ux-content-faq .ux-content-disclosure { border: 1px solid var(--line); border-radius: .6em; overflow: hidden; }
+
+	/* (b) Flush — one rounded box; the rows are square, dividers between. */
+	.ux-content-flush { gap: 0; border: 1px solid var(--line); border-radius: .6em; overflow: hidden; }
+	.ux-content-flush .ux-content-disclosure + .ux-content-disclosure { border-top: 1px solid var(--line); }
+
+	/* (c) Lines — no boxes; just a rule under each row. */
+	.ux-content-lines { gap: 0; }
+	.ux-content-lines .ux-content-disclosure { background: none; border-bottom: 1px solid var(--line); }
+	.ux-content-lines .ux-content-disclosure:first-child { border-top: 1px solid var(--line); }
+	.ux-content-lines .ux-content-disclosure > summary { padding-inline: 0; }
+	.ux-content-lines .ux-content-body { padding-inline: 0; }
+}
+
+/* Concepts: tiles are the theme's .btn; only the icon-to-name gap is set here. */
+@layer theme {
+	.ux-content-tile { display: inline-flex; align-items: center; gap: .5em; text-decoration: none; }
+}
+
+/* Structure: icon cards, sections, outlines. A background brings padding; none brings none. */
+@layer theme {
+	.ux-content-icard {
+		display: flex; flex-direction: column; align-items: center; justify-content: center;
+		gap: .4em; text-align: center; text-decoration: none; color: var(--ink);
+		background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+		padding: 1em .75em; min-width: 0;
+	}
+	a.ux-content-icard:hover { border-color: var(--ink); }
+	.ux-content-icard .icon { line-height: 1; }
+	.ux-content-icard.w1 { --icard: 5.5rem; }
+	.ux-content-icard.w1 .icon { font-size: 1.75rem; }
+	.ux-content-icard.w2 { --icard: 7rem; }
+	.ux-content-icard.w2 .icon { font-size: 2.75rem; }
+	.ux-content-icard.w3 { --icard: 10rem; font-weight: 600; }
+	.ux-content-icard.w3 .icon { font-size: 4rem; }
+	.ux-content-icards { display: flex; flex-wrap: wrap; gap: var(--gap-50); align-items: stretch; }
+	.ux-content-icards > .ux-content-icard { flex: 1 1 var(--icard); max-width: calc(var(--icard) * 1.6); }
+	.ux-content-section { display: flex; flex-direction: column; gap: var(--gap-50); min-width: 0; }
+	.ux-content-section > * { margin: 0; }
+	/* A section with a background is the white ground; its cards turn to wash so the two grounds read apart. */
+	.ux-content-section.card { background: var(--surface); }
+	.ux-content-section.card .ux-content-icard { background: var(--wash); border-color: transparent; }
+	.ux-content-outline ul { margin: 0; padding-inline-start: 1.25em; }
+	.ux-content-outline > ul { padding-inline-start: 0; list-style: none; }
+	.ux-content-outline li { margin-block: .2em; }
+	.ux-content-outline-name { display: inline-flex; align-items: center; gap: .4em; font-weight: 600; }
+	.ux-content-outline-name .icon { font-size: 1.2em; }
+	.ux-content-outline li li .ux-content-outline-name { font-weight: 500; }
+}

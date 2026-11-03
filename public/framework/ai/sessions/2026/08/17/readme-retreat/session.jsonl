@@ -1,0 +1,139 @@
+{"assign": {"session_id": "f4bc3a9e-dcfa-429b-97ee-931bb9e17fbf", "tab": "Port fly directory and a… - monorepo", "group": "docs", "request": "every framework readme to the new ≤30-line index shape; history moved verbatim to doc/decisions.md; one Fable minion per readme", "requested_at": "2026-08-17T14:50:00-05:00", "model": "claude-fable-5", "window": {"before": 0.30}, "now": "wave 1 — core", "steps": ["core (8)", "framework/ext/styles/ui roots + dev (7)", "ext A–L (12)", "ext M–Z + util + web (13)", "styles subtrees (14)", "verify + land"], "step": 1}}
+{"log":{"at":"2026-08-17T14:31:05-05:00","msg":"skill: documentation"}}
+{"log":{"at":"2026-08-17T14:31:11-05:00","msg":"skill: documentation"}}
+{"log":{"at":"2026-08-17T14:31:17-05:00","msg":"skill: documentation"}}
+{"log":{"at":"2026-08-17T14:31:22-05:00","msg":"skill: documentation"}}
+{"log":{"at":"2026-08-17T14:31:29-05:00","msg":"skill: documentation"}}
+{"log":{"at":"2026-08-17T14:31:40-05:00","msg":"skill: documentation"}}
+{"log":{"at":"2026-08-17T14:32:10-05:00","msg":"skill: css"}}
+{"action":{"at":"2026-08-17T14:32:30-05:00","did":"edit","files":["public/framework/core/Page/readme.md"]}}
+{"action":{"at":"2026-08-17T14:32:35-05:00","did":"edit","files":["public/framework/core/View/doc/decisions.md"]}}
+{"action":{"at":"2026-08-17T14:32:40-05:00","did":"edit","files":[".claude/skills/new-task/SKILL.md"]}}
+{"action":{"at":"2026-08-17T14:32:49-05:00","did":"edit","files":["public/framework/ext/catalog/catalog.css"]}}
+{"action":{"at":"2026-08-17T14:32:52-05:00","did":"edit","files":[".claude/skill-notes.md"]}}
+{"action":{"at":"2026-08-17T14:33:01-05:00","did":"edit","files":["public/framework/core/View/readme.md"]}}
+{"log": {"at": "2026-08-17T14:33:11-05:00", "msg": "public/framework/core/Page: 327 → 27; moved 55 paragraphs to doc/decisions.md; probe ok"}}
+{"log": {"at": "2026-08-17T14:33:14-05:00", "msg": "public/framework/core/App: 154 → 28; moved 21 paragraphs (lifecycle block, who-uses-this census, 8 Decisions, 5 Proposed, 2 Open) to doc/decisions.md; probe ok"}}
+{"log": {"at": "2026-08-17T14:33:15-05:00", "msg": "public/framework/core/Router: 136 → 26; moved 21 paragraphs to doc/decisions.md; probe ok"}}
+{"log": {"at": "2026-08-17T14:33:32-05:00", "msg": "public/framework/core: 68 → 29; moved 8 paragraphs to doc/decisions.md; probe ok"}}
+{"log": {"at": "2026-08-17T14:38:00-05:00", "msg": "public/framework/core/Sidebar: 182 → 30; moved 5 sections (Who uses it, Decisions, Traps, Proposed, Open — 26 paragraphs) to doc/decisions.md; notes: +decisions; probe ok"}}
+{"log": {"at": "2026-08-17T14:41:00-05:00", "msg": "public/framework/core/View: 179 → 30; moved 15 paragraphs to doc/decisions.md (Used-by, 9 Decisions, Traps, 8 Proposed, Open); notes: +decisions; probe ok"}}
+{"log":{"at":"2026-08-17T14:34:08-05:00","msg":"skill: documentation"}}
+{"action":{"at":"2026-08-17T14:34:11-05:00","did":"edit","files":[".claude/skills/css/SKILL.md"]}}
+{"log":{"at":"2026-08-17T14:34:29-05:00","msg":"skill: documentation"}}
+{"log":{"at":"2026-08-17T14:34:40-05:00","msg":"skill: documentation"}}
+{"log":{"at":"2026-08-17T14:34:44-05:00","msg":"skill: documentation"}}
+{"log":{"at":"2026-08-17T14:34:51-05:00","msg":"skill: documentation"}}
+{"log":{"at":"2026-08-17T14:34:58-05:00","msg":"skill: documentation"}}
+{"log":{"at":"2026-08-17T14:35:03-05:00","msg":"skill: documentation"}}
+{"log":{"at":"2026-08-17T14:35:10-05:00","msg":"skill: documentation"}}
+{"assign": {"now": "wave 2 — roots + Item/List/overview", "step": 2}}
+{"log": {"at": "2026-08-17T14:35:35-05:00", "msg": "public/framework/core/Item: 93 → 27; moved 19 paragraphs to doc/decisions.md (intro, envelope, 4 Traps, 7 Verdicts, 4 Used-by, 2 Open); notes: +decisions; probe ok"}}
+{"log": {"at": "2026-08-17T14:35:42-05:00", "msg": "public/framework/core/List: 72 → 25; moved 12 paragraphs to doc/decisions.md; probe ok"}}
+{"action":{"at":"2026-08-17T14:35:51-05:00","did":"edit","files":["public/framework/ext/DesignTool/readme.md"]}}
+{"log": {"at": "2026-08-17T14:36:09-05:00", "msg": "public/framework/dev: 58 → 22; moved 7 paragraphs to doc/decisions.md; probe ok"}}
+{"action":{"at":"2026-08-17T14:36:23-05:00","did":"edit","files":["public/framework/core/Page/overview/readme.md"]}}
+{"action":{"at":"2026-08-17T14:36:23-05:00","did":"edit","files":["public/framework/ui/readme.md"]}}
+{"log": {"at": "2026-08-17T14:36:44-05:00", "msg": "public/framework/core/Page/overview: 181 → 24; moved 27 paragraphs to doc/decisions.md (4 intro, 15 Decisions, 8 Traps); no page.js in dir, notes: skipped; probe ok"}}
+{"log": {"at": "2026-08-17T15:02:00-05:00", "msg": "public/framework/ui: 350 → 26; moved 66 paragraphs to doc/decisions.md (intro+snippet, Four bands, variants, the bar, CSS, Shared, unification, Not ext/Timeline, Who uses it, Three things that bite, Doc/grid/packed/thumb sections); notes: +decisions; probe ok"}}
+{"log": {"at": "2026-08-17T14:37:12-05:00", "msg": "public/framework: 90 → 29; moved 17 paragraphs to doc/decisions.md; probe ok"}}
+{"log": {"at": "2026-08-17T14:37:38-05:00", "msg": "public/framework/styles: 126 → 29; moved 6 sections (ladder, four-silent-failures, recent, long-form table, who-uses-this, open — the whole record) to doc/decisions.md; page.js is a plain Page so no notes: change; probe ok"}}
+{"log":{"at":"2026-08-17T14:37:45-05:00","msg":"skill: documentation"}}
+{"log":{"at":"2026-08-17T14:37:51-05:00","msg":"skill: documentation"}}
+{"log":{"at":"2026-08-17T14:37:59-05:00","msg":"skill: documentation"}}
+{"log":{"at":"2026-08-17T14:38:04-05:00","msg":"skill: documentation"}}
+{"log":{"at":"2026-08-17T14:38:12-05:00","msg":"skill: documentation"}}
+{"log":{"at":"2026-08-17T14:38:17-05:00","msg":"skill: documentation"}}
+{"assign": {"now": "wave 3a — ext Panel/DesignTool/AITask/JSONL/Doc/Draggable", "step": 3}}
+{"log":{"at":"2026-08-17T14:39:07-05:00","msg":"skill: documentation"}}
+{"log":{"at":"2026-08-17T14:39:13-05:00","msg":"skill: documentation"}}
+{"action":{"at":"2026-08-17T14:39:17-05:00","did":"edit","files":["public/framework/ext/Doc/readme.md"]}}
+{"log":{"at":"2026-08-17T14:39:18-05:00","msg":"skill: documentation"}}
+{"log":{"at":"2026-08-17T14:39:24-05:00","msg":"skill: documentation"}}
+{"log":{"at":"2026-08-17T14:39:29-05:00","msg":"skill: documentation"}}
+{"log": {"at": "2026-08-17T14:39:34-05:00", "msg": "public/framework/ext/Draggable: 71 → 26; moved 13 paragraphs to doc/decisions.md; probe ok"}}
+{"log":{"at":"2026-08-17T14:39:35-05:00","msg":"skill: documentation"}}
+{"log": {"at": "2026-08-17T14:39:48-05:00", "msg": "public/framework/ext/AITask: 238 → 28; moved 41 paragraphs to doc/decisions.md; probe ok"}}
+{"log": {"at": "2026-08-17T14:39:53-05:00", "msg": "public/framework/ext/Doc: 161 → 30; moved 26 paragraphs (whole body: intro, design sections, 8 decisions, 8 traps, 2 open) to doc/decisions.md; notes: +decisions; probe ok"}}
+{"log": {"at": "2026-08-17T14:40:02-05:00", "msg": "public/framework/ext: 63 → 30; moved 9 paragraphs (intro, rule ×4, cross-module traps ×2, open ×2 — the whole record) to ext/decisions.md — beside the readme, not doc/, because ext/Doc/ is a module and Windows cannot hold doc/ and Doc/ side by side; page.js is a plain Page so no notes: change; probe ok"}}
+{"log": {"at": "2026-08-17T14:40:16-05:00", "msg": "public/framework/ext/JSONL: 133 → 24 lines; moved 10 paragraphs to doc/decisions.md; probe ok"}}
+{"log": {"at": "2026-08-17T14:45:00-05:00", "msg": "public/framework/ext/Timeline: 113 → 28; moved 12 paragraphs to doc/decisions.md; probe ok"}}
+{"log": {"at": "2026-08-17T14:40:43-05:00", "msg": "public/framework/ext/DesignTool/audit: 65 → 28 lines; moved 7 paragraphs to doc/decisions.md; probe ok"}}
+{"log": {"at": "2026-08-17T14:40:44-05:00", "msg": "public/framework/ext/Saver: 116 → 27; moved 16 paragraphs to doc/decisions.md; probe ok"}}
+{"log": {"at": "2026-08-17T14:40:45-05:00", "msg": "public/framework/ext/Ask: 130 → 28; moved 12 paragraphs to doc/decisions.md; probe ok"}}
+{"log": {"at": "2026-08-17T14:40:45-05:00", "msg": "public/framework/ext/DesignTool: 510 → 30; moved 78 paragraphs to doc/decisions.md; probe ok"}}
+{"log": {"at": "2026-08-17T14:40:52-05:00", "msg": "public/framework/ext/Panel: 606 → 30; moved 7 sections (88 bullets + 8 prose paragraphs, ~96) to doc/decisions.md; page.js notes already had decisions; probe ok"}}
+{"log": {"at": "2026-08-17T14:41:17-05:00", "msg": "public/framework/ext/DesignTool/widths: 79 → 26; moved 8 paragraphs to doc/decisions.md; probe ok"}}
+{"log":{"at":"2026-08-17T14:41:28-05:00","msg":"skill: documentation"}}
+{"log":{"at":"2026-08-17T14:41:34-05:00","msg":"skill: documentation"}}
+{"log":{"at":"2026-08-17T14:41:40-05:00","msg":"skill: documentation"}}
+{"log":{"at":"2026-08-17T14:41:46-05:00","msg":"skill: documentation"}}
+{"log":{"at":"2026-08-17T14:41:52-05:00","msg":"skill: documentation"}}
+{"log":{"at":"2026-08-17T14:41:57-05:00","msg":"skill: documentation"}}
+{"log":{"at":"2026-08-17T14:42:03-05:00","msg":"skill: documentation"}}
+{"log":{"at":"2026-08-17T14:42:08-05:00","msg":"skill: documentation"}}
+{"assign": {"now": "wave 4a — ext catalog…layout", "step": 4}}
+{"log": {"at": "2026-08-17T15:14:00-05:00", "msg": "public/framework/ext/DesignTool/taste: 466 → 27; moved 63 paragraphs (intro, 14 sections: why-a-rating, taper, missing-range, mostly-picture, refit, second wave, broken-range, corpus, guards, two traps, used-by, coverage, re-derive, Open) to doc/decisions.md; notes: +decisions (new line, Doc had none); probe ok"}}
+{"action":{"at":"2026-08-17T14:43:20-05:00","did":"edit","files":["public/framework/ext/catalog/readme.md"]}}
+{"log": {"at": "2026-08-17T14:43:29-05:00", "msg": "public/framework/ext/drawer: 98 → 29 lines; moved 14 paragraphs to doc/decisions.md; probe ok"}}
+{"log": {"at": "2026-08-17T15:12:00-05:00", "msg": "public/framework/ext/depth: 166 → 28; moved 28 paragraphs (guidance, two corrections, 8 traps, 4 decisions, tuning table, growth-and-drift, where-used) to doc/decisions.md; notes: +decisions; probe ok"}}
+{"log": {"at": "2026-08-17T14:43:38-05:00", "msg": "public/framework/ext/catalog: 229 → 25; moved 30 paragraphs to doc/decisions.md; probe ok"}}
+{"log": {"at": "2026-08-17T14:43:39-05:00", "msg": "public/framework/ext/highlight: 154 → 26; moved 24 paragraphs to doc/decisions.md; probe ok"}}
+{"log": {"at": "2026-08-17T14:43:46-05:00", "msg": "public/framework/ext/layout: 121 → 28; moved 13 paragraphs to doc/decisions.md; probe ok"}}
+{"log": {"at": "2026-08-17T14:43:48-05:00", "msg": "public/framework/ext/editor: 145 → 28; moved 15 paragraphs to doc/decisions.md; probe ok"}}
+{"log": {"at": "2026-08-17T14:43:56-05:00", "msg": "public/framework/ext/files: 125 → 29; moved 10 paragraphs to doc/decisions.md; probe ok"}}
+{"log":{"at":"2026-08-17T14:44:30-05:00","msg":"skill: documentation"}}
+{"log":{"at":"2026-08-17T14:44:36-05:00","msg":"skill: documentation"}}
+{"log":{"at":"2026-08-17T14:44:41-05:00","msg":"skill: documentation"}}
+{"log":{"at":"2026-08-17T14:44:47-05:00","msg":"skill: documentation"}}
+{"log":{"at":"2026-08-17T14:44:52-05:00","msg":"skill: documentation"}}
+{"log": {"at": "2026-08-17T14:44:53-05:00", "msg": "public/framework/ext/demo: 107 → 25 lines; moved 18 paragraphs (8 sections) to doc/decisions.md; probe ok"}}
+{"log":{"at":"2026-08-17T14:44:57-05:00","msg":"skill: documentation"}}
+{"log":{"at":"2026-08-17T14:45:16-05:00","msg":"skill: documentation"}}
+{"log":{"at":"2026-08-17T14:45:22-05:00","msg":"skill: documentation"}}
+{"log":{"at":"2026-08-17T14:45:27-05:00","msg":"skill: documentation"}}
+{"log":{"at":"2026-08-17T14:45:34-05:00","msg":"skill: documentation"}}
+{"log":{"at":"2026-08-17T14:45:42-05:00","msg":"skill: documentation"}}
+{"log": {"at": "2026-08-17T14:45:43-05:00", "msg": "public/framework/util/markup: 51 → 23; moved 8 paragraphs to doc/decisions.md; probe ok"}}
+{"log":{"at":"2026-08-17T14:45:48-05:00","msg":"skill: documentation"}}
+{"log":{"at":"2026-08-17T14:45:53-05:00","msg":"skill: documentation"}}
+{"action":{"at":"2026-08-17T14:45:53-05:00","did":"edit","files":["public/framework/ext/markdown/readme.md"]}}
+{"assign": {"now": "waves 4b + 5a — util, styles subtrees", "step": 5}}
+{"log": {"at": "2026-08-17T14:46:13-05:00", "msg": "public/framework/ext/tabs: 115 → 28; moved 13 paragraphs to doc/decisions.md; probe ok"}}
+{"action":{"at":"2026-08-17T14:46:25-05:00","did":"edit","files":["public/framework/ext/toc/readme.md"]}}
+{"log": {"at": "2026-08-17T14:46:27-05:00", "msg": "public/framework/util/source: 72 → 24 lines; moved 8 paragraphs (7 sections) to doc/decisions.md; probe ok"}}
+{"action":{"at":"2026-08-17T14:46:52-05:00","did":"edit","files":["public/framework/styles/rules/readme.md"]}}
+{"log": {"at": "2026-08-17T14:58:00-05:00", "msg": "public/framework/util/is: 72 → 26 lines; moved 9 paragraphs (intro/API pointer, Used-by census + table, 2 Decisions, Traps, Open) to doc/decisions.md; notes: +decisions (was absent); probe ok"}}
+{"log": {"at": "2026-08-17T14:46:53-05:00", "msg": "public/framework/ext/toc: 137 → 28; moved 17 paragraphs to doc/decisions.md; probe ok"}}
+{"log": {"at": "2026-08-17T14:47:02-05:00", "msg": "public/framework/ext/markdown: 118 → 24; moved 12 paragraphs (9 sections) to doc/decisions.md; probe ok — the one .md-error sitewide is page.js's deliberate does-not-exist.md demo (in HEAD), 0 in the decisions route"}}
+{"log": {"at": "2026-08-17T14:47:04-05:00", "msg": "public/framework/styles/elements: 75 → 25; moved 11 paragraphs to doc/decisions.md; probe ok"}}
+{"log": {"at": "2026-08-17T15:20:00-05:00", "msg": "public/framework/styles/rules: 77 → 23; moved 16 paragraphs (whole body: intro, why-in-site ×2, enforcement seam + table ×3, 3 Decisions, For-Mike .measure ×3, 4 Open) to doc/decisions.md; page.js is a plain Page so no notes: change; probe ok"}}
+{"action":{"at":"2026-08-17T14:47:10-05:00","did":"edit","files":["public/framework/styles/layouts/readme.md"]}}
+{"log": {"at": "2026-08-17T14:47:14-05:00", "msg": "public/framework/styles/sections: 361 → 27; moved 49 paragraphs to doc/decisions.md; probe ok"}}
+{"action":{"at":"2026-08-17T14:47:22-05:00","did":"edit","files":["public/framework/styles/layers/theme/guide/readme.md"]}}
+{"log": {"at": "2026-08-17T14:47:26-05:00", "msg": "public/framework/styles/layers/theme/lew42: 104 → 25; moved 14 paragraphs to doc/decisions.md; probe ok"}}
+{"log":{"at":"2026-08-17T14:47:29-05:00","msg":"skill: documentation"}}
+{"log": {"at": "2026-08-17T14:47:35-05:00", "msg": "public/framework/styles/layouts: 395 → 29; moved 50 paragraphs to doc/decisions.md; probe ok"}}
+{"log":{"at":"2026-08-17T14:47:36-05:00","msg":"skill: documentation"}}
+{"log":{"at":"2026-08-17T14:47:43-05:00","msg":"skill: documentation"}}
+{"log":{"at":"2026-08-17T14:47:48-05:00","msg":"skill: documentation"}}
+{"log": {"at": "2026-08-17T14:48:10-05:00", "msg": "public/framework/styles/layouts/space: 661 → 25; moved 109 paragraphs to doc/decisions.md; probe ok"}}
+{"log": {"at": "2026-08-17T14:48:07-05:00", "msg": "public/framework/styles/layers/theme/guide: 130 → 30; moved 7 paragraphs to doc/decisions.md; probe ok"}}
+{"action":{"at":"2026-08-17T14:48:23-05:00","did":"edit","files":["public/framework/dev/Socket/readme.md"]}}
+{"log":{"at":"2026-08-17T14:48:23-05:00","msg":"skill: documentation"}}
+{"log":{"at":"2026-08-17T14:48:28-05:00","msg":"skill: documentation"}}
+{"log":{"at":"2026-08-17T14:48:33-05:00","msg":"skill: documentation"}}
+{"action":{"at":"2026-08-17T14:48:54-05:00","did":"edit","files":["public/framework/dev/DevBar/readme.md"]}}
+{"log": {"at": "2026-08-17T14:49:01-05:00", "msg": "public/framework/dev/Claim: 59 → 22; moved 9 paragraphs to doc/decisions.md; notes: decisions added to page.js; probe ok"}}
+{"log": {"at": "2026-08-17T14:49:01-05:00", "msg": "public/framework/dev/Socket: 175 → 29; moved 5 sections (What a save does, Who uses this, Decisions, Traps, Proposed) to doc/decisions.md; probe ok"}}
+{"log": {"at": "2026-08-17T14:49:41-05:00", "msg": "public/framework/audit: 54 → 20; moved 8 paragraphs to doc/decisions.md; probe ok"}}
+{"log": {"at": "2026-08-17T14:49:42-05:00", "msg": "public/framework/dev/DevBar: 229 → 28; moved 30 paragraphs to doc/decisions.md; probe ok"}}
+{"log": {"at": "2026-08-17T14:49:52-05:00", "msg": "public/framework/audit/browsable: 94 → 19; moved 13 paragraphs to doc/decisions.md; probe ok"}}
+{"log": {"at": "2026-08-17T14:49:56-05:00", "msg": "public/framework/styles/layouts/masonry: 99 → 25; moved 13 paragraphs to doc/decisions.md; probe ok"}}
+{"log": {"at": "2026-08-17T14:50:21-05:00", "msg": "public/framework/styles/layouts/400: 85 → 29; moved 13 paragraphs to doc/decisions.md; probe ok"}}
+{"log": {"at": "2026-08-17T15:05:00-05:00", "msg": "sweeps: 45 page.js md.details(readme.md) captions → \"Readme\"; 39 doc/file/readme.md.md → truthful stub; relative links fixed in wave-1 decisions.md + List/editor/Ask; probes clean on 10 cross-tier pages"}}
+{"assign": {"step": 6, "landed_at": "2026-08-17T15:06:00-05:00", "outcome": "**54 readmes → the reader's index shape: 8,637 lines → 1,441 (max 30 each), history verbatim in `doc/decisions.md` (53 new files; ext root's at `ext/decisions.md`)** — one Fable minion per readme, five waves, ~50k tokens each. Every readme: one line what · Use (verified against source) · Watch out (past problems, doc linked) · More (every doc named, page url, files). Doc modules gained `decisions` in `notes:` so the record is a url. Left: 12 modules whose page.js is a plain Page have no `/doc/decisions/` url (raw file only, linked from the readme); `doc/file/*.md` beyond readme.md.md still describe pre-retreat state.", "links": [{"url": "/framework/", "label": "framework/ — the root index"}, {"url": "/framework/core/View/", "label": "a module (View)"}, {"url": "/framework/core/View/doc/decisions/", "label": "its record"}], "window": {"before": 0.30, "after": 0.61}}}
+{"log":{"at":"2026-08-17T14:54:55-05:00","msg":"skill: new-task"}}
+{"action":{"at":"2026-08-17T14:55:21-05:00","did":"edit","files":["public/framework/ai/2026-08-17/devbar-structure/requirements.md"]}}
+{"log":{"at":"2026-08-17T14:55:38-05:00","msg":"skill: code"}}
+{"log":{"at":"2026-08-17T14:55:40-05:00","msg":"skill: layout"}}

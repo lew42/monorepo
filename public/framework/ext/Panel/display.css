@@ -1,0 +1,129 @@
+/* `display` on a panel: the mode classes, layout only; and the overlay that draws them,
+   structure only — never a colour of its own, always a token. Record: readme.md. */
+@layer theme {
+
+	/* Compound with `.panel-body` on purpose: two classes beat the base rule's one at equal
+	   specificity, in either load order, with no layer trick spent. */
+	.panel-body.panel-d-block { display: block; }
+
+	/* One custom property per word, written by `paint.js`'s `show()` and nothing else.
+	   Every fallback is exactly what this rule hardcoded before the words existed, so a
+	   panel that has chosen nothing draws as it always did.
+	   ⚠ `justify-content` and `align-items` are free to take here: the base `.panel-body`
+	   picker writes `--panel-x`/`--panel-y` into `justify-items` and `align-content`, and
+	   flex reads NEITHER of those — `justify-items` is inert in flex, and `align-content`
+	   needs more than one line. Two classes beat the base rule's one, in either order. */
+	.panel-body.panel-d-flex {
+		display: flex;
+		flex-direction: var(--panel-dir, row);
+		gap: var(--panel-gap, 0.5em);
+		flex-wrap: var(--panel-wrap, nowrap);
+		justify-content: var(--panel-justify, flex-start);
+		align-items: var(--panel-items, stretch);
+	}
+
+	/* ⚠ `--panel-tracks`, not `--panel-cols`: that name is the picker grid's own column
+	   count everywhere else in this module, and a custom property written on a body
+	   INHERITS into any control surface drawn inside it. */
+	.panel-body.panel-d-grid {
+		display: grid;
+		grid-template-columns: var(--panel-tracks, repeat(auto-fit, minmax(8em, 1fr)));
+		gap: var(--panel-gap, 0.5em);
+		grid-auto-flow: var(--panel-flow, row);
+	}
+
+	/* Per-ITEM words (glyphs.js's `ITEM_WORDS`) — one custom property each, written on the
+	   CHILD itself by `persist.js`'s `items_apply()`, never the body: every other word here
+	   is the leaf's own, one value for the whole arrangement, and an item's is one value per
+	   child. `place-self` covers both `self` readings (flex ignores the inline half of a
+	   shorthand it has no `justify-self` for) for one property instead of two. */
+	.panel-body.panel-d-flex > * {
+		flex-grow: var(--item-grow, 0);
+		flex-basis: var(--item-basis, auto);
+		order: var(--item-order, 0);
+		place-self: var(--item-self, auto);
+	}
+
+	.panel-body.panel-d-grid > * {
+		grid-column: var(--item-span, auto);
+		grid-row: var(--item-row-span, auto);
+		place-self: var(--item-self, auto);
+	}
+
+	/* The selected item's own ring (text.js's `select_item`) — negative offset, unlike
+	   `.panel-text-on`'s: a cell shares an edge with its neighbours, and a positive one
+	   would overlap them. */
+	.panel-item-on { outline: 2px solid var(--prime); outline-offset: -2px; }
+
+	/* Over the body, under the bar — a sibling, same formula `.panel-align` sits at, so the
+	   two overlays never fight for the strip the bar owns. Inert throughout: it never sits
+	   above the align grid's own tools, only below them. */
+	.panel-display {
+		position: absolute;
+		inset: var(--panel-bar-h) 0 0 0;
+		z-index: 1;
+		overflow: hidden;
+		opacity: 0;
+		transition: opacity 0.12s;
+		pointer-events: none;
+	}
+
+	/* Innermost wins, exactly as the align grid and the bar do — otherwise every ancestor
+	   of a hovered leaf draws its own axis line and badges on top of one another. */
+	.panel:hover:not(:has(.panel:hover)) > .panel-display,
+	.panel:focus-within:not(:has(.panel:focus-within)) > .panel-display { opacity: 1; }
+
+	.panel-display-axis {
+		position: absolute;
+		inset-inline: 0.5em;
+		inset-block-start: 50%;
+		block-size: 1px;
+		background: var(--line);
+	}
+
+	.panel-display-axis::after {
+		content: "";
+		position: absolute;
+		inset-inline-end: -1px;
+		inset-block-start: 50%;
+		translate: 0 -50%;
+		border-block: 0.3em solid transparent;
+		border-inline-start: 0.4em solid var(--line);
+	}
+
+	/* A column body's axis runs DOWN, and its arrowhead with it — `dir` is a word now, so
+	   the overlay draws the direction the body actually resolved to rather than a row. */
+	.panel-display-axis.v {
+		inset-inline: 50% auto;
+		inset-block: 0.5em;
+		inline-size: 1px;
+		block-size: auto;
+	}
+
+	.panel-display-axis.v::after {
+		inset-inline: 50% auto;
+		inset-block: auto -1px;
+		translate: -50% 0;
+		border-block: none;
+		border-inline: 0.3em solid transparent;
+		border-block-start: 0.4em solid var(--line);
+	}
+
+	.panel-display-line {
+		position: absolute;
+		inset-block: 0;
+		inline-size: 1px;
+		background: var(--line);
+	}
+
+	.panel-display-badge {
+		position: absolute;
+		font: 0.65em var(--mono);
+		line-height: 1.4;
+		color: var(--subtle);
+		background: var(--surface);
+		border: 1px solid var(--line);
+		border-radius: calc(var(--radius) / 2);
+		padding: 0 0.3em;
+	}
+}

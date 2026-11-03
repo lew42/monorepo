@@ -1,0 +1,36 @@
+{
+ "id": "82ff8ed8-811d-4b1e-9298-b267408854bb",
+ "first": "2026-10-14T18:08:54.761Z",
+ "last": "2026-10-14T18:08:56.240Z",
+ "models": {
+  "claude-haiku-5-5": 1
+ },
+ "sizes": {
+  "raw": 5533,
+  "content": 77,
+  "stripped": 77,
+  "owner_only": 54
+ },
+ "usd": 0.003528,
+ "usd_main": 0.003528,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 2,
+  "output": 26,
+  "cache_read": 0,
+  "cache_write": 1698,
+  "w5": 0,
+  "w1": 1698
+ },
+ "messages": 1,
+ "subagent_files": 0,
+ "prompts": [
+  {
+   "at": "2026-10-14T18:08:54.782Z",
+   "t": "[from: owner]\n[on /framework/ai/] Can you hear me?\n[on /framework/ai/] Testing.\n[on /framework/ai/] can you hear me?\n(the owner has stopped: quiet for 2.5 s)"
+  }
+ ],
+ "result": "I'm the fast assistant for this session; you're on /framework/ai/.",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.251Z"
+}

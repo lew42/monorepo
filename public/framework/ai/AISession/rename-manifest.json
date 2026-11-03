@@ -1,0 +1,95 @@
+{
+ "at": "2026-10-09T04:10:48.923Z",
+ "moves": [
+  {
+   "from": "public/framework/ai/sessions/Session.js",
+   "to": "public/framework/ai/AISession/AISession.js"
+  },
+  {
+   "from": "public/framework/ai/sessions/SessionView.js",
+   "to": "public/framework/ai/AISession/AISessionView.js"
+  },
+  {
+   "from": "public/framework/ai/sessions/SessionRows.js",
+   "to": "public/framework/ai/AISession/AISessionRows.js"
+  },
+  {
+   "from": "public/framework/ai/sessions/SessionDetail.js",
+   "to": "public/framework/ai/AISession/AISessionDetail.js"
+  },
+  {
+   "from": "public/framework/ai/sessions/SessionTrace.js",
+   "to": "public/framework/ai/AISession/AISessionTrace.js"
+  },
+  {
+   "from": "public/framework/ai/sessions/SessionLive.js",
+   "to": "public/framework/ai/AISession/AISessionLive.js"
+  },
+  {
+   "from": "public/framework/ai/sessions/SessionFollow.js",
+   "to": "public/framework/ai/AISession/AISessionFollow.js"
+  },
+  {
+   "from": "public/framework/ai/sessions/SessionsPage.js",
+   "to": "public/framework/ai/AISession/AISessionsPage.js"
+  },
+  {
+   "from": "Server/SessionIndex.mjs",
+   "to": "public/framework/ai/AISession/AISessionIndex.mjs"
+  },
+  {
+   "from": "Server/plugins/SessionTail.js",
+   "to": "public/framework/ai/AISession/AISessionTailer.mjs"
+  },
+  {
+   "from": "Server/session-cost.mjs",
+   "to": "public/framework/ai/AISession/AISessionAudit.mjs"
+  }
+ ],
+ "names": [
+  [
+   "Session",
+   "AISession"
+  ],
+  [
+   "SessionTail",
+   "AISessionTailer"
+  ],
+  [
+   "SessionSub",
+   "AISessionSub"
+  ],
+  [
+   "SessionsPage",
+   "AISessionsPage"
+  ],
+  [
+   "SessionIndex",
+   "AISessionIndex"
+  ],
+  [
+   "SessionRows",
+   "AISessionRows"
+  ],
+  [
+   "SessionDetail",
+   "AISessionDetail"
+  ],
+  [
+   "SessionTrace",
+   "AISessionTrace"
+  ],
+  [
+   "SessionView",
+   "AISessionView"
+  ],
+  [
+   "SessionFollow",
+   "AISessionFollow"
+  ],
+  [
+   "SessionLive",
+   "AISessionLive"
+  ]
+ ]
+}

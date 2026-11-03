@@ -1,0 +1,303 @@
+{
+ "url": "http://127.0.0.1:3217/framework/ai/",
+ "widths": {
+  "400": {
+   "empty": 0.359,
+   "widest_text": 328,
+   "widest_text_sample": "4.9 GB ours of 31.7 GB total · 20.8 GB o",
+   "overflow_x": false,
+   "items": 15,
+   "narrow_share": 0,
+   "layout": "ai2",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 14,
+     "layers": [
+      {
+       "cls": "doc-well",
+       "px": 14
+      }
+     ]
+    },
+    "p": {
+     "total": 0,
+     "layers": []
+    }
+   },
+   "bands": [
+    {
+     "cls": "ai2-back",
+     "y": 106,
+     "h": 39,
+     "share": 0.039,
+     "ink": 0.2,
+     "big_empty": false
+    },
+    {
+     "cls": "ai2-full",
+     "y": 145,
+     "h": 1389,
+     "share": 1.389,
+     "ink": 0.613,
+     "big_empty": false
+    },
+    {
+     "cls": "ai2-live-assistant",
+     "y": 1548,
+     "h": 37,
+     "share": 0.037,
+     "ink": 0.7,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "drawer-rail-ai",
+     "text": "✦AI",
+     "lines": 3.2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-rail-menu",
+     "text": "⋯More",
+     "lines": 3.2
+    }
+   ]
+  },
+  "1200": {
+   "empty": 0.452,
+   "widest_text": 716,
+   "widest_text_sample": "And so, my fellow Americans, ask not wha",
+   "overflow_x": false,
+   "items": 27,
+   "narrow_share": 0.148,
+   "layout": "ai2",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 19,
+     "layers": [
+      {
+       "cls": "doc-well",
+       "px": 19
+      }
+     ]
+    },
+    "p": {
+     "total": 0,
+     "layers": []
+    }
+   },
+   "bands": [
+    {
+     "cls": "ai2-full",
+     "y": 58,
+     "h": 1498,
+     "share": 1.498,
+     "ink": 0.553,
+     "big_empty": false
+    },
+    {
+     "cls": "ai2-live-assistant",
+     "y": 1571,
+     "h": 39,
+     "share": 0.039,
+     "ink": 0.588,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.7
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  },
+  "1920": {
+   "empty": 0.529,
+   "widest_text": 768,
+   "widest_text_sample": "And so, my fellow Americans, ask not wha",
+   "overflow_x": false,
+   "items": 27,
+   "narrow_share": 0.148,
+   "layout": "ai2",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 33,
+     "layers": [
+      {
+       "cls": "doc-well",
+       "px": 33
+      }
+     ]
+    },
+    "p": {
+     "total": 0,
+     "layers": []
+    }
+   },
+   "bands": [
+    {
+     "cls": "ai2-full-head",
+     "y": 79,
+     "h": 35,
+     "share": 0.035,
+     "ink": 0.35,
+     "big_empty": false
+    },
+    {
+     "cls": "ai2-live-section",
+     "y": 368,
+     "h": 176,
+     "share": 0.176,
+     "ink": 0.605,
+     "big_empty": false
+    },
+    {
+     "cls": "ai2-live-run-col",
+     "y": 122,
+     "h": 1174,
+     "share": 1.174,
+     "ink": 0.464,
+     "big_empty": false
+    },
+    {
+     "cls": "ai2-live-tasks",
+     "y": 122,
+     "h": 189,
+     "share": 0.189,
+     "ink": 0.45,
+     "big_empty": false
+    },
+    {
+     "cls": "ai2-live-assistant",
+     "y": 310,
+     "h": 42,
+     "share": 0.042,
+     "ink": 0.412,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.7
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  },
+  "3440": {
+   "empty": 0.703,
+   "widest_text": 864,
+   "widest_text_sample": "And so, my fellow Americans, ask not wha",
+   "overflow_x": false,
+   "items": 27,
+   "narrow_share": 0.593,
+   "layout": "ai2",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 54,
+     "layers": [
+      {
+       "cls": "doc-well",
+       "px": 54
+      }
+     ]
+    },
+    "p": {
+     "total": 0,
+     "layers": []
+    }
+   },
+   "bands": [
+    {
+     "cls": "ai2-full-head",
+     "y": 122,
+     "h": 39,
+     "share": 0.039,
+     "ink": 0.275,
+     "big_empty": false
+    },
+    {
+     "cls": "ai2-live-section",
+     "y": 409,
+     "h": 197,
+     "share": 0.197,
+     "ink": 0.317,
+     "big_empty": false
+    },
+    {
+     "cls": "ai2-live-run-col",
+     "y": 179,
+     "h": 1295,
+     "share": 1.295,
+     "ink": 0.297,
+     "big_empty": false
+    },
+    {
+     "cls": "ai2-live-tasks",
+     "y": 179,
+     "h": 212,
+     "share": 0.212,
+     "ink": 0.333,
+     "big_empty": false
+    },
+    {
+     "cls": "ai2-live-assistant",
+     "y": 179,
+     "h": 47,
+     "share": 0.047,
+     "ink": 0.4,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.8
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  }
+ },
+ "errors": [
+  "400: WebSocket connection to 'ws://127.0.0.1:3217/' failed: Error during WebSocket handshake: Unexpected response code: 200",
+  "400: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1920: WebSocket connection to 'ws://127.0.0.1:3217/' failed: Error during WebSocket handshake: Unexpected response code: 200",
+  "1920: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "3440: WebSocket connection to 'ws://127.0.0.1:3217/' failed: Error during WebSocket handshake: Unexpected response code: 200",
+  "3440: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1200: WebSocket connection to 'ws://127.0.0.1:3217/' failed: Error during WebSocket handshake: Unexpected response code: 200",
+  "1200: Failed to load resource: the server responded with a status of 404 (Not Found)"
+ ]
+}

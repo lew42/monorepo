@@ -1,0 +1,30 @@
+/* `.page-grids-flush` is GONE (2026-08-27). It was the flush-wall escape hatch, kept as
+   an alias while one call site still named it — the pre-committed deletion fired: the
+   container is `bleed` (core/Page/Page.css, `.page-column-prose > .bleed`) and the cells
+   are `surface pad`, both site words, so the local rule had nothing left to say. */
+@layer theme {
+
+	/* grid-detail/page.js: the SAME children `column()` always lists as rows below
+	   content() (Page.css's `.page-column-item`), restyled into a grid of tiles —
+	   ⚠ no second copy of the children is drawn; a `.page-column-body` in this one
+	   page becomes the grid, direct-child-scoped so no NESTED column (a child's own
+	   body, three levels deeper through `.page-column-pages`) is ever touched. */
+	.page--grid-detail .page-columns-row > .page-column-body {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(9em, 1fr));
+		align-content: start;
+		/* ⚠ KEPT ON THE RAMP: this is the gap between sibling TILES in the wall, which
+		     is space between things rather than the size of one (2026-09-06). */
+		gap: calc(var(--gap) * 0.6);
+		padding-block-end: 0.6em;
+	}
+	.page--grid-detail .page-columns-row > .page-column-body > :is(.page-column-head, .page-column-prose) {
+		grid-column: 1 / -1;
+	}
+	.page--grid-detail .page-columns-row > .page-column-body > .page-column-item {
+		flex-direction: column; justify-content: center; text-align: center;
+		/* inside one tile — its own em, never a ramp (2026-09-06) */
+		gap: 0.4em; padding: 1em 0.5em;
+		background: var(--tint); border-radius: var(--radius, 4px); border-inline-end: none;
+	}
+}

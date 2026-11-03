@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ext/AITask/",
+ "widths": {
+  "1280": {
+   "empty": 0.782,
+   "widest_text": 561,
+   "widest_text_sample": "on 2026-10-13. It renders an agent task'",
+   "overflow_x": false,
+   "items": 63,
+   "narrow_share": 0.063
+  },
+  "1920": {
+   "empty": 0.851,
+   "widest_text": 597,
+   "widest_text_sample": "on 2026-10-13. It renders an agent task'",
+   "overflow_x": false,
+   "items": 63,
+   "narrow_share": 1
+  },
+  "2560": {
+   "empty": 0.869,
+   "widest_text": 671,
+   "widest_text_sample": "on 2026-10-13. It renders an agent task'",
+   "overflow_x": false,
+   "items": 63,
+   "narrow_share": 1
+  },
+  "3440": {
+   "empty": 0.897,
+   "widest_text": 671,
+   "widest_text_sample": "on 2026-10-13. It renders an agent task'",
+   "overflow_x": false,
+   "items": 63,
+   "narrow_share": 1
+  }
+ },
+ "errors": []
+}

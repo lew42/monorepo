@@ -1,0 +1,1 @@
+7. [accept] Matching old health.mjs exactly means this isn't new cost, and it's already memoized per process so it only pays once per script run. An APPDATA-guess fallback trades a proven lookup for one that could silently point at a stale or wrong install, which is a worse trade than half a second at startup.

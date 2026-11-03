@@ -1,0 +1,4 @@
+{"class":"/framework/ai2/card.js","title":"servex-hardening landed: all five fixes shipped, Servex restarted clean.","type":"card","id":"2026/09/22/servex-hardening","created":"2026-09-22T17:37:11-05:00","by":"servex-hardening","tags":[]}
+{"legacy":"servex-hardening"}
+{"status":"done"}
+{"text":"The v3 board no longer double-mounts, a locked name can't be snuck around, the stray proof scripts have a real home, and the readme names the assistant."}

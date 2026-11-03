@@ -1,0 +1,64 @@
+{
+ "id": "acc3233e-bdd9-4753-a461-d633b3fa81a4",
+ "first": "2026-10-15T00:04:34.604Z",
+ "last": "2026-10-15T00:06:33.605Z",
+ "models": {
+  "claude-sonnet-5-5": 17
+ },
+ "sizes": {
+  "raw": 97821,
+  "content": 5401,
+  "stripped": 1554,
+  "owner_only": 339
+ },
+ "usd": 0.24406,
+ "usd_main": 0.24406,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 34,
+  "output": 2983,
+  "cache_read": 667592,
+  "cache_write": 20161,
+  "w5": 0,
+  "w1": 20161
+ },
+ "messages": 17,
+ "subagent_files": 0,
+ "prompts": [
+  {
+   "at": "2026-10-15T00:04:34.623Z",
+   "t": "[from: owner]\n[on /framework/] Smart assistant, which page lists all the sessions?\n(the owner has stopped: quiet for 3.0 s)"
+  },
+  {
+   "at": "2026-10-15T00:04:50.705Z",
+   "t": "[from: owner]\n[on /framework/] Smart assistant, what does the Dictate sheet do on a phone?\n(the owner has stopped: quiet for 3.0 s)"
+  },
+  {
+   "at": "2026-10-15T00:05:11.811Z",
+   "t": "[from: owner]\n[on /framework/] Smart assistant, where is the fast assistant's prompt?\n(the owner has stopped: quiet for 3.0 s)"
+  },
+  {
+   "at": "2026-10-15T00:05:26.082Z",
+   "t": "[from: owner]\n[on /framework/] Smart assistant, how many bubbles does the half sheet show?\n(the owner has stopped: quiet for 3.0 s)"
+  },
+  {
+   "at": "2026-10-15T00:05:51.693Z",
+   "t": "[from: owner]\n[on /framework/] The sheet should show every bubble in order.\n(the owner has stopped: quiet for 3.0 s)"
+  },
+  {
+   "at": "2026-10-15T00:06:05.120Z",
+   "t": "[from: owner]\n[on /framework/] Smart assistant, is there a page for the inbox?\n(the owner has stopped: quiet for 3.0 s)"
+  },
+  {
+   "at": "2026-10-15T00:06:18.517Z",
+   "t": "[from: owner]\n[on /framework/] Smart assistant, what is a voice session?\n(the owner has stopped: quiet for 3.0 s)"
+  },
+  {
+   "at": "2026-10-15T00:06:31.935Z",
+   "t": "[from: owner]\n[on /framework/] Smart assistant, which file holds the Dictate widget?\n(the owner has stopped: quiet for 3.0 s)"
+  }
+ ],
+ "result": "## Dictate widget file\n\n> Which file holds the Dictate widget?\n\n`public/framework/ux/Dictate/Widget.js`. Its CSS is in `Widget.css` next to it, and `doc/widget.md` describes it.",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.350Z"
+}

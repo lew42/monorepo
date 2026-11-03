@@ -1,0 +1,5 @@
+verdict: pass
+1. [note] Widget.js `load_earlier()` already sets `this.waiting = rest.slice(0, from)` before the draw loop, so `hold_orphan()` does not re-hold the entries it replays through `this.draw(l)`; correct, but only because of that line order. A one-line comment there would protect it.
+2. [note] `hold_orphan()` also holds a placement whose sentence sits in a chunk older than the one being loaded; it stays in `this.orphans` until that chunk loads, which is the right behaviour. `test/earlier.mjs` only proves the one-click case (sentence 3 of 70), not a two-step hold.
+3. [note] The `[data-thread-state]` description in `doc/widget-notes.md#thread-state` (not in the diff) does not list the new `this.orphans` map, though `reset()` clears it. Add it there so the thread's state is documented in one place.
+4. [note] The task folder holds only requirements.md and the diff; the test's JSON output (the `cards` and `fail` fields) is not saved, so a fresh agent has to re-run `ux/Dictate/test/earlier.mjs` to see the proof.

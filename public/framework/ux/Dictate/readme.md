@@ -1,0 +1,149 @@
+# Dictate — a mic button that always shows what is happening
+
+**Voice Chat's guiding principles and direction (read first; the owner, 2026-11-03):** never interrupt, never assume the screen is seen, the messages list is the one truth, silent by default with a `say` tool, settings per session: [`doc/principles.md`](doc/principles.md).
+
+**How a chat is made, mic to screen** (the pipeline, the two views, the class sketch, the colours, the item tool; one file:line per stage): [`doc/pipeline.md`](doc/pipeline.md).
+
+**The green check and the brain icon look out of sync?** What triggers each one, by file:line, and the one real mismatch between V1 and v2 (not just timing): [`doc/status-icons.md`](doc/status-icons.md).
+
+**Where the dictation work stands** (what landed on 2026-11-01/02, what's open, the owner's next decisions): [dictation-v3 handover](/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/handover.md).
+
+**The whole stack on one page** (dictation, sheet, chat v1/v2/v3, session, task, prompt, the session page): [ai/system-map.md](/framework/ai/system-map.md); the proposed shape (Sheet and Chat as classes, the global voice session as a class, raw then refined prompts): [ai/system-proposal.md](/framework/ai/system-proposal.md). Note: the global voice session is not a class today; it is a controller (`create_controller` in `chat.js`) kept in sessionStorage `lew42-voice-session`.
+
+- ⬜ **Goal:** the owner calls the whole experience "chat", so it is one thing under that name (no renames yet): the first view and [Chat v2](/framework/ext/Chat/v2/readme.md) become one chat. Matching line in [Chat v2's readme](/framework/ext/Chat/v2/readme.md).
+
+## How messages travel
+
+You speak and Whisper turns the sound into text, one sentence at a time. The page then sends each sentence to Servex with a plain HTTP `POST` to `/api/session/say` (no WebSocket carries your words out; the only live wire is a one-way `EventSource` stream, `/api/session/<id>/stream`, that brings the chat's new lines back).<sup>[<a href="#fn1">1</a>]</sup><sup>[<a href="#fn2">2</a>]</sup> The page does not make the voice session: the first time a sentence needs one, `chat.js` asks Servex with `POST /api/session/new`, and Servex's `Sessions.create()` picks the id (`v-…`), writes the session file and starts the fast assistant warming up.<sup>[<a href="#fn3">3</a>]</sup><sup>[<a href="#fn4">4</a>]</sup> The fast assistant is fed per thought, not per word: your sentences are held while you are still speaking and handed to it together once you have been quiet for 2.5 s (a typed line goes straight in).<sup>[<a href="#fn5">5</a>]</sup><sup>[<a href="#fn6">6</a>]</sup> The smart assistant is fed in batches by `WakePolicy`: one batch when you pause for 12 s, or ask a question, or call it by name, or as soon as each sentence is finished (default every: 1; before 2026-10-25 it was 6), and you can change the 12 s and the count in the dictation settings panel.<sup>[<a href="#fn7">7</a>]</sup><sup>[<a href="#fn8">8</a>]</sup>
+
+1. <a id="fn1"></a>`ext/Session/Session.js:39` (`post()`: `fetch(servex_url("/api/session/<verb>"), {method: "POST"})`) and `:150-170` (`stream()`: `new EventSource(…/api/session/<id>/stream)`).
+2. <a id="fn2"></a>`ext/Session/Session.js:83` (`say()` posts `say`); `Servex/agents/Sessions.js:1468` (the stream route) and `:1471` (the POST route for `new`, `say`, `settings` and the rest).
+3. <a id="fn3"></a>`ux/Dictate/chat.js:72` (`Session.start(…)`, one shared promise so two mounts make one session) and `ext/Session/Session.js:56-57` (`start()` posts `new`).
+4. <a id="fn4"></a>`Servex/agents/Sessions.js:766` (`create()`), `:783` (the `v-` id), `:792` (`prewarm_fast`).
+5. <a id="fn5"></a>`Servex/agents/Sessions.js:970-972` (a spoken line is held with `hold_thought`, released when the floor is not "speaking" and the quiet is at least `answer_quiet_ms`, default 2500 at `:246`), `:977-982` (the else branch: a typed line goes straight to the fast seat).
+6. <a id="fn6"></a>`Servex/agents/Sessions.js:1107-1117` (`release_thought()` hands the held lines to the fast seat in one message).
+7. <a id="fn7"></a>`Servex/agents/Sessions.js:1119` (the same lines also go to `waker.add()`) and `:254-265` (`waker` flushes into `feed_smart()`).
+8. <a id="fn8"></a>`Servex/agents/WakePolicy.js:12` (`WAKE_DEFAULTS = {gap_ms: 12000, every: 1}`), `:66` (the sentence count flush), `:2-5` (pause, question or name, count); the settings panel posts `POST /api/session/settings`: `ext/Chat/Mic.js:388`.
+
+
+**Reading this inside the app:** the sheet's **Docs** tab shows this readme and the module's docs ([`doc/docs-tab.md`](doc/docs-tab.md)).
+
+**Dictation stopped, or the AI never answered? Open the Debug tab** (each step from the mic to the AI's answer, live, with the real error; what the stall was and how it was fixed): [`doc/debug-tab.md`](doc/debug-tab.md).
+
+- `class DictateHealth` (the eight lights, [DictateHealth.js](DictateHealth.js); every error from every stage lands here, and `window` errors and rejections too)
+- `class DictateDebug` (the view, [DictateDebug.js](DictateDebug.js))
+- `class DictateDocs` (the Docs tab: this readme and the docs, rendered in place; [DictateDocs.js](DictateDocs.js), [DictateDocs.css](DictateDocs.css); proof `test/docs-tab.mjs`)
+- `chat.js` calls `report.init(session)` ([ext/Chat/v2/report.js](/framework/ext/Chat/v2/report.js)) once the voice session id is known.
+- **A Question card moves to the end of the chat when it is answered** (2026-10-25): `Widget.js`'s `show_task` drops the row where it was just built (the end of `$bubbles`) instead of moving it back to where it was asked, when `chat.js`'s `draw_task` says `moved` — the same rule, and the same shared signal (`ChatV2Model.newly_answered`), as v2's root-surfacing: [`ext/Chat/readme.md`](/framework/ext/Chat/readme.md).
+- **V1 is the raw log** (the owner, 2026-11-01): every sentence the owner said stays visible, in order, whatever an assistant does with it later — a Question or a Task made from a sentence is drawn IN ADDITION to it, never in place of it, and so does a `place`/`improve` edit's cleaned text. `show_task()` used to set `parent.style.display = "none"` on the owner's own bubble the moment the fast seat turned it into a Question, swallowing the raw words; `place()` separately swapped the raw text for the cleaned one on an "improve" edit. Both fixed: the hide is gone, and an improve edit now patches `{revision: {text, level}}` instead of `{text}`, which `ext/Chat/Chat.js`'s existing `revision_pair_node()` draws as the raw words muted above the cleaned ones (click to toggle) — the pattern already built 2026-09-29 for a revision line, reused rather than duplicated (CLAUDE.md law 6). Proof at `test/raw-stays.mjs` (replays a real exchange from `public/framework/ai/sessions/2026/11/01/v-u48msei/session.jsonl`, with its `place`/`improve` line's text changed to a real clean-up so an overwrite would fail the check).
+- **`chat-live` window event:** the composer's mic (`Widget.js`, `on_live`) also dispatches `new CustomEvent("chat-live", {detail: {text, settled, guess, sent}})` on `window` each time it reports the unsent words, beside the V1 `$thread.live()` call. Nothing in V1 listens; [Chat v3](/framework/ext/Chat/v3/readme.md) draws the same words as its faint draft.
+- The Debug panel in the phone sheet has a resize handle whose height survives a reload ([`SheetPanel.tabs_grip`](/framework/ext/drawer/doc/sheet.md#the-debug-panel-handle-2026-10-25)).
+- **Running the proofs in a fresh worktree:** the mic scripts need the gitignored `ai/recordings/jfk.wav`, and any script that loads the AI pages needs the gitignored `ai/tasks.json` and `ai/page-work.json` (without them a page logs same-origin 404s and fails); copy all three from the main checkout. `chat.js` keeps a controller `epoch`: **New session** while the first send's session is still starting clears the lines drawn and drops that late start, so it cannot bring the old session back (`test/new-session.mjs`, [`doc/chat.md`](doc/chat.md#new-session-and-the-mic-indicator)). A `say` carrying a `kind` (error, click, context) is a diagnostic or context line, never a prompt (`ext/Chat/v2/report.js`).
+- **Stub what the page asks Servex, and count only prompts:** a fenced run answers every Servex call with a 502, and `core/Page/ai/work.js` throws on a non-array `/cards` answer, so a script that opens the Dictate page stubs `/cards?` and `/api/agents` with `[]` (and the session verbs, if it sends). A `POST /api/session/say` with a `kind` is a diagnostic, not a prompt (Recite files one when the sheet opens): a say stub counts only `!body.kind`. A scripted browser skips Whisper `connection` log lines unless `window.$WHISPER_LOG_FORCE = true`. The gear label ("keep talking within it and the words join one prompt") describes `sentences_per_send` above 1; the default is 1. ⬜ A late `Session.resume` join after a reset has no test.
+- Proofs `test/mic-release.mjs` (stop/pause ends every mic track at once; resume reopens it) and `test/sentences.mjs` (a sentence is sent when it ends, [upload.md](doc/upload.md#a-sentence-goes-out-when-it-ends-not-when-you-pause)), `test/errors.mjs` (every error is caught and shown), `test/stall.mjs`, `test/debug-tab.mjs`, `test/deltas.mjs` (repeated, late and fixed lines; the moving ✓/🧠 cursors are not text), `test/in-place.mjs` (words grow in the bubble and settle in place), `test/repeat.mjs` (Whisper's repeated tail), `test/active-session.mjs` (the send, the view and read-aloud agree on the active session through first open, switch, New session and reload: [`doc/chat.md#the-active-session`](doc/chat.md)), `test/order.mjs` (bubbles in the order spoken; a reply between two sentences stays between), `test/v1-order.mjs` (a reply never ends up above an owner line it arrived after: the incident replayed from `test/v1-order-fixture.jsonl` plus the live open-bubble case; nothing on screen swaps places), `test/flicker.mjs` (no word vanishes or moves), `test/chat-sent.mjs` (the two moving cursors reach "done"; the scroll lock and the ↓ button; Questions under their Prompt, their source bubble still visible; bubbles and Chat v2), `test/raw-stays.mjs` (the raw-log rule: a sentence stays on screen once it has a Question or a Task), `test/chat-gray.mjs` (gray-state labels and the faded sent bubble), `test/refresh.mjs` (reload, then dictate: [`doc/debug-tab.md#refresh-then-dictate`](doc/debug-tab.md#refresh-then-dictate)).
+- **Two moving cursors (2026-10-25):** the bubble chat draws the same ✓ (fast seat) / 🧠 (smart seat) cursors Chat v2 has — the one shared pair for the whole bubble (`ext/Chat/cursors.js`), moved onto whichever live piece is newest, never one pair per piece. `ext/Chat/chunks.js` says what a fast chunk / a finished sentence is; `Chat.js`'s `place_live_cursors()` moves the pair. The green Understand check is off for now, the yellow `?` stays: [`ux/Understand/readme.md`](/framework/ux/Understand/readme.md).
+- Errors: [failures.jsonl](/framework/ux/Dictate/failures.jsonl) (dev only: git-ignored, written on this machine at the first failure).
+
+**Whisper said the end twice?** A tail of 5+ words repeating the span before it is dropped, a short real repeat stays: `ux/Dictate/repeat.js`, proof `test/repeat.mjs`, [`mic-notes`](/framework/ext/Chat/doc/mic-notes.md#whisper-repeats-collapse_repeat).
+
+**Words vanished and came back?** The flicker, its cause and the fix: your words become the sent piece in the draft's spot the moment they leave it (`ComposerMic.take_out` → `Widget.show_out`), proof `test/flicker.mjs`: [`doc/flicker.md`](doc/flicker.md).
+
+**Every background job on a spoken sentence** (what runs, the model, the cost, who reads it): [doc/background-work.md](doc/background-work.md).
+
+**Map of every dictation piece** (mic, Whisper, cleaners, chat, voice session, assistants; the duplicates and the plan): [doc/map.md](doc/map.md).
+
+**Every voice and chat surface, one page** (screenshots, who answers, the flow, the 30-second first reply): [`surfaces/`](./surfaces/) · [long form](doc/surfaces.md).
+
+**How Dictate, Refine and tasks connect** (one spoken sentence, from the mic to a task line in the page's feed): [`doc/refine-dictate-tasks.md`](doc/refine-dictate-tasks.md). **The dictation redesign, mocks first** (five ways to lay out the controls, and the pick): [the variants page](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/checkup-sheet/sheet-dictation-mocks/variants/index.html).
+
+**Where a voice session lives** (2026-10-19): in the central session store like every other session, `/framework/ai/sessions/YYYY/MM/DD/<v-id>/session.jsonl`, with `kind: "voice"` on its first line and in Servex's `sessions.json`; older ones are still flat at `<home>ai/<v-id>.jsonl` ([`ext/Session`](/framework/ext/Session/)).
+
+**The voice assistant** (one assistant places each sentence as you talk: same paragraph, own paragraph, own card; the plan and why the chat jumps): [`doc/voice-assistant.md`](doc/voice-assistant.md).
+
+**The single voice assistant** (one Sonnet agent per voice session instead of the fast + smart pair: files every sentence silently, replies on a pause; the `single` setting, per session or at boot): [`doc/single-voice-assistant.md`](doc/single-voice-assistant.md).
+
+**The phone sheet** (✦ at the bottom of every page under 52em): `class Sheet` in [`ext/drawer/Sheet.js`](/framework/ext/drawer/Sheet.js), mounting the one [`chat.js`](chat.js). One layout at every height: a head, a full-width chat well, the mic footer; it opens over the page and snaps open at 90%. **Its connection log:** every lost, retried or restored link to Servex is a `src: "connection"` line in [the Whisper log](/framework/audio/Whisper/log/) (`ai/whisper/bucket.jsonl`). How and why: [ext/drawer/doc/sheet.md](/framework/ext/drawer/doc/sheet.md). Proofs: `test/sheet-steps.mjs` (a shot per 40 px of drag), `test/reconnect.mjs` (a Servex restart).
+
+**Replies read aloud:** `chat.js` hands every event on the live wire to `Recite.shared.from_wire(ev)`, and `DictationBar.mount` puts the Recite bar directly above the mic ([audio/Recite](/framework/audio/Recite/)).
+
+**Replay any reply:** every assistant reply bubble carries the [Recite.Bubble](/framework/audio/Recite/readme.md#architecture) control (▶/⏸ and ↺10; a tap on the text does the same). `Widget.Thread.replay_ctl(bubble)` mounts it for V1 after each piece lands; Chat V2 and V3 mount the same control in `ChatV3.reply()`.
+
+**`DictationBar`** (the phone sheet's one big mic that says its state, a Type button, no Send; switch back in one line): [`doc/refine-dictate-tasks.md#the-bar`](doc/refine-dictate-tasks.md).
+
+**Talking to the mastermind from the Claude app's voice mode** (why not a browser bridge; a connector instead): [`doc/voice-bridge.md`](doc/voice-bridge.md).
+
+State = which engine is listening and what it has heard so far, remembered between
+renders — the graduation rule `Filter` and `Tags` already followed, applied to a
+microphone. Built 2026-09-19 to replace `ext/Ask/mic.js`'s button, whose failures were
+silent: the owner pressed 🎤, the browser's own recording light came on, and nothing
+ever appeared — no error, no clue why.
+
+**What the owner asked, merged and checked** (open first): [`doc/asks.md`](doc/asks.md); **next brief**: [`doc/next.md`](doc/next.md). **Try it on your phone** (talk, watch the five stages land on the session page): [`doc/try-it.md`](doc/try-it.md).
+
+**Is the raw Whisper reply saved?** Yes, every reply on every surface, by `log_whisper()` into the [Whisper](/framework/audio/Whisper/) bucket; watch them arrive on that page ([doc/demo.md](/framework/audio/Whisper/doc/demo.md)). History: [`audio/Whisper/doc/raw-log.md`](/framework/audio/Whisper/doc/raw-log.md).
+
+**When is the smart assistant woken?** Not per sentence: on a pause, a question or name, or every N sentences; the two knobs are per session: [`doc/wake-policy.md`](doc/wake-policy.md).
+
+**The assistant's voice coming back through the mic as your words** (why the existing guards do not stop it; the proposed fix, 2026-11-03): [`doc/echo-and-turn-taking.md`](doc/echo-and-turn-taking.md).
+
+**The thinking sound never plays; two ways to signal "working on it"** (the single seat never fires it, the tone's AudioContext is probably suspended; a code-written "..." marker plus a triple bleep, proposed 2026-11-03): [`doc/thinking-sound.md`](doc/thinking-sound.md).
+
+**The gear panel, organized into Recite and Dictate plugin groups** (reusing the paused `dictate-plugins` branch, on `core/Plugin`, with the settings table to build from): [`doc/settings-plugins.md`](doc/settings-plugins.md).
+
+**Read-aloud on/off and a Hold (mute) button** (what exists, where each lives, what Servex does, proposed 2026-11-03): [`doc/read-aloud-and-hold.md`](doc/read-aloud-and-hold.md).
+
+**The chat jumps while you dictate** (most clean-up edits change nothing, and each redraws the whole bubble or card; the proposed fix, 2026-11-03): [`doc/steady-display.md`](doc/steady-display.md).
+
+**How a reply is paced** (one paragraph at a time, shown then read; title and quoted question not read; conversation mode; questions filed per module): [`doc/reply-pacing.md`](doc/reply-pacing.md), the owner's design, 2026-11-02.
+
+**When should the AI show or speak a reply?** The owner's turn-taking design notes (modes, a short wait after a question, holding replies while you talk, per-sentence smart work, paced streaming, heard-only context) and what is cheapest to try first: [`doc/turn-taking.md`](doc/turn-taking.md).
+
+**What do the fast and smart seats each do, and which model, prompt and effort do they run?** A job-by-seat table, the gaps, a recommended split and how to experiment: [`doc/fast-and-smart.md`](doc/fast-and-smart.md).
+
+**Per-chat plugins (Interrupt, Thinking cue; more to come):** [`VoiceChat/readme.md`](VoiceChat/readme.md), one `VoiceChat` per Recite (one per page, shared by every chat on it) on `core/Plugin`.
+
+**Status line:** one word beside the mic, `listening` / `sending` / `agent working` / `speaking`: [`ChatStatus.js`](ChatStatus.js), [`doc/settings.md`](doc/settings.md#status-line).
+
+**Settings panel:** the ⚙ beside ⌨ on the sheet's bar (and the gear on a plain composer) opens "Chat settings" (built by [`ChatSettings.js`](ChatSettings.js); defaults read and saved by [`ChatDefaults.js`](ChatDefaults.js)): the Whisper knobs, what to send after, read aloud, and interruption, for this session or as the defaults (a session's plugin values live in its `session.jsonl`; the defaults at Servex `/api/session/defaults`); the Whisper values live in `localStorage` key `chat.mic.settings.4` (`ext/Chat/Mic.js` `SETTINGS`): [`doc/settings.md`](doc/settings.md).
+
+**A Whisper hallucination ("Thank you.", "you"…) never reaches the chat:** `chat.js`'s `deliver()` gates every send on the same checks `audio/Recite/BargeIn` already had, before it posts, not after: [`doc/phantom-gate.md`](doc/phantom-gate.md).
+
+**How fast is the first reply?** Measured hop by hop, before and after: [`doc/latency.md`](doc/latency.md). **Raw text slow on the phone?** On a slow uplink the upload is the delay, so the WAV is 8-bit mu-law (half the bytes) and a guess in flight is dropped when the segment ends: [`doc/upload.md`](doc/upload.md).
+
+**Dim to strong:** words still being spoken use `--draft-ink`, and every line once written uses `--final-ink`. The pair is defined in `framework.css`, and V1, V2 and V3 all use it.
+
+**Class architecture of the voice UI** (which class owns what, what is a copy of what): [`doc/voice-architecture.md`](doc/voice-architecture.md). **`VoiceStrip`** is the compact panel Refine and the demo below use; **mobile**: [`doc/mobile-socket-2026-10-09.md`](doc/mobile-socket-2026-10-09.md).
+
+**Streaming UI and context cards** (live 3-line text area, sentences moving up, reference pills, context cards; being designed in Figma): [`doc/streaming-ui.md`](doc/streaming-ui.md).
+
+- Moved verbatim to [doc/readme-full-2026-10-12.md](./doc/readme-full-2026-10-12.md): usage, design and mechanics in full.
+
+## One session across tabs, and settings per device
+
+- **Join, don't start.** A page or tab with no session of its own joins the latest voice session if that had a line in the last **30 minutes** (`JOIN_IDLE_MS` in [chat.js](chat.js)). Only a longer idle gap, or the New session button, starts a fresh one. So a link opened in a new tab, or the Recite page, joins the conversation in use.
+- **Read-aloud follows the session on every page:** the ✦ Sheet starts [Recite](/framework/audio/Recite/) and follows the page's session, or, with none, the voice session that had a line within the same 30 minutes ([ext/drawer/Sheet.js](../../ext/drawer/Sheet.js) `read_aloud()`).
+- **The mic does not restart by itself after a reload.** The browser grants the mic without a tap once allowed, but it keeps a new `AudioContext` suspended until the page gets a tap (Chrome's autoplay rule), and the mic's capture and level meter run on one. So the first tap after a reload starts it.
+- **⬜ Settings are per device today.** The gear's settings (send delay, wake, voice, speed) live in this browser's `localStorage`, so a phone and a desktop differ. The owner wants one set that applies everywhere (2026-11-01): a settings record in Servex, read at load, with the browser's copy as a cache.
+
+## Also here (readme audit, 2026-10-13)
+- [playground](./playground/) — The dictation playground — a full-bleed, live diagram of a dictation session
+- [surfaces](./surfaces/) — every voice and chat surface on one page
+- [v1](./v1/)
+- [variants](./variants/) — Dictate variants — the same mic, a different look (or, once, a different mic)
+- [workspace](./workspace/)
+- [MicIndicator](MicIndicator.js) — the one mic-state badge every voice surface shows
+
+## More
+
+- **Wide screens** (2026-10-17): [`page.js`](./page.js) wraps the Overview in `.ux-dictate-page`; below 1920 it is the single 40em column it always was, from 1920 up the workbench sits on the left and the rest flows into 28em CSS columns (`Dictate.css`), like [/tasks/](/tasks/). Empty share at 3440: 0.74 before, 0.42 after. The alternative, a Browse view, needs more code.
+
+- **Sentence-per-send on the shared composer** (2026-10-16): `composer({ per_sentence: true })` makes each finished sentence leave the box while the next is still heard; the Refine page uses it, this page's `chat()` keeps the default (pause mode already sends each sentence as a bubble). Proof: `ext/Refine/test/composer-flow.mjs` and a fake-mic run of this page.
+
+- [`doc/sessions.md`](./doc/sessions.md) — one rolling voice session or many: the New session button tested, the decision (one rolling session is the direction, the button stays), and the dry-run chunker `chunk-session.mjs`
+- [`doc/architecture.md`](./doc/architecture.md) — the decisions that hold today, and why (no longer in the drawer's Docs tab: [why](doc/docs-tab.md))
+
+**The owner's direction, 2026-10-20: dictation on the website first** (one assistant, hands-free; a global named voice session with a session manager; the widget cleanup asks that never landed; the font flicker): [doc/owner-2026-10-20-dictation-first.md](doc/owner-2026-10-20-dictation-first.md).
+
+- [Design decisions 2026-10-27](/framework/ai/design-decisions-2026-10-27.md) — sentences are written instantly by code; the fast seat is paused as a placer (leaning), the chat is one stored list.
+
+**Bubble layout (2026-11-02):** the Dictate bubbles use the one shared rule set, [`ext/Chat/bubbles.css`](/framework/ext/Chat/readme.md#the-layout-your-words-on-the-right-the-assistants-plain-on-the-left-2026-11-02): your words are a hugging pill on the right, the assistant's plain text on the left. `Widget.css` only sets the width token for them (`.ux-dictate-widget-bubbles { --bubble-max: min(80%, 40rem) }`, 80% on a phone); change the look in `bubbles.css`, not here.

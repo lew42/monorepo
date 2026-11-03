@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/live/",
+ "widths": {
+  "1280": {
+   "empty": 0.94,
+   "widest_text": 724,
+   "widest_text_sample": "Nothing on screen. The voice agent shows",
+   "overflow_x": false,
+   "items": 4,
+   "narrow_share": 1
+  },
+  "1920": {
+   "empty": 0.96,
+   "widest_text": 724,
+   "widest_text_sample": "Nothing on screen. The voice agent shows",
+   "overflow_x": false,
+   "items": 4,
+   "narrow_share": 1
+  },
+  "2560": {
+   "empty": 0.97,
+   "widest_text": 724,
+   "widest_text_sample": "Nothing on screen. The voice agent shows",
+   "overflow_x": false,
+   "items": 4,
+   "narrow_share": 1
+  },
+  "3440": {
+   "empty": 0.974,
+   "widest_text": 724,
+   "widest_text_sample": "Nothing on screen. The voice agent shows",
+   "overflow_x": false,
+   "items": 4,
+   "narrow_share": 1
+  }
+ },
+ "errors": []
+}

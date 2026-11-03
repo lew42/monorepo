@@ -1,28 +1,38 @@
-import { Page, md, demo, div, p, code, button, toc } from "/app.js";
+import { Page, md, demo, div, p, h3, code, button, toc } from "/app.js";
 
-/* This page ships no stylesheet, and neither does any page under it — every
- * box, column and label is built from framework.css utilities. A section
- * arguing for less CSS that needed its own would be arguing against itself. */
+/* This page ships no stylesheet, and neither does any page under it — every box,
+   column and label is built from framework.css utilities. A section arguing for
+   less CSS that needed its own would be arguing against itself. */
 
 export default new Page({
 	meta: import.meta,
-	title: "Styles",
-	description: "Three layers, six type levels, twelve tokens — and as little else as possible.",
+	title: "Style library",
+	description: "Every token, ground, class and layout the CSS ships, shown live. How to write CSS is next door at Code: CSS; what a thing should look like is Design.",
 	icon: "palette",
-	children: "layers elements layouts components sections",
-
-	// Labels and icons come from the five pages themselves. `children` stays a
-	// string of NAMES — an eager array here fetched the whole styles subtree on
-	// every visit to any page under it (8 modules for a 5-deep url, measured); this
-	// holds one level, not the tree.
-	initialize(){ this.load_all_children(); },
+	children: "system rules layers elements stacks layouts sections widths",
 
 	content(){
 
+		md("**What goes here:** every token, ground, class and layout the CSS ships, shown live. **Next door:** how and where to write a rule → [Code: CSS](/framework/code/css/); what a thing should look like → [Design](/framework/design/).");
+
+		md("## The system on one screen");
+
+		demo(() => {
+			div.c("grid auto gap", () => {
+				for (const ground of ["bg-white", "bg-light", "bg-prime", "bg-dark"]) div.c(`card ${ground}`, () => {
+					h3(ground);
+					p.c("muted", "A card on this ground; the ink comes with it.");
+					div.c("card", () => p("A card inside steps one shade darker by itself."));
+				});
+			});
+		}, "Three colour tokens (`--prime` `--light` `--dark`), four grounds (`bg-white` `bg-light` `bg-prime` `bg-dark`), one `.card`. Lighten and darken are one rule: white or black at 8, 16 or 32 percent. The decisions and the alternatives: [doc/architecture.md](/framework/styles/doc/architecture.md); the card itself: [/framework/ui/card/](/framework/ui/card/).");
+
 		toc();
 
-		// Sub-page nav first: what's under here, before what's on here.
+		// what's under here, before what's on here
 		this.previews();
+
+		md("**The design system is one page: [/framework/styles/system/](/framework/styles/system/)** — the seven lengths every space on this site is made of, painted at your window's width, and the class you type to ask for each one. Start there; the rest of this page is the CSS strategy underneath it.");
 
 		demo(() => {
 			div.c("flex gap v-center pad", () => {
@@ -34,15 +44,15 @@ export default new Page({
 
 		md("## Write as little as possible");
 
-		md("`framework.css` should contain nothing you'd ever want to override, and a new module should add nothing you have to fight later. **Stop at the first rung that works:**\n\n1. **Nothing.** The default already handles it.\n2. **A utility class** — `flex gap v-center pad h2`.\n3. **An existing component's class** — `.page-preview`, `.sidebar-link`.\n4. **The module's own `.css` — layout only.** Where things sit, how they size. Not color, not borders, not type.\n5. **`/styles.css` — skin.** This site's opinion, loaded last.\n\nRung 4 is the one that needs policing, so it gets a test: *would this rule still be right if the component were dropped into a completely different site?* Flex sizing, yes. `background: #eef0f4`, no.\n\nAnd the rule that keeps the base honest: **if you ever override a `framework.css` rule, that's a bug report about `framework.css`.** The fix is to delete the rule or move it behind a class — never to out-specify it downstream.");
+		md("`framework.css` should contain nothing you'd ever want to override, and a new module should add nothing you have to fight later. **Stop at the first rung that works:**\n\n1. **Nothing.** The default already handles it.\n2. **A utility class** — `flex gap v-center pad h2`.\n3. **An existing component's class** — `.page-preview`, `.surface`, `.sidebar-link`.\n4. **The module's own `.css` — layout only.** Where things sit, how they size. Not color, not borders, not type.\n5. **`/styles.css` — skin.** This site's opinion, loaded last.\n\nRung 4 is the one that needs policing, so it gets a test: *would this rule still be right if the component were dropped into a completely different site?* Flex sizing, yes. `background: #eef0f4`, no.\n\nAnd the rule that keeps the base honest: **if you ever override a `framework.css` rule, that's a bug report about `framework.css`.** The fix is to delete the rule or move it behind a class — never to out-specify it downstream.");
 
-		md("## Three layers");
+		md("## Four layers");
 
-		md("```css\n@layer base, theme, site, util;\n```\n\n| layer | holds | |\n| --- | --- | --- |\n| [`base`](/framework/styles/layers/base/) | the reset — ten rules fixing browser defaults | never a look |\n| [`theme`](/framework/styles/layers/theme/) | tokens + the default look; components add here too | **this is a theme**, the one you get free |\n| [`site`](/framework/styles/layers/site/) | `/styles.css` — this site's skin | beats the framework at *any* specificity |\n| [`util`](/framework/styles/layers/util/) | opt-in classes | last, because you typed `.pad` on purpose |\n\nEvery stylesheet restates that line **in full**. The first `@layer` statement fixes the order, and a name that first appears later is appended at the *end* — so one short list anywhere would silently drop `site` past `util`.");
+		md("```css\n@layer base, theme, site, util;\n```\n\n| layer | holds | |\n| --- | --- | --- |\n| [`base`](/framework/styles/layers/base/) | the reset — ten rules fixing browser defaults | never a look |\n| [`theme`](/framework/styles/layers/theme/) | tokens + the default look; components add here too | **this is a theme**, the one you get free |\n| [`site`](/framework/styles/layers/site/) | `/styles.css` — this site's skin | beats the framework at *any* specificity |\n| [`util`](/framework/styles/layers/util/) | opt-in classes | last, because you typed `.pad` on purpose |\n\nThat line lives once, in `framework.css`, which `app.js` loads first in every document — so no other stylesheet restates it. A rule just names its layer; a name outside the four is appended at the *end*, past `util`.");
 
 		md("## Escalation is a ratchet");
 
-		md("Use a cascade mechanism to win and you can't reuse it — you've spent that rung for everyone after you. There are five, and each works once:\n\n**specificity → a layer → unlayered → `!important` → inline `!important`**\n\nSo:\n\n> **Never escalate downstream. De-escalate upstream.**\n\nWhen site CSS can't beat framework CSS, don't raise the site — *lower the framework*. It has room to go down (a flatter selector, a token); downstream has nowhere to go up that doesn't cost the next person. **The framework holds the low ground on purpose so nobody downstream has to climb.**\n\nThat's the method behind *\"override = bug report\"*. The `site` layer exists so you rarely need even the first rung — and if you find yourself fighting anyway, the framework is missing a token. Go add it there.");
+		md("Use a cascade mechanism to win and you can't reuse it — you've spent that rung for everyone after you. There are five, and each works once:\n\n**specificity → a layer → unlayered → `!important` → inline `!important`**\n\nSo:\n\n> **Never escalate downstream. De-escalate upstream.**\n\nWhen site CSS can't beat framework CSS, don't raise the site — *lower the framework*. It has room to go down (a flatter selector, a token); downstream has nowhere to go up that doesn't cost the next person. **The framework holds the low ground on purpose.**");
 
 		md("## The type scale");
 
@@ -60,11 +70,12 @@ export default new Page({
 
 		md("```js\n/* css: .page, .page-title, .page-previews, .page-preview */\nimport \"../Page/Page.class.js\";\n```\n\nIt won't detect a rename — nothing without a build step will. It makes the dependency **greppable**, which is the win.");
 
-		md("## The three layers, line by line");
+		md("## Where the components went");
 
+		md("The nineteen-component gallery that used to live under here is now [`/framework/ui/`](/framework/ui/). It was never *about* the CSS strategy — it was a library built on top of it, and one directory of doc pages arguing for less CSS should not also be the place you go to copy an accordion.");
 
 		md("Next: [Layers](/framework/styles/layers/) — the four layers, one page per layer.");
 
-		md.details(import.meta, "readme.md", "Design record — strategy, dependencies & open questions");
+		md.details(import.meta, "readme.md", "Readme");
 	}
 });

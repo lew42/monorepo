@@ -1,0 +1,6 @@
+verdict: fix
+1. [fix] The diff is one small search tweak; the task's other deliverables are absent from the tree: no `checkup.md` in the task dir, no `ai/doc/owner-2026-10-17-finding-past-work.md` (nor a link in `ai/readme.md`), and no Haiku-searcher pattern in `.claude/skills/past-work/SKILL.md`. The task dir holds only requirements.md, salvage-branches.tsv, task.jsonl and review/.
+2. [fix] `AISessionsPage.js` haystack (line ~226) reads `ix.tags`, but session tags are folded into the `meta[id].tags` record (`AISession.js:490`, used at `AISessionsPage.js:311`), not onto `ix`. Unless `ix` also carries `tags`, the local search never matches a tag; the readme and placeholder now promise it does.
+3. [note] `SEARCH_FIELDS` now includes `"tags"` for remote mode (`AISessionsPage.js` ~line 512). I could not confirm node's session rows carry a `tags` field. It needs a live check that searching `page/live-cards` returns rows.
+4. [note] No sign of the salvage decisions (only `salvage-branches.tsv`), the whisper-log headless check, the subpages verification, or the past-work-audit findings folding. The requirements list these as jobs 2 to 5. Nothing shows they were closed.
+5. [note] A simpler route for task 1: the existing `tag_filter` (`AISessionsPage.js:311`) already filters by tag. Surfacing it as clickable tag chips is clearer than free-text matching on tags.

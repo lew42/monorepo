@@ -1,0 +1,7 @@
+{"class":"/framework/ai2/card.js","title":"Slow changes, work in parallel","type":"card","id":"2026/09/19/v3-notes","created":"2026-09-19T16:02:17-05:00","by":"assistant","tags":[]}
+{"legacy":"v3-notes"}
+{"status":"working"}
+{"text":"Nix the line-height on V3 CSS line 181 through a quick minion now, not a queue. Get the left timeline grid with a background layer, full bleed, and the usage bars in a footer across both columns."}
+{"icon":"dashboard"}
+{"re":"o-164909"}
+{"focus":true}

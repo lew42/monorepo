@@ -1,0 +1,4 @@
+{"class":"/framework/ai2/card.js","title":"Why the assistant did not work: it answered in its own chat only","type":"card","id":"2026/09/19/assistant-check","created":"2026-09-19T15:34:47-05:00","by":"","tags":[]}
+{"legacy":"assistant-check"}
+{"status":"working"}
+{"text":"I read its transcript. It loaded the skill and read the state correctly, then answered you twice inside its own VS Code chat. It never posted to the dev bar and never relayed anything to me, so from your side nothing happened.\nThe cause is my skill. Posting took two steps, writing a file and then running a command, and a fast, low effort model skipped them and just talked.\nI am fixing it now: posting becomes one short command, and the skill says bluntly that an answer which is only in its chat was never given. I will tell you here the moment it is ready to try again."}

@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/2026-10-03/module/core-page/",
+ "widths": {
+  "1280": {
+   "empty": 0.642,
+   "widest_text": 592,
+   "widest_text_sample": "Landed. /framework/ai/live/: console lin",
+   "overflow_x": false,
+   "items": 43,
+   "narrow_share": 0.442
+  },
+  "1920": {
+   "empty": 0.74,
+   "widest_text": 630,
+   "widest_text_sample": "Landed. /framework/ai/live/: console lin",
+   "overflow_x": false,
+   "items": 43,
+   "narrow_share": 0.884
+  },
+  "2560": {
+   "empty": 0.762,
+   "widest_text": 708,
+   "widest_text_sample": "Landed. /framework/ai/live/: console lin",
+   "overflow_x": false,
+   "items": 43,
+   "narrow_share": 0.884
+  },
+  "3440": {
+   "empty": 0.83,
+   "widest_text": 708,
+   "widest_text_sample": "Landed. /framework/ai/live/: console lin",
+   "overflow_x": false,
+   "items": 43,
+   "narrow_share": 0.884
+  }
+ },
+ "errors": []
+}

@@ -1,0 +1,318 @@
+{
+	"App": {
+		"url": "/framework/core/App/",
+		"icon": "data_object",
+		"common": true
+	},
+	"Item": {
+		"url": "/framework/core/Item/",
+		"icon": "data_object",
+		"common": true
+	},
+	"Layout": {
+		"url": "/framework/core/Layout/",
+		"icon": "data_object",
+		"common": true
+	},
+	"List": {
+		"url": "/framework/core/List/",
+		"icon": "data_object",
+		"common": true
+	},
+	"Page": {
+		"url": "/framework/core/Page/",
+		"icon": "data_object",
+		"common": true
+	},
+	"Router": {
+		"url": "/framework/core/Router/",
+		"icon": "data_object",
+		"common": true
+	},
+	"Search": {
+		"url": "/framework/core/Search/",
+		"icon": "data_object",
+		"common": true
+	},
+	"Section": {
+		"url": "/framework/core/Section/",
+		"icon": "data_object",
+		"common": true
+	},
+	"Session": {
+		"url": "/framework/ext/Session/",
+		"icon": "extension",
+		"common": true
+	},
+	"Shell": {
+		"url": "/framework/core/Shell/",
+		"icon": "data_object",
+		"common": true
+	},
+	"Sidebar": {
+		"url": "/framework/core/Sidebar/",
+		"icon": "data_object",
+		"common": true
+	},
+	"Task": {
+		"url": "/framework/core/Task/",
+		"icon": "data_object",
+		"common": true
+	},
+	"View": {
+		"url": "/framework/core/View/",
+		"icon": "data_object",
+		"common": true
+	},
+	"AITask": {
+		"url": "/framework/ext/AITask/",
+		"icon": "extension"
+	},
+	"Ask": {
+		"url": "/framework/ext/Ask/",
+		"icon": "extension",
+		"common": true
+	},
+	"Chat": {
+		"url": "/framework/ext/Chat/",
+		"icon": "extension",
+		"common": true
+	},
+	"Classify": {
+		"url": "/framework/ext/Classify/",
+		"icon": "extension",
+		"common": true
+	},
+	"Collab": {
+		"url": "/framework/ext/Collab/",
+		"icon": "extension",
+		"common": true
+	},
+	"DataGrid": {
+		"url": "/framework/ext/DataGrid/",
+		"icon": "extension"
+	},
+	"DesignTool": {
+		"url": "/framework/ext/DesignTool/",
+		"icon": "extension"
+	},
+	"Doc": {
+		"url": "/framework/ext/Doc/",
+		"icon": "extension",
+		"common": true
+	},
+	"Draggable": {
+		"url": "/framework/ext/Draggable/",
+		"icon": "extension"
+	},
+	"Dropdown": {
+		"url": "/framework/ext/Dropdown/",
+		"icon": "extension"
+	},
+	"ErrorLog": {
+		"url": "/framework/ext/ErrorLog/",
+		"icon": "extension"
+	},
+	"Figma": {
+		"url": "/framework/ext/Figma/",
+		"icon": "extension"
+	},
+	"JSONL": {
+		"url": "/framework/ext/JSONL/",
+		"icon": "extension"
+	},
+	"Mention": {
+		"url": "/framework/ext/Mention/",
+		"icon": "extension"
+	},
+	"Omnibox": {
+		"url": "/framework/ext/Omnibox/",
+		"icon": "extension"
+	},
+	"Panel": {
+		"url": "/framework/ext/Panel/",
+		"icon": "extension",
+		"common": true
+	},
+	"Refine": {
+		"url": "/framework/ext/Refine/",
+		"icon": "extension",
+		"common": true
+	},
+	"Research": {
+		"url": "/framework/ext/Research/",
+		"icon": "extension",
+		"common": true
+	},
+	"Saver": {
+		"url": "/framework/ext/Saver/",
+		"icon": "extension"
+	},
+	"System": {
+		"url": "/framework/ext/System/",
+		"icon": "extension",
+		"common": true
+	},
+	"Timeline": {
+		"url": "/framework/ext/Timeline/",
+		"icon": "extension",
+		"common": true
+	},
+	"Auth": {
+		"url": "/framework/ux/Auth/",
+		"icon": "touch_app",
+		"common": true
+	},
+	"Card": {
+		"url": "/framework/ux/Card/",
+		"icon": "touch_app",
+		"common": true
+	},
+	"Content": {
+		"url": "/framework/ux/Content/",
+		"icon": "touch_app",
+		"common": true
+	},
+	"Course": {
+		"url": "/framework/ux/Course/",
+		"icon": "touch_app",
+		"common": true
+	},
+	"Dictate": {
+		"url": "/framework/ux/Dictate/",
+		"icon": "touch_app"
+	},
+	"Filter": {
+		"url": "/framework/ux/Filter/",
+		"icon": "touch_app",
+		"common": true
+	},
+	"Hotkeys": {
+		"url": "/framework/ux/Hotkeys/",
+		"icon": "touch_app",
+		"common": true
+	},
+	"Inbox": {
+		"url": "/framework/ux/Inbox/",
+		"icon": "touch_app",
+		"common": true
+	},
+	"Menu": {
+		"url": "/framework/ux/Menu/",
+		"icon": "touch_app",
+		"common": true
+	},
+	"Objects": {
+		"url": "/framework/ux/Objects/",
+		"icon": "touch_app",
+		"common": true
+	},
+	"Pagination": {
+		"url": "/framework/ux/Pagination/",
+		"icon": "touch_app",
+		"common": true
+	},
+	"Popover": {
+		"url": "/framework/ux/Popover/",
+		"icon": "touch_app",
+		"common": true
+	},
+	"Rename": {
+		"url": "/framework/ux/Rename/",
+		"icon": "touch_app",
+		"common": true
+	},
+	"Revise": {
+		"url": "/framework/ux/Revise/",
+		"icon": "touch_app",
+		"common": true
+	},
+	"Tags": {
+		"url": "/framework/ux/Tags/",
+		"icon": "touch_app",
+		"common": true
+	},
+	"Tree": {
+		"url": "/framework/ux/Tree/",
+		"icon": "touch_app",
+		"common": true
+	},
+	"Understand": {
+		"url": "/framework/ux/Understand/",
+		"icon": "touch_app",
+		"common": true
+	},
+	"Wizard": {
+		"url": "/framework/ux/Wizard/",
+		"icon": "touch_app",
+		"common": true
+	},
+	"LevelMeter": {
+		"url": "/framework/audio/LevelMeter/",
+		"icon": "graphic_eq"
+	},
+	"mic-to-text": {
+		"url": "/framework/audio/mic-to-text/",
+		"icon": "graphic_eq"
+	},
+	"MicPicker": {
+		"url": "/framework/audio/MicPicker/",
+		"icon": "graphic_eq"
+	},
+	"MicStream": {
+		"url": "/framework/audio/MicStream/",
+		"icon": "graphic_eq"
+	},
+	"push-to-talk": {
+		"url": "/framework/audio/push-to-talk/",
+		"icon": "graphic_eq"
+	},
+	"PushToTalk": {
+		"url": "/framework/audio/PushToTalk/",
+		"icon": "graphic_eq"
+	},
+	"Recorder": {
+		"url": "/framework/audio/Recorder/",
+		"icon": "graphic_eq",
+		"common": true
+	},
+	"sound-recorder": {
+		"url": "/framework/audio/sound-recorder/",
+		"icon": "graphic_eq"
+	},
+	"Transcriber": {
+		"url": "/framework/audio/Transcriber/",
+		"icon": "graphic_eq"
+	},
+	"Voice": {
+		"url": "/framework/audio/Voice/",
+		"icon": "graphic_eq",
+		"common": true
+	},
+	"Whisper": {
+		"url": "/framework/audio/Whisper/",
+		"icon": "graphic_eq"
+	},
+	"Claim": {
+		"url": "/framework/dev/Claim/",
+		"icon": "terminal",
+		"common": true
+	},
+	"DevBar": {
+		"url": "/framework/dev/DevBar/",
+		"icon": "terminal"
+	},
+	"DevShell": {
+		"url": "/framework/dev/DevShell/",
+		"icon": "terminal"
+	},
+	"Socket": {
+		"url": "/framework/dev/Socket/",
+		"icon": "terminal",
+		"common": true
+	},
+	"quick-fix": {
+		"url": "/framework/ai/quick-fix/",
+		"icon": "smart_toy"
+	}
+}

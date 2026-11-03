@@ -1,0 +1,5 @@
+{"class":"/framework/ai2/card.js","title":"In flight tonight: 5 tasks stalled, 2 restarted","type":"note","id":"2026/09/28/in-flight-tonight-5-tasks-stalled-2-rest","created":"2026-09-28T22:41:36-05:00","by":"servex-mastermind-opus","tags":[]}
+{"file":"about.md"}
+{"file":"about.md"}
+{"place":"about.md"}
+{"place":{"module":"/framework/ux/Content/Decision/Decision.js","id":"d-resume-stalled","ask":"Resume the 5 held tasks?","options":[{"say":"Fix the queue bug first, then resume them one or two at a time","caveat":"Slower, but nothing gets lost again. About $5 for the fix."},{"say":"Resume all 5 now","caveat":"Fastest, but it may pile up in the memory queue again."},{"say":"Leave them until I look","caveat":"Nothing spends; the work so far stays in their worktrees."}]}}

@@ -1,0 +1,34 @@
+[
+ {
+  "from": "public/framework/ai/sessions/Session.js",
+  "to": "public/framework/ai/archive/retired/2026-10-13/sessions/Session.js"
+ },
+ {
+  "from": "public/framework/ai/sessions/SessionDetail.js",
+  "to": "public/framework/ai/archive/retired/2026-10-13/sessions/SessionDetail.js"
+ },
+ {
+  "from": "public/framework/ai/sessions/SessionFollow.js",
+  "to": "public/framework/ai/archive/retired/2026-10-13/sessions/SessionFollow.js"
+ },
+ {
+  "from": "public/framework/ai/sessions/SessionLive.js",
+  "to": "public/framework/ai/archive/retired/2026-10-13/sessions/SessionLive.js"
+ },
+ {
+  "from": "public/framework/ai/sessions/SessionRows.js",
+  "to": "public/framework/ai/archive/retired/2026-10-13/sessions/SessionRows.js"
+ },
+ {
+  "from": "public/framework/ai/sessions/SessionTrace.js",
+  "to": "public/framework/ai/archive/retired/2026-10-13/sessions/SessionTrace.js"
+ },
+ {
+  "from": "public/framework/ai/sessions/SessionView.js",
+  "to": "public/framework/ai/archive/retired/2026-10-13/sessions/SessionView.js"
+ },
+ {
+  "from": "public/framework/ai/sessions/SessionsPage.js",
+  "to": "public/framework/ai/archive/retired/2026-10-13/sessions/SessionsPage.js"
+ }
+]

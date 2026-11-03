@@ -1,0 +1,15 @@
+/* Restated IN FULL — the first @layer statement in the document fixes the cascade
+   order; a short list silently misplaces `site`. Do not "deduplicate" it. */
+@layer base, theme, site, util;
+
+@layer theme {
+
+	/* THE Session PAGE DEMO (`page.js`) — everything here is `session-demo-*`.
+	   voice-fixes review item 10: this list used to be three inline `.style()`
+	   flex calls on the Recent list; a class here is the house style. */
+	.session-demo-recent {
+		display: flex;
+		flex-wrap: wrap;
+		gap: .5em;
+	}
+}

@@ -1,0 +1,276 @@
+{
+ "at": "2026-10-13T22:30:52.471Z",
+ "min_chars": 60,
+ "lines_in_files": 138445,
+ "lines_scanned": 138439,
+ "blank_lines": 6,
+ "lines_agree": true,
+ "sdk": {
+  "files": 9692,
+  "user_lines": 232603,
+  "bytes": 7355619186
+ },
+ "writers": {
+  "prompt-hook": {
+   "files": 7,
+   "tracked_files": 0,
+   "file_bytes": 6735757,
+   "tracked_bytes": 0,
+   "lines": 4622,
+   "text_bytes": 6072554,
+   "dup_bytes": 5567341,
+   "tracked_dup_bytes": 0,
+   "units": 4572,
+   "dup_units": 3761
+  },
+  "dictate-logs": {
+   "files": 44,
+   "tracked_files": 18,
+   "file_bytes": 684275,
+   "tracked_bytes": 461739,
+   "lines": 2219,
+   "text_bytes": 244713,
+   "dup_bytes": 0,
+   "tracked_dup_bytes": 0,
+   "units": 1121,
+   "dup_units": 0
+  },
+  "page-card": {
+   "files": 4990,
+   "tracked_files": 748,
+   "file_bytes": 194867466,
+   "tracked_bytes": 2217497,
+   "lines": 31783,
+   "text_bytes": 184041941,
+   "dup_bytes": 179723257,
+   "tracked_dup_bytes": 13640,
+   "units": 30987,
+   "dup_units": 5471
+  },
+  "task-chat": {
+   "files": 1498,
+   "tracked_files": 1498,
+   "file_bytes": 15981600,
+   "tracked_bytes": 15981600,
+   "lines": 38419,
+   "text_bytes": 83901,
+   "dup_bytes": 1658,
+   "tracked_dup_bytes": 1658,
+   "units": 153,
+   "dup_units": 9
+  },
+  "requirements": {
+   "files": 1389,
+   "tracked_files": 1385,
+   "file_bytes": 5529465,
+   "tracked_bytes": 5515968,
+   "lines": 56257,
+   "text_bytes": 5387049,
+   "dup_bytes": 188179,
+   "tracked_dup_bytes": 182671,
+   "units": 10257,
+   "dup_units": 300
+  },
+  "words": {
+   "files": 7,
+   "tracked_files": 6,
+   "file_bytes": 1823789,
+   "tracked_bytes": 1823789,
+   "lines": 648,
+   "text_bytes": 1693070,
+   "dup_bytes": 1662792,
+   "tracked_dup_bytes": 1662792,
+   "units": 636,
+   "dup_units": 560
+  },
+  "owner-prompts": {
+   "files": 1,
+   "tracked_files": 1,
+   "file_bytes": 7585405,
+   "tracked_bytes": 7585405,
+   "lines": 4497,
+   "text_bytes": 6953541,
+   "dup_bytes": 6372547,
+   "tracked_dup_bytes": 6372547,
+   "units": 6038,
+   "dup_units": 3821
+  }
+ },
+ "files": [
+  {
+   "rel": "public/framework/ai/sessions/2026/10/12/session-d4cd44ab/asks-by-module/owner-prompts.jsonl",
+   "writer": "owner-prompts",
+   "tracked": true,
+   "bytes": 7585405,
+   "dup_bytes": 6372547
+  },
+  {
+   "rel": ".claude/prompts/2026-09-29.jsonl",
+   "writer": "prompt-hook",
+   "tracked": false,
+   "bytes": 2360891,
+   "dup_bytes": 2006417
+  },
+  {
+   "rel": "public/framework/ai/sessions/2026/10/06/feedback-council/words.jsonl",
+   "writer": "words",
+   "tracked": true,
+   "bytes": 1820798,
+   "dup_bytes": 1662792
+  },
+  {
+   "rel": ".claude/prompts/2026-09-30.jsonl",
+   "writer": "prompt-hook",
+   "tracked": false,
+   "bytes": 1416878,
+   "dup_bytes": 1112782
+  },
+  {
+   "rel": ".claude/prompts/2026-10-02.jsonl",
+   "writer": "prompt-hook",
+   "tracked": false,
+   "bytes": 1144932,
+   "dup_bytes": 1025696
+  },
+  {
+   "rel": ".claude/prompts/2026-10-01.jsonl",
+   "writer": "prompt-hook",
+   "tracked": false,
+   "bytes": 1045826,
+   "dup_bytes": 872168
+  },
+  {
+   "rel": "public/framework/ai/sessions/2026/10/03/session-b9e969d8/page.jsonl",
+   "writer": "page-card",
+   "tracked": false,
+   "bytes": 450323,
+   "dup_bytes": 427394
+  },
+  {
+   "rel": "public/framework/ai/sessions/2026/10/03/session-635abe67/page.jsonl",
+   "writer": "page-card",
+   "tracked": false,
+   "bytes": 450195,
+   "dup_bytes": 427258
+  },
+  {
+   "rel": "public/framework/ai/sessions/2026/10/03/session-b429e22e/page.jsonl",
+   "writer": "page-card",
+   "tracked": false,
+   "bytes": 449236,
+   "dup_bytes": 426342
+  },
+  {
+   "rel": "public/framework/ai/sessions/2026/10/03/session-de8a11ca/page.jsonl",
+   "writer": "page-card",
+   "tracked": false,
+   "bytes": 449108,
+   "dup_bytes": 426206
+  },
+  {
+   "rel": "public/framework/ai/sessions/2026/10/03/session-140db870/page.jsonl",
+   "writer": "page-card",
+   "tracked": false,
+   "bytes": 448149,
+   "dup_bytes": 425290
+  },
+  {
+   "rel": "public/framework/ai/sessions/2026/10/03/session-395ea66a/page.jsonl",
+   "writer": "page-card",
+   "tracked": false,
+   "bytes": 448021,
+   "dup_bytes": 425154
+  },
+  {
+   "rel": "public/framework/ai/sessions/2026/10/03/session-3730dd56/page.jsonl",
+   "writer": "page-card",
+   "tracked": false,
+   "bytes": 448020,
+   "dup_bytes": 425050
+  },
+  {
+   "rel": "public/framework/ai/sessions/2026/10/03/session-7ae6d628/page.jsonl",
+   "writer": "page-card",
+   "tracked": false,
+   "bytes": 447062,
+   "dup_bytes": 424238
+  },
+  {
+   "rel": "public/framework/ai/sessions/2026/10/03/session-c1aa5d46/page.jsonl",
+   "writer": "page-card",
+   "tracked": false,
+   "bytes": 446934,
+   "dup_bytes": 424102
+  },
+  {
+   "rel": "public/framework/ai/sessions/2026/10/03/session-3ceefd15/page.jsonl",
+   "writer": "page-card",
+   "tracked": false,
+   "bytes": 446933,
+   "dup_bytes": 423998
+  },
+  {
+   "rel": "public/framework/ai/sessions/2026/10/03/session-d843bf57/page.jsonl",
+   "writer": "page-card",
+   "tracked": false,
+   "bytes": 445975,
+   "dup_bytes": 423186
+  },
+  {
+   "rel": "public/framework/ai/sessions/2026/10/03/session-a14e318c/page.jsonl",
+   "writer": "page-card",
+   "tracked": false,
+   "bytes": 445847,
+   "dup_bytes": 423050
+  },
+  {
+   "rel": "public/framework/ai/sessions/2026/10/03/session-ae39f053/page.jsonl",
+   "writer": "page-card",
+   "tracked": false,
+   "bytes": 445846,
+   "dup_bytes": 422946
+  },
+  {
+   "rel": "public/framework/ai/sessions/2026/10/03/session-f28d901e/page.jsonl",
+   "writer": "page-card",
+   "tracked": false,
+   "bytes": 444888,
+   "dup_bytes": 422134
+  },
+  {
+   "rel": "public/framework/ai/sessions/2026/10/03/session-9bad9cc7/page.jsonl",
+   "writer": "page-card",
+   "tracked": false,
+   "bytes": 444760,
+   "dup_bytes": 421998
+  },
+  {
+   "rel": "public/framework/ai/sessions/2026/10/03/session-089d170c/page.jsonl",
+   "writer": "page-card",
+   "tracked": false,
+   "bytes": 444759,
+   "dup_bytes": 421894
+  },
+  {
+   "rel": "public/framework/ai/sessions/2026/10/03/session-3a7fd386/page.jsonl",
+   "writer": "page-card",
+   "tracked": false,
+   "bytes": 443673,
+   "dup_bytes": 420946
+  },
+  {
+   "rel": "public/framework/ai/sessions/2026/10/03/session-8dd580d8/page.jsonl",
+   "writer": "page-card",
+   "tracked": false,
+   "bytes": 443672,
+   "dup_bytes": 420842
+  },
+  {
+   "rel": "public/framework/ai/sessions/2026/10/03/session-acf018ae/page.jsonl",
+   "writer": "page-card",
+   "tracked": false,
+   "bytes": 442586,
+   "dup_bytes": 419894
+  }
+ ]
+}

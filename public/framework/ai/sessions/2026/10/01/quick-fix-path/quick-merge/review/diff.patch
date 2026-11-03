@@ -1,0 +1,813 @@
+diff --git a/Server/README.md b/Server/README.md
+index 86480cd4..f7746b34 100644
+--- a/Server/README.md
++++ b/Server/README.md
+@@ -18,9 +18,9 @@ the editing agent at its very next write. `HEALTH_BASE` picks which server to lo
+ pages against (default `http://localhost:8123`, the mastermind's). Full story:
+ [`public/framework/ai/health/readme.md`](/framework/ai/health/).
+ 
+-**`node Server/layout-check.mjs <url...>`** shoots pages at four widths and flags wasted space; **`Server/on-landing.mjs`** runs it by itself on every task landing (the ledger hook spawns it) and logs the result to the task, and flagged pages to `servex-mastermind`.
++**`node Server/layout-check.mjs <url...>`** shoots pages at four widths by default (`--widths` picks others) and flags wasted space; **`Server/on-landing.mjs`** runs it by itself on every task landing (the ledger hook spawns it) and logs the result to the task, and flagged pages to `servex-mastermind`.
+ 
+-**`node Server/merge.mjs <worktree>`** now finds the pages a branch changed by itself (every `page.js`/`page.jsonl` in its diff, mapped to its site url) and hands them to `Server/smoke.mjs`, which follows every same-origin link it finds one level deep instead of only loading the pages it was told about — the gap that let 7 broken concept-tile links land unnoticed; a NEW page in the diff also gets a 1920 screenshot into `.merge-shots/`. [`public/framework/ai/2026-09-28/smoke-links/`](/framework/ai2/2026-09-28/smoke-links/).
++**`node Server/merge.mjs <worktree>`** now finds the pages a branch changed by itself (every `page.js`/`page.jsonl` in its diff, mapped to its site url) and hands them to `Server/smoke.mjs`, which follows every same-origin link it finds one level deep instead of only loading the pages it was told about — the gap that let 7 broken concept-tile links land unnoticed; a NEW page in the diff also gets a 1920 screenshot into `.merge-shots/`. [`public/framework/ai/2026-09-28/smoke-links/`](/framework/ai2/2026-09-28/smoke-links/). **`--quick`** is the fast path for a one-line voice fix: skips the reviewer agent (allowed only for ≤20 lines in one module), takes just the ONE screenshot `review.mjs`'s `widthsFor` says the change needs, and prints one JSON line (`merged`, `shot`, `width`, `ms`) — detail and the exit codes in the file's own header comment, and in [`doc/review.md`](./doc/review.md#which-widths).
+ 
+ **`node Server/window-lint.mjs`** answers one question about the whole repo: **which
+ `spawn`/`exec`/`execFile`/`fork`/`Start-Process` call is missing `windowsHide: true` (or
+diff --git a/Server/doc/review.md b/Server/doc/review.md
+index 9b659b83..724b920f 100644
+--- a/Server/doc/review.md
++++ b/Server/doc/review.md
+@@ -67,28 +67,46 @@ question, covered next, because it depends on whether a page was touched, not on
+ The task mastermind may lower the size only with `--why "self-evident: <one line>"` (logged as a
+ `{"decision":...}` line so the reason survives); raising it needs no reason.
+ 
+-## Screenshots and the review skill (also turn 1)
++## Which widths (also turn 1)
+ 
+ Any review — `light` or `full` — whose diff changes at least one `page.js`/`page.jsonl` gets
+-screenshots FIRST, at four widths — 400, 1200, 1920 and 3440 (a phone size, a size just past
+-mobile, a common desktop size, and the widest common screen) — via:
++screenshots FIRST, at whichever widths the change actually needs — not always all four. The
++owner, on taking a screenshot at every width for every change: "it doesn't make sense to take
++three extra screenshots when one would do … depends on the width of the content." `widthsFor`
++(`Server/review.mjs`, exported) decides, in this order — first match wins:
++
++| The change | Widths | Why |
++|---|---|---|
++| only `.md`, or text in a `page.js`, no css | **1200** alone | words, not layout — one look is enough |
++| a layout word (`grid`, `columns`, `sidebar`, `flex`, `width`, `@container`, `@media`, a `styles/layouts/` class) in a changed css/js file, any file under `core/Page`, `core/Sidebar`, `styles/`, or more than one page touched | **400, 1200, 1920, 3440** | this can reshape the page at any width |
++| one css file, scoped to one component, capped with `max-width` | **400** alone | if it works at 400 it works wider — same words |
++| anything else | **400, 1920** | a phone check and a common desktop check |
++
++`--widths 1200,1920` overrides the pick by hand, same flag on both `review.mjs` and
++`merge.mjs --quick` below. Taken via:
+ 
+ ```
+-node Server/layout-check.mjs <urls> --widths 400,1200,1920,3440 --bands --out <taskdir>/shots/
++node Server/layout-check.mjs <urls> --widths <picked> --bands --out <taskdir>/shots/
+ ```
+ 
+ `--bands` (`Server/layout-check.mjs`'s own header) adds, for every width: `tab_rows` (did a tab
+ bar wrap into more than one row), `left_stack` (the padding stacked at the page's own left edge,
+ layer by layer), `bands` (every top-level section's share of the screen, and how much of that
+ share actually has content on it), and `wraps` (anything that wrapped to a second line when it
+-looks like it shouldn't have). This is skipped if every page already has all four widths' pngs
+-under `shots/<page-slug>/` — the task mastermind may have shot them first. One line is appended
+-to `task.jsonl`:
++looks like it shouldn't have). This is skipped if every page already has a png at every width
++picked, under `shots/<page-slug>/` — the task mastermind may have shot them first. One line is
++appended to `task.jsonl`, naming the widths actually used:
+ 
+ ```json
+-{"shots":{"pages":["/framework/x/"],"dir":"shots/","sheet":"shots/x/sheet.png","sheets":["shots/x/sheet.png"],"bands":["shots/x/layout.json"]}}
++{"shots":{"pages":["/framework/x/"],"dir":"shots/","sheet":"shots/x/sheet.png","sheets":["shots/x/sheet.png"],"bands":["shots/x/layout.json"],"widths":[1200]}}
+ ```
+ 
++**`merge.mjs --quick`** (the fast path for a one-line voice fix) reuses `widthsFor` the same way,
++skipping the reviewer agent entirely: one screenshot (normally one width, from the rule above),
++then a `review.md` line ("size quick — one shot at `<w>` — pass", written by the same
++`writeNoReviewPass` the `none` row above uses) so the merge gate and the dashboard see a real
++record with no agent cost. Detail and the exit codes: `merge.mjs`'s own header comment.
++
+ The reviewer is then told to load the `review` skill (`.claude/skills/review/SKILL.md`) and
+ follow it: read the brief, the owner's own words, the diff, the shots and each page's
+ `layout.json`, and ask one fixed list of questions per system — page structure, navigation,
+diff --git a/Server/merge.mjs b/Server/merge.mjs
+index 7b15abc0..ce7e9322 100644
+--- a/Server/merge.mjs
++++ b/Server/merge.mjs
+@@ -1,4 +1,4 @@
+-/* `node Server/merge.mjs <worktree dir> [paths...] [--main <dir>] [--skip-smoke] [--dry-run]` — the one serialized way to land a worktree.
++/* `node Server/merge.mjs <worktree dir> [paths...] [--main <dir>] [--skip-smoke] [--dry-run] [--quick [--asked <iso>]]` — the one serialized way to land a worktree.
+  * It takes a lock (.merge.lock at the main repo root) so two merges never run at once, refuses
+  * uncommitted work in the worktree, smoke-tests it (Server/smoke.mjs), then lands its branch on
+  * michael/dev with the live-reload hold on. It NEVER runs `git merge` over uncommitted edits in the
+@@ -37,13 +37,27 @@
+  * prints every file's result and writes nothing (no lock, no hold).
+  * A page path Git Bash mangled ("C:/Program Files/Git/framework/…", from a /path given without
+  * MSYS_NO_PATHCONV=1) is refused before the lock, naming the fix (2026-09-30, node-reliability).
+- * Exit: 0 landed (or dry run clean), 1 refused or smoke failed, 3 lock wait timed out, 4 would conflict (nothing touched). */
++ *
++ * `--quick` (2026-10-01, quick-merge): the fast path for a one-line voice fix. Skips the reviewer
++ * agent entirely — allowed only when the diff is `sizeOf` none/light, 20 changed lines or fewer,
++ * and every file sits under one `public/<a>/<b>/<c>/` module (or it's a single `Server/` file);
++ * otherwise refuses with exit 2 (never 1 — the fixer tells "too big for quick" apart from a real
++ * failure by this code alone) naming the line count, module count and size, and says to run the
++ * normal path. When it IS small enough: the same smoke test every branch gets, then ONE
++ * screenshot (`Server/review.mjs`'s `widthsFor` picks the width — normally one, not all four) of
++ * the worktree's own version of the page, then a `review.md` line ("size quick — one shot at <w>
++ * — pass", `writeNoReviewPass`, the same code `review.mjs --size none` uses) so the dashboard
++ * still sees a real record even with no agent — then the ordinary merge below, unchanged.
++ * `--asked <iso>` is the moment the fix was asked for (voice → smart assistant), so the final
++ * line's `ms` is the owner-felt latency, not just this script's own run time. The LAST line of
++ * stdout, only on a landed `--quick`, is one JSON object: `{"merged","shot","width","ms","asked_at"}`.
++ * Exit: 0 landed (or dry run clean), 1 refused or smoke failed, 2 too big for --quick, 3 lock wait timed out, 4 would conflict (nothing touched). */
+ import { spawnSync } from "node:child_process";
+ import fs from "node:fs";
+ import os from "node:os";
+ import path from "node:path";
+ import { fileURLToPath } from "node:url";
+-import { sizeOf, status as reviewStatus, diffStat, pageUrlFor } from "./review.mjs";
++import { sizeOf, status as reviewStatus, diffStat, pageUrlFor, widthsFor, splitPatch, writeNoReviewPass } from "./review.mjs";
+ import { keepLive } from "./jsonl-keep.mjs";
+ import { refuse_links_into_main } from "./junction-guard.mjs";
+ 
+@@ -55,8 +69,11 @@ const skipSmoke = bool("--skip-smoke");
+ const dryRun = bool("--dry-run");
+ const mainArg = flag("--main");
+ const noReview = flag("--no-review");
++const quick = bool("--quick");
++const asked = flag("--asked");
++const mergeStart = Date.now();
+ const [dirArg, ...paths] = argv;
+-if (!dirArg) { console.error("usage: node Server/merge.mjs <worktree dir> [paths...] [--main <dir>] [--skip-smoke] [--dry-run]"); process.exit(1); }
++if (!dirArg) { console.error("usage: node Server/merge.mjs <worktree dir> [paths...] [--main <dir>] [--skip-smoke] [--dry-run] [--quick [--asked <iso>]]"); process.exit(1); }
+ // Git Bash rewrites "/framework/ai2/" into "C:/Program Files/Git/framework/ai2/"; the smoke run then
+ // hunts for it while holding everyone's merge lock (node-reliability, 2026-09-30). Refuse before the lock.
+ const mangled = [...paths, mainArg ?? ""].find(p => /Program Files[\\/]Git[\\/]/i.test(p));
+@@ -85,6 +102,47 @@ function worktreeBase(dir){
+ 	return entry ? `http://127.0.0.1:${entry.port}` : null;
+ }
+ 
++// A branch named "worktree/<slug>" usually has a same-slug task dir, if one was ever opened:
++// public/framework/ai/<one of the last 4 days>/<slug>/ — the most recent day that actually has
++// it. null if the branch isn't shaped that way, or no such day dir exists (most quick fixes:
++// they skip new-task entirely, so this is the common case, not the exception). Shared by
++// reviewGate (prints it as the runnable command) and the --quick path (where the shot and the
++// quick review record land, when there IS a task for them to live beside).
++function guessTaskDir(aiDir, branch){
++	const slug = /^worktree\/(.+)$/.exec(branch)?.[1];
++	if (!slug || !fs.existsSync(aiDir)) return null;   // a scratch/proof repo has no ai/ dir at all yet
++	const daysAgo = d => Math.floor((Date.now() - Date.parse(d)) / 86400000);
++	for (const day of fs.readdirSync(aiDir).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d) && daysAgo(d) <= 3 && daysAgo(d) >= 0).sort().reverse()) {
++		const p = path.join(aiDir, day, slug);
++		if (fs.existsSync(p)) return p;
++	}
++	return null;
++}
++
++// public/<a>/<b>/<c>/ — the "one module directory" --quick's own gate asks for. null if `f`
++// doesn't even reach three segments under public/ (nothing under Server/ does; that path is
++// handled separately, by file count, in quickEligible below).
++function moduleDirOf(f){
++	const m = /^public\/([^/]+)\/([^/]+)\/([^/]+)\//.exec(f);
++	return m ? m[0] : null;
++}
++
++/* --quick's own gate (requirements.md point 2): allowed only when `sizeOf` is none/light AND the
++ * diff is 20 changed lines or fewer AND every file lives under the SAME public/<a>/<b>/<c>/
++ * module — or the whole diff is exactly one file under Server/. Never throws; the caller prints
++ * `why` and exits 2 on a no. */
++function quickEligible(nameStatus, numstat){
++	const size = sizeOf(nameStatus, numstat);
++	const totalLines = numstat.reduce((n, r) => n + (Number(r.added) || 0) + (Number(r.deleted) || 0), 0);
++	const files = nameStatus.map(x => x.f);
++	const oneServerFile = files.length === 1 && files[0].startsWith("Server/");
++	const dirs = new Set(files.map(f => moduleDirOf(f) ?? f));
++	const oneModule = oneServerFile || (dirs.size === 1 && files.every(f => moduleDirOf(f)));
++	const ok = (size === "none" || size === "light") && totalLines <= 20 && oneModule;
++	return { ok, size, totalLines, dirCount: oneModule ? 1 : dirs.size,
++		why: `refused: --quick needs ≤20 lines in one module (this is ${totalLines} lines in ${oneModule ? 1 : dirs.size} dir(s), size ${size}); run the normal path` };
++}
++
+ /* The review gate. null = ok to merge (nothing needed, or --main/--no-review skipped it).
+  * A string = the refusal to print. Scans the last 4 days of task dirs for the newest
+  * `{"review":…}` line (not an `answer`) naming this branch, then requires its `head` to be
+@@ -117,15 +175,8 @@ function reviewGate(branch, head){
+ 				if (e.review?.verdict && !e.review.answer && e.review.branch === branch && (!best || e.review.at > best.e.review.at)) best = { td, e };
+ 			}
+ 		}
+-	// no review yet: guess the task dir from the branch name (worktree/<slug> -> the most recent
+-	// public/framework/ai/<date>/<slug> that actually exists) so the printed command is runnable as-is
+-	let guessedTd = null;
+-	const wtSlug = /^worktree\/(.+)$/.exec(branch)?.[1];
+-	if (!best && wtSlug)
+-		for (const day of fs.readdirSync(aiDir).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d) && daysAgo(d) <= 3 && daysAgo(d) >= 0).sort().reverse()) {
+-			const p = path.join(aiDir, day, wtSlug);
+-			if (fs.existsSync(p)) { guessedTd = p; break; }
+-		}
++	// no review yet: guess the task dir from the branch name so the printed command is runnable as-is
++	const guessedTd = best ? null : guessTaskDir(aiDir, branch);
+ 	const cmd = `node Server/review.mjs ${best ? path.relative(MAIN, best.td).replaceAll("\\", "/") : guessedTd ? path.relative(MAIN, guessedTd).replaceAll("\\", "/") : "<taskdir or public/framework/ai/<date>/<slug>>"} ${dir}`;
+ 	if (!best) return `refused: ${branch} is size ${sizeOf(nameStatus, numstat)} and has no review; run: ${cmd}`;
+ 	const current = best.e.review.head === head || git(MAIN, "merge-base", "--is-ancestor", best.e.review.head, head).status === 0;
+@@ -318,7 +369,8 @@ const printPlan = plan => console.log(plan.map(p => `  ${p.action.toUpperCase().
+ if (skipSmoke) console.warn("\n!!! --skip-smoke: NO SMOKE TEST WILL RUN. This flag is for proofs on a scratch repo only. !!!\n");
+ if (dryRun) console.log("DRY RUN: computing only; no lock, no hold, nothing written.");
+ if (!dryRun && !(await takeLock())) { console.error("gave up waiting for .merge.lock"); process.exit(3); }
+-let code = 0, held = false;
++let code = 0, held = false, quickShot = null, mergedHead = null;
++const slugOf = u => u.replace(/^https?:\/\//, "").replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "") || "page";
+ const holdScript = path.join(MAIN, "Server", "hold.mjs");   // the main repo's own hold; a scratch repo has none
+ const hold = (state, why, files = []) => {
+ 	if (!fs.existsSync(holdScript)) return false;
+@@ -328,13 +380,24 @@ const hold = (state, why, files = []) => {
+ try {
+ 	const branch = git(dir, "rev-parse", "--abbrev-ref", "HEAD").stdout.trim();
+ 	const head = git(dir, "rev-parse", "HEAD").stdout.trim();
++	mergedHead = head;   // the branch's own head — what --quick's final JSON line calls "merged"
+ 	// .jsonl streams are appended to by the running site itself, so they never count as your changes
+ 	if (git(dir, "status", "--porcelain", "--untracked-files=no").stdout.split(/\r?\n/).some(l => l.trim() && !l.trim().endsWith(".jsonl"))) { console.error("refused: the worktree has uncommitted changes"); code = 1; }
+ 	else if (git(MAIN, "rev-parse", "--abbrev-ref", "HEAD").stdout.trim() !== BASE) { console.error(`refused: the main repo is not on ${BASE}`); code = 1; }
+ 	else {
+-		const gateWhy = reviewGate(branch, head);
+-		if (gateWhy) { console.error(gateWhy); code = 1; }
+-		else {
++		// --quick skips the reviewer agent entirely — its own gate below, checked once here, stands
++		// in for reviewGate(). Everything after this is the SAME merge every other branch gets.
++		let proceed = true, quickInfo = null;
++		if (quick) {
++			const { nameStatus, numstat } = diffStat(MAIN, `${BASE}...${branch}`);
++			const elig = quickEligible(nameStatus, numstat);
++			if (!elig.ok) { console.error(elig.why); code = 2; proceed = false; }
++			else { console.log(`--quick: ${elig.size}, ${elig.totalLines} line(s), one module — skipping the reviewer agent`); quickInfo = { nameStatus, numstat }; }
++		} else {
++			const gateWhy = reviewGate(branch, head);
++			if (gateWhy) { console.error(gateWhy); code = 1; proceed = false; }
++		}
++		if (proceed) {
+ 		// --no-renames: a renamed file must list its old path too, or the old one would never be deleted
+ 		const changed = lines(git(MAIN, "diff", "--name-only", "--no-renames", `${BASE}...${branch}`).stdout);
+ 		const status = lines(git(MAIN, "diff", "--name-status", "--no-renames", `${BASE}...${branch}`).stdout)
+@@ -381,6 +444,36 @@ try {
+ 				console.log(lc.stdout + lc.stderr);
+ 			}
+ 		}
++		// --quick's own evidence: one screenshot, at whichever width(s) widthsFor picks for THIS
++		// change (normally one), from the worktree's own server — before the merge touches
++		// anything, same timing as the new-page screenshot above. Then a review.md line the way
++		// `review.mjs --size none` writes one, so the dashboard and --status see a real record
++		// even though no reviewer agent ran. The record is written whenever smoke really passed
++		// (or --skip-smoke stood in for it, on a scratch-repo proof); only the ACTUAL screenshot
++		// needs a real worktree server, so --skip-smoke skips just that part, not the record.
++		if (quick && smoke.status === 0) {
++			const aiDir = path.join(MAIN, "public/framework/ai");
++			const taskDir = guessTaskDir(aiDir, branch) ?? path.join(aiDir, "quick-fix");
++			const pages = [...new Set(status.map(s => pageUrlFor(s.f)).filter(Boolean))];
++			const diffText = git(MAIN, "diff", "--no-renames", `${BASE}...${branch}`).stdout;
++			const patches = splitPatch(diffText);
++			const withPatch = quickInfo.nameStatus.map(x => ({ ...x, patch: patches.get(x.f) || "" }));
++			const widths = widthsFor(withPatch, quickInfo.numstat, pages);
++			const width = widths[0];
++			const wtBase = !skipSmoke && pages.length ? worktreeBase(dir) : null;
++			if (skipSmoke) console.log("--quick: --skip-smoke — no real server, so no screenshot (a scratch-repo proof only)");
++			else if (!pages.length) console.log("--quick: no page in this change — nothing to screenshot");
++			else if (!wtBase) console.log(`--quick: no worktree server found for ${dir} — skipping the screenshot`);
++			else {
++				const shotDir = path.join(taskDir, "shots", head);
++				fs.mkdirSync(shotDir, { recursive: true });
++				const url = wtBase + pages[0];
++				const lc = run("node", [path.join(MAIN, "Server", "layout-check.mjs"), url, "--widths", String(width), "--out", shotDir], MAIN);
++				console.log(lc.stdout + lc.stderr);
++				quickShot = { path: path.join(shotDir, slugOf(url), `${width}.png`), width };
++			}
++			await writeNoReviewPass(MAIN, taskDir, { size: "quick", branch, head, note: `size quick — one shot at ${width} — pass` });
++		}
+ 		if (smoke.status !== 0) { console.error("smoke test failed; nothing merged"); code = 1; }
+ 		else if (!changed.length) console.log(`nothing to land: ${branch} changes no file against ${BASE}`);
+ 		else if (!overlap.length && !staged.length) {
+@@ -419,4 +512,9 @@ try {
+ 	if (held) hold("off", "merge");
+ 	if (!dryRun) try { fs.unlinkSync(lockFile); } catch {}
+ }
++// --quick's own last word: ONE line of JSON, always last on stdout when it lands, so the fixer
++// (or anything else driving this) can read it without parsing the human log above it.
++if (quick && code === 0) {
++	console.log(JSON.stringify({ merged: mergedHead, shot: quickShot?.path ?? null, width: quickShot?.width ?? null, ms: asked ? Date.now() - Date.parse(asked) : Date.now() - mergeStart, asked_at: asked ?? new Date(mergeStart).toISOString() }));
++}
+ process.exit(code);
+diff --git a/Server/review.mjs b/Server/review.mjs
+index 219d685e..9d417059 100644
+--- a/Server/review.mjs
++++ b/Server/review.mjs
+@@ -1,21 +1,24 @@
+-/* `node Server/review.mjs <taskdir> [<worktree dir>] [--range A..B] [--size none|light|full] [--why "..."] [--model <id>]`
++/* `node Server/review.mjs <taskdir> [<worktree dir>] [--range A..B] [--size none|light|full] [--why "..."] [--model <id>] [--widths 1200,1920]`
+  * Fresh eyes on a finished task: an agent that never saw the author's conversation reads only the
+  * brief, the diff and (for a page it touched) screenshots, then says pass or fix. Why fresh: an
+  * agent that reviews its own code agrees with itself.
+  *
+  * SIZE (`sizeOf`, exported): `none` — only .css/.md changed, 20 changed lines or fewer, no added
+- * file: no agent runs, review.md just says so. `light` — code changed, but no new page/module/
+- * Servex file: a fresh Sonnet reads the brief and the diff. `full` — a new page.js, a new .js/.mjs
+- * module, or anything under Servex/: a fresh Opus. `--size` may only RAISE the computed size;
+- * lowering it needs `--why`, logged as a `{"decision":…}` line so the reason survives.
++ * file: no agent runs, review.md just says so (`writeNoReviewPass`, exported, also used by
++ * `merge.mjs --quick`). `light` — code changed, but no new page/module/Servex file: a fresh
++ * Sonnet reads the brief and the diff. `full` — a new page.js, a new .js/.mjs module, or anything
++ * under Servex/: a fresh Opus. `--size` may only RAISE the computed size; lowering it needs
++ * `--why`, logged as a `{"decision":…}` line so the reason survives.
+  *
+  * SHOTS: any review — `light` or `full` — whose diff touches a page (`pageUrlFor` finds one) gets
+- * screenshots first, at `WIDTHS` (400, 1200, 1920, 3440) via `Server/layout-check.mjs --bands`,
+- * saved to `<taskdir>/shots/<page-slug>/` (`400.png` … `sheet.png` … `layout.json`, the last
+- * carrying `--bands`' `tab_rows`/`left_stack`/`bands`/`wraps` numbers). Skipped if every page
+- * already has all four pngs there — the task mastermind may have shot them first. One
++ * screenshots first, at whichever widths `widthsFor` (exported) picks for THIS change — not
++ * always all four; see its own comment for the rule, and the owner's sentence it quotes. `--widths
++ * 1200,1920` overrides that pick by hand. Taken via `Server/layout-check.mjs --bands`, saved to
++ * `<taskdir>/shots/<page-slug>/` (`<width>.png` … `sheet.png` … `layout.json`, the last carrying
++ * `--bands`' `tab_rows`/`left_stack`/`bands`/`wraps` numbers). Skipped if every page already has a
++ * png at every width picked, there — the task mastermind may have shot them first. One
+  * `{"shots":{...}}` line is appended to task.jsonl naming every page, the shots dir, the first
+- * page's sheet, every page's sheet, and every `layout.json` that exists.
++ * page's sheet, every page's sheet, every `layout.json` that exists, and the widths used.
+  *
+  * REVIEWER: when shots were taken, the prompt tells the reviewer to load the `review` skill — its
+  * own absolute path, resolved from the tree THIS file lives in (`new URL("../.claude/skills/
+@@ -160,6 +163,51 @@ export function sizeOf(files, numstat) {
+ 	return full ? "full" : "light";
+ }
+ 
++/* A full `git diff`'s stdout, split into one patch per file — {"a/x b/x\n...": text} keyed by
++ * the file's NEW path (`b/...`), so a rename's new name is what callers look up. Exported so
++ * merge.mjs's `--quick` path can reuse it instead of parsing the diff a second way. */
++export function splitPatch(diffText) {
++	const out = new Map();
++	let file = null, buf = [];
++	for (const line of (diffText || "").split(/\r?\n/)) {
++		const m = /^diff --git a\/(.+) b\/(.+)$/.exec(line);
++		if (m) { if (file) out.set(file, buf.join("\n")); file = m[2]; buf = []; continue; }
++		if (file) buf.push(line);
++	}
++	if (file) out.set(file, buf.join("\n"));
++	return out;
++}
++
++/* Which widths a change needs — not always all four. The owner, on taking a screenshot at every
++ * width for every change: "it doesn't make sense to take three extra screenshots when one would
++ * do … depends on the width of the content." One rule, checked in this order (first match wins):
++ *   1. only .md, or a page.js with no css touched  -> 1200 alone (words, not layout)
++ *   2. a layout word in a changed css/js file's own patch (grid, columns, sidebar, flex, width,
++ *      @container, @media, a styles/layouts/ class), or any file under core/Page, core/Sidebar,
++ *      styles/ -> all four (this can reshape the page at any width)
++ *   3. one css file, scoped to one component, whose patch has a max-width -> 400 alone (if it
++ *      works at 400 it works wider, same words)
++ *   4. otherwise -> 400 and 1920 (a phone check and a common desktop check)
++ * `files`: [{status, f, patch?}] — `patch` is that file's own diff text (splitPatch's value),
++ * used only for the layout-word/max-width checks; missing it just skips to the next rule.
++ * `pages`: the page urls this diff touches (pageUrlFor), so a change with no page at all still
++ * gets a sane answer. Kept to plain `if`s on purpose — see the comment above. */
++const LAYOUT_DIRS = ["core/Page/", "core/Sidebar/", "styles/"];
++// (?<!-)\bwidth\b: a bare "width" counts, but not the "width" inside "max-width"/"min-width" —
++// that one is rule 3's own signal (a component capped so it looks the same at every width).
++const LAYOUT_WORD = /\bgrid\b|\bcolumns\b|\bsidebar\b|\bflex\b|(?<!-)\bwidth\b|@container|@media|styles\/layouts\//i;
++export function widthsFor(files, numstat, pages = []) {
++	const paths = files.map(f => f.f);
++	const isCss = f => /\.css$/i.test(f), isPageJs = f => /(^|\/)page\.js$/.test(f), isMd = f => /\.md$/i.test(f);
++	if (!paths.some(isCss) && paths.every(f => isMd(f) || isPageJs(f))) return [1200];
++	const underLayoutDir = paths.some(f => LAYOUT_DIRS.some(d => f.includes(d)));
++	const wordInChange = files.some(f => (isCss(f.f) || /\.m?js$/i.test(f.f)) && LAYOUT_WORD.test(f.patch || ""));
++	// more than one page touched is a broader change by itself, whatever the words say
++	if (underLayoutDir || wordInChange || pages.length > 1) return [400, 1200, 1920, 3440];
++	if (files.length === 1 && isCss(paths[0]) && /max-width/i.test(files[0].patch || "")) return [400];
++	return [400, 1920];
++}
++
+ /* review.md -> {verdict, findings:[{n, kind, text}]}. Exported for testing / --status. */
+ export function parseReview(text) {
+ 	const rows = text.split(/\r?\n/);
+@@ -531,6 +579,21 @@ async function postReviewToCard(root, taskDir, review) {
+ 	}
+ }
+ 
++/* A review with no reviewer agent, logged the same shape a real one is — so the gate, --status,
++ * --score and the dashboard card all see one consistent record either way. Used by main()'s own
++ * `size === "none"` path below, and by `merge.mjs --quick` (one copy of this, reused, per the
++ * quick-merge brief). `taskDir` is created if it doesn't exist yet — a quick fix with no dated
++ * task folder still gets somewhere to write (merge.mjs picks the fallback directory). */
++export async function writeNoReviewPass(root, taskDir, { size, note, branch, head }) {
++	fs.mkdirSync(taskDir, { recursive: true });
++	fs.writeFileSync(path.join(taskDir, "review.md"), `verdict: pass\n\n${note}\n`);
++	const review = { at: now(), size, verdict: "pass", findings: [], branch, head, model: null, cost: 0, file: "review.md" };
++	appendJSON(path.join(taskDir, "task.jsonl"), { review });
++	writePhase1(taskDir, review);
++	await postReviewToCard(root, taskDir, review);
++	return review;
++}
++
+ async function mcp(name, args, ms = 30000) {
+ 	const r = await fetch(MCP, { method: "POST", headers: { "content-type": "application/json", accept: "application/json, text/event-stream" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name, arguments: args } }), signal: AbortSignal.timeout(ms) });
+ 	const j = await r.json();
+@@ -579,9 +642,9 @@ async function main() {
+ 		return;
+ 	}
+ 	const flag = name => { const i = argv.indexOf(name); if (i < 0) return undefined; const [, v] = argv.splice(i, 2); return v; };
+-	const range = flag("--range"), sizeArg = flag("--size"), why = flag("--why"), modelArg = flag("--model");
++	const range = flag("--range"), sizeArg = flag("--size"), why = flag("--why"), modelArg = flag("--model"), widthsArg = flag("--widths");
+ 	const [taskDirArg, worktreeArg] = argv;
+-	if (!taskDirArg) { console.error('usage: node Server/review.mjs <taskdir> [<worktree dir>] [--range A..B] [--size none|light|full] [--why "..."] [--model <id>]'); process.exit(1); }
++	if (!taskDirArg) { console.error('usage: node Server/review.mjs <taskdir> [<worktree dir>] [--range A..B] [--size none|light|full] [--why "..."] [--model <id>] [--widths 1200,1920]'); process.exit(1); }
+ 	const taskDir = path.resolve(taskDirArg);
+ 	const worktreeDir = range ? null : path.resolve(worktreeArg || process.cwd());
+ 	// The main repo this worktree belongs to (the same trick merge.mjs uses): never assume it is
+@@ -612,42 +675,43 @@ async function main() {
+ 
+ 	const taskJsonl = path.join(taskDir, "task.jsonl");
+ 	if (size === "none") {
+-		fs.writeFileSync(path.join(taskDir, "review.md"), `verdict: pass\n\nNo review needed: only CSS/docs changed (${numstat.reduce((n, r) => n + r.added + r.deleted, 0)} line(s)), no new file.\n`);
+-		const review = { at: now(), size, verdict: "pass", findings: [], branch, head, model: null, cost: 0, file: "review.md" };
+-		appendJSON(taskJsonl, { review });
+-		writePhase1(taskDir, review);
+-		await postReviewToCard(root, taskDir, review);
++		const note = `No review needed: only CSS/docs changed (${numstat.reduce((n, r) => n + r.added + r.deleted, 0)} line(s)), no new file.`;
++		await writeNoReviewPass(root, taskDir, { size, note, branch, head });
+ 		console.log(`review.mjs: size none — ${branch} — pass, no agent`);
+ 		return;
+ 	}
+ 
+ 	fs.mkdirSync(path.join(taskDir, "review"), { recursive: true });
+ 	const diffPath = path.join(taskDir, "review", "diff.patch");
+-	fs.writeFileSync(diffPath, git(cwd, "diff", "--no-renames", spec).stdout);
++	const diffText = git(cwd, "diff", "--no-renames", spec).stdout;
++	fs.writeFileSync(diffPath, diffText);
+ 
+ 	// A page review: the diff touches at least one page.js/page.jsonl (pageUrlFor finds a URL for
+-	// it). Every page review — `light` or `full` — gets screenshots at the four widths and uses
+-	// the review skill; anything else keeps the plain brief-and-diff prompt, same as always.
++	// it). Every page review — `light` or `full` — gets screenshots at the widths the change
++	// actually needs (widthsFor, above) and uses the review skill; anything else keeps the plain
++	// brief-and-diff prompt, same as always. `--widths` overrides widthsFor's own pick.
+ 	const pages = [...new Set(files.map(pageUrlFor).filter(Boolean))];
+ 	const pageReview = pages.length > 0;
+ 	const shotsDir = path.join(taskDir, "shots");
++	const patches = splitPatch(diffText);
++	const widths = widthsArg ? widthsArg.split(",").map(Number) : (pageReview ? widthsFor(status_.map(x => ({ ...x, patch: patches.get(x.f) || "" })), numstat, pages) : WIDTHS);
+ 	if (pageReview) {
+ 		const HOST = "http://monorepo.localhost";
+ 		const found = worktreeBase(root, worktreeDir);
+ 		const base = found ?? HOST;
+-		const already = pages.every(p => WIDTHS.every(w => fs.existsSync(path.join(shotsDir, slug(base + p), `${w}.png`))));
++		const already = pages.every(p => widths.every(w => fs.existsSync(path.join(shotsDir, slug(base + p), `${w}.png`))));
+ 		if (already) console.log(`review.mjs: shots already present for every page under ${path.relative(root, shotsDir)} — skipping layout-check`);
+ 		else {
+ 			// Falling back to the MAIN site's URL when this worktree has no .worktrees.json entry
+ 			// would screenshot the wrong tree with no sign of it — say so instead of staying silent.
+ 			if (!found) console.log(`review.mjs: no worktree entry for ${worktreeDir} in .worktrees.json — screenshotting the MAIN site instead, not this worktree's own copy`);
+ 			fs.mkdirSync(shotsDir, { recursive: true });
+-			const lc = run("node", [path.join(root, "Server", "layout-check.mjs"), ...pages.map(p => base + p), "--widths", WIDTHS.join(","), "--bands", "--out", shotsDir]);
++			const lc = run("node", [path.join(root, "Server", "layout-check.mjs"), ...pages.map(p => base + p), "--widths", widths.join(","), "--bands", "--out", shotsDir]);
+ 			console.log(lc.stdout + lc.stderr);
+ 		}
+ 		const sheets = pages.map(p => `shots/${slug(base + p)}/sheet.png`);
+ 		const bands = pages.map(p => `shots/${slug(base + p)}/layout.json`).filter(f => fs.existsSync(path.join(taskDir, f)));
+-		appendJSON(taskJsonl, { shots: { at: now(), pages, dir: "shots/", sheet: sheets[0], sheets, bands } });
++		appendJSON(taskJsonl, { shots: { at: now(), pages, dir: "shots/", sheet: sheets[0], sheets, bands, widths } });
+ 	}
+ 
+ 	// cardDir: the "Card: `...`" line. ownerWordsFiles: every "Owner's words: `...`" line, resolved
+diff --git a/Server/review.test.mjs b/Server/review.test.mjs
+new file mode 100644
+index 00000000..0c6fdbab
+--- /dev/null
++++ b/Server/review.test.mjs
+@@ -0,0 +1,76 @@
++/* node Server/review.test.mjs — widthsFor() and splitPatch(), no git, no network, no fs writes.
++ * The owner's own sentence this is making true: "it doesn't make sense to take three extra
++ * screenshots when one would do … depends on the width of the content." */
++import assert from "node:assert/strict";
++import { widthsFor, splitPatch } from "./review.mjs";
++
++let n = 0;
++const t = (cond, what) => { assert.ok(cond, what); n++; };
++const eq = (a, b, what) => { assert.deepEqual(a, b, `${what} — got ${JSON.stringify(a)}, wanted ${JSON.stringify(b)}`); n++; };
++
++// 1. only .md, or text in a page.js, no css -> 1200 alone
++eq(widthsFor([{ status: "M", f: "public/framework/ai/2026-10-01/x/readme.md" }], [{ added: 4, deleted: 1, f: "public/framework/ai/2026-10-01/x/readme.md" }], []),
++	[1200], "md-only change");
++eq(widthsFor([{ status: "M", f: "public/framework/ux/Thing/page.js" }], [{ added: 3, deleted: 0, f: "public/framework/ux/Thing/page.js" }], ["/framework/ux/Thing/"]),
++	[1200], "page.js text-only change, no css");
++
++// 2. a layout word in a changed css/js file's own patch, or a core layout dir -> all four
++eq(widthsFor([{ status: "M", f: "public/framework/ux/Thing/Thing.css", patch: "+ .box { display: grid; }" }],
++	[{ added: 1, deleted: 0, f: "public/framework/ux/Thing/Thing.css" }], ["/framework/ux/Thing/"]),
++	[400, 1200, 1920, 3440], "css patch mentions grid");
++eq(widthsFor([{ status: "M", f: "public/framework/core/Sidebar/Sidebar.css", patch: "+ .rail { padding: 2px; }" }],
++	[{ added: 1, deleted: 0, f: "public/framework/core/Sidebar/Sidebar.css" }], []),
++	[400, 1200, 1920, 3440], "any file under core/Sidebar, even with a plain patch");
++
++// 3. one css file, scoped to one component, its patch has a max-width -> 400 alone
++eq(widthsFor([{ status: "M", f: "public/framework/ux/Thing/Thing.css", patch: "+ .card { max-width: 40em; }" }],
++	[{ added: 1, deleted: 0, f: "public/framework/ux/Thing/Thing.css" }], ["/framework/ux/Thing/"]),
++	[400], "one component's css, capped with max-width");
++
++// 4. otherwise -> 400 and 1920
++eq(widthsFor([{ status: "M", f: "public/framework/ux/Thing/Thing.js", patch: "+ console.log('hi');" }],
++	[{ added: 1, deleted: 0, f: "public/framework/ux/Thing/Thing.js" }], ["/framework/ux/Thing/"]),
++	[400, 1920], "a plain js change, nothing layout-shaped");
++
++// 5. a mixed change (text plus a layout-word css file) -> all four, the broader signal wins
++eq(widthsFor(
++	[{ status: "M", f: "public/framework/ux/Thing/readme.md" }, { status: "M", f: "public/framework/ux/Thing/Thing.css", patch: "+ .row { display: flex; }" }],
++	[{ added: 2, deleted: 0, f: "public/framework/ux/Thing/readme.md" }, { added: 1, deleted: 0, f: "public/framework/ux/Thing/Thing.css" }],
++	["/framework/ux/Thing/"]),
++	[400, 1200, 1920, 3440], "mixed change: docs plus a layout-word css file");
++
++// pages.length > 1: a broader change even with nothing layout-shaped in the words
++eq(widthsFor([{ status: "M", f: "public/framework/ux/Thing/Thing.js", patch: "+ console.log('hi');" }],
++	[{ added: 1, deleted: 0, f: "public/framework/ux/Thing/Thing.js" }], ["/framework/ux/A/", "/framework/ux/B/"]),
++	[400, 1200, 1920, 3440], "two pages touched is a broad change regardless of the words");
++
++// no patch at all still resolves (falls through to the safe default, never throws)
++eq(widthsFor([{ status: "M", f: "public/framework/ux/Thing/Thing.css" }], [{ added: 1, deleted: 0, f: "public/framework/ux/Thing/Thing.css" }], []),
++	[400, 1920], "a css file with no patch text given falls through to the default, not a crash");
++
++// splitPatch: a two-file unified diff splits cleanly, keyed by the NEW (b/) path
++{
++	const diff = [
++		"diff --git a/public/x/a.css b/public/x/a.css",
++		"index 111..222 100644",
++		"--- a/public/x/a.css",
++		"+++ b/public/x/a.css",
++		"@@ -1,1 +1,1 @@",
++		"-old",
++		"+new grid",
++		"diff --git a/public/x/b.md b/public/x/b.md",
++		"index 333..444 100644",
++		"--- a/public/x/b.md",
++		"+++ b/public/x/b.md",
++		"@@ -1,1 +1,1 @@",
++		"-old text",
++		"+new text",
++	].join("\n");
++	const patches = splitPatch(diff);
++	t(patches.get("public/x/a.css").includes("+new grid"), "splitPatch: first file's own patch text");
++	t(patches.get("public/x/b.md").includes("+new text"), "splitPatch: second file's own patch text");
++	t(!patches.get("public/x/a.css").includes("new text"), "splitPatch: files don't bleed into each other");
++}
++eq(splitPatch("").size, 0, "splitPatch of an empty diff is an empty map, not a throw");
++
++console.log(`review.test.mjs: ${n} checks passed`);
+diff --git a/public/framework/ai/2026-10-01/quick-fix-path/quick-merge/proof/quick-proof.mjs b/public/framework/ai/2026-10-01/quick-fix-path/quick-merge/proof/quick-proof.mjs
+new file mode 100644
+index 00000000..3780129b
+--- /dev/null
++++ b/public/framework/ai/2026-10-01/quick-fix-path/quick-merge/proof/quick-proof.mjs
+@@ -0,0 +1,82 @@
++/* Proof for merge.mjs --quick (public/framework/ai/2026-10-01/quick-fix-path/quick-merge/requirements.md,
++ * deliverable 2). `node quick-proof.mjs <merge.mjs> <scratch dir>` — builds a fresh throwaway repo for
++ * each case (branch michael/dev, one file under a fake module), runs merge.mjs --quick against it
++ * with --main and --skip-smoke (same safe pattern as 2026-09-25/quickfix-worktrees/landing/proof.mjs),
++ * and checks the exit code and the final JSON line. Never touches the real repo.
++ *
++ * --skip-smoke also skips --quick's OWN screenshot step (it's gated behind the smoke test passing,
++ * same as the existing new-page screenshot step above it in merge.mjs) — a scratch repo has no real
++ * dev server to screenshot anyway. So this proof is about the GATE (size/lines/one-module), the
++ * merge actually landing, and the JSON line's shape — not the screenshot pixel itself. A SEPARATE,
++ * read-only proof (shot-proof.mjs, beside this file) takes a real screenshot against this worktree's
++ * own live dev server to show widthsFor's chosen width really becomes one real .png. */
++import { spawnSync } from "node:child_process";
++import fs from "node:fs";
++import path from "node:path";
++
++const [MERGE, SCRATCH] = process.argv.slice(2).map(p => path.resolve(p));
++const run = (cmd, args, cwd) => spawnSync(cmd, args, { cwd, encoding: "utf8", windowsHide: true });
++const git = (cwd, ...a) => { const r = run("git", ["-c", "user.name=proof", "-c", "user.email=proof@example.invalid", ...a], cwd); return r.stdout.trim(); };
++const out = [];
++const say = s => { out.push(s); console.log(s); };
++
++function setup(name, { lines = 3 } = {}){
++	const root = path.join(SCRATCH, name);
++	fs.rmSync(root, { recursive: true, force: true });
++	const main = path.join(root, "main"), wt = path.join(root, "wt");
++	fs.mkdirSync(main, { recursive: true });
++	git(main, "init", "-q", "-b", "michael/dev");
++	const cssPath = "public/framework/ux/Thing/Thing.css";
++	fs.mkdirSync(path.join(main, path.dirname(cssPath)), { recursive: true });
++	fs.writeFileSync(path.join(main, cssPath), ".box { color: red; }\n");
++	git(main, "add", "."); git(main, "commit", "-q", "-m", "one component's css");
++	git(main, "worktree", "add", "-q", "-b", "worktree/quick-x", wt);
++	// `lines` fresh lines appended — a real git diff numstat of exactly that many added lines
++	const added = Array.from({ length: lines }, (_, i) => `.extra-${i} { color: blue; }`).join("\n") + "\n";
++	fs.appendFileSync(path.join(wt, cssPath), added);
++	git(wt, "commit", "-q", "-am", `+${lines} line(s) to one component's css`);
++	return { main, wt };
++}
++
++const quick = ({ main, wt }, extra = []) => run("node", [MERGE, wt, "--main", main, "--skip-smoke", "--quick", "--asked", "2026-10-01T00:00:00-05:00", ...extra], main);
++const lastJsonLine = text => { const l = text.trim().split("\n").filter(Boolean); for (let i = l.length - 1; i >= 0; i--) { try { return JSON.parse(l[i]); } catch {} } return null; };
++
++const results = [];
++function check(label, ok, detail){ say(`  ${ok ? "PASS" : "FAIL"}  ${label}${detail ? " — " + detail : ""}`); results.push([label, ok]); }
++
++say("case 1: --quick, 3 lines in one module -> lands, prints the JSON line");
++{
++	const repo = setup("c1-small", { lines: 3 });
++	const branchHead = git(repo.wt, "rev-parse", "HEAD");
++	const r = quick(repo);
++	say(`  exit ${r.status}\n` + (r.stdout + r.stderr).trim().split("\n").map(l => "    | " + l).join("\n"));
++	check("exit 0", r.status === 0, `got ${r.status}`);
++	const json = lastJsonLine(r.stdout);
++	check("last stdout line is JSON with merged/shot/width/ms/asked_at", !!json && "merged" in json && "shot" in json && "width" in json && "ms" in json && "asked_at" in json, JSON.stringify(json));
++	check("merged names the branch's own head commit", json?.merged === branchHead, `${json?.merged} vs ${branchHead}`);
++	check("asked_at echoes --asked, ms measured from it", json?.asked_at === "2026-10-01T00:00:00-05:00" && typeof json?.ms === "number" && json.ms >= 0);
++	check("shot/width are null — --skip-smoke also skips --quick's own screenshot step, by design (see header)", json?.shot === null && json?.width === null);
++	check("the css file actually landed in main", fs.readFileSync(path.join(repo.main, "public/framework/ux/Thing/Thing.css"), "utf8").includes("extra-0"));
++	let review = null; try { review = fs.readFileSync(path.join(repo.main, "public/framework/ai/quick-fix/review.md"), "utf8"); } catch {}
++	check("a 'size quick' review.md record was written (no task dir existed, so the quick-fix/ fallback)", !!review && review.includes("size quick"), review);
++}
++
++say("\ncase 2: --quick, 40 lines -> refused, exit 2, nothing merged");
++{
++	const repo = setup("c2-big", { lines: 40 });
++	const before = fs.readFileSync(path.join(repo.main, "public/framework/ux/Thing/Thing.css"), "utf8");
++	const r = quick(repo);
++	say(`  exit ${r.status}\n` + (r.stdout + r.stderr).trim().split("\n").map(l => "    | " + l).join("\n"));
++	check("exit 2 (too big for --quick, not the generic 1)", r.status === 2, `got ${r.status}`);
++	const refused = r.stderr + r.stdout;
++	check("the refusal names the line count, dir count and size, and says to run the normal path",
++		refused.includes("refused: --quick needs") && refused.includes("40 lines in 1 dir(s), size light") && refused.includes("run the normal path"), refused);
++	check("nothing was touched: main's css file is byte-identical", fs.readFileSync(path.join(repo.main, "public/framework/ux/Thing/Thing.css"), "utf8") === before);
++	check("no JSON line printed on a refusal", lastJsonLine(r.stdout) === null, JSON.stringify(lastJsonLine(r.stdout)));
++}
++
++say("\nSUMMARY");
++for (const [label, ok] of results) say(`  ${ok ? "PASS" : "FAIL"}  ${label}`);
++fs.writeFileSync(path.join(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]):/, "$1:")), "quick-proof.txt"),
++	`Proof: Server/merge.mjs --quick on scratch repos (${new Date().toISOString()})\nmerge.mjs: ${MERGE}\n` + out.join("\n") + "\n");
++process.exit(results.every(r => r[1]) ? 0 : 1);
+diff --git a/public/framework/ai/2026-10-01/quick-fix-path/quick-merge/proof/quick-proof.txt b/public/framework/ai/2026-10-01/quick-fix-path/quick-merge/proof/quick-proof.txt
+new file mode 100644
+index 00000000..c39b5901
+--- /dev/null
++++ b/public/framework/ai/2026-10-01/quick-fix-path/quick-merge/proof/quick-proof.txt
+@@ -0,0 +1,51 @@
++Proof: Server/merge.mjs --quick on scratch repos (2026-10-02T04:21:38.604Z)
++merge.mjs: C:\Code\lew42\worktrees\quick-merge\Server\merge.mjs
++case 1: --quick, 3 lines in one module -> lands, prints the JSON line
++  exit 0
++    | --quick: none, 3 line(s), one module — skipping the reviewer agent
++    | 
++    | --quick: --skip-smoke — no real server, so no screenshot (a scratch-repo proof only)
++    | Merge made by the 'ort' strategy.
++    |  public/framework/ux/Thing/Thing.css | 3 +++
++    |  1 file changed, 3 insertions(+)
++    | 
++    | {"merged":"616238e41ea2751727da0a9deccc8d34753950aa","shot":null,"width":null,"ms":84098178,"asked_at":"2026-10-01T00:00:00-05:00"}
++    | 
++    | !!! --skip-smoke: NO SMOKE TEST WILL RUN. This flag is for proofs on a scratch repo only. !!!
++  PASS  exit 0 — got 0
++  PASS  last stdout line is JSON with merged/shot/width/ms/asked_at — {"merged":"616238e41ea2751727da0a9deccc8d34753950aa","shot":null,"width":null,"ms":84098178,"asked_at":"2026-10-01T00:00:00-05:00"}
++  PASS  merged names the branch's own head commit — 616238e41ea2751727da0a9deccc8d34753950aa vs 616238e41ea2751727da0a9deccc8d34753950aa
++  PASS  asked_at echoes --asked, ms measured from it
++  PASS  shot/width are null — --skip-smoke also skips --quick's own screenshot step, by design (see header)
++  PASS  the css file actually landed in main
++  PASS  a 'size quick' review.md record was written (no task dir existed, so the quick-fix/ fallback) — verdict: pass
++
++size quick — one shot at 400 — pass
++
++
++case 2: --quick, 40 lines -> refused, exit 2, nothing merged
++  exit 2
++    | !!! --skip-smoke: NO SMOKE TEST WILL RUN. This flag is for proofs on a scratch repo only. !!!
++    | 
++    | refused: --quick needs ≤20 lines in one module (this is 40 lines in 1 dir(s), size light); run the normal path
++  PASS  exit 2 (too big for --quick, not the generic 1) — got 2
++  PASS  the refusal names the line count, dir count and size, and says to run the normal path — 
++!!! --skip-smoke: NO SMOKE TEST WILL RUN. This flag is for proofs on a scratch repo only. !!!
++
++refused: --quick needs ≤20 lines in one module (this is 40 lines in 1 dir(s), size light); run the normal path
++
++  PASS  nothing was touched: main's css file is byte-identical
++  PASS  no JSON line printed on a refusal — null
++
++SUMMARY
++  PASS  exit 0
++  PASS  last stdout line is JSON with merged/shot/width/ms/asked_at
++  PASS  merged names the branch's own head commit
++  PASS  asked_at echoes --asked, ms measured from it
++  PASS  shot/width are null — --skip-smoke also skips --quick's own screenshot step, by design (see header)
++  PASS  the css file actually landed in main
++  PASS  a 'size quick' review.md record was written (no task dir existed, so the quick-fix/ fallback)
++  PASS  exit 2 (too big for --quick, not the generic 1)
++  PASS  the refusal names the line count, dir count and size, and says to run the normal path
++  PASS  nothing was touched: main's css file is byte-identical
++  PASS  no JSON line printed on a refusal
+diff --git a/public/framework/ai/2026-10-01/quick-fix-path/quick-merge/proof/shot-proof-out/case-0/localhost-51748-framework/400.png b/public/framework/ai/2026-10-01/quick-fix-path/quick-merge/proof/shot-proof-out/case-0/localhost-51748-framework/400.png
+new file mode 100644
+index 00000000..77a2c35b
+Binary files /dev/null and b/public/framework/ai/2026-10-01/quick-fix-path/quick-merge/proof/shot-proof-out/case-0/localhost-51748-framework/400.png differ
+diff --git a/public/framework/ai/2026-10-01/quick-fix-path/quick-merge/proof/shot-proof-out/case-0/localhost-51748-framework/layout.json b/public/framework/ai/2026-10-01/quick-fix-path/quick-merge/proof/shot-proof-out/case-0/localhost-51748-framework/layout.json
+new file mode 100644
+index 00000000..e59dc8b4
+--- /dev/null
++++ b/public/framework/ai/2026-10-01/quick-fix-path/quick-merge/proof/shot-proof-out/case-0/localhost-51748-framework/layout.json
+@@ -0,0 +1,14 @@
++{
++ "url": "http://localhost:51748/framework/",
++ "widths": {
++  "400": {
++   "empty": 0.489,
++   "widest_text": 350,
++   "widest_text_sample": "A no-build, native-ESM web framework",
++   "overflow_x": false,
++   "items": 139,
++   "narrow_share": 0.101
++  }
++ },
++ "errors": []
++}
+\ No newline at end of file
+diff --git a/public/framework/ai/2026-10-01/quick-fix-path/quick-merge/proof/shot-proof-out/case-0/localhost-51748-framework/sheet.png b/public/framework/ai/2026-10-01/quick-fix-path/quick-merge/proof/shot-proof-out/case-0/localhost-51748-framework/sheet.png
+new file mode 100644
+index 00000000..441250cd
+Binary files /dev/null and b/public/framework/ai/2026-10-01/quick-fix-path/quick-merge/proof/shot-proof-out/case-0/localhost-51748-framework/sheet.png differ
+diff --git a/public/framework/ai/2026-10-01/quick-fix-path/quick-merge/proof/shot-proof-out/case-1/localhost-51748-framework/1200.png b/public/framework/ai/2026-10-01/quick-fix-path/quick-merge/proof/shot-proof-out/case-1/localhost-51748-framework/1200.png
+new file mode 100644
+index 00000000..89333aa9
+Binary files /dev/null and b/public/framework/ai/2026-10-01/quick-fix-path/quick-merge/proof/shot-proof-out/case-1/localhost-51748-framework/1200.png differ
+diff --git a/public/framework/ai/2026-10-01/quick-fix-path/quick-merge/proof/shot-proof-out/case-1/localhost-51748-framework/layout.json b/public/framework/ai/2026-10-01/quick-fix-path/quick-merge/proof/shot-proof-out/case-1/localhost-51748-framework/layout.json
+new file mode 100644
+index 00000000..53fbc83d
+--- /dev/null
++++ b/public/framework/ai/2026-10-01/quick-fix-path/quick-merge/proof/shot-proof-out/case-1/localhost-51748-framework/layout.json
+@@ -0,0 +1,14 @@
++{
++ "url": "http://localhost:51748/framework/",
++ "widths": {
++  "1200": {
++   "empty": 0.657,
++   "widest_text": 533,
++   "widest_text_sample": "A no-build, native-ESM web framework",
++   "overflow_x": false,
++   "items": 158,
++   "narrow_share": 0.184
++  }
++ },
++ "errors": []
++}
+\ No newline at end of file
+diff --git a/public/framework/ai/2026-10-01/quick-fix-path/quick-merge/proof/shot-proof-out/case-1/localhost-51748-framework/sheet.png b/public/framework/ai/2026-10-01/quick-fix-path/quick-merge/proof/shot-proof-out/case-1/localhost-51748-framework/sheet.png
+new file mode 100644
+index 00000000..c1916698
+Binary files /dev/null and b/public/framework/ai/2026-10-01/quick-fix-path/quick-merge/proof/shot-proof-out/case-1/localhost-51748-framework/sheet.png differ
+diff --git a/public/framework/ai/2026-10-01/quick-fix-path/quick-merge/proof/shot-proof.mjs b/public/framework/ai/2026-10-01/quick-fix-path/quick-merge/proof/shot-proof.mjs
+new file mode 100644
+index 00000000..ea616bb9
+--- /dev/null
++++ b/public/framework/ai/2026-10-01/quick-fix-path/quick-merge/proof/shot-proof.mjs
+@@ -0,0 +1,50 @@
++/* Proof that widthsFor's pick really becomes ONE real screenshot, not four — the owner's own
++ * sentence this whole task exists to make true: "it doesn't make sense to take three extra
++ * screenshots when one would do." quick-proof.mjs (beside this file) proves merge.mjs --quick's
++ * GATE and JSON line on scratch repos; this proof is the other half — the actual pixels, taken
++ * read-only against THIS worktree's own live dev server (no file in the repo is touched).
++ * `node shot-proof.mjs [base url]` — base defaults to this worktree's own server. */
++import { widthsFor } from "../../../../../../../Server/review.mjs";
++import { spawnSync } from "node:child_process";
++import fs from "node:fs";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++
++const here = path.dirname(fileURLToPath(import.meta.url));
++const base = process.argv[2] || "http://localhost:51748";
++const out = path.join(here, "shot-proof-out");
++fs.rmSync(out, { recursive: true, force: true });
++
++const layoutCheck = path.resolve(here, "../../../../../../../Server/layout-check.mjs");
++const slug = u => u.replace(/^https?:\/\//, "").replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "") || "page";
++
++// Two of widthsFor's own rules, each checked the same way: compute the width(s), hand them
++// straight to layout-check.mjs (exactly what review.mjs's main() and merge.mjs --quick both do),
++// and prove on a REAL page that exactly that many real .png files come out — never four by habit.
++const cases = [
++	{ label: "a 1-line, max-width-capped component css change", files: [{ status: "M", f: "public/framework/ux/Thing/Thing.css", patch: "+ .card { max-width: 40em; }" }], numstat: [{ added: 1, deleted: 0, f: "public/framework/ux/Thing/Thing.css" }], pages: ["/framework/"] },
++	{ label: "a page.js text-only edit, no css (review.mjs's own .md-only-shaped case)", files: [{ status: "M", f: "public/framework/ux/Thing/page.js" }], numstat: [{ added: 3, deleted: 1, f: "public/framework/ux/Thing/page.js" }], pages: ["/framework/"] },
++];
++
++const allChecks = [];
++for (const [i, c] of cases.entries()) {
++	const widths = widthsFor(c.files, c.numstat, c.pages);
++	console.log(`\nwidthsFor() on ${c.label} -> [${widths.join(",")}]`);
++	if (widths.length !== 1) { console.error(`FAIL: expected exactly one width, got ${widths.length}`); allChecks.push([`${c.label}: one width`, false]); continue; }
++	const [width] = widths;
++	const url = `${base}/framework/`;
++	const caseOut = path.join(out, `case-${i}`);   // own dir per case — two cases share the same url, so their pngs would otherwise land in one folder together
++	const r = spawnSync("node", [layoutCheck, url, "--widths", String(width), "--out", caseOut], { encoding: "utf8", windowsHide: true });
++	console.log(r.stdout + r.stderr);
++	const dir = path.join(caseOut, slug(url));
++	const pngs = fs.existsSync(dir) ? fs.readdirSync(dir).filter(f => /^\d+\.png$/.test(f)) : [];
++	allChecks.push(
++		[`${c.label}: layout-check.mjs exited 0 (the real page loaded, no console/page errors)`, r.status === 0],
++		[`${c.label}: exactly one ${width}.png was written, not four`, pngs.length === 1 && pngs[0] === `${width}.png`],
++		[`${c.label}: that png is a real, non-empty file`, pngs.length === 1 && fs.statSync(path.join(dir, pngs[0])).size > 1000],
++	);
++	console.log(`one real screenshot: ${path.join(dir, pngs[0] || "(none)")}`);
++}
++console.log("");
++for (const [what, ok] of allChecks) console.log(`  ${ok ? "PASS" : "FAIL"}  ${what}`);
++process.exit(allChecks.every(c => c[1]) ? 0 : 1);
+diff --git a/public/framework/ai/2026-10-01/quick-fix-path/quick-merge/task.jsonl b/public/framework/ai/2026-10-01/quick-fix-path/quick-merge/task.jsonl
+new file mode 100644
+index 00000000..d98941cf
+--- /dev/null
++++ b/public/framework/ai/2026-10-01/quick-fix-path/quick-merge/task.jsonl
+@@ -0,0 +1,7 @@
++{"assign":{"now":"building","agent":"minion-quick-merge-2","at":"2026-10-01T22:45:11-05:00","session_id":"minion-quick-merge-2","model":"claude-sonnet-5","budget_usd":10,"steps":["widthsFor in review.mjs","merge.mjs --quick gate + path","docs: review.md Which widths, merge doc, skill paragraph on card","proof: widthsFor unit test, --quick scratch proofs, review.mjs .md-only shot count","review --size light, merge"]}}
++{"assign":{"step":1,"now":"widthsFor(files, numstat, pages) exported from review.mjs, with splitPatch() and writeNoReviewPass() as shared helpers; review.mjs's own page-shots step and a new --widths flag now use it instead of the fixed four","at":"2026-10-01T23:09:04-05:00"}}
++{"decision":{"at":"2026-10-01T23:09:04-05:00","question":"how to detect a 'layout word' without a diff-content param in widthsFor's signature","options":["read file content from disk inside widthsFor (needs a root dir, wrong tree when run from the main repo)","attach an optional .patch field (that file's own diff text) to each files[] entry, built by the caller via a new exported splitPatch()"],"chose":"the .patch field + splitPatch()","why":"keeps widthsFor pure and unit-testable with no fs/git calls, and the real caller (review.mjs's main(), and merge.mjs's --quick path) already has the full diff text in hand"}}
++{"decision":{"at":"2026-10-01T23:09:04-05:00","question":"max-width contains the word width, which collided with the layout-word regex (rule 2 always beat rule 3)","options":["reorder rule 3 before rule 2","exclude the width inside max-width/min-width from the layout-word regex with a negative lookbehind"],"chose":"negative lookbehind (?<!-)\\bwidth\\b","why":"keeps the owner's own stated rule order (1,2,3,4) intact; caught by the widthsFor unit test before it ever reached merge.mjs"}}
++{"decision":{"at":"2026-10-01T23:09:04-05:00","question":"where does --quick's shot + no-agent review record live when there's no dated task dir (the common case for a voice quick-fix)","options":["write nothing without a task dir","a shared public/framework/ai/quick-fix/ task dir used by every quick fix (append-only task.jsonl, review.md overwritten each time but unread)","guess a dated task dir from the branch name the same way reviewGate already does, falling back to public/framework/ai/quick-fix/"],"chose":"the fallback, via a shared guessTaskDir() helper reused by both reviewGate and --quick","why":"matches the brief's own literal fallback path (public/framework/ai/quick-fix/shots/<sha>/) and removes the duplicate branch-name-guessing logic that used to live only inside reviewGate"}}
++{"action":{"at":"2026-10-01T23:20:35-05:00","did":"edit","files":["public/framework/ai/2026-10-01/quick-fix-path/quick-merge/proof/quick-proof.mjs"]}}
++{"action":{"at":"2026-10-01T23:21:57-05:00","did":"edit","files":["public/framework/ai/2026-10-01/quick-fix-path/quick-merge/proof/shot-proof.mjs"]}}

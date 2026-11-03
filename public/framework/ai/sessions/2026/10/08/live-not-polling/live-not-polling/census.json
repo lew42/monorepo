@@ -1,0 +1,167 @@
+[
+ {
+  "file": "public/framework/ai/2026-09-19/health-revive/page.js",
+  "line": 67,
+  "timer": "setInterval(tick, 10_000);",
+  "ms": "10_000",
+  "reads": []
+ },
+ {
+  "file": "public/framework/ai/2026-09-22/record/page.js",
+  "line": 171,
+  "timer": "clock = setInterval(() => $state.text(((performance.now() - started) / 1000).toFixed(1) + ",
+  "ms": "200",
+  "reads": [
+   "expected.json"
+  ]
+ },
+ {
+  "file": "public/framework/ai/dashboard/page.js",
+  "line": 76,
+  "timer": "if (live) setTimeout(tick, POLL_MS);",
+  "ms": "POLL_MS",
+  "reads": []
+ },
+ {
+  "file": "public/framework/ai/dashboard/page.js",
+  "line": 172,
+  "timer": "if (live) setTimeout(poll, POLL_MS);",
+  "ms": "POLL_MS",
+  "reads": [
+   "/api/agents",
+   "sessions.json"
+  ]
+ },
+ {
+  "file": "public/framework/ai/sessions/page.js",
+  "line": 808,
+  "timer": "setTimeout(again, 5000);",
+  "ms": "5000",
+  "reads": [
+   "agents.jsonl",
+   "sessions.json",
+   "/api/agents"
+  ]
+ },
+ {
+  "file": "public/framework/ai/sessions/page.js",
+  "line": 810,
+  "timer": "setTimeout(again, 5000);",
+  "ms": "5000",
+  "reads": [
+   "agents.jsonl",
+   "sessions.json",
+   "/api/agents",
+   "week.json"
+  ]
+ },
+ {
+  "file": "public/framework/ai2/agents.js",
+  "line": 71,
+  "timer": "refresh.timer = setInterval(refresh, 10000);",
+  "ms": "10000",
+  "reads": [
+   "/api/card-agents",
+   "/api/agents"
+  ]
+ },
+ {
+  "file": "public/framework/ai2/live.js",
+  "line": 143,
+  "timer": "setInterval(poll_agents, 30000);",
+  "ms": "30000",
+  "reads": [
+   "task.jsonl",
+   "tasks.json",
+   "/framework/ai/tasks.json"
+  ]
+ },
+ {
+  "file": "public/framework/ai2/live.js",
+  "line": 144,
+  "timer": "setInterval(poll_usage, 60000);",
+  "ms": "60000",
+  "reads": [
+   "task.jsonl",
+   "tasks.json",
+   "/framework/ai/tasks.json"
+  ]
+ },
+ {
+  "file": "public/framework/ai2/live.js",
+  "line": 145,
+  "timer": "setInterval(poll_pool, 30000);",
+  "ms": "30000",
+  "reads": [
+   "task.jsonl",
+   "tasks.json",
+   "/framework/ai/tasks.json"
+  ]
+ },
+ {
+  "file": "public/framework/ai2/live.js",
+  "line": 146,
+  "timer": "setInterval(poll_tasks_json, 30000);",
+  "ms": "30000",
+  "reads": [
+   "task.jsonl",
+   "tasks.json",
+   "/framework/ai/tasks.json"
+  ]
+ },
+ {
+  "file": "public/framework/ai2/needs.js",
+  "line": 150,
+  "timer": "timer = setInterval(tick, 20000);",
+  "ms": "20000",
+  "reads": []
+ },
+ {
+  "file": "public/framework/ai2/processes.js",
+  "line": 51,
+  "timer": "const timer = setInterval(poll, 10000);",
+  "ms": "10000",
+  "reads": [
+   "/api/worktrees",
+   "/api/processes"
+  ]
+ },
+ {
+  "file": "public/framework/ext/AITask/conversation.js",
+  "line": 63,
+  "timer": "await new Promise(res => setTimeout(res, POLL_MS));",
+  "ms": "POLL_MS",
+  "reads": []
+ },
+ {
+  "file": "public/framework/ext/AITask/feed.js",
+  "line": 37,
+  "timer": "await new Promise(res => setTimeout(res, POLL_MS));",
+  "ms": "POLL_MS",
+  "reads": []
+ },
+ {
+  "file": "public/framework/ext/drawer/tabs/ai.js",
+  "line": 83,
+  "timer": "await new Promise(r => setTimeout(r, REPLY_POLL_MS));",
+  "ms": "REPLY_POLL_MS",
+  "reads": [
+   "ai/chat.jsonl",
+   "/api/page-ai"
+  ]
+ },
+ {
+  "file": "public/framework/ext/Session/Session.js",
+  "line": 110,
+  "timer": "const timer = setInterval(() => {",
+  "ms": null,
+  "reads": []
+ },
+ {
+  "file": "public/framework/ext/Session/Session.js",
+  "line": 178,
+  "timer": "if (!stopped) timer = setTimeout(tick, every);",
+  "ms": "every",
+  "reads": []
+ }
+]

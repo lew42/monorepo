@@ -1,0 +1,270 @@
+{
+  "dilemma": "log-call-vs-change",
+  "lens": "edge-cases",
+  "by": "analyst-calls-edge",
+  "options": [
+    {
+      "id": "changes",
+      "label": "Record the changes only (data); replay assigns, never re-runs a method",
+      "wins_when": [
+        {
+          "scenario": "Task.start() CAN map is changed later (owner makes 'complete' final, so start from complete is refused) while old reopen lines exist in the session log.",
+          "why": "Replay assigns the recorded state; no method runs, so a rule change cannot refuse or reshape old history."
+        },
+        {
+          "scenario": "A server restart replays a session whose Task method calls a model or spawns an agent.",
+          "why": "Nothing re-runs from the file, so there is no second model call and no second spawn at load."
+        },
+        {
+          "scenario": "A task.jsonl add line is replayed after the slug rule in Task.make() changes.",
+          "why": "The id is inside the line (phase-1 sec 6, add {id, ...}), so ids cannot drift with the code."
+        }
+      ],
+      "fails_when": [
+        {
+          "scenario": "Owner starts a task at 09:00 (line: state running, started_at), reloads at 09:40, pauses at 10:00.",
+          "severity": 4,
+          "recoverable": true,
+          "why": "_ran_since is memory only (Task.js L46-47 sets it to null in the constructor). Replay assigns state and never calls start(), so duration() (L160-162) counts 0 and pause() (L340-345) writes ran_ms 0. The 60 minutes are gone from the data, but the start and pause ts are still in the file, so a recompute recovers them. Read from source, not run. Task/readme.md L97-99 says only a few seconds are lost on reload; that holds only if start replays, which is what calls does today."
+        },
+        {
+          "scenario": "The last child of a parent completes in tab A; tab B replays that child's state line.",
+          "severity": 4,
+          "recoverable": true,
+          "why": "child_changed (Task.js L95-99) runs complete({auto}) from a replayed change as well. Changes does not remove reactive side effects; the source-tag gate (phase-1 sec 2, T1) is needed under every option."
+        },
+        {
+          "scenario": "A bug wrote a wrong started_at or ran_ms last week; the code is fixed today.",
+          "severity": 2,
+          "recoverable": true,
+          "why": "Derived numbers stored as data stay wrong in old lines. Only a migration fixes them, and the store never rewrites history."
+        },
+        {
+          "scenario": "Owner wants to undo the last action on one task.",
+          "severity": 2,
+          "recoverable": true,
+          "why": "Lines store new values, not old ones, so a single line cannot be inverted. tldraw stores [from, to] for this (object-model.md gap 5, L45). Replay up to line N-1 still works."
+        },
+        {
+          "scenario": "wait() on a task written through the non-act path.",
+          "severity": 2,
+          "recoverable": true,
+          "why": "One line per changed field: wait() writes 7 lines today (phase-1 sec 2, batch, T2). Log noise and load cost, not wrong data."
+        }
+      ],
+      "precedent": [
+        {
+          "tool": "tldraw store",
+          "how": "Each write is a RecordsDiff with [from, to], tagged by source; undo and remote merge read it",
+          "src": "research/persistence-sync/lessons/object-model.md"
+        },
+        {
+          "tool": "Loro",
+          "how": "Event batches tagged local, import or checkout, so reacting code can skip replayed changes",
+          "src": "research/persistence-sync/lessons/object-model.md"
+        }
+      ]
+    },
+    {
+      "id": "calls",
+      "label": "Record the call; replay re-runs the method (today for start, wait, pause, resume)",
+      "wins_when": [
+        {
+          "scenario": "Owner starts a task at 09:00, reloads at 09:40 mid-run, pauses at 10:00.",
+          "why": "Replay of the start line runs start() again, which sets _ran_since from the line time (Task.clock is pinned per line, Session.js L69-84), so the open span is rebuilt and pause() reports 60 minutes. Calls is the only option that restores non-data state by construction."
+        },
+        {
+          "scenario": "complete({auto}) closes a parent with 50 child tasks.",
+          "why": "One line, {tasks:{p:{complete:{auto:true}}}}, instead of 50+ state lines; replay re-derives the children."
+        },
+        {
+          "scenario": "A bug in duration() or stamp() is fixed; old sessions are reopened.",
+          "why": "Derived values recompute from the lines, so history self-heals. The flip side is the rewrite failure below."
+        }
+      ],
+      "fails_when": [
+        {
+          "scenario": "CAN map changes (start no longer allowed from complete) after old reopen lines were written.",
+          "severity": 4,
+          "recoverable": true,
+          "why": "Old start() lines now warn and change nothing (Task.js L332). Later complete or wait lines then refuse in turn, so the replayed state diverges from what was shown. New writes land on the diverged base. The log is intact, so reverting or migrating recovers it."
+        },
+        {
+          "scenario": "A Task subclass starts an agent in start() (an AITask, planned) and the owner restarts Servex, or opens a second tab.",
+          "severity": 4,
+          "recoverable": true,
+          "why": "Every replay runs the body again. Servex keeps one replayed live root per file (research overview.md step, L34), rebuilt after a restart, and each browser tab replays its own copy. Each restart or tab spawns again unless every body checks source (T1)."
+        },
+        {
+          "scenario": "Same method body sends a message to an outside person or posts to an external API.",
+          "severity": 5,
+          "recoverable": false,
+          "why": "A replayed send cannot be unsent. Calls turns every side effect in a method body into a reload hazard; changes turns only reactive watchers into one."
+        },
+        {
+          "scenario": "A method calls a model or API (summary, classify) and the result is not passed as an argument.",
+          "severity": 5,
+          "recoverable": false,
+          "why": "Replay asks again and gets different output. The first answer never reached the file, so it is gone, and every load spends usage. Safe only if the result is an arg (then the option is both-apply)."
+        },
+        {
+          "scenario": "The finish alias is removed from VERBS (Task.js L33) while old lines still say {finish:{}}.",
+          "severity": 4,
+          "recoverable": true,
+          "why": "An unknown verb is stored as a data field (T6; object-model.md gap 6, row 6 at L73). A removed method corrupts the task instead of failing loudly."
+        },
+        {
+          "scenario": "Planned: phase-1 sec 6 calls ts 'kept for audit only'. A Journal then stops stamping ts on lines.",
+          "severity": 4,
+          "recoverable": true,
+          "why": "Task.clock has nothing to pin (Session.js L72, L79 read at or ts). stamp() and ms() fall back to Date.now() on replay (Task.js L121-122), so started_at and the open span change on every load. Calls breaks silently when ts is removed from the line."
+        },
+        {
+          "scenario": "Node (Servex) and Chrome run one method body that uses localeCompare, performance.now() or localStorage. Concrete case: a sort() replayed as a call, with no sort verb in List.js today (order(ids) at L278 is the stored form).",
+          "severity": 3,
+          "recoverable": true,
+          "why": "Writers disagree on the replayed order or state until a reload picks one. Locale collation differs across ICU builds. Stored order ids avoid this."
+        },
+        {
+          "scenario": "Long session load: session.jsonl has 1,095 lines and 3.4 MB (ai/sessions/2026/10/20/session-e00f55c9/), with cascades replayed as bodies.",
+          "severity": 2,
+          "recoverable": true,
+          "why": "Method bodies emit events, and each List change bumps Item.generation (overview step 7, L87), which invalidates the find index. The 15 bare start lines in that file are a few bytes each, so the verb choice barely changes its size. Speed is decided by snapshots (phase 2), not by this choice."
+        }
+      ],
+      "precedent": [
+        {
+          "tool": "Replicache",
+          "how": "Named mutators run on the client and replay on pull, with the server authoritative; the replay model is the calls option",
+          "src": "research/persistence-sync/notes/delta_logs_build_vs_buy.md (line ~224); https://doc.replicache.dev/concepts/how-it-works"
+        },
+        {
+          "tool": "Redis AOF",
+          "how": "Append-only file of commands replayed at startup; a truncated tail is dropped (see the same note, line ~128). Its move to effect replication for nondeterministic commands is from memory, not checked in this run",
+          "src": "research/persistence-sync/notes/delta_logs_build_vs_buy.md"
+        },
+        {
+          "tool": "lew42 Session",
+          "how": "Replay pins Task.clock to each line's at or ts, so start() stamps the line time and never reads the wall clock",
+          "src": "public/framework/core/Session/Session.js"
+        }
+      ]
+    },
+    {
+      "id": "both-apply-changes",
+      "label": "One line per action: the call as a label plus the changes it made; replay applies the changes",
+      "wins_when": [
+        {
+          "scenario": "Method code is changed after lines are written (CAN map, a default), and the owner reloads.",
+          "why": "Replay applies the recorded changes, so the file shows what happened, as the changes option does. The label still says which call made it."
+        },
+        {
+          "scenario": "A complete({auto}) cascade over 50 children, or wait() (7 lines today).",
+          "why": "One line carrying the label and every changed field (batch, phase-1 sec 2). The size and speed of calls, with no re-run."
+        },
+        {
+          "scenario": "A task starts with started_at and an agent summary; both are written at once.",
+          "why": "The line holds the values, so replay never reads the clock, a seed or a model. This avoids the two severity-5 cases of calls."
+        },
+        {
+          "scenario": "Owner reads session.jsonl to ask why task c3 is running.",
+          "why": "The start() label and started_at sit in one line. The label is the audit trail without knowing the code."
+        }
+      ],
+      "fails_when": [
+        {
+          "scenario": "Legacy bare lines already in the repo: session.jsonl line 13 is {tasks:{...:{start:{}}}} with no changes, and the file has 15 such lines.",
+          "severity": 4,
+          "recoverable": true,
+          "why": "A replay that applies only changes drops these starts, so the task never runs after a reload. The rule must be: a line with no changes re-runs its call until it is migrated. Old lines must not be rewritten (never destructive)."
+        },
+        {
+          "scenario": "Owner reloads mid-run, then pauses (same as the changes case).",
+          "severity": 4,
+          "recoverable": true,
+          "why": "_ran_since is not in the changes. Both-apply does not fix it; the running span must become data (for example running_since), or the line must name it."
+        },
+        {
+          "scenario": "After a code fix, an old line says start() but its changes came from the buggy code.",
+          "severity": 2,
+          "recoverable": true,
+          "why": "Two sources of truth: a reader may assume the label lets them re-derive the result. The changes win on replay, and nothing says so."
+        },
+        {
+          "scenario": "A 100-item action with inline changes (a cascade that touches 50 children, each with fields).",
+          "severity": 2,
+          "recoverable": true,
+          "why": "Line size grows with the cascade (order ids for 100 items is about a KB). Annoying, and small next to a 3.4 MB session."
+        }
+      ],
+      "precedent": [
+        {
+          "tool": "mobx-keystone",
+          "how": "Action middleware gathers every patch one action makes into one group, so one action is one unit",
+          "src": "research/persistence-sync/lessons/object-model.md (gap 2, L42)"
+        },
+        {
+          "tool": "tldraw store",
+          "how": "Each change carries a source tag; replayed changes are not re-recorded",
+          "src": "research/persistence-sync/lessons/object-model.md (gap 1, L41)"
+        },
+        {
+          "tool": "lew42 Item.act",
+          "how": "Runs the verb locally, mutes the set lines, and records one verb line; the same mute would carry the changes instead",
+          "src": "public/framework/core/Item/Item.js (L94-L105)"
+        }
+      ]
+    },
+    {
+      "id": "per-class",
+      "label": "Changes by default; a class opts in to re-running calls (for example a game)",
+      "wins_when": [
+        {
+          "scenario": "Lifecycle verbs stay calls on Task (status quo) while data stays changes on every other class.",
+          "why": "Keeps today's start() and resume() replay (and the open span) without changing other classes."
+        },
+        {
+          "scenario": "A game object whose roll uses randomness.",
+          "why": "An opted-in class can seed the RNG and pass the seed as an arg. Weak: phase-1 sec 14 already says game state (inventory, score, placement) is data, so storing the roll result is simpler."
+        }
+      ],
+      "fails_when": [
+        {
+          "scenario": "A class flips from calls to changes (or back) after its lines exist.",
+          "severity": 4,
+          "recoverable": true,
+          "why": "Old lines are read under the new mode: a start() line becomes a change-less call or a data field. The line format has no per-line mode marker, so the reader cannot tell."
+        },
+        {
+          "scenario": "A changes-class Session parent holds a calls-class Process child, and a child start() runs inside the parent's act().",
+          "severity": 3,
+          "recoverable": true,
+          "why": "Store.muted (Item.js L97-102) mutes one class's lines but not the other's, so a child's set lines may be lost or doubled. Two write paths must agree in Store.js."
+        },
+        {
+          "scenario": "An opted-in calls class later gets a model call or an agent spawn (someone forgets the rule).",
+          "severity": 5,
+          "recoverable": false,
+          "why": "All calls risks return for that class only, and the flag hides them from the reader of the log."
+        },
+        {
+          "scenario": "Every new class must pick a mode (law 6, one of everything).",
+          "severity": 2,
+          "recoverable": true,
+          "why": "Two write paths to test and document in each surface. Costs review time, no data loss."
+        }
+      ],
+      "precedent": [
+        {
+          "tool": "Loro",
+          "how": "Tags event batches (local, import, checkout) rather than picking a mode per class; no per-class log format found in the research",
+          "src": "research/persistence-sync/lessons/object-model.md (gap 1, L41)"
+        }
+      ]
+    }
+  ],
+  "recommended": "both-apply-changes",
+  "confidence": 4,
+  "surprise": "The codebase already runs a hybrid: start, wait, pause and resume are logged as calls and re-run on replay (Session.js L69-84; Task.js L331-362), while list verbs are results with args (List.js order(ids) L278-L289 fills unnamed items by anchor, so it is not a pure copy). The running time works after a reload only because start and resume replay as calls, so the changes option would silently break it unless the open span becomes data.",
+  "notes": "The worst edges differ: calls re-runs side effects and model calls on every load (severity 5, not recoverable), and changes drops the open running span (severity 4). Both-apply avoids the severity-5 cases, but only if the 15 bare legacy start lines get a re-run fallback and the running span becomes a data field. Read from source and the phase-1 notes; no replay test was run."
+}

@@ -1,0 +1,72 @@
+{
+	"at": "2026-10-17T04:47:40.486Z",
+	"by": "mastermind-checkup-live",
+	"source": "public/live/page.jsonl",
+	"copied_to": "public/live/archive/page.jsonl",
+	"lines": 66,
+	"bytes": 66163,
+	"sha256": "05cfcb3817f271c3f05b4a5601dc7c5a41f8da3408cb6e03629ef415446afb60",
+	"cards": [
+		{
+			"id": "live-classes",
+			"type": "part-card",
+			"title": "Live, the page class (live/Live.js)"
+		},
+		{
+			"id": "task-audits",
+			"type": "part-card",
+			"title": "Task audits"
+		},
+		{
+			"id": "transcripts",
+			"type": "part-card",
+			"title": "Transcripts"
+		},
+		{
+			"id": "f176b087-92c3-4c7a-8ff4-715b030b9ab1",
+			"type": "part-card",
+			"title": "Chat bubbles"
+		},
+		{
+			"id": "48e90bf3-72c8-4f9e-b802-95e774dbc58c",
+			"type": "part-card",
+			"title": "Overnight"
+		},
+		{
+			"id": "class-architecture",
+			"type": "part-card",
+			"title": "Class architecture: Item / List / Page"
+		},
+		{
+			"id": "now",
+			"type": "part-card",
+			"title": "Now"
+		},
+		{
+			"id": "task-system-plan",
+			"type": "part-card",
+			"title": "Task system plan"
+		},
+		{
+			"id": "tasks",
+			"type": "part-live",
+			"title": "Tasks"
+		},
+		{
+			"id": "sheet-audit",
+			"type": "part-card",
+			"title": "Sheet audit"
+		},
+		{
+			"id": "sheet-proposal",
+			"type": "part-card",
+			"title": "Sheet proposal"
+		},
+		{
+			"id": "task-migrate",
+			"type": "part-card",
+			"title": "Task migration"
+		}
+	],
+	"undo": "node public/live/archive/ArchiveMove.mjs --undo"
+}

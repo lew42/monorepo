@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/core/Page/content-shapes/both/",
+ "widths": {
+  "1280": {
+   "empty": 0.793,
+   "widest_text": 365,
+   "widest_text_sample": "Defined in the class body, not in a conf",
+   "overflow_x": false,
+   "items": 75,
+   "narrow_share": 0.187
+  },
+  "1920": {
+   "empty": 0.862,
+   "widest_text": 388,
+   "widest_text_sample": "Defined in the class body, not in a conf",
+   "overflow_x": false,
+   "items": 75,
+   "narrow_share": 1
+  },
+  "2560": {
+   "empty": 0.859,
+   "widest_text": 437,
+   "widest_text_sample": "Defined in the class body, not in a conf",
+   "overflow_x": false,
+   "items": 75,
+   "narrow_share": 1
+  },
+  "3440": {
+   "empty": 0.89,
+   "widest_text": 437,
+   "widest_text_sample": "Defined in the class body, not in a conf",
+   "overflow_x": false,
+   "items": 75,
+   "narrow_share": 1
+  }
+ },
+ "errors": []
+}

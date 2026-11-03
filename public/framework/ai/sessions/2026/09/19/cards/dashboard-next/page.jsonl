@@ -1,0 +1,6 @@
+{"class":"/framework/ai2/card.js","title":"V3 Now view: landed","type":"card","id":"2026/09/19/dashboard-next","created":"2026-09-19T16:45:24-05:00","by":"mastermind","tags":[]}
+{"legacy":"dashboard-next"}
+{"status":"done"}
+{"icon":"dashboard"}
+{"parent":"v3-notes"}
+{"text":"V3 opens on Now: your newest words as a transcription card, the answer streaming under it, and a message box with the mic right on the page. One row per question and answer in the inbox, cards on the framework card class, no dark border. The full-bleed timeline is the next task; the new mastermind starts it first."}

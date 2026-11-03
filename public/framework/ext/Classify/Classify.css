@@ -1,0 +1,17 @@
+@layer site {
+	.classify-layer { position: absolute; inset: 0 auto auto 0; width: 0; height: 0; z-index: 2147483000; pointer-events: none; --classify-c: rgb(120 120 120 / .55); }
+	.classify-box { position: absolute; box-sizing: border-box; }
+	.classify-label {
+		font: 10px/13px ui-monospace, Menlo, Consolas, monospace; color: #555; background: rgb(255 255 255 / .85);
+		padding: 0 4px; border-radius: 3px; white-space: nowrap; max-width: 40ch; overflow: hidden; text-overflow: ellipsis;
+	}
+	/* items-dashed (default) */
+	.classify-container { outline: 1px solid rgb(120 120 120 / .2); }
+	.classify-item { outline: 1px dashed var(--classify-c); outline-offset: -1px; }
+	.classify-container[data-style="container-solid"] { outline: 1px solid var(--classify-c); }
+	.classify-item[data-style="container-solid"] { outline: 0; }
+	.classify-container[data-style="tint"] { outline: 0; background: rgb(120 140 255 / .07); }
+	.classify-item[data-style="tint"] { outline: 0; background: rgb(120 140 255 / .09); }
+	.classify-container[data-style="items-dotted"] { outline: 0; }
+	.classify-item[data-style="items-dotted"] { outline: 1px dotted var(--classify-c); outline-offset: -1px; }
+}

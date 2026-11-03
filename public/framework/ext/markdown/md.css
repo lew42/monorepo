@@ -1,41 +1,29 @@
-/* Layer order, restated: the FIRST declaration wins and module import
-   order decides who loads first, so every stylesheet states it. */
-@layer base, theme, site, util;
-
-/* Rendered markdown needs almost no CSS, and that is the point.
- *
- * Markdown emits plain HTML — `pre`, `code`, `blockquote`, `table`, `h2`. Those
- * are HTML's looks, not markdown's, so they belong to whoever styles HTML:
- * framework.css. This file used to own them, which meant the site had two
- * blockquote designs (one for markdown, one for a hand-written `blockquote()`)
- * and four opinions about `pre` padding.
- *
- * What's left is the only thing that is genuinely md's: the two classes md.js
- * actually emits. Both are prefixed, both are styled nowhere else.
- *
- * Retired here, and where each went:
- *   .md > :first/:last-child   → framework.css `util` (global, symmetric)
- *   .md pre / pre > code       → framework.css `pre` block padding
- *   .md blockquote, .md table  → framework.css, as plain element rules
- *   .md td:first-child         → /styles.css — a docs opinion, not a markdown one
- */
+/* Two classes: the only two md.js emits. The generic elements markdown produces —
+   `pre`, `code`, `blockquote`, `table` — are HTML's looks, not markdown's, and
+   belong to framework.css. readme.md records what was handed back. */
 @layer theme {
+
+    /* Code scrolls sideways; a fence "```js wrap" (class .wrap, md.js) wraps instead. */
+    pre { white-space: pre; overflow-x: auto; tab-size: 3; }
+    pre.wrap, pre.wrap code { white-space: pre-wrap; overflow-wrap: anywhere; }
 
     .md-error { color: var(--error); }
 
-    /* md.details — the technical record, one click away and out of the way.
-       Generic enough to want extracting into a `core/Details/` component the
-       moment a second disclosure appears; until then a second file costs more
-       than it saves. `summary { cursor: pointer }` is already in framework.css,
-       since that one is a UA gap rather than a design. */
-    /* Its own margin, deliberately: this is the end-of-page rule, not a block in
-       the flow, so it wants more air above than the rhythm gives. */
-    .md-details { margin-block-start: 3.5rem; border-top: 1px solid var(--line); }
+    /* Its own margin, deliberately: an end-of-page rule, not a block in the flow. */
+    .md-details { margin-block-start: calc(var(--flow) * 1.75); border-top: 1px solid var(--line); }   /* was margin-block-start 3.5rem - 2026-09-05 ramps */
+    /* ⚠ The inline `0.8em` is not decoration (padding-law, 2026-09-22). This said
+       `padding: 0.6em 0` for as long as a `<summary>` was a bare text toggle —
+       framework.css's own note records what one used to be: "padding, radius, no
+       border at all". The control grammar then gave every `summary` on the site
+       `background-color: var(--fill-a08)` and a `1px solid` hairline, and this
+       rule's inline zero turned into a filled, bordered box with its text flush
+       against both inner edges, on 61 pages. `0.8em` is the same inline value the
+       control grammar itself uses. A regression by cascade, not by edit. */
     .md-details > summary {
-        padding: 0.6em 0;
+        padding: 0.6em 0.8em;
         color: var(--subtle);
         font-size: 0.9em;
     }
-    .md-details > summary:hover { color: var(--prim); }
+    .md-details > summary:hover { color: var(--prime); }
     .md-details-body { padding-bottom: 1em; font-size: 0.95em; }
 }

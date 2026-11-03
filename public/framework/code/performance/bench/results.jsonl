@@ -1,0 +1,7 @@
+{"strategy":"thrash","rounds":5,"sync_ms":6802.9,"painted_ms":6812.8,"layouts":15001,"style_recalcs":15000,"paints":4,"layout_ms":6516.4,"at":"2026-10-12T20:13:39.524Z"}
+{"strategy":"loop","rounds":5,"sync_ms":15.2,"painted_ms":79.5,"layouts":2,"style_recalcs":1,"paints":4,"layout_ms":70.6,"at":"2026-10-12T20:13:40.628Z"}
+{"strategy":"hide","rounds":5,"sync_ms":13.9,"painted_ms":71.1,"layouts":2,"style_recalcs":1,"paints":4,"layout_ms":69.4,"at":"2026-10-12T20:13:41.614Z"}
+{"strategy":"detach","rounds":5,"sync_ms":9.3,"painted_ms":72,"layouts":2,"style_recalcs":1,"paints":4,"layout_ms":65.6,"at":"2026-10-12T20:13:42.605Z"}
+{"strategy":"clone-swap","rounds":5,"sync_ms":12.1,"painted_ms":77.3,"layouts":2,"style_recalcs":1,"paints":4,"layout_ms":64,"at":"2026-10-12T20:13:43.560Z"}
+{"strategy":"fragment","rounds":5,"sync_ms":24.5,"painted_ms":90.3,"layouts":2,"style_recalcs":1,"paints":4,"layout_ms":69.7,"at":"2026-10-12T20:13:44.772Z"}
+{"strategy":"coalesce","rounds":5,"sync_ms":11.2,"painted_ms":54.6,"layouts":2,"style_recalcs":1,"paints":4,"layout_ms":55.7,"at":"2026-10-12T20:13:45.646Z"}

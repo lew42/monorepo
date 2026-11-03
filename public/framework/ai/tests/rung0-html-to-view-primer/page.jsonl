@@ -1,0 +1,7 @@
+{"class":"/framework/ai/tests/AITest.js","title":"Rung 0 — HTML to View helpers (with primer)","kind":"html-to-view","rung":0,"skills":[],"prompt":"prompt.md","criteria":["the .rung0-output box contains the same tags as source.html, in the same nesting order","every element has the same classes as its matching tag in source.html","every element has the same non-class attributes (href, data-kind, ...) as source.html","every element's text matches source.html exactly","no raw HTML string or innerHTML was used — real View helper calls only"],"expected":null,"judge":null,"confidence":0,"container":".rung0-output","source_html":"fixture/source.html","ab_pair":"rung0-html-to-view","variant":"primer"}
+{"file":"fixture/"}
+{"file":"fixture/"}
+{"file":"fixture/"}
+{"file":"prompt.md"}
+{"file":"prompt.md"}
+{"file":"prompt.md"}

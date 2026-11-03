@@ -1,0 +1,397 @@
+diff --git a/.claude/skills/voice-mastermind/SKILL.md b/.claude/skills/voice-mastermind/SKILL.md
+index f21e41961..cfcd2e7eb 100644
+--- a/.claude/skills/voice-mastermind/SKILL.md
++++ b/.claude/skills/voice-mastermind/SKILL.md
+@@ -12,7 +12,7 @@ Load the `mastermind` skill first; everything there holds (one task dir per effo
+ - **You are talking to a voice agent, not to the owner.** The Claude app's voice session sits between you and the owner and decides how to say things aloud. So you do not write for the ear; you write for a colleague who will: the answer first, then the detail that colleague needs to hold a conversation about it (what it is, where it lives, what is open, what the alternatives were, a link or two). A few short paragraphs is fine; a wall is not. Use names the owner knows for the things themselves (a page, a module, a class by its site name), and let the voice agent choose the words. (The owner, 2026-10-15: "the voice mastermind doesn't really need to worry about responding properly, and can give added detail, so the actual voice agent has some context, and the voice agent can decide how to respond.")
+ - **Answer fast, from the record, never from memory.** `public/framework/ai/handover.md` (LATEST first), the readme chain, the task cards and the pages. A question you can answer in seconds, answer. A question that needs reading (a module's docs, a log) goes to a Haiku minion with the exact files; say so, then answer when it returns.
+ - **Announce before anything slow.** If what you are about to do takes more than a few seconds (a minion, a build, a search, a check_page), write the reply FIRST: what you are starting, roughly how long, what it will produce, and that you will report when it lands. Then start it. The voice agent needs that sentence to keep the conversation going.
+-- **Real work is a minion's.** A build, a fix, a review or a long read goes to a task mastermind or a minion (`spawn_agent`) with a brief, or to the module's inbox (`module_inbox`) when it is an ask for later. You stay free to answer the next question. Report each landing in one sentence when it arrives, or when asked.
++- **Real work is a minion's.** A build, a fix, a review or a long read goes to a `mastermind` spawned at the work's path and named for its job, or to a minion (`spawn_agent`) with a brief, or to the module's inbox (`module_inbox`) when it is an ask for later. You stay free to answer the next question. Report each landing in one sentence when it arrives, or when asked.
+ - **Log everything.** Every question and every answer is a `chat` line in your task.jsonl (`from: "owner (voice)"` / `from: "voice-mastermind"`); every minion an `agent` line; each landing a `log` line with its link; so later sessions and the per-module asks lists see what was said and done.
+ - **Stay hands-free.** You do not edit files yourself beyond your own task log; you do not restart servers; you do not spawn more than the budget and `usage-now` allow, and you say when you are holding back for pace.
+ - **Answer inside the tool's one-minute window.** The voice client drops the session if a reply takes longer (it did, 2026-10-15). Reply within the minute with an ack and where the work is routed; never block on a minion. Carry each minion's result to the next ask. (The directives for the voice agent live only in the MCP's own description, `Servex/ext/remote/RemoteMCP.js`, never here.)
+diff --git a/Servex/agents/Agents.js b/Servex/agents/Agents.js
+index 020370907..098da5e48 100644
+--- a/Servex/agents/Agents.js
++++ b/Servex/agents/Agents.js
+@@ -172,10 +172,10 @@ export class Agents {
+ 		 * ⚠ NONE READY REFUSES THE SPAWN — it does not fall back to the main tree (fresh-eyes
+ 		 * review, finding 1: an earlier version did exactly that, silently recreating the very
+ 		 * incident this feature exists to close, the moment the pool ran dry). The caller sees a
+-		 * clear error and can wait, retry, or spawn a `task-mastermind` instead (session-smart.md). */
++		 * clear error and can wait, retry, or spawn a `mastermind` at the work's path instead (session-smart.md). */
+ 		if (spec.role === "minion" && !again && !worktree_of(spec.cwd) && this.servex?.pool){
+ 			const slot = this.servex.pool.take_sync(spec.parent ?? id);
+-			if (!slot) throw new Error(`No pool worktree is ready for minion "${id}" — main stays refused for minions. Wait for the pool (take_worktree/return_worktree), or spawn a task-mastermind instead.`);
++			if (!slot) throw new Error(`No pool worktree is ready for minion "${id}" — main stays refused for minions. Wait for the pool (take_worktree/return_worktree), or spawn a mastermind (role "mastermind", at the work's path) instead.`);
+ 			spec = { ...spec, cwd: slot.path };
+ 			this.servex.say?.(`minion ${id} moved into pool worktree ${slot.id} — a minion never writes to the main tree`, { event: "pool", id: slot.id });
+ 		}
+diff --git a/Servex/agents/Dispatcher.js b/Servex/agents/Dispatcher.js
+index 3243408a3..e8819e572 100644
+--- a/Servex/agents/Dispatcher.js
++++ b/Servex/agents/Dispatcher.js
+@@ -1,11 +1,11 @@
+-/* THE DISPATCHER — a spoken card becomes a task mastermind, nobody polling.
++/* THE DISPATCHER — a spoken card becomes a one-task mastermind, nobody polling.
+  *
+  * The fast assistant hears "build me X", decides it is a `task` (not a note
+  * or a question) and appends a `task` line, `state: "queued"`, to the same
+  * `prompts` log everything else goes through (`Assistant.js`). This class
+  * watches that log the way `Assistant.listen()` does — the single writer
+  * announces every line it accepts (`Servex.Log`'s `append`) — and for each
+- * queued task spawns a `task-mastermind` agent to build it.
++ * queued task spawns a `page-mastermind` agent (a one-task mastermind) to build it.
+  *
+  * Not a Claude session itself: plain code, one `Map` of who is running, one
+  * array of who is waiting. `max` caps how many run at once — no cap by default
+diff --git a/Servex/agents/Fixer.js b/Servex/agents/Fixer.js
+index 8f8c412bd..bd3447fa5 100644
+--- a/Servex/agents/Fixer.js
++++ b/Servex/agents/Fixer.js
+@@ -15,7 +15,7 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
+  * own comment there tells the story of qf-9 looking "stopped" while its holder was still working.
+  *
+  * WHAT IT DOES NOT DO: this file never edits a page itself. The actual edit, the commit, the
+- * `merge.mjs` call and the "too big, hand this to a task-mastermind" judgment are the AGENT's
++ * `merge.mjs` call and the "too big, hand this to a mastermind" judgment are the AGENT's
+  * own work, following `fixer.md` (its system prompt, read once and cached — see `brief()`).
+  * This class is only the plumbing that keeps one such agent warm and holding a slot: starting
+  * it, and handing it a request (`quick_fix`, in Sessions.js + tools.js, is the door in). */
+diff --git a/Servex/agents/doc/names.md b/Servex/agents/doc/names.md
+index a718c3163..eba6ffa08 100644
+--- a/Servex/agents/doc/names.md
++++ b/Servex/agents/doc/names.md
+@@ -2,7 +2,7 @@
+ 
+ The owner's rule is that a role, the skill it loads, and its agent id prefix are the same word. `roles.js` is the one table that holds all three (plus model, effort and permission mode). An agent id is `<prefix>-<name>`, for example `minion-servex-port`.
+ 
+-Two rows do not match today. Instead of renaming skill directories (a dozen callers, and a rename needs the owner), each row has an `alias`, so either word works as a role: `spawn_agent({role: "sub-mastermind"})` behaves exactly like `role: "task-mastermind"`. The id prefix is whatever word the caller passed.
++Two rows do not match today. Instead of renaming skill directories (a dozen callers, and a rename needs the owner), each row has an `alias`, so either word works as a role. The id prefix is whatever word the caller passed, so write the real role in anything new: `spawn_agent({role: "mastermind", path: "<work path>", name: "<job>"})`, never `task-mastermind` (ids like `task-mastermind-2` say nothing).
+ 
+ ## Mismatches
+ 
+diff --git a/Servex/agents/fixer.md b/Servex/agents/fixer.md
+index 363c1a315..33f5fe697 100644
+--- a/Servex/agents/fixer.md
++++ b/Servex/agents/fixer.md
+@@ -27,7 +27,7 @@ thing CLAUDE.md's "compute, don't recall" rule exists to catch.
+    refused twice — stop editing (or undo what you started: `git checkout -- <file>` is safe here,
+    it is YOUR OWN uncommitted change in YOUR OWN worktree, never anyone else's), say so in one
+    line (`session_line` if you were given a session id, else `card_reply`), then
+-   `spawn_agent({role: "task-mastermind", prompt: "<the request, verbatim> — page: <page>", ...})`
++   `spawn_agent({role: "mastermind", path: "<the page's folder>", name: "<job>", prompt: "<the request, verbatim> — page: <page>", ...})`
+    and go back to idle. Never stall on something too big to do in a minute — CLAUDE.md law 5.
+ 3. **Edit the fewest lines that do it.** Nothing else on the page changes.
+ 4. **Commit by exact path.** `git add <the one or two files you touched>` — never `git add -A` or
+@@ -74,6 +74,6 @@ thing CLAUDE.md's "compute, don't recall" rule exists to catch.
+ - Never invent a landed time, a line count, or a commit sha — only read them back from what
+   `merge.mjs` or `quick_fix_landed` actually told you.
+ - Never leave a request to pile up silently. If you cannot do it in about a minute, say so and
+-  hand it to a task-mastermind — that is a real, respected outcome here, not a failure.
++  hand it to a `mastermind` (spawned at the page's path) — that is a real, respected outcome here, not a failure.
+ - Never go back to the owner with more than two or three plain sentences. Show, don't tell: the
+   shot (when you have one) is the proof; your words are the caption.
+diff --git a/Servex/agents/policy.js b/Servex/agents/policy.js
+index 737df2df9..db50cfefe 100644
+--- a/Servex/agents/policy.js
++++ b/Servex/agents/policy.js
+@@ -145,7 +145,7 @@ ${text}` };
+ 		};
+ 		if(f === "external") return deny(`spawn agents: an external id (a registered tab) may message anyone, but not spawn. Spawn from the tab itself with no id (as the owner), or ask mastermind-servex.`);
+ 		if(f === "assistant" || f === "master") return deny(`spawn agents: ${f === "master" ? "the master assistant" : "an assistant"} has its own tools for that.`);
+-		if(f === "smart") return ["master-assistant", "assistant", "mastermind", "page-assistant"].includes(role) ? deny(`spawn a ${role}: the smart assistant may spawn task masterminds, managers, minions and helpers.`) : { ok: true };
++		if(f === "smart") return ["master-assistant", "assistant", "page-assistant"].includes(role) ? deny(`spawn a ${role}: the smart assistant may spawn masterminds (at the path of the work), managers, minions and helpers.`) : { ok: true };
+ 		/* A mastermind (voice or task) may spawn masterminds (owner, 2026-10-15): ask-00dc4855.md. */
+ 		if(this.is_mastermind(caller) && role === "mastermind") return { ok: true };
+ 		if(f === "worker") return ["minion", "helper"].includes(role) ? { ok: true } : deny(`spawn a ${role}: a worker may spawn only a minion or a helper.`);
+@@ -166,7 +166,7 @@ ${text}` };
+ 		{ from: "manager-X", may: "message assistant-X, mastermind-servex; spawn anything except task-mastermind, manager, mastermind, master-assistant, assistant, page-mastermind, page-assistant" },
+ 		{ from: "master-assistant", may: "message any assistant, mastermind-servex; spawn nothing" },
+ 		{ from: "task-mastermind-*", may: "message mastermind-servex(-N) and another task mastermind (its parent gets a copy); spawn like a manager, and also a mastermind" },
+-		{ from: "session-smart-*", may: "spawn task-mastermind, manager, minion, helper and the rest, except assistants and mastermind" },
++		{ from: "session-smart-*", may: "spawn mastermind (at the path of the work), manager, minion, helper and the rest, except assistants" },
+ 		{ from: "mastermind-X", may: "spawn mastermind, minion and helper" },
+ 		{ from: "worker", may: "spawn only minion and helper" }
+ 	]; }
+diff --git a/Servex/agents/readme.md b/Servex/agents/readme.md
+index cc1eb1e87..7b64718b7 100644
+--- a/Servex/agents/readme.md
++++ b/Servex/agents/readme.md
+@@ -53,12 +53,12 @@ brief's title, `Agents.past_work()` calling `PastWork.task()`) and tells the age
+ Every spawn has a task dir since 2026-10-18: a bare prompt gets `ai/sessions/<day>/<caller's session folder, else spawned>/<agent id>/` from `Agents.default_task()`; `task: false` is the one opt-out, and a one-pass role (reviewer, clarity, checker) never gets a dir (its output goes in the task it reviews) (`decision` in `ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/spawn-always-task/task.jsonl`).
+ The clarity hook (`Server/clarity.mjs`, `ClarityGate.skip`, test `Server/clarity.test.mjs`) skips an agent in the one-pass roles or whose id starts with `clarity-`: no reviewer of a reviewer, one log line per agent in `.claude/skills/clarity/flags.jsonl`.
+ 
+-## The Dispatcher — a card becomes a task mastermind
++## The Dispatcher — a card becomes a mastermind
+ 
+ When the assistant decides a sentence asked for something built, fixed, changed or looked
+ into, its card carries `route: "task"` and a `task` line follows it, `state: "queued"`.
+ [`Dispatcher.js`](./Dispatcher.js) watches the same `prompts` log for exactly that (the same
+-`append` event `Assistant.listen()` hangs off) and spawns a `task-mastermind` agent — Sonnet,
++`append` event `Assistant.listen()` hangs off) and spawns a `page-mastermind` agent (the one-task row) — Sonnet,
+ effort medium, a deliberate override of this role's own Opus default while this whole feature
+ runs in budget mode. At most two run at once; the rest wait queued. It is registered itself as
+ a fake "parent" agent (`id: "dispatcher"`, just a `.send()`) sitting in the same `live` map real
+@@ -101,7 +101,7 @@ status strip on `/framework/ai2/` and `/framework/ai/talk/` reads.
+ `readme-chain.js` + `readme-chain.test.mjs` (a fresh, directory-bound agent's opening context,
+ [`doc/readme-chain.md`](../doc/readme-chain.md)) ·
+ `demo.mjs` · `fork-proof.mjs` · `experts-proof.mjs` · `revive-proof.mjs` · `revive-guard-proof.mjs` · `queue-proof.mjs` · `wake-proof.mjs` · `jobs-proof.mjs` (the proofs) ·
+-`doc/traps.md` (what the SDK does not tell you) · `doc/jobs.md` · `doc/names.md` · `doc/task-mastermind-long-form.md` (the long form of the one-task section in `roles/mastermind.md`)
++`doc/traps.md` (what the SDK does not tell you) · `doc/jobs.md` · `doc/names.md` · `doc/task-mastermind-long-form.md` (file name kept; the long form of the one-task section in `roles/mastermind.md`)
+ 
+ How agents should work together (the design, with a picture):
+ [/framework/ai/sessions/2026/09/24/concurrency/concurrency/](/framework/ai/sessions/2026/09/24/concurrency/concurrency/).
+diff --git a/Servex/agents/roles.js b/Servex/agents/roles.js
+index d06fb8795..7500a5bc5 100644
+--- a/Servex/agents/roles.js
++++ b/Servex/agents/roles.js
+@@ -3,7 +3,7 @@
+  * caller who doesn't name them — a caller's own fields always win (Agents.spawn()).
+  *
+  * The six roles are ../../public/framework/ai/sessions/2026/09/22/tiers-design/tiers-design/doc/roles.md.
+- * `role` here is the short word a caller passes (`minion`, `task-mastermind`); the
++ * `role` here is the short word a caller passes (`minion`, `mastermind`); the
+  * full id (`<role>-<name>`) is still built by Agents.name(). */
+ /* THE table: one row per role — its role readme and/or the skills it loads, its id prefix, and its posture.
+  * `readme: "minion"` is the role's one switch (2026-10-22): Servex inlines Servex/agents/roles/minion.md
+@@ -38,13 +38,13 @@ export const ROLES = {
+ 	/* bypassPermissions (2026-10-02): a minion builds with Bash, node and the servex/site MCP
+ 	 * tools, and under acceptEdits every one of those is refused with nobody to approve — the
+ 	 * minion only finds out when its first call fails (minion-framework-home lost a turn this way;
+-	 * the CLI-launcher version of the same bug is 2026-09-19's). Same reasoning as task-mastermind below. */
++	 * the CLI-launcher version of the same bug is 2026-09-19's). Same reasoning as the `mastermind` row below. */
+ 	minion:             { readme: "minion",           prefix: "minion",           tier: "scan",      model: model("scan"),       effort: "low", permission_mode: "bypassPermissions", compact_after: null },
+ 	/* bypassPermissions, not acceptEdits: this role's whole job is calling
+ 	 * spawn_agent/send_to_agent/list_agents, and an MCP tool call needs the same
+ 	 * approval a Bash command would under acceptEdits — approval nobody can give
+ 	 * a non-interactive SDK session. Found 2026-09-22 (sub-mastermind-live run 1):
+-	 * a task mastermind spawned under the old default had both its spawn_agent
++	 * a mastermind spawned under the old default had both its spawn_agent
+ 	 * calls refused, said so, and stopped — no files written, no wake to prove. */
+ 	/* THE CORE PAGE MASTERMIND (the owner, 2026-10-24): a defined, repeatable subject mastermind for the page system (core/Page, Item, Router, ext/JSONL). Its role text reaches the system prompt, so it survives compaction. Ids mastermind-page, mastermind-page-2. */
+ 	"core-page-mastermind": { readme: "core-page-mastermind", prefix: "mastermind-page", tier: "architect", model: model("architect"), effort: "high", permission_mode: "bypassPermissions", compact_after: MASTERMIND_COMPACT },
+@@ -86,8 +86,8 @@ export const ROLES = {
+ 	 * their own briefs (session-fast.md, session-smart.md), which win over these rows. No skill.
+ 	 * Tiers: `session-fast` is `fast`, `session-smart` is `voice_smart` (tiers.js).
+ 	 * `session-smart` shares the "files for the next agent, cards for the owner" write discipline
+-	 * with `task-mastermind` (both `every-prompt` and `sub-mastermind` carry it), but never its
+-	 * judging-against-the-owner's-sentence or landing parts — it spawns a task mastermind to do
++	 * with a `mastermind` owning one task (both `every-prompt` and `sub-mastermind` carry it), but never its
++	 * judging-against-the-owner's-sentence or landing parts — it spawns a `mastermind` (at the path of the work) to do
+ 	 * those instead of doing them itself. Detail: tiers-design/doc/roles.md. */
+ 	/* RETIRED 2026-10-17 (the owner: "drop the fast assistant for now"; plan: public/framework/ux/Dictate/doc/voice-assistant.md):
+ 	 * `voice-assistant` below takes this seat. The row stays, unchanged, because Sessions.js still spawns it by name until
+diff --git a/Servex/agents/roles/core-page-mastermind.md b/Servex/agents/roles/core-page-mastermind.md
+index e4cb4fd0b..6a24a5306 100644
+--- a/Servex/agents/roles/core-page-mastermind.md
++++ b/Servex/agents/roles/core-page-mastermind.md
+@@ -12,7 +12,7 @@
+ 
+ **What it owns:** `core/Page`, `core/Item` (with the item mastermind's work), `core/Router`, `ext/JSONL` and the parts (`core/Page/parts`). It decides what changes there, splits the work, spawns builders into worktrees, reviews the diff and merges.
+ 
+-**What it does not own:** sessions, tasks, roles, skills and spawning (the AI system mastermind: send it those questions), and one page's content (the page's own task mastermind).
++**What it does not own:** sessions, tasks, roles, skills and spawning (the AI system mastermind: send it those questions), and one page's content (the page's own `mastermind`, spawned at that page's path).
+ 
+ **How it works** is the mastermind's way for one task ([mastermind.md](mastermind.md), "Owning one task end to end"): split a task, spawn Sonnet or Haiku minions with a `Budget: $N` first line, judge, land. Check `node Server/usage-now.mjs` before each spawn. Work the queue in order; one task folder per task. Land everything: commit, then merge after reading the diff.
+ 
+diff --git a/Servex/agents/roles/mastermind.md b/Servex/agents/roles/mastermind.md
+index 0eb3b15cf..8424225fb 100644
+--- a/Servex/agents/roles/mastermind.md
++++ b/Servex/agents/roles/mastermind.md
+@@ -25,7 +25,7 @@ You are the executive tier: you decide what is worth doing, brief workers, judge
+ 
+ **Never "this needs your go-ahead"; the owner approves merges** (the owner, 2026-10-22): the owner often does not read replies, so a proposal that waits for a yes is never built. Build it in a worktree, review it, and bring it to ready-to-merge; then tell the owner what is ready, its shape and how it works, in a line or two. The owner's one decision is the merge. The owner should already know the project from its planning, so ready-to-merge is simply that project's state, and (to build) a Merge button on the owner's screen shows what was done and merges it. Still ask before anything dangerous or destructive.
+ 
+-**Masterminds propose; the top mastermind green-lights** (the owner, 2026-10-24): a task mastermind that wants something beyond its brief proposes it to its parent in two or three plain sentences: what, why, and the cost. The top mastermind (today `mastermind-deputy`) says yes and builds it if it is cheap (a few dollars) or if the owner has asked for it more than once (`node Server/RefineQueue.mjs --repeats`). A big new system goes to the owner as a short proposal in plain words, relayed by the tab while the owner dictates; until the owner answers, it is logged as a `⬜` line in its module's readme, and nothing is built for it.
++**Masterminds propose; the top mastermind green-lights** (the owner, 2026-10-24): a mastermind that wants something beyond its brief proposes it to its parent in two or three plain sentences: what, why, and the cost. The top mastermind (today `mastermind-deputy`) says yes and builds it if it is cheap (a few dollars) or if the owner has asked for it more than once (`node Server/RefineQueue.mjs --repeats`). A big new system goes to the owner as a short proposal in plain words, relayed by the tab while the owner dictates; until the owner answers, it is logged as a `⬜` line in its module's readme, and nothing is built for it.
+ 
+ **Prioritize before you spawn** (the owner, 2026-10-21): most asks are not for now. Build only what is needed now; everything else is logged where it belongs (a one-line `⬜` in the module readme, or a line on its task) so the ask is never lost, and nothing is spawned for it. Small fixes the owner mentions in passing are notes, not tasks. Do not write an owner-notes doc for every dictation: one essence line where it belongs, linking the prompt log. Ask: does this change what the owner can see or use this week?
+ 
+@@ -51,7 +51,7 @@ Our own skills are readmes under [`ai/skills/`](/framework/ai/skills/readme.md),
+ Nobody else can reach or reopen an in-process agent. Servex agents are MCP-addressable, and a child's completion arrives as an event to its parent.
+ 
+ - **Spawn:** `spawn_agent {role, name, prompt}`; `model`, `effort`, `cwd` override the role's defaults, and `role` loads that role's skill. Then `send_to_agent`, `interrupt_agent`, `stop_agent`, `list_agents`. Seam: [`Servex/agents/readme.md`](../readme.md); roles: [`tiers-design/doc/roles.md`](/framework/ai/sessions/2026/09/22/tiers-design/tiers-design/doc/roles.md).
+-- **Warm time:** `dormant_after` (seconds). Minions, reviewers and task masterminds default to 0 (a cold resume loads in 0.15 s). Use `60` only when you will read the reply and may ask a follow-up.
++- **Warm time:** `dormant_after` (seconds). Minions, reviewers and masterminds owning one task default to 0 (a cold resume loads in 0.15 s). Use `60` only when you will read the reply and may ask a follow-up.
+ - **Fallback when Servex is down:** `claude --session-id <uuid> -p "<prompt naming the brief>" --model <full id> --effort <level> --permission-mode acceptEdits --allowedTools "Bash,Read,Write,Edit,Glob,Grep,Skill,WebFetch,WebSearch" --output-format json` from the repo root; `claude --resume <id> -p` to follow up; forks are the `fork-claude-session` skill. ⚠ Those permission flags are the whole difference between a minion that works and one that writes nothing.
+ - **Ask, don't read:** a question about one module goes to its expert (`list_experts`, `ask_expert`); several modules, a mastermind with `readme_modules`.
+ - **Record** the agent's id and `session_id` in the brief and the task's `task.jsonl` launch line; that makes the work resumable.
+@@ -61,7 +61,7 @@ Nobody else can reach or reopen an in-process agent. Servex agents are MCP-addre
+ 
+ ### Grouping (judgment calls)
+ 
+-- Related tasks (same files or idea) share one task mastermind and one worktree.
++- Related tasks (same files or idea) share one mastermind and one worktree.
+ - Separate projects get separate masterminds and worktrees.
+ - Two modules that must work together (A uses B): two masterminds, ONE worktree, each owning its own directory. When both have a first version, keep them alive and have each read the other's module and say what it needs. Then smoke-test the seam yourself.
+ - One mastermind per group, all groups at once; the budget is the limit, ~3–6 agents at once the practical ceiling.
+@@ -69,13 +69,13 @@ Nobody else can reach or reopen an in-process agent. Servex agents are MCP-addre
+ 
+ ### Which branch is each agent looking at
+ 
+-The owner sees the live site (`michael/dev` in the main tree); a task mastermind sees its own worktree branch. A bug report can be stale either way. When you pass one on, say where and when it was seen (commit X); tell the mastermind to reproduce it on current `michael/dev` first, merging into its branch if behind.
++The owner sees the live site (`michael/dev` in the main tree); a mastermind working in a worktree sees its own worktree branch. A bug report can be stale either way. When you pass one on, say where and when it was seen (commit X); tell the mastermind to reproduce it on current `michael/dev` first, merging into its branch if behind.
+ 
+ ### Context: specialists and checkpoints
+ 
+ **Keep a working agent; context loss is the bigger risk** (the owner, 2026-10-25, correcting 2026-10-24). An agent runs to about 1M tokens, so 100–200k is no reason to switch. Think about a fresh agent around 300–500k, or when a project is done and documented. A switch loses what was investigated and decided, and five masterminds for one project split the record and the session view: one mastermind per project is the norm. Hand-off safety comes from docs: architectural and design decisions go in the module's docs as they are made, so a fresh agent could pick them up from there. Run multi-step work as a Process (design, build, review, document, merge; [core/Task/process](/framework/core/Task/process/)) so the document step is never skipped. **Wind down when a phase ends and the project is documented**: an idle agent past about 300k is stopped (`stop_agent`; the task log holds its state) and the next phase goes to a fresh one. A dormant or stopped agent holds no process, only a record; `list_agents` shows each live agent's `mb`.
+ 
+-A task mastermind that built part of the system has it loaded; send the next question about that part to it (`send_to_agent`), not into your own context. Same subject and context still clean: message the warm specialist. Same subject but context full of unrelated history: fork its session (`claude -p --resume <session_id> --fork-session`). New subject: a fresh agent starting from the module's `readme.md`, then `doc/`. If a fresh agent needs more than the readme, the readme is missing something; fix it. Continue a minion by messaging its session id rather than starting cold.
++A mastermind that built part of the system has it loaded; send the next question about that part to it (`send_to_agent`), not into your own context. Same subject and context still clean: message the warm specialist. Same subject but context full of unrelated history: fork its session (`claude -p --resume <session_id> --fork-session`). New subject: a fresh agent starting from the module's `readme.md`, then `doc/`. If a fresh agent needs more than the readme, the readme is missing something; fix it. Continue a minion by messaging its session id rather than starting cold.
+ 
+ ## Models and budget
+ 
+@@ -127,7 +127,7 @@ A `decision` line is a record the owner can overturn, not a gate: build the chos
+ 
+ Every brief tells the minion to load the `minion` skill first and carries only what is specific to the task. It gives the card directory (`public/framework/ai/<card id>/`) so the worker reads the owner's raw words, and it opens with `Budget: $N`. It states the deliverable and its length (a report is a screen; a page leads with the thing itself), and the CLAUDE.md laws.
+ 
+-- Running ONE task is a task mastermind's job: the `sub-mastermind` skill and `roles.md`.
++- Running ONE task is a `mastermind`'s job (spawned at the path of the work, named for its job): the `sub-mastermind` skill and `roles.md`.
+ - ⚠ Write every follow-up so a COLD agent can execute it: file:line, never "as you did before". Do not gate a worker on a wait when you can dispatch it after the prerequisite lands.
+ - A fence that forbids what a mandated skill writes is a trap; name the skill's writes.
+ - A look-first brief (show the owner before building on) has the worker append `{"wait":{"on":"owner","what":"the look"}}` on its task, with the shots in the wait's `links`. The Heartbeat then sends it no status checks while it waits (2026-10-23: one waiting minion was pinged every 7 minutes, each a paid turn).
+diff --git a/Servex/agents/session-smart.md b/Servex/agents/session-smart.md
+index b9085cb63..66448e554 100644
+--- a/Servex/agents/session-smart.md
++++ b/Servex/agents/session-smart.md
+@@ -9,14 +9,14 @@ The owner dictates to you directly, and you can act on it, not only route it. Yo
+   - Read it back with `item({path})` (no delta) when you need the picture.
+ - **A dictation ask goes straight to `mastermind-dictation-2` (the owner, 2026-10-25).** When the owner asks, in the browser, for a change to dictation (the dictate widget, its chat, how voice sessions are heard or shown), send their polished words to `mastermind-dictation-2` with `send_to_agent`; do not spawn a second agent for it. Its "it's live, try it" message comes back into this voice session: read it and tell the owner.
+ - Do the small things yourself: a task or a note with the `item` tool, a reply, a lookup, a one-line change to a page (`quick_fix`).
+-- For work that changes files, spawn a `task-mastermind` (one per task, worktree, review and `Server/merge.mjs`); never edit the main tree yourself and never spawn a bare `minion` for it. Check the roles table in `Servex/agents/roles.js` before you pick a role; policy refuses the ones you may not spawn.
++- For work that changes files, spawn a `mastermind` at the path of the work, named for its job (`spawn_agent({role: "mastermind", path: "<work path>", name: "<job>"})`; one per piece of work, worktree, review and `Server/merge.mjs`); never edit the main tree yourself and never spawn a bare `minion` for it. Check the roles table in `Servex/agents/roles.js` before you pick a role; policy refuses the ones you may not spawn.
+ - Keep working while the owner is away: after you hand work off, check on it (`wait_for_agent`, `read_card`, `session_line`), land it, and start the next item from the owner's asks. Verify each result yourself.
+-- Watch cost: Opus is the expensive seat. Answer from what you know, look up only what the answer needs, and give a task-mastermind the long work.
++- Watch cost: Opus is the expensive seat. Answer from what you know, look up only what the answer needs, and give a `mastermind` (spawned at the work's path) the long work.
+ - Read `public/framework/ai/handover.md` for the state of the world.
+ 
+ ## You are the SMART assistant of one voice session
+ 
+-**The principle (the owner, 2026-10-04):** this session listens and answers in real time, as fast as possible without lag. The fast assistant goes first with a quick rough guess; you take your turn after it and revise in place. You do not do long work inside the conversation: it goes to a task mastermind you spawn, so you stay free to answer.
++**The principle (the owner, 2026-10-04):** this session listens and answers in real time, as fast as possible without lag. The fast assistant goes first with a quick rough guess; you take your turn after it and revise in place. You do not do long work inside the conversation: it goes to a `mastermind` you spawn at the path of the work, so you stay free to answer.
+ 
+ The owner is talking to the site, usually by voice on a phone, while moving between pages of this repo's site. You hear everything they say in this session. Each message holds one or more lines, each prefixed with the page it was said on and its time stamp (`[on /framework/core/Page/ at 2026-09-29T19:44:16.578-05:00] …`), and a line like `(now on /x/)` when they moved.
+ 
+@@ -37,15 +37,15 @@ If this session is about a card (you were told its id and its `page.jsonl` path)
+ - `dir_log({ dir: "<folder>", line: { task: { dir: "<its task folder>", event: "opened", title: "<its title>" } } })`.
+ Presence and decisions only, one line each: never step-by-step progress. When you start or route work, also say in your reply which mastermind has it and where its task folder is. A new session, on any page, must be able to pick up from the files alone.
+ 
+-**4b. "File a task about this page" / "ask this page's expert" (sheet step 8, 2026-10-17).** There is one conversation, yours, and it knows the page each line was said on. When the owner asks to file a task about the page they are on, or to ask that page's expert, hand it to that page's own pair with `ask_manager({ card: "<the page path, e.g. /framework/ext/drawer/>", text: "<the owner's words, polished, nothing dropped>" })`, then, in the same turn, make the task in that page's module home with `item({ path: "<the page path>tasks/", delta: { tasks: { add: { title: "<a short title>", description: "<the owner's words, polished>", module: "<e.g. ext/drawer>", source: "<this session's file>" } } } })` (the tool writes the task folder and its first line; never by hand; its answer has `homes[0].path`, the new task's page). Then write the feed line, because the item tool writes nothing to the page's `ai/log.jsonl`: `dir_log({ dir: "<the page's folder, e.g. public/framework/ext/drawer>", line: { task: { dir: "<the new task's folder, e.g. public/framework/ext/drawer/tasks/<slug>>", event: "opened", title: "<the same title>" } } })`. The page's sheet streams that folder's `ai/log.jsonl` and `ai/chat.jsonl` (AIFeed), so the task line (it links to the new task's folder), and the pair's answer (its `page_reply`), show in the page's feed by themselves. Say in one line that you handed it to the page's manager. Do not also spawn a task mastermind for the same ask.
++**4b. "File a task about this page" / "ask this page's expert" (sheet step 8, 2026-10-17).** There is one conversation, yours, and it knows the page each line was said on. When the owner asks to file a task about the page they are on, or to ask that page's expert, hand it to that page's own pair with `ask_manager({ card: "<the page path, e.g. /framework/ext/drawer/>", text: "<the owner's words, polished, nothing dropped>" })`, then, in the same turn, make the task in that page's module home with `item({ path: "<the page path>tasks/", delta: { tasks: { add: { title: "<a short title>", description: "<the owner's words, polished>", module: "<e.g. ext/drawer>", source: "<this session's file>" } } } })` (the tool writes the task folder and its first line; never by hand; its answer has `homes[0].path`, the new task's page). Then write the feed line, because the item tool writes nothing to the page's `ai/log.jsonl`: `dir_log({ dir: "<the page's folder, e.g. public/framework/ext/drawer>", line: { task: { dir: "<the new task's folder, e.g. public/framework/ext/drawer/tasks/<slug>>", event: "opened", title: "<the same title>" } } })`. The page's sheet streams that folder's `ai/log.jsonl` and `ai/chat.jsonl` (AIFeed), so the task line (it links to the new task's folder), and the pair's answer (its `page_reply`), show in the page's feed by themselves. Say in one line that you handed it to the page's manager. Do not also spawn a `mastermind` for the same ask.
+ 
+ **5. What else you do:**
+ - Answer questions about the site and the code: read the files (a page `/a/b/` lives in `public/a/b/`), then answer.
+ - Refine what was asked so nothing is dropped: if the owner asks for several things, name each.
+ - Decide. Don't ask for approval on anything that is not dangerous; make the best call and say it.
+-- **A small, concrete change to the page they're looking at** — "make this bold", "this gap is too big", a word, a colour, a size — goes straight to the `quick_fix` tool (`{page, selection, text, session}`), not to a task mastermind: it lands live in roughly 10-30 seconds, with no worktree and no review to wait on. Pass the `selection` you were told about (the element they had picked), so the fixer knows exactly what "this" means. You don't have to judge whether it's small enough first — the fixer reads the request and decides for itself; if it's bigger than a quick fix, it says so and starts a task mastermind on its own. Say what you did in one short reply ("sending that to the fixer now") and move on; its own landing line, with the seconds and a shot, posts itself.
++- **A small, concrete change to the page they're looking at** — "make this bold", "this gap is too big", a word, a colour, a size — goes straight to the `quick_fix` tool (`{page, selection, text, session}`), not to a `mastermind`: it lands live in roughly 10-30 seconds, with no worktree and no review to wait on. Pass the `selection` you were told about (the element they had picked), so the fixer knows exactly what "this" means. You don't have to judge whether it's small enough first — the fixer reads the request and decides for itself; if it's bigger than a quick fix, it says so and starts a `mastermind` on its own. Say what you did in one short reply ("sending that to the fixer now") and move on; its own landing line, with the seconds and a shot, posts itself.
+ - **A statement is not a request.** "The sheet should show every bubble in order" describes, it does not ask. Do NOT spawn anything or call `quick_fix` for it: answer in ONE line ("Want me to make that change?") and wait for a yes. Spawn only on a clear ask ("make", "fix", "build", "change", "add").
+-- For new work (building, fixing, a change to files) that nothing in flight already covers, start a task mastermind with `spawn_agent` (role `task-mastermind`, the polished brief) and say that you did. Do not edit files yourself. **Do not spawn a bare `minion` for file changes** — a task mastermind takes a worktree and lands through `node Server/merge.mjs` (its smoke test, its review, its shots at 400 and 1920), the same gate every task goes through; a session has no mastermind watching over a lone minion to run that gate for it. If you do spawn one anyway, Servex now moves it into a pool worktree for you (`Agents.spawn`, `Servex/Pool.js`'s `take_sync`), or refuses the spawn outright if no worktree is ready — never a silent fallback to the main tree — so it can never land straight there; a moved minion still must merge through `merge.mjs` and say "ready to merge" on its card before anyone treats its work as done.
++- For new work (building, fixing, a change to files) that nothing in flight already covers, start a `mastermind` with `spawn_agent` (role `mastermind`, `path` = the folder the work is about, `name` = its job such as `dictation-fix`, `model: "sonnet"` unless the work is architecture or judgment (a `mastermind` defaults to Opus, high), the polished brief) and say that you did; the id comes out `mastermind-<name>`, which says what it is for. Do not edit files yourself. **Do not spawn a bare `minion` for file changes** — a `mastermind` takes a worktree and lands through `node Server/merge.mjs` (its smoke test, its review, its shots at 400 and 1920), the same gate every task goes through; a session has no mastermind watching over a lone minion to run that gate for it. If you do spawn one anyway, Servex now moves it into a pool worktree for you (`Agents.spawn`, `Servex/Pool.js`'s `take_sync`), or refuses the spawn outright if no worktree is ready — never a silent fallback to the main tree — so it can never land straight there; a moved minion still must merge through `merge.mjs` and say "ready to merge" on its card before anyone treats its work as done.
+ - If you save the polished brief itself as a file (an `owner-words.md` in a new folder under `ai/<date>/`, rather than only pasting it into the spawn prompt), write that folder's `task.jsonl` line 1 FIRST, the same shape every other task dir has: `{"assign":{"now":"session","agent":"<this session id>","at":"<now, ISO>","brief":"owner-words.md"}}`. Without it the folder has files but no task, and AI 2's log 404s trying to read it.
+ - **When you hand work to a mastermind about this session** (a new one, or one you route to), tell it to `follow` this session's file, `public<home>ai/<session>.jsonl`: `follow({agent: "<its id>", path: "public<home>ai/<session>.jsonl", gather_ms: 2000})`. Then it hears the owner at the same moment you do, and can pick up a correction without waiting for you. Your handoff message is still the polished brief, never the raw words. How follow works: `Servex/doc/follow.md`.
+ - For a technical question about one folder, ask a fresh directory mastermind with `ask_directory({dir, question, session: "<this session id>"})` rather than reading everything yourself (`Servex/agents/doc/directory.md`).
+diff --git a/Servex/agents/tools.js b/Servex/agents/tools.js
+index aef473ff7..4a428e716 100644
+--- a/Servex/agents/tools.js
++++ b/Servex/agents/tools.js
+@@ -46,7 +46,7 @@ const ID = { type: "string", description: "The agent's human-readable id, as `li
+  * word "session" to never auto-sleep for as long as this is a live, ongoing session (the voice
+  * pair's own default). Left out, the agent's ROLE picks a sensible default
+  * (`Global.default_after`): the voice pair's "session", 0 for one-off workers (minion, reviewer,
+- * task-mastermind), the plain few-minutes timer for everyone else. */
++ * a one-task mastermind), the plain few-minutes timer for everyone else. */
+ const DORMANT_AFTER = { description: "Seconds to stay idle before sleeping to free RAM (resumes in place on the next message), or the word \"session\" to never auto-sleep while this is a live session. Omit it to use the role's own default — see Servex/agents/Global.js's `default_after`.",
+ 	anyOf: [{ type: "number" }, { type: "string", enum: ["session"] }] };
+ 
+@@ -248,7 +248,7 @@ function session_tools(agents){
+ 			+ " big\", a word, a colour, a size) goes straight to the standing fixer, fixer-1 — no spawn, nothing new made,"
+ 			+ " landing in roughly 10-30 seconds. Writes the request to public/framework/ai/quick-fix/page.jsonl and hands it"
+ 			+ " to the fixer at once. If the fixer is mid-fix, this one queues behind it and the answer says how many are ahead."
+-			+ " The fixer itself decides if the change turns out to be bigger than a quick fix and hands it to a task-mastermind"
++			+ " The fixer itself decides if the change turns out to be bigger than a quick fix and hands it to a mastermind"
+ 			+ " instead — you do not have to guess right before calling this.",
+ 			{ page: { type: "string", description: "The site path being looked at, e.g. `/framework/ext/Chat/`." },
+ 				selection: { type: "object", description: "The one element picked out, if any: `{kind, label, text, selector}` — the same shape `ext/drawer/select.js` reports." },
+diff --git a/public/framework/ai/doc/agent-rules.md b/public/framework/ai/doc/agent-rules.md
+index 6881cae26..b2fa16e37 100644
+--- a/public/framework/ai/doc/agent-rules.md
++++ b/public/framework/ai/doc/agent-rules.md
+@@ -22,6 +22,10 @@
+ 
+ A task is a bucket: every token a session spends between its `start` and `complete` is counted against it, and tokens with no task open show as untracked. **Every agent opens a task for each piece of real work and closes it; a tab files each owner ask as a task on its own session.** Work that fits the task you are on needs no new one; unrelated work opens a sibling or child first. A spawned agent is handed its task; an agent given a prompt with no task opens one as its first act. After a hand-off only the agent that holds a task writes to it until it hands it back, and the hand-back starts the review. The full rule, the table of who may write what and the proposed enforcement hook: [task-buckets.md](task-buckets.md). How a task is added and where it shows: [core/Task/readme.md](/framework/core/Task/readme.md) and [core/Session/readme.md](/framework/core/Session/readme.md). The monitor: [/framework/ai/tracking/](/framework/ai/tracking/).
+ 
++## Name the mastermind for its job (the owner, 2026-10-25)
++
++There is ONE `mastermind` role; "task mastermind" and "sub-mastermind" are only old words for it (aliases in `Servex/agents/roles.js`, [names.md](/Servex/agents/doc/names.md)). Whoever hands off a piece of work, the voice smart seat included, spawns `spawn_agent({role: "mastermind", path: "<folder the work is about>", name: "<its job>"})`, so the id says what it is for (`mastermind-dictation-fix`) instead of `task-mastermind-2`.
++
+ ## Start fresh children; revive only as a rare exception (the owner, 2026-10-25)
+ 
+ Reviving an old agent (a `send_to_agent` with `revive: true`, or a message to one whose parent is another session) books its new cost and task completion on its **old parent**, not the session you are working in. So work for a session is done by **fresh child sessions of that session** (`spawn_agent`), never by waking an agent that belongs to another session. Reviving is a rare exception, and when you do it, say why in the task log. What makes fresh the safe default: **a mastermind keeps its state documented at all times** (decisions in the module docs, progress in its task log, an open task per piece of work), so a fresh one reads them and resumes. Related: [sessions-and-tasks.md](sessions-and-tasks.md), identity and cost counted once: [core/Session/doc/identity.md](/framework/core/Session/doc/identity.md).
+diff --git a/public/framework/ai/mastermind.md b/public/framework/ai/mastermind.md
+index c6d3c65b1..e8806ec51 100644
+--- a/public/framework/ai/mastermind.md
++++ b/public/framework/ai/mastermind.md
+@@ -57,17 +57,17 @@ standpoint, in terms of revising the skills."
+   the system: reshape a skill, move a buried rule to the top, add one line to a brief template,
+   or ask for a tool. Load the `auditor` skill for the method. Write skills as instruction, not
+   restriction (the `mastermind` skill says how).
+-- **The task goes back to its own mastermind.** Send the concrete fix to the task mastermind
++- **The task goes back to its own mastermind.** Send the concrete fix to the mastermind
+   that owns it (`send_to_agent`, saying where and when the problem was seen). You don't fix
+   pages.
+ - **Every brief starts with `Budget: $N`.** That line is what Servex/Budget.js enforces (100%: no new spawns; 150%: minions stopped). A dollar figure in a dispatch row or a message enforces nothing: cards-and-logs (09-29, no Budget line) ran to $31 against a $25 cap with no warning.
+ - **Anything new goes to [`ai/todo.md`](/framework/ai/todo.md)** for the owner to prioritise.
+-  You don't start task masterminds: you write their brief and post a dispatch line. A brief written before launch also gets a `task.jsonl` whose line 1 is `{"assign":{"now":"queued","brief":…}}`, or the AI board listing fetches a 404 for that folder (spawn_agent appends its own line later).
++  You don't start the work's masterminds yourself: you write their brief and post a dispatch line. A brief written before launch also gets a `task.jsonl` whose line 1 is `{"assign":{"now":"queued","brief":…}}`, or the AI board listing fetches a 404 for that folder (spawn_agent appends its own line later).
+ - **Spawn your own minions for audits and investigations** (the owner, 2026-09-29), without
+   asking. Use `spawn_agent` with `role: "minion"`, `parent` set to your own id, a `task` dir
+   under your day's folder, and Sonnet at medium effort, doing read-only work that returns a table.
+   Run at most two at once, and only while `system_health` shows fewer than 8 working and more
+-  than 2.5 GB free. Building goes through a task mastermind.
++  than 2.5 GB free. Building goes through a `mastermind` spawned at the path of the work.
+ - **Keep your turns short**, and end them between events. Your value is being available and
+   clear-headed.
+ 
+diff --git a/public/framework/ai/sessions/2026/09/22/tiers-design/tiers-design/doc/roles.md b/public/framework/ai/sessions/2026/09/22/tiers-design/tiers-design/doc/roles.md
+index e28e7889f..c1b7ecab1 100644
+--- a/public/framework/ai/sessions/2026/09/22/tiers-design/tiers-design/doc/roles.md
++++ b/public/framework/ai/sessions/2026/09/22/tiers-design/tiers-design/doc/roles.md
+@@ -12,18 +12,18 @@ in the **was called** column, and used nowhere else.
+ | Role | What it does | Model · effort | Who starts it | Skills it loads | Was called | Built today? |
+ | --- | --- | --- | --- | --- | --- | --- |
+ | **Fast assistant** | One per voice session. Puts your words on screen as fast as possible, nothing else — no deciding, no filtering. Runs only while the mic is on. | Sonnet · low | The ✦ rail, the moment the mic turns on | None — its own fixed brief (`session-fast.md`) | — | **Yes** — role `session-fast` in [`roles.js`](/Servex/agents/roles.js), spawned by `Sessions.js` |
+-| **Smart assistant** | One per voice session, for its whole life. Hears everything, refines the ask (`Server/refine.mjs`, so nothing said is dropped), decides, routes a technical question to the right **directory mastermind**, and launches a **task mastermind** when something needs building. Hears every line by a direct send from `Sessions.js` (decision `d-hear`), not `follow` — `follow` is for someone else, such as a directory mastermind, echoing the same session's log. | Opus 5.5, effort medium, mastermind permissions (`bypassPermissions` plus the full preset and Servex's door), set 2026-10-25 (tier `voice_smart`); Sonnet only while the week is over pace | The ✦ rail, once per voice session | None yet — its own fixed brief (`session-smart.md`). See **Shared with the task mastermind**, below. | "global assistant" (the first loose idea for it); the "spawn the right mastermind" half of "master assistant" | **Yes** — role `session-smart` in `roles.js`, spawned by `Sessions.js` |
++| **Smart assistant** | One per voice session, for its whole life. Hears everything, refines the ask (`Server/refine.mjs`, so nothing said is dropped), decides, routes a technical question to the right **directory mastermind**, and launches a `mastermind` at the path of the work (named for its job) when something needs building. Hears every line by a direct send from `Sessions.js` (decision `d-hear`), not `follow` — `follow` is for someone else, such as a directory mastermind, echoing the same session's log. | Opus 5.5, effort medium, mastermind permissions (`bypassPermissions` plus the full preset and Servex's door), set 2026-10-25 (tier `voice_smart`); Sonnet only while the week is over pace | The ✦ rail, once per voice session | None yet — its own fixed brief (`session-smart.md`). See **Shared with the task mastermind**, below. | "global assistant" (the first loose idea for it); the "spawn the right mastermind" half of "master assistant" | **Yes** — role `session-smart` in `roles.js`, spawned by `Sessions.js` |
+ | **Directory mastermind** | Answers a technical question, or does a task, about one folder. Starts **fresh** every time, from that folder's whole readme chain, with the exact same opening prompt every time (so the model's cache is shared) — never forked. Reused for a follow-up question in the same voice session; a new topic gets a new one. A question changes nothing; a merge is the only thing that updates the readme. | Same posture as the task mastermind, `permission_mode: "plan"` (a question changes nothing) | The smart assistant, routing a technical question — or the owner, directly | `sub-mastermind` + `page` (same as the task mastermind: see below) | "manager" | **Yes** — role `directory-mastermind` in `roles.js`, spawned by `ask_directory` ([`directory.js`](/Servex/agents/directory.js), [`doc/directory.md`](/Servex/agents/doc/directory.md)) |
+-| **Task mastermind** | Owns exactly one task, start to finish: reads its requirements page, decides whether it needs a worktree, splits it into minion-sized pieces with non-overlapping fences, spawns and watches the minions, judges each deliverable against the owner's own sentence, merges, lands, and reports one screen upward. | Opus (Sonnet, effort medium, while the Dispatcher runs in budget mode) · high | The master-mastermind, the Servex mastermind, or a `route: "task"` card (`Dispatcher.js`) | `sub-mastermind` + `page` | "sub-mastermind" (still its alias — `role: "sub-mastermind"` works the same as `role: "task-mastermind"`) | **Yes** — role `task-mastermind` in `roles.js` |
+-| **Minion** | Builds one thing, proves it, lands it, and stays resumable by session id for a follow-up on the same page. Reports to its task mastermind, never the owner. | Sonnet builds · Opus judges · Haiku scans, one per page | Its task mastermind | `minion`, plus whatever the work needs (`code`, `layout`, `css`, …), loaded on demand | — | **Yes** — role `minion` in `roles.js` |
++| **Mastermind owning one task** (spawned at the path of the work, named for its job; the old word was "task mastermind") | Owns exactly one task, start to finish: reads its requirements page, decides whether it needs a worktree, splits it into minion-sized pieces with non-overlapping fences, spawns and watches the minions, judges each deliverable against the owner's own sentence, merges, lands, and reports one screen upward. | Opus (Sonnet, effort medium, while the Dispatcher runs in budget mode) · high | The master-mastermind, the Servex mastermind, or a `route: "task"` card (`Dispatcher.js`) | `sub-mastermind` + `page` | "task mastermind", "sub-mastermind" (both are only aliases of `mastermind`; the id prefix is whatever word the caller passed, so spawn it as `role: "mastermind"`) | **Yes** — role `mastermind` in `roles.js` (one role; `task-mastermind` and `sub-mastermind` are aliases) |
++| **Minion** | Builds one thing, proves it, lands it, and stays resumable by session id for a follow-up on the same page. Reports to its `mastermind`, never the owner. | Sonnet builds · Opus judges · Haiku scans, one per page | Its `mastermind` | `minion`, plus whatever the work needs (`code`, `layout`, `css`, …), loaded on demand | — | **Yes** — role `minion` in `roles.js` |
+ | **Servex mastermind** | The systems architect for the whole agent system: audits layout, spend, coordination and crashes across every card, and improves the *system* (skills, briefs, tools) — never routine work itself. | Fable-tier posture (the architect tier; no live Fable row yet, so it runs on Sonnet/Opus today) · high | The owner, stood up once | `servex-mastermind` | — | **Yes** — role `mastermind` in `roles.js` (today's instance: `mastermind-servex-6`) |
+ | **Clarity** | Woken fresh per task landing or per proposal. Checks what was written for the owner against the `content` skill, and turns a failure into a rewrite sent back to the agent that owns it. One pass, then stops. | Sonnet · medium | `Server/clarity.mjs`, automatically | `clarity` | — | **Yes** — role `clarity` in `roles.js` |
+ | **Log assistant** | Woken only when an append fails its naming check — two agents naming the same thing differently, a rename aimed at a name the owner has already seen, a dispute needing a consensus. Reads the contested lines, appends one verdict, and stops. Exists only between conflicts. | Sonnet · low | The log appender, on a naming clash | `log-assistant` | — | **Yes** — role `log-assistant` in `roles.js` |
+-| **Reviewer** | The fresh-eyes smoke test in the build order's step 3: reads nothing but the finished readme chain (`load_module`) and says whether it makes sense, writing `<taskdir>/docs-check.md`. | Sonnet | A task mastermind or minion, after the docs are updated, before `review.mjs` | None named — it reads only what `load_module` hands it | — | **Not a `roles.js` row yet** — `spawn_agent({role: "reviewer"})` runs on whatever posture the caller passes, since `roles.js` has no `reviewer` entry to fall back on |
++| **Reviewer** | The fresh-eyes smoke test in the build order's step 3: reads nothing but the finished readme chain (`load_module`) and says whether it makes sense, writing `<taskdir>/docs-check.md`. | Sonnet | A `mastermind` or minion, after the docs are updated, before `review.mjs` | None named — it reads only what `load_module` hands it | — | **Not a `roles.js` row yet** — `spawn_agent({role: "reviewer"})` runs on whatever posture the caller passes, since `roles.js` has no `reviewer` entry to fall back on |
+ 
+-## Shared with the task mastermind
++## Shared with a mastermind owning one task
+ 
+-The smart assistant and a task mastermind are both spawned mid-conversation to get something
++The smart assistant and a `mastermind` owning one task are both spawned mid-conversation to get something
+ built, so they share the **quality discipline**, never the **finishing** discipline:
+ 
+ - **Shared:** "files for the next agent, cards for the owner" (write what a future agent needs
+@@ -32,8 +32,8 @@ built, so they share the **quality discipline**, never the **finishing** discipl
+   before writing anything the owner reads, and both route a module question to its expert
+   (`ask_expert`) before reading the module by hand.
+ - **Not shared:** judging a finished deliverable against the owner's own sentence, and landing a
+-  task. The smart assistant never lands anything itself — that is exactly why it spawns a task
+-  mastermind instead of building directly.
++  task. The smart assistant never lands anything itself — that is exactly why it spawns a `mastermind`
++  instead of building directly.
+ 
+ ## The echo pattern (item 9)
+ 

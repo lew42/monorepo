@@ -1,0 +1,322 @@
+[
+ {
+  "branch": "_tmp_cards_and_logs_check",
+  "absent": [],
+  "differ": 13
+ },
+ {
+  "branch": "audio/chat-revision-pairs-wip",
+  "absent": [
+   "public/framework/ux/Dictate/variants/sheet/page.js"
+  ],
+  "differ": 11
+ },
+ {
+  "branch": "michael/bags-misc",
+  "absent": [
+   "assemble.cjs",
+   "conv.cjs",
+   "smoke.cjs",
+   "sub.cjs"
+  ],
+  "differ": 0
+ },
+ {
+  "branch": "michael/figma-guide",
+  "absent": [],
+  "differ": 2
+ },
+ {
+  "branch": "salvage/qf-3-2026-09-29",
+  "absent": [],
+  "differ": 5
+ },
+ {
+  "branch": "salvage/qf-3-2026-10-09",
+  "absent": [],
+  "differ": 5
+ },
+ {
+  "branch": "salvage/qf-6-2026-10-07",
+  "absent": [],
+  "differ": 9
+ },
+ {
+  "branch": "salvage/qf-6-2026-10-10",
+  "absent": [
+   "counts.txt",
+   "dry.txt",
+   "merge-out.txt",
+   "merge-real.txt"
+  ],
+  "differ": 2
+ },
+ {
+  "branch": "salvage/qf-7-2026-09-29",
+  "absent": [],
+  "differ": 1
+ },
+ {
+  "branch": "salvage/qf-9-2026-09-29",
+  "absent": [],
+  "differ": 12
+ },
+ {
+  "branch": "salvage/qf-9-2026-09-30-2",
+  "absent": [],
+  "differ": 1
+ },
+ {
+  "branch": "salvage/qf-9-2026-09-30-3",
+  "absent": [
+   "public/framework/ext/Mention/registry.js"
+  ],
+  "differ": 1
+ },
+ {
+  "branch": "worktree/ai2-base2",
+  "absent": [
+   "public/framework/ai2/doc/cards.md",
+   "public/framework/ai2/doc/decisions.md"
+  ],
+  "differ": 15
+ },
+ {
+  "branch": "worktree/ai2-real-pages",
+  "absent": [],
+  "differ": 3
+ },
+ {
+  "branch": "worktree/ai2-resurface",
+  "absent": [
+   "public/framework/ai2/doc/cards.md",
+   "public/framework/ai2/doc/decisions.md"
+  ],
+  "differ": 14
+ },
+ {
+  "branch": "worktree/ai2-row-vanish",
+  "absent": [
+   "public/framework/ai2/doc/cards.md",
+   "public/framework/ai2/doc/decisions.md"
+  ],
+  "differ": 12
+ },
+ {
+  "branch": "worktree/ai2-static",
+  "absent": [],
+  "differ": 4
+ },
+ {
+  "branch": "worktree/ai2-workspace",
+  "absent": [
+   "public/framework/ai2/doc/cards.md"
+  ],
+  "differ": 8
+ },
+ {
+  "branch": "worktree/check-consensus",
+  "absent": [
+   "Server/check.mjs",
+   "Server/consensus.mjs",
+   "Servex/agents/check-tools.js",
+   "Server/doc/check.md"
+  ],
+  "differ": 2
+ },
+ {
+  "branch": "worktree/dictate-marks",
+  "absent": [],
+  "differ": 2
+ },
+ {
+  "branch": "worktree/dictate-onewidget",
+  "absent": [],
+  "differ": 1
+ },
+ {
+  "branch": "worktree/fix-label",
+  "absent": [
+   "Servex/ext/openrouter/evals/library/broken-import/fixture/dates.js",
+   "Servex/ext/openrouter/evals/library/broken-import/fixture/page.js",
+   "Servex/ext/openrouter/evals/library/broken-overflow/fixture/page.js",
+   "Servex/ext/openrouter/evals/library/fix-label/fixture/page.js",
+   "Servex/ext/openrouter/evals/library/new-page-glossary/fixture/page.js",
+   "Servex/ext/openrouter/evals/library/plan-counter/fixture/readme.md"
+  ],
+  "differ": 0
+ },
+ {
+  "branch": "worktree/mobile-nav",
+  "absent": [],
+  "differ": 7
+ },
+ {
+  "branch": "worktree/mobile-nav-live",
+  "absent": [],
+  "differ": 11
+ },
+ {
+  "branch": "worktree/orphans",
+  "absent": [
+   "Server/OrphanCheck.mjs"
+  ],
+  "differ": 5
+ },
+ {
+  "branch": "worktree/page-system",
+  "absent": [],
+  "differ": 1
+ },
+ {
+  "branch": "worktree/probe-p22vkh",
+  "absent": [
+   "public/framework/sandbox/probe/log-line-owls-22vei/page.js",
+   "public/framework/sandbox/probe/log-line-owls-22vei/readme.md"
+  ],
+  "differ": 0
+ },
+ {
+  "branch": "worktree/probe-p25a52",
+  "absent": [
+   "public/framework/sandbox/probe/page-blog-owls-259zv/page.js",
+   "public/framework/sandbox/probe/page-blog-owls-259zv/readme.md"
+  ],
+  "differ": 0
+ },
+ {
+  "branch": "worktree/probe-p2o2q9",
+  "absent": [],
+  "differ": 2
+ },
+ {
+  "branch": "worktree/probe-p2oo1g",
+  "absent": [
+   "public/framework/sandbox/probe/log-line-badgers-2onus/page.js",
+   "public/framework/sandbox/probe/log-line-badgers-2onus/readme.md"
+  ],
+  "differ": 2
+ },
+ {
+  "branch": "worktree/probe-p3wyez",
+  "absent": [
+   "public/framework/sandbox/probe/page-blog-how-bread-rises-3wyab/page.js",
+   "public/framework/sandbox/probe/page.js",
+   "public/framework/sandbox/probe/page-blog-how-bread-rises-3wyab/readme.md"
+  ],
+  "differ": 1
+ },
+ {
+  "branch": "worktree/probe-p43vgu",
+  "absent": [
+   "public/framework/sandbox/probe/log-line-the-first-bicycles-43vba/page.js",
+   "public/framework/sandbox/probe/log-line-the-first-bicycles-43vba/readme.md"
+  ],
+  "differ": 0
+ },
+ {
+  "branch": "worktree/probe-p44yt9",
+  "absent": [
+   "public/framework/sandbox/probe/page-blog-why-the-sky-is-blue-44yo8/page.js",
+   "public/framework/sandbox/probe/page.js",
+   "public/framework/sandbox/probe/page-blog-why-the-sky-is-blue-44yo8/readme.md"
+  ],
+  "differ": 1
+ },
+ {
+  "branch": "worktree/probe-p48xwa",
+  "absent": [
+   "public/framework/sandbox/probe/page-blog-owls-48xrc/page.js",
+   "public/framework/sandbox/probe/page.js",
+   "public/framework/sandbox/probe/page-blog-owls-48xrc/readme.md",
+   "public/framework/sandbox/probe/readme.md",
+   "public/framework/sandbox/readme.md"
+  ],
+  "differ": 1
+ },
+ {
+  "branch": "worktree/probe-p4fv8y",
+  "absent": [
+   "public/framework/sandbox/probe/log-line-the-first-bicycles-4fv49/page.js",
+   "public/framework/sandbox/probe/log-line-the-first-bicycles-4fv49/readme.md"
+  ],
+  "differ": 0
+ },
+ {
+  "branch": "worktree/probe-p4hnh7",
+  "absent": [
+   "public/framework/sandbox/probe/page-blog-a-walk-in-the-rain-4hnca/page.js",
+   "public/framework/sandbox/probe/page.js",
+   "public/framework/sandbox/probe/page-blog-a-walk-in-the-rain-4hnca/readme.md"
+  ],
+  "differ": 1
+ },
+ {
+  "branch": "worktree/probe-p4lonn",
+  "absent": [
+   "public/framework/sandbox/probe/log-line-a-walk-in-the-rain-4lohu/page.js",
+   "public/framework/sandbox/probe/log-line-a-walk-in-the-rain-4lohu/readme.md"
+  ],
+  "differ": 0
+ },
+ {
+  "branch": "worktree/probe-p4o7n3",
+  "absent": [
+   "public/framework/sandbox/probe/page-blog-owls-4o46p/page.js",
+   "public/framework/sandbox/probe/page-blog-owls-4o46p/readme.md"
+  ],
+  "differ": 0
+ },
+ {
+  "branch": "worktree/quick-merge",
+  "absent": [],
+  "differ": 1
+ },
+ {
+  "branch": "worktree/readmeaudit",
+  "absent": [],
+  "differ": 1
+ },
+ {
+  "branch": "worktree/ui-system-clean-land",
+  "absent": [
+   "public/framework/core/System/System.js",
+   "public/framework/core/System/page.js",
+   "public/framework/core/System/demo/readme.md",
+   "public/framework/core/System/doc/system.md",
+   "public/framework/core/System/readme.md"
+  ],
+  "differ": 6
+ },
+ {
+  "branch": "worktree/ui-system-land2",
+  "absent": [
+   "public/framework/core/System/System.js",
+   "public/framework/core/System/page.js",
+   "public/framework/core/System/demo/readme.md",
+   "public/framework/core/System/doc/method/omitted.md",
+   "public/framework/core/System/doc/system.md",
+   "public/framework/core/System/readme.md"
+  ],
+  "differ": 8
+ },
+ {
+  "branch": "worktree/ui-system-land3",
+  "absent": [
+   "public/framework/core/System/System.js",
+   "public/framework/core/System/page.js",
+   "public/framework/core/System/demo/readme.md",
+   "public/framework/core/System/doc/system.md",
+   "public/framework/core/System/readme.md"
+  ],
+  "differ": 8
+ },
+ {
+  "branch": "worktree/waiting-on-you",
+  "absent": [
+   "public/framework/ai2/waiting.js",
+   "public/framework/ai2/doc/waiting.md"
+  ],
+  "differ": 11
+ }
+]

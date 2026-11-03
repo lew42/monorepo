@@ -1,0 +1,18 @@
+{
+  "url": "http://localhost/framework/ext/Draggable/",
+  "viewport": { "width": 1280, "height": 900 },
+  "watch": [".drag-items"],
+  "out": "C:/Users/mike/AppData/Local/Temp/claude/c--Code-lew42-monorepo/fd78d27e-a28b-4bfe-bb68-7a73578f4f05/scratchpad/ui-test-sort",
+  "steps": [
+    "eval [...document.querySelectorAll('.drag-items')[0].children].map(e => e.innerText.replace(/\\s+/g,' ').replace('drag_indicator ','').trim())",
+    "move 777 387",
+    "down",
+    "move 777 450 5",
+    "eval [document.querySelectorAll('.drag-ghost').length, document.querySelectorAll('.drag-placeholder').length, getComputedStyle(document.querySelector('.drag-source')).display]",
+    "move 777 576 20",
+    "shot",
+    "up",
+    "wait 300",
+    "eval [...document.querySelectorAll('.drag-items')[0].children].map(e => e.innerText.replace(/\\s+/g,' ').replace('drag_indicator ','').trim())"
+  ]
+}

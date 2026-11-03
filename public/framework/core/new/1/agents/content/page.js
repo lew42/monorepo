@@ -176,9 +176,9 @@ export default new Page({
 
 		section("Requests — 4. tokens for the sketch tier — LANDED, one missing");
 
-		md("`ext/demo`'s `demo.css` and `ext/markdown`'s `md.css` consume `--line`, `--surface`, `--wash`, `--subtle`, `--radius` and `--prim` from `framework.css`, which `new/1` does not load. A `var()` that is invalid at computed-value time falls back to `unset`, so any seat calling `demo()` got a box with no border and no background, and nothing warned.");
+		md("`ext/demo`'s `demo.css` and `ext/markdown`'s `md.css` consume `--line`, `--surface`, `--wash`, `--subtle`, `--radius` and `--prime` from `framework.css`, which `new/1` does not load. A `var()` that is invalid at computed-value time falls back to `unset`, so any seat calling `demo()` got a box with no border and no background, and nothing warned.");
 
-		md("**Five of the six landed in `site/styles.css` while I was writing this** — on `:root`, which is the right place for defaults; a theme would override on `.app`. `--prim` is still missing, and `md.css` uses it for `.md-details > summary:hover`. One line: `--prim: #0a58ca;` — a value that already appears six times in that file.").ac("note");
+		md("**Five of the six landed in `site/styles.css` while I was writing this** — on `:root`, which is the right place for defaults; a theme would override on `.app`. `--prime` is still missing, and `md.css` uses it for `.md-details > summary:hover`. One line: `--prime: #0a58ca;` — a value that already appears six times in that file.").ac("note");
 
 		section("Requests — 5. markdown's generic elements");
 

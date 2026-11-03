@@ -1,0 +1,43 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/sessions/3c35b6e2-3428-46ee-aae8-65c3f66e8c37/",
+ "widths": {
+  "400": {
+   "empty": 0.507,
+   "widest_text": 440,
+   "widest_text_sample": "Yeah, and then and then filtering the se",
+   "overflow_x": false,
+   "items": 1937,
+   "narrow_share": 0.487
+  },
+  "1200": {
+   "empty": 0.432,
+   "widest_text": 468,
+   "widest_text_sample": "Yeah, and then and then filtering the se",
+   "overflow_x": false,
+   "items": 1966,
+   "narrow_share": 0.733
+  },
+  "1920": {
+   "empty": 0.594,
+   "widest_text": 736,
+   "widest_text_sample": "OpenRouter (real dollars, apart from the",
+   "overflow_x": false,
+   "items": 1957,
+   "narrow_share": 0.786
+  },
+  "3440": {
+   "empty": 0.61,
+   "widest_text": 1392,
+   "widest_text_sample": "OpenRouter (real dollars, apart from the",
+   "overflow_x": false,
+   "items": 1764,
+   "narrow_share": 0.88
+  }
+ },
+ "errors": [
+  "400: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1200: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "3440: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1920: Failed to load resource: the server responded with a status of 404 (Not Found)"
+ ]
+}

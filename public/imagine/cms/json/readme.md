@@ -1,0 +1,87 @@
+# JSON pages — how it is built
+
+`page.json` is the **snapshot**: one node — `title`, `icon`, `description`, `blocks`,
+`children` — nested as deep as you like. `page.jsonl` is the **delta log**: one appended
+line per change. Loading is *fetch the snapshot, replay the log in order*. Compacting
+writes the replayed state back as the snapshot and empties the log, which is the whole
+reason for the pair — the json never grows past the tree it describes, and an edit never
+rewrites it.
+
+## Use
+
+- **Open [JSON pages](/imagine/cms/json/)**, then walk in three levels:
+  [`format/snapshot/shape/`](/imagine/cms/json/format/snapshot/shape/) is data all the way
+  down and works pasted cold into a new tab.
+- **[Edit](/imagine/cms/json/edit/)** appends one line and prints the before/after line and
+  byte counts. **Compact** prints them again, at zero — measured 2026-08-31: `page.jsonl`
+  4 lines / 651 B → 0 / 0, `page.json` 4473 → 4909 B with the edit in it and the tree intact.
+- **The same two files, streamed** — [`/imagine/stream/`](/imagine/stream/) puts this exact
+  delta contract on the dev socket, so an edit here reaches another window in 9 ms.
+- **The delta line** — the contract a writer may not break:
+  ```json
+  {"at": "<ISO>", "op": "set" | "del" | "append", "path": ["children", "why", "title"], "value": …}
+  ```
+  `set` replaces what `path` ends at, `del` removes it, `append` pushes `value` onto the
+  array `path` ends at. `apply()` in `json.js` is the whole replayer, in nine lines.
+- **`page.js` is the handoff** and the only code in the tree: it declares `children()` as a
+  **function**, and core calls it once — on the Router's walk in, or on a cold landing here —
+  and waits for it before anything renders. Since 2026-09-17 that is all this file does;
+  it used to write `child()` and `load_all_children()` overrides of its own
+  ([`core/Page/doc/data-children.md`](/framework/core/Page/doc/data-children/)).
+
+## Can a page exist *entirely* as json?
+
+**Content, yes. Behaviour, no — and the hatch is one field.**
+
+A block names a renderer: `{ "type": "cards" }` draws this page's children as cards because
+a function called `cards` is registered in `json.js`. Data chooses; js supplies. So a data
+page can say anything a registered renderer can draw, and a new capability for every data
+page in the site is one entry in `renderers`.
+
+What data gets today, free, because `Page.declare()` already took this shape: a real url, the
+Router, crumbs, columns, the card wall, `active-page` marking, `icon`, `description`, `width`.
+
+What still needs a `page.js`: its own `render()`, its own state, event handlers, anything
+that computes. That page can live in this tree as one more child — `edit/` is exactly that.
+
+**The two seams that would move the line**, both in core, neither written here:
+
+1. **`Page.redraw()`** — rebuild a page's view in place from new data. Today a delta redraws
+   the node's own content box (`redraw()` in `json.js`), but a changed **title**, a new child,
+   or a deleted page is next-load, because core builds the column head and the rail and there
+   is no way to ask it to build them again.
+2. ~~**A declared data source**~~ — **done, 2026-09-17.** `children()` may be a function that
+   returns a promise of configs, so the two overrides that used to live in `page.js` are one
+   word now and every page in the site can be data-backed without repeating them:
+   [`core/Page/doc/data-children.md`](/framework/core/Page/doc/data-children/).
+
+## Watch out
+
+- **An edit is one appended line** — `rpc:append` (`Server/plugins/SocketServer/Append.js`)
+  opens the file with `"a"`, so the write is the size of the line and two browsers editing at
+  once interleave instead of clobbering. The old whole-file `rpc:write` is the fallback for a
+  dev server started before that plugin landed. ⚠ Such a server does not answer at all and
+  `async_rpc` waits forever, so the first append races a 2-second timeout and the answer is
+  remembered. Measured 2026-08-31: one line per edit, `page.json` byte-identical.
+- **Off localhost there is no dev socket**: the buttons disable themselves and say so. Reading
+  is a fetch, so the tree itself works anywhere, including a static host.
+- **A missing file answers 200 with `index.html`** (the SPA fallback), so `Source.read()`
+  checks the content-type — a bare `res.ok` would replay a web page as a delta log.
+- **`edit` is a reserved name** in this tree: a data node called `edit` would be shadowed by
+  the real `edit/page.js` directory. Any child with a `page.js` wins over data.
+- **Nothing fetches at import.** A page constructs itself when its module loads, so the load
+  is memoised behind `ready()` and only a visit pays for it.
+- **The "Chaining cycle detected for promise" guard is core's now**, not this file's. Writing
+  the wait as a `load_all_children()` override — which both this page and `paging/make/page.js`
+  used to do — means restating core's own `levels <= this.loaded` guard inside it, and both
+  shipped without it until 2026-09-05. The override went away on 2026-09-17:
+  [`core/Page/doc/data-children.md`](/framework/core/Page/doc/data-children/).
+
+## More
+
+- `json.js` — renderers, `config()` (a node becomes a page config), `apply()` (the replayer),
+  `Source` (load, append, compact). `page.js` — the handoff. `edit/page.js` — the three ops.
+- The files themselves: [`page.json`](/imagine/cms/json/page.json) ·
+  [`page.jsonl`](/imagine/cms/json/page.jsonl)
+- The rest of the CMS slice — a markdown file as a page, and `git commit` as publish:
+  [`/imagine/cms/`](/imagine/cms/)

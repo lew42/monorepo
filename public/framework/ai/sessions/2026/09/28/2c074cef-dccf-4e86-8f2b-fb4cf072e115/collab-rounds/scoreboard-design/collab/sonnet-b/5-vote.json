@@ -1,0 +1,1 @@
+{"pick": "haiku-a", "caveat": "add the broken-import finding as its own row in the comparison table, not just prose, since it's the one issue that actually blocks shipping the code as-is"}

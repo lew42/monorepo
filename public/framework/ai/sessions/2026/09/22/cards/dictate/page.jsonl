@@ -1,0 +1,5 @@
+{"class":"/framework/ai2/card.js","title":"Note: Dictate becomes an extension with a contextual destination","type":"card","id":"2026/09/22/dictate","created":"2026-09-22T18:15:52-05:00","by":"","tags":[]}
+{"legacy":"dictate"}
+{"icon":"mic"}
+{"text":"Heard, and it is the right shape: Dictate moves to ext/ (it has dependencies — whisper now, maybe cloud later), gets real docs, a working level on the mic, and no destination button — where you are decides where words go: on the AI page, an assistant tab where you click the mic, talk, and see the names and cards appear. Briefed as dictate-extension; starts the moment the bench minion lands its mic picker."}
+{"status":"working"}

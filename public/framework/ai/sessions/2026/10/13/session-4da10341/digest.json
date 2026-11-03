@@ -1,0 +1,32 @@
+{
+ "id": "4da10341-4407-49f5-85ad-2eee5adb7755",
+ "first": "2026-10-13T22:32:01.466Z",
+ "last": "2026-10-13T22:35:03.280Z",
+ "task": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/landing-nag",
+ "models": {
+  "claude-sonnet-5-5": 31
+ },
+ "sizes": {
+  "raw": 243258,
+  "content": 48153,
+  "stripped": 10165,
+  "owner_only": 0
+ },
+ "usd": 1.021686,
+ "usd_main": 1.021686,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 62,
+  "output": 15804,
+  "cache_read": 2586350,
+  "cache_write": 86563,
+  "w5": 0,
+  "w1": 86563
+ },
+ "messages": 31,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "Servex now nags a task mastermind once for a missing landing line, wakes the parent with the next sibling's brief, and applies a per-role compaction policy. A stub-agent proof passes 14 of 14 checks. I did not run it on a private Servex, so the real turn-end path is untested. The live Servex needs your restart (`node Servex/sustain.mjs --restart`) to pick this up.\n\n- **Landing nag:** if a task mastermind's turn ends with its work merged but no `landed_at` line, it gets one message asking for that line. The proof shows the message sent once and not resent on a second turn end. A blocked agent, one with a child still working, and one already landed all get no nag. An agent that is already stopped gets a log line in its `task.jsonl`, and the parent's harvest lands it.\n- **Next step:** when a landed child wakes its parent, the wake now adds `Next: <sibling dir> (brief <path>)`. This covers queued siblings whose `after` edges have all landed. A `todo.md` line naming the next task is not covered, because it has no machine-readable form.\n- **Compaction:** masterminds and the master-assistant compact at 150k tokens or 45 minutes (a `compact_after` field on `roles.js`). Minions never compact. The SDK has no separate compaction option; the existing `/compact` turn does the work. Alternative not taken: no compaction, or restart fresh.\n\nDocs are in `Servex/agents/doc/lifecycle.md` (linked from the agents readme). The proof is `landing-nag-proof.mjs` in the task dir. It's committed as `bb …",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.211Z"
+}

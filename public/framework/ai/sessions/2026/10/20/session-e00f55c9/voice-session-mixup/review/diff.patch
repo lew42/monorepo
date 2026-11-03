@@ -1,0 +1,86 @@
+diff --git a/.claude/hooks/jsonl-guard.mjs b/.claude/hooks/jsonl-guard.mjs
+index a1526c6df..e248aa027 100644
+--- a/.claude/hooks/jsonl-guard.mjs
++++ b/.claude/hooks/jsonl-guard.mjs
+@@ -26,7 +26,7 @@ const WRITE = [
+ 	/\b(Add-Content|Out-File|Set-Content)\b[^|;&]*\.jsonl\b/i,   // PowerShell writers
+ ];
+ 
+-const MESSAGE = "JSONL GUARD: a hand write into a .jsonl file is blocked. One malformed line breaks the live page that reads it. Write the lines as a JSON array in a scratch .json file and run `node .claude/hooks/append.mjs <target.jsonl> <lines.json>`, which validates the whole file, or use Servex's append_log tool.\n";
++const MESSAGE = "JSONL GUARD: a hand write into a .jsonl file is blocked. One malformed line breaks the live page that reads it. Write the lines as a JSON array in a scratch .json file whose name holds your task slug (e.g. <scratchpad>/lines-<slug>.json; never a shared name like /tmp/ans.json, another agent overwrites it) and run `node .claude/hooks/append.mjs <target.jsonl> <lines.json>`, which validates the whole file, or use Servex's append_log tool.\n";
+ 
+ let raw = "";
+ process.stdin.on("data", d => raw += d).on("end", () => {
+diff --git a/Servex/agents/Layers.js b/Servex/agents/Layers.js
+index d53a7bd45..246085066 100644
+--- a/Servex/agents/Layers.js
++++ b/Servex/agents/Layers.js
+@@ -525,7 +525,7 @@ export default class Layers {
+ 		// Inside the card listener: a throw here (an unknown card, an empty line) must never
+ 		// break the listener for every other card, so it is logged and dropped.
+ 		try {
+-			const session = this.session_for({ path, card: id });
++			const session = this.session_for({ path });
+ 			this.servex.sessions.say({ session: session.session, path, text: said, via: "text" });
+ 		} catch (e){ console.warn(`[layers] owner prompt on ${id} not sent to the session: ${e.message}`); }
+ 	}
+@@ -572,23 +572,11 @@ export default class Layers {
+ 		return agent;
+ 	}
+ 
+-	/* ONE GLOBAL SESSION PER PROJECT (one-dictation, 2026-09-30: "we're not doing
+-	 * per directory assistants anymore. We're doing global dictation assistance…
+-	 * but they're contextually aware"). Whichever session of this project spoke
+-	 * most recently — wherever on the site or whatever card it started on — is
+-	 * resumed, as long as that was within Sessions' own `resume_ms`; otherwise a
+-	 * fresh one is created here. This reads only Sessions' own public state
+-	 * (`map`, `project`, `project_of`, `resume_ms`) and its own verbs (`resume`,
+-	 * `create`) — Sessions.js itself is never touched, so this never conflicts
+-	 * with the other task's uncommitted edits to it. */
+-	session_for({ path, card, host } = {}){
+-		const sessions = this.servex.sessions;
+-		const project = sessions.project_of(host);
+-		const [newest] = Object.values(sessions.map)
+-			.filter(s => sessions.project(s) === project)
+-			.sort((a, b) => Date.parse(b.last_at ?? b.at) - Date.parse(a.last_at ?? a.at));
+-		if (newest && Date.now() - Date.parse(newest.last_at ?? newest.at) < sessions.resume_ms) return sessions.resume({ session: newest.id });
+-		return sessions.create({ path, card, host });
++	/* ONE GLOBAL SESSION PER PROJECT (one-dictation, 2026-09-30): no per-directory assistants.
++	 * The resume rule (the project's newest voice session within `idle_ms`, else a new one) lives in
++	 * ONE place, `Sessions.create`, shared with the drawer and the browser's join (voice-session-mixup). */
++	session_for({ path, host } = {}){
++		return this.servex.sessions.create({ path, host });   // no card: a card prompt joins the global session, never a per-card one
+ 	}
+ 
+ 	/* THE DRAWER'S SEND (interface: ai/sessions/2026/09/28/recursive-pairs/recursive-pairs/interface.md;
+diff --git a/Servex/agents/layers.test.mjs b/Servex/agents/layers.test.mjs
+index e02b60650..f95e7f477 100644
+--- a/Servex/agents/layers.test.mjs
++++ b/Servex/agents/layers.test.mjs
+@@ -51,7 +51,7 @@ const routes = new Map();
+ const router = { get(p, ...h){ routes.set("GET " + p, h.at(-1)); }, post(p, ...h){ routes.set("POST " + p, h.at(-1)); }, options(){} };
+ 
+ /* A fake Sessions (the ext/Session pair): just enough of its public shape —
+- * `map`, `project`, `project_of`, `resume_ms`, `resume`, `create`, `say` — for
++ * `create` (which resumes the newest session itself) and `say` — for
+  * Layers' `session_for` helper to drive without starting a real Claude session.
+  * Shared by every fake servex below: it is plain state, not filesystem-bound,
+  * so the same fake proves both the card path (item 3) and the page path (item 2). */
+@@ -59,15 +59,9 @@ const session_calls = [];                      // every say(): {session, path, t
+ const sessions_map = {};
+ let ssid = 0;
+ const fake_sessions = {
+-	map: sessions_map,
+-	project_of(){ return "proj"; },
+-	project(s){ return s.project ?? "proj"; },
+-	resume_ms: 3600000,
+-	resume({ session }){
+-		const s = sessions_map[session];
+-		return { ok: true, session: s.id, home: s.home, file: s.file, resumed: true };
+-	},
+ 	create({ path, card } = {}){
++		const [newest] = Object.values(sessions_map).sort((a, b) => Date.parse(b.last_at) - Date.parse(a.last_at));
++		if (newest) return { ok: true, session: newest.id, home: newest.home, file: newest.file, resumed: true };   // like the real Sessions.create: the resume rule lives only there
+ 		const id = "vsess-" + (++ssid);
+ 		const s = { id, home: card ? `/framework/ai/${card}/` : path, file: `${(card ? `/framework/ai/${card}/` : path)}ai/${id}.jsonl`,
+ 			project: "proj", at: new Date().toISOString(), last_at: new Date().toISOString() };

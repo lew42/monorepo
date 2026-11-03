@@ -1,0 +1,4 @@
+{"verdict": {"id": "__init__", "say": "reopen", "at": "2026-09-20T10:00:00-05:00", "by": "approve-loop-proof"}}
+{"verdict":{"id":"proof-card-1","say":"approve","at":"2026-09-20T15:11:30-05:00","by":"approve-loop-proof"}}
+{"verdict":{"id":"proof-card-1","say":"reopen","at":"2026-09-20T15:11:31-05:00","by":"approve-loop-proof"}}
+{"verdict":{"id":"proof-card-1","say":"improve","at":"2026-09-20T15:11:33-05:00","by":"approve-loop-proof","note":"TEST (approve-loop proof, disregard): make the summary shorter."}}

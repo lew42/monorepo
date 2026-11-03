@@ -1,0 +1,1380 @@
+diff --git a/Server/plugins/SocketServer/Tail.js b/Server/plugins/SocketServer/Tail.js
+index d79c9cd63..c60c436dc 100644
+--- a/Server/plugins/SocketServer/Tail.js
++++ b/Server/plugins/SocketServer/Tail.js
+@@ -2,8 +2,11 @@ import fs from "fs";
+ import path from "path";
+ 
+ const PUBLIC = path.resolve("public");
+-const files = new Map();   // abs file -> { offset }
+-const subs = new Map();    // abs file -> Set<socket>
++/* abs file -> Map<socket, offset | null>: ONE OFFSET PER SOCKET. A single offset per file, shared by every socket, lost
++ * lines: socket A subscribed, a line was appended, socket B subscribed from 0 before the watcher fired and moved the
++ * shared offset to the end, so the change event found nothing new and A never got the line (seat e, race.mjs;
++ * Tail.test.mjs). `null`: a reset went out to that socket, and it streams again only after it subscribes again. */
++const subs = new Map();
+ 
+ /* ⚠ Browser input reaches fs.read here: a subscribed path must resolve under
+  * public/ and name a .jsonl.
+@@ -60,12 +63,20 @@ function read(file, from){
+     }
+ 
+     const end = buf.lastIndexOf(10) + 1;
+-    return {
+-        lines: buf.subarray(0, end).toString("utf8").split("\n").filter(Boolean),
+-        offset: from + end
+-    };
++    const lines = [], ends = [];
++    for (let at = 0; at < end;){
++        const nl = buf.indexOf(10, at);
++        if (nl > at){ lines.push(buf.subarray(at, nl).toString("utf8")); ends.push(from + nl + 1); }
++        at = nl + 1;
++    }
++    return { lines, ends, offset: from + end };
+ }
+ 
++/* The frame: the lines, the offset after them, where they began, and where each one ends (a byte offset). A reader that
++ * is already past `from` (a second reader in the same tab asked for the file from 0) applies only the lines that end
++ * past its own offset (ext/JSONL/live.js); before, it applied the whole batch again. */
++const send = (socket, file, chunk, from) => socket.rpc("jsonl", url_path(file), chunk.lines, chunk.offset, from, chunk.ends);
++
+ /* Streams appended `.jsonl` lines to the sockets that asked for them, so a log
+  * grows in the browser without a reload. Dev server only; see
+  * public/framework/dev/Socket/doc/wire.md. */
+@@ -78,17 +89,17 @@ export default class Tail {
+     static changed(file){
+         const abs = path.resolve(file);
+         const sockets = subs.get(abs);
+-        if (!sockets?.size || !files.has(abs)) return;   // no offset — a reset already went out
+-
+-        const chunk = read(abs, files.get(abs).offset);
+-        if (!chunk){
+-            files.delete(abs);
+-            return sockets.forEach(socket => socket.rpc("jsonl_reset", url_path(abs)));
++        if (!sockets?.size) return;
++
++        const chunks = new Map();   // offset -> chunk: sockets at the same offset share one read
++        for (const [socket, from] of sockets){
++            if (from === null) continue;   // a reset already went out to this socket
++            if (!chunks.has(from)) chunks.set(from, read(abs, from));
++            const chunk = chunks.get(from);
++            if (!chunk){ sockets.set(socket, null); socket.rpc("jsonl_reset", url_path(abs)); continue; }
++            sockets.set(socket, chunk.offset);
++            if (chunk.lines.length) send(socket, abs, chunk, from);
+         }
+-
+-        files.set(abs, { offset: chunk.offset });
+-        if (chunk.lines.length)
+-            sockets.forEach(socket => socket.rpc("jsonl", url_path(abs), chunk.lines, chunk.offset));
+     }
+ 
+     constructor(socket){
+@@ -104,17 +115,18 @@ export default class Tail {
+         if (!file) return console.warn("Tail: refusing subscribe", url);
+ 
+         this.files.add(file);
+-        if (!subs.has(file)) subs.set(file, new Set());
+-        subs.get(file).add(this.socket);
++        if (!subs.has(file)) subs.set(file, new Map());
++        const sockets = subs.get(file);
+ 
+         /* ⚠ A file that doesn't exist yet is an empty one — the subscription stands
+          * and streams when it appears. Answering `jsonl_reset` here ping-pongs with
+          * a client that re-subscribes on reset. */
+-        const chunk = fs.existsSync(file) ? read(file, Number(from) || 0) : { lines: [], offset: 0 };
+-        if (!chunk) return this.socket.rpc("jsonl_reset", url_path(file));
++        const start = Number(from) || 0;
++        const chunk = fs.existsSync(file) ? read(file, start) : { lines: [], ends: [], offset: 0 };
++        if (!chunk){ sockets.set(this.socket, null); return this.socket.rpc("jsonl_reset", url_path(file)); }
+ 
+-        files.set(file, { offset: chunk.offset });
+-        this.socket.rpc("jsonl", url_path(file), chunk.lines, chunk.offset);
++        sockets.set(this.socket, chunk.offset);
++        send(this.socket, file, chunk, start);
+     }
+ 
+     drop(file){
+@@ -123,9 +135,6 @@ export default class Tail {
+ 
+         this.files.delete(file);
+         sockets.delete(this.socket);
+-        if (sockets.size) return;
+-
+-        subs.delete(file);
+-        files.delete(file);
++        if (!sockets.size) subs.delete(file);
+     }
+ }
+diff --git a/Server/plugins/SocketServer/Tail.test.mjs b/Server/plugins/SocketServer/Tail.test.mjs
+new file mode 100644
+index 000000000..167146c9a
+--- /dev/null
++++ b/Server/plugins/SocketServer/Tail.test.mjs
+@@ -0,0 +1,72 @@
++// Tail: every socket keeps its own offset, so a second subscriber never steals a line from the first (the lost update,
++// seat e's race.mjs), and a reader already past a frame's start applies only the lines it has not read (the double apply).
++// Run from anywhere: `node Server/plugins/SocketServer/Tail.test.mjs`
++import fs from "node:fs";
++import path from "node:path";
++import { register } from "node:module";
++import { fileURLToPath } from "node:url";
++
++const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
++process.chdir(ROOT);   // Tail.js resolves "public" from the cwd
++register("../../../Servex/agents/site-hooks.mjs", import.meta.url);
++globalThis.location = new URL("http://localhost/");
++
++const { default: Test } = await import("../../../public/framework/core/Test/Test.js");
++const { default: Tail } = await import("./Tail.js");
++const { default: Socket } = await import("../../../public/framework/dev/Socket/Socket.js");
++const { stream } = await import("../../../public/framework/ext/JSONL/live.js");
++
++const t = new Test("Server/SocketServer Tail: one offset per socket; no line lost, none applied twice");
++const REL = "framework/core/Item/.tail-test-" + process.pid;
++const DIR = path.join(ROOT, "public", REL), FILE = path.join(DIR, "x.jsonl"), URL_PATH = "/" + REL + "/x.jsonl";
++const append = line => fs.appendFileSync(FILE, JSON.stringify(line) + "\n");
++
++// A server-side socket that records what Tail sends it.
++const socket = () => {
++	const handlers = {}, got = [];
++	return { got, handlers, on: (name, fn) => { handlers[name] = fn; }, rpc: (method, ...args) => got.push({ method, args }), sub(from = 0){ handlers["rpc:subscribe"]([URL_PATH, from]); } };
++};
++const lines_of = s => s.got.filter(f => f.method === "jsonl").flatMap(f => f.args[1]).map(l => JSON.parse(l).n);
++
++fs.mkdirSync(DIR, { recursive: true });
++try {
++	// 1. The lost update. A subscribes; a line is appended; B subscribes from 0 BEFORE the watcher fires; then it fires.
++	append({ n: 1 });
++	const a = socket(), b = socket();
++	Tail.setup(a); Tail.setup(b);
++	a.sub(0);
++	t.eq(lines_of(a), [1], "A's subscribe reads the file so far");
++	append({ n: 2 });
++	b.sub(0);
++	t.eq(lines_of(b), [1, 2], "B's subscribe from 0 reads both lines");
++	Tail.changed(FILE);
++	t.eq(lines_of(a), [1, 2], "A still gets line 2 when the watcher fires (one shared offset lost it)");
++	t.eq(lines_of(b), [1, 2], "B gets nothing twice");
++	append({ n: 3 });
++	Tail.changed(FILE);
++	t.eq([lines_of(a), lines_of(b)], [[1, 2, 3], [1, 2, 3]], "the next append reaches both, once");
++	const frame = a.got.at(-1).args;
++	t.eq([typeof frame[3], frame[4]?.length], ["number", 1], "a frame says where it began and where each line ends");
++
++	// 2. The double apply, in one tab: reader 1 is at the end of line 1; reader 2 asks for the file from 0 on the same socket,
++	// and that frame (lines 1-3, from 0) reaches both readers. Reader 1 must read only lines 2 and 3.
++	const sent = [];
++	const browser = Object.create(Socket.prototype);
++	browser.disabled = false; browser.requests = [];
++	browser.send = frame => sent.push(frame);
++	Socket.singleton = () => browser;
++	const reader = offset => ({ url: URL_PATH, offset, got: [], parse: text => text.split("\n").map(l => JSON.parse(l)), read(entries){ this.got.push(...entries.map(e => e.n)); }, load: async () => {} });
++	const one_end = Buffer.byteLength(JSON.stringify({ n: 1 }) + "\n");
++	const r1 = reader(one_end), r2 = reader(0);
++	stream(r1, () => {}); stream(r2, () => {});
++	const server = socket(); Tail.setup(server); server.sub(0);
++	const [path_, lines, offset, from, ends] = server.got.at(-1).args;
++	browser.jsonl(path_, lines, offset, from, ends);
++	t.eq(r2.got, [1, 2, 3], "the reader that asked from 0 reads every line");
++	t.eq(r1.got, [2, 3], "the reader already past line 1 reads only lines 2 and 3, never line 1 again");
++	browser.jsonl(path_, lines, offset);   // an older server: no `ends`; nothing new for either reader (both are at the end)
++	t.eq([r1.got.length, r2.got.length], [2, 3], "a frame no reader is behind is not read again");
++} finally { fs.rmSync(DIR, { recursive: true, force: true }); }
++
++t.done();
++process.exit(process.exitCode ?? 0);   // live.js leaves a fallback timer
+diff --git a/Servex/agents/page_tools.js b/Servex/agents/page_tools.js
+index c245d0d17..9d17f5cf4 100644
+--- a/Servex/agents/page_tools.js
++++ b/Servex/agents/page_tools.js
+@@ -961,7 +961,7 @@ function validate(Task, task, delta){
+ 	for (const key of Object.keys(delta)){
+ 		if (key === "help") continue;
+ 		if (key.startsWith("_")) return refusal(`"${key}" starts with _ (private)`, Task);
+-		if (typeof task[key] === "function" || known.has(key) || task.get(key) !== undefined) continue;
++		if (typeof task[key] === "function" || known.has(key) || task.get(key) !== undefined || task.member?.(key) !== undefined) continue;   // member: a child by id (get() no longer searches lists)
+ 		return refusal(`"${key}" names no method, field or child of ${Task.name}`, Task);
+ 	}
+ 	return null;
+diff --git a/public/framework/core/Item/Item.js b/public/framework/core/Item/Item.js
+index 6ffa3d655..0ebe0550a 100644
+--- a/public/framework/core/Item/Item.js
++++ b/public/framework/core/Item/Item.js
+@@ -19,6 +19,14 @@ const is_list = node => !!node && Array.isArray(node.items) && typeof node.find
+ 
+ const building = new WeakSet();   // Items inside their own constructor (see constructor())
+ 
++// Can a key's value take the rest of a delta? (an Item or List; a Map has a set() too, but it is data)
++const routes = node => !!node && typeof node.set === "function" && !(node instanceof Map);
++// The saved shape of one Item (`toJSON()`): a registered type, an id, a data object, and nothing but lists beside them.
++const is_envelope = value => is_plain(value) && typeof value.type === "string" && "id" in value && is_data(value.data) && !!Item.types.get(value.type)
++	&& Object.keys(value).every(k => k === "type" || k === "id" || k === "data" || Array.isArray(value[k]));
++// A cache kept on an instance: not enumerable, so lists(), toJSON() and Object.keys never see it.
++const hide = (item, name, value) => Object.defineProperty(item, name, { value, writable: true, configurable: true, enumerable: false });
++
+ // Architecture: composition not inheritance; doc/item-notes.md
+ export class Item extends Events(Object) {
+ 
+@@ -144,13 +152,38 @@ export class Item extends Events(Object) {
+ 	}
+ 
+ 	set_one(key, value){
++		// A dotted key is a path: `{"tasks.ui.tasks.c3": v}` is `{"tasks": {"ui.tasks.c3": v}}`, and the next level's own
++		// set() takes the rest (ids-and-paths.md, DECIDED). A key that already names something here as it is wins.
++		const dot = key.indexOf(".");
++		if (dot > 0 && dot < key.length - 1 && !(key in this) && this.get_one(key) === undefined)
++			return void this.set_one(key.slice(0, dot), { [key.slice(dot + 1)]: value });
++
+ 		const here = this[key];
+ 		if (typeof here === "function") return void here.call(this, value);
+ 
+ 		const target = this.get(key);
+-		if (target && typeof target.set === "function" && !(target instanceof Map)) return void target.set(value);
++		if (routes(target)) return void target.set(value);
++
++		// An old line named a list member by its id alone (`{"c3":{…}}`, what Store.hops wrote before every hop named its
++		// list): still replayed, from the first list that has it, as get() used to; new lines name the list. It warns only
++		// when the list could have been named (a Page's `pages` cannot be yet, so the page tool's `{"<tab>":{…}}` is current).
++		if (target === undefined){
++			const [name, list] = Object.entries(this.lists()).find(([, l]) => l.find(key) !== undefined) ?? [];
++			const kid = list?.find(key);
++			if (routes(kid)){
++				const named = [list.name, name].find(n => n && !skipped(n) && this.get(n) === list);
++				// Counted always (Item.old_hops: "<list>.<id>" -> lines); warned in node only, where the item tool and the tests
++				// run. In a browser it would be noise on every page: the page tool still documents `{"<card id>":{…}}` today.
++				if (named && is_plain(value)){
++					Item.old_hops.set(`${named}.${key}`, (Item.old_hops.get(`${named}.${key}`) ?? 0) + 1);
++					if (typeof document === "undefined") warn(`a line named the member "${key}" by its id alone (an old line): it now names its list, {"${named}":{"${key}":…}}`, "member-hop");
++				}
++				return void kid.set(value);
++			}
++		}
+ 
+-		const old = this.get(key);
++		const old = target;
++		value = this.adopt_slot(key, value, old);
+ 		this.put(key, value);
+ 		if (old !== value){
+ 			this.emit("change", key, value, old);
+@@ -158,6 +191,17 @@ export class Item extends Events(Object) {
+ 		}
+ 	}
+ 
++	/* An Item put in a property is ADOPTED: its parent is me and its slot is the property's name, so its own changes bubble
++	   here and Store.hops writes them under that name ({"child":{"set":{…}}}), and a replay walks back into it. The line
++	   that puts it is the saved shape (`{type, id, data}`), so on replay that shape is made an Item again (seat a, E7/E9).
++	   A List is not adopted this way (its owner is fixed when it is made). */
++	adopt_slot(key, value, old){
++		if (old !== value && old instanceof Item && old.parent === this && old._slot === key){ delete old.parent; delete old._slot; }
++		if (is_envelope(value)) value = Item.hydrate(value);
++		if (value instanceof Item && !is_list(value) && value !== this){ value.parent = this; value._slot = key; }
++		return value;
++	}
++
+ 	/* THE single resolver (2026-10-03): ONE name, not a path. The owner's order:
+ 	   fields and data, then named Lists, then child ids.
+ 	     1. a real OWN property (`Object.prototype.hasOwnProperty`) — a List
+@@ -180,8 +224,21 @@ export class Item extends Events(Object) {
+ 		const value = this.get_one(key);
+ 		if (value !== undefined) return value;
+ 
++		// A dotted path: my get takes the first name, and what it finds takes the rest with its OWN get (a List looks
++		// up its member; a subclass may look up its own way). ids-and-paths.md, DECIDED.
++		const dot = typeof key === "string" ? key.indexOf(".") : -1;
++		if (dot > 0){
++			const next = this.get(key.slice(0, dot));
++			return routes(next) && typeof next.get === "function" ? next.get(key.slice(dot + 1)) : undefined;
++		}
++		return undefined;
++	}
++
++	// A member of one of my lists, by id: the first list that has it. Only an old line's id-only hop needs this
++	// (set_one above, the item tool's check); every new hop names its list, so get() no longer searches.
++	member(id){
+ 		for (const list of Object.values(this.lists())){
+-			const hit = list.find(key);
++			const hit = list.find(id);
+ 			if (hit !== undefined) return hit;
+ 		}
+ 		return undefined;
+@@ -224,9 +281,14 @@ export class Item extends Events(Object) {
+ 	// ⚠ Only lists I OWN. A member of an ownerless list has that list as its
+ 	// `parent`; counting it here made toJSON() loop forever (found by the
+ 	// List replay example, 2026-10-02).
++	// Cached: kept while I have the same own keys and each cached list is still mine under its name. A List made with me
++	// as its owner clears it (List's `owner` setter). Returned as a fresh object each call, as before.
+ 	lists(){
++		const keys = Object.keys(this).length, had = this._lists;
++		if (had && had.keys === keys && had.names.every(([k, list]) => this[k] === list && list.owner === this)) return Object.fromEntries(had.names);
+ 		const found = {};
+ 		for (const key in this) if (is_list(this[key]) && this[key].owner === this) found[key] = this[key];
++		hide(this, "_lists", { keys, names: Object.entries(found) });
+ 		return found;
+ 	}
+ 
+@@ -236,8 +298,20 @@ export class Item extends Events(Object) {
+ 		return this;
+ 	}
+ 
+-	// A DEEP search — every descendant, across every list, at every depth.
+-	find(id){ let hit; this.walk(item => { hit ??= item.id === id ? item : undefined; }); return hit; }
++	// A DEEP search — every descendant, across every list, at every depth: the first one in walk order, me included.
++	// Indexed once per change to any list (Item.generation), so a line that names no child costs a Map lookup, not a walk.
++	find(id){
++		let ix = this._deep;
++		if (!ix || ix.gen !== Item.generation){
++			ix = { gen: Item.generation, map: new Map() };
++			this.walk(item => { if (!ix.map.has(item.id)) ix.map.set(item.id, item); });
++			hide(this, "_deep", ix);
++		}
++		const hit = ix.map.get(id);
++		if (hit === undefined || hit.id === id) return hit;
++		this._deep = null;   // an id changed in place since: walk again
++		return this.find(id);
++	}
+ 
+ 	// Strict descendants — `contains(this)` is false, so a drop-check still needs
+ 	// `target !== this` beside it.
+@@ -352,7 +426,35 @@ export class Item extends Events(Object) {
+ 		item.replay_end?.();
+ 		return item;
+ 	}
+-	replay_line(line){ return this.set(line); }
++	// `by` and `ts` are the writer's stamp on the line, not data: stripped here, the line's time held in `Item.clock` while
++	// it applies (a Task stamps its verbs with it), for every Item. Before, a plain Item kept them as fields (seat a).
++	replay_line(line){
++		if (!is_plain(line) || !("by" in line || "ts" in line)) return this.set(line);
++		const { by, ts, ...rest } = line, was = Item.clock;
++		if (typeof ts === "string") Item.clock = ts;
++		try { return this.set(rest); } finally { Item.clock = was; }
++	}
++
++	// The time of the line being replayed (null outside a replay). One clock for every Item: `Task.clock` reads and
++	// writes this same value.
++	static get clock(){ return Item._clock; }
++
++	// A line's dotted keys, one level opened: `{"tasks.c3.tasks.d1": v}` -> `{"tasks": {"c3.tasks.d1": v}}` (each level's set()
++	// opens the next). For a replay_line that reads its top-level keys itself (Task, Session) before any set() runs.
++	static dots(line){
++		if (!is_plain(line)) return line;
++		let out = null;
++		for (const key in line){
++			const dot = key.indexOf(".");
++			if (dot <= 0 || dot === key.length - 1) continue;
++			out ??= { ...line };
++			delete out[key];
++			const head = key.slice(0, dot), rest = { [key.slice(dot + 1)]: line[key] };
++			out[head] = is_plain(out[head]) ? { ...out[head], ...rest } : rest;
++		}
++		return out ?? line;
++	}
++	static set clock(at){ Item._clock = at; }
+ 
+ 	// A string is a .jsonl url: one Store per file, opened, the host built from its
+ 	// first line, attached. A Saver object keeps the existing whole-JSON path.
+@@ -380,6 +482,9 @@ const warn = (message, key = message) => {
+ };
+ 
+ Item.types = new Map();
++Item._clock = null;
++Item.old_hops = new Map();   // old id-only hops replayed, "<list>.<id>" -> count (set_one); the item tool can report them
++Item.generation = 0;   // bumped by every List change: find()'s index is rebuilt only after one
+ Item.names = new Map();
+ Item.warned = new Set();
+ Item.Store = Store;
+diff --git a/public/framework/core/Item/Item.test.mjs b/public/framework/core/Item/Item.test.mjs
+index 5b5a4d805..1401f5547 100644
+--- a/public/framework/core/Item/Item.test.mjs
++++ b/public/framework/core/Item/Item.test.mjs
+@@ -80,15 +80,38 @@ n++;
+ 	kid.set({ title: "hello" });
+ 	t(kid.parent === parent, "adding to a List makes the owner the child's parent");
+ 	t(lines.length === 2, "the add and the child's later set both reached the parent's store");
+-	t(JSON.stringify(lines[1]) === '{"k":{"set":{"title":"hello"}}}', "the child's delta is nested under the child's id");
++	t(JSON.stringify(lines[1]) === '{"kids":{"k":{"set":{"title":"hello"}}}}', "the child's delta names its list, then its id (every hop names its list)");
+ 
+ 	const reloaded = new Foo({ id: "p" });
+ 	reloaded.kids = new List({ owner: reloaded, name: "kids" });
+ 	for (const line of lines) reloaded.replay_line(line);
+ 	t(reloaded.kids.find("k")?.get("title") === "hello", "replaying the parent's lines rebuilds the child and its data");
++
++	reloaded.replay_line({ k: { set: { title: "old line" } } });
++	t(reloaded.kids.find("k").get("title") === "old line", "an old line that names the member by its id alone still replays");
++	reloaded.replay_line({ "kids.k": { set: { title: "dotted" } } });
++	t(reloaded.kids.find("k").get("title") === "dotted" && reloaded.get("kids.k") === reloaded.kids.find("k"), "a dotted path key walks the same hops, and get() reads the same path");
++}
++
++// Two lists on one owner, each with a member "s1" (seat a, E2): the edit lands on the right one, written and replayed.
++{
++	const { default: List } = await import("../List/List.js");
++	const lines = [];
++	const store = new Item.Store({ url: "/x/two.jsonl" });
++	store.append = line => lines.push(line);
++	const make = () => { const o = new Foo({ id: "o" }); o.a = new List({ owner: o, name: "a" }); o.b = new List({ owner: o, name: "b" }); return o; };
++	const live = make();
++	store.attach(live);
++	live.a.add({ id: "s1", title: "sentence" });
++	live.b.add({ id: "s1", title: "card" });
++	live.b.find("s1").set({ title: "card edited" });
++	const again = make();
++	for (const line of JSON.parse(JSON.stringify(lines))) again.replay_line(line);
++	t(again.a.find("s1").get("title") === "sentence" && again.b.find("s1").get("title") === "card edited", "a member of list b is edited in b on replay, never in a");
+ }
+ 
+-// NOT built: item.set("prop", anotherItem) only stores a snapshot. The child is not adopted, so its later changes are not logged.
++// item.set("prop", anotherItem) ADOPTS it (seat a, E7/E9): one line saves its shape, its later changes are written under the
++// property's name, and a replay makes it an Item again that the next line walks into.
+ {
+ 	const lines = [];
+ 	const store = new Item.Store({ url: "/x/p2.jsonl" });
+@@ -97,10 +120,13 @@ n++;
+ 	store.attach(parent);
+ 	const child = new Foo({ id: "c" });
+ 	parent.set("child", child);
+-	child.set({ title: "lost" });
+-	t(lines.length === 1 && lines[0].set?.child?.id === "c", "set(prop, item) logs one snapshot line of the item");
+-	t(child.parent === undefined, "set(prop, item) does not adopt the child (known gap, core/Item/readme.md)");
+-	t(lines.length === 1, "so the child's later delta is NOT logged to the parent's store (known gap)");
++	child.set({ title: "kept" });
++	t(lines.length === 2 && lines[0].set?.child?.id === "c", "set(prop, item) logs one line of the item, then its own change");
++	t(child.parent === parent && child._slot === "child", "set(prop, item) adopts the child under the property's name");
++	t(JSON.stringify(lines[1]) === '{"child":{"set":{"title":"kept"}}}', "the child's change is written under the property, not flat on the parent");
++	const reloaded = new Foo({ id: "p2" });
++	for (const line of JSON.parse(JSON.stringify(lines))) reloaded.replay_line(line);
++	t(reloaded.get("child") instanceof Foo && reloaded.get("child").get("title") === "kept" && reloaded.get("title") === undefined, "replay makes it a Foo again, with its title, and leaves the parent's title alone");
+ }
+ 
+ // A field passed to the constructor lands in data, so a later set() of it is read back (it used to become a shadowing own property).
+diff --git a/public/framework/core/Item/Store.js b/public/framework/core/Item/Store.js
+index 8b0091422..e4bc0069c 100644
+--- a/public/framework/core/Item/Store.js
++++ b/public/framework/core/Item/Store.js
+@@ -250,7 +250,7 @@ function address(node, host){
+ 	if (!parent) return undefined;   // detached from host — best effort, should not happen
+ 
+ 	for (const [name, list] of Object.entries(parent.lists?.() ?? {})){
+-		if ([...list].includes(node)){
++		if (list.key(node) != null && list.find(list.key(node)) === node){
+ 			const base = address(parent, host);
+ 			const seg = `${name}/${list.key(node)}`;
+ 			return base ? `${base}/${seg}` : seg;
+@@ -266,10 +266,13 @@ function owned_below(node, host){
+ 	return false;
+ }
+ 
+-/* The chain of NAMES from `host` down to `node`, each one a child's id — never a
+-   list's own property name, because `get()` (Item.js) never needs it either: a
+-   member's id is looked up by scanning every list the current node owns, so the
+-   wire line skips straight to the id. `[]` means `node` IS `host`. */
++/* The chain of NAMES from `host` down to `node`, one per level, and EVERY hop names
++   its list (2026-10-28, ids-and-paths.md §3): a member is its list's name, then its
++   id (`{"tasks":{"c3":{…}}}`), so a reader walks one `get()` per name and never
++   searches. An Item held in a property (Item.adopt_slot) is that property's name.
++   Before, a member's hop was its id alone and the reader searched every list for it
++   (`{"c3":{…}}`; two lists with one id misrouted, seat a E2); old lines still replay
++   (Item.set_one). `[]` means `node` IS `host`. */
+ function hops(node, host){
+ 	if (!node || node === host) return [];
+ 
+@@ -286,12 +289,32 @@ function hops(node, host){
+ 	const parent = node.parent;
+ 	if (!parent) return [];   // detached from host — best effort, should not happen
+ 
+-	for (const list of Object.values(parent.lists?.() ?? {}))
+-		if ([...list].includes(node)) return [...hops(parent, host), list.key(node)];
++	// A member of a list with no owner: its parent IS the list (List.adopt), so the hop is its id alone. Before, it found no
++	// list here and was written flat, so a member's change replayed onto the list itself (the persistence matrix found it).
++	if (is_list(parent)){ const key = parent.key(node); if (key != null && parent.find(key) === node) return [...hops(parent, host), key]; }
++
++	for (const [name, list] of Object.entries(parent.lists?.() ?? {})){
++		const key = list.key(node);
++		if (key == null || list.find(key) !== node) continue;
++		const named = list_name(parent, name, list);
++		return named ? [...hops(parent, host), named, key] : [...hops(parent, host), key];
++	}
++
++	if (node._slot != null && parent.get?.(node._slot) === node) return [...hops(parent, host), node._slot];
++	// A child given its parent by hand and held in a plain property (`parent.kid = child`): that property's name, when the
++	// parent's get() finds it there (seat g, B4: it was written flat, as the parent's own field).
++	for (const key of Object.keys(parent)) if (key !== "parent" && !key.startsWith("_") && parent[key] === node && parent.get?.(key) === node) return [...hops(parent, host), key];
+ 
+ 	return hops(parent, host);
+ }
+ 
++// The name a reader's `get()` finds `list` under on `owner`: the list's own name, else the key `lists()` gave it.
++// None (a list only reachable by scanning, like an old Page's `_pages`): the id-only hop, which old readers search for.
++function list_name(owner, key, list){
++	for (const name of [list.name, key]) if (name && !name.startsWith("_") && owner.get?.(name) === list) return name;
++	return null;
++}
++
+ // Nests `payload` one level per step in `path`, innermost (the payload itself)
+ // last — `wrap(["k2", "q1"], {set: {...}})` → `{k2: {q1: {set: {...}}}}`.
+ function wrap(path, payload){
+diff --git a/public/framework/core/Item/delta-flow.test.mjs b/public/framework/core/Item/delta-flow.test.mjs
+new file mode 100644
+index 000000000..2d077ba72
+--- /dev/null
++++ b/public/framework/core/Item/delta-flow.test.mjs
+@@ -0,0 +1,24 @@
++// The delta path, both ways, as a test: seat (g)'s runnable demo (a change at any depth reaches the file once, every other tab
++// applies it, the writer skips its own echo, a fresh replay rebuilds the same tree), run as it is, plus the breaks it found that
++// the data backbone fixed (data-shapes plan step 1). One copy of the demo: it stays beside its write-up.
++//   node public/framework/core/Item/delta-flow.test.mjs
++import { execFileSync } from "node:child_process";
++import { fileURLToPath } from "node:url";
++import path from "node:path";
++
++const { default: Test } = await import("../Test/Test.js");
++const HERE = path.dirname(fileURLToPath(import.meta.url));
++const DEMO = path.join(HERE, "../Session/tasks/data-shapes/seats/delta-flow/demo-delta-flow.mjs");
++
++const t = new Test("core/Item: the delta path round-trips (seat g's demo), and the breaks it found stay fixed");
++let out = "";
++try { out = execFileSync(process.execPath, [DEMO], { encoding: "utf8", timeout: 30000 }); }
++catch (e){ out = String(e.stdout ?? "") + String(e.stderr ?? ""); }
++
++t.ok(out.includes("PASS — the delta path, both ways (0 failed checks)"), "every hop of part 1 holds: UI change, list verbs two levels down, a move across lists, an agent's line, a hook's half line, a fresh load");
++t.ok(/PASS — the delta path round-trips/.test(out), "the demo ends in PASS");
++// Fixed by the backbone (each line of the demo prints STALE once its break no longer happens).
++for (const [b, what] of [["B2", "a member's line names its list"], ["B3", "set(prop, item) adopts"], ["B4", "a property-held child writes under the property"],
++	["B5", "by/ts are not data"], ["B6", "page.set(x, v) works"], ["B9", "a page's act() writes its verb once"], ["B10", "a Panel's per-cell word lands on the panel"]])
++	t.ok(new RegExp(`^STALE\\s+${b}\\b`, "m").test(out), `${b} fixed: ${what}`);
++t.done();
+diff --git a/public/framework/core/Item/doc/architecture.md b/public/framework/core/Item/doc/architecture.md
+index b049efa98..58027a3ae 100644
+--- a/public/framework/core/Item/doc/architecture.md
++++ b/public/framework/core/Item/doc/architecture.md
+@@ -93,10 +93,11 @@
+ - **Where a child's deltas go.** `List.adopt` sets `child.parent = owner` ([List.js:77](../../List/List.js)). `emit` bubbles `delta` up `.parent` ([Events.js:24](../../Events/Events.js)). `Store.attach` listens on the host ([Store.js:122](../Store.js)) and writes one line nested by `hops()` ([Store.js:234](../Store.js)): `{"kids":{"add":…}}`, then `{"k":{"set":…}}`. Replay is `host.replay_line` → `set`, one `get()` hop per level ([Item.js:152](../Item.js)).
+ - **Which items own a file.** The host passed to `Store.attach` (a page's `page.jsonl`, a task's `task.jsonl`, `Item.open(url)`, [Item.js:330](../Item.js)). A child with its own store or `_own_file` is skipped by the parent's store ([Store.js:225](../Store.js)); `Task.open_ref` ([Task.js:315](../../Task/Task.js)) uses that. Everything else rides in its parent's file.
+ - **One tail?** Mostly. `Store.open` ([Store.js:49](../Store.js)) and `Page.Reader.open` ([Reader.js:14](../../Page/Reader.js)) import `ext/JSONL/live.js` `stream()`. The `JSONL` class ([JSONL.js:51](../../../ext/JSONL/JSONL.js)) calls the same `stream()`, but as its own class, not through `Item`: board logs (`rail`, `AITask`, `Inbox`) are `JSONL`, not items. So one engine, two entry points.
+-- **Gap: `item.set("prop", anotherItem)`** ([Item.js:121](../Item.js) `set_one`) puts the item in `data` and logs a snapshot `{"set":{"prop":{type,id,data}}}`. Nothing adopts the child, so `child.parent` is unset and its later deltas are not logged. On replay the snapshot comes back as a plain object, not an Item. Wiring it needs `hops()` to find a child held in a property, not only in a List; larger than one method, so it is briefed in [next.md](./next.md), not coded.
++- **`item.set("prop", anotherItem)` adopts** (2026-10-28, `Item.adopt_slot`): the child's parent is the item and its `_slot` is `prop`, so `hops()` writes its later changes under `prop`; a replayed `{type, id, data}` of a registered type is hydrated back into an Item. A List value is not adopted this way (its owner is fixed when it is made).
++- **Every hop names its list** (2026-10-28): `hops()` writes `{"kids":{"k":{…}}}`, never `{"k":{…}}`, so a reader never searches; two lists with one id no longer misroute. The writer stays nested (no dotted keys written): the item tool may reshape a dotted line, and the Store's echo skip compares text. Readers take both forms and dotted keys. Why and the alternatives: [ids-and-paths.md](/framework/core/Session/tasks/data-shapes/ids-and-paths.md); the proof that old files replay the same: [replay-compare.mjs](/framework/core/Session/tasks/data-shapes/build/backbone/replay-compare.mjs).
+ - **Not built:** dynamic upgrade (parent store → own file when needed).
+ 
+-Tests: [Item.test.mjs](../Item.test.mjs) covers the built part and pins the gap.
++Tests: [Item.test.mjs](../Item.test.mjs), [persistence.test.mjs](../persistence.test.mjs) (every saving class, own file and nested), [delta-flow.test.mjs](../delta-flow.test.mjs).
+ 
+ ## A button saves its verb through the item tool
+ 
+diff --git a/public/framework/core/Item/persistence.test.mjs b/public/framework/core/Item/persistence.test.mjs
+new file mode 100644
+index 000000000..fb9baba28
+--- /dev/null
++++ b/public/framework/core/Item/persistence.test.mjs
+@@ -0,0 +1,270 @@
++// The persistence matrix (data-shapes plan step 1b; the streaming seat's §10): every class that saves, as the root of its own
++// file and nested inside another, for add, set, move, remove and replay, through a REAL Item.Store and a REAL file.
++//   node public/framework/core/Item/persistence.test.mjs
++//
++// What is real: Item, List, Task, Prompt, Question, Session, Page, Item.Store's attach -> line_for -> hops -> wrap -> append
++// -> skip_echo -> read. What is swapped: only the store's last step, flush(). In a browser it POSTs to Servex's item tool or
++// sends over the dev socket; here it appends to a temp file and stamps by/ts, as the item tool's write_line does. A second
++// "tab" tails the same file (Tail.js's read: whole lines past its offset) and must hold the same tree; a fresh replay of the
++// file must too. The clock and ids are fixed, so a live stamp and a replayed one are equal.
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import { register } from "node:module";
++
++register("../../../../Servex/agents/site-hooks.mjs", import.meta.url);
++const FIXED = Date.parse("2026-10-28T12:00:00Z"), RealDate = Date;
++globalThis.Date = class extends RealDate { constructor(...a){ a.length ? super(...a) : super(FIXED); } static now(){ return FIXED; } };
++let uid = 0;
++Object.defineProperty(globalThis.crypto, "randomUUID", { value: () => `u${++uid}`, configurable: true, writable: true });
++
++const { default: Test } = await import("../Test/Test.js");
++const { default: Item } = await import("./Item.js");
++const { default: List } = await import("../List/List.js");
++const { default: Task } = await import("../Task/Task.js");
++const { default: Session } = await import("../Session/Session.js");
++const { Prompt } = await import("../Task/Prompt.js");
++const { default: Question } = await import("../Task/Question.js");
++const { default: Page } = await import("../Page/Page.class.js");
++await import("../Page/parts/kinds.js");
++console.warn = () => {};
++
++const t = new Test("core/Item: the persistence matrix, through a real Store and a real file");
++const TMP = fs.mkdtempSync(path.join(os.tmpdir(), "persist-"));
++const J = x => JSON.stringify(x);
++const tick = () => new Promise(r => setTimeout(r, 0));
++const lines_of = file => fs.readFileSync(file, "utf8").split("\n").filter(Boolean).map(l => JSON.parse(l));
++
++// The one swapped piece: flush() appends to the file, stamped, the way the item tool's write_line does.
++class DiskStore extends Item.Store {
++	get writable(){ return true; }
++	async flush(){
++		const lines = this._queue.splice(0);
++		this._flushing = false;
++		for (const line of lines){
++			(this.sent ??= []).push(J(line));
++			fs.appendFileSync(this.file, J({ ...line, by: this.by, ts: new Date().toISOString() }) + "\n");
++		}
++	}
++}
++
++// What must be equal: the saved shape, and what only lives in memory (every item's class and state).
++const shape = root => {
++	const out = [];
++	const visit = item => { out.push([item.constructor.name, item.id, item.get_one?.("state") ?? null]); for (const list of Object.values(item.lists?.() ?? {})) for (const kid of list) if (kid instanceof Item) visit(kid); };
++	visit(root);
++	out[0][1] = "root";   // a code-made root's id is not in its file (a Board, a bare List): the root is the root
++	return J([{ ...root.toJSON(), id: "root" }, out]);
++};
++
++/* One file, two tabs. `make(lines)` builds the root from the file's lines (Class.replay), as a page load does. Tab A makes the
++   changes; tab B tails the file and applies what A wrote; a fresh replay of the whole file is the third reader. */
++function file_of(name, first){
++	const file = path.join(TMP, name);
++	fs.writeFileSync(file, first ? J(first) + "\n" : "");
++	return file;
++}
++function tab(file, make, by){
++	const root = make(fs.existsSync(file) ? lines_of(file) : []);
++	const store = new DiskStore({ url: "/test/" + path.basename(file), file, by });
++	store.attach(root);
++	const at = { offset: fs.statSync(file).size };
++	return { root, store, pull(){
++		const buf = fs.readFileSync(file).subarray(at.offset), end = buf.lastIndexOf(10) + 1;
++		at.offset += end;
++		store.read(buf.subarray(0, end).toString("utf8").split("\n").filter(Boolean).map(l => JSON.parse(l)));
++	} };
++}
++
++/* Run one cell: `step(A.root)` makes ONE change in tab A; it must write exactly `writes` lines (1 by default), tab B must then
++   equal A, A must skip its own echo, and a fresh replay of the file must equal A too. */
++async function cell(cls, mode, op, A, B, file, make, step, writes = 1){
++	const before = lines_of(file).length;
++	step(A.root);
++	await tick();
++	const wrote = lines_of(file).length - before;
++	A.pull(); B.pull();
++	const fresh = make(lines_of(file));
++	const ok = wrote === writes && shape(A.root) === shape(B.root) && shape(A.root) === shape(fresh);
++	if (!ok) console.log(`   ${cls} ${mode} ${op}: wrote ${wrote}/${writes}; tab B ${shape(A.root) === shape(B.root) ? "same" : "DIFFERS"}; replay ${shape(A.root) === shape(fresh) ? "same" : "DIFFERS"}\n     A ${shape(A.root).slice(0, 400)}\n     R ${shape(fresh).slice(0, 400)}`);
++	t.ok(ok, `${cls} (${mode}): ${op} writes ${writes} line(s); the other tab and a fresh replay hold the same tree`);
++	(matrix[`${cls} | ${mode}`] ??= {})[op] = ok ? "F" : "FAIL";
++}
++const matrix = {};
++
++// A plain Item root with two lists: code builds the structure (the code-made rule), lines bring the items.
++class Board extends Item {
++	constructor(...args){ super(...args); this.cards = new List({ owner: this, name: "cards" }); this.done = new List({ owner: this, name: "done" }); }
++}
++class Card extends Item {
++	get notes(){ return this._notes ??= new List({ owner: this, name: "notes" }); }
++	set notes(list){ this._notes = list; }
++	get(key){ return key === "notes" ? this.notes : super.get(key); }
++	lists(){ const { _notes, ...rest } = super.lists(); return { ...rest, ...(_notes ? { notes: _notes } : {}) }; }
++}
++Item.register(Board, "Board");
++Item.register(Card, "Card");
++List.prototype.of = Item;
++
++try {
++	// ── Item, own file ──
++	{
++		const file = file_of("item.jsonl"), make = lines => Board.replay(lines);
++		const A = tab(file, make, "a"), B = tab(file, make, "b");
++		const c = (cls, op, step, n) => cell("Item", "own file", op, A, B, file, make, step, n);
++		await c("Item", "add", r => r.cards.add(new Card({ id: "c1", data: { title: "one" } })));
++		await c("Item", "add", r => r.cards.add(new Card({ id: "c2", data: { title: "two" } })));
++		await c("Item", "set", r => r.set({ title: "Board" }));
++		await c("Item", "move", r => r.cards.move("c2", { after: null }));
++		await c("Item", "remove", r => r.cards.remove("c2"));
++		await c("Item", "replay", r => r.cards.add({ id: "c3", title: "three" }));
++	}
++	// ── Item, nested two levels (card -> notes), the delta-flow demo's tree ──
++	{
++		const file = file_of("nested.jsonl"), make = lines => Board.replay(lines);
++		const A = tab(file, make, "a"), B = tab(file, make, "b");
++		const c = (op, step, n) => cell("Item", "nested", op, A, B, file, make, step, n);
++		A.root.cards.add(new Card({ id: "c1" })); A.root.cards.add(new Card({ id: "c2" })); await tick(); A.pull(); B.pull();
++		await c("add", r => r.cards.find("c1").notes.add({ id: "n1", text: "first" }));
++		await c("set", r => r.cards.find("c1").notes.find("n1").set({ text: "edited" }));
++		await c("move", r => r.cards.find("c2").notes.move("n1", { after: null, from: r.cards.find("c1").notes }));
++		await c("remove", r => r.cards.find("c2").notes.remove("n1"));
++		await c("replay", r => r.done.add(new Card({ id: "c1" })));   // the same id in another list: stays in "done", never "cards"
++		t.ok(A.root.done.find("c1") && A.root.cards.find("c1") && J(lines_of(file).at(-1)).includes('"done"'), "Item (nested): a second list's member of the same id is written under its own list");
++	}
++	// ── List, own file (the root IS the list) ──
++	{
++		const file = file_of("list.jsonl"), make = lines => List.replay(lines);
++		const A = tab(file, make, "a"), B = tab(file, make, "b");
++		const c = (op, step, n) => cell("List", "own file", op, A, B, file, make, step, n);
++		await c("add", r => r.add({ id: "a", title: "A" }));
++		await c("add", r => r.add({ id: "b", title: "B" }));
++		await c("set", r => r.find("a").set({ title: "A!" }));
++		await c("move", r => r.move("b", { after: null }));
++		await c("remove", r => r.remove("a"));
++		await c("replay", r => r.order(["b"]));
++	}
++	// ── Task, own file (line 1 is the task's own {id, title}, as the item tool writes a home-made task) ──
++	{
++		const file = file_of("task.jsonl", { id: "t", title: "Task" }), make = lines => Task.replay(lines);
++		const A = tab(file, make, "a"), B = tab(file, make, "b");
++		const c = (op, step, n) => cell("Task", "own file", op, A, B, file, make, step, n);
++		await c("add", r => r.tasks.add("First"));
++		await c("add", r => r.tasks.add({ id: "second", title: "Second" }));
++		await c("set", r => r.set({ title: "Task, renamed" }));
++		await c("set", r => r.act("start"));
++		await c("move", r => r.tasks.move("second", { after: null }));
++		await c("remove", r => r.tasks.remove("first"));
++		await c("replay", r => r.tasks.find("second").act("pause"));   // started already: the root's start() starts its children
++	}
++	// ── Task, nested in a Session (a subtask two levels down, a move between two tasks' lists) ──
++	{
++		const file = file_of("session-tasks.jsonl", { session: { id: "s1", kind: "test" } }), make = lines => Session.replay(lines);
++		const A = tab(file, make, "a"), B = tab(file, make, "b");
++		const c = (op, step, n) => cell("Task", "nested", op, A, B, file, make, step, n);
++		A.root.tasks.add({ id: "ui", title: "UI" }); A.root.tasks.add({ id: "api", title: "API" }); await tick(); A.pull(); B.pull();
++		await c("add", r => r.tasks.find("ui").tasks.add({ id: "c3", title: "Tab bar" }));
++		await c("set", r => r.tasks.find("ui").tasks.find("c3").set({ title: "Tab bar, fixed" }));
++		await c("set", r => r.tasks.find("ui").tasks.find("c3").act("start"));
++		await c("move", r => r.tasks.find("api").tasks.move("c3", { after: null, from: r.tasks.find("ui").tasks }));
++		await c("remove", r => r.tasks.find("api").tasks.remove("c3"));
++		await c("replay", r => r.tasks.find("ui").act("start"));
++		const verb = lines_of(file).at(-1);
++		t.eq(J({ tasks: verb.tasks }), J({ tasks: { ui: { start: {} } } }), "Task (nested): a verb on a session's task names the list: {\"tasks\":{\"ui\":{\"start\":{}}}}");
++	}
++	// ── Prompt, own file and nested in a Session ──
++	{
++		const file = file_of("prompt.jsonl", { id: "p", title: "Prompt" }), make = lines => Prompt.replay(lines);
++		const A = tab(file, make, "a"), B = tab(file, make, "b");
++		const c = (op, step, n) => cell("Prompt", "own file", op, A, B, file, make, step, n);
++		await c("add", r => r.paragraphs.add({ id: "p1", text: "Fix the bar." }));
++		await c("add", r => r.paragraphs.add({ id: "p2", text: "Then ship." }));
++		await c("set", r => r.paragraphs.find("p1").set({ text: "Fix the tab bar." }));
++		await c("move", r => r.paragraphs.move("p2", { after: null }));
++		await c("remove", r => r.paragraphs.remove("p2"));
++		await c("replay", r => r.replies.add({ id: "r1", text: "On it." }));
++	}
++	{
++		const file = file_of("session-prompt.jsonl", { session: { id: "s2", kind: "test" } }), make = lines => Session.replay(lines);
++		const A = tab(file, make, "a"), B = tab(file, make, "b");
++		const c = (op, step, n) => cell("Prompt", "nested", op, A, B, file, make, step, n);
++		await c("add", r => r.tasks.add({ type: "Prompt", id: "p1", title: "A prompt" }));
++		await c("add", r => r.tasks.find("p1").paragraphs.add({ id: "a", text: "Words." }));
++		await c("set", r => r.tasks.find("p1").paragraphs.find("a").set({ text: "Better words." }));
++		await c("move", r => { const ps = r.tasks.find("p1").paragraphs; ps.add({ id: "b", text: "More." }); }); await c("move", r => r.tasks.find("p1").paragraphs.move("b", { after: null }));
++		await c("remove", r => r.tasks.find("p1").paragraphs.remove("a"));
++		await c("replay", r => r.tasks.find("p1").replies.add({ id: "r", text: "Reply." }));
++	}
++	// ── Question, own file and nested under a Prompt in a Session ──
++	{
++		const file = file_of("question.jsonl", { id: "q", title: "Which one?" }), make = lines => Question.replay(lines);
++		const A = tab(file, make, "a"), B = tab(file, make, "b");
++		const c = (op, step, n) => cell("Question", "own file", op, A, B, file, make, step, n);
++		await c("add", r => r.tasks.add({ id: "look", title: "Look it up" }));
++		await c("set", r => r.set({ answer: "The first." }));
++		await c("move", r => r.tasks.add({ id: "two", title: "Two" })); await c("move", r => r.tasks.move("two", { after: null }));
++		await c("remove", r => r.tasks.remove("two"));
++		await c("replay", r => r.tasks.find("look").act("start"));
++	}
++	{
++		const file = file_of("session-question.jsonl", { session: { id: "s3", kind: "test" } }), make = lines => Session.replay(lines);
++		const A = tab(file, make, "a"), B = tab(file, make, "b");
++		const c = (op, step, n) => cell("Question", "nested", op, A, B, file, make, step, n);
++		A.root.tasks.add({ type: "Prompt", id: "p1", title: "P" }); A.root.tasks.add({ type: "Prompt", id: "p2", title: "P2" }); await tick(); A.pull(); B.pull();
++		await c("add", r => r.tasks.find("p1").tasks.add({ type: "Question", id: "q1", text: "Why?" }));
++		await c("set", r => r.tasks.find("p1").tasks.find("q1").set({ answer: "Because." }));
++		await c("move", r => r.tasks.find("p2").tasks.move("q1", { after: null, from: r.tasks.find("p1").tasks }));
++		await c("remove", r => r.tasks.find("p2").tasks.remove("q1"));
++		await c("replay", r => r.tasks.find("p1").tasks.add({ type: "Question", id: "q2", text: "And?" }));
++	}
++	// ── Session, own file, and a Session nested in a Session (in the same file, not a reference) ──
++	{
++		const file = file_of("session.jsonl", { session: { id: "s4", kind: "test" } }), make = lines => Session.replay(lines);
++		const A = tab(file, make, "a"), B = tab(file, make, "b");
++		const c = (op, step, n) => cell("Session", "own file", op, A, B, file, make, step, n);
++		await c("add", r => r.tasks.add("Write the plan"));
++		await c("add", r => r.tasks.add({ id: "build", title: "Build it" }));
++		await c("set", r => r.set({ title: "A session" }));
++		await c("move", r => r.tasks.move("build", { after: null }));
++		await c("remove", r => r.tasks.remove("write-the-plan"));
++		await c("replay", r => r.tasks.find("build").act("start"));
++	}
++	{
++		const file = file_of("session-session.jsonl", { session: { id: "s5", kind: "test" } }), make = lines => Session.replay(lines);
++		const A = tab(file, make, "a"), B = tab(file, make, "b");
++		const c = (op, step, n) => cell("Session", "nested", op, A, B, file, make, step, n);
++		await c("add", r => r.tasks.add({ type: "Session", id: "child", title: "Child session" }));
++		await c("add", r => r.tasks.find("child").tasks.add({ id: "k", title: "Its task" }));
++		await c("set", r => r.tasks.find("child").set({ title: "Child, renamed" }));
++		await c("move", r => r.tasks.find("child").tasks.add({ id: "k0", title: "First" })); await c("move", r => r.tasks.find("child").tasks.move("k0", { after: null }));
++		await c("remove", r => r.tasks.find("child").tasks.remove("k"));
++		await c("replay", r => r.tasks.find("child").tasks.find("k0").act("start"));
++	}
++	// ── Page, own file, and a content part nested in it (a Page in a Page is its own file: it never bubbles) ──
++	{
++		const file = file_of("page.jsonl", { title: "Page" }), make = lines => Page.replay(lines);
++		const A = tab(file, make, "a"), B = tab(file, make, "b");
++		const c = (op, step, n) => cell("Page", "own file", op, A, B, file, make, step, n);
++		await c("add", r => r.content.add({ id: "one", type: "part-text", text: "First." }));
++		await c("add", r => r.content.add({ id: "two", type: "part-text", text: "Second." }));
++		await c("set", r => r.set({ title: "Page, renamed" }));
++		await c("move", r => r.content.move("two", { after: null }));
++		await c("remove", r => r.content.remove("one"));
++		await c("replay", r => r.content.add({ id: "three", type: "part-text", text: "Third." }));
++	}
++	{
++		const file = file_of("page-part.jsonl", { title: "Page" }), make = lines => Page.replay(lines);
++		const A = tab(file, make, "a"), B = tab(file, make, "b");
++		const c = (op, step, n) => cell("Page", "nested part", op, A, B, file, make, step, n);
++		await c("add", r => r.content.add({ id: "card", type: "part-card", title: "A card", text: "Body." }));
++		await c("set", r => r.content.find("card").set({ text: "New body." }));
++		await c("move", r => r.content.add({ id: "head", type: "part-heading", text: "Top" })); await c("move", r => r.content.move("head", { after: null }));
++		await c("remove", r => r.content.remove("head"));
++		await c("replay", r => r.content.find("card").set({ title: "Renamed card" }));
++		t.eq(J(lines_of(file).at(-1).content), J({ card: { set: { title: "Renamed card" } } }), "Page (nested part): a part's change names the content list");
++	}
++} finally { fs.rmSync(TMP, { recursive: true, force: true }); }
++
++console.log("\n   class | mode            add  set  move remove replay");
++for (const [row, ops] of Object.entries(matrix)) console.log(`   ${row.padEnd(22)} ${["add", "set", "move", "remove", "replay"].map(op => (ops[op] ?? "—").padEnd(4)).join(" ")}`);
++t.done();
+diff --git a/public/framework/core/Item/readme.md b/public/framework/core/Item/readme.md
+index ebb7fe485..a7feef8c5 100644
+--- a/public/framework/core/Item/readme.md
++++ b/public/framework/core/Item/readme.md
+@@ -68,12 +68,17 @@ itself, written under its own name, omitted when it never made one. All user sta
+ 
+ An item added to a parent logs its deltas to the parent's store. Not every item needs a file. An item breaks out by need: first it lives inside the parent's file, then in its own `thing.jsonl`, then in its own `thing/` directory once a real file must sit beside it.
+ 
+-- ✅ An item added to a parent's `List` logs to the parent's store, nested under its id: `{"kids":{"add":{...}}}`, then `{"k":{"set":{...}}}`. A reload replays it. (`Item.test.mjs`)
++- ✅ An item added to a parent's `List` logs to the parent's store, and **every hop names its list**: `{"kids":{"add":{...}}}`, then `{"kids":{"k":{"set":{...}}}}`. A reload replays it with one `get()` per name, never a search. (`Item.test.mjs`, `persistence.test.mjs`)
++- ✅ A **dotted key** is the same path, flat: `{"kids.k":{"set":{...}}}`. Each level's `get()` takes the first name and hands the rest down, so a List (or any subclass) decides how it looks up its own members. `get("kids.k")` reads the same path. The writer still writes the nested form. ([ids-and-paths.md](/framework/core/Session/tasks/data-shapes/ids-and-paths.md), DECIDED)
++- ✅ `get(key)` no longer searches every list. An **old line** that names a member by its id alone (`{"k":{…}}`) still replays, from the first list that has it (`member(id)`); it is counted in `Item.old_hops` and warned once in node.
++- ✅ `by` and `ts` on a line are the writer's stamp, never data: `replay_line` holds `ts` in **`Item.clock`** while the line applies (`Task.clock` is the same clock), for every Item. A Page keeps the whole line in `jsonl_lines`.
++- ✅ `item.set("prop", anotherItem)` **adopts** it: its parent is the item, its slot is `prop`, its later changes are written under `prop` (`{"prop":{"set":{…}}}`), and a replay makes the saved `{type, id, data}` an Item again. (`Item.test.mjs`)
++- ✅ Fast at size: a `List` keeps an id-to-member `Map`; `find(id)` (deep) is a `Map` rebuilt once per list change (`Item.generation`); `lists()` is cached. The largest voice session (8,360 lines) replays in about 200 ms (2.1 s before, 2026-10-28).
++- ✅ The persistence matrix: Item, List, Task, Prompt, Question, Session and Page, as the root of a file and nested, for add, set, move, remove and replay, through a real Store, a second tab and a fresh replay: `node persistence.test.mjs`. The whole path, hop by hop: `node delta-flow.test.mjs` (runs [seat g's demo](/framework/core/Session/tasks/data-shapes/seats/delta-flow/delta-flow.md)).
+ - ✅ Own file: an item with its own store, or marked `_own_file`, is skipped by the parent's store (`Store.js` `owned_below`). `Task.open_ref` does this.
+ - ✅ One tail: every store and `JSONL` instance tails through `ext/JSONL/live.js` `stream()`. Items, pages and tasks reach it through `Store.open()`; the board logs through the `JSONL` class, which calls `stream()` directly.
+ - ✅ A button saves its verb: `item.act("start")` runs the method and records `{"start":{}}`. A task's store posts that line to Servex `POST /api/item` (the item tool's writer, loopback only), which stamps it `by: "owner"` and `ts`. If Servex can't take it, the line falls back to the plain append. Why: [doc/architecture.md](./doc/architecture.md#a-button-saves-its-verb-through-the-item-tool). (`act.test.mjs`)
+ - ✅ An item moves home: `{"<id>":{"move":{"to":"<folder url>"}}}` through the item tool (or `spawn_agent` with `task: {from, id}`) moves a subtask out of its parent's log into its own folder, with its id, every line of its history, and one `{"task", "as"}` reference left behind. Why: [doc/architecture.md](./doc/architecture.md#an-item-moves-home-with-its-id-its-history-and-one-reference). (`item_tool.test.mjs`)
+-- ⬜ `item.set("prop", anotherItem)` is only a snapshot: the child is not adopted and its later deltas are not logged. Plan: [doc/next.md](./doc/next.md).
+ - ⬜ Dynamic upgrade (an item moving itself from the parent's store to its own file when it needs one) is a noted idea, not built.
+ - ⬜ A general RENAME (a `Dated`-store item's own folder tracking its title, with every reference — follows, links, index rows — updated in one step) does not exist, and a per-caller version was tried and dropped (voice sessions, 2026-10-25): `Servex/agents/Sessions.js`'s `rename_session` only retitles, on purpose. Moving the folder breaks the session's own item-tool `path`, handed out once at spawn and reused for the rest of that session's life — the very agent asking for the rename would lose its own record-keeping path the instant it ran, with no way to tell it the path changed mid-conversation. A bookmarked dated-folder url would 404 the same way (`Servex/agents/page_tools.js`'s `DATED_SESSION` checks the literal typed path). A real fix needs a resolve-by-id indirection here, in `Dated` or `Item`, so every dated-store item (sessions, cards, tasks) can move without breaking what already pointed at the old path — not built yet.
+ 
+diff --git a/public/framework/core/List/List.js b/public/framework/core/List/List.js
+index 1a7e1bf50..c15b411c3 100644
+--- a/public/framework/core/List/List.js
++++ b/public/framework/core/List/List.js
+@@ -57,6 +57,47 @@ export class List extends Item {
+ 		this.items ??= [];
+ 	}
+ 
++	// The member array. Assigning a new one (order(), or a caller swapping it whole) drops the id index below.
++	get items(){ return this._items; }
++	set items(array){ this._items = array; this._by_key = null; Item.generation++; }
++
++	// The owner: setting it tells the owner its lists changed (Item.lists() caches them).
++	get owner(){ return this._owner; }
++	set owner(item){ this._owner = item; if (item) item._lists = null; }
++
++	/* ID -> MEMBER, kept in step by every verb below, so a hop is one Map lookup, never a scan (ids-and-paths.md §3).
++	   The first member with a key wins, as Array.find did. A member whose key was empty when it arrived (`_unkeyed`)
++	   and a stale hit (its key changed in place) make find() rebuild the index once and look again. */
++	index(){
++		if (this._by_key) return this._by_key;
++		const map = new Map(), unkeyed = new Set();
++		let dups = false;
++		for (const x of this._items){
++			const k = this.key(x);
++			if (k == null) unkeyed.add(x);
++			else if (map.has(k)) dups = true;
++			else map.set(k, x);
++		}
++		this._unkeyed = unkeyed;
++		this._dups = dups;
++		return this._by_key = map;
++	}
++	indexed(x){   // a member just arrived (anywhere in the array)
++		Item.generation++;
++		if (!this._by_key) return;
++		const k = this.key(x);
++		if (k == null) this._unkeyed.add(x);
++		else if (this._by_key.has(k)) this._by_key = null;   // a second member with that key: its place in the array decides, so rebuild
++		else this._by_key.set(k, x);
++	}
++	unindexed(x){   // a member just left
++		Item.generation++;
++		if (!this._by_key) return;
++		const k = this.key(x);
++		this._unkeyed.delete(x);
++		if (this._by_key.get(k) === x){ this._by_key.delete(k); if (this._dups) this._by_key = null; }
++	}
++
+ 	get length(){ return this.items.length; }
+ 	[Symbol.iterator](){ return this.items[Symbol.iterator](); }
+ 
+@@ -82,6 +123,7 @@ export class List extends Item {
+ 	append(child){
+ 		this.adopt(child);
+ 		this.items.push(child);
++		this.indexed(child);
+ 		return this;
+ 	}
+ 
+@@ -90,6 +132,7 @@ export class List extends Item {
+ 		this.adopt(child);
+ 		const i = ref ? this.items.indexOf(ref) : -1;
+ 		i === -1 ? this.items.push(child) : this.items.splice(i, 0, child);
++		this.indexed(child);
+ 		return this;
+ 	}
+ 
+@@ -98,6 +141,7 @@ export class List extends Item {
+ 		const i = this.items.indexOf(child);
+ 		if (i === -1) return this;
+ 		this.items.splice(i, 1);
++		this.unindexed(child);
+ 		if (child.parent === (this.owner ?? this)) delete child.parent;
+ 		return this;
+ 	}
+@@ -108,8 +152,15 @@ export class List extends Item {
+ 	// name instead — set as an instance option (`new List({ key: x => x.name })`).
+ 	key(x){ return x?.id; }
+ 
+-	// By ID, never an index.
+-	find(id){ return this.items.find(x => this.key(x) === id); }
++	// By ID, never an index: one Map lookup (index() above).
++	find(id){
++		if (id == null) return this.items.find(x => this.key(x) === id);
++		const map = this.index(), hit = map.get(id);
++		if (hit !== undefined && this.key(hit) === id) return hit;
++		if (hit === undefined && !this._unkeyed.size) return undefined;
++		this._by_key = null;   // stale, or a member that had no key when it arrived: rebuild once
++		return this.index().get(id);
++	}
+ 
+ 	// A member's id is a name too: `list.set({"<id>": {"start": {}}})` walks into that member (Item's set_one asks get()).
+ 	// Without this the delta was stored as plain data on the list and the member never moved (2026-10-22).
+@@ -178,6 +229,8 @@ export class List extends Item {
+ 		if (i === -1) return this.insert(made);
+ 
+ 		this.items[i] = made;
++		this._by_key = null;
++		Item.generation++;
+ 		this.adopt(made);
+ 		this.released(old);
+ 		this.adopted(made);
+@@ -300,6 +353,11 @@ export class List extends Item {
+ 	// order. One rule, not two.
+ 
+ 	toJSON(){ return [...this.items]; }
++
++	// Drawn by the default view (ux/Content/Object/DefaultView.js, plan step 2), which draws each member through its own view.
++	// `List.View` is wired in from the browser, as Task.View is (TaskView.js), so this file stays node-safe; never the View a List
++	// would inherit from Item (the icon view), so `List.View` must be List's own. No View here: nothing is drawn (undefined).
++	render(){ return Object.hasOwn(List, "View") ? new List.View({ subject: this, open: 1 }) : undefined; }
+ }
+ 
+ const warn = (message, key = message) => {
+diff --git a/public/framework/core/List/List.test.mjs b/public/framework/core/List/List.test.mjs
+index f602a7e77..316e686eb 100644
+--- a/public/framework/core/List/List.test.mjs
++++ b/public/framework/core/List/List.test.mjs
+@@ -47,6 +47,14 @@ try {
+ 	const pair = Item.hydrate({ id: "p", kids: [] });
+ 	pair.kids.add([{ id: "x" }, { id: "y" }]);
+ 	t.eq(ids(pair), ["x", "y"], "add([a, b]) adds two members");
++
++	// render(): nothing until the browser wires List.View; then that view, given the list, open one level (build B's default view)
++	const { default: ListClass } = await import("./List.js");
++	t.eq(pair.kids.render(), undefined, "render() with no List.View draws nothing (node, or before the view is wired)");
++	ListClass.View = class { constructor(o){ Object.assign(this, o); } };
++	const v = pair.kids.render();
++	t.ok(v instanceof ListClass.View && v.subject === pair.kids && v.open === 1, "render() makes List.View with the list as its subject, open one level");
++	delete ListClass.View;
+ } finally { fs.rmSync(DIR, { recursive: true, force: true }); }
+ 
+ t.done();
+diff --git a/public/framework/core/List/readme.md b/public/framework/core/List/readme.md
+index 9dc5e419f..3e15dfae0 100644
+--- a/public/framework/core/List/readme.md
++++ b/public/framework/core/List/readme.md
+@@ -15,9 +15,14 @@ class List extends Events(Object) {   // ✅ core/List/List.js — Events built
+   insert(x, {after}), replace(old, x), release(id)   // the QUIET primitives — loading is not a change
+   append(x), insert_before(x, ref), forEach(fn), map(fn), at(i), length
+   set(delta)                          // routes a nested {"add": {...}} etc. — Item.set_one()'s recursion target
++  get(key)                            // a property, else a member by id: the next hop of a line or a dotted path
++  index()                             // ✅ 2026-10-28: the id-to-member Map find() reads; kept in step by every verb
++  render()                            // draws through List.View, wired from the browser (the default view); else nothing
+ }
+ ```
+ 
++**Lookup is one Map read** (2026-10-28, [data-shapes plan](/framework/core/Session/tasks/data-shapes/plan.md) step 1): `find(id)` reads an id-to-member `Map` kept in step by every verb; the first member with an id wins, as `Array.find` did. A member whose id was empty when it arrived, or whose id changed in place, makes `find()` rebuild the Map once. A subclass may look up its members another way (override `find` or `get`). Every List change bumps `Item.generation`, which tells a deep `Item.find()` to rebuild its own index.
++
+ **No `Content` class, no `LiveList` class.** An earlier pass split the plain array
+ (`List`) from the announcing one (`LiveList = Events(List)`); the owner merged them
+ 2026-10-02, because nothing in the codebase actually wanted a list nobody could watch.
+diff --git a/public/framework/core/Page/Page.class.js b/public/framework/core/Page/Page.class.js
+index d7a3c9e83..396226db9 100644
+--- a/public/framework/core/Page/Page.class.js
++++ b/public/framework/core/Page/Page.class.js
+@@ -59,6 +59,9 @@ export class Page extends Item {
+ 		return page;
+ 	}
+ 
++	// The whole line reaches set(), stamp included, so `jsonl_lines` and the "line" event keep `by`/`ts` (the inbox, the log view).
++	replay_line(line){ return this.set(line); }
++
+ 	log_label(){ return `page{${this.url ?? "…"}}`; }
+ 
+ 	// ════ PAGE.JSONL ══════════════════
+@@ -76,6 +79,7 @@ export class Page extends Item {
+ 
+ 		(this.jsonl_lines ??= []).push(obj);
+ 		this.emit("line", obj);
++		if (obj && ("by" in obj || "ts" in obj)){ const { by, ts, ...rest } = obj; obj = rest; }   // the writer's stamp: kept in the line above, never page data (Item.replay_line)
+ 		obj = this.take_words(obj);
+ 
+ 		if ("content" in obj){
+diff --git a/public/framework/core/Page/Reader.js b/public/framework/core/Page/Reader.js
+index 3b08d01d9..0fa242916 100644
+--- a/public/framework/core/Page/Reader.js
++++ b/public/framework/core/Page/Reader.js
+@@ -31,7 +31,7 @@ export default class PageLogReader extends Item.Store {
+ 		this.host = host;
+ 		host.store = this;
+ 		host.on("delta", (line, origin) => {
+-			if (this.replaying) return;
++			if (this.replaying || Item.Store.muted) return;   // muted: a button's act() records its verb once, not the set lines it made (seat g, B9)
+ 			this.append(this.line_for(line, origin, host));
+ 		});
+ 
+diff --git a/public/framework/core/Session/Session.js b/public/framework/core/Session/Session.js
+index c7023d24a..83e614cfa 100644
+--- a/public/framework/core/Session/Session.js
++++ b/public/framework/core/Session/Session.js
+@@ -21,7 +21,9 @@ export default class Session extends Task {
+ 	static scanned = false;
+ 
+ 	// super() with no args: Item assigns its args onto itself, and a string id would spread into characters.
+-	constructor(id){ super(); if (id !== undefined) this.id = id; }
++	// An object is Item's own constructor args ({id, data}, what Item.hydrate passes for a {type:"Session"} member); before, it became
++	// the id itself (the persistence matrix found it).
++	constructor(id){ if (id && typeof id === "object") super(id); else { super(); if (id !== undefined) this.id = id; } }
+ 
+ 	// Its tasks are Task's own list (made on first use); its progress is counted from them on read, never stored.
+ 
+@@ -67,6 +69,7 @@ export default class Session extends Task {
+ 	   through Task.replay_line whole, so the same lines give the same state, completion and fields they gave as a Task, and the Session
+ 	   adds only its class (children, cost). A Session built some other way (new Session(id), then lines) reads as the record shape. */
+ 	replay_line(line){
++		line = Item.dots(line);
+ 		this._shape ??= line?.assign ? "task" : "record";
+ 		if (this._shape === "task"){
+ 			const when = line.at ?? line.ts ?? line.assign?.requested_at ?? null;
+@@ -106,6 +109,9 @@ export default class Session extends Task {
+ 		}
+ 		delete delta.tasks;
+ 		if (delta.settings && typeof delta.settings === "object"){ Object.assign(this.settings, delta.settings); delete delta.settings; }   // merged, never replaced
++		// The browser Store's own change line for a field on the session ({"set":{"title":…}}), read as Task.replay_line reads it.
++		// Before, it was kept as one field named "set" (the persistence matrix found it).
++		if (delta.set && typeof delta.set === "object" && !Array.isArray(delta.set)){ for (const [k, v] of Object.entries(delta.set)) this.put(k, v); delete delta.set; }
+ 		// The owner's answer to a proposed task, from the session page: {"decide":{"task":id,"is":"approve"|"improve"|"reject","note"}}.
+ 		// One known verb that names its task, so the browser's append passes the schema (a bare {"<id>":{…}} line would not).
+ 		if (delta.decide && typeof delta.decide === "object"){
+diff --git a/public/framework/core/Session/SessionTasks.js b/public/framework/core/Session/SessionTasks.js
+index b7e170189..3a8f65ba1 100644
+--- a/public/framework/core/Session/SessionTasks.js
++++ b/public/framework/core/Session/SessionTasks.js
+@@ -14,12 +14,24 @@ export default class SessionTasks extends JSONL {
+ 	lines = [];
+ 
+ 	// { url: the session.jsonl url, $box: the View to draw into, session_class }
+-	read(entries){ this.lines.push(...entries); this.draw(); return this; }
+-	reset(){ this.lines = []; return super.reset(); }
++	// A streamed batch is applied to the one live Session, line by line: the whole record is not replayed again, and a child
++	// already read is not fetched again (data-shapes plan step 1a). The first batch builds it with Class.replay, as before.
++	read(entries){
++		this.lines.push(...entries);
++		// Only a record that opens with its {"session":{…}} line (a tab, a voice call): its id and shape are fixed by line 1, so
++		// applying a new line gives what a full replay would. Any other record is replayed whole, as before.
++		if (this.session && this.session._shape === "record" && typeof this.lines[0]?.session === "object"){
++			for (const line of entries) if (line && typeof line === "object") this.session.replay_line(line);
++			this.session.replay_end?.();   // a record's replay_end only clears its own clock: safe after every batch
++		} else this.session = null;   // a spawned agent's record (task shape) infers its state once all lines are in: replayed whole
++		this.draw();
++		return this;
++	}
++	reset(){ this.lines = []; this.session = null; return super.reset(); }
+ 	live(){ super.live(() => {}); return this; }
+ 
+ 	draw(){
+-		const Class = this.session_class ?? Session, s = Class.replay(this.lines), all = [...(s._tasks ?? [])];
++		const Class = this.session_class ?? Session, s = this.session ??= Class.replay(this.lines), all = [...(s._tasks ?? [])];
+ 		this.on_session?.(s, this.lines);   // the session page's Overview list and Timeline read the same replay and lines
+ 		// A stopped task was dropped on purpose (noise, superseded, rejected): folded at the end and left out of the count (Task.progress_of).
+ 		const tasks = all.filter(t => t.state !== "stopped"), stopped = all.filter(t => t.state === "stopped");
+diff --git a/public/framework/core/Session/readme.md b/public/framework/core/Session/readme.md
+index 58acae07c..3deb12902 100644
+--- a/public/framework/core/Session/readme.md
++++ b/public/framework/core/Session/readme.md
+@@ -35,10 +35,11 @@ class Session extends Task                       // ../Task/Task.js (Task extend
+ // Day.js: class Day, static of(t) "YYYY-MM-DD", path(t) "YYYY/MM/DD" - the owner's LOCAL day, never UTC
+ ```
+ 
+-- **Lines it replays:** `{"stop":{why}}` and `{"start":{}}` (the session's own state; a start clears the stop's why), `{"session":id}`, `{"tasks":{"add":…}}`, `{"task":"<ref>"}` (a live child task; with `"type":"Session","spawn":{…}` a Session entry, below), `{"<task id>":{…}}` (goes to that task), `{"settings":{…}}` (merged into `settings`), `{"decide":{task,is}}` (the owner's Approve, Reject or Make it a project on a waiting task, [doc/prompt-tasks.md](doc/prompt-tasks.md)), and any other key is set on the session. `by`, `ts` and `at` are dropped.
++- **Lines it replays:** `{"stop":{why}}` and `{"start":{}}` (the session's own state; a start clears the stop's why), `{"session":id}`, `{"tasks":{"add":…}}`, `{"task":"<ref>"}` (a live child task; with `"type":"Session","spawn":{…}` a Session entry, below), `{"<task id>":{…}}` (goes to that task), `{"settings":{…}}` (merged into `settings`), `{"set":{…}}` (fields on the session, the browser Store's own line; since 2026-10-28), a dotted key (`{"tasks.c3":{…}}` is `{"tasks":{"c3":{…}}}`), `{"decide":{task,is}}` (the owner's Approve, Reject or Make it a project on a waiting task, [doc/prompt-tasks.md](doc/prompt-tasks.md)), and any other key is set on the session. `by`, `ts` and `at` are dropped.
+ - **Subclasses:** `AISession` (`ai/AISession/AISession.js`) adds cost, cache and transcript, and overrides `root_url()`. `RefineSession` is planned, not built.
+ - **Who calls it:** the item tool in `Servex/agents/page_tools.js` maps `session.jsonl` to `Session` and replays it; `ai/AIDashboard/SessionStore.js`, `AISessionIndex.mjs`, `AISessionLive.js`, `Server/State.mjs`, `Server/TaskDirs.mjs` and `Server/SessionDayMove.mjs` use it or `Day`.
+ - **How it loads:** a session's folder holds `session.jsonl`, written by `.claude/hooks/append.mjs`, `Agents.open_task` and the page tools, never by hand. Older folders are still found by `scan()` through `index.json`, `cache.jsonl` or the first `page.jsonl` line. Folder layout: [ai/sessions/readme.md](/framework/ai/sessions/readme.md).
++- **Live on the page, one line at a time.** `SessionTasks` builds the Session once and applies each streamed line to it, for a record that opens with its `{"session":…}` line (a tab, a voice call); other records are replayed whole, as before. Proof that both give the same Session on all 238 such real records: `replay-compare.mjs --incremental` ([build A](/framework/core/Session/tasks/data-shapes/build/backbone/)). `new Session({id, data})` takes Item's arguments too (a `{type:"Session"}` member), not only an id.
+ - **Times are the lines' own.** While a line replays, `Task.clock` holds its `at`/`ts`, so a nested task's `completed_at` and duration are when it happened, not when the log was read.
+ - **Test:** `node Session.test.mjs` (tasks, progress, replay, `Day`); `node session-task.test.mjs` (a Session is a Task, `tasks.add` with a string or an object, totals from the children). Demo page: `page.js`.
+ 
+diff --git a/public/framework/core/Session/tasks/data-shapes/build/backbone/f1-live-instance.md b/public/framework/core/Session/tasks/data-shapes/build/backbone/f1-live-instance.md
+new file mode 100644
+index 000000000..4bb4a2509
+--- /dev/null
++++ b/public/framework/core/Session/tasks/data-shapes/build/backbone/f1-live-instance.md
+@@ -0,0 +1,51 @@
++# F1: where the one live instance per root should run
++
++A study, not a build (data-shapes [plan](../../plan.md), step 1c). Written 2026-10-28 on `worktree/backbone`.
++
++**The question.** Every change to a record (a click in a tab, an agent's `item()` call, a hook's append) should go through one live object per file: it checks the line, appends it, and every reader replays it. Where should that object live: in **Servex** (one process for every project), or in **each project's dev server**?
++
++**The answer: each project's dev server.** Servex keeps what is about agents; the dev server keeps what is about the project's files. The deciding fact is below: a live instance must run the same classes as the files it guards, and only the project's own server has them.
++
++## What each server owns today
++
++| | Servex (port 80, one for the machine) | The dev server (one per project and worktree, e.g. 3104, 52917) |
++|---|---|---|
++| **Runs which code** | the main tree's `public/framework/` classes, for every project (`Servex/agents/page_tools.js` imports `../../public/…`) | its own checkout's classes: a worktree's server runs the worktree's `Item`, `Task`, `Session` |
++| **Live roots** | yes: the item tool keeps one replayed root per file (`live_root`, `page_tools.js:738`), advances it one line per write, and replays the whole file again when anything else changed it (size or mtime) | none: it only streams bytes |
++| **Writes** | `task.jsonl`, `session.jsonl`, `improvements.jsonl`: the browser `Store` POSTs them to `/api/item` (`Store.js` `post_to_tool`, `Servex.js:676`); agents' `item()` calls | every other `.jsonl` (`page.jsonl`…) through the dev socket's `append` (`Server/plugins/SocketServer/Append.js`); the browser's fallback when Servex does not answer |
++| **Reads, live** | none | the one `fs.watch` on `public/`, and `Tail.js`, which streams each appended line to every subscribed tab |
++| **Refuses** | a worktree page's write: answered `stubbed` and written nowhere (`Servex.js:637`, `:680`), so the browser falls back to the dev socket | nothing outside `public/` and `.jsonl` |
++| **Other jobs** | agents, sessions, the registry, the MCP door, cards, the proxy, starting servers | live reload, the dev bar, listings, `files.jsonl` |
++
++So today there are **two writers per project** (Servex for task and session files, the dev server for the rest), plus the hooks, which append raw (`prompt-relay.mjs`, `ledger.mjs`). And the **one live root that exists runs the wrong code for a worktree**: this branch's new `Item` cannot be exercised through Servex's item tool until it is merged, because Servex imports the main tree's.
++
++## Why the dev server wins
++
++1. **Same code as the files.** A live root must replay with the classes that wrote the lines. The dev server of a checkout has exactly those; Servex has one version for all of them. (ESM cannot unload a module, so Servex cannot load a second `Item.js` for a worktree in the same process without a loader per project.)
++2. **It already holds the read half.** The watch and the tail are there; the live root sits beside them, so the line it accepts is the line it streams. Servex would have to tail files it does not watch.
++3. **One project's failure stays in that project.** A bad line or a slow replay on one site does not stall every agent on the machine (the owner's doubt about one Servex for many projects).
++4. **It removes the worktree stub.** A worktree page would write to its own server's live root, checked by its own classes, instead of being stubbed and falling back to a raw append.
++
++**When Servex would win:** if projects shared one data store across checkouts (they don't: each has its own `public/`), or if dev servers were short-lived and often down while agents write. They do restart (live reload of `Server/` changes, crashes): see the caveat below.
++
++**Rejected, a hybrid:** Servex keeps the roots but forwards each replay to the project's server. That is the move below with an extra hop and two caches to keep in step.
++
++## What moving it would take (in order; each step works alone)
++
++1. **A `/api/item` on the dev server** (a new `Server/plugins/Item.js`): `item({path, delta})` against a live root per file, built from the project's own classes. Lift `live_root`, `advance`, `try_line`, `validate`, `expand_dots` and `write_line` out of `page_tools.js` into a module both can import (for now Servex keeps its copy). About a day; the item tool's tests (`item_tool.test.mjs`, `session_tasks.test.mjs`) run against it unchanged.
++2. **The browser `Store` posts to its own origin** (`/api/item` on the page's host), not to Servex. One line in `Store.post_to_tool`; the worktree stub disappears.
++3. **Servex's item tool forwards** an agent's call to the project that owns the path (it knows each project's port, `list_servers`), and keeps answering `session_state` queries (cost, children) itself, because those need the agent registry, which only Servex has. Fallback: if the project's server does not answer, Servex writes as it does today, so an agent is never blocked.
++4. **Hooks post too** (`prompt-relay`, `ledger`), with the raw append as the fallback. After this, every write goes through one live root, and no outside append invalidates it (today each hook write makes the next item call replay the whole file: about 200 ms on the voice session after this branch, 2 s before).
++5. **One writer per file, proven:** a test that two tabs, an agent and a hook writing one file in the same second end with every line once and one replayed state.
++
++## Caveats
++
++- **The dev server restarts.** Its live roots are rebuilt on the first call after a restart: one replay per file, now fast (all 5,083 real records replay in 0.44 s together). The tail already recovers (`jsonl_reset`, resubscribe).
++- **Production is static.** No server, so no writes off localhost, as today (`Store.writable`).
++- **The phone.** It reaches the dev server through Servex's proxy, so step 2 needs nothing new for it.
++- **Servex's queries** read records, never write them; they can keep replaying files (cheap now) or ask the project's server for its live root.
++
++## Sources
++
++- [plan.md](../../plan.md), F1 row; [streaming seat §7](../../seats/streaming/notes.md) (one writer); [delta-flow.md](../../seats/delta-flow/delta-flow.md) §2 (the item tool's path).
++- `Servex/agents/page_tools.js` (`live_root`, `write_line`), `Servex/Servex.js` (`/api/item`, the stubs), `Server/plugins/SocketServer/Tail.js`, `Append.js`, `core/Item/Store.js` (`post_to_tool`, `via_tool`).
+diff --git a/public/framework/core/Session/tasks/data-shapes/build/backbone/replay-compare.mjs b/public/framework/core/Session/tasks/data-shapes/build/backbone/replay-compare.mjs
+new file mode 100644
+index 000000000..4c07b6e7f
+--- /dev/null
++++ b/public/framework/core/Session/tasks/data-shapes/build/backbone/replay-compare.mjs
+@@ -0,0 +1,138 @@
++// Old files must replay identically: replay every real session.jsonl, task.jsonl, improvements.jsonl and page.jsonl with one
++// checkout's code, and write one digest line per file. Run it once with the old code and once with the new, then compare.
++//
++//   node replay-compare.mjs --code <repo root> --data <repo root> --out <digests.jsonl> [--match <substring>]
++//   node replay-compare.mjs --compare <before.jsonl> <after.jsonl>
++//
++// --code: whose core/Item, Task, Session and Page do the replay. --data: whose public/ holds the files (read only).
++// Each file is replayed the way the item tool picks its class (Servex/agents/page_tools.js class_of): a line 1 naming a
++// `class`, else a {session:{…}} line 1 is a Session, else by file name. Child references stay stubs (no resolver), so
++// every file is judged on its own lines. Ids and the wall clock are made deterministic, so two runs of the same code agree.
++import fs from "node:fs";
++import path from "node:path";
++import crypto from "node:crypto";
++import { register } from "node:module";
++import { pathToFileURL } from "node:url";
++
++const arg = name => { const i = process.argv.indexOf(name); return i === -1 ? undefined : process.argv[i + 1]; };
++
++if (process.argv.includes("--compare")){
++	const [a, b] = process.argv.slice(process.argv.indexOf("--compare") + 1);
++	const read = f => new Map(fs.readFileSync(f, "utf8").split("\n").filter(Boolean).map(l => JSON.parse(l)).map(r => [r.file, r]));
++	const before = read(a), after = read(b);
++	let same = 0, changed = 0, ms_a = 0, ms_b = 0;
++	const diff = [], missing = [];
++	for (const [file, r] of before){
++		const s = after.get(file);
++		if (!s){ missing.push(file); continue; }
++		if (s.text !== r.text){ changed++; continue; }   // the file itself changed between the two runs (a live log): not comparable
++		ms_a += r.ms; ms_b += s.ms;
++		if (r.digest === s.digest && r.err === s.err) same++;
++		else diff.push({ file, before: r.err ?? r.digest.slice(0, 10), after: s.err ?? s.digest.slice(0, 10) });
++	}
++	const slow = [...before.values()].sort((x, y) => y.ms - x.ms).slice(0, 5).map(r => ({ file: r.file, lines: r.lines, before_ms: r.ms, after_ms: after.get(r.file)?.ms }));
++	console.log(JSON.stringify({ files: before.size, same, changed_between_runs: changed, different: diff.length, missing: missing.length, total_ms: { before: Math.round(ms_a), after: Math.round(ms_b) }, slowest: slow }, null, 1));
++	for (const d of diff.slice(0, 40)) console.log("DIFF", JSON.stringify(d));
++	for (const m of missing.slice(0, 10)) console.log("MISSING", m);
++	process.exit(diff.length || missing.length ? 1 : 0);
++}
++
++const STRIP = process.argv.includes("--strip-stamps"), INCREMENTAL = process.argv.includes("--incremental");
++let incremental = 0;
++const CODE = path.resolve(arg("--code") ?? "."), DATA = path.resolve(arg("--data") ?? "."), OUT = arg("--out"), MATCH = arg("--match");
++if (!OUT) throw new Error("--out <file> is required");
++
++// Deterministic: uuids count up per file, and a Date with no argument is one fixed moment.
++let n = 0;
++Object.defineProperty(globalThis.crypto, "randomUUID", { value: () => `uuid-${++n}`, configurable: true, writable: true });
++const FIXED = Date.parse("2026-01-01T00:00:00Z"), RealDate = Date;
++globalThis.Date = class extends RealDate { constructor(...a){ a.length ? super(...a) : super(FIXED); } static now(){ return FIXED; } };
++console.warn = () => {};
++
++register(pathToFileURL(path.join(CODE, "Servex", "agents", "site-hooks.mjs")).href);
++const load = rel => import(pathToFileURL(path.join(CODE, "public", "framework", rel)).href).then(m => m.default);
++const Item = await load("core/Item/Item.js");
++await load("core/List/List.js");
++const Task = await load("core/Task/Task.js");
++const Session = await load("core/Session/Session.js");
++let Page = null;
++try { Page = await load("core/Page/Page.class.js"); await import(pathToFileURL(path.join(CODE, "public", "framework", "core/Page/parts/kinds.js")).href); } catch (e){ console.error("Page did not load:", e.message); }
++
++const FILE_CLASS = { "task.jsonl": "Task", "session.jsonl": "Session", "improvements.jsonl": "Task", "page.jsonl": "Page" };
++const SKIP = new Set(["node_modules", ".git", "worktrees", "_retired"]);
++function* walk(dir){
++	let ents; try { ents = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
++	for (const e of ents){
++		if (SKIP.has(e.name)) continue;
++		const p = path.join(dir, e.name);
++		if (e.isDirectory()) yield* walk(p);
++		else if (FILE_CLASS[e.name]) yield p;
++	}
++}
++
++const parse = text => text.split("\n").filter(l => l.trim()).flatMap(l => { try { return [JSON.parse(l)]; } catch { return []; } });
++const plain = v => !!v && typeof v === "object" && v.constructor === Object;
++
++function class_of(file, first){
++	const named = plain(first) && typeof first.class === "string" ? Item.types.get(first.class) : null;
++	if (named) return named;
++	if (plain(first?.session)) return Session;
++	const by_name = FILE_CLASS[path.basename(file)];
++	return by_name === "Page" ? Page : Item.types.get(by_name);
++}
++
++// What a replay produced: the saved shape, plus what is only in memory (states, times, progress).
++function dump(root){
++	const extra = [];
++	const seen = new Set();
++	const visit = item => {
++		if (!item || seen.has(item)) return;
++		seen.add(item);
++		extra.push([item.id, item.constructor?.name, item._created_at ?? null, typeof item.get_one === "function" ? item.get_one("state") ?? null : null]);
++		for (const list of Object.values(item.lists?.() ?? {})) for (const kid of list) visit(kid);
++	};
++	visit(root);
++	// --strip-stamps: leave out the root's `by`/`ts` fields, which the old code kept as data (the new code strips them into
++	// the clock), so a second comparison can show that nothing ELSE changed.
++	if (STRIP && root.data){ root = Object.assign(Object.create(Object.getPrototypeOf(root)), root, { data: { ...root.data } }); delete root.data.by; delete root.data.ts; }
++	let progress = null;
++	try { progress = root.progress?.() ?? null; } catch (e){ progress = "throws: " + e.message; }
++	const met = new WeakSet();   // a snapshot Item kept in data can point back up: a repeat is written as a mark, not a throw
++	const json = JSON.stringify(root, (k, v) => { if (v && typeof v === "object"){ if (met.has(v)) return "[seen]"; met.add(v); } return v; });
++	return { json, extra, progress, first_at: root.first_at ?? null, last_at: root.last_at ?? null, settings: root._settings ?? null };
++}
++
++const out = fs.openSync(OUT, "w");
++let count = 0;
++for (const file of walk(path.join(DATA, "public"))){
++	const rel = path.relative(DATA, file).replace(/\\/g, "/");
++	if (MATCH && !rel.includes(MATCH)) continue;
++	let lines, text;
++	try { text = fs.readFileSync(file, "utf8"); lines = parse(text); } catch { continue; }
++	if (!lines.length) continue;
++	const Class = class_of(file, lines[0]);
++	if (!Class) continue;
++	n = 0;
++	Task.clock = null;
++	let digest = "", err, ms = 0;
++	try {
++		const t0 = performance.now();
++		const root = Class.replay(lines);
++		ms = performance.now() - t0;
++		digest = crypto.createHash("sha1").update(JSON.stringify(dump(root))).digest("hex");
++		// --incremental: what SessionTasks does live. The first third replayed whole, the rest applied in batches of 7 lines
++		// to that same Session (replay_line each, replay_end per batch). Must give the same digest as the whole replay.
++		if (INCREMENTAL && Class === Session && plain(lines[0]?.session) && lines.length > 3){
++			n = 0; Task.clock = null;
++			const cut = Math.ceil(lines.length / 3), live = Session.replay(lines.slice(0, cut));
++			for (let i = cut; i < lines.length; i += 7){ for (const l of lines.slice(i, i + 7)) live.replay_line(l); live.replay_end(); }
++			const step = crypto.createHash("sha1").update(JSON.stringify(dump(live))).digest("hex");
++			if (step !== digest) err = `incremental differs from whole (${digest.slice(0, 8)} vs ${step.slice(0, 8)})`;
++			incremental++;
++		}
++	} catch (e){ err = String(e?.message ?? e).slice(0, 200); }
++	fs.writeSync(out, JSON.stringify({ file: rel, text: crypto.createHash("sha1").update(text).digest("hex").slice(0, 12), cls: Class.name, lines: lines.length, ms: Math.round(ms * 10) / 10, digest, ...(err ? { err } : {}) }) + "\n");
++	count++;
++}
++fs.closeSync(out);
++console.log(`${count} files replayed with ${CODE}` + (INCREMENTAL ? `; ${incremental} records also applied incrementally` : ""));
+diff --git a/public/framework/core/Task/Task.js b/public/framework/core/Task/Task.js
+index a56407469..b672fcbf2 100644
+--- a/public/framework/core/Task/Task.js
++++ b/public/framework/core/Task/Task.js
+@@ -122,7 +122,7 @@ export class Task extends Item {
+ 	ms(){ const at = this._at ?? Task.clock; return at ? Date.parse(at) : Date.now(); }
+ 	// The time of the line a PARENT is replaying (Session.replay_line sets it), so a nested task's verbs stamp the line's time,
+ 	// not the time the log is read (2026-10-23: twelve tasks of session-e00f55c9 all read completed at the moment of the read).
+-	static clock = null;
++	// `Task.clock` is `Item.clock` (Item.js): one clock for every Item, set while a line replays.
+ 
+ 	// The view is wired in by TaskView.js (browser only), like Item.view; a subclass overrides render() to draw itself.
+ 	render(){
+@@ -531,6 +531,7 @@ export class Task extends Item {
+ 
+ 	// Time comes from the lines (`at`, else the item tool's `ts`, `assign.at|landed_at|requested_at`), never the wall clock. Server/doc/state.md
+ 	replay_line(line){
++		line = Item.dots(line);
+ 		const rp = this._rp ??= { at: null, explicit: false };
+ 		if (typeof (line.ts ?? line.at) === "string") this._last_ts = line.ts ?? line.at;   // for Task.rank
+ 		const a = line.assign && typeof line.assign === "object" ? line.assign : null;
+diff --git a/public/framework/ext/JSONL/live.js b/public/framework/ext/JSONL/live.js
+index e224abc91..c8cb64d1b 100644
+--- a/public/framework/ext/JSONL/live.js
++++ b/public/framework/ext/JSONL/live.js
+@@ -32,14 +32,18 @@ const settle = s => { clearTimeout(s.timer); s.first?.(); s.first = null; };
+ 
+ /* ⚠ Both called BY the dev server, through Socket.message()'s method lookup — a
+    grep for callers in public/ finds none. Same live path as Socket.reload(). */
+-Socket.prototype.jsonl = function(path, lines = [], offset){
++Socket.prototype.jsonl = function(path, lines = [], offset, from, ends){
+ 	each(path, s => {
+ 		// ⚠ A second reader's replay reaches the whole socket: anything already
+-		// past this offset would apply the same lines twice.
+-		if (lines.length && offset > (s.jsonl.offset ?? 0)){
++		// past this offset would apply the same lines twice. The server says where
++		// each line ends (Tail.js), so only the lines past this reader's own offset
++		// are read; an older server sends no `ends`, and the whole batch is read.
++		const at = s.jsonl.offset ?? 0;
++		if (lines.length && offset > at){
++			const fresh = Array.isArray(ends) && ends.length === lines.length && from < at ? lines.filter((_, i) => ends[i] > at) : lines;
+ 			s.jsonl.offset = offset;
+ 			s.jsonl.loaded = true;
+-			s.jsonl.read(s.jsonl.parse(lines.join("\n")));
++			s.jsonl.read(s.jsonl.parse(fresh.join("\n")));
+ 			if (!s.first) s.changed?.(s.jsonl);
+ 		}
+ 		if (s.first) settle(s);

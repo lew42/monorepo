@@ -1,0 +1,7 @@
+{"class":"/framework/ai2/card.js","title":"Master assistant: model and effort","type":"card","id":"2026/09/19/assistant-tiers","created":"2026-09-19T17:17:41-05:00","by":"assistant","tags":[]}
+{"legacy":"assistant-tiers"}
+{"status":"done"}
+{"icon":"supervisor_account"}
+{"re":"o-172112"}
+{"focus":true}
+{"text":"I am Fable 5.1; I cannot read my own effort level, and the Agent tool the fast assistant spawned me with sets a model but no effort, so I run at its default. The repo sets effort only on a CLI-launched session: claude --effort low|medium|high|xhigh|max (fork-claude-session skill); an in-process subagent inherits, so a true xhigh master assistant is a separate claude tab or a headless launch with that flag."}

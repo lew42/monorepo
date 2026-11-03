@@ -1,0 +1,32 @@
+{
+ "id": "132c71e9-1bd1-4c21-9932-a27b1c0b86bc",
+ "first": "2026-10-16T01:48:37.775Z",
+ "last": "2026-10-16T02:00:08.742Z",
+ "task": "public/framework/ai/sessions/2026/10/16/voice-20261016/live-feed",
+ "models": {
+  "claude-sonnet-5-5": 16
+ },
+ "sizes": {
+  "raw": 331080,
+  "content": 24451,
+  "stripped": 8898,
+  "owner_only": 0
+ },
+ "usd": 0.549436,
+ "usd_main": 0.549436,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 32,
+  "output": 7918,
+  "cache_read": 1112620,
+  "cache_write": 61917,
+  "w5": 0,
+  "w1": 61917
+ },
+ "messages": 16,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "Done, nothing in flight. The `/live/` feed is built and committed as `47a321ec0`, and the live-reload hold is released.\n\n- **Render method:** `Live.draw()` in `public/live/Live.js` builds a `Live.Card` (a `Page` subclass) per item. The feed calls its `preview()`, which goes to the stock `Page.preview_card()` in `Previews.js`, and `Live.Card.full()` renders the full card.\n- **Example line:** `{\"type\":\"part-card\",\"id\":\"example\",\"title\":\"Full title\",\"preview\":\"Short label\",\"text\":\"Full **markdown** body\"}`.\n- **Check:** the feed at 400 and the full view at 1200 look right in headless shots. `check_page` errored on its URL argument, so I didn't use it.\n- **Open:** at 1200 the full-view card is only about 600px wide, narrower than the gray column. I left that, since the owner is on mobile.",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.178Z"
+}

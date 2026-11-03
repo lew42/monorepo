@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/core/Page/jsonl/part-link-demo/",
+ "widths": {
+  "1280": {
+   "empty": 0.795,
+   "widest_text": 384,
+   "widest_text_sample": "This card grew into its own page, with i",
+   "overflow_x": false,
+   "items": 63,
+   "narrow_share": 0.222
+  },
+  "1920": {
+   "empty": 0.856,
+   "widest_text": 408,
+   "widest_text_sample": "This card grew into its own page, with i",
+   "overflow_x": false,
+   "items": 63,
+   "narrow_share": 1
+  },
+  "2560": {
+   "empty": 0.864,
+   "widest_text": 459,
+   "widest_text_sample": "This card grew into its own page, with i",
+   "overflow_x": false,
+   "items": 63,
+   "narrow_share": 1
+  },
+  "3440": {
+   "empty": 0.893,
+   "widest_text": 459,
+   "widest_text_sample": "This card grew into its own page, with i",
+   "overflow_x": false,
+   "items": 63,
+   "narrow_share": 1
+  }
+ },
+ "errors": []
+}

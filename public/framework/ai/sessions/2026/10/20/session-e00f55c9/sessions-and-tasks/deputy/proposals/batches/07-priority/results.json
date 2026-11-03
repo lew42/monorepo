@@ -1,0 +1,127 @@
+[
+ {
+  "id": "f4377b3aa3",
+  "priority": "none",
+  "why": "Layout variant page for cols; not part of any of the three big things."
+ },
+ {
+  "id": "048df45752",
+  "priority": "none",
+  "why": "Side background colours for column variants; a layout styling task, not in the three big things."
+ },
+ {
+  "id": "3adc7b92f4",
+  "priority": "none",
+  "why": "Nested-side column variant; layout design, not in the three big things."
+ },
+ {
+  "id": "989d54daf1",
+  "priority": "none",
+  "why": "Card and image column variant; layout design, not in the three big things."
+ },
+ {
+  "id": "f723927dce",
+  "priority": "none",
+  "why": "TOC styling; not in the three big things."
+ },
+ {
+  "id": "247bae710b",
+  "priority": "none",
+  "why": "TOC H4/H3 heading styles; not in the three big things."
+ },
+ {
+  "id": "0ccf03b516",
+  "priority": "none",
+  "why": "Blog sidebar layout design; not in the three big things."
+ },
+ {
+  "id": "e9c7bb3b09",
+  "priority": "none",
+  "why": "Picks a layout design from variants; not in the three big things."
+ },
+ {
+  "id": "d0ec433570",
+  "priority": "none",
+  "why": "List element variants; styling work, not in the three big things."
+ },
+ {
+  "id": "0b205d15c3",
+  "priority": "none",
+  "why": "TOC sidebar width default; styling, not in the three big things."
+ },
+ {
+  "id": "562babd31a",
+  "priority": "none",
+  "why": "Section-title icons in text styles; styling, not in the three big things."
+ },
+ {
+  "id": "12b6e7b8cc",
+  "priority": "none",
+  "why": "TOC as a tree widget; a UI component task, not in the three big things."
+ },
+ {
+  "id": "bad6d8a087",
+  "priority": "none",
+  "why": "Tree nesting examples on the ui/tree page; a UI showcase, not in the three big things."
+ },
+ {
+  "id": "0c5c348672",
+  "priority": "none",
+  "why": "Checks for an existing tree widget; not in the three big things."
+ },
+ {
+  "id": "889b286a3b",
+  "priority": "none",
+  "why": "Sidebar list compilation; styling, not in the three big things."
+ },
+ {
+  "id": "9ef39b57fb",
+  "priority": "none",
+  "why": "Mobile menu TOC in sidebar layouts; layout design, not in the three big things."
+ },
+ {
+  "id": "7fcf73f951",
+  "priority": "none",
+  "why": "Global and inner sidebars for large screens; layout design, not in the three big things."
+ },
+ {
+  "id": "fc47d39c1f",
+  "priority": "2",
+  "why": "Applying the code-driven loop (steps run by code until done or documented) to AI systems matches the step-by-step task process in the second big thing."
+ },
+ {
+  "id": "abbf649543",
+  "priority": "none",
+  "why": "Open-ended file-tree cleanup; not named in any of the three big things."
+ },
+ {
+  "id": "c0989a1fce",
+  "priority": "none",
+  "why": "Merging the two task datastores is real consolidation work, but the second big thing does not name it, so per the doubt rule it is none."
+ },
+ {
+  "id": "2b553f35c6",
+  "priority": "none",
+  "why": "Reviews the module categorisation process; not plainly part of the three big things."
+ },
+ {
+  "id": "e03da3f39a",
+  "priority": "3",
+  "why": "A naming skill covering file names and locations is how agents learn where things go, which is the third big thing."
+ },
+ {
+  "id": "c6cd3ff631",
+  "priority": "none",
+  "why": "Live OO class views in code/objects; not in the three big things."
+ },
+ {
+  "id": "4d7f6e7150",
+  "priority": "none",
+  "why": "DataGrid header and height fix; not in the three big things."
+ },
+ {
+  "id": "c53bf72432",
+  "priority": "none",
+  "why": "Left padding on an unnamed page; not in the three big things."
+ }
+]

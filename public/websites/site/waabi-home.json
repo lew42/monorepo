@@ -1,0 +1,1745 @@
+{
+	"name": "waabi-home",
+	"url": "https://waabi.ai/",
+	"title": "Waabi Self Driving Trucks and Robotaxis",
+	"category": "marketing",
+	"captured_at": "2026-09-08T06:01:53.524Z",
+	"embed": "allowed",
+	"embed_note": "no x-frame-options and no restrictive frame-ancestors",
+	"shots": {
+		"400": "site/waabi-home/400.jpg",
+		"1280": "site/waabi-home/1280.jpg",
+		"1920": "site/waabi-home/1920.jpg",
+		"3440": "site/waabi-home/3440.jpg",
+		"long": "site/waabi-home/long.jpg"
+	},
+	"layout": {
+		"400": "1-bands",
+		"1280": "1-bands",
+		"1920": "1-bands",
+		"3440": "1-bands"
+	},
+	"sections": [
+		{
+			"name": "hero",
+			"layout": "1-flow",
+			"css": "block, full-bleed video",
+			"note": "a full-bleed autonomous-truck video fills the screen, with a big \"Built to think. Born to haul.\" headline over it, a floating pill-shaped nav bar, a thin announcement strip above everything, and a cookie-consent panel bottom-left. This is what all four screenshots show, including the tall \"whole page\" one."
+		},
+		{
+			"name": "technology band",
+			"layout": "3-equal",
+			"css": "flex",
+			"note": "the scan finds a full-viewport-height block followed by a 3-column row directly under the hero. Confirmed only by measurements — every screenshot's viewport is shorter than the hero band above it, so this band never appears in a picture."
+		},
+		{
+			"name": "partnerships band",
+			"layout": "2-equal",
+			"css": "flex",
+			"note": "a two-part full-width band lower in the DOM; again, only the scan sees it."
+		},
+		{
+			"name": "insights carousel",
+			"layout": "n-wall",
+			"css": "flex, horizontal scroll",
+			"note": "seven equal case-study cards (450px each) whose boxes are staggered diagonally down and to the right in our still capture — a strong sign this is a horizontally-scrolling row driven by scroll position, not a plain wrapping grid."
+		}
+	],
+	"tags": [
+		"1-bands",
+		"1-flow",
+		"3-equal",
+		"2-equal",
+		"full-bleed",
+		"carousel",
+		"dark",
+		"marketing"
+	],
+	"responsive": {
+		"strategy": "Same story as mocean-home in this set: every screenshot, including the tall full-page one, shows only the hero video, because Waabi sizes its bands in viewport-height units (`min-h-svh`, `h-svh`) — an unusually tall capture viewport just makes the hero band taller instead of revealing more of the page. The DOM confirms three more full-width bands below it with real column counts (three, two, and a seven-card horizontal carousel), but we have no picture of any of them at any width.",
+		"breakpoints": []
+	},
+	"scan": {
+		"scanned_at": "2026-09-08T06:02:13.099Z",
+		"css": {
+			"sheets": 0,
+			"bytes": 158445,
+			"inline_bytes": 158445
+		},
+		"media": [],
+		"container": [],
+		"breakpoints_seen": [],
+		"widths": {
+			"400": {
+				"doc": [
+					400,
+					9454
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "css-header fixed",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "fixed",
+						"rect": [
+							12,
+							66,
+							376,
+							55
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"class": "relative min-h-svh",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							400,
+							8800
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "overview",
+						"class": "relative flex",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							400,
+							4057
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "text-background relative",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							400,
+							2110
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "bg-background relative",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							1477,
+							400,
+							1266
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "bg-background text-foreground",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							2743,
+							400,
+							1314
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "technology",
+						"class": "relative flex",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							4057,
+							400,
+							1605
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "relative h-svh",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							4057,
+							400,
+							844
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "flex w-full",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							4901,
+							400,
+							761
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "relative min-h-svh",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							5662,
+							400,
+							844
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "partnerships",
+						"class": "relative flex",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							6506,
+							400,
+							1024
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "relative min-h-screen",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							6506,
+							400,
+							1024
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "insights",
+						"class": "relative flex",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							7530,
+							400,
+							728
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "relative flex",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							40,
+							7943,
+							320,
+							339
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "relative flex",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							388,
+							8143,
+							320,
+							329
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "relative flex",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							736,
+							8343,
+							320,
+							329
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "relative flex",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							1084,
+							8543,
+							320,
+							329
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "relative flex",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							1432,
+							8743,
+							320,
+							349
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "relative flex",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							1780,
+							8943,
+							320,
+							329
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "relative flex",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							2128,
+							9143,
+							320,
+							329
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "c15t-card-MOqQY",
+						"role": "dialog",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							10,
+							683,
+							380,
+							152
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "flex flex-col",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							0,
+							400,
+							8800
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "debug absolute",
+						"display": "block",
+						"position": "absolute",
+						"rect": [
+							0,
+							0,
+							400,
+							4057
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "relative h-full",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							400,
+							2110
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "debug absolute",
+						"display": "block",
+						"position": "absolute",
+						"rect": [
+							0,
+							4057,
+							400,
+							1605
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "absolute inset-0",
+						"display": "block",
+						"position": "absolute",
+						"rect": [
+							0,
+							1477,
+							400,
+							1266
+						],
+						"side_by_side": 2
+					}
+				]
+			},
+			"1280": {
+				"doc": [
+					1280,
+					10465
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "css-header fixed",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "fixed",
+						"rect": [
+							471,
+							76,
+							338,
+							55
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"class": "relative min-h-svh",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							1280,
+							9865
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "overview",
+						"class": "relative flex",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							1280,
+							4200
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "text-background relative",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							1280,
+							2000
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "bg-background relative",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							1400,
+							1280,
+							1200
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "bg-background text-foreground",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							2600,
+							1280,
+							1600
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "technology",
+						"class": "relative flex",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							4200,
+							1280,
+							1394
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "relative h-svh",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							4200,
+							1280,
+							800
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "flex w-full",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							5000,
+							1280,
+							594
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "relative min-h-svh",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							5594,
+							1280,
+							800
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "partnerships",
+						"class": "relative flex",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							6394,
+							1280,
+							1431
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "relative min-h-screen",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							6394,
+							1280,
+							1431
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "insights",
+						"class": "relative flex",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							7825,
+							1280,
+							969
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "relative flex",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							92,
+							8363,
+							450,
+							446
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "relative flex",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							566,
+							8563,
+							450,
+							456
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "relative flex",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							1040,
+							8763,
+							450,
+							456
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "relative flex",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							1514,
+							8963,
+							450,
+							456
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "relative flex",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							1988,
+							9163,
+							450,
+							456
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "relative flex",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							2462,
+							9363,
+							450,
+							456
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "relative flex",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							2936,
+							9563,
+							450,
+							456
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "c15t-card-MOqQY",
+						"role": "dialog",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							15,
+							654,
+							440,
+							132
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "flex flex-col",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							0,
+							1280,
+							9865
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "debug absolute",
+						"display": "block",
+						"position": "absolute",
+						"rect": [
+							0,
+							0,
+							1280,
+							4200
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "relative h-full",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							1280,
+							2000
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "debug absolute",
+						"display": "block",
+						"position": "absolute",
+						"rect": [
+							0,
+							6394,
+							1280,
+							1431
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "debug absolute",
+						"display": "block",
+						"position": "absolute",
+						"rect": [
+							0,
+							4200,
+							1280,
+							1394
+						],
+						"side_by_side": 0
+					}
+				]
+			},
+			"1920": {
+				"doc": [
+					1920,
+					12969
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "css-header fixed",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "fixed",
+						"rect": [
+							791,
+							76,
+							338,
+							55
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"class": "relative min-h-svh",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							1920,
+							12369
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "overview",
+						"class": "relative flex",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							1920,
+							5670
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "text-background relative",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							1920,
+							2700
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "bg-background relative",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							1890,
+							1920,
+							1620
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "bg-background text-foreground",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							3510,
+							1920,
+							2160
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "technology",
+						"class": "relative flex",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							5670,
+							1920,
+							1969
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "relative h-svh",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							5670,
+							1920,
+							1080
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "flex w-full",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							6750,
+							1920,
+							889
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "relative min-h-svh",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							7639,
+							1920,
+							1080
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "partnerships",
+						"class": "relative flex",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							8719,
+							1920,
+							1359
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "relative min-h-screen",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							8719,
+							1920,
+							1359
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "insights",
+						"class": "relative flex",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							10078,
+							1920,
+							969
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "relative flex",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							343,
+							10616,
+							450,
+							446
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "relative flex",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							817,
+							10816,
+							450,
+							456
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "relative flex",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							1291,
+							11016,
+							450,
+							456
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "relative flex",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							1765,
+							11216,
+							450,
+							456
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "relative flex",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							2239,
+							11416,
+							450,
+							456
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "relative flex",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							2713,
+							11616,
+							450,
+							456
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "relative flex",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							3187,
+							11816,
+							450,
+							456
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "c15t-card-MOqQY",
+						"role": "dialog",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							15,
+							934,
+							440,
+							132
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "flex flex-col",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							0,
+							1920,
+							12369
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "debug absolute",
+						"display": "block",
+						"position": "absolute",
+						"rect": [
+							0,
+							0,
+							1920,
+							5670
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "relative h-full",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							1920,
+							2700
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "debug absolute",
+						"display": "block",
+						"position": "absolute",
+						"rect": [
+							0,
+							5670,
+							1920,
+							1969
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "absolute inset-0",
+						"display": "block",
+						"position": "absolute",
+						"rect": [
+							0,
+							1890,
+							1920,
+							1620
+						],
+						"side_by_side": 2
+					}
+				]
+			},
+			"3440": {
+				"doc": [
+					3440,
+					16893
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "css-header fixed",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "fixed",
+						"rect": [
+							1551,
+							76,
+							338,
+							55
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"class": "relative min-h-svh",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							3440,
+							16293
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "overview",
+						"class": "relative flex",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							3440,
+							7560
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "text-background relative",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							3440,
+							3600
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "bg-background relative",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							2520,
+							3440,
+							2160
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "bg-background text-foreground",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							4680,
+							3440,
+							2880
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "technology",
+						"class": "relative flex",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							7560,
+							3440,
+							3031
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "relative h-svh",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							7560,
+							3440,
+							1440
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "flex w-full",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							9000,
+							3440,
+							1591
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "relative min-h-svh",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							10591,
+							3440,
+							1440
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "partnerships",
+						"class": "relative flex",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							12031,
+							3440,
+							1440
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "relative min-h-screen",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							12031,
+							3440,
+							1440
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "insights",
+						"class": "relative flex",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							13471,
+							3440,
+							969
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "relative flex",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							1103,
+							14009,
+							450,
+							446
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "relative flex",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							1577,
+							14209,
+							450,
+							456
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "relative flex",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							2051,
+							14409,
+							450,
+							456
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "relative flex",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							2525,
+							14609,
+							450,
+							456
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "relative flex",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							2999,
+							14809,
+							450,
+							456
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "relative flex",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							3473,
+							15009,
+							450,
+							456
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "relative flex",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							3947,
+							15209,
+							450,
+							456
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "c15t-card-MOqQY",
+						"role": "dialog",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							15,
+							1294,
+							440,
+							132
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "flex flex-col",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							0,
+							3440,
+							16293
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "debug absolute",
+						"display": "block",
+						"position": "absolute",
+						"rect": [
+							0,
+							0,
+							3440,
+							7560
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "relative h-full",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							3440,
+							3600
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "debug absolute",
+						"display": "block",
+						"position": "absolute",
+						"rect": [
+							0,
+							7560,
+							3440,
+							3031
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "absolute inset-0",
+						"display": "block",
+						"position": "absolute",
+						"rect": [
+							0,
+							2520,
+							3440,
+							2160
+						],
+						"side_by_side": 2
+					}
+				]
+			}
+		}
+	},
+	"notes": "Waabi is a self-driving-truck company's homepage, and — like the other creative agency-style site in this batch (mocean-home) — every screenshot we took shows the same thing: a full-screen video of a truck with a headline on top. That is a deliberate design choice (a big, cinematic opening), not a broken capture, and the page's own code proves there is much more beneath it: a stats section, a technology section, a partnerships section, and a row of seven case-study cards that looks built to scroll sideways. We simply cannot show any of that in a picture, because those sections are sized to fill whatever the screen's height is, and a taller \"whole page\" screenshot just makes the first section taller instead of revealing the next one. We also found zero stylesheets in the network traffic for this page, so unlike every other site in this batch we cannot even guess a pixel breakpoint from the CSS — the responsive story here rests entirely on the DOM shapes, not on any confirmed number.",
+	"wire": {
+		"role": "page",
+		"kids": [
+			{
+				"role": "header",
+				"h": "3em"
+			},
+			{
+				"role": "hero",
+				"h": "50em"
+			},
+			{
+				"role": "main",
+				"dir": "row",
+				"h": "14em",
+				"floor": "64rem",
+				"kids": [
+					{
+						"role": "card",
+						"w": 1
+					},
+					{
+						"role": "card",
+						"w": 1
+					},
+					{
+						"role": "card",
+						"w": 1
+					}
+				]
+			},
+			{
+				"role": "main",
+				"dir": "row",
+				"h": "12em",
+				"floor": "48rem",
+				"kids": [
+					{
+						"role": "card",
+						"w": 1
+					},
+					{
+						"role": "card",
+						"w": 1
+					}
+				]
+			},
+			{
+				"role": "cards",
+				"dir": "row",
+				"h": "18em",
+				"floor": "none",
+				"scroll": true,
+				"n": 7
+			}
+		]
+	}
+}

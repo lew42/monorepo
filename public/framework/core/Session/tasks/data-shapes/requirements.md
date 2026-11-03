@@ -1,0 +1,196 @@
+# Data shapes: sessions, tasks, prompts, chat, on Item / List / JSONL
+
+**In one line:** design how sessions, tasks, prompts, replies and chat are stored as Items and Lists in JSONL, so the tasks actually get finished. Design only, nothing merged. Status: eleven seats reported; the answer is [synthesis.md](synthesis.md), the build plan is [plan.md](plan.md).
+
+**The owner's ask (2026-10-28, VS Code tab e00f55c9).** Design work only: **no major surgery, nothing that breaks.** The owner's words are in this tab's prompt log (the prompt starting "Okay, so I think there was a V3 built at some point"). The tab (vscode-mastermind) runs this project itself, as the owner offered.
+
+## What the owner wants
+
+1. **Class architecture pseudocode, one system map:**
+   - which class extends which, in order;
+   - each class's core properties and what goes in each one (a List of what? an instance of what?);
+   - no implementation details.
+2. **The shapes, priority one:** session, task, prompt (the raw sentences, the refined and titled grouping), the agent's replies, question cards, arbitrary content cards, and child sessions.
+   - Everything that exists is an object.
+   - Raw Whisper text need not persist; the sentences do.
+3. **Underneath:** the critical design features of **Item, List and the JSONL streaming/store**. How they work now, what works, what doesn't, and what they should be:
+   - `set` applies a delta and uses `get` to find the property;
+   - lists need ids and order; is an "added at" time part of a list delta?
+   - the store is swappable: JSONL deltas or snapshot mode (the owner's older system wrote one full JSON per change and worked well). A delta can be a whole-object assign, which is a snapshot as one line;
+   - **code-made vs UI-made items:** code reruns on every load, while a UI action happens once. Probably code builds the persistent structure (with no items), and items arrive from agents and the UI.
+4. **Chat as a module:**
+   - `chat.messages` is a list of anything with a `render()`, like a page's content list, and the list is the source of truth that drives the view;
+   - items are live: a button on any item writes through the socket;
+   - the item tool over the socket (security later);
+   - messages may be **references** to items that live elsewhere (sentences, tasks) mixed with **owned** items (cards). Where data actually lives must be unambiguous: no duplicate copies drifting out of sync, no rendering the wrong thing, nothing made twice.
+5. **Tasks nested, flat with references, or a hybrid:** weigh each. The owner is **not in love** with the shape in `ai/design-decisions-2026-10-27.md`, so alternatives are wanted. Use fresh agents with little context: "design a session system that includes tasks…".
+6. **Chat views:** a bubble chat with inline replies (SMS or Claude-app style) vs a structured card view. That's the v1/v2/v3 difference: `ext/Chat/` (v1), `v2/`, `v3/` (the rough draft, 2026-10-26, a plain view over `session.tasks`).
+7. **Consolidate what exists. The map first, moves later:**
+   - the chat code is spread over many places;
+   - there are maybe 3+ prompt-refinement systems (the map counted 14 mentions);
+   - the fast assistant vs smart assistant vs voice agent roles: the owner leans to ONE smart agent, and the others get marked legacy;
+   - the plan is "move it in, index it as legacy, extract the value", with moves later and scripted.
+8. **requirements.md files:** session folders hold many. Their essence belongs in the module they built (split into sub-docs where it fits). Note where this applies; don't move anything in this project.
+9. **The task system's real failure:** this session ended at 56% with 223 open. The goal is a few core tasks per session, created as the owner dictates and actually finished.
+   - Give an honest account of the whole path from each origin to done: the VS Code tab, the voice agent, the dictation sheet. Which code makes a task, and who finishes it.
+   - Why so many stay undone.
+   - Whether node should re-prompt every undone task (the owner: for 200 that's insane, so focus).
+10. **Also keep in view (don't build):**
+    - token accounting, and resume or fork that never loses context or tasks;
+    - per-sentence sending re-reads the whole context, so batch it or auto-compact (later).
+
+## The owner's add-on (2026-10-28, ~00:35, same tab; the prompt starting "Just something else real quick")
+
+Still design only: nothing built. "We're going to have to work interactively and refine the shape before we pull the trigger."
+
+11. **Page vs Item.** Pages are the essence of the framework. A page is something with a route (dynamic routes included); an item is more like a subpage: it may be saved to a file but has no page of its own. Maybe render file-owning items differently from child items.
+    - Should a session **have** a page rather than **be** one? The owner leans to "has". Page adds many methods to Item; stacking APIs in one namespace bloats every subclass.
+12. **Page CRUD:** an earlier ask for creating, updating and moving pages may exist somewhere, but it was never tested with confidence. Find it and say whether it works. How are child pages stored (`page.pages`? `children`, which was a pseudo-map, since retired)? Automatic from the file system, or from creating a page inside a page?
+13. **What else the item/page system must carry later** (ideas, not builds): user pages and profiles, teams and groups, topic pages with their own chat, channels inside topics (mini Discord communities).
+14. **A web editor (Webflow / Figma / hybrid)**: a tree of items and layers, each change streaming to the right spot. Can several pages share one JSONL file? With 50 pages and hundreds of designs each, one file reaches megabytes or more: JSONL's size is a real limit. Mouse-move-rate changes would bloat it fast.
+15. **Other stores:** is the Item API compatible with other streaming systems or databases (SQLite, Cloudflare products)? An analysis of the Item API as a store interface.
+16. **Items hold items:** each item has, or can get on demand, its own `items` (so it acts as a list). Check whether that is still how it works. How do lists save and re-apply deltas efficiently, and is it tested?
+17. **Persistence tests in every known mode:** every class tested standalone in its own file AND nested inside another file. Add to the plan.
+18. **How JSONL streaming really flows:** today an agent appends a raw line, a file watcher (the dev server or Servex) notices and pushes it over a socket. The owner doesn't like agents writing log files directly; the alternative is to instantiate the object server-side, but replaying thousands of deltas or megabytes may take seconds.
+    - The owner likes JSONL tailing: simple, logged, replayable; every change is history, and an editor could replay one layer's history alone.
+    - Compaction makes the owner nervous (done wrong, it destroys data). Performance matters less than safety.
+    - Ideas: split scopes into files, e.g. prompts and replies in a session log file and only the core in `session.jsonl`, so server-side instantiation loads the core only (cost may still need the whole).
+19. **Priorities named in passing:** streaming working properly; dictation working on the website itself, so the phone app isn't needed.
+20. **If there is budget left and nothing else to do:** look into what other data structures the page system could carry.
+
+Seats (d) `pages` and (e) `streaming` (below) take 11–18.
+
+## The owner's second add-on (2026-10-28, after reading the synthesis)
+
+The decisions on ids and paths are recorded in [ids-and-paths.md](ids-and-paths.md) ("DECIDED"); the folder rule in `doc/rules.md` ("Traps that never throw"). The new asks:
+
+21. **How deltas flow is the top priority:** fully understood, rock solid, as simple as it can be.
+    - **Adopt:** when an item is adopted, its storage is linked to its parent's. In the owner's old system, adopting linked the child's `saver` to the parent's, and any change called `item.saver.save()`, which rewrote the whole snapshot.
+    - **The delta path:** how items and lists get added, how their storage is linked, and how a change flows from the item that changed to the file. Write it down, and show it working.
+22. **Paths may use dots all the way down,** verb included (`"tasks.ui.tasks.c3.complete": {…}`), or stop before the verb (`"tasks.ui.tasks.c3": {"complete": {…}}`). The owner is fine with either: let the builder pick whichever needs no extra branch in the code.
+23. **Ids: a short readable id (`c3`) or a short random one,** either way. Note the merge risk of short ones. Keep the base simple and robust: any Item or List can override `get` to find things its own way (from the file system, a database, …).
+24. **References, still unclear:** when to use one, and how to bring it back to life on load ("a whole nother beast").
+    - Relative refs (`..` to climb up) break when either end moves.
+    - Absolute, app-level refs survive some moves, but still break when any part of the path is restructured.
+    - The owner's idea: **track references.** Each ref also writes a **backlink** on its target, so a move can walk every referrer and update it.
+    - The answer is drafted in [ids-and-paths.md](ids-and-paths.md) §6.
+25. **Demos that make it click.**
+    - Nearly no example on the site has made the owner say "now I see how this works".
+    - Wanted: the high-level class and object hierarchy, plus simple code beside a live result.
+    - The existing demo stage, with responsive demos and highlighted code, has always looked broken.
+26. **A default view for every class instance (the "debug view"):**
+    - **The collapsed row:** the smallest useful summary: an icon, the id, the class name as a small label, and counts ("12 items").
+    - **Expanded on click:** its data properties, drawn by type. A string or number is written out; an object or list is iterated. This is the owner's old debug viewer.
+    - **Why:** `console.log` gets spammy fast, even with collapsed groups, so the framework wants its own log of objects as they're made and changed, shown on screen.
+    - **Later, maybe one view:** a polished default view could replace the debug view once it holds the same information better. The owner: "every view we create is vomit", so start from the plain debug view.
+    - **Tests render on screen:** each test shows its outcome in these views, ideally updating line by line, so stepping through it with breakpoints shows the object change. Test pages may need to call `app.inject` by hand, because the app injects only once its pages resolve.
+    - **Order:** the plain debug view first. The synchronous, step-by-step rendering is a second phase.
+    - **Past work to start from:**
+      - `ux/Content/Object/` (a census of 77 classes worth a view: `ux/Content/Object/doc/census.md`);
+      - `code/objects/readme.md` ("every class ships a view");
+      - the 2026-10-15 brief `ai/sessions/2026/10/15/voice-20261015/page-system/answers/debug-views/requirements.md`.
+27. **Placement by code, not by AI judgment;** maybe a schema per class (what may go where), without becoming a whitelist. Stale refs are a real risk. References may point at any endpoint, not only files. Drafted in [placement.md](placement.md).
+28. **Sessions are their own tree** (`session.sessions`, each child with its own). A task holds no sessions, only references; a task can become a session. Projects reference several sessions. Child sessions never hide inside a task.
+29. **`pages` over `children`.** The plural of the class name says what's inside; `children` could be anything. `page.children` is a legacy wrapper: deprecate it, with a migration guide.
+30. **Legacy that lingers must be marked deprecated**, or agents lean back into bad patterns. Write migration guides, then remove the old code. The rule is now in `doc/rules.md`. Seat (h) takes the census.
+31. **Persistence must flow by itself, both ways.**
+    - A UI change fires a delta that reaches the server.
+    - An AI change on the server reaches every browser.
+    - It must hold at any depth of nested Items and Lists, for `page.pages` and `page.content` too.
+    - Check how they persist today. Would `page.set` of a List or an Item wire up storage?
+    - The on-demand `items` footgun: code that sets `items` without knowing about it.
+
+    Seat (g) takes this, with ask 21.
+
+## The owner's third add-on (2026-10-28, ~16:15): from design to a built, unmerged try
+
+The plan that answers these is [plan.md](plan.md).
+
+32. **`items` and `content` stay separate.**
+    - `content` is a template slot: a list of renderable things (views, paragraphs, demos, references), mostly View instances.
+    - How well View serializes and deserializes is part of the picture.
+    - `List.render()` draws each item that has a `render()`, and does its best for the rest.
+33. **An object can be rendered twice.** So it keeps `views` (an array), not one `this.view`, and an update walks every view.
+34. **Tasks are the handoff.** Before an agent is spawned, the task is made and itemized: its requirements become subtasks, a checklist, not necessarily a sequence. A fixed sequence (plan, build, review, merge) is a **process**: `core/Task/Process.js` with `core/Task/processes/` exists.
+35. **The owner now leans to moving a task's subtasks into the child session doing them.**
+    - The reason: a parent holds a handful of tasks, not 200.
+    - The child session's name must keep describing what's inside it, and it may need renaming.
+    - Renames and moves need references to update, by tracking dependents. Not phase one.
+36. **Contextual references:** a parent referencing a child session's task shows it in context, as session › task (the path names both), not as a bare task.
+37. **What shows where is a delicate balance** (parent, grandparent), and may need to be configurable.
+38. **Names:**
+    - Use class names for instances: a Question is a `question`, never renamed to "ask".
+    - `item.move_to(destination)` reads better than `destination.move_here(item)`.
+    - There's no special `SessionRef` unless a need shows; use the generic `Ref`.
+    - Keep the stored reference object apart from the live object it points at.
+39. **Schema:** suggestions the AI follows first; enforcement maybe later.
+    - A generic `add` with `{type, …fields}` is how an AI adds most things: `content.add({type: "View", tag: "h2", content: "…"})`.
+    - Purpose-built verbs where the flow matters.
+    - The View system must join storage, deltas and lists.
+40. **Move `core/Session` and `core/Task` into `ai/`.** They're AI-specific for now; a generic task system can come later. That's a move, so later, scripted, and ask-first: it has many callers.
+41. **One data path for every change, AI or UI: a live instance on the server.**
+    - It replays to the current state, applies each new delta, saves it, and sends it to every client. "That needs to be our data backbone."
+    - **Where it runs:** Servex vs the dev server. One Servex process serving many projects in parallel may be a mistake. Look into the split.
+42. **The item tool:** one tool that can set any property or call any method on any item. Together with each class's readme, that's the whole API. Check that it still works that way.
+43. **Class docs that show, not tell.**
+    - The live instance view (the debug view) shows the full life cycle: who creates the object, where, what happens to it, and over which channel (socket, POST).
+    - Method sub-pages come from a dynamic route, with notes in a `methods/<name>.md` (or `.jsonl`) instead of long code comments.
+    - No walls of text: refine the essence, with simple code where it helps.
+44. **One core test per class covering ~80%,** run through every creation pathway (a UI click, a replay from JSONL), each giving the same outcome, drawn on screen.
+45. **How to work:**
+    - Build in a **worktree, not merged** until it's proven: tests pass, other pages still work, and a fresh reviewer agrees.
+    - **Each worktree has its own dev server the owner can open,** ideally from the phone.
+    - A **fresh Opus mastermind, high effort,** builds. It writes everything down in the worktree, and is reset now and then to keep its context small. A **fresh** reviewer, who didn't build it, reviews.
+    - No design councils: they arrive at the same answers. Name the forks in the road instead.
+    - **Usage:** push toward ~95% (never over ~98%) by the reset (about 21:40), without leaving much in flight across it.
+
+## Plan
+
+- **The tab studies the code** enough to judge the seats' answers.
+- **Seats, run in parallel, fresh, each writing its own folder** under `seats/<name>/`:
+  - A one-page `shape.md`: class pseudocode (extends chain, properties, what each holds).
+  - A `notes.md`: pros, cons, the questions it answers.
+  - Optional `per-class/<Class>.md` when a class needs more.
+  - It sends the tab a short summary.
+  - **Independent design seats** get no proposal docs. They're told only the problem, plus the core code to read (`core/Item`, `core/List`, `ext/JSONL`, `core/Session`, `core/Task`): "design a session system with prompts, replies, tasks, questions, cards, child sessions, chat".
+  - **Analysis seats** each own one area and read everything relevant:
+    - (a) Item/List/Store/JSONL as built: what works, the gaps, swappable store, snapshot vs delta, code-made vs UI-made;
+    - (b) the task path from each origin to done, and why tasks stay open;
+    - (c) the map of chat, prompt-refinement and voice roles: what to consolidate, what's legacy.
+  - Each also checks the owner's design directions (the proposal docs) against its findings.
+- **Aggregate:** where several seats agree, that's the signal. Write `synthesis.md`:
+  - one pseudocode system map;
+  - the options per contested point, with pros and cons;
+  - a short list of decisions for the owner.
+- **Fences:** seats write only in their own `seats/<name>/`. No code edits, no moves.
+- **Budget:** the week is reset Wednesday 2026-10-28 ~21:40; staying near 100% of pace is allowed. Opus for design judgment; Haiku or Sonnet for bulk reading.
+
+## Seats (spawned 2026-10-28 00:28)
+
+Briefs: [seats/design-brief.md](seats/design-brief.md) (blind) and [seats/analysis-brief.md](seats/analysis-brief.md). All six run in the main tree as single workers (the pool had no free worktree; a first `minion-shapes-design-1` got one and was stopped at zero turns so all seats work the same way).
+
+| Seat | Agent | Model | Folder |
+|---|---|---|---|
+| Blind design 1 | mastermind-shapes-design-1 | Opus | [seats/design-1/](seats/design-1/) |
+| Blind design 2 | mastermind-shapes-design-2 | Opus | [seats/design-2/](seats/design-2/) |
+| Blind design 3 | mastermind-shapes-design-3 | Opus | [seats/design-3/](seats/design-3/) |
+| (a) Item/List/Store/JSONL | mastermind-shapes-items | Opus | [seats/items/](seats/items/) |
+| (b) Task path | mastermind-shapes-task-path | Sonnet | [seats/task-path/](seats/task-path/) |
+| (c) Consolidation map | mastermind-shapes-consolidation | Sonnet | [seats/consolidation/](seats/consolidation/) |
+| (d) Pages (asks 11–14, 20) | mastermind-shapes-pages | Opus | [seats/pages/](seats/pages/) |
+| (e) Streaming and stores (asks 14–18) | mastermind-shapes-streaming | Opus | [seats/streaming/](seats/streaming/) |
+| (f) Other structures (ask 20, with 13–14; spawned 01:58 after the synthesis, budget allowing) | mastermind-shapes-structures | Opus | [seats/structures/](seats/structures/) |
+| (g) Delta flow, both ways, with a runnable demo (asks 21, 31; spawned 16:09) | mastermind-shapes-delta-flow | Opus | [seats/delta-flow/](seats/delta-flow/) |
+| (h) Legacy census and the page.children migration guide (asks 29, 30; spawned 16:09) | mastermind-shapes-legacy | Sonnet | [seats/legacy/](seats/legacy/) |
+
+Ask 16 (items hold items; list delta re-apply) was sent to seat (a) as an addition.
+
+Synthesis: [synthesis.md](synthesis.md) (2026-10-28: what the seats agree on, the class map, contested points, ten decisions for the owner).
+
+## Read first (for analysis seats; NOT for independent design seats)
+
+- `public/framework/ai/readme.md` line 9, then: `design-decisions-2026-10-27.md`, `system-map.md`, `system-proposal.md`, `chat-architectures.md`, `roles-proposal.md`.
+- `core/Item/doc/owner-2026-10-21-items-hold-items.md` and `core/Item/doc/next.md`.
+- `ext/Chat/readme.md`, `ext/Chat/v2/readme.md`, `ext/Chat/v3/readme.md`.
+- `core/Task/readme.md`, `core/Task/doc/prompt.md`, `core/Session/readme.md`.
+- The completion work: `ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/completion/`.

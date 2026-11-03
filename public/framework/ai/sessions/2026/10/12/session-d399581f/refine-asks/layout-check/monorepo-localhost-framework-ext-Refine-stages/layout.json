@@ -1,0 +1,47 @@
+{
+ "url": "http://monorepo.localhost/framework/ext/Refine/stages/",
+ "widths": {
+  "1280": {
+   "empty": 0.946,
+   "widest_text": 383,
+   "widest_text_sample": "404 — nothing matches \"/framework/ext/Re",
+   "overflow_x": false,
+   "items": 12,
+   "narrow_share": 1
+  },
+  "1920": {
+   "empty": 0.96,
+   "widest_text": 408,
+   "widest_text_sample": "404 — nothing matches \"/framework/ext/Re",
+   "overflow_x": false,
+   "items": 12,
+   "narrow_share": 1
+  },
+  "2560": {
+   "empty": 0.974,
+   "widest_text": 459,
+   "widest_text_sample": "404 — nothing matches \"/framework/ext/Re",
+   "overflow_x": false,
+   "items": 12,
+   "narrow_share": 1
+  },
+  "3440": {
+   "empty": 0.98,
+   "widest_text": 459,
+   "widest_text_sample": "404 — nothing matches \"/framework/ext/Re",
+   "overflow_x": false,
+   "items": 12,
+   "narrow_share": 1
+  }
+ },
+ "errors": [
+  "1280: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1280: Error: 404 — nothing matches \"/framework/ext/Refine/stages/\"\n    at App.load (http://monorepo.localhost/framework/core/App/App.js:64:11)\n    at async App.instantiate (http://monorepo.localhost/framewo",
+  "3440: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "3440: Error: 404 — nothing matches \"/framework/ext/Refine/stages/\"\n    at App.load (http://monorepo.localhost/framework/core/App/App.js:64:11)\n    at async App.instantiate (http://monorepo.localhost/framewo",
+  "1920: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1920: Error: 404 — nothing matches \"/framework/ext/Refine/stages/\"\n    at App.load (http://monorepo.localhost/framework/core/App/App.js:64:11)\n    at async App.instantiate (http://monorepo.localhost/framewo",
+  "2560: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "2560: Error: 404 — nothing matches \"/framework/ext/Refine/stages/\"\n    at App.load (http://monorepo.localhost/framework/core/App/App.js:64:11)\n    at async App.instantiate (http://monorepo.localhost/framewo"
+ ]
+}

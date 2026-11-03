@@ -1,0 +1,222 @@
+[
+ {
+  "title": "Console: clean on /ai/live; smoke fails on console noise and 404s",
+  "owner": "task-mastermind-console-clean",
+  "status": "landed",
+  "brief": "yes",
+  "log": "yes",
+  "landed": "yes",
+  "dir": "2026-10-03/console-clean",
+  "outcome": "Landed. /framework/ai/live/: console lines 210→1(allowed), same-origin 404s 351→0.  - [x] load it headless, post counts first — task.jsonl line 2 - [x] stop"
+ },
+ {
+  "title": "Servex: Playwright Chrome logged + reaped; one warm shared browser with check_page",
+  "owner": "task-mastermind-playwright-reap",
+  "status": "landed",
+  "brief": "yes",
+  "log": "yes",
+  "landed": "yes",
+  "dir": "2026-10-03/playwright-reap",
+  "outcome": "Every chrome.exe Playwright starts is now recognisable and reaped; Servex can check a live page's console for you.  - [x] one launcher logs who/pid/started/"
+ },
+ {
+  "title": "Framework home: grids without voids, explicit layout classes, layout labels, DevTools inline-style source",
+  "owner": "task-mastermind-framework-home-grids",
+  "status": "stalled",
+  "brief": "yes",
+  "log": "yes",
+  "landed": "no",
+  "dir": "2026-10-03/framework-home-grids",
+  "outcome": ""
+ },
+ {
+  "title": "Page: AI cost line broke /framework/ai/ title (fixed db0e77af); links styled everywhere; merge gate fails on text touching its edge",
+  "owner": "task-mastermind-layout-gate",
+  "status": "landed",
+  "brief": "yes",
+  "log": "yes",
+  "landed": "yes",
+  "dir": "2026-10-03/layout-gate",
+  "outcome": "Landed — default link style now applies to every `<a>` (not just ones inside `p/li/td/...`), and `Server/smoke.mjs` fails the merge on two new layout bugs. "
+ },
+ {
+  "title": "AI 2: finish the retirement now (nav entry + ai2/ dir, Git keeps history)",
+  "owner": "mastermind-ai-3",
+  "status": "landed",
+  "brief": "no",
+  "log": "no",
+  "landed": "no",
+  "dir": "",
+  "outcome": ""
+ },
+ {
+  "title": "Servex: worktree pool stuck (qf-6, qf-9 held 17h by finished agents)",
+  "owner": "mastermind-servex-10",
+  "status": "building",
+  "brief": "no",
+  "log": "no",
+  "landed": "no",
+  "dir": "",
+  "outcome": ""
+ },
+ {
+  "title": "Drawer: tight header, one scroll area, composer footer flush with default padding",
+  "owner": "task-mastermind-drawer-cleanup",
+  "status": "landed",
+  "brief": "yes",
+  "log": "yes",
+  "landed": "yes",
+  "dir": "2026-10-03/drawer-cleanup",
+  "outcome": "Fixed. Root cause: the closed session-switcher list rendered at ~940px because its `.flex` class beat `[hidden]` — it pushed the composer off-screen and for"
+ },
+ {
+  "title": "Styles: cards + prose on one measure/margin (lab); default padding rule; adaptive bg-lighten/darken + text/accent tokens (lab)",
+  "owner": "task-mastermind-card-measure-colors",
+  "status": "landed",
+  "brief": "yes",
+  "log": "yes",
+  "landed": "yes",
+  "dir": "2026-10-03/card-measure-colors",
+  "outcome": "Landed. - [x] widths lab, four arrangements, measured: [/framework/styles/widths/](/framework/styles/widths/) — found the real bug (`.page-content-rows` had"
+ },
+ {
+  "title": "Now card: grouped by system (AI, Page, Servex), landed + working, with references",
+  "owner": "vscode-mastermind",
+  "status": "stalled",
+  "brief": "no",
+  "log": "no",
+  "landed": "no",
+  "dir": "",
+  "outcome": ""
+ },
+ {
+  "title": "Now card: topics as nested sub-cards from refined prompts (raw → clean → structured), subtle 'updated' marks, Now card in the inbox list",
+  "owner": "vscode-mastermind",
+  "status": "queued",
+  "brief": "yes",
+  "log": "yes",
+  "landed": "yes",
+  "dir": "2026-10-03/topic-cards",
+  "outcome": "Topics are real, clickable sub-cards now; the Now card is visible again. The bulleted wall is a Topics list at the top of the Now card, newest first, titles"
+ },
+ {
+  "title": "AI systems: git, context, cost pages collecting how we work",
+  "owner": "vscode-mastermind",
+  "status": "queued",
+  "brief": "yes",
+  "log": "no",
+  "landed": "no",
+  "dir": "2026-10-03/ai-git-context-cost",
+  "outcome": ""
+ },
+ {
+  "title": "finish-task: integrations only where they make sense, each its own commit; costly ones become question cards",
+  "owner": "vscode-mastermind",
+  "status": "stalled",
+  "brief": "no",
+  "log": "no",
+  "landed": "no",
+  "dir": "",
+  "outcome": ""
+ },
+ {
+  "title": "Servex: the machine at a glance (CPU, RAM, temps, processes) as icon pills you click into; a reusable pill component",
+  "owner": "vscode-mastermind",
+  "status": "queued",
+  "brief": "yes",
+  "log": "no",
+  "landed": "no",
+  "dir": "2026-10-03/machine-page",
+  "outcome": ""
+ },
+ {
+  "title": "Dictate: push-to-talk anywhere (mouse thumb button), hotkey manager MVP, floating level mic",
+  "owner": "task-mastermind-push-to-talk",
+  "status": "landed",
+  "brief": "yes",
+  "log": "yes",
+  "landed": "yes",
+  "dir": "2026-10-03/push-to-talk",
+  "outcome": "Landed on `michael/dev` (`c25c5a39`). Hold a bound key/mouse combo anywhere on the site, a floating mic (bottom-right) appears and scales with your voice; c"
+ },
+ {
+  "title": "Dev shell polish (sticky tabs, resize handles, one chat), notices that land in the page's activity, a 'fix this' pointer with progress",
+  "owner": "vscode-mastermind",
+  "status": "queued",
+  "brief": "yes",
+  "log": "no",
+  "landed": "no",
+  "dir": "2026-10-03/dev-shell-polish",
+  "outcome": ""
+ },
+ {
+  "title": "Icon items show their launch mode: trailing icon for takeover vs open beside",
+  "owner": "vscode-mastermind",
+  "status": "queued",
+  "brief": "yes",
+  "log": "no",
+  "landed": "no",
+  "dir": "2026-10-03/launch-icons",
+  "outcome": ""
+ },
+ {
+  "title": "Servex mastermind: standing performance duty, fix the slowest frequent path first",
+  "owner": "mastermind-servex-10",
+  "status": "queued",
+  "brief": "no",
+  "log": "no",
+  "landed": "no",
+  "dir": "",
+  "outcome": ""
+ },
+ {
+  "title": "Inbox post explaining the dev shell",
+  "owner": "vscode-mastermind",
+  "status": "stalled",
+  "brief": "no",
+  "log": "no",
+  "landed": "no",
+  "dir": "",
+  "outcome": ""
+ },
+ {
+  "title": "Dictate: match a spoken reference to the element on the page (compact page view, fast match + blind smart vote, highlight overlay)",
+  "owner": "vscode-mastermind",
+  "status": "queued",
+  "brief": "yes",
+  "log": "no",
+  "landed": "no",
+  "dir": "2026-10-03/point-at-it",
+  "outcome": ""
+ },
+ {
+  "title": "AI Sessions tab: stat cards, no empty bands, correct current numbers (OpenRouter $0), plain filter names",
+  "owner": "task-mastermind-sessions-tab-polish",
+  "status": "building",
+  "brief": "yes",
+  "log": "yes",
+  "landed": "no",
+  "dir": "2026-10-03/sessions-tab-polish",
+  "outcome": ""
+ },
+ {
+  "title": "DataGrid: one reusable grid (resize, sort, auto filters, windowed rows, perf-tested drag); UI = HTML+CSS rule",
+  "owner": "task-mastermind-data-grid",
+  "status": "building",
+  "brief": "yes",
+  "log": "yes",
+  "landed": "no",
+  "dir": "2026-10-03/data-grid",
+  "outcome": ""
+ },
+ {
+  "title": "Sessions: fill blank role / start / stop / duration (back burner)",
+  "owner": "vscode-mastermind",
+  "status": "queued",
+  "brief": "no",
+  "log": "no",
+  "landed": "no",
+  "dir": "",
+  "outcome": ""
+ }
+]

@@ -1,0 +1,468 @@
+[
+ {
+  "file": "Server/task-log-race.test.mjs",
+  "bytes": 7959,
+  "header": "task-log-race.test.mjs — proof of how record-file lines were lost, and that the fix holds.",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-10-13",
+  "refs": 0,
+  "refFiles": []
+ },
+ {
+  "file": "Server/text-check.mjs",
+  "bytes": 2910,
+  "header": "`node Server/text-check.mjs <task dir>` — flags walls of text in what a landed task wrote for the owner.",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-09-28",
+  "refs": 6,
+  "refFiles": [
+   ".claude/skills/clarity/SKILL.md",
+   ".claude/skills/finish-task/SKILL.md",
+   "Server/doc-check.mjs",
+   "Server/doc/on-landing.md",
+   "Server/on-landing.mjs",
+   "public/framework/ai/doc/ai2/card-standard.md"
+  ]
+ },
+ {
+  "file": "Server/untrack-pictures.mjs",
+  "bytes": 2207,
+  "header": "Untrack the pictures under public/framework/ai/ that .gitignore now ignores (files stay on disk; history unchanged).",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-10-13",
+  "refs": 8,
+  "refFiles": [
+   "public/framework/ai/doc/repo-size.md",
+   "public/framework/ext/Refine/runs/2026-10-13/brief.md",
+   "public/framework/ext/Refine/runs/2026-10-13/clean.md",
+   "public/framework/ext/Refine/runs/2026-10-13/coverage.md",
+   "public/framework/ext/Refine/runs/2026-10-13/input.txt",
+   "public/framework/ext/Refine/runs/2026-10-13/raw.txt",
+   "public/framework/ext/Refine/runs/2026-10-13/structured-haiku.md",
+   "public/framework/ext/Refine/runs/2026-10-13/structured.md"
+  ]
+ },
+ {
+  "file": "Server/usage-now.mjs",
+  "bytes": 2565,
+  "header": "usage-now.mjs — the ONE way an agent checks Claude usage: node Server/usage-now.mjs",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-10-12",
+  "refs": 41,
+  "refFiles": [
+   ".claude/skills/check-claude-usage/SKILL.md",
+   ".claude/skills/finish-task/SKILL.md",
+   ".claude/skills/mastermind/SKILL.md",
+   ".claude/skills/new-task/SKILL.md",
+   ".claude/skills/servex-mastermind/SKILL.md",
+   "Server/systems-beat.mjs",
+   "public/framework/ai/doc/meta/history.md",
+   "public/framework/ai/doc/organization.md"
+  ]
+ },
+ {
+  "file": "Server/week-cost.mjs",
+  "bytes": 11953,
+  "header": "Server/week-cost.mjs — this week's REAL Claude $ and OpenRouter $, against the $200/week Max",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-09",
+  "refs": 2,
+  "refFiles": [
+   ".gitignore",
+   "public/framework/ai/AISession/AISessionAudit.mjs"
+  ]
+ },
+ {
+  "file": "Server/whisper-test.mjs",
+  "bytes": 4617,
+  "header": "`node Server/whisper-test.mjs` — runs every recording the owner has saved",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-12",
+  "refs": 3,
+  "refFiles": [
+   ".gitignore",
+   "Server/plugins/Recordings.js",
+   "public/framework/ai/handover.md"
+  ]
+ },
+ {
+  "file": "Server/window-lint.mjs",
+  "bytes": 7189,
+  "header": "WINDOW LINT — `node Server/window-lint.mjs` (add `--fix-hint` for nothing yet; plain run lists).",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-12",
+  "refs": 4,
+  "refFiles": [
+   ".claude/hooks/syntax-guard.mjs",
+   "Server/README.md",
+   "Server/doc/browser.md",
+   "public/framework/ai/todo.md"
+  ]
+ },
+ {
+  "file": "Server/window-watch.mjs",
+  "bytes": 9527,
+  "header": "WINDOW WATCH — a hidden, always-on catcher for the next real popup window.",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-12",
+  "refs": 3,
+  "refFiles": [
+   "Server/README.md",
+   "Servex/readme.md",
+   "public/framework/ai/rail/overview/overview.json"
+  ]
+ },
+ {
+  "file": "Server/worktree-down.mjs",
+  "bytes": 7256,
+  "header": "`node Server/worktree-down.mjs <name>` — the teardown half of worktree-up.mjs:",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-01",
+  "refs": 16,
+  "refFiles": [
+   ".claude/hooks/server-guard.mjs",
+   ".claude/hooks/server-guard.test.mjs",
+   ".claude/skills/sub-mastermind/improvements.md",
+   ".gitignore",
+   "Server/doc/worktrees.md",
+   "Server/on-landing.mjs",
+   "Server/worktree-prune.mjs",
+   "Server/worktree-restart.mjs"
+  ]
+ },
+ {
+  "file": "Server/worktree-leftovers.mjs",
+  "bytes": 5409,
+  "header": "`node Server/worktree-leftovers.mjs [--apply] [--manifest <file>] [--dir <path>]…` — folders under the worktrees root",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-10-13",
+  "refs": 0,
+  "refFiles": []
+ },
+ {
+  "file": "Server/worktree-prune.mjs",
+  "bytes": 11457,
+  "header": "`node Server/worktree-prune.mjs [--dry] [--only <name>]` — removes every git worktree that is finished with:",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-13",
+  "refs": 3,
+  "refFiles": [
+   "Server/doc/worktrees.md",
+   "Server/worktree-leftovers.mjs",
+   "Servex/doc/pool.md"
+  ]
+ },
+ {
+  "file": "Server/worktree-restart.mjs",
+  "bytes": 6699,
+  "header": "`node Server/worktree-restart.mjs <name>` — revive an EXISTING worktree's",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-03",
+  "refs": 8,
+  "refFiles": [
+   "public/framework/ai/handover.md",
+   "public/framework/ext/Refine/runs/2026-10-10/brief.md",
+   "public/framework/ext/Refine/runs/2026-10-10/clean.md",
+   "public/framework/ext/Refine/runs/2026-10-10/coverage.md",
+   "public/framework/ext/Refine/runs/2026-10-10/input.txt",
+   "public/framework/ext/Refine/runs/2026-10-10/raw.txt",
+   "public/framework/ext/Refine/runs/2026-10-10/structured-haiku.md",
+   "public/framework/ext/Refine/runs/2026-10-10/structured.md"
+  ]
+ },
+ {
+  "file": "Server/worktree-sweep.mjs",
+  "bytes": 11906,
+  "header": "`node Server/worktree-sweep.mjs [--dry] [--root <repo>]` — takes down a worktree's private dev",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-01",
+  "refs": 8,
+  "refFiles": [
+   "Server/doc/on-landing.md",
+   "Server/on-landing.mjs",
+   "Server/worktree-down.mjs",
+   "Servex/Lifecycle.js",
+   "Servex/TaskLoop.js",
+   "Servex/doc/lifecycle.md",
+   "Servex/doc/readme-full-2026-10-12.md",
+   "Servex/doc/task-loop.md"
+  ]
+ },
+ {
+  "file": "Server/worktree-up.mjs",
+  "bytes": 13161,
+  "header": "`node Server/worktree-up.mjs <name>` — one command that gives an agent a",
+  "kind": "bag",
+  "lowerCaseClass": false,
+  "last": "2026-10-01",
+  "refs": 25,
+  "refFiles": [
+   ".claude/hooks/junction-guard.mjs",
+   ".claude/hooks/server-guard.mjs",
+   ".claude/hooks/server-guard.test.mjs",
+   ".claude/skills/mastermind/SKILL.md",
+   ".claude/skills/minion/SKILL.md",
+   ".claude/skills/minion/improvements.md",
+   ".claude/skills/sub-mastermind/SKILL.md",
+   ".claude/skills/sub-mastermind/improvements.md"
+  ]
+ },
+ {
+  "file": "Servex/Budget.js",
+  "bytes": 7681,
+  "header": "BUDGETS, ENFORCED (node-reliability, 2026-09-29). Overruns were systemic:",
+  "kind": "class",
+  "lowerCaseClass": false,
+  "last": "2026-09-30",
+  "refs": 8,
+  "refFiles": [
+   ".claude/skills/servex-mastermind/SKILL.md",
+   "Servex/Heartbeat.js",
+   "Servex/Servex.js",
+   "Servex/doc/architecture.md",
+   "Servex/doc/budget.md",
+   "public/framework/ai/SystemClasses.js",
+   "public/framework/ai/doc/design/systems-overview.md",
+   "public/framework/ai/systems-map.md"
+  ]
+ },
+ {
+  "file": "Servex/Follow.js",
+  "bytes": 16523,
+  "header": "RESOLVE FIRST, THEN CHECK. `path.posix.normalize` collapses `.` and `..`",
+  "kind": "class",
+  "lowerCaseClass": false,
+  "last": "2026-09-29",
+  "refs": 12,
+  "refFiles": [
+   "Server/session-rename.mjs",
+   "Servex/Servex.js",
+   "Servex/agents/Agents.js",
+   "Servex/doc/follow.md",
+   "Servex/doc/readme-full-2026-10-12.md",
+   "Servex/proof/follow-proof.mjs",
+   "public/framework/ai/AISession/AISessionDetail.js",
+   "public/framework/ai/AISession/rename-manifest.json"
+  ]
+ },
+ {
+  "file": "Servex/Games.js",
+  "bytes": 5505,
+  "header": "GAMES — close one only when the PC is idle AND RAM is tight (process-monitor,",
+  "kind": "class",
+  "lowerCaseClass": false,
+  "last": "2026-10-01",
+  "refs": 5,
+  "refFiles": [
+   "Servex/Processes.js",
+   "Servex/Servex.js",
+   "Servex/doc/processes.md",
+   "Servex/processes.test.mjs",
+   "public/framework/ai/rail/doc/Processes-notes.md"
+  ]
+ },
+ {
+  "file": "Servex/Heartbeat.js",
+  "bytes": 22465,
+  "header": "THE HEARTBEAT — a task's owner that goes quiet is asked how it is doing; one",
+  "kind": "class",
+  "lowerCaseClass": false,
+  "last": "2026-10-01",
+  "refs": 14,
+  "refFiles": [
+   "Servex/Servex.js",
+   "Servex/TaskLoop.js",
+   "Servex/agents/awaken-race.test.mjs",
+   "Servex/agents/landed-reap-proof.mjs",
+   "Servex/doc/lifecycle.md",
+   "Servex/doc/readme-full-2026-10-12.md",
+   "Servex/doc/task-loop.md",
+   "public/framework/ai/SystemClasses.js"
+  ]
+ },
+ {
+  "file": "Servex/Lifecycle.js",
+  "bytes": 26093,
+  "header": "LIFECYCLE — every resource the system makes is written down when it starts and when it ends,",
+  "kind": "class",
+  "lowerCaseClass": false,
+  "last": "2026-10-03",
+  "refs": 17,
+  "refFiles": [
+   "Server/browser.mjs",
+   "Server/doc/browser.md",
+   "Server/health-supervisor.mjs",
+   "Server/on-landing.mjs",
+   "Server/run.js",
+   "Server/worktree-down.mjs",
+   "Server/worktree-sweep.mjs",
+   "Server/worktree-up.mjs"
+  ]
+ },
+ {
+  "file": "Servex/Log.js",
+  "bytes": 9621,
+  "header": "A log name becomes a filename, so it may not contain a slash, a colon or a",
+  "kind": "class",
+  "lowerCaseClass": false,
+  "last": "2026-10-09",
+  "refs": 77,
+  "refFiles": [
+   "Servex/Servex.js",
+   "Servex/TaskLoop.js",
+   "Servex/agents/Agents.js",
+   "Servex/agents/Assistant.js",
+   "Servex/agents/awaken-race.test.mjs",
+   "Servex/agents/doc/architecture.md",
+   "Servex/agents/experts-proof.mjs",
+   "Servex/agents/inbox.js"
+  ]
+ },
+ {
+  "file": "Servex/LogSweeper.js",
+  "bytes": 6375,
+  "header": "THE LOG SWEEPER — commits the machine-written logs so the working tree stays quiet.",
+  "kind": "class",
+  "lowerCaseClass": false,
+  "last": "2026-10-13",
+  "refs": 4,
+  "refFiles": [
+   "Servex/LogSweeper.test.mjs",
+   "Servex/Servex.js",
+   "Servex/doc/readme-full-2026-10-12.md",
+   "public/framework/ai/doc/repo-size.md"
+  ]
+ },
+ {
+  "file": "Servex/LogSweeper.test.mjs",
+  "bytes": 2103,
+  "header": "node Servex/LogSweeper.test.mjs — runs the sweeper in a throwaway git repo.",
+  "kind": "script",
+  "lowerCaseClass": false,
+  "last": "2026-10-12",
+  "refs": 1,
+  "refFiles": [
+   "Servex/doc/readme-full-2026-10-12.md"
+  ]
+ },
+ {
+  "file": "Servex/MCP.js",
+  "bytes": 4832,
+  "header": "ONE MCP ENDPOINT FOR EVERY CLAUDE SESSION ON THIS MACHINE.",
+  "kind": "class",
+  "lowerCaseClass": false,
+  "last": "2026-09-24",
+  "refs": 42,
+  "refFiles": [
+   ".claude/hooks/prompt-relay.mjs",
+   "Server/doc/architecture.md",
+   "Server/doc/mobile-lan.md",
+   "Server/doc/readme-sections-2026-10-13.md",
+   "Server/plugins/AILogs.js",
+   "Server/plugins/Ask.js",
+   "Server/plugins/DevSource.js",
+   "Server/plugins/Recordings.js"
+  ]
+ },
+ {
+  "file": "Servex/Monitor.js",
+  "bytes": 20099,
+  "header": "THE MACHINE MONITOR — is this computer melting, and who is doing it?",
+  "kind": "class",
+  "lowerCaseClass": false,
+  "last": "2026-09-30",
+  "refs": 9,
+  "refFiles": [
+   "Server/window-watch.mjs",
+   "Servex/Servex.js",
+   "Servex/TaskLoop.js",
+   "Servex/doc/lifecycle.md",
+   "Servex/doc/readme-full-2026-10-12.md",
+   "public/framework/ai/SystemClasses.js",
+   "public/framework/ai/doc/design/systems-overview.md",
+   "public/framework/ai/local/doc/strategy.md"
+  ]
+ },
+ {
+  "file": "Servex/Pool.js",
+  "bytes": 44012,
+  "header": "",
+  "kind": "class",
+  "lowerCaseClass": false,
+  "last": "2026-10-09",
+  "refs": 39,
+  "refFiles": [
+   "Server/doc/health.md",
+   "Server/doc/perf-2026-10-09.md",
+   "Server/doc/worktrees.md",
+   "Server/health-supervisor.mjs",
+   "Server/health.mjs",
+   "Server/worktree-sweep.mjs",
+   "Servex/Lifecycle.js",
+   "Servex/Servex.js"
+  ]
+ },
+ {
+  "file": "Servex/PortRegistry.js",
+  "bytes": 1526,
+  "header": "WHO GETS WHICH PORT — remembered forever, so a project's URL, its cookies and",
+  "kind": "class",
+  "lowerCaseClass": false,
+  "last": "2026-09-23",
+  "refs": 2,
+  "refFiles": [
+   "Servex/Servex.js",
+   "Servex/doc/readme-full-2026-10-12.md"
+  ]
+ },
+ {
+  "file": "Servex/Process.js",
+  "bytes": 16637,
+  "header": "ONE SUPERVISED CHILD PROCESS — a dev server, whisper-server, anything.",
+  "kind": "class",
+  "lowerCaseClass": false,
+  "last": "2026-10-12",
+  "refs": 14,
+  "refFiles": [
+   "Server/doc/perf-2026-10-09.md",
+   "Server/doc/transcription-crash-2026-10-12.md",
+   "Servex/Processes.js",
+   "Servex/Servex.js",
+   "Servex/doc/readme-full-2026-10-12.md",
+   "Servex/ext/local/llama.js",
+   "Servex/ext/local/readme.md",
+   "Servex/orphan.mjs"
+  ]
+ },
+ {
+  "file": "Servex/Processes.js",
+  "bytes": 22832,
+  "header": "THE PROCESS MONITOR — every process on the machine, which of them are OURS,",
+  "kind": "class",
+  "lowerCaseClass": false,
+  "last": "2026-10-12",
+  "refs": 7,
+  "refFiles": [
+   "Servex/Games.js",
+   "Servex/Servex.js",
+   "Servex/agents/Agents.js",
+   "Servex/doc/readme-full-2026-10-12.md",
+   "Servex/processes.test.mjs",
+   "public/framework/ai/rail/live.js",
+   "public/framework/ai/rail/readme.md"
+  ]
+ }
+]

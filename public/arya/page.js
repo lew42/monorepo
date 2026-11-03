@@ -38,7 +38,7 @@ import { h1, p } from "/app.js";
 h1("Hello world");
 p("Edit this file, refresh, done.");`);
 
-		p("Run `node server.js`, open `http://localhost/yourname/`, and it is on screen. To make a sub page, make a sub folder with its own `page.js`.");
+		p("Open `http://monorepo.localhost/yourname/` and it is on screen — Servex starts the site for you. To make a sub page, make a sub folder with its own `page.js`.");
 
 		h2("Two things that will trip you up");
 

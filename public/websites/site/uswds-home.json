@@ -1,0 +1,1165 @@
+{
+	"name": "uswds-home",
+	"url": "https://designsystem.digital.gov/",
+	"title": "USWDS: The United States Web Design System | U.S. Web Design System (USWDS)",
+	"category": "system",
+	"captured_at": "2026-09-08T06:13:40.468Z",
+	"embed": "blocked",
+	"embed_note": "x-frame-options: SAMEORIGIN",
+	"shots": {
+		"400": "site/uswds-home/400.jpg",
+		"1280": "site/uswds-home/1280.jpg",
+		"1920": "site/uswds-home/1920.jpg",
+		"3440": "site/uswds-home/3440.jpg",
+		"long": "site/uswds-home/long.jpg"
+	},
+	"layout": {
+		"400": "1-bands",
+		"1280": "1-bands",
+		"1920": "1-bands",
+		"3440": "1-bands"
+	},
+	"sections": [
+		{
+			"name": "government banner + header",
+			"layout": "1-flow",
+			"css": "block, full-bleed, sticky nav",
+			"note": "the official-site banner, header and nav are each their own full-width band; the nav row becomes sticky once you scroll past it."
+		},
+		{
+			"name": "hero",
+			"layout": "1-flow",
+			"css": "block, inside a centred 1400px grid-container",
+			"note": "headline and two buttons on the left, a decorative device collage on the right; the collage bleeds visually past the text but the container itself is capped and centred, same as every band below it."
+		},
+		{
+			"name": "graphic list",
+			"layout": "n-wall",
+			"css": "flex row, inside the same 1400px container",
+			"note": "four equal icon-cards (Components, Patterns, Design tokens, Utilities) in one row above the tablet breakpoint, stacking to one column on a phone."
+		},
+		{
+			"name": "sites built with USWDS",
+			"layout": "3-equal",
+			"css": "flex row, wraps",
+			"note": "three real government-site screenshots per row at desktop, one per row on a phone, inside its own full-bleed tinted band."
+		},
+		{
+			"name": "footer + gov identifier",
+			"layout": "1-flow",
+			"css": "block, full-bleed bands each with their own centred container",
+			"note": "the footer and the standard federal 'identifier' masthead (agency name, required links, USA.gov badge) are each a separate full-width band."
+		}
+	],
+	"tags": [
+		"1-bands",
+		"1-flow",
+		"n-wall",
+		"3-equal",
+		"4 column flex",
+		"3 column flex",
+		"full-bleed",
+		"measure",
+		"max-width",
+		"cards",
+		"system"
+	],
+	"responsive": {
+		"strategy": "A stack of full-bleed bands — banner, header, hero, feature row, showcase, footer, federal identifier — each painting its own background edge to edge and holding a 1400px centred container inside, the same combination Notion's and Figma's homepages use elsewhere in this batch. Every media query in this site's CSS is written in em/rem, not pixels, so the breakpoints below are pixel EQUIVALENTS of the source values (40em, 64em) rather than numbers the CSS states directly — a deliberate accessibility choice, since an em-based breakpoint moves along with a reader's own font-size setting instead of staying fixed.",
+		"breakpoints": [
+			480,
+			640,
+			1024
+		]
+	},
+	"scan": {
+		"scanned_at": "2026-09-08T06:13:54.646Z",
+		"css": {
+			"sheets": 1,
+			"bytes": 1130196,
+			"inline_bytes": 0
+		},
+		"media": [
+			"(forced-colors:active) and (min-width:30em){",
+			"(forced-colors:active){",
+			"(max-width:63.99em) and (prefers-reduced-motion){",
+			"(min-width:40em) and (forced-colors:active){",
+			"(min-width:63.06rem){",
+			"(min-width:64em) and (forced-colors:active){",
+			"(min-width:64em) and (min-width:64em) and (forced-colors:active){",
+			"(prefers-reduced-motion){",
+			"all and (max-width:19.99em){",
+			"all and (max-width:29.99em){",
+			"all and (max-width:39.99em){",
+			"all and (max-width:63.99em) and (min-width:40em){",
+			"all and (max-width:63.99em){",
+			"all and (min-width:20em){",
+			"all and (min-width:30em) and (min-width:64em){",
+			"all and (min-width:30em){",
+			"all and (min-width:40em) and (min-width:64em){",
+			"all and (min-width:40em){",
+			"all and (min-width:55em){",
+			"all and (min-width:64em) and (min-width:64em){",
+			"all and (min-width:64em){",
+			"all and (min-width:75em) and (min-width:64em){",
+			"all and (min-width:75em){",
+			"all and (min-width:87.5em){",
+			"print{",
+			"screen and (max-width:64rem) and (min-width:40rem){"
+		],
+		"container": [],
+		"breakpoints_seen": [],
+		"widths": {
+			"400": {
+				"doc": [
+					400,
+					4108
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "usa-banner site-banner",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							400,
+							48
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "usa-banner__header",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							400,
+							48
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "usa-header usa-header--extended",
+						"role": "banner",
+						"display": "block",
+						"rect": [
+							0,
+							48,
+							400,
+							48
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"id": "main-content",
+						"display": "block",
+						"rect": [
+							0,
+							96,
+							400,
+							2915
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "site-hero",
+						"display": "block",
+						"rect": [
+							0,
+							96,
+							400,
+							670
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "usa-section usa-graphic-list",
+						"display": "block",
+						"rect": [
+							0,
+							766,
+							400,
+							648
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "usa-section bg-base-lightest",
+						"display": "block",
+						"rect": [
+							0,
+							1414,
+							400,
+							1597
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "usa-footer site-footer",
+						"display": "block",
+						"rect": [
+							0,
+							3012,
+							400,
+							551
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "usa-identifier__section usa-identifier__section--masthead",
+						"display": "block",
+						"rect": [
+							0,
+							3563,
+							400,
+							164
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "usa-identifier__identity",
+						"display": "block",
+						"rect": [
+							16,
+							3643,
+							368,
+							68
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "usa-identifier__section usa-identifier__section--required-links",
+						"display": "block",
+						"rect": [
+							0,
+							3727,
+							400,
+							265
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "usa-identifier__section usa-identifier__section--usagov",
+						"display": "block",
+						"rect": [
+							0,
+							3992,
+							400,
+							100
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "usa-overlay",
+						"display": "block",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							400,
+							844
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "grid-container",
+						"display": "block",
+						"rect": [
+							0,
+							1446,
+							400,
+							778
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "grid-container tablet:margin-top-6",
+						"display": "block",
+						"rect": [
+							0,
+							2224,
+							400,
+							755
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "grid-row grid-gap",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "wrap",
+						"rect": [
+							8,
+							2224,
+							384,
+							755
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "grid-row grid-gap",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "wrap",
+						"rect": [
+							8,
+							1496,
+							384,
+							728
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1280": {
+				"doc": [
+					1280,
+					2130
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "usa-banner site-banner",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							1280,
+							22
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "usa-banner__header",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							1280,
+							22
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "usa-header usa-header--extended",
+						"role": "banner",
+						"display": "block",
+						"rect": [
+							0,
+							22,
+							1280,
+							80
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "usa-nav site-nav",
+						"display": "block",
+						"position": "sticky",
+						"rect": [
+							0,
+							102,
+							1280,
+							48
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"id": "main-content",
+						"display": "block",
+						"rect": [
+							0,
+							150,
+							1280,
+							1459
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "site-hero",
+						"display": "block",
+						"rect": [
+							0,
+							150,
+							1280,
+							351
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "usa-section usa-graphic-list",
+						"display": "block",
+						"rect": [
+							0,
+							502,
+							1280,
+							344
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "usa-section bg-base-lightest",
+						"display": "block",
+						"rect": [
+							0,
+							845,
+							1280,
+							764
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "usa-footer site-footer",
+						"display": "block",
+						"rect": [
+							0,
+							1610,
+							1280,
+							300
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "usa-identifier__section usa-identifier__section--masthead",
+						"display": "block",
+						"rect": [
+							0,
+							1910,
+							1280,
+							80
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "usa-identifier__identity",
+						"display": "block",
+						"rect": [
+							96,
+							1927,
+							1152,
+							45
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "usa-identifier__section usa-identifier__section--required-links",
+						"display": "block",
+						"rect": [
+							0,
+							1990,
+							1280,
+							69
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "usa-identifier__section usa-identifier__section--usagov",
+						"display": "block",
+						"rect": [
+							0,
+							2059,
+							1280,
+							55
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "usa-overlay",
+						"display": "block",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							1280,
+							800
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "grid-container",
+						"display": "block",
+						"rect": [
+							0,
+							909,
+							1280,
+							309
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "usa-footer__secondary-section",
+						"display": "block",
+						"rect": [
+							0,
+							1610,
+							1280,
+							300
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "grid-container tablet:margin-top-6",
+						"display": "block",
+						"rect": [
+							0,
+							1267,
+							1280,
+							279
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "grid-row grid-gap",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "wrap",
+						"rect": [
+							16,
+							1267,
+							1248,
+							279
+						],
+						"side_by_side": 3
+					}
+				]
+			},
+			"1920": {
+				"doc": [
+					1920,
+					2148
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "usa-banner site-banner",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							1920,
+							22
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "usa-banner__header",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							1920,
+							22
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "usa-header usa-header--extended",
+						"role": "banner",
+						"display": "block",
+						"rect": [
+							0,
+							22,
+							1920,
+							80
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "usa-nav site-nav",
+						"display": "block",
+						"position": "sticky",
+						"rect": [
+							0,
+							102,
+							1920,
+							48
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"id": "main-content",
+						"display": "block",
+						"rect": [
+							0,
+							150,
+							1920,
+							1477
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "site-hero",
+						"display": "block",
+						"rect": [
+							0,
+							150,
+							1920,
+							351
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "usa-section usa-graphic-list",
+						"display": "block",
+						"rect": [
+							260,
+							502,
+							1400,
+							344
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "usa-section bg-base-lightest",
+						"display": "block",
+						"rect": [
+							0,
+							845,
+							1920,
+							782
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "usa-footer site-footer",
+						"display": "block",
+						"rect": [
+							0,
+							1627,
+							1920,
+							300
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "usa-identifier__section usa-identifier__section--masthead",
+						"display": "block",
+						"rect": [
+							0,
+							1928,
+							1920,
+							80
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "usa-identifier__identity",
+						"display": "block",
+						"rect": [
+							356,
+							1945,
+							1272,
+							45
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "usa-identifier__section usa-identifier__section--required-links",
+						"display": "block",
+						"rect": [
+							0,
+							2008,
+							1920,
+							69
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "usa-identifier__section usa-identifier__section--usagov",
+						"display": "block",
+						"rect": [
+							0,
+							2077,
+							1920,
+							55
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "usa-overlay",
+						"display": "block",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							1920,
+							1080
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "usa-footer__secondary-section",
+						"display": "block",
+						"rect": [
+							0,
+							1627,
+							1920,
+							300
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "grid-container",
+						"display": "block",
+						"rect": [
+							260,
+							909,
+							1400,
+							332
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "usa-identifier site-identifier",
+						"display": "block",
+						"rect": [
+							0,
+							1928,
+							1920,
+							220
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "grid-container tablet:margin-top-6",
+						"display": "block",
+						"rect": [
+							260,
+							1289,
+							1400,
+							274
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"3440": {
+				"doc": [
+					3440,
+					2148
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "usa-banner site-banner",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							3440,
+							22
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "usa-banner__header",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							3440,
+							22
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "usa-header usa-header--extended",
+						"role": "banner",
+						"display": "block",
+						"rect": [
+							0,
+							22,
+							3440,
+							80
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "usa-nav site-nav",
+						"display": "block",
+						"position": "sticky",
+						"rect": [
+							0,
+							102,
+							3440,
+							48
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"id": "main-content",
+						"display": "block",
+						"rect": [
+							0,
+							150,
+							3440,
+							1477
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "site-hero",
+						"display": "block",
+						"rect": [
+							0,
+							150,
+							3440,
+							351
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "usa-section usa-graphic-list",
+						"display": "block",
+						"rect": [
+							1020,
+							502,
+							1400,
+							344
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "usa-section bg-base-lightest",
+						"display": "block",
+						"rect": [
+							0,
+							845,
+							3440,
+							782
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "usa-footer site-footer",
+						"display": "block",
+						"rect": [
+							0,
+							1627,
+							3440,
+							300
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "usa-identifier__section usa-identifier__section--masthead",
+						"display": "block",
+						"rect": [
+							0,
+							1928,
+							3440,
+							80
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "usa-identifier__identity",
+						"display": "block",
+						"rect": [
+							1116,
+							1945,
+							1272,
+							45
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "usa-identifier__section usa-identifier__section--required-links",
+						"display": "block",
+						"rect": [
+							0,
+							2008,
+							3440,
+							69
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "usa-identifier__section usa-identifier__section--usagov",
+						"display": "block",
+						"rect": [
+							0,
+							2077,
+							3440,
+							55
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "usa-overlay",
+						"display": "block",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							3440,
+							1440
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "usa-footer__secondary-section",
+						"display": "block",
+						"rect": [
+							0,
+							1627,
+							3440,
+							300
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "usa-identifier site-identifier",
+						"display": "block",
+						"rect": [
+							0,
+							1928,
+							3440,
+							220
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "grid-container",
+						"display": "block",
+						"rect": [
+							1020,
+							909,
+							1400,
+							332
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "grid-container tablet:margin-top-6",
+						"display": "block",
+						"rect": [
+							1020,
+							1289,
+							1400,
+							274
+						],
+						"side_by_side": 1
+					}
+				]
+			}
+		}
+	},
+	"notes": "The federal government's own design system homepage is built the same way as several marketing sites in this batch: full-width painted bands (a banner, the header, the hero, a row of features, a showcase of real government sites, the footer), each holding its content in a 1400px column that centres itself once the window is wide enough. The one thing that sets it apart from the rest of this batch is how its breakpoints are written: every single one is in em or rem units, never plain pixels, which is why the automatic px-breakpoint scan found none at all even though the page clearly does respond. An em-based breakpoint is an accessibility choice — it moves together with a reader's own font-size setting rather than staying fixed at a pixel number, which fits a site whose whole purpose is teaching government agencies to build accessible websites.",
+	"wire": {
+		"role": "page",
+		"kids": [
+			{
+				"role": "header",
+				"h": "9em"
+			},
+			{
+				"role": "hero",
+				"dir": "row",
+				"h": "22em",
+				"floor": "64rem",
+				"kids": [
+					{
+						"role": "hero",
+						"w": 1
+					},
+					{
+						"role": "image",
+						"w": 1
+					}
+				]
+			},
+			{
+				"role": "cards",
+				"dir": "row",
+				"h": "14em",
+				"floor": "40rem",
+				"kids": [
+					{
+						"role": "card",
+						"w": 1
+					},
+					{
+						"role": "card",
+						"w": 1
+					},
+					{
+						"role": "card",
+						"w": 1
+					},
+					{
+						"role": "card",
+						"w": 1
+					}
+				]
+			},
+			{
+				"role": "cards",
+				"dir": "row",
+				"h": "16em",
+				"floor": "64rem",
+				"kids": [
+					{
+						"role": "card",
+						"w": 1
+					},
+					{
+						"role": "card",
+						"w": 1
+					},
+					{
+						"role": "card",
+						"w": 1
+					}
+				]
+			},
+			{
+				"role": "footer",
+				"h": "10em"
+			}
+		]
+	}
+}

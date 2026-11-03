@@ -1,0 +1,13 @@
+{"title":"Part types","icon":"view_agenda","class":"../Parts.js","description":"One part of each of the six types a page.jsonl line can add."}
+{"content":{"add":{"id":"t-heading","type":"part-heading","text":"The six part types, one each"}}}
+{"content":{"add":{"id":"t-text","type":"part-text","text":"**part-text** takes a whole block of markdown: paragraphs, lists, `code`. Every block below is one line in this page's own `page.jsonl`."}}}
+{"content":{"add":{"id":"t-card","type":"part-card","title":"part-card","text":"A boxed title with a line under it."}}}
+{"content":{"add":{"id":"l-link","type":"part-text","text":"`part-link`"}}}
+{"content":{"add":{"id":"t-link","type":"part-link","path":"../example/","title":"part-link","text":"A card for another page: this one opens the parts example."}}}
+{"content":{"add":{"id":"t-view","type":"part-view","class":"./Meter.js","data":{"label":"part-view","value":92}}}}
+{"content":{"add":{"id":"l-file","type":"part-text","text":"`part-file`"}}}
+{"content":{"add":{"id":"t-file","type":"part-file","file":"./notes.md"}}}
+{"content":{"add":{"id":"t-live","type":"part-card","title":"Added while open","text":"This card was added by a live append while the page was open; the page redrew without a reload (doc/live-before.png, doc/live-after.png)."}}}
+{"file":"doc/"}
+{"file":"Meter.js"}
+{"file":"notes.md"}

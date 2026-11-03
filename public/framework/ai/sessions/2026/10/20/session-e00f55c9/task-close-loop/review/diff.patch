@@ -1,0 +1,101 @@
+diff --git a/public/framework/core/Session/Session.test.mjs b/public/framework/core/Session/Session.test.mjs
+index 78152525a..de262166e 100644
+--- a/public/framework/core/Session/Session.test.mjs
++++ b/public/framework/core/Session/Session.test.mjs
+@@ -73,15 +73,15 @@ check("replay: a bare child id walks to a nested task, two levels down (process-
+ 	return top instanceof Task && kid instanceof Task && kid.state === "complete" && kid2.state === "complete" && top.progress().done === 2 && top.progress().total === 2 && !("kid2" in s.data);
+ });
+ 
+-check("session completion (chat-model s7): 5 root tasks, 3 complete, 1 dropped, 1 open, nested subtasks not counted", () => {
++check("session completion (chat-model s7): 5 root tasks, 3 complete, 1 dropped, 1 half-done: the average of their own completions (2026-11-02)", () => {
+ 	const s = new Session("s7");
+ 	for (const id of ["a", "b", "c", "d", "e"]) s.tasks.add(new Task({ id }));
+ 	const [a, b, c, d, e] = ["a", "b", "c", "d", "e"].map(id => s.tasks.find(id));
+ 	a.complete(EV); b.complete(EV); c.complete(EV);
+ 	d.stop({ why: "duplicate" });   // dropped: not counted in either done or total
+-	e.tasks.add(new Task({ id: "nested" })); e.tasks.find("nested").complete(EV);   // a nested subtask under an open root task
++	e.tasks.add(new Task({ id: "n1" })); e.tasks.add(new Task({ id: "n2" })); e.tasks.find("n1").complete(EV);   // half done: counts 0.5, and progress() still counts root tasks only
+ 	const p = s.progress();
+-	return p.done === 3 && p.total === 4 && p.stopped === 1 && s.completion === 0.75;
++	return p.done === 3 && p.total === 4 && p.stopped === 1 && s.completion === 0.875;
+ });
+ 
+ process.exit(results.every(Boolean) ? 0 : 1);
+diff --git a/public/framework/core/Session/doc/classes.md b/public/framework/core/Session/doc/classes.md
+index 9b77db4b5..37eda7cdb 100644
+--- a/public/framework/core/Session/doc/classes.md
++++ b/public/framework/core/Session/doc/classes.md
+@@ -51,9 +51,7 @@ So the voice agents don't yet add or edit messages by id themselves: Servex does
+ 
+ ## Completion
+ 
+-Today, `Task.completion` with subtasks is **the share of subtasks that are complete**. A half-done subtask counts as 0, and stopped ones are left out.
+-
+-The owner's formula (2026-11-02) is **the average of each subtask's own completion**: the sum of their completions divided by their count. So a half-done subtask counts as 0.5, and a session at 100% means every task in it is at 100%. This is being changed in `core/Task/Task.js` (`progress_of` and `completion`), test first.
++`Task.completion` with subtasks is **the average of each subtask's own completion** (the owner, 2026-11-02): the sum of their completions divided by their count, stopped ones left out. A half-done subtask counts 0.5, the average recurses down the tree, and a session at 100% means every task in it is at 100%. `progress()` is unchanged: `{done, total, stopped}` still counts the direct tasks that are complete, for the counts. Tests: `core/Task/Task.test.mjs` ("a half-done subtask counts 0.5") and `core/Session/Session.test.mjs`.
+ 
+ ## An open naming question: `session.sessions`
+ 
+diff --git a/public/framework/core/Session/readme.md b/public/framework/core/Session/readme.md
+index 7329a1c00..5693952a1 100644
+--- a/public/framework/core/Session/readme.md
++++ b/public/framework/core/Session/readme.md
+@@ -20,7 +20,7 @@ class Session extends Task                       // ../Task/Task.js (Task extend
+   id                        // from the constructor, or line 1 of the log
+   messages: Chat, sentences: List<Sentence>   // the chat, in order, and the owner's raw words: ./Chat/readme.md (written by Servex beside V1's {chat} lines since 2026-11-01)
+   tasks: Task.List          // Task's list: add("a title"), add({title,…}), add({type: "Project"|"Process"|"Session"|"Prompt"|"Question", …}) (Prompt and Question: [core/Task/doc/prompt.md](/framework/core/Task/md/doc/prompt/)); each child knows created_at (its line's time)
+-  state, completion         // Task's getters; state comes from the record's own {"start"}/{"stop"} lines, completion = done / total of its tasks. Never stored
++  state, completion         // Task's getters; state comes from the record's own {"start"}/{"stop"} lines, completion = the average of its tasks' own completions (stopped ones left out; doc/classes.md, "Completion"). Never stored
+   progress(): {done,total,stopped}  // Task.progress_of(this._tasks), the one counting code; a stopped task counts in neither done nor total
+   first_at, last_at, span_ms  // from the lines' own times, never stored
+   static agents_resolver    // node wires it (Servex/agents/Agents.js agents_under): dir -> [{id, parent, role, state, cost, …}], the agent sessions whose task lives in that folder
+diff --git a/public/framework/core/Task/Task.js b/public/framework/core/Task/Task.js
+index 864740487..3a1357b10 100644
+--- a/public/framework/core/Task/Task.js
++++ b/public/framework/core/Task/Task.js
+@@ -312,11 +312,11 @@ export class Task extends Item {
+ 		return this;
+ 	}
+ 
+-	// 0..1. Order: owner check, subtasks (the one computed form), old `steps`, agent's value.
++	// 0..1. Order: owner check, subtasks (the average of their own completions, so it recurses), old `steps`, agent's value.
+ 	get completion(){
+ 		if (this.data.checked_by) return 1;
+-		const { done, total } = Task.progress_of(this._tasks);
+-		if (total) return done / total;
++		const kids = [...(this._tasks ?? [])].filter(t => t.state !== "stopped");
++		if (kids.length) return kids.reduce((sum, t) => sum + (typeof t.completion === "number" ? t.completion : t.state === "complete" ? 1 : 0), 0) / kids.length;   // the average of each subtask's own completion (the owner, 2026-11-02); a stopped one is left out
+ 		const steps = this.data.steps;
+ 		if (Array.isArray(steps) && steps.length){
+ 			const step = Math.max(1, Math.min(Number(this.data.step) || 1, steps.length));
+diff --git a/public/framework/core/Task/Task.test.mjs b/public/framework/core/Task/Task.test.mjs
+index d27da4a18..c72dc0a64 100644
+--- a/public/framework/core/Task/Task.test.mjs
++++ b/public/framework/core/Task/Task.test.mjs
+@@ -182,6 +182,13 @@ check("complete: subtasks are the share finished", () => {
+ 	t.tasks.find("a").complete(EV);
+ 	return t.completion === 0.5;
+ });
++check("complete: a half-done subtask counts 0.5, a stopped one is left out (the owner's formula, 2026-11-02)", () => {
++	const t = new Task({ id: "t" }), half = new Task({ id: "half" });
++	t.tasks.add(new Task({ id: "done" })); t.tasks.add(half); t.tasks.add(new Task({ id: "gone" }));
++	t.tasks.find("done").complete(EV); t.tasks.find("gone").stop?.({ why: "dropped" });
++	half.tasks.add(new Task({ id: "h1" })); half.tasks.add(new Task({ id: "h2" })); half.tasks.find("h1").complete(EV);
++	return t.tasks.find("gone").state === "stopped" && half.completion === 0.5 && t.completion === 0.75 && t.progress().done === 1 && t.progress().total === 2;
++});
+ check("complete: legacy steps, step is the current one", () => {
+ 	const t = Task.replay([{ assign: { steps: ["a", "b", "c", "d"], step: 3 } }]);
+ 	return t.completion === 0.5;
+diff --git a/public/framework/core/Task/readme.md b/public/framework/core/Task/readme.md
+index b2f48c162..0fe0a00c4 100644
+--- a/public/framework/core/Task/readme.md
++++ b/public/framework/core/Task/readme.md
+@@ -107,7 +107,7 @@ Watch it live: [core/Task/live/](/framework/core/Task/live/).
+   in `ai/objects.js`'s display `Task`, `ai/AITask`'s page renderer, `ext/JSONL`'s
+   `TaskJSONL`, and `ai/AITask/nested.js`'s `TaskTree`.
+ - **Fields** (getters that read data, never stored numbers): `expected`, `module`, `session` (`session ?? session_id`), `priority` (latest `{priority:{score,why,by}}` line or `null`), `commits` (short hashes from `{"commit":"…"}` lines, no duplicates; `commit(hash)` appends one). Replay reads both lines without leaving the legacy mapping. `sessions` ([{id, task}], node appends it), `source` (voice-app | vscode | dictate | servex:<id>; an old `/` doc path reads as `doc`) and `cost` (USD, computed from the agents on this task via `Task.cost_resolver`, wired in `Servex/agents/Agents.js`).
+-- **`completion`** (0 to 1): `checked_by` set (`check({by})`, final) is 1; else the share of complete subtasks (the only computed form); else old `steps`/`step` logs; else the agent's `data.completion`, or 1 when complete. New tasks no longer write `steps`.
++- **`completion`** (0 to 1): `checked_by` set (`check({by})`, final) is 1; else the average of the non-stopped subtasks' own completions (the only computed form; a half-done subtask counts 0.5, the average recurses); else old `steps`/`step` logs; else the agent's `data.completion`, or 1 when complete. New tasks no longer write `steps`.
+ 
+ ## More
+ 

@@ -1,0 +1,37 @@
+{
+ "id": "6fd116b6-bff3-434c-a703-51e02d00e824",
+ "first": "2026-10-15T00:33:15.237Z",
+ "last": "2026-10-15T00:59:23.107Z",
+ "task": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/demo-2",
+ "models": {
+  "claude-sonnet-5-5": 39
+ },
+ "sizes": {
+  "raw": 907373,
+  "content": 53323,
+  "stripped": 10605,
+  "owner_only": 11
+ },
+ "usd": 2.074439,
+ "usd_main": 2.074439,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 78,
+  "output": 51624,
+  "cache_read": 4376777,
+  "cache_write": 170672,
+  "w5": 0,
+  "w1": 170672
+ },
+ "messages": 39,
+ "subagent_files": 0,
+ "prompts": [
+  {
+   "at": "2026-10-15T00:38:51.225Z",
+   "t": "Continue from where you left off."
+  }
+ ],
+ "result": "Round 2 is done and committed (`kit/demo-2.md`): Related links wired, six new scheme-A screens, a 7-frame phone flow, 0 dead links in the click-test. I'm idle; only small visual polish is left, and the report lists it.",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.239Z"
+}

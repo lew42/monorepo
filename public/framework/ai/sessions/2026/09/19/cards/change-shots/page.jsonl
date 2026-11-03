@@ -1,0 +1,7 @@
+{"class":"/framework/ai2/card.js","title":"Screenshot on every change","type":"card","id":"2026/09/19/change-shots","created":"2026-09-19T16:34:46-05:00","by":"assistant","tags":[]}
+{"legacy":"change-shots"}
+{"status":"working"}
+{"icon":"photo_camera"}
+{"re":"o-163702"}
+{"text":"A skill loads on each file change and fires an already-running Playwright monitor for that page, shooting every resolution into a set folder, so the designer never waits on it. Commit last, only if the checks pass, and measure how long the loop takes."}
+{"focus":true}

@@ -1,0 +1,457 @@
+@layer base, theme, site, util;
+
+/* AI 2 — what is LEFT once merge 7 (inbox-ext) moved everything reusable into
+   ux/Card/Card.css: only AI 2's own v1 screens, which stay "until AI 2 is retired"
+   (the file's own words, since before this move) — the old Log tab's rows, the
+   Overview tab, the old Needs-you screen, and the old Log screen. Every other rule
+   that used to be here (a card's own grid, the Live card, the outline, card folders,
+   the tiny tabs) is ux/Card/Card.css now, loaded by card.js and this page's own
+   page.js. The Processes section (the Live card's RAM/CPU graph) is its own file,
+   ai/rail/processes.css, loaded by processes.js.
+   */
+@layer theme {
+
+	/* ── THE LOG TAB'S ROWS (log.js), AI 2's v1 Log ──
+	   The same row shape as the rail's (`.inbox-row`), kept here under the old names for
+	   log.js until AI 2 is retired; the AI page's Log is the rail itself at `?min=0`. */
+	.ai2-row {
+		display: block;
+		padding: var(--pad-card);
+		border-block-end: 1px solid var(--line);
+		border-inline-start: 3px solid transparent;
+		color: inherit;
+		text-decoration: none;
+		cursor: pointer;
+	}
+
+	.ai2-row:hover {
+		background: var(--fill-a04);
+	}
+
+	.ai2-row:is(.active, .in-path) {
+		background: var(--surface);
+		border-inline-start-color: var(--prime);
+	}
+
+	.ai2-row-head {
+		align-items: flex-start;
+	}
+
+	.ai2-row-title {
+		flex: 1;
+		min-width: 0;
+		font-weight: 600;
+		line-height: 1.35;
+		overflow-wrap: anywhere;
+	}
+
+	.ai2-row-when {
+		flex: none;
+		font-size: 0.8em;
+	}
+
+	/* One step between every part of a row, computed ONCE on the row (`--ai2-step`). */
+	@property --ai2-step {
+		syntax: "<length>";
+		inherits: true;
+		initial-value: 0px;
+	}
+
+	.ai2-log-rows .ai2-row {
+		--ai2-step: var(--gap-35);
+	}
+
+	.ai2-log-rows .ai2-row > * + * {
+		margin-block-start: var(--ai2-step);
+	}
+
+	/* The Log's "N updated ↑" pill — the rail's own (`.inbox-updated`), under its old name. */
+	.ai2-updated {
+		display: none;
+		position: sticky;
+		top: 0;
+		z-index: 2;
+		width: fit-content;
+		margin-block-end: var(--gap-35, 0.5em);
+		font-size: 0.8em;
+		padding: 0.25em 0.7em;
+		border-radius: 999px;
+		background: var(--surface);
+		border: 1px solid var(--line);
+		color: var(--subtle);
+		box-shadow: 0 1px 4px rgb(0 0 0 / 0.15);
+	}
+	.ai2-updated:hover { color: var(--ink); border-color: var(--prime); }
+	.ai2-updated:not([hidden]) { display: inline-flex; }
+
+}
+
+/* ── the head and the Overview (ai2-overview, 2026-09-28) ─────────────────── */
+@layer theme {
+
+	/* THE HEAD: "AI 2" and its tabs, one band — `.inbox-head`, ux/Inbox/Inbox.css. */
+
+	/* THE TAB ORDER READS "Inbox · Needs you · Log · Overview" (2026-09-30 — Inbox is the
+	   default again, see page.js), and Inbox also stays FIRST in the MARKUP on purpose —
+	   `page.js`'s own comment on `route()` says why: ext/tabs' fallback rule lights whichever
+	   tab is the bar's DOM `:first-child` once nothing else matches (a card url matches no
+	   tab's own href), so keeping Inbox first in the markup is what makes a card page light
+	   Inbox. `order` only changes where each one PAINTS. */
+	.ai2-tab-inbox { order: 1; }
+	.ai2-tab-needs { order: 2; }
+	.ai2-tab-log { order: 3; }
+	.ai2-tab-overview { order: 4; }
+
+	/* ⚠ THE TAB LABELS WERE PINNED TO THE FAR RIGHT (the owner, 2026-09-30: "I'm not sure why
+	   they got aligned right. Those kinds of things should never happen") — not from anything
+	   about alignment, but from `order`: every real `.tab` above was given an explicit `order`
+	   (1-4), and `.tabs.block > .tab-bar::after` (`tabs.css`) — the trailing hairline that fills
+	   whatever space the tabs don't use — has NO `order` of its own, so it defaults to `0`,
+	   lower than every tab. A flex item with the lowest `order` paints FIRST: the invisible
+	   spacer (`flex: 1`, all the leftover width) landed before the tabs instead of after them,
+	   shoving the actual labels to the far end of the bar. Doc's own tab strip never sets
+	   `order` on its tabs, so it never hit this — same markup, same classes, only this page
+	   added per-tab ordering. Giving the spacer the highest order restores the normal reading:
+	   title, then tabs immediately beside it (same placement as every class doc page), then the
+	   empty hairline soaking up whatever is left. */
+	.ai2-head .tab-bar::after { order: 5; }
+
+	/* The Overview is a routed page (`overview/`) that mounts in the detail column like a
+	   card; while it is the active page it takes the whole shell (`inbox-takeover`). */
+	.page.ai2-overview-page {
+		display: block;
+		padding: 0;
+	}
+	/* the tab already names this view */
+	.ai2-overview-page > .page-title { display: none; }
+	/* The Folder link's own fix is one rule for every AI 2 page, near the top of this file. */
+	.ai2-overview-page > .ai2-overview { margin: 0; }
+
+	/* NEEDS YOU AND THE LOG — routed children now (2026-09-30: Inbox moved BACK to the bare
+	   root url, so Needs you gave up living there and is a normal child page, `needs/`, drawn
+	   exactly like Overview above; `log/` is new and drawn the same way). Both take over the
+	   whole shell (`inbox-takeover`) while they are the active page. */
+	.page:is(.ai2-needs-page, .ai2-log-page) {
+		display: block;
+		padding: var(--pad);
+	}
+	:is(.ai2-needs-page, .ai2-log-page) > .page-title { display: none; }
+
+	.ai2-overview {
+		padding: var(--pad);
+		display: flex; flex-direction: column; gap: 1.5em;
+	}
+
+	/* THE GRID: the first concept is the big one (two tracks wide), the rest fill in. */
+	.ai2-ov-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 24em), 1fr));
+		gap: 1.5em;
+		align-items: start;
+	}
+	.ai2-ov-first { grid-column: span 2; }
+	@media (width < 56em) { .ai2-ov-first { grid-column: auto; } }
+
+	.ai2-ov-card { display: flex; flex-direction: column; gap: 1em; min-width: 0; }
+	.ai2-ov-head {
+		display: flex; align-items: center; gap: 0.8em;
+		color: inherit; text-decoration: none;
+	}
+	.ai2-ov-head h3 { margin: 0; }
+	.ai2-ov-icon { font-size: 2.6em; line-height: 1; color: var(--prime); }
+	.ai2-ov-first .ai2-ov-icon { font-size: 3.6em; }
+	.ai2-ov-first .ai2-ov-head h3 { font-size: 1.6em; }
+
+	/* ONE ROW PER ASK: the quote, a small state word, the result link; the timeline under it. */
+	.ai2-ov-asks { display: flex; flex-direction: column; gap: 0.6em; }
+	.ai2-ov-first > .ai2-ov-asks { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 22em), 1fr)); column-gap: 1.5em; }
+	.ai2-ov-ask-main { display: flex; align-items: baseline; gap: 0.5em; flex-wrap: wrap; line-height: 1.4; }
+	.ai2-ov-card > * { margin: 0; }
+	.ai2-ov-quote { flex: 1 1 12em; min-width: 0; color: inherit; text-decoration: none; }
+	a.ai2-ov-quote:hover { text-decoration: underline; }
+	.ai2-ov-state {
+		font-size: 0.75em; padding: 0.05em 0.5em; border-radius: 1em;
+		background: var(--fill-a08, rgba(127, 127, 127, 0.15)); color: var(--subtle);
+	}
+	.ai2-ov-result { font-size: 0.85em; white-space: nowrap; color: var(--prime); }
+	/* THE OWNER'S OWN RAW WORDS — one click away (brief D), never the headline: a quiet
+	   `<summary>` line, not the boxed `<details>` look `.ai2-ov-done` wears below, so it
+	   reads as "more detail" rather than a second collapsible section on the card. */
+	.ai2-ov-quote-full > summary {
+		cursor: pointer; font-size: 0.78em;
+		background: none; border: 0; padding: 0; min-height: 0;
+	}
+	.ai2-ov-quote-text {
+		margin: 0.3em 0 0; font-size: 0.85em; font-style: italic;
+		color: var(--subtle); overflow-wrap: anywhere;
+	}
+	.ai2-ov-line {
+		display: none;
+		font-size: 0.8em; color: var(--subtle); text-decoration: none;
+		padding-block-start: 0.15em;
+		white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+	}
+	.ai2-ov-ask:hover > .ai2-ov-line,
+	.ai2-ov-timeline .ai2-ov-line { display: block; }
+
+	/* DONE IS ONE LINE — it opens to the done rows, never a wall of 100% bars. */
+	/* ⚠ framework.css draws a bare <summary> as a control (a box and a fill); this one is a line. */
+	.ai2-ov-done > summary {
+		cursor: pointer; color: var(--subtle);
+		background: none; border: 0; padding: 0; min-height: 0; font-size: 0.9em;
+	}
+	.ai2-ov-done[open] > summary { margin-block-end: 0.6em; }
+	.ai2-ov-top { gap: 1.5em; }
+	.ai2-ov-toggle { cursor: pointer; font-size: 0.85em; }
+}
+
+/* ── the Needs you tab (ai2-needs-row, 2026-09-29) ─────────────────────────
+   ONE BIG PLAIN LINE PER ITEM (brief D). Before this block existed, `.ai2-need*` had NO
+   rules of its own, so every row fell back to a bare `<a>` and `<div>`: default link-blue
+   underline, the icon on its own line, the title running straight into the meta text — the
+   mastermind's own judged miss. The row is icon, then a title/question/meta column that
+   grows, then the control (buttons or a reply box) at the right WHEN IT FITS — `flex-wrap`
+   drops the control to its own line once the row is too narrow for both. */
+@layer theme {
+	.ai2-needs-list { max-width: 56em; }
+
+	/* Padding is tighter than the module's usual `--gap-50` rows (mastermind's judged fix,
+	   2026-09-29: "aim for 8-10 items above the fold at 1920") — this list is read top to
+	   bottom in one sitting, not browsed like the rail, so a shorter row that still reads
+	   clearly beats spacing tuned for a different kind of list. */
+	.ai2-need {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: flex-start;
+		gap: var(--gap-35);
+		padding-block: 0.6em;
+		border-block-end: 1px solid var(--line);
+	}
+
+	.ai2-need:first-child { padding-block-start: 0; }
+
+	/* The whole icon + title + question + meta column is ONE link to the card — plain, not
+	   the site's default blue-underline prose link (this is not `p`/`li` text, so nothing
+	   restyles it without this rule). */
+	.ai2-need-head {
+		display: flex;
+		align-items: flex-start;
+		gap: var(--gap-25);
+		flex: 1 1 24em;
+		min-width: 0;
+		color: inherit;
+		text-decoration: none;
+	}
+
+	.ai2-need-head:hover .ai2-need-title { text-decoration: underline; }
+
+	.ai2-need-head > .icon {
+		flex: none;
+		margin-block-start: 0.15em;
+		opacity: 0.7;
+	}
+
+	.ai2-need-body { flex: 1; min-width: 0; }
+
+	/* THE IMPORTANCE BADGE (asks-ledger/view, 2026-09-30) — `importance()`'s own number, shown
+	   on every row (brief D). `.inbox-score` (ux/Inbox) is the same look for the rail's own
+	   rows. Muted grey normally; only a
+	   score of 70+ (the "blocking" bands and up) turns it the error colour, so red means
+	   something on this page instead of decorating every row. */
+	.ai2-need-score {
+		flex: none;
+		display: inline-block;
+		min-width: 1.6em;
+		padding: 0.05em 0.4em;
+		border-radius: 1em;
+		background: var(--fill-a08);
+		font-size: 0.75em;
+		font-weight: 700;
+		text-align: center;
+	}
+
+	.ai2-need-score-hot {
+		background: var(--error);
+		color: white;
+	}
+
+	/* THE HEADLINE — the card's own SHORT title, big and plain (brief D: "a short title...
+	   not raw dictation"). A visible "Blocker" flag sits beside it only for that one kind;
+	   every kind still says its word once more, quietly, in the meta line below. */
+	.ai2-need-title {
+		font-weight: 600;
+		font-size: 1.1em;
+		line-height: 1.3;
+		overflow-wrap: anywhere;
+	}
+
+	.ai2-need-blocker-flag {
+		flex: none;
+		padding: 0.05em 0.5em;
+		border-radius: 1em;
+		background: var(--error);
+		color: white;
+		font-size: 0.75em;
+		font-weight: 700;
+		text-transform: uppercase;
+	}
+
+	/* THE FULL ASK, AS ONE QUIET LINE under the title — CSS-ellipsised (never `short_title()`'s
+	   word-cut), so a long dictated question never wraps to three or four lines and pushes the
+	   next item off the fold; the whole sentence survives in `title=` (a hover) and, unabridged,
+	   as the row's own link text one click into the card. */
+	.ai2-need-question {
+		display: block;
+		margin-block-start: 0.2em;
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+	}
+
+	.ai2-need-meta {
+		display: block;
+		margin-block-start: 0.25em;
+		font-size: 0.8em;
+	}
+
+	/* THE CONTROL — buttons or a one-line reply box, at the right of the same row when the
+	   row is wide enough for both (`flex-wrap` on `.ai2-need` above drops it to its own full
+	   line otherwise, e.g. a narrow phone width). */
+	.ai2-need-control {
+		flex: 1 1 18em;
+		min-width: 14em;
+		max-width: 22em;
+	}
+
+	.ai2-need-options {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4em;
+	}
+
+	.ai2-need-opt {
+		flex: none;
+		padding: 0.3em 0.8em;
+		border: 1px solid var(--line);
+		border-radius: 0.3em;
+		background: var(--surface);
+		color: inherit;
+		font: inherit;
+		font-size: 0.9em;
+		cursor: pointer;
+	}
+
+	.ai2-need-opt:hover {
+		border-color: var(--prime);
+		color: var(--prime);
+	}
+
+	/* WRAPPED, not one tight row — a fixed-width control column (22em) left the field only
+	   ~8em beside the "Answer" button, showing just "Your" of "Your answer…" (mastermind's
+	   judged fix, 2026-09-29). The field takes the control's full width on its own line;
+	   "Answer" sits under it. */
+	.ai2-need-reply {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4em;
+	}
+
+	.ai2-need-field {
+		flex: 1 1 100%;
+		min-width: 10em;
+		height: 2.2em;
+		padding: 0.3em 0.5em;
+		border: 1px solid var(--line);
+		border-radius: 0.3em;
+		background: var(--surface);
+		color: inherit;
+		font: inherit;
+		font-size: 0.9em;
+		resize: none;
+		overflow: hidden;
+	}
+
+	.ai2-need-send {
+		flex: none;
+	}
+
+	/* ⚠ `:not([hidden])`, not a bare `display: block` — a plain `.ai2-need-err { display:
+	   block }` beats the browser's own `[hidden] { display: none }` (equal specificity,
+	   author beats UA regardless of layers), so every error line showed at rest — exactly
+	   the "`display: none` cannot hide a utility class" trap this module's own readme warns
+	   about, just with an attribute instead of a class. */
+	.ai2-need-err {
+		margin-block-start: 0.3em;
+		color: var(--error);
+		font-size: 0.8em;
+	}
+	.ai2-need-err:not([hidden]) { display: block; }
+
+	.ai2-needs-empty {
+		display: block;
+		padding-block: var(--gap-50);
+	}
+
+	/* Too narrow for the control beside the text (a phone, or the rail's own width if this
+	   tab is ever embedded narrower): the control takes the row's full width on its own line. */
+	@media (width < 34em) {
+		.ai2-need-control { flex-basis: 100%; max-width: none; }
+	}
+}
+
+/* ── the Log tab (ai2-log, 2026-09-30) ─────────────────────────────────────
+   "EVERYTHING IN FLIGHT" (the owner, verbatim: "anything that's being worked on should show
+   up in there... each card in on the log should have a status"). One row per TASK, the exact
+   same row shape the rail draws (`.ai2-row`, `.ai2-row-head`, `.ai2-row-title`,
+   `.ai2-row-when` — all bare classes, styled once, above, and reused here rather than
+   restated), with one thing added: the status dot. `log.js` is the data and the draw. */
+@layer theme {
+	.ai2-log-list { max-width: 56em; position: relative; }
+
+	.ai2-log-rows {
+		container: ai2-log-rows / inline-size;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.ai2-log-line {
+		display: block;
+		font-size: 0.9em;
+		overflow-wrap: anywhere;
+	}
+
+	/* THE SAME "N UPDATED ↑" PILL AS THE RAIL (the owner: the reorder fix "applies to both") —
+	   `log.js` puts BOTH classes on its button (`ai2-updated ai2-log-updated`), so every rule
+	   above (position, size, colour) already applies; this adds only the one thing that differs,
+	   the gap below it before the first row (simplified, review finding 2026-09-30 — it used to
+	   restate `.ai2-updated`'s position/size/shadow rules with barely different numbers). */
+	.ai2-log-updated { margin-block-end: var(--gap-35, 0.5em); }
+
+	/* GREEN = DONE, YELLOW FLASHING = IN PROGRESS, RED = STALLED (the owner, verbatim: "the
+	   yellow flashing is sort of like in progress and green should be done"). `visibility`
+	   is never used here the way `.ai2-dot` (unread) uses it — a status dot is always
+	   meaningful, so it is always shown, just three different colours. */
+	.ai2-status-dot {
+		width: 0.65em;
+		height: 0.65em;
+		border-radius: 50%;
+		flex: none;
+		position: relative;
+		top: 0.425em;   /* same optical centring as `.ai2-row-head > .ai2-dot`, above */
+	}
+	.ai2-status-done { background: var(--success, #2e7d32); }
+	.ai2-status-failed { background: var(--error); }
+	.ai2-status-progress {
+		background: var(--warning, #c99a00);
+		animation: ai2-status-flash 1.4s ease-in-out infinite;
+	}
+	@keyframes ai2-status-flash {
+		0%, 100% { opacity: 1; }
+		50% { opacity: 0.35; }
+	}
+	/* A reader who asked the OS to cut down on motion never gets an insistently blinking dot —
+	   it still reads "in progress" by colour alone, just steady. */
+	@media (prefers-reduced-motion: reduce) {
+		.ai2-status-progress { animation: none; }
+	}
+}

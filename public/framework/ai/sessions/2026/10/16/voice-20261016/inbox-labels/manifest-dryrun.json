@@ -1,0 +1,263 @@
+{
+ "applied": false,
+ "rule_before": 133,
+ "rule_new_before": 52,
+ "relabelled": 40,
+ "skipped": 0,
+ "kept_real": [
+  "2026/10/14/voice-chat-can-ask-the-mastermind-two-st",
+  "2026/10/14/archive-r2-copy-ready-waiting-on-one-cli",
+  "2026/10/14/figma-foundations-layouts-built-but-not",
+  "2026/10/14/figma-demo-site-is-paused-at-the-tool-li",
+  "2026/10/13/cloudflare-r2-for-a-server-readable-sess",
+  "2026/10/13/worktree-cleanup-3-unmerged-branches-wai",
+  "2026/10/13/before-the-next-github-push-7-mb-of-your",
+  "2026/10/13/restart-servex-so-the-log-sweeper-picks",
+  "2026/10/13/monorepo-backed-up-to-the-passport-drive",
+  "2026/10/12/phone-mic-on-the-phone-open-https-10-0-0",
+  "2026/10/12/voice-to-session-page-try-it-on-your-pho",
+  "2026/09/22/reuse-audit"
+ ],
+ "cards": [
+  {
+   "id": "2026/09/24/health-framework-core-page",
+   "title": "/framework/core/Page/ is not loading",
+   "file": "public/framework/ai/sessions/2026/09/24/cards/health-framework-core-page/page.jsonl",
+   "was": "needs-you"
+  },
+  {
+   "id": "2026/09/24/health-framework-ext-markdown-open",
+   "title": "/framework/ext/markdown/open/ is not loading",
+   "file": "public/framework/ai/sessions/2026/09/24/cards/health-framework-ext-markdown-open/page.jsonl",
+   "was": "needs-you"
+  },
+  {
+   "id": "2026/09/24/health-framework-ai-2026-09-24-concurrency",
+   "title": "/framework/ai/2026-09-24/concurrency/ is not loading",
+   "file": "public/framework/ai/sessions/2026/09/24/cards/health-framework-ai-2026-09-24-concurrency/page.jsonl",
+   "was": "needs-you"
+  },
+  {
+   "id": "2026/09/24/health-framework-ext-markdown",
+   "title": "/framework/ext/markdown/ is not loading",
+   "file": "public/framework/ai/sessions/2026/09/24/cards/health-framework-ext-markdown/page.jsonl",
+   "was": "needs-you"
+  },
+  {
+   "id": "2026/09/24/health-framework-ai-2026-09-24",
+   "title": "/framework/ai/2026-09-24/ is not loading",
+   "file": "public/framework/ai/sessions/2026/09/24/cards/health-framework-ai-2026-09-24/page.jsonl",
+   "was": "needs-you"
+  },
+  {
+   "id": "2026/09/23/health-framework-ai2",
+   "title": "/framework/ai2/ is not loading",
+   "file": "public/framework/ai/sessions/2026/09/23/cards/health-framework-ai2/page.jsonl",
+   "was": "needs-you"
+  },
+  {
+   "id": "2026/09/23/localhost-names",
+   "title": "servex.localhost, monorepo.localhost - no port",
+   "file": "public/framework/ai/sessions/2026/09/23/cards/localhost-names/page.jsonl",
+   "was": "needs-you"
+  },
+  {
+   "id": "2026/09/21/hook-audit",
+   "title": "Which guards are actually running",
+   "file": "public/framework/ai/sessions/2026/09/21/cards/hook-audit/page.jsonl",
+   "was": "needs-you"
+  },
+  {
+   "id": "2026/09/21/stepback",
+   "title": "What today cost, and what that says",
+   "file": "public/framework/ai/sessions/2026/09/21/cards/stepback/page.jsonl",
+   "was": "needs-you"
+  },
+  {
+   "id": "2026/09/21/fast-loop",
+   "title": "Your architecture: per-task mastermind, a live Playwright monitor",
+   "file": "public/framework/ai/sessions/2026/09/21/cards/fast-loop/page.jsonl",
+   "was": "needs-you"
+  },
+  {
+   "id": "2026/09/21/safe-rollout",
+   "title": "Worktrees work, but not on this repo yet",
+   "file": "public/framework/ai/sessions/2026/09/21/cards/safe-rollout/page.jsonl",
+   "was": "needs-you"
+  },
+  {
+   "id": "2026/09/21/today-index",
+   "title": "Everything you asked for today, in one place",
+   "file": "public/framework/ai/sessions/2026/09/21/cards/today-index/page.jsonl",
+   "was": "needs-you"
+  },
+  {
+   "id": "2026/09/20/find-slash-hook",
+   "title": "Fourth time an agent scanned the whole disk",
+   "file": "public/framework/ai/sessions/2026/09/20/cards/find-slash-hook/page.jsonl",
+   "was": "needs-you"
+  },
+  {
+   "id": "2026/09/20/settings-lines",
+   "title": "Both hooks, one paste",
+   "file": "public/framework/ai/sessions/2026/09/20/cards/settings-lines/page.jsonl",
+   "was": "needs-you"
+  },
+  {
+   "id": "2026/09/20/partial-rebuilds",
+   "title": "Two more files look half-rebuilt",
+   "file": "public/framework/ai/sessions/2026/09/20/cards/partial-rebuilds/page.jsonl",
+   "was": "needs-you"
+  },
+  {
+   "id": "2026/09/20/start-here",
+   "title": "Start here: four things, in order",
+   "file": "public/framework/ai/sessions/2026/09/20/cards/start-here/page.jsonl",
+   "was": "needs-you"
+  },
+  {
+   "id": "2026/09/20/needs-you-backlog",
+   "title": "23 things are waiting on you",
+   "file": "public/framework/ai/sessions/2026/09/20/cards/needs-you-backlog/page.jsonl",
+   "was": "needs-you"
+  },
+  {
+   "id": "2026/09/20/dictation-broken",
+   "title": "Dictation works - reload your tab",
+   "file": "public/framework/ai/sessions/2026/09/20/cards/dictation-broken/page.jsonl",
+   "was": "needs-you"
+  },
+  {
+   "id": "2026/09/19/commit-decision",
+   "title": "1. How this repo gets committed",
+   "file": "public/framework/ai/sessions/2026/09/19/cards/commit-decision/page.jsonl",
+   "was": "needs-you"
+  },
+  {
+   "id": "2026/09/19/reset-culprit",
+   "title": "Still worth knowing who stashes",
+   "file": "public/framework/ai/sessions/2026/09/19/cards/reset-culprit/page.jsonl",
+   "was": "needs-you"
+  },
+  {
+   "id": "2026/09/19/wake-on-arrival",
+   "title": "I wake on a timer, not when you speak",
+   "file": "public/framework/ai/sessions/2026/09/19/cards/wake-on-arrival/page.jsonl",
+   "was": "needs-you"
+  },
+  {
+   "id": "2026/09/19/restart-health",
+   "title": "2. One command, 30 seconds",
+   "file": "public/framework/ai/sessions/2026/09/19/cards/restart-health/page.jsonl",
+   "was": "needs-you"
+  },
+  {
+   "id": "2026/09/19/roles-on-paper",
+   "title": "The roles exist, the machinery does not",
+   "file": "public/framework/ai/sessions/2026/09/19/cards/roles-on-paper/page.jsonl",
+   "was": "needs-you"
+  },
+  {
+   "id": "2026/09/19/fable-stuck",
+   "title": "Kill the stuck Fable session",
+   "file": "public/framework/ai/sessions/2026/09/19/cards/fable-stuck/page.jsonl",
+   "was": "needs-you"
+  },
+  {
+   "id": "2026/09/19/versions-diverge",
+   "title": "Your fixes landed on a board you stopped using",
+   "file": "public/framework/ai/sessions/2026/09/19/cards/versions-diverge/page.jsonl",
+   "was": "needs-you"
+  },
+  {
+   "id": "2026/09/19/built-not-wired",
+   "title": "All seven bad grades are one problem",
+   "file": "public/framework/ai/sessions/2026/09/19/cards/built-not-wired/page.jsonl",
+   "was": "needs-you"
+  },
+  {
+   "id": "2026/09/19/mastermind-server-down",
+   "title": "Port 8123 is not running",
+   "file": "public/framework/ai/sessions/2026/09/19/cards/mastermind-server-down/page.jsonl",
+   "was": "needs-you"
+  },
+  {
+   "id": "2026/09/19/minion-writes",
+   "title": "That mistake cost 8.50 dollars",
+   "file": "public/framework/ai/sessions/2026/09/19/cards/minion-writes/page.jsonl",
+   "was": "needs-you"
+  },
+  {
+   "id": "2026/09/19/verbatim-gap",
+   "title": "Your words before 15:36 were never saved",
+   "file": "public/framework/ai/sessions/2026/09/19/cards/verbatim-gap/page.jsonl",
+   "was": "needs-you"
+  },
+  {
+   "id": "2026/09/19/subtree",
+   "title": "Worktrees: proven today, not wired in",
+   "file": "public/framework/ai/sessions/2026/09/19/cards/subtree/page.jsonl",
+   "was": "needs-you"
+  },
+  {
+   "id": "2026/09/19/stand-down",
+   "title": "Stood down — six loose ends",
+   "file": "public/framework/ai/sessions/2026/09/19/cards/stand-down/page.jsonl",
+   "was": "needs-you"
+  },
+  {
+   "id": "2026/09/19/process-redesign",
+   "title": "How the handover works",
+   "file": "public/framework/ai/sessions/2026/09/19/cards/process-redesign/page.jsonl",
+   "was": "needs-you"
+  },
+  {
+   "id": "2026/09/19/server-restart",
+   "title": "Safe to restart your server",
+   "file": "public/framework/ai/sessions/2026/09/19/cards/server-restart/page.jsonl",
+   "was": "needs-you"
+  },
+  {
+   "id": "2026/09/19/assistant-speed",
+   "title": "Measured: 3 s echo, 6 s answer",
+   "file": "public/framework/ai/sessions/2026/09/19/cards/assistant-speed/page.jsonl",
+   "was": "needs-you"
+  },
+  {
+   "id": "2026/09/19/assistant-stream",
+   "title": "Streaming replies: try it now",
+   "file": "public/framework/ai/sessions/2026/09/19/cards/assistant-stream/page.jsonl",
+   "was": "needs-you"
+  },
+  {
+   "id": "2026/09/19/padding-audit",
+   "title": "Padding audit: add a card word",
+   "file": "public/framework/ai/sessions/2026/09/19/cards/padding-audit/page.jsonl",
+   "was": "needs-you"
+  },
+  {
+   "id": "2026/09/19/prompt-hook",
+   "title": "Prompt hook: needs your yes",
+   "file": "public/framework/ai/sessions/2026/09/19/cards/prompt-hook/page.jsonl",
+   "was": "needs-you"
+  },
+  {
+   "id": "2026/09/19/assistant",
+   "title": "3:36 Ready to try: the assistant",
+   "file": "public/framework/ai/sessions/2026/09/19/cards/assistant/page.jsonl",
+   "was": "needs-you"
+  },
+  {
+   "id": "2026/09/19/icon-frame",
+   "title": "Your call, 2 minutes: square icon frames everywhere?",
+   "file": "public/framework/ai/sessions/2026/09/19/cards/icon-frame/page.jsonl",
+   "was": "needs-you"
+  },
+  {
+   "id": "2026/09/19/reloads",
+   "title": "Pages reloading themselves",
+   "file": "public/framework/ai/sessions/2026/09/19/cards/reloads/page.jsonl",
+   "was": "needs-you"
+  }
+ ]
+}

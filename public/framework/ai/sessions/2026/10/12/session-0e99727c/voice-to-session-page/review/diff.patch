@@ -1,0 +1,1227 @@
+diff --git a/Servex/Process.js b/Servex/Process.js
+index 5f6a00a54..e1705a3c4 100644
+--- a/Servex/Process.js
++++ b/Servex/Process.js
+@@ -58,6 +58,8 @@ export default class Process extends Events {
+         this.status = "stopped";
+         this.child = null;
+         this.restarts = 0;
++        this.crashes = 0;          // every unexpected exit since Servex started, never reset
++        this.last_crash = null;    // { at, code, signal } for the one plain line a page shows
+         this.stopping = false;
+         this.timer = null;
+         this.said = "";
+@@ -233,6 +235,8 @@ export default class Process extends Events {
+         this.child = null;
+ 
+         if (this.stopping) return this.settle("stopped", `stopped (code ${code}).`);
++        this.crashes++;
++        this.last_crash = { at: new Date().toISOString(), code, signal };
+         if (alive_for >= this.settled_after) this.restarts = 0;   // it was healthy; this is a fresh crash, not a loop
+         if (!this.autorestart) return this.settle("stopped", `exited (code ${code}, signal ${signal}) — autorestart is off.`);
+ 
+@@ -311,7 +315,7 @@ export default class Process extends Events {
+     toJSON(){
+         return {
+             name: this.name, status: this.status, pid: this.child?.pid ?? null,
+-            port: this.port ?? null, restarts: this.restarts, said: this.said,
++            port: this.port ?? null, restarts: this.restarts, crashes: this.crashes, last_crash: this.last_crash, said: this.said,
+             command: [this.command, ...this.args].join(" "), cwd: this.cwd ?? null
+         };
+     }
+diff --git a/Servex/Servex.js b/Servex/Servex.js
+index 273193b63..75c6b75f4 100644
+--- a/Servex/Servex.js
++++ b/Servex/Servex.js
+@@ -46,6 +46,7 @@ import { directory_tools } from "./agents/directory.js";
+ import tidy from "./agents/tidy.js";
+ import { run_clean, model_choices, list_examples, save_example } from "./ext/clean-test/run.js";
+ import { run_refine } from "./ext/refine/run.js";
++import VoicePage from "./ext/refine/VoicePage.js";
+ import hitl from "./agents/hitl.js";
+ import Inbox from "./agents/inbox.js";
+ import { docs_list, docs_read_file } from "./pages.js";
+@@ -673,6 +674,38 @@ export default class Servex extends Events {
+             res.json(await run_refine({ ...(req.body ?? {}), inbox: this.inbox }));
+         });
+ 
++        /* VOICE TO THE SESSION PAGE (ai/2026-10-12/voice-to-session-page): while someone talks, the browser
++         * posts the words so far and each one lands on the session's page as a page-tool delta
++         * (Servex/ext/refine/VoicePage.js). `final: true` closes the raw stage; /api/refine writes the rest. */
++        router.options("/api/voice", cors, (req, res) => res.status(204).end());
++
++        router.post("/api/voice", cors, express.json({ limit: "64kb" }), async (req, res) => {
++            const { session, prompt, text, final = false, source } = req.body ?? {};
++            if (!/^[0-9a-f-]{36}$/.test(session ?? "") || !/^[\w-]{4,60}$/.test(prompt ?? "") || typeof text !== "string" || !text.trim()) return res.status(400).json({ ok: false, why: "needs session (uuid), prompt (id) and text" });
++            try { await VoicePage.get(session, prompt).raw(text.slice(0, 20000), { final: !!final, source }); res.json({ ok: true }); }
++            catch (e){ res.json({ ok: false, why: String(e?.message ?? e) }); }
++        });
++
++        /* The same voice lines as a read-only stream (SSE), for a phone: the dev socket is localhost-only, so a LAN page cannot tail page.jsonl and follows this instead. */
++        router.get("/api/voice/stream", cors, (req, res) => {
++            const session = String(req.query.session ?? "");
++            if (!/^[0-9a-f-]{36}$/.test(session)) return res.status(400).json({ ok: false, why: "needs session (uuid)" });
++            res.set({ "content-type": "text/event-stream", "cache-control": "no-cache, no-transform", connection: "keep-alive", "x-accel-buffering": "no" });
++            res.flushHeaders?.();
++            const send = line => res.write("data: " + JSON.stringify(line) + "\n\n");
++            for (const line of VoicePage.lines(session)) send(line);
++            const fn = (s, line) => { if (s === session) send(line); };
++            VoicePage.listeners.add(fn);
++            const beat = setInterval(() => res.write(": ok\n\n"), 20000);
++            req.on("close", () => { clearInterval(beat); VoicePage.listeners.delete(fn); });
++        });
++
++        /* Whisper in one plain line for a page (ux/Dictate): is it up, and did Servex have to restart it? */
++        router.get("/api/whisper", cors, (req, res) => {
++            const w = this.processes.get("whisper")?.toJSON?.() ?? null;
++            res.json({ ok: true, status: w?.status ?? "unknown", port: w?.port ?? null, crashes: w?.crashes ?? 0, last_crash: w?.last_crash ?? null, said: w?.said ?? "" });
++        });
++
+         router.get("/api/logs", (req, res) => res.json(this.log.names()));
+ 
+         /* The dashboard's first paint. After this it hears about every change on
+diff --git a/Servex/ext/refine/VoicePage.js b/Servex/ext/refine/VoicePage.js
+new file mode 100644
+index 000000000..792288c2c
+--- /dev/null
++++ b/Servex/ext/refine/VoicePage.js
+@@ -0,0 +1,115 @@
++import { page_tools } from "../../agents/page_tools.js";
++import { quick_clean } from "../../../public/framework/ext/Refine/engine.js";
++import Outline from "../../../public/framework/ext/Refine/Outline.js";
++import Compose from "../../../public/framework/ext/Refine/stages/Compose.js";
++
++/**
++ * class VoicePage — writes ONE spoken prompt onto a session's page, stage by stage, through the page tools
++ * (`page_add` once, then `page_set` deltas on the item). Every open tab on `/framework/ai/sessions/<session>/`
++ * redraws within about 100 ms of each write (the JSONL tail), so nothing polls.
++ *
++ *   const v = VoicePage.get(session, prompt_id);
++ *   await v.raw("so the page should", { source: "dictated" });   // call as often as you like while talking
++ *   await v.raw(full_text, { final: true });
++ *   await v.clean(sentences, { ms });  await v.structured(md, { ms });  await v.notes(notes, { ms });
++ *
++ * Writes are queued per prompt so deltas land in the order they were made. The browser half is
++ * `public/framework/ext/Refine/stages/` (VoiceFlow); format and decisions: that folder's `doc/voice-to-page.md`.
++ */
++export default class VoicePage {
++
++	static open = new Map();   // "session/prompt" -> VoicePage, dropped when the prompt is done
++	static tools = null;
++	static listeners = new Set();   // (session, line) => void: the read-only stream a phone follows (GET /api/voice/stream)
++
++	/** Every line this session's open prompts have written, in order: what a late-joining follower replays. */
++	static lines(session){ return [...VoicePage.open.values()].filter(v => v.session === session).flatMap(v => v.lines); }
++
++	static get(session, prompt, by){
++		const key = session + "/" + prompt;
++		if (!VoicePage.open.has(key)) VoicePage.open.set(key, new VoicePage({ session, prompt, by }));
++		return VoicePage.open.get(key);
++	}
++
++	constructor({ session, prompt, by = "voice" }){
++		this.session = session; this.prompt = prompt; this.by = by;
++		this.id = "voice-" + prompt;
++		this.path = `/framework/ai/sessions/${session}/`;
++		this.created = false;
++		this.queue = Promise.resolve();
++		this.ms = {};
++		this.sentences = [];
++		this.lines = [];
++		this.parsed = null;
++	}
++
++	/** One tool call as a plain object; the tools answer a JSON string. */
++	async tool(name, args){
++		VoicePage.tools ??= Object.fromEntries(page_tools().map(t => [t.name, t]));
++		const raw = await VoicePage.tools[name].handler(args, { caller: this.by });
++		if (name === "page_read") return raw;   // plain markdown, not JSON
++		const out = JSON.parse(raw);
++		if (!out.ok) throw new Error(out.why ?? "page tool refused");
++		return out;
++	}
++
++	/** Queue one delta. The first ever delta for this prompt adds the item; the rest set fields on it. */
++	write(delta){
++		const first = this.lines.length === 0;
++		const line = first ? { content: { add: { id: this.id, type: "voice-prompt", ...delta } } } : { [this.id]: delta };
++		this.lines.push(line);
++		for (const fn of VoicePage.listeners) try { fn(this.session, line); } catch {}
++		const run = async () => {
++			if (!this.created){
++				this.created = true;
++				const seen = await this.tool("page_read", { path: this.path }).catch(() => "");
++				if (!String(seen).includes(`[${this.id}]`)) return this.tool("page_add", { path: this.path, item: { id: this.id, type: "voice-prompt", ...delta } });
++			}
++			return this.tool("page_set", { path: this.path, target: [this.id], delta });
++		};
++		return this.queue = this.queue.then(run, run);
++	}
++
++	/** The words so far. Also writes the instant mechanical clean (no model) so stage 2 moves with the voice. */
++	raw(text, { final = false, source } = {}){
++		if (!final && this.raw_closed_at && Date.now() - this.raw_closed_at < 3000) return this.queue;   // a late partial must not reopen words that were already finalised
++		if (final){ this.raw_closed_at = Date.now(); clearTimeout(this.pending_timer); this.pending_timer = null; return this.raw_write(text, true, source); }
++		// Partials are coalesced to one write per 700 ms: page.jsonl is replayed on every load, so it must not grow with every 150 ms post.
++		const wait = 700 - (Date.now() - (this.last_partial ?? 0));
++		if (wait > 0){
++			this.pending = [text, source];
++			this.pending_timer ??= setTimeout(() => { this.pending_timer = null; const [t, src] = this.pending; this.raw_write(t, false, src); }, wait);
++			return this.queue;
++		}
++		return this.raw_write(text, false, source);
++	}
++
++	raw_write(text, final, source){
++		this.last_partial = Date.now();
++		const sentences = this.clean_final ? null : quick_clean(text).map(s => s.text);
++		return this.write({ text: text.slice(0, 400), raw: text, raw_final: final, status: final ? "Cleaning" : "Hearing you", ...(source ? { source } : {}), ...(sentences ? { clean: sentences, clean_final: false } : {}) });
++	}
++
++	clean(sentences, { ms } = {}){
++		this.clean_final = true; this.sentences = sentences; this.ms.clean = ms;
++		return this.write({ clean: sentences, clean_final: true, ms: { ...this.ms }, status: "Structuring" });
++	}
++
++	structured(md, { ms } = {}){
++		this.parsed = Outline.parse(md); this.ms.structure = ms;
++		const refined = Compose.brief(this.parsed);
++		this.ms.refined = 0;
++		return this.write({ structure: md, subject: this.parsed.subject, refined, cards: Compose.cards(this.parsed), ms: { ...this.ms }, status: "Checking clarity" });
++	}
++
++	/** The Haiku pass landed: cards get their clarity flags and tags. */
++	notes(notes, { ms } = {}){
++		this.ms.cards = ms;
++		return this.write({ ...(this.parsed ? { cards: Compose.cards(this.parsed, notes) } : {}), ms: { ...this.ms }, status: "done" });
++	}
++
++	failed(why){ return this.write({ error: String(why).slice(0, 200) }); }
++
++	/** Forget this prompt a minute from now (the delay absorbs a straggling partial post). */
++	done(){ setTimeout(() => VoicePage.open.delete(this.session + "/" + this.prompt), 60000).unref(); }
++}
+diff --git a/Servex/ext/refine/run.js b/Servex/ext/refine/run.js
+index eb1119487..2029573c7 100644
+--- a/Servex/ext/refine/run.js
++++ b/Servex/ext/refine/run.js
+@@ -13,6 +13,7 @@ import ClarityScorer from "./ClarityScorer.js";
+ import Annotator from "./Annotator.js";
+ import Outline from "../../../public/framework/ext/Refine/Outline.js";
+ import TagRouter from "./TagRouter.js";
++import VoicePage from "./VoicePage.js";
+ import PromptLog from "../../../public/framework/ai/AISession/PromptLog.js";
+ 
+ const MODEL = "claude-sonnet-5-5";   // measured fastest of the cheap models that do the job: doc/refine-v3-2026-10-09.md
+@@ -24,12 +25,17 @@ const MODEL = "claude-sonnet-5-5";   // measured fastest of the cheap models tha
+ export async function run_refine({ text, model = MODEL, clarity_model = "claude-haiku-5-5", session = "", prompt = "", source = "typed", inbox = null } = {}){
+ 	if (typeof text !== "string" || !text.trim()) return { ok: false, why: "text must be a non-empty string" };
+ 	if (text.length > 20000) return { ok: false, why: "text is over 20000 characters" };
++	let voice = null;   // outside the try so the catch can mark a generated prompt id as failed too
+ 	try {
+ 		const t0 = Date.now();
+ 		const stages = {};
+ 		const id = session ? (prompt || PromptLog.new_id()) : "";
+ 		const log_errors = [];
+ 		let tag_notes = null;
++		// Each stage is also written onto the session's page as it lands (VoicePage.js), so a tab watching it sees raw -> cards live.
++		voice = id ? VoicePage.get(session, id) : null;
++		const page = work => voice ? work(voice).catch(e => log_errors.push("page: " + String(e.message ?? e))) : null;
++		await page(v => v.raw(text, { final: true, source }));
+ 		const log = async line => { if (id) try { await PromptLog.add(session, { prompt: id, ...line }, "refine"); } catch (e){ log_errors.push(String(e.message ?? e)); } };
+ 		await log({ stage: "raw", text, source });
+ 		const [result, runs] = await RefineCall.collect(async () => {
+@@ -38,9 +44,10 @@ export async function run_refine({ text, model = MODEL, clarity_model = "claude-
+ 			const c = await clean(text, { call: call("clean"), model });
+ 			stages.clean_ms = Date.now() - t_clean;
+ 			await log({ stage: "clean", sentences: c.sentences.map(x => x.text), final: true });
++			await page(v => v.clean(c.sentences.map(x => x.text), { ms: stages.clean_ms }));
+ 			const t_next = Date.now();
+ 			const [s, clar, notes] = await Promise.all([
+-				structure(c.sentences, { call: call("structure"), model }).then(r => (stages.structure_ms = Date.now() - t_next, r)),
++				structure(c.sentences, { call: call("structure"), model }).then(async r => (stages.structure_ms = Date.now() - t_next, await page(v => v.structured(r?.md ?? "", { ms: stages.structure_ms })), r)),
+ 				ClarityScorer.score(c.sentences, { model: clarity_model }).then(r => (stages.clarity_ms = Date.now() - t_next, r)),
+ 				id ? Annotator.annotate(c.sentences.map(x => x.text)).then(r => (stages.notes_ms = Date.now() - t_next, r)) : [],
+ 			]);
+@@ -53,6 +60,8 @@ export async function run_refine({ text, model = MODEL, clarity_model = "claude-
+ 					return { i, clarity: cl?.clarity ?? null, why: cl?.why ?? "", alternates: by.get(i)?.alternates ?? [], names: by.get(i)?.names ?? [], tags: by.get(i)?.tags ?? [] };
+ 				});
+ 				await log({ stage: "notes", notes: rows });
++				await page(v => v.notes(rows, { ms: Math.max(stages.clarity_ms ?? 0, stages.notes_ms ?? 0) }));
++				voice?.done();
+ 				if (inbox) try { tag_notes = new TagRouter({ inbox }).route({ session, prompt: id, notes: rows }); } catch (e){ log_errors.push("tag notes: " + String(e.message ?? e)); }
+ 			}
+ 			return { c, s, clar, notes };
+@@ -62,6 +71,7 @@ export async function run_refine({ text, model = MODEL, clarity_model = "claude-
+ 			runs: runs.map(r => ({ stage: r.stage, model: r.model, session_id: r.session_id, cost_usd: r.cost_usd, duration_ms: r.duration_ms, tokens: r.tokens })),
+ 		};
+ 	} catch (e){
++		voice?.failed(e?.message ?? e).catch(() => {});
+ 		return { ok: false, why: String(e?.message ?? e) };
+ 	}
+ }
+diff --git a/public/framework/ai/2026-10-12/voice-to-session-page/STATE.md b/public/framework/ai/2026-10-12/voice-to-session-page/STATE.md
+new file mode 100644
+index 000000000..a01b47207
+--- /dev/null
++++ b/public/framework/ai/2026-10-12/voice-to-session-page/STATE.md
+@@ -0,0 +1,41 @@
++# voice-to-session-page: state
++
++Landed in branch `voice-session` (worktree), merging into `michael/dev`; one Servex restart makes `/api/voice` and `/api/whisper` live.
++
++## Baseline on michael/dev (before)
++
++`/api/refine` total 6.6 s (clean 3.0, structure 3.6, clarity 2.8, notes 2.6, in parallel). Nothing from the five stages reached the session page (only `prompts.jsonl`).
++
++## After
++
++- Raw words stream to the page about every 150 ms while speaking or typing; clean 3-11 s; structure, subject, refined, cards, notes then done (7-15 s after Refine, Haiku latency varies). Model times are unchanged; the stages now arrive live.
++- Whisper: `whisper-proof.mjs` kills it; Servex restarts it in about 2 s (`crashes:1`). `GET /api/whisper` reports it; the Dictate row shows one plain line.
++- Phone: `phone-proof.mjs` (400 px, touch emulation, typing; `LAN_HOST=10.0.0.135` for the LAN path) shows all stages, no overflow. Four widths 400/1200/1920/3440 have no overflow.
++
++## Review round 1 (fresh Opus, verdict fix) — answers
++
++1. Cards composed in code, not by a model: recorded as a decision with the alternative in `stages/doc/voice-to-page.md`.
++2. The phone path was untested, and testing it found a real bug: off localhost the dev socket is off, so the session page loaded once and never streamed. Fixed: `GET /api/voice/stream` (SSE) + `VoiceFlow.follow`. `LAN_HOST=10.0.0.135 node phone-proof.mjs` now loads both pages by the LAN address (Servex calls go to `<origin>/servex`) and shows all five stages at 400 px. The dev proxy in front of the stream is plain http-proxy and was not exercised against a private Servex.
++3. Fixed: the "Servex is restarting it" line shows only for launching/restarting/crashed.
++4. `owner_note` posted (needs-you, links `ux/Dictate/doc/try-it.md`); landing is last.
++5. Not timed: Whisper to raw (no audio file run); Whisper itself is measured in `ux/Dictate/doc/whisper-flow`. Accepted gap.
++6. Whisper is Servex's child, so a page reload or a phone reconnect cannot touch it; only the crash restart was exercised.
++7. Fixed: partials coalesced to one write per 700 ms (8 partials became 3 lines).
++8. Fixed: a late partial is dropped only within 3 s of the final; `failed()` now reaches generated prompt ids.
++9. Only the Refine page streams to `/api/voice`; the VS Code app path is not wired (open).
++10. Layout: width probes at 400/1200/1920/3440 had no overflow; `layout-check.mjs` itself not run.
++
++## Not proven (and why)
++
++- A real phone over `10.0.0.135`: the live Servex lacks the routes until the restart. Mic needs https (owner's choice, `ux/Dictate/doc/https-lan.md`); typing or the phone keyboard's dictation is the fallback.
++- The Whisper restart line in a real browser after a crash (code and API proven).
++
++## Docs
++
++`ux/Dictate/doc/try-it.md` (steps for the phone), `ext/Refine/stages/doc/voice-to-page.md` (design), [loose-ends.md](loose-ends.md) (the 10 `now` rows, checked).
++
++## Decisions and alternatives
++
++- DOM-free `Compose` shared by Servex and the browser (alt: duplicate the text builders).
++- Per-prompt page item written through the page tools (alt: a new endpoint writing JSONL; rejected, one writer).
++- Verdicts on other tasks are written here, not into their `task.jsonl`.
+diff --git a/public/framework/ai/2026-10-12/voice-to-session-page/loose-ends.md b/public/framework/ai/2026-10-12/voice-to-session-page/loose-ends.md
+new file mode 100644
+index 000000000..a63fd0ae0
+--- /dev/null
++++ b/public/framework/ai/2026-10-12/voice-to-session-page/loose-ends.md
+@@ -0,0 +1,18 @@
++# Transcription `now` loose ends — checked against the repo
++
++Source: the "Transcription and refinement" block of [by-system.md](/framework/ai/sessions/2026/10/08/f74e9f54-7e5e-4567-b09f-9b6fee492350/task/by-system.md). Each row checked by reading the files or git, not by the label. "Closed" means the work exists; no other task's `task.jsonl` was edited (decision: those files are other agents' runtime state, so the verdict lives here).
++
++| Row | Verdict | Evidence |
++|---|---|---|
++| Interactive request cards in chat (prompt-card) | **Partly**: the five stages and the cards now draw live on the session page; the chat bubble still has no interactive cards | `ext/Refine/prompt-card.js` is used by `ai/v/3/prompts.js` and `ai/cards/faces.js`, not by `ext/Chat`; new: `ext/Refine/stages/CardsStage.js` |
++| Raw sentence highlight | **Closed**: algorithm is wired | `ext/Refine/engine.js` and `Refine.js` use the raw-match logic |
++| voice-pipeline (2026-10-04) | **Closed**: the commits are in history; review verdict was "fix" with 2 small notes, never landed formally | `dfc3f7c36`, `ec6d7692e`; `review.md` |
++| minion-cost-model | **Still open**: the agent was stopped on purpose and the dir holds only requirements and page | no result file, no code |
++| b-structure | **Closed**: both runs have `out/` results and the review replies say "fixed" | `b-structure/out/1-820pm`, `2-710pm` |
++| push-to-talk proof | **Closed**: `proof.md` and 7 screenshots exist | `ptt-proof/proof.md` |
++| push-to-talk wiring | **Closed by code**: `ux/Dictate/push-to-talk.js` exists and `Dictate.toggle` is wired; not re-run in a browser here | `Dictate.js`, `push-to-talk.js` |
++| fix-android | **Closed**: report with before/after table; the last fix `6827cae8f` is an ancestor of `michael/dev` | `fix-android/report.md` |
++| voice-dir-404 | **Closed**: voice-session dirs now carry `task.jsonl` | `ai/2026-09-30/voice-session-*/` |
++| chat-merge | **Closed**: `refine()` and `fill()` are in `ext/Chat/Chat.js` | `Chat.js` lines 43-47, 176 |
++
++What this task resolves of them: the voice-to-page loop (first row, partly). Left open: minion-cost-model, and prompt-card inside the chat bubble.
+diff --git a/public/framework/ai/2026-10-12/voice-to-session-page/phone-proof.mjs b/public/framework/ai/2026-10-12/voice-to-session-page/phone-proof.mjs
+new file mode 100644
+index 000000000..7f9a903a7
+--- /dev/null
++++ b/public/framework/ai/2026-10-12/voice-to-session-page/phone-proof.mjs
+@@ -0,0 +1,69 @@
++/* node .../phone-proof.mjs [scratch] — the phone flow, headless, at 400 px wide with touch:
++ * a private Servex (:8190) + the worktree's dev server (:8211); the browser's calls to Servex (:8090) are routed to the private one.
++ * It types into the Refine page the way the keyboard (or the app's own dictation) does, presses Refine, and watches the session page
++ * fill with the five stages at 400 px. Prints when each stage showed; saves a shot per width. */
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import { spawn, execFileSync } from "node:child_process";
++import { fileURLToPath, pathToFileURL } from "node:url";
++import { randomUUID } from "node:crypto";
++
++const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../../..");
++const SCRATCH = path.resolve(process.argv[2] || fs.mkdtempSync(path.join(os.tmpdir(), "phone-proof-")));
++const { browser, close } = await import(pathToFileURL(REPO + "/Server/browser.mjs").href);
++const sleep = ms => new Promise(r => setTimeout(r, ms));
++const t0 = Date.now(), say = s => console.log(`[${String(Date.now() - t0).padStart(6)}ms] ${s}`);
++const local = path.join(SCRATCH, "localappdata");
++fs.mkdirSync(path.join(local, "lew42", "servex"), { recursive: true });
++fs.writeFileSync(path.join(local, "lew42", "servex", "dispatch.off"), "phone proof\n");
++const env = { ...process.env, LOCALAPPDATA: local, SERVEX_PORT: "8190", SERVEX_PROXY_PORT: "8189", SERVEX_PROXY_INTERNAL: "8188", SERVEX_NO_GATE: "1", NO_WHISPER: "1", WHISPER_PORT: "8187" };
++for (const k of ["SERVEX_HOME", "SERVEX_NO_ASSISTANT", "SERVEX_NO_LAYERS", "SERVEX_NO_MONITOR", "PORT"]) delete env[k];
++const kids = [];
++const run = (cmd, args, e) => { const c = spawn(cmd, args, { cwd: REPO, env: e, stdio: "ignore", windowsHide: true }); kids.push(c); return c; };
++const kill = () => kids.forEach(c => { try { execFileSync("taskkill", ["/PID", String(c.pid), "/T", "/F"], { stdio: "ignore", windowsHide: true }); } catch {} });
++process.on("exit", kill);
++const wait = async url => { for (let i = 0; i < 80; i++){ try { if ((await fetch(url)).ok) return; } catch {} await sleep(500); } throw new Error("no answer: " + url); };
++run(process.execPath, ["Servex/index.js"], env);
++run(process.execPath, ["server.js"], { ...process.env, NO_SUPERVISE: "1", PORT: "8211", HOST: process.env.LAN_HOST ? "0.0.0.0" : "127.0.0.1" });
++const LAN = process.env.LAN_HOST, WEB = `http://${LAN || "127.0.0.1"}:8211`;   // LAN_HOST=10.0.0.135 loads the pages the way the phone does: Servex calls go to <origin>/servex
++try {
++	await wait("http://127.0.0.1:8190/api/agents"); await wait("http://127.0.0.1:8211/framework/");
++	const session = randomUUID();
++	const b = await browser();
++	const ctx = await b.newContext({ viewport: { width: 400, height: 800 }, hasTouch: true, isMobile: true });
++	await ctx.route(LAN ? `${WEB}/servex/**` : "http://127.0.0.1:8090/**", async route => {
++		const req = route.request(); if (req.url().includes("/api/voice")) say("browser -> /api/voice " + (JSON.parse(req.postData() || "{}").text || "").length + " chars"); const u = LAN ? req.url().replace(`${WEB}/servex`, "http://127.0.0.1:8190") : req.url().replace(":8090", ":8190");
++		const res = await route.fetch({ url: u }).catch(() => null);
++		if (!res) return route.abort();
++		await route.fulfill({ response: res, headers: { ...res.headers(), "access-control-allow-origin": "*", "access-control-allow-headers": "*" } });
++	});
++	// Playwright's route.fetch cannot carry a never-ending SSE body, so the stream goes straight to the private Servex (the dev proxy in front of it is plain http-proxy, not exercised here).
++	if (LAN) await ctx.addInitScript(() => { const E = window.EventSource; window.EventSource = function(u, o){ return new E(String(u).replace(location.origin + "/servex", "http://127.0.0.1:8190"), o); }; });
++	const refine = await ctx.newPage(); const errs = [];
++	refine.on("pageerror", e => errs.push(e.message));
++	await refine.goto(`${WEB}/framework/ext/Refine/?session=${session}`, { waitUntil: "load" });
++	await sleep(2500);
++	const watch = await refine.$eval(".refine-watch", e => e.getAttribute("href")).catch(() => null);
++	say("watch link: " + watch);
++	const watcher = await ctx.newPage();
++	watcher.on("response", r => { if (r.url().includes(session.slice(0, 8)) && r.url().includes("page.jsonl")) say("watcher " + r.status() + " " + r.url()); }); watcher.on("pageerror", e => say("watcher pageerror " + e.message));
++	await watcher.goto(`${WEB}/framework/ai/sessions/${session}/`, { waitUntil: "load" });
++	const seen = {}; const poll = setInterval(async () => {
++		try { for (const s of await watcher.$$eval(".voice-stage:not([hidden])", els => els.map(e => e.className.split(" ")[0]))) if (!seen[s]) { seen[s] = Date.now() - t0; say("stage visible on session page: " + s); } } catch {}
++	}, 150);
++	await refine.tap("textarea");
++	await refine.keyboard.type("so I want the phone to show my words on the session page as I speak, and then tidy them into points and one finished prompt", { delay: 15 });
++	say("typed");
++	await sleep(1500);
++	await refine.tap(".refine-go");
++	say("pressed Refine");
++	await sleep(45000);
++	clearInterval(poll);
++	console.log("stage times (ms since start):", JSON.stringify(seen), "page errors:", errs.slice(0, 3));
++	const o = await watcher.evaluate(() => document.documentElement.scrollWidth - innerWidth);
++	console.log("horizontal overflow at 400:", o);
++	await watcher.screenshot({ path: path.join(SCRATCH, "phone-session-400.png"), fullPage: true });
++	await refine.screenshot({ path: path.join(SCRATCH, "phone-refine-400.png") });
++	console.log("SESSION", session);
++} finally { kill(); await close(); }
+diff --git a/public/framework/ai/2026-10-12/voice-to-session-page/proof.mjs b/public/framework/ai/2026-10-12/voice-to-session-page/proof.mjs
+new file mode 100644
+index 000000000..6cb43e048
+--- /dev/null
++++ b/public/framework/ai/2026-10-12/voice-to-session-page/proof.mjs
+@@ -0,0 +1,57 @@
++/* node public/framework/ai/2026-10-12/voice-to-session-page/proof.mjs [scratch]
++ * Boots a PRIVATE Servex from this checkout (ports 8190/8189/8188, no whisper),
++ * plays a dictation into it the way the browser does (/api/voice partials, then
++ * /api/refine), and prints when each stage landed on the session's page.jsonl.
++ * Prints the session id so a headless shot can open /framework/ai/sessions/<id>/. */
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import { spawn, execFileSync } from "node:child_process";
++import { fileURLToPath } from "node:url";
++import { randomUUID } from "node:crypto";
++
++const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../../..");
++const SCRATCH = path.resolve(process.argv[2] || fs.mkdtempSync(path.join(os.tmpdir(), "voice-proof-")));
++const BASE = "http://127.0.0.1:8190";
++const sleep = ms => new Promise(r => setTimeout(r, ms));
++const t0 = Date.now(), at = () => Date.now() - t0;
++const say = s => console.log(`[${String(at()).padStart(6)}ms] ${s}`);
++const post = async (u, b) => (await fetch(BASE + u, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(b) })).json();
++
++const local = path.join(SCRATCH, "localappdata");
++fs.mkdirSync(path.join(local, "lew42", "servex"), { recursive: true });
++fs.writeFileSync(path.join(local, "lew42", "servex", "dispatch.off"), "voice proof\n");
++const env = { ...process.env, LOCALAPPDATA: local, SERVEX_PORT: "8190", SERVEX_PROXY_PORT: "8189", SERVEX_PROXY_INTERNAL: "8188", SERVEX_NO_GATE: "1", NO_WHISPER: "1", WHISPER_PORT: "8187" };
++for (const k of ["SERVEX_HOME", "SERVEX_NO_ASSISTANT", "SERVEX_NO_LAYERS", "SERVEX_NO_MONITOR", "PORT"]) delete env[k];
++const log = fs.openSync(path.join(SCRATCH, "servex.log"), "a");
++const child = spawn(process.execPath, ["Servex/index.js"], { cwd: REPO, env, stdio: ["ignore", log, log], windowsHide: true });
++const kill = () => { try { execFileSync("taskkill", ["/PID", String(child.pid), "/T", "/F"], { stdio: "ignore", windowsHide: true }); } catch {} };
++process.on("exit", kill);
++
++try {
++	let up = false; for (let i = 0; i < 60 && !up; i++){ try { up = Array.isArray(await (await fetch(BASE + "/api/agents")).json()); } catch {} if (!up) await sleep(500); } if (!up) throw new Error("Servex did not come up; see servex.log");
++	say("private Servex up");
++	const session = randomUUID(), prompt = "p" + Date.now().toString(36);
++	console.log("SESSION", session);
++	const words = "so I want the voice to show up on the session page um as I talk and then I want it cleaned up into points and a finished prompt".split(" ");
++	let text = "";
++	for (let i = 0; i < words.length; i += 4){
++		text = words.slice(0, i + 4).join(" ");
++		const r = await post("/api/voice", { session, prompt, text, source: "proof" });
++		say(`partial ${i / 4 + 1}: ${r.ok ? "ok" : r.why}`);
++		await sleep(150);
++	}
++	const t_final = at();
++	await post("/api/voice", { session, prompt, text, final: true, source: "proof" });
++	say("final raw posted");
++	const t_ref = at();
++	const r = await post("/api/refine", { text, session, prompt });
++	say(`/api/refine returned (${at() - t_ref} ms) ok=${r.ok ?? "?"}`);
++	await sleep(20000);   // clarity + annotator finish after refine returns
++	const AI = path.join(REPO, "public/framework/ai/sessions");
++	let page = null;
++	(function walk(d){ for (const e of fs.existsSync(d) ? fs.readdirSync(d, { withFileTypes: true }) : []){ const p = path.join(d, e.name); if (e.isDirectory()) walk(p); else if (e.name === "page.jsonl" && p.includes("session-" + session.slice(0, 8))) page = p; } })(AI);
++	say("page: " + page);
++	if (page) for (const l of fs.readFileSync(page, "utf8").split("\n").filter(Boolean)){ const o = JSON.parse(l); console.log(JSON.stringify(o).slice(0, 260)); }
++	console.log("PAGE", page);
++} finally { kill(); }
+diff --git a/public/framework/ai/2026-10-12/voice-to-session-page/whisper-proof.mjs b/public/framework/ai/2026-10-12/voice-to-session-page/whisper-proof.mjs
+new file mode 100644
+index 000000000..3ebdf517d
+--- /dev/null
++++ b/public/framework/ai/2026-10-12/voice-to-session-page/whisper-proof.mjs
+@@ -0,0 +1,36 @@
++/* node .../whisper-proof.mjs [scratch] — a PRIVATE Servex (ports 8190/8189/8188) starts its own whisper on :8187,
++ * the script kills whisper-server, and shows GET /api/whisper noticing the crash and Servex bringing it back. */
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import { spawn, execFileSync } from "node:child_process";
++import { fileURLToPath } from "node:url";
++
++const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../../..");
++const SCRATCH = path.resolve(process.argv[2] || fs.mkdtempSync(path.join(os.tmpdir(), "whisper-proof-")));
++const BASE = "http://127.0.0.1:8190", sleep = ms => new Promise(r => setTimeout(r, ms));
++const t0 = Date.now(), say = s => console.log(`[${String(Date.now() - t0).padStart(6)}ms] ${s}`);
++const get = async u => { try { return await (await fetch(BASE + u)).json(); } catch { return null; } };
++const local = path.join(SCRATCH, "localappdata");
++fs.mkdirSync(path.join(local, "lew42", "servex"), { recursive: true });
++fs.writeFileSync(path.join(local, "lew42", "servex", "dispatch.off"), "whisper proof\n");
++const home = path.join(process.env.LOCALAPPDATA, "lew42", "whisper");
++const env = { ...process.env, LOCALAPPDATA: local, WHISPER_HOME: home, WHISPER_PORT: "8187", SERVEX_PORT: "8190", SERVEX_PROXY_PORT: "8189", SERVEX_PROXY_INTERNAL: "8188", SERVEX_NO_GATE: "1" };
++for (const k of ["SERVEX_HOME", "NO_WHISPER", "SERVEX_NO_ASSISTANT", "SERVEX_NO_LAYERS", "SERVEX_NO_MONITOR", "PORT"]) delete env[k];
++const log = fs.openSync(path.join(SCRATCH, "servex.log"), "a");
++const child = spawn(process.execPath, ["Servex/index.js"], { cwd: REPO, env, stdio: ["ignore", log, log], windowsHide: true });
++const kill = () => { try { execFileSync("taskkill", ["/PID", String(child.pid), "/T", "/F"], { stdio: "ignore", windowsHide: true }); } catch {} };
++process.on("exit", kill);
++const until = async (fn, ms) => { const end = Date.now() + ms; while (Date.now() < end){ const v = await fn(); if (v) return v; await sleep(500); } return null; };
++try {
++	const up = await until(async () => (await get("/api/whisper"))?.status === "online" && await get("/api/whisper"), 90000);
++	say("first: " + JSON.stringify(up));
++	const pid = execFileSync("powershell", ["-NoProfile", "-Command", "(Get-NetTCPConnection -LocalPort 8187 -State Listen).OwningProcess"], { encoding: "utf8" }).trim();
++	say("killing whisper-server pid " + pid);
++	execFileSync("taskkill", ["/PID", pid, "/F"], { stdio: "ignore" });
++	const t_kill = Date.now();
++	const seen = await until(async () => { const w = await get("/api/whisper"); return w && w.crashes >= 1 && w.status === "online" && w; }, 90000);
++	say(`back after ${Date.now() - t_kill} ms: ` + JSON.stringify(seen));
++	const ok = await fetch("http://127.0.0.1:8187/").then(r => r.status).catch(e => String(e));
++	say("whisper answers on 8187: " + ok);
++} finally { kill(); }
+diff --git a/public/framework/ai/AISession/AISessionDetail.js b/public/framework/ai/AISession/AISessionDetail.js
+index a333b9d8c..30c9839cd 100644
+--- a/public/framework/ai/AISession/AISessionDetail.js
++++ b/public/framework/ai/AISession/AISessionDetail.js
+@@ -8,6 +8,7 @@ import AISessionTrace from "./AISessionTrace.js";
+ import AISession from "./AISession.js";
+ import AISessionConversation from "./AISessionConversation.js";
+ import JSONL from "/framework/ext/JSONL/JSONL.js";
++import VoiceFlow from "/framework/ext/Refine/stages/VoiceFlow.js";
+ 
+ // One session's own page, opened at /framework/ai/sessions/<id>/ (a real route, so a reload lands on the same
+ // view). Built with `new AISessionDetail({ home, id })`: `home` is the Sessions page it hangs under.
+@@ -67,10 +68,11 @@ export default class AISessionDetail extends Page {
+ 			a.c("muted sessions-template", "AISessionDetail.js").href("/framework/ai/AISession/AISessionDetail.js");
+ 		});
+ 
+-		let $box, $conv, $related, $costs, $spawn, $session, $trace;
++		let $box, $voice, $conv, $related, $costs, $spawn, $session, $trace;
+ 		div.c("cols main-aside sessions-detail-body", () => {
+ 			div.c("flow sessions-detail-main", () => {
+ 				$box = div.c("flow");     // which session this is (source tag, tab title, model)
++				$voice = div.c("flow");   // spoken prompts, stage by stage, live (ext/Refine/stages)
+ 				$conv = div.c("flow sessions-conv");   // the live conversation
+ 			});
+ 			div.c("flow sessions-detail-aside", () => {
+@@ -82,16 +84,19 @@ export default class AISessionDetail extends Page {
+ 			});
+ 		});
+ 		const conv = new AISessionConversation();
++		const voice = new VoiceFlow();
++		$voice.append(voice.view);
+ 		$conv.append(conv.view);
+ 
+ 		// `row` first: for a Servex row the url's id is the AGENT's id, a different string from its session_id,
+ 		// and the transcript and the date-path lookup both need the session_id.
+ 		AISessionDetail.load_row(url, id).then(async row => {
+ 			const session_id = row?.session_id ?? id;
++			voice.follow(session_id);   // a phone has no dev socket: it follows Servex's voice stream
+ 			// FIRST, before the slow loads below: the session's own page log (tabs, layout words, AI cards), live.
+ 			this.log_urls().then(urls => {
+ 				if (this.logs) return;
+-				const open = url => new AISessionDetail.Log({ url, page: this, on_card: c => conv.add_card(c) }).live();   // cards inline, tabs and words onto the page, live (doc/session-cards.md)
++				const open = url => new AISessionDetail.Log({ url, page: this, on_card: c => conv.add_card(c), on_lines: lines => voice.read(lines) }).live();   // cards inline, tabs and words onto the page, live (doc/session-cards.md)
+ 				const logs = this.logs = urls.map(open);
+ 				this._old_url?.then(old => { if (old && this.logs === logs) logs.push(open(old)); });
+ 			});
+@@ -244,6 +249,7 @@ export default class AISessionDetail extends Page {
+ AISessionDetail.Log = class SessionPageLog extends JSONL {
+ 	cards = new Set();
+ 	read(entries){
++		this.on_lines?.(entries);
+ 		for (const e of entries){
+ 			const item = e.content?.add;
+ 			if (item?.title && item.id && this.on_card && !this.cards.has(item.id)){ this.cards.add(item.id); this.on_card(item); }
+diff --git a/public/framework/ext/Refine/RefineDemo.js b/public/framework/ext/Refine/RefineDemo.js
+index 45f781cd7..7d1fef81a 100644
+--- a/public/framework/ext/Refine/RefineDemo.js
++++ b/public/framework/ext/Refine/RefineDemo.js
+@@ -1,4 +1,4 @@
+-import { View, div, span, textarea, button, select, option, details, summary, label } from "../../core/View/View.js";
++import { View, div, span, a, textarea, button, select, option, details, summary, label } from "../../core/View/View.js";
+ import ErrorLog from "../ErrorLog/ErrorLog.js";
+ import VoiceStrip from "../../ux/Dictate/VoiceStrip.js";
+ import Whisper from "../../audio/Whisper/Whisper.js";
+@@ -57,6 +57,7 @@ export default class RefineDemo extends View {
+ 			div.c("refine-said", () => {
+ 				span.c("refine-said-label", "1 · Said: speak, or type or paste here");
+ 				this.$note = span.c("refine-input-note");
++				a("Watch it on the session page →").href(this.system.page_url).ac("refine-watch");
+ 			});
+ 			this.$box = textarea.c().attr("placeholder", "Speak with the mic, or type or paste a prompt here…");
+ 			this.$box.el.addEventListener("input", () => this.quick());
+diff --git a/public/framework/ext/Refine/RefineSystem.js b/public/framework/ext/Refine/RefineSystem.js
+index c7eb0f8be..3b4aea961 100644
+--- a/public/framework/ext/Refine/RefineSystem.js
++++ b/public/framework/ext/Refine/RefineSystem.js
+@@ -39,6 +39,7 @@ export default class RefineSystem {
+ 	session = this.whisper.session("Refine demo");   // Dictate's on_whisper feeds it: system.session.record(line)
+ 	model = "claude-sonnet-5-5";                    // measured fastest cheap model: doc/refine-v3-2026-10-09.md
+ 	session_id = RefineSystem.session_id();            // the session whose log keeps this page's prompts (ai/AISession/PromptLog.js)
++	prompt_id = RefineSystem.new_prompt_id();          // names this prompt on the session page (`voice-<id>`); a new one per prompt
+ 	history = [];                                   // finished prompts of this page visit (plain summaries), newest last
+ 
+ 	constructor(...args){
+@@ -50,12 +51,36 @@ export default class RefineSystem {
+ 	 *  (`ai/sessions/…/prompts.jsonl`) the way a VS Code tab's do. A caller with a real session passes `session_id`. */
+ 	static session_id(){
+ 		try {
++			const asked = new URLSearchParams(location.search).get("session");   // ?session=<uuid>: talk to THAT session's page
++			if (/^[0-9a-f-]{36}$/.test(asked ?? "")) localStorage.setItem("refine.session", asked);
+ 			let id = localStorage.getItem("refine.session");
+ 			if (!/^[0-9a-f-]{36}$/.test(id ?? "")) localStorage.setItem("refine.session", id = crypto.randomUUID());
+ 			return id;
+ 		} catch { return crypto.randomUUID(); }
+ 	}
+ 
++	static new_prompt_id(){ return "p" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
++
++	/** Where the words are shown live: this session's page (every stage lands there as it happens). */
++	get page_url(){ return `/framework/ai/sessions/${this.session_id}/`; }
++
++	/** Send the words so far to the session page (stage 1, and the instant draft of stage 2). Trailing-throttled to ~150 ms;
++	 *  a failure never stops dictation, it is logged once. */
++	stream(text){
++		this._text = text;
++		if (this._timer) return;
++		this._timer = setTimeout(async () => {
++			this._timer = null;
++			try {
++				const { servex_url } = await import("/framework/dev/servex_url.js");
++				const res = await fetch(servex_url("/api/voice"), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ session: this.session_id, prompt: this.prompt_id, text: this._text, source: this.source ?? "dictated" }) });
++				const out = await res.json();
++				if (!out.ok) throw new Error(out.why ?? "voice route answered " + res.status);
++				this.streamed = true;
++			} catch (e){ if (!this.stream_failed){ this.stream_failed = true; ErrorLog.report(e, { where: "RefineSystem.stream" }); } }
++		}, 150);
++	}
++
+ 	/** Show the cleaned text NOW, with no model: the instant stage. Cheap enough to run on every chunk. */
+ 	quick(text){
+ 		const t0 = performance.now();
+@@ -63,6 +88,7 @@ export default class RefineSystem {
+ 		if (prompt.status === "done") return;   // a finished result is not overwritten by later chunks
+ 		prompt.raw = text;
+ 		prompt.load_quick(quick_clean(text), +(performance.now() - t0).toFixed(2));
++		this.stream(text);
+ 	}
+ 
+ 	/** Refine one prompt. Never throws: a failure becomes `prompt.status === "error"`. */
+@@ -76,7 +102,7 @@ export default class RefineSystem {
+ 				const { servex_url } = await import("/framework/dev/servex_url.js");
+ 				url = servex_url("/api/refine");
+ 			}
+-			const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, model: this.model, session: this.session_id, source: this.source ?? "typed" }) });
++			const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, model: this.model, session: this.session_id, prompt: this.prompt_id, source: this.source ?? "typed" }) });
+ 			const out = await res.json();
+ 			if (!out?.ok) throw new Error(out?.why ?? `Servex answered ${res.status}`);
+ 			prompt.load(out);
+@@ -91,6 +117,7 @@ export default class RefineSystem {
+ 
+ 	/** Start over: the same Prompt object, emptied (so the debug tree keeps showing the live one). */
+ 	next(){
++		this.prompt_id = RefineSystem.new_prompt_id();
+ 		this.prompt.set({ status: "empty", raw: "", subject: "", clean: [], refined: [], error: "", ms: 0, runs: [], stages: {}, timings: {}, quick: false });
+ 	}
+ }
+diff --git a/public/framework/ext/Refine/readme.md b/public/framework/ext/Refine/readme.md
+index 09ed83ed4..cff5b207b 100644
+--- a/public/framework/ext/Refine/readme.md
++++ b/public/framework/ext/Refine/readme.md
+@@ -59,10 +59,11 @@ today, so paste is the stand-in; see the page's own doc comment (`try/page.js`)
+ - [Session log](/framework/ext/Refine/md/doc/session-log-2026-10-10/) — each prompt kept as raw, clean, refined and notes in the session's `prompts.jsonl` (`doc/session-log-2026-10-10.md`)
+ - [Tag notes](/framework/ext/Refine/md/doc/tag-notes-2026-10-12/) — a tagged prompt leaves a note on the module page its tag names, through the one Inbox (`Servex/ext/refine/TagRouter.js`, `doc/tag-notes-2026-10-12.md`)
+ - [Refine style](/framework/ext/Refine/md/doc/refine-style-2026-10-12/) — the one shared rule fragment (`RefineStyle.js`) every refine prompt uses, so refined prompts read as short, iconned, ordered overviews (`doc/refine-style-2026-10-12.md`)
++- [Voice stages on the session page](/framework/ext/Refine/stages/) — raw, clean, structure, refined and cards drawn live on `/framework/ai/sessions/<id>/` as you speak or type (`stages/readme.md`, `stages/doc/voice-to-page.md`); try it on a phone: [`ux/Dictate/doc/try-it.md`](/framework/ux/Dictate/doc/try-it/)
+ - [Echo](/framework/servex/doc/echo.md) — the running pipeline that uses this engine on every prompt you type in VS Code: triggers, output, cost, and the gaps against the vision (`Servex/doc/echo.md`)
+ - [Overview](/framework/ext/Refine/) — run C live by default (the longest of the four runs, and the one with a dropped sentence AND a thin citation on its very first screen — `runs/sample` alone has neither); `?run=` picks any other run, including the small hand-built fixture
+ - `doc/vision-2026-10-08.md` — the owner's intended pipeline (raw → clean → refined cards, every sentence accounted, context cards); check the built state against it
+ - `doc/raw-match.md` — the word-overlap heuristic that lights up Raw, worked example
+ - `Server/doc/refine.md` — what `refine.mjs` writes, and why each file looks the way it does
+ - `doc/refine-engine.md` — `engine.js`'s `clean()` and `structure.js`'s `structure()`: the shared, two-speed clean step Dictate and the prompt-log processor both call, its mechanical glossary/strike/diff-check rules, and the 3-model litmus test that picked the cheap model to run it on
+-- Open work: [loose ends by system](/framework/ai/2026-10-08/task-audit/by-system.md) — unbuilt Refine stages (context cards, interactive request cards, handoff, request filing) with the smallest fix per row; source rows in `/framework/ai/2026-10-08/task-audit/loose-ends.jsonl`
++- Open work: [loose ends by system](/framework/ai/2026-10-08/task-audit/by-system.md) — unbuilt Refine stages (context cards, interactive request cards, handoff, request filing) with the smallest fix per row; source rows in `/framework/ai/2026-10-08/task-audit/loose-ends.jsonl`; the ten `now` transcription rows, checked: [loose-ends.md](/framework/ai/2026-10-12/voice-to-session-page/loose-ends.md)
+diff --git a/public/framework/ext/Refine/stages/CardsStage.js b/public/framework/ext/Refine/stages/CardsStage.js
+new file mode 100644
+index 000000000..15dea7799
+--- /dev/null
++++ b/public/framework/ext/Refine/stages/CardsStage.js
+@@ -0,0 +1,19 @@
++import { div, span } from "../../../core/View/View.js";
++import VoiceStage from "./VoiceStage.js";
++
++/** Stage 5 · Cards: one card per heading, with the Haiku pass's clarity flag and tags once it lands. */
++export default class CardsStage extends VoiceStage {
++	static key = "cards";
++	static label = "5 · Cards";
++	static fields = ["cards"];
++}
++
++CardsStage.View = class CardsStageView extends VoiceStage.View {
++	body(){
++		div.c("voice-cards", () => this.stage.data.cards.forEach(c => div.c("voice-card", () => {
++			div.c("voice-card-t", () => { span(c.title); if (c.clarity != null && c.clarity < 0.6) span.c("voice-flag", "⚑").attr("title", "Some of this was unclear when spoken"); });
++			c.items?.forEach(t => div.c("voice-card-i", "• " + t));
++			div.c("voice-card-f muted", () => { span((c.cites ?? []).map(n => "S" + n).join(" ")); (c.tags ?? []).forEach(t => span.c("voice-tag", "#" + t)); });
++		})));
++	}
++};
+diff --git a/public/framework/ext/Refine/stages/CleanStage.js b/public/framework/ext/Refine/stages/CleanStage.js
+new file mode 100644
+index 000000000..173362b46
+--- /dev/null
++++ b/public/framework/ext/Refine/stages/CleanStage.js
+@@ -0,0 +1,16 @@
++import { div, span } from "../../../core/View/View.js";
++import VoiceStage from "./VoiceStage.js";
++
++/** Stage 2 · Clean: numbered sentences, near-verbatim. A mechanical draft shows at once; the model's final replaces it. */
++export default class CleanStage extends VoiceStage {
++	static key = "clean";
++	static label = "2 · Clean";
++	static fields = ["clean"];
++	get live(){ return !this.data.clean_final; }
++}
++
++CleanStage.View = class CleanStageView extends VoiceStage.View {
++	body(){
++		this.stage.data.clean.forEach((text, i) => div.c("voice-sentence", () => { span.c("voice-s-num muted", "S" + (i + 1)); span(text); }));
++	}
++};
+diff --git a/public/framework/ext/Refine/stages/Compose.js b/public/framework/ext/Refine/stages/Compose.js
+new file mode 100644
+index 000000000..9283c2948
+--- /dev/null
++++ b/public/framework/ext/Refine/stages/Compose.js
+@@ -0,0 +1,30 @@
++/** The two things the server computes from a parsed outline, kept free of the DOM so Servex can import it:
++ *  the refined brief (stage 4) and the cards (stage 5). The stage views only draw what these produce. */
++export default class Compose {
++	/** Markdown brief from `{ subject, sections: [{ title, cards: [{ text, cards }] }] }`. */
++	static brief({ subject, sections }){
++		const lines = subject ? [`# ${subject}`, ""] : [];
++		const walk = (cards, depth) => cards.forEach(c => { lines.push("  ".repeat(depth) + "- " + c.text); walk(c.cards ?? [], depth + 1); });
++		for (const sec of sections){ lines.push(`## ${sec.title}`); walk(sec.cards, 0); lines.push(""); }
++		return lines.join("\n").trim();
++	}
++
++	/** One card per heading, plus the Haiku pass's clarity and tags once `notes` (`[{ i, clarity, tags }]`, 0-based `i`) land. */
++	static cards({ sections }, notes = []){
++		const by = new Map(notes.map(n => [n.i, n]));
++		return sections.map(sec => {
++			const cited = new Set(sec.cites);
++			const walk = list => list.forEach(c => { c.cites.forEach(n => cited.add(n)); walk(c.cards ?? []); });
++			walk(sec.cards);
++			const found = [...cited].map(n => by.get(n - 1)).filter(Boolean);
++			const clarity = found.map(n => n.clarity).filter(Number.isFinite);
++			return {
++				title: sec.title,
++				items: sec.cards.map(c => c.text),
++				cites: [...cited].sort((a, b) => a - b),
++				...(clarity.length ? { clarity: Math.min(...clarity) } : {}),
++				tags: [...new Set(found.flatMap(n => n.tags ?? []))],
++			};
++		});
++	}
++}
+diff --git a/public/framework/ext/Refine/stages/RawStage.js b/public/framework/ext/Refine/stages/RawStage.js
+new file mode 100644
+index 000000000..1d9f22b9b
+--- /dev/null
++++ b/public/framework/ext/Refine/stages/RawStage.js
+@@ -0,0 +1,16 @@
++import { div } from "../../../core/View/View.js";
++import VoiceStage from "./VoiceStage.js";
++
++/** Stage 1 · Heard: the words exactly as Whisper (or the keyboard) gave them, growing while you talk. */
++export default class RawStage extends VoiceStage {
++	static key = "raw";
++	static label = "1 · Heard";
++	static fields = ["raw"];
++	get live(){ return !this.data.raw_final; }
++}
++
++RawStage.View = class RawStageView extends VoiceStage.View {
++	body(){
++		div.c("voice-raw", this.stage.data.raw);
++	}
++};
+diff --git a/public/framework/ext/Refine/stages/RefinedStage.js b/public/framework/ext/Refine/stages/RefinedStage.js
+new file mode 100644
+index 000000000..c37d343ee
+--- /dev/null
++++ b/public/framework/ext/Refine/stages/RefinedStage.js
+@@ -0,0 +1,17 @@
++import { div, button } from "../../../core/View/View.js";
++import VoiceStage from "./VoiceStage.js";
++
++/** Stage 4 · Refined: the prompt as one tidy brief a session can read, composed by code from the structure (no extra model call). */
++export default class RefinedStage extends VoiceStage {
++	static key = "refined";
++	static label = "4 · Refined prompt";
++	static fields = ["refined"];
++}
++
++RefinedStage.View = class RefinedStageView extends VoiceStage.View {
++	body(){
++		const text = this.stage.data.refined;
++		div.c("voice-refined", text);
++		button("Copy").ac("voice-copy").click(() => navigator.clipboard?.writeText(text));
++	}
++};
+diff --git a/public/framework/ext/Refine/stages/StructureStage.js b/public/framework/ext/Refine/stages/StructureStage.js
+new file mode 100644
+index 000000000..75a918f83
+--- /dev/null
++++ b/public/framework/ext/Refine/stages/StructureStage.js
+@@ -0,0 +1,20 @@
++import { div, span } from "../../../core/View/View.js";
++import VoiceStage from "./VoiceStage.js";
++import Outline from "../Outline.js";
++
++/** Stage 3 · Structure: the sentences grouped under headings; every `S#` points back at a clean sentence. */
++export default class StructureStage extends VoiceStage {
++	static key = "structure";
++	static label = "3 · Structure";
++	static fields = ["structure"];
++}
++
++StructureStage.View = class StructureStageView extends VoiceStage.View {
++	body(){
++		const { subject, sections } = Outline.parse(this.stage.data.structure);
++		if (subject) div.c("voice-subject", subject);
++		const cards = (list, depth) => list.forEach(c => div.c("voice-leaf", () => { span(c.text); cite(c.cites); if (c.cards?.length) div.c("voice-sub", () => cards(c.cards, depth + 1)); }));
++		const cite = n => n.length && span.c("voice-cites muted", n.map(x => "S" + x).join(" "));
++		sections.forEach(sec => div.c("voice-section", () => { div.c("voice-section-t", () => { span(sec.title); cite(sec.cites); }); cards(sec.cards, 0); }));
++	}
++};
+diff --git a/public/framework/ext/Refine/stages/VoiceFlow.js b/public/framework/ext/Refine/stages/VoiceFlow.js
+new file mode 100644
+index 000000000..3afa21f18
+--- /dev/null
++++ b/public/framework/ext/Refine/stages/VoiceFlow.js
+@@ -0,0 +1,64 @@
++import { View, div } from "../../../core/View/View.js";
++import VoicePrompt from "./VoicePrompt.js";
++import Socket from "/framework/dev/Socket/Socket.js";
++import { servex_url } from "/framework/dev/servex_url.js";
++
++/**
++ * class VoiceFlow — every spoken prompt on one session page, drawn live, newest first.
++ * It reads the session's page.jsonl lines (the page tool's deltas) and keeps one VoicePrompt per
++ * `voice-prompt` item: `{"content":{"add":{"id":"voice-x","type":"voice-prompt",...}}}` creates it,
++ * `{"voice-x":{"clean":[...]}}` updates it. A line it does not know is ignored.
++ *
++ *   const flow = new VoiceFlow();
++ *   mount(flow.view); log.read = entries => flow.read(entries);
++ */
++export default class VoiceFlow {
++
++	prompts = new Map();
++	view = new VoiceFlow.View({ flow: this });
++
++	/** Off localhost the dev socket is off (it carries rpc:write), so the page file is only loaded once; a phone follows Servex's read-only voice stream instead (`GET /api/voice/stream`). */
++	follow(session){
++		if (!Socket.singleton().disabled || this.source || typeof EventSource === "undefined") return this;
++		this.source = new EventSource(servex_url(`/api/voice/stream?session=${encodeURIComponent(session)}`));
++		this.source.onmessage = e => { try { this.read(JSON.parse(e.data)); } catch {} };
++		return this;
++	}
++
++	read(entries){
++		const touched = new Map();
++		const note = (p, keys) => touched.set(p, new Set([...(touched.get(p) ?? []), ...keys]));
++		for (const line of [entries].flat()){
++			if (!line || typeof line !== "object") continue;
++			const add = line.content?.add;
++			if (add?.type === "voice-prompt" && add.id){
++				const fresh = !this.prompts.has(add.id);
++				if (fresh) this.prompts.set(add.id, new VoicePrompt(add.id));
++				const p = this.prompts.get(add.id);
++				note(p, p.apply(add));
++				if (fresh) touched.get(p).add("*");
++				continue;
++			}
++			for (const key of Object.keys(line)) if (this.prompts.has(key) && line[key] && typeof line[key] === "object") note(this.prompts.get(key), this.prompts.get(key).apply(line[key]));
++		}
++		if (touched.size) this.view.update(touched);
++		return this;
++	}
++}
++
++VoiceFlow.View = class VoiceFlowView extends View {
++
++	render(){ this.ac("voice-flow"); this.el.hidden = true; this.pv = new Map(); }
++
++	update(touched){
++		this.el.hidden = false;
++		for (const [prompt, keys] of touched){
++			let v = this.pv.get(prompt);
++			if (!v){
++				this.append(() => { v = new VoicePrompt.View({ prompt }); });   // built inside this view, so the page it is read from can never capture it (View.captor)
++				this.pv.set(prompt, v); this.el.prepend(v.el);
++			}
++			else v.draw(keys.has("*") ? undefined : keys);
++		}
++	}
++};
+diff --git a/public/framework/ext/Refine/stages/VoicePrompt.js b/public/framework/ext/Refine/stages/VoicePrompt.js
+new file mode 100644
+index 000000000..92d987007
+--- /dev/null
++++ b/public/framework/ext/Refine/stages/VoicePrompt.js
+@@ -0,0 +1,63 @@
++import { View, div, span } from "../../../core/View/View.js";
++import RawStage from "./RawStage.js";
++import CleanStage from "./CleanStage.js";
++import StructureStage from "./StructureStage.js";
++import RefinedStage from "./RefinedStage.js";
++import CardsStage from "./CardsStage.js";
++
++/**
++ * class VoicePrompt — one spoken prompt on a session page: the folded state of a `voice-prompt` item
++ * and its five stages. A delta merges shallowly into `data` (the same rule the page replay uses), and
++ * `apply()` says which stages it touched so only those redraw.
++ *
++ *   const p = new VoicePrompt("voice-ab12", { raw: "so the page should" });
++ *   p.apply({ raw: "so the page should show", raw_final: true });   // -> ["raw"]
++ *   p.stages        // [RawStage, CleanStage, StructureStage, RefinedStage, CardsStage]
++ *
++ * Wire format and who writes it: ../doc/voice-to-page.md (server half: Servex/ext/refine/VoicePage.js).
++ */
++export default class VoicePrompt {
++
++	static STAGES = [RawStage, CleanStage, StructureStage, RefinedStage, CardsStage];
++
++	data = {};
++
++	constructor(id, data = {}){
++		this.id = id;
++		this.stages = VoicePrompt.STAGES.map(S => new S(this));
++		this.apply(data);
++	}
++
++	apply(delta){
++		const touched = new Set(["status"]);
++		for (const [key, value] of Object.entries(delta ?? {})){
++			if (key === "id" || key === "type" || key === "by" || key === "ts") continue;
++			this.data[key] = value;
++			for (const s of this.stages) if (s.constructor.fields.includes(key) || (key === "raw_final" && s instanceof RawStage) || (key === "clean_final" && s instanceof CleanStage) || key === "ms") touched.add(s.constructor.key);
++		}
++		return touched;
++	}
++
++	/** One plain sentence saying where this prompt is. */
++	get status(){
++		const d = this.data;
++		return d.error ? "Stopped: " + d.error : d.status === "done" ? "Done" : d.status ?? "Hearing you";
++	}
++}
++
++VoicePrompt.View = class VoicePromptView extends View {
++
++	render(){
++		const p = this.prompt;
++		this.ac("voice-prompt");
++		div.c("voice-prompt-h", () => { span.c("voice-mic", "🎙"); this.$status = span.c("voice-status"); span.c("muted", p.data.source ?? ""); });
++		this.views = {};
++		div.c("voice-stages", () => p.stages.forEach(s => this.views[s.constructor.key] = new s.constructor.View({ stage: s })));
++		this.draw();
++	}
++
++	draw(touched){
++		this.$status.text(this.prompt.status);
++		for (const [key, view] of Object.entries(this.views)) if (!touched || touched.has(key)) view.draw();
++	}
++};
+diff --git a/public/framework/ext/Refine/stages/VoiceStage.css b/public/framework/ext/Refine/stages/VoiceStage.css
+new file mode 100644
+index 000000000..9c974d594
+--- /dev/null
++++ b/public/framework/ext/Refine/stages/VoiceStage.css
+@@ -0,0 +1,24 @@
++/* The five stages of a spoken prompt on a session page (ext/Refine/stages). Tokens only. */
++@layer site {
++	.voice-flow { display: grid; gap: var(--gap); margin-block-end: var(--gap); }
++	.voice-prompt { display: grid; gap: .5em; padding: .6em; border: 1px solid color-mix(in srgb, currentColor 20%, transparent); border-radius: .5em; min-width: 0; }
++	.voice-prompt-h { display: flex; gap: .5em; align-items: baseline; flex-wrap: wrap; font-weight: 600; }
++	.voice-stages { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18em), 1fr)); gap: .6em; align-items: start; }
++	.voice-stage { min-width: 0; padding: .4em .5em; border-inline-start: 2px solid color-mix(in srgb, currentColor 25%, transparent); }
++	.voice-stage[hidden] { display: none; }
++	.voice-stage-h { display: flex; justify-content: space-between; gap: .5em; font-weight: 600; margin-block-end: .25em; }
++	.voice-stage-tag { font-weight: 400; font-size: .85em; }
++	.voice-raw, .voice-refined { white-space: pre-wrap; overflow-wrap: anywhere; }
++	.voice-sentence { display: flex; gap: .4em; align-items: baseline; padding-block: .1em; }
++	.voice-s-num, .voice-cites { font-size: .75em; }
++	.voice-section { margin-block: .3em; }
++	.voice-section-t, .voice-card-t, .voice-subject { font-weight: 600; }
++	.voice-leaf { padding-inline-start: .6em; }
++	.voice-sub { margin-inline-start: .6em; }
++	.voice-cards { display: grid; gap: .4em; }
++	.voice-card { padding: .3em .5em; border-radius: .3em; background: color-mix(in srgb, currentColor 6%, transparent); }
++	.voice-card-i { padding-inline-start: .4em; }
++	.voice-card-f { display: flex; gap: .5em; flex-wrap: wrap; font-size: .8em; }
++	.voice-flag { color: var(--warn); margin-inline-start: .4em; cursor: help; }
++	.voice-copy { margin-block-start: .4em; }
++}
+diff --git a/public/framework/ext/Refine/stages/VoiceStage.js b/public/framework/ext/Refine/stages/VoiceStage.js
+new file mode 100644
+index 000000000..5a1cb6400
+--- /dev/null
++++ b/public/framework/ext/Refine/stages/VoiceStage.js
+@@ -0,0 +1,54 @@
++import { View, div, span } from "../../../core/View/View.js";
++
++View.stylesheet(import.meta, "VoiceStage.css");
++
++/**
++ * class VoiceStage — ONE step of a spoken prompt as it passes through the pipeline, and how it looks.
++ * A subclass names its `key`, its `label`, and the `fields` of the voice-prompt item (VoicePrompt.js) it shows;
++ * its `View` draws them. The five: RawStage → CleanStage → StructureStage → RefinedStage → CardsStage.
++ *
++ *   new CleanStage(voice_prompt).ready      // true once any of its fields has a value
++ *   new CleanStage.View({ stage })           // redraws itself with `view.draw()` when its fields change
++ *
++ * Class map and the wire format: ../doc/voice-to-page.md
++ */
++export default class VoiceStage {
++
++	static key = "";
++	static label = "";
++	static hint = "";
++	static fields = [];
++
++	constructor(prompt){ this.prompt = prompt; }
++
++	get data(){ return this.prompt.data; }
++	get ready(){ return this.constructor.fields.some(f => { const v = this.data[f]; return Array.isArray(v) ? v.length > 0 : !!v; }); }
++	/** True while later words may still replace this stage's content. */
++	get live(){ return false; }
++	/** Milliseconds this stage took (from the server's timing), or null. */
++	get ms(){ return this.data.ms?.[this.constructor.key] ?? null; }
++}
++
++VoiceStage.View = class VoiceStageView extends View {
++
++	render(){
++		const S = this.stage.constructor;
++		this.ac("voice-stage").attr("data-stage", S.key);
++		div.c("voice-stage-h", () => {
++			span.c("voice-stage-label", S.label);
++			this.$tag = span.c("voice-stage-tag muted");
++		});
++		this.$body = div.c("voice-stage-body");
++		this.draw();
++	}
++
++	draw(){
++		const stage = this.stage;
++		this.el.hidden = !stage.ready;
++		this.$tag.text(stage.live ? "live" : stage.ms != null ? (stage.ms / 1000).toFixed(1) + " s" : "");
++		this.$body.empty(() => { if (stage.ready) this.body(); });   // a stage with nothing yet draws nothing (its body reads fields that are not there)
++	}
++
++	/** Subclasses draw their fields here (inside the body box). */
++	body(){}
++};
+diff --git a/public/framework/ext/Refine/stages/doc/files.jsonl b/public/framework/ext/Refine/stages/doc/files.jsonl
+new file mode 100644
+index 000000000..fc9965d4d
+--- /dev/null
++++ b/public/framework/ext/Refine/stages/doc/files.jsonl
+@@ -0,0 +1 @@
++{"file":"voice-to-page.md"}
+diff --git a/public/framework/ext/Refine/stages/doc/voice-to-page.md b/public/framework/ext/Refine/stages/doc/voice-to-page.md
+new file mode 100644
+index 000000000..f4b346fe1
+--- /dev/null
++++ b/public/framework/ext/Refine/stages/doc/voice-to-page.md
+@@ -0,0 +1,38 @@
++# Voice to session page
++
++Task: `ai/2026-10-12/voice-to-session-page/` (requirements.md, STATE.md).
++
++## Flow
++
++Browser `RefineSystem.stream(text)` (150 ms trailing throttle) → `POST /api/voice {session, prompt, text, final, source}` → `Servex/ext/refine/VoicePage` → page tools (`page_add` then `page_set`) → `page.jsonl` of the session → `VoiceFlow` on the session page (tails it, about 100 ms).
++`/api/refine` runs the same stages (`Servex/ext/refine/run.js`) and calls `VoicePage` after raw, clean, structure and notes.
++
++## On a phone: no dev socket, so a read-only stream
++
++The dev socket (and so the page-file tail) is localhost-only because it also carries `rpc:write`; from `10.0.0.135` a page file is loaded once, not streamed. So `VoiceFlow.follow(session)` opens `EventSource` on `GET /api/voice/stream?session=<uuid>` (Servex, read-only, through the dev proxy at `<origin>/servex`). It replays the open prompts' lines, then sends each new line. Same lines as the page file, so `VoiceFlow.read` folds both the same way. Rejected: opening the dev socket to the LAN (RCE), polling the page file.
++
++## Wire format (one item per prompt)
++
++`{"content":{"add":{"id":"voice-<prompt>","type":"voice-prompt", ...}}}` first, then `{"voice-<prompt>": {raw, clean, structure, subject, refined, cards, notes, ms, status}}` shallow-merged. No `title`, so the chat does not draw a bubble for it.
++
++## Classes
++
++- Server: `VoicePage` (per-prompt write queue; `raw`, `clean`, `structured`, `notes`, `failed`, `done`).
++- Browser: `VoiceFlow` > `VoicePrompt` > five `*Stage` (base `VoiceStage`).
++- Shared, DOM-free: `Compose` (brief, cards).
++
++## Decisions and the rejected alternative
++
++- **Cards and the refined prompt are composed in code** (`Compose`), not written by a model: the brief said the refining model writes the cards, but the structure stage already returns the outline the cards are made from, so a third model call would add seconds and cost for the same text (law 7: compute, don't recall). The clarity flags and tags on the cards still come from the Haiku pass. Alternative if the owner wants model-written cards: one more call after `structured()`.
++- **Partials are coalesced** server-side to one page write per 700 ms (the browser posts every 150 ms), so a long dictation does not bloat `page.jsonl`, which every load replays.
++
++- **Names `VoiceStage`/`VoiceStageView`**, not `Stage`: the auto class `.stage` collides with the framework preview rule in `Page.css` (the box was 242 px wide).
++- **`Compose` is DOM-free** because Servex imports it; `View.js` needs `Element`.
++- **Views built in callbacks** go inside `this.append(() => ...)` of the intended parent, or the `View.captor` adopts them in the wrong place.
++- **A stage with no data draws nothing** (`ready`), so a throwing `body()` cannot strand the captor.
++- Rejected: a second WebSocket just for stages (the page tail already streams); writing hand-made JSON (the page tools only).
++- Whisper: supervised by Servex (`Process.Whisper`); `GET /api/whisper` reports `crashes`/`last_crash`, and `Connection.restart_note()` shows it in one line.
++
++## Proofs
++
++`ai/2026-10-12/voice-to-session-page/`: `proof.mjs` (server stages), `whisper-proof.mjs` (kill and restart), `phone-proof.mjs` (400 px browser).
+diff --git a/public/framework/ext/Refine/stages/files.jsonl b/public/framework/ext/Refine/stages/files.jsonl
+new file mode 100644
+index 000000000..cf18a1c33
+--- /dev/null
++++ b/public/framework/ext/Refine/stages/files.jsonl
+@@ -0,0 +1,16 @@
++{"file":"Stage.js"}
++{"file":"CardsStage.js"}
++{"file":"CleanStage.js"}
++{"file":"RawStage.js"}
++{"file":"RefinedStage.js"}
++{"file":"StructureStage.js"}
++{"file":"Stage.css"}
++{"file":"VoiceFlow.js"}
++{"file":"VoicePrompt.js"}
++{"file":"Compose.js"}
++{"file":"VoiceStage.css"}
++{"file":"VoiceStage.js"}
++{"file":"Stage.js","gone":true}
++{"file":"Stage.css","gone":true}
++{"file":"doc/"}
++{"file":"readme.md"}
+diff --git a/public/framework/ext/Refine/stages/readme.md b/public/framework/ext/Refine/stages/readme.md
+new file mode 100644
+index 000000000..9c8f12f27
+--- /dev/null
++++ b/public/framework/ext/Refine/stages/readme.md
+@@ -0,0 +1,11 @@
++# Refine stages — the five live stages of a voice prompt
++
++Each stage of a spoken prompt (raw, clean, structure, refined, cards) is drawn live on the session page by its own class. Servex writes them as page deltas; the browser tails them.
++
++- `VoiceStage.js` — base class + `VoiceStage.View` (one stage's box and header).
++- `RawStage.js`, `CleanStage.js`, `StructureStage.js`, `RefinedStage.js`, `CardsStage.js` — one per stage, each with its own `.View`.
++- `VoicePrompt.js` — one prompt's data (`apply(delta)`) and its view with the five stages.
++- `VoiceFlow.js` — folds the session page's lines into prompts; mounted above the chat on `ai/AISession`.
++- `Compose.js` — DOM-free text builders shared with Servex (`Servex/ext/refine/VoicePage.js`).
++
++More: [`doc/voice-to-page.md`](doc/voice-to-page.md) (class map, wire format, decisions) · try it: [`ux/Dictate/doc/try-it.md`](/framework/ux/Dictate/doc/try-it/).
+diff --git a/public/framework/ux/Dictate/Connection.js b/public/framework/ux/Dictate/Connection.js
+index f2af4f01d..049dd0c47 100644
+--- a/public/framework/ux/Dictate/Connection.js
++++ b/public/framework/ux/Dictate/Connection.js
+@@ -1,4 +1,5 @@
+ import { View, div, span, button } from "../../core/View/View.js";
++import { servex_url } from "/framework/dev/servex_url.js";
+ import LevelMeter from "../../audio/v1/LevelMeter/LevelMeter.js";
+ 
+ View.stylesheet(import.meta, "Connection.css");
+@@ -89,11 +90,21 @@ export default class Connection extends View {
+ 			const r = await fetch(url + "/", { signal: ctrl.signal });
+ 			const ms = performance.now() - t;
+ 			if (!r.ok) return this.set("whisper", "bad", `error: HTTP ${r.status}`), false;
+-			this.set("whisper", "ok", `connected, ${(ms / 1000).toFixed(1)} s`);
++			this.set("whisper", "ok", `connected, ${(ms / 1000).toFixed(1)} s` + await Connection.restart_note());
+ 			return true;
+ 		} catch (e){
+-			this.set("whisper", "bad", `error: ${e?.name === "AbortError" ? "no answer in 2.5 s" : "not reachable"}`);
++			this.set("whisper", "bad", `error: ${e?.name === "AbortError" ? "no answer in 2.5 s" : "not reachable"}` + await Connection.restart_note());
+ 			return false;
+ 		} finally { clearTimeout(timer); }
+ 	}
++
++	/** One plain line when Servex has had to restart Whisper, from `GET /api/whisper` (Servex/Process.js counts crashes). Empty when all is well or Servex is not there. */
++	static async restart_note(){
++		try {
++			const w = await (await fetch(servex_url("/api/whisper"), { signal: AbortSignal.timeout(1500) })).json();
++			const t = w.last_crash && new Date(w.last_crash.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
++			if (["launching", "restarting", "crashed", "starting"].includes(w.status)) return " · Whisper stopped and Servex is restarting it";
++			return w.crashes ? ` · Whisper stopped at ${t} and Servex restarted it` : "";
++		} catch { return ""; }
++	}
+ }
+diff --git a/public/framework/ux/Dictate/doc/try-it.md b/public/framework/ux/Dictate/doc/try-it.md
+new file mode 100644
+index 000000000..8faace75f
+--- /dev/null
++++ b/public/framework/ux/Dictate/doc/try-it.md
+@@ -0,0 +1,25 @@
++# Try it on your phone — voice to session page
++
++You talk (or type); five stages appear live on a page, one under another. That page is the feedback loop.
++
++## Steps
++
++1. On the phone, open `http://10.0.0.135:8137/framework/ext/Refine/`.
++2. Press the mic and speak, or just type in the box.
++   - Plain `http` on a LAN hides the browser mic (the browser needs https; see [`https-lan.md`](https-lan.md)). Typing, or the phone keyboard's own dictation button, fills the same box and works the same.
++3. Tap **Refine**.
++4. Tap **Watch it on the session page →** (under the box). That page, `/framework/ai/sessions/<id>/`, shows the stages as they land:
++   - **Raw** words: while you speak or type (about every 150 ms).
++   - **Clean** sentences: a few seconds later.
++   - **Structure**, **Refined prompt** (with a Copy button) and **Cards**: about 7 to 15 seconds after Refine (the model's speed).
++
++## What to expect
++
++- Nothing sideways at 400 px; the stages stack.
++- The Whisper row on the Refine page says "Whisper stopped at HH:MM and Servex restarted it" if Whisper crashed and came back. It restarts by itself in about 2 seconds.
++- A different session: add `?session=<uuid>` to the Refine URL.
++
++## If it does not work
++
++- No stages appear: Servex must have been restarted after the merge (`/api/voice` is a Servex route). Check `http://10.0.0.135:8137/servex/api/whisper` answers.
++- Class map, wire format and decisions: [`ext/Refine/stages/doc/voice-to-page.md`](/framework/ext/Refine/stages/doc/voice-to-page/).
+diff --git a/public/framework/ux/Dictate/readme.md b/public/framework/ux/Dictate/readme.md
+index dc7f379dc..d872216c1 100644
+--- a/public/framework/ux/Dictate/readme.md
++++ b/public/framework/ux/Dictate/readme.md
+@@ -6,6 +6,8 @@ microphone. Built 2026-09-19 to replace `ext/Ask/mic.js`'s button, whose failure
+ silent: the owner pressed 🎤, the browser's own recording light came on, and nothing
+ ever appeared — no error, no clue why.
+ 
++**Try it on your phone** (talk, watch the five stages land on the session page): [`doc/try-it.md`](doc/try-it.md).
++
+ **Class architecture of the voice UI** (which class owns what, what is a copy of what): [`doc/voice-architecture.md`](doc/voice-architecture.md). **`VoiceStrip`** is the compact panel Refine and the demo below use; **mobile**: [`doc/mobile-socket-2026-10-09.md`](doc/mobile-socket-2026-10-09.md).
+ 
+ ## Use

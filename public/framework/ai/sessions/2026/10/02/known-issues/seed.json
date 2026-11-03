@@ -1,0 +1,164 @@
+[
+  {
+    "id": "openrouter-runaway-turn",
+    "title": "Two Gemini masterminds spent about $17 of OpenRouter money in 20 minutes, reading and never acting",
+    "area": "Servex/agents/Agents.js (cost counted only after a turn), Servex/ext/openrouter/provider.js",
+    "impact": "high",
+    "status": "fix-pending-restart",
+    "first_seen": "2026-10-02",
+    "fix": "Spend follows results (the owner's rule): Agents.js prices every OpenRouter call as it settles; a work agent gets $2 for its first result (a commit, a step done, a page line, a minion with a brief), and each result unlocks $3 more up to the brief's Budget (else $20); with no result by then, Servex interrupts it between tool calls and posts one Inbox card (Continue +$5 / Stop). A warning at 40 reads without a result. Live after a Servex restart; tests are token-reduction item 4. Accounting check: ai/2026-10-02/servex-mastermind/or-reconcile.mjs",
+    "reports": [
+      { "by": "vscode-mastermind", "at": "2026-10-02", "evidence": "mastermind-ai-2 and mastermind-page-2 (google/gemini-3.8-flash) took OpenRouter usage from $12.69 to $29.92 in about 20 minutes and spawned nothing. ai-2: 149 model calls, 134 Read calls, 1.4M input + 9.2M cache read + 9.2M cache creation tokens, an empty result. page-2: 148 Reads. Servex showed ai-2 at $13.36. Both were stopped, and the burst was lowered to +$10" },
+      { "by": "vscode-mastermind", "at": "2026-10-03", "evidence": "a likely root cause: ~10.6M input tokens each at $0.75/M is ~$8 per agent, and ~$17 was charged for both, so it looks like no cache discount, though the SDK reported 9.2M cache-read tokens. To check: or-reconcile.mjs (per-request cached tokens, discount, upstream) and or-cache-probe.mjs (five routes)" }
+    ]
+  },
+  {
+    "id": "ram-limit",
+    "title": "RAM is the limit: spawns queue behind memory",
+    "area": "Servex/Monitor.js",
+    "impact": "high",
+    "status": "open",
+    "first_seen": "2026-09-24",
+    "fix": "first fix: node-reap.mjs --apply (its result.json gives node count and MB before and after; copy them here when seeding, never typed). Lasting fix: /framework/ai/2026-10-02/node-reap/ (Servex starts every dev server, a lease and a 10-minute idle stop, the reconcile pass reaps orphans). Also Servex/readme.md, \"Limits we hit\"",
+    "reports": [
+      { "by": "vscode-mastermind", "at": "2026-10-02", "evidence": "31.7 GB total, about 4.7 GB free with ~12 claude.exe (0.25-0.8 GB each) plus Chrome; spawns are held until 4 GB is free (SERVEX_MIN_FREE_MB)" },
+      { "by": "vscode-mastermind", "at": "2026-10-02T22:20", "evidence": "the real leak is node: 59 node.exe, 3.9 GB; 22 worktree dev servers (2.1 GB) mostly idle plus three in main, 26 server.js supervisors (1.2 GB) started from agent shells, 5 health processes" }
+    ]
+  },
+  {
+    "id": "echo-loop",
+    "title": "The prompt refiner refined its own model calls, and each one started more claude processes",
+    "area": "Servex/agents/Echo.js, .claude/hooks/prompt-relay.mjs",
+    "impact": "high",
+    "status": "fix-pending-restart",
+    "first_seen": "2026-10-02",
+    "fix": "Echo.js now records the session id of each of its own model calls and drops prompts from them, refuses a 5th live echo agent, and checks the 4 GB floor before each call (live after a Servex restart). Server/ask-each.mjs marks every askOnce session LEW42_NO_RELAY. The hooks learn the same rule (SDK sessions are never the owner) through ai/2026-10-02/servex-mastermind/apply-echo-gate.mjs (.claude/ is refused to -10; takes effect at once)",
+    "reports": [
+      { "by": "vscode-mastermind", "at": "2026-10-02T22:21", "evidence": "Servex (pid 79392) started 16 claude SDK processes between 22:17 and 22:21 (~4.2 GB), most without --resume, while /agents showed 3 working; 1.4 GB free" },
+      { "by": "mastermind-servex-10", "at": "2026-10-02T22:30", "evidence": "the cause in code: Echo.process() -> clean()/structure() -> askOnce() starts an SDK session inside Servex, whose env has no SERVEX_MCP; prompt-relay.mjs took it for the owner and posted it to /log/echo; a new session id meant a new echo agent and another clean()" }
+    ]
+  },
+  {
+    "id": "mastermind-not-restarted",
+    "title": "The always-on Servex mastermind stayed down after its process died",
+    "area": "Servex/agents/Global.js",
+    "impact": "high",
+    "status": "fix-pending-restart",
+    "first_seen": "2026-10-02",
+    "fix": "Global.keep_on(), on the one-minute sweep: if the holder has no live or dormant agent, reopen it and tell it to resume from its task log (at most 3 restarts in 30 minutes). The holder's revive now passes force, so a 'landed' task log naming it can't block it; only a deleted cwd does",
+    "reports": [
+      { "by": "vscode-mastermind", "at": "2026-10-02T23:00", "evidence": "VS Code crashed at about 22:30 and took most claude processes with it; mastermind-servex-10 did not come back until it was resumed by hand" },
+      { "by": "mastermind-servex-10", "at": "2026-10-02T23:05", "evidence": "a dead process ends Agent.pump(), which sets state 'stopped' with no stopped_by; only a message (send -> wake) or a Servex boot reopened it, and nothing watched it" }
+    ]
+  },
+  {
+    "id": "pool-slot-held-by-stopped",
+    "title": "A stopped agent's pool slot blocks every minion spawn",
+    "area": "Servex/Pool.js",
+    "impact": "high",
+    "status": "open",
+    "first_seen": "2026-10-02",
+    "fix": "now: node Servex/Lifecycle.js --salvage qf-6 (keeps the work on salvage/qf-6-<day>, never deletes; checkpoint-11 'ALSO FIRST'). Lasting: Pool should salvage a slot held by a stopped agent on its own when no other slot is free, rather than refusing every take",
+    "reports": [
+      { "by": "task-mastermind-model-weights", "at": "2026-10-02", "evidence": "take_worktree() answers \"No worktree could be made ready\"; qf-6 is held by the stopped mastermind-servex-9 with uncommitted changes Pool.js won't discard" }
+    ]
+  },
+  {
+    "id": "revive-drops-provider",
+    "title": "A revive drops the OpenRouter provider and runs the agent on Claude",
+    "area": "Servex/agents/Agents.js",
+    "impact": "high",
+    "status": "fix-queued",
+    "first_seen": "2026-10-01",
+    "fix": "/framework/ai/2026-10-02/token-reduction/ item 6",
+    "reports": [
+      { "by": "openrouter report", "at": "2026-10-01", "evidence": "minion-lib-h1-page (nvidia/nemotron-3-ultra:free), finished, was woken 9 times by status checks and revives; its cost went from $0 to $2.84" }
+    ]
+  },
+  {
+    "id": "finished-agents-woken",
+    "title": "Finished agents keep getting woken, and every wake is billed",
+    "area": "Servex/agents/Heartbeat.js",
+    "impact": "high",
+    "status": "fix-queued",
+    "first_seen": "2026-10-01",
+    "fix": "/framework/ai/2026-10-02/token-reduction/ item 1",
+    "reports": [
+      { "by": "openrouter report", "at": "2026-10-01", "evidence": "finished agents are woken about every 7 minutes" }
+    ]
+  },
+  {
+    "id": "stopped-process-alive",
+    "title": "A stopped agent's claude.exe stays alive, and the reconcile can respawn it",
+    "area": "Servex/Servex.js reconcile()",
+    "impact": "medium",
+    "status": "fix-queued",
+    "first_seen": "2026-10-02",
+    "fix": "/framework/ai/2026-10-02/token-reduction/ item 8",
+    "reports": [
+      { "by": "vscode-mastermind", "at": "2026-10-02T19:50", "evidence": "minion-panel2 read stopped, but its claude.exe (pid 27100, 351 MB) was alive and was ended by hand" }
+    ]
+  },
+  {
+    "id": "queued-message-to-predecessor",
+    "title": "A message to a queued agent goes to its stopped predecessor",
+    "area": "Servex/agents/tools.js send_to_agent",
+    "impact": "medium",
+    "status": "fix-queued",
+    "first_seen": "2026-10-02",
+    "fix": "/framework/ai/2026-10-02/token-reduction/ item 7",
+    "reports": [
+      { "by": "vscode-mastermind", "at": "2026-10-02", "evidence": "send_to_agent mastermind-servex-10 answered \"mastermind-servex-9 was not woken\"" }
+    ]
+  },
+  {
+    "id": "reviewer-opus-over-pace",
+    "title": "Reviewers are spawned on Opus while usage is over pace",
+    "area": "Server/review.mjs",
+    "impact": "medium",
+    "status": "fix-queued",
+    "first_seen": "2026-10-02",
+    "fix": "/framework/ai/2026-10-02/token-reduction/ item 9",
+    "reports": [
+      { "by": "vscode-mastermind", "at": "2026-10-02T19:50", "evidence": "reviewer-card-pipeline-4 ran on claude-opus-5-5 at pace 1.45; review.mjs (~line 733) picks Opus for every full-size review" },
+      { "by": "task-mastermind-prompt-refine", "at": "2026-10-02T22:00", "evidence": "minion-echo's replay of session 361c4d18: Server/review.mjs line 764, size === \"full\" ? \"claude-opus-5-5\" : \"claude-sonnet-5\", with no pace check" }
+    ]
+  },
+  {
+    "id": "go-on-filler-loop",
+    "title": "An assistant answers with \"go on\" filler, over and over",
+    "area": "Servex/agents/assistant.md, .claude/skills/every-prompt",
+    "impact": "medium",
+    "status": "fix-pending-restart",
+    "first_seen": "2026-10-02",
+    "fix": "the voice pair already had the rule (session-fast.md, Sessions.js is_filler); added to assistant.md (the lobby assistant-fast, live after a Servex restart) and, through apply-every-prompt-once.mjs, to the every-prompt skill, which also stops re-invoking itself on every prompt. Measuring the context is token-reduction item 10",
+    "reports": [
+      { "by": "vscode-mastermind", "at": "2026-10-02", "evidence": "the owner suspects every-prompt's \"re-invoke on EVERY prompt\" filled the context with copies until the replies turned stock" },
+      { "by": "task-mastermind-prompt-refine", "at": "2026-10-02T22:00", "evidence": "minion-echo's replay: session-smart.md line 35 has the never-prompt-to-continue guard, the other fast assistant's brief had none" }
+    ]
+  },
+  {
+    "id": "mastermind-acceptedits",
+    "title": "The mastermind role started in acceptEdits, so every Servex tool, node and most git were refused",
+    "area": "Servex/agents/roles.js",
+    "impact": "high",
+    "status": "fix-pending-restart",
+    "first_seen": "2026-10-02",
+    "fix": "roles.js mastermind row set to bypassPermissions (uncommitted); spawn the next mastermind with permission_mode bypassPermissions until Servex restarts",
+    "reports": [
+      { "by": "mastermind-servex-10", "at": "2026-10-02", "evidence": "list_agents, spawn_agent, send_to_agent, card_reply, page_read, curl, node and git commit all refused for the whole session" }
+    ]
+  },
+  {
+    "id": "master-assistant-double-hearing",
+    "title": "The retired master assistant still runs on Opus and hears owner prompts a second time",
+    "area": "Servex/agents/Global.js",
+    "impact": "medium",
+    "status": "fix-queued",
+    "first_seen": "2026-10-02",
+    "fix": "/framework/ai/2026-10-02/token-reduction/ item 11",
+    "reports": [
+      { "by": "mastermind-servex-10", "at": "2026-10-02", "evidence": "Global.boot() spawns master-assistant on every start; Global.heard() queues page-less owner prompts to it, which Layers.card_prompt_session already sent to the voice pair" }
+    ]
+  }
+]

@@ -1,0 +1,5 @@
+{"class":"/framework/ai2/card.js","title":"Sonnet beats Haiku on speed","type":"card","id":"2026/09/19/model-latency","created":"2026-09-19T17:30:38-05:00","by":"model-latency","tags":[]}
+{"legacy":"model-latency"}
+{"status":"done"}
+{"icon":"speed"}
+{"text":"Measured over 24 runs: a card takes Sonnet about 2 seconds and Haiku about 11. Sonnet does no thinking on a small job, Haiku burns a thousand thinking tokens on it. The fast assistant should stay on Sonnet, at low effort."}

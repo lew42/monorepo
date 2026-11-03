@@ -17,7 +17,7 @@ export default function() {
     div.c("pad", () => {
         a.c("page-back btn bg mb", "Back").href("../");
 
-        h1("Style").ac("mb").style("color", "var(--prim)");
+        h1("Style").ac("mb").style("color", "var(--prime)");
 
         p("Everything below comes from `framework.css`, grouped the way a style guide usually is: colors, type, layout, spacing, forms, buttons, media, and a few small utilities.").ac("mb");
 

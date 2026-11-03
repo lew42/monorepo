@@ -1,0 +1,245 @@
+diff --git a/public/framework/ai/AISession/AISessionDetail.js b/public/framework/ai/AISession/AISessionDetail.js
+index 739429a27..7d140f571 100644
+--- a/public/framework/ai/AISession/AISessionDetail.js
++++ b/public/framework/ai/AISession/AISessionDetail.js
+@@ -24,6 +24,7 @@ import SessionSettings from "/framework/core/Session/SessionSettings.js";
+ import SessionTasks from "/framework/core/Session/SessionTasks.js";
+ import SessionWork from "./SessionWork.js";
+ import SessionStats from "./SessionStats.js";
++import AICost from "/framework/ai/AITask/AICost.js";
+ import SessionOverview from "./SessionOverview.js";
+ import SessionFeed from "./SessionFeed.js";
+ import "/framework/core/Page/parts/kinds.js";   // the kinds the page tool adds register themselves by import: one list
+@@ -191,7 +192,8 @@ export default class AISessionDetail extends Page {
+ 			const q = new URLSearchParams(location.search); key === "overview" ? q.delete("tab") : q.set("tab", key);
+ 			history.replaceState(history.state, "", location.pathname + (q.size ? "?" + q : "") + location.hash);
+ 		};
+-		new SessionStats({ ready });   // Figma band E: stats first, sticky, on every tab
++		const row_p = AISessionDetail.load_row(url, id);   // this session's sessions.json row: the stats bar says "this tab" from its source
++		new SessionStats({ ready, row: row_p, open_cost: () => show("cost") });   // Figma band E: stats first, sticky, on every tab
+ 		div.c("sessions-tabs flex gap-50 wrap", () => {
+ 			TABS.forEach(([k, label]) => buttons[k] = button.c("sessions-chip", label).on("click", () => show(k)));
+ 			a.c("sessions-chip", "Task queue →").href("/framework/ai/queue/").attr("target", "_self");
+@@ -213,7 +215,7 @@ export default class AISessionDetail extends Page {
+ 				$conv = div.c("flow sessions-conv");   // the live conversation
+ 			});
+ 			panels.coverage = div.c("flow sessions-panel", () => { $coverage = div.c("flow"); });   // every ask in the owner's prompts, its status, the raw words one click down (AISessionCoverage)
+-			panels.cost = div.c("flow sessions-panel", () => { $costs = div.c("flow"); $trace = div.c("flow"); });   // logged cost, the cost-over-time chart and the per-tool table
++			panels.cost = div.c("flow sessions-panel", () => { const $sum = div.c("flow"); ready.then(w => $sum.empty(() => AICost.report(w.id ? AICost.session_url(w.id) : w.dir))); $costs = div.c("flow"); $trace = div.c("flow"); });   // the summary first (the cost line's total and every child session behind it), then the logged cost, the cost-over-time chart and the per-tool table
+ 			panels.models = div.c("flow sessions-panel", () => { $role = div.c("flow session-role"); $session = div.c("flow"); });   // the Session class: cost tree, model + effort, tokens by purpose, audit
+ 			panels.related = div.c("flow sessions-panel", () => { $spawn = div.c("flow"); $related = div.c("flow"); });   // who spawned this and what it spawned; the other records of this session
+ 		});
+@@ -225,7 +227,7 @@ export default class AISessionDetail extends Page {
+ 
+ 		// `row` first: for a Servex row the url's id is the AGENT's id, a different string from its session_id,
+ 		// and the transcript and the date-path lookup both need the session_id.
+-		AISessionDetail.load_row(url, id).then(async row => {
++		row_p.then(async row => {
+ 			const session_id = row?.session_id ?? id;
+ 			AISessionRows.load_index(url).then(() => this.retitle(AISessionRows.display_name(row ?? { id, session_id }, AISessionRows.tree).text));   // a VS Code tab has no sessions.json row; its title is in the index
+ 			if (!/^[0-9a-f]{8}-/.test(session_id)){   // a name no agent list or index maps to a uuid: nothing on disk to ask for
+diff --git a/public/framework/ai/AISession/AISessionView.js b/public/framework/ai/AISession/AISessionView.js
+index 686e941d8..2cd34b906 100644
+--- a/public/framework/ai/AISession/AISessionView.js
++++ b/public/framework/ai/AISession/AISessionView.js
+@@ -5,6 +5,7 @@ import AISessionRows from "./AISessionRows.js";
+ import AISession from "./AISession.js";
+ import AISessionFlags from "./AISessionFlags.js";
+ import AISessionResume from "./AISessionResume.js";
++import AICost from "/framework/ai/AITask/AICost.js";
+ 
+ // One session, drawn. `new AISessionView({ row, url, ... })` is one grid row (an <a> of cells, in the order of
+ // AISessionRows.COLUMNS: the grid tracks are positional). The statics draw the pieces the Session class computed
+@@ -64,7 +65,7 @@ export default class AISessionView extends View {
+ 		div.c("sessions-cell", () => {
+ 			// The session index is the truth for a Claude session's cost. A row it does not know keeps the older figures below.
+ 			const ix = row_of(this.session_index, r.session_id || r.id);
+-			if (ix){ div.c("sessions-name-stack", () => AISessionView.cost_lines(ix)); return; }
++			if (ix){ div.c("sessions-name-stack", () => AISessionView.cost_lines(ix, r)); return; }
+ 			const has_split = typeof r.cost_claude_usd === "number" || typeof r.cost_openrouter_usd === "number";
+ 			if (has_split){
+ 				if (typeof r.cost_claude_usd === "number") small.c("muted", "$" + r.cost_claude_usd.toFixed(2));
+@@ -110,7 +111,8 @@ export default class AISessionView extends View {
+ 		});
+ 		div.c("sessions-card-line muted", () => {
+ 			const ix = row_of(this.session_index, r.session_id || r.id);
+-			const cost = ix ? usd(ix.tree_usd ?? ix.usd) : typeof r.cost_claude_usd === "number" ? usd(r.cost_claude_usd) : typeof r.cost === "number" ? usd(r.cost) : "—";
++			const line = ix && AICost.cost_line({ cost: AICost.known_cost(AICost.session_url(ix.id)), own_usd: ix.usd, tab: AICost.is_tab(r) });   // the session page's words
++			const cost = ix ? (line.total != null ? line.text : line.mine) : typeof r.cost_claude_usd === "number" ? usd(r.cost_claude_usd) : typeof r.cost === "number" ? usd(r.cost) : "—";
+ 			small(cost);
+ 			if (ix?.flags) small.c("sessions-flag").text("⚠ " + ix.flags).attr("title", "Open the session to read the flags");
+ 			small("· " + (working ? "updated now" : r.last_activity ? "updated " + age(r.last_activity) : "—")).attr("title", r.last_activity ?? "");
+@@ -136,14 +138,24 @@ export default class AISessionView extends View {
+ 	/** "Claude $1.20" for a Claude session; just "$1.20" for OpenRouter (its model name already says who it is). */
+ 	static provider_label(provider){ return provider === "openrouter" ? "" : "Claude "; }
+ 
+-	/** Inside the Cost cell: $ for the whole tree, what the session itself cost, and any flags. */
+-	static cost_lines(row){
+-		if (!row) return;
+-		const { usd, provider_label } = AISessionView, kids = row.children || 0;
+-		span.c("sessions-cost-main").text(provider_label(row.provider) + usd(row.tree_usd ?? row.usd))
+-			.attr("title", kids ? `This session ${usd(row.usd)} + ${kids} descendant${kids > 1 ? "s" : ""} ${usd(row.tree_usd - row.usd)}` : "This session, counted from its own transcript");
+-		if (kids) small.c("muted sessions-subtree-note", `own ${usd(row.usd)} + ${kids} child${kids > 1 ? "ren" : ""}`);
+-		if (row.flags) small.c("sessions-flag").text("⚠ " + row.flags + " flag" + (row.flags > 1 ? "s" : "")).attr("title", "Open the session to read the flags");
++	/** Inside the Cost cell: the one cost line (AICost.cost_line), in the same words as the session page's Cost tile: what the session
++	 *  itself spent, labelled "this tab" or "this session", then what it and every agent it started spent. The list never asks Servex
++	 *  for every row: "with children" shows an answer already here (the session page was open), else a small button asks for this one row. */
++	static cost_lines(ix, r){
++		if (!ix) return;
++		const { provider_label } = AISessionView, tab = AICost.is_tab(r), base = AICost.session_url(ix.id);
++		const line = AICost.cost_line({ cost: AICost.known_cost(base), own_usd: ix.usd, tab });
++		span.c("sessions-cost-main").text(provider_label(ix.provider) + AICost.short(line.own ?? 0)).attr("title", "What this session itself spent, counted from its own transcript");
++		small.c("muted", line.who);
++		if (line.total != null) small.c("muted sessions-subtree-note", line.with_kids);
++		else if (tab || ix.children || AISessionFlags.is_mastermind(r ?? {})){
++			const $b = small.c("muted sessions-subtree-note sessions-cost-ask", line.with_kids).attr("title", "Ask Servex what this session and every agent it started spent");
++			$b.on("click", e => {
++				e.stopPropagation(); e.preventDefault(); $b.text("asking …");
++				AICost.summary(base).then(({ summary, why }) => summary?.cost ? $b.text(AICost.cost_line({ cost: summary.cost, tab }).with_kids) : $b.text("not known").attr("title", why ?? ""));
++			});
++		}
++		if (ix.flags) small.c("sessions-flag").text("⚠ " + ix.flags + " flag" + (ix.flags > 1 ? "s" : "")).attr("title", "Open the session to read the flags");
+ 	}
+ 
+ 	/** The banner above the grid: spawned agents with no recorded parent are a defect. */
+diff --git a/public/framework/ai/AISession/SessionOverview.css b/public/framework/ai/AISession/SessionOverview.css
+index 6eb8a8d41..e6b4f07e8 100644
+--- a/public/framework/ai/AISession/SessionOverview.css
++++ b/public/framework/ai/AISession/SessionOverview.css
+@@ -6,6 +6,7 @@
+ 	.sov-stat { display: flex; flex-direction: column; min-width: 0; }
+ 	.sov-k { color: color-mix(in srgb, var(--ink) 60%, transparent); text-transform: uppercase; font-size: .7em; letter-spacing: .06em; }
+ 	.sov-v { font-size: 1.3rem; line-height: 1.2; overflow-wrap: anywhere; }
++	.sov-link { cursor: pointer; text-decoration: underline dotted color-mix(in srgb, var(--ink) 40%, transparent); text-underline-offset: .2em; }   /* the cost line opens the Cost tab */
+ 	.sov-bar .task-bar, .sov-card .task-bar { margin: 0; width: 100%; max-width: none; display: flex; }
+ 	.sov-bar .task-seg { flex: 1 1 0; }
+ 	.sov-bar .task-meter, .sov-card .task-meter { flex: 1 1 auto; width: auto; height: .45em; }
+diff --git a/public/framework/ai/AISession/SessionStats.js b/public/framework/ai/AISession/SessionStats.js
+index d75db68eb..351672f53 100644
+--- a/public/framework/ai/AISession/SessionStats.js
++++ b/public/framework/ai/AISession/SessionStats.js
+@@ -25,15 +25,16 @@ export default class SessionStats extends View {
+ 
+ 	/** The session's total cost, from the item tool's `summary` (the same answer, and the same cache, as the Report tab's AICost.report):
+ 	 *  one computation of a session's cost for every surface. SessionWork's own sum adds the day snapshots' older, inflated `usd`. */
+-	static cost($v, base){
+-		const hit = AICost.known.get(base);
+-		const got = hit && Date.now() - hit.at <= AICost.STALE_MS ? Promise.resolve(hit.answer)
+-			: AICost.ask(base).then(answer => (AICost.known.set(base, { at: Date.now(), answer }), answer));
+-		got.then(({ summary, why }) => {
+-			const total = summary?.cost?.total;
+-			if (total != null) $v.text(AICost.money(total));
+-			else { $v.text("not known"); $v.attr("title", why ?? "Servex gave no total for this session."); }
++	static cost($v, work, { row, open } = {}){
++		const base = work.id ? AICost.session_url(work.id) : work.dir, own_usd = work.tree?.snap?.usd ?? null;
++		const draw = (cost, tab) => $v.text(AICost.cost_line({ cost, own_usd, tab }).text);
++		Promise.all([AICost.summary(base), Promise.resolve(row).catch(() => null)]).then(([{ summary, why }, r]) => {
++			const tab = AICost.is_tab(r, summary);
++			if (summary?.cost) return draw(summary.cost, tab);
++			draw(null, tab); $v.attr("title", why ?? "Servex gave no total for this session.");
+ 		});
++		draw(null, false);
++		if (open) $v.attr("title", "Open the Cost tab: what this session spent and every child session behind the total").on("click", open);
+ 	}
+ 
+ 	draw(work){
+@@ -43,7 +44,7 @@ export default class SessionStats extends View {
+ 		const { done, total } = Task.progress_of(part.counted);
+ 		this.empty(() => {
+ 			div.c("sov-stat-row", () => {
+-				div.c("sov-stat", () => { small.c("sov-k", "Cost"); SessionStats.cost(strong.c("sov-v", "…"), work.dir); });
++				div.c("sov-stat", () => { small.c("sov-k", "Cost"); SessionStats.cost(strong.c("sov-v" + (this.open_cost ? " sov-link" : ""), "…"), work, { row: this.row, open: this.open_cost }); });
+ 				for (const [label, value] of [["Model", tree.snap?.model ?? "—"], ["Running for", SessionStats.elapsed(root.ms())], ["Task folders done", total ? `${done} of ${total}` : "no task folders"]])
+ 					div.c("sov-stat", () => { small.c("sov-k", label); strong.c("sov-v", value); });
+ 			});
+diff --git a/public/framework/ai/AISession/readme.md b/public/framework/ai/AISession/readme.md
+index 7f5d57e26..49b12f08a 100644
+--- a/public/framework/ai/AISession/readme.md
++++ b/public/framework/ai/AISession/readme.md
+@@ -5,7 +5,7 @@
+ - `AISession.js` — one session's cost, read from its raw transcript (browser and node).
+ - `AISessionsPage.js` · `AISessionView.js` · `AISessionRows.js` · `AISessionBuckets.js` — the grid page, its row, how rows nest and fold.
+ - `AISessionDetail.js` · `AISessionConversation.js` · `AISessionCoverage.js` · `AISessionTrace.js` — a session's own page and its tabs. A clicked row opens that session's full page in place of the list (previews plus full detail views: [design/navigation](/framework/design/navigation/readme.md)); the sessions page no longer calls `columns()`. A named agent's url (`/framework/ai/sessions/<name>/`, a `reviewer-*` or `minion-*` row) resolves the name to its session through Servex's live agent list (`AISessionDetail.agent_row`), and every load asks the folder listing first, so the page never asks for a file that is not there.
+-- The session page's tabs are **Overview · Board · Tasks · Chat**, then Coverage, Cost, Models and tokens, Related. `?tab=work` opens Tasks and `?tab=conversation` opens Chat. Above the tabs sits the sticky stats bar (`SessionStats.js`: cost, model, running for, done X of Y, the one segmented bar); it reads the tree `SessionWork` loads, so one load serves the bar, the Overview and the Tasks tab. **A session's total cost always comes from the item tool** (`AICost.ask(folder)` → `summary.cost.total`, the same cached answer as the Report tab), never from `SessionWork`'s own sum, which adds the day snapshots' older, inflated `usd`. `SessionFeed.js` (+ `SessionFeed.css`, prefix `sfeed-`) is the Overview tab: one list, newest first, of the session's task folders (a folder an agent session ran shows that session's model, cost and a link) and its record tasks (`SessionTasks` hands it each replay through `on_session`), subtasks folded under a parent with "N of M done", dropped ones dimmed, and the head line `Own tasks: N · Total: M`. `SessionOverview.js` draws the Board tab's four cards side by side (Open, Project, Done, Dropped), with the phone's classes (`MobileRow`, `MobileTaskRow`, `mob-` CSS); `SessionTaskRow.js` is the phone's task row that opens the task's full page and shows its cost. Their styles, and the full-screen mode with two floating buttons (`AISessionDetail.full_screen`, `?full`), are `SessionOverview.css` (prefix `sov-`).
++- The session page's tabs are **Overview · Board · Tasks · Chat**, then Coverage, Cost, Models and tokens, Related. `?tab=work` opens Tasks and `?tab=conversation` opens Chat. Above the tabs sits the sticky stats bar (`SessionStats.js`: cost, model, running for, done X of Y, the one segmented bar); it reads the tree `SessionWork` loads, so one load serves the bar, the Overview and the Tasks tab. **A session's cost is one line from one function, `AICost.cost_line`: "$282 this tab · $1035 with children"** ("this session" when it is not a VS Code tab). The Cost tile, the Sessions list's Cost cell and its rail card all draw it. The own figure is the summary's `cost.own.usd` (before it arrives, the day snapshot's `usd`); "with children" is `summary.cost.total`, which the item tool computes (`AICost.summary(AICost.session_url(id))`, one cached answer per session for every surface), never `SessionWork`'s own sum. The list never asks for every row: it shows an answer already here, else a small "with children …" button that asks for that one row. Clicking the Cost tile opens the Cost tab, whose first block lists every child session behind the total (`AICost.draw_session`). `SessionFeed.js` (+ `SessionFeed.css`, prefix `sfeed-`) is the Overview tab: one list, newest first, of the session's task folders (a folder an agent session ran shows that session's model, cost and a link) and its record tasks (`SessionTasks` hands it each replay through `on_session`), subtasks folded under a parent with "N of M done", dropped ones dimmed, and the head line `Own tasks: N · Total: M`. `SessionOverview.js` draws the Board tab's four cards side by side (Open, Project, Done, Dropped), with the phone's classes (`MobileRow`, `MobileTaskRow`, `mob-` CSS); `SessionTaskRow.js` is the phone's task row that opens the task's full page and shows its cost. Their styles, and the full-screen mode with two floating buttons (`AISessionDetail.full_screen`, `?full`), are `SessionOverview.css` (prefix `sov-`).
+ - `SessionWork.js` (+ `.css`) — the **Tasks** tab (the old Work view; its `SessionWork.split(root)` also feeds the stats bar and the Overview): its work nested by task folder (`sessions/doc/variants/SessionTree.js` over `ai/index.json`), own and rolled cost, tasks complete of created, open tasks, the Today ▾ pill (`ux/Filter/TimeFilter`), Approve. `Approvals.js` writes `{"approve":{"at","by":"owner"}}` to the session's own `session.jsonl` plus a pointer in that day's `day.jsonl` (the line the tab streams); `Review.js` is the leak rule and its numbers (finished 1 h, over $0.50, over a day old).
+ - `AISessionLive.js` · `AISessionFollow.js` · `AISessionResume.js` · `AISessionFlags.js` — live tail, follow, resume, flags.
+ - `AISessionDigest.mjs` — one transcript boiled down by plain Node: sizes, exact cost, owner prompts, result, `digest.json` and procedural `tags()` ([round 4](sessions/2026/10/16/voice-20261016/past-work/round4-result.md)).
+diff --git a/public/framework/ai/AITask/AICost.js b/public/framework/ai/AITask/AICost.js
+index f5af633d1..e049d4a94 100644
+--- a/public/framework/ai/AITask/AICost.js
++++ b/public/framework/ai/AITask/AICost.js
+@@ -155,6 +155,37 @@ export default class AICost {
+ 	   computes nothing: core/Session/readme.md, "What item() answers for a session". */
+ 	static known = new Map();   // folder url -> { at, answer }; one ask per folder per STALE_MS, however often the tab redraws
+ 	static STALE_MS = 30000;
++	static asking = new Map();   // folder url -> the answer's promise while it is on its way, so two surfaces asking at once send one request
++
++	/** The summary answer for one folder (or `/framework/ai/sessions/<uuid>/`): the cached one while fresh, else one new ask. */
++	static summary(base){
++		const hit = AICost.known.get(base);
++		if (hit && Date.now() - hit.at <= AICost.STALE_MS) return Promise.resolve(hit.answer);
++		if (!AICost.asking.has(base)) AICost.asking.set(base, AICost.ask(base).then(answer => (AICost.known.set(base, { at: Date.now(), answer }), answer)).finally(() => AICost.asking.delete(base)));
++		return AICost.asking.get(base);
++	}
++
++	/** A session's summary url by its id: the list and the session page both ask by it, so they share one cached answer. */
++	static session_url = id => "/framework/ai/sessions/" + id + "/";
++
++	/** The answer already here for a session, or null: a list row shows it without asking. */
++	static known_cost = base => { const hit = AICost.known.get(base); return hit && Date.now() - hit.at <= AICost.STALE_MS ? hit.answer?.summary?.cost ?? null : null; };
++
++	static short = n => "$" + (n >= 100 ? n.toFixed(0) : n.toFixed(2));
++
++	/* THE ONE COST LINE (cost-line, 2026-10-24): "$280 this tab · $1032 with children". The Sessions list and the session page both
++	   draw a session's cost with this, so they can never again show two unlabelled numbers ($280 on the list, $989 on the page).
++	   `cost` is the summary's cost ({own: {usd}, total}); `own_usd` (the day snapshot's own figure) stands in before it arrives, and the
++	   line then ends "with children …". "this tab" for a VS Code tab, "this session" for anything else. */
++	static cost_line({ cost = null, own_usd = null, tab = false } = {}){
++		const own = cost?.own?.usd ?? own_usd ?? null, total = cost?.total ?? null;
++		const who = tab ? "this tab" : "this session", mine = (own == null ? "?" : AICost.short(own)) + " " + who;
++		const with_kids = total == null ? "with children …" : AICost.short(total) + " with children";
++		return { own, total, who, mine, with_kids, text: mine + " · " + with_kids };
++	}
++
++	/** Is this session a VS Code tab? Its record's line 1 says so (the summary's `data.kind`), or its sessions-list row: the source, or (a tab registered with Servex) its role or id. */
++	static is_tab = (row, summary) => summary?.data?.kind === "vscode-tab" || (!!row && (row.source === "vscode" || /^vscode/i.test(String(row.role ?? "")) || /^vscode-/.test(String(row.id ?? ""))));
+ 
+ 	/** `{ summary }` from the item tool, or `{ why }` in words when Servex cannot answer from here. */
+ 	static async ask(base){
+@@ -177,10 +208,7 @@ export default class AICost {
+ 	static report(base){
+ 		const hit = AICost.known.get(base);
+ 		const $d = div.c("ai-cost flow", () => hit ? AICost.draw(hit.answer) : span.c("muted", "Asking Servex for this page's cost… (it can take a minute for a session with many tasks)"));
+-		if (!hit || Date.now() - hit.at > AICost.STALE_MS) AICost.ask(base).then(answer => {
+-			AICost.known.set(base, { at: Date.now(), answer });
+-			$d.empty(() => AICost.draw(answer));
+-		});
++		if (!hit || Date.now() - hit.at > AICost.STALE_MS) AICost.summary(base).then(answer => $d.empty(() => AICost.draw(answer)));
+ 		return $d;
+ 	}
+ 
+diff --git a/public/framework/ai/sessions/sessions.css b/public/framework/ai/sessions/sessions.css
+index d446f291a..0f382b0cf 100644
+--- a/public/framework/ai/sessions/sessions.css
++++ b/public/framework/ai/sessions/sessions.css
+@@ -299,6 +299,7 @@
+ 
+ 	/* The Session class (SessionView.js): the cost cell's lines, the defect flag, the tree, the purpose bars and the audit button. */
+ 	.sessions-cost-main { font-weight: 600; white-space: nowrap; }
++	.sessions-cost-ask { cursor: pointer; text-decoration: underline dotted; text-underline-offset: .2em; }   /* asks Servex for this one row's total (AISessionView.cost_lines) */
+ 	.sessions-chip { font: inherit; padding: .15em .7em; border: 1px solid var(--line); border-radius: 2em; background: transparent; color: inherit; cursor: pointer; }
+ 	.sessions-chip:hover { background: var(--tint); }
+ 	.sessions-chip-on { background: var(--tint); border-color: var(--prim-ink); font-weight: 600; }
+diff --git a/public/framework/core/Session/Session.js b/public/framework/core/Session/Session.js
+index c8bf72eb0..e9c5a69d0 100644
+--- a/public/framework/core/Session/Session.js
++++ b/public/framework/core/Session/Session.js
+@@ -57,6 +57,7 @@ export default class Session extends Task {
+ 		const { by, ts, at, session: _s, ...delta } = line;
+ 		const when = at ?? ts ?? (typeof _s === "object" ? _s?.at : null) ?? null;
+ 		if (when){ this._first_at ??= when; this._last_at = when; }
++		if (_s && typeof _s === "object" && typeof _s.kind === "string" && this.data.kind === undefined) this.put("kind", _s.kind);   // "vscode-tab": the cost line says "this tab"
+ 		Task.clock = when;   // nested tasks stamp this line's time, not the read's
+ 		try { return this.apply_line(delta, by); } finally { Task.clock = null; }
+ 	}

@@ -1,0 +1,23 @@
+diff --git a/public/framework/ai/2026-09-28/review-turns/proof/note.md b/public/framework/ai/2026-09-28/review-turns/proof/note.md
+new file mode 100644
+index 00000000..5b090122
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/review-turns/proof/note.md
+@@ -0,0 +1,3 @@
++# Note
++
++Run `npm install` before opening this file, or the framework will not load.
+diff --git a/public/framework/ai/2026-09-28/review-turns/proof/requirements.md b/public/framework/ai/2026-09-28/review-turns/proof/requirements.md
+new file mode 100644
+index 00000000..153acfc4
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/review-turns/proof/requirements.md
+@@ -0,0 +1,8 @@
++# Turns proof — a harmless trivial diff
++
++This dir exists only so `Server/review.mjs`'s four review turns (finding, answer, reply, ruling)
++can be run once end to end, with a real held decline, as the proof `review-turns/minion-a.md`
++asks for. See the parent task: `public/framework/ai/2026-09-28/review-turns/requirements.md`.
++
++The change under review is `note.md` beside this file: one sentence, added on purpose, with
++nothing else touched.

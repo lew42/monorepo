@@ -1,0 +1,125 @@
+diff --git a/public/framework/ext/Chat/Mic.js b/public/framework/ext/Chat/Mic.js
+index d1a3e203a..40e74522e 100644
+--- a/public/framework/ext/Chat/Mic.js
++++ b/public/framework/ext/Chat/Mic.js
+@@ -5,6 +5,7 @@ import FsFile from "/framework/ext/filesystem/FsFile.js";
+ import RefineSystem from "/framework/ext/Refine/RefineSystem.js";
+ import { clock } from "/framework/ext/Session/Session.js";
+ import DictateHealth from "/framework/ux/Dictate/DictateHealth.js";
++import { collapse_tail } from "/framework/ux/Dictate/repeat.js";
+ 
+ /** The microphone of a composer: `ux/Dictate` with a few methods redirected; speech goes into the composer's box and goes out as one message. see doc/mic-notes.md#overrides */
+ // Every knob of the whisper-to-box flow, read live everywhere. see doc/mic-notes.md#settings
+@@ -631,12 +632,15 @@ export class ComposerMic extends Dictate {
+ 		return dup;
+ 	}
+ 
+-	// Whisper's doubling of a whole-text repeat of 2+ words: keep the first half.
++	// Whisper's doubling: a whole-text repeat of 2+ words keeps the first half; a tail of 5+ words repeating the span before it is dropped (ux/Dictate/repeat.js). Shorter repeats ("no, no, no") stay.
+ 	static collapse_repeat(text){
+ 		const w = String(text ?? "").trim().split(/\s+/).filter(Boolean);
+-		if (w.length < 4 || w.length % 2) return text;
+-		const h1 = w.slice(0, w.length / 2).join(" "), h2 = w.slice(w.length / 2).join(" ");
+-		return strip_words(h2, h1) === "" ? h1 : text;
++		if (w.length >= 4 && !(w.length % 2)){
++			const h1 = w.slice(0, w.length / 2).join(" "), h2 = w.slice(w.length / 2).join(" ");
++			if (strip_words(h2, h1) === "") return h1;
++		}
++		const t = collapse_tail(text);
++		return t === w.join(" ") ? text : t;
+ 	}
+ 
+ 	/** The words leave the caption: one item `{text, raw, at}`, handed to `on_out` in this same step so the chat draws it where the
+diff --git a/public/framework/ext/Chat/doc/mic-notes.md b/public/framework/ext/Chat/doc/mic-notes.md
+index 659e27dfe..b4aba2ba3 100644
+--- a/public/framework/ext/Chat/doc/mic-notes.md
++++ b/public/framework/ext/Chat/doc/mic-notes.md
+@@ -363,3 +363,6 @@ the box grows to this many lines, then scrolls (one-input, 2026-10-12 — the
+ 
+ KILL SWITCH (ai/sessions/2026/09/29/audio/audio/next-clean-transcription/a-clean-mode, deliverable 4):
+ 
++
++## Whisper repeats (collapse_repeat)
++`ComposerMic.collapse_repeat` runs on `text` and `raw` as words leave the draft. It collapses (1) a whole-text doubling of 2+ words to its first half and (2) a tail of 5 or more words that repeats the span just before it (Whisper looping inside one long reply; `ux/Dictate/repeat.js`, proof `ux/Dictate/test/repeat.mjs`). A repeat of fewer than 5 words inside the text ("no, no, no") is never touched. Dictate does not stitch overlapping windows: each segment is cut and sent once, so the loop is Whisper's own.
+diff --git a/public/framework/ux/Dictate/readme.md b/public/framework/ux/Dictate/readme.md
+index ef9bba5d9..a42742eb2 100644
+--- a/public/framework/ux/Dictate/readme.md
++++ b/public/framework/ux/Dictate/readme.md
+@@ -9,6 +9,8 @@
+ - Proofs `test/errors.mjs` (every error is caught and shown), `test/stall.mjs`, `test/debug-tab.mjs`, `test/deltas.mjs`, `test/refresh.mjs` (reload, then dictate: [`doc/debug-tab.md#refresh-then-dictate`](doc/debug-tab.md#refresh-then-dictate)).
+ - Errors: [failures.jsonl](/framework/ux/Dictate/failures.jsonl) (dev only: git-ignored, written on this machine at the first failure).
+ 
++**Whisper said the end twice?** A tail of 5+ words repeating the span before it is dropped, a short real repeat stays: `ux/Dictate/repeat.js`, proof `test/repeat.mjs`, [`mic-notes`](/framework/ext/Chat/doc/mic-notes.md#whisper-repeats-collapse_repeat).
++
+ **Words vanished and came back?** The flicker, its cause and the fix: your words become the sent piece in the draft's spot the moment they leave it (`ComposerMic.take_out` → `Widget.show_out`), proof `test/flicker.mjs`: [`doc/flicker.md`](doc/flicker.md).
+ 
+ **Map of every dictation piece** (mic, Whisper, cleaners, chat, voice session, assistants; the duplicates and the plan): [doc/map.md](doc/map.md).
+diff --git a/public/framework/ux/Dictate/repeat.js b/public/framework/ux/Dictate/repeat.js
+new file mode 100644
+index 000000000..be7fb8080
+--- /dev/null
++++ b/public/framework/ux/Dictate/repeat.js
+@@ -0,0 +1,18 @@
++// Whisper sometimes loops inside one reply and says its last span twice. Drop a tail of MIN_WORDS+ words that repeats the span just before it.
++export const MIN_WORDS = 5;
++
++const norm = w => w.toLowerCase().replace(/[^\p{L}\p{N}]/gu, "");
++
++export function collapse_tail(text){
++	let w = String(text ?? "").trim().split(/\s+/).filter(Boolean);
++	for (let again = true; again;){
++		again = false;
++		const k = w.map(norm);
++		for (let n = Math.floor(w.length / 2); n >= MIN_WORDS; n--){
++			let same = true;
++			for (let i = 0; i < n && same; i++) same = k[w.length - n + i] === k[w.length - 2 * n + i];
++			if (same){ w = w.slice(0, w.length - n); again = true; break; }
++		}
++	}
++	return w.join(" ");
++}
+diff --git a/public/framework/ux/Dictate/test/files.jsonl b/public/framework/ux/Dictate/test/files.jsonl
+index 492ca1084..e016790d0 100644
+--- a/public/framework/ux/Dictate/test/files.jsonl
++++ b/public/framework/ux/Dictate/test/files.jsonl
+@@ -23,3 +23,5 @@
+ {"file":"freeze.mjs"}
+ {"file":"load.mjs"}
+ {"file":"watch.mjs"}
++{"file":"repeat-line34.json"}
++{"file":"repeat.mjs"}
+diff --git a/public/framework/ux/Dictate/test/repeat-line34.json b/public/framework/ux/Dictate/test/repeat-line34.json
+new file mode 100644
+index 000000000..c42990ce1
+--- /dev/null
++++ b/public/framework/ux/Dictate/test/repeat-line34.json
+@@ -0,0 +1,4 @@
++{
++ "text": "Yeah, I don't know why it reordered those so that the message or the chat bubble I see has the word now. now with a question mark. And then on a new line, it says, can you hear me? So it kind of reordered the order of these things, you know, getting added to the chat bubbles is broken. But all right.",
++ "raw": "Yeah, I don't know why it reordered those so that the message or the chat bubble I see has the word now. now with a question mark. And then on a new line, it says, can you hear me? So it kind of reordered the order of these things, you know, getting added to the chat bubbles is broken. But all right. now with a question mark. And then on a new line, it says, can you hear me? So it kind of reordered the order of these things, you know, getting added to the chat bubbles is broken. But all right."
++}
+\ No newline at end of file
+diff --git a/public/framework/ux/Dictate/test/repeat.mjs b/public/framework/ux/Dictate/test/repeat.mjs
+new file mode 100644
+index 000000000..9e08a7102
+--- /dev/null
++++ b/public/framework/ux/Dictate/test/repeat.mjs
+@@ -0,0 +1,18 @@
++// Whisper repeats the end of what was said. node public/framework/ux/Dictate/test/repeat.mjs   (pure; no server needed)
++import { collapse_tail } from "../repeat.js";
++import fs from "fs";
++const line34 = JSON.parse(fs.readFileSync(new URL("./repeat-line34.json", import.meta.url), "utf8"));
++const cases = [
++	["line 34 raw loses the repeated tail", line34.raw, line34.text],
++	["a whole doubling (6 words) keeps one", "we should ship it today we should ship it today", "we should ship it today"],
++	["a short real repeat stays", "No, no, no, I did not say that.", "No, no, no, I did not say that."],
++	["a 4-word repeat stays", "go to the store go to the store", "go to the store go to the store"],
++	["a clean sentence stays", "Can you hear me? Now it is working fine today.", "Can you hear me? Now it is working fine today."],
++];
++let bad = 0;
++for (const [name, input, want] of cases){
++	const got = collapse_tail(input), ok = got === want;
++	if (!ok) bad++;
++	console.log(ok ? "ok  " : "FAIL", name, ok ? "" : `\n  got:  ${got}\n  want: ${want}`);
++}
++process.exit(bad ? 1 : 0);

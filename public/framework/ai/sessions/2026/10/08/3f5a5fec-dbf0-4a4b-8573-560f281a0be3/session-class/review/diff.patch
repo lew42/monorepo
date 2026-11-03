@@ -1,0 +1,737 @@
+diff --git a/.gitignore b/.gitignore
+index 9b660a72d..91d14d730 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -96,7 +96,9 @@ layout-check-out/
+ .merge-landed.json
+ 
+ # session folders (voice turns, dictation cleanups, agent transcripts)
+-public/framework/ai/20??/??/??/session-*/
++public/framework/ai/20??/??/??/session-*/*
++# ...except the hand-written record (tags, notes, alerts, closed): the one tracked file in a session folder (sessions/doc/layout.md)
++!public/framework/ai/20??/??/??/session-*/session.jsonl
+ public/framework/ai/v-*.jsonl
+ public/framework/ai/v-*.summary.json
+ public/framework/ux/Dictate/ai/v-*.jsonl
+diff --git a/Server/session-place.mjs b/Server/session-place.mjs
+index b84903a76..0b41dc2bb 100644
+--- a/Server/session-place.mjs
++++ b/Server/session-place.mjs
+@@ -1,6 +1,9 @@
+-// Moves every flat session folder (ai/sessions/<id>/) into its day (ai/sessions/YYYY/MM/DD/<id>/), the day of its
+-// first_at. A plain rename: nothing is regenerated or deleted except the stray files.jsonl folder listings, which are noise.
+-// Safe to run again: a folder already in its day is left alone. Folders with no known first_at (empty sessions, test fixtures) stay where they are.
++// Moves every older session folder into the ONE store, the ai date tree: ai/YYYY/MM/DD/session-<first 8 of the id>/ .
++// Two older shapes are moved: the flat ai/sessions/<id>/ and the interim ai/sessions/YYYY/MM/DD/<id>/. The day is the day of
++// an existing card folder with that name, else the day of first_at. A plain rename (or, when the card folder already exists,
++// its files are moved in beside the card's page.jsonl); nothing is regenerated. The only thing deleted is the stray
++// files.jsonl folder listing a dev server once wrote into each cache folder. Safe to run again.
++// A folder with no known first_at and no card stays where it is.
+ //   node Server/session-place.mjs [--dry]
+ import fs from "node:fs";
+ import path from "node:path";
+@@ -9,6 +12,11 @@ import Session from "../public/framework/ai/sessions/Session.js";
+ 
+ const DIR = process.env.SESSIONS_ROOT || path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "public", "framework", "ai", "sessions");
+ const dry = process.argv.includes("--dry");
++// Every move is recorded old -> new (paths relative to ai/) so the whole conversion can be reversed by a script. --manifest <file> overrides the default.
++const mi = process.argv.indexOf("--manifest");
++const MANIFEST = mi > 0 ? process.argv[mi + 1] : path.join(DIR, "..", "2026-10-08", "session-class", "moves.jsonl");
++const manifest = [];
++const rel = p => path.relative(path.join(DIR, ".."), p).replaceAll("\\", "/");
+ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+ 
+ // first_at from the cache's newest summary, else the earliest `at` in the hand-written record.
+@@ -20,20 +28,29 @@ function first_at_of(dir){
+ 	return first;
+ }
+ 
++// every old folder: [id, dir]
++const found = [];
++for (const a of fs.readdirSync(DIR)){
++	const p = path.join(DIR, a);
++	if (UUID.test(a) && fs.statSync(p).isDirectory()) found.push([a, p]);
++	else if (/^\d{4}$/.test(a) && fs.statSync(p).isDirectory())
++		for (const m of fs.readdirSync(p)) for (const d of fs.readdirSync(path.join(p, m))) for (const id of fs.readdirSync(path.join(p, m, d)))
++			if (UUID.test(id)) found.push([id, path.join(p, m, d, id)]);
++}
++
+ let moved = 0, undated = 0, listings = 0;
+-for (const id of fs.readdirSync(DIR)){
+-	if (!UUID.test(id)) continue;
+-	const dir = path.join(DIR, id);
+-	if (!fs.statSync(dir).isDirectory()) continue;
++const cards = await Session.card_days();
++for (const [id, dir] of found){
+ 	const listing = path.join(dir, "files.jsonl");
+ 	if (fs.existsSync(listing)){ listings++; if (!dry) fs.rmSync(listing); }
+-	const day = Session.day(first_at_of(dir));
+-	if (!day){ undated++; continue; }
+-	const to = path.join(DIR, ...day.split("/"), id);
++	const first = first_at_of(dir);
++	if (!first && !cards.has(Session.short(id))){ undated++; continue; }
+ 	if (dry){ moved++; continue; }
+-	if (fs.existsSync(to)){ console.error("exists, left alone:", id); continue; }
+-	fs.mkdirSync(path.dirname(to), { recursive: true });
+-	fs.renameSync(dir, to);
++	const to = fileURLToPath(await Session.locate(id, first));
++	if (path.resolve(to) !== path.resolve(dir)) manifest.push(JSON.stringify({ id, from: rel(dir), to: rel(to) }));
+ 	moved++;
+ }
+-console.log(`${dry ? "would move" : "moved"} ${moved} session folders (${undated} left flat: no first_at), removed ${listings} files.jsonl listings`);
++if (!dry && manifest.length){ fs.mkdirSync(path.dirname(MANIFEST), { recursive: true }); fs.appendFileSync(MANIFEST, manifest.join("\n") + "\n"); }
++// the empty day folders the interim shape leaves behind
++if (!dry) for (const y of fs.readdirSync(DIR)) if (/^\d{4}$/.test(y)) { const prune = d => { for (const n of fs.readdirSync(d)) { const q = path.join(d, n); if (fs.statSync(q).isDirectory()) prune(q); } if (!fs.readdirSync(d).length) fs.rmdirSync(d); }; prune(path.join(DIR, y)); }
++console.log(`${dry ? "would move" : "moved"} ${moved} session folders into the date tree (${undated} left where they are: no first_at), removed ${listings} files.jsonl listings`);
+diff --git a/Server/session-place.test.mjs b/Server/session-place.test.mjs
+index cffc7a55e..eb73786b7 100644
+--- a/Server/session-place.test.mjs
++++ b/Server/session-place.test.mjs
+@@ -6,7 +6,8 @@ import path from "node:path";
+ import { execFileSync } from "node:child_process";
+ import { fileURLToPath } from "node:url";
+ 
+-const root = fs.mkdtempSync(path.join(os.tmpdir(), "sess-place-"));
++const base = fs.mkdtempSync(path.join(os.tmpdir(), "sess-place-")), root = path.join(base, "ai", "sessions"), store = path.join(base, "ai");
++fs.mkdirSync(root, { recursive: true });
+ process.env.SESSIONS_ROOT = root;
+ const { default: Session } = await import("../public/framework/ai/sessions/Session.js");
+ let fails = 0;
+@@ -18,7 +19,7 @@ fs.writeFileSync(path.join(root, id, "cache.jsonl"), JSON.stringify({ summary: {
+ fs.writeFileSync(path.join(root, id, "files.jsonl"), "{}\n");
+ fs.mkdirSync(path.join(root, id2));                          // no first_at anywhere: stays flat
+ execFileSync("node", [path.join(path.dirname(fileURLToPath(import.meta.url)), "session-place.mjs")], { env: process.env });
+-const dated = path.join(root, "2026", "10", "03", id);
++const dated = path.join(store, "2026", "10", "03", "session-11111111");
+ check(fs.existsSync(path.join(dated, "cache.jsonl")), "the folder moved to its first_at day (UTC)");
+ check(!fs.existsSync(path.join(root, id)), "the flat folder is gone");
+ check(!fs.existsSync(path.join(dated, "files.jsonl")), "the stray files.jsonl listing was dropped");
+@@ -35,9 +36,18 @@ fs.writeFileSync(path.join(root, id3, "session.jsonl"), "{}\n");
+ fs.writeFileSync(path.join(root, id3, "cache.jsonl"), JSON.stringify({ summary: { first_at: "2026-09-01T10:00:00.000Z" } }) + "\n");
+ Session.days.clear();
+ await Session.close(id3, "test");
+-const lazy = path.join(root, "2026", "09", "01", id3);
++const lazy = path.join(store, "2026", "09", "01", "session-99999999");
+ check(fs.existsSync(path.join(lazy, "session.jsonl")) && !fs.existsSync(path.join(root, id3)), "a flat folder is moved by the first writer that touches it");
+ 
+-fs.rmSync(root, { recursive: true, force: true });
++// an interim-shape folder and a card folder that already exists
++const id4 = "abcdef01-aaaa-4bbb-8ccc-dddddddddddd";
++fs.mkdirSync(path.join(root, "2026", "08", "08", id4), { recursive: true });
++fs.writeFileSync(path.join(root, "2026", "08", "08", id4, "cache.jsonl"), JSON.stringify({ summary: { first_at: "2026-08-08T12:00:00.000Z" } }) + "\n");
++fs.mkdirSync(path.join(store, "2026", "08", "07", "session-abcdef01"), { recursive: true });   // the card was made the day before
++fs.writeFileSync(path.join(store, "2026", "08", "07", "session-abcdef01", "page.jsonl"), "{}\n");
++execFileSync("node", [path.join(path.dirname(fileURLToPath(import.meta.url)), "session-place.mjs")], { env: process.env });
++check(fs.existsSync(path.join(store, "2026", "08", "07", "session-abcdef01", "cache.jsonl")) && fs.existsSync(path.join(store, "2026", "08", "07", "session-abcdef01", "page.jsonl")), "an existing card folder wins the day, and the cache is merged in beside its page");
++check(!fs.existsSync(path.join(root, "2026")), "the interim day folders are gone");
++fs.rmSync(base, { recursive: true, force: true });
+ console.log(fails ? `${fails} failed` : "all passed");
+ process.exit(fails ? 1 : 0);
+diff --git a/Server/session-summary.mjs b/Server/session-summary.mjs
+index 01b17c9d8..5247c2b28 100644
+--- a/Server/session-summary.mjs
++++ b/Server/session-summary.mjs
+@@ -121,7 +121,7 @@ export async function build_index({ days = 30 } = {}){
+ 		const rec = await Session.record(id);
+ 		if (rec.closed) closed[id] = rec.closed.at;
+ 		if (rec.tags.length || rec.alerts || rec.links.length || rec.weight != null) meta[id] = { tags: rec.tags, alerts: rec.alerts, links: rec.links.slice(0, 3), weight: rec.weight };
+-		slim[id] = [r4(r.usd), r4(r.tree_usd), r.children, Math.round(r.wall_ms), r.model === "unknown" ? 0 : r.model, r.effort ?? 0, r.flags, Session.day(r.first_at) ?? 0];
++		slim[id] = [r4(r.usd), r4(r.tree_usd), r.children, Math.round(r.wall_ms), r.model === "unknown" ? 0 : r.model, r.effort ?? 0, r.flags, (await Session.card_days()).get(Session.short(id)) ?? Session.day(r.first_at) ?? Session.days.get(id) ?? 0];
+ 		if (r.parent || r.kids.length) tree[id] = { agent: r.agent ?? undefined, role: r.role ?? undefined, parent: r.parent ?? undefined, kids: r.kids.length ? r.kids : undefined };
+ 	}
+ 	const index = { generated_at: new Date().toISOString(), days, columns: ["usd", "tree_usd", "children", "wall_ms", "model", "effort", "flags", "day"], count: Object.keys(slim).length, scanned: Object.keys(rows).length, unlinked_spawned: unlinked.length, unlinked_sample: unlinked.slice(0, 5), closed, meta, rows: slim };
+diff --git a/public/framework/ai/sessions/Session.js b/public/framework/ai/sessions/Session.js
+index 4e939c469..ac75db386 100644
+--- a/public/framework/ai/sessions/Session.js
++++ b/public/framework/ai/sessions/Session.js
+@@ -330,40 +330,58 @@ export default class Session {
+ 	// ---- cache I/O (the server writes it, the browser reads it) -----------------------------
+ 
+ 	// ---- where a session's folder lives (doc/layout.md) ---------------------------------------
+-	// sessions/YYYY/MM/DD/<id>/ , the day the session FIRST appeared (UTC), the same year/month/day tree the ai cards use.
+-	// Old flat folders (sessions/<id>/) are still read, and are moved into their day the first time a node writer touches them.
++	// ONE store: the ai date tree, ai/YYYY/MM/DD/session-<first 8 of the id>/ , the same folder the session's card page
++	// lives in. The day is the card's day if a card folder exists, else the day the session FIRST appeared (UTC).
++	// Older shapes (sessions/<id>/ and sessions/YYYY/MM/DD/<id>/) are still read, and move into the store when a node writer touches them.
+ 	static days = new Map();                       // id -> "2026/10/03", filled from the index (browser) or the disk (node)
+ 	static day(first_at){ const d = new Date(first_at); return first_at && !isNaN(d) ? d.toISOString().slice(0, 10).replace(/-/g, "/") : null; }
+ 	static use_index(index){ const i = index?.columns?.indexOf("day"); if (i >= 0) for (const [id, v] of Object.entries(index.rows)) if (v[i]) Session.days.set(id, v[i]); }
++	static short(id){ return "session-" + String(id).slice(0, 8); }
+ 
+ 	static root_url(){
+ 		// SESSIONS_ROOT (node only) lets a script run from a worktree write into the main tree's sessions/ folder.
+ 		const root = typeof process !== "undefined" && process.env?.SESSIONS_ROOT;
+ 		return root ? new URL("file:///" + root.replace(/\\/g, "/").replace(/\/?$/, "/").replace(/^\/+/, "")) : new URL("./", import.meta.url);
+ 	}
+-	// Sync: the dated folder when the day is known, else the old flat one.
+-	static dir_url(id, day = Session.days.get(id)){ return new URL(day ? `./${day}/${id}/` : `./${id}/`, Session.root_url()); }
++	static store_url(){ return new URL("../", Session.root_url()); }   // the ai/ folder: the date tree's root
++	// Sync: the store folder when the day is known, else the oldest flat one.
++	static dir_url(id, day = Session.days.get(id)){ return day ? new URL(`./${day}/${Session.short(id)}/`, Session.store_url()) : new URL(`./${id}/`, Session.root_url()); }
++
++	// Node, async: every card folder `ai/YYYY/MM/DD/session-*` as short name -> day (one pass over the ~100 day folders).
++	static async card_days(){
++		if (Session.cards) return Session.cards;
++		const fs = await import("node:fs/promises"), ls = async u => fs.readdir(u).catch(() => []), store = Session.store_url(), cards = new Map();
++		for (const y of await ls(store)) if (/^\d{4}$/.test(y)) for (const m of await ls(new URL(`./${y}/`, store))) if (/^\d\d$/.test(m)) for (const d of await ls(new URL(`./${y}/${m}/`, store)))
++			if (/^\d\d$/.test(d)) for (const n of await ls(new URL(`./${y}/${m}/${d}/`, store))) if (n.startsWith("session-") && !cards.has(n)) cards.set(n, `${y}/${m}/${d}`);
++		return Session.cards = cards;
++	}
+ 
+-	// Node, async: the folder to WRITE into. Day from first_at, else what we already know, else the index on disk, else an old
+-	// flat folder, else today. An old flat folder is moved into its day (a plain rename: it is regenerable cache plus the record).
++	// Node, async: the folder to WRITE into. Day: an existing card folder, else first_at, else what we already know, else the index
++	// on disk, else the old folder's own summary, else today. An older folder is moved in (a plain rename, or its files are merged in).
+ 	static async locate(id, first_at){
+-		const fs = await import("node:fs/promises"), root = Session.root_url();
+-		let day = Session.day(first_at) ?? Session.days.get(id);
++		const fs = await import("node:fs/promises"), root = Session.root_url(), store = Session.store_url(), name = Session.short(id);
++		const exists = u => fs.stat(u).then(() => true, () => false);
++		let day = (await Session.card_days()).get(name) ?? Session.days.get(id) ?? Session.day(first_at);
+ 		if (!day && !Session.ix_read){ Session.ix_read = true; try { const ix = JSON.parse(await fs.readFile(new URL("session-index.json", root), "utf8")); Session.use_index(ix); day = Session.days.get(id); } catch {} }
+-		const flat = new URL(`./${id}/`, root), exists = u => fs.stat(u).then(() => true, () => false);
+-		if (!day && await exists(flat)){      // an old flat folder: its own cache knows the day
+-			try { for (const l of (await fs.readFile(new URL("cache.jsonl", flat), "utf8")).split("\n")) if (l.startsWith('{"summary"')) day = Session.day(JSON.parse(l).summary?.first_at) ?? day; } catch {}
+-		}
+-		else if (!day){                       // not in the index, no flat folder: look through the day folders (a few dozen), else it is new: today
++		const flat = new URL(`./${id}/`, root);
++		const old = [flat];                                        // older shapes to move in: flat, then sessions/YYYY/MM/DD/<id>/
++		const read_day = async dir => { try { for (const l of (await fs.readFile(new URL("cache.jsonl", dir), "utf8")).split("\n")) if (l.startsWith('{"summary"')) return Session.day(JSON.parse(l).summary?.first_at); } catch {} return null; };
++		if (!day && await exists(flat)) day = await read_day(flat);
++		if (!day){
+ 			const ls = async u => fs.readdir(u).catch(() => []);
+ 			for (const y of await ls(root)) if (/^\d{4}$/.test(y)) for (const m of await ls(new URL(`./${y}/`, root))) for (const d of await ls(new URL(`./${y}/${m}/`, root)))
+ 				if (await exists(new URL(`./${y}/${m}/${d}/${id}/`, root))) day = `${y}/${m}/${d}`;
+ 			day ??= Session.day(new Date());
+ 		}
+-		if (!day) return flat;                                   // known only by an old flat folder: leave it until its first_at is known
++		if (!day) return flat;
+ 		Session.days.set(id, day);
+-		const dated = new URL(`./${day}/${id}/`, root);
+-		if (await exists(flat) && !(await exists(dated))){ await fs.mkdir(new URL(`./${day}/`, root), { recursive: true }); await fs.rename(flat, dated); }
++		for (const dd of new Set([day, Session.day(first_at)])) if (dd) old.push(new URL(`./${dd}/${id}/`, root));   // the interim shape sat in the first_at day
++		const dated = new URL(`./${day}/${name}/`, store);
++		for (const src of old){
++			if (!(await exists(src))) continue;
++			if (!(await exists(dated))){ await fs.mkdir(new URL(`./${day}/`, store), { recursive: true }); await fs.rename(src, dated); }
++			else for (const f of await fs.readdir(src)) if (!(await exists(new URL(f, dated)))) await fs.rename(new URL(f, src), new URL(f, dated));   // merge into the card's folder
++		}
+ 		return dated;
+ 	}
+ 
+diff --git a/public/framework/ai/sessions/doc/layout.md b/public/framework/ai/sessions/doc/layout.md
+index 7ddd0c954..0be9d26f6 100644
+--- a/public/framework/ai/sessions/doc/layout.md
++++ b/public/framework/ai/sessions/doc/layout.md
+@@ -1,51 +1,47 @@
+ # Where a session's files live
+ 
+-A Claude session has one folder, named by its session id, and the folder sits inside the **day the session first appeared**:
++A Claude session has **one folder**, in the same date tree as every AI card:
+ 
+ ```
+-ai/sessions/2026/10/03/<session-id>/
+-    session.jsonl   the record: tags, notes, alerts, weight, closed, questions, links. Tracked in git, append only.
++ai/2026/10/03/session-1a2b3c4d/      "session-" + the first 8 characters of the session id
++    page.jsonl      the card's page, if the session has one (Servex and VS Code cards do)
++    session.jsonl   the hand-written record: tags, notes, alerts, weight, closed, questions, links. Tracked in git, append only.
+     cache.jsonl     the computed cost summary and audits. Gitignored, rebuilt freely.
+ ```
+ 
+-The day is the date of the session's first message (`first_at`, in UTC), written `YYYY/MM/DD`. It is the same year/month/day tree the site's AI cards use, so a reader who knows one knows the other.
++The day is the day of the card folder if one exists, else the day of the session's first message (`first_at`, UTC). The full id is written inside the files, so the short name is only a label.
+ 
+ ## The three rules
+ 
+-1. **The folder is cache plus record, nothing else.** Nothing here is a work log. A session's story lives in its task folder (see "Why ids, not task names" below).
+-2. **Only code writes the path.** `Session.locate(id, first_at)` (node) decides it and moves an old flat folder into its day. `Session.dir_url(id)` (browser) reads it from the day column of `session-index.json`. Nobody builds the path by hand.
+-3. **The listing is never written.** The dev server does not create a `files.jsonl` inside `ai/sessions/<id>/` or `ai/sessions/YYYY/...` (`Server/plugins/PageFiles.js`, `in_session_cache`), and `.gitignore` covers both, so thousands of session folders cannot dirty the git tree.
++1. **One folder per session.** Nothing about a session is stored in a second place. The older shapes below are only read, never written.
++2. **Only code writes the path.** `Session.locate(id, first_at)` (node) decides it and moves an older folder in. `Session.dir_url(id)` (browser) reads the day from the `day` column of `session-index.json`. Nobody builds the path by hand.
++3. **The listing is never written.** The dev server does not create a `files.jsonl` inside a session folder (`Server/plugins/PageFiles.js`, `in_session_cache`), and `.gitignore` keeps `cache.jsonl` and everything but `session.jsonl` out of git, so thousands of folders cannot dirty the tree.
+ 
+ ## Old paths still load
+ 
+-The old flat folders (`ai/sessions/<id>/`) are still read. `Session.read_text` tries the dated folder first and falls back to the flat one. The first writer that touches an old folder moves it. To move everything at once:
++Two older shapes exist: the flat `ai/sessions/<id>/` and the interim `ai/sessions/YYYY/MM/DD/<id>/`. `Session.locate` finds a session under any of them. The first writer that touches an older folder moves it into the date tree. To move everything at once, with a record of every move:
+ 
+ ```
+-node Server/session-place.mjs --dry     # say what would move
+-node Server/session-place.mjs           # a plain rename; the only thing removed is the stray files.jsonl listings
++node Server/session-place.mjs --dry     # say what would move; changes nothing
++node Server/session-place.mjs           # renames only; writes moves.jsonl (id, from, to) so a script can reverse it
+ ```
+ 
+-A folder with no `first_at` anywhere (an empty session, a test fixture) stays flat. The script is safe to run again.
++If the card's folder already exists, the cache is moved in beside its `page.jsonl`; no file is overwritten. A folder with no known day (an empty session, a test fixture) stays where it is. The script is safe to run again. The only thing it deletes is the stray `files.jsonl` listing a dev server once wrote into each cache folder.
+ 
+ ## Two things to know
+ 
+-- **A read can move a folder too.** In node, `read_text` calls `Session.locate`, so even a read renames an old flat folder into its day (and an id nobody knows gets today). That keeps one rule, "the path comes from `locate`", at the price of a surprising side effect on reads.
+-- **A move is a rename.** A reader that holds the old flat path gets an empty answer for one call while a writer moves the folder. For a cache that is fine; the next read finds it.
+-- **The browser finds a dated folder through `session-index.json`** (its `day` column). A session missing from the index reads from the flat path and shows nothing until the index is rebuilt (`node Server/session-summary.mjs --index`). Every session the table lists is in the index, so the table itself is never affected.
++- **A read can move a folder too.** In node, `read_text` calls `Session.locate`, so even a read renames an older folder into place. That keeps one rule, "the path comes from `locate`", at the price of a surprising side effect on reads.
++- **The browser finds the folder through `session-index.json`.** A session missing from the index reads from the flat path and shows nothing until the index is rebuilt (`node Server/session-summary.mjs --index`). Every session the table lists is in the index, so the table itself is not affected.
+ 
+ ## Why this layout, and the alternative
+ 
+-- **Chosen: `ai/sessions/YYYY/MM/DD/<id>/`.** It keeps all session data in one module, it matches the card tree's shape, and `session-index.json` (the page's only fast read) carries the day, so the browser never lists a directory.
+-- **Alternative: `ai/YYYY/MM/DD/<id>/`.** Closer to the cards, but that tree is made of pages (each folder a card with a `page.jsonl`), and 7,700 machine-cache folders would sit among them. Rejected for that reason.
+-- The index design in `findings.md` (section 12) partitions the index by day of *update* in `ai/sessions/index/YYYY/MM/DD.jsonl`. That is a different thing from this layout (the day a session *began*, for its folder), and the two do not collide: `index` is not a year.
++- **Chosen: the date tree, `ai/YYYY/MM/DD/session-<id8>/`.** The owner's preference (2026-10-08): the cards already live there, so a session and its card are one folder and the site has one place to look.
++- **Alternative, rejected: `ai/sessions/YYYY/MM/DD/<id>/`.** It was the first answer, and it kept session data apart from the cards, which is the split being removed.
++- **Not built yet: child sessions as subdirectories (`parent/child`).** The grid already nests children under their parent from `session-tree.json`. The folder rule is queued in `2026-10-08/session-class/findings.md` section 14, with the reason: a child can start on a later day than its parent.
++- The day-partitioned index in that file's section 12 (`sessions/index/YYYY/MM/DD.jsonl`, by day of update) is a different thing from where a session's folder lives and does not collide with it.
+ 
+ ## Why ids, not task names
+ 
+-A task folder (`ai/2026-10-08/session-class/`) is a unit of work with a human name. A Claude session is one transcript. They are not one-to-one: a task can take several sessions (a mastermind, its minions, a resumed run), and most sessions (every VS Code tab, every SDK run, every reviewer) have no task at all. The Claude session id is the only key all of them share, so the cost cache is keyed by it.
++A task folder (`ai/2026-10-08/session-class/`) is a unit of work with a human name. A Claude session is one transcript. They are not one-to-one: a task can take several sessions (a mastermind, its minions, a resumed run), and most sessions (every VS Code tab, every SDK run, every reviewer) have no task at all. The session id is the only key all of them share.
+ 
+-A session is not stored twice, because the two folders hold different things:
+-
+-- the **task folder** holds the work: `task.jsonl`, the brief, the findings.
+-- the **session folder** holds the money and the record: the cost cache, tags, alerts, closed.
+-
+-They join by id. A task's launch line in `task.jsonl` names its `session_id`, and the Servex registry (`agents.jsonl`, read by `registry_rows()` in `Server/session-summary.mjs`) maps an agent's name and parent to its `session_id`. The Sessions table shows the name from that mapping. Naming a session after its task would only work for the minority that have one.
++A session is not stored twice, because the two folders hold different things: the **task folder** holds the work (`task.jsonl`, the brief, the findings), and the **session folder** holds the money and the record. They join by id. A task's launch line in `task.jsonl` names its `session_id`, and the Servex registry (`agents.jsonl`, read by `registry_rows()` in `Server/session-summary.mjs`) maps an agent's name and parent to its `session_id`. The Sessions table shows the name from that mapping.
+diff --git a/public/framework/ai/sessions/doc/priorities.md b/public/framework/ai/sessions/doc/priorities.md
+new file mode 100644
+index 000000000..1120d604b
+--- /dev/null
++++ b/public/framework/ai/sessions/doc/priorities.md
+@@ -0,0 +1,33 @@
++# Sessions: what the owner asked for, most important first
++
++This is the list to follow. Higher means do it first and never break it for something lower. Each line says what was asked, what is decided, and where it lives. The long history is in [decisions](/framework/ai/sessions/doc/decisions/).
++
++## 1. Data is never lost, and moves are scripted
++- **Asked:** move and rename with a script, never by retyping; do not delete logs or records; git is the undo.
++- **Decided:** `Server/session-place.mjs` only renames, runs `--dry` first, is safe to run again, and writes `moves.jsonl` (old path, new path) in the task folder. The one thing it removes is the `files.jsonl` folder listing a dev server wrote into cache folders: noise that is rebuilt on demand.
++- **Lives in:** [layout](/framework/ai/sessions/doc/layout/).
++
++## 2. One store, one route
++- **Asked:** a session is stored once; the same detail view opens however you arrive.
++- **Decided:** the date tree, `ai/YYYY/MM/DD/session-<id8>/`. Every row opens `/framework/ai/sessions/<id>/`. Old shapes still load through `Session.locate`.
++- **Lives in:** [layout](/framework/ai/sessions/doc/layout/), `Session.js`.
++
++## 3. The page tells the truth
++- **Asked:** state must be real; names must be useful, never "monorepo"; counts must come from the index, not from loading everything.
++- **Decided:** state is worked out on every draw from the live agent list and the transcript clock (`true_state`). A name is the agent's name, else the last real prompt, else the source and id. Counts come from the rows and `session-index.json`.
++- **Lives in:** `page.js` (`true_state`, `display_name`), [findings 14](/framework/ai/2026-10-08/session-class/).
++- **Still to do:** Servex names every session when it spawns it; the dev server stops writing stale state into `sessions.json`.
++
++## 4. A compact grid you can scan
++- **Asked:** state icon first, plan usage as bars with the pace marker (the Dashboard's), no wasted space above the list, an "in flight" filter, sort toggles for recency and cost.
++- **Decided:** all of it is built. The bars are `usage_rail` from `ext/AITask/usage.js`, the same component the Dashboard uses. Every column header sorts; the default order is cost weighted by recency; "Updated" sorts newest first.
++- **Lives in:** `page.js`, `sessions.css`.
++
++## 5. Children nest under their parent
++- **Asked:** a child session is a sub-folder of its parent (`parent/child`), and the grid shows nested rows, collapsed, with the rolled-up cost.
++- **Decided and built:** the grid nests rows from `session-tree.json`, collapsed, with the whole tree's cost on the parent row.
++- **Not built:** the folder rule. A child can start a day later than its parent, so its date folder and its parent's disagree. Proposal and reason: [findings 14](/framework/ai/2026-10-08/session-class/).
++
++## 6. Everything is linked
++- **Asked:** a file that exists but is not linked from the site will never be found.
++- **Decided:** this page links to the readme, this list and the docs from its header; the readme links every doc.
+diff --git a/public/framework/ai/sessions/page.js b/public/framework/ai/sessions/page.js
+index df118e700..10b2746fc 100644
+--- a/public/framework/ai/sessions/page.js
++++ b/public/framework/ai/sessions/page.js
+@@ -1,6 +1,8 @@
+-import { Page, div, a, span, small, p, label, input, button, View } from "/app.js";
++import { servex_base } from "/framework/ai/v/3/prompts.js";
++import { Page, h3, div, a, span, small, p, label, input, button, View } from "/app.js";
+ import Panel2 from "/framework/ext/panel2/Panel2.js";
+ import { age } from "/framework/core/Page/ext/Inbox/Inbox.js";
++import { usage_rail } from "/framework/ext/AITask/usage.js";
+ import { grip } from "/framework/ext/grip/grip.js";
+ import { load as raw_transcript_lines } from "/framework/ext/AITask/replay.js";
+ import { dur, elapsed } from "/framework/ext/AITask/stats.js";
+@@ -83,13 +85,21 @@ export const SOURCE = {
+ 	page: { label: "Page", icon: "description" },
+ };
+ 
++View.stylesheet("/framework/ext/AITask/ai.css");   // the usage rail's bars
++
+ const POLL_MS = 20000;
++let TREE = null;   // session-tree.json (who spawned whom, and each agent's own name), set when it loads
+ 
+ // A row's own `state` word that counts as "in flight" — the state cell shows a
+ // blinking ▶ for these, a plain quiet dot for anything else (idle, dormant,
+ // stopped, gone, or no state at all).
+ const WORKING_STATES = new Set(["working", "active"]);
+ 
++// "In flight" = running or ready to be: a Servex agent that is working, starting or idle-but-live (not dormant, stopped or gone), or a
++// VS Code/CLI session whose transcript moved in the last five minutes. One rule for the strip above the grid and the "in flight" checkbox.
++const NOT_IN_FLIGHT = new Set(["dormant", "stopped", "gone", "done", "failed", "error", "ended"]);
++export const is_in_flight = r => r.source === "servex" ? !!r.state && !NOT_IN_FLIGHT.has(r.state) && r.session_id != null : r.state === "active";
++
+ // One row per column, one token, one minimum — `write()` below never touches
+ // any token but its own (the owner's own ask: "resizing a column changes the
+ // one token"). `min` mirrors sessions.css's own `minmax()` floor for the same
+@@ -99,6 +109,7 @@ export const COLUMNS = [
+ 	// Stop/Duration (2026-10-03, sessions-date-homes — the owner's own ask: "show
+ 	// the start time, stop time, duration and cost on every row"), right beside
+ 	// Start since all three describe the same span.
++	{ key: "state",    label: "State",    min: 56, hint: "Working now (blinking ▶) or not (•). Click to put the working ones first." },
+ 	{ key: "name",     label: "Name",     min: 160 },
+ 	{ key: "cost",     label: "Cost",     min: 120, hint: "Click to sort. Without a sort, rows are ordered by cost weighted by recency: a cost counts half as much for every 3 days since the session was last active." },
+ 	{ key: "updated",  label: "Updated",  min: 88, hint: "Click to sort by the last activity, newest first." },
+@@ -106,7 +117,6 @@ export const COLUMNS = [
+ 	{ key: "role",     label: "Role",     min: 110 },
+ 	{ key: "source",   label: "Source",   min: 88 },
+ 	{ key: "model",    label: "Model",    min: 88 },
+-	{ key: "state",    label: "State",    min: 60 },
+ ];
+ 
+ // Every header is a sort toggle: first click = the natural order (words A to Z, numbers biggest first), second click =
+@@ -255,6 +265,29 @@ export function with_date_path_rows(rows, page_dirs){
+ 
+ // The snapshot's VS Code/CLI rows, plus Servex's own live list laid on top —
+ // a Servex row always wins its own session_id, since it is the live truth.
++// A snapshot row's state word was true when sessions.json was written and is stale the moment you read it, so the page works
++// state out again from facts it can check now: a VS Code/CLI/SDK session is working only if its transcript moved in the last
++// five minutes; a Servex agent is working only if the live agent list (GET /api/agents) still says so. A Servex row the live
++// list no longer has is stopped, whatever the snapshot said. (An empty live list means "could not ask", so it changes nothing.)
++export const WORKING_WINDOW_MS = 5 * 60 * 1000;
++export function true_state(r, live_ids, now = Date.now()){
++	if (r.source === "servex") return live_ids?.size && !live_ids.has(r.session_id) ? "stopped" : r.state;
++	const last = Date.parse(r.last_activity ?? 0);
++	return last && now - last < WORKING_WINDOW_MS ? "active" : "idle";
++}
++
++// What to call a row. A VS Code tab's folder name ("monorepo") is where it ran, not what it is, so a name comes from the first
++// of: the session tree's agent name, a Servex agent's own id, the last prompt, else "session" plus the first 8 of the id.
++export function display_name(r, tree){
++	const sid = r.session_id || r.id;
++	const named = tree?.[sid]?.agent;
++	if (named) return { text: named, from: "agent" };
++	if (r.source === "servex" && r.tab_title) return { text: r.tab_title, from: "agent" };
++	// a prompt that is only a routing tag or a skill preamble says nothing about the session: keep it as the second line, not the name
++	if (r.last_prompt_first_line && !/^\[from:|^Base directory for this skill/.test(r.last_prompt_first_line)) return { text: r.last_prompt_first_line.replace(/\s+/g, " ").trim().slice(0, 70), from: "prompt" };
++	return { text: (SOURCE[r.source]?.label ?? "session") + " " + String(sid).slice(0, 8), from: "id" };
++}
++
+ export function merge(snapshot_rows, agents){
+ 	const by_id = new Map(snapshot_rows.map(r => [r.session_id, r]));
+ 	agents.forEach(a => {
+@@ -291,13 +324,14 @@ export function merge(snapshot_rows, agents){
+ 			started_at: null, stopped_at: null,
+ 			...r, // a real value already on the row (set above for a Servex row, or already on a snapshot row) always wins these defaults
+ 		}))
++		.map(r => { const live = new Set(agents.map(a => a.session_id).filter(Boolean)); return { ...r, state: true_state(r, live) }; })
+ 		.sort((x, y) => Date.parse(y.last_activity ?? 0) - Date.parse(x.last_activity ?? 0));
+ }
+ 
+ // What each column sorts by. A number or a lowercase word; null = unknown, which sorts LAST in either direction
+ // (a session nobody has priced yet must not look like the cheapest one).
+ const SORT_VALUE = {
+-	name:     r => (r.tab_title || r.id || "").toLowerCase(),
++	name:     r => display_name(r, TREE).text.toLowerCase(),
+ 	cost:     r => cost_value(r),
+ 	updated:  r => Date.parse(r.last_activity ?? 0) || null,
+ 	duration: r => { const e = elapsed(r.started_at, r.stopped_at ?? (WORKING_STATES.has(r.state) ? new Date().toISOString() : null)); return typeof e === "number" && !isNaN(e) ? e : null; },
+@@ -344,10 +378,11 @@ const WORKING_STATE_ATTR = state => WORKING_STATES.has(state) ? "working" : "idl
+ // this tab's own `/sessions/<id>/` view, same as before this task. Omitted
+ // entirely (the Dashboard tile's own call) just means every row falls back,
+ // which is harmless and correct — no session has a date-path page yet.
+-export function row_view(r, url, page_dirs, spend, session_index){
++// `nest` (optional) = { depth, kids, open, toggle }: how deep this row sits, how many children it has, whether they show, and the click.
++export function row_view(r, url, page_dirs, spend, session_index, nest){
+ 	const src = SOURCE[r.source] ?? { label: r.source, icon: "help" };
+-	const dated = page_dirs?.get((r.session_id || r.id || "").slice(0, 8));
+-	const href = dated ?? (url + r.id + "/");
++	// One route per session, whichever way you arrive: this tab's own detail view.
++	const href = url + r.id + "/";
+ 	return a.c("sessions-row").href(href).append(() => {
+ 		// Start / Stop / Duration (the owner's own ask, requirement 3).
+ 		// ⚠ Three honest states, not two (review finding, 2026-10-03): still
+@@ -361,9 +396,19 @@ export function row_view(r, url, page_dirs, spend, session_index){
+ 		// finished minutes ago would be worse than admitting it's unknown.
+ 		const working = WORKING_STATES.has(r.state);
+ 		const span_end = r.stopped_at ?? (working ? new Date().toISOString() : null);
++		// The state icon comes first: as important as the name. A blinking ▶ while in flight, a quiet dot otherwise (a ✓ for "done" belongs only on the detail page).
++		div.c("sessions-cell", () => {
++			if (!r.state) return;
++			span.c("sessions-state-dot sessions-state-dot-" + (working ? "working" : "idle")).attr("title", r.state + (working ? "" : " (not working right now)")).text(working ? "▶" : "•");
++		});
++		const name = display_name(r, TREE);
+ 		div.c("sessions-cell", () => div.c("sessions-name-stack", () => {
+-			span.c("sessions-row-title", r.tab_title || r.id);
+-			if (r.last_prompt_first_line) small.c("sessions-row-prompt muted").attr("title", r.last_prompt_first_line).text(r.last_prompt_first_line.slice(0, 80));
++			span.c("sessions-row-title").style(nest?.depth ? { paddingInlineStart: nest.depth * 1.5 + "em" } : {}).append(() => {
++				if (nest?.kids) span.c("sessions-fold").attr("role", "button").attr("tabindex", "0").attr("title", nest.open ? "Hide the sessions this one started" : "Show the sessions this one started")
++					.text((nest.open ? "▾ " : "▸ ") + nest.kids).on("click", e => { e.preventDefault(); e.stopPropagation(); nest.toggle(); });
++				span(name.text);
++			});
++			if (r.last_prompt_first_line && name.from !== "prompt") small.c("sessions-row-prompt muted").attr("title", r.last_prompt_first_line).text(r.last_prompt_first_line.slice(0, 80));
+ 		}));
+ 		div.c("sessions-cell", () => {
+ 			// The Session class row (session-index.json) is the truth for a Claude session's cost: whole tree, runtime, model + effort.
+@@ -406,15 +451,6 @@ export function row_view(r, url, page_dirs, spend, session_index){
+ 		// … === "number"`, rendered the literal word "false" in the Cost
+ 		// column because the arrow function's own return value WAS `false`).
+ 		div.c("sessions-cell", () => { if (r.model) small.c("muted", r.model); });
+-		// A ▶ that blinks while the row is in flight, a plain quiet dot
+-		// otherwise — a ✓ for "done" belongs only on the detail page
+-		// (the owner's own words: this grid never shows it).
+-		div.c("sessions-cell", () => {
+-			if (!r.state) return;
+-			const working = WORKING_STATES.has(r.state);
+-			span.c("sessions-state-dot sessions-state-dot-" + (working ? "working" : "idle"))
+-				.attr("title", r.state).text(working ? "▶" : "•");
+-		});
+ 	});
+ }
+ 
+@@ -517,7 +553,11 @@ export default new Page({
+ 		// (see dashboard/page.js's own note for the measured number).
+ 		const panel = new Panel2({ title: "Sessions" }).ac("wide");
+ 		this.$asof = null;
+-		panel.header.append(() => { this.$asof = small.c("muted", "loading…"); });
++		panel.header.append(() => {
++			a.c("sessions-doclink").href(this.url + "doc/priorities/").text("Priorities").attr("title", "What the owner asked for, most important first");
++			a.c("sessions-doclink").href(this.url + "doc/").text("Readme & docs").attr("title", "The readme and every doc for this page");
++			this.$asof = small.c("muted", "loading…");
++		});
+ 
+ 		this.sort = null;           // null (default order) | { key, dir } — set by clicking a column header
+ 		this.$sort_labels = {};
+@@ -537,10 +577,14 @@ export default new Page({
+ 		// auto` + `surface pad flex v gap` + `h4 muted` / `h2`, no new CSS) —
+ 		// `render_stats()` below fills it in once real data (week.json, or a
+ 		// filter change) arrives.
+-		this.$stats = div.c("sessions-stats grid gap auto").style("--column", "11em");
++		this.$stats = div.c("sessions-stats");
+ 		panel.main.append(this.$stats);
+ 		this.render_stats();
+ 
++		// IN FLIGHT: what is running right now, above everything else, redrawn on every event of the Servex agent stream.
++		this.$flight = div.c("sessions-flight");
++		panel.main.append(this.$flight);
++
+ 		this.$controls = div.c("sessions-controls");
+ 		panel.main.append(this.$controls);
+ 
+@@ -563,25 +607,23 @@ export default new Page({
+ 	// `render_rows()` already uses for the grid/summary/by-role list.
+ 	render_stats(){
+ 		if (!this.$stats) return;
+-		const usage = this.usage?.utilization;   // ai/usage.json: the plan's own meter, the one source for "how much of the week is used"
+-		const pct = w => typeof w?.utilization === "number" ? Math.round(w.utilization) + "%" : "—";
+-		const resets = w => w?.resets_at ? "resets " + new Date(w.resets_at).toLocaleString([], { weekday: "short", hour: "numeric", minute: "2-digit" }) : null;
+-
+-		const tile = (label_text, body, title, foot) => {
+-			const $tile = div.c("surface pad flex v gap", () => {
+-				div.c("h4 muted", label_text);
+-				div.c("h2", body);
+-				if (foot) small.c("muted", foot);
+-			}).style("--gap", "calc(var(--gap) * 0.1)");
+-			if (title) $tile.attr("title", title);
+-			return $tile;
+-		};
+-
++		// The plan's own meters as progress bars with the pace marker (ext/AITask/usage.js, the same rail the Dashboard shows), then one line of counts.
+ 		this.$stats.empty(() => {
+-			tile("Plan used this week", pct(usage?.seven_day), "The plan's own weekly meter (ai/usage.json).", resets(usage?.seven_day));
+-			tile("Last 5 hours", pct(usage?.five_hour), "The plan's own 5-hour meter (ai/usage.json).", resets(usage?.five_hour));
+-			tile("Claude cost shown", "$" + (this.shown_usd ?? 0).toFixed(2), "Own cost of the sessions in the table below, from the session files (not from spend.json).", "from the session files");
+-			tile("Sessions shown", String(this.filtered_count), null, this.date_from + " to " + this.date_to);
++			if (this.usage) usage_rail(this.usage);
++			small.c("muted sessions-counts", `${this.filtered_count} sessions shown · $${(this.shown_usd ?? 0).toFixed(2)} Claude cost · ${this.date_from} to ${this.date_to}`)
++				.attr("title", "Cost is summed from the session files (the session index), for the rows in the table below.");
++		});
++	},
++
++	// The strip above the grid: every session in flight, newest activity first, each drawn by the same row_view as the grid below (one component).
++	render_flight(){
++		if (!this.$flight) return;
++		const live = this.last_rows.filter(is_in_flight).sort((x, y) => Date.parse(y.last_activity ?? 0) - Date.parse(x.last_activity ?? 0));
++		this.$flight.empty(() => {
++			h3.c("sessions-flight-head", `In flight now · ${live.length}`).attr("title", "Running or ready to run right now. Updates live from the Servex agent stream.");
++			if (!live.length) return void small.c("muted", "Nothing is in flight right now.");
++			div.c("sessions-grid sessions-flight-grid", () => div.c("sessions-rows", () => live.forEach(r =>
++				row_view(r, this.url, this.page_dirs, this.spend, this.session_index, null))));
+ 		});
+ 	},
+ 
+@@ -631,6 +673,12 @@ export default new Page({
+ 					$a.on("change", () => { this.attention_only = $a.el.checked; this.render_rows(); });
+ 					span("needs attention");
+ 				}).attr("title", "Only sessions with an alert in their session.jsonl record.");
++			label.c("flex gap-35 v-center h4", () => {
++				const $f = input().attr("type", "checkbox");
++				$f.el.checked = !!this.inflight_only;
++				$f.on("change", () => { this.inflight_only = $f.el.checked; this.render_rows(); });
++				span("in flight");
++			}).attr("title", "Only sessions working right now (a transcript that moved in the last 5 minutes, or a Servex agent that is running).");
+ 				const tags = [...new Set(Object.values(this.session_index?.meta ?? {}).flatMap(m => m.tags))].sort();
+ 				if (tags.length) label.c("flex gap-35 v-center h4", () => {
+ 					span("tag");
+@@ -674,10 +722,21 @@ export default new Page({
+ 		const id_of = r => r.session_id || r.id;
+ 		// "base" = every filter except role and trigger, so the role/trigger chips can show what each choice would add.
+ 		const base = this.last_rows.filter(r => (this.show_closed || !closed[id_of(r)]) && in_date_range(r, from, to)
++			&& (!this.inflight_only || is_in_flight(r))
+ 			&& (!this.attention_only || meta[id_of(r)]?.alerts)
+ 			&& (!this.tag_filter || meta[id_of(r)]?.tags.includes(this.tag_filter)));
+ 		const filtered = base.filter(r => this.role_filter.has(r.role || "(unknown)") && this.trigger_filter.has(trigger_of(r, this.spend) || "(n/a)"));
+-		const sorted = sort_rows(filtered, this.sort);
++		const sorted_all = sort_rows(filtered, this.sort);
++		// Children nest under their parent, collapsed until opened (the session tree says who started whom). A row whose parent is not in view stays a top-level row.
++		const shown_ids = new Set(sorted_all.map(id_of)), kids_of = new Map();
++		for (const r of sorted_all){ const par = TREE?.[id_of(r)]?.parent; if (par && par !== id_of(r) && shown_ids.has(par)) (kids_of.get(par) ?? kids_of.set(par, []).get(par)).push(r); }
++		const sorted = sorted_all.filter(r => { const par = TREE?.[id_of(r)]?.parent; return !(par && par !== id_of(r) && shown_ids.has(par)); });
++		this.open_ids ??= new Set();
++		const place = (r, depth, seen) => {
++			const kids = (kids_of.get(id_of(r)) ?? []).filter(k => !seen.has(id_of(k))), open = this.open_ids.has(id_of(r));
++			row_view(r, this.url, this.page_dirs, this.spend, this.session_index, { depth, kids: kids.length, open, toggle: () => { open ? this.open_ids.delete(id_of(r)) : this.open_ids.add(id_of(r)); this.render_rows(); } });
++			if (open) for (const k of kids) place(k, depth + 1, new Set([...seen, id_of(r)]));
++		};
+ 
+ 		// Paging, not windowing: rows are variable-height (a title line plus an
+ 		// optional wrapped prompt-preview line), so there's no fixed row height
+@@ -691,7 +750,7 @@ export default new Page({
+ 		const visible = sorted.slice(0, this.shown);
+ 		this.$rows.empty(() => {
+ 			if (!sorted.length) return void p.c("muted").style({ gridColumn: "1 / -1" }).text("No sessions with an id yet.");
+-			visible.forEach(r => row_view(r, this.url, this.page_dirs, this.spend, this.session_index));
++			visible.forEach(r => place(r, 0, new Set([id_of(r)])));
+ 			if (sorted.length > visible.length){
+ 				div.c("sessions-show-more").style({ gridColumn: "1 / -1" }).append(() => {
+ 					small.c("muted").text(`Showing ${visible.length} of ${sorted.length} — `);
+@@ -705,6 +764,7 @@ export default new Page({
+ 		this.shown_usd = filtered.reduce((n, r) => n + claude_usd_of(r), 0);
+ 		this.filtered_count = filtered.length;
+ 		this.render_stats();
++		this.render_flight();
+ 
+ 		this.$summary?.empty(() => {
+ 			defect_line(this.session_index);
+@@ -761,15 +821,36 @@ export default new Page({
+ 			this.$asof?.text("updated " + new Date().toLocaleTimeString());
+ 		};
+ 
+-		const poll = async () => {
++			// First paint from GET /api/agents, then every change arrives on Servex's event stream (no polling while it is open).
++			// The 20 s poll stays only as the fallback for a stream that is closed (Servex restarting).
++			const base = servex_base();
++			const fetch_agents = async () => (await get_json(base + "/api/agents")) ?? (await get_json("/api/agents")) ?? [];
++			let timer = null;
++			const soon = () => { timer ??= setTimeout(() => { timer = null; draw(); }, 250); };
++			const poll = async () => {
+ 			if (!this.polling) return;
+-			if (!document.hidden){ this.last_agents = (await get_json("/api/agents")) ?? []; draw(); }
++				if (!document.hidden && !this.stream_open){ this.last_agents = await fetch_agents(); draw(); }
+ 			if (this.polling) setTimeout(poll, POLL_MS);
+-		};
++			};
++			this.source?.close();
++			try {
++				this.source = new EventSource(base + "/api/stream");
++				this.source.onopen = () => { this.stream_open = true; };
++				this.source.onerror = () => { this.stream_open = false; };
++				this.source.addEventListener("agent", msg => {
++					let ev; try { ev = JSON.parse(msg.data); } catch { return; }
++					if (!ev?.card?.id) return;
++					const i = this.last_agents.findIndex(a => a.id === ev.card.id);
++					i < 0 ? this.last_agents.push(ev.card) : (this.last_agents[i] = ev.card);
++					soon();
++				});
++			} catch {}
++			clearInterval(this.tick); this.tick = setInterval(() => { if (!document.hidden && this.last_rows.length) this.render_flight(); }, 30000);   // running times advance
+ 
+-		get_json(this.url + "sessions.json").then(snap => {
++		get_json(this.url + "sessions.json").then(async snap => {
+ 			this.snapshot_rows = snap?.rows ?? [];
+-			if (this.polling) poll();
++			this.last_agents = await fetch_agents();
++			if (this.polling){ draw(); poll(); }
+ 		});
+ 
+ 		// The spend tree (2026-10-03, spend-tree) — a snapshot too (Server/spend-tree.mjs,
+@@ -777,6 +858,7 @@ export default new Page({
+ 		// Fetched once per activation; redraw ONLY if real rows are already on screen, same
+ 		// guard the date-path index below already needs for the identical reason (it would
+ 		// otherwise lock render_controls()'s trigger filter to an empty Set forever).
++		load_tree(this.url).then(tree => { TREE = this.tree = tree; if (this.last_rows.length) this.render_rows(); });
+ 		load_index(this.url).then(index => {
+ 			this.session_index = index;
+ 			IX = index;
+@@ -823,7 +905,7 @@ export default new Page({
+ 		get_json(this.url + "../usage.json").then(usage => { this.usage = usage; this.render_stats(); });
+ 	},
+ 
+-	deactivated(){ this.polling = false; },
++	deactivated(){ this.polling = false; this.source?.close(); this.source = null; this.stream_open = false; clearInterval(this.tick); },
+ 
+ 	// `/framework/ai/sessions/<id>/` — one session's own prompts, in order.
+ 	// A real route, not a client-side peek state: reload lands on the same
+diff --git a/public/framework/ai/sessions/readme.md b/public/framework/ai/sessions/readme.md
+index 35c6ff44d..daad244da 100644
+--- a/public/framework/ai/sessions/readme.md
++++ b/public/framework/ai/sessions/readme.md
+@@ -172,7 +172,8 @@ merge.
+   idle gap past the cache TTL prices the next turn 15-50x higher. Servex already has the right
+   "fresh, not compacted" pattern (`Layers.js`) for assistants/managers; masterminds don't have it
+   yet — the recommendation and plan to extend it.
+-- [`doc/layout.md`](./doc/layout.md) — where a session's folder lives (`ai/sessions/YYYY/MM/DD/<id>/`, the day it first appeared), how old flat paths still load, why ids and not task names, and why the dev server writes no listing there
++- [`doc/priorities.md`](./doc/priorities.md) — the owner's asks for this page, most important first: follow this list
++- [`doc/layout.md`](./doc/layout.md) — where a session's folder lives (the ONE store, `ai/YYYY/MM/DD/session-<id8>/`), how old paths still load, the scripted conversion, why ids and not task names
+ - [`doc/record-spec.md`](./doc/record-spec.md) — the line types a session record accepts (tag, note, alert, weight, closed, question, links) and how to write them
+ - [`doc/session-class.md`](./doc/session-class.md) — `Session.js` (cost, model + effort, tokens by purpose, audit), the `session.jsonl` cache, `session-index.json`; the Cost cell and the detail's Audit button come from it (`SessionView.js`)
+ - [`doc/decisions.md`](./doc/decisions.md) — the full data-source decision, the `css-scopes.txt`
+diff --git a/public/framework/ai/sessions/sessions.css b/public/framework/ai/sessions/sessions.css
+index 388efd237..f650bba48 100644
+--- a/public/framework/ai/sessions/sessions.css
++++ b/public/framework/ai/sessions/sessions.css
+@@ -43,14 +43,14 @@
+ 		--col-role: 8rem; --col-source: 6rem; --col-model: 8rem; --col-state: 4rem;
+ 		display: grid;
+ 		grid-template-columns:
++			minmax(3rem, var(--col-state))
+ 			minmax(10rem, 1fr)
+ 			minmax(8rem, var(--col-cost))
+ 			minmax(5rem, var(--col-updated))
+ 			minmax(5rem, var(--col-duration))
+ 			minmax(6rem, var(--col-role))
+ 			minmax(5rem, var(--col-source))
+-			minmax(5rem, var(--col-model))
+-			minmax(3rem, var(--col-state));
++			minmax(5rem, var(--col-model));
+ 		column-gap: var(--gap-50);
+ 		/* `width: max-content` + `min-width: 100%` (review finding, 2026-10-03):
+ 		   without this, a block-level grid defaults to the width of its own
+@@ -102,6 +102,10 @@
+ 	   into its prompt preview with no break: "monorepoSo how would you…"). */
+ 	.sessions-name-stack { display: flex; flex-direction: column; gap: var(--gap-35); min-width: 0; }
+ 	.sessions-row-title { font-weight: 600; }
++	.sessions-flight { margin-block-end: 1.5em; }
++	.sessions-flight-head { margin-block: 0 var(--gap-50); }
++	.sessions-doclink { margin-inline-end: 1em; font-size: .9em; }
++	.sessions-fold { cursor: pointer; margin-inline-end: .4em; color: var(--prim-ink); font-weight: 400; }
+ 	.sessions-row-prompt { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+ 
+ 	/* Below `ext/panel2`'s own 30em container floor, a 6-column grid has
+@@ -114,8 +118,8 @@
+ 		.sessions-head { display: none; }
+ 		.sessions-row { display: flex; flex-wrap: wrap; gap: var(--gap-50); padding-block: var(--gap-50); border-block-end: 1px solid var(--line); }
+ 		.sessions-cell { padding-block: 0; border-block-end: none; }
+-		.sessions-row > .sessions-cell:first-child { flex: 1 1 100%; min-width: 0; }
+-		.sessions-row > .sessions-cell:not(:first-child) { flex: 0 0 auto; max-width: 100%; }
++		.sessions-row > .sessions-cell:nth-child(2) { order: -1; flex: 1 1 100%; min-width: 0; }
++		.sessions-row > .sessions-cell:not(:nth-child(2)) { flex: 0 0 auto; max-width: 100%; }
+ 	}
+ 
+ 	/* One colour per source, so "what kind of session is this" reads before the
+@@ -214,7 +218,8 @@
+ 	   owner's own words, "maybe the cents smaller than the dollars" — a plain
+ 	   size/weight/colour step down from the `h2` it sits inside, not a new
+ 	   type-scale step (the type scale itself is untouched). */
+-	.sessions-stats { margin-block-end: var(--gap); }
++	.sessions-stats { margin-block-end: var(--gap); display: flex; flex-wrap: wrap; gap: .5em 2em; align-items: center; }
++	.sessions-stats .ai-usage { flex: 1 1 24em; }
+ 	.sessions-stat-cents { font-size: 0.55em; font-weight: 400; color: var(--subtle); }
+ 
+ 	/* Filters, the summary line and "cost by role" (session-costs

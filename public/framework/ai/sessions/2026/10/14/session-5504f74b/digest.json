@@ -1,0 +1,40 @@
+{
+ "id": "5504f74b-1bbf-4893-ba6d-ab30c7759666",
+ "first": "2026-10-14T01:47:27.202Z",
+ "last": "2026-10-14T01:59:37.828Z",
+ "task": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/scripts-census",
+ "models": {
+  "claude-sonnet-5-5": 28,
+  "claude-haiku-4-5": 21
+ },
+ "sizes": {
+  "raw": 196590,
+  "content": 26515,
+  "stripped": 10578,
+  "owner_only": 11
+ },
+ "usd": 1.365043,
+ "usd_main": 0.781952,
+ "usd_sub": 0.583091,
+ "tokens": {
+  "input": 250,
+  "output": 55679,
+  "cache_read": 2474225,
+  "cache_write": 319122,
+  "w5": 253660,
+  "w1": 65462
+ },
+ "messages": 49,
+ "subagent_files": 7,
+ "prompts": [
+  {
+   "at": "2026-10-14T01:56:09.667Z",
+   "t": "Continue from where you left off."
+  }
+ ],
+ "result": "The scripts census is done and committed (`66b6b048e`). The full table is at [Server/doc/scripts.md](/Server/doc/scripts.md). Of the 193 scripts, 1 is stale and 26 are misnamed. I did not merge to `michael/dev`.\n\n- **Counts:** the census script (`Server/ScriptsCensus.mjs`) lists 193 files, and a separate `ls` count also gives 193. By verdict: 112 live, 54 tool, 1 stale, 26 misnamed.\n- **Only one stale script:** `Server/session-cost.mjs`, a 198-byte shim that points to its replacement. The repo is young, so most unreferenced files were touched within 30 days and I kept them.\n- **Spot-check:** I checked 15 of the Haiku verdicts, and 11 agreed. The 4 misses called a script stale that was under 30 days old (`m4a2wav`, `readme-reach`, `week-cost`, `naming-guard`). I changed those to `tool` by script.\n- **Retire manifest:** `Server/retire-files.mjs` now takes `--manifest Server/doc/scripts.md`. I did not run it. The one stale script is listed unticked in the doc, so `--plan` currently shows 0 files until you tick it.\n- **Misnamed:** all 26 are queued one line each in `public/framework/ai/todo.md`. I renamed nothing.\n- **Links and log:** the doc is linked from both `Server/readme.md` and `Servex/readme.md`, and the owner note is posted. The landing line checks out with `tail -1` on `task.jsonl`.",
+ "edited": [
+  "Server/ScriptsCensus.mjs"
+ ],
+ "digested_at": "2026-10-16T06:28:10.212Z"
+}

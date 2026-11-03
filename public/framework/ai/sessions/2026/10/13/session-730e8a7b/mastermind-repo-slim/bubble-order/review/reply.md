@@ -1,0 +1,1 @@
+1. [accept] The brief itself says deliverable 2 (the Refine mic) comes "only after (1) is merged", so its absence from this diff is correct. The author should note on the card that it follows this merge.

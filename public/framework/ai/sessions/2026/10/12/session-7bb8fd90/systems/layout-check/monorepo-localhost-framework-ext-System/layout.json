@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ext/System/",
+ "widths": {
+  "1280": {
+   "empty": 0.592,
+   "widest_text": 597,
+   "widest_text_sample": "A System looks after one part of the pro",
+   "overflow_x": false,
+   "items": 19,
+   "narrow_share": 0.211
+  },
+  "1920": {
+   "empty": 0.756,
+   "widest_text": 635,
+   "widest_text_sample": "A System looks after one part of the pro",
+   "overflow_x": false,
+   "items": 19,
+   "narrow_share": 0.211
+  },
+  "2560": {
+   "empty": 0.795,
+   "widest_text": 714,
+   "widest_text_sample": "A System looks after one part of the pro",
+   "overflow_x": false,
+   "items": 19,
+   "narrow_share": 0.211
+  },
+  "3440": {
+   "empty": 0.844,
+   "widest_text": 714,
+   "widest_text_sample": "A System looks after one part of the pro",
+   "overflow_x": false,
+   "items": 19,
+   "narrow_share": 0.211
+  }
+ },
+ "errors": []
+}

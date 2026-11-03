@@ -1,0 +1,557 @@
+diff --git a/Server/SiteGateway.mjs b/Server/SiteGateway.mjs
+new file mode 100644
+index 000000000..004819862
+--- /dev/null
++++ b/Server/SiteGateway.mjs
+@@ -0,0 +1,167 @@
++import fs from "fs";
++import path from "path";
++import http from "http";
++import net from "net";
++import crypto from "crypto";
++import os from "os";
++import { fileURLToPath } from "url";
++
++/* The site from anywhere: https://monorepo.lew42.com → this gateway (127.0.0.1:8192, via the named
++ * Cloudflare tunnel) → the dev server, dialled at this PC's own LAN address (10.x:3104), never loopback.
++ * The browser sees ONE origin: pages, the live-reload WebSocket, `/whisper/*` and `/servex/*` (Servex's API,
++ * through the dev server's own ServexProxy) all ride it.
++ *
++ * Why the LAN address: the dev server then sees a LAN PEER, exactly like the owner's phone on Wi-Fi, so its own
++ * guards still stand: loopback-only routes (/mcp, /screenshot, /devsource.json, /ai-logs, /recordings) refuse it,
++ * and the socket gets push traffic only (no rpc:cmd, no rpc:write; Socket.js). On top of that, four checks here:
++ *   1. The key. `?key=<remote.token>` once sets an HttpOnly cookie (an HMAC of the token, never the token);
++ *      no cookie, no entry. Cloudflare Access replaces this once it is enabled (doc below).
++ *   2. Origin. A write (any method but GET/HEAD) and every WebSocket must come from our own origin.
++ *   3. DENY: the loopback-only dev routes (/mcp, /ai-logs, /screenshot, /recordings, /devsource.json,
++ *      /Servex/, /Server/, /ask/turn, /push/send) never pass.
++ *   4. /servex/* passes only the page routes in SERVEX (no /mcp, no merge, no project start/stop).
++ * Every request is also marked `x-lew42-remote` (Socket.js drops such a socket to the LAN tier even from loopback).
++ *
++ *     node Server/SiteGateway.mjs       run it alone (Tunnel.mjs `up` also starts it in named mode)
++ *
++ * Doc: Servex/ext/remote/doc/tunnel.md ("The site from anywhere") */
++export default class SiteGateway {
++    static DIR = path.join(process.env.LOCALAPPDATA ?? "", "lew42", "servex");
++    static PORT = 8192;
++    static PUBLIC = "https://monorepo.lew42.com";
++    static COOKIE = "lew42_site";
++    static DENY = /^\/(mcp|ai-logs|screenshot|recordings|devsource\.json|servex|server|ask|push\/send)(\/|$)/i;
++    static SERVEX = /^\/servex\/(api\/item|api\/page-ai|api\/page-session\/(new|resume)|api\/session\/[\w-]+(\/stream)?|api\/refine(\/live)?|api\/tidy|api\/voice(\/card|\/stream)?|api\/whisper(\/stream)?|api\/hitl|api\/local-chat|log\/prompts)$/;
++    static SERVEX_GET = /^\/servex\/(api\/agents|api\/page-agents|api\/page-sessions|api\/sessions|api\/stream|api\/ready-to-merge|waiting)$/;
++
++    constructor({ port = SiteGateway.PORT, target = SiteGateway.target(), key } = {}){
++        this.port = port;
++        this.target = target;   // { host, port, name }: name is the Host header the dev server sees
++        this.key = key ?? fs.readFileSync(path.join(SiteGateway.DIR, "remote.token"), "utf8").trim();
++        this.cookie = crypto.createHmac("sha256", this.key).update("site-cookie").digest("hex");
++    }
++
++    // the dev server at this PC's private LAN address (lan() and safe_host() accept it; loopback() does not)
++    static target(){
++        const ip = Object.values(os.networkInterfaces()).flat()
++            .find(a => a?.family === "IPv4" && !a.internal && /^(10.|192.168.|172.(1[6-9]|2d|3[01]).)/.test(a.address))?.address;
++        if (!ip) throw new Error("no private LAN address on this PC");
++        let port = 3104; try { port = JSON.parse(fs.readFileSync(path.join(SiteGateway.DIR, "ports.json"), "utf8")).monorepo ?? port; } catch {}
++        return { host: ip, port, name: `${ip}:${port}` };
++    }
++
++    // ── the four checks ────────────────────────────────────────────────────
++    has_cookie(req){
++        const m = new RegExp(`(?:^|;\\s*)${SiteGateway.COOKIE}=([0-9a-f]{64})`).exec(req.headers.cookie ?? "");
++        return !!m && crypto.timingSafeEqual(Buffer.from(m[1]), Buffer.from(this.cookie));
++    }
++    key_ok(given){
++        const a = Buffer.from(String(given ?? "")), b = Buffer.from(this.key);
++        return a.length === b.length && crypto.timingSafeEqual(a, b);
++    }
++    // the decoded path, or null when it tries to climb or smuggle (.., backslash, NUL, bad escapes)
++    clean(p){
++        let d; try { d = decodeURIComponent(p); } catch { return null; }
++        if (/\\|\0|(^|\/)\.\.(\/|$)/.test(d) || /%2f|%5c/i.test(p)) return null;
++        return d.replace(/\/{2,}/g, "/");
++    }
++    // why this request is refused, or null to let it through (auth is checked before this)
++    refuse(method, p, origin, upgrade = false){
++        if ((upgrade || !/^(GET|HEAD)$/.test(method)) && origin !== SiteGateway.PUBLIC) return "origin";
++        if (p.startsWith("/servex/")){
++            if (SiteGateway.SERVEX.test(p)) return null;
++            if (SiteGateway.SERVEX_GET.test(p) && /^(GET|HEAD)$/.test(method)) return null;
++            return "servex route not on the list";
++        }
++        if (SiteGateway.DENY.test(p)) return "loopback-only route";
++        return null;
++    }
++
++    // the headers the dev server sees: our Host, the remote marker, a local Origin, no gateway cookie
++    headers(req){
++        const h = { ...req.headers };
++        for (const k of ["host", "x-forwarded-host", "x-lew42-remote", "cf-connecting-ip", "cf-ipcountry", "cf-ray", "cf-visitor", "cdn-loop", "cf-warp-tag-id"]) delete h[k];
++        h.host = this.target.name;
++        h["x-lew42-remote"] = "1";
++        h["x-forwarded-proto"] = "https";
++        if (h.origin) h.origin = "http://" + this.target.name;
++        if (h.referer) h.referer = h.referer.replace(SiteGateway.PUBLIC, "http://" + this.target.name);
++        const rest = (h.cookie ?? "").split(/;\s*/).filter(c => c && !c.startsWith(SiteGateway.COOKIE + "="));
++        if (rest.length) h.cookie = rest.join("; "); else delete h.cookie;
++        return h;
++    }
++
++    // ── http ───────────────────────────────────────────────────────────────
++    request(req, res){
++        const url = new URL(req.url, SiteGateway.PUBLIC);
++        const p = this.clean(url.pathname);
++        if (p === null) return res.writeHead(400).end();
++        if (url.searchParams.has("key")){
++            if (!this.key_ok(url.searchParams.get("key"))) return this.locked(res);
++            url.searchParams.delete("key");
++            return res.writeHead(302, {
++                "set-cookie": `${SiteGateway.COOKIE}=${this.cookie}; Path=/; Max-Age=2592000; HttpOnly; Secure; SameSite=Lax`,
++                location: url.pathname + url.search, "cache-control": "no-store" }).end();
++        }
++        if (!this.has_cookie(req)) return this.locked(res);
++        const why = this.refuse(req.method, p, req.headers.origin);
++        if (why) return res.writeHead(403, { "content-type": "text/plain" }).end("refused: " + why);
++        const up = http.request({ host: this.target.host, port: this.target.port, method: req.method, path: req.url, headers: this.headers(req) }, r => {
++            const h = { ...r.headers };
++            if (h.location) h.location = String(h.location).replace("http://" + this.target.name, SiteGateway.PUBLIC);
++            res.writeHead(r.statusCode, h);
++            r.pipe(res);
++            r.on("error", () => res.destroy());
++        });
++        up.on("error", e => { if (process.env.GW_DEBUG) console.error(e); if (!res.headersSent) res.writeHead(502, { "content-type": "text/plain" }); res.end("site unreachable"); });
++        res.on("close", () => { if (!res.writableFinished) up.destroy(); });   // the browser left mid-reply (an SSE tab closed): stop the upstream
++        req.pipe(up);
++    }
++
++    locked(res){
++        res.writeHead(401, { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" })
++            .end(`<!doctype html><meta name="viewport" content="width=device-width"><title>Locked</title>
++<body style="font:18px system-ui;padding:2em;background:#111;color:#ccc">
++<h1>Locked</h1><p>Open the site with its key link once (it is in <code>%LOCALAPPDATA%\\lew42\\servex\\site.url</code> on the PC); this browser then stays signed in for 30 days.</p></body>`);
++    }
++
++    // ── websocket ──────────────────────────────────────────────────────────
++    upgrade(req, socket, head){
++        const deny = code => { socket.end(`HTTP/1.1 ${code}\r\nConnection: close\r\nContent-Length: 0\r\n\r\n`); };
++        socket.on("error", () => socket.destroy());
++        const url = new URL(req.url, SiteGateway.PUBLIC);
++        const p = this.clean(url.pathname);
++        if (p === null) return deny("400 Bad Request");
++        if (!this.has_cookie(req)) return deny("401 Unauthorized");
++        if (this.refuse(req.method, p, req.headers.origin, true)) return deny("403 Forbidden");
++        const up = net.connect(this.target.port, this.target.host, () => {
++            const h = this.headers(req);
++            up.write(`${req.method} ${req.url} HTTP/1.1\r\n` + Object.entries(h).map(([k, v]) => `${k}: ${v}`).join("\r\n") + "\r\n\r\n");
++            if (head?.length) up.write(head);
++            up.pipe(socket); socket.pipe(up);
++        });
++        up.on("error", () => socket.destroy());
++        socket.on("close", () => up.destroy());
++    }
++
++    server(){
++        const s = http.createServer((req, res) => this.request(req, res));
++        s.on("upgrade", (req, socket, head) => this.upgrade(req, socket, head));
++        return s;
++    }
++
++    // listens on loopback only; resolves with the server, or null when the port is already taken
++    listen(){
++        const s = this.server();
++        return new Promise(resolve => {
++            s.once("error", e => { console.error("site gateway: " + e.message); resolve(null); });
++            s.listen(this.port, "127.0.0.1", () => {
++                fs.writeFileSync(path.join(SiteGateway.DIR, "site.url"), `${SiteGateway.PUBLIC}/?key=${this.key}`);
++                console.log(`site gateway on 127.0.0.1:${this.port} for ${SiteGateway.PUBLIC} (key link in site.url)`);
++                resolve(s);
++            });
++        });
++    }
++}
++
++if (process.argv[1] === fileURLToPath(import.meta.url)) await new SiteGateway().listen() ?? process.exit(1);
+diff --git a/Server/SiteGateway.test.mjs b/Server/SiteGateway.test.mjs
+new file mode 100644
+index 000000000..8abe5947b
+--- /dev/null
++++ b/Server/SiteGateway.test.mjs
+@@ -0,0 +1,91 @@
++// node Server/SiteGateway.test.mjs: the gateway's four checks and its WebSocket relay, against a fake dev server (no network, no cloudflared)
++import assert from "node:assert";
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import http from "node:http";
++import net from "node:net";
++import SiteGateway from "./SiteGateway.mjs";
++
++SiteGateway.DIR = fs.mkdtempSync(path.join(os.tmpdir(), "site-gw-test-"));
++const seen = [], NL = "\r\n";
++const dev = http.createServer((req, res) => { seen.push({ url: req.url, headers: req.headers }); res.writeHead(req.url === "/go" ? 302 : 200, req.url === "/go" ? { location: "http://10.0.0.1:3104/there" } : {}).end("ok " + req.url); });
++// a byte-level upgrade: answer 101, report the headers it saw, then echo every byte (no ws dependency)
++const socks = [];
++dev.on("upgrade", (req, sock) => {
++    socks.push(sock);
++    sock.write(["HTTP/1.1 101 Switching Protocols", "Upgrade: websocket", "Connection: Upgrade", "", ""].join(NL)
++        + JSON.stringify({ origin: req.headers.origin, remote: req.headers["x-lew42-remote"], cookie: req.headers.cookie ?? null }) + "\n");
++    sock.on("data", b => sock.write("echo " + b));
++});
++dev.on("clientError", e => process.env.GW_DEBUG && console.error("dev clientError", e.code, e.rawPacket?.toString()));
++await new Promise(r => dev.listen(0, "127.0.0.1", r));
++
++const KEY = "k".repeat(64);
++const gw = new SiteGateway({ port: 0, key: KEY, target: { host: "127.0.0.1", port: dev.address().port, name: "10.0.0.1:3104" } });
++const s = gw.server(); await new Promise(r => s.listen(0, "127.0.0.1", r));
++const base = `http://127.0.0.1:${s.address().port}`;
++const ORIGIN = SiteGateway.PUBLIC;
++const go = (p, o = {}) => fetch(base + p, { redirect: "manual", ...o });
++
++// 1. the key
++assert.strictEqual((await go("/")).status, 401, "no cookie: locked");
++assert.strictEqual((await go("/?key=wrong")).status, 401, "a wrong key: locked");
++const r = await go("/framework/?key=" + KEY + "&x=1");
++assert.strictEqual(r.status, 302, "the key sets the cookie and redirects");
++assert.strictEqual(r.headers.get("location"), "/framework/?x=1", "the key leaves the url");
++const set = r.headers.get("set-cookie");
++assert.match(set, /HttpOnly; Secure; SameSite=Lax/);
++assert.ok(!set.includes(KEY), "the cookie is not the key");
++const cookie = set.split(";")[0];
++const ok = (p, o = {}) => go(p, { ...o, headers: { cookie: cookie + "; other=1", ...(o.headers ?? {}) } });
++
++const page = await ok("/framework/");
++assert.strictEqual(page.status, 200, "a page passes");
++const h = seen.at(-1).headers;
++assert.strictEqual(h.host, "10.0.0.1:3104", "the dev server sees its LAN host");
++assert.strictEqual(h["x-lew42-remote"], "1", "marked remote");
++assert.strictEqual(h.cookie, "other=1", "the gateway cookie never reaches the dev server");
++assert.strictEqual((await ok("/go")).headers.get("location"), ORIGIN + "/there", "redirects point back at the public host");
++
++// 2. origin
++assert.strictEqual((await ok("/servex/api/item", { method: "POST", body: "{}" })).status, 403, "a write without our Origin is refused");
++assert.strictEqual((await ok("/servex/api/item", { method: "POST", body: "{}", headers: { origin: "https://evil.example" } })).status, 403);
++assert.strictEqual((await ok("/servex/api/item", { method: "POST", body: "{}", headers: { origin: ORIGIN } })).status, 200, "a page edit passes");
++assert.strictEqual(seen.at(-1).headers.origin, "http://10.0.0.1:3104", "Origin is rewritten to the LAN one");
++
++// 3 + 4. routes
++for (const p of ["/mcp", "/MCP", "/mcp/remote/x", "/screenshot?path=/", "/devsource.json", "/Servex/agents/x.js", "/Server/Tunnel.mjs", "/ai-logs/x", "/recordings/", "/ask/turn",
++    "/servex/mcp", "/servex/api/projects", "/servex/api/merge", "/servex/api/agents/x/message", "/Servex/api/item", "/a%2fb", "/servex%2fmcp"])
++    assert.ok([400, 403].includes((await ok(p, { method: "POST", headers: { origin: ORIGIN } })).status), "refused: " + p);
++assert.strictEqual(gw.clean("/%2e%2e/x"), null, "an encoded climb is refused (fetch itself normalizes it away)");
++assert.strictEqual(gw.clean("/a/%5c/b"), null);
++assert.strictEqual((await ok("/servex/api/agents")).status, 200, "a read-only Servex route passes on GET");
++assert.strictEqual((await ok("/servex/api/agents", { method: "POST", headers: { origin: ORIGIN } })).status, 403, "...but not as a write");
++for (const p of ["/servex/api/session/say", "/servex/api/session/abc-1/stream", "/servex/api/voice/stream", "/servex/log/prompts", "/whisper/inference"])
++    assert.strictEqual((await ok(p, { method: "POST", headers: { origin: ORIGIN } })).status, 200, "passes: " + p);
++
++// the socket
++const open = headers => new Promise(res => {
++    const c = net.connect(s.address().port, "127.0.0.1", () => c.write(["GET / HTTP/1.1", "Host: x", "Upgrade: websocket", "Connection: Upgrade",
++        ...Object.entries(headers).map(([k, v]) => k + ": " + v), "", ""].join(NL)));
++    let buf = "";
++    c.on("data", b => {
++        buf += b;
++        const st = Number(/^HTTP\/1\.1 (\d+)/.exec(buf)?.[1]);
++        if (st !== 101){ c.destroy(); return res({ status: st }); }
++        const m = /\r\n\r\n(.*)\n/.exec(buf);
++        if (m){ c.removeAllListeners("data"); res({ status: st, c, m: m[1] }); }
++    });
++});
++assert.strictEqual((await open({ origin: ORIGIN })).status, 401, "socket: no cookie, no socket");
++assert.strictEqual((await open({ cookie })).status, 403, "socket: no Origin, no socket");
++assert.strictEqual((await open({ cookie, origin: "https://evil.example" })).status, 403, "socket: a foreign Origin, no socket");
++const { c, m } = await open({ cookie, origin: ORIGIN });
++assert.deepStrictEqual(JSON.parse(m), { origin: "http://10.0.0.1:3104", remote: "1", cookie: null }, "socket: relayed, LAN origin, marked, no cookie");
++c.write("hi"); assert.strictEqual(await new Promise(r => c.once("data", x => r(String(x)))), "echo hi", "socket: both directions");
++c.destroy();
++
++socks.forEach(x => x.destroy()); s.closeAllConnections(); dev.closeAllConnections(); s.close(); dev.close();
++fs.rmSync(SiteGateway.DIR, { recursive: true, force: true });
++console.log("SiteGateway.test ok");
+diff --git a/Server/Tunnel.mjs b/Server/Tunnel.mjs
+index dd90649f3..d67cb6b1d 100644
+--- a/Server/Tunnel.mjs
++++ b/Server/Tunnel.mjs
+@@ -4,6 +4,7 @@ import http from "http";
+ import { spawn, execFileSync } from "child_process";
+ import { fileURLToPath } from "url";
+ import TunnelNamed from "./TunnelNamed.mjs";
++import SiteGateway from "./SiteGateway.mjs";
+ 
+ /* node Server/Tunnel.mjs up|down|status — a Cloudflare tunnel (quick by default; named servex.lew42.com when remote.tunnel.token exists, see TunnelNamed.mjs) to Servex's /mcp/remote ONLY.
+  * cloudflared forwards every path of its origin, so it points at a tiny gateway (below) that passes
+@@ -42,6 +43,7 @@ export default class Tunnel {
+         const named = this.named_token();   // present = permanent hostname (TunnelNamed.mjs setup); absent = quick tunnel
+         gw.on("error", e => { console.error("gateway port busy: " + e.message); process.exit(1); });
+         await new Promise(r => gw.listen(named ? TunnelNamed.PORT : 0, "127.0.0.1", r));
++        if (named) await new SiteGateway().listen();   // monorepo.lew42.com rides the same tunnel (SiteGateway.mjs); a busy port only logs
+         const port = gw.address().port;
+         const args = named ? ["tunnel", "run", "--token", named] : ["tunnel", "--url", `http://127.0.0.1:${port}`];
+         const child = spawn("npx", ["--yes", "cloudflared", ...args], { shell: true, windowsHide: true, stdio: ["ignore", "pipe", "pipe"] });
+diff --git a/Server/TunnelNamed.mjs b/Server/TunnelNamed.mjs
+index 97a9ff1d2..2dd26722f 100644
+--- a/Server/TunnelNamed.mjs
++++ b/Server/TunnelNamed.mjs
+@@ -3,15 +3,22 @@ import path from "path";
+ import crypto from "crypto";
+ import { fileURLToPath } from "url";
+ 
+-/* node Server/TunnelNamed.mjs setup — one-time: makes the named tunnel "servex", its ingress and the DNS CNAME,
+- * and stores the run token at %LOCALAPPDATA%\lew42\servex\remote.tunnel.token. Never prints a secret.
++/* node Server/TunnelNamed.mjs setup — one-time (safe to re-run): makes the named tunnel "servex", its ingress
++ * (one line per HOSTS entry) and a proxied DNS CNAME per host, and stores the run token at
++ * %LOCALAPPDATA%\lew42\servex\remote.tunnel.token. Never prints a secret.
++ * The running cloudflared picks up a changed ingress by itself (config_src "cloudflare"); no restart.
+  * Doc: Servex/ext/remote/doc/tunnel.md */
+ export default class TunnelNamed {
+     static DIR = path.join(process.env.LOCALAPPDATA ?? "", "lew42", "servex");
+     static NAME = "servex";
+     static HOST = "servex.lew42.com";
+     static ZONE = "lew42.com";
+-    static PORT = 8191;   // the gateway's fixed port in named mode
++    static PORT = 8191;        // the MCP gateway's fixed port in named mode (Tunnel.gateway)
++    // every public host and the local gateway it reaches; nothing here points at a dev server directly
++    static HOSTS = [
++        { hostname: "servex.lew42.com", port: 8191 },     // Tunnel.gateway(): /mcp/remote/<token> only
++        { hostname: "monorepo.lew42.com", port: 8192 },   // SiteGateway.mjs: the site, behind the key cookie
++    ];
+ 
+     constructor(){
+         const env = Object.fromEntries(fs.readFileSync(path.join(TunnelNamed.DIR, "cloudflare.env"), "utf8").split(/\r?\n/)
+@@ -33,14 +40,16 @@ export default class TunnelNamed {
+         if (!t) t = await this.api("POST", acct, { name: TunnelNamed.NAME, config_src: "cloudflare", tunnel_secret: crypto.randomBytes(32).toString("base64") });
+         console.log("tunnel", t.id);
+         await this.api("PUT", `${acct}/${t.id}/configurations`, { config: { ingress: [
+-            { hostname: TunnelNamed.HOST, service: `http://127.0.0.1:${TunnelNamed.PORT}` }, { service: "http_status:404" }] } });
++            ...TunnelNamed.HOSTS.map(h => ({ hostname: h.hostname, service: `http://127.0.0.1:${h.port}` })), { service: "http_status:404" }] } });
+         const zone = (await this.api("GET", `/zones?name=${TunnelNamed.ZONE}`))[0].id;
+         const content = `${t.id}.cfargotunnel.com`;
+-        const have = (await this.api("GET", `/zones/${zone}/dns_records?name=${TunnelNamed.HOST}`))[0];
+-        const rec = { type: "CNAME", name: "servex", content, proxied: true };
+-        if (!have) await this.api("POST", `/zones/${zone}/dns_records`, rec);
+-        else if (have.content !== content) await this.api("PUT", `/zones/${zone}/dns_records/${have.id}`, rec);
+-        console.log("dns ok", content);
++        for (const { hostname } of TunnelNamed.HOSTS){
++            const have = (await this.api("GET", `/zones/${zone}/dns_records?name=${hostname}`))[0];
++            const rec = { type: "CNAME", name: hostname.replace("." + TunnelNamed.ZONE, ""), content, proxied: true };
++            if (!have) await this.api("POST", `/zones/${zone}/dns_records`, rec);
++            else if (have.content !== content) await this.api("PUT", `/zones/${zone}/dns_records/${have.id}`, rec);
++            console.log("dns ok", hostname);
++        }
+         const token = await this.api("GET", `${acct}/${t.id}/token`);
+         fs.writeFileSync(path.join(TunnelNamed.DIR, "remote.tunnel.token"), token);
+         console.log("run token stored");
+diff --git a/Server/plugins/SocketServer/Socket.js b/Server/plugins/SocketServer/Socket.js
+index 29c7a2571..f7cf78ee0 100644
+--- a/Server/plugins/SocketServer/Socket.js
++++ b/Server/plugins/SocketServer/Socket.js
+@@ -17,7 +17,9 @@ export default class Socket extends Events {
+ 
+     initialize() {
+ 		console.log("New socket initialized");
+-        this.local = loopback(this.req?.socket?.remoteAddress);   // false = LAN peer: push traffic only
++        // false = LAN peer: push traffic only. `x-lew42-remote` = a browser on the internet, relayed from loopback by
++        // Server/SiteGateway.mjs: it gets the LAN tier too (a header can only lower the tier, never raise it).
++        this.local = loopback(this.req?.socket?.remoteAddress) && !this.req?.headers?.["x-lew42-remote"];
+         this.ws.on("message", this.message.bind(this));
+         this.ws.on("close", this.close.bind(this));
+ 
+diff --git a/Servex/ext/remote/doc/tunnel.md b/Servex/ext/remote/doc/tunnel.md
+index ccec47577..d6e8d3435 100644
+--- a/Servex/ext/remote/doc/tunnel.md
++++ b/Servex/ext/remote/doc/tunnel.md
+@@ -16,9 +16,31 @@ A quick tunnel gets a **new random hostname every time it starts**, and nothing
+ 
+ The URL still changes on every real restart of the tunnel, so the connector still needs a re-paste then. The fix is a fixed hostname:
+ 
+-## A stable hostname (named mode built 2026-10-20, blocked on the API token)
+-[TunnelNamed.mjs](../../../../Server/TunnelNamed.mjs) `setup` creates the tunnel `servex`, its ingress (`servex.lew42.com` to the gateway on fixed port 8191) and the proxied CNAME, then stores the run token at `%LOCALAPPDATA%lew42servexemote.tunnel.token`. [Tunnel.mjs](../../../../Server/Tunnel.mjs) `up` then runs `cloudflared tunnel run --token` and writes `https://servex.lew42.com/mcp/remote/<token>` to `remote.url` **only when that token file exists**; without it, it is the quick tunnel above.
++## A stable hostname (live since 2026-10-20)
++[TunnelNamed.mjs](../../../../Server/TunnelNamed.mjs) `setup` makes the tunnel `servex`, one ingress line and one proxied CNAME per entry in `TunnelNamed.HOSTS`, then stores the run token at `remote.tunnel.token` (same folder). Safe to re-run; the running cloudflared picks up a new ingress by itself, no restart. [Tunnel.mjs](../../../../Server/Tunnel.mjs) `up` runs `cloudflared tunnel run --token` when that file exists (otherwise the quick tunnel above).
+ 
+-**Blocked (checked 2026-10-20):** the token in `cloudflare.env` can only list. `POST /accounts/<id>/cfd_tunnel` and `GET /zones/<id>/dns_records` both return 10000 Authentication error. It needs exactly two permissions: **Account → Cloudflare Tunnel → Edit** and **Zone → DNS → Edit** (zone `lew42.com`). Then run `node Server/TunnelNamed.mjs setup`, `node Server/Tunnel.mjs down`, `node Server/Tunnel.mjs up`.
++| Public host | Local gateway | What passes |
++|---|---|---|
++| `servex.lew42.com` | `Tunnel.gateway()`, 127.0.0.1:8191 | `/mcp/remote/<token>` only |
++| `monorepo.lew42.com` | [SiteGateway.mjs](../../../../Server/SiteGateway.mjs), 127.0.0.1:8192 | the site, behind the key cookie |
+ 
+-**Adding a dashboard path later:** `Tunnel.gateway()` passes only `/mcp/remote/...`; add the new path to its allow-check (behind Cloudflare Access). Cloudflare itself needs no change, since the ingress points at the gateway.
++The API token in `cloudflare.env` can edit the tunnel and DNS (checked 2026-11-01). Cloudflare Access is **not enabled** on the account.
++
++## The site from anywhere: monorepo.lew42.com
++Open `https://monorepo.lew42.com/?key=<key>` once on a phone; the full link is in `site.url` next to the other state files. The gateway swaps the key for a 30-day HttpOnly cookie (an HMAC of the key, never the key) and drops it from the address. Without the cookie every path is a 401 "Locked" page.
++
++**One origin.** The page, the live-reload WebSocket (`wss://` same host), Whisper (`/whisper/*`) and Servex (`/servex/*`, which the dev server's [ServexProxy](../../../../Server/plugins/ServexProxy.js) forwards) all ride the one host. Pages build Servex URLs with [servex_url()](../../../../public/framework/dev/servex_url.js), which is same-origin `/servex` off localhost; `DEV_SITE` there lists the hosts where Servex is asked at all.
++
++**Why it is safe enough.** The gateway dials the dev server at this PC's **LAN address** (10.x:3104), never loopback, so the dev server treats it exactly like the owner's phone on Wi-Fi: `/mcp`, `/screenshot`, `/devsource.json`, `/ai-logs` and `/recordings` refuse it, and the socket gets push traffic only (`rpc:cmd` and `rpc:write` answer "refused"). On top, the gateway itself:
++1. requires the cookie;
++2. requires `Origin: https://monorepo.lew42.com` on every write and every WebSocket;
++3. refuses `/mcp`, `/screenshot`, `/recordings`, `/devsource.json`, `/Servex/`, `/Server/`, `/ai-logs`, `/ask` and `/push/send` outright;
++4. passes `/servex/*` only for the page routes in `SiteGateway.SERVEX` and `SERVEX_GET` (items, sessions, voice, refine, whisper, prompts, the agent list). `/servex/mcp`, merge, project start/stop and agent messages are refused.
++
++These routes still pass on purpose, because they are the features: `/api/item` (page edits), `/api/session/*` and `/api/voice*` (chat and the voice agent, which drive agents and paid model calls), `/api/page-ai`. Whoever holds the key can use them, so the key is a password: never paste `site.url` anywhere public.
++
++**Running it.** `node Server/Tunnel.mjs up` starts both gateways in named mode (the keeper does this). `node Server/SiteGateway.mjs` runs the site gateway alone. Test: `node Server/SiteGateway.test.mjs`.
++
++**Later: a real login.** Once Access is enabled (Zero Trust → team name → Free plan) and the token has **Access: Apps and Policies → Edit**, put an Access application with the owner's email in front of `monorepo.lew42.com`; the key cookie can then go.
++
++The whole network (processes, ports, which page calls which origin): [network-map.md](../../../../public/framework/ai/sessions/2026/10/20/session-e00f55c9/remote-site-tunnel/network-map.md).
+diff --git a/Servex/ext/remote/readme.md b/Servex/ext/remote/readme.md
+index 2a4a4ff05..fcd679173 100644
+--- a/Servex/ext/remote/readme.md
++++ b/Servex/ext/remote/readme.md
+@@ -3,7 +3,7 @@
+ `RemoteMCP.js` serves `POST /mcp/remote` (reached through `Server/Tunnel.mjs`, bearer token in the path or header). It serves the **whole Servex tool registry** (`servex.mcp`, the same tools every local session has) plus `ask_mastermind` (ask the voice mastermind, wait up to a minute). Calls run as caller `voice-app`. The voice-agent directives live only in `RemoteMCP.INSTRUCTIONS`. Test: `node Servex/ext/remote/RemoteMCP.test.mjs`.
+ 
+ - Why one registry, fully exposed (and the shelved `local`/`remote` split): [doc/mcp-unify.md](doc/mcp-unify.md)
+-- The tunnel and its keeper (Servex restarts it, shows the connector URL, the named-tunnel steps): [doc/tunnel.md](doc/tunnel.md)
++- The tunnel and its keeper (Servex restarts it, shows the connector URL, the named-tunnel steps), and **the site from anywhere** (`monorepo.lew42.com` through `Server/SiteGateway.mjs`): [doc/tunnel.md](doc/tunnel.md)
+ - The voice path end to end: [voice-bridge.md](../../../public/framework/ux/Dictate/doc/voice-bridge.md)
+ - Catch-up: what changed since the voice agent's last call, piggybacked on every tool result (built: the `updates` tool): [doc/catch-up.md](doc/catch-up.md)
+ - **Cloud voice agent guide** (what it is, session naming, logging, tasks, caveats; the one line the server instructions point to): [doc/cloud-voice-agent.md](doc/cloud-voice-agent.md)
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/remote-site-tunnel/network-map.md b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/remote-site-tunnel/network-map.md
+new file mode 100644
+index 000000000..3c0dc1035
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/remote-site-tunnel/network-map.md
+@@ -0,0 +1,52 @@
++# Network map: every process, port and origin (2026-11-01)
++
++**The short version:** the phone opens `https://monorepo.lew42.com`. Cloudflare carries it down the named tunnel to a small gateway on this PC, which checks the key cookie and passes the request to the dev server. Everything the page needs (pages, the live socket, Whisper, Servex) rides that one address. How it is guarded: [tunnel.md, "The site from anywhere"](../../../../../../../../../Servex/ext/remote/doc/tunnel.md).
++
++## The path of one request from the phone
++
++```
++phone ──https──▶ Cloudflare (monorepo.lew42.com)
++        ──named tunnel "servex" (cloudflared, started by node Server/Tunnel.mjs up)──▶
++   SiteGateway  127.0.0.1:8192     key cookie, Origin check, route lists
++        ──http, from the LAN address──▶
++   dev server   10.0.0.135:3104    the site; /servex/* → Servex, /whisper/* → whisper-server
++        ├─▶ Servex        127.0.0.1:8090   /api/item, sessions, voice, refine…
++        └─▶ whisper-server 127.0.0.1:8178  speech to text
++```
++
++## Processes and ports on this PC
++
++| Process | Listens on | Reached as | Notes |
++|---|---|---|---|
++| Servex gate + reverse proxy | 127.0.0.1:80 (gate), 127.0.0.1:8079 (proxy) | `monorepo.localhost`, `servex.localhost`, `<project>.localhost` | Loopback only. Starts a stopped project on first request. `Servex/ReverseProxy.js` |
++| Servex dashboard and API | 127.0.0.1:8090 | `servex.localhost`, `http://127.0.0.1:8090` | Loopback only. `/mcp` here is the full tool registry. |
++| monorepo dev server | 0.0.0.0:3104 | `monorepo.localhost` (via :80), `http://10.0.0.135:3104` (LAN) | Port pinned in `%LOCALAPPDATA%\lew42\servex\ports.json`. |
++| HTTPS LAN twin | 0.0.0.0:13104 (port + 10000) | `https://10.0.0.135:13104` | Self-signed; for the mic on a LAN phone. `Server/plugins/HttpsLan.js` |
++| whisper-server | 127.0.0.1:8178 | `/whisper/*` on the dev server | Supervised by Servex. |
++| MCP tunnel gateway | 127.0.0.1:8191 | `https://servex.lew42.com/mcp/remote/<token>` | Only `/mcp/remote/<token>`. `Tunnel.gateway()` |
++| Site gateway | 127.0.0.1:8192 | `https://monorepo.lew42.com` | `Server/SiteGateway.mjs`; started by `Tunnel.mjs up` in named mode. |
++| cloudflared | outbound only | the named tunnel `servex` | Ingress lives in Cloudflare: `TunnelNamed.HOSTS`. |
++
++## Which page calls which origin
++
++| Feature | Browser code | Calls | On monorepo.lew42.com |
++|---|---|---|---|
++| Live reload, tails, queries | `dev/Socket/Socket.js` | `wss://<same host>/` | Works. LAN tier: push and read-only queries; `rpc:cmd`/`rpc:write` refused. |
++| Page edits | `core/Item/RecordWriter.js` via `servex_url` | `POST /servex/api/item` | Works. |
++| Dictation | `ux/Dictate/Dictate.js` `default_whisper_url()`, `Connection.js` | `/whisper/inference`, `/servex/api/whisper(/stream)` | Works (https gives the mic a secure context). |
++| Voice agent, chat | `ext/Session/Session.js`, `ext/Refine/*`, `ext/Chat/Mic.js` | `/servex/api/session/*`, `/servex/api/voice*`, `/servex/api/refine*` | Works. |
++| AI drawer | `ext/drawer/tabs/ai.js` | `/servex/api/page-ai`, `/servex/api/agents` | Works. |
++| Inbox rail, live board | `core/Page/ext/Inbox/servex.js`, `ai/v/3/Prompts.js`, `core/Page/ai/live.js` | `/servex/api/stream`, `/servex/log/prompts` | Fixed in this task (used to skip Servex or call `127.0.0.1:8090`). |
++| DevBar chat | `dev/DevBar/chat.js` | `/servex/api/page-agents`, `/servex/api/page-session/*` | Fixed in this task (used `http://<host>:8090`). |
++| Ask (a Claude turn) | `ext/Ask/Ask.js` | `POST /ask/turn` | **Refused on purpose** (spawns a Claude turn with tools). |
++| Task logs, screenshots, dev source | `ai/AITask/*`, `servex/fs/page.js` | `/ai-logs/*`, `/screenshot`, `/devsource.json` | **Refused on purpose** (loopback-only). |
++
++## Still pointing at 127.0.0.1 (not on the phone's path)
++
++- `core/Role/Role.js` `agents()` defaults to `http://127.0.0.1:8090`; it is shared with Servex (node), so it cannot import `servex_url`. Its fallback `/api/agents` fails too. Used by doc pages only.
++- `ux/Dictate/variants/v1/Dictate.js` (the old v1 variant) and `ai/SystemClasses.js` (`http://localhost/api/agents`).
++- Any Servex route not on the gateway's lists (`SiteGateway.SERVEX`, `SERVEX_GET`) answers 403 from the phone. Add a route there when a page starts calling it.
++
++## Verified from outside the LAN (2026-11-01)
++
++A headless Chromium went through the public URL (Cloudflare and back, not the LAN): `/framework/` rendered (200), the socket connected over `wss://` and received live pushes, `rpc:cmd` was refused, `/servex/api/agents`, `/servex/api/sessions`, `/servex/api/whisper` and `/whisper/` answered, `POST /servex/api/item` reached Servex (400 for an empty body), and `/mcp`, `/devsource.json` and `/servex/api/projects` were refused (403). Without the cookie every path is 401.
+diff --git a/public/framework/ai/v/3/Prompts.js b/public/framework/ai/v/3/Prompts.js
+index ccfa81fd2..088290bcd 100644
+--- a/public/framework/ai/v/3/Prompts.js
++++ b/public/framework/ai/v/3/Prompts.js
+@@ -1,4 +1,5 @@
+ import { div, span, button, p, small, ol, li, input } from "/app.js";
++import { servex_url } from "/framework/dev/servex_url.js";
+ import { icon } from "/framework/core/View/View.js";
+ import { fold } from "/framework/ai/log/fold.js";
+ import { clock } from "./timeline.js";
+@@ -27,7 +28,7 @@ import { prompt_modes } from "/framework/ext/Refine/prompt-card.js";
+  */
+ 
+ export class Prompts {
+-	static base(){ return new URLSearchParams(location.search).get("servex") || "http://127.0.0.1:8090"; }
++	static base(){ return new URLSearchParams(location.search).get("servex") || servex_url(); }
+ 
+ 	/* ONE CONNECTION, however many readers. The view wants the whole thread; the
+ 	   board wants only the cards, folded onto its normal timeline. Both subscribe
+diff --git a/public/framework/core/Page/ai/live.js b/public/framework/core/Page/ai/live.js
+index de7e128ec..12ef988e4 100644
+--- a/public/framework/core/Page/ai/live.js
++++ b/public/framework/core/Page/ai/live.js
+@@ -21,7 +21,8 @@
+  * network request. `fetch_json` never throws; every caller gets `null` and
+  * decides what "nothing yet" looks like.
+  */
+-const BASE = () => new URLSearchParams(location.search).get("servex") || "http://127.0.0.1:8090";
++import { servex_url } from "/framework/dev/servex_url.js";
++const BASE = () => new URLSearchParams(location.search).get("servex") || servex_url();
+ 
+ async function fetch_json(path){
+ 	try {
+diff --git a/public/framework/core/Page/ext/Inbox/servex.js b/public/framework/core/Page/ext/Inbox/servex.js
+index cde3808bf..5993c9a75 100644
+--- a/public/framework/core/Page/ext/Inbox/servex.js
++++ b/public/framework/core/Page/ext/Inbox/servex.js
+@@ -1,4 +1,4 @@
+-import { servex_url } from "/framework/dev/servex_url.js";
++import { servex_url, DEV_SITE } from "/framework/dev/servex_url.js";
+ 
+ /* SERVEX'S ADDRESS, AND WHETHER IT IS UP — moved here from `ai2/inbox.js` (2026-09-30,
+    review #3 of inbox-ext) so the Inbox extension imports nothing from AI 2. `ai2/inbox.js`
+@@ -22,7 +22,7 @@ export const servex_base = () => new URLSearchParams(location.search).get("serve
+    all). Every Servex call goes through `servex_fetch`, which rejects at once
+    when it is down, so a caller's own `.catch` runs and nothing else hits the
+    network. Chrome itself prints one line for the one refused probe. */
+-const dev_host = /^(localhost|127\.|192\.168\.|10\.|.*\.localhost$)/.test(location.hostname);
++const dev_host = DEV_SITE.test(location.hostname);
+ let up = null;
+ export const servex_up = () => up ??= ((PINNED_SERVEX || dev_host)
+ 	? fetch(servex_base() + "/log/features?n=1").then(r => r.ok).catch(() => false)
+diff --git a/public/framework/dev/DevBar/chat.js b/public/framework/dev/DevBar/chat.js
+index 9c11cdf48..a6b38b1a3 100644
+--- a/public/framework/dev/DevBar/chat.js
++++ b/public/framework/dev/DevBar/chat.js
+@@ -1,5 +1,6 @@
+ import View, { div, span, button, select, option } from "../../core/View/View.js";
+ import { section } from "./parts.js";
++import { servex_url } from "../servex_url.js";
+ import { AgentTalk } from "../../ai2/live.js";
+ import devbar from "./DevBar.js";
+ import devshell from "../DevShell/DevShell.js";
+@@ -14,9 +15,6 @@ function normalize_path(path){
+ 	return path.endsWith("/") ? path : path + "/";
+ }
+ 
+-function servex_url(endpoint){
+-	return (window.__SERVEX_URL__ ?? `http://${location.hostname}:8090`) + endpoint;
+-}
+ 
+ /**
+  * Open the dev bar or dev shell directly to the chat tab for a page.
+diff --git a/public/framework/dev/servex_url.js b/public/framework/dev/servex_url.js
+index 9d830058a..b356c6d54 100644
+--- a/public/framework/dev/servex_url.js
++++ b/public/framework/dev/servex_url.js
+@@ -14,6 +14,10 @@
+  * `ux/Dictate/playground/Playground.js` (`TIDY_URL`). */
+ const DEV_HOST = /^(localhost|127\.0\.0\.1|.+\.localhost)$/;
+ 
++/* A dev site: this PC, its LAN, or the owner's tunnel (https://monorepo.lew42.com, Server/SiteGateway.mjs).
++ * Only there is Servex worth asking at all; the static production site makes no Servex request. */
++export const DEV_SITE = /^(localhost|127\.|192\.168\.|10\.|.*\.localhost$|monorepo\.lew42\.com$)/;
++
+ export function servex_url(path = ""){
+ 	return DEV_HOST.test(location.hostname) ? "http://127.0.0.1:8090" + path : location.origin + "/servex" + path;
+ }

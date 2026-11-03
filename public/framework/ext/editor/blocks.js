@@ -1,0 +1,46 @@
+import Item from "/framework/core/Item/Item.js";
+import List from "/framework/core/List/List.js";
+
+/* The palette. A block is an `Item` that knows what it looks like: `words` is the
+   class string it wears — on this site a design IS a class string — and a leaf also
+   carries `text`. Both live in `data`, so both serialize, undo and reload with
+   everything else in the document.
+
+   ⚠ `items` is a List this class gives itself, in its own constructor — Item
+   holds no children of its own (core/Item/readme.md). A Text block never actually
+   gets any (it's a leaf), but giving every Block the same shape keeps `insert()`
+   and `cut()` in page.js from needing a special case for which kind of block
+   something is. */
+export class Block extends Item {
+
+	constructor(...args){
+		super(...args);
+		this.items = new List({ owner: this, name: "items" });
+		this.data.words ??= this.words;
+		if (this.text !== undefined) this.data.text ??= this.text;
+	}
+
+	// A leaf carries a word; a container carries blocks. The canvas asks once, and
+	// only a container is given `$items` — so nothing can be dropped into a sentence.
+	leaf(){ return this.data.text !== undefined; }
+}
+
+export class Section extends Block {}
+export class Grid extends Block {}
+export class Card extends Block {}
+export class Text extends Block {}
+
+// ⚠ On the prototype, not class fields: a field initializes AFTER `super()`, and the
+// constructor above reads these inside it.
+Section.prototype.words = "flex v gap pad";
+Grid.prototype.words    = "grid gap auto pad";
+Card.prototype.words    = "flex v gap pad surface";
+Text.prototype.words    = "pad";
+Text.prototype.text     = "Text";
+
+// The palette, in order — and its keys are the wire names, so a rename is one edit.
+export const BLOCKS = { Section, Grid, Card, Text };
+
+// ⚠ Last line, and the reason the editor imports this file for its side effect: an
+// unregistered type is an unimported one, and hydrates as a plain Item.
+Object.entries(BLOCKS).forEach(([name, Class]) => Item.register(Class, name));

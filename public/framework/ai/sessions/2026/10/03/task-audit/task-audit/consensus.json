@@ -1,0 +1,287 @@
+{
+	"generated_at": "2026-10-03T02:09:47.769Z",
+	"tasks": [
+		{
+			"task": "public/framework/ai/2026-09-30/ai2-inbox-read",
+			"n_auditors": 4,
+			"checks": {
+				"files_ok": "n/a",
+				"syntax_ok": null,
+				"urls_ok": "1/1",
+				"urls_checked": [
+					{
+						"u": "http://10.0.0.135:8137/framework/ai2/",
+						"ok": true
+					}
+				]
+			},
+			"cost_usd": 19.232,
+			"medians": {
+				"complete": -1,
+				"obedience": -3,
+				"utility": -1
+			},
+			"agreement": {
+				"complete": 1,
+				"obedience": 1,
+				"utility": 1
+			},
+			"missing_union": [],
+			"review_done": true,
+			"name_ok": true,
+			"icon_ok": true,
+			"q": 0.1111111111111111,
+			"value": 0.005777408023664263,
+			"failed": true,
+			"by_model": [
+				{
+					"model": "claude-sonnet-5",
+					"by": "task-mastermind-task-audit",
+					"distance_from_median": 1
+				},
+				{
+					"model": "deepseek/deepseek-v4.1-flash",
+					"by": "auditor-deepseek",
+					"distance_from_median": 1
+				},
+				{
+					"model": "openai/gpt-6-luna",
+					"by": "cheap-auditor-gpt6luna",
+					"distance_from_median": 0
+				},
+				{
+					"model": "google/gemini-3.8-flash",
+					"by": "cheap-auditor-gemini",
+					"distance_from_median": 0
+				}
+			]
+		},
+		{
+			"task": "public/framework/ai/2026-10-01/line-filter",
+			"n_auditors": 4,
+			"checks": {
+				"files_ok": "n/a",
+				"syntax_ok": null,
+				"urls_ok": "n/a",
+				"urls_checked": []
+			},
+			"cost_usd": 0.3172,
+			"medians": {
+				"complete": 0,
+				"obedience": 0,
+				"utility": 0
+			},
+			"agreement": {
+				"complete": 1,
+				"obedience": 1,
+				"utility": 1
+			},
+			"missing_union": [],
+			"review_done": true,
+			"name_ok": true,
+			"icon_ok": true,
+			"q": 0.25,
+			"value": 0.25,
+			"failed": false,
+			"by_model": [
+				{
+					"model": "claude-sonnet-5",
+					"by": "task-mastermind-task-audit",
+					"distance_from_median": 0
+				},
+				{
+					"model": "deepseek/deepseek-v4.1-flash",
+					"by": "auditor-deepseek",
+					"distance_from_median": 1
+				},
+				{
+					"model": "openai/gpt-6-luna",
+					"by": "cheap-auditor-gpt6luna",
+					"distance_from_median": 1
+				},
+				{
+					"model": "google/gemini-3.8-flash",
+					"by": "cheap-auditor-gemini",
+					"distance_from_median": 0
+				}
+			]
+		},
+		{
+			"task": "public/framework/ai/2026-10-01/local-ai",
+			"n_auditors": 4,
+			"checks": {
+				"files_ok": "2/2",
+				"syntax_ok": true,
+				"urls_ok": "0/1",
+				"urls_checked": [
+					{
+						"u": "http://127.0.0.1:PORT`,",
+						"ok": false
+					}
+				]
+			},
+			"cost_usd": null,
+			"medians": {
+				"complete": -1,
+				"obedience": -0.5,
+				"utility": 0.5
+			},
+			"agreement": {
+				"complete": 1,
+				"obedience": 1,
+				"utility": 0.75
+			},
+			"missing_union": [],
+			"review_done": true,
+			"name_ok": true,
+			"icon_ok": true,
+			"q": 0.19444444444444445,
+			"value": null,
+			"failed": false,
+			"by_model": [
+				{
+					"model": "claude-sonnet-5",
+					"by": "task-mastermind-task-audit",
+					"distance_from_median": 2
+				},
+				{
+					"model": "deepseek/deepseek-v4.1-flash",
+					"by": "auditor-deepseek",
+					"distance_from_median": 2
+				},
+				{
+					"model": "openai/gpt-6-luna",
+					"by": "cheap-auditor-gpt6luna",
+					"distance_from_median": 2
+				},
+				{
+					"model": "google/gemini-3.8-flash",
+					"by": "cheap-auditor-gemini",
+					"distance_from_median": 1
+				}
+			]
+		},
+		{
+			"task": "public/framework/ai/2026-10-01/inspect",
+			"n_auditors": 4,
+			"checks": {
+				"files_ok": "n/a",
+				"syntax_ok": null,
+				"urls_ok": "n/a",
+				"urls_checked": []
+			},
+			"cost_usd": 27.4373,
+			"medians": {
+				"complete": -1,
+				"obedience": -1,
+				"utility": -1
+			},
+			"agreement": {
+				"complete": 1,
+				"obedience": 1,
+				"utility": 0.75
+			},
+			"missing_union": [],
+			"review_done": true,
+			"name_ok": true,
+			"icon_ok": true,
+			"q": 0.1111111111111111,
+			"value": 0.004049637213250251,
+			"failed": false,
+			"by_model": [
+				{
+					"model": "claude-sonnet-5",
+					"by": "task-mastermind-task-audit",
+					"distance_from_median": 0
+				},
+				{
+					"model": "deepseek/deepseek-v4.1-flash",
+					"by": "auditor-deepseek",
+					"distance_from_median": 1
+				},
+				{
+					"model": "openai/gpt-6-luna",
+					"by": "cheap-auditor-gpt6luna",
+					"distance_from_median": 4
+				},
+				{
+					"model": "google/gemini-3.8-flash",
+					"by": "cheap-auditor-gemini",
+					"distance_from_median": 0
+				}
+			]
+		},
+		{
+			"task": "public/framework/ai/2026-10-01/token-efficiency",
+			"n_auditors": 4,
+			"checks": {
+				"files_ok": "n/a",
+				"syntax_ok": null,
+				"urls_ok": "n/a",
+				"urls_checked": []
+			},
+			"cost_usd": 0.8275,
+			"medians": {
+				"complete": 0,
+				"obedience": 0,
+				"utility": 1
+			},
+			"agreement": {
+				"complete": 1,
+				"obedience": 1,
+				"utility": 1
+			},
+			"missing_union": [],
+			"review_done": false,
+			"name_ok": true,
+			"icon_ok": true,
+			"q": 0.3333333333333333,
+			"value": 0.3333333333333333,
+			"failed": false,
+			"by_model": [
+				{
+					"model": "claude-sonnet-5",
+					"by": "task-mastermind-task-audit",
+					"distance_from_median": 0
+				},
+				{
+					"model": "deepseek/deepseek-v4.1-flash",
+					"by": "auditor-deepseek",
+					"distance_from_median": 0
+				},
+				{
+					"model": "openai/gpt-6-luna",
+					"by": "cheap-auditor-gpt6luna",
+					"distance_from_median": 3
+				},
+				{
+					"model": "google/gemini-3.8-flash",
+					"by": "cheap-auditor-gemini",
+					"distance_from_median": 0
+				}
+			]
+		}
+	],
+	"model_ladder": [
+		{
+			"model": "google/gemini-3.8-flash",
+			"n": 5,
+			"mean_distance": 0.2
+		},
+		{
+			"model": "claude-sonnet-5",
+			"n": 5,
+			"mean_distance": 0.6
+		},
+		{
+			"model": "deepseek/deepseek-v4.1-flash",
+			"n": 5,
+			"mean_distance": 1
+		},
+		{
+			"model": "openai/gpt-6-luna",
+			"n": 5,
+			"mean_distance": 2
+		}
+	]
+}

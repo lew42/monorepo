@@ -200,7 +200,7 @@ the thing this docs site actually wants.
 
     .editor > textarea {
         color: transparent;
-        caret-color: var(--prim);
+        caret-color: var(--prime);
         resize: none;                 /* framework.css says vertical */
         max-width: none;
         min-height: 3em;

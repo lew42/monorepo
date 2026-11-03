@@ -1,0 +1,6 @@
+{"class":"/framework/ai2/card.js","title":"I broke the page for three minutes","type":"card","id":"2026/09/21/i-broke-it","created":"2026-09-21T11:17:22-05:00","by":"mastermind","tags":[]}
+{"legacy":"i-broke-it"}
+{"status":"done"}
+{"icon":"warning"}
+{"focus":true}
+{"text":"My own hand edit: I used a.attr, which is not how anchors are built here. Fixed at 11:16 and the page has been serving since. I had a reload hold on but it expired at 300s while I was still editing - so your tab picked up the broken file."}

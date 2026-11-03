@@ -1,0 +1,43 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/2026/10/12/a-task-log-lost-15-lines-in-the-main-tre/",
+ "widths": {
+  "1280": {
+   "empty": 0.527,
+   "widest_text": 2789,
+   "widest_text_sample": "Note: models-asks landed. Voice fast/sma",
+   "overflow_x": false,
+   "items": 63,
+   "narrow_share": 0.317
+  },
+  "1920": {
+   "empty": 0.603,
+   "widest_text": 2968,
+   "widest_text_sample": "Note: models-asks landed. Voice fast/sma",
+   "overflow_x": false,
+   "items": 63,
+   "narrow_share": 0.714
+  },
+  "2560": {
+   "empty": 0.67,
+   "widest_text": 3281,
+   "widest_text_sample": "{\"class\":\"/framework/ai/cards/card.js\",\"",
+   "overflow_x": false,
+   "items": 63,
+   "narrow_share": 0.73
+  },
+  "3440": {
+   "empty": 0.718,
+   "widest_text": 3281,
+   "widest_text_sample": "{\"class\":\"/framework/ai/cards/card.js\",\"",
+   "overflow_x": false,
+   "items": 63,
+   "narrow_share": 1
+  }
+ },
+ "errors": [
+  "1280: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1920: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "2560: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "3440: Failed to load resource: the server responded with a status of 404 (Not Found)"
+ ]
+}

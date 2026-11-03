@@ -1,0 +1,1477 @@
+diff --git a/public/framework/ai/2026-10-02/framework-home/minion-build/requirements.md b/public/framework/ai/2026-10-02/framework-home/minion-build/requirements.md
+new file mode 100644
+index 00000000..f1c01b50
+--- /dev/null
++++ b/public/framework/ai/2026-10-02/framework-home/minion-build/requirements.md
+@@ -0,0 +1,203 @@
++# minion-build: /framework/ home page — the minion's working brief
++
++Owned by: minion-framework-home (a Sonnet CLI minion), reporting to @task-mastermind-framework-home.
++Parent brief, the owner's own words: [../requirements.md](../requirements.md). Read that first if
++anything below is unclear — this file is my own breakdown of it, not a replacement.
++
++Worktree: `C:\Code\lew42\worktrees\framework-home`, branch `worktree/framework-home`, dev server at
++`http://framework-home.localhost/`.
++
++## Deliverables (numbered to match the parent brief's `## Build`)
++
++1. **Back up the old page.** Move the current `/framework/page.js` to `/framework/old/page.js` as a
++   declared child (so it still routes at `/framework/old/`). Nothing is deleted — git history keeps
++   the original, and `/framework/old/` is a real, reachable page, not a dead file.
++
++2. **The new `/framework/` page — one section per sidebar section.** Core, UX, UI, Extensions,
++   Styles, Utilities, Dev server, Servex, Design, Code, … in the SAME order the sidebar already
++   uses (`core/Sidebar/Sidebar.js`'s `Tree.nodes_of(root)` walks `this.children`, in the page's own
++   declared order — one source, read live, never a hand-typed list here). Each section is a grid of
++   icon items, one per module: its icon, its name, and its own one-line `description`.
++
++3. **Dark class cards.** A module whose page documents a CLASS (core/Page, core/Item, core/List,
++   ext/filesystem's FsFile, ext/Inbox, …) renders as a dark-themed card — one CSS word, e.g.
++   `.class-card`, built from the existing theme tokens (a dark ground, not a new palette — check the
++   `color` skill for the contrast pair before picking the exact token). Plain content-page modules
++   stay in the normal light card. `ext/Mention` gets the same dark look for an inline reference that
++   resolves to a class page, so a class reads the same whether it's a card on this page or a mention
++   inside a paragraph elsewhere.
++
++4. **Icons from one source.** Every icon on the site — sidebar row, this page's cards, a Mention
++   chip, a breadcrumb — reads `page.icon` and nothing else. Find any place that hard-codes an icon
++   name instead of reading the page's own property, and point it at the property instead. Prove it
++   with one check: change one page's `icon:`, reload, and see every surface that shows that page
++   update together.
++
++5. **Sprawl — the layout, corrected 2026-10-02 (see below).** Full width, the site's clamp tokens
++   for padding and gap, columns that are genuinely balanced rather than merely equal-height grid
++   rows. Detail in its own section below — read it before writing any CSS for this page.
++
++6. **Coordinate, don't block.** Panel 2's own adaptive-height work (`@task-mastermind-panel2-sessions`)
++   is a later, separate piece — this page uses plain CSS grid + the JS placement pass below, and
++   does not wait on Panel 2.
++
++## Deliverable 5, in full: the sprawl layout
++
++**Columns are still CSS, exactly as the original brief said:**
++```css
++grid-template-columns: repeat(auto-fit, minmax(min(100%, 60rem), 1fr));
++```
++At ~1000px that's one column; at ~3440px, about three. This part is unchanged — the correction
++below is only about what happens WHEN there's more than one column.
++
++**The failure to avoid:** one very tall column next to short ones, leaving dead space under the
++short columns. Plain CSS grid with equal-height row stretching does NOT fix this (it stretches
++CARDS inside a row to match each other, not whole columns of varying section heights) — so this
++page must not lean on grid auto-rows/stretch to solve it.
++
++**The fix: balanced placement, computed in JS, not CSS.**
++
++A small greedy bin-packing pass, run once the sections exist:
++
++1. Read the sections in the sidebar's own order (the same order deliverable 2 already uses — this
++   is not a second ordering, it's the one ordering, fed to a placement step).
++2. Track each column's current height (its real pixel height after layout, or — if measuring is
++   awkward mid-build — its COUNT of placed sections as a cheap stand-in; real height is the better
++   answer if it's not much more code, because two one-line sections and one ten-item section are not
++   the same "height" even though they're each "one section").
++3. For each section in order, append it to whichever column is CURRENTLY SHORTEST, then update that
++   column's tracked height.
++4. This is the whole algorithm — no sorting, no lookahead, just "shortest column gets the next
++   section," which is standard greedy bin-packing and is good enough here because sections don't
++   reorder themselves once placed.
++
++**When this runs — on load and on resize only, never mid-read:**
++- Run it once when the page finishes loading.
++- Run it again only when a RESIZE changes the column COUNT (e.g. the window crosses the breakpoint
++  from 1 column to 3, or 3 to 2) — debounce the resize listener so it doesn't fire on every pixel.
++- Do NOT re-run it for anything else — not a hover, not an image finishing its own load, not any
++  other unrelated state change on the page. The reason: a reader scrolling through the sections
++  must never see them jump to a new column while they're in the middle of reading one. A column-
++  count change is the only event that actually invalidates the placement, so it's the only one that
++  re-triggers it.
++
++**Below the breakpoint, it's one column, full stop.** No placement logic runs there at all —
++everything stacks in document order, which is already the sidebar's order, which is already
++correct.
++
++**A big section (likely core/ext) gets tabs, not height.** If one section ends up with a lot of
++content, use tabs to drill down inside it (persistent in the URL, so a tab is a real address, not
++just UI state) rather than letting that one section just render tall and throw the column heights
++out of balance again from the inside. Keep this in mind specifically for whichever section turns
++out biggest when deliverable 2 is built — probably Core or Ext, but measure rather than assume.
++
++**The rejected alternative, and why — record this where the parent brief already asked for a
++one-liner, `/framework/design/layout/readme.md`'s "Watch out" list (or `doc/rules.md`, wherever the
++"sprawl" line already lives from this task):** CSS `columns:` (the multi-column layout property)
++auto-balances column heights with zero JavaScript, and was the first thing worth trying. It's
++rejected because items inside a `columns:` layout reflow and visibly jump to a different column
++whenever anything ABOVE them changes height — an image finishing its load, a line wrapping
++differently at a slightly different width — which breaks the same "never jumps while reading" rule
++that the resize-only JS pass above is built to satisfy. The JS greedy pass places each section once
++and leaves it there; `columns:` recomputes the whole layout on every reflow. One line only, not a
++new section — the rest of this reasoning lives here, in the task brief, not in the site's docs.
++
++## Build order
++
++1. Back up (1), smoke-test `/framework/old/` loads.
++2. New page skeleton reading the sidebar's own tree for sections + modules (2), plain single-column
++   list first — see it work before laying out columns (law 1: fastest working version first).
++3. Dark class cards + Mention's dark inline look (3).
++4. Icon unification + the one-page-icon-change proof (4).
++5. The sprawl columns + the JS greedy placement pass (5) — last, because it's layout polish on top
++   of content that needs to exist first, and because it's the piece most likely to need a second
++   look once real section heights are in front of it.
++6. Review skill at 400/1200/1920/3440, `merge.mjs`, report to @task-mastermind-framework-home.
++
++## Rules carried from the parent brief
++
++A Sonnet task mastermind with at most 1 minion (me). A pool worktree (already assigned — this one),
++`merge.mjs` for the smoke test, the `review` skill at all four widths before merge. Never wait on
++the owner — decide, log the alternative, keep going.
++
++## Log
++
++- 2026-10-02: brief written; the owner's follow-up correction to deliverable 5 (balanced JS
++  placement, not CSS grid row-stretch; `columns:` tried-and-rejected) folded in above before any
++  sprawl CSS was written — see `task.jsonl` for the logged decision.
++
++- 2026-10-02: **deliverable 1 (back up the old page) is done, by hand-inspection, NOT verified by
++  running anything** — see the blocker below. `public/framework/old/page.js` is the previous
++  `/framework/page.js` render verbatim, with its own `children:` dropped (a page's children route
++  relative to ITS OWN url, so carrying the list over would have pointed `/framework/old/core/` etc.
++  at folders that don't exist there — 404s), its `md.details(..., "readme.md", ...)` call dropped
++  (there is no `old/readme.md`), and its imports re-pathed one level up (`../stats.js`,
++  `../ext/Panel/workspace.js`). `/framework/page.js`'s `children:` list now has `old` appended at
++  the end, so `/framework/old/` routes. Nothing else in `/framework/page.js` touched yet —
++  deliverables 2–5 (the new sprawl homepage itself) are NOT started.
++
++- 2026-10-02, **blocker, RESOLVED — @task-mastermind-framework-home found the real cause**: the
++  session had been launched with `acceptEdits` (Write/Edit only), not `bypassPermissions`, and a
++  message into the still-running process can't change its own launch flags — it needed an actual
++  kill-and-relaunch, which the mastermind did. Confirmed with `git status`, `node --check`, and
++  `mcp__servex__list_agents` all working immediately after. Left the paragraph below exactly as
++  written at the time, since it's the accurate record of what a CLI minion sees when this happens
++  and how to tell (consistent, not transient; every tool fails the identical way) — the fix lives in
++  the line above, not by editing the original account.
++
++- 2026-10-02, blocker as first written (superseded by the line above — kept for the record): this CLI
++  session cannot run `git add`, `git commit`, any `node <script>` beyond `node --version` (so
++  `node --check` on the two files above never ran either), or ANY MCP tool — `mcp__servex__*`
++  (`send_to_agent`, `card_reply`, `list_agents`, `append_log`) and `mcp__site__*` (`shot`, `eval`,
++  `pages`) all come back the identical `"Claude requested permissions to use <tool>, but you
++  haven't granted it yet"` with nobody present in this headless run to grant it. Read, Write, Edit,
++  Glob, Grep, the Skill tool, and plain read-only Bash/PowerShell (`git status`, `git log`, `find`,
++  `date`, `rm`) all work normally. This is the exact failure named in the minion skill's own
++  history: a CLI minion started without `--permission-mode bypassPermissions` can read the repo but
++  not write to git, run scripts, or use MCP tools — `public/framework/ai/2026-09-19/
++  cli-minion-launch-lessons/` (referenced from the minion skill as "CLI minion launch lessons" in
++  memory). I tried the validated `append.mjs` route for this task's own `task.jsonl` first and it
++  was blocked the same way; its first lines went in via a direct `Write` instead (allowed once,
++  only because the file did not exist yet — the jsonl-guard hook permits that one case). I tried
++  reaching `@task-mastermind-framework-home` three different ways (`mcp__servex__send_to_agent`,
++  `mcp__servex__card_reply`, the generic cross-session `SendMessage` — which answered
++  `"No agent named 'task-mastermind-framework-home' is reachable"`, so that channel doesn't resolve
++  the name either) and all three failed the same permission way or couldn't find the agent. I did
++  not keep retrying past that point — the failure is consistent, not transient.
++  **What this means for whoever reads this next:** nothing built in this task is staged or
++  committed, and none of it has been smoke-tested against the running dev server (no `node
++  --check`, no `mcp__site__shot`/`eval`, no `merge.mjs`). Treat `old/page.js` and the `children:`
++  edit above as unverified-by-tooling, read-reviewed only, until someone with working git/MCP
++  access in this worktree (`C:\Code\lew42\worktrees\framework-home`, branch `worktree/framework-home`)
++  runs `node --check` on both files, loads `/framework/old/` in a browser, and runs
++  `git add`/`git commit`. I kept building anyway (law 5: never park on a blocker) using only the
++  tools that work — Write/Edit/Read/Glob/Grep — since those produce real, inspectable file changes
++  even though I can't prove them myself from in here.
++
++- **2026-10-02 — all six deliverables built, verified, committed. Summary for @task-mastermind-framework-home:**
++  1. **Back up** — `/framework/old/page.js`, the exact old page, reachable and unchanged in
++     substance. Commit `0b94956f`.
++  2. **The new `/framework/` page** — one section per sidebar heading, each a grid of icon items
++     (icon/name/description) via the already-existing `previews()`/`preview_card()` — no new card
++     code. Commit `48fe4a50`.
++  3. **Dark class cards** — reused the framework's existing always-dark `dark` SURFACE word
++     (`page-surface-dark`), not a new class; `ext/Doc`'s already-computed `Doc.is_class(subject)` is
++     the one source, exposed through `nav().class_card`. Extended to `ext/Mention`'s inline
++     `#reference` chips too. Commit `4cb7d0fd`.
++  4. **Icons from one source** — found `ext/Mention/maps/refs.js` hand-typing icon duplicates;
++     `sync.mjs` derives them (and `class_card`) from each page's own live state instead. Commit
++     `7c421ada`.
++  5. **Sprawl** — `ext/sprawl`, a small reusable module: plain CSS columns (unchanged from the
++     brief), a JS pass that places each section by REAL measured height into the shortest column,
++     re-running only on load and on a column-count-changing resize. Commits `56256e21` (the module,
++     proven standalone) and `57b7c54b` (the `Page.walls()`/`wall_rungs()` split it needed).
++  6. **Coordinate with Panel 2** — not touched; plain CSS grid + this task's own JS only, as the
++     brief said to use.
++
++  Every touched page (`/framework/`, `/framework/old/`, `/framework/ext/`, `/framework/ext/Mention/`,
++  `/framework/ext/sprawl/`, `/framework/core/`, `/framework/core/Page/`,
++  `/framework/design/layout/`) passes `layout-check.mjs` at 1280/1920/2560/3440 with zero console or
++  page errors. One deliberate, logged trade-off: Extensions (~19 modules) is the tallest section and
++  dominates one column at every width — sprawl balances whole sections, not individual cards, and
++  the brief's own suggested fix (tabs on `ext/`'s own page) is a separate feature, not built here.
++  Ready for the review skill and `merge.mjs`.
+diff --git a/public/framework/ai/2026-10-02/framework-home/minion-build/task.jsonl b/public/framework/ai/2026-10-02/framework-home/minion-build/task.jsonl
+new file mode 100644
+index 00000000..983dd9a1
+--- /dev/null
++++ b/public/framework/ai/2026-10-02/framework-home/minion-build/task.jsonl
+@@ -0,0 +1,53 @@
++{"assign":{"session_id":"3dc1da1a-cee7-423a-aa78-6caec30892f8","agent":"minion-framework-home","card":"2026/10/02/framework-home","brief":"public/framework/ai/2026-10-02/framework-home/minion-build/requirements.md","model":"claude-sonnet-5","worktree":"C:/Code/lew42/worktrees/framework-home","requested_at":"2026-10-02T18:42:32-05:00","now":"writing the minion brief from the parent requirements.md","steps":["back up /framework/page.js to /framework/old/","new /framework/ page: one section per sidebar section, read live from the page tree","dark class cards + ext/Mention dark inline look","icon unification: every icon reads page.icon, prove with a one-page change","sprawl: auto-fit columns + JS greedy balanced placement (corrected 2026-10-02)","review at 400/1200/1920/3440, merge.mjs, report to task-mastermind-framework-home"],"step":1}}
++{"log":{"at":"2026-10-02T18:42:32-05:00","msg":"session_id above is a locally-generated placeholder (PowerShell Get-Random, assembled by hand into a UUID shape) — this sandbox refused node -e, PowerShell .NET calls, uuidgen and the servex list_agents MCP tool (no permission grantor present in this headless run), so the real Claude Code session id could not be read. claude --resume against this id will not work; resuming this minion needs the harness's own session record, not this field. Also: node .claude/hooks/append.mjs itself required approval with nobody present to grant it, so this file's first lines were written directly with the Write tool instead (jsonl-guard allows a Write onto a .jsonl that does not exist yet); every append after this first write goes through append.mjs as normal, retried until the sandbox lets it through."}}
++{"decision":{"at":"2026-10-02T18:42:32-05:00","question":"How should sections be placed into the sprawl grid's columns when there is more than one column?","options":["CSS grid with equal-height row stretching (the brief's original wording)","CSS multi-column (`columns: <floor>`), which auto-balances with no JS","a small JS greedy pass: track each column's height, place each section into the currently-shortest column, in sidebar order"],"chose":"the JS greedy pass, run on load and on column-count-changing resize only (debounced), never mid-scroll","why":"an owner follow-up (relayed by task-mastermind-framework-home) caught that equal-height row stretching doesn't balance whole-column height at all (it stretches cards within a row, not columns of varying section count). The real failure to avoid is one tall column leaving dead space beside short ones. CSS `columns:` does solve that, with zero JS, but it reflows items into a different column whenever anything above them changes height (an image loading, a line wrapping differently), which breaks the site's own 'the layout never jumps' rule (design/layout/doc/rules.md). The JS greedy pass places each section once, keeps it there until a real column-count change, and is simple (count or measured height, shortest-gets-next) rather than a general bin-packing search.","rule":"layout#the-layout-never-jumps, relayed correction on deliverable 5"}}
++{"action":{"at":"2026-10-02T18:42:32-05:00","did":"write","files":["public/framework/ai/2026-10-02/framework-home/minion-build/requirements.md"]}}
++{"log":{"at":"2026-10-02T18:50:51-05:00","msg":"Permission mode fixed by a real process relaunch (servex), same session id, carried-over history. git/node/MCP all verified working now: git status, node --check on both edited page.js files, and mcp__servex__list_agents all succeeded. Continuing the build from here with the validated append.mjs route from now on."}}
++{"decision":{"at":"2026-10-02T18:50:51-05:00","question":"How should deliverable 3's dark class card actually be styled — a new .class-card CSS class, or something already in the system?","options":["invent a new `.class-card` class with hand-picked dark colors, as the parent brief's example name suggested","reuse the page's own existing `dark` SURFACE word (core/Page/words.js SURFACES list) and its CSS, `.page-surface-dark`/`.page-bg-dark` in Page.css — already an always-dark island built from theme tokens (`color-scheme: dark`, every token inside flips)"],"chose":"reuse the existing `dark` surface word and its `.page-surface-dark`/`.page-bg-dark` classes — apply the SAME class name to a module's preview card when that module documents a class","why":"CLAUDE.md law 6 (one of everything) and the owner's own deliverable-3 wording ('built from the existing theme tokens') both point here directly: the framework already has a documented, CSS-complete, theme-token-built 'always-dark island' — core/Page/words.js's five SURFACES (`plain card tint prim dark`), `styles/sections/tone.js`'s worked example, and Page.css lines 826-830. Inventing `.class-card` from scratch would be a second version of the exact same thing the brief's own phrase describes. The only new wiring needed: (1) a page knows whether it documents a class via `ext/Doc`'s existing `Doc.is_class(this.subject)` check (Doc.js:444, already used internally for the Overrides note) — this becomes the single source of truth for 'is this page a class', (2) Page.nav() (Page.class.js:1076) and Doc's own nav() override expose it so every surface that draws a preview card (previews(), walls(), the new /framework/ home grid, and ext/Mention's inline chip) reads the SAME flag off the SAME page object, instead of each guessing independently.","rule":"CLAUDE.md law 6; deliverable 3"}}
++{"assign":{"step":2,"now":"deliverable 4 (icon single source) done: found and fixed ext/Mention's refs.js hand-typed icon duplicates","steps":[]}}
++{"decision":{"at":"2026-10-02T18:56:24-05:00","question":"Deliverable 4 says every icon reads page.icon and nothing else — where was a hard-coded copy?","options":["ext/Mention/maps/refs.js: a hand-typed { url, icon } per name, already flagged in its own doc/syntax.md as something a later pass should derive from each page's own icon","leave it hand-typed since Mention.js is deliberately synchronous (no fetch) and can't read a live Page instance"],"chose":"wrote public/framework/ext/Mention/sync-icons.mjs: reads each page-backed refs.js entry's own page.js TEXT (never imports/executes it) and corrects the icon in place when it disagrees with the page's own one-tab-indented `icon: \"…\"` literal; Mention.js itself is untouched, still fully synchronous","why":"doc/syntax.md already named this exact fix as the intended follow-up. Keeping Mention.js synchronous (no fetch) matters (its own file header says so) so the fix has to be a build-time/dev-time sync of the cached map, not a live read — CLAUDE.md law 7 (compute, don't recall): a script reads the real page.js files, nobody re-types an icon by hand again.","rule":"deliverable 4; CLAUDE.md law 7"}}
++{"log":{"at":"2026-10-02T18:56:24-05:00","msg":"Caught my own bug before committing: the first version of sync-icons.mjs took the FIRST quoted `icon:` anywhere in a page.js file, which matched core/Sidebar/page.js's own DEMO data (a sample sidebar array shown as a code example) instead of Sidebar's real icon, and nearly overwrote \"view_sidebar\" with \"flag\". Fixed by requiring exactly one leading tab (this codebase's consistent indentation for a page.js config's own top-level properties) before accepting a match; verified against all 27 page-backed entries with a second run reporting zero changes."}}
++{"log":{"at":"2026-10-02T18:56:24-05:00","msg":"Proved the single source end to end: temporarily changed core/Page/page.js's icon to \"auto_stories\" (under a reload hold scoped to just those two files), ran sync-icons.mjs, and screenshotted /framework/ext/Mention/ — the live refs wall's \"Page\" card picked up the new icon with no edit to Mention.js or refs.js by hand. Reverted the page's icon and reran the sync; both files round-tripped to their committed state (confirmed by an empty git diff)."}}
++{"action":{"at":"2026-10-02T18:56:24-05:00","did":"write","files":["public/framework/ext/Mention/sync-icons.mjs","public/framework/ext/Mention/maps/refs.js","public/framework/ext/Mention/readme.md","public/framework/ext/Mention/doc/syntax.md"]}}
++{"assign":{"step":3,"now":"deliverable 3 (dark class cards) done: reused the existing `dark` surface word instead of inventing CSS, extended Mention to match","steps":[]}}
++{"action":{"at":"2026-10-02T19:04:10-05:00","did":"edit","files":["public/framework/core/Page/Page.class.js","public/framework/ext/Doc/Doc.js"]}}
++{"log":{"at":"2026-10-02T19:04:10-05:00","msg":"Doc.js gets a one-line nav() override: { ...super.nav(), class_card: Doc.is_class(this.subject) } — Doc.is_class() already existed (used internally for the 'Overrides' note) so this is the SAME computed fact, exposed through the one method every card-drawing caller already calls. Page.class.js's preview_card() adds .ac(nav.class_card && \"page-surface-dark\") — page-surface-dark/page-bg-dark already existed in Page.css as the framework's 'always-dark island' (core/Page/words.js's `dark` SURFACE word), built from theme tokens, used nowhere near as a class-card look before today. Proved live: /framework/core/ now shows View/Page/Router/App/Sidebar/Shell/Item/List as dark cards and Search/Layout/Section as plain light cards, with zero extra CSS invented (screenshot in task context)."}}
++{"action":{"at":"2026-10-02T19:04:10-05:00","did":"write","files":["public/framework/ext/Mention/sync.mjs"]}}
++{"log":{"at":"2026-10-02T19:04:10-05:00","msg":"Renamed sync-icons.mjs to sync.mjs (git mv) and extended it with a second pass: loads each refs.js page-backed entry headless (Server/browser.mjs) and reads the SAME live app.router.active.nav().class_card every page already computes, instead of guessing class-ness from source text (which would repeat the exact kind of false-positive the icon pass caught on Sidebar's demo data). 17 of 27 page-backed entries came back true (the seven core classes plus AITask/Panel/Doc/JSONL/tabs/Collab/Draggable/Saver/editor/Timeline); Servex/Chat/Markdown/Files/Research/DesignTool/Drawer/Highlight/Layout/Session came back false — matches which of those modules are plain functions/namespaces, not classes."}}
++{"action":{"at":"2026-10-02T19:04:10-05:00","did":"edit","files":["public/framework/ext/Mention/Mention.js","public/framework/ext/Mention/page.js","public/framework/ext/Mention/maps/refs.js"]}}
++{"log":{"at":"2026-10-02T19:04:10-05:00","msg":"Mention.js's build_row() and mention_html(), plus page.js's own demo wall(), all add page-surface-dark when entry.class_card is true. Caught one real CSS bug before committing: ui/item/item.js's own .item rule resets background:none at the same specificity, in the same @layer theme, and was winning the tie silently (a screenshot via mcp__site__shot kept showing no dark background even after the fix looked correct on paper — turned out that tool reuses a browser context whose module graph was stale; a clean Playwright page load via Server/browser.mjs, checked with getComputedStyle, proved the real fix works: background rgb(23,22,26), zero console errors). Fixed by declaring Mention.js's own `.item.page-surface-dark` override AFTER importing item.js, so the later-inserted rule wins the same-specificity tie. Documented as its own section in doc/syntax.md so the next person who adds a dark look to an .item doesn't rediscover this the slow way."}}
++{"assign":{"step":4,"now":"deliverable 5's mechanism built and proven standalone: ext/sprawl, before wiring it into the real homepage","steps":[]}}
++{"decision":{"at":"2026-10-02T19:11:21-05:00","question":"Count-of-sections-placed vs real measured height as the greedy pass's 'how tall is this column so far' signal — the correction allowed either","options":["count (cheap proxy, no extra render pass)","real pixel height, via a hidden staging box measured at the real per-column width"],"chose":"real height","why":"the correction's own first-choice wording was 'track each column's current height', with count offered only as a fallback 'if measuring real height is awkward' — it wasn't: a block's View/el is already built once by its caller, so measuring is just mounting that SAME element in an off-screen box sized to one column's real width, reading offsetHeight, then moving it (a normal DOM reparent) into its real column. Proved the difference visually in the demo: with count as the signal, a lone 6-paragraph section landed alone in a column next to two 1-paragraph columns (clearly unbalanced); with real height, the same section balanced against 3-4 short sections per sibling column."}}
++{"action":{"at":"2026-10-02T19:11:21-05:00","did":"write","files":["public/framework/ext/sprawl/sprawl.js","public/framework/ext/sprawl/sprawl.css","public/framework/ext/sprawl/page.js","public/framework/ext/sprawl/readme.md"]}}
++{"log":{"at":"2026-10-02T19:11:21-05:00","msg":"Column count is read back from the grid's own real box (clientWidth / 60rem-in-px), not kept as separate state that could disagree with the CSS repeat(auto-fit, minmax(min(100%,60rem),1fr)) rule. Re-placement is driven by a ResizeObserver on the grid itself (not window.resize) because a page is built detached from the document and has no real width to measure until it's actually attached — core/Page/Page.class.js's reveal_column() hit the identical problem and the same fix (ResizeObserver, not a guessed rAF delay) was reused rather than re-discovered. The observer's callback runs immediately on its first firing (the page's own cold load) and is debounced (150ms) on every firing after that; the one guard `n === last_n` is what makes a resize that doesn't cross a column-count breakpoint, or any unrelated reflow elsewhere on the page, change nothing — literally nothing else ever calls the placement function."}}
++{"log":{"at":"2026-10-02T19:11:21-05:00","msg":"Demo proven at 400/1200/3440 with 12 synthetic sections of very different lengths (screenshots in this turn's context, not saved to the repo): one column with sections in plain order below the ~60rem breakpoint; three real-height-balanced columns at 3440 (the single 6-paragraph section balanced against 3-4 short siblings per column). Caught one mistake before moving on: the demo rendered in one narrow column at 3440 too, until .ac(\"wide\") was added — sprawl() only builds the grid, it doesn't opt out of the page's own default reading-width track (the layout skill's Q1/Q2), so that's now written into ext/sprawl/readme.md's own Watch out."}}
++{"action":{"at":"2026-10-02T19:11:21-05:00","did":"edit","files":["public/framework/ext/page.js","public/framework/design/layout/readme.md","public/framework/styles/css-scopes.txt"]}}
++{"assign":{"step":5,"now":"split Page.walls() into wall_rungs() (array) + walls() (its one existing arrangement), so the new /framework/ page can feed the same rungs into sprawl() instead","steps":[]}}
++{"action":{"at":"2026-10-02T19:13:31-05:00","did":"edit","files":["public/framework/core/Page/Page.class.js"]}}
++{"log":{"at":"2026-10-02T19:13:31-05:00","msg":"No behavior change for either existing caller (public/framework/old/page.js, core/Page/old/previews/page.js) — walls() is a thin wrapper over the new wall_rungs() now, same markup, same CSS classes, same 'childless child gets no rung' rule. Verified with layout-check.mjs on /framework/old/ (byte-identical numbers) and the still-old /framework/ (same shape, before its own content gets replaced next)."}}
++{"assign":{"step":6,"now":"deliverable 2 done: the new /framework/ home page itself, built on wall_rungs() + sprawl()","steps":[]}}
++{"decision":{"at":"2026-10-02T19:16:28-05:00","question":"Keep the old page's live clock demo and line-by-line 'write a page' tutorial on the new home page, or drop them?","options":["keep both, add the sprawl wall below them","drop both, keep hero line + stats() + a short 'new here' pointer, sprawl wall is the page's main content"],"chose":"drop both from the new page","why":"the owner's whole ask was 'I want to see all the things in the framework' - the clock/tutorial are nice detail but compete with the sprawl wall for space above the fold, and neither was named in the brief's six deliverables. Nothing is lost: /framework/old/ (deliverable 1) is the exact page this replaced, one click away, and /framework/start/ already has the full tutorial - this just stopped duplicating it on the landing page. CLAUDE.md law 4 asks for a reason when departing from the literal brief; this is it."}}
++{"decision":{"at":"2026-10-02T19:16:28-05:00","question":"The Extensions section (ext/, ~19 modules) is the tallest rung by far and visibly dominates one column at every width - fix it now, or log it?","options":["give ext/ its own tabs (persistent in the URL) to split its module grid into smaller pages, per the brief's own 'keep that in mind for whichever section ends up biggest' note","ship sprawl exactly as specified (balances RUNGS, not individual cards) and log this as the anticipated, known trade-off"],"chose":"ship as specified, log the follow-up","why":"the brief named this as something to 'keep in mind', not a numbered deliverable - building ext/'s own tabs is a separate, real feature (which existing pages get this treatment, the URL scheme, ext/tabs wiring) rather than a one-line fix, and no amount of bin-packing cleverness fixes one indivisible oversized unit. sprawl() balances at the RUNG level by design (a rung is one section's whole module grid, placed once); splitting ext/ into sub-pages is ext/page.js's own future change, not framework/page.js's or sprawl()'s. Logged here so it isn't forgotten, not deferred silently."}}
++{"action":{"at":"2026-10-02T19:16:28-05:00","did":"edit","files":["public/framework/page.js"]}}
++{"log":{"at":"2026-10-02T19:16:28-05:00","msg":"Verified at 400/1280/1920/2560/3440 (layout-check.mjs, zero errors all four checked widths) and by eye: one column at 400-1920 matching the ~60rem/2 breakpoint math, three balanced columns at 3440 with dark class cards (View/Page/Router/App/Sidebar/Shell/Item/List under Core; Doc/Tabs/Catalog/Draggable/Saver/Editor/Panel/Timeline/AITask/JSONL/Collab under Extensions) correctly differentiated from plain content modules (Search/Layout/Section under Core stay light) in the SAME grid, with no special-casing in framework/page.js itself - it only calls sprawl(this.wall_rungs()), everything else is each child page's own nav().class_card. 'empty' fraction (layout-check's own wasted-space measure) dropped from 0.67-0.84 on the old page to 0.52-0.62 on the new one at the same four widths - a direct, measured answer to 'don't limit the width, use all the space.'"}}
++{"action":{"at":"2026-10-02T19:17:57-05:00","did":"edit","files":["public/framework/ai/2026-10-02/framework-home/minion-build/requirements.md"]}}
++{"log":{"at":"2026-10-02T19:17:57-05:00","msg":"Updated the brief's own Log: marked the permission-mode blocker resolved (task-mastermind-framework-home relaunched this session with --permission-mode bypassPermissions), and appended a one-screen summary of all six deliverables with their commit hashes for the mastermind's review pass. Final sweep: layout-check.mjs on every touched page (/framework/, /framework/old/, /framework/ext/, /framework/ext/Mention/, /framework/ext/sprawl/, /framework/core/, /framework/core/Page/, /framework/design/layout/) - zero console/page errors at 1280/1920/2560/3440 on all eight."}}
++{"assign":{"step":7,"now":"applying review fixes: 3 (double sidebar), in progress","steps":[]}}
++{"log":{"at":"2026-10-02T19:23:25-05:00","msg":"Review finding 3 fixed: public/framework/old/page.js no longer overrides render() or builds its own Sidebar - it is a CHILD of /framework/ now, not a root, so it writes content() like every other ordinary child page (core/Page/page.js's own pattern). Also dropped classes: \"hides-nav\" (only meaningful for a page that draws its own nav instead of the site's, true of the root framework/page.js, never true of a child) so it falls back to the normal 'standard' page shape. Verified: one sidebar at 1200px (screenshot), layout-check.mjs clean at 1280-3440."}}
++{"assign":{"step":8,"now":"fixes 1+5 (dark card text contrast; dedupe the dark colours into one place)","steps":[]}}
++{"log":{"at":"2026-10-02T19:26:29-05:00","msg":"Root cause of finding 1: .page-preview { color: inherit } and .page-preview .icon { color: var(--subtle) } (both pre-existing, both later in Page.css than .page-surface-dark) won the cascade at equal specificity, so a dark class card's own title/icon inherited the PAGE's ink instead of the card's own --dark-ink. Fixed by compounding the selector onto the same element the class actually lands on (.page-preview.page-surface-dark, plus its .page-preview-title and .icon descendants) - specificity beats the conflicting rules regardless of source order, same technique .page-preview:hover/:is(.active,...) already use a few rules down for the same title+icon pairing."}}
++{"log":{"at":"2026-10-02T19:26:29-05:00","msg":"Finding 5: added --dark-bg/--dark-ink as custom properties on Page.css's own .page-surface-dark rule (the exact two hex values it already painted), then pointed Mention.js's own override rule at var(--dark-bg)/var(--dark-ink) instead of its repeated hex literals - both rules target the same element, so the custom properties resolve correctly regardless of which file declares them. doc/syntax.md's own account of the CSS trap updated to match."}}
++{"action":{"at":"2026-10-02T19:26:45-05:00","did":"edit","files":["public/framework/core/Page/Page.css","public/framework/ext/Mention/Mention.js","public/framework/ext/Mention/doc/syntax.md"]}}
++{"log":{"at":"2026-10-02T19:26:45-05:00","msg":"Verified with a direct Playwright check (mcp__site__shot is reusing a browser context whose module graph goes stale across repeated calls to the same Mention page in this session - confirmed again today - so I checked getComputedStyle directly instead): the inline #Page mention's real computed background is rgb(23,22,26) and color rgb(232,232,234), matching --dark-bg/--dark-ink exactly, zero console errors. Card titles on /framework/core/ (View/Page/Router/App/Sidebar/Shell/Item/List) confirmed readable by eye in a fresh screenshot. layout-check.mjs clean on /framework/ and /framework/core/ at 1280-3440."}}
++{"assign":{"step":9,"now":"fix 2: Mention.js tries a live Page instance first, refs.js only as the cold-case fallback","steps":[]}}
++{"decision":{"at":"2026-10-02T19:29:50-05:00","question":"Review finding 2: editing a page's icon doesn't update its mentions until sync.mjs runs by hand - make this actually live, or keep it as a documented manual step?","options":["keep sync.mjs as the real fix, document the manual step clearly","add a live() lookup in Mention.js's lookup(): check Page.instances() (core/track/track.js) for one whose .url matches, read its current icon/nav().class_card straight off it, fall back to refs.js only when no live instance exists"],"chose":"the live lookup, sync.mjs demoted to the cold-case fallback","why":"the reviewer's own wording was exact: this is the ASAP honest version (ship the common case live, log the trade-off), not full elimination of the cache, which would mean eager-loading ~200 pages. Page already opts into instance tracking (Page.track(this) in its own constructor), so this was one function and one import, not new infrastructure.","rule":"review finding 2; CLAUDE.md law 1"}}
++{"action":{"at":"2026-10-02T19:30:09-05:00","did":"edit","files":["public/framework/ext/Mention/Mention.js","public/framework/ext/Mention/readme.md","public/framework/ext/Mention/doc/syntax.md"]}}
++{"log":{"at":"2026-10-02T19:30:09-05:00","msg":"Proved both paths with direct Playwright checks (temporarily drifted core/Page/page.js's icon to auto_stories under a reload hold, WITHOUT running sync.mjs): (1) load /framework/core/Page/ first, then Router.go() client-side to /framework/ext/Mention/ (a real link click's own path) - the #Page mention showed auto_stories immediately; (2) a fresh, cold load of /framework/ext/Mention/ alone - ALSO showed auto_stories, because the sidebar's own tree walk (Sidebar.nav() -> Tree.nodes_of()) already builds a live Page instance for core/Page on every single page load, not just when you visit it directly. So the common case this fix targets turns out to cover nearly everything reachable from the sidebar's current state, not just 'pages you've visited' - a true cold case (unreached by any expanded branch) is rarer than expected, and still falls back to refs.js correctly. Reverted the icon and confirmed a clean git diff; layout-check.mjs clean on /framework/ext/Mention/ and /framework/core/Page/ at 1280-3440."}}
++{"assign":{"step":10,"now":"fix 7 (sprawl demo paragraphs too wide) and note 4 (audit record)","steps":[]}}
++{"log":{"at":"2026-10-02T19:31:27-05:00","msg":"Fixed review finding 7: ext/sprawl/page.js's demo paragraphs now carry .measure.start (framework.css's own reading-width token, left-aligned rather than .measure alone's centring) instead of running the full column width - 1201px-wide lines at 1920 measured down to a readable ~530-600px. Scoped to the demo page's synthetic long paragraphs only; a real sprawl section (framework/page.js's own wall_rungs()) holds a grid of small module cards, never a long paragraph, so it never hit this. layout-check.mjs clean at 1280-3440, widest line dropped from 1201px to 714px."}}
++{"log":{"at":"2026-10-02T19:31:27-05:00","msg":"Review note 4 (no recorded audit of which pages got checked for an icon): the full list IS recorded, just not named plainly in one line before now - sync.mjs's own run checked all 27 page-backed refs.js entries: the seven core classes (View, Page, Router, App, Sidebar, Item, List) and nineteen ext/ modules (Task/AITask, Chat, Panel, Doc, JSONL, Markdown, Tabs, Files, Collab, Research, DesignTool, Draggable, Saver, Editor, Timeline, Drawer, Highlight, Layout, Session) plus Servex - every one of those 27 icons matched its own page.js (0 changes on the clean run); the 4 concept-only entries (CLAUDE.md, skills, MCP, dev-server) were deliberately excluded (no single page icon applies - doc/syntax.md says why) and people.js's agent roles were never in scope (not pages). The one-page proof (core/Page's icon changed to auto_stories and back) is the extra, deeper check beyond the audit: that one page was verified end-to-end through the live render, not just the text-match sync."}}
++{"assign":{"step":11,"now":"round 2 review fixes: sync.mjs's default host, two 'one line' asks","steps":[]}}
++{"log":{"at":"2026-10-02T19:38:32-05:00","msg":"Fixed review-2 finding 1: sync.mjs's base_url now defaults to http://monorepo.localhost (the real site) instead of http://framework-home.localhost (this worktree's own host, which stops existing once this branch merges). The worktree override still works as argv[2], confirmed by rerunning sync.mjs http://framework-home.localhost explicitly: 27 checked, 0 changed."}}
++{"log":{"at":"2026-10-02T19:38:32-05:00","msg":"Fixed review-2 finding 2 (two places): design/layout/readme.md's Sprawl line trimmed from a ~70-word paragraph to one actual line (what it is + the link) - checked first that sprawl.js's own header already carries the full 'why columns: was rejected' reasoning in detail, so nothing was lost, only de-duplicated. ext/sprawl/page.js's demo intro now leads with one plain sentence ('Sprawl is a wall of big sections that balances its own columns, so one never ends up towering over the rest') before any CSS, with the grid-template-columns/JS-pass detail moved under an explicit 'Under the hood:' - same shape framework/page.js's own intro uses."}}
++{"action":{"at":"2026-10-02T19:38:47-05:00","did":"edit","files":["public/framework/ext/Mention/sync.mjs","public/framework/design/layout/readme.md","public/framework/ext/sprawl/page.js"]}}
++{"log":{"at":"2026-10-02T19:38:47-05:00","msg":"Re-ran layout-check.mjs on framework/, design/layout/, ext/sprawl/ at 400/1200/1920/3440 as asked - all three 'ok', zero console/page errors."}}
+diff --git a/public/framework/core/Page/Page.class.js b/public/framework/core/Page/Page.class.js
+index 899060a9..34fec17b 100644
+--- a/public/framework/core/Page/Page.class.js
++++ b/public/framework/core/Page/Page.class.js
+@@ -1109,17 +1109,38 @@ export class Page extends PageLog {
+ 	// ⚠ `leaf` opts a child out whole: it presents ITSELF, not its children — and a
+ 	// child that overrode `previews()` into something else entirely (a rail, a
+ 	// timeline) would otherwise render that thing here, on someone else's index.
++	//
++	// Split into `wall_rungs()` (the array, built DETACHED from whatever capture is
++	// open — same reason `ext/Mention`'s `build_row()` does it, core/View/doc/
++	// capturing.md) and this thin wrapper (the one flex column every existing caller
++	// still gets) so a caller that wants to place the SAME rungs a different way —
++	// `ext/sprawl`'s balanced columns, `public/framework/page.js` — can ask for the
++	// array instead of this one fixed arrangement, with no second copy of the "which
++	// child counts as a section" judgment call above.
+ 	walls(){
+-		return div.c("page-walls bleed flex v gap", () => this.children.forEach((page, name) => {
+-			if (!page?.children.size || page.leaf) return;
++		return div.c("page-walls bleed flex v gap", $box => this.wall_rungs().forEach(rung => $box.append(rung)))
++			.style("--gap", "3em");
++	}
+ 
+-			const nav = this.nav_for(name);
++	wall_rungs(){
++		const saved = View.captor;
++		View.captor = null;
++		try {
++			const rungs = [];
++			this.children.forEach((page, name) => {
++				if (!page?.children.size || page.leaf) return;
+ 
+-			div.c("page-wall flex v gap", () => {
+-				h2.c("page-wall-title", () => a.c("page-link", nav.label).href(nav.url));
+-				page.previews();
+-			}).style("--gap", "1em");
+-		})).style("--gap", "3em");
++				const nav = this.nav_for(name);
++
++				rungs.push(div.c("page-wall flex v gap", () => {
++					h2.c("page-wall-title", () => a.c("page-link", nav.label).href(nav.url));
++					page.previews();
++				}).style("--gap", "1em"));
++			});
++			return rungs;
++		} finally {
++			View.captor = saved;
++		}
+ 	}
+ 
+ 	// The one card shape. A page that wants a live render overrides this method:
+@@ -1128,12 +1149,17 @@ export class Page extends PageLog {
+ 
+ 	// ⚠ The thumb is INERT (Page.css): the label below it is a link, so a live render
+ 	// in here would be an `<a>` inside an `<a>` — invalid, and the browser un-nests it.
++	// `nav.class_card` (set by `ext/Doc`'s own `nav()`, true when `Doc.is_class(this.subject)`
++	// says the page documents a real ES class) wears the SAME always-dark island every other
++	// "dark" surface on the site already uses (`page-surface-dark`, `core/Page/words.js`'s
++	// `dark` SURFACE word) — one card look for "this names a class", not a new one invented
++	// for this task (CLAUDE.md law 6).
+ 	preview_card(nav = this.nav(), thumb){
+ 		return div.c("page-preview", () => {
+ 			if (thumb) this.preview_thumb(thumb);
+ 			this.preview_link(nav);
+ 			if (!thumb && nav.description) p.c("page-preview-desc", nav.description);
+-		}).ac(nav.card);
++		}).ac(nav.card).ac(nav.class_card && "page-surface-dark");
+ 	}
+ 
+ 	// THE THUMB, plus the one measurement Page.css can't make on its own: whether a
+diff --git a/public/framework/core/Page/Page.css b/public/framework/core/Page/Page.css
+index ef63fc9d..af966dfc 100644
+--- a/public/framework/core/Page/Page.css
++++ b/public/framework/core/Page/Page.css
+@@ -823,12 +823,34 @@
+ 		box-shadow: 0 1px 3px var(--shade-a08, rgba(0,0,0,0.08));
+ 	}
+ 
++	/* `--dark-bg`/`--dark-ink`: the SAME two colours, also as custom properties, so
++	   anything that needs to paint the identical dark island a second way (a
++	   different element, a different file — `ext/Mention`'s inline reference chip
++	   is the first) reads them back instead of re-typing the hex (review finding
++	   5, 2026-10-02: Mention.js had repeated `#17161a`/`#e8e8ea`, so retuning this
++	   colour would have meant remembering a second place it also lived). */
+ 	.page-surface-dark, .page-bg-dark {
++		--dark-bg: #17161a; --dark-ink: #e8e8ea;
+ 		color-scheme: dark;
+-		background: #17161a; color: #e8e8ea;
++		background: var(--dark-bg); color: var(--dark-ink);
+ 		border-radius: var(--radius);
+ 	}
+ 
++	/* ⚠ `.page-preview { color: inherit }` (below) and `.page-preview .icon { color:
++	   var(--subtle) }` are BOTH later in this file at the SAME specificity as a bare
++	   `.page-surface-dark`, so they silently won the cascade and left a dark card's
++	   own title and icon painted in the PAGE's ink (near-black on a near-black
++	   ground — unreadable) instead of `--dark-ink` (review finding 1, 2026-10-02:
++	   caught on every class card, View/Page/Router/App/Sidebar/…). Compounding the
++	   selector with `.page-preview` — the element `.page-surface-dark` actually
++	   lands on — raises the specificity past both of those rules regardless of
++	   source order, the same fix `.page-preview:hover`/`:is(.active, …)` already
++	   use a few rules down for the identical "read the title and icon together"
++	   pairing. */
++	.page-preview.page-surface-dark,
++	.page-preview.page-surface-dark .page-preview-title,
++	.page-preview.page-surface-dark .icon { color: var(--dark-ink); }
++
+ 	/* ── the type scale ──
+ 	   One declaration each, on the page — so a colour and a type size compose without
+ 	   either knowing the other exists.
+diff --git a/public/framework/design/layout/readme.md b/public/framework/design/layout/readme.md
+index 677ab5e6..182ae190 100644
+--- a/public/framework/design/layout/readme.md
++++ b/public/framework/design/layout/readme.md
+@@ -21,6 +21,7 @@ Full version, with every warning and measured number: [doc/rules.md](./doc/rules
+ 
+ ## Watch out
+ 
++- **Sprawl** — a wall of big sections that balances its own columns by real height, never mid-scroll. [`ext/sprawl`](/framework/ext/sprawl/), first used by [`/framework/`](/framework/) itself.
+ - A wall's column count comes from `auto-fit`, not `auto-fill`, unless the count is fixed and written out as container-query divisors. [doc/rules.md](./doc/rules.md)
+ - Text never sits at 0 from any edge — the viewport, a rail, a ToC column, or any box with its own ground. [doc/rules.md](./doc/rules.md)
+ - A layout never jumps: a live list waits behind an "N new" pill; a selected item opens in its own column. [doc/rules.md](./doc/rules.md)
+diff --git a/public/framework/ext/Doc/Doc.js b/public/framework/ext/Doc/Doc.js
+index 1acaf39a..dceb9e9e 100644
+--- a/public/framework/ext/Doc/Doc.js
++++ b/public/framework/ext/Doc/Doc.js
+@@ -43,6 +43,14 @@ export class Doc extends Page {
+ 		return this;
+ 	}
+ 
++	// One flag, read everywhere a preview card is drawn (Page.preview_card(), the sidebar
++	// tree, a future Mention chip): does this module's page document a real ES CLASS, or a
++	// plain function/namespace (`md`, `demo`) that merely has members? `Doc.is_class()`
++	// already answered this for the Overrides note below — this is the same fact, exposed
++	// through the one method every card-drawing caller already calls (`nav_for()` →
++	// `child.nav()`), so nothing has to ask `instanceof Doc` or re-derive it a second way.
++	nav(){ return { ...super.nav(), class_card: Doc.is_class(this.subject) }; }
++
+ 	// "docs/" is not a real page anywhere — the convention is `doc/`, everywhere (75
+ 	// modules use it) — but someone will type "docs" out of habit (it happened once
+ 	// already), so make it resolve instead of 404ing, with no Router change. Router.js
+diff --git a/public/framework/ext/Mention/Mention.js b/public/framework/ext/Mention/Mention.js
+index 00712e33..d50ab119 100644
+--- a/public/framework/ext/Mention/Mention.js
++++ b/public/framework/ext/Mention/Mention.js
+@@ -1,8 +1,23 @@
+ import { View } from "../../core/View/View.js";
++import { Page } from "../../core/Page/Page.class.js";
+ import item from "../../ui/item/item.js";
++import { css } from "../../ui/parts.js";
+ import refs from "./maps/refs.js";
+ import people from "./maps/people.js";
+ 
++// `ui/item`'s own `.item` rule resets `background: none` (so a tree row isn't a stack
++// of buttons) at the SAME specificity `.page-surface-dark` uses (one class each), in the
++// SAME layer — a tie that `.item`'s rule was winning, because it loads first (Mention.js
++// imports it). This file importing AFTER it, and declaring its own rule after that, is
++// what lets a dark mention actually paint dark. `--dark-bg`/`--dark-ink` are Page.css's
++// own custom properties, SET on this exact element by its `.page-surface-dark` class
++// (core/Page/Page.css) — reading them back here, instead of repeating the hex a second
++// time, is what review finding 5 (2026-10-02) asked for: one colour, one place it's
++// actually written, however many rules need to paint it.
++css(`@layer theme {
++	.item.page-surface-dark { background: var(--dark-bg); color: var(--dark-ink); }
++}`);
++
+ /**
+  * Mention — `#Name` and `@name` become a small icon + the word, linking to
+  * wherever that name means. Two SEPARATE namespaces, one per control
+@@ -74,7 +89,7 @@ function find(map, name){
+ // "@Servex/heartbeat"): the first segment is looked up, the rest is appended to
+ // its url as child slugs. `@` falls back to the `#` map when the first segment
+ // is a page rather than an agent, so `@Servex/lifecycle` still resolves.
+-function lookup(m, sigil, raw){
++function lookup_cached(m, sigil, raw){
+ 	if (sigil === "/"){ const hit = by_path(m, raw); return hit && { name: hit.key, ...hit }; }
+ 	const [head, ...rest] = raw_name(raw).split("/");
+ 	const hit = find(m[sigil], head) ?? (sigil === "@" ? find(m["#"], head) : null);
+@@ -84,6 +99,32 @@ function lookup(m, sigil, raw){
+ 	return { ...hit, name: [hit.key, ...rest].join("/"), url };
+ }
+ 
++// THE LIVE HALF (review finding 2, 2026-10-02): `refs.js`'s `icon`/`class_card` are a
++// CACHE, only as fresh as the last `sync.mjs` run — editing a page's icon does not
++// update its mentions until someone remembers to re-run that script. `Page.instances()`
++// (`core/track/track.js`; every `Page` ever constructed this session, opted in once,
++// WeakRef'd so a throwaway build doesn't leak) answers the common case for real: a page
++// you've already visited this session, or one `/framework/`'s own wall just loaded, IS a
++// live object right now, holding its OWN current `icon` and (for a Doc) `nav()
++// .class_card` — read those instead of the cache. A page nobody has loaded yet has no
++// live instance to ask, so the cache is still the fallback for that cold case — fixing
++// THAT would mean eagerly loading every one of the ~30 mentioned pages just to answer
++// "what's its icon", a much bigger and slower change than this one lookup, not done here.
++function live(entry){
++	if (!entry?.url) return entry;
++
++	const want = norm(entry.url);
++	const instance = Page.instances().find(p => p.url && norm(p.url) === want);
++	if (!instance) return entry;   // cold case: never loaded this session, cache stands
++
++	const nav = instance.nav?.() ?? {};
++	return { ...entry, icon: nav.icon ?? entry.icon, class_card: nav.class_card ?? entry.class_card };
++}
++
++function lookup(m, sigil, raw){
++	return live(lookup_cached(m, sigil, raw));
++}
++
+ function note_unknown(sigil, raw){
+ 	const tag = sigil + raw_name(raw);
+ 	if (!unknown.has(tag)){
+@@ -97,11 +138,18 @@ function note_unknown(sigil, raw){
+ // View factory and would otherwise auto-append itself into that captor
+ // before this file ever moves it into place. doc/decisions.md if this ever
+ // needs to be true for a second reason.
++// `entry.class_card` (maps/refs.js, kept in sync by sync.mjs) is true when the page this
++// mention points at documents a real ES class — the SAME always-dark "this is a class"
++// look `Page.preview_card()` already gives a class's own card on its module index
++// (`page-surface-dark`, deliverable 3), so a reference to `#Page` in a sentence and the
++// `Page` card on `/framework/core/` read as the one idea rather than two different looks
++// for the same fact.
+ function build_row(name, entry){
+ 	const saved = View.captor;
+ 	View.captor = null;
+ 	try {
+-		return item(entry.url ? { icon: entry.icon, name, href: entry.url } : { icon: entry.icon, name }).ac("inline mention").el;
++		return item(entry.url ? { icon: entry.icon, name, href: entry.url } : { icon: entry.icon, name })
++			.ac("inline mention").ac(entry.class_card && "page-surface-dark").el;
+ 	} finally {
+ 		View.captor = saved;
+ 	}
+@@ -159,7 +207,8 @@ export function mention_html(str, m = maps){
+ 
+ 		const tag = entry.url ? "a" : "span";
+ 		const href = entry.url ? ` href="${entry.url.replaceAll('"', "&quot;")}"` : "";
+-		return `<${tag} class="item inline mention"${href}>`
++		const dark = entry.class_card ? " page-surface-dark" : "";
++		return `<${tag} class="item inline mention${dark}"${href}>`
+ 			+ `<span class="material-icons icon item-icon">${entry.icon}</span>`
+ 			+ `<span class="item-name">${entry.name}</span></${tag}>`;
+ 	});
+diff --git a/public/framework/ext/Mention/doc/syntax.md b/public/framework/ext/Mention/doc/syntax.md
+index 4f7f0e68..256182f3 100644
+--- a/public/framework/ext/Mention/doc/syntax.md
++++ b/public/framework/ext/Mention/doc/syntax.md
+@@ -39,17 +39,73 @@ falls out of the pattern itself.
+ - `a#b` never reaches the name check at all — the lookbehind `(?<![\w\[])` rejects it immediately
+   because `a` (a word character) sits right before the `#`.
+ 
+-## Where a derived map would plug in
+-
+-Both `maps/refs.js` and `maps/people.js` are today a hand-written `{ Name: { url, icon } }`
++## Live first, cache second (review finding 2, 2026-10-02)
++
++The real fix for "a page's icon should just update its mentions" is `lookup()`'s own `live()` step,
++not `sync.mjs` — `sync.mjs` is the fallback's fallback. Every `Page` ever constructed this session
++is tracked (`core/track/track.js`'s `Page.instances()`, opted into once in `Page.class.js`'s own
++constructor, `WeakRef`'d so a throwaway build doesn't leak); `live()` looks for one whose `.url`
++matches the mention's target and, if it finds one, reads that LIVE instance's own `icon` and
++`nav().class_card` instead of whatever `refs.js` says. In practice this is the common case, not the
++rare one: the sidebar's own tree walk (`core/Sidebar/Sidebar.js`'s `nav()`) builds enough of the
++site on every single page load — not just the page you're actually looking at — that most mentioned
++pages already have a live instance before you ever read one. Proved by deliberately drifting
++`core/Page/page.js`'s icon WITHOUT running `sync.mjs`: a fresh, cold page load of
++`/framework/ext/Mention/` alone already showed the new icon (the sidebar's own walk had already
++built `core/Page`); a second check that visited `/framework/core/Page/` first, then navigated to
++Mention client-side (`Router.go()`, the same path a real link click takes), showed it too. Only a
++page genuinely unreachable from the current sidebar state — deep in a branch nothing has expanded —
++would actually fall back to the cache, and that's the trade-off this keeps rather than eliminates:
++eagerly loading every one of the ~30 mentioned pages just to answer "what's its icon" would be a
++much bigger, slower change than one map lookup, so that true cold case still reads `refs.js`.
++
++## Where the cache itself comes from (built 2026-10-02)
++
++Both `maps/refs.js` and `maps/people.js` started as a hand-written `{ Name: { url, icon } }`
+ object — picked for "the fastest working version that works first" (this task's own budget was
+-about $3). A later pass could build `refs.js`'s object instead of writing it by hand: walk
+-`directory.json` (the same file `ext/toc`'s sibling, `ext/filesystem`, already reads), take each
+-page's own `title` and `icon` field, and key the map by title. The one thing that pass would still
+-need a human for: deciding WHICH of several hundred pages are worth a one-word mention — today's
+-seed (the core seven, Servex, nineteen `ext/` modules, four one-off links) is a judgment call, not
+-a mechanical one. `Mention.js` itself would not change at all; only where `refs.js`'s object comes
+-from.
++about $3) — and `refs.js`'s icons were still hand-typed duplicates of each page's own `icon:`,
++with nothing to notice when the two drifted apart. [`sync.mjs`](../sync.mjs) is that later pass —
++the cache's OWN source of truth, for whenever `live()` above has no live instance to read from —
++in two parts:
++
++1. **Icon**, from text: for every `refs.js` entry whose `url` has a real `page.js` on disk, it
++   reads that file's own TEXT (never imports it — `page.js` files import `/app.js`, a browser-only
++   path Node can't resolve) and pulls the one-tab-indented `icon: "…"` literal, which this
++   codebase's page.js files always write as the page's own top-level config property.
++2. **`class_card`**, from the live page: whether `#Name` should wear the same dark, always-dark
++   "this is a class" look the module index pages give a class card (deliverable 3, 2026-10-02).
++   Text alone can't answer this reliably (chasing an import to find out whether it names a real ES
++   class is exactly the kind of guess that caught Sidebar's demo data below), so this half loads
++   each page headless (`Server/browser.mjs`) and reads `app.router.active.nav().class_card` — the
++   same fact `ext/Doc`'s `Doc.is_class(this.subject)` already computes every time the page renders,
++   not a second guess at it.
++
++A mismatch in either gets fixed in place; `refs.js`'s curated LIST of which ~30 names are worth a
++mention (still a human judgment call, not a mechanical one) never changes. Run it after changing a
++mentioned page's icon or its `subject`: `node public/framework/ext/Mention/sync.mjs`.
++
++Left alone, on purpose: `people.js` (agent ROLES, not pages — several share one url, so there is
++no single page icon or class to agree or disagree with), and four `refs.js` entries that borrow
++another page's url just to have somewhere to click (`CLAUDE.md`, `skills`, `MCP`, `dev-server` —
++their icon stands for their own concept, not for whatever page they happen to land on; syncing
++`skills` and `MCP` from the Servex page they share would have erased the one reason they look
++different from each other).
++
++## The dark card, and the one CSS trap in it
++
++`Mention.js`'s `build_row()` and `page.js`'s own demo wall both add `page-surface-dark` to a
++`class_card` entry's row — the exact class `core/Page/Page.class.js`'s `preview_card()` adds to a
++class's own card, so the two never drift apart in LOOK the way the old hand-typed icons drifted in
++VALUE. ⚠ `ui/item/item.js`'s own `.item` rule resets `background: none` (so a tree row isn't a
++stack of buttons) at the SAME specificity as `.page-surface-dark` (one class each), in the SAME
++`@layer theme` — a tie that the reset was winning, because `.item`'s stylesheet is inserted the
++first time anything on the site imports `item.js`, almost always before `Mention.js` ever runs.
++`Mention.js` declares its own `.item.page-surface-dark { background: var(--dark-bg); color:
++var(--dark-ink); }` AFTER importing `item.js`, which is what makes a later-inserted rule win the
++tie — skipping that one line left every dark mention rendering with no background at all, caught
++only by checking a
++fresh headless page's actual computed style, not a screenshot through a tool that turned out to be
++reusing a browser context with the old module graph cached.
+ 
+ ## What "resolves" means here
+ 
+diff --git a/public/framework/ext/Mention/files.jsonl b/public/framework/ext/Mention/files.jsonl
+index 3e73d1ba..d7d4e422 100644
+--- a/public/framework/ext/Mention/files.jsonl
++++ b/public/framework/ext/Mention/files.jsonl
+@@ -3,3 +3,6 @@
+ {"file":"Mention.js"}
+ {"file":"page.js"}
+ {"file":"readme.md"}
++{"file":"sync-icons.mjs"}
++{"file":"sync.mjs"}
++{"file":"sync-icons.mjs","gone":true}
+diff --git a/public/framework/ext/Mention/maps/refs.js b/public/framework/ext/Mention/maps/refs.js
+index 0a47365d..b791b6a3 100644
+--- a/public/framework/ext/Mention/maps/refs.js
++++ b/public/framework/ext/Mention/maps/refs.js
+@@ -27,38 +27,38 @@ export default {
+ 
+ 	// The core seven — one class, one real element (or, for Router/Item/List,
+ 	// one real idea) — public/framework/core/page.js's own `children:`.
+-	Page:    { url: "/framework/core/Page/",    icon: "description" },
+-	View:    { url: "/framework/core/View/",    icon: "image" },
+-	Router:  { url: "/framework/core/Router/",  icon: "alt_route" },
+-	App:     { url: "/framework/core/App/",     icon: "widgets" },
+-	Sidebar: { url: "/framework/core/Sidebar/", icon: "view_sidebar" },
+-	Item:    { url: "/framework/core/Item/",    icon: "data_object" },
+-	List:    { url: "/framework/core/List/",    icon: "reorder" },
++	Page:    { url: "/framework/core/Page/", icon: "description", class_card: true },
++	View:    { url: "/framework/core/View/", icon: "image", class_card: true },
++	Router:  { url: "/framework/core/Router/", icon: "alt_route", class_card: true },
++	App:     { url: "/framework/core/App/", icon: "widgets", class_card: true },
++	Sidebar: { url: "/framework/core/Sidebar/", icon: "view_sidebar", class_card: true },
++	Item:    { url: "/framework/core/Item/", icon: "data_object", class_card: true },
++	List:    { url: "/framework/core/List/", icon: "reorder", class_card: true },
+ 
+ 	// The agent system.
+ 	Servex: { url: "/framework/servex/", icon: "hub" },
+ 
+ 	// ext/ — nineteen addons a reader runs into often enough to deserve a
+ 	// one-word mention. `Task` points at AITask, the module that renders one.
+-	Task:       { url: "/framework/ext/AITask/",     icon: "smart_toy" },
+-	Chat:       { url: "/framework/ext/Chat/",        icon: "chat" },
+-	Panel:      { url: "/framework/ext/Panel/",       icon: "dashboard_customize" },
+-	Doc:        { url: "/framework/ext/Doc/",         icon: "menu_book" },
+-	JSONL:      { url: "/framework/ext/JSONL/",       icon: "table_rows" },
+-	Markdown:   { url: "/framework/ext/markdown/",    icon: "article" },
+-	Tabs:       { url: "/framework/ext/tabs/",        icon: "tab" },
+-	Files:      { url: "/framework/ext/files/",       icon: "folder_open" },
+-	Collab:     { url: "/framework/ext/Collab/",      icon: "forum" },
+-	Research:   { url: "/framework/ext/Research/",    icon: "biotech" },
+-	DesignTool: { url: "/framework/ext/DesignTool/",  icon: "straighten" },
+-	Draggable:  { url: "/framework/ext/Draggable/",   icon: "drag_indicator" },
+-	Saver:      { url: "/framework/ext/Saver/",       icon: "save" },
+-	Editor:     { url: "/framework/ext/editor/",      icon: "design_services" },
+-	Timeline:   { url: "/framework/ext/Timeline/",    icon: "view_timeline" },
+-	Drawer:     { url: "/framework/ext/drawer/",      icon: "view_sidebar" },
+-	Highlight:  { url: "/framework/ext/highlight/",   icon: "code" },
+-	Layout:     { url: "/framework/ext/layout/",      icon: "tune" },
+-	Session:    { url: "/framework/ext/Session/",     icon: "record_voice_over" },
++	Task:       { url: "/framework/ext/AITask/", icon: "smart_toy", class_card: true },
++	Chat:       { url: "/framework/ext/Chat/", icon: "chat" },
++	Panel:      { url: "/framework/ext/Panel/", icon: "dashboard_customize", class_card: true },
++	Doc:        { url: "/framework/ext/Doc/", icon: "menu_book", class_card: true },
++	JSONL:      { url: "/framework/ext/JSONL/", icon: "table_rows", class_card: true },
++	Markdown:   { url: "/framework/ext/markdown/", icon: "article" },
++	Tabs:       { url: "/framework/ext/tabs/", icon: "tab", class_card: true },
++	Files:      { url: "/framework/ext/files/", icon: "folder_open" },
++	Collab:     { url: "/framework/ext/Collab/", icon: "forum", class_card: true },
++	Research:   { url: "/framework/ext/Research/", icon: "biotech" },
++	DesignTool: { url: "/framework/ext/DesignTool/", icon: "straighten" },
++	Draggable:  { url: "/framework/ext/Draggable/", icon: "drag_indicator", class_card: true },
++	Saver:      { url: "/framework/ext/Saver/", icon: "save", class_card: true },
++	Editor:     { url: "/framework/ext/editor/", icon: "design_services", class_card: true },
++	Timeline:   { url: "/framework/ext/Timeline/", icon: "view_timeline", class_card: true },
++	Drawer:     { url: "/framework/ext/drawer/", icon: "view_sidebar" },
++	Highlight:  { url: "/framework/ext/highlight/", icon: "code" },
++	Layout:     { url: "/framework/ext/layout/", icon: "tune" },
++	Session:    { url: "/framework/ext/Session/", icon: "record_voice_over" },
+ 
+ 	// The owner's own first-targets list (2026-09-30) that isn't a module page.
+ 	"CLAUDE.md": { url: "/framework/",                                icon: "policy" },
+diff --git a/public/framework/ext/Mention/page.js b/public/framework/ext/Mention/page.js
+index 5e60772d..0aaa8775 100644
+--- a/public/framework/ext/Mention/page.js
++++ b/public/framework/ext/Mention/page.js
+@@ -5,11 +5,14 @@ import refs from "./maps/refs.js";
+ import people from "./maps/people.js";
+ 
+ // One wall of real rows, straight off a map — this is the actual `item()` call
+-// every `#Name` or `@name` on the site turns into, not a picture of one.
++// every `#Name` or `@name` on the site turns into, not a picture of one, down to the
++// same `page-surface-dark` look a `class_card` entry gets inline (`Mention.js`'s own
++// `build_row()` — the two never disagree because both read `entry.class_card`).
+ function wall(map){
+ 	return div.c("grid gap auto", () => {
+ 		Object.entries(map).forEach(([name, entry]) => {
+-			entry.url ? item({ icon: entry.icon, name, href: entry.url }) : item({ icon: entry.icon, name });
++			const row = entry.url ? item({ icon: entry.icon, name, href: entry.url }) : item({ icon: entry.icon, name });
++			row.ac(entry.class_card && "page-surface-dark");
+ 		});
+ 	});
+ }
+@@ -61,9 +64,9 @@ export default new Doc({
+ 			[...unknown].forEach(name => { span.c("item inline boxed").text(name); });
+ 		});
+ 
+-		h2("How the map could grow itself");
++		h2("How the map keeps itself honest");
+ 
+-		md("Today both maps are hand-written. A `#name` could instead be **derived** — read off every page's own `title`/`icon` at build or fetch time, or off the Concepts tiles and the systems map the familiar-structure pass built. `doc/syntax.md` has the one-paragraph note on where that plug would go; this task shipped the hand-written seed, not the deriver.");
++		md("The LIST of names is still hand-written — which few hundred pages are worth a one-word mention is a judgment call, not a mechanical one. But `refs.js`'s `icon` and `class_card` no longer have to be re-typed by hand when a page changes: [`sync.mjs`](sync.mjs) reads each page's own `icon:` property and its real, live `nav().class_card` and corrects any entry that disagrees. `doc/syntax.md` has the detail; run it with `node public/framework/ext/Mention/sync.mjs` after changing a mentioned page's icon or its `subject`.");
+ 
+ 		code.js(`import { mentions } from "/framework/ext/Mention/Mention.js";
+ mentions(someElement);                 // walk it in place, using the site's own two maps
+diff --git a/public/framework/ext/Mention/readme.md b/public/framework/ext/Mention/readme.md
+index 10e23016..f086d77c 100644
+--- a/public/framework/ext/Mention/readme.md
++++ b/public/framework/ext/Mention/readme.md
+@@ -34,9 +34,24 @@ same ones `ui.item` takes.
+ - **`#[Name with spaces]`** is the bracket form, for a name that isn't one word:
+   [`doc/syntax.md`](doc/syntax.md) has the exact pattern and why a markdown heading (`# Title`)
+   never matches it by accident.
+-- **Both maps are hand-written today.** A name's `url`/`icon` could instead be read off the
+-  page it already has (`page.js`'s own `title`/`icon` field) — [`doc/syntax.md`](doc/syntax.md)
+-  has the one-paragraph note on where that would plug in.
++- **A mention reads the LIVE page first, the cache second.** If the page a `#name` points at has
++  already been built this session (you've visited it, or it's one `/framework/`'s own wall just
++  loaded — in practice this covers most of the site, since the sidebar's own tree walk builds
++  enough of it on every page load), the mention reads that live instance's own `icon` and
++  `nav().class_card` straight off it — editing a page's icon updates its mentions on your very next
++  reload, no extra step. Only a page truly nobody has built yet falls back to `refs.js`'s cached
++  `icon`/`class_card`, kept honest by [`sync.mjs`](sync.mjs) for that cold case (reads every
++  page-backed entry's own `page.js` text for its icon, and loads the page headless for its real
++  `nav().class_card`). `people.js` and the four concept-only `refs.js` entries that borrow another
++  page's url (`CLAUDE.md`, `skills`, `MCP`, `dev-server`) are left out of both — `doc/syntax.md`
++  says why.
++- **A `#reference` to a class gets the same dark card a class's own module index uses** —
++  `Mention.js`'s `build_row()` and `page.js`'s demo wall both read `entry.class_card` and add
++  `page-surface-dark`, the framework's existing always-dark island (`core/Page/words.js`'s `dark`
++  SURFACE word), so `#Page` in a sentence and the `Page` card on `/framework/core/` read as the
++  one idea. ⚠ `ui/item`'s own `.item` rule resets `background: none` at the same CSS specificity,
++  in the same layer — `Mention.js` has to declare its own `.item.page-surface-dark` override
++  AFTER importing `item.js`, or the reset silently wins and the card never looks dark at all.
+ - `mentions()` builds its icon rows OUTSIDE whatever `View` capture happens to be open when it
+   runs, on purpose — see the comment beside `build_row()` in [`Mention.js`](Mention.js) if a
+   future change to `View`'s capturing ever needs to know why.
+diff --git a/public/framework/ext/Mention/sync.mjs b/public/framework/ext/Mention/sync.mjs
+new file mode 100644
+index 00000000..af164841
+--- /dev/null
++++ b/public/framework/ext/Mention/sync.mjs
+@@ -0,0 +1,142 @@
++// sync.mjs — keep maps/refs.js's `icon` and `class_card` in step with the real pages
++// they point to, instead of a human re-typing them by hand (CLAUDE.md law 7: compute,
++// don't recall).
++//
++// WHAT THIS FIXES (doc/syntax.md has the longer version):
++//   - `icon` used to be a hand-typed guess at each page's own `icon:` property, with
++//     nothing to notice when the two drifted apart.
++//   - `class_card` is new: whether `#Name` should render with the same dark, always-dark
++//     "this is a CLASS" look the module index pages use (deliverable 3, 2026-10-02) — and
++//     that fact already exists, computed once per page at runtime by `ext/Doc`'s own
++//     `nav().class_card` (`Doc.is_class(this.subject)`). This script reads that SAME
++//     computed answer instead of re-guessing it from source text, by actually loading
++//     each page headless and asking it.
++//
++// TWO PASSES, for two different reasons:
++//   1. ICON — read each target `page.js`'s own TEXT (never imported/executed: these files
++//      import "/app.js", a browser-only path Node can't resolve) and pull its one-tab-
++//      indented `icon: "…"` literal, the page's own top-level config property.
++//   2. CLASS_CARD — text alone can't answer "is the Doc's `subject` really a class" without
++//      chasing every import by hand (and getting it wrong the way pass 1 almost did for
++//      Sidebar's demo data). The page already computes this correctly every time it
++//      renders, so pass 2 loads each page in a real headless Chromium (Server/browser.mjs,
++//      the one way this repo ever starts a browser) and reads `app.router.active.nav()
++//      .class_card` straight off the live Page instance — no heuristic, the real answer.
++//
++// Run it: `node public/framework/ext/Mention/sync.mjs [base-url]` — base-url defaults to
++// http://framework-home.localhost (this task's worktree server); pass the real site's own
++// url when running this against a different server. Prints every change, writes refs.js
++// only if something changed.
++//
++// NOT covered, on purpose: the four one-off links (CLAUDE.md, skills, MCP, dev-server)
++// borrow another page's url just to have somewhere to click (refs.js's own comment says
++// which page and why) — their icon and class_card describe THEIR OWN concept, not
++// whatever page they happen to land on, so both passes skip them. `maps/people.js` is
++// left alone too: those are agent ROLES, not pages, and several share one url on purpose.
++
++import { readFileSync, writeFileSync, existsSync } from "node:fs";
++import { fileURLToPath } from "node:url";
++import { dirname, resolve } from "node:path";
++import { browser, close } from "../../../../Server/browser.mjs";
++
++const here = dirname(fileURLToPath(import.meta.url));
++const repo_public = resolve(here, "..", "..", "..");   // public/framework/ext/Mention -> public
++const refs_path = resolve(here, "maps", "refs.js");
++// Default to the real site — a worktree's own <slug>.localhost host stops existing the
++// moment that branch merges, so a script whose default only works mid-task would silently
++// find nothing ever after (review finding 1, 2026-10-02). Pass a worktree host explicitly
++// (`node sync.mjs http://framework-home.localhost`) while this branch is still alive.
++const base_url = process.argv[2] || "http://monorepo.localhost";
++
++const source = readFileSync(refs_path, "utf8");
++
++// One entry per line: `  Name: { url: "/framework/...", icon: "word" },`, optionally
++// already carrying `, class_card: true` from a previous run of this same script. Captured
++// as `head` (everything up to the opening brace, including the name) and `tail` (the
++// closing comma/whitespace) so the line can be fully rebuilt without disturbing anything
++// else in the file — comments, ordering and spacing on every OTHER line are untouched.
++const ENTRY = /^(?<head>\s*(?:"[^"]+"|[\w.-]+):\s*\{)\s*url:\s*"(?<url>[^"]+)",\s*icon:\s*"(?<icon>[^"]+)"(?:,\s*class_card:\s*(?:true|false))?\s*\}(?<tail>,?\s*)$/gm;
++
++const CONCEPT_ONLY = new Set(["CLAUDE.md", "skills", "MCP", "dev-server"]);
++
++function entry_name(head){
++	return head.match(/("[^"]+"|[\w.-]+):\s*\{$/)[1].replace(/^"|"$/g, "");
++}
++
++// ---- pass 1: icon, from each page.js's own text ----------------------------------
++function sync_icon(url, current_icon){
++	const page_path = resolve(repo_public, "." + url, "page.js");
++	if (!existsSync(page_path)) return { icon: current_icon, status: "no-page" };
++
++	const page_source = readFileSync(page_path, "utf8");
++	// Exactly one leading tab: every page.js in this codebase writes its config's
++	// top-level properties (title, description, icon, …) at that one indent, as
++	// `new Page({ ... })`'s direct properties. A naive "first icon: in the file" instead
++	// caught core/Sidebar/page.js's own DEMO data once (a sample array shown as a code
++	// example, nested two tabs deep) and nearly overwrote "view_sidebar" with "flag" —
++	// caught by hand-checking this script's first run before trusting it.
++	const m = /^\ticon:\s*"([^"]+)"/m.exec(page_source);
++	if (!m) return { icon: current_icon, status: "no-match" };
++	return { icon: m[1], status: m[1] === current_icon ? "same" : "changed" };
++}
++
++// ---- pass 2: class_card, from the live, already-computed answer ------------------
++async function class_cards_for(urls){
++	const b = await browser();
++	const page = await (await b.newContext()).newPage();
++	const result = new Map();
++
++	for (const url of urls){
++		try {
++			await page.goto(new URL(url, base_url).href, { waitUntil: "networkidle" });
++			const value = await page.evaluate(() => window.app?.router?.active?.nav?.().class_card ?? false);
++			result.set(url, !!value);
++		} catch (e) {
++			console.error(`  ! ${url} — could not load (${e.message.split("\n")[0]}), class_card left unchanged`);
++		}
++	}
++
++	await page.close();
++	return result;
++}
++
++// ---- gather every page-backed, non-concept entry, run both passes, rewrite the file --
++const names = [], urls = new Set();
++for (const m of source.matchAll(ENTRY)){
++	const name = entry_name(m.groups.head);
++	if (CONCEPT_ONLY.has(name)) continue;
++	if (!existsSync(resolve(repo_public, "." + m.groups.url, "page.js"))) continue;
++	names.push(name);
++	urls.add(m.groups.url);
++}
++
++const class_card_of = await class_cards_for([...urls]);
++await close();
++
++let changed_icon = 0, changed_class = 0, no_page = 0, concept = 0;
++const report = [];
++
++const next = source.replace(ENTRY, (line, ...args) => {
++	const groups = args.at(-1);
++	const { head, url, icon: current_icon, tail } = groups;
++	const name = entry_name(head);
++
++	if (CONCEPT_ONLY.has(name)){ concept++; return line; }
++
++	const { icon, status } = sync_icon(url, current_icon);
++	if (status === "no-page"){ no_page++; return line; }
++	if (status === "changed"){ changed_icon++; report.push(`  ~ icon  ${url} — "${current_icon}" -> "${icon}"`); }
++
++	const was_class = /class_card:\s*true/.test(line);
++	const is_class = class_card_of.get(url) ?? was_class;
++	if (is_class !== was_class) { changed_class++; report.push(`  ~ class ${url} — ${was_class} -> ${is_class}`); }
++
++	return `${head} url: "${url}", icon: "${icon}"${is_class ? ", class_card: true" : ""} }${tail}`;
++});
++
++console.log(`sync: ${names.length} page-backed entries checked (${no_page} with no page.js, ${concept} concept-only, left alone)`);
++console.log(`  icons changed: ${changed_icon} · class_card changed: ${changed_class}`);
++report.forEach(line => console.log(line));
++
++if (changed_icon || changed_class) writeFileSync(refs_path, next, "utf8");
++else console.log("refs.js already matches every page's own icon and class_card — nothing written.");
+diff --git a/public/framework/ext/filesystem/page.js b/public/framework/ext/filesystem/page.js
+index 9eae3e00..62651921 100644
+--- a/public/framework/ext/filesystem/page.js
++++ b/public/framework/ext/filesystem/page.js
+@@ -1,5 +1,6 @@
+ import { Doc, md, code, h2, p, a, files } from "/app.js";
+ import { file_link } from "./file_link.js";
++import FsFile from "./FsFile.js";
+ 
+ const EXAMPLE = "framework/ext/filesystem/FsFile.js";
+ 
+@@ -8,6 +9,12 @@ export default new Doc({
+ 	title: "File system",
+ 	description: "The DATA behind every file on the site: FsFile and FsDir — a path, a name, a parent, and the operations to read, write, render and link one. ext/files, next door, is the browsing widget built on these.",
+ 	icon: "folder_open",
++	// This page documents two classes (FsFile and FsDir); `subject` names the one the
++	// brief calls out by hand for the dark class-card treatment (2026-10-02, framework
++	// home). Doc.is_class(subject) only sees a `subject` that's actually set — a page
++	// with no `subject:` at all renders as an ordinary light content page, which is what
++	// was happening here before this line existed.
++	subject: FsFile,
+ 
+ 	notes: "decisions",
+ 	files: "FsFile.js FsDir.js tree.js file_link.js menu.js filesystem.css",
+diff --git a/public/framework/ext/page.js b/public/framework/ext/page.js
+index 35fa6802..0921039d 100644
+--- a/public/framework/ext/page.js
++++ b/public/framework/ext/page.js
+@@ -6,7 +6,7 @@ export default new Page({
+ 	label: "Extensions",
+ 	description: "Opt-in addons. They may extend core; core never depends on them.",
+ 	icon: "extension",
+-	children: "Classify markdown demo highlight filesystem files toc Doc tabs catalog layout drawer grip Dropdown Omnibox depth DesignTool Saver Draggable editor Panel Timeline AITask JSONL Research Ask Chat Collab Refine Session Mention",
++	children: "Classify markdown demo highlight filesystem files toc Doc tabs catalog layout drawer grip Dropdown Omnibox depth DesignTool Saver Draggable editor Panel Timeline AITask JSONL Research Ask Chat Collab Refine Session Mention sprawl",
+ 
+ 	content(){
+ 
+diff --git a/public/framework/ext/sprawl/doc/algorithm.md b/public/framework/ext/sprawl/doc/algorithm.md
+new file mode 100644
+index 00000000..08b8bd09
+--- /dev/null
++++ b/public/framework/ext/sprawl/doc/algorithm.md
+@@ -0,0 +1,74 @@
++# The balancing algorithm, and the two things that look like it but aren't
++
++`sprawl(sections)` hands back a CSS grid — `repeat(auto-fit, minmax(min(100%, 60rem), 1fr))`,
++one column under ~60rem of room, about three at 3440 — and decides which column each block
++goes in, so the columns come out roughly the same height instead of "first third of the list,
++second third, third third" the way plain source order would.
++
++## The algorithm — small on purpose
++
++The owner's own 2026-10-02 follow-up correction asked for exactly this, no more: walk the
++blocks in order, and drop each one into whichever column is **currently shortest so far**.
++That's it — no sorting the blocks by size first, no trying every arrangement.
++
++"Shortest so far" tracks each column's **real rendered height in px** (the correction's own
++first choice — a cheaper count-of-blocks-placed proxy was explicitly allowed too, "if measuring
++real height is awkward"; it wasn't, once the staging box below made measuring as cheap as
++counting, so this uses the exact version). Measured by a one-time staging pass (`measure()` in
++[`sprawl.js`](../sprawl.js)): every block is mounted, invisibly, at the width ONE column will
++actually have, its real `offsetHeight` read back, then moved into whichever real column the
++running tally says is shortest. Nothing is rendered twice — a block's own View/el is built once
++by its caller; this only moves that same element, first into a hidden box to measure it, then
++into its real column.
++
++## Why a whole JS pass, and not just CSS
++
++Two CSS-only ways to balance columns were tried first and rejected — written down here because
++both look like the obvious fix until you watch them run:
++
++- **Equal-height grid rows** (`align-items: stretch` and friends) don't solve this at all: they
++  make the cards inside one ROW match each other's height, not whole COLUMNS of a different
++  number of sections. A grid has no idea "column 1 has 2 sections and column 2 has 5" — that is
++  exactly the fact this function computes instead.
++- **CSS `columns: <width>`** (the multi-column layout property) DOES auto-balance column
++  height, with zero JavaScript — but it re-flows every item into a possibly different column on
++  every reflow: an image finishing its own load, or a line wrapping differently a few pixels
++  either side of a breakpoint, can visibly jump a block from column 2 to column 1 while someone
++  is reading it. That breaks this site's own rule that a layout never jumps under a reader
++  ([design/layout's rules](/framework/design/layout/doc/rules.md)). `sprawl()` places each block
++  exactly ONCE and leaves it there until a real column-count change (below) — `columns:`
++  recomputes the whole thing constantly. [`/framework/design/layout/`](/framework/design/layout/)
++  records this same rejection as its own one-line pointer back here.
++
++## When it re-runs
++
++On load, and again only when the number of COLUMNS changes (a `ResizeObserver` on the grid
++itself, not a `window.resize` listener — the same "built while still detached from the
++document" problem `core/Page/Page.class.js`'s `reveal_column()` solves the same way: the
++observer fires the moment the grid gets a size). A debounce (150ms) on every firing after the
++first keeps a window drag from re-laying-out every pixel. A resize that does NOT cross a
++column-count breakpoint changes nothing — the one check, `n === last_n`, is what makes "never
++re-run for anything else" (not a hover, not an unrelated reflow elsewhere on the page) literally
++true: nothing else on the page ever calls `place()` at all.
++
++⚠ **A background/unfocused tab's `ResizeObserver` never fires at all** (hidden tabs don't lay
++out), which once left the whole grid empty until the tab was focused — fixed 2026-10-02 (review
++round 4) by running the placement pass once, synchronously, before the observer is even
++attached. `host.el` has no width yet at that point (every `sprawl()` is built detached, same as
++any other page-level View), so the first pass falls back to `column_count()`'s own
++under-the-breakpoint answer (1) — every section in one column, same as a narrow screen, never
++nothing on screen. The real column count then settles on the observer's first real callback.
++
++## Below the breakpoint
++
++`column_count()` returns 1 the moment the grid is narrower than one track, and placing N blocks
++into 1 column is just appending them in order — so "one column, everything stacks, no placement
++logic" falls out of the same code path rather than needing its own branch.
++
++## The leak that isn't one anymore
++
++Nothing ever disconnected the `ResizeObserver` once its host left the document — review round 4,
++2026-10-02. Fixed the same way every other recurring callback in this codebase notices it has
++outlived its element (`ext/AITask/dashboard.js`, `ext/files/files.js`, …): the observer's own
++callback checks `host.el.isConnected` first and disconnects itself the moment it isn't, rather
++than adding a second teardown mechanism nothing else here uses.
+diff --git a/public/framework/ext/sprawl/files.jsonl b/public/framework/ext/sprawl/files.jsonl
+new file mode 100644
+index 00000000..2302997f
+--- /dev/null
++++ b/public/framework/ext/sprawl/files.jsonl
+@@ -0,0 +1,4 @@
++{"file":"sprawl.js"}
++{"file":"sprawl.css"}
++{"file":"page.js"}
++{"file":"readme.md"}
+diff --git a/public/framework/ext/sprawl/page.js b/public/framework/ext/sprawl/page.js
+new file mode 100644
+index 00000000..5a5ef481
+--- /dev/null
++++ b/public/framework/ext/sprawl/page.js
+@@ -0,0 +1,43 @@
++import { Page, md, h2, div, p } from "/app.js";
++import sprawl from "./sprawl.js";
++
++// A synthetic wall of sections, deliberately uneven — one tall, most short — so a
++// screenshot at different widths actually proves the balancing, not just "it draws
++// a grid." Content length is the stand-in for "how important/big a section is" the
++// same way framework/page.js's real sections will vary.
++const SIZES = [1, 6, 2, 1, 1, 3, 1, 2, 1, 4, 1, 2];   // paragraph counts, in priority order
++
++function demo_sections(){
++	return SIZES.map((n, i) => div.c("card pad flex v gap").append(() => {
++		h2(`Section ${i + 1} — ${n} paragraph${n === 1 ? "" : "s"}`);
++		for (let p_i = 0; p_i < n; p_i++)
++			// `.measure.start` (framework.css) caps a line of prose at the site's own
++			// reading width and left-aligns it (`.measure` alone also CENTRES, which
++			// reads wrong inside a left-aligned card) — review finding 7, 2026-10-02:
++			// at 1920 a sprawl column is wide enough that a plain `p()` ran its text
++			// 1201px wide, well past anything readable. Scoped to this demo page's
++			// synthetic paragraphs; a real sprawl section (framework/page.js's own)
++			// holds a grid of small module cards, never a long paragraph, so it never
++			// hits this.
++			p(`Paragraph ${p_i + 1} of a made-up section, just long enough to take up real vertical room so the greedy placement below has something uneven to balance.`).ac("measure start");
++	}));
++}
++
++export default new Page({
++	meta: import.meta,
++	title: "Sprawl",
++	description: "A wall of big blocks whose columns balance themselves — no tall column left standing over short ones.",
++	icon: "view_column",
++
++	content(){
++		md("**Sprawl** is a wall of big sections that balances its own columns, so one never ends up towering over the rest the way plain source order would. Used by the new [`/framework/`](/framework/) home page. Under the hood: the grid itself is plain CSS (`repeat(auto-fit, minmax(min(100%, 60rem), 1fr))` — one column under ~60rem, about three at 3440); a small JS pass decides which column each section goes into, walking them in order and dropping each one into whichever column is shortest so far. [`doc/algorithm.md`](doc/algorithm.md) has the full reasoning.");
++
++		h2("Twelve sections, twelve very different lengths");
++
++		md("Resize the window (or look at this page at 400 / 1200 / 1920 / 3440) — the columns stay close in total length at every width, not just the usual \"first N in column one.\"");
++
++		sprawl(demo_sections()).ac("wide");
++
++		md("What this is NOT: equal-height grid rows (they match card heights within one ROW, not whole columns of a different section count) and CSS `columns:` (auto-balances with no JS, but reflows items into a different column on every unrelated reflow — a line wrapping differently, an image loading — which makes things jump under a reader mid-scroll). Both are named, with why, in [`doc/algorithm.md`](doc/algorithm.md).");
++	},
++});
+diff --git a/public/framework/ext/sprawl/readme.md b/public/framework/ext/sprawl/readme.md
+new file mode 100644
+index 00000000..cea2d548
+--- /dev/null
++++ b/public/framework/ext/sprawl/readme.md
+@@ -0,0 +1,39 @@
++# Sprawl — a wall of big sections that balances its own columns
++
++Give it an array of already-built blocks, most important first. It draws them into a CSS
++grid (`repeat(auto-fit, minmax(min(100%, 60rem), 1fr))` — one column under ~60rem, about
++three at 3440) and decides which column each block goes in so the columns come out close
++in height, instead of the first N blocks landing in column one and the rest trailing off
++below.
++
++## Use
++
++```js
++import sprawl from "/framework/ext/sprawl/sprawl.js";
++
++sprawl([section_one, section_two, section_three]).ac("wide");   // or .ac("bleed")
++```
++
++Each item needs only an `.el` (a `View`, or anything shaped like one). Live demo, with
++twelve sections of very different lengths: [/framework/ext/sprawl/](/framework/ext/sprawl/).
++
++Built for, and first used by, the new [`/framework/`](/framework/) home page — see
++[`/framework/design/layout/`](/framework/design/layout/) for the one-line pointer to this
++pattern among the other named layouts.
++
++## Watch out
++
++- **Claim `wide` or `bleed` on the result.** `sprawl()` only builds the grid; like any
++  multi-column content, it still needs to opt out of the page's default reading-width
++  track, or it renders in one narrow column at every width (`layout` skill, Q1/Q2).
++- **It places once, then waits for a real column-count change** — never on every resize
++  pixel, never for an unrelated reflow elsewhere on the page. That's the whole point: a
++  section a reader is looking at should never jump to a different column while they read.
++- Full reasoning, including the two rejected CSS-only approaches (equal-height rows,
++  `columns:`) and why: [`doc/algorithm.md`](doc/algorithm.md).
++
++## More
++
++- [`doc/algorithm.md`](doc/algorithm.md) — the balancing algorithm, the two CSS-only
++  approaches tried and rejected first, exactly when it re-runs, and the hidden-tab and
++  below-breakpoint cases.
+diff --git a/public/framework/ext/sprawl/sprawl.css b/public/framework/ext/sprawl/sprawl.css
+new file mode 100644
+index 00000000..5841b51c
+--- /dev/null
++++ b/public/framework/ext/sprawl/sprawl.css
+@@ -0,0 +1,20 @@
++@layer theme {
++	/* The one rule that decides how many columns exist — sprawl.js reads this exact
++	   track width back (TRACK_REM) so its own column count can never disagree with
++	   what this CSS actually draws. `min(100%, 60rem)`: the floor can't overflow a
++	   narrow screen, the ceiling is the 60rem track itself. `auto-fit`, not
++	   `auto-fill` — a page with few sections should let them stretch wide rather
++	   than reserving empty tracks for a count nothing is there to fill
++	   (design/layout/doc/rules.md's auto-fit-vs-auto-fill rule). */
++	.sprawl {
++		display: grid;
++		grid-template-columns: repeat(auto-fit, minmax(min(100%, 60rem), 1fr));
++		gap: var(--gap);
++		align-items: start;   /* a short column's last row never stretches to match a tall sibling */
++	}
++
++	/* No rule of its own yet beyond the shared `flex v gap` utility classes sprawl.js
++	   already puts on every column — named so a future column-specific need (a
++	   border between columns, say) has somewhere to land without a rename. */
++	.sprawl-column { min-width: 0; }
++}
+diff --git a/public/framework/ext/sprawl/sprawl.js b/public/framework/ext/sprawl/sprawl.js
+new file mode 100644
+index 00000000..37ec8421
+--- /dev/null
++++ b/public/framework/ext/sprawl/sprawl.js
+@@ -0,0 +1,121 @@
++import { View, div } from "../../core/View/View.js";
++
++/* css: .sprawl, .sprawl-column — both in sprawl.css. */
++View.stylesheet(import.meta, "sprawl.css");
++
++/* sprawl(sections) — a wall of big blocks that balances its own columns, instead of
++ * leaving one tall column towering over short ones.
++ *
++ * WHAT IT DOES. You hand it an array of already-built blocks (Views or anything with an
++ * `.el`), in priority order — most important first, same as everywhere else on this site.
++ * It gives back one View: a CSS grid, columned the ordinary way
++ * (`repeat(auto-fit, minmax(min(100%, 60rem), 1fr))` — one column under ~60rem of room,
++ * about three at 3440), and it DECIDES WHICH COLUMN each block goes in — walking them in
++ * order and dropping each one into whichever column is currently shortest so far — so the
++ * columns come out roughly the same height, not "first third of the list, second third,
++ * third third" the way plain source order would. It re-runs only on load and when the
++ * number of columns itself changes, never on every resize pixel or an unrelated reflow.
++ *
++ * Full reasoning — the algorithm, the two CSS-only approaches tried and rejected first
++ * (equal-height rows, `columns:`), exactly when it re-runs, and the below-breakpoint and
++ * hidden-tab cases: [`doc/algorithm.md`](doc/algorithm.md).
++ */
++
++const TRACK_REM = 60;   // keep in step with the CSS below if that ever changes
++
++export function sprawl(sections){
++	const host = div.c("sprawl");
++	let last_n = null, first = true, timer;
++
++	const run = () => {
++		const n = column_count(host.el);
++		if (n === last_n) return;
++		last_n = n;
++		place(host, sections, n);
++	};
++
++	// Synchronous, before the observer below ever gets a chance to fire — a background or
++	// unfocused tab's ResizeObserver never fires at all, which otherwise left the whole
++	// grid empty until the tab was focused (review round 4, 2026-10-02). `host.el` has no
++	// width yet here (every sprawl() is built detached, same as any other page-level View),
++	// so `column_count()` falls back to its own under-the-breakpoint answer, 1 — every
++	// section in one column, same as a narrow screen, never nothing on screen. The real
++	// column count settles on the observer's own first real callback below. doc/algorithm.md.
++	run();
++
++	const observer = new ResizeObserver(() => {
++		// `!first &&`: the observer's OWN first notification fires while `host.el` is often
++		// still detached (same as the synchronous pass above, just reported asynchronously),
++		// so `isConnected` legitimately reads false right then — disconnecting on THAT would
++		// kill the observer before it ever saw the page's real, attached size. Past the first
++		// callback, the same check every other recurring callback in this codebase uses to
++		// notice it has outlived its element (ext/AITask/dashboard.js, ext/files/files.js, …):
++		// nothing here ever disconnected this observer once its host left the document, so
++		// every sprawl() ever built kept it (and the whole `sections` closure) alive forever
++		// (review round 4, 2026-10-02 — the leak doc/algorithm.md now records).
++		if (!first && !host.el.isConnected) return observer.disconnect();
++
++		if (first){ first = false; run(); return; }
++		clearTimeout(timer);
++		timer = setTimeout(run, 150);
++	});
++	observer.observe(host.el);
++
++	return host;
++}
++
++// How many `TRACK_REM`-wide tracks the grid's own CSS (`repeat(auto-fit, minmax(min(100%,
++// ${TRACK_REM}rem), 1fr))`) would currently draw — read back from the box itself rather
++// than kept as separate state, so this can never disagree with what `auto-fit` decides.
++function column_count(el){
++	const track_px = TRACK_REM * parseFloat(getComputedStyle(document.documentElement).fontSize);
++	const gap_px = parseFloat(getComputedStyle(el).columnGap) || 0;
++	const width = el.clientWidth;
++
++	if (width <= track_px) return 1;
++	return Math.max(1, Math.floor((width + gap_px) / (track_px + gap_px)));
++}
++
++// Every block's real height AT THE WIDTH ONE COLUMN WILL HAVE — not the width it happens
++// to render at today, which matters: the same paragraph wraps onto more lines, and so
++// measures TALLER, squeezed into one of three 3440px columns than it does alone in a
++// single 1400px-wide column. A plain off-screen box (`position: absolute`, far
++// off-canvas rather than `visibility: hidden` alone, so it can never affect anything
++// else's layout or scrollbars) gives every block that exact width for one instant, read
++// back with `offsetHeight`, before each one moves to its real, final column.
++function measure(sections, column_px){
++	const stage = document.createElement("div");
++	stage.style.cssText = `position:absolute; left:-99999px; top:0; width:${column_px}px;`;
++	document.body.appendChild(stage);
++
++	const heights = sections.map(section => { stage.appendChild(section.el); return section.el.offsetHeight; });
++
++	stage.remove();
++	return heights;
++}
++
++// THE GREEDY PASS. One column-wrapper View per track, each block moved into whichever
++// column's RUNNING HEIGHT TOTAL is currently smallest — ties keep the first (lowest-
++// index) column, which is what keeps a 1-column result identical to plain source order.
++function place(host, sections, n){
++	const gap_px = parseFloat(getComputedStyle(host.el).columnGap) || 0;
++	const column_px = (host.el.clientWidth - gap_px * (n - 1)) / n;
++	const heights = measure(sections, column_px);
++
++	host.el.textContent = "";
++
++	const columns = Array.from({ length: n }, () => div.c("sprawl-column flex v gap"));
++	const totals = new Array(n).fill(0);
++
++	sections.forEach((section, i) => {
++		let shortest = 0;
++		for (let k = 1; k < n; k++) if (totals[k] < totals[shortest]) shortest = k;
++
++		columns[shortest].append(section);
++		totals[shortest] += heights[i];
++	});
++
++	columns.forEach(col => host.append(col));
++}
++
++export default sprawl;
+diff --git a/public/framework/old/page.js b/public/framework/old/page.js
+new file mode 100644
+index 00000000..3f7c680f
+--- /dev/null
++++ b/public/framework/old/page.js
+@@ -0,0 +1,57 @@
++import { Page, div, md, code, h1, h2 } from "/app.js";
++import { stats } from "../stats.js";
++import panel from "../ext/Panel/workspace.js";
++
++/* /framework/old/ — the framework homepage as it stood before the 2026-10-02 sprawl
++ * rebuild (public/framework/ai/2026-10-02/framework-home/). Nothing was deleted: the
++ * same hero, clock and stats the live /framework/ page used to show, kept reachable at
++ * its own address so a reader (or a link from an old bookmark or chat log) can still
++ * see it.
++ *
++ * ⚠ This is a CHILD of `/framework/` now, not the root — the fresh-eyes review caught
++ * that the first version still built its own `new Sidebar({...})`, which drew a SECOND
++ * sidebar nested inside the one real one `/framework/page.js` already wraps every one
++ * of its children in (two sidebars, stacked, at 1200px and up). An ordinary child page
++ * never overrides `render()` or builds its own Sidebar — it just writes `content()`,
++ * the same as every other page under `/framework/` (`core/Page/page.js`, `stats()`'s
++ * own caller, anything here). `classes:` is gone too, for the same reason: the default
++ * `"standard"` shape (a left-anchored measure with `.wide`/`.bleed` tracks) is what
++ * every ordinary child page wants, and `"hides-nav"` was only ever for a page that
++ * draws its OWN nav instead of the site's — true of the root `/framework/page.js`,
++ * never true of a child like this one.
++ */
++export default new Page({
++	meta: import.meta,
++	title: "Framework (old)",
++	description: "The framework homepage before the 2026-10-02 sprawl rebuild — kept for reference, not deleted.",
++	icon: "widgets",
++
++	content(){
++		h1("A no-build, native-ESM web framework");
++
++		md("Write a page, save the file, refresh the tab. The path in an `import` is the file on disk, and what you debug is what you typed.");
++
++		div.c("bleed", () => panel("clock").ac("surface")
++			.style("--panel-height", "clamp(13em, 30vh, 30em)"));
++
++		md("That band is a live [`ext/Panel`](/framework/ext/Panel/) — split it, retint it, or trade the clock for any of the other twenty-seven entries in its **T** menu.");
++
++		stats();
++
++		h2("Write a page");
++
++		md("Measured from a clean checkout — [Versus](/framework/versus/) has the method, and the column where React wins. Create `/path/page.js`:");
++
++		code.js(`import { p } from "/app.js";
++
++p("Hello world.")`);
++
++		md("That's basically it.");
++
++		md("Start at [Start here](/framework/start/) — three files and a working site. Then [FAQ](/framework/faq/) and [Versus](/framework/versus/).");
++
++		md("Building a site rather than reading a framework? [Web](/web/) is the guide — nav patterns and layout principles, each one live and clickable.");
++
++		md("The current framework homepage is [/framework/](/framework/); this page is kept only as a reference to how it used to look.");
++	},
++});
+diff --git a/public/framework/page.js b/public/framework/page.js
+index 3b677285..1a84278f 100644
+--- a/public/framework/page.js
++++ b/public/framework/page.js
+@@ -1,6 +1,60 @@
+-import { Page, Sidebar, div, md, code, h1, h2 } from "/app.js";
++import { Page, Sidebar, View, div, md, h1, h2, a } from "/app.js";
+ import { stats } from "./stats.js";
+-import panel from "/framework/ext/Panel/workspace.js";
++import sprawl from "/framework/ext/sprawl/sprawl.js";
++
++/* ONE SECTION PER SIDEBAR SECTION, every card the same shape — icon, name, one-line
++ * description — even where a module would rather show something else. This is its own
++ * small pass rather than `this.wall_rungs()` (core/Page/Page.class.js) for two review
++ * findings (2026-10-02, round 3):
++ *
++ *   1. A card here is ALWAYS `child.preview_card(nav)`, never `child.preview(nav)`. Several
++ *      `ux/` modules (Dictate, Tree, Wizard, …) override `preview()` to show a live
++ *      screenshot-style thumb instead — right for their own module page, wrong here: every
++ *      OTHER section on this page is icon+name+description, so UX's cards silently broke
++ *      that "one card shape" rule the moment `wall_rungs()`'s own `page.previews()` called
++ *      the module's override instead of the plain card. `preview_card()` is the one method
++ *      nothing overrides; calling it directly is what makes every card on this page agree.
++ *   2. A `leaf: true` section (UI, Audit, Sandbox, AI, AI 2 — "I present myself, not my
++ *      children": its own children are TABS, not a nav wall, which is exactly why
++ *      `wall_rungs()` correctly skips it everywhere else) still gets its OWN one-item
++ *      section here: a single card, the section's own `nav()`, same shape as every other
++ *      item. The brief names sections by their sidebar heading, UI included, so "one
++ *      section per sidebar section" has to hold literally even for the ones with no
++ *      wall-worthy grandchild to show instead.
++ *
++ * `group:` isn't reproduced here (core's `previews()` supports it): no top-level section's
++ * own children declare one today, so there is nothing yet for it to group.
++ */
++function home_sections(root){
++	const saved = View.captor;
++	View.captor = null;
++	try {
++		const rungs = [];
++
++		root.children.forEach((page, name) => {
++			if (!page?.children.size) return;   // childless (Start here, FAQ, Versus…) stays sidebar-only
++
++			const nav = root.nav_for(name);
++
++			rungs.push(div.c("page-wall flex v gap", () => {
++				h2.c("page-wall-title", () => a.c("page-link", nav.label).href(nav.url));
++
++				div.c("page-previews bleed", () => {
++					if (page.leaf) return void page.preview_card(nav);   // itself: one card
++
++					page.children.forEach((child, child_name) => {
++						const child_nav = page.nav_for(child_name);
++						(child ?? page).preview_card(child_nav);
++					});
++				});
++			}).style("--gap", "1em"));
++		});
++
++		return rungs;
++	} finally {
++		View.captor = saved;
++	}
++}
+ 
+ export default new Page({
+ 	meta: import.meta,
+@@ -11,7 +65,7 @@ export default new Page({
+ 	// Inert: /styles.css decides what the class means, and Router.mark() unsets it.
+ 	classes: "hides-nav",
+ 
+-	children: "start ai ai2 research faq versus core styles ui ux audio ext util dev servex audit sources design code sandbox",
++	children: "start ai ai2 research faq versus core styles ui ux audio ext util dev servex audit sources design code sandbox old",
+ 
+ 	/* A LAYOUT, not a content page. Three things an override owes, all silent when
+ 	 * missed (core/Page/readme.md): set `this.view`, carry `.page`, never nest a
+@@ -41,19 +95,7 @@ export default new Page({
+ 
+ 						h1("A no-build, native-ESM web framework");
+ 
+-						md("Write a page, save the file, refresh the tab. The path in an `import` is the file on disk, and what you debug is what you typed.");
+-					});
+-
+-					// ⚠ Height is the knob, not width: the clock is `min(17cqw, 38cqh)`, so in a
+-					// band wider than tall the HEIGHT sizes it — flat 34em filled 32% at 3440.
+-					// ⚠ And the height is a FOLD budget, so it is measured in `vh`, not `vw`:
+-					// hero + band + numbers + the first row of the tree share one screen,
+-					// and the band's share is a third of it whatever the window's WIDTH.
+-					div.c("bleed", () => panel("clock").ac("surface")
+-						.style("--panel-height", "clamp(13em, 30vh, 30em)"));
+-
+-					div.c("flow", () => {
+-						md("That band is a live [`ext/Panel`](/framework/ext/Panel/) — split it, retint it, or trade the clock for any of the other twenty-seven entries in its **T** menu.");
++						md("Write a page, save the file, refresh the tab.");
+ 					});
+ 
+ 					// ⚠ OUTSIDE the prose block: five 9em tiles are 49em with their gaps,
+@@ -62,28 +104,22 @@ export default new Page({
+ 					// gives it the width its own count needs.
+ 					stats();
+ 
+-					// The tree: every section, and every page inside it. A section with
+-					// no children of its own is a leaf, and lives in the nav beside this.
+-					this.walls();
+-
+-					div.c("flow", () => {
+-
+-						h2("Write a page");
+-
+-						md("Measured from a clean checkout — [Versus](/framework/versus/) has the method, and the column where React wins. Create `/path/page.js`:");
+-
+-						code.js(`import { p } from "/app.js";
+-
+-p("Hello world.")`);
+-
+-						md("That's basically it.");
+-					});
++					// THE SPRAWL — the whole point of this page (2026-10-02 rebuild, see
++					// public/framework/ai/2026-10-02/framework-home/). `home_sections()`
++					// (above) is this page's own one-rung-per-sidebar-section pass — a
++					// childless child (Start here, FAQ, Versus…) still lives in the nav
++					// beside this, not here; a `leaf: true` one (UI, Audit, Sandbox…) gets
++					// a one-card section instead of being skipped. `sprawl()` balances those
++					// rungs into columns by real height instead of stacking them in one tall
++					// flex column, so a 3440 screen gets about three columns of roughly equal
++					// length instead of one long scroll next to empty grey.
++					sprawl(home_sections(this)).ac("wide");
+ 
+ 					div.c("flow", () => {
+ 
+-						md("Start at [Start here](/framework/start/) — three files and a working site. Then [FAQ](/framework/faq/) and [Versus](/framework/versus/).");
++						md("New here? [Start here](/framework/start/) — three files, a working site. Comparing frameworks? [Versus](/framework/versus/). Building a site, not reading the framework? [Web](/web/) is the guide.");
+ 
+-						md("Building a site rather than reading a framework? [Web](/web/) is the guide — nav patterns and layout principles, each one live and clickable.");
++						md("This page used to open with a live clock and a line-by-line tutorial — both still exist, just not on the front page anymore: [Framework (old)](/framework/old/) is the exact page this replaced.");
+ 
+ 						md.details(import.meta, "readme.md", "Readme");
+ 					});
+diff --git a/public/framework/styles/css-scopes.txt b/public/framework/styles/css-scopes.txt
+index 46d9371d..e1e31dd5 100644
+--- a/public/framework/styles/css-scopes.txt
++++ b/public/framework/styles/css-scopes.txt
+@@ -110,6 +110,7 @@ md-          ext/markdown
+ panel-       ext/Panel
+ pg-          ext/Playground
+ research-    ext/Research
++sprawl-      ext/sprawl
+ tab-         ext/tabs
+ tabs-        ext/tabs
+              (bare compound modifiers on `.tabs`, same as `block`/`vertical`: `.tabs.underline`

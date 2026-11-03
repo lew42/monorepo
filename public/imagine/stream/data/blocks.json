@@ -1,0 +1,9 @@
+{
+	"accent": "#FF6157",
+	"measure": "34em",
+	"blocks": [
+		{ "text": "## A region built from state\n\nEvery word here arrived as a delta. Edit it in the pane on the left, or in another window entirely." },
+		{ "text": "The colour of the rule beside this block and the width of the region are **tokens**, set from the same stream. No class exists per value." },
+		{ "text": "Add and remove blocks to stream the *structure*, not only the values." }
+	]
+}

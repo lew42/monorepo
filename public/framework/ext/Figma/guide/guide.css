@@ -1,0 +1,18 @@
+@layer base, theme, site, util;
+
+@layer theme {
+	/* Column weights, never below 1: a grow under 1 takes only that share of a wrapped line. */
+	.fgd-layout { gap: 0; align-items: stretch; }
+	.fgd-side { --grow: 1; }
+	.fgd-doc, .fgd-spec { --grow: 2; }
+	.fgd-rail { --grow: 1.2; }
+	.fgd-spec { background: var(--bg-darken-amt); }
+	.fgd-prime { color: var(--prime); }
+	.fgd-nav a { padding: 0.25em 0.5em; border-radius: 0.25em; color: inherit; opacity: 0.7; text-decoration: none; }
+	.fgd-nav a:hover { opacity: 1; background: var(--bg-lighten-amt); }
+	.fgd-nav a.fgd-active { opacity: 1; background: var(--bg-lighten-amt); }
+	.fgd-steps { grid-template-columns: repeat(auto-fit, minmax(min(24em, 100%), 1fr)); }
+	.fgd-code { margin: 0; padding: 0.75em 1em; border-radius: 0.25em; font-size: 0.85em; white-space: pre-wrap; }
+	.fgd-stack { border-radius: 0.375em; overflow: clip; }
+	.fgd-stack > .fgd-inset { box-shadow: none; border-radius: 0; }
+}

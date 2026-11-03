@@ -1,59 +1,33 @@
-# View — design record
+# View — a chainable wrapper over one DOM element; every HTML tag is a function that makes one, and a function child fills it (capturing)
 
-A chainable wrapper over one DOM element. `new View()` → `div`, and every HTML tag
-is a function that makes one. The only idea in the file is **capturing** —
-everything else is a method.
+## Use
 
-Each verdict below is the short form. The full reasoning — options weighed, the
-bugs that forced it — lives in `./doc/`, one file per question, and the same files
-render as note pages under `/framework/core/View/`.
+```js
+import { View, div, h3, p, button } from "/app.js";
 
-## Decisions
+div.c("flex v gap pad", () => {
+	h3("Today");
+	button.c("prim", "Save").click(function(){ this.text("Saved."); });   // methods chain; `this` is the view
+});
 
-**Can capture survive an `await`?** No, and don't try — `append_fn` restores the
-captor the instant your function returns, which for an async function is its
-first `await`. Capture synchronously, fill in a callback, or return a promise.
-See ./doc/capturing.md.
+class NoteView extends View { render(){ p(this.note); } }   // renders div.note
+new NoteView({ note: "hi" });
+```
 
-**How does `append()` know what you meant?** By type — a View, a function, a
-pojo, an array, a promise, anything else. An `append(x, { mode })` option was
-rejected: the type already says it. See ./doc/append-dispatch.md.
+**Stay in step with data: `bind`.** `view.bind(item, "title", v => view.text(v))` runs now and once per animation frame in which that key changed; with no function it sets the view's text. `view.bind(property, fn)` takes a `Property` (saved or not). It returns the unbind, and `remove()` / `empty()` run it for every view inside, so leaving a view leaves no listener: [`doc/bind.md`](./doc/bind.md). Test: `node public/framework/core/View/bind.test.mjs`.
 
-**Why a `const` destructure of factories, not a Proxy?** A named export is
-greppable and fails loudly on a typo; through a Proxy, `dvi("x")` is a silent
-`<dvi>` element. See ./doc/factories.md.
+## Watch out
 
-**Why doesn't `classes = "docs"` work on a subclass?** `classify()` runs inside
-`super()`, before class fields initialize — name the subclass instead. See
-./doc/classify.md.
+- `bind` is released only by `remove()` or `empty()` (of the view or an ancestor). Taking the element off the page some other way (`el.remove()`, `innerHTML = ""`) leaves the listener: [`doc/bind.md`](./doc/bind.md)
+- Never build DOM after an `await` — the captor is restored the instant your function returns; fill in a callback instead: [`doc/capturing.md`](./doc/capturing.md)
+- `classes = "x"` as a class field arrives too late (`classify()` runs inside `super()`) — name the subclass, or pass it to the constructor: [`doc/lifecycle.md`](./doc/lifecycle.md)
+- Only `p` and `h1`–`h6` turn backticks into `<code>`; every other factory appends strings raw: [`doc/method/backtick_append.md`](./doc/method/backtick_append.md)
+- A handler added with `on()` cannot be removed again — the DOM holds a wrapper arrow; keep your own reference and use `el.addEventListener` if it must come off: [`doc/method/on.md`](./doc/method/on.md)
+- `html()` silently writes *text* when `Element.setHTML` is missing; markup goes through `html_unsafe()`: [`doc/method/html.md`](./doc/method/html.md)
+- `text()`/`html()`/`attr()` are getters only when called with no value — never when the value matches: [`doc/method/text.md`](./doc/method/text.md)
 
-**Why must a stylesheet's promise always settle, and why does importing View load
-framework.css?** A 404'd `<link>` fires `error`, not `load`, and an unsettled
-promise was a permanently blank page; and the import is the loading edge, so
-View's own `<link>` is always first and fixes the layer order for the document.
-See ./doc/stylesheet-loading.md.
+## More
 
-**Why does `style()` special-case `--x`?** `el.style["--x"] = v` silently does
-nothing — custom properties only respond to `setProperty`. See
-./doc/style-custom-props.md.
-
-**Why is `this` the view inside `on()` handlers, and where is the listener
-registry?** Bound on purpose — use `function`, not an arrow, when you want it.
-No registry, deliberately: a registry is memory that must be invalidated. See
-./doc/on-binding.md.
-
-**Why do `html`/`text`/`attr` switch on whether a value was passed, never on
-whether it differs from what's there?** They used to test both, so setting a
-value equal to the current one fell into the getter branch and returned a STRING
-mid-chain — `field().text("").attr(…)` on an empty `<textarea>` threw "attr is
-not a function". The skip-the-write optimization wanted the comparison; the
-return never did.
-
-## Open
-
-- **`html_unsafe` is patched by `ext/highlight`.** Two exts patching one method
-  would silently compose in import order. Fine at one; there is no registry and no
-  plan for two.
-- **No `View` readme existed until mid-2026**, while `new/1/readme.md` held 26KB
-  of record for exactly this design. See `framework/readme.md` on why that
-  happened.
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why) · [Overview](/framework/core/View/) · [`doc/decisions.md`](./doc/decisions.md) (used-by, decisions, the eight unapplied proposals, open questions) · [`doc/capturing.md`](./doc/capturing.md) (the model) · [`doc/lifecycle.md`](./doc/lifecycle.md) (assign → prerender → initialize → render)
+- One page per member under [`doc/method/`](./doc/method/) and [`doc/property/`](./doc/property/) — usage, necessity, simplicity; [`doc/file/`](./doc/file/View.js.md) annotates each file.
+- Files that matter: `View.js` (the whole class), `page.js` (the guided tour)

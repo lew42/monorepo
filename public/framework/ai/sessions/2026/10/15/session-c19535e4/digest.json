@@ -1,0 +1,39 @@
+{
+ "id": "c19535e4-4d18-4902-82dc-642af501ed76",
+ "first": "2026-10-15T21:21:51.951Z",
+ "last": "2026-10-15T21:24:50.761Z",
+ "task": "public/framework/ai/sessions/2026/10/15/voice-opus/past-work-audits",
+ "models": {
+  "claude-haiku-5-5": 16
+ },
+ "sizes": {
+  "raw": 167561,
+  "content": 22696,
+  "stripped": 10859,
+  "owner_only": 11
+ },
+ "usd": 0.255938,
+ "usd_main": 0.255938,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 32,
+  "output": 8158,
+  "cache_read": 1009378,
+  "cache_write": 57089,
+  "w5": 0,
+  "w1": 57089
+ },
+ "messages": 16,
+ "subagent_files": 0,
+ "prompts": [
+  {
+   "at": "2026-10-15T21:23:22.312Z",
+   "t": "Continue from where you left off."
+  }
+ ],
+ "result": "The three audits are described in `findings.md`, committed in the worktree as `2a1e10493`. None of the three is read by `Server/PastWork.mjs` or the past-work skill.\n\n- **Day audit (2026-10-03):** one JSON array of 22 task records, not a file per task. The real names are in `day-audit/audit-2026-10-03.json`.\n- **Branch audit (2026-10-13):** three JSON arrays in `session-730e8a7b/mastermind-repo-slim/branch-audit-merge/`: `classify.json` (141 branches), `absent.json` and `moved.json` (44 each).\n- **Readme audit:** no 2026-10-13 file exists. The closest is the 2026-10-12 run in `session-87bec773/readme-audit/` (`audit-before.json` and `audit-after.json`, 311 readmes each). The after run still has 20 readmes with broken links.\n\nThe findings file gives each audit's path, fields and one trimmed example. It also flags that the readme audit's date differs from the brief.",
+ "edited": [
+  "public/framework/ai/sessions/2026/10/15/voice-opus/past-work-audits/findings.md"
+ ],
+ "digested_at": "2026-10-16T06:28:10.354Z"
+}

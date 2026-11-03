@@ -1,0 +1,10 @@
+# Docs check: where things go (2026-10-13)
+
+- **(a) New task folder: clear.** `node Server/TaskDirs.mjs --new <slug>` makes `ai/sessions/YYYY/MM/DD/<session>/<slug>/`; a minion nests in its parent task. Never type `ai/<date>/`; `TaskDirs.refuse()` blocks it.
+- **(b) Record a script writes: partly clear.** The day log is `ai/sessions/YYYY/MM/DD/day.jsonl`, and `append.mjs` follows old paths. Missing: one line saying that a script writing its own record builds the path with `TaskDirs.dir()` and appends via `append.mjs`. It is only implied, and the three files never say where a free-standing record (not a task log, not the day log) goes.
+- **(c) Doc about a module: clear but thin.** readme.md says "lives in that module's folder"; CLAUDE.md adds `doc/*.md` beside the module. Neither of the three files says `doc/`, so a reader needs CLAUDE.md for that.
+- **(d) Inbox card: contradictory today.** readme.md line 6 says `ai/YYYY/MM/DD/<card>/` today, moving to `sessions/.../cards/`. one-tree.md says moving is decided but not applied, pending `Cards.dir(id)`. So the answer is "write via `create_card`, never hand-pick a path", but no file says that. The two docs agree; neither tells you what to do now.
+- **Stale wording:** task-folders.md says "the dev server and the router redirect" old paths. It is accurate, but its top says "the 2026-10-13 section: day folder came back" at the end, so the history reads after the rules. Consider a "where things go" table at the top.
+- **Broken link:** `doc/task-folders.md` line 3 points to `../2026-10-12/task-folders/requirements.md`. It does not exist. The file is now at `sessions/2026/10/12/session-e456f109/task-folders/requirements.md`. The fix is to relink it, and the relink pass missed this one.
+- **All other relative links exist.** That covers readme.md (first 20 lines), the other task-folders.md links, and every link in one-tree.md including the 8-level `../` one to `ai/doc/task-folders.md`.
+- **Minor:** one-tree.md calls the sessions folder `session-<id8>`, while task-folders.md says `<session folder>`. They are consistent, but the exact name is stated in only one place.

@@ -1,0 +1,106 @@
+// ⚠ Named. `/app.js`'s DEFAULT export is the App instance, not the View class — and
+//   `import View from "/app.js"` binds the app, which has no `set_captor`.
+import { View } from "/app.js";
+import { rate } from "/framework/ext/DesignTool/taste/taste.js";
+import { render } from "./spec.js";
+import { roll } from "./gen.js";
+
+/* THE LOOP THAT MAKES THE MODEL BETTER. `gen()` draws from `model.js`; `taste.rate()`
+ * grades what it drew; this runs the two against each other over a range of seeds and
+ * reports which DRAWS the good layouts had in common.
+ *
+ * That last part is the whole idea. A search that only ranks seeds gives you a hall of
+ * fame; a search that ranks the *choices* gives you a better generator — the numbers
+ * `credit()` returns are the weights `model.js` should be carrying, measured instead of
+ * guessed. Design record: readme.md, "The loop".
+ *
+ * ⚠ Fitness is the WORST width, not the mean. A layout that scores A at 1280 and F at
+ *   390 is not a B layout — "works from mobile to mega" is the prime objective, and a
+ *   mean lets a wide-screen win pay for a phone that is unreadable.
+ */
+
+export const WIDTHS = [390, 1280, 3440];
+
+export async function sweep({ from = 0, count = 48, widths = WIDTHS, opts = {}, step } = {}){
+	const box = document.createElement("div");
+	box.style.cssText = "position:fixed;left:-20000px;top:0;height:900px;contain:layout";
+	box.setAttribute("data-layout-ignore", "");
+	document.body.append(box);
+
+	const rows = [];
+
+	try {
+		for (let i = 0; i < count; i++){
+			const { text, choices } = roll(from + i, opts);
+			const marks = widths.map(w => measure(box, text, w));
+
+			rows.push({
+				seed: from + i, text, choices, marks,
+				worst: Math.min(...marks.map(m => m.score)),
+				mean: Math.round(marks.reduce((sum, m) => sum + m.score, 0) / marks.length),
+			});
+
+			step?.(i + 1, count);
+			await pause();
+		}
+	} finally { box.remove(); }
+
+	return rows.sort((a, b) => b.worst - a.worst || b.mean - a.mean);
+}
+
+/* ⚠ The captor is set to NOTHING for the duration of the render. `render()` builds with
+ *   bare factories, so a sweep started from inside a page's `content()` would append
+ *   forty-eight throwaway layouts into that page. Synchronous, and restored in a
+ *   `finally` — the one shape that survives a rule throwing. */
+function measure(box, text, width){
+	box.style.width = width + "px";
+	View.set_captor(null);
+
+	try {
+		box.replaceChildren();
+		box.append(render(text).style("height", "900px").el);
+	} finally { View.restore_captor(); }
+
+	return rate(box.firstElementChild, { ignore: null });
+}
+
+/* WHICH DRAWS THE GOOD LAYOUTS HAD IN COMMON. Every categorical choice `roll()` made,
+ * grouped by the value it took, with the mean fitness of the layouts that took it —
+ * and `lift`, the same number as a share of the overall mean, which is what a weight
+ * in `model.js` is a claim about.
+ *
+ * ⚠ `n` is the number that decides whether to believe a row. Nine shapes over forty-
+ *   eight seeds is five layouts each, and five is a hint, not a result. */
+export function credit(rows){
+	const by = new Map();
+	const overall = rows.reduce((sum, r) => sum + r.worst, 0) / (rows.length || 1);
+
+	rows.forEach(r => Object.entries(r.choices).forEach(([key, value]) => {
+		if (typeof value === "object") return;
+		const at = `${key}\u0000${value}`;
+		const got = by.get(at) ?? { key, value, n: 0, sum: 0 };
+		by.set(at, { ...got, n: got.n + 1, sum: got.sum + r.worst });
+	}));
+
+	return [...by.values()]
+		.map(g => ({ ...g, mean: g.sum / g.n, lift: overall ? g.sum / g.n / overall : 1 }))
+		.sort((a, b) => a.key.localeCompare(b.key) || b.mean - a.mean);
+}
+
+// The weights `model.js` would carry if the search wrote them: the current weight
+// scaled by how the shape actually performed, rounded to something a person can read.
+export function proposal(rows, table, key = "shape"){
+	const by = Object.fromEntries(credit(rows).filter(g => g.key === key).map(g => [g.value, g]));
+
+	return Object.entries(table).map(([name, entry]) => {
+		const g = by[name];
+		return { name, was: entry.w, n: g?.n ?? 0, mean: g ? Math.round(g.mean) : null,
+			now: g && g.n >= 3 ? Math.max(1, Math.round(entry.w * g.lift ** 3)) : entry.w };
+	});
+}
+
+// ⚠ `setTimeout`, never `requestAnimationFrame`: a sweep is often driven from a tab
+//   nobody is looking at, and a hidden tab runs no frames at all.
+const pause = () => new Promise(done => setTimeout(done, 0));
+
+export default sweep;

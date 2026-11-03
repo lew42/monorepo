@@ -1,0 +1,3 @@
+{"id":"pool-unstick","path":"/framework/servex/tasks/pool-unstick/","parent":"/framework/servex/tasks/","title":"Servex: free the stuck pool slots, and stop them sticking","module":"servex","tags":["ai"],"sessions":[{"id":null,"task":"/framework/ai/sessions/2026/10/03/pool-unstick/"}],"by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"set":{"now":"queued","brief":"/framework/ai/sessions/2026/10/03/pool-unstick/requirements.md","owner":"mastermind-servex","queue":"top (vscode-mastermind, 2026-10-03)","model":"claude-sonnet-5","effort":"medium"}}
+{"stop":{"at":"2026-10-03T18:01:39.000Z","why":"migrated: never landed or closed; last line 2026-10-03"}}

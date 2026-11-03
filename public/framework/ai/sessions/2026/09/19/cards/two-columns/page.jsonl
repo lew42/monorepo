@@ -1,0 +1,8 @@
+{"class":"/framework/ai2/card.js","title":"Two columns: the code, and the code running","type":"card","id":"2026/09/19/two-columns","created":"2026-09-19T15:09:33-05:00","by":"","tags":[]}
+{"legacy":"two-columns"}
+{"status":"done"}
+{"wide":true}
+{"demo":"two_columns"}
+{"caption":"The JavaScript that draws it. The code shown is the code that ran."}
+{"code":"/* the CSS: side by side while each column has 18em of room, one column on a phone */\n.v3-two {\n  display: grid;\n  gap: var(--gap);\n  grid-template-columns: repeat(auto-fit, minmax(min(18em, 100%), 1fr));\n}"}
+{"text":"Two boxes in a grid. There is no breakpoint: the grid reads its own width and drops to one column when a column would get narrower than 18em. The gap is the board's token, so it grows with the screen."}

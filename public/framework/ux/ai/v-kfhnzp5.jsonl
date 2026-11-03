@@ -1,0 +1,9 @@
+{"session":{"id":"v-kfhnzp5","home":"/framework/ux/","at":"2026-10-03T17:51:12.875-05:00","project":"push-to-talk","host":"push-to-talk.localhost","fast":null,"smart":null,"backing":{"fast":null,"smart":null}}}
+{"chat":{"at":"2026-10-03T17:51:12.883-05:00","session":"v-kfhnzp5","path":"/framework/ux/Hotkeys/","from":{"kind":"owner"},"via":"voice","text":"check-7 probe 1791067872839","floor":"done"}}
+{"backing":{"at":"2026-10-03T17:51:12.959-05:00","fast":"666b2dbe-4aab-4696-9c53-2b8f24e6bde7","smart":null,"how":{"fast":"new"}}}
+{"backing":{"at":"2026-10-03T17:51:13.070-05:00","fast":"666b2dbe-4aab-4696-9c53-2b8f24e6bde7","smart":"e871ac08-5103-4770-8e05-9654c38b7856","how":{"smart":"new"}}}
+{"chat":{"at":"2026-10-03T17:51:13.103-05:00","session":"v-kfhnzp5","path":"/framework/ux/Hotkeys/","from":{"kind":"owner"},"via":"voice","text":"check-7 probe 1791067872839","floor":"done"}}
+{"react":{"at":"2026-10-03T17:51:16.821-05:00","session":"v-kfhnzp5","re":"2026-10-03T17:51:13.103-05:00","emoji":"✅","from":{"kind":"assistant","id":"smart","agent":"session-smart-v-kfhnzp5"}}}
+{"skip":{"at":"2026-10-03T17:51:17.199-05:00","role":"fast","text":"(listening)","re":"2026-10-03T17:51:13.103-05:00"}}
+{"react":{"at":"2026-10-03T17:51:19.087-05:00","session":"v-kfhnzp5","re":"2026-10-03T17:51:13.103-05:00","emoji":"✅","from":{"kind":"assistant","id":"smart","agent":"session-smart-v-kfhnzp5"}}}
+{"chat":{"at":"2026-10-03T18:23:59.624-05:00","session":"v-kfhnzp5","path":"/framework/ux/Hotkeys/","from":{"kind":"system","id":"servex"},"via":"text","text":"Servex restarted; this line wasn't answered. Say it again.","re":"2026-10-03T17:51:13.103-05:00"}}

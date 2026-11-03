@@ -1,0 +1,34 @@
+{
+ "id": "662b3ef6-6b61-4a1a-83b3-f2c2252fe68d",
+ "first": "2026-10-13T01:44:00.889Z",
+ "last": "2026-10-13T20:57:39.186Z",
+ "task": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/ds-sweep",
+ "models": {
+  "claude-sonnet-5-5": 57
+ },
+ "sizes": {
+  "raw": 1223655,
+  "content": 57931,
+  "stripped": 11077,
+  "owner_only": 0
+ },
+ "usd": 8.877599,
+ "usd_main": 8.877599,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 114,
+  "output": 43426,
+  "cache_read": 5464033,
+  "cache_write": 1837576,
+  "w5": 0,
+  "w1": 1837576
+ },
+ "messages": 57,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "Idle and finished: the sweep report `kit/ds-sweep.md` is committed. The one open item is the prime `Col` ground (`140:1148`), which the report flags as needing a look.",
+ "edited": [
+  "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/ds-sweep.md"
+ ],
+ "digested_at": "2026-10-16T06:28:10.234Z"
+}

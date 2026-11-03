@@ -1,0 +1,4 @@
+{"class":"/framework/ai2/card.js","title":"V3 pinned strip fixed","type":"card","id":"2026/09/20/v3-axis-fix","created":"2026-09-20T14:28:16-05:00","by":"v3-axis-fix","tags":[]}
+{"legacy":"v3-axis-fix"}
+{"status":"done"}
+{"text":"It was 80% of the column, now 17%. Live also visibly turns off when you scroll or click a card. Report: /framework/ai/2026-09-20/v3-axis-fix/"}

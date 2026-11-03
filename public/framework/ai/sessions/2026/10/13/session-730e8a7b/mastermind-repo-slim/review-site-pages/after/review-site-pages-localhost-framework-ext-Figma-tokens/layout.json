@@ -1,0 +1,575 @@
+{
+ "url": "http://review-site-pages.localhost/framework/ext/Figma/tokens/",
+ "widths": {
+  "400": {
+   "empty": 0.369,
+   "widest_text": 342,
+   "widest_text_sample": "Generated from the Figma variables by Fi",
+   "overflow_x": false,
+   "items": 97,
+   "narrow_share": 0.072,
+   "layout": "standard",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 28,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 28
+      }
+     ]
+    },
+    "p": {
+     "total": 28,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 28
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 72,
+     "h": 40,
+     "share": 0.04,
+     "ink": 0.675,
+     "big_empty": false
+    },
+    {
+     "cls": "p",
+     "y": 154,
+     "h": 126,
+     "share": 0.126,
+     "ink": 0.813,
+     "big_empty": false
+    },
+    {
+     "cls": "h3",
+     "y": 343,
+     "h": 29,
+     "share": 0.029,
+     "ink": 0.85,
+     "big_empty": false
+    },
+    {
+     "cls": "p",
+     "y": 400,
+     "h": 151,
+     "share": 0.151,
+     "ink": 0.794,
+     "big_empty": false
+    },
+    {
+     "cls": "table",
+     "y": 579,
+     "h": 1290,
+     "share": 1.29,
+     "ink": 0.445,
+     "big_empty": false
+    },
+    {
+     "cls": "details",
+     "y": 1897,
+     "h": 34,
+     "share": 0.034,
+     "ink": 0.3,
+     "big_empty": false
+    },
+    {
+     "cls": "h3",
+     "y": 1994,
+     "h": 29,
+     "share": 0.029,
+     "ink": 0.275,
+     "big_empty": false
+    },
+    {
+     "cls": "grid",
+     "y": 2051,
+     "h": 965,
+     "share": 0.965,
+     "ink": 0.194,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "drawer-rail-ai",
+     "text": "✦AI",
+     "lines": 3.2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-rail-menu",
+     "text": "⋯More",
+     "lines": 3.2
+    }
+   ]
+  },
+  "1200": {
+   "empty": 0.542,
+   "widest_text": 590,
+   "widest_text_sample": "Contrast note (DS · 1.2 Dark grounds): s",
+   "overflow_x": false,
+   "items": 176,
+   "narrow_share": 0.239,
+   "layout": "standard",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 38,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 38
+      }
+     ]
+    },
+    "p": {
+     "total": 38,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 38
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 38,
+     "h": 49,
+     "share": 0.049,
+     "ink": 0.475,
+     "big_empty": false
+    },
+    {
+     "cls": "p",
+     "y": 132,
+     "h": 81,
+     "share": 0.081,
+     "ink": 0.517,
+     "big_empty": false
+    },
+    {
+     "cls": "h3",
+     "y": 280,
+     "h": 31,
+     "share": 0.031,
+     "ink": 0.425,
+     "big_empty": false
+    },
+    {
+     "cls": "p",
+     "y": 341,
+     "h": 107,
+     "share": 0.107,
+     "ink": 0.487,
+     "big_empty": false
+    },
+    {
+     "cls": "table",
+     "y": 479,
+     "h": 623,
+     "share": 0.623,
+     "ink": 0.432,
+     "big_empty": false
+    },
+    {
+     "cls": "details",
+     "y": 1131,
+     "h": 36,
+     "share": 0.036,
+     "ink": 0.163,
+     "big_empty": false
+    },
+    {
+     "cls": "h3",
+     "y": 1234,
+     "h": 31,
+     "share": 0.031,
+     "ink": 0.188,
+     "big_empty": false
+    },
+    {
+     "cls": "grid",
+     "y": 1295,
+     "h": 597,
+     "share": 0.597,
+     "ink": 0.242,
+     "big_empty": false
+    },
+    {
+     "cls": "p",
+     "y": 1921,
+     "h": 107,
+     "share": 0.107,
+     "ink": 0.467,
+     "big_empty": false
+    },
+    {
+     "cls": "h3",
+     "y": 2096,
+     "h": 31,
+     "share": 0.031,
+     "ink": 0.075,
+     "big_empty": false
+    },
+    {
+     "cls": "grid",
+     "y": 2157,
+     "h": 407,
+     "share": 0.407,
+     "ink": 0.115,
+     "big_empty": true
+    },
+    {
+     "cls": "h3",
+     "y": 2631,
+     "h": 63,
+     "share": 0.063,
+     "ink": 0.35,
+     "big_empty": false
+    },
+    {
+     "cls": "flex",
+     "y": 2724,
+     "h": 467,
+     "share": 0.467,
+     "ink": 0.157,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.7
+    },
+    {
+     "tag": "h3",
+     "cls": "h3",
+     "text": "A Figma sample, coded (DS · 2.",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "fig-btn",
+     "text": "Keep",
+     "lines": 1.8
+    },
+    {
+     "tag": "button",
+     "cls": "fig-btn",
+     "text": "Discard",
+     "lines": 1.8
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  },
+  "1920": {
+   "empty": 0.679,
+   "widest_text": 633,
+   "widest_text_sample": "Contrast note (DS · 1.2 Dark grounds): s",
+   "overflow_x": false,
+   "items": 176,
+   "narrow_share": 0.688,
+   "layout": "standard",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 67,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 67
+      }
+     ]
+    },
+    "p": {
+     "total": 67,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 67
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 48,
+     "h": 53,
+     "share": 0.053,
+     "ink": 0.338,
+     "big_empty": false
+    },
+    {
+     "cls": "p",
+     "y": 160,
+     "h": 86,
+     "share": 0.086,
+     "ink": 0.375,
+     "big_empty": false
+    },
+    {
+     "cls": "h3",
+     "y": 319,
+     "h": 34,
+     "share": 0.034,
+     "ink": 0.212,
+     "big_empty": false
+    },
+    {
+     "cls": "p",
+     "y": 392,
+     "h": 115,
+     "share": 0.115,
+     "ink": 0.356,
+     "big_empty": false
+    },
+    {
+     "cls": "table",
+     "y": 547,
+     "h": 667,
+     "share": 0.667,
+     "ink": 0.344,
+     "big_empty": false
+    },
+    {
+     "cls": "details",
+     "y": 1253,
+     "h": 38,
+     "share": 0.038,
+     "ink": 0.163,
+     "big_empty": false
+    },
+    {
+     "cls": "h3",
+     "y": 1364,
+     "h": 34,
+     "share": 0.034,
+     "ink": 0.175,
+     "big_empty": false
+    },
+    {
+     "cls": "grid",
+     "y": 1437,
+     "h": 620,
+     "share": 0.62,
+     "ink": 0.174,
+     "big_empty": false
+    },
+    {
+     "cls": "p",
+     "y": 2097,
+     "h": 115,
+     "share": 0.115,
+     "ink": 0.356,
+     "big_empty": false
+    },
+    {
+     "cls": "h3",
+     "y": 2284,
+     "h": 34,
+     "share": 0.034,
+     "ink": 0.075,
+     "big_empty": false
+    },
+    {
+     "cls": "grid",
+     "y": 2357,
+     "h": 426,
+     "share": 0.426,
+     "ink": 0.083,
+     "big_empty": true
+    },
+    {
+     "cls": "h3",
+     "y": 2856,
+     "h": 67,
+     "share": 0.067,
+     "ink": 0.25,
+     "big_empty": false
+    },
+    {
+     "cls": "flex",
+     "y": 2962,
+     "h": 485,
+     "share": 0.485,
+     "ink": 0,
+     "big_empty": true
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.7
+    },
+    {
+     "tag": "h3",
+     "cls": "h3",
+     "text": "A Figma sample, coded (DS · 2.",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  },
+  "3440": {
+   "empty": 0.798,
+   "widest_text": 712,
+   "widest_text_sample": "Contrast note (DS · 1.2 Dark grounds): s",
+   "overflow_x": false,
+   "items": 176,
+   "narrow_share": 0.744,
+   "layout": "standard",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 90,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 90
+      }
+     ]
+    },
+    "p": {
+     "total": 90,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 90
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 54,
+     "h": 59,
+     "share": 0.059,
+     "ink": 0.237,
+     "big_empty": false
+    },
+    {
+     "cls": "p",
+     "y": 181,
+     "h": 97,
+     "share": 0.097,
+     "ink": 0.267,
+     "big_empty": false
+    },
+    {
+     "cls": "h3",
+     "y": 379,
+     "h": 38,
+     "share": 0.038,
+     "ink": 0.2,
+     "big_empty": false
+    },
+    {
+     "cls": "p",
+     "y": 462,
+     "h": 130,
+     "share": 0.13,
+     "ink": 0.231,
+     "big_empty": false
+    },
+    {
+     "cls": "table",
+     "y": 637,
+     "h": 749,
+     "share": 0.749,
+     "ink": 0.23,
+     "big_empty": false
+    },
+    {
+     "cls": "details",
+     "y": 1430,
+     "h": 43,
+     "share": 0.043,
+     "ink": 0.087,
+     "big_empty": false
+    },
+    {
+     "cls": "h3",
+     "y": 1575,
+     "h": 38,
+     "share": 0.038,
+     "ink": 0.1,
+     "big_empty": false
+    },
+    {
+     "cls": "grid",
+     "y": 1658,
+     "h": 986,
+     "share": 0.986,
+     "ink": 0.091,
+     "big_empty": true
+    },
+    {
+     "cls": "p",
+     "y": 2688,
+     "h": 130,
+     "share": 0.13,
+     "ink": 0.181,
+     "big_empty": false
+    },
+    {
+     "cls": "h3",
+     "y": 2919,
+     "h": 38,
+     "share": 0.038,
+     "ink": 0.025,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.8
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  }
+ },
+ "errors": [
+  "400: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1920: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1200: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "3440: Failed to load resource: the server responded with a status of 404 (Not Found)"
+ ]
+}

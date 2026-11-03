@@ -1,0 +1,264 @@
+{
+ "url": "http://monorepo.localhost/notes/",
+ "widths": {
+  "400": {
+   "empty": 0.141,
+   "widest_text": 344,
+   "widest_text_sample": "Anything that isn't documentation but ev",
+   "overflow_x": false,
+   "items": 75,
+   "narrow_share": 0,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 28,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 28
+      }
+     ]
+    },
+    "p": {
+     "total": 28,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 28
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 21,
+     "h": 40,
+     "share": 0.04,
+     "ink": 0.3,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 103,
+     "h": 151,
+     "share": 0.151,
+     "ink": 0.895,
+     "big_empty": false
+    },
+    {
+     "cls": "page-previews",
+     "y": 268,
+     "h": 14607,
+     "share": 14.607,
+     "ink": 0.897,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "drawer-rail-ai",
+     "text": "✦AI",
+     "lines": 3.2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-rail-menu",
+     "text": "⋯More",
+     "lines": 3.2
+    }
+   ]
+  },
+  "1200": {
+   "empty": 0.211,
+   "widest_text": 586,
+   "widest_text_sample": "Anything that isn't documentation but ev",
+   "overflow_x": false,
+   "items": 75,
+   "narrow_share": 0.053,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 48,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 48
+      }
+     ]
+    },
+    "p": {
+     "total": 48,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 48
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 45,
+     "h": 49,
+     "share": 0.049,
+     "ink": 0.175,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 139,
+     "h": 107,
+     "share": 0.107,
+     "ink": 0.619,
+     "big_empty": false
+    },
+    {
+     "cls": "page-previews",
+     "y": 261,
+     "h": 2894,
+     "share": 2.894,
+     "ink": 0.911,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  },
+  "1920": {
+   "empty": 0.311,
+   "widest_text": 628,
+   "widest_text_sample": "Anything that isn't documentation but ev",
+   "overflow_x": false,
+   "items": 75,
+   "narrow_share": 1,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 77,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 77
+      }
+     ]
+    },
+    "p": {
+     "total": 77,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 77
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 48,
+     "h": 53,
+     "share": 0.053,
+     "ink": 0.113,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 160,
+     "h": 115,
+     "share": 0.115,
+     "ink": 0.35,
+     "big_empty": false
+    },
+    {
+     "cls": "page-previews",
+     "y": 300,
+     "h": 2412,
+     "share": 2.412,
+     "ink": 0.813,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  },
+  "3440": {
+   "empty": 0.372,
+   "widest_text": 707,
+   "widest_text_sample": "Anything that isn't documentation but ev",
+   "overflow_x": false,
+   "items": 75,
+   "narrow_share": 1,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 90,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 90
+      }
+     ]
+    },
+    "p": {
+     "total": 90,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 90
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 54,
+     "h": 59,
+     "share": 0.059,
+     "ink": 0.063,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 181,
+     "h": 130,
+     "share": 0.13,
+     "ink": 0.181,
+     "big_empty": false
+    },
+    {
+     "cls": "page-previews",
+     "y": 354,
+     "h": 1881,
+     "share": 1.881,
+     "ink": 0.765,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  }
+ },
+ "errors": []
+}

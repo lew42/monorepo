@@ -1,0 +1,6 @@
+{"class":"/framework/ai2/card.js","title":"Note: your words into familiar cards, live","type":"card","id":"2026/09/22/prompts","created":"2026-09-22T16:51:23-05:00","by":"","tags":[]}
+{"legacy":"prompts"}
+{"icon":"mic"}
+{"text":"That is the Prompts tab's job and it will become the front of the board: as you speak, each idea becomes a card with a name, a two-sentence reading, and the sentences it came from; you refine by flagging a name or a sentence, and the card evolves under the same id. The declutter minion is clearing the noise around it now; the inbox brief makes the cards the thing you look at."}
+{"status":"working"}
+{"links":[{"url":"/framework/ai/v/3/?view=prompts","label":"Prompts"}]}

@@ -1,0 +1,1 @@
+{"pick": "haiku-a", "caveat": "It restates the census grep command inline, which risks going stale if the skill's command ever changes — better to point at the skill step number than re-embed the exact command."}

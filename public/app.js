@@ -1,24 +1,25 @@
+import "./framework/core/App/uuid.js";   // first: LAN http has no crypto.randomUUID
 import App, { View, div, a } from "./framework/core/App/App.js";
 import Socket from "./framework/dev/Socket/Socket.js";
+import devbar from "./framework/dev/DevBar/DevBar.js";
+import devshell from "./framework/dev/DevShell/DevShell.js";
+import push_to_talk from "./framework/ux/Dictate/push-to-talk.js";
+import { use_v1 } from "./framework/dev/DevShell/pref.js";
 import { lew42 } from "./framework/styles/layers/theme/lew42/lew42.js";
 import mode from "./framework/core/App/mode.js";
+import "./framework/ext/Classify/Classify.js";
+
+/* ⚠ The default resource-timing buffer holds ~250 entries and then silently stops
+ * recording, so a long-lived tab would stop recognising its own files as loaded
+ * and Socket.changed() would stop reloading it. Raise it before anything fetches. */
+performance.setResourceTimingBufferSize(100000);
+
+// framework.css goes FIRST in <head>: its @layer statement fixes the layer order for every
+// stylesheet after it, including the ones core modules loaded during import.
+App.stylesheet("/framework/framework.css");
+document.head.prepend(document.head.lastElementChild);
 
 App.stylesheet("/styles.css");
-
-/* The site's chrome, built ONCE outside $pages so navigation can never touch it.
- *
- * [url, text] — hand-typed on purpose. A nav built from app.root's children would
- * have to import every one of them just to read their titles, which is the thing
- * laziness exists to avoid. */
-const nav = [
-	["/", "Home"],
-	["/framework/", "Framework"],
-	["/alex/", "Alex"],
-	["/arya/", "Arya"],
-	["/castin/", "Castin"],
-	["/edric/", "Edric"],
-	["/michael/", "Michael"],
-];
 
 const app = window.app = new App({
 
@@ -28,7 +29,7 @@ const app = window.app = new App({
 	 *
 	 * An <img> can't inherit a colour and inlining the markup would make a second
 	 * copy of the artwork, so `.logo` masks the svg and paints the shape with
-	 * `--prim`. The file stays the only copy; its own fill is ignored. Alpha-only,
+	 * `--prime`. The file stays the only copy; its own fill is ignored. Alpha-only,
 	 * which is exactly right for a one-path monochrome mark.
 	 *
 	 * Decorative: the brand text beside it already says the name. */
@@ -53,12 +54,6 @@ const app = window.app = new App({
 		// `theme-lew42` is the site's look now. It's a class on a div: swap the
 		// word and the whole site is a different theme, with no component edited.
 		this.$app = div.c("app theme-lew42", () => {
-			// $nav, matching its class. A topic hides it with `classes: "hides-nav"`
-			// — an inert class, so nothing here has to know a topic exists.
-			this.$nav = div.c("nav", () => {
-				nav.forEach(([url, text]) => a.c("nav-link", text).href(url));
-			});
-
 			/* The measure is the REGION's default now (`.pages` in Page.css hands
 			 * every page the sheet), so there is nothing to declare here — `papers`
 			 * retired once the opt-in every region typed became the default.
@@ -68,11 +63,49 @@ const app = window.app = new App({
 			// The toggle lives in sidebar FOOTERS now; this applies the reader's
 			// stored mode on routes that don't render one.
 			mode.apply(this);
+
+			// The ☰ in the top right of every page: opens ext/drawer on its tabs
+			// (AI, Sessions, Dictation, Settings, Admin). ext/drawer/doc/tabs.md.
+			menu(this);
 		});
+
+		// Ctrl + \ — the dark dev shell by default (dev/DevShell), or the old
+		// dev rail (dev/DevBar) if the "v1" choice is on (DevShell/pref.js).
+		// Both mount on <body>, beside `.app` rather than inside it, and both
+		// are cheap to mount unopened — the one the owner did not ask for
+		// just sits closed until the "v1"/"shell" button flips the choice.
+		devbar(this);
+		devshell(this);
+
+		// The floating push-to-talk mic (ux/Dictate/push-to-talk.js) — hold the bound
+		// key or mouse button anywhere on the site, dev shell open or closed, and talk
+		// to the ONE global dictation session. Mounted here, once, the same "beside
+		// `.app`, not inside it" way as the two lines right above.
+		push_to_talk(this);
 
 		// $pages, not $app — a page's view is built by an element factory, which
 		// auto-appends to the captor, so the captor has to be where pages live.
 		View.set_captor(this.$pages);
+	},
+
+	/* Router's seam, called after every navigation. The rail's route section reads
+	 * the url at render time, so it is stale until something says so — and the dev
+	 * server addresses a tab by the page it last announced, which an SPA navigation
+	 * (no new socket) would otherwise leave at wherever the tab connected.
+	 * Off localhost `rpc` no-ops. dev/Socket/doc/wire.md. */
+	navigated(page){
+		this.socket.rpc("hello", page.url);
+		devbar.refresh();
+		devshell.refresh();
+		menu.navigated();
+		// The current page's url travels with the dictation as context — `chat.js`'s
+		// `nav(path)`, read by `ext/Session` (push-to-talk, item 2: "the session follows
+		// me, context-aware"). A no-op until the mic has been pressed at least once.
+		push_to_talk.nav(page.url);
+		if (new URLSearchParams(location.search).has("chat")){
+			if (use_v1()) devbar.open_tab?.("chat");
+			else devshell.open_tab?.("chat");
+		}
 	},
 });
 
@@ -88,10 +121,57 @@ export { Sidebar } from "./framework/core/Sidebar/Sidebar.js";
 export { default as md, marked } from "./framework/ext/markdown/md.js";
 export { default as demo } from "./framework/ext/demo/demo.js";
 
-// classdoc turns "a method has a .md file next to the page.js" into a child
-// page showing that method's real source. Imports markdown (the notes ARE
-// markdown); leans on highlight only if it's loaded. See ext/classdoc/readme.md.
-export { default as classdoc } from "./framework/ext/classdoc/classdoc.js";
+// Every page's uncaught errors and rejections become one line in failures.jsonl of the module that
+// broke (ext/ErrorLog), which `follow` delivers: the goal is pages with zero errors. A no-op off localhost.
+import ErrorLog from "./framework/ext/ErrorLog/ErrorLog.js";
+ErrorLog.watch();
+
+// Patches demo.app() on: a real Page tree playing App and Router inside a box.
+// The side effect IS the export — same shape as tree and tabs below.
+import "./framework/ext/demo/app.js";
+
+// Patches demo.exhibit(), demo.page() and demo.tree() on: a demo as a PAGE — the
+// render, a layout bar over it, its definition. The side effect IS the export —
+// same shape as tabs below. It imports ext/layout, the one control surface.
+import "./framework/ext/demo/exhibit.js";
+import "./framework/ext/demo/steps.js";   // demo.steps(): numbered steps beside a demo (2026-09-18)
+
+// Patches demo.layout() on: the third exhibit sugar — a whole page as a demo page,
+// with the two-up card and the `parts:` chips. Same side-effect shape.
+import "./framework/ext/demo/layout.js";
+
+// Doc turns "a member has a .md file next to the page.js" into a child page
+// showing that member's real source. A Page subclass, so a module with a
+// different shape overrides a method instead of the config growing an option.
+// Imports markdown (the notes ARE markdown) and files (the Files tab); leans on
+// highlight only if it's loaded. See ext/Doc/readme.md.
+export { Doc } from "./framework/ext/Doc/Doc.js";
+
+// Patches this.tabs() onto every Page — the side effect IS the export, same
+// shape as highlight below. ext/Doc already imports it for its own vertical
+// rail; this import is what makes `this.tabs("guide api")` work on any OTHER
+// page.js too. See ext/tabs/readme.md.
+import "./framework/ext/tabs/tabs.js";
+
+// Patches this.catalog() the same way: previews() as a persistent rail beside
+// the region the children mount in. ext/Doc's Overview tab is built on it.
+import "./framework/ext/catalog/catalog.js";
+
+// …and this.browse(), its sibling: the same previews() cards as a filterable wall of
+// bands rather than a rail. `styles/layouts/` and `ui/` are both one call to it.
+import "./framework/ext/catalog/browse.js";
+
+// The right rail, one per document: drawer(($slot, $body) => …) opens it, its own ✕
+// shuts it, and nothing else does. Here rather than inside ext/layout — which owned it
+// until 2026-08-16 and could only open it for its own selection — so a panel's
+// properties and a selected element's words are the same surface. See ext/drawer.
+export { default as drawer } from "./framework/ext/drawer/drawer.js";
+// The ☰ on every page (render() calls it). Down here beside the drawer it opens; imports hoist.
+import menu from "./framework/ext/drawer/menu.js";
+
+// file_link(path, line?) — a link to a file inside /fs/, its tree already open to it,
+// for any readme or page to point at real source. ext/filesystem/readme.md.
+export { file_link } from "./framework/ext/filesystem/file_link.js";
 
 // files() shows real files on disk, fetched — so a "here is a whole project"
 // section can't drift from the project. toc() reads a page's own headings.
@@ -105,3 +185,15 @@ export { default as toc } from "./framework/ext/toc/toc.js";
 // already exported above via `export *`, so this import is for the side effect.
 // See framework/ext/highlight/readme.md.
 export { hljs, highlight } from "./framework/ext/highlight/highlight.js";
+
+// AITask renders a task's session.json — the spend, the agents, a transcript
+// replay off the dev server. See ai/AITask/readme.md.
+export { AITask } from "./framework/ai/AITask/AITask.js";
+
+// The UI components, as one namespace: `ui.table(head, rows)`, `ui.timeline(…)`,
+// `ui.keys("Ctrl", "K")`. Three functions — the other sixteen are documented as
+// copy-paste markup and deliberately have nothing to import. See ui/readme.md.
+export { ui } from "./framework/ui/ui.js";
+
+// Page assistant chat button (optional button any page can place)
+export { chat_button } from "./framework/dev/DevBar/chat.js";

@@ -1,0 +1,11 @@
+# A tasks dashboard on the new Browse view: in flight, queued, landed today, from the real state
+
+Budget: $10. Load the `sub-mastermind`, `code`, `layout` and `ui-test` skills first. The owner's words: `../requirements-13.md` ask 4 (verbatim there): "a task management dashboard that has in-flight, current, most recently accomplished tasks", and "feel free to test out alternate UIs that help us see the data we have better". What exists, reuse it: `ux/Browse` (landed today: `Browse` orchestrates a resizable list pane + a detail pane; `Inbox.Rail extends Browse`; its architecture page `/framework/ux/Browse/architecture/`), `ai/AITask` and its views (tree, lanes, outline, flow), Servex's agent registry (`http://localhost:8090/agents`, states working / queued / dormant / gone, cost, last turn), each task's `task.jsonl` (`landed_at`). Your log is this dir's `task.jsonl`.
+
+## Deliverable
+
+1. **`ai/tasks/` page, `class TasksPage`, on `Browse`**: one list with three groups in this order: **In flight** (working, with the minutes since its last log line; a quiet one marked ⚠ after 5 min), **Queued**, **Landed today** (most recent first, title and the landing line's first sentence). Clicking a row opens the task's card in the detail pane (the list stays). Data comes from one node endpoint or stream (`Server/TaskState.mjs`, `class TaskState`, reading the registry and the `task.jsonl` files; the page tails it live, never a timed refresh) so the AI never writes counts by hand.
+2. **One alternate UI, as a second tab of the same page** (the `lanes` view from `ai/AITask` fed by the same `TaskState`, or a timeline), so the owner can compare; say in the readme which you recommend and why in two lines.
+3. Linked from the AI page's rail and the `ai/readme.md` index; `check_page` at 400 / 1200 / 1920 / 3440, shots in this task dir; docs inside the module (`ai/tasks/readme.md`, `doc/architecture.md` with the class list); card (title "Tasks: in flight, queued and landed today, one live page"); landing line checked with `tail -1`; `merge.mjs`.
+
+Fence: `ai/tasks/**`, `Server/TaskState.mjs` (+ test), one line in `ai/readme.md` and the AI rail's children list, this task dir. Not `ux/Browse` itself (a needed change is a `decision` line with the exact edit). Sonnet. Never drive the owner's live tabs.

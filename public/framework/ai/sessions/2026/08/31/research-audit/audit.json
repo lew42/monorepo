@@ -1,0 +1,704 @@
+{
+  "method": "Seeded stratified sample (mulberry32, seed 42), 15 entries per topic drawn without replacement from each topics log.jsonl by 0-based line index -- see sample.mjs. Each urls page was fetched (WebFetch) and compared against the entrys title/summary.",
+  "sampled": 60,
+  "classified": 60,
+  "seed": 42,
+  "per_topic": 15,
+  "counts": {
+    "VERIFIED": 24,
+    "EXISTS-BUT-WEAK": 18,
+    "WRONG": 8,
+    "UNREACHABLE": 10
+  },
+  "rates_pct": {
+    "VERIFIED": 40,
+    "EXISTS-BUT-WEAK": 30,
+    "WRONG": 13.3,
+    "UNREACHABLE": 16.7
+  },
+  "by_topic": {
+    "stone": {
+      "VERIFIED": 10,
+      "EXISTS-BUT-WEAK": 3,
+      "WRONG": 2
+    },
+    "depictions": {
+      "UNREACHABLE": 2,
+      "VERIFIED": 5,
+      "WRONG": 3,
+      "EXISTS-BUT-WEAK": 5
+    },
+    "disclosure": {
+      "UNREACHABLE": 6,
+      "VERIFIED": 3,
+      "EXISTS-BUT-WEAK": 5,
+      "WRONG": 1
+    },
+    "theories": {
+      "UNREACHABLE": 2,
+      "EXISTS-BUT-WEAK": 5,
+      "VERIFIED": 6,
+      "WRONG": 2
+    }
+  },
+  "suspect_entries": [
+    {
+      "topic": "stone",
+      "line": 52,
+      "title": "Multiple fissures forced abandonment",
+      "url": "https://en.wikipedia.org/wiki/Unfinished_obelisk",
+      "note": "Wikipedia's Unfinished Obelisk page confirms cracks caused abandonment but contains none of the specific Engelbach fissure-lettering detail or the quoted phrase attributed to it."
+    },
+    {
+      "topic": "stone",
+      "line": 72,
+      "title": "Mainstream rebuttals of Dunn answer a different question than the one he asks",
+      "url": "https://www.metabunk.org/threads/pyramid-power-plant-debunked.4959/",
+      "note": "The cited Metabunk thread discusses Dunn's theory generally but does not contain the specific 'answers a different question' characterization or engage the numeric-precision argument."
+    },
+    {
+      "topic": "depictions",
+      "line": 19,
+      "title": "The aerodynamic tests genuinely disagree",
+      "url": "https://historicaleve.com/saqqara-bird-did-ancient-egyptians-have-flying-machines/",
+      "note": "Cited page only has Messiha's own 1983 conjecture; it names none of Gregorie, a 2006 wind-tunnel replica, or a balsa-copy test, and states the glider theory is 'not accepted by Egyptologists.'"
+    },
+    {
+      "topic": "depictions",
+      "line": 44,
+      "title": "Which mundane channel explains Dogon 'Sirius' knowledge is itself unsettled",
+      "url": "https://chandra.harvard.edu/chronicle/0400/sirius_part2.html",
+      "note": "The chandra.harvard.edu page attributes a different Sagan explanation (a knowledgeable visitor in the 1930s-40s); it contains no mention of an 1893 eclipse expedition or 1920s newspaper coverage."
+    },
+    {
+      "topic": "depictions",
+      "line": 63,
+      "title": "The 'Great Martian God' of Sefar was Henri Lhote's own evocative nickname, not a claim",
+      "url": "https://en.wikipedia.org/wiki/Round_Head_Period",
+      "note": "The linked Wikipedia 'Round Head Period' page contains no mention of Henri Lhote or the term 'Great Martian God' at all."
+    },
+    {
+      "topic": "disclosure",
+      "line": 71,
+      "title": "West: the radar tracks may be an artifact, not a measurement",
+      "url": "https://www.metabunk.org/threads/possible-explanation-for-radar-jamming-in-the-nimitz-encounter.11862/",
+      "note": "The cited Metabunk thread is about jamming/EA-6B explanations and contains no 'computer glitch' or 'fiction written by the radar operator' argument attributed to West."
+    },
+    {
+      "topic": "theories",
+      "line": 42,
+      "title": "Karahan Tepe, Oct 2025: first human face ever carved directly onto a T-shaped pillar",
+      "url": "https://karahantepe.net/news",
+      "note": "karahantepe.net/news (the cited URL) does not contain this story anywhere in its listing. WebSearch confirms the underlying fact is real and widely reported (Smithsonian, Art Newspaper, etc.) with a DIFFERENT, more specific URL on the same site -- a broken/wrong citation, not a fabricated fact."
+    },
+    {
+      "topic": "theories",
+      "line": 43,
+      "title": "Gobekli Tepe: a life-size human statue found built directly into a wall between two structures",
+      "url": "https://www.timesofisrael.com/at-neolithic-capital-in-turkey-carved-faces-upend-narrative-of-a-primitive-age/",
+      "note": "The cited timesofisrael.com article does not describe this specific find. WebSearch confirms the statue-in-wall discovery is real and independently reported (Earth.com, GreekReporter, Turkiye Today) -- again a wrong/mismatched citation rather than an invented fact."
+    }
+  ],
+  "entries": [
+    {
+      "topic": "stone",
+      "line": 2,
+      "kind": "finding",
+      "credence": "established",
+      "title": "Bayesian radiocarbon chronology: AD 580-720",
+      "url": "https://journals.plos.org/plosone/article?id=10.1371%2Fjournal.pone.0288798",
+      "classification": "VERIFIED",
+      "note": "All facts (authors, journal, date, 102 dates, OxCal 4.4, AD 580-720 range) confirmed on the PLOS ONE page."
+    },
+    {
+      "topic": "stone",
+      "line": 12,
+      "kind": "finding",
+      "credence": "contested",
+      "title": "The popular '70-100 ton' figure overstates the documented weight",
+      "url": "https://en.wikipedia.org/wiki/Serapeum_of_Saqqara",
+      "classification": "VERIFIED",
+      "note": "Weight figures (62t total, 37.6t body, 24.4t lid) match Wikipedia exactly."
+    },
+    {
+      "topic": "stone",
+      "line": 15,
+      "kind": "finding",
+      "credence": "established",
+      "title": "Mariette discovered the Serapeum, 1850-1852",
+      "url": "https://en.wikipedia.org/wiki/Serapeum_of_Saqqara",
+      "classification": "EXISTS-BUT-WEAK",
+      "note": "Dates and discovery sequence confirmed; the specific 'recognized from Strabo's description' detail was not found in the fetched text."
+    },
+    {
+      "topic": "stone",
+      "line": 21,
+      "kind": "finding",
+      "credence": "established",
+      "title": "Barabar chambers cut from solid granite",
+      "url": "https://en.wikipedia.org/wiki/Barabar_Caves",
+      "classification": "VERIFIED",
+      "note": "Cave names, dimensions, granite material and Mauryan polish all confirmed verbatim."
+    },
+    {
+      "topic": "stone",
+      "line": 26,
+      "kind": "theory",
+      "credence": "fringe",
+      "title": "Fringe claim: laser-scan 'incredible precision' framing",
+      "url": "https://unchartedx.com/site/2024/07/10/barabar-presented-by-unchartedx/",
+      "classification": "VERIFIED",
+      "note": "UnchartedX page confirms the 'utterly incredible precision' framing and that no specific alt-tech is named."
+    },
+    {
+      "topic": "stone",
+      "line": 40,
+      "kind": "opinion",
+      "credence": "speculation",
+      "title": "What would settle the Sacsayhuaman debate",
+      "url": "https://www.thearchaeologist.org/blog/sacsayhuamn-inca-walls-cut-with-laser-precision",
+      "classification": "EXISTS-BUT-WEAK",
+      "note": "Opinion/synthesis entry; page confirms no-vitrification finding but doesn't itself frame 'what would settle it'."
+    },
+    {
+      "topic": "stone",
+      "line": 44,
+      "kind": "finding",
+      "credence": "established",
+      "title": "Disc of Sabu: tri-lobed schist vessel, Saqqara, c.3000 BCE",
+      "url": "https://en.wikipedia.org/wiki/Sabu_disk",
+      "classification": "VERIFIED",
+      "note": "Excavator, year, dimensions, material, tomb number, dynasty, undetermined function all confirmed on Wikipedia."
+    },
+    {
+      "topic": "stone",
+      "line": 46,
+      "kind": "theory",
+      "credence": "established",
+      "title": "2025 metrology study: no machine-tool signature in museum vessels",
+      "url": "https://www.nature.com/articles/s40494-025-02196-7",
+      "classification": "VERIFIED",
+      "note": "Author, journal, sample counts (19/25/24) and findings confirmed on the Nature (npj Heritage Science) page after following the login redirect."
+    },
+    {
+      "topic": "stone",
+      "line": 52,
+      "kind": "finding",
+      "credence": "established",
+      "title": "Multiple fissures forced abandonment",
+      "url": "https://en.wikipedia.org/wiki/Unfinished_obelisk",
+      "classification": "WRONG",
+      "note": "Wikipedia's Unfinished Obelisk page confirms cracks caused abandonment but contains none of the specific Engelbach fissure-lettering detail or the quoted phrase attributed to it."
+    },
+    {
+      "topic": "stone",
+      "line": 64,
+      "kind": "opinion",
+      "credence": "established",
+      "title": "No vitrification found at any Sacsayhuaman quarry",
+      "url": "https://www.thearchaeologist.org/blog/sacsayhuamn-inca-walls-cut-with-laser-precision",
+      "classification": "VERIFIED",
+      "note": "No-vitrification and hammerstone-pounding findings quoted almost verbatim on the page."
+    },
+    {
+      "topic": "stone",
+      "line": 72,
+      "kind": "opinion",
+      "credence": "contested",
+      "title": "Mainstream rebuttals of Dunn answer a different question than the one he asks",
+      "url": "https://www.metabunk.org/threads/pyramid-power-plant-debunked.4959/",
+      "classification": "WRONG",
+      "note": "The cited Metabunk thread discusses Dunn's theory generally but does not contain the specific 'answers a different question' characterization or engage the numeric-precision argument."
+    },
+    {
+      "topic": "stone",
+      "line": 79,
+      "kind": "finding",
+      "credence": "established",
+      "title": "Earliest known rotary metal drill bit found in Egypt, ~5,300 years old",
+      "url": "https://www.ncl.ac.uk/press/articles/latest/2026/02/ancientegyptiandrillbit/",
+      "classification": "VERIFIED",
+      "note": "Researchers, journal, weight, dimensions, alloy and findings all confirmed on the Newcastle University press page."
+    },
+    {
+      "topic": "stone",
+      "line": 83,
+      "kind": "opinion",
+      "credence": "established",
+      "title": "A second invented citation: a widely-repeated Stocks sawing figure isn't on the page it cites",
+      "url": "https://www.pbs.org/wgbh/nova/lostempires/obelisk/cutting05.html",
+      "classification": "VERIFIED",
+      "note": "Meta-entry about a known fabrication: the PBS NOVA page indeed lacks the '3cm/95cm/14 hours' figures, exactly as the entry itself reports -- the entry's claim checks out."
+    },
+    {
+      "topic": "stone",
+      "line": 95,
+      "kind": "finding",
+      "credence": "established",
+      "title": "Petrie documented the masons correcting an over-deep saw cut on the coffer itself",
+      "url": "https://ancientegyptonline.co.uk/kingschambergp/",
+      "classification": "EXISTS-BUT-WEAK",
+      "note": "Page confirms the saw cut too deep 'on more than one occasion' but does not contain the specific quoted Petrie passage attributed to it."
+    },
+    {
+      "topic": "stone",
+      "line": 96,
+      "kind": "theory",
+      "credence": "established",
+      "title": "Petrie inferred jewelled saws and drills from this coffer -- and Core 7",
+      "url": "https://www.hallofmaat.com/unforbiddengeology/ancient-egyptian-copper-slabbing-saws/",
+      "classification": "VERIFIED",
+      "note": "Page confirms Petrie's historical jewel-saw proposal and matching dimensions; entry correctly attributes this as Petrie's own theory, not the modern author's view."
+    },
+    {
+      "topic": "depictions",
+      "line": 5,
+      "kind": "question",
+      "credence": "speculation",
+      "title": "Val Camonica: what would settle it",
+      "url": "https://www.ancient-origins.net/ancient-writings-ancient-places-europe/valcamonica-rock-art-0021655",
+      "classification": "UNREACHABLE",
+      "note": "403 Forbidden -- ancient-origins.net blocks the fetcher (bot-blocked), tried twice."
+    },
+    {
+      "topic": "depictions",
+      "line": 18,
+      "kind": "theory",
+      "credence": "contested",
+      "title": "Dr. Khalil Messiha: a model glider",
+      "url": "https://www.ancient-hebrew.org/ancientman/1027.html",
+      "classification": "VERIFIED",
+      "note": "Vertical tail, legless design and Messiha's glider argument all confirmed on the page."
+    },
+    {
+      "topic": "depictions",
+      "line": 19,
+      "kind": "opinion",
+      "credence": "contested",
+      "title": "The aerodynamic tests genuinely disagree",
+      "url": "https://historicaleve.com/saqqara-bird-did-ancient-egyptians-have-flying-machines/",
+      "classification": "WRONG",
+      "note": "Cited page only has Messiha's own 1983 conjecture; it names none of Gregorie, a 2006 wind-tunnel replica, or a balsa-copy test, and states the glider theory is 'not accepted by Egyptologists.'"
+    },
+    {
+      "topic": "depictions",
+      "line": 20,
+      "kind": "question",
+      "credence": "speculation",
+      "title": "Saqqara Bird: what would settle it",
+      "url": "https://www.ancient-origins.net/ancient-technology/controversial-saqqara-bird-00386",
+      "classification": "UNREACHABLE",
+      "note": "403 Forbidden -- ancient-origins.net (bot-blocked), same domain as depictions:5."
+    },
+    {
+      "topic": "depictions",
+      "line": 28,
+      "kind": "theory",
+      "credence": "fringe",
+      "title": "Von Daniken's astronaut-in-a-rocket reading",
+      "url": "http://alienexplorations.blogspot.com/2012/02/von-danikens-point-of-view.html",
+      "classification": "VERIFIED",
+      "note": "Von Daniken's rocket-astronaut reading of Pakal's lid, including the 'primitive imagination' quote, confirmed on the page."
+    },
+    {
+      "topic": "depictions",
+      "line": 29,
+      "kind": "opinion",
+      "credence": "contested",
+      "title": "Mayanists call this the clearest case of the genre",
+      "url": "https://www.ancientaliensdebunked.com/pacal-s-rocket",
+      "classification": "EXISTS-BUT-WEAK",
+      "note": "Page supports the World-Tree-recurs argument but not the specific 'ignoring available text' methodological framing."
+    },
+    {
+      "topic": "depictions",
+      "line": 32,
+      "kind": "finding",
+      "credence": "established",
+      "title": "Art history: a luminous cloud, standard Nativity iconography",
+      "url": "https://historicmysteries.com/amp/madonna-with-saint-giovannino",
+      "classification": "EXISTS-BUT-WEAK",
+      "note": "General Nativity-cloud convention confirmed; the specific 'star depicted separately at left, deliberately distinguished' detail is not on the page."
+    },
+    {
+      "topic": "depictions",
+      "line": 41,
+      "kind": "finding",
+      "credence": "established",
+      "title": "Dogon Sirius mystery: Griaule and Dieterlen's 1930s-1950s Mali fieldwork",
+      "url": "https://en.wikipedia.org/wiki/The_Sirius_Mystery",
+      "classification": "VERIFIED",
+      "note": "Griaule/Dieterlen fieldwork, the double-star claim, and Temple's popularization all confirmed -- entry accurately reports the historical claim without endorsing it."
+    },
+    {
+      "topic": "depictions",
+      "line": 44,
+      "kind": "opinion",
+      "credence": "contested",
+      "title": "Which mundane channel explains Dogon 'Sirius' knowledge is itself unsettled",
+      "url": "https://chandra.harvard.edu/chronicle/0400/sirius_part2.html",
+      "classification": "WRONG",
+      "note": "The chandra.harvard.edu page attributes a different Sagan explanation (a knowledgeable visitor in the 1930s-40s); it contains no mention of an 1893 eclipse expedition or 1920s newspaper coverage."
+    },
+    {
+      "topic": "depictions",
+      "line": 60,
+      "kind": "opinion",
+      "credence": "contested",
+      "title": "The Nazca Astronaut is the honest exception in this whole research program",
+      "url": "https://www.thecollector.com/most-intriguing-nazca-lines/",
+      "classification": "EXISTS-BUT-WEAK",
+      "note": "Page confirms the shaman reading but doesn't itself present the deity/fisherman theories as competing -- those live on other pages in the topic."
+    },
+    {
+      "topic": "depictions",
+      "line": 62,
+      "kind": "finding",
+      "credence": "established",
+      "title": "Tassili n'Ajjer Round Head chronology: from wild guesses to a real specialist consensus",
+      "url": "https://inference-review.com/article/central-saharan-rock-art",
+      "classification": "EXISTS-BUT-WEAK",
+      "note": "Confirms Muzzolini's critique and the consensus-narrowing story; the specific '7500-5500 BCE' range is not the number given on this page (page says ~5500 BCE onward)."
+    },
+    {
+      "topic": "depictions",
+      "line": 63,
+      "kind": "finding",
+      "credence": "established",
+      "title": "The 'Great Martian God' of Sefar was Henri Lhote's own evocative nickname, not a claim",
+      "url": "https://en.wikipedia.org/wiki/Round_Head_Period",
+      "classification": "WRONG",
+      "note": "The linked Wikipedia 'Round Head Period' page contains no mention of Henri Lhote or the term 'Great Martian God' at all."
+    },
+    {
+      "topic": "depictions",
+      "line": 66,
+      "kind": "finding",
+      "credence": "established",
+      "title": "Radiating-head iconography arose independently in Egypt, Persia, Greece, India and Buddhist Asia",
+      "url": "https://en.wikipedia.org/wiki/Halo_(religious_iconography)",
+      "classification": "EXISTS-BUT-WEAK",
+      "note": "Egypt/Persia/Greece/Buddhist confirmed; the 'Mohenjo-daro pottery ~2000 BCE' detail is not on the page (which instead cites Daimabad, 1600-1400 BC)."
+    },
+    {
+      "topic": "depictions",
+      "line": 72,
+      "kind": "source",
+      "credence": "established",
+      "title": "The recency signature has a canonical name: Hobsbawm and Rangers \"invented tradition\" (1983)",
+      "url": "https://www.cambridge.org/core/books/invention-of-tradition/B9973971357795DC86BE856F321C34B3",
+      "classification": "VERIFIED",
+      "note": "Cambridge page confirms Hobsbawm and Ranger's invented-tradition thesis matches the description."
+    },
+    {
+      "topic": "depictions",
+      "line": 73,
+      "kind": "finding",
+      "credence": "established",
+      "title": "The Blue Star Kachina paper trail, dated: a 1958 roadside conversation, 1959 pamphlets, first print 1980",
+      "url": "https://en.wikipedia.org/wiki/Blue_Star_Kachina",
+      "classification": "VERIFIED",
+      "note": "All four Blue Star Kachina paper-trail facts (1958, 1959, 1963, 1980) confirmed on Wikipedia."
+    },
+    {
+      "topic": "disclosure",
+      "line": 18,
+      "kind": "finding",
+      "credence": "established",
+      "title": "The 'exotic metal' claim, examined and closed",
+      "url": "https://media.defense.gov/2024/Mar/08/2003409233/-1/-1/0/DOPSR-CLEARED-508-COMPLIANT-HRRV1-08-MAR-2024-FINAL.PDF",
+      "classification": "UNREACHABLE",
+      "note": "403 Forbidden -- media.defense.gov PDF blocks the fetcher."
+    },
+    {
+      "topic": "disclosure",
+      "line": 19,
+      "kind": "opinion",
+      "credence": "established",
+      "title": "Kirkpatrick's Scientific American op-ed",
+      "url": "https://www.scientificamerican.com/article/we-need-to-investigate-ufos-but-without-the-distraction-of-conspiracy/",
+      "classification": "VERIFIED",
+      "note": "Kirkpatrick's Scientific American op-ed confirms the secondhand-reporting and harm-to-AARO-staff argument."
+    },
+    {
+      "topic": "disclosure",
+      "line": 20,
+      "kind": "finding",
+      "credence": "established",
+      "title": "AARO's leadership churn",
+      "url": "https://defensescoop.com/2024/08/26/leader-pentagon-uap-investigation-hub-jon-kosloski/",
+      "classification": "EXISTS-BUT-WEAK",
+      "note": "Kosloski's Aug 26 2024 appointment confirmed; 'Dec 2023' and 'friction with Congress' for Kirkpatrick's exit are not stated on this page (only 'late 2023')."
+    },
+    {
+      "topic": "disclosure",
+      "line": 22,
+      "kind": "theory",
+      "credence": "speculation",
+      "title": "The 'Legacy Programs' narrative",
+      "url": "https://en.wikipedia.org/wiki/The_Age_of_Disclosure",
+      "classification": "EXISTS-BUT-WEAK",
+      "note": "Wikipedia confirms the Legacy Program allegation itself; the entry's own 'no independently verified trail' framing is the entry's (labeled speculation) analysis, not quoted from the page."
+    },
+    {
+      "topic": "disclosure",
+      "line": 25,
+      "kind": "finding",
+      "credence": "established",
+      "title": "What actually passed in the FY2024 NDAA",
+      "url": "https://www.insidegovernmentcontracts.com/2024/01/implications-of-the-unidentified-anomalous-phenomena-uap-amendment-in-the-2024-national-defense-authorization-act-ndaa/",
+      "classification": "VERIFIED",
+      "note": "Page confirms both stripped provisions and the NARA UAP Records Collection with the Oct 2024 transfer deadline."
+    },
+    {
+      "topic": "disclosure",
+      "line": 27,
+      "kind": "opinion",
+      "credence": "contested",
+      "title": "Legal read: a materially weaker transparency measure",
+      "url": "https://briantreese.medium.com/why-the-unidentified-anomalous-phenomena-uap-disclosure-act-of-2023-falls-far-short-of-its-intended-purpose-and-what-that-means-for-transparency-16df8b5e4449",
+      "classification": "UNREACHABLE",
+      "note": "403 Forbidden -- medium.com blocks the fetcher."
+    },
+    {
+      "topic": "disclosure",
+      "line": 34,
+      "kind": "source",
+      "credence": "established",
+      "title": "AARO's FY2025 Consolidated Annual Report (released Jul 2026)",
+      "url": "https://www.aaro.mil/Portals/136/PDFs/FY25%20UAP%20Annual%20Report/AARO_FY2025_Consolidated_Annual_Report_on_UAP.pdf",
+      "classification": "UNREACHABLE",
+      "note": "403 Forbidden -- aaro.mil PDF blocks the fetcher."
+    },
+    {
+      "topic": "disclosure",
+      "line": 35,
+      "kind": "finding",
+      "credence": "established",
+      "title": "114 of 319 resolved, all to mundane causes",
+      "url": "https://www.theblackvault.com/documentarchive/aaro-releases-fy2025-uap-report-months-after-statutory-deadline-citing-319-new-cases-and-expanded-satellite-analysis/",
+      "classification": "EXISTS-BUT-WEAK",
+      "note": "114/319 resolved and zero-non-human confirmed; the full cause list and the '~40% of backlog unresolved' figure are not both on this particular page excerpt."
+    },
+    {
+      "topic": "disclosure",
+      "line": 44,
+      "kind": "source",
+      "credence": "established",
+      "title": "PURSUE Task Force stands up, war.gov/UFO opens May 2026",
+      "url": "https://defensescoop.com/2026/05/14/uap-trump-first-pursue-ufo-file-drop/",
+      "classification": "EXISTS-BUT-WEAK",
+      "note": "PURSUE program and war.gov/ufo portal confirmed, but the article gives the release date as May 8, not May 1, and doesn't use the term 'Task Force' stand-up -- a real date discrepancy worth flagging."
+    },
+    {
+      "topic": "disclosure",
+      "line": 47,
+      "kind": "finding",
+      "credence": "contested",
+      "title": "ODNI lets IC staff talk to a task force, not the public, Jul 31 2026",
+      "url": "https://www.dlapiper.com/en-us/insights/publications/2026/08/odni-issues-preliminary-guidance-on-disclosure-of-unidentified-anomalous-phenomena",
+      "classification": "VERIFIED",
+      "note": "ODNI guidance overriding NDAs, PURSUE Task Force channel, and the no-public/no-Congress limitation all confirmed."
+    },
+    {
+      "topic": "disclosure",
+      "line": 57,
+      "kind": "source",
+      "credence": "established",
+      "title": "Senate reintroduces its own UAPDA, adds a classified-program carve-out",
+      "url": "https://www.congress.gov/amendment/119th-congress/senate-amendment/3111/text",
+      "classification": "UNREACHABLE",
+      "note": "403 Forbidden -- congress.gov blocks the fetcher."
+    },
+    {
+      "topic": "disclosure",
+      "line": 68,
+      "kind": "finding",
+      "credence": "established",
+      "title": "Loeb now chairs the US government's own UAP science council",
+      "url": "https://www.space.com/space-exploration/search-for-life/white-house-appoints-harvard-astronomer-avi-loeb-to-lead-new-ufo-study-group",
+      "classification": "UNREACHABLE",
+      "note": "Page fetched but article body was truncated by the fetch tool before Loeb/council details appeared; headline alone confirms the topic."
+    },
+    {
+      "topic": "disclosure",
+      "line": 71,
+      "kind": "opinion",
+      "credence": "contested",
+      "title": "West: the radar tracks may be an artifact, not a measurement",
+      "url": "https://www.metabunk.org/threads/possible-explanation-for-radar-jamming-in-the-nimitz-encounter.11862/",
+      "classification": "WRONG",
+      "note": "The cited Metabunk thread is about jamming/EA-6B explanations and contains no 'computer glitch' or 'fiction written by the radar operator' argument attributed to West."
+    },
+    {
+      "topic": "disclosure",
+      "line": 72,
+      "kind": "finding",
+      "credence": "fringe",
+      "title": "SCU: peer review from inside an advocacy organization",
+      "url": "https://www.explorescu.org/about-us",
+      "classification": "EXISTS-BUT-WEAK",
+      "note": "SCU's self-description as rigorous/scientific is confirmed; the sharper 'advocacy body, not a neutral journal' framing is the entry's own characterization, not the page's."
+    },
+    {
+      "topic": "disclosure",
+      "line": 74,
+      "kind": "opinion",
+      "credence": "contested",
+      "title": "So the defect is in the headline number, not in AAROs case reports",
+      "url": "https://www.aaro.mil/UAP-Cases/UAP-Case-Resolution-Reports/",
+      "classification": "UNREACHABLE",
+      "note": "403 Forbidden -- aaro.mil blocks the fetcher."
+    },
+    {
+      "topic": "theories",
+      "line": 2,
+      "kind": "source",
+      "credence": "established",
+      "title": "Holliday et al., \"Comprehensive refutation of the Younger Dryas Impact Hypothesis\" (2023)",
+      "url": "https://www.sciencedirect.com/science/article/pii/S0012825223001915",
+      "classification": "UNREACHABLE",
+      "note": "403 Forbidden -- sciencedirect.com blocks the fetcher."
+    },
+    {
+      "topic": "theories",
+      "line": 15,
+      "kind": "opinion",
+      "credence": "established",
+      "title": "Dibble vs Hancock, Joe Rogan Experience, April 2024 -- the four-and-a-half-hour debate",
+      "url": "https://www.archaeologysouthwest.org/2024/04/24/archaeologist-flint-dibble-takes-on-graham-hancock-on-major-podcast/",
+      "classification": "EXISTS-BUT-WEAK",
+      "note": "Dibble's pseudoarchaeologist characterization confirmed; the page is pre-debate and contains no post-debate commentary about who 'won'."
+    },
+    {
+      "topic": "theories",
+      "line": 19,
+      "kind": "finding",
+      "credence": "established",
+      "title": "Classified as pseudoarchaeology",
+      "url": "https://en.wikipedia.org/wiki/Zecharia_Sitchin",
+      "classification": "EXISTS-BUT-WEAK",
+      "note": "Sitchin's page confirms he's dismissed as pseudoscience/pseudoarchaeology but doesn't spell out the 'rejects archaeological method' framing in those terms."
+    },
+    {
+      "topic": "theories",
+      "line": 20,
+      "kind": "opinion",
+      "credence": "established",
+      "title": "Blum & Baumann, The Conversation, March 17 2026: why the belief persists",
+      "url": "https://theconversation.com/why-some-people-still-believe-that-aliens-shaped-ancient-civilisations-277993",
+      "classification": "VERIFIED",
+      "note": "Blum & Baumann, March 17 2026: proportionality bias, institutional distrust, economics and the von Daniken '238 question marks' quote all confirmed."
+    },
+    {
+      "topic": "theories",
+      "line": 23,
+      "kind": "theory",
+      "credence": "established",
+      "title": "Catastrophism vs gradualism (the meta-frame)",
+      "url": "https://en.wikipedia.org/wiki/Catastrophism",
+      "classification": "VERIFIED",
+      "note": "Catastrophism vs. gradualism/uniformitarianism framing confirmed on Wikipedia."
+    },
+    {
+      "topic": "theories",
+      "line": 28,
+      "kind": "theory",
+      "credence": "contested",
+      "title": "Psychosocial UAP hypothesis",
+      "url": "https://en.wikipedia.org/wiki/Psychosocial_UFO_hypothesis",
+      "classification": "VERIFIED",
+      "note": "Mundane-cause majority, psychological explanations and the Occam's-razor argument all confirmed on Wikipedia."
+    },
+    {
+      "topic": "theories",
+      "line": 32,
+      "kind": "opinion",
+      "credence": "contested",
+      "title": "Transparency advocates: \"cautiously optimistic ... but concerned\"",
+      "url": "https://defensescoop.com/2026/02/20/trump-ufo-uap-government-files-disclosure/",
+      "classification": "EXISTS-BUT-WEAK",
+      "note": "Mellon's cautious-optimism-with-concerns substance confirmed; the exact quoted phrase is a paraphrase, not verbatim."
+    },
+    {
+      "topic": "theories",
+      "line": 34,
+      "kind": "theory",
+      "credence": "speculation",
+      "title": "A shared tell across all four theories: each one relocates agency away from the people who were actually there",
+      "url": "https://theconversation.com/why-some-people-still-believe-that-aliens-shaped-ancient-civilisations-277993",
+      "classification": "EXISTS-BUT-WEAK",
+      "note": "Speculation-kind 'agency displacement' entry; the cited page doesn't discuss this generalized framework itself (appropriately labeled speculation already)."
+    },
+    {
+      "topic": "theories",
+      "line": 35,
+      "kind": "finding",
+      "credence": "established",
+      "title": "Kennett'\\''s Sept 2025 shocked-quartz paper retracted by PLOS ONE, Feb 2026",
+      "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0342620",
+      "classification": "VERIFIED",
+      "note": "PLOS ONE retraction notice confirms both cited defects (age-model omissions, incomplete core sampling) and the Feb 11 2026 date."
+    },
+    {
+      "topic": "theories",
+      "line": 40,
+      "kind": "opinion",
+      "credence": "contested",
+      "title": "The New York Times, March 2024: \"The Comet Strike Theory That Just Won'\\''t Die\"",
+      "url": "https://www.nytimes.com/2024/03/05/magazine/younger-dryas-impact-hypothesis-comet.html",
+      "classification": "UNREACHABLE",
+      "note": "nytimes.com is not fetchable by this tool (paywall/blocklist)."
+    },
+    {
+      "topic": "theories",
+      "line": 41,
+      "kind": "question",
+      "credence": "contested",
+      "title": "What the 2026 retractions actually change: they close two flawed data points, not the argument",
+      "url": "https://phys.org/news/2025-09-evidence-cosmic-impact-classic-clovis.html",
+      "classification": "EXISTS-BUT-WEAK",
+      "note": "phys.org page covers the original study, not framed around '50+ other sites unaffected'; that framing is the entry's own synthesis (kind=question)."
+    },
+    {
+      "topic": "theories",
+      "line": 42,
+      "kind": "finding",
+      "credence": "established",
+      "title": "Karahan Tepe, Oct 2025: first human face ever carved directly onto a T-shaped pillar",
+      "url": "https://karahantepe.net/news",
+      "classification": "WRONG",
+      "note": "karahantepe.net/news (the cited URL) does not contain this story anywhere in its listing. WebSearch confirms the underlying fact is real and widely reported (Smithsonian, Art Newspaper, etc.) with a DIFFERENT, more specific URL on the same site -- a broken/wrong citation, not a fabricated fact."
+    },
+    {
+      "topic": "theories",
+      "line": 43,
+      "kind": "finding",
+      "credence": "established",
+      "title": "Gobekli Tepe: a life-size human statue found built directly into a wall between two structures",
+      "url": "https://www.timesofisrael.com/at-neolithic-capital-in-turkey-carved-faces-upend-narrative-of-a-primitive-age/",
+      "classification": "WRONG",
+      "note": "The cited timesofisrael.com article does not describe this specific find. WebSearch confirms the statue-in-wall discovery is real and independently reported (Earth.com, GreekReporter, Turkiye Today) -- again a wrong/mismatched citation rather than an invented fact."
+    },
+    {
+      "topic": "theories",
+      "line": 44,
+      "kind": "finding",
+      "credence": "established",
+      "title": "Karahan Tepe, Oct 2025: 30+ Neolithic dwellings found beneath the ritual sanctuary level",
+      "url": "https://karahantepe.net/news",
+      "classification": "VERIFIED",
+      "note": "The '30+ Neolithic dwellings' finding is confirmed verbatim on karahantepe.net/news."
+    },
+    {
+      "topic": "theories",
+      "line": 45,
+      "kind": "finding",
+      "credence": "established",
+      "title": "The Tas Tepeler cluster keeps growing: Ayanlar Hoyuk, Sefer Tepe and Sayburc all added 2025-2026",
+      "url": "https://karahantepe.net/news",
+      "classification": "VERIFIED",
+      "note": "Sayburc, Sefer Tepe and Ayanlar Hoyuk finds and dates all confirmed on karahantepe.net/news."
+    }
+  ]
+}

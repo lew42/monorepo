@@ -1,0 +1,43 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/2026/10/02/model-weights-rung-0-primer-a-b-section/.",
+ "widths": {
+  "1280": {
+   "empty": 0.377,
+   "widest_text": 3602,
+   "widest_text_sample": "Deferred from the card-size/badge follow",
+   "overflow_x": false,
+   "items": 53,
+   "narrow_share": 0.377
+  },
+  "1920": {
+   "empty": 0.376,
+   "widest_text": 3833,
+   "widest_text_sample": "Deferred from the card-size/badge follow",
+   "overflow_x": false,
+   "items": 53,
+   "narrow_share": 0.774
+  },
+  "2560": {
+   "empty": 0.42,
+   "widest_text": 4313,
+   "widest_text_sample": "Deferred from the card-size/badge follow",
+   "overflow_x": false,
+   "items": 53,
+   "narrow_share": 0.774
+  },
+  "3440": {
+   "empty": 0.45,
+   "widest_text": 4313,
+   "widest_text_sample": "Deferred from the card-size/badge follow",
+   "overflow_x": false,
+   "items": 53,
+   "narrow_share": 0.925
+  }
+ },
+ "errors": [
+  "1920: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "2560: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1280: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "3440: Failed to load resource: the server responded with a status of 404 (Not Found)"
+ ]
+}

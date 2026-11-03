@@ -1,0 +1,473 @@
+import { edit } from "/framework/ext/Ask/edit.js";
+import FileSaver from "/framework/ext/Saver/FileSaver.js";
+import FsFile from "/framework/ext/filesystem/FsFile.js";
+import { DEFAULT } from "../blocks.js";
+
+/* ── WHERE THE PAGES YOU MAKE ARE KEPT ────────────────────────────────────────
+
+   Make lets you create pages at runtime. This file is the only thing that decides
+   WHERE they end up, and there are exactly two answers:
+
+     FILES — the default. On localhost the dev socket is connected, so every page
+             you make is a real directory with a real `page.json` in it, under
+             `public/imagine/paging/made/`. Reload, close the browser, open a
+             different one — they are still there, because they are files.
+
+     THIS BROWSER — the fallback. On a static host (production) there is no server
+             to write to, so the whole tree is kept in `localStorage` instead. Make
+             says which store it is on, out loud, on the page.
+
+   ⚠ NO NEW WRITER. The fs half is `ext/Saver`'s `FileSaver` — the dev socket's
+     `rpc:write` / `rpc:rm`, the same writer the CMS editor, the page generator's
+     Export and `ext/Panel` all use. The localStorage half is core's own `prefs()`,
+     handed in by the page. This file only decides which one, and what to write.
+
+   ── THE FILE FORMAT — a page, as pure JSON ───────────────────────────────────
+
+       public/imagine/paging/made/page.json               the root: which pages exist
+       public/imagine/paging/made/notes/page.json         a page
+       public/imagine/paging/made/notes/today/page.json   its child
+
+   ```json
+   { "title": "Notes", "icon": "description",
+     "mode": { "navigation": "tabs", "content": "docs", "room": "reading",
+               "arrangement": "plain", "surface": "card", "background": "plain",
+               "type": "regular" },
+     "children": ["today", "later"] }
+   ```
+
+   `mode` is the realm's SEVEN WORDS (`../blocks.js`) — the same seven the bar over
+   every stage sets, and the same seven the builder writes. It said `style`/`content`/
+   `mech` here until 2026-09-05, which was one of two vocabularies going into one file.
+
+   `children` is an ARRAY OF DIRECTORY NAMES, not nested objects. That is the same
+   rule the rest of the site follows — nothing crawls, a page exists once its parent
+   names it — and it is what lets the tree load with no server at all: fetch the
+   root, fetch what it names, repeat. `doc/persistence.md` is the contract.        */
+
+export const DIR = "/imagine/paging/made/";
+
+/* How long a write waits before deciding there is nothing listening. ⚠ NEEDED, not
+   defensive: `Socket.send()` awaits a `ready` promise that only ever resolves on a
+   successful connect, so on localhost with the dev server DOWN a write waits for
+   ever and Make would hang with no error. The same probe `export.js` pays. */
+const PROBE = 2500;
+
+// The pages Make ships with, and what "Back to the baseline" restores. They exist
+// as real files in the repo too, so a fresh checkout opens straight onto them.
+/* ⚠ REAL WORDS, from `../blocks.js`. The four seeded pages used to claim content
+     rungs `xs`–`l`, an axis DELETED on 2026-09-05 — so all four fell back to
+     `article` and the first chip click jumped to the head of a different list
+     (paging-audit-2b, fix 7). Every value below is in the list its control offers. */
+export const SEED = [
+	{ name: "notes", title: "Notes", mode: { ...DEFAULT, navigation: "tabs", content: "docs" }, children: [
+		{ name: "today", title: "Today", mode: { ...DEFAULT, navigation: "none", content: "article", surface: "plain" }, children: [] },
+		{ name: "later", title: "Later", mode: { ...DEFAULT, navigation: "none", content: "settings", surface: "tint" }, children: [] },
+	] },
+	/* ⚠ ONE SEEDED PAGE HAS A BLOCK, on purpose. Blocks and the `content` word COMPOSE
+	     — your blocks first, then the content word's sample under a line naming it —
+	     and until 2026-09-05 no page under `made/` had a block at all, so the realm
+	     shipped no example of its own rule (paging-audit-5b, break 3). */
+	{ name: "ideas", title: "Ideas", mode: { ...DEFAULT, navigation: "rail", content: "cards", surface: "tint", background: "tint",
+		blocks: [{ type: "prose", text: "**This paragraph is a block.** It was typed into Build's fifth control and saved inside this page's `mode`. Under it is whatever the **content** word says — right now `Card wall` — because the two compose." }] }, children: [] },
+	{ name: "archive", title: "Archive", mode: { ...DEFAULT, navigation: "takeover", content: "dashboard", surface: "dark", background: "dark" }, children: [] },
+];
+
+// The words a NEW page arrives wearing — the realm's own default configuration, so
+// a page you make and a page the drawer writes start from the same seven words.
+export const DEFAULTS = { ...DEFAULT };
+
+/* ── ONE NODE → ONE FILE ──────────────────────────────────────────────────────
+   `children` becomes an array of DIRECTORY NAMES: the only difference between the node
+   in memory and the file on disk.
+
+   ⚠ A FUNCTION, not only a method, because two things print this answer. The store
+     writes it; the drawer SHOWS it on a page you made ("this page, as a file"), and it
+     was composing its own guess instead — seven words with no blocks and no children,
+     thirty pixels from the real thing (paging-audit-7b). One writer, one printer, one
+     answer. */
+export const file_of = node => ({
+	title: node.title,
+	icon: node.icon ?? "description",
+	description: node.description ?? "A page you made.",
+	mode: { ...DEFAULTS, ...node.mode },
+	children: (node.children ?? []).map(kid => kid.name),
+});
+
+export const clone = value => JSON.parse(JSON.stringify(value));
+
+/* ── THE SNAPSHOT AND THE HISTORY — two files, and you want both ──────────────
+
+   Every page you make keeps TWO files side by side:
+
+       made/notes/page.json     the SNAPSHOT — the page exactly as it is now
+       made/notes/page.jsonl    the HISTORY — one line per edit, append only
+
+   The snapshot is what everything READS. It is small, it is the whole page, and core
+   opens it straight as a page with no replaying of anything. The history is what the
+   snapshot cannot tell you: what changed, when, and in what order — so you can rewind,
+   and so you can CHECK the snapshot against its own past (the owner, 2026-09-18:
+   *"I like having both — the small snapshot, and the append-only history to rewind and
+   to validate the state against the log"*).
+
+   ── ONE LINE LOOKS LIKE THIS ─────────────────────────────────────────────────
+
+       {"at":"2026-09-18T18:20:01.4Z","op":"set","path":["mode","navigation"],"value":"rail"}
+
+   `op` is `set`, `del` or `append`; `path` walks into the object and its last key is
+   the thing that changed; `value` is what it became. Replaying every line of a log from
+   an empty object has to land on the snapshot — that is the check, and `validate()`
+   below runs it.
+
+   ⚠ THIS IS `/imagine/cms/json/`'s CONTRACT, TO THE CHARACTER — same four keys, same
+     three ops, same meaning (`json.js`, `apply()`). What is NOT shared is the code: the
+     eight lines below are a copy, because importing them would make this realm depend on
+     another realm's experiment for its file format. The contract is the thing worth
+     sharing; if a third page ever wants it, THAT is when it earns a home of its own. */
+
+const now_iso = () => new Date().toISOString();
+
+export const delta = (op, path, value) =>
+	value === undefined ? { at: now_iso(), op, path } : { at: now_iso(), op, path, value };
+
+// One delta, applied to a state object. `path: []` with `set` replaces the whole state,
+// which is how a log starts: line one is the page itself.
+export function apply(state, { op, path = [], value }){
+	if (!path.length) return op === "set" ? value : state;
+
+	let box = state;
+	for (const key of path.slice(0, -1)) box = box[key] ??= {};
+	const key = path.at(-1);
+
+	if (op === "set") box[key] = value;
+	else if (op === "del") Array.isArray(box) ? box.splice(key, 1) : delete box[key];
+	else if (op === "append") (box[key] ??= []).push(value);
+	else console.warn(`page.jsonl — unknown op "${op}"`, path);
+
+	return state;
+}
+
+// Every line of a log, from nothing. A line that is not JSON is dropped and named —
+// ext/JSONL's rule, and the only way an append-only log survives one bad writer.
+export function replay(text = ""){
+	const lines = text.split("\n").filter(Boolean).flatMap((line, i) => {
+		try { return [JSON.parse(line)]; }
+		catch { console.warn(`page.jsonl:${i + 1} — not JSON, dropped`); return []; }
+	});
+
+	return { lines, state: lines.reduce((state, line) => apply(state, line), {}) };
+}
+
+// THE SMALLEST SET OF LINES THAT GETS FROM ONE FILE TO THE NEXT — one per key you
+// actually changed, and `mode` one level deeper, because `mode` is where the words are
+// and "you set the navigation word to rail" is the sentence a history should be able to
+// say. No previous file at all means the page is new: line one is the whole page.
+export function deltas(was, now){
+	if (!was) return [delta("set", [], now)];
+
+	const changed = (a, b, path) => JSON.stringify(a) === JSON.stringify(b) ? []
+		: [b === undefined ? delta("del", path) : delta("set", path, b)];
+
+	const keys = box => Object.keys(box ?? {});
+	const top = [...new Set([...keys(was), ...keys(now)])].filter(key => key !== "mode");
+	const words = [...new Set([...keys(was.mode), ...keys(now.mode)])];
+
+	return [
+		...top.flatMap(key => changed(was[key], now[key], [key])),
+		...words.flatMap(key => changed(was.mode?.[key], now.mode?.[key], ["mode", key])),
+	];
+}
+
+// Deep, key-order-independent — a replayed object and a parsed file hold the same keys
+// in whatever order they were written, and `JSON.stringify` would call that a mismatch.
+export function same(a, b){
+	if (a === b) return true;
+	if (!a || !b || typeof a !== "object" || typeof b !== "object") return false;
+	if (Array.isArray(a) !== Array.isArray(b)) return false;
+
+	const ka = Object.keys(a), kb = Object.keys(b);
+	return ka.length === kb.length && ka.every(key => same(a[key], b[key]));
+}
+
+/* ── walking a tree ────────────────────────────────────────────────────────────
+   A PATH is an array of names — `["notes", "today"]` — and it is both the address
+   of a node in memory and the directory it lives in. One idea, two uses. */
+
+// The node at a path, or undefined. `[]` is the whole tree's stand-in parent.
+export const at = (tree, path) => path.reduce((node, name) => node?.children?.find(kid => kid.name === name), { children: tree });
+
+// Every node as `[path, node]`, PARENTS FIRST — which is also the order they must
+// be written in, so no page.json ever names a directory that is not there yet.
+export function walk(tree = [], path = []){
+	return tree.flatMap(node => {
+		const here = [...path, node.name];
+		return [[here, node], ...walk(node.children, here)];
+	});
+}
+
+// A directory name no sibling already has. `Page.slug()` decides what a directory
+// may be called; this decides which of those names is free.
+export function name_for(title, siblings, slug){
+	const base = slug(title) || "page";
+	let name = base, n = 2;
+	while (siblings.some(kid => kid.name === name)) name = base + "-" + n++;
+	return name;
+}
+
+/* ── the two stores ────────────────────────────────────────────────────────────
+   The same four methods, so the page never asks which one it is talking to:
+   `load()` → the tree · `save(tree, was)` → true when it landed · `label(n)` → the
+   sentence under the list saying where the pages are · `mark(n)` → the FEW WORDS the
+   green mark at the top of the page carries.
+
+   ⚠ TWO SENTENCES, NOT ONE. The mark and the line both called `label()`, so Make
+     printed the same thirty words verbatim at the top of the page and again at the
+     bottom (paging-audit-5). The mark says the count; the line explains it. */
+
+export class Store {
+	constructor(...args){ Object.assign(this, ...args); }
+	async load(){ return clone(SEED); }
+	async save(){ return false; }
+	label(){ return ""; }
+	mark(count){ return pages(count); }
+}
+
+/* ⚠ A FUNCTION, NOT A `super.mark()` CALL. `LocalStore extends FileStore`, so `super`
+     in the browser store reaches the FILE store's sentence and the mark would read
+     "on disk" on a host with no disk to write to. */
+const pages = count => count + " page" + (count === 1 ? "" : "s");
+
+/* FILES — the default. Every write is `FileSaver`, which is `rpc:write` with the
+   "no dev socket → warn once, never throw" rule already inside it. */
+/* ── A FILE ENDS WITH A NEWLINE ───────────────────────────────────────
+   A `page.json` here is a REAL FILE in the repository, and every other file in it ends
+   with a newline. `ext/Saver`'s `FileSaver` stringifies without one, so setting one word
+   in the bar rewrote the file one byte short of what git had — a whole-file diff on a
+   page whose content had not changed (paging-audit-6b, fix 7). `ext/` is shared with
+   every other realm, so the newline is added HERE, in the one write this store makes.  */
+class PageFile extends FileSaver {
+
+	async write(item){
+		if (!edit()) return this.read_only();
+
+		// The one file API (ext/filesystem/FsFile.js) does the write and warns on a refusal.
+		return FsFile.write(this.path, JSON.stringify(item, null, "\t") + "\n");
+	}
+}
+
+export class FileStore extends Store {
+
+	// Every page's log text, by path — see read_log(). One `Map` per store, so a fresh
+	// page load re-reads and nothing goes stale across a reload.
+	logs = new Map();
+
+	url(path){ return DIR + path.map(name => name + "/").join(""); }
+
+	/* ⚠ A MISSING FILE ANSWERS 200 WITH `index.html`. The dev server's SPA fallback
+	     means `res.ok` is not "the file is there" — the CONTENT-TYPE is the 404. The
+	     same guard `cms/json`'s `Source.read()` carries, and without it a page tree
+	     would try to parse a web page as a page. */
+	async read(path){
+		const res = await fetch(this.url(path) + "page.json", { cache: "no-cache" }).catch(() => null);
+		if (!res?.ok || res.headers.get("content-type")?.includes("html")) return null;
+		return res.json().catch(() => null);
+	}
+
+	// Fetch the root, fetch what it names, repeat. Nothing on disk yet → the seed,
+	// unwritten: a first visit shows the five example pages without creating files
+	// nobody asked for. A child that is missing is skipped, not fatal.
+	async load(){
+		const root = await this.read([]);
+		if (!root) return clone(SEED);
+		return this.grow(root.children ?? [], []);
+	}
+
+	async grow(names, path){
+		const nodes = await Promise.all(names.map(async name => {
+			const node = await this.read([...path, name]);
+			if (!node) return null;
+			return { ...node, name, children: await this.grow(node.children ?? [], [...path, name]) };
+		}));
+
+		return nodes.filter(Boolean);
+	}
+
+	// ONE NODE → ONE FILE, and it is `file_of()` above — a method so a subclass could
+	// change it, a function so the drawer can print the same answer without a store.
+	file(node){ return file_of(node); }
+
+	/* ⚠ EVERY WRITE IS RACED. See `PROBE` above — an unanswered `rpc` never rejects,
+	     it simply never settles, so without this a dead server is a frozen page.
+	     A miss sets `failed`, and the page switches to the browser store and says so. */
+	async raced(promise){
+		const answer = await Promise.race([promise, new Promise(done => setTimeout(done, PROBE, null))]);
+		if (!answer) this.failed = true;
+		return !!answer;
+	}
+
+	put(path, body){ return this.raced(new PageFile({ path: this.url(path) + "page.json" }).save(body)); }
+
+	// ── the history half ──────────────────────────────────────────────────────
+	log_url(path){ return this.url(path) + "page.jsonl"; }
+
+	// The log as text, cached — `save()` asks for it once per page it is about to
+	// change, and the cache is what keeps a chip click at one fetch instead of two.
+	// ⚠ Same guard as read(): a missing file answers 200 with index.html.
+	async read_log(path){
+		const key = path.join("/");
+		if (this.logs.has(key)) return this.logs.get(key);
+
+		const res = await fetch(this.log_url(path), { cache: "no-cache" }).catch(() => null);
+		const text = !res?.ok || res.headers.get("content-type")?.includes("html") ? null : await res.text();
+
+		this.logs.set(key, text);
+		return text;
+	}
+
+	/* ONE APPEND PER EDIT, and the snapshot is never touched by it.
+		 `rpc:append` opens the file with "a", so the write is the size of the LINE — two
+		 browsers editing at once interleave between lines instead of each sending its own
+		 copy of the whole file and losing the other's.
+		 ⚠ A PAGE WITH NO LOG YET GETS ITS WHOLE SELF AS LINE ONE. Every page that existed
+		   before this feature has a snapshot and no history, and a log that began halfway
+		   through a page's life could never replay onto it — validate() would call a
+		   perfectly good page broken. The baseline line is what makes the check honest. */
+	async record(path, was, now){
+		const started = (await this.read_log(path)) !== null;
+		const lines = started ? deltas(was, now) : [delta("set", [], now)];
+		if (!lines.length) return true;
+
+		const text = lines.map(line => JSON.stringify(line)).join("\n") + "\n";
+		const key = path.join("/");
+		this.logs.set(key, (this.logs.get(key) ?? "") + text);
+
+		return this.raced(this.append(this.log_url(path), lines));
+	}
+
+	// Through the one file API (ext/filesystem/FsFile.js). ⚠ A dev server without the
+	// Append plugin never answers `rpc:append`, and `async_rpc` would wait forever;
+	// raced() bounds it.
+	async append(url, lines){
+		if (!edit()) return false;
+		return FsFile.append(url, lines);
+	}
+
+	/* THE CHECK THE PAIR EXISTS FOR: replay the log from nothing and see whether it
+		 lands on the snapshot. Answers three things a reader can act on — whether there is
+		 a history at all, how long it is, and whether it agrees with the file beside it. */
+	async validate(path){
+		const [snapshot, text] = await Promise.all([this.read(path), this.read_log(path)]);
+		if (text === null) return { history: false, lines: 0, matches: null };
+
+		const { lines, state } = replay(text);
+		return { history: true, lines: lines.length, matches: same(state, snapshot) };
+	}
+
+	// The DIRECTORY, not the file — `rpc:rm` is recursive, so a page's children go
+	// with it, exactly as deleting a directory of `page.js` files would.
+	drop(path){ return this.raced(new FileSaver({ path: this.url(path) }).delete()); }
+
+	/* THE ONE SEAM EVERY EDIT GOES THROUGH. The page hands over the tree it wants and
+	   the tree it had; this works out the smallest set of writes that gets from one to
+	   the other — so a chip click is ONE file written, not the whole tree. */
+	async save(tree, was = []){
+		const now = new Map(walk(tree).map(([path, node]) => [path.join("/"), node]));
+		const before = new Map(walk(was).map(([path, node]) => [path.join("/"), node]));
+
+		/* ⚠ ONLY THE TOPMOST REMOVAL IS DELETED. `rm` already took the children with
+		     it, and a second `rm` on a path that is gone answers "rm failed" into the
+		     console — so a node whose parent also went is left to its parent. */
+		for (const key of before.keys()){
+			if (now.has(key)) continue;
+			const parent = key.split("/").slice(0, -1).join("/");
+			if (parent && !now.has(parent)) continue;
+			await this.drop(key.split("/"));
+		}
+
+		// The root is the only file that is not a page: it exists so the tree can be
+		// found with no server, and its `children` is the list of top-level pages.
+		// Written every time — it is 100 bytes, and the alternative is a class of bug.
+		/* ⚠ THE ROOT HAS A `mode` NOW, AND THAT IS BECAUSE IT BECAME A PAGE. It used to be
+		     "the only file that is not a page" - a list so the tree could be found with no
+		     server. Core reads a page.json as a page since 2026-09-18, so the root renders at
+		     /imagine/paging/made/ like any other, and with no word it rendered its title and
+		     nothing else. `takeover` is the one navigation word that draws the child rows,
+		     which is exactly what an index of the pages you made should be. */
+		const root = { title: "Made", icon: "add_circle_outline", description: "Every page you made, as files.",
+			mode: { navigation: "takeover" }, children: tree.map(node => node.name) };
+
+		await this.record([], this.root_was, root);
+		await this.put([], root);
+		this.root_was = root;
+
+		for (const [key, node] of now){
+			const body = this.file(node);
+			const old = before.get(key);
+			if (old && JSON.stringify(this.file(old)) === JSON.stringify(body)) continue;
+
+			// ⚠ THE HISTORY FIRST, THE SNAPSHOT SECOND. If the machine dies between the two,
+			//   a log that is one edit ahead of its snapshot can be replayed onto it; a
+			//   snapshot that is ahead of its log has lost the line that explains it.
+			await this.record(key.split("/"), old && this.file(old), body);
+			await this.put(key.split("/"), body);
+		}
+
+		return !this.failed;
+	}
+
+	label(count){
+		return "**Saved to disk.** " + count + " page" + (count === 1 ? "" : "s") + " under `public" + DIR
+			+ "` — one directory and one `page.json` each, real files you can open in an editor and commit.";
+	}
+
+	mark(count){ return "**On disk** — " + pages(count) + " under `made/`."; }
+}
+
+/* THIS BROWSER — the fallback. Your own edits go in one record under the page's own
+   key, which keeps the realm's one-key-per-page rule, so the hub's Reset still forgets
+   them along with everything else in the realm.
+
+   ⚠ IT STILL READS THE FILES. A `page.json` is a static asset: a browser with no dev
+     server can fetch it perfectly well, it just cannot write one. So the fallback
+     EXTENDS the file store and overrides only the writing half — which is why a
+     production visitor sees the real committed pages rather than the seed, and only
+     their own edits live in the browser. */
+export class LocalStore extends FileStore {
+
+	async load(){ return this.page.prefs().get({ tree: null }).tree ?? super.load(); }
+
+	// ⚠ `patch`, never `set`: this page's own mode record lives under the same key,
+	//   and a `set` would replace the whole record and drop it.
+	async save(tree){ this.page.prefs().patch({ tree }); return true; }
+
+	/* ⚠ TWO DIFFERENT TRUE SENTENCES, and saying the wrong one is a lie a reader can
+	     check. Before you change anything, these pages came out of the committed FILES
+	     and nothing is in your browser at all; after you change something, your version
+	     is the one in `localStorage`. The label asks which. */
+	label(count){
+		const mine = this.page.prefs().get({ tree: null }).tree;
+
+		return mine
+			? "**Saved in this browser.** There is no dev server here, so nothing was written to disk — your "
+				+ count + " page" + (count === 1 ? "" : "s") + " live in `localStorage` under this page's own address. "
+				+ "[Reset](/imagine/paging/) puts the committed files back."
+			: "**Read from the files, and not writable here.** These " + count + " pages came out of `page.json` files in the repo, "
+				+ "but there is no dev server on this host — so anything you change is kept in this browser only, and never written to disk.";
+	}
+
+	mark(count){
+		return (this.page.prefs().get({ tree: null }).tree ? "**In this browser** — " : "**Read from the files** — ")
+			+ pages(count) + ".";
+	}
+}
+
+/* WHICH STORE. Files whenever `edit()` is true (the dev socket is reachable AND
+   the rail's Edit toggle is on), this browser otherwise — "fs is the default" is
+   this one line. `edit()` is always false off localhost, so a production page
+   never even tries, and toggling edit off on localhost previews the same
+   this-browser-only behaviour without leaving the machine. */
+export function store_for(page){
+	return edit() ? new FileStore({ page }) : new LocalStore({ page });
+}
+
+export default store_for;

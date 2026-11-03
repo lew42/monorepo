@@ -1,0 +1,3 @@
+{"decision":{"at":"2026-10-23T20:41:07-05:00","question":"review size","computed":"full","chose":"none","why":"node scripts only (smoke.mjs, worktree-restart.mjs) and one readme line; no page changes"}}
+{"review":{"at":"2026-10-23T20:41:07-05:00","size":"none","verdict":"pass","findings":[],"branch":"worktree/smoke-adopt","head":"cdf7ee9120dc94d42aec5db34ddd3f1b0017f39e","model":null,"cost":0,"file":"review.md"}}
+{"stop":{"at":"2026-11-02T00:02:42-06:00","why":"abandoned: no agent since 2026-10-24T01:45:37.191Z; closed by StaleClose 2026-11-02","by":"StaleClose"},"by":"append.mjs","ts":"2026-11-02T06:02:42.542Z"}

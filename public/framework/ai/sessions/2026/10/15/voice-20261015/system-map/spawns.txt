@@ -1,0 +1,25 @@
+agents ever registered: 2879
+minion                 998  $   48.81  2026-09-22..2026-10-15  parents: task 716, (none: code or VS Code) 167, mastermind 61  models: sonnet-5 433, ? 277, opus-5-5 87
+clarity                607  $    12.7  2026-09-25..2026-10-15  parents: (none: code or VS Code) 607  models: sonnet-5 403, sonnet-5-5 204
+reviewer               441  $   12.12  2026-09-28..2026-10-15  parents: (none: code or VS Code) 410, task 29, mastermind 1  models: opus-5-5 251, sonnet-5 142, sonnet-5-5 48
+task-mastermind        331  $  213.35  2026-09-22..2026-10-15  parents: (none: code or VS Code) 264, mastermind 40, vscode 21  models: sonnet-5-5 129, opus-5-5 101, sonnet-5 80
+echo                   125  $       0  2026-10-03..2026-10-08  parents: (none: code or VS Code) 125  models: google/gemini-3.8-flash 114, sonnet-5 11
+mastermind             107  $   36.02  2026-09-25..2026-10-15  parents: (none: code or VS Code) 107  models: sonnet-5-5 70, opus-5-5 25, sonnet-5 6
+helper                  66  $    3.07  2026-10-01..2026-10-15  parents: (none: code or VS Code) 34, mastermind 32  models: haiku-5-5 28, sonnet-5 23, opus-5-5 14
+session-fast            43  $    0.09  2026-09-30..2026-10-14  parents: (none: code or VS Code) 24, sessions 19  models: sonnet-5 28, openai/gpt-6-luna 5, sonnet-5-5 5
+session-smart           43  $    1.57  2026-09-30..2026-10-14  parents: (none: code or VS Code) 24, sessions 19  models: opus-5-5 17, sonnet-5 11, sonnet-5-5 10
+card-assistant          29  $       0  2026-09-25..2026-10-06  parents: (none: code or VS Code) 29  models: sonnet-5 28, openai/gpt-6-luna 1
+checker                 28  $       0  2026-09-28..2026-09-28  parents: (none: code or VS Code) 28  models: haiku-4-5-20251001 14, sonnet-5 14
+voter                   21  $       0  2026-09-28..2026-09-28  parents: (none: code or VS Code) 21  models: haiku-4-5-20251001 9, sonnet-5 8, opus-5-5 4
+card-manager            13  $       0  2026-09-25..2026-09-30  parents: assistant 13  models: opus-5-5 9, sonnet-5 4
+directory-mastermind     8  $       0  2026-10-04..2026-10-05  parents: (none: code or VS Code) 5, main 3  models: opus-5-5 8
+agent                    6  $       0  2026-09-25..2026-09-30  parents: task 5, (none: code or VS Code) 1  models: sonnet 3, sonnet-5 3
+(none)                   4  $       0  null..null  parents: (none: code or VS Code) 4  models: ? 4
+master-assistant         2  $    0.06  2026-09-24..2026-10-15  parents: (none: code or VS Code) 2  models: ? 1, sonnet-5-5 1
+assistant                1  $    0.08  2026-10-15..2026-10-15  parents: (none: code or VS Code) 1  models: haiku-5-5 1
+dispatcher               1  $       0  2026-10-15..2026-10-15  parents: (none: code or VS Code) 1  models: ? 1
+expert                   1  $       0  2026-09-29..2026-09-29  parents: (none: code or VS Code) 1  models: sonnet-5 1
+expert-ask               1  $       0  2026-09-29..2026-09-29  parents: (none: code or VS Code) 1  models: sonnet-5 1
+fixer                    1  $    0.22  2026-10-15..2026-10-15  parents: (none: code or VS Code) 1  models: sonnet-5-5 1
+sessions                 1  $       0  2026-10-15..2026-10-15  parents: (none: code or VS Code) 1  models: ? 1
+fork                     1  $       0  2026-10-06..2026-10-06  parents: task 1  models: openai/gpt-6-luna 1

@@ -1,0 +1,127 @@
+// Docs-vs-code audit: the claim list with verdicts, computed (law 7: compute, don't recall).
+// Each claim was checked by hand against the live repo (grep + read) on 2026-10-07; this script
+// only RECORDS that work as structured JSON, counts the verdicts, and writes claims.json —
+// it does not re-derive the verdicts itself (that needs judgment a script can't do), but every
+// number inside a claim (tool counts, file counts) was produced by a real command, not recalled.
+import fs from "fs";
+
+const claims = [
+	{
+		id: "mcp-site-tool-count",
+		doc: "public/framework/ai/doc/systems-overview.md#3a",
+		code: "live mcp__site__* tool list (this session's deferred-tools system-reminder)",
+		claim: "Site Dev Server MCP (5 tools): pages, eval, shot, claim, release.",
+		verdict: "STALE",
+		found: "Live count is 12: the same 5, plus 7 research_* tools (research_agent, research_log, research_outline, research_say, research_summary, research_verdict, research_vote) for the /framework/research/ program. Not one mentioned.",
+		fix: "Fixed directly: doc now lists the 7 research_* tools and warns the count drifts — check a live session instead of trusting a number."
+	},
+	{
+		id: "mcp-servex-tool-count",
+		doc: "public/framework/ai/doc/systems-overview.md#3a",
+		code: "live mcp__servex__* tool list (same system-reminder) + Servex/agents/tools.js, ops.js, claims.js, inbox.js, Follow.js, Pool.js, Global.js, Servex.js (tool( / mcp.tool( call sites)",
+		claim: "Servex MCP (68 tools total), with a named list of 52 tools across 8 categories.",
+		verdict: "STALE",
+		found: "Live count is 77. The doc's own category list only names 52 of them — it was internally inconsistent before this fix (claimed 68, named 52). At least 22 live tools were named nowhere in the catalog: add_item, amend_bubble, ask_manager, ask_module, card_reply, card_set, card_summary, claim_topic, create_page, file_to_group, follow, list_claims, list_follows, list_pages, page_reply, place, refine_step, register_session, release_topic, set_focus, set_layout, unfollow.",
+		fix: "Fixed directly: doc now lists the previously-missing tools under their categories and drops the hardcoded total, with the same live-count caveat as the site MCP entry."
+	},
+	{
+		id: "dormant-state-mechanism",
+		doc: "public/framework/ai/doc/systems-overview.md#1 + #3a",
+		code: "Servex/agents/Agents.js lines 1086-1145 (dormant()/awaken())",
+		claim: "dormant: process exits after idle timeout, resumes in place without losing context.",
+		verdict: "TRUE",
+		found: "Confirmed verbatim in Agents.js's own comments: \"an idle process held 250-400 MB; a dormant one holds nothing… The next send() resumes the session in place (awaken())\".",
+		fix: "none needed"
+	},
+	{
+		id: "spend-gate-results-policy",
+		doc: "public/framework/ai/doc/systems-overview.md#1",
+		code: "Servex/agents/Agents.js lines 1332-1337 (spend_gate)",
+		claim: "Results-gated spend policy: starts agents with $2, unlocks $3 per verified result (commits, landed steps, page edits, spawned minions).",
+		verdict: "TRUE",
+		found: "Matches code comment exactly: every agent starts with $2 (SERVEX_GATE_FIRST_USD), each verified result unlocks $3 more (SERVEX_GATE_STEP_USD).",
+		fix: "none needed"
+	},
+	{
+		id: "tool-results-dropped",
+		doc: "public/framework/ai/doc/systems-overview.md#3b.2",
+		code: "Servex/agents/Agents.js lines 1422-1440 (tool_results)",
+		claim: "tool_results(message) only inspects return blocks for the spend-gate allowance unlock; it never calls this.emit() for tool outputs — return values, errors and diffs are absent from the session log.",
+		verdict: "TRUE",
+		found: "Read the function: it pushes to the internal spend-gate queue (g.results, gate_log) and returns; no emit() call anywhere in it.",
+		fix: "none needed — correctly documented as an open gap, and the doc's own proposed fix (GET /api/session/trace, a tool_result emit) is not yet built (grepped for both, zero hits), so the doc's framing as a still-open design is accurate."
+	},
+	{
+		id: "spawn-agent-parent-default",
+		doc: "CLAUDE.md commit d13bdc64 (\"spawn_agent defaults parent to the caller\")",
+		code: "Servex/agents/tools.js line 266",
+		claim: "spawn_agent defaults parent to the caller (ctx.caller), per the owner's parent/child requirement.",
+		verdict: "TRUE",
+		found: "agents.spawn({ ...args, parent: args.parent ?? ctx.caller ?? null }) — exactly as the commit message says.",
+		fix: "none needed"
+	},
+	{
+		id: "list-agents-returns-everything",
+		doc: "public/framework/ai/todo.md section 3 (\"list_agents returns every row ever\", mastermind-servex-9, 2026-09-30, not struck through / not marked DONE)",
+		code: "Servex/agents/tools.js lines 365-373 (list_agents tool) + Agents.js registry_list()",
+		claim: "list_agents has no live-only default and no all: true archive split; it still returns the whole registry on every call.",
+		verdict: "TRUE",
+		found: "tool(\"list_agents\", …, {}, [], () => JSON.stringify(agents.registry_list())) takes no arguments at all; registry_list() sweeps and returns reg().list() unfiltered. todo.md is right that this is still open — not a doc/code mismatch, just confirmed-still-true.",
+		fix: "none needed here (todo.md already tracks it correctly as open); left for whoever picks up that todo item."
+	},
+	{
+		id: "untracked-file-count",
+		doc: "public/framework/ai/doc/systems-overview.md#4a",
+		code: "git status --porcelain in C:/Code/lew42/monorepo",
+		claim: "A repository audit revealed ~700 untracked paths, with 659 under public/framework/ai/.",
+		verdict: "TRUE",
+		found: "git status --porcelain shows 708 untracked paths today (2026-10-07) — the figure is still accurate within the margin a fast-moving task tree produces daily.",
+		fix: "none needed"
+	},
+	{
+		id: "heartbeat-and-taskloop-exist",
+		doc: "public/framework/ai/doc/systems-overview.md diagram (\"Heartbeat/TaskLoop\") + CLAUDE.md scope line",
+		code: "Servex/Heartbeat.js (341 lines), Servex/TaskLoop.js (237 lines), Servex/Pool.js (601 lines)",
+		claim: "Heartbeat, TaskLoop and Pool are real modules under Servex/ doing what their names say (silent-task pings, stalled-task escalation, worktree lifecycle).",
+		verdict: "TRUE",
+		found: "All three exist at Servex/ root (not under Servex/agents/ — a reader following the systems-overview diagram's agents/ grouping could look in the wrong folder; worth a one-line fix in the brief's own scope note, not urgent enough to touch now).",
+		fix: "none needed in the doc text itself; flagged in report.md as a minor location-finding trap for the next reader."
+	},
+	{
+		id: "autonomy-heartbeat-name-collision",
+		doc: "public/framework/ai/doc/autonomy.md (\"the dynamic heartbeat\")",
+		code: "Servex/Heartbeat.js",
+		claim: "(implicit) \"the heartbeat\" in doc/autonomy.md and Servex/Heartbeat.js are the same mechanism.",
+		verdict: "UNDOCUMENTED",
+		found: "They are two different things with the same name. doc/autonomy.md's \"dynamic heartbeat\" is about a Claude Code SESSION's own wakeup cron (task-1565, now stopped per handover.md) choosing when to re-check in; Servex/Heartbeat.js pings a TASK's silent OWNER agent and revives dead ones. Neither doc says the other exists under the same word.",
+		fix: "Left for the owner: a one-line cross-reference in both doc/autonomy.md and Servex/Heartbeat.js's header comment (\"not the same heartbeat as doc/autonomy.md's session wakeup cron\") would remove the collision. Noted on the board rather than changed now, since it is a judgment call about which doc is the canonical name-holder."
+	},
+	{
+		id: "asks-ledger-live",
+		doc: "CLAUDE.md law 5 + MEMORY.md \"Asks ledger\" (\"every routed owner ask gets a line in ai/asks.jsonl\")",
+		code: "public/framework/ai/asks.jsonl",
+		claim: "Every routed owner ask gets a line in ai/asks.jsonl, and Servex marks stalled ones.",
+		verdict: "TRUE",
+		found: "258 lines, most recent two dated 2026-10-06, written by \"servex-asks-tick\", cycling an ask between building/stalled as its owner agent goes dormant and wakes — exactly the described mechanism.",
+		fix: "none needed"
+	},
+	{
+		id: "ext-openrouter-ext-local-exist",
+		doc: "requirements.md scope line (ext/openrouter, ext/local)",
+		code: "Servex/ext/openrouter/ (provider.js, reconcile.mjs, decisions/, evals/, sources/, gaps.md, snapshot.md), Servex/ext/local/ (chat.js, llama.js, provider.js, readme.md)",
+		claim: "(implicit, from handover.md's OpenRouter/local-model narrative) both subsystems are real, not just handover-log narrative.",
+		verdict: "TRUE",
+		found: "Both directories hold real provider code, not just notes; openrouter/ additionally carries its own decisions/, evals/ and gaps.md (a self-tracked gap list), which is the right place for its own stale/open items rather than duplicating them here.",
+		fix: "none needed — this audit does not re-walk ext/openrouter's own gaps.md, per the brief's de-dup rule."
+	}
+];
+
+const out = {
+	generated_at: new Date().toISOString(),
+	scope: "Servex/ (agents, Pool, Heartbeat, TaskLoop, MCP tools, ext/openrouter, ext/local) + public/framework/ai/ (readme chain, doc/*.md, asks.jsonl, todo.md)",
+	counts: claims.reduce((acc, c) => { acc[c.verdict] = (acc[c.verdict] ?? 0) + 1; return acc; }, {}),
+	claims
+};
+
+fs.writeFileSync(new URL("./claims.json", import.meta.url), JSON.stringify(out, null, 2) + "\n");
+console.log(JSON.stringify(out.counts, null, 2));

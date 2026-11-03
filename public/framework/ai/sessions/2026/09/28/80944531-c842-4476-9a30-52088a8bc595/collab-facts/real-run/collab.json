@@ -1,0 +1,11 @@
+{
+  "id": "collab-facts-real",
+  "question": "When a Claude agent is picking a name for a new CSS class in this framework, what are the simple, foundational rules it should never break — and where are those rules genuinely just guidelines instead of hard rules?",
+  "kind": "research",
+  "members": [
+    {"id": "haiku-a", "model": "claude-haiku-4-5-20251001"},
+    {"id": "haiku-c", "model": "claude-haiku-4-5-20251001"},
+    {"id": "sonnet-b", "model": "claude-sonnet-5"}
+  ],
+  "context": ["public/framework/styles/css-scopes.txt", ".claude/skills/new-css-class/SKILL.md"]
+}

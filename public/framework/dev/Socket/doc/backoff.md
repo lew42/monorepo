@@ -1,0 +1,79 @@
+# Reconnecting without a storm
+
+Restarting `node server.js` is routine. The socket has to come back on its own,
+and it has to not make things worse while the server is down.
+
+```js
+const delay = Math.min(250 * 2 ** this.fails++, 10000);
+```
+
+250ms, 500ms, 1s, 2s, 4s, 8s, 10s, 10s… `fails` is reset by `open()`, so a
+connection that survives and later drops starts over at 250ms rather than
+continuing an old escalation.
+
+## Two events, one action
+
+A failed connect fires `error` **and then** `close`. The first version
+reconnected from both, which meant every failure scheduled *two* attempts, each
+of which failed and scheduled two more.
+
+```js
+this.ws.addEventListener("close", () => this.reconnect());
+this.ws.addEventListener("error", () => console.warn("Socket error."));
+```
+
+`Socket.js:60-61`. **When two events always arrive together, only one of them
+may act.** That rule is worth more than the backoff curve — the curve slows a
+storm down, the single path stops one starting.
+
+`clearTimeout(this.retry)` at the top of `connect()` and the
+`if (this.disabled || this.retry) return` at the top of `reconnect()` are the
+same idea from the other side: one attempt in flight, ever. `close` can arrive
+more than once for one socket.
+
+## The promise swap
+
+```js
+if (this.connected) {
+    this.connected = false;
+    this.ready = promise();
+}
+```
+
+`Socket.js:76`. Two rules, both silent when broken:
+
+**Never reject `ready`.** A `send()` awaiting it during a restart should land
+when the server returns. A rejection makes every later send throw for the life
+of the page, and surfaces as an unhandled rejection from a line that reads as
+fire-and-forget.
+
+**Only replace it if it resolved.** Replacing a still-pending promise strands
+everything already awaiting the old one — a hang with an empty console. The
+guard reads `connected` because that flag is true exactly when `ready` has been
+resolved.
+
+## What this is not
+
+No jitter, no attempt cap, no `onreconnect` hook, no outbox. This is one browser
+tab talking to one local server that you started yourself; a thundering herd
+needs more than one member.
+
+A production socket would want all four, plus an ack per frame. That is a
+different class with a different name — this one is gated to localhost
+([localhost](/framework/dev/Socket/doc/localhost/)) and should stay small
+enough to read in one sitting.
+
+The `console.warn` on every attempt is deliberate noise. A socket quietly
+retrying forever against a server you forgot to start is indistinguishable from
+a socket that works.
+
+## The strip (2026-10-01)
+
+The `console.warn` above is invisible to anyone not watching devtools — which is everyone. A real
+restart (`Server/doc/watch.md`'s boot-tested swap) is usually back in well under a second, but
+with no sign on screen at all it read as "the page died," not "it's coming back"
+([`/framework/ai/sessions/2026/10/01/page-holds/page-holds/`](/framework/ai/sessions/2026/10/01/page-holds/page-holds/)). `reconnect()`
+now reports the drop to `Link.js` (2026-11-01: the old 5 s strip flashed through the tunnel and was a second banner beside the Servex one; both wires now feed ONE state and ONE banner at the top, shown only after 8 s down, "Site link down N s: …" with a Reconnect button) and `open()` clears it the instant the
+socket is back. It never reloads anything itself; it is purely a notice over whatever is already
+on screen. Gated on `this.ever_connected` so a tab's very first connect attempt, before the dev
+server has even finished starting, never shows it — that is not a restart.

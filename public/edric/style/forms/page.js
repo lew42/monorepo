@@ -12,7 +12,7 @@ export default {
         div.c("pad", () => {
             a.c("page-back btn bg mb", "Back").href("../");
 
-            h1("Forms").ac("mb").style("color", "var(--prim)");
+            h1("Forms").ac("mb").style("color", "var(--prime)");
 
             p("These are the form features built into this framework:");
             p("`input`, `select`, `textarea`: use them for form fields, they inherit the page's font and get a subtle border for free.");

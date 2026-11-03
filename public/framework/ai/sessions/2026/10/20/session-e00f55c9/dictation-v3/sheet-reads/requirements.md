@@ -1,0 +1,3 @@
+# The ✦ Sheet reads replies aloud on every page
+
+The owner's phone never constructed Recite (no "recite" line from any page load), whichever chat view drew the sheet. Fix: `ext/drawer/Sheet.js` `read_aloud()` makes `Recite.shared` and follows the current voice session's live wire itself (`ext/Session` `stream`), so each new smart reply is read as it streams. Recite already drops a reply it has read, so chat.js's hook reading the same reply does no harm. Recite's milestones also go to the session file as `log` lines (`report.diag`), the one record a phone surely reaches. Proven headless: a reload attached to the session, no tap on ✦, the Sheet started Recite, followed the wire and played the reply.

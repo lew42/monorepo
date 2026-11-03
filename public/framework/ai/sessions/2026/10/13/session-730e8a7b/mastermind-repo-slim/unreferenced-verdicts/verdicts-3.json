@@ -1,0 +1,198 @@
+[
+  {
+    "file": "public/framework/ext/Collab/demo/collab/haiku-a/2-read-peers.md",
+    "verdict": "record",
+    "reason": "Preserved demo output from 2026-09-28 Collab run showing peer-read phase",
+    "evidence": "ext/Collab/readme.md (active system), commit 8bb90cea7",
+    "home": ""
+  },
+  {
+    "file": "public/framework/ext/Collab/demo/collab/haiku-a/3-revise.md",
+    "verdict": "record",
+    "reason": "Preserved demo output from 2026-09-28 Collab run showing revision phase",
+    "evidence": "ext/Collab/readme.md (active system), commit 8bb90cea7",
+    "home": ""
+  },
+  {
+    "file": "public/framework/ext/Collab/demo/collab/haiku-c/1-brief.md",
+    "verdict": "record",
+    "reason": "Preserved demo output from 2026-09-28 Collab run showing brief phase",
+    "evidence": "ext/Collab/readme.md (active system), commit 8bb90cea7",
+    "home": ""
+  },
+  {
+    "file": "public/framework/ext/Collab/demo/collab/haiku-c/2-read-peers.md",
+    "verdict": "record",
+    "reason": "Preserved demo output from 2026-09-28 Collab run showing peer-read phase",
+    "evidence": "ext/Collab/readme.md (active system), commit 8bb90cea7",
+    "home": ""
+  },
+  {
+    "file": "public/framework/ext/Collab/demo/collab/haiku-c/3-revise.md",
+    "verdict": "record",
+    "reason": "Preserved demo output from 2026-09-28 Collab run showing revision phase",
+    "evidence": "ext/Collab/readme.md (active system), commit 8bb90cea7",
+    "home": ""
+  },
+  {
+    "file": "public/framework/ext/Collab/demo/collab/sonnet-b/1-brief.md",
+    "verdict": "record",
+    "reason": "Preserved demo output from 2026-09-28 Collab run showing brief phase",
+    "evidence": "ext/Collab/readme.md (active system), commit 8bb90cea7",
+    "home": ""
+  },
+  {
+    "file": "public/framework/ext/Collab/demo/collab/sonnet-b/2-read-peers.md",
+    "verdict": "record",
+    "reason": "Preserved demo output from 2026-09-28 Collab run showing peer-read phase",
+    "evidence": "ext/Collab/readme.md (active system), commit 8bb90cea7",
+    "home": ""
+  },
+  {
+    "file": "public/framework/ext/Collab/demo/collab/sonnet-b/3-revise.md",
+    "verdict": "record",
+    "reason": "Preserved demo output from 2026-09-28 Collab run showing revision phase",
+    "evidence": "ext/Collab/readme.md (active system), commit 8bb90cea7",
+    "home": ""
+  },
+  {
+    "file": "public/framework/ext/DesignTool/doc/rules-notes.md",
+    "verdict": "record",
+    "reason": "Design notes and system overview extracted from DesignTool rules.js comments",
+    "evidence": "commit 4c74b6ae8 (prune history); referenced in ext/DesignTool/rules.js",
+    "home": ""
+  },
+  {
+    "file": "public/framework/ext/DesignTool/journey/journey.css",
+    "verdict": "runtime-loaded",
+    "reason": "CSS stylesheet for journey page; loaded by journey/page.js via View.stylesheet",
+    "evidence": "ext/DesignTool/journey/page.js imports journey.css",
+    "home": ""
+  },
+  {
+    "file": "public/framework/ext/ErrorLog/doc/design.md",
+    "verdict": "record",
+    "reason": "Architecture and design documentation for ErrorLog class system",
+    "evidence": "ext/ErrorLog/readme.md links to doc/design.md; 2026-10-09",
+    "home": ""
+  },
+  {
+    "file": "public/framework/ext/Figma/palette/collab/collab.css",
+    "verdict": "runtime-loaded",
+    "reason": "CSS stylesheet for Figma collab palette page; loaded by page.js",
+    "evidence": "ext/Figma/palette/collab/page.js:4 View.stylesheet(import.meta, collab.css)",
+    "home": ""
+  },
+  {
+    "file": "public/framework/ext/Figma/palette/controls/controls.css",
+    "verdict": "runtime-loaded",
+    "reason": "CSS stylesheet for Figma controls palette page; loaded by page.js",
+    "evidence": "ext/Figma/palette/controls/page.js imports controls.css",
+    "home": ""
+  },
+  {
+    "file": "public/framework/ext/Figma/palette/timeline/timeline.css",
+    "verdict": "runtime-loaded",
+    "reason": "CSS stylesheet for Figma timeline palette page; loaded by page.js",
+    "evidence": "ext/Figma/palette/timeline/page.js imports timeline.css",
+    "home": ""
+  },
+  {
+    "file": "public/framework/ext/Figma/tokens/page.css",
+    "verdict": "runtime-loaded",
+    "reason": "CSS stylesheet for Figma tokens page; loaded by page.js via View.stylesheet",
+    "evidence": "ext/Figma/tokens/page.js:5 View.stylesheet(import.meta, page.css)",
+    "home": ""
+  },
+  {
+    "file": "public/framework/ext/Mention/doc/syntax.md",
+    "verdict": "record",
+    "reason": "Pattern syntax and regex documentation for @/# mention linking system",
+    "evidence": "ext/Mention/readme.md links to doc/syntax.md; 2026-10-12",
+    "home": ""
+  },
+  {
+    "file": "public/framework/ext/Omnibox/Omnibox.js",
+    "verdict": "runtime-loaded",
+    "reason": "Compatibility shim left after 2026-09-06 move to core/Search; redirects old imports",
+    "evidence": "File comment states purpose; ext/Omnibox/page.js describes the pointer pattern",
+    "home": ""
+  },
+  {
+    "file": "public/framework/ext/Omnibox/doc/decisions.md",
+    "verdict": "record",
+    "reason": "Preserved decision record for pre-core Omnibox interaction model; still relevant",
+    "evidence": "File header explains it is kept for reference; 2026-09-06 and prior",
+    "home": ""
+  },
+  {
+    "file": "public/framework/ext/Panel/playground/playground.css",
+    "verdict": "runtime-loaded",
+    "reason": "CSS stylesheet for playground page; loaded via View.stylesheet",
+    "evidence": "ext/Panel/playground/page.js:6 View.stylesheet(import.meta, playground.css)",
+    "home": ""
+  },
+  {
+    "file": "public/framework/ext/Panel/toolbar.js",
+    "verdict": "runtime-loaded",
+    "reason": "Part of Panel UI system; exports toolbar bar and place() function",
+    "evidence": "workspace.js and paint.js import from this file; active Panel system",
+    "home": ""
+  },
+  {
+    "file": "public/framework/ext/Refine/doc/architecture.md",
+    "verdict": "record",
+    "reason": "Class architecture documentation for RefineSystem and its component classes",
+    "evidence": "ext/Refine/readme.md links to it; 2026-10-08",
+    "home": ""
+  },
+  {
+    "file": "public/framework/ext/Refine/doc/prompt.md",
+    "verdict": "record",
+    "reason": "Documentation of Prompt class: structure, properties, and use",
+    "evidence": "ext/Refine/readme.md links to it; 2026-10-08",
+    "home": ""
+  },
+  {
+    "file": "public/framework/ext/Refine/fixture/brief.md",
+    "verdict": "record",
+    "reason": "Example brief from a hand-built Refine fixture; demonstrates ask-naming conventions",
+    "evidence": "ext/Refine/readme.md shows fixture exists; 2026-09-29",
+    "home": ""
+  },
+  {
+    "file": "public/framework/ext/Refine/fixture/clean.md",
+    "verdict": "record",
+    "reason": "Example clean sentences from a hand-built Refine fixture; shows sentence extraction",
+    "evidence": "ext/Refine/readme.md shows fixture exists; 2026-09-29",
+    "home": ""
+  },
+  {
+    "file": "public/framework/ext/Refine/fixture/coverage.md",
+    "verdict": "record",
+    "reason": "Example coverage mapping from Refine fixture; shows sentence traceability",
+    "evidence": "ext/Refine/readme.md shows fixture exists; 2026-09-29",
+    "home": ""
+  },
+  {
+    "file": "public/framework/ext/Refine/fixture/structured.md",
+    "verdict": "record",
+    "reason": "Example structured outline from Refine fixture; shows idea organization",
+    "evidence": "ext/Refine/readme.md shows fixture exists; 2026-09-29",
+    "home": ""
+  },
+  {
+    "file": "public/framework/ext/Refine/runs/2026-10-06/brief.md",
+    "verdict": "record",
+    "reason": "Brief for 2026-10-06 feedback-council Refine run; preserved example output",
+    "evidence": "ext/Refine/readme.md links to runs; log shows Refine runs indexed 2026-10-06..13",
+    "home": ""
+  },
+  {
+    "file": "public/framework/ext/Refine/runs/2026-10-06/clean.md",
+    "verdict": "record",
+    "reason": "Clean sentences from 2026-10-06 feedback-council Refine run; preserved example",
+    "evidence": "ext/Refine/readme.md links to runs; 2026-10-13",
+    "home": ""
+  }
+]

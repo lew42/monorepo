@@ -1,0 +1,83 @@
+/* Prompt.View and the Refine demo page: two columns (what was said | what it became),
+   the demo above the saved ladder. Tokens only; the yellow flag is --warn, never an error. */
+
+@layer util {
+
+	.refine-demo { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--gap); margin-block-end: var(--gap); }
+	.refine-working { padding: 0.4em 0.6em; border-radius: 0.3em; background: color-mix(in srgb, var(--warn) 15%, transparent); grid-column: 1 / -1; margin: 0; }
+	.refine-section { min-width: 0; }
+	.refine-score, .refine-run { display: flex; flex-wrap: wrap; gap: 0.4em; align-items: center; padding-block: 0.15em; }
+	.refine-bar { display: inline-block; inline-size: 4em; block-size: 0.6em; border-radius: 1em; background: linear-gradient(to right, var(--warn) calc(var(--v) * 100%), color-mix(in srgb, currentColor 15%, transparent) 0); }
+	.refine-explorer-body { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22em), 1fr)); gap: var(--gap); align-items: start; }
+	.refine-section-tree { max-block-size: 40em; overflow: auto; }
+
+	.refine-input { display: flex; flex-direction: column; gap: 0.5em; }
+	.refine-input textarea { width: 100%; min-height: 6em; font: inherit; }
+	.refine-input-note { color: var(--muted, inherit); opacity: 0.75; font-size: 0.9em; min-block-size: 1.4em; }
+
+	.refine-prompt { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--gap); }
+	.refine-prompt { grid-template-columns: repeat(auto-fit, minmax(min(100%, 22em), 1fr)); align-items: start; }
+	.refine-prompt-h { margin-block: 0.5em 0.25em; }
+	.refine-prompt-raw { opacity: 0.8; }
+	.refine-error { color: var(--error); }
+
+	.refine-sentence { display: flex; flex-wrap: wrap; gap: 0.4em; align-items: baseline; padding: 0.25em 0.4em; border-radius: 0.3em; cursor: pointer; }
+	.refine-sentence.lit, .refine-card.lit { background: color-mix(in srgb, var(--warn) 25%, transparent); }
+	.refine-s-num { font-weight: 600; opacity: 0.6; }
+	.refine-s-scores { font-size: 0.8em; opacity: 0.55; margin-inline-start: auto; }
+	.refine-flag { color: var(--warn); font-weight: 700; cursor: help; }
+
+	.refine-card { padding: 0.3em 0.5em; border-inline-start: 2px solid color-mix(in srgb, currentColor 25%, transparent); margin-block: 0.25em; }
+	.refine-card-top { margin-block: 0.6em; }
+	.refine-card-title { font-weight: 600; }
+	.refine-subcards { margin-inline-start: 0.75em; }
+	.refine-cite { font: inherit; font-size: 0.75em; padding: 0 0.4em; margin-inline-start: 0.3em; border-radius: 1em; cursor: pointer; }
+
+	.refine-class-card { display: flex; flex-direction: column; gap: 0.4em; padding: 0.6em; border: 1px solid color-mix(in srgb, currentColor 20%, transparent); border-radius: 0.5em; margin-block-end: var(--gap); }
+	.refine-part { display: flex; flex-direction: column; padding-block: 0.25em; border-block-start: 1px solid color-mix(in srgb, currentColor 12%, transparent); }
+	.refine-part-job { font-size: 0.9em; }
+	.refine-class-key { font-family: monospace; }
+}
+
+@layer site {
+	/* One workspace: sticky bar on top, stages side by side, sticky footer (the owner, 2026-10-09). */
+	.refine-toolbar { position: sticky; top: 0; z-index: 5; display: grid; gap: .4em; padding-block: .5em; background: var(--paper, #fff); border-block-end: 1px solid color-mix(in srgb, currentColor 18%, transparent); }
+	.refine-said { display: flex; flex-wrap: wrap; gap: .3em 1em; align-items: baseline; }
+	.refine-said-label { font-weight: 600; }
+	.refine-go { font-weight: 700; }
+	.refine-model { display: inline-flex; gap: .4em; align-items: center; }
+	.refine-cost { margin-inline-start: auto; opacity: .75; }
+	.refine-what { margin: 0 0 .4em; font-size: .9em; opacity: .8; }
+	.refine-foot { position: sticky; bottom: 0; z-index: 5; padding-block: .3em; background: var(--paper, #fff); border-block-start: 1px solid color-mix(in srgb, currentColor 18%, transparent); }
+}
+
+@layer site {
+	.refine-toolbar { gap: .2em; }
+	.refine-toolbar .voice-strip-guess { min-block-size: 0; }
+	.refine-toolbar .voice-conn { max-block-size: none; }
+	.refine-toolbar .voice-strip { gap: .2em; }
+}
+
+@layer site {
+	.refine-toolbar .voice-strip-bar { flex-wrap: wrap; block-size: auto; }
+	.refine-toolbar .refine-cost { margin-inline-start: 0; }
+	@media (max-width: 700px) { .refine-toolbar .voice-conn { display: none; } }
+}
+
+@layer site {
+	.refine-toolbar, .refine-foot { padding-inline: max(clamp(.4em, 1vw, .9em), calc((100% - 90em) / 2)); }
+	/* The Whisper log grows with every chunk; uncapped it covered the Refine button on a phone (voice-verify walk, 2026-10-12). */
+	.refine-foot { max-block-size: 30vh; overflow: auto; }
+	@media (max-width: 700px) { .refine-foot { position: static; } }
+	/* The five-step row is hidden on a phone, so its one-line twin shows instead: mic, Whisper and restart problems are said in a sentence. */
+	@media (max-width: 700px) { .refine-toolbar .voice-strip[data-template="full"] .voice-strip-say { display: block; } }
+}
+
+@layer site {
+	/* The demo is a page-level bleed (edge to edge); everything but the toolbar and footer keeps a side padding. */
+	.refine-demo > :not(.refine-toolbar, .refine-foot) { padding-inline: max(clamp(.4em, 1vw, .9em), calc((100% - 90em) / 2)); }
+	.refine-input-note:empty { display: none; }
+	.refine-demo .refine-prompt-raw { font-size: .9em; margin: 0; }
+	.refine-demo .refine-prompt-h { display: flex; flex-wrap: wrap; gap: 0 .6em; align-items: baseline; font-size: .85em; text-transform: uppercase; letter-spacing: .04em; }
+	.refine-demo .refine-prompt-h > span:first-child { opacity: .7; }
+}

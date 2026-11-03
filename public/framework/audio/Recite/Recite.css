@@ -1,0 +1,103 @@
+@layer base, theme, site, util;
+
+@layer theme {
+	/* Recite.Bar: one quiet line, never floating (requirements: "one small, unobtrusive control line") */
+	.audio-recite-bar {
+		display: flex;
+		align-items: center;
+		gap: 0.25em;
+		font-size: 0.85em;
+		min-inline-size: 0;
+		padding-inline: 0.4em;
+		color: var(--subtle);
+	}
+	.audio-recite-btn {
+		display: inline-grid;
+		place-items: center;
+		inline-size: 2.4em;
+		block-size: 2.4em;
+		padding: 0;
+		border: 0;
+		border-radius: 50%;
+		background: transparent;
+		color: inherit;
+		cursor: pointer;
+		flex: none;
+	}
+	.audio-recite-btn .icon { font-size: 1.35em; }
+	.audio-recite-btn:hover:not(:disabled) { background: var(--wash); color: var(--ink); }
+	.audio-recite-btn:disabled { opacity: 0.4; cursor: default; }
+	.audio-recite-btn.is-loading .icon { animation: audio-recite-pulse 1s ease-in-out infinite; }
+	.audio-recite-btn.is-on { color: var(--ink); }
+	.audio-recite-btn.is-open { color: var(--prime); }
+	/* The resume control: the same Play button, filled while state is `heard`/`paused`, so it reads as a
+	   distinct "tap to resume" rather than a generic play/pause toggle. */
+	.audio-recite-btn.is-resume { background: var(--prime); color: #1a1a1a; }   /* --prime is the same colour in light and dark, so the ink is one fixed dark (#1a1a1a on the computed --prime rgb(255,97,87) is about 5.9:1; framework.css uses the same ink on orange); --prime-ink is orange in dark mode and vanished */
+	.audio-recite-btn.is-resume:hover { background: var(--prime); color: #1a1a1a; }
+
+	.audio-recite-track {
+		position: relative;
+		flex: 1 1 4em;
+		min-inline-size: 3em;
+		block-size: 1.6em;
+		display: flex;
+		align-items: center;
+		overflow: hidden;
+	}
+	.audio-recite-track::before {   /* the thin progress line under the label */
+		content: "";
+		position: absolute;
+		inset: auto 0 0.15em 0;
+		block-size: 2px;
+		background: var(--line);
+	}
+	.audio-recite-fill {
+		position: absolute;
+		inset: auto auto 0.15em 0;
+		block-size: 2px;
+		background: var(--prime);
+	}
+	.audio-recite-label {
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		font-variant-numeric: tabular-nums;
+		padding-block-end: 0.3em;
+	}
+	.audio-recite-wrap.is-heard .audio-recite-label { color: var(--ink); }
+	.audio-recite-wrap.is-error .audio-recite-label { color: var(--error); }
+
+	.audio-recite-threshold {
+		flex: none;
+		inline-size: 4em;
+		accent-color: var(--prime);
+		background: linear-gradient(to right, var(--line) var(--audio-recite-level, 0%), transparent 0);
+		border-radius: 1em;
+	}
+	.audio-recite-hide { display: none; }
+
+	/* A narrow bar (a phone, a small demo stage): the progress line and its label take their own row under the buttons. */
+	.audio-recite-wrap { container-type: inline-size; }
+	@container (max-width: 26em) {
+		.audio-recite-bar { flex-wrap: wrap; row-gap: 0; }
+		.audio-recite-track { order: 9; flex: 1 0 100%; padding-inline: 0.5em; }
+	}
+
+	@keyframes audio-recite-pulse { 50% { opacity: 0.35; } }
+
+	/* The demo's own stand-in for a chat bubble (page.js): a real data-recite-root, so tap to pause (Recite.Tap) has
+	   something to tap. Scoped to the demo; a real chat bubble's own look stays ext/Chat's. */
+	.audio-recite-demo-bubble { padding: 0.6em 0.9em; border-radius: 0.6em; background: var(--wash); cursor: pointer; }
+}
+@layer theme {
+	/* The karaoke playhead: Recite.Highlight marks words in the chat (no DOM change); the bar repeats them on one line.
+	   Lit words (item 24, 2026-11-02): unread text stays muted, a word already said stays lit once passed, the
+	   current word is brightest — three disjoint ranges, not one wash over the whole sentence. */
+	::highlight(recite-unread) { color: var(--subtle); }
+	::highlight(recite-read) { color: var(--ink); }
+	::highlight(recite-word) { background-color: color-mix(in srgb, var(--prime) 45%, transparent); color: var(--ink); }
+	.audio-recite-now { padding: 0.15em 0.6em 0.3em; font-size: 0.95em; line-height: 1.4; color: var(--subtle); }
+	.audio-recite-now[hidden] { display: none; }
+	.audio-recite-now .is-said { color: var(--ink); }
+	.audio-recite-now .is-now { color: var(--ink); background: color-mix(in srgb, var(--prime) 35%, transparent); border-radius: 0.2em; }
+}

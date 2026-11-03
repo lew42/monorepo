@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/core/Page/make/",
+ "widths": {
+  "1280": {
+   "empty": 0.71,
+   "widest_text": 880,
+   "widest_text_sample": "\"# A placed note\\n\\nThis paragraph lives",
+   "overflow_x": false,
+   "items": 115,
+   "narrow_share": 0.539
+  },
+  "1920": {
+   "empty": 0.804,
+   "widest_text": 936,
+   "widest_text_sample": "\"# A placed note\\n\\nThis paragraph lives",
+   "overflow_x": false,
+   "items": 115,
+   "narrow_share": 0.809
+  },
+  "2560": {
+   "empty": 0.827,
+   "widest_text": 1053,
+   "widest_text_sample": "\"# A placed note\\n\\nThis paragraph lives",
+   "overflow_x": false,
+   "items": 115,
+   "narrow_share": 0.809
+  },
+  "3440": {
+   "empty": 0.867,
+   "widest_text": 1053,
+   "widest_text_sample": "\"# A placed note\\n\\nThis paragraph lives",
+   "overflow_x": false,
+   "items": 115,
+   "narrow_share": 0.809
+  }
+ },
+ "errors": []
+}

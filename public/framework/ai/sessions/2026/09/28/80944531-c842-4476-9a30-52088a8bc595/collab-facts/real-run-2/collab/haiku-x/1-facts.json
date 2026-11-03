@@ -1,0 +1,57 @@
+[
+  {
+    "id": "card-reply-length",
+    "text": "card_reply's length is task-specific, not universal. The read-peers phase asks for 'one or two plain sentences per peer'; no other phase specifies a range.",
+    "certainty": "settled"
+  },
+  {
+    "id": "no-universal-sentence-rule",
+    "text": "No rule in the codebase says card_reply 'must always be two or three plain sentences' as a universal constraint.",
+    "certainty": "settled"
+  },
+  {
+    "id": "mastermind-nesting-conditional",
+    "text": "A task mastermind may NOT spawn a second task mastermind yet, but this is conditional: 'depth stops at two UNTIL one measured run proves a three-deep tree can report failure upward' (sub-mastermind SKILL.md line 89).",
+    "certainty": "settled"
+  },
+  {
+    "id": "nesting-is-experimental",
+    "text": "The no-nesting-yet rule is experimental, not foundational—it exists because the claim has never been tested, not because nesting always breaks.",
+    "certainty": "likely"
+  },
+  {
+    "id": "merge-mjs-is-serializer",
+    "text": "Server/merge.mjs is 'the one serialized way to land a worktree' (its header line 1–2), preventing two merges from running at once via a lock file.",
+    "certainty": "settled"
+  },
+  {
+    "id": "merge-mjs-uses-git-merge",
+    "text": "Server/merge.mjs itself runs 'git merge --no-ff' for clean merges with no overlapping uncommitted work in the main tree (line 350).",
+    "certainty": "settled"
+  },
+  {
+    "id": "merge-gate-not-mandate",
+    "text": "The review gate in merge.mjs (line 85+) is a GATE, not a mandate to use merge.mjs for all merges—it only refuses branches sized 'light' or 'full' that lack a review.",
+    "certainty": "settled"
+  },
+  {
+    "id": "plain-git-merge-allowed-no-review",
+    "text": "A merge of size 'none' (only CSS or docs, 20 lines or fewer, no new file—per review.md line 60–61) bypasses the review gate entirely and presumably could use plain git merge.",
+    "certainty": "likely"
+  },
+  {
+    "id": "rule-a-edge-case",
+    "text": "Card_reply's length bends in every phase after read-peers: brief/revise/vote/names/implement phases give no sentence limit, only content direction.",
+    "certainty": "settled"
+  },
+  {
+    "id": "rule-b-edge-case",
+    "text": "The no-second-mastermind rule bends when a measured run proves a three-level tree can report failure upward—this is explicitly the intended exit ramp.",
+    "certainty": "settled"
+  },
+  {
+    "id": "rule-c-edge-case",
+    "text": "The merge-via-merge.mjs rule bends for size 'none' (review gate skipped), and merge.mjs itself delegates to 'git merge --no-ff' when there's no conflict.",
+    "certainty": "likely"
+  }
+]

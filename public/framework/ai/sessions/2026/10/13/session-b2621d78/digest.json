@@ -1,0 +1,44 @@
+{
+ "id": "b2621d78-3a80-468f-97bd-a726e973ed7b",
+ "first": "2026-10-13T22:01:26.816Z",
+ "last": "2026-10-13T22:01:36.910Z",
+ "models": {
+  "claude-haiku-5-5": 4
+ },
+ "sizes": {
+  "raw": 71608,
+  "content": 216,
+  "stripped": 216,
+  "owner_only": 103
+ },
+ "usd": 0.017312,
+ "usd_main": 0.017312,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 8,
+  "output": 276,
+  "cache_read": 150185,
+  "cache_write": 453,
+  "w5": 0,
+  "w1": 453
+ },
+ "messages": 4,
+ "subagent_files": 0,
+ "prompts": [
+  {
+   "at": "2026-10-13T22:01:30.873Z",
+   "t": "[from: owner]\n[on /framework/ai/sessions/] I want the sessions page to show only the finished products first."
+  },
+  {
+   "at": "2026-10-13T22:01:33.350Z",
+   "t": "[from: owner]\n[on /framework/ai/sessions/] The surveys dashboard should link every card to its detail page."
+  },
+  {
+   "at": "2026-10-13T22:01:35.893Z",
+   "t": "[from: owner]\n(now on /framework/ai/inbox/)\n[on /framework/ai/inbox/] Send it off."
+  }
+ ],
+ "result": "Heard: send the inbox item off now, from the inbox page.",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.347Z"
+}

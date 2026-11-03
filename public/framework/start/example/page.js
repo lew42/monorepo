@@ -4,8 +4,8 @@ export default new Page({
 	meta: import.meta,
 	title: "Hello",
 
-	// A name, not an import. `about/page.js` is fetched the first time
-	// someone navigates to /about/ — and never before.
+	// Names, not imports — this page's menu, in order. `/about/` would resolve
+	// even without the line; what it buys is the card and its real title.
 	children: "about",
 
 	content(){

@@ -1,0 +1,475 @@
+diff --git a/Server/DatedFiles.mjs b/Server/DatedFiles.mjs
+index c739ad5bb..2eaee0855 100644
+--- a/Server/DatedFiles.mjs
++++ b/Server/DatedFiles.mjs
+@@ -4,6 +4,7 @@
+ //   undo({run})                    put a move back
+ //   query({from, to, where, sort}) the index rows of a day range, run through ext/Query
+ //   check()                        rebuild from the folders, diff with the index: {ok, missing, stale}
++//   sessions: snapshots({from,to}) every session's current snapshot; find(args) the CLI filter; query(spec) the same through ext/Query; in_flight() who is running now
+ // Index = the day stream ai/sessions/YYYY/MM/DD/index.jsonl (AIIndexStream). Doors: static tools() (SDK/MCP) and static setup(socket) (dev socket) call these same methods.
+ // Doc: Server/doc/dated-files.md · plan: public/framework/core/Item/doc/store-index-query-plan.md
+ import fs from "node:fs";
+@@ -124,6 +125,7 @@ export default class DatedFiles extends Dated {
+ 
+ 	/** The index rows of a day range (default: the last 30 days), filtered, sorted and paged by ext/Query. Spec: {from, to, where, sort, offset, limit}. */
+ 	async query(spec = {}){
++		if (this.kind === "session") return new Query({ sort: { by: "last_activity", dir: "desc" }, ...spec }).run(this.snapshots({ from: spec.from, to: spec.to }));
+ 		const to = spec.to ?? Day.of(), d = new Date(to + "T12:00:00"); d.setDate(d.getDate() - 30);
+ 		const rows = await this.rows({ from: spec.from ?? Day.of(d), to, load: async day => AIIndexStream.read(this.store, day) });
+ 		return new Query({ sort: { by: "at", dir: "desc" }, ...spec }).run(rows.map(r => ({ ...r, at: r.at ?? "" })));
+@@ -274,6 +276,58 @@ export default class DatedFiles extends Dated {
+ 		return { close(){ w.close(); for (const t of timers.values()) clearTimeout(t); } };
+ 	}
+ 
++	// ── sessions: the current snapshot of every session, read from the day index.json files (AISessionIndex writes them) ──
++	/** Where the live snapshots sit in memory, when a server runs the transcript index: `{ items: () => iterable, on: fn => off }`, set by AISessionTailer. Without it the day files are the source. */
++	static live = null;
++	/** Every session's current snapshot for a day range (default: all days), one per id (the later last_activity wins). With a live index the memory answers: it is what writes the files. */
++	snapshots({ from, to } = {}){
++		const day = s => String(s.last_activity ?? s.first_at ?? "").slice(0, 10), keep = s => (!from || day(s) >= from) && (!to || day(s) <= to);
++		if (DatedFiles.live) return [...DatedFiles.live.items()].filter(keep);
++		const by = new Map();
++		for (const { day: d, dir } of this.day_folders()){
++			if ((from && d < from.slice(0, 10)) || (to && d > to.slice(0, 10))) continue;
++			let file; try { file = JSON.parse(fs.readFileSync(path.join(dir, "index.json"), "utf8")); } catch { continue; }
++			for (const s of file.snapshots ?? []){ const old = by.get(s.id); if (!old || String(s.last_activity) >= String(old.last_activity)) by.set(s.id, s); }
++		}
++		return [...by.values()].filter(keep);
++	}
++
++	/** Server/session-query.mjs's filter, over snapshots(): {since, until, tags, system, state, model, provider, parent, min_cost, text, sort, limit} -> {count, shown, claude_api_equivalent_usd, openrouter_real_usd, rows}. */
++	find(args = {}, snapshots){
++		const r2 = n => Math.round(n * 100) / 100, list = v => v == null || v === "" ? [] : (Array.isArray(v) ? v : String(v).split(",")).map(x => String(x).trim()).filter(Boolean);
++		const day_of = s => String(s.last_activity ?? s.first_at ?? "").slice(0, 10);
++		const tags = list(args.tags ?? args.tag), system = args.system ? String(args.system).toLowerCase() : null, text = args.text ? String(args.text).toLowerCase() : null;
++		const min = Number(args.min_cost ?? 0) || 0, limit = Math.min(200, Math.max(0, Number(args.limit ?? 25)));
++		const hit = s => {
++			const day = day_of(s);
++			if (args.since && day < args.since) return false;
++			if (args.until && day > args.until) return false;
++			if (tags.length && !tags.every(t => (s.tags ?? []).includes(t))) return false;
++			if (system && !(s.core ?? []).some(c => c.toLowerCase().includes(system)) && !String(s.category ?? "").toLowerCase().includes(system)) return false;
++			if (args.state && s.state !== args.state) return false;
++			if (args.model && !String(s.model ?? "").toLowerCase().includes(String(args.model).toLowerCase())) return false;
++			if (args.provider && s.provider !== args.provider) return false;
++			if (args.parent && s.parent !== args.parent) return false;
++			if (min && !((s.usd ?? 0) >= min)) return false;
++			if (text && ![s.id, s.agent, s.category, ...(s.tags ?? []), ...(s.core ?? [])].some(v => String(v ?? "").toLowerCase().includes(text))) return false;
++			return true;
++		};
++		const found = (snapshots ?? this.snapshots()).filter(hit);
++		const sorts = { cost: (a, b) => (b.usd ?? 0) - (a.usd ?? 0), oldest: (a, b) => String(a.last_activity).localeCompare(String(b.last_activity)), recent: (a, b) => String(b.last_activity).localeCompare(String(a.last_activity)) };
++		found.sort(sorts[args.sort] ?? sorts.recent);
++		// Claude sessions are priced at API-equivalent rates (what the plan saves, not money spent); OpenRouter sessions are real dollars.
++		const claude = found.filter(s => s.provider === "claude" || !s.provider), router = found.filter(s => s.provider && s.provider !== "claude");
++		const sum = l => r2(l.reduce((n, s) => n + (s.usd || 0), 0));
++		return { count: found.length, shown: Math.min(limit, found.length), claude_api_equivalent_usd: sum(claude), openrouter_real_usd: sum(router),
++			rows: found.slice(0, limit).map(s => ({ id: s.id, day: day_of(s), state: s.state, model: s.model, provider: s.provider, usd: r2(s.usd || 0), tags: s.tags ?? [], category: s.category ?? null, core: s.core ?? [], parent: s.parent ?? null, agent: s.agent ?? null })) };
++	}
++
++	/** Who is running right now: state active and last activity within `within` ms (an hour). Feeds /framework/ai/now/ (Server/InFlight.mjs) and must equal Servex's working agents. */
++	in_flight({ now = Date.now(), within = 3600e3 } = {}){
++		const since = Day.of(new Date(now - within - 864e5)), t = s => Date.parse(s.last_activity ?? 0) || 0;
++		return this.snapshots({ from: since }).filter(s => s.state === "active" && now - t(s) < within).sort((a, b) => t(b) - t(a));
++	}
++
+ 	// ── the doors: one set of methods, two adapters ─────────────────────────────────────────────
+ 	static get files(){ return this._files ??= new DatedFiles("projects"); }
+ 
+diff --git a/Server/InFlight.mjs b/Server/InFlight.mjs
+new file mode 100644
+index 000000000..c8f5b7531
+--- /dev/null
++++ b/Server/InFlight.mjs
+@@ -0,0 +1,40 @@
++// Server/InFlight.mjs — the "inflight" query source: every session running right now, computed from the session index (DatedFiles.sessions.in_flight), never written by an agent.
++// Page: /framework/ai/now/ (ai/now/). A row is the session's snapshot plus `doing` (the newest line of its record) and `url` (its folder). Doc: Server/doc/dated-files.md ("In flight").
++import fs from "node:fs";
++import path from "node:path";
++import DatedFiles from "./DatedFiles.mjs";
++import SessionRecord from "./SessionRecord.mjs";
++import QueryServer from "../public/framework/ext/Query/QueryServer.mjs";
++
++export default class InFlight {
++
++	/** The newest words a session's own record says, if its folder holds one: a `now`, `log` or `chat` line. */
++	static doing(snap) {
++		const dir = DatedFiles.sessions.day_dir(String(snap.day ?? "").replaceAll("/", "-")), folder = path.join(dir, snap.folder ?? "");
++		const file = SessionRecord.file(folder) ?? SessionRecord.log_file(folder);
++		if (!file) return "";
++		let text; try { text = fs.readFileSync(file, "utf8"); } catch { return ""; }
++		const lines = text.split("\n");
++		for (let i = lines.length - 1; i >= 0 && i > lines.length - 60; i--) {
++			if (!lines[i].startsWith("{")) continue;
++			try { const o = JSON.parse(lines[i]); const m = o.log?.msg ?? o.assign?.now ?? o.now ?? o.chat?.text; if (typeof m === "string" && m) return m.slice(0, 200); } catch {}
++		}
++		return "";
++	}
++
++	/** A snapshot as the page's row: who, what model, doing what, where, cost. */
++	static shape(snap) {
++		const folder = String(snap.day ?? "").replaceAll("-", "/") + "/" + (snap.folder ?? "");
++		return { id: snap.id, state: snap.state, agent: snap.agent ?? null, title: snap.title ?? "", model: snap.model ?? "", usd: snap.tree_usd ?? snap.usd ?? 0,
++			last_activity: snap.last_activity, first_at: snap.first_at, doing: InFlight.doing(snap), url: `/framework/ai/sessions/${folder}/`.replace(/\/+$/, "/") };
++	}
++
++	static register() {
++		return QueryServer.source("inflight", {
++			items: () => DatedFiles.sessions.in_flight(),
++			on: fn => DatedFiles.live?.on?.(fn),
++			shape: InFlight.shape,
++		});
++	}
++}
++InFlight.register();
+diff --git a/Server/doc/dated-files.md b/Server/doc/dated-files.md
+index 1e32eab51..a04cbb073 100644
+--- a/Server/doc/dated-files.md
++++ b/Server/doc/dated-files.md
+@@ -46,3 +46,17 @@ Reads in the browser go through `Dated.Index.open(url)`, which tails the day fil
+ | `check()` | no folder under the wrong day since 2026-10-18 (older history stays UTC-filed), no row whose folder is gone | tests; run by hand |
+ 
+ `Session.scan/locate` (core/Session) still walk the tree themselves: they are browser-portable and only read names; the day they build is `Day.path`.
++
++## Queries and "in flight" (slice 3)
++
++One read path for sessions: `DatedFiles.sessions.query(spec)` runs an [ext/Query](/framework/ext/Query/) spec (default sort newest activity first) over `snapshots({from,to})`.
++
++| Method | What it does | Called by |
++|---|---|---|
++| `snapshots({from,to})` | every session snapshot. If the dev server set `DatedFiles.live = { items, on }` it returns the in-memory index (no disk). Otherwise it folds each day's `index.json`, later `last_activity` wins | `sessions` source (`AISessionTailer.mjs`), `query`, `find` |
++| `find(args, snapshots)` | the CLI filter (since, until, tags, system, state, model, provider, parent, min_cost, text, sort, limit) with the USD totals | [`session-query.mjs`](../session-query.mjs) (now thin; its own loader was deleted) |
++| `in_flight({now, within})` | state `active` and last activity inside the window (default one hour), newest first | [`InFlight.mjs`](../InFlight.mjs) → source `inflight` → [/framework/ai/now/](/framework/ai/now/) |
++
++**Working now vs. in flight.** The page headline counts sessions that moved in the last 5 minutes (the sessions grid's own test); the rest of the hour is shown dimmed as quiet. Servex `list_agents` "working" is a third, narrower thing (agents Servex itself is running), so the two numbers differ by design.
++
++A restart of the dev server loads `InFlight.mjs`, the `inflight` entry in `LAN_QUERY`, and the `DatedFiles.live` hook.
+diff --git a/Server/plugins/SocketServer/Socket.js b/Server/plugins/SocketServer/Socket.js
+index 6c4f3aec3..29c7a2571 100644
+--- a/Server/plugins/SocketServer/Socket.js
++++ b/Server/plugins/SocketServer/Socket.js
+@@ -5,7 +5,7 @@ import { loopback } from "../MCP.js";
+ // `query` answers from an in-memory index of files under public/ and never runs or writes anything, but only
+ // for the sources named in LAN_QUERY (a new source is not exposed until it is added here). Doc: dev/Socket/doc/lan.md
+ const LAN_OK = new Set(["hello", "subscribe", "unsubscribe", "query"]);
+-const LAN_QUERY = new Set(["sessions", "tasks"]);
++const LAN_QUERY = new Set(["sessions", "tasks", "inflight"]);
+ 
+ // Socket gets created by SocketServer
+ 
+diff --git a/Server/run.js b/Server/run.js
+index bd57f10de..9e1cea644 100644
+--- a/Server/run.js
++++ b/Server/run.js
+@@ -13,6 +13,7 @@ import DevSocket from "./plugins/DevSocket/DevSocket.js";
+ import Runtime from "./plugins/SocketServer/Runtime.js";
+ import AILogs from "./plugins/AILogs.js";
+ import QueryServer from "../public/framework/ext/Query/QueryServer.mjs";
++import "./InFlight.mjs";   // registers the "inflight" query source (ai/now/)
+ import "./SessionIndex.mjs";   // registers the "tasks" query source (Server/doc/session-index.md)
+ import AISessionTailer, { AISessionSub } from "../public/framework/ai/AISession/AISessionTailer.mjs";
+ import Ask, { AskRoute } from "./plugins/Ask.js";
+diff --git a/Server/session-query.mjs b/Server/session-query.mjs
+index 5d4c4490a..c7f5e35b1 100644
+--- a/Server/session-query.mjs
++++ b/Server/session-query.mjs
+@@ -5,63 +5,16 @@
+ //   node Server/session-query.mjs --tag transcription --since 2026-10-01 --json
+ //   node Server/session-query.mjs --system dictation --since 2026-10-02 --sort cost
+ //
+-// It reads the same files the dashboard reads: the day composites `sessions/YYYY/MM/DD/index.json` (live or closed), one snapshot per session.
++// It asks DatedFiles.sessions.find, which reads the day composites `sessions/YYYY/MM/DD/index.json` (live or closed), one snapshot per session.
+ // A session is counted once, on the day of its last activity. Rows are capped (default 25) so an answer never floods a caller's context;
+ // the totals always cover EVERY match, not only the rows shown.
+-import fs from "node:fs";
+ import path from "node:path";
+ import { fileURLToPath } from "node:url";
+-
+-const here = path.dirname(fileURLToPath(import.meta.url));
+-const ROOT = path.join(here, "..", "public", "framework", "ai", "sessions");
+-const r2 = n => Math.round(n * 100) / 100;
+-const list = v => v == null || v === "" ? [] : (Array.isArray(v) ? v : String(v).split(",")).map(s => String(s).trim()).filter(Boolean);
+-const day_of = s => String(s.last_activity ?? s.first_at ?? "").slice(0, 10);
+-
+-/** Every snapshot in `root`, folded by id (the later last_activity wins). */
+-export function load_all(root = ROOT){
+-	const dirs = (p, width) => { try { return fs.readdirSync(p, { withFileTypes: true }).filter(d => d.isDirectory() && new RegExp(`^\\d{${width}}$`).test(d.name)).map(d => d.name).sort(); } catch { return []; } };
+-	const by = new Map();
+-	for (const y of dirs(root, 4)) for (const m of dirs(path.join(root, y), 2)) for (const d of dirs(path.join(root, y, m), 2)){
+-		let day; try { day = JSON.parse(fs.readFileSync(path.join(root, y, m, d, "index.json"), "utf8")); } catch { continue; }
+-		for (const s of day.snapshots ?? []){ const old = by.get(s.id); if (!old || String(s.last_activity) >= String(old.last_activity)) by.set(s.id, s); }
+-	}
+-	return [...by.values()];
+-}
++import DatedFiles from "./DatedFiles.mjs";
+ 
+ /** query({ since, until, tags, system, state, model, provider, parent, min_cost, text, sort, limit }) -> { count, shown, usd, claude_usd, openrouter_usd, rows }.
+- *  since/until: YYYY-MM-DD (inclusive, the UTC day of last activity). tags: all must be present. system: a core module (`ext/Dictate`, or any prefix of it) or a task category.
+- *  model/provider/state: exact words (model also matches a part, e.g. `opus`). parent: a parent session id. min_cost: dollars. text: a part of a tag, id, agent, category or module.
+- *  sort: `recent` (default), `oldest` or `cost`. limit: rows returned, default 25, at most 200. */
+-export function query(args = {}, { root = ROOT, snapshots } = {}){
+-	const tags = list(args.tags ?? args.tag), system = args.system ? String(args.system).toLowerCase() : null, text = args.text ? String(args.text).toLowerCase() : null;
+-	const min = Number(args.min_cost ?? 0) || 0, limit = Math.min(200, Math.max(0, Number(args.limit ?? 25)));
+-	const hit = s => {
+-		const day = day_of(s);
+-		if (args.since && day < args.since) return false;
+-		if (args.until && day > args.until) return false;
+-		if (tags.length && !tags.every(t => (s.tags ?? []).includes(t))) return false;
+-		if (system && !(s.core ?? []).some(c => c.toLowerCase().includes(system)) && !String(s.category ?? "").toLowerCase().includes(system)) return false;
+-		if (args.state && s.state !== args.state) return false;
+-		if (args.model && !String(s.model ?? "").toLowerCase().includes(String(args.model).toLowerCase())) return false;
+-		if (args.provider && s.provider !== args.provider) return false;
+-		if (args.parent && s.parent !== args.parent) return false;
+-		if (min && !((s.usd ?? 0) >= min)) return false;
+-		if (text && ![s.id, s.agent, s.category, ...(s.tags ?? []), ...(s.core ?? [])].some(v => String(v ?? "").toLowerCase().includes(text))) return false;
+-		return true;
+-	};
+-	const found = (snapshots ?? load_all(root)).filter(hit);
+-	const sorts = { cost: (a, b) => (b.usd ?? 0) - (a.usd ?? 0), oldest: (a, b) => String(a.last_activity).localeCompare(String(b.last_activity)), recent: (a, b) => String(b.last_activity).localeCompare(String(a.last_activity)) };
+-	found.sort(sorts[args.sort] ?? sorts.recent);
+-	// Claude sessions are priced at API-equivalent rates (what the plan saves, not money spent); OpenRouter sessions are real dollars.
+-	const claude = found.filter(s => s.provider === "claude" || !s.provider), router = found.filter(s => s.provider && s.provider !== "claude");
+-	const sum = l => r2(l.reduce((n, s) => n + (s.usd || 0), 0));
+-	return {
+-		count: found.length, shown: Math.min(limit, found.length),
+-		claude_api_equivalent_usd: sum(claude), openrouter_real_usd: sum(router),
+-		rows: found.slice(0, limit).map(s => ({ id: s.id, day: day_of(s), state: s.state, model: s.model, provider: s.provider, usd: r2(s.usd || 0), tags: s.tags ?? [], category: s.category ?? null, core: s.core ?? [], parent: s.parent ?? null, agent: s.agent ?? null }))
+-	};
+-}
++ *  The filter itself is DatedFiles.sessions.find (the one reader of the day indexes, Server/doc/dated-files.md); `snapshots` lets a test pass its own. */
++export function query(args = {}, { snapshots } = {}){ return DatedFiles.sessions.find(args, snapshots); }
+ 
+ /** Plain text for a human or a model that did not ask for --json. */
+ export function format(result){
+diff --git a/public/framework/ai/AISession/AISessionTailer.mjs b/public/framework/ai/AISession/AISessionTailer.mjs
+index 9c5014675..a31848963 100644
+--- a/public/framework/ai/AISession/AISessionTailer.mjs
++++ b/public/framework/ai/AISession/AISessionTailer.mjs
+@@ -2,6 +2,7 @@ import fs from "fs";
+ import AISessionIndex from "./AISessionIndex.mjs";
+ import AISessionSource from "./AISessionSource.mjs";
+ import QueryServer from "../../ext/Query/QueryServer.mjs";
++import DatedFiles from "../../../../Server/DatedFiles.mjs";
+ 
+ /* Starts the AISessionIndex inside the dev server (ai/AISession/AISessionIndex.mjs): transcripts in, per-session index.json and the
+  * day composite files out, snapshot changes pushed to subscribed pages by AISessionSub (below). Runs on the MAIN checkout's
+@@ -15,7 +16,7 @@ export const live = { index: null };
+ QueryServer.source("sessions", {
+     available: () => !!live.index,
+     load: async () => { await live.index.ready; AISessionSource.load(live.index.root); },
+-    items: () => live.index.snaps.values(),
++    items: () => DatedFiles.sessions.snapshots(),   // the one reader of the session index (Server/doc/dated-files.md); with the live index it answers from memory
+     on: fn => live.index.on(fn),
+     shape: AISessionSource.shape,
+     arrange: AISessionSource.arrange,
+@@ -29,6 +30,7 @@ export default class AISessionTailer {
+         if (flag === "0" || (flag !== "1" && !main)) return;
+         const base = process.env.SESSION_TAIL_DIR || undefined, root = process.env.SESSION_ROOT || undefined;
+         live.index = server.session_index = new AISessionIndex({ base, root, log: m => console.log(m) }).start();
++        DatedFiles.live = { items: () => live.index.snaps.values(), on: fn => live.index.on(fn) };
+     }
+ }
+ 
+diff --git a/public/framework/ai/now/AINow.css b/public/framework/ai/now/AINow.css
+new file mode 100644
+index 000000000..536660d80
+--- /dev/null
++++ b/public/framework/ai/now/AINow.css
+@@ -0,0 +1,22 @@
++@layer site {
++	.page.an-page { --measure: 44em; }
++	.an-now { display: flex; flex-direction: column; gap: 0.8em; padding: 0.8em clamp(0.6em, 3cqi, 1.5em) 2em; }
++	.an-head { font-size: 1.1em; }
++	.an-count { font-size: 1.8em; font-weight: 700; }
++	.an-total { opacity: 0.7; }
++	.an-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22em), 1fr)); gap: 0.6em; }
++	.an-row { display: flex; flex-direction: column; gap: 0.15em; min-width: 0; padding: 0.6em 0.8em; border: 1px solid var(--line); border-radius: 0.5em; }
++	.an-top { display: flex; align-items: center; gap: 0.5em; min-width: 0; }
++	.an-dot { flex: none; width: 0.55em; height: 0.55em; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0.4em var(--ok); }
++	.an-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; color: inherit; text-decoration: none; }
++	.an-name:hover { text-decoration: underline; }
++	.an-usd { flex: none; font-variant-numeric: tabular-nums; }
++	.an-title { font-size: 0.85em; opacity: 0.75; }
++	.an-doing { overflow-wrap: anywhere; }
++	.an-sub { font-size: 0.78em; opacity: 0.65; }
++	.an-empty { padding: 1.5em 0; opacity: 0.8; }
++	.an-foot { display: flex; flex-wrap: wrap; gap: 0.3em 1.2em; }
++	.an-link { color: inherit; }
++	.an-quiet { opacity: 0.6; }
++	.an-quiet .an-dot { background: var(--line); box-shadow: none; }
++}
+diff --git a/public/framework/ai/now/AINow.js b/public/framework/ai/now/AINow.js
+new file mode 100644
+index 000000000..d22d1f484
+--- /dev/null
++++ b/public/framework/ai/now/AINow.js
+@@ -0,0 +1,77 @@
++import { View, div, span, a, p } from "/app.js";
++import QueryClient from "/framework/ext/Query/QueryClient.js";
++import { age } from "/framework/core/Page/ext/Inbox/Inbox.js";
++
++View.stylesheet(import.meta, "AINow.css");
++
++/** AINow — everything running right now, one card each: who, what it is doing, where it lives, what it has cost.
++ *  The rows come from the dev server's "inflight" query source (Server/InFlight.mjs → DatedFiles.sessions.in_flight, computed from the session index);
++ *  a changed row is pushed over the socket, so the list moves without a refresh. Readme: readme.md. */
++export default class AINow extends View {
++	static HOUR = 3600e3;
++	static HOT = 5 * 60e3;   // moved in the last 5 minutes = working now (the sessions grid's own test); older but within the hour = quiet
++	static usd(n){ return n >= 100 ? "$" + Math.round(n) : "$" + (n || 0).toFixed(2); }
++
++	get classes(){ return "an-now"; }
++
++	// ⚠ render() runs inside View's constructor, before class fields exist: set state in initialize().
++	initialize(){
++		this.rows = new Map();
++		this.error = "";
++		this.client = new QueryClient("inflight", { row: r => this.change(r), stale: () => this.ask() });
++		super.initialize();
++	}
++
++	render(){
++		this.$head = div.c("an-head");
++		this.$list = div.c("an-list");
++		div.c("an-foot", () => {
++			a.c("an-link").href("/framework/ai/").attr("target", "_self").text("Today's sessions");
++			a.c("an-link").href("/framework/ai/sessions/").text("All sessions");
++		});
++		this.paint();
++		this.ask();
++		// Ages and the one-hour edge are worked out in the browser from last_activity: a repaint, not a fetch.
++		this.tick = setInterval(() => this.$list.el.isConnected ? this.paint() : clearInterval(this.tick), 60000);
++	}
++
++	async ask() {
++		const res = await this.client.ask({ where: [{ field: "state", op: "eq", value: "active" }], sort: { by: "last_activity", dir: "desc" }, limit: 100 }, { timeout: 20000 });
++		if (res.error) { this.error = res.error; return this.paint(); }
++		this.error = ""; this.rows = new Map(res.rows.map(r => [r.id, r]));
++		this.paint();
++	}
++
++	change(r) { r.state === "active" ? this.rows.set(r.id, r) : this.rows.delete(r.id); this.paint(); }
++
++	/** Rows that are running and moved in the last hour, newest first. */
++	live() {
++		const now = Date.now();
++		return [...this.rows.values()].filter(r => r.state === "active" && now - Date.parse(r.last_activity) < AINow.HOUR).sort((x, y) => Date.parse(y.last_activity) - Date.parse(x.last_activity));
++	}
++
++	paint() {
++		const rows = this.live(), now = Date.now(), hot = r => now - Date.parse(r.last_activity) < AINow.HOT, n_hot = rows.filter(hot).length, total = rows.reduce((n, r) => n + (r.usd || 0), 0);
++		this.$head.empty(() => {
++			span.c("an-count", String(n_hot));
++			span.c("an-what", n_hot === 1 ? " session working now" : " sessions working now");
++			if (rows.length) span.c("an-total", ` · ${rows.length - n_hot} quiet in the last hour · ${AINow.usd(total)} so far`);
++		});
++		this.$list.empty(() => {
++			if (this.error) return void p.c("an-empty", this.error === "no socket" || this.error === "no source"
++				? "This list needs the dev server (a static copy has no one to ask). Today's sessions are on the page linked below."
++				: "Could not ask the server: " + this.error);
++			if (!rows.length) return void p.c("an-empty", "Nothing is running right now. The day's sessions are linked below.");
++			rows.forEach(r => div.c("an-row" + (hot(r) ? "" : " an-quiet"), () => {
++				div.c("an-top", () => {
++					span.c("an-dot").attr("title", hot(r) ? "working now" : "quiet for a while");
++					a.c("an-name").href(r.url).text(r.agent || r.title || r.id.slice(0, 8));
++					span.c("an-usd", AINow.usd(r.usd));
++				});
++				if (r.doing && r.title && r.title !== r.agent) div.c("an-title", r.title);
++				div.c("an-doing", r.doing || r.title || "(no log line yet)");
++				div.c("an-sub", [age(r.last_activity), r.model].filter(Boolean).join(" · "));
++			}));
++		});
++	}
++}
+diff --git a/public/framework/ai/now/page.js b/public/framework/ai/now/page.js
+new file mode 100644
+index 000000000..a797d5c39
+--- /dev/null
++++ b/public/framework/ai/now/page.js
+@@ -0,0 +1,11 @@
++import { Page } from "/app.js";
++import AINow from "./AINow.js";
++
++export default new Page({
++	meta: import.meta,
++	title: "Now",
++	description: "Every session running right now: who, what it is doing, where it lives, what it has cost. Computed from the session index, live.",
++	icon: "bolt",
++	classes: "an-page",
++	content(){ new AINow(); },
++});
+diff --git a/public/framework/ai/now/readme.md b/public/framework/ai/now/readme.md
+new file mode 100644
+index 000000000..5ea4a3c3f
+--- /dev/null
++++ b/public/framework/ai/now/readme.md
+@@ -0,0 +1,17 @@
++# Now `ai/now/`
++
++Everything running right now, at `/framework/ai/now/`: one card per session that is working and moved in the last hour, with who it is, what it is doing, a link to its folder, and what it has cost. It is a query, never written by an agent.
++
++| Piece | Job |
++|---|---|
++| `AINow.js` (`AINow extends View`) | asks the `inflight` source, repaints on every pushed row |
++| `AINow.css` | `an-` rules, one column at 400 px |
++| `Server/InFlight.mjs` | registers the `inflight` query source over `DatedFiles.sessions.in_flight()` and adds `doing` (the newest line of the session's record) and `url` |
++
++Data path: day `index.json` files (or the live index in memory) → `DatedFiles.sessions.snapshots()` → `in_flight()` → `InFlight` source → socket → `AINow`. Details: [Server/doc/dated-files.md](/Server/doc/dated-files.md) ("In flight").
++
++## Watch out
++
++- Needs the dev server (a static host has no socket); the page says so and links the day.
++- A session only counts as running while its snapshot says `active` and its last activity is under an hour old.
++- A change to `Server/InFlight.mjs` or `Socket.js` needs a dev-server restart.
+diff --git a/public/framework/ai/page.js b/public/framework/ai/page.js
+index 7e3f22f91..69f300a26 100644
+--- a/public/framework/ai/page.js
++++ b/public/framework/ai/page.js
+@@ -35,7 +35,7 @@ export default new Page({
+ 	leaf: true,
+ 	// The page is the band and the rail, and nothing scrolls but their columns (ux/Inbox).
+ 	classes: v1() ? undefined : is_dash() ? "ad-page" : "full fill",
+-	children: "tasks classes AISession quick-fix asks process review council audits tests local models usage",   // day folders moved into sessions/ (ai/doc/task-folders.md); old day urls redirect in route()
++	children: "now tasks classes AISession quick-fix asks process review council audits tests local models usage",   // day folders moved into sessions/ (ai/doc/task-folders.md); old day urls redirect in route()
+ 
+ 	// `board_drawn` stays true so the board's own hand-back (v/3/page.js) never paints it here. Doc: doc/ai-page-notes.md.
+ 	board_drawn: true,
+diff --git a/public/framework/ai/readme.md b/public/framework/ai/readme.md
+index f9457006f..f02db2bf9 100644
+--- a/public/framework/ai/readme.md
++++ b/public/framework/ai/readme.md
+@@ -28,6 +28,8 @@
+ 
+ ## Classes and folders that draw them
+ 
++[`now/`](now/readme.md) — the live in-flight page ([/framework/ai/now/](/framework/ai/now/)): every session active in the last hour, from the `inflight` query source.
++
+ `AISession/` (`class AISession extends Session`, [sessions](sessions/readme.md)) · `AITask/` (`class AITask extends Page`, [AITask](AITask/readme.md)) · `cards/` (`Card` and what a card shows) · `rail/` (`class AIRail extends Inbox.Rail`, `DashState`, `CardList`; the [Inbox](/framework/core/Page/ext/Inbox/)) · `tasks/` ([Tasks](tasks/readme.md)) · `classes/` (live class cards) · `systems/`, `system/` (`AISystem.js`, the System tab) · `usage/` · `audits/` · `health/` · `local/` · `quick-fix/` · `review/` · `talk/` · `tests/` · `dashboard/` · `asks/`, `council/`, `models/`, `errors/`, `collab/`, `process/`.
+ 
+ ## Sessions and tasks: who makes which, and when (verified against the code, 2026-10-20)
+diff --git a/public/framework/core/Item/doc/store-index-query-plan.md b/public/framework/core/Item/doc/store-index-query-plan.md
+index b1c4cfa79..30192108f 100644
+--- a/public/framework/core/Item/doc/store-index-query-plan.md
++++ b/public/framework/core/Item/doc/store-index-query-plan.md
+@@ -174,7 +174,7 @@ Each is one Sonnet task in a worktree, merged after review. The first proves the
+ |---|---|---|---|
+ | 1 ✅ | **`Dated` + `DatedFiles` for projects only:** `create`, `move` (ProjectMove's body moves in), `query`, `check`; the tool and the socket rpc; doc home (section 5) | `Dated.test.mjs` (create → row → query finds it → move → both days → check ok); a page `/framework/core/Item/Dated/` that shows the projects query and updates live when a project is created | $6 |
+ | 2 ✅ (deviations: `Session.scan/locate` still walk names themselves; `SessionDayMove` keeps its manifest/apply/undo, so it is not yet `move`) | **Sessions on `Dated`:** `TaskDirs.dir/make`, `Session.scan/locate/day`, `open_task`, `voice_session`, the session hook call `create`; `SessionDayMove` becomes `move` | `TaskDirs.census()` and `Session.scan()` give identical output before and after; `check()` ok on the whole store | $6 |
+-| 3 | **Queries through `Dated`:** sources `sessions` and `tasks` read `DatedFiles.query`; `session-query.mjs` calls it; an "in flight" query page | the sessions grid in remote mode unchanged; `ext/Query/check.mjs` passes; in-flight count = `list_agents` working count | $5 |
++| 3 ✅ (deviation: headline count is "working now" = last 5 min, not Servex working; live data needs a dev-server restart) | **Queries through `Dated`:** sources `sessions` and `tasks` read `DatedFiles.query`; `session-query.mjs` calls it; an "in flight" query page | the sessions grid in remote mode unchanged; `ext/Query/check.mjs` passes; in-flight count = `list_agents` working count | $5 |
+ | 4 | **Store backends** = storage.md slice 1, unchanged brief ([storage-slice-1.md](../../Page/doc/storage-slice-1.md)); independent, may run beside 1–3 | `Store.test.mjs` (its brief lists a–e) | $6 |
+ | 5 | **`FileJournal`:** one validated append for Append.js, append.mjs, page_tools, append_log (storage.md slice 2) | every writer's line passes the same schema check; a refused line refused everywhere | $5 |
+ | 6 | **Inbox off `ai/index.json`:** the board asks a query; `index.json` shrinks to AIIndex's self-check; decide the static-site day file | board identical with the 2.4 MB file absent from its fetches; AIIndex `--print` check passes | $5 |
+diff --git a/public/framework/ext/Query/readme.md b/public/framework/ext/Query/readme.md
+index 9a81c4d2a..a55b0140e 100644
+--- a/public/framework/ext/Query/readme.md
++++ b/public/framework/ext/Query/readme.md
+@@ -5,6 +5,7 @@ A query is plain JSON (`where`, `sort`, `offset`, `limit`, `sum`); node runs it
+ - `Query.js` (node and browser) — `new Query(spec).run(items)` gives `{ rows, total, totals, offset }`. Ops: `eq in gte lte contains`.
+ - `QueryServer.mjs` (node) — `QueryServer.source(name, { load, items, on, unload_after })`, and the socket plugin that answers `rpc:query` and pushes `query_row` / `query_stale`.
+ - `QueryClient.js` (browser) — `new QueryClient("sessions", { row, stale }).ask(spec)`.
++- `DatedFiles.query` (`Server/DatedFiles.mjs`) — the source behind `sessions` and `inflight`: snapshots from the live index or the day `index.json` files, the same rows for the grid, the CLI (`session-query.mjs`) and [/framework/ai/now/](/framework/ai/now/). Doc: [Server/doc/dated-files.md](/Server/doc/dated-files.md).
+ - `Server/SessionIndex.mjs` — the second source, `tasks` (every task record, module tags): [Server/doc/session-index.md](/Server/doc/session-index.md).
+ - `check.mjs` — `node check.mjs`: the assertions.
+ 

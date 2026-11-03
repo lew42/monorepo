@@ -1,0 +1,3 @@
+{"id":"perf-audit","path":"/framework/servex/tasks/perf-audit/","parent":"/framework/servex/tasks/","title":"Servex: find the slowest common path and make it faster","module":"servex","tags":["ai"],"sessions":[{"id":null,"task":"/framework/ai/sessions/2026/10/03/perf-audit/"}],"by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"set":{"now":"queued","brief":"/framework/ai/sessions/2026/10/03/perf-audit/requirements.md","owner":"mastermind-servex","queue":"after restart-keeps-agents (vscode-mastermind, 2026-10-03)","model":"claude-sonnet-5","effort":"high"}}
+{"stop":{"at":"2026-10-04T03:51:14.000Z","why":"migrated: never landed or closed; last line 2026-10-04"}}

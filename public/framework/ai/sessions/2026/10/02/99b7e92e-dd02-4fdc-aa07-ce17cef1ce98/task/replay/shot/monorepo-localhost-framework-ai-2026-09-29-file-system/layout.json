@@ -1,0 +1,16 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/2026-09-29/file-system/",
+ "widths": {
+  "1920": {
+   "empty": 0.673,
+   "widest_text": 1107,
+   "widest_text_sample": "Cost: not tracked — this task's log has ",
+   "overflow_x": false,
+   "items": 117,
+   "narrow_share": 0.692
+  }
+ },
+ "errors": [
+  "1920: Failed to load resource: the server responded with a status of 404 (Not Found)"
+ ]
+}

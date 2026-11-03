@@ -1,0 +1,5 @@
+{"class":"/framework/ai2/card.js","title":"Landed the card-to-task proof page: hello plus the time, verified clean","type":"card","id":"2026/09/22/card-to-task-proof","created":"2026-09-22T19:09:31-05:00","by":"card-to-task-proof","tags":[]}
+{"legacy":"card-to-task-proof"}
+{"status":"done"}
+{"text":"Zero console or network errors headless, node --check clean on all three files."}
+{"links":[{"url":"/framework/ai/2026-09-22/card-to-task/proof/","label":"the proof page"},{"url":"/framework/ai/2026-09-22/card-to-task/","label":"the report"}]}

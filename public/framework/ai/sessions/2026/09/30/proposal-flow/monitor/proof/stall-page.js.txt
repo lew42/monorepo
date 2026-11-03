@@ -1,0 +1,11 @@
+import { Page, p } from "/app.js";
+
+// Scratch proof page for Server/health.mjs: blocks the main thread for 3 s after load.
+export default new Page({
+	meta: import.meta,
+	title: "Stall proof",
+	content(){
+		p("This page blocks its main thread for 3 seconds, once, to prove the stall check.");
+		setTimeout(() => { const end = Date.now() + 3000; while (Date.now() < end); }, 300);
+	},
+});

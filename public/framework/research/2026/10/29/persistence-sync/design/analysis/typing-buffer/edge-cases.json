@@ -1,0 +1,93 @@
+{
+  "dilemma": "typing-buffer",
+  "lens": "edge-cases",
+  "by": "analyst-typing-edge",
+  "options": [
+    {
+      "id": "client-debounce",
+      "label": "Client debounces: one pending line per field, sent after 300 ms idle or 2 s at most",
+      "wins_when": [
+        {"scenario": "One person types a paragraph in one tab, and nobody else is on that page", "why": "Modelled: a 2000-char field costs about 225 KB of log at a 2 s flush, with no server change. The stream and the file stay simple."},
+        {"scenario": "The server restarts during a typing run", "why": "The text waits in the tab's pending map, not on the server, so the server has nothing to lose. Once R2 (ack and resend on reconnect) exists, the pending line goes out again."}
+      ],
+      "fails_when": [
+        {"scenario": "The tab crashes or closes with up to 2 s of keystrokes still unsent", "severity": 5, "recoverable": false, "why": "The pending line never left the tab, so no log holds it. A sessionStorage draft written on each keystroke (an allowed per-viewer convenience) turns this into a reload fix, but only in the same browser."},
+        {"scenario": "A second tab watches while Mike types", "severity": 2, "recoverable": true, "why": "The other tab updates in steps of about 2 s, not live. That misses the brief's requirement to stream live to other tabs."},
+        {"scenario": "Two people type into the same field", "severity": 4, "recoverable": true, "why": "Each flush is a whole-string set, so one person's flush overwrites the other's text typed in the last 2 s. That text is still in the log as an earlier whole-value line, so it can be found, but it is not seen in the field."},
+        {"scenario": "The server restarts while the tab holds pending lines and R2 is not built yet", "severity": 4, "recoverable": true, "why": "overview.md section 6: a request sent just before a restart can wait forever, and nothing resends it. The text survives only while the tab stays open. This is today's gap, and it hits every option until R2 lands."},
+        {"scenario": "One field grows to 2000 chars in a long session", "severity": 2, "recoverable": true, "why": "About 200 lines and 225 KB (modelled at a constant 5 chars/s; real pauses add flushes). Each flush carries the whole string, so the cost grows with the square of the length, not with time."}
+      ],
+      "precedent": [
+        {"tool": "Hocuspocus", "how": "debounce with a maxDebounce cap, so a busy document still saves; the document stays in memory if the store fails", "src": "persistence-sync/lessons/storage-compaction.md (section 4b, lines 195-218)"},
+        {"tool": "tldraw store", "how": "adjacent history entries are squashed only while their source is the same", "src": "persistence-sync/lessons/object-model.md (lines 150-160)"}
+      ]
+    },
+    {
+      "id": "stream-then-coalesce",
+      "label": "Keystrokes stream as ephemeral frames; the writer saves the latest value per field every 5 s (cap) and on blur",
+      "wins_when": [
+        {"scenario": "Mike types in one tab and watches another, or a new tab opens mid-sentence", "why": "Keystrokes ride ephemeral presence-style frames (sync-protocol R7), so other tabs show the text within network latency. A new tab gets the live value in its welcome snapshot, the way presence arrives, not from the stale file."},
+        {"scenario": "The tab crashes mid-sentence while the server is alive", "why": "Keystrokes that reached the server are saved at its next 5 s save. Only what was typed in the last throttle tick (about 100 ms) is lost."},
+        {"scenario": "A long session with one long field, or a card dragged across a board", "why": "Modelled: 2000 chars cost 81 saves and about 92 KB of log, against 2.2 MB with a line per key. A drag streams its position and saves on drop, the same way text saves on blur."}
+      ],
+      "fails_when": [
+        {"scenario": "The server or the Durable Object restarts (or hibernates) while the tab is closed, before the next save", "severity": 5, "recoverable": false, "why": "The unsaved latest value lives in server memory, and hibernation erases memory but not sockets (sync-protocol section 7, item 3). Loss is bounded by the 5 s cap, but nothing in the log holds the lost text."},
+        {"scenario": "The server restarts while the tab stays open", "severity": 2, "recoverable": true, "why": "Recoverable only if the tab keeps its unsaved value until a save is acked and resends it on reconnect. That is a rule this option must add. Without it, this becomes severity 4."},
+        {"scenario": "The latest value is kept in a Durable Object socket attachment", "severity": 3, "recoverable": true, "why": "The attachment is capped at 16 KB (sync-protocol section 7). A longer field would silently fail to save. The value is still in the tab, but the fix is to keep it in DO SQLite."},
+        {"scenario": "Two people type into the same field", "severity": 5, "recoverable": false, "why": "Each keystroke overwrites the other tab's whole value, and only saved values reach the log, so text overwritten before the next save never reaches the log. A remote value written into a focused input also moves the caret and wipes the native undo stack. This needs the soft lock (phase 2 presence, warn) and a rule: no remote value is written into a focused input."},
+        {"scenario": "Undo from the log in a long session", "severity": 2, "recoverable": true, "why": "Log undo steps fall at each save, about 5 s of typing. The browser's own undo in the typing tab still works per keystroke until a remote value lands in that field."},
+        {"scenario": "Per-key frames wake a Durable Object", "severity": 2, "recoverable": true, "why": "Presence wakes the object on every message and bills each frame (sync-protocol section 7, item 5). Throttle to about 10 Hz on the client; per-key frames bill per key."}
+      ],
+      "precedent": [
+        {"tool": "Yjs awareness (y-protocols)", "how": "presence is never stored; a per-client clock with a 30 s timeout heals a crashed tab with no server cleanup", "src": "persistence-sync/lessons/sync-protocol.md (lines 284-314)"},
+        {"tool": "tldraw presence", "how": "throttled presence (1 fps alone, 30 fps with others), batched with ops in one frame", "src": "persistence-sync/lessons/sync-protocol.md (section 7, item 5)"},
+        {"tool": "Hocuspocus store", "how": "debounced save with a cap, while the lesson keeps deltas appending per microtask; this option is the exception for text fields", "src": "persistence-sync/lessons/storage-compaction.md (line 225)"}
+      ]
+    },
+    {
+      "id": "save-all",
+      "label": "Every keystroke is a line; compaction cleans up later",
+      "wins_when": [
+        {"scenario": "A short field: a title, a name or a tag, up to about 50 chars", "why": "Modelled: 50 keys cost about 6.6 KB of log for that field, so exact history is cheap. It is what Store does today, with no new mechanism."},
+        {"scenario": "A tab crashes mid-word", "why": "Each key is its own acked line with client and n, so at most the one unacked key is lost."},
+        {"scenario": "The server restarts while typing", "why": "Nothing waits on the server, and each pending line is resent with its n for the server to dedupe, once R2 exists."}
+      ],
+      "fails_when": [
+        {"scenario": "A paragraph or a long note typed in one go (2000 chars)", "severity": 3, "recoverable": true, "why": "Modelled: 2000 keys cost 2.2 MB of log for one field, past the roughly 1 MB aim for a page file (phase-1 section 7). Every page open replays all of it."},
+        {"scenario": "Cleanup later, which is the premise of this option", "severity": 3, "recoverable": true, "why": "House rules forbid deleting logs, and phase-1 section 7's archive(key, beforeSeq) never deletes. So the bytes stay in the log and in git, because logs are committed and the repo is the source of truth."},
+        {"scenario": "Two people type into the same field", "severity": 4, "recoverable": true, "why": "Each key is a whole-string set, so the field flickers at keystroke speed. Every keystroke is logged, so the overwritten text can be found."},
+        {"scenario": "A torn last line at a crash, at high write rates", "severity": 4, "recoverable": true, "why": "Append.js does not check for a trailing newline (overview section 5). A line cut mid-append glues the next good line onto it, and both are skipped on every load. Per-key writes give a crash more appends to cut, so the append fix must land before this option."},
+        {"scenario": "A reconnect after a long offline typing burst", "severity": 2, "recoverable": true, "why": "Pending lines are whole strings, so resending 50 keys on a 1 KB field sends about 50 KB again."},
+        {"scenario": "Undo", "severity": 2, "recoverable": true, "why": "One key is one undo step unless the undo manager groups keys. Yjs captureTimeout defaults to 500 ms; this option needs the same grouping built."}
+      ],
+      "precedent": [
+        {"tool": "automerge (keep-all)", "how": "never discards changes; compaction only re-encodes; loads may replay a lot", "src": "persistence-sync/taxonomy.md (line 327)"},
+        {"tool": "nedb", "how": "appends are not fsynced, so a crash can lose the last seconds; compaction is fsynced", "src": "persistence-sync/lessons/storage-compaction.md (line 158)"}
+      ]
+    },
+    {
+      "id": "crdt-text",
+      "label": "Yjs (or Loro) for the one text field",
+      "wins_when": [
+        {"scenario": "Two people type in the same paragraph at once", "why": "Concurrent inserts merge, where last-writer-wins on whole strings does not. This is the research's own lift trigger (report.md line 441)."},
+        {"scenario": "A new tab opens mid-typing", "why": "A state-vector handshake sends exactly the missing updates. There is no stale-file gap and no whole-string replay."},
+        {"scenario": "A tab crash or a server restart mid-typing", "why": "The provider resends by state vector, and duplicates are dropped by design. There is no per-key resend pile."},
+        {"scenario": "Undo across a long session", "why": "Y.UndoManager groups keys within captureTimeout (default 500 ms, delta_logs_build_vs_buy.md line 328). It gives the best undo granularity of the four."}
+      ],
+      "fails_when": [
+        {"scenario": "The agent writes the same field through the item tool as a plain set", "severity": 4, "recoverable": true, "why": "The plain string bypasses the Y.Text state. The CRDT and the file disagree, and the next Yjs update can shadow the agent's text. Both writes are in the log, so a person can recover them by hand."},
+        {"scenario": "An older checkout, or a reader without Yjs, opens the page", "severity": 3, "recoverable": true, "why": "That field's lines are base64 Yjs updates, not text, so the reader shows no text. Reading it needs the library."},
+        {"scenario": "The owner's current rules block it", "severity": 2, "recoverable": true, "why": "CLAUDE.md asks before any new npm dependency and forbids a build step, and takeaways.md says no CRDTs before phase 5. Yjs would have to be vendored as a real ESM file under public/, which needs the owner's yes."},
+        {"scenario": "Long-session log size", "severity": 2, "recoverable": true, "why": "Updates grow linearly with keys. This is an estimate, not measured: about 30 bytes each, so about 80 KB base64 for 2000 keys. Deleted text stays as tombstones until a snapshot and gc, so periodic snapshot lines are needed (phase 2)."}
+      ],
+      "precedent": [
+        {"tool": "Yjs", "how": "one Y.Text per rich-text field; Y.UndoManager with captureTimeout; the provider syncs by state vector", "src": "persistence-sync/tools/yjs.md (line 99); persistence-sync/notes/delta_logs_build_vs_buy.md (line 328)"},
+        {"tool": "Hocuspocus", "how": "Yjs persistence: merge after N updates, or a debounced whole-state store", "src": "persistence-sync/lessons/storage-compaction.md (section 4)"}
+      ]
+    }
+  ],
+  "recommended": "stream-then-coalesce",
+  "confidence": 4,
+  "surprise": "Every option grows the log with the square of the field length, because set() writes the whole string on every line (report.md: strings as whole values). Timing alone cannot fix it: a 2000-char field costs 2.2 MB per key, 225 KB per 2 s flush and 92 KB per 5 s save. The line shape is the real lever: a splice verb would make the cost linear, but its positions go stale when two writers edit, the same race as list after-ids (object-model.md section 2), so it waits for the same fix.",
+  "notes": "Pick stream-then-coalesce for one typist per field, with three guards: the tab keeps its unsaved value until a save is acked, saves go to durable storage (DO SQLite or the file) on a 5 s cap and on blur, and the stream is throttled to about 10 Hz. Ship R2 (ack and resend) first in any option, because a server restart can hang a line today (overview.md section 6), and ask the owner about Yjs only when two people must type in one paragraph (report.md line 441). Client-debounce is the safe floor, but its 2 s lag and the unsent-text loss on a tab crash are the edges that will bite first."
+}

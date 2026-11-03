@@ -1,0 +1,188 @@
+@layer theme {
+
+	/* Full width: the top bar spans the window and every panel under it hands its
+	   pages the standard grid — the sheet belongs to the LEAF now, not the doc.
+	   ⚠ `--gutter-x` restates `.page.standard`'s clamp because that page declares its
+	     own and never sees an inherited one. The two values must agree — it is the
+	     axis the title, the tab labels and every leaf below them land on.
+	   ⚠ `--well` is a SHADOW, not a palette colour: it composites over whatever ground
+	     the host paints, and it darkens in both modes where this theme's
+	     wash → tint → surface ladder only goes lighter. Design record: readme.md. */
+	.page.doc-page {
+		display: flex; flex-wrap: wrap; align-content: flex-start;
+
+		--measure: none;
+		--page-pad: 0;
+		--gutter-x: clamp(1em, 4%, 5em);
+		--well: light-dark(rgba(0, 0, 0, 0.06), rgba(0, 0, 0, 0.35));
+		--tab-fill: var(--wash);
+	}
+
+	/* ⚠ `display: contents` — the title and the strip have to share ONE flex line, and
+	     the strip arrives wrapped in `.tabs`. Selectors match the DOM, not the box tree,
+	     so `.tabs.block > .tab-bar` is unaffected. */
+	.page.doc-page > .tabs { display: contents; }
+
+	/* ⚠ The `0.8em` inline-end is load-bearing below the wrap (padding-law,
+	   2026-09-22). This was `0` on the right, which is invisible at desktop widths
+	   because `.tab-bar` sits flush beside the well painting the identical `--well`
+	   fill — one band in two boxes, no seam. At 400 the bar wraps to its own line,
+	   the well shrink-wraps to the title, and the module name's last letter sat on
+	   the tint's right edge on all 39 Doc pages. A gutter-wide inset here would
+	   push the tab strip a whole gutter right at every width; `0.8em` is the
+	   smallest thing that is unmistakably padding and moves the strip by nothing
+	   a reader would notice. */
+	.doc-well {
+		background: var(--well);
+		display: flex; align-items: center;
+		padding: 1.5em 0.8em 0.5em var(--gutter-x);
+	}
+	/* ⚠ Above the stuck strip beside it: ext/tabs paints that strip's band LEFTWARD over its earlier siblings (z-index 3), and this title is one.
+	   Once the title scrolls away it slides over a band of its own colour. One rule per module, never a generic sibling rule.
+	   ⚠ Opaque for the same reason: the band underneath it is a second `--well`, and a translucent title would show it as a darker patch. */
+	.page.doc-page > .doc-well { position: relative; z-index: 4; background: linear-gradient(var(--well), var(--well)), var(--ground, var(--wash)); }
+	.doc-title { margin: 0; display: flex; align-items: center; gap: 0.3em; }
+	.doc-title > .icon { font-size: 0.9em; }
+
+	/* ⚠ The same fill as `.doc-well`: the band is one well in two boxes, and any drift
+	     between them draws a seam across it.
+	   ⚠ `flex-end`, because the box stretches to the title's line height — the strip has
+	     to sit on the band's BOTTOM edge or the notch stops reaching the content.
+	   ⚠ One inset serves both shapes: beside the title it reads as a gutter-wide gap,
+	     and once the basis no longer fits and the strip wraps to its own line, it lands
+	     the LABELS on the axis (the tab boxes hang one tab-padding to their left). */
+	/* ONE ROW THAT SCROLLS SIDEWAYS AT EVERY WIDTH (the owner, 2026-10-24, top-tabs).
+	   This bar wrapped onto a second row above 600px (navfix, 2026-09-29: at 1920 a
+	   13-tab module's last tabs sat past the fold of a scrollbar-less `overflow: auto`)
+	   and scrolled below it. The owner reversed that: every tab row is one row that
+	   side-scrolls, so this rule no longer overrides ext/tabs' own `.tab-bar`
+	   (`nowrap`, `overflow: auto`) and the phone block at the end of this file only
+	   gives the strip its own line. The old wrap is in git (2026-10-23 and before). */
+	/* ⚠ The paint is `ext/tabs`' `.tabs.stick` rule (opaque `--well` over the ground, so
+	   the strip can stick); Doc.js adds `stick` to this set. */
+	.page.doc-page > .tabs > .tab-bar {
+		flex: 1 1 24em; min-width: 0;
+		align-items: flex-end;
+		padding-inline-start: calc(var(--gutter-x) - var(--tab-pad-x));
+
+		/* ⚠ The strip scrolls, but the last tab can still land UNDER the ☰ drawer
+		   button, which is `position: fixed` in this same top-right corner (`.drawer-menu`, ext/drawer/drawer.css:
+		   2.2rem wide, 0.5rem from the edge) and so never pushes flow content out
+		   of its way. At 1920, this bar runs the FULL width of the page (the
+		   "full-bleed band" above), so its last tab on row 1 reached the exact
+		   same corner and rendered behind the button, invisible — the API tab,
+		   2026-09-29 fix round. `padding-inline-end` reserves that corner so
+		   nothing ever sits AT it (scrolled to the end, the last tab stops short): the button's own footprint (2.2rem) plus its
+		   inset (0.5rem) plus a hair of breathing room.
+		   ⚠ Bigger than strictly measured on purpose — `--rail-push` (drawer.css)
+		   can nudge the button further in mid-open; this stays clear either way. */
+		padding-inline-end: 3.5rem;
+	}
+
+	/* `tabs.css`'s own `.tab-panel { padding-top: 3em }` is for a bare tab strip
+	   with no well above it. Here the panel's first child is always a `.doc-section`
+	   page, which already pays its own top inset (`--pad-y: 1.5em` below) — the 3em
+	   on top of that was pure empty band (measured 42px at 400px, 48 at 1920).
+	   Doc.css:2026-09-29. */
+	.page.doc-page > .tabs > .tab-panel { flex: 0 0 100%; min-width: 0; padding-top: 0; }
+
+	/* The well prints the module name; the catalog's intro would print it again.
+	   ⚠ The successor's margin goes with it — a `display: none` element still matches
+	     `.page-title + *`, so the 3em the heading occupied stayed behind. */
+	.page.doc-page .page-catalog-pages > .page--intro > .page-title { display: none; }
+	.page.doc-page .page-catalog-pages > .page--intro > .page-title + * { margin-block-start: 0; }
+
+	/* The intro page sits INSIDE the `overview` section, and both are `.page`s, so
+	   both pay `padding: var(--pad-y) var(--gutter-x)` (Page.css) — the same inset
+	   twice (measured: 56px each side at 400px, should be 28). Zeroing the intro's
+	   own copy leaves the section's. Doc.css:2026-09-29. */
+	.page.doc-page .page-catalog-pages > .page--intro { --gutter-x: 0px; --pad-y: 0px; }
+
+	/* A doc section IS a page, so it is the shell's own grid now — `main` for the
+	   prose, `wide` for a table or a listing that needs the room. It used to declare
+	   `--measure: none`, and `styles/doc/measure.md` measured what that bought: 105
+	   characters a line, WORSE than the 52em token it was exempting itself from, on
+	   the 42 module-index pages a reader hits first. Removing one declaration is the
+	   whole fix — the shell already caps `main` at `--measure`.
+	   ⚠ `--page-pad` goes with it: the grid pays its own inset with `--pad-y` and the
+	     two gutter tracks, and a page that also carries a padding shorthand pays twice.
+	   ⚠ This rule is now only `--pad-y`, because a section sits under a well that has
+	     already announced the module — it needs the horizontal axis, not the top air. */
+	.doc-section { --pad-y: 1.5em; }
+
+	/* DELETED, 2026-08-17: `.doc-section .page.standard { --gutter-x: 0px }`.
+	   It existed because a section paid its inset as `--page-pad` — real padding, which
+	   a nested page then paid a second time. The section pays with GRID TRACKS now, and
+	   a `bleed` child (every catalog is one) spends those tracks and lands back on the
+	   region edge — so zeroing the nested page's gutter left the prose inside it flush
+	   against the app sidebar. Measured on `/framework/ui/`: the intro started at x=274,
+	   0px of inset, where the section's own axis is 90px.
+	   ⚠ STALE as of 2026-09-29: the catalog is `.wide` now (`div.page-catalog.wide`), so
+	   it no longer bleeds between the two pages — the section's and the intro's insets
+	   DO stack (measured: 56px each side at 400px instead of 28). The `.page--intro`
+	   rule above (`--gutter-x: 0px; --pad-y: 0px`) is the fix for that. */
+
+	/* The Files section is one browser, not a rail — and the browser is a panel
+	   workspace, so the height is its token rather than a flex line. Taller than the
+	   default: this is the whole tab, not a figure inside a page.
+	   ⚠ `min-height: 0` on the flex child, or the <pre> inside refuses to scroll. */
+	.doc-files { display: flex; padding-block: 1em; }
+	.doc-files > .files { flex: 1 1 auto; min-height: 0; --panel-height: min(74vh, 42em); }
+
+	/* The ⋯ that shows up only when a design collab named this member (ext/Doc/decisions.js).
+	   `.doc-decision-wrap` is the FIRST thing content() draws, right after the page's own
+	   `h1.page-title` (core/Page's default render) — as close to "right after the name" as
+	   this module can reach without editing core. */
+	.doc-decision-wrap { display: block; margin-block-end: 1em; }
+	.doc-decision-btn { cursor: pointer; display: inline-block; opacity: 0.6; }
+	.doc-decision-btn:hover { opacity: 1; }
+	.doc-decision-pop { max-width: 32em; padding-block-start: 0.5em; }
+	.doc-decision-link { display: inline-block; }
+
+	/* The owner, 2026-10-04, on this page on a phone: "by the time we get to any
+	   content ... we're already like halfway down the page". Below ~600px the title
+	   already falls to its own line (the `.page.doc-page` flex-wrap above puts the
+	   tab-bar's `flex: 1 1 24em` basis out of reach of the remaining row width) — but
+	   `.tab-bar`'s own wrap (above) then grows a SECOND or THIRD row of tabs stacked
+	   under it, so a 6-tab module like Dictate still spends ~180px of a 568px screen
+	   before any content. The fix is the row that already exists, forced one line and
+	   let it scroll sideways instead of wrapping — same markup, same tabs, only how
+	   the strip overflows. `ext/tabs`' own default (nowrap + scroll) is exactly this;
+	   Doc.css's desktop rule above just opts out of it above this width.
+	   Measured on /framework/ux/Dictate/ at 400px (pixel column scan, not a guess):
+	   well+tabs band was 122px tall before this rule (two tab rows), 85px after
+	   (one row) — 37px (30%) more of the page visible before any real content.
+	   Step 2 (the title itself opening a switcher) is still a To-do — readme.md. */
+	@media (width <= 600px) {
+		.doc-title { font-size: 0.85em; }
+		.doc-well { padding-block: 0.9em 0.4em; }
+
+		/* The strip takes its own line under the title. No drawer button to dodge, so
+		   the end padding shrinks. (Used to also force nowrap + scroll; that is the
+		   rule at every width now.) */
+		.page.doc-page > .tabs > .tab-bar { flex-basis: 100%; padding-inline-end: 0.8em; }
+	}
+
+	/* THE CLASS CARD (ext/Doc/ClassCard.js, doc/class-card.md): the API tab's home for a class.
+	   A title card, then groups of plain unboxed rows. ⚠ No backgrounds or borders on the rows:
+	   the only boxed thing here is the title card, which is the #Class mention's own dark card. */
+	.class-api > .tab-bar { display: none; }
+	.class-api > .tab-panel { width: 100%; }
+
+	.class-card { display: flex; flex-direction: column; gap: 1.5em; width: 100%; }
+	.class-card-title { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5em 1em; }
+	.class-card-name .mention { font-size: 1.6em; padding: 0.2em 0.6em; }
+	.class-card-gist { color: var(--subtle); }
+	.class-card-group { display: flex; flex-direction: column; gap: 0.3em; }
+	.class-card-head { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5em; font-weight: 600; color: var(--subtle); }
+	.class-card-items { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(14em, 100%), 1fr)); gap: 0 1em; }
+	.class-card-item .item-icon { font-size: 0.9em; }
+	.class-card-more > summary { cursor: pointer; color: var(--subtle); padding: 0.3em 0.6em; background: none; border: none; box-shadow: none; min-height: 0; }
+	.class-card-more[open] > summary { margin-bottom: 0.3em; }
+	.class-card-item .item-name { overflow-wrap: anywhere; }
+	.class-card-item .item-name { font-family: var(--mono, monospace); font-size: 0.9em; }
+	.class-card-item.property .item-icon { color: var(--subtle); }
+	.class-card-item.method .item-icon { color: var(--prime-ink); }
+	div.class-card-item { color: var(--subtle); }
+	.class-card-back { display: inline-flex; align-items: center; gap: 0.3em; color: var(--subtle); text-decoration: none; font-size: 0.9em; }
+}

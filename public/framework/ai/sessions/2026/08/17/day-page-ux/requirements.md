@@ -1,0 +1,18 @@
+# day-page-ux — what is the day page for, and make it that
+
+Laws: less is more · clarity · prioritize. **Deliverable: the day page (`/framework/ai/<date>/`) with one scroll region, an overview that answers "what is happening now" in one glance, and a drill-down that is a click, not a scroll. Final message ≤ 25 lines.**
+
+Mike (2026-08-17 ~18:00), verbatim: *"that first page has 2 scrollbars. the long list of non-clickable things is rather useless... build into this design/screenshot analysis some UX please.. what is the purpose of this page? what are all the possible things I might want to see on this page? how do we most easily see an overview of everything (focusing on current/active for a dashboard), and also drill down or scroll down or click through to see more?"* Earlier: *"I want ANSWERS. I want short and sweet NUGGETS OF VALUE."*
+
+## Do, in this order
+
+1. **Ask the tool first, then yourself.** Write `ext/DesignTool/vision/prompts/ux-v1.md` (≤ 30 lines): purpose of the page in one sentence as the model reads it · is the most important thing first · what a reader would want to see that is missing · overview vs drill-down (what is a glance, what is a click, what is a scroll) · does anything look clickable but isn't, or is clickable but doesn't look it · scroll regions (how many, is that one too many) · then the usual JSON findings block, `broken|maybe`. Run it on `/framework/ai/2026-08-17/` at 900/1440/3440, Sonnet (`run.mjs … --regions none --prompt ux-v1 --out public/framework/ai/2026-08-17/day-page-ux`, ~$0.25). Read the three answers. Then write **your** answer in `task.jsonl` as one log line each: purpose · the ≤ 8 things Mike might want to see (ranked) · what is a glance / a click / a scroll.
+2. **Diagnose the two scrollbars** — file:line (the `.page` shell from `layout-primitives`, `ext/AITask/ai.css`, the dashboard's own overflow) — and fix the cause: **one** scroll region. Class: broken.
+3. **The strip** — the day.jsonl list is not clickable and not scannable. Replace, don't decorate: whatever it becomes, every task name is a link to its task page, and the default view is *now* — active tasks (with their `now` line and step bar) first, then landed today as compact rows (headline of `outcome`, links pills), then the rest folded. `day.jsonl` itself becomes a click ("timeline"), not the header. Cap the first screen: at 1440 the active set and the first landed rows must fit above the fold; measure it.
+4. **Overview → drill-down**: the card is the overview (task · now · step bar · pills); click = task page. No card content that isn't a link or a number. Delete anything on the page that fails that test — say what you deleted.
+5. **Prove**: headless before/after at 900 and 1440 (`before-900.png` … `after-1440.png` here), scrollbar count before/after (count elements with `scrollHeight > clientHeight && overflow-y != visible`), first-screen contents at 1440 listed in one log line. Re-run `ux-v1` on the after page (3 asks) — did the model's answer to "purpose" and "most important thing first" change? Quote both.
+
+## Rules
+
+- Files: `ext/AITask/{dashboard.js,ai.css,card.js}`, `ai/page.js`, `ai/2026-08-17/page.js`, `ext/DesignTool/vision/prompts/ux-v1.md` (only that file there), this dir. Not `core/Page/Page.css` (if the scrollbar cause is there, log file:line + the one-line fix and stop — the layout owner applies it), not `AITask.js`/`feed.js` beyond a one-line call if unavoidable.
+- Skills: `code` once, `css` before CSS, `layout` once, `documentation` (`ext/AITask/readme.md`, `doc/`), `finish-task`. Log in `task.jsonl` (bash `printf`; timestamps from `date -Iseconds`); bump step. Every append reloads Mike's tab — batch. Never Mike's live tabs; headless only.

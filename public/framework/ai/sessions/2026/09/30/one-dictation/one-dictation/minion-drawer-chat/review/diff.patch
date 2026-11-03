@@ -1,0 +1,493 @@
+diff --git a/public/framework/ai2/rail.js b/public/framework/ai2/rail.js
+index 5964f428..6e93eb25 100644
+--- a/public/framework/ai2/rail.js
++++ b/public/framework/ai2/rail.js
+@@ -116,6 +116,14 @@ export default class AIRail extends InboxRail {
+ 				this.page.opening = id;
+ 				this.router?.go(workspace.url(this.url + id + "/"));
+ 			});
++		// "+ New session" BESIDE "+ New card" (one-dictation drawer-chat, 2026-10-02 — the
++		// owner: "creating a new session definitely should be a button on the main AI page
++		// here"). The exact shared button every surface's chat uses (`ux/Dictate/chat.js`'s
++		// `new_session_button`, CLAUDE.md law 6) — no chat is mounted on this bare dashboard
++		// to pass it, so it is handed a tiny stand-in whose only job is `reset()`, which this
++		// button only ever calls: a plain object works exactly as well as a real mount here.
++		mount_chat.new_session_button({ reset: mount_chat.reset }, { label: "+ New session", title: "Start a fresh global conversation" })
++			.ac("inbox-newcard ai2-newsession");
+ 	}
+ 
+ 	toggles(){
+diff --git a/public/framework/ext/Chat/Chat.css b/public/framework/ext/Chat/Chat.css
+index 170b1454..2c1ddfe5 100644
+--- a/public/framework/ext/Chat/Chat.css
++++ b/public/framework/ext/Chat/Chat.css
+@@ -45,12 +45,22 @@
+ 	   (this one, `ux/Dictate`'s own, AI 2's card composer) reads the same way.
+ 	   `padding-inline` is the "a little side padding on a phone" the owner asked
+ 	   for — small enough that a wide screen never notices it. */
++	/* THE COMPOSER IS ITS OWN PANEL (drawer-chat, one-dictation, 2026-10-02 — the owner:
++	   "the bottom bar still has this text area that probably needs a different background
++	   color to separate it from the chat area, the whole panel area where the controls
++	   are"). `--fill-a08` reads over any background it sits on (it is a translucent tint,
++	   not a flat colour — `color` skill), so this panel reads as its own region whether the
++	   chat feed above it is the page's own background, a `.card`'s `--surface`, or anything
++	   else a host wraps this in — no host-specific colour to keep in sync. The top border is
++	   the one extra cue a tint alone might miss on a low-contrast screen. */
+ 	.chatbox-compose {
+ 		position: relative;
+ 		display: flex;
+ 		flex-direction: column;
+ 		gap: 0.35em;
+-		padding-inline: 0.3em;
++		padding: 0.5em 0.3em;
++		background: var(--fill-a08);
++		border-block-start: 1px solid var(--line);
+ 	}
+ 	.chatbox-compose-row {
+ 		flex: none;
+@@ -100,6 +110,11 @@
+ 		flex: none;
+ 		white-space: nowrap;
+ 	}
++	/* Send sits at the row's own far end — mic, then the gear (and "raw" when it shows),
++	   land at the start; Send is the one thing pushed to the end (drawer-chat,
++	   one-dictation, 2026-10-02 — the owner: "the microphone and send and settings buttons
++	   are kind of just floating awkwardly down there"). */
++	.chatbox-compose-send { margin-inline-start: auto; }
+ 
+ 	.chatbox-compose-more {
+ 		padding: 0 0.45em;
+diff --git a/public/framework/ext/Chat/Composer.js b/public/framework/ext/Chat/Composer.js
+index db82889e..5a024a0a 100644
+--- a/public/framework/ext/Chat/Composer.js
++++ b/public/framework/ext/Chat/Composer.js
+@@ -60,9 +60,13 @@ export function composer({
+ 			$input = textarea().attr("rows", "2").ac("auto chatbox-compose-input").attr("placeholder", placeholder);
+ 		});
+ 
+-		// ONE ROW, UNDER THE BOX: the mic, Send, and the one ⚙ menu button that opens
+-		// everything else full screen — never beside the box any more, so the box can
+-		// be the full width of the row above it (`Chat.css`'s `.chatbox-compose-row`).
++		// ONE ROW, UNDER THE BOX: mic on the left, the gear next to it, Send pinned to the
++		// right — same edges as the box above it (drawer-chat, one-dictation, 2026-10-02 —
++		// the owner: "the microphone and send and settings buttons are kind of just
++		// floating awkwardly down there"). The row used to read mic, Send, gear — Send sat
++		// in the middle, at neither edge. `Chat.css`'s own `.chatbox-compose-send`
++		// (`margin-inline-start: auto`) is what actually pushes it to the row's far end,
++		// past whatever else is in the row (the gear, and the "raw" toggle when it shows).
+ 		div.c("chatbox-compose-row", () => {
+ 			if (with_mic) mic = new ComposerMic({
+ 				re,
+@@ -82,8 +86,6 @@ export function composer({
+ 				on_clean_failed: why => note("clean-up isn't answering - will send raw (" + why + ")"),
+ 			}).ac("chatbox-mic");
+ 
+-			button.c("chatbox-compose-send prim").attr("type", "button").text("Send").click(send);
+-
+ 			// ONE MENU BUTTON (chat-menu-merge, 2026-10-01) — used to be TWO buttons here,
+ 			// `⋯` (engine, microphone and status) and a separate gear (settings); see
+ 			// `build_menu()` below for the one full-screen panel this now opens. A real
+@@ -113,6 +115,8 @@ export function composer({
+ 					if (!e.detail) $raw_btn.el.classList.remove("active");
+ 				});
+ 			}
++
++			button.c("chatbox-compose-send prim").attr("type", "button").text("Send").click(send);
+ 		});
+ 
+ 		$note = small.c("chatbox-compose-note muted").text(hint);
+diff --git a/public/framework/ext/drawer/drawer.css b/public/framework/ext/drawer/drawer.css
+index 072f744f..e51359ba 100644
+--- a/public/framework/ext/drawer/drawer.css
++++ b/public/framework/ext/drawer/drawer.css
+@@ -138,6 +138,48 @@
+ 	.drawer-model { gap: 0.4em; }
+ 	.drawer-ai-list { gap: 0.6em; }
+ 
++	/* THE SESSION HEADER STRIP (one-dictation drawer-chat, 2026-10-02 — `tabs/ai.js`'s
++	   `session_header()`): what used to be the whole separate Sessions tab, now three short
++	   lines above the chat. `flex: none` — it never grows or shrinks; `.drawer-ai-panel`
++	   right below it (above) is the one thing in this column that does. */
++	.drawer-ai-session { flex: none; gap: 0.35em; padding-block-end: 0.5em; border-block-end: 1px solid var(--line); }
++	.drawer-ai-session-head { gap: 0.5em; }
++	.drawer-ai-session-name { font-weight: 600; }
++	.drawer-ai-session-log { font-size: 0.85em; }
++	.drawer-ai-session-scope { font-size: 0.85em; }
++
++	/* THE AGENT CHIPS — "which agents are listening should be abundantly clear" (the
++	   owner). Three plain states, three quiet colours: working is the site's one accent,
++	   idle is plain text, asleep is faded further still — no new palette, just how loud
++	   each one reads. */
++	.drawer-ai-chips { gap: 0.3em; }
++	.drawer-ai-chip {
++		padding: 0.1em 0.5em;
++		font-size: 0.8em;
++		border-radius: 1em;
++		background: var(--fill-a08);
++		border: 1px solid var(--line);
++	}
++	.drawer-ai-chip-working { color: var(--prim-ink); background: color-mix(in srgb, var(--prim) 20%, var(--fill-a08)); border-color: transparent; }
++	.drawer-ai-chip-asleep { opacity: 0.6; }
++
++	.drawer-ai-switcher { gap: 0.4em; position: relative; }
++	.drawer .drawer-ai-switch-btn {
++		min-block-size: 0;
++		padding: 0.25em 0.5em;
++		font: inherit; font-size: 0.85em;
++		color: var(--subtle);
++		background: none;
++		border: 1px solid var(--line);
++		border-radius: calc(var(--radius) / 2);
++		cursor: pointer;
++	}
++	.drawer .drawer-ai-switch-btn:hover { color: var(--ink); background: var(--fill-a08); }
++	/* Drops below the strip as its own small list — not a true popover (no z-index fight to
++	   win: the drawer already owns the whole edge), just a block that pushes the chat down
++	   while it is open, same as the inbox's own notes do above it. */
++	.drawer-ai-switch-list { flex: none; gap: 0.3em; padding-block-start: 0.3em; }
++
+ 	/* THE PANEL'S CEILING (`Widget`, `ux/Dictate/Widget.js` — was `ChatPanel`,
+ 	   `ai/2026-09-29/audio/c-chat/`): "the drawer's own full height" (its brief),
+ 	   so the composer never leaves the visible drawer as the thread grows.
+diff --git a/public/framework/ext/drawer/page.js b/public/framework/ext/drawer/page.js
+index bd97d484..57d06043 100644
+--- a/public/framework/ext/drawer/page.js
++++ b/public/framework/ext/drawer/page.js
+@@ -18,7 +18,7 @@ export default new Doc({
+ 
+ 		h2("The ☰ and its tabs");
+ 
+-		md("Every page has a **☰** in its top right. It opens this drawer on five tabs (a sixth, Element, appears while something is selected), and the open tab is in the url (`?drawer=sessions`), so a reload lands on it. Try them:");
++		md("Every page has a **☰** in its top right. It opens this drawer on three tabs (a fourth, Element, appears while something is selected), and the open tab is in the url (`?drawer=ai`), so a reload lands on it. Try them:");
+ 
+ 		div.c("flex gap wrap", () => {
+ 			tabs.shown().filter(t => t.name !== "element").forEach(t => button.c("btn", t.label).click(() => tabs.open(t.name)));
+diff --git a/public/framework/ext/drawer/rail.js b/public/framework/ext/drawer/rail.js
+index 803ee09c..cabb0553 100644
+--- a/public/framework/ext/drawer/rail.js
++++ b/public/framework/ext/drawer/rail.js
+@@ -673,9 +673,11 @@ export class DrawerRailSheet extends DrawerRailSheetV1 {
+ 	}
+ 
+ 	links(){
++		// "Sessions" used to be its own link here, to its own tab — gone (one-dictation
++		// drawer-chat, 2026-10-02): the Sessions tab folded into AI (tabs.js), so it would
++		// have opened the exact same place "Open full AI" already does.
+ 		return div.c("drawer-rail-sheet-links flex wrap", () => {
+ 			this.new_session_button();
+-			this.link("Sessions", "sessions");
+ 			this.link("Dictation", "dictation");
+ 			this.link("Settings", "settings");
+ 			this.link("Open full AI", "ai");
+diff --git a/public/framework/ext/drawer/readme.md b/public/framework/ext/drawer/readme.md
+index 158d69b4..3163a57c 100644
+--- a/public/framework/ext/drawer/readme.md
++++ b/public/framework/ext/drawer/readme.md
+@@ -17,9 +17,11 @@ drawer.showing();     // is it open
+ 
+ ## The ☰ and its tabs
+ 
+-Every page has a ☰ at its top right (`menu.js`, called once in `app.js`). It opens this drawer on five routed tabs — AI, Sessions, Dictation, Settings, Admin (`tabs.js`, `tabs/*.js`), plus Element while something is selected; off the dev server only AI, Sessions and Dictation show; `?drawer=sessions` opens on Sessions. The tab model, `send()` and `drawer.page()` · [doc/tabs.md](./doc/tabs.md)
++Every page has a ☰ at its top right (`menu.js`, called once in `app.js`). It opens this drawer on three routed tabs — AI, Dictation, Settings (`tabs.js`, `tabs/*.js`), plus Element while something is selected; off the dev server only AI and Dictation show; `?drawer=sessions` opens the AI tab (the old Sessions tab merged into it — see below). The tab model, `send()` and `drawer.page()` · [doc/tabs.md](./doc/tabs.md)
+ 
+-**The AI tab is `ux/Dictate/chat.js`'s one mount** (one-dictation, 2026-09-30), full height, no model picker, on a plain page AND a card alike — the same call the ✦ sheet makes, below. The OLD tab (its own model picker, its own private session wiring) is kept reachable as `aiV2` (`tabs/ai.js`). **The Sessions tab lists voice sessions first** — this page's, from `Session.recent()`, the live one marked — then the dev bar Ask's own older threads, unchanged.
++**The AI tab is `ux/Dictate/chat.js`'s one mount** (one-dictation, 2026-09-30), full height, no model picker, on a plain page AND a card alike — the same call the ✦ sheet makes, below. The OLD tab (its own model picker, its own private session wiring) is kept reachable as `aiV2` (`tabs/ai.js`). **A header strip sits above it** (drawer-chat, one-dictation, 2026-10-02 — the owner: "which session we're on should be abundantly clear; which agents are listening should be abundantly clear"): the session's name and a link to its raw log, the fast/smart assistants as live-state chips (working/idle/asleep, read from `GET /api/agents`), a short switcher listing the project's other recent voice sessions, and the shared "+ New session" button (`chat.new_session_button`, also on `/framework/ai/`'s own Inbox dashboard beside "+ New card"). This strip IS the old Sessions tab's own content, folded up here — `tabs/sessions.js` still exists for its `threads()`/`load()` exports (`dev/DevBar/ask.js` reads them) but is no longer routed to.
++
++**Admin is a section of Settings**, not its own tab (`tabs/settings.js` calls `tabs/admin.js`'s own function directly) — purely so the tab row fits one line at the drawer's 19rem default width.
+ 
+ While it is open, a click selects any content on the page (`select.js`): its properties show on the Element tab, which appears only while something is selected, and "Ask about this" adds it to the AI tab's input as a chip that rides along as context · [doc/select.md](./doc/select.md)
+ 
+diff --git a/public/framework/ext/drawer/tabs.js b/public/framework/ext/drawer/tabs.js
+index f810bae7..eb3052dc 100644
+--- a/public/framework/ext/drawer/tabs.js
++++ b/public/framework/ext/drawer/tabs.js
+@@ -51,12 +51,20 @@ export let DEV = LOCAL_HOST;
+ export class DrawerTabs {
+ 	static KEY = "drawer";
+ 
++	/* AI AND SESSIONS ARE ONE TAB, "AI" (one-dictation drawer-chat, 2026-10-02 — the owner:
++	   "I feel like the AI and the sessions should be kind of the same thing"). The old
++	   Sessions tab's own list (which voice session is live, which others exist) is now a
++	   header strip at the top of the AI tab itself (`tabs/ai.js`'s `session_header()`), so
++	   there is nothing left for a second tab to show — `?drawer=sessions` below still opens
++	   somewhere real instead of a tab that no longer exists.
++	   ADMIN IS A SECTION OF SETTINGS now, not its own tab (`tabs/settings.js` calls
++	   `admin.js`'s own function directly, unchanged) — purely to make the row fit one line
++	   at the drawer's 19rem default width (the owner's screenshot: "six tiny tabs wrap onto
++	   two lines"). `tabs/admin.js` still exists and is still the one copy of that code. */
+ 	list = [
+ 		{ name: "ai",        label: "AI",        load: () => import("./tabs/ai.js") },
+-		{ name: "sessions",  label: "Sessions",  load: () => import("./tabs/sessions.js") },
+ 		{ name: "dictation", label: "Dictation", load: () => import("./tabs/dictation.js") },
+ 		{ name: "settings",  label: "Settings",  load: () => import("./tabs/settings.js"), when: () => DEV },
+-		{ name: "admin",     label: "Admin",     load: () => import("./tabs/admin.js"),    when: () => DEV },
+ 		// Only while something on the page is selected (select.js sets `selected`).
+ 		{ name: "element",   label: "Element",   load: () => import("./tabs/element.js"),  when: () => !!this.selected },
+ 	];
+@@ -114,8 +122,11 @@ export class DrawerTabs {
+ 		return path.includes("/fs/") ? path : path.replace(/\/?$/, "/") + "fs/";
+ 	}
+ 
+-	/** Open the drawer on a tab — the named one, else the one already open, else AI. */
++	/** Open the drawer on a tab — the named one, else the one already open, else AI.
++	 *  "sessions" is remapped to "ai" — an old `?drawer=sessions` bookmark, or
++	 *  `rail.js`'s own link, still lands somewhere real now that the two are one tab. */
+ 	open(name){
++		if (name === "sessions") name = "ai";
+ 		// A real click on ☰ — the one moment this file is allowed to touch the
+ 		// network (see the comment on `DEV` above). Memoized in Ask.js: cheap to call every time.
+ 		if (!DEV) ask_probe().then(() => { if (http_ask_ready) DEV = true; });
+diff --git a/public/framework/ext/drawer/tabs/ai.js b/public/framework/ext/drawer/tabs/ai.js
+index af97b35b..6cd2ad00 100644
+--- a/public/framework/ext/drawer/tabs/ai.js
++++ b/public/framework/ext/drawer/tabs/ai.js
+@@ -1,7 +1,7 @@
+-import { div, span, label, select, option, small, button } from "/framework/core/View/View.js";
++import { div, span, label, select, option, small, button, a } from "/framework/core/View/View.js";
+ import md from "/framework/ext/markdown/md.js";
+ import Widget, { model, MODELS } from "/framework/ux/Dictate/Widget.js";
+-import chat from "/framework/ux/Dictate/chat.js";
++import chat, { ago } from "/framework/ux/Dictate/chat.js";
+ import { composer } from "/framework/ext/Chat/Composer.js";
+ import { post_prompt } from "/framework/ux/Dictate/Dictate.js";
+ import { servex_base, is_folder_id, card_prompt, cards_ready } from "/framework/ai2/inbox.js";
+@@ -222,18 +222,158 @@ function chips_row(tabs){
+ 	return { view: $chips, context: () => tabs.chips.length ? tabs.chips.map(c => ({ ...c })) : undefined };
+ }
+ 
++/* THE HEADER STRIP (one-dictation drawer-chat, 2026-10-02 — the owner: "The UI needs to
++ * be very clear what's actually happening structurally in the data. Which session we're
++ * on should be abundantly clear. Which agents are listening should be abundantly clear.").
++ * This is what used to be the whole separate Sessions tab (ask 1: "AI and Sessions become
++ * one tab") — now three short lines above the chat, always telling the truth about the
++ * one thing every surface actually shares: ONE global conversation per browser tab
++ * (`ux/Dictate/chat.js`'s own `GLOBAL` controller, `ux/Dictate/readme.md`'s "the session
++ * is global"). `card` is never a second, scoped session — just a hint for the session's
++ * very first sentence — so this strip always says "global", truthfully, instead of
++ * guessing at a scope that does not exist today.
++ *
++ *   1. the session's name (its `session_summary` title, once the smart assistant has
++ *      given it one) and a link to its raw log file;
++ *   2. the fast and smart assistants, as chips reading their LIVE state — working, idle,
++ *      or asleep (Servex stops an idle pair after 5 minutes; "asleep" covers "stopped" and
++ *      "never started yet" the same way, since a reader cannot tell those apart by looking
++ *      and does not need to) — read from `GET /api/agents`, the one route every agent-state
++ *      reader on the site already polls (`ai2/agents.js`, `core/Page/ai/live.js`); no new
++ *      endpoint;
++ *   3. a short list of the project's other recent voice sessions (one click resumes one,
++ *      `chat.resume()`) and the shared "+ New session" button (`chat.new_session_button`,
++ *      `ux/Dictate/chat.js` — CLAUDE.md law 6: one button, not a second one built here).
++ *
++ * NOT folded in: the dev bar Ask's own older text threads and a card's sub-cards, which
++ * `tabs/sessions.js` used to also list below the voice sessions. Those are a separate,
++ * older kind of conversation (`aiV2`'s own `thread` handling, kept reachable below) — the
++ * dev bar itself (Ctrl+\\) is still the live, maintained place to reach an Ask thread, and
++ * stacking a second, rarely-used list under the one the owner actually asked to see clearer
++ * would be the opposite of this task's own ask. `tabs/sessions.js` keeps existing, unchanged,
++ * for its `threads()`/`load()` exports (`dev/DevBar/ask.js` still imports them) and as a
++ * fallback module nothing routes to any more. */
++const AGENT_ROLES = ["fast", "smart"];
++
++function agent_state_label(raw){
++	if (raw === "working") return "working";
++	if (raw === "idle") return "idle";
++	return "asleep";   // "dormant", "stopped", "gone", or not found at all — Servex only keeps
++	                   // a live row for an agent that is actually awake; everything else reads
++	                   // the same to a reader deciding whether to expect a quick reply.
++}
++
++/** The fast/smart assistants' live state, `[{role, state}]` — reusing the one route every
++ *  other agent-state reader already polls (see the class doc above), never a new one. The
++ *  agent ids are derivable straight from the session id (`doc/sessions.md`'s own file
++ *  format: `"fast": "session-fast-<id>", "smart": "session-smart-<id>"`), so this needs no
++ *  extra fetch of the session record itself. Fails soft to "asleep" for both, same as every
++ *  other Servex read in this file. */
++async function fetch_agent_states(session){
++	let rows = [];
++	try {
++		const res = await fetch(servex_url("/api/agents"), { cache: "no-store", signal: AbortSignal.timeout(4000) });
++		rows = res.ok ? await res.json() : [];
++	} catch {}
++	return AGENT_ROLES.map(role => ({ role, state: agent_state_label(rows.find?.(r => r.id === `session-${role}-${session}`)?.state) }));
++}
++
++/** The header strip itself — see the class doc above. Returns `{view, stop}`; `stop()`
++ *  drops its own poller and its `chat.on_change` subscription, called by `dispose_chat()`
++ *  below the same way it already disposes the chat mount, so reopening this tab ten times
++ *  never leaves nine stale timers running (review finding 3's own bug, for the mount —
++ *  this strip is new code, so it is built with that fix already in it, not after). */
++function session_header({ card }){
++	const $box = div.c("drawer-ai-session flex v");
++	let $chips = null, chip_timer = null;
++
++	function draw_chips(session){
++		if (!$chips) return;
++		if (!session){ $chips.empty(() => AGENT_ROLES.forEach(role => span.c("drawer-ai-chip drawer-ai-chip-asleep", `${role} · asleep`))); return; }
++		fetch_agent_states(session).then(list => {
++			if (!$chips?.el.isConnected) return;
++			// `info`, not `a` — `a` is this file's own import, the anchor-tag factory (code skill).
++			$chips.empty(() => list.forEach(info => span.c(`drawer-ai-chip drawer-ai-chip-${info.state}`, `${info.role} · ${info.state}`)));
++		});
++	}
++
++	async function paint(){
++		const session = chat.current();
++		let rows = [];
++		try { rows = await Session.recent_project({ limit: 12 }); } catch {}
++		if (!$box.el.isConnected) return;
++		const live_row = rows.find(r => r.session === session);
++
++		$box.empty(() => {
++			div.c("drawer-ai-session-head flex v-center split wrap", () => {
++				span.c("drawer-ai-session-name", live_row?.title || "a new conversation");
++				if (live_row?.home) a.c("drawer-ai-session-log muted", "log")
++					.attr("href", live_row.home.replace(/\/?$/, "/") + "ai/" + live_row.session + ".jsonl")
++					.attr("target", "_blank").attr("title", "This conversation's raw file");
++			});
++			// THE ONE QUESTION THE OWNER ASKED FIRST ("is this a global session?") — answered
++			// flatly, every time, because it is always true: every surface shares this ONE
++			// conversation (chat.js's `GLOBAL` controller). `card` never makes a second,
++			// scoped one — only a hint for its first line — so this never says "scoped".
++			small.c("drawer-ai-session-scope muted", card
++				? "global conversation — this card is only a hint for its first line; it follows you everywhere"
++				: "global conversation — the same one on every page, until “+ New session”");
++
++			$chips = div.c("drawer-ai-chips flex wrap");
++			draw_chips(session);
++
++			div.c("drawer-ai-switcher flex v-center wrap", () => {
++				chat.new_session_button(() => live_chat, { label: "+ New session" });
++				// Only worth a switcher when there is somewhere else to switch TO.
++				if (rows.some(row => row.session !== session)){
++					const $list = div.c("drawer-ai-switch-list flex v");
++					$list.el.hidden = true;
++					button.c("drawer-ai-switch-btn", "Switch session ▾").attr("type", "button")
++						.click(() => { $list.el.hidden = !$list.el.hidden; });
++					$list.append(() => {
++						rows.forEach(row => {
++							const is_live = row.session === session;
++							button.c("drawer-row").attr("type", "button").ac(is_live && "on")
++								.click(() => chat.resume(row.session)).append(() => {
++									span.c("drawer-row-title", (is_live ? "● " : "") + (row.title ?? "Voice session"));
++									small.c("drawer-row-meta muted", is_live ? "the current conversation" : ago(row.last_at ?? row.at));
++								});
++						});
++					});
++				}
++			});
++		});
++	}
++
++	paint();
++	const unsubscribe = chat.on_change(paint);
++	// The chips' own state can change (an agent falls asleep after 5 idle minutes) with no
++	// session change at all to trigger `paint()` — a light poll, same 10s rhythm
++	// `ai2/agents.js`'s own card-agents row already uses, stopped the instant the box leaves
++	// the page (checked inside `draw_chips`/`fetch_agent_states` doing nothing useful once
++	// `$box` is disconnected — `stop()` below clears the timer itself regardless).
++	chip_timer = setInterval(() => draw_chips(chat.current()), 10000);
++
++	return { view: $box, stop(){ unsubscribe(); clearInterval(chip_timer); } };
++}
++
+ /* THE ONE LIVE MOUNT. `ai()` below builds a `chat.js` mount every time the drawer
+  * refills this tab — this module-level slot (singleton, like `live_card` above)
+  * remembers it so the OLD one gets `remove()`d first, instead of leaking a
+  * poller and an `EventSource` on every reopen. A `MutationObserver` plus the
+  * `drawer-close` event catch the two ways the mount can leave the page without
+  * `ai()` running again: a different tab replacing this one's content, or the
+- * whole drawer shutting. Full reasoning: [`doc/chat.md`](/framework/ux/Dictate/doc/chat/). */
++ * whole drawer shutting. Full reasoning: [`doc/chat.md`](/framework/ux/Dictate/doc/chat/).
++ * `live_header` (`session_header()`'s own return) is disposed the same way, same moments —
++ * see that function's own doc for why it needs disposing at all. */
+ let live_chat = null;
++let live_header = null;
+ function dispose_chat(){
+ 	const handle = live_chat;
+ 	live_chat = null;
+ 	handle?.remove();
++	live_header?.stop();
++	live_header = null;
+ }
+ window.addEventListener("drawer-close", dispose_chat);
+ 
+@@ -253,6 +393,7 @@ export default function ai({ page, card, tabs }){
+ 	const inbox = new DrawerInbox({ page });
+ 	div.c("drawer-ai flex v", () => {
+ 		inbox.view();
++		live_header = session_header({ card });
+ 		const $slot = div.c("drawer-ai-panel");
+ 		const handle = live_chat = chat($slot.el, {
+ 			path: page,
+@@ -268,6 +409,8 @@ export default function ai({ page, card, tabs }){
+ 				mo.disconnect();
+ 				handle.remove();
+ 				if (live_chat === handle) live_chat = null;
++				live_header?.stop();
++				live_header = null;
+ 			});
+ 			mo.observe(host, { childList: true });
+ 		}
+diff --git a/public/framework/ext/drawer/tabs/settings.js b/public/framework/ext/drawer/tabs/settings.js
+index aa9c74de..6037e33a 100644
+--- a/public/framework/ext/drawer/tabs/settings.js
++++ b/public/framework/ext/drawer/tabs/settings.js
+@@ -6,6 +6,7 @@ import blocked from "/framework/dev/DevBar/blocked.js";
+ import Socket from "/framework/dev/Socket/Socket.js";
+ import { page_settings } from "/framework/core/Page/settings/settings.js";
+ import select from "../select.js";
++import admin from "./admin.js";
+ 
+ /* THE SETTINGS TAB — the dev bar's own settings, reused, nothing new: the edit switch
+    (ext/Ask/edit.js, the one every editor control reads), the reader's reload block,
+@@ -39,6 +40,15 @@ export default function settings({ app }){
+ 		section("inspect", () => check("inspect mode — click anything on the page to select it", "inspect-mode",
+ 			() => { select.hover(null); select.clear(); }));
+ 		this_page(app);
++		// ADMIN, FOLDED IN (one-dictation drawer-chat, 2026-10-02): the reload hold and the
++		// dev bar's route/server/structure/jump sections used to be their own top-level tab
++		// (`tabs/admin.js`). Moved here, as one more section, so the tab row fits one line at
++		// the drawer's 19rem default width (the owner's own screenshot showed six tabs
++		// wrapping onto two lines). `admin.js`'s own function is called unchanged, not copied
++		// — one set of code either way (CLAUDE.md law 6); it still draws its own heading-free
++		// "reload hold" + dev-bar sections inside its own `drawer-admin` box, now just one
++		// more child of this tab instead of a whole tab of its own.
++		section("admin", () => admin({ app }));
+ 	});
+ }
+ 
+diff --git a/public/framework/ux/Dictate/chat.js b/public/framework/ux/Dictate/chat.js
+index 6a56805b..4d9a6fd9 100644
+--- a/public/framework/ux/Dictate/chat.js
++++ b/public/framework/ux/Dictate/chat.js
+@@ -309,6 +309,10 @@ export default function chat(el, { path = location.pathname, card, placeholder,
+ 		// (`ext/drawer/rail.js`'s sheet, which can show a different card without rebuilding)
+ 		// should pass the new one too, `nav(path, newCardId)`, so it is not lost.
+ 		nav(path, card){ target.path = path; if (card !== undefined) target.card = card; owner.report_nav(path, target.card); },
++		// The session's own raw log file url, or null before the first sentence — the
++		// drawer-chat header strip's "log" link (item 1, one-dictation drawer-chat,
++		// 2026-10-02: "which session we're on should be abundantly clear").
++		file: () => owner.ctl.file,
+ 		// Drop THIS mount's own conversation and start fresh on the next sentence — the
+ 		// shared button below (item 3) calls this. For `keep: true` this is exactly
+ 		// `chat.reset()`; for `keep: false` it only ever affected this one mount anyway.
+@@ -347,10 +351,19 @@ export function new_session_button(mount, { label = "New session", title = "Clea
+ }
+ 
+ chat.current = () => GLOBAL.current();
++chat.file = () => GLOBAL.ctl.file;
+ chat.resume = session => GLOBAL.resume_to(session);
+ chat.reset = () => GLOBAL.reset();
+ chat.ago = ago;
+ chat.new_session_button = new_session_button;
++// Told the moment the GLOBAL session changes — a first start, a resume, or a reset from
++// ANY open mount or button (`new_session_button` above, `tabs/sessions.js`'s old resume
++// click, now the drawer-chat header strip too). Returns `stop()`. A `keep: false` mount's
++// own private controller never fires this — nothing outside that one mount could show it
++// anyway. Added for item 1, one-dictation drawer-chat (2026-10-02): the header strip's own
++// session name, log link and agent chips need to redraw themselves on a change they did not
++// necessarily cause (a switcher click resumes through `chat.resume`, not through the mount).
++chat.on_change = fn => GLOBAL.subscribe(fn);
+ 
+ // `ago()` (review fix #9, 2026-09-30): `ext/drawer/rail.js` and `ext/drawer/tabs/sessions.js`
+ // each carried their own copy of this exact function — this is now the one, imported by both.

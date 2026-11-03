@@ -1,0 +1,18 @@
+{"phase":{"at":"2026-09-30T13:34:54-05:00","n":1,"kind":"findings","status":"start"}}
+{"finding":{"at":"2026-09-30T13:34:54-05:00","n":1,"kind":"fix","text":"Asks 1 and 4 are only half met: the card never shows the sheet or links the report. review.mjs writes `{\"shots\":…}` and `report` into task.jsonl, but nothing in the diff renders them (ai2/card.js is untouched and has no `shots` or `report` reader), so a reader can't open the shots from the card. Evidence: review/diff.patch file list."}}
+{"finding":{"at":"2026-09-30T13:34:54-05:00","n":2,"kind":"fix","text":"The questions page says \"in the order it asks them\", but its wall does not read in that order (layout 25, content 5). Masonry fills top to bottom, so the top row reads Page structure · Sizing · Flow at 1920 and Page structure · Layout · Wrapping · Colour and contrast · Words at 3440. Evidence: shots/127-0-0-1-64869-framework-ai-review/1920.png and 3440.png, the wall band. The author logged this as \"left for later\"."}}
+{"finding":{"at":"2026-09-30T13:34:54-05:00","n":3,"kind":"note","text":"The concept tiles wrap to 3 rows at 1920 and 3440 while the right half of that band is empty (layout 9, wrapping 22). Evidence: 1920.png and 3440.png, tile band; layout.json flex share 0.139 / ink 0.275 at 1920, 0.21 ink at 3440."}}
+{"finding":{"at":"2026-09-30T13:34:54-05:00","n":4,"kind":"note","text":"\"What's in flight\" sits under the whole wall, 4–12 screens down (page 4, open before done). Evidence: layout.json `wide` band share 12.585 at 400 and 5.38 at 1920."}}
+{"finding":{"at":"2026-09-30T13:34:54-05:00","n":5,"kind":"note","text":"Each system's \"Source:\" is plain text, not a link (content 8). The reason is written down in doc/decisions.md, so this is a known gap, not an oversight."}}
+{"finding":{"at":"2026-09-30T13:34:54-05:00","n":6,"kind":"note","text":"The readme counts \"nine systems\" including Requirements, but the page shows nine tiles without Requirements and with Words (content 7). Requirements has no questions file, so its entry in `SYSTEM_ICON` is never used."}}
+{"finding":{"at":"2026-09-30T13:34:54-05:00","n":7,"kind":"note","text":"merge.mjs's refusal says the report comes \"with shots at 400/1200/1920/3440\", but the gate only checks that report.md exists. It never checks the pngs."}}
+{"phase":{"at":"2026-09-30T13:34:54-05:00","n":1,"kind":"findings","status":"done","verdict":"fix","cost":1.095986,"model":"claude-opus-5-5"}}
+{"phase":{"at":"2026-09-30T13:40:17-05:00","n":2,"kind":"answers","status":"start"}}
+{"answer":{"at":"2026-09-30T13:40:17-05:00","n":1,"reply":"fixed: review.mjs posts verdict + report + sheet links to the task's card (af71a912)"}}
+{"answer":{"at":"2026-09-30T13:40:17-05:00","n":2,"reply":"fixed: grid auto (row-major) replaces masonry, the wall reads in review order"}}
+{"answer":{"at":"2026-09-30T13:40:17-05:00","n":3,"reply":"fixed: tiles in the wide track, one row at 1920 and 3440"}}
+{"answer":{"at":"2026-09-30T13:40:17-05:00","n":4,"reply":"fixed: What's in flight moved above the wall"}}
+{"answer":{"at":"2026-09-30T13:40:17-05:00","n":5,"reply":"noted: .claude/ is not served by the static site, so no URL exists; reason in ai/review/doc/decisions.md"}}
+{"answer":{"at":"2026-09-30T13:40:17-05:00","n":6,"reply":"fixed: readme names the shown systems; unused SYSTEM_ICON entry removed"}}
+{"answer":{"at":"2026-09-30T13:40:17-05:00","n":7,"reply":"fixed: refusal text says it checks for review/report.md only"}}
+{"phase":{"at":"2026-09-30T13:40:17-05:00","n":2,"kind":"answers","status":"done"}}

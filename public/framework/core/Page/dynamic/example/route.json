@@ -1,0 +1,4 @@
+{
+	"title": "2. route()",
+	"body": "If nothing is remembered, `child()` asks this page's own `route(name)` hook. This is how a dynamic page like this whole `dynamic/example/` folder answers for a name — `memory`, `route` and `filesystem` are not files with `page.js` in them; this very item is `route()`'s (well, `child()`'s) answer."
+}

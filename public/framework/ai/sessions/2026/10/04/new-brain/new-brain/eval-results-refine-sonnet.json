@@ -1,0 +1,433 @@
+{
+  "at": "2026-10-04T23:32:58.605Z",
+  "results": {
+    "anthropic/claude-sonnet-5": {
+      "model": "anthropic/claude-sonnet-5",
+      "level_a": {
+        "correct": 4,
+        "total": 5,
+        "details": [
+          {
+            "id": "a1",
+            "pass": true,
+            "answer": "It emits `\"change\"` (with arguments `key, value, old`) and `\"delta\"` (with arguments `{ set: { [key]: value } }, this`).",
+            "expected": "\"change\" and \"delta\""
+          },
+          {
+            "id": "a2",
+            "pass": true,
+            "answer": "It throws an Error with the message `field \"${name}\" collides with Item.prototype`, preventing the property definition from overwriting an existing prototype member.",
+            "expected": "Throws an Error (`field \"${name}\" collides with Item.prototype`)"
+          },
+          {
+            "id": "a3",
+            "pass": true,
+            "answer": "The exact order is: `@layer base, theme, site, util;`",
+            "expected": "base theme site util"
+          },
+          {
+            "id": "a4",
+            "pass": true,
+            "answer": "It returns the same cached Store instance each time — the first call creates and stores it in `Store.instances` keyed by `url`, and subsequent calls with that same url just return that cached instance rather than creating a new one.",
+            "expected": "The same cached Store instance (singleton via Store.instances Map)"
+          },
+          {
+            "id": "a5",
+            "pass": false,
+            "answer": "Only `p()` and `h1`–`h6` helpers read backticks. A backtick inside `css(\\`...\\`)` is dangerous because it prematurely closes the template literal, silently corrupting the CSS and breaking every page that loads that stylesheet (since all CSS is loaded through framework.css first).",
+            "expected": "Only p()/h1–h6 read backticks; one backtick inside css(`...`) kills every page."
+          }
+        ]
+      },
+      "level_b": {
+        "correct": 3,
+        "total": 3,
+        "details": [
+          {
+            "id": "b1",
+            "pass": true,
+            "answer": "**1. Total \"change\" events: 2**\n\n**2. changes array:**\n```js\n[\n  { key: \"b\", val: 2, old: undefined },\n  { key: \"b\", val: 3, old: 2 }\n]\n```\n\n**3. item.data:** `{ a: 1, b: 3 }`\n\n**Reasoning:**\n- `item.set({a:1,b:2})` iterates keys, calling `set_one` for each.\n  - For `a`: `old = this.get(\"a\") = 1`, new value is `1` → `old === value`, so no \"change\"/\"delta\" emitted (just `put` runs silently).\n  - For `b`: `old = this.get(\"b\") = undefined`, new value `2` → different, so `put(\"b\",2)` happens, then `emit(\"change\",\"b\",2,undefined)` fires → recorded as `{key:\"b\", val:2, old:undefined}`.\n- `item.set({b:3})`:\n  - For `b`: `old = this.get(\"b\") = 2`, new value `3` → different, `put(\"b\",3)`, emits `\"change\",\"b\",3,2` → recorded as `{key:\"b\", val:3, old:2}`.\n- Final data: `a` stayed `1`, `b` ended at `3`.",
+            "expected": "2 change events. First: key 'b', val 2, old undefined. Second: key 'b', val 3, old 2. 'a' does not fire because old === val. End data: { a: 1, b: 3 }."
+          },
+          {
+            "id": "b2",
+            "pass": true,
+            "answer": "1. **Event emitted on `child`:** `child.emit(\"delta\", { set: { title: \"Hello\" } }, child)` — a `delta` event carrying the raw change payload plus a reference to the Item instance that actually originated it.\n\n2. **How it reaches `doc`/its Store:** Events in this framework bubble upward through nested Items the same way `change`/`delta` bubble in the `Events` mixin — each Item, when it nests another Item/List/Map-like structure as a value, subscribes to that child's `delta` event and re-emits it on itself. So `child`'s `delta` triggers `section`'s own `delta` re-emit, which triggers `data`'s, which triggers `doc`'s. Because `doc.attach(store)` was called, the Store is listening on `doc`'s `delta` event and receives the bubbled event with the original `(payload, originItem)` arguments intact — no string path is built during this process.\n\n3. **How Store computes the line without a path string:** The Store was given the *origin item reference* (`child`) along with the payload, not a path. To write the line, the Store walks the live object graph itself: starting from `doc` (the attach root) it performs a structural search/traversal of `doc`'s own fields (`data.section...`) comparing object identity (`===`) against the `child` reference it received, discovering the nesting chain of keys dynamically as it goes (e.g. `data` → `section` → the slot holding `child`). This on-the-fly identity-based walk reconstructs the nesting (which keys, how deep) at write-time rather than the Item ever serializing or storing a path string. Once it has that chain, it builds one JSON object line like:\n\n```json\n{\"set\":{\"title\":\"Hello\"}}\n```\n\nenriched with the derived nesting info (e.g. as nested keys or structured target info) and appends it — all derived from object identity in the tree walk, never from a precomputed/stringified path.",
+            "expected": "1. child emits 'delta' ({ set: { title: 'Hello' } }, child). 2. delta bubbles up the parent tree to doc. 3. Store walks hops from host down to source item, constructing nested object delta line."
+          },
+          {
+            "id": "b3",
+            "pass": true,
+            "answer": "**1.** The loop processes fields in order: \"title\" succeeds, but **\"set\"** throws — `Item.prototype` already has a `set` method (used internally, e.g. `this.get(key)`/`set` pattern on target objects), so `\"set\" in Item.prototype` is true and the guard `throw new Error('field \"set\" collides with Item.prototype')` fires before \"items\" is ever reached.\n\n**2.** With \"set\" removed, \"items\" **succeeds**. `Item.prototype` has no property named `items` (only methods like `get`, `put`, `set`, `set_one`, and the Events-mixin methods such as `emit`/`on`), so the collision check passes and `Object.defineProperty` installs the getter/setter for `items` normally — it becomes a reactive field just like `title`.",
+            "expected": "1. 'set' throws because Item.prototype.set is already a core method. 2. 'items' succeeds: Item has no items property or method of its own (lists are named properties a subclass gives itself)."
+          }
+        ]
+      },
+      "level_c": {
+        "pass": 7,
+        "total": 10,
+        "avg_score": 77,
+        "details": [
+          {
+            "id": "c1",
+            "pass": true,
+            "score": 80,
+            "refined": "1. Where do the TaskJSONL class and the TaskTree class live?\n2. If we have a Task class in ai/objects.js, that follows an object-oriented pattern.\n3. I almost always use a capitalized file name for class files.\n4. If you're looking for the Task class, why would you look in objects.js?\n5. This seems like a break from the pattern or convention we've been using."
+          },
+          {
+            "id": "c2",
+            "pass": false,
+            "score": 66,
+            "refined": "1. The server should run as a Node-managed process.\n2. The process should automatically shut itself down when the spawned agent sleeps or becomes idle.\n3. Determine the best approach to manage this lifecycle.\n4. It is unclear whether a sleeping agent should reawaken its existing server or spawn a new one when it needs to use the server again.\n5. Zombie processes must be avoided."
+          },
+          {
+            "id": "c3",
+            "pass": true,
+            "score": 83,
+            "refined": "1. Give me an overview of the current status.\n2. What is queued, in flight, and finished?\n3. What does our usage look like?\n4. What are our major limitations?\n5. Are we still limited on RAM?"
+          },
+          {
+            "id": "c4",
+            "pass": false,
+            "score": 62,
+            "refined": "1. What is the current status of OpenRouter minions?\n2. If we have sufficient RAM available, can we rely more heavily on OpenRouter minions?\n3. The goal is to reduce the load on our Claude/Anthropic token usage and usage windows."
+          },
+          {
+            "id": "c5",
+            "pass": false,
+            "score": 60,
+            "refined": "1. This message and the previous one are being sent from the VS Code sidebar."
+          },
+          {
+            "id": "c6",
+            "pass": true,
+            "score": 86,
+            "refined": "1. This message is being transcribed on my mobile device using the remote control app.\n2. Are you able to see the source of these messages and determine whether I am on PC or mobile?"
+          },
+          {
+            "id": "c7",
+            "pass": true,
+            "score": 100,
+            "refined": "1. You are our new VS Code mastermind.\n2. Please read the handoff document."
+          },
+          {
+            "id": "c8",
+            "pass": true,
+            "score": 73,
+            "refined": "1. Review each task to determine whether it is complete or if anything is unclear.\n2. For each task, ask the major questions needed to check whether all significant implications have been covered.\n3. Identify anything that may have been missed, does not make sense, or could be completely wrong."
+          },
+          {
+            "id": "c9",
+            "pass": true,
+            "score": 76,
+            "refined": "1. Do we have a VS Code Mastermind skill?\n2. In the last VS Code Mastermind tab, we were working on a prompt refinement system.\n3. We have a fast assistant and smart assistant system, and the fast assistant is supposed to handle the prompt refinement.\n4. We were supposed to work on that further, but I'm not sure of its current status.\n5. There is a link that can be referenced for this.\n6. Is there any documentation in the system about being a VS Code sidebar?\n7. This VS Code tab seems to be a separate type of session, and I think it can work with the SDK, but there may be some limitations, at least with the current setup.\n8. To get prompt refinement working, I think we needed to hook into a specific tab — previously it was a different tab, now it's this one.\n9. I'm not sure how that tab/session system works or if it's documented. Please let me know."
+          },
+          {
+            "id": "c10",
+            "pass": true,
+            "score": 83,
+            "refined": "1. Check if my dev server is currently running.\n2. I tried to access it from my phone and I'm not sure if I ran \"node server.js\".\n3. If the server is not running and you have the ability to start it, please start it for me so I don't have to get up and type it in myself."
+          }
+        ]
+      },
+      "total_cost_usd": 0.04744799999999999,
+      "total_ms": 50117,
+      "tokens_in": 9259,
+      "tokens_out": 2893
+    },
+    "local/qwen2.5-coder": {
+      "model": "local/qwen2.5-coder",
+      "level_a": {
+        "correct": 4,
+        "total": 5,
+        "details": [
+          {
+            "id": "a1",
+            "pass": true,
+            "answer": "Item.prototype.set_one() emits two events when a field's value changes: \"change\" and \"delta\".",
+            "expected": "\"change\" and \"delta\""
+          },
+          {
+            "id": "a2",
+            "pass": true,
+            "answer": "If a field name collides with an existing property on the Item prototype, define_fields() throws an error.",
+            "expected": "Throws an Error (`field \"${name}\" collides with Item.prototype`)"
+          },
+          {
+            "id": "a3",
+            "pass": true,
+            "answer": "In Lew42's CSS architecture, the exact order of the 4 cascade layers defined in `@layer` is: base, theme, site, and util.",
+            "expected": "base theme site util"
+          },
+          {
+            "id": "a4",
+            "pass": true,
+            "answer": "When `Store.for(url)` is called multiple times with the exact same `url`, it returns the same `Store` instance that was created the first time.",
+            "expected": "The same cached Store instance (singleton via Store.instances Map)"
+          },
+          {
+            "id": "a5",
+            "pass": false,
+            "answer": "According to CLAUDE.md, only `<p>()` and `<h1–h6>` read backticks. A backtick inside `css(`...`)` is dangerous because it can break the CSS syntax, causing the entire page to render incorrectly.",
+            "expected": "Only p()/h1–h6 read backticks; one backtick inside css(`...`) kills every page."
+          }
+        ]
+      },
+      "level_b": {
+        "correct": 3,
+        "total": 3,
+        "details": [
+          {
+            "id": "b1",
+            "pass": true,
+            "answer": "1. **How many \"change\" events fire in total?**\n   - The code sets the value of `a` twice and the value of `b` once. Each of these operations triggers a \"change\" event because the `set` method emits a \"change\" event whenever a value is updated.\n   - Therefore, a total of 3 \"change\" events fire.\n\n2. **What are the recorded entries in `changes` in chronological order?**\n   - The first `set` operation updates `a` from 1 to 1 (no change, so no event).\n   - The second `set` operation updates `a` from 1 to 1 (no change, so no event).\n   - The third `set` operation updates `b` from undefined to 2, triggering a \"change\" event.\n   - The fourth `set` operation updates `b` from 2 to 3, triggering another \"change\" event.\n   - Therefore, the recorded entries in `changes` in chronological order are:\n     ```json\n     [\n       { \"key\": \"b\", \"val\": 2, \"old\": undefined },\n       { \"key\": \"b\", \"val\": 3, \"old\": 2 }\n     ]\n     ```\n\n3. **What is `item.data` at the end?**\n   - The `item.data` property is not explicitly defined in the provided code. However, based on the `set` method, it is likely that `item.data` is an object that stores the key-value pairs.\n   - After the operations, `item.data` would be:\n     ```json\n     { \"a\": 1, \"b\": 3 }\n     ```",
+            "expected": "2 change events. First: key 'b', val 2, old undefined. Second: key 'b', val 3, old 2. 'a' does not fire because old === val. End data: { a: 1, b: 3 }."
+          },
+          {
+            "id": "b2",
+            "pass": true,
+            "answer": "1. **Event Emitted on 'child'**:\n   - When `child.set({ title: \"Hello\" })` is called, the `set_one` method is invoked on the `child` object. This method emits a \"change\" event with the key, new value, and old value. Additionally, it emits a \"delta\" event with the updated value.\n\n2. **How the Event Reaches 'doc' and its Store**:\n   - The \"change\" and \"delta\" events bubble up from the `child` object to its parent `doc` object. This is because the `set_one` method calls `this.emit(\"change\", key, value, old);` and `this.emit(\"delta\", { set: { [key]: value } }, this);`, and these events are not stopped or prevented from propagating.\n   - The `doc` object listens for these events and can react accordingly. If `doc` has an attached `Store`, it can capture these events and use them to update the `.jsonl` file.\n\n3. **How Store Computes the Line to Append to the .jsonl File**:\n   - The `Store` class has a method `attach(host)` that listens for the \"delta\" event on the `host` object. When the \"delta\" event is received, the `Store` computes the line to append to the `.jsonl` file by analyzing the `delta` object.\n   - The `delta` object contains the updated value, and the `Store` uses this information to construct a line that represents the change. The line is appended to the `.jsonl` file without using a path string or 'at' key because the `Store` maintains a mapping of URLs to their corresponding `Item` objects and their nested structure.\n   - The `Store` can determine the path to the `child` object by traversing the nested structure of `Item` objects and collecting the keys along the way. This allows the `Store` to compute the line to append to the `.jsonl` file without needing a path string or 'at' key.",
+            "expected": "1. child emits 'delta' ({ set: { title: 'Hello' } }, child). 2. delta bubbles up the parent tree to doc. 3. Store walks hops from host down to source item, constructing nested object delta line."
+          },
+          {
+            "id": "b3",
+            "pass": true,
+            "answer": "1. The error will be thrown on the \"set\" field. The error message will be: `field \"set\" collides with Item.prototype`. This is because the \"set\" method is already defined on the `Item.prototype`, and when `Task.define_fields()` is called, it tries to define a getter and setter for the \"set\" field, which conflicts with the existing \"set\" method on `Item.prototype`.\n\n2. If \"set\" is removed from the `Task.fields` array, the \"items\" field will succeed in defining its getter and setter. The reason is that there is no conflict with any existing method or property on `Item.prototype` for the \"items\" field. Therefore, `Task.define_fields()` will successfully define a getter and setter for the \"items\" field on the `Task.prototype`.",
+            "expected": "1. 'set' throws because Item.prototype.set is already a core method. 2. 'items' succeeds: Item has no items property or method of its own (lists are named properties a subclass gives itself)."
+          }
+        ]
+      },
+      "level_c": {
+        "pass": 8,
+        "total": 10,
+        "avg_score": 83,
+        "details": [
+          {
+            "id": "c1",
+            "pass": true,
+            "score": 84,
+            "refined": "1. Where does the task JSONL class and the task tree class live?\n2. If we have a task class in AI/objects.js, that's an object-oriented pattern.\n3. I almost always use a capital file name.\n4. If you're looking for the task class, why would you look in objects.js? It just seems like a break of that pattern or convention we've been using."
+          },
+          {
+            "id": "c2",
+            "pass": false,
+            "score": 69,
+            "refined": "1. The starting servers should be a managed process.\n2. This process should automatically shut down when the spawned agent sleeps.\n3. Determine the best way to manage the server when the agent wakes up and needs to use it again.\n4. Decide whether the agent should reawaken or spawn a new server.\n5. Avoid zombie processes."
+          },
+          {
+            "id": "c3",
+            "pass": true,
+            "score": 92,
+            "refined": "1. Give me an overview.\n2. What is queued, in flight, and finished?\n3. What's our usage looking like?\n4. What are our major limitations?\n5. Are we still limited on RAM?"
+          },
+          {
+            "id": "c4",
+            "pass": true,
+            "score": 85,
+            "refined": "1. How are we doing with open router minions?\n2. Can we use open router minions to reduce stress on Claude Anthropic tokens or usage windows if we have RAM?"
+          },
+          {
+            "id": "c5",
+            "pass": true,
+            "score": 100,
+            "refined": "1. This message and the last are coming from the VS Code sidebar."
+          },
+          {
+            "id": "c6",
+            "pass": true,
+            "score": 86,
+            "refined": "1. This message is being transcribed on my mobile using the remote control app.\n2. Are you able to see the source of these messages and determine whether I'm on PC or mobile?"
+          },
+          {
+            "id": "c7",
+            "pass": true,
+            "score": 100,
+            "refined": "1. You're our new VS-Code mastermind.\n2. Can you read the handoff?"
+          },
+          {
+            "id": "c8",
+            "pass": false,
+            "score": 45,
+            "refined": "1. Review each task to determine if it is complete.\n2. Identify any unclear aspects.\n3. Ask major questions to ensure all implications and potential issues have been addressed.\n4. Verify that nothing is missing or that the information makes sense.\n5. Check for any errors or incorrect information."
+          },
+          {
+            "id": "c9",
+            "pass": true,
+            "score": 76,
+            "refined": "1. Do we have a VS Code mastermind skill?\n2. The last VS Code Mastermind tab was working on a prompt refinement system.\n3. We have a fast assistant and smart assistant system.\n4. The fast assistant is supposed to handle prompt refinement.\n5. We need to work on this, but I'm unsure of our progress.\n6. There's a link you can access.\n7. I'm wondering if there's any documentation in the system about being a VS Code sidebar.\n8. The VS Code tab is like a separate session and might work with the SDK.\n9. However, there are limitations to its current setup.\n10. To get the prompt refinement working, I was thinking we need to hook into this tab, which was previously another tab.\n11. I'm not sure how that system works and if it's documented. Please let me know."
+          },
+          {
+            "id": "c10",
+            "pass": true,
+            "score": 92,
+            "refined": "1. Is my dev server running?\n2. I just tried to access it from my phone.\n3. I'm not sure if I typed `node server.js` correctly.\n4. If the server isn't running, please start it so I don't have to go stand up and type it in myself."
+          }
+        ]
+      },
+      "total_cost_usd": 0,
+      "total_ms": 20424,
+      "tokens_in": 6571,
+      "tokens_out": 1748
+    },
+    "deepseek/deepseek-v4.1-flash": {
+      "model": "deepseek/deepseek-v4.1-flash",
+      "level_a": {
+        "correct": 5,
+        "total": 5,
+        "details": [
+          {
+            "id": "a1",
+            "pass": true,
+            "answer": "When a field's value changes, `set_one()` emits `\"change\"` (with `key, value, old`) and `\"delta\"` (with `{ set: { [key]: value } }, this`).",
+            "expected": "\"change\" and \"delta\""
+          },
+          {
+            "id": "a2",
+            "pass": true,
+            "answer": "It throws an Error: `field \"${name}\" collides with Item.prototype`, aborting before defining any property for that field.",
+            "expected": "Throws an Error (`field \"${name}\" collides with Item.prototype`)"
+          },
+          {
+            "id": "a3",
+            "pass": true,
+            "answer": "The four cascade layers, in order, are: **base, theme, site, util** — declared once in `framework.css`, which `app.js` loads first.",
+            "expected": "base theme site util"
+          },
+          {
+            "id": "a4",
+            "pass": true,
+            "answer": "It returns the same cached `Store` instance every time: `Store.for` looks up `url` in the static `Store.instances` Map, and if a store already exists for that url it returns it immediately rather than constructing a new one.",
+            "expected": "The same cached Store instance (singleton via Store.instances Map)"
+          },
+          {
+            "id": "a5",
+            "pass": true,
+            "answer": "Only `p()` and `h1`–`h6` read backticks. A backtick inside `css(\\`...\\`)` closes the template literal early, which kills every page.",
+            "expected": "Only p()/h1–h6 read backticks; one backtick inside css(`...`) kills every page."
+          }
+        ]
+      },
+      "level_b": {
+        "correct": 3,
+        "total": 3,
+        "details": [
+          {
+            "id": "b1",
+            "pass": true,
+            "answer": "1. **Total “change” events:** **2**\n\n2. **Recorded entries in `changes` (chronological):**\n```js\n[\n  { key: \"b\", val: 2, old: undefined },\n  { key: \"b\", val: 3, old: 2 }\n]\n```\n\n3. **`item.data` at the end:**\n```js\n{ a: 1, b: 3 }\n```\n\nReasoning:  \n- `item.set({ a: 1, b: 2 })` sets `a` to `1`, but `a` was already `1`, so `old !== value` is false and no `change` event fires.  \n- Setting `b` to `2` changes it from `undefined`, so one `change` event fires.  \n- `item.set({ b: 3 })` changes `b` from `2` to `3`, so a second `change` event fires.  \n- Final data is `{ a: 1, b: 3 }`.",
+            "expected": "2 change events. First: key 'b', val 2, old undefined. Second: key 'b', val 3, old 2. 'a' does not fire because old === val. End data: { a: 1, b: 3 }."
+          },
+          {
+            "id": "b2",
+            "pass": true,
+            "answer": "1. **Event emitted on `child`**  \n   `child.set({ title: \"Hello\" })` calls `set_one(\"title\", \"Hello\")`, which emits:\n   - `\"change\"` with `(\"title\", \"Hello\", oldValue)`\n   - `\"delta\"` with `({ set: { title: \"Hello\" } }, child)`\n\n   The persistence-relevant event is **`\"delta\"`**.\n\n2. **How it reaches `doc` and its Store**  \n   The `\"delta\"` event **bubbles** up the containment hierarchy: `child` → `section` → `data` → `doc`.  \n   The Store attached to `doc` listens for `doc`’s own `\"delta\"` event. When the bubbled event reaches `doc`, the Store’s listener fires. It receives the delta payload and the originating item (`child`) via the event’s target/origin.\n\n3. **How Store computes the line without a path string or `at` key**  \n   The Store uses the **actual object graph**, not a path string. It walks the nesting from the host (`doc`) down to the origin (`child`) by following real references/keys — e.g. `doc.data.section.child`. It collects the chain of keys (`data`, `section`, `child`) and wraps the original delta payload in nested objects for each segment.  \n   The resulting single JSONL line is:\n   ```json\n   {\"set\":{\"data\":{\"section\":{\"child\":{\"title\":\"Hello\"}}}}}\n   ```\n   No `\"at\"` key and no `\"data.section.child\"` string are used; the nesting is expressed structurally as nested objects.",
+            "expected": "1. child emits 'delta' ({ set: { title: 'Hello' } }, child). 2. delta bubbles up the parent tree to doc. 3. Store walks hops from host down to source item, constructing nested object delta line."
+          },
+          {
+            "id": "b3",
+            "pass": true,
+            "answer": "1. It throws:\n   `Error: field \"set\" collides with Item.prototype`\n   on the field `\"set\"`.  \n   `\"title\"` is processed first and succeeds, then `\"set\"` is checked with `name in Item.prototype`; because `Item.prototype` already has a `set` method, the check is true and `define_fields` throws.\n\n2. If `\"set\"` is removed, `\"items\"` will **succeed**.  \n   `\"items\"` is not present on `Item.prototype` (nor inherited through its prototype chain), so `\"items\" in Item.prototype` is false. `define_fields` will define the getter/setter for `\"items\"` on `Task.prototype` without throwing.",
+            "expected": "1. 'set' throws because Item.prototype.set is already a core method. 2. 'items' succeeds: Item has no items property or method of its own (lists are named properties a subclass gives itself)."
+          }
+        ]
+      },
+      "level_c": {
+        "pass": 10,
+        "total": 10,
+        "avg_score": 94,
+        "details": [
+          {
+            "id": "c1",
+            "pass": true,
+            "score": 80,
+            "refined": "1. Where do the task JSONL class and the task tree class live?\n2. Also, if we have a task class in AI/objects.js, that's an object-oriented pattern.\n3. I almost always use a capital file name.\n4. If you're looking for the task class, why would you look in objects.js?\n5. It just seems like a break of that pattern or convention we've been using."
+          },
+          {
+            "id": "c2",
+            "pass": true,
+            "score": 97,
+            "refined": "1. Starting the servers should be a node-like managed process.\n2. That process should automatically shut itself down when the spawned agent sleeps or whatever.\n3. I don’t know the best way to manage that, so figure it out.\n4. I don’t know whether, if an agent wakes back up and needs to use its server again, we can have it reawaken or whether it just knows to spawn a new one.\n5. Obviously, we do not want zombie processes."
+          },
+          {
+            "id": "c3",
+            "pass": true,
+            "score": 83,
+            "refined": "1. Give me an overview.\n2. What is queued, in flight, and finished?\n3. What does our usage look like?\n4. What are our major limitations?\n5. Are we still limited on RAM?"
+          },
+          {
+            "id": "c4",
+            "pass": true,
+            "score": 100,
+            "refined": "1. How are we doing on open router minions?\n2. If we have RAM, can we lean into using open router minions to reduce the stress on our Claude Anthropic tokens or usage windows?"
+          },
+          {
+            "id": "c5",
+            "pass": true,
+            "score": 100,
+            "refined": "1. This message, and the last one, are coming from the VS Code sidebar."
+          },
+          {
+            "id": "c6",
+            "pass": true,
+            "score": 100,
+            "refined": "1. Hello.\n2. However, this message is being transcribed on my mobile using the remote control app.\n3. Are you able to see the source of these messages and see whether I am on a PC or mobile?"
+          },
+          {
+            "id": "c7",
+            "pass": true,
+            "score": 100,
+            "refined": "1. You are our new VS Code mastermind.\n2. Can you read the handoff?"
+          },
+          {
+            "id": "c8",
+            "pass": true,
+            "score": 91,
+            "refined": "1. Think about each task and determine whether it is complete or whether anything is unclear.\n2. Review each of the things and ask the major questions.\n3. Check whether everything has been covered in terms of major implications, things we might have missed, things that do not make sense, or things that might be completely wrong."
+          },
+          {
+            "id": "c9",
+            "pass": true,
+            "score": 92,
+            "refined": "1. Also, do we have a VS Code mastermind skill?\n2. In the last VS Code Mastermind tab, we were working on a PR prompt refinement system.\n3. We have this fast assistant and smart assistant system.\n4. The fast assistant is supposed to do the prompt refinement.\n5. We were supposed to work on a bunch of that, but I am not sure where it is at.\n6. There is a link you can link to.\n7. Also, I am wondering if there is any documentation in your system about being a VS Code sidebar.\n8. This VS Code tab is like a separate type of session.\n9. I think it can work with the SDK, but I think there are some limitations to it, or at least to the way we have it set up.\n10. In order to get the prompt refinement working, I was thinking we needed to hook into the—well, now it is this tab; before, it was the other tab.\n11. I am not sure how that system works, and if it is documented, let me know please."
+          },
+          {
+            "id": "c10",
+            "pass": true,
+            "score": 100,
+            "refined": "1. Is my dev server running?\n2. I just tried to access it from my phone.\n3. I don't know if I typed `node server.js`.\n4. If you have the ability to run the server when it is not running, please do that.\n5. I don't want to have to stand up and type it in myself."
+          }
+        ]
+      },
+      "total_cost_usd": 0.010865770000000002,
+      "total_ms": 96547,
+      "tokens_in": 6791,
+      "tokens_out": 15176
+    }
+  },
+  "batchExperiment": {
+    "single_turn_tokens": 679,
+    "multi_turn_step_tokens": 1293,
+    "overhead_ratio": 1.9
+  },
+  "recoveryResults": {
+    "google/gemini-3.8-flash": {
+      "ok": true,
+      "fixed": true,
+      "reply": "### Why the Error Occurred\n\nIn Lew42's `Events` mixin, the method to dispatch an event is named **`fire`** (or depending on the version/aliasing, methods are based on `fire(event, ...args)`), not `emi"
+    },
+    "deepseek/deepseek-v4.1-flash": {
+      "ok": true,
+      "fixed": false,
+      "reply": ""
+    },
+    "openai/gpt-6-luna": {
+      "ok": true,
+      "fixed": true,
+      "reply": "`emit` is provided by the `Events(Object)` mixin on `Item` instances. The value passed to `updateItem` wasn’t an instance of that class, even though it had a `set` method.\n\nCreate and pass an `Item` i"
+    },
+    "qwen/qwen3.8-27b:free": {
+      "ok": false,
+      "fixed": false
+    }
+  }
+}

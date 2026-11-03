@@ -1,0 +1,568 @@
+diff --git a/public/framework/core/Page/doc/layout.md b/public/framework/core/Page/doc/layout.md
+index c62cf15b..cdacb153 100644
+--- a/public/framework/core/Page/doc/layout.md
++++ b/public/framework/core/Page/doc/layout.md
+@@ -1,6 +1,9 @@
+ # Nested or full — and why alternating between them is tricky
+ 
+-**Open. We need a strong, simple strategy for robust page layouts and we do not
++> **Open question — not settled guidance.** This note states a problem the owner has not
++> resolved. Read it as evidence, not as a rule to follow.
++
++**We need a strong, simple strategy for robust page layouts and we do not
+ have one yet.** (the owner, 2026-08-17.) This note states the problem and the evidence;
+ the answer is not written.
+ 
+diff --git a/public/framework/core/Page/jsonl/child/page.jsonl b/public/framework/core/Page/jsonl/child/page.jsonl
+deleted file mode 100644
+index d40e3fc4..00000000
+--- a/public/framework/core/Page/jsonl/child/page.jsonl
++++ /dev/null
+@@ -1 +0,0 @@
+-{"title": "A child page", "icon": "description", "content": "This child has no page.js either. Its parent's log listed child/page.jsonl, so the router read this page from that file, with no probe."}
+diff --git a/public/framework/core/Page/jsonl/content.js b/public/framework/core/Page/jsonl/content.js
+deleted file mode 100644
+index 77a220a0..00000000
+--- a/public/framework/core/Page/jsonl/content.js
++++ /dev/null
+@@ -1,16 +0,0 @@
+-import { p, h2, pre } from "/app.js";
+-
+-// Placed by the line {"place": "content.js"}: the escape hatch for anything a line
+-// cannot say. The box is the one the page captured for me before this file arrived.
+-export default function(page, box){
+-	p("This page has no `page.js`. It is one file, `page.jsonl`, read a line at a time: the first line builds the page, and every later line is one `set()` call. A key that names a method calls that method; any other key is stored as data.");
+-
+-	h2("The file");
+-	const $source = pre.c("page-log-source", "…");
+-	$source.style({ "white-space": "pre-wrap", "overflow-wrap": "anywhere" });   // a long line wraps, never runs off the box
+-	fetch(page.jsonl_url).then(res => res.text()).then(text => $source.text(text.trim()));
+-
+-	h2("Exists, linked, placed");
+-	p("A `file` line only records that a file exists. A folder holding its own `page.jsonl` is linked as a child page automatically. Nothing is drawn until a `place` line puts it on the page, so `unplaced.md` exists and is listed, but you will not read it here.");
+-	page.listing();
+-}
+diff --git a/public/framework/core/Page/jsonl/full/child/page.jsonl b/public/framework/core/Page/jsonl/full/child/page.jsonl
+new file mode 100644
+index 00000000..d40e3fc4
+--- /dev/null
++++ b/public/framework/core/Page/jsonl/full/child/page.jsonl
+@@ -0,0 +1 @@
++{"title": "A child page", "icon": "description", "content": "This child has no page.js either. Its parent's log listed child/page.jsonl, so the router read this page from that file, with no probe."}
+diff --git a/public/framework/core/Page/jsonl/full/content.js b/public/framework/core/Page/jsonl/full/content.js
+new file mode 100644
+index 00000000..77a220a0
+--- /dev/null
++++ b/public/framework/core/Page/jsonl/full/content.js
+@@ -0,0 +1,16 @@
++import { p, h2, pre } from "/app.js";
++
++// Placed by the line {"place": "content.js"}: the escape hatch for anything a line
++// cannot say. The box is the one the page captured for me before this file arrived.
++export default function(page, box){
++	p("This page has no `page.js`. It is one file, `page.jsonl`, read a line at a time: the first line builds the page, and every later line is one `set()` call. A key that names a method calls that method; any other key is stored as data.");
++
++	h2("The file");
++	const $source = pre.c("page-log-source", "…");
++	$source.style({ "white-space": "pre-wrap", "overflow-wrap": "anywhere" });   // a long line wraps, never runs off the box
++	fetch(page.jsonl_url).then(res => res.text()).then(text => $source.text(text.trim()));
++
++	h2("Exists, linked, placed");
++	p("A `file` line only records that a file exists. A folder holding its own `page.jsonl` is linked as a child page automatically. Nothing is drawn until a `place` line puts it on the page, so `unplaced.md` exists and is listed, but you will not read it here.");
++	page.listing();
++}
+diff --git a/public/framework/core/Page/jsonl/full/note.md b/public/framework/core/Page/jsonl/full/note.md
+new file mode 100644
+index 00000000..1713bd3c
+--- /dev/null
++++ b/public/framework/core/Page/jsonl/full/note.md
+@@ -0,0 +1,3 @@
++# A placed note
++
++This paragraph lives in `note.md`. It is on the page because one line in `page.jsonl` says `{"place": "note.md"}`. Delete that line and the file stays in the folder, listed, but no longer drawn.
+diff --git a/public/framework/core/Page/jsonl/full/page.jsonl b/public/framework/core/Page/jsonl/full/page.jsonl
+new file mode 100644
+index 00000000..869f2de5
+--- /dev/null
++++ b/public/framework/core/Page/jsonl/full/page.jsonl
+@@ -0,0 +1,18 @@
++{"title": "page.jsonl, in full", "icon": "data_object", "description": "Every line the format knows: files, a placed note, a linked child, a removed file."}
++{"file": "content.js"}
++{"file": "note.md"}
++{"file": "unplaced.md"}
++{"file": "child/page.jsonl"}
++{"place": ["content.js", "note.md"]}
++{"file":"later.md"}
++{"file":"later.md","gone":true}
++{"file":"readme.md"}
++{"file":"content.js","gone":true}
++{"file":"note.md","gone":true}
++{"file":"unplaced.md","gone":true}
++{"file":"child/page.jsonl","gone":true}
++{"file":"readme.md","gone":true}
++{"file":"content.js"}
++{"file":"note.md"}
++{"file":"unplaced.md"}
++{"file":"child/page.jsonl"}
+diff --git a/public/framework/core/Page/jsonl/full/unplaced.md b/public/framework/core/Page/jsonl/full/unplaced.md
+new file mode 100644
+index 00000000..4be2af84
+--- /dev/null
++++ b/public/framework/core/Page/jsonl/full/unplaced.md
+@@ -0,0 +1,3 @@
++# Not placed
++
++If you can read this on the page, something placed it. The log lists this file as existing, and nothing more.
+diff --git a/public/framework/core/Page/jsonl/page.jsonl b/public/framework/core/Page/jsonl/page.jsonl
+index 477c6abe..8d427025 100644
+--- a/public/framework/core/Page/jsonl/page.jsonl
++++ b/public/framework/core/Page/jsonl/page.jsonl
+@@ -1,8 +1,11 @@
+-{"title": "page.jsonl", "icon": "data_object", "description": "A page with no page.js: one log file, read a line at a time."}
+-{"file": "content.js"}
+-{"file": "note.md"}
+-{"file": "unplaced.md"}
+-{"file": "child/page.jsonl"}
+-{"place": ["content.js", "note.md"]}
+-{"file":"later.md"}
+-{"file":"later.md","gone":true}
++{"title": "Notes", "label": "jsonl", "icon": "description", "description": "A page with no page.js: one log file, read a line at a time."}
++{"place": "note.md"}
++{"file":"child/page.jsonl"}
++{"file":"content.js"}
++{"file":"note.md"}
++{"file":"readme.md"}
++{"file":"unplaced.md"}
++{"file":"full/page.jsonl"}
++{"file":"content.js","gone":true}
++{"file":"unplaced.md","gone":true}
++{"file":"child/page.jsonl","gone":true}
+diff --git a/public/framework/core/Page/jsonl/readme.md b/public/framework/core/Page/jsonl/readme.md
+index 27e572e4..9b272494 100644
+--- a/public/framework/core/Page/jsonl/readme.md
++++ b/public/framework/core/Page/jsonl/readme.md
+@@ -1,5 +1,5 @@
+-# jsonl
++# jsonl — a page made from log lines, not a `page.js`
+ 
+-A page made from `page.jsonl` lines (for example a placed note) instead of a `page.js`. Code: `core/Page/jsonl/`.
++The smallest real case: `{"title": "Notes"}` then `{"place": "note.md"}` — two lines, this page. [`full`](./full/) has every line the format knows: files that exist but aren't shown, a linked child page, a file marked gone. Full doc: [`doc/jsonl.md`](/framework/core/Page/doc/jsonl/).
+ 
+-_Stub — more to come._
++⚠ The dev server keeps a `page.jsonl`'s `file` lines synced to what is really in its folder — delete a file on disk and a `"gone": true` line appears for it on its own. That is why this file may show more lines than the two above: the extra ones are the watcher's bookkeeping, not something you write by hand.
+diff --git a/public/framework/core/Page/jsonl/unplaced.md b/public/framework/core/Page/jsonl/unplaced.md
+deleted file mode 100644
+index 4be2af84..00000000
+--- a/public/framework/core/Page/jsonl/unplaced.md
++++ /dev/null
+@@ -1,3 +0,0 @@
+-# Not placed
+-
+-If you can read this on the page, something placed it. The log lists this file as existing, and nothing more.
+diff --git a/public/framework/core/Page/layout/floating/page.js b/public/framework/core/Page/layout/floating/page.js
+new file mode 100644
+index 00000000..3e61ae99
+--- /dev/null
++++ b/public/framework/core/Page/layout/floating/page.js
+@@ -0,0 +1,21 @@
++import { Page, md } from "/app.js";
++
++/**
++ * Stub. The real thing — an inner left sidebar with no background, sitting
++ * beside a page that scrolls independently of it — is not built yet; the AI 2
++ * lead is building `floating()`. This page exists so the Layout tab's link has
++ * somewhere honest to go, per the owner's words (2026-09-28, 1:40 PM) and
++ * proposal.md's rewrite order item 4 (not this task).
++ */
++export default new Page({
++	meta: import.meta,
++	title: "Floating page",
++	description: "Coming — an inner left sidebar beside a page that scrolls on its own.",
++	icon: "flip_to_front",
++
++	content(){
++		md("**Coming.** A left sidebar with no background of its own, sitting in the space around a page — the page floats up with a white background and scrolls independently of the sidebar. The AI 2 lead is building `floating()`.");
++		md("The owner described this shape in full on 2026-09-28 at 1:40 PM — see the `page-mastermind` task log.");
++		md("Back to [Choosing a layout](/framework/core/Page/layout/).");
++	},
++});
+diff --git a/public/framework/core/Page/layout/page.js b/public/framework/core/Page/layout/page.js
+new file mode 100644
+index 00000000..aef1019a
+--- /dev/null
++++ b/public/framework/core/Page/layout/page.js
+@@ -0,0 +1,49 @@
++import { Page, md } from "/app.js";
++import { section } from "../../../ux/Content/structure/Structure.js";
++
++/**
++ * Layout — the owner's three words (standard / split / fill-as-columns) plus the
++ * top-down shape, as one page of links. Nothing here is a new mechanism: every
++ * item points at the real thing. proposal.md rewrite order item 2.
++ *
++ * ⚠ Word collision, named once so nobody re-discovers it: core already uses "wide"
++ * and "fill" for something else (a page's own `width:` word, and a column's own
++ * `width:` word) — not the owner's "two columns" and "three or more columns". That
++ * is why the items below are named Standard / Split / Columns, not wide / fill.
++ * Renaming core's words instead touches about a dozen callers — major surgery,
++ * left for the owner to decide. audit/3c.md.
++ */
++export default new Page({
++	meta: import.meta,
++	title: "Layout",
++	description: "Choosing a layout: standard, split, columns, floating page, top-down shape.",
++	icon: "dashboard_customize",
++
++	children: "floating",
++
++	content(){
++		md("**Choosing a layout.** Five shapes cover almost every page. Each link below goes to the real mechanism — nothing on this page is new.");
++
++		section({
++			title: "Choosing a layout", bg: true, items: [
++				{ name: "Standard", icon: "view_agenda", weight: 3, href: "/framework/core/Page/doc/words/" },
++				{ name: "Split", icon: "vertical_split", weight: 3, href: "/framework/core/Layout/main-aside/" },
++				{ name: "Columns", icon: "view_column", weight: 3, href: "/framework/core/Page/doc/columns/" },
++				{ name: "Floating page", icon: "flip_to_front", weight: 2, href: "/framework/core/Page/layout/floating/" },
++				{ name: "Top-down shape", icon: "layers", weight: 2, href: "/framework/core/Page/doc/words/" },
++			],
++		});
++
++		md(`| shape | one line | mechanism |
++|---|---|---|
++| **Standard** | one column, 300–1000px — the site's own default | a page that says nothing (\`doc/words.md\`) |
++| **Split** | two columns, any proportion, stacks on mobile | \`arrangement: "main-aside"\` ([Layout catalogue](/framework/core/Layout/main-aside/)) |
++| **Columns** | three or more standard columns, responsive | \`this.columns({ even: true })\` ([\`doc/columns.md\`](/framework/core/Page/doc/columns/)) |
++| **Floating page** | an inner left sidebar beside a page that scrolls on its own | not built yet — [stub](/framework/core/Page/layout/floating/) |
++| **Top-down shape** | background · padding · full-bleed | today spread over [\`doc/words.md\`](/framework/core/Page/doc/words/), \`doc/columns.md\` and styles' \`layout-system.md\` |`);
++
++		md("> **Word collision.** The owner's *wide* (two columns) and *fill* (three or more) are not core's `width: \"wide\"` (one full track, no second column) or a column's own `fill` (take the leftover, no ceiling). Reusing those words here would make every doc ambiguous — that's why this page says **Split** and **Columns** instead. `doc/columns.md`'s six width words are a different vocabulary again, for a column's own width inside a `columns()` row.");
++
++		md("More shapes than these five: the [Layout catalogue](/framework/core/Layout/) — 30 named arrangements, each proven at seven widths.");
++	},
++});
+diff --git a/public/framework/core/Page/make/page.js b/public/framework/core/Page/make/page.js
+new file mode 100644
+index 00000000..ee024064
+--- /dev/null
++++ b/public/framework/core/Page/make/page.js
+@@ -0,0 +1,98 @@
++import { Page, md, code, h3, demo } from "/app.js";
++
++// Reused by two of the four demos below, so the code shown and the code that ran
++// are the same object — demo()/demo.app() print fn.toString(), so writing it twice
++// would risk the two copies drifting apart.
++const route_demo = () => new Page({
++	title: "Wiki",
++
++	route(name){
++		return ["html", "css", "js"].includes(name) && {
++			title: name.toUpperCase(),
++			content(){ md("Built on the fly — nobody declared this page."); },
++		};
++	},
++
++	content(){
++		md("No `children:` at all. These links work anyway — click one:");
++		["html", "css", "js"].forEach(name => md(`[${name}](${this.url + name + "/"})`));
++	},
++});
++
++const folders_demo = () => new Page({
++	title: "Years",
++
++	async child(name, levels){
++		if (!/^\d{4}$/.test(name)) return null;   // not a name I answer for
++
++		return this.add(name, {
++			title: name,
++			content(){ md(`**${name}** — nothing on disk made this page; \`child()\` built it just now.`); },
++		}).load_all_children(levels);
++	},
++
++	content(){
++		md("No `children:` at all. Click a year — `child()` builds it, on the fly:");
++		["2025", "2026"].forEach(name => md(`[${name}](${this.url + name + "/"})`));
++	},
++});
++
++/**
++ * The four ways to make a page, simplest first, code then LIVE result — the owner's
++ * own rule ("show the simplest example first: the code, then what it produces,
++ * live"). `demo()`/`demo.app()` run the real function beside its own printed source,
++ * so what you see under each code block is not a picture of the result, it is the
++ * result. A link to the same thing at its own url stays as a second line under each.
++ * proposal.md rewrite order item 3.
++ */
++export default new Page({
++	meta: import.meta,
++	title: "Make a page",
++	description: "Four ways to make a page, simplest first — the code, then what it produces, live.",
++	icon: "add_box",
++
++	content(){
++		md("Four ways to make a page. Each one below shows the smallest real code for it, then the real thing running.");
++
++		h3("1. page.js — one file");
++		md("The folder is the url. `children:` is the menu, in order:");
++		code.js(`export default new Page({
++    meta: import.meta,
++    title: "Docs",
++    children: "intro guide api",
++    content(){ md("Hello."); },
++});`, "page.js");
++		demo(() => { md("Hello."); }, "What `content()` draws — the folder and the menu are the rest of the shape.");
++		md("Live: [overview/page](/framework/core/Page/overview/page/) — the smallest real one on the site.");
++
++		h3("2. page.jsonl — the same page, as a log");
++		md("Line 1 builds the page; every later line calls one method on it:");
++		code.json(`{"title": "Notes"}
++{"place": "note.md"}`, "page.jsonl");
++		demo(() => {
++			md("# A placed note\n\nThis paragraph lives in `note.md`. It is on the page because one line in `page.jsonl` says `{\"place\": \"note.md\"}`.");
++		}, "What the log draws — `note.md`'s own text, placed by the second line.");
++		md("Live: [jsonl](/framework/core/Page/jsonl/) — this exact two-line case. [jsonl/full](/framework/core/Page/jsonl/full/) has every line the format knows (files, a linked child, a removed file).");
++
++		h3("3. route(name) — a url nobody declared");
++		md("No `children:` at all. A name the parent never listed still resolves, the moment a reader asks for it:");
++		code.js(`route(name){
++    return ["html", "css", "js"].includes(name)
++        && { title: name.toUpperCase(), content(){ md("Built on the fly."); } };
++}`);
++		demo.stage(() => demo.app(route_demo())).ac("toc-skip");
++		md("Live: [overview/route](/framework/core/Page/overview/route/) — the same textbook case, at its own url.");
++
++		h3("4. folders — an index with no folder on disk");
++		md("`route()`'s biggest job: a page whose child is a *name*, read straight off disk instead of declared. This is the pattern behind `ai2/`'s day and card pages (`Card.Folder`, [`ai2/card.js`](/framework/ai2/card.js)) — the smallest real piece of it:");
++		code.js(`async child(name, levels){
++    if (!/^\\d{4}$/.test(name)) return null;                 // not a name I answer for
++    return this.add(name, { title: name, content(){ … } })   // build it, on the fly
++        .load_all_children(levels);
++}`);
++		demo.stage(() => demo.app(folders_demo())).ac("toc-skip");
++		md("Live: [overview/folders](/framework/core/Page/overview/folders/) — the same two years, at its own url.");
++
++		md("Every child's own `label`, `title` and `icon`: [`doc/labels.md`](/framework/core/Page/doc/labels.md). Once a page exists, [structured content](/framework/ux/Content/structure/) is the vocabulary for what goes *inside* it — icon items, sections, outlines.");
++	},
++});
+diff --git a/public/framework/core/Page/overview/folders/page.js b/public/framework/core/Page/overview/folders/page.js
+new file mode 100644
+index 00000000..889d208c
+--- /dev/null
++++ b/public/framework/core/Page/overview/folders/page.js
+@@ -0,0 +1,33 @@
++import { Page, demo, md, div, a } from "/app.js";
++
++// The AI 2 index pattern, at demo scale: a page whose CHILD is a name read off
++// disk, never declared with a children: list. The real one is Card.Folder
++// (public/framework/ai2/card.js:964-990) — this is its smallest real piece,
++// same shape, no calendar math: a name comes in, a page goes out, remembered.
++const years = () => new Page({
++	title: "Years",
++
++	async child(name, levels){
++		if (!/^\d{4}$/.test(name)) return null;   // not a name I answer for
++
++		return this.add(name, {
++			title: name,
++			content(){
++				md(`**${name}** — nothing on disk made this page. \`child()\` built it the moment you asked for it, the same way \`ai2/\`'s day and card pages are built.`);
++			},
++		}).load_all_children(levels);
++	},
++
++	content(){
++		md("No `children:` at all, and these urls work anyway — click one:");
++
++		div.c("flex gap", () => ["2025", "2026"].forEach(name =>
++			a.c("page-link", name).href(this.url + name + "/")));
++	},
++});
++
++export default new Page(demo.tree({
++	meta: import.meta,
++	group: "Basics",
++	tree: years,
++}));
+diff --git a/public/framework/core/Page/page.js b/public/framework/core/Page/page.js
+index 310f0dcf..d78dbf2b 100644
+--- a/public/framework/core/Page/page.js
++++ b/public/framework/core/Page/page.js
+@@ -20,7 +20,7 @@ import { object } from "../../ux/Content/Object/Object.js";
+ // `columns` moved UP rather than the five standing alone.
+ const BANDS = {
+ 	"Building blocks":      "columns tabs vtabs list wall prose",
+-	"Pages are navigation": "page children mounts replace route labels",
++	"Pages are navigation": "page children mounts replace route folders labels",
+ 	"The box":              "shell measure inset region full width render",
+ 	"Recipes":              "rail grid flush crumbs catalog dashboard strip landing docs site",
+ };
+@@ -32,7 +32,12 @@ export default new Doc({
+ 	icon: "description",
+ 
+ 	subject: Page,
+-	children: "generator old jsonl/page.jsonl",
++	// Tab order, top to bottom of `bar()` below: Overview · Make a page · Layout ·
++	// Generator · API · Docs · Files · Old. `make` and `layout` are new top tabs
++	// (proposal.md rewrite order items 2 and 3); `old` moved last (item 6).
++	// `jsonl` stays declared here, at its existing url — "Make a page › page.jsonl"
++	// links to it, same as before.
++	children: "make layout generator old jsonl/page.jsonl",
+ 	overview: Object.values(BANDS).flatMap(b => b.split(" ")).join(" "),
+ 
+ 	// Every member, in the order a reader meets them: the tree, then rendering,
+@@ -45,7 +50,7 @@ export default new Doc({
+ 	properties: "meta title children content url name label icon card classes "
+ 		+ "description parent app view loading route regions depth related",
+ 
+-	notes: "navigation layout-overview watch-out more-features jsonl declaring labels css layout columns roles panels previews findings markdown open decisions",
++	notes: "navigation layout-overview watch-out more-features jsonl declaring labels css layout columns words roles panels previews findings markdown open decisions",
+ 
+ 	// Doc.overview_section()'s default calls catalog() — a rail, wrong for a wall this
+ 	// size. This override keeps the section's real children (the `overview:` list above,
+@@ -85,6 +90,34 @@ export default new Doc({
+ 		});
+ 	},
+ 
++	// The tab order the proposal asks for (rewrite order item 6): Overview, Make a
++	// page and Layout first (a new reader's first two stops), Generator next, then
++	// the reference tabs API/Docs/Files, Old moved to the very end. Doc.bar()'s own
++	// order always puts api/doc/files right after whatever was declared — which is
++	// why "old" could never move past them without this override.
++	bar(){
++		return ["overview", "make", "layout", "generator", "api", "doc", "files", "old"]
++			.filter(name => name === "doc" ? Doc.names(this.notes).length > 0 : this.children.has(name));
++	},
++
++	// ⚠ bar() (above) only reorders the TOP-TAB strip — the framework's own left
++	// sidebar reads `this.children` in raw INSERTION order, and that order is always
++	// "declared children, then the sections Doc.initialize() adds" (declare() runs
++	// in the Page constructor before initialize()), which Page.class.js decides and
++	// this task does not touch. So the Map itself is rebuilt here, right after
++	// sections() has added overview/api/doc/files, into the SAME order bar() computes
++	// — one order, read by both. Every child SURVIVES (same Page instances, same
++	// url); only the Map's iteration order changes.
++	initialize(){
++		Doc.prototype.initialize.call(this);
++
++		const order = this.bar();
++		const rest = [...this.children.keys()].filter(name => !order.includes(name));
++		const ordered = new Map();
++		[...order, ...rest].forEach(name => { if (this.children.has(name)) ordered.set(name, this.children.get(name)); });
++		this.children = ordered;
++	},
++
+ 	overview_section(){
+ 		return this.section("overview", "Overview", {
+ 			title: this.title,
+@@ -117,9 +150,11 @@ export default new Doc({
+ 	files: "Page.class.js Page.css old/page.js old/children/page.js old/flow/page.js "
+ 		+ "old/nav/page.js old/previews/page.js old/shell/page.js old/intro/page.js page.js readme.md "
+ 		+ "old/overview/readme.md overview/readme.md "
++		+ "make/page.js layout/page.js layout/floating/page.js "
+ 		+ "overview/tabs/page.js overview/vtabs/page.js overview/rail/page.js overview/list/page.js "
+ 		+ "overview/grid/page.js overview/flush/page.js overview/prose/page.js overview/crumbs/page.js "
+ 		+ "overview/page/page.js overview/children/page.js overview/mounts/page.js overview/replace/page.js overview/route/page.js "
++		+ "overview/folders/page.js "
+ 		+ "overview/shell/page.js overview/measure/page.js overview/inset/page.js overview/region/page.js "
+ 		+ "overview/full/page.js overview/width/page.js "
+ 		+ "overview/wall/page.js overview/catalog/page.js overview/dashboard/page.js overview/strip/page.js "
+@@ -127,11 +162,12 @@ export default new Doc({
+ 		+ "overview/columns/refs/page.js overview/columns/panels/page.js "
+ 		+ "overview/columns/examples/grids/page.js overview/columns/examples/looks/page.js "
+ 		+ "overview/landing/page.js overview/docs/page.js overview/site/page.js "
+-		+ "overview/labels/page.js overview/render/page.js",
++		+ "overview/labels/page.js overview/render/page.js "
++		+ "jsonl/page.jsonl jsonl/full/page.jsonl",
+ 
+ 	content(){
+ 		div.c("wide grid three gap", () => {
+-			md("A page is a folder holding a `page.js` or a `page.jsonl`. Each card is one block, shown running. Start with [navigation](/framework/core/Page/doc/navigation/) or [layout](/framework/core/Page/doc/layout-overview/); every method is in the [API](/framework/core/Page/doc/api/).");
++			md("A page is a folder holding a `page.js` or a `page.jsonl`. Each card below is one block, shown running. Start here, or at [Make a page](/framework/core/Page/make/) for the four ways to build one, or [Layout](/framework/core/Page/layout/) for how to shape one; every method is in the [API](/framework/core/Page/api/).");
+ 			code.js(`export default new Page({
+   meta: import.meta,
+   title: "Docs",
+diff --git a/public/framework/core/Page/readme.md b/public/framework/core/Page/readme.md
+index 58a77d4e..9f7123c8 100644
+--- a/public/framework/core/Page/readme.md
++++ b/public/framework/core/Page/readme.md
+@@ -1,16 +1,20 @@
+ # Page — a folder with a `page.js` or `page.jsonl` is a page: a url, some content, and children.
+ 
+ ## Index
++[make](./make/) — the four ways to make a page, each with its code and its live result — start here
++[layout](./layout/) — choosing a layout: standard, split, columns, floating page, top-down shape
+ [generator](./generator/) — builds a whole page tree from a short spec string, so you can try layouts without making files
+-[jsonl](./jsonl/) — a page described by `page.jsonl` lines instead of a `page.js` (no readme yet)
+-[overview](./overview/) — the wall of one picture card per page building block; start here to see what a page can be made of
++[jsonl](./jsonl/) — a page described by `page.jsonl` lines instead of a `page.js`, trimmed to the two-line case
++[overview](./overview/) — the wall of one picture card per page building block
+ [old](./old/) — the first Page docs, kept as reference while the Overview replaces them
+ [tools](./tools/) — a small link-checking script (`links.mjs`), not a page (no readme yet)
+ 
+ 
+-## Use
+-A `page.js` is one file. The folder is the route, and `children:` names the folders beneath it, in menu order:
++## Use — four ways to make a page
+ 
++All four are on the **[Make a page](./make/)** tab, each with its code and its live result. Smallest first:
++
++**1. `page.js`** — one file. The folder is the url, `children:` is the menu, in order:
+ ```js
+ import { Page, md } from "/app.js";
+ 
+@@ -22,26 +26,39 @@ export default new Page({
+ });
+ ```
+ 
+-A `page.jsonl` is the same thing as a log. Line 1 builds the page; every later line calls one method on it:
+-
++**2. `page.jsonl`** — the same page, as a log. Line 1 builds it; every later line calls one method:
+ ```
+-{"title": "Notes", "icon": "description"}
++{"title": "Notes"}
+ {"place": "note.md"}
+ ```
++[jsonl](./jsonl/) — the two-line case above, live. [jsonl/full](./jsonl/full/) — every line the format knows.
++
++**3. `route(name)`** — a url nobody declared, resolved the moment it's asked for. No `children:` at all:
++```js
++route(name){
++    return ["html", "css", "js"].includes(name) && { title: name.toUpperCase(), content(){ … } };
++}
++```
++[overview/route](./overview/route/) — the textbook case, live.
++
++**4. Folders, with no `children:` list** — `route()`'s biggest job: a page whose child is a name read straight off disk, the pattern behind `ai2/`'s day and card pages:
++```js
++async child(name, levels){
++    return this.add(name, { title: name, content(){ … } }).load_all_children(levels);
++}
++```
++[overview/folders](./overview/folders/) — the smallest real version, live.
+ 
+-Nothing crawls: a page exists once its parent's `children:` (or a `file` line) names it. A `.md` beside a page is a page too, once something links to it.
++Nothing crawls: a page exists once its parent's `children:` (or a `file` line, or `route()`/`child()`) names it. A `.md` beside a page is a page too, once something links to it.
+ 
+ **Route everything.** Anything a reader can see should have its own url, so reload and Back land where they were. A doc swapped in place (`swap_link`) already does: it pushes `<page>/md/<doc>/`. [doc/open.md](./doc/open.md)
+ 
++**Content inside a page** has its own vocabulary — icon items, sections, outlines — so a page's insides look as structured as its navigation does: [ux/Content/structure](/framework/ux/Content/structure/).
++
+ ## Read next
+-- [`doc/navigation.md`](./doc/navigation.md) — children, menus, where links open
+-- [`doc/layout-overview.md`](./doc/layout-overview.md) — the page grid, columns, containers, padding
+-- [`doc/columns.md`](./doc/columns.md) — `columns()` in full
+-- [`doc/jsonl.md`](./doc/jsonl.md) — pages that are log files
+-- [`doc/markdown.md`](./doc/markdown.md) and [`doc/open.md`](./doc/open.md) — `.md` files as pages, and where a click opens
+-- [`doc/words.md`](./doc/words.md) — the six page words (`width`, `content`, `surface`, …)
+-- [`doc/api.md`](./doc/api.md) — every method and property
+-- [`doc/watch-out.md`](./doc/watch-out.md) — the traps, one line each
+-- [`doc/more-features.md`](./doc/more-features.md) — children from data, `related:`, `md/`
+-- [`doc/decisions.md`](./doc/decisions.md), [`doc/findings.md`](./doc/findings.md) — the record
+-- Files: `Page.class.js` (the class), `Page.css` (every `.page-*` rule), `page.js` (the palette)
++
++**Layout** — [Layout tab](./layout/) starts with *Choosing a layout*: standard, split, columns, floating page and top-down shape, one line and one link each. [`doc/layout-overview.md`](./doc/layout-overview.md) and [`doc/columns.md`](./doc/columns.md) go deeper.
++
++**Navigation** — [`doc/navigation.md`](./doc/navigation.md) (children, menus, where links open) · [`doc/labels.md`](./doc/labels.md) (title, label, icon) · [`doc/markdown.md`](./doc/markdown.md) and [`doc/open.md`](./doc/open.md) (`.md` files as pages, and where a click opens)
++
++**Reference** — [`doc/words.md`](./doc/words.md) (the six page words) · [`doc/api.md`](./doc/api.md) (every method and property) · [`doc/jsonl.md`](./doc/jsonl.md) (the log format in full) · [`doc/watch-out.md`](./doc/watch-out.md) (the traps, one line each) · [`doc/more-features.md`](./doc/more-features.md) · [`doc/decisions.md`](./doc/decisions.md), [`doc/findings.md`](./doc/findings.md) (the record) · Files: `Page.class.js` (the class), `Page.css` (every `.page-*` rule), `page.js` (the palette)

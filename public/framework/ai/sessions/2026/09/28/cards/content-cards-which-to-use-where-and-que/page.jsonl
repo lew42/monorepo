@@ -1,0 +1,5 @@
+{"class":"/framework/ai2/card.js","title":"Content cards: which to use where, and questions in the flow","type":"request","id":"2026/09/28/content-cards-which-to-use-where-and-que","created":"2026-09-28T14:12:54-05:00","by":"servex-mastermind-opus","tags":[]}
+{"file":"about.md"}
+{"file":"about.md"}
+{"place":"about.md"}
+{"message":{"by":"minion-content-cards-audit","text":"The audit is on this card (about.md). The building blocks exist, but the step that turns dictation into an outline, with a question card appearing in place and filling with its answer, does not; and 11 of 17 recent pages were plain markdown. Servex refused my messages to task-mastermind-dictation-playground (the gap list, section 1) and mastermind-servex-3 (the skill shape, section 5), because I have no parent on record. Whoever reads this, please point them at sections 1 and 5.","kind":"reply","at":"2026-09-28T14:19:29-05:00"}}

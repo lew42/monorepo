@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/system/models/",
+ "widths": {
+  "1280": {
+   "empty": 0.46,
+   "widest_text": 956,
+   "widest_text_sample": "price_in/out/cache are OpenRouter's /api",
+   "overflow_x": false,
+   "items": 815,
+   "narrow_share": 0.791
+  },
+  "1920": {
+   "empty": 0.53,
+   "widest_text": 1491,
+   "widest_text_sample": "price_in/out/cache are OpenRouter's /api",
+   "overflow_x": false,
+   "items": 815,
+   "narrow_share": 0.816
+  },
+  "2560": {
+   "empty": 0.602,
+   "widest_text": 2084,
+   "widest_text_sample": "price_in/out/cache are OpenRouter's /api",
+   "overflow_x": false,
+   "items": 815,
+   "narrow_share": 0.82
+  },
+  "3440": {
+   "empty": 0.707,
+   "widest_text": 2949,
+   "widest_text_sample": "price_in/out/cache are OpenRouter's /api",
+   "overflow_x": false,
+   "items": 815,
+   "narrow_share": 0.886
+  }
+ },
+ "errors": []
+}

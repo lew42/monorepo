@@ -1,0 +1,4 @@
+{"class":"/framework/ai2/card.js","title":"Spacing that grows with the screen","type":"card","id":"2026/09/19/spacing-tokens","created":"2026-09-19T15:12:49-05:00","by":"","tags":[]}
+{"legacy":"spacing-tokens"}
+{"status":"done"}
+{"text":"You were right about V2: I had hand-written fixed sizes. V3 uses two tokens measured against the board's own width in container units, not percentages: 7 px at a phone, 17 px at 1920, 33 px at 3440, for the board's padding, the gap between cards and the padding inside a card.\nThe site's own --gap already works this way. The site's --pad is still a percentage today. Whether it should move to container units is a proposal I will bring with measurements, because it touches every page."}

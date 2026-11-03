@@ -1,0 +1,182 @@
+@layer base, theme, site, util;
+
+/* AI RAIL — the AI-only parts of the rail (rail.js). Everything else about the rail is the
+   ux block's (ux/Inbox/Inbox.css), so this file is only what no other inbox has. */
+@layer theme {
+
+	/* card.js writes the sub-card column's width as `--ai2-subw` on the `.ai2` shell
+	   (`Card.seam()`); the shell's grid reads `--inbox-subw`. Unset passes through as
+	   unset, so this file's own fallback applies instead of Inbox.css's (2fr, a rail's
+	   own default for a reader-beside-a-list shape, not a card-beside-a-card one).
+	   TWO EQUAL DETAIL COLUMNS (the owner, 2026-10-03 follow-up: "the DETAIL side
+	   splits into two equal columns"): a card and its open sub-card are two cards of
+	   the same kind, so they get the same width, dragged or not. */
+	.ai2.inbox-shell { --inbox-subw: var(--ai2-subw, minmax(0, 1fr)); }
+
+	/* The workspace word sits at the rail name's far end (workspace.js). */
+	.inbox-rail-name > .ai2-ws-word { font-weight: normal; font-size: 0.85em; }
+
+	/* USAGE at the top of the rail: three bars with the pace marker, no notes. The only
+	   place the usage meters exist (the owner, 2026-09-30). */
+	.ai2-usage-top { padding-block-end: 0.5em; }
+	.ai2-usage-top .ai-usage { display: flex; gap: 0.75em; }
+	.ai2-usage-top .ai-meter { flex: 1; min-width: 0; font-size: 0.8em; }
+	/* Time left shows (the owner, 2026-09-25: "always show the time remaining"); the pace projection does not fit. */
+	.ai2-usage-top .ai-note { display: block; font-size: 0.9em; white-space: nowrap; }
+	.ai2-usage-top .ai-proj { display: none; }
+	.ai2-usage-key { display: block; font-size: 0.72em; margin-block-start: 0.2em; }
+
+	/* THE ONE DASHBOARD'S CHIPS (DashChips.js): full-width rows of small pills under the head; the pressed one is filled.
+	   The chip look is TasksPage.chip's (`sessions-chip`), restated here so it does not depend on sessions.css being loaded. */
+	.inbox-chrome > .dash-chips { flex: 1 1 100%; white-space: normal; display: flex; flex-direction: column; gap: 0.3em; }
+	.dash-chip-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3em; }
+	.dash-chip-sub { padding-inline-start: 1em; }
+	.dash-chips .sessions-chip { font: inherit; font-size: 0.85em; padding: 0.1em 0.6em; border: 1px solid var(--line); border-radius: 2em; background: transparent; color: inherit; cursor: pointer; }
+	.dash-chips .sessions-chip:hover { background: var(--tint); }
+	.dash-chips .sessions-chip-on { background: var(--prime); border-color: var(--prime); color: var(--prime-ink); font-weight: 600; }
+	.dash-chip-head, .dash-total { font-size: 0.8em; }
+	.dash-chips .tasks-check-bad { font-size: 0.85em; }
+
+	/* A state row's second line: its kind, state and what it says. */
+	.dash-kind { flex: none; font-size: 0.75em; text-transform: uppercase; letter-spacing: 0.04em; opacity: 0.7; }
+	.dash-state { flex: none; font-size: 0.8em; }
+
+	/* A GROUP ROW is a preview like any other, a little heavier. */
+	.ai2-group-row .inbox-row-title { font-size: 1.05em; }
+	.ai2-group-row .inbox-row-when { white-space: nowrap; }
+
+	/* A changed site page's own path, one line. */
+	.ai2-real-path {
+		display: block;
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+	}
+
+	/* THE FACE OF A CARD: a bar and a dollar figure (meter.js). A running bar pulses.
+	   SHORT, never the row's width (the owner, 2026-09-25: "a 2,000-pixel line across my
+	   screen as a progress bar makes no sense"); its count sits beside it in words. */
+	.ai2-meter-line {
+		margin-block-start: 0.3em;
+	}
+
+	.ai2-meter {
+		flex: 0 0 4em;
+		min-width: 0;
+		height: 0.4em;
+		border-radius: 0.2em;
+		background: var(--line);
+		overflow: hidden;
+	}
+
+	.ai2-meter-fill {
+		height: 100%;
+		border-radius: inherit;
+		background: var(--accent, currentColor);
+	}
+
+	.ai2-meter.live .ai2-meter-fill {
+		animation: ai2-meter-pulse 1.4s ease-in-out infinite;
+	}
+
+	@keyframes ai2-meter-pulse {
+		50% { opacity: 0.45; }
+	}
+
+	.ai2-meter-cost {
+		flex: none;
+		font-size: 0.8em;
+		white-space: nowrap;
+	}
+
+	/* WHAT HAPPENED (activity.js): one quiet line under a resurfaced row, in the accent
+	   colour, clipped to one line; a click opens the card's Activity tab. */
+	.ai2-news {
+		margin-block-start: 0.35em;
+		padding: 0.15em 0.45em;
+		border-inline-start: 2px solid var(--prime);
+		background: var(--fill-a04);
+		font-size: 0.85em;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		cursor: pointer;
+	}
+	.ai2-news:hover { background: var(--surface); }
+	.ai2-news-who { font-weight: 600; }
+
+	/* THE FLAG OVER A SELECTION in the detail — fixed, placed from the selection's own rect. */
+	.ai2-selection-flag {
+		display: none;
+		position: fixed;
+		z-index: 5;
+		transform: translateX(-50%);
+		padding: 0.25em 0.6em;
+		border: 1px solid var(--line);
+		border-radius: 1em;
+		background: var(--surface);
+		color: var(--error);
+		font: inherit;
+		line-height: 1;
+		cursor: pointer;
+		box-shadow: 0 2px 8px var(--shade-a16);
+	}
+
+	.ai2-selection-flag.on {
+		display: block;
+	}
+}
+
+/* The AI page is a full-height shell: the core end-of-page chips ("N open tasks", "Inbox · N", AI cost) sat under it in a
+   ~150 px band at 1920 and cut the rail short; the Inbox itself lists what is open (review 2026-10-13, ai/sessions/2026/10/13/
+   session-730e8a7b/mastermind-repo-slim/review-ai-pages/review.md). Util, so it beats Page.css's `.page .page-open`. */
+@layer util {
+	.page.page--ai > :is(.page-open, .page-inbox-chip, .page-ai-cost) { display: none; }
+}
+
+/* A chip on means the list is a filtered view: the pinned rows (Waiting on you, Now, Today...) step aside so its rows are the first thing seen.
+   "Needs you" is the same set as Waiting on you, so nothing is lost. */
+@layer util {
+	.ai2:has(.dash-chips .sessions-chip-on) :is(.browse-pins, .inbox-pinned) { display: none; }
+}
+
+/* THE AI PAGE'S COMPACT LAYOUT (the owner, 2026-10-19: "the worst page I've ever seen"; known problem, asked many times:
+   ai/doc/dashboard-layout-asks.md). Scoped to `.page--ai`, so no other page and no template changes.
+   1. The toolbar is short: the chips are ONE line that scrolls sideways, never a tower of rows.
+   2. "Waiting on you" is a normal section of the list's one scroll, not a list with its own 45vh scroll.
+   3. On a phone the whole page is one normal scroll: the toolbar scrolls away, the rows get the screen. */
+@layer theme {
+	.page--ai .browse-pinned-rows { max-block-size: none; overflow: visible; }
+
+	.page--ai .inbox-top { padding-block: 0.3em; }
+	.page--ai .ai2-usage-top { padding-block-end: 0.2em; }
+	.page--ai .inbox-chrome { margin-block-start: 0.25em; }
+	.page--ai .inbox-chrome > .dash-chips { flex-direction: row; flex-wrap: nowrap; align-items: center; overflow-x: auto; scrollbar-width: none; }
+	.page--ai .dash-chip-row { display: contents; }
+	/* a soft fade at the right edge says "this scrolls" */
+	.page--ai .inbox-chrome > .dash-chips { mask-image: linear-gradient(to right, #000 calc(100% - 2em), transparent); }
+	.page--ai .dash-chips :is(.sessions-chip, .dash-chip-head, .dash-total) { flex: none; white-space: nowrap; }
+	.page--ai .dash-chip-sub { padding-inline-start: 0; }
+
+	/* ONE row at every width (owner 2026-10-24): icon + title fixed, only the tab strip swipes sideways. Keep it a plain flex row. */
+	.page--ai .inbox-head { flex-wrap: nowrap; }
+	.page--ai .inbox-head > .doc-well { flex: none; }
+	.page--ai .inbox-head > .tabs > .tab-bar { flex: 1 1 0; min-width: 0; flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scrollbar-width: none; }
+	.page--ai .inbox-head > .tabs > .tab-bar::-webkit-scrollbar { display: none; }
+	.page--ai .inbox-head > .tabs > .tab-bar > .tab { flex: none; white-space: nowrap; }
+	/* An Inbox filter marks its own tab `aria-current` (ai/page.js head()); Router.mark_links lights Home too (same path), so Home is un-lit. */
+	.page--ai .inbox-head .tab-bar:has(> .tab[aria-current]:not(.tab-default)) > .tab-default.active { color: var(--subtle); border-color: transparent; border-bottom-color: var(--line); background: none; }
+
+	@media (width < 40em) {
+		/* the scroll is the TOPIC's now (core/Sidebar: a topic with a `.tabs.stick` scrolls, header and all) */
+		.page--ai.page.full:has(> .inbox-shell) { height: auto; min-height: 100%; overflow: visible; }
+		.page--ai.page.full:has(> .inbox-shell) > .inbox-shell { flex: none; height: auto; }
+		.page--ai .inbox-rail, .page--ai .inbox-stream { display: block; }
+		.page--ai .inbox-rows { overflow: visible; }
+		/* The whole one-row head sticks, title and strip together (the owner, 2026-10-24: one row at every width). The topic scrolls
+		   (core/Sidebar, `.tabs.stick`) and the framework header scrolls away; a sticky box stays inside its parent, so the HEAD is
+		   the sticky element, not the strip. Opaque ground under it: the title well and the strip each paint their own `--well` once. */
+		.page--ai .inbox-head { position: sticky; top: 0; z-index: 3; background: var(--ground, var(--wash)); }
+		.page--ai .inbox-head .doc-well { padding-block: 0.4em 0.1em; }
+	}
+}

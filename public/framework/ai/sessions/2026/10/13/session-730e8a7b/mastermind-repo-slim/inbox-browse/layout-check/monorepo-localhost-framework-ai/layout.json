@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/",
+ "widths": {
+  "1280": {
+   "empty": 0.271,
+   "widest_text": 2103,
+   "widest_text_sample": "Review: fix, 6 findings (3 fix). Report:",
+   "overflow_x": false,
+   "items": 161,
+   "narrow_share": 0.056
+  },
+  "1920": {
+   "empty": 0.199,
+   "widest_text": 2238,
+   "widest_text_sample": "Review: fix, 6 findings (3 fix). Report:",
+   "overflow_x": false,
+   "items": 161,
+   "narrow_share": 0.193
+  },
+  "2560": {
+   "empty": 0.261,
+   "widest_text": 2518,
+   "widest_text_sample": "Review: fix, 6 findings (3 fix). Report:",
+   "overflow_x": false,
+   "items": 161,
+   "narrow_share": 0.193
+  },
+  "3440": {
+   "empty": 0.356,
+   "widest_text": 2518,
+   "widest_text_sample": "Review: fix, 6 findings (3 fix). Report:",
+   "overflow_x": false,
+   "items": 161,
+   "narrow_share": 0.193
+  }
+ },
+ "errors": []
+}

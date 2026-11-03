@@ -1,0 +1,43 @@
+# controls — one box for every control
+
+A button, a link that acts like one, a select, a text field, a textarea, a
+disclosure summary and a tab are the same rectangle: one height, one padding, one
+hairline, one corner, one fill, one hover. The rules live in `framework.css`, in the
+block marked **THE CONTROL GRAMMAR** — this directory is the page that shows them.
+
+## Index
+
+[study](./study/) — the design record of one crawl asking if the site has one button or five
+
+## Use
+
+- Type nothing. A bare `button`, `input`, `select`, `textarea`, `summary` or
+  `.tab` already wears it; `.btn` puts it on an `<a>`.
+- Two variants, both filled: `.prim` (the accent) and `.bg` (the dark neutral).
+- One size word on the *container*: `.size-small` (0.75), `.size-regular` (1),
+  `.size-large` (1.5). It moves the controls inside and leaves the prose alone —
+  and (size-apply, 2026-09-06) the same three classes now also carry every box's
+  `--pad`/`--gap`/`--flow`: [`/framework/styles/system/studies/size/`](/framework/styles/system/studies/size/).
+
+## Watch out
+
+- **The site's skin still overrules the button.** `.theme-lew42 :is(button, .btn)`
+  in `styles/layers/theme/lew42/lew42.css` sets its own font-size, weight, case,
+  padding and corner at a specificity a flat selector cannot reach — so on this site
+  a button is 0.8em and uppercase while the field beside it is 1em. Five declarations;
+  deleting them is the whole fix. The page shows the two rows side by side.
+- **The height is a `min-height`, not padding.** That is what makes `.size-small`
+  exactly 0.75× — see [./doc/grammar.md](./doc/grammar.md).
+- `--size` is read by controls only. It is not a zoom and not a spacing level.
+
+## More
+
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
+- [./doc/grammar.md](./doc/grammar.md) — how the box is built, and every before/after number.
+- [/framework/ui/controls/study/](/framework/ui/controls/study/) — the 2026-09-01 survey that
+  counted 305 clickables into nine accidental families.
+- [/framework/styles/system/studies/size/](/framework/styles/system/studies/size/) — where `--size` came from.
+
+## Notes from your asks
+
+- Use a toggle for simple on/off modes and a dropdown once there are three or more modes. ([your words](/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p1652), 2026-10-13)

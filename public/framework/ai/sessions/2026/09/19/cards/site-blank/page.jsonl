@@ -1,0 +1,6 @@
+{"class":"/framework/ai2/card.js","title":"Every page was blank: fixed","type":"card","id":"2026/09/19/site-blank","created":"2026-09-19T17:02:33-05:00","by":"mastermind","tags":[]}
+{"legacy":"site-blank"}
+{"status":"done"}
+{"icon":"warning"}
+{"focus":true}
+{"text":"A new file on the dashboard imported three modules from a wrong path, and the dev bar loads that file on every page, so every page went blank. I found it from a minion's report, fixed the three paths myself, and checked three pages load. How long it was blank comes from the log next."}

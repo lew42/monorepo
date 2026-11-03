@@ -1,0 +1,7 @@
+{"class":"/framework/ai2/card.js","title":"Dev bar back, padding at 16px","type":"card","id":"2026/09/19/reset-recovery","created":"2026-09-19T23:41:23-05:00","by":"mastermind","tags":[]}
+{"legacy":"reset-recovery"}
+{"status":"done"}
+{"icon":"restore"}
+{"focus":true}
+{"text":"The loss was worse than I first said: the whole mastermind-log styling and two files that wire it into the rail were gone, not just the padding. All five restored byte-for-byte from real tool records, never guessed. Measured 16px on the real card with 226 real entries."}
+{"links":[{"url":"/framework/ai/2026-09-19/reset-recovery/","label":"what came back"}]}

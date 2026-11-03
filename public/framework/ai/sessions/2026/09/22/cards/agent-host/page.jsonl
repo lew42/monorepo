@@ -1,0 +1,6 @@
+{"class":"/framework/ai2/card.js","title":"Note: those chips were leftover test agents","type":"card","id":"2026/09/22/agent-host","created":"2026-09-22T14:59:20-05:00","by":"agent-host","tags":[]}
+{"legacy":"agent-host"}
+{"status":"done"}
+{"text":"Each chip was a Claude session Servex kept open after today's proofs — not for you to talk to. I stopped all eleven; the strip is empty now. Clicking one showed the raw token stream inline, which was an interim and is wrong. On AI 2 a running agent is a card like everything else: what it is doing in a sentence, its result when it lands, its transcript one click away on its own page — never pushed into the middle of yours."}
+{"icon":"smart_toy"}
+{"links":[{"url":"/framework/ai/2026-09-22/board-from-events/","label":"board-from-events"},{"url":"/framework/ai/v/3/","label":"the board"}]}

@@ -1,0 +1,6 @@
+{"class":"/framework/ai2/card.js","title":"Note: the fast assistant's memory","type":"card","id":"2026/09/23/note-assistant-context","created":"2026-09-23T12:22:29-05:00","by":"","tags":[]}
+{"legacy":"note-assistant-context"}
+{"icon":"note"}
+{"text":"Today it is one long-lived session that sees every card in order - so it knows what you said a minute ago in another card, and it bloats until it compacts. A fresh fork per card would stay small but forget the other cards. The design to try later: one base session holding a short rolling digest of recent cards, forked per card. Written into the ledger for the tiers design; not now."}
+{"status":"done"}
+{"links":[{"url":"/framework/ai/2026-09-22/mastermind-servex/","label":"the ledger note"}]}

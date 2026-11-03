@@ -1,0 +1,4 @@
+{"class":"/framework/ai2/card.js","title":"Servex is live and looking after itself — keeper 28488, Servex 14808.","type":"card","id":"2026/09/22/servex-integrate","created":"2026-09-22T15:23:17-05:00","by":"servex-integrate","tags":[]}
+{"legacy":"servex-integrate"}
+{"status":"done"}
+{"text":"It holds every Claude agent, owns every log, shows them talking live on a dashboard, and comes back three seconds after you kill it. Stop it with node Servex/sustain.mjs --stop. The one-screen report is at /framework/ai/2026-09-22/servex-integrate/."}

@@ -1,0 +1,356 @@
+diff --git a/public/live/Live.css b/public/live/Live.css
+index cceb08bb7..cf225a7a3 100644
+--- a/public/live/Live.css
++++ b/public/live/Live.css
+@@ -43,3 +43,12 @@
+ 	.live-tasks-line { font-weight: 600; color: inherit; text-decoration: none; }
+ 	.live-tasks-line:hover { text-decoration: underline; }
+ }
++
++@layer site {
++	.live-now-group { display: flex; flex-direction: column; gap: .15rem; }
++	.live-now-group + .live-now-group { border-top: 1px solid #0001; padding-top: .35rem; }
++	.live-now-head { font-weight: 700; }
++	.live-now-group .live-today-row, .live-now-group .live-today-task { flex-wrap: nowrap; }
++	.live-now-group .live-today-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
++	.live-now-group .live-today-model, .live-now-group .live-today-cost, .live-now-group .live-today-state { white-space: nowrap; }
++}
+diff --git a/public/live/Live.js b/public/live/Live.js
+index a77cbf652..f5462c42d 100644
+--- a/public/live/Live.js
++++ b/public/live/Live.js
+@@ -4,6 +4,7 @@ import Socket from "/framework/dev/Socket/Socket.js";
+ import { View } from "/framework/core/View/View.js";
+ import LiveToday from "./LiveToday.js";
+ import LiveTasks from "./LiveTasks.js";
++import LiveNow from "./LiveNow.js";
+ 
+ View.stylesheet(import.meta, "Live.css");
+ 
+@@ -84,10 +85,11 @@ class Tail {
+ /* One feed item as a small Page: preview() is the stock preview card (Page.preview -> preview_card), full() the whole content. */
+ class LiveCard extends Page {
+ 	static back = false;   // true shows a "← Live" link above an opened card (the owner uses the browser back button)
+-	static live = { today: LiveToday, tasks: LiveTasks };   // a card {type:"part-live", live:"<name>"} is drawn by this class, from live data, not from its text
++	static live = { today: LiveToday, tasks: LiveTasks, now: LiveNow };   // a card {type:"part-live", live:"<name>"} is drawn by this class, from live data, not from its text
+ 
+-	static of(row){
+-		const card = new this({ id: row.id, title: row.title, label: row.preview ?? row.title ?? row.id, text: row.text, url: `/live/${encodeURIComponent(row.id)}/`, path: `/live/${encodeURIComponent(row.id)}/` });
++	static of(row, base = "/live/"){
++		const url = `${base}${encodeURIComponent(row.id)}/`;   // base: the page that owns the log (/live/ or /live/archive/)
++		const card = new this({ id: row.id, title: row.title, label: row.preview ?? row.title ?? row.id, text: row.text, url, path: url });
+ 		if (row.type === "part-live") card.live_name = row.live;
+ 		return card;
+ 	}
+@@ -145,10 +147,16 @@ export default class Live extends Page {
+ 		return new Page({ title: id, url: this.url + id + "/", classes: "hides-nav", content(){ live.mount(div.c("live live-one"), id); } });
+ 	}
+ 
++	// What an empty feed says; the archive says something else.
++	get empty_text(){ return "Nothing on screen. The voice agent shows what you are discussing here."; }
++
++	// The log this page folds; archive/LiveArchive.js points it at its own copy.
++	get log_url(){ return import.meta.resolve("./page.jsonl"); }
++
+ 	// The shared stream, started once; `changed` redraws whatever is mounted.
+ 	start(){
+ 		if (this.stream) return;
+-		this.stream = new this.constructor.Log({ url: import.meta.resolve("./page.jsonl") });
++		this.stream = new this.constructor.Log({ url: this.log_url });
+ 		const changed = () => this.views.forEach(v => v());
+ 		(Socket.singleton().disabled || location.search.includes("poll"))
+ 			? new this.constructor.Tail(this.stream, changed).start()
+@@ -167,9 +175,9 @@ export default class Live extends Page {
+ 
+ 	paint(id){
+ 		const rows = this.rows(), one = id && rows.find(r => r.id === id);
+-		if (id) return one ? void this.constructor.Card.of(one).full() : void div.c("live-empty", rows.length ? "No such card." : "Loading…");
+-		if (!rows.length) return void div.c("live-empty", "Nothing on screen. The voice agent shows what you are discussing here.");
+-		rows.forEach(r => { const card = this.constructor.Card.of(r); card.preview(card.nav()); });
++		if (id) return one ? void this.constructor.Card.of(one, this.url).full() : void div.c("live-empty", rows.length ? "No such card." : "Loading…");
++		if (!rows.length) return void div.c("live-empty", this.empty_text);
++		rows.forEach(r => { const card = this.constructor.Card.of(r, this.url); card.preview(card.nav()); });
+ 	}
+ 
+ 	render(){
+diff --git a/public/live/LiveNow.js b/public/live/LiveNow.js
+new file mode 100644
+index 000000000..644f06814
+--- /dev/null
++++ b/public/live/LiveNow.js
+@@ -0,0 +1,59 @@
++import { div, span, a } from "/app.js";
++import { TaskTree } from "/framework/ai/AITask/nested.js";
++import LiveToday from "./LiveToday.js";
++import TaskState from "./TaskState.js";
++
++/* The "Now" card: what is in flight, the last landings and what waits, computed from the session index and the task logs
++ * (LiveToday.load), never typed by an agent. Spans today and yesterday (UTC) so the midnight roll drops nothing.
++ * A card {type:"part-live", live:"now"} draws this (Live.js). The refresh is LiveToday's 30 s timer; a stream replaces it when the session writer exposes one (doc/notes.md). */
++export default class LiveNow extends LiveToday {
++	static LANDED = 5;
++	static WAITING = 6;
++	static FLIGHT = 8;
++	static STALE = 30 * 6e4;   // an "active" session quiet for this long is not in flight
++
++	static async load(){
++		const now = new Date(), day = n => this.day(new Date(now - n * 864e5));
++		const days = (await Promise.all([day(0), day(1)].map(d => super.load(d).catch(() => null)))).filter(Boolean);
++		const tasks = days.flatMap(d => [...d.tasks.values()].flat());
++		const rows = days.flatMap(d => d.rows).filter(r => r.state === "active" && now - Date.parse(r.last_activity ?? 0) < this.STALE);
++		return {
++			rows,
++			landed: tasks.filter(t => t.closeout.state === "done" && t.end).sort((x, y) => this.when(y) - this.when(x)).slice(0, this.LANDED),
++			waiting: tasks.filter(t => t.closeout.state !== "done"),
++		};
++	}
++
++	// A task node's `end` is a time (ms) once the tree is built, or the logged string before.
++	static when(t){ return typeof t.end === "number" ? t.end : Date.parse(t.end); }
++
++	static link(t){
++		const url = TaskTree.url(t), name = t.title || t.agent || "task";
++		return url ? a.c("live-today-name", name).href(url) : span.c("live-today-name", name);
++	}
++
++	// The feed tile: its title, which opens the full view (/live/now/), like the Tasks card.
++	static line(box){ return box.empty(() => this.tile()); }
++	static tile(){ a.c("live-tasks-line", "Now").href("/live/now/"); }   // the tile is its title (doc/notes.md, 2026-10-16); the counts are on the page
++
++	static draw({ rows, landed, waiting }){
++		const group = (title, count, body) => div.c("live-now-group", () => { span.c("live-now-head", `${title} (${count})`); body(); });
++		div.c("live-today", () => {
++			group("In flight", rows.length, () => rows.length
++				? (rows.slice(0, this.FLIGHT).forEach(r => div.c("live-today-row", () => {
++					a.c("live-today-name", r.agent || r.title || r.id.slice(0, 8)).href(`/framework/ai/sessions/${r.id}/`);
++					span.c("live-today-model", r.model || "");
++					span.c("live-today-cost", `$${(r.usd || 0).toFixed(2)}`);
++				})), rows.length > this.FLIGHT && a.c("live-today-name", `+ ${rows.length - this.FLIGHT} more`).href("/framework/ai/sessions/"))
++				: span.c("live-today-model", "nothing running"));
++			group("Last landed", landed.length, () => landed.forEach(t => div.c("live-today-task is-landed", () => {
++				this.link(t);
++				span.c("live-today-state is-landed", new Date(this.when(t)).toISOString().slice(5, 16).replace("T", " "));
++			})));
++			group("Waiting", waiting.length, () => waiting.slice(0, this.WAITING).forEach(t => div.c("live-today-task is-waiting", () => {
++				this.link(t);
++				span.c("live-today-state is-waiting", TaskState.label(t.closeout));
++			})));
++		});
++	}
++}
+diff --git a/public/live/LiveToday.js b/public/live/LiveToday.js
+index d934c51ed..dac6f0be5 100644
+--- a/public/live/LiveToday.js
++++ b/public/live/LiveToday.js
+@@ -56,12 +56,12 @@ export default class LiveToday {
+ 	}
+ 
+ 	// Fills `box` (a View) now and again every 30 s while it is on the page.
+-	static into(box){
++	static into(box, view = "draw"){
+ 		let first = true;
+ 		const go = async () => {
+ 			if (!first && !box.el.isConnected) return clearInterval(timer);   // the card was redrawn away
+ 			first = false;
+-			try { const data = await this.load(); box.empty(() => this.draw(data)); }
++			try { const data = await this.load(); box.empty(() => this[view](data)); }
+ 			catch (e) { box.empty(() => span("Could not read today's sessions: " + e.message)); }
+ 		};
+ 		const timer = setInterval(go, 30000);
+diff --git a/public/live/archive/ArchiveMove.mjs b/public/live/archive/ArchiveMove.mjs
+new file mode 100644
+index 000000000..9a98a842b
+--- /dev/null
++++ b/public/live/archive/ArchiveMove.mjs
+@@ -0,0 +1,74 @@
++// Moves the /live feed into /live/archive/ and starts /live over with three view cards. Doc: public/live/archive/readme.md
++//   node public/live/archive/ArchiveMove.mjs --plan     (default) what would move; writes nothing
++//   node public/live/archive/ArchiveMove.mjs --apply    copy page.jsonl to archive/page.jsonl byte for byte, then APPEND to page.jsonl
++//   node public/live/archive/ArchiveMove.mjs --undo     APPEND the archived cards back to /live (the archive stays)
++// Never deletes or rewrites a line: /live's log only grows, so git and the file itself are the history.
++import { readFileSync, writeFileSync, appendFileSync, existsSync } from "node:fs";
++import { createHash } from "node:crypto";
++import { join, dirname } from "node:path";
++import { fileURLToPath } from "node:url";
++
++export default class ArchiveMove {
++	static EDITABLE = ["text", "title", "type", "preview", "live"];   // the fields Live.js lets a bare `{<id>:{…}}` line edit
++
++	constructor(dir = join(dirname(fileURLToPath(import.meta.url)), "..")) {
++		this.live = join(dir, "page.jsonl");
++		this.archive = join(dir, "archive", "page.jsonl");
++		this.manifest = join(dir, "archive", "manifest.json");
++	}
++
++	// The cards on screen after these lines: Live.js's own fold (add, edit by id, remove, clear), in the order added.
++	static fold(lines) {
++		let items = new Map();
++		for (const line of lines) {
++			const entry = JSON.parse(line), c = entry.content;
++			if (c?.clear) items = new Map();
++			if (c?.add) items.set(c.add.id ?? `i${items.size}`, { ...c.add, by: c.by ?? c.add.by, ts: c.ts ?? c.add.ts });
++			if (typeof c?.remove === "string") items.delete(c.remove);
++			for (const [k, v] of Object.entries(entry))
++				if (k !== "content" && items.has(k) && v && typeof v === "object")
++					items.set(k, { ...items.get(k), ...Object.fromEntries(this.EDITABLE.filter(f => v[f] !== undefined).map(f => [f, v[f]])) });
++		}
++		return [...items.values()];
++	}
++
++	read() {
++		const text = readFileSync(this.live, "utf8"), end = text.lastIndexOf("\n") + 1;   // whole lines only
++		const bytes = text.slice(0, end);
++		return { bytes, lines: bytes.split("\n").filter(Boolean), sha: createHash("sha256").update(bytes).digest("hex") };
++	}
++
++	plan() {
++		const { lines, bytes } = this.read(), cards = this.constructor.fold(lines);
++		return { lines: lines.length, bytes: Buffer.byteLength(bytes), cards: cards.map(c => `${c.id} (${c.type})`) };
++	}
++
++	apply(at = new Date().toISOString()) {
++		if (existsSync(this.archive)) throw new Error("archive/page.jsonl exists: already moved (--undo to bring cards back)");
++		const { bytes, lines, sha } = this.read(), cards = this.constructor.fold(lines);
++		const by = "mastermind-checkup-live", add = (id, o) => JSON.stringify({ content: { add: { type: "part-card", id, ...o, by, ts: at } } }) + "\n";
++		writeFileSync(this.archive, bytes);   // byte for byte
++		appendFileSync(this.archive, add("archive-about", { title: "About this archive", preview: "About this archive",
++			text: `Everything that was on [/live/](/live/) until ${at.slice(0, 16).replace("T", " ")} UTC, copied byte for byte from \`page.jsonl\` (${lines.length} lines, sha256 \`${sha.slice(0, 12)}\`). ${cards.length} cards: open one to read it as it was. The record is [manifest.json](/framework/files/?path=live/archive/manifest.json); [readme](/framework/files/?path=live/archive/readme.md) says how to undo.` }));
++		writeFileSync(this.manifest, JSON.stringify({ at, by, source: "public/live/page.jsonl", copied_to: "public/live/archive/page.jsonl", lines: lines.length, bytes: Buffer.byteLength(bytes), sha256: sha, cards: cards.map(c => ({ id: c.id, type: c.type, title: c.title })), undo: "node public/live/archive/ArchiveMove.mjs --undo" }, null, "\t") + "\n");
++		appendFileSync(this.live, JSON.stringify({ content: { clear: true, by, ts: at } }) + "\n"
++			+ add("archive", { title: "Archive", preview: "Archive", text: "The cards that were here are kept at [/live/archive/](/live/archive/)." })
++			+ JSON.stringify({ content: { add: { type: "part-live", live: "tasks", id: "tasks", title: "Tasks", preview: "Tasks", by, ts: at } } }) + "\n"
++			+ JSON.stringify({ content: { add: { type: "part-live", live: "now", id: "now", title: "Now", preview: "Now", text: "In flight, last landed and waiting, read from the session index and task logs.", by, ts: at } } }) + "\n");
++		return this.manifest;
++	}
++
++	undo(at = new Date().toISOString()) {
++		const old = JSON.parse(readFileSync(this.manifest, "utf8")), lines = readFileSync(this.archive, "utf8").split("\n").filter(Boolean).slice(0, old.lines);
++		const back = this.constructor.fold(lines).map(c => JSON.stringify({ content: { add: c } }) + "\n").join("");
++		appendFileSync(this.live, JSON.stringify({ content: { clear: true, by: "mastermind-checkup-live", ts: at } }) + "\n" + back);
++		return old.cards.length;
++	}
++}
++
++if (import.meta.url === `file:///${process.argv[1]?.replaceAll("\\", "/")}` || process.argv[1]?.endsWith("ArchiveMove.mjs")) {
++	const move = new ArchiveMove(), flag = process.argv[2] ?? "--plan";
++	if (flag === "--apply") console.log("moved; manifest", move.apply());
++	else if (flag === "--undo") console.log("restored", move.undo(), "cards to /live");
++	else console.log(JSON.stringify(move.plan(), null, 2));
++}
+diff --git a/public/live/archive/LiveArchive.js b/public/live/archive/LiveArchive.js
+new file mode 100644
+index 000000000..9c62354b6
+--- /dev/null
++++ b/public/live/archive/LiveArchive.js
+@@ -0,0 +1,11 @@
++import Live from "../Live.js";
++
++/* /live/archive/: the old /live feed, kept. Same page class, reading archive/page.jsonl (a verbatim copy of /live's log, moved by ArchiveMove.mjs). */
++/* The archive shows the old part-live cards as the text they were; only /live draws live data. */
++class ArchiveCard extends Live.Card { static live = {}; }
++
++export default class LiveArchive extends Live {
++	static Card = ArchiveCard;
++	get empty_text(){ return "The archive is empty. node public/live/archive/ArchiveMove.mjs --apply fills it from /live."; }
++	get log_url(){ return import.meta.resolve("./page.jsonl"); }
++}
+diff --git a/public/live/archive/files.jsonl b/public/live/archive/files.jsonl
+new file mode 100644
+index 000000000..e21ce4a5a
+--- /dev/null
++++ b/public/live/archive/files.jsonl
+@@ -0,0 +1,6 @@
++{"file":"LiveArchive.js"}
++{"file":"page.js"}
++{"file":"ArchiveMove.mjs"}
++{"file":"readme.md"}
++{"file":"manifest.json"}
++{"file":"manifest.json","gone":true}
+diff --git a/public/live/archive/page.js b/public/live/archive/page.js
+new file mode 100644
+index 000000000..37348bd65
+--- /dev/null
++++ b/public/live/archive/page.js
+@@ -0,0 +1,3 @@
++import LiveArchive from "./LiveArchive.js";
++
++export default new LiveArchive({ meta: import.meta, title: "Live archive", description: "The old /live cards, kept as they were.", classes: "hides-nav" });
+diff --git a/public/live/archive/readme.md b/public/live/archive/readme.md
+new file mode 100644
+index 000000000..637ba505e
+--- /dev/null
++++ b/public/live/archive/readme.md
+@@ -0,0 +1,7 @@
++# /live/archive: the old /live cards, kept
++
++Open [/live/archive/](/live/archive/). It is the same page as [/live/](/live/) (class `LiveArchive extends Live`) reading its own copy of the log, so every old card opens as it was, at `/live/archive/<id>/`.
++
++- **How it got here:** `ArchiveMove.mjs` copied `/live`'s `page.jsonl` to `archive/page.jsonl` byte for byte, wrote `manifest.json` (line count, sha256, card ids), then appended a `clear` and the three new cards to `/live`. Nothing was deleted or rewritten.
++- **Look first:** `node public/live/archive/ArchiveMove.mjs --plan` lists what would move; `--apply` moves it (refuses if the archive exists); `--undo` appends the archived cards back to `/live`.
++- **Why:** the owner wanted a blank slate. A card holding text an agent typed goes stale; a pointer or a view does not ([notes](../doc/notes.md), "Every card that was on /live").
+diff --git a/public/live/doc/notes.md b/public/live/doc/notes.md
+index 4ec29c76e..b9da92832 100644
+--- a/public/live/doc/notes.md
++++ b/public/live/doc/notes.md
+@@ -38,3 +38,24 @@ When the voice agent talks about code, the card it posts shows the code in real
+ ## 2026-10-16 — the feed tile says what the page says (owner)
+ 
+ A card's tile in the /live feed is navigation. Its text must be the card's title, nothing else: when I click "Now" I land on a page whose first heading is "Now". No mismatch between the link and what it links to. The `preview` field is not a place for a subtitle or a summary; if it differs from `title` it is wrong. (Said after the Now card showed "Done, in flight, waiting on you" in the feed.)
++
++## Every card that was on /live, and its plan (checkup, 2026-10-16)
++
++The law (CLAUDE.md): code streams the UI, never an agent. A card is agent-written text (stale the moment the work moves on) or a view (code reads the data). All twelve old cards were moved to [/live/archive/](/live/archive/) by `archive/ArchiveMove.mjs`; [archive/readme.md](../archive/readme.md) says how, and `archive/manifest.json` lists them.
++
++| Card | Kind | Plan |
++|---|---|---|
++| now | agent text, edited by hand six times | replaced by the **Now** view (`LiveNow.js`) |
++| tasks | view (`LiveTasks.js`) | kept, on the new /live |
++| task-system-plan | agent text, rewritten about 15 times | archived; the plan lives in the task-system task folder, the status in `core/Task` |
++| task-migrate | agent text | archived; status is the migration task's own `task.jsonl` |
++| sheet-audit, sheet-proposal | agent text | archived; the sheet task folders and `ext/drawer` docs hold the substance |
++| class-architecture | agent text (a design note) | archived; it belongs in `core/Item/doc/` (its owner could move it there) |
++| live-classes | agent text about `Live.js` | archived; this module's readme supersedes it |
++| task-audits, transcripts, chat bubbles, overnight | pointers already (data moved by the live-pointers task) | archived |
++
++**Views that exist:** Now, Tasks, Today (`LiveToday.js`, the full session list; no card draws it now, add `{"type":"part-live","live":"today"}` to show it).
++
++**Decision (checkup):** Now reads `LiveToday.load` for today and yesterday (UTC), so one reader serves both cards. It keeps the 30 s timer it inherits until the session writer exposes a stream; the better fix is a socket tail of the session index, which is larger and would win once that index is a JSONL.
++
++**New cards from the voice agent** should be pointers (title, one sentence, links) or a `part-live` view; text that will change belongs in the log of whatever produces it.
+diff --git a/public/live/files.jsonl b/public/live/files.jsonl
+index 1e77e753e..17622f0ac 100644
+--- a/public/live/files.jsonl
++++ b/public/live/files.jsonl
+@@ -3,3 +3,8 @@
+ {"file":"Live.js"}
+ {"file":"page.js"}
+ {"file":"readme.md"}
++{"file":"archive/page.js"}
++{"file":"LiveNow.js"}
++{"file":"LiveTasks.js"}
++{"file":"LiveToday.js"}
++{"file":"TaskState.js"}
+diff --git a/public/live/page.js b/public/live/page.js
+index 389c58838..8b379e56f 100644
+--- a/public/live/page.js
++++ b/public/live/page.js
+@@ -1,3 +1,3 @@
+ import Live from "./Live.js";
+ 
+-export default new Live({ meta: import.meta, title: "Live", description: "The owner's live voice-work feed.", classes: "hides-nav" });
++export default new Live({ meta: import.meta, title: "Live", description: "The owner's live voice-work feed.", classes: "hides-nav", children: "archive" });
+diff --git a/public/live/readme.md b/public/live/readme.md
+index b766f9040..dcf9e7dc4 100644
+--- a/public/live/readme.md
++++ b/public/live/readme.md
+@@ -11,6 +11,10 @@ Open [/live/](/live/). It shows only the current topic, your latest ask refined
+ `/live/` is a feed of white preview cards on light gray, newest on top. Each card shows `preview` (else `title`); a tap opens `/live/?card=<id>` with the full `text` (back and reload work). Render: `Live.draw()` builds a `Live.Card` (a small `Page`) per item and calls its stock `preview()` → `preview_card()` (Previews.js); `Card.full()` renders the whole card. Add one with `page_add` on `/live/`:
+ `{"type":"part-card","id":"example","title":"Full title","preview":"Short label","text":"Full **markdown** body"}`; `page_set {"<id>":{"preview":"…"}}` retitles. `after: "<id>"` places a card under another.
+ 
++## The blank slate, Now and the archive (2026-10-16)
++
++`/live/` starts empty except for three cards that are **views**, so nothing on it needs an agent to rewrite it: **Now** ([`LiveNow.js`](LiveNow.js): what is in flight, the last landings and what waits, read from the session index and task logs), **Tasks** ([`LiveTasks.js`](LiveTasks.js): one line from the task system) and **Archive** (a link). The old cards are at [/live/archive/](/live/archive/) ([archive/readme.md](archive/readme.md)). The plan for every old card is in [doc/notes.md](doc/notes.md).
++
+ ## The answer goes on a card (the owner, 2026-10-16)
+ 
+ When the owner asks a question, the voice agent puts the answer on `/live/` as a card first, says "take a look", and keeps the spoken reply to one or two sentences. A status answer ("what's running") is a card listing each agent's id, state, what it is on and its cost: shown, not spoken. The voice agent's copy of this rule is in [`RemoteMCP.js`](../../Servex/ext/remote/RemoteMCP.js) (it takes effect after a Servex restart).

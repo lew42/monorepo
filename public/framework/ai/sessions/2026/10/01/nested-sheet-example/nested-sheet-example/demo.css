@@ -1,0 +1,95 @@
+/* The nested-sheet demo (ai/2026-10-01/nested-sheet-example/page.js) — a small,
+   self-contained box standing in for a phone screen, so the mechanism can be
+   dragged and watched on ANY screen, not just one narrowed below 52em (the
+   real rail's own breakpoint). `contain: layout` on the stage is what makes
+   `position: fixed` inside it mean "the edge of this box" instead of "the
+   edge of the real browser window" — the one trick that lets the broken
+   demo below stay a safe, contained demo instead of covering the real page.
+   Every class carries this demo's own `nested-sheet-` prefix (new-css-class
+   skill) — nothing here is reused by, or should be reused by, anything else. */
+@layer site {
+
+	.nested-sheet-stage {
+		position: relative;
+		contain: layout;
+		width: min(100%, 24em);
+		height: 28em;
+		margin-inline: auto;
+		border: 1px solid var(--line);
+		border-radius: 0.6em;
+		background: var(--fill-a08);
+		overflow: hidden;
+	}
+
+	/* THE OUTER SHEET — sized exactly the way the real ✦ sheet is: pinned to
+	   its own box's bottom edge, a height read from a CSS variable that
+	   `ext/grip`'s own handle writes. */
+	.nested-sheet-outer {
+		position: absolute;
+		inset-inline: 0;
+		inset-block-end: 0;
+		display: flex;
+		flex-direction: column;
+		height: var(--outer-h, 60%);
+		min-block-size: 9em;
+		background: var(--surface);
+		border-top: 1px solid var(--line);
+		border-radius: 0.5em 0.5em 0 0;
+		box-shadow: 0 -0.3em 1em var(--fill-a16);
+	}
+
+	.nested-sheet-outer-head, .nested-sheet-inner-head {
+		flex: 0 0 auto;
+		padding: 0.5em 0.7em 0.2em;
+		font-weight: 600;
+		gap: 0.5em;
+	}
+
+	.nested-sheet-readout {
+		font-size: 0.8em;
+		font-weight: 400;
+		color: var(--subtle);
+	}
+
+	.nested-sheet-outer-content {
+		flex: 1 1 auto;
+		min-block-size: 0;
+		overflow-y: auto;
+		padding: 0 0.7em;
+	}
+
+	/* THE NESTED BAR — the bottom bar the owner described, living inside the
+	   outer sheet: a normal flex child, last in the column, with its OWN
+	   `ext/grip` handle and its OWN height variable. `position: relative` is
+	   only so that handle (an absolutely positioned strip) has this box, not
+	   some ancestor, as the edge it measures from. */
+	.nested-sheet-inner {
+		position: relative;
+		flex: 0 0 auto;
+		height: var(--inner-h, 5em);
+		min-block-size: 3.2em;
+		padding: 0.5em 0.7em;
+		background: var(--fill-a16);
+		border-top: 1px dashed var(--line);
+	}
+
+	/* THE BREAK — flip the nested bar to the real sheet's own CSS instead of
+	   being a normal flex child: `position: fixed`, pinned to the SCREEN's
+	   own bottom edge (here, the stage's, thanks to `contain: layout` above).
+	   It drops out of the column entirely, so the outer content below it
+	   reclaims the space, and the bar now just floats on top of whatever is
+	   there instead of carving out its own room — the trap this demo exists
+	   to show, not fix. */
+	.nested-sheet-inner-escaped {
+		position: fixed;
+		inset-inline: 0;
+		inset-block-end: 0;
+		z-index: 5;
+		box-shadow: 0 -0.3em 1em var(--fill-a16);
+	}
+
+	.nested-sheet-toggle {
+		margin-block-start: 1em;
+		gap: 0.5em;
+	}
+}

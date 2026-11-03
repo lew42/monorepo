@@ -1,0 +1,576 @@
+{
+ "at": "2026-10-15T23:42:02.586Z",
+ "count": 81,
+ "desc": 23754,
+ "schema": 34568,
+ "full_json_chars": 62980,
+ "rows": [
+  {
+   "name": "spawn_agent",
+   "desc": 262,
+   "schema": 3811,
+   "total": 4084,
+   "props": 16
+  },
+  {
+   "name": "refine_step",
+   "desc": 208,
+   "schema": 2307,
+   "total": 2526,
+   "props": 8
+  },
+  {
+   "name": "append_prompt_event",
+   "desc": 176,
+   "schema": 1960,
+   "total": 2155,
+   "props": 15
+  },
+  {
+   "name": "page_set",
+   "desc": 1179,
+   "schema": 878,
+   "total": 2065,
+   "props": 3
+  },
+  {
+   "name": "create_card",
+   "desc": 781,
+   "schema": 1189,
+   "total": 1981,
+   "props": 7
+  },
+  {
+   "name": "fork_self",
+   "desc": 691,
+   "schema": 1121,
+   "total": 1821,
+   "props": 6
+  },
+  {
+   "name": "send_to_agent",
+   "desc": 308,
+   "schema": 1313,
+   "total": 1634,
+   "props": 8
+  },
+  {
+   "name": "page_call",
+   "desc": 176,
+   "schema": 1121,
+   "total": 1306,
+   "props": 4
+  },
+  {
+   "name": "card_ask",
+   "desc": 450,
+   "schema": 828,
+   "total": 1286,
+   "props": 5
+  },
+  {
+   "name": "create_page",
+   "desc": 560,
+   "schema": 570,
+   "total": 1141,
+   "props": 7
+  },
+  {
+   "name": "register_session",
+   "desc": 738,
+   "schema": 379,
+   "total": 1133,
+   "props": 2
+  },
+  {
+   "name": "quick_fix",
+   "desc": 616,
+   "schema": 497,
+   "total": 1122,
+   "props": 4
+  },
+  {
+   "name": "ask_directory",
+   "desc": 423,
+   "schema": 651,
+   "total": 1087,
+   "props": 4
+  },
+  {
+   "name": "quick_fix_landed",
+   "desc": 306,
+   "schema": 684,
+   "total": 1006,
+   "props": 6
+  },
+  {
+   "name": "owner_note",
+   "desc": 307,
+   "schema": 686,
+   "total": 1003,
+   "props": 5
+  },
+  {
+   "name": "system_health",
+   "desc": 613,
+   "schema": 321,
+   "total": 947,
+   "props": 3
+  },
+  {
+   "name": "page_note",
+   "desc": 543,
+   "schema": 393,
+   "total": 945,
+   "props": 3
+  },
+  {
+   "name": "dir_log",
+   "desc": 473,
+   "schema": 458,
+   "total": 938,
+   "props": 2
+  },
+  {
+   "name": "start_job",
+   "desc": 436,
+   "schema": 462,
+   "total": 907,
+   "props": 3
+  },
+  {
+   "name": "restart_servex",
+   "desc": 743,
+   "schema": 144,
+   "total": 901,
+   "props": 1
+  },
+  {
+   "name": "module_inbox",
+   "desc": 340,
+   "schema": 542,
+   "total": 894,
+   "props": 4
+  },
+  {
+   "name": "wait_for_agent",
+   "desc": 561,
+   "schema": 307,
+   "total": 882,
+   "props": 2
+  },
+  {
+   "name": "page_add",
+   "desc": 146,
+   "schema": 715,
+   "total": 869,
+   "props": 3
+  },
+  {
+   "name": "card_reply",
+   "desc": 172,
+   "schema": 653,
+   "total": 835,
+   "props": 4
+  },
+  {
+   "name": "reprioritise_task",
+   "desc": 298,
+   "schema": 513,
+   "total": 828,
+   "props": 4
+  },
+  {
+   "name": "log_session",
+   "desc": 490,
+   "schema": 326,
+   "total": 827,
+   "props": 3
+  },
+  {
+   "name": "session_line",
+   "desc": 368,
+   "schema": 423,
+   "total": 803,
+   "props": 4
+  },
+  {
+   "name": "claim_topic",
+   "desc": 345,
+   "schema": 446,
+   "total": 802,
+   "props": 4
+  },
+  {
+   "name": "ask_expert",
+   "desc": 381,
+   "schema": 398,
+   "total": 789,
+   "props": 3
+  },
+  {
+   "name": "page_read",
+   "desc": 254,
+   "schema": 503,
+   "total": 766,
+   "props": 2
+  },
+  {
+   "name": "snooze_task",
+   "desc": 281,
+   "schema": 469,
+   "total": 761,
+   "props": 3
+  },
+  {
+   "name": "amend_bubble",
+   "desc": 413,
+   "schema": 330,
+   "total": 755,
+   "props": 4
+  },
+  {
+   "name": "kill_task",
+   "desc": 289,
+   "schema": 447,
+   "total": 745,
+   "props": 3
+  },
+  {
+   "name": "check_page",
+   "desc": 487,
+   "schema": 210,
+   "total": 707,
+   "props": 2
+  },
+  {
+   "name": "drop",
+   "desc": 423,
+   "schema": 258,
+   "total": 685,
+   "props": 2
+  },
+  {
+   "name": "list_agents",
+   "desc": 532,
+   "schema": 141,
+   "total": 684,
+   "props": 1
+  },
+  {
+   "name": "append_log",
+   "desc": 378,
+   "schema": 289,
+   "total": 677,
+   "props": 2
+  },
+  {
+   "name": "session_summary",
+   "desc": 307,
+   "schema": 353,
+   "total": 675,
+   "props": 3
+  },
+  {
+   "name": "follow",
+   "desc": 181,
+   "schema": 421,
+   "total": 608,
+   "props": 3
+  },
+  {
+   "name": "page_log",
+   "desc": 140,
+   "schema": 456,
+   "total": 604,
+   "props": 2
+  },
+  {
+   "name": "add_item",
+   "desc": 323,
+   "schema": 220,
+   "total": 551,
+   "props": 6
+  },
+  {
+   "name": "stop_agent",
+   "desc": 339,
+   "schema": 189,
+   "total": 538,
+   "props": 1
+  },
+  {
+   "name": "take_worktree",
+   "desc": 484,
+   "schema": 33,
+   "total": 530,
+   "props": 0
+  },
+  {
+   "name": "attach_card",
+   "desc": 177,
+   "schema": 325,
+   "total": 513,
+   "props": 2
+  },
+  {
+   "name": "audit_session",
+   "desc": 355,
+   "schema": 138,
+   "total": 506,
+   "props": 1
+  },
+  {
+   "name": "file_to_group",
+   "desc": 188,
+   "schema": 301,
+   "total": 502,
+   "props": 3
+  },
+  {
+   "name": "load_module",
+   "desc": 271,
+   "schema": 191,
+   "total": 473,
+   "props": 1
+  },
+  {
+   "name": "ask_manager",
+   "desc": 350,
+   "schema": 109,
+   "total": 470,
+   "props": 2
+  },
+  {
+   "name": "interrupt_agent",
+   "desc": 265,
+   "schema": 189,
+   "total": 469,
+   "props": 1
+  },
+  {
+   "name": "close_task",
+   "desc": 178,
+   "schema": 278,
+   "total": 466,
+   "props": 2
+  },
+  {
+   "name": "place",
+   "desc": 137,
+   "schema": 310,
+   "total": 452,
+   "props": 3
+  },
+  {
+   "name": "readme_modules",
+   "desc": 229,
+   "schema": 191,
+   "total": 434,
+   "props": 1
+  },
+  {
+   "name": "return_worktree",
+   "desc": 289,
+   "schema": 127,
+   "total": 431,
+   "props": 1
+  },
+  {
+   "name": "job_result",
+   "desc": 156,
+   "schema": 237,
+   "total": 403,
+   "props": 2
+  },
+  {
+   "name": "read_page",
+   "desc": 133,
+   "schema": 243,
+   "total": 385,
+   "props": 2
+  },
+  {
+   "name": "set_layout",
+   "desc": 91,
+   "schema": 279,
+   "total": 380,
+   "props": 3
+  },
+  {
+   "name": "clear",
+   "desc": 125,
+   "schema": 250,
+   "total": 380,
+   "props": 2
+  },
+  {
+   "name": "page_reply",
+   "desc": 252,
+   "schema": 109,
+   "total": 371,
+   "props": 2
+  },
+  {
+   "name": "server_logs",
+   "desc": 138,
+   "schema": 209,
+   "total": 358,
+   "props": 2
+  },
+  {
+   "name": "list_pages",
+   "desc": 102,
+   "schema": 243,
+   "total": 355,
+   "props": 2
+  },
+  {
+   "name": "read_card",
+   "desc": 113,
+   "schema": 232,
+   "total": 354,
+   "props": 1
+  },
+  {
+   "name": "list_cards",
+   "desc": 95,
+   "schema": 243,
+   "total": 348,
+   "props": 2
+  },
+  {
+   "name": "unfollow",
+   "desc": 21,
+   "schema": 291,
+   "total": 320,
+   "props": 2
+  },
+  {
+   "name": "list_waiting",
+   "desc": 257,
+   "schema": 47,
+   "total": 316,
+   "props": 0
+  },
+  {
+   "name": "card_set",
+   "desc": 88,
+   "schema": 205,
+   "total": 301,
+   "props": 5
+  },
+  {
+   "name": "ask_module",
+   "desc": 151,
+   "schema": 117,
+   "total": 278,
+   "props": 2
+  },
+  {
+   "name": "start_server",
+   "desc": 113,
+   "schema": 143,
+   "total": 268,
+   "props": 1
+  },
+  {
+   "name": "list_experts",
+   "desc": 206,
+   "schema": 47,
+   "total": 265,
+   "props": 0
+  },
+  {
+   "name": "pause_dispatch",
+   "desc": 183,
+   "schema": 47,
+   "total": 244,
+   "props": 0
+  },
+  {
+   "name": "card_summary",
+   "desc": 149,
+   "schema": 77,
+   "total": 238,
+   "props": 1
+  },
+  {
+   "name": "inbox",
+   "desc": 49,
+   "schema": 184,
+   "total": 238,
+   "props": 1
+  },
+  {
+   "name": "restart_server",
+   "desc": 77,
+   "schema": 143,
+   "total": 234,
+   "props": 1
+  },
+  {
+   "name": "heartbeat_status",
+   "desc": 183,
+   "schema": 33,
+   "total": 232,
+   "props": 0
+  },
+  {
+   "name": "release_topic",
+   "desc": 65,
+   "schema": 138,
+   "total": 216,
+   "props": 2
+  },
+  {
+   "name": "stop_server",
+   "desc": 49,
+   "schema": 143,
+   "total": 203,
+   "props": 1
+  },
+  {
+   "name": "resume_dispatch",
+   "desc": 136,
+   "schema": 47,
+   "total": 198,
+   "props": 0
+  },
+  {
+   "name": "task_loop_status",
+   "desc": 142,
+   "schema": 33,
+   "total": 191,
+   "props": 0
+  },
+  {
+   "name": "list_follows",
+   "desc": 47,
+   "schema": 111,
+   "total": 170,
+   "props": 1
+  },
+  {
+   "name": "set_focus",
+   "desc": 81,
+   "schema": 77,
+   "total": 167,
+   "props": 1
+  },
+  {
+   "name": "list_servers",
+   "desc": 122,
+   "schema": 33,
+   "total": 167,
+   "props": 0
+  },
+  {
+   "name": "list_claims",
+   "desc": 70,
+   "schema": 33,
+   "total": 114,
+   "props": 0
+  }
+ ]
+}

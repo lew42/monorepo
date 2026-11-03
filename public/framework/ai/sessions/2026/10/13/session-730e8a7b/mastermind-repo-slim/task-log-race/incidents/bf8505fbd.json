@@ -1,0 +1,6 @@
+{
+ "public/framework/ai/cards.jsonl": [
+  "{\"id\":\"2026/10/13/figma-to-code-what-came-back-the-token-l\",\"title\":\"Figma to code: what came back, the token link, and whether Figma mock-ups are the way\",\"type\":\"task\",\"status\":\"open\",\"tags\":[\"repo-slim\",\"figma\"],\"created\":\"2026-10-13T16:45:14-05:00\",\"last\":\"2026-10-13T17:43:24-05:00\",\"preview\":null,\"state\":null,\"owner_note\":null,\"reviewed\":null}",
+  "{\"id\":\"2026/10/13/session-data-are-we-duplicating-the-raw\",\"title\":\"Session data: are we duplicating the raw session files, and where the stray folders go\",\"type\":\"task\",\"status\":\"open\",\"tags\":[\"repo-slim\",\"sessions\"],\"created\":\"2026-10-13T17:13:22-05:00\",\"last\":\"2026-10-13T17:37:23-05:00\",\"preview\":null,\"state\":null,\"owner_note\":null,\"reviewed\":null}"
+ ]
+}

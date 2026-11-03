@@ -1,0 +1,284 @@
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-settings-per-session/plan.md b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-settings-per-session/plan.md
+index a8a0fad73..e6e5c9427 100644
+--- a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-settings-per-session/plan.md
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-settings-per-session/plan.md
+@@ -99,4 +99,4 @@ Carried from the step 2a review: the bar's switch (`Interrupt.bind`) writes an o
+ - Step 3 (merge 4): `core/Settings` built by minion-settings-build-step3 in worktree/chat-settings-settings (915342569), review fixes after (grouped `load` no longer persists, slider gets the room, this line). 13 tests in `core/Settings/Settings.test.mjs`. `render()` draws one level's fields; the Chat settings panel (step 5) draws the groups under headings. Next: step 4 (`session.settings` in `session.jsonl`, Servex `Sessions.settings` appends the line). Spent so far: $23 of $35. Once the panel lands, check nothing in `worktree/dictate-plugins` is left unported and mark it superseded in `session-e00f55c9/unmerged-work/triage.md` (vscode-mastermind, 2026-11-03).
+ - Step 4 (merge 5): built by minion-settings-build-step4 in worktree `chat-settings-session` (commits e9ddafafe, 924dcb086, review fixes 4cc9405ea). `session.settings` is a `core/Settings` with groups `dictate`/`recite` (`core/Session/Session.js`; flat keys via `.get(key)`). `VoiceChat.overrides_by_group()`/`load_grouped()` split and merge by each plugin's `static group` (Interrupt, ThinkingCue: `recite`); `Interrupt.bind` drops an override equal to the class value. ONE splitter, in the browser: the page posts `vc.overrides_by_group()`, Servex `Sessions.settings` checks each group (`checked_plugin_groups`) and appends it as given to the session's own `session.jsonl` (a flat object is refused); `GET /api/session/<id>` returns the flat `plugins` rebuilt from the replay and never the old `sessions.json` value. Page: `ux/Dictate/chat.js` `attach()` loads on open/switch, a plugin row's change posts debounced 400 ms (session id captured at change time, load muted). Tests green (Session, VoiceChat, Sessions.plugins). Not run against a live Servex (node-level only). Next: step 5, the Chat settings panel (`session-defaults.json` still holds the shared defaults).
+ - Step 5 (merge 6): built by minion-settings-build-step5 in worktree `chat-settings-panel` (commits cf2b89782, 93a6e8a59, 6def630e2; review fixes after, see `brief-step5-fixes.md`). The Chat settings panel `ux/Dictate/ChatSettings.js`, plugins `SendAfter` and `ReadAloud`, `ChatDefaults.js` (defaults read and saved at `/api/session/defaults`, browser copy as fallback), the gear says "Chat settings". Shots in this folder: [no session, 360](panel-360-full.png), [no session, 1920](panel-1920-full.png), [session open, 360](panel-session-360.png), [session open, 1920](panel-session-1920.png), [Make default pressed, 360](panel-session-360-made-default.png). Left: the shared VoiceChat's mic is the first chat's mic; the defaults POST is only unit-tested, not run against a live Servex; per-click use of the panel (session switching) is not exercised in a browser.
+-- Step 6 next: a status line beside the mic (brief to write).
++- Step 6 (merge 7): built by minion-settings-build-step6 in worktree `chat-settings-status`. `ux/Dictate/ChatStatus.js` (+ `ChatStatus.test.mjs`): one word beside the mic, first true of `speaking`, `agent working`, `sending`, `listening`. Sources: Recite (`state`, `cue_pending`, now `changed()` on the cue's start and stop), `floor.on_mic` (new), the post in flight in `chat.js`. Shots in `minion-settings-build-step6/` (`status-*-360.png`, `status-*-1920.png`). Left: `agent working` is `cue_pending` alone (set when the owner's line lands, only while Recite is `auto`); a `stream` event with no cue pending does not show it.
+diff --git a/public/framework/audio/Recite/Recite.js b/public/framework/audio/Recite/Recite.js
+index d6de67076..f8301d472 100644
+--- a/public/framework/audio/Recite/Recite.js
++++ b/public/framework/audio/Recite/Recite.js
+@@ -293,6 +293,7 @@ export default class Recite extends Part {
+ 	expect_reply(){
+ 		clearTimeout(this.cue_timer); this.cue_timer = null;
+ 		this.cue_pending = true;
++		this.changed();   // the status line (ux/Dictate/ChatStatus.js) shows "agent working"
+ 	}
+ 
+ 	/** The voice agent marked itself working (a `{thinking:{by:"smart"}}` session line): the cue replaces a LONG
+@@ -301,6 +302,7 @@ export default class Recite extends Part {
+ 	start_thinking(){
+ 		clearTimeout(this.cue_timer);
+ 		this.cue_pending = true;
++		this.changed();
+ 		if (!this.thinking_cue) return;
+ 		this.play_cue();
+ 		const until = Date.now() + this.cue_max_ms;
+@@ -315,7 +317,9 @@ export default class Recite extends Part {
+ 	/** The reply arrived, or a fresh line replaced the one being waited on: stop waiting. */
+ 	cancel_cue(){
+ 		clearTimeout(this.cue_timer); this.cue_timer = null;
++		const was = this.cue_pending;
+ 		this.cue_pending = false;
++		if (was) this.changed();
+ 	}
+ 
+ 	/** A short generated tone, never Kokoro speech — cheap, and never competes with recite-server for the reply
+diff --git a/public/framework/ext/Chat/Chat.css b/public/framework/ext/Chat/Chat.css
+index da86b87d5..58a0434c7 100644
+--- a/public/framework/ext/Chat/Chat.css
++++ b/public/framework/ext/Chat/Chat.css
+@@ -116,6 +116,10 @@
+ 	}
+ 	.chatbox-mic .ux-dictate-info { min-width: 0; }
+ 
++	/* The status line beside the mic (ux/Dictate/ChatStatus.js): one small word, truncates rather than widen the row. */
++	.chatbox-compose-status { flex: 0 1 auto; min-inline-size: 0; max-inline-size: 9em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.75em; }
++	.chatbox-compose-status:empty { display: none; }
++
+ 	.chatbox-compose-send,
+ 	.chatbox-compose-more {
+ 		flex: none;
+diff --git a/public/framework/ext/Chat/Composer.js b/public/framework/ext/Chat/Composer.js
+index 615027189..4e26c9910 100644
+--- a/public/framework/ext/Chat/Composer.js
++++ b/public/framework/ext/Chat/Composer.js
+@@ -56,6 +56,12 @@ export function composer({
+ 				on_error: e => console.warn("[dictate] composer:", e),
+ 				on_clean_failed: why => note("clean-up isn't answering - will send raw (" + why + ")"),
+ 			}).ac("chatbox-mic");
++			if (mic){   // an empty line beside the mic; chat.js fills it later (ux/Dictate/ChatStatus.js; ext/Chat imports nothing from ux/)
++				const status = mic.status_el = document.createElement("span");
++				status.className = "chatbox-compose-status muted";
++				status.setAttribute("aria-live", "polite");
++				mic.el.after(status);
++			}
+ 
+ 			if (with_mic){
+ 				const $menu_btn = button.c("chatbox-compose-more chatbox-compose-menu").attr("type", "button")
+diff --git a/public/framework/ux/Dictate/ChatStatus.js b/public/framework/ux/Dictate/ChatStatus.js
+new file mode 100644
+index 000000000..bd561ada5
+--- /dev/null
++++ b/public/framework/ux/Dictate/ChatStatus.js
+@@ -0,0 +1,39 @@
++/**
++ * The status line beside the mic: ONE word for what the chat is doing right now, read from sources that already exist (never a copy of
++ * their state). First true wins: speaking, agent working, sending, listening, else "". Readme: ux/Dictate/readme.md, "Status line".
++ *
++ *     new ChatStatus({ speaking, working, sending, listening, watch: [fn => unsubscribe, ...] })
++ *
++ * The four sources are plain functions returning a boolean (chat.js hands them in); each `watch` entry takes a callback to call when
++ * its source changes. `subscribe(fn)` fires `fn(word)` only when the word changed.
++ */
++export default class ChatStatus {
++	static WORDS = ["speaking", "agent working", "sending", "listening"];
++
++	constructor({ speaking = () => false, working = () => false, sending = () => false, listening = () => false, watch = [] } = {}){
++		this.sources = [speaking, working, sending, listening];
++		this.fns = new Set();
++		this.last = this.phase();
++		for (const w of watch) w(() => this.check());
++	}
++
++	phase(){
++		const i = this.sources.findIndex(f => f());
++		return i < 0 ? "" : ChatStatus.WORDS[i];
++	}
++
++	check(){
++		const now = this.phase();
++		if (now === this.last) return;
++		this.last = now;
++		for (const fn of this.fns) try { fn(now); } catch (e){ console.error("ChatStatus: a listener failed", e); }
++	}
++
++	subscribe(fn){ this.fns.add(fn); return () => this.fns.delete(fn); }
++
++	/** Shows the word in `el` (the composer's empty line beside the mic, ext/Chat/Composer.js) and keeps it current. */
++	bind(el){
++		el.textContent = this.last;
++		this.subscribe(word => { el.textContent = word; });
++	}
++}
+diff --git a/public/framework/ux/Dictate/ChatStatus.test.mjs b/public/framework/ux/Dictate/ChatStatus.test.mjs
+new file mode 100644
+index 000000000..17b4e665c
+--- /dev/null
++++ b/public/framework/ux/Dictate/ChatStatus.test.mjs
+@@ -0,0 +1,37 @@
++// ChatStatus: the four words in order, "" when none, subscribe fires on a change only.
++// Run: node public/framework/ux/Dictate/ChatStatus.test.mjs
++import { test } from "../../core/Test/Test.js";
++import ChatStatus from "./ChatStatus.js";
++
++const make = () => {
++	const s = { speaking: false, working: false, sending: false, listening: false }, pokes = [];
++	const st = new ChatStatus({ speaking: () => s.speaking, working: () => s.working, sending: () => s.sending, listening: () => s.listening, watch: [fn => pokes.push(fn)] });
++	const set = o => { Object.assign(s, o); pokes.forEach(f => f()); };
++	return { st, set };
++};
++
++test("each word shows alone, all false is empty", t => {
++	const { st, set } = make();
++	t.eq(st.phase(), "", "nothing true: an empty line");
++	set({ listening: true }); t.eq(st.phase(), "listening", "mic on");
++	set({ listening: false, sending: true }); t.eq(st.phase(), "sending", "posted, not landed");
++	set({ sending: false, working: true }); t.eq(st.phase(), "agent working", "landed, no reply yet");
++	set({ working: false, speaking: true }); t.eq(st.phase(), "speaking", "Recite reading aloud");
++});
++
++test("two true at once shows the higher one, in the order speaking, agent working, sending, listening", t => {
++	const { st, set } = make();
++	set({ listening: true, sending: true }); t.eq(st.phase(), "sending", "sending beats listening");
++	set({ working: true }); t.eq(st.phase(), "agent working", "agent working beats sending");
++	set({ speaking: true }); t.eq(st.phase(), "speaking", "speaking beats all");
++});
++
++test("subscribe fires on a change of word only", t => {
++	const { st, set } = make();
++	const seen = []; st.subscribe(w => seen.push(w));
++	set({ listening: true }); set({ listening: true });
++	set({ sending: true }); set({ working: true });   // sending then agent working
++	set({ listening: false }); set({ sending: false });   // still agent working: no repeat
++	set({ working: false });
++	t.eq(seen, ["listening", "sending", "agent working", ""], "four changes, no repeats");
++});
+diff --git a/public/framework/ux/Dictate/chat.js b/public/framework/ux/Dictate/chat.js
+index 388e3f7f2..e8e228feb 100644
+--- a/public/framework/ux/Dictate/chat.js
++++ b/public/framework/ux/Dictate/chat.js
+@@ -14,6 +14,7 @@ import * as report from "/framework/ext/Chat/v2/report.js";
+ import { VoiceChat } from "./VoiceChat/VoiceChat.js";
+ import { Interrupt, ReadAloud } from "./VoiceChat/plugins/index.js";
+ import ChatSettings from "./ChatSettings.js";
++import ChatStatus from "./ChatStatus.js";
+ import ChatDefaults from "./ChatDefaults.js";
+ import { servex_url } from "/framework/dev/servex_url.js";
+ 
+@@ -196,6 +197,9 @@ export default function chat(el, { path = location.pathname, card, placeholder,
+ 	let tasks = null;   // the ChatV2Model that folds this session's Task and Question lines
+ 	// In-flight echo: stream pushes owner's line before say() resolves
+ 	const sending = [];
++	const sending_watch = new Set();   // the status line's callbacks: a post went out, or its line landed
++	const sending_now = () => sending.some(m => !m.echoed && !m.late);   // posted, line not on the wire yet
++	const sending_poke = () => { for (const fn of sending_watch) fn(); };
+ 	const flat = t => String(t ?? "").replace(/\s+/g, " ").trim();
+ 
+ 	new View({ el, capture: false }).append(() => {
+@@ -224,7 +228,7 @@ export default function chat(el, { path = location.pathname, card, placeholder,
+ 					const via = entry.via === "typed" ? "text" : "voice";
+ 					floor.stamp(entry);
+ 					const thread = entry.thread ? { re: entry.thread, thread: true } : {};
+-					const mine = { text: flat(entry.text), at: entry.at }; sending.push(mine);
++					const mine = { text: flat(entry.text), at: entry.at }; sending.push(mine); sending_poke();
+ 					let r;
+ 					const t_say = Date.now(), t_out = Date.parse(entry.at) || t_say;
+ 					try {
+@@ -237,7 +241,7 @@ export default function chat(el, { path = location.pathname, card, placeholder,
+ 						// ("not sent" off, no second copy) instead of drawing the sentence twice (Session.POST_MS, doc/debug-tab.md).
+ 						if (/did not answer/.test(e?.message ?? "")){ mine.late = true; setTimeout(() => { const i = sending.indexOf(mine); if (i >= 0) sending.splice(i, 1); }, LATE_ECHO_MS); }
+ 						throw e;
+-					} finally { if (!mine.late){ const i = sending.indexOf(mine); if (i >= 0) sending.splice(i, 1); } }
++					} finally { if (!mine.late){ const i = sending.indexOf(mine); if (i >= 0) sending.splice(i, 1); } sending_poke(); }
+ 					own_ats.add(r.at);
+ 					panel.retag(entry.at, r.at);
+ 					if (entry.floor === "speaking") owner.watch_floor();
+@@ -283,6 +287,18 @@ export default function chat(el, { path = location.pathname, card, placeholder,
+ 		const vc = panel.voice_chat, defaults = vc._defaults = new ChatDefaults({ url: servex_url });
+ 		defaults.get().then(out => { if (Object.keys(out.plugins).length) VoiceChat.apply_defaults(out.plugins); if (out.error) quiet_note("the shared chat defaults could not be read (using this browser's copy)", out.error); });
+ 	}
++	if (panel.dictate){
++		// The status line beside the mic: one ChatStatus per page, fed by the three existing sources (floor, Recite, the post in flight).
++		const recite = Recite.shared;
++		const status = new ChatStatus({
++			speaking: () => ["playing", "loading"].includes(recite.state),
++			working: () => recite.cue_pending,
++			sending: () => sending_now(),
++			listening: () => !!floor.owner,
++			watch: [fn => recite.on(fn), fn => floor.on_mic(fn), fn => sending_watch.add(fn)],
++		});
++		if (panel.dictate.status_el) status.bind(panel.dictate.status_el);
++	}
+ 	if (panel.dictate){
+ 		const vc = panel.voice_chat;
+ 		panel.dictate.chat_settings = () => {
+@@ -349,7 +365,7 @@ export default function chat(el, { path = location.pathname, card, placeholder,
+ 		const echo = line.chat.from?.kind === "owner" && sending.find(m => m.text === flat(line.chat.text) && panel.$thread?.lines?.has(m.at));
+ 		if (echo){
+ 			own_ats.add(line.chat.at); panel.retag(echo.at, line.chat.at);
+-			echo.echoed = true;   // a timeout after this is a slow answer, not a lost send (deliver's catch)
++			echo.echoed = true; sending_poke();   // a timeout after this is a slow answer, not a lost send (deliver's catch)
+ 			if (echo.late){   // the send timed out but Servex took it after all: one bubble, marked sent
+ 				sending.splice(sending.indexOf(echo), 1);
+ 				panel.$thread?.mark_sent?.(line.chat.at);
+diff --git a/public/framework/ux/Dictate/doc/settings.md b/public/framework/ux/Dictate/doc/settings.md
+index fd137dceb..62ced9fd3 100644
+--- a/public/framework/ux/Dictate/doc/settings.md
++++ b/public/framework/ux/Dictate/doc/settings.md
+@@ -41,3 +41,7 @@ A voice session's plugin switches and values — a [`VoiceChat`](/framework/ux/D
+ - **The shared defaults** ("Make default") are unchanged by this step: one more object of the flat shape in `session-defaults.json` beside `sessions.json` (`POST`/`GET /api/session/defaults`), the page side still not wired to read it (queued).
+ 
+ Tests: `node Servex/agents/Sessions.plugins.test.mjs` (rewritten for the new storage), `node public/framework/ux/Dictate/VoiceChat/VoiceChat.test.mjs` (`overrides_by_group`/`load_grouped`), `node public/framework/core/Session/Session.test.mjs` (`session.settings` groups).
++
++## Status line
++
++One small muted word beside the mic in the composer, `aria-live="polite"`, empty when nothing is happening. [`ChatStatus.js`](../ChatStatus.js) (`phase()`, `subscribe(fn)`, `bind(el)`) shows the FIRST true of: `speaking` (Recite `state` is playing or loading), `agent working` (`Recite.cue_pending`: the owner's line landed, no reply yet), `sending` (a post is out and its line is not on the wire: the `sending` list in `chat.js`, minus echoed or late entries), `listening` (`floor.owner` is set). It copies no state: `chat.js` hands in the four reads, and three change signals: `Recite.on` (which now also fires when `cue_pending` flips), `floor.on_mic`, and the page's own post callbacks. `ext/Chat/Composer.js` draws the empty span (`mic.status_el`, `.chatbox-compose-status` in `Chat.css`, truncates rather than widen the row) and `chat.js` binds it; `ext/Chat` imports nothing from `ux/`. Test: `node ux/Dictate/ChatStatus.test.mjs`.
+diff --git a/public/framework/ux/Dictate/floor.js b/public/framework/ux/Dictate/floor.js
+index 6fb8645f9..ad0a1368f 100644
+--- a/public/framework/ux/Dictate/floor.js
++++ b/public/framework/ux/Dictate/floor.js
+@@ -45,6 +45,10 @@ export const floor = {
+ 	fired: 0,
+ 	listeners: new Set(),
+ 	on_quiet(fn){ this.listeners.add(fn); return () => this.listeners.delete(fn); },
++	/** Calls fn(on) whenever the mic turns on or off (the status line, ux/Dictate/ChatStatus.js); returns an unsubscribe. */
++	mic_listeners: new Set(),
++	on_mic(fn){ this.mic_listeners.add(fn); return () => this.mic_listeners.delete(fn); },
++	mic_changed(){ for (const fn of this.mic_listeners) try { fn(!!this.owner); } catch (e){ console.error("floor: on_mic listener failed", e); } },
+ 	/** How long the owner has been quiet right now, in ms; null with the mic off. */
+ 	quiet_ms(){ return !this.owner ? null : this.silent_at == null ? 0 : Math.round(performance.now() - this.silent_at); },
+ 	quiet(ms, mic_off = false){ for (const fn of this.listeners) try { fn(Math.round(ms), { mic_off }); } catch (e){ console.error("floor: on_quiet listener failed", e); } },
+@@ -55,6 +59,7 @@ export const floor = {
+ 		Object.assign(this, { owner, on_at: now, mic_on_at: new Date().toISOString(), pauses: [],
+ 			quiet_since: now, heard: false, split: false, speaking_ms: 0, last_at: now, silent_at: now, fired: this.quiet_marks.length });
+ 		this.post("speaking", owner);
++		this.mic_changed();
+ 	},
+ 
+ 	/** One level frame (about every 8 ms). `loud` is Dictate's own speech test. */
+@@ -88,6 +93,7 @@ export const floor = {
+ 		this.owner = null;
+ 		if (this.fired < this.quiet_marks.length){ this.fired = this.quiet_marks.length; this.quiet(performance.now() - (this.silent_at ?? performance.now()), true); }
+ 		this.post("idle", owner);
++		this.mic_changed();
+ 	},
+ 
+ 	/** "speaking" while the mic is on and the current quiet is shorter than `done_after_ms`. */
+diff --git a/public/framework/ux/Dictate/readme.md b/public/framework/ux/Dictate/readme.md
+index f9f03e58c..51594fbb7 100644
+--- a/public/framework/ux/Dictate/readme.md
++++ b/public/framework/ux/Dictate/readme.md
+@@ -102,6 +102,8 @@ ever appeared — no error, no clue why.
+ 
+ **Per-chat plugins (Interrupt, Thinking cue; more to come):** [`VoiceChat/readme.md`](VoiceChat/readme.md), one `VoiceChat` per Recite (one per page, shared by every chat on it) on `core/Plugin`.
+ 
++**Status line:** one word beside the mic, `listening` / `sending` / `agent working` / `speaking`: [`ChatStatus.js`](ChatStatus.js), [`doc/settings.md`](doc/settings.md#status-line).
++
+ **Settings panel:** the ⚙ beside ⌨ on the sheet's bar (and the gear on a plain composer) opens "Chat settings" (built by [`ChatSettings.js`](ChatSettings.js); defaults read and saved by [`ChatDefaults.js`](ChatDefaults.js)): the Whisper knobs, what to send after, read aloud, and interruption, for this session or as the defaults (a session's plugin values live in its `session.jsonl`; the defaults at Servex `/api/session/defaults`); the Whisper values live in `localStorage` key `chat.mic.settings.4` (`ext/Chat/Mic.js` `SETTINGS`): [`doc/settings.md`](doc/settings.md).
+ 
+ **A Whisper hallucination ("Thank you.", "you"…) never reaches the chat:** `chat.js`'s `deliver()` gates every send on the same checks `audio/Recite/BargeIn` already had, before it posts, not after: [`doc/phantom-gate.md`](doc/phantom-gate.md).

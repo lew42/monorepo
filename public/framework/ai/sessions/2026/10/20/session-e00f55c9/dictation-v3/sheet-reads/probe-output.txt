@@ -1,0 +1,14 @@
+{"tag":"after ✦","bar":false,"bar_box":null,"bar_visible":false,"recite":{"auto":true,"state":"idle","error":"","server":"unknown","chunks":0,"unlocked":null}}
+{"tag":"after reply","bar":false,"bar_box":null,"bar_visible":false,"recite":{"auto":true,"state":"idle","error":"","server":"unknown","chunks":0,"unlocked":true}}
+00:10:39 EventSource http://127.0.0.1:8090/api/session/v-u48msei/stream
+00:10:44 play ok data:audio/wav;base64,UklGRmQGAABXQVZFZm
+from_wire line log
+from_wire line nav
+from_wire line tasks
+00:10:46 wire line  What is the threshold for Neve
+
+# First run (00:08 UTC, WAIT 25 s), excerpt: the Sheet followed v-u48msei with no tap on the AI button, a smart reply streamed in, and Recite played it:
+# 00:08:30 EventSource .../api/session/v-u48msei/stream
+# 00:08:38 wire stream smart "Here it is as"
+# 00:08:39 wire line smart "Here it is as a proper link"
+# 00:08:40 play ok blob:... / 00:08:41 play ok blob:...

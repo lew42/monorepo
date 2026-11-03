@@ -1,0 +1,91 @@
+{
+  "dilemma": "list-order",
+  "lens": "edge-cases",
+  "by": "analyst-order-edge",
+  "options": [
+    {
+      "id": "after-id",
+      "label": "after-id (today)",
+      "wins_when": [
+        {"scenario": "One drag in a 100-item list from one tab: the log gets one line of about 56 bytes, {items: {move: {id: 'oat', after: 'milk'}}}.", "why": "A human reads it as 'oat after milk', there is no second value to keep right, and the write is the smallest possible."},
+        {"scenario": "An agent adds a task after a task id it read on the page a moment ago, and that id is still live.", "why": "The agent names an id it can see, so there is no key arithmetic and the item tool stays a plain write."},
+        {"scenario": "Servex is the only writer for a page and checks each anchor against its live copy before it appends.", "why": "A dead anchor can be rewritten to the live item that replaced it and the resolved line appended, so the file and a fresh replay agree with no format change. This is a repair inside after-id, not a new option."}
+      ],
+      "fails_when": [
+        {"scenario": "Tab B moves d after a while tab A removes a. Reproduced in research: tab B shows d,b,c, the file says b,c,d, until reload.", "severity": 3, "recoverable": true, "why": "On tab B the move means 'after a' (a still present); in the file it means 'to the end' (a already gone). The writing tab applied its own line first and skips the echo of it, so it never converges to the file until reload."},
+        {"scenario": "Tab A and tab B each insert after the same item m. Model run: file m,y,x,n; tab A matches the file; tab B shows m,x,y,n.", "severity": 3, "recoverable": true, "why": "Insert-after places each item directly next to its anchor, so the result depends on which line a tab applied first. Tab B applied its own y, then x from the tail; the file applied x, then y. The echo skip hides the split until reload."},
+        {"scenario": "An agent inserts after an id that was removed since the agent last read the page.", "severity": 2, "recoverable": true, "why": "An add after a missing anchor goes to the end with no error (probed in research). The agent reports success and the item sits in the wrong place."},
+        {"scenario": "sort() of 100 items written as one move line per item.", "severity": 2, "recoverable": true, "why": "A random reorder needs about 83 move lines at minimum (mean over 2,000 random orders; 99 if every item is moved). At the 94 ms per streamed line the branch measured in the voice session, that is about 8 s of redraw, and tabs show half-sorted lists in between. The one-line order verb avoids this but brings the whole-array conflict described under order-array."},
+        {"scenario": "Replay of a 10,000-item list with 10,000 moves.", "severity": 1, "recoverable": true, "why": "Each anchor lookup is a linear scan, so about 10 to the 8th simple steps (estimate, not measured), around a second. Lists in Lew42 are tens to hundreds of items, so this is not a current risk."}
+      ],
+      "precedent": [
+        {"tool": "lew42 add and move after (today)", "how": "after is an id or null; a missing anchor appends; an add with an id already present is a no-op.", "src": "research/persistence-sync/lew42/overview.md (line 145)"},
+        {"tool": "Weidner's server-ordered insert-after-ID list", "how": "Insert-after by id is workable when a server orders the writes. The research names it for rich text, not for objects.", "src": "research/persistence-sync/notes/delta_logs_build_vs_buy.md (line 85)"}
+      ]
+    },
+    {
+      "id": "order-array",
+      "label": "order-array",
+      "wins_when": [
+        {"scenario": "sort() of 100 items by a field, from one tab.", "why": "One order line of about 1.1 KB and one redraw, instead of about 83 move lines."},
+        {"scenario": "An agent reorders a whole list at once, for example sort by due date.", "why": "The change lands as one line, so a tab tailing the log never shows a half-sorted list."}
+      ],
+      "fails_when": [
+        {"scenario": "Tab A drags x; tab B sorts from an array read before A's drag, and its line lands second.", "severity": 3, "recoverable": true, "why": "The whole array is last-write-wins, so A's drag vanishes with no error. The earlier line stays in the log, but no view shows it."},
+        {"scenario": "Tab A adds item n while tab B reorders from an array that does not contain n.", "severity": 2, "recoverable": true, "why": "The array has no place for n, so n lands by a fallback rule (the order verb keeps unnamed members after their old neighbour), not where its author put it."},
+        {"scenario": "A removal forgets to update the array, or a removed id is added again.", "severity": 2, "recoverable": true, "why": "There are two sources of truth, the array and the members. A stale id is dropped quietly (order drops unknown ids), and a re-added id jumps back into its old slot. Nothing errors."},
+        {"scenario": "Every single drag in a 100-item list, all day.", "severity": 1, "recoverable": true, "why": "Each drag rewrites the whole array (about 1.1 KB) instead of one 56-byte line. 200 sorts leave about 220 KB of order lines, and a diff of the log shows whole arrays changed."}
+      ],
+      "precedent": [
+        {"tool": "lew42 order verb (today)", "how": "One line that names the whole order as an id array; members not named keep their place after their old neighbour.", "src": "research/persistence-sync/lew42/overview.md (line 148)"},
+        {"tool": "Backbone.js Collection", "how": "Models held in a plain array; sort() takes a comparator and fires one sort event.", "src": "https://github.com/jashkenas/backbone/blob/94260d91dcf4050360f055506271b61f7b24e5e3/backbone.js#L1100-L1116"}
+      ]
+    },
+    {
+      "id": "fractional",
+      "label": "fractional (sort key per item)",
+      "wins_when": [
+        {"scenario": "Two tabs drag two different items in one list at the same time.", "why": "Each move sets one key on its own item. Keys do not depend on whether a neighbour still exists, so every tab sorts to the same order."},
+        {"scenario": "An agent inserts between two items while a human removes one of them.", "why": "The new key comes from the two live neighbours' keys. Removing an item touches nothing else, so there is no anchor to go missing and no end-of-list fallback."},
+        {"scenario": "Two tabs insert into the same gap at once. Reasoned, not run: both get the same key.", "why": "Sorting by key, then by id, gives every reader the same order with no server decision needed."},
+        {"scenario": "Offline edits replayed after reconnect (later, for multi-user).", "why": "A key written offline still means the same place when it arrives. An anchor may point at an item removed in the meantime."}
+      ],
+      "fails_when": [
+        {"scenario": "Rollout while old writers still send after-lines and some items have no key yet.", "severity": 3, "recoverable": true, "why": "Lew42 has no schema version, so a reader cannot tell old lines from new, and an add with no key has no defined place. The log keeps the old lines, so a one-time script can compute keys from the existing order. Stamp the schema first."},
+        {"scenario": "An agent writes a raw key copied from an earlier read.", "severity": 3, "recoverable": true, "why": "A stale key sorts into the wrong gap with no error. The item tool must compute keys from live state, so agents never supply them (law 7)."},
+        {"scenario": "Two tabs drag the same item.", "severity": 2, "recoverable": true, "why": "The key is last-write-wins per item, so one drag silently wins. The file and every replay agree, but the losing drag is gone."},
+        {"scenario": "sort() written as one move line per item.", "severity": 2, "recoverable": true, "why": "Same 83-plus lines as after-id. Write every changed key in one multi-key line instead: one line and one redraw."},
+        {"scenario": "Repeated inserts after the same item, all day.", "severity": 1, "recoverable": true, "why": "Keys grow with each insert into one gap. Simulation (shortest key between the neighbours, base 62, not the rocicorp package): 6 inserts give 3 characters, 60 give 13, 200 give 41, 600 give 121. The order stays right; the lines get longer."},
+        {"scenario": "A person reads the log to learn the order.", "severity": 2, "recoverable": true, "why": "A line such as pos a0V says nothing about the neighbours, so reading the order means sorting the whole list. Mitigation: the item tool prints the computed order."},
+        {"scenario": "Two items get the same key (concurrent inserts into one gap).", "severity": 1, "recoverable": true, "why": "The id tie-break keeps every reader in agreement, but the two items may swap in the order their authors expected."}
+      ],
+      "precedent": [
+        {"tool": "Figma multiplayer ordered sequences", "how": "Each child gets a fractional position; an insert takes the midpoint of its neighbours; on a duplicate the server assigns a unique position; a reorder is one value write.", "src": "https://www.figma.com/blog/realtime-editing-of-ordered-sequences/ (cited in research/persistence-sync/notes/delta_logs_build_vs_buy.md, section 2)"},
+        {"tool": "rocicorp fractional-indexing", "how": "generateKeyBetween(a, b), null for open ends; keys sort with plain < and Array sort; the README warns against localeCompare.", "src": "https://github.com/rocicorp/fractional-indexing"},
+        {"tool": "tldraw TLBaseShape", "how": "index is an IndexKey (a fractional string) beside parentId; a move is an update of index and parentId.", "src": "https://github.com/tldraw/tldraw/blob/38e6c84dcaebee164aeeb961113f14e1a317e6ea/packages/tlschema/src/shapes/TLBaseShape.ts#L61-L76"},
+        {"tool": "Loro tree ops", "how": "Create and Move ops carry a FractionalIndex position; sibling order follows it; the interleaving is accepted for trees.", "src": "https://github.com/loro-dev/loro/blob/75e4bf2bf01cb6f2f3e37c50156ca0b335ef9b73/crates/loro-internal/src/container/tree/tree_op.rs#L18-L27"}
+      ]
+    },
+    {
+      "id": "snapshot-order",
+      "label": "snapshot-order",
+      "wins_when": [
+        {"scenario": "A multi-day log has grown until load time matters.", "why": "Replay starts at the last snapshot, so load cost stops growing with history. Not urgent today: the 8,360-line voice session replays in about 200 ms."},
+        {"scenario": "Every snapshot is checked: replay from the start must equal replay from the snapshot.", "why": "That check catches a snapshot that drops or reorders a line before any reader sees it."}
+      ],
+      "fails_when": [
+        {"scenario": "A snapshot is built from memory while another tab's line is being appended.", "severity": 4, "recoverable": true, "why": "The design-decisions note of 2026-10-27 (L91) names this race: the snapshot misses the line on load. Keep the full log as an archive and never truncate, so the snapshot can be rebuilt."},
+        {"scenario": "Two tabs move the same items between snapshots.", "severity": 3, "recoverable": true, "why": "Between snapshots the lines are still after-id moves, so the stale-anchor and interleaving races above all apply. Snapshot-order is a load fix, not a concurrency fix."},
+        {"scenario": "The snapshot's rule for a dead anchor differs from the replay rule.", "severity": 4, "recoverable": true, "why": "Load-from-snapshot and load-from-start then show two different orders. Only the replay-equality check finds it."}
+      ],
+      "precedent": [
+        {"tool": "automerge-repo", "how": "Head-keyed snapshots; the new snapshot is written first, and only chunks already loaded are deleted.", "src": "research/persistence-sync/lessons/storage-compaction.md (section 1)"},
+        {"tool": "jsonl-db", "how": "Compaction as a three-file swap; the new file is complete before the old one goes.", "src": "research/persistence-sync/lessons/storage-compaction.md (section 2)"}
+      ]
+    }
+  ],
+  "recommended": "fractional",
+  "confidence": 3,
+  "surprise": "The divergence sits in the writer, not in the list format: each tab applies its own change at once and then skips the echo of its own line, so any scheme where the file resolves a line differently from the tab's guess leaves that tab wrong until reload. Under after-id the tab would have to rebuild from file order; under fractional, sorting by key makes that rebuild unnecessary.",
+  "notes": "Fractional is the only option whose line means the same thing on every reader, so concurrent inserts and stale drags converge without a rebuild; after-id needs writers to rebuild from file order, and order-array loses concurrent drags. The cost is a one-time migration (there is no schema version, so stamp one first), lines that need sorting to read, and a sort() that writes all changed keys in one line. Confidence is 3 because the answer leans on the planned Durable Object and offline edits, which I did not model."
+}

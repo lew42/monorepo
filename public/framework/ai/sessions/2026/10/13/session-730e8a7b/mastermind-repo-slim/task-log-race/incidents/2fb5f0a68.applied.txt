@@ -1,0 +1,20 @@
+{
+ "done": [],
+ "skipped": [
+  {
+   "f": "public/framework/ai/2026-10-12/page-templates-merge/page.jsonl",
+   "n": 0,
+   "why": "already there"
+  },
+  {
+   "f": "public/framework/ai/2026-10-12/task-folders/page.jsonl",
+   "n": 0,
+   "why": "already there"
+  },
+  {
+   "f": "public/framework/ai/cards.jsonl",
+   "n": 4,
+   "why": "listing/snapshot"
+  }
+ ]
+}

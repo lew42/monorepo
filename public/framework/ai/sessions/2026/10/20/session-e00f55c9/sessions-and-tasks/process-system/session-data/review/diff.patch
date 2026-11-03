@@ -1,0 +1,227 @@
+diff --git a/Servex/agents/Agents.js b/Servex/agents/Agents.js
+index 37ea0aed8..e6c581b5f 100644
+--- a/Servex/agents/Agents.js
++++ b/Servex/agents/Agents.js
+@@ -711,7 +711,7 @@ export class Agents {
+ 		const root = path.resolve(MAIN_ROOT, dir).toLowerCase(), rows = this.reg().read(), out = [];
+ 		for (const [k, ids] of this.task_dirs()) if (k === root || k.startsWith(root + path.sep)) for (const id of ids){
+ 			const r = rows[id] ?? {};
+-			out.push({ id, role: r.role ?? null, state: this.live.get(id)?.state ?? r.state ?? null, session_id: r.session_id ?? null,
++			out.push({ id, parent: r.parent ?? null, role: r.role ?? null, state: this.live.get(id)?.state ?? r.state ?? null, session_id: r.session_id ?? null,
+ 				cost: Math.round(this.logged_cost(id) * 100) / 100, started_at: r.started_at ?? null });
+ 		}
+ 		return out.sort((a, b) => String(a.started_at).localeCompare(String(b.started_at)));
+diff --git a/Servex/agents/page_tools.js b/Servex/agents/page_tools.js
+index 3114ffa4c..e1f6f97a7 100644
+--- a/Servex/agents/page_tools.js
++++ b/Servex/agents/page_tools.js
+@@ -380,7 +380,8 @@ function expand_dots(delta){
+ 
+ function class_of(file){
+ 	const first = parse_lines(file)[0];
+-	return (is_plain(first) && typeof first.class === "string" ? first.class : null) ?? (SessionRecord.log_file(path.dirname(file)) === file ? "Task" : null) ?? FILE_CLASS[path.basename(file)] ?? "Page";
++	// A record that opens with {"session":{id,…}} is a session (a VS Code tab, a voice agent): Session, not Task, so it gets its cost and children.
++	return (is_plain(first) && typeof first.class === "string" ? first.class : null) ?? (is_plain(first?.session) ? "Session" : null) ?? (SessionRecord.log_file(path.dirname(file)) === file ? "Task" : null) ?? FILE_CLASS[path.basename(file)] ?? "Page";
+ }
+ 
+ // describe() with each method's doc filled: the first `//` line of the comment block above it, from the class's source.
+@@ -674,15 +675,51 @@ function row_of(t){
+ // Every task in a tree, each once (a session's cost sums each task's own agents once, so nothing counts twice).
+ function every_task(list, out = []){ for (const t of list ?? []){ out.push(t); every_task(t._tasks, out); } return out; }
+ 
++/* What a task tree holds, by state: created (every task), started (ran at least once: not idle), complete and stopped. */
++function counts(list){
++	const c = { created: list.length, started: 0, complete: 0, stopped: 0 };
++	for (const t of list){ if (t.state !== "idle") c.started++; if (t.state === "complete") c.complete++; if (t.state === "stopped") c.stopped++; }
++	return c;
++}
++
++/* Child sessions as a tree: an agent whose parent is also in the list sits under it; each node has its own cost and its subtree total. */
++function nest_agents(agents){
++	const by = new Map(agents.map(a => [a.id, { ...a, children: [] }])), roots = [];
++	for (const a of by.values()) (by.get(a.parent)?.children ?? roots).push(a);
++	const sum = a => (a.total = r2(a.cost + a.children.reduce((s, k) => s + sum(k), 0)));
++	roots.forEach(sum);
++	return roots;
++}
++const r2 = n => Math.round(n * 100) / 100;
++
++/* The session's own Claude cost and active time: the newest summary in its folder's cache.jsonl, which AISessionIndex keeps current from
++ * the transcript (new bytes only; ai/AISession/AISession.js, verified against the SDK's billing). Stamped with where it read to. */
++function own_cost(dir){
++	let m = null, at = null;
++	try { for (const l of fs.readFileSync(path.join(dir, "cache.jsonl"), "utf8").split("\n")) if (l.startsWith('{"summary"')){ const o = JSON.parse(l); m = o.summary; at = o.at; } } catch {}
++	return m ? { usd: r2(m.usd ?? 0), parts: Object.fromEntries(Object.entries(m.usd_parts ?? {}).map(([k, v]) => [k, r2(v)])), active_ms: m.active_ms ?? 0, models: m.main_models ?? {},
++		through: m.last_at ?? null, read_to: m.cursor?.main?.off ?? null, at } : null;
++}
++
++/* A session's whole picture (2026-10-23, "session data, complete"; core/Session/readme.md, "What item() answers"):
++ * its own cost (own_cost), its child sessions nested with their costs, the tasks' costs, its span, and task counts. */
++export function session_state(task, tasks = []){
++	// A task's cost is its folder's agents, so two tasks naming one folder (a task and its re-filed twin) count it once.
++	const all = every_task(task._tasks), seen = new Set(), costed = all.filter(t => Number(t.cost) > 0 && !seen.has(t.get_one("path")) && seen.add(t.get_one("path")));
++	const task_cost = costed.reduce((s, t) => s + t.cost, 0);
++	const dir = task.store?.file ? path.dirname(task.store.file) : null, agents = dir ? (task.constructor.agents_resolver?.(dir) ?? []) : [];
++	const own = dir ? own_cost(dir) : null;
++	const child_cost = agents.reduce((s, a) => s + (a.cost || 0), 0);
++	const biggest = costed.sort((a, b) => b.cost - a.cost).slice(0, 5).map(t => ({ id: t.id, title: t.get_one("title"), cost: r2(t.cost), state: t.state }));
++	return { class: "Session", completion: task.completion, progress: task.progress(), first_at: task.first_at, last_at: task.last_at, span_ms: task.span_ms,
++		cost: { total: r2((own?.usd ?? 0) + child_cost), own, children: r2(child_cost), tasks: r2(task_cost) },
++		counts: { direct: counts(task._tasks ?? []), all: counts(all) }, biggest, children: nest_agents(agents), agents: agents.length, data: { ...task.data }, tasks };
++}
++
+ function task_state(Task, task){
+ 	const tasks = [...(task._tasks ?? [])].map(row_of);
+ 	if (Task.name === "Process") return { class: "Process", process: task.process, state: task.state, step: task.step?.id ?? null, next: task.next(), completion: task.completion, data: { ...task.data }, tasks: [...(task._tasks ?? [])].map(t => ({ id: t.id, title: t.get_one("title"), state: t.state, outcome: t.get_one("outcome") ?? null })) };
+-	if (Task.name === "Session"){
+-		const all = every_task(task._tasks), cost = all.reduce((s, t) => s + (Number(t.cost) || 0), 0);
+-		const dir = task.store?.file ? path.dirname(task.store.file) : null, agents = dir ? (Task.agents_resolver?.(dir) ?? []) : [];
+-		return { class: "Session", completion: task.completion, progress: task.progress(), first_at: task.first_at, last_at: task.last_at, span_ms: task.span_ms,
+-			cost: Math.round(cost * 100) / 100, agents, data: { ...task.data }, tasks };
+-	}
++	if (Task.name === "Session") return session_state(task, tasks);
+ 	return { class: "Task", state: task.state, completion: task.completion, data: { ...task.data }, tasks };
+ }
+ 
+diff --git a/Servex/agents/session-state.test.mjs b/Servex/agents/session-state.test.mjs
+new file mode 100644
+index 000000000..a7161d43a
+--- /dev/null
++++ b/Servex/agents/session-state.test.mjs
+@@ -0,0 +1,44 @@
++/* node Servex/agents/session-state.test.mjs — a session's whole picture (2026-10-23, "session data, complete"):
++ * its own cost from cache.jsonl, child sessions nested with costs, task counts, the biggest tasks. */
++import assert from "node:assert";
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++
++process.env.SERVEX_HOME = fs.mkdtempSync(path.join(os.tmpdir(), "sstate-home-"));
++const { session_state } = await import("./page_tools.js");
++const { default: Session } = await import("../../public/framework/core/Session/Session.js");
++const { default: Task } = await import("../../public/framework/core/Task/Task.js");
++
++// The session folder: cache.jsonl as AISessionIndex writes it (an older summary, then the newest).
++const dir = fs.mkdtempSync(path.join(os.tmpdir(), "sstate-session-"));
++const summary = (usd, off) => JSON.stringify({ summary: { usd, usd_parts: { out: usd }, active_ms: 5000, main_models: { "claude-opus-5-5": 3 }, last_at: "t" + off, cursor: { main: { off } } }, at: "now" }) + "\n";
++fs.writeFileSync(path.join(dir, "cache.jsonl"), summary(1, 10) + summary(4.004, 99));
++
++// A tab session record: line 1 is {session}, three tasks, two child agents (one under the other).
++const s = Session.replay([
++	{ session: { id: "11111111-2222-3333-4444-555555555555", kind: "vscode-tab", at: "2026-10-20T00:00:00Z" } },
++	{ tasks: { add: { type: "Task", id: "a", title: "A", path: "/a/" } }, at: "2026-10-20T01:00:00Z" },
++	{ tasks: { add: { type: "Task", id: "b", title: "B", path: "/a/" } } },
++	{ tasks: { add: { type: "Task", id: "c", title: "C" } } },
++	{ a: { start: {} } },
++	{ c: { stop: { why: "noise" } }, at: "2026-10-20T02:00:00Z" },
++]);
++s.store = { file: path.join(dir, "session.jsonl") };
++Session.agents_resolver = () => [{ id: "kid", parent: null, cost: 2 }, { id: "grandkid", parent: "kid", cost: 1.5 }];
++Task.cost_resolver = p => (p === "/a/" ? 3 : 0);
++const st = session_state(s);
++assert.deepEqual([st.cost.total, st.cost.children, st.cost.tasks], [7.5, 3.5, 3], "own $4 + children $3.5; the folder /a/ that two tasks share counted once");
++assert.equal(st.cost.own.usd, 4, "the newest summary wins");
++assert.equal(st.cost.own.read_to, 99, "stamped with where the transcript was read to");
++assert.equal(st.cost.own.active_ms, 5000);
++assert.equal(st.children.length, 1); assert.equal(st.children[0].children[0].id, "grandkid"); assert.equal(st.children[0].total, 3.5);
++assert.deepEqual(st.counts.direct, { created: 3, started: 2, complete: 0, stopped: 1 });
++assert.equal(st.biggest.length, 1, "one entry per folder");
++assert.equal(st.span_ms, 2 * 36e5);
++
++fs.rmSync(path.join(dir, "cache.jsonl"));
++const bare = session_state(s);
++assert.equal(bare.cost.own, null, "no cache yet: no own cost, never a guess");
++assert.equal(bare.cost.total, 3.5);
++console.log("session-state: 13 checks passed");
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/session-data/findings.md b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/session-data/findings.md
+new file mode 100644
+index 000000000..a2c74c2ad
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/session-data/findings.md
+@@ -0,0 +1,23 @@
++# Session data, complete: why it was missing, and what item() answers now
++
++Task `session-data-complete-cost-duration-chil` on process-system. The owner had asked for a session's cost, duration and child sessions many times.
++
++## Why it wasn't there: built, but not wired
++
++- **The cost existed.** `AISession` reads each Claude transcript incrementally and keeps a summary (`usd`, `active_ms`, the read cursor) in the session folder's `cache.jsonl`, and `AISessionIndex` keeps it current. Only the sessions page (`AISessionDetail`) read it; the item tool, which is what agents use, never did.
++- **The child agents existed** in the Servex registry, with their costs in their own logs. Nothing joined them to the session that spawned them.
++- **A tab's record replayed as a plain Task.** `class_of` in `page_tools.js` called any `session.jsonl` that is a folder's own log a Task, so the Session code (progress, span) never ran for a VS Code tab.
++- **The ask was never one requirement.** It came up in pieces (cost, then duration, then children), and each time a piece landed somewhere else: the sessions page, the registry, a probe.
++
++## What item() answers now (session-e00f55c9, 2026-10-23)
++
++| Field | Value |
++|---|---|
++| `cost.total` | $882.55 = own $234.19 + 59 child sessions $648.36 |
++| `cost.own.active_ms` | 8.2 h of work within a 73 h span |
++| `cost.own.read_to` | 36,284,946 bytes (the whole transcript at 01:28Z) |
++| `children` | a tree: e.g. mastermind-deputy $16.70, $118.03 with its minions |
++| `counts.all` | 158 created, 142 started, 30 complete, 73 stopped |
++| `biggest` | process-system $289.42, figma cards $89.88, prompts $34.51 |
++
++Field-by-field sources: [core/Session/readme.md](/framework/core/Session/readme.md), "What item() answers for a session". Test: `node Servex/agents/session-state.test.mjs` (13 checks), ~250 ms on this session.
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/session-data/requirements.md b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/session-data/requirements.md
+new file mode 100644
+index 000000000..1fbbb71bc
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/session-data/requirements.md
+@@ -0,0 +1,9 @@
++# Session data, complete
++
++Task `session-data-complete-cost-duration-chil` on process-system (the owner, 2026-10-23 ~20:45, via vscode-mastermind).
++
++1. `item({path: <any session>})` answers: total cost (from the transcript, computed incrementally and stamped with where it read to), duration, every child session nested with its own cost, direct and descendant task counts (created, started, complete), and the biggest tasks.
++2. It works for VS Code tab sessions (their record replayed as a plain Task, with no cost).
++3. The sessions readme states what data exists, which tool writes it, which class reads it.
++4. Tested on session-e00f55c9.
++5. Find out why it was missing: never written as a requirement, written but not built, or built but not wired (findings.md).
+diff --git a/public/framework/ai/sessions/readme.md b/public/framework/ai/sessions/readme.md
+index c377ba791..96b5ab9a0 100644
+--- a/public/framework/ai/sessions/readme.md
++++ b/public/framework/ai/sessions/readme.md
+@@ -47,6 +47,7 @@ A session folder is one of three kinds:
+ - **Variants**: `/framework/ai/sessions/v/<name>/` is another look at the same data, for example [v/mobile/](/framework/ai/sessions/v/mobile/) (the phone pages: day list, nested sessions, a session, a task). `AISessionsPage.route()` passes the name `v` through to that folder instead of reading it as a session id.
+ - **Routine sessions are hidden** behind one chip per kind (prompt cleaning, short headless runs, reviews): [doc/buckets.md](doc/buckets.md).
+ - **Tasks**: `Server/State.mjs` folds every task log into `ai/state.json`.
++- **For an agent**: `item({path: <session url>})` answers a session's own cost, its child sessions nested with their costs, task counts and the biggest tasks, all computed on read: [core/Session/readme.md](/framework/core/Session/readme.md), "What item() answers for a session".
+ 
+ ## Top-level files here (generated; never hand-edit)
+ 
+diff --git a/public/framework/core/Session/readme.md b/public/framework/core/Session/readme.md
+index e89a51e19..b0f4b191c 100644
+--- a/public/framework/core/Session/readme.md
++++ b/public/framework/core/Session/readme.md
+@@ -18,7 +18,7 @@ class Session extends Item                       // ../Item/Item.js; registered
+   completion: number        // getter, 0..1 = done / total, 0 when there are no tasks. Never stored
+   progress(): {done,total,stopped}  // Task.progress_of(this._tasks), the one counting code; a stopped task counts in neither done nor total
+   first_at, last_at, span_ms  // from the lines' own times, never stored
+-  static agents_resolver    // node wires it (Servex/agents/Agents.js agents_under): dir -> the agent sessions whose task lives in that folder
++  static agents_resolver    // node wires it (Servex/agents/Agents.js agents_under): dir -> [{id, parent, role, state, cost, …}], the agent sessions whose task lives in that folder
+   static replay(lines)      // Item's loop; replay_new takes the id from {"session":id}; replay_line applies one line
+   static root_url(): URL    // ../../ai/sessions/ ; subclasses override
+   static day(first_at)      // "YYYY/MM/DD" via Day.path, or null
+@@ -36,6 +36,22 @@ class Session extends Item                       // ../Item/Item.js; registered
+ - **Times are the lines' own.** While a line replays, `Task.clock` holds its `at`/`ts`, so a nested task's `completed_at` and duration are when it happened, not when the log was read.
+ - **Test:** `node Session.test.mjs` (tasks, progress, replay, `Day`). Demo page: `page.js`.
+ 
++## What item() answers for a session
++
++`item({path: <session url>})` replays the folder's `session.jsonl` as a `Session` (any record whose line 1 is `{"session":{…}}`, so VS Code tabs too), and `session_state` in `Servex/agents/page_tools.js` adds what node can compute. Nothing here is stored; every field is read from records on each call.
++
++| Field | What it is | Read from (written by) |
++|---|---|---|
++| `cost.own` | the session's own Claude spend: `usd`, `parts` (in, out, cache read, cache write), `active_ms`, `models`, `through` (last transcript line's time), `read_to` (bytes read), `at` | the newest `{"summary"}` in the folder's `cache.jsonl` (`AISessionIndex` reads the transcript's new bytes, `ai/AISession/AISession.js`). `null` until that cache exists |
++| `children` | child agent sessions as a tree: `{id, parent, role, state, cost, total, children}` (`total` = its own plus everything under it) | the Servex registry: every agent whose task folder is inside this folder (`Agents.agents_under`, wired as `Session.agents_resolver`), nested by `parent` |
++| `cost.children`, `cost.total` | the children's spend; own plus children | the agents' own logs (`turn_cost` lines, `Agents.logged_cost`) |
++| `cost.tasks`, `biggest` | spend per task folder (each folder once), and the five costliest tasks | `Task.cost` (the agents of the task's `path`) |
++| `counts.direct`, `counts.all` | `{created, started, complete, stopped}` for the session's own tasks, and for every task below it | the replayed tasks |
++| `progress`, `completion` | done of total, stopped tasks left out | `Task.progress_of` |
++| `first_at`, `last_at`, `span_ms` | when the record began and last changed | the lines' own times |
++
++Test: `node Servex/agents/session-state.test.mjs`.
++
+ ## Rules (the owner, 2026-10-20, 16:15)
+ 
+ 1. **A session has tasks**, plain tasks or projects (a project is a task with subtasks). A session gets a folder; a task is lines in the session's log. *Built:* `session.tasks`.

@@ -1,0 +1,4 @@
+{"class":"/framework/ai2/card.js","title":"Whisper dictation works, and now reaches the log too.","type":"card","id":"2026/09/22/whisper-servex","created":"2026-09-22T15:20:02-05:00","by":"whisper-servex","tags":[]}
+{"legacy":"whisper-servex"}
+{"status":"done"}
+{"text":"whisper-server was already running fine (76-98ms per clip). I wired every finished sentence to post to the log, proved it two ways headless, and built a one-screen status page with a try-it button."}

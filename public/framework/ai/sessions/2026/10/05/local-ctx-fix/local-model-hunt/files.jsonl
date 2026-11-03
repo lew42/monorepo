@@ -1,0 +1,12 @@
+{"file":"requirements.md"}
+{"file":"task.jsonl"}
+{"file":"tool-call-test.mjs"}
+{"file":"fixture/"}
+{"file":"eval-qwen3-8b.json"}
+{"file":"tool-call-local-qwen3-8b.json"}
+{"file":"spend.json"}
+{"file":"tool-call-local-hermes-3-llama-3-1-8b.json"}
+{"file":"eval-hermes-3.json"}
+{"file":"report.md"}
+{"file":"layout-check/"}
+{"file":"layout-check-clarity/"}

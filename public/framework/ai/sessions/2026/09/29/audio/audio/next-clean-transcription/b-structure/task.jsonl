@@ -1,0 +1,16 @@
+{"assign":{"step":1,"now":"read requirements.md and owner-words.md 8:20pm section"}}
+{"log":"rewrote the structured rung's prompt in Server/refine.mjs to output Markdown: one # H1 naming the subject, ## H2s for familiar parts (reuse existing repo names, e.g. Layout), bullets/nested bullets under each, all citations [S#] kept; updated judgePick/applyCaveats wording to preserve the H1/H2 shape when merging drafts"}
+{"log":"added a RUNGS table {model, promptTemplate} for clean/structured/pick/brief/coverage/repair at the top of refine.mjs, overridable via --model-<rung> or --config <path.json>; pick/coverage/repair keep model-only override (their prompts are built from multiple pieces, not one swappable input block) — documented in refine.md"}
+{"assign":{"step":2,"now":"proving it: real run on the owner's 8:20pm section + one other, before/after"}}
+{"assign":{"step":2,"now":"running compare-structured.mjs on 8:20pm and 7:10pm sections (real, Sonnet)"}}
+{"log":"--model-structured now means --models <m> (was a silent no-op); removed 5 mock-test lines the first attempt left in Server/refine-scoreboard.jsonl"}
+{"log":"proof: 8:20pm section: before 21 condensed bullets, after H1 'AI processes' + H2s Decisions/Structure/Dictate, 79 bullets citing all 79 clean sentences ($0.58). 7:10pm section: H1 'Voice session' + H2s AI button/Persistence/Session log/Recent sessions/Context ($0.36). Outputs in b-structure/out/<n>/structured-before.md vs structured-after.md"}
+{"log":"Server/doc/refine.md: added 'The structured rung' and 'Each rung's model and prompt' sections; flags verified with a $0 --mock run (unknown rung refused)"}
+{"outcome":"The structured rung now writes a heading hierarchy (one H1 subject, familiar H2 parts, nested bullets, every point kept); every rung's model and prompt is in one RUNGS table, overridable by --model-<rung> or --config. Before/after in out/1-820pm and out/2-710pm."}
+{"log":"review finding 8: structured prompt now asks for a concrete H1, one bullet per POINT (merge sentences making one point, fold filler into a neighbour's citation), at most two levels, each sentence cited exactly once. First rerun copied the H1 example verbatim (the example was drawn from this very input) so the example became the neutral 'Page class and Sidebar'"}
+{"log":"8:20pm rerun (--after-only, $0.2277): H1 'Decisions Tab and Dictate Pipeline'; H2s UX (Decisions tab), Decision Policy, Structured Refinement, Clean Transcription Mode, Streaming and Audio Cues; 33 bullets (was 79), depth 1 (was 6), 0 cited twice (was S26), 0 never cited. check.txt beside it"}
+{"log":"review finding 9: costs made consistent with measured runs ($0.36 / $0.58 full, $0.23 after-only) in Server/doc/refine.md and compare-structured.mjs header; added --after-only and check() to compare-structured.mjs"}
+{"reply":{"finding":8,"status":"fixed"}}
+{"reply":{"finding":9,"status":"fixed"}}
+{"stop":{"at":"2026-10-18T08:02:32-05:00","why":"abandoned: no agent since 2026-09-30T18:45:24.670Z; closed by StaleClose 2026-10-18","by":"StaleClose"}}
+{"unclosed":{"at":"2026-11-02T15:00:28-06:00","why":"unclosed: 14 log lines of work, never completed; was closed as abandoned 2026-10-18T08:02:32-05:00; re-closed by Unclose 2026-11-02","by":"Unclose"},"by":"append.mjs","ts":"2026-11-02T21:00:28.688Z"}

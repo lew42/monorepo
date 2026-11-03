@@ -1,0 +1,749 @@
+diff --git a/public/framework/ai/2026-10-12/data-grid/sessions-perf/find-3440-search.png b/public/framework/ai/2026-10-12/data-grid/sessions-perf/find-3440-search.png
+new file mode 100644
+index 000000000..53c221668
+Binary files /dev/null and b/public/framework/ai/2026-10-12/data-grid/sessions-perf/find-3440-search.png differ
+diff --git a/public/framework/ai/2026-10-12/data-grid/sessions-perf/find-3440.png b/public/framework/ai/2026-10-12/data-grid/sessions-perf/find-3440.png
+new file mode 100644
+index 000000000..99ce72dc4
+Binary files /dev/null and b/public/framework/ai/2026-10-12/data-grid/sessions-perf/find-3440.png differ
+diff --git a/public/framework/ai/2026-10-12/data-grid/sessions-perf/find-400.png b/public/framework/ai/2026-10-12/data-grid/sessions-perf/find-400.png
+new file mode 100644
+index 000000000..f008d7c8e
+Binary files /dev/null and b/public/framework/ai/2026-10-12/data-grid/sessions-perf/find-400.png differ
+diff --git a/public/framework/ai/2026-10-12/data-grid/sessions-perf/find.json b/public/framework/ai/2026-10-12/data-grid/sessions-perf/find.json
+new file mode 100644
+index 000000000..9595f7449
+--- /dev/null
++++ b/public/framework/ai/2026-10-12/data-grid/sessions-perf/find.json
+@@ -0,0 +1,185 @@
++[
++ {
++  "w": 3440,
++  "rest": {
++   "chips": [
++    "short headless · 2,976 · $174",
++    "prompt cleaning · 2,027 · $163",
++    "clarity check · 266 · $95.75",
++    "helper · 220 · $85.10",
++    "review · 151 · $123"
++   ],
++   "shown": "449 sessions listed (5,640 routine hidden)",
++   "first": [
++    "Data grid · mastermind-data-grid$$$",
++    "Screenshot system · mastermind-screenshot-system$$",
++    "Figma MCP skill design systems$$$"
++   ],
++   "first_row_top": 0
++  },
++  "chip_on": {
++   "chips": [
++    "short headless · 2,976 · $174",
++    "prompt cleaning · 2,027 · $163",
++    "clarity check · 266 · $95.75",
++    "helper · 220 · $85.10",
++    "review · 151 · $123"
++   ],
++   "shown": "3,425 sessions listed (2,664 routine hidden)",
++   "first": [
++    "Data grid · mastermind-data-grid$$$",
++    "Screenshot system · mastermind-screenshot-system$$",
++    "Figma MCP skill design systems$$$"
++   ],
++   "first_row_top": 0
++  },
++  "search": {
++   "chips": [
++    "clarity check · 1 · $0.14",
++    "review · 1 · $1.01"
++   ],
++   "shown": "4 sessions listed",
++   "first": [
++    "Server query · mastermind-server-query",
++    "minion-server-query-parity",
++    "Server-query review · reviewer-server-query"
++   ],
++   "first_row_top": 0
++  },
++  "routine": {
++   "chips": [
++    "clarity check · 281 · $105"
++   ],
++   "shown": "282 sessions listed",
++   "first": [
++    "clarity-peer-messages",
++    "Clarity check session 87bec773 · clarity-step-runn",
++    "Clarity skill peer messages · clarity-peer-message"
++   ],
++   "first_row_top": 0
++  },
++  "errors": []
++ },
++ {
++  "w": 1920,
++  "rest": {
++   "chips": [
++    "short headless · 2,976 · $174",
++    "prompt cleaning · 2,027 · $163",
++    "clarity check · 266 · $95.75",
++    "helper · 220 · $85.10",
++    "review · 151 · $123"
++   ],
++   "shown": "449 sessions listed (5,640 routine hidden)",
++   "first": [
++    "Data grid · mastermind-data-grid$$$",
++    "Screenshot system · mastermind-screenshot-system$$",
++    "Figma MCP skill design systems$$$"
++   ],
++   "first_row_top": 0
++  },
++  "chip_on": {
++   "chips": [
++    "short headless · 2,976 · $174",
++    "prompt cleaning · 2,027 · $163",
++    "clarity check · 266 · $95.75",
++    "helper · 220 · $85.10",
++    "review · 151 · $123"
++   ],
++   "shown": "3,425 sessions listed (2,664 routine hidden)",
++   "first": [
++    "Data grid · mastermind-data-grid$$$",
++    "Screenshot system · mastermind-screenshot-system$$",
++    "Figma MCP skill design systems$$$"
++   ],
++   "first_row_top": 0
++  },
++  "search": {
++   "chips": [
++    "clarity check · 1 · $0.14",
++    "review · 1 · $1.01"
++   ],
++   "shown": "4 sessions listed",
++   "first": [
++    "Server query · mastermind-server-query",
++    "minion-server-query-parity",
++    "Server-query review · reviewer-server-query"
++   ],
++   "first_row_top": 0
++  },
++  "routine": {
++   "chips": [
++    "clarity check · 281 · $105"
++   ],
++   "shown": "282 sessions listed",
++   "first": [
++    "clarity-peer-messages",
++    "Clarity check session 87bec773 · clarity-step-runn",
++    "Clarity skill peer messages · clarity-peer-message"
++   ],
++   "first_row_top": 0
++  },
++  "errors": []
++ },
++ {
++  "w": 400,
++  "rest": {
++   "chips": [
++    "short headless · 2,976 · $174",
++    "prompt cleaning · 2,027 · $163",
++    "clarity check · 266 · $95.75",
++    "helper · 220 · $85.10",
++    "review · 151 · $123"
++   ],
++   "shown": "449 sessions listed (5,640 routine hidden)",
++   "first": [
++    "Data grid · mastermind-data-grid$$$",
++    "Screenshot system · mastermind-screenshot-system$$",
++    "Figma MCP skill design systems$$$"
++   ],
++   "first_row_top": 894
++  },
++  "chip_on": {
++   "chips": [
++    "short headless · 2,976 · $174",
++    "prompt cleaning · 2,027 · $163",
++    "clarity check · 266 · $95.75",
++    "helper · 220 · $85.10",
++    "review · 151 · $123"
++   ],
++   "shown": "3,425 sessions listed (2,664 routine hidden)",
++   "first": [
++    "Data grid · mastermind-data-grid$$$",
++    "Screenshot system · mastermind-screenshot-system$$",
++    "Figma MCP skill design systems$$$"
++   ],
++   "first_row_top": 894
++  },
++  "search": {
++   "chips": [
++    "clarity check · 1 · $0.14",
++    "review · 1 · $1.01"
++   ],
++   "shown": "4 sessions listed",
++   "first": [
++    "Server query · mastermind-server-query",
++    "minion-server-query-parity",
++    "Server-query review · reviewer-server-query"
++   ],
++   "first_row_top": 748
++  },
++  "routine": {
++   "chips": [
++    "clarity check · 281 · $105"
++   ],
++   "shown": "282 sessions listed",
++   "first": [
++    "clarity-peer-messages",
++    "Clarity check session 87bec773 · clarity-step-runn",
++    "Clarity skill peer messages · clarity-peer-message"
++   ],
++   "first_row_top": 773
++  },
++  "errors": []
++ }
++]
+diff --git a/public/framework/ai/2026-10-12/data-grid/sessions-perf/probe-find.mjs b/public/framework/ai/2026-10-12/data-grid/sessions-perf/probe-find.mjs
+new file mode 100644
+index 000000000..551e030c6
+--- /dev/null
++++ b/public/framework/ai/2026-10-12/data-grid/sessions-perf/probe-find.mjs
+@@ -0,0 +1,36 @@
++// node probe-find.mjs <base url> <out dir> — Sessions: the routine chips, a chip click, and the search reaching every session.
++import { browser as launch, close } from "../../../../../../Server/browser.mjs";
++const [base = "http://monorepo.localhost/", out = "."] = process.argv.slice(2);
++const b = await launch();
++const results = [];
++for (const [w, h] of [[3440, 1440], [1920, 1080], [400, 800]]){
++	const page = await b.newPage({ viewport: { width: w, height: h } });
++	const errors = [];
++	page.on("pageerror", e => errors.push(e.message));
++	await page.goto(new URL("/framework/ai/sessions/", base).href, { waitUntil: "networkidle" });
++	await page.waitForSelector(".sessions-kinds .sessions-chip", { timeout: 20000 }).catch(() => {});
++	await page.waitForTimeout(800);
++	const state = () => page.evaluate(() => ({
++		chips: [...document.querySelectorAll(".sessions-kinds .sessions-chip")].map(c => c.textContent),
++		shown: document.querySelector(".sessions-counts span")?.textContent.split(" · ")[0],
++		first: [...document.querySelectorAll(".sessions-page .datagrid-body .sessions-row-title, .sessions-page .datagrid-rail .sessions-row-title")].slice(0, 3).map(t => t.textContent.slice(0, 50)),
++		first_row_top: Math.round(document.querySelector(".sessions-page .datagrid-body > *")?.getBoundingClientRect().top ?? -1),
++	}));
++	const rest = await state();
++	await page.screenshot({ path: `${out}/find-${w}.png` });
++	await page.click(".sessions-kinds .sessions-chip");
++	await page.waitForTimeout(500);
++	const chip_on = await state();
++	await page.click(".sessions-kinds .sessions-chip");   // back off
++	await page.fill(".sessions-search", "server-query");
++	await page.waitForTimeout(900);
++	const search = await state();
++	await page.screenshot({ path: `${out}/find-${w}-search.png` });
++	await page.fill(".sessions-search", "clarity");
++	await page.waitForTimeout(900);
++	const routine = await state();
++	results.push({ w, rest, chip_on, search, routine, errors });
++	await page.close();
++}
++await close();
++console.log(JSON.stringify(results, null, 1));
+diff --git a/public/framework/ai/2026-10-12/data-grid/sessions-perf/probe-remote.mjs b/public/framework/ai/2026-10-12/data-grid/sessions-perf/probe-remote.mjs
+new file mode 100644
+index 000000000..241a9c683
+--- /dev/null
++++ b/public/framework/ai/2026-10-12/data-grid/sessions-perf/probe-remote.mjs
+@@ -0,0 +1,18 @@
++// node probe-remote.mjs [YYYY/MM/DD] — the node (remote-mode) path of Sessions over one day of real snapshots: listed rows, kind chips, an open kind, two searches.
++import fs from "fs";
++const W = new URL("../../../../", import.meta.url).href;   // public/framework/
++const { default: Query } = await import(W + "ext/Query/Query.js");
++const { default: Src } = await import(W + "ai/AISession/AISessionSource.mjs");
++const raw = JSON.parse(fs.readFileSync(new URL("../../../sessions/" + (process.argv[2] ?? "2026/10/12") + "/index.json", import.meta.url), "utf8"));
++const snaps = raw.snapshots;
++const items = snaps.map(s => Src.shape(s));
++const ask = (extra) => new Query({ sort: { by: "last_activity", dir: "desc" }, limit: 50, sum: ["claude_usd"], open: { kinds: [], ids: [] }, ...extra }).run(items, Src.arrange);
++const a = ask({});
++console.log("items", items.length, "matched", a.matched, "total(listed)", a.total, "meta", JSON.stringify(a.meta));
++console.log("first", a.rows.slice(0, 4).map(r => (r.title ?? r.agent ?? r.id).slice(0, 40) + " $" + (r.claude_usd ?? 0).toFixed(2)).join(" | "), "bucket rows:", a.rows.filter(r => r.bucket).length);
++const b = ask({ open: { kinds: ["clarity"], ids: [] } });
++console.log("clarity open: total", b.total, "listed", b.meta.listed);
++const c = ask({ where: [{ fields: ["title", "agent", "id", "folder", "model", "role"], op: "contains", value: "clarity" }], open: { kinds: [], ids: [], all: true } });
++console.log("search clarity: matched", c.matched, "total", c.total);
++const d = ask({ where: [{ fields: ["title", "agent", "id", "folder", "model", "role"], op: "contains", value: "server-query" }], open: { kinds: [], ids: [], all: true } });
++console.log("search server-query:", d.rows.map(r => r.agent ?? r.title).join(", "));
+diff --git a/public/framework/ai/2026-10-12/data-grid/sessions-perf/remote.txt b/public/framework/ai/2026-10-12/data-grid/sessions-perf/remote.txt
+new file mode 100644
+index 000000000..7fc6740d4
+--- /dev/null
++++ b/public/framework/ai/2026-10-12/data-grid/sessions-perf/remote.txt
+@@ -0,0 +1,5 @@
++items 758 matched 758 total(listed) 119 meta {"kinds":[{"key":"short-run","n":487,"usd":12.91760000000001},{"key":"clarity","n":92,"usd":15.747400000000003},{"key":"reviewer","n":40,"usd":29.5555},{"key":"helper","n":20,"usd":1.9425999999999999}],"listed":119}
++first Style system $67.83 | Data grid $25.97 | Task folders restructure $25.86 | Screenshot system $21.17 bucket rows: 0
++clarity open: total 211 listed 211
++search clarity: matched 92 total 92
++search server-query: mastermind-server-query, minion-server-query-parity, reviewer-server-query, clarity-server-query
+diff --git a/public/framework/ai/AISession/AISessionBucketView.js b/public/framework/ai/AISession/AISessionBucketView.js
+deleted file mode 100644
+index 2ed95ac5c..000000000
+--- a/public/framework/ai/AISession/AISessionBucketView.js
++++ /dev/null
+@@ -1,27 +0,0 @@
+-import { View, span, small } from "/app.js";
+-import AISessionView from "./AISessionView.js";
+-
+-// One rolled-up bucket, drawn as a single grid row (or rail card): "▸ 2,914 prompt-cleaning sessions · $123 ·
+-// show". A click shows or hides the sessions inside it. The totals are AISessionBuckets' running ones. Doc: ai/sessions/doc/buckets.md
+-export default class AISessionBucketView extends View {
+-
+-	static LABELS = { "prompt-cleaning": "prompt-cleaning", "short-run": "short headless", clarity: "clarity check", reviewer: "review", helper: "helper" };
+-
+-	// Getters: prerender() runs inside View's constructor, before a subclass's fields exist.
+-	get classes(){ return this.card ? "sessions-bucket sessions-bucket-card" : "sessions-bucket"; }
+-
+-	prerender(){
+-		super.prerender();
+-		this.attr("role", "button").attr("tabindex", "0").attr("aria-expanded", String(!!this.open))
+-			.attr("title", this.open ? "Hide these sessions again" : "Show every session in this group");
+-		this.on("click", e => { e.preventDefault(); this.toggle(); });
+-		this.on("keydown", e => { if (e.key === "Enter" || e.key === " "){ e.preventDefault(); this.toggle(); } });
+-	}
+-
+-	render(){
+-		const b = this.row, name = AISessionBucketView.LABELS[b.key] ?? b.key;
+-		span.c("sessions-fold", this.open ? "▾" : "▸");
+-		span.c("sessions-row-title", `${b.n.toLocaleString()} ${name} session${b.n === 1 ? "" : "s"}`);
+-		small.c("muted", `${AISessionView.usd(b.usd)} total · click to ${this.open ? "hide" : "show"} them`);
+-	}
+-}
+diff --git a/public/framework/ai/AISession/AISessionBuckets.js b/public/framework/ai/AISession/AISessionBuckets.js
+index a7475e3ff..15bd8b330 100644
+--- a/public/framework/ai/AISession/AISessionBuckets.js
++++ b/public/framework/ai/AISession/AISessionBuckets.js
+@@ -114,31 +114,29 @@ export default class AISessionBuckets {
+ 		return { top: rows.filter(r => !up(r)), kids_of };
+ 	}
+ 
+-	/** The grid's whole row order: routine kinds roll up into one head row each (on top; an open head's sessions sit right under it), then the rest in
+-	 * `sort(rows)` order with children nested under their parent (collapsed until opened). Runs in the browser (files path) and in node (the query source).
+-	 * Returns { out: the flat list, nests: Map(row -> { depth, kids, open }) }. Call it on rows already filtered; `buckets` is kept between calls so only changes are re-counted. */
+-	static arrange(rows, { buckets, sort, open_kinds, open_ids, parent_of, id_of }){
++	/** The grid's whole row order: routine kinds stay out unless open (`open_kinds`) or `all` (a search), the rest in `sort(rows)` order with children
++	 * nested under their parent (collapsed until opened; all open when `all`). Runs in the browser (files path) and in node (the query source).
++	 * Returns { out: the flat list, nests: Map(row -> { depth, kids, open }), kinds: [{ key, n, usd }] (one chip per routine kind present), listed: rows in the list }.
++	 * Call it on rows already filtered; `buckets` is kept between calls so only changes are re-counted. Doc: ai/sessions/doc/buckets.md */
++	static arrange(rows, { buckets, sort, open_kinds, open_ids, all = false, parent_of, id_of }){
+ 		buckets.sync(rows);
+-		const kept = [], held = new Map();   // kind -> its rows
++		const present = new Set(), kept = [];
+ 		for (const r of rows){
+-			const ix = buckets.of(r), k = ix && AISessionBuckets.kind_of(ix);
+-			if (k && buckets.routine.has(k)) (held.get(k) ?? held.set(k, []).get(k)).push(r); else kept.push(r);
++			const ix = buckets.of(r), k = ix && AISessionBuckets.kind_of(ix), routine = k && buckets.routine.has(k);
++			if (routine) present.add(k);
++			if (all || !routine || open_kinds.has(k)) kept.push(r);
+ 		}
+-		const heads = [...held.keys()].map(k => ({ bucket: "kind", key: k, id: "bucket-" + k, ...buckets.index.kind[k] })).sort((x, y) => y.n - x.n);
++		const kinds = [...present].map(k => ({ key: k, n: buckets.index.kind[k].n, usd: buckets.index.kind[k].usd })).sort((x, y) => y.n - x.n);
+ 		const { top, kids_of } = AISessionBuckets.nest(sort(kept), parent_of, id_of);
+ 		const nests = new Map(), out = [];
+-		for (const h of heads){
+-			out.push(h);
+-			if (open_kinds.has(h.key)) for (const r of sort(held.get(h.key))){ nests.set(r, { depth: 1, kids: 0 }); out.push(r); }
+-		}
+ 		const place = (r, depth, seen) => {
+-			const kids = (kids_of.get(id_of(r)) ?? []).filter(k => !seen.has(id_of(k))), open = open_ids.has(id_of(r));
++			const kids = (kids_of.get(id_of(r)) ?? []).filter(k => !seen.has(id_of(k))), open = all || open_ids.has(id_of(r));
+ 			nests.set(r, { depth, kids: kids.length, open });
+ 			out.push(r);
+ 			if (open) for (const k of kids) place(k, depth + 1, new Set([...seen, id_of(r)]));
+ 		};
+ 		top.forEach(r => place(r, 0, new Set([id_of(r)])));
+-		return { out, nests };
++		return { out, nests, kinds, listed: kept.length };
+ 	}
+ 
+ 	toJSON(){ return { index: this.index }; }
+diff --git a/public/framework/ai/AISession/AISessionRows.js b/public/framework/ai/AISession/AISessionRows.js
+index e896ca65f..6a88cd4c1 100644
+--- a/public/framework/ai/AISession/AISessionRows.js
++++ b/public/framework/ai/AISession/AISessionRows.js
+@@ -280,9 +280,9 @@ export default class AISessionRows {
+ 
+ 	/** sort = null (the default: cost weighted by recency, halving every 3 days since last activity) or { key, dir }. */
+ 	static sort_rows(rows, sort){
+-		if (!sort){   // one list, newest activity first: a running session is the newest, so it sits at the top
++		if (!sort){   // one list, newest activity first, then most costly: a running session is the newest, so it sits at the top
+ 			const now = Date.now(), t = r => AISessionRows.is_in_flight(r) || AISessionRows.WORKING_STATES.has(r.state) ? now : Date.parse(r.last_activity ?? 0) || 0;
+-			return rows.slice().sort((x, y) => t(y) - t(x));
++			return rows.slice().sort((x, y) => t(y) - t(x) || AISessionRows.claude_usd_of(y) - AISessionRows.claude_usd_of(x));   // the costlier one first on a tie
+ 		}
+ 		const get = AISessionRows.SORT_VALUE[sort.key], sign = sort.dir === "asc" ? 1 : -1;
+ 		const keyed = rows.map(r => [get(r), r]);
+diff --git a/public/framework/ai/AISession/AISessionSource.mjs b/public/framework/ai/AISession/AISessionSource.mjs
+index 7d3b87f33..89a2d6e3a 100644
+--- a/public/framework/ai/AISession/AISessionSource.mjs
++++ b/public/framework/ai/AISession/AISessionSource.mjs
+@@ -41,14 +41,15 @@ export default class AISessionSource {
+ 	/** The files path's "needs attention" test, run by the same AISessionFlags.flags_of: a session-record alert or any red flag. 1 or 0, so the query can `gte` and `sum` it. */
+ 	static attention_of(row) { return row.alerts || AISessionFlags.flags_of(row).length ? 1 : 0; }
+ 
+-	/** The sorted matches become the grid's list, exactly as AISessionsPage.arrange does for the files path (the same AISessionBuckets.arrange): routine kinds roll up into head rows,
+-	 * children nest under their parent. `spec.open` = { kinds, ids } is what the browser has expanded. Each session row carries its `nest` ({ depth, kids, open }). */
++	/** The sorted matches become the grid's list, exactly as AISessionsPage.arrange does for the files path (the same AISessionBuckets.arrange): routine kinds stay out
++	 * unless open, children nest under their parent. `spec.open` = { kinds, ids, all } is what the browser has expanded (`all`: a search). Each row carries its `nest`;
++	 * the list's `meta` ({ kinds, listed }) rides back with the page (ext/Query `run`). */
+ 	static arrange(hit, spec) {
+ 		const now = Date.now(), by = spec.sort?.by ?? "last_activity";
+-		if (by === "last_activity" && spec.sort?.dir !== "asc") { const up = hit.filter(r => AISessionSource.in_flight(r, now)); if (up.length) { const set = new Set(up); hit = [...up, ...hit.filter(r => !set.has(r))]; } }   // the default sort: a running session is the newest
++		if (by === "last_activity" && spec.sort?.dir !== "asc") { const up = hit.filter(r => AISessionSource.in_flight(r, now)); if (up.length) { up.sort((a, b) => (b.claude_usd ?? 0) - (a.claude_usd ?? 0)); const set = new Set(up); hit = [...up, ...hit.filter(r => !set.has(r))]; } }   // the default sort: a running session is the newest; the costlier first among them
+ 		const open = spec.open ?? {}, buckets = AISessionSource.buckets ??= new AISessionBuckets([], { of: r => r, key: r => r.id });
+-		const { out, nests } = AISessionBuckets.arrange(hit, { buckets, sort: rs => rs, open_kinds: new Set(open.kinds), open_ids: new Set(open.ids), parent_of: r => r.parent, id_of: r => r.id });
+-		return out.map(r => r.bucket ? r : { ...r, nest: nests.get(r) });
++		const { out, nests, kinds, listed } = AISessionBuckets.arrange(hit, { buckets, sort: rs => rs, open_kinds: new Set(open.kinds), open_ids: new Set(open.ids), all: !!open.all, parent_of: r => r.parent, id_of: r => r.id });
++		return Object.assign(out.map(r => ({ ...r, nest: nests.get(r) })), { meta: { kinds, listed } });
+ 	}
+ 
+ 	static shape(snap) {
+diff --git a/public/framework/ai/AISession/AISessionsPage.js b/public/framework/ai/AISession/AISessionsPage.js
+index 8b1d0ef03..21bcd6252 100644
+--- a/public/framework/ai/AISession/AISessionsPage.js
++++ b/public/framework/ai/AISession/AISessionsPage.js
+@@ -7,7 +7,6 @@ import { page_settings } from "/framework/core/Page/settings/settings.js";
+ import AISessionRows from "./AISessionRows.js";
+ import AISessionView from "./AISessionView.js";
+ import AISessionBuckets from "./AISessionBuckets.js";
+-import AISessionBucketView from "./AISessionBucketView.js";
+ import AISessionLive from "./AISessionLive.js";
+ import AISession from "./AISession.js";
+ import AISessionDetail from "./AISessionDetail.js";
+@@ -101,9 +100,9 @@ export default class AISessionsPage extends Page {
+ 			columns: AISessionRows.COLUMNS.map(c => ({ ...c, width: AISessionsPage.WIDTHS[c.key] })),
+ 			rows: [], filters: false, row_height: null, page_size: AISessionsPage.PAGE_SIZE,
+ 			prefs_id: "sessions", settings: this.settings,
+-			href: r => r.bucket ? null : this.url + r.id + "/",
+-			row: r => r.bucket ? this.bucket_view(r) : this.row_view(r, this.nests.get(r)),
+-			card: r => r.bucket ? this.bucket_view(r, true) : new AISessionView({ row: r, url: this.url, spend: this.spend, session_index: this.session_index, card: true }),
++			href: r => this.url + r.id + "/",
++			row: r => this.row_view(r, this.nests.get(r)),
++			card: r => new AISessionView({ row: r, url: this.url, spend: this.spend, session_index: this.session_index, card: true }),
+ 			sort_rows: (rows, sort) => this.remote ? this.remote_sort(rows, sort) : this.arrange(rows, sort),
+ 			has_more: () => !!this.remote && this.remote.rows.length < this.remote.total,   // the server holds the rest: the drawer's sentinel asks for it
+ 			load_more: () => this.remote_ask({ more: true }),
+@@ -119,25 +118,43 @@ export default class AISessionsPage extends Page {
+ 		this.reshape();
+ 	}
+ 
+-	/** The grid's sort hook: routine sessions roll up into one bucket row each (on top, whatever the sort; an open bucket's
+-	 * sessions sit right under it), then the default or header order, then children nested under their parent (collapsed
+-	 * until opened), flattened for the grid. Doc: ai/sessions/doc/buckets.md */
++	/** The grid's sort hook: routine sessions stay out until their chip is on (a search shows every match), then the
++	 * default or header order, then children nested under their parent (collapsed until opened, open while searching),
++	 * flattened for the grid. Doc: ai/sessions/doc/buckets.md */
+ 	arrange(rows, sort){
+ 		const id_of = r => r.session_id || r.id;
+ 		// Only a day-snapshot record carries `agent` and `folder`, which the kind rules read; any other row is never hidden.
+ 		this.buckets ??= new AISessionBuckets([], { of: r => { const ix = AISession.all.get(id_of(r))?.ix; return ix && "folder" in ix ? ix : null; }, key: id_of });
+ 		this.open_kinds ??= new Set();
+ 		this.open_ids ??= new Set();
+-		const { out, nests } = AISessionBuckets.arrange(rows, { buckets: this.buckets, sort: rs => AISessionRows.sort_rows(rs, sort), open_kinds: this.open_kinds, open_ids: this.open_ids, parent_of: r => AISessionRows.tree?.[id_of(r)]?.parent, id_of });
++		const { out, nests, kinds, listed } = AISessionBuckets.arrange(rows, { buckets: this.buckets, sort: rs => AISessionRows.sort_rows(rs, sort), open_kinds: this.open_kinds, open_ids: this.open_ids, all: !!this.search, parent_of: r => AISessionRows.tree?.[id_of(r)]?.parent, id_of });
+ 		for (const [r, n] of nests) if (n.kids || n.open) n.toggle = () => { n.open ? this.open_ids.delete(id_of(r)) : this.open_ids.add(id_of(r)); this.grid.apply(false); };
+-		this.nests = nests;
++		Object.assign(this, { nests, kinds, listed });
+ 		return out;
+ 	}
+ 
+-	/** A bucket row: a click shows or hides the routine sessions it holds. */
+-	bucket_view(b, card = false){
+-		const open = this.open_kinds.has(b.key);
+-		return new AISessionBucketView({ row: b, open, card, toggle: () => { open ? this.open_kinds.delete(b.key) : this.open_kinds.add(b.key); this.remote ? this.remote_ask() : this.grid.apply(false); } });
++	static KIND_LABELS = { "prompt-cleaning": "prompt cleaning", "short-run": "short headless", clarity: "clarity check", reviewer: "review", helper: "helper" };
++
++	/** One chip per routine kind, with its count and cost: on = its sessions are in the list. Totals: AISessionBuckets (in node, in remote mode). */
++	render_kinds(){
++		const kinds = this.kinds ?? [], searching = this.remote ? !!this.remote.search : !!this.search;
++		this.$kinds?.empty(() => {
++			if (!kinds.length) return;
++			small.c("muted sessions-chip-head", searching ? "routine (all shown while searching):" : "routine:")
++				.attr("title", "Routine sessions (prompt cleaning, short headless runs, clarity checks, reviews, helpers) stay out of the list until you press their chip. A search always finds them.");
++			for (const b of kinds){
++				const on = this.open_kinds.has(b.key);
++				button.c("sessions-chip" + (on ? " sessions-chip-on" : ""), `${AISessionsPage.KIND_LABELS[b.key] ?? b.key} · ${b.n.toLocaleString()} · ${AISessionView.usd(b.usd)}`)
++					.attr("aria-pressed", String(on)).attr("title", on ? "In the list now; click to hide them" : "Hidden; click to show them in the list")
++					.on("click", () => { on ? this.open_kinds.delete(b.key) : this.open_kinds.add(b.key); if (this.remote) this.remote_ask(); else { this.grid.apply(false); this.render_kinds(); this.render_stats(); } });
++			}
++		});
++	}
++
++	/** Everything a search matches: the name shown, the registered agent, the id, role, model and folder. */
++	static haystack(r){
++		const ix = AISession.all.get(r.session_id || r.id)?.ix ?? {};
++		return [AISessionRows.display_name(r, AISessionRows.tree).text, r.title, r.agent, r.session_id, r.id, r.role, r.model, ix.agent, ix.title, ix.folder].filter(Boolean).join(" ").toLowerCase();
+ 	}
+ 
+ 	/** The plan's meters as progress bars with the pace marker (ext/AITask/usage.js), then one line of counts. */
+@@ -145,16 +162,21 @@ export default class AISessionsPage extends Page {
+ 		if (!this.$stats) return;
+ 		this.$stats.empty(() => {
+ 			if (this.usage) usage_rail(this.usage);
+-			small.c("muted sessions-counts", () => {
+-				span(`${this.filtered_count} sessions shown · $${(this.shown_usd ?? 0).toFixed(2)} Claude cost · ${this.date_from} to ${this.date_to} · `);
+-				button.c("sessions-older", "show 30 more days").attr("title", "Loads the older day files (one small file per day) on demand.").on("click", () => this.set_from(new Date(Date.parse(this.date_from) - 30 * 864e5).toISOString().slice(0, 10)));
+-			}).attr("title", "Claude cost is the API-equivalent price of the tokens, summed from the session files. It is not a bill.");
+-			const r = this.reconcile;
+-			if (r?.account_total_usd != null) small.c("muted sessions-counts", `OpenRouter (real dollars, apart from the Claude cost above): $${r.recorded_verified_usd.toFixed(2)} recorded ($${(r.recorded_key_diff_usd ?? 0).toFixed(2)} of it key-diff, may overlap) · account says $${r.account_total_usd.toFixed(2)} · ${r.gap_total_usd > 0 ? "unattributed OpenRouter $" + r.gap_total_usd.toFixed(2) + " (billed, no session)" : "unattributed OpenRouter $0.00 (the log is $" + (-r.gap_total_usd).toFixed(2) + " above the account: overlapping key-diff estimates, doc/cost/openrouter-gap.md)"}`)
+-				.attr("title", `${r.sessions.unverified} older sessions carry $${r.recorded_unverified_usd.toFixed(2)} of unverified numbers (not counted); ${r.sessions.unrecorded} have no recorded cost. This week: account $${r.account_week_usd?.toFixed(2)}, recorded $${r.week.verified_usd.toFixed(2)}.`);
++			div.c("sessions-stats-text", () => this.render_counts());
+ 		});
+ 	}
+ 
++	/** The muted stats lines under the title: what is listed, its cost, the date window; then OpenRouter's real dollars. */
++	render_counts(){
++		small.c("muted sessions-counts", () => {
++			span(`${(this.listed ?? this.filtered_count).toLocaleString()} sessions listed${this.listed != null && this.filtered_count > this.listed ? ` (${(this.filtered_count - this.listed).toLocaleString()} routine hidden)` : ""} · $${(this.shown_usd ?? 0).toFixed(2)} Claude cost · ${this.date_from} to ${this.date_to} · `);
++			button.c("sessions-older", "show 30 more days").attr("title", "Loads the older day files (one small file per day) on demand.").on("click", () => this.set_from(new Date(Date.parse(this.date_from) - 30 * 864e5).toISOString().slice(0, 10)));
++		}).attr("title", "Claude cost is the API-equivalent price of the tokens, summed from the session files. It is not a bill.");
++		const r = this.reconcile;
++		if (r?.account_total_usd != null) small.c("muted sessions-counts", `OpenRouter (real dollars): $${r.recorded_verified_usd.toFixed(2)} recorded · account says $${r.account_total_usd.toFixed(2)}`)
++			.attr("title", `Apart from the Claude cost above. $${(r.recorded_key_diff_usd ?? 0).toFixed(2)} of the recorded is key-diff and may overlap; ${r.gap_total_usd > 0 ? "unattributed $" + r.gap_total_usd.toFixed(2) + " (billed, no session)" : "the log is $" + (-r.gap_total_usd).toFixed(2) + " above the account (overlapping key-diff estimates, doc/cost/openrouter-gap.md)"}. ${r.sessions.unverified} older sessions carry $${r.recorded_unverified_usd.toFixed(2)} of unverified numbers (not counted); ${r.sessions.unrecorded} have no recorded cost. This week: account $${r.account_week_usd?.toFixed(2)}, recorded $${r.week.verified_usd.toFixed(2)}.`);
++	}
++
+ 	row_view(row, nest){
+ 		return new AISessionView({ row, url: this.url, page_dirs: this.page_dirs, spend: this.spend, session_index: this.session_index, nest });
+ 	}
+@@ -171,7 +193,12 @@ export default class AISessionsPage extends Page {
+ 			this[key + "_text"] = span(text);
+ 		}).attr("title", title);
+ 		this.$controls.empty(() => {
+-			div.c("sessions-filters flex gap-100 v-center wrap", () => {   // one compact row: closed, attention, in flight, tag, dates
++			div.c("sessions-filters flex gap-100 v-center wrap", () => {   // one compact row: search, closed, attention, in flight, dates
++				const $q = input.c("sessions-search").attr("type", "search").attr("placeholder", "search name, agent, id, role, model")
++					.attr("title", "Searches every loaded session, routine and closed ones too, whatever the other filters say. Older days: \"show 30 more days\".");
++				$q.el.value = this.search ?? "";
++				let wait;
++				$q.on("input", () => { clearTimeout(wait); wait = setTimeout(() => { this.search = $q.el.value.trim().toLowerCase(); this.render_rows(); }, 150); });
+ 				check("show closed", "show_closed", "Sessions you marked done are hidden by default. They are never deleted.");
+ 				const red = AISessionFlags.counts(this.last_rows), flagged = red.any;
+ 					check(`needs attention · ${flagged}`, "attention_only", "Sessions with a red flag (expensive, stalled, context bloat, Opus minion) or an alert in their session.jsonl record.");
+@@ -192,6 +219,7 @@ export default class AISessionsPage extends Page {
+ 				});
+ 			});
+ 			this.$summary = div.c("sessions-summary flex gap-50 v-center");
++			this.$kinds = div.c("sessions-kinds");
+ 			div.c("sessions-chiprow", () => {
+ 				this.$by_role = div.c("sessions-chips");
+ 			});
+@@ -207,6 +235,7 @@ export default class AISessionsPage extends Page {
+ 		const meta = this.session_index?.meta ?? {};
+ 		const closed = this.session_index?.closed ?? {};   // closed sessions hide unless "show closed" is ticked (never deleted)
+ 		const id_of = r => r.session_id || r.id;
++		if (this.search){ const hits = this.last_rows.filter(r => AISessionsPage.haystack(r).includes(this.search)); return { base: hits, filtered: hits }; }   // a search finds every session
+ 		const base = this.last_rows.filter(r => (this.show_closed || !closed[id_of(r)]) && in_date_range(r, from, to)
+ 			&& (!this.inflight_only || is_in_flight(r))
+ 			&& (!this.attention_only || meta[id_of(r)]?.alerts || AISessionFlags.flags_of(r).length)
+@@ -250,6 +279,7 @@ export default class AISessionsPage extends Page {
+ 		});
+ 
+ 		// Chips list every group present in `base`, so a deselected group stays visible and can be clicked back.
++		this.render_kinds();
+ 		this.render_chips(this.$by_role, AISessionRows.by_role_totals(base), this.role_filter, g => g.role, g => AISessionRows.role_label(g.role), "role");
+ 		this.render_cache_breakdown();
+ 	}
+@@ -410,7 +440,7 @@ export default class AISessionsPage extends Page {
+ 	// ---- remote mode: node holds the sessions, the browser asks for the rows it shows (ext/Query, doc/server-query.md) --------------
+ 
+ 	static SORT_FIELD = { state: "state", name: "title", cost: "usd", updated: "last_activity", duration: "wall_ms", role: "agent", source: "provider", model: "model" };
+-	static SEARCH_FIELDS = ["title", "agent", "id", "folder", "model"];
++	static SEARCH_FIELDS = ["title", "agent", "id", "folder", "model", "role"];
+ 
+ 	/** True when the dev socket answers the first query (the default); `?source=files`, no socket or no source on this server: false, and the page reads files. */
+ 	async start_remote(){
+@@ -429,17 +459,17 @@ export default class AISessionsPage extends Page {
+ 
+ 	/** The spec for the current filters and sort. */
+ 	remote_spec(){
+-		const r = this.remote, where = [
++		const r = this.remote, where = r.search ? [] : [   // a search finds every session, whatever the other filters say
+ 			{ field: "last_activity", op: "gte", value: new Date(this.date_from + "T00:00:00").toISOString() }, // local midnight, as the files path reads the dates
+ 			{ field: "last_activity", op: "lte", value: new Date(this.date_to + "T23:59:59.999").toISOString() },
+ 		];
+-		if (this.inflight_only) where.push({ field: "state", op: "eq", value: "active" });
+-		if (!this.show_closed) where.push({ field: "closed", op: "eq", value: false });   // closed sessions hide unless ticked (never deleted)
+-		if (this.attention_only) where.push({ field: "attention", op: "gte", value: 1 });
+ 		if (r.search) where.push({ fields: AISessionsPage.SEARCH_FIELDS, op: "contains", value: r.search });
++		else if (this.inflight_only) where.push({ field: "state", op: "eq", value: "active" });
++		if (!r.search && !this.show_closed) where.push({ field: "closed", op: "eq", value: false });   // closed sessions hide unless ticked (never deleted)
++		if (!r.search && this.attention_only) where.push({ field: "attention", op: "gte", value: 1 });
+ 		const [key, dir] = r.sort_key ? r.sort_key.split(":") : ["updated", "desc"];
+ 		this.open_kinds ??= new Set(); this.open_ids ??= new Set();
+-		return { where, open: { kinds: [...this.open_kinds], ids: [...this.open_ids] }, sort: { by: AISessionsPage.SORT_FIELD[key], dir }, sum: ["claude_usd", "tokens", "attention"] };
++		return { where, open: { kinds: [...this.open_kinds], ids: [...this.open_ids], all: !!r.search }, sort: { by: AISessionsPage.SORT_FIELD[key], dir }, sum: ["claude_usd", "tokens", "attention"] };
+ 	}
+ 
+ 	/** Ask for a page. `first`/default = a fresh query; `more` = the next 50; `refresh` = the same query again, keeping the rows already loaded. */
+@@ -455,8 +485,10 @@ export default class AISessionsPage extends Page {
+ 			const rows = res.rows.map(snap => this.remote_row_of(snap));
+ 			Object.assign(r, { rows: more ? [...r.rows, ...rows] : rows, total: res.total, totals: res.totals, ms: res.ms });
+ 			this.filtered_count = res.matched ?? res.total; this.shown_usd = res.totals.claude_usd ?? 0;
++			this.kinds = res.meta?.kinds ?? []; this.listed = res.meta?.listed ?? null;
++			this.render_kinds();
+ 			this.attention_only_text?.text(`needs attention · ${res.totals.attention ?? 0}`);
+-			this.nests = new Map(r.rows.filter(x => !x.bucket).map(x => [x, { ...x.nest, toggle: () => { x.nest.open ? this.open_ids.delete(x.id) : this.open_ids.add(x.id); this.remote_ask(); } }]));
++			this.nests = new Map(r.rows.map(x => [x, { ...x.nest, toggle: () => { x.nest.open ? this.open_ids.delete(x.id) : this.open_ids.add(x.id); this.remote_ask(); } }]));
+ 			this.grid.set_rows(r.rows, first);
+ 			this.$empty.el.hidden = r.rows.length > 0;
+ 			this.render_stats();
+@@ -465,9 +497,8 @@ export default class AISessionsPage extends Page {
+ 		} finally { r.busy = false; if (r.pending){ r.pending = false; this.remote_ask(); } }
+ 	}
+ 
+-	/** One snapshot becomes the row AISessionView draws: the live Session holds its numbers, the row holds the identity. A bucket head (rolled-up routine sessions) is drawn as sent. */
++	/** One snapshot becomes the row AISessionView draws: the live Session holds its numbers, the row holds the identity. */
+ 	remote_row_of(snap){
+-		if (snap.bucket) return snap;
+ 		const { ses } = AISession.apply_delta(snap), row = { ...ses.grid_row(), source: snap.source ?? "vscode", role: snap.role ?? null };
+ 		row.role = AISessionRows.role_of(row);
+ 		row.nest = snap.nest;
+@@ -495,8 +526,9 @@ export default class AISessionsPage extends Page {
+ 			$box.on("change", () => { this[key] = $box.el.checked; this.remote_ask(); });
+ 			this[key + "_text"] = span(text);
+ 		}).attr("title", title);
+-		this.$controls.empty(() => div.c("sessions-filters flex gap-100 v-center wrap", () => {
+-			const $q = input().attr("type", "search").attr("placeholder", "search title, agent, id, model").attr("title", "Searched in node (ext/Query `contains`)");
++		this.$controls.empty(() => { div.c("sessions-filters flex gap-100 v-center wrap", () => {
++			const $q = input.c("sessions-search").attr("type", "search").attr("placeholder", "search name, agent, id, role, model")
++				.attr("title", "Searches every session in node (ext/Query `contains`), routine and closed ones too, whatever the other filters say.");
+ 			let t = null;
+ 			$q.on("input", () => { clearTimeout(t); t = setTimeout(() => { this.remote.search = $q.el.value.trim(); this.remote_ask(); }, 250); });
+ 			check("show closed", "show_closed", "Sessions you marked done are hidden by default. They are never deleted.");
+@@ -510,7 +542,8 @@ export default class AISessionsPage extends Page {
+ 				const $to = input().attr("type", "date"); $to.el.value = this.date_to;
+ 				$to.on("change", () => { this.date_to = $to.el.value; this.remote_ask(); });
+ 			});
+-		}));
++		}); this.$kinds = div.c("sessions-kinds"); });
++		this.render_kinds();
+ 	}
+ 
+ 	deactivated(){ this.polling = false; this.source?.close(); this.source = null; this.stream_open = false; clearInterval(this.tick); }
+diff --git a/public/framework/ai/AISession/files.jsonl b/public/framework/ai/AISession/files.jsonl
+index a68730a05..28c926aac 100644
+--- a/public/framework/ai/AISession/files.jsonl
++++ b/public/framework/ai/AISession/files.jsonl
+@@ -17,3 +17,5 @@
+ {"file":"StoreFolder.js"}
+ {"file":"AISessionBuckets.js"}
+ {"file":"AISessionBucketView.js"}
++{"file":"AISessionBucketView.js","gone":true}
++{"file":"AISessionSource.mjs"}
+diff --git a/public/framework/ai/sessions/doc/buckets.md b/public/framework/ai/sessions/doc/buckets.md
+index 9ca1e35c8..3c105a80e 100644
+--- a/public/framework/ai/sessions/doc/buckets.md
++++ b/public/framework/ai/sessions/doc/buckets.md
+@@ -23,19 +23,19 @@ Nothing is deleted: `rollup(rows, { expand })` only swaps routine rows for their
+ @mastermind-data-grid owns the grid and Sessions adoption: it calls `new AISessionBuckets(rows)` once, `put(row)` on each live update, and `rollup()` for the visible list. The kind rules are heuristics from folder slugs and agent names; tune `KINDS`, not the callers.
+ 
+ ## In the Sessions grid (2026-10-12)
+-![The five routine buckets on top of the Sessions table](/framework/ai/2026-10-12/data-grid/sessions-perf/buckets-table-1920.png)
++![Routine kinds as chips above the Sessions table](/framework/ai/2026-10-12/data-grid/sessions-perf/find-3440.png)
+ 
+-`AISessionsPage.arrange()` (the grid's sort hook) keeps one `AISessionBuckets`, keyed by the grid's row id, reading each session's day-snapshot record (`of: r => AISession.all.get(id).ix`). A row with no such record (not indexed yet, or known only from a month index, which has no `agent` or `folder`) is never hidden. Each redraw calls `sync(rows)`, so only a new, changed or gone session touches its buckets.
++Routine sessions stay out of the list. Each kind is one chip in the toolbar ("short headless · 2,976 · $174"); click a chip to put that kind's sessions back in the list, in the current sort. A search ("search name, agent, id, role, model") finds every loaded session, routine and closed ones too, whatever the other filters say ([search shot](/framework/ai/2026-10-12/data-grid/sessions-perf/find-3440-search.png)). The stats line counts the sessions listed and how many routine ones are hidden.
+ 
+-- The routine buckets draw on top as one row each, whatever column is sorted (`AISessionBucketView`, a card in the rail).
+-- A click opens a bucket: its sessions appear right under it, in the current sort, indented like child sessions. Click again to fold them.
+-- Totals follow the filters, since the buckets hold the filtered rows. The grid's own row count would count a bucket as one row; Sessions hides that count and shows its own "sessions shown" line.
++The first version drew each kind as a grey row on top of the grid; the owner found them big, unlike the other rows, and in the way of finding a session (2026-10-12, relayed from the Figma session), so they became chips.
++
++`AISessionsPage.arrange()` (the grid's sort hook) keeps one `AISessionBuckets`, keyed by the grid's row id, reading each session's day-snapshot record (`of: r => AISession.all.get(id).ix`). A row with no such record (not indexed yet, or known only from a month index, which has no `agent` or `folder`) is never hidden. Each redraw calls `sync(rows)`, so only a new, changed or gone session touches its buckets, and the chips read the bucket totals.
+ 
+ Measured, same scripts, worktree, 6,044 sessions in the window ([redraw.jsonl](/framework/ai/2026-10-12/data-grid/sessions-perf/redraw.jsonl), [results.jsonl](/framework/ai/2026-10-12/data-grid/sessions-perf/results.jsonl)):
+ 
+ | | before | after |
+ |---|---|---|
+-| Rows the grid sorts, nests and pages | 5,810 | 347 (5 bucket rows + 342) |
++| Rows the grid sorts, nests and pages | 5,810 | 342 (then bucket rows; now chips) |
+ | One full redraw (`DataGrid.apply`, median of 6) | 36–39 ms | 25–29 ms |
+ | Load: first row, long tasks, DOM nodes (4 widths) | ~850 ms, 1 × 50 ms, 2,702 | ~850 ms, 0–1 × 50 ms, 2,628 |
+ 
+diff --git a/public/framework/ai/sessions/readme.md b/public/framework/ai/sessions/readme.md
+index 65c0518e3..b1ff886a0 100644
+--- a/public/framework/ai/sessions/readme.md
++++ b/public/framework/ai/sessions/readme.md
+@@ -8,11 +8,11 @@ prompts live inside their session, never a separate log page, and on a wide scre
+ opens as a side peek beside the grid instead of replacing it.
+ 
+ - **The grid is [ext/DataGrid](/framework/ext/DataGrid/)**: a table or a rail of cards (the Table / Rail toggle, `?view=rail`, default in `settings.jsonl`); rows are `AISessionView`, order and nesting are `AISessionsPage.arrange()`.
+-- **Routine sessions roll up** (prompt cleaning, short headless runs, clarity, reviews, helpers): one row each on top, click to show them; [doc/buckets.md](doc/buckets.md).
++- **Routine sessions are hidden** (prompt cleaning, short headless runs, clarity, reviews, helpers): one chip per kind with its count, click to show them; the search finds every session; [doc/buckets.md](doc/buckets.md).
+ - **Use** — moved to [doc/readme-full-2026-10-12.md](doc/readme-full-2026-10-12.md#use), verbatim.
+ - **Where the real dollars come from** — moved to [doc/readme-full-2026-10-12.md](doc/readme-full-2026-10-12.md#where-the-real-dollars-come-from), verbatim.
+ - **Where the data comes from** — moved to [doc/readme-full-2026-10-12.md](doc/readme-full-2026-10-12.md#where-the-data-comes-from), verbatim.
+-- **Buckets** — thousands of routine sessions roll up into a few rows with their own totals: [doc/buckets.md](doc/buckets.md).
++- **Buckets** — thousands of routine sessions fold into a few chips with their own totals: [doc/buckets.md](doc/buckets.md).
+ ## Watch out
+ 
+ - **"Session" means two different things on this site.** This tab is a *Claude Code* session
+diff --git a/public/framework/ai/sessions/sessions.css b/public/framework/ai/sessions/sessions.css
+index a4942833e..315438b09 100644
+--- a/public/framework/ai/sessions/sessions.css
++++ b/public/framework/ai/sessions/sessions.css
+@@ -34,6 +34,9 @@
+ 	.sessions-sort-label:hover { text-decoration: underline; }
+ 	.sessions-controls { display: flex; flex-direction: column; gap: .5rem; margin-block-end: 1rem; }
+ 	.sessions-controls > * { margin: 0; }
++	.sessions-kinds { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem .5rem; }
++	.sessions-kinds:empty { display: none; }
++	.sessions-filters .sessions-search { inline-size: 18em; max-inline-size: 100%; }
+ 	.sessions-chiprow { display: flex; flex-wrap: wrap; gap: .4rem .5rem; }
+ 	.sessions-chips { display: contents; }
+ 	.sessions-summary { flex-wrap: wrap; }
+@@ -48,16 +51,11 @@
+ 	/* Rail view: the list is flush with the left nav, full height, no padding of its own; each card is padded. */
+ 	.sessions-page .datagrid-view-rail { block-size: calc(100dvh - 12rem); }
+ 	.sessions-page .datagrid-view-rail .datagrid-rail { max-block-size: none; }
+-	.sessions-page:has(.datagrid-view-rail) .sessions-stats, .sessions-page:has(.datagrid-view-rail) .sessions-chiprow, .sessions-page:has(.datagrid-view-rail) .sessions-summary { display: none; }
++	.sessions-page:has(.datagrid-view-rail) .sessions-stats, .sessions-page:has(.datagrid-view-rail) .sessions-chiprow, .sessions-page:has(.datagrid-view-rail) .sessions-summary, .sessions-page:has(.datagrid-view-rail) .sessions-kinds { display: none; }
+ 	.sessions-card { display: flex; flex-direction: column; gap: var(--gap-35); padding: var(--gap-50); min-width: 0; }
+ 	.sessions-card-line { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gap-35); min-width: 0; }
+ 	.sessions-card .sessions-row-title { flex: 1 1 8em; white-space: normal; overflow-wrap: anywhere; }   /* a card has the room to wrap a long name; the table row keeps its one line */
+ 
+-	/* A rolled-up bucket (AISessionBucketView): one full-width row in the table, a card's inside in the rail. */
+-	.sessions-bucket { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--gap-50); padding: var(--gap-35) var(--gap-50); cursor: pointer; background: var(--darken-1); border-block-end: 1px solid var(--line); }
+-	.sessions-bucket:hover, .sessions-bucket:focus-visible { background: var(--darken-2, var(--tint)); }
+-	.sessions-bucket-card { grid-column: auto; padding: 0; background: none; border: 0; }
+-	.sessions-bucket-card .sessions-row-title { flex: 1 1 0; min-width: 0; }   /* the arrow stays beside a wrapping name */
+ 
+ 	.sessions-row { display: contents; }
+ 
+@@ -229,7 +227,12 @@
+ 	   size/weight/colour step down from the `h2` it sits inside, not a new
+ 	   type-scale step (the type scale itself is untouched). */
+ 	.sessions-stats { margin-block-end: var(--gap); display: flex; flex-wrap: wrap; gap: .5em 2em; align-items: center; }
+-	.sessions-stats .ai-usage { flex: 1 1 24em; }
++	/* Compact header (Figma "Sessions · data grid"): the stats lines on the left, the three meters in one row on the right. */
++	.sessions-stats-text { flex: 1 1 30em; order: 1; display: flex; flex-direction: column; gap: .25em; min-width: 0; }
++	.sessions-page .sessions-stats, .sessions-page .sessions-controls { margin-block-end: var(--gap-50); }
++	.sessions-page .datagrid-ext { gap: var(--gap-50); }
++	.sessions-by-role:empty { display: none; }
++	.sessions-stats .ai-usage { flex: 0 1 48em; order: 2; margin-inline-start: auto; grid-template-columns: repeat(auto-fit, minmax(min(12em, 100%), 1fr)); gap: var(--gap-50) var(--gap); }
+ 	.sessions-stat-cents { font-size: 0.55em; font-weight: 400; color: var(--subtle); }
+ 
+ 	/* Filters, the summary line and "cost by role" (session-costs
+diff --git a/public/framework/ext/Query/Query.js b/public/framework/ext/Query/Query.js
+index 2af66d56b..85012c699 100644
+--- a/public/framework/ext/Query/Query.js
++++ b/public/framework/ext/Query/Query.js
+@@ -34,7 +34,7 @@ export default class Query {
+ 	matches(item) { return this.tests.every(t => t(item)); }
+ 
+ 	/** `items` is any iterable. Returns { rows (the page), total (rows to page over), matched (all matches), totals ({field: sum over ALL matches}), offset }.
+-	 * `arrange(hit, spec)` (optional) turns the sorted matches into the list to page over (heads, nesting); sums and `matched` still count every match. */
++	 * `arrange(hit, spec)` (optional) turns the sorted matches into the list to page over (heads, nesting; a `meta` on the list is returned as is); sums and `matched` still count every match. */
+ 	run(items, arrange) {
+ 		const hit = [];
+ 		for (const item of items) if (this.matches(item)) hit.push(item);
+@@ -49,6 +49,6 @@ export default class Query {
+ 			});
+ 		}
+ 		const list = arrange ? arrange(hit, this.spec) : hit;
+-		return { rows: list.slice(this.offset, this.offset + this.limit), total: list.length, matched: hit.length, totals, offset: this.offset };
++		return { rows: list.slice(this.offset, this.offset + this.limit), total: list.length, matched: hit.length, totals, offset: this.offset, ...(list.meta && { meta: list.meta }) };   // `meta`: what arrange says about the whole list
+ 	}
+ }

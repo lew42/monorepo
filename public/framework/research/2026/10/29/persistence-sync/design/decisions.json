@@ -1,0 +1,1427 @@
+[
+ {
+  "id": "D1",
+  "title": "List extends Item, or wraps it",
+  "question": "Should `List` keep extending `Item`, or become a plain collection held by an Item?",
+  "status": "decided",
+  "context": "Today `List extends Item` (your call, 2026-10-03), so a list gets an id, a view and saving for free.\nThe catch (the old bare-id line shape): a saved line like `{\"content\":{\"p9\":{\"set\":{\"text\":\"Hi\"}}}}` is replayed by walking the names: `content`, then `p9`. `List.get(\"p9\")` checks the list's own data before its members. If another tab just removed or moved `p9`, it isn't a member any more, so the edit is quietly saved as a data field named `p9` on the list, and lost (gap 7).\nThe fix is small and keeps `extends`: look up members first, and if no member has that id, warn and skip the line (T6). The decided `#id` key (D13) makes that lookup unambiguous.",
+  "options": [
+   {
+    "id": "hash-id",
+    "label": "Keep extends; reach items with a #id key",
+    "summary": "Decided with the line format (D13): plain keys under a list are its own data; `#id` picks an item. No verb, no `set` wrapper, and data and ids can never collide."
+   },
+   {
+    "id": "get-verb",
+    "label": "Keep extends; reach items with an explicit get",
+    "summary": "Your first design (2026-10-30): get {id, set}. Worked, but the decided `#id` key does the same job with less to write."
+   },
+   {
+    "id": "extends",
+    "label": "Keep: List extends Item",
+    "summary": "No churn. Fix the lookup order and add a warning for a missing member."
+   },
+   {
+    "id": "wraps",
+    "label": "Wrap: a plain List inside an Item",
+    "summary": "Cleaner lookup, but it touches every caller and Page.pages/content."
+   },
+   {
+    "id": "mixin",
+    "label": "Base class: Item and List share a Node base",
+    "summary": "Your idea: one base handles parent, bubbling and saving; Item adds data, List adds members. Clean, but a deliberate refactor."
+   }
+  ],
+  "recommended": "hash-id",
+  "kind": "opinionated",
+  "example": "// list data: a plain key\n{\"my_list\": {\"sort\": \"date\"}}\nmy_list.get(\"sort\")        // plain get: data first, as today\n\n// an item inside the list: its id, with a # in front\n{\"my_list\": {\"#k2x9fq7a\": {\"done\": true}}}\n\n// a removed item: warn and skip the line (T6); it is never stored as a data field\n{\"my_list\": {\"#gone\": {\"done\": true}}}",
+  "detail": "`extends` is just the JavaScript keyword: `class List extends Item`.\n\n**Two kinds of saved line.** Every line is a path of names. Under a list, a plain name is the list's own data, and a `#id` is an item.\n```js\n{\"my_list\": {\"sort\": \"date\"}}                 // A. the list's own data\n{\"my_list\": {\"#k2x9fq7a\": {\"done\": true}}}    // B. an item inside the list\n```\n\n**The bug (gap 7).** B used to have no marker. Replay called `my_list.get(\"k2x9fq7a\")`, which looks in the list's own data first, then in `items`. If another tab had just removed that item, the edit was quietly stored as `my_list.data.k2x9fq7a = {done: true}`: a junk field, and the edit lost.\n\n**The fix.** The `#` marks an id, so that lookup only searches `items`. A missing id warns and skips the line (T6). Plain `get(key)` is unchanged: data first, then items. List data keeps working.\n\n**How we got here (2026-10-30).** 1) Keep `extends` and fix the lookup order. 2) Your explicit `get` verb: `{\"my_list\": {\"get\": {\"id\": \"k2x9fq7a\", \"set\": {\"done\": true}}}}`. 3) The decided `#id` key (D13): the same safety without a verb or a `set` wrapper.\n\n**Later, maybe: a shared base class.** Saving only needs a `parent` and `delta` events up to the root's store, so a List doesn't have to be an Item to be saved. Item and List could both extend one base (parent, bubbling, `to_json`); Item adds data, List adds items. You find `Node` and `Base` both off as names, and you prefer snake_case. Wrapping (a plain list inside an Item) means lists can't have data and touches every caller. Recommendation: the `#id` fix now; a base class only if lists keep tripping over Item behaviour.",
+  "refs": [
+   "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/List/List.js#L53-L59",
+   "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/List/List.js#L189-L191",
+   "persistence-sync/lew42/overview.md",
+   "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/Item/Item.js#L195-L204",
+   "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/Item/Store.js#L132-L139"
+  ]
+ },
+ {
+  "id": "D2",
+  "title": "How a change reaches the store (your F6)",
+  "question": "Should a change reach its file by an event that climbs the parents, or by a direct `this.store.change()` call?",
+  "status": "leaning",
+  "context": "Today `emit(\"delta\")` climbs `.parent` to the root, where `Store.attach` listens.\nYour F6 lean (2026-10-29): `item.store` is a getter for the nearest store, and a change calls it directly.\nDirect also fixes embedded tab pages, whose events stop at the page (gap 9). The line format stays the same.",
+  "options": [
+   {
+    "id": "evented",
+    "label": "Evented (today)",
+    "summary": "No change. You still need the `owned_below` check, and tab pages still don't save."
+   },
+   {
+    "id": "direct",
+    "label": "Direct, events for views only",
+    "summary": "F6: `this.store.change(this, payload, source)`. The nearest store wins. Views keep a `change` event that doesn't bubble."
+   },
+   {
+    "id": "both",
+    "label": "Direct, plus a bubbling delta event",
+    "summary": "Save directly, and keep `delta` for listeners such as Ref and Task. Two paths to keep in step."
+   },
+   {
+    "id": "store-ref",
+    "label": "Each item holds its store; the store collects changes",
+    "summary": "Items keep a pointer to their store (set on attach, updated on move) and mark themselves dirty; the store writes one line per dirty item. Many sets in a tick collapse into one line. The risk is a stale pointer after a move.",
+    "added_by": "analysis"
+   }
+  ],
+  "recommended": "direct",
+  "kind": "opinionated",
+  "example": "set_one(key, value){\n  // … put the value; if it changed:\n  this.emit(\"change\", key, value, old)   // views only, does not bubble\n  this.store?.change(this, { [key]: value }, \"local\")\n}\nget store(){ return this._store ?? this.parent?.store }  // nearest wins\n\n// today (evented): the event climbs .parent to the root\nthis.emit(\"delta\", line)   // a tab page stops it: bubbles() is false",
+  "detail": "**Why \"bubbling\" exists.** `task.set()` emits a `delta` event on the task, then on its parent, and so on up to the root. Only the root has the store, and each level adds its name to the path as the event passes. That is how a change three levels down becomes `{\"page\": {\"content\": {\"#p9\": {…}}}}`.\n\n- Parents don't re-render because of it. Views listen to their own item's `change` event; `delta` is only for saving.\n- The cost: an event at every level for every change, and saving depends on event wiring that is easy to break silently (an embedded tab page stops the event: gap 9).\n\n**F6 (direct).** The item climbs its own `parent` chain, builds the path and calls `store.change(item, payload, source)`. Same lines, no cascade; events stay for views. Your note says to measure both before switching. The line format does not change either way.\n\n**Today, end to end** (phase-1.md section 2.1): a button calls `task.start()`, which calls `set()`, which emits `delta`, which the store saves. No extra call is needed.",
+  "refs": [
+   "https://github.com/lew42/monorepo/blob/ecd1459919067b9438f8125791397dee66628aa0/public/framework/core/Session/tasks/data-shapes/plan.md#L28",
+   "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/Item/Store.js#L135-L147",
+   "persistence-sync/lew42/branch-assessment.md",
+   "design/analysis/save-path/edge-cases.json"
+  ],
+  "analysis": {
+   "agreement": "Split: edge-cases picks direct (your lean), precedent picks store-ref; both drop bubbling as the save path.",
+   "analysis_recommends": [
+    "direct",
+    "store-ref"
+   ],
+   "confidence": 4,
+   "options": {
+    "evented": {
+     "wins": [
+      "One root listener sees every change in the tree",
+      "Paths come from the live parent chain, so moves never go stale",
+      "A parent can react to a child's change with no wiring"
+     ],
+     "fails": [
+      "A throwing view listener skips the save (sev 5)",
+      "Embedded tab page (bubbles() false) never saves (sev 5)",
+      "Own-file flag set with no attached store: line lost (sev 5)"
+     ],
+     "worst": 5,
+     "precedents": [
+      "mobx-keystone",
+      "Backbone",
+      "MobX-state-tree",
+      "Yjs"
+     ],
+     "picked_by": [],
+     "analyst_id": "bubble-events"
+    },
+    "direct": {
+     "wins": [
+      "One entry point for field sets and list verbs",
+      "A view bug cannot stop the save",
+      "Embedded tab pages save (fixes gap 9)"
+     ],
+     "fails": [
+      "A throwing batch(fn) leaves memory and log out of step (sev 5)",
+      "A setter written without the store call is lost on reload (sev 5)",
+      "An item with no store chain drops its change silently (sev 5)"
+     ],
+     "worst": 5,
+     "precedents": [
+      "tldraw store",
+      "Meteor",
+      "Replicache",
+      "Yjs"
+     ],
+     "picked_by": [
+      "edge-cases"
+     ],
+     "analyst_id": "direct-call"
+    },
+    "store-ref": {
+     "wins": [
+      "500 sets in one tick collapse to one line per item",
+      "Replayed lines are known to the store, so never re-saved",
+      "Embedded tab page gets the store pointer on attach"
+     ],
+     "fails": [
+      "Tab closes inside a throttled flush window (sev 5)",
+      "A moved item keeps its old store; edits land in the old file (sev 4)",
+      "Quiet List verbs (insert, replace, release) skip the pointer update (sev 4)"
+     ],
+     "worst": 5,
+     "precedents": [
+      "ZODB",
+      "Colyseus Schema",
+      "Yjs",
+      "automerge-repo"
+     ],
+     "picked_by": [
+      "precedent"
+     ]
+    }
+   },
+   "surprises": [
+    "Two save paths exist today: PageLogReader.attach (Page/Reader.js L31-L35) skips Store.muted and owned_below, which Store.attach checks (Item/Store.js L128-L129), so act() on a page probably double-writes (read from code, not run).",
+    "Item.set_one emits change before delta (Item.js L156-L157) and Events.emit has no try/catch (Events.js L23-L25), so one throwing view listener skips the save.",
+    "Under every option a set() on an item with no store is silently unsaved (bubbles() false, gap 9); it should warn once."
+   ],
+   "sources": [
+    "design/analysis/save-path/edge-cases.json",
+    "design/analysis/save-path/precedent.json"
+   ],
+   "notes": "`both` (direct plus a bubbling delta event) was not analysed as its own option. Precedent's store-ref still keeps store.change() as the single entry point for list verbs."
+  }
+ },
+ {
+  "id": "D3",
+  "title": "Adding an item that already has a parent (your F7)",
+  "question": "What should `list.add(x)` do when `x` already lives somewhere else?",
+  "status": "leaning",
+  "context": "Today `x` is silently re-parented: the last parent wins, but the first list still holds it (gap 8).\nYour F7 lean (2026-10-29) and design-decisions §3: `add` makes a Ref, and `move_to` is the only way to move.\nTo watch: `add` would then return a Ref, not `x`.",
+  "options": [
+   {
+    "id": "ref",
+    "label": "Add a Ref",
+    "summary": "`add` writes `{type:\"Ref\", path}` and returns the Ref. Moving is explicit with `move_to(dest)`."
+   },
+   {
+    "id": "throw",
+    "label": "Throw",
+    "summary": "The caller must say `ref` or `move_to`. Safe, but clumsy for agents."
+   },
+   {
+    "id": "reparent",
+    "label": "Re-parent (today)",
+    "summary": "Simple, but the item ends up in two lists and only one of them saves it."
+   }
+  ],
+  "recommended": "ref",
+  "kind": "opinionated",
+  "example": "const c3 = tasks.add({ type: \"Task\", data: { title: \"x\" } })\nconst ref = other.add(c3)     // c3 already lives in tasks\n// {\"other\":{\"add()\":{\"type\":\"Ref\",\"path\":\"tasks.c3\"}}}\nref instanceof Ref            // true: add returns the Ref, not c3\nc3.move_to(other)             // the only way to move\n\n// today (re-parent): c3.parent = other, yet tasks still lists c3\nother.add(c3)",
+  "detail": "**Today.** `other.add(c3)` re-parents `c3` silently: `c3.parent` becomes `other`, but `tasks` still lists it, and only one of the two files saves it (gap 8).\n\n**F7.** `add` of an item that already has a parent writes a Ref and returns the Ref, not `c3`. Moving is one explicit call, `move_to(dest)`, which leaves a `moved_to` forward behind. A Ref follows forwards up to 8 hops.\n\n**To watch:** any caller that expects `add` to hand back the item it passed in. It would get a Ref instead.",
+  "refs": [
+   "https://github.com/lew42/monorepo/blob/ecd1459919067b9438f8125791397dee66628aa0/public/framework/core/Session/tasks/data-shapes/plan.md#L29",
+   "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/List/List.js#L140-L145",
+   "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/ai/design-decisions-2026-10-27.md#L17-L25"
+  ]
+ },
+ {
+  "id": "D4",
+  "title": "Every line gets seq, client and n, and the sender gets an ack",
+  "question": "Should the stream cursor be a line number, writes dedupe on `{client, n}`, and the sender get an `ack` instead of its own echo?",
+  "status": "open",
+  "context": "Today the cursor is a byte offset, dedupe uses `by|ts`, and echoes are skipped by matching text.\nTwo tabs writing in the same millisecond lose an edit, and a retry can double-apply (R1, R2, R3).\nYour storage.md already says the cursor is a line number (`seq`), never a byte offset.",
+  "options": [
+   {
+    "id": "seq-n-ack",
+    "label": "seq + {client, n} + ack",
+    "summary": "The server sets seq. The writer sets client and n. by and ts stay for audit."
+   },
+   {
+    "id": "interim",
+    "label": "Add a client id to the by|ts key only",
+    "summary": "A one-hour patch for R1. Retries and convergence stay broken."
+   }
+  ],
+  "recommended": "seq-n-ack",
+  "kind": "clear-win",
+  "example": "// a tab sends (the writer sets client and n):\n{\"client\":\"t-19bc\",\"n\":12,\"content\":{\"#p9\":{\"text\":\"Draft\"}}}\n// the Room saves it with seq 43, then tells the sender:\n{\"ack\":{\"client\":\"t-19bc\",\"n\":12,\"seq\":43}}\n// a retry of n 12 is re-acked, never applied twice\n\n// the interim patch: only widen today's dedupe key\nconst key = line.by + \"|\" + line.ts + \"|\" + client   // retries still double-apply",
+  "detail": "**Today:** the cursor is a byte offset, dedupe uses `by|ts`, and echoes are skipped by matching text. Two tabs writing in the same millisecond lose an edit, and a retry can double-apply (R1, R2, R3).\n\n**Proposed**\n- `seq`: the server numbers each line of a file. A line number, never a byte offset (your storage.md already says so).\n- `client` + `n`: the writer's id and its own counter. This is the dedupe key; `by` and `ts` stay for audit.\n- `ack {client, n, seq}`: the sender hears this instead of its echo. A retry of n 12 is re-acked, never applied twice.\n- A reader applies a remote line only if its `prev` is the reader's last `seq`; otherwise it says `hello` again from its last `seq` (R6).\n- `epoch` changes when a file is rewritten, so a stale reader gets `reset` instead of mid-line bytes (R4).\n\n**Interim:** widening today's key with a client id fixes R1 only (fixes.md, item 2).",
+  "refs": [
+   "persistence-sync/lessons/sync-protocol.md",
+   "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/Page/doc/storage.md#L147",
+   "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/Item/Store.js#L123-L130"
+  ]
+ },
+ {
+  "id": "D5",
+  "title": "Names for the storage layers",
+  "question": "What should the server-side storage interface be called?",
+  "status": "leaning",
+  "context": "The report calls it \"Store adapter\". That clashes with `Item.Store`, the Item-side class.\nYour storage.md already uses three words: Store (Item side), Backend (how a browser reaches lines), Journal (where a server keeps them).",
+  "options": [
+   {
+    "id": "journal",
+    "label": "Store / Backend / Journal",
+    "summary": "Your own words: FileJournal, SqliteJournal, RoomJournal."
+   },
+   {
+    "id": "adapter",
+    "label": "Store / StoreAdapter",
+    "summary": "The report's word. Two kinds of \"store\" in one sentence."
+   },
+   {
+    "id": "log",
+    "label": "Store / Log",
+    "summary": "Short, but \"log\" already means console logs and agent logs in Servex."
+   }
+  ],
+  "recommended": "journal",
+  "kind": "clear-win",
+  "example": "class FileJournal { append(key, lines){} read(key, { since }){} }  // server\nconst room  = new Room({ key, root, journal: new FileJournal(dir) })\nconst store = Store.for(url)                // Item side\nstore.backend = new RoomBackend(socket)     // how a browser reaches lines\n// later, same Room: new SqliteJournal(file), new RoomJournal(state.storage)\n\n// the alternative: \"store\" twice in one sentence\nnew Room({ key, root, adapter: new FileStoreAdapter(dir) })",
+  "detail": "These are your own three words from storage.md.\n\n- **Store** (Item side, `Item.Store`): turns Items into lines.\n- **Backend** (browser side): how a tab reaches the lines. `StaticBackend` (fetch once, read only), `RoomBackend` (socket), `MemoryBackend` (tests).\n- **Journal** (server side): where lines are kept. It knows lines and `seq`, never Items. `FileJournal`, `SqliteJournal`, `RoomJournal`, `MemoryJournal`.\n\nThe report's \"Store adapter\" would put two kinds of \"store\" in one sentence. \"Log\" already means console logs and agent logs in Servex.",
+  "refs": [
+   "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/Page/doc/storage.md#L1-L33",
+   "persistence-sync/report.md"
+  ]
+ },
+ {
+  "id": "D6",
+  "title": "Id rule per list",
+  "question": "Should each List choose how its member ids are made?",
+  "status": "open",
+  "context": "Today every new id is `Item.short_id()`: 8 random characters. A Page's sub-pages use their folder names.\nChat wants ordered numbers; imports and offline clients want UUIDs.\nOnly the Room may hand out `seq` ids, since two clients would clash.",
+  "options": [
+   {
+    "id": "per-list",
+    "label": "`ids` option on List",
+    "summary": "\"short\" (default), \"uuid\", \"seq\" (Room-made), \"name\". The item tool reads it when it stamps ids."
+   },
+   {
+    "id": "short-only",
+    "label": "short_id everywhere (today)",
+    "summary": "One rule. Chat order comes from list order, not from the id."
+   },
+   {
+    "id": "uuid-only",
+    "label": "UUID everywhere",
+    "summary": "Safe to merge anywhere. Long ids in every line and url."
+   }
+  ],
+  "recommended": "per-list",
+  "kind": "opinionated",
+  "example": "new List({ owner, name: \"tasks\" })                  // \"short\": k3x9a1bz\nnew List({ owner, name: \"cards\", ids: \"uuid\" })     // imports, offline clients\nnew List({ owner, name: \"messages\", ids: \"seq\" })   // the Room makes 1, 2, 3\npage.pages                                          // \"name\": the folder name\nmessages.add({ type: \"Message\", data: { text: \"hi\" } })  // no id given; the list's rule picks it\n\n// the alternative: one rule everywhere\nconst id = Item.short_id()    // chat order comes from list order",
+  "detail": "| `ids` | Who makes it | Use it for |\n|---|---|---|\n| `short` | the writer: 8 random chars | the default; safe with many agents |\n| `uuid` | the writer | imports, offline clients |\n| `seq` | the Room only: 1, 2, 3 | chat messages; never a client |\n| `name` | the caller | folders, code-made structure |\n\nThe item tool reads the list's rule when it stamps ids on an `add`. Only the Room may hand out `seq` ids, since two clients would clash.",
+  "refs": [
+   "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/Item/Item.js#L377-L387",
+   "design/phase-1.md"
+  ]
+ },
+ {
+  "id": "D7",
+  "title": "Binding views to data",
+  "question": "How should a view stay in step with the Item it shows?",
+  "status": "open",
+  "context": "Today views wire `on(\"change\")` by hand, which agents forget to do or to undo.\n`Property.of(item, key)` is already built and writes back through `item.set`. A signals library would add a dependency.\nLoops are stopped by: same value = silent, replay/remote never write, derived values are read-only.",
+  "options": [
+   {
+    "id": "property",
+    "label": "`item.prop(key)` (Property.of)",
+    "summary": "Views take a Property and keep the unbind. `Property.derive` for computed values. No new dependency."
+   },
+   {
+    "id": "events",
+    "label": "Events by hand (today)",
+    "summary": "Nothing to build. Every view repeats the same wiring."
+   },
+   {
+    "id": "signals",
+    "label": "Signals (e.g. Preact signals)",
+    "summary": "Automatic dependency tracking. A new dependency, and a second reactive model beside Events."
+   },
+   {
+    "id": "props",
+    "label": "`item.props`: a Prop object per property",
+    "summary": "Your earlier pattern: every property is an evented Prop, in its own namespace so values and Props never mix. Easiest binding; one object per property, heavy for bulk records."
+   },
+   {
+    "id": "bind-helper",
+    "label": "`view.bind(item, key, fn)`: a helper on events",
+    "summary": "One call wires the change event, returns the unbind, and `drop()` runs it. Keeps the event path that saving already uses, and gives try/catch, echo skip and batching one home. No new dependency.",
+    "added_by": "analysis"
+   }
+  ],
+  "recommended": "bind-helper",
+  "kind": "opinionated",
+  "example": "const title = task.prop(\"title\")          // Property.of(task, \"title\")\nnew TextInput({ value: title })           // two-way: typing calls task.set\nnew Label({ text: title })                // one-way\nconst shout = Property.derive([title], t => t.toUpperCase())  // read-only\n// the view keeps the unbind and calls it in drop()\n\n// today: every view wires (and must unwire) by hand\ntask.on(\"change\", (k, v) => k === \"title\" && redraw(v))",
+  "detail": "Three ways to bind: **A** events by hand (today), **B** one Property per field, **C** signals. `Property.of` already exists.\n\n**Your props pattern (2026-10-30).** `item.props` holds one Prop per property; each is evented, so a view can take a Prop and keep itself up to date.\n```js\nclass Prop extends Events {\n\tset(value){\n\t\tif (value === this.value) return;\n\t\tconst old = this.value; this.value = value;\n\t\tthis.emit(\"change\", value, old);\n\t\tthis.item.emit(\"delta\", { [this.name]: value });  // saving still bubbles up as today\n\t}\n}\ntask.props.title.set(\"Buy milk\")\nview.append(task.props.title)      // the view stays in sync by itself\n```\n\n**Trade-offs.** Props: easiest binding, but one object per property. Fine for pages, tasks and UI; heavy for thousands to millions of records. Signals: reads are tracked while rendering, so no object per property and automatic binding, but a second reactive model and a dependency. Cheapest: plain objects with no events, for bulk data that never binds to a view.\n\n**The mix (the recommended option).** Raw `data` stays the stored truth. A Prop is made on demand (`task.prop(\"title\")`) and cached, so records that are never bound pay nothing.\n\n**Your follow-up.** Never mix Prop instances and raw values in one namespace: events would work differently and people and AIs would confuse them. If Props are used, they live in `item.props`, maybe with their own key marker in lines. Your earlier API: `item.prop(name)` returns the evented Prop; `item.prop(name, value)` sets the value directly. Status: a potential option only, not needed until binding needs it.\n\n**Plain `Property` is the never-saved kind (voice session, 2026-10-30).** `core/Property` (built 2026-10-12) already has both kinds of value you described:\n- a value in `data` (read and written with `get` / `set`) is saved and bindable;\n- a `new Property(v)` kept as a plain field on the item (not in `data`) is bindable and never saved;\n- `Property.of(item, key)` is a live handle on a saved key; writing it goes through `item.set`.\n\nSo `view.bind` can take an item and a key, or a Property. Never put a Property inside `data`: saving silently stops (the Property readme's warning). D18 says which values belong in which kind.\n\n**Your clone-swap idea (voice, 2026-10-30).** To make many DOM changes without jank: put a copy (clone) of the element on screen, change the real one off screen, then swap it back. What can go wrong:\n- focus and text selection are lost on each swap;\n- clicks on the clone do nothing (it has no listeners);\n- iframes, videos and CSS animations restart;\n- the scroll position can jump.\n\nCheaper first: batch DOM writes once per animation frame (the `view.bind` helper already plans this) and build big lists in a `DocumentFragment`. Keep the swap for a rare big rebuild.\n\n**Naming.** You're fine with `view.bind`.",
+  "refs": [
+   "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/Property/Property.js#L133-L166",
+   "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/Page/doc/binding.md#L144-L154",
+   "design/analysis/binding/edge-cases.json"
+  ],
+  "analysis": {
+   "agreement": "Both pick bind-helper, a new option; precedent also wants signals named as an option for derived values.",
+   "analysis_recommends": [
+    "bind-helper"
+   ],
+   "confidence": 4,
+   "options": {
+    "events": {
+     "wins": [
+      "Every listener is findable by grepping on('change')",
+      "A new item class saves and draws with no extra code",
+      "The change carries the old value, for flash or undo UIs"
+     ],
+     "fails": [
+      "A throwing view listener skips the save (sev 5)",
+      "An AI forgets the on('change') line: title never updates (sev 3)",
+      "list.replace() is quiet, so a ListView goes stale (sev 3)"
+     ],
+     "worst": 5,
+     "precedents": [
+      "Backbone",
+      "Colyseus",
+      "Meteor DDP",
+      "Yjs"
+     ],
+     "picked_by": []
+    },
+    "property": {
+     "wins": [
+      "One Prop is shared by every view of a field",
+      "Lazy: only bound fields get a Prop",
+      "Two-way controls share one value"
+     ],
+     "fails": [
+      "A Prop stored inside item data skips change and delta: edit unsaved (sev 5)",
+      "A value lives in data for some items, props for others (sev 4)",
+      "get('title') passed for prop('title'): draws once, never updates (sev 3)"
+     ],
+     "worst": 5,
+     "precedents": [
+      "lew42 Property.js",
+      "Knockout observables",
+      "Vue refs"
+     ],
+     "picked_by": [],
+     "analyst_id": "props"
+    },
+    "signals": {
+     "wins": [
+      "Reads auto-track, so there is nothing to subscribe or forget",
+      "Derived totals and flags update with no wiring",
+      "A batched 500-line burst draws each view once"
+     ],
+     "fails": [
+      "A list add written as a signal bump with no add event (sev 3)",
+      "A value read in a constructor or timer, then used later (sev 3)",
+      "A write path that skips set() leaves the view stale (sev 3)"
+     ],
+     "worst": 3,
+     "precedents": [
+      "mobx-keystone",
+      "tldraw store",
+      "Preact signals-core",
+      "MobX createAtom"
+     ],
+     "picked_by": []
+    },
+    "bind-helper": {
+     "wins": [
+      "One line binds a field; drop() unbinds it",
+      "One home for try/catch, echo skip and batching",
+      "Keeps the event path that saving already uses"
+     ],
+     "fails": [
+      "A throwing listener skips the save unless the helper catches it (sev 5)",
+      "An item dropped from a future instance cache leaves orphan views (sev 4)",
+      "An AI forgets the bind call: title keeps its first value (sev 3)"
+     ],
+     "worst": 5,
+     "precedents": [
+      "Backbone listenTo",
+      "lew42 Template.js",
+      "Colyseus listen",
+      "tldraw store.listen"
+     ],
+     "picked_by": [
+      "edge-cases",
+      "precedent"
+     ]
+    }
+   },
+   "surprises": [
+    "The save runs after the views: Item.set_one emits change (Item.js L156) before delta (L157), and Events.emit has no try/catch (Events.js L24), so one throwing view listener keeps the edit out of the log, whichever option wins.",
+    "Load replay is the real cost: Item.set_one notifies listeners once per replayed line, while Yjs and Colyseus batch a bulk apply into one notification, so every option needs a batch wrapper.",
+    "list.replace() and a direct items.push() emit nothing (List.js L174), so a bound ListView goes stale."
+   ],
+   "sources": [
+    "design/analysis/binding/edge-cases.json",
+    "design/analysis/binding/precedent.json"
+   ],
+   "notes": "The analysts treated `property` (item.prop(key)) and `props` (the item.props namespace) as one option, filed here under `property`; `props` was not analysed on its own.",
+   "recommended_was": "property"
+  }
+ },
+ {
+  "id": "D8",
+  "title": "Where the item API and the live Rooms live",
+  "question": "Which process owns a project's live Items and its item API (checks each line, assigns seq, writes it): Servex, the dev server, or in production a Durable Object?",
+  "status": "leaning",
+  "context": "Today Servex holds the live roots and the item tool. The dev server holds the Tail socket and Append.\nYour F1 lean: the dev server, one per project tree, worktrees included. The report chose Servex.\nOn Cloudflare, the Worker serves the files and a Durable Object is the Room, which mirrors the dev-server option.\nYour 2026-10-30 lean: Servex stays minimal and robust; the dev server is more in line for a project's item API. Sessions are only tracked in the framework today, so per-site session systems are untested. Sockets over REST, because of push.",
+  "options": [
+   {
+    "id": "dev-server",
+    "label": "The dev server (F1)",
+    "summary": "Whatever serves the files hosts the Rooms and the project's item API. Servex runs agents, which connect as Room clients. Mirrors the Cloudflare layout."
+   },
+   {
+    "id": "servex",
+    "label": "Servex",
+    "summary": "The live roots are already there. One process for every project, and the dev server forwards to it. Makes Servex bigger."
+   },
+   {
+    "id": "durable-object",
+    "label": "Durable Object per page (production)",
+    "summary": "Not a local choice. On Cloudflare the Worker serves the files and a Durable Object is the Room; the dev-server option is its local twin."
+   }
+  ],
+  "recommended": "dev-server",
+  "kind": "opinionated",
+  "example": "// the dev server serves the files and hosts each page's Room\nconst room = rooms.get(\"/sessions/x/\")     // one Room per page, worktrees included\n// a tab and an agent are both Room clients:\nws.send(JSON.stringify({ hello: { v: 1, client: \"t-19bc\", room: \"/sessions/x/\", since: 41 } }))\n\n// the alternative: Servex hosts every Room\ndev_server.forward(ws, \"ws://localhost:SERVEX_PORT/room/sessions/x/\")",
+  "detail": "**Today.** Servex (one process, :8090) holds a live in-memory root per open file and the item tool, so every line is checked against a real instance before it is appended. The dev server (one per project) holds static files, live reload, the Tail socket and Append. The browser POSTs lines to Servex `/api/item` (phase-1.md section 2.1).\n\n**Your lean (2026-10-30).** Servex stays minimal and robust. The dev server is more in line for a project's item API. Sockets over REST because of push; REST only where Cloudflare needs it.\n\n**Instances, not scripts.** About 20 Server/Servex scripts append straight to logs. Whatever a script does may also be needed in the browser or on the server, so it should be a method on the Item used everywhere (CLAUDE.md law 6). Browser: instances for what the page shows. Server: a live root per open file. Cloudflare: a Durable Object per page plays the server's role.\n\n**The performance problem.** A multi-day mastermind session (Task extends Item, Session builds on it) has many tasks and sub-sessions. Loading it replays a big log and, if it loads every child, builds far more instances than it needs. The levers, in order of payoff:\n1. Snapshots / compaction: load the latest snapshot, replay only what came after (Stage 1).\n2. Lazy children: a child is a reference until opened.\n3. Own file per big child, indexed from the parent (D9).\n4. Instance cache: keep recent instances, drop the rest.\n5. No instance at all for read-only questions (counts, search): read the data or an index.\n\nYou want to think this through before moving anything.",
+  "refs": [
+   "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/Session/tasks/data-shapes/plan.md#L23",
+   "persistence-sync/report.md",
+   "design/phase-1.md"
+  ]
+ },
+ {
+  "id": "D9",
+  "title": "Embedded, own file, or own folder",
+  "question": "Who decides where an item's lines are kept, and how is that written?",
+  "status": "open",
+  "context": "Today there are three shapes: `{\"file\":\"kid/page.jsonl\"}`, `{\"task\":…,\"as\":…}` and `{\"tab\":…}`.\nProposed: one `file` field on the member (`\"c3.jsonl\"` or `\"c3/\"`). `move_to({url})` moves an item and leaves a forward.\nNo item moves itself automatically yet (your readme: a noted idea, not built).",
+  "options": [
+   {
+    "id": "class-default",
+    "label": "Class default + explicit move",
+    "summary": "Task and Session default to their own folder; everything else is embedded. Moving is one verb."
+   },
+   {
+    "id": "auto-size",
+    "label": "Automatic, by size",
+    "summary": "An item breaks out past ~256 KB of lines. Hands-off, but files appear on their own."
+   },
+   {
+    "id": "caller",
+    "label": "The caller always says",
+    "summary": "Fully explicit. Every add has to choose."
+   }
+  ],
+  "recommended": "class-default",
+  "kind": "opinionated",
+  "example": "class Task extends Item { static file = \"dir\" }   // class default: its own folder\nclass Note extends Item {}                         // default: embedded in the parent's file\ntasks.add({ type: \"Task\", data: { title: \"x\" } })\n// {\"tasks\":{\"add()\":{\"id\":\"c3\",\"type\":\"Task\",\"file\":\"c3/\"}}}\nc3.move_to({ url: \"/archive/c3/\" })   // one verb; leaves a moved_to forward\n\n// the alternative: the caller always says\ntasks.add({ type: \"Task\", file: \"c3/\", data: { title: \"x\" } })",
+  "detail": "- **Embedded** (the default): in the parent's file. Small, and edited with its parent.\n- **Own file** when it has its own url or page, its own writer (an agent's session), or more than about 256 KB of lines.\n- **Own dir** when real files sit beside it (readme, images, child folders).\n- Moving between them is one call, `move_to({url})`, which leaves a `moved_to` forward behind.\n- The parent's Store never writes for a child that has a `file`. Each file has its own Room and its own `seq`.\n\nToday's three shapes (`{\"file\":\"kid/page.jsonl\"}`, `{\"task\":…,\"as\":…}`, `{\"tab\":…}`) become one `file` field on the member.\n\nThis also feeds D8: big sessions load fast only if big children sit in their own files and open lazily.",
+  "refs": [
+   "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/Item/readme.md#L85-L101",
+   "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/Item/doc/owner-2026-10-21-items-hold-items.md"
+  ]
+ },
+ {
+  "id": "D10",
+  "title": "Two people on one item",
+  "question": "What happens when two people (or a person and an agent) edit the same item?",
+  "status": "leaning",
+  "context": "Today: no rule. Each tab can end up showing the other tab's value (gap 1).\nYou asked for simple edit locks; CRDTs are priority 5.\nA soft lock is presence (\"editing content.p9\"). It is never written to the log and expires after 30 s.",
+  "options": [
+   {
+    "id": "soft-lock",
+    "label": "Soft lock (warn) + last write wins",
+    "summary": "Others see \"Mike is editing\". A write still lands, and the writer is told."
+   },
+   {
+    "id": "hard-lock",
+    "label": "Hard lock (refuse)",
+    "summary": "The Room refuses writes under a held path. Safest, but a stuck lock blocks agents for up to 30 s."
+   },
+   {
+    "id": "lww",
+    "label": "Last write wins only",
+    "summary": "No locks. Simplest; the ack and hold-back from R3 make tabs agree."
+   },
+   {
+    "id": "crdt-text",
+    "label": "CRDT (Yjs) for long text fields only",
+    "summary": "Two people can type in one paragraph and merge. Everything else stays last write wins. A new dependency, and an agent that writes the field as a plain string can fork the text.",
+    "added_by": "analysis"
+   },
+   {
+    "id": "reject-stale",
+    "label": "Reject a stale write",
+    "summary": "The server refuses a line whose base value is older than the field's last write. Needs a `was` field on set lines. Stops an agent overwriting a newer value after reading an old one.",
+    "added_by": "analysis"
+   }
+  ],
+  "recommended": "soft-lock",
+  "kind": "opinionated",
+  "example": "new List({ owner, name: \"content\", lock: \"warn\" })\nroom.presence(sock, { user: \"mike\", editing: \"content.p9\" })  // never a log line; ends after 30 s\n// another writer edits content.p9: the write lands, and the ack warns:\n{\"ack\":{\"client\":\"a-77\",\"n\":3,\"seq\":44,\"warn\":\"locked\",\"by\":\"mike\"}}\n\n// the alternative (hard lock): the same edit is refused\n{\"reject\":{\"client\":\"a-77\",\"n\":3,\"why\":\"locked\",\"by\":\"mike\"}}",
+  "detail": "A soft lock is presence, never a log line.\n```js\npresence {client, state: {user: \"mike\", editing: \"content.p9\"}}\n// Room.locks: path -> {client, user, at}\n// It ends on blur, or 30 s after presence stops.\nnew List({…, lock: \"warn\" | \"refuse\"})\n```\nAn op under a path someone else holds: **warn** (the default) writes it and tells the writer; **refuse** rejects it with `{why: \"locked\", by}`. The UI shows \"Mike is editing\". The item tool tells an agent who holds the path.\n\nYou asked for simple edit locks; CRDTs are priority 5 (Yjs for a rich-text field, in phase 5).",
+  "refs": [
+   "persistence-sync/lessons/sync-protocol.md",
+   "persistence-sync/report.md",
+   "design/analysis/multi-user/edge-cases.json"
+  ],
+  "analysis": {
+   "agreement": "Split: edge-cases picks soft-lock (your lean), precedent picks lww plus a presence badge; they differ only on refusing one agent write.",
+   "analysis_recommends": [
+    "soft-lock",
+    "lww"
+   ],
+   "confidence": 4,
+   "options": {
+    "lww": {
+     "wins": [
+      "Edits to different fields never collide",
+      "No locks to get stuck",
+      "The common one-writer page needs no extra code"
+     ],
+     "fails": [
+      "Agent overwrites text Mike is typing, from an old read (sev 4)",
+      "Agent rewrites a whole list while Mike types in a child (sev 4)",
+      "A stale tab renames a task Mike just moved (sev 4)"
+     ],
+     "worst": 4,
+     "precedents": [
+      "Figma",
+      "tldraw sync",
+      "Linear",
+      "Colyseus"
+     ],
+     "picked_by": [
+      "precedent"
+     ]
+    },
+    "soft-lock": {
+     "wins": [
+      "'Mike is editing' shows before anyone types there",
+      "A crashed tab blocks no one (presence is not a lease)",
+      "Agents can check who holds a path before writing"
+     ],
+     "fails": [
+      "Agent ignores the warning in its ack and writes anyway (sev 4)",
+      "Agent replaces a parent list over a locked paragraph (sev 4)",
+      "Two people ignore the badge and type together (sev 4)"
+     ],
+     "worst": 4,
+     "precedents": [
+      "tldraw presence",
+      "Yjs awareness",
+      "Automerge-repo",
+      "Obsidian Sync"
+     ],
+     "picked_by": [
+      "edge-cases"
+     ]
+    },
+    "hard-lock": {
+     "wins": [
+      "Whole-page rewrites (SessionConsolidate, migrations) cannot interleave",
+      "Two agents cannot both start() the same task",
+      "Structural moves cannot make two copies"
+     ],
+     "fails": [
+      "A refused write erases unsent typing after lease expiry (sev 5)",
+      "An offline editor loses the lease to another writer (sev 4)",
+      "A Servex restart drops every lease (sev 4)"
+     ],
+     "worst": 5,
+     "precedents": [
+      "Notion",
+      "Figma (against)",
+      "lew42 storage plan"
+     ],
+     "picked_by": []
+    },
+    "crdt-text": {
+     "wins": [
+      "Two people can type in one paragraph at once",
+      "Offline edits on two devices merge cleanly",
+      "Live cursors next to the editing badge"
+     ],
+     "fails": [
+      "Agent's plain-string write forks the CRDT text (sev 4)",
+      "Compaction drops Yjs history, then an offline device returns (sev 4)",
+      "Every keystroke stored as a binary update (sev 2)"
+     ],
+     "worst": 4,
+     "precedents": [
+      "Yjs",
+      "Outline",
+      "Notion offline",
+      "AFFiNE"
+     ],
+     "picked_by": []
+    },
+    "reject-stale": {
+     "wins": [
+      "An agent's decision from an old read cannot overwrite a newer value",
+      "A move_to based on an old tree position is refused"
+     ],
+     "fails": [
+      "Two people typing in one field get batches refused (sev 3)",
+      "Mastermind and minions writing one task often get refused (sev 2)"
+     ],
+     "worst": 3,
+     "precedents": [
+      "ZODB",
+      "tldraw sync",
+      "lew42 phase-1 Room"
+     ],
+     "picked_by": []
+    }
+   },
+   "surprises": [
+    "Set lines carry only the new value, so the server cannot tell a write came from a stale read; phase-1 plans `was` only for remove and move (L189-L190, L327-L328) and undo (L650).",
+    "Locks and presence live only in the Room's memory, so a Servex restart releases every lock, and a refused write can then turn into lost text.",
+    "A lock check must test ancestors and descendants (a write to `content` trips a lock on content.p9), and presence must key on person plus page so a second tab is not a self-lock."
+   ],
+   "sources": [
+    "design/analysis/multi-user/edge-cases.json",
+    "design/analysis/multi-user/precedent.json"
+   ],
+   "notes": "Edge-cases' soft-lock includes refusing one agent write while a person is typing; precedent calls that the hard-lock loss path and would ship the badge as presence only."
+  }
+ },
+ {
+  "id": "D11",
+  "title": "Typing without bloating the log",
+  "question": "Where are keystrokes merged into fewer lines?",
+  "status": "open",
+  "context": "Today each `set()` is one line, flushed per microtask.\nA reader who opens the page mid-typing must still see the live text.\nWith seq, a reader loads the file, then asks the Room for everything after its last seq.",
+  "options": [
+   {
+    "id": "client",
+    "label": "Client merges, Room appends each op",
+    "summary": "One pending line per field, sent after 300 ms idle, 2 s at most, or on blur. Late readers catch up by seq."
+   },
+   {
+    "id": "server",
+    "label": "Room buffers, serves memory",
+    "summary": "The Room delays appends and answers new readers from the live root. Faster disk, but a crash can lose seconds."
+   },
+   {
+    "id": "none",
+    "label": "Every keystroke is a line",
+    "summary": "No code. Logs grow fast; leave it to compaction."
+   },
+   {
+    "id": "crdt-text",
+    "label": "CRDT (Yjs) for the one text field",
+    "summary": "Two people can type in one field and merge, offline too. A new dependency, and an agent's plain-string set can conflict with the CRDT document.",
+    "added_by": "analysis"
+   },
+   {
+    "id": "splice-lines",
+    "label": "Splice lines: log only the inserted or deleted text",
+    "summary": "Each key writes its text and position, not the whole value, so the log grows in step with typing instead of with the square of the field length. Positions go stale if two people edit one field.",
+    "added_by": "analysis"
+   }
+  ],
+  "recommended": "server",
+  "kind": "opinionated",
+  "example": "store.coalesce = { idle: 300, max: 2000 }        // ms\ninput.oninput = e => title.set(e.target.value)   // the screen updates on every key\n// one pending line for \"title\", replaced in place while you type;\n// sent 300 ms after you pause (2 s at most, or on blur):\n{\"title\":\"Shipping the plan\"}                   // 1 line, not 17\n// a late reader: fetch page.jsonl, then hello {since: 41}\n\n// the alternative: every keystroke is a line\n{\"title\":\"S\"}  {\"title\":\"Sh\"}  {\"title\":\"Shi\"} …",
+  "detail": "- **Client:** one pending line per field, replaced in place while you type. Sent after 300 ms idle, 2 s at most, or on blur. The screen updates on every key.\n- **Late reader:** fetch `page.jsonl` (it may be stale or cached), then `hello {since: the last seq in that file}`. The Room sends every op after it, then `ready`. A stale file is fine: catch-up fixes it.\n- **Room:** appends each op as it arrives, because an append is cheap. Merging keystrokes happens on the client.\n- **Live typing others can watch** comes later, as throwaway `draft` frames (phase 4).",
+  "refs": [
+   "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/Item/Store.js#L168-L178",
+   "design/phase-1.md",
+   "design/analysis/typing-buffer/edge-cases.json"
+  ],
+  "analysis": {
+   "agreement": "Both pick stream-then-coalesce (filed as `server`); they differ on flush time (5 s vs 0.5 s) and on when to add splice-lines.",
+   "analysis_recommends": [
+    "server"
+   ],
+   "confidence": 4,
+   "options": {
+    "client": {
+     "wins": [
+      "Simple: one pending line per field, no Room logic",
+      "A server restart or dropped send keeps the text in the tab",
+      "One writer per field, as today"
+     ],
+     "fails": [
+      "Tab crash or kill loses up to 2 s of keystrokes (sev 5)",
+      "Two people typing in one field overwrite each other (sev 4)",
+      "A server restart before R2 can leave a line waiting forever (sev 4)"
+     ],
+     "worst": 5,
+     "precedents": [
+      "Hocuspocus",
+      "tldraw store",
+      "Google Docs (OT)",
+      "automerge-repo"
+     ],
+     "picked_by": [],
+     "analyst_id": "client-debounce"
+    },
+    "server": {
+     "wins": [
+      "Other tabs and agents see keystrokes live",
+      "A tab crash mid-sentence loses nothing while the Room is up",
+      "A tab opened mid-sentence gets the current text"
+     ],
+     "fails": [
+      "Room and sender both die before the next flush (sev 5)",
+      "Two people typing in one field overwrite each other (sev 5)",
+      "A draft shown to readers is then reverted (sev 3)"
+     ],
+     "worst": 5,
+     "precedents": [
+      "Figma",
+      "tldraw sync",
+      "Yjs awareness",
+      "Hocuspocus"
+     ],
+     "picked_by": [
+      "edge-cases",
+      "precedent"
+     ],
+     "analyst_id": "stream-then-coalesce"
+    },
+    "none": {
+     "wins": [
+      "Short fields (title, tag) need no new code",
+      "A tab crash loses nothing: every key is saved",
+      "Per-keystroke undo history stays possible later"
+     ],
+     "fails": [
+      "Two people typing in one field overwrite each other (sev 4)",
+      "A torn last line at a crash under fast writes (sev 4)",
+      "A 2000-character paragraph balloons the log (sev 3)"
+     ],
+     "worst": 4,
+     "precedents": [
+      "lew42 today",
+      "automerge-repo",
+      "nedb"
+     ],
+     "picked_by": [],
+     "analyst_id": "save-all"
+    },
+    "crdt-text": {
+     "wins": [
+      "Two people can type in one paragraph",
+      "Offline edits on two devices merge",
+      "A crash or restart mid-typing recovers cleanly"
+     ],
+     "fails": [
+      "Agent's plain-string set conflicts with the CRDT document (sev 4)",
+      "A checkout or reader without Yjs cannot open the page (sev 3)",
+      "Current no-new-dependency rule blocks it (sev 2)"
+     ],
+     "worst": 4,
+     "precedents": [
+      "Yjs",
+      "Hocuspocus",
+      "automerge-repo",
+      "Google Docs (OT)"
+     ],
+     "picked_by": []
+    },
+    "splice-lines": {
+     "wins": [
+      "Log grows with typing, not the square of the field",
+      "Field history is readable in the log",
+      "Undo of typed text (phase 3)"
+     ],
+     "fails": [
+      "Two writers in one field make positions go stale (sev 4)",
+      "One lost line shifts every later splice (sev 4)",
+      "An old reader meets the new verb (sev 3)"
+     ],
+     "worst": 4,
+     "precedents": [
+      "tldraw sync",
+      "Google Docs (OT)"
+     ],
+     "picked_by": []
+    }
+   },
+   "surprises": [
+    "Every option except splice-lines grows the log with the square of the field length, because set() writes the whole string each time: a 1,000-character field is about 530 KB under save-all and 54 KB debounced (precedent model).",
+    "A request sent just before a server restart can wait forever today (overview.md section 6), so R2 (ack and resend) is needed first under every option."
+   ],
+   "sources": [
+    "design/analysis/typing-buffer/edge-cases.json",
+    "design/analysis/typing-buffer/precedent.json"
+   ],
+   "notes": "Both analyses described `server` as 'stream then coalesce': keystrokes go live as unlogged draft frames and the Room appends the latest value on a timer. Edge-cases adds: keep the unsaved value in the tab until acked, and save on blur.",
+   "recommended_was": "client"
+  }
+ },
+ {
+  "id": "D12",
+  "title": "Writes say where they came from; one action, one line",
+  "question": "Should every change carry `{source: local | replay | remote}`, and should `batch(fn)` group an action into one line per item?",
+  "status": "open",
+  "context": "Today every open tab re-writes the same Ref re-path or task auto-complete (T1).\n`wait()` writes 7 lines (T2). `act()` records a verb and doesn't group anything.\n`source` (not `origin`, which already names the changed node). `batch` matches tldraw and your core/new sketch.",
+  "options": [
+   {
+    "id": "both",
+    "label": "`source` tag + `batch(fn)`",
+    "summary": "Side effects run only for local changes, and an action writes one line per item touched."
+   },
+   {
+    "id": "source-only",
+    "label": "`source` tag only",
+    "summary": "Fixes the duplicate side effects. Multi-line actions stay."
+   },
+   {
+    "id": "neither",
+    "label": "Neither",
+    "summary": "Keep today's behaviour."
+   }
+  ],
+  "recommended": "both",
+  "kind": "clear-win",
+  "example": "task.on(\"change\", (key, value, old, { source }) => {\n  if (source === \"local\") repath_refs(task)   // replay and remote never run side effects\n})\ntask.batch(() => {                            // one line per item touched\n  task.set({ status: \"done\" })\n  task.set({ done_at: \"2026-10-30T10:00:01Z\" })\n})\n// {\"tasks\":{\"#c3\":{\"status\":\"done\",\"done_at\":\"2026-10-30T10:00:01Z\"}}}\n\n// without batch(), wait() writes 7 lines (T2)",
+  "detail": "- **`source`** is `local`, `replay` or `remote`, passed as the last argument of every event. A side effect (a Ref re-path, a task auto-complete) runs only for `local`, so it happens once, not once per open tab (T1). It is called `source` because `origin` already names the changed node.\n- **`batch(fn)`** groups the changes made inside `fn` into one line per item touched. `wait()` writes 7 lines today (T2); `act()` records a call and groups nothing. The name matches tldraw and your core/new sketch.\n\nRelated: D14 (whether a line holds the call or its changes) and D2 (the save path that carries `source`).",
+  "refs": [
+   "persistence-sync/lessons/object-model.md",
+   "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/Item/Item.js#L102-L113"
+  ]
+ },
+ {
+  "id": "D13",
+  "title": "Delta line format: data, methods and items without clashes",
+  "question": "How does a saved line tell data, a method call and a list item apart?",
+  "status": "decided",
+  "context": "With `set` implied, a data key named like a method (`add`, `move`, `get`) would call the method, and today it already does. A declared list of callable verbs is fragile, and repeating `set` at every level duplicates wrappers.\nYou decided on 2026-10-30: the key's spelling says what it does.",
+  "options": [
+   {
+    "id": "marked",
+    "label": "Marked keys: name, name(), #id",
+    "summary": "Decided. A plain key is data (or a step into a child), `name()` calls a method, `#id` picks a list item. Nestable."
+   },
+   {
+    "id": "flat",
+    "label": "One flat op per line",
+    "summary": "A path string plus `do` and `arg`. Flattest and easiest to grep, but drops the recursive nested design, so a bigger change."
+   },
+   {
+    "id": "dollar",
+    "label": "`$name` marks a method",
+    "summary": "MongoDB style. Dropped: you already use `$name` for views (the jQuery convention)."
+   },
+   {
+    "id": "verb-list",
+    "label": "Implied set + a declared verb list",
+    "summary": "Rejected: a list of callable verbs is fragile and has to be kept up to date."
+   },
+   {
+    "id": "explicit-set",
+    "label": "Explicit set at the end (today)",
+    "summary": "Nested names, then one verb. Repeats `set` on every line, and a data field named like a method still clashes."
+   }
+  ],
+  "recommended": "marked",
+  "kind": "opinionated",
+  "example": "{\"my_list\": {\"sort\": \"date\"}}                       // my_list.data.sort = \"date\"\n{\"my_list\": {\"#k2x9fq7a\": {\"done\": true}}}          // that item's data.done = true\n{\"my_list\": {\"add()\": {\"id\": \"k2x9fq7a\", \"type\": \"Task\", \"data\": {\"title\": \"Buy milk\"}}}}\n{\"my_list\": {\"move()\": {\"id\": \"k2x9fq7a\", \"after\": \"p3\"}}}\n{\"page\": {\"content\": {\"#p9\": {\"text\": \"Draft\", \"start()\": {}}}}}   // data and a call in one line",
+  "detail": "| Key | Means | Example |\n|---|---|---|\n| `name` | data, or step into a child Item | `{\"title\": \"Hi\"}` |\n| `name()` | call the method `name` | `{\"add()\": {…}}` |\n| `#id` | the list item with that id | `{\"#k2x9fq7a\": {…}}` |\n\n**The rules (all of them)**\n1. A plain key sets data. If the current value is an Item, the object is set on that Item instead (that is how a line steps down a tree).\n2. A key ending in `()` calls that method with its value as the one argument. Several arguments: one object.\n3. A `#` key finds the list item with that id. None: warn and skip the line.\n4. Data names may not end in `()` or start with `#`; `set()` refuses them. One spelling rule, no list to keep up to date.\n\n**Why:** a data field `add` and the method `add()` can't be confused, nor can data and an item id. No `set` at every level. You can tell what a line does without knowing the class. MongoDB marks `$set` and `$push` for the same reason.\n\n**Today:** `Item.set()` is already this recursive: method, else child Item or List, else data ([Item.js L155–L192](https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/Item/Item.js#L155-L192)). So the trailing `set` is redundant, and the clash exists now: a data field named `add` can never be stored.\n\n**To settle when building**\n- Old logs use an explicit `set` and bare ids: replay reads both for a while, or a script rewrites them (D16).\n- The envelope names (`seq`, `client`, `n`, `by`, `ts`, `schema`, `snapshot`) sit at the root beside the path and would clash with a root data field of the same name: reserve them, or move them into one `meta` object.\n- How to test: phase-1.md section 6 (one table-driven test, every method, replayed into a fresh root).",
+  "refs": [
+   "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/Item/Item.js#L155-L192",
+   "design/phase-1.md",
+   "design/decisions-log.md"
+  ]
+ },
+ {
+  "id": "D14",
+  "title": "Log the method call, or log the changes",
+  "question": "Should a saved line record the call (`start()`) or the changes it made (`state`, `started_at`)?",
+  "status": "leaning",
+  "context": "Today a button calls `task.start()`, which calls `set()`, so the saved line already holds the changes. `act()` is the optional way to log the call instead; you dislike its name and its global mute.\nYou leaned toward logging the call. On 2026-10-30 (evening) you said replaying the changes, and letting the rest of the code react to them, could work, and asked whether that is a different way to program. It is: see D17 (how code reacts to a change) and D18 (which values are saved).",
+  "options": [
+   {
+    "id": "changes",
+    "label": "Log the changes only (today)",
+    "summary": "Replay is plain assignment: exact, fast, and old history never changes meaning. Misses internal state a method builds outside `data`."
+   },
+   {
+    "id": "calls",
+    "label": "Log the call only; replay re-runs the method",
+    "summary": "Your lean. Rebuilds internal state too, and the line is short and meaningful. Old calls run today's code, and time, randomness and side effects need care."
+   },
+   {
+    "id": "both",
+    "label": "Both in one line; replay applies the changes",
+    "summary": "The call names it, the changes are what replay applies. Safe and readable, but a choice at replay time and two things to reconcile."
+   },
+   {
+    "id": "opt-in",
+    "label": "Both, with a per-class opt-in to replay calls",
+    "summary": "Changes by default; a class such as a game simulation opts in to re-running calls. Two systems to keep."
+   }
+  ],
+  "recommended": "both",
+  "kind": "opinionated",
+  "example": "task.start()\n\n// A. log the changes (what happens today)\n{\"tasks\": {\"#c3\": {\"state\": \"running\", \"started_at\": \"2026-10-30T10:00Z\"}}}\n\n// B. log the call; replay runs start() again\n{\"tasks\": {\"#c3\": {\"start()\": {}}}}\n\n// C. both in one line: the call names it, the changes are what replay applies\n{\"tasks\": {\"#c3\": {\"start()\": {}, \"state\": \"running\", \"started_at\": \"2026-10-30T10:00Z\"}}}",
+  "detail": "**Simplest first (your direction, 2026-10-31).** Pick the simplest system that works for most cases, keep every caveat written down, and fix edge cases when they appear:\n1. **Default:** save the changes. Load from a snapshot plus the changes after it; a build step can collapse the log into the snapshot.\n2. **A method that should be saved as one call declares it once,** by wrapping its body in a silence wrapper. Saving is muted while the body runs, and the call is saved as one line, only when it is the outermost call and not a replay. Callers never have to remember `act`. Its time, ids and outside answers come in as arguments, so a replay gives the same result.\n3. **Old lines:** an adapter recognizes the old shape and upgrades it when it's read (D16).\n4. **Not now:** CRDT-style merging, per-method replay lists, an Action class.\n\n**Short answer (2026-10-31).** Replay the changes; keep the call only as a label that says why. Saved data is the one truth. Everything else is rebuilt from it (D17) or deliberately not saved (D18).\n\nRe-running a call is better in only three cases. Those can opt in with `act()`:\n1. Two people change one value at the same moment. Two `increment()` calls keep both; two `count: 5` lines lose one.\n2. A bulk action is far smaller as a call: `sort()` over 500 rows.\n3. A deterministic simulation, such as a game.\n\n**Try it:** [Replay Lab](https://claude.ai/artifact/1Tj59c1Bz6Y8iq89CiDCT5): Start a task, wait, Reload, and compare the two logs. Worked examples in words: phase-1 §2.3.\n\n**Side effects are the reason not to re-run (2026-10-31).** You asked whether methods with side effects should be marked and replayed. It's the other way round. A method changes data (saved as changes), keeps something going in this tab (started from the state, never saved) or acts on the outside world (once, result saved). Re-running is needed for none of them, so marking methods is only needed if you replay calls. Your guard \"already running? don't spawn\" fails under call replay: a reload starts from an empty task.\n\n**Snapshots.** Figma, Linear, Notion and tldraw all load a snapshot plus the changes after it, and their changes are values, never calls. A snapshot is the changes collapsed to the last value of each key, so loading from one is the \"changes\" answer.\n\n**Why time breaks calls, and how Lew42 already dodges it.** A method that reads the clock gets a different answer when it is re-run while loading, so a timer started yesterday would show 0:00. Lew42's real lines carry `ts`, and `Task` reads the clock from the line it is replaying, so a replayed `start()` keeps its original time. The Replay Lab on the real classes (`core/Item/replay/` on branch `claude/replay-tests`) shows this. Time is safe only where a method reads it that way; random ids and outside answers are not.\n\n**What the real classes showed (2026-10-31).**\n- Replaying an `act()` line runs the method again, so an outside effect would repeat.\n- There's no public \"replaying\" flag: `Store.replaying` is set only on the page-load path, and `Item.replay` has none.\n- A running Task keeps its clock in plain fields (`_ran_since`, `_ran_ms`), so replaying the changes shows 0:00. Fix planned: save the open span's start as data.\n- `Task.start()` already refuses a running task, but a rebuilt task is idle, so that guard doesn't help on reload.\n- A drag writes up to two change lines per move.\n\n**Your argument, answered.** \"Re-running a method rebuilds internal state (counters, the last selection).\" In the data-driven style that state is either computed from saved data, by a getter or a hook (D17), or deliberately thrown away (D18). If you want it back after a reload, it has to be saved data. There is no third way.\n\n**Voice research (2026-10-30, Servex agent `minion-replay-research`; report: `public/framework/ai/sessions/2026/10/30/spawned/minion-replay-research/replay-calls-vs-values.md` in the monorepo).**\n- Make \"log the changes\" the default, because its failure is harmless. Forgetting something costs a few bytes. Under \"replay calls\", a forgotten timer or network call fires on every load.\n- Decide \"saved or not\" on the property, not where it's called. tldraw marks each record type `document` (saved and synced), `session` (this tab only) or `presence` (sent to others, never saved) (`packages/store/src/lib/RecordType.ts:27`). MobX-State-Tree and mobx-keystone call unsaved fields \"volatile state\".\n- `act()`'s mute is global (`Store.muted++`), so an unrelated write that lands during the block is dropped. Scope it to the item.\n- `set()` should refuse values that can't survive JSON (functions, DOM nodes, cycles) and name the property in the warning.\n- Side effects: keep the `replaying` flag as the first guard. For expensive effects (spawn an agent, send a message), save the outcome (`agent_id`) as data or use an idempotency key, so nothing runs twice.\n- Undo: no system calls an \"undo method\". They all write back the old values, so store `was` beside each change. An action is only a label and a boundary for grouping. Coalescing is declared at the gesture: tldraw's mark and squash, ProseMirror's time window.\n- Extend `act(verb, args, {coalesce, window})`; a separate Action class would over-complicate it.\n\n---\n\n**Your argument for calls (2026-10-30)**\n- Re-running a method rebuilds internal state that isn't data (counters, the last selection, caches); replaying the changes would miss it.\n- Ids a method makes are stored in its arguments, so replay reuses them and never regenerates them.\n- Storing the call and its changes in one line forces a choice at replay time, and reconciling the two is confusing.\n- When a method changes over time: update scripts, or backward-compatible methods.\n- Maybe two systems: games opt in to calls, the rest stays on changes.\n\n**Risks of calls**\n1. Old calls run today's code. If `start()` changed, old history gives a different state. This is why event-sourcing systems store facts, not commands.\n2. Clock, randomness and outside calls (an API, an AI) must be passed in as arguments (`{\"start()\": {\"at\": \"…\"}}`).\n3. A method that sends a message, starts a timer or spawns an agent would do it again on every load, unless it knows it is replaying.\n4. Replay runs all the logic; applying changes is plain assignment.\n\n**Who does what.** Figma, Linear, tldraw, Automerge and Yjs log changes. LiveStore logs named events with arguments, replayed through pure materializer functions, and versions the event types: the closest to calls. Replicache and Zero re-run named mutators on the client, but the server stores state. Redux replays actions in a session and saves state. Lockstep and rollback games replay inputs through a deterministic simulation with the code version pinned.\n\n**Earlier recommendation:** option C, with replay applying the changes, so nothing runs twice and old history never changes meaning. Related: D12 (`batch`), D13 (the format carries either), D16 (class versions matter more if logs hold calls).",
+  "refs": [
+   "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/Item/Item.js#L101-L112",
+   "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/Task/Task.js#L336-L343",
+   "design/analysis/log-call-vs-change/edge-cases.json",
+   "public/framework/ai/sessions/2026/10/30/spawned/minion-replay-research/replay-calls-vs-values.md",
+   "design/replay-lab.html"
+  ],
+  "analysis": {
+   "agreement": "Split: edge-cases picks both, precedent picks changes; neither picks your lean (calls), and both say replay should apply changes.",
+   "analysis_recommends": [
+    "both",
+    "changes"
+   ],
+   "confidence": 4,
+   "options": {
+    "changes": {
+     "wins": [
+      "Old lines keep their meaning after code changes",
+      "Reload never re-runs side effects (model call, agent spawn)",
+      "Tabs on different code versions still agree"
+     ],
+     "fails": [
+      "Reload mid-run loses the open running span (sev 4)",
+      "A replayed child line re-triggers the parent's auto-complete (sev 4)",
+      "State a method keeps outside data is lost on reload (sev 3)"
+     ],
+     "worst": 4,
+     "precedents": [
+      "tldraw store",
+      "Figma",
+      "jsonl-db",
+      "Automerge repo"
+     ],
+     "picked_by": [
+      "precedent"
+     ]
+    },
+    "calls": {
+     "wins": [
+      "Rebuilds state a method keeps outside data",
+      "Short, meaningful lines like {start:{}}",
+      "A bug fix in a method corrects old sessions on reopen"
+     ],
+     "fails": [
+      "Email, API post or model call repeats on every load (sev 5)",
+      "Date.now() or uniqueId() in start() differs each reload (sev 4)",
+      "Editing a method changes how old history plays (sev 4)"
+     ],
+     "worst": 5,
+     "precedents": [
+      "Replicache",
+      "Redis AOF",
+      "LiveStore",
+      "Meteor methods"
+     ],
+     "picked_by": []
+    },
+    "both": {
+     "wins": [
+      "The line names the action and carries what replay applies",
+      "Old results survive later method edits",
+      "A reader sees start() next to the fields it changed"
+     ],
+     "fails": [
+      "15 bare legacy start lines carry no changes to replay (sev 4)",
+      "Open running span is lost on reload unless stored as data (sev 4)",
+      "Call name can drift from the changes after a code fix (sev 3)"
+     ],
+     "worst": 4,
+     "precedents": [
+      "mobx-keystone",
+      "lew42 Item.act",
+      "tldraw history",
+      "Meteor client stubs"
+     ],
+     "picked_by": [
+      "edge-cases"
+     ],
+     "analyst_id": "both-apply-changes"
+    },
+    "opt-in": {
+     "wins": [
+      "Lifecycle verbs stay calls on Task; other data stays changes",
+      "A game class whose state is a pure function of inputs",
+      "Only opted-in classes can re-run a method by name"
+     ],
+     "fails": [
+      "An opted-in class later gets a model call or agent spawn (sev 5)",
+      "An opted-in class uses Date.now() or a random id (sev 4)",
+      "A class flips mode after its lines exist (sev 4)"
+     ],
+     "worst": 5,
+     "precedents": [
+      "Redis AOF",
+      "mobx-keystone canCall",
+      "Lockstep and rollback games"
+     ],
+     "picked_by": [],
+     "analyst_id": "per-class"
+    }
+   },
+   "surprises": [
+    "The code already runs a hybrid: start, wait, pause and resume replay as calls (Session.js L69-84, Task.js L331-362) while list verbs log results.",
+    "_ran_since is memory-only (Task.js L40-47), so a changes-only replay loses an open running span; store it as data under any option.",
+    "Task.child_changed (Task.js L95-99) re-runs complete({auto}) on a replayed line, so a source-tag gate is needed under every option."
+   ],
+   "sources": [
+    "design/analysis/log-call-vs-change/edge-cases.json",
+    "design/analysis/log-call-vs-change/precedent.json"
+   ]
+  }
+ },
+ {
+  "id": "D15",
+  "title": "How a list stores its order",
+  "question": "Is a list's order the sum of replayed add/move lines, a stored array of ids, or a position key on each item?",
+  "status": "open",
+  "context": "Today a list's order is whatever replaying its `add {after}`, `move {id, after}` and `order [ids]` lines produces. You once used an `order` property (the array of ids) and recomputed it after `sort()`; keeping it in sync live was the hard part.\nThe sort problem: a `sort()` changes the place of many items, so it must write deltas for many items or one line that carries the whole order.",
+  "options": [
+   {
+    "id": "after-lines",
+    "label": "Replayed add / move lines with after: id (today)",
+    "summary": "Small lines, nothing to keep in step. `order()` already writes a sort as one line. Order exists only as replayed history."
+   },
+   {
+    "id": "order-prop",
+    "label": "An order property: the array of ids",
+    "summary": "One source of truth and a one-line sort. Every move rewrites the array, and every add or remove must update it."
+   },
+   {
+    "id": "fractional",
+    "label": "A fractional position key on each item",
+    "summary": "A move touches one item and concurrent moves merge. A key on every item; a sort writes many values. Planned for phase 5."
+   },
+   {
+    "id": "snapshot-order",
+    "label": "Order saved only in snapshots",
+    "summary": "Moves change memory; the next snapshot writes the order. No move lines, but a drag is lost if the tab closes or Servex restarts before the snapshot.",
+    "added_by": "analysis"
+   }
+  ],
+  "recommended": "fractional",
+  "kind": "opinionated",
+  "example": "// today: order is built by replaying lines\n{\"tasks\": {\"add()\": {\"id\": \"c4\", \"type\": \"Task\", \"after\": \"c3\"}}}\n{\"tasks\": {\"move()\": {\"id\": \"c4\", \"after\": \"c1\"}}}\n{\"tasks\": {\"order()\": [\"c1\", \"c4\", \"c3\"]}}      // a sort(): one line\n\n// order as a property: the list holds the array\n{\"tasks\": {\"order\": [\"c1\", \"c4\", \"c3\"]}}\n\n// fractional keys: a sort is one nested line, one value per item\n{\"tasks\": {\"#c1\": {\"pos\": \"a0\"}, \"#c4\": {\"pos\": \"a1\"}, \"#c3\": {\"pos\": \"a2\"}}}",
+  "detail": "| Option | Wins | Fails |\n|---|---|---|\n| `after` lines (today) | small lines; no second copy of the order to keep in step; `order()` is a one-line sort | order exists only as replayed history; an `add` after a removed anchor goes to the end; `order` drops unknown ids quietly; concurrent drags can disagree until reload (the stale-move race) |\n| `order` property | one source of truth; a sort is one line; replay is trivial | every move rewrites the whole array, which grows with the list; two concurrent edits overwrite each other; every add and remove must also update it |\n| fractional keys | a move changes one item; concurrent moves merge; fits the phase 5 merging work | a key on every item; a sort writes one value per item (one nested line can carry them all); keys need care to stay short |\n\n**The sort problem in one line.** With the decided line format (D13), one nested line can set many `#id` entries, so a sort is one line under any of the three.\n\n**Why not decide now.** Order only breaks under concurrent edits, which phase 1 limits with soft locks (D10). The fixes.md notes already point to fractional positions in phase 5.",
+  "refs": [
+   "design/fixes.md",
+   "design/phase-1.md",
+   "design/analysis/list-order/edge-cases.json"
+  ],
+  "analysis": {
+   "agreement": "Both pick fractional, with low confidence (3 each).",
+   "analysis_recommends": [
+    "fractional"
+   ],
+   "confidence": 3,
+   "options": {
+    "after-lines": {
+     "wins": [
+      "A drag is one small line (about 56 bytes)",
+      "The line reads in plain words: add c9 after c1",
+      "Old logs keep working with no migration"
+     ],
+     "fails": [
+      "Tab B moves d after tab A removes a: tabs and file disagree (sev 3)",
+      "Two tabs insert after the same item: tab order differs from file (sev 3)",
+      "One lost line makes later anchors drift (sev 3)"
+     ],
+     "worst": 3,
+     "precedents": [
+      "Weidner insert-after-ID",
+      "Yjs Y.Array",
+      "Loro MovableList",
+      "Meteor DDP"
+     ],
+     "picked_by": [],
+     "analyst_id": "after-id"
+    },
+    "order-prop": {
+     "wins": [
+      "A whole-list sort is one line",
+      "One line holds the whole order",
+      "Fine when only one writer reorders"
+     ],
+     "fails": [
+      "Agent and tab reorder one list: the second line erases the first (sev 4)",
+      "Index moves shift when another writer inserts (sev 3)",
+      "Tab sorts from an old array and loses another tab's drag (sev 3)"
+     ],
+     "worst": 4,
+     "precedents": [
+      "Backbone",
+      "Colyseus ArraySchema",
+      "Notion blocks"
+     ],
+     "picked_by": [],
+     "analyst_id": "order-array"
+    },
+    "fractional": {
+     "wins": [
+      "A drag touches one item; concurrent drags of different items merge",
+      "A lost or repeated line moves no other item",
+      "No new verb: order is an ordinary data field"
+     ],
+     "fails": [
+      "Rollout while old writers still send after-lines (sev 3)",
+      "An agent writes a raw key copied from an old read (sev 3)",
+      "The log shows {pos:'a1V'}, not neighbour names (sev 2)"
+     ],
+     "worst": 3,
+     "precedents": [
+      "Figma",
+      "tldraw",
+      "rocicorp fractional-indexing",
+      "Loro movable tree"
+     ],
+     "picked_by": [
+      "edge-cases",
+      "precedent"
+     ]
+    },
+    "snapshot-order": {
+     "wins": [
+      "Multi-day log loads faster",
+      "A rarely reordered page edited by one tab needs no move lines",
+      "Order that is shown but never argued over"
+     ],
+     "fails": [
+      "A drag is lost if the tab closes before the next snapshot (sev 5)",
+      "A snapshot built mid-append overwrites another tab's move (sev 4)",
+      "Snapshot and replay disagree on a removed anchor (sev 4)"
+     ],
+     "worst": 5,
+     "precedents": [
+      "Figma checkpoints + journal",
+      "ZODB",
+      "automerge-repo",
+      "jsonl-db"
+     ],
+     "picked_by": []
+    }
+   },
+   "surprises": [
+    "The divergence is in the writer, not the list format: each tab applies its own change at once and skips its echo, so any line the file resolves differently leaves that tab wrong until reload (reproduced: tab shows d,b,c, file says b,c,d).",
+    "Fractional keys make order an ordinary `pos` field, so no new verb is needed, but the log then shows {pos:'a1V'} instead of neighbour names, which cuts against the clarity law.",
+    "There is no schema version yet, so one must be stamped before migrating existing lists to fractional keys."
+   ],
+   "sources": [
+    "design/analysis/list-order/edge-cases.json",
+    "design/analysis/list-order/precedent.json"
+   ],
+   "notes": "Edge-cases' low confidence is because it did not model the planned Durable Object or offline edits.",
+   "recommended_was": "after-lines"
+  }
+ },
+ {
+  "id": "D16",
+  "title": "Class versions against old logs",
+  "question": "When a class changes, how does an old log still replay into it?",
+  "status": "open",
+  "context": "Logs live for years and classes change. About 1,810 old `{\"at\":…}` lines still replay through a compat branch today; the plan is to migrate them by script and delete the branch.\nYour earlier \"class progression\" idea (Item0 … Item9, each layered on the last) became noise. The question gets sharper if logs hold calls (D14): an old `start()` runs today's code.",
+  "options": [
+   {
+    "id": "update-scripts",
+    "label": "Update scripts rewrite old logs",
+    "summary": "A script with a dry run and a manifest moves the old file aside and writes the newest shape. Classes only know the newest. The `schema` line records the version."
+   },
+   {
+    "id": "upcast-on-read",
+    "label": "Schema version per file; upcast on read",
+    "summary": "Line 1 says `{\"schema\": {\"Task\": 3}}`. The reader upgrades old lines in memory with migration functions. Files stay old until rewritten."
+   },
+   {
+    "id": "versioned-type",
+    "label": "Versioned types on disk",
+    "summary": "Each item records `type: \"Item@2\"`, with migration functions. Every item says exactly what it is; every class keeps its migrations."
+   },
+   {
+    "id": "class-progression",
+    "label": "Class progression: Item0 … Item9",
+    "summary": "Your earlier idea: layered classes keep every old shape alive. It became noise."
+   },
+   {
+    "id": "compat-in-code",
+    "label": "Compat in code: methods accept old and new shapes",
+    "summary": "Each class keeps reading old shapes inline until a script removes the branch. Fine for additive changes; piles up if used for renames.",
+    "added_by": "analysis"
+   }
+  ],
+  "recommended": "upcast-on-read",
+  "kind": "opinionated",
+  "example": "// line 1 of a file says which shape its lines have\n{\"schema\": {\"Task\": 3}}\n\n// versioned types on disk\n{\"tasks\": {\"add()\": {\"id\": \"c3\", \"type\": \"Task@2\", \"data\": {\"title\": \"x\"}}}}\n\n// an update script: dry run first, old file moved aside, new file written\nnode Server/migrate.mjs --from 2 --to 3 --dry-run page.jsonl   // illustrative name",
+  "detail": "| Option | Wins | Fails |\n|---|---|---|\n| update scripts | classes stay simple; one-time cost; matches your rule that moves and renames are scripted, with a dry run | rewrites history (the old file is kept aside); a rewrite changes `epoch`, so open readers get `reset`; every change needs a script |\n| upcast on read | no rewrite; migrations live in one place; old files stay readable as they are | the reader carries every migration forever; slower opens until a rewrite |\n| versioned types | the file says exactly what it holds; can mix versions in one file | every class carries every migration; `type` strings get longer |\n| class progression | old shapes never need migrating | many near-identical classes to read; it became noise |\n\n**Your lean (2026-10-30).** Handle method changes with update scripts or backward-compatible methods. That fits the first option, with the `schema` line as the marker of which scripts have run.\n\n**Already in the plan.** Phase 1 section 6 has the `{\"schema\": {\"Task\": 3}}` first line. fixes.md notes: write the contract test once a second schema version exists, and migrate the ~1,810 old lines by script, then delete the compat branch.\n\n**If logs hold calls (D14):** the same method name can mean something different next year. Backward-compatible methods, or an update script that rewrites old calls, are then the only ways to keep history meaning what it meant.\n\n**Your note (2026-10-31).** For a breaking change, write an adapter that detects the old data pattern, handles it, and maybe converts it, so upgrades are seamless. This is the upcast-on-read option.",
+  "refs": [
+   "design/fixes.md",
+   "design/phase-1.md",
+   "design/analysis/class-versions/edge-cases.json"
+  ],
+  "analysis": {
+   "agreement": "Both pick upcast-on-read, but with the version on every line, not on line 1 of the file.",
+   "analysis_recommends": [
+    "upcast-on-read"
+   ],
+   "confidence": 4,
+   "options": {
+    "update-scripts": {
+     "wins": [
+      "Classes only ever know the newest shape",
+      "The 1,810 old `at` lines already have a dry-run script plan",
+      "Plain grep reads the file in one shape"
+     ],
+     "fails": [
+      "Append during rewrite is lost (sev 5; sev 4 if archived first)",
+      "A reconnecting tab resends old-shape lines the door refuses (sev 5)",
+      "A misread shape no fixture covers overwrites the only copy (sev 5)"
+     ],
+     "worst": 5,
+     "precedents": [
+      "ZODB pack + zodbupdate",
+      "nedb compaction",
+      "lew42 at-line migration",
+      "Drizzle"
+     ],
+     "picked_by": [],
+     "analyst_id": "rewrite-logs"
+    },
+    "upcast-on-read": {
+     "wins": [
+      "Old files are never rewritten; history stays intact",
+      "A stale tab's old-shape lines still replay correctly",
+      "D1's bare-id list lines convert in one place"
+     ],
+     "fails": [
+      "A stale tab writes old-shape lines into a file stamped new (sev 4)",
+      "An old reader meets a line from newer code (sev 4)",
+      "A buggy upcast gets compacted into the log (sev 4)"
+     ],
+     "worst": 4,
+     "precedents": [
+      "tldraw store",
+      "ZODB",
+      "jsonl-db",
+      "nedb"
+     ],
+     "picked_by": [
+      "edge-cases",
+      "precedent"
+     ]
+    },
+    "versioned-type": {
+     "wins": [
+      "A reader with no code at hand sees each line's version",
+      "A class whose meaning changed keeps its old meaning in old lines",
+      "A rolling deploy can mix Task@1 and Task@2 lines safely"
+     ],
+     "fails": [
+      "Whole-store versioning (Replicache) drops old local data (sev 5)",
+      "A writer omits the version after the class moved on (sev 4)",
+      "The meaning changes but nobody bumps the version (sev 4)"
+     ],
+     "worst": 5,
+     "precedents": [
+      "tldraw StoreSchema",
+      "Colyseus Schema",
+      "LiveStore",
+      "Replicache"
+     ],
+     "picked_by": [],
+     "analyst_id": "versioned-classes"
+    },
+    "compat-in-code": {
+     "wins": [
+      "An additive change (new optional field) needs no migration",
+      "A hotfix with no script and no file move",
+      "A renamed method keeps an alias for old calls"
+     ],
+     "fails": [
+      "A rename with no version: old lines land as an unknown field (sev 4)",
+      "Under call logging, an edited method replays old calls with new meaning (sev 4)",
+      "start() gains a required argument: old call lines throw (sev 3)"
+     ],
+     "worst": 4,
+     "precedents": [
+      "lew42 at compat branch",
+      "ZODB _setstate_N dispatch",
+      "mobx-keystone",
+      "Colyseus"
+     ],
+     "picked_by": []
+    }
+   },
+   "surprises": [
+    "A version on line 1 lies as soon as two code versions write one file: a tab opened before a deploy keeps posting old-shape lines, and the *.jsonl merge=union rule mixes in old lines from branches.",
+    "Whether lines log calls or changes (D14) sets how big this problem is: under call logging every method edit changes how old history plays, and only pinned old method bodies fix that.",
+    "Every append already passes the jsonl-schema check (.claude/hooks/jsonl-schema.mjs), a ready place to refuse lines newer than the code knows."
+   ],
+   "sources": [
+    "design/analysis/class-versions/edge-cases.json",
+    "design/analysis/class-versions/precedent.json"
+   ],
+   "notes": "`class-progression` (Item0 to Item9) was not analysed; edge-cases takes versioned-type's tag and drops its class copies. `compat-in-code` was added by the analysts. Precedent's hybrid: upcast on read until the next snapshot, then archive the old lines.",
+   "recommended_was": "update-scripts"
+  }
+ },
+ {
+  "id": "D17",
+  "title": "How code reacts when a value changes",
+  "question": "When a saved value changes (a click, another tab, an agent, or loading the log), how do the screen, timers and caches find out?",
+  "status": "open",
+  "kind": "opinionated",
+  "context": "Data-driven means a method only writes data, and everything else reacts to the data. Syncing forces it: another tab receives `{state: \"running\"}`, never `start()`, so code that lives only inside `start()` never runs there, and the same is true when a page loads.\nToday views listen to `change` events by hand. Your earlier pattern: `set()` first looks for a method named `set_<key>`.",
+  "options": [
+   {
+    "id": "method",
+    "label": "Only inside the method (method-driven)",
+    "summary": "`start()` writes data and updates the screen itself. Simple to follow, but another tab, an agent's change and a reload never run it."
+   },
+   {
+    "id": "events",
+    "label": "Events only (today)",
+    "summary": "Anything can listen to `change`. Flexible, but the order depends on who listened first, a listener that writes data can loop, and a stack trace shows the emitter, not the reason."
+   },
+   {
+    "id": "hooks",
+    "label": "A hook method per property (your pattern)",
+    "summary": "`set()` saves the value, then calls `set_state(value, old)` if the class has one. Named, in the class, in the stack trace, always first and in one known order. Covers what the item owns; views elsewhere still need events."
+   },
+   {
+    "id": "hooks-and-bind",
+    "label": "Hooks inside the class, `view.bind` for views",
+    "summary": "The class reacts to its own values in named hooks; views, which come and go, use `view.bind`. Two rules stop loops: hooks and listeners never write saved data, and computed values are getters."
+   },
+   {
+    "id": "signals",
+    "label": "Signals or reactions (MobX, Solid, Vue computed)",
+    "summary": "Dependencies are tracked automatically and the library orders updates. A second reactive model and a dependency, and \"why did this run?\" is harder to trace."
+   }
+  ],
+  "recommended": "hooks-and-bind",
+  "example": "class Task extends Item {\n  start(){                       // the call: runs once, where someone clicked\n    this.set({ state: \"running\", started_at: new Date().toISOString() })\n  }\n  get elapsed(){                 // derived: computed when read, never saved\n    const t = this.get(\"started_at\")\n    return t ? Date.now() - Date.parse(t) : 0\n  }\n  set_state(state, old){         // hook: after every change of `state`,\n    this.parent?.recount?.()     // live, from another tab, or once after load\n  }\n}\n\n// a view binds to what it shows and owns its own ticking clock\nview.bind(task, \"state\", s => s === \"running\" ? clock.start() : clock.stop())",
+  "detail": "**Is it a different way to program? Yes.** Method-driven: the method does everything (writes data, updates the screen, starts timers). Data-driven: methods decide and write data; everything else reacts to the data. You already do half of it, because views that listen to `change` are data-driven. Syncing and reloading force the rest, because both deliver data, not calls.\n\n**Four kinds of code, one rule each**\n1. **Methods** (`start()`): the only code that writes saved data or touches the outside world (spawn an agent, send a message). They run once, where someone acted.\n2. **Hooks** (`set_state`): react to a value however it arrived. They may update caches, volatile values and what the item owns. They never write saved data: every tab and the server run them, so each one would write the same line again.\n3. **Views** (`view.bind`): show values, and write only their own DOM.\n4. **Getters** (`elapsed`): computed values. Nobody stores them.\n\n**Your worries about events, answered**\n- **Speed:** emitting an event loops over a short array, which takes microseconds. The slow part is writing the DOM, so batch those writes once per frame. The repo's own measurement (`core/Page/doc/binding.md`) found the cost of one Property per value is memory (2.4 to 2.6 times as much), not update speed.\n- **Order:** hooks run first, from one known place. Listeners must not depend on each other's order: each writes only its own DOM. If one needs another's result, that result is a getter.\n- **Loops:** the same value is already silent. Hooks and listeners never write saved data. A dev-mode guard can throw when `set()` re-enters the same key while its hook is running.\n- **Debugging:** a hook is a named method, so grep and stack traces find it. A dev-mode `item.trace(key)` could log every write and its caller.\n\n**Your hook pattern, adjusted.** In your earlier version, `set_<name>` did the assigning itself, so a direct call skipped the generic path. Here `set()` assigns and saves first, then calls the hook, so a hook can never skip saving. Because calling `task.set_state(x)` directly would update the screen but save nothing, a name that reads as a reaction may be safer: `on_state` or `state_changed`. Your call.\n\n**Magic setters.** Agreed: no JavaScript `set state(v)` on data. `set()` stays the one door, and the hook is a plain method you can see.\n\n**Replay.** Applying 500 old lines would run a hook 500 times. Fix: load from a snapshot (the final values) plus the short tail after it, or fold the lines to final values before applying them, so each hook runs once per key. The other way: skip hooks while replaying and call one `rebuild()` at the end.\n\n**What other systems teach (voice research agent, Addendum 5).** The explicit hook is the most predictable and the easiest to debug. Values computed when read (Vue and MobX `computed`, Ember's tracked properties) come next. Free-form \"do something when X changes\" listeners (`watch`, `reaction`, Angular 1's `$watch`, observers) are where ordering bugs and loops live. Ember calls observers an anti-pattern. Angular 1 gave up after 10 passes of watchers setting each other. Lit batches writes: one `updated(changed)` call per frame, with a Map of what changed, so a gesture that changes five keys redraws once. The agent searched Lit and Ember; the rest it marked as general knowledge.\n\n**Suggested mix:** `set_<key>` hooks for the item's own logic, plus one batched `updated(changed)` for views.\n\nRelated: D7 (binding), D14 (call vs changes), D18 (which values are saved).",
+  "refs": [
+   "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/Item/Item.js#L155-L192",
+   "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/Page/doc/binding.md",
+   "public/framework/ai/sessions/2026/10/30/spawned/minion-replay-research/replay-calls-vs-values.md"
+  ]
+ },
+ {
+  "id": "D18",
+  "title": "Which values are saved: selection, tabs, widths, timers",
+  "question": "Which values come back after a reload, and where are they saved?",
+  "status": "open",
+  "kind": "opinionated",
+  "context": "Every value is one of four kinds: saved and shared (the document: titles, states), saved for one person (your open tabs, column widths), volatile (hover, a drag in progress, focus) or derived (elapsed time, counts). Undo can bring back a selection without saving it in the document.",
+  "options": [
+   {
+    "id": "all-volatile",
+    "label": "UI state is never saved",
+    "summary": "Simplest. A reload resets tabs, widths and selection."
+   },
+   {
+    "id": "per-user",
+    "label": "UI state saved per person, outside the shared document",
+    "summary": "Your tabs, widths and last selection come back after a reload, from your own file (like tldraw's session records). Other people never see them, and the page's log stays clean."
+   },
+   {
+    "id": "in-document",
+    "label": "UI state saved in the page's own log",
+    "summary": "Nothing new to build, but every tab and every person overwrites each other's selection, and the page's log fills with UI noise."
+   }
+  ],
+  "recommended": "per-user",
+  "example": "// saved, shared (page.jsonl):       title, state, started_at, column order\n// saved, one person (yours.jsonl):  open tabs, column widths (selection only if you want it back)\n// volatile (a plain Property):      selection, hover, drag in progress, focus, the clock's interval\n// derived (a getter):               elapsed = now - started_at, done_count",
+  "detail": "**Rule of thumb.** If you'd be annoyed to lose it on reload, save it. If only you care about it, save it for you alone. If it can be computed, never save it.\n\n**Timers.** Save `started_at`; compute the running time. For a timer that can pause, also save the time banked by earlier runs. Running time itself is never saved. This also fixes the bug where a running task's time lives only in memory (`_ran_since`).\n\n**Counters and caches.** If it can be computed from saved data, it's a getter or a cache that a hook (D17) rebuilds. If it can't be computed and you want it after a reload, it is saved data. There is no third kind.\n\n**Loading and undo are different jobs on the same log.**\n- Loading needs only the last value of each key, so select, deselect, reselect collapses to one value. A snapshot does this, so loading never replays every step.\n- Undo, and a scrub bar that plays back your work, need every step, so they read the log itself.\n- So keep every line (cheap), group a burst into one step (a drag; typing until a pause of about a second), and snapshot for fast loading.\n\n**Selection in undo.** In Figma a selection change is its own undo step. Users complain on Figma's forum that they press undo several times without knowing whether they undid an edit or a re-selection, and they have asked for an option to leave selection out. (The agent found the forum posts by search; this isn't in Figma's docs.) Lesson: don't make selection its own undo step. If undo should bring it back, attach it to the edit, as mobx-keystone's `attachedState` does with selection, focus and scroll.\n\n**Three readers, three resolutions.** Loading needs the last value of each key. Undo needs one step per gesture: a drag, or typing until a pause of about 0.5 to 1 s. A scrub bar needs every step. So keep the raw log, and derive the other two from it.\n\nRelated: D7 (plain Property = never saved), D11 (typing), D14, D17.",
+  "refs": [
+   "public/framework/ai/sessions/2026/10/30/spawned/minion-replay-research/replay-calls-vs-values.md"
+  ]
+ }
+]

@@ -22,7 +22,7 @@
 		--wash: #f3f4f6;
 		--subtle: #5c636d;   /* was #6b7280 — 4.39:1 on the code chip, an AA fail */
 		--radius: .45rem;
-		--prim: #0a58ca;   /* md.css consumes this; it was the sixth missing token */
+		--prime: #0a58ca;   /* md.css consumes this; it was the sixth missing token */
 	}
 
 	/* ── chrome — built once in site/app.js, outside $pages ── */

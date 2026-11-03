@@ -1,0 +1,2 @@
+{"class":"/framework/ai2/card.js","title":"Found and fixed the AI pages' flash of unstyled text on reload","type":"task","id":"2026/10/03/found-and-fixed-the-ai-pages-flash-of-un","created":"2026-10-03T14:19:18-05:00","by":"flash-fix","tags":[]}
+{"chat":{"level":"summary","text":"**Asked:** Found and fixed the AI pages' flash of unstyled text on reload\n\n**Status:** landed\n\n**Next step:** landed\n\n[task dir](/framework/ai/2026-10-03/flash-fix/) · [page](/framework/core/Router/)","at":"2026-10-03T14:19:18-05:00","from":{"kind":"system","id":"flash-fix"}}}

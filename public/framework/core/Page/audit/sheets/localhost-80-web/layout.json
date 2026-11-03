@@ -1,0 +1,384 @@
+{
+ "url": "http://localhost:80/web/",
+ "widths": {
+  "400": {
+   "empty": 0.356,
+   "widest_text": 340,
+   "widest_text_sample": "tree running in a box — so a claim about",
+   "overflow_x": false,
+   "items": 4,
+   "narrow_share": 0,
+   "layout": "wall",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 28,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 28
+      }
+     ]
+    },
+    "p": {
+     "total": 42,
+     "layers": [
+      {
+       "cls": "page-preview",
+       "px": 14
+      },
+      {
+       "cls": "page",
+       "px": 28
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 21,
+     "h": 40,
+     "share": 0.04,
+     "ink": 0.25,
+     "big_empty": false
+    },
+    {
+     "cls": "page-previews",
+     "y": 75,
+     "h": 225,
+     "share": 0.225,
+     "ink": 0.614,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 342,
+     "h": 151,
+     "share": 0.151,
+     "ink": 0.735,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 521,
+     "h": 76,
+     "share": 0.076,
+     "ink": 0.875,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 625,
+     "h": 101,
+     "share": 0.101,
+     "ink": 0.787,
+     "big_empty": false
+    },
+    {
+     "cls": "md-details",
+     "y": 774,
+     "h": 56,
+     "share": 0.056,
+     "ink": 0.487,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "drawer-rail-ai",
+     "text": "✦AI",
+     "lines": 3.2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-rail-menu",
+     "text": "⋯More",
+     "lines": 3.2
+    }
+   ]
+  },
+  "1200": {
+   "empty": 0.777,
+   "widest_text": 581,
+   "widest_text_sample": ". A guide page takes one decision you ac",
+   "overflow_x": false,
+   "items": 4,
+   "narrow_share": 1,
+   "layout": "wall",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 48,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 48
+      }
+     ]
+    },
+    "p": {
+     "total": 63,
+     "layers": [
+      {
+       "cls": "page-preview",
+       "px": 15
+      },
+      {
+       "cls": "page",
+       "px": 48
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 45,
+     "h": 49,
+     "share": 0.049,
+     "ink": 0.15,
+     "big_empty": false
+    },
+    {
+     "cls": "page-previews",
+     "y": 109,
+     "h": 113,
+     "share": 0.113,
+     "ink": 0.256,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 266,
+     "h": 107,
+     "share": 0.107,
+     "ink": 0.412,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 404,
+     "h": 54,
+     "share": 0.054,
+     "ink": 0.412,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 487,
+     "h": 81,
+     "share": 0.081,
+     "ink": 0.383,
+     "big_empty": false
+    },
+    {
+     "cls": "md-details",
+     "y": 620,
+     "h": 39,
+     "share": 0.039,
+     "ink": 0.35,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  },
+  "1920": {
+   "empty": 0.842,
+   "widest_text": 624,
+   "widest_text_sample": ". A guide page takes one decision you ac",
+   "overflow_x": false,
+   "items": 4,
+   "narrow_share": 1,
+   "layout": "wall",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 77,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 77
+      }
+     ]
+    },
+    "p": {
+     "total": 93,
+     "layers": [
+      {
+       "cls": "page-preview",
+       "px": 16
+      },
+      {
+       "cls": "page",
+       "px": 77
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 48,
+     "h": 53,
+     "share": 0.053,
+     "ink": 0.113,
+     "big_empty": false
+    },
+    {
+     "cls": "page-previews",
+     "y": 125,
+     "h": 121,
+     "share": 0.121,
+     "ink": 0.219,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 309,
+     "h": 115,
+     "share": 0.115,
+     "ink": 0.281,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 464,
+     "h": 58,
+     "share": 0.058,
+     "ink": 0.217,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 561,
+     "h": 86,
+     "share": 0.086,
+     "ink": 0.267,
+     "big_empty": false
+    },
+    {
+     "cls": "md-details",
+     "y": 717,
+     "h": 42,
+     "share": 0.042,
+     "ink": 0.125,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  },
+  "3440": {
+   "empty": 0.889,
+   "widest_text": 702,
+   "widest_text_sample": ". A guide page takes one decision you ac",
+   "overflow_x": false,
+   "items": 4,
+   "narrow_share": 1,
+   "layout": "wall",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 90,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 90
+      }
+     ]
+    },
+    "p": {
+     "total": 108,
+     "layers": [
+      {
+       "cls": "page-preview",
+       "px": 18
+      },
+      {
+       "cls": "page",
+       "px": 90
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 54,
+     "h": 59,
+     "share": 0.059,
+     "ink": 0.063,
+     "big_empty": false
+    },
+    {
+     "cls": "page-previews",
+     "y": 157,
+     "h": 136,
+     "share": 0.136,
+     "ink": 0.11,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 381,
+     "h": 130,
+     "share": 0.13,
+     "ink": 0.181,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 555,
+     "h": 65,
+     "share": 0.065,
+     "ink": 0.117,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 665,
+     "h": 97,
+     "share": 0.097,
+     "ink": 0.169,
+     "big_empty": false
+    },
+    {
+     "cls": "md-details",
+     "y": 841,
+     "h": 47,
+     "share": 0.047,
+     "ink": 0.087,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  }
+ },
+ "errors": []
+}

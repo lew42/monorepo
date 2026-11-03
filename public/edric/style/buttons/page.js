@@ -12,7 +12,7 @@ export default {
         div.c("pad", () => {
             a.c("page-back btn bg mb", "Back").href("../");
 
-            h1("Buttons").ac("mb").style("color", "var(--prim)");
+            h1("Buttons").ac("mb").style("color", "var(--prime)");
 
             p("These are the button features built into this framework:");
             p("`button`: use it for a clickable action, it already inherits the page's font.");
@@ -39,7 +39,7 @@ a("Click me").ac("btn bg").href("/");`).ac("pad mb").style({ background: "var(--
 
             hr();
 
-            p("`.btn.prim` / `button.prim`: solid `--prim` background, white text.").ac("mb");
+            p("`.btn.prim` / `button.prim`: solid `--prime` background, white text.").ac("mb");
 
             button("Click me").ac("btn prim mb");
             pre(`button("Click me").ac("btn prim");`).ac("pad mb").style({ background: "var(--bg)", color: "white", "border-radius": "0.3em" });

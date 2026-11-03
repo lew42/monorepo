@@ -1,0 +1,574 @@
+@layer theme {
+
+	/* The rail's width lives here once. `--devbar` is what the shell reserves at its
+	   inline end (`.app`, framework.css) and what the panel is wide, and `dev-open` is
+	   the only state there is — DevBar.js toggles that class and nothing else.
+	   ⚠ On :root rather than `.app`: there is one dev rail per DOCUMENT, and the
+	     panel itself hangs off <body>, outside `.app`, so it could not inherit. */
+	:root { --dev-rail: 17rem; }
+	html.dev-open { --devbar: var(--dev-rail); }
+
+	/* ⚠ `color-scheme: dark` IS the dark theme: every token in framework.css is a
+	   `light-dark()` pair that resolves against the element using it, so one line
+	   retunes ink, surface, line, wash and subtle together. Nothing here names a
+	   colour. Outside `.app`, so the site's theme never reaches it.
+	   ⚠ `100%` clears the whole rail ONLY because the grip lives inside this box
+	     (ext/grip). It straddled the edge until 2026-08-16, and anything hanging
+	     outside survives a 100% slide as an invisible ew-resize strip down the page —
+	     one that pointer-captures the whole gesture, not just the click. */
+	.dev-bar {
+		position: fixed; inset-block: 0; inset-inline-end: 0; z-index: 50;
+		width: min(var(--dev-rail), 100%);
+		color-scheme: dark;
+		color: var(--ink);
+		background: var(--surface);
+		border-inline-start: 1px solid var(--line);
+		font-family: var(--mono);
+		font-size: 0.8rem;
+		/* ⚠ `100%` alone lands the rail's own left edge — and the grip strip just
+		   inside it (ext/grip) — EXACTLY on the viewport's right edge, 0px past
+		   it: hovering the last pixel of the screen could still find the strip.
+		   The extra 16px is the dev bar's own fixed margin of safety, well past
+		   ext/grip's 12px hover target, so no part of it is ever reachable while
+		   shut (the owner, 2026-09-22: "move the dev bar off screen by more than
+		   like 10 pixels"). */
+		transform: translateX(calc(100% + 16px));
+		/* ⚠ A CLOSED rail is `visibility: hidden`, delayed until the slide finishes.
+		   Below 34em the media query re-poses it as a bottom sheet (translateY(100%)), so
+		   crossing that width while closed INTERPOLATES translateX(100%) → translateY(100%)
+		   — a path straight across the screen, and you see the rail flash (the owner,
+		   2026-08-29: "you can see it transitioning, appearing for a brief moment").
+		   Hidden, that morph happens where nobody can see it. The 0.18s delay is what keeps
+		   the close animation itself visible; `dev-open` below turns it off in both
+		   directions so opening is instant. Nothing about the slide changed. */
+		visibility: hidden;
+		transition: transform 0.18s, visibility 0s 0.18s;
+	}
+	html.dev-open .dev-bar { transform: none; visibility: visible; transition: transform 0.18s, visibility 0s; }
+
+	/* The head is pinned and the body scrolls under it — a rail whose ✕ scrolls away
+	   is a rail you cannot shut. Two lines: the title row, and the page's width. */
+	.dev-head {
+		flex: 0 0 auto;
+		gap: 0.5em;
+		padding: 0.7em 0.9em;
+		border-block-end: 1px solid var(--line);
+	}
+	.dev-head-line { gap: 0.5em; }
+
+	/* The four presets and the number they promise, together — they were on different
+	   screens, in different units, 272px apart (width.js). The reading is the fixed
+	   part; the buttons divide what is left. */
+	.dev-width { gap: 0.5em; }
+	.dev-width > .dev-sizes { flex: 1 1 auto; min-width: 0; }
+	.dev-width-val { flex: 0 0 auto; color: var(--subtle); font-variant-numeric: tabular-nums; }
+	/* ⚠ `.dev-title` is DEAD — the word "DEV" it styled is gone (2026-09-19,
+	   `pathbar.js` took its place). Left defined, unused, rather than pulled:
+	   deleting a class a THEME could still reference from outside this file is
+	   a bigger question than this task's own fence covers. */
+	.dev-title { font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--prime); }
+	/* The path bar is the slack now (`.dev-pathbar`'s own `flex: 1 1 auto`,
+	   pathbar.js) — the hint beside it keeps its own natural width. */
+	.dev-hint { color: var(--subtle); flex: 0 0 auto; }
+
+	/* dev/DevBar/hold.js — plain text, same subdued tone as the hint beside it.
+	   Empty and `hidden` (native [hidden]{display:none}, nothing here overrides
+	   it) whenever nobody holds live reload. */
+	.dev-hold { color: var(--warn); }
+
+	/* dev/DevBar/blocked.js — "3 held" beside the block checkbox: how many reloads
+	   THIS TAB has refused while blocked. Hidden (native [hidden], nothing here
+	   overrides it) the whole time the count is zero, which is almost always.
+	   It is a real button — clicking it takes the held reloads, in one reload — so
+	   it reads as clickable rather than as another quiet readout like .dev-hold
+	   above it. `--warn` is the same "something is being withheld from you" tone. */
+	.dev-skipped {
+		flex: 0 0 auto;
+		padding: 0 0.4em;
+		color: var(--warn);
+		background: none;
+		border: 1px solid var(--warn);
+		border-radius: var(--radius);
+		cursor: pointer;
+	}
+	/* ⚠ A `--warn` FILL on hover was tried and dropped: there is no ink token that
+	   reads against amber in both themes (`--bg` is one fixed dark, `--surface`
+	   goes white in light mode). `--wash` tints under the same text instead. */
+	.dev-skipped:hover { background: var(--wash); }
+
+	/* THE PATH BAR (pathbar.js) — replaces the word "DEV". One solid
+	   background for the whole bar, never one pill per part (the owner:
+	   "I think it should be one solid background"). It is the head line's
+	   own slack-absorber now (`.dev-hint`'s old job, `flex-grow`), and it
+	   SCROLLS rather than wraps — `pathbar.js` starts it scrolled to its own
+	   right edge, so a deep url truncates from the left, the current page's
+	   own name always in view. */
+	.dev-pathbar {
+		display: flex; align-items: center; flex: 1 1 auto; min-width: 0;
+		gap: 0.1em;
+		overflow-x: auto; scrollbar-width: none;
+		background: var(--wash); border-radius: var(--radius);
+		padding: 0.2em 0.4em;
+	}
+	.dev-pathbar::-webkit-scrollbar { display: none; }
+	.dev-pathbar-home, .dev-pathbar-part {
+		flex: 0 0 auto; white-space: nowrap;
+		color: var(--ink); text-decoration: none;
+		padding: 0.1em 0.3em; border-radius: 0.2em;
+	}
+	.dev-pathbar-home { display: inline-flex; align-items: center; color: var(--subtle); }
+	.dev-pathbar-home .icon { font-size: 1rem; }
+	.dev-pathbar-home:hover, .dev-pathbar-part:hover { color: var(--prime); background: color-mix(in srgb, var(--prime) 18%, transparent); }
+	.dev-pathbar-slash { flex: 0 0 auto; color: var(--subtle); }
+
+	.dev-x {
+		padding: 0 0.4em;
+		color: var(--subtle);
+		background: none;
+		border: 1px solid transparent;
+		border-radius: var(--radius);
+	}
+	.dev-x:hover { color: var(--prime); border-color: var(--prime); }
+
+	/* One row of tabs, pinned like the head. The rail is a 17rem column and its
+	   sections are long, so what is not on screen is not scrolled past — it is not
+	   built. ⚠ Which also makes the `layout` tab the gate on downloading and running
+	   ext/DesignTool at all (DevBar.js). */
+	.dev-tabs { flex: 0 0 auto; gap: 0.35em; padding: 0.5em 0.9em 0; }
+
+	.dev-tab {
+		flex: 1 1 0; min-width: 0;
+		padding: 0.25em 0.5em;
+		color: var(--subtle);
+		background: var(--wash);
+		border: 1px solid transparent;
+		border-radius: var(--radius);
+		font: inherit;
+		cursor: pointer;
+	}
+	.dev-tab:hover { color: var(--prime); }
+	.dev-tab.on { color: var(--prime); border-color: var(--prime); }
+
+	.dev-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; gap: 1.25em; padding: 0.9em; }
+
+	.dev-sect { gap: 0.35em; }
+	.dev-sect-title { font-size: 0.85em; letter-spacing: 0.12em; color: var(--subtle); }
+
+	.dev-row { display: grid; grid-template-columns: 3.6em 1fr; gap: 0.5em; }
+	.dev-key { color: var(--subtle); }
+	.dev-val { overflow-wrap: anywhere; }
+	.dev-val.ok { color: var(--ok); }
+	.dev-val.warn { color: var(--warn); }
+	.dev-val.off { color: var(--subtle); }
+
+	.dev-crumbs, .dev-links { gap: 0.3em; }
+
+	.dev-crumb, .dev-link {
+		padding: 0.1em 0.5em;
+		color: var(--ink);
+		text-decoration: none;
+		background: var(--wash);
+		border-radius: var(--radius);
+	}
+	.dev-crumb:hover, .dev-link:hover { color: var(--prime); }
+
+	.dev-knob { display: flex; align-items: center; gap: 0.5em; cursor: pointer; }
+
+	/* Four equal targets on one row — the set is fixed at four, so they divide the
+	   rail rather than wrapping. `.on` is the width the page is actually at. */
+	.dev-sizes { gap: 0.35em; }
+
+	.dev-size {
+		display: flex; align-items: center; justify-content: center;
+		flex: 1 1 0; min-width: 0;
+		padding: 0.3em 0;
+		color: var(--subtle);
+		background: var(--wash);
+		border: 1px solid transparent;
+		border-radius: var(--radius);
+		cursor: pointer;
+	}
+	/* ⚠ `rem`, not `em`: the rail's text is 0.8rem, so an em icon lands at 12.8px. */
+	.dev-size .icon { font-size: 1.15rem; }
+	.dev-size:hover:not(:disabled), .dev-size.on { color: var(--prime); border-color: var(--prime); }
+	.dev-size:disabled { opacity: 0.3; cursor: not-allowed; }
+
+	.dev-ai { gap: 0.5em; min-width: 0; }
+	.dev-threads { gap: 0.3em; }
+
+	/* A `.dev-link` that is a button rather than an anchor. */
+	.dev-thread { font: inherit; border: 1px solid transparent; cursor: pointer; }
+	.dev-thread:hover, .dev-thread.on { color: var(--prime); border-color: var(--prime); }
+	.dev-thread-new { display: flex; align-items: center; padding-inline: 0.35em; }
+	.dev-thread-new .icon { font-size: 1rem; }
+
+	/* DesignTool's verdict — ONE screen, everything emitted by `layout.js`. The full
+	   report used to replace this readout in place, with no way back that said so; it
+	   is a page component and lives on the two pages with room for it.
+
+	   One column in a 17rem rail, two in one dragged wide — `flex-wrap` and a basis,
+	   which is the same two places above the threshold and one below with no
+	   breakpoint written down. ⚠ `min-width: 0` is not optional: the monospace detail
+	   lines keep a content-based minimum and will not shrink without it. */
+	.dev-layout { gap: 0.5em; }
+	.dev-layout-out { gap: 0.9em; }
+	.dev-layout-out > * { flex: 1 1 20em; min-width: 0; }
+	.dev-stats { gap: 0.35em; }
+	.dev-findings { gap: 0.5em; }
+	/* Two statements, not one sentence — what is BROKEN and how GOOD it is, which
+	   disagree on purpose. The census uses `·` internally, so a neighbour separated by
+	   a space read as more of the same list. */
+	.dev-verdict { gap: 0.4em; }
+	.dev-verdict > * { padding-inline: 0.4em; background: var(--wash); border-radius: var(--radius); }
+
+	/* What is being measured — `.app`, or the panel that was clicked, with the way
+	   back to the page beside it. The glyph is the only one on the screen, so the
+	   line stops reading as one more diagnostic. */
+	.dev-target > .dev-val { flex: 1 1 auto; min-width: 0; }
+	.dev-target > button { flex: 0 0 auto; padding: 0 0.5em; font: inherit; }
+	.dev-glyph { flex: 0 0 auto; color: var(--prime); }
+
+	.dev-layout-acts { gap: 0.35em; }
+	.dev-val.bad { color: var(--error); }
+
+	/* ⚠ A READING THAT IS KNOWN TO BE WRONG MUST NOT LOOK LIKE THE ONES BESIDE IT.
+	   `measure` reads card captions rather than prose and `contrast` is set by a single
+	   outlier; both need a band re-derived. The sentence is on the band itself
+	   (`taste/ranges.js`) and arrives as the title. */
+	.dev-suspect { text-decoration: underline dotted var(--warn); text-underline-offset: 0.2em; cursor: help; }
+
+	.dev-issue {
+		gap: 0.1em;
+		padding-block-start: 0.35em;
+		border-block-start: 1px solid var(--line);
+	}
+
+	/* THE SELECTED FINDING IS THE EXPANDED ONE, and `dt-aimed` is the whole state —
+	   ext/DesignTool's own class (highlight.js), set by the same click that holds the
+	   ring on the page, so the rail cannot disagree with what is ringed.
+	   ⚠ `display` here rather than a `flex` utility class in the JS: the utilities are
+	     `@layer util`, which beats every rule in this file, so `display: none` written
+	     against one would never take. */
+	.dev-more { display: none; }
+	.dev-issue.dt-aimed .dev-more {
+		display: flex; flex-direction: column; gap: 0.35em;
+		padding-block-start: 0.35em;
+	}
+	.dev-fix { color: var(--prime); overflow-wrap: anywhere; }
+
+	/* The rail is a column, not a page: ext/Ask's 30em transcript would bury every
+	   section under it, and the input is the half that has to stay on screen. */
+	.dev-bar .chat-list { max-height: none; }
+	.dev-bar .chat-form { flex-direction: column; align-items: stretch; }
+
+	/* The resize edge is ext/grip — shared with ext/drawer, mounted by DevBar.js. */
+
+	/* The one X-ray a layout question needs, and outlines rather than borders so
+	   nothing reflows. The rail excepts itself: it has to stay readable while it is
+	   the thing drawing the boxes. */
+	html.dev-outline body :not(.dev-bar, .dev-bar *) {
+		outline: 1px solid color-mix(in srgb, var(--prime) 35%, transparent);
+	}
+
+	/* ⚠ BELOW 34em THE RAIL IS A BOTTOM SHEET, because a side rail there does not
+	   squeeze the page — it COVERS it. 17rem is 70% of a 390px window, and `.app`
+	   declines to push at all at that width (the `--rail-floor` guard, settings.js),
+	   so the tool sat on top of 70% of what it was measuring and every ring it drew
+	   landed underneath itself. 45dvh leaves the top of the page, which is where a
+	   ring can land; `highlight.js` scrolls a held target to `start` rather than
+	   `center` at the same threshold, or it lands under the sheet.
+	   ⚠ And the shell reserves NOTHING at the inline end here: a preset click clears
+	     `--rail-floor` for the rest of the session, so without this the page would be
+	     squeezed by a rail that is no longer beside it. */
+	@media (width < 34em) {
+		html.dev-open { --devbar: 0px; }
+
+		.dev-bar {
+			inset: auto 0 0 0;
+			width: auto; height: 45dvh;
+			border-inline-start: 0;
+			border-block-start: 1px solid var(--line);
+			transform: translateY(100%);
+		}
+	}
+
+	/* THE MASTERMIND LOG (says.js) - you, the assistant, the mastermind and every
+	   minion, one joint timeline of compact cards; click one and it becomes a
+	   reader that takes over the dev bar's body. The log scrolls in its own box,
+	   so a new message never moves what is being read.
+	   ⚠ `.dev-says-section` is what makes the log FILL the page tab (2026-09-19,
+	   pass 5): every OTHER page-tab section is a normal content-sized flex child,
+	   so growing only this one absorbs all the leftover height `.dev-body` has —
+	   the rest sit below it, reachable by scrolling `.dev-body` itself. */
+	/* `overflow: hidden` as a second guard, not the fix itself (the pinned
+	   strip's own `max-height` below is): a flex child squeezed by `min-height:
+	   0` shows whatever a bounded descendant does not scroll on its own,
+	   painted straight over the NEXT section rather than clipped — this is
+	   what stops that happening again if some future child forgets its own. */
+	.dev-says-section { flex: 1 1 auto; min-height: 0; overflow: hidden; }
+	.dev-says { flex: 1 1 auto; min-height: 0; gap: 0.35em; overflow-y: auto; padding-inline-end: 0.25em; scrollbar-width: thin; }
+	/* ⚠ COLUMN, not a row beside the text — the meta line (dot · author · time)
+	   is its own row ABOVE the text now, so the text's own left edge is always
+	   the card's own padding edge, the same x on every card. Beside it (the
+	   first shape this file shipped), that x moved per card: no dot on the
+	   owner's own cards, no time on a pinned row — measured, five cards, five
+	   different starting x's for the first letter (2026-09-19).
+	   ⚠ `padding: var(--pad-card)`, not `var(--pad)` (card-adopt, 2026-09-19,
+	   correcting the previous pass here) — `--pad` is the PAGE-REGION word
+	   and stays pinned at its 1em floor (12.8px) under any containing block
+	   this narrow, while `--pad-card` is the word framework.css built for
+	   exactly this: a framed box whose padding scales with ITS OWN width,
+	   not the page's (`framework.css`'s own comment above `.card`). Measured
+	   before/after, geometrically (a padding percent inside `calc()` reads
+	   back from `getComputedStyle` as the calc string, never px): 12.8px
+	   before this line, at the card's own token now — see task.jsonl.
+	   ⚠ NOT wearing the `.card` class itself, on purpose: `.card`'s own
+	   child-rhythm rule (`:where(.card) > * + * { margin-block-start:
+	   var(--gap); }`) would ADD on top of this card's flex `gap: 0.2em`
+	   between the meta row and the body, not replace it — two spacing rules
+	   stacking, since a flex `gap` and a margin never cancel. A card that
+	   already sets its own internal rhythm via flex `gap` (this one; also
+	   `.dev-chat-card` below) takes the TOKEN directly; only a freestanding
+	   box with no rhythm of its own should take the whole class. */
+	.dev-says-card {
+		flex: 0 0 auto;   /* a card keeps its height: a flex column SHRINKS its children, and shrunken rows overlapped */
+		display: flex; flex-direction: column; gap: 0.2em; width: 100%;
+		padding: var(--pad-card); margin: 0; min-height: 0;
+		text-align: start; font: inherit; color: inherit; cursor: pointer;
+		background: var(--wash); border: 0; border-radius: 0.3em;
+	}
+	.dev-says-card:hover { background: color-mix(in srgb, var(--prime) 14%, transparent); }
+	.dev-says-card-meta { flex: 0 0 auto; gap: 0.4em; }
+	.dev-says-card-meta > .dev-val { flex: 0 0 auto; margin-inline-start: auto; }
+	.dev-says-card-author { flex: 0 0 auto; font-size: 0.75em; text-transform: uppercase; letter-spacing: 0.06em; }
+	.dev-says-card-title { min-width: 0; font-weight: 600; line-height: 1.3; }
+	.dev-says-card-body { min-width: 0; line-height: 1.4; overflow-wrap: anywhere; white-space: pre-wrap; }
+	.dev-says-new { align-self: start; cursor: pointer; font-weight: 700; color: var(--prime-ink, var(--prime)); }
+
+	/* The three fixed voices, and every minion's own slug sharing one look
+	   (`author_kind()` maps any slug to "minion" — devbar.css cannot enumerate
+	   every task that will ever post here). Backgrounds only — text stays
+	   readable at every size, no colour depends on it to be understood. */
+	.dev-says-card-owner { background: color-mix(in srgb, var(--prime) 14%, var(--wash)); }
+	.dev-says-card-owner:hover { background: color-mix(in srgb, var(--prime) 22%, var(--wash)); }
+	.dev-says-card-minion { background: color-mix(in srgb, var(--subtle) 16%, var(--wash)); }
+
+	/* A dot, not a border — the owner's own words never get one (they cannot
+	   need their own yes). `.dev-says-needs-you` is the ACCENT on the card
+	   itself, wherever it sits in the stream, on top of the dot. */
+	.dev-says-dot { flex: 0 0 auto; width: 0.55em; height: 0.55em; margin-block: 0.35em; border-radius: 50%; background: var(--subtle); }
+	.dev-says-dot-working { background: var(--warn); }
+	.dev-says-dot-done { background: var(--ok); }
+	.dev-says-dot-needs-you { background: var(--prime); }
+	.dev-says-needs-you { border-inline-start: 3px solid var(--prime); }
+
+	/* The pinned strip — a small, separate list above the main log, mirroring
+	   only what needs the owner's yes RIGHT NOW; gone the moment nothing does. */
+	/* ⚠ `max-height` + its own scroll — WITHOUT this the strip is `flex: 0 0
+	   auto` (natural size) inside `.dev-says-section`, which is ITSELF
+	   flex-shrunk to fit `.dev-body` (`min-height: 0`); several needs-you
+	   cards made the strip taller than the section had room for, and with no
+	   `overflow` of its own to catch that, the extra cards painted straight
+	   over the ROUTE section below instead of scrolling — measured live,
+	   2026-09-19. Bounded here, the strip stays a glance, never a second log. */
+	.dev-says-pinned { flex: 0 0 auto; gap: 0.3em; max-height: 9em; overflow-y: auto; padding-block-end: 0.4em; margin-block-end: 0.4em; border-block-end: 1px solid var(--line); }
+	.dev-says-pinned .dev-says-card { background: color-mix(in srgb, var(--prime) 10%, var(--wash)); }
+
+	/* A card that changed just now — the "evolve" pass's own cue, not a colour
+	   swap (a colour would fight the author backgrounds above). */
+	.dev-says-flash { animation: dev-says-flash 1s ease-out; }
+	@keyframes dev-says-flash { from { outline: 2px solid var(--prime); outline-offset: 1px; } to { outline-color: transparent; } }
+
+	/* A card mid-stream — the caret blinks at the growing edge; the card itself
+	   gets no special treatment beyond that (its body already shows full text). */
+	.dev-says-caret { display: inline-block; margin-inline-start: 0.05em; color: var(--prime); animation: dev-says-caret 1s step-start infinite; }
+	@keyframes dev-says-caret { 50% { opacity: 0; } }
+
+	.dev-says-new { align-self: start; cursor: pointer; font-weight: 700; color: var(--prime-ink, var(--prime)); }
+
+	/* Reading: every other section of the body steps aside, the log too. */
+	.dev-says-reader { gap: 0.6em; }
+	.dev-says-reader-head { gap: 0.6em; }
+	.dev-says-reader-author { font-size: 0.75em; text-transform: uppercase; letter-spacing: 0.06em; }
+	.dev-says-back { align-self: start; }
+	.dev-says-title { font-weight: 700; font-size: 1.1em; line-height: 1.3; }
+	.dev-says-text { line-height: 1.5; }
+	.dev-says-text-mine { white-space: pre-wrap; }
+	.dev-says-stale {
+		padding: 0.4em 0.6em;
+		background: color-mix(in srgb, var(--prime) 14%, var(--wash));
+		border-radius: var(--radius);
+	}
+	.dev-says-show { flex: 0 0 auto; font-weight: 700; color: var(--prime-ink, var(--prime)); background: none; border: 0; cursor: pointer; font: inherit; }
+}
+
+/* THE CHAT TAB (chat.js, log.js, sessions.js) — the live conversation with
+   the current mastermind session, past sessions, a session's minions, and a
+   composer that appends a line for the mastermind's own next cycle to read.
+   `readme.md` names the shape; `doc/decisions.md` has the choices (the
+   card-log presentation, the today-only run-task scope, why the composer's
+   target and the transcript it shows are two different files). */
+@layer theme {
+
+	/* The chat tab fills whatever height .dev-body gives it (the rail's full
+	   height on desktop, 45dvh on the bottom-sheet at <34em) and becomes the
+	   ONE scroll container — the log scrolls, the picker/composer stay put —
+	   instead of `.dev-body`'s own overflow-y doing it and losing the composer
+	   off the bottom on a long conversation. */
+	.dev-chat { flex: 1 1 auto; min-height: 0; gap: 0.6em; }
+
+	.dev-chat-degrade { padding-block: 0.3em; }
+
+	.dev-chat-back-row { gap: 0.5em; }
+	.dev-chat-linkback {
+		display: flex; align-items: center; gap: 0.3em;
+		padding: 0.15em 0.5em;
+		color: var(--ink);
+		background: var(--wash);
+		border: 1px solid transparent;
+		border-radius: var(--radius);
+		font: inherit; cursor: pointer;
+	}
+	.dev-chat-linkback:hover { color: var(--prime); border-color: var(--prime); }
+
+	/* The session picker — one solid-background dropdown, full width, so it
+	   reads as "which conversation" rather than one more small control. */
+	.dev-chat-picker-row { min-width: 0; }
+	.dev-chat-picker.dropdown-trigger,
+	.dev-chat-picker-row .dropdown-trigger { width: 100%; justify-content: space-between; }
+
+	/* ── the log itself: a scrolling list of compact cards ─────────────── */
+
+	.dev-chat-logbox { flex: 1 1 auto; min-height: 0; gap: 0.4em; }
+
+	.dev-chat-list {
+		flex: 1 1 auto; min-height: 0;
+		gap: 0.35em;
+		overflow-y: auto;
+		scrollbar-width: thin;
+		padding-inline-end: 0.2em;
+	}
+	/* ⚠ `flex-shrink: 0` — without it, a column of many flex items inside a
+	   height-capped ancestor (`.dev-chat-minions`'s `max-height`, or a long
+	   live log filling `.dev-chat-list`) SQUISHES every card down to a sliver
+	   to fit rather than overflowing and letting the ancestor's own
+	   `overflow-y: auto` scroll — the automatic minimum size of a flex item
+	   whose content has `overflow: hidden` is 0, not its content size, so
+	   flexbox happily shrinks it to nothing (measured: 81 real minion cards
+	   collapsed to 0.3px tall each, the text present in the DOM but invisible,
+	   2026-09-19). Every row card in this file needs it. */
+	/* ⚠ `padding: var(--pad-card)`, not the hand-written `0.4em 0.6em` this
+	   replaced (card-adopt, 2026-09-19) — the same ad-hoc pattern the owner's
+	   complaint was about, found by reading this file for the fix above; not
+	   the `.card` class itself, same reason as `.dev-says-card`: this row's
+	   own `gap` is its rhythm, and `.card`'s child-margin rule would stack a
+	   second gap on top of it rather than replacing it. */
+	.dev-chat-card {
+		display: flex; align-items: baseline; gap: 0.6em; width: 100%;
+		flex-shrink: 0;
+		padding: var(--pad-card); margin: 0; min-width: 0;
+		text-align: start; font: inherit; color: inherit; cursor: pointer;
+		background: var(--wash);
+		border: 0; border-radius: 0.35em;
+	}
+	.dev-chat-card:hover { background: color-mix(in srgb, var(--prime) 14%, transparent); }
+	.dev-chat-you { background: color-mix(in srgb, var(--prime) 10%, var(--wash)); }
+	.dev-chat-sent { background: color-mix(in srgb, var(--warn) 16%, var(--wash)); }
+	.dev-chat-card-role { flex: 0 0 auto; font-weight: 600; text-transform: uppercase; font-size: 0.75em; letter-spacing: 0.06em; }
+	/* rem, not em — the rail's own text is 0.8rem, and chat is prose to READ,
+	   not one more diagnostic readout (doc/decisions.md, "no 11px chat"). */
+	.dev-chat-card-text { flex: 1 1 auto; min-width: 0; font-size: 1rem; line-height: 1.35; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	.dev-chat-card-time { flex: 0 0 auto; font-variant-numeric: tabular-nums; }
+
+	/* ── the reader: one card, expanded to fill the whole box ───────────── */
+
+	.dev-chat-reader { flex: 1 1 auto; min-height: 0; gap: 0.5em; }
+	.dev-chat-reader-head { gap: 0.6em; }
+	.dev-chat-back {
+		display: flex; align-items: center; gap: 0.25em;
+		padding: 0.15em 0.5em;
+		color: var(--ink);
+		background: var(--wash);
+		border: 1px solid transparent; border-radius: var(--radius);
+		font: inherit; cursor: pointer;
+	}
+	.dev-chat-back:hover { color: var(--prime); border-color: var(--prime); }
+	.dev-chat-reader-body {
+		flex: 1 1 auto; min-height: 0;
+		overflow-y: auto;
+		font-size: 1rem; line-height: 1.5;
+		overflow-wrap: anywhere;
+	}
+
+	/* ── minions ──────────────────────────────────────────────────────── */
+
+	.dev-chat-minions-row { flex: 0 0 auto; }
+	.dev-chat-minions-head { font-size: 0.85em; letter-spacing: 0.06em; padding-block-end: 0.3em; }
+	.dev-chat-minions { gap: 0.3em; max-height: 12em; overflow-y: auto; scrollbar-width: thin; }
+	.dev-chat-minion {
+		display: flex; flex-direction: column; gap: 0.15em; width: 100%;
+		flex-shrink: 0;
+		padding: var(--pad-card); margin: 0; min-width: 0;
+		text-align: start; font: inherit; color: inherit; cursor: pointer;
+		background: var(--wash);
+		border: 0; border-radius: 0.35em;
+	}
+	.dev-chat-minion:hover { background: color-mix(in srgb, var(--prime) 14%, transparent); }
+	.dev-chat-minion-brief { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	.dev-chat-minion-report { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+	/* ── the composer ─────────────────────────────────────────────────── */
+
+	.dev-chat-compose { flex: 0 0 auto; gap: 0.35em; padding-block-start: 0.4em; border-block-start: 1px solid var(--line); }
+	.dev-chat-compose-row { align-items: flex-end; gap: 0.5em; }
+	.dev-chat-input {
+		flex: 1 1 auto; min-width: 0; resize: vertical;
+		padding: 0.4em 0.5em;
+		font: inherit; font-size: 1rem; color: var(--ink);
+		background: var(--surface);
+		border: 1px solid var(--line); border-radius: var(--radius);
+	}
+	.dev-chat-send {
+		flex: 0 0 auto;
+		padding: 0.4em 0.9em;
+		border-radius: var(--radius);
+		font: inherit; cursor: pointer;
+	}
+	.dev-chat-compose-note { font-size: 0.85em; }
+
+	/* Below 34em the rail is the bottom sheet (devbar.css's own media query) —
+	   the log gets most of the 45dvh and the minions strip shrinks first,
+	   since the composer and the picker are what makes the tab usable at all. */
+	@media (width < 34em) {
+		.dev-chat-minions { max-height: 6em; }
+	}
+
+	/* ── page assistant chat ───────────────────────────────────────────── */
+	.dev-chat-root { padding: 0.5rem; gap: 0.5rem; width: 100%; }
+	.dev-chat-ctrl { gap: 0.4rem; font-size: 0.85rem; padding-block-end: 0.4rem; border-block-end: 1px solid var(--line); }
+	.dev-chat-page-badge { font-weight: bold; color: var(--prime); font-size: 0.85rem; }
+	.dev-chat-asst-id { color: var(--ink-muted); font-size: 0.8rem; }
+	.dev-chat-select { background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: var(--radius); padding: 0.2rem 0.4rem; font-size: 0.8rem; }
+	.dev-chat-new-btn { background: var(--surface-raised); color: var(--prime); border: 1px solid var(--line); border-radius: var(--radius); padding: 0.2rem 0.5rem; cursor: pointer; font-size: 0.8rem; }
+	.dev-chat-new-btn:hover { background: var(--line); }
+	.dev-chat-btn { display: inline-flex; align-items: center; gap: 0.4em; padding: 0.3em 0.7em; border-radius: var(--radius); border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; font-family: var(--mono); font-size: 0.85rem; }
+	.dev-chat-btn:hover { border-color: var(--prime); color: var(--prime); }
+	.dev-chat-mount { flex: 1 1 auto; min-height: 0; }
+	.dev-chat-mount .ai2-talk { max-height: calc(100vh - 12rem); overflow-y: auto; width: 100%; }
+	.dev-chat-err { color: var(--warn); font-size: 0.85rem; }
+}
+
+/* Hiding, in the UTIL layer on purpose: these boxes wear the `.flex` word, which lives in
+   util and sets `display: flex` - a `display: none` from the theme layer above loses to it
+   (layer order beats specificity), and so does the bare `hidden` attribute. */
+@layer util {
+	.dev-says-reading > .dev-sect:not(.dev-says-host),
+	.dev-says-reading .dev-says,
+	.dev-says-reading .dev-says-new,
+	.dev-says-reader[hidden],
+	.dev-says-new[hidden],
+	.dev-says-pinned[hidden],
+	.dev-says-stale[hidden],
+	.dev-chat-list[hidden],
+	.dev-chat-reader[hidden] { display: none; }
+}

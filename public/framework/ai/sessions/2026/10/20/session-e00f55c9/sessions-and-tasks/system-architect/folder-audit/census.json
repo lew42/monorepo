@@ -1,0 +1,6235 @@
+{
+ "count": 487,
+ "dated_old_trees": {
+  "folders": 2,
+  "files": 12,
+  "under": [
+   {
+    "path": "public/framework/ai/2026",
+    "files": 11,
+    "size": 12657
+   },
+   {
+    "path": "public/framework/ai/2026-10-13",
+    "files": 1,
+    "size": 118
+   }
+  ]
+ },
+ "sessions_files": 11342,
+ "entries": [
+  {
+   "name": "AIDashboard",
+   "path": "public/framework/ai/AIDashboard",
+   "kind": "folder",
+   "size": 22318,
+   "files": 10,
+   "newest": "2026-10-19",
+   "code_refs": [
+    "public/framework/ai/AIDashboard/AIDashboard.js",
+    "public/framework/ai/page.js"
+   ]
+  },
+  {
+   "name": "AIDashboard.css",
+   "path": "public/framework/ai/AIDashboard/AIDashboard.css",
+   "kind": "file",
+   "size": 4083,
+   "files": 1,
+   "newest": "2026-10-19",
+   "code_refs": [
+    "public/framework/ai/AIDashboard/AIDashboard.js"
+   ]
+  },
+  {
+   "name": "AIDashboard.js",
+   "path": "public/framework/ai/AIDashboard/AIDashboard.js",
+   "kind": "file",
+   "size": 5461,
+   "files": 1,
+   "newest": "2026-10-19",
+   "code_refs": [
+    "public/framework/ai/page.js"
+   ]
+  },
+  {
+   "name": "DayStrip.js",
+   "path": "public/framework/ai/AIDashboard/DayStrip.js",
+   "kind": "file",
+   "size": 674,
+   "files": 1,
+   "newest": "2026-10-19",
+   "code_refs": [
+    "public/framework/ai/AIDashboard/AIDashboard.js"
+   ]
+  },
+  {
+   "name": "OriginChips.js",
+   "path": "public/framework/ai/AIDashboard/OriginChips.js",
+   "kind": "file",
+   "size": 1084,
+   "files": 1,
+   "newest": "2026-10-19",
+   "code_refs": [
+    "public/framework/ai/AIDashboard/AIDashboard.js"
+   ]
+  },
+  {
+   "name": "SessionRow.js",
+   "path": "public/framework/ai/AIDashboard/SessionRow.js",
+   "kind": "file",
+   "size": 2262,
+   "files": 1,
+   "newest": "2026-10-19",
+   "code_refs": [
+    "public/framework/ai/AIDashboard/AIDashboard.js",
+    "public/framework/ai/AIDashboard/OriginChips.js"
+   ]
+  },
+  {
+   "name": "SessionStore.js",
+   "path": "public/framework/ai/AIDashboard/SessionStore.js",
+   "kind": "file",
+   "size": 1876,
+   "files": 1,
+   "newest": "2026-10-19",
+   "code_refs": [
+    "public/framework/ai/AIDashboard/AIDashboard.js"
+   ]
+  },
+  {
+   "name": "SessionTree.js",
+   "path": "public/framework/ai/AIDashboard/SessionTree.js",
+   "kind": "file",
+   "size": 3403,
+   "files": 1,
+   "newest": "2026-10-19",
+   "code_refs": [
+    "public/framework/ai/AIDashboard/AIDashboard.js",
+    "public/framework/ai/AIDashboard/OriginChips.js",
+    "public/framework/ai/AIDashboard/SessionRow.js",
+    "public/framework/ai/AIDashboard/SessionStore.js"
+   ]
+  },
+  {
+   "name": "UsageLine.js",
+   "path": "public/framework/ai/AIDashboard/UsageLine.js",
+   "kind": "file",
+   "size": 829,
+   "files": 1,
+   "newest": "2026-10-19",
+   "code_refs": [
+    "public/framework/ai/AIDashboard/AIDashboard.js"
+   ]
+  },
+  {
+   "name": "files.jsonl",
+   "path": "public/framework/ai/AIDashboard/files.jsonl",
+   "kind": "file",
+   "size": 225,
+   "files": 1,
+   "newest": "2026-10-19",
+   "code_refs": [
+    "Server/Crawl.mjs",
+    "Server/ModuleLog.mjs",
+    "Server/RepoSize.mjs",
+    "Server/TaskDirs.mjs",
+    "Server/TaskHomes.mjs"
+   ]
+  },
+  {
+   "name": "readme.md",
+   "path": "public/framework/ai/AIDashboard/readme.md",
+   "kind": "file",
+   "size": 2421,
+   "files": 1,
+   "newest": "2026-10-19",
+   "code_refs": [
+    ".claude/skills/system-architect/measure.mjs",
+    "Server/ArchitectureCensus.mjs",
+    "Server/ArchiveSessions.mjs",
+    "Server/AskIndex.mjs",
+    "Server/ModelsNow.mjs"
+   ]
+  },
+  {
+   "name": "AIOverview.js",
+   "path": "public/framework/ai/AIOverview.js",
+   "kind": "file",
+   "size": 49090,
+   "files": 1,
+   "newest": "2026-10-16",
+   "code_refs": [
+    "public/framework/ai/page.js",
+    "public/framework/core/Page/settings/settings.js"
+   ]
+  },
+  {
+   "name": "AISession",
+   "path": "public/framework/ai/AISession",
+   "kind": "folder",
+   "size": 294534,
+   "files": 29,
+   "newest": "2026-10-19",
+   "code_refs": [
+    ".claude/hooks/auto-hold.mjs",
+    ".claude/hooks/jsonl-schema.mjs",
+    "Server/PastWork.mjs",
+    "Server/RefineQueue.mjs",
+    "Server/SessionRecord.mjs"
+   ]
+  },
+  {
+   "name": "AISession.js",
+   "path": "public/framework/ai/AISession/AISession.js",
+   "kind": "file",
+   "size": 37563,
+   "files": 1,
+   "newest": "2026-10-18",
+   "code_refs": [
+    ".claude/hooks/auto-hold.mjs",
+    "Server/RefineQueue.mjs",
+    "Server/plugins/AILogs.js",
+    "Server/session-flags.mjs",
+    "Server/session-gap.mjs"
+   ]
+  },
+  {
+   "name": "AISessionAudit.mjs",
+   "path": "public/framework/ai/AISession/AISessionAudit.mjs",
+   "kind": "file",
+   "size": 25918,
+   "files": 1,
+   "newest": "2026-10-16",
+   "code_refs": [
+    "Server/session-cost.mjs",
+    "Server/session-patterns.mjs",
+    "Server/session-rename.mjs",
+    "Server/session-summary.mjs",
+    "Server/session-summary.test.mjs"
+   ]
+  },
+  {
+   "name": "AISessionBuckets.js",
+   "path": "public/framework/ai/AISession/AISessionBuckets.js",
+   "kind": "file",
+   "size": 8227,
+   "files": 1,
+   "newest": "2026-10-19",
+   "code_refs": [
+    "Server/session-buckets.mjs",
+    "public/framework/ai/AIDashboard/SessionTree.js",
+    "public/framework/ai/AISession/AISessionRows.js",
+    "public/framework/ai/AISession/AISessionSource.mjs",
+    "public/framework/ai/AISession/AISessionsPage.js"
+   ]
+  },
+  {
+   "name": "AISessionConversation.js",
+   "path": "public/framework/ai/AISession/AISessionConversation.js",
+   "kind": "file",
+   "size": 5130,
+   "files": 1,
+   "newest": "2026-10-12",
+   "code_refs": [
+    "public/framework/ai/AISession/AISessionCoverage.js",
+    "public/framework/ai/AISession/AISessionDetail.js",
+    "public/framework/ux/Dictate/surfaces/page.js"
+   ]
+  },
+  {
+   "name": "AISessionCost.mjs",
+   "path": "public/framework/ai/AISession/AISessionCost.mjs",
+   "kind": "file",
+   "size": 3760,
+   "files": 1,
+   "newest": "2026-10-16",
+   "code_refs": [
+    "public/framework/ai/AISession/AISessionCost.test.mjs"
+   ]
+  },
+  {
+   "name": "AISessionCost.test.mjs",
+   "path": "public/framework/ai/AISession/AISessionCost.test.mjs",
+   "kind": "file",
+   "size": 4937,
+   "files": 1,
+   "newest": "2026-10-16",
+   "code_refs": []
+  },
+  {
+   "name": "AISessionCoverage.js",
+   "path": "public/framework/ai/AISession/AISessionCoverage.js",
+   "kind": "file",
+   "size": 7369,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    "public/framework/ai/AISession/AISessionDetail.js",
+    "public/framework/ext/Refine/RefinedCard.js"
+   ]
+  },
+  {
+   "name": "AISessionDetail.js",
+   "path": "public/framework/ai/AISession/AISessionDetail.js",
+   "kind": "file",
+   "size": 27323,
+   "files": 1,
+   "newest": "2026-10-17",
+   "code_refs": [
+    "Server/session-rename.mjs",
+    "Servex/agents/page_tools.js",
+    "public/framework/ai/AISession/AISessionsPage.js",
+    "public/framework/ai/archive/retired/2026-10-13/sessions/SessionDetail.js"
+   ]
+  },
+  {
+   "name": "AISessionDigest.mjs",
+   "path": "public/framework/ai/AISession/AISessionDigest.mjs",
+   "kind": "file",
+   "size": 10380,
+   "files": 1,
+   "newest": "2026-10-16",
+   "code_refs": [
+    "Server/PastWork.mjs"
+   ]
+  },
+  {
+   "name": "AISessionFlags.js",
+   "path": "public/framework/ai/AISession/AISessionFlags.js",
+   "kind": "file",
+   "size": 3790,
+   "files": 1,
+   "newest": "2026-10-12",
+   "code_refs": [
+    "Server/session-flags.mjs",
+    "public/framework/ai/AISession/AISessionSource.mjs",
+    "public/framework/ai/AISession/AISessionView.js",
+    "public/framework/ai/AISession/AISessionsPage.js"
+   ]
+  },
+  {
+   "name": "AISessionFollow.js",
+   "path": "public/framework/ai/AISession/AISessionFollow.js",
+   "kind": "file",
+   "size": 4266,
+   "files": 1,
+   "newest": "2026-10-09",
+   "code_refs": [
+    "Server/session-rename.mjs",
+    "public/framework/ai/AISession/AISessionDetail.js",
+    "public/framework/ai/archive/retired/2026-10-13/sessions/SessionFollow.js"
+   ]
+  },
+  {
+   "name": "AISessionIndex.mjs",
+   "path": "public/framework/ai/AISession/AISessionIndex.mjs",
+   "kind": "file",
+   "size": 29558,
+   "files": 1,
+   "newest": "2026-10-18",
+   "code_refs": [
+    "Server/openrouter-attribute.mjs",
+    "Server/run.js",
+    "Server/session-rename.mjs",
+    "public/framework/ai/AISession/AISessionTailer.mjs"
+   ]
+  },
+  {
+   "name": "AISessionLive.js",
+   "path": "public/framework/ai/AISession/AISessionLive.js",
+   "kind": "file",
+   "size": 4815,
+   "files": 1,
+   "newest": "2026-10-18",
+   "code_refs": [
+    "Server/session-rename.mjs",
+    "public/framework/ai/AISession/AISessionsPage.js",
+    "public/framework/ai/archive/retired/2026-10-13/sessions/SessionLive.js",
+    "public/framework/ai/classes/Session/SessionClassPage.js"
+   ]
+  },
+  {
+   "name": "AISessionResume.js",
+   "path": "public/framework/ai/AISession/AISessionResume.js",
+   "kind": "file",
+   "size": 1423,
+   "files": 1,
+   "newest": "2026-10-12",
+   "code_refs": [
+    "Server/SessionResume.mjs",
+    "public/framework/ai/AISession/AISessionView.js"
+   ]
+  },
+  {
+   "name": "AISessionRows.js",
+   "path": "public/framework/ai/AISession/AISessionRows.js",
+   "kind": "file",
+   "size": 18413,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    "Server/session-rename.mjs",
+    "public/framework/ai/AISession/AISessionDetail.js",
+    "public/framework/ai/AISession/AISessionFlags.js",
+    "public/framework/ai/AISession/AISessionLive.js",
+    "public/framework/ai/AISession/AISessionView.js"
+   ]
+  },
+  {
+   "name": "AISessionSource.mjs",
+   "path": "public/framework/ai/AISession/AISessionSource.mjs",
+   "kind": "file",
+   "size": 4713,
+   "files": 1,
+   "newest": "2026-10-12",
+   "code_refs": [
+    "public/framework/ai/AISession/AISessionFlags.js",
+    "public/framework/ai/AISession/AISessionTailer.mjs"
+   ]
+  },
+  {
+   "name": "AISessionTailer.mjs",
+   "path": "public/framework/ai/AISession/AISessionTailer.mjs",
+   "kind": "file",
+   "size": 3037,
+   "files": 1,
+   "newest": "2026-10-12",
+   "code_refs": [
+    "Server/plugins/SessionTail.js",
+    "Server/run.js",
+    "Server/session-rename.mjs"
+   ]
+  },
+  {
+   "name": "AISessionTrace.js",
+   "path": "public/framework/ai/AISession/AISessionTrace.js",
+   "kind": "file",
+   "size": 11850,
+   "files": 1,
+   "newest": "2026-10-08",
+   "code_refs": [
+    "Server/session-rename.mjs",
+    "public/framework/ai/AISession/AISessionDetail.js",
+    "public/framework/ai/archive/retired/2026-10-13/sessions/SessionTrace.js"
+   ]
+  },
+  {
+   "name": "AISessionView.js",
+   "path": "public/framework/ai/AISession/AISessionView.js",
+   "kind": "file",
+   "size": 16874,
+   "files": 1,
+   "newest": "2026-10-16",
+   "code_refs": [
+    "Server/session-rename.mjs",
+    "public/framework/ai/AISession/AISession.js",
+    "public/framework/ai/AISession/AISessionDetail.js",
+    "public/framework/ai/AISession/AISessionsPage.js",
+    "public/framework/ai/archive/retired/2026-10-13/sessions/SessionView.js"
+   ]
+  },
+  {
+   "name": "AISessionsPage.js",
+   "path": "public/framework/ai/AISession/AISessionsPage.js",
+   "kind": "file",
+   "size": 40730,
+   "files": 1,
+   "newest": "2026-10-16",
+   "code_refs": [
+    ".claude/hooks/auto-hold.mjs",
+    "Server/session-rename.mjs",
+    "public/framework/ai/archive/retired/2026-10-13/sessions/SessionsPage.js",
+    "public/framework/ext/DataGrid/page.js"
+   ]
+  },
+  {
+   "name": "PromptLog.js",
+   "path": "public/framework/ai/AISession/PromptLog.js",
+   "kind": "file",
+   "size": 4591,
+   "files": 1,
+   "newest": "2026-10-10",
+   "code_refs": [
+    "Servex/ext/refine/LiveRefine.js",
+    "Servex/ext/refine/run.js",
+    "public/framework/ext/Refine/RefineSystem.js",
+    "public/framework/ext/Refine/test/session-log.mjs"
+   ]
+  },
+  {
+   "name": "StoreFolder.js",
+   "path": "public/framework/ai/AISession/StoreFolder.js",
+   "kind": "file",
+   "size": 7678,
+   "files": 1,
+   "newest": "2026-10-17",
+   "code_refs": [
+    "Server/TaskMove.mjs",
+    "public/framework/ai/AISession/AISessionsPage.js",
+    "public/framework/ai/page.js"
+   ]
+  },
+  {
+   "name": "doc",
+   "path": "public/framework/ai/AISession/doc",
+   "kind": "folder",
+   "size": 7025,
+   "files": 3,
+   "newest": "2026-10-16",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/auto-hold.mjs",
+    ".claude/hooks/git-guard.mjs",
+    ".claude/hooks/git-guard.test.mjs",
+    ".claude/hooks/hold-guard.mjs"
+   ]
+  },
+  {
+   "name": "files.jsonl",
+   "path": "public/framework/ai/AISession/files.jsonl",
+   "kind": "file",
+   "size": 818,
+   "files": 1,
+   "newest": "2026-10-16",
+   "code_refs": [
+    "Server/Crawl.mjs",
+    "Server/ModuleLog.mjs",
+    "Server/RepoSize.mjs",
+    "Server/TaskDirs.mjs",
+    "Server/TaskHomes.mjs"
+   ]
+  },
+  {
+   "name": "page.js",
+   "path": "public/framework/ai/AISession/page.js",
+   "kind": "file",
+   "size": 541,
+   "files": 1,
+   "newest": "2026-10-14",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/health-guard.mjs",
+    ".claude/hooks/jsonl-guard.test.mjs",
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/jsonl-schema.test.mjs"
+   ]
+  },
+  {
+   "name": "readme.md",
+   "path": "public/framework/ai/AISession/readme.md",
+   "kind": "file",
+   "size": 1893,
+   "files": 1,
+   "newest": "2026-10-17",
+   "code_refs": [
+    ".claude/skills/system-architect/measure.mjs",
+    "Server/ArchitectureCensus.mjs",
+    "Server/ArchiveSessions.mjs",
+    "Server/AskIndex.mjs",
+    "Server/ModelsNow.mjs"
+   ]
+  },
+  {
+   "name": "rename-manifest.json",
+   "path": "public/framework/ai/AISession/rename-manifest.json",
+   "kind": "file",
+   "size": 1912,
+   "files": 1,
+   "newest": "2026-10-08",
+   "code_refs": [
+    "Server/plugins/SessionTail.js",
+    "Server/session-cost.mjs",
+    "Server/session-rename.mjs",
+    "public/framework/ai/archive/retired/2026-10-13/sessions/Session.js",
+    "public/framework/ai/archive/retired/2026-10-13/sessions/SessionDetail.js"
+   ]
+  },
+  {
+   "name": "AISystem.js",
+   "path": "public/framework/ai/AISystem.js",
+   "kind": "file",
+   "size": 2043,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    "public/framework/ai/AIOverview.js"
+   ]
+  },
+  {
+   "name": "AITask",
+   "path": "public/framework/ai/AITask",
+   "kind": "folder",
+   "size": 812749,
+   "files": 125,
+   "newest": "2026-10-19",
+   "code_refs": [
+    ".mjs",
+    "Server/DaySpend.mjs",
+    "Server/ModuleHomes.mjs",
+    "Server/ModuleMove.mjs",
+    "Server/plugins/AILogs.js"
+   ]
+  },
+  {
+   "name": "AICost.js",
+   "path": "public/framework/ai/AITask/AICost.js",
+   "kind": "file",
+   "size": 7160,
+   "files": 1,
+   "newest": "2026-10-14",
+   "code_refs": [
+    "public/framework/ai/AITask/cost.js"
+   ]
+  },
+  {
+   "name": "AITask.js",
+   "path": "public/framework/ai/AITask/AITask.js",
+   "kind": "file",
+   "size": 10503,
+   "files": 1,
+   "newest": "2026-10-17",
+   "code_refs": [
+    "public/app.js",
+    "public/framework/ai/AISession/AISessionDetail.js",
+    "public/framework/ai/AISession/StoreFolder.js",
+    "public/framework/ai/AITask/TaskViews.js",
+    "public/framework/ai/AITask/card.js"
+   ]
+  },
+  {
+   "name": "TaskViews.js",
+   "path": "public/framework/ai/AITask/TaskViews.js",
+   "kind": "file",
+   "size": 2219,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    "public/framework/ai/AITask/AITask.js",
+    "public/framework/ai/AITask/page.js"
+   ]
+  },
+  {
+   "name": "ai.css",
+   "path": "public/framework/ai/AITask/ai.css",
+   "kind": "file",
+   "size": 46205,
+   "files": 1,
+   "newest": "2026-10-19",
+   "code_refs": [
+    "public/framework/ai/AISession/AISessionsPage.js",
+    "public/framework/ai/AITask/AITask.js",
+    "public/framework/ai/AITask/needs.js",
+    "public/framework/ai/AITask/page.js",
+    "public/framework/ai/AITask/replay.js"
+   ]
+  },
+  {
+   "name": "asks.js",
+   "path": "public/framework/ai/AITask/asks.js",
+   "kind": "file",
+   "size": 14610,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/jsonl-schema.test.mjs",
+    "Server/AskIndex-tasks.test.mjs",
+    "Server/AskIndex.mjs"
+   ]
+  },
+  {
+   "name": "board.js",
+   "path": "public/framework/ai/AITask/board.js",
+   "kind": "file",
+   "size": 2371,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/jsonl-guard.test.mjs",
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/prompt-relay.mjs",
+    ".claude/skills/every-prompt/say.mjs"
+   ]
+  },
+  {
+   "name": "card.js",
+   "path": "public/framework/ai/AITask/card.js",
+   "kind": "file",
+   "size": 7464,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    "Servex/agents/layers.test.mjs",
+    "Servex/cards/Cards.js",
+    "Servex/cards/migrate.mjs",
+    "Servex/cards/test.mjs",
+    "Servex/ext/openrouter/evals/library.mjs"
+   ]
+  },
+  {
+   "name": "compose.js",
+   "path": "public/framework/ai/AITask/compose.js",
+   "kind": "file",
+   "size": 2369,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    "Servex/cards/Cards.js",
+    "public/framework/ai/AITask/dashboard.js",
+    "public/framework/ai/AITask/page.js",
+    "public/framework/ai2/page.js",
+    "public/framework/dev/DevBar/says.js"
+   ]
+  },
+  {
+   "name": "conversation.js",
+   "path": "public/framework/ai/AITask/conversation.js",
+   "kind": "file",
+   "size": 14040,
+   "files": 1,
+   "newest": "2026-10-19",
+   "code_refs": [
+    "Server/plugins/AILogs.js",
+    "public/framework/ai/AITask/AITask.js",
+    "public/framework/ai/AITask/page.js",
+    "public/framework/dev/DevBar/log.js"
+   ]
+  },
+  {
+   "name": "cost.js",
+   "path": "public/framework/ai/AITask/cost.js",
+   "kind": "file",
+   "size": 261,
+   "files": 1,
+   "newest": "2026-10-14",
+   "code_refs": [
+    "Server/AskTally.mjs",
+    "Server/DaySpend.mjs",
+    "Server/task-cost.mjs",
+    "public/framework/ai/AITask/AITask.js",
+    "public/framework/ai/AITask/card.js"
+   ]
+  },
+  {
+   "name": "dashboard.js",
+   "path": "public/framework/ai/AITask/dashboard.js",
+   "kind": "file",
+   "size": 14482,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    ".mjs",
+    "Servex/ext/openrouter/provider.js",
+    "public/framework/ai/AITask/asks.js",
+    "public/framework/ai/AITask/day-prompts.js",
+    "public/framework/ai/AITask/effort.js"
+   ]
+  },
+  {
+   "name": "day-prompts.js",
+   "path": "public/framework/ai/AITask/day-prompts.js",
+   "kind": "file",
+   "size": 8417,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    "public/framework/ai/AITask/dashboard.js",
+    "public/framework/ext/Refine/structure.js"
+   ]
+  },
+  {
+   "name": "decisions.js",
+   "path": "public/framework/ai/AITask/decisions.js",
+   "kind": "file",
+   "size": 9256,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    ".claude/hooks/naming-guard.mjs",
+    "Server/Collab.mjs",
+    "Servex/ext/openrouter/evals/library.mjs",
+    "public/framework/ai/AITask/AITask.js",
+    "public/framework/ai/AITask/page.js"
+   ]
+  },
+  {
+   "name": "decisions.mjs",
+   "path": "public/framework/ai/AITask/decisions.mjs",
+   "kind": "file",
+   "size": 8120,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    "public/framework/ai/AITask/page.js"
+   ]
+  },
+  {
+   "name": "doc",
+   "path": "public/framework/ai/AITask/doc",
+   "kind": "folder",
+   "size": 553625,
+   "files": 75,
+   "newest": "2026-10-19",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/auto-hold.mjs",
+    ".claude/hooks/git-guard.mjs",
+    ".claude/hooks/git-guard.test.mjs",
+    ".claude/hooks/hold-guard.mjs"
+   ]
+  },
+  {
+   "name": "effort.js",
+   "path": "public/framework/ai/AITask/effort.js",
+   "kind": "file",
+   "size": 1723,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    "public/framework/ai/AITask/dashboard.js",
+    "public/framework/ai/AITask/page.js"
+   ]
+  },
+  {
+   "name": "feed.css",
+   "path": "public/framework/ai/AITask/feed.css",
+   "kind": "file",
+   "size": 819,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    "public/framework/ai/AITask/feed.js"
+   ]
+  },
+  {
+   "name": "feed.js",
+   "path": "public/framework/ai/AITask/feed.js",
+   "kind": "file",
+   "size": 5755,
+   "files": 1,
+   "newest": "2026-10-19",
+   "code_refs": [
+    "public/framework/ai/AITask/conversation.js"
+   ]
+  },
+  {
+   "name": "files.jsonl",
+   "path": "public/framework/ai/AITask/files.jsonl",
+   "kind": "file",
+   "size": 899,
+   "files": 1,
+   "newest": "2026-10-14",
+   "code_refs": [
+    "Server/Crawl.mjs",
+    "Server/ModuleLog.mjs",
+    "Server/RepoSize.mjs",
+    "Server/TaskDirs.mjs",
+    "Server/TaskHomes.mjs"
+   ]
+  },
+  {
+   "name": "highlights.js",
+   "path": "public/framework/ai/AITask/highlights.js",
+   "kind": "file",
+   "size": 4777,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    "public/framework/ai/AITask/dashboard.js",
+    "public/framework/ai/AITask/page.js"
+   ]
+  },
+  {
+   "name": "listing.js",
+   "path": "public/framework/ai/AITask/listing.js",
+   "kind": "file",
+   "size": 1355,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    "public/framework/ai/AITask/AITask.js",
+    "public/framework/ai/AITask/page.js"
+   ]
+  },
+  {
+   "name": "message.js",
+   "path": "public/framework/ai/AITask/message.js",
+   "kind": "file",
+   "size": 2334,
+   "files": 1,
+   "newest": "2026-10-19",
+   "code_refs": [
+    "public/framework/ai/AITask/AITask.js",
+    "public/framework/ai/AITask/asks.js",
+    "public/framework/ai/AITask/conversation.js",
+    "public/framework/ai/AITask/dashboard.js",
+    "public/framework/ai/AITask/feed.js"
+   ]
+  },
+  {
+   "name": "module-spend.js",
+   "path": "public/framework/ai/AITask/module-spend.js",
+   "kind": "file",
+   "size": 4092,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    "public/framework/ai/AITask/dashboard.js",
+    "public/framework/ai/page.js"
+   ]
+  },
+  {
+   "name": "needs.js",
+   "path": "public/framework/ai/AITask/needs.js",
+   "kind": "file",
+   "size": 4876,
+   "files": 1,
+   "newest": "2026-10-19",
+   "code_refs": [
+    "public/framework/ai/AITask/AITask.js",
+    "public/framework/ai/AITask/asks.js",
+    "public/framework/ai/AITask/dashboard.js",
+    "public/framework/ai/AITask/page.js",
+    "public/framework/ai/asks/AskRows.js"
+   ]
+  },
+  {
+   "name": "nested.css",
+   "path": "public/framework/ai/AITask/nested.css",
+   "kind": "file",
+   "size": 8021,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    "public/framework/ai/AITask/nested.js",
+    "public/framework/ai/AITask/page.js"
+   ]
+  },
+  {
+   "name": "nested.js",
+   "path": "public/framework/ai/AITask/nested.js",
+   "kind": "file",
+   "size": 11219,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    "public/framework/ai/AITask/TaskViews.js",
+    "public/framework/ai/AITask/page.js",
+    "public/framework/ai/AITask/tree/demo/page.js",
+    "public/framework/ai/AITask/tree/design.js",
+    "public/framework/ai/AITask/tree/flow/page.js"
+   ]
+  },
+  {
+   "name": "page.js",
+   "path": "public/framework/ai/AITask/page.js",
+   "kind": "file",
+   "size": 13932,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/health-guard.mjs",
+    ".claude/hooks/jsonl-guard.test.mjs",
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/jsonl-schema.test.mjs"
+   ]
+  },
+  {
+   "name": "plan.js",
+   "path": "public/framework/ai/AITask/plan.js",
+   "kind": "file",
+   "size": 1732,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    ".claude/skills/ui-test/drive.mjs",
+    "Server/TaskMove.mjs",
+    "public/framework/ai/AITask/page.js",
+    "public/framework/ai/AITask/tree/design.js",
+    "public/framework/ux/Content/plan/count.mjs"
+   ]
+  },
+  {
+   "name": "prompt.js",
+   "path": "public/framework/ai/AITask/prompt.js",
+   "kind": "file",
+   "size": 1438,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    "public/framework/ai/AITask/conversation.js",
+    "public/framework/ai/AITask/feed.js",
+    "public/framework/ai/AITask/page.js",
+    "public/framework/ai/AITask/replay.js",
+    "public/framework/ai/AITask/stats.js"
+   ]
+  },
+  {
+   "name": "rank.js",
+   "path": "public/framework/ai/AITask/rank.js",
+   "kind": "file",
+   "size": 5423,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    "public/framework/ai/AITask/asks.js",
+    "public/framework/ai/AITask/decisions.js",
+    "public/framework/ai/AITask/page.js",
+    "public/framework/ext/Ask/reply.js"
+   ]
+  },
+  {
+   "name": "readme.md",
+   "path": "public/framework/ai/AITask/readme.md",
+   "kind": "file",
+   "size": 2717,
+   "files": 1,
+   "newest": "2026-10-19",
+   "code_refs": [
+    ".claude/skills/system-architect/measure.mjs",
+    "Server/ArchitectureCensus.mjs",
+    "Server/ArchiveSessions.mjs",
+    "Server/AskIndex.mjs",
+    "Server/ModelsNow.mjs"
+   ]
+  },
+  {
+   "name": "replay.js",
+   "path": "public/framework/ai/AITask/replay.js",
+   "kind": "file",
+   "size": 5043,
+   "files": 1,
+   "newest": "2026-10-19",
+   "code_refs": [
+    "public/framework/ai/AISession/AISessionDetail.js",
+    "public/framework/ai/AITask/conversation.js"
+   ]
+  },
+  {
+   "name": "shots.js",
+   "path": "public/framework/ai/AITask/shots.js",
+   "kind": "file",
+   "size": 1576,
+   "files": 1,
+   "newest": "2026-10-19",
+   "code_refs": [
+    "Server/plugins/Recordings.js",
+    "Server/plugins/Whisper.js",
+    "Server/run.js",
+    "public/framework/ai/AITask/AITask.js",
+    "public/framework/ai/AITask/asks.js"
+   ]
+  },
+  {
+   "name": "stats.js",
+   "path": "public/framework/ai/AITask/stats.js",
+   "kind": "file",
+   "size": 6519,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    "public/framework/ai/AIDashboard/SessionRow.js",
+    "public/framework/ai/AISession/AISessionRows.js",
+    "public/framework/ai/AISession/AISessionView.js",
+    "public/framework/ai/AITask/AITask.js",
+    "public/framework/ai/AITask/asks.js"
+   ]
+  },
+  {
+   "name": "tree",
+   "path": "public/framework/ai/AITask/tree",
+   "kind": "folder",
+   "size": 7578,
+   "files": 13,
+   "newest": "2026-10-13",
+   "code_refs": [
+    ".claude/hooks/auto-hold.mjs",
+    ".claude/hooks/git-guard.mjs",
+    ".claude/hooks/git-guard.test.mjs",
+    ".claude/hooks/junction-guard.mjs",
+    ".claude/hooks/naming-guard.mjs"
+   ]
+  },
+  {
+   "name": "tree.js",
+   "path": "public/framework/ai/AITask/tree.js",
+   "kind": "file",
+   "size": 11305,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    ".claude/hooks/syntax-guard.mjs",
+    "Server/session-summary.mjs",
+    "Server/spend-tree.mjs",
+    "Servex/agents/Agents.js",
+    "Servex/agents/tools.js"
+   ]
+  },
+  {
+   "name": "tree.test.mjs",
+   "path": "public/framework/ai/AITask/tree.test.mjs",
+   "kind": "file",
+   "size": 4230,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    "Servex/agents/awaken-race.test.mjs",
+    "Servex/agents/fixer.test.mjs",
+    "Servex/agents/spawn-worktree.test.mjs"
+   ]
+  },
+  {
+   "name": "usage.js",
+   "path": "public/framework/ai/AITask/usage.js",
+   "kind": "file",
+   "size": 4148,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    ".claude/hooks/jsonl-schema.test.mjs",
+    ".claude/hooks/ledger.mjs",
+    "Server/AntigravityUsage.mjs",
+    "Server/ModelsNow.mjs",
+    "Server/RepoSize.mjs"
+   ]
+  },
+  {
+   "name": "weight.jsonl",
+   "path": "public/framework/ai/AITask/weight.jsonl",
+   "kind": "file",
+   "size": 136,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    "Server/page-ai-cost.mjs",
+    "Server/page-refs.mjs",
+    "Server/smoke.mjs",
+    "public/framework/core/Page/ext/Inbox/timeline/TimelinePage.js",
+    "public/framework/core/Page/settings/settings.js"
+   ]
+  },
+  {
+   "name": "CLAUDE.copy.md",
+   "path": "public/framework/ai/CLAUDE.copy.md",
+   "kind": "file",
+   "size": 22211,
+   "files": 1,
+   "newest": "2026-10-09",
+   "code_refs": [
+    "public/framework/ai/AIOverview.js",
+    "public/framework/ai/skills.mjs"
+   ]
+  },
+  {
+   "name": "SystemClasses.js",
+   "path": "public/framework/ai/SystemClasses.js",
+   "kind": "file",
+   "size": 7260,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    "public/framework/ai/AIOverview.js",
+    "public/framework/ai/classes/ClassIndexPage.js",
+    "public/framework/ai/classes/Session/SessionClassPage.js"
+   ]
+  },
+  {
+   "name": "ai",
+   "path": "public/framework/ai/ai",
+   "kind": "folder",
+   "size": 7299,
+   "files": 2,
+   "newest": "2026-10-19",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/auto-hold.mjs",
+    ".claude/hooks/git-guard.mjs",
+    ".claude/hooks/git-guard.test.mjs",
+    ".claude/hooks/health-guard.mjs"
+   ]
+  },
+  {
+   "name": "files.jsonl",
+   "path": "public/framework/ai/ai/files.jsonl",
+   "kind": "file",
+   "size": 412,
+   "files": 1,
+   "newest": "2026-10-19",
+   "code_refs": [
+    "Server/Crawl.mjs",
+    "Server/ModuleLog.mjs",
+    "Server/RepoSize.mjs",
+    "Server/TaskDirs.mjs",
+    "Server/TaskHomes.mjs"
+   ]
+  },
+  {
+   "name": "log.jsonl",
+   "path": "public/framework/ai/ai/log.jsonl",
+   "kind": "file",
+   "size": 6887,
+   "files": 1,
+   "newest": "2026-10-16",
+   "code_refs": [
+    "Server/CatalogThumbs.mjs",
+    "Server/RepoSize.mjs",
+    "Servex/Pool.test.mjs",
+    "Servex/agents/Sessions.js",
+    "Servex/agents/experts-proof.mjs"
+   ]
+  },
+  {
+   "name": "antigravity-usage.json",
+   "path": "public/framework/ai/antigravity-usage.json",
+   "kind": "file",
+   "size": 2984,
+   "files": 1,
+   "newest": "2026-10-06",
+   "code_refs": [
+    "Server/AntigravityUsage.mjs"
+   ]
+  },
+  {
+   "name": "antigravity-usage.jsonl",
+   "path": "public/framework/ai/antigravity-usage.jsonl",
+   "kind": "file",
+   "size": 592,
+   "files": 1,
+   "newest": "2026-10-06",
+   "code_refs": [
+    "Server/AntigravityUsage.mjs"
+   ]
+  },
+  {
+   "name": "archive",
+   "path": "public/framework/ai/archive",
+   "kind": "folder",
+   "size": 24259,
+   "files": 162,
+   "newest": "2026-10-13",
+   "code_refs": [
+    ".claude/hooks/prompt-relay.mjs",
+    ".claude/skills/system-architect/skill-usage.mjs",
+    "Server/ArchitectureCensus.mjs",
+    "Server/ArchiveCopy.mjs",
+    "Server/ArchiveCopy.test.mjs"
+   ]
+  },
+  {
+   "name": "ai2",
+   "path": "public/framework/ai/archive/ai2",
+   "kind": "folder",
+   "size": 2535,
+   "files": 7,
+   "newest": "2026-10-13",
+   "code_refs": [
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/jsonl-schema.test.mjs",
+    "Server/Ai2Overview.mjs",
+    "Server/Council.mjs",
+    "Server/Crawl.mjs"
+   ]
+  },
+  {
+   "name": "day-listings",
+   "path": "public/framework/ai/archive/day-listings",
+   "kind": "folder",
+   "size": 178,
+   "files": 2,
+   "newest": "2026-10-13",
+   "code_refs": []
+  },
+  {
+   "name": "files.jsonl",
+   "path": "public/framework/ai/archive/files.jsonl",
+   "kind": "file",
+   "size": 112,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    "Server/Crawl.mjs",
+    "Server/ModuleLog.mjs",
+    "Server/RepoSize.mjs",
+    "Server/TaskDirs.mjs",
+    "Server/TaskHomes.mjs"
+   ]
+  },
+  {
+   "name": "retire-shims.mjs",
+   "path": "public/framework/ai/archive/retire-shims.mjs",
+   "kind": "file",
+   "size": 873,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": []
+  },
+  {
+   "name": "retired",
+   "path": "public/framework/ai/archive/retired",
+   "kind": "folder",
+   "size": 3815,
+   "files": 12,
+   "newest": "2026-10-13",
+   "code_refs": [
+    ".claude/hooks/prompt-relay.mjs",
+    "Server/Collab.mjs",
+    "Server/Council.mjs",
+    "Server/RetireFiles.mjs",
+    "Server/TaskDirs.mjs"
+   ]
+  },
+  {
+   "name": "task-stubs",
+   "path": "public/framework/ai/archive/task-stubs",
+   "kind": "folder",
+   "size": 16746,
+   "files": 139,
+   "newest": "2026-10-12",
+   "code_refs": [
+    "Server/TaskMove.mjs",
+    "Server/TaskMove.test.mjs"
+   ]
+  },
+  {
+   "name": "asks",
+   "path": "public/framework/ai/asks",
+   "kind": "folder",
+   "size": 1058125,
+   "files": 12,
+   "newest": "2026-10-19",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/health-guard.mjs",
+    ".claude/hooks/hold-guard.mjs",
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/jsonl-schema.test.mjs"
+   ]
+  },
+  {
+   "name": "AskFold.js",
+   "path": "public/framework/ai/asks/AskFold.js",
+   "kind": "file",
+   "size": 3224,
+   "files": 1,
+   "newest": "2026-10-12",
+   "code_refs": [
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/jsonl-schema.test.mjs",
+    "Server/State.mjs",
+    "Server/UndoneAsks.mjs",
+    "Servex/asks/Asks.js"
+   ]
+  },
+  {
+   "name": "AskRows.js",
+   "path": "public/framework/ai/asks/AskRows.js",
+   "kind": "file",
+   "size": 4972,
+   "files": 1,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "asks.css",
+   "path": "public/framework/ai/asks/asks.css",
+   "kind": "file",
+   "size": 1192,
+   "files": 1,
+   "newest": "2026-10-12",
+   "code_refs": [
+    "public/framework/ai/asks/page.js",
+    "public/framework/ai/tasks/TaskLanes.js",
+    "public/framework/ext/Figma/palette/tasks/page.js"
+   ]
+  },
+  {
+   "name": "files.jsonl",
+   "path": "public/framework/ai/asks/files.jsonl",
+   "kind": "file",
+   "size": 315,
+   "files": 1,
+   "newest": "2026-10-18",
+   "code_refs": [
+    "Server/Crawl.mjs",
+    "Server/ModuleLog.mjs",
+    "Server/RepoSize.mjs",
+    "Server/TaskDirs.mjs",
+    "Server/TaskHomes.mjs"
+   ]
+  },
+  {
+   "name": "orphan-asks.jsonl",
+   "path": "public/framework/ai/asks/orphan-asks.jsonl",
+   "kind": "file",
+   "size": 2885,
+   "files": 1,
+   "newest": "2026-10-18",
+   "code_refs": [
+    "Server/FollowUp.mjs",
+    "Server/OrphanAsks.mjs"
+   ]
+  },
+  {
+   "name": "page.js",
+   "path": "public/framework/ai/asks/page.js",
+   "kind": "file",
+   "size": 6454,
+   "files": 1,
+   "newest": "2026-10-17",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/health-guard.mjs",
+    ".claude/hooks/jsonl-guard.test.mjs",
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/jsonl-schema.test.mjs"
+   ]
+  },
+  {
+   "name": "readme.md",
+   "path": "public/framework/ai/asks/readme.md",
+   "kind": "file",
+   "size": 3606,
+   "files": 1,
+   "newest": "2026-10-17",
+   "code_refs": [
+    ".claude/skills/system-architect/measure.mjs",
+    "Server/ArchitectureCensus.mjs",
+    "Server/ArchiveSessions.mjs",
+    "Server/AskIndex.mjs",
+    "Server/ModelsNow.mjs"
+   ]
+  },
+  {
+   "name": "undone",
+   "path": "public/framework/ai/asks/undone",
+   "kind": "folder",
+   "size": 5645,
+   "files": 3,
+   "newest": "2026-10-19",
+   "code_refs": [
+    "Server/ModuleMove.mjs",
+    "Server/OrphanAsks.mjs",
+    "Server/RenameScript.mjs",
+    "Server/SessionDayMove.mjs",
+    "Server/TaskDirs.mjs"
+   ]
+  },
+  {
+   "name": "undone-to-tasks.jsonl",
+   "path": "public/framework/ai/asks/undone-to-tasks.jsonl",
+   "kind": "file",
+   "size": 35446,
+   "files": 1,
+   "newest": "2026-10-17",
+   "code_refs": [
+    "Server/UndoneToTasks.mjs"
+   ]
+  },
+  {
+   "name": "undone.json",
+   "path": "public/framework/ai/asks/undone.json",
+   "kind": "file",
+   "size": 994386,
+   "files": 1,
+   "newest": "2026-10-19",
+   "code_refs": [
+    "Server/UndoneAsks.mjs",
+    "Server/UndoneAsks.test.mjs",
+    "Server/UndoneToTasks.mjs",
+    "Server/UndoneVerify.mjs",
+    "Servex/TaskLoop.js"
+   ]
+  },
+  {
+   "name": "asks.jsonl",
+   "path": "public/framework/ai/asks.jsonl",
+   "kind": "file",
+   "size": 70980,
+   "files": 1,
+   "newest": "2026-10-18",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/jsonl-schema.test.mjs",
+    "Server/AskIndex-tasks.test.mjs",
+    "Server/AskIndex.mjs"
+   ]
+  },
+  {
+   "name": "audits",
+   "path": "public/framework/ai/audits",
+   "kind": "folder",
+   "size": 61233,
+   "files": 31,
+   "newest": "2026-10-17",
+   "code_refs": [
+    "Server/ModuleHomes.mjs",
+    "Servex/agents/Brief.js",
+    "Servex/agents/groups.test.mjs",
+    "public/framework/ai/AISession/AISession.js",
+    "public/framework/ai/audits/page.js"
+   ]
+  },
+  {
+   "name": "files.jsonl",
+   "path": "public/framework/ai/audits/files.jsonl",
+   "kind": "file",
+   "size": 89,
+   "files": 1,
+   "newest": "2026-10-16",
+   "code_refs": [
+    "Server/Crawl.mjs",
+    "Server/ModuleLog.mjs",
+    "Server/RepoSize.mjs",
+    "Server/TaskDirs.mjs",
+    "Server/TaskHomes.mjs"
+   ]
+  },
+  {
+   "name": "index.jsonl",
+   "path": "public/framework/ai/audits/index.jsonl",
+   "kind": "file",
+   "size": 2604,
+   "files": 1,
+   "newest": "2026-10-16",
+   "code_refs": [
+    "Server/TaskState.mjs",
+    "Server/sources.mjs",
+    "public/framework/ai/classes/Session/SessionClassPage.js",
+    "public/framework/ext/Figma/Figma.js",
+    "public/framework/ext/Figma/track.mjs"
+   ]
+  },
+  {
+   "name": "page.js",
+   "path": "public/framework/ai/audits/page.js",
+   "kind": "file",
+   "size": 253,
+   "files": 1,
+   "newest": "2026-09-28",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/health-guard.mjs",
+    ".claude/hooks/jsonl-guard.test.mjs",
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/jsonl-schema.test.mjs"
+   ]
+  },
+  {
+   "name": "paging",
+   "path": "public/framework/ai/audits/paging",
+   "kind": "folder",
+   "size": 57662,
+   "files": 27,
+   "newest": "2026-10-17",
+   "code_refs": [
+    "Server/Ai2Overview.mjs",
+    "Server/plugins/SocketServer/Runtime.js",
+    "Servex/Follow.js",
+    "public/framework/ai/AISession/AISessionsPage.js",
+    "public/framework/ai/audits/page.js"
+   ]
+  },
+  {
+   "name": "readme.md",
+   "path": "public/framework/ai/audits/readme.md",
+   "kind": "file",
+   "size": 625,
+   "files": 1,
+   "newest": "2026-10-16",
+   "code_refs": [
+    ".claude/skills/system-architect/measure.mjs",
+    "Server/ArchitectureCensus.mjs",
+    "Server/ArchiveSessions.mjs",
+    "Server/AskIndex.mjs",
+    "Server/ModelsNow.mjs"
+   ]
+  },
+  {
+   "name": "board.jsonl",
+   "path": "public/framework/ai/board.jsonl",
+   "kind": "file",
+   "size": 396558,
+   "files": 1,
+   "newest": "2026-10-12",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/jsonl-guard.test.mjs",
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/prompt-relay.mjs",
+    ".claude/skills/every-prompt/say.mjs"
+   ]
+  },
+  {
+   "name": "cand.txt",
+   "path": "public/framework/ai/cand.txt",
+   "kind": "file",
+   "size": 0,
+   "files": 1,
+   "newest": "2026-09-28",
+   "code_refs": []
+  },
+  {
+   "name": "cards",
+   "path": "public/framework/ai/cards",
+   "kind": "folder",
+   "size": 153454,
+   "files": 35,
+   "newest": "2026-10-19",
+   "code_refs": [
+    ".claude/hooks/git-guard.mjs",
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/jsonl-schema.test.mjs",
+    ".claude/hooks/prompt-relay.mjs",
+    ".claude/hooks/reply-relay.mjs"
+   ]
+  },
+  {
+   "name": "Activity.js",
+   "path": "public/framework/ai/cards/Activity.js",
+   "kind": "file",
+   "size": 11413,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    "public/framework/ai/cards/card.js",
+    "public/framework/ai/cards/real.js",
+    "public/framework/ai/rail/rail.js",
+    "public/framework/ai2/activity.js"
+   ]
+  },
+  {
+   "name": "Agents.js",
+   "path": "public/framework/ai/cards/Agents.js",
+   "kind": "file",
+   "size": 5734,
+   "files": 1,
+   "newest": "2026-10-12",
+   "code_refs": [
+    ".claude/hooks/reply-relay.mjs",
+    ".claude/hooks/syntax-guard.mjs",
+    "Server/AskEach.mjs",
+    "Server/DaySpend.mjs",
+    "Server/PastWork.mjs"
+   ]
+  },
+  {
+   "name": "CardChat.js",
+   "path": "public/framework/ai/cards/CardChat.js",
+   "kind": "file",
+   "size": 649,
+   "files": 1,
+   "newest": "2026-10-12",
+   "code_refs": [
+    "public/framework/ai/cards/Faces.js",
+    "public/framework/ai/cards/card.js",
+    "public/framework/ai/rail/live.js",
+    "public/framework/ai/rail/rail.js",
+    "public/framework/ai2/chat.js"
+   ]
+  },
+  {
+   "name": "CardDir.js",
+   "path": "public/framework/ai/cards/CardDir.js",
+   "kind": "file",
+   "size": 2815,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    "Server/DayPromptsRefine.mjs",
+    "Server/Server.js",
+    "Server/TaskMove.mjs",
+    "Server/smoke.mjs",
+    "Servex/agents/Layers.js"
+   ]
+  },
+  {
+   "name": "Compose.js",
+   "path": "public/framework/ai/cards/Compose.js",
+   "kind": "file",
+   "size": 3384,
+   "files": 1,
+   "newest": "2026-10-12",
+   "code_refs": [
+    "Servex/ext/refine/VoicePage.js",
+    "public/framework/ai/cards/CardChat.js",
+    "public/framework/ai/cards/card.js",
+    "public/framework/ai/rail/rail.js",
+    "public/framework/ai2/compose.js"
+   ]
+  },
+  {
+   "name": "Faces.js",
+   "path": "public/framework/ai/cards/Faces.js",
+   "kind": "file",
+   "size": 14742,
+   "files": 1,
+   "newest": "2026-10-19",
+   "code_refs": [
+    "public/framework/ai/cards/Activity.js",
+    "public/framework/ai/cards/Outline.js",
+    "public/framework/ai/cards/Tasks.js",
+    "public/framework/ai/cards/card.js",
+    "public/framework/ai/cards/real.js"
+   ]
+  },
+  {
+   "name": "Fold.js",
+   "path": "public/framework/ai/cards/Fold.js",
+   "kind": "file",
+   "size": 2231,
+   "files": 1,
+   "newest": "2026-10-12",
+   "code_refs": [
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/jsonl-schema.test.mjs",
+    "Server/State.mjs",
+    "Server/UndoneAsks.mjs",
+    "Servex/asks/Asks.js"
+   ]
+  },
+  {
+   "name": "Meter.js",
+   "path": "public/framework/ai/cards/Meter.js",
+   "kind": "file",
+   "size": 2966,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    "public/framework/ai/cards/Faces.js",
+    "public/framework/ai/rail/rail.js",
+    "public/framework/ai2/meter.js",
+    "public/framework/audio/v1/LevelMeter/page.js",
+    "public/framework/audio/v1/mic-to-text/page.js"
+   ]
+  },
+  {
+   "name": "Outline.js",
+   "path": "public/framework/ai/cards/Outline.js",
+   "kind": "file",
+   "size": 7233,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    "Servex/ext/refine/VoicePage.js",
+    "Servex/ext/refine/run.js",
+    "public/framework/ai/cards/Activity.js",
+    "public/framework/ai/cards/card.js",
+    "public/framework/ai2/outline.js"
+   ]
+  },
+  {
+   "name": "Rules.js",
+   "path": "public/framework/ai/cards/Rules.js",
+   "kind": "file",
+   "size": 4891,
+   "files": 1,
+   "newest": "2026-10-12",
+   "code_refs": [
+    "public/framework/ai/cards/card.js",
+    "public/framework/ai/rail/rail.js",
+    "public/framework/ai2/rules.js"
+   ]
+  },
+  {
+   "name": "Tasks.js",
+   "path": "public/framework/ai/cards/Tasks.js",
+   "kind": "file",
+   "size": 7934,
+   "files": 1,
+   "newest": "2026-10-19",
+   "code_refs": [
+    "public/framework/ai/cards/Outline.js",
+    "public/framework/ai/cards/card.js",
+    "public/framework/ai/rail/rail.js",
+    "public/framework/ai2/tasks.js",
+    "public/live/Live.js"
+   ]
+  },
+  {
+   "name": "card.js",
+   "path": "public/framework/ai/cards/card.js",
+   "kind": "file",
+   "size": 43128,
+   "files": 1,
+   "newest": "2026-10-19",
+   "code_refs": [
+    "Servex/agents/layers.test.mjs",
+    "Servex/cards/Cards.js",
+    "Servex/cards/migrate.mjs",
+    "Servex/cards/test.mjs",
+    "Servex/ext/openrouter/evals/library.mjs"
+   ]
+  },
+  {
+   "name": "doc",
+   "path": "public/framework/ai/cards/doc",
+   "kind": "folder",
+   "size": 20597,
+   "files": 4,
+   "newest": "2026-10-14",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/auto-hold.mjs",
+    ".claude/hooks/git-guard.mjs",
+    ".claude/hooks/git-guard.test.mjs",
+    ".claude/hooks/hold-guard.mjs"
+   ]
+  },
+  {
+   "name": "files.jsonl",
+   "path": "public/framework/ai/cards/files.jsonl",
+   "kind": "file",
+   "size": 686,
+   "files": 1,
+   "newest": "2026-10-16",
+   "code_refs": [
+    "Server/Crawl.mjs",
+    "Server/ModuleLog.mjs",
+    "Server/RepoSize.mjs",
+    "Server/TaskDirs.mjs",
+    "Server/TaskHomes.mjs"
+   ]
+  },
+  {
+   "name": "floating.js",
+   "path": "public/framework/ai/cards/floating.js",
+   "kind": "file",
+   "size": 332,
+   "files": 1,
+   "newest": "2026-10-09",
+   "code_refs": [
+    "public/framework/ai/cards/card.js",
+    "public/framework/ai/cards/workspace.js",
+    "public/framework/ai2/floating.js",
+    "public/framework/core/Page/layout/floating/floating.js",
+    "public/framework/core/Page/layout/floating/page.js"
+   ]
+  },
+  {
+   "name": "inbox.jsonl",
+   "path": "public/framework/ai/cards/inbox.jsonl",
+   "kind": "file",
+   "size": 568,
+   "files": 1,
+   "newest": "2026-10-14",
+   "code_refs": [
+    "Server/AskIndex.mjs",
+    "Server/AskIndex.test.mjs",
+    "Server/UndoneAsks.mjs",
+    "Server/UndoneVerify.mjs",
+    "Servex/Heartbeat.js"
+   ]
+  },
+  {
+   "name": "readme.md",
+   "path": "public/framework/ai/cards/readme.md",
+   "kind": "file",
+   "size": 1365,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    ".claude/skills/system-architect/measure.mjs",
+    "Server/ArchitectureCensus.mjs",
+    "Server/ArchiveSessions.mjs",
+    "Server/AskIndex.mjs",
+    "Server/ModelsNow.mjs"
+   ]
+  },
+  {
+   "name": "real.js",
+   "path": "public/framework/ai/cards/real.js",
+   "kind": "file",
+   "size": 10111,
+   "files": 1,
+   "newest": "2026-10-12",
+   "code_refs": [
+    "Server/plugins/SocketServer/Runtime.js",
+    "public/framework/ai/rail/inbox.js",
+    "public/framework/ai/rail/rail.js",
+    "public/framework/ai2/real.js",
+    "public/imagine/paging/make/page.js"
+   ]
+  },
+  {
+   "name": "tasks",
+   "path": "public/framework/ai/cards/tasks",
+   "kind": "folder",
+   "size": 10159,
+   "files": 13,
+   "newest": "2026-10-17",
+   "code_refs": [
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/ledger.mjs",
+    "Server/Ai2Overview.mjs",
+    "Server/AskIndex-tasks.test.mjs",
+    "Server/AskIndex.mjs"
+   ]
+  },
+  {
+   "name": "workspace.js",
+   "path": "public/framework/ai/cards/workspace.js",
+   "kind": "file",
+   "size": 2516,
+   "files": 1,
+   "newest": "2026-10-09",
+   "code_refs": [
+    "public/framework/ai/cards/card.js",
+    "public/framework/ai/rail/rail.js",
+    "public/framework/ai2/workspace.js",
+    "public/framework/audit/overview/priorities/page.js",
+    "public/framework/ext/Panel/Panel.js"
+   ]
+  },
+  {
+   "name": "cards.jsonl",
+   "path": "public/framework/ai/cards.jsonl",
+   "kind": "file",
+   "size": 288683,
+   "files": 1,
+   "newest": "2026-10-20",
+   "code_refs": [
+    "Server/State.mjs",
+    "Server/State.test.mjs",
+    "Server/UndoneAsks.mjs",
+    "Server/UndoneAsks.test.mjs",
+    "Server/jsonl-keep.mjs"
+   ]
+  },
+  {
+   "name": "classes",
+   "path": "public/framework/ai/classes",
+   "kind": "folder",
+   "size": 4273,
+   "files": 6,
+   "newest": "2026-10-16",
+   "code_refs": [
+    ".claude/hooks/jsonl-schema.test.mjs",
+    "Server/AskTally.mjs",
+    "Server/Events.js",
+    "Server/Server.js",
+    "Server/health.mjs"
+   ]
+  },
+  {
+   "name": "ClassIndexPage.js",
+   "path": "public/framework/ai/classes/ClassIndexPage.js",
+   "kind": "file",
+   "size": 626,
+   "files": 1,
+   "newest": "2026-10-12",
+   "code_refs": [
+    "public/framework/ai/classes/page.js"
+   ]
+  },
+  {
+   "name": "Session",
+   "path": "public/framework/ai/classes/Session",
+   "kind": "folder",
+   "size": 3443,
+   "files": 3,
+   "newest": "2026-10-16",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/auto-hold.mjs",
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/ledger.mjs",
+    ".claude/hooks/naming-guard.mjs"
+   ]
+  },
+  {
+   "name": "files.jsonl",
+   "path": "public/framework/ai/classes/files.jsonl",
+   "kind": "file",
+   "size": 95,
+   "files": 1,
+   "newest": "2026-10-08",
+   "code_refs": [
+    "Server/Crawl.mjs",
+    "Server/ModuleLog.mjs",
+    "Server/RepoSize.mjs",
+    "Server/TaskDirs.mjs",
+    "Server/TaskHomes.mjs"
+   ]
+  },
+  {
+   "name": "page.js",
+   "path": "public/framework/ai/classes/page.js",
+   "kind": "file",
+   "size": 109,
+   "files": 1,
+   "newest": "2026-10-08",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/health-guard.mjs",
+    ".claude/hooks/jsonl-guard.test.mjs",
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/jsonl-schema.test.mjs"
+   ]
+  },
+  {
+   "name": "collab",
+   "path": "public/framework/ai/collab",
+   "kind": "folder",
+   "size": 7075,
+   "files": 3,
+   "newest": "2026-09-29",
+   "code_refs": [
+    ".claude/hooks/naming-guard.mjs",
+    "Server/Ai2Overview.mjs",
+    "Server/Collab.mjs",
+    "Server/refine.mjs",
+    "Server/review.mjs"
+   ]
+  },
+  {
+   "name": "decisions.jsonl",
+   "path": "public/framework/ai/collab/decisions.jsonl",
+   "kind": "file",
+   "size": 2234,
+   "files": 1,
+   "newest": "2026-09-29",
+   "code_refs": [
+    ".claude/hooks/naming-guard.mjs",
+    "Server/Collab.mjs",
+    "Servex/ext/openrouter/evals/library.mjs",
+    "public/framework/ext/Collab/Collab.js",
+    "public/framework/ext/Doc/decisions.js"
+   ]
+  },
+  {
+   "name": "files.jsonl",
+   "path": "public/framework/ai/collab/files.jsonl",
+   "kind": "file",
+   "size": 55,
+   "files": 1,
+   "newest": "2026-09-29",
+   "code_refs": [
+    "Server/Crawl.mjs",
+    "Server/ModuleLog.mjs",
+    "Server/RepoSize.mjs",
+    "Server/TaskDirs.mjs",
+    "Server/TaskHomes.mjs"
+   ]
+  },
+  {
+   "name": "scoreboard.jsonl",
+   "path": "public/framework/ai/collab/scoreboard.jsonl",
+   "kind": "file",
+   "size": 4786,
+   "files": 1,
+   "newest": "2026-09-28",
+   "code_refs": [
+    "Server/Collab.mjs",
+    "Server/refine.mjs",
+    "Server/review.mjs",
+    "public/framework/ext/Collab/Collab.js",
+    "public/framework/ext/Collab/page.js"
+   ]
+  },
+  {
+   "name": "concepts.js",
+   "path": "public/framework/ai/concepts.js",
+   "kind": "file",
+   "size": 11068,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    "public/framework/ai/AIOverview.js",
+    "public/framework/ai/page.js"
+   ]
+  },
+  {
+   "name": "council",
+   "path": "public/framework/ai/council",
+   "kind": "folder",
+   "size": 67323,
+   "files": 6,
+   "newest": "2026-10-12",
+   "code_refs": [
+    "Server/Council.mjs",
+    "Server/on-landing.mjs",
+    "public/framework/ai/council/page.js",
+    "public/framework/ai/page.js",
+    "public/framework/core/new/1/agents/a11y/page.js"
+   ]
+  },
+  {
+   "name": "asks.jsonl",
+   "path": "public/framework/ai/council/asks.jsonl",
+   "kind": "file",
+   "size": 60829,
+   "files": 1,
+   "newest": "2026-10-12",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/jsonl-schema.test.mjs",
+    "Server/AskIndex-tasks.test.mjs",
+    "Server/AskIndex.mjs"
+   ]
+  },
+  {
+   "name": "files.jsonl",
+   "path": "public/framework/ai/council/files.jsonl",
+   "kind": "file",
+   "size": 109,
+   "files": 1,
+   "newest": "2026-10-06",
+   "code_refs": [
+    "Server/Crawl.mjs",
+    "Server/ModuleLog.mjs",
+    "Server/RepoSize.mjs",
+    "Server/TaskDirs.mjs",
+    "Server/TaskHomes.mjs"
+   ]
+  },
+  {
+   "name": "loop.svg",
+   "path": "public/framework/ai/council/loop.svg",
+   "kind": "file",
+   "size": 2551,
+   "files": 1,
+   "newest": "2026-09-28",
+   "code_refs": [
+    "public/framework/ai/council/page.js"
+   ]
+  },
+  {
+   "name": "page.js",
+   "path": "public/framework/ai/council/page.js",
+   "kind": "file",
+   "size": 1442,
+   "files": 1,
+   "newest": "2026-09-28",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/health-guard.mjs",
+    ".claude/hooks/jsonl-guard.test.mjs",
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/jsonl-schema.test.mjs"
+   ]
+  },
+  {
+   "name": "readme.md",
+   "path": "public/framework/ai/council/readme.md",
+   "kind": "file",
+   "size": 500,
+   "files": 1,
+   "newest": "2026-10-12",
+   "code_refs": [
+    ".claude/skills/system-architect/measure.mjs",
+    "Server/ArchitectureCensus.mjs",
+    "Server/ArchiveSessions.mjs",
+    "Server/AskIndex.mjs",
+    "Server/ModelsNow.mjs"
+   ]
+  },
+  {
+   "name": "requirements.md",
+   "path": "public/framework/ai/council/requirements.md",
+   "kind": "file",
+   "size": 1892,
+   "files": 1,
+   "newest": "2026-10-06",
+   "code_refs": [
+    ".claude/hooks/hold-guard.mjs",
+    ".claude/hooks/ledger.mjs",
+    "Server/Audit.mjs",
+    "Server/BrowserCheck.mjs",
+    "Server/Council.mjs"
+   ]
+  },
+  {
+   "name": "dashboard",
+   "path": "public/framework/ai/dashboard",
+   "kind": "folder",
+   "size": 26704,
+   "files": 11,
+   "newest": "2026-10-16",
+   "code_refs": [
+    ".claude/skills/every-prompt/say.mjs",
+    ".mjs",
+    "Server/Ai2Overview.mjs",
+    "Server/SessionIndex.mjs",
+    "Server/State.mjs"
+   ]
+  },
+  {
+   "name": "dashboard.css",
+   "path": "public/framework/ai/dashboard/dashboard.css",
+   "kind": "file",
+   "size": 1588,
+   "files": 1,
+   "newest": "2026-10-12",
+   "code_refs": [
+    "public/framework/ai/dashboard/page.js"
+   ]
+  },
+  {
+   "name": "doc",
+   "path": "public/framework/ai/dashboard/doc",
+   "kind": "folder",
+   "size": 6064,
+   "files": 2,
+   "newest": "2026-10-13",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/auto-hold.mjs",
+    ".claude/hooks/git-guard.mjs",
+    ".claude/hooks/git-guard.test.mjs",
+    ".claude/hooks/hold-guard.mjs"
+   ]
+  },
+  {
+   "name": "files.jsonl",
+   "path": "public/framework/ai/dashboard/files.jsonl",
+   "kind": "file",
+   "size": 149,
+   "files": 1,
+   "newest": "2026-10-16",
+   "code_refs": [
+    "Server/Crawl.mjs",
+    "Server/ModuleLog.mjs",
+    "Server/RepoSize.mjs",
+    "Server/TaskDirs.mjs",
+    "Server/TaskHomes.mjs"
+   ]
+  },
+  {
+   "name": "page.js",
+   "path": "public/framework/ai/dashboard/page.js",
+   "kind": "file",
+   "size": 11456,
+   "files": 1,
+   "newest": "2026-10-12",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/health-guard.mjs",
+    ".claude/hooks/jsonl-guard.test.mjs",
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/jsonl-schema.test.mjs"
+   ]
+  },
+  {
+   "name": "readme.md",
+   "path": "public/framework/ai/dashboard/readme.md",
+   "kind": "file",
+   "size": 3944,
+   "files": 1,
+   "newest": "2026-10-02",
+   "code_refs": [
+    ".claude/skills/system-architect/measure.mjs",
+    "Server/ArchitectureCensus.mjs",
+    "Server/ArchiveSessions.mjs",
+    "Server/AskIndex.mjs",
+    "Server/ModelsNow.mjs"
+   ]
+  },
+  {
+   "name": "settings.jsonl",
+   "path": "public/framework/ai/dashboard/settings.jsonl",
+   "kind": "file",
+   "size": 37,
+   "files": 1,
+   "newest": "2026-10-02",
+   "code_refs": [
+    "public/framework/ai/AIOverview.js",
+    "public/framework/ai/AISession/AISessionsPage.js",
+    "public/framework/ai/dashboard/page.js",
+    "public/framework/core/Page/ext/Inbox/timeline/TimelinePage.js",
+    "public/framework/core/Page/settings/settings.js"
+   ]
+  },
+  {
+   "name": "tasks",
+   "path": "public/framework/ai/dashboard/tasks",
+   "kind": "folder",
+   "size": 3331,
+   "files": 3,
+   "newest": "2026-10-16",
+   "code_refs": [
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/ledger.mjs",
+    "Server/Ai2Overview.mjs",
+    "Server/AskIndex-tasks.test.mjs",
+    "Server/AskIndex.mjs"
+   ]
+  },
+  {
+   "name": "weight.jsonl",
+   "path": "public/framework/ai/dashboard/weight.jsonl",
+   "kind": "file",
+   "size": 135,
+   "files": 1,
+   "newest": "2026-10-03",
+   "code_refs": [
+    "Server/page-ai-cost.mjs",
+    "Server/page-refs.mjs",
+    "Server/smoke.mjs",
+    "public/framework/core/Page/ext/Inbox/timeline/TimelinePage.js",
+    "public/framework/core/Page/settings/settings.js"
+   ]
+  },
+  {
+   "name": "day.jsonl",
+   "path": "public/framework/ai/day.jsonl",
+   "kind": "file",
+   "size": 1830,
+   "files": 1,
+   "newest": "2026-08-30",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/jsonl-guard.test.mjs",
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/jsonl-schema.test.mjs",
+    ".claude/hooks/ledger.mjs"
+   ]
+  },
+  {
+   "name": "doc",
+   "path": "public/framework/ai/doc",
+   "kind": "folder",
+   "size": 4064934,
+   "files": 130,
+   "newest": "2026-10-20",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/auto-hold.mjs",
+    ".claude/hooks/git-guard.mjs",
+    ".claude/hooks/git-guard.test.mjs",
+    ".claude/hooks/hold-guard.mjs"
+   ]
+  },
+  {
+   "name": "agents",
+   "path": "public/framework/ai/doc/agents",
+   "kind": "folder",
+   "size": 27116,
+   "files": 7,
+   "newest": "2026-10-19",
+   "code_refs": [
+    ".claude/hooks/git-guard.mjs",
+    ".claude/hooks/health-guard.mjs",
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/ledger.mjs",
+    ".claude/hooks/prompt-relay.mjs"
+   ]
+  },
+  {
+   "name": "ai-dashboard-plan",
+   "path": "public/framework/ai/doc/ai-dashboard-plan",
+   "kind": "folder",
+   "size": 1569423,
+   "files": 16,
+   "newest": "2026-10-19",
+   "code_refs": [
+    "public/framework/ai/AIDashboard/AIDashboard.js",
+    "public/framework/ai/AIDashboard/SessionRow.js",
+    "public/framework/ai/AIDashboard/SessionTree.js",
+    "public/framework/ai/page.js"
+   ]
+  },
+  {
+   "name": "ai-dashboard-plan.md",
+   "path": "public/framework/ai/doc/ai-dashboard-plan.md",
+   "kind": "file",
+   "size": 17371,
+   "files": 1,
+   "newest": "2026-10-19",
+   "code_refs": [
+    "public/framework/ai/AIDashboard/AIDashboard.js",
+    "public/framework/ai/AIDashboard/SessionRow.js",
+    "public/framework/ai/AIDashboard/SessionTree.js",
+    "public/framework/ai/page.js"
+   ]
+  },
+  {
+   "name": "ai-page-notes.md",
+   "path": "public/framework/ai/doc/ai-page-notes.md",
+   "kind": "file",
+   "size": 6781,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    "public/framework/ai/page.js"
+   ]
+  },
+  {
+   "name": "ai2",
+   "path": "public/framework/ai/doc/ai2",
+   "kind": "folder",
+   "size": 1133041,
+   "files": 29,
+   "newest": "2026-10-13",
+   "code_refs": [
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/jsonl-schema.test.mjs",
+    "Server/Ai2Overview.mjs",
+    "Server/Council.mjs",
+    "Server/Crawl.mjs"
+   ]
+  },
+  {
+   "name": "architecture.md",
+   "path": "public/framework/ai/doc/architecture.md",
+   "kind": "file",
+   "size": 8346,
+   "files": 1,
+   "newest": "2026-10-15",
+   "code_refs": [
+    "Server/ArchitectureCensus.mjs",
+    "Server/readme-reach.mjs",
+    "Server/session-links.mjs",
+    "Servex/agents/ModuleInbox.test.mjs",
+    "Servex/agents/page_tools.js"
+   ]
+  },
+  {
+   "name": "archive",
+   "path": "public/framework/ai/doc/archive",
+   "kind": "folder",
+   "size": 23077,
+   "files": 11,
+   "newest": "2026-10-13",
+   "code_refs": [
+    ".claude/hooks/prompt-relay.mjs",
+    ".claude/skills/system-architect/skill-usage.mjs",
+    "Server/ArchitectureCensus.mjs",
+    "Server/ArchiveCopy.mjs",
+    "Server/ArchiveCopy.test.mjs"
+   ]
+  },
+  {
+   "name": "asks-by-module.md",
+   "path": "public/framework/ai/doc/asks-by-module.md",
+   "kind": "file",
+   "size": 1799,
+   "files": 1,
+   "newest": "2026-10-14",
+   "code_refs": [
+    "Server/AskIndex.mjs"
+   ]
+  },
+  {
+   "name": "asks-outcomes.jsonl",
+   "path": "public/framework/ai/doc/asks-outcomes.jsonl",
+   "kind": "file",
+   "size": 665531,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    "Server/AskIndex.mjs",
+    "Server/AskIndex.test.mjs",
+    "Server/AskTally.mjs",
+    "Server/Asked.mjs",
+    "Server/UndoneAsks.test.mjs"
+   ]
+  },
+  {
+   "name": "asks-outcomes.md",
+   "path": "public/framework/ai/doc/asks-outcomes.md",
+   "kind": "file",
+   "size": 69409,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    "Server/AskTally.mjs"
+   ]
+  },
+  {
+   "name": "asks.md",
+   "path": "public/framework/ai/doc/asks.md",
+   "kind": "file",
+   "size": 11073,
+   "files": 1,
+   "newest": "2026-10-12",
+   "code_refs": [
+    "Server/AskIndex.mjs",
+    "Server/AskIndex.test.mjs",
+    "Server/RefineQueue.mjs",
+    "Servex/agents/policy.js",
+    "Servex/ext/openrouter/evals/library.mjs"
+   ]
+  },
+  {
+   "name": "classes.md",
+   "path": "public/framework/ai/doc/classes.md",
+   "kind": "file",
+   "size": 1984,
+   "files": 1,
+   "newest": "2026-10-12",
+   "code_refs": [
+    "public/framework/ai/AISession/AISessionsPage.js"
+   ]
+  },
+  {
+   "name": "claude-md-archive.md",
+   "path": "public/framework/ai/doc/claude-md-archive.md",
+   "kind": "file",
+   "size": 7254,
+   "files": 1,
+   "newest": "2026-10-19",
+   "code_refs": []
+  },
+  {
+   "name": "cleanup.md",
+   "path": "public/framework/ai/doc/cleanup.md",
+   "kind": "file",
+   "size": 1001,
+   "files": 1,
+   "newest": "2026-10-15",
+   "code_refs": []
+  },
+  {
+   "name": "cloudflare.md",
+   "path": "public/framework/ai/doc/cloudflare.md",
+   "kind": "file",
+   "size": 5705,
+   "files": 1,
+   "newest": "2026-10-14",
+   "code_refs": [
+    "Server/ArchiveCopy.mjs",
+    "Server/Cloudflare.mjs"
+   ]
+  },
+  {
+   "name": "context-loss.md",
+   "path": "public/framework/ai/doc/context-loss.md",
+   "kind": "file",
+   "size": 4310,
+   "files": 1,
+   "newest": "2026-10-20",
+   "code_refs": [
+    "Server/ReadmeOrphans.mjs"
+   ]
+  },
+  {
+   "name": "dashboard-layout-asks.md",
+   "path": "public/framework/ai/doc/dashboard-layout-asks.md",
+   "kind": "file",
+   "size": 2528,
+   "files": 1,
+   "newest": "2026-10-19",
+   "code_refs": []
+  },
+  {
+   "name": "design",
+   "path": "public/framework/ai/doc/design",
+   "kind": "folder",
+   "size": 26175,
+   "files": 6,
+   "newest": "2026-10-09",
+   "code_refs": [
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/jsonl-schema.test.mjs",
+    ".claude/hooks/naming-guard.mjs",
+    ".claude/hooks/prompt-relay.mjs",
+    ".claude/hooks/reply-relay.mjs"
+   ]
+  },
+  {
+   "name": "files.jsonl",
+   "path": "public/framework/ai/doc/files.jsonl",
+   "kind": "file",
+   "size": 3889,
+   "files": 1,
+   "newest": "2026-10-20",
+   "code_refs": [
+    "Server/Crawl.mjs",
+    "Server/ModuleLog.mjs",
+    "Server/RepoSize.mjs",
+    "Server/TaskDirs.mjs",
+    "Server/TaskHomes.mjs"
+   ]
+  },
+  {
+   "name": "follow-up-full.md",
+   "path": "public/framework/ai/doc/follow-up-full.md",
+   "kind": "file",
+   "size": 196005,
+   "files": 1,
+   "newest": "2026-10-20",
+   "code_refs": [
+    "Server/AskTally.mjs",
+    "Server/FollowUp.mjs"
+   ]
+  },
+  {
+   "name": "follow-up.md",
+   "path": "public/framework/ai/doc/follow-up.md",
+   "kind": "file",
+   "size": 2993,
+   "files": 1,
+   "newest": "2026-10-20",
+   "code_refs": [
+    "Server/FollowUp.mjs",
+    "Server/OrphanAsks.mjs",
+    "Server/Unreferenced.mjs",
+    "Servex/TaskLoop.js"
+   ]
+  },
+  {
+   "name": "handover-query.md",
+   "path": "public/framework/ai/doc/handover-query.md",
+   "kind": "file",
+   "size": 20966,
+   "files": 1,
+   "newest": "2026-10-15",
+   "code_refs": []
+  },
+  {
+   "name": "logs",
+   "path": "public/framework/ai/doc/logs",
+   "kind": "folder",
+   "size": 19259,
+   "files": 5,
+   "newest": "2026-10-13",
+   "code_refs": [
+    ".claude/hooks/git-guard.mjs",
+    ".claude/hooks/health-guard.mjs",
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/ledger.mjs",
+    ".claude/hooks/reply-relay.mjs"
+   ]
+  },
+  {
+   "name": "meta",
+   "path": "public/framework/ai/doc/meta",
+   "kind": "folder",
+   "size": 6419,
+   "files": 3,
+   "newest": "2026-10-13",
+   "code_refs": [
+    ".claude/hooks/auto-hold.mjs",
+    ".claude/hooks/git-guard.test.mjs",
+    ".claude/hooks/health-guard.mjs",
+    ".claude/hooks/hold-guard.mjs",
+    ".claude/hooks/jsonl-guard.test.mjs"
+   ]
+  },
+  {
+   "name": "models.md",
+   "path": "public/framework/ai/doc/models.md",
+   "kind": "file",
+   "size": 2620,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    "Servex/ext/refine/RefineCall.js",
+    "public/framework/ext/Refine/RefineDemo.js",
+    "public/framework/ext/Refine/RefineSystem.js"
+   ]
+  },
+  {
+   "name": "module-homes.md",
+   "path": "public/framework/ai/doc/module-homes.md",
+   "kind": "file",
+   "size": 6065,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    "Server/ModuleHomes.mjs",
+    "Server/ModuleMove.mjs"
+   ]
+  },
+  {
+   "name": "one-dashboard.md",
+   "path": "public/framework/ai/doc/one-dashboard.md",
+   "kind": "file",
+   "size": 4253,
+   "files": 1,
+   "newest": "2026-10-19",
+   "code_refs": [
+    "Server/State.mjs",
+    "public/framework/ai/rail/DashChips.js",
+    "public/framework/ai/rail/DashState.js",
+    "public/framework/ai/rail/rail.js",
+    "public/framework/ai/tasks/SavedFilter.js"
+   ]
+  },
+  {
+   "name": "one-state.md",
+   "path": "public/framework/ai/doc/one-state.md",
+   "kind": "file",
+   "size": 5453,
+   "files": 1,
+   "newest": "2026-10-17",
+   "code_refs": [
+    "Server/FollowUp.mjs"
+   ]
+  },
+  {
+   "name": "organization-decisions.md",
+   "path": "public/framework/ai/doc/organization-decisions.md",
+   "kind": "file",
+   "size": 2334,
+   "files": 1,
+   "newest": "2026-10-12",
+   "code_refs": []
+  },
+  {
+   "name": "organization.md",
+   "path": "public/framework/ai/doc/organization.md",
+   "kind": "file",
+   "size": 3128,
+   "files": 1,
+   "newest": "2026-10-12",
+   "code_refs": [
+    "Server/systems-beat.mjs"
+   ]
+  },
+  {
+   "name": "overview-2026-10-17-to-19.md",
+   "path": "public/framework/ai/doc/overview-2026-10-17-to-19.md",
+   "kind": "file",
+   "size": 6925,
+   "files": 1,
+   "newest": "2026-10-19",
+   "code_refs": []
+  },
+  {
+   "name": "owner-2026-10-16-indexing.md",
+   "path": "public/framework/ai/doc/owner-2026-10-16-indexing.md",
+   "kind": "file",
+   "size": 1971,
+   "files": 1,
+   "newest": "2026-10-16",
+   "code_refs": []
+  },
+  {
+   "name": "owner-2026-10-17-finding-past-work.md",
+   "path": "public/framework/ai/doc/owner-2026-10-17-finding-past-work.md",
+   "kind": "file",
+   "size": 3299,
+   "files": 1,
+   "newest": "2026-10-16",
+   "code_refs": []
+  },
+  {
+   "name": "owner-2026-10-20-who-makes-tasks.md",
+   "path": "public/framework/ai/doc/owner-2026-10-20-who-makes-tasks.md",
+   "kind": "file",
+   "size": 13706,
+   "files": 1,
+   "newest": "2026-10-20",
+   "code_refs": []
+  },
+  {
+   "name": "page.js",
+   "path": "public/framework/ai/doc/page.js",
+   "kind": "file",
+   "size": 299,
+   "files": 1,
+   "newest": "2026-10-12",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/health-guard.mjs",
+    ".claude/hooks/jsonl-guard.test.mjs",
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/jsonl-schema.test.mjs"
+   ]
+  },
+  {
+   "name": "readme-before-2026-10-19.md",
+   "path": "public/framework/ai/doc/readme-before-2026-10-19.md",
+   "kind": "file",
+   "size": 13481,
+   "files": 1,
+   "newest": "2026-10-19",
+   "code_refs": []
+  },
+  {
+   "name": "readme-full-2026-10-12.md",
+   "path": "public/framework/ai/doc/readme-full-2026-10-12.md",
+   "kind": "file",
+   "size": 1316,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": []
+  },
+  {
+   "name": "readme.md",
+   "path": "public/framework/ai/doc/readme.md",
+   "kind": "file",
+   "size": 4727,
+   "files": 1,
+   "newest": "2026-10-20",
+   "code_refs": [
+    ".claude/skills/system-architect/measure.mjs",
+    "Server/ArchitectureCensus.mjs",
+    "Server/ArchiveSessions.mjs",
+    "Server/AskIndex.mjs",
+    "Server/ModelsNow.mjs"
+   ]
+  },
+  {
+   "name": "readmes.md",
+   "path": "public/framework/ai/doc/readmes.md",
+   "kind": "file",
+   "size": 1907,
+   "files": 1,
+   "newest": "2026-10-15",
+   "code_refs": []
+  },
+  {
+   "name": "refined-asks.md",
+   "path": "public/framework/ai/doc/refined-asks.md",
+   "kind": "file",
+   "size": 13865,
+   "files": 1,
+   "newest": "2026-10-14",
+   "code_refs": [
+    "Server/AskIndex.mjs",
+    "Server/AskIndex.test.mjs"
+   ]
+  },
+  {
+   "name": "repo-size.md",
+   "path": "public/framework/ai/doc/repo-size.md",
+   "kind": "file",
+   "size": 13002,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    "Server/Compact.mjs",
+    "Server/DeployCount.mjs",
+    "Server/RepoSize.mjs",
+    "Server/untrack-pictures.mjs"
+   ]
+  },
+  {
+   "name": "salvage-2026-10-17.md",
+   "path": "public/framework/ai/doc/salvage-2026-10-17.md",
+   "kind": "file",
+   "size": 1341,
+   "files": 1,
+   "newest": "2026-10-16",
+   "code_refs": []
+  },
+  {
+   "name": "sessions-and-tasks.md",
+   "path": "public/framework/ai/doc/sessions-and-tasks.md",
+   "kind": "file",
+   "size": 6560,
+   "files": 1,
+   "newest": "2026-10-20",
+   "code_refs": []
+  },
+  {
+   "name": "sessions-vs-docs.md",
+   "path": "public/framework/ai/doc/sessions-vs-docs.md",
+   "kind": "file",
+   "size": 2196,
+   "files": 1,
+   "newest": "2026-10-19",
+   "code_refs": []
+  },
+  {
+   "name": "skills-proposals-2026-10-13.md",
+   "path": "public/framework/ai/doc/skills-proposals-2026-10-13.md",
+   "kind": "file",
+   "size": 11906,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    "Server/SkillCensus.mjs"
+   ]
+  },
+  {
+   "name": "task-folders.md",
+   "path": "public/framework/ai/doc/task-folders.md",
+   "kind": "file",
+   "size": 11528,
+   "files": 1,
+   "newest": "2026-10-19",
+   "code_refs": [
+    ".claude/hooks/prompt-relay.mjs",
+    ".claude/skills/every-prompt/say.mjs",
+    "Server/Council.mjs",
+    "Server/Crawl.mjs",
+    "Server/SessionDayMove.mjs"
+   ]
+  },
+  {
+   "name": "task-lifecycle.md",
+   "path": "public/framework/ai/doc/task-lifecycle.md",
+   "kind": "file",
+   "size": 6004,
+   "files": 1,
+   "newest": "2026-10-19",
+   "code_refs": []
+  },
+  {
+   "name": "tasks",
+   "path": "public/framework/ai/doc/tasks",
+   "kind": "folder",
+   "size": 7586,
+   "files": 3,
+   "newest": "2026-10-09",
+   "code_refs": [
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/ledger.mjs",
+    "Server/Ai2Overview.mjs",
+    "Server/AskIndex-tasks.test.mjs",
+    "Server/AskIndex.mjs"
+   ]
+  },
+  {
+   "name": "tasks.md",
+   "path": "public/framework/ai/doc/tasks.md",
+   "kind": "file",
+   "size": 12264,
+   "files": 1,
+   "newest": "2026-10-19",
+   "code_refs": [
+    "Servex/ext/openrouter/evals/library.mjs",
+    "public/framework/ext/drawer/Sheet.js"
+   ]
+  },
+  {
+   "name": "tokens",
+   "path": "public/framework/ai/doc/tokens",
+   "kind": "folder",
+   "size": 9361,
+   "files": 3,
+   "newest": "2026-10-12",
+   "code_refs": [
+    ".claude/hooks/prompt-relay.mjs",
+    ".claude/hooks/reply-relay.mjs",
+    ".claude/hooks/server-guard.mjs",
+    ".mjs",
+    "Server/AskTally.mjs"
+   ]
+  },
+  {
+   "name": "tool-collapse.md",
+   "path": "public/framework/ai/doc/tool-collapse.md",
+   "kind": "file",
+   "size": 10443,
+   "files": 1,
+   "newest": "2026-10-15",
+   "code_refs": []
+  },
+  {
+   "name": "undone-asks-2026-10-17.md",
+   "path": "public/framework/ai/doc/undone-asks-2026-10-17.md",
+   "kind": "file",
+   "size": 16115,
+   "files": 1,
+   "newest": "2026-10-17",
+   "code_refs": [
+    "Server/UndoneAsks.mjs",
+    "Server/UndoneToTasks.mjs",
+    "Server/UndoneVerify.mjs",
+    "public/framework/ai/asks/undone/UndoneAsksPage.js"
+   ]
+  },
+  {
+   "name": "unreferenced-verdicts.md",
+   "path": "public/framework/ai/doc/unreferenced-verdicts.md",
+   "kind": "file",
+   "size": 32603,
+   "files": 1,
+   "newest": "2026-10-14",
+   "code_refs": [
+    "Server/RetireFiles.mjs",
+    "Server/readme-reach.mjs"
+   ]
+  },
+  {
+   "name": "unreferenced.md",
+   "path": "public/framework/ai/doc/unreferenced.md",
+   "kind": "file",
+   "size": 983,
+   "files": 1,
+   "newest": "2026-10-14",
+   "code_refs": [
+    "Server/FollowUp.mjs",
+    "Server/Unreferenced.mjs"
+   ]
+  },
+  {
+   "name": "watch-out-2026-10-12.md",
+   "path": "public/framework/ai/doc/watch-out-2026-10-12.md",
+   "kind": "file",
+   "size": 4682,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": []
+  },
+  {
+   "name": "writing.md",
+   "path": "public/framework/ai/doc/writing.md",
+   "kind": "file",
+   "size": 1556,
+   "files": 1,
+   "newest": "2026-10-12",
+   "code_refs": []
+  },
+  {
+   "name": "errors",
+   "path": "public/framework/ai/errors",
+   "kind": "folder",
+   "size": 232,
+   "files": 1,
+   "newest": "2026-10-17",
+   "code_refs": [
+    ".claude/skills/ui-test/drive.mjs",
+    "Server/BrowserCheck.mjs",
+    "Server/Collab.mjs",
+    "Server/Crawl.mjs",
+    "Server/ModuleHomes.mjs"
+   ]
+  },
+  {
+   "name": "files.jsonl",
+   "path": "public/framework/ai/errors/files.jsonl",
+   "kind": "file",
+   "size": 232,
+   "files": 1,
+   "newest": "2026-10-17",
+   "code_refs": [
+    "Server/Crawl.mjs",
+    "Server/ModuleLog.mjs",
+    "Server/RepoSize.mjs",
+    "Server/TaskDirs.mjs",
+    "Server/TaskHomes.mjs"
+   ]
+  },
+  {
+   "name": "files.jsonl",
+   "path": "public/framework/ai/files.jsonl",
+   "kind": "file",
+   "size": 23165,
+   "files": 1,
+   "newest": "2026-10-20",
+   "code_refs": [
+    "Server/Crawl.mjs",
+    "Server/ModuleLog.mjs",
+    "Server/RepoSize.mjs",
+    "Server/TaskDirs.mjs",
+    "Server/TaskHomes.mjs"
+   ]
+  },
+  {
+   "name": "handoff2-owner-words.md",
+   "path": "public/framework/ai/handoff2-owner-words.md",
+   "kind": "file",
+   "size": 34036,
+   "files": 1,
+   "newest": "2026-09-28",
+   "code_refs": []
+  },
+  {
+   "name": "handoff2.md",
+   "path": "public/framework/ai/handoff2.md",
+   "kind": "file",
+   "size": 20002,
+   "files": 1,
+   "newest": "2026-09-28",
+   "code_refs": []
+  },
+  {
+   "name": "handover.md",
+   "path": "public/framework/ai/handover.md",
+   "kind": "file",
+   "size": 75460,
+   "files": 1,
+   "newest": "2026-10-19",
+   "code_refs": [
+    "Server/HandoverNow.mjs",
+    "Server/TranscribeLoop.mjs",
+    "Server/UndoneVerify.mjs",
+    "Servex/LogSweeper.test.mjs",
+    "Servex/TaskLoop-handover.test.mjs"
+   ]
+  },
+  {
+   "name": "health",
+   "path": "public/framework/ai/health",
+   "kind": "folder",
+   "size": 24871,
+   "files": 10,
+   "newest": "2026-10-16",
+   "code_refs": [
+    ".claude/hooks/health-guard.mjs",
+    ".claude/hooks/hold-guard.mjs",
+    ".claude/hooks/ledger.mjs",
+    "Server/Ai2Overview.mjs",
+    "Server/FollowUp.mjs"
+   ]
+  },
+  {
+   "name": "HealthDevbar.js",
+   "path": "public/framework/ai/health/HealthDevbar.js",
+   "kind": "file",
+   "size": 1855,
+   "files": 1,
+   "newest": "2026-10-12",
+   "code_refs": []
+  },
+  {
+   "name": "doc",
+   "path": "public/framework/ai/health/doc",
+   "kind": "folder",
+   "size": 12410,
+   "files": 2,
+   "newest": "2026-10-12",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/auto-hold.mjs",
+    ".claude/hooks/git-guard.mjs",
+    ".claude/hooks/git-guard.test.mjs",
+    ".claude/hooks/hold-guard.mjs"
+   ]
+  },
+  {
+   "name": "health.css",
+   "path": "public/framework/ai/health/health.css",
+   "kind": "file",
+   "size": 883,
+   "files": 1,
+   "newest": "2026-09-21",
+   "code_refs": [
+    "public/framework/ai/health/page.js"
+   ]
+  },
+  {
+   "name": "log.js",
+   "path": "public/framework/ai/health/log.js",
+   "kind": "file",
+   "size": 1501,
+   "files": 1,
+   "newest": "2026-09-21",
+   "code_refs": [
+    "Server/CatalogThumbs.mjs",
+    "Server/RepoSize.mjs",
+    "Server/health.mjs",
+    "Servex/Pool.test.mjs",
+    "Servex/agents/Sessions.js"
+   ]
+  },
+  {
+   "name": "page.js",
+   "path": "public/framework/ai/health/page.js",
+   "kind": "file",
+   "size": 2471,
+   "files": 1,
+   "newest": "2026-09-21",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/health-guard.mjs",
+    ".claude/hooks/jsonl-guard.test.mjs",
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/jsonl-schema.test.mjs"
+   ]
+  },
+  {
+   "name": "readme.md",
+   "path": "public/framework/ai/health/readme.md",
+   "kind": "file",
+   "size": 3236,
+   "files": 1,
+   "newest": "2026-09-30",
+   "code_refs": [
+    ".claude/skills/system-architect/measure.mjs",
+    "Server/ArchitectureCensus.mjs",
+    "Server/ArchiveSessions.mjs",
+    "Server/AskIndex.mjs",
+    "Server/ModelsNow.mjs"
+   ]
+  },
+  {
+   "name": "tasks",
+   "path": "public/framework/ai/health/tasks",
+   "kind": "folder",
+   "size": 2515,
+   "files": 3,
+   "newest": "2026-10-16",
+   "code_refs": [
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/ledger.mjs",
+    "Server/Ai2Overview.mjs",
+    "Server/AskIndex-tasks.test.mjs",
+    "Server/AskIndex.mjs"
+   ]
+  },
+  {
+   "name": "heartbeat.jsonl",
+   "path": "public/framework/ai/heartbeat.jsonl",
+   "kind": "file",
+   "size": 26212,
+   "files": 1,
+   "newest": "2026-10-06",
+   "code_refs": []
+  },
+  {
+   "name": "inbox.jsonl",
+   "path": "public/framework/ai/inbox.jsonl",
+   "kind": "file",
+   "size": 20836,
+   "files": 1,
+   "newest": "2026-10-14",
+   "code_refs": [
+    "Server/AskIndex.mjs",
+    "Server/AskIndex.test.mjs",
+    "Server/UndoneAsks.mjs",
+    "Server/UndoneVerify.mjs",
+    "Servex/Heartbeat.js"
+   ]
+  },
+  {
+   "name": "landed",
+   "path": "public/framework/ai/landed",
+   "kind": "folder",
+   "size": 312,
+   "files": 2,
+   "newest": "2026-10-17",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/health-guard.mjs",
+    ".claude/hooks/ledger.mjs",
+    ".claude/hooks/ledger.test.mjs",
+    ".claude/hooks/prompt-relay.mjs"
+   ]
+  },
+  {
+   "name": "doc",
+   "path": "public/framework/ai/landed/doc",
+   "kind": "folder",
+   "size": 72,
+   "files": 1,
+   "newest": "2026-10-17",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/auto-hold.mjs",
+    ".claude/hooks/git-guard.mjs",
+    ".claude/hooks/git-guard.test.mjs",
+    ".claude/hooks/hold-guard.mjs"
+   ]
+  },
+  {
+   "name": "files.jsonl",
+   "path": "public/framework/ai/landed/files.jsonl",
+   "kind": "file",
+   "size": 240,
+   "files": 1,
+   "newest": "2026-10-17",
+   "code_refs": [
+    "Server/Crawl.mjs",
+    "Server/ModuleLog.mjs",
+    "Server/RepoSize.mjs",
+    "Server/TaskDirs.mjs",
+    "Server/TaskHomes.mjs"
+   ]
+  },
+  {
+   "name": "local",
+   "path": "public/framework/ai/local",
+   "kind": "folder",
+   "size": 30172,
+   "files": 11,
+   "newest": "2026-10-16",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/health-guard.mjs",
+    ".claude/hooks/ledger.mjs",
+    ".claude/hooks/prompt-relay.mjs",
+    ".claude/hooks/reply-relay.mjs"
+   ]
+  },
+  {
+   "name": "doc",
+   "path": "public/framework/ai/local/doc",
+   "kind": "folder",
+   "size": 10113,
+   "files": 3,
+   "newest": "2026-10-09",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/auto-hold.mjs",
+    ".claude/hooks/git-guard.mjs",
+    ".claude/hooks/git-guard.test.mjs",
+    ".claude/hooks/hold-guard.mjs"
+   ]
+  },
+  {
+   "name": "files.jsonl",
+   "path": "public/framework/ai/local/files.jsonl",
+   "kind": "file",
+   "size": 119,
+   "files": 1,
+   "newest": "2026-10-16",
+   "code_refs": [
+    "Server/Crawl.mjs",
+    "Server/ModuleLog.mjs",
+    "Server/RepoSize.mjs",
+    "Server/TaskDirs.mjs",
+    "Server/TaskHomes.mjs"
+   ]
+  },
+  {
+   "name": "log-tool.js",
+   "path": "public/framework/ai/local/log-tool.js",
+   "kind": "file",
+   "size": 2684,
+   "files": 1,
+   "newest": "2026-10-05",
+   "code_refs": []
+  },
+  {
+   "name": "page.js",
+   "path": "public/framework/ai/local/page.js",
+   "kind": "file",
+   "size": 9749,
+   "files": 1,
+   "newest": "2026-10-12",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/health-guard.mjs",
+    ".claude/hooks/jsonl-guard.test.mjs",
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/jsonl-schema.test.mjs"
+   ]
+  },
+  {
+   "name": "readme.md",
+   "path": "public/framework/ai/local/readme.md",
+   "kind": "file",
+   "size": 3967,
+   "files": 1,
+   "newest": "2026-10-12",
+   "code_refs": [
+    ".claude/skills/system-architect/measure.mjs",
+    "Server/ArchitectureCensus.mjs",
+    "Server/ArchiveSessions.mjs",
+    "Server/AskIndex.mjs",
+    "Server/ModelsNow.mjs"
+   ]
+  },
+  {
+   "name": "tasks",
+   "path": "public/framework/ai/local/tasks",
+   "kind": "folder",
+   "size": 3339,
+   "files": 3,
+   "newest": "2026-10-16",
+   "code_refs": [
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/ledger.mjs",
+    "Server/Ai2Overview.mjs",
+    "Server/AskIndex-tasks.test.mjs",
+    "Server/AskIndex.mjs"
+   ]
+  },
+  {
+   "name": "vram.jsonl",
+   "path": "public/framework/ai/local/vram.jsonl",
+   "kind": "file",
+   "size": 201,
+   "files": 1,
+   "newest": "2026-10-05",
+   "code_refs": []
+  },
+  {
+   "name": "log",
+   "path": "public/framework/ai/log",
+   "kind": "folder",
+   "size": 70,
+   "files": 1,
+   "newest": "2026-10-01",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/git-guard.mjs",
+    ".claude/hooks/git-guard.test.mjs",
+    ".claude/hooks/health-guard.mjs",
+    ".claude/hooks/hold-guard.mjs"
+   ]
+  },
+  {
+   "name": "page.jsonl",
+   "path": "public/framework/ai/log/page.jsonl",
+   "kind": "file",
+   "size": 70,
+   "files": 1,
+   "newest": "2026-10-01",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/jsonl-guard.test.mjs",
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/jsonl-schema.test.mjs",
+    ".claude/hooks/prompt-relay.mjs"
+   ]
+  },
+  {
+   "name": "log.jsonl",
+   "path": "public/framework/ai/log.jsonl",
+   "kind": "file",
+   "size": 12197,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    "Server/CatalogThumbs.mjs",
+    "Server/RepoSize.mjs",
+    "Servex/Pool.test.mjs",
+    "Servex/agents/Sessions.js",
+    "Servex/agents/experts-proof.mjs"
+   ]
+  },
+  {
+   "name": "models",
+   "path": "public/framework/ai/models",
+   "kind": "folder",
+   "size": 27200,
+   "files": 16,
+   "newest": "2026-10-17",
+   "code_refs": [
+    "Server/AntigravityUsage.mjs",
+    "Server/AskTally.mjs",
+    "Server/Collab.mjs",
+    "Server/ModelsNow.mjs",
+    "Server/TranscribeLoop.mjs"
+   ]
+  },
+  {
+   "name": "ModelsPage.js",
+   "path": "public/framework/ai/models/ModelsPage.js",
+   "kind": "file",
+   "size": 2314,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    "public/framework/ai/models/page.js"
+   ]
+  },
+  {
+   "name": "doc",
+   "path": "public/framework/ai/models/doc",
+   "kind": "folder",
+   "size": 1485,
+   "files": 2,
+   "newest": "2026-10-14",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/auto-hold.mjs",
+    ".claude/hooks/git-guard.mjs",
+    ".claude/hooks/git-guard.test.mjs",
+    ".claude/hooks/hold-guard.mjs"
+   ]
+  },
+  {
+   "name": "files.jsonl",
+   "path": "public/framework/ai/models/files.jsonl",
+   "kind": "file",
+   "size": 142,
+   "files": 1,
+   "newest": "2026-10-17",
+   "code_refs": [
+    "Server/Crawl.mjs",
+    "Server/ModuleLog.mjs",
+    "Server/RepoSize.mjs",
+    "Server/TaskDirs.mjs",
+    "Server/TaskHomes.mjs"
+   ]
+  },
+  {
+   "name": "inbox.jsonl",
+   "path": "public/framework/ai/models/inbox.jsonl",
+   "kind": "file",
+   "size": 1358,
+   "files": 1,
+   "newest": "2026-10-14",
+   "code_refs": [
+    "Server/AskIndex.mjs",
+    "Server/AskIndex.test.mjs",
+    "Server/UndoneAsks.mjs",
+    "Server/UndoneVerify.mjs",
+    "Servex/Heartbeat.js"
+   ]
+  },
+  {
+   "name": "now.json",
+   "path": "public/framework/ai/models/now.json",
+   "kind": "file",
+   "size": 18122,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    "Server/ModelsNow.mjs",
+    "public/framework/ai/models/ModelsPage.js"
+   ]
+  },
+  {
+   "name": "page.js",
+   "path": "public/framework/ai/models/page.js",
+   "kind": "file",
+   "size": 196,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/health-guard.mjs",
+    ".claude/hooks/jsonl-guard.test.mjs",
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/jsonl-schema.test.mjs"
+   ]
+  },
+  {
+   "name": "readme.md",
+   "path": "public/framework/ai/models/readme.md",
+   "kind": "file",
+   "size": 717,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    ".claude/skills/system-architect/measure.mjs",
+    "Server/ArchitectureCensus.mjs",
+    "Server/ArchiveSessions.mjs",
+    "Server/AskIndex.mjs",
+    "Server/ModelsNow.mjs"
+   ]
+  },
+  {
+   "name": "tasks",
+   "path": "public/framework/ai/models/tasks",
+   "kind": "folder",
+   "size": 2866,
+   "files": 8,
+   "newest": "2026-10-17",
+   "code_refs": [
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/ledger.mjs",
+    "Server/Ai2Overview.mjs",
+    "Server/AskIndex-tasks.test.mjs",
+    "Server/AskIndex.mjs"
+   ]
+  },
+  {
+   "name": "objects.js",
+   "path": "public/framework/ai/objects.js",
+   "kind": "file",
+   "size": 2576,
+   "files": 1,
+   "newest": "2026-10-16",
+   "code_refs": [
+    "public/framework/ai/AIOverview.js",
+    "public/framework/ux/Dictate/playground/Playground.js"
+   ]
+  },
+  {
+   "name": "page.js",
+   "path": "public/framework/ai/page.js",
+   "kind": "file",
+   "size": 11306,
+   "files": 1,
+   "newest": "2026-10-19",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/health-guard.mjs",
+    ".claude/hooks/jsonl-guard.test.mjs",
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/jsonl-schema.test.mjs"
+   ]
+  },
+  {
+   "name": "page.jsonl",
+   "path": "public/framework/ai/page.jsonl",
+   "kind": "file",
+   "size": 1616,
+   "files": 1,
+   "newest": "2026-10-19",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/jsonl-guard.test.mjs",
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/jsonl-schema.test.mjs",
+    ".claude/hooks/prompt-relay.mjs"
+   ]
+  },
+  {
+   "name": "past-work-index.md",
+   "path": "public/framework/ai/past-work-index.md",
+   "kind": "file",
+   "size": 96317,
+   "files": 1,
+   "newest": "2026-10-14",
+   "code_refs": [
+    "Server/PastWork.mjs"
+   ]
+  },
+  {
+   "name": "process",
+   "path": "public/framework/ai/process",
+   "kind": "folder",
+   "size": 3699,
+   "files": 2,
+   "newest": "2026-09-29",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/auto-hold.mjs",
+    ".claude/hooks/git-guard.mjs",
+    ".claude/hooks/git-guard.test.mjs",
+    ".claude/hooks/hold-guard.mjs"
+   ]
+  },
+  {
+   "name": "files.jsonl",
+   "path": "public/framework/ai/process/files.jsonl",
+   "kind": "file",
+   "size": 19,
+   "files": 1,
+   "newest": "2026-09-29",
+   "code_refs": [
+    "Server/Crawl.mjs",
+    "Server/ModuleLog.mjs",
+    "Server/RepoSize.mjs",
+    "Server/TaskDirs.mjs",
+    "Server/TaskHomes.mjs"
+   ]
+  },
+  {
+   "name": "page.js",
+   "path": "public/framework/ai/process/page.js",
+   "kind": "file",
+   "size": 3680,
+   "files": 1,
+   "newest": "2026-09-21",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/health-guard.mjs",
+    ".claude/hooks/jsonl-guard.test.mjs",
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/jsonl-schema.test.mjs"
+   ]
+  },
+  {
+   "name": "prompts.jsonl",
+   "path": "public/framework/ai/prompts.jsonl",
+   "kind": "file",
+   "size": 628,
+   "files": 1,
+   "newest": "2026-09-23",
+   "code_refs": [
+    "Server/AskTally.mjs",
+    "Server/session-dup.mjs",
+    "Servex/LogSweeper.test.mjs",
+    "Servex/cards/migrate.mjs",
+    "Servex/ext/openrouter/evals/keys.mjs"
+   ]
+  },
+  {
+   "name": "quick-fix",
+   "path": "public/framework/ai/quick-fix",
+   "kind": "folder",
+   "size": 16702,
+   "files": 12,
+   "newest": "2026-10-17",
+   "code_refs": [
+    "Server/merge.mjs",
+    "Server/owner-check.mjs",
+    "Server/worktree-sweep.mjs",
+    "Servex/Pool.js",
+    "Servex/Servex.js"
+   ]
+  },
+  {
+   "name": "files.jsonl",
+   "path": "public/framework/ai/quick-fix/files.jsonl",
+   "kind": "file",
+   "size": 125,
+   "files": 1,
+   "newest": "2026-10-16",
+   "code_refs": [
+    "Server/Crawl.mjs",
+    "Server/ModuleLog.mjs",
+    "Server/RepoSize.mjs",
+    "Server/TaskDirs.mjs",
+    "Server/TaskHomes.mjs"
+   ]
+  },
+  {
+   "name": "page.js",
+   "path": "public/framework/ai/quick-fix/page.js",
+   "kind": "file",
+   "size": 3418,
+   "files": 1,
+   "newest": "2026-10-01",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/health-guard.mjs",
+    ".claude/hooks/jsonl-guard.test.mjs",
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/jsonl-schema.test.mjs"
+   ]
+  },
+  {
+   "name": "page.jsonl",
+   "path": "public/framework/ai/quick-fix/page.jsonl",
+   "kind": "file",
+   "size": 7829,
+   "files": 1,
+   "newest": "2026-10-17",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/jsonl-guard.test.mjs",
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/jsonl-schema.test.mjs",
+    ".claude/hooks/prompt-relay.mjs"
+   ]
+  },
+  {
+   "name": "readme.md",
+   "path": "public/framework/ai/quick-fix/readme.md",
+   "kind": "file",
+   "size": 2149,
+   "files": 1,
+   "newest": "2026-10-01",
+   "code_refs": [
+    ".claude/skills/system-architect/measure.mjs",
+    "Server/ArchitectureCensus.mjs",
+    "Server/ArchiveSessions.mjs",
+    "Server/AskIndex.mjs",
+    "Server/ModelsNow.mjs"
+   ]
+  },
+  {
+   "name": "review.jsonl",
+   "path": "public/framework/ai/quick-fix/review.jsonl",
+   "kind": "file",
+   "size": 210,
+   "files": 1,
+   "newest": "2026-10-14",
+   "code_refs": [
+    "Server/review.mjs",
+    "Servex/LogSweeper.test.mjs"
+   ]
+  },
+  {
+   "name": "review.md",
+   "path": "public/framework/ai/quick-fix/review.md",
+   "kind": "file",
+   "size": 70,
+   "files": 1,
+   "newest": "2026-10-14",
+   "code_refs": [
+    "Server/merge.mjs",
+    "Server/merge.test.mjs",
+    "Server/owner-check.mjs",
+    "Server/review.mjs",
+    "Server/smoke.mjs"
+   ]
+  },
+  {
+   "name": "task.jsonl",
+   "path": "public/framework/ai/quick-fix/task.jsonl",
+   "kind": "file",
+   "size": 217,
+   "files": 1,
+   "newest": "2026-10-14",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/hold-guard.mjs",
+    ".claude/hooks/jsonl-guard.test.mjs",
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/jsonl-schema.test.mjs"
+   ]
+  },
+  {
+   "name": "tasks",
+   "path": "public/framework/ai/quick-fix/tasks",
+   "kind": "folder",
+   "size": 2684,
+   "files": 5,
+   "newest": "2026-10-16",
+   "code_refs": [
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/ledger.mjs",
+    "Server/Ai2Overview.mjs",
+    "Server/AskIndex-tasks.test.mjs",
+    "Server/AskIndex.mjs"
+   ]
+  },
+  {
+   "name": "rail",
+   "path": "public/framework/ai/rail",
+   "kind": "folder",
+   "size": 338545,
+   "files": 26,
+   "newest": "2026-10-19",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/jsonl-schema.test.mjs",
+    ".claude/hooks/prompt-relay.mjs",
+    "Server/Ai2Overview.mjs"
+   ]
+  },
+  {
+   "name": "DashChips.js",
+   "path": "public/framework/ai/rail/DashChips.js",
+   "kind": "file",
+   "size": 9908,
+   "files": 1,
+   "newest": "2026-10-19",
+   "code_refs": [
+    "public/framework/ai/rail/rail.js",
+    "public/framework/ai/tasks/SavedFilter.js",
+    "public/framework/ai/tasks/TaskLanes.js"
+   ]
+  },
+  {
+   "name": "DashRow.js",
+   "path": "public/framework/ai/rail/DashRow.js",
+   "kind": "file",
+   "size": 4043,
+   "files": 1,
+   "newest": "2026-10-19",
+   "code_refs": [
+    "Server/State.mjs",
+    "public/framework/ai/rail/DashState.js",
+    "public/framework/core/Page/ext/Inbox/WaitingOnYou.js"
+   ]
+  },
+  {
+   "name": "DashState.js",
+   "path": "public/framework/ai/rail/DashState.js",
+   "kind": "file",
+   "size": 1528,
+   "files": 1,
+   "newest": "2026-10-19",
+   "code_refs": [
+    "public/framework/ai/AIDashboard/SessionStore.js",
+    "public/framework/ai/rail/rail.js",
+    "public/framework/ai/tasks/TaskLanes.js"
+   ]
+  },
+  {
+   "name": "Log.js",
+   "path": "public/framework/ai/rail/Log.js",
+   "kind": "file",
+   "size": 7383,
+   "files": 1,
+   "newest": "2026-10-12",
+   "code_refs": [
+    "Servex/Servex.js",
+    "Servex/TaskLoop.js",
+    "Servex/agents/Agents.js",
+    "Servex/agents/Assistant.js",
+    "Servex/agents/awaken-race.test.mjs"
+   ]
+  },
+  {
+   "name": "Needs.js",
+   "path": "public/framework/ai/rail/Needs.js",
+   "kind": "file",
+   "size": 14628,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    "public/framework/ai/cards/Rules.js",
+    "public/framework/ai/cards/card.js",
+    "public/framework/ai/dashboard/page.js",
+    "public/framework/ai/rail/rail.js",
+    "public/framework/ai2/page.js"
+   ]
+  },
+  {
+   "name": "NeedsRule.js",
+   "path": "public/framework/ai/rail/NeedsRule.js",
+   "kind": "file",
+   "size": 23287,
+   "files": 1,
+   "newest": "2026-10-12",
+   "code_refs": [
+    "Servex/cards/Cards.js",
+    "public/framework/ai/rail/Needs.js",
+    "public/framework/ai/rail/groups.js",
+    "public/framework/ai/rail/inbox.js",
+    "public/framework/ai/rail/rail.js"
+   ]
+  },
+  {
+   "name": "Overview.js",
+   "path": "public/framework/ai/rail/Overview.js",
+   "kind": "file",
+   "size": 7611,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    "public/framework/ai/AIOverview.js",
+    "public/framework/ai/page.js",
+    "public/framework/ai2/page.js",
+    "public/framework/core/Page/settings/settings.js"
+   ]
+  },
+  {
+   "name": "Processes.js",
+   "path": "public/framework/ai/rail/Processes.js",
+   "kind": "file",
+   "size": 11130,
+   "files": 1,
+   "newest": "2026-10-12",
+   "code_refs": [
+    "Servex/Games.js",
+    "Servex/Servex.js",
+    "Servex/agents/Agents.js",
+    "Servex/processes.test.mjs",
+    "public/framework/ai/rail/live.js"
+   ]
+  },
+  {
+   "name": "doc",
+   "path": "public/framework/ai/rail/doc",
+   "kind": "folder",
+   "size": 46918,
+   "files": 7,
+   "newest": "2026-10-13",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/auto-hold.mjs",
+    ".claude/hooks/git-guard.mjs",
+    ".claude/hooks/git-guard.test.mjs",
+    ".claude/hooks/hold-guard.mjs"
+   ]
+  },
+  {
+   "name": "files.jsonl",
+   "path": "public/framework/ai/rail/files.jsonl",
+   "kind": "file",
+   "size": 573,
+   "files": 1,
+   "newest": "2026-10-19",
+   "code_refs": [
+    "Server/Crawl.mjs",
+    "Server/ModuleLog.mjs",
+    "Server/RepoSize.mjs",
+    "Server/TaskDirs.mjs",
+    "Server/TaskHomes.mjs"
+   ]
+  },
+  {
+   "name": "groups.js",
+   "path": "public/framework/ai/rail/groups.js",
+   "kind": "file",
+   "size": 10551,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/jsonl-schema.test.mjs",
+    "Server/AskTally.mjs",
+    "Servex/agents/Assistant.js",
+    "Servex/agents/groups.test.mjs"
+   ]
+  },
+  {
+   "name": "groups.json",
+   "path": "public/framework/ai/rail/groups.json",
+   "kind": "file",
+   "size": 1829,
+   "files": 1,
+   "newest": "2026-10-09",
+   "code_refs": [
+    "Server/AskTally.mjs",
+    "Servex/agents/Assistant.js",
+    "Servex/agents/groups.test.mjs",
+    "Servex/agents/layers-proof.mjs",
+    "public/framework/ai/cards/card.js"
+   ]
+  },
+  {
+   "name": "inbox.js",
+   "path": "public/framework/ai/rail/inbox.js",
+   "kind": "file",
+   "size": 28959,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    ".claude/hooks/jsonl-schema.mjs",
+    "Server/AskIndex.mjs",
+    "Server/AskIndex.test.mjs",
+    "Server/UndoneAsks.mjs",
+    "Server/UndoneVerify.mjs"
+   ]
+  },
+  {
+   "name": "live.js",
+   "path": "public/framework/ai/rail/live.js",
+   "kind": "file",
+   "size": 18917,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    "Server/plugins/SocketServer/Tail.js",
+    "Server/smoke.mjs",
+    "Servex/agents/page_tools.js",
+    "public/framework/ai/rail/Processes.js",
+    "public/framework/ai/rail/rail.js"
+   ]
+  },
+  {
+   "name": "overview",
+   "path": "public/framework/ai/rail/overview",
+   "kind": "folder",
+   "size": 90695,
+   "files": 2,
+   "newest": "2026-10-14",
+   "code_refs": [
+    "Server/Ai2Overview.mjs",
+    "Server/AskIndex.mjs",
+    "public/framework/ai/AITask/page.js",
+    "public/framework/ai/cards/card.js",
+    "public/framework/ai/dashboard/page.js"
+   ]
+  },
+  {
+   "name": "processes.css",
+   "path": "public/framework/ai/rail/processes.css",
+   "kind": "file",
+   "size": 7267,
+   "files": 1,
+   "newest": "2026-10-12",
+   "code_refs": [
+    "public/framework/ai/rail/Processes.js"
+   ]
+  },
+  {
+   "name": "rail.css",
+   "path": "public/framework/ai/rail/rail.css",
+   "kind": "file",
+   "size": 7915,
+   "files": 1,
+   "newest": "2026-10-19",
+   "code_refs": [
+    "public/framework/ai/rail/rail.js",
+    "public/framework/ext/drawer/Sheet.js",
+    "public/framework/ext/drawer/menu.js",
+    "public/framework/ext/drawer/page.js",
+    "public/framework/ext/drawer/rail/page.js"
+   ]
+  },
+  {
+   "name": "rail.js",
+   "path": "public/framework/ai/rail/rail.js",
+   "kind": "file",
+   "size": 44060,
+   "files": 1,
+   "newest": "2026-10-19",
+   "code_refs": [
+    "public/framework/ai/AIOverview.js",
+    "public/framework/ai/AITask/dashboard.js",
+    "public/framework/ai/cards/Faces.js",
+    "public/framework/ai/cards/card.js",
+    "public/framework/ai/page.js"
+   ]
+  },
+  {
+   "name": "readme.md",
+   "path": "public/framework/ai/rail/readme.md",
+   "kind": "file",
+   "size": 1343,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    ".claude/skills/system-architect/measure.mjs",
+    "Server/ArchitectureCensus.mjs",
+    "Server/ArchiveSessions.mjs",
+    "Server/AskIndex.mjs",
+    "Server/ModelsNow.mjs"
+   ]
+  },
+  {
+   "name": "readme.md",
+   "path": "public/framework/ai/readme.md",
+   "kind": "file",
+   "size": 11851,
+   "files": 1,
+   "newest": "2026-10-20",
+   "code_refs": [
+    ".claude/skills/system-architect/measure.mjs",
+    "Server/ArchitectureCensus.mjs",
+    "Server/ArchiveSessions.mjs",
+    "Server/AskIndex.mjs",
+    "Server/ModelsNow.mjs"
+   ]
+  },
+  {
+   "name": "review",
+   "path": "public/framework/ai/review",
+   "kind": "folder",
+   "size": 41222,
+   "files": 12,
+   "newest": "2026-10-16",
+   "code_refs": [
+    ".claude/hooks/jsonl-guard.mjs",
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/jsonl-schema.test.mjs",
+    ".claude/hooks/ledger.mjs",
+    ".claude/skills/every-prompt/say.mjs"
+   ]
+  },
+  {
+   "name": "doc",
+   "path": "public/framework/ai/review/doc",
+   "kind": "folder",
+   "size": 3589,
+   "files": 1,
+   "newest": "2026-09-30",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/auto-hold.mjs",
+    ".claude/hooks/git-guard.mjs",
+    ".claude/hooks/git-guard.test.mjs",
+    ".claude/hooks/hold-guard.mjs"
+   ]
+  },
+  {
+   "name": "files.jsonl",
+   "path": "public/framework/ai/review/files.jsonl",
+   "kind": "file",
+   "size": 100,
+   "files": 1,
+   "newest": "2026-10-16",
+   "code_refs": [
+    "Server/Crawl.mjs",
+    "Server/ModuleLog.mjs",
+    "Server/RepoSize.mjs",
+    "Server/TaskDirs.mjs",
+    "Server/TaskHomes.mjs"
+   ]
+  },
+  {
+   "name": "page.js",
+   "path": "public/framework/ai/review/page.js",
+   "kind": "file",
+   "size": 5654,
+   "files": 1,
+   "newest": "2026-09-30",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/health-guard.mjs",
+    ".claude/hooks/jsonl-guard.test.mjs",
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/jsonl-schema.test.mjs"
+   ]
+  },
+  {
+   "name": "questions.json",
+   "path": "public/framework/ai/review/questions.json",
+   "kind": "file",
+   "size": 24086,
+   "files": 1,
+   "newest": "2026-09-30",
+   "code_refs": [
+    "Server/review.mjs",
+    "public/framework/ai/review/page.js"
+   ]
+  },
+  {
+   "name": "readme.md",
+   "path": "public/framework/ai/review/readme.md",
+   "kind": "file",
+   "size": 3078,
+   "files": 1,
+   "newest": "2026-09-30",
+   "code_refs": [
+    ".claude/skills/system-architect/measure.mjs",
+    "Server/ArchitectureCensus.mjs",
+    "Server/ArchiveSessions.mjs",
+    "Server/AskIndex.mjs",
+    "Server/ModelsNow.mjs"
+   ]
+  },
+  {
+   "name": "tasks",
+   "path": "public/framework/ai/review/tasks",
+   "kind": "folder",
+   "size": 4715,
+   "files": 7,
+   "newest": "2026-10-16",
+   "code_refs": [
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/ledger.mjs",
+    "Server/Ai2Overview.mjs",
+    "Server/AskIndex-tasks.test.mjs",
+    "Server/AskIndex.mjs"
+   ]
+  },
+  {
+   "name": "sessions",
+   "path": "public/framework/ai/sessions",
+   "kind": "folder",
+   "size": 150879429,
+   "files": 11342,
+   "newest": "2026-10-20",
+   "code_refs": [
+    ".claude/hooks/git-guard.mjs",
+    ".claude/hooks/git-guard.test.mjs",
+    ".claude/hooks/hold-guard.mjs",
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/jsonl-schema.test.mjs"
+   ]
+  },
+  {
+   "name": "2026",
+   "path": "public/framework/ai/sessions/2026",
+   "kind": "folder",
+   "size": 139846954,
+   "files": 11257,
+   "newest": "2026-10-20",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/auto-hold.mjs",
+    ".claude/hooks/git-guard.mjs",
+    ".claude/hooks/git-guard.test.mjs",
+    ".claude/hooks/health-guard.mjs"
+   ]
+  },
+  {
+   "name": "a56900e3-8b50-49d0-bb1c-42f986cd407b",
+   "path": "public/framework/ai/sessions/a56900e3-8b50-49d0-bb1c-42f986cd407b",
+   "kind": "folder",
+   "size": 544,
+   "files": 1,
+   "newest": "2026-10-18",
+   "code_refs": []
+  },
+  {
+   "name": "ai",
+   "path": "public/framework/ai/sessions/ai",
+   "kind": "folder",
+   "size": 84867,
+   "files": 4,
+   "newest": "2026-10-08",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/auto-hold.mjs",
+    ".claude/hooks/git-guard.mjs",
+    ".claude/hooks/git-guard.test.mjs",
+    ".claude/hooks/health-guard.mjs"
+   ]
+  },
+  {
+   "name": "card-moves-files.jsonl",
+   "path": "public/framework/ai/sessions/card-moves-files.jsonl",
+   "kind": "file",
+   "size": 377336,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": []
+  },
+  {
+   "name": "card-moves.jsonl",
+   "path": "public/framework/ai/sessions/card-moves.jsonl",
+   "kind": "file",
+   "size": 414494,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": []
+  },
+  {
+   "name": "doc",
+   "path": "public/framework/ai/sessions/doc",
+   "kind": "folder",
+   "size": 274133,
+   "files": 56,
+   "newest": "2026-10-20",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/auto-hold.mjs",
+    ".claude/hooks/git-guard.mjs",
+    ".claude/hooks/git-guard.test.mjs",
+    ".claude/hooks/hold-guard.mjs"
+   ]
+  },
+  {
+   "name": "files.jsonl",
+   "path": "public/framework/ai/sessions/files.jsonl",
+   "kind": "file",
+   "size": 1666548,
+   "files": 1,
+   "newest": "2026-10-18",
+   "code_refs": [
+    "Server/Crawl.mjs",
+    "Server/ModuleLog.mjs",
+    "Server/RepoSize.mjs",
+    "Server/TaskDirs.mjs",
+    "Server/TaskHomes.mjs"
+   ]
+  },
+  {
+   "name": "inbox.jsonl",
+   "path": "public/framework/ai/sessions/inbox.jsonl",
+   "kind": "file",
+   "size": 37455,
+   "files": 1,
+   "newest": "2026-10-15",
+   "code_refs": [
+    "Server/AskIndex.mjs",
+    "Server/AskIndex.test.mjs",
+    "Server/UndoneAsks.mjs",
+    "Server/UndoneVerify.mjs",
+    "Servex/Heartbeat.js"
+   ]
+  },
+  {
+   "name": "migration-manifest.json",
+   "path": "public/framework/ai/sessions/migration-manifest.json",
+   "kind": "file",
+   "size": 3054280,
+   "files": 1,
+   "newest": "2026-10-09",
+   "code_refs": [
+    "Server/session-migrate.mjs",
+    "Server/session-migrate.test.mjs"
+   ]
+  },
+  {
+   "name": "page.js",
+   "path": "public/framework/ai/sessions/page.js",
+   "kind": "file",
+   "size": 120,
+   "files": 1,
+   "newest": "2026-10-08",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/health-guard.mjs",
+    ".claude/hooks/jsonl-guard.test.mjs",
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/jsonl-schema.test.mjs"
+   ]
+  },
+  {
+   "name": "page.jsonl",
+   "path": "public/framework/ai/sessions/page.jsonl",
+   "kind": "file",
+   "size": 1931,
+   "files": 1,
+   "newest": "2026-10-12",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/jsonl-guard.test.mjs",
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/jsonl-schema.test.mjs",
+    ".claude/hooks/prompt-relay.mjs"
+   ]
+  },
+  {
+   "name": "readme.md",
+   "path": "public/framework/ai/sessions/readme.md",
+   "kind": "file",
+   "size": 6160,
+   "files": 1,
+   "newest": "2026-10-20",
+   "code_refs": [
+    ".claude/skills/system-architect/measure.mjs",
+    "Server/ArchitectureCensus.mjs",
+    "Server/ArchiveSessions.mjs",
+    "Server/AskIndex.mjs",
+    "Server/ModelsNow.mjs"
+   ]
+  },
+  {
+   "name": "session-buckets.json",
+   "path": "public/framework/ai/sessions/session-buckets.json",
+   "kind": "file",
+   "size": 27992,
+   "files": 1,
+   "newest": "2026-10-12",
+   "code_refs": [
+    "Server/session-buckets.mjs"
+   ]
+  },
+  {
+   "name": "session-day-moves.jsonl",
+   "path": "public/framework/ai/sessions/session-day-moves.jsonl",
+   "kind": "file",
+   "size": 65147,
+   "files": 1,
+   "newest": "2026-10-18",
+   "code_refs": [
+    "Server/SessionDayMove.mjs",
+    "Server/TaskDirs.mjs"
+   ]
+  },
+  {
+   "name": "session-flags.json",
+   "path": "public/framework/ai/sessions/session-flags.json",
+   "kind": "file",
+   "size": 1554930,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    "Server/SessionResume.mjs",
+    "Server/session-flags.mjs",
+    "public/framework/ai/AISession/AISessionFlags.js",
+    "public/framework/ai/AISession/AISessionRows.js",
+    "public/framework/ai/AISession/AISessionSource.mjs"
+   ]
+  },
+  {
+   "name": "session-record-moves.jsonl",
+   "path": "public/framework/ai/sessions/session-record-moves.jsonl",
+   "kind": "file",
+   "size": 301789,
+   "files": 1,
+   "newest": "2026-10-17",
+   "code_refs": [
+    "Server/SessionRecord.mjs"
+   ]
+  },
+  {
+   "name": "sessions.css",
+   "path": "public/framework/ai/sessions/sessions.css",
+   "kind": "file",
+   "size": 28418,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    "public/framework/ai/AISession/AISessionRows.js",
+    "public/framework/ai/AISession/AISessionsPage.js",
+    "public/framework/ai/classes/Session/SessionClassPage.js",
+    "public/framework/ai/dashboard/page.js"
+   ]
+  },
+  {
+   "name": "settings.jsonl",
+   "path": "public/framework/ai/sessions/settings.jsonl",
+   "kind": "file",
+   "size": 67,
+   "files": 1,
+   "newest": "2026-10-12",
+   "code_refs": [
+    "public/framework/ai/AIOverview.js",
+    "public/framework/ai/AISession/AISessionsPage.js",
+    "public/framework/ai/dashboard/page.js",
+    "public/framework/core/Page/ext/Inbox/timeline/TimelinePage.js",
+    "public/framework/core/Page/settings/settings.js"
+   ]
+  },
+  {
+   "name": "system.js",
+   "path": "public/framework/ai/sessions/system.js",
+   "kind": "file",
+   "size": 314,
+   "files": 1,
+   "newest": "2026-10-12",
+   "code_refs": [
+    "public/framework/core/Layout/fixtures.js",
+    "public/framework/core/Layout/layouts.js",
+    "public/framework/core/Page/jsonl/system.js",
+    "public/framework/ext/System/Systems.js",
+    "public/imagine/paging/blocks.js"
+   ]
+  },
+  {
+   "name": "task-manifest.json",
+   "path": "public/framework/ai/sessions/task-manifest.json",
+   "kind": "file",
+   "size": 348671,
+   "files": 1,
+   "newest": "2026-10-10",
+   "code_refs": [
+    "Server/TaskDirs.mjs"
+   ]
+  },
+  {
+   "name": "task-migrations.jsonl",
+   "path": "public/framework/ai/sessions/task-migrations.jsonl",
+   "kind": "file",
+   "size": 79406,
+   "files": 1,
+   "newest": "2026-10-16",
+   "code_refs": [
+    "Server/TaskMigrate.mjs"
+   ]
+  },
+  {
+   "name": "task-moves-files.jsonl",
+   "path": "public/framework/ai/sessions/task-moves-files.jsonl",
+   "kind": "file",
+   "size": 1852280,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    "Server/TaskMove.mjs",
+    "Server/TaskMove.test.mjs"
+   ]
+  },
+  {
+   "name": "task-moves.jsonl",
+   "path": "public/framework/ai/sessions/task-moves.jsonl",
+   "kind": "file",
+   "size": 291446,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    "Server/TaskDirs.mjs",
+    "Server/TaskMove.mjs",
+    "Server/TaskMove.test.mjs",
+    "public/framework/ai/AISession/StoreFolder.js"
+   ]
+  },
+  {
+   "name": "task-moves.plan.json",
+   "path": "public/framework/ai/sessions/task-moves.plan.json",
+   "kind": "file",
+   "size": 421589,
+   "files": 1,
+   "newest": "2026-10-12",
+   "code_refs": [
+    "Server/TaskMove.mjs"
+   ]
+  },
+  {
+   "name": "task-pages.json",
+   "path": "public/framework/ai/sessions/task-pages.json",
+   "kind": "file",
+   "size": 6671,
+   "files": 1,
+   "newest": "2026-10-12",
+   "code_refs": [
+    "Server/TaskMove.mjs",
+    "public/framework/ai/AISession/StoreFolder.js"
+   ]
+  },
+  {
+   "name": "task-redirects.txt",
+   "path": "public/framework/ai/sessions/task-redirects.txt",
+   "kind": "file",
+   "size": 133948,
+   "files": 1,
+   "newest": "2026-10-12",
+   "code_refs": [
+    "Server/TaskMove.mjs"
+   ]
+  },
+  {
+   "name": "weight.jsonl",
+   "path": "public/framework/ai/sessions/weight.jsonl",
+   "kind": "file",
+   "size": 135,
+   "files": 1,
+   "newest": "2026-10-03",
+   "code_refs": [
+    "Server/page-ai-cost.mjs",
+    "Server/page-refs.mjs",
+    "Server/smoke.mjs",
+    "public/framework/core/Page/ext/Inbox/timeline/TimelinePage.js",
+    "public/framework/core/Page/settings/settings.js"
+   ]
+  },
+  {
+   "name": "worktree-removals.jsonl",
+   "path": "public/framework/ai/sessions/worktree-removals.jsonl",
+   "kind": "file",
+   "size": 1804,
+   "files": 1,
+   "newest": "2026-10-17",
+   "code_refs": [
+    "Server/Worktrees.mjs"
+   ]
+  },
+  {
+   "name": "skills.json",
+   "path": "public/framework/ai/skills.json",
+   "kind": "file",
+   "size": 17353,
+   "files": 1,
+   "newest": "2026-10-14",
+   "code_refs": [
+    "public/framework/ai/AIOverview.js",
+    "public/framework/ai/objects.js",
+    "public/framework/ai/skills.mjs"
+   ]
+  },
+  {
+   "name": "skills.mjs",
+   "path": "public/framework/ai/skills.mjs",
+   "kind": "file",
+   "size": 2569,
+   "files": 1,
+   "newest": "2026-10-09",
+   "code_refs": [
+    "public/framework/ai/AIOverview.js"
+   ]
+  },
+  {
+   "name": "stale-closes.jsonl",
+   "path": "public/framework/ai/stale-closes.jsonl",
+   "kind": "file",
+   "size": 375675,
+   "files": 1,
+   "newest": "2026-10-19",
+   "code_refs": [
+    "Server/FollowUp.mjs",
+    "Server/StaleClose.mjs"
+   ]
+  },
+  {
+   "name": "system",
+   "path": "public/framework/ai/system",
+   "kind": "folder",
+   "size": 35096,
+   "files": 4,
+   "newest": "2026-10-15",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/jsonl-schema.test.mjs",
+    ".claude/hooks/naming-guard.mjs",
+    ".claude/hooks/prompt-relay.mjs"
+   ]
+  },
+  {
+   "name": "models",
+   "path": "public/framework/ai/system/models",
+   "kind": "folder",
+   "size": 34136,
+   "files": 2,
+   "newest": "2026-10-12",
+   "code_refs": [
+    "Server/AntigravityUsage.mjs",
+    "Server/AskTally.mjs",
+    "Server/Collab.mjs",
+    "Server/ModelsNow.mjs",
+    "Server/TranscribeLoop.mjs"
+   ]
+  },
+  {
+   "name": "page.jsonl",
+   "path": "public/framework/ai/system/page.jsonl",
+   "kind": "file",
+   "size": 118,
+   "files": 1,
+   "newest": "2026-10-12",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/jsonl-guard.test.mjs",
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/jsonl-schema.test.mjs",
+    ".claude/hooks/prompt-relay.mjs"
+   ]
+  },
+  {
+   "name": "readme.md",
+   "path": "public/framework/ai/system/readme.md",
+   "kind": "file",
+   "size": 842,
+   "files": 1,
+   "newest": "2026-10-15",
+   "code_refs": [
+    ".claude/skills/system-architect/measure.mjs",
+    "Server/ArchitectureCensus.mjs",
+    "Server/ArchiveSessions.mjs",
+    "Server/AskIndex.mjs",
+    "Server/ModelsNow.mjs"
+   ]
+  },
+  {
+   "name": "systems",
+   "path": "public/framework/ai/systems",
+   "kind": "folder",
+   "size": 918,
+   "files": 5,
+   "newest": "2026-10-13",
+   "code_refs": [
+    "Server/OrphanAsks.mjs",
+    "Server/ReadmeOrphans.mjs",
+    "Server/review.mjs",
+    "Server/systems-beat.mjs",
+    "Servex/agents/Global.js"
+   ]
+  },
+  {
+   "name": "NavigationSystem.js",
+   "path": "public/framework/ai/systems/NavigationSystem.js",
+   "kind": "file",
+   "size": 148,
+   "files": 1,
+   "newest": "2026-10-12",
+   "code_refs": [
+    "public/framework/ext/System/Systems.js"
+   ]
+  },
+  {
+   "name": "ReadmeSystem.js",
+   "path": "public/framework/ai/systems/ReadmeSystem.js",
+   "kind": "file",
+   "size": 144,
+   "files": 1,
+   "newest": "2026-10-12",
+   "code_refs": [
+    "public/framework/audio/Transcriber/system.js",
+    "public/framework/ext/Refine/system.js",
+    "public/framework/ext/System/Systems.js",
+    "public/framework/servex/system.js"
+   ]
+  },
+  {
+   "name": "System.js",
+   "path": "public/framework/ai/systems/System.js",
+   "kind": "file",
+   "size": 138,
+   "files": 1,
+   "newest": "2026-10-12",
+   "code_refs": [
+    "public/framework/ai/AIOverview.js",
+    "public/framework/ai/AISystem.js",
+    "public/framework/ai/systems/NavigationSystem.js",
+    "public/framework/ai/systems/ReadmeSystem.js",
+    "public/framework/audio/Transcriber/system.js"
+   ]
+  },
+  {
+   "name": "Systems.js",
+   "path": "public/framework/ai/systems/Systems.js",
+   "kind": "file",
+   "size": 139,
+   "files": 1,
+   "newest": "2026-10-12",
+   "code_refs": [
+    "Server/systems-beat.mjs"
+   ]
+  },
+  {
+   "name": "page.jsonl",
+   "path": "public/framework/ai/systems/page.jsonl",
+   "kind": "file",
+   "size": 349,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/jsonl-guard.test.mjs",
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/jsonl-schema.test.mjs",
+    ".claude/hooks/prompt-relay.mjs"
+   ]
+  },
+  {
+   "name": "systems-map.md",
+   "path": "public/framework/ai/systems-map.md",
+   "kind": "file",
+   "size": 6801,
+   "files": 1,
+   "newest": "2026-10-13",
+   "code_refs": []
+  },
+  {
+   "name": "talk",
+   "path": "public/framework/ai/talk",
+   "kind": "folder",
+   "size": 26395,
+   "files": 7,
+   "newest": "2026-10-12",
+   "code_refs": [
+    "Server/TaskMove.test.mjs",
+    "Server/TranscribeLoop.mjs",
+    "Server/health.mjs",
+    "Server/plugins/AILogs.js",
+    "Server/plugins/MCP.js"
+   ]
+  },
+  {
+   "name": "doc",
+   "path": "public/framework/ai/talk/doc",
+   "kind": "folder",
+   "size": 12252,
+   "files": 3,
+   "newest": "2026-10-12",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/auto-hold.mjs",
+    ".claude/hooks/git-guard.mjs",
+    ".claude/hooks/git-guard.test.mjs",
+    ".claude/hooks/hold-guard.mjs"
+   ]
+  },
+  {
+   "name": "files.jsonl",
+   "path": "public/framework/ai/talk/files.jsonl",
+   "kind": "file",
+   "size": 118,
+   "files": 1,
+   "newest": "2026-09-29",
+   "code_refs": [
+    "Server/Crawl.mjs",
+    "Server/ModuleLog.mjs",
+    "Server/RepoSize.mjs",
+    "Server/TaskDirs.mjs",
+    "Server/TaskHomes.mjs"
+   ]
+  },
+  {
+   "name": "page.js",
+   "path": "public/framework/ai/talk/page.js",
+   "kind": "file",
+   "size": 4659,
+   "files": 1,
+   "newest": "2026-10-12",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/health-guard.mjs",
+    ".claude/hooks/jsonl-guard.test.mjs",
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/jsonl-schema.test.mjs"
+   ]
+  },
+  {
+   "name": "readme.md",
+   "path": "public/framework/ai/talk/readme.md",
+   "kind": "file",
+   "size": 3832,
+   "files": 1,
+   "newest": "2026-10-12",
+   "code_refs": [
+    ".claude/skills/system-architect/measure.mjs",
+    "Server/ArchitectureCensus.mjs",
+    "Server/ArchiveSessions.mjs",
+    "Server/AskIndex.mjs",
+    "Server/ModelsNow.mjs"
+   ]
+  },
+  {
+   "name": "talk.css",
+   "path": "public/framework/ai/talk/talk.css",
+   "kind": "file",
+   "size": 5534,
+   "files": 1,
+   "newest": "2026-09-23",
+   "code_refs": [
+    "public/framework/ai/talk/page.js"
+   ]
+  },
+  {
+   "name": "tasks",
+   "path": "public/framework/ai/tasks",
+   "kind": "folder",
+   "size": 136071,
+   "files": 252,
+   "newest": "2026-10-19",
+   "code_refs": [
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/ledger.mjs",
+    "Server/Ai2Overview.mjs",
+    "Server/AskIndex-tasks.test.mjs",
+    "Server/AskIndex.mjs"
+   ]
+  },
+  {
+   "name": "SavedFilter.js",
+   "path": "public/framework/ai/tasks/SavedFilter.js",
+   "kind": "file",
+   "size": 711,
+   "files": 1,
+   "newest": "2026-10-19",
+   "code_refs": [
+    "public/framework/ai/rail/DashChips.js",
+    "public/framework/ai/tasks/page.js"
+   ]
+  },
+  {
+   "name": "TaskLanes.js",
+   "path": "public/framework/ai/tasks/TaskLanes.js",
+   "kind": "file",
+   "size": 2646,
+   "files": 1,
+   "newest": "2026-10-19",
+   "code_refs": [
+    "public/framework/ai/tasks/page.js"
+   ]
+  },
+  {
+   "name": "TaskStateLog.js",
+   "path": "public/framework/ai/tasks/TaskStateLog.js",
+   "kind": "file",
+   "size": 346,
+   "files": 1,
+   "newest": "2026-10-14",
+   "code_refs": [
+    "public/framework/ai/rail/DashState.js"
+   ]
+  },
+  {
+   "name": "a-fresh-checkup-mastermind-for-each-voic",
+   "path": "public/framework/ai/tasks/a-fresh-checkup-mastermind-for-each-voic",
+   "kind": "folder",
+   "size": 1017,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "add-insight-into-what-was-spent-and-on-w",
+   "path": "public/framework/ai/tasks/add-insight-into-what-was-spent-and-on-w",
+   "kind": "folder",
+   "size": 1036,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "address-that-a-single-provider-s-models",
+   "path": "public/framework/ai/tasks/address-that-a-single-provider-s-models",
+   "kind": "folder",
+   "size": 997,
+   "files": 2,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "ai-2-finish-the-retirement-now-nav-entry",
+   "path": "public/framework/ai/tasks/ai-2-finish-the-retirement-now-nav-entry",
+   "kind": "folder",
+   "size": 1017,
+   "files": 3,
+   "newest": "2026-10-18",
+   "code_refs": []
+  },
+  {
+   "name": "ai-systems-git-context-cost-pages-collec",
+   "path": "public/framework/ai/tasks/ai-systems-git-context-cost-pages-collec",
+   "kind": "folder",
+   "size": 1031,
+   "files": 2,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "ask-does-it-already-exist-before-any-age",
+   "path": "public/framework/ai/tasks/ask-does-it-already-exist-before-any-age",
+   "kind": "folder",
+   "size": 1046,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "attach-special-instructions-to-task-type",
+   "path": "public/framework/ai/tasks/attach-special-instructions-to-task-type",
+   "kind": "folder",
+   "size": 1081,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "audit-session-logs-for-how-often-each-sk",
+   "path": "public/framework/ai/tasks/audit-session-logs-for-how-often-each-sk",
+   "kind": "folder",
+   "size": 1051,
+   "files": 2,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "automate-the-process-so-it-does-not-depe",
+   "path": "public/framework/ai/tasks/automate-the-process-so-it-does-not-depe",
+   "kind": "folder",
+   "size": 1092,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "bind-data-held-by-sessions-tasks-message",
+   "path": "public/framework/ai/tasks/bind-data-held-by-sessions-tasks-message",
+   "kind": "folder",
+   "size": 1034,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "build-a-named-system-that-defines-its-ow",
+   "path": "public/framework/ai/tasks/build-a-named-system-that-defines-its-ow",
+   "kind": "folder",
+   "size": 1037,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "build-a-pre-programmed-node-loop-that-st",
+   "path": "public/framework/ai/tasks/build-a-pre-programmed-node-loop-that-st",
+   "kind": "folder",
+   "size": 1021,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "build-a-unified-indexed-filterable-templ",
+   "path": "public/framework/ai/tasks/build-a-unified-indexed-filterable-templ",
+   "kind": "folder",
+   "size": 1020,
+   "files": 2,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "clarifying-questions-time-out-then-proce",
+   "path": "public/framework/ai/tasks/clarifying-questions-time-out-then-proce",
+   "kind": "folder",
+   "size": 1001,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "condense-the-very-granular-logged-costs",
+   "path": "public/framework/ai/tasks/condense-the-very-granular-logged-costs",
+   "kind": "folder",
+   "size": 1074,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "consider-a-multi-ai-setup-where-several",
+   "path": "public/framework/ai/tasks/consider-a-multi-ai-setup-where-several",
+   "kind": "folder",
+   "size": 1116,
+   "files": 2,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "consider-hiding-or-separating-cost-entri",
+   "path": "public/framework/ai/tasks/consider-hiding-or-separating-cost-entri",
+   "kind": "folder",
+   "size": 1030,
+   "files": 2,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "consider-structuring-rules-as-a-weighted",
+   "path": "public/framework/ai/tasks/consider-structuring-rules-as-a-weighted",
+   "kind": "folder",
+   "size": 1017,
+   "files": 2,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "decide-whether-rules-become-skills-or-li",
+   "path": "public/framework/ai/tasks/decide-whether-rules-become-skills-or-li",
+   "kind": "folder",
+   "size": 1108,
+   "files": 2,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "decide-whether-the-date-based-view-belon",
+   "path": "public/framework/ai/tasks/decide-whether-the-date-based-view-belon",
+   "kind": "folder",
+   "size": 1148,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "design-a-dynamic-index-where-querying-an",
+   "path": "public/framework/ai/tasks/design-a-dynamic-index-where-querying-an",
+   "kind": "folder",
+   "size": 1076,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "doc",
+   "path": "public/framework/ai/tasks/doc",
+   "kind": "folder",
+   "size": 15838,
+   "files": 5,
+   "newest": "2026-10-19",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/auto-hold.mjs",
+    ".claude/hooks/git-guard.mjs",
+    ".claude/hooks/git-guard.test.mjs",
+    ".claude/hooks/hold-guard.mjs"
+   ]
+  },
+  {
+   "name": "document-every-prompt-and-its-outcome-in",
+   "path": "public/framework/ai/tasks/document-every-prompt-and-its-outcome-in",
+   "kind": "folder",
+   "size": 1103,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "fast-assistant-cleans-each-chunk-punctua",
+   "path": "public/framework/ai/tasks/fast-assistant-cleans-each-chunk-punctua",
+   "kind": "folder",
+   "size": 1010,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "fast-assistant-does-not-reply-in-chat-it",
+   "path": "public/framework/ai/tasks/fast-assistant-does-not-reply-in-chat-it",
+   "kind": "folder",
+   "size": 979,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "files.jsonl",
+   "path": "public/framework/ai/tasks/files.jsonl",
+   "kind": "file",
+   "size": 5903,
+   "files": 1,
+   "newest": "2026-10-19",
+   "code_refs": [
+    "Server/Crawl.mjs",
+    "Server/ModuleLog.mjs",
+    "Server/RepoSize.mjs",
+    "Server/TaskDirs.mjs",
+    "Server/TaskHomes.mjs"
+   ]
+  },
+  {
+   "name": "filter-the-inbox-by-date-to-see-what-hap",
+   "path": "public/framework/ai/tasks/filter-the-inbox-by-date-to-see-what-hap",
+   "kind": "folder",
+   "size": 957,
+   "files": 2,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "find-an-archive-process-for-old-sessions",
+   "path": "public/framework/ai/tasks/find-an-archive-process-for-old-sessions",
+   "kind": "folder",
+   "size": 1036,
+   "files": 2,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "find-lost-past-work-and-mine-old-prompts",
+   "path": "public/framework/ai/tasks/find-lost-past-work-and-mine-old-prompts",
+   "kind": "folder",
+   "size": 1087,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "find-out-whether-refinement-can-be-added",
+   "path": "public/framework/ai/tasks/find-out-whether-refinement-can-be-added",
+   "kind": "folder",
+   "size": 1038,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "fix-the-detail-page-layout-problems-so-t",
+   "path": "public/framework/ai/tasks/fix-the-detail-page-layout-problems-so-t",
+   "kind": "folder",
+   "size": 997,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "fix-the-inbox-items-so-each-links-to-its",
+   "path": "public/framework/ai/tasks/fix-the-inbox-items-so-each-links-to-its",
+   "kind": "folder",
+   "size": 980,
+   "files": 2,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "fix-the-model-label-on-the-night-masterm",
+   "path": "public/framework/ai/tasks/fix-the-model-label-on-the-night-masterm",
+   "kind": "folder",
+   "size": 1039,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "fix-the-session-grid-columns-so-the-titl",
+   "path": "public/framework/ai/tasks/fix-the-session-grid-columns-so-the-titl",
+   "kind": "folder",
+   "size": 1072,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "fix-the-usage-item-sidebar-so-it-shows-i",
+   "path": "public/framework/ai/tasks/fix-the-usage-item-sidebar-so-it-shows-i",
+   "kind": "folder",
+   "size": 936,
+   "files": 2,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "give-the-chat-area-its-own-padding-and-b",
+   "path": "public/framework/ai/tasks/give-the-chat-area-its-own-padding-and-b",
+   "kind": "folder",
+   "size": 1065,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "have-a-fast-assistant-transcribe-each-wh",
+   "path": "public/framework/ai/tasks/have-a-fast-assistant-transcribe-each-wh",
+   "kind": "folder",
+   "size": 982,
+   "files": 2,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "have-the-ai-mastermind-and-the-page-mast",
+   "path": "public/framework/ai/tasks/have-the-ai-mastermind-and-the-page-mast",
+   "kind": "folder",
+   "size": 991,
+   "files": 2,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "have-the-mastermind-read-all-the-images",
+   "path": "public/framework/ai/tasks/have-the-mastermind-read-all-the-images",
+   "kind": "folder",
+   "size": 1044,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "if-feasible-write-a-script-that-goes-thr",
+   "path": "public/framework/ai/tasks/if-feasible-write-a-script-that-goes-thr",
+   "kind": "folder",
+   "size": 1057,
+   "files": 2,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "if-the-owner-does-not-answer-a-question",
+   "path": "public/framework/ai/tasks/if-the-owner-does-not-answer-a-question",
+   "kind": "folder",
+   "size": 946,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "indexing-and-finding-past-work",
+   "path": "public/framework/ai/tasks/indexing-and-finding-past-work",
+   "kind": "folder",
+   "size": 3965,
+   "files": 12,
+   "newest": "2026-10-16",
+   "code_refs": []
+  },
+  {
+   "name": "investigate-whether-updates-can-be-buffe",
+   "path": "public/framework/ai/tasks/investigate-whether-updates-can-be-buffe",
+   "kind": "folder",
+   "size": 1100,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "judge-whether-the-two-voice-agents-clean",
+   "path": "public/framework/ai/tasks/judge-whether-the-two-voice-agents-clean",
+   "kind": "folder",
+   "size": 1129,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "keep-the-fast-assistant-on-haiku-under-1",
+   "path": "public/framework/ai/tasks/keep-the-fast-assistant-on-haiku-under-1",
+   "kind": "folder",
+   "size": 1083,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "keep-the-in-flight-list-live-and-separat",
+   "path": "public/framework/ai/tasks/keep-the-in-flight-list-live-and-separat",
+   "kind": "folder",
+   "size": 1079,
+   "files": 2,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "keep-the-split-bar-defaulting-to-50-with",
+   "path": "public/framework/ai/tasks/keep-the-split-bar-defaulting-to-50-with",
+   "kind": "folder",
+   "size": 1018,
+   "files": 2,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "lean-away-from-skills-toward-a-more-acce",
+   "path": "public/framework/ai/tasks/lean-away-from-skills-toward-a-more-acce",
+   "kind": "folder",
+   "size": 982,
+   "files": 2,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "let-code-not-ai-memory-close-worktrees-a",
+   "path": "public/framework/ai/tasks/let-code-not-ai-memory-close-worktrees-a",
+   "kind": "folder",
+   "size": 1015,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "let-sessions-pull-in-references-to-thing",
+   "path": "public/framework/ai/tasks/let-sessions-pull-in-references-to-thing",
+   "kind": "folder",
+   "size": 988,
+   "files": 2,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "let-the-ai-read-live-streaming-pages-and",
+   "path": "public/framework/ai/tasks/let-the-ai-read-live-streaming-pages-and",
+   "kind": "folder",
+   "size": 1061,
+   "files": 2,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "let-the-owner-browse-past-items-by-entit",
+   "path": "public/framework/ai/tasks/let-the-owner-browse-past-items-by-entit",
+   "kind": "folder",
+   "size": 1003,
+   "files": 2,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "make-the-chat-window-a-live-preview-of-t",
+   "path": "public/framework/ai/tasks/make-the-chat-window-a-live-preview-of-t",
+   "kind": "folder",
+   "size": 1075,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "make-the-refinement-loop-screenshot-read",
+   "path": "public/framework/ai/tasks/make-the-refinement-loop-screenshot-read",
+   "kind": "folder",
+   "size": 1121,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "make-the-task-process-structured-the-ai",
+   "path": "public/framework/ai/tasks/make-the-task-process-structured-the-ai",
+   "kind": "folder",
+   "size": 1073,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "make-the-title-cell-grow-to-fit-a-flag-e",
+   "path": "public/framework/ai/tasks/make-the-title-cell-grow-to-fit-a-flag-e",
+   "kind": "folder",
+   "size": 1056,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "merge-ai-2026-and-ai-sessions-2026-into",
+   "path": "public/framework/ai/tasks/merge-ai-2026-and-ai-sessions-2026-into",
+   "kind": "folder",
+   "size": 966,
+   "files": 2,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "never-wait-on-the-owner-decide-document",
+   "path": "public/framework/ai/tasks/never-wait-on-the-owner-decide-document",
+   "kind": "folder",
+   "size": 960,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "now-card-topics-as-nested-sub-cards-from",
+   "path": "public/framework/ai/tasks/now-card-topics-as-nested-sub-cards-from",
+   "kind": "folder",
+   "size": 1180,
+   "files": 2,
+   "newest": "2026-10-18",
+   "code_refs": []
+  },
+  {
+   "name": "nudge-the-agent-through-every-step-of-th",
+   "path": "public/framework/ai/tasks/nudge-the-agent-through-every-step-of-th",
+   "kind": "folder",
+   "size": 1058,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "nudge-the-minion-within-a-minute-or-two",
+   "path": "public/framework/ai/tasks/nudge-the-minion-within-a-minute-or-two",
+   "kind": "folder",
+   "size": 1037,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "only-the-smart-assistant-replies-in-chat",
+   "path": "public/framework/ai/tasks/only-the-smart-assistant-replies-in-chat",
+   "kind": "folder",
+   "size": 999,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "overview-done-needed-and-in-flight",
+   "path": "public/framework/ai/tasks/overview-done-needed-and-in-flight",
+   "kind": "folder",
+   "size": 878,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "overview-of-this-dictation-and-all-asks",
+   "path": "public/framework/ai/tasks/overview-of-this-dictation-and-all-asks",
+   "kind": "folder",
+   "size": 922,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "page.js",
+   "path": "public/framework/ai/tasks/page.js",
+   "kind": "file",
+   "size": 1460,
+   "files": 1,
+   "newest": "2026-10-19",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/health-guard.mjs",
+    ".claude/hooks/jsonl-guard.test.mjs",
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/jsonl-schema.test.mjs"
+   ]
+  },
+  {
+   "name": "page.jsonl",
+   "path": "public/framework/ai/tasks/page.jsonl",
+   "kind": "file",
+   "size": 70,
+   "files": 1,
+   "newest": "2026-10-19",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/jsonl-guard.test.mjs",
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/jsonl-schema.test.mjs",
+    ".claude/hooks/prompt-relay.mjs"
+   ]
+  },
+  {
+   "name": "rail-has-no-outer-padding-each-rail-item",
+   "path": "public/framework/ai/tasks/rail-has-no-outer-padding-each-rail-item",
+   "kind": "folder",
+   "size": 1044,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "readme-indexing-as-the-discovery-mechani",
+   "path": "public/framework/ai/tasks/readme-indexing-as-the-discovery-mechani",
+   "kind": "folder",
+   "size": 1076,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "readme.md",
+   "path": "public/framework/ai/tasks/readme.md",
+   "kind": "file",
+   "size": 4660,
+   "files": 1,
+   "newest": "2026-10-19",
+   "code_refs": [
+    ".claude/skills/system-architect/measure.mjs",
+    "Server/ArchitectureCensus.mjs",
+    "Server/ArchiveSessions.mjs",
+    "Server/AskIndex.mjs",
+    "Server/ModelsNow.mjs"
+   ]
+  },
+  {
+   "name": "reduce-how-many-sessions-are-saved",
+   "path": "public/framework/ai/tasks/reduce-how-many-sessions-are-saved",
+   "kind": "folder",
+   "size": 1018,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "reduce-the-excess-padding-above-the-chat",
+   "path": "public/framework/ai/tasks/reduce-the-excess-padding-above-the-chat",
+   "kind": "folder",
+   "size": 918,
+   "files": 2,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "remove-or-relocate-the-out-of-place-expa",
+   "path": "public/framework/ai/tasks/remove-or-relocate-the-out-of-place-expa",
+   "kind": "folder",
+   "size": 960,
+   "files": 2,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "remove-the-framework-ai-2026-10-13-date",
+   "path": "public/framework/ai/tasks/remove-the-framework-ai-2026-10-13-date",
+   "kind": "folder",
+   "size": 983,
+   "files": 2,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "rename-the-session-log-task-jsonl-to-ses",
+   "path": "public/framework/ai/tasks/rename-the-session-log-task-jsonl-to-ses",
+   "kind": "folder",
+   "size": 1094,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "run-a-performance-audit-of-the-sessions",
+   "path": "public/framework/ai/tasks/run-a-performance-audit-of-the-sessions",
+   "kind": "folder",
+   "size": 1012,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "run-parallel-agents-that-each-refine-a-l",
+   "path": "public/framework/ai/tasks/run-parallel-agents-that-each-refine-a-l",
+   "kind": "folder",
+   "size": 1007,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "send-the-refined-prompt-to-a-mastermind",
+   "path": "public/framework/ai/tasks/send-the-refined-prompt-to-a-mastermind",
+   "kind": "folder",
+   "size": 1061,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "show-logged-costs-newest-first",
+   "path": "public/framework/ai/tasks/show-logged-costs-newest-first",
+   "kind": "folder",
+   "size": 1026,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "skip-re-auditing-tasks-already-audited-r",
+   "path": "public/framework/ai/tasks/skip-re-auditing-tasks-already-audited-r",
+   "kind": "folder",
+   "size": 1063,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "smart-assistant-does-prompt-refinement-c",
+   "path": "public/framework/ai/tasks/smart-assistant-does-prompt-refinement-c",
+   "kind": "folder",
+   "size": 1073,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "take-a-screenshot-of-monorepo-localhost",
+   "path": "public/framework/ai/tasks/take-a-screenshot-of-monorepo-localhost",
+   "kind": "folder",
+   "size": 1074,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "take-a-screenshot-of-the-session-grid-to",
+   "path": "public/framework/ai/tasks/take-a-screenshot-of-the-session-grid-to",
+   "kind": "folder",
+   "size": 1019,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "take-screenshots-of-the-sessions-and-det",
+   "path": "public/framework/ai/tasks/take-screenshots-of-the-sessions-and-det",
+   "kind": "folder",
+   "size": 1010,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "task.jsonl",
+   "path": "public/framework/ai/tasks/task.jsonl",
+   "kind": "file",
+   "size": 11580,
+   "files": 1,
+   "newest": "2026-10-18",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/hold-guard.mjs",
+    ".claude/hooks/jsonl-guard.test.mjs",
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/jsonl-schema.test.mjs"
+   ]
+  },
+  {
+   "name": "tasks.css",
+   "path": "public/framework/ai/tasks/tasks.css",
+   "kind": "file",
+   "size": 1078,
+   "files": 1,
+   "newest": "2026-10-14",
+   "code_refs": [
+    "public/framework/ai/tasks/TaskLanes.js",
+    "public/framework/ext/Figma/palette/tasks/page.js"
+   ]
+  },
+  {
+   "name": "the-fast-assistant-speaks-only-when-call",
+   "path": "public/framework/ai/tasks/the-fast-assistant-speaks-only-when-call",
+   "kind": "folder",
+   "size": 1007,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "treat-session-merging-as-order-and-time",
+   "path": "public/framework/ai/tasks/treat-session-merging-as-order-and-time",
+   "kind": "folder",
+   "size": 1032,
+   "files": 2,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "try-buffering-by-cloning-the-data-grid-c",
+   "path": "public/framework/ai/tasks/try-buffering-by-cloning-the-data-grid-c",
+   "kind": "folder",
+   "size": 1001,
+   "files": 2,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "use-headless-playwright-to-scroll-the-se",
+   "path": "public/framework/ai/tasks/use-headless-playwright-to-scroll-the-se",
+   "kind": "folder",
+   "size": 1037,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "use-one-global-assistant-rather-than-per",
+   "path": "public/framework/ai/tasks/use-one-global-assistant-rather-than-per",
+   "kind": "folder",
+   "size": 1019,
+   "files": 2,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "use-the-navigation-rail-for-documentatio",
+   "path": "public/framework/ai/tasks/use-the-navigation-rail-for-documentatio",
+   "kind": "folder",
+   "size": 1116,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "where-the-past-work-query-stands",
+   "path": "public/framework/ai/tasks/where-the-past-work-query-stands",
+   "kind": "folder",
+   "size": 962,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "widen-the-right-sidebar-which-is-about-3",
+   "path": "public/framework/ai/tasks/widen-the-right-sidebar-which-is-about-3",
+   "kind": "folder",
+   "size": 1050,
+   "files": 3,
+   "newest": "2026-10-17",
+   "code_refs": []
+  },
+  {
+   "name": "tests",
+   "path": "public/framework/ai/tests",
+   "kind": "folder",
+   "size": 149475,
+   "files": 58,
+   "newest": "2026-10-14",
+   "code_refs": [
+    ".claude/hooks/prompt-relay.mjs",
+    "Server/OutPath.mjs",
+    "Server/Steps.mjs",
+    "Server/Transcripts.mjs",
+    "Server/Unreferenced.mjs"
+   ]
+  },
+  {
+   "name": "AITest.js",
+   "path": "public/framework/ai/tests/AITest.js",
+   "kind": "file",
+   "size": 9706,
+   "files": 1,
+   "newest": "2026-10-09",
+   "code_refs": [
+    "Servex/ext/openrouter/evals/keys.mjs",
+    "Servex/ext/openrouter/evals/library.mjs",
+    "public/framework/ai/tests/keys-to-success/KeysTest.js",
+    "public/framework/ai/tests/page.js"
+   ]
+  },
+  {
+   "name": "broken-import",
+   "path": "public/framework/ai/tests/broken-import",
+   "kind": "folder",
+   "size": 6095,
+   "files": 5,
+   "newest": "2026-10-01",
+   "code_refs": [
+    "Servex/ext/openrouter/evals/library.mjs",
+    "Servex/ext/openrouter/evals/models.mjs",
+    "public/framework/ai/tests/AITest.js",
+    "public/framework/ai/tests/broken-import/fixture/page.fixture.js",
+    "public/framework/ai/tests/page.js"
+   ]
+  },
+  {
+   "name": "broken-overflow",
+   "path": "public/framework/ai/tests/broken-overflow",
+   "kind": "folder",
+   "size": 5752,
+   "files": 4,
+   "newest": "2026-10-01",
+   "code_refs": [
+    "Servex/ext/openrouter/evals/models.mjs",
+    "public/framework/ai/tests/broken-overflow/fixture/page.fixture.js",
+    "public/framework/ai/tests/page.js"
+   ]
+  },
+  {
+   "name": "files.jsonl",
+   "path": "public/framework/ai/tests/files.jsonl",
+   "kind": "file",
+   "size": 837,
+   "files": 1,
+   "newest": "2026-10-07",
+   "code_refs": [
+    "Server/Crawl.mjs",
+    "Server/ModuleLog.mjs",
+    "Server/RepoSize.mjs",
+    "Server/TaskDirs.mjs",
+    "Server/TaskHomes.mjs"
+   ]
+  },
+  {
+   "name": "fix-label",
+   "path": "public/framework/ai/tests/fix-label",
+   "kind": "folder",
+   "size": 5709,
+   "files": 4,
+   "newest": "2026-10-01",
+   "code_refs": [
+    "Servex/ext/openrouter/evals/library.mjs",
+    "Servex/ext/openrouter/evals/models.mjs",
+    "public/framework/ai/tests/fix-label/fixture/page.fixture.js",
+    "public/framework/ai/tests/page.js"
+   ]
+  },
+  {
+   "name": "h1-page",
+   "path": "public/framework/ai/tests/h1-page",
+   "kind": "folder",
+   "size": 21556,
+   "files": 5,
+   "newest": "2026-10-01",
+   "code_refs": [
+    "Servex/agents/awaken-race.test.mjs",
+    "Servex/agents/landed-reap-proof.mjs",
+    "Servex/ext/openrouter/evals/library.mjs",
+    "Servex/ext/openrouter/evals/models.mjs",
+    "Servex/ext/openrouter/evals/system-overhead.mjs"
+   ]
+  },
+  {
+   "name": "keys-to-success",
+   "path": "public/framework/ai/tests/keys-to-success",
+   "kind": "folder",
+   "size": 48159,
+   "files": 13,
+   "newest": "2026-10-01",
+   "code_refs": [
+    "Servex/ext/openrouter/evals/keys.mjs",
+    "public/framework/ai/tests/page.js"
+   ]
+  },
+  {
+   "name": "page.js",
+   "path": "public/framework/ai/tests/page.js",
+   "kind": "file",
+   "size": 4445,
+   "files": 1,
+   "newest": "2026-10-02",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/health-guard.mjs",
+    ".claude/hooks/jsonl-guard.test.mjs",
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/jsonl-schema.test.mjs"
+   ]
+  },
+  {
+   "name": "plan-views",
+   "path": "public/framework/ai/tests/plan-views",
+   "kind": "folder",
+   "size": 13164,
+   "files": 4,
+   "newest": "2026-10-14",
+   "code_refs": [
+    "Servex/ext/openrouter/evals/library.mjs",
+    "public/framework/ai/tests/page.js"
+   ]
+  },
+  {
+   "name": "rung0-html-to-view",
+   "path": "public/framework/ai/tests/rung0-html-to-view",
+   "kind": "folder",
+   "size": 25191,
+   "files": 5,
+   "newest": "2026-10-12",
+   "code_refs": [
+    "Servex/ext/openrouter/evals/system-overhead.mjs",
+    "public/framework/ai/tests/page.js"
+   ]
+  },
+  {
+   "name": "rung0-html-to-view-primer",
+   "path": "public/framework/ai/tests/rung0-html-to-view-primer",
+   "kind": "folder",
+   "size": 4712,
+   "files": 5,
+   "newest": "2026-10-12",
+   "code_refs": [
+    "Servex/ext/openrouter/evals/system-overhead.mjs",
+    "public/framework/ai/tests/page.js"
+   ]
+  },
+  {
+   "name": "rung2-two-children",
+   "path": "public/framework/ai/tests/rung2-two-children",
+   "kind": "folder",
+   "size": 1628,
+   "files": 4,
+   "newest": "2026-10-12",
+   "code_refs": [
+    "Servex/ext/openrouter/evals/system-overhead.mjs"
+   ]
+  },
+  {
+   "name": "rung2-two-children-primer",
+   "path": "public/framework/ai/tests/rung2-two-children-primer",
+   "kind": "folder",
+   "size": 2348,
+   "files": 4,
+   "newest": "2026-10-12",
+   "code_refs": [
+    "Servex/ext/openrouter/evals/system-overhead.mjs"
+   ]
+  },
+  {
+   "name": "settings.jsonl",
+   "path": "public/framework/ai/tests/settings.jsonl",
+   "kind": "file",
+   "size": 37,
+   "files": 1,
+   "newest": "2026-10-01",
+   "code_refs": [
+    "public/framework/ai/AIOverview.js",
+    "public/framework/ai/AISession/AISessionsPage.js",
+    "public/framework/ai/dashboard/page.js",
+    "public/framework/core/Page/ext/Inbox/timeline/TimelinePage.js",
+    "public/framework/core/Page/settings/settings.js"
+   ]
+  },
+  {
+   "name": "weight.jsonl",
+   "path": "public/framework/ai/tests/weight.jsonl",
+   "kind": "file",
+   "size": 136,
+   "files": 1,
+   "newest": "2026-10-03",
+   "code_refs": [
+    "Server/page-ai-cost.mjs",
+    "Server/page-refs.mjs",
+    "Server/smoke.mjs",
+    "public/framework/core/Page/ext/Inbox/timeline/TimelinePage.js",
+    "public/framework/core/Page/settings/settings.js"
+   ]
+  },
+  {
+   "name": "todo.md",
+   "path": "public/framework/ai/todo.md",
+   "kind": "file",
+   "size": 52485,
+   "files": 1,
+   "newest": "2026-10-19",
+   "code_refs": [
+    ".claude/hooks/ledger.mjs",
+    "Server/Crawl.mjs",
+    "Server/clarity.mjs",
+    "Servex/asks/asks.test.mjs",
+    "Servex/asks/stalled.js"
+   ]
+  },
+  {
+   "name": "usage",
+   "path": "public/framework/ai/usage",
+   "kind": "folder",
+   "size": 6806,
+   "files": 6,
+   "newest": "2026-10-16",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/git-guard.test.mjs",
+    ".claude/hooks/jsonl-guard.test.mjs",
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/jsonl-schema.test.mjs"
+   ]
+  },
+  {
+   "name": "UsagePace.js",
+   "path": "public/framework/ai/usage/UsagePace.js",
+   "kind": "file",
+   "size": 2609,
+   "files": 1,
+   "newest": "2026-10-16",
+   "code_refs": [
+    "public/framework/ai/AIDashboard/UsageLine.js",
+    "public/framework/ai/usage/UsagePage.js"
+   ]
+  },
+  {
+   "name": "UsagePage.js",
+   "path": "public/framework/ai/usage/UsagePage.js",
+   "kind": "file",
+   "size": 1609,
+   "files": 1,
+   "newest": "2026-10-16",
+   "code_refs": [
+    "public/framework/ai/usage/page.js"
+   ]
+  },
+  {
+   "name": "files.jsonl",
+   "path": "public/framework/ai/usage/files.jsonl",
+   "kind": "file",
+   "size": 109,
+   "files": 1,
+   "newest": "2026-10-16",
+   "code_refs": [
+    "Server/Crawl.mjs",
+    "Server/ModuleLog.mjs",
+    "Server/RepoSize.mjs",
+    "Server/TaskDirs.mjs",
+    "Server/TaskHomes.mjs"
+   ]
+  },
+  {
+   "name": "page.js",
+   "path": "public/framework/ai/usage/page.js",
+   "kind": "file",
+   "size": 218,
+   "files": 1,
+   "newest": "2026-10-16",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/health-guard.mjs",
+    ".claude/hooks/jsonl-guard.test.mjs",
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/jsonl-schema.test.mjs"
+   ]
+  },
+  {
+   "name": "readme.md",
+   "path": "public/framework/ai/usage/readme.md",
+   "kind": "file",
+   "size": 911,
+   "files": 1,
+   "newest": "2026-10-16",
+   "code_refs": [
+    ".claude/skills/system-architect/measure.mjs",
+    "Server/ArchitectureCensus.mjs",
+    "Server/ArchiveSessions.mjs",
+    "Server/AskIndex.mjs",
+    "Server/ModelsNow.mjs"
+   ]
+  },
+  {
+   "name": "usage.css",
+   "path": "public/framework/ai/usage/usage.css",
+   "kind": "file",
+   "size": 1350,
+   "files": 1,
+   "newest": "2026-10-16",
+   "code_refs": [
+    "public/framework/ai/AIDashboard/UsageLine.js",
+    "public/framework/ai/usage/UsagePage.js"
+   ]
+  },
+  {
+   "name": "usage.jsonl",
+   "path": "public/framework/ai/usage.jsonl",
+   "kind": "file",
+   "size": 271828,
+   "files": 1,
+   "newest": "2026-10-20",
+   "code_refs": [
+    ".claude/hooks/jsonl-schema.test.mjs",
+    ".claude/hooks/ledger.mjs",
+    "Server/AntigravityUsage.mjs",
+    "Server/RepoSize.mjs",
+    "Server/plugins/SocketServer/Append.test.mjs"
+   ]
+  },
+  {
+   "name": "v",
+   "path": "public/framework/ai/v",
+   "kind": "folder",
+   "size": 713216,
+   "files": 52,
+   "newest": "2026-10-19",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/auto-hold.mjs",
+    ".claude/hooks/git-guard.mjs",
+    ".claude/hooks/git-guard.test.mjs",
+    ".claude/hooks/health-guard.mjs"
+   ]
+  },
+  {
+   "name": "2",
+   "path": "public/framework/ai/v/2",
+   "kind": "folder",
+   "size": 29299,
+   "files": 4,
+   "newest": "2026-10-19",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/auto-hold.mjs",
+    ".claude/hooks/git-guard.mjs",
+    ".claude/hooks/git-guard.test.mjs",
+    ".claude/hooks/health-guard.mjs"
+   ]
+  },
+  {
+   "name": "3",
+   "path": "public/framework/ai/v/3",
+   "kind": "folder",
+   "size": 671947,
+   "files": 44,
+   "newest": "2026-10-19",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/auto-hold.mjs",
+    ".claude/hooks/git-guard.mjs",
+    ".claude/hooks/git-guard.test.mjs",
+    ".claude/hooks/health-guard.mjs"
+   ]
+  },
+  {
+   "name": "NewVersion.js",
+   "path": "public/framework/ai/v/NewVersion.js",
+   "kind": "file",
+   "size": 8080,
+   "files": 1,
+   "newest": "2026-10-12",
+   "code_refs": [
+    "public/framework/ai/v/Versions.js"
+   ]
+  },
+  {
+   "name": "Versions.js",
+   "path": "public/framework/ai/v/Versions.js",
+   "kind": "file",
+   "size": 3365,
+   "files": 1,
+   "newest": "2026-10-12",
+   "code_refs": [
+    "public/framework/ai/page.js",
+    "public/framework/ai/v/3/page.js"
+   ]
+  },
+  {
+   "name": "files.jsonl",
+   "path": "public/framework/ai/v/files.jsonl",
+   "kind": "file",
+   "size": 180,
+   "files": 1,
+   "newest": "2026-10-12",
+   "code_refs": [
+    "Server/Crawl.mjs",
+    "Server/ModuleLog.mjs",
+    "Server/RepoSize.mjs",
+    "Server/TaskDirs.mjs",
+    "Server/TaskHomes.mjs"
+   ]
+  },
+  {
+   "name": "page.js",
+   "path": "public/framework/ai/v/page.js",
+   "kind": "file",
+   "size": 345,
+   "files": 1,
+   "newest": "2026-09-21",
+   "code_refs": [
+    ".claude/hooks/append.mjs",
+    ".claude/hooks/health-guard.mjs",
+    ".claude/hooks/jsonl-guard.test.mjs",
+    ".claude/hooks/jsonl-schema.mjs",
+    ".claude/hooks/jsonl-schema.test.mjs"
+   ]
+  },
+  {
+   "name": "verdicts.jsonl",
+   "path": "public/framework/ai/verdicts.jsonl",
+   "kind": "file",
+   "size": 8141,
+   "files": 1,
+   "newest": "2026-09-23",
+   "code_refs": [
+    "Server/plugins/CardAnswer.js",
+    "Servex/proof/migrate-cards.mjs",
+    "public/framework/ai/cards/Rules.js",
+    "public/framework/ai/rail/inbox.js",
+    "public/framework/ai/v/3/timeline.js"
+   ]
+  },
+  {
+   "name": "weight.jsonl",
+   "path": "public/framework/ai/weight.jsonl",
+   "kind": "file",
+   "size": 138,
+   "files": 1,
+   "newest": "2026-10-03",
+   "code_refs": [
+    "Server/page-ai-cost.mjs",
+    "Server/page-refs.mjs",
+    "Server/smoke.mjs",
+    "public/framework/core/Page/ext/Inbox/timeline/TimelinePage.js",
+    "public/framework/core/Page/settings/settings.js"
+   ]
+  },
+  {
+   "name": "whisper",
+   "path": "public/framework/ai/whisper",
+   "kind": "folder",
+   "size": 396,
+   "files": 1,
+   "newest": "2026-10-17",
+   "code_refs": [
+    "Server/Ai2Overview.mjs",
+    "Server/TranscribeLoop.mjs",
+    "Server/health-supervisor.mjs",
+    "Server/plugins/MCP.js",
+    "Server/plugins/Recordings.js"
+   ]
+  },
+  {
+   "name": "files.jsonl",
+   "path": "public/framework/ai/whisper/files.jsonl",
+   "kind": "file",
+   "size": 396,
+   "files": 1,
+   "newest": "2026-10-17",
+   "code_refs": [
+    "Server/Crawl.mjs",
+    "Server/ModuleLog.mjs",
+    "Server/RepoSize.mjs",
+    "Server/TaskDirs.mjs",
+    "Server/TaskHomes.mjs"
+   ]
+  }
+ ]
+}

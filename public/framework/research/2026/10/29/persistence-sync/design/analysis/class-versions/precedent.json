@@ -1,0 +1,314 @@
+{
+  "dilemma": "class-versions",
+  "lens": "precedent",
+  "by": "analyst-versions-precedent",
+  "options": [
+    {
+      "id": "upcast-on-read",
+      "label": "Upcast on read: keep old lines, migrate in memory at replay",
+      "wins_when": [
+        {
+          "scenario": "The owner renames Task.data.state to status while about 1,800 old lines exist. One migration (state to status) runs in the replay path, and no page file is touched.",
+          "why": "Every line already passes through the replay path (set()), so one hook covers every old line, and the file stays a faithful record."
+        },
+        {
+          "scenario": "A Cloudflare Durable Object deploy restarts objects and drops sockets, and clients reconnect while some still run the old code.",
+          "why": "The new reader accepts old lines, so nothing is rewritten in the middle of the deploy and no half-migrated file is ever on disk."
+        },
+        {
+          "scenario": "A long multi-day AI session log that the owner rarely opens.",
+          "why": "No rewrite means no rewrite bug can reach that file, and the never-destructive rule holds without extra steps."
+        }
+      ],
+      "fails_when": [
+        {
+          "scenario": "A browser tab still running yesterday's class code keeps posting old-shape lines into a file whose first line already says the new schema.",
+          "severity": 4,
+          "recoverable": true,
+          "why": "One stamp per file is wrong when two code versions write to it. The reader picks the wrong migration, and a later set() can save a wrong value. The log still holds the true lines, so a fixed reader can replay them again."
+        },
+        {
+          "scenario": "An older reader meets a line written by newer code, from a stale copy or a restored backup.",
+          "severity": 4,
+          "recoverable": true,
+          "why": "Today an unknown verb is stored as data (lessons/object-model.md, gap 6). The old reader must refuse or warn, as tldraw does with TargetVersionTooNew."
+        },
+        {
+          "scenario": "A migration cannot map a field, and a later snapshot writes the upcast state and archives the old lines.",
+          "severity": 4,
+          "recoverable": true,
+          "why": "The field then survives only in the archive. With the archive kept it is recoverable; if the archive is deleted, it becomes severity 5."
+        },
+        {
+          "scenario": "Migrations pile up, so an old Task line runs through many steps on every open.",
+          "severity": 2,
+          "recoverable": true,
+          "why": "Opening gets slower and the old code never leaves the reader until the log is compacted."
+        },
+        {
+          "scenario": "A field is renamed in code with no upcast written for it.",
+          "severity": 3,
+          "recoverable": true,
+          "why": "Old lines show the field empty until the upcast is added and the page is reloaded."
+        }
+      ],
+      "precedent": [
+        {
+          "tool": "ZODB (zopefoundation/ZODB)",
+          "how": "Closest storage: one append-only file of object states. Each state carries state_version=1 (__getstate__); __setstate__ dispatches to _setstate_0 for old state. The file is never rewritten; the class reads both shapes.",
+          "src": "https://github.com/zopefoundation/ZODB/blob/c50a0941d40b22ff5b6fb30a5eab625fa4beba62/src/ZODB/fsIndex.py#L82-L97"
+        },
+        {
+          "tool": "jsonl-db (AlCalzone/jsonl-db)",
+          "how": "Closest file format: one JSON line per change, replayed on open. A reviver runs on each parsed line (parseLine); a serializer runs on each write. The old lines stay in the file.",
+          "src": "https://github.com/AlCalzone/jsonl-db/blob/46865f4edecfcfbedc196c6b02e0c8ae96ce073f/src/lib/db.ts#L588-L600 (options at L24-L37)"
+        },
+        {
+          "tool": "nedb (seald/nedb)",
+          "how": "JSONL datastore. beforeDeserialization runs before each line is parsed and must undo afterSerialization. nedb refuses to start if more than corruptAlertThreshold of the file is corrupt, which catches a wrong hook.",
+          "src": "https://github.com/seald/nedb/blob/84b6fc9bc5f6aa2ab99a451186730dbb9a3baf1f/lib/datastore.js#L124-L135 and L184-L191"
+        },
+        {
+          "tool": "mobx-keystone (xaviergonz/mobx-keystone)",
+          "how": "Closest class model: OO models with get/set. Each model class may set fromSnapshotProcessor (upcast on the way in) and toSnapshotProcessor (on the way out). The class owns its processor; nothing is registered centrally.",
+          "src": "https://github.com/xaviergonz/mobx-keystone/blob/c291c74e7eb590dcb825716f8abd8d1ebb3fc0b5/packages/lib/src/model/Model.ts#L227-L238"
+        },
+        {
+          "tool": "Greg Young, event versioning (principle, not a repo)",
+          "how": "Weak schema: add fields, never rename or change meaning. Old event versions are upcast to the latest on read. A changed meaning becomes a new event type.",
+          "src": "persistence-sync/notes/delta_logs_build_vs_buy.md section 3 (L140-L141, L162); https://www.infoq.com/news/2017/07/versioning-event-sourcing"
+        },
+        {
+          "tool": "Ink & Switch Cambria (principle, not a repo)",
+          "how": "Bidirectional lenses translate JSON patches between schema versions. Its own words: data translations in decentralized systems 'should be performed on read, not on write'. Old clients can bring back renamed fields, so every reader must translate.",
+          "src": "https://www.inkandswitch.com/cambria/ (quoted in persistence-sync/notes/delta_logs_build_vs_buy.md L142)"
+        }
+      ]
+    },
+    {
+      "id": "rewrite-logs",
+      "label": "Rewrite logs: a one-time script writes the newest shape; old file archived",
+      "wins_when": [
+        {
+          "scenario": "The 1,810 old at-lines today. One dry-run script writes the newest shape, the old file is archived as page.<n>.jsonl, and the compat branch can then be deleted. This is the owner's current plan.",
+          "why": "It ends the compat branch for good, and the archive keeps the original."
+        },
+        {
+          "scenario": "A small page log that a person or a plain grep reads directly.",
+          "why": "After the rewrite, page.jsonl says what the class says, so any reader needs no migration knowledge."
+        },
+        {
+          "scenario": "A class that only ever knows its newest shape, which matches the scripted-moves rule.",
+          "why": "Class code stays simple, and each migration runs once, not on every open."
+        }
+      ],
+      "fails_when": [
+        {
+          "scenario": "A live writer (Servex, a browser post, the dev server's tail) appends while the file is rewritten.",
+          "severity": 4,
+          "recoverable": true,
+          "why": "Lines appended during the rewrite land in the old file and miss the new one. They are recoverable only if the old file is archived by rename, not deleted, and the writer is paused or redirected."
+        },
+        {
+          "scenario": "The script maps a field wrongly and the new file replaces the only live copy.",
+          "severity": 4,
+          "recoverable": true,
+          "why": "Moving the archive back restores the page. If the archive was deleted, the loss is severity 5."
+        },
+        {
+          "scenario": "The process crashes between removing the old file and writing the new one.",
+          "severity": 4,
+          "recoverable": true,
+          "why": "The nedb pattern (temp file, fsync, rename, then fsync the folder) prevents this. A plain delete-then-write does not."
+        },
+        {
+          "scenario": "A rewrite changes the file's epoch, so open readers must reload.",
+          "severity": 2,
+          "recoverable": true,
+          "why": "Tabs get a reset and reload; annoying, not lost."
+        },
+        {
+          "scenario": "A rewrite of a huge multi-day AI session log.",
+          "severity": 2,
+          "recoverable": true,
+          "why": "Cost grows with log size, and the owner waits while it runs. The 1,810-line case is cheap today."
+        },
+        {
+          "scenario": "A rewrite removes the history of how a page changed, which the owner may want for audit.",
+          "severity": 2,
+          "recoverable": true,
+          "why": "Reading the old story now needs the archive, not the live file."
+        }
+      ],
+      "precedent": [
+        {
+          "tool": "ZODB pack, with zodbupdate for class renames",
+          "how": "pack writes Data.fs.pack, then renames Data.fs to Data.fs.old and the pack into place. A class rename is not handled by ZODB itself: the separate zodbupdate tool rewrites class names inside Data.fs (zodbupdate is not in the clone; from memory).",
+          "src": "persistence-sync/lessons/storage-compaction.md section 5 (pack swap, L261-L267)"
+        },
+        {
+          "tool": "nedb persistence compaction",
+          "how": "Rewrites the datafile through a temp file, fsync, then rename. On load, a db~ left between delete and rename is renamed back, so a crashed rewrite loses nothing.",
+          "src": "persistence-sync/lessons/storage-compaction.md L127-L132 (nedb crashSafeWriteFileLinesAsync)"
+        },
+        {
+          "tool": "Drizzle and Payload (database migrations)",
+          "how": "Dev uses push, which warns about data loss; production uses ordered migration files, each applied once. A migration is an ordered, one-way script, which is the rewrite shape.",
+          "src": "persistence-sync/notes/node_storage_orms.md L14 and L40"
+        },
+        {
+          "tool": "Linear client (reverse-engineered)",
+          "how": "A __schemaHash over model metadata decides whether the local DB migrates or re-bootstraps from the server. It works because the server holds the truth; lew42's log is the truth, so it cannot re-bootstrap from anywhere.",
+          "src": "persistence-sync/notes/delta_logs_build_vs_buy.md L143 (wzhudev/reverse-linear-sync-engine)"
+        }
+      ]
+    },
+    {
+      "id": "versioned-classes",
+      "label": "Versioned classes: each item records its class version (Task@2), with its own migrations",
+      "wins_when": [
+        {
+          "scenario": "A class whose meaning changed, not just its shape: Task as code work vs doc work. Old lines say Task@1 and keep the old meaning; new lines say Task@2.",
+          "why": "This is Greg Young's rule: a changed meaning becomes a new type, so old history cannot be misread."
+        },
+        {
+          "scenario": "A rolling change where a tab on old code writes Task@1 lines into a file the new code also writes.",
+          "why": "The reader knows both versions, so the mixed file reads correctly."
+        },
+        {
+          "scenario": "An agent or grep reads the file with no code at hand.",
+          "why": "Each item says what it is, so the version is visible in the line itself."
+        }
+      ],
+      "fails_when": [
+        {
+          "scenario": "A writer (an agent through the item tool, or old code) omits the version and writes Task, after the class has moved to version 2.",
+          "severity": 4,
+          "recoverable": true,
+          "why": "The line is read as version 1 and upcast again, so the state is wrong and a later set() may save it. The log is intact, so a fixed writer and reader can replay it."
+        },
+        {
+          "scenario": "The meaning changes but nobody bumps the version.",
+          "severity": 4,
+          "recoverable": true,
+          "why": "Old lines take on the new meaning silently. Reverting the code restores the old reading, since the log is untouched."
+        },
+        {
+          "scenario": "Each class keeps all its migrations forever.",
+          "severity": 2,
+          "recoverable": true,
+          "why": "Classes grow with near-identical versions, which the owner already called noise (the Item0 to Item9 idea)."
+        },
+        {
+          "scenario": "The version string is added to every line.",
+          "severity": 1,
+          "recoverable": true,
+          "why": "Lines get a few bytes longer; cosmetic."
+        },
+        {
+          "scenario": "Whole-store versioning, as Replicache does: the local store name carries the version and the old local data is dropped.",
+          "severity": 5,
+          "recoverable": false,
+          "why": "For lew42 this would abandon the log unless the old file is archived first, and the log is the only copy."
+        }
+      ],
+      "precedent": [
+        {
+          "tool": "tldraw store (tldraw/tldraw)",
+          "how": "Closest sync shape: a server-ordered room with per-record-type migrations. The file header keeps a version per migration sequence (sequences: {'com.tldraw.shape': 4}). Each migration id is sequence/version. Newer files are refused (TargetVersionTooNew). Migrations may define down for older readers.",
+          "src": "persistence-sync/lessons/object-model.md section 4, L185-L189 (cites migrate.ts L195-L224, StoreSchema.ts L96-L101 and L553-L576 at 38e6c84d; not re-read this pass: the tldraw clone has 13 files and GitHub access is off for this session)"
+        },
+        {
+          "tool": "LiveStore (event log)",
+          "how": "The research says event schemas must be versioned forever; the event log has no compaction yet. The per-event version naming is from memory and not checked.",
+          "src": "persistence-sync/taxonomy.md L254; persistence-sync/notes/sync_engines_crdts.md L298-L301"
+        },
+        {
+          "tool": "Colyseus Schema",
+          "how": "The server sends its class shape to each client on join (the reflection handshake), so the shape travels with the data. Nothing is persisted, so no old state is read back.",
+          "src": "https://github.com/colyseus/schema/blob/390cf3833cf76f588f140a01b1d5daf9e4fd5fbb/src/Reflection.ts#L54-L60"
+        },
+        {
+          "tool": "Replicache / Zero (rocicorp/mono)",
+          "how": "schemaVersion is part of the local IndexedDB name, so a new version starts a fresh local store and the server rebuilds it. This works only because the server holds the truth.",
+          "src": "https://github.com/rocicorp/mono/blob/f779973493b4109a59e35dbf71ad44103c4ae054/packages/replicache/src/replicache-options.ts#L67-L69 and packages/replicache/src/replicache-impl.ts#L254-L257"
+        }
+      ]
+    },
+    {
+      "id": "compat-in-code",
+      "label": "Compat in code: the class keeps reading old shapes",
+      "wins_when": [
+        {
+          "scenario": "An additive change, such as a new optional field priority. Old lines lack it and the class reads it as absent.",
+          "why": "No migration at all, so it ships today. This is Greg Young's weak-schema case."
+        },
+        {
+          "scenario": "A method rename under call-logging (D14): keep start() as an alias that calls begin().",
+          "why": "Old calls keep their meaning with one line of code, and no file changes."
+        },
+        {
+          "scenario": "A hotfix the owner needs now, with no script to write and no file to move.",
+          "why": "One branch in the class, shipped in minutes."
+        }
+      ],
+      "fails_when": [
+        {
+          "scenario": "The one-release compat branch is never removed.",
+          "severity": 2,
+          "recoverable": true,
+          "why": "This has already happened: the at branch was marked one release on 2026-10-03 and is still in Item.js on 2026-10-30. The branch stays until someone deletes it."
+        },
+        {
+          "scenario": "Replay guesses the state of an old line from old fields.",
+          "severity": 3,
+          "recoverable": true,
+          "why": "Task.replay_legacy infers complete, stopped or running from landed_at and closed_by. A later change to those guesses shows a different state until a reload."
+        },
+        {
+          "scenario": "Under call-logging (D14), a method changes behaviour with no alias, so old calls replay with new meaning.",
+          "severity": 4,
+          "recoverable": true,
+          "why": "The log is untouched, so reverting the method restores the old reading. If a snapshot is saved from the wrong state first, it is recoverable only while the old lines are kept."
+        },
+        {
+          "scenario": "A field is removed from code but stays in old lines.",
+          "severity": 2,
+          "recoverable": true,
+          "why": "The value is quietly dropped on display; the log still holds it."
+        }
+      ],
+      "precedent": [
+        {
+          "tool": "lew42 monorepo (itself)",
+          "how": "Item.apply keeps an at branch marked 'compat only, one release' (2026-10-03), still present on 2026-10-30. Task.replay_legacy infers state from old fields. The compat code already decays into permanent code.",
+          "src": "public/framework/core/Item/Item.js L119-L140; public/framework/core/Task/Task.js L601-L607 (lew42 monorepo); fixes.md line 24 (about 1,810 at-lines)"
+        },
+        {
+          "tool": "ZODB _setstate_N dispatch (zopefoundation/ZODB)",
+          "how": "The class keeps the old branch (_setstate_0) next to the current one and picks by a state version stored in the object. It is the mature form of compat in code, and it is what lew42's Task.replay_legacy does informally.",
+          "src": "https://github.com/zopefoundation/ZODB/blob/c50a0941d40b22ff5b6fb30a5eab625fa4beba62/src/ZODB/fsIndex.py#L82-L97"
+        },
+        {
+          "tool": "mobx-keystone fromSnapshotProcessor",
+          "how": "A model class owns its own upcast, so the class carries its old shapes next to its current one.",
+          "src": "https://github.com/xaviergonz/mobx-keystone/blob/c291c74e7eb590dcb825716f8abd8d1ebb3fc0b5/packages/lib/src/model/Model.ts#L227-L238"
+        },
+        {
+          "tool": "Greg Young weak schema (principle)",
+          "how": "Missing fields default; no migration code is needed for additive changes.",
+          "src": "persistence-sync/notes/delta_logs_build_vs_buy.md L141"
+        },
+        {
+          "tool": "automerge-repo (automerge/automerge-repo)",
+          "how": "A grep of the clone found no schema or migration code; the application owns its document shape.",
+          "src": "https://github.com/automerge/automerge-repo (clone checked, no hits)"
+        }
+      ]
+    }
+  ],
+  "recommended": "upcast-on-read",
+  "confidence": 4,
+  "surprise": "A schema line on line 1 is wrong as soon as two code versions write to the same file: a browser tab opened before a deploy keeps the old class and keeps posting old-shape lines into a file already stamped as new. Put a version on every line (a few bytes each), because that is the only way a reader can tell a stale tab's line from a current one.",
+  "notes": "Closest architecture: tldraw for the sync shape (a server-ordered room with per-record-type migration sequences) and ZODB for storage (one append-only file of object states, the class named in each record, a state version inside the class), with nedb and jsonl-db the closest file formats; all of them keep old lines and migrate on read, which disagrees with the owner's lean for update scripts. I disagree with edge-cases.json on one rating: its mid-rewrite append case is severity 5 only because it assumes no archive, and a script that renames the old file aside first, as the owner's rule requires, leaves those lines recoverable (severity 4). The hybrid to weigh: upcast on read until the next snapshot, then archive the old lines, so every migration chain ends when the log is compacted."
+}

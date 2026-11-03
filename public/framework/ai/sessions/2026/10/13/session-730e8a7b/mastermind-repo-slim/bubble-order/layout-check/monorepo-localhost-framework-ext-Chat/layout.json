@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ext/Chat/",
+ "widths": {
+  "1280": {
+   "empty": 0.586,
+   "widest_text": 599,
+   "widest_text_sample": "One sender, one bubble: messages from th",
+   "overflow_x": false,
+   "items": 350,
+   "narrow_share": 0.729
+  },
+  "1920": {
+   "empty": 0.694,
+   "widest_text": 637,
+   "widest_text_sample": "One sender, one bubble: messages from th",
+   "overflow_x": false,
+   "items": 350,
+   "narrow_share": 0.911
+  },
+  "2560": {
+   "empty": 0.762,
+   "widest_text": 717,
+   "widest_text_sample": "One sender, one bubble: messages from th",
+   "overflow_x": false,
+   "items": 350,
+   "narrow_share": 0.923
+  },
+  "3440": {
+   "empty": 0.817,
+   "widest_text": 717,
+   "widest_text_sample": "One sender, one bubble: messages from th",
+   "overflow_x": false,
+   "items": 350,
+   "narrow_share": 0.931
+  }
+ },
+ "errors": []
+}

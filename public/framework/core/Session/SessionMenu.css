@@ -1,0 +1,22 @@
+/* The session menu button: the same quiet, padded 24px target as the column's × beside it (core/Page/Page.css .page-column-close). */
+.session-menu-button {
+	display: flex; padding: 0.25em; border: 0; border-radius: var(--radius, 4px);
+	background: none; color: var(--subtle); cursor: pointer;
+	transition: background-color 0.12s, color 0.12s;
+}
+.session-menu-button:is(:hover, :focus-visible) { color: var(--prime-ink); background: var(--page-column-hover); }
+.session-menu-button:active { background: var(--page-column-press); }
+.session-menu-button .icon { font-size: 1.05em; }
+
+/* A row: its icon, then its name. Links look like the action buttons beside them. */
+.session-menu-item { display: flex; align-items: center; gap: 0.5em; color: inherit; text-decoration: none; }
+
+.session-settings-field { align-items: center; }
+.session-settings-label { min-width: 12em; }
+
+/* The session's tasks (SessionTasks.js): a row per task, Approve / Reject beside a proposal. */
+.session-tasks:empty { display: none; }
+.session-tasks-title { margin: 0; font-size: 1em; }
+.session-task { align-items: center; justify-content: space-between; }
+.session-task > .task-view { flex: 1 1 auto; min-width: 0; }
+.session-task-actions { flex: none; }

@@ -1,0 +1,1 @@
+{"pick": "haiku-a", "caveat": "fold overruleCount(modelId) into each object models() returns (as an `overrules` field) so a page's one table call already has it, instead of a second call per model"}

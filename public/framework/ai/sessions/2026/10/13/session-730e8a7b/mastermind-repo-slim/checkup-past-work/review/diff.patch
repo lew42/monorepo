@@ -1,0 +1,57 @@
+diff --git a/public/framework/ai/AISession/AISessionsPage.js b/public/framework/ai/AISession/AISessionsPage.js
+index 35002864f..a1a558c3f 100644
+--- a/public/framework/ai/AISession/AISessionsPage.js
++++ b/public/framework/ai/AISession/AISessionsPage.js
+@@ -220,10 +220,10 @@ export default class AISessionsPage extends Page {
+ 		});
+ 	}
+ 
+-	/** Everything a search matches: the name shown, the registered agent, the id, role, model and folder. */
++	/** Everything a search matches: the name shown, the registered agent, the id, role, model, folder and the session's tags (`page/live-cards`, `task/…`). */
+ 	static haystack(r){
+ 		const ix = AISession.all.get(r.session_id || r.id)?.ix ?? {};
+-		return [AISessionRows.display_name(r, AISessionRows.tree).text, r.title, r.agent, r.session_id, r.id, r.role, r.model, ix.agent, ix.title, ix.folder].filter(Boolean).join(" ").toLowerCase();
++		return [AISessionRows.display_name(r, AISessionRows.tree).text, r.title, r.agent, r.session_id, r.id, r.role, r.model, ix.agent, ix.title, ix.folder, ...(ix.tags ?? [])].filter(Boolean).join(" ").toLowerCase();
+ 	}
+ 
+ 	/** The plan's meters as progress bars with the pace marker (ai/AITask/usage.js), then one line of counts. */
+@@ -263,7 +263,7 @@ export default class AISessionsPage extends Page {
+ 		}).attr("title", title);
+ 		this.$controls.empty(() => {
+ 			div.c("sessions-filters flex gap-100 v-center wrap", () => {   // one compact row: search, closed, attention, in flight, dates
+-				const $q = input.c("sessions-search").attr("type", "search").attr("placeholder", "search name, agent, id, role, model")
++				const $q = input.c("sessions-search").attr("type", "search").attr("placeholder", "search name, agent, id, role, model, tag")
+ 					.attr("title", "Searches every loaded session, routine and closed ones too, whatever the other filters say. Older days: \"show 30 more days\".");
+ 				$q.el.value = this.search ?? "";
+ 				let wait;
+@@ -509,7 +509,7 @@ export default class AISessionsPage extends Page {
+ 	// ---- remote mode: node holds the sessions, the browser asks for the rows it shows (ext/Query, doc/server-query.md) --------------
+ 
+ 	static SORT_FIELD = { state: "state", name: "title", cost: "usd", updated: "last_activity", duration: "wall_ms", role: "agent", source: "provider", model: "model" };
+-	static SEARCH_FIELDS = ["title", "agent", "id", "folder", "model", "role"];
++	static SEARCH_FIELDS = ["title", "agent", "id", "folder", "model", "role", "tags"];
+ 
+ 	/** True when the dev socket answers the first query (the default); `?source=files`, no socket or no source on this server: false, and the page reads files. */
+ 	async start_remote(){
+@@ -596,7 +596,7 @@ export default class AISessionsPage extends Page {
+ 			this[key + "_text"] = span(text);
+ 		}).attr("title", title);
+ 		this.$controls.empty(() => { div.c("sessions-filters flex gap-100 v-center wrap", () => {
+-			const $q = input.c("sessions-search").attr("type", "search").attr("placeholder", "search name, agent, id, role, model")
++			const $q = input.c("sessions-search").attr("type", "search").attr("placeholder", "search name, agent, id, role, model, tag")
+ 				.attr("title", "Searches every session in node (ext/Query `contains`), routine and closed ones too, whatever the other filters say.");
+ 			let t = null;
+ 			$q.on("input", () => { clearTimeout(t); t = setTimeout(() => { this.remote.search = $q.el.value.trim(); this.remote_ask(); }, 250); });
+diff --git a/public/framework/ai/sessions/readme.md b/public/framework/ai/sessions/readme.md
+index da8e0b5a6..8417060c4 100644
+--- a/public/framework/ai/sessions/readme.md
++++ b/public/framework/ai/sessions/readme.md
+@@ -10,7 +10,7 @@ opens as a side peek beside the grid instead of replacing it.
+ - **The session folder (proposed 2026-10-16, awaiting the owner's approval):** one folder per session, named by its agent id, with child folders for its tasks and sub-sessions. `session.jsonl` holds requirements and their checks, module tags, the derived running cost and its children; `page.jsonl` holds the session's page. The raw transcript is the one record of what was said. Decided: the session folder's `task.jsonl` is renamed `session.jsonl`. [shape.md](2026/10/16/voice-20261016/accounting/shape.md) · [requirements R1–R17](2026/10/16/voice-20261016/accounting/requirements.md). This readme is kept current by the accounting task (R17).
+ - **The grid is [ext/DataGrid](/framework/ext/DataGrid/)**: a table or a rail of cards (the Table / Rail toggle, `?view=rail`, default in `settings.jsonl`); rows are `AISessionView`, order and nesting are `AISessionsPage.arrange()`.
+ - **Detail classes** live in [ai/AISession](/framework/ai/AISession/); the old `ai/sessions/Session*.js` shims are retired to `ai/archive/retired/2026-10-13/sessions/` (manifest + `ai/archive/retire-shims.mjs --undo`).
+-- **Routine sessions are hidden** (prompt cleaning, short headless runs, clarity, reviews, helpers): one chip per kind with its count, click to show them; the search finds every session; [doc/buckets.md](doc/buckets.md).
++- **Routine sessions are hidden** (prompt cleaning, short headless runs, clarity, reviews, helpers): one chip per kind with its count, click to show them; the search finds every session, and matches a session's tags too (`page/live-cards`, `task/…`, `topic/…`; the tagged digests are `session.jsonl` lines, [round 4](2026/10/16/voice-20261016/past-work/round4-result.md)); [doc/buckets.md](doc/buckets.md).
+ - **Use** — moved to [doc/readme-full-2026-10-12.md](doc/readme-full-2026-10-12.md#use), verbatim.
+ - **Where the real dollars come from** — moved to [doc/readme-full-2026-10-12.md](doc/readme-full-2026-10-12.md#where-the-real-dollars-come-from), verbatim.
+ - **Where the data comes from** — moved to [doc/readme-full-2026-10-12.md](doc/readme-full-2026-10-12.md#where-the-data-comes-from), verbatim.

@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/imagine/",
+ "widths": {
+  "1280": {
+   "empty": 0.669,
+   "widest_text": 473,
+   "widest_text_sample": "— the team's board and your run in the w",
+   "overflow_x": false,
+   "items": 39,
+   "narrow_share": 0.103
+  },
+  "1920": {
+   "empty": 0.717,
+   "widest_text": 503,
+   "widest_text_sample": "— the team's board and your run in the w",
+   "overflow_x": false,
+   "items": 39,
+   "narrow_share": 0.538
+  },
+  "2560": {
+   "empty": 0.764,
+   "widest_text": 566,
+   "widest_text_sample": "— the team's board and your run in the w",
+   "overflow_x": false,
+   "items": 39,
+   "narrow_share": 0.538
+  },
+  "3440": {
+   "empty": 0.821,
+   "widest_text": 566,
+   "widest_text_sample": "— the team's board and your run in the w",
+   "overflow_x": false,
+   "items": 39,
+   "narrow_share": 1
+  }
+ },
+ "errors": []
+}

@@ -1,0 +1,43 @@
+{
+ "url": "http://monorepo.localhost/framework/ai2/2026-09-28/hidden-windows/",
+ "widths": {
+  "1280": {
+   "empty": 0.596,
+   "widest_text": 5317,
+   "widest_text_sample": "Landed. The popup's real cause: the Wind",
+   "overflow_x": false,
+   "items": 377,
+   "narrow_share": 0.032
+  },
+  "1920": {
+   "empty": 0.666,
+   "widest_text": 5658,
+   "widest_text_sample": "Landed. The popup's real cause: the Wind",
+   "overflow_x": false,
+   "items": 377,
+   "narrow_share": 0.069
+  },
+  "2560": {
+   "empty": 0.678,
+   "widest_text": 6366,
+   "widest_text_sample": "Landed. The popup's real cause: the Wind",
+   "overflow_x": false,
+   "items": 377,
+   "narrow_share": 0.069
+  },
+  "3440": {
+   "empty": 0.736,
+   "widest_text": 6366,
+   "widest_text_sample": "Landed. The popup's real cause: the Wind",
+   "overflow_x": false,
+   "items": 377,
+   "narrow_share": 1
+  }
+ },
+ "errors": [
+  "1280: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1920: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "2560: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "3440: Failed to load resource: the server responded with a status of 404 (Not Found)"
+ ]
+}

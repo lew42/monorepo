@@ -1,0 +1,4 @@
+{"class":"/framework/ai2/card.js","title":"Fixed: clicking AI in the sidebar no longer goes blank.","type":"card","id":"2026/09/22/nav-rerender","created":"2026-09-22T18:36:14-05:00","by":"nav-rerender","tags":[]}
+{"legacy":"nav-rerender"}
+{"status":"done"}
+{"text":"It was a timing race the first time you clicked AI in a session - now it always shows the board, proven with AI to AI2 and back."}

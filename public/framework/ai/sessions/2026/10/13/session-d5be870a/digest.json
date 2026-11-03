@@ -1,0 +1,34 @@
+{
+ "id": "d5be870a-7c25-47dc-8368-96db3b471d55",
+ "first": "2026-10-13T19:58:53.044Z",
+ "last": "2026-10-13T21:49:14.163Z",
+ "task": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/tidy-kit",
+ "models": {
+  "claude-sonnet-5-5": 55
+ },
+ "sizes": {
+  "raw": 1516122,
+  "content": 56822,
+  "stripped": 11235,
+  "owner_only": 0
+ },
+ "usd": 2.577602,
+ "usd_main": 2.577602,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 110,
+  "output": 56119,
+  "cache_read": 5977099,
+  "cache_write": 205193,
+  "w5": 0,
+  "w1": 205193
+ },
+ "messages": 55,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "Idle and waiting; the kit tidy is done and nothing is in progress. The report `kit/tidy-kit.md` is committed (`e412ea619`) and the `task.jsonl` line is written.\n\nI haven't re-screenshotted the pages since the masters moved to top level. The Controls row overflow and Containers DataGrid crowding are also still open.",
+ "edited": [
+  "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/tidy-kit.md"
+ ],
+ "digested_at": "2026-10-16T06:28:10.293Z"
+}

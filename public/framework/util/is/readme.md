@@ -1,38 +1,26 @@
-# is
+# is — fifteen one-line type checks, all booleans, so `View.append()` and `Page`'s child normalization branch on one answer
 
-Type-checking helpers. All return booleans.
+## Use
 
 ```js
-import is from '/framework/core/util/is/is.js';
-// or
-import { is } from '/framework/core.js';
+import { is } from "/app.js";   // or: import is from "/framework/util/is/is.js";
+
+if (is.pojo(arg))          // named children
+else if (is.arr(arg))      // flatten
+else if (is.fn(arg))       // capture
+else if (is.promise(arg))  // append when it resolves
 ```
 
-## Helpers
+## Watch out
 
-| helper | returns true when |
-|--------|------------------|
-| `is.arr(v)` | `Array.isArray(v)` |
-| `is.obj(v)` | truthy, typeof "object", not an array |
-| `is.str(v)` | typeof "string" (empty string → true) |
-| `is.num(v)` | typeof "number" (NaN and Infinity → true) |
-| `is.bool(v)` | exactly `true` or `false` |
-| `is.fn(v)` | typeof "function" (classes → true) |
-| `is.def(v)` | not undefined (null → true, it's a value) |
-| `is.undef(v)` | exactly undefined |
-| `is.class(v)` | constructable function (has prototype); false for arrows |
-| `is.pojo(v)` | plain object literal — constructor === Object |
-| `is.proto(v)` | is a constructor's `.prototype` object |
-| `is.promise(v)` | duck-typed thenable |
-| `is.dom(v)` | has nodeType > 0 (browser only) |
-| `is.el(v)` | has nodeType === 1 (browser only) |
-| `is.mobile()` | mobile user-agent check (browser only) |
+- `is.class` tests for a `.prototype`, not the `class` keyword — `is.class(function(){})` is `true`; only arrows fail. `Doc.is_class` is the strict one: [`doc/method/class.md`](./doc/method/class.md)
+- `is.num(NaN)` is `true` — `NaN` is `typeof "number"`: [`doc/method/num.md`](./doc/method/num.md)
+- `is.proto(Array.prototype)` is `false` — the most obvious input fails, on purpose: [`doc/method/proto.md`](./doc/method/proto.md)
+- `is.mobile()` is a user-agent sniff — it and `is.proto` are the two recommended for deletion, not applied: [`doc/decisions.md`](./doc/decisions.md)
+- Seven checks have no framework callers; they stay because the table's value is completeness: [`doc/decisions.md`](./doc/decisions.md)
 
-## Edge cases worth knowing
+## More
 
-- `is.num(NaN)` → **true** — NaN is typeof "number" in JS. Use `Number.isNaN()` if you need to exclude it.
-- `is.obj(new Date())` → **true** — anything non-null, non-array, typeof "object" qualifies.
-- `is.class(function() {})` → **true** — regular functions are constructable. Only arrow functions return false.
-- `is.pojo(Object.create(null))` → **false** — no constructor means `constructor !== Object`.
-- `is.def(null)` → **true** — null is a defined value (typeof "object", not undefined).
-- `is.proto(Array.prototype)` → **false** — `Array.prototype` is itself an exotic Array, so `is.obj()` returns false for it. Known gap.
+- [Overview](/framework/util/is/) · [API tab](/framework/util/is/api/) — one page per check: real source, callers, whether it earns its place
+- [`doc/decisions.md`](./doc/decisions.md) — why fifteen in one file, the caller census, the delete-two recommendation, the open `is.class` rename
+- Files that matter: `is.js` (the fifteen checks), `page.js` (the Doc index), `doc/method/*.md` (one note per check)

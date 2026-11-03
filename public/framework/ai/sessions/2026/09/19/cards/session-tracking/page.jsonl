@@ -1,0 +1,5 @@
+{"class":"/framework/ai2/card.js","title":"Forking works: tested","type":"card","id":"2026/09/19/session-tracking","created":"2026-09-19T17:40:06-05:00","by":"model-latency","tags":[]}
+{"legacy":"session-tracking"}
+{"status":"done"}
+{"icon":"fork_right"}
+{"text":"A session that preloaded four files was forked seven times. Forks at the same model and effort read everything from cache: 2 seconds and 2 cents each, against 32 cents uncached. A different effort level misses the cache completely, as you guessed. The skills now say a minion always means a CLI session with its own id."}

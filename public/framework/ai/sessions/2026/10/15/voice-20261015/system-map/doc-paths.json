@@ -1,0 +1,689 @@
+{
+ "at": "2026-10-15T21:49:35.003Z",
+ "docs": 66,
+ "checked": 1772,
+ "by": {
+  "missing": 46,
+  "moved": 35,
+  "name-not-in-repo": 26
+ },
+ "missing": [
+  {
+   "doc": "CLAUDE.md",
+   "line": 6,
+   "path": "public/framework/ai/2026-10-12/claude-md-consolidate/",
+   "kind": "missing"
+  },
+  {
+   "doc": "CLAUDE.md",
+   "line": 34,
+   "path": "parent/child",
+   "kind": "missing"
+  },
+  {
+   "doc": "CLAUDE.md",
+   "line": 44,
+   "path": "doc/flow.md",
+   "kind": "moved",
+   "now": "public/framework/ext/Panel/doc/flow.md"
+  },
+  {
+   "doc": "CLAUDE.md",
+   "line": 46,
+   "path": "/framework/ai/readmes/",
+   "kind": "missing"
+  },
+  {
+   "doc": "CLAUDE.md",
+   "line": 55,
+   "path": "salvage/",
+   "kind": "name-not-in-repo"
+  },
+  {
+   "doc": "readme.md",
+   "line": 77,
+   "path": "/path/page.js",
+   "kind": "missing"
+  },
+  {
+   "doc": "public/framework/readme.md",
+   "line": 37,
+   "path": "lib/",
+   "kind": "name-not-in-repo"
+  },
+  {
+   "doc": "public/framework/ai/sessions/readme.md",
+   "line": 69,
+   "path": "session.jsonl",
+   "kind": "name-not-in-repo"
+  },
+  {
+   "doc": "public/framework/ai/sessions/readme.md",
+   "line": 81,
+   "path": "session.jsonl",
+   "kind": "name-not-in-repo"
+  },
+  {
+   "doc": "Servex/readme.md",
+   "line": 71,
+   "path": "ports.json",
+   "kind": "name-not-in-repo"
+  },
+  {
+   "doc": "Servex/readme.md",
+   "line": 72,
+   "path": "servex.jsonl",
+   "kind": "name-not-in-repo"
+  },
+  {
+   "doc": "Servex/readme.md",
+   "line": 77,
+   "path": "logs/reports/",
+   "kind": "missing"
+  },
+  {
+   "doc": "Servex/readme.md",
+   "line": 78,
+   "path": "logs/gate.log",
+   "kind": "missing"
+  },
+  {
+   "doc": "Servex/readme.md",
+   "line": 79,
+   "path": "logs/windows.jsonl",
+   "kind": "missing"
+  },
+  {
+   "doc": "Servex/readme.md",
+   "line": 99,
+   "path": "servex-mvp.md",
+   "kind": "name-not-in-repo"
+  },
+  {
+   "doc": "Servex/agents/readme.md",
+   "line": 98,
+   "path": "tiers-design/doc/tools.md",
+   "kind": "moved",
+   "now": "public/framework/ai/sessions/2026/09/22/tiers-design/tiers-design/doc/tools.md"
+  },
+  {
+   "doc": "Server/README.md",
+   "line": 27,
+   "path": "/framework/ai2/2026-09-28/smoke-links/",
+   "kind": "moved",
+   "now": "public/framework/ai/archive/task-stubs/2026-09-28/smoke-links/moved.json"
+  },
+  {
+   "doc": "Server/README.md",
+   "line": 38,
+   "path": "/framework/ai2/2026-09-28/hidden-windows/",
+   "kind": "moved",
+   "now": "public/framework/ai/archive/task-stubs/2026-09-28/hidden-windows/moved.json"
+  },
+  {
+   "doc": "Server/README.md",
+   "line": 66,
+   "path": "/framework/ai2/2026-09-28/task-loop/landing-checks/",
+   "kind": "moved",
+   "now": "public/framework/ai/sessions/2026/09/28/task-loop/task-loop/landing-checks/requirements.md"
+  },
+  {
+   "doc": "Server/README.md",
+   "line": 101,
+   "path": "lifecycle.jsonl",
+   "kind": "name-not-in-repo"
+  },
+  {
+   "doc": "Server/README.md",
+   "line": 101,
+   "path": "public/framework/ai/council/off",
+   "kind": "missing"
+  },
+  {
+   "doc": "public/framework/ai/handover.md",
+   "line": 23,
+   "path": "2026-10-12/docs-handover/night.md",
+   "kind": "moved",
+   "now": "public/framework/ai/sessions/2026/10/12/session-c7880390/docs-handover/night.md"
+  },
+  {
+   "doc": "public/framework/ai/handover.md",
+   "line": 23,
+   "path": "2026-10-12/page-split-2/STATE.md",
+   "kind": "moved",
+   "now": "public/framework/ai/sessions/2026/10/12/session-e55f5a4b/page-split-2/STATE.md"
+  },
+  {
+   "doc": "public/framework/ai/handover.md",
+   "line": 23,
+   "path": "2026-10-12/refine-asks/STATE.md",
+   "kind": "moved",
+   "now": "public/framework/ai/sessions/2026/10/12/session-d399581f/refine-asks/STATE.md"
+  },
+  {
+   "doc": "public/framework/ai/handover.md",
+   "line": 24,
+   "path": "2026-10-12/voice-verify/STATE.md",
+   "kind": "moved",
+   "now": "public/framework/ai/sessions/2026/10/12/session-b0c9ab63/voice-verify/STATE.md"
+  },
+  {
+   "doc": "public/framework/ai/handover.md",
+   "line": 25,
+   "path": "2026-10-12/skill-reliability/STATE.md",
+   "kind": "moved",
+   "now": "public/framework/ai/sessions/2026/10/12/session-78fdc37f/skill-reliability/STATE.md"
+  },
+  {
+   "doc": "public/framework/ai/handover.md",
+   "line": 25,
+   "path": "2026-10-12/openrouter-gap/STATE.md",
+   "kind": "moved",
+   "now": "public/framework/ai/sessions/2026/10/12/session-fb77ab71/openrouter-gap/STATE.md"
+  },
+  {
+   "doc": "public/framework/ai/handover.md",
+   "line": 25,
+   "path": "2026-10-12/session-housekeeping/STATE.md",
+   "kind": "moved",
+   "now": "public/framework/ai/sessions/2026/10/12/session-19429b3d/session-housekeeping/STATE.md"
+  },
+  {
+   "doc": "public/framework/ai/handover.md",
+   "line": 37,
+   "path": "session-index.json",
+   "kind": "name-not-in-repo"
+  },
+  {
+   "doc": "public/framework/ai/handover.md",
+   "line": 55,
+   "path": "openrouter.jsonl",
+   "kind": "name-not-in-repo"
+  },
+  {
+   "doc": "public/framework/ai/handover.md",
+   "line": 106,
+   "path": "overview.js",
+   "kind": "name-not-in-repo"
+  },
+  {
+   "doc": "public/framework/ai/handover.md",
+   "line": 124,
+   "path": "sessions.json",
+   "kind": "name-not-in-repo"
+  },
+  {
+   "doc": "public/framework/ai/handover.md",
+   "line": 126,
+   "path": "openrouter-burst.json",
+   "kind": "name-not-in-repo"
+  },
+  {
+   "doc": "public/framework/ai/handover.md",
+   "line": 132,
+   "path": "openrouter-burst.json",
+   "kind": "name-not-in-repo"
+  },
+  {
+   "doc": "public/framework/ai/handover.md",
+   "line": 136,
+   "path": "openai/gpt-6-luna",
+   "kind": "missing"
+  },
+  {
+   "doc": "public/framework/ai/handover.md",
+   "line": 136,
+   "path": "deepseek/deepseek-v4.1-flash",
+   "kind": "missing"
+  },
+  {
+   "doc": "public/framework/ai/handover.md",
+   "line": 200,
+   "path": "2026-09-22/review-3-days/",
+   "kind": "missing"
+  },
+  {
+   "doc": "public/framework/ai/handover.md",
+   "line": 201,
+   "path": "2026-09-22/mastermind-servex/",
+   "kind": "moved",
+   "now": "public/framework/ai/archive/task-stubs/2026-09-22/mastermind-servex/files.jsonl"
+  },
+  {
+   "doc": "public/framework/ai/handover.md",
+   "line": 203,
+   "path": "2026-09-22/tiers-design/doc/phases.md",
+   "kind": "moved",
+   "now": "public/framework/ai/sessions/2026/09/22/tiers-design/tiers-design/doc/phases.md"
+  },
+  {
+   "doc": "public/framework/ai/handover.md",
+   "line": 203,
+   "path": "tiers-design/doc/phases.md",
+   "kind": "moved",
+   "now": "public/framework/ai/sessions/2026/09/22/tiers-design/tiers-design/doc/phases.md"
+  },
+  {
+   "doc": "public/framework/ai/handover.md",
+   "line": 219,
+   "path": "2026-09-22/",
+   "kind": "name-not-in-repo"
+  },
+  {
+   "doc": "public/framework/ai/handover.md",
+   "line": 219,
+   "path": "ai/2026-09-22/",
+   "kind": "missing"
+  },
+  {
+   "doc": "public/framework/ai/handover.md",
+   "line": 250,
+   "path": "2026-09-22/system-retro/",
+   "kind": "missing"
+  },
+  {
+   "doc": "public/framework/ai/handover.md",
+   "line": 254,
+   "path": "2026-09-22/ai2-nested/",
+   "kind": "missing"
+  },
+  {
+   "doc": "public/framework/ai/handover.md",
+   "line": 260,
+   "path": "2026-09-22/ai2-nested/next.md",
+   "kind": "moved",
+   "now": "public/framework/ai/sessions/2026/09/23/session-1f93064d/ai2-nested/next.md"
+  },
+  {
+   "doc": "public/framework/ai/handover.md",
+   "line": 260,
+   "path": "overview.js",
+   "kind": "name-not-in-repo"
+  },
+  {
+   "doc": "public/framework/ai/handover.md",
+   "line": 261,
+   "path": "Server/plugins/Hosts.js",
+   "kind": "missing"
+  },
+  {
+   "doc": "public/framework/ai/handover.md",
+   "line": 271,
+   "path": "CardAnswer/Ask/Assistant.js",
+   "kind": "missing"
+  },
+  {
+   "doc": "public/framework/ai/handover.md",
+   "line": 288,
+   "path": "2026-09-22/tiers-design/doc/tools.md",
+   "kind": "moved",
+   "now": "public/framework/ai/sessions/2026/09/22/tiers-design/tiers-design/doc/tools.md"
+  },
+  {
+   "doc": "public/framework/ai/handover.md",
+   "line": 288,
+   "path": "tiers-design/doc/tools.md",
+   "kind": "moved",
+   "now": "public/framework/ai/sessions/2026/09/22/tiers-design/tiers-design/doc/tools.md"
+  },
+  {
+   "doc": "public/framework/ai/handover.md",
+   "line": 290,
+   "path": "2026-09-22/ai2-nested/next.md",
+   "kind": "moved",
+   "now": "public/framework/ai/sessions/2026/09/23/session-1f93064d/ai2-nested/next.md"
+  },
+  {
+   "doc": "public/framework/ai/handover.md",
+   "line": 290,
+   "path": "ai2-nested/next.md",
+   "kind": "moved",
+   "now": "public/framework/ai/sessions/2026/09/23/session-1f93064d/ai2-nested/next.md"
+  },
+  {
+   "doc": "public/framework/ai/handover.md",
+   "line": 299,
+   "path": "2026-09-23/servex-port-80/",
+   "kind": "missing"
+  },
+  {
+   "doc": "public/framework/ai/handover.md",
+   "line": 299,
+   "path": "Server/plugins/Hosts.js",
+   "kind": "missing"
+  },
+  {
+   "doc": "public/framework/ai/handover.md",
+   "line": 309,
+   "path": "2026-09-22/review-3-days/",
+   "kind": "missing"
+  },
+  {
+   "doc": "public/framework/ai/handover.md",
+   "line": 311,
+   "path": "2026-09-22/reuse-audit/",
+   "kind": "missing"
+  },
+  {
+   "doc": "public/framework/ai/handover.md",
+   "line": 332,
+   "path": "new-task/SKILL.md",
+   "kind": "moved",
+   "now": ".claude/skills/new-task/SKILL.md"
+  },
+  {
+   "doc": "public/framework/ai/handover.md",
+   "line": 333,
+   "path": ".claude/sessions.mjs",
+   "kind": "missing"
+  },
+  {
+   "doc": "public/framework/ai/handover.md",
+   "line": 333,
+   "path": "ai/sessions.jsonl",
+   "kind": "missing"
+  },
+  {
+   "doc": "public/framework/ai/handover.md",
+   "line": 334,
+   "path": "auditor/SKILL.md",
+   "kind": "moved",
+   "now": ".claude/skills/auditor/SKILL.md"
+  },
+  {
+   "doc": "public/framework/ai/handover.md",
+   "line": 334,
+   "path": "mastermind/SKILL.md",
+   "kind": "moved",
+   "now": ".claude/skills/mastermind/SKILL.md"
+  },
+  {
+   "doc": "public/framework/ai/systems-map.md",
+   "line": 18,
+   "path": "/framework/ai/skills/",
+   "kind": "missing"
+  },
+  {
+   "doc": "public/framework/ai/systems-map.md",
+   "line": 26,
+   "path": "2026-10-08/ai-system-docs/findings.md",
+   "kind": "moved",
+   "now": "public/framework/ai/sessions/2026/10/08/ai-system-docs-fa3e829d/ai-system-docs/findings.md"
+  },
+  {
+   "doc": "public/framework/ai/systems-map.md",
+   "line": 32,
+   "path": "tasks.jsonl",
+   "kind": "name-not-in-repo"
+  },
+  {
+   "doc": "public/framework/ai/systems-map.md",
+   "line": 58,
+   "path": "sessions.json",
+   "kind": "name-not-in-repo"
+  },
+  {
+   "doc": "Servex/doc/budget.md",
+   "line": 24,
+   "path": "public/framework/ai/sessions/2026/09/30/node-reliability/node-reliability/budget-proof.txt",
+   "kind": "missing"
+  },
+  {
+   "doc": "Servex/doc/echo.md",
+   "line": 10,
+   "path": "google/gemini-3.8-flash",
+   "kind": "missing"
+  },
+  {
+   "doc": "Servex/doc/echo.md",
+   "line": 18,
+   "path": "/framework/ai/2026/10/07/session-87bec773/",
+   "kind": "missing"
+  },
+  {
+   "doc": "Servex/doc/echo.md",
+   "line": 28,
+   "path": "servex.jsonl",
+   "kind": "name-not-in-repo"
+  },
+  {
+   "doc": "Servex/doc/inbox.md",
+   "line": 3,
+   "path": "/framework/ext/drawer/doc/inbox/",
+   "kind": "missing"
+  },
+  {
+   "doc": "Servex/doc/inbox.md",
+   "line": 58,
+   "path": "/framework/core/Page/jsonl/md/doc/writers/",
+   "kind": "missing"
+  },
+  {
+   "doc": "Servex/doc/inbox.md",
+   "line": 58,
+   "path": "shots/",
+   "kind": "name-not-in-repo"
+  },
+  {
+   "doc": "Servex/doc/lifecycle.md",
+   "line": 7,
+   "path": "lifecycle.jsonl",
+   "kind": "name-not-in-repo"
+  },
+  {
+   "doc": "Servex/doc/pool.md",
+   "line": 93,
+   "path": "spawn-queue.json",
+   "kind": "name-not-in-repo"
+  },
+  {
+   "doc": "Servex/doc/pool.md",
+   "line": 103,
+   "path": "salvage/qf-6-2026-09-30-2",
+   "kind": "missing"
+  },
+  {
+   "doc": "Servex/doc/pool.md",
+   "line": 109,
+   "path": "worktree/qf-N",
+   "kind": "missing"
+  },
+  {
+   "doc": "Servex/doc/pool.md",
+   "line": 116,
+   "path": "../never-lose-a-wake.md",
+   "kind": "missing"
+  },
+  {
+   "doc": "Servex/doc/processes.md",
+   "line": 100,
+   "path": "logs/HEAD",
+   "kind": "missing"
+  },
+  {
+   "doc": "Servex/doc/readme-full-2026-10-12.md",
+   "line": 53,
+   "path": "models/ggml-silero-v5.1.2.bin",
+   "kind": "missing"
+  },
+  {
+   "doc": "Servex/doc/readme-full-2026-10-12.md",
+   "line": 62,
+   "path": "/log/prompts",
+   "kind": "missing"
+  },
+  {
+   "doc": "Servex/doc/readme-full-2026-10-12.md",
+   "line": 138,
+   "path": "ai/2026-10-02/standing-voice-pair",
+   "kind": "missing"
+  },
+  {
+   "doc": "Servex/doc/readme-full-2026-10-12.md",
+   "line": 162,
+   "path": "ai/2026-10-02/node-reap",
+   "kind": "missing"
+  },
+  {
+   "doc": "Servex/doc/readme-full-2026-10-12.md",
+   "line": 215,
+   "path": "log-model/fold.js",
+   "kind": "moved",
+   "now": "public/framework/ai/sessions/2026/09/22/session-66db742f/log-model/fold.js"
+  },
+  {
+   "doc": "Servex/doc/skills.md",
+   "line": 3,
+   "path": "skill-reliability/MissSample.mjs",
+   "kind": "moved",
+   "now": "public/framework/ai/sessions/2026/10/12/session-78fdc37f/skill-reliability/MissSample.mjs"
+  },
+  {
+   "doc": "Servex/doc/steps.md",
+   "line": 15,
+   "path": "step-runner/requirements.md",
+   "kind": "moved",
+   "now": "public/framework/ai/sessions/2026/10/12/session-87bec773/step-runner/requirements.md"
+  },
+  {
+   "doc": "Servex/doc/task-loop.md",
+   "line": 72,
+   "path": "heartbeat-queue.json",
+   "kind": "name-not-in-repo"
+  },
+  {
+   "doc": "Servex/doc/tool-process.md",
+   "line": 23,
+   "path": "page_set/add/call",
+   "kind": "missing"
+  },
+  {
+   "doc": ".claude/skills/documentation/SKILL.md",
+   "line": 38,
+   "path": "./child/",
+   "kind": "missing"
+  },
+  {
+   "doc": ".claude/skills/documentation/SKILL.md",
+   "line": 44,
+   "path": "./doc/focus.md",
+   "kind": "moved",
+   "now": "public/framework/ext/Panel/doc/focus.md"
+  },
+  {
+   "doc": ".claude/skills/documentation/SKILL.md",
+   "line": 44,
+   "path": "doc/focus.md",
+   "kind": "moved",
+   "now": "public/framework/ext/Panel/doc/focus.md"
+  },
+  {
+   "doc": ".claude/skills/documentation/SKILL.md",
+   "line": 47,
+   "path": "./doc/generator.md",
+   "kind": "moved",
+   "now": "public/framework/ext/Panel/doc/generator.md"
+  },
+  {
+   "doc": ".claude/skills/documentation/SKILL.md",
+   "line": 47,
+   "path": "doc/generator.md",
+   "kind": "moved",
+   "now": "public/framework/ext/Panel/doc/generator.md"
+  },
+  {
+   "doc": ".claude/skills/documentation/SKILL.md",
+   "line": 51,
+   "path": "./name/",
+   "kind": "missing"
+  },
+  {
+   "doc": ".claude/skills/documentation/SKILL.md",
+   "line": 80,
+   "path": "/module/files/",
+   "kind": "missing"
+  },
+  {
+   "doc": ".claude/skills/finish-task/SKILL.md",
+   "line": 45,
+   "path": "shot.png",
+   "kind": "name-not-in-repo"
+  },
+  {
+   "doc": ".claude/skills/mastermind/SKILL.md",
+   "line": 38,
+   "path": "tiers-design/doc/roles.md",
+   "kind": "moved",
+   "now": "public/framework/ai/sessions/2026/09/22/tiers-design/tiers-design/doc/roles.md"
+  },
+  {
+   "doc": ".claude/skills/mastermind/SKILL.md",
+   "line": 126,
+   "path": "requirements-N.md",
+   "kind": "name-not-in-repo"
+  },
+  {
+   "doc": ".claude/skills/mastermind/SKILL.md",
+   "line": 126,
+   "path": "doc/next.md",
+   "kind": "moved",
+   "now": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/one-store/doc/next.md"
+  },
+  {
+   "doc": ".claude/skills/mastermind/SKILL.md",
+   "line": 132,
+   "path": "minion/SKILL.md",
+   "kind": "moved",
+   "now": ".claude/skills/minion/SKILL.md"
+  },
+  {
+   "doc": ".claude/skills/new-task/SKILL.md",
+   "line": 24,
+   "path": "md-routes-probe.mjs",
+   "kind": "name-not-in-repo"
+  },
+  {
+   "doc": ".claude/skills/research/SKILL.md",
+   "line": 97,
+   "path": ".../entry.mjs",
+   "kind": "missing"
+  },
+  {
+   "doc": ".claude/skills/review/SKILL.md",
+   "line": 58,
+   "path": "n/a",
+   "kind": "missing"
+  },
+  {
+   "doc": ".claude/skills/review/SKILL.md",
+   "line": 62,
+   "path": "n/a",
+   "kind": "missing"
+  },
+  {
+   "doc": ".claude/skills/servex-mastermind/SKILL.md",
+   "line": 32,
+   "path": "logs/sustain.log",
+   "kind": "missing"
+  },
+  {
+   "doc": ".claude/skills/servex-mastermind/SKILL.md",
+   "line": 32,
+   "path": "logs/reports/",
+   "kind": "missing"
+  },
+  {
+   "doc": ".claude/skills/sub-mastermind/SKILL.md",
+   "line": 65,
+   "path": "collab/tally.md",
+   "kind": "moved",
+   "now": "public/framework/ai/sessions/2026/09/28/2c074cef-dccf-4e86-8f2b-fb4cf072e115/collab-rounds/design/collab/tally.md"
+  },
+  {
+   "doc": ".claude/skills/sub-mastermind/SKILL.md",
+   "line": 83,
+   "path": "Temp/lew42-health.lock",
+   "kind": "missing"
+  }
+ ]
+}

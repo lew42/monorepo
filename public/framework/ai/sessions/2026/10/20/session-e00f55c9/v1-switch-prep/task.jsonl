@@ -1,0 +1,8 @@
+{"review":{"answer":{"n":1,"reply":"noted: the stale test comment is fixed with the test tidy"}}}
+{"review":{"answer":{"n":2,"reply":"fixed: unused vars removed, the always-true check dropped"}}}
+{"review":{"answer":{"n":3,"reply":"noted: the line is harmless (a read of a field replies never carry)"}}}
+{"review":{"answer":{"n":4,"reply":"noted: the test reads real v-u48msei by design (read-only); it needs a frozen copy if that session grows"}}}
+{"review":{"answer":{"n":5,"reply":"noted: 0 diffs are against V1Bubbles' model of V1; Widget.place() paragraph/card splits must be checked before the step-4 switch (recorded in pseudo-properties.md)"}}}
+{"review":{"answer":{"n":6,"reply":"fixed: ChatToMessages reuses ChatWriter.clean_line, the comment sits above place() again, check count 11"}}}
+{"review":{"answer":{"n":7,"reply":"noted: Servex restart is needed for live said_at; left to the owner's restart (not done here)"}}}
+{"assign":{"at":"2026-11-02T03:47:18-06:00","outcome":"V1's chat can now be fed from the new `session.messages` data, with 0 differing bubbles on all 5 compared sessions.\n- [x] Copy `said_at` into each message as written: `ChatWriter.js:58`, test section 1 in `Server/ChatToMessages.test.mjs`\n- [x] `ChatToMessages.mjs` fills partly mirrored sessions, no twins, `--dry` default: test passes (11 checks), nothing applied\n- [x] Re-run the compare on the same 5 sessions, goal 0 diffs: 0 of 1314, 765, 278, 215, 170 (`compare-after.txt`)\n- [x] Update the switch-over plan and the Chat readme ⬜ items: `core/Session/Chat/doc/pseudo-properties.md`, Chat readme\nOpen: Servex must restart before live sessions write `said_at`; check `Widget.place()` paragraph/card splits before switching V1. Details: [review](review.md)."}}

@@ -1,0 +1,127 @@
+[
+ {
+  "id": "bbf25a87ca",
+  "priority": "none",
+  "why": "Template-width filter for ux/Filter is not part of any of the three big things."
+ },
+ {
+  "id": "839d32a89f",
+  "priority": "none",
+  "why": "Library consolidation is not named under approval, task resolution, or agent rules."
+ },
+ {
+  "id": "3579a04b07",
+  "priority": "none",
+  "why": "Mapping primary text to the prime token is a colour-token fix, not one of the three big things."
+ },
+ {
+  "id": "6063f82a31",
+  "priority": "none",
+  "why": "Vision diffing of screenshot sequences is not part of the review page, task flow, or agent readmes."
+ },
+ {
+  "id": "e8d4df410a",
+  "priority": "none",
+  "why": "A CSS audit is a styles task, not one of the three big things."
+ },
+ {
+  "id": "69d0f17899",
+  "priority": "none",
+  "why": "Sweeping containers onto the default clamped padding is a styles task, not one of the three big things."
+ },
+ {
+  "id": "546d690755",
+  "priority": "none",
+  "why": "Making layouts into templates is core/Page work, not one of the three big things."
+ },
+ {
+  "id": "d7500dd56c",
+  "priority": "none",
+  "why": "Panel duplicate and alt-drag clone delta is a Panel feature, not one of the three big things."
+ },
+ {
+  "id": "29640846eb",
+  "priority": "none",
+  "why": "An OO inheritance audit across classes is code hygiene, not one of the three big things."
+ },
+ {
+  "id": "6d0d93b000",
+  "priority": "none",
+  "why": "A DevBar hover path tooltip is a dev tool feature, not one of the three big things."
+ },
+ {
+  "id": "6d0a0788ad",
+  "priority": "none",
+  "why": "Property expressions are a core/Property feature, not one of the three big things."
+ },
+ {
+  "id": "f76d5869db",
+  "priority": "none",
+  "why": "Documenting the palette card as a page layout is styles/layout docs, not one of the three big things."
+ },
+ {
+  "id": "58c09c1970",
+  "priority": "none",
+  "why": "Deciding whether the full-width layout spreads beyond the palette page is a layout decision, not one of the three big things."
+ },
+ {
+  "id": "6b99150116",
+  "priority": "none",
+  "why": "Matching input, mic and gear across chat areas is ext/Chat UI, not one of the three big things."
+ },
+ {
+  "id": "f93dccbe9c",
+  "priority": "none",
+  "why": "Routing mic icons through prompt refinement is dictation work, not one of the three big things."
+ },
+ {
+  "id": "6b90867197",
+  "priority": "none",
+  "why": "Putting raw transcription into the input is dictation/chat behaviour, not one of the three big things."
+ },
+ {
+  "id": "8134e44223",
+  "priority": "none",
+  "why": "Replacing the growing textarea with a plain input is chat UI, not one of the three big things."
+ },
+ {
+  "id": "db319ed23a",
+  "priority": "none",
+  "why": "Prompt refinement in every transcribe widget is dictation work, not one of the three big things."
+ },
+ {
+  "id": "adf8264f20",
+  "priority": "none",
+  "why": "Choosing raw or cleaned text for send is a chat/dictation decision, not one of the three big things."
+ },
+ {
+  "id": "d6e6f7b5bf",
+  "priority": "none",
+  "why": "Clean, paragraphed chat bubbles are dictation/chat display work, not one of the three big things."
+ },
+ {
+  "id": "315a037c4d",
+  "priority": "none",
+  "why": "Splitting wall-of-text bubbles is dictation/chat display work, not one of the three big things."
+ },
+ {
+  "id": "5ac368e087",
+  "priority": "none",
+  "why": "Streaming lag in ai/AISession is borderline for the sessions page, but the brief does not name that streaming path, so none."
+ },
+ {
+  "id": "63f49a7e88",
+  "priority": "none",
+  "why": "Picking each page's layout from its content is a layout task, not one of the three big things."
+ },
+ {
+  "id": "172974aa43",
+  "priority": "none",
+  "why": "Sidebar redesign for long lists is core/Sidebar work, not one of the three big things."
+ },
+ {
+  "id": "37729cdf2c",
+  "priority": "none",
+  "why": "Harmonizing site designs is a styles pass, not one of the three big things."
+ }
+]

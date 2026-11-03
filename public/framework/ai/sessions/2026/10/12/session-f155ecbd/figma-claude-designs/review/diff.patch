@@ -1,0 +1,24 @@
+diff --git a/public/framework/ext/Figma/tokens/FigmaTokens.mjs b/public/framework/ext/Figma/tokens/FigmaTokens.mjs
+index a36c8113f..e6bb62509 100644
+--- a/public/framework/ext/Figma/tokens/FigmaTokens.mjs
++++ b/public/framework/ext/Figma/tokens/FigmaTokens.mjs
+@@ -50,6 +50,7 @@ export class FigmaTokens {
+ 		"\t.fig-row { padding: var(--fig-small-pad-y) var(--fig-small-pad-x); }",
+ 		"\t.fig-stack { display: flex; flex-direction: column; gap: var(--fig-gap); }",
+ 		"\t.fig-stack > * { margin: 0; }   /* auto layout has no margins: the gap is the only space, as in Figma */",
++		"	.fig-stack > .fig-btn { align-self: flex-start; }   /* buttons hug, as in Figma */",
+ 		"\t.fig-inset { background: rgb(0 0 0 / 0.1); }",
+ 		"\t.fig-dark .fig-lift { background: rgb(255 255 255 / 0.1); }",
+ 		"\t.fig-muted { color: var(--fig-muted); }",
+diff --git a/public/framework/ext/Figma/tokens/tokens.css b/public/framework/ext/Figma/tokens/tokens.css
+index f02d08abf..ce3a1e4d7 100644
+--- a/public/framework/ext/Figma/tokens/tokens.css
++++ b/public/framework/ext/Figma/tokens/tokens.css
+@@ -129,6 +129,7 @@
+ 	.fig-row { padding: var(--fig-small-pad-y) var(--fig-small-pad-x); }
+ 	.fig-stack { display: flex; flex-direction: column; gap: var(--fig-gap); }
+ 	.fig-stack > * { margin: 0; }   /* auto layout has no margins: the gap is the only space, as in Figma */
++	.fig-stack > .fig-btn { align-self: flex-start; }   /* buttons hug, as in Figma */
+ 	.fig-inset { background: rgb(0 0 0 / 0.1); }
+ 	.fig-dark .fig-lift { background: rgb(255 255 255 / 0.1); }
+ 	.fig-muted { color: var(--fig-muted); }

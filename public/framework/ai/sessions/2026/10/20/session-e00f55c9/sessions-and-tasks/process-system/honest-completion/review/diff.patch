@@ -1,0 +1,668 @@
+diff --git a/Server/SessionRecord.mjs b/Server/SessionRecord.mjs
+index 8b8a45fe0..f62cf2e51 100644
+--- a/Server/SessionRecord.mjs
++++ b/Server/SessionRecord.mjs
+@@ -41,6 +41,16 @@ export default class SessionRecord {
+ 		}
+ 		return null;
+ 	}
++	/** The Servex agent working on `dir` (its log's first `assign.agent`), looking in `dir` then each folder above it inside the sessions store.
++	 *  A node-started reviewer or clarity agent gets this as its `parent`. Null when no log names one. */
++	static task_agent(dir){
++		const top = this.session_top(path.resolve(dir));
++		for (let p = path.resolve(dir); top && p.length >= top.length; p = path.dirname(p)){
++			const f = this.log_file(p); if (!f) continue;
++			try { const a = JSON.parse(fs.readFileSync(f, "utf8").split("\n", 1)[0]).assign?.agent; if (a) return a; } catch {}
++		}
++		return null;
++	}
+ 	/** The log to read or append to: the one that exists (either name), else the old name for a brand-new folder. */
+ 	static log_or_old(dir){ return this.log_file(dir) ?? path.join(dir, this.OLD); }
+ 	/** A session folder sits directly under a day of the sessions store (YYYY/MM/DD/<name>); a task folder is deeper. */
+diff --git a/Server/clarity.mjs b/Server/clarity.mjs
+index dc9f77564..35a0383e8 100644
+--- a/Server/clarity.mjs
++++ b/Server/clarity.mjs
+@@ -98,7 +98,8 @@ async function main(){
+ 		+ (kind === "proposal" && target.endsWith("todo.md") ? " Check only the entries changed most recently (git diff on the file)." : "");
+ 	const body = { jsonrpc: "2.0", id: 1, method: "tools/call", params: { name: "spawn_agent", arguments: {
+ 		role: "clarity", name: slug, prompt, model: "claude-sonnet-5-5", effort: "medium",
+-		permission_mode: "bypassPermissions", cwd: root, visibility: "team"
++		permission_mode: "bypassPermissions", cwd: root, visibility: "team",
++		parent: SessionRecord.task_agent(kind === "landing" ? arg : kind === "proposal" ? path.dirname(arg) : root) ?? undefined
+ 	} } };
+ 	try {
+ 		const r = await fetch(MCP, { method: "POST", headers: { "content-type": "application/json", accept: "application/json, text/event-stream" }, body: JSON.stringify(body), signal: AbortSignal.timeout(20000) });
+diff --git a/Server/owner-check.mjs b/Server/owner-check.mjs
+index f2f4acc3e..485759f04 100644
+--- a/Server/owner-check.mjs
++++ b/Server/owner-check.mjs
+@@ -231,7 +231,7 @@ async function main(){
+ 	let table = null, spawnErr = null;
+ 	try {
+ 		const spawned = await mcp("spawn_agent", { role: "reviewer", name: `owner-check-${path.basename(taskDir)}`.replace(/[^a-z0-9-]+/gi, "-").slice(0, 60),
+-			prompt, model: "claude-sonnet-5-5", effort: "medium", permission_mode: "bypassPermissions", cwd: ROOT });
++			prompt, model: "claude-sonnet-5-5", effort: "medium", permission_mode: "bypassPermissions", cwd: ROOT, parent: SessionRecord.task_agent(taskDir) ?? undefined });
+ 		if (!spawned.id) throw new Error(spawned.raw || spawned.why || "spawn_agent did not return an id");
+ 		await mcp("wait_for_agent", { id: spawned.id, timeout_s: 900 }, 910000);
+ 		await mcp("stop_agent", { id: spawned.id }, 20000);
+diff --git a/Server/review.mjs b/Server/review.mjs
+index 645b89a83..091d0305b 100644
+--- a/Server/review.mjs
++++ b/Server/review.mjs
+@@ -440,7 +440,7 @@ async function turnsCmd(taskDir) {
+ 	appendJSON(reviewJsonl, { phase: { at: now(), n: 3, kind: "replies", status: "start" } });
+ 	let parsed = [], cost = 0;
+ 	try {
+-		const spawned = await mcp("spawn_agent", { role: "reviewer", name, prompt, model: "claude-sonnet-5-5", effort: "medium", permission_mode: "bypassPermissions", cwd: root });
++		const spawned = await mcp("spawn_agent", { role: "reviewer", name, prompt, model: "claude-sonnet-5-5", effort: "medium", permission_mode: "bypassPermissions", cwd: root, parent: SessionRecord.task_agent(taskDir) ?? undefined });
+ 		if (!spawned.id) throw new Error(spawned.raw || spawned.why || "spawn_agent did not return an id");
+ 		const waited = await mcp("wait_for_agent", { id: spawned.id, timeout_s: 900 }, 910000);
+ 		cost = waited.cost ?? 0;
+@@ -776,7 +776,7 @@ async function main() {
+ 	// a stale report from a previous run must never be read as if it answered THIS head
+ 	try { fs.unlinkSync(reviewPath); } catch {}
+ 	try {
+-		const spawned = await mcp("spawn_agent", { role: "reviewer", name, prompt, model, effort: "medium", permission_mode: "bypassPermissions", cwd: root });
++		const spawned = await mcp("spawn_agent", { role: "reviewer", name, prompt, model, effort: "medium", permission_mode: "bypassPermissions", cwd: root, parent: SessionRecord.task_agent(taskDir) ?? undefined });
+ 		if (!spawned.id) throw new Error(spawned.raw || spawned.why || "spawn_agent did not return an id");
+ 		const waited = await mcp("wait_for_agent", { id: spawned.id, timeout_s: 900 }, 910000);
+ 		cost = waited.cost ?? 0;   // list_agents' row carries no cost field today; wait_for_agent's own answer does
+diff --git a/Servex/ProcessRunner.js b/Servex/ProcessRunner.js
+index 41a24c137..73a56d6a4 100644
+--- a/Servex/ProcessRunner.js
++++ b/Servex/ProcessRunner.js
+@@ -168,7 +168,7 @@ export default class ProcessRunner {
+ 			if (this.grace.delete(`${path.resolve(file)}#${ph.id}`)) continue;   // that turn began before this phase was sent
+ 			const n = Number(ph.get_one("pulses")) || 0;
+ 			if (n < 1){
+-				const line = `item({path: "${url}", delta: {"${ph.id}": {"complete": {"outcome": "…"}}}})`;
++				const line = `item({path: "${url}", delta: {"${ph.id}": {"complete": {"outcome": "…", "evidence": ["…"]}}}})`;
+ 				try { this.servex.agents.send(id, `The ${ph.id} phase of ${url} is not recorded as complete. If it is done, record it: ${line}. If something blocks it, write {"${ph.id}": {"wait": {"on": "<who>", "what": "<what you need>"}}} with the same tool.`, { from: "process-runner" }); } catch {}
+ 				await this.write(file, { pulse: { phase: ph.id, n: n + 1, agent: id } });
+ 			} else {
+diff --git a/Servex/Servex.js b/Servex/Servex.js
+index 3cabc383d..a15734094 100644
+--- a/Servex/Servex.js
++++ b/Servex/Servex.js
+@@ -295,7 +295,7 @@ export default class Servex extends Events {
+         /* REQUESTS ARE LOGGED ITEMS (the owner, 2026-10-22: logs over chat): a task added to another agent's task is a request; its
+          * receiver hears once, and the asker hears the outcome when it completes. Doc: Servex/agents/doc/messaging.md. */
+         const notice = (to, text, from) => { if (!to || to === "owner") return; try { this.agents.send(to, text, { from: from ?? "servex" }); } catch {} };
+-        page_tool_hooks.requested = r => notice(r.to, `Request from ${r.from}: "${r.title}", logged at ${r.path}. Answer on the item when it is done: item({path: "${r.path}", delta: ${r.own_folder ? `{"complete": {"outcome": "…"}}` : `{"${r.id}": {"complete": {"outcome": "…"}}}`}}). ${r.from} hears the outcome then.`, r.from);
++        page_tool_hooks.requested = r => notice(r.to, `Request from ${r.from}: "${r.title}", logged at ${r.path}. Answer on the item when it is done: item({path: "${r.path}", delta: ${r.own_folder ? `{"complete": {"outcome": "…", "evidence": ["…"]}}` : `{"${r.id}": {"complete": {"outcome": "…", "evidence": ["…"]}}}`}}). ${r.from} hears the outcome then.`, r.from);
+         page_tool_hooks.answered = r => notice(r.to, `${r.by} answered your request "${r.title}" (${r.path}): ${r.outcome ?? "done, no outcome given"}`, r.by);
+         // Owner prompts become proposed tasks on their session (Servex/agents/PromptTasks.js; one Haiku call per prompt).
+         if (!process.env.SERVEX_NO_PROMPT_TASKS){ this.prompt_tasks = new PromptTasks({ say: t => this.say?.(t) }); page_tool_hooks.prompted = p => this.prompt_tasks.prompted(p); }
+diff --git a/Servex/agents/doc/messaging.md b/Servex/agents/doc/messaging.md
+index c063c255c..8163a2959 100644
+--- a/Servex/agents/doc/messaging.md
++++ b/Servex/agents/doc/messaging.md
+@@ -33,7 +33,7 @@ Alternatives considered: (A) the same follow without the 60-second window or the
+ A request that matters is a task on the receiver's own log, not a chat message. Then it shows in every view and can be queried later.
+ 
+ - **To ask:** add a task to the receiver's task or session: `item({path: <its task folder>, delta: {tasks: {add: {title: "<the ask>"}}}})`. Node stamps `from: <you>` on it. The item tool's `hooks.requested` then sends the receiver one line: the ask, the path, and the exact line that answers it.
+-- **To answer:** complete it on the item: `item({path, delta: {"<id>": {"complete": {"outcome": "<the answer>"}}}})`. If you need something first, use `wait` on the same item.
++- **To answer:** complete it on the item: `item({path, delta: {"<id>": {"complete": {"outcome": "<the answer>", "evidence": ["<file or commit>"]}}}})`. If you need something first, use `wait` on the same item.
+ - **The asker hears the answer.** When a task with a `from` completes, `hooks.answered` sends the asker the outcome in one line.
+ - **Which adds count as requests:** an add counts when the caller is not the log's own agent (the task's `agent`). Tasks an agent adds to its own log are not requests. Adds by the owner (from the browser) and by a parent adding steps to its child's task count too, so each one sends the receiver a notice.
+ - **Where it is built:** `notify_requests` in `Servex/agents/page_tools.js`; the two hooks are wired in `Servex.js`. Test: `node Servex/agents/requests.test.mjs`.
+diff --git a/Servex/agents/honest-completion.test.mjs b/Servex/agents/honest-completion.test.mjs
+new file mode 100644
+index 000000000..f22d4e10d
+--- /dev/null
++++ b/Servex/agents/honest-completion.test.mjs
+@@ -0,0 +1,35 @@
++/* node Servex/agents/honest-completion.test.mjs — complete without evidence is refused (nothing written); with evidence it lands and
++ * its caveats reach the parent's log (core/Task/doc/resolution.md, section 6). */
++import assert from "node:assert";
++import fs from "node:fs";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++import { run_item } from "./page_tools.js";
++
++const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
++const REL = "public/framework/ai/sessions/2026/10/16/.honest-test-" + process.pid;
++const SESSION = path.join(ROOT, REL), TASK = path.join(SESSION, "child"), PARENT_LOG = path.join(SESSION, "session.jsonl"), FILE = path.join(TASK, "task.jsonl");
++const URL = "/" + REL.slice("public/".length) + "/child/";
++const call = delta => run_item({ path: URL, delta }, { caller: "t1" });
++const lines = f => fs.readFileSync(f, "utf8").trim().split("\n").map(l => JSON.parse(l));
++
++fs.mkdirSync(TASK, { recursive: true });
++fs.writeFileSync(PARENT_LOG, JSON.stringify({ session: { id: "p1", kind: "test" } }) + "\n");
++fs.writeFileSync(FILE, JSON.stringify({ assign: { slug: "child", title: "Child" } }) + "\n");
++try {
++	await call({ start: {} });
++	const before = fs.readFileSync(FILE, "utf8");
++	for (const bad of [{ complete: {} }, { complete: "done" }, { complete: { outcome: "x", evidence: [] } }]){
++		const r = await call(bad);
++		assert.equal(r.ok, false, "no evidence is refused");
++		assert.match(r.why, /needs evidence/, "and says what to pass");
++	}
++	assert.equal(fs.readFileSync(FILE, "utf8"), before, "a refused complete writes no line");
++	const r = await call({ complete: { outcome: "built", evidence: ["abc1234"], confidence: "medium", caveats: ["the mobile layout is untested"] } });
++	assert.equal(r.ok, true);
++	assert.equal(r.state.state, "complete", "with evidence it lands");
++	const note = lines(PARENT_LOG).find(l => l.note);
++	assert.ok(note && /mobile layout is untested/.test(note.note.msg) && /child/.test(note.note.msg), "the caveat reached the parent log");
++	console.log("honest-completion.test.mjs: all checks passed");
++} finally { fs.rmSync(SESSION, { recursive: true, force: true }); }
++process.exit(0);
+diff --git a/Servex/agents/item_tool.test.mjs b/Servex/agents/item_tool.test.mjs
+index 7b177a218..7b3ec931d 100644
+--- a/Servex/agents/item_tool.test.mjs
++++ b/Servex/agents/item_tool.test.mjs
+@@ -64,7 +64,7 @@ try {
+ 	fs.writeFileSync(path.join(SDIR, "session.jsonl"), JSON.stringify({ session: "fixture-session" }) + "\n");
+ 	try {
+ 		r = await call("item", { path: SURL, delta: { tasks: { add: { type: "Task", title: "a" } } } });
+-		await call("item", { path: SURL, delta: { a: { complete: {} } } });   // a nested task: addressed by its id
++		await call("item", { path: SURL, delta: { a: { complete: { evidence: ["test"] } } } });   // a nested task: addressed by its id
+ 		r = await call("item", { path: SURL, delta: { tasks: { add: { type: "Task", title: "b" } } } });
+ 		// A session folder's log is a Task now (SessionRecord.log_file), so its nested tasks are subtasks.
+ 		ok(r.ok && r.state.completion === 0.5 && r.state.tasks.length === 2, "session.jsonl: tasks.add, a child completed by its id, completion 1/2");
+@@ -117,7 +117,7 @@ try {
+ 		ok(r.state.state === "running", "start the child through its own path");
+ 		r = await call("item", { path: URL });
+ 		ok(r.state.tasks.find(t => t.id === "module-job").state === "running" && r.state.completion === 0, "parent sees the child running");
+-		await call("item", { path: app(home), delta: { complete: {} } });
++		await call("item", { path: app(home), delta: { complete: { evidence: ["test"] } } });
+ 		r = await call("item", { path: URL });
+ 		ok(r.state.completion === 1 / 4, "parent completion changes after the child completes");
+ 
+@@ -199,7 +199,7 @@ try {
+ 			ok(r.ok && fs.existsSync(kid_file) && nlines().at(-1).file === "nested-one/task.jsonl", "a folder on demand: the parent records {file}");
+ 			const again = Task.replay(nlines());
+ 			ok(again.tasks.find("nested-one")?.state === "running" && [...again.tasks].length === 1, "the folder variant replays: same child, same state, not doubled");
+-			await call("item", { path: NURL + "nested-one/", delta: { complete: {} } });
++			await call("item", { path: NURL + "nested-one/", delta: { complete: { evidence: ["test"] } } });
+ 			r = await call("item", { path: NURL });
+ 			ok(r.state.tasks[0].state === "complete", "after the folder move, the parent sees the child's own file");
+ 
+diff --git a/Servex/agents/page_tools.js b/Servex/agents/page_tools.js
+index 1d9ce3c66..cc14ea606 100644
+--- a/Servex/agents/page_tools.js
++++ b/Servex/agents/page_tools.js
+@@ -682,6 +682,28 @@ function verb_in(delta){
+ 	return null;
+ }
+ 
++/* HONEST COMPLETION (core/Task/doc/resolution.md, section 6): every complete/finish call in a delta, as its argument object.
++ * A bare string or empty value counts as a call with no evidence. A new task's own fields ("add") are not a call. */
++function complete_calls(delta, out = []){
++	if (!is_plain(delta)) return out;
++	for (const [k, v] of Object.entries(delta)){
++		if (k === "complete" || k === "finish") out.push(v);
++		else if (k !== "add") complete_calls(v, out);
++	}
++	return out;
++}
++
++/* A task that completes with caveats tells its parent: one line on the parent's log (the session or task SessionRecord.parent_log finds),
++ * naming the task and what was asked and not done. Returns the log written, or null. */
++export function tell_parent_caveats(task_dir, caveats, by = "node"){
++	const list = [].concat(caveats ?? []).filter(c => String(c ?? "").trim());
++	if (!list.length) return null;
++	const log = SessionRecord.parent_log(task_dir);
++	if (!log) return null;
++	write_line(log, { note: { id: "caveats-" + path.basename(task_dir), msg: `${app_path(task_dir)} completed with caveats: ${list.join("; ")}` }, by, ts: now() }, true);
++	return log;
++}
++
+ function refusal(why, Class){
+ 	const d = describe_class(Class);
+ 	return { ok: false, why, exists: [...d.methods.map(m => m.name), ...new Set([...d.fields, ...(KEYS[Class.name] ?? [])])] };
+@@ -780,6 +802,11 @@ export async function run_item({ path: url, target, delta } = {}, ctx = {}, alia
+ 		}
+ 	}
+ 	if (Class?.replay){ const no = validate(Class, root(), flat); if (no) return no; }
++	// A complete without evidence is refused BEFORE a line is written: a written line would replay as a recorded fact.
++	if (Class?.replay) for (const args of complete_calls(flat)){
++		const why = Class.completion_problem?.(args);
++		if (why) return { ok: false, why };
++	}
+ 
+ 	// `pages` and `folder` are the keys the tool handles itself: a folder is made on disk (Subpages.js, give_folder).
+ 	const { pages, folder, ...rest } = flat;
+@@ -848,6 +875,8 @@ export async function run_item({ path: url, target, delta } = {}, ctx = {}, alia
+ 	// A process moves on after any write to it, and a new one starts at once (ProcessRunner.step).
+ 	if (hooks.changed) for (const f of [...(kind === "Process" ? [at.file] : []), ...homes.filter(h => h.process).map(h => h.file)]) try { Promise.resolve(hooks.changed(f)).catch(() => {}); } catch {}
+ 	if (Class?.replay) try { notify_requests(root(), at, body, requests, by); } catch {}
++	// Caveats of a task that just completed reach its parent's log (a subtask nested in this file is on this log already).
++	if (Class?.replay && !at.target.length && is_plain(body.complete) && root().state === "complete") try { tell_parent_caveats(path.dirname(at.file), body.complete.caveats, by); } catch {}
+ 	// Node records who worked on the task: one appended line carrying the full list, only when the caller is new to it.
+ 	if (Class?.replay && Class.FIELDS?.includes("sessions") && ctx.caller && ctx.caller !== "owner") try {
+ 		const live = root(), list = live.sessions;
+diff --git a/Servex/agents/requests.test.mjs b/Servex/agents/requests.test.mjs
+index ff9783f6f..48bfebcbc 100644
+--- a/Servex/agents/requests.test.mjs
++++ b/Servex/agents/requests.test.mjs
+@@ -29,10 +29,10 @@ try {
+ 	await item({ tasks: { add: { title: "My own note" } } }, "architect"); await tick();
+ 	ok(asked.length === 1, "a task the owner of the log adds itself is not a request");
+ 
+-	await item({ "answer-a-design-question": { complete: { outcome: "yes, instantiate on the server" } } }, "architect"); await tick();
++	await item({ "answer-a-design-question": { complete: { outcome: "yes, instantiate on the server", evidence: ["test"] } } }, "architect"); await tick();
+ 	ok(answered.length === 1 && answered[0].to === "vscode-mastermind" && answered[0].outcome === "yes, instantiate on the server", "completing it tells the asker the outcome");
+ 
+-	await item({ "my-own-note": { complete: { outcome: "done" } } }, "architect"); await tick();
++	await item({ "my-own-note": { complete: { outcome: "done", evidence: ["test"] } } }, "architect"); await tick();
+ 	ok(answered.length === 1, "completing a task nobody asked for tells nobody");
+ 
+ 	const t = Task.replay(read(FILE))._tasks.find("answer-a-design-question");
+diff --git a/Servex/agents/tools.js b/Servex/agents/tools.js
+index 0772bd3b0..cbb6595c9 100644
+--- a/Servex/agents/tools.js
++++ b/Servex/agents/tools.js
+@@ -320,6 +320,15 @@ function log_tools(agents){
+ const caller_is_from = t => t.name !== "start_job" ? t
+ 	: { ...t, handler: (args = {}, ctx = {}) => t.handler({ ...args, from: args.from ?? ctx.caller ?? undefined }, ctx) };
+ 
++/* The agent id for a session Servex does not hold: its registered external row, else one registered as vscode-<id8>. Null if it cannot. */
++function tab_parent(agents, session_id){
++	const ext = agents.external;
++	if (!ext || !/^[0-9a-f-]{8,}$/i.test(String(session_id))) return null;
++	const rows = agents.reg().read(), hit = Object.values(rows).find(r => r?.kind === "external" && r.session_id === session_id);
++	if (hit) return hit.id;
++	try { return ext.register({ id: "vscode-" + String(session_id).slice(0, 8).toLowerCase(), session_id }).id; } catch { return null; }
++}
++
+ function own(agents){
+ const policy = agents.policy ??= new Policy({ agents });
+ return [
+@@ -340,6 +349,7 @@ return [
+ 			permission_mode: { type: "string", description: "`acceptEdits` (default) lets it edit files; `bypassPermissions` lets it do anything, including run commands; `plan` lets it do nothing." },
+ 			allowed_tools: { type: "array", items: { type: "string" }, description: "Whitelist, e.g. [\"Bash\",\"Read\",\"Write\",\"Edit\"]. Omit for the CLI's own default set." },
+ 			parent: { type: "string", description: "Your own agent id, if you are the one spawning this. When this child ends its turn, is stopped, or errors, it wakes YOU with one message — omit for a top-level agent with nobody to wake." },
++			session_id: { type: "string", description: "FROM A VS CODE TAB (or any session Servex did not spawn): your own Claude session uuid (`$CLAUDE_CODE_SESSION_ID`). Servex records your tab as this child's parent (registering it as `vscode-<first 8 hex>` if it is not already), so the child's work rolls up under you and its news reaches your inbox. Leave out when `parent` is given or you are a Servex agent." },
+ 			resume: { type: "string", description: "A session uuid to CONTINUE instead of starting blank — the agent opens with that whole conversation. No skill-load preamble is added, and with no `prompt` it just waits, idle, for a message. ⚠ Give the `cwd` the session originally ran in: sessions are stored per project directory, and a resume from anywhere else cannot find it." },
+ 			fork: { type: "boolean", description: "With `resume`: continue as a NEW session (a copy), leaving the original untouched and still usable. It reuses the original's prompt cache when model, tools and settings match." },
+ 			task: { type: ["object", "boolean"], description: "EVERY SPAWN HAS A TASK DIR: leave `task` out and Servex opens one anyway (ai/sessions/<today>/<your session folder, else `spawned`>/<agent id>/, line 1 with the session id, agent id, model and the first line of `prompt` as its title, then past-work.md), and tells the agent where its log is. Pass `task: false` ONLY for a throwaway probe that must leave no task dir. Or open the task yourself, before its first turn: `{dir, card, brief, home}`. `home` (optional) is the module the work belongs to, as a site path like `/framework/core/Page/`: it is written into line 1 so the task and its session are tagged by module from the start. `dir` is the task's directory (repo-relative or absolute; created if new) — line 1 (or the next line, if the dir already has a log) is written there with the session id, agent id, card, brief and model, so the agent never has to run new-task itself; its first turn is told where its log already is. Servex also writes `past-work.md` beside the brief (what already exists on the brief's title; `brief` = path of a requirements.md, or give `title`) and tells the agent to read it first. Nested tasks: `parent_task` (the parent's task dir; defaults to the calling agent's own task dir) and `after` (an array of the sibling task DIRS this one waits for, the series edges — full dirs like `dir`, never bare slugs; stored repo-relative like `parent_task` and matched exactly) are written into that line too. HANDOFF BY TASK: add `from` (the url of the record that holds the subtask, e.g. your session page) and `id` (the subtask's id) and that subtask MOVES into this agent's folder with its id and history (page_tools.js move_item); `dir` may then be left out." },
+@@ -365,7 +375,12 @@ return [
+ 			 * deliberate top-level spawn (`parent` left out on purpose, per this tool's own
+ 			 * description) still works exactly as before whenever Servex has no caller to blame
+ 			 * either (a VS Code tab's own direct MCP call, ctx.caller null). */
+-			return card(agents.spawn({ ...args, parent: args.parent ?? ctx.caller ?? null }));
++			const { session_id: tab_session, ...rest } = args;
++			let parent = args.parent ?? ctx.caller ?? null;
++			/* A TAB'S SPAWN HAS A PARENT (2026-10-22, honest-completion): a VS Code tab's MCP call carries no `?as=`, so ctx.caller is null.
++			 * The tab passes its own session uuid; the registered external agent with that uuid is the parent (registered now if new). */
++			if (!parent && tab_session) parent = tab_parent(agents, tab_session);
++			return card(agents.spawn({ ...rest, parent }));
+ 		}),
+ 
+ 	tool("fork_self",
+diff --git a/Servex/agents/verb-note.test.mjs b/Servex/agents/verb-note.test.mjs
+index fe5d15f41..5cd1e9d0c 100644
+--- a/Servex/agents/verb-note.test.mjs
++++ b/Servex/agents/verb-note.test.mjs
+@@ -17,7 +17,7 @@ try {
+ 	const r = await call({ approve: "looks good" });
+ 	const last = fs.readFileSync(FILE, "utf8").trim().split("\n").map(l => JSON.parse(l)).filter(l => l.approve).at(-1);
+ 	assert.equal(last.approve.note, "looks good", "a string approve is written as {note}");
+-	assert.equal(r.state.state, "running", "and it takes effect: waiting -> running");
++	assert.equal(r.state.state, "idle", "and it takes effect: waiting -> accepted (idle); start is the agent's own call");
+ 	console.log("verb-note.test.mjs: all checks passed");
+ } finally { fs.rmSync(DIR, { recursive: true, force: true }); }
+ process.exit(0);
+diff --git a/public/framework/core/Session/Session.test.mjs b/public/framework/core/Session/Session.test.mjs
+index 255f8481c..ba474a94f 100644
+--- a/public/framework/core/Session/Session.test.mjs
++++ b/public/framework/core/Session/Session.test.mjs
+@@ -1,5 +1,6 @@
+ // Node test for Session as an Item with tasks. Run: `node Session.test.mjs`.
+ import Session from "./Session.js";
++const EV = { outcome: "ok", evidence: ["test"] };
+ import Task from "../Task/Task.js";
+ 
+ const results = [];
+@@ -15,7 +16,7 @@ check("a Session keeps its id and is an Item", () => new Session("abc").id === "
+ check("three tasks, one complete: completion is 1/3 and progress {1,3}", () => {
+ 	const s = new Session("s");
+ 	for (const id of ["a", "b", "c"]) s.tasks.add(new Task({ id }));
+-	s.tasks.find("a").complete();
++	s.tasks.find("a").complete(EV);
+ 	const p = s.progress();
+ 	return p.done === 1 && p.total === 3 && Math.abs(s.completion - 1 / 3) < 1e-9;
+ });
+diff --git a/public/framework/core/Task/Project.js b/public/framework/core/Task/Project.js
+index 6787313ac..5bdc8f6b7 100644
+--- a/public/framework/core/Task/Project.js
++++ b/public/framework/core/Task/Project.js
+@@ -16,7 +16,7 @@ export class Project extends Task {
+ 		if (!next) return this.warn(`advance(): already "${this.stage}"`);
+ 		if (this.stage === "approval" && this.state === "waiting") this.approve({ by: "owner" });
+ 		if (next === "landed"){
+-			this.complete();
++			this.complete({ auto: true });
+ 			if (this.state !== "complete") return this;   // complete() warned; the stage stays
+ 		} else if (next === "approval") this.wait({ on: "owner", what: "approval of the plan" });
+ 		else if (next === "work" && this.state === "idle") this.start();
+diff --git a/public/framework/core/Task/Project.test.mjs b/public/framework/core/Task/Project.test.mjs
+index a800609d3..29706841a 100644
+--- a/public/framework/core/Task/Project.test.mjs
++++ b/public/framework/core/Task/Project.test.mjs
+@@ -1,5 +1,6 @@
+ // Node test for Project — no DOM, no server. Run: `node Project.test.mjs`.
+ import Project from "./Project.js";
++const EV = { outcome: "ok", evidence: ["test"] };
+ import Task from "./Task.js";
+ 
+ const results = [];
+@@ -47,9 +48,9 @@ check("completed is computed from subtasks, never stored", () => {
+ 	const a = new Task({ id: "a" }), b = new Task({ id: "b" });
+ 	p.tasks.add(a); p.tasks.add(b);
+ 	if (p.completed !== 0) return false;
+-	a.start(); a.complete();
++	a.start(); a.complete(EV);
+ 	if (p.completed !== 0.5) return false;
+-	b.start(); b.complete();
++	b.start(); b.complete(EV);
+ 	return p.completed === 1 && p.data.completed === undefined;
+ });
+ 
+@@ -57,14 +58,14 @@ check("completed averages nested projects", () => {
+ 	const p = new Project({ id: "p" }), q = new Project({ id: "q" });
+ 	const a = new Task({ id: "a" }), b = new Task({ id: "b" }), c = new Task({ id: "c" });
+ 	q.tasks.add(a); q.tasks.add(b); p.tasks.add(q); p.tasks.add(c);
+-	a.start(); a.complete();
++	a.start(); a.complete(EV);
+ 	return p.completed === (0.5 + 0) / 2;
+ });
+ 
+ check("no subtasks: 0 until complete", () => {
+ 	const p = new Project({ id: "p" });
+ 	const before = p.completed;
+-	p.start(); p.complete();
++	p.start(); p.complete(EV);
+ 	return before === 0 && p.completed === 1;
+ });
+ 
+diff --git a/public/framework/core/Task/Task.js b/public/framework/core/Task/Task.js
+index 3528b49ed..ef609e2f7 100644
+--- a/public/framework/core/Task/Task.js
++++ b/public/framework/core/Task/Task.js
+@@ -5,6 +5,7 @@
+ import Item from "../Item/Item.js";
+ import List from "../List/List.js";
+ 
++const CONFIDENCE = ["high", "medium", "low"];
+ const STATES = ["idle", "running", "paused", "waiting", "stopped", "complete"];
+ const OPEN = new Set(["idle", "running", "paused", "waiting"]);   // a child in one of these keeps its parent from reading complete
+ 
+@@ -79,7 +80,7 @@ export class Task extends Item {
+ 	child_changed(kid){
+ 		if (kid.state !== "complete" || this.state !== "running") return;
+ 		if (this.mode === "series") this.start_children();
+-		if ([...this._tasks].every(t => t.state === "complete")) this.complete();
++		if ([...this._tasks].every(t => t.state === "complete")) this.complete({ auto: true });
+ 	}
+ 	start_children(){
+ 		const kids = [...(this._tasks ?? [])];
+@@ -265,11 +266,11 @@ export class Task extends Item {
+ 		this.set({ waiting_on: null, ...extra, ran_ms, state });
+ 		return this;
+ 	}
+-	// approve: the task starts at once (waiting -> running). Approval with a caveat is approve(note).
+-	// TODO(plan step 13+): a queue that delays the start (then "idle") doesn't exist yet.
++	// approve: the task is ACCEPTED (waiting -> idle: worth doing, queued, nobody on it yet). The agent's own start() begins it
++	// (core/Task/doc/resolution.md, section 5). Approval with a caveat is approve(note).
+ 	approve(arg){
+ 		const o = typeof arg === "object" && arg ? arg : { note: arg };
+-		return this.verdict("approve", arg, "running", { approved_by: o.by ?? null, approved_note: o.note ?? null });
++		return this.verdict("approve", arg, "idle", { approved_by: o.by ?? null, approved_note: o.note ?? null });
+ 	}
+ 	// improve: back to whoever proposed it, to revise and wait() again.
+ 	improve(arg){ return this.verdict("improve", arg, "running"); }
+@@ -279,10 +280,24 @@ export class Task extends Item {
+ 		return this.verdict("reject", arg, "stopped", { stopped_at: this.stamp(), why: note ?? null });
+ 	}
+ 
++	// HONEST COMPLETION (core/Task/doc/resolution.md, section 6). A live complete() takes {outcome, evidence, confidence, caveats}:
++	// `evidence` a non-empty list (a file, commit, shot or test), `confidence` "high" | "medium" | "low" (default "medium"), `caveats` a list
++	// of what was asked and not done (default []). With no evidence it refuses and says what to pass. Exempt: replay (a recorded finish is a
++	// fact; old logs have none) and the automatic completion when the last child completes (`auto`, no agent made a claim).
++	// Returns the refusal text, or null when the arguments are fine. Servex's item tool calls it before it writes a line.
++	static completion_problem(args){
++		const a = args && typeof args === "object" ? args : {};
++		const ev = [].concat(a.evidence ?? []).filter(e => String(e ?? "").trim());
++		if (!ev.length) return `complete() needs evidence: pass {outcome: "what is now true", evidence: ["a file, commit, shot or test"], confidence: "high" | "medium" | "low", caveats: ["what was asked and not done"]}`;
++		if (a.confidence !== undefined && !CONFIDENCE.includes(a.confidence)) return `complete(): confidence must be one of ${CONFIDENCE.join(", ")}, not "${a.confidence}"`;
++		return null;
++	}
++
+ 	// Refuses while any subtask is not complete: names the first open one, the
+ 	// same "tell them what to do next" shape as Item.locate()'s own warnings.
+-	complete({ completion, complete, outcome } = {}){
++	complete(args){
+ 		if (this.state === "complete") return this;
++		const { completion, complete, outcome, evidence, confidence, caveats, auto } = args && typeof args === "object" ? args : {};
+ 
+ 		// A recorded finish is a fact during replay (this._rp): a {task: ref} child the worker only filed is not a reason to refuse it. Server/doc/state.md
+ 		const open = this._rp ? null : [...(this._tasks ?? [])].find(t => t.state !== "complete");
+@@ -290,11 +305,17 @@ export class Task extends Item {
+ 
+ 		if (!CAN.complete.has(this.state)) return this.warn(`complete(): can't complete from "${this.state}"`);
+ 
++		if (!this._rp && !auto){
++			const no = Task.completion_problem(args);
++			if (no) return this.warn(no);
++		}
++
+ 		const ran_ms = this.duration();
+ 		this._ran_ms = ran_ms;
+ 		this._ran_since = null;
+ 		const c = completion ?? complete;
+-		this.set({ completed_at: this.stamp(), ran_ms, ...(c !== undefined ? { completion: c } : {}), ...(outcome !== undefined ? { outcome } : {}), state: "complete" });
++		const claim = evidence === undefined ? {} : { evidence: [].concat(evidence), confidence: confidence ?? "medium", caveats: [].concat(caveats ?? []) };
++		this.set({ completed_at: this.stamp(), ran_ms, ...(c !== undefined ? { completion: c } : {}), ...(outcome !== undefined ? { outcome } : {}), ...claim, state: "complete" });
+ 		return this;
+ 	}
+ 
+diff --git a/public/framework/core/Task/Task.test.mjs b/public/framework/core/Task/Task.test.mjs
+index 5491b1a50..26e7a8c57 100644
+--- a/public/framework/core/Task/Task.test.mjs
++++ b/public/framework/core/Task/Task.test.mjs
+@@ -1,5 +1,6 @@
+ // Node test for Task — no DOM, no server. Run: `node Task.test.mjs`.
+ import Task from "./Task.js";
++const EV = { outcome: "ok", evidence: ["test"] };
+ 
+ const results = [];
+ const check = (title, fn) => {
+@@ -36,7 +37,7 @@ check("complete() refuses while a subtask is open, naming it", () => {
+ 	const a = new Task({ id: "a", data: { title: "Sub A" } });
+ 	t.tasks.add(a);
+ 	t.start();
+-	t.complete();
++	t.complete(EV);
+ 	return t.state === "running";   // refused — a is still idle, not finished
+ });
+ 
+@@ -45,9 +46,9 @@ check("complete() succeeds once every subtask is finished", () => {
+ 	const a = new Task({ id: "a" }), b = new Task({ id: "b" });
+ 	t.tasks.add(a); t.tasks.add(b);
+ 	t.start();
+-	a.start(); a.complete();
+-	b.start(); b.complete();
+-	t.complete();
++	a.start(); a.complete(EV);
++	b.start(); b.complete(EV);
++	t.complete(EV);
+ 	return t.state === "complete" && typeof t.data.completed_at === "string";
+ });
+ 
+@@ -56,14 +57,14 @@ check("progress() reflects finished subtasks, computed not stored", () => {
+ 	const a = new Task({ id: "a" }), b = new Task({ id: "b" });
+ 	t.tasks.add(a); t.tasks.add(b);
+ 	if (JSON.stringify(t.progress()) !== JSON.stringify({ done: 0, total: 2 })) return false;
+-	a.start(); a.complete();
++	a.start(); a.complete(EV);
+ 	return JSON.stringify(t.progress()) === JSON.stringify({ done: 1, total: 2 });
+ });
+ 
+ check("progress() with no subtasks is 0/1, then 1/1 once finished", () => {
+ 	const t = new Task({ id: "t" });
+ 	if (JSON.stringify(t.progress()) !== JSON.stringify({ done: 0, total: 1 })) return false;
+-	t.start(); t.complete();
++	t.start(); t.complete(EV);
+ 	return JSON.stringify(t.progress()) === JSON.stringify({ done: 1, total: 1 });
+ });
+ 
+@@ -116,7 +117,7 @@ check("a landed task given a new open child reads running until that child is do
+ check("replay: landed_at alone is complete, outcome or not (Server/doc/state.md)", () => { const t = Task.replay([A, { assign: { landed_at: "2026-10-16T11:00:00Z" } }]); return t.state === "complete" && t.data.completed_at === "2026-10-16T11:00:00Z"; });
+ check("replay: a line with `ts` and no `at` sets the time (the item tool stamps ts)", () => { const t = Task.replay([{ id: "x", ts: "2026-10-16T10:00:00Z" }, { start: {}, ts: "2026-10-16T10:05:00Z" }, { complete: {}, ts: "2026-10-16T11:00:00Z" }]); return t.state === "complete" && t.data.completed_at === "2026-10-16T11:00:00Z"; });
+ check("replay: a recorded finish stands after the worker filed an idle {task: ref} child", () => { const t = Task.replay([A, { task: "/framework/mod/x/tasks/filed/", at: "2026-10-16T10:10:00Z" }, { finish: { at: "2026-10-16T11:00:00Z", outcome: "Done." } }]); return t.state === "complete" && t.data.completed_at === "2026-10-16T11:00:00Z"; });
+-check("complete(): live calls still refuse while a subtask is open", () => { const t = Task.replay([A, { start: {} }, { task: "/framework/mod/x/tasks/filed/" }]); t.complete(); return t.state === "running"; });
++check("complete(): live calls still refuse while a subtask is open", () => { const t = Task.replay([A, { start: {} }, { task: "/framework/mod/x/tasks/filed/" }]); t.complete(EV); return t.state === "running"; });
+ check("replay: legacy closed file is stopped", () => Task.replay([A, { assign: { closed_by: "owner", closed_at: "2026-10-16T12:00:00Z" } }]).state === "stopped");
+ check("replay: legacy open file is running", () => Task.replay([A, { log: { at: "2026-10-16T10:05:00Z", msg: "x" } }]).state === "running");
+ check("replay: explicit wait then approve", () => {
+@@ -124,7 +125,7 @@ check("replay: explicit wait then approve", () => {
+ 	const w = Task.replay(lines);
+ 	if (w.state !== "waiting" || w.data.waiting_on !== "owner" || w.data.waiting_since !== "2026-10-16T10:30:00Z") return false;
+ 	const t = Task.replay([...lines, { approve: { by: "owner", note: "go", at: "2026-10-16T10:40:00Z" } }]);
+-	return t.state === "running" && t.data.waiting_on === null && t.data.approved_by === "owner";
++	return t.state === "idle" && t.data.waiting_on === null && t.data.approved_by === "owner";
+ });
+ check("replay: wait after legacy lines overrides them, even a later legacy landing only adds data", () => {
+ 	const t = Task.replay([A, { wait: { on: "agent-9", at: "2026-10-16T10:30:00Z" } }, landed]);
+@@ -163,7 +164,7 @@ check("complete: checked_by wins, check() is final", () => {
+ check("complete: subtasks are the share finished", () => {
+ 	const t = new Task({ id: "t" });
+ 	t.tasks.add(new Task({ id: "a" })); t.tasks.add(new Task({ id: "b" }));
+-	t.tasks.find("a").complete();
++	t.tasks.find("a").complete(EV);
+ 	return t.completion === 0.5;
+ });
+ check("complete: legacy steps, step is the current one", () => {
+@@ -203,11 +204,11 @@ check("node drives every step: series starts child 1 only, then each next, then
+ 	const [p, a, b, c] = family("series", 3);
+ 	p.start();
+ 	const s1 = [a, b, c].map(t => t.state).join();
+-	a.start === a.start && a.complete();
++	a.start === a.start && a.complete(EV);
+ 	const s2 = [a, b, c].map(t => t.state).join();
+-	b.complete();
++	b.complete(EV);
+ 	const s3 = [a, b, c].map(t => t.state).join();
+-	c.complete();
++	c.complete(EV);
+ 	return s1 === "running,idle,idle" && s2 === "complete,running,idle" && s3 === "complete,complete,running" && p.state === "complete" && p.completion === 1;
+ });
+ 
+@@ -215,9 +216,9 @@ check("node drives every step: parallel starts both children, parent completes a
+ 	const [p, a, b] = family("parallel", 2);
+ 	p.start();
+ 	if (a.state !== "running" || b.state !== "running") return false;
+-	a.complete();
++	a.complete(EV);
+ 	if (p.state !== "running") return false;
+-	b.complete();
++	b.complete(EV);
+ 	return p.state === "complete";
+ });
+ 
+@@ -234,7 +235,7 @@ check("a stored state of finished reads as complete", () => (() => { const t = n
+ const waiting = () => Task.replay([A, { start: {} }, { wait: { on: "owner", what: "ok?" } }]);
+ check("approve(note): waiting -> running, verdict recorded", () => {
+ 	const t = waiting().approve("fine, but mind X");
+-	return t.state === "running" && t.data.verdict.is === "approve" && t.data.verdict.note === "fine, but mind X";
++	return t.state === "idle" && t.data.verdict.is === "approve" && t.data.verdict.note === "fine, but mind X";
+ });
+ check("improve(note): waiting -> running", () => {
+ 	const t = waiting().improve({ note: "redo", by: "owner" });
+@@ -276,7 +277,7 @@ check("expected as an array survives replay; a string stays a string", () => {
+ 	const a = Task.replay([A, { expected: ["one", "two"] }]), b = Task.replay([A, { expected: "just one" }]);
+ 	return Array.isArray(a.expected) && a.expected.length === 2 && b.expected === "just one";
+ });
+-check("approve goes to running (not idle)", () => waiting().approve("go").state === "running");
++check("approve goes to accepted (idle), and start() is the agent's own call", () => { const t = waiting().approve("go"); if (t.state !== "idle") return false; t.start(); return t.state === "running"; });
+ 
+ check("content.add through replay, drawn data kept", () => {
+ 	const t = Task.replay([A, { content: { add: { id: "n1", text: "a note" } } }, { content: { add: { id: "n2", title: "a decision" } } }]);
+@@ -284,7 +285,7 @@ check("content.add through replay, drawn data kept", () => {
+ });
+ 
+ check("settled() resolves at once when already complete, and later when it completes", async () => {
+-	const done = new Task({ id: "d" }); done.start(); done.complete();
++	const done = new Task({ id: "d" }); done.start(); done.complete(EV);
+ 	const t = new Task({ id: "s" }); t.start();
+ 	const p = t.settled(); let got = null; p.then(x => got = x);
+ 	await done.settled();
+@@ -310,6 +311,26 @@ check("cost: computed through Task.cost_resolver, 0 without one", () => {
+ 	return none === 0 && got === 1.5;
+ });
+ 
++check("complete() with no evidence is refused and says what to pass", () => {
++	const t = new Task({ id: "h" }); t.start();
++	const bare = t.complete(), text = t.complete("done").state, empty = t.complete({ outcome: "x", evidence: [] });
++	return t.state === "running" && bare.state === "running" && text === "running" && empty.state === "running" && !t.data.completed_at;
++});
++check("complete() with evidence lands: confidence defaults to medium, caveats to []", () => {
++	const t = new Task({ id: "h" }); t.start(); t.complete({ outcome: "built", evidence: ["abc1234"] });
++	return t.state === "complete" && t.data.confidence === "medium" && t.data.caveats.length === 0 && t.data.evidence[0] === "abc1234";
++});
++check("complete() refuses a confidence that is not high | medium | low", () => {
++	const t = new Task({ id: "h" }); t.start(); t.complete({ evidence: ["x"], confidence: "sure" });
++	return t.state === "running" && Task.completion_problem({ evidence: ["x"], confidence: "high" }) === null;
++});
++check("replay of an old complete line with no evidence still completes; the last child completing the parent needs none", () => {
++	const old = Task.replay([A, { start: {} }, { complete: { outcome: "old" } }]);
++	const p = new Task({ id: "p" }); p.start(); p.tasks.set({ add: { type: "Task", id: "k" } });
++	const k = p.tasks.find("k"); k.start(); k.complete(EV);
++	return old.state === "complete" && p.state === "complete";
++});
++
+ const passed = results.filter(Boolean).length;
+ console.log(`\n${passed} / ${results.length} passing`);
+ if (passed !== results.length) process.exit(1);
+diff --git a/public/framework/core/Task/doc/resolution.md b/public/framework/core/Task/doc/resolution.md
+index 3253f7339..5f224866e 100644
+--- a/public/framework/core/Task/doc/resolution.md
++++ b/public/framework/core/Task/doc/resolution.md
+@@ -58,8 +58,8 @@ Every **started** task with no new line for about 5 minutes: node asks its agent
+ 
+ ## Build list (in order)
+ 
+-- ⬜ `complete` refuses without `evidence`; `confidence` and `caveats` fields; caveats reach the parent's log.
+-- ⬜ `approve` moves to **accepted** (`idle`), not straight to running; `start` is the agent's own call.
++- ✅ `complete` refuses without `evidence`; `confidence` and `caveats` fields; caveats reach the parent's log. (2026-10-22: `Task.complete`, `Task.completion_problem`, and the item tool in `page_tools.js`, which refuses before it writes and calls `tell_parent_caveats`; test `Servex/agents/honest-completion.test.mjs`. Exempt: replay of old logs, the automatic completion when the last child completes, a Project reaching `landed`, and the node-written `stop` of `StaleClose`.)
++- ✅ `approve` moves to **accepted** (`idle`), not straight to running; `start` is the agent's own call. (2026-10-22: `Task.approve`.)
+ - ⬜ `source` on every task the live prompt process files (with mastermind-prompt, [PromptTasks](/Servex/agents/PromptTasks.js)).
+ - ⬜ The chase, in the existing `TaskLoop.tick()` (it already wakes a quiet running task twice, then posts one card): drop its opt-in date gate, ask for status instead of a bare wake, and keep flagging past the first card.
+ - ⬜ Something reads every inbox: 454 lines in 69 inboxes were never read ([cracks.md](cracks.md), row 1).
+diff --git a/public/framework/core/Task/live/page.js b/public/framework/core/Task/live/page.js
+index 9f1d53930..8c11893c7 100644
+--- a/public/framework/core/Task/live/page.js
++++ b/public/framework/core/Task/live/page.js
+@@ -36,7 +36,7 @@ export default new Page({
+ 			button("Resume").click(() => { task.resume(); draw(); });
+ 			button("Complete").click(() => {
+ 				const before = task.state;
+-				task.complete();
++				task.complete({ outcome: "demo", evidence: ["live demo button"] });
+ 				this.message = task.state === before && before !== "complete"
+ 					? (task === this.root ? "Refused — a subtask isn't complete yet." : `Refused — can't complete from "${before}".`)
+ 					: "";
+diff --git a/public/framework/core/Task/readme.md b/public/framework/core/Task/readme.md
+index 4fdb86461..67adf0b9e 100644
+--- a/public/framework/core/Task/readme.md
++++ b/public/framework/core/Task/readme.md
+@@ -36,7 +36,7 @@ build.tasks.add(step1);
+ 
+ build.start();
+ step1.start(); step1.complete();
+-build.complete();           // only works once every subtask is complete
++build.complete({ outcome: "built", evidence: ["a1b2c3d"] });   // only works once every subtask is complete, and needs evidence
+ 
+ build.progress();         // { done: 1, total: 1 } — computed from tasks, never stored
+ build.duration();         // ms of RUNNING time — pausing stops the clock
+@@ -75,6 +75,7 @@ Watch it live: [core/Task/live/](/framework/core/Task/live/).
+ 
+ - **Three replay rules, set by `Server/AIIndex.mjs`'s self-check** ([Server/doc/ai-index.md](/Server/doc/ai-index.md), "Decision"): a line's time is `at`, else the item tool's `ts`; `landed_at` alone means `complete` (outcome or not); during replay `complete()` never refuses a recorded finish because a filed `{task: ref}` child is idle (live calls still refuse). Each has a test in `Task.test.mjs`.
+ - **Abandoned tasks are closed by script:** [`Server/StaleClose.mjs`](/Server/StaleClose.mjs) appends a `stop` line (`by: StaleClose`) to every `stale` task silent over 24 h, daily from `Servex/TaskLoop.js`; the manifest is `ai/stale-closes.jsonl`, `--undo` appends `start` (`resume` is refused from `stopped`). [Server/doc/stale-close.md](/Server/doc/stale-close.md)
++- **`complete()` needs evidence** (2026-10-22, [resolution.md](doc/resolution.md) section 6): `{outcome, evidence: [file | commit | shot | test], confidence: "high" | "medium" | "low" (default medium), caveats: [] }`. No evidence, or a plain string, is refused and the message says what to pass; the item tool refuses before it writes a line. Caveats are appended to the parent's log (`tell_parent_caveats` in `Servex/agents/page_tools.js`). Exempt: replaying a recorded finish (old logs have none), the automatic completion when the last child completes (`complete({auto: true})`), and node-written closes, which use `stop` (`StaleClose`) or the legacy `landed_at`. **`approve()` makes the task accepted (`idle`)**; the agent's own `start()` begins it.
+ - **`complete()` refuses while a subtask is open** — it warns ("… isn't complete yet —
+   complete that first") and leaves the state unchanged, never throws. Every illegal
+   transition (`pause()` on an idle task) behaves the same way.

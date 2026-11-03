@@ -1,0 +1,337 @@
+/* Structure and tokens only, no literal colour: a theme retunes the whole set
+   without touching a selector. `.active` / `.in-path` come from
+   Router.mark_links(), so the selected tab needs no JS.
+
+   THE DEFAULT IS FLUSH (the owner, 2026-09-06): "I prefer the flush, seamless tab
+   look." A strip of labels, a hairline under the set, a 2px mark under the selected
+   one, and the panel below it with no box of its own.
+
+   ⚠ THIS REVERSES THE 2026-09-05 CALL, which made a bounded panel — a fill, a
+     border and a radius, with the selected tab cut out of its top edge — the default
+     for every set and left the flush look behind `.underline`. The rectangle is now
+     the OPT-IN, `.tabs.bounded`, and nothing on the site asks for it today.
+     `.underline` still parses and now names the default, so any call site that ever
+     typed it keeps working. (doc/decisions.md.) */
+
+@layer util {
+
+	/* ⚠ In `util` beside the arrangement contract it belongs to (Page.css), and for
+	   the same reason: a `.page.default` is a page, and a page may wear a `display`
+	   utility. ⚠ Reads BOTH `.active-page` and `.active-ancestor` — one question
+	   asked two ways, and a rule reading one breaks a level deeper. */
+	.tab-panel:has(> .page:is(.active-page, .active-ancestor))
+		> .page.default:not(.active-page, .active-ancestor) { display: none; }
+
+	/* The page's own content as the first tab (`tabs(names, { home })`): shown until a
+	   child tab is routed into the same panel. */
+	.tab-panel:has(> .page:is(.active-page, .active-ancestor)) > .tab-home { display: none; }
+
+	/* ⚠ framework.css's util-layer `:last-child { margin-bottom: 0 }` reaches the LAST
+	   tab in a strip and cancels the -1px that seats a tab ON the bar's rule. One tab
+	   per strip therefore sat a pixel low — and because the bar stretches its items,
+	   every other tab grew a pixel to match it, which is how a set of "equal" tabs
+	   measured 37.09 and 36.09px side by side (2026-09-06). It has to be restated in
+	   `util` because `util` is the layer that took it away; scoped to `underline`
+	   because that is the only set still using the negative margin (block, vertical
+	   and the default floor each set 0 in the theme layer). */
+	.tabs.underline > .tab-bar > .tab:last-child { margin-bottom: -1px; }
+}
+
+@layer theme {
+
+	/* `--tab-pad-x` is exposed so a host can pull the strip left by exactly one tab's
+	   padding and land the LABELS on its own text axis — ext/Doc's well does. */
+	/* ⚠ `--tab-pad-x` is `em` now, not `rem` — it is the control grammar's own
+	   horizontal padding (framework.css), and the grammar's whole point is that every
+	   length on a control is an em of that control's text, so `.size-small` moves all
+	   of them at once. ext/Doc's well subtracts this token to land its tab LABELS on
+	   its text axis; both boxes read 1em, so the offset is unchanged. */
+	.tabs { display: flex; flex-direction: column; min-width: 0; --tab-pad-x: 0.8em; }
+
+	/* ⚠ One strip that scrolls, never a wrapping block: a fifty-member rail flipped to
+	   a wrapped bar was 500px of links above the content it navigates.
+	   ⚠ The edge fade (`--tab-fade`, a two-layer `mask-image`) was REMOVED 2026-08-18 at
+	     the owner's call — misplaced on `.tab-bar`. What it was for, and what comes back
+	     without it, is [`doc/overflow.md`](/framework/ext/tabs/doc/overflow.md).
+	     Don't re-add it without asking. */
+	.tab-bar {
+		display: flex; flex-wrap: nowrap;
+		overflow: auto; scrollbar-width: none; overscroll-behavior-x: contain;
+		border-bottom: 1px solid var(--line);
+	}
+
+	/* `.stick` (2026-10-24, top-tabs): the page's own top strip stays at the top of its
+	   scroll while the content passes under it. ⚠ Opaque on purpose: the strip is a
+	   `--well` shadow over the ground (ext/Doc, the AI head set `--well`), so a
+	   translucent paint would show the text scrolling underneath. A page that sets no
+	   `--well` gets a plain ground. ⚠ A sticky box is held inside its PARENT, so the set
+	   must be a child of something as tall as the scroll (`.tabs` is `display: contents`
+	   in Doc and the AI head, so the page is its parent). On a phone the header above
+	   scrolls away because core/Sidebar makes the topic the scroller for any topic that
+	   holds a `.stick`. */
+	.tabs.stick > .tab-bar {
+		position: sticky; top: 0; z-index: 3;
+		background: linear-gradient(var(--well, #0000), var(--well, #0000)), var(--ground, var(--wash));
+		/* ⚠ The strip can sit BESIDE the title (ext/Doc at desktop widths), so once the title has scrolled
+		   away the content showed through the empty spot to its left. The same paint, as an outset shadow
+		   clipped to the box extended leftward: nothing moves in the layout, and the scroller clips it. */
+		box-shadow: 0 0 0 100vw var(--well, #0000), 0 0 0 100vw var(--ground, var(--wash));
+		clip-path: inset(0 0 0 -100vw);
+	}
+
+	/* Quiet by construction: a text label, a hairline under the set, a 2px mark under
+	   the selected one. No box, no fill, no gap between tabs — the strip is the group. */
+	/* ⚠ A TAB IS A CONTROL, and it wears the grammar's METRICS — the same font-size,
+	     line-height, `min-height: 2.4em` and horizontal padding as a button, a select
+	     and a text field, so a tab strip lines up with a toolbar beside it and
+	     `.size-small` shrinks both by the same 0.75. (Before 2026-09-06 a tab was a
+	     fixed `0.5rem 0.9rem` at 0.95em and measured 43.7px against a field's 36.6px.)
+	   ⚠ Its SKIN stays its own, and that is why the paint is stated back here: the
+	     grammar fills a control with `--fill-a08` and rings it in a hairline, and a
+	     tab is "quiet by construction" — a label, a rule under the set, a 2px mark on
+	     the selected one. `border: 1px solid transparent` reserves the box the floored
+	     variant below draws, so no click ever moves a label by a pixel.
+	   ⚠ `display: inline-flex` matters only OUTSIDE a bar: `styles/elements/text`
+	     shows a bare `.tab`, and an inline box ignores `min-height`. Inside `.tab-bar`
+	     it is a flex item and blockifies anyway. */
+	.tab {
+		display: inline-flex; align-items: center; justify-content: center;
+		font-size: calc(1em * var(--size, 1));
+		line-height: 1.5;
+		min-height: 2.4em;
+		padding: 0.2em var(--tab-pad-x, 0.8em);
+		font-weight: 500;
+		color: var(--subtle);
+		background-color: transparent;
+		text-decoration: none;
+		border: 1px solid transparent;
+		border-bottom-width: 2px;
+		border-radius: 0;
+		margin-bottom: -1px;               /* sit ON the bar's rule, not above it */
+		white-space: nowrap;
+	}
+	.tab:hover { color: var(--ink); }
+
+	/* ⚠ `.in-path` but NOT on `.tab-default`, whose href is this page's own url and
+	   so is a prefix of every sibling's — it would read as selected on every tab.
+	   ⚠ `[aria-current]` is the third mark: a stand-in app (ext/demo's demo.app) has no
+	   Router to set the two classes. Same exclusion for the same reason — and on the
+	   default's own url nothing matches, so the fallback below lights it instead. */
+	.tab.active,
+	.tab:is(.in-path, [aria-current]):not(.tab-default) { color: var(--ink); border-bottom-color: var(--prime); }
+
+	/* A set with NOTHING of its own in the url highlights its first tab, so a panel is
+	   never showing content with nothing marked. Mirrors the panel's own default rule.
+	   ⚠ `in-path` counts as selected here: a nested set puts the url two levels down,
+	     so the outer bar has no `.active` at all and lit two tabs — the first and the
+	     one actually in the path. */
+	.tab-bar:not(:has(.tab.active, .tab:is(.in-path, [aria-current]):not(.tab-default))) > .tab:first-child {
+		color: var(--ink); border-bottom-color: var(--prime);
+	}
+
+	/* ⚠ Resets Page's measure tokens: they inherit, and a panel sits inside a page
+	   that already has the sheet — without this a method page paid it twice. */
+	.tab-panel { padding-top: 3em; min-width: 0; --measure: none; --page-pad: 0; }
+
+	/* A rail of one is not a rail: the panel is still a region, the bar is noise.
+	   Also covers the window before the bar is filled. */
+	.tab-bar:not(:has(> .tab + .tab)) { display: none; }
+
+	/* ⚠ `--size: 0.8` ON THE BAR, not on `.tabs` (2026-09-06). The folder skin wants a
+	     SMALLER CONTROL, and under the grammar that is one number — height, padding,
+	     corner and text take the 0.8 together, so a folder tab is exactly 0.8x a
+	     standard one instead of 0.8x its text on a height that never moved. It sits on
+	     the BAR because `--size` inherits and `.tabs` also contains the panel: on
+	     `.tabs` it would shrink every control on the page inside it. */
+	.tabs.block > .tab-bar { --size: 0.8; }
+
+	/* `block` — folder tabs: the selected one is a box open onto the page below.
+	   ⚠ The rule moves off the bar and ONTO the tabs, so under the selected tab it is
+	     absent rather than covered. Unfilled by default, so the tab's interior simply
+	     IS the page — `--tab-fill` is for a host that tints the strip and needs the
+	     selected tab to cut back to whatever its content sits on. */
+	.tabs.block > .tab-bar { border-bottom: none; }
+
+	/* carries the rule past the last tab; collapses to nothing once the strip scrolls.
+	   `order` keeps it LAST even when a host reorders its tabs with `order` (AI 2 does):
+	   without it the filler sorts first and pushes every tab flush right (page-audit, 2026-09-30). */
+	.tabs.block > .tab-bar::after { content: ""; flex: 1; order: 9999; border-bottom: 1px solid var(--line); }
+
+	/* Folder tabs wear the scale's `h4` — the annotation level, which is what a strip of
+	   section labels is. ⚠ Restated rather than handed to the element as `.h4`: the
+	   variant is a class on the SET and `.tab` is emitted by this module's JS, so no
+	   call site can put the level on the anchor. Keep in step with framework.css. */
+	.tabs.block { --tab-pad-x: 1.2em; }
+
+	.tabs.block > .tab-bar > .tab {
+		font-weight: 700;
+		letter-spacing: 0.05em; text-transform: uppercase;
+		border: 1px solid transparent;
+		border-top-width: 2px;             /* reserved on EVERY tab: the accent must not shift one label */
+		border-bottom-color: var(--line);
+		border-radius: var(--radius) var(--radius) 0 0;
+		margin-bottom: 0;
+	}
+
+	.tabs.block > .tab-bar > .tab.active,
+	.tabs.block > .tab-bar > .tab:is(.in-path, [aria-current]):not(.tab-default),
+	.tabs.block > .tab-bar:not(:has(.tab.active, .tab:is(.in-path, [aria-current]):not(.tab-default))) > .tab:first-child {
+		border-color: var(--line);
+		border-top-color: var(--prime);
+		border-bottom-color: transparent;
+		background: var(--tab-fill, transparent);
+	}
+
+	/* ── `bounded` — THE OPT-IN RECTANGLE ────────────────────────────────────
+	   A fill, a border and a radius on the panel, with the selected tab cut out of its
+	   top edge: a click changes what is inside a rectangle you can already see, and
+	   the rectangle stays. It was the DEFAULT between 2026-09-05 and 2026-09-06, and
+	   the owner reversed that: flush is the default, this is the word you say when you
+	   want the box. Nothing on the site says it today.
+	   ⚠ `.bounded:not(.vertical)` is (0,3,0) — the same weight the old
+	     `:not(.underline):not(.vertical)` carried — so it still outweighs `.tabs.block`
+	     (0,2,0) on every overlapping property and composes with the folder skin the
+	     same way: `block`'s type stays, these colours win. */
+	.tabs.bounded:not(.vertical) > .tab-bar { border-bottom: none; }
+
+	/* ⚠ The 2px top border is reserved on EVERY tab, transparent until selected: a
+	     mark that ADDS height would shift its own label by 1px on every click. */
+	.tabs.bounded:not(.vertical) > .tab-bar > .tab {
+		border: 1px solid transparent;
+		border-top-width: 2px;
+		border-bottom: 1px solid var(--line);
+		border-radius: var(--radius) var(--radius) 0 0;
+		margin-bottom: 0;
+	}
+
+	/* carries the strip's rule past the last tab, so the panel's top edge is whole */
+	.tabs.bounded:not(.vertical) > .tab-bar::after { content: ""; flex: 1; border-bottom: 1px solid var(--line); }
+
+	/* THE SELECTED TAB IS PART OF THE PANEL: same surface, top accent kept, the
+	   bottom border painted in the panel's OWN colour rather than in the rule — so
+	   the eye runs straight from the label down into the box with no seam. */
+	.tabs.bounded:not(.vertical) > .tab-bar > .tab.active,
+	.tabs.bounded:not(.vertical) > .tab-bar > .tab:is(.in-path, [aria-current]):not(.tab-default),
+	.tabs.bounded:not(.vertical) > .tab-bar:not(:has(.tab.active, .tab:is(.in-path, [aria-current]):not(.tab-default))) > .tab:first-child {
+		color: var(--ink);
+		border-color: var(--line);
+		border-top-color: var(--prime);
+		background: var(--tab-fill, var(--surface));
+		border-bottom-color: var(--tab-fill, var(--surface));
+	}
+
+	/* THE PANEL. No top border — the strip above IS its top edge, with the selected
+	   tab cut out of it. ⚠ Top padding stays the pre-floor `3em` (the whole site's
+	   vertical rhythm around a tab-panel was tuned to it — a doc page included);
+	   only the sides and bottom take the standard pad token, since those were
+	   never anything before. */
+	.tabs.bounded:not(.vertical) > .tab-panel {
+		padding: 3em var(--pad) var(--pad);
+		background: var(--tab-fill, var(--surface));
+		border: 1px solid var(--line);
+		border-top: none;
+		border-radius: 0 var(--radius) var(--radius) var(--radius);
+	}
+
+	/* ⚠ "A rail of one is not a rail" (above) hides the bar, so there is nothing
+	   left to draw the panel's top edge — close the box on that side instead of
+	   leaving it open. */
+	.tabs.bounded:not(.vertical):has(> .tab-bar:not(:has(> .tab + .tab))) > .tab-panel {
+		border-top: 1px solid var(--line);
+		border-radius: var(--radius);
+	}
+
+	/* A rail PLUS a column takes the room: `wide` — main's left edge, so the rail
+	   lands on the title's axis, and every leftover pixel to the right. The sub pages
+	   inside pay their own gutters, so their content bleeds to the panel's edge,
+	   padded, never to the region's. Was a 78em `--measure` cap (until 2026-08-19):
+	   a nested page's `bleed` could never leave it — the owner's "locked down". */
+	.page > .tabs.vertical { grid-column: wide; }
+
+	/* The same set, turned on its side — only the axis changes. The bar is sticky
+	   because the panel is usually taller. */
+	.tabs.vertical { flex-direction: row; align-items: flex-start; gap: calc(var(--flow) * 2); }   /* was gap 4em - 2026-09-05 ramps */
+
+	/* ⚠ NOT framework.css's `.basis` utility: `.tabs` is a COLUMN and
+	   `.tabs.vertical` is a ROW, so `flex-basis` — the MAIN size — would give every
+	   horizontal tab bar a fixed 14em HEIGHT. A utility class cannot be conditional.
+	   ⚠ The max-height is what makes `sticky` mean anything: a rail taller than the
+	     viewport sticks its top and puts its own last members out of reach forever. */
+	/* ⚠ `mask-image: none`: the fade is a RIGHT-edge fade, and a column rail's right
+	     edge is its rule and its wrapped labels, not its overflow. It comes back in
+	     the query below, where this bar is a row again. */
+	.tabs.vertical > .tab-bar {
+		flex-direction: column;
+		flex: 0 0 clamp(9em, 18%, 14em); min-width: 0;
+		position: sticky; top: 1em;
+		max-height: calc(100vh - 2em);
+		mask-image: none;
+		border-bottom: none;
+		border-inline-end: 1px solid var(--line);
+	}
+
+	/* A rail row spans sideways and hugs vertically, so the label goes to the start
+	   edge and the padding is the grammar's em — not a `rem`, which ignored `--size`. */
+	.tabs.vertical > .tab-bar > .tab {
+		padding: 0.2em 0.8em;
+		justify-content: flex-start;
+		white-space: normal;
+		border-bottom: none;
+		border-inline-end: 2px solid transparent;
+		margin-bottom: 0;
+		margin-inline-end: -1px;          /* sit ON the bar's rule, not beside it */
+	}
+
+	.tabs.vertical > .tab-bar > .tab.active,
+	.tabs.vertical > .tab-bar > .tab:is(.in-path, [aria-current]):not(.tab-default),
+	.tabs.vertical > .tab-bar:not(:has(.tab.active, .tab:is(.in-path, [aria-current]):not(.tab-default))) > .tab:first-child {
+		border-inline-end-color: var(--prime);
+	}
+
+	.tabs.vertical > .tab-panel { flex: 1 1 0; min-width: 0; padding-top: 0; }
+
+	/* The rail floors too, unless `underline` — a plain box beside it, not cut
+	   into (the rail sits beside the panel, not above it, so there is no shared
+	   edge to open onto). ⚠ (0,4,0) beats the `padding-top: 0` above AND the
+	   narrow-width `padding-top: 1rem` below (0,2,0 each), on purpose: a floored
+	   rail keeps its own padding at every width. */
+	.tabs.vertical.bounded > .tab-panel {
+		padding: var(--pad);
+		background: var(--tab-fill, var(--surface));
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+	}
+
+	/* ⚠ `64em`, not the rail's own 9–14em: this set can sit inside a topic's region
+	   (viewport minus a 19em sidebar), so the breakpoint has to clear both boxes. */
+	@media (max-width: 64em) {
+		/* ⚠ `align-items: stretch` is the easy one to miss: in a COLUMN container the
+		   cross axis is width, so the `flex-start` above sizes each child to its own
+		   content — the panel went to max-content inside a 262px box and scrolled. */
+		.tabs.vertical { flex-direction: column; gap: 0; align-items: stretch; }
+		.tabs.vertical > .tab-bar {
+			flex-direction: row; flex: 0 0 auto;
+			position: static; max-height: none;
+			border-inline-end: none; border-bottom: 1px solid var(--line);
+		}
+		.tabs.vertical > .tab-bar > .tab {
+			border-inline-end: none; border-bottom: 2px solid transparent;
+			margin-inline-end: 0; margin-bottom: -1px;
+		}
+		.tabs.vertical > .tab-bar > .tab.active,
+		.tabs.vertical > .tab-bar > .tab:is(.in-path, [aria-current]):not(.tab-default),
+		.tabs.vertical > .tab-bar:not(:has(.tab.active, .tab:is(.in-path, [aria-current]):not(.tab-default))) > .tab:first-child {
+			border-bottom-color: var(--prime);
+		}
+		.tabs.vertical > .tab-panel { padding-top: 1rem; }
+
+		/* ⚠ When `.tabs.vertical` nests inside a `.page` (every module's Docs and API
+		   tabs), the outer page already pays `--gutter-x` side padding. Above 64em the
+		   rail sits beside the panel, so the inner page pays its own gutter inside the
+		   panel. Below 64em the rail flips to a horizontal row stacked above the panel,
+		   so the inner page paying `--gutter-x` stacked 56px of side padding on a phone
+		   (todo item 159). The inner page drops its side padding here so its content
+		   aligns with the tab strip on the parent page's axis. */
+		.page .tabs.vertical > .tab-panel > .page { padding-inline: 0; --gutter-x: 0px; }
+	}
+}

@@ -1,0 +1,753 @@
+{
+  "model": "claude-sonnet-5",
+  "session_id": "c93c7525-e9d4-4c4c-b070-eedf535be9f3",
+  "method": "One cold `claude -p` CLI session (claude-sonnet-5) captured all 15 screenshots via global playwright, then was resumed once per image with an identical analysis prompt (Read the PNG, layout-only findings as strict JSON). Per-image token numbers are the CLI's own reported usage for that resumed turn. The session accumulates: each turn's cache_read includes all previously analyzed images, so cache_read growth across the run is the cost of one-session-many-images.",
+  "notes": [
+    "Every PNG's height equals the viewport height despite fullPage:true — these catalog pages are fill-shaped; scrolling happens in an inner region, so the document never scrolls and 'full height' == viewport height.",
+    "Analysis order: fit, flex, grid, document, docs; 400 then 1920 then 3440 within each page."
+  ],
+  "capture_phase": {
+    "usage": {
+      "input": 4653,
+      "cache_write": 50418,
+      "cache_read": 230656,
+      "output": 3642,
+      "total": 289369
+    },
+    "cost_usd": 0.735,
+    "duration_ms": 68991,
+    "num_turns": 6
+  },
+  "images": [
+    {
+      "file": "fit-400.png",
+      "url": "http://localhost/framework/styles/layouts/fit/",
+      "viewport_width": 400,
+      "image_px": "400x800",
+      "file_bytes": 23459,
+      "analysis_tokens": {
+        "input": 4,
+        "cache_write": 1935,
+        "cache_read": 102198,
+        "output": 608,
+        "total": 104745
+      },
+      "analysis_cost_usd": 0.085669,
+      "api_ms": 10142,
+      "wall_ms": 12196,
+      "findings": {
+        "regions": [
+          "top header bar (logo + hamburger menu)",
+          "horizontal breadcrumb/tab strip (Layouts, Fit active, Flex... cut off)",
+          "large page title (Fit)",
+          "intro prose paragraph",
+          "comparison table (headers: blank, --measure, inset; row: standard/52em prose track/grid t...)"
+        ],
+        "width_use": "single-column stacked layout at 400px; the tab strip and the table both overflow the viewport horizontally (Flex tab and 'grid t...' column are cut off at the right edge with no visible scroll affordance shown in frame), no side gutters/margins on the table which runs edge-to-edge, prose paragraph has normal side padding",
+        "issues": [
+          {
+            "severity": "high",
+            "what": "table content is clipped/cut off horizontally ('grid t...' column truncated at viewport edge)",
+            "where": "comparison table, rightmost column"
+          },
+          {
+            "severity": "medium",
+            "what": "tab strip is clipped horizontally, third tab ('Flex') label cut off mid-word",
+            "where": "breadcrumb/tab navigation row below header"
+          },
+          {
+            "severity": "low",
+            "what": "large empty gray gap between the tab strip and the page title with no content",
+            "where": "between tab strip and 'Fit' heading"
+          }
+        ],
+        "quality": "Layout stacks correctly for narrow viewport but the table and tab strip overflow the 400px width without a clear scroll cue, and there's an unexplained vertical gap before the title."
+      }
+    },
+    {
+      "file": "fit-1920.png",
+      "url": "http://localhost/framework/styles/layouts/fit/",
+      "viewport_width": 1920,
+      "image_px": "1920x1080",
+      "file_bytes": 163401,
+      "analysis_tokens": {
+        "input": 126,
+        "cache_write": 1226,
+        "cache_read": 105516,
+        "output": 1384,
+        "total": 108252
+      },
+      "analysis_cost_usd": 0.100248,
+      "api_ms": 18250,
+      "wall_ms": 20274,
+      "findings": {
+        "regions": [
+          "top header bar (logo, Start Here / FAQ / Version links)",
+          "left sidebar: Vocabulary list (Fit highlighted/active, Flex, Grid) with description text",
+          "left sidebar: Pages section with page thumbnail previews (Overview, Layouts with nested thumbnails, Document, Docs)",
+          "main content: page title (Fit)",
+          "main content: intro prose paragraph",
+          "main content: comparison table (columns: blank/label, measure, inset; rows: standard, sheet, full)",
+          "main content: dark code block",
+          "main content: secondary heading ('The measure is two tokens') with prose paragraph beneath, extending further right than the table above"
+        ],
+        "width_use": "two-column overall layout: fixed-width left sidebar (~1/5 of viewport) plus main content area, but within the main content the text/table/code block occupy only a narrow reading-measure column starting right after the sidebar, leaving a large blank margin along the right edge of the 1920px viewport; content is not centered and no breakout track or side content fills the unused right-hand space visible in this view",
+        "issues": [
+          {
+            "severity": "high",
+            "what": "large unused blank area on the right portion of the viewport at this width — the reading column and table do not expand or use breakout tracks despite the page's own intro text referencing 'breakout tracks either side'",
+            "where": "right side of main content area, table and upper prose block"
+          },
+          {
+            "severity": "medium",
+            "what": "sidebar page-preview thumbnails are very small/low detail, hard to distinguish content at this render size",
+            "where": "left sidebar 'Pages' section"
+          },
+          {
+            "severity": "low",
+            "what": "the lower paragraph/heading block extends noticeably wider (further right) than the table and top paragraph directly above it, producing an uneven right edge between stacked content blocks",
+            "where": "main content column, boundary between table block and 'The measure is two tokens' section"
+          }
+        ],
+        "quality": "Sidebar plus content two-column structure is functional, but the main reading column does not scale to use the wide 1920px viewport — most of the right side of the page sits empty, and content block widths are inconsistent down the page."
+      }
+    },
+    {
+      "file": "fit-3440.png",
+      "url": "http://localhost/framework/styles/layouts/fit/",
+      "viewport_width": 3440,
+      "image_px": "3440x1440",
+      "file_bytes": 236211,
+      "analysis_tokens": {
+        "input": 4,
+        "cache_write": 2127,
+        "cache_read": 108768,
+        "output": 1594,
+        "total": 112493
+      },
+      "analysis_cost_usd": 0.11552399999999999,
+      "api_ms": 21754,
+      "wall_ms": 23734,
+      "findings": {
+        "regions": [
+          "top header bar (Framework logo, Start Here, Layouts nav)",
+          "left sidebar: Vocabulary list (Fit active, Flex, Grid) with description text for each",
+          "left sidebar: Styles section (Overview, Layers, Elements, Layouts, Sections)",
+          "left sidebar: Pages section with small page thumbnails",
+          "left sidebar: UI section (Overview, UI, Data table, Form Field, etc.)",
+          "left sidebar: more page thumbnails (Document, Docs, Landing...)",
+          "main content: large page title (Fit)",
+          "main content: intro prose paragraph",
+          "main content: comparison table (columns measure, inset; rows standard/sheet/full)",
+          "main content: 'reach for it when' callout box with prose, positioned to the right of/beside the table area",
+          "main content: 'The measure is two tokens' heading with prose and two side-by-side dark code blocks",
+          "main content: 'Why a measure at all' heading at bottom (cut off)"
+        ],
+        "width_use": "sidebar remains a narrow fixed-width column on the left; main content is not a single centered block but arranges the table and a callout box side-by-side, and further down places two code blocks side-by-side, showing some multi-column/breakout use of the extra width, but a visible blank margin remains along the right edge of the viewport beyond the content, and the sidebar's absolute width appears proportionally even smaller relative to the very wide viewport",
+        "issues": [
+          {
+            "severity": "high",
+            "what": "significant blank whitespace remains along the right edge of the viewport, beyond the table/callout row and beyond the code-block row, meaning the extra width at 3440px is still not fully used",
+            "where": "right edge of main content area, most visible next to the 'reach for it when' box and the two code blocks"
+          },
+          {
+            "severity": "medium",
+            "what": "sidebar page thumbnails are extremely small and low-detail at this scale, likely illegible",
+            "where": "left sidebar Pages/UI thumbnail lists"
+          },
+          {
+            "severity": "low",
+            "what": "sidebar occupies a small, fixed-looking width that looks disproportionately narrow against the very wide 3440 viewport, exaggerating the sidebar/content width imbalance compared to the 1920 rendering",
+            "where": "left sidebar overall"
+          }
+        ],
+        "quality": "At this ultra-wide viewport the layout does introduce some side-by-side arrangement (table+callout, dual code blocks) showing partial adaptation to width, but a persistent unused margin on the right indicates the content still isn't fully claiming the available 3440px space."
+      }
+    },
+    {
+      "file": "flex-400.png",
+      "url": "http://localhost/framework/styles/layouts/flex/",
+      "viewport_width": 400,
+      "image_px": "400x800",
+      "file_bytes": 11934,
+      "analysis_tokens": {
+        "input": 4,
+        "cache_write": 2366,
+        "cache_read": 113230,
+        "output": 687,
+        "total": 116287
+      },
+      "analysis_cost_usd": 0.09747,
+      "api_ms": 10631,
+      "wall_ms": 12473,
+      "findings": {
+        "regions": [
+          "top header bar (logo + hamburger menu)",
+          "horizontal tab strip (partial 'ts' tab cut off left, Fit, Flex active/highlighted)",
+          "large page title (Flex)",
+          "example block: row of narrow boxes + one large box, labeled 'A row'",
+          "example block: row of narrow boxes with visible gaps + one large box, labeled 'A row with air in it'",
+          "example block: stacked horizontal bars, labeled 'A column'"
+        ],
+        "width_use": "single stacked column at 400px; tab strip overflows horizontally with the leftmost tab clipped ('ts' visible only); example rows themselves are laid out as multiple sub-columns/boxes side-by-side within the content width, with the last box notably wider than the three preceding narrow ones; no visible side margin/gutter on the example blocks which appear to run edge-to-edge or near edge-to-edge within the content column",
+        "issues": [
+          {
+            "severity": "medium",
+            "what": "tab strip is clipped on the left, showing only 'ts' of a truncated tab label with no scroll indication",
+            "where": "tab navigation row below header"
+          },
+          {
+            "severity": "low",
+            "what": "large empty gray gap between the tab strip and the 'Flex' title with no content",
+            "where": "between tab strip and page title"
+          },
+          {
+            "severity": "low",
+            "what": "example row boxes are very narrow/thin (three slim columns) compared to the large fourth box, producing an uneven, cramped grouping at this width",
+            "where": "'A row' and 'A row with air in it' example blocks"
+          }
+        ],
+        "quality": "Content stacks in a single column appropriately for 400px, but the tab strip overflow/clipping at the top repeats the same issue seen on other pages, and the example boxes look cramped and unevenly proportioned at this narrow width."
+      }
+    },
+    {
+      "file": "flex-1920.png",
+      "url": "http://localhost/framework/styles/layouts/flex/",
+      "viewport_width": 1920,
+      "image_px": "1920x1080",
+      "file_bytes": 134502,
+      "analysis_tokens": {
+        "input": 4,
+        "cache_write": 3719,
+        "cache_read": 117058,
+        "output": 1719,
+        "total": 122500
+      },
+      "analysis_cost_usd": 0.138714,
+      "api_ms": 25405,
+      "wall_ms": 26991,
+      "findings": {
+        "regions": [
+          "left icon+label navigation sidebar (Start here, FAQ, Versus, Core section: Overview/View/Page/Router/App/Sidebar/Item/List, Styles section, UI section)",
+          "second sidebar column: Layouts breadcrumb, Vocabulary cards (Fit, Flex active/highlighted, Grid) with descriptions",
+          "second sidebar column: Pages section with page thumbnails (Document, Docs)",
+          "main content: large page title (Flex)",
+          "main content: grid of labeled example cards (row 1: 'A row', 'A row with air in it', 'A column', 'Middles lined up'; row 2: 'Ends apart, middle empty', 'Equal peers, that wrap', 'A fixed rail, a fluid rest', 'Wraps to a second line'; row 3: 'Three, then straight to one' alone)",
+          "main content: bold intro sentence + explanatory paragraph",
+          "main content: secondary heading 'Where the same markup breaks' with paragraph beneath",
+          "main content: code block, cut off at bottom of image"
+        ],
+        "width_use": "three-region layout: narrow icon nav strip, a fixed-width middle sidebar (vocabulary/pages cards), and a wide main content area; main content uses a 4-column grid for example cards that spans nearly the full remaining width with even gutters, and prose paragraphs stretch across a wide single column beneath the grid rather than being constrained to a narrower reading measure",
+        "issues": [
+          {
+            "severity": "medium",
+            "what": "prose paragraphs (the bold intro sentence and the paragraph under 'Where the same markup breaks') stretch nearly the full main content width (roughly 800px+), producing a wider-than-typical reading line length instead of a constrained measure",
+            "where": "main content, paragraphs below the example card grid"
+          },
+          {
+            "severity": "low",
+            "what": "the last example card row ('Three, then straight to one') contains only one card, leaving three empty grid column slots of blank space to its right instead of reflowing or filling the row",
+            "where": "third row of the example card grid"
+          },
+          {
+            "severity": "low",
+            "what": "sidebar page thumbnails (Document, Docs) are small and low-detail, text inside them illegible at this scale",
+            "where": "middle sidebar 'Pages' section"
+          }
+        ],
+        "quality": "Good horizontal use of space overall with a clean 4-column card grid, but body prose runs wider than a comfortable reading measure and the final incomplete grid row leaves visible unused space."
+      }
+    },
+    {
+      "file": "flex-3440.png",
+      "url": "http://localhost/framework/styles/layouts/flex/",
+      "viewport_width": 3440,
+      "image_px": "3440x1440",
+      "file_bytes": 213701,
+      "analysis_tokens": {
+        "input": 4,
+        "cache_write": 2462,
+        "cache_read": 125527,
+        "output": 1148,
+        "total": 129141
+      },
+      "analysis_cost_usd": 0.1161035,
+      "api_ms": 16005,
+      "wall_ms": 17480,
+      "findings": {
+        "regions": [
+          "left icon+label navigation sidebar",
+          "second sidebar column: Layouts breadcrumb, Vocabulary cards (Fit, Flex active, Grid) with descriptions",
+          "second sidebar column: Pages section with thumbnails (Document, Docs, Landing)",
+          "main content: large page title (Flex)",
+          "main content: single-row grid of all nine labeled example cards (A row, A row with air in it, A column, Middles lined up, Ends apart middle empty, Equal peers that wrap, A fixed rail a fluid rest, Wraps to a second line, Three then straight to one)",
+          "main content: bold intro sentence + explanatory paragraph",
+          "main content: secondary heading 'Where the same markup breaks' with paragraph",
+          "main content: dark code block",
+          "main content: interactive demo panel below the code block showing a resizable table with '--COLUMN' width controls and sample rows"
+        ],
+        "width_use": "same three-region structure as narrower viewports (icon nav strip, fixed vocabulary/pages sidebar, main content); at this width all nine example cards now fit in a single row rather than wrapping across multiple rows, showing the grid scales column count with viewport width; however the code block and demo panel below remain narrower than the available main content width, leaving a visible blank margin on the right side of the page",
+        "issues": [
+          {
+            "severity": "high",
+            "what": "large blank whitespace remains to the right of the code block and interactive demo panel, not using the extra width available at 3440px",
+            "where": "right side of main content, below the 'Where the same markup breaks' section"
+          },
+          {
+            "severity": "medium",
+            "what": "prose paragraphs still run as a single wide block rather than being constrained to a narrower reading measure, now even more pronounced relative to the extra viewport width",
+            "where": "main content, paragraphs below the card grid"
+          },
+          {
+            "severity": "low",
+            "what": "sidebar page thumbnails remain very small and illegible",
+            "where": "middle sidebar 'Pages' section"
+          }
+        ],
+        "quality": "The example card grid adapts well, packing all nine cards into one row at this width, but the code block and demo section below it don't expand to match, leaving significant unused space on the right at this ultra-wide viewport."
+      }
+    },
+    {
+      "file": "grid-400.png",
+      "url": "http://localhost/framework/styles/layouts/grid/",
+      "viewport_width": 400,
+      "image_px": "400x800",
+      "file_bytes": 14523,
+      "analysis_tokens": {
+        "input": 126,
+        "cache_write": 2042,
+        "cache_read": 129878,
+        "output": 627,
+        "total": 132673
+      },
+      "analysis_cost_usd": 0.101664,
+      "api_ms": 9862,
+      "wall_ms": 12333,
+      "findings": {
+        "regions": [
+          "top header bar (logo + hamburger menu)",
+          "horizontal tab strip (partial blank tab clipped left, Flex, Grid active/highlighted)",
+          "large page title (Grid)",
+          "example block: three stacked horizontal bars, labeled 'A single column'",
+          "example block: row of six narrow equal-width boxes, labeled 'A wall that counts itself'",
+          "example block: row of three equal-width boxes, labeled 'Three, then straight to one'"
+        ],
+        "width_use": "single stacked column at 400px; tab strip overflows horizontally with the leftmost tab fully clipped (blank white box visible with no label); example grids fit within the content width by shrinking to many narrow columns (six boxes in one row) rather than wrapping, producing very thin cells in the 'A wall that counts itself' example",
+        "issues": [
+          {
+            "severity": "medium",
+            "what": "tab strip is clipped on the left, showing a blank/empty tab with no visible label or icon",
+            "where": "tab navigation row below header"
+          },
+          {
+            "severity": "medium",
+            "what": "six-column example grid produces very narrow cells that may be too thin to be legible or useful at this viewport width",
+            "where": "'A wall that counts itself' example block"
+          },
+          {
+            "severity": "low",
+            "what": "large empty gray gap between the tab strip and the 'Grid' title with no content",
+            "where": "between tab strip and page title"
+          }
+        ],
+        "quality": "Content stacks into a single column appropriately, but the grid example doesn't reduce its column count for narrow viewports, resulting in cramped thin cells, and the tab strip clipping issue repeats from other pages."
+      }
+    },
+    {
+      "file": "grid-1920.png",
+      "url": "http://localhost/framework/styles/layouts/grid/",
+      "viewport_width": 1920,
+      "image_px": "1920x1080",
+      "file_bytes": 145877,
+      "analysis_tokens": {
+        "input": 4,
+        "cache_write": 3659,
+        "cache_read": 133444,
+        "output": 857,
+        "total": 137964
+      },
+      "analysis_cost_usd": 0.124757,
+      "api_ms": 13113,
+      "wall_ms": 14768,
+      "findings": {
+        "regions": [
+          "left icon+label navigation sidebar (Start here, FAQ, Versus, Core section, Styles section, UI section)",
+          "second sidebar column: Layouts breadcrumb, Vocabulary cards (Fit, Flex, Grid active/highlighted) with descriptions",
+          "second sidebar column: Pages section with page thumbnails (Document, Docs)",
+          "main content: large page title (Grid)",
+          "main content: row of three labeled example blocks (A single column, A wall that counts itself, Three then straight to one)",
+          "main content: bold intro sentence + explanatory paragraph",
+          "main content: dark code block (.grid.auto CSS rule)",
+          "main content: paragraph explaining the three CSS parts",
+          "main content: secondary heading 'A cell that wants more'",
+          "main content: interactive code/demo panel with toolbar (mobile/tablet/desktop/mega labels, zoom, 100%) at the bottom, content cut off"
+        ],
+        "width_use": "same three-region structure (icon nav, fixed vocabulary/pages sidebar, main content); the three example blocks sit side-by-side in one row using roughly the available main content width with even gutters; below that, prose paragraphs and code blocks stretch to a wide single-column width rather than a constrained reading measure, similar to the Flex page",
+        "issues": [
+          {
+            "severity": "medium",
+            "what": "prose paragraphs stretch across nearly the full main content width (roughly 800px+), exceeding a typical comfortable reading measure",
+            "where": "main content, paragraphs below the example row and below the .grid.auto code block"
+          },
+          {
+            "severity": "low",
+            "what": "the three example blocks vary noticeably in internal density (first is 3 stacked bars, second is 6 small cells, third is 3 even cells) but are presented at equal container width, making the visual weight uneven across the row",
+            "where": "example block row (A single column / A wall that counts itself / Three then straight to one)"
+          },
+          {
+            "severity": "low",
+            "what": "sidebar page thumbnails remain very small and largely illegible",
+            "where": "middle sidebar 'Pages' section"
+          }
+        ],
+        "quality": "Three-column example row and code sections use the available width reasonably well, but body prose again runs wider than an ideal reading measure, consistent with the same issue seen on the Flex page at this viewport."
+      }
+    },
+    {
+      "file": "grid-3440.png",
+      "url": "http://localhost/framework/styles/layouts/grid/",
+      "viewport_width": 3440,
+      "image_px": "3440x1440",
+      "file_bytes": 211079,
+      "analysis_tokens": {
+        "input": 4,
+        "cache_write": 1600,
+        "cache_read": 140991,
+        "output": 995,
+        "total": 143590
+      },
+      "analysis_cost_usd": 0.11139049999999999,
+      "api_ms": 14173,
+      "wall_ms": 15810,
+      "findings": {
+        "regions": [
+          "left icon+label navigation sidebar",
+          "second sidebar column: Layouts breadcrumb, Vocabulary cards (Fit, Flex, Grid active) with descriptions",
+          "second sidebar column: Pages section with thumbnails (Document, Docs, Landing)",
+          "main content: large page title (Grid)",
+          "main content: row of three labeled example blocks (A single column, A wall that counts itself, Three then straight to one)",
+          "main content: bold intro sentence + explanatory paragraph",
+          "main content: dark code block (.grid.auto CSS rule)",
+          "main content: paragraph explaining the three CSS parts",
+          "main content: secondary heading 'A cell that wants more'",
+          "main content: interactive demo/code panel with toolbar, content cut off at bottom"
+        ],
+        "width_use": "same three-region structure as narrower viewports; the main content column (title, example row, prose, code blocks) does not appear to grow wider than it was at 1920px — it occupies roughly the left-center of the viewport, leaving a large blank margin along the right edge of the 3440px viewport",
+        "issues": [
+          {
+            "severity": "high",
+            "what": "main content column width appears unchanged from the 1920px rendering, leaving a wide blank area on the right side of the viewport unused",
+            "where": "right portion of the page, most visible next to the example row, prose, and code blocks"
+          },
+          {
+            "severity": "medium",
+            "what": "prose paragraphs remain a single wide block rather than a constrained reading measure, and now look proportionally narrower relative to the very wide unused space beside them",
+            "where": "main content, paragraphs below the example row and below the code block"
+          },
+          {
+            "severity": "low",
+            "what": "sidebar page thumbnails remain very small and largely illegible",
+            "where": "middle sidebar 'Pages' section"
+          }
+        ],
+        "quality": "The layout does not adapt to the extra width at 3440px — content stays roughly the same size as at 1920px, resulting in a substantial unused margin on the right side of the page."
+      }
+    },
+    {
+      "file": "document-400.png",
+      "url": "http://localhost/framework/styles/layouts/document/",
+      "viewport_width": 400,
+      "image_px": "400x800",
+      "file_bytes": 28276,
+      "analysis_tokens": {
+        "input": 4,
+        "cache_write": 1764,
+        "cache_read": 144325,
+        "output": 1140,
+        "total": 147233
+      },
+      "analysis_cost_usd": 0.1183225,
+      "api_ms": 17589,
+      "wall_ms": 19072,
+      "findings": {
+        "regions": [
+          "top header bar (logo + hamburger menu)",
+          "horizontal tab strip (blank/clipped tab left, Grid, Document active with small thumbnail icon)",
+          "large page title (Document)",
+          "large empty white/blank area with a small expand/resize icon centered",
+          "two-panel comparison demo: left panel showing a small full-page preview thumbnail labeled '3440px · 9%', right panel showing a narrow sidebar-style content preview ('Aurora — one structure, many layouts' with Overview/Layout/Type/Colour sections) labeled '390px · 24%'",
+          "bottom toolbar strip with control labels, mostly cut off/illegible (partial text like 'flex', 'grid', 'gap', '1em', 'column', '14em')"
+        ],
+        "width_use": "single stacked column at 400px; large unused vertical whitespace between the title and the demo panels; the two demo panels are shown side-by-side but are very unevenly sized (left panel roughly 2x the width of the right) and both render their content at a scale too small to read clearly; bottom toolbar overflows/is clipped horizontally",
+        "issues": [
+          {
+            "severity": "high",
+            "what": "large empty white gap between the page title and the demo content below it, with no visible content filling the space",
+            "where": "between 'Document' title and the two-panel demo area"
+          },
+          {
+            "severity": "medium",
+            "what": "tab strip is clipped on the left, showing a blank tab with no label",
+            "where": "tab navigation row below header"
+          },
+          {
+            "severity": "medium",
+            "what": "bottom toolbar text is cut off/truncated and only partially legible ('flex', 'grid', 'gap', '1em', 'column', '14em' fragments visible)",
+            "where": "bottom toolbar strip below the demo panels"
+          },
+          {
+            "severity": "low",
+            "what": "the two comparison preview panels differ significantly in width with no clear alignment, and their content (page thumbnail, sidebar preview) is rendered too small to read",
+            "where": "two-panel demo area below the blank space"
+          }
+        ],
+        "quality": "Layout stacks into a single column but wastes significant vertical space with an unexplained large blank gap, and both the demo panels and bottom toolbar are too cramped/clipped to be usable at this width."
+      }
+    },
+    {
+      "file": "document-1920.png",
+      "url": "http://localhost/framework/styles/layouts/document/",
+      "viewport_width": 1920,
+      "image_px": "1920x1080",
+      "file_bytes": 151674,
+      "analysis_tokens": {
+        "input": 4,
+        "cache_write": 2178,
+        "cache_read": 148001,
+        "output": 1154,
+        "total": 151337
+      },
+      "analysis_cost_usd": 0.1246505,
+      "api_ms": 17587,
+      "wall_ms": 18978,
+      "findings": {
+        "regions": [
+          "left icon+label navigation sidebar",
+          "second sidebar column: Layouts breadcrumb, Vocabulary cards (Fit, Flex, Grid) with descriptions",
+          "second sidebar column: Pages section with thumbnails (Document highlighted/active, Docs)",
+          "main content: page title (Document)",
+          "main content: two-panel comparison area — left a small centered full-page preview thumbnail with a toolbar strip above it, right a taller narrow content panel ('Aurora — one structure, many layouts' with top nav, hero heading, paragraph, buttons, and Overview/Layout/Type sections)"
+        ],
+        "width_use": "left icon nav + fixed vocabulary/pages sidebar, then main content; within main content the left preview thumbnail is small and appears with substantial blank whitespace around and to its left, while the right 'Aurora' panel is a narrow fixed-width column much taller than the left thumbnail; a large blank gap separates the two panels and neither expands to use the remaining horizontal space in the main content area",
+        "issues": [
+          {
+            "severity": "high",
+            "what": "significant unused blank whitespace surrounds the small left preview thumbnail, which occupies only a fraction of the available main content width",
+            "where": "main content area, left preview panel region"
+          },
+          {
+            "severity": "medium",
+            "what": "the two comparison panels are mismatched in height and width (left thumbnail short/small, right panel tall/narrow), with a wide blank gap between them rather than balanced spacing",
+            "where": "space between the left thumbnail and right 'Aurora' panel"
+          },
+          {
+            "severity": "low",
+            "what": "sidebar page thumbnails duplicate the same preview content shown larger in the main area, at illegibly small scale",
+            "where": "middle sidebar 'Pages' section"
+          }
+        ],
+        "quality": "The two-panel document comparison doesn't use the available width well at 1920px — the left preview is small and isolated in blank space, and the panels are visually unbalanced in both size and alignment."
+      }
+    },
+    {
+      "file": "document-3440.png",
+      "url": "http://localhost/framework/styles/layouts/document/",
+      "viewport_width": 3440,
+      "image_px": "3440x1440",
+      "file_bytes": 297011,
+      "analysis_tokens": {
+        "input": 126,
+        "cache_write": 2017,
+        "cache_read": 152371,
+        "output": 869,
+        "total": 155383
+      },
+      "analysis_cost_usd": 0.1187105,
+      "api_ms": 12207,
+      "wall_ms": 13926,
+      "findings": {
+        "regions": [
+          "left icon+label navigation sidebar",
+          "second sidebar column: Layouts breadcrumb, Vocabulary cards (Fit, Flex, Grid) with descriptions",
+          "second sidebar column: Pages section with thumbnails (Document active/highlighted, Docs, Landing)",
+          "main content: page title (Document)",
+          "main content: three-panel layout — left a small full-page preview thumbnail, middle a narrow 'Aurora' content panel (nav, hero heading, paragraph, buttons, Overview section), right a source/code panel with syntax-highlighted code and explanatory prose beneath it"
+        ],
+        "width_use": "left icon nav + fixed sidebar, then main content now arranges three panels side-by-side (preview thumbnail, Aurora content column, source code panel), making noticeably better use of the extra width than at 1920px; a modest blank margin remains to the right of the source panel and some blank space around/left of the small preview thumbnail, but overall the width is distributed across three visible columns instead of two with large gaps",
+        "issues": [
+          {
+            "severity": "medium",
+            "what": "the left preview thumbnail remains small relative to the other two panels and has blank space around it, similar to the imbalance seen at 1920px though less pronounced",
+            "where": "main content, left preview panel"
+          },
+          {
+            "severity": "low",
+            "what": "modest unused blank margin remains along the right edge of the viewport beyond the source code panel",
+            "where": "right edge of main content, past the code/source panel"
+          },
+          {
+            "severity": "low",
+            "what": "sidebar page thumbnails remain very small and largely illegible",
+            "where": "middle sidebar 'Pages' section"
+          }
+        ],
+        "quality": "At this width the page adds a third panel (source code) alongside the preview and content panels, making meaningfully better use of the available space than the 1920px view, though the left preview thumbnail still looks small and isolated."
+      }
+    },
+    {
+      "file": "docs-400.png",
+      "url": "http://localhost/framework/styles/layouts/docs/",
+      "viewport_width": 400,
+      "image_px": "400x800",
+      "file_bytes": 25480,
+      "analysis_tokens": {
+        "input": 4,
+        "cache_write": 1642,
+        "cache_read": 156120,
+        "output": 941,
+        "total": 158707
+      },
+      "analysis_cost_usd": 0.11802499999999999,
+      "api_ms": 12067,
+      "wall_ms": 13755,
+      "findings": {
+        "regions": [
+          "top header bar (logo + hamburger menu)",
+          "horizontal tab strip (clipped blank tab on far left, Document with thumbnail, Docs active with thumbnail)",
+          "large page title (Docs)",
+          "large empty white/blank area with a small expand/resize icon centered",
+          "two-panel comparison demo: left panel showing a small full-page preview thumbnail (very tiny), right panel showing a taller sidebar-style doc navigation/content preview with a list menu and sections (Overview, Layout, Type, Colour, Motion)",
+          "bottom toolbar strip, mostly clipped/illegible"
+        ],
+        "width_use": "single stacked column at 400px; large unused vertical whitespace between the title and the demo panels; the two demo panels are side-by-side but very unevenly sized (left thumbnail tiny, right panel much taller and wider) and content in both is rendered too small to read; bottom toolbar overflows/clipped",
+        "issues": [
+          {
+            "severity": "high",
+            "what": "large empty white gap between the page title and the demo content below it",
+            "where": "between 'Docs' title and the two-panel demo area"
+          },
+          {
+            "severity": "medium",
+            "what": "tab strip has a clipped/blank tab on the far left with no visible label",
+            "where": "tab navigation row below header"
+          },
+          {
+            "severity": "medium",
+            "what": "left preview panel thumbnail is extremely small relative to the right panel, both illegible at this scale",
+            "where": "two-panel demo area"
+          },
+          {
+            "severity": "low",
+            "what": "bottom toolbar content is cut off and not legible",
+            "where": "bottom toolbar strip below the demo panels"
+          }
+        ],
+        "quality": "Same structural issue as the Document page at this width: a large unexplained blank gap wastes vertical space, and the comparison panels are too small and unbalanced to be useful."
+      }
+    },
+    {
+      "file": "docs-1920.png",
+      "url": "http://localhost/framework/styles/layouts/docs/",
+      "viewport_width": 1920,
+      "image_px": "1920x1080",
+      "file_bytes": 146532,
+      "analysis_tokens": {
+        "input": 4,
+        "cache_write": 3973,
+        "cache_read": 159478,
+        "output": 1662,
+        "total": 165117
+      },
+      "analysis_cost_usd": 0.16103900000000002,
+      "api_ms": 25342,
+      "wall_ms": 26825,
+      "findings": {
+        "regions": [
+          "left icon+label navigation sidebar",
+          "second sidebar column: Layouts breadcrumb, Vocabulary cards (Fit, Flex, Grid) with descriptions",
+          "second sidebar column: Pages section with thumbnails (Document, Docs active/highlighted)",
+          "main content: page title (Docs)",
+          "main content: a browser-style preview mockup showing a three-column docs layout (left nav rail with Overview/Layout/Type/Colour/Motion items, middle content list with the same section headings and body text, right 'AURORA' sidebar with its own nav)",
+          "main content: large blank white area below/left of the preview mockup",
+          "main content: a tall right-aligned 'AURORA' panel (logo, Product/Docs/Pricing/Changelog nav, GET AURORA button, section list, then repeated full headings with paragraph text for Overview, Layout, Type, Colour, Motion, extending well below the preview mockup)"
+        ],
+        "width_use": "left icon nav + fixed vocabulary/pages sidebar, then main content; within main content the top preview mockup spans a wide central width, but below it the content splits unevenly — a large blank area occupies the left/center of the remaining width while a narrow tall panel of repeated Aurora content is pinned to the right edge",
+        "issues": [
+          {
+            "severity": "high",
+            "what": "large blank white area to the left of the tall Aurora content panel, with no visible content filling that space for the full height of the panel",
+            "where": "main content, left/center region below the preview mockup, alongside the right-aligned Aurora panel"
+          },
+          {
+            "severity": "medium",
+            "what": "the Aurora panel content (Overview, Layout, Type, Colour, Motion headings with paragraphs) appears to duplicate what's already shown in miniature inside the preview mockup above it, now rendered at full size but confined to a narrow right-hand column instead of using the freed-up width",
+            "where": "right-aligned Aurora content panel"
+          },
+          {
+            "severity": "low",
+            "what": "preview mockup text (page title, nav labels, list items) is rendered too small to read clearly",
+            "where": "browser-style preview mockup near the top of main content"
+          }
+        ],
+        "quality": "The layout leaves a large unexplained blank region beside a narrow, unnecessarily tall content panel — the available width is not distributed to avoid this imbalance at 1920px."
+      }
+    },
+    {
+      "file": "docs-3440.png",
+      "url": "http://localhost/framework/styles/layouts/docs/",
+      "viewport_width": 3440,
+      "image_px": "3440x1440",
+      "file_bytes": 297688,
+      "analysis_tokens": {
+        "input": 4,
+        "cache_write": 2405,
+        "cache_read": 168144,
+        "output": 2222,
+        "total": 172775
+      },
+      "analysis_cost_usd": 0.163692,
+      "api_ms": 29578,
+      "wall_ms": 31172,
+      "findings": {
+        "regions": [
+          "left icon+label navigation sidebar",
+          "second sidebar column: Layouts breadcrumb, Vocabulary cards (Fit, Flex, Grid) with descriptions",
+          "second sidebar column: Pages section with thumbnails (Document, Docs active/highlighted, Landing)",
+          "main content: page title (Docs)",
+          "main content: browser-style preview mockup spanning most of the content width, showing a left list (Overview, Layout, Type, Colour, Motion), a blank middle strip, and a small 'AURORA' panel preview on the right",
+          "main content, below the mockup: left column of full-size headings and paragraphs (Overview, Layout, Type visible, more implied below)",
+          "main content: middle-right 'AURORA' panel (logo, Product/Docs/Pricing/Changelog nav, GET AURORA button, section list)",
+          "main content: right dark source/code panel with syntax-highlighted code and explanatory prose beneath it"
+        ],
+        "width_use": "left icon nav + fixed sidebar, then main content arranged in three visible groupings side-by-side below the preview mockup — heading/paragraph content on the left, the Aurora demo panel in the middle-right, and a source code panel on the far right — using the width more evenly across the row than in the narrower viewports, with only a small gap between the preview mockup and the row beneath it",
+        "issues": [
+          {
+            "severity": "medium",
+            "what": "preview mockup text (list items, small Aurora panel) is rendered too small to read clearly",
+            "where": "browser-style preview mockup near the top of main content"
+          },
+          {
+            "severity": "low",
+            "what": "the source code panel and its explanatory text sit at the far right with a narrower column width than the code content might benefit from, and a modest blank margin remains at the very right edge of the viewport",
+            "where": "right edge of main content, past the source/code panel"
+          },
+          {
+            "severity": "low",
+            "what": "sidebar page thumbnails remain very small and largely illegible",
+            "where": "middle sidebar 'Pages' section"
+          }
+        ],
+        "quality": "At this width the content, Aurora panel, and source code panel sit side-by-side across the row, filling the width more evenly than the 1920px view where a large blank gap separated a narrow content column from the page's right edge."
+      }
+    }
+  ],
+  "analysis_totals": {
+    "images_analyzed": 15,
+    "input": 426,
+    "cache_write": 35115,
+    "cache_read": 2005049,
+    "output": 17607,
+    "total": 2058197,
+    "cost_usd": 1.796
+  }
+}

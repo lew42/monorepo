@@ -1,0 +1,356 @@
+# Styles — decisions and record
+
+*moved from readme.md 2026-08-17; conclusive, not current guidance.*
+
+The strategy in one line: **`framework.css` should contain nothing you would ever
+want to override.** Everything downstream is arranged so the cheapest way to build
+something new is to write no CSS at all.
+
+## The ladder — stop at the first rung that works
+
+1. **Nothing.** The default already handles it.
+2. **A utility class** — `flex gap v-center pad h2`, `surface`, `wash`, `muted`, `measure`.
+3. **An existing component's class** — `.page-preview`, `.sidebar-link`.
+4. **The module's own `.css` — layout only.** Where things sit, how they size. Not
+   colour, not borders, not type. The test: *would this rule still be right if the
+   component were dropped into a completely different site?*
+5. **`/styles.css` — skin.** This site's opinion, loaded last.
+
+**If you ever override a `framework.css` rule, that is a bug report about
+`framework.css`.** Never escalate downstream — de-escalate upstream.
+
+## The four things that fail silently
+
+- **The `@layer` order is declared once, in `framework.css`** — `app.js` puts it
+  first in `<head>` (2026-08-17; before that every stylesheet restated it). A rule
+  just names its layer; a name outside the four is appended at the *end*, past
+  `util`, with no warning. A hand-written html file links `/framework/framework.css`
+  first (`fly/index.html`) or has no fixed order.
+- **Every rule lives inside a layer.** An unlayered rule beats every layer at any
+  specificity.
+- **Base-theme selectors stay flat** — one element, no descendant combinators, or
+  a theme's `h2` can never win.
+- **Never invent a font-size.** Six levels, each also a class. Margins are rhythm
+  and belong to whatever arranges the content.
+
+## Recent, and worth knowing
+
+**Three looks became classes.** `.surface`, `.wash` and `.muted` are in
+`framework.css @layer theme` — the same three token-valued style objects every
+card, band and caption in `styles/` used to spread inline from `styles/parts.js`.
+`.surface` sets `color` on purpose: a box that paints its own fill owns its own
+ink, or a card on a coloured band renders white on white. `parts.js` still exports
+the objects, though their outside consumers are gone (`framework/report/` is now
+`framework/ai/2026-08-08/` and wears the class; `framework/ui/` grew its own).
+
+**`.measure` closed a gap this file had listed as open twice.** A centred column —
+`--measure: 34em; max-width: var(--measure); margin-inline: auto` — could not be
+spelled with utilities, because `margin-inline: auto` is dead inside a flex
+container (`.flex > * { margin: 0 }` is in `util` and beat any component rule).
+The class is declared **after** that rule in the same layer, so it wins, and
+`layouts/`'s `.layout-measure` is retired. It *declares* `--measure` rather than
+reading the region's, so a 34em block inside a 60em sheet is 34em; override it
+inline and the inline value wins.
+
+**`.flex.auto > *` gained `min-width: 0`**, which `.flex-1` and `.basis` have
+always carried. Without it one `<pre>` or one long word floors a flexible track at
+its min-content and pushes the row wider than its container.
+
+## The long form
+
+Reference you open when you get there, not context to pay for every session:
+
+| | |
+|---|---|
+| [`doc/ownership.md`](ownership.md) | the ladder in full, class-vs-function, and the CSS dependency a module can't declare |
+| [`doc/cascade.md`](cascade.md) | the escalation ratchet, the `site` layer, `:where()` tried-reverted-then-vindicated, versioned CSS (rejected), native mixins |
+| [`doc/theme.md`](theme.md) | `@layer theme` **is** the base theme; the type scale; tokens; dark mode; the contrast pass |
+| [`doc/audits.md`](audits.md) | the eviction list, `table { width: 100% }` rejected with measurements, the six-urls-two-widths pass, why there is no `--region-gutter` |
+| [`doc/scrolling.md`](scrolling.md) | app shell vs document scroll, which region scrolls, one painted box |
+| [`doc/measure.md`](measure.md) | `--measure: 52em` measured against 34/40/46em and a `ch`-based value — the token's real page-median, what a narrower column costs at 3440, and who would break. Proposal only; the token is unchanged |
+
+Per-module records sit next to their code: [`layouts/readme.md`](layouts/readme.md),
+[`sections/readme.md`](sections/readme.md), [`elements/readme.md`](elements/readme.md),
+[`layers/theme/guide/readme.md`](layers/theme/guide/readme.md),
+[`layers/theme/lew42/readme.md`](layers/theme/lew42/readme.md).
+The preview card is core's (Aug 2026), and so is the `wide`-not-`bleed` decision
+it carried — `previews()` picks the track, which is why [`doc/audits.md`](audits.md)
+§6b calls that guard structural.
+
+## Who uses this
+
+Not a leaf module — the two token-and-layer files (`framework.css`, this
+directory's `layers/theme/lew42/lew42.css`) back every page on the site, and
+several modules import this directory's *content* directly rather than only
+linking to it:
+
+- **`/app.js`** imports `layers/theme/lew42/lew42.js` and calls it in
+  `config()` — the house theme is wired site-wide from here, not opted into
+  per page.
+- **`core/Page/old/overview/landing/page.js`** and **`old/overview/site/page.js`**
+  import section-band functions from `sections/*.js` (`hero`, `features`,
+  `pricing`, `footer`, `contact`, `logos`, `faq`, `callout`, `team`) directly,
+  to compose Page's own "what a real site looks like" demos.
+  `core/Page/old/flow/page.js` and `core/Page/page.js` link to `layouts/fit/` and
+  `layouts/` as the canonical next reads for rhythm and whole-page shape.
+- **`ext/Panel/templates.js`** dynamically `import()`s every file in
+  `sections/` by name, at runtime, to build the **T** template menu — the one
+  consumer that imports this directory's files *by string*, so a section
+  rename here is silent there (`ext/Panel/doc/templates.md`).
+- **`ext/DesignTool/audit/pages.js`** lists roughly thirty urls under
+  `/framework/styles/` in the corpus it sweeps at four widths — this is the
+  module most exercised by that tool, and `rules/demos.js` calls
+  `analyze()` directly to grade its own live examples.
+- **`ext/catalog`, `ext/demo`, `ext/layout`, `ext/toc`** all cite pages here
+  (`sections/`, `layouts/`, `elements/forms/`, `layers/util/`) as the primary
+  worked examples in their own readmes and doc pages.
+- **`framework/ui/`** (`avatar`, `card`, `crumbs`, `kbd`, `stats`, `tooltip`)
+  and **`web/layout/*`** (the guide tier) each link back here for the
+  reference behind a decision they made.
+- **`core/Sidebar`** links `/framework/styles/` from the site's own nav, and
+  its readme cites two pages here (`layers/theme/lew42/`, `layouts/sidebar/`)
+  as the live demos its own doc page points at.
+
+One stale link, found while tracing these: `core/Page/old/overview/landing/`
+(via `framework/ai/sessions/2026/08/12/unify/page.js`) links
+`/framework/styles/layouts/cards/`, a directory this module's own readme
+records as deleted in the 2026-08-12 merge. Outside this directory's fence to
+fix; noted in the audit report.
+
+## Open
+
+- **`app.css_audit()`** — a dev-only styled-vs-applied class diff. ~30 lines,
+  catches renames in both directions, still unbuilt (`ownership.md`).
+- **`:root { color-scheme: light }`** stands on purpose. The work that had to be
+  true first is true, so flipping it is one word — but it changes what every
+  visitor sees and wants a visual pass (`theme.md`).
+- **`Page.css`'s hover `box-shadow: rgba(0,0,0,0.08)`** and `/styles.css`'s
+  `body.theme-1` block are the last two colours with no token behind them.
+
+## 2026-08-18 — two vocabulary gaps the Figma pilot found
+
+Both are additive, both keep every existing caller byte-identical, and both were made by the
+mastermind rather than proposed, because each blocked work already in flight. Reversible in one line.
+
+**`.tint` — a token whose class was missing.** `--tint` has existed since the token block and is
+read by `th` and the checkerboard, but there was no `.tint` rule while `.wash` had one. So
+`div.c("… tint")` painted nothing and threw nothing; the `wire` pilot shipped eight invisible
+wireframes before a probe read `rgba(0, 0, 0, 0)` on every box. Nothing in the repo used `tint` as
+a class, so adding `.tint { background: var(--tint) }` cannot change an existing render. **The
+general lesson is bigger than the fix: a token without its class is a trap that never throws.**
+
+**`--grow` on `.flex.auto > *`.** No word in the framework could make a fluid track twice its
+neighbour — `.flex.auto`, `.all-1`, `.three`, `.flex-1` and `.basis` all set `flex-grow: 1`, so
+free space always split evenly. Two of the pilot's eight layouts needed a 2:1 seam and shipped an
+inline `flex: 2 1 30em`, which the `css` skill forbids for a static value. The zero-CSS workaround
+(a per-child `--column` under `flex auto`) works but **decays: 2.00 → 1.45 → 1.30 → 1.17** at
+400/1280/1920/3440 — measured in [`layouts/wire/doc/bento.md`](/framework/styles/layouts/wire/doc/bento.md).
+`flex: var(--grow, 1) 1 var(--column)` defaults to today's behaviour exactly.
+
+⚠ **Open for the owner:** `--grow` is API surface forever ("an option is API surface forever",
+`code` skill §3). If the name is wrong, now is the cheapest moment to change it — one line and
+the callers in `styles/layouts/`.
+
+### 2026-08-18, same night — `--grow` shipped false, corrected
+
+The first `--grow` was `flex: var(--grow, 1) 1 var(--column)` and its comment claimed "a fluid
+track twice its neighbour". **It was not.** `flex-grow` divides only the *free* space, and with both
+tracks sharing one `--column` basis the measured ratio was **1.58 / 1.69 / 1.80** at 1280 / 1920 /
+3440 — wrong, and drifting with width. Scaling the basis by the same factor —
+`flex: var(--grow, 1) 1 calc(var(--column) * var(--grow, 1))` — holds exactly **2.00** at all three.
+
+Found by the homepage minion hours after the mastermind shipped it, and it is the sharper version of
+the same lesson as `.tint`: **the defect was in the sentence, not the syntax.** Nothing threw, the
+page looked plausible, and only a measured ratio caught it. Default is still 1, so every caller that
+does not set `--grow` remains byte-identical.
+
+### `fill` is a claim that a layout fits one screen — 2026-08-18
+
+The homepage shipped as `page full fill flex v`, copied from `landing`/`document`/`shell`, and its
+middle region collapsed to **4549px of content inside a 284px box (16.0x)** at 1440 — nav, a
+truncated hero, then the footer, with seven bands present in the DOM and invisible. Fixed to
+`page full flex v`: **16.0x → 1.0x**, all ten bands reachable, verified at 400/1280/1440/1920/3440.
+
+**The rule:** `fill` takes the region's height and hands the scroll to one designated pane. That is
+right for an application shell — `shell`, `mail`, `chat`, `dashboard`, `split` — where the chrome is
+fixed and the reader expects one pane to move. A **document** is taller than the viewport by design,
+its footer is the end of the content and not a pinned bar, and the whole page should scroll.
+
+⚠ **Open, `questions.md` #15:** `landing`, `document`, `docs` and `stack` all wear `fill` today and
+none is broken — *because none holds enough content to collapse*. Each is one longer demo away from
+this defect. Four working layouts were deliberately not changed by the minion that found this.
+
+**Two measurement traps this exposed**, both now in `.claude/skills/layout/improvements.md`:
+`scrollWidth === clientWidth` is horizontal only and cannot see a vertical collapse; and
+`fullPage: true` is blind here because `.page.layout-full` is `position: fixed; inset: 0;
+overflow: auto`, so the document is always exactly one viewport tall.
+
+### Floors are opaque; fills are alpha — 2026-08-30
+
+`framework.css` paints `.btn, button` and `.surface` from the **same token**, so a default
+button on a card is a zero-delta fill — and lew42 sets `border: none` on every button at
+(0,1,1), beating framework.css's hairline at (0,1,0), so nothing is left to rescue it. A
+headless pass over 76 pages read 3,598 fills and found **101 distinct invisible pairs (504
+elements)** on 29 pages, every one of the top ten at exactly ΔL\* 0.00.
+
+**The rule:** a *floor* is painted on the canvas and stays opaque (a translucent `--wash`
+composites over the browser's white and dark mode renders pale — `lew42.css` marks all three
+`⚠ OPAQUE`). A *fill* is always painted **on** a floor and goes alpha, because a transparent
+fill does not have to guess which floor it will land on: it is *n* steps from whatever is
+underneath, on every floor, in both modes.
+
+Three modules had already found this alone and each patched it locally — `blog.css` gave up
+on filled chips and went outlined, `imagine.css` hovers with `color-mix(in srgb, var(--ink)
+6%, transparent)`, `framework.css` bolted an inset ring onto inline `code`. The ladder is
+the general form of the fix all three wrote by hand.
+
+The bill and the fix list are in [`doc/stacking.md`](./stacking.md); the lab is
+[`/framework/styles/stacks/`](/framework/styles/stacks/).
+
+### The flip — 2026-08-30
+
+The ladder moved to `framework.css` `:root` and the site went onto it: **101 pairs / 504
+elements → 19 / 50**, same 76 pages, same bar. `.btn, button` and inline `code` take
+`--fill-a08`, `th` takes `--fill-a04`, `.demo-btn` and `.layout-btn` stop painting nothing,
+and lew42's `border: none` on buttons is **deleted** — at (0,2,0) it had been cancelling
+framework.css's hairline *and* every component's `border-color` on `:hover`, so a hover
+border set the colour of a border whose style was `none` and drew nothing.
+
+`:root`, not the theme, on purpose: the ladder is arithmetic, not an opinion — literal
+`rgba()` at four doubling rungs — and `framework.css` itself is the biggest consumer. A
+theme that wants different weights overrides four names; lew42 wants none.
+
+**Two things stayed opaque, and each is a rule rather than a leftover.** A fill that must
+*occlude* live content is a floor whatever it is shaped like (a floating pill, a label over
+a ruler, a chip over a canvas). And `button.prim` on `--prime` / `button.bg` on `--bg` are
+**placement** errors: an accent can only be invisible on its own floor, so the fix is to
+move the button. Neither occurs outside the matrix cell built to demonstrate it.
+
+**One regression the scan could not see, found by eye.** With an alpha button fill, a
+default `button` on a `prim` or `dark` section band became near-black `--ink` on a
+*darkened* orange — 3.4:1, where the opaque white fill had been 10:1. `styles/sections/tone.js`
+now declares `color-scheme: dark` on a coloured band and paints the `dark` tone from `--bg`
+instead of `--ink`: an island that inverts with the mode cannot declare a fixed
+`color-scheme`, because the same line flips its own background. That also hands the band
+`--wash` and `--tint` in the right direction, which is the "background twin of `.muted`"
+`layouts/home/page.js` says it never had.
+
+## 2026-09-17 — the spacing rungs, and one page that IS the design system
+
+The owner: *"why do the ai cards use custom padding? ... WE NEED A DESIGN SYSTEM.
+MINIMAL TOKENS USED WHEREVER POSSIBLE."* Two things were wrong, and they were the same
+thing. There was no page that said what the design system is — the tokens were explained
+across 25 markdown files and 7 study pages — and the tokens were being *multiplied* at the
+call site rather than used, so the system existed on paper and not in the CSS.
+
+**The census.** Every `padding` / `margin` / `gap` declaration under `public/` was read and
+classified: **1,894 rows** across 125 stylesheets and 918 JavaScript files
+(`ai/sessions/2026/09/17/spacing-census/`). 1,064 (56%) were a bespoke number. 451 (24%) were a token
+times a multiplier, and those 451 held **28 different multipliers** — `0.5` 76 times, `0.4`
+61, `0.6` 55, `0.3` 45, `0.35` 33, down a tail to `0.05`. Only 125 rows (7%) used a token as
+it stands.
+
+**The fit.** The 451 rows carry 470 multipliers. Each candidate ladder was scored by asking,
+of all 470: is this multiplier within 15% of a rung? Fewest rungs clearing 80% wins.
+
+| ladder | rungs | covered |
+| --- | --- | --- |
+| `{0.5, 1}` — the owner's own instinct, a standard and a section | 2 | 27.4% |
+| `{0.25, 0.5, 1}` | 3 | 33.4% |
+| the best three rungs at any values | 3 | 72.6% |
+| the best four on a readable 0.05 grid | 4 | 79.6% |
+| **`{0.25, 0.35, 0.5, 0.7, 1}` — shipped** | **5** | **83.0%** |
+| the best five at any values (`1.05` is not a name) | 5 | 85.5% |
+
+Two rungs cover a quarter of what the site actually wrote; **no four readable rungs reach
+80%**. Five do — 390 of 470 multipliers, and 373 of the 451 whole rows (82.7%).
+
+**The shape nobody chose.** The five are **1, 0.707, 0.5, 0.354, 0.25** — each rung half the
+rung two steps above it, a root-2 ladder. The search found that in the data; it was not
+imposed. It is why the steps read as even rather than lumpy.
+
+**What landed in `framework.css`, additively** (one write, no existing value or selector
+changed): four tokens on a second `:where(*)` rule — `--gap-70` `--gap-50` `--gap-35`
+`--gap-25`, each `--gap` times its percent — and four classes in `@layer util`, `.gap-70`
+`.gap-50` `.gap-35` `.gap-25`. **The number in the name is a percent of `--gap`, never a
+length** (`.gap-2em`, which predates the standard, is the one word that means a literal
+length; a number with a unit is that length, a bare number is a percent).
+
+**The rule, for the next author:** *a spacing value is a token or a rung, never a multiplier
+and never a raw number; a control's own padding is `em`.*
+
+**The residue is the rule's other half.** Of the 80 multipliers the ladder misses, 39 are
+*above* the gap (1.2 to 3) — the step above `--gap` already exists and is `--flow` — and 41
+are *below* 0.21, under 3px at 1280. A value that small is never the space between two
+blocks; it is a control's own geometry. So: **under a quarter of the gap you are sizing a
+control, not spacing content.**
+
+**One defect named and not fixed.** Measured live: `--flow` is twice `--gap` at 1280
+(30.08px against 15.04px) but *smaller* than it at 3440 (45px against 46.2px), because the
+clamps cap at 2.5em and 2.6em. "The section step is bigger than the row gap" stops being
+true above roughly 2,000px. Changing a clamp every page already renders against is the
+owner's call, not a line added in passing — it is painted on the system page, where the two
+bars cross over at 3440.
+
+**The page.** [/framework/styles/system/](/framework/styles/system/) is the answer to "what
+should I look at to see our padding" — seven lengths painted at their real size at the
+reader's own window width, the class you type beside each, the `--size` ladder as three
+buttons, and the rule in one sentence. It ships **no stylesheet**, like every page under
+`styles/`: the page that is the design system is built out of the design system. It is the
+first line of `styles/readme.md`'s Use and the first child in `styles/page.js`.
+
+**The first consumer.** `ai/AITask/ai.css` — the file the owner pointed at — went onto the
+ladder in the same task. Its 55 spacing rows: 7 plain tokens → **12**, 0 rungs → **23**, 24
+token-times-a-multiplier → **0**, 6 control-`em` → **13** (every one now carrying a line
+saying why it is `em`), 12 raw → **1**, and that one is `margin-block-start: auto`, a
+keyword. A true A/B — the same page seconds apart with only `ai.css` swapped — differs by
+**0.52% of pixels** over four shots (Asks tab 0.00% at 1280 and 3440; a frozen day dashboard
+0.79% and 1.12%). Fewer numbers, not a redesign.
+
+**No new CSS scope was opened.** `css-scopes.txt` already reserves the bare word `gap` for
+`framework.css`, and a bare line reserves `.gap` *and* `.gap-*` — so `.gap-70` / `.gap-50` /
+`.gap-35` / `.gap-25` are inside a namespace this file already owns. The census over
+`public/` found no other `.gap-*` class anywhere (`.gap-2em` is framework.css's own;
+`.gap-half` appears once, as a wish in a personal sandbox's notes, not as a rule).
+
+## 2026-09-18 — the two calls the mastermind had left open, made
+
+The owner, after finding two spacing questions logged as "the owner's call" and left
+unimplemented: *"just make a decision and document the alternative, or make a toggle that
+switches between each one. I don't want you to wait and not implement something because
+you're the mastermind. Make the call."* Both calls below were made the same day
+(`ai/sessions/2026/09/17/calls-styles/`), each with its alternative kept on record rather than deleted.
+
+**Call 1 — `--gap`'s ceiling: 2.6em → 2.4em.** The census above already named the defect:
+`--flow` (the step between sections) is supposed to be the bigger of the two tokens, but its
+2.5em ceiling is lower than `--gap`'s old 2.6em ceiling, so above ~3000px wide the row gap
+overtook the section step. Measured at 400/1280/1920/2400/3440px, `--gap` before/after:
+14/15.03/24/30.69/46.19px → 14/15.03/24/30.69/**43.19**px, against `--flow`'s unchanged
+28/30.08/39.67/44.19/45px. Only the 3440 column moves — the floor and the `cqi` slope are
+untouched, so every page's spacing below ~3000px wide is byte-identical. A 20-page crawl at
+3440 (before and after, wrapped-row counts in every `.flex.wrap` and `.grid.auto` wall) found
+zero layout changes traceable to the edit — the one wall-count diff seen (`/framework/ai/`,
+28 → 29) was the live dashboard picking up this very task's own new log lines between the two
+crawls, not the CSS.
+
+Two alternatives were weighed and rejected:
+- **Raise `--flow`'s ceiling to 2.7em instead.** Rejected — it undoes the owner's own 1.5×
+  paragraph-gap verdict from 2026-09-13 (`framework.css`'s comment above the standard block),
+  which chose 2.5em specifically because 3em "looks bad, wastes space."
+- **Define `--flow` *from* `--gap`** (e.g. `--flow: calc(var(--gap) * 1.5)`), which would make
+  the crossing structurally impossible. Rejected — it welds two tokens the rest of the system
+  tunes independently (a page can raise its own `--gap` via `--size` without wanting its
+  paragraph rhythm to move by the same ratio), for a problem a smaller ceiling already fixes.
+
+Full numbers and the live picture: [`/framework/styles/system/`](/framework/styles/system/),
+[`doc/census.md`](/framework/styles/system/doc/census.md).
+
+**Call 2 — the ladder stays five rungs; two is the documented alternative.** Nothing on
+`/framework/styles/system/` itself changed — the five rungs (`--gap`, `--gap-70/-50/-35/-25`)
+were already the fitted answer, covering 83% of the 470-multiplier census within 15%. The
+owner's own instinct — two rungs, `--gap` and `--flow` alone, standard and section, closer to
+how Figma thinks about spacing — covers 27.4% within 15%, so the other 72.6% (about seven in
+ten of the multipliers the site actually wrote) would move by more than 15% if the ladder
+shrank to two. Two rungs wins on exactly one occasion: a brand-new site with no existing
+spacing to retrofit, where there is nothing yet to be within 15% of. Full fit table:
+[`doc/census.md`](/framework/styles/system/doc/census.md).

@@ -1,26 +1,36 @@
-import { Page, md, demo } from "/app.js";
-import layout from "./layout.js";
-import full from "../full.js";
-import fit from "../fit.js";
+import { Page, demo, div, span } from "/app.js";
+import { site } from "../web.js";
 
-export default new Page({
+export default new Page(demo.layout({
 	meta: import.meta,
-	title: "Split",
-	description: "Two equal panes that stack themselves — no CSS, no breakpoint.",
+	title: "List · detail",
+	description: "A list beside what it selects — two scrollers side by side, one above the other when they stop fitting.",
 	icon: "vertical_split",
+	group: "Apps",
 
-	route(name){ return name === "full" && full(this, layout); },
+	twin: true,
+	parts: "header toolbar",
 
-	content(){
-		demo(layout, { full: this }, "`flex gap auto` gives every child `flex: 1 1 var(--column)`. Equal basis, equal grow, so the panes are equal — and when two `18em` panes no longer fit, they wrap. Narrow the window and watch it happen.");
+	note: "**Two independent scrollers, and the wrap is the hard part.** Side by side each pane is stretched to the row and scrolls itself; wrapped, the panes go content-tall and the ROW scrolls them — which is why `overflow-y: auto` is on all three boxes and not on one.",
 
+	layout(){
 
-		md("**The stacking is intrinsic**: it responds to the width of *this box*, not of the viewport, so the same layout stacks correctly inside a sidebar-narrowed region and inside a `zoom-25` preview. A media query cannot do that.");
+		return div.c("page full fill flex v", () => {
 
-		fit("A before/after comparison · A form beside its preview · Two related explanations · A pricing pair",
-			"measured",
-			"Two panes of *reading*, so the measure applies to the pair and each pane gets half of it. Give this one no measure and each pane becomes a line too long to follow.");
+			if (this.shows("header")) site.topbar();
 
-		md("Next: [Centered](/framework/styles/layouts/centered/) — the one thing flexbox can't hand you.");
-	}
-});
+			div.c("flex gap wrap flex-1", () => {
+
+				div.c("basis", () => site.rows(10))
+					.style({ "--basis": "22em", overflowY: "auto" });
+
+				div.c("flow pad", () => {
+					if (this.shows("toolbar")) site.toolbar();
+					span.c("h4 muted", "SELECTED");
+					site.sections(2);
+				}).style({ flex: "1 1 26em", minWidth: "0", overflowY: "auto" });
+
+			}).style({ minHeight: "0", overflowY: "auto" });
+		});
+	},
+}));

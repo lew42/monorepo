@@ -1,0 +1,36 @@
+{
+ "id": "cd1b05e0-ec6b-4e0c-bc5c-6b8ec40f3dcd",
+ "first": "2026-10-14T18:08:54.762Z",
+ "last": "2026-10-14T18:09:04.005Z",
+ "models": {
+  "claude-sonnet-5-5": 2
+ },
+ "sizes": {
+  "raw": 127235,
+  "content": 127,
+  "stripped": 78,
+  "owner_only": 54
+ },
+ "usd": 0.159034,
+ "usd_main": 0.159034,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 4,
+  "output": 135,
+  "cache_read": 83178,
+  "cache_write": 35260,
+  "w5": 0,
+  "w1": 35260
+ },
+ "messages": 2,
+ "subagent_files": 0,
+ "prompts": [
+  {
+   "at": "2026-10-14T18:08:54.807Z",
+   "t": "[from: owner]\n[on /framework/ai/] Can you hear me?\n[on /framework/ai/] Testing.\n[on /framework/ai/] can you hear me?\n(the owner has stopped: quiet for 2.5 s)"
+  }
+ ],
+ "result": "Yes, I can hear you. Nothing is in flight; tell me what you want done.",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.290Z"
+}

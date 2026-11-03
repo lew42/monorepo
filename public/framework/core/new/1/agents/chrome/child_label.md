@@ -1,6 +1,6 @@
 # `Page.child_label(name)` — copy-ready
 
-For `Page.class.js`, which only Master Mike writes. Two edits: one new method, one
+For `Page.class.js`, which only the owner writes. Two edits: one new method, one
 changed line. Everything below is in the file's own voice — drop it in as-is.
 
 ---

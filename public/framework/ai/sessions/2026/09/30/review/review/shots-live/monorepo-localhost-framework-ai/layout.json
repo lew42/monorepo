@@ -1,0 +1,254 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/",
+ "widths": {
+  "400": {
+   "empty": 0.187,
+   "widest_text": 357,
+   "widest_text_sample": "task-mastermind-commit-live-system-2 · t",
+   "overflow_x": false,
+   "items": 267,
+   "narrow_share": 0,
+   "layout": "standard",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 14,
+     "layers": [
+      {
+       "cls": "v3-head",
+       "px": 14
+      }
+     ]
+    },
+    "p": {
+     "total": 0,
+     "layers": []
+    }
+   },
+   "bands": [
+    {
+     "cls": "v3",
+     "y": 51,
+     "h": 21327,
+     "share": 21.327,
+     "ink": 0.857,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "v3-agents-row",
+     "text": "task-mastermind-content-module",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "v3-agents-row",
+     "text": "task-mastermind-assistant-laye",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "v3-agents-row",
+     "text": "task-mastermind-feedback-counc",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "v3-agents-row",
+     "text": "task-mastermind-padding-system",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "v3-agents-row",
+     "text": "task-mastermind-quickfix-workt",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "v3-agents-row",
+     "text": "task-mastermind-commit-live-sy",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "v3-agents-row",
+     "text": "task-mastermind-shared-browser",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "v3-agents-row",
+     "text": "assistant-from-dictation-to-a-",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "v3-agents-row",
+     "text": "manager-from-dictation-to-a-br",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "v3-agents-row",
+     "text": "task-mastermind-cards-and-logs",
+     "lines": 2
+    }
+   ]
+  },
+  "1200": {
+   "empty": 0.26,
+   "widest_text": 775,
+   "widest_text_sample": "working — merged rescue/ai2-calm into po",
+   "overflow_x": false,
+   "items": 283,
+   "narrow_share": 0.014,
+   "layout": "standard",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 15,
+     "layers": [
+      {
+       "cls": "v3-head",
+       "px": 15
+      }
+     ]
+    },
+    "p": {
+     "total": 0,
+     "layers": []
+    }
+   },
+   "bands": [
+    {
+     "cls": "v3",
+     "y": 0,
+     "h": 13499,
+     "share": 13.499,
+     "ink": 0.633,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.7
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  },
+  "1920": {
+   "empty": 0.325,
+   "widest_text": 783,
+   "widest_text_sample": "working — merged rescue/ai2-calm into po",
+   "overflow_x": false,
+   "items": 283,
+   "narrow_share": 0.173,
+   "layout": "standard",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 26,
+     "layers": [
+      {
+       "cls": "v3-head",
+       "px": 26
+      }
+     ]
+    },
+    "p": {
+     "total": 0,
+     "layers": []
+    }
+   },
+   "bands": [
+    {
+     "cls": "v3",
+     "y": 0,
+     "h": 14275,
+     "share": 14.275,
+     "ink": 0.485,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.7
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  },
+  "3440": {
+   "empty": 0.504,
+   "widest_text": 822,
+   "widest_text_sample": "working — merged rescue/ai2-calm into po",
+   "overflow_x": false,
+   "items": 283,
+   "narrow_share": 0.353,
+   "layout": "standard",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 62,
+     "layers": [
+      {
+       "cls": "v3-head",
+       "px": 62
+      }
+     ]
+    },
+    "p": {
+     "total": 0,
+     "layers": []
+    }
+   },
+   "bands": [
+    {
+     "cls": "v3",
+     "y": 0,
+     "h": 17186,
+     "share": 17.186,
+     "ink": 0.303,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.8
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  }
+ },
+ "errors": []
+}

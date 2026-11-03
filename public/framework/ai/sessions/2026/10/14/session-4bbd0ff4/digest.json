@@ -1,0 +1,36 @@
+{
+ "id": "4bbd0ff4-1b29-4803-b7e2-0a10e3ba7959",
+ "first": "2026-10-14T00:40:51.022Z",
+ "last": "2026-10-14T00:40:52.645Z",
+ "models": {
+  "claude-haiku-5-5": 1
+ },
+ "sizes": {
+  "raw": 5531,
+  "content": 86,
+  "stripped": 86,
+  "owner_only": 42
+ },
+ "usd": 0.003598,
+ "usd_main": 0.003598,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 2,
+  "output": 42,
+  "cache_read": 0,
+  "cache_write": 1693,
+  "w5": 0,
+  "w1": 1693
+ },
+ "messages": 1,
+ "subagent_files": 0,
+ "prompts": [
+  {
+   "at": "2026-10-14T00:40:51.042Z",
+   "t": "[from: owner]\n[on /framework/] Can you tell me which page lists all the sessions?\n(the owner has stopped: quiet for 3.0 s)"
+  }
+ ],
+ "result": "I'm not certain which page lists all sessions; my best guess is /framework/sessions/, but please check with the smart assistant.",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.210Z"
+}

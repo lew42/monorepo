@@ -1,0 +1,1367 @@
+{
+	"name": "designmill-home",
+	"url": "https://designmill.in/",
+	"title": "designmill®",
+	"category": "marketing",
+	"captured_at": "2026-09-08T05:55:30.614Z",
+	"embed": "allowed",
+	"embed_note": "no x-frame-options and no restrictive frame-ancestors",
+	"shots": {
+		"400": "site/designmill-home/400.jpg",
+		"1280": "site/designmill-home/1280.jpg",
+		"1920": "site/designmill-home/1920.jpg",
+		"3440": "site/designmill-home/3440.jpg",
+		"long": "site/designmill-home/long.jpg"
+	},
+	"layout": {
+		"400": "1-bands",
+		"1280": "1-bands",
+		"1920": "1-bands",
+		"3440": "1-bands"
+	},
+	"sections": [
+		{
+			"name": "hero",
+			"layout": "2-equal",
+			"css": "grid, two 50%/50% tracks",
+			"note": "the mission statement sits on the left half, a full-bleed photo fills the right half, and both stay EXACTLY half the row at 1280, 1920 and 3440 (640/640, 960/960, 1720/1720) — a proportional split, not a fixed rail. Stacks to text-over-photo on a phone."
+		},
+		{
+			"name": "services",
+			"layout": "1-flow",
+			"css": "flex column, scroll-scrubbed",
+			"note": "one long vertical list of services that animates in as the page scrolls; never a grid of cards at any width tested, which is not what the scout table expected for this site."
+		},
+		{
+			"name": "cta band",
+			"layout": "1-flow",
+			"css": "flex column",
+			"note": "a short full-width call-to-action strip between the services list and the testimonials."
+		},
+		{
+			"name": "testimonials",
+			"layout": "1-flow",
+			"css": "block, plus a 5-dot carousel row",
+			"note": "one quote shown at a time with five small dots beneath it standing in for a slider — a carousel, not a grid."
+		},
+		{
+			"name": "footer",
+			"layout": "1-flow",
+			"css": "block + flex row",
+			"note": "a credits line and a row of footer links; ordinary at every width."
+		}
+	],
+	"tags": [
+		"1-bands",
+		"2-equal",
+		"1-flow",
+		"2 column grid",
+		"full-bleed",
+		"carousel",
+		"hamburger",
+		"marketing"
+	],
+	"responsive": {
+		"strategy": "A stack of full-bleed bands, the marketing-page shape: a split-screen hero, then a scrolling list of services, a call-to-action strip, and a one-at-a-time testimonial carousel, each painting its own background edge to edge. Only the hero band actually divides into columns (an exact 50/50 split at every desktop width), and even that collapses to text-over-photo on a phone. Nothing here becomes a grid of cards at any width, which is worth noting because the brief's own scout guessed this page would be `3-cards`.",
+		"breakpoints": [
+			480,
+			768,
+			991
+		]
+	},
+	"scan": {
+		"scanned_at": "2026-09-08T05:55:44.384Z",
+		"css": {
+			"sheets": 3,
+			"bytes": 89774,
+			"inline_bytes": 1370
+		},
+		"media": [
+			"(max-width: 1024px) {",
+			"(max-width: 480px) {",
+			"(max-width: 500px) {",
+			"(max-width: 600px) {",
+			"(max-width: 768px) {",
+			"(max-width: 991px) {",
+			"(prefers-reduced-motion: reduce) {",
+			"print {"
+		],
+		"container": [],
+		"breakpoints_seen": [
+			{
+				"px": 480,
+				"count": 1
+			},
+			{
+				"px": 500,
+				"count": 1
+			},
+			{
+				"px": 600,
+				"count": 1
+			},
+			{
+				"px": 768,
+				"count": 1
+			},
+			{
+				"px": 991,
+				"count": 1
+			},
+			{
+				"px": 1024,
+				"count": 1
+			}
+		],
+		"widths": {
+			"400": {
+				"doc": [
+					400,
+					3680
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "site-header scrolled",
+						"role": "banner",
+						"display": "block",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							400,
+							76
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"id": "main-content",
+						"role": "main",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							400,
+							3002
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hm-hero",
+						"display": "grid",
+						"cols": "400px",
+						"rows": "422px 500.312px",
+						"rect": [
+							0,
+							0,
+							400,
+							922
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hm-services",
+						"display": "block",
+						"rect": [
+							0,
+							922,
+							400,
+							1457
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "ap-cta",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							2273,
+							400,
+							124
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hm-testimonials",
+						"display": "block",
+						"rect": [
+							0,
+							2381,
+							400,
+							621
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "hm-tq__credit",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							56,
+							2870,
+							288,
+							39
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "hm-tq__credit",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							120,
+							2813,
+							280,
+							20
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "hm-tq__credit",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							177,
+							2813,
+							165,
+							20
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "hm-tq__credit",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							149,
+							2813,
+							223,
+							20
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "hm-tq__credit",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							141,
+							2813,
+							238,
+							20
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "site-footer",
+						"role": "contentinfo",
+						"display": "block",
+						"rect": [
+							0,
+							3002,
+							400,
+							678
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "footer-nav",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							32,
+							3352,
+							336,
+							113
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "mobile-nav",
+						"role": "navigation",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "fixed",
+						"rect": [
+							416,
+							0,
+							328,
+							844
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "hm-services__inner",
+						"display": "block",
+						"cols": "1fr",
+						"rect": [
+							0,
+							922,
+							400,
+							1333
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "ul",
+						"class": "hm-services__list is-scrubbed",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							984,
+							400,
+							1271
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "mobile-nav-overlay",
+						"display": "block",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							400,
+							844
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "contactOverlay",
+						"class": "slide-panel-overlay",
+						"display": "block",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							400,
+							844
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "contactPanel",
+						"class": "slide-panel",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "fixed",
+						"rect": [
+							420,
+							0,
+							400,
+							844
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1280": {
+				"doc": [
+					1280,
+					3625
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "site-header scrolled",
+						"role": "banner",
+						"display": "block",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							1280,
+							81
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "main-nav",
+						"role": "navigation",
+						"display": "block",
+						"rect": [
+							875,
+							35,
+							333,
+							11
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"id": "main-content",
+						"role": "main",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							1280,
+							3237
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hm-hero",
+						"display": "grid",
+						"cols": "640px 640px",
+						"rows": "800.516px",
+						"rect": [
+							0,
+							0,
+							1280,
+							801
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hm-services",
+						"display": "block",
+						"rect": [
+							0,
+							801,
+							1280,
+							1742
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "ap-cta",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							2405,
+							1280,
+							156
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hm-testimonials",
+						"display": "block",
+						"rect": [
+							0,
+							2544,
+							1280,
+							694
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "hm-tq__credit",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							494,
+							3046,
+							293,
+							10
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "hm-tq__credit",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							560,
+							3001,
+							280,
+							10
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "hm-tq__credit",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							617,
+							3001,
+							165,
+							10
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "hm-tq__credit",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							589,
+							3001,
+							223,
+							10
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "hm-tq__credit",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							581,
+							3001,
+							238,
+							10
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "site-footer",
+						"role": "contentinfo",
+						"display": "block",
+						"rect": [
+							0,
+							3237,
+							1280,
+							387
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "footer-nav",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							938,
+							3341,
+							270,
+							113
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "mobile-nav",
+						"role": "navigation",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "fixed",
+						"rect": [
+							1313,
+							0,
+							650,
+							800
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "hm-services__inner",
+						"display": "block",
+						"rect": [
+							0,
+							801,
+							1280,
+							1587
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "mobile-nav-overlay",
+						"display": "block",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							1280,
+							800
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "contactOverlay",
+						"class": "slide-panel-overlay",
+						"display": "block",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							1280,
+							800
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "largest",
+						"tag": "ul",
+						"class": "hm-services__list is-scrubbed",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							320,
+							917,
+							640,
+							1470
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "panelScrollContent",
+						"class": "slide-panel-scroll-content",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							1313,
+							0,
+							650,
+							876
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1920": {
+				"doc": [
+					1920,
+					4411
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "site-header scrolled",
+						"role": "banner",
+						"display": "block",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							1920,
+							81
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "main-nav",
+						"role": "navigation",
+						"display": "block",
+						"rect": [
+							1515,
+							35,
+							333,
+							11
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"id": "main-content",
+						"role": "main",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							1920,
+							3973
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hm-hero",
+						"display": "grid",
+						"cols": "960px 960px",
+						"rows": "1200.78px",
+						"rect": [
+							0,
+							0,
+							1920,
+							1201
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hm-services",
+						"display": "block",
+						"rect": [
+							0,
+							1201,
+							1920,
+							1941
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "ap-cta",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							2975,
+							1920,
+							184
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hm-testimonials",
+						"display": "block",
+						"rect": [
+							0,
+							3143,
+							1920,
+							830
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "hm-tq__credit",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							786,
+							3722,
+							348,
+							12
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "hm-tq__credit",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							854,
+							3674,
+							333,
+							12
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "hm-tq__credit",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							923,
+							3674,
+							195,
+							12
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "hm-tq__credit",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							888,
+							3674,
+							264,
+							12
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "hm-tq__credit",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							879,
+							3674,
+							282,
+							12
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "site-footer",
+						"role": "contentinfo",
+						"display": "block",
+						"rect": [
+							0,
+							3973,
+							1920,
+							439
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "footer-nav",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							1578,
+							4127,
+							270,
+							113
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "mobile-nav",
+						"role": "navigation",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "fixed",
+						"rect": [
+							1953,
+							0,
+							650,
+							1080
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "hm-services__inner",
+						"display": "block",
+						"rect": [
+							0,
+							1201,
+							1920,
+							1757
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "mobile-nav-overlay",
+						"display": "block",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							1920,
+							1080
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "contactOverlay",
+						"class": "slide-panel-overlay",
+						"display": "block",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							1920,
+							1080
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "largest",
+						"tag": "ul",
+						"class": "hm-services__list is-scrubbed",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							480,
+							1371,
+							960,
+							1586
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "hm-hero__left",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							0,
+							960,
+							1201
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"3440": {
+				"doc": [
+					3440,
+					5394
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "site-header scrolled",
+						"role": "banner",
+						"display": "block",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							3440,
+							81
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "main-nav",
+						"role": "navigation",
+						"display": "block",
+						"rect": [
+							3035,
+							35,
+							333,
+							11
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"id": "main-content",
+						"role": "main",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							3440,
+							4949
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hm-hero",
+						"display": "grid",
+						"cols": "1720px 1720px",
+						"rows": "2151.39px",
+						"rect": [
+							0,
+							0,
+							3440,
+							2151
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hm-services",
+						"display": "block",
+						"rect": [
+							0,
+							2151,
+							3440,
+							1954
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "ap-cta",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							3939,
+							3440,
+							184
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "hm-testimonials",
+						"display": "block",
+						"rect": [
+							0,
+							4106,
+							3440,
+							843
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "hm-tq__credit",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							1546,
+							4692,
+							348,
+							12
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "hm-tq__credit",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							1614,
+							4644,
+							333,
+							12
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "hm-tq__credit",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							1683,
+							4644,
+							195,
+							12
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "hm-tq__credit",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							1648,
+							4644,
+							264,
+							12
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "hm-tq__credit",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							1639,
+							4644,
+							282,
+							12
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "site-footer",
+						"role": "contentinfo",
+						"display": "block",
+						"rect": [
+							0,
+							4949,
+							3440,
+							445
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "footer-nav",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							3098,
+							5110,
+							270,
+							113
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "mobile-nav",
+						"role": "navigation",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "fixed",
+						"rect": [
+							3473,
+							0,
+							650,
+							1440
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "hm-tq__dots",
+						"role": "tablist",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							72,
+							4782,
+							3296,
+							7
+						],
+						"side_by_side": 5
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "hm-services__inner",
+						"display": "block",
+						"rect": [
+							0,
+							2151,
+							3440,
+							1770
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "mobile-nav-overlay",
+						"display": "block",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							3440,
+							1440
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "contactOverlay",
+						"class": "slide-panel-overlay",
+						"display": "block",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							3440,
+							1440
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "hm-hero__left",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							0,
+							1720,
+							2151
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "hm-hero__right",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1720,
+							0,
+							1720,
+							2151
+						],
+						"side_by_side": 1
+					}
+				]
+			}
+		}
+	},
+	"notes": "This is a design agency's homepage, and it is built as a stack of full-width bands rather than a grid: a big two-half hero (words on the left, a photo on the right, split exactly down the middle), then a scrolling list of services, a call-to-action strip, and a testimonial carousel that shows one quote at a time. The only place the page truly divides into side-by-side columns is that hero band, and even there the split is a clean 50/50 at every desktop width — it is not a fixed sidebar, it is two equal halves that both grow together. On a phone the hero simply stacks: the words on top, the photo underneath. The brief's scout guessed this page would turn out to be a `3-cards` layout, but nothing on it — at any of the four widths captured — ever arranges into a grid of cards; it stays a stack of single-column bands the whole way down.",
+	"wire": {
+		"role": "page",
+		"kids": [
+			{
+				"role": "header",
+				"h": "3.5em"
+			},
+			{
+				"role": "main",
+				"dir": "row",
+				"floor": "62rem",
+				"kids": [
+					{
+						"role": "text",
+						"w": 1,
+						"lines": 4
+					},
+					{
+						"role": "image",
+						"w": 1
+					}
+				]
+			},
+			{
+				"role": "main",
+				"lines": 8
+			},
+			{
+				"role": "hero",
+				"h": "10em"
+			},
+			{
+				"role": "text",
+				"h": "12em",
+				"lines": 3
+			},
+			{
+				"role": "footer",
+				"h": "5em"
+			}
+		]
+	}
+}

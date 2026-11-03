@@ -1,0 +1,23 @@
+# layout-a — slice A: `core/Layout` and the tree you browse (Opus)
+
+Three laws: less is more (ASAP) — a port, not an invention; clear beats brief, by far — the tree is for the overwhelmed newcomer; prioritize — 1-column first. Length budget: the tree's first screen is a wall of small pictures under one sentence; a layout page is one screen: the layout at its natural width, the strip, then the two walls; the report is 10 lines.
+
+Read first: the repo's `CLAUDE.md` (the Presentation section); the owner's brief `../mastermind-graduate/layout-brief.md` — deliverables 1, 8, 9, 11, 12, 14, 16, 17 and every call under the addenda; `../../2026-09-04/mastermind-platform/minion-rules.md`; **the plan `../layout-study/plan.md`** §3 (`core/Layout`), §4 (`LayoutRules`), §7 slice A, and its census — the plan is the spec, judged by the mastermind; then `core/Page/Page.class.js` and `core/Page/Frame.js` (slice 1 of the graduation landed this morning — `PageFrame` is your naming precedent, `Page.from()` exists), `ext/catalog/browse.js`, `ext/demo/` (`stage.js`, `shell.js`, `mini.js`), `/imagine/layouts/system.js`, `ext/DesignTool/library/patterns.js`, `/imagine/design/vocabulary/`. Skills: `new-task` (this dir, group `layout`), `code`, `layout`, `css`, `new-css-class`, `new-page`, `documentation`, `finish-task`.
+
+## The job
+
+`public/framework/core/Layout/` — `Layout.js` (`Layout extends Page`; every View part named `PageLayout*`), `layouts.js` (the catalogue ported from the plan's four sources — 18 + 11 first, then `styles/layouts/` until there are thirty; every entry keeps its original prose), `page.js` (the tree: bands One column · Two · Three · Four or more, in that order, rows-only first; filters default to *all* — columns, tags, approved/draft — on `browse()`'s own state; a cap of 60 cards and a *show 60 more* control), `readme.md` (the first Watch-out is the content-scale rule in the owner's words), `doc/`. One name in `core/page.js` `children:` — read that file fresh right before you edit it; another minion added a name there this morning.
+
+**A layout page** declares the plan's props (`columns`, `room`, `tags`, `widths`, `fallback`, `slots`, `arrange()`, `accepts`, `allowed_in`, `denies`, `approved`) and owns no content. Its page: the layout rendered in the demo viewport **open at its floor width** with the resize handle, the seven-width strip (400 · 700 · 1000 · 1400 · 2000 · 2800 · 3440) beside it, then two walls — variations and alternatives — drawn with the same card the tree uses.
+
+**Fixtures and approval.** The stress fixtures are one small module: shortest and longest text, no image and a huge image, light and dark tone. A layout is *approved* when every fixture at every strip width passes the checker (no overflow, no text at x:0, no prose past the measure, no contrast violation); otherwise it is a *draft* and its card says so. Run the fixtures on all thirty and record the verdicts in `layouts.js` (`approved:` date or nothing) — the count of approved vs draft is in your report.
+
+**LayoutRules**: the plan's deny list of three (width range; contrast; nesting that breaks a mechanism), one checker, one overlay class; a violation is a visible warning in dev mode, never a block.
+
+## Prove it
+
+Use the mastermind's shared server at `http://localhost:8123/` — **start no server of your own and never kill that one** (edits reload live). Headless Playwright only. The tree and every layout page at 400 / 1280 / 1920 / 3440: zero console errors, no sideways scroll; screenshots of the tree at 1280 and 3440 and of three layout pages (one per band) in your task dir. Two numbers that must agree: entries in `layouts.js` = cards on the tree with filters at *all*. The cap: prove it by temporarily setting it to 10 in a probe and seeing the *show more* control. Each of the thirty opens at its declared floor (read the viewport width back). Finally the plan's own count: lines added under `core/Layout/` vs its estimate; explain a gap over 30%.
+
+## Fences and budget
+
+Write: `public/framework/core/Layout/**`, one name in `core/page.js`, `styles/css-scopes.txt` (`page-layout-` if the census needs it), this task dir. Never `core/Page/**` (another minion is in it), never `ext/**`, `imagine/**`, `styles/layouts/**` (you READ and port from them; deletions are slice C2, not yours), never `CLAUDE.md`. Never `find /`; never spawn agents; never `git stash`/commit. Budget ~450k tokens. Report in ≤ 10 plain lines: what a reader sees on the tree in two sentences, the catalogue count and its sources, approved vs draft with the commonest failure, the checker's three rules in one line, anything you doubted.

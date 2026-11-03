@@ -1,0 +1,47 @@
+{
+ "url": "http://monorepo.localhost/tasks/",
+ "widths": {
+  "1280": {
+   "empty": 0.958,
+   "widest_text": 379,
+   "widest_text_sample": "Page Load Error",
+   "overflow_x": false,
+   "items": 4,
+   "narrow_share": 1
+  },
+  "1920": {
+   "empty": 0.976,
+   "widest_text": 403,
+   "widest_text_sample": "Page Load Error",
+   "overflow_x": false,
+   "items": 4,
+   "narrow_share": 1
+  },
+  "2560": {
+   "empty": 0.974,
+   "widest_text": 453,
+   "widest_text_sample": "Page Load Error",
+   "overflow_x": false,
+   "items": 4,
+   "narrow_share": 1
+  },
+  "3440": {
+   "empty": 0.98,
+   "widest_text": 453,
+   "widest_text_sample": "Page Load Error",
+   "overflow_x": false,
+   "items": 4,
+   "narrow_share": 1
+  }
+ },
+ "errors": [
+  "2560: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "2560: Error: 404 — nothing matches \"/tasks/\"\n    at App.load (http://monorepo.localhost/framework/core/App/App.js:64:11)\n    at async App.instantiate (http://monorepo.localhost/framework/core/App/App.js:26:",
+  "1920: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1920: Error: 404 — nothing matches \"/tasks/\"\n    at App.load (http://monorepo.localhost/framework/core/App/App.js:64:11)\n    at async App.instantiate (http://monorepo.localhost/framework/core/App/App.js:26:",
+  "3440: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "3440: Error: 404 — nothing matches \"/tasks/\"\n    at App.load (http://monorepo.localhost/framework/core/App/App.js:64:11)\n    at async App.instantiate (http://monorepo.localhost/framework/core/App/App.js:26:",
+  "1280: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1280: Error: 404 — nothing matches \"/tasks/\"\n    at App.load (http://monorepo.localhost/framework/core/App/App.js:64:11)\n    at async App.instantiate (http://monorepo.localhost/framework/core/App/App.js:26:"
+ ]
+}

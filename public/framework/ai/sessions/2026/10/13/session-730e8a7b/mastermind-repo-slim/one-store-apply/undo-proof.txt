@@ -1,0 +1,23 @@
+# undo proof on the worktree copy (C:/Code/lew42/worktrees/one-store-apply), 2026-10-13T19:13:18-05:00, no server watching it
+(a first try with the worktree's dev server running failed: its file-listing plugin, Server/plugins/PageFiles.js, appended lines into the moving page.jsonl files and re-made old day folders; the worktree was reset to HEAD and the server stopped)
+## apply
+{ moved: 575, run: '2026-10-14T00:13:18.709Z' }
+## verify
+575 folders, 764 files, 2672006 bytes checked: 0 missing/changed
+## old tree left (expect nothing)
+ls: cannot access 'public/framework/ai/2026': No such file or directory
+## git sees renames: deleted vs added
+      2 A
+     18 D
+    746 R
+## undo
+moved back 575 folders
+## tracked files changed under ai/ after undo (expect 0)
+0
+## untracked after undo (expect the two ledger files only)
+?? public/framework/ai/sessions/card-moves-files.jsonl
+?? public/framework/ai/sessions/card-moves.jsonl
+## apply again
+{ moved: 575, run: '2026-10-14T00:13:22.425Z' }
+575 folders, 764 files, 2672006 bytes checked: 0 missing/changed
+ls: cannot access 'public/framework/ai/2026': No such file or directory

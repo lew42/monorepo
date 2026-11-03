@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/tasks/lanes/",
+ "widths": {
+  "1280": {
+   "empty": 0.724,
+   "widest_text": 248,
+   "widest_text_sample": "7:15 PM · AskEach, Browser, Collab, Deci",
+   "overflow_x": false,
+   "items": 53,
+   "narrow_share": 0.321
+  },
+  "1920": {
+   "empty": 0.82,
+   "widest_text": 264,
+   "widest_text_sample": "7:15 PM · AskEach, Browser, Collab, Deci",
+   "overflow_x": false,
+   "items": 53,
+   "narrow_share": 0.736
+  },
+  "2560": {
+   "empty": 0.837,
+   "widest_text": 297,
+   "widest_text_sample": "7:15 PM · AskEach, Browser, Collab, Deci",
+   "overflow_x": false,
+   "items": 53,
+   "narrow_share": 1
+  },
+  "3440": {
+   "empty": 0.863,
+   "widest_text": 297,
+   "widest_text_sample": "7:15 PM · AskEach, Browser, Collab, Deci",
+   "overflow_x": false,
+   "items": 53,
+   "narrow_share": 1
+  }
+ },
+ "errors": []
+}

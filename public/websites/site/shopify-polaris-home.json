@@ -1,0 +1,1015 @@
+{
+	"name": "shopify-polaris-home",
+	"url": "https://polaris.shopify.com/",
+	"title": "Polaris references",
+	"category": "system",
+	"captured_at": "2026-09-08T06:16:21.883Z",
+	"embed": "allowed",
+	"embed_note": "no x-frame-options and no restrictive frame-ancestors",
+	"shots": {
+		"400": "site/shopify-polaris-home/400.jpg",
+		"1280": "site/shopify-polaris-home/1280.jpg",
+		"1920": "site/shopify-polaris-home/1920.jpg",
+		"3440": "site/shopify-polaris-home/3440.jpg",
+		"long": "site/shopify-polaris-home/long.jpg"
+	},
+	"layout": {
+		"400": "1-flow",
+		"1280": "2-sidebar",
+		"1920": "2-sidebar",
+		"3440": "2-sidebar"
+	},
+	"sections": [
+		{
+			"name": "header",
+			"layout": "1-flow",
+			"css": "flex row, sticky",
+			"note": "the full nav (Apps, Storefronts, Agents, References, Changelog, Ask assistant, search) shows from 1280 up; at 400 only the logo, a hamburger icon and Log in remain."
+		},
+		{
+			"name": "docs sidebar",
+			"layout": "2-sidebar left",
+			"css": "flex column, sticky, THREE states not two",
+			"note": "hidden as an off-canvas drawer at 400; a collapsed 56px icon-only rail at 1280; a full 284px labelled list from 1920 up — the scan catches a middle 'shrunk, not gone' state that the screenshots alone would read as just 'smaller'."
+		},
+		{
+			"name": "article + card grid",
+			"layout": "1-centered",
+			"css": "block, FIXED 810px, centred in the leftover room",
+			"note": "the scan measures the article at exactly 810px wide at 1280, 1920 AND 3440 — the same number regardless of how much the sidebar itself changes — always centred in whatever space is left. The 2-column card grid inside it therefore never changes either: two columns at every desktop width tested, one column only at 400."
+		},
+		{
+			"name": "footer / feedback row",
+			"layout": "1-centered",
+			"css": "block",
+			"note": "sits inside the same fixed 810px column as the article above it."
+		}
+	],
+	"tags": [
+		"2-sidebar",
+		"1-centered",
+		"1-flow",
+		"2-equal",
+		"left",
+		"rail",
+		"measure",
+		"max-width",
+		"sticky header",
+		"system"
+	],
+	"responsive": {
+		"strategy": "Three sidebar states, not two: at 400 the docs nav is a hidden off-canvas drawer behind a menu icon; at 1280 it is present but collapsed to a 56px icon-only rail; from 1920 up it expands to a full 284px labelled list. Whatever the sidebar's width, the article column beside it stays exactly 810px — the scan measures the identical number at 1280, 1920 AND 3440 — and centres itself in the leftover room, the same fixed-measure-in-fluid-space trick the Rust Book's own site uses. Because the article's width never changes, its 2-column card grid does not change either.",
+		"breakpoints": [
+			640,
+			960,
+			1920
+		],
+		"queries": [
+			"(hover:hover) and (pointer:fine){",
+			"(prefers-reduced-motion){",
+			"(width>=640px){",
+			"(width>=960px){",
+			"only screen and (width>=640px){",
+			"screen and (width<=639.98px){",
+			"screen and (width>=1920px){",
+			"screen and (width>=40em){",
+			"screen and (width>=640px){",
+			"screen and (width>=960px){"
+		]
+	},
+	"scan": {
+		"scanned_at": "2026-09-08T06:16:38.430Z",
+		"css": {
+			"sheets": 28,
+			"bytes": 584554,
+			"inline_bytes": 0
+		},
+		"media": [
+			"(hover:hover) and (pointer:fine){",
+			"(prefers-reduced-motion){",
+			"(width>=640px){",
+			"(width>=960px){",
+			"only screen and (width>=640px){",
+			"screen and (width<=639.98px){",
+			"screen and (width>=1920px){",
+			"screen and (width>=40em){",
+			"screen and (width>=640px){",
+			"screen and (width>=960px){"
+		],
+		"container": [
+			"downloadlink (width<=160px){",
+			"page-layout (width<=542px){",
+			"page-layout (width>=1280px){",
+			"page-layout (width>=1920px){",
+			"page-layout (width>=640px){",
+			"page-layout (width>=960px){"
+		],
+		"breakpoints_seen": [
+			{
+				"px": 640,
+				"count": 3
+			},
+			{
+				"px": 960,
+				"count": 2
+			},
+			{
+				"px": 98,
+				"count": 1
+			},
+			{
+				"px": 1920,
+				"count": 1
+			}
+		],
+		"widths": {
+			"400": {
+				"doc": [
+					385,
+					2253
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "_Header_myfnr_1",
+						"display": "block",
+						"position": "sticky",
+						"rect": [
+							0,
+							0,
+							385,
+							48
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "_Nav_myfnr_30",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							385,
+							48
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"id": "main-content",
+						"class": "_MainContent_1iz8u_56",
+						"display": "block",
+						"rect": [
+							0,
+							48,
+							385,
+							2205
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "_Article_1qsp2_14",
+						"display": "block",
+						"rect": [
+							24,
+							80,
+							337,
+							1713
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "_HeadingContainer_cfkmj_1",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "wrap",
+						"rect": [
+							24,
+							80,
+							337,
+							60
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "_PageFooter_1yheh_1",
+						"display": "block",
+						"rect": [
+							0,
+							1833,
+							385,
+							420
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "DevAssistant",
+						"class": "_Panel_3cxp2_23 Theme-AI",
+						"role": "dialog",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "fixed",
+						"rect": [
+							393,
+							0,
+							385,
+							844
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "_ContentWithAssistant_w3xh3_1",
+						"display": "block",
+						"rect": [
+							0,
+							48,
+							385,
+							2205
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "_ContentWrapper_w3xh3_7",
+						"display": "block",
+						"rect": [
+							0,
+							48,
+							385,
+							2205
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "_PageLayout_1iz8u_1",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							48,
+							385,
+							2205
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "MobileNavContainer",
+						"class": "_ContentInner_1xvy7_50",
+						"display": "block",
+						"rect": [
+							-392,
+							-304,
+							376,
+							1920
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "ul",
+						"display": "block",
+						"rect": [
+							-384,
+							-252,
+							360,
+							1856
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1280": {
+				"doc": [
+					1265,
+					1377
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "_Header_myfnr_1",
+						"display": "block",
+						"position": "sticky",
+						"rect": [
+							0,
+							0,
+							1265,
+							48
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "_Nav_myfnr_30",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							1265,
+							48
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "aside",
+						"class": "_SideBar_1iz8u_25",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "sticky",
+						"rect": [
+							0,
+							48,
+							56,
+							752
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"id": "main-content",
+						"class": "_MainContent_1iz8u_56",
+						"display": "block",
+						"rect": [
+							64,
+							48,
+							1193,
+							1329
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "_Article_1qsp2_14",
+						"display": "block",
+						"rect": [
+							255,
+							80,
+							810,
+							993
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "_HeadingContainer_cfkmj_1",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "wrap",
+						"rect": [
+							255,
+							80,
+							810,
+							40
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "_PageFooter_1yheh_1",
+						"display": "block",
+						"rect": [
+							64,
+							1113,
+							1193,
+							256
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "_FeedbackSentiment_1rp07_74 _IsNotCompact_1rp07_81",
+						"role": "group",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "wrap",
+						"rect": [
+							255,
+							1037,
+							810,
+							36
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "DevAssistant",
+						"class": "_Panel_3cxp2_23 Theme-AI",
+						"role": "dialog",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "fixed",
+						"rect": [
+							1265,
+							48,
+							600,
+							744
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "_ContentWithAssistant_w3xh3_1",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							48,
+							1265,
+							1329
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "_ContentWrapper_w3xh3_7",
+						"display": "block",
+						"rect": [
+							0,
+							48,
+							1265,
+							1329
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "_PageLayout_1iz8u_1",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							48,
+							1265,
+							1329
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "_MainContentInner_1iz8u_75",
+						"display": "block",
+						"rect": [
+							64,
+							80,
+							1193,
+							993
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "_PageLayoutConstraints_1l3kn_1",
+						"display": "block",
+						"rect": [
+							112,
+							80,
+							1097,
+							993
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1920": {
+				"doc": [
+					1905,
+					1376
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "_Header_myfnr_1",
+						"display": "block",
+						"position": "sticky",
+						"rect": [
+							0,
+							0,
+							1905,
+							48
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "_Nav_myfnr_30",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							1905,
+							48
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "aside",
+						"class": "_SideBar_1iz8u_25",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "sticky",
+						"rect": [
+							0,
+							48,
+							284,
+							1032
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "_Nav_13sks_1",
+						"display": "block",
+						"rect": [
+							8,
+							97,
+							276,
+							975
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"id": "main-content",
+						"class": "_MainContent_1iz8u_56",
+						"display": "block",
+						"rect": [
+							292,
+							48,
+							1605,
+							1328
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "_Article_1qsp2_14",
+						"display": "block",
+						"rect": [
+							689,
+							80,
+							810,
+							993
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "_HeadingContainer_cfkmj_1",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "wrap",
+						"rect": [
+							689,
+							80,
+							810,
+							40
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "_PageFooter_1yheh_1",
+						"display": "block",
+						"rect": [
+							292,
+							1112,
+							1605,
+							256
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "_FeedbackSentiment_1rp07_74 _IsNotCompact_1rp07_81",
+						"role": "group",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "wrap",
+						"rect": [
+							689,
+							1037,
+							810,
+							36
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "DevAssistant",
+						"class": "_Panel_3cxp2_23 Theme-AI",
+						"role": "dialog",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "fixed",
+						"rect": [
+							1905,
+							48,
+							800,
+							1024
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "_ContentWithAssistant_w3xh3_1",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							48,
+							1905,
+							1328
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "_ContentWrapper_w3xh3_7",
+						"display": "block",
+						"rect": [
+							0,
+							48,
+							1905,
+							1328
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "_PageLayout_1iz8u_1",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							48,
+							1905,
+							1328
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "_MainContentInner_1iz8u_75",
+						"display": "block",
+						"rect": [
+							292,
+							80,
+							1605,
+							1032
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "_PageLayoutConstraints_1l3kn_1",
+						"display": "block",
+						"rect": [
+							340,
+							80,
+							1509,
+							993
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"3440": {
+				"doc": [
+					3425,
+					1736
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "_Header_myfnr_1",
+						"display": "block",
+						"position": "sticky",
+						"rect": [
+							0,
+							0,
+							3425,
+							48
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "_Nav_myfnr_30",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							3425,
+							48
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "aside",
+						"class": "_SideBar_1iz8u_25",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "sticky",
+						"rect": [
+							0,
+							48,
+							284,
+							1392
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "_Nav_13sks_1",
+						"display": "block",
+						"rect": [
+							8,
+							97,
+							276,
+							1335
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"id": "main-content",
+						"class": "_MainContent_1iz8u_56",
+						"display": "block",
+						"rect": [
+							292,
+							48,
+							3125,
+							1688
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "_Article_1qsp2_14",
+						"display": "block",
+						"rect": [
+							1449,
+							80,
+							810,
+							993
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "_HeadingContainer_cfkmj_1",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "wrap",
+						"rect": [
+							1449,
+							80,
+							810,
+							40
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "_PageFooter_1yheh_1",
+						"display": "block",
+						"rect": [
+							292,
+							1472,
+							3125,
+							256
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "_FeedbackSentiment_1rp07_74 _IsNotCompact_1rp07_81",
+						"role": "group",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "wrap",
+						"rect": [
+							1449,
+							1037,
+							810,
+							36
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"id": "DevAssistant",
+						"class": "_Panel_3cxp2_23 Theme-AI",
+						"role": "dialog",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "fixed",
+						"rect": [
+							3425,
+							48,
+							800,
+							1384
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "_ContentWithAssistant_w3xh3_1",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							48,
+							3425,
+							1688
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "_ContentWrapper_w3xh3_7",
+						"display": "block",
+						"rect": [
+							0,
+							48,
+							3425,
+							1688
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "_PageLayout_1iz8u_1",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							48,
+							3425,
+							1688
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "_MainContentInner_1iz8u_75",
+						"display": "block",
+						"rect": [
+							292,
+							80,
+							3125,
+							1392
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "_PageLayoutConstraints_1l3kn_1",
+						"display": "block",
+						"rect": [
+							340,
+							80,
+							3029,
+							993
+						],
+						"side_by_side": 1
+					}
+				]
+			}
+		}
+	},
+	"notes": "Shopify's developer docs use the classic three-part shape — a top bar, a list of every doc on the left, the page you are reading on the right — but the left list has an extra middle step most sites skip: on a laptop it shrinks to a thin strip of icons instead of disappearing, and only expands to full labelled links on a bigger desktop monitor. The more interesting part is the article text itself: no matter how wide the screen gets, the scan measures it at exactly 810 pixels wide every single time, simply centred in whatever room is left next to the sidebar. That is why the grid of 'App Home', 'Checkout UI extensions' and other cards always shows two columns on any desktop screen and never more, even on the widest monitor tested — the box they live in never grows. On a phone the sidebar disappears behind a menu button and the cards stack into one column.",
+	"wire": {
+		"role": "page",
+		"kids": [
+			{
+				"role": "header",
+				"h": "3.5em"
+			},
+			{
+				"role": "main",
+				"dir": "row",
+				"floor": "960px",
+				"kids": [
+					{
+						"role": "aside",
+						"w": "18em",
+						"lines": 10
+					},
+					{
+						"role": "main",
+						"dir": "row",
+						"center": true,
+						"floor": "none",
+						"kids": [
+							{
+								"role": "cards",
+								"dir": "row",
+								"w": "50em",
+								"floor": "40rem",
+								"h": "20em",
+								"kids": [
+									{
+										"role": "card",
+										"w": 1
+									},
+									{
+										"role": "card",
+										"w": 1
+									}
+								]
+							}
+						]
+					}
+				]
+			}
+		]
+	}
+}

@@ -1,0 +1,8 @@
+{"class":"/framework/ai2/card.js","title":"V3 inbox and dev bar: landed","type":"card","id":"2026/09/19/v3-layout","created":"2026-09-19T16:24:40-05:00","by":"mastermind","tags":[]}
+{"legacy":"v3-layout"}
+{"status":"done"}
+{"icon":"view_sidebar"}
+{"re":"o-163118"}
+{"parent":"v3-notes"}
+{"text":"I looked at it: two columns, large preview cards newest first, the picked one in full on the right, a drag handle, and the address changes per card. The dev bar has the path bar and a log that evolves and never truncates. Next on this page, one minion: the Now view, streaming in the message box, and the Chat tab becoming Sessions."}
+{"focus":true}

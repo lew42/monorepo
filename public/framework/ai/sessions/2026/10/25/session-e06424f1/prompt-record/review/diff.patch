@@ -1,0 +1,174 @@
+diff --git a/public/framework/core/Task/Prompt.js b/public/framework/core/Task/Prompt.js
+index 74dd005d0..b10213cd5 100644
+--- a/public/framework/core/Task/Prompt.js
++++ b/public/framework/core/Task/Prompt.js
+@@ -4,6 +4,7 @@
+ import Task from "./Task.js";
+ import Item from "../Item/Item.js";
+ import List from "../List/List.js";
++import split from "./sentences.js";
+ 
+ /* One paragraph of the cleaned text: {id, text}. Its sentences are computed from `text` (Prompt.split), numbered `<id>1`, `<id>2`…;
+    a migrated paragraph may carry them explicitly in `sentences`, so the old cites keep their meaning (Server/PromptsToSession.mjs). */
+@@ -38,7 +39,7 @@ export class Prompt extends Task {
+ 	// migrated `refined` cards and `notes` (Server/PromptsToSession.mjs).
+ 	static plain_lists = ["raw", "parts", "refined", "notes"];
+ 	// Plain fields a log line may set (Task.replay_line reads Task.FIELDS and these).
+-	static line_fields = ["subject", "process", "handled", "refined", "notes"];
++	static line_fields = ["subject", "process", "handled", "refined", "notes", "text"];
+ 	static queries = [...Task.queries, "sentences", "settled_parts"];
+ 
+ 	static KINDS = ["ask", "question", "rule", "idea", "conversation"];
+@@ -49,8 +50,8 @@ export class Prompt extends Task {
+ 		const o = part?.outcome ?? {};
+ 		return Prompt.SETTLED.includes(o.is) || (o.is === "task" && task_state(o.ref) === "complete");
+ 	}
+-	/** Sentences of a text: split after . ! ? … (with closing quotes), at whitespace; a newline always ends one. "3.5" stays whole. */
+-	static split(text){ return String(text ?? "").split(/(?<=[.!?…]["'”’)\]]*)\s+|\n+/).map(s => s.trim()).filter(Boolean); }
++	/** Sentences of a text (core/Task/sentences.js, shared with the chat's fold). */
++	static split(text){ return split(text); }
+ 
+ 	// ---- the words ----
+ 	/** Everything that was said, in order: text chunks, never edited or dropped. */
+@@ -93,7 +94,10 @@ export class Prompt extends Task {
+ 	/** The replies that answer a sentence (and, with a word range, the words), in order. */
+ 	replies_to(sentence_id){ return [...this.replies].filter(r => r.get_one("anchor")?.sentence === sentence_id); }
+ 	/** The cleaned text, paragraphs joined by a blank line; before any paragraph, the raw words. */
+-	get text(){ const ps = [...this.paragraphs].map(p => p.get_one("text") ?? ""); return ps.length ? ps.join("\n\n") : this.raw_text; }
++	get cleaned(){ const ps = [...this.paragraphs].map(p => p.get_one("text") ?? ""); return ps.length ? ps.join("\n\n") : this.raw_text; }
++	/** The text the chat draws: the smart assistant's refined version when it wrote one (`{text}`, with `title`), else the cleaned text. */
++	get text(){ return this.get_one("text") ?? this.cleaned; }
++	set text(value){ this.put("text", value); }
+ 	get label(){ return this.get_one("title") ?? this.get_one("subject") ?? (this.sentences[0]?.text ?? this.id).slice(0, 80); }
+ 
+ 	// ---- completion: the owner's rule is "complete when everything it asks is done or documented" ----
+@@ -154,7 +158,7 @@ export class Prompt extends Task {
+ 		const hits = [];
+ 		for (const p of everything){
+ 			if (!(p instanceof Prompt)) continue;
+-			const hay = [p.raw_text, p.text, p.get_one("subject") ?? ""].join(" ").toLowerCase();
++			const hay = [p.raw_text, p.cleaned, p.text, p.get_one("title") ?? "", p.get_one("subject") ?? ""].join(" ").toLowerCase();
+ 			const score = tokens.filter(t => hay.includes(t)).length / tokens.length;
+ 			if (score < min) continue;
+ 			const mine = new Set();
+diff --git a/public/framework/core/Task/Prompt.test.mjs b/public/framework/core/Task/Prompt.test.mjs
+index 8e4c7a361..a3c03d20a 100644
+--- a/public/framework/core/Task/Prompt.test.mjs
++++ b/public/framework/core/Task/Prompt.test.mjs
+@@ -31,6 +31,16 @@ check("paragraphs: add a new one, append to an existing one by id", () => {
+ 	return p.paragraphs.length === 2 && p.sentences.map(s => s.id).join() === "a1,a2,a3,b1" && p.sentence("a3").text === "Then this." && p.text.endsWith("Second.");
+ });
+ 
++check("the smart assistant's refined {title, text} survives replay; cleaned text stays; sentences are unaffected", () => {
++	const p = make({ p1: { title: "A title", text: "Refined version." } }).tasks.find("p1");
++	return p.text === "Refined version." && p.get_one("title") === "A title" && p.cleaned.startsWith("Yeah, so") && p.sentences.map(s => s.id).join() === "a1,a2" && p.label === "A title";
++});
++
++check("the shared splitter (sentences.js): 3.5 and session.json stay whole, a newline ends a sentence", () => {
++	const p = make({ p1: { paragraphs: { replace: { id: "a", text: "Pi is 3.5 or so. See session.json now.\nNext." } } } }).tasks.find("p1");
++	return p.sentences.map(s => s.text).join("|") === "Pi is 3.5 or so.|See session.json now.|Next.";
++});
++
+ check("append to a paragraph that does not exist yet makes it", () => {
+ 	const p = make({ p1: { paragraphs: { append: { id: "z", text: "New." } } } }).tasks.find("p1");
+ 	return p.paragraphs.find("z")?.get_one("text") === "New.";
+diff --git a/public/framework/core/Task/doc/prompt-record.md b/public/framework/core/Task/doc/prompt-record.md
+new file mode 100644
+index 000000000..ba68e1e47
+--- /dev/null
++++ b/public/framework/core/Task/doc/prompt-record.md
+@@ -0,0 +1,51 @@
++# The Prompt record: shape, grouping, and what is wrong today
++
++How a dictated sentence becomes a Prompt in a voice session's `session.jsonl` (the chat is a live view of that list; [Prompt.js](../Prompt.js), [prompt.md](prompt.md), [chat-shape.md](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/chat-shape.md) Option C). Counts below are from the real voice session `v-sq8y7db` (56 Prompts).
++
++## The record (one line each; the writer stamps `ts` and `by`)
++
++```jsonc
++// 1. a Prompt is born with its cleaned, id'd paragraph. `raw` is optional: kept today (cheap, append-only), droppable once cleaning is trusted.
++{"tasks":{"add":{"type":"Prompt","id":"p-1761390000000","raw":["okay so the chat goes in session jsonl"],"paragraphs":[{"id":"a","text":"Okay, so the chat goes in session.jsonl."}]}},"ts":"2026-10-25T10:00:00.000Z","by":"fast"}
++// 2. same idea goes on:        add to the last paragraph          (sentences a1, a2… are computed, never stored)
++{"p-1761390000000":{"raw":{"push":"it has about 150 lines"},"paragraphs":{"append":{"id":"a","text":" It has about 150 lines."}}},"by":"fast"}
++// 3. new idea, same topic:     a new paragraph in the same Prompt
++{"p-1761390000000":{"paragraphs":{"add":{"id":"b","text":"Then the smart one reads it."}}},"by":"fast"}
++// 4. new topic:                a new Prompt (line 1 again)
++// 5. a context card:           a Prompt with a title and no words; prompts of that topic are added under it (or carry "from":"c-…")
++{"tasks":{"add":{"type":"Prompt","id":"c-1761390100000","title":"Chat shape"}}}
++{"c-1761390100000":{"tasks":{"add":{"type":"Prompt","id":"p-1761390100001","paragraphs":[{"id":"a","text":"…"}]}}}}
++// 6. the smart seat refines it (title + text; cleaned paragraphs stay) and works from it
++{"p-1761390000000":{"title":"Chat goes into session.jsonl","text":"The chat is stored in the session's own log."},"by":"smart"}
++{"p-1761390000000":{"tasks":{"add":{"type":"Question","id":"q-1761390200000","text":"Is it append-only?","from":"p-1761390000000"}}},"by":"smart"}
++{"p-1761390000000":{"replies":{"add":{"id":"r-1","text":"Yes.","by":"smart","anchor":{"sentence":"a1"}}}},"by":"smart"}
++```
++
++Completion is computed, never written: a context card or Prompt is complete when everything under it is. A checked-off item stays in the list; the view folds it.
++
++## The grouping rule (who decides, and when)
++
++- **The fast assistant decides, code writes** (law 7). Per sentence it answers one of: `same` (carry on: append to the last paragraph), `paragraph` (new idea, same topic: new paragraph), `prompt` (new topic: new Prompt), optionally `inside <card>` (a context card). Servex turns the answer into lines 2-5 with `PromptLines.js`; the assistant never writes a Prompt line itself.
++- **A pause does not end a Prompt; a topic change does.** A pause (about 2.5 s) only decides when the assistants are woken. The Prompt stays open until the fast assistant says `prompt`, or the session has been quiet for a long time (proposal: 15 min), or Servex restarts.
++- **A context card is temporary:** a titled Prompt that groups the Prompts of one topic while it is live. The substance is the tasks and questions made under it and finished; the card completes with them.
++- **Raw words:** keep `raw` while raw-to-clean problems are being found; drop it from the writer once none turn up. The cleaned sentences are the record.
++
++## What survives replay
++
++| Field | Node `Prompt` (core) | Chat's fold (`ChatV2Model`) |
++|---|---|---|
++| `raw` push (`{push}`, string, array) | all three | `{push}` only |
++| `paragraphs` add / append / replace | all three; one paragraph per id | add and append; **replace ignored**, a repeated id shows twice |
++| sentences | `sentences.js`, ids `a1…` | its own splitter (**differs**: "session.json" is split; open) |
++| smart `title` / `text` | kept (was dropped; fixed here) | kept |
++| `replies`, `tasks`, `Question` | kept | kept |
++
++## Defects found (evidence, owner, status)
++
++1. **Placement is not by topic.** `Sessions.assign_prompt` groups by quiet/floor only and always grows paragraph `a`; `PromptLines.add_paragraph` has no caller. 56 Prompts, none with a second paragraph. The fast assistant's `{place}` and `(new paragraph)` reach only the V1 chat (`Widget.Thread`), never the Prompt. *Servex: map `place` onto lines 2-5.* Open.
++2. **A pause ends the Prompt** (`s.prompt = null` in `release_thought` and `say`), so one topic said in three bursts is three Prompts. Open, same fix.
++3. **Two sentence splitters.** The chat's `ChatV2Model.sentences` splits inside "session.json" and "3.5"; core does not, so a reply anchored to `a2` can mean different words in the two. Nothing changes in behaviour yet: core's rule now lives in `core/Task/sentences.js`, and the whole fix is one import in `ChatV2Model` (`mastermind-dictation-2`). Open.
++4. **Refined `text` was lost on node replay** (25 of 56 Prompts have a smart title or text; the node Prompt kept only `title`), so `Prompt.trace` and any item query missed it. Fixed: `text` is a line field, `cleaned` is the paragraph join.
++5. **The chat's fold ignores `paragraphs.replace` and duplicates a repeated paragraph id** (core keeps one). A cleaned rewrite by the smart seat would not show. `mastermind-dictation-2`.
++6. **A rewrite renumbers sentences**, so a reply anchored to `a2` can silently point at other words. Proposal: an anchor may carry a `quote` (the words), checked on read. Open.
++7. **A Prompt that needs no task never completes** (greeting, plain answer): it reads idle, so the session tally counts it open. The smart seat should close it as `no-action` (stop with `fair: "noise"` today). To confirm how it is tallied before changing it.
+diff --git a/public/framework/core/Task/doc/prompt.md b/public/framework/core/Task/doc/prompt.md
+index d62487ad4..21b4f06c3 100644
+--- a/public/framework/core/Task/doc/prompt.md
++++ b/public/framework/core/Task/doc/prompt.md
+@@ -1,6 +1,6 @@
+ # Prompt and Question: what the owner said, as tasks
+ 
+-A **Prompt** is one thing the owner said or typed, kept as a Task. A **Question** is a question asked of the owner or by the owner, kept as a Task. Both live in a session's `session.jsonl`, so the chat can show a dictation as a card holding its asks (Option C in [chat-shape.md](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/chat-shape.md)). Code: [`Prompt.js`](../Prompt.js), [`Question.js`](../Question.js). Tests: `node Prompt.test.mjs`, `node Question.test.mjs` (in `core/Task/`).
++A **Prompt** is one thing the owner said or typed, kept as a Task. A **Question** is a question asked of the owner or by the owner, kept as a Task. Both live in a session's `session.jsonl`, so the chat can show a dictation as a card holding its asks (Option C in [chat-shape.md](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/chat-shape.md)). Code: [`Prompt.js`](../Prompt.js), [`Question.js`](../Question.js). Tests: `node Prompt.test.mjs`, `node Question.test.mjs` (in `core/Task/`). The record shape with example lines, who groups sentences into Prompts, and the open defects: [prompt-record.md](prompt-record.md).
+ 
+ ```
+ Session
+@@ -16,6 +16,7 @@ Session
+ | `raw` | Array of text chunks, exactly as heard or typed. Only ever appended to; never edited or dropped. |
+ | `paragraphs` | The cleaned text, a list of `{id, text}`. |
+ | `sentences` | Computed from the paragraphs, never stored: `<paragraph id><n>` (`a1`, `a2`…), or `r<n>` before any paragraph exists. A migrated paragraph may carry its own `sentences` array so the old numbering still holds. |
++| `title`, `text` | The smart assistant's refined version of the Prompt. `prompt.text` returns it, or the cleaned paragraphs when there is none; `prompt.cleaned` is always the paragraphs joined. |
+ | `replies` | A list of `{id, text, by, anchor}`. `anchor` is `{sentence: "a2"}` or `{sentence: "a2", from: 3, to: 7}` (word positions); no anchor means the reply is to the whole prompt. |
+ | `tasks` | The asks made from it (Tasks, Questions), as for any Task. |
+ | `parts`, `subject`, `refined`, `notes`, `handled`, `process` | The splitter's record, kept as plain data ([ext/Refine/doc/prompt-records.md](/framework/ext/Refine/md/doc/prompt-records/)). `parts[].cites` are sentence ids. |
+diff --git a/public/framework/core/Task/readme.md b/public/framework/core/Task/readme.md
+index 1a68dcb1a..e7cb47955 100644
+--- a/public/framework/core/Task/readme.md
++++ b/public/framework/core/Task/readme.md
+@@ -110,7 +110,7 @@ Watch it live: [core/Task/live/](/framework/core/Task/live/).
+ 
+ ## More
+ 
+-- **Prompt and Question:** [doc/prompt.md](doc/prompt.md) · [`Prompt.js`](./Prompt.js) · [`Question.js`](./Question.js) · `node Prompt.test.mjs`, `node Question.test.mjs`
++- **Prompt and Question:** [doc/prompt.md](doc/prompt.md) · the record shape, the grouping rule and the open defects: [doc/prompt-record.md](doc/prompt-record.md) · [`Prompt.js`](./Prompt.js) · [`Question.js`](./Question.js) · `node Prompt.test.mjs`, `node Question.test.mjs`
+ - **Templates** (`template: "code" | "doc" | "scan"` on line 1; an approved task with an `agent` spawns itself): [doc/templates.md](doc/templates.md) (proven live 2026-10-17: approve to spawn in about 1.5 s) · the owner's ask, and whether `task.jsonl` became `session.jsonl`: [doc/owner-2026-10-17-node-driven.md](doc/owner-2026-10-17-node-driven.md)
+ - **The owner's words, 2026-10-16:** [task system](doc/owner-2026-10-16-task-system.md) · [composition](doc/owner-2026-10-16-composition.md) · [top-down](doc/owner-2026-10-16-top-down.md) · [UI](doc/owner-2026-10-16-ui.md) · [node side](doc/owner-2026-10-16-node-side.md) · [migration](doc/owner-2026-10-16-migration.md)
+ - [Overview](/framework/core/Task/) · [Live](/framework/core/Task/live/) — start, pause,
+diff --git a/public/framework/core/Task/sentences.js b/public/framework/core/Task/sentences.js
+new file mode 100644
+index 000000000..b96341b8b
+--- /dev/null
++++ b/public/framework/core/Task/sentences.js
+@@ -0,0 +1,4 @@
++// The one sentence splitter: Prompt.sentences (core) uses it, and the chat's fold (ext/Chat/v2/ChatV2Model.js, which still has its own regex) should,
++// so a reply anchored to "a2" points at the same words on every surface. Pure, no imports.
++/** Split after . ! ? … (with closing quotes), at whitespace; a newline always ends one. "3.5" and "session.json" stay whole. */
++export default function split(text){ return String(text ?? "").split(/(?<=[.!?…]["'”’)\]]*)\s+|\n+/).map(s => s.trim()).filter(Boolean); }

@@ -1,0 +1,4 @@
+{
+	"title": "3. Filesystem",
+	"body": "Only if neither of the first two claims the name does `child()` try the real filesystem: it looks for a `page.js` on disk, then a plain markdown file beside the page. That order is the whole design — a dynamic answer can never accidentally hide a real page."
+}

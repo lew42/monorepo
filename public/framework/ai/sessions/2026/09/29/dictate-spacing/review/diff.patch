@@ -1,0 +1,106 @@
+diff --git a/public/framework/core/Page/Page.class.js b/public/framework/core/Page/Page.class.js
+index f20cc143..049af0eb 100644
+--- a/public/framework/core/Page/Page.class.js
++++ b/public/framework/core/Page/Page.class.js
+@@ -549,6 +549,27 @@ export class Page extends PageLog {
+ 		return this;
+ 	}
+ 
++	// An ancestor drawn by ext/Doc (its top-level well-and-tabs shell, or one of its
++	// nested tab-panel sections) already gives a Files tab to the same directory this
++	// page's own Folder link would open — a second way there is just noise. Checked
++	// by the ancestor's own DOM class, not `instanceof Doc`: core/Page doesn't (and
++	// shouldn't) import ext/Doc. Measured 2026-09-29: 50px of dead space (a 22px row
++	// plus its 28px flow gap) on every doc-page section.
++	// ⚠ `page.view` is the VIEW WRAPPER (`div.c(...)` returns a `View`, not a raw
++	//   element) — its class list lives at `page.view.el.classList`, one level down.
++	//   A first version read `page.view.classList` (always undefined) and measured
++	//   the Folder link still there after "shipping" the fix. `this.chain()` itself
++	//   is safe to use here even though this ancestor Doc's own `tabs()` fills its
++	//   panel on a microtask (ext/tabs/tabs.js): by the time that microtask runs
++	//   `first.render()`, the ancestor's own `div.c(...)` call already returned and
++	//   assigned `.view`, so every ancestor in the chain has it set.
++	in_doc(){
++		return this.chain().slice(0, -1).some(page => {
++			const cls = page.view?.el?.classList;
++			return cls?.contains("doc-page") || cls?.contains("doc-section");
++		});
++	}
++
+ 	render(){
+ 		if (this.view) return this.view;
+ 
+@@ -563,11 +584,12 @@ export class Page extends PageLog {
+ 			// owner's "any path slash fs" route (2026-09-28), linked from every page
+ 			// template so it never needs a second click through a parent's Files
+ 			// tab. Never on the /fs/ view itself: that page overrides render() whole
+-			// and never reaches here (ext/files/fs.js).
++			// and never reaches here (ext/files/fs.js). Never inside a Doc page's
++			// chrome either (in_doc(), above): its Files tab is the same trip.
+ 			// ⚠ `this.url` — a page with no real address (a synthetic sidebar group,
+ 			//   built before naming() ever ran) gets no link rather than one pointing
+ 			//   at "undefinedfs/". Found on the site's own hidden nav tree, 2026-09-28.
+-			if (this.url)
++			if (this.url && !this.in_doc())
+ 				a.c("page-fs-link", () => { icon("folder_open"); span("Folder"); })
+ 					.href(this.url + "fs/")
+ 					.style({ display: "inline-flex", alignItems: "center", gap: "0.3em", fontSize: "0.85em", color: "var(--subtle)", textDecoration: "none" });
+diff --git a/public/framework/ext/Doc/Doc.css b/public/framework/ext/Doc/Doc.css
+index 7b5f03eb..ee77fc95 100644
+--- a/public/framework/ext/Doc/Doc.css
++++ b/public/framework/ext/Doc/Doc.css
+@@ -46,14 +46,24 @@
+ 	   ⚠ One inset serves both shapes: beside the title it reads as a gutter-wide gap,
+ 	     and once the basis no longer fits and the strip wraps to its own line, it lands
+ 	     the LABELS on the axis (the tab boxes hang one tab-padding to their left). */
++	/* ⚠ `flex-wrap: wrap` — the strip has 7 labels (overview/api/doc/files/…) and
++	     `tabs.css` scrolls them sideways with nothing to say so below ~450px
++	     (measured: content 644px in a 400px bar). Wrapping to a second row shows
++	     every label instead. Doc.css:2026-09-29. */
+ 	.page.doc-page > .tabs > .tab-bar {
+ 		background: var(--well);
+ 		flex: 1 1 24em; min-width: 0;
+ 		align-items: flex-end;
++		flex-wrap: wrap;
+ 		padding-inline-start: calc(var(--gutter-x) - var(--tab-pad-x));
+ 	}
+ 
+-	.page.doc-page > .tabs > .tab-panel { flex: 0 0 100%; min-width: 0; }
++	/* `tabs.css`'s own `.tab-panel { padding-top: 3em }` is for a bare tab strip
++	   with no well above it. Here the panel's first child is always a `.doc-section`
++	   page, which already pays its own top inset (`--pad-y: 1.5em` below) — the 3em
++	   on top of that was pure empty band (measured 42px at 400px, 48 at 1920).
++	   Doc.css:2026-09-29. */
++	.page.doc-page > .tabs > .tab-panel { flex: 0 0 100%; min-width: 0; padding-top: 0; }
+ 
+ 	/* The well prints the module name; the catalog's intro would print it again.
+ 	   ⚠ The successor's margin goes with it — a `display: none` element still matches
+@@ -61,6 +71,12 @@
+ 	.page.doc-page .page-catalog-pages > .page--intro > .page-title { display: none; }
+ 	.page.doc-page .page-catalog-pages > .page--intro > .page-title + * { margin-block-start: 0; }
+ 
++	/* The intro page sits INSIDE the `overview` section, and both are `.page`s, so
++	   both pay `padding: var(--pad-y) var(--gutter-x)` (Page.css) — the same inset
++	   twice (measured: 56px each side at 400px, should be 28). Zeroing the intro's
++	   own copy leaves the section's. Doc.css:2026-09-29. */
++	.page.doc-page .page-catalog-pages > .page--intro { --gutter-x: 0px; --pad-y: 0px; }
++
+ 	/* A doc section IS a page, so it is the shell's own grid now — `main` for the
+ 	   prose, `wide` for a table or a listing that needs the room. It used to declare
+ 	   `--measure: none`, and `styles/doc/measure.md` measured what that bought: 105
+@@ -79,9 +95,11 @@
+ 	   a `bleed` child (every catalog is one) spends those tracks and lands back on the
+ 	   region edge — so zeroing the nested page's gutter left the prose inside it flush
+ 	   against the app sidebar. Measured on `/framework/ui/`: the intro started at x=274,
+-	   0px of inset, where the section's own axis is 90px. Nothing replaces it: the
+-	   nested page pays its own gutter, and because the catalog between them bleeds, the
+-	   two insets never add up. */
++	   0px of inset, where the section's own axis is 90px.
++	   ⚠ STALE as of 2026-09-29: the catalog is `.wide` now (`div.page-catalog.wide`), so
++	   it no longer bleeds between the two pages — the section's and the intro's insets
++	   DO stack (measured: 56px each side at 400px instead of 28). The `.page--intro`
++	   rule above (`--gutter-x: 0px; --pad-y: 0px`) is the fix for that. */
+ 
+ 	/* The Files section is one browser, not a rail — and the browser is a panel
+ 	   workspace, so the height is its token rather than a flex line. Taller than the
+

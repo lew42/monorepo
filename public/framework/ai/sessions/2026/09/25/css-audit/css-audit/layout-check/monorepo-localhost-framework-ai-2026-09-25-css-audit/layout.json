@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/2026-09-25/css-audit/",
+ "widths": {
+  "1280": {
+   "empty": 0.653,
+   "widest_text": 574,
+   "widest_text_sample": "34,673 lines of CSS across public/",
+   "overflow_x": false,
+   "items": 71,
+   "narrow_share": 0.38
+  },
+  "1920": {
+   "empty": 0.732,
+   "widest_text": 611,
+   "widest_text_sample": "34,673 lines of CSS across public/",
+   "overflow_x": false,
+   "items": 71,
+   "narrow_share": 0.563
+  },
+  "2560": {
+   "empty": 0.764,
+   "widest_text": 687,
+   "widest_text_sample": "34,673 lines of CSS across public/",
+   "overflow_x": false,
+   "items": 71,
+   "narrow_share": 0.873
+  },
+  "3440": {
+   "empty": 0.843,
+   "widest_text": 687,
+   "widest_text_sample": "34,673 lines of CSS across public/",
+   "overflow_x": false,
+   "items": 71,
+   "narrow_share": 0.944
+  }
+ },
+ "errors": []
+}

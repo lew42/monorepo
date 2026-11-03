@@ -1,0 +1,6 @@
+{"class":"/framework/ai2/card.js","title":"V3 broken cards: fixed","type":"card","id":"2026/09/19/v3-error","created":"2026-09-19T16:18:48-05:00","by":"mastermind","tags":[]}
+{"legacy":"v3-error"}
+{"status":"done"}
+{"icon":"bug_report"}
+{"text":"The squeezed cards and the stray code are gone in the landed version."}
+{"focus":true}

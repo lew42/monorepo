@@ -1,0 +1,43 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/2026-09-24/servex-monitor/",
+ "widths": {
+  "1280": {
+   "empty": 0.512,
+   "widest_text": 843,
+   "widest_text_sample": "The mastermind's share is what it spent ",
+   "overflow_x": false,
+   "items": 76,
+   "narrow_share": 0.566
+  },
+  "1920": {
+   "empty": 0.68,
+   "widest_text": 897,
+   "widest_text_sample": "The mastermind's share is what it spent ",
+   "overflow_x": false,
+   "items": 76,
+   "narrow_share": 0.816
+  },
+  "2560": {
+   "empty": 0.729,
+   "widest_text": 1010,
+   "widest_text_sample": "The mastermind's share is what it spent ",
+   "overflow_x": false,
+   "items": 76,
+   "narrow_share": 0.816
+  },
+  "3440": {
+   "empty": 0.789,
+   "widest_text": 1010,
+   "widest_text_sample": "The mastermind's share is what it spent ",
+   "overflow_x": false,
+   "items": 76,
+   "narrow_share": 0.816
+  }
+ },
+ "errors": [
+  "2560: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1920: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1280: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "3440: Failed to load resource: the server responded with a status of 404 (Not Found)"
+ ]
+}

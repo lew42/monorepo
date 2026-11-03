@@ -1,0 +1,202 @@
+[
+ {
+  "id": "9681c66828",
+  "sort": "task",
+  "module": "design/color",
+  "title": "Organise colour modes around the text used on primary backgrounds",
+  "note": "",
+  "evidence": "public/framework/design/color/doc/rules.md:23 - \"Body text needs 4.5:1 against its ground\". Contrast rules exist, but no colour modes are organised around text on primary backgrounds. Unbuilt."
+ },
+ {
+  "id": "630e690de8",
+  "sort": "note",
+  "module": "design/color",
+  "title": "",
+  "note": "Tinted, darkened and lightened primary variants go off-brand and need contrast checks, so they are candidates to drop.",
+  "evidence": "public/framework/design/color/doc/rules.md:7 - \"the lighten and darken steps\" are still listed as tokens; the owner's idea is an open suggestion."
+ },
+ {
+  "id": "2c7b19ab16",
+  "sort": "note",
+  "module": "design/color",
+  "title": "",
+  "note": "The primary background colour stays off for now, unless solid examples that work well turn up.",
+  "evidence": "Standing preference; no page or token change is implied."
+ },
+ {
+  "id": "89da556678",
+  "sort": "note",
+  "module": "design/color",
+  "title": "",
+  "note": "The primary background does not go on every screen or on many cards.",
+  "evidence": "Standing preference about use, not a build item."
+ },
+ {
+  "id": "425fb0d792",
+  "sort": "note",
+  "module": "design/color",
+  "title": "",
+  "note": "The primary is a minimal accent, never a bold splash, and colour use stays minimal.",
+  "evidence": "Standing design rule."
+ },
+ {
+  "id": "52d70aa7a7",
+  "sort": "note",
+  "module": "design/color",
+  "title": "",
+  "note": "Progress bars in the primary's orange-red can read as an error, so using the primary there needs weighing first.",
+  "evidence": "Idea with a caveat; no progress bar change is specified."
+ },
+ {
+  "id": "7ed8d60e12",
+  "sort": "note",
+  "module": "design/color",
+  "title": "",
+  "note": "The site uses one primary hue and introduces no other accent colours.",
+  "evidence": "Standing colour rule."
+ },
+ {
+  "id": "edd191402f",
+  "sort": "done",
+  "module": "styles/stacks",
+  "title": "",
+  "note": "",
+  "evidence": "public/framework/styles/stacks/page.js:145 - div.c(\"stacks-mode stacks-dark flex-1\", () => { div.c(\"h4\", \"dark\"); ladder(...) — the stacking page already builds alternating light and dark surfaces with content inside."
+ },
+ {
+  "id": "c1e9201dd3",
+  "sort": "note",
+  "module": "design/color",
+  "title": "",
+  "note": "Stepping between dark surfaces with light text is preferred over returning to a light surface.",
+  "evidence": "Standing design preference, shown on the stacking page."
+ },
+ {
+  "id": "9c3b89d2ca",
+  "sort": "task",
+  "module": "styles/stacks",
+  "title": "Group the stacking colour and nesting examples into named sections",
+  "note": "",
+  "evidence": "public/framework/styles/stacks/page.js:158 - the only use of 'section' is prose (\"the page arguing its own last section\"). The examples run as one matrix() flow with h4 labels and no section grouping. Unbuilt."
+ },
+ {
+  "id": "1b8159192d",
+  "sort": "done",
+  "module": "ui",
+  "title": "",
+  "note": "",
+  "evidence": "public/framework/ui/readme.md:1 - # UI — the template tier: twenty components in four bands, one page each."
+ },
+ {
+  "id": "2a1f8c5909",
+  "sort": "note",
+  "module": "ui",
+  "title": "",
+  "note": "Only certain component types, such as buttons, get their own page, not every component.",
+  "evidence": "Standing rule; it conflicts with the current one-page-each ui structure, so the owner should see it."
+ },
+ {
+  "id": "24726ca480",
+  "sort": "note",
+  "module": "ui",
+  "title": "",
+  "note": "Components are shown in action, not only as static examples.",
+  "evidence": "Standing presentation rule."
+ },
+ {
+  "id": "5d4b51f596",
+  "sort": "note",
+  "module": "ui",
+  "title": "",
+  "note": "Elements are atomic pieces, and a component is a composition of more than one element.",
+  "evidence": "Standing definition."
+ },
+ {
+  "id": "cb49149c92",
+  "sort": "note",
+  "module": "ui",
+  "title": "",
+  "note": "Composed components are shown on a line, as a card, or as rows in a card.",
+  "evidence": "Standing presentation rule."
+ },
+ {
+  "id": "414a1b9683",
+  "sort": "note",
+  "module": "styles/sections",
+  "title": "",
+  "note": "A section is several components working together, such as a header and a table.",
+  "evidence": "Standing definition."
+ },
+ {
+  "id": "11b419bb71",
+  "sort": "task",
+  "module": "styles/layouts",
+  "title": "Check each layout at mobile width where space is limited",
+  "note": "",
+  "evidence": "public/framework/styles/layouts/400 covers one-column sets at 400px for five class strings only; the other layouts were not checked at mobile width. Unbuilt for the rest."
+ },
+ {
+  "id": "5fa8a9d52c",
+  "sort": "note",
+  "module": "ai",
+  "title": "",
+  "note": "Work autonomously while the owner is away, and keep an eye on pace.",
+  "evidence": "Standing working rule."
+ },
+ {
+  "id": "86d529b3b8",
+  "sort": "note",
+  "module": "styles",
+  "title": "",
+  "note": "Tokens are watched throughout the work, not checked once at the end.",
+  "evidence": "Standing working rule."
+ },
+ {
+  "id": "6a8fbaa2c2",
+  "sort": "note",
+  "module": "ai",
+  "title": "",
+  "note": "Nothing that currently works on the site may be broken or ruined by a change.",
+  "evidence": "Standing rule."
+ },
+ {
+  "id": "7090b3fcde",
+  "sort": "done",
+  "module": "styles",
+  "title": "",
+  "note": "",
+  "evidence": "public/framework/ai/rail/overview/overview.json:554 - \"outcome\": \"The CSS audit landed: up to 8,599 of 35,769 lines can go, and a pick-a-curve page...\""
+ },
+ {
+  "id": "1b2fcb12f4",
+  "sort": "note",
+  "module": "styles",
+  "title": "",
+  "note": "A version two that starts over and restyles the site is an option, so the current site is not clobbered.",
+  "evidence": "Idea; no version two is started."
+ },
+ {
+  "id": "14c25a45d6",
+  "sort": "task",
+  "module": "styles",
+  "title": "Cut the CSS to a much simpler component set without breaking pages",
+  "note": "",
+  "evidence": "public/framework/ai/doc/asks-outcomes.md:72 records the CSS audit's 8,599 lines as identified for removal, not removed. The simplification itself is unbuilt."
+ },
+ {
+  "id": "efb4716dad",
+  "sort": "task",
+  "module": "styles",
+  "title": "Migrate each CSS usage to the new system, then remove the old one",
+  "note": "",
+  "evidence": "public/framework/ai/asks/undone.json (ask text only, open, no migration record found). The ask names no target system, so the target needs a decision first."
+ },
+ {
+  "id": "e15430f07c",
+  "sort": "task",
+  "module": "styles",
+  "title": "Reduce the design tokens to a minimum set and reuse them everywhere",
+  "note": "",
+  "evidence": "public/framework/ai/asks/undone.json:5457 - \"text\": \"Reduce to a minimum set of tokens and reuse them everywhere.\" (open, no task found). Unbuilt."
+ }
+]

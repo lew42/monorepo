@@ -1,0 +1,231 @@
+diff --git a/Server/plugins/SocketServer/Stream.test.mjs b/Server/plugins/SocketServer/Stream.test.mjs
+new file mode 100644
+index 000000000..e5c25e648
+--- /dev/null
++++ b/Server/plugins/SocketServer/Stream.test.mjs
+@@ -0,0 +1,70 @@
++// The live-log trip, end to end in node, no browser: a line appended to a page.jsonl reaches a subscribed socket (Tail.js)
++// and changes the page (the browser half, ext/JSONL/live.js:35 `Socket.prototype.jsonl` -> Reader.read -> Page.set).
++// Run from the repo root: `node Server/plugins/SocketServer/Stream.test.mjs`
++import fs from "node:fs";
++import path from "node:path";
++import { register } from "node:module";
++import { fileURLToPath, pathToFileURL } from "node:url";
++
++const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
++process.chdir(ROOT);   // Tail.js resolves "public" from the cwd
++// Site-absolute imports ("/framework/…", what the browser files use) map to public/ — a loader hook of our own, so this test needs nothing from Servex/.
++const PUBLIC_URL = pathToFileURL(path.join(ROOT, "public") + path.sep).href;
++register("data:text/javascript," + encodeURIComponent(`export async function resolve(spec, ctx, next){ return next(spec.startsWith("/framework/") ? ${JSON.stringify(PUBLIC_URL)} + spec.slice(1) : spec, ctx); }`));
++
++// What a browser tab would have: a localhost location (Store.open streams only there).
++globalThis.location = new URL("http://localhost/");
++globalThis.Element ??= class Element {};   // View.js reads Element.prototype at load (node: until worktree/qf-5 merges its guard)
++
++const { default: Test } = await import("../../../public/framework/core/Test/Test.js");
++const { default: Tail } = await import("./Tail.js");
++const { default: Page } = await import("../../../public/framework/core/Page/Page.class.js");
++const { default: Socket } = await import("../../../public/framework/dev/Socket/Socket.js");
++await import("../../../public/framework/ext/JSONL/live.js");   // installs Socket.prototype.jsonl / jsonl_reset
++
++const t = new Test("Server/SocketServer Tail -> browser tail -> Page");
++const REL = "framework/core/Page/.stream-test-" + process.pid;
++const DIR = path.join(ROOT, "public", REL), FILE = path.join(DIR, "page.jsonl");
++const append = line => fs.appendFileSync(FILE, JSON.stringify(line) + "\n");
++
++// One fake socket plays both ends: Tail calls socket.rpc(method, ...args) as the server; we hand each call to
++// the real Socket.prototype.message the way the wire would (JSON in, `this[method](...args)`), as the browser.
++const handlers = {};
++const server_side = {
++	on: (name, fn) => { handlers[name] = fn; },
++	rpc: (method, ...args) => browser_side.message({ data: JSON.stringify({ method, args }) }),
++};
++const browser_side = Object.create(Socket.prototype);
++browser_side.disabled = false;
++browser_side.requests = [];
++browser_side.send = ({ method, args }) => handlers["rpc:" + method]?.(args);
++Socket.singleton = () => browser_side;
++
++fs.mkdirSync(DIR, { recursive: true });
++append({ title: "Streamed" });
++append({ content: { add: { id: "one", type: "part-text", text: "first" } } });
++
++try {
++	Tail.setup(server_side);
++	const t0 = performance.now();
++
++	const page = await Page.jsonl("/" + REL + "/");
++	t.ok(page instanceof Page, "a Page was built"); t.eq(page.title, "Streamed", "the page was built from line 1 of the file");
++	t.eq([...page.content].map(x => x.id), ["one"], "the first subscribe replayed the lines already in the file");
++
++	append({ content: { add: { id: "two", type: "part-text", text: "second" } } });
++	Tail.changed(FILE);   // the dev server's file watcher makes this call on a real append
++	t.eq([...page.content].map(x => x.id), ["one", "two"], "an appended line changed the page's content");
++
++	append({ title: "Renamed" });
++	Tail.changed(FILE);
++	t.eq(page.title, "Renamed", "a second appended line changed the title");
++
++	const ms = Math.round(performance.now() - t0);
++	console.log(`stream trip: subscribe + 2 live lines in ${ms} ms`);
++	t.ok(ms < 5000, "the whole trip took under 5 seconds");
++	page.store?.close?.();
++} finally { fs.rmSync(DIR, { recursive: true, force: true }); }
++
++t.done();
++process.exit(process.exitCode ?? 0);   // live.js leaves a fallback timer
+diff --git a/public/framework/core/Item/Item.js b/public/framework/core/Item/Item.js
+index 7925c5317..14dd23d06 100644
+--- a/public/framework/core/Item/Item.js
++++ b/public/framework/core/Item/Item.js
+@@ -22,6 +22,7 @@ export class Item extends Events(Object) {
+ 
+ 	constructor(...args){
+ 		super();
++		this.data = Object.create(null);   // before assign(): a field passed to the constructor goes into data, not onto the object as an own property that would shadow its accessor
+ 		this.assign(...args);
+ 		// Null-prototype data bag: no collision with built-in names
+ 		this.data = is_data(this.data) ? this.data : Object.create(null);
+diff --git a/public/framework/core/Item/Item.test.mjs b/public/framework/core/Item/Item.test.mjs
+index 5aef94afa..5b5a4d805 100644
+--- a/public/framework/core/Item/Item.test.mjs
++++ b/public/framework/core/Item/Item.test.mjs
+@@ -103,4 +103,11 @@ n++;
+ 	t(lines.length === 1, "so the child's later delta is NOT logged to the parent's store (known gap)");
+ }
+ 
++// A field passed to the constructor lands in data, so a later set() of it is read back (it used to become a shadowing own property).
++{
++	const g = new Foo({ title: "first" });
++	g.set({ title: "second" });
++	t(g.title === "second" && g.get_one("title") === "second", "new Foo({title}) then set({title}) reads back the new title");
++}
++
+ console.log(`ok — ${n} assertions passed`);
+diff --git a/public/framework/core/Item/Store.test.mjs b/public/framework/core/Item/Store.test.mjs
+new file mode 100644
+index 000000000..d9763708f
+--- /dev/null
++++ b/public/framework/core/Item/Store.test.mjs
+@@ -0,0 +1,63 @@
++// Store: one .jsonl file = one object's history. Plain node: `node public/framework/core/Item/Store.test.mjs`
++//   1. a set() appends exactly one line
++//   2. replaying the file rebuilds the same state
++//   3. a child with its own file writes its own file, plus the note in the root
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import Test from "../Test/Test.js";
++import Item from "./Item.js";
++import "../List/List.js";
++import Store from "./Store.js";
++
++const t = new Test("core/Item/Store");
++const DIR = fs.mkdtempSync(path.join(os.tmpdir(), "store-test-"));
++const base = () => ({ id: "root", title: "Root", kids: [{ id: "a", title: "A" }] });
++
++// A store whose "disk" is a real file in a temp folder: append() writes the queued line, one JSON object per line.
++const open = (host, file) => {
++	const store = new Store({ url: "/" + file });
++	store.append = line => fs.appendFileSync(path.join(DIR, file), JSON.stringify(line) + "\n");
++	store.attach(host);
++	return store;
++};
++const lines = file => fs.existsSync(path.join(DIR, file)) ? fs.readFileSync(path.join(DIR, file), "utf8").split("\n").filter(Boolean).map(l => JSON.parse(l)) : [];
++
++try {
++	// 1 + 2
++	const root = Item.hydrate(base());
++	open(root, "root.jsonl");
++	root.set({ title: "Root 2" });
++	t.eq(lines("root.jsonl").length, 1, "one set() appends exactly one line");
++	t.eq(lines("root.jsonl")[0], { set: { title: "Root 2" } }, "the line is the delta itself");
++
++	root.kids.add({ id: "b", title: "B" });
++	root.kids.find("a").set({ title: "A2" });
++	root.kids.move("b", { after: null });
++	t.eq(lines("root.jsonl").length, 4, "each change is one more line (4 total)");
++
++	const fresh = Item.hydrate(base());
++	const reader = new Store({ url: "/root.jsonl" });
++	reader.read(reader.parse(fs.readFileSync(path.join(DIR, "root.jsonl"), "utf8")));
++	reader.attach(fresh);
++	t.eq(JSON.stringify(fresh), JSON.stringify(root), "replaying the file rebuilds the same state");
++	t.eq([...fresh.kids].map(k => k.id), ["b", "a"], "member order survives the replay");
++	t.eq(lines("root.jsonl").length, 4, "replaying writes nothing back");
++
++	// 3. a child with its own file
++	const parent = Item.hydrate({ title: "P", kids: [] });
++	open(parent, "parent.jsonl");
++	const kid = parent.kids.add({ id: "k", title: "K" });
++	t.eq(lines("parent.jsonl").length, 1, "the root gets the note that the child was added");
++	open(kid, "kid.jsonl");
++	kid.set({ title: "K2" });
++	t.eq(lines("kid.jsonl"), [{ set: { title: "K2" } }], "the child's change goes to the child's own file");
++	t.eq(lines("parent.jsonl").length, 1, "the root file did not record the child's change");
++
++	const marked = parent.kids.add({ id: "m", title: "M" });
++	marked._own_file = "/m/";
++	marked.set({ title: "M2" });
++	t.eq(lines("parent.jsonl").length, 2, "a child marked _own_file adds its note to the root, then nothing more");
++} finally { fs.rmSync(DIR, { recursive: true, force: true }); }
++
++t.done();
+diff --git a/public/framework/core/List/List.test.mjs b/public/framework/core/List/List.test.mjs
+new file mode 100644
+index 000000000..f602a7e77
+--- /dev/null
++++ b/public/framework/core/List/List.test.mjs
+@@ -0,0 +1,52 @@
++// List: add, remove, move and order each survive a save and a replay. Plain node: `node public/framework/core/List/List.test.mjs`
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import Test from "../Test/Test.js";
++import Item from "../Item/Item.js";
++import Store from "../Item/Store.js";
++import "./List.js";
++
++const t = new Test("core/List");
++const DIR = fs.mkdtempSync(path.join(os.tmpdir(), "list-test-"));
++const FILE = path.join(DIR, "list.jsonl");
++const base = () => ({ id: "root", title: "Root", kids: [{ id: "a" }, { id: "b" }, { id: "c" }] });
++const ids = root => [...root.kids].map(k => k.id);
++const lines = () => fs.existsSync(FILE) ? fs.readFileSync(FILE, "utf8").split("\n").filter(Boolean).map(l => JSON.parse(l)) : [];
++
++// Each step: do it on a live root whose Store appends to FILE, then replay FILE onto a fresh root and compare.
++const root = Item.hydrate(base());
++const store = new Store({ url: "/list.jsonl" });
++store.append = line => fs.appendFileSync(FILE, JSON.stringify(line) + "\n");
++store.attach(root);
++
++const replayed = () => {
++	const fresh = Item.hydrate(base());
++	const reader = new Store({ url: "/list.jsonl" });
++	reader.read(reader.parse(fs.readFileSync(FILE, "utf8")));
++	reader.attach(fresh);
++	return fresh;
++};
++const step = (name, fn, want) => {
++	const before = lines().length;
++	fn();
++	t.eq(lines().length, before + 1, `${name}: exactly one line saved`);
++	t.eq(ids(root), want, `${name}: live order`);
++	t.eq(ids(replayed()), want, `${name}: replay rebuilds the same order`);
++};
++
++try {
++	step("add", () => root.kids.add({ id: "d" }), ["a", "b", "c", "d"]);
++	step("add after", () => root.kids.add({ id: "e" }, { after: "a" }), ["a", "e", "b", "c", "d"]);
++	step("remove", () => root.kids.remove("b"), ["a", "e", "c", "d"]);
++	step("move", () => root.kids.move("d", { after: null }), ["d", "a", "e", "c"]);
++	step("order", () => root.kids.order(["c", "e", "a", "d"]), ["c", "e", "a", "d"]);
++	t.eq(JSON.stringify(replayed()), JSON.stringify(root), "the whole replayed root equals the live one");
++
++	// add([a, b]) adds two members (fixed on worktree/qf-5; fails on michael/dev until that merges)
++	const pair = Item.hydrate({ id: "p", kids: [] });
++	pair.kids.add([{ id: "x" }, { id: "y" }]);
++	t.eq(ids(pair), ["x", "y"], "add([a, b]) adds two members");
++} finally { fs.rmSync(DIR, { recursive: true, force: true }); }
++
++t.done();

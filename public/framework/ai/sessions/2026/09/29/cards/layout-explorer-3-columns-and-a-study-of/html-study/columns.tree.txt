@@ -1,0 +1,203 @@
+body  [block 1920x1080@0,0]
+  div.dev-bar.flex.v  [flex 272x1080@1936,0]  ⚑ fixed
+    div.dev-tabs.flex  [flex 271x6@1937,112]
+    div.dev-body.flex.v  [flex 271x961@1937,119]
+    … 2 more (content)
+  div.app.theme-lew42  [flex 1920x1080@0,0]
+    div.pages  [flex 1920x1080@0,0]
+      div.page.topic.flex.fill.page-homepage.hides-nav.active-ancestor  [none]  ⚑ NONE
+        div.sidebar  [flex 0x0@0,0]
+          div.sidebar-rail  [flex 0x0@0,0]  ⚑ sticky
+            div.sidebar-bar  [flex 0x0@0,0]
+              button.sidebar-toggle  [none]  ⚑ NONE
+                span.sidebar-toggle-bar  [inline 0x0@0,0]
+                span.sidebar-toggle-bar  [inline 0x0@0,0]
+                span.sidebar-toggle-bar  [inline 0x0@0,0]
+              … 1 more (content)
+            div.sidebar-menu  [flex 0x0@0,0]
+              div.filter.flex.wrap.gap.v-center.sidebar-filter.darken-2  [flex 0x0@0,0]
+                … 1 more (content)
+              div.sidebar-nav  [flex 0x0@0,0]
+                … 1 more (content)
+              div.sidebar-footer  [flex 0x0@0,0]
+                div.sidebar-avatar  [block 0x0@0,0]
+                … 1 more (content)
+          … 1 more (content)
+        div.pages  [flex 0x0@0,0]
+          … 1 more (content)
+      div.page.page--framework.topic.flex.fill.hides-nav.active-ancestor  [flex 1920x1080@0,0]
+        div.sidebar  [flex 256x1080@0,0]
+          div.sidebar-rail  [flex 255x1080@0,0]  ⚑ sticky
+            div.sidebar-bar  [flex 255x57@0,0]
+              button.sidebar-toggle  [none]  ⚑ NONE
+                span.sidebar-toggle-bar  [inline 0x0@0,0]
+                span.sidebar-toggle-bar  [inline 0x0@0,0]
+                span.sidebar-toggle-bar  [inline 0x0@0,0]
+              … 1 more (content)
+            div.sidebar-menu  [flex 255x1023@0,57]
+              div.filter.flex.wrap.gap.v-center.sidebar-filter.darken-2  [flex 255x46@0,57]
+                … 1 more (content)
+              div.sidebar-nav  [flex 255x942@0,103]
+                ul.ui-tree.tree  [block 255x2311@0,108]
+                  li.ui-tree-item.tree-item.ui-tree-open  [list-item 255x1836@0,298]
+                    ul.ui-tree-children  [block 255x1804@0,330]
+                      li.ui-tree-item.tree-item.ui-tree-open  [list-item 239x1520@16,362]
+                        ul.ui-tree-children  [block 239x1488@16,393]
+                          li.ui-tree-item.tree-item.ui-tree-open  [list-item 223x1235@32,393]
+                            ul.ui-tree-children  [block 223x1203@32,425]
+                              … 30 more (content)
+                            … 1 more (content)
+                          … 8 more (content)
+                        … 1 more (content)
+                      … 9 more (content)
+                    … 1 more (content)
+                  … 15 more (content)
+              div.sidebar-footer  [flex 255x34@0,1046]
+                div.sidebar-avatar  [block 24x24@215,1051]
+                … 1 more (content)
+          … 1 more (content)
+        div.pages  [flex 1664x1080@256,0]
+          div.page.flow.page--core.standard.active-ancestor  [none]  ⚑ NONE
+            h1.page-title  [block 0x0@0,0]
+            a.page-fs-link  [inline-flex 0x0@0,0]
+              … 2 more (content)
+            div.page-previews.bleed  [grid 0x0@0,0]
+              div.page-preview  [flex 0x0@0,0]
+                a.page-preview-link  [flex 0x0@0,0]
+                  span.page-preview-title  [block 0x0@0,0]
+                  … 1 more (content)
+                p.page-preview-desc  [flow-root 0x0@0,0]
+              div.page-preview  [flex 0x0@0,0]
+                a.page-preview-link.in-path  [flex 0x0@0,0]
+                  span.page-preview-title  [block 0x0@0,0]
+                  … 1 more (content)
+                p.page-preview-desc  [flow-root 0x0@0,0]
+              div.page-preview  [flex 0x0@0,0]
+                a.page-preview-link  [flex 0x0@0,0]
+                  span.page-preview-title  [block 0x0@0,0]
+                  … 1 more (content)
+                p.page-preview-desc  [flow-root 0x0@0,0]
+              div.page-preview  [flex 0x0@0,0]
+                a.page-preview-link  [flex 0x0@0,0]
+                  span.page-preview-title  [block 0x0@0,0]
+                  … 1 more (content)
+                p.page-preview-desc  [flow-root 0x0@0,0]
+              div.page-preview  [flex 0x0@0,0]
+                a.page-preview-link  [flex 0x0@0,0]
+                  span.page-preview-title  [block 0x0@0,0]
+                  … 1 more (content)
+                p.page-preview-desc  [flow-root 0x0@0,0]
+              div.page-preview  [flex 0x0@0,0]
+                a.page-preview-link  [flex 0x0@0,0]
+                  span.page-preview-title  [block 0x0@0,0]
+                  … 1 more (content)
+                p.page-preview-desc  [flow-root 0x0@0,0]
+              div.page-preview  [flex 0x0@0,0]
+                a.page-preview-link  [flex 0x0@0,0]
+                  span.page-preview-title  [block 0x0@0,0]
+                  … 1 more (content)
+                p.page-preview-desc  [flow-root 0x0@0,0]
+              div.page-preview  [flex 0x0@0,0]
+                a.page-preview-link  [flex 0x0@0,0]
+                  span.page-preview-title  [block 0x0@0,0]
+                  … 1 more (content)
+                p.page-preview-desc  [flow-root 0x0@0,0]
+              div.page-preview  [flex 0x0@0,0]
+                a.page-preview-link  [flex 0x0@0,0]
+                  span.page-preview-title  [block 0x0@0,0]
+                  … 1 more (content)
+                p.page-preview-desc  [flow-root 0x0@0,0]
+                  … 2 more (content)
+              div.page-preview  [flex 0x0@0,0]
+                a.page-preview-link  [flex 0x0@0,0]
+                  span.page-preview-title  [block 0x0@0,0]
+                  … 1 more (content)
+                p.page-preview-desc  [flow-root 0x0@0,0]
+                  … 1 more (content)
+            … 12 more (content)
+          div.page.doc-page.page--Page.active-ancestor  [none]  ⚑ NONE
+            div.tabs.block  [contents 0x0@0,0]  ⚑ CONTENTS
+              div.tab-bar  [flex 0x0@0,0]
+                a.tab.tab-default.in-path  [flex 0x0@0,0]
+                a.tab  [flex 0x0@0,0]
+                a.tab  [flex 0x0@0,0]
+                a.tab  [flex 0x0@0,0]
+                a.tab  [flex 0x0@0,0]
+                a.tab  [flex 0x0@0,0]
+                a.tab  [flex 0x0@0,0]
+                a.tab  [flex 0x0@0,0]
+              div.tab-panel  [block 0x0@0,0]
+                div.page.doc-section.flow.page--overview.active-ancestor.default  [grid 0x0@0,0]
+                  … 2 more (content)
+            … 1 more (content)
+          div.page.flow.page--columns.standard.active-ancestor  [none]  ⚑ NONE
+            h1.page-title  [block 0x0@0,0]
+            a.page-fs-link  [inline-flex 0x0@0,0]
+              … 2 more (content)
+            div.bleed.demo-shell  [flex 0x0@0,0]
+              div.demo-shell-run  [block 0x0@0,0]
+                div.demo-shell-path  [flex 0x0@0,0]
+                  a.demo-app-crumb  [block 0x0@0,0]
+                  span.demo-shell-sep  [block 0x0@0,0]
+                  a.demo-app-crumb.in-path  [block 0x0@0,0]
+                  span.demo-shell-sep  [block 0x0@0,0]
+                  a.demo-app-crumb.in-path  [block 0x0@0,0]
+                  span.demo-shell-sep  [block 0x0@0,0]
+                  a.demo-app-crumb.in-path  [block 0x0@0,0]
+                  span.demo-shell-sep  [block 0x0@0,0]
+                  a.demo-app-crumb.in-path  [block 0x0@0,0]
+                  span.demo-shell-sep  [block 0x0@0,0]
+                  … 1 more (content)
+                div.demo-shell-steer  [block 0x0@0,0]
+                  … 1 more (content)
+                … 1 more (content)
+              div.demo-shell-code  [flex 0x0@0,0]
+                … 1 more (content)
+            div.page-previews.bleed  [grid 0x0@0,0]
+              div.page-preview  [flex 0x0@0,0]
+                a.page-preview-link.active  [flex 0x0@0,0]
+                  span.page-preview-title  [block 0x0@0,0]
+                  … 1 more (content)
+                p.page-preview-desc  [flow-root 0x0@0,0]
+              div.page-preview  [flex 0x0@0,0]
+                a.page-preview-link  [flex 0x0@0,0]
+                  span.page-preview-title  [block 0x0@0,0]
+                p.page-preview-desc  [flow-root 0x0@0,0]
+              div.page-preview  [flex 0x0@0,0]
+                a.page-preview-link  [flex 0x0@0,0]
+                  span.page-preview-title  [block 0x0@0,0]
+                  … 1 more (content)
+                p.page-preview-desc  [flow-root 0x0@0,0]
+              div.page-preview  [flex 0x0@0,0]
+                a.page-preview-link  [flex 0x0@0,0]
+                  span.page-preview-title  [block 0x0@0,0]
+                  … 1 more (content)
+                p.page-preview-desc  [flow-root 0x0@0,0]
+              div.page-preview  [flex 0x0@0,0]
+                a.page-preview-link  [flex 0x0@0,0]
+                  span.page-preview-title  [block 0x0@0,0]
+                  … 1 more (content)
+                p.page-preview-desc  [flow-root 0x0@0,0]
+            … 2 more (content)
+          div.page.columns.page-columns-even.page--finder.active-page  [flex 1664x1080@256,0]
+            div.page-columns-bar  [block 1664x43@256,0]
+              div.page-crumbs  [flex 1603x26@287,8]
+                a.page-link.active  [block 48x26@287,8]
+            div.page-columns-row  [flex 1664x1037@256,43]
+              div.page-column-body.page-column-small  [block 832x1037@256,43]
+                div.page-column-head  [flex 831x55@256,43]  ⚑ sticky
+                  span.page-column-title  [block 51x27@283,56]
+                div.page-column-prose.flow  [block 831x182@256,98]
+                  … 1 more (content)
+                a.page-column-item  [flex 831x36@256,280]
+                  span.page-column-label  [block 734x26@303,285]
+                  … 2 more (content)
+                a.page-column-item  [flex 831x36@256,316]
+                  span.page-column-label  [block 734x26@303,321]
+                  … 2 more (content)
+                a.page-column-item  [flex 831x36@256,352]
+                  span.page-column-label  [block 776x26@283,357]
+              div.page-column-grab  [block 6x1037@1082,43]
+              div.page-column-pages  [contents 0x0@0,0]  ⚑ CONTENTS
+          … 1 more (content)
+    button.drawer-menu  [flex 35x35@1877,8]  ⚑ fixed

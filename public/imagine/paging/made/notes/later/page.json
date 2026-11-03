@@ -1,0 +1,15 @@
+{
+	"title": "Later",
+	"icon": "description",
+	"description": "A page you made.",
+	"mode": {
+		"navigation": "none",
+		"content": "settings",
+		"room": "reading",
+		"arrangement": "plain",
+		"surface": "tint",
+		"background": "plain",
+		"type": "regular"
+	},
+	"children": []
+}

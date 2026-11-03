@@ -1,0 +1,4 @@
+{
+  "pick": "sonnet-b",
+  "caveat": "Adopt the single-pass Map aggregation approach (from haiku-a/haiku-c) in models() to optimize from O(n·m) to O(n) performance while retaining sonnet-b's modularity."
+}

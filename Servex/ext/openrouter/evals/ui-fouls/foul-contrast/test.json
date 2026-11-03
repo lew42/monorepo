@@ -1,0 +1,7 @@
+{
+	"id": "foul-contrast",
+	"kind": "ui-fouls",
+	"viewport": { "width": 500, "height": 300 },
+	"planted_foul": "low contrast — the \"Save changes\" button text is light gray on a near-white background",
+	"keywords": ["contrast", "hard to read", "faint", "gray on", "illegible", "wcag", "accessib", "button text"]
+}

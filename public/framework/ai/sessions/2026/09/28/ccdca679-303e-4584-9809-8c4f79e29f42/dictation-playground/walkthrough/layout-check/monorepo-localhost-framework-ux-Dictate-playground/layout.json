@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ux/Dictate/playground/",
+ "widths": {
+  "1280": {
+   "empty": 0.675,
+   "widest_text": 509,
+   "widest_text_sample": "Press 🎤, or ▶ Sample for a scripted fak",
+   "overflow_x": false,
+   "items": 45,
+   "narrow_share": 0.356
+  },
+  "1920": {
+   "empty": 0.761,
+   "widest_text": 542,
+   "widest_text_sample": "Press 🎤, or ▶ Sample for a scripted fak",
+   "overflow_x": false,
+   "items": 45,
+   "narrow_share": 1
+  },
+  "2560": {
+   "empty": 0.782,
+   "widest_text": 610,
+   "widest_text_sample": "Press 🎤, or ▶ Sample for a scripted fak",
+   "overflow_x": false,
+   "items": 45,
+   "narrow_share": 1
+  },
+  "3440": {
+   "empty": 0.83,
+   "widest_text": 610,
+   "widest_text_sample": "Press 🎤, or ▶ Sample for a scripted fak",
+   "overflow_x": false,
+   "items": 45,
+   "narrow_share": 1
+  }
+ },
+ "errors": []
+}

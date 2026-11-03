@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ext/files/",
+ "widths": {
+  "1280": {
+   "empty": 0.563,
+   "widest_text": 589,
+   "widest_text_sample": "strip on its right edge. A\nreader who wa",
+   "overflow_x": false,
+   "items": 85,
+   "narrow_share": 0.294
+  },
+  "1920": {
+   "empty": 0.701,
+   "widest_text": 627,
+   "widest_text_sample": "strip on its right edge. A\nreader who wa",
+   "overflow_x": false,
+   "items": 85,
+   "narrow_share": 0.882
+  },
+  "2560": {
+   "empty": 0.744,
+   "widest_text": 705,
+   "widest_text_sample": "strip on its right edge. A\nreader who wa",
+   "overflow_x": false,
+   "items": 85,
+   "narrow_share": 0.882
+  },
+  "3440": {
+   "empty": 0.794,
+   "widest_text": 705,
+   "widest_text_sample": "strip on its right edge. A\nreader who wa",
+   "overflow_x": false,
+   "items": 85,
+   "narrow_share": 0.882
+  }
+ },
+ "errors": []
+}

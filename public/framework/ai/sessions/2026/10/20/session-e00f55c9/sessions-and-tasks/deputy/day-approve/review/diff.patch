@@ -1,0 +1,161 @@
+diff --git a/public/framework/ai/AIDay/AIDay.css b/public/framework/ai/AIDay/AIDay.css
+index d38d9291a..5852998db 100644
+--- a/public/framework/ai/AIDay/AIDay.css
++++ b/public/framework/ai/AIDay/AIDay.css
+@@ -22,5 +22,11 @@
+ 	.aid-more { display: flex; flex-direction: column; gap: 0.6em; }
+ 	.aid-lines { display: flex; flex-direction: column; gap: 0.3em; padding: 0.4em 0; }
+ 	.aid-line { display: flex; gap: 0.5em; font-size: 0.85em; overflow-wrap: anywhere; min-width: 0; }
++	.aid-merge { padding: 0.6em 0.8em; border: 1px solid var(--line); border-radius: 0.5em; }
++	.aid-mhead { font-weight: 600; margin-block-end: 0.4em; }
++	.aid-approve { flex: none; font: inherit; font-size: 0.8em; padding: 0.15em 0.8em; border: 1px solid var(--ok); border-radius: 2em; background: transparent; color: inherit; cursor: pointer; }
++	.aid-approve:disabled { opacity: 0.5; }
++	.aid-approved { flex: none; font-size: 0.8em; color: var(--ok); }
++	.aid-note, .aid-nosnap { font-size: 0.8em; opacity: 0.75; }
+ 	.aid-empty { padding: 1em 0; opacity: 0.8; }
+ }
+diff --git a/public/framework/ai/AIDay/AIDay.js b/public/framework/ai/AIDay/AIDay.js
+index 57afecf99..21e4e39b3 100644
+--- a/public/framework/ai/AIDay/AIDay.js
++++ b/public/framework/ai/AIDay/AIDay.js
+@@ -1,6 +1,8 @@
+-import { View, div, span, a, p } from "/app.js";
++import { View, div, span, a, p, small, button } from "/app.js";
+ import QueryClient from "/framework/ext/Query/QueryClient.js";
+ import { fold } from "/framework/ai/AITask/message.js";
++import Approvals from "/framework/ai/AISession/Approvals.js";
++import ReadyToMerge from "/framework/ai/merge/ReadyToMerge.js";
+ 
+ View.stylesheet(import.meta, "AIDay.css");
+ 
+@@ -30,6 +32,8 @@ export default class AIDay extends View {
+ 		this.rows = new Map();
+ 		this.loading = true;
+ 		this.error = "";
++		this.snaps = new Map();       // "day/folder" -> session snapshot, or null when none was found
++		this.approvals = new Map();   // snapshot day (2026/10/20) -> Approvals stream
+ 		this.client = new QueryClient("tasks", { row: r => this.change(r), stale: () => this.ask() });
+ 		super.initialize();
+ 	}
+@@ -41,6 +45,7 @@ export default class AIDay extends View {
+ 			if (after <= AIDay.today()) a.c("aid-link", after + " ›").href(`/framework/ai/${after}/`);
+ 		});
+ 		this.$head = div.c("aid-head");
++		if (this.day === AIDay.today()) div.c("aid-merge", () => { div.c("aid-mhead", "Ready to merge"); new ReadyToMerge(); });
+ 		this.$list = div.c("aid-list");
+ 		div.c("aid-more", () => {
+ 			fold("Prompts of the day (the owner's dictations)", () => this.prompts());
+@@ -62,6 +67,31 @@ export default class AIDay extends View {
+ 		this.error = "";
+ 		this.rows = new Map([...(landed.rows ?? []), ...res.rows].map(r => [r.id, r]));
+ 		this.paint();
++		await this.find_snaps();
++		this.paint();
++	}
++
++	/** Each session root's snapshot, from its folder's day index.json (the one the session page reads), matched by folder name. Approvals keys by snapshot id. */
++	async find_snaps(){
++		const roots = this.tree().filter(s => s.kids.length), days = new Map();
++		await Promise.all(roots.map(async s => {
++			const day = (s.r?.day ?? s.day ?? this.day).replaceAll("-", "/"), key = day + "/" + s.rel;
++			if (this.snaps.has(key)) return;
++			if (!days.has(day)) days.set(day, fetch(`/framework/ai/sessions/${day}/index.json`).then(r => r.ok && !(r.headers.get("content-type") ?? "").includes("html") ? r.json() : null).catch(() => null));
++			const snap = (await days.get(day))?.snapshots?.find(x => x.folder === s.rel) ?? null;
++			this.snaps.set(key, snap);
++			if (snap){
++				const d = (snap.day ?? day).replaceAll("-", "/");
++				if (!this.approvals.has(d)){ const st = Approvals.of_day(d); st.on(() => this.paint()); this.approvals.set(d, st); }
++			}
++		}));
++	}
++
++	snap(s){ return this.snaps.get((s.r?.day ?? s.day ?? this.day).replaceAll("-", "/") + "/" + s.rel); }
++	approval(snap){ return this.approvals.get((snap.day ?? "").replaceAll("-", "/"))?.of(snap.id) ?? null; }
++	async approve(snap, $note){
++		const ok = await this.approvals.get(snap.day.replaceAll("-", "/")).approve([snap]);
++		if (!ok) $note.text("Not saved: approving writes the session's own record, which needs the local dev server.");
+ 	}
+ 
+ 	change(r){ this.rows.set(r.id, r); this.paint(); }
+@@ -116,7 +146,13 @@ export default class AIDay extends View {
+ 				const day = s.r?.day ?? s.day;
+ 				if (day && day !== this.day) span.c("aid-from", "started " + day);
+ 				span.c("aid-sum", `${landed} ✅ · ${open} ⬜`);
++				const snap = this.snap(s);
++				if (snap && this.approval(snap)) span.c("aid-approved", "approved");
++				else if (snap) button.c("aid-approve", "Approve").attr("type", "button").attr("title", "Approve this session and everything in it")
++					.click(e => { e.target.disabled = true; this.approve(snap, $note); });
+ 			});
++			const $note = div.c("aid-note");
++			if (this.snap(s) === null) small.c("aid-nosnap", "No snapshot of this session was found in its day's index, so it cannot be approved here.");
+ 			this.level(s.kids);
+ 		});
+ 	}
+diff --git a/public/framework/ai/AIDay/readme.md b/public/framework/ai/AIDay/readme.md
+index 2e9f0098a..2d882040d 100644
+--- a/public/framework/ai/AIDay/readme.md
++++ b/public/framework/ai/AIDay/readme.md
+@@ -1,10 +1,12 @@
+ # AIDay `ai/AIDay/`
+ 
+-The day page, at `/framework/ai/<YYYY-MM-DD>/`: every task of the day as a check-mark list, ✅ landed or ⬜ open, a task under its parent task under its session, each row with the time, the title and the first line of its outcome. Open first, then newest first. Below it: the owner's dictations of the day, the day's log lines, and a link to the same day by origin (`AIDashboard`).
++The day page, at `/framework/ai/<YYYY-MM-DD>/`: every task of the day as a check-mark list, ✅ landed or ⬜ open, a task under its parent task under its session, each row with the time, the title and the first line of its outcome. Open first, then newest first. Each session block has an Approve button (the session page's, via `AISession/Approvals`), and today's page lists what is ready to merge (`merge/ReadyToMerge`) above the sessions. Below it: the owner's dictations of the day, the day's log lines, and a link to the same day by origin (`AIDashboard`).
+ 
+ | Piece | Job |
+ |---|---|
+ | `AIDay.js` (`AIDay extends View`) | asks the `tasks` source twice, for `landed_day == this day` (work that landed today in an older session's folder) and then `day == this day` (this day's folders; asked last, because the server pushes changed rows for the last query only), builds the tree from each row's folder path, repaints on every pushed row |
++| Approve (in `AIDay.js`) | `find_snaps()` finds each session's snapshot in its folder's day `index.json` by folder name; Approve calls `Approvals.of_day(snap.day).approve([snap])`, the same call as the session page: one line in the session's `session.jsonl`, one in that day's `day.jsonl`. No snapshot found: no button, one muted line saying so |
++| Ready to merge (in `AIDay.js`) | `new ReadyToMerge()`, drawn only when the page's day is today (the list is live, wrong on a past day) |
+ | `AIDay.css` | `aid-` rules, one column at 400 px |
+ | `Server/SessionIndex.mjs` | registers the `tasks` query source over the sessions store; whether a task landed is `AIIndex.fold`'s call, never this page's |
+ 
+@@ -12,6 +14,8 @@ Data path: `sessions/YYYY/MM/DD/**/task.jsonl|session.jsonl` → `SessionIndex`
+ 
+ ## Watch out
+ 
++- Approve needs the day's `index.json` (generated, git-ignored) and the dev server to write; a fresh worktree has neither until the server has built them.
++- Ready to merge asks Servex's `/api/ready-to-merge`, so it says in words when Servex does not answer.
+ - Needs the dev server (a static host has no socket); the page says so.
+ - A task counts as landed only when its own record says so (`complete`, or a landing line from `finish-task`); a minion's `ready:` line or a parent's log line is not a landing.
+ - A session from an older day shows its start day beside its name and links to its own dated folder.
+diff --git a/public/framework/ai/readme.md b/public/framework/ai/readme.md
+index d9adf06cc..65284e6dd 100644
+--- a/public/framework/ai/readme.md
++++ b/public/framework/ai/readme.md
+@@ -31,7 +31,7 @@
+ 
+ ## Classes and folders that draw them
+ 
+-[`AIDay/`](AIDay/readme.md) — the day page ([/framework/ai/2026-10-20/](/framework/ai/2026-10-20/)): the tasks started or landed that day as a check-mark list (✅ landed, ⬜ open), nested session → task → child, read from the `tasks` query source over the store, live.
++[`AIDay/`](AIDay/readme.md) — the day page ([/framework/ai/2026-10-20/](/framework/ai/2026-10-20/)): the tasks started or landed that day as a check-mark list (✅ landed, ⬜ open), nested session → task → child, read from the `tasks` query source over the store, live; each session has Approve, and today's page shows the ready-to-merge list.
+ 
+ [`now/`](now/readme.md) — the live in-flight page ([/framework/ai/now/](/framework/ai/now/)): every session active in the last hour, from the `inflight` query source.
+ 
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/day-approve/proof.mjs b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/day-approve/proof.mjs
+new file mode 100644
+index 000000000..de7e6df09
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/day-approve/proof.mjs
+@@ -0,0 +1,22 @@
++import { chromium } from "file:///C:/Users/mike/AppData/Roaming/npm/node_modules/playwright/index.mjs";
++const base = "http://127.0.0.1:53825", out = new URL("./shots/", import.meta.url).pathname.slice(1);
++const b = await chromium.launch(), log = [];
++for (const day of ["2026-10-24", "2026-10-20"]) for (const w of [1200, 1920]) {
++	const p = await b.newPage({ viewport: { width: w, height: 1000 } });
++	await p.goto(`${base}/framework/ai/${day}/`); await p.waitForSelector('.aid[data-ready="true"]', { timeout: 30000 }); await p.waitForTimeout(2500);
++	await p.screenshot({ path: `${out}${day}-${w}.png` });
++	log.push(`${day} ${w}: merge section=${await p.locator(".aid-merge").count()} approve buttons=${await p.locator(".aid-approve").count()} nosnap=${await p.locator(".aid-nosnap").count()}`);
++	await p.close();
++}
++const p = await b.newPage({ viewport: { width: 1200, height: 1000 } });
++await p.goto(`${base}/framework/ai/2026-10-20/`); await p.waitForSelector('.aid[data-ready="true"]'); await p.waitForTimeout(2500);
++const box = p.locator(".aid-session", { has: p.locator(".aid-approve") }).first();
++const href = await box.locator(".aid-sname").getAttribute("href");
++log.push("approving session " + href);
++await box.locator(".aid-approve").click(); await p.waitForTimeout(2500);
++log.push("after press: " + await box.locator(".aid-approved").count() + " approved label");
++await p.screenshot({ path: `${out}approved-1200.png` });
++await p.goto(`${base}${href}`); await p.waitForTimeout(6000);
++log.push("session page: approve-all buttons=" + await p.locator(".sw-approve-all").count() + " approved text=" + await p.locator("text=/approved/i").count());
++await p.screenshot({ path: `${out}session-page-after.png` });
++console.log(log.join("\n")); await b.close();

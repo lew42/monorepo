@@ -1,0 +1,5 @@
+{"class":"/framework/ai2/card.js","title":"2. One long-lived minion per page","type":"card","id":"2026/09/19/process-redesign-2","created":"2026-09-19T16:54:46-05:00","by":"mastermind","tags":[]}
+{"legacy":"process-redesign-2"}
+{"icon":"engineering"}
+{"parent":"process-redesign"}
+{"text":"Instead of a new 40 minute task per request, each surface keeps one minion alive and I feed it small follow-ups. It already knows the files, so a small change lands in 2 to 5 minutes. The cache makes waking it cheap for an hour."}

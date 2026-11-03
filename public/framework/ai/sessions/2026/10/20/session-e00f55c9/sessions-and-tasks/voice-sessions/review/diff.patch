@@ -1,0 +1,487 @@
+diff --git a/Servex/agents/Sessions.js b/Servex/agents/Sessions.js
+index 6abd1695c..b9ccb1ffe 100644
+--- a/Servex/agents/Sessions.js
++++ b/Servex/agents/Sessions.js
+@@ -3,9 +3,9 @@ import os from "node:os";
+ import path from "node:path";
+ import { fileURLToPath } from "node:url";
+ import { place, HOME } from "../home.js";
+-import Usage from "../Usage.js";
+ import LogLine from "../../Server/LogLine.mjs";
+ import { model as tier_model } from "./tiers.js";
++import Usage from "../Usage.js";
+ import { page_path } from "./Layers.js";
+ import Cards from "../cards/Cards.js";
+ import { session_facts } from "./Agents.js";
+@@ -172,10 +172,7 @@ export const now_ms = () => {
+  * Claude itself refuses it for usage limits, no setting change needed. That refusal is the
+  * whole point of this switch: Dictate keeps answering even once Claude is cut off. */
+ export const SESSION_BACKENDS = ["auto", "claude", "openrouter", "local"];
+-/* VOICE MODEL POLICY (the owner, 2026-10-12, ai/2026-10-12/refine-haiku-live: "while we pay for Claude tokens anyway, keep
+- * OpenRouter to a minimum"): "auto" now means CLAUDE. OpenRouter only when session-backend.txt says `openrouter`, or when
+- * Claude refuses a session (usage limit, logged out: the automatic fallback in woken()). Was: luna first (2026-10-05..08). */
+-export const VOICE_MODELS = { fast: "openai/gpt-6-luna", smart: "openai/gpt-6-luna" };
++/* VOICE MODEL POLICY (the owner, 2026-10-12, 2026-10-25): Claude is the default (see claude_model). OpenRouter runs a voice seat only when session-backend.txt says `openrouter`, or when Claude refuses that session (usage limit, logged out: the automatic fallback in woken()). */
+ export const FALLBACK_MODEL = "openai/gpt-6-luna";
+ /* Overridable (review finding 6) so a test can point this at a throwaway file instead of the
+  * real one every live Servex reads — `prove-fallback.mjs` sets this before importing. */
+@@ -404,10 +401,22 @@ export default class Sessions {
+ 
+ 	load(){
+ 		try { this.map = JSON.parse(fs.readFileSync(this.file, "utf8")); } catch { this.map = {}; }
++		let moved = 0;
+ 		for (const [id, s] of Object.entries(this.map)){
++			if (this.relocate(s)) moved++;
+ 			delete s.floor;   // a floor from before a restart is stale: nobody is still talking into it
+ 			for (const role of ["fast", "smart"]) if (s[role]) this.by_agent.set(s[role], { id, role });
+ 		}
++		if (moved){ console.log(`sessions: ${moved} session${moved === 1 ? "" : "s"} repointed to the dated store`); this.save(); }
++	}
++
++	/* A record that voice-backfill.mjs moved into the dated store (/framework/ai/sessions/YYYY/MM/DD/<id>/) is found there by its
++	 * id and day, and `s.file` is repointed to it, so sessions.json is never edited by hand. */
++	relocate(s){
++		if (!s.file || /^\/framework\/ai\/sessions\/\d{4}\/\d{2}\/\d{2}\//.test(s.file) || !Number.isFinite(+new Date(s.at))) return false;
++		const file = Sessions.session_path(s.home, s.id, new Date(s.at));
++		if (!fs.existsSync(this.disk(file))) return false;
++		s.file = file; return true;
+ 	}
+ 
+ 	/* Every folder a session belongs to: its home, then each page it passed through. */
+@@ -683,7 +692,7 @@ export default class Sessions {
+ 
+ 	/* `card` (voice-sessions, card sessions, 2026-09-29): with a card id, the session's HOME is
+ 	 * that card's own folder, `/framework/ai/<card>/`, instead of the nearest folder to `path` —
+-	 * so its file sits beside the card's `page.jsonl` and its folder-index lines land there too.
++	 * so its folder-index lines land there. Its own file is in the dated store like every voice session (`session_path()`), not beside the card.
+ 	 * `path` is still kept as where the owner actually stood (unchanged: it is `asked` below). */
+ 	create({ path: at, card, host = null, fresh = false } = {}){
+ 		const asked = page_path(at);
+@@ -1098,6 +1107,7 @@ export default class Sessions {
+ 	/* Held open with no prompt: each one's first turn is the owner's first line. */
+ 	spawn(s, role, { resume = null, context = "" } = {}){
+ 		const where = `\n\nThis session is ${s.id}. Its home page is ${s.home}; the owner pressed ✦ on ${s.path}.`
++			+ (role === "smart" ? `\n\nYour session's page (the item tool's \`path\`): ${path.posix.dirname(s.file)}/` : "")
+ 			+ (!s.card ? "" : role === "fast" ? `\n\nThis session is about card ${s.card}.`
+ 				: `\n\nThis session is about card ${s.card}. Its record is public${s.home}page.jsonl; read that file first for the card's history.`)
+ 			+ (context ? `\n\nThis session ran before you; its last lines follow (the whole record is public${s.file}):\n${context}` : "");
+@@ -1111,7 +1121,7 @@ export default class Sessions {
+ 			system: this.voice_brief() + where,
+ 			env: { ENABLE_CLAUDEAI_MCP_SERVERS: "false", CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1" },
+ 			sdk: { tools: [] },
+-			parent: "sessions"
++			parent: "sessions", parent_session: s.id
+ 		} : role === "fast" ? {
+ 			/* LEAN like the Layers page assistant: no settings, no connectors, no memory,
+ 			 * no tools, and no Servex door (`mcp_url: ""`). Its brief is its whole system prompt. */
+@@ -1123,7 +1133,7 @@ export default class Sessions {
+ 			 * caller silently replace the provider's own credentials instead of adding to them). */
+ 			env: { ENABLE_CLAUDEAI_MCP_SERVERS: "false", CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1" },
+ 			sdk: { tools: [] },
+-			parent: "sessions"
++			parent: "sessions", parent_session: s.id
+ 		} : {
+ 			/* The whole Claude Code preset (tools, CLAUDE.md, skills, Servex's MCP door), its brief appended. */
+ 			role: "session-smart", name: s.id, model: this.session_model(s, "smart"), effort: "medium", urgent: true,
+@@ -1131,7 +1141,7 @@ export default class Sessions {
+ 			/* LEAN (dictate-next-4): no user/project settings (CLAUDE.md, skills, memory), no claude.ai connectors; the brief is the prompt. */
+ 			setting_sources: [], env: { ENABLE_CLAUDEAI_MCP_SERVERS: "false", CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1" },
+ 			system: { type: "preset", preset: "claude_code", append: this.brief("smart") + where },
+-			parent: "sessions"
++			parent: "sessions", parent_session: s.id
+ 		};
+ 		const go = (sp, r) => this.servex.agents.spawn({ ...sp, ...(s[role] ? { id: s[role] } : {}), ...(r ? { resume: r } : {}) });
+ 		try { return go(spec, resume); }
+diff --git a/Servex/agents/Sessions.test.mjs b/Servex/agents/Sessions.test.mjs
+index 727deedb0..110a43b01 100644
+--- a/Servex/agents/Sessions.test.mjs
++++ b/Servex/agents/Sessions.test.mjs
+@@ -321,7 +321,7 @@ check("fast mode is untouched: it still sends `[on <path>] <text>` to session-fa
+ 	assert.equal(last_sent("fast"), "[on /a/] plain again");
+ });
+ 
+-check("the smart seat: Opus 5.5, medium effort, bypassPermissions, the full Claude Code preset", () => {
++check("the smart seat: Opus 5.5, medium effort, bypassPermissions; every voice agent is tied to its session by parent_session, and kept on parent \"sessions\" for events", () => {
+ 	const spawned = [];
+ 	const real = agents.spawn;
+ 	agents.spawn = spec => { spawned.push(spec); return real(spec); };
+@@ -334,6 +334,24 @@ check("the smart seat: Opus 5.5, medium effort, bypassPermissions, the full Clau
+ 	assert.ok(smart, "a session-smart agent was spawned");
+ 	assert.equal(smart.model, "claude-opus-5-5"); assert.equal(smart.effort, "medium"); assert.equal(smart.permission_mode, "bypassPermissions");
+ 	assert.equal(smart.system.preset, "claude_code", "the full Claude Code tool set, not the lean no-tools seat");
++	assert.ok(smart.system.append.includes("Your session's page") && smart.system.append.includes(path.posix.dirname(s.map[made.session].file) + "/"), "the smart seat is told its own session folder, for the item tool");
++	assert.match(s.map[made.session].file, /^\/framework\/ai\/sessions\/\d{4}\/\d{2}\/\d{2}\/[^/]+\/session\.jsonl$/);
++	for (const sp of spawned.filter(x => /^(voice-assistant|session-smart|session-fast)$/.test(x.role))){
++		assert.equal(sp.parent, "sessions"); assert.equal(sp.parent_session, made.session);
++	}
++});
++
++check("load() repoints a session whose record voice-backfill moved into the dated store", () => {
++	const at = Date.parse("2026-10-17T13:25:37-05:00"), d = new Date(at);
++	const store = Sessions.session_path("/a/", "v-old0001", d);
++	fs.mkdirSync(path.dirname(path.join(repo, "public", store)), { recursive: true });
++	fs.writeFileSync(path.join(repo, "public", store), "{}\n");
++	const file = path.join(repo, `sessions-${++n}.json`);
++	fs.writeFileSync(file, JSON.stringify({ "v-old0001": { id: "v-old0001", home: "/a/", file: "/a/ai/v-old0001.jsonl", at, fast: null, smart: null } }));
++	const s = new Sessions({ repo, file, assistant: "fast" });
++	s.load();
++	assert.equal(s.map["v-old0001"].file, store);
++	assert.equal(JSON.parse(fs.readFileSync(file, "utf8"))["v-old0001"].file, store, "saved, so the next start does not need the move");
+ });
+ 
+ check("over the weekly pace the smart seat drops to Sonnet; the fast seat is its own tier either way", () => {
+diff --git a/Servex/agents/doc/architecture.md b/Servex/agents/doc/architecture.md
+index bfa27a949..3d523bb0f 100644
+--- a/Servex/agents/doc/architecture.md
++++ b/Servex/agents/doc/architecture.md
+@@ -19,7 +19,7 @@ sends it) into a live fix in roughly 10-30 seconds, no spawn and no new worktree
+ 
+ ## Voice sessions
+ 
+-One ✦ press is one voice session, answered by its own pair of agents. [`Sessions.js`](./Sessions.js) runs them and serves the routes `POST /api/session/new` (start, or continue this page's session from the last hour), `POST /api/session/say` (one owner line, sent to both agents) and `POST /api/session/nav` (the owner moved to another page), plus `resume`, `floor` and `GET /api/sessions`. **`session-fast`** is the fast assistant: one short line within seconds, no tools ([`session-fast.md`](./session-fast.md)). **`session-smart`** is the smart one: it thinks, routes the owner's words to work in flight, starts masterminds and asks `ask_directory` about a folder ([`session-smart.md`](./session-smart.md)). The browser half and the file format: [`ext/Session`](/framework/ext/Session/) and its [`doc/sessions.md`](/framework/ext/Session/doc/sessions.md); the folder questions: [`doc/directory.md`](./doc/directory.md).
++One ✦ press is one voice session, answered by its own pair of agents. [`Sessions.js`](./Sessions.js) runs them and serves the routes `POST /api/session/new` (start, or continue this page's session from the last hour), `POST /api/session/say` (one owner line, sent to both agents) and `POST /api/session/nav` (the owner moved to another page), plus `resume`, `floor` and `GET /api/sessions`. **`session-fast`** is the fast assistant: one short line within seconds, no tools ([`session-fast.md`](./session-fast.md)). **`session-smart`** is the smart one (Opus 5.5, effort medium, mastermind permissions: `bypassPermissions` plus the full preset and Servex's door; the model is the `voice_smart` tier): it thinks, routes the owner's words to work in flight, starts masterminds and asks `ask_directory` about a folder ([`session-smart.md`](./session-smart.md)). Its record lives in the dated store (`session_path()`), and both agents are spawned with `parent_session` = the voice session, so the index shows them as its children. The browser half and the file format: [`ext/Session`](/framework/ext/Session/) and its [`doc/sessions.md`](/framework/ext/Session/doc/sessions.md); the folder questions: [`doc/directory.md`](./doc/directory.md).
+ 
+ ### Dictate keeps working if Claude cuts off
+ 
+diff --git a/Servex/agents/session-smart.md b/Servex/agents/session-smart.md
+index 745b9a865..b50b9d376 100644
+--- a/Servex/agents/session-smart.md
++++ b/Servex/agents/session-smart.md
+@@ -1,5 +1,12 @@
+ ## You run on Opus 5.5 with mastermind permissions (the owner, 2026-10-25)
+ The owner dictates to you directly, and you can act on it, not only route it. You have the full Claude Code tool set, permission mode bypassPermissions, and Servex's door: `spawn_agent`, the `item` tool, `owner_note`, `dir_log`, `send_to_agent`, `quick_fix`. You are filed as a session in the dated store, and the agents you spawn belong to this session (they show under it, with their cost, on /framework/ai/sessions/).
++- **You run on Claude, and Claude is the default.** OpenRouter is used only when the owner asks for it, or automatically when Claude refuses a session. You have no instruction to use only OpenRouter; any older note saying so (the handover has one from 2026-10-05) is history from a night the tokens ran out. Do not tell the owner you are bound to OpenRouter.
++- **Keep the session's own record with the `item` tool, as the owner talks (the owner, 2026-10-25).** Your first message names your session's page, "Your session's page (the item tool's `path`)": that url is your own session, resolved for you, so use it as `path` and never guess one. Do not only reply in chat: a chat reply is gone, the record stays.
++  - A task from an ask: `item({path, delta: {tasks: {add: {title: "<short title>", description: "<the owner's words, polished>"}}}})`. The answer carries the new task's `id`.
++  - A note: the same call, a task titled `Note: <what>` with the note in `description`.
++  - A planned child session: `tasks: {add: {type: "Session", title: "<what it will do>"}}`. A mastermind you spawn with `spawn_agent` links itself under your session (with its cost) with no extra step.
++  - Refine as the owner revises: a line addressed to the task's id, `item({path, delta: {"<task id>": {title: "<new>", description: "<new>"}}})`. Revise the existing task rather than adding a second one, and when it starts, finishes or is dropped use `{"<task id>": {start: {}}}` and the matching verbs.
++  - Read it back with `item({path})` (no delta) when you need the picture.
+ - Do the small things yourself: a task or a note with the `item` tool, a reply, a lookup, a one-line change to a page (`quick_fix`).
+ - For work that changes files, spawn a `task-mastermind` (one per task, worktree, review and `Server/merge.mjs`); never edit the main tree yourself and never spawn a bare `minion` for it. Check the roles table in `Servex/agents/roles.js` before you pick a role; policy refuses the ones you may not spawn.
+ - Keep working while the owner is away: after you hand work off, check on it (`wait_for_agent`, `read_card`, `session_line`), land it, and start the next item from the owner's asks. Verify each result yourself.
+diff --git a/Servex/agents/session_tasks.test.mjs b/Servex/agents/session_tasks.test.mjs
+index afb0b22f1..8ab7fa188 100644
+--- a/Servex/agents/session_tasks.test.mjs
++++ b/Servex/agents/session_tasks.test.mjs
+@@ -35,13 +35,19 @@ try {
+ 	r = await run_item({ path: URL, delta: { tasks: { add: { type: "Process", title: "Build it", id: "build-it" } } } }, { caller: "t1" });
+ 	ok(r.ok, "an object, and an object with a type, are taken");
+ 
++	r = await run_item({ path: URL, delta: { "build-it": { title: "Build it better", description: "refined while the owner talks" } } }, { caller: "t1" });
++	ok(r.ok, "a task is refined in place by a line addressed to its id (the voice mastermind's way to revise as the owner talks)");
+ 	r = await run_item({ path: URL }, { caller: "t1" });
+-	ok(r.state.counts.direct.created === 3 && r.state.tasks.length === 3, "read back through the tool: 3 own tasks, counted on read");
++	ok(r.state.tasks.find(t => t.id === "build-it")?.title === "Build it better", "the refined title shows on the next read");
++	r = await run_item({ path: URL, delta: { tasks: { add: { type: "Session", title: "A planned child session", id: "planned-child" } } } }, { caller: "t1" });
++	ok(r.ok, "a child session is added as a typed entry");
++	r = await run_item({ path: URL }, { caller: "t1" });
++	ok(r.state.counts.direct.created === 4 && r.state.tasks.length === 4, "read back through the tool: 4 own tasks, counted on read");
+ 
+ 	const s = Session.replay(fs.readFileSync(FILE, "utf8").trim().split("\n").map(l => JSON.parse(l)));
+-	ok(s instanceof Session && s.tasks.length === 3 && s.tasks.find("build-it")?.constructor.name === "Process", "a fresh replay of the file has them, the typed one as its class");
++	ok(s instanceof Session && s.tasks.length === 4 && s.tasks.find("build-it")?.constructor.name === "Process", "a fresh replay of the file has them, the typed one as its class");
+ 	ok([...s.tasks].every(t => t.created_at), "each has the time of the line that added it (for newest-first lists)");
+-	ok(s.completion === 0 && s.progress().total === 3, "completion is computed from the tasks");
++	ok(s.completion === 0 && s.progress().total === 4, "completion is computed from the tasks");
+ 	console.log(`session_tasks: ${n} checks passed`);
+ } finally {
+ 	fs.rmSync(DIR, { recursive: true, force: true });
+diff --git a/Servex/agents/voice-backfill.mjs b/Servex/agents/voice-backfill.mjs
+new file mode 100644
+index 000000000..32d058043
+--- /dev/null
++++ b/Servex/agents/voice-backfill.mjs
+@@ -0,0 +1,71 @@
++// node Servex/agents/voice-backfill.mjs [--apply] [--manifest <file>] [--force]
++// Moves every old voice-session record (`<page>ai/v-<id>.jsonl`, written before voice sessions lived in the dated store) to
++// public/framework/ai/sessions/YYYY/MM/DD/v-<id>/session.jsonl (its .summary.json goes with it as session.summary.json), the day it
++// was opened. Dry run by default: it prints the manifest and moves nothing. Never deletes, never overwrites: a destination that
++// already exists is listed as a conflict and left alone. A file written in the last 2 minutes is skipped (a session is still using it)
++// unless --force. sessions.json is NOT edited here: Servex repoints each session's `file` itself on its next start (Sessions.relocate).
++import fs from "node:fs";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++
++const REPO = process.env.BACKFILL_REPO ? path.resolve(process.env.BACKFILL_REPO) : path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");   // BACKFILL_REPO: another checkout, or a test tree
++const PUBLIC = path.join(REPO, "public");
++const STORE = path.join(PUBLIC, "framework", "ai", "sessions");
++const SKIP_DIRS = new Set(["node_modules", ".git", "fixture", "fixtures"]);
++const p2 = n => String(n).padStart(2, "0");
++
++/** Every old-style voice record under `root`: a `v-<id>.jsonl` whose first line is `{session:{id}}` for that same id, outside the dated store's own v-<id>/ folders. */
++export function find_records(root = PUBLIC){
++	const out = [];
++	const walk = dir => {
++		let entries; try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
++		for (const e of entries){
++			const full = path.join(dir, e.name);
++			if (e.isDirectory()){ if (!SKIP_DIRS.has(e.name)) walk(full); continue; }
++			const m = /^(v-[a-z0-9]+)\.jsonl$/.exec(e.name);
++			if (!m) continue;
++			let head; try { head = JSON.parse(fs.readFileSync(full, "utf8").split("\n", 1)[0])?.session; } catch { continue; }
++			if (head?.id === m[1]) out.push({ id: m[1], file: full, at: head.at });
++		}
++	};
++	walk(root);
++	return out;
++}
++
++/** The manifest: one row per record, with where it goes and whether it can move. */
++export function plan(records, { force = false, now = Date.now() } = {}){
++	return records.map(r => {
++		const d = new Date(r.at), t = Number.isFinite(+d) ? d : fs.statSync(r.file).birthtime;
++		const dir = path.join(STORE, String(t.getFullYear()), p2(t.getMonth() + 1), p2(t.getDate()), r.id);
++		const summary = r.file.replace(/\.jsonl$/, ".summary.json");
++		const row = { id: r.id, from: path.relative(REPO, r.file).split(path.sep).join("/"), to: path.relative(REPO, path.join(dir, "session.jsonl")).split(path.sep).join("/"),
++			summary: fs.existsSync(summary) ? { from: path.relative(REPO, summary).split(path.sep).join("/"), to: path.relative(REPO, path.join(dir, "session.summary.json")).split(path.sep).join("/") } : null, status: "move" };
++		if (fs.existsSync(path.join(dir, "session.jsonl")) || (row.summary && fs.existsSync(path.join(REPO, row.summary.to)))) row.status = "conflict: destination exists";
++		else if (!force && now - fs.statSync(r.file).mtimeMs < 120000) row.status = "skipped: written in the last 2 minutes";
++		return row;
++	});
++}
++
++export function apply(rows){
++	let moved = 0;
++	for (const r of rows){
++		if (r.status !== "move") continue;
++		const from = path.join(REPO, r.from), to = path.join(REPO, r.to);
++		fs.mkdirSync(path.dirname(to), { recursive: true });
++		fs.renameSync(from, to);
++		if (r.summary) fs.renameSync(path.join(REPO, r.summary.from), path.join(REPO, r.summary.to));
++		r.status = "moved"; moved++;
++	}
++	return moved;
++}
++
++if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)){
++	const args = process.argv.slice(2), go = args.includes("--apply"), force = args.includes("--force");
++	const mi = args.indexOf("--manifest"), manifest = mi >= 0 ? args[mi + 1] : null;
++	const rows = plan(find_records(), { force });
++	const moved = go ? apply(rows) : 0;
++	const by = {}; for (const r of rows) by[r.status.split(":")[0]] = (by[r.status.split(":")[0]] ?? 0) + 1;
++	if (manifest) fs.writeFileSync(manifest, JSON.stringify({ at: new Date().toISOString(), applied: go, rows }, null, 1) + "\n");
++	for (const r of rows) console.log(`${r.status.padEnd(10).slice(0, 10)} ${r.from} -> ${r.to}`);
++	console.log(`${go ? "applied" : "dry run"}: ${rows.length} records (${Object.entries(by).map(([k, v]) => `${v} ${k}`).join(", ")})${go ? `, ${moved} moved` : ""}${manifest ? `; manifest ${manifest}` : ""}`);
++}
+diff --git a/Servex/agents/voice-backfill.test.mjs b/Servex/agents/voice-backfill.test.mjs
+new file mode 100644
+index 000000000..827316597
+--- /dev/null
++++ b/Servex/agents/voice-backfill.test.mjs
+@@ -0,0 +1,44 @@
++// node Servex/agents/voice-backfill.test.mjs — old v-<id>.jsonl records move into the dated store; nothing is overwritten or lost.
++import assert from "node:assert/strict";
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++
++const repo = fs.mkdtempSync(path.join(os.tmpdir(), "vbf-"));
++process.env.BACKFILL_REPO = repo;
++const { find_records, plan, apply } = await import("./voice-backfill.mjs");
++
++const put = (rel, text) => { const f = path.join(repo, rel); fs.mkdirSync(path.dirname(f), { recursive: true }); fs.writeFileSync(f, text); return f; };
++const line1 = (id, at) => JSON.stringify({ session: { id, home: "/framework/ext/drawer/", at } }) + "\n";
++const old = Date.now() - 3600000, iso = new Date(Date.parse("2026-10-17T13:25:37-05:00")).toISOString();
++
++put("public/framework/ext/drawer/ai/v-aaa1111.jsonl", line1("v-aaa1111", iso) + '{"chat":{"text":"hello"}}\n');
++put("public/framework/ext/drawer/ai/v-aaa1111.summary.json", '{"title":"t"}');
++put("public/ai/v-bbb2222.jsonl", line1("v-bbb2222", iso));
++put("public/ai/v-wrongid.jsonl", line1("v-other", iso));                       // first line names another id: not a record
++put("public/x/fixture/v-fix0000.jsonl", line1("v-fix0000", iso));              // a fixture folder is never touched
++put("public/framework/ai/sessions/2026/10/17/v-ccc3333/session.jsonl", line1("v-ccc3333", iso));   // already in the store
++put("public/framework/ai/v-ccc3333.jsonl", line1("v-ccc3333", iso));           // same id twice: a conflict, left alone
++for (const f of ["public/framework/ext/drawer/ai/v-aaa1111.jsonl", "public/ai/v-bbb2222.jsonl", "public/framework/ai/v-ccc3333.jsonl"]) fs.utimesSync(path.join(repo, f), old / 1000, old / 1000);
++
++const records = find_records(path.join(repo, "public"));
++assert.deepEqual(records.map(r => r.id).sort(), ["v-aaa1111", "v-bbb2222", "v-ccc3333"]);
++
++const rows = plan(records);
++const by = Object.fromEntries(rows.map(r => [r.id, r]));
++assert.equal(by["v-aaa1111"].status, "move"); assert.ok(by["v-aaa1111"].summary);
++assert.match(by["v-aaa1111"].to, /^public\/framework\/ai\/sessions\/2026\/10\/17\/v-aaa1111\/session\.jsonl$/);
++assert.match(by["v-ccc3333"].status, /^conflict/);
++assert.ok(fs.existsSync(path.join(repo, by["v-aaa1111"].from)), "a dry run moves nothing");
++
++assert.equal(apply(rows), 2);
++const store = id => path.join(repo, "public/framework/ai/sessions/2026/10/17", id);
++assert.equal(fs.readFileSync(path.join(store("v-aaa1111"), "session.jsonl"), "utf8").split("\n").length, 3, "the bytes moved whole");
++assert.equal(fs.readFileSync(path.join(store("v-aaa1111"), "session.summary.json"), "utf8"), '{"title":"t"}');
++assert.ok(fs.existsSync(path.join(store("v-bbb2222"), "session.jsonl")));
++assert.equal(fs.existsSync(path.join(repo, "public/framework/ext/drawer/ai/v-aaa1111.jsonl")), false);
++assert.ok(fs.existsSync(path.join(repo, "public/framework/ai/v-ccc3333.jsonl")), "a conflict is left where it was");
++assert.ok(fs.existsSync(path.join(repo, "public/x/fixture/v-fix0000.jsonl")));
++assert.equal(plan(find_records(path.join(repo, "public"))).filter(r => r.status === "move").length, 0, "a second run has nothing to move");
++
++console.log("voice-backfill.test.mjs: ok");
+diff --git a/public/framework/ai/AISession/AISessionIndex.mjs b/public/framework/ai/AISession/AISessionIndex.mjs
+index b849ed174..e6423d768 100644
+--- a/public/framework/ai/AISession/AISessionIndex.mjs
++++ b/public/framework/ai/AISession/AISessionIndex.mjs
+@@ -128,7 +128,7 @@ export default class AISessionIndex {
+ 		const times = [ms(head.at), ...lines.slice(1).map(l => ms(Object.values(l)[0]?.at))].filter(t => t != null);
+ 		const first = times.length ? Math.min(...times) : fs.statSync(path.join(dir, "session.jsonl")).birthtimeMs, last = times.length ? Math.max(...times) : first;
+ 		const usd = r4(+lines.findLast(l => l.cost?.usd != null)?.cost.usd || 0), title = (() => { try { return JSON.parse(fs.readFileSync(path.join(dir, "session.summary.json"), "utf8")).title; } catch {} })() || lines.find(l => typeof l.title === "string")?.title || head.title || name;
+-		return { id: name, kind: head.kind ?? null, state: Date.now() - last < AISessionIndex.ACTIVE_MS ? "active" : "idle", model: null, effort: null, provider: "claude", usd, usd_source: "recorded", tree_usd: usd, children: 0,
++		return { id: name, kind: head.kind ?? (/^v-/.test(name) ? "voice" : null), state: Date.now() - last < AISessionIndex.ACTIVE_MS ? "active" : "idle", model: null, effort: null, provider: "claude", usd, usd_source: "recorded", tree_usd: usd, children: 0,
+ 			wall_ms: last - first, flags: 0, tokens: 0, first_at: new Date(first).toISOString(), last_activity: new Date(last).toISOString(), day: Day.of(first), folder: name, tags: [], alerts: 0, parent: null, agent: null, title, core: [], files: 0 };
+ 	}
+ 
+@@ -187,6 +187,7 @@ export default class AISessionIndex {
+ 	/** Every snapshot gets its `links` (card, task, brief, report, parent, children), computed from the real folders; rewritten only when they changed. */
+ 	link_all(){
+ 		this.kids = children_map([...this.snaps.values()]);
++		for (const s of [...this.snaps.values()]) if (s.kind === "voice") this.roll_voice(s.id);
+ 		for (const snap of this.snaps.values()){ const links = this.links(snap); if (!same(links, snap.links)){ snap.links = links; this.queue(snap.id); } }
+ 	}
+ 
+@@ -279,7 +280,7 @@ export default class AISessionIndex {
+ 			provider: pv.provider === "openrouter" ? "openrouter" : "claude", usd: own, usd_source, cost_v: AISession.STATE_V, tree_usd: r4(own + below),
+ 			children: prev?.children ?? 0, wall_ms: Math.round(pv.wall_ms), active_ms: Math.round(pv.active_ms ?? 0), flags: pv.flags.length, tokens, first_at: s.first_at ?? null, last_activity: s.last_at ?? null,
+ 			day: AISession.day(s.first_at) ?? prev?.day ?? null, folder: this.dirs.has(id) ? path.basename(this.dirs.get(id)) : (this.snaps.get(id)?.folder ?? null), tags: prev?.tags ?? [], alerts: prev?.alerts ?? 0,
+-			parent: reg?.parent ?? prev?.parent ?? null, agent: reg?.id ?? prev?.agent ?? null,
++			parent: (reg?.parent === "sessions" ? reg.parent_session : reg?.parent) ?? prev?.parent ?? null, agent: reg?.id ?? prev?.agent ?? null,
+ 			title: s.title ?? prev?.title ?? null,
+ 			core: AISessionIndex.modules_of(s.touched), files: Object.keys(s.touched ?? {}).length,   // from the transcript's own Edit/Write calls; the task audit join (below) wins where it has one   // the tab's own title (VS Code sidebar / phone), from the transcript's title lines
+ 		};
+@@ -302,6 +303,10 @@ export default class AISessionIndex {
+ 		const changed = Object.keys(snap).filter(k => !before || !same(before[k], snap[k]));
+ 		if (before && !changed.length) return [];
+ 		this.snaps.set(snap.id, snap);
++		if (snap.parent && this.snaps.get(snap.parent)?.kind === "voice"){
++			if (this.kids){ const l = this.kids.get(snap.parent) ?? this.kids.set(snap.parent, []).get(snap.parent); if (!l.includes(snap.id)) l.push(snap.id); }
++			this.roll_voice(snap.parent);
++		}
+ 		this.listeners.forEach(fn => { try { fn(snap, changed, before) } catch (e){ this.log("AISessionIndex: listener — " + e.message); } });
+ 		this.queue(snap.id); this.queue_day(AISessionIndex.day_of(snap));
+ 		this.stream_line(snap, before);
+@@ -309,6 +314,14 @@ export default class AISessionIndex {
+ 		return changed;
+ 	}
+ 
++	/** A voice session has no transcript of its own: its cost and child count are the sum of the sessions whose parent is it (its fast and smart agents, and what they spawn). */
++	roll_voice(id){
++		const v = this.snaps.get(id); if (!v || v.kind !== "voice") return;
++		const kids = [...this.snaps.values()].filter(s => s.parent === id), tree_usd = r4((v.usd ?? 0) + kids.reduce((n, k) => n + (k.tree_usd ?? k.usd ?? 0), 0));
++		if (tree_usd === v.tree_usd && kids.length === v.children) return;
++		const up = { ...v, tree_usd, children: kids.length }; if (this.kids) up.links = this.links(up); this.snaps.set(id, up); this.queue(id); this.queue_day(AISessionIndex.day_of(up));
++	}
++
+ 	/** A session born in the last ten minutes, or one whose state or title changed, is one line on today's day stream (Server/AIIndexStream.mjs). A start-up read of old sessions writes none. */
+ 	stream_line(snap, before){
+ 		const fresh = !before && Date.now() - Date.parse(snap.first_at ?? 0) < 600000;
+diff --git a/public/framework/ai/AISession/AISessionIndex.test.mjs b/public/framework/ai/AISession/AISessionIndex.test.mjs
+index 00f77e105..117d20f19 100644
+--- a/public/framework/ai/AISession/AISessionIndex.test.mjs
++++ b/public/framework/ai/AISession/AISessionIndex.test.mjs
+@@ -24,3 +24,17 @@ await ix.stop();
+ const written = JSON.parse(fs.readFileSync(path.join(day, "index.json"), "utf8"));
+ assert.equal(written.snapshots.length, 1); assert.equal(written.snapshots[0].id, "cloud-voice-demo");
+ console.log("AISessionIndex record-only: ok");
++
++// a voice session (v-…, kind voice) takes its children's dollars and count from the sessions whose parent is it
++const voice = put("v-abc1234", { session: { id: "v-abc1234", kind: "voice", home: "/framework/", at } });
++const vsnap = AISessionIndex.record_snap(voice);
++assert.equal(vsnap.kind, "voice"); assert.equal(vsnap.usd, 0);
++assert.equal(AISessionIndex.record_snap(put("v-nokind", { session: { id: "v-nokind", at } })).kind, "voice");   // an old record with no kind is still a voice session
++const vx = new AISessionIndex({ base: path.join(root, "none"), root, repo: root }); vx.no_heal = true;
++await vx.load_records();
++const kid = (id, usd) => ({ id, parent: "v-abc1234", usd, tree_usd: usd, kind: null, state: "idle", first_at: "2026-10-20T22:51:00.000Z", last_activity: "2026-10-20T22:52:00.000Z", day: "2026-10-20" });
++vx.set(kid("child-fast", 0.1)); vx.set(kid("child-smart", 0.4));
++const rolled = vx.snaps.get("v-abc1234");
++assert.equal(rolled.children, 2); assert.equal(rolled.tree_usd, 0.5);
++await vx.stop();
++console.log("AISessionIndex voice roll-up: ok");
+diff --git a/public/framework/ai/handover.md b/public/framework/ai/handover.md
+index 00a0430b6..2e44e022e 100644
+--- a/public/framework/ai/handover.md
++++ b/public/framework/ai/handover.md
+@@ -211,9 +211,9 @@ emote.url` IS the secret, never write it into the repo). **2026-10-15: the voice
+ - **Local Models on Machine:** `C:\llama\llama-server.exe` with `Qwen3-8B` (tool-capable), `Hermes-3-Llama-3.1-8B` (summarization), and `qwen2.5-coder` ($0 offline tokens).
+ - **System Health:** Monorepo dev server (port 3104), Servex daemon (port 8090), Whisper server (port 8178), and port 80 proxy are all running.
+ 
+-## LATEST, 2026-10-05 2:10 pm: for the NEW Sonnet VS Code tab (the old Opus tab 60d9def6 is winding down)
++## HISTORY, 2026-10-05 2:10 pm: a night the Claude tokens ran out (NOT current: voice is on Claude by default since 2026-10-12; OpenRouter only when the owner asks)
+ **Claude is at 96% of the week (0.7%/h; ~5 h left; weekly reset Wed Oct 7, 9:59 pm). Minimise Claude tokens at all costs: you are the one Claude session that stays; everything else runs on OpenRouter or local.**
+-- **Voice is on OpenRouter NOW:** `%LOCALAPPDATA%\lew42\servex\session-backend.txt` = `openrouter` (GPT-6 luna for the fast/smart pair; delete the file to go back to Claude). Prompt cleaning: local Qwen 2.5 coder ($0). OpenRouter budget: +$15 burst this week (`openrouter-burst.json`).
++- **(Then, 2026-10-05; no longer true) Voice was on OpenRouter:** `%LOCALAPPDATA%\lew42\servex\session-backend.txt` = `openrouter` (GPT-6 luna for the fast/smart pair; delete the file to go back to Claude). Prompt cleaning: local Qwen 2.5 coder ($0). OpenRouter budget: +$15 burst this week (`openrouter-burst.json`).
+ - **In flight:** `task-mastermind-mobile-reload-speed` (Sonnet; told to land now and stop) and `task-mastermind-openrouter-agent-trial` (GPT-6 luna, $1: can a cheap model follow our process on a one-line task? Its outcome decides whether OpenRouter masterminds are usable). Both message `vscode-mastermind`; re-register under your own id (`register_session`) so they reach you, and update this section when they land.
+ - **Landed today:** duplicate bubbles fixed (fe8e7ff4), timed mic status (9cf2bc75), dev-server crash fix (ServexProxy), one Dictate engine per tab, Refine "Try it" page, local models (qwen3-8b uses tools), Today/Yesterday cards, blog post /blog/framework/class-cards/. Smart voice assistant moved Opus → Sonnet in roles.js (only matters on the Claude backend; loads at next Servex restart).
+ - **Stopped on purpose:** the Servex mastermind role (retired), master-assistant, all finished task agents.
+diff --git a/public/framework/ai/sessions/readme.md b/public/framework/ai/sessions/readme.md
+index bb66e6511..26672a6b9 100644
+--- a/public/framework/ai/sessions/readme.md
++++ b/public/framework/ai/sessions/readme.md
+@@ -30,7 +30,7 @@ A session folder is one of three kinds:
+ | Kind | Folder name | Files | Written by |
+ |---|---|---|---|
+ | **Transcript session** (VS Code, CLI, Servex agent) | `session-<first 8 hex of the id>` (or the full uuid) | `cache.jsonl` (line 1 `{summary:{v:2,id,cursor,first_at,last_at,usd,tokens,…}}`: running totals plus how far the transcript was read), `index.json` (the one current snapshot), `session.jsonl` (a VS Code tab: line 1 `{session:{id,kind:"vscode-tab",cwd,at}}`, written once by the SessionStart hook `.claude/hooks/session-page.mjs`), optional `page.jsonl` | `AISessionIndex.mjs`, which follows the transcript; `session.jsonl` by the SessionStart hook |
+-| **Record session** (a named agent, a voice call) | a name: `voice-20261016`, `cloud-voice-<name>` | `session.jsonl`, plus the task folders below | `append.mjs`, `Agents.open_task`, `RemoteMCP.voice_session` |
++| **Record session** (a named agent, a cloud voice call, a ✦ voice session) | a name: `voice-20261016`, `cloud-voice-<name>`, `v-<id>` | `session.jsonl` (a ✦ session: line 1 `{session:{id,kind:"voice",home,at}}`, `home` = the page it was opened on), plus the task folders below | `append.mjs`, `Agents.open_task`, `RemoteMCP.voice_session`, `Sessions.js` (✦ sessions; [ext/Session](/framework/ext/Session/doc/sessions.md)) |
+ | **Task folder** | any name, *inside* a session folder (`<session>/<task>/`) | `task.jsonl` (+ `requirements.md`, `past-work.md`, `report.md`) | see [ai/tasks](/framework/ai/tasks/) |
+ 
+ **The words themselves are not here.** The raw transcript stays where Claude writes it, `~/.claude/projects/<dir>/<session id>.jsonl` (a subagent's is `<id>/subagents/agent-*.jsonl`); a session folder stores only totals and a pointer. Details: [doc/data-sources.md](doc/data-sources.md).
+@@ -42,7 +42,8 @@ A session folder is one of three kinds:
+ | What | Writer (called from) |
+ |---|---|
+ | `cache.jsonl`, `index.json`, day/month/year `index.json` | `ai/AISession/AISessionIndex.mjs`: a file watch on the transcripts re-reads only the new bytes. Started inside the dev server by `AISession/AISessionTailer.mjs` (main checkout only). |
+-| a **record-only** session (no transcript here: a cloud voice call) | the same writer: `AISessionIndex.record_snap()` builds its snapshot (id = folder name, `kind` from `session.jsonl` line 1, times and `cost` lines from the record) at start-up and when `session.jsonl` grows. Shown as the `cloud voice` kind. Needs a dev-server restart to start. |
++| a **record-only** session (no transcript here: a cloud voice call) | the same writer: `AISessionIndex.record_snap()` builds its snapshot (id = folder name, `kind` from `session.jsonl` line 1, times and `cost` lines from the record) at start-up and when `session.jsonl` grows. Shown as the `cloud voice` kind, or `voice` for a ✦ session (`v-<id>`, `kind:"voice"` or, in the older records, the `v-` name). A ✦ session's fast and smart agents are its child sessions: each registry row carries `parent_session` = the `v-<id>`, `build()` makes that the snapshot's `parent`, and `roll_voice()` sums the children's cost into the voice session's `tree_usd` and `children`. Needs a dev-server restart to start. |
++| a ✦ voice session's folder and lines | `Sessions.js` (`session_path()`, the dated store; old `<home>ai/v-<id>.jsonl` records are moved in by `node Servex/agents/voice-backfill.mjs`, [ext/Session/doc/sessions.md](/framework/ext/Session/doc/sessions.md)) |
+ | a Servex agent's folder and line 1 (`session.jsonl`, at any depth) | `open_task()` in `Servex/agents/Agents.js` (the folder from `TaskDirs`, an alias of `DatedFiles.sessions`: [Server/doc/dated-files.md](/Server/doc/dated-files.md)), called from `Agents.spawn()` *before* the agent's first turn (the `spawn_agent` tool) |
+ | any later line | `node .claude/hooks/append.mjs <file> <lines.json>`: validates against `.claude/hooks/jsonl-schema.mjs`, turns `"NOW"` into the clock, and picks `session.jsonl` vs `task.jsonl` through `SessionRecord.start_file()` |
+ | a cloud voice call's folder and lines | `Servex/ext/remote/RemoteMCP.js` `voice_session()` (its path from `DatedFiles.sessions.path`) / `record()` / `after()` ([voice system](/Servex/ext/remote/doc/cloud-voice-agent.md)) |
+diff --git a/public/framework/ext/Session/doc/architecture.md b/public/framework/ext/Session/doc/architecture.md
+index 9a56c5136..2c82513fe 100644
+--- a/public/framework/ext/Session/doc/architecture.md
++++ b/public/framework/ext/Session/doc/architecture.md
+@@ -11,7 +11,7 @@
+ 
+ ## One press, one file, under the page it started on
+ 
+-**Decided:** a session lives at `<home>ai/<session>.jsonl`, where `home` is the nearest folder to the page. A press on a page whose session spoke in the last hour continues that session (`resumed: true`), unless `fresh: true` is passed.
++**Decided (superseded 2026-10-25: the file now lives in the dated store, see [sessions.md, "The file"](sessions.md#the-file); `home` is only a field of the session):** a session lives at `<home>ai/<session>.jsonl`, where `home` is the nearest folder to the page. A press on a page whose session spoke in the last hour continues that session (`resumed: true`), unless `fresh: true` is passed.
+ **Why:** the file sits where the work is, so the folder's own `ai/log.jsonl` can point at it.
+ **Instead:** one global log. It loses the page context that the assistants need.
+ **Detail:** [doc/sessions.md](./sessions.md#the-file)
+diff --git a/public/framework/ext/Session/doc/sessions.md b/public/framework/ext/Session/doc/sessions.md
+index 4a1f466a3..a560f50b4 100644
+--- a/public/framework/ext/Session/doc/sessions.md
++++ b/public/framework/ext/Session/doc/sessions.md
+@@ -2,7 +2,7 @@
+ 
+ ## The file
+ 
+-One session is one append-only file, `public<home>ai/<session>.jsonl`. The browser reads it at the same path on the site (`<home>ai/<session>.jsonl`). The session id is `v-` plus a short base36 id.
++One session is one append-only file in the dated store: `public/framework/ai/sessions/YYYY/MM/DD/<session>/session.jsonl` (the local day it was opened; `Sessions.session_path()` is the one place that shape lives). The browser reads it at the same path on the site. The session id is `v-` plus a short base36 id. Line 1 is `{"session": {"id", "home", "kind": "voice", "at", …}}`: `home` is the page it was opened on and is only a field, not where the file lives. Records written before this (`<home>ai/<session>.jsonl`) are moved into the store by `node Servex/agents/voice-backfill.mjs` (dry run by default; `--apply` moves; `--manifest <file>` writes every old and new path; nothing is overwritten or deleted), and Servex repoints each session's `file` in `sessions.json` on its next start (`Sessions.relocate`).
+ 
+ ```json
+ {"session": {"id": "v-1xrmuro", "home": "/framework/", "at": "…", "project": "monorepo", "host": "…",
+@@ -25,7 +25,7 @@ A spoken owner line also carries `floor` (`speaking`/`done`) and, when the clean
+ 
+ `at` carries milliseconds, so two lines said in the same second never share one, and `re` always names exactly one owner line. `backing` maps the session to the Claude sessions behind it: `claude --resume <uuid>` reopens either one. When the assistants are respawned, a new `backing` line is written, and the latest one wins.
+ 
+-**Beside it:** `<session>.summary.json` = `{id, home, title, summary, at, visited}`, written by the smart assistant's `session_summary` tool. The title is at most 6 words; the summary is one line.
++**Beside it:** `session.summary.json` = `{id, home, title, summary, at, visited}`, written by the smart assistant's `session_summary` tool. The title is at most 6 words; the summary is one line.
+ 
+ ## The folder index: `<dir>/ai/log.jsonl`
+ 
+@@ -110,7 +110,7 @@ event it goes after `SERVEX_SESSION_HOLD_MAX_MS` (8 s). The released message end
+ ## The two assistants
+ 
+ - **fast** (`session-fast-<id>`): Sonnet, effort low, no tools, no settings, no Servex door: a 1,400-token prompt, no CLAUDE.md, no skills. It hears each spoken thought once the owner stops (a typed line at once), prefixed `[on /page/]`, and mostly answers `(listening)`, which is never shown; it speaks only for a first hello, a misheard word, or a one-line answer. It writes nothing. Its brief: `Servex/agents/session-fast.md`.
+-- **smart** (`session-smart-<id>`): Opus 5.5 (tier `voice_smart` in `Servex/agents/tiers.js`, the owner 2026-10-25; Sonnet only while the week is over pace, `Usage.over_pace()`), effort medium, mastermind permissions: `bypassPermissions`, the full Claude Code preset in the repo and Servex's door (spawn, the item tool, notes), so the owner dictates to it directly and it acts. It stays up through a working session: the pair sleeps only after 30 quiet minutes (`SERVEX_SESSION_IDLE_MS`, was 5), and `backing.smart` resumes the same Claude session when it wakes. It hears the same released spoken thought (typed lines: gathered over a 1.5 s quiet gap, `SERVEX_SESSION_QUIET_MS`), each prefixed `[on /page/ at <at>]`, plus `(now on /x/)` when the owner moved. It knows what is in flight and routes to it, sends masterminds a polished brief (never the raw words), names the session, posts refined lines, and writes decisions to the folder index as it goes. Its brief: `Servex/agents/session-smart.md`.
++- **smart** (`session-smart-<id>`): Opus 5.5 (tier `voice_smart` in `Servex/agents/tiers.js`, the owner 2026-10-25; Sonnet only while the week is over pace, `Usage.over_pace()`), effort medium, mastermind permissions: `bypassPermissions`, the full Claude Code preset in the repo and Servex's door (spawn, the item tool, notes), so the owner dictates to it directly and it acts. Both seats are spawned with `parent_session` = the voice session's id, so the session index lists them as the voice session's child sessions and adds their cost to its total. The reader is `ai/AISession/AISessionIndex.mjs` (`build()` sets the child's `parent`; `roll_voice()` recomputes the voice snapshot's `tree_usd` and `children` from its children's current snapshots each time one changes, so the total grows live and a Servex restart cannot double-count); the sessions page draws the snapshot's `parent` as nesting ([ai/sessions readme](/framework/ai/sessions/readme.md)). Agents the smart one spawns hang under its own session; the voice total adds the smart seat's tree total (`roll_voice()` sums each child's `tree_usd`), so they are counted exactly as far as that seat's own tree total counts them. It stays up through a working session: the pair sleeps only after 30 quiet minutes (`SERVEX_SESSION_IDLE_MS`, was 5), and `backing.smart` resumes the same Claude session when it wakes. It hears the same released spoken thought (typed lines: gathered over a 1.5 s quiet gap, `SERVEX_SESSION_QUIET_MS`), each prefixed `[on /page/ at <at>]`, plus `(now on /x/)` when the owner moved. It knows what is in flight and routes to it, sends masterminds a polished brief (never the raw words), names the session, posts refined lines, and writes decisions to the folder index as it goes. Its brief: `Servex/agents/session-smart.md`.
+ 
+ A reply is the agent's final text for its turn, read from the host's event stream and written as a `chat` line.
+ 
+@@ -144,7 +144,8 @@ Memory comes first: an idle `claude` process costs about 250 MB.
+ 
+ ## Past problems
+ 
+-- **The transcripts are committed, on purpose.** A session file is the record ("the full chat log could be logged somewhere… searched or read"), so `<home>ai/v-*.jsonl` is committed like any other page log and is not gitignored (fresh review item 10, declined).
++- **The transcripts are committed, on purpose.** A session file is the record ("the full chat log could be logged somewhere… searched or read"), so `ai/sessions/YYYY/MM/DD/v-*/session.jsonl` is committed like any other session record (fresh review item 10, declined). The older location, `<home>ai/v-*.jsonl`, IS gitignored; `Servex/agents/voice-backfill.mjs` moves those records into the dated store.
++- **Order when moving the old records: merge, then backfill, then restart.** 1) Merge the branch. 2) Run `node Servex/agents/voice-backfill.mjs --apply --manifest <file>` from the MAIN checkout (the old files are gitignored, so only the main checkout holds them; the default is a dry run). 3) Restart Servex: on start `Sessions.load()` repoints `sessions.json` at the moved files. Restart before the backfill and a session resumed within the hour appends to its old path and re-creates the old file next to the moved one.
+ 
+ - Before slice 2, every ✦ press leaked two agents forever: `session-` is in Global.js's `LONG` list (never reaped), and a stopped session agent was not revivable. On 2026-09-29 twelve idle ones held the machine at 1.7 GB of free memory. Starting on the first line, the 30-minute sleep (5 until 2026-10-25) and the 2-pair cap are the fix.
+ - A session record lives in `sessions.json` in Servex's home (`SERVEX_SESSIONS_FILE` moves it), so a restart still finds a session's file.

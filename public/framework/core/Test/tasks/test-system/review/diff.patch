@@ -1,0 +1,507 @@
+diff --git a/public/framework/code/dos-and-donts/readme.md b/public/framework/code/dos-and-donts/readme.md
+index 88be1d651..ba0c43e18 100644
+--- a/public/framework/code/dos-and-donts/readme.md
++++ b/public/framework/code/dos-and-donts/readme.md
+@@ -30,6 +30,7 @@ all already spoken for.
+ - **`div.c("row", () => chip(x))` appends the chip TWICE** if the callback also returns a value —
+   a captured callback's return value is appended too. End a builder callback in a statement.
+ - **Every process you start is hidden** — `windowsHide: true` on every Node spawn; PowerShell uses
++- **A node test is `X.test.mjs`, run by `core/Test/TestRunner.mjs`; a test earns its place by a silent break or a spec** — never for what is certain to pass: [core/Test](/framework/core/Test/)
+   `Start-Process -WindowStyle Hidden`. A visible window popping up in front of the owner has broken
+   his work more than once.
+ 
+diff --git a/public/framework/core/Task/Task.js b/public/framework/core/Task/Task.js
+index 9d2c5e915..691cfeb26 100644
+--- a/public/framework/core/Task/Task.js
++++ b/public/framework/core/Task/Task.js
+@@ -53,6 +53,8 @@ export class Task extends Item {
+ 		return this._tasks;
+ 	}
+ 	set tasks(list){ this._tasks = list; this.watch(list); }
++	// Item.get() skips a prototype getter, so a fresh Task answered undefined for "tasks" and {tasks:{add}} was stored as data (2026-10-22; child-verb.test.mjs).
++	get(key){ return key === "tasks" ? this.tasks : super.get(key); }
+ 
+ 	// Like `tasks`, made on first use: notes, decisions and log lines, the same `{"content":{"add":{...}}}` grammar as Page.content.
+ 	get content(){ return this._content ??= new List({ owner: this, name: "content" }); }
+diff --git a/public/framework/core/Task/child-verb.test.mjs b/public/framework/core/Task/child-verb.test.mjs
+new file mode 100644
+index 000000000..486a17d8d
+--- /dev/null
++++ b/public/framework/core/Task/child-verb.test.mjs
+@@ -0,0 +1,15 @@
++// Bugs 2026-10-22: a fresh Task stored {tasks:{add}} as plain data (Item.get skipped the lazy `tasks` getter),
++// and {tasks:{<id>:{start:{}}}} answered ok but did nothing (List.get never found members by id).
++import Task from "./Task.js";
++import Test from "../Test/Test.js";
++
++const t = new Test("Task: children added by delta; a verb on a child by id changes only that child");
++const task = new Task({ id: "parent" });
++task.set({ tasks: { add: { type: "Task", id: "a", title: "a" } } });
++task.set({ tasks: { add: { type: "Task", id: "b", title: "b" } } });
++t.eq(task.tasks.items.length, 2, "two children added on a fresh Task");
++t.ok(task.tasks.get("a")?.id === "a", "List.get finds a member by id");
++task.set({ tasks: { a: { start: {} } } });
++t.eq(task.tasks.get("a")?.state, "running", "child a is running");
++t.eq(task.tasks.get("b")?.state, "idle", "sibling b is untouched");
++t.done();
+diff --git a/public/framework/core/Test/Test.js b/public/framework/core/Test/Test.js
+new file mode 100644
+index 000000000..c921825f0
+--- /dev/null
++++ b/public/framework/core/Test/Test.js
+@@ -0,0 +1,44 @@
++// The check helper for node tests (X.test.mjs). Portable: no DOM, no node imports. Design: tasks/test-system/plan.md
++export default class Test {
++	checks = 0;
++	failures = [];
++
++	constructor(name){ this.name = name; }
++
++	ok(cond, msg = "ok"){
++		this.checks++;
++		if (!cond) this.failures.push(msg);
++		return !!cond;
++	}
++
++	eq(a, b, msg = "equal"){
++		return this.ok(Test.same(a, b), `${msg} (got ${Test.show(a)}, wanted ${Test.show(b)})`);
++	}
++
++	// fn must throw (or reject); `re` is tested against the message when given.
++	async throws(fn, re, msg = "throws"){
++		let err;
++		try { await fn(); } catch (e){ err = e; }
++		return this.ok(err !== undefined && (!re || re.test(String(err?.message ?? err))), `${msg} (${err === undefined ? "did not throw" : "threw " + Test.show(err?.message ?? err)})`);
++	}
++
++	// Prints the verdict; in node a failure also sets the exit code the runner reads.
++	done(){
++		const failed = this.failures.length;
++		if (failed) {
++			console.log(`FAIL ${this.name}: ${this.failures.join("; ")}`);
++			if (globalThis.process) process.exitCode = 1;
++		} else console.log(`PASS ${this.name} (${this.checks} checks)`);
++		return { name: this.name, passed: this.checks - failed, failed, failures: this.failures };
++	}
++
++	static show(x){ try { return JSON.stringify(x) ?? String(x); } catch { return String(x); } }
++
++	static same(a, b){
++		if (Object.is(a, b)) return true;
++		if (typeof a !== "object" || typeof b !== "object" || !a || !b) return false;
++		if (Array.isArray(a) !== Array.isArray(b)) return false;
++		const ka = Object.keys(a), kb = Object.keys(b);
++		return ka.length === kb.length && ka.every(k => Test.same(a[k], b[k]));
++	}
++}
+diff --git a/public/framework/core/Test/TestResults.js b/public/framework/core/Test/TestResults.js
+new file mode 100644
+index 000000000..69693eefc
+--- /dev/null
++++ b/public/framework/core/Test/TestResults.js
+@@ -0,0 +1,10 @@
++import { JSONL } from "/framework/ext/JSONL/JSONL.js";
++
++// results.jsonl: one line per test run. The latest line per file wins.
++export default class TestResults extends JSONL {
++	rows = new Map();
++	apply(entry){ if (entry?.file) this.rows.set(entry.file, entry); }
++	reset(){ this.rows = new Map(); return super.reset(); }
++	// Failures first, then by file name.
++	get sorted(){ return [...this.rows.values()].sort((a, b) => (a.ok - b.ok) || a.file.localeCompare(b.file)); }
++}
+diff --git a/public/framework/core/Test/TestRunner.mjs b/public/framework/core/Test/TestRunner.mjs
+new file mode 100644
+index 000000000..ae2705c4f
+--- /dev/null
++++ b/public/framework/core/Test/TestRunner.mjs
+@@ -0,0 +1,142 @@
++// Finds, runs, watches and records node tests (X.test.mjs). Node only. Design: tasks/test-system/plan.md
++import fs from "node:fs";
++import path from "node:path";
++import { spawn } from "node:child_process";
++import { fileURLToPath, pathToFileURL } from "node:url";
++
++const HERE = path.dirname(fileURLToPath(import.meta.url));
++const ROOT = path.resolve(HERE, "../../../..");
++const SKIP = new Set(["node_modules", ".git", "worktrees"]);
++const IMPORT_RE = /(?:\bfrom\s*|\bimport\s*\(\s*|^\s*import\s+)["']([^"']+)["']/gm;
++
++export default class TestRunner {
++	root = ROOT;
++	results = path.join(HERE, "results.jsonl");
++	timeout = 60000;
++	parallel = 4;
++	cache = new Map();   // abs file -> { mtime, deps }
++	running = new Set();
++
++	rel(f){ return path.relative(this.root, f).split(path.sep).join("/"); }
++
++	// Every *.test.mjs under the folders (repo-relative; default the whole repo).
++	find(folders = [""]){
++		const out = [];
++		const walk = dir => {
++			let ents; try { ents = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
++			for (const e of ents) {
++				const p = path.join(dir, e.name);
++				if (e.isDirectory()) {
++					if (SKIP.has(e.name) || this.rel(p) === "public/framework/ai/sessions") continue;
++					walk(p);
++				} else if (e.name.endsWith(".test.mjs")) out.push(this.rel(p));
++			}
++		};
++		for (const f of folders.length ? folders : [""]) walk(path.resolve(this.root, f));
++		return [...new Set(out)].sort();
++	}
++
++	// Files this file imports (relative or /framework/…), absolute paths, cached per mtime.
++	deps(abs){
++		let st; try { st = fs.statSync(abs); } catch { return []; }
++		const c = this.cache.get(abs);
++		if (c && c.mtime === st.mtimeMs) return c.deps;
++		const src = fs.readFileSync(abs, "utf8"), deps = [];
++		for (const m of src.matchAll(IMPORT_RE)) {
++			let spec = m[1].split(/[?#]/)[0], target;
++			if (spec.startsWith("/framework/")) target = path.join(this.root, "public", spec);
++			else if (spec.startsWith(".")) target = path.resolve(path.dirname(abs), spec);
++			else continue;
++			if (fs.existsSync(target) && fs.statSync(target).isFile()) deps.push(target);
++		}
++		this.cache.set(abs, { mtime: st.mtimeMs, deps });
++		return deps;
++	}
++
++	closure(abs){
++		const seen = new Set(), todo = [abs];
++		while (todo.length) {
++			const f = todo.pop();
++			if (seen.has(f)) continue;
++			seen.add(f);
++			if (/\.m?js$/.test(f)) todo.push(...this.deps(f));
++		}
++		return seen;
++	}
++
++	// Tests covering a changed file: same folder, or importing it transitively.
++	covers(file, tests = this.find()){
++		const abs = path.resolve(this.root, file), dir = path.dirname(abs);
++		return tests.filter(t => {
++			const ta = path.resolve(this.root, t);
++			return path.dirname(ta) === dir || this.closure(ta).has(abs);
++		});
++	}
++
++	one(file, trigger){
++		return new Promise(resolve => {
++			const t0 = Date.now(); let out = "", timedOut = false;
++			const child = spawn(process.execPath, [file], { cwd: this.root, windowsHide: true });
++			const timer = setTimeout(() => { timedOut = true; child.kill(); }, this.timeout);
++			child.stdout.on("data", d => out += d);
++			child.stderr.on("data", d => out += d);
++			child.on("close", code => {
++				clearTimeout(timer);
++				const ok = code === 0 && !timedOut;
++				const line = { file, ok, ms: Date.now() - t0, at: new Date().toISOString(), trigger };
++				if (!ok) line.tail = (timedOut ? "TIMED OUT after " + this.timeout + "ms\n" : "") + out.trim().split(/\r?\n/).slice(-15).join("\n");
++				if (timedOut) line.timeout = true;
++				fs.appendFileSync(this.results, JSON.stringify(line) + "\n");
++				console.log(`${ok ? "PASS" : timedOut ? "TIME" : "FAIL"} ${file} (${line.ms} ms)`);
++				resolve(line);
++			});
++			child.on("error", e => { clearTimeout(timer); resolve({ file, ok: false, ms: 0, tail: String(e) }); });
++		});
++	}
++
++	async run(files, { trigger = "manual" } = {}){
++		files = files.filter(f => !this.running.has(f));
++		files.forEach(f => this.running.add(f));
++		const out = [], queue = [...files];
++		const worker = async () => { for (let f; (f = queue.shift());) { out.push(await this.one(f, trigger)); this.running.delete(f); } };
++		await Promise.all(Array.from({ length: Math.min(this.parallel, files.length) }, worker));
++		const bad = out.filter(r => !r.ok), slow = out.filter(r => r.timeout);
++		console.log(`${out.length - bad.length} passed, ${bad.length} failed (${slow.length} timed out), ${out.length} total`);
++		return out;
++	}
++
++	watch(folders){
++		let pending = new Set(), timer;
++		const fire = () => {
++			const changed = [...pending]; pending = new Set();
++			const tests = this.find();
++			for (const f of changed) {
++				const hit = f.endsWith(".test.mjs") ? [f] : this.covers(f, tests);
++				if (hit.length) this.run(hit, { trigger: "change:" + f });
++			}
++		};
++		for (const folder of folders) {
++			fs.watch(path.resolve(this.root, folder), { recursive: true }, (_ev, name) => {
++				if (!name || !/\.m?js$/.test(name) || /(^|[\\/])(node_modules|\.git)[\\/]/.test(name)) return;
++				pending.add(this.rel(path.resolve(this.root, folder, name)));
++				clearTimeout(timer); timer = setTimeout(fire, 300);
++			});
++			console.log("watching " + folder);
++		}
++	}
++}
++
++if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
++	const args = process.argv.slice(2), r = new TestRunner();
++	const norm = a => r.rel(path.resolve(process.cwd(), a)) || "";
++	const i = args.indexOf("--covers");
++	if (args[0] === "--watch") r.watch(args.slice(1).map(norm));
++	else if (args[0] === "--list" || i > -1) {
++		const files = i > -1 ? r.covers(norm(args[i + 1])) : r.find(args.filter(a => a !== "--list").map(norm));
++		console.log(files.join("\n"));
++	} else {
++		const files = r.find(args.map(norm));
++		const res = await r.run(files);
++		process.exitCode = res.some(x => !x.ok) ? 1 : 0;
++	}
++}
+diff --git a/public/framework/core/Test/page.js b/public/framework/core/Test/page.js
+new file mode 100644
+index 000000000..8279c2ac1
+--- /dev/null
++++ b/public/framework/core/Test/page.js
+@@ -0,0 +1,27 @@
++import { Page, View, div, p, span, pre } from "/app.js";
++import TestResults from "./TestResults.js";
++
++/* The latest result per test file, failures first. Written by TestRunner.mjs (see readme.md). */
++export default new Page({
++	meta: import.meta,
++	title: "Test",
++	icon: "fact_check",
++	description: "Is it passing? The latest run of every node test, failures first.",
++
++	content(){
++		const $box = div.c("pad");
++		const results = new TestResults({ url: new URL("./results.jsonl", import.meta.url).pathname });
++		const draw = () => $box.empty(() => {
++			const rows = results.sorted, bad = rows.filter(r => !r.ok).length;
++			if (!rows.length) return p("No runs yet. Run: node public/framework/core/Test/TestRunner.mjs");
++			p(`${rows.length - bad} passing, ${bad} failing, ${rows.length} test files.`);
++			for (const r of rows) {
++				div.c("row", () => {
++					span(`${r.ok ? "✅" : "❌"} ${r.file} · ${r.ms} ms · ${r.trigger ?? ""}`);
++					if (!r.ok && r.tail) pre(r.tail);
++				});
++			}
++		});
++		results.live(draw).then(draw);
++	},
++});
+diff --git a/public/framework/core/Test/readme.md b/public/framework/core/Test/readme.md
+new file mode 100644
+index 000000000..f2f5544c0
+--- /dev/null
++++ b/public/framework/core/Test/readme.md
+@@ -0,0 +1,31 @@
++# Test — node tests that run when the code they cover changes, with results you can open
++
++## Index
++- [Test.js](./Test.js) — `class Test`: `ok`, `eq`, `throws`, `done`; portable, no DOM, no node imports
++- [TestRunner.mjs](./TestRunner.mjs) — `class TestRunner` (node only): find, run, cover, watch, record
++- [TestResults.js](./TestResults.js) + [page.js](./page.js) — the live page of `results.jsonl`
++- [tasks/test-system/plan.md](./tasks/test-system/plan.md) — the design and why
++
++## Use
++```js
++import Test from "/framework/core/Test/Test.js";
++const t = new Test("Item: a verb on a child by id changes its state");
++t.eq(a, b, "what must be equal");   t.ok(cond, "what must hold");
++t.done();   // prints PASS/FAIL, sets the exit code on failure
++```
++- **Names:** `X.test.mjs` is a node test, passing when it exits 0 (old tests without `Test` count too). `X.test.js` is reserved for browser tests; none yet.
++- **The one command:** `node public/framework/core/Test/TestRunner.mjs [folders…]`: whole repo by default, each file in its own process, 60 s timeout, 4 at once.
++- **Coverage:** a test covers its own folder plus every file it imports, transitively. `--covers <file>` lists them; `--list [folders]` lists tests.
++- **On change:** `TestRunner.mjs --watch core/Item core/Task` runs the covering tests (300 ms debounce, `.js`/`.mjs` only).
++- **Results:** one line per run appended to [results.jsonl](./results.jsonl) `{file, ok, ms, at, trigger, tail}`; the [page](/framework/core/Test/) shows the latest per file, failures first.
++- **What earns a test:** something broke silently, or it is built to a spec. Never for what is certain to pass. When something fails that no test caught, add the one test that would have caught it, named after the bug. Test-first where it pays.
++
++## Watch out
++- A test importing Servex needs `@anthropic-ai/claude-agent-sdk`, which `package.json` does not list: a worktree's `npm ci` lacks it, so 16 Servex tests fail there with ERR_MODULE_NOT_FOUND (they pass in the main tree).
++- Coverage is wide: `core/List/List.js` is imported by about 50 tests, so a change there runs them all.
++- First full run on `michael/dev` (2026-10-22): 84 of 99 pass, 15 fail. The failures are real and were silent until now; the page lists them.
++- The runner's first catch: a fresh `Task` stored `{tasks:{add}}` as plain data (Item.get skipped the lazy `tasks` getter). Fixed in `Task.get`; [child-verb.test.mjs](../Task/child-verb.test.mjs) holds it.
++
++## More
++- ⬜ Servex hosts the watch on core/Item + core/Task (next slice)
++- Page smoke on change stays `Servex/WorktreeWatch.js` + `Server/smoke.mjs`.
+diff --git a/public/framework/core/Test/results.jsonl b/public/framework/core/Test/results.jsonl
+new file mode 100644
+index 000000000..c91fdeeee
+--- /dev/null
++++ b/public/framework/core/Test/results.jsonl
+@@ -0,0 +1,101 @@
++{"file":".claude/hooks/ledger.test.mjs","ok":true,"ms":74,"at":"2026-10-23T02:15:42.242Z","trigger":"manual"}
++{"file":".claude/hooks/jsonl-schema.test.mjs","ok":false,"ms":294,"at":"2026-10-23T02:15:42.458Z","trigger":"manual","tail":"pass  append_log: a verb-shaped task line is refused with the pointer\npass  append_log: a name that means a repo task log is refused\n— 2b. flags.jsonl: a FLAT schema (no verb key) —\npass  flags.jsonl: the three required fields are accepted\npass  flags.jsonl: the optional fields ride along fine\npass  flags.jsonl: a line with no verdict is refused\npass  flags.jsonl: an unlisted verdict is refused\npass  flags.jsonl: every existing line passes the schema\n— 3. append.mjs end to end —\npass  a flat line: exit 3, REFUSED, the right shape printed\npass  …and the file is untouched\npass  one bad line in a batch refuses the whole batch\npass  experiment + review appended; 3 good lines\n\n46 passed, 2 failed"}
++{"file":"Server/AIIndex.test.mjs","ok":true,"ms":300,"at":"2026-10-23T02:15:42.758Z","trigger":"manual"}
++{"file":"Server/ArchiveCopy.test.mjs","ok":true,"ms":52,"at":"2026-10-23T02:15:42.811Z","trigger":"manual"}
++{"file":"Server/AskIndex-tasks.test.mjs","ok":false,"ms":293,"at":"2026-10-23T02:15:43.104Z","trigger":"manual","tail":"\nAssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n3 !== 2\n\n    at file:///C:/Code/lew42/worktrees/test-system/Server/AskIndex-tasks.test.mjs:25:9 {\n  generatedMessage: true,\n  code: 'ERR_ASSERTION',\n  actual: 3,\n  expected: 2,\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\nNode.js v24.15.0"}
++{"file":"Server/AskIndex.test.mjs","ok":true,"ms":74,"at":"2026-10-23T02:15:43.178Z","trigger":"manual"}
++{"file":".claude/hooks/jsonl-guard.test.mjs","ok":true,"ms":1098,"at":"2026-10-23T02:15:43.259Z","trigger":"manual"}
++{"file":"Server/Cloudflare.test.mjs","ok":true,"ms":97,"at":"2026-10-23T02:15:43.275Z","trigger":"manual"}
++{"file":"Server/Compact.test.mjs","ok":true,"ms":59,"at":"2026-10-23T02:15:43.318Z","trigger":"manual"}
++{"file":"Server/Day.test.mjs","ok":true,"ms":54,"at":"2026-10-23T02:15:43.329Z","trigger":"manual"}
++{"file":"Server/OutPath.test.mjs","ok":true,"ms":42,"at":"2026-10-23T02:15:43.371Z","trigger":"manual"}
++{"file":".claude/hooks/server-guard.test.mjs","ok":true,"ms":1598,"at":"2026-10-23T02:15:43.842Z","trigger":"manual"}
++{"file":"Server/Steps.test.mjs","ok":true,"ms":74,"at":"2026-10-23T02:15:43.917Z","trigger":"manual"}
++{"file":"Server/LandingCheck.test.mjs","ok":true,"ms":742,"at":"2026-10-23T02:15:44.060Z","trigger":"manual"}
++{"file":"Server/SessionRecord.test.mjs","ok":true,"ms":749,"at":"2026-10-23T02:15:44.120Z","trigger":"manual"}
++{"file":"Server/TaskMove.test.mjs","ok":false,"ms":95,"at":"2026-10-23T02:15:44.215Z","trigger":"manual","tail":"    at finalizeResolution (node:internal/modules/esm/resolve:271:11)\n    at moduleResolve (node:internal/modules/esm/resolve:861:10)\n    at defaultResolve (node:internal/modules/esm/resolve:988:11)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:697:20)\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:714:38)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:746:52)\n    at #resolve (node:internal/modules/esm/loader:679:17)\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:599:35)\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:162:33)\n    at ModuleJob.link (node:internal/modules/esm/module_job:252:17) {\n  code: 'ERR_MODULE_NOT_FOUND',\n  url: 'file:///C:/Users/mike/AppData/Local/Temp/taskmove-test-JofYFF/public/framework/core/Item/Item.js'\n}\n\nNode.js v24.15.0"}
++{"file":"Server/TaskState.test.mjs","ok":true,"ms":73,"at":"2026-10-23T02:15:44.288Z","trigger":"manual"}
++{"file":"Server/TaskDirs.test.mjs","ok":true,"ms":398,"at":"2026-10-23T02:15:44.315Z","trigger":"manual"}
++{"file":"Server/Tunnel.test.mjs","ok":true,"ms":62,"at":"2026-10-23T02:15:44.350Z","trigger":"manual"}
++{"file":"Server/UndoneAsks.test.mjs","ok":true,"ms":92,"at":"2026-10-23T02:15:44.407Z","trigger":"manual"}
++{"file":"Server/UndoneToTasks.test.mjs","ok":true,"ms":71,"at":"2026-10-23T02:15:44.421Z","trigger":"manual"}
++{"file":"Server/UndoneVerify.test.mjs","ok":true,"ms":73,"at":"2026-10-23T02:15:44.481Z","trigger":"manual"}
++{"file":"Server/Unreferenced.test.mjs","ok":true,"ms":63,"at":"2026-10-23T02:15:44.484Z","trigger":"manual"}
++{"file":"Server/clarity.test.mjs","ok":true,"ms":61,"at":"2026-10-23T02:15:44.545Z","trigger":"manual"}
++{"file":"Server/git-hooks/post-commit.test.mjs","ok":false,"ms":40,"at":"2026-10-23T02:15:44.586Z","trigger":"manual","tail":"Error [ERR_MODULE_NOT_FOUND]: Cannot find package '@anthropic-ai/claude-agent-sdk' imported from C:\\Code\\lew42\\worktrees\\test-system\\Servex\\agents\\Agents.js\n    at Object.getPackageJSONURL (node:internal/modules/package_json_reader:301:9)\n    at packageResolve (node:internal/modules/esm/resolve:764:81)\n    at moduleResolve (node:internal/modules/esm/resolve:855:18)\n    at defaultResolve (node:internal/modules/esm/resolve:988:11)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:697:20)\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:714:38)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:746:52)\n    at #resolve (node:internal/modules/esm/loader:679:17)\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:599:35)\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:162:33) {\n  code: 'ERR_MODULE_NOT_FOUND'\n}\n\nNode.js v24.15.0"}
++{"file":"Server/TaskMigrate.test.mjs","ok":true,"ms":929,"at":"2026-10-23T02:15:44.989Z","trigger":"manual"}
++{"file":"Server/plugins/SocketServer/Append.test.mjs","ok":false,"ms":44,"at":"2026-10-23T02:15:45.033Z","trigger":"manual","tail":"— a good batch against task.jsonl's schema —\npass  a good batch is written: {\"index\":0,\"response\":\"append successful\"}\npass  both lines landed, both parse\n— one bad line refuses the whole batch —\npass  the bad line's reason comes back: append refused: a flat line (no verb: \"bogus\") — wrap it in a verb, e.g. {\"log\":{\"at\":\"NOW\",\"msg\":\"…\"}}\npass  nothing partial was written — the file was never created\n— a file with no schema only has to be a JSON object —\npass  an unknown-schema file accepts any plain object: {\"index\":0,\"response\":\"append successful\"}\npass  the line landed as given\npass  a string line that isn't even valid JSON is refused, schema or not: append refused: lines must be an array of objects\nFAIL  a string line that IS already-serialized JSON is still accepted\n\n7 passed, 1 failed"}
++{"file":".claude/hooks/git-guard.test.mjs","ok":true,"ms":2911,"at":"2026-10-23T02:15:45.066Z","trigger":"manual"}
++{"file":"Server/review.test.mjs","ok":true,"ms":46,"at":"2026-10-23T02:15:45.079Z","trigger":"manual"}
++{"file":"Server/session-place.test.mjs","ok":true,"ms":105,"at":"2026-10-23T02:15:45.184Z","trigger":"manual"}
++{"file":"Server/session-migrate.test.mjs","ok":true,"ms":615,"at":"2026-10-23T02:15:45.681Z","trigger":"manual"}
++{"file":"Server/session-summary.test.mjs","ok":true,"ms":831,"at":"2026-10-23T02:15:46.015Z","trigger":"manual"}
++{"file":"Servex/Heartbeat-card.test.mjs","ok":true,"ms":141,"at":"2026-10-23T02:15:46.156Z","trigger":"manual"}
++{"file":"Servex/Heartbeat-landed.test.mjs","ok":false,"ms":60,"at":"2026-10-23T02:15:46.216Z","trigger":"manual","tail":"Error [ERR_MODULE_NOT_FOUND]: Cannot find package '@anthropic-ai/claude-agent-sdk' imported from C:\\Code\\lew42\\worktrees\\test-system\\Servex\\agents\\Agents.js\n    at Object.getPackageJSONURL (node:internal/modules/package_json_reader:301:9)\n    at packageResolve (node:internal/modules/esm/resolve:764:81)\n    at moduleResolve (node:internal/modules/esm/resolve:855:18)\n    at defaultResolve (node:internal/modules/esm/resolve:988:11)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:697:20)\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:714:38)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:746:52)\n    at #resolve (node:internal/modules/esm/loader:679:17)\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:599:35)\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:162:33) {\n  code: 'ERR_MODULE_NOT_FOUND'\n}\n\nNode.js v24.15.0"}
++{"file":"Server/Worktrees.test.mjs","ok":true,"ms":2033,"at":"2026-10-23T02:15:46.514Z","trigger":"manual"}
++{"file":"Servex/Landed-merged.test.mjs","ok":true,"ms":655,"at":"2026-10-23T02:15:46.872Z","trigger":"manual"}
++{"file":"Servex/LogSweeper.test.mjs","ok":true,"ms":637,"at":"2026-10-23T02:15:47.151Z","trigger":"manual"}
++{"file":"Servex/ProcessRunner.test.mjs","ok":true,"ms":320,"at":"2026-10-23T02:15:47.471Z","trigger":"manual"}
++{"file":"Servex/TaskLoop-handover.test.mjs","ok":true,"ms":468,"at":"2026-10-23T02:15:47.939Z","trigger":"manual"}
++{"file":"Servex/TaskLoop-launch.test.mjs","ok":false,"ms":86,"at":"2026-10-23T02:15:48.025Z","trigger":"manual","tail":"\nAssertionError [ERR_ASSERTION]: the tick retries a queued task\n\n2 !== 3\n\n    at file:///C:/Code/lew42/worktrees/test-system/Servex/TaskLoop-launch.test.mjs:77:8 {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: 2,\n  expected: 3,\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\nNode.js v24.15.0"}
++{"file":"Server/task-log-race.test.mjs","ok":true,"ms":2436,"at":"2026-10-23T02:15:48.118Z","trigger":"manual"}
++{"file":"Servex/TaskLoop-state.test.mjs","ok":true,"ms":183,"at":"2026-10-23T02:15:48.208Z","trigger":"manual"}
++{"file":"Servex/TaskLoop-steps.test.mjs","ok":false,"ms":101,"at":"2026-10-23T02:15:48.220Z","trigger":"manual","tail":"node:fs:1222\n  return binding.rmSync(getValidatedPath(path), opts.maxRetries, opts.recursive, opts.retryDelay);\n                 ^\n\nError: EPERM, Permission denied: \\\\?\\C:\\Users\\mike\\AppData\\Local\\Temp\\taskloop-steps-test-J4Wisg '\\\\?\\C:\\Users\\mike\\AppData\\Local\\Temp\\taskloop-steps-test-J4Wisg'\n    at Object.rmSync (node:fs:1222:18)\n    at file:///C:/Code/lew42/worktrees/test-system/Servex/TaskLoop-steps.test.mjs:41:4 {\n  errno: 1,\n  code: 'EPERM',\n  path: '\\\\\\\\?\\\\C:\\\\Users\\\\mike\\\\AppData\\\\Local\\\\Temp\\\\taskloop-steps-test-J4Wisg',\n  syscall: 'rm'\n}\n\nNode.js v24.15.0"}
++{"file":"Servex/agents/Dispatcher-task.test.mjs","ok":false,"ms":59,"at":"2026-10-23T02:15:48.279Z","trigger":"manual","tail":"Error [ERR_MODULE_NOT_FOUND]: Cannot find package '@anthropic-ai/claude-agent-sdk' imported from C:\\Code\\lew42\\worktrees\\test-system\\Servex\\agents\\Agents.js\n    at Object.getPackageJSONURL (node:internal/modules/package_json_reader:301:9)\n    at packageResolve (node:internal/modules/esm/resolve:764:81)\n    at moduleResolve (node:internal/modules/esm/resolve:855:18)\n    at defaultResolve (node:internal/modules/esm/resolve:988:11)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:697:20)\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:714:38)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:746:52)\n    at #resolve (node:internal/modules/esm/loader:679:17)\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:599:35)\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:162:33) {\n  code: 'ERR_MODULE_NOT_FOUND'\n}\n\nNode.js v24.15.0"}
++{"file":"Servex/WorktreeWatch.test.mjs","ok":true,"ms":78,"at":"2026-10-23T02:15:48.286Z","trigger":"manual"}
++{"file":"Servex/agents/External.test.mjs","ok":false,"ms":45,"at":"2026-10-23T02:15:48.325Z","trigger":"manual","tail":"Error [ERR_MODULE_NOT_FOUND]: Cannot find package '@anthropic-ai/claude-agent-sdk' imported from C:\\Code\\lew42\\worktrees\\test-system\\Servex\\agents\\Agents.js\n    at Object.getPackageJSONURL (node:internal/modules/package_json_reader:301:9)\n    at packageResolve (node:internal/modules/esm/resolve:764:81)\n    at moduleResolve (node:internal/modules/esm/resolve:855:18)\n    at defaultResolve (node:internal/modules/esm/resolve:988:11)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:697:20)\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:714:38)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:746:52)\n    at #resolve (node:internal/modules/esm/loader:679:17)\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:599:35)\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:162:33) {\n  code: 'ERR_MODULE_NOT_FOUND'\n}\n\nNode.js v24.15.0"}
++{"file":"Server/merge.test.mjs","ok":true,"ms":3743,"at":"2026-10-23T02:15:48.329Z","trigger":"manual"}
++{"file":"Servex/agents/ModuleInbox.test.mjs","ok":true,"ms":48,"at":"2026-10-23T02:15:48.334Z","trigger":"manual"}
++{"file":"Servex/agents/awaken-race.test.mjs","ok":false,"ms":43,"at":"2026-10-23T02:15:48.372Z","trigger":"manual","tail":"Error [ERR_MODULE_NOT_FOUND]: Cannot find package '@anthropic-ai/claude-agent-sdk' imported from C:\\Code\\lew42\\worktrees\\test-system\\Servex\\agents\\Agents.js\n    at Object.getPackageJSONURL (node:internal/modules/package_json_reader:301:9)\n    at packageResolve (node:internal/modules/esm/resolve:764:81)\n    at moduleResolve (node:internal/modules/esm/resolve:855:18)\n    at defaultResolve (node:internal/modules/esm/resolve:988:11)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:697:20)\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:714:38)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:746:52)\n    at #resolve (node:internal/modules/esm/loader:679:17)\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:599:35)\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:162:33) {\n  code: 'ERR_MODULE_NOT_FOUND'\n}\n\nNode.js v24.15.0"}
++{"file":"Servex/agents/child-follow.test.mjs","ok":false,"ms":50,"at":"2026-10-23T02:15:48.385Z","trigger":"manual","tail":"Error [ERR_MODULE_NOT_FOUND]: Cannot find package '@anthropic-ai/claude-agent-sdk' imported from C:\\Code\\lew42\\worktrees\\test-system\\Servex\\agents\\Agents.js\n    at Object.getPackageJSONURL (node:internal/modules/package_json_reader:301:9)\n    at packageResolve (node:internal/modules/esm/resolve:764:81)\n    at moduleResolve (node:internal/modules/esm/resolve:855:18)\n    at defaultResolve (node:internal/modules/esm/resolve:988:11)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:697:20)\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:714:38)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:746:52)\n    at #resolve (node:internal/modules/esm/loader:679:17)\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:599:35)\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:162:33) {\n  code: 'ERR_MODULE_NOT_FOUND'\n}\n\nNode.js v24.15.0"}
++{"file":"Servex/agents/Sessions.test.mjs","ok":false,"ms":66,"at":"2026-10-23T02:15:48.391Z","trigger":"manual","tail":"Error [ERR_MODULE_NOT_FOUND]: Cannot find package '@anthropic-ai/claude-agent-sdk' imported from C:\\Code\\lew42\\worktrees\\test-system\\Servex\\agents\\Agents.js\n    at Object.getPackageJSONURL (node:internal/modules/package_json_reader:301:9)\n    at packageResolve (node:internal/modules/esm/resolve:764:81)\n    at moduleResolve (node:internal/modules/esm/resolve:855:18)\n    at defaultResolve (node:internal/modules/esm/resolve:988:11)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:697:20)\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:714:38)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:746:52)\n    at #resolve (node:internal/modules/esm/loader:679:17)\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:599:35)\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:162:33) {\n  code: 'ERR_MODULE_NOT_FOUND'\n}\n\nNode.js v24.15.0"}
++{"file":"Servex/agents/compact-nudge.test.mjs","ok":false,"ms":52,"at":"2026-10-23T02:15:48.425Z","trigger":"manual","tail":"Error [ERR_MODULE_NOT_FOUND]: Cannot find package '@anthropic-ai/claude-agent-sdk' imported from C:\\Code\\lew42\\worktrees\\test-system\\Servex\\agents\\Agents.js\n    at Object.getPackageJSONURL (node:internal/modules/package_json_reader:301:9)\n    at packageResolve (node:internal/modules/esm/resolve:764:81)\n    at moduleResolve (node:internal/modules/esm/resolve:855:18)\n    at defaultResolve (node:internal/modules/esm/resolve:988:11)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:697:20)\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:714:38)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:746:52)\n    at #resolve (node:internal/modules/esm/loader:679:17)\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:599:35)\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:162:33) {\n  code: 'ERR_MODULE_NOT_FOUND'\n}\n\nNode.js v24.15.0"}
++{"file":"Servex/agents/cost.test.mjs","ok":false,"ms":46,"at":"2026-10-23T02:15:48.432Z","trigger":"manual","tail":"Error [ERR_MODULE_NOT_FOUND]: Cannot find package '@anthropic-ai/claude-agent-sdk' imported from C:\\Code\\lew42\\worktrees\\test-system\\Servex\\agents\\Agents.js\n    at Object.getPackageJSONURL (node:internal/modules/package_json_reader:301:9)\n    at packageResolve (node:internal/modules/esm/resolve:764:81)\n    at moduleResolve (node:internal/modules/esm/resolve:855:18)\n    at defaultResolve (node:internal/modules/esm/resolve:988:11)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:697:20)\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:714:38)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:746:52)\n    at #resolve (node:internal/modules/esm/loader:679:17)\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:599:35)\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:162:33) {\n  code: 'ERR_MODULE_NOT_FOUND'\n}\n\nNode.js v24.15.0"}
++{"file":"Servex/agents/fixer.test.mjs","ok":false,"ms":47,"at":"2026-10-23T02:15:48.438Z","trigger":"manual","tail":"Error [ERR_MODULE_NOT_FOUND]: Cannot find package '@anthropic-ai/claude-agent-sdk' imported from C:\\Code\\lew42\\worktrees\\test-system\\Servex\\agents\\Agents.js\n    at Object.getPackageJSONURL (node:internal/modules/package_json_reader:301:9)\n    at packageResolve (node:internal/modules/esm/resolve:764:81)\n    at moduleResolve (node:internal/modules/esm/resolve:855:18)\n    at defaultResolve (node:internal/modules/esm/resolve:988:11)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:697:20)\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:714:38)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:746:52)\n    at #resolve (node:internal/modules/esm/loader:679:17)\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:599:35)\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:162:33) {\n  code: 'ERR_MODULE_NOT_FOUND'\n}\n\nNode.js v24.15.0"}
++{"file":"Servex/agents/item-local.test.mjs","ok":false,"ms":48,"at":"2026-10-23T02:15:48.487Z","trigger":"manual","tail":"Error [ERR_MODULE_NOT_FOUND]: Cannot find package '@anthropic-ai/claude-agent-sdk' imported from C:\\Code\\lew42\\worktrees\\test-system\\Servex\\agents\\Agents.js\n    at Object.getPackageJSONURL (node:internal/modules/package_json_reader:301:9)\n    at packageResolve (node:internal/modules/esm/resolve:764:81)\n    at moduleResolve (node:internal/modules/esm/resolve:855:18)\n    at defaultResolve (node:internal/modules/esm/resolve:988:11)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:697:20)\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:714:38)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:746:52)\n    at #resolve (node:internal/modules/esm/loader:679:17)\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:599:35)\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:162:33) {\n  code: 'ERR_MODULE_NOT_FOUND'\n}\n\nNode.js v24.15.0"}
++{"file":"Servex/agents/global.test.mjs","ok":false,"ms":67,"at":"2026-10-23T02:15:48.492Z","trigger":"manual","tail":"Error [ERR_MODULE_NOT_FOUND]: Cannot find package '@anthropic-ai/claude-agent-sdk' imported from C:\\Code\\lew42\\worktrees\\test-system\\Servex\\agents\\Agents.js\n    at Object.getPackageJSONURL (node:internal/modules/package_json_reader:301:9)\n    at packageResolve (node:internal/modules/esm/resolve:764:81)\n    at moduleResolve (node:internal/modules/esm/resolve:855:18)\n    at defaultResolve (node:internal/modules/esm/resolve:988:11)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:697:20)\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:714:38)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:746:52)\n    at #resolve (node:internal/modules/esm/loader:679:17)\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:599:35)\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:162:33) {\n  code: 'ERR_MODULE_NOT_FOUND'\n}\n\nNode.js v24.15.0"}
++{"file":"Servex/agents/landing-check.test.mjs","ok":false,"ms":49,"at":"2026-10-23T02:15:48.541Z","trigger":"manual","tail":"Error [ERR_MODULE_NOT_FOUND]: Cannot find package '@anthropic-ai/claude-agent-sdk' imported from C:\\Code\\lew42\\worktrees\\test-system\\Servex\\agents\\Agents.js\n    at Object.getPackageJSONURL (node:internal/modules/package_json_reader:301:9)\n    at packageResolve (node:internal/modules/esm/resolve:764:81)\n    at moduleResolve (node:internal/modules/esm/resolve:855:18)\n    at defaultResolve (node:internal/modules/esm/resolve:988:11)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:697:20)\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:714:38)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:746:52)\n    at #resolve (node:internal/modules/esm/loader:679:17)\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:599:35)\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:162:33) {\n  code: 'ERR_MODULE_NOT_FOUND'\n}\n\nNode.js v24.15.0"}
++{"file":"Servex/agents/groups.test.mjs","ok":true,"ms":133,"at":"2026-10-23T02:15:48.565Z","trigger":"manual"}
++{"file":"Servex/agents/log-tool.test.mjs","ok":false,"ms":48,"at":"2026-10-23T02:15:48.613Z","trigger":"manual","tail":"Error [ERR_MODULE_NOT_FOUND]: Cannot find package '@anthropic-ai/claude-agent-sdk' imported from C:\\Code\\lew42\\worktrees\\test-system\\Servex\\agents\\tools.js\n    at Object.getPackageJSONURL (node:internal/modules/package_json_reader:301:9)\n    at packageResolve (node:internal/modules/esm/resolve:764:81)\n    at moduleResolve (node:internal/modules/esm/resolve:855:18)\n    at defaultResolve (node:internal/modules/esm/resolve:988:11)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:697:20)\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:714:38)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:746:52)\n    at #resolve (node:internal/modules/esm/loader:679:17)\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:599:35)\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:162:33) {\n  code: 'ERR_MODULE_NOT_FOUND'\n}\n\nNode.js v24.15.0"}
++{"file":"Servex/agents/open-task.test.mjs","ok":false,"ms":50,"at":"2026-10-23T02:15:48.663Z","trigger":"manual","tail":"Error [ERR_MODULE_NOT_FOUND]: Cannot find package '@anthropic-ai/claude-agent-sdk' imported from C:\\Code\\lew42\\worktrees\\test-system\\Servex\\agents\\Agents.js\n    at Object.getPackageJSONURL (node:internal/modules/package_json_reader:301:9)\n    at packageResolve (node:internal/modules/esm/resolve:764:81)\n    at moduleResolve (node:internal/modules/esm/resolve:855:18)\n    at defaultResolve (node:internal/modules/esm/resolve:988:11)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:697:20)\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:714:38)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:746:52)\n    at #resolve (node:internal/modules/esm/loader:679:17)\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:599:35)\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:162:33) {\n  code: 'ERR_MODULE_NOT_FOUND'\n}\n\nNode.js v24.15.0"}
++{"file":"Servex/Pool.test.mjs","ok":true,"ms":1803,"at":"2026-10-23T02:15:48.676Z","trigger":"manual"}
++{"file":"Servex/agents/page_tools.test.mjs","ok":false,"ms":146,"at":"2026-10-23T02:15:48.809Z","trigger":"manual","tail":"    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: page.js parent: children gets the new name\n    at ok (file:///C:/Code/lew42/worktrees/test-system/Servex/agents/page_tools.test.mjs:19:36)\n    at file:///C:/Code/lew42/worktrees/test-system/Servex/agents/page_tools.test.mjs:123:3 {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: false,\n  expected: true,\n  operator: '==',\n  diff: 'simple'\n}\n\nNode.js v24.15.0"}
++{"file":"Servex/agents/policy.test.mjs","ok":true,"ms":201,"at":"2026-10-23T02:15:48.877Z","trigger":"manual"}
++{"file":"Servex/agents/item_tool.test.mjs","ok":true,"ms":406,"at":"2026-10-23T02:15:48.893Z","trigger":"manual"}
++{"file":"Servex/agents/readme-chain.test.mjs","ok":true,"ms":76,"at":"2026-10-23T02:15:48.953Z","trigger":"manual"}
++{"file":"Servex/agents/layers.test.mjs","ok":true,"ms":452,"at":"2026-10-23T02:15:48.993Z","trigger":"manual"}
++{"file":"Servex/agents/respawn.test.mjs","ok":true,"ms":62,"at":"2026-10-23T02:15:49.015Z","trigger":"manual"}
++{"file":"Servex/agents/revive-skip.test.mjs","ok":false,"ms":58,"at":"2026-10-23T02:15:49.051Z","trigger":"manual","tail":"Error [ERR_MODULE_NOT_FOUND]: Cannot find package '@anthropic-ai/claude-agent-sdk' imported from C:\\Code\\lew42\\worktrees\\test-system\\Servex\\agents\\Agents.js\n    at Object.getPackageJSONURL (node:internal/modules/package_json_reader:301:9)\n    at packageResolve (node:internal/modules/esm/resolve:764:81)\n    at moduleResolve (node:internal/modules/esm/resolve:855:18)\n    at defaultResolve (node:internal/modules/esm/resolve:988:11)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:697:20)\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:714:38)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:746:52)\n    at #resolve (node:internal/modules/esm/loader:679:17)\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:599:35)\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:162:33) {\n  code: 'ERR_MODULE_NOT_FOUND'\n}\n\nNode.js v24.15.0"}
++{"file":"Servex/agents/requests.test.mjs","ok":true,"ms":165,"at":"2026-10-23T02:15:49.059Z","trigger":"manual"}
++{"file":"Servex/agents/roles.test.mjs","ok":true,"ms":84,"at":"2026-10-23T02:15:49.099Z","trigger":"manual"}
++{"file":"Servex/agents/skill-tool.test.mjs","ok":false,"ms":53,"at":"2026-10-23T02:15:49.105Z","trigger":"manual","tail":"Error [ERR_MODULE_NOT_FOUND]: Cannot find package '@anthropic-ai/claude-agent-sdk' imported from C:\\Code\\lew42\\worktrees\\test-system\\Servex\\agents\\tools.js\n    at Object.getPackageJSONURL (node:internal/modules/package_json_reader:301:9)\n    at packageResolve (node:internal/modules/esm/resolve:764:81)\n    at moduleResolve (node:internal/modules/esm/resolve:855:18)\n    at defaultResolve (node:internal/modules/esm/resolve:988:11)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:697:20)\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:714:38)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:746:52)\n    at #resolve (node:internal/modules/esm/loader:679:17)\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:599:35)\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:162:33) {\n  code: 'ERR_MODULE_NOT_FOUND'\n}\n\nNode.js v24.15.0"}
++{"file":"Servex/agents/spawn-worktree.test.mjs","ok":false,"ms":55,"at":"2026-10-23T02:15:49.115Z","trigger":"manual","tail":"Error [ERR_MODULE_NOT_FOUND]: Cannot find package '@anthropic-ai/claude-agent-sdk' imported from C:\\Code\\lew42\\worktrees\\test-system\\Servex\\agents\\Agents.js\n    at Object.getPackageJSONURL (node:internal/modules/package_json_reader:301:9)\n    at packageResolve (node:internal/modules/esm/resolve:764:81)\n    at moduleResolve (node:internal/modules/esm/resolve:855:18)\n    at defaultResolve (node:internal/modules/esm/resolve:988:11)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:697:20)\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:714:38)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:746:52)\n    at #resolve (node:internal/modules/esm/loader:679:17)\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:599:35)\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:162:33) {\n  code: 'ERR_MODULE_NOT_FOUND'\n}\n\nNode.js v24.15.0"}
++{"file":"Servex/agents/wakeups.test.mjs","ok":false,"ms":59,"at":"2026-10-23T02:15:49.164Z","trigger":"manual","tail":"Error [ERR_MODULE_NOT_FOUND]: Cannot find package '@anthropic-ai/claude-agent-sdk' imported from C:\\Code\\lew42\\worktrees\\test-system\\Servex\\agents\\Agents.js\n    at Object.getPackageJSONURL (node:internal/modules/package_json_reader:301:9)\n    at packageResolve (node:internal/modules/esm/resolve:764:81)\n    at moduleResolve (node:internal/modules/esm/resolve:855:18)\n    at defaultResolve (node:internal/modules/esm/resolve:988:11)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:697:20)\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:714:38)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:746:52)\n    at #resolve (node:internal/modules/esm/loader:679:17)\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:599:35)\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:162:33) {\n  code: 'ERR_MODULE_NOT_FOUND'\n}\n\nNode.js v24.15.0"}
++{"file":"Servex/agents/verb-note.test.mjs","ok":true,"ms":92,"at":"2026-10-23T02:15:49.191Z","trigger":"manual"}
++{"file":"Servex/ext/openrouter/provider.test.mjs","ok":true,"ms":62,"at":"2026-10-23T02:15:49.254Z","trigger":"manual"}
++{"file":"Servex/ext/refine/test/LiveRefine.test.mjs","ok":false,"ms":59,"at":"2026-10-23T02:15:49.313Z","trigger":"manual","tail":"Error [ERR_MODULE_NOT_FOUND]: Cannot find package '@anthropic-ai/claude-agent-sdk' imported from C:\\Code\\lew42\\worktrees\\test-system\\Servex\\ext\\refine\\RefineCall.js\n    at Object.getPackageJSONURL (node:internal/modules/package_json_reader:301:9)\n    at packageResolve (node:internal/modules/esm/resolve:764:81)\n    at moduleResolve (node:internal/modules/esm/resolve:855:18)\n    at defaultResolve (node:internal/modules/esm/resolve:988:11)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:697:20)\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:714:38)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:746:52)\n    at #resolve (node:internal/modules/esm/loader:679:17)\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:599:35)\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:162:33) {\n  code: 'ERR_MODULE_NOT_FOUND'\n}\n\nNode.js v24.15.0"}
++{"file":"Servex/asks/tasks.test.mjs","ok":true,"ms":238,"at":"2026-10-23T02:15:49.403Z","trigger":"manual"}
++{"file":"Servex/agents/prompt-tasks.test.mjs","ok":true,"ms":1247,"at":"2026-10-23T02:15:50.057Z","trigger":"manual"}
++{"file":"Servex/pool-hold.test.mjs","ok":true,"ms":357,"at":"2026-10-23T02:15:50.415Z","trigger":"manual"}
++{"file":"Servex/processes.test.mjs","ok":false,"ms":60,"at":"2026-10-23T02:15:50.475Z","trigger":"manual","tail":"AssertionError [ERR_ASSERTION]: task_key cuts at ai/\n    at ok (file:///C:/Code/lew42/worktrees/test-system/Servex/processes.test.mjs:11:37)\n    at file:///C:/Code/lew42/worktrees/test-system/Servex/processes.test.mjs:47:1\n    at ModuleJob.run (node:internal/modules/esm/module_job:437:25)\n    at async node:internal/modules/esm/loader:639:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: false,\n  expected: true,\n  operator: '==',\n  diff: 'simple'\n}\n\nNode.js v24.15.0"}
++{"file":"Servex/asks/asks.test.mjs","ok":true,"ms":2688,"at":"2026-10-23T02:15:51.804Z","trigger":"manual"}
++{"file":"Servex/pool-heal.test.mjs","ok":true,"ms":2472,"at":"2026-10-23T02:15:51.875Z","trigger":"manual"}
++{"file":"public/framework/ai/AISession/AISessionIndex.test.mjs","ok":true,"ms":86,"at":"2026-10-23T02:15:51.961Z","trigger":"manual"}
++{"file":"public/framework/ai/AITask/tree.test.mjs","ok":false,"ms":48,"at":"2026-10-23T02:15:52.009Z","trigger":"manual","tail":"\nError: ENOENT: no such file or directory, scandir 'C:\\Code\\lew42\\monorepo\\public\\framework\\ai\\2026-09-29'\n    at Object.readdirSync (node:fs:1570:26)\n    at walk (file:///C:/Code/lew42/worktrees/test-system/public/framework/ai/AITask/tree.test.mjs:70:21)\n    at file:///C:/Code/lew42/worktrees/test-system/public/framework/ai/AITask/tree.test.mjs:77:1\n    at ModuleJob.run (node:internal/modules/esm/module_job:437:25)\n    at async node:internal/modules/esm/loader:639:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {\n  errno: -4058,\n  code: 'ENOENT',\n  syscall: 'scandir',\n  path: 'C:\\\\Code\\\\lew42\\\\monorepo\\\\public\\\\framework\\\\ai\\\\2026-09-29'\n}\n\nNode.js v24.15.0"}
++{"file":"public/framework/audio/Whisper/WhisperLogRows.test.mjs","ok":true,"ms":61,"at":"2026-10-23T02:15:52.071Z","trigger":"manual"}
++{"file":"public/framework/ai/AISession/AISessionCost.test.mjs","ok":true,"ms":861,"at":"2026-10-23T02:15:52.665Z","trigger":"manual"}
++{"file":"public/framework/core/Item/Item.test.mjs","ok":true,"ms":61,"at":"2026-10-23T02:15:52.727Z","trigger":"manual"}
++{"file":"public/framework/core/Item/act.test.mjs","ok":true,"ms":100,"at":"2026-10-23T02:15:52.827Z","trigger":"manual"}
++{"file":"public/framework/core/Item/Dated.test.mjs","ok":true,"ms":1435,"at":"2026-10-23T02:15:53.506Z","trigger":"manual"}
++{"file":"public/framework/core/Property/Property.test.mjs","ok":true,"ms":57,"at":"2026-10-23T02:15:53.563Z","trigger":"manual"}
++{"file":"public/framework/core/Session/Session.test.mjs","ok":true,"ms":65,"at":"2026-10-23T02:15:53.629Z","trigger":"manual"}
++{"file":"public/framework/core/Task/Project.test.mjs","ok":true,"ms":69,"at":"2026-10-23T02:15:53.698Z","trigger":"manual"}
++{"file":"public/framework/core/Task/Task.test.mjs","ok":true,"ms":65,"at":"2026-10-23T02:15:53.763Z","trigger":"manual"}
++{"file":"Servex/whisper-detach.test.mjs","ok":true,"ms":4038,"at":"2026-10-23T02:15:54.513Z","trigger":"manual"}
++{"file":"public/framework/core/Task/child-verb.test.mjs","ok":true,"ms":68,"at":"2026-10-23T02:15:54.581Z","trigger":"manual"}
++{"file":"public/framework/ext/Refine/test/Placement.test.mjs","ok":true,"ms":58,"at":"2026-10-23T02:15:54.640Z","trigger":"manual"}
++{"file":"public/framework/ext/Shots/Shots.test.mjs","ok":true,"ms":71,"at":"2026-10-23T02:15:54.711Z","trigger":"manual"}
++{"file":"public/framework/core/Page/Template/Template.test.mjs","ok":true,"ms":3967,"at":"2026-10-23T02:15:56.794Z","trigger":"manual"}
++{"file":"Servex/ext/remote/RemoteMCP.test.mjs","ok":true,"ms":12046,"at":"2026-10-23T02:16:01.360Z","trigger":"manual"}
++{"file":"public/framework/core/Task/TasksPage.test.mjs","ok":false,"ms":23845,"at":"2026-10-23T02:16:17.609Z","trigger":"manual","tail":"ok - a tasks/ path with no page of its own mounts TasksPage (got TasksPage)\nok - a module's Tasks tab shows its one group of rows\nnode:internal/modules/run_main:107\n    triggerUncaughtException(\n    ^\n\npage.waitForFunction: Timeout 20000ms exceeded.\n    at mounted (C:\\Code\\lew42\\worktrees\\test-system\\public\\framework\\core\\Task\\TasksPage.test.mjs:13:12)\n    at async file:///C:/Code/lew42/worktrees/test-system/public/framework/core/Task/TasksPage.test.mjs:31:15 {\n  log: [],\n  name: 'TimeoutError'\n}\n\nNode.js v24.15.0"}
++{"file":"public/framework/core/Task/child-verb.test.mjs","ok":true,"ms":50,"at":"2026-10-23T02:17:50.504Z","trigger":"change:public/framework/core/Test/Test.js"}
+diff --git a/public/framework/core/Test/tasks/test-system/plan.md b/public/framework/core/Test/tasks/test-system/plan.md
+new file mode 100644
+index 000000000..0922bc03f
+--- /dev/null
++++ b/public/framework/core/Test/tasks/test-system/plan.md
+@@ -0,0 +1,40 @@
++# Test system: the design (mastermind-test, 2026-10-22)
++
++## Name and home
++- **`core/Test/`, `class Test`** (portable, no DOM, no node imports) and **`class TestRunner`** (`core/Test/TestRunner.mjs`, node only: finds, runs, watches, records).
++- Alternative: a `Server/Tests.mjs` tool with no class. Lost because the owner wants results that persist and render, and a browser half needs a home under `public/`.
++- `Test` does **not** extend `Item` yet: a result is one JSONL line a view tails, which needs no Item. Switch when a test needs verbs (rerun, skip) on its record.
++
++## File names (two kinds)
++- **`X.test.mjs` = node test.** Already the convention in ~100 files; `.mjs` says node. Run with `node X.test.mjs`; it passes when it exits 0.
++- **`X.test.js` = browser test** (under `public/`, imports real `.js` urls). Loaded by the Test page in the browser. None exist yet; the slot is reserved.
++- Alternative: the owner's old `X.tests.js` / `X.node.tests.js`. Lost because renaming 100 working files is surgery for no gain.
++
++## The helper (`Test.js`)
++```js
++import Test from "/framework/core/Test/Test.js";
++const t = new Test("Item: a verb on a child by id changes its state");
++t.ok(cond, "what must hold");
++t.eq(a, b, "what must be equal");
++await t.throws(fn, /message/, "what must refuse");
++t.done();   // prints one summary line, sets process.exitCode = 1 on any failure (node)
++```
++Existing tests need no change: the runner treats any `*.test.mjs` as a test and its exit code as the verdict. New tests use `Test`.
++
++## Who runs what, on which change
++- **One command:** `node public/framework/core/Test/TestRunner.mjs [folders…]` runs every `*.test.mjs` under them (default: the whole repo), each in its own child process with a timeout, a few at once.
++- **Coverage = imports.** A test covers its own folder's files and every repo file it imports, transitively (static `import … from "./x.js"` parsed by regex). A change to a file runs the tests that cover it.
++- **On change:** `TestRunner.mjs --watch core/Item core/Task` (fs.watch, debounced, `.js`/`.mjs` only, ignores `.jsonl`) runs the covering tests. Who hosts the watch: Servex later (it owns long processes and logs); for now the one command, run by hand or by a task's smoke step. Servex hook is the next slice (`⬜` in the readme).
++- Page smoke on change stays `Servex/WorktreeWatch.js` + `Server/smoke.mjs`; not duplicated here.
++
++## Where results live and show
++- `public/framework/core/Test/results.jsonl`: one line per test run `{file, ok, ms, at, trigger, tail}` (tail = last lines of output on failure). Appended, never rewritten.
++- `/framework/core/Test/` page: the latest result per file, failures first, tailed live.
++
++## What earns a test (the rule)
++- A test exists because something **broke silently** or **will be built to a spec**. Never for what is certain to pass.
++- When something fails that no test caught: ask why, then add the one test that would have caught it, named after the bug.
++- Test-first where it pays: a plan phase writes the API's `X.test.mjs`; builders make it pass.
++
++## Today's bug
++The item tool answered ok while `{tasks:{<id>:{start:{}}}}` did nothing. `Servex/agents/item_tool.test.mjs` lines 69-74 already cover it through the tool (added by the fix, 8c8a66d21). This slice adds the core-level test: `core/Task/child-verb.test.mjs` (List.get finds a member by id; `task.set({tasks:{<id>:{start:{}}}})` changes that child's state), so a change to `core/Item` or `core/Task` runs it.
+diff --git a/public/framework/core/readme.md b/public/framework/core/readme.md
+index ff2ba022d..b7dd61a38 100644
+--- a/public/framework/core/readme.md
++++ b/public/framework/core/readme.md
+@@ -15,6 +15,7 @@
+ - [Shell](./Shell/) — five optional regions around a CSS grid (header, left, right, footer, main); a Shell's main can hold another Shell
+ - [Sidebar](./Sidebar/) — brand over a tree of links, resizable, for site nav
+ - [Task](./Task/) — a DOM-free unit of work: state machine, computed duration and progress, subtasks
++- [Test](./Test/) — `class Test` checks and `TestRunner`: find, run on change, record every node test (`X.test.mjs`)
+ - [View](./View/) — chainable wrapper over one DOM element; every HTML tag is a function
+ - [new](./new/) — one kept sketch; never import from it
+ - [doc](./doc/decisions.md) — what belongs in core and the cross-tier traps (no readme; docs only)
+diff --git a/public/framework/readme.md b/public/framework/readme.md
+index 6e224b8b1..3b32b080a 100644
+--- a/public/framework/readme.md
++++ b/public/framework/readme.md
+@@ -25,6 +25,7 @@
+ 
+ ## The systems (one line each; each links its own readme)
+ - [core/Task](./core/Task/) — `class Task extends Item`: one task's state machine, plus the task pages
++- [core/Test](./core/Test/) — node tests: `X.test.mjs`, one command runs the ones a change covers, results at `/framework/core/Test/`
+ - [core/Page/ext/Inbox](./core/Page/ext/Inbox/) — `class Inbox`: one ranked rail of notes, questions and tasks, read from `page.jsonl` and the AI files
+ - [core/Page](./core/Page/) — the page system: a folder with `page.js` and/or `page.jsonl`, written by the page tools
+ - [ai/tasks](./ai/tasks/) — the task log and board: where tasks live on disk, how `Server/AIIndex.mjs` folds them into `ai/index.json`

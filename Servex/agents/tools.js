@@ -1,0 +1,612 @@
+import { createSdkMcpServer, tool as sdk_tool } from "@anthropic-ai/claude-agent-sdk";
+import SessionRecord from "../../Server/SessionRecord.mjs";
+import LogLine from "../../Server/LogLine.mjs";
+import { z } from "zod";
+import fs from "node:fs";
+import path from "node:path";
+import os from "node:os";
+import { execFileSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
+import { agents as singleton } from "./Agents.js";
+import { Policy } from "./policy.js";
+import { ops_tools } from "./ops.js";
+import { wake_tools } from "./Wakeups.js";
+import { job_tools } from "./Jobs.js";
+import { expert_tools } from "./Experts.js";
+import { page_tools } from "./page_tools.js";
+import { skill_text, SKILLS_DIR } from "./roles.js";
+
+const HERE = path.dirname(fileURLToPath(import.meta.url));
+const ROOT = path.resolve(HERE, "..", "..");
+
+/* The seven verbs, as MCP tools. This is the whole point of the host: a normal
+ * Claude session — sidebar, terminal, or another agent — cannot hold a child
+ * process's stdin, so it cannot steer a running agent. It can call a tool.
+ * The handlers run inside Servex, where the sessions actually live.
+ *
+ * Shape is `Server/plugins/MCP.js`'s: `{name, description, inputSchema}` plus a
+ * handler that returns a string, which MCP.js wraps as MCP content. `schema` is
+ * the same object under the name the Servex seam asks for.
+ *
+ * `tools(host)` is a FUNCTION, not a constant array, because the handlers have to
+ * close over the host that is actually running — Servex builds its own
+ * (`new Servex.Agents({ log: servex.log })`, wired to the single writer and the
+ * dashboard's live stream), and a tool bound to the module-level singleton would
+ * spawn agents into a second, invisible registry. Call it with no argument and
+ * you get the singleton, which is what a standalone script wants:
+ *
+ *   for (const tool of tools(servex.agents)) servex.mcp.tool(tool); */
+
+const ID = { type: "string", description: "The agent's human-readable id, as `list_agents` gives it — e.g. `minion-servex-port`. Never a uuid." };
+
+/* ASK 2b (process-monitor, "dormancy is per agent AND per request", revised 2026-10-01 16:20):
+ * how long an agent waits, idle, before its claude process exits to free RAM (it resumes in
+ * place on the next message — a cold resume measured 3+ seconds to first token, so this is
+ * never a hard "instant kill", see Servex/agents/Global.js). A number of SECONDS, or the one
+ * word "session" to never auto-sleep for as long as this is a live, ongoing session (the voice
+ * pair's own default). Left out, the agent's ROLE picks a sensible default
+ * (`Global.default_after`): the voice pair's "session", 0 for one-off workers (minion, reviewer,
+ * a one-task mastermind), the plain few-minutes timer for everyone else. */
+const DORMANT_AFTER = { description: "Seconds to stay idle before sleeping to free RAM (resumes in place on the next message), or the word \"session\" to never auto-sleep while this is a live session. Omit it to use the role's own default — see Servex/agents/Global.js's `default_after`.",
+	anyOf: [{ type: "number" }, { type: "string", enum: ["session"] }] };
+
+const tool = (name, description, properties, required, handler) => {
+	const inputSchema = { type: "object", required, properties };
+	return { name, description, inputSchema, schema: inputSchema, handler };
+};
+
+/* Every answer is the registry card, so the caller always learns the id it got
+ * — spawn names the agent, the caller does not. */
+const card = agent => JSON.stringify(agent.card(), null, 2);
+
+/* Everything an agent can call: the seven agent verbs below, the three
+ * operator tools (ops.js), the two job tools (Jobs.js), the four module-expert
+ * tools (Experts.js: ask_expert, list_experts, load_module, readme_modules) and the
+ * four page tools (page_tools.js: page_add, page_set, page_log, page_read — core/Page's
+ * readme, "storage") — so one line in
+ * Servex.js, `for (const tool of tools(servex.agents)) servex.mcp.tool(tool)`,
+ * wires them all, and `server(host)` hands all of them to an in-process agent. */
+export function tools(agents = singleton){
+	return [...own(agents), ...ops_tools(agents), ...wake_tools(agents),...job_tools(agents).map(caller_is_from), ...expert_tools(agents), ...session_tools(agents), ...task_tools(agents), ...page_tools(), ...skill_tools(), ...log_tools(agents)];
+}
+
+/* query_sessions: find past sessions by tag, system, date, model or cost, with totals. NOT in tools(): it is opt-in, so it costs no
+ * context in a session that never asks. A role that needs it adds it to the list it hands `server()`:
+ * `server(host, ctx, [...loader_tools(), query_sessions_tool()])`. Same code as the CLI `node Server/session-query.mjs`
+ * (public/framework/ai/sessions/doc/data/record-spec.md, "Asking about past sessions"); in-process, no MCP network hop. */
+export function query_sessions_tool(){
+	const str = description => ({ type: "string", description });
+	return tool("query_sessions",
+		"Find past Claude/OpenRouter sessions the way the Sessions dashboard does, and what they cost. Returns {count, claude_api_equivalent_usd, openrouter_real_usd, rows}:"
+		+ " the totals cover every match; rows are the first `limit` (default 25), compact: {id, day, state, model, provider, usd, tags, category, core, parent, agent}.",
+		{ since: str("First day, YYYY-MM-DD (UTC day of last activity)."), until: str("Last day, YYYY-MM-DD."),
+			tags: str("Comma-separated tags; a session must have all of them."), system: str("A core module (`ext/Dictate`, or any part of it) or a task category."),
+			state: str("active, idle or closed."), model: str("Part of a model name, e.g. `opus`."), provider: str("claude or openrouter."),
+			parent: str("A parent session id: its children."), min_cost: { type: "number", description: "Only sessions costing at least this many dollars." },
+			text: str("A word matched against id, agent, category, tags and modules."), sort: str("recent (default), oldest or cost."),
+			limit: { type: "number", description: "Rows to return, default 25, at most 200." } },
+		[],
+		async args => { const { query } = await import("../../Server/session-query.mjs"); return JSON.stringify(query(args)); });
+}
+
+/* ---------- the Dashboard's three task buttons (stalled-and-budgets, 2026-10-02) ---------- */
+
+/* Appends ONE verb line to a task's own task.jsonl through append.mjs — the one writer every
+ * task log goes through, so a bad shape is refused (exit 3, nothing written) rather than ever
+ * hand-rolled here. `dir` is the task's directory, repo-relative (as `tasks.json` gives it) or
+ * absolute; "NOW" fields are stamped by append.mjs itself, never read from this process's clock
+ * twice. Throws with append.mjs's own stderr on a refusal, so the tool's handler can report it. */
+function append_task_line(dir, obj){
+	const abs = path.isAbsolute(dir) ? dir : path.join(ROOT, dir);
+	const target = (SessionRecord.log_file(abs) ?? path.join(abs, "task.jsonl"));
+	if (!fs.existsSync(target)) throw new Error(`no task.jsonl at ${target}`);
+	LogLine.append(target, [obj]);
+	return target;
+}
+
+/* The agent id on a task's own task.jsonl line 1 (same field tasks.js and Asks.js both read as
+ * the task's "owner") — `null` for a dir with no task.jsonl yet or an old one with no agent field. */
+function task_owner(dir){
+	const abs = path.isAbsolute(dir) ? dir : path.join(ROOT, dir);
+	let text;
+	try { text = fs.readFileSync((SessionRecord.log_file(abs) ?? path.join(abs, "task.jsonl")), "utf8"); } catch { return null; }
+	for (const raw of text.replace(/^﻿/, "").split(/\r?\n/)){
+		if (!raw.trim()) continue;
+		let obj; try { obj = JSON.parse(raw); } catch { continue; }
+		if (obj.assign?.agent) return obj.assign.agent;
+	}
+	return null;
+}
+
+const TASK_DIR = { type: "string", description: "The task's directory, as tasks.json's own `dir` field gives it (e.g. `public/framework/ai/2026-10-02/stalled-and-budgets`)." };
+
+/* `skill`: a skill's text as a tool result, for connectors that have tools but no MCP prompts or Skill tool
+ * (the Claude app's voice session). Same reader Servex uses to inline a role's skills (roles.js skill_text);
+ * with no `name` (or an unknown one) it lists every skill with its one-line description. */
+function skill_tools(){
+	const list = () => fs.readdirSync(SKILLS_DIR, { withFileTypes: true }).filter(d => d.isDirectory() && fs.existsSync(path.join(SKILLS_DIR, d.name, "SKILL.md"))).map(d => {
+		const raw = fs.readFileSync(path.join(SKILLS_DIR, d.name, "SKILL.md"), "utf8");
+		const head = raw.slice(0, Math.max(raw.indexOf("\n---", 4), 0));
+		return `- ${d.name}: ${(head.match(/^description:\s*(.+)$/m)?.[1] ?? "").replace(/^["']|["']$/g, "").slice(0, 160)}`;
+	}).join("\n");
+	return [tool("skill",
+		"Return the full text of a skill (`.claude/skills/<name>/SKILL.md`, frontmatter removed) so you can follow it: `skill({name: \"voice-mastermind\"})`."
+		+ " Call it with no `name`, or an unknown one, to list every skill with its one-line description.",
+		{ name: { type: "string", description: "The skill's folder name, e.g. `voice-mastermind`. Omit to list all." } },
+		[],
+		({ name } = {}) => {
+			const safe = /^[\w-]+$/.test(name ?? "") ? name : null;
+			const text = safe ? skill_text(safe) : null;
+			return text ?? `${name ? `No skill named "${name}". ` : ""}Skills:\n${list()}`;
+		})];
+}
+
+function task_tools(agents){
+	return [
+		tool("snooze_task",
+			"Hide a task from the Dashboard's stalled list until a given time, without touching its files. Appends a"
+			+ " `{\"snooze\":{at,until,by}}` line to the task's own task.jsonl (public/framework/ai/tasks.json is"
+			+ " regenerated on the next tick and honours it) — never an edit to an existing line.",
+			{ dir: TASK_DIR,
+				until: { type: "string", description: "ISO timestamp — the task is not shown as stalled again before this time." },
+				by: { type: "string", description: "Who asked for the snooze — your agent id, or \"owner\" when relaying the owner's own click." } },
+			["dir", "until"],
+			({ dir, until, by }, ctx = {}) => {
+				append_task_line(dir, { snooze: { at: "NOW", until, by: by ?? ctx.caller ?? "owner" } });
+				return JSON.stringify({ ok: true, dir, until });
+			}),
+
+		tool("kill_task",
+			"Close a task for good — folded on the Dashboard like a landed one, never shown as stalled again. Appends"
+			+ " a `{\"kill\":{at,why,by}}` line (never deletes anything) and, if the task's owner agent is still"
+			+ " live, stops it the same way `stop_agent` does, so nothing keeps working on a killed task.",
+			{ dir: TASK_DIR,
+				why: { type: "string", description: "One line: why this task is being killed (shown on the Dashboard)." },
+				by: { type: "string", description: "Who killed it — your agent id, or \"owner\" when relaying the owner's own click." } },
+			["dir", "why"],
+			({ dir, why, by }, ctx = {}) => {
+				const who = by ?? ctx.caller ?? "owner";
+				append_task_line(dir, { kill: { at: "NOW", why, by: who } });
+				const owner = task_owner(dir);
+				let stopped = null;
+				if (owner && agents.registry_list?.().some(r => r.id === owner && !["stopped", "gone"].includes(r.state)))
+					try { stopped = agents.stop(owner, { by: who }).card?.() ?? null; } catch (e){ stopped = { error: String(e.message || e) }; }
+				return JSON.stringify({ ok: true, dir, why, owner, stopped });
+			}),
+
+		tool("reprioritise_task",
+			"Move a task up or down the Dashboard's order by hand. Appends a `{\"priority\":{at,score,why,by}}` line;"
+			+ " that `score` then OVERRIDES the computed band (stalled=100, over-budget=90, building=50, snoozed=10,"
+			+ " closed=0 — Servex/asks/readme.md) for this task, until a later priority line changes it again.",
+			{ dir: TASK_DIR,
+				score: { type: "number", description: "Higher sorts closer to the top of the Dashboard." },
+				why: { type: "string", description: "One line: why this task should move." },
+				by: { type: "string", description: "Who asked — your agent id, or \"owner\" when relaying the owner's own click." } },
+			["dir", "score", "why"],
+			({ dir, score, why, by }, ctx = {}) => {
+				append_task_line(dir, { priority: { at: "NOW", score, why, by: by ?? ctx.caller ?? "owner" } });
+				return JSON.stringify({ ok: true, dir, score });
+			}),
+	];
+}
+
+/* A voice session's smart assistant writes through these (Sessions.js, ext/Session/doc/sessions.md). */
+function session_tools(agents){
+	const sessions = () => {
+		const s = agents.servex?.sessions;
+		if (!s) throw new Error("Voice sessions are not running in this Servex (SERVEX_NO_LAYERS?).");
+		return s;
+	};
+	/* ROOT CAUSE of "no session undefined" (owner, 2026-10-25): the model was trusted to copy its
+	 * own session id correctly into every call, and sometimes didn't. Servex already knows it —
+	 * the session-smart agent's own id IS `session-smart-<session id>` (`name: s.id` at spawn,
+	 * Sessions.js's `spawn()`) — so the caller's id is the one source of truth; whatever `session`
+	 * the model passes is now only a fallback, for a test or a direct call with no live caller. */
+	const caller_session = caller => /^session-smart-(.+)$/.exec(caller ?? "")?.[1] ?? null;
+	const SESSION = { type: "string", description: "The session id, `v-…`, as your brief names it." };
+	/* THE SINGLE SEAT ONLY (ask2a-say-tools, Servex/agents/single-voice-assistant.md "next step"): the single-voice-assistant's own
+	 * agent id IS `single-voice-assistant-<session id>` (`name: s.id` at spawn, Sessions.js's `spawn()`), the same trick
+	 * `caller_session` above plays for the dual smart seat. `say`, `nothing` and `retract_say` below refuse any caller this does not
+	 * match — a dual-seat agent, a minion, a mastermind — with no session found, so the tools are reachable by any agent (no new MCP
+	 * server; item itself reaches every agent the same way) but only ever DO anything for the one seat they are for. */
+	const caller_single_session = caller => /^single-voice-assistant-(.+)$/.exec(caller ?? "")?.[1] ?? null;
+	const single_session = ctx => { const id = caller_single_session(ctx.caller); return id ? sessions().map[id] : null; };
+	return [
+		tool("say",
+			"THE SINGLE SEAT'S ONLY REPLY (ask2a-say-tools): queue one reply for the owner. It is not spoken at once — it waits behind"
+			+ " the gate (`say_gate_ms`: 1500ms by default once the floor has been done that whole time, 600ms after a question, 3000ms"
+			+ " after a long burst of more than 5 owner sentences since the last reply), and a NEW owner sentence cancels the wait so the"
+			+ " say stays queued. If a newer `say` lands first, the newer one is released and this one waits its own gate (newest first)."
+			+ " Returns `{id}` — keep it to `retract_say` before release, if you change your mind.",
+			{ text: { type: "string", description: "What to say — the owner's ear: plain, one or two short sentences." },
+				re: { type: "string", description: "The `at` of the owner line this answers, if any." } },
+			["text"],
+			(args, ctx) => {
+				const s = single_session(ctx);
+				return JSON.stringify(s ? sessions().queue_say(s, args) : { ok: false, why: "say is for the single seat only; no session found for this caller" });
+			}),
+		tool("nothing",
+			"End this turn with no reply — the single seat's default for a sentence that is only filed, never answered. This tool is a"
+			+ " pure no-op: it writes nothing itself, same as simply ending the turn with no text at all. Ending the turn with PLAIN TEXT"
+			+ " instead still reaches nobody, but `heard()` writes a muted `skip` line for debugging in that case — call this, or say"
+			+ " nothing, to avoid even that.",
+			{}, [],
+			() => JSON.stringify({ ok: true })),
+		tool("retract_say",
+			"Take a queued `say` back before it is released (ask2a-say-tools) — the owner kept talking, or you changed your mind.",
+			{ id: { type: "string", description: "The id `say` returned." } },
+			["id"],
+			(args, ctx) => {
+				const s = single_session(ctx);
+				return JSON.stringify(s ? sessions().retract_say(s, args) : { ok: false, why: "retract_say is for the single seat only; no session found for this caller" });
+			}),
+		tool("session_summary",
+			"Give a voice session its title and one-line summary: the index a new session reads to know what this one was about, and"
+			+ " what the Switch-session dropdown shows instead of the bare `v-…` id. Call it once the topic is clear, and again whenever"
+			+ " it shifts. Writes `session.summary.json` beside the session file and a fresh `started` line (with the title) in the home"
+			+ " folder's `ai/log.jsonl`; a live client redraws the new title from one `renamed` event on the session's own stream.",
+			{ session: SESSION,
+				title: { type: "string", description: "At most 6 words, e.g. `Voice session plumbing`." },
+				summary: { type: "string", description: "One plain line: what was asked, and what is in flight." } },
+			["session", "title", "summary"],
+			(args, ctx) => JSON.stringify(sessions().summarize({ ...args, session: caller_session(ctx.caller) ?? args.session }))),
+		tool("rename_session",
+			"Retitle a voice session without writing a fresh summary — keeps whatever summary it already has. The session id is the key"
+			+ " and never changes; `session_summary` already renames on every title change, so you rarely need this directly — it exists"
+			+ " on its own for a later rename-proposal flow (offer a new title, nothing else).",
+			{ session: SESSION, title: { type: "string", description: "The new title to rename to." } },
+			["session", "title"],
+			(args, ctx) => JSON.stringify(sessions().rename_session({ ...args, session: caller_session(ctx.caller) ?? args.session }))),
+		tool("audit_session",
+			"Prove a Claude session's cost: recompute EVERY total from the raw transcript by an independent code path, compare to the"
+			+ " rolling totals the Session class keeps, and record the result (time, old, new, match) in the session's session.jsonl."
+			+ " Returns `{match, diff}`: a match, or the exact $ and token difference per field. Takes a Claude session id (a uuid).",
+			{ session: { type: "string", description: "The Claude session id (uuid) to audit." } },
+			["session"],
+			async args => {
+				const { refresh, run_audit } = await import("../../Server/session-summary.mjs");
+				const r = await refresh(args.session);
+				return JSON.stringify(r ? await run_audit(args.session, r.session) : { error: "no transcript found for " + args.session });
+			}),
+		tool("log_session",
+			"Append ONE stamped line to a Claude session's own record (`sessions/<id>/session.jsonl`, tracked, append-only). `line` is"
+			+ " exactly one of: {tag:'name'}, {note:'text'}, {alert:'text', level:'info|warn|error'}, {weight:0-10}, {closed:true|false},"
+			+ " {question:'text', options:[..]}, {links:[{path,label}]} (1 to 3 core links). Refused with the reason if the shape is wrong."
+			+ " Shapes: /framework/ai/sessions/doc/data/record-spec.md. Use it to tag or flag a session you audited; never to rewrite one.",
+			{ session: { type: "string", description: "The Claude session id (uuid) the line is about." },
+				line: { type: "object", description: "One line in a shape from the record spec." },
+				by: { type: "string", description: "Your agent name, e.g. mastermind-task-audit." } },
+			["session", "line", "by"],
+			async args => {
+				const { default: AISession } = await import("../../public/framework/ai/AISession/AISession.js");
+				try { return JSON.stringify({ ok: true, line: await AISession.log(args.session, args.line, args.by) }); }
+				catch (e){ return JSON.stringify({ error: String(e.message || e) }); }
+			}),
+		tool("session_line",
+			"Post a line to the owner in a voice session. With `re` alone it is a reply to that owner line. With `re` AND `level` it is"
+			+ " a REFINED version of the owner's words, drawn under the raw line: `clean` (fillers gone), `edit` (rewritten clearly),"
+			+ " `summary` (the gist). `level` is required on every refinement, or it is drawn as a reply; a refinement without `re` is refused.",
+			{ session: SESSION,
+				text: { type: "string", description: "The line." },
+				re: { type: "string", description: "The `at` of the owner line this answers or refines." },
+				level: { type: "string", enum: ["clean", "edit", "summary"], description: "Only on a refinement: `clean`, `edit` or `summary`." } },
+			["session", "text"],
+			(args, ctx) => JSON.stringify(sessions().line({ ...args, session: caller_session(ctx.caller) ?? args.session }))),
+		tool("quick_fix",
+			"The fast path: a small, concrete change to the page the owner is looking at (\"make this bold\", \"this gap is too"
+			+ " big\", a word, a colour, a size) goes straight to the standing fixer, fixer-1 — no spawn, nothing new made,"
+			+ " landing in roughly 10-30 seconds. Writes the request to public/framework/ai/quick-fix/page.jsonl and hands it"
+			+ " to the fixer at once. If the fixer is mid-fix, this one queues behind it and the answer says how many are ahead."
+			+ " The fixer itself decides if the change turns out to be bigger than a quick fix and hands it to a mastermind"
+			+ " instead — you do not have to guess right before calling this.",
+			{ page: { type: "string", description: "The site path being looked at, e.g. `/framework/ext/Chat/`." },
+				selection: { type: "object", description: "The one element picked out, if any: `{kind, label, text, selector}` — the same shape `ext/drawer/select.js` reports." },
+				text: { type: "string", description: "What to change, in the owner's own words." },
+				session: SESSION },
+			["page", "text"],
+			args => JSON.stringify(sessions().quick_fix(args))),
+		tool("quick_fix_landed",
+			"The fixer calls this once its OWN `merge.mjs` run has actually landed a quick fix — never before, and never with a"
+			+ " guessed or stated elapsed time: this computes the real seconds from the `asked_at` quick_fix gave you (CLAUDE.md"
+			+ " law 7, \"compute, don't recall\"). Pass through exactly what merge.mjs told you.",
+			{ asked_at: { type: "string", description: "The `asked_at` quick_fix's answer gave you — copied exactly, not retyped from memory." },
+				sha: { type: "string", description: "The commit merge.mjs landed (its `merged` or `applied` field)." },
+				files: { type: "number", description: "How many files the fix touched." },
+				lines: { type: "number", description: "The diff's total added + deleted lines." },
+				width: { type: "number", description: "The one screenshot width used, if you took one (fixer.md step 7)." },
+				shot: { type: "string", description: "The screenshot's path under public/framework/ai/quick-fix/shots/, if you took one." } },
+			["asked_at", "sha"],
+			args => JSON.stringify(sessions().quick_fix_landed(args))),
+		tool("dir_log",
+			"Append ONE line to a folder's `ai/log.jsonl`: the minimal index of AI work in that folder, presence only, each line"
+			+ " pointing at its detail file. Write it as you go, not at the end. Exactly one of these three shapes, nothing else:"
+			+ " {\"session\":{\"id\",\"event\":\"started\"|\"ended\",\"title\",\"file\"}}, {\"task\":{\"dir\",\"event\":\"opened\"|\"landed\",\"title\"}},"
+			+ " {\"decision\":{\"text\",\"file\"}}. `at` is stamped for you. Never step-by-step progress: that stays in the session's or task's own log.",
+			{ dir: { type: "string", description: "The folder the work is ABOUT: a site path like `/framework/ext/Chat/`, or any repo folder like `public/framework/ext/Chat` or `Servex/agents` (written to `<repo>/Servex/agents/ai/log.jsonl`)." },
+				line: { type: "object", description: "One line, e.g. {\"decision\":{\"text\":\"Chat keeps one file per session\",\"file\":\"/framework/ext/Chat/ai/v-1abc.jsonl\"}}." } },
+			["dir", "line"],
+			args => JSON.stringify(sessions().dir_log(args)))
+	];
+}
+
+/* `log`: the one door for a JSONL log line (Server/doc/log-line.md). Server/LogLine.mjs validates, stamps and appends it. */
+export function resolve_log_path(p){
+	const raw = String(p ?? "").trim();
+	if (!raw) throw new Error("`path` is required");
+	const rel = raw.replace(/^\/+/, "");
+	const cands = path.isAbsolute(raw) && fs.existsSync(raw) ? [raw] : [path.join(ROOT, "public", rel), path.join(ROOT, rel), path.join(ROOT, raw)];
+	const abs = path.resolve(cands.find(c => fs.existsSync(c)) ?? (/\.jsonl$/.test(raw) ? cands[1] : cands[0]));
+	if (path.relative(ROOT, abs).startsWith("..") || path.isAbsolute(path.relative(ROOT, abs))) throw new Error(`"${p}" is outside the repo`);
+	let dir = false; try { dir = fs.statSync(abs).isDirectory(); } catch {}
+	return dir || !/\.jsonl$/.test(abs) ? SessionRecord.start_file(abs) : abs;
+}
+
+function log_tools(agents){
+	return [tool("log",
+		"Write ONE stamped line (or several) to a JSONL log. Never append JSONL yourself through Bash. `path` is a repo file, a folder (its session.jsonl / task.jsonl), or a site url (`/framework/...`)."
+		+ " `line` is one object in the log's shape, e.g. {\"log\":{\"msg\":\"…\"}} or {\"task\":{\"title\":\"…\",\"state\":\"open\"}}; \"NOW\" and `at` are filled by node,"
+		+ " and `by` (you), `session` (your session id) and `origin` are added beside the verb. Refused with the schema's reason when the shape is wrong. Returns {ok, file, at} or {ok:false, why}.",
+		{ path: { type: "string", description: "A repo file, a folder, or a site url." },
+			line: { type: "object", description: "One line: a single verb key whose value is the body." },
+			lines: { type: "array", items: { type: "object" }, description: "Several lines instead of `line`." },
+			origin: { type: "string", description: "A link to where this line came from (a prompt, a page, a task url)." } },
+		["path"],
+		async ({ path: p, line, lines, origin } = {}, ctx = {}) => {
+			try {
+				const who = ctx.caller ?? undefined;
+				const me = who ? agents.live?.get?.(who) : null;
+				const session = me?.session_id ?? (who ? agents.external?.row?.(who)?.session_id : null) ?? undefined;
+				const list = lines ?? (line ? [typeof line === "string" ? JSON.parse(line) : line] : null);
+				if (!list?.length) return JSON.stringify({ ok: false, why: "give `line` (one object) or `lines`" });
+				const r = LogLine.append(resolve_log_path(p), list, { by: who, session, origin });
+				return JSON.stringify({ ok: !r.bad, file: path.relative(ROOT, r.file).replaceAll("\\", "/"), at: r.at, ...(r.bad ? { why: r.notes.join("; ") } : {}) });
+			} catch (e){ return JSON.stringify({ ok: false, why: String(e.message || e) }); }
+		})];
+}
+
+/* start_job's answer comes to `from` — which defaults to whoever is calling
+ * (`?as=` on the door), the same as fork_self, so an agent need not know its id. */
+const caller_is_from = t => t.name !== "start_job" ? t
+	: { ...t, handler: (args = {}, ctx = {}) => t.handler({ ...args, from: args.from ?? ctx.caller ?? undefined }, ctx) };
+
+/* What the remote door (RemoteMCP.CALLER) calls every connector client; it says nothing about WHO called, so a tab's own session_id outranks it. Kept equal to RemoteMCP.CALLER by spawn-parent.test.mjs. */
+const REMOTE_CALLER = "voice-app";
+
+/* The agent id for a session Servex does not hold: its registered external row, else one registered as vscode-<id8>. Null if it cannot. */
+export function tab_parent(agents, session_id){
+	const ext = agents.external;
+	if (!ext || !/^[0-9a-f-]{8,}$/i.test(String(session_id))) return null;
+	const rows = agents.reg().read(), hit = Object.values(rows).find(r => r?.kind === "external" && r.session_id === session_id);
+	if (hit) return hit.id;
+	try { return ext.register({ id: "vscode-" + String(session_id).slice(0, 8).toLowerCase(), session_id }).id; } catch { return null; }
+}
+
+function own(agents){
+const policy = agents.policy ??= new Policy({ agents });
+return [
+
+	tool("spawn_agent",
+		"Start a new Claude session inside Servex and give it a job. It stays alive and steerable"
+		+ " after it answers — talk to it again with `send_to_agent`. Returns the agent's card,"
+		+ " including the id you address it by and the session uuid a terminal can `claude --resume`.",
+		{
+			role: { type: "string", description: "What it is: `minion`, `mastermind`, `assistant`. Half of its id." },
+			name: { type: "string", description: "What it is working on, in a word or two. The other half of its id." },
+			prompt: { type: "string", description: "The job, as you would type it to a person. This is its first turn." },
+			model: { type: "string", description: "Model id. Default `claude-sonnet-5-5`. Cheap scans: `claude-haiku-5-5`. An OpenRouter slug (anything with a `/`, e.g. `deepseek/deepseek-v4.1-flash`) runs through OpenRouter automatically — see `provider`." },
+			provider: { type: "string", description: "`anthropic` (default) or `openrouter`. Usually leave it out: a `model` with a `/` in it already implies `openrouter`. Needs an OpenRouter key at %LOCALAPPDATA%\\lew42\\servex\\openrouter.key (Servex/ext/openrouter/readme.md) — missing key fails the spawn with one clear line." },
+			effort: { type: "string", description: "`low` `medium` `high` `xhigh` `max`. Default `high`." },
+			path: { type: "string", description: "A repo path or site path (e.g. `public/framework/ai/` or `/framework/ai/`). Loads that folder's readme chain, plus its `mastermind.md` (or `ai/mastermind.md`) if present, into the agent's SYSTEM prompt, so it survives compaction. Meant for the `mastermind` role (`ai-system-mastermind` is `mastermind` at `public/framework/ai`). The log line says which files were loaded." },
+			cwd: { type: "string", description: "Directory it works in. Default the Servex process's own." },
+			visibility: { type: "string", description: "Who the dashboard shows it to — `team` (default), `owner`, `private`. A label; nothing enforces it yet." },
+			permission_mode: { type: "string", description: "`acceptEdits` (default) lets it edit files; `bypassPermissions` lets it do anything, including run commands; `plan` lets it do nothing." },
+			allowed_tools: { type: "array", items: { type: "string" }, description: "Whitelist, e.g. [\"Bash\",\"Read\",\"Write\",\"Edit\"]. Omit for the CLI's own default set." },
+			parent: { type: "string", description: "Your own agent id, if you are the one spawning this. When this child ends its turn, is stopped, or errors, it wakes YOU with one message — omit for a top-level agent with nobody to wake." },
+			session_id: { type: "string", description: "FROM A VS CODE TAB (or any session Servex did not spawn): your own Claude session uuid (`$CLAUDE_CODE_SESSION_ID`). Servex records your tab as this child's parent (registering it as `vscode-<first 8 hex>` if it is not already), so the child's work rolls up under you and its news reaches your inbox. Leave out when `parent` is given or you are a Servex agent." },
+			resume: { type: "string", description: "A session uuid to CONTINUE instead of starting blank — the agent opens with that whole conversation. No skill-load preamble is added, and with no `prompt` it just waits, idle, for a message. ⚠ Give the `cwd` the session originally ran in: sessions are stored per project directory, and a resume from anywhere else cannot find it." },
+			fork: { type: "boolean", description: "With `resume`: continue as a NEW session (a copy), leaving the original untouched and still usable. It reuses the original's prompt cache when model, tools and settings match." },
+			task: { type: ["object", "boolean"], description: "EVERY SPAWN HAS A TASK DIR: leave `task` out and Servex opens one anyway (ai/sessions/<today>/<your session folder, else `spawned`>/<agent id>/, line 1 with the session id, agent id, model and the first line of `prompt` as its title, then past-work.md), and tells the agent where its log is. Pass `task: false` ONLY for a throwaway probe that must leave no task dir. Or open the task yourself, before its first turn: `{dir, card, brief, home}`. `home` (optional) is the module the work belongs to, as a site path like `/framework/core/Page/`: it is written into line 1 so the task and its session are tagged by module from the start. `dir` is the task's directory (repo-relative or absolute; created if new) — line 1 (or the next line, if the dir already has a log) is written there with the session id, agent id, card, brief and model, so the agent never has to run new-task itself; its first turn is told where its log already is. Servex also writes `past-work.md` beside the brief (what already exists on the brief's title; `brief` = path of a requirements.md, or give `title`) and tells the agent to read it first. Nested tasks: `parent_task` (the parent's task dir; defaults to the calling agent's own task dir) and `after` (an array of the sibling task DIRS this one waits for, the series edges — full dirs like `dir`, never bare slugs; stored repo-relative like `parent_task` and matched exactly) are written into that line too. HANDOFF BY TASK: add `from` (the url of the record that holds the subtask, e.g. your session page) and `id` (the subtask's id) and that subtask MOVES into this agent's folder with its id and history (page_tools.js move_item); `dir` may then be left out." },
+			budget_usd: { type: "number", description: "Dollar ceiling for the results-gated spend guard (Agents.js spend_gate) — overrides the task's `Budget: $N` brief line and the $20 default. The agent still starts with $2 and unlocks $3 per result up to this ceiling." },
+			dormant_after: DORMANT_AFTER
+		},
+		[],
+		(args, ctx = {}) => {
+			if (!args.prompt && !args.resume) throw new Error("spawn_agent needs a `prompt` (or a `resume` to reopen).");
+			const ruling = policy.spawn(ctx.caller ?? null, args.role);
+			if (!ruling.ok) return JSON.stringify({ ok: false, why: ruling.why });
+			/* ⚠ FIXED 2026-10-07 (token-accounting, parent/child answer): `parent` used to be
+			 * ONLY whatever the caller explicitly typed, with no fallback to who is actually
+			 * calling — every other tool that needs "who is calling me" (fork_self's `from`,
+			 * follow's `agent`) already defaults to `ctx.caller`; this was the one spawn path
+			 * that didn't. Measured: 47% of all registered agents (922 of 1958) have no
+			 * resolved parent at all in spend-tree.json, $5,460.87 of their own $ un-rolled-up
+			 * into any parent's subtree — not only old data (the 2026-10-03 registry fix was
+			 * about Servex.js wiring a `parent` field through at all), but an ONGOING gap every
+			 * time a spawning agent forgets to pass its own id. `ctx.caller` is already right
+			 * there (the field `policy.spawn()` on the line above already reads) — an explicit
+			 * `args.parent` still wins; this only fills in when the caller omitted it, so a
+			 * deliberate top-level spawn (`parent` left out on purpose, per this tool's own
+			 * description) still works exactly as before whenever Servex has no caller to blame
+			 * either (a VS Code tab's own direct MCP call, ctx.caller null). */
+			const { session_id: tab_session, ...rest } = args;
+			let parent = args.parent ?? (ctx.caller === REMOTE_CALLER && tab_session ? tab_parent(agents, tab_session) : null) ?? ctx.caller ?? null;
+			/* A TAB'S SPAWN HAS A PARENT (2026-10-22, honest-completion): a VS Code tab's MCP call carries no `?as=`, so ctx.caller is null.
+			 * The tab passes its own session uuid; the registered external agent with that uuid is the parent (registered now if new). */
+			if (!parent && tab_session) parent = tab_parent(agents, tab_session);
+			return card(agents.spawn({ ...rest, parent }));
+		}),
+
+	tool("fork_self",
+		"Ask a COPY of yourself one question, in the background, and keep working. The fork has your"
+		+ " whole conversation up to now (it reuses your prompt cache, so it is cheap) and runs in"
+		+ " its own session, so you stay free to answer messages while it thinks. This call returns"
+		+ " at once with the fork's id. The answer arrives later as a message to you, starting"
+		+ " `fork answer:`. Outside Servex (e.g. a VS Code tab), nothing can message you, so call"
+		+ " `wait_for_agent` with the fork's id to collect it. By default the fork has NO tools: it"
+		+ " decides from what it already knows. Give it `allowed_tools` like [\"Read\",\"Grep\",\"Glob\"]"
+		+ " for \"look at these three files, then decide\". It answers once and stops itself.",
+		{
+			question: { type: "string", description: "The one question or decision, in full. The fork sees your whole context, so you can refer to it." },
+			from: { type: "string", description: "Your own Servex agent id. Usually leave it out: Servex already knows which of its agents is calling. The answer wakes you." },
+			session_id: { type: "string", description: "Instead of `from`, for a session Servex does not hold: your Claude session uuid (in a shell, `$CLAUDE_CODE_SESSION_ID`). Its cwd and model are read from the session file." },
+			model: { type: "string", description: "Override the model. Leave it out: a different model cannot reuse your cache and pays for your whole context again." },
+			cwd: { type: "string", description: "Override the working directory. Leave it out: a fork must run where the session ran." },
+			allowed_tools: { type: "array", items: { type: "string" }, description: "Tools the fork may use, e.g. [\"Read\",\"Grep\",\"Glob\"]. Default none. (They stay listed either way — removing them would break the cache — every call outside this list is refused.)" }
+		},
+		["question"],
+		async ({ allowed_tools, ...args }, ctx = {}) => {
+			const from = args.from ?? ctx.caller ?? undefined;
+			const fork = await agents.fork({ ...args, from, tools: allowed_tools ?? [] });
+			return JSON.stringify({
+				id: fork.id, parent: fork.parent ?? null, forked_from: fork.forked_from,
+				note: fork.parent
+					? `Keep working. The answer arrives as a message from ${fork.id}, starting "fork answer:".`
+					: `Collect the answer with wait_for_agent({id: "${fork.id}"}).`
+			}, null, 2);
+		}),
+
+	tool("wait_for_agent",
+		"Wait until an agent finishes its current turn (nothing left queued) or stops, then return its"
+		+ " state and everything it said that turn. Returns at once if it is already idle. Blocks your"
+		+ " own turn while it waits — from a terminal or VS Code tab, run it in the BACKGROUND instead:"
+		+ " POST {\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/call\",\"params\":{\"name\":\"wait_for_agent\","
+		+ "\"arguments\":{\"id\":\"<id>\"}}} to Servex's /mcp url with curl in a background shell, and you"
+		+ " are told when it answers. A Servex agent with a `parent` wakes that parent anyway; this is for"
+		+ " everyone else.",
+		{
+			id: ID,
+			timeout_s: { type: "number", description: "Give up after this many seconds and say `timed_out: true`. Default 600." }
+		},
+		["id"],
+		/* A caller blocked here is not WORKING for the cap (Agents.working): it only waits,
+		 * and counting it could hold the very child it waits for at the gate. */
+		async ({ id, timeout_s }, ctx = {}) => {
+			const me = ctx.caller && agents.live.get(ctx.caller);
+			if (me) me.waiting_on = id;
+			try { return JSON.stringify(await agents.wait(id, timeout_s ?? 600), null, 2); }
+			finally { if (me && me.waiting_on === id) me.waiting_on = null; }
+		}),
+
+	tool("send_to_agent",
+		"Say something to a running agent. It arrives wrapped so the agent can see who asked and"
+		+ " where the answer goes. By default it waits its turn — the agent finishes what it is"
+		+ " doing first. Use priority `now` for a stop or a correction: that cancels what the agent"
+		+ " is saying and delivers your message immediately.",
+		{
+			id: ID,
+			text: { type: "string", description: "What to say." },
+			to: { type: "string", description: "Same as `id` (a common guess; accepted, as is `agent`)." },
+			agent: { type: "string", description: "Same as `id`." },
+			message: { type: "string", description: "Same as `text` (a common guess; accepted)." },
+			from: { type: "string", description: "Who is asking — your own agent id or name. The agent sees this." },
+			reply_to: { type: "string", description: "Where the answer should go, in plain words: `log agent-host`, `message mastermind-servex`." },
+			priority: { type: "string", description: "`now` to cut in mid-answer. Omit to queue behind the current turn." },
+			direct: { type: "boolean", description: "Owner or tab only: deliver straight to a mastermind instead of through the root assistant (also: start the text with @<id>)." },
+			revive: { type: "boolean", description: "Wake it even though it was stopped on purpose or its task has landed (refused otherwise, with the reason). Never wakes one whose directory is gone." },
+			dormant_after: DORMANT_AFTER
+		},
+		[],
+		({ id, text, to, agent: agent_id, message, dormant_after, direct, ...note }, ctx = {}) => {
+			/* agents guess {to, message}: with `id` and `text` schema-required that failed validation, and they
+			   reported "vscode-mastermind isn't a live agent" (2026-11-02: every one of 4 agents checked used `to`, one also `agent`;
+			   Claude Code's own SendMessage takes `to`). Take all three spellings. Test: send-alias.test.mjs. */
+			id = id ?? to ?? agent_id; text = text ?? message;
+			if (typeof id !== "string" || !id.trim()) return JSON.stringify({ ok: false, why: "send_to_agent needs `id` (the agent's id, e.g. vscode-mastermind); it was missing." });
+			// a call with `message` instead of `text` delivered the word "undefined" to six masterminds (09-29); `message` is now an alias
+			if (typeof text !== "string" || !text.trim()) return JSON.stringify({ ok: false, why: "send_to_agent needs `text` (what to say); it was missing or empty." });
+			id = agents.holder?.(id) ?? id;
+			const ruling = policy.message(ctx.caller ?? null, id);
+			if(!ruling.ok) return JSON.stringify({ ok: false, why: ruling.why });
+			const from = ctx.caller ?? note.from;
+			const via = policy.route(ctx.caller ?? null, id, text, { direct, assistant_live: (a => !!a && a.state !== "stopped")(agents.live.get("master-assistant")) || !!agents.external?.has?.("master-assistant") });
+			if(via){ policy.onbypass?.({ at: new Date().toISOString(), kind: "relay-routed", from: from ?? "owner", to: id }); id = via.to; text = via.text; }
+			policy.heard(from ?? "owner", id);
+			const agent = agents.send(id, text, { ...note, from });
+			// Agent.send() only reads {from, reply_to, priority} off its note and drops everything
+			// else (ask 2b, process-monitor) — set it on the returned agent object directly, so a
+			// caller can change how long THIS agent waits before it sleeps, per request, without
+			// needing a change to Agents.js itself. `agents.send()` always returns the live agent
+			// (or a held/external stand-in) it just delivered to.
+			if (dormant_after !== undefined && agent && typeof agent === "object") agent.dormant_after = dormant_after;
+			const held = agent?.fyi_held; if (held) delete agent.fyi_held;
+			const sent = held ? JSON.stringify({ ...agent.card(), held: true, note: held }, null, 2) : card(agent);
+			/* a peer message between task masterminds: the sender's parent gets a copy, so no interface between tasks is invisible */
+			const up = ruling.rule === "peer" && policy.parent(from);
+			if (up && up !== id) try { agents.send(up, `copy: ${from} -> ${id}: ${text}`, { from: "servex-peer-copy" }); } catch {}
+			return sent;
+		}),
+
+	tool("interrupt_agent",
+		"Stop an agent mid-sentence, keeping the session alive. It goes idle with everything it has"
+		+ " done so far intact, and you can talk to it again. Use this when it is heading the wrong"
+		+ " way; use `send_to_agent` with priority `now` when you want to redirect it in one step.",
+		{ id: ID },
+		["id"],
+		async ({ id }) => card(await agents.interrupt(id))),
+
+	tool("compact_self",
+		"Compact your own context, after this turn ends. Servex tells you when your context is large and you are idle"
+		+ " (\"Context: N tokens ... Compact now unless something in flight needs this context\"); answer that by calling"
+		+ " this tool as your LAST action, then stop. Your conversation is summarised and you continue from the summary."
+		+ " Do not call it while you still need files you have read or decisions you have not written down.",
+		{},
+		[],
+		async (args, ctx = {}) => {
+			const agent = ctx.caller ? agents.live?.get(ctx.caller) : null;
+			if (!agent?.request_compact) return JSON.stringify({ ok: false, why: "Servex does not hold you as a live agent, so it cannot compact you." });
+			return JSON.stringify(agent.request_compact());
+		}),
+
+	tool("list_agents",
+		"Every agent Servex has ever registered: its id, role, name, topics, page, state, who can"
+		+ " see it, its session uuid for `claude --resume`, when it started and its parent — the"
+		+ " same rows `GET /agents` returns, so this survives a Servex restart the in-memory list"
+		+ " does not. A row whose host process died (a Servex restart it did not survive) reads"
+		+ " `gone`, never idle or working. By default only working and idle rows, plus dormant ones active in the last 48 hours:"
+		+ " the full registry is 2,000+ rows and 3 MB, far past any context window.",
+		{ all: { type: "boolean", description: "Every row ever registered, stopped and gone included." } },
+		[],
+		({ all }) => {
+			const since = new Date(Date.now() - 48 * 3600e3).toISOString();
+			const rows = agents.registry_list().filter(r => all || ["working", "idle"].includes(r.state)
+				|| (r.state === "dormant" && (r.last_at ?? r.started_at ?? "") > since));
+			const procs = agents.servex?.procmon?.procs;
+				// `mb`: the agent's own claude.exe right now; a dormant or stopped row keeps a stale `claude_pid`, dropped here so the list never implies a process
+				const live_row = r => { const p = r.claude_pid && procs?.get(r.claude_pid); return p ? { ...r, mb: Math.round(p.mb) } : { ...r, claude_pid: null }; };
+				return JSON.stringify(rows.map(live_row).map(r => Object.fromEntries(Object.entries(r).filter(([k, v]) => v != null && k !== "spec"))));  // spec holds the whole first prompt
+		}),
+
+	tool("stop_agent",
+		"End a session for good. The agent stops, its `claude` process exits, and its log stays on"
+		+ " disk. It keeps its place in the list, marked `stopped`, so its session uuid is still"
+		+ " there to resume from a terminal. Nothing revives it by itself after this (no heartbeat,"
+		+ " no restart, no child's report); a message wakes it only with `revive: true`.",
+		{ id: ID },
+		["id"],
+		({ id, from }, ctx = {}) => card(agents.stop(id, { by: ctx.caller ?? from ?? "owner" })))
+]; }
+
+/* The same tools IN-PROCESS, for a host with no HTTP `/mcp` (fork-proof.mjs,
+ * a test): an SDK MCP server whose handlers are the functions above. Hand it
+ * to a spawn as `mcp_servers: { servex: server(host) }` and the agent calls
+ * `mcp__servex__fork_self` straight into this process. `ctx.caller` is who the
+ * handlers are told is calling — what `?as=` is on the HTTP door. JSON Schema → zod for
+ * the property kinds the tools use. `list` narrows it: `server(host, ctx, loader_tools())`
+ * gives a session only `load_module` and `readme_modules` (experts-proof.mjs, way b). `alwaysLoad`: otherwise the CLI defers them
+ * behind ToolSearch and a small model reports the tool "not available". */
+export function server(agents = singleton, ctx = { caller: null }, list = tools(agents)){
+	const zod = ({ type, items, enum: one_of }) => one_of ? z.enum(one_of)
+		: Array.isArray(type) ? z.union([z.looseObject({}), z.boolean()])   // `task`: an object, or false for no task dir
+		: type === "number" ? z.number() : type === "boolean" ? z.boolean()
+		: type === "object" ? z.looseObject({})   // NOT z.record(): one record breaks the SDK server's whole tools/list
+		: type === "array" ? z.array(items?.type === "string" ? z.string() : z.any()) : z.string();
+	return createSdkMcpServer({ name: "servex", alwaysLoad: true, tools: list.map(t => sdk_tool(t.name, t.description,
+		Object.fromEntries(Object.entries(t.inputSchema.properties).map(([k, p]) =>
+			[k, (t.inputSchema.required.includes(k) ? zod(p) : zod(p).optional()).describe(p.description ?? k)])),
+		async args => {
+			try { return { content: [{ type: "text", text: String(await t.handler(args, ctx)) }] }; }
+			catch (e){ return { content: [{ type: "text", text: String(e.message || e) }], isError: true }; }
+		})) });
+}
+
+export default tools;

@@ -1,0 +1,194 @@
+diff --git a/public/framework/ai/AISession/AISessionDetail.js b/public/framework/ai/AISession/AISessionDetail.js
+index 78b77c284..4b5db4949 100644
+--- a/public/framework/ai/AISession/AISessionDetail.js
++++ b/public/framework/ai/AISession/AISessionDetail.js
+@@ -10,6 +10,7 @@ import AISessionConversation from "./AISessionConversation.js";
+ import JSONL from "/framework/ext/JSONL/JSONL.js";
+ import VoiceFlow from "/framework/ext/Refine/stages/VoiceFlow.js";
+ import Item from "/framework/core/Item/Item.js";
++import Property from "/framework/core/Property/Property.js";
+ import "/framework/core/Page/parts/PageHeading.js";   // the kinds the page tool adds register themselves by import
+ import "/framework/core/Page/parts/PageText.js";
+ import "/framework/core/Page/parts/PageCard.js";
+@@ -28,7 +29,7 @@ export default class AISessionDetail extends Page {
+ 	// With tabs on (a `tab` line in the session's page.jsonl), the template itself is the first tab.
+ 	home_tab = "Conversation";
+ 
+-	deactivated(){ this.follow?.then(f => f.stop()); this.follow = null; this.logs?.forEach(log => log.unsubscribe()); this.logs = null; }
++	deactivated(){ this.follow?.then(f => f.stop()); this.follow = null; this.live_off?.(); this.live_off = null; this.logs?.forEach(log => log.unsubscribe()); this.logs = null; }
+ 
+ 	/* THE SESSION'S OWN PAGE LOG (2026-10-09, the page tool): `page.jsonl` in the session's folder can
+ 	   reshape this page on top of the template — tabs, the six layout words — and carries the cards the
+@@ -163,8 +164,15 @@ export default class AISessionDetail extends Page {
+ 					div.c("flex gap-50 v-center", () => {
+ 						span.c("sessions-tag sessions-tag-" + row.source, src.label);
+ 						span.c("sessions-row-title", row.tab_title || row.id);
+-						const cur = AISession.all.get(row.session_id ?? id)?.ix, model = cur?.model ?? row.model;   // the index is rewritten every turn; sessions.json is written once
+-						if (model) small.c("muted", model + (cur?.effort ? " · " + cur.effort : ""));
++						// Model, effort and cost are bound to the live session (Property.of), so a new turn redraws them: doc/binding.md
++						this.live_off?.();
++						const live = AISessionDetail.live_item(row.session_id ?? id, row), el = small.c("muted", ""), draw = () => {
++							const model = live.item.get("model"), effort = live.item.get("effort"), usd = live.item.get("usd");
++							el.el.textContent = [model, effort && !String(model).includes(effort) ? effort : null, usd != null && "$" + (+usd).toFixed(2)].filter(Boolean).join(" · ");
++						};
++						el.el.classList.add("session-live");
++						const offs = ["model", "effort", "usd"].map(k => Property.of(live.item, k).bind(draw));
++						this.live_off = () => { offs.forEach(off => off()); live.off(); };
+ 					});
+ 				}
+ 			});
+@@ -185,6 +193,14 @@ export default class AISessionDetail extends Page {
+ 		});
+ 	}
+ 
++	/** An Item holding the live model, effort and cost of one session: the index row first, then every change the feed folds in. `off()` ends it. */
++	static live_item(session_id, row){
++		const ses = AISession.of(session_id), pick = (src, keys) => Object.fromEntries(keys.filter(k => src?.[k] != null).map(k => [k, src[k]]));
++		const KEYS = ["model", "effort", "usd"], item = new Item({ data: { ...pick(row, KEYS), ...pick(ses.ix, KEYS) } });
++		const off = ses.on((_, fields) => item.set(pick(ses.ix, fields.filter(k => KEYS.includes(k)))));
++		return { item, off };
++	}
++
+ 	/** The logged turns folded to one row per local hour, newest hour first: turns, tokens, dollars, and the running total at the hour's end. */
+ 	static by_hour(costs){
+ 		const hours = new Map();
+diff --git a/public/framework/ai/sessions/2026/10/12/session-87bec773/property-of/STATE.md b/public/framework/ai/sessions/2026/10/12/session-87bec773/property-of/STATE.md
+new file mode 100644
+index 000000000..673b0cecf
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/12/session-87bec773/property-of/STATE.md
+@@ -0,0 +1,3 @@
++# property-of state
++Done: Property.of + 12 tests (Property.test.mjs), caller in AISessionDetail (model/effort/cost line), proof in proof/ (Sonnet 5.5 to Opus 5.5 in 0.2 s), binding.md section 4 and Property readme updated.
++Branch michael/property-of (worktree C:/Code/worktrees/property-of). Throwaway server worktree: property-of-serve (worktree-down when merged).
+diff --git a/public/framework/ai/sessions/2026/10/12/session-87bec773/property-of/proof/pof-after.png b/public/framework/ai/sessions/2026/10/12/session-87bec773/property-of/proof/pof-after.png
+new file mode 100644
+index 000000000..a9f911bda
+Binary files /dev/null and b/public/framework/ai/sessions/2026/10/12/session-87bec773/property-of/proof/pof-after.png differ
+diff --git a/public/framework/ai/sessions/2026/10/12/session-87bec773/property-of/proof/pof-before.png b/public/framework/ai/sessions/2026/10/12/session-87bec773/property-of/proof/pof-before.png
+new file mode 100644
+index 000000000..159174c44
+Binary files /dev/null and b/public/framework/ai/sessions/2026/10/12/session-87bec773/property-of/proof/pof-before.png differ
+diff --git a/public/framework/core/Page/doc/binding.md b/public/framework/core/Page/doc/binding.md
+index 75efea3b7..f213fb220 100644
+--- a/public/framework/core/Page/doc/binding.md
++++ b/public/framework/core/Page/doc/binding.md
+@@ -20,7 +20,7 @@ Live demo: [Templates](/framework/core/Page/Template/). The classes: [templates.
+ | 1. How does a view subscribe, and unsubscribe? | Events (`on` / `off`), made lazily. Every binding returns its own unbind; the view keeps them and `drop()` / `dispose()` run them. |
+ | 2. Is a clone linked or a copy? | Both. `clone()` is linked, `copy()` is a hard copy. Each property can be overridden, reset with `unset(name)`, and `overrides()` lists them. |
+ | 3. When is a value a Property? | Only when something shows it live. Plain values stay plain; a record that is already an `Item` can use its own `change` event. |
+-| 4. `Field extends Property`? | Designed below, not built yet: no screen needs a control bound to a field today. |
++| 4. `Field extends Property`? | `Property.of` is built; `Field` is designed below, not built yet: no screen needs a control bound to a field today. |
+ | 5. Lists? | Already live: a `List` announces adds and removes. A list field in a template is the next step, designed below. |
+ | 6. Paths and `={expr}`? | Later. The design is recorded below. |
+ 
+@@ -146,10 +146,10 @@ class Field extends Property {
+ | Syntax | Reads as | Verdict |
+ |---|---|---|
+ | `clone({ cost: prop })` | "this value, live" | ✅ today |
+-| `clone({ cost: Property.of(item, "cost") })` | "item's cost, live" | ✅ recommended next: a Property that mirrors one key of an Item and writes back through `item.set`, so the Item still saves its delta |
++| `clone({ cost: Property.of(item, "cost") })` | "item's cost, live" | ✅ built: a Property that mirrors one key of an Item and writes back through `item.set`, so the Item still saves its delta. First caller: the model, effort and cost line of a [session detail](/framework/ai/sessions/) (`AISessionDetail.js`, `live_item()`); it redraws on a new turn within about a second ([before](/framework/ai/sessions/2026/10/12/session-87bec773/property-of/proof/pof-before.png), [after](/framework/ai/sessions/2026/10/12/session-87bec773/property-of/proof/pof-after.png)) |
+ | `clone({ cost: [item, "cost"] })` | unclear: a pair, or an array value? | ❌ |
+ 
+-`Property.of` must listen to the Item only while it has listeners of its own, or it leaks; that rule is why it is not a one-liner. Not built in this slice.
++`Property.of` listens to the Item only while it has listeners of its own (first `on` subscribes, last `off` unsubscribes), or it would leak; `Property.test.mjs` counts the Item's listeners to prove it. Watch out: an Item's `change` bubbles from its children, so a child's change of the same key is heard too.
+ 
+ **Watch out:** `Item.set(key, v)` hands `v` to a value that has its own `set()`. So a `Property` stored inside an Item's data swallows the write, and the Item emits no `change` and no `delta`, so nothing is saved. Keep Properties beside Items, never inside their data.
+ 
+diff --git a/public/framework/core/Property/Property.js b/public/framework/core/Property/Property.js
+index ebe7774e5..d69c45bae 100644
+--- a/public/framework/core/Property/Property.js
++++ b/public/framework/core/Property/Property.js
+@@ -130,4 +130,39 @@ Property.Map = class PropertyMap {
+ 	}
+ };
+ 
++/* One key of an Item, live: reads follow the Item, `set` writes through `item.set` (so the Item still saves its delta).
++   It listens to the Item only while it has listeners of its own: the first `on` subscribes, the last `off` unsubscribes.
++   Any object with get / set / on / off / emit("change", key, value, old) works. Design: ../Page/doc/binding.md (section 4).
++   Watch out: an Item's change bubbles from its children, so a child's change of the same key is heard too. */
++Property.Of = class ItemProperty extends Property {
++
++	constructor(item, name){
++		super();
++		this.item = item;
++		this.name = name;
++	}
++
++	get _value(){ return this.item.get(this.name); }   // the base class reads _value: bind() and value
++	set _value(v){}   // the base constructor assigns it; the Item owns the value
++	get(){ return this._value; }
++	get value(){ return this.get(); }
++	set value(v){ this.set(v); }
++
++	set(v){ this.item.set(this.name, v); return this; }
++
++	on(event, fn){
++		super.on(event, fn);
++		if (event === "change" && !this._hear) this.item.on("change", this._hear = (key, value, old) => { if (key === this.name) this.emit("change", value, old); });
++		return this;
++	}
++
++	off(event, fn){
++		super.off(event, fn);
++		if (this._hear && !this.listeners()){ this.item.off("change", this._hear); this._hear = null; }
++		return this;
++	}
++};
++
++Property.of = (item, name) => new Property.Of(item, name);
++
+ export default Property;
+diff --git a/public/framework/core/Property/Property.test.mjs b/public/framework/core/Property/Property.test.mjs
+index 96dc95812..df3f72167 100644
+--- a/public/framework/core/Property/Property.test.mjs
++++ b/public/framework/core/Property/Property.test.mjs
+@@ -51,4 +51,35 @@ t(hard.get("columns.0.title") === "T0" && hard.get("live") === 1, "a copy is not
+ t(linked.get("columns.0.title") === "changed" && linked.get("live") === 2, "a clone is linked");
+ t(!Property.is(hard.props.live) && hard.data.live === 1, "a copy holds plain values, no shared Property");
+ 
++
++// Property.of: one key of an Item, live
++import { Item } from '../Item/Item.js';
++const item = new Item({ data: { model: 'sonnet' } });
++const deltas = [];
++item.on('delta', d => deltas.push(d));
++const m = Property.of(item, 'model');
++t(m.get() === 'sonnet' && item._on?.change === undefined, 'reads the Item; no Item listener before a view binds');
++item.set('model', 'opus');
++t(m.get() === 'opus' && m.value === 'opus', 'a read with no listener still follows the Item');
++const mseen = [];
++const moff = m.bind(v => mseen.push(v));
++t(item._on.change.length === 1, 'first listener subscribes to the Item once');
++const moff2 = m.bind(() => {});
++t(item._on.change.length === 1, 'a second listener adds no second Item subscription');
++item.set('model', 'haiku'); item.set('other', 1);
++t(mseen.join() === 'opus,haiku', 'live change redraws; another key is ignored');
++m.set('fable');
++t(item.get('model') === 'fable' && mseen.at(-1) === 'fable' && deltas.at(-1).set.model === 'fable', 'set writes through item.set: the delta is saved');
++moff();
++t(item._on.change.length === 1, 'one view still bound: still subscribed');
++moff2();
++t(item._on.change.length === 0 && m.listeners() === 0, 'last view gone: no listener left on the Item');
++m.set('x'); t(mseen.at(-1) === 'fable', 'a dropped view hears nothing');
++
++const lm = new Property.Map().assign({ model: Property.of(item, 'model'), note: 'n' });
++const c = lm.clone({});
++t(c.get('model') === 'x', 'a template layer reads the Item through the Property');
++t(c.set('model', 'own') === 'rebind' && c.get('model') === 'own' && item.get('model') === 'x', 'a clone override never writes the Item');
++c.unset('model');
++t(c.get('model') === 'x' && lm.set('model', 'y') === 'prop' && item.get('model') === 'y' && c.get('model') === 'y', 'unset falls back to the live Item; a layer write goes through');
+ console.log(`Property.test.mjs: ${n} checks passed`);
+diff --git a/public/framework/core/Property/readme.md b/public/framework/core/Property/readme.md
+index 0571204e6..591557ad6 100644
+--- a/public/framework/core/Property/readme.md
++++ b/public/framework/core/Property/readme.md
+@@ -4,6 +4,8 @@
+ 
+ `Property.Map` is the DOM-free helper that gives a template its two fallthrough maps (`data` and `props`): clone, override, delete falls back, shared until written, a Property created lazily when something binds, `copy()` for a hard copy with no link back, `overrides(prefix)` to list what a clone overrides. Test: `node public/framework/core/Property/Property.test.mjs`.
+ 
++`Property.of(item, name)` mirrors one key of an Item: reads follow it, `set` writes through `item.set`, and it listens to the Item only while it has listeners. First caller: the session detail's model/cost line (`ai/AISession/AISessionDetail.js`).
++
+ - Used by [Template](/framework/core/Page/Template/) · design: [core/Page/doc/templates.md](../Page/doc/templates.md) · binding, measured on 1,000 rows: [core/Page/doc/binding.md](../Page/doc/binding.md)
+ - Watch out: a clone that writes an inherited bound value gets its own new Property (`"rebind"`); it never sets the parent's.
+ - Watch out: never put a Property inside an Item's data; it takes over that key's writes, so the Item emits no `change` and nothing saves ([binding.md](../Page/doc/binding.md)).

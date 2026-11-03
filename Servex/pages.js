@@ -1,0 +1,218 @@
+/* Page tools: list, read and make pages without a shell. Every write is ONE appended line
+ * or one targeted edit — never a rewrite. Every tool takes an optional `root` (main tree or
+ * a worktree) and a site `path` like /framework/core/Page/. Detail: core/Page/doc/jsonl.md. */
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import Subpages from "./agents/Subpages.js";
+
+const MAIN = "C:\\Code\\lew42\\monorepo";
+const json = v => JSON.stringify(v, null, 2);
+const NAME = /^[a-z0-9-]+$/;
+
+const root_of = a => path.resolve(a.root || MAIN);
+const dir_of = (a, p) => path.join(root_of(a), "public", ...String(p || "/").split("/").filter(Boolean));
+const kind_of = dir => fs.existsSync(path.join(dir, "page.js")) ? "page.js"
+	: fs.existsSync(path.join(dir, "page.jsonl")) ? "page.jsonl" : null;
+
+// Append one JSON line, making sure the file ends with a newline first.
+const append = (file, obj) => {
+	const text = fs.readFileSync(file, "utf8");
+	fs.appendFileSync(file, (text.length && !text.endsWith("\n") ? "\n" : "") + JSON.stringify(obj) + "\n");
+};
+
+const layout_names = a => {
+	const src = fs.readFileSync(path.join(root_of(a), "public/framework/core/Layout/layouts.js"), "utf8");
+	return [...src.matchAll(/^\s*name:\s*"([a-z0-9-]+)"/gm)].map(m => m[1]);
+};
+
+// A page's title/icon/layout words, read the same way `read_page` reads them — never
+// imported, just text. For page.js it's a regex over the declared string. For page.jsonl,
+// line 1 sets the starting props and a later line (`set_layout`'s appended {"layout":…})
+// can override one, so this takes the LAST value seen for each key: the same value the
+// page itself ends up with once every line has been applied.
+const layout_of = (dir, kind) => {
+	if (kind === "page.js") {
+		const text = fs.readFileSync(path.join(dir, "page.js"), "utf8");
+		const pick = k => new RegExp(`\\b${k}:\\s*"([^"]*)"`).exec(text)?.[1] ?? null;
+		return { title: pick("title"), icon: pick("icon"), layout: pick("layout"), cols: pick("cols"), room: pick("room") };
+	}
+	const out = { title: null, icon: null, layout: null, cols: null, room: null };
+	for (const line of fs.readFileSync(path.join(dir, "page.jsonl"), "utf8").split("\n")) {
+		if (!line.trim()) continue;
+		let obj; try { obj = JSON.parse(line); } catch { continue; }
+		for (const k of Object.keys(out)) if (obj[k] !== undefined) out[k] = obj[k];
+	}
+	return out;
+};
+
+// The child names a page declares, and their kind, without importing anything.
+const children_of = dir => {
+	const kind = kind_of(dir), out = [];
+	if (kind === "page.jsonl") {
+		for (const line of fs.readFileSync(path.join(dir, "page.jsonl"), "utf8").split("\n")) {
+			try { const m = /^([^/]+)\/(page\.jsonl|page\.js)$/.exec(JSON.parse(line).file || ""); if (m && !out.some(o => o.name === m[1])) out.push({ name: m[1] }); } catch {}
+		}
+	} else if (kind === "page.js") {
+		const m = /children:\s*"([^"]*)"/.exec(fs.readFileSync(path.join(dir, "page.js"), "utf8"));
+		for (const w of (m?.[1] || "").split(/\s+/).filter(Boolean)) out.push({ name: w.split("/")[0] });
+	}
+	for (const c of out) c.kind = kind_of(path.join(dir, c.name)) || "missing";
+	return out;
+};
+
+export const page_tools = () => {
+	const P = { type: "string", description: "Site path of the page, like /framework/core/Page/" };
+	const R = { type: "string", description: "Tree root: the main monorepo (default) or a worktree path." };
+	const tool = (name, description, properties, required, run) => ({
+		name, description, inputSchema: { type: "object", required, properties: { root: R, ...properties } },
+		handler: async (args = {}) => { try { return json(await run(args)); } catch (e) { return json({ ok: false, why: e.message }); } }
+	});
+
+	return [
+		tool("list_pages", "List a page's child pages, each as page.js or page.jsonl (page.js wins; a plain folder is not a page).",
+			{ path: P }, ["path"], a => {
+				const dir = dir_of(a, a.path);
+				if (!kind_of(dir)) throw new Error(`${a.path} is not a page (no page.js or page.jsonl)`);
+				return { ok: true, kind: kind_of(dir), children: children_of(dir) };
+			}),
+
+		tool("read_page", "Read a page: its page.jsonl lines, or for page.js its declared title, icon, children and layout words (read as text, never imported).",
+			{ path: P }, ["path"], a => {
+				const dir = dir_of(a, a.path), kind = kind_of(dir);
+				if (!kind) throw new Error(`${a.path} is not a page`);
+				const text = fs.readFileSync(path.join(dir, kind), "utf8");
+				if (kind === "page.jsonl") return { ok: true, kind, lines: text.split("\n").filter(Boolean).map(l => { try { return JSON.parse(l); } catch { return { bad: l }; } }) };
+				const pick = k => new RegExp(`\\b${k}:\\s*"([^"]*)"`).exec(text)?.[1] ?? null;
+				return { ok: true, kind, title: pick("title"), icon: pick("icon"), children: pick("children"), layout: pick("layout"), cols: pick("cols"), room: pick("room") };
+			}),
+
+		tool("create_page", "Alias of page_set({pages:{add:{name,title,icon,description}}}), see core/Page/doc/ai-api.md. Makes a new child page reliably: folder + page.jsonl line 1 (title, icon, description, optional layout) + a readme.md stub, then link it from the parent with one appended {file} line in the parent's page.jsonl (made if missing); no page.js is ever edited. The empty doc/ dir is NOT created — one appears only once there is a real doc. Returns the PARENT's context (title, layout words, sibling names, readme url) so the calling agent looks at where this page sits before filling it in.",
+			{ parent: P, name: { type: "string", description: "a-z0-9- only" }, title: { type: "string" }, icon: { type: "string" }, description: { type: "string", description: "One sentence — the card's subtitle everywhere this page is previewed." }, layout: { type: "string", description: "optional layout name" } },
+			["parent", "name", "title", "icon", "description"], a => {
+				if (!NAME.test(a.name || "")) throw new Error("name must be a-z0-9- only");
+				if (!String(a.description || "").trim()) throw new Error("description is required — one sentence: what this page is, for the card that previews it everywhere");
+				const pdir = dir_of(a, a.parent), pkind = kind_of(pdir);
+				if (!pkind) throw new Error(`${a.parent} is not a page`);
+				const dir = path.join(pdir, a.name);
+				if (fs.existsSync(dir)) throw new Error(`${a.name} already exists under ${a.parent}`);
+				if (a.layout && !layout_names(a).includes(a.layout)) throw new Error(`unknown layout; valid: ${layout_names(a).join(", ")}`);
+				// Read the parent's own context BEFORE writing anything, so the new page never lists itself as a sibling.
+				const parent_layout = layout_of(pdir, pkind);
+				const siblings = children_of(pdir).map(c => c.name);
+				const parent_readme = `${a.parent.replace(/\/?$/, "/")}md/readme/`;
+				// The folder, line 1 and the parent link are ONE implementation: Servex/agents/Subpages.js.
+				new Subpages(pdir).add({ name: a.name, title: a.title, icon: a.icon, description: a.description, ...(a.layout ? { layout: a.layout } : {}) });
+				fs.writeFileSync(path.join(dir, "readme.md"), `# ${a.title} — ${a.description}
+
+## Index
+
+## Use
+
+## Watch out
+
+## More
+`);
+				return {
+					ok: true, made: `${a.parent.replace(/\/?$/, "/")}${a.name}/`, linked_in: pkind,
+					parent: { title: parent_layout.title, layout: parent_layout.layout, cols: parent_layout.cols, room: parent_layout.room, siblings, readme: parent_readme }
+				};
+			}),
+
+		tool("place", "Append {\"place\": what} to a page.jsonl. `what` is a .md name, a module .js name, or {module: \"x.js\", ...data}. page.js pages are refused.",
+			{ path: P, what: { description: "a .md, a .js, or {module, ...data}" } }, ["path", "what"], a => {
+				const dir = dir_of(a, a.path), kind = kind_of(dir);
+				if (kind !== "page.jsonl") throw new Error(kind ? `${a.path} is a page.js page: place() only works on page.jsonl pages; edit its content() instead` : `${a.path} is not a page`);
+				append(path.join(dir, "page.jsonl"), { place: a.what });
+				return { ok: true };
+			}),
+
+		tool("set_layout", "Append {\"layout\": name} to a page.jsonl. Only names in core/Layout/layouts.js are accepted.",
+			{ path: P, layout: { type: "string" } }, ["path", "layout"], a => {
+				const names = layout_names(a);
+				if (!names.includes(a.layout)) throw new Error(`unknown layout "${a.layout}"; valid: ${names.join(", ")}`);
+				const dir = dir_of(a, a.path), kind = kind_of(dir);
+				if (kind !== "page.jsonl") throw new Error(kind ? `${a.path} is a page.js page: set its layout in the file` : `${a.path} is not a page`);
+				append(path.join(dir, "page.jsonl"), { layout: a.layout });
+				return { ok: true };
+			})
+	];
+};
+
+/* ── Docs tab: read-only routes for the Servex dashboard ─────────────────
+ * List every module under Servex/ or Server/ that has its own readme.md,
+ * and read one file out of a module (its readme, its demo.js, or a
+ * doc/*.md). No import ever touches page rendering — this only reads text
+ * off disk, the same way `read_page` above does. Detail: the owner's ask
+ * lives at ai/sessions/2026/09/29/6ba7761f-91ad-4c62-a59e-9f66a03a6138/servex-docs-tab/requirements.md. */
+
+// Repo root = two levels up from this file (Servex/pages.js -> Servex/ -> repo root),
+// so this works whether Servex is running from the main tree or a worktree checkout.
+const repo_root = () => path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+
+const DOC_ROOTS = ["Servex", "Server"];
+const DOC_FILE = /^doc\/[\w.-]+\.md$/;
+
+// Walk one root (Servex/ or Server/), collecting every module (a folder with
+// its own readme.md) into `out`. Wrapped per-directory so one unreadable
+// folder (a permissions hiccup, a broken symlink) can't kill the whole scan.
+const walk_docs_dir = (abs_dir, rel_path, out) => {
+	let entries;
+	try { entries = fs.readdirSync(abs_dir, { withFileTypes: true }); }
+	catch { return; }
+
+	try {
+		if (fs.existsSync(path.join(abs_dir, "readme.md"))) {
+			let docs = [];
+			try {
+				const doc_dir = path.join(abs_dir, "doc");
+				if (fs.existsSync(doc_dir)) docs = fs.readdirSync(doc_dir).filter(f => f.endsWith(".md")).sort();
+			} catch {}
+			let demo = false;
+			try { demo = fs.existsSync(path.join(abs_dir, "demo.js")); } catch {}
+			out.push({ path: rel_path, readme: true, docs, demo });
+		}
+	} catch {}
+
+	for (const e of entries) {
+		if (!e.isDirectory() || e.name.startsWith(".") || e.name === "node_modules") continue;
+		const child_rel = `${rel_path}/${e.name}`;
+		if (child_rel === "Servex/public") continue; // the dashboard's own static root, never a documented module
+		try { walk_docs_dir(path.join(abs_dir, e.name), child_rel, out); } catch {}
+	}
+};
+
+// GET /api/docs — one entry per module under Servex/ or Server/ with a readme.md.
+export const docs_list = () => {
+	const repo = repo_root(), out = [];
+	for (const root of DOC_ROOTS) {
+		try { walk_docs_dir(path.join(repo, root), root, out); } catch {}
+	}
+	out.sort((a, b) => a.path < b.path ? -1 : a.path > b.path ? 1 : 0);
+	return out;
+};
+
+// GET /api/docs/file — the raw text of one file inside one module. Throws an
+// Error with `.status` (400 or 404) and a plain-sentence `.message` on any
+// refusal; the route handler turns that straight into the HTTP response.
+export const docs_read_file = (raw_path, raw_file) => {
+	const p = String(raw_path || ""), f = String(raw_file || "");
+	const refuse = (status, message) => { const e = new Error(message); e.status = status; throw e; };
+
+	const seg0 = p.split("/")[0];
+	if (seg0 !== "Servex" && seg0 !== "Server") refuse(400, "path must start with Servex or Server");
+	if (p.includes("..") || p.includes("\\")) refuse(400, "path must not contain .. or a backslash");
+	if (f.includes("..") || f.includes("\\")) refuse(400, "file must not contain .. or a backslash");
+	if (!(f === "readme.md" || f === "demo.js" || DOC_FILE.test(f)))
+		refuse(400, "file must be readme.md, demo.js, or doc/<name>.md");
+
+	const repo = repo_root();
+	const root_dir = path.resolve(repo, seg0);
+	const file_path = path.resolve(repo, ...p.split("/").filter(Boolean), ...f.split("/"));
+	if (file_path !== root_dir && !file_path.startsWith(root_dir + path.sep))
+		refuse(400, "path escapes its root");
+	if (!fs.existsSync(file_path) || !fs.statSync(file_path).isFile()) refuse(404, "file not found");
+	return fs.readFileSync(file_path, "utf8");
+};
+
+export default page_tools;

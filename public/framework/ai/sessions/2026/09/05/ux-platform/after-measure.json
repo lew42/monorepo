@@ -1,0 +1,20 @@
+{
+  "1280": {
+    "measure": {
+      "right": 1280,
+      "left": 210.546875,
+      "height": 2429,
+      "viewport": 1280
+    },
+    "errors": []
+  },
+  "3440": {
+    "measure": {
+      "right": 2736,
+      "left": 432,
+      "height": 2493,
+      "viewport": 3440
+    },
+    "errors": []
+  }
+}

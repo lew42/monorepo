@@ -1,0 +1,136 @@
+diff --git a/Server/SiteGateway.cache.test.mjs b/Server/SiteGateway.cache.test.mjs
+index e35bef68a..a239c899e 100644
+--- a/Server/SiteGateway.cache.test.mjs
++++ b/Server/SiteGateway.cache.test.mjs
+@@ -1,15 +1,15 @@
+-// Proof that a stale HTTP cache heals on the next page load through the gateway (the phone's old Sheet.js, 2026-11-01).
+-// A fake site serves a page that imports a.js, which imports b.js (nested, no query strings). Step 1 caches both
+-// for a day (as Chrome did by heuristic), then the site changes them. Step 2 shows the stale copies are still served
+-// with no request. Step 3 is a browser whose clear-cookie is old (the phone), in a new tab: it gets Clear-Site-Data and the new files.
+-// Step 4: the next load sends no second clear, and the site cookie survived.
++// Proof that the gateway keeps a phone from holding stale code (the phone's old Sheet.js and Recite.js, 2026-11-01/02): code is sent no-store, and a browser with an old clear-cookie is cleared once.
++// A fake site serves a page that imports a.js, which imports b.js, and says "cache it for a day" (as Chrome did by heuristic).
++// Steps 1-2: the gateway sends them no-store, so after the site changes them the next load runs the new ones. Step 3 is a browser
++// whose clear-cookie is old (the phone): the page gets Clear-Site-Data (it wipes copies already stuck there). Step 4: no second clear,
++// and the site cookie survived. Steps 5-6: the Cache-Control a gateway sends by file type.
+ //     node Server/SiteGateway.cache.test.mjs
+ import http from "node:http";
+ import assert from "node:assert/strict";
+ import SiteGateway from "./SiteGateway.mjs";
+ import Browser from "./Browser.mjs";
+ 
+-let ver = 1, cache = "max-age=86400", hits = [], statuses = [];
++let png = 0, ver = 1, cache = "max-age=86400", hits = [], statuses = [];
+ const site = http.createServer((req, res) => {
+ 	hits.push(req.url);
+ 	if (req.url === "/") res.on("finish", () => statuses.push(res.statusCode));
+@@ -17,6 +17,7 @@ const site = http.createServer((req, res) => {
+ 		if (req.headers["if-none-match"] === `"page"`) return res.writeHead(304, { etag: `"page"`, "cache-control": "no-cache" }).end();
+ 		return res.writeHead(200, { "content-type": "text/html", etag: `"page"`, "cache-control": "no-cache" }).end(`<!doctype html><script type="module" src="/a.js"></script>`);
+ 	}
++	if (req.url === "/stale.png") return res.writeHead(200, { "content-type": "image/png", "cache-control": "max-age=86400" }).end("png" + ++png);   // a stuck copy: the gateway lets a long max-age through on a non-code reply
+ 	if (req.url === "/a.js") return res.writeHead(200, { "content-type": "text/javascript", "cache-control": cache }).end(`import b from "/b.js"; globalThis.done = { a: ${ver}, b };`);
+ 	if (req.url === "/b.js") return res.writeHead(200, { "content-type": "text/javascript", "cache-control": cache }).end(`export default ${ver};`);
+ 	res.writeHead(404).end();
+@@ -43,27 +44,42 @@ const load = async () => {
+ 	page.off("response", on);
+ 	return { ...seen, net: hits.filter(u => u !== "/"), done: await page.evaluate(() => globalThis.done) };
+ };
++const stale = () => page.evaluate(() => fetch("/stale.png").then(r => r.text()));
+ let fails = 0;
+ const check = (name, fn) => { try { fn(); console.log("PASS", name); } catch (e) { fails++; console.log("FAIL", name, e.message); } };
+ 
+ await cookie(SiteGateway.CACHE_V);   // already cleared at this version: no clear, so the files get cached
+ const s1 = await load();
+ check("1 seed: the page loads a.js and b.js v1, no clear", () => { assert.deepEqual(s1.done, { a: 1, b: 1 }); assert.equal(s1.clear, null); });
++const p1 = await stale();
+ ver = 2; cache = "no-cache";
+ const s2 = await load();
+-check("2 stale: the page is a 304, v1 still runs, a.js and b.js never asked for", () => { assert.equal(s2.status, 304); assert.deepEqual(s2.done, { a: 1, b: 1 }); assert.deepEqual(s2.net, []); });
++const p1b = await stale();   // no clear yet: the browser still holds its copy (proves a stuck copy really survives a page load)
++check("2b a stuck copy stays stuck without the clear (the test can see staleness)", () => assert.deepEqual([p1, p1b], ["png1", "png1"]));
++check("2 no-store: the site said max-age, but a.js and b.js are asked for again and v2 runs (nothing to go stale)", () => { assert.deepEqual(s2.done, { a: 2, b: 2 }); assert.deepEqual(s2.net.sort(), ["/a.js", "/b.js"]); assert.equal(s2.clear, null); });
+ await cookie("0");   // the phone: its cookie is older than CACHE_V (or absent)
+ // A new tab, as the phone opens one: the old tab keeps its renderer's in-memory copies for one more load (measured), and nothing can clear those.
+ await page.close(); page = await ctx.newPage();
+-const s3 = await load();   // the browser asks with If-None-Match; the gateway must drop it so the clear rides a 200
+-check("3 heal: Clear-Site-Data on the page, then a.js and b.js fetched again, v2", () => { assert.deepEqual(s3.done, { a: 2, b: 2 }); assert.deepEqual(s3.net.sort(), ["/a.js", "/b.js"]); assert.equal(s3.clear, '"cache"'); });
++const s3 = await load();
++const p3 = await stale();   // the browser asks with If-None-Match; the gateway must drop it so the clear rides a 200
++check("3 old cookie: Clear-Site-Data on the page (the phone's stuck copies go), v2 runs", () => { assert.deepEqual(s3.done, { a: 2, b: 2 }); assert.equal(s3.clear, '"cache"'); });
++check("3b the clear really evicted the stuck copy: the image comes fresh from the site", () => assert.equal(p3, "png2"));
++ver = 3;
+ const s4 = await load();
++const p4 = await stale();
+ const jar = Object.fromEntries((await ctx.cookies()).map(c => [c.name, c.value]));
+-check("4 once: the next load is v2 with no second clear; the clear-cookie is CACHE_V; the site cookie survived", () => {
+-	assert.deepEqual(s4.done, { a: 2, b: 2 }); assert.equal(s4.clear, null); assert.equal(jar[SiteGateway.CACHE_COOKIE], SiteGateway.CACHE_V); assert.equal(jar[SiteGateway.COOKIE], gw.cookie); });
+-const r5 = await fetch(base + "/", { headers: { cookie: `${SiteGateway.COOKIE}=${gw.cookie}` } });
+-check("5 no-cache: a reply with no Cache-Control gets no-cache", () => assert.equal(r5.headers.get("cache-control"), "no-cache"));
++check("4 once: the next load is v3 (fresh again) with no second clear; the clear-cookie is CACHE_V; the site cookie survived", () => {
++	assert.deepEqual(s4.done, { a: 3, b: 3 }); assert.equal(s4.clear, null); assert.equal(jar[SiteGateway.CACHE_COOKIE], SiteGateway.CACHE_V); assert.equal(jar[SiteGateway.COOKIE], gw.cookie); assert.equal(p4, "png2"); });
++const r5 = await fetch(base + "/pic.png", { headers: { cookie: `${SiteGateway.COOKIE}=${gw.cookie}` } });
++check("5 no-cache: a non-code reply with no Cache-Control gets no-cache", () => assert.equal(r5.headers.get("cache-control"), "no-cache"));
+ 
++
++// no-store: HTML, JS, CSS and JSON by type or by name; an image keeps the plain no-cache; a stream is left alone
++site.removeAllListeners("request");
++const kinds = { "/x.js": ["text/javascript", "max-age=99"], "/x.css": ["text/css", "max-age=99"], "/x.json": ["application/json", "no-cache"], "/x.jsonl": ["text/plain", "no-cache"], "/p": ["text/html", "no-cache"], "/x.png": ["image/png", null], "/live": ["text/event-stream", "no-cache"] };
++site.on("request", (req, res) => { const [t, c] = kinds[req.url] ?? ["text/plain", null]; res.writeHead(200, c ? { "content-type": t, "cache-control": c } : { "content-type": t }); req.url === "/live" ? res.end() : res.end("x"); });
++const got = {}; for (const u of Object.keys(kinds)) got[u] = (await fetch(base + u, { headers: { cookie: `${SiteGateway.COOKIE}=${gw.cookie}` } })).headers.get("cache-control");
++check("6 no-store on html, js, css, json, jsonl; no-cache on an image; the stream untouched", () => assert.deepEqual(got, { "/x.js": "no-store", "/x.css": "no-store", "/x.json": "no-store", "/x.jsonl": "no-store", "/p": "no-store", "/x.png": "no-cache", "/live": "no-cache" }));
+ await ctx.close(); server.close(); site.close(); await Browser.close?.();
+ console.log(fails ? `${fails} FAILED` : "ALL PASS");
+ process.exit(fails ? 1 : 0);
+diff --git a/Server/SiteGateway.mjs b/Server/SiteGateway.mjs
+index 301c768bc..9eceada91 100644
+--- a/Server/SiteGateway.mjs
++++ b/Server/SiteGateway.mjs
+@@ -21,8 +21,9 @@ import { fileURLToPath } from "url";
+  *      /Servex/, /Server/, /ask/turn, /push/send) never pass.
+  *   4. /servex/* passes only the page routes in SERVEX (no /mcp, no merge, no project start/stop).
+  * Every request is also marked `x-lew42-remote` (Socket.js drops such a socket to the LAN tier even from loopback).
+- * Caching (2026-11-01): a phone kept an old Sheet.js for days, served from its HTTP cache with no request at all (an older reply carried
+- * no Cache-Control, so Chrome cached it by heuristic). Two guards: every reply without a Cache-Control gets `no-cache`, and a page load
++ * Caching (2026-11-01, 2026-11-02): a phone kept an old Sheet.js and Recite.js for days, served from its HTTP cache with no request at all.
++ * Three guards: HTML, JS, CSS and JSON (NO_STORE) go out as `Cache-Control: no-store`, so the phone keeps no copy to go stale; every other
++ * reply without a Cache-Control gets `no-cache`; and a page load
+  * from a browser whose `lew42_cache_v` cookie is not CACHE_V gets `Clear-Site-Data: "cache"` (only the HTTP cache: cookies, the
+  * site key and storage stay) plus the cookie, so it happens once per browser. Bump CACHE_V to clear every browser again. localhost never passes here.
+  * A live stream (SSE) gets a comment line after 20 s of silence (the socket gets a ping from Socket.js), so Cloudflare's ~100 s idle cut does not drop it.
+@@ -36,7 +37,9 @@ export default class SiteGateway {
+     static PUBLIC = "https://monorepo.lew42.com";
+     static COOKIE = "lew42_site";
+     static CACHE_COOKIE = "lew42_cache_v";
+-    static CACHE_V = "1";   // bump to clear every browser's HTTP cache once more, on its next page load
++    static CACHE_V = "2";   // bump (by hand) only if a phone is found holding stale copies; no-store keeps new ones from sticking, this clears ones already stuck
++    static NO_STORE_TYPE = /^(text\/html|(text|application)\/javascript|text\/css|application\/(?:[\w.-]*\+)?json|application\/x-ndjson)\b/i;
++    static NO_STORE_PATH = /\.(m?js|css|html?|jsonl?|webmanifest)$/i;   // by name too: a .jsonl is served as text/plain or octet-stream
+     static DENY = /^\/(mcp|ai-logs|screenshot|recordings|devsource\.json|servex|server|ask|push\/send)(?![\w-])/i;   // a prefix: /mcp, /mcp/x, /mcp;x all match
+     static SERVEX = /^\/servex\/(api\/item|api\/page-ai|api\/page-session\/(new|resume)|api\/session\/[\w-]+(\/stream)?|api\/refine(\/live)?|api\/tidy|api\/voice(\/card|\/stream)?|api\/whisper(\/stream)?|api\/hitl|api\/local-chat|log\/prompts)$/;
+     static SERVEX_GET = /^\/servex\/(api\/agents|api\/page-agents|api\/page-sessions|api\/sessions|api\/stream|api\/ready-to-merge|waiting)$/;
+@@ -135,6 +138,7 @@ export default class SiteGateway {
+             const h = { ...r.headers };
+             if (h.location) h.location = String(h.location).replace("http://" + this.target.name, SiteGateway.PUBLIC);
+             h["set-cookie"] = [].concat(h["set-cookie"] ?? [], this.set_cookie());   // each visit with a valid cookie renews its 30 days
++            if (SiteGateway.NO_STORE_PATH.test(p) || SiteGateway.NO_STORE_TYPE.test(String(h["content-type"] ?? ""))) h["cache-control"] = "no-store";   // the phone keeps no copy of code or data
+             h["cache-control"] ??= "no-cache";   // never left to a heuristic cache: the browser always asks (a 304 is cheap)
+             if (stale && r.statusCode === 200 && /text\/html/i.test(String(r.headers["content-type"]))){   // once per browser per CACHE_V: drop its HTTP cache before this page loads its modules
+                 h["clear-site-data"] = '"cache"';
+diff --git a/Servex/ext/remote/doc/tunnel.md b/Servex/ext/remote/doc/tunnel.md
+index f4ae7127b..5039fe321 100644
+--- a/Servex/ext/remote/doc/tunnel.md
++++ b/Servex/ext/remote/doc/tunnel.md
+@@ -41,7 +41,11 @@ These routes still pass on purpose, because they are the features: `/api/item` (
+ 
+ **Running it.** `node Server/Tunnel.mjs up` starts both gateways in named mode (the keeper does this). `node Server/SiteGateway.mjs` runs the site gateway alone. Test: `node Server/SiteGateway.test.mjs`.
+ 
+-**No stale files on a phone (2026-11-01).** A phone kept an old `Sheet.js` for days: Chrome served it from its HTTP cache without asking, because an older reply had no `Cache-Control` (a heuristic cache; the dev server has sent `no-cache` on static files since 2026-10-05, but that copy was older). The gateway now gives every reply without one `no-cache`. On a page load from a browser whose `lew42_cache_v` cookie is not `SiteGateway.CACHE_V`, it also sends `Clear-Site-Data: "cache"` and sets the cookie, so each browser is cleared once. On that load it drops the browser's `If-None-Match` and `If-Modified-Since`, so the site sends the page whole: the clear never rides a 304, and a 304 is what a phone that already has the page would get. Chrome may hold that one page load for a moment while it clears; a slow first load after a `CACHE_V` bump is expected. It clears the HTTP cache only; cookies, the site key and storage stay. To clear every browser again, bump `CACHE_V`. The clear works in the tab that loads the page fresh (a new tab, or the next load). A tab already open keeps its in-memory copies for one more load. Only the gateway does this; localhost is untouched. Proof: `node Server/SiteGateway.cache.test.mjs`. It seeds a stale nested import, shows that it sticks, then shows that the next page load gets the new one.
++**No stale files on a phone (2026-11-02).** A phone kept an old `Sheet.js` and `Recite.js` for days: Chrome served them from its HTTP cache without asking (Android Chrome restoring a discarded tab prefers the cache, whatever `no-cache` says). So through this gateway, HTML, JS, CSS and JSON (and `.jsonl`) go out as `Cache-Control: no-store`: a browser has nothing to go stale, and every load asks the site. `no-store` is chosen by content type or by file name (`SiteGateway.NO_STORE_TYPE`, `NO_STORE_PATH`); every other reply without a `Cache-Control` (images, fonts) gets `no-cache`, and an event stream is left alone. For copies already stuck on a phone, a page load from a browser whose `lew42_cache_v` cookie is not `SiteGateway.CACHE_V` (now `"2"`) also gets `Clear-Site-Data: "cache"` and the cookie is set, so each browser is cleared once. On that load the gateway drops `If-None-Match` and `If-Modified-Since`, so the clear never rides a 304. Chrome may hold that one load for a moment while it clears. It clears the HTTP cache only; cookies, the site key and storage stay. To clear every browser again, bump `CACHE_V`. The clear works in the tab that loads the page fresh (a new tab or the next load); a tab already open keeps its in-memory copies for one more load. Only the gateway does this; localhost is untouched. Proof: `node Server/SiteGateway.cache.test.mjs`.
++
++*Not built, on purpose:* a deploy-version `CACHE_V` from git and an inline self-heal script (fetch `/__version`, re-fetch the page's modules, reload once). With `no-store` there is nothing to heal. Both exist in commit `70770dd3f` on branch `worktree/cache-version` if a gap shows up.
++
++*Cost of no-store (measured 2026-11-02, a 360x740 phone viewport loading `/framework/` through a gateway on this PC, no tunnel in the path):* 873 requests, about 0.5 MB, loaded in 0.4 s cold and 0.25 s warm, idle at 1.3 s. The warm load makes the same 872 requests as the cold one (before, they were conditional requests answered 304, so the request count is not new, only the bytes). Through the tunnel each of those is a round trip: see *Measured through the tunnel* below. If that is slow, the next step is versioned URLs: an import map that maps `/framework/` to `/v/<git hash>/framework/`, served `immutable`, with the HTML staying `no-store`.
+ 
+ **Later: a real login.** Once Access is enabled (Zero Trust → team name → Free plan) and the token has **Access: Apps and Policies → Edit**, put an Access application with the owner's email in front of `monorepo.lew42.com`; the key cookie can then go.
+ 

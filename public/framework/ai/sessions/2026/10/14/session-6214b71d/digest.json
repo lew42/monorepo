@@ -1,0 +1,44 @@
+{
+ "id": "6214b71d-4792-4c9d-a9c7-e63690d62a37",
+ "first": "2026-10-14T19:00:20.398Z",
+ "last": "2026-10-14T19:22:14.745Z",
+ "task": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/inbox-browse",
+ "models": {
+  "claude-opus-5-5": 81
+ },
+ "sizes": {
+  "raw": 2873749,
+  "content": 101374,
+  "stripped": 10460,
+  "owner_only": 11
+ },
+ "usd": 8.160972,
+ "usd_main": 8.160972,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 162,
+  "output": 50864,
+  "cache_read": 13172290,
+  "cache_write": 234266,
+  "w5": 0,
+  "w1": 234266
+ },
+ "messages": 81,
+ "subagent_files": 0,
+ "prompts": [
+  {
+   "at": "2026-10-14T19:04:36.022Z",
+   "t": "Continue from where you left off."
+  }
+ ],
+ "result": "The [Inbox](http://monorepo.localhost/framework/ai/) now runs on [Browse](http://monorepo.localhost/framework/ux/Browse/), one list-and-detail view, with a pinned **Waiting on you** list at the top (114 open decisions today; ticking a line archives its card). It's merged and I checked it on the live site at 1920.\n\n### ✅ Browse `ux/Browse/`\n- **The class layout** is on its [Architecture tab](http://monorepo.localhost/framework/ux/Browse/architecture/), and the Browse page itself is a live demo.\n- **The structure:** `class Browse` builds the list and detail panes, `Inbox.Rail extends Browse`, and `WaitingOnYou extends Browse.Pinned`.\n- **The list:** it takes a third of the screen at 1920 and is wider at 3440, where each row reads like a table row. You can drag its edge to resize it. On a phone the Inbox now opens on the list, not on Live.\n- **Built together:** I made the class layout and the build in one go instead of showing the layout before building. Shipping the layout alone would have left nothing to try.\n\n---\n\n### ⬜ Sessions `ai/sessions/`\nMoving Sessions onto Browse is the next task, not done yet. The plan is written in [ai/sessions/doc/next.md](http://monorepo.localhost/framework/ai/sessions/doc/next.md).\n\n---\n\n⚠️ The row of filter controls above the list still needs simplifying. That's noted in the Inbox's [next.md](http://monorepo.localhost/framework/core/Page/ext/Inbox/doc/next.md), along with moving the Inbox timeline onto Browse.\n\nI couldn't update the task card's  …",
+ "edited": [
+  "public/framework/ux/Browse/doc/architecture.md",
+  "public/framework/ux/Browse/readme.md",
+  "public/framework/ux/Browse/Browse.js",
+  "public/framework/ux/Browse/Browse.css",
+  "public/framework/core/Page/ext/Inbox/WaitingOnYou.js",
+  "public/framework/ux/Browse/page.js"
+ ],
+ "digested_at": "2026-10-16T06:28:10.221Z"
+}

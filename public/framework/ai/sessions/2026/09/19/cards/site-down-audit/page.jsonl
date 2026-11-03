@@ -1,0 +1,4 @@
+{"class":"/framework/ai2/card.js","title":"Outage audit: done","type":"card","id":"2026/09/19/site-down-audit","created":"2026-09-19T16:02:12-05:00","by":"mastermind","tags":[]}
+{"legacy":"site-down-audit"}
+{"status":"done"}
+{"text":"Parsing was checked three times; starting was checked nowhere. The fix: the self-restart tries a changed server on a spare port first and keeps the healthy one if it fails. A minion builds it now."}

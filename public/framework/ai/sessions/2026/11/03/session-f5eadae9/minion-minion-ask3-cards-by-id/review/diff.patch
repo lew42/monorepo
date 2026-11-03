@@ -1,0 +1,672 @@
+diff --git a/Servex/agents/card-messages.test.mjs b/Servex/agents/card-messages.test.mjs
+new file mode 100644
+index 000000000..d7677152c
+--- /dev/null
++++ b/Servex/agents/card-messages.test.mjs
+@@ -0,0 +1,132 @@
++/* node Servex/agents/card-messages.test.mjs — ask3-cards-by-id (public/framework/ai/sessions/2026/11/03/session-e9c8d0d3/
++ * mastermind-voice-system/ask3-cards-by-id/requirements.md): "item adds a card with an icon and a title, or a ref to an
++ * existing item, plus any content. It returns the new card's id... It can upgrade one of the owner's messages into a card."
++ *
++ * Step 1: the owner asked a voice agent for a card and got it back titled "undefined". Reproduces the cause through the
++ * REAL item path (run_item -> page_tools.js's session_state(), the same read an agent gets from `item({path})`) and proves
++ * the fix: `messages.add` with `{icon, title}` (type omitted, or typed "Card" — the natural guess, now aliased to Message
++ * in Message.TYPES, core/Session/Chat/Message.js) never answers the stringified word "undefined".
++ *
++ * Step 2: the add/append/rewrite/read-by-id cycle, through the one path the chat system already has (no second path
++ * invented — a card IS a Message with icon/title/content set, Law 6).
++ *
++ * Step 3: upgrading an EXISTING message (one with neither icon nor title) into a card, by setting them in place — on a
++ * scratch copy of a real recorded session, v-z0jonhy (the pattern single-brief.test.mjs uses for a real session replay).
++ *
++ * Step 4: "or a ref to an existing item" (requirements ask 3, the owner's first bullet): a card's `content` is a plain
++ * List (`List.prototype.of = Item`), so `content:{add:{type:"Ref",…}}` hydrates through the same generic path `tasks.add`'s
++ * own Refs already use (core/Item/Ref.js) — proven here end to end, including resolving it.
++ *
++ * Scratch sessions live under the real store (`public/framework/ai/sessions/…`), not an OS temp dir: `run_item` (review
++ * note 7) resolves every `path` against `public/framework/...` (`page_tools.js`'s `resolve()`), so it cannot address a
++ * folder outside the repo at all — there is no "accept a temp dir" form to switch to. Cleaned up in `finally` either way. */
++import assert from "node:assert/strict";
++import fs from "node:fs";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++import Session from "../../public/framework/core/Session/Session.js";
++import { run_item } from "./page_tools.js";
++
++let checks = 0;
++const check = (name, fn) => { fn(); checks++; console.log("PASS —", name); };
++const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
++const replay_messages = file => Session.replay(fs.readFileSync(file, "utf8").split("\n").filter(Boolean).map(l => JSON.parse(l))).messages.messages;
++
++// ── a scratch session, under the real sessions store (what `item`'s read path, page_tools.js's session_state(), expects) ──
++const REL = "public/framework/ai/sessions/2026/10/16/.card-messages-test-" + process.pid;
++const DIR = path.join(ROOT, REL), FILE = path.join(DIR, "session.jsonl"), URL_ = "/" + REL.slice("public/".length) + "/";
++fs.mkdirSync(DIR, { recursive: true });
++fs.writeFileSync(FILE, JSON.stringify({ session: { id: "test", kind: "cloud-voice-agent", at: new Date().toISOString() } }) + "\n");
++
++try {
++	// ── Step 1: reproduce the owner's "undefined" card, through the real item path, then prove it is fixed ──────────────
++	let add = await run_item({ path: URL_, delta: { messages: { add: { type: "Card", icon: "task", title: "Call the vet" } } } }, { caller: "t" });
++	check("the item tool adds a card (type \"Card\", the natural guess) and hands back its id", () => assert.ok(add.ok && add.ids?.length === 1, add.why));
++	const card_id = add.ids[0];
++	let read = await run_item({ path: URL_ }, { caller: "t" });
++	let last = read.state.messages.last.find(m => m.id === card_id);
++	check("reading it back never answers the stringified word \"undefined\" — the owner's exact bug — for text, title or icon", () => {
++		assert.ok(last, "the card is in messages.last");
++		assert.notEqual(last.text, "undefined");
++		assert.equal(last.title, "Call the vet");
++		assert.equal(last.icon, "task");
++	});
++	check("on disk, it hydrates as a real Message (icon/title getters), not a generic Item with none", () => {
++		const m = replay_messages(FILE).find(x => x.id === card_id);
++		assert.equal(m.constructor.name, "Message");
++		assert.equal(m.title, "Call the vet");
++		assert.equal(m.icon, "task");
++		assert.equal(m.text, "", "no text was given: empty, never the string \"undefined\"");
++	});
++
++	// ── Step 2: append to its content, rewrite its title, read it by id ─────────────────────────────────────────────────
++	let r = await run_item({ path: URL_, delta: { messages: { [card_id]: { content: { add: { title: "Ask about the limp" } } } } } }, { caller: "t" });
++	check("appending to the card's content", () => assert.ok(r.ok, r.why));
++	check("…lands on the card, in order, read by its id", () => {
++		const m = replay_messages(FILE).find(x => x.id === card_id);
++		assert.equal(m.content.length, 1);
++		assert.equal([...m.content][0].get_one("title"), "Ask about the limp");
++	});
++	r = await run_item({ path: URL_, delta: { messages: { [card_id]: { title: "Call the vet about the limp" } } } }, { caller: "t" });
++	check("rewriting the card's title in place", () => assert.ok(r.ok, r.why));
++	read = await run_item({ path: URL_ }, { caller: "t" });
++	last = read.state.messages.last.find(m => m.id === card_id);
++	check("…the rewrite is what a read-by-id answers, with the content as its actual line, not a bare count", () => {
++		assert.equal(last.title, "Call the vet about the limp");
++		assert.deepEqual(last.content, ["Ask about the limp"]);
++	});
++
++	// A bare `{"<id>":{}}` is a query: the whole list is already in memory, so a card past the last-20 window answers
++	// the same way a recent one does; a non-empty sub (a title, a content add) still runs as a write.
++	for (let i = 0; i < 22; i++) await run_item({ path: URL_, delta: { messages: { add: { title: `filler ${i}` } } } }, { caller: "t" });
++	const past_window = await run_item({ path: URL_ }, { caller: "t" });
++	check("the card is now past the last-20 window", () => assert.ok(!past_window.state.messages.last.some(m => m.id === card_id)));
++	const by_id = await run_item({ path: URL_, delta: { messages: { [card_id]: {} } } }, { caller: "t" });
++	check("…and is still readable by id, past that window, at no extra cost (the list is already in memory)", () => {
++		assert.ok(by_id.ok, by_id.why);
++		assert.equal(by_id.answer.messages[card_id].title, "Call the vet about the limp");
++		assert.deepEqual(by_id.answer.messages[card_id].content, ["Ask about the limp"]);
++	});
++
++	// ── Step 3: upgrade an ORDINARY message (no icon, no title) into a card, on a real recorded session ──────────────────
++	const SRC = path.join(ROOT, "public/framework/ai/sessions/2026/11/03/v-z0jonhy/session.jsonl");
++	const REL2 = "public/framework/ai/sessions/2026/10/16/.card-messages-test-upgrade-" + process.pid;
++	const DIR2 = path.join(ROOT, REL2), FILE2 = path.join(DIR2, "session.jsonl"), URL2 = "/" + REL2.slice("public/".length) + "/";
++	fs.mkdirSync(DIR2, { recursive: true });
++	fs.copyFileSync(SRC, FILE2);
++	try {
++		const before = replay_messages(FILE2);
++		const idx = before.findIndex(m => m.id && !m.title && !m.icon && m.constructor.name !== "Prompt");
++		const plain = before[idx];
++		check("the fixture has at least one ordinary message with neither title nor icon, to upgrade", () => assert.ok(plain, "no plain message found"));
++		r = await run_item({ path: URL2, delta: { messages: { [plain.id]: { title: "Phone the owner back", icon: "call" } } } }, { caller: "t" });
++		check("upgrading an existing message into a card: one title+icon set, the same item tool call as a fresh one", () => assert.ok(r.ok, r.why));
++		const after = replay_messages(FILE2);
++		check("…its class and position are unchanged; only title/icon are new, and the list's length is unchanged (nothing added or removed)", () => {
++			assert.equal(after.length, before.length, "no message added or removed");
++			const up = after[idx];
++			assert.equal(up.id, plain.id, "same message, same slot");
++			assert.equal(up.constructor.name, plain.constructor.name);
++			assert.equal(up.title, "Phone the owner back");
++			assert.equal(up.icon, "call");
++		});
++	} finally { fs.rmSync(DIR2, { recursive: true, force: true }); }
++
++	// ── Step 4: "or a ref to an existing item" — content:{add:{type:"Ref", path}} points at another item in the same file ─────
++	const task = await run_item({ path: URL_, delta: { tasks: { add: { title: "Book the follow-up" } } } }, { caller: "t" });
++	check("a real item to ref to: a task added on the session's own root", () => assert.ok(task.ok && task.ids?.length === 1, task.why));
++	r = await run_item({ path: URL_, delta: { messages: { [card_id]: { content: { add: { type: "Ref", path: `tasks.${task.ids[0]}` } } } } } }, { caller: "t" });
++	check("a Ref added to a card's content", () => assert.ok(r.ok, r.why));
++	{
++		const m = replay_messages(FILE).find(x => x.id === card_id), ref = [...m.content].at(-1);
++		check("…hydrates as the real core Ref (not a plain Item copy of the task)", () => assert.equal(ref.constructor.name, "Ref"));
++		const target = await ref.resolve();
++		check("…and resolves to the actual task, in the same file", () => {
++			assert.ok(target, "resolve() found it");
++			assert.equal(target.get_one("title"), "Book the follow-up");
++		});
++	}
++} finally { fs.rmSync(DIR, { recursive: true, force: true }); }
++
++console.log(`card-messages.test.mjs: ${checks} checks passed`);
++process.exit(0);
+diff --git a/Servex/agents/page_tools.js b/Servex/agents/page_tools.js
+index 4f7a5d41e..3ccef1cee 100644
+--- a/Servex/agents/page_tools.js
++++ b/Servex/agents/page_tools.js
+@@ -10,6 +10,7 @@ import Item from "../../public/framework/core/Item/Item.js";
+ import RecordWriter from "../../public/framework/core/Item/RecordWriter.js";
+ import ChatWriter from "./ChatWriter.js";
+ import LogLine from "../../Server/LogLine.mjs";
++import { note_view } from "../../public/framework/ext/Chat/v3/placement.js";
+ 
+ const HERE = path.dirname(fileURLToPath(import.meta.url));
+ const ROOT = path.resolve(HERE, "..", "..");
+@@ -880,6 +881,16 @@ function own_cost(dir){
+ 		through: m.last_at ?? null, read_to: m.cursor?.main?.off ?? null, at } : null;
+ }
+ 
++// One chat message, as `item()` answers it: `note_view` (ext/Chat/v3/placement.js, shared with the views, Law 6) gives the
++// title/icon/content a card draws — content as its actual lines (a Ref's own label, not a bare count) — and `text` keeps the
++// `said` fallback (a Prompt's words as dictated) the views don't need. `?? ""`, never `||`: a member with neither `text` nor
++// `said` (an unregistered type, a core Ref) answers "", never the stringified word "undefined".
++function message_view(m){
++	const { title, icon, content } = note_view(m);
++	return { id: m.id, type: m.wire(), by: m.by ?? null, at: m.at ?? null, text: String(m.said ?? m.text ?? "").slice(0, 300),
++		...(title ? { title } : {}), ...(icon ? { icon } : {}), ...(content.length ? { content } : {}) };
++}
++
+ /* A session's whole picture (2026-10-23, "session data, complete"; core/Session/readme.md, "What item() answers"):
+  * its own cost (own_cost), its child sessions nested with their costs, the tasks' costs, its span, and task counts. */
+ export function session_state(task, tasks = []){
+@@ -905,8 +916,10 @@ export function session_state(task, tasks = []){
+ 		biggest, children: [...entries, ...unlinked], agents: agents.length,
+ 		// Its own turns bucketed by the task open at the time (Task.attribute); null when no per-turn record exists (a VS Code tab today).
+ 		by_task: (turns => turns.length ? task.attribute(turns) : null)(task.constructor.turns_resolver?.(uuid) ?? []), data: { ...task.data }, tasks,
+-		// The chat (core/Session/Chat): how many messages, and the last 20, each {id, type, by, at, text} (a Prompt's text is its words as said).
+-		...(task._messages?.length ? { messages: { count: task._messages.length, last: task._messages.messages.slice(-20).map(m => ({ id: m.id, type: m.wire(), by: m.by, at: m.at, text: String(m.said || m.text).slice(0, 300) })) } } : {}) };
++		// The chat (core/Session/Chat): how many messages, and the last 20 (message_view, above); an older one is read by id
++		// through the query path (`walk_queries`'s "messages" branch, below) — the whole list is already in memory, so a lookup
++		// by id costs nothing extra over this slice.
++		...(task._messages?.length ? { messages: { count: task._messages.length, last: task._messages.messages.slice(-20).map(message_view) } } : {}) };
+ }
+ 
+ /* The child sessions as a tree, from the entries (Task.sessions_below: a Session entry at any depth of the task tree, under its cause).
+@@ -1021,6 +1034,16 @@ function walk_queries(node, delta, trail = "", out = { answer: {}, queried: fals
+ 				if (kid) into(kid, sub, `${here}.${id}`, a => ((out.answer.tasks ??= {})[id] = a));
+ 				else out.other.push(`${here}.${id}`);
+ 			}
++		// A chat message read by id (`{"messages":{"<id>":{}}}`, bare — a message has no other query to ask): the list is
++		// already fully in memory (`session_state`'s own `.last` only slices the answer, never the store), so one older than
++		// the last 20 costs nothing extra to find. Anything but an EMPTY `sub` is a write (a title, a content add, …), not a
++		// query — left to `out.other` so it still runs as one, the same way an unrecognized `tasks.<id>` sub-key does.
++		} else if (key === "messages" && is_plain(arg) && !LIST_VERBS.some(v => v in arg) && node._messages){
++			for (const [id, sub] of Object.entries(arg)){
++				const kid = is_plain(sub) && !Object.keys(sub).length ? node._messages.find(id) : null;
++				if (kid){ out.queried = true; (out.answer.messages ??= {})[id] = message_view(kid); }
++				else out.other.push(`${here}.${id}`);
++			}
+ 		} else if (is_plain(arg) && node._tasks?.find(key)) into(node._tasks.find(key), arg, here, a => (out.answer[key] = a));
+ 		else out.other.push(here);
+ 	}
+diff --git a/Servex/agents/single-voice-assistant.md b/Servex/agents/single-voice-assistant.md
+index 0c5c34b25..d57944b53 100644
+--- a/Servex/agents/single-voice-assistant.md
++++ b/Servex/agents/single-voice-assistant.md
+@@ -22,6 +22,10 @@ A new task or topic starts a card (title two to five words, `where`: `inside`, `
+ await item({ path: "<session>", delta: { messages: { "<message>": { title: "Tab bar and logo" } } } })
+ ```
+ 
++A card of your own, not tied to a message: `item({ path: "<session>", delta: { messages: { add: { icon: "task", title: "Call the vet" } } } })` — append to it with `messages: { "<id>": { content: { add: { title: "..." } } } }`.
++"Upgrading" any message (even the title-rewrite just above) into a card is the same call: set `icon`/`title` on its id.
++Never pass `type` — `icon`/`title`/`content` are plain fields on any message, not a shape of their own.
++
+ Move a sentence you already cleaned, no `text`:
+ 
+ ```js
+diff --git a/public/framework/core/Session/Chat/Message.js b/public/framework/core/Session/Chat/Message.js
+index 70644b8d0..92168eddd 100644
+--- a/public/framework/core/Session/Chat/Message.js
++++ b/public/framework/core/Session/Chat/Message.js
+@@ -3,22 +3,42 @@
+ // Message is a note with no more structure, e.g. Servex saying "the assistant could not be reached". DOM-free: node and the
+ // browser build the same Message from the same lines.
+ import Item from "../../Item/Item.js";
++import List from "../../List/List.js";
+ 
+ export class Message extends Item {
+ 	/* The chat's own type names, filled by each subclass's file. Looked up BEFORE the global registry, because "Prompt" means the chat
+-	   message here (./Prompt.js) and the Prompt task (core/Task/Prompt.js) in Item.types. A name not here falls back to Item.hydrate's rule. */
++	   message here (./Prompt.js) and the Prompt task (core/Task/Prompt.js) in Item.types. "Ref" is the one name let through from the
++	   global registry too (core/Session/Chat/readme.md); any other name nobody registered here builds a plain Message, never falls
++	   through to Item.hydrate's generic-Item fallback (its own rule would miss text/title/icon and the global registry can collide
++	   with an unrelated class of the same name — ext/editor/blocks.js's Panel "Card" is one). */
+ 	static TYPES = {};
+ 	static hydrate(json, seen){
+-		const Class = json && Message.TYPES[json.type];
+-		if (!Class) return super.hydrate(json, seen);
+-		const { type, ...rest } = json;
+-		return Item.hydrate.call(Class, rest, seen);   // no type: Item.hydrate builds `this`, the chat's class
++		const type = json?.type, Known = type ? (Message.TYPES[type] ?? (type === "Ref" ? Item.types.get("Ref") : null)) : null;
++		const { type: _drop, ...rest } = json ?? {};
++		return Item.hydrate.call(Known ?? this, rest, seen);
+ 	}
+ 	/** "owner" | "smart" | "fast" | "system": who wrote it. */
+ 	get by(){ return this.get_one("by") ?? null; }
+ 	/** When it was said or written: the time on the V1 `{chat}` line it mirrors (local time with offset and ms, Servex's now_ms). */
+ 	get at(){ return this.get_one("at") ?? null; }
+ 	get text(){ return this.get_one("text") ?? ""; }
++	/** "A card with an icon and a title" (ask3-cards-by-id) is just a Message with these two fields set — no separate Card class
++	    (Law 6): `item({delta:{messages:{add:{icon,title}}}})` makes one, and setting `title` on any existing message (a Reply, a
++	    plain Message) "upgrades" it into a card the same way. One Material Symbols name. */
++	get icon(){ return this.get_one("icon") ?? null; }
++	/** A short heading. `Prompt.title` overrides this with its own getter — same field, same meaning. */
++	get title(){ return this.get_one("title") ?? null; }
++	/** Whatever is filed under this message once it is a card: a List of plain Items, made on first use (same pattern as
++	    `Prompt.items`). Reading, appending and rewriting all go through the item tool at this message's id. */
++	get content(){
++		if (!this._content) this._content = new List({ owner: this, name: "content" });
++		return this._content;
++	}
++	set content(_plain){ void this.content; }   // Item.hydrate hands over a plain List; the typed one stays
++	lists(){
++		const { _content, ...rest } = super.lists();
++		return { ...rest, ...(_content?.length ? { content: _content } : {}) };
++	}
+ }
+ 
+ export default Message;
+diff --git a/public/framework/core/Session/Chat/readme.md b/public/framework/core/Session/Chat/readme.md
+index f78fb2ca6..4b75fdc09 100644
+--- a/public/framework/core/Session/Chat/readme.md
++++ b/public/framework/core/Session/Chat/readme.md
+@@ -11,7 +11,7 @@ session.sentences: List<Sentence>     // the raw words, append-only, never moved
+ session.messages:  Chat               // the conversation, in order (class Chat extends List)
+ 
+ class Sentence extends Item { text, via: "voice"|"text", at, said_at?, raw? }                // ./Sentence.js
+-class Message  extends Item { by: "owner"|"smart"|"fast"|"system", at, text }      // ./Message.js
++class Message  extends Item { by: "owner"|"smart"|"fast"|"system", at, text, icon?, title?, content: List<Item> }  // ./Message.js
+ class Prompt   extends Message { sentences: [ids], clean: {<sentence id>: text}, title?, text?, state, prompt?, raw, cleaned,
+                                   kind?: "task"|"request"|"question", items: List<PromptItem|Ref>, sent: {fast?, smart?}, working? }  // ./Prompt.js
+ class PromptItem extends Item { title?, sentences: [ids] }                         // ./PromptItem.js — one of Prompt.items
+@@ -25,9 +25,10 @@ A **Ref** (`core/Item/Ref.js`, not its own file here) can be a member too: `{"me
+ - **A Prompt as a card** (chat-model step 6, plan.md decision 4): `kind` ("task" | "request" | "question") turns a plain dictation into a card a view can draw as title → items → raw text; `items` is a `List` of `PromptItem` (each `{title, sentences:[ids]}`, grown the same way a Prompt's own sentences are: `{items:{"<item id>":{sentences:{push:"s-2"}}}}`), or a Ref to something filed elsewhere — no separate Card class (Law 6: the shape lives on Prompt itself). `sent: {fast?: {at}, smart?: {at}}` is written by `Sessions.mark_sent` through `ChatWriter.sent_line`, right beside the existing task-level broadcast, so a view that only reads messages can still draw the ✓/🧠 marks (🧠 means *answered*, not just received — see `doc/views-on-messages.md`). `working: {by, at} | null` is the smart seat's "seen it, writing" sign, written directly through the item tool exactly like `core/Task/Prompt.js`'s own field; the task copy stays the one views read until they move to the message.
+ - **A Reply** is an assistant's answer, anchored to the sentence it answers (`re.to`). `level` marks a refined restatement (`Sessions.line` with a level).
+ - **A plain Message** is a note, e.g. Servex saying an assistant could not be reached.
++- **A card** is not its own class — Law 6 again, for the general case: `icon`, `title` and `content` (a `List`, made on first use the way `Prompt.items` is — a plain Item, or `{type:"Ref",…}` for "a ref to an existing item") live on `Message` itself, so ANY message (a fresh `add`, or an existing Reply/Prompt/plain Message already in the list) can be a card: `item({delta:{messages:{add:{icon,title}}}}})` makes one and hands back its id; `{messages:{"<id>":{content:{add:{...}}}}}` appends (or `{type:"Ref",path:"tasks.<id>"}` for a ref), `{title:"..."}` rewrites in place. **Upgrading** an existing message into a card is exactly this: set `title`/`icon` on its id; nothing about its class or position changes, and a view must draw the new fields once they land (`ext/Chat/v3/ChatV3.js`'s `note()`/`reply()`, `ext/Chat/list/ChatList.js`'s `fill()`). `Message.hydrate` builds a plain `Message` for any type it does not know (an agent's guessed `"Card"`, or anything else) instead of a generic, field-less `Item` — **that alias is a safety net, not a shape to write on purpose: a caller never needs to pass `type` at all.** Tests: `card-messages.test.mjs` (the data), `ext/Chat/v3/placement.test.mjs` (what a view draws, DOM-free).
+ - **Order is the list's order.** Nothing is sorted by time. A message's text may change in place; its position never does.
+ 
+-This is the class map of the data-shapes synthesis ([synthesis.md](/framework/core/Session/tasks/data-shapes/synthesis.md) §2): Prompt and Question are messages, not tasks (§6 decision 2, the plan's fork F3); sentences live in their own list and a Prompt holds their ids (§3 [A], fork F4); the chat owns its messages (§3 [B]). Built so far: Message, Prompt, Reply, Sentence, Ref (2026-11-01, chat-model step 2). Question and Card as messages come when something writes them.
++This is the class map of the data-shapes synthesis ([synthesis.md](/framework/core/Session/tasks/data-shapes/synthesis.md) §2): Prompt and Question are messages, not tasks (§6 decision 2, the plan's fork F3); sentences live in their own list and a Prompt holds their ids (§3 [A], fork F4); the chat owns its messages (§3 [B]). Built so far: Message (with icon/title/content, 2026-11-03), Prompt, Reply, Sentence, Ref (2026-11-01, chat-model step 2). Question as a message comes when something writes it.
+ 
+ **Two names, on purpose:**
+ - **`messages`, not `chat`.** A line's key is the property it changes, and `{"chat":…}` is V1's own line: about twenty readers (`ext/Chat/Chat.js`, `ux/Dictate/chat.js`, `Widget.js`, `ext/Session/Session.js`, Recite, `SessionIndex`…) draw any line with a `chat` key as a bubble. The owner said either name is fine.
+@@ -68,6 +69,9 @@ Ids: `s-<ms>` and `m-<ms>` from Servex; the item tool gives an agent's add an 8-
+ 
+ ## Check it
+ 
++- `node Servex/agents/card-messages.test.mjs` (16 checks, ask3-cards-by-id, 2026-11-03): through the real item path, add a card (`{icon,title}`, `type` omitted or `"Card"`), read it back and prove neither `text`, `title` nor `icon` is ever the stringified word "undefined"; append to its `content`, rewrite its `title` in place, read the rewrite by id (with the content as its actual line, not a count), and read it again past the last-20 window (a bare `{"<id>":{}}` is a query, answered from the list already in memory); upgrade an ordinary message (no icon, no title) on a scratch copy of a real recorded session (`v-z0jonhy`) — same class, same position, nothing else in the list moved; add a `{type:"Ref"}` to a card's content and resolve it to a real task in the same file.
++- `node public/framework/ext/Chat/list/ChatList.test.mjs` (6 checks, headless): a note upgraded with a title/icon, then content appended to it, both redraw live (`owning_message()` walks a changed `content` member's `.parent` up to the Message, so an append past the top-level `delta` event still finds its card).
++- `node public/framework/ext/Chat/v3/placement.test.mjs` (24 checks, ask3-cards-by-id's view fix): DOM-free coverage of `note_view` (`placement.js`) — a plain note draws its text and nothing else; a card hydrates with its real title/icon; ANY unknown `type` guess becomes a `Message`, never a generic `Item`, so it draws empty rather than the word "undefined"; an ordinary Reply draws plain, and the same Reply upgraded (title/icon set on it) carries what `reply()` needs to draw it as a card.
+ - `node Servex/agents/chat-messages.test.mjs` (22 checks): a mixed session through the real `Sessions.js` (spoken sentences with the floor, a reply mid-thought, a refined line, typed, a Servex note), then replayed twice and through a snapshot: the same list, same order, no twins; two counts that must agree (owner `{chat}` lines = sentences; other `{chat}` lines = replies and notes); the item tool's add and in-place edit; two `{place}` improves merging on one Prompt; a root `tasks.add` and a `SessionRecord.add_ref` call each landing one Ref, in order, resolving by path or url, never duplicated on a retry; `mark_sent` marking the Prompt message as well as the task broadcast; the item tool setting `kind`/`title`, adding a `PromptItem`, and pushing a sentence into it.
+ - `node public/framework/core/Session/Chat/Chat.test.mjs` (24 checks) adds the in-memory unit coverage for `kind`, `items` (a plain member hydrates `PromptItem`, a `{type:"Ref"}` one hydrates `Ref`), `sent` (fast/smart merge independently) and `working` (set and cleared with `null`, same shape as the Prompt task's own field).
+ - `node public/framework/core/Session/Chat/Prompt.raw.test.mjs` (2 checks, chat-model step 5): against a read-only copy of a real voice session (`fixture/v-u48msei-session.jsonl`, from `ai/sessions/2026/11/01/v-u48msei/`), every Prompt's `raw` equals its own sentences' V1 owner `{chat}` texts, joined the same way; and the two counts that must agree — the session's mirrored sentences, and the sentences held across all Prompts — agree (33 and 33, of 152 owner `{chat}` lines in the whole file: only the tail written after chat-model step 1 landed was ever mirrored).
+@@ -92,7 +96,8 @@ Ids: `s-<ms>` and `m-<ms>` from Servex; the item tool gives an agent's add an 8-
+ - ✅ List view hooks: `ext/Chat/list/ChatList.js` draws the list through `DefaultView.place()` (chat-model step 4).
+ - ✅ `Prompt.raw`, the sent/working marks on the message, and Prompt as a card (`kind`/`items`) (2026-11-02, chat-model steps 5–6). `working` is still written on whichever Prompt (task or message) an instruction names; no caller does yet.
+ - ✅ V1 side by side (2026-11-02, chat-model step 8): `V1Bubbles.js` (also the live source of [Chat V1.2](/framework/ext/Chat/v1-2/readme.md), V1 drawn from `session.messages`) turns `session.messages` into the bubble list V1 draws (merge, `place()`'s time-reordering, and a `fix`'s in-place correction, all mirrored as plain data); `Server/ChatV1Compare.mjs` builds that list the V1 way (from `{chat}` lines) and the adapter way for real sessions and prints where they differ — run on the 5 largest voice sessions, raw output at `ai/sessions/2026/10/20/session-e00f55c9/chat-model/s8/compare.txt`. Found: none of the 5 are fully mirrored (2 `none`, 1 `partial`, and `said_at` — mirrored nowhere today — is the main reason the two others' bubble lists drift once `{chat}`'s `said_at` differs from its `at`). The switch-over steps it gates: [doc/pseudo-properties.md](doc/pseudo-properties.md#how-v1-switches-over-not-yet-buildermd-step-8).
+-- ⬜ Question and Card as messages, when a writer needs them.
++- ✅ Card as a message (2026-11-03, ask3-cards-by-id): `icon`/`title`/`content` moved onto `Message` itself (not a subclass — Law 6), so a fresh add or an existing message can both be "a card"; `Message.hydrate` builds a `Message` for any `type` it does not know, not only `"Card"`; the views draw it (`ChatV3.js`'s `note()`/`reply()`, `ChatList.js`'s `fill()`); `content:{add:{type:"Ref",…}}` ("or a ref to an existing item") proven end to end; `page_tools.js`'s read-back fixed too.
++- ⬜ Question as a message, when a writer needs it.
+ - ⬜ remove the old `said` alias once Chat V3 reads `sent.smart` (and `raw`) directly, instead of `ext/Chat/v3/ChatV3.js:163`'s `p.cleaned || p.said`.
+ - ✅ `said_at` is mirrored onto the Sentence by `ChatWriter` and read by `V1Bubbles` (2026-11-02, v1-switch-prep).
+ - ✅ `Server/ChatToMessages.mjs` fills a partly mirrored session (missing messages only, in place, no twins; `{place}` improves into `clean`; `said_at` set in place): `node Server/ChatToMessages.test.mjs` (11 checks). The compare, each of the 5 largest sessions filled in memory: 0 differing bubbles.
+diff --git a/public/framework/ext/Chat/list/ChatList.css b/public/framework/ext/Chat/list/ChatList.css
+index 662ebebf5..a4aedf670 100644
+--- a/public/framework/ext/Chat/list/ChatList.css
++++ b/public/framework/ext/Chat/list/ChatList.css
+@@ -12,4 +12,12 @@
+ 	.chatlist-msg.is-note .chatlist-who { color: inherit; }
+ 	.chatlist-text > :first-child { margin-top: 0; }
+ 	.chatlist-text > :last-child { margin-bottom: 0; }
++
++	/* A card's icon and title (ask3-cards-by-id), on one row — not each its own line in the message's column flow. */
++	.chatlist-head { display: flex; align-items: baseline; gap: .4rem; }
++	.chatlist-icon { font-size: 1.1em; align-self: center; flex: none; }
++
++	/* A card's content (ask3-cards-by-id): whatever was appended or ref'd under it, one indented line each. */
++	.chatlist-content { display: flex; flex-direction: column; gap: .2rem; margin-top: .2rem; }
++	.chatlist-content-line { font-size: .9em; padding-left: .6rem; border-left: 2px solid color-mix(in srgb, currentColor 14%, transparent); }
+ }
+diff --git a/public/framework/ext/Chat/list/ChatList.js b/public/framework/ext/Chat/list/ChatList.js
+index b625e013a..2198057f7 100644
+--- a/public/framework/ext/Chat/list/ChatList.js
++++ b/public/framework/ext/Chat/list/ChatList.js
+@@ -10,7 +10,9 @@ import Message from "/framework/core/Session/Chat/Message.js";
+ import Prompt from "/framework/core/Session/Chat/Prompt.js";
+ import Reply from "/framework/core/Session/Chat/Reply.js";
+ import Ref from "/framework/core/Item/Ref.js";
++import List from "/framework/core/List/List.js";
+ import { DefaultView } from "/framework/ux/Content/Object/DefaultView.js";
++import { note_view } from "../v3/placement.js";
+ import { md_into } from "../md.js";
+ View.stylesheet(import.meta, "ChatList.css");
+ 
+@@ -22,11 +24,27 @@ export default class ChatList extends JSONL {
+ 
+ 	// { url: the session.jsonl url, $box: the View to draw into }
+ 	read(entries){
+-		if (!this.listening){ this.listening = true; this.session.on("delta", (line, from) => { if (from instanceof Message) this.dirty.add(from); }); }
++		if (!this.listening){ this.listening = true; this.session.on("delta", (line, from) => { const m = this.owning_message(line, from); if (m) this.dirty.add(m); }); }
+ 		for (const line of entries) if (line && typeof line === "object" && (line.messages || line.sentences || line.session || line.tasks)) this.session.replay_line(line);
+ 		this.paint();
+ 		return this;
+ 	}
++
++	// A list's own "add" bubbles with `from` = the LIST itself (List.announce), so the actual member is resolved from the
++	// line's `add` payload (same shape ChatV3.added_member reads).
++	added_member(line, from){
++		if (!(from instanceof List)) return from;
++		const added = line?.add, one = Array.isArray(added) ? added.at(-1) : added;
++		const id = one && typeof one === "object" ? one.id : one;
++		return id != null ? this.session.find(id) : null;
++	}
++	// The card a changed node belongs to, for a live redraw: a field set lands directly on the Message, but a `content`
++	// member's `.parent` IS the Message that owns it (List.js: `child.parent = this.owner`) — the same walk ChatV3.card_for() does.
++	owning_message(line, from){
++		let n = this.added_member(line, from);
++		while (n && !(n instanceof Message)) n = n.parent;
++		return n ?? null;
++	}
+ 	live(){ super.live(() => {}); return this; }
+ 	reset(){ this.session = new Session(); this.els.clear(); this.dirty.clear(); this.listening = false; this.$box?.el.replaceChildren(); return super.reset?.() ?? this; }
+ 
+@@ -54,6 +72,8 @@ export default class ChatList extends JSONL {
+ 		return el;
+ 	}
+ 
++	// `note_view` (../v3/placement.js, DOM-free, shared with Chat v3 — Law 6) decides the icon/title/content any message draws,
++	// including a Ref's own label: one place, so this view and v3 never drift.
+ 	fill(el, m){
+ 		const kind = m instanceof Prompt ? "prompt" : m instanceof Reply ? "reply" : "note";
+ 		el.className = `chatlist-msg is-${kind}`;
+@@ -61,9 +81,21 @@ export default class ChatList extends JSONL {
+ 		el.replaceChildren();
+ 		const who = document.createElement("div"); who.className = "chatlist-who";
+ 		who.textContent = kind === "prompt" ? "You" : kind === "reply" ? `${m.by} assistant${m.level ? " · " + (this.constructor.LEVELS[m.level] ?? m.level) : ""}` : m.by ?? "note";
++		el.append(who);
++		const { title, icon, content } = note_view(m);
++		if (icon || title){
++			const head = document.createElement("div"); head.className = "chatlist-head";
++			if (icon) { const i = document.createElement("span"); i.className = "material-icons icon chatlist-icon"; i.textContent = icon; head.append(i); }
++			if (title) { const t = document.createElement("strong"); t.textContent = title; head.append(t); }
++			el.append(head);
++		}
+ 		const text = document.createElement("div"); text.className = "chatlist-text md";
+-		if (kind === "prompt" && m.title) { const t = document.createElement("strong"); t.textContent = m.title; el.append(who, t); } else el.append(who);
+ 		md_into(text, kind === "prompt" ? (m.text || m.cleaned) : m.text);
+ 		el.append(text);
++		if (content.length){
++			const list = document.createElement("div"); list.className = "chatlist-content";
++			for (const line of content){ const row = document.createElement("div"); row.className = "chatlist-content-line"; row.textContent = line; list.append(row); }
++			el.append(list);
++		}
+ 	}
+ }
+diff --git a/public/framework/ext/Chat/list/ChatList.test.mjs b/public/framework/ext/Chat/list/ChatList.test.mjs
+new file mode 100644
+index 000000000..d282e9bfa
+--- /dev/null
++++ b/public/framework/ext/Chat/list/ChatList.test.mjs
+@@ -0,0 +1,44 @@
++// node ChatList.test.mjs [base-url] — headless: ChatList draws a session's real chat list (session.messages), one bubble per
++// message, and redraws live when the file grows, including a card's icon/title/content (ask3-cards-by-id). Needs the global
++// playwright and the dev server. fixture/session.jsonl is a small example session; the original is never touched.
++import { browser as get_browser } from "../../../../../Server/Browser.mjs";
++import { copyFileSync, appendFileSync, rmSync, readFileSync } from "node:fs";
++import { fileURLToPath } from "node:url";
++
++const base = process.argv[2] ?? process.env.SITE_URL ?? "http://monorepo.localhost";
++const here = fileURLToPath(new URL(".", import.meta.url));
++const fixture = here + "fixture/session.jsonl", live = `live-list-${process.pid}.jsonl`;
++let pass = 0, fail = 0;
++const check = (name, ok, got) => { ok ? pass++ : fail++; console.log(`${ok ? "PASS" : "FAIL"} ${name}${ok ? "" : "  got: " + JSON.stringify(got)}`); };
++
++copyFileSync(fixture, here + "fixture/" + live);
++const before = readFileSync(here + "fixture/" + live, "utf8");
++const browser = await get_browser(), page = await browser.newPage({ viewport: { width: 1200, height: 1000 } });
++const errors = []; page.on("pageerror", e => errors.push(String(e)));
++const src = `/framework/ext/Chat/list/fixture/${live}`;
++
++try {
++	await page.goto(`${base}/framework/ext/Chat/list/?src=${src}`);
++	await page.waitForSelector(".chatlist-msg", { timeout: 15000 });
++
++	// A note (a plain Message, no card fields yet, already in the fixture) upgraded into a card by appending content to it,
++	// through the same {content:{add}} shape an agent would use (finding 1): the list redraws it live, not only on reload.
++	const note = `.chatlist-msg[data-id='m-1793600428185']`;
++	check("the note exists with no content lines yet", await page.$(`${note} .chatlist-content`) === null);
++	appendFileSync(here + "fixture/" + live, JSON.stringify({ messages: { "m-1793600428185": { icon: "task", title: "Check the fix" } } }) + "\n");
++	await page.waitForSelector(`${note} .chatlist-title, ${note} strong`, { timeout: 8000 }).catch(() => {});
++	await page.waitForFunction(sel => document.querySelector(sel)?.textContent.includes("Check the fix"), note, { timeout: 8000 });
++	check("upgrading it with a title/icon redraws it live", true);
++	appendFileSync(here + "fixture/" + live, JSON.stringify({ messages: { "m-1793600428185": { content: { add: { title: "Confirm on a real phone" } } } } }) + "\n");
++	await page.waitForFunction(sel => document.querySelector(sel + " .chatlist-content-line")?.textContent === "Confirm on a real phone", note, { timeout: 8000 });
++	check("content appended to it draws as a line below it, live — not only after a reload (finding 1)", true);
++	check("the icon is drawn, inline with the title", await page.$(`${note} .chatlist-head .chatlist-icon`) !== null);
++
++	check("the fixture copy was only ever appended to", readFileSync(here + "fixture/" + live, "utf8").startsWith(before));
++	check("no page errors", errors.length === 0, errors);
++} finally {
++	rmSync(here + "fixture/" + live, { force: true });
++	await page.close();
++}
++console.log(`${pass} passed, ${fail} failed`);
++process.exit(fail ? 1 : 0);
+diff --git a/public/framework/ext/Chat/list/readme.md b/public/framework/ext/Chat/list/readme.md
+index 9120edad5..a09bac0a0 100644
+--- a/public/framework/ext/Chat/list/readme.md
++++ b/public/framework/ext/Chat/list/readme.md
+@@ -11,6 +11,11 @@ new ChatList({ url: "<a session.jsonl url>", $box: div.c("chatlist") }).live();
+ 
+ - It replays the list lines (`messages`, `sentences`) plus `tasks` (so a same-file Ref can find its target) into a `Session`, never V1's `{chat}` lines.
+ - A `Ref` member (a root task, or a spawned child session, step 3) draws as `RefView` (`DefaultView.ref_view()`, `ux/Content/Object/DefaultView.js`), not a chat bubble — a `.chatlist-msg.is-ref` row showing the target's own live state, since `ChatList` holds none of its data. `paint()` keys every row, Ref included, through the shared `DefaultView.place()` loop (one placement loop, Law 6) — see [core/List/readme.md](/framework/core/List/readme.md#watch-out).
+-- Live: `ext/JSONL`'s `live()` streams new lines; the Session's `"delta"` event names the Message that changed, and only that bubble is refilled. A new message appears without a reload (29 ms in the headless check).
++- A card's `icon`, `title` and `content` lines (`fill()`) are drawn through `note_view`, imported from `../v3/placement.js` — the one DOM-free decision shared with Chat v3, so the two views never drift (a `{type:"Ref"}` content line gets the same label either view would show it).
++- Live: `ext/JSONL`'s `live()` streams new lines; the Session's `"delta"` event names the Message that changed (`owning_message()` walks a changed `content` member's `.parent` up to the Message that owns it, the same way `ChatV3.card_for()` does), and only that bubble is refilled. A new message, or new content on an existing card, appears without a reload (29 ms in the headless check).
+ - Demo: [/framework/ext/Chat/list/](/framework/ext/Chat/list/) draws `fixture/session.jsonl`, a session written by Servex's real writer, with one root task's Ref at the bottom (`CHAT_FIXTURE=<path> node Servex/agents/chat-messages.test.mjs` rewrites it); `?src=<session.jsonl url>` draws any session.
+ - CSS prefix `chatlist-` (`.chat-list` is ext/Ask's).
++
++## Test
++
++`node ChatList.test.mjs [base-url]` (headless Playwright, 6 checks): a note upgraded with a title/icon, then content appended to it, both redraw live without a reload; the icon draws inline with the title; no page errors.
+diff --git a/public/framework/ext/Chat/v3/ChatV3.css b/public/framework/ext/Chat/v3/ChatV3.css
+index c53b29c1f..db88d2f05 100644
+--- a/public/framework/ext/Chat/v3/ChatV3.css
++++ b/public/framework/ext/Chat/v3/ChatV3.css
+@@ -13,6 +13,11 @@
+ 	.chat-v3-head { display: flex; align-items: baseline; gap: .5rem; }
+ 	.chat-v3-title { margin: 0; font-size: 1rem; flex: 1; min-width: 0; }
+ 	.chat-v3-head:not(:has(.chat-v3-title)) { justify-content: flex-end; }
++	.chat-v3-icon { font-size: 1.1em; align-self: center; flex: none; }   /* a card's own icon (ask3-cards-by-id), beside its title */
++
++	/* A card's content (ask3-cards-by-id): whatever was appended or ref'd under it, one line each. */
++	.chat-v3-content { display: flex; flex-direction: column; gap: .2rem; margin-top: .2rem; }
++	.chat-v3-content-line { font-size: .9em; padding-left: .6rem; border-left: 2px solid color-mix(in srgb, currentColor 14%, transparent); }
+ 
+ 	/* The words still being spoken (the guess at the end) are draft ink, dimmed but readable on a phone in daylight (the owner, 2026-11-01: "far too dim").
+ 	   Everything written to the file is final ink. The pair --draft-ink / --final-ink lives in framework.css. */
+@@ -30,7 +35,10 @@
+ 	.chat-v3-raw { display: flex; flex-direction: column; gap: .25rem; }
+ 	.chat-v3-raw-line { margin: 0; padding-left: .6rem; border-left: 2px solid color-mix(in srgb, currentColor 18%, transparent); font-size: .85em; color: color-mix(in srgb, currentColor 65%, transparent); }
+ 
+-	.chat-v3-reply { display: flex; gap: .5rem; align-items: baseline; padding-top: .35rem; border-top: 1px solid color-mix(in srgb, currentColor 10%, transparent); }
++	.chat-v3-reply { display: flex; flex-direction: column; gap: .3rem; padding-top: .35rem; border-top: 1px solid color-mix(in srgb, currentColor 10%, transparent); }
++	.chat-v3-reply:not(.is-card) { flex-direction: row; align-items: baseline; }
++	.chat-v3-reply.is-card .chat-v3-head { gap: .4rem; }
++	.chat-v3-reply.is-card .chat-v3-title { font-size: .95rem; }
+ 	.chat-v3-reply-text { min-width: 0; overflow-wrap: anywhere; }
+ 	.chat-v3-reply-text > * { margin-block: 0; }
+ 	.chat-v3-reply-text :is(h1, h2, h3, h4) { font-size: 1.05em; margin-block: .5em .2em; line-height: 1.3; }   /* a heading in a reply is a label, not a page title */
+diff --git a/public/framework/ext/Chat/v3/ChatV3.js b/public/framework/ext/Chat/v3/ChatV3.js
+index c907880ba..633825e96 100644
+--- a/public/framework/ext/Chat/v3/ChatV3.js
++++ b/public/framework/ext/Chat/v3/ChatV3.js
+@@ -16,7 +16,7 @@ import LineKey from "/framework/core/Item/LineKey.js";
+ import { md_into } from "../md.js";
+ import ReciteBubble from "/framework/audio/Recite/ReciteBubble.js";
+ import * as Wire from "/framework/ext/Session/Session.js";
+-import { owning_prompt, paragraphs, paragraph_groups } from "./placement.js";
++import { owning_prompt, paragraphs, paragraph_groups, note_view } from "./placement.js";
+ View.stylesheet(import.meta, "ChatV3.css");
+ View.stylesheet(import.meta, "../bubbles.css");
+ 
+@@ -73,14 +73,16 @@ export default class ChatV3 extends JSONL {
+ 		const id = one && typeof one === "object" ? one.id : one;
+ 		return id != null ? this.session.find(id) : null;
+ 	}
+-	// The card a changed node belongs to, for a live redraw: a Reply's Prompt, a Sentence's Prompt, a root as itself, or (a Task/Question
+-	// nested under a Prompt's task) the message Prompt whose `prompt` link names that task's top-level ancestor.
++	// The card a changed node belongs to, for a live redraw: a Reply's Prompt, a Sentence's Prompt, a root as itself, a card's own
++	// `content` member (its `.parent` IS the root Message — List.js's `child.parent = this.owner`, ask3-cards-by-id), or (a
++	// Task/Question nested under a Prompt's task) the message Prompt whose `prompt` link names that task's top-level ancestor.
+ 	card_for(node){
+ 		if (!node) return null;
+ 		if (node instanceof Reply) return this.owning_prompt(node);
+ 		const roots = this.card_roots();
+ 		if (roots.includes(node)) return node;
+ 		if (node instanceof Sentence) return roots.find(p => p instanceof Prompt && p.sentences.includes(node.id)) ?? null;
++		if (roots.includes(node.parent)) return node.parent;
+ 		const tasks = this.task_roots();
+ 		let n = node;
+ 		while (n && !tasks.includes(n)) n = n.parent;
+@@ -151,10 +153,17 @@ export default class ChatV3 extends JSONL {
+ 
+ 	fill(node){ return node instanceof Prompt ? this.prompt(node) : this.note(node); }
+ 
+-	// A plain Message (a note, e.g. Servex saying an assistant could not be reached): its own small card, no replies, no nesting.
++	// A plain Message (a note, e.g. Servex saying an assistant could not be reached — or a card: icon/title/content set, fresh
++	// or upgraded, ask3-cards-by-id): its own small card, no replies, no nesting. `note_view` (placement.js, DOM-free) is the
++	// one place that decides what to show — never the stringified word "undefined" for a field a member does not have.
+ 	note(m){
+-		div.c("chat-v3-head", () => h3.c("chat-v3-title is-untitled", ChatV3.first_words(m.text)));
+-		md_into(div.c("chat-v3-text md").el, m.text);
++		const { title, icon: icon_name, text, content } = note_view(m);
++		div.c("chat-v3-head", () => {
++			if (icon_name) icon(icon_name).ac("chat-v3-icon");
++			h3.c("chat-v3-title" + (title ? "" : " is-untitled"), title || ChatV3.first_words(text));
++		});
++		if (text) md_into(div.c("chat-v3-text md").el, text);
++		if (content.length) div.c("chat-v3-content", () => content.forEach(line => div.c("chat-v3-content-line", line)));
+ 	}
+ 
+ 	prompt(p){
+@@ -188,8 +197,14 @@ export default class ChatV3 extends JSONL {
+ 	}
+ 
+ 	// One assistant Reply: plain markdown text on the left, no avatar. Small and overridable (V2 adds its ✓/🧠 marks, step 2).
++	// A Reply with `title`/`icon` set on it (the same two fields any Message has) draws them above the text, the same head
++	// `note()` draws.
+ 	reply(r){
+-		const box = div.c("chat-v3-reply", () => { md_into(div.c("chat-v3-reply-text md").el, r.text); }).attr("data-id", r.id);
++		const { title, icon: icon_name, text } = note_view(r);
++		const box = div.c("chat-v3-reply" + (title || icon_name ? " is-card" : ""), () => {
++			if (title || icon_name) div.c("chat-v3-head", () => { if (icon_name) icon(icon_name).ac("chat-v3-icon"); if (title) h3.c("chat-v3-title", title); });
++			md_into(div.c("chat-v3-reply-text md").el, text);
++		}).attr("data-id", r.id);
+ 		ReciteBubble.mount(box.el, { text: () => r.text });   // play / pause / back 10 s for this reply (Chat V2 draws replies through here too)
+ 	}
+ 
+diff --git a/public/framework/ext/Chat/v3/ChatV3.test.mjs b/public/framework/ext/Chat/v3/ChatV3.test.mjs
+index 9ddc9670c..ae194eb82 100644
+--- a/public/framework/ext/Chat/v3/ChatV3.test.mjs
++++ b/public/framework/ext/Chat/v3/ChatV3.test.mjs
+@@ -80,6 +80,20 @@ try {
+ 	await page.waitForSelector(".chat-v3-prompt[data-id='m-live-topic']", { timeout: 8000 });
+ 	check("a real topic card (refined text) keeps its title even when short", await page.$(".chat-v3-prompt[data-id='m-live-topic'] .chat-v3-title") !== null);
+ 
++	// 8. a card (ask3-cards-by-id, review finding 1/4): a fresh one draws its title, icon and content; an upgraded Reply draws its title too
++	appendFileSync(here + "fixture/" + live, JSON.stringify({ messages: { add: { id: "m-live-card", type: "Card", by: "owner", at: "2026-11-01T20:40:15.000-06:00", icon: "task", title: "Call the vet" } } }) + "\n");
++	await page.waitForSelector(".chat-v3-loose[data-id='m-live-card']", { timeout: 8000 });
++	check("a card's title is drawn, not the untitled first-words fallback", await page.$eval(".chat-v3-loose[data-id='m-live-card'] .chat-v3-title", e => e.textContent) === "Call the vet");
++	check("…and never the stringified word \"undefined\" anywhere in the card", !(await page.$eval(".chat-v3-loose[data-id='m-live-card']", e => e.textContent)).includes("undefined"));
++	check("its icon is drawn", await page.$(".chat-v3-loose[data-id='m-live-card'] .chat-v3-icon") !== null);
++	appendFileSync(here + "fixture/" + live, JSON.stringify({ messages: { "m-live-card": { content: { add: { title: "Ask about the limp" } } } } }) + "\n");
++	await page.waitForFunction(() => document.querySelector(".chat-v3-loose[data-id='m-live-card'] .chat-v3-content-line")?.textContent === "Ask about the limp", { timeout: 8000 });
++	check("content appended to the card draws as a line below it", true);
++
++	appendFileSync(here + "fixture/" + live, JSON.stringify({ messages: { "m-live-2": { title: "Phone the owner back", icon: "call" } } }) + "\n");
++	await page.waitForSelector(`${card} .chat-v3-reply.is-card .chat-v3-title`, { timeout: 8000 });
++	check("upgrading a Reply (title/icon set on it) makes it draw as a card too", await page.$eval(`${card} .chat-v3-reply.is-card .chat-v3-title`, e => e.textContent) === "Phone the owner back");
++
+ 	check("the fixture copy was only ever appended to", readFileSync(here + "fixture/" + live, "utf8").startsWith(before));
+ 	check("no page errors", errors.length === 0, errors);
+ } finally {
+diff --git a/public/framework/ext/Chat/v3/placement.js b/public/framework/ext/Chat/v3/placement.js
+index f4e702083..3d61e11f9 100644
+--- a/public/framework/ext/Chat/v3/placement.js
++++ b/public/framework/ext/Chat/v3/placement.js
+@@ -34,3 +34,14 @@ export function paragraph_groups(sentence_items, gap_ms = PARAGRAPH_GAP_MS){
+ export function paragraphs(sentence_items, clean = {}, gap_ms = PARAGRAPH_GAP_MS){
+ 	return paragraph_groups(sentence_items, gap_ms).map(group => group.map(s => clean[s.id] ?? s.text).join(" "));
+ }
++
++/** What a plain Message (`note()`'s root, or an upgraded Reply) draws: a member with neither `title` nor `icon` set draws its
++ *  text and nothing else; a card (icon/title set, by a fresh add or an upgrade) draws its title and icon; `content` (a List
++ *  of plain Items, or Refs — "a ref to an existing item") draws one line each, the Ref's own `label()` when it has no title
++ *  or text of its own. Guarded with `??`/`? :`, never `||`, so a member missing a field answers "" or `null`, never the
++ *  stringified word "undefined". DOM-free so it is testable without a browser. */
++export function note_view(m){
++	const title = m?.title ? String(m.title) : null, icon = m?.icon ? String(m.icon) : null;
++	const content = [...(m?.content ?? [])].map(c => c?.get_one?.("title") ?? c?.get_one?.("text") ?? c?.label?.() ?? null).filter(Boolean).map(String);
++	return { title, icon, text: String(m?.text ?? ""), content };
++}
+diff --git a/public/framework/ext/Chat/v3/placement.test.mjs b/public/framework/ext/Chat/v3/placement.test.mjs
+index 230dd9721..6cd376fa5 100644
+--- a/public/framework/ext/Chat/v3/placement.test.mjs
++++ b/public/framework/ext/Chat/v3/placement.test.mjs
+@@ -8,7 +8,8 @@ import { fileURLToPath } from "node:url";
+ import Session from "../../../core/Session/Session.js";
+ import Prompt from "../../../core/Session/Chat/Prompt.js";
+ import Reply from "../../../core/Session/Chat/Reply.js";
+-import { owning_prompt, paragraphs } from "./placement.js";
++import Message from "../../../core/Session/Chat/Message.js";
++import { owning_prompt, paragraphs, note_view } from "./placement.js";
+ 
+ let pass = 0, fail = 0;
+ const check = (name, ok, got) => { ok ? pass++ : fail++; console.log(`${ok ? "PASS" : "FAIL"} ${name}${ok ? "" : "  got: " + JSON.stringify(got)}`); };
+@@ -46,5 +47,26 @@ check("a prompt with one sentence and no pause is a single paragraph", paragraph
+ // 4. the fixture file was only ever read, never changed by this test
+ check("the fixture was not modified", readFileSync(fixture, "utf8") === before);
+ 
++// 5. note_view (review finding 1/2, ask3-cards-by-id): what ChatV3's note() and reply() draw for a plain message, a card, and a
++//    member a view must never show the owner the literal word "undefined" for — DOM-free, so no browser is needed to prove it.
++{
++	const plain = Message.hydrate({ id: "m-1", by: "system", at: "2026-11-01T00:00:00.000-06:00", text: "The smart assistant could not be reached." });
++	const nv1 = note_view(plain);
++	check("a plain note: its text, no title, no icon, no content", nv1.text === "The smart assistant could not be reached." && nv1.title === null && nv1.icon === null && nv1.content.length === 0, nv1);
++
++	const card = Message.hydrate({ id: "m-2", by: "owner", at: "2026-11-01T00:00:00.000-06:00", type: "Card", icon: "task", title: "Call the vet" });
++	const nv2 = note_view(card);
++	check("a card hydrates with its real title/icon (type:\"Card\" is aliased, review finding 2/3)", nv2.title === "Call the vet" && nv2.icon === "task" && nv2.text === "", nv2);
++
++	const guess = Message.hydrate({ id: "m-3", by: "owner", at: "2026-11-01T00:00:00.000-06:00", type: "Note" });   // nobody registered "Note"
++	check("hydrate: ANY unknown type becomes a Message (finding 2), not a generic Item with none of its getters", guess.constructor.name === "Message");
++	check("…so it draws empty, never the stringified word \"undefined\"", note_view(guess).text !== "undefined" && note_view(guess).text === "");
++
++	const reply = Message.hydrate({ id: "m-4", type: "Reply", by: "smart", at: "2026-11-01T00:00:00.000-06:00", text: "Which phone?" });
++	check("an ordinary Reply: no title, no icon — reply() draws it plain (finding 4)", note_view(reply).title === null && note_view(reply).icon === null);
++	reply.set({ title: "Phone the owner back", icon: "call" });   // "upgrading" it: the same title/icon fields any message has
++	check("…upgraded (title/icon set on it, same item tool call as a fresh card): reply() now has what it needs to draw it as a card", note_view(reply).title === "Phone the owner back" && note_view(reply).icon === "call");
++}
++
+ console.log(`${pass} passed, ${fail} failed`);
+ process.exit(fail ? 1 : 0);
+diff --git a/public/framework/ext/Chat/v3/readme.md b/public/framework/ext/Chat/v3/readme.md
+index f8b979bdd..46b5ff96e 100644
+--- a/public/framework/ext/Chat/v3/readme.md
++++ b/public/framework/ext/Chat/v3/readme.md
+@@ -8,6 +8,7 @@ Try it: [/framework/ext/Chat/v3/](/framework/ext/Chat/v3/) draws [fixture/messag
+ 
+ - `ChatV3.js`: `class ChatV3 extends JSONL`. Every line is replayed into a real `Session` (`core/Session`) with `replay_line`, the same replay the item tool uses, except V1's own `{chat}`/`{place}` lines (skipped: the real update is the separate `messages`/`sentences` mirror line `ChatWriter` already writes beside them).
+ - **A card per Prompt**, in the chat list's own order: its title (or, until the AI writes one, its first words, muted — dropped for a short chit-chat Prompt, below), then the body described below. Its Replies (plain markdown text on the left, no avatar, found by `re.to`) and the Tasks/Questions that name its Prompt TASK (through the message Prompt's `prompt` link) sit inside the card. A plain `Message` (a note with no more structure) is its own small card. "show raw" opens the sentences' own raw words, when a `clean` override exists.
++- **A card with an icon, a title and content** (`icon`/`title`/`content` on `Message` itself, `core/Session/Chat/readme.md`): `note()` draws them, guarded by [`note_view`](placement.js) so a field-less member never shows the stringified word "undefined". An upgraded message — any Reply or note with `title`/`icon` set on it — draws that same head (`reply()`); content appended to a card (or a `{type:"Ref"}` to another item) redraws it live, found through `card_for()`'s own `.parent` check (a content member's parent is the Message that owns it).
+ - **The card body:** the AI's cleaned `text` when it exists; until then the dictation itself, in paragraphs (see below), clamped to a few lines with "show all (N words)", under a muted title of its first words. A 6,760-character Prompt had come up as one wall of text.
+ - **No title when it would just repeat the body** (`ChatV3.redundant_title`, the owner, 2026-11-02): a Prompt with no AI title and no refined text showed the same words twice — the muted first-words title, then the identical one-line body under it ("Hello" over "Hello"). That muted title is now skipped when it is the whole body verbatim, or the Prompt is at most two sentences with no refined version yet. An AI title or refined text always keeps the title; a longer untitled dictation (more than two sentences) still gets the muted first-words title, since there the title is a genuinely useful preview of a body the reader has to open.
+ - **Paragraphs** ([placement.js](placement.js), `ChatV3.paragraphs`/`PARAGRAPH_GAP_MS`): a new paragraph starts where the gap between two sentences' `at` is a long pause (4000ms default) — not the old "one paragraph per sent chunk, cut every 3 sentences". Pure logic, no DOM, node-testable ([placement.test.mjs](placement.test.mjs)).
+@@ -33,7 +34,7 @@ Try it: [/framework/ext/Chat/v3/](/framework/ext/Chat/v3/) draws [fixture/messag
+ 
+ ## Test
+ 
+-- `placement.test.mjs` (plain node, 18 checks, no browser: `owning_prompt`/`paragraphs` — which now delegates to `paragraph_groups`, exercised through it — against a copy of a real voice session — every Reply lands under the Prompt holding its `re.to`, in list order; a pause starts a paragraph; the fixture file is only ever read): `node placement.test.mjs`.
+-- `ChatV3.test.mjs` (headless Playwright, 16 checks: card order, nesting, raw toggle, paragraph breaks, live append of a Prompt and a Reply found by `re.to`, no page errors): `node ChatV3.test.mjs [base-url] [shots-dir]`. It copies `fixture/messages-session.jsonl` to `fixture/live-v3-*.jsonl` (gitignored) and deletes the copy when done.
++- `placement.test.mjs` (plain node, 24 checks, no browser: `owning_prompt`/`paragraphs` — which now delegates to `paragraph_groups`, exercised through it — against a copy of a real voice session — every Reply lands under the Prompt holding its `re.to`, in list order; a pause starts a paragraph; the fixture file is only ever read; plus `note_view` (ask3-cards-by-id): a plain note's text with no title/icon/content, a card's real title/icon, any unknown `type` guess hydrating as a Message rather than showing "undefined", a Reply upgraded with title/icon): `node placement.test.mjs`.
++- `ChatV3.test.mjs` (headless Playwright, 23 checks: card order, nesting, raw toggle, paragraph breaks, live append of a Prompt and a Reply found by `re.to`, no page errors; plus a fresh card's title/icon drawn with no "undefined" anywhere in it, content appended to a card redrawing it live, an upgraded Reply drawing its title): `node ChatV3.test.mjs [base-url] [shots-dir]`. It copies `fixture/messages-session.jsonl` to `fixture/live-v3-*.jsonl` (gitignored) and deletes the copy when done.
+ 
+ `failures.jsonl` here is the page-error log the test run wrote while the draft was built (a since-fixed `scrollIntoView` error); it is a record, kept.

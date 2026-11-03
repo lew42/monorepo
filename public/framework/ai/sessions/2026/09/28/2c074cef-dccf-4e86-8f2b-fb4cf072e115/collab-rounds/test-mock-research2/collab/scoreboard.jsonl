@@ -1,0 +1,3 @@
+{"score":{"at":"2026-09-28T14:16:40-05:00","collab":"2026-09-28/collab-rounds/test-mock-research2","decision":"d-1","member":"haiku-a","model":"claude-haiku-4-5-20251001","votes":1,"won":false,"cost":0}}
+{"score":{"at":"2026-09-28T14:16:40-05:00","collab":"2026-09-28/collab-rounds/test-mock-research2","decision":"d-1","member":"sonnet-b","model":"claude-sonnet-5","votes":1,"won":false,"cost":0}}
+{"score":{"at":"2026-09-28T14:16:40-05:00","collab":"2026-09-28/collab-rounds/test-mock-research2","decision":"d-1","member":"haiku-c","model":"claude-haiku-4-5-20251001","votes":1,"won":true,"cost":0}}

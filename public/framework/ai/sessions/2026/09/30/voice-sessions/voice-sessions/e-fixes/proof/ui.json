@@ -1,0 +1,120 @@
+{
+  "out": [
+    {
+      "name": "Session demo loads with zero console errors",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Recent sessions listed on page load (no button press)",
+      "ok": true,
+      "detail": "Voice session plumbing · 1 day ago"
+    },
+    {
+      "name": "the resume line shows on open, as one line",
+      "ok": true,
+      "detail": "Voice session plumbing · 1 day ago"
+    },
+    {
+      "name": "dragging the top edge resizes the sheet",
+      "ok": true,
+      "detail": "263 -> 400 px"
+    },
+    {
+      "name": "tapping the line resumes that session",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "the resumed session is the tab's session now (a second ✦ press continues it)",
+      "ok": true,
+      "detail": "{\"session\":\"v-yday\",\"file\":\"/framework/ext/Session/ai/v-proof.jsonl\"}"
+    },
+    {
+      "name": "the first sentence gets the fast reply, then the smart one",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "say carries floor and cues from the composer",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "while speaking: no fast reply shows",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "floor turns done with no new words: Session.floor() is called once",
+      "ok": true,
+      "detail": "{\"session\":\"v-yday\",\"floor\":\"done\"}"
+    },
+    {
+      "name": "...and the held fast reply appears",
+      "ok": true,
+      "detail": "419 ms after done (includes the 1.5 s file poll)"
+    },
+    {
+      "name": "no page errors on the sheet",
+      "ok": false,
+      "detail": "ux/Dictate: This browser can't run the audio pipeline dictation needs here — try Chrome, or use the browser's own speech recognition instead of Whisper."
+    },
+    {
+      "name": "every POST was stubbed (none reached Servex)",
+      "ok": true,
+      "detail": "/api/session/resume, /api/session/say, /api/session/say, /api/session/floor"
+    }
+  ],
+  "shots": [
+    "sheet-resume-400.png",
+    "sheet-first-sentence-400.png",
+    "sheet-speaking-400.png",
+    "sheet-held-reply-400.png"
+  ],
+  "posts": [
+    {
+      "url": "/api/session/resume",
+      "body": {
+        "session": "v-yday"
+      }
+    },
+    {
+      "url": "/api/session/say",
+      "body": {
+        "session": "v-yday",
+        "path": "/framework/ext/Session/",
+        "text": "can you hear me?",
+        "via": "text",
+        "floor": "done"
+      }
+    },
+    {
+      "url": "/api/session/say",
+      "body": {
+        "session": "v-yday",
+        "path": "/framework/ext/Session/",
+        "text": "and the second thing is",
+        "via": "text",
+        "floor": "speaking",
+        "cues": {
+          "pauses": [
+            {
+              "start": 400,
+              "end": 900,
+              "ms": 500
+            }
+          ],
+          "speaking_ms": 1800
+        }
+      }
+    },
+    {
+      "url": "/api/session/floor",
+      "body": {
+        "session": "v-yday",
+        "floor": "done"
+      }
+    }
+  ]
+}

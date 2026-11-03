@@ -1,0 +1,1 @@
+{"pick": "haiku-x", "caveat": "Both are essentially equivalent in conclusions and sourcing; haiku-x edges it for citing Server/collab.mjs concretely for the read-peers phase wording rather than just asserting it, but it should double-check the 'or --main' flag is also a review-gate skip alongside --no-review, since it lists only --no-review in its escape-routes list."}

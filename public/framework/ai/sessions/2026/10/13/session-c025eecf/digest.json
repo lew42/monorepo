@@ -1,0 +1,32 @@
+{
+ "id": "c025eecf-cc23-4e90-b218-7c6fa5306bec",
+ "first": "2026-10-13T02:15:34.182Z",
+ "last": "2026-10-13T21:32:09.921Z",
+ "task": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/adopt",
+ "models": {
+  "claude-sonnet-5-5": 87
+ },
+ "sizes": {
+  "raw": 1622471,
+  "content": 72354,
+  "stripped": 10595,
+  "owner_only": 0
+ },
+ "usd": 6.108039,
+ "usd_main": 6.108039,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 174,
+  "output": 56877,
+  "cache_read": 7815846,
+  "cache_write": 993938,
+  "w5": 0,
+  "w1": 993938
+ },
+ "messages": 87,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "Idle, nothing running: the adopt task is done and committed (`kit/adopt.md`), and the `adopt/task.jsonl` log line is still unwritten.",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.283Z"
+}

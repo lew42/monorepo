@@ -1,0 +1,190 @@
+diff --git a/Servex/ProcessRunner.test.mjs b/Servex/ProcessRunner.test.mjs
+index 50db94db2..da28bc52e 100644
+--- a/Servex/ProcessRunner.test.mjs
++++ b/Servex/ProcessRunner.test.mjs
+@@ -54,7 +54,7 @@ try {
+ 	ok(spawned[0].model === "claude-sonnet-5-5" && spawned[0].task.dir.endsWith("fix-x/investigate") && spawned[0].prompt.includes(`"investigate": {"complete"`), "the spawn carries the phase's model, a folder inside the process, and the completing line");
+ 
+ 	const step = async (delta, caller) => { await item(delta, caller, PURL); await settle(FILE); };
+-	await step({ investigate: { complete: { outcome: "found the cause in X.js" } } }, "a1");
++	await step({ investigate: { complete: { outcome: "found the cause in X.js", evidence: ["test"] } } }, "a1");
+ 	L = read(FILE);
+ 	ok(L.some(l => l.plan?.start) && sent.at(-1).id === "a1" && sent.at(-1).text.includes("found the cause in X.js"), "plan runs in the same session, told what investigate found");
+ 
+@@ -67,19 +67,19 @@ try {
+ 	L = read(FILE);
+ 	ok(L.some(l => l.pulse?.phase === "plan" && l.pulse.n === 1) && sent.at(-1).text.includes("not recorded as complete"), "the next turn that ends with plan open gets one pulse");
+ 
+-	await step({ plan: { complete: { outcome: "plan.md written" } } }, "a1");
++	await step({ plan: { complete: { outcome: "plan.md written", evidence: ["test"] } } }, "a1");
+ 	ok(spawned[1]?.role === "reviewer", "improve is a fresh reviewer");
+-	await step({ "improve-plan": { complete: { outcome: "two steps cut" } } }, "a2");
++	await step({ "improve-plan": { complete: { outcome: "two steps cut", evidence: ["test"] } } }, "a2");
+ 	ok(sent.at(-1).id === "mm1" && sent.at(-1).text.includes("Approve"), "approve goes to the creator");
+-	await step({ "approve-plan": { complete: { outcome: "approved" } } }, "mm1");
++	await step({ "approve-plan": { complete: { outcome: "approved", evidence: ["test"] } } }, "mm1");
+ 	ok(spawned[2]?.role === "helper" && spawned[2].prompt.includes("approved"), "execute is a fresh builder");
+-	await step({ execute: { complete: { outcome: "branch task/fix-x, 2 commits" } } }, "a3");
+-	await step({ review: { complete: { outcome: "ready to merge: task/fix-x" } } }, "a4");
++	await step({ execute: { complete: { outcome: "branch task/fix-x, 2 commits", evidence: ["test"] } } }, "a3");
++	await step({ review: { complete: { outcome: "ready to merge: task/fix-x", evidence: ["test"] } } }, "a4");
+ 	let p = runner.read(FILE);
+ 	ok(p.phase.id === "merge" && p.phase.state === "waiting" && p.state === "running", "merge waits on the owner; the process is not complete");
+ 	ok(sent.at(-1).id === "mm1" && sent.at(-1).text.includes("waits on the owner"), "the creator is told");
+ 
+-	await step({ merge: { complete: { outcome: "merged" } } }, "owner");
++	await step({ merge: { complete: { outcome: "merged", evidence: ["test"] } } }, "owner");
+ 	p = runner.read(FILE);
+ 	ok(p.state === "complete" && p.completion === 1, "the last phase completes the process");
+ 	const sess = Task.replay(read(SESSION));
+@@ -107,7 +107,7 @@ try {
+ 	const G = path.join(DIR, "go-home", "task.jsonl");
+ 	await settle(G);
+ 	for (const [ph, by] of [["investigate", spawned.at(-1).id], ["plan", spawned.at(-1).id], ["improve-plan", null], ["approve-plan", "mm1"]]){
+-		await item({ [ph]: { complete: { outcome: "ok" } } }, by ?? spawned.at(-1).id, URL + "go-home/");
++		await item({ [ph]: { complete: { outcome: "ok", evidence: ["test"] } } }, by ?? spawned.at(-1).id, URL + "go-home/");
+ 		await settle(G);
+ 	}
+ 	const HOME = path.join(ROOT, "public/framework", MOD, "tasks", "go-home", "task.jsonl");
+@@ -138,14 +138,27 @@ try {
+ 	let S = read(SF), sent0 = sent.length;
+ 	ok(r.ok && S[0].class === "Process" && S[0].process === "steps" && S.filter(l => l.tasks?.add).length === 2, "one call: a Process with the two steps as its phases");
+ 	ok(S.some(l => l["write-the-note"]?.start) && sent.at(-1).id === "mm1" && sent.at(-1).text.includes("write note.md") && sent.at(-1).text.includes(`"write-the-note": {"complete"`), "node starts step 1 and prompts the creator with it");
+-	await item({ "write-the-note": { complete: { outcome: "note.md written" } } }, "mm1", SURL); await settle(SF);
++	await item({ "write-the-note": { complete: { outcome: "note.md written", evidence: ["test"] } } }, "mm1", SURL); await settle(SF);
+ 	ok(sent.length === sent0 + 1 && sent.at(-1).text.includes("read note.md back") && sent.at(-1).text.includes("note.md written"), "step 1 returns: node prompts step 2, with step 1's outcome");
+ 	await item({ tasks: { add: { title: "Add a step", do: "a step added while it runs" } } }, "mm1", SURL); await settle(SF);
+-	await item({ "check-the-note": { complete: { outcome: "checked" } } }, "mm1", SURL); await settle(SF);
++	await item({ "check-the-note": { complete: { outcome: "checked", evidence: ["test"] } } }, "mm1", SURL); await settle(SF);
+ 	ok(sent.at(-1).text.includes("a step added while it runs"), "a step added while the process runs is run after the others");
+-	await item({ "add-a-step": { complete: { outcome: "done" } } }, "mm1", SURL); await settle(SF);
++	await item({ "add-a-step": { complete: { outcome: "done", evidence: ["test"] } } }, "mm1", SURL); await settle(SF);
+ 	ok(Task.replay(read(SF)).state === "complete" && Task.replay(read(SESSION))._tasks.find("two-steps"), "every step done: the process is complete, and its session references it");
+ 
++	// The evidence rule on a build → review process: a complete with no evidence is refused and written nowhere; with it, each step's outcome and evidence are recorded.
++	await item({ tasks: { add: { title: "Build review", steps: [{ title: "Build it", do: "build" }, { title: "Review it", do: "review" }] } } }, "mm1");
++	const BF = path.join(DIR, "build-review", "task.jsonl"), BURL = URL + "build-review/"; await settle(BF);
++	const blen = read(BF).length;
++	r = await item({ "build-it": { complete: { outcome: "built" } } }, "mm1", BURL);
++	ok(r.ok === false && /evidence/.test(r.why ?? "") && read(BF).length === blen, "complete without evidence is refused, nothing written");
++	await item({ "build-it": { complete: { outcome: "built", evidence: ["commit abc"] } } }, "mm1", BURL); await settle(BF);
++	ok(runner.read(BF).phases.find(x => x.id === "build-it").state === "complete" && sent.at(-1).text.includes("review"), "step 1 completes with evidence; step 2 is prompted");
++	ok(runner.read(BF).state !== "complete", "the process is not complete after the first step");
++	await item({ "review-it": { complete: { outcome: "approved", evidence: ["review.md"] } } }, "mm1", BURL); await settle(BF);
++	const bl = read(BF);
++	ok(runner.read(BF).state === "complete" && bl.some(l => l["build-it"]?.complete?.evidence?.[0] === "commit abc") && bl.some(l => l["review-it"]?.complete?.evidence?.[0] === "review.md"), "the last step completes the process; both steps' evidence is in the log");
++
+ 	// Stopping a process stops the agent of the phase it spawned (found live, 2026-10-22: the phase agent kept going), never the creator.
+ 	await item({ tasks: { add: { title: "Stop me", process: "investigate" } } }, "mm1");
+ 	const T = path.join(DIR, "stop-me", "task.jsonl"); await settle(T);
+diff --git a/Servex/agents/Agents.js b/Servex/agents/Agents.js
+index 8504e18d4..28d251490 100644
+--- a/Servex/agents/Agents.js
++++ b/Servex/agents/Agents.js
+@@ -962,11 +962,14 @@ export function open_task(task, { session_id, agent, by, model, worktree, parent
+ 	/* A new session folder (directly under a day, its own session_id on line 1) starts as session.jsonl; a task folder keeps task.jsonl. */
+ 	fs.appendFileSync(SessionRecord.start_file(dir, JSON.parse(line)), line + "\n");
+ 	// A task folder under a session or another task counts as its task: the parent's log gets one {"task":"<url>"} reference (never twice).
+-	try { SessionRecord.link_parent(dir, "Servex", { parent: parent_task && path.resolve(parent_task), session_id }); } catch (e){ console.warn("link_parent failed for", dir, e); }
++	// A handoff (`task: {from, id}`) is referenced by move_item's own `as` line; a second plain one would replay as a twin child, so link only without a handoff (or when it is refused, below).
++	const link = () => { try { SessionRecord.link_parent(dir, "Servex", { parent: parent_task && path.resolve(parent_task), session_id }); } catch (e){ console.warn("link_parent failed for", dir, e); } };
++	const handoff = !!(task.from && task.id);
++	if (!handoff) link();
+ 	// Handoff by task: `task: {from, id}` moves that subtask out of the spawner's log into this folder (page_tools.js move_item).
+ 	// Not awaited (open_task is synchronous): the history lands just after the first turn starts. A refusal is written into the new log, so it is seen.
+-	if (task.from && task.id){
+-		const log = SessionRecord.start_file(dir, JSON.parse(line)), refused = why => fs.appendFileSync(log, JSON.stringify({ handoff: { from: task.from, id: task.id, refused: why }, by: "servex", ts: stamp() }) + "\n");
++	if (handoff){
++		const log = SessionRecord.start_file(dir, JSON.parse(line)), refused = why => { fs.appendFileSync(log, JSON.stringify({ handoff: { from: task.from, id: task.id, refused: why }, by: "servex", ts: stamp() }) + "\n"); link(); };
+ 		move_item({ from: task.from, id: task.id, to: "/" + path.relative(path.join(process.cwd(), "public"), dir).split(path.sep).join("/") + "/", by: task.by ?? by ?? "spawn" })
+ 			.then(r => { if (r.why) refused(r.why); }, e => refused(String(e.message || e)));
+ 	}
+diff --git a/Servex/agents/handover.test.mjs b/Servex/agents/handover.test.mjs
+new file mode 100644
+index 000000000..8d4ab57a6
+--- /dev/null
++++ b/Servex/agents/handover.test.mjs
+@@ -0,0 +1,70 @@
++// Handover by task, end to end on a temp store: `spawn_agent {task: {from, id}}` (open_task) moves a subtask from the parent's record into the child's
++// folder with its id and history, leaves ONE reference on the parent, and the child's completion rolls up. `node Servex/agents/handover.test.mjs`
++// Proves: ai/sessions/doc/session-record.md, "Session → task → child session".
++import assert from "node:assert";
++import fs from "node:fs";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++import { run_item, ledgers } from "./page_tools.js";
++import { open_task } from "./Agents.js";
++import TaskHomes from "../../Server/TaskHomes.mjs";
++import SessionRecord from "../../Server/SessionRecord.mjs";
++import Session from "../../public/framework/core/Session/Session.js";
++
++const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
++process.chdir(ROOT);   // open_task resolves task.dir against cwd
++const REL = "public/framework/ai/sessions/2026/10/22/.handover-test-" + process.pid;   // a throwaway session folder; never the real records
++const DIR = path.join(ROOT, REL), URL = "/" + REL.slice("public/".length) + "/";
++const PFILE = path.join(DIR, "session.jsonl"), CDIR = path.join(DIR, "agent-a"), CURL = URL + "agent-a/";
++ledgers.task_moves = path.join(DIR + "-ledger", "task-moves.jsonl"); TaskHomes.INDEX = DIR + "-homes/task.jsonl";
++const read = f => fs.readFileSync(f, "utf8").trim().split("\n").map(l => JSON.parse(l));
++const refs = () => read(PFILE).filter(l => l.task === CURL);
++let n = 0;
++const ok = (c, m) => { assert.ok(c, m); n++; console.log("ok", m); };
++const until = async f => { for (let i = 0; i < 100 && !f(); i++) await new Promise(r => setTimeout(r, 20)); };
++
++fs.mkdirSync(DIR, { recursive: true });
++fs.writeFileSync(PFILE, JSON.stringify({ assign: { session_id: "parent-sess", agent: "parent", title: "Parent" } }) + "\n");
++try {
++	await run_item({ path: URL, delta: { tasks: { add: { id: "x", title: "X task" } } } }, { caller: "parent" });
++	await run_item({ path: URL, delta: { x: { start: {} } } }, { caller: "parent" });
++	await run_item({ path: URL, delta: { x: { expected: "a field" } } }, { caller: "parent" });
++	const before = read(PFILE).filter(l => l.x || l.tasks?.add).map(l => l.ts);
++
++	// the spawn: open_task writes the child's assign line, links it, and hands the subtask over
++	open_task({ dir: path.relative(ROOT, CDIR), from: URL, id: "x" }, { session_id: "child-sess", agent: "agent-a", by: "parent" });
++	await until(() => refs().some(l => l.as === "x"));
++	const cf = SessionRecord.file(CDIR), cl = read(cf);
++	ok(cl[0].assign?.session_id === "child-sess" && cl[1].id === "x" && cl[1].set.title === "X task" && cl.some(l => l.start) && cl.some(l => l.expected === "a field"), "the subtask lands in the child folder: same id, its history (start, expected) after the assign line");
++	ok(JSON.stringify(cl.filter(l => l.id === "x" || l.start || l.expected).map(l => l.ts)) === JSON.stringify(before), "each history line keeps its original timestamp");
++	const P = Session.replay(read(PFILE));
++	ok([...P.tasks].filter(t => t.id === "x").length === 1 && [...P.tasks].length === 1, "the parent replays ONE child x, not x plus a path-named twin");
++
++	// exactly one reference line, however many times the linkers run again
++	ok(refs().length === 1 && refs()[0].as === "x", "the parent's log has exactly ONE line referencing the child, and it is the `as: x` one");
++	SessionRecord.link_parent(CDIR, "Servex", { session_id: "child-sess" });
++	SessionRecord.link_parent(CDIR, "SessionRecord --links");
++	ok(refs().length === 1, "link_parent again adds nothing");
++	const sr = new SessionRecord({ root: ROOT });
++	const miss = sr.links().missing.filter(m => m.dir === CDIR);
++	ok(miss.length === 0, "the --links census does not list the child as unreferenced");
++	if (miss.length) sr.apply_links({ ...sr.links(), missing: miss });
++	ok(refs().length === 1, "the daily --links backfill adds nothing");
++
++	// roll-up: the child completes its own task; the parent's record shows it complete
++	const r = await run_item({ path: CURL, delta: { x: { complete: { outcome: "done", evidence: ["test"] } } } }, { caller: "agent-a" });
++	const r2 = r.ok ? r : await run_item({ path: CURL, delta: { complete: { outcome: "done", evidence: ["test"] } } }, { caller: "agent-a" });
++	ok(r2.ok, "the child completes the handed-over task: " + (r2.why ?? ""));
++	const P2 = Session.replay(read(PFILE));
++	ok(P2.tasks.find("x")?.state === "complete" && P2.completion === 1, "the parent's record shows x complete (rolled up from the child's folder)");
++
++	// a refused handoff (no such subtask) still leaves the child referenced, once
++	const BURL = URL + "agent-b/";
++	open_task({ dir: path.relative(ROOT, path.join(DIR, "agent-b")), from: URL, id: "nobody" }, { session_id: "child-b", agent: "agent-b", by: "parent" });
++	await until(() => fs.readFileSync(SessionRecord.file(path.join(DIR, "agent-b")), "utf8").includes("refused"));
++	ok(read(PFILE).filter(l => l.task === BURL).length === 1, "a refused handoff: the child is still referenced on the parent, exactly once");
++	console.log(`${n} passing`);
++} finally {
++	for (const d of [DIR, DIR + "-ledger", DIR + "-homes"]) fs.rmSync(d, { recursive: true, force: true });
++}
++process.exit(0);
+diff --git a/public/framework/ai/sessions/doc/session-record.md b/public/framework/ai/sessions/doc/session-record.md
+index 20b72b5dd..e161febf1 100644
+--- a/public/framework/ai/sessions/doc/session-record.md
++++ b/public/framework/ai/sessions/doc/session-record.md
+@@ -80,6 +80,8 @@ Two writers ask it: `Servex/agents/Agents.js` (`open_task`, the launch line of `
+ - **The reference:** whichever way a folder is made, `SessionRecord.link_parent` appends one `{"task":"<url>"}` line to the parent's log (the nearest folder above with a log, or the explicit parent), never twice. The daily tick backfills any that were missed.
+ - **Completion rolls up** by replaying the logs: a session's completion is its referenced tasks done over total (`Session.progress()`), and a child session counts as one of them through its reference. Nobody writes a percentage.
+ - **A task moves to a child session** with `spawn_agent` and `task: {from, id}`: the subtask leaves the spawner's log and its history is moved into the child's folder (`move_item` in `Servex/agents/page_tools.js`). A refusal is written into the child's log as a `handoff` line.
++  A handoff leaves exactly one reference on the parent (move_item's `{"task","as":id}` line); `open_task` links the child itself only when there is no handoff or it is refused. **Proved by** `node Servex/agents/handover.test.mjs` (temp store: history moved, one reference however often `link_parent` or `--links` runs, completion rolls up).
++- **A simple process** (two steps, build → review) runs through `ProcessRunner`: each step starts, completes with `{outcome, evidence}` (no evidence is refused), the task completes with the last step. **Proved by** `node Servex/ProcessRunner.test.mjs`.
+ 
+ ## Readers: every one accepts both names
+ 

@@ -1,0 +1,970 @@
+diff --git a/public/framework/core/Item/Item.life.js b/public/framework/core/Item/Item.life.js
+new file mode 100644
+index 000000000..83df54357
+--- /dev/null
++++ b/public/framework/core/Item/Item.life.js
+@@ -0,0 +1,19 @@
++/* An Item's life cycle, for its class page (ext/Doc/ClassDoc.js draws it as one picture): who makes or changes
++   one, the hops a change takes to its file, and the way back to every other tab. The source of truth, with the
++   file and line of every hop: core/Session/tasks/data-shapes/seats/delta-flow/delta-flow.md.
++   A subclass page (List) passes its own `who` and keeps the path. */
++export default {
++	who: [
++		{ icon: "code", name: "Code", code: `new Box({ title })`, says: "builds it; writes nothing" },
++		{ icon: "touch_app", name: "A click", code: `item.set({ title })`, says: "changes a field" },
++		{ icon: "smart_toy", name: "An agent", code: `item({ path, delta })`, says: "Servex's item tool" },
++		{ icon: "history", name: "A replay", code: `root.set(line)`, says: "a fresh load, one line at a time" },
++	],
++	path: [
++		{ icon: "north", name: "Climbs parent", code: `emit("delta")`, says: "from the item that changed, up to the root", src: "core/Events/Events.js" },
++		{ icon: "data_object", name: "One line", code: `{"milk":{"set":{"count":2}}}`, says: "the root's Store nests it, one hop per level", src: "core/Item/Store.js" },
++		{ icon: "description", name: "The file", code: `session.jsonl · page.jsonl`, says: "appended by Servex or the dev socket", src: "Server/plugins/SocketServer/Append.js" },
++		{ icon: "podcasts", name: "Tailed", code: `jsonl frame`, says: "the dev server sends the new bytes to every tab", src: "Server/plugins/SocketServer/Tail.js" },
++		{ icon: "devices", name: "Every other tab", code: `root.set(line)`, says: "the same set(), walking the same hops down", src: "core/Item/Store.js" },
++	],
++};
+diff --git a/public/framework/core/Item/Item.methods.js b/public/framework/core/Item/Item.methods.js
+new file mode 100644
+index 000000000..f433f6edf
+--- /dev/null
++++ b/public/framework/core/Item/Item.methods.js
+@@ -0,0 +1,32 @@
++import Item from "./Item.js";
++import Box from "./watch/Box.js";
++
++/* Item's methods for its class page (ext/Doc/ClassDoc.js): each one's job in one line, and a tiny example.
++   The page shows the example's body as code and draws what it returns, live. Order is the order on the page:
++   the everyday calls first. `static: true` reads the signature off the class, not its prototype. */
++export default {
++	get: { job: "Read one field (or a child, by its id).",
++		example(){ const box = new Box({ title: "Milk" }); return box.get("title"); } },
++	set: { job: "Change fields, call a method or walk into a child: one delta, in key order.",
++		example(){ const box = new Box({ title: "Milk" }); box.set({ title: "Oat milk", count: 2 }); return box; } },
++	find: { job: "Any descendant by id, at any depth.",
++		example(){ const shop = new Box({ id: "shop" }); shop.items.add({ id: "milk" }).items.add({ id: "oat" }); return shop.find("oat"); } },
++	remove: { job: "Take me out of whichever list holds me.",
++		example(){ const shop = new Box({ id: "shop" }); shop.items.add({ id: "milk" }); shop.find("milk").remove(); return shop; } },
++	root: { job: "The top of my parent chain: the item that holds the file.",
++		example(){ const shop = new Box({ id: "shop" }); return shop.items.add({ id: "milk" }).root(); } },
++	walk: { job: "Call a function on me and every descendant, depth first.",
++		example(){ const shop = new Box({ id: "shop" }); shop.items.add({ id: "milk" }); const ids = []; shop.walk(x => ids.push(x.id)); return ids; } },
++	contains: { job: "Is this item somewhere below me? (Never me.)",
++		example(){ const shop = new Box({ id: "shop" }); const milk = shop.items.add({ id: "milk" }); return [shop.contains(milk), milk.contains(shop)]; } },
++	lists: { job: "Every List I own, by its name.",
++		example(){ return Object.keys(new Box({ id: "shop" }).lists()); } },
++	toJSON: { job: "My saved shape: type, id, data and each list, never parent or store.",
++		example(){ const shop = new Box({ id: "shop", title: "Shop" }); shop.items.add({ id: "milk" }); return shop.toJSON(); } },
++	hydrate: { static: true, job: "Build an item, and its lists, back from that saved shape.",
++		example(){ return Item.hydrate({ type: "Box", id: "shop", data: { title: "Shop" }, items: [{ type: "Box", id: "milk" }] }); } },
++	register: { static: true, job: "Give a class a type name, so a saved shape becomes that class again.",
++		example(){ return Item.types.get("Box") === Box; } },
++	replay: { static: true, job: "Build an item from its lines, one set() each.",
++		example(){ return Box.replay([{ set: { title: "Shop" } }, { items: { add: { id: "milk" } } }]); } },
++};
+diff --git a/public/framework/core/Item/Item.steps.js b/public/framework/core/Item/Item.steps.js
+new file mode 100644
+index 000000000..80f0d1730
+--- /dev/null
++++ b/public/framework/core/Item/Item.steps.js
+@@ -0,0 +1,74 @@
++import Box from "./watch/Box.js";
++import ScratchStore from "./watch/ScratchStore.js";
++
++/* Item's core test as steps: the class page draws each one (its code, a pass or fail, the object after it, the
++   lines it wrote; ext/Doc/ClassDoc.js) and Item.steps.test.mjs runs the same array in node.
++   `t` is one shared bag: `t.store` keeps every line written (ScratchStore writes no file), `t.lines` are the ones
++   the step just wrote. `show(t)` is the object drawn after the step. */
++export default [
++	{
++		title: "Create",
++		code: `const shop = new Box({ id: "shop", title: "Shopping" })`,
++		note: "Making an object writes nothing.",
++		run: t => { t.shop = new Box({ id: "shop", title: "Shopping" }); },
++		check: t => t.shop.get("title") === "Shopping" && t.lines.length === 0,
++		show: t => t.shop,
++	},
++	{
++		title: "Save",
++		code: `store.attach(shop)`,
++		note: "From here on, every change is saved as one line.",
++		run: t => { t.store.attach(t.shop); },
++		check: t => t.shop.store === t.store && t.lines.length === 0,
++		show: t => t.shop,
++	},
++	{
++		title: "Set",
++		code: `shop.set({ title: "Weekly shop" })`,
++		note: "A field on the root: one flat line.",
++		run: t => { t.shop.set({ title: "Weekly shop" }); },
++		check: t => t.shop.get("title") === "Weekly shop" && t.lines.length === 1,
++		show: t => t.shop,
++	},
++	{
++		title: "Add a child",
++		code: `const milk = shop.items.add({ id: "milk", title: "Milk", count: 1 })`,
++		note: "A list verb: one line, under the list's name. The child's parent is now shop.",
++		run: t => { t.milk = t.shop.items.add({ id: "milk", title: "Milk", count: 1 }); },
++		check: t => t.milk.parent === t.shop && t.lines.length === 1 && "items" in t.lines[0],
++		show: t => t.shop,
++	},
++	{
++		title: "Change the child",
++		code: `milk.set({ count: 2 })`,
++		note: "The change climbs parent to shop, and the line names the path down: milk.",
++		run: t => { t.milk.set({ count: 2 }); },
++		check: t => t.milk.get("count") === 2 && t.lines.length === 1 && "milk" in t.lines[0],
++		show: t => t.shop,
++	},
++	{
++		title: "Replay",
++		code: `const copy = new Box({ id: "shop" }); lines.forEach(line => copy.set(line))`,
++		note: "A fresh object, built from the lines alone, equals the original.",
++		run: t => { t.copy = new Box({ id: "shop" }); t.store.lines.forEach(line => t.copy.set(line)); },
++		check: t => JSON.stringify(t.copy) === JSON.stringify(t.shop),
++		show: t => t.copy,
++	},
++];
++
++// One run of every step, the same in node and the browser: each step's lines are the ones its store flushed.
++// `after(step, t, ok)` is called once per step (the page draws there).
++export async function run_steps(steps, after = () => {}){
++	const t = { store: new ScratchStore({ url: "scratch.jsonl" }), lines: [] };
++	t.store.on_lines = lines => t.lines.push(...lines);
++	const results = [];
++	for (const step of steps){
++		t.lines = [];
++		let ok, error;
++		try { await step.run(t); await null; ok = !!step.check(t); }
++		catch (e){ ok = false; error = e; }
++		results.push({ step, ok, error, lines: [...t.lines] });
++		after(step, t, ok, error);
++	}
++	return results;
++}
+diff --git a/public/framework/core/Item/Item.steps.test.mjs b/public/framework/core/Item/Item.steps.test.mjs
+new file mode 100644
+index 000000000..126c7ca0a
+--- /dev/null
++++ b/public/framework/core/Item/Item.steps.test.mjs
+@@ -0,0 +1,8 @@
++// Item's core test, the same steps its class page draws (Item.steps.js). Run: node public/framework/core/Item/Item.steps.test.mjs
++import Test from "../Test/Test.js";
++import "../List/List.js";
++import steps, { run_steps } from "./Item.steps.js";
++
++const t = new Test("Item steps");
++for (const r of await run_steps(steps)) t.ok(r.ok, `${r.step.title}: ${r.step.code}${r.error ? " threw " + r.error.message : ""}`);
++t.done();
+diff --git a/public/framework/core/Item/methods/get.md b/public/framework/core/Item/methods/get.md
+new file mode 100644
+index 000000000..1e8175679
+--- /dev/null
++++ b/public/framework/core/Item/methods/get.md
+@@ -0,0 +1,5 @@
++## A field, else a child
++
++`get(key)` looks in three places, in order: an own property of the item, then its `data`, then a member with that id in any List it owns. The last one is what lets a saved line like `{"milk":{"set":{…}}}` find `milk` on replay.
++
++**Watch out:** a getter declared on a class (not an own property, not in `data`) is not found by `get`; read it as a property. Task overrides `get` for its `tasks` for this reason.
+diff --git a/public/framework/core/Item/methods/set.md b/public/framework/core/Item/methods/set.md
+new file mode 100644
+index 000000000..18cfaf4a1
+--- /dev/null
++++ b/public/framework/core/Item/methods/set.md
+@@ -0,0 +1,11 @@
++## One delta, key by key
++
++`set({ title: "B", count: 2 })` applies each key in order, and each key does one of three things:
++
++- **A method's name** calls it: `set({ remove: [] })` is `remove()`. This is how a saved line replays a verb.
++- **A child's id or a list's name** walks into it: `set({ milk: { set: { count: 2 } } })` changes `milk`.
++- **Anything else** is a field: it goes into `data`, and only if the value changed it emits `change` and `delta`.
++
++`set("title", "B")` is the same as `set({ title: "B" })`.
++
++**Watch out:** an Item or a List passed as a field value is stored as a plain snapshot and never saved again. Give the class a declared list instead ([delta-flow.md](/framework/core/Session/tasks/data-shapes/seats/delta-flow/delta-flow.md), "Would set of a List or an Item wire up persistence?").
+diff --git a/public/framework/core/Item/methods/toJSON.md b/public/framework/core/Item/methods/toJSON.md
+new file mode 100644
+index 000000000..aaa92e30d
+--- /dev/null
++++ b/public/framework/core/Item/methods/toJSON.md
+@@ -0,0 +1,5 @@
++## The saved shape
++
++`{ "type": "Box", "id": "shop", "data": { … }, "items": [ … ] }`: the type name from `register`, the id, every field under `data`, and each List the item owns as an array under its own name.
++
++`parent`, `store` and `views` are never written, so a saved item cannot point back up. `Item.hydrate` reads this shape back and restores each `parent` by adding the members to their lists.
+diff --git a/public/framework/core/Item/page.js b/public/framework/core/Item/page.js
+index 850f6ded7..3b02ba4cb 100644
+--- a/public/framework/core/Item/page.js
++++ b/public/framework/core/Item/page.js
+@@ -1,4 +1,9 @@
+-import { Doc, md, h2, code, div, span, icon } from "/app.js";
++import { div, span, code, icon, details, summary } from "/app.js";
++import ClassDoc from "../../ext/Doc/ClassDoc.js";
++import Box from "./watch/Box.js";
++import life from "./Item.life.js";
++import steps, { run_steps } from "./Item.steps.js";
++import method_list from "./Item.methods.js";
+ import Item from "./Item.js";
+ import List from "../List/List.js";
+ 
+@@ -127,86 +132,43 @@ function row([label, fn]){
+ 	);
+ }
+ 
+-export default new Doc({
++export default new ClassDoc({
+ 	meta: import.meta,
+ 	title: "Item",
+-	description: "A persistent node: an id, a `data` bag, one saver per document — no children of its own.",
++	description: "A persistent node: an id, a `data` bag, a parent; any list it gives itself.",
+ 	icon: "data_object",
+ 
+ 	subject: Item,
++	extends: "Events",
++	holds: "an id, a data bag of fields, a parent, and any List it gives itself",
++	example(){ const shop = new Box({ id: "shop", title: "Shopping" }); shop.items.add({ id: "milk", title: "Milk", count: 2 }); return shop; },
++	life,
++	steps, run_steps,
++	steps_test: "Item.steps.test.mjs",
++	method_list,
++	method_notes: "set get toJSON",
++
+ 	properties: "id data parent store view",
+ 	methods: "assign get put set locate remove root lists walk find contains save delete toJSON wire hydrate register open",
+-	core: "data:10 id:9 set:9 get:8 find:7 walk:6 hydrate:6",   // the Core API block: name:weight (ext/Doc/doc/class-card.md)
++	core: "data:10 id:9 set:9 get:8 find:7 walk:6 hydrate:6",   // ClassCard order on pages that inherit from Item (ext/Doc/doc/class-card.md)
+ 	notes: "architecture envelope decisions",
+-	files: "Item.js readme.md page.js",
++	files: "Item.js Item.steps.js Item.methods.js Item.life.js readme.md page.js",
+ 
+-	// ⚠ NOT a plain `children: "live"` — that runs through `declare()` inside the
+-	//   Page CONSTRUCTOR, before `Doc`'s own `initialize()` has added its Overview/
+-	//   API/Docs/Files sections, so "live" landed in `page.pages` (and so the
+-	//   SIDEBAR RAIL, which reads raw insertion order) BEFORE "Overview" — even
+-	//   though the TAB STRIP looked right (`Doc.bar()` hard-codes Overview first,
+-	//   regardless). Chaining `Doc`'s own `initialize()` first, then declaring
+-	//   "live", puts it after Overview everywhere a reader sees it. Fixed
+-	//   2026-10-02, task-mastermind review.
++	// ⚠ Declared after the sections, so "live" never lands before Overview in the rail (2026-10-02).
+ 	initialize(){
+-		Doc.prototype.initialize.call(this);
++		ClassDoc.prototype.initialize.call(this);
+ 		this.declare("live"); this.declare("watch"); this.declare("Dated");
+ 	},
+ 
++	// Below the drawing: the older checks, folded to one line.
+ 	content(){
+-
+-		code.js(`const card = new DemoCard({ data: { title: "Doc" } });   // DemoCard made itself a list, below
+-card.items.add(new Item({ data: { text: "Hello" } }));
+-card.save();`);
+-
+-		md("An **Item** is one node of a document: a `data` bag, an id, `set(delta)`, and a place to save. It has **no children of its own** — nothing on Item holds a list. It has no view, no transport and no required imports — you can run this class in node.");
+-
+-		h2("Composing a list");
+-
+-		code.js(`class DemoCard extends Item {
+-	constructor(...args){
+-		super(...args);
+-		this.items = new List({ owner: this, name: "items" });   // a NAMED property, not inherited
+-	}
+-}`);
+-
+-		md("Something that needs children gives **itself** a [List](/framework/core/List/) property, in its own constructor, named for what it holds (`items` here; `page.pages` and `page.content` will be [Page](/framework/core/Page/)'s own, next). The list's own verbs — `add`, `remove`, `move`, `order` — live on THAT property: `card.items.add(kid)`, never `card.add(kid)`. This is composition on purpose: a class with its own `add`/`move` already in use (Page has about 70 methods) would collide if Item inherited the list API instead of merely offering it.");
+-
+-		h2("The envelope");
+-
+-		code.json(`{ "type": "Item", "id": "…", "data": { }, "items": [ ] }`);
+-
+-		md("Those are the whole wire format for a plain Item: `type`/`id`/`data`, plus any List property it gave itself, each written as a plain array under its own name (`items` here) — omitted entirely when that Item never made one. **All user state lives under `data`**, so a key of your own never collides with a list name. `parent`, `store` and `view` are instance properties, never serialized — which makes a backref impossible by construction; hydrate restores `parent` by adoption. More on the envelope, unknown types, and what's deliberately excluded: [doc/envelope](/framework/core/Item/doc/envelope/).");
+-
+-		h2("The verbs Item DOES have");
+-
+-		code.js(`item.get(k)  item.put(k, v)        // seams over \`data\` — Page overrides both
+-item.set(k, v)  item.set({k: v})   // one delta, in key order — see the readme
+-item.remove()                      // me, out of whichever of my parent's lists holds me
+-item.on(ev, fn)  item.emit(ev, …)  // (core/Events) — emit bubbles up the parent chain
+-item.save()  item.delete()         // delegate up to the document's saver`);
+-
+-		md("**There is no `item.add`, `item.move` or `item.order`.** Those three verbs are the LIST's (`item.items.add(kid)`, `item.items.move(kid, {before, from})`), never the Item's — see *Composing a list* above. Guard a drop with `!this.contains(target)`; ten minutes of nesting otherwise produce a cycle. Every verb has its own page in **API**, above, with the trap it carries.");
+-
+-		md("⚠ **No I/O in any constructor.** Construction is pure and synchronous. `await Item.open(saver)` is the one async entry — it loads, hydrates synchronously, attaches the saver and hands back the root.");
+-
+-		h2("The page is the test");
+-
+-		md("Every claim above, asserted here on load. Red is a broken framework, not a broken page.");
+-
+ 		const done = [];
+-		div.c("flex v gap pad surface", () => checks.forEach(c => done.push(row(c))))
+-			.style({ "--gap": "0.35em", "--pad": "1em" });
+-
+-		const $tally = div.c("h4 muted", "running…");
+-		Promise.all(done).then(oks => $tally.text(`${oks.filter(Boolean).length} / ${oks.length} passing`));
+-
+-		h2("See it saved");
+-
+-		md("[**Live list**](/framework/core/Item/live/) — the same `List`, but on a real page, saved to a real file: drag a row, add one, sort them, then reload. The list comes back.");
+-
+-		md("Next: [List](/framework/core/List/) — the ordered collection itself, and why a bare `Item` never has one of its own.");
+-
+-		md.details(import.meta, "readme.md", "Readme");
++		let $sum;
++		details.c("doc-class-more", () => {
++			$sum = summary("More checks, run on load: running…");
++			div.c("flex v gap pad surface", () => checks.forEach(c => done.push(row(c))))
++				.style({ "--gap": "0.35em", "--pad": "1em" });
++		});
++		Promise.all(done).then(oks => $sum.text(`More checks, run on load: ${oks.filter(Boolean).length} of ${oks.length} pass`));
+ 	}
+ });
+diff --git a/public/framework/core/Item/readme.md b/public/framework/core/Item/readme.md
+index 93ef0e84a..31a98a0f7 100644
+--- a/public/framework/core/Item/readme.md
++++ b/public/framework/core/Item/readme.md
+@@ -82,7 +82,7 @@ Code pointers and findings: [doc/architecture.md](./doc/architecture.md#items-sa
+ 
+ The target model (the owner, 2026-10-21): any item holds items on demand, adding is a reference and moving is explicit, every added item gets persistence recursively, storage targets vary and are visible: [doc/owner-2026-10-21-items-hold-items.md](./doc/owner-2026-10-21-items-hold-items.md).
+ 
+-A testing system is a need, not now (2026-10-20). Tests today are plain node files (`node Item.test.mjs`).
++A testing system is a need, not now (2026-10-20). Tests today are plain node files (`node Item.test.mjs`). The core test the [Item page](/framework/core/Item/) draws step by step is `Item.steps.js`; `node Item.steps.test.mjs` runs the same steps. The page's life-cycle picture is `Item.life.js` and its method pages are `Item.methods.js` plus `methods/<name>.md` ([ClassDoc](/framework/ext/Doc/doc/class-doc.md)).
+ 
+ ## Watch out
+ 
+diff --git a/public/framework/core/List/List.methods.js b/public/framework/core/List/List.methods.js
+new file mode 100644
+index 000000000..1c8df6565
+--- /dev/null
++++ b/public/framework/core/List/List.methods.js
+@@ -0,0 +1,28 @@
++import Box from "../Item/watch/Box.js";
++
++/* List's methods for its class page (ext/Doc/ClassDoc.js): each one's job in one line, and a tiny example whose
++   body the page shows as code and whose result it draws live. The four verbs that write a line come first. */
++const shop = () => { const s = new Box({ id: "shop" }); ["milk", "bread", "eggs"].forEach(id => s.items.add({ id })); return s; };
++
++export default {
++	add: { job: "Put a member in, after the one you name (else last). Writes one line.",
++		example(){ const s = shop(); s.items.add({ id: "tea" }, { after: "milk" }); return s.items; } },
++	remove: { job: "Take a member out by its id. Writes one line.",
++		example(){ const s = shop(); s.items.remove("bread"); return s.items; } },
++	move: { job: "Move a member after another (null: first), or into this list from another. Writes one line.",
++		example(){ const s = shop(); s.items.move("eggs", { after: null }); return s.items; } },
++	order: { job: "Put every member in the order of these ids. Writes one line.",
++		example(){ const s = shop(); s.items.order(["eggs", "milk", "bread"]); return s.items; } },
++	find: { job: "A member by its id, or undefined.",
++		example(){ return shop().items.find("bread"); } },
++	at: { job: "A member by position; -1 is the last.",
++		example(){ return shop().items.at(-1); } },
++	forEach: { job: "Call a function on each member, in order.",
++		example(){ const ids = []; shop().items.forEach(x => ids.push(x.id)); return ids; } },
++	map: { job: "A plain array of what a function returns for each member.",
++		example(){ return shop().items.map(x => x.id.toUpperCase()); } },
++	insert: { job: "Put a member in quietly, with no line: for loading, not for changes.",
++		example(){ const s = shop(); s.items.insert(new Box({ id: "jam" })); return s.items; } },
++	toJSON: { job: "The saved shape: a bare array of the members' own shapes.",
++		example(){ return shop().items.toJSON(); } },
++};
+diff --git a/public/framework/core/List/List.steps.js b/public/framework/core/List/List.steps.js
+new file mode 100644
+index 000000000..a2e079dba
+--- /dev/null
++++ b/public/framework/core/List/List.steps.js
+@@ -0,0 +1,65 @@
++import Box from "../Item/watch/Box.js";
++
++/* List's core test as steps: the class page draws each one (ext/Doc/ClassDoc.js) and List.steps.test.mjs runs the
++   same array in node, with Item's runner (core/Item/Item.steps.js). A Box gives itself a List, `shop.items`, the way
++   every class that holds children does. */
++const ids = list => [...list].map(x => x.id).join(",");
++
++export default [
++	{
++		title: "Create",
++		code: `const shop = new Box({ id: "shop" })   // its constructor makes shop.items`,
++		note: "A List is made by the class that owns it, named for what it holds.",
++		run: t => { t.shop = new Box({ id: "shop" }); },
++		check: t => t.shop.items.owner === t.shop && t.shop.items.length === 0,
++		show: t => t.shop,
++	},
++	{
++		title: "Save",
++		code: `store.attach(shop)`,
++		note: "The store sits on the root; the list's changes reach it through the owner.",
++		run: t => { t.store.attach(t.shop); },
++		check: t => t.lines.length === 0,
++		show: t => t.shop,
++	},
++	{
++		title: "Add",
++		code: `shop.items.add({ id: "milk" })`,
++		note: "One line, under the list's name. The member's parent is the owner, never the list.",
++		run: t => { t.milk = t.shop.items.add({ id: "milk" }); },
++		check: t => t.milk.parent === t.shop && ids(t.shop.items) === "milk" && "items" in t.lines[0],
++		show: t => t.shop,
++	},
++	{
++		title: "Add first",
++		code: `shop.items.add({ id: "bread" }, { after: null })`,
++		note: "Places are named by id, never by number: after: null means first.",
++		run: t => { t.shop.items.add({ id: "bread" }, { after: null }); },
++		check: t => ids(t.shop.items) === "bread,milk" && t.lines.length === 1,
++		show: t => t.shop,
++	},
++	{
++		title: "Move",
++		code: `shop.items.move("milk", { after: null })`,
++		note: "A move is one line too, naming the member and where it goes.",
++		run: t => { t.shop.items.move("milk", { after: null }); },
++		check: t => ids(t.shop.items) === "milk,bread" && t.lines.length === 1,
++		show: t => t.shop,
++	},
++	{
++		title: "Remove",
++		code: `shop.items.remove("bread")`,
++		note: "Out of the list, its parent cleared, one line.",
++		run: t => { t.bread = t.shop.items.find("bread"); t.shop.items.remove("bread"); },
++		check: t => ids(t.shop.items) === "milk" && !t.bread.parent && t.lines.length === 1,
++		show: t => t.shop,
++	},
++	{
++		title: "Replay",
++		code: `const copy = new Box({ id: "shop" }); lines.forEach(line => copy.set(line))`,
++		note: "The lines alone rebuild the same list, in the same order.",
++		run: t => { t.copy = new Box({ id: "shop" }); t.store.lines.forEach(line => t.copy.set(line)); },
++		check: t => JSON.stringify(t.copy) === JSON.stringify(t.shop),
++		show: t => t.copy,
++	},
++];
+diff --git a/public/framework/core/List/List.steps.test.mjs b/public/framework/core/List/List.steps.test.mjs
+new file mode 100644
+index 000000000..94723236b
+--- /dev/null
++++ b/public/framework/core/List/List.steps.test.mjs
+@@ -0,0 +1,9 @@
++// List's core test, the same steps its class page draws (List.steps.js). Run: node public/framework/core/List/List.steps.test.mjs
++import Test from "../Test/Test.js";
++import "./List.js";
++import steps from "./List.steps.js";
++import { run_steps } from "../Item/Item.steps.js";
++
++const t = new Test("List steps");
++for (const r of await run_steps(steps)) t.ok(r.ok, `${r.step.title}: ${r.step.code}${r.error ? " threw " + r.error.message : ""}`);
++t.done();
+diff --git a/public/framework/core/List/page.js b/public/framework/core/List/page.js
+index d50338bdd..b70697dfb 100644
+--- a/public/framework/core/List/page.js
++++ b/public/framework/core/List/page.js
+@@ -1,19 +1,14 @@
+-import { Doc, md, h2, code, div, span, button, icon } from "/app.js";
++import { code, div, span, icon, details, summary } from "/app.js";
++import ClassDoc from "../../ext/Doc/ClassDoc.js";
++import Box from "../Item/watch/Box.js";
++import item_life from "../Item/Item.life.js";
++import steps from "./List.steps.js";
++import { run_steps } from "../Item/Item.steps.js";
++import method_list from "./List.methods.js";
+ import Item from "../Item/Item.js";
+ import List from "./List.js";
+ import examples from "./List.examples.js";
+ 
+-// A real root Item, composing a named List — the pattern [Item](/framework/core/Item/)
+-// itself uses (`item.content`, `panel.items`). Every List announces every change;
+-// there is no plain, event-less variant any more (2026-10-02: "scrap LiveList
+-// everywhere… List itself gets Events built in").
+-function build_live(){
+-	const root = new Item({ id: "root", data: {} });
+-	root.items = new List({ owner: root, name: "items" });
+-	["Alpha", "Beta", "Gamma"].forEach(label => root.items.add({ id: label, label }));
+-	return root;
+-}
+-
+ // An example's `run()` body, without its own indentation — the lines you'd copy.
+ function body(fn){
+ 	const lines = fn.toString().split("\n").slice(1, -1);
+@@ -37,70 +32,46 @@ function example({ title, run }){
+ 	return !error;
+ }
+ 
+-export default new Doc({
++// The same path as an Item's change (a List is an Item); only who makes and changes one differs.
++const life = {
++	who: [
++		{ icon: "code", name: "Its owner's class", code: `this.items = new List({ owner: this, name: "items" })`, says: "made in the owner's constructor; writes nothing" },
++		{ icon: "touch_app", name: "A click", code: `list.move(id, { after })`, says: "a drag, a sort, a delete" },
++		{ icon: "smart_toy", name: "An agent", code: `item({ path, delta: { items: { add } } })`, says: "Servex's item tool" },
++		{ icon: "history", name: "A load", code: `Item.hydrate(json) · root.set(line)`, says: "members inserted quietly, or one line at a time" },
++	],
++	path: item_life.path.map(hop => hop.name === "One line" ? { ...hop, code: `{"items":{"move":{"id":"milk","after":null}}}`, says: "the list's name is the last hop" } : hop),
++};
++
++export default new ClassDoc({
+ 	meta: import.meta,
+ 	title: "List",
+ 	description: "The ordered collection that announces every change — add/remove/move/order by id, never an index.",
+ 	icon: "reorder",
+ 
+ 	subject: List,
++	holds: "its members in order, and its owner: the Item whose property it is",
++	example(){ const shop = new Box({ id: "shop" }); ["milk", "bread", "eggs"].forEach(id => shop.items.add({ id })); return shop.items; },
++	life,
++	steps, run_steps,
++	steps_test: "List.steps.test.mjs",
++	method_list,
++	method_setup: "// shop(): a Box whose items are milk, bread, eggs",
++
+ 	properties: "items owner length",
+-	// ⚠ `assign` and `set` are Item's, not List's own, since `List extends Item` (2026-10-03) —
+-	// `Doc.members()` only shows a class's OWN prototype methods (`util/source/source.js`'s
+-	// `member()`), so listing an inherited name here just warns "has no member" and adds
+-	// nothing (found 2026-10-03, console-clean task, via a CDP console trace on /ai/live/).
++	// ⚠ Only List's OWN prototype methods: an inherited name (`set`) warns "has no member" (2026-10-03).
+ 	methods: "forEach map at adopt append insert_before take index_of key find add remove move order toJSON",
+ 	notes: "architecture decisions",
+-	files: "List.js List.examples.js readme.md page.js",
++	files: "List.js List.steps.js List.methods.js List.examples.js readme.md page.js",
+ 
++	// Below the drawing: the six examples that are also List's tests, folded to one line.
+ 	content(){
+-
+-		code.js(`list.add(x, {after})  list.remove(id)  list.move(id, {after})  list.order([ids])
+-list.find(id)  list.forEach(fn)  list.map(fn)  list.at(i)  list.length
+-list.adopt(child)   //  child.parent = owner ?? this
+-list.toJSON()       //  a bare array`);
+-
+-		md("**List is the ordered collection — Events built in, so every change announces itself.** About two hundred lines, composed onto an Item as a named property (`item.content`, `panel.items`) — never inherited. `Item` holds no list of its own; something that needs children gives ITSELF one (`item.content = new List({ owner: item, name: \"content\" })`). There is no separate event-less variant: every List is live.");
+-
+-		h2("Four verbs, by id, never an index");
+-
+-		md("`add` / `remove` / `move` / `order` each emit the exact line they would save, plus one uniform `\"delta\"` event [`Item.Store`](/framework/core/Item/) listens for. A line survives the list changing shape around it, because every verb names a MEMBER, never a position.");
+-
+-		code.js(`const root = new Item({ id: "root", data: {} });
+-root.items = new List({ owner: root, name: "items" });
+-root.items.add({ id: "a", label: "Alpha" });   // announces "add" + "delta", bubbled to root`);
+-
+-		const root = build_live();
+-		const $tree = div.c("flex gap pad surface").style({ "--gap": "0.5em", "--pad": "0.8em" });
+-		const draw = () => $tree.empty(() => { root.items.forEach(x => span(x.get("label"))); });
+-
+-		["add", "remove", "move", "order", "change"].forEach(event => root.on(event, draw));
+-		draw();
+-
+-		div.c("flex gap wrap", () => {
+-			button("Gamma to front").click(() => root.items.move("Gamma", { after: null }));
+-			button("Rename Beta").click(() => root.items.find("Beta")?.set("label", "Beta " + root.items.length));
+-			button("Reset").click(() => {
+-				[...root.items].forEach(kid => root.items.remove(kid.id));
+-				["Alpha", "Beta", "Gamma"].forEach(label => root.items.add({ id: label, label }));
+-			});
+-		}).style("--gap", "0.5em");
+-
+-		md("Reorder and rename are each **one call**, on the list — nothing here subscribes to a row; `draw` is bound once, to the root, and hears everything under it because events bubble.");
+-
+-		h2("List by example");
+-
+-		md("Six examples, each a few plain lines that prove one behaviour. They are also List's tests: they run right here as the page loads, and the node test runs the same file ([List.examples.js](./List.examples.js)).");
+-
+ 		const passed = [];
+-		div.c("flex v gap pad surface", () => examples.forEach(e => passed.push(example(e))))
+-			.style({ "--gap": "1.2em", "--pad": "1em" });
+-		div.c("h4 muted", `${passed.filter(Boolean).length} / ${passed.length} passing`);
+-
+-		md("⚠ **No derived or reactive lists.** A long-lived document leaking a listener per row per view is the exact failure a one-listener-at-the-root design avoids — derive with `[...list].filter(…)` at the call site and redraw from the root event.");
+-
+-		md("Back to [Item](/framework/core/Item/) — the class that composes one of these as a named property, and never a second one for the same name.");
+-
+-		md.details(import.meta, "readme.md", "Readme");
++		details.c("doc-class-more", () => {
++			const $sum = summary("");
++			div.c("flex v gap pad surface", () => examples.forEach(e => passed.push(example(e))))
++				.style({ "--gap": "1.2em", "--pad": "1em" });
++			$sum.text(`Six more examples, run on load: ${passed.filter(Boolean).length} of ${passed.length} pass`);
++		});
+ 	}
+ });
+diff --git a/public/framework/core/List/readme.md b/public/framework/core/List/readme.md
+index 9dc5e419f..d63b19a83 100644
+--- a/public/framework/core/List/readme.md
++++ b/public/framework/core/List/readme.md
+@@ -40,7 +40,7 @@ list.toJSON()       //  a bare array
+ - `adopt()` sets `parent` to the `owner` (the Item), never the list — walking up never steps over a collection: [doc/adoption.md](./doc/adoption.md)
+ - `insert_before` takes a node, not an index; a `ref` that is null or absent appends: [doc/decisions.md](./doc/decisions.md)
+ - The four verbs (`add`/`remove`/`move`/`order`) are **by id, never an index** — a line survives the list changing shape around it. `insert`/`replace`/`release` are the quiet counterparts: loading or replacing a stub is not a change worth a line.
+-- **The examples are the tests.** [`List.examples.js`](./List.examples.js) holds six `{title, run}` examples: the [List page](/framework/core/List/) shows each with a live pass or fail, and `ai/sessions/2026/10/02/page-extends-item/page-extends-item/item-core/test.mjs` runs the same array in node. Add a behaviour, add an example.
++- **The examples are the tests.** [`List.examples.js`](./List.examples.js) holds six `{title, run}` examples: the [List page](/framework/core/List/) shows each with a live pass or fail, and `ai/sessions/2026/10/02/page-extends-item/page-extends-item/item-core/test.mjs` runs the same array in node. Add a behaviour, add an example. The [List page](/framework/core/List/) also draws `List.steps.js` step by step (`node List.steps.test.mjs` runs them) and its method pages from `List.methods.js` ([ClassDoc](/framework/ext/Doc/doc/class-doc.md)).
+ - A saved `move` line replays: `move({id, after, from})` (the whole payload, as `set()` hands it) is the line form, and a cross-list `from` path is resolved from the Store's host.
+ - No reactive or derived lists — they leaked a listener per row; derive with `[...list].filter(…)`: [doc/decisions.md](./doc/decisions.md)
+ 
+diff --git a/public/framework/core/Session/tasks/data-shapes/build/class-docs/plan.md b/public/framework/core/Session/tasks/data-shapes/build/class-docs/plan.md
+new file mode 100644
+index 000000000..62e73d51c
+--- /dev/null
++++ b/public/framework/core/Session/tasks/data-shapes/build/class-docs/plan.md
+@@ -0,0 +1,32 @@
++# Build C plan: class pages that show, not tell
++
++Brief: [requirements.md](requirements.md). Branch `worktree/class-docs`, off build B (`657d3514f`).
++
++## What exists
++
++- `ext/Doc/Doc.js`: a module as tabs (Overview, API, Docs, md, Files, Tasks, Inbox). The API tab opens on `ClassCard` (a grid of member names); each member page is source code plus a `doc/method/<name>.md`, most of them prose from 2026-08 and partly stale.
++- `core/Item/page.js`, `core/List/page.js`: an Overview of code blocks and paragraphs, then the checks the page runs on load.
++- Build B: `view(x)` (`ux/Content/Object/DefaultView.js`) draws any object live; `core/Item/watch/` steps through a tree being built (`Box`, `ScratchStore`).
++- Seat (g)'s [delta-flow.md](../../seats/delta-flow/delta-flow.md): the path of one change, hop by hop.
++
++## The new class: `ClassDoc extends Doc` (`ext/Doc/ClassDoc.js`)
++
++One page class for any class page. Config adds five things to a Doc's:
++
++| key | what it draws |
++|---|---|
++| `holds` | the class line: `Item` extends `Events` · holds: … (the parent class is read off the prototype) |
++| `example()` | a real instance, drawn with `view()` |
++| `steps` | the core test drawn on screen: one card per step (its code, ✓/✗, the object's view after it, the lines it wrote) |
++| `life` | the life cycle as one picture: who creates or changes it → the hops to the file → back to every tab |
++| `members` | `{name: {job, example()}}`: the Methods tab, and `methods/<name>/` from `route(name)` |
++
++- **Steps are data that is also a test:** `core/Item/Item.steps.js` exports `[{title, code, note, run(t), check(t), show(t)}]`. The page runs them in the browser; `core/Item/Item.steps.test.mjs` runs the same array in node.
++- **Methods:** the Methods tab is a wall of cards (signature, one-line job). `methods/<name>/` is built by `route(name)` on that tab: signature, job, the example's code and its live result, then `methods/<name>.md` when the page lists it in `method_notes` (only `set`, `get`, `toJSON`). The old `api/<name>/` urls route to the same page, so old links keep working; the old API tab is replaced by Methods.
++- **List** uses the same class with its own `List.steps.js`, `List.methods.js`, and the same life cycle with its own "who changes it" column.
++
++## Decisions
++
++- **Step order** is create, save (attach a store), set, add a child, change the child, replay, not the brief's create, set, add, save, replay: in the current system a change is saved as it happens, so a store attached after the changes has nothing to replay. Alternative: save as a snapshot (`JSON.stringify`, `Item.hydrate`), which is the older whole-document path.
++- **Old prose stays one click down** (the Docs and md tabs); the Overview has no paragraphs. The 18 checks the old Item page ran stay, folded into one line with their tally.
++- **No changes to `Item.js`, `Store.js`, `List.js`** (build A's fence). `Box` and `ScratchStore` from `core/Item/watch/` are reused.
+diff --git a/public/framework/ext/Doc/ClassDoc.css b/public/framework/ext/Doc/ClassDoc.css
+new file mode 100644
+index 000000000..89b19012f
+--- /dev/null
++++ b/public/framework/ext/Doc/ClassDoc.css
+@@ -0,0 +1,65 @@
++@layer base, theme, site, util;
++
++/* ClassDoc (ClassDoc.js): a class page that shows before it tells. Prefix doc-class- (ext/Doc owns doc-). */
++@layer theme {
++
++	.doc-class { display: flex; flex-direction: column; gap: var(--gap, 1.5em); min-width: 0; }
++
++	/* The class line: Item extends Events · holds … */
++	.doc-class-line { font-size: 1.25em; margin: 0; line-height: 1.5; }
++	.doc-class-line code { font-size: 0.95em; }
++	.doc-class-sep { color: var(--subtle); }
++
++	/* Live instance beside the life cycle; stacked below 60em of room. */
++	.doc-class-top { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--gap, 1.5em); }
++	@media (min-width: 1100px) { .doc-class-top { grid-template-columns: minmax(16em, 1fr) minmax(0, 2fr); } }
++
++	.doc-class-box { display: flex; flex-direction: column; gap: 0.75em; min-width: 0; }
++	.doc-class-head { display: flex; align-items: center; gap: 0.4em; margin: 0; font-size: 1.1em; }
++	.doc-class-head .icon { color: var(--subtle); }
++
++	/* The life cycle: who → the path, top to bottom. */
++	.doc-class-life { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.6em; align-items: start; }
++	@media (min-width: 700px) { .doc-class-life { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1.3fr); } }
++	.doc-class-arrow { align-self: center; justify-self: center; color: var(--subtle); }
++	@media (max-width: 699px) { .doc-class-arrow { transform: rotate(90deg); } }
++	.doc-class-who, .doc-class-path { display: flex; flex-direction: column; gap: 0.5em; min-width: 0; }
++	.doc-class-hop { display: flex; gap: 0.6em; align-items: flex-start; padding: 0.6em 0.75em; border-radius: 0.5em; background: var(--surface, rgba(127,127,127,0.08)); min-width: 0; }
++	.doc-class-hop > .icon { color: var(--prime); flex: none; }
++	.doc-class-hop > div { min-width: 0; display: flex; flex-direction: column; gap: 0.15em; }
++	.doc-class-hop code { font-size: 0.85em; overflow-wrap: anywhere; }
++	.doc-class-hop-name { font-weight: 600; }
++	.doc-class-hop-says { color: var(--subtle); font-size: 0.9em; }
++	.doc-class-path { position: relative; }
++	.doc-class-path > .doc-class-hop + .doc-class-hop { position: relative; }
++	.doc-class-path > .doc-class-hop + .doc-class-hop::before { content: "↓"; position: absolute; top: -0.85em; left: 1.15em; color: var(--subtle); font-size: 0.9em; line-height: 1; }
++
++	/* The steps: one card each, as many across as fit. */
++	.doc-class-tally { margin: 0; color: var(--subtle); }
++	.doc-class-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20em), 1fr)); gap: 1em; }
++	.doc-class-step { display: flex; flex-direction: column; gap: 0.5em; padding: 0.8em; border-radius: 0.6em; background: var(--surface, rgba(127,127,127,0.08)); border-top: 3px solid transparent; min-width: 0; }
++	.doc-class-step.is-pass { border-top-color: var(--ok); }
++	.doc-class-step.is-fail { border-top-color: var(--error); }
++	.doc-class-step-head { display: flex; align-items: center; gap: 0.5em; font-weight: 600; }
++	.doc-class-step-n { display: inline-grid; place-items: center; width: 1.6em; height: 1.6em; border-radius: 50%; background: var(--prime); color: var(--prime-ink); font-size: 0.85em; flex: none; }
++	.doc-class-step > code, .doc-class-step-lines code { font-size: 0.85em; overflow-wrap: anywhere; white-space: pre-wrap; }
++	.doc-class-step-verdict { display: flex; gap: 0.4em; align-items: flex-start; font-size: 0.9em; }
++	.doc-class-step.is-pass .doc-class-step-verdict .icon { color: var(--ok); }
++	.doc-class-step.is-fail .doc-class-step-verdict .icon { color: var(--error); }
++	.doc-class-step-object { min-width: 0; }
++	.doc-class-step-lines { display: flex; flex-direction: column; gap: 0.25em; font-size: 0.9em; }
++
++	/* Methods: a wall of cards, each a link to its page. */
++	.doc-class-methods { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16em), 1fr)); gap: 0.6em; }
++	.doc-class-method { display: flex; flex-direction: column; gap: 0.25em; padding: 0.7em 0.8em; border-radius: 0.5em; background: var(--surface, rgba(127,127,127,0.08)); color: inherit; text-decoration: none; min-width: 0; }
++	.doc-class-method:hover { outline: 2px solid var(--prime); }
++	.doc-class-method code { font-weight: 600; overflow-wrap: anywhere; }
++	.doc-class-method span { color: var(--subtle); font-size: 0.9em; }
++
++	/* One method's page. */
++	.doc-class-method-page { display: flex; flex-direction: column; gap: 1em; margin-block: 1em; }
++	.doc-class-sig { font-size: 1.3em; font-weight: 600; }
++	.doc-class-job { font-size: 1.15em; margin: 0; }
++	.doc-class-result { min-width: 0; }
++	.doc-class-error { color: var(--error); }
++}
+diff --git a/public/framework/ext/Doc/ClassDoc.js b/public/framework/ext/Doc/ClassDoc.js
+new file mode 100644
+index 000000000..b7e4e4c8a
+--- /dev/null
++++ b/public/framework/ext/Doc/ClassDoc.js
+@@ -0,0 +1,201 @@
++import { View, div, h2, h3, p, span, a, code, icon, details, summary, is } from "../../core/View/View.js";
++import Item from "../../core/Item/Item.js";
++import md from "../markdown/md.js";
++import { view } from "../../ux/Content/Object/DefaultView.js";
++import { Doc } from "./Doc.js";
++
++View.stylesheet(import.meta, "ClassDoc.css");
++
++/**
++ * class ClassDoc extends Doc — a class's page that shows before it tells (doc/class-doc.md). Its Overview is,
++ * top to bottom: the class line, a live instance, its life cycle in one picture, its core test drawn step by
++ * step, and its methods. Each method is a page at `methods/<name>/`, built by `route(name)`, never a page.js.
++ *
++ *   new ClassDoc({
++ *     meta: import.meta, title: "Item", subject: Item,
++ *     holds: "an id, a data bag, a parent",      // the class line
++ *     example: () => new Box({ title: "Milk" }), // drawn live with view()
++ *     life: { who: [...], path: [...] },         // Item.life.js
++ *     steps,                                     // Item.steps.js: [{title, code, note, run, check, show}]
++ *     run_steps,                                 // the runner the node test uses too
++ *     method_list: { set: {job, example}, … },   // Item.methods.js
++ *     method_notes: "set get toJSON",            // methods/<name>.md, only these
++ *     method_setup: "// shop(): …",              // a comment shown above every example, for a helper they share
++ *     content(){ … },                            // anything else, drawn after
++ *   })
++ *
++ * Everything a Doc takes still works (notes, files, children). With a `method_list` the API tab is replaced by
++ * Methods; the old `api/<name>/` urls route to the same method pages.
++ */
++export class ClassDoc extends Doc {
++
++	// The Overview: the drawing first, then the page's own content(), if any.
++	overview_section(){
++		const doc = this, own = this.content.value;
++		return this.section("overview", "Overview", {
++			title: this.title,
++			icon: this.icon,
++			content(){ doc.draw_class(); if (is.fn(own)) return own.call(doc); },
++			children: Array.isArray(this.overview) ? this.overview : Doc.names(this.overview),
++			initialize(){ this.catalog(); },
++			render(){
++				return this.view ??= div.c("page doc-section", () => this.content.render()).ac("page--" + this.name);
++			},
++		});
++	}
++
++	draw_class(){
++		div.c("doc-class wide", () => {
++			this.class_line();
++			div.c("doc-class-top", () => {
++				if (this.example) this.class_box("A live one", "visibility", () => view(this.example(), { open: 2 }));
++				if (this.life) this.class_box("How a change is saved", "sync_alt", () => this.life_picture());
++			});
++			if (this.steps) this.steps_view();
++			if (this.method_list) this.class_box("Methods", "functions", () => this.method_wall());
++		});
++	}
++
++	class_box(title, symbol, body){
++		return div.c("doc-class-box", () => {
++			h3.c("doc-class-head", () => { icon(symbol); span(title); });
++			body();
++		});
++	}
++
++	// `Item` extends `Events` · holds: an id, a data bag, a parent
++	class_line(){
++		const parent = Object.getPrototypeOf(this.subject);
++		const base = this.extends ?? (parent === Function.prototype ? null : parent.name || "a mixin");
++		p.c("doc-class-line", () => {
++			code(this.subject.name);
++			if (base) { span(" extends "); code(base); }
++			if (this.holds) { span.c("doc-class-sep", " · holds "); span(this.holds); }
++		});
++	}
++
++	// Who makes or changes one → the hops to the file → every other tab.
++	life_picture(){
++		const hop = (one, n) => div.c("doc-class-hop", () => {
++			icon(one.icon);
++			div(() => {
++				div.c("doc-class-hop-name", (n ? n + ". " : "") + one.name);
++				code(one.code);
++				div.c("doc-class-hop-says", one.says);
++			});
++		}).attr("title", one.src ?? "");
++
++		div.c("doc-class-life", () => {
++			div.c("doc-class-who", () => this.life.who.forEach(one => hop(one)));
++			div.c("doc-class-arrow", () => icon("arrow_forward"));
++			div.c("doc-class-path", () => this.life.path.forEach((one, i) => hop(one, i + 1)));
++		});
++	}
++
++	// The core test on screen: one card per step, placed now and filled as each step runs (no DOM after an await).
++	steps_view(){
++		let $tally;
++		this.class_box("Its test, step by step", "checklist", () => {
++			$tally = p.c("doc-class-tally", "Running…");
++			const cards = new Map();
++			div.c("doc-class-steps", () => this.steps.forEach((step, i) => cards.set(step, div.c("doc-class-step", () => {
++				div.c("doc-class-step-head", () => { span.c("doc-class-step-n", String(i + 1)); span(step.title); });
++				code(step.code);
++			}))));
++
++			this.run_steps(this.steps, (step, t, ok, error) => {
++				const lines = t.lines;
++				cards.get(step).ac(ok ? "is-pass" : "is-fail").append(() => {
++					div.c("doc-class-step-verdict", () => { icon(ok ? "check_circle" : "cancel"); span(ok ? step.note : error?.message ?? "the check failed"); });
++					div.c("doc-class-step-object", () => view(snapshot(step.show(t)), { open: 3 }));
++					div.c("doc-class-step-lines", () => lines.length
++						? lines.forEach(line => code(JSON.stringify(line)))
++						: span.c("muted", "no line written"));
++				});
++			}).then(results => {
++				const passed = results.filter(r => r.ok).length;
++				$tally.text(`${passed} of ${results.length} steps pass here.` + (this.steps_test ? ` Node runs the same steps: ${this.steps_test}` : ""));
++			});
++		});
++	}
++
++	// ---- methods ----
++
++	// Every method as a card: its call and its job; each links to its page.
++	method_wall(){
++		div.c("doc-class-methods", () => Object.entries(this.method_list).forEach(([name, one]) =>
++			a.c("doc-class-method", () => {
++				code(this.signature(name, one));
++				span(one.job);
++			}).href(this.url + "methods/" + name + "/")));
++	}
++
++	// `set(a, b)`, read off the class (`static: true`) or its prototype, default values dropped.
++	signature(name, one){
++		const fn = one.static ? this.subject[name] : this.subject.prototype[name];
++		const params = String(fn ?? "").match(/^[^(]*\(([^)]*)\)/)?.[1] ?? "";
++		const list = params.replace(/\{[^}]*\}?/g, "{…}").replace(/\s*=[^,]*/g, "").replace(/\s+/g, " ").trim();
++		return `${one.static ? this.subject.name + "." : ""}${name}(${list})`;
++	}
++
++	// A routed method page: signature, job, the example's code and its live result, then its notes.
++	method_page(name){
++		const doc = this, one = this.method_list[name];
++		if (!one) return;
++		return {
++			title: name,
++			content(){
++				a.c("class-card-back", () => { icon("arrow_back"); span(`${doc.title} methods`); }).href(doc.url + "methods/");
++				div.c("doc-class-method-page", () => {
++					code.c("doc-class-sig", doc.signature(name, one));
++					p.c("doc-class-job", one.job);
++					if (one.example) doc.class_box("Try it", "bolt", () => {
++						(code.js ?? code)((doc.method_setup ? doc.method_setup + "\n" : "") + body(one.example));
++						let result, error;
++						try { result = one.example(); } catch (e){ error = e; }
++						div.c("doc-class-result", () => error ? span.c("doc-class-error", error.message) : view(result, { open: 2 }));
++					});
++				});
++				if (Doc.names(doc.method_notes).includes(name)) return md.file(doc.meta, `methods/${name}.md`, { h1: false });
++			},
++		};
++	}
++
++	// The Methods tab replaces API when there is a method list: a wall of cards, each routed below it.
++	api_section(){
++		if (!this.method_list) return super.api_section();
++		const doc = this, names = Object.keys(this.method_list);
++		return this.section("methods", "Methods", {
++			route(name){ return doc.method_page(name); },
++			render(){
++				return this.view ??= div.c("page doc-section", () => this.tabs(names.join(" "), { home: () => doc.method_wall() }).ac("vertical"))
++					.ac("page--methods");
++			},
++		});
++	}
++
++	// Old links to `api/<name>/` (ClassCard rows on other class pages, older docs) land on `methods/<name>/`, and the
++	// address bar says so: the same shape as Doc's docs → doc redirect (Doc.child), replaceState so Back skips it.
++	async child(name, levels){
++		if (name !== "api" || !this.method_list || this.children.get("api")) return super.child(name, levels);
++		const page = await super.child("methods", levels);
++		const old = this.url + "api";
++		if (page && location.pathname.startsWith(old)) history.replaceState(history.state, "", this.url + "methods" + location.pathname.slice(old.length) + location.search + location.hash);
++		return page;
++	}
++
++	has_member(name){ return this.method_list ? name in this.method_list : super.has_member(name); }
++}
++
++// A copy of the object as it is now, so a later step cannot change what an earlier card shows.
++function snapshot(x){ return x instanceof Item ? Item.hydrate(JSON.parse(JSON.stringify(x))) : x; }
++
++// An example's body, one statement per line: what you would type.
++function body(fn){
++	const src = String(fn), inner = src.slice(src.indexOf("{") + 1, src.lastIndexOf("}")).trim();
++	return inner.includes("\n")
++		? inner.split("\n").map(line => line.replace(/^\t+/, "")).join("\n")
++		: inner.split(/;\s+/).map(s => s.replace(/;$/, "")).join(";\n") + ";";
++}
++
++export default ClassDoc;
+diff --git a/public/framework/ext/Doc/doc/class-doc.md b/public/framework/ext/Doc/doc/class-doc.md
+new file mode 100644
+index 000000000..fbc332ac1
+--- /dev/null
++++ b/public/framework/ext/Doc/doc/class-doc.md
+@@ -0,0 +1,25 @@
++# ClassDoc: a class page that shows before it tells
++
++`class ClassDoc extends Doc` ([ClassDoc.js](../ClassDoc.js), styles in [ClassDoc.css](../ClassDoc.css)). The owner's ask (2026-10-28): "Every time we create a view for something, it's just vomit… I really just need to see things and then be able to click through." Brief and plan: [build C](/framework/core/Session/tasks/data-shapes/build/class-docs/).
++
++**See it:** [Item at 1920](class-doc/item-1920.png) · [Item on a phone](class-doc/item-400.png) · [List at 1920](class-doc/list-1920.png) (2026-10-28, headless).
++
++## What the Overview draws, top to bottom
++
++1. **The class line:** `Item extends Events · holds …`. The parent class is read off the prototype; `extends:` names it when the parent is a mixin with no name.
++2. **A live one:** `example()` returns a real instance, drawn with [`view()`](/framework/ux/Content/Object/) (the default view).
++3. **How a change is saved:** `life: {who, path}`, one picture. Item's is [Item.life.js](/framework/core/Item/Item.life.js), drawn from seat (g)'s [delta-flow.md](/framework/core/Session/tasks/data-shapes/seats/delta-flow/delta-flow.md); List reuses its `path` with its own `who`.
++4. **Its test, step by step:** `steps` is an array of `{title, code, note, run(t), check(t), show(t)}`. Each step is a card: its code, pass or fail, the object after it (a snapshot), and the lines it wrote. `run_steps` ([Item.steps.js](/framework/core/Item/Item.steps.js)) runs the same array in the browser and in node (`Item.steps.test.mjs`, `List.steps.test.mjs`); the store is a `ScratchStore` that writes no file.
++5. **Methods:** a wall of cards (signature, one-line job), each a link.
++6. Then the page's own `content()`, if any (Item and List fold their older checks into one line there).
++
++## Method pages
++
++- `method_list: {name: {job, example(), static?}}` (Item's: [Item.methods.js](/framework/core/Item/Item.methods.js)). The Methods tab replaces the API tab.
++- `methods/<name>/` is built by the Methods section's `route(name)`; there is no page.js per method. It shows the signature, the job, the example's body as code and its result drawn live, then `methods/<name>.md` when the name is in `method_notes` (Item: `set get toJSON`). `method_setup` is a comment shown above every example, for a helper they share (List's `shop()`).
++- Old `api/<name>/` links (ClassCard rows on pages that inherit from Item, older docs) land on `methods/<name>/`, and the address bar is corrected with `replaceState`, the same shape as Doc's `docs/` → `doc/`.
++
++## Watch out
++
++- `example()` and every method example run on each visit; keep them pure (no file, no network).
++- The older per-member notes in `doc/method/*.md` are no longer shown by a ClassDoc page (they were the API tab's). Most predate `set()` as a delta; move what still holds into `methods/<name>.md` and retire the rest.
+diff --git a/public/framework/ext/Doc/doc/class-doc/item-1920.png b/public/framework/ext/Doc/doc/class-doc/item-1920.png
+new file mode 100644
+index 000000000..b67ceec25
+Binary files /dev/null and b/public/framework/ext/Doc/doc/class-doc/item-1920.png differ
+diff --git a/public/framework/ext/Doc/doc/class-doc/item-400.png b/public/framework/ext/Doc/doc/class-doc/item-400.png
+new file mode 100644
+index 000000000..394bed28d
+Binary files /dev/null and b/public/framework/ext/Doc/doc/class-doc/item-400.png differ
+diff --git a/public/framework/ext/Doc/doc/class-doc/list-1920.png b/public/framework/ext/Doc/doc/class-doc/list-1920.png
+new file mode 100644
+index 000000000..2c670d1ad
+Binary files /dev/null and b/public/framework/ext/Doc/doc/class-doc/list-1920.png differ
+diff --git a/public/framework/ext/Doc/readme.md b/public/framework/ext/Doc/readme.md
+index 40c424e08..0f855084f 100644
+--- a/public/framework/ext/Doc/readme.md
++++ b/public/framework/ext/Doc/readme.md
+@@ -21,6 +21,8 @@ export default new Doc({
+ ```
+ Empty section, no tab. Nothing at the call site says "tab" — a different shape overrides `sections()`.
+ 
++**A class page that shows before it tells:** `new ClassDoc({…})` ([ClassDoc.js](./ClassDoc.js)) adds a live instance, the life cycle, the core test step by step and a Methods tab routed at `methods/<name>/`. Used by [Item](/framework/core/Item/) and [List](/framework/core/List/): [doc/class-doc.md](./doc/class-doc.md).
++
+ ## Watch out
+ - A class's API tab opens on a **ClassCard**: title card, Core API (the Doc's `core: "name:weight …"`), own members, then inherited groups read off the prototype chain: [doc/class-card.md](./doc/class-card.md)
+ - A note name may nest (`"guide/setup"`) — each interior segment becomes its own real, bookmarkable page, and the Docs tab draws a folder tree instead of its usual vertical tab bar the moment any note does: [doc/tree/nesting.md](./doc/tree/nesting.md)

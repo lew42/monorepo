@@ -1,0 +1,17 @@
+{
+  "url": "http://localhost:8095/framework/ext/tabs/",
+  "viewport": { "width": 1280, "height": 900 },
+  "watch": [".page.doc-page > .tabs > .tab-panel"],
+  "settle": 900,
+  "pause": 500,
+  "steps": [
+    "eval (() => { const p = document.querySelector('.page.doc-page > .tabs > .tab-panel'); const a = document.querySelector('.page.doc-page > .tabs > .tab-bar > .tab.active, .page.doc-page > .tabs > .tab-bar > .tab.in-path:not(.tab-default)'); const cs = getComputedStyle(p); const cas = getComputedStyle(a); return { tab: a && a.textContent.trim(), panelBg: cs.backgroundColor, tabBottomBorder: cas.borderBottomColor, match: cs.backgroundColor === cas.borderBottomColor, rect: p.getBoundingClientRect().toJSON(), h1: p.querySelector('h1,h2,h3')?.textContent?.trim() }; })()",
+    "click \".page.doc-page > .tabs > .tab-bar > .tab[href='/framework/ext/tabs/api/']\"",
+    "eval (() => { const p = document.querySelector('.page.doc-page > .tabs > .tab-panel'); const a = document.querySelector('.page.doc-page > .tabs > .tab-bar > .tab.active, .page.doc-page > .tabs > .tab-bar > .tab.in-path:not(.tab-default)'); const cs = getComputedStyle(p); const cas = getComputedStyle(a); return { tab: a && a.textContent.trim(), panelBg: cs.backgroundColor, tabBottomBorder: cas.borderBottomColor, match: cs.backgroundColor === cas.borderBottomColor, rect: p.getBoundingClientRect().toJSON(), h1: p.querySelector('h1,h2,h3')?.textContent?.trim() }; })()",
+    "click \".page.doc-page > .tabs > .tab-bar > .tab[href='/framework/ext/tabs/doc/']\"",
+    "eval (() => { const p = document.querySelector('.page.doc-page > .tabs > .tab-panel'); const a = document.querySelector('.page.doc-page > .tabs > .tab-bar > .tab.active, .page.doc-page > .tabs > .tab-bar > .tab.in-path:not(.tab-default)'); const cs = getComputedStyle(p); const cas = getComputedStyle(a); return { tab: a && a.textContent.trim(), panelBg: cs.backgroundColor, tabBottomBorder: cas.borderBottomColor, match: cs.backgroundColor === cas.borderBottomColor, rect: p.getBoundingClientRect().toJSON(), h1: p.querySelector('h1,h2,h3')?.textContent?.trim() }; })()",
+    "click \".page.doc-page > .tabs > .tab-bar > .tab[href='/framework/ext/tabs/']\"",
+    "eval (() => { const p = document.querySelector('.page.doc-page > .tabs > .tab-panel'); const a = document.querySelector('.page.doc-page > .tabs > .tab-bar > .tab.active, .page.doc-page > .tabs > .tab-bar > .tab.in-path:not(.tab-default)'); const cs = getComputedStyle(p); const cas = getComputedStyle(a); return { tab: a && a.textContent.trim(), panelBg: cs.backgroundColor, tabBottomBorder: cas.borderBottomColor, match: cs.backgroundColor === cas.borderBottomColor, rect: p.getBoundingClientRect().toJSON(), h1: p.querySelector('h1,h2,h3')?.textContent?.trim() }; })()"
+  ],
+  "out": "C:/Code/lew42/monorepo/scratchpad/tabs-panel/ui-test-out"
+}

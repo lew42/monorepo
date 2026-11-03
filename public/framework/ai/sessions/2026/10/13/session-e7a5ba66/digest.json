@@ -1,0 +1,32 @@
+{
+ "id": "e7a5ba66-9d62-41dc-ac1e-a4c6a162157b",
+ "first": "2026-10-13T21:57:48.311Z",
+ "last": "2026-10-13T21:58:22.650Z",
+ "agent": "mastermind-chain-proof",
+ "models": {
+  "claude-haiku-5-5": 1
+ },
+ "sizes": {
+  "raw": 96469,
+  "content": 3972,
+  "stripped": 3972,
+  "owner_only": 0
+ },
+ "usd": 0.063667,
+ "usd_main": 0.063667,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 2,
+  "output": 208,
+  "cache_read": 20671,
+  "cache_write": 30279,
+  "w5": 0,
+  "w1": 30279
+ },
+ "messages": 1,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "received batch 1: 0 asks",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.347Z"
+}

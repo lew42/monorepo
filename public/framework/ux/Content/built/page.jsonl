@@ -1,0 +1,6 @@
+{"title": "Built from lines", "icon": "view_list", "description": "A page made only of page.jsonl lines: some prose and three content modules."}
+{"file": "intro.md"}
+{"place": "intro.md"}
+{"place": {"module": "/framework/ux/Content/Question/Question.js", "id": "q-built-tab", "ask": "What should we call the dashboard's second tab?", "hint": "Answer again to change it."}}
+{"place": {"module": "/framework/ux/Content/Decision/Decision.js", "id": "d-built-view", "ask": "Which view should the dashboard open with?", "options": [{"say": "Newest first", "caveat": "Always current, but urgent work can scroll away."}, {"say": "Needs-you first", "caveat": "Nothing waits unseen, but the order jumps."}]}}
+{"place": {"module": "/framework/ux/Content/Quotation/Quotation.js", "text": "Every prompt that I make is a quotation.", "raw": "every prompt that i make is a quotation", "at": "2026-09-24T09:12:00-05:00", "via": "whisper", "by": "owner", "url": "/framework/ux/Content/built/"}}

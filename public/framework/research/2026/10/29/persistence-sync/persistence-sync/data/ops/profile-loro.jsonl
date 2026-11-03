@@ -1,0 +1,35 @@
+{"op":"set","id":"loro","key":"name","value":"Loro","by":"profile-loro","at":"2026-10-30T02:51:42Z","src":"https://github.com/loro-dev/loro"}
+{"op":"set","id":"loro","key":"kind","value":"tool","by":"profile-loro","at":"2026-10-30T02:51:42Z","src":"https://github.com/loro-dev/loro"}
+{"op":"set","id":"loro","key":"category","value":"crdt","by":"profile-loro","at":"2026-10-30T02:51:42Z","src":"taxonomy.md"}
+{"op":"set","id":"loro","key":"subcategory","value":"crdt-core","by":"profile-loro","at":"2026-10-30T02:51:42Z","src":"taxonomy.md"}
+{"op":"set","id":"loro","key":"summary","value":"CRDT library with a native movable list and a movable tree; Rust core compiled to WASM for JS, plus an experimental pure-TS port (loro.js).","by":"profile-loro","at":"2026-10-30T02:51:42Z","src":"https://github.com/loro-dev/loro/blob/75e4bf2bf01cb6f2f3e37c50156ca0b335ef9b73/loro-js/README.md"}
+{"op":"set","id":"loro","key":"status","value":{"id":"active","date":"2026-10-22","note":"loro-crdt 1.17.1 on npm; loro.js 0.4.0 is experimental"},"by":"profile-loro","at":"2026-10-30T02:51:42Z","src":"notes/sync_engines_crdts.md"}
+{"op":"set","id":"loro","key":"license","value":"MIT","by":"profile-loro","at":"2026-10-30T02:51:42Z","src":"https://github.com/loro-dev/loro/blob/75e4bf2bf01cb6f2f3e37c50156ca0b335ef9b73/LICENSE"}
+{"op":"set","id":"loro","key":"profile","value":"tools/loro.md","by":"profile-loro","at":"2026-10-30T02:51:42Z","src":"tools/loro.md"}
+{"op":"add","id":"loro","key":"layers","value":"client-state","by":"profile-loro","at":"2026-10-30T02:51:42Z","src":"tools/loro.md"}
+{"op":"add","id":"loro","key":"layers","value":"sync-authority","by":"profile-loro","at":"2026-10-30T02:51:42Z","src":"tools/loro.md"}
+{"op":"add","id":"loro","key":"strategies","value":"authority: local-first","by":"profile-loro","at":"2026-10-30T02:51:42Z","src":"notes/sync_engines_crdts.md"}
+{"op":"add","id":"loro","key":"strategies","value":"conflict: crdt","by":"profile-loro","at":"2026-10-30T02:51:42Z","src":"notes/sync_engines_crdts.md"}
+{"op":"add","id":"loro","key":"strategies","value":"change-format: crdt-updates","by":"profile-loro","at":"2026-10-30T02:51:42Z","src":"https://github.com/loro-dev/loro/blob/75e4bf2bf01cb6f2f3e37c50156ca0b335ef9b73/crates/loro-wasm/src/lib.rs#L1790"}
+{"op":"add","id":"loro","key":"strategies","value":"list-order: list-crdt","by":"profile-loro","at":"2026-10-30T02:51:42Z","src":"notes/sync_engines_crdts.md"}
+{"op":"add","id":"loro","key":"strategies","value":"client-model: documents","by":"profile-loro","at":"2026-10-30T02:51:42Z","src":"https://github.com/loro-dev/loro/blob/75e4bf2bf01cb6f2f3e37c50156ca0b335ef9b73/loro-js/README.md"}
+{"op":"add","id":"loro","key":"strategies","value":"reactivity: events","by":"profile-loro","at":"2026-10-30T02:51:42Z","src":"notes/sync_engines_crdts.md"}
+{"op":"add","id":"loro","key":"strategies","value":"history: keep-all","by":"profile-loro","at":"2026-10-30T02:51:42Z","src":"https://loro.dev/docs"}
+{"op":"add","id":"loro","key":"strategies","value":"history: truncate","by":"profile-loro","at":"2026-10-30T02:51:42Z","src":"https://loro.dev/docs/advanced/shallow_snapshot"}
+{"op":"add","id":"loro","key":"features","value":"offline","by":"profile-loro","at":"2026-10-30T02:51:42Z","src":"notes/sync_engines_crdts.md"}
+{"op":"add","id":"loro","key":"features","value":"multi-user-merge","by":"profile-loro","at":"2026-10-30T02:51:42Z","src":"notes/sync_engines_crdts.md"}
+{"op":"add","id":"loro","key":"features","value":"undo-history","by":"profile-loro","at":"2026-10-30T02:51:42Z","src":"lessons/object-model.md"}
+{"op":"add","id":"loro","key":"features","value":"nested-trees","by":"profile-loro","at":"2026-10-30T02:51:42Z","src":"https://www.loro.dev/blog/movable-tree"}
+{"op":"add","id":"loro","key":"features","value":"list-move","by":"profile-loro","at":"2026-10-30T02:51:42Z","src":"https://github.com/loro-dev/loro/blob/75e4bf2bf01cb6f2f3e37c50156ca0b335ef9b73/crates/loro-internal/src/container/list/list_op.rs#L26-L30"}
+{"op":"add","id":"loro","key":"features","value":"browser-esm-no-bundler","by":"profile-loro","at":"2026-10-30T02:51:42Z","src":"https://github.com/loro-dev/loro/blob/75e4bf2bf01cb6f2f3e37c50156ca0b335ef9b73/crates/loro-wasm/package.json"}
+{"op":"add","id":"loro","key":"features","value":"open-source","by":"profile-loro","at":"2026-10-30T02:51:42Z","src":"https://github.com/loro-dev/loro/blob/75e4bf2bf01cb6f2f3e37c50156ca0b335ef9b73/LICENSE"}
+{"op":"add","id":"loro","key":"features","value":"self-hostable","by":"profile-loro","at":"2026-10-30T02:51:42Z","src":"notes/sync_engines_crdts.md"}
+{"op":"add","id":"loro","key":"pairs_with","value":{"id":"lew42-framework","why":"Item maps to LoroMap, List to MovableList, pages to LoroTree; a mapping on paper, not a tested binding (inference)"},"by":"profile-loro","at":"2026-10-30T02:51:42Z","src":"notes/sync_engines_crdts.md"}
+{"op":"add","id":"loro","key":"pairs_with","value":{"id":"mobx-keystone","why":"ships a Loro binding (mobx-keystone-loro) with a helper that emits native moves"},"by":"profile-loro","at":"2026-10-30T02:51:42Z","src":"lessons/object-model.md"}
+{"op":"add","id":"loro","key":"alternatives","value":{"id":"yjs","why":"the other CRDT library here; pick it for the Hocuspocus server ecosystem"},"by":"profile-loro","at":"2026-10-30T02:51:42Z","src":"notes/sync_engines_crdts.md"}
+{"op":"add","id":"loro","key":"alternatives","value":{"id":"automerge","why":"same role, with automerge-repo storage and network layer included"},"by":"profile-loro","at":"2026-10-30T02:51:42Z","src":"tools/automerge-repo.md"}
+{"op":"add","id":"loro","key":"avoid_with","value":{"id":"yjs","why":"two CRDT owners of the same field (inference; taxonomy two-owners rule)"},"by":"profile-loro","at":"2026-10-30T02:51:42Z","src":"taxonomy.md"}
+{"op":"add","id":"loro","key":"sources","value":"https://github.com/loro-dev/loro","by":"profile-loro","at":"2026-10-30T02:51:42Z","src":"https://github.com/loro-dev/loro"}
+{"op":"add","id":"loro","key":"sources","value":"https://github.com/loro-dev/loro/blob/75e4bf2bf01cb6f2f3e37c50156ca0b335ef9b73/loro-js/README.md","by":"profile-loro","at":"2026-10-30T02:51:42Z","src":"https://github.com/loro-dev/loro/blob/75e4bf2bf01cb6f2f3e37c50156ca0b335ef9b73/loro-js/README.md"}
+{"op":"add","id":"loro","key":"sources","value":"https://www.loro.dev/blog/movable-tree","by":"profile-loro","at":"2026-10-30T02:51:42Z","src":"https://www.loro.dev/blog/movable-tree"}
+{"op":"add","id":"loro","key":"sources","value":"https://loro.dev/docs/tutorial/list","by":"profile-loro","at":"2026-10-30T02:51:42Z","src":"https://loro.dev/docs/tutorial/list"}

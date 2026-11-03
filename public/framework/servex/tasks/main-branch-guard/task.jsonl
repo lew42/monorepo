@@ -1,0 +1,3 @@
+{"id":"main-branch-guard","path":"/framework/servex/tasks/main-branch-guard/","parent":"/framework/servex/tasks/","title":"Servex: the main checkout never leaves michael/dev","module":"servex","tags":["ai"],"sessions":[{"id":null,"task":"/framework/ai/sessions/2026/10/03/main-branch-guard/"}],"by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"set":{"now":"queued","brief":"/framework/ai/sessions/2026/10/03/main-branch-guard/requirements.md","owner":"mastermind-servex","queue":"after restart-keeps-agents (vscode-mastermind's review of 2026-10-03)","model":"claude-sonnet-5","effort":"medium"}}
+{"stop":{"at":"2026-10-04T03:53:11.000Z","why":"migrated: never landed or closed; last line 2026-10-04"}}

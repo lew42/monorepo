@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ai2/2026/09/25/why-padding-keeps-going-missing/",
+ "widths": {
+  "1280": {
+   "empty": 0.259,
+   "widest_text": 8050,
+   "widest_text_sample": "Most agents need nothing beyond a fresh ",
+   "overflow_x": false,
+   "items": 380,
+   "narrow_share": 0.05
+  },
+  "1920": {
+   "empty": 0.356,
+   "widest_text": 8567,
+   "widest_text_sample": "Most agents need nothing beyond a fresh ",
+   "overflow_x": false,
+   "items": 380,
+   "narrow_share": 0.089
+  },
+  "2560": {
+   "empty": 0.348,
+   "widest_text": 9638,
+   "widest_text_sample": "Most agents need nothing beyond a fresh ",
+   "overflow_x": false,
+   "items": 380,
+   "narrow_share": 0.089
+  },
+  "3440": {
+   "empty": 0.457,
+   "widest_text": 9638,
+   "widest_text_sample": "Most agents need nothing beyond a fresh ",
+   "overflow_x": false,
+   "items": 380,
+   "narrow_share": 0.976
+  }
+ },
+ "errors": []
+}

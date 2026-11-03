@@ -1,0 +1,1948 @@
+{
+	"name": "figma-home",
+	"url": "https://www.figma.com",
+	"title": "Figma: The collaborative canvas for design, code, and AI",
+	"category": "marketing",
+	"captured_at": "2026-09-08T05:59:35.786Z",
+	"embed": "blocked",
+	"embed_note": "x-frame-options: SAMEORIGIN",
+	"shots": {
+		"400": "site/figma-home/400.jpg",
+		"1280": "site/figma-home/1280.jpg",
+		"1920": "site/figma-home/1920.jpg",
+		"3440": "site/figma-home/3440.jpg",
+		"long": "site/figma-home/long.jpg"
+	},
+	"layout": {
+		"400": "1-bands",
+		"1280": "1-bands",
+		"1920": "1-bands",
+		"3440": "1-bands"
+	},
+	"sections": [
+		{
+			"name": "header nav",
+			"layout": "1-flow",
+			"css": "flex row, fixed, full-bleed",
+			"note": "the nav bar spans the entire browser width with no cap at any size, even 3440 — unlike every band below it, which is capped and centred. Collapses to a single hamburger icon on a phone."
+		},
+		{
+			"name": "hero",
+			"layout": "1-flow",
+			"css": "block, inside a centred ~1520px cap",
+			"note": "headline, an animated poster graphic and a 'Get started' button; the graphic floats beside the text, not a real grid column."
+		},
+		{
+			"name": "quote row",
+			"layout": "2-equal",
+			"css": "grid, two 624px tracks",
+			"note": "two customer pull-quotes side by side above about 768px, stacking to one on a phone."
+		},
+		{
+			"name": "feature grid",
+			"layout": "n-wall",
+			"css": "grid, four 368px tracks, centred",
+			"note": "four cards in one row, capped at the same ~1520px measure as the hero, so an ultrawide screen gets bigger side margins rather than a fifth card."
+		},
+		{
+			"name": "showcase carousel",
+			"layout": "n-wall",
+			"css": "flex row, overflow-x scroll (drag-to-scroll)",
+			"note": "seven cards laid out wider than the window itself at every desktop size tested (2872px of cards inside a 1920px viewport) — this is a horizontally-scrolling carousel, not a grid that wraps."
+		},
+		{
+			"name": "footer",
+			"layout": "2-sidebar",
+			"css": "grid, one 455px column plus four 210px columns",
+			"note": "a proper mega-footer: a wide brand/social column followed by four even narrower link lists."
+		}
+	],
+	"tags": [
+		"1-bands",
+		"1-flow",
+		"2-equal",
+		"n-wall",
+		"2 column grid",
+		"4 column grid",
+		"full-bleed",
+		"measure",
+		"max-width",
+		"carousel",
+		"mega footer",
+		"marketing"
+	],
+	"responsive": {
+		"strategy": "A stack of full-bleed marketing bands (the header nav is the only thing that truly reaches edge to edge at every width) with each band's own content capped at roughly 1520px and centred — a wide monitor mostly buys bigger side margins, the same trick as Stripe's homepage in the framework's own reference example. The one exception is a customer-showcase carousel that is deliberately WIDER than the viewport at every desktop size, meant to be dragged rather than wrapped. Below about 768px the feature grid and quote row both collapse to one column and the nav becomes a single hamburger icon.",
+		"breakpoints": [
+			400,
+			768,
+			1024
+		]
+	},
+	"scan": {
+		"scanned_at": "2026-09-08T05:59:49.475Z",
+		"css": {
+			"sheets": 3,
+			"bytes": 386062,
+			"inline_bytes": 146055
+		},
+		"media": [
+			"(hover:hover){",
+			"(max-height:175px){",
+			"(max-width:299px),(max-height:169px){",
+			"(max-width:414px),(max-height:168px){",
+			"(min-width:300px) and (max-width:375px){",
+			"(min-width:400px) and (min-height:225px) and (max-aspect-ratio:640 / 360){",
+			"(min-width:400px) and (min-height:225px) and (min-aspect-ratio:640 / 360){",
+			"(min-width:560px) and (min-height:250px) and (max-aspect-ratio:960 / 430){",
+			"(min-width:560px) and (min-height:250px) and (min-aspect-ratio:960 / 430){",
+			"(min-width:640px) and (min-height:360px){",
+			"(min-width:677px) and (min-height:303px) and (max-aspect-ratio:960 / 430){",
+			"(min-width:677px) and (min-height:303px) and (min-aspect-ratio:960 / 430){",
+			"(min-width:720px) and (min-height:322px) and (max-aspect-ratio:960 / 430){",
+			"(min-width:720px) and (min-height:322px) and (min-aspect-ratio:960 / 430){",
+			"(min-width:800px) and (min-height:358px) and (max-aspect-ratio:960 / 430){",
+			"(min-width:800px) and (min-height:358px) and (min-aspect-ratio:960 / 430){",
+			"(min-width:960px) and (min-height:430px){",
+			"(prefers-reduced-motion:reduce){",
+			"only screen and (max-width:410px){",
+			"screen and (max-height:200px),screen and (max-width:250px){",
+			"screen and (max-height:200px),screen and (max-width:480px){",
+			"screen and (max-height:200px){",
+			"screen and (max-height:350px),screen and (max-width:740px){"
+		],
+		"container": [],
+		"breakpoints_seen": [
+			{
+				"px": 200,
+				"count": 3
+			},
+			{
+				"px": 250,
+				"count": 3
+			},
+			{
+				"px": 225,
+				"count": 2
+			},
+			{
+				"px": 303,
+				"count": 2
+			},
+			{
+				"px": 322,
+				"count": 2
+			},
+			{
+				"px": 358,
+				"count": 2
+			},
+			{
+				"px": 400,
+				"count": 2
+			},
+			{
+				"px": 560,
+				"count": 2
+			},
+			{
+				"px": 677,
+				"count": 2
+			},
+			{
+				"px": 720,
+				"count": 2
+			},
+			{
+				"px": 800,
+				"count": 2
+			},
+			{
+				"px": 168,
+				"count": 1
+			}
+		],
+		"widths": {
+			"400": {
+				"doc": [
+					400,
+					9655
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "fig-scjrgl",
+						"display": "block",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							400,
+							72
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"display": "block",
+						"rect": [
+							342,
+							16,
+							42,
+							40
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"id": "main",
+						"display": "block",
+						"rect": [
+							0,
+							78,
+							400,
+							6400
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "fig-1id9bz1",
+						"display": "block",
+						"rect": [
+							0,
+							78,
+							400,
+							752
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "fig-1dzlqeg",
+						"display": "block",
+						"rect": [
+							0,
+							830,
+							400,
+							795
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "fig-nvjutl",
+						"display": "block",
+						"rect": [
+							16,
+							1274,
+							344,
+							140
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "fig-nvjutl",
+						"display": "block",
+						"rect": [
+							16,
+							1446,
+							344,
+							140
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "fig-1dzlqeg",
+						"display": "block",
+						"rect": [
+							0,
+							1625,
+							400,
+							526
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "fig-1dzlqeg",
+						"display": "block",
+						"rect": [
+							0,
+							2151,
+							400,
+							1794
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "fig-1dzlqeg",
+						"display": "block",
+						"rect": [
+							0,
+							3946,
+							400,
+							521
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "fig-1dzlqeg",
+						"display": "block",
+						"rect": [
+							0,
+							4467,
+							400,
+							902
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "fig-1id9bz1",
+						"display": "block",
+						"rect": [
+							0,
+							5369,
+							400,
+							308
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "fig-1dzlqeg",
+						"display": "block",
+						"rect": [
+							0,
+							5676,
+							400,
+							802
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							16,
+							5989,
+							272,
+							448
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							304,
+							5989,
+							272,
+							312
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							592,
+							5989,
+							272,
+							448
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							880,
+							5989,
+							272,
+							312
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							1168,
+							5989,
+							272,
+							217
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							1456,
+							5989,
+							272,
+							312
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							1744,
+							5989,
+							272,
+							217
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "fig-gzu5ug",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							16,
+							230,
+							368,
+							443
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "fig-htl2p6",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							1049,
+							400,
+							225
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "vimeo-video",
+						"role": "region",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							1049,
+							400,
+							225
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "role",
+						"tag": "ul",
+						"class": "fig-16h0kof",
+						"role": "list",
+						"display": "grid",
+						"cols": "368px",
+						"rows": "171.562px 171.562px",
+						"rect": [
+							16,
+							1242,
+							368,
+							343
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "fig-htl2p6",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							1902,
+							400,
+							225
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "vimeo-video",
+						"role": "region",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							1902,
+							400,
+							225
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "app",
+						"class": "css-14r34si",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							400,
+							9655
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "footer",
+						"class": "fig-97erl1",
+						"display": "block",
+						"rect": [
+							0,
+							6478,
+							400,
+							3177
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "fig-1pkcdmt",
+						"display": "grid",
+						"cols": "352px",
+						"rows": "166.188px 873.656px 723.797px 932.234px 265.234px 87.1875px",
+						"rect": [
+							24,
+							6559,
+							352,
+							3048
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "ul",
+						"class": "fig-1ka71ms",
+						"role": "list",
+						"display": "grid",
+						"cols": "192px 192px",
+						"rows": "240px 240px 238.719px 240px 240px 240px",
+						"rect": [
+							0,
+							2419,
+							400,
+							1519
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "fig-1pd9ey",
+						"display": "block",
+						"rect": [
+							24,
+							8354,
+							352,
+							900
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1280": {
+				"doc": [
+					1280,
+					8592
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "fig-suku18",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							1280,
+							78
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"display": "block",
+						"rect": [
+							83,
+							20,
+							503,
+							39
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"id": "main",
+						"display": "block",
+						"rect": [
+							0,
+							78,
+							1280,
+							7314
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "fig-1id9bz1",
+						"display": "block",
+						"rect": [
+							0,
+							78,
+							1280,
+							860
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "fig-1dzlqeg",
+						"display": "block",
+						"rect": [
+							0,
+							938,
+							1280,
+							990
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "fig-nvjutl",
+						"display": "block",
+						"rect": [
+							141,
+							1731,
+							467,
+							117
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "fig-nvjutl",
+						"display": "block",
+						"rect": [
+							648,
+							1731,
+							467,
+							117
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "fig-1dzlqeg",
+						"display": "block",
+						"rect": [
+							0,
+							1928,
+							1280,
+							1035
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "fig-1dzlqeg",
+						"display": "block",
+						"rect": [
+							0,
+							2963,
+							1280,
+							1459
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "fig-1dzlqeg",
+						"display": "block",
+						"rect": [
+							0,
+							4422,
+							1280,
+							1023
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "fig-1dzlqeg",
+						"display": "block",
+						"rect": [
+							0,
+							5446,
+							1280,
+							708
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "fig-1id9bz1",
+						"display": "block",
+						"rect": [
+							0,
+							6154,
+							1280,
+							400
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "fig-1dzlqeg",
+						"display": "block",
+						"rect": [
+							0,
+							6554,
+							1280,
+							838
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							40,
+							6839,
+							288,
+							472
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							344,
+							6839,
+							288,
+							328
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							648,
+							6839,
+							288,
+							472
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							952,
+							6839,
+							288,
+							328
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							1256,
+							6839,
+							288,
+							228
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							1560,
+							6839,
+							288,
+							328
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							1864,
+							6839,
+							288,
+							228
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "fig-gzu5ug",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							350,
+							158,
+							581,
+							700
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "fig-htl2p6",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							141,
+							1162,
+							997,
+							561
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "vimeo-video",
+						"role": "region",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							141,
+							1162,
+							997,
+							561
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "role",
+						"tag": "ul",
+						"class": "fig-16h0kof",
+						"role": "list",
+						"display": "grid",
+						"cols": "490.656px 490.672px",
+						"rows": "157.172px",
+						"rect": [
+							141,
+							1691,
+							997,
+							157
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "fig-htl2p6",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							40,
+							2224,
+							1200,
+							675
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "vimeo-video",
+						"role": "region",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							40,
+							2224,
+							1200,
+							675
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "app",
+						"class": "css-14r34si",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							1280,
+							8592
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "footer",
+						"class": "fig-97erl1",
+						"display": "block",
+						"rect": [
+							0,
+							7392,
+							1280,
+							1200
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "ul",
+						"class": "fig-1ka71ms",
+						"role": "list",
+						"display": "grid",
+						"cols": "308px 308px 308px 308px",
+						"rows": "385px 385px 385px",
+						"rect": [
+							0,
+							3187,
+							1280,
+							1187
+						],
+						"side_by_side": 4
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "fig-1pkcdmt",
+						"display": "grid",
+						"cols": "346.656px 160px 160px 160px 160px",
+						"rows": "856.109px 103.188px",
+						"rect": [
+							53,
+							7513,
+							1173,
+							959
+						],
+						"side_by_side": 5
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "fig-1dhjdis",
+						"display": "block",
+						"rect": [
+							40,
+							4502,
+							1200,
+							863
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1920": {
+				"doc": [
+					1920,
+					9475
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "fig-suku18",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							1920,
+							78
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"display": "block",
+						"rect": [
+							243,
+							20,
+							503,
+							39
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"id": "main",
+						"display": "block",
+						"rect": [
+							0,
+							78,
+							1920,
+							8157
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "fig-1id9bz1",
+						"display": "block",
+						"rect": [
+							0,
+							78,
+							1920,
+							860
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "fig-1dzlqeg",
+						"display": "block",
+						"rect": [
+							0,
+							938,
+							1920,
+							1151
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "fig-nvjutl",
+						"display": "block",
+						"rect": [
+							328,
+							1886,
+							600,
+							123
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "fig-nvjutl",
+						"display": "block",
+						"rect": [
+							968,
+							1886,
+							600,
+							123
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "fig-1dzlqeg",
+						"display": "block",
+						"rect": [
+							0,
+							2089,
+							1920,
+							1186
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "fig-1dzlqeg",
+						"display": "block",
+						"rect": [
+							0,
+							3275,
+							1920,
+							1689
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "fig-1dzlqeg",
+						"display": "block",
+						"rect": [
+							0,
+							4963,
+							1920,
+							1211
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "fig-1dzlqeg",
+						"display": "block",
+						"rect": [
+							0,
+							6174,
+							1920,
+							682
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "fig-1id9bz1",
+						"display": "block",
+						"rect": [
+							0,
+							6856,
+							1920,
+							413
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "fig-1dzlqeg",
+						"display": "block",
+						"rect": [
+							0,
+							7269,
+							1920,
+							966
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							200,
+							7563,
+							368,
+							592
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							584,
+							7563,
+							368,
+							408
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							968,
+							7563,
+							368,
+							592
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							1352,
+							7563,
+							368,
+							408
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							1736,
+							7563,
+							368,
+							280
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							2120,
+							7563,
+							368,
+							408
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							2504,
+							7563,
+							368,
+							280
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "fig-gzu5ug",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							670,
+							158,
+							581,
+							700
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "fig-htl2p6",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							328,
+							1167,
+							1264,
+							711
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "vimeo-video",
+						"role": "region",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							328,
+							1167,
+							1264,
+							711
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "role",
+						"tag": "ul",
+						"class": "fig-16h0kof",
+						"role": "list",
+						"display": "grid",
+						"cols": "624px 624px",
+						"rows": "162.766px",
+						"rect": [
+							328,
+							1846,
+							1264,
+							163
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "fig-htl2p6",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							200,
+							2356,
+							1520,
+							855
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "vimeo-video",
+						"role": "region",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							200,
+							2356,
+							1520,
+							855
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "app",
+						"class": "css-14r34si",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							1920,
+							9475
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "footer",
+						"class": "fig-97erl1",
+						"display": "block",
+						"rect": [
+							0,
+							8235,
+							1920,
+							1240
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "ul",
+						"class": "fig-1ka71ms",
+						"role": "list",
+						"display": "grid",
+						"cols": "368px 368px 368px 368px",
+						"rows": "460px 460px 460px",
+						"rect": [
+							200,
+							3503,
+							1520,
+							1412
+						],
+						"side_by_side": 4
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "fig-1dhjdis",
+						"display": "block",
+						"rect": [
+							200,
+							5043,
+							1520,
+							1051
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "fig-1pkcdmt",
+						"display": "grid",
+						"cols": "455px 210px 210px 210px 210px",
+						"rows": "895.391px 103.188px",
+						"rect": [
+							190,
+							8356,
+							1540,
+							999
+						],
+						"side_by_side": 5
+					}
+				]
+			},
+			"3440": {
+				"doc": [
+					3440,
+					9475
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "fig-suku18",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							3440,
+							78
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"display": "block",
+						"rect": [
+							1003,
+							20,
+							503,
+							39
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"id": "main",
+						"display": "block",
+						"rect": [
+							0,
+							78,
+							3440,
+							8157
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "fig-1id9bz1",
+						"display": "block",
+						"rect": [
+							0,
+							78,
+							3440,
+							860
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "fig-1dzlqeg",
+						"display": "block",
+						"rect": [
+							0,
+							938,
+							3440,
+							1151
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "fig-nvjutl",
+						"display": "block",
+						"rect": [
+							1088,
+							1886,
+							600,
+							123
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "fig-nvjutl",
+						"display": "block",
+						"rect": [
+							1728,
+							1886,
+							600,
+							123
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "fig-1dzlqeg",
+						"display": "block",
+						"rect": [
+							0,
+							2089,
+							3440,
+							1186
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "fig-1dzlqeg",
+						"display": "block",
+						"rect": [
+							0,
+							3275,
+							3440,
+							1689
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "fig-1dzlqeg",
+						"display": "block",
+						"rect": [
+							0,
+							4963,
+							3440,
+							1211
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "fig-1dzlqeg",
+						"display": "block",
+						"rect": [
+							0,
+							6174,
+							3440,
+							682
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "fig-1id9bz1",
+						"display": "block",
+						"rect": [
+							0,
+							6856,
+							3440,
+							413
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "fig-1dzlqeg",
+						"display": "block",
+						"rect": [
+							0,
+							7269,
+							3440,
+							966
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							960,
+							7563,
+							368,
+							592
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							1344,
+							7563,
+							368,
+							408
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							1728,
+							7563,
+							368,
+							592
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							2112,
+							7563,
+							368,
+							408
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							2496,
+							7563,
+							368,
+							280
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							2880,
+							7563,
+							368,
+							408
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"display": "block",
+						"rect": [
+							3264,
+							7563,
+							368,
+							280
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "fig-gzu5ug",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1430,
+							158,
+							581,
+							700
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "fig-htl2p6",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1088,
+							1135,
+							1264,
+							711
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "vimeo-video",
+						"role": "region",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1088,
+							1135,
+							1264,
+							711
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "role",
+						"tag": "ul",
+						"class": "fig-16h0kof",
+						"role": "list",
+						"display": "grid",
+						"cols": "624px 624px",
+						"rows": "162.766px",
+						"rect": [
+							1088,
+							1846,
+							1264,
+							163
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "div",
+						"class": "fig-htl2p6",
+						"role": "group",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							960,
+							2356,
+							1520,
+							855
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "role",
+						"tag": "vimeo-video",
+						"role": "region",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							960,
+							2356,
+							1520,
+							855
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "app",
+						"class": "css-14r34si",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							3440,
+							9475
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "footer",
+						"class": "fig-97erl1",
+						"display": "block",
+						"rect": [
+							0,
+							8235,
+							3440,
+							1240
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "ul",
+						"class": "fig-1ka71ms",
+						"role": "list",
+						"display": "grid",
+						"cols": "368px 368px 368px 368px",
+						"rows": "460px 460px 460px",
+						"rect": [
+							960,
+							3503,
+							1520,
+							1412
+						],
+						"side_by_side": 4
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "fig-143x6j3",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							944,
+							7563,
+							3456,
+							592
+						],
+						"side_by_side": 10
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "fig-1fcmjev",
+						"display": "block",
+						"rect": [
+							0,
+							7563,
+							3440,
+							592
+						],
+						"side_by_side": 1
+					}
+				]
+			}
+		}
+	},
+	"notes": "Figma's homepage is a stack of full-width marketing sections — a hero, a couple of feature grids, a scrolling showcase, a footer — and inside every one of those sections the actual content is capped at about 1520px and centred, so a huge monitor mostly just adds empty space on the sides rather than showing more. The one section that behaves differently on purpose is a row of seven example cards further down the page: instead of wrapping to a new row or shrinking to fit, those cards are laid out wider than the browser window itself at every desktop size tested, so the visitor is meant to drag or scroll sideways through them — a deliberately different kind of 'row that doesn't fit' than the grids around it. On a phone, the two-up quote row and the four-up feature grid both drop to a single column and the header's links collapse into one hamburger icon.",
+	"wire": {
+		"role": "page",
+		"kids": [
+			{
+				"role": "header",
+				"h": "4em"
+			},
+			{
+				"role": "hero",
+				"h": "22em"
+			},
+			{
+				"role": "main",
+				"dir": "row",
+				"floor": "768px",
+				"kids": [
+					{
+						"role": "text",
+						"w": 1,
+						"lines": 3
+					},
+					{
+						"role": "text",
+						"w": 1,
+						"lines": 3
+					}
+				]
+			},
+			{
+				"role": "cards",
+				"dir": "row",
+				"h": "14em",
+				"floor": "768px",
+				"kids": [
+					{
+						"role": "card",
+						"w": 1
+					},
+					{
+						"role": "card",
+						"w": 1
+					},
+					{
+						"role": "card",
+						"w": 1
+					},
+					{
+						"role": "card",
+						"w": 1
+					}
+				]
+			},
+			{
+				"role": "cards",
+				"dir": "row",
+				"h": "12em",
+				"floor": "none",
+				"scroll": true,
+				"n": 5
+			},
+			{
+				"role": "footer",
+				"dir": "row",
+				"floor": "768px",
+				"kids": [
+					{
+						"role": "aside",
+						"w": 2
+					},
+					{
+						"role": "aside",
+						"w": 1
+					},
+					{
+						"role": "aside",
+						"w": 1
+					},
+					{
+						"role": "aside",
+						"w": 1
+					},
+					{
+						"role": "aside",
+						"w": 1
+					}
+				]
+			}
+		]
+	}
+}

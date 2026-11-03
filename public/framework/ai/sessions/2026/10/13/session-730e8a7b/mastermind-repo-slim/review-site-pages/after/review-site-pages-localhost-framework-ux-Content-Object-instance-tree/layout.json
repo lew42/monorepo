@@ -1,0 +1,395 @@
+{
+ "url": "http://review-site-pages.localhost/framework/ux/Content/Object/instance-tree/",
+ "widths": {
+  "400": {
+   "empty": 0.423,
+   "widest_text": 340,
+   "widest_text_sample": "This is the site's real instance tree, d",
+   "overflow_x": false,
+   "items": 76,
+   "narrow_share": 0.105,
+   "layout": "doc",
+   "tabs_gap": null,
+   "tab_rows": 1,
+   "left_stack": {
+    "h1": {
+     "total": 28,
+     "layers": [
+      {
+       "cls": "doc-well",
+       "px": 28
+      }
+     ]
+    },
+    "p": {
+     "total": 28,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 28
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 156,
+     "h": 40,
+     "share": 0.04,
+     "ink": 0.762,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 238,
+     "h": 101,
+     "share": 0.101,
+     "ink": 0.606,
+     "big_empty": false
+    },
+    {
+     "cls": "cols",
+     "y": 367,
+     "h": 1741,
+     "share": 1.741,
+     "ink": 0.475,
+     "big_empty": false
+    },
+    {
+     "cls": "md-details",
+     "y": 2157,
+     "h": 37,
+     "share": 0.037,
+     "ink": 0.138,
+     "big_empty": false
+    },
+    {
+     "cls": "page-inbox-chip",
+     "y": 2222,
+     "h": 0,
+     "share": 0,
+     "ink": 0,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "drawer-rail-ai",
+     "text": "✦AI",
+     "lines": 3.2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-rail-menu",
+     "text": "⋯More",
+     "lines": 3.2
+    }
+   ]
+  },
+  "1200": {
+   "empty": 0.591,
+   "widest_text": 428,
+   "widest_text_sample": "This is the site's real instance tree, d",
+   "overflow_x": false,
+   "items": 130,
+   "narrow_share": 0.192,
+   "layout": "doc",
+   "tabs_gap": 32,
+   "tab_rows": 2,
+   "left_stack": {
+    "h1": {
+     "total": 38,
+     "layers": [
+      {
+       "cls": "doc-well",
+       "px": 38
+      }
+     ]
+    },
+    "p": {
+     "total": 38,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 38
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 110,
+     "h": 49,
+     "share": 0.049,
+     "ink": 0.425,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 204,
+     "h": 81,
+     "share": 0.081,
+     "ink": 0.533,
+     "big_empty": false
+    },
+    {
+     "cls": "cols",
+     "y": 315,
+     "h": 1675,
+     "share": 1.675,
+     "ink": 0.313,
+     "big_empty": false
+    },
+    {
+     "cls": "md-details",
+     "y": 2042,
+     "h": 39,
+     "share": 0.039,
+     "ink": 0.05,
+     "big_empty": false
+    },
+    {
+     "cls": "page-inbox-chip",
+     "y": 2111,
+     "h": 0,
+     "share": 0,
+     "ink": 0,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.7
+    },
+    {
+     "tag": "button",
+     "cls": "button",
+     "text": "add a child page",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "button",
+     "text": "rename this page",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  },
+  "1920": {
+   "empty": 0.729,
+   "widest_text": 459,
+   "widest_text_sample": "This is the site's real instance tree, d",
+   "overflow_x": false,
+   "items": 130,
+   "narrow_share": 1,
+   "layout": "doc",
+   "tabs_gap": 60,
+   "tab_rows": 1,
+   "left_stack": {
+    "h1": {
+     "total": 67,
+     "layers": [
+      {
+       "cls": "doc-well",
+       "px": 67
+      }
+     ]
+    },
+    "p": {
+     "total": 67,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 67
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 125,
+     "h": 53,
+     "share": 0.053,
+     "ink": 0.275,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 237,
+     "h": 86,
+     "share": 0.086,
+     "ink": 0.256,
+     "big_empty": false
+    },
+    {
+     "cls": "cols",
+     "y": 363,
+     "h": 1807,
+     "share": 1.807,
+     "ink": 0.209,
+     "big_empty": false
+    },
+    {
+     "cls": "md-details",
+     "y": 2240,
+     "h": 42,
+     "share": 0.042,
+     "ink": 0.037,
+     "big_empty": false
+    },
+    {
+     "cls": "page-inbox-chip",
+     "y": 2321,
+     "h": 0,
+     "share": 0,
+     "ink": 0,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.7
+    },
+    {
+     "tag": "button",
+     "cls": "button",
+     "text": "add a child page",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "button",
+     "text": "rename this page",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  },
+  "3440": {
+   "empty": 0.793,
+   "widest_text": 516,
+   "widest_text_sample": "This is the site's real instance tree, d",
+   "overflow_x": false,
+   "items": 130,
+   "narrow_share": 1,
+   "layout": "doc",
+   "tabs_gap": 83,
+   "tab_rows": 1,
+   "left_stack": {
+    "h1": {
+     "total": 90,
+     "layers": [
+      {
+       "cls": "doc-well",
+       "px": 90
+      }
+     ]
+    },
+    "p": {
+     "total": 90,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 90
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 141,
+     "h": 59,
+     "share": 0.059,
+     "ink": 0.163,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 268,
+     "h": 97,
+     "share": 0.097,
+     "ink": 0.219,
+     "big_empty": false
+    },
+    {
+     "cls": "cols",
+     "y": 410,
+     "h": 2033,
+     "share": 2.033,
+     "ink": 0.153,
+     "big_empty": false
+    },
+    {
+     "cls": "md-details",
+     "y": 2522,
+     "h": 47,
+     "share": 0.047,
+     "ink": 0.037,
+     "big_empty": false
+    },
+    {
+     "cls": "page-inbox-chip",
+     "y": 2613,
+     "h": 0,
+     "share": 0,
+     "ink": 0,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.8
+    },
+    {
+     "tag": "button",
+     "cls": "button",
+     "text": "add a child page",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "button",
+     "text": "rename this page",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  }
+ },
+ "errors": [
+  "400: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1200: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1920: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "3440: Failed to load resource: the server responded with a status of 404 (Not Found)"
+ ]
+}

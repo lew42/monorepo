@@ -1,0 +1,6 @@
+{"class":"/framework/ai2/card.js","title":"Markdown renders in cards now","type":"card","id":"2026/09/21/today-is-monday","created":"2026-09-21T11:24:24-05:00","by":"mastermind","tags":[]}
+{"legacy":"today-is-monday"}
+{"icon":"article"}
+{"focus":true}
+{"text":"It was the wrong helper. The card body drew one `p()` per line, and `p()` reads backticks and nothing else - so inline code came out right while headings, bold, lists and links rendered as literal characters.\n\nIt now uses `md()`, the site's own renderer. This card is the proof: everything above and below is markdown.\n\n## Headings work\n\nAnd they are scaled to sit **under** the card title rather than shout over it - marked's `h2` comes out at 2em by default, which was bigger than the title itself.\n\n### Lists work\n\n- Links work: [today's board](/framework/ai/2026-09-21/)\n- `code` works\n- *Emphasis* and **bold** work\n\n## One thing worth knowing\n\n`md()` is `html_unsafe` by design. Its own note says the trust boundary is commit access, and that markdown arriving from a user needs revisiting. Board text is written by the assistant, the mastermind and minions on a loopback-only dev server, so it sits inside that boundary today. If this board ever serves a second person, that is the line to re-read."}
+{"status":"done"}

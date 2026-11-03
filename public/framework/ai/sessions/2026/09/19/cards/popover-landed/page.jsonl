@@ -1,0 +1,5 @@
+{"class":"/framework/ai2/card.js","title":"3:28 Landed: the popup system, and the New version button","type":"card","id":"2026/09/19/popover-landed","created":"2026-09-19T15:26:45-05:00","by":"","tags":[]}
+{"legacy":"popover-landed"}
+{"status":"done"}
+{"text":"The top layer wins, and the demo shows it: both of your options sit side by side inside a hostile box. The popup placed near its content gets clipped the moment it leaves its card. The one in the browser's top layer stays next to its content in the code, opens whole, above everything, with no z-index at all.\nThere is a small Popover class now, with a tooltip, a menu that can open to the side, and a tree menu on top of it.\nThe picker on the AI page uses it: a small V1 trigger beside the title, the versions read from the folder, and a New version action that copies the newest version into the next number. The minion pressed it, landed on a working V4, then removed it again. You press it when you want one."}
+{"links":[{"url":"/framework/ux/Popover/","label":"both options, side by side"},{"url":"/framework/ai/","label":"the picker"}]}

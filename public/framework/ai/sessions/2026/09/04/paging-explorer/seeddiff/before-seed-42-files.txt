@@ -1,0 +1,226 @@
+/imagine/generated/seed-42/page.js
+----
+import { Page } from "/app.js";
+
+/* Exported from the page generator on 2026-09-04 — seed 42, model v3.
+ *
+ *   vtabs small
+ *     prose
+ *     list
+ *       wall large
+ *         prose small
+ *   wall
+ *     tabs
+ *       list
+ *         prose
+ *       prose
+ *   prose
+ *
+ * Ordinary pages from here down: one directory each, one `page.js` each, nothing
+ * imported from the generator. Edit them like any other module.
+ */
+
+export default new Page({
+	meta: import.meta,
+	title: "Seed 42",
+	description: "A generated page tree — 11 pages, exported from seed 42, model v3.",
+	icon: "account_tree",
+
+	// Core's opt-in: my whole subtree lays out as full-height columns.
+	initialize(){ this.columns(); },
+
+	children: "vtabs wall prose",
+});
+
+
+==========
+
+/imagine/generated/seed-42/vtabs/page.js
+----
+import { Page } from "/app.js";
+import "/framework/ext/tabs/tabs.js";
+
+// The same set as a side rail — ext/tabs turned on its side.
+
+export default new Page({
+	meta: import.meta,
+	title: "Journal",
+	width: "small",
+	index: true,
+
+	children: "prose list",
+
+	content(){ return this.tabs().ac("vertical"); },
+});
+
+
+==========
+
+/imagine/generated/seed-42/vtabs/prose/page.js
+----
+import { Page, md } from "/app.js";
+
+// The leaf. Replace this line with the page.
+
+export default new Page({
+	meta: import.meta,
+	title: "Journal",
+
+	content(){ md("The end of a branch — this is where the real page goes."); },
+});
+
+
+==========
+
+/imagine/generated/seed-42/vtabs/list/page.js
+----
+import { Page } from "/app.js";
+
+// An inbox — core's own column draws my children as rows, so there is nothing to write here.
+
+export default new Page({
+	meta: import.meta,
+	title: "Feed",
+
+	children: "wall",
+});
+
+
+==========
+
+/imagine/generated/seed-42/vtabs/list/wall/page.js
+----
+import { Page } from "/app.js";
+
+// A wall of cards; picking one opens a column to the right.
+
+export default new Page({
+	meta: import.meta,
+	title: "Feed",
+	width: "large",
+	index: true,
+
+	children: "prose",
+
+	content(){ return this.previews(); },
+});
+
+
+==========
+
+/imagine/generated/seed-42/vtabs/list/wall/prose/page.js
+----
+import { Page, md } from "/app.js";
+
+// The leaf. Replace this line with the page.
+
+export default new Page({
+	meta: import.meta,
+	title: "Charter",
+	width: "small",
+
+	content(){ md("The end of a branch — this is where the real page goes."); },
+});
+
+
+==========
+
+/imagine/generated/seed-42/wall/page.js
+----
+import { Page } from "/app.js";
+
+// A wall of cards; picking one opens a column to the right.
+
+export default new Page({
+	meta: import.meta,
+	title: "Backlog",
+	index: true,
+
+	children: "tabs",
+
+	content(){ return this.previews(); },
+});
+
+
+==========
+
+/imagine/generated/seed-42/wall/tabs/page.js
+----
+import { Page } from "/app.js";
+import "/framework/ext/tabs/tabs.js";
+
+// A strip of tabs over a panel: a child swaps IN PLACE and the row never grows.
+
+export default new Page({
+	meta: import.meta,
+	title: "Bulletin",
+	index: true,
+
+	children: "list prose",
+
+	content(){ return this.tabs(); },
+});
+
+
+==========
+
+/imagine/generated/seed-42/wall/tabs/list/page.js
+----
+import { Page } from "/app.js";
+
+// An inbox — core's own column draws my children as rows, so there is nothing to write here.
+
+export default new Page({
+	meta: import.meta,
+	title: "Inbox",
+
+	children: "prose",
+});
+
+
+==========
+
+/imagine/generated/seed-42/wall/tabs/list/prose/page.js
+----
+import { Page, md } from "/app.js";
+
+// The leaf. Replace this line with the page.
+
+export default new Page({
+	meta: import.meta,
+	title: "Inbox",
+
+	content(){ md("The end of a branch — this is where the real page goes."); },
+});
+
+
+==========
+
+/imagine/generated/seed-42/wall/tabs/prose/page.js
+----
+import { Page, md } from "/app.js";
+
+// The leaf. Replace this line with the page.
+
+export default new Page({
+	meta: import.meta,
+	title: "Charter",
+
+	content(){ md("The end of a branch — this is where the real page goes."); },
+});
+
+
+==========
+
+/imagine/generated/seed-42/prose/page.js
+----
+import { Page, md } from "/app.js";
+
+// The leaf. Replace this line with the page.
+
+export default new Page({
+	meta: import.meta,
+	title: "Roster",
+
+	content(){ md("The end of a branch — this is where the real page goes."); },
+});

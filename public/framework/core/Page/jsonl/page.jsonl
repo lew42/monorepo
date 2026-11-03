@@ -1,0 +1,32 @@
+{"title": "Notes", "label": "jsonl", "icon": "description", "description": "A page with no page.js: one log file, read a line at a time."}
+{"place": "note.md"}
+{"file":"child/page.jsonl"}
+{"file":"content.js"}
+{"file":"note.md"}
+{"file":"readme.md"}
+{"file":"unplaced.md"}
+{"file":"full/page.jsonl"}
+{"file":"content.js","gone":true}
+{"file":"unplaced.md","gone":true}
+{"file":"child/page.jsonl","gone":true}
+{"file":"readme.md"}
+{"file":"child/"}
+{"file":"child/"}
+{"file":"readme.md"}
+{"file":"child/","gone":true}
+{"file":"system.js"}
+{"file":"doc/"}
+{"place":{"module":"system.js"}}
+{"file":"child/page.jsonl"}
+{"title":"page.jsonl","label":"Storage (page.jsonl)","placed":[{"module":"system.js","part":"tiles"},"note.md",{"module":"system.js","part":"source"}]}
+{"file":"live/page.jsonl"}
+{"file":"live/page.jsonl","gone":true}
+{"file":"live/page.jsonl","gone":true}
+{"file":"live/page.jsonl","gone":true}
+{"file":"live/"}
+{"file":"live/"}
+{"file":"live/"}
+{"file":"live/page.jsonl"}
+{"file":"live/page.jsonl"}
+{"file":"live/page.jsonl"}
+{"file":"part-link-demo/page.jsonl"}

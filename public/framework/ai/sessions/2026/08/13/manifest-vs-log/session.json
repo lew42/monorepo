@@ -1,0 +1,16 @@
+{
+	"session_id": "51c5ac4b-ed59-4c55-9fec-593d1b0addd4",
+	"tab": "Build draggable panel sy…",
+	"group": "ai-log",
+	"request": "what session.json data should live in the file vs be pulled from the full log; what log-rendering improvements serve a proposal + logging + tracking UI",
+	"requested_at": "2026-08-13T15:55-05:00",
+	"model": "claude-fable-5",
+	"tokens": 198053,
+	"landed_at": "2026-08-13T16:19-05:00",
+	"now": "landed",
+	"outcome": "**Verdict: `tokens` should stop being hand-typed** — `usage_of()`/`tail_activity()`/`timeline_of()` land in `ext/ai/stats.js`, verified live against the transcript that built `ext/ai` (166 raw assistant lines dedupe to 58 by `message.id`; 6 real prompt boundaries once harness + a newly-found `isMeta` skill-injection leak are filtered). Full field-by-field authoritative-vs-derivable verdicts, schema-v2 proposal and prioritized log-rendering improvements in [analysis.md](/framework/ai/2026-08-13/manifest-vs-log/); live demo of all three functions in this task's own `page.js`. Found and documented (not fixed — out of ownership): `replay.js`'s `is_prompt()` currently renders a Skill tool's injected body as a genuine 49,480-char thread, confirmed live on `/framework/ai/2026-08-13/sessions/`.",
+	"agents": [
+		{ "kind": "agent", "task": "schema-v2 analysis + transcript-derivation functions in stats.js", "model": "claude-sonnet-5", "tokens": 198053, "duration_ms": 1141764, "used": true,
+			"outcome": "Shipped usage_of/tail_activity/timeline_of + analysis.md + demo page.js + readme.md §3, verified against the live transcript and a browser pass with zero script errors." }
+	]
+}

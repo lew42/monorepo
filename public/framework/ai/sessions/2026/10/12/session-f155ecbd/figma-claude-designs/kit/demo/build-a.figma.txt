@@ -1,0 +1,45 @@
+// use_figma script (paste as `code`): rebuilds the four scheme-A screens of page `Demo · Site`
+// (dark global sidebar + gray inner sidebar attached to a white page). Verified pieces: sidebar, docs, reaction wiring.
+// Not yet run in this final form (the Figma MCP call limit hit first). Screens' ids are literal below.
+const page=await figma.getNodeByIdAsync('296:106079'); await figma.setCurrentPageAsync(page);
+const S={home:'296:106080',gs:'296:106081',inst:'296:106082',btn:'296:106083',cards:'296:106084',lay:'296:106085',tpl:'296:106086',r1:'296:106087',r2:'296:106088',set:'296:106089'};
+const tree=await figma.getNodeByIdAsync('212:1497'); // List / Tree item set
+const treeV=(state)=>tree.children.find(c=>c.name===`Level=1, State=${state}`);
+async function setText(t,s){ await figma.loadFontAsync(t.fontName); t.characters=s; }
+async function loadAll(n){ for(const t of n.findAll(x=>x.type==='TEXT')){ for(const g of t.getStyledTextSegments(['fontName'])) await figma.loadFontAsync(g.fontName);} }
+// A nav item cannot point at its own screen (Figma refuses a self-target): skip that one.
+async function go(node,destKey){ await node.setReactionsAsync([{trigger:{type:'ON_CLICK'},actions:[{type:'NODE',destinationId:S[destKey],navigation:'NAVIGATE',transition:null,preserveScrollPosition:false}]}]); }
+// Icon identity = the nested "Icon glyph" instance; take glyph components from the icon rail template.
+const railSet=await figma.getNodeByIdAsync('268:41124'); const glyphs={};
+for(const i of railSet.children[0].findAll(n=>n.type==='INSTANCE'&&n.parent.name.startsWith('Column 1'))){ const g=i.findOne(x=>x.type==='INSTANCE'&&x.name==='Icon glyph'); if(g) glyphs[i.name]=g.mainComponent; }
+function swapIcon(it,name){ const g=glyphs[name]; if(!g) return; const tgt=it.findAll(x=>x.type==='INSTANCE'&&x.name==='Icon glyph'); if(tgt.length>=2) tgt[1].swapComponent(g); else if(tgt.length) tgt[0].swapComponent(g); }
+const NAV=[['Home','home','home'],['Docs','article','gs'],['Elements','widgets','btn'],['Layouts','dashboard','lay'],['Templates','assignment','tpl'],['Reading','forum','r1'],['Settings','settings','set']];
+const DARK_COLL=await figma.variables.getVariableCollectionByIdAsync('VariableCollectionId:1:4'); // Text collection, mode 1:2 = Dark BG
+async function sidebar(active,self){ const f=figma.createFrame(); f.name='Global sidebar (dark)'; f.layoutMode='VERTICAL'; f.resize(240,1080); f.primaryAxisSizingMode='FIXED'; f.counterAxisSizingMode='FIXED'; f.paddingTop=32;f.paddingBottom=32;f.paddingLeft=16;f.paddingRight=16;f.itemSpacing=4; f.fills=[{type:'SOLID',color:{r:.09,g:.09,b:.09}}]; f.setExplicitVariableModeForCollection(DARK_COLL,'1:2');
+ const lab=await figma.getNodeByIdAsync('241:31049'); const h=lab.clone(); f.appendChild(h); await setText(h,'LEW42 · DESIGN SYSTEM'); h.layoutSizingHorizontal='FILL';
+ for(const [label,ic,dest] of NAV){ const it=treeV(label===active?'Active':'Default').createInstance(); f.appendChild(it); it.layoutSizingHorizontal='FILL'; await loadAll(it); const t=it.findOne(x=>x.type==='TEXT'&&x.name==='Label'); await setText(t,label); swapIcon(it,ic); it.name='nav → '+label; if(dest!==self) await go(it,dest); }
+ return f; }
+async function layoutShell(screenId,active,selfKey,tplSet,variant){ const sc=await figma.getNodeByIdAsync(screenId); for(const c of [...sc.children]) c.remove(); const row=figma.createFrame(); row.name='Layout'; row.layoutMode='HORIZONTAL'; row.fills=[]; sc.appendChild(row); row.layoutSizingHorizontal='FILL'; row.layoutSizingVertical='HUG'; row.minHeight=1080; row.itemSpacing=0;
+ const sb=await sidebar(active,selfKey); row.appendChild(sb); sb.layoutSizingVertical='FILL'; sb.layoutSizingHorizontal='FIXED'; sb.resize(240,sb.height);
+ const canvas=figma.createFrame(); canvas.name='Gray canvas'; canvas.layoutMode='VERTICAL'; canvas.fills=[{type:'SOLID',color:{r:.9,g:.9,b:.9}}]; canvas.paddingTop=24;canvas.paddingBottom=24;canvas.paddingLeft=24;canvas.paddingRight=24; row.appendChild(canvas); canvas.layoutSizingHorizontal='FILL'; canvas.layoutSizingVertical='FILL';
+ const pg=figma.createFrame(); pg.name='White page'; pg.layoutMode='VERTICAL'; pg.cornerRadius=16; pg.clipsContent=true; pg.fills=[{type:'SOLID',color:{r:1,g:1,b:1}}]; canvas.appendChild(pg); pg.layoutSizingHorizontal='FILL'; pg.layoutSizingVertical='HUG'; pg.minHeight=1032;
+ const set=await figma.getNodeByIdAsync(tplSet); const inst=set.children.find(v=>v.name===variant).createInstance(); pg.appendChild(inst); inst.layoutSizingHorizontal='FILL'; inst.layoutSizingVertical='HUG'; inst.minHeight=1032; await loadAll(inst); return {sc,inst,pg}; }
+function prop(inst,pre){ return Object.keys(inst.componentProperties).find(k=>k.startsWith(pre)); }
+async function innerNav(inst,labels,activeIdx,dests){ const items=inst.findAll(x=>x.type==='INSTANCE'&&x.name==='List / Tree item'); for(let i=0;i<items.length;i++){ const it=items[i]; if(i>=labels.length){ it.visible=false; continue;} const t=it.findOne(x=>x.type==='TEXT'&&x.name==='Label'); await setText(t,labels[i]); it.setProperties({State:i===activeIdx?'Active':'Default'}); if(i!==activeIdx&&dests[i]) await go(it,dests[i]); else await it.setReactionsAsync([]); } return items.length; }
+// Article texts come in the order h p p p h p h p p.
+async function docs(screenId,selfKey,activeIdx,title,desc,paras){ const {inst}=await layoutShell(screenId,'Docs',selfKey,'257:32779','Scheme=Mixed');
+ inst.setProperties({[prop(inst,'Title')]:title,[prop(inst,'Description')]:desc});
+ await innerNav(inst,['Getting started','Install'],activeIdx,['gs','inst']);
+ const art=inst.findOne(x=>x.name.startsWith('Article')); const ts=art.findAll(x=>x.type==='TEXT'); for(let i=0;i<ts.length;i++){ if(paras[i]!==undefined) await setText(ts[i],paras[i]); else ts[i].visible=false;} return ts.length; }
+await docs(S.gs,'gs',0,'Getting started','Everything here is built from our own components.',['What this site is','This demo is a documentation site about the design system, built from the design system. Every screen is an instance of a page template, and every nav item is an instance of the tree item.','Click an item in the dark sidebar to change area; click an item in the gray sidebar to change page.','The gray sidebar is attached to the white page, so the two read as one sheet. This is the preferred reading layout.','A fixed-height screen','Each screen is 1920 by 1080 and clips: the frame is the browser window, and taller content scrolls inside it, so the preview never jumps.','Where to go next','Open Install to see the same template with another page active, or Elements for the top-nav scheme.','Layouts shows the icon rail, and Reading shows breadcrumbs with a next-page footer.']);
+await docs(S.inst,'inst',1,'Install','Three files and no build step.',['Copy three files','Make index.html, app.js and a page.js, and import the framework from its real URL.','There is nothing to compile: the browser loads the files as written.','Run any static server and the router finds your pages.','Add a page','Name the page in its parent children list and it exists. Nothing is crawled.','Check it','Open the page, then check it at 400, 1200, 1920 and 3440 wide.','Go back to Getting started from the gray sidebar.']);
+{ const {inst}=await layoutShell(S.home,'Home','home','257:32956','Scheme=Light'); // 2col card grid
+  inst.setProperties({[prop(inst,'Title')]:'Lew42 design system',[prop(inst,'Description')]:'Pick an area. Each one shows a different navigation scheme, built from the same templates.'});
+  const cards=inst.findAll(x=>x.type==='INSTANCE'&&x.name.startsWith('Grid card'));
+  const C=[['Docs','Reading layout: gray inner sidebar attached to a white page.','gs'],['Elements','Top nav with tabs: buttons and cards.','btn'],['Layouts','Icon rail plus inner nav.','lay'],['Templates','The page templates this site is made from.','tpl'],['Reading','Breadcrumbs and a next-page footer.','r1'],['Settings','A form on a two-column template.','set']];
+  for(let i=0;i<cards.length;i++){ const c=cards[i]; if(i>=C.length){c.visible=false;continue;} const ts=c.findAll(x=>x.type==='TEXT'); await setText(ts[0],C[i][0]); await setText(ts[1],C[i][1]); await go(c,C[i][2]); c.name='card → '+C[i][0]; } }
+{ const {inst}=await layoutShell(S.set,'Settings','set','257:33238','Scheme=Light'); // 2col form
+  inst.setProperties({[prop(inst,'Title')]:'Settings',[prop(inst,'Description')]:'One form card on a 2/5 | 3/5 template.'});
+  const lab=inst.findAll(x=>x.type==='TEXT'&&['Name','Email','Message'].includes(x.characters)); const L=['Display name','Home area','Notes']; for(let i=0;i<lab.length;i++) await setText(lab[i],L[i]);
+  const bl=inst.findOne(x=>x.type==='TEXT'&&x.characters==='BUTTON'); if(bl) await setText(bl,'SAVE'); }
+return 'ok';

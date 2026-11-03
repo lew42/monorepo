@@ -1,0 +1,53 @@
+{
+ "append": "C:/Code/lew42/worktrees/data-shapes-2/public/framework/core/Session/tasks/data-shapes/build/integration-2/handoff-probe/child/session.jsonl: appended 1 at 2026-10-28T22:49:12-05:00; 1 lines total, 0 bad",
+ "task": "oy88vwvc",
+ "before": {
+  "text": "check_box_outline_blankChild probe›Hand me off",
+  "gone": false,
+  "url": "/framework/core/Session/tasks/data-shapes/build/integration-2/handoff-probe/child/",
+  "path": "tasks.oy88vwvc",
+  "title": "Hand me off"
+ },
+ "move": {
+  "ok": true,
+  "moved": {
+   "from": "/framework/core/Session/tasks/data-shapes/build/integration-2/handoff-probe/child/#oy88vwvc",
+   "to": "/framework/core/Session/tasks/data-shapes/build/integration-2/handoff-probe/grandchild/"
+  }
+ },
+ "child_record_tail": [
+  {
+   "task": "/framework/core/Session/tasks/data-shapes/build/integration-2/handoff-probe/grandchild/",
+   "as": "oy88vwvc",
+   "moved_from": "/framework/core/Session/tasks/data-shapes/build/integration-2/handoff-probe/child/#oy88vwvc",
+   "by": "probe-agent",
+   "ts": "2026-10-29T03:49:15.726Z"
+  },
+  {
+   "tasks": {
+    "oy88vwvc": {
+     "moved_to": {
+      "url": "/framework/core/Session/tasks/data-shapes/build/integration-2/handoff-probe/grandchild/",
+      "path": ""
+     }
+    }
+   },
+   "by": "probe-agent",
+   "ts": "2026-10-29T03:49:15.726Z"
+  }
+ ],
+ "after_live": {
+  "text": "check_box_outline_blankHand me off",
+  "gone": false,
+  "url": "/framework/core/Session/tasks/data-shapes/build/integration-2/handoff-probe/grandchild/",
+  "path": "",
+  "title": "Hand me off"
+ },
+ "fresh": {
+  "gone": false,
+  "url": "/framework/core/Session/tasks/data-shapes/build/integration-2/handoff-probe/grandchild/",
+  "path": "",
+  "title": "Hand me off"
+ },
+ "logs": []
+}

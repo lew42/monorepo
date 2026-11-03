@@ -1,0 +1,1791 @@
+{
+ "module": "layouts",
+ "paths": [
+  "layouts"
+ ],
+ "lines": {
+  "css": 4312,
+  "jsBlocks": 0
+ },
+ "clusters": [
+  {
+   "id": "drawing-frame-core",
+   "file": "layouts/layouts.css",
+   "from": 1,
+   "to": 78,
+   "lines": 78,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "The wireframe renderer (frame, zoom, box, kids, auto-fill wall at a pinned 16px) is this module's product; nothing in framework.css draws a scaled picture of a layout.",
+   "saves": 0
+  },
+  {
+   "id": "role-paint-tones",
+   "file": "layouts/layouts.css",
+   "from": 79,
+   "to": 112,
+   "lines": 34,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Role/tone paint is the drawing's whole colour vocabulary; the std-tone-* and role classes are built by string in Layout.js (line 135 for tones), so a grep for the literal name misses them.",
+   "saves": 0
+  },
+  {
+   "id": "scroll-newspaper-fillers",
+   "file": "layouts/layouts.css",
+   "from": 113,
+   "to": 149,
+   "lines": 37,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Grey bars, marks and a fake scrollbar exist only inside the drawing; no site-wide equivalent.",
+   "saves": 0
+  },
+  {
+   "id": "tree-page-stack",
+   "file": "layouts/layouts.css",
+   "from": 150,
+   "to": 159,
+   "lines": 10,
+   "verdict": "DUPLICATE",
+   "target": "`.flex.v.gap` (framework/framework.css:832,865,1023); `.muted` (framework/framework.css:542) for std-branch-say",
+   "evidence": "std-tree/std-branch are flex columns with a gap; std-branch-say is color var(--subtle) which is what .muted does.",
+   "saves": 7
+  },
+  {
+   "id": "thumbs-wall",
+   "file": "layouts/layouts.css",
+   "from": 160,
+   "to": 171,
+   "lines": 12,
+   "verdict": "DUPLICATE",
+   "target": "`.wall` (framework/core/Page/Page.css:1066)",
+   "evidence": "std-thumbs is an auto-fit grid of wide cells with a gap; .wall is the same auto-fill wall driven by --column. Set --column:15em; only the 22em ceiling is lost.",
+   "saves": 8
+  },
+  {
+   "id": "thumb-card",
+   "file": "layouts/layouts.css",
+   "from": 172,
+   "to": 183,
+   "lines": 12,
+   "verdict": "GENERALIZE",
+   "target": "tile (see generalize list)",
+   "evidence": "A link that is a picture over a caption with a hover ring; same shape as browse.css:81, practice.css:764 and :853.",
+   "saves": 6
+  },
+  {
+   "id": "body-measure",
+   "file": "layouts/layouts.css",
+   "from": 184,
+   "to": 192,
+   "lines": 9,
+   "verdict": "DUPLICATE",
+   "target": "`.measure.start` (framework/framework.css:925,936)",
+   "evidence": "`.std-body > :is(.md,p){max-width:var(--measure)}` is .measure.start worn by the paragraph.",
+   "saves": 6
+  },
+  {
+   "id": "shots-row",
+   "file": "layouts/layouts.css",
+   "from": 193,
+   "to": 218,
+   "lines": 26,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "A flex row whose widths are each drawing's aspect ratio (flex-grow = --a, basis 0) with a vh fold ceiling; no framework word does an aspect-proportional row.",
+   "saves": 0
+  },
+  {
+   "id": "tag-chips",
+   "file": "layouts/layouts.css",
+   "from": 219,
+   "to": 232,
+   "lines": 14,
+   "verdict": "GENERALIZE",
+   "target": "chip (see generalize list)",
+   "evidence": "std-tag is a pill link with a hover ring and an on-state; five other places write the same pill (blogx.css:191, mag.css:364, sections.css:252, practice.css:195 and :253).",
+   "saves": 7
+  },
+  {
+   "id": "recipes-stack",
+   "file": "layouts/layouts.css",
+   "from": 233,
+   "to": 238,
+   "lines": 6,
+   "verdict": "DUPLICATE",
+   "target": "`.flex.v.gap` (framework/framework.css:832,865,1023)",
+   "evidence": "std-recipes/std-recipe are flex columns with a gap; `.flex > *{margin:0}` (framework.css:871) already zeroes the pre margin.",
+   "saves": 4
+  },
+  {
+   "id": "words-grid",
+   "file": "layouts/layouts.css",
+   "from": 239,
+   "to": 244,
+   "lines": 6,
+   "verdict": "DUPLICATE",
+   "target": "`.grid.auto.gap` with --column:20em (framework/framework.css:967); `.h4` (framework/framework.css:432) for std-word-kind; `.code` (framework/framework.css:589) for std-word-name",
+   "evidence": "auto-fill grid of 20em cells; kind label is small uppercase tracked (h4); name is mono bold.",
+   "saves": 4
+  },
+  {
+   "id": "std-id",
+   "file": "layouts/layouts.css",
+   "from": 245,
+   "to": 247,
+   "lines": 3,
+   "verdict": "DELETE",
+   "target": "",
+   "evidence": "grep -rn 'std-id' public (js, json, md, html) returns nothing, and Layout.js only concatenates std-tone-, role and std- prefixes with known words; the class is never emitted.",
+   "saves": 3
+  },
+  {
+   "id": "details-fold",
+   "file": "layouts/layouts.css",
+   "from": 248,
+   "to": 254,
+   "lines": 7,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Says what an OPEN details looks like (summary margin); framework.css only styles the closed summary.",
+   "saves": 0
+  },
+  {
+   "id": "filter-strip",
+   "file": "layouts/browse/browse.css",
+   "from": 1,
+   "to": 49,
+   "lines": 49,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Sticky (top:0, z-index) filter bar; the flex/wash parts are two lines, the sticky behaviour has no framework word.",
+   "saves": 0
+  },
+  {
+   "id": "phone-hide-score",
+   "file": "layouts/browse/browse.css",
+   "from": 50,
+   "to": 52,
+   "lines": 3,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "One media rule hiding the score under 34rem.",
+   "saves": 0
+  },
+  {
+   "id": "group-scroll-margin",
+   "file": "layouts/browse/browse.css",
+   "from": 53,
+   "to": 80,
+   "lines": 28,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "One scroll-margin-top so anchor jumps clear the sticky strip.",
+   "saves": 0
+  },
+  {
+   "id": "browse-card",
+   "file": "layouts/browse/browse.css",
+   "from": 81,
+   "to": 97,
+   "lines": 17,
+   "verdict": "GENERALIZE",
+   "target": "tile (see generalize list)",
+   "evidence": "A link card: picture, name, hover ring. Same as layouts.css:172 (std-thumb) and practice.css:853.",
+   "saves": 8
+  },
+  {
+   "id": "pic-crop",
+   "file": "layouts/browse/browse.css",
+   "from": 98,
+   "to": 118,
+   "lines": 21,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "16:9 clipped crop of a screenshot with object-position top-left; the thumbnail crop is the feature.",
+   "saves": 0
+  },
+  {
+   "id": "name-from-mark",
+   "file": "layouts/browse/browse.css",
+   "from": 119,
+   "to": 155,
+   "lines": 37,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Baseline title row, source line and approve/improve mark colours (--ok/--warn already tokens).",
+   "saves": 0
+  },
+  {
+   "id": "full-shot",
+   "file": "layouts/browse/browse.css",
+   "from": 156,
+   "to": 181,
+   "lines": 26,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Full-width screenshot at a per-shot aspect-ratio (--a).",
+   "saves": 0
+  },
+  {
+   "id": "decide-panel",
+   "file": "layouts/browse/browse.css",
+   "from": 182,
+   "to": 214,
+   "lines": 33,
+   "verdict": "DUPLICATE",
+   "target": "`.card.flex.v.gap` (framework/framework.css:456,489)",
+   "evidence": "std-browse-decide = surface + hairline + radius + padding + max-width measure, which is .card (its padding is --pad-card, the right word for a framed box).",
+   "saves": 23
+  },
+  {
+   "id": "phone-order",
+   "file": "layouts/browse/browse.css",
+   "from": 215,
+   "to": 230,
+   "lines": 16,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Mobile re-ordering of three blocks; media-only.",
+   "saves": 0
+  },
+  {
+   "id": "open-more-flat",
+   "file": "layouts/browse/browse.css",
+   "from": 231,
+   "to": 250,
+   "lines": 20,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Small link/hover tweaks (flat hover ring).",
+   "saves": 0
+  },
+  {
+   "id": "acts-verdict-history-why",
+   "file": "layouts/browse/browse.css",
+   "from": 251,
+   "to": 280,
+   "lines": 30,
+   "verdict": "DUPLICATE",
+   "target": "`.flex.wrap.v-center.gap` (framework/framework.css:832-868,1023); `blockquote` (framework/framework.css:596) for std-browse-why",
+   "evidence": "acts/verdict/history are flex rows/columns with a gap; std-browse-why is a left rule plus padding-left = the base blockquote.",
+   "saves": 21
+  },
+  {
+   "id": "header-title-hide",
+   "file": "layouts/practice/practice.css",
+   "from": 1,
+   "to": 45,
+   "lines": 45,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Two-line hide of the auto page title on this page; shell.css:51 repeats it (one shared word would serve both).",
+   "saves": 0
+  },
+  {
+   "id": "practice-container",
+   "file": "layouts/practice/practice.css",
+   "from": 46,
+   "to": 61,
+   "lines": 16,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Declares the named container `practice` that every @container rule below queries; cannot be dropped without rewriting them.",
+   "saves": 0
+  },
+  {
+   "id": "quiet-token-and-p-cap",
+   "file": "layouts/practice/practice.css",
+   "from": 62,
+   "to": 84,
+   "lines": 23,
+   "verdict": "DUPLICATE",
+   "target": "`.muted` (framework/framework.css:542) with --muted:85%; `.measure.start` (framework/framework.css:936)",
+   "evidence": "--std-practice-quiet is color-mix(ink 85%, surface), declared twice (:60 and :65); .muted is color-mix(currentColor var(--muted,75%), transparent). The p measure cap is .measure.start.",
+   "saves": 16
+  },
+  {
+   "id": "rail-nav-links",
+   "file": "layouts/practice/practice.css",
+   "from": 85,
+   "to": 130,
+   "lines": 46,
+   "verdict": "GENERALIZE",
+   "target": "nav-link (see generalize list)",
+   "evidence": "A vertical link list that turns horizontal below 48rem; same job as shell.css:223, blogx.css:149, Shell.css:94.",
+   "saves": 23
+  },
+  {
+   "id": "brand-mark",
+   "file": "layouts/practice/practice.css",
+   "from": 131,
+   "to": 160,
+   "lines": 30,
+   "verdict": "DUPLICATE",
+   "target": "`.ui-badge.accent` (framework/ui/badge/badge.js:6)",
+   "evidence": "A small prim-filled bold label with a radius; brand-mark is a badge.",
+   "saves": 21
+  },
+  {
+   "id": "rail-column-at-48rem",
+   "file": "layouts/practice/practice.css",
+   "from": 161,
+   "to": 172,
+   "lines": 12,
+   "verdict": "GENERALIZE",
+   "target": "nav-link (see generalize list)",
+   "evidence": "The container-query half of the rail: column at >=48rem; part of the same nav-link.",
+   "saves": 6
+  },
+  {
+   "id": "head-title-say",
+   "file": "layouts/practice/practice.css",
+   "from": 173,
+   "to": 192,
+   "lines": 20,
+   "verdict": "DUPLICATE",
+   "target": "`.flex.v.gap` (framework/framework.css:832,865,1023); `.h1` (framework/framework.css:429); `.muted` (framework/framework.css:542)",
+   "evidence": "Stack of title + say line with a token colour and a clamp title.",
+   "saves": 14
+  },
+  {
+   "id": "crumb-chips",
+   "file": "layouts/practice/practice.css",
+   "from": 193,
+   "to": 214,
+   "lines": 22,
+   "verdict": "GENERALIZE",
+   "target": "chip (see generalize list)",
+   "evidence": "std-practice-crumb is a fill-a08 mono pill link; see layouts.css:222.",
+   "saves": 11
+  },
+  {
+   "id": "why-details",
+   "file": "layouts/practice/practice.css",
+   "from": 215,
+   "to": 229,
+   "lines": 15,
+   "verdict": "DUPLICATE",
+   "target": "`.std-details` (layouts/layouts.css:250)",
+   "evidence": "Same open/closed summary fold; layouts.css already ships it.",
+   "saves": 10
+  },
+  {
+   "id": "answers-grid",
+   "file": "layouts/practice/practice.css",
+   "from": 230,
+   "to": 250,
+   "lines": 21,
+   "verdict": "DUPLICATE",
+   "target": "`.grid.three` (framework/framework.css:983); `.h4` (framework/framework.css:432) for the q label",
+   "evidence": "3-up grid stacking on narrow containers, eyebrow-styled question.",
+   "saves": 15
+  },
+  {
+   "id": "answer-chips",
+   "file": "layouts/practice/practice.css",
+   "from": 251,
+   "to": 274,
+   "lines": 24,
+   "verdict": "GENERALIZE",
+   "target": "chip (see generalize list)",
+   "evidence": "Fill pill with quiet ink; same pill as std-tag.",
+   "saves": 12
+  },
+  {
+   "id": "app-grid-rail-main-side",
+   "file": "layouts/practice/practice.css",
+   "from": 275,
+   "to": 347,
+   "lines": 73,
+   "verdict": "GENERALIZE",
+   "target": "app-shell (see generalize list)",
+   "evidence": "wb-grid/rd-grid are a rail|main|side grid that collapses by container width; same skeleton as shell.css:69, Shell.css:29, blogx.css:33, sections.css:89. framework already has `.rail` (core/Page/Page.css:980) and `.cols.main-aside` (framework.css:908).",
+   "saves": 36
+  },
+  {
+   "id": "wb-main-stack",
+   "file": "layouts/practice/practice.css",
+   "from": 348,
+   "to": 370,
+   "lines": 23,
+   "verdict": "DUPLICATE",
+   "target": "`.flow` (framework/framework.css:1105)",
+   "evidence": "std-practice-wb-main is a flex column with gap var(--flow), which is a flow.",
+   "saves": 16
+  },
+  {
+   "id": "wall-count-ladder",
+   "file": "layouts/practice/practice.css",
+   "from": 371,
+   "to": 394,
+   "lines": 24,
+   "verdict": "GENERALIZE",
+   "target": "count-wall (see generalize list)",
+   "evidence": "grid-template-columns stepped 1/2/3/4/6/8 by container width via five @container rules; repeated at :759, :797 and shell.css:397.",
+   "saves": 12
+  },
+  {
+   "id": "tile-button",
+   "file": "layouts/practice/practice.css",
+   "from": 395,
+   "to": 455,
+   "lines": 61,
+   "verdict": "GENERALIZE",
+   "target": "tile (see generalize list)",
+   "evidence": "Clickable fill-a04 tile with hover/on state, icon, name, say; same tile as :764, :853, sections.css:228.",
+   "saves": 30
+  },
+  {
+   "id": "detail-panel",
+   "file": "layouts/practice/practice.css",
+   "from": 456,
+   "to": 505,
+   "lines": 50,
+   "verdict": "DUPLICATE",
+   "target": "`.card` (framework/framework.css:456,489); `.btn` (framework/framework.css:706,736) for detail-go; `.h4` (framework/framework.css:432) for the label",
+   "evidence": "Panel with fill, hairline, radius, --pad is a card (padding then scales with itself); the go link is a .btn; sticky top is the only extra.",
+   "saves": 35
+  },
+  {
+   "id": "article-column",
+   "file": "layouts/practice/practice.css",
+   "from": 506,
+   "to": 546,
+   "lines": 41,
+   "verdict": "DUPLICATE",
+   "target": "`.flow` + `.measure.start` (framework/framework.css:1105,925,936)",
+   "evidence": "flex column, gap var(--flow), max-width measure = flow + measure.start.",
+   "saves": 29
+  },
+  {
+   "id": "margin-column",
+   "file": "layouts/practice/practice.css",
+   "from": 547,
+   "to": 635,
+   "lines": 89,
+   "verdict": "DUPLICATE",
+   "target": "`.card` (framework/framework.css:456) for note-box; `.btn` (framework/framework.css:706) for margin-go; `.h4` (framework/framework.css:432); `.muted` (framework/framework.css:542)",
+   "evidence": "note-box is a fill+radius+padded box; margin-go is a button; labels are eyebrows. The sticky toc (565-576) is the only real remainder.",
+   "saves": 62
+  },
+  {
+   "id": "chrome-topbar",
+   "file": "layouts/practice/practice.css",
+   "from": 636,
+   "to": 680,
+   "lines": 45,
+   "verdict": "DUPLICATE",
+   "target": "`.darken-1` (framework/framework.css:531) + `.pad` (framework/framework.css:822)",
+   "evidence": "topbar/band/footer share fill-a08 with a gutter; .darken-1 paints black at 8% and also flips field colour.",
+   "saves": 31
+  },
+  {
+   "id": "hero",
+   "file": "layouts/practice/practice.css",
+   "from": 681,
+   "to": 722,
+   "lines": 42,
+   "verdict": "GENERALIZE",
+   "target": "hero-band (see generalize list)",
+   "evidence": "min-height clamp(13rem,34vh,26rem) fold-height hero with a row layout at 80rem; same as shell.css:245.",
+   "saves": 21
+  },
+  {
+   "id": "act-buttons",
+   "file": "layouts/practice/practice.css",
+   "from": 723,
+   "to": 743,
+   "lines": 21,
+   "verdict": "DUPLICATE",
+   "target": "`.btn` and `.btn.prim` (framework/framework.css:706,736,811)",
+   "evidence": "act = padded rounded button with a fill; act-prim = prim fill. Both exist.",
+   "saves": 15
+  },
+  {
+   "id": "band-title-say",
+   "file": "layouts/practice/practice.css",
+   "from": 744,
+   "to": 758,
+   "lines": 15,
+   "verdict": "DUPLICATE",
+   "target": "`.muted` (framework/framework.css:542)",
+   "evidence": "margin:0 and quiet colour.",
+   "saves": 10
+  },
+  {
+   "id": "cards-count-ladder",
+   "file": "layouts/practice/practice.css",
+   "from": 759,
+   "to": 763,
+   "lines": 5,
+   "verdict": "GENERALIZE",
+   "target": "count-wall (see generalize list)",
+   "evidence": "Stepped 2/3/4/6 columns by container width.",
+   "saves": 2
+  },
+  {
+   "id": "card2",
+   "file": "layouts/practice/practice.css",
+   "from": 764,
+   "to": 782,
+   "lines": 19,
+   "verdict": "GENERALIZE",
+   "target": "tile (see generalize list)",
+   "evidence": "fill-a04 tile with hover; the fifth copy of it in this file.",
+   "saves": 10
+  },
+  {
+   "id": "footer",
+   "file": "layouts/practice/practice.css",
+   "from": 783,
+   "to": 839,
+   "lines": 57,
+   "verdict": "GENERALIZE",
+   "target": "count-wall (see generalize list)",
+   "evidence": "Footer fill is .darken-1; the 2/3/6-column ladder (797-799) is the count-wall again.",
+   "saves": 28
+  },
+  {
+   "id": "index-grid",
+   "file": "layouts/practice/practice.css",
+   "from": 840,
+   "to": 852,
+   "lines": 13,
+   "verdict": "DUPLICATE",
+   "target": "`.grid.three` (framework/framework.css:983)",
+   "evidence": "The clamp(calc(100%/3 - gap*2/3), (column*3 + gap*2 - 100%)*999, 100%) formula is the same 3-up formula as .grid.three.",
+   "saves": 9
+  },
+  {
+   "id": "card",
+   "file": "layouts/practice/practice.css",
+   "from": 853,
+   "to": 876,
+   "lines": 24,
+   "verdict": "GENERALIZE",
+   "target": "tile (see generalize list)",
+   "evidence": "Second tile card with hover; identical to card2 except gap/padding multiples.",
+   "saves": 12
+  },
+  {
+   "id": "card-shot-say",
+   "file": "layouts/practice/practice.css",
+   "from": 877,
+   "to": 900,
+   "lines": 24,
+   "verdict": "DUPLICATE",
+   "target": "`.std-browse-shot` (layouts/browse/browse.css:156); `.muted` (framework/framework.css:542); `.code` (framework/framework.css:589)",
+   "evidence": "aspect-ratio + object-fit top-left + hairline ring is the same screenshot box; id/line are muted mono.",
+   "saves": 17
+  },
+  {
+   "id": "util-default-hide",
+   "file": "layouts/shell/shell.css",
+   "from": 1,
+   "to": 55,
+   "lines": 55,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Arrangement-contract hides for a default page and the page-title (util layer so it outranks Page.css).",
+   "saves": 0
+  },
+  {
+   "id": "shell-frame-track",
+   "file": "layouts/shell/shell.css",
+   "from": 56,
+   "to": 98,
+   "lines": 43,
+   "verdict": "GENERALIZE",
+   "target": "app-shell (see generalize list)",
+   "evidence": "Full-height flex frame with a resizable rail track; same skeleton as practice.css:275, Shell.css:29, blogx.css:33.",
+   "saves": 22
+  },
+  {
+   "id": "rail-box",
+   "file": "layouts/shell/shell.css",
+   "from": 99,
+   "to": 120,
+   "lines": 22,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Sticky scrolling rail with a foot; no framework word for a sticky sidebar inside a page.",
+   "saves": 0
+  },
+  {
+   "id": "fold-button",
+   "file": "layouts/shell/shell.css",
+   "from": 121,
+   "to": 135,
+   "lines": 15,
+   "verdict": "DUPLICATE",
+   "target": "`.btn.size-small` (framework/framework.css:706,694)",
+   "evidence": "std-shell-fold hand-writes a small button (padding, border, radius, fill).",
+   "saves": 10
+  },
+  {
+   "id": "rail-foot-tree-row",
+   "file": "layouts/shell/shell.css",
+   "from": 136,
+   "to": 170,
+   "lines": 35,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Rail foot plus two ui-tree-row state tweaks (active/in-path).",
+   "saves": 0
+  },
+  {
+   "id": "view-container",
+   "file": "layouts/shell/shell.css",
+   "from": 171,
+   "to": 202,
+   "lines": 32,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Declares the container `std-shell-view` that the @container rules below query.",
+   "saves": 0
+  },
+  {
+   "id": "topbar-fill",
+   "file": "layouts/shell/shell.css",
+   "from": 203,
+   "to": 222,
+   "lines": 20,
+   "verdict": "DUPLICATE",
+   "target": "`.darken-1` (framework/framework.css:531); `.flex.wrap.v-center.gap` (framework/framework.css:832-868)",
+   "evidence": "topbar/hero/footer fills and the topbar flex row.",
+   "saves": 14
+  },
+  {
+   "id": "navlink",
+   "file": "layouts/shell/shell.css",
+   "from": 223,
+   "to": 244,
+   "lines": 22,
+   "verdict": "GENERALIZE",
+   "target": "nav-link (see generalize list)",
+   "evidence": "Link with hover colour; same as Shell.css:94.",
+   "saves": 11
+  },
+  {
+   "id": "hero",
+   "file": "layouts/shell/shell.css",
+   "from": 245,
+   "to": 261,
+   "lines": 17,
+   "verdict": "GENERALIZE",
+   "target": "hero-band (see generalize list)",
+   "evidence": "Fold-height hero with a title clamp; same as practice.css:681.",
+   "saves": 8
+  },
+  {
+   "id": "act-buttons",
+   "file": "layouts/shell/shell.css",
+   "from": 262,
+   "to": 280,
+   "lines": 19,
+   "verdict": "DUPLICATE",
+   "target": "`.btn` and `.btn.prim` (framework/framework.css:706,736,811)",
+   "evidence": "std-shell-act is a padded rounded button, act-prim its prim fill.",
+   "saves": 13
+  },
+  {
+   "id": "middle-band-wall",
+   "file": "layouts/shell/shell.css",
+   "from": 281,
+   "to": 303,
+   "lines": 23,
+   "verdict": "DUPLICATE",
+   "target": "`.flex.v.gap-50` (framework/framework.css:865,1034); `.muted` (framework/framework.css:542); `.wall` (core/Page/Page.css:1066)",
+   "evidence": "Column stacks, a quiet say line and a wall of cards.",
+   "saves": 16
+  },
+  {
+   "id": "card-aside",
+   "file": "layouts/shell/shell.css",
+   "from": 304,
+   "to": 328,
+   "lines": 25,
+   "verdict": "DUPLICATE",
+   "target": "`.card` (framework/framework.css:456,489); `.flex.v.gap` (framework/framework.css:865,1023)",
+   "evidence": "std-shell-card is surface + hairline + radius + padded; std-shell-aside is a flex column.",
+   "saves": 18
+  },
+  {
+   "id": "quote-dark-band",
+   "file": "layouts/shell/shell.css",
+   "from": 329,
+   "to": 343,
+   "lines": 15,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Always-dark island via color-scheme: dark (the primitive framework.css:149-157 describes); no dark-band word exists.",
+   "saves": 0
+  },
+  {
+   "id": "footer-cols",
+   "file": "layouts/shell/shell.css",
+   "from": 344,
+   "to": 351,
+   "lines": 8,
+   "verdict": "DUPLICATE",
+   "target": "`.grid.auto.gap` with --column:12rem (framework/framework.css:967)",
+   "evidence": "auto-fill grid of 12rem columns.",
+   "saves": 6
+  },
+  {
+   "id": "changed-details",
+   "file": "layouts/shell/shell.css",
+   "from": 352,
+   "to": 379,
+   "lines": 28,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Summary reset so a details reads as a full-width strip; page-specific.",
+   "saves": 0
+  },
+  {
+   "id": "container-ladders",
+   "file": "layouts/shell/shell.css",
+   "from": 380,
+   "to": 427,
+   "lines": 48,
+   "verdict": "GENERALIZE",
+   "target": "count-wall (see generalize list)",
+   "evidence": "Stepped 1/2/3/N columns by container width; hero split and has-aside at 40/52rem.",
+   "saves": 24
+  },
+  {
+   "id": "phone-fold",
+   "file": "layouts/shell/shell.css",
+   "from": 428,
+   "to": 459,
+   "lines": 32,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "@media 44rem: the rail becomes a foldable top band; behaviour specific to this shell.",
+   "saves": 0
+  },
+  {
+   "id": "shell-grid",
+   "file": "layouts/labs/shells/Shell.css",
+   "from": 1,
+   "to": 58,
+   "lines": 58,
+   "verdict": "GENERALIZE",
+   "target": "app-shell (see generalize list)",
+   "evidence": "head/left/main/right/foot grid with hide-* toggles (hide-* are built by string in Shell.js:85); identical skeleton to blogx.css:33 and practice.css:275. COPY: 8 diff lines from public/imagine/shells/Shell.css.",
+   "saves": 29
+  },
+  {
+   "id": "rail-home-bar-link",
+   "file": "layouts/labs/shells/Shell.css",
+   "from": 59,
+   "to": 115,
+   "lines": 57,
+   "verdict": "GENERALIZE",
+   "target": "nav-link (see generalize list)",
+   "evidence": "Rail and bar links with an active accent edge; twin of blogx.css:149 and :96.",
+   "saves": 28
+  },
+  {
+   "id": "main-doc-verdict",
+   "file": "layouts/labs/shells/Shell.css",
+   "from": 116,
+   "to": 140,
+   "lines": 25,
+   "verdict": "DUPLICATE",
+   "target": "`.card` with `--card-edge:var(--prim)` (framework/framework.css:489); `.flex.v`",
+   "evidence": "shell-verdict is a tinted radius box with a 3px prim inline-start bar = the card status edge.",
+   "saves": 18
+  },
+  {
+   "id": "canvas-board",
+   "file": "layouts/labs/shells/Shell.css",
+   "from": 141,
+   "to": 178,
+   "lines": 38,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Grid-line canvas background and a floating board; the lab's own picture.",
+   "saves": 0
+  },
+  {
+   "id": "inner-rail",
+   "file": "layouts/labs/shells/Shell.css",
+   "from": 179,
+   "to": 228,
+   "lines": 50,
+   "verdict": "GENERALIZE",
+   "target": "nav-link (see generalize list)",
+   "evidence": "Second link rail (inner-link, inner-bar) with the same active-edge pattern.",
+   "saves": 25
+  },
+  {
+   "id": "stage-app",
+   "file": "layouts/labs/shells/Shell.css",
+   "from": 229,
+   "to": 245,
+   "lines": 17,
+   "verdict": "DUPLICATE",
+   "target": "`.blogx-stage` / `.blogx-app` (layouts/labs/blogx/blogx.css:431-433)",
+   "evidence": "Same declarations (padding 0 / overflow hidden; flex 1, no border, hide demo-app-url).",
+   "saves": 12
+  },
+  {
+   "id": "phone-stack",
+   "file": "layouts/labs/shells/Shell.css",
+   "from": 246,
+   "to": 278,
+   "lines": 33,
+   "verdict": "GENERALIZE",
+   "target": "app-shell (see generalize list)",
+   "evidence": "@media 40em stacks the grid and turns rails into rows; blogx.css:494-527 says the same.",
+   "saves": 16
+  },
+  {
+   "id": "blogx-grid",
+   "file": "layouts/labs/blogx/blogx.css",
+   "from": 1,
+   "to": 50,
+   "lines": 50,
+   "verdict": "GENERALIZE",
+   "target": "app-shell (see generalize list)",
+   "evidence": "rail|main|aside|lab grid with a vars block; same as Shell.css:29. COPY: 40 diff lines from public/imagine/blogx/blogx.css.",
+   "saves": 25
+  },
+  {
+   "id": "region-boxes",
+   "file": "layouts/labs/blogx/blogx.css",
+   "from": 51,
+   "to": 85,
+   "lines": 35,
+   "verdict": "GENERALIZE",
+   "target": "app-shell (see generalize list)",
+   "evidence": "grid-area rail/aside/main with border and overflow; same regions as Shell.css:43-47.",
+   "saves": 18
+  },
+  {
+   "id": "lab-bar",
+   "file": "layouts/labs/blogx/blogx.css",
+   "from": 86,
+   "to": 122,
+   "lines": 37,
+   "verdict": "GENERALIZE",
+   "target": "nav-link (see generalize list)",
+   "evidence": "Bottom bar with home + crumb links + ellipsised verdict; Shell.css:78-113 is the same bar.",
+   "saves": 18
+  },
+  {
+   "id": "brand-nav-group",
+   "file": "layouts/labs/blogx/blogx.css",
+   "from": 123,
+   "to": 131,
+   "lines": 9,
+   "verdict": "GENERALIZE",
+   "target": "nav-link (see generalize list)",
+   "evidence": "Sidebar brand, nav column and group headings.",
+   "saves": 4
+  },
+  {
+   "id": "nav-quiet",
+   "file": "layouts/labs/blogx/blogx.css",
+   "from": 132,
+   "to": 132,
+   "lines": 1,
+   "verdict": "DELETE",
+   "target": "",
+   "evidence": "grep -rn 'nav-quiet' public finds only blogx.css (defined :132, restated :513), its copy imagine/blogx/blogx.css and a census json; no .js sets the class. One line carved out of the nav cluster.",
+   "saves": 1
+  },
+  {
+   "id": "nav-links-back-note",
+   "file": "layouts/labs/blogx/blogx.css",
+   "from": 133,
+   "to": 176,
+   "lines": 44,
+   "verdict": "GENERALIZE",
+   "target": "nav-link (see generalize list)",
+   "evidence": "Group heading, active-edge link, back link and note (lines 134-176).",
+   "saves": 22
+  },
+  {
+   "id": "eyebrow-chips-real",
+   "file": "layouts/labs/blogx/blogx.css",
+   "from": 177,
+   "to": 224,
+   "lines": 48,
+   "verdict": "GENERALIZE",
+   "target": "chip (see generalize list)",
+   "evidence": "blogx-chip is the pill; blogx-real and blogx-tag are outlined pills; the eyebrow (178-186) equals `.h4` (framework.css:432).",
+   "saves": 24
+  },
+  {
+   "id": "hero",
+   "file": "layouts/labs/blogx/blogx.css",
+   "from": 225,
+   "to": 250,
+   "lines": 26,
+   "verdict": "GENERALIZE",
+   "target": "display-block (see generalize list)",
+   "evidence": "cqw-scaled title/dek/padding block; same idea as decks.css:119, mag.css:70, screens.css:100.",
+   "saves": 13
+  },
+  {
+   "id": "wall-grid",
+   "file": "layouts/labs/blogx/blogx.css",
+   "from": 251,
+   "to": 265,
+   "lines": 15,
+   "verdict": "DUPLICATE",
+   "target": "`.wall` (framework/core/Page/Page.css:1066)",
+   "evidence": "blogx-wall is auto-fill minmax(min(var(--blogx-card),100%),1fr); .wall is that grid with --column.",
+   "saves": 10
+  },
+  {
+   "id": "card",
+   "file": "layouts/labs/blogx/blogx.css",
+   "from": 266,
+   "to": 277,
+   "lines": 12,
+   "verdict": "GENERALIZE",
+   "target": "tile (see generalize list)",
+   "evidence": "Link card with hover and title colour change.",
+   "saves": 6
+  },
+  {
+   "id": "rows",
+   "file": "layouts/labs/blogx/blogx.css",
+   "from": 278,
+   "to": 297,
+   "lines": 20,
+   "verdict": "GENERALIZE",
+   "target": "nav-link (see generalize list)",
+   "evidence": "Two-line list row with an active accent edge and hover; decks.css:213 is the same.",
+   "saves": 10
+  },
+  {
+   "id": "article-head",
+   "file": "layouts/labs/blogx/blogx.css",
+   "from": 298,
+   "to": 309,
+   "lines": 12,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Article/head measure with cqw-clamped padding and title (a container-scaled pad no token expresses yet, see proposal).",
+   "saves": 0
+  },
+  {
+   "id": "strip-crumbs-partnav",
+   "file": "layouts/labs/blogx/blogx.css",
+   "from": 310,
+   "to": 350,
+   "lines": 41,
+   "verdict": "GENERALIZE",
+   "target": "nav-link (see generalize list)",
+   "evidence": "Crumb strip and part tabs with an active underline; ext/tabs has `.tab-bar`/`.tab` (framework/ext/tabs/tabs.css:53,74).",
+   "saves": 20
+  },
+  {
+   "id": "deck",
+   "file": "layouts/labs/blogx/blogx.css",
+   "from": 351,
+   "to": 365,
+   "lines": 15,
+   "verdict": "GENERALIZE",
+   "target": "display-block (see generalize list)",
+   "evidence": "cqw-scaled title, dek and rule.",
+   "saves": 8
+  },
+  {
+   "id": "shut-toggle",
+   "file": "layouts/labs/blogx/blogx.css",
+   "from": 366,
+   "to": 391,
+   "lines": 26,
+   "verdict": "DUPLICATE",
+   "target": "`.btn.size-small` (framework/framework.css:706,694)",
+   "evidence": "blogx-toggle hand-writes a small button (padding, fill, hairline, radius, hover colour); the shut collapse is 4 lines.",
+   "saves": 18
+  },
+  {
+   "id": "board-region",
+   "file": "layouts/labs/blogx/blogx.css",
+   "from": 392,
+   "to": 426,
+   "lines": 35,
+   "verdict": "DUPLICATE",
+   "target": "`.wall` (framework/core/Page/Page.css:1066)",
+   "evidence": "blogx-board is an auto-fill grid with a min column; regions are padded cells.",
+   "saves": 24
+  },
+  {
+   "id": "part-front-latest",
+   "file": "layouts/labs/blogx/blogx.css",
+   "from": 427,
+   "to": 465,
+   "lines": 39,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Overrides for page-column bodies inside the blog lab (part-body, front, latest, stage/app).",
+   "saves": 0
+  },
+  {
+   "id": "front-container-queries",
+   "file": "layouts/labs/blogx/blogx.css",
+   "from": 466,
+   "to": 493,
+   "lines": 28,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "@container blogx-main rules for the two-column front page.",
+   "saves": 0
+  },
+  {
+   "id": "phone-stack",
+   "file": "layouts/labs/blogx/blogx.css",
+   "from": 494,
+   "to": 512,
+   "lines": 19,
+   "verdict": "GENERALIZE",
+   "target": "app-shell (see generalize list)",
+   "evidence": "@media 52em stacks grid areas and turns rails into scrolling rows.",
+   "saves": 10
+  },
+  {
+   "id": "nav-quiet-media",
+   "file": "layouts/labs/blogx/blogx.css",
+   "from": 513,
+   "to": 513,
+   "lines": 1,
+   "verdict": "DELETE",
+   "target": "",
+   "evidence": "Same class as :132 in the phone media block; unused (grep above). One line carved out.",
+   "saves": 1
+  },
+  {
+   "id": "phone-stack-rest",
+   "file": "layouts/labs/blogx/blogx.css",
+   "from": 514,
+   "to": 528,
+   "lines": 15,
+   "verdict": "GENERALIZE",
+   "target": "app-shell (see generalize list)",
+   "evidence": "Rest of the phone stack.",
+   "saves": 8
+  },
+  {
+   "id": "screen-container",
+   "file": "layouts/labs/decks/decks.css",
+   "from": 1,
+   "to": 44,
+   "lines": 44,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "The lab's own container and full-column overrides. NOTE: the whole file is byte-identical to public/imagine/decks/decks.css (diff = 0 lines); one copy is redundant.",
+   "saves": 0
+  },
+  {
+   "id": "slice-seam",
+   "file": "layouts/labs/decks/decks.css",
+   "from": 45,
+   "to": 65,
+   "lines": 21,
+   "verdict": "GENERALIZE",
+   "target": "seam-grid (see generalize list)",
+   "evidence": "display:flex; gap:1px; background:var(--line) hairline cells; screens.css:39-69 and mag.css:313-330 do the same.",
+   "saves": 10
+  },
+  {
+   "id": "region",
+   "file": "layouts/labs/decks/decks.css",
+   "from": 66,
+   "to": 97,
+   "lines": 32,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Region with a share variable and cqw-clamped padding/text; the demo's sizing.",
+   "saves": 0
+  },
+  {
+   "id": "col-seam",
+   "file": "layouts/labs/decks/decks.css",
+   "from": 98,
+   "to": 118,
+   "lines": 21,
+   "verdict": "GENERALIZE",
+   "target": "seam-grid (see generalize list)",
+   "evidence": "1px seam column.",
+   "saves": 10
+  },
+  {
+   "id": "title-block",
+   "file": "layouts/labs/decks/decks.css",
+   "from": 119,
+   "to": 157,
+   "lines": 39,
+   "verdict": "GENERALIZE",
+   "target": "display-block (see generalize list)",
+   "evidence": "block/title/eyebrow/rule/note scaled by cqw; same set in mag.css:70-108 and screens.css:100-183.",
+   "saves": 20
+  },
+  {
+   "id": "notes",
+   "file": "layouts/labs/decks/decks.css",
+   "from": 158,
+   "to": 170,
+   "lines": 13,
+   "verdict": "DUPLICATE",
+   "target": "`.flex.v.gap` (framework/framework.css:865,1023); `.muted` (framework/framework.css:542); `.measure` (framework/framework.css:925)",
+   "evidence": "Centered 34em stack of muted paragraphs.",
+   "saves": 9
+  },
+  {
+   "id": "wall-card",
+   "file": "layouts/labs/decks/decks.css",
+   "from": 171,
+   "to": 196,
+   "lines": 26,
+   "verdict": "DUPLICATE",
+   "target": "`.grid.auto.gap` (framework/framework.css:967); `.card` (framework/framework.css:456,489)",
+   "evidence": "auto-fit grid of tinted bordered padded cards.",
+   "saves": 18
+  },
+  {
+   "id": "list-stack",
+   "file": "layouts/labs/decks/decks.css",
+   "from": 197,
+   "to": 212,
+   "lines": 16,
+   "verdict": "DUPLICATE",
+   "target": "`.measure` (framework/framework.css:925) with --measure:26em; `.flex.v.gap`",
+   "evidence": "Centered 26em column.",
+   "saves": 11
+  },
+  {
+   "id": "row",
+   "file": "layouts/labs/decks/decks.css",
+   "from": 213,
+   "to": 255,
+   "lines": 43,
+   "verdict": "GENERALIZE",
+   "target": "nav-link (see generalize list)",
+   "evidence": "Two-line row with an active accent edge and hover.",
+   "saves": 22
+  },
+  {
+   "id": "stage-frame",
+   "file": "layouts/labs/decks/decks.css",
+   "from": 256,
+   "to": 272,
+   "lines": 17,
+   "verdict": "DUPLICATE",
+   "target": "`.card` + `.tint` (framework/framework.css:456,508) with `.flex.h-center.v-center`",
+   "evidence": "decks-frame is a tinted bordered radius box with a centered mark.",
+   "saves": 12
+  },
+  {
+   "id": "bars",
+   "file": "layouts/labs/decks/decks.css",
+   "from": 273,
+   "to": 278,
+   "lines": 6,
+   "verdict": "GENERALIZE",
+   "target": "progress-bar (see generalize list)",
+   "evidence": "Bars from flex items with flex:1 and prim colour; mag.css:385-390 same.",
+   "saves": 3
+  },
+  {
+   "id": "foot-chips",
+   "file": "layouts/labs/decks/decks.css",
+   "from": 279,
+   "to": 338,
+   "lines": 60,
+   "verdict": "DUPLICATE",
+   "target": "`.tab-bar` / `.tab` (framework/ext/tabs/tabs.css:53,74)",
+   "evidence": "decks-chip strip with an active top edge is a tab bar.",
+   "saves": 42
+  },
+  {
+   "id": "rail-override",
+   "file": "layouts/labs/decks/decks.css",
+   "from": 339,
+   "to": 359,
+   "lines": 21,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Page-column body overrides for the rail (custom props).",
+   "saves": 0
+  },
+  {
+   "id": "thumb",
+   "file": "layouts/labs/decks/decks.css",
+   "from": 360,
+   "to": 367,
+   "lines": 8,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Preview thumb stage ratio; two lines.",
+   "saves": 0
+  },
+  {
+   "id": "container-queries",
+   "file": "layouts/labs/decks/decks.css",
+   "from": 368,
+   "to": 391,
+   "lines": 24,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "@container decks rules: stack below 46em, hide notes.",
+   "saves": 0
+  },
+  {
+   "id": "header-reset-sheet",
+   "file": "layouts/labs/mag/mag.css",
+   "from": 1,
+   "to": 53,
+   "lines": 53,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Margin reset and `.mag-sheet`. NOTE: the file is 42 diff lines from public/imagine/mag/mag.css.",
+   "saves": 0
+  },
+  {
+   "id": "cover-area",
+   "file": "layouts/labs/mag/mag.css",
+   "from": 54,
+   "to": 69,
+   "lines": 16,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Cover link with an ink veil on hover/active (custom --mag-veil).",
+   "saves": 0
+  },
+  {
+   "id": "cover-block-type",
+   "file": "layouts/labs/mag/mag.css",
+   "from": 70,
+   "to": 108,
+   "lines": 39,
+   "verdict": "GENERALIZE",
+   "target": "display-block (see generalize list)",
+   "evidence": "cqw-scaled cover title, rule, note, enter; same set in decks.css:119 and screens.css:100.",
+   "saves": 20
+  },
+  {
+   "id": "cover-lines",
+   "file": "layouts/labs/mag/mag.css",
+   "from": 109,
+   "to": 153,
+   "lines": 45,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Contents lines grid on the cover; hidden when the cover has a child open.",
+   "saves": 0
+  },
+  {
+   "id": "column-overrides",
+   "file": "layouts/labs/mag/mag.css",
+   "from": 154,
+   "to": 194,
+   "lines": 41,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Page-column custom-prop overrides that give the cover its 38.2%/20% shares.",
+   "saves": 0
+  },
+  {
+   "id": "head-masthead-reset",
+   "file": "layouts/labs/mag/mag.css",
+   "from": 195,
+   "to": 232,
+   "lines": 38,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Contents masthead and a button styled as a link.",
+   "saves": 0
+  },
+  {
+   "id": "entries",
+   "file": "layouts/labs/mag/mag.css",
+   "from": 233,
+   "to": 258,
+   "lines": 26,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Restyles `.page-preview` as an entry row (customises an existing component, which is fine).",
+   "saves": 0
+  },
+  {
+   "id": "eyebrow-place",
+   "file": "layouts/labs/mag/mag.css",
+   "from": 259,
+   "to": 270,
+   "lines": 12,
+   "verdict": "DUPLICATE",
+   "target": "`.h4` (framework/framework.css:432); `.muted` (framework/framework.css:542)",
+   "evidence": "mag-eyebrow is small bold tracked uppercase = h4 in prim ink.",
+   "saves": 8
+  },
+  {
+   "id": "read-typography",
+   "file": "layouts/labs/mag/mag.css",
+   "from": 271,
+   "to": 285,
+   "lines": 15,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Title/sub/stand sizes for the magazine read column.",
+   "saves": 0
+  },
+  {
+   "id": "quote-figure-data-box",
+   "file": "layouts/labs/mag/mag.css",
+   "from": 286,
+   "to": 312,
+   "lines": 27,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Pull quote, figure, tones, data boxes with hairline block borders.",
+   "saves": 0
+  },
+  {
+   "id": "frames-tones-seam",
+   "file": "layouts/labs/mag/mag.css",
+   "from": 313,
+   "to": 337,
+   "lines": 25,
+   "verdict": "GENERALIZE",
+   "target": "seam-grid (see generalize list)",
+   "evidence": "frame/tones-row are flex gap:1px on --line with cells; same as decks.css:45 and screens.css:57. Also the layout-glyph in screens.css:240.",
+   "saves": 12
+  },
+  {
+   "id": "caption-next",
+   "file": "layouts/labs/mag/mag.css",
+   "from": 338,
+   "to": 357,
+   "lines": 20,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Caption and next-article link with a prim top rule.",
+   "saves": 0
+  },
+  {
+   "id": "data-chips",
+   "file": "layouts/labs/mag/mag.css",
+   "from": 358,
+   "to": 384,
+   "lines": 27,
+   "verdict": "GENERALIZE",
+   "target": "chip (see generalize list)",
+   "evidence": "mag-chip is a pill with an on state.",
+   "saves": 14
+  },
+  {
+   "id": "bars",
+   "file": "layouts/labs/mag/mag.css",
+   "from": 385,
+   "to": 391,
+   "lines": 7,
+   "verdict": "GENERALIZE",
+   "target": "progress-bar (see generalize list)",
+   "evidence": "Bar rows: grid word/track/px; same as decks.css:273.",
+   "saves": 4
+  },
+  {
+   "id": "screen-seam",
+   "file": "layouts/labs/screens/screens.css",
+   "from": 1,
+   "to": 79,
+   "lines": 79,
+   "verdict": "GENERALIZE",
+   "target": "seam-grid (see generalize list)",
+   "evidence": "screen/col/quad are 1px-gap hairline flex/grids. NOTE: 7 diff lines from public/imagine/screens/screens.css.",
+   "saves": 40
+  },
+  {
+   "id": "area",
+   "file": "layouts/labs/screens/screens.css",
+   "from": 80,
+   "to": 99,
+   "lines": 20,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Link cell that fills its share, centered, with hover tint.",
+   "saves": 0
+  },
+  {
+   "id": "block-cq",
+   "file": "layouts/labs/screens/screens.css",
+   "from": 100,
+   "to": 129,
+   "lines": 30,
+   "verdict": "GENERALIZE",
+   "target": "display-block (see generalize list)",
+   "evidence": "cqw-scaled block; same as decks.css:119.",
+   "saves": 15
+  },
+  {
+   "id": "wash-hover",
+   "file": "layouts/labs/screens/screens.css",
+   "from": 130,
+   "to": 151,
+   "lines": 22,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Ancestor wash and active-ring; 3 small rules.",
+   "saves": 0
+  },
+  {
+   "id": "label-type",
+   "file": "layouts/labs/screens/screens.css",
+   "from": 152,
+   "to": 183,
+   "lines": 32,
+   "verdict": "GENERALIZE",
+   "target": "display-block (see generalize list)",
+   "evidence": "label/note/rule/eyebrow scaled by cqw; same as decks.css:129-153.",
+   "saves": 16
+  },
+  {
+   "id": "cover-peek",
+   "file": "layouts/labs/screens/screens.css",
+   "from": 184,
+   "to": 215,
+   "lines": 32,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Page-column shares and the vertical peek strip.",
+   "saves": 0
+  },
+  {
+   "id": "major-minor-least",
+   "file": "layouts/labs/screens/screens.css",
+   "from": 216,
+   "to": 233,
+   "lines": 18,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Three flex shares via custom prop.",
+   "saves": 0
+  },
+  {
+   "id": "thumb-frames",
+   "file": "layouts/labs/screens/screens.css",
+   "from": 234,
+   "to": 259,
+   "lines": 26,
+   "verdict": "GENERALIZE",
+   "target": "layout-glyph (see generalize list)",
+   "evidence": "screens-frame/cell draw a mini frame of cells, as mag.css:310-330.",
+   "saves": 13
+  },
+  {
+   "id": "container-queries-verdict",
+   "file": "layouts/labs/screens/screens.css",
+   "from": 260,
+   "to": 283,
+   "lines": 24,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Two @container rules and the verdict line.",
+   "saves": 0
+  },
+  {
+   "id": "util-bleed",
+   "file": "layouts/labs/sections/sections.css",
+   "from": 1,
+   "to": 38,
+   "lines": 38,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Util-layer bleed margin contract (same idea as core/Page/Page.css:48-49; scoped to .sections-stack).",
+   "saves": 0
+  },
+  {
+   "id": "stack-space",
+   "file": "layouts/labs/sections/sections.css",
+   "from": 39,
+   "to": 67,
+   "lines": 29,
+   "verdict": "DUPLICATE",
+   "target": "`.flex.v.gap` (framework/framework.css:832,865,1023); `.size-large` (framework/framework.css:696) for space-airy",
+   "evidence": "sections-stack is a flex column with gap; space-0 is gap:0.",
+   "saves": 20
+  },
+  {
+   "id": "band-card-flush",
+   "file": "layouts/labs/sections/sections.css",
+   "from": 68,
+   "to": 88,
+   "lines": 21,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Container declaration `sections-band` for the @container rules and the card/flush borders.",
+   "saves": 0
+  },
+  {
+   "id": "grid-head-side-main",
+   "file": "layouts/labs/sections/sections.css",
+   "from": 89,
+   "to": 135,
+   "lines": 47,
+   "verdict": "GENERALIZE",
+   "target": "app-shell (see generalize list)",
+   "evidence": "head/side/main/aside/foot grid with a --sections-tracks var; same skeleton as Shell.css:29. NOTE: 49 diff lines from public/imagine/sections/sections.css.",
+   "saves": 24
+  },
+  {
+   "id": "hold-body-pin-screen",
+   "file": "layouts/labs/sections/sections.css",
+   "from": 136,
+   "to": 190,
+   "lines": 55,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Sticky/inner-scroll/pinned behaviours are the lab's subject.",
+   "saves": 0
+  },
+  {
+   "id": "skins",
+   "file": "layouts/labs/sections/sections.css",
+   "from": 191,
+   "to": 206,
+   "lines": 16,
+   "verdict": "DUPLICATE",
+   "target": "`.tint` (framework/framework.css:508) for skin-tint; `.surface` (framework/framework.css:456) for skin-card; `.wash` (framework/framework.css:503)",
+   "evidence": "Five background classes built by string (sections.js:243); tint and card are existing words.",
+   "saves": 11
+  },
+  {
+   "id": "text-rows-tiles",
+   "file": "layouts/labs/sections/sections.css",
+   "from": 207,
+   "to": 241,
+   "lines": 35,
+   "verdict": "DUPLICATE",
+   "target": "`.muted` (framework/framework.css:542); `.measure.start` (framework/framework.css:936); `.grid.auto.gap` (framework/framework.css:967); `.card` (framework/framework.css:456)",
+   "evidence": "title/text/note, rows, auto-fill tiles with a bordered padded tile = .card.",
+   "saves": 24
+  },
+  {
+   "id": "chips-groups",
+   "file": "layouts/labs/sections/sections.css",
+   "from": 242,
+   "to": 267,
+   "lines": 26,
+   "verdict": "GENERALIZE",
+   "target": "chip (see generalize list)",
+   "evidence": "sections-chip with .on state; same pill as std-tag.",
+   "saves": 13
+  },
+  {
+   "id": "mark-reads-px",
+   "file": "layouts/labs/sections/sections.css",
+   "from": 268,
+   "to": 281,
+   "lines": 14,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Small marks and pixel readouts specific to this lab.",
+   "saves": 0
+  },
+  {
+   "id": "link-button",
+   "file": "layouts/labs/sections/sections.css",
+   "from": 282,
+   "to": 298,
+   "lines": 17,
+   "verdict": "DUPLICATE",
+   "target": "`.btn.size-small` (framework/framework.css:706,694)",
+   "evidence": "sections-link is a padded, bordered, radius button with hover.",
+   "saves": 12
+  },
+  {
+   "id": "nav-items",
+   "file": "layouts/labs/sections/sections.css",
+   "from": 299,
+   "to": 332,
+   "lines": 34,
+   "verdict": "GENERALIZE",
+   "target": "nav-link (see generalize list)",
+   "evidence": "nav-item with active edge and hover; nav-bar (sections.css:302) is a .btn.",
+   "saves": 17
+  },
+  {
+   "id": "reserve",
+   "file": "layouts/labs/sections/sections.css",
+   "from": 333,
+   "to": 347,
+   "lines": 15,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Stacked-grid panel trick to reserve height; unique.",
+   "saves": 0
+  },
+  {
+   "id": "container-queries",
+   "file": "layouts/labs/sections/sections.css",
+   "from": 348,
+   "to": 371,
+   "lines": 24,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "@container sections-band stack rules.",
+   "saves": 0
+  },
+  {
+   "id": "node-button",
+   "file": "layouts/labs/trees/trees.css",
+   "from": 1,
+   "to": 38,
+   "lines": 38,
+   "verdict": "DUPLICATE",
+   "target": "`.btn.size-small` (framework/framework.css:706,694)",
+   "evidence": "std-trees-node.std-trees-node doubles the class to beat the theme, then re-sets font, padding, border, radius, cursor: what .btn.size-small already is.",
+   "saves": 27
+  },
+  {
+   "id": "connectors-brainstorm-canvas",
+   "file": "layouts/labs/trees/trees.css",
+   "from": 39,
+   "to": 138,
+   "lines": 100,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Pure-CSS org-chart / flow / brainstorm connectors and canvas frame; no framework equivalent.",
+   "saves": 0
+  },
+  {
+   "id": "tool-button",
+   "file": "layouts/labs/trees/trees.css",
+   "from": 139,
+   "to": 149,
+   "lines": 11,
+   "verdict": "DUPLICATE",
+   "target": "`.btn.size-small` (framework/framework.css:706,694)",
+   "evidence": "tool = padded small button with text-transform reset.",
+   "saves": 8
+  },
+  {
+   "id": "pan-fullscreen-controls",
+   "file": "layouts/labs/trees/trees.css",
+   "from": 150,
+   "to": 177,
+   "lines": 28,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Pan area, fullscreen sizing, mobile media and control row.",
+   "saves": 0
+  }
+ ],
+ "totals": {
+  "DUPLICATE": 1054,
+  "GENERALIZE": 1653,
+  "KEEP": 1600,
+  "DELETE": 5
+ },
+ "proposal": "Stop re-writing the same six components: most of these 4,312 lines are the same rail, link, chip, tile, hero and seam written again under a different prefix. First, replace the lines that only re-spell an existing word (.card, .btn, .h4, .muted, .darken-1, .flow, .measure, .wall, .grid.three, ext/tabs .tab) with that word in the markup. Second, build five small shared components once (app-shell, nav-link, chip, tile, count-wall) and let practice, shell, blogx, shells and sections wear them. Third, labs/decks, mag, screens, sections, shells and blogx are near copies of public/imagine/* (decks is byte-identical), so keep one copy of each and delete the other. Only the wireframe drawing in layouts.css, the trees connectors and the lab-specific scroll and sticky behaviours are genuinely this module's own.",
+ "generalize": [
+  {
+   "name": "app-shell (rail | main | aside grid with head/foot, collapses by container width)",
+   "wouldReplace": [
+    "layouts/practice/practice.css:275",
+    "layouts/shell/shell.css:56",
+    "layouts/labs/shells/Shell.css:1",
+    "layouts/labs/blogx/blogx.css:1",
+    "layouts/labs/sections/sections.css:89"
+   ]
+  },
+  {
+   "name": "nav-link (a row link with a hover tint and an accent edge when active; wraps ui-tree-row / ext/tabs .tab)",
+   "wouldReplace": [
+    "layouts/practice/practice.css:85",
+    "layouts/shell/shell.css:223",
+    "layouts/labs/shells/Shell.css:59",
+    "layouts/labs/shells/Shell.css:179",
+    "layouts/labs/blogx/blogx.css:86",
+    "layouts/labs/blogx/blogx.css:123",
+    "layouts/labs/blogx/blogx.css:278",
+    "layouts/labs/blogx/blogx.css:310",
+    "layouts/labs/decks/decks.css:213",
+    "layouts/labs/sections/sections.css:299"
+   ]
+  },
+  {
+   "name": "chip (pill link with an on state, built on ui-pill / ui-badge.outline)",
+   "wouldReplace": [
+    "layouts/layouts.css:219",
+    "layouts/practice/practice.css:193",
+    "layouts/practice/practice.css:251",
+    "layouts/labs/blogx/blogx.css:177",
+    "layouts/labs/mag/mag.css:358",
+    "layouts/labs/sections/sections.css:242"
+   ]
+  },
+  {
+   "name": "tile (a link card: fill, hover ring, radius, optional picture; extends .card)",
+   "wouldReplace": [
+    "layouts/layouts.css:172",
+    "layouts/browse/browse.css:81",
+    "layouts/practice/practice.css:395",
+    "layouts/practice/practice.css:764",
+    "layouts/practice/practice.css:853",
+    "layouts/labs/blogx/blogx.css:266"
+   ]
+  },
+  {
+   "name": "display-block (a container-scaled block: eyebrow, huge title, rule, note; sizes in cqw)",
+   "wouldReplace": [
+    "layouts/labs/decks/decks.css:119",
+    "layouts/labs/mag/mag.css:70",
+    "layouts/labs/screens/screens.css:100",
+    "layouts/labs/screens/screens.css:152",
+    "layouts/labs/blogx/blogx.css:225",
+    "layouts/labs/blogx/blogx.css:351"
+   ]
+  },
+  {
+   "name": "seam-grid (cells separated by a 1px --line gap)",
+   "wouldReplace": [
+    "layouts/labs/decks/decks.css:45",
+    "layouts/labs/decks/decks.css:98",
+    "layouts/labs/screens/screens.css:1",
+    "layouts/labs/mag/mag.css:313"
+   ]
+  },
+  {
+   "name": "count-wall (1/2/3/4/6/8 columns stepped by container width)",
+   "wouldReplace": [
+    "layouts/practice/practice.css:371",
+    "layouts/practice/practice.css:759",
+    "layouts/practice/practice.css:783",
+    "layouts/shell/shell.css:380"
+   ]
+  },
+  {
+   "name": "progress-bar (bar rows; framework/ui/progress already exists)",
+   "wouldReplace": [
+    "layouts/labs/mag/mag.css:385",
+    "layouts/labs/decks/decks.css:273"
+   ]
+  },
+  {
+   "name": "hero-band (fold-height hero band with a row layout when wide)",
+   "wouldReplace": [
+    "layouts/practice/practice.css:681",
+    "layouts/shell/shell.css:245"
+   ]
+  },
+  {
+   "name": "layout-glyph (a mini frame of cells)",
+   "wouldReplace": [
+    "layouts/labs/mag/mag.css:310",
+    "layouts/labs/screens/screens.css:234"
+   ]
+  }
+ ],
+ "risk": "medium: most swaps change looks slightly (a card or button reads a little different), and app-shell/nav-link touch five reference demo pages, but no runtime logic changes."
+}

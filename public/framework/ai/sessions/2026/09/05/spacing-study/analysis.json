@@ -1,0 +1,650 @@
+{
+  "generated_at": "2026-09-05T07:03:39.009Z",
+  "totals_1280": {
+    "boxCount": 1166,
+    "rowCount": 1166,
+    "agree": true
+  },
+  "totals_3440": {
+    "boxCount": 1166,
+    "rowCount": 1166,
+    "agree": true
+  },
+  "distribution": {
+    "count": 504,
+    "min": 1,
+    "p50": 1,
+    "p90": 2.26,
+    "max": 8.21,
+    "over25": 21,
+    "over25_no_reason": 3,
+    "over25_with_reason": 18
+  },
+  "top20_no_reason": [
+    {
+      "url": "/imagine/platform/",
+      "width": 1280,
+      "ratio": 2.51,
+      "gapA": 27.1,
+      "gapB": 10.8,
+      "parentSelector": "div.page-column-body.page-column-large",
+      "boxes": [
+        "div.md.flow",
+        "div.md.flow",
+        "div.page-previews.bleed"
+      ],
+      "text": [
+        "This is a design lab, not a live product",
+        "Behind the scenes: the research log\nAs o",
+        "inventory_2Existing frameworkWhat the fr"
+      ],
+      "reason": null
+    },
+    {
+      "url": "/imagine/blogx/",
+      "width": 1280,
+      "ratio": 2.51,
+      "gapA": 10.8,
+      "gapB": 27.1,
+      "parentSelector": "div.page-column-body.page-column-fill",
+      "boxes": [
+        "div.md.flow",
+        "div.page-previews.bleed",
+        "div.md.flow"
+      ],
+      "text": [
+        "Eight shells, one blog. All eight render",
+        "newspaperMagazine frontHero + wall + two",
+        "What the eight are for\nFronts — Magazine"
+      ],
+      "reason": null
+    },
+    {
+      "url": "/imagine/stream/",
+      "width": 1280,
+      "ratio": 2.51,
+      "gapA": 10.8,
+      "gapB": 27.1,
+      "parentSelector": "div.page-column-body.page-column-large",
+      "boxes": [
+        "p.md",
+        "div.page-previews.bleed",
+        "div.md.flow"
+      ],
+      "text": [
+        "Open any page below in two windows. Edit",
+        "cableLive wireType in one window, watch ",
+        "The two files\nA stream is a snapshot and"
+      ],
+      "reason": null
+    }
+  ],
+  "top20_any": [
+    {
+      "url": "/imagine/review/",
+      "width": 1280,
+      "ratio": 8.21,
+      "gapA": 110.9,
+      "gapB": 13.5,
+      "parentSelector": "div.page-column-prose.flow",
+      "boxes": [
+        "div.flex.v.gap",
+        "div.flex.v.gap",
+        "div.flex.v.gap"
+      ],
+      "text": [
+        "3. Generatedwas unclear→now clearas it s",
+        "4. Designwas unclear→now clearas it stan",
+        "7. Sceneswas unclear→now clearas it stan"
+      ],
+      "reason": "grid row-wrap (different column, not a real vertical neighbour)"
+    },
+    {
+      "url": "/imagine/review/",
+      "width": 1280,
+      "ratio": 8.21,
+      "gapA": 13.5,
+      "gapB": 110.9,
+      "parentSelector": "div.page-column-prose.flow",
+      "boxes": [
+        "div.flex.v.gap",
+        "div.flex.v.gap",
+        "div.flex.v.gap"
+      ],
+      "text": [
+        "6. Screenswas unclear→now clearas it sta",
+        "7. Sceneswas unclear→now clearas it stan",
+        "10. Teamwas unclear→now clearas it stand"
+      ],
+      "reason": "grid row-wrap (different column, not a real vertical neighbour)"
+    },
+    {
+      "url": "/imagine/review/",
+      "width": 1280,
+      "ratio": 4.61,
+      "gapA": 62.2,
+      "gapB": 13.5,
+      "parentSelector": "div.page-column-prose.flow",
+      "boxes": [
+        "div.flex.v.gap",
+        "div.flex.v.gap",
+        "div.flex.v.gap"
+      ],
+      "text": [
+        "12. Varywas unclear→now clearas it stand",
+        "13. Feedswas unclear→now clearas it stan",
+        "16. CMSwas clear→now clearas it stands n"
+      ],
+      "reason": "grid row-wrap (different column, not a real vertical neighbour)"
+    },
+    {
+      "url": "/imagine/game/",
+      "width": 3440,
+      "ratio": 3.9,
+      "gapA": 2,
+      "gapB": 7.8,
+      "parentSelector": "div.page-column-body.page-column-small",
+      "boxes": [
+        "span.imagine-label",
+        "span.imagine-map-cell",
+        "span.imagine-label"
+      ],
+      "text": [
+        "The Verge",
+        "gate",
+        "The Hollow"
+      ],
+      "reason": "game-board grid (deliberate pixel layout)"
+    },
+    {
+      "url": "/imagine/game/",
+      "width": 3440,
+      "ratio": 3.9,
+      "gapA": 7.8,
+      "gapB": 2,
+      "parentSelector": "div.page-column-body.page-column-small",
+      "boxes": [
+        "span.imagine-map-cell",
+        "span.imagine-label",
+        "span.imagine-map-cell"
+      ],
+      "text": [
+        "steps",
+        "The Hollow",
+        "stair"
+      ],
+      "reason": "grid row-wrap (different column, not a real vertical neighbour)"
+    },
+    {
+      "url": "/imagine/game/",
+      "width": 3440,
+      "ratio": 3.9,
+      "gapA": 2,
+      "gapB": 7.8,
+      "parentSelector": "div.page-column-body.page-column-small",
+      "boxes": [
+        "span.imagine-label",
+        "span.imagine-map-cell",
+        "span.imagine-label"
+      ],
+      "text": [
+        "The Hollow",
+        "stair",
+        "The Spire"
+      ],
+      "reason": "game-board grid (deliberate pixel layout)"
+    },
+    {
+      "url": "/imagine/game/",
+      "width": 3440,
+      "ratio": 3.9,
+      "gapA": 7.8,
+      "gapB": 2,
+      "parentSelector": "div.page-column-body.page-column-small",
+      "boxes": [
+        "span.imagine-map-cell",
+        "span.imagine-label",
+        "span.imagine-map-cell"
+      ],
+      "text": [
+        "kiln",
+        "The Spire",
+        "gallery"
+      ],
+      "reason": "grid row-wrap (different column, not a real vertical neighbour)"
+    },
+    {
+      "url": "/imagine/game/",
+      "width": 1280,
+      "ratio": 3.45,
+      "gapA": 2,
+      "gapB": 6.9,
+      "parentSelector": "div.page-column-body.page-column-small",
+      "boxes": [
+        "span.imagine-label",
+        "span.imagine-map-cell",
+        "span.imagine-label"
+      ],
+      "text": [
+        "The Verge",
+        "gate",
+        "The Hollow"
+      ],
+      "reason": "game-board grid (deliberate pixel layout)"
+    },
+    {
+      "url": "/imagine/game/",
+      "width": 1280,
+      "ratio": 3.45,
+      "gapA": 6.9,
+      "gapB": 2,
+      "parentSelector": "div.page-column-body.page-column-small",
+      "boxes": [
+        "span.imagine-map-cell",
+        "span.imagine-label",
+        "span.imagine-map-cell"
+      ],
+      "text": [
+        "steps",
+        "The Hollow",
+        "stair"
+      ],
+      "reason": "grid row-wrap (different column, not a real vertical neighbour)"
+    },
+    {
+      "url": "/imagine/game/",
+      "width": 1280,
+      "ratio": 3.45,
+      "gapA": 2,
+      "gapB": 6.9,
+      "parentSelector": "div.page-column-body.page-column-small",
+      "boxes": [
+        "span.imagine-label",
+        "span.imagine-map-cell",
+        "span.imagine-label"
+      ],
+      "text": [
+        "The Hollow",
+        "stair",
+        "The Spire"
+      ],
+      "reason": "game-board grid (deliberate pixel layout)"
+    },
+    {
+      "url": "/imagine/game/",
+      "width": 1280,
+      "ratio": 3.45,
+      "gapA": 6.9,
+      "gapB": 2,
+      "parentSelector": "div.page-column-body.page-column-small",
+      "boxes": [
+        "span.imagine-map-cell",
+        "span.imagine-label",
+        "span.imagine-map-cell"
+      ],
+      "text": [
+        "kiln",
+        "The Spire",
+        "gallery"
+      ],
+      "reason": "grid row-wrap (different column, not a real vertical neighbour)"
+    },
+    {
+      "url": "/imagine/research/",
+      "width": 3440,
+      "ratio": 3.2,
+      "gapA": 8.1,
+      "gapB": 25.9,
+      "parentSelector": "div.page-column-prose.flow",
+      "boxes": [
+        "div.research-legend.flow",
+        "div.research-topics.flow",
+        "details"
+      ],
+      "text": [
+        "How sure is thisestablished191mainstream",
+        "The digstone111 entries48 finding · 6 so",
+        "Theories on the table — 47 across 4 topi"
+      ],
+      "reason": "collapsible section boundary"
+    },
+    {
+      "url": "/imagine/research/",
+      "width": 1280,
+      "ratio": 3.19,
+      "gapA": 6.8,
+      "gapB": 21.7,
+      "parentSelector": "div.page-column-prose.flow",
+      "boxes": [
+        "div.research-legend.flow",
+        "div.research-topics.flow",
+        "details"
+      ],
+      "text": [
+        "How sure is thisestablished191mainstream",
+        "The digstone111 entries48 finding · 6 so",
+        "Theories on the table — 47 across 4 topi"
+      ],
+      "reason": "collapsible section boundary"
+    },
+    {
+      "url": "/imagine/platform/",
+      "width": 1280,
+      "ratio": 2.51,
+      "gapA": 27.1,
+      "gapB": 10.8,
+      "parentSelector": "div.page-column-body.page-column-large",
+      "boxes": [
+        "div.md.flow",
+        "div.md.flow",
+        "div.page-previews.bleed"
+      ],
+      "text": [
+        "This is a design lab, not a live product",
+        "Behind the scenes: the research log\nAs o",
+        "inventory_2Existing frameworkWhat the fr"
+      ],
+      "reason": null
+    },
+    {
+      "url": "/imagine/layouts/",
+      "width": 1280,
+      "ratio": 2.51,
+      "gapA": 27.1,
+      "gapB": 10.8,
+      "parentSelector": "div.page-column-body.page-column-large",
+      "boxes": [
+        "h2",
+        "div.md.flow",
+        "div.layouts-idea"
+      ],
+      "text": [
+        "The one idea: stacks and splits",
+        "A STACK is what a div does on its own. P",
+        "which one am I looking atstacksplitStack"
+      ],
+      "reason": "heading boundary"
+    },
+    {
+      "url": "/imagine/layouts/",
+      "width": 1280,
+      "ratio": 2.51,
+      "gapA": 27.1,
+      "gapB": 10.8,
+      "parentSelector": "div.page-column-body.page-column-large",
+      "boxes": [
+        "h2",
+        "div.md.flow",
+        "p.md"
+      ],
+      "text": [
+        "How this relates to the approved five",
+        "It is the gate's catalogue, not a sixth ",
+        "More: the readme · why it is numbered, a"
+      ],
+      "reason": "heading boundary"
+    },
+    {
+      "url": "/imagine/blogx/",
+      "width": 1280,
+      "ratio": 2.51,
+      "gapA": 10.8,
+      "gapB": 27.1,
+      "parentSelector": "div.page-column-body.page-column-fill",
+      "boxes": [
+        "div.md.flow",
+        "div.page-previews.bleed",
+        "div.md.flow"
+      ],
+      "text": [
+        "Eight shells, one blog. All eight render",
+        "newspaperMagazine frontHero + wall + two",
+        "What the eight are for\nFronts — Magazine"
+      ],
+      "reason": null
+    },
+    {
+      "url": "/imagine/stream/",
+      "width": 1280,
+      "ratio": 2.51,
+      "gapA": 10.8,
+      "gapB": 27.1,
+      "parentSelector": "div.page-column-body.page-column-large",
+      "boxes": [
+        "p.md",
+        "div.page-previews.bleed",
+        "div.md.flow"
+      ],
+      "text": [
+        "Open any page below in two windows. Edit",
+        "cableLive wireType in one window, watch ",
+        "The two files\nA stream is a snapshot and"
+      ],
+      "reason": null
+    },
+    {
+      "url": "/imagine/stream/",
+      "width": 1280,
+      "ratio": 2.51,
+      "gapA": 27.1,
+      "gapB": 10.8,
+      "parentSelector": "div.page-column-body.page-column-large",
+      "boxes": [
+        "div.page-previews.bleed",
+        "div.md.flow",
+        "details.surface.pad"
+      ],
+      "text": [
+        "cableLive wireType in one window, watch ",
+        "The two files\nA stream is a snapshot and",
+        "wire.json · wire.jsonl — the two files, "
+      ],
+      "reason": "collapsible section boundary"
+    },
+    {
+      "url": "/imagine/stream/",
+      "width": 1280,
+      "ratio": 2.51,
+      "gapA": 10.8,
+      "gapB": 27.1,
+      "parentSelector": "div.page-column-body.page-column-large",
+      "boxes": [
+        "div.md.flow",
+        "details.surface.pad",
+        "div.md.flow"
+      ],
+      "text": [
+        "The two files\nA stream is a snapshot and",
+        "wire.json · wire.jsonl — the two files, ",
+        "The .json is the state a cold window sta"
+      ],
+      "reason": "collapsible section boundary"
+    }
+  ],
+  "cramped_ranking": [
+    {
+      "url": "/imagine/cms/",
+      "median1280": 9.45,
+      "median3440": 9.7,
+      "growth": 1.026,
+      "n1280": 8,
+      "n3440": 7
+    },
+    {
+      "url": "/imagine/paging/",
+      "median1280": 9.5,
+      "median3440": 11.3,
+      "growth": 1.189,
+      "n1280": 61,
+      "n3440": 61
+    },
+    {
+      "url": "/imagine/review/",
+      "median1280": 6.8,
+      "median3440": 8.1,
+      "growth": 1.191,
+      "n1280": 144,
+      "n3440": 141
+    },
+    {
+      "url": "/imagine/stream/",
+      "median1280": 27.1,
+      "median3440": 32.4,
+      "growth": 1.196,
+      "n1280": 15,
+      "n3440": 15
+    },
+    {
+      "url": "/imagine/design/",
+      "median1280": 8.1,
+      "median3440": 9.7,
+      "growth": 1.198,
+      "n1280": 14,
+      "n3440": 13
+    },
+    {
+      "url": "/imagine/gallery/",
+      "median1280": 8.1,
+      "median3440": 9.7,
+      "growth": 1.198,
+      "n1280": 5,
+      "n3440": 5
+    },
+    {
+      "url": "/imagine/vary/",
+      "median1280": 8.1,
+      "median3440": 9.7,
+      "growth": 1.198,
+      "n1280": 5,
+      "n3440": 5
+    },
+    {
+      "url": "/imagine/screens/",
+      "median1280": 8.1,
+      "median3440": 9.7,
+      "growth": 1.198,
+      "n1280": 25,
+      "n3440": 25
+    },
+    {
+      "url": "/imagine/feeds/",
+      "median1280": 8.1,
+      "median3440": 9.7,
+      "growth": 1.198,
+      "n1280": 4,
+      "n3440": 4
+    },
+    {
+      "url": "/imagine/blogx/",
+      "median1280": 8.1,
+      "median3440": 9.7,
+      "growth": 1.198,
+      "n1280": 14,
+      "n3440": 13
+    },
+    {
+      "url": "/imagine/decks/",
+      "median1280": 8.1,
+      "median3440": 9.7,
+      "growth": 1.198,
+      "n1280": 32,
+      "n3440": 31
+    },
+    {
+      "url": "/imagine/team/",
+      "median1280": 7.5,
+      "median3440": 9,
+      "growth": 1.2,
+      "n1280": 2,
+      "n3440": 2
+    },
+    {
+      "url": "/imagine/shells/",
+      "median1280": 9.45,
+      "median3440": 11.35,
+      "growth": 1.201,
+      "n1280": 20,
+      "n3440": 20
+    },
+    {
+      "url": "/imagine/generated/",
+      "median1280": 9.45,
+      "median3440": 11.35,
+      "growth": 1.201,
+      "n1280": 2,
+      "n3440": 2
+    },
+    {
+      "url": "/imagine/layouts/",
+      "median1280": 10.8,
+      "median3440": 13,
+      "growth": 1.204,
+      "n1280": 32,
+      "n3440": 32
+    },
+    {
+      "url": "/imagine/codrops/",
+      "median1280": 10.8,
+      "median3440": 13,
+      "growth": 1.204,
+      "n1280": 7,
+      "n3440": 7
+    },
+    {
+      "url": "/imagine/scenes/",
+      "median1280": 10.8,
+      "median3440": 13,
+      "growth": 1.204,
+      "n1280": 4,
+      "n3440": 4
+    },
+    {
+      "url": "/imagine/youtube/",
+      "median1280": 10.8,
+      "median3440": 13,
+      "growth": 1.204,
+      "n1280": 2,
+      "n3440": 2
+    },
+    {
+      "url": "/imagine/design/padding/",
+      "median1280": 5.4,
+      "median3440": 6.5,
+      "growth": 1.204,
+      "n1280": 31,
+      "n3440": 29
+    },
+    {
+      "url": "/imagine/research/",
+      "median1280": 4.7,
+      "median3440": 5.7,
+      "growth": 1.213,
+      "n1280": 32,
+      "n3440": 32
+    },
+    {
+      "url": "/imagine/game/",
+      "median1280": 4.15,
+      "median3440": 5.4,
+      "growth": 1.301,
+      "n1280": 8,
+      "n3440": 7
+    },
+    {
+      "url": "/imagine/platform/",
+      "median1280": 18.950000000000003,
+      "median3440": 32.4,
+      "growth": 1.71,
+      "n1280": 24,
+      "n3440": 22
+    },
+    {
+      "url": "/imagine/mag/",
+      "median1280": null,
+      "median3440": null,
+      "growth": null,
+      "n1280": 0,
+      "n3440": 0
+    }
+  ]
+}

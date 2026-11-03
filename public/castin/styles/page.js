@@ -38,7 +38,7 @@ export default {
     p("Some custom properties defined in :root");
     snippet(`
       :root {
-        --prim: #5a57ff;
+        --prime: #5a57ff;
         --bg: #42404B;
         --subtle: rgba(0,0,0,0.5);
         --column: 14em;

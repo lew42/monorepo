@@ -1,0 +1,12 @@
+{
+  "class": "Scoreboard",
+  "properties": ["rows"],
+  "methods": [
+    {"name": "apply", "args": ["entry"]},
+    {"name": "models", "args": []},
+    {"name": "model", "args": ["id"]},
+    {"name": "overruleCount", "args": ["model"]},
+    {"name": "retire", "args": ["opts"]},
+    {"name": "explain", "args": ["model"]}
+  ]
+}

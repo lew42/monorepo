@@ -1,0 +1,43 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/2026-10-09/system-architect/",
+ "widths": {
+  "1280": {
+   "empty": 0.94,
+   "widest_text": 401,
+   "widest_text_sample": "system-architect",
+   "overflow_x": false,
+   "items": 12,
+   "narrow_share": 1
+  },
+  "1920": {
+   "empty": 0.95,
+   "widest_text": 427,
+   "widest_text_sample": "system-architect",
+   "overflow_x": false,
+   "items": 12,
+   "narrow_share": 1
+  },
+  "2560": {
+   "empty": 0.962,
+   "widest_text": 480,
+   "widest_text_sample": "system-architect",
+   "overflow_x": false,
+   "items": 12,
+   "narrow_share": 1
+  },
+  "3440": {
+   "empty": 0.817,
+   "widest_text": 1165,
+   "widest_text_sample": "Top 10 changes, most friction removed fo",
+   "overflow_x": false,
+   "items": 105,
+   "narrow_share": 0.695
+  }
+ },
+ "errors": [
+  "1920: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "2560: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1280: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "3440: Failed to load resource: the server responded with a status of 404 (Not Found)"
+ ]
+}

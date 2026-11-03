@@ -1,40 +1,27 @@
-/* Layer order, restated IN FULL — a short list would misplace `site`.
-   See the header of framework.css. */
-@layer base, theme, site, util;
-
-/* Each rule is a finding — what the utility set could not say. No colour: a tint
-   is an inline token value in parts.js, because a look is not this file's call.
-   Reasoning, and what was tried instead: readme.md. */
+/* Two things, and neither is a layout page: the full-window view (full.js) and the
+   shape thumbnails (preview.js). The index's rail and wall moved to ext/catalog's
+   browse.css when `ui/` took the same mechanism. The layout pages themselves ship no
+   CSS at all. Reasoning, and what was tried instead: readme.md. */
 @layer theme {
 
-	/* A fixed column beside a fluid one. `flex-1` names the fluid half and there
-	   is no utility for the other, so this is the rule every sidebar layout has
-	   to write. Both bases are existing tokens — no new number. */
-	.layout-side { flex: 0 0 var(--sidebar); min-width: 0; }
-	.layout-rail { flex: 0 0 var(--column); min-width: 0; }
+	/* A preview region is a shape, not a card. The outline is what makes a `flex`
+	   with no gap read as three boxes rather than one — two washes that touch are
+	   one wash. Inside the box, so it never changes the arrangement being shown. */
+	.preview > * { outline: 1px solid var(--line); outline-offset: -1px; }
 
-	/* A measure, centred. `max-width` alone leaves the column flush left.
-	   ⚠ The `margin-inline` is DEAD inside a `.flex` — `.flex > * { margin: 0 }` is
-	   in @layer util and wins. Centre with the container (`h-center`) there. */
-	.layout-measure { max-width: 34em; margin-inline: auto; }
-
-	/* The "how should a page hold this" panel, one per layout page. See fit.js. */
-	.layout-fit {
-		background: var(--wash);
-		border-inline-start: 3px solid var(--prim);
-		border-radius: var(--radius);
-	}
-	.layout-fit-tokens { color: var(--subtle); font-family: var(--mono); font-size: 0.8em; }
-
-
-
-	/* One layout, the whole window, at its own url — see full.js. Tokens rather
-	   than `max-width`/`padding`, which is the documented way to leave the sheet.
-	   `display: flex` needed `.active-page` welded on until the arrangement
-	   contract moved to @layer util; readme.md §3. */
+	/* Tokens rather than `max-width`/`padding`, which is the documented way to
+	   leave the sheet. */
+	/* ⚠ `position: fixed` puts its containing block at the viewport, so it never sees
+	   `.app`'s `padding-inline-end` push (framework.css) — restated here so the rail
+	   still displaces this layout instead of covering it. Keep the two formulas in
+	   sync; readme.md proposes hoisting this into a shared token. */
 	.page.layout-full {
 		--measure: none; --page-pad: 1.5em;
 		position: fixed; inset: 0; z-index: 20;
+		/* The shared `--rail-push` token (ext/drawer/drawer.css, on `.app`) — was a
+		   second copy of this formula, "proposed, not applied" (drawer readme). */
+		inset-inline-end: var(--rail-push, 0px);
+		transition: inset-inline-end var(--rail-ease, 0.18s);
 		display: flex; flex-direction: column;
 		background: var(--wash);
 		overflow: auto;
@@ -43,8 +30,8 @@
 	/* …so a `flex-1` band has something to take and the footer lands at the bottom. */
 	.page.layout-full > :last-child { flex: 1 1 auto; min-height: 0; }
 
-	/* The way out, OVER the layout — anything in flow would be a band the layout has
-	   to make room for, which is what this view exists not to have. */
+	/* The way out, OVER the layout — anything in flow would be a band the layout
+	   has to make room for, which is what this view exists not to have. */
 	.layout-close {
 		position: absolute; top: 0.75em; right: 0.75em; z-index: 1;
 		display: flex; padding: 0.35em;
@@ -53,5 +40,5 @@
 		border: 1px solid var(--line);
 		border-radius: var(--radius);
 	}
-	.layout-close:hover { color: var(--prim); border-color: var(--prim); }
+	.layout-close:hover { color: var(--prime); border-color: var(--prime); }
 }

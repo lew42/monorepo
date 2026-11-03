@@ -1,0 +1,1610 @@
+diff --git a/Server/plugins/Recite.js b/Server/plugins/Recite.js
+new file mode 100644
+index 000000000..74002f8c3
+--- /dev/null
++++ b/Server/plugins/Recite.js
+@@ -0,0 +1,53 @@
++import { lan, safe_host } from "./MCP.js";
++
++const PORT = Number(process.env.RECITE_PORT) || 8177;
++
++/* The dev server's same-origin door onto recite-server (text to speech), the
++ * twin of the `/whisper/*` routes in Whisper.js. `audio/Recite` talks to
++ * `http://127.0.0.1:8177` on this machine, and to `<origin>/recite` anywhere
++ * else (a phone on the LAN, or the tunnel), because 127.0.0.1 is a different
++ * machine on every device. This plugin does NOT start recite-server: Servex
++ * does (Servex/ext/recite/recite.js).
++ *
++ *   GET  /recite/health   GET /recite/voices   POST /recite/speak (JSON in, WAV out)
++ *
++ * Guarded exactly like `/whisper/*`: loopback or this machine's own LAN, and a
++ * Host header that names this machine (`lan()` + `safe_host()`, MCP.js). */
++export default class Recite {
++
++    static setup(server) { new Recite(server); }
++
++    constructor(server) {
++        this.server = server;
++        server.on("express", () => this.route());
++    }
++
++    guard(req, res) {
++        const from = req.socket.remoteAddress;
++        if (lan(from) && safe_host(req.headers.host)) return true;
++        console.warn(`Recite: REFUSED ${req.originalUrl} from ${from} (Host: ${req.headers.host}) — loopback/LAN only.`);
++        res.status(403).json({ error: "loopback/LAN only; refused " + from });
++        return false;
++    }
++
++    /** Forward one request and copy back its status, type and the X-Recite-* headers. */
++    async forward(req, res, route, init, ms) {
++        if (!this.guard(req, res)) return;
++        try {
++            const r = await fetch(`http://127.0.0.1:${PORT}${route}`, { ...init, signal: AbortSignal.timeout(ms) });
++            res.status(r.status);
++            for (const h of ["content-type", "x-recite-seconds", "x-recite-took"]) if (r.headers.get(h)) res.set(h, r.headers.get(h));
++            res.send(Buffer.from(await r.arrayBuffer()));
++        } catch (e) {
++            res.status(502).json({ error: "recite-server unreachable: " + (e?.message || e) });
++        }
++    }
++
++    route() {
++        const router = this.server.router;
++        router.get("/recite/health", (req, res) => this.forward(req, res, "/health", {}, 2000));
++        router.get("/recite/voices", (req, res) => this.forward(req, res, "/voices", {}, 2000));
++        router.post("/recite/speak", this.server.express.raw({ type: "*/*", limit: "1mb" }), (req, res) =>
++            this.forward(req, res, "/speak", { method: "POST", headers: { "content-type": "application/json" }, body: req.body }, 20000));
++    }
++}
+diff --git a/Server/run.js b/Server/run.js
+index 33fc196d4..cce5c3aba 100644
+--- a/Server/run.js
++++ b/Server/run.js
+@@ -28,6 +28,7 @@ import ServexProxy from "./plugins/ServexProxy.js";
+ import Start from "./plugins/Start.js";
+ import Push from "./plugins/Push.js";   // Web Push for the notifications lab � Server/plugins/Push.js
+ import Whisper from "./plugins/Whisper.js";
++import Recite from "./plugins/Recite.js";
+ import HttpsLan from "./plugins/HttpsLan.js";   // https beside http for the phone mic - Server/plugins/HttpsLan.js
+ import Tab from "./plugins/SocketServer/Tab.js";
+ import Tail from "./plugins/SocketServer/Tail.js";
+@@ -60,6 +61,7 @@ Server.use(Research);   // registers its tools on MCP — after it
+ Server.use(Screenshots);
+ Server.use(Push);
+ Server.use(Whisper);    // starts whisper-server for ux/Dictate — Server/plugins/Whisper.js
++Server.use(Recite);     // /recite/* -> recite-server (text to speech) — Server/plugins/Recite.js
+ Server.use(HttpsLan);
+ Server.use(ServexProxy);   // /servex/* → Servex, for a phone on the LAN — Server/plugins/ServexProxy.js
+ Server.use(AskRoute);   // POST /ask/turn — the AI drawer's one Claude turn, for a phone on the LAN — Server/plugins/Ask.js
+diff --git a/Servex/Servex.js b/Servex/Servex.js
+index b46c715a5..ce7db48bc 100644
+--- a/Servex/Servex.js
++++ b/Servex/Servex.js
+@@ -31,6 +31,7 @@ import MCP, { loopback } from "./MCP.js";
+ import RemoteMCP from "./ext/remote/RemoteMCP.js";
+ import PortRegistry from "./PortRegistry.js";
+ import Process from "./Process.js";
++import { recite_runner } from "./ext/recite/recite.js";
+ import Project from "./Project.js";
+ import ReverseProxy from "./ReverseProxy.js";
+ import { launch as launch_gate } from "./gate.mjs";
+@@ -367,6 +368,7 @@ export default class Servex extends Events {
+ 
+         this.gate();
+         this.whisper();
++        this.recite();
+         this.llama();
+         if (!process.env.NO_TUNNEL) this.tunnel_keeper = new TunnelKeeper({ say: (m, x) => this.say(m, x), cards: this.cards }).start();
+         this.shutdown();
+@@ -508,6 +510,16 @@ export default class Servex extends Events {
+         return runner;
+     }
+ 
++    /* recite-server (text to speech, Kokoro on the CPU), supervised the same way
++     * as whisper-server: the four boot cases are in Process.Recite
++     * (Servex/ext/recite/recite.js). Detached, so a restart keeps it. */
++    recite(){
++        const runner = recite_runner(this.log);
++        this.processes.set("recite", runner);
++        runner.start();
++        return runner;
++    }
++
+     /* llama-server, supervised the same way whisper() supervises whisper-server —
+      * `Process.Llama` (Servex/ext/local/llama.js) adds swap-on-demand and idle
+      * unload on top of the same restart/backoff machinery. Nothing is spawned
+diff --git a/Servex/ext/recite/readme.md b/Servex/ext/recite/readme.md
+new file mode 100644
+index 000000000..cb9cb1da4
+--- /dev/null
++++ b/Servex/ext/recite/readme.md
+@@ -0,0 +1,33 @@
++# recite — recite-server, text to speech, supervised by Servex
++
++recite-server turns a sentence into speech, the reverse of whisper-server. It is a small Python HTTP server around Kokoro-82M, and it runs on the CPU, so it uses no VRAM. The browser's `Recite` ([public/framework/audio/Recite/](../../../public/framework/audio/Recite/readme.md)) calls it one sentence at a time.
++
++## Files
++
++- [recite_server.py](recite_server.py): the server. Routes: `GET /health`, `GET /voices`, `POST /speak` (JSON `{text, voice, speed}` in, a 16-bit mono WAV out, with `X-Recite-Seconds` and `X-Recite-Took` headers). Errors are JSON `{error}`, one plain line.
++- [recite.js](recite.js): `Process.Recite`, the supervised process, and `recite_runner()`. `Servex.recite()` in [../../Servex.js](../../Servex.js) starts it at boot, detached, so a Servex restart keeps it running.
++- [recite.test.mjs](recite.test.mjs): starts a real server on port 8176, speaks, refuses an unknown voice, stops (about 4 s).
++
++## The install (outside the repo, beside Whisper's)
++
++```
++%LOCALAPPDATA%/lew42/recite/
++  venv/                       py -3.13 -m venv venv; venv/Scripts/python -m pip install kokoro-onnx soundfile
++  models/kokoro-v1.0.onnx     310 MB, github.com/thewh1teagle/kokoro-onnx releases (model-files-v1.0)
++  models/voices-v1.0.bin      28 MB, 54 voices
++```
++
++Without it, Servex logs one "not installed" line and the browser's voice reads instead.
++
++## Use
++
++- **Port:** 8177 (`RECITE_PORT`). The site reaches it at `/recite/*` through the dev server ([Server/plugins/Recite.js](../../../Server/plugins/Recite.js)).
++- **Run by hand:** `<venv>/Scripts/python.exe recite_server.py --port 8177`.
++- **Skip it:** `NO_RECITE=1`.
++- **Logs:** Servex's `recite` log, like `whisper`.
++
++## Watch out
++
++- **Voices:** a voice id's first letter is its language (`af_heart` American, `bm_george` British, `jf_alpha` Japanese). The server picks the language from it.
++- **One request is one chunk,** up to 2 000 characters. `Recite` splits by sentence.
++- **Speed measured 2026-11-01:** 11 s of speech in 1.7 s on the CPU; the model loads in about 1 s.
+diff --git a/Servex/ext/recite/recite.js b/Servex/ext/recite/recite.js
+new file mode 100644
+index 000000000..43f82e609
+--- /dev/null
++++ b/Servex/ext/recite/recite.js
+@@ -0,0 +1,59 @@
++/* recite.js — Servex supervises recite-server (text in, speech out) the same
++ * way Process.Whisper (Servex/Process.js) supervises whisper-server. It is the
++ * reverse of Whisper: the browser's `Recite` (public/framework/audio/Recite/)
++ * sends one sentence and gets a WAV back.
++ *
++ * recite-server is a small Python file in this folder (recite_server.py)
++ * around Kokoro-82M, run from its own venv. It runs on the CPU, so it takes
++ * no VRAM from Whisper or llama-server (measured: plan.md in the voice-recite
++ * task). Its install lives beside Whisper's, outside the repo:
++ *
++ *   %LOCALAPPDATA%/lew42/recite/venv/      python + kokoro-onnx
++ *   %LOCALAPPDATA%/lew42/recite/models/    kokoro-v1.0.onnx, voices-v1.0.bin
++ *
++ * The same four boot cases as Whisper, each one plain log line:
++ *   1. not installed   — no venv python or no model file: nothing spawned;
++ *                        the browser's Recite falls back to speechSynthesis.
++ *   2. already running — something answers the port: left alone.
++ *   3. starts          — an ordinary supervised, detached child.
++ *   4. skipped         — NO_RECITE=1. */
++import fs from "node:fs";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++import Process from "../../Process.js";
++
++export const RECITE_HOME = process.env.RECITE_HOME || path.join(process.env.LOCALAPPDATA || "", "lew42", "recite");
++export const RECITE_PORT = Number(process.env.RECITE_PORT) || 8177;
++const SCRIPT = path.join(path.dirname(fileURLToPath(import.meta.url)), "recite_server.py");
++
++Process.Recite = class Recite extends Process {
++
++	async start(){
++		if (process.env.NO_RECITE) return this.settle("skipped", "NO_RECITE=1 — Servex is not starting recite-server.");
++
++		const model = path.join(this.models, "kokoro-v1.0.onnx");
++		if (!fs.existsSync(this.command) || !fs.existsSync(model)) return this.settle("not-installed",
++			`recite-server is not installed (looked for ${this.command} and ${model}) — Recite falls back to the browser's own voice.`);
++
++		if (this.detach && await this.adopt()) return this.status;
++
++		if (await this.stranger()) return this.settle("already-running",
++			`recite-server is already answering on 127.0.0.1:${this.port} — leaving it alone. Servex only ever stops a process it started.`);
++
++		return this.spawn();
++	}
++};
++
++/** The runner Servex keeps in `processes` under "recite" — called once at boot from Servex.js. */
++export function recite_runner(log){
++	const models = path.join(RECITE_HOME, "models");
++	return new Process.Recite({
++		name: "recite", log, port: RECITE_PORT, models,
++		command: path.join(RECITE_HOME, "venv", "Scripts", "python.exe"),
++		args: [SCRIPT, "--host", "127.0.0.1", "--port", String(RECITE_PORT), "--models", models],
++		env: { PYTHONUNBUFFERED: "1" },
++		detach: true   // outlives a Servex restart like whisper-server, so a voice call never loses its voice
++	});
++}
++
++export default Process.Recite;
+diff --git a/Servex/ext/recite/recite.test.mjs b/Servex/ext/recite/recite.test.mjs
+new file mode 100644
+index 000000000..7f127eaa6
+--- /dev/null
++++ b/Servex/ext/recite/recite.test.mjs
+@@ -0,0 +1,57 @@
++/* node Servex/ext/recite/recite.test.mjs — Process.Recite starts a real recite-server on a private
++ * port (8176, not the owner's 8177), it answers /health, /voices and /speak with a real WAV, and stop()
++ * leaves nothing behind. Not detached, so nothing is written to Servex's procs/ folder.
++ * Needs the install in %LOCALAPPDATA%/lew42/recite (readme.md); without it the test checks the
++ * "not-installed" line instead. About 3 s: python starts and Kokoro loads (~1 s). */
++import assert from "node:assert/strict";
++import fs from "node:fs";
++import Process from "../../Process.js";
++import { recite_runner } from "./recite.js";
++
++const PORT = 8176;
++const lines = [];
++const log = { append: async (name, entry) => { lines.push(entry.msg); } };
++
++const runner = recite_runner(log);
++Object.assign(runner, { port: PORT, detach: false, autorestart: false });
++runner.args = runner.args.map(a => a === "8177" ? String(PORT) : a);
++assert.ok(runner instanceof Process.Recite, "recite_runner makes a Process.Recite");
++
++const give_up = setTimeout(() => { console.log("FAIL: gave up at 30 s"); runner.stop().finally(() => process.exit(1)); }, 30000);
++
++try {
++	const status = await runner.start();
++	if (status === "not-installed"){ console.log("skip —", runner.said); process.exit(0); }
++	assert.ok(["launching", "online"].includes(status), `start() launches it (got ${status}: ${runner.said})`);
++
++	let health = null;
++	for (let i = 0; i < 60 && !health; i++){
++		await new Promise(r => setTimeout(r, 250));
++		health = await fetch(`http://127.0.0.1:${PORT}/health`).then(r => r.json()).catch(() => null);
++	}
++	assert.ok(health?.ok, "GET /health answers once the model is loaded");
++	assert.ok(health.voices > 10, `it has its voices (${health.voices})`);
++
++	const { voices } = await fetch(`http://127.0.0.1:${PORT}/voices`).then(r => r.json());
++	assert.ok(voices.includes("af_heart"), "the default voice af_heart is there");
++
++	const r = await fetch(`http://127.0.0.1:${PORT}/speak`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text: "Testing one two.", voice: "bm_george" }) });
++	assert.equal(r.status, 200, "POST /speak answers 200");
++	assert.equal(r.headers.get("content-type"), "audio/wav", "it is a WAV");
++	const wav = Buffer.from(await r.arrayBuffer());
++	assert.equal(wav.subarray(0, 4).toString(), "RIFF", "the body is a RIFF file");
++	assert.ok(Number(r.headers.get("x-recite-seconds")) > 0.5, "X-Recite-Seconds says how long the audio is");
++
++	const bad = await fetch(`http://127.0.0.1:${PORT}/speak`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text: "x", voice: "nobody" }) });
++	assert.equal(bad.status, 400, "an unknown voice is a 400 with a plain line");
++	assert.match((await bad.json()).error, /no voice called/);
++
++	await runner.stop();
++	await new Promise(r => setTimeout(r, 500));
++	const after = await fetch(`http://127.0.0.1:${PORT}/health`).then(() => true).catch(() => false);
++	assert.equal(after, false, "stop() leaves nothing answering");
++	console.log("PASS recite-server: starts, speaks a WAV, refuses an unknown voice, stops");
++} finally {
++	clearTimeout(give_up);
++	if (runner.child) await runner.stop();
++}
+diff --git a/Servex/ext/recite/recite_server.py b/Servex/ext/recite/recite_server.py
+new file mode 100644
+index 000000000..4a69198ed
+--- /dev/null
++++ b/Servex/ext/recite/recite_server.py
+@@ -0,0 +1,155 @@
++"""recite-server: text in, speech out. The reverse of whisper-server.
++
++One small HTTP server around Kokoro-82M (kokoro-onnx), started and watched by
++Servex the way it watches whisper-server (Servex/ext/recite/recite.js).
++The site reaches it through the dev server's same-origin proxy at /recite/*
++(Server/plugins/Recite.js), so a phone on the LAN or the tunnel can use it.
++
++Routes (all answer JSON on error, one plain line in "error"):
++  GET  /health            {ok, model, provider, voices, sample_rate}
++  GET  /voices            {voices: ["af_heart", ...]}
++  POST /speak             body {text, voice?, speed?} -> audio/wav (16-bit mono)
++  GET  /speak?text=&voice=&speed=   the same, for a quick test in a browser tab
++
++Run by hand:  <venv>/Scripts/python.exe recite_server.py --port 8177 --models <dir>
++"""
++import argparse
++import io
++import json
++import os
++import sys
++import threading
++import time
++import wave
++from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
++from urllib.parse import parse_qs, urlparse
++
++import numpy as np
++from kokoro_onnx import Kokoro
++
++MAX_CHARS = 2000          # one request is one chunk (a sentence or a paragraph); the client splits longer text
++DEFAULT_VOICE = "af_heart"
++# A Kokoro voice id's first letter is its language: af_heart is American English, bm_george British, and so on.
++LANGS = {"a": "en-us", "b": "en-gb", "e": "es", "f": "fr-fr", "h": "hi", "i": "it", "j": "ja", "p": "pt-br", "z": "cmn"}
++
++
++def log(msg):
++    print(f"[recite] {msg}", flush=True)
++
++
++class Engine:
++    """The loaded model, and the one lock every synthesis call takes (an ONNX session is not shared across threads here)."""
++
++    def __init__(self, models):
++        t = time.time()
++        self.kokoro = Kokoro(os.path.join(models, "kokoro-v1.0.onnx"), os.path.join(models, "voices-v1.0.bin"))
++        self.voices = sorted(self.kokoro.get_voices())
++        try:
++            self.provider = self.kokoro.sess.get_providers()[0]
++        except Exception:
++            self.provider = "unknown"
++        self.lock = threading.Lock()
++        log(f"model loaded in {time.time() - t:.1f}s on {self.provider}, {len(self.voices)} voices")
++
++    def speak(self, text, voice, speed):
++        if voice not in self.voices:
++            raise ValueError(f'no voice called "{voice}" (GET /voices lists them)')
++        with self.lock:
++            t = time.time()
++            samples, rate = self.kokoro.create(text, voice=voice, speed=speed, lang=LANGS.get(voice[0], "en-us"))
++            took = time.time() - t
++        pcm = (np.clip(samples, -1, 1) * 32767).astype("<i2").tobytes()
++        buf = io.BytesIO()
++        with wave.open(buf, "wb") as w:
++            w.setnchannels(1)
++            w.setsampwidth(2)
++            w.setframerate(rate)
++            w.writeframes(pcm)
++        seconds = len(samples) / rate
++        log(f"{voice}: {len(text)} chars -> {seconds:.1f}s audio in {took:.2f}s")
++        return buf.getvalue(), seconds, took
++
++
++class Handler(BaseHTTPRequestHandler):
++    engine = None
++
++    def log_message(self, fmt, *args):   # the default prints every request to stderr; Servex logs our own lines instead
++        pass
++
++    def send(self, code, body, kind="application/json", extra=None):
++        if isinstance(body, (dict, list)):
++            body = json.dumps(body).encode()
++        self.send_response(code)
++        self.send_header("Content-Type", kind)
++        self.send_header("Content-Length", str(len(body)))
++        self.send_header("Access-Control-Allow-Origin", "*")
++        self.send_header("Access-Control-Expose-Headers", "X-Recite-Seconds, X-Recite-Took")
++        for k, v in (extra or {}).items():
++            self.send_header(k, v)
++        self.end_headers()
++        self.wfile.write(body)
++
++    def do_OPTIONS(self):
++        self.send_response(204)
++        self.send_header("Access-Control-Allow-Origin", "*")
++        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
++        self.send_header("Access-Control-Allow-Headers", "Content-Type")
++        self.end_headers()
++
++    def do_GET(self):
++        url = urlparse(self.path)
++        if url.path == "/health":
++            e = self.engine
++            return self.send(200, {"ok": True, "model": "kokoro-82m (onnx)", "provider": e.provider, "voices": len(e.voices), "sample_rate": 24000})
++        if url.path == "/voices":
++            return self.send(200, {"voices": self.engine.voices})
++        if url.path == "/speak":
++            q = {k: v[0] for k, v in parse_qs(url.query).items()}
++            return self.speak(q)
++        self.send(404, {"error": f"no route {url.path} (try /health, /voices, /speak)"})
++
++    def do_POST(self):
++        if urlparse(self.path).path != "/speak":
++            return self.send(404, {"error": "POST /speak only"})
++        try:
++            n = int(self.headers.get("Content-Length") or 0)
++            q = json.loads(self.rfile.read(n) or b"{}")
++        except Exception as e:
++            return self.send(400, {"error": f"body is not JSON: {e}"})
++        self.speak(q)
++
++    def speak(self, q):
++        text = str(q.get("text") or "").strip()
++        if not text:
++            return self.send(400, {"error": "no text to speak"})
++        if len(text) > MAX_CHARS:
++            return self.send(413, {"error": f"text is {len(text)} chars; send at most {MAX_CHARS} per request (Recite splits by sentence)"})
++        try:
++            speed = float(q.get("speed") or 1.0)
++            wav, seconds, took = self.engine.speak(text, str(q.get("voice") or DEFAULT_VOICE), max(0.5, min(2.0, speed)))
++        except ValueError as e:
++            return self.send(400, {"error": str(e)})
++        except Exception as e:
++            log(f"speak failed: {e}")
++            return self.send(500, {"error": f"synthesis failed: {e}"})
++        self.send(200, wav, "audio/wav", {"X-Recite-Seconds": f"{seconds:.3f}", "X-Recite-Took": f"{took:.3f}"})
++
++
++def main():
++    ap = argparse.ArgumentParser()
++    ap.add_argument("--host", default="127.0.0.1")
++    ap.add_argument("--port", type=int, default=8177)
++    ap.add_argument("--models", default=os.path.join(os.environ.get("LOCALAPPDATA", ""), "lew42", "recite", "models"))
++    a = ap.parse_args()
++    try:
++        Handler.engine = Engine(a.models)
++    except Exception as e:
++        log(f"could not load the model from {a.models}: {e}")
++        sys.exit(2)
++    server = ThreadingHTTPServer((a.host, a.port), Handler)
++    log(f"listening on http://{a.host}:{a.port}")
++    server.serve_forever()
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/public/framework/audio/Recite/BargeIn.js b/public/framework/audio/Recite/BargeIn.js
+new file mode 100644
+index 000000000..712076fea
+--- /dev/null
++++ b/public/framework/audio/Recite/BargeIn.js
+@@ -0,0 +1,174 @@
++import Part from "../Part.js";
++import MicStream from "../MicStream/MicStream.js";
++import Dictate from "../../ux/Dictate/Dictate.js";
++
++/**
++ * class BargeIn extends Part — `Recite.BargeIn`: while Recite reads, it listens
++ * on the mic and pauses the moment you talk, remembering the place.
++ *
++ * Two steps, because a level alone misfires on wind or a passing truck:
++ *   1. fast: the level stays above `threshold` for `hold_ms`, so reading pauses at once;
++ *   2. check: the next `listen_ms` of sound goes to Whisper. Whisper's VAD returns
++ *      no text for noise, so reading resumes by itself ("noise"). Words that match
++ *      the sentence being read are the speaker's own echo, so it resumes too.
++ *      Anything else is you: it stays paused (state "heard") until you press play.
++ * `on = false` (the mic button) closes the mic: playback is manual only.
++ */
++export default class BargeIn extends Part {
++
++	on = true;
++	threshold = 0.35;     // on MicStream's shown level, 0..1 (the meter's own scale)
++	hold_ms = 250;
++	listen_ms = 1500;
++	check = true;         // false: any loud sound pauses, with no Whisper check
++	state = "off";        // off | listening | checking | heard
++	level = 0;            // the newest shown level, for the bar's meter
++	noise_floor = 0;      // raised to the loudest noise Whisper called noise, so steady wind stops pausing; fades over ~10 s
++	peak = 0;             // the loudest level while checking
++	heard = "";           // what Whisper heard last ("" = noise)
++	note = "";            // the last outcome, one line: "noise — resumed", "heard: …"
++	whisper_url = Dictate.prototype.whisper_url;
++
++	constructor(...args){
++		super(...args);
++		this.assign(...args);
++		if (this.remember("barge") != null) this.on = this.remember("barge") === "true";
++		if (this.remember("threshold") != null) this.threshold = Number(this.remember("threshold")) || this.threshold;
++	}
++
++	/** Open or close the mic to match Recite: open while it reads, closed when idle or switched off. */
++	sync(){
++		const reading = ["playing", "loading"].includes(this.recite.state);
++		if (this.dictating()){   // the chat's own mic is on: listen to its level, never open a second mic
++			if (this.mic && this.state !== "checking") this.close();
++			if (this.on && reading && this.state === "off") this.state = "listening";
++			return;
++		}
++		if (this.on && reading && !this.mic && this.state !== "checking") this.open();
++		else if ((!this.on || this.recite.state === "idle") && this.mic && this.state !== "checking") this.close();
++	}
++
++	async open(){
++		this.mic = new MicStream({ keep: true });
++		this.state = "listening";
++		try { await this.mic.start(); }
++		catch (e){ this.mic = null; this.state = "off"; this.note = "mic: " + e.message; this.recite.changed(); return; }
++		if (!this.on){ this.close(); return; }
++		this.mic.on_level(shown => this.hear(shown));
++		this.recite.changed();
++	}
++
++	/** Follow a chat's Dictate mic: while it is on, its level (the same 0..1 meter) drives barge-in, and the line it sends is the check. */
++	use_mic(dictate){
++		if (!dictate || dictate.$recite_barge) return;
++		dictate.$recite_barge = this;
++		this.dictate = dictate;
++		const prior = dictate.on_meter;
++		dictate.on_meter = v => { prior?.(v); if (this.dictating()) this.hear(v); };
++	}
++
++	dictating(){ return ["listening", "transcribing"].includes(this.dictate?.state); }
++
++	/** The owner's words reached the chat (a line on the session wire): that is speech, so reading stays paused. */
++	owner_spoke(text){
++		this.spoke?.(text);
++		if (this.recite.state === "playing" || this.recite.state === "loading"){ this.recite.pause("heard"); this.note = "heard: " + text; this.state = "heard"; this.recite.changed(); }
++	}
++
++	close(){
++		this.mic?.stop();
++		this.mic = null;
++		this.state = "off";
++		this.loud_since = this.quiet_since = null;
++		this.recite.changed();
++	}
++
++	/** One level frame (about every 8 ms). */
++	hear(shown){
++		this.level = shown;
++		this.noise_floor *= 0.9993;
++		if (this.state === "checking") this.peak = Math.max(this.peak, shown);
++		if (this.state !== "listening" || this.recite.state !== "playing") return;
++		const now = performance.now();
++		if (shown > Math.max(this.threshold, this.noise_floor * 1.15)){
++			this.quiet_since = null;
++			this.loud_since ??= now;
++			if (now - this.loud_since >= this.hold_ms) this.trigger();
++		} else {
++			this.loud_since = null;
++			this.quiet_since ??= now;
++			if (now - this.quiet_since > 1000){ this.mic?.cut(); this.quiet_since = now; }   // keep only the last second of quiet as the clip's lead-in
++		}
++	}
++
++	async trigger(){
++		this.recite.pause("heard");
++		this.loud_since = null;
++		if (!this.check){ this.state = "heard"; this.note = "paused: you were loud"; this.recite.changed(); return; }
++		this.state = "checking";
++		this.peak = 0;
++		this.note = "listening…";
++		this.recite.changed();
++		let text = "";
++		try { text = this.dictating() ? await this.await_line() : await this.listen_and_transcribe(); }
++		catch (e){ this.state = "heard"; this.note = "Whisper did not answer (" + e.message + "): press play to go on"; this.recite.changed(); return; }
++		const echo = this.echo(text);
++		this.heard = text;
++		if (!text || echo){
++			this.note = echo ? "my own voice — resumed" : "noise — resumed";
++			if (!echo) this.noise_floor = Math.max(this.noise_floor, this.peak);
++			this.state = "listening";
++			if (this.recite.state === "heard") this.recite.resume();
++		} else {
++			this.note = "heard: " + text;
++			this.state = "heard";
++			if (this.mic) this.close();   // the mic is yours now (dictate); play reopens it
++		}
++		this.recite.changed();
++	}
++
++	/** Own mic: record listen_ms more, then ask Whisper. */
++	async listen_and_transcribe(){
++		await new Promise(r => setTimeout(r, this.listen_ms));
++		if (!this.mic) throw new Error("the mic closed");
++		const samples = this.mic.snapshot();
++		this.mic.cut();
++		return this.transcribe(samples);
++	}
++
++	/** Dictate's mic: it transcribes on its own; wait up to 5 s for the owner's line, else it was noise. */
++	await_line(){
++		return new Promise(done => {
++			const timer = setTimeout(() => { this.spoke = null; done(""); }, 5000);
++			this.spoke = text => { clearTimeout(timer); this.spoke = null; done(text); };
++		});
++	}
++
++	async transcribe(samples){
++		const form = new FormData();
++		form.append("file", this.mic.wav(samples), "barge-in.wav");
++		form.append("response_format", "json");
++		const r = await fetch(this.whisper_url + "/inference", { method: "POST", body: form, signal: AbortSignal.timeout(8000) });
++		if (!r.ok) throw new Error("HTTP " + r.status);
++		const text = ((await r.json()).text ?? "").replace(/\s+/g, " ").trim();
++		return BargeIn.noise(text) ? "" : text;
++	}
++
++	/** True when most of what Whisper heard is words of the sentence being read (the speaker leaking into the mic). */
++	echo(text){
++		const words = s => String(s).toLowerCase().match(/[a-z']+/g) ?? [];
++		const heard = words(text);
++		if (!heard.length) return false;
++		const near = new Set(words(this.recite.chunks.slice(Math.max(0, this.recite.at - 1), this.recite.at + 2).map(c => c.text).join(" ")));
++		return heard.filter(w => near.has(w)).length / heard.length >= 0.6;
++	}
++
++	set_on(on){ this.on = !!on; this.remember("barge", this.on); if (this.on && this.state === "heard") this.state = "off"; this.sync(); this.recite.changed(); }
++	set_threshold(v){ this.threshold = Number(v); this.remember("threshold", this.threshold); }
++
++	/** Recite.remember, reached through the instance: Recite imports this file, not the other way. */
++	remember(key, value){ return this.recite.constructor.remember(key, value); }
++
++	/** Whisper's own non-speech marks ("[BLANK_AUDIO]", "(wind blowing)", "♪") count as noise. */
++	static noise(text){ return !text || /^[\[(♪*].*[\])♪*]$/.test(text) || /^(thank you\.?|you)$/i.test(text); }
++}
+diff --git a/public/framework/audio/Recite/Recite.css b/public/framework/audio/Recite/Recite.css
+new file mode 100644
+index 000000000..632b38316
+--- /dev/null
++++ b/public/framework/audio/Recite/Recite.css
+@@ -0,0 +1,84 @@
++@layer base, theme, site, util;
++
++@layer theme {
++	/* Recite.Bar: one quiet line, never floating (requirements: "one small, unobtrusive control line") */
++	.audio-recite-bar {
++		display: flex;
++		align-items: center;
++		gap: 0.25em;
++		font-size: 0.85em;
++		min-inline-size: 0;
++		padding-inline: 0.4em;
++		color: var(--subtle);
++	}
++	.audio-recite-btn {
++		display: inline-grid;
++		place-items: center;
++		inline-size: 2.4em;
++		block-size: 2.4em;
++		padding: 0;
++		border: 0;
++		border-radius: 50%;
++		background: transparent;
++		color: inherit;
++		cursor: pointer;
++		flex: none;
++	}
++	.audio-recite-btn .icon { font-size: 1.35em; }
++	.audio-recite-btn:hover:not(:disabled) { background: var(--wash); color: var(--ink); }
++	.audio-recite-btn:disabled { opacity: 0.4; cursor: default; }
++	.audio-recite-btn.is-loading .icon { animation: audio-recite-pulse 1s ease-in-out infinite; }
++	.audio-recite-btn.is-on { color: var(--ink); }
++	.audio-recite-btn.is-open { color: var(--prime); }
++
++	.audio-recite-track {
++		position: relative;
++		flex: 1 1 4em;
++		min-inline-size: 3em;
++		block-size: 1.6em;
++		display: flex;
++		align-items: center;
++		overflow: hidden;
++	}
++	.audio-recite-track::before {   /* the thin progress line under the label */
++		content: "";
++		position: absolute;
++		inset: auto 0 0.15em 0;
++		block-size: 2px;
++		background: var(--line);
++	}
++	.audio-recite-fill {
++		position: absolute;
++		inset: auto auto 0.15em 0;
++		block-size: 2px;
++		background: var(--prime);
++	}
++	.audio-recite-label {
++		white-space: nowrap;
++		overflow: hidden;
++		text-overflow: ellipsis;
++		font-variant-numeric: tabular-nums;
++		padding-block-end: 0.3em;
++	}
++	.audio-recite-bar.is-heard .audio-recite-label { color: var(--ink); }
++	.audio-recite-bar.is-error .audio-recite-label { color: var(--error); }
++
++	.audio-recite-voice {
++		flex: none;
++		max-inline-size: 6.5em;
++		font: inherit;
++		color: inherit;
++		background: transparent;
++		border: 0;
++	}
++	.audio-recite-threshold {
++		flex: none;
++		inline-size: 4em;
++		accent-color: var(--prime);
++		background: linear-gradient(to right, var(--line) var(--audio-recite-level, 0%), transparent 0);
++		border-radius: 1em;
++	}
++	.audio-recite-hide { display: none; }
++
++	@keyframes audio-recite-pulse { 50% { opacity: 0.35; } }
++}
+diff --git a/public/framework/audio/Recite/Recite.js b/public/framework/audio/Recite/Recite.js
+new file mode 100644
+index 000000000..d30692360
+--- /dev/null
++++ b/public/framework/audio/Recite/Recite.js
+@@ -0,0 +1,350 @@
++import { View } from "../../core/View/View.js";
++import track from "../../core/track/track.js";
++import Part from "../Part.js";
++import Voice from "../Voice/Voice.js";
++import BargeIn from "./BargeIn.js";
++import ReciteBar from "./ReciteBar.js";
++
++View.stylesheet(import.meta, "Recite.css");
++
++/**
++ * class Recite extends Part — reads text aloud, the reverse of transcription.
++ * It splits the text into sentences, has its `Voice` render each one on
++ * recite-server (Kokoro, Servex/ext/recite/), and plays them on one timeline,
++ * so pause, back 10 s and restart work across sentences. When the server is
++ * down it falls back to the browser's own voice and keeps checking for the
++ * server. Its parts: `Recite.BargeIn` (pauses when you talk) and `Recite.Bar`
++ * (the one-line control). How it fits: readme.md.
++ *
++ *   const recite = new Recite();
++ *   recite.read("Hello there. This is read aloud.");
++ *   recite.pause(); recite.back(10); recite.restart();
++ *   recite.bar;   // the control line
++ */
++export default class Recite extends Part {
++
++	state = "idle";        // idle | loading | playing | paused | heard (paused by barge-in)
++	server = "unknown";    // unknown | online | offline (then the browser's voice reads)
++	error = "";            // the last failure, one plain line, shown on the bar
++	url = Recite.default_url();
++	voice = null;          // a Voice (one persona); Voice.PERSONAS lists them
++	chunks = [];           // one per sentence: {text, start, seconds, src, pending}
++	at = 0;                // the chunk playing, or paused in
++	auto = Recite.remember("auto") != null ? Recite.remember("auto") === "true" : !!globalThis.matchMedia?.("(pointer: coarse)").matches;   // read new replies by themselves (on by default on a phone)
++	live = null;           // the reply being streamed: {text, queued, fresh}
++
++	constructor(...args){
++		super(...args);
++		this.assign(...args);   // a field named like an option overwrites it: audio/Voice/Voice.js has the note
++		this.voice ??= Voice.persona(Recite.remember("voice") ?? Voice.PERSONAS[0].name);
++		this.listeners = new Set();
++		this.token = 0;
++		this.done = new Set();   // replies already read, so the settled line after a stream is not read twice
++		this.audio = typeof Audio === "function" ? new Audio() : null;   // node (the core test) has none
++		this.audio?.addEventListener("ended", () => this.ended());
++		this.audio?.addEventListener("timeupdate", () => this.changed());
++		this.barge = new this.constructor.BargeIn({ recite: this });
++		Recite.track?.(this);
++	}
++
++	/** Calls fn() on every change of state or position; returns an unsubscribe. */
++	on(fn){ this.listeners.add(fn); return () => this.listeners.delete(fn); }
++	changed(){ for (const fn of this.listeners) try { fn(this); } catch (e){ console.error("Recite: a listener failed", e); } }
++	set(state, error){ this.state = state; if (error !== undefined) this.error = error; this.changed(); this.barge?.sync(); }
++
++	/* ── reading ─────────────────────────────────────────────────────── */
++
++	/** Read `text` from the start, dropping whatever was being read. */
++	read(text){ this.stop(); return this.queue(text); }
++
++	/** Add `text` after what is already queued; starts reading if idle. */
++	queue(text){
++		const first = this.chunks.length;
++		for (const piece of Recite.split(text)) this.chunks.push({ text: piece, start: null, seconds: null, src: null, pending: null });
++		if (this.chunks.length === first) return this;
++		this.retime();
++		if (this.state === "idle") this.play(first, 0);
++		else this.prefetch(this.at);
++		return this;
++	}
++
++	/** Play chunk `i` from `offset` seconds into it. */
++	async play(i, offset = 0){
++		const c = this.chunks[i];
++		if (!c) return this.finish();
++		const token = ++this.token;
++		this.at = i;
++		if (this.server === "offline" && !c.src) return this.speak_browser(i, token);
++		if (!c.src) this.set("loading");
++		try { await this.render(i); }
++		catch (e){ if (token === this.token) this.speak_browser(i, token); return; }
++		if (token !== this.token || !this.audio) return;   // paused, seeked or stopped while it rendered
++		this.engine = "kokoro";
++		this.audio.src = c.src;
++		this.audio.currentTime = offset;
++		try { await this.audio.play(); }
++		catch (e){ if (token === this.token) this.set("paused", e.name === "NotAllowedError" ? "tap play: the browser wants a tap before it plays sound" : e.message); return; }
++		if (token !== this.token) return;
++		this.set("playing", "");
++		this.media_session();
++		this.prefetch(i);
++	}
++
++	/** The audio of chunk `i`, once; the same promise for every caller. */
++	render(i){
++		const c = this.chunks[i];
++		c.pending ??= this.voice.render(c.text, this.url).then(({ blob, seconds }) => {
++			c.src = URL.createObjectURL(blob);
++			c.seconds = seconds;
++			if (this.server !== "online"){ this.server = "online"; this.error = ""; }
++			this.retime();
++		}, e => {
++			c.pending = null;
++			this.offline(e);
++			throw e;
++		});
++		return c.pending;
++	}
++
++	/** Render the next two sentences while this one plays, so there is no gap. */
++	prefetch(i){ for (const j of [i + 1, i + 2]) if (this.chunks[j] && this.server !== "offline") this.render(j).catch(() => {}); }
++
++	/** Each chunk's start on the timeline, as far as the durations are known. */
++	retime(){
++		let t = 0;
++		for (const c of this.chunks){
++			c.start = t;
++			if (c.seconds == null){ for (const later of this.chunks.slice(this.chunks.indexOf(c) + 1)) later.start = null; break; }
++			t += c.seconds;
++		}
++	}
++
++	ended(){ if (this.state === "playing") this.play(this.at + 1, 0); }
++	finish(){ this.token++; this.at = Math.max(0, this.chunks.length - 1); this.set("idle"); }
++
++	/* ── replies from a chat session ────────────────────────────────── */
++
++	/** One event from a session's live wire (ext/Session `Session.stream`): the smart seat's reply is read, the owner's line pauses it.
++	 *  Wire shapes: dictation-notes.md in the voice-recite task. */
++	from_wire(ev){
++		if (ev?.kind === "stream" && ev.role === "smart") return this.partial(ev.text);
++		if (ev?.kind !== "line") return;
++		const line = ev.line ?? {}, chat = line.chat;
++		if (chat?.at && Date.now() - Date.parse(chat.at) > 120000) return;   // a replayed old line, not a reply just now
++		if (chat?.from?.kind === "assistant") return chat.from.id === "smart" ? this.final(chat.text) : undefined;
++		const add = Object.values(line).find(v => v?.replies?.add)?.replies.add;
++		if (add) return add.by === "smart" ? this.final(add.text) : undefined;
++		if (chat?.text && this.auto && this.barge.on) this.barge.owner_spoke(chat.text);   // ear off = manual playback
++	}
++
++	/** A reply still being written, the whole text so far: each sentence is read as soon as it ends. "" = the reply ended. */
++	partial(text){
++		if (!this.auto) return;
++		if (!text){ if (this.live){ this.take(this.live.text, true); this.done.add(Recite.norm(this.live.text)); this.live = null; } return; }
++		if (!this.live || !text.startsWith(this.live.text.slice(0, 30))) this.live = { text, queued: 0, fresh: true };
++		this.live.text = text;
++		this.take(text, false);
++	}
++
++	/** A settled reply. Read whole, unless its stream was already read. The newest reply replaces what was playing. */
++	final(text){
++		if (!this.auto || !text) return;
++		const key = Recite.norm(text);
++		if (this.done.has(key)) return;
++		this.done.add(key);
++		if (this.live && key.startsWith(Recite.norm(this.live.text.slice(0, this.live.queued)).slice(0, 30))){ this.live.text = text; this.take(text, true); this.live = null; return; }
++		this.live = null;
++		this.read(text);
++	}
++
++	/** Queue the finished sentences of the live reply that are not queued yet (all of it when `all`). */
++	take(text, all){
++		const live = this.live, rest = text.slice(live.queued);
++		const cut = all ? rest.length : Recite.complete(rest);
++		if (cut <= 0 || !/\w/.test(rest.slice(0, cut))) return;
++		live.queued += cut;
++		if (live.fresh){ live.fresh = false; this.read(rest.slice(0, cut)); }
++		else this.queue(rest.slice(0, cut));
++	}
++
++	set_auto(on){ this.auto = !!on; Recite.remember("auto", this.auto); this.changed(); }
++
++	/* ── the playhead ────────────────────────────────────────────────── */
++
++	/** Seconds from the start of everything queued. */
++	position(){
++		const c = this.chunks[this.at];
++		if (!c || c.start == null) return 0;
++		return c.start + (this.engine === "browser" ? 0 : this.audio?.currentTime ?? 0);
++	}
++
++	/** Seconds known so far (sentences not rendered yet are not counted). */
++	duration(){ return this.chunks.reduce((t, c) => t + (c.seconds ?? 0), 0); }
++
++	/** Which chunk holds second `t`, and how far into it. */
++	find(t){
++		let i = 0;
++		while (i < this.chunks.length - 1 && this.chunks[i + 1].start != null && this.chunks[i + 1].start <= t) i++;
++		return { i, offset: Math.max(0, t - (this.chunks[i]?.start ?? 0)) };
++	}
++
++	pause(why = "paused"){
++		if (!["playing", "loading"].includes(this.state)) return;
++		this.token++;
++		this.audio?.pause();
++		if (this.engine === "browser") globalThis.speechSynthesis?.cancel();
++		this.set(why === "heard" ? "heard" : "paused");
++	}
++
++	resume(){
++		if (!["paused", "heard"].includes(this.state)) return;
++		const same = this.audio?.src && this.audio.src === this.chunks[this.at]?.src;
++		if (this.engine === "browser" || !same) return this.play(this.at, 0);
++		const token = ++this.token;
++		this.audio.play().then(() => { if (token === this.token) this.set("playing", ""); },
++			e => this.set("paused", e.message));
++	}
++
++	toggle(){
++		if (this.state === "playing" || this.state === "loading") return this.pause();
++		if (this.state === "idle") return this.restart();
++		this.resume();
++	}
++
++	seek(t){
++		if (!this.chunks.length) return;
++		const { i, offset } = this.find(Math.max(0, t));
++		this.play(i, offset);
++	}
++
++	back(seconds = 10){ this.seek(this.position() - seconds); }
++	restart(){ this.seek(0); }
++
++	stop(){
++		this.token++;
++		this.audio?.pause();
++		globalThis.speechSynthesis?.cancel();
++		for (const c of this.chunks) if (c.src) URL.revokeObjectURL(c.src);
++		this.chunks = [];
++		this.at = 0;
++		this.set("idle");
++	}
++
++	/** Change the persona; sentences not yet played are rendered again in the new voice. */
++	pick(name){
++		this.voice = Voice.persona(name);
++		Recite.remember("voice", this.voice.name);
++		for (const c of this.chunks.slice(this.at + 1)){ if (c.src) URL.revokeObjectURL(c.src); Object.assign(c, { src: null, pending: null, seconds: null }); }
++		this.retime();
++		this.changed();
++	}
++
++	/* ── the server, and the fallback when it is down ────────────────── */
++
++	/** One fetch of /health: online or offline. */
++	async check(){
++		try {
++			const r = await fetch(this.url + "/health", { signal: AbortSignal.timeout(2500) });
++			const body = await r.json();
++			this.server = body.ok ? "online" : "offline";
++			if (body.ok){ this.error = ""; this.engine = "kokoro"; }
++		} catch (e){ this.server = "offline"; this.error = `recite-server is not answering at ${this.url}: ${e.message}`; }
++		this.changed();
++		return this.server;
++	}
++
++	/** Mark the server offline and try again later: 3 s, then 10 s, then every 30 s. */
++	offline(e){
++		this.server = "offline";
++		this.error = `recite-server: ${e.message} — reading with the browser's voice for now`;
++		this.changed();
++		if (this.retry) return;
++		const wait = [3000, 10000, 30000][Math.min(2, this.retries = (this.retries ?? 0) + 1) - 1];
++		this.retry = setTimeout(async () => { this.retry = null; if (await this.check() === "online") this.retries = 0; else this.offline(new Error("still down")); }, wait);
++	}
++
++	/** The browser's own voice reads chunk i, then the next. No seeking inside a sentence. */
++	speak_browser(i, token){
++		const c = this.chunks[i];
++		this.engine = "browser";
++		c.seconds ??= c.text.length / 15;   // an estimate, so back 10 s still steps back a sentence or two
++		this.retime();
++		this.set("playing");
++		this.voice.speak(c.text, () => {
++			if (token !== this.token || this.state !== "playing") return;
++			this.engine = this.server === "online" ? "kokoro" : "browser";
++			this.play(i + 1, 0);
++		});
++	}
++
++	/** Lock-screen and headphone-button controls (Android shows them while it plays). */
++	media_session(){
++		const ms = globalThis.navigator?.mediaSession;
++		if (!ms || typeof MediaMetadata !== "function") return;
++		ms.metadata = new MediaMetadata({ title: this.chunks[0]?.text.slice(0, 60) ?? "Recite", artist: "Recite — " + this.voice.name });
++		const set = (action, fn) => { try { ms.setActionHandler(action, fn); } catch {} };
++		set("play", () => this.resume());
++		set("pause", () => this.pause());
++		set("seekbackward", () => this.back(10));
++		set("previoustrack", () => this.restart());
++		set("stop", () => this.stop());
++	}
++
++	/** The one-line control (`Recite.Bar`). */
++	get bar(){ return new this.constructor.Bar({ recite: this }); }
++
++	/* ── statics ─────────────────────────────────────────────────────── */
++
++	/** On this machine, recite-server itself; anywhere else (a phone, the tunnel), the page's own /recite proxy. */
++	static default_url(){
++		const h = globalThis.location?.hostname;
++		const local = h === "localhost" || h === "127.0.0.1" || h?.endsWith(".localhost");
++		return local || !globalThis.location ? "http://127.0.0.1:8177" : globalThis.location.origin + "/recite";
++	}
++
++	/** Reply text as sentences a voice can say: markdown, code and links taken out, each piece 20–300 characters. */
++	static split(text){
++		const plain = String(text ?? "")
++			.replace(/```[\s\S]*?```/g, " (a code block) ")
++			.replace(/!\[[^\]]*\]\([^)]*\)/g, " ")
++			.replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
++			.replace(/https?:\/\/\S+/g, " a link ")
++			.replace(/`([^`]*)`/g, "$1")
++			.replace(/^\s*(#{1,6}|[-*+]|\d+\.)\s+/gm, "")
++			.replace(/[*~]+/g, "")
++			.replace(/(^|\s)_+|_+(?=\s|$)/g, "$1")   // _emphasis_, but never the _ inside snake_case
++			.replace(/[|>]+/g, " ");
++		const sentences = plain.split(/(?<=[.!?…:;])\s+|\n+/).map(s => s.replace(/\s+/g, " ").trim()).filter(s => /\w/.test(s));
++		const out = [];
++		for (const s of sentences){
++			const last = out[out.length - 1];
++			if (last && out.length > 1 && last.length < 20 && last.length + s.length < 300) out[out.length - 1] = last + " " + s;   // the first stays short: it starts sooner
++			else if (s.length <= 300) out.push(s);
++			else out.push(...(s.match(/.{1,280}(\s|$)|\S+/g) ?? [s]).map(x => x.trim()).filter(Boolean));
++		}
++		return out;
++	}
++
++	/** Where the last finished sentence of `s` ends (0 = none yet): a stop followed by a space, or a line break. */
++	static complete(s){ let end = 0; for (const m of String(s).matchAll(/[.!?…:;](?=\s)|\n/g)) end = m.index + 1; return end; }
++
++	/** Text compared loosely: spaces and markdown marks do not count. */
++	static norm(s){ return String(s ?? "").replace(/[\s*_`#>]+/g, " ").trim().toLowerCase(); }
++
++	/** One remembered setting (the voice, barge-in on/off, its threshold) in localStorage. */
++	static remember(key, value){
++		try {
++			if (value === undefined) return globalThis.localStorage?.getItem("lew42.recite." + key) ?? null;
++			globalThis.localStorage?.setItem("lew42.recite." + key, String(value));
++		} catch { return null; }
++	}
++
++	/** The one Recite a page's chat views share, so two views never read over each other. */
++	static get shared(){ return Recite._shared ??= new Recite(); }
++}
++
++Recite.BargeIn = BargeIn;
++Recite.Bar = ReciteBar;
++track(Recite);
++
++export { Recite };
+diff --git a/public/framework/audio/Recite/Recite.test.mjs b/public/framework/audio/Recite/Recite.test.mjs
+new file mode 100644
+index 000000000..e2d90cb90
+--- /dev/null
++++ b/public/framework/audio/Recite/Recite.test.mjs
+@@ -0,0 +1,52 @@
++// node public/framework/audio/Recite/Recite.test.mjs — Recite's core: splitting a reply into sentences, the timeline, seeking.
++// No audio in node, so a fake Voice renders each sentence as 1 s per 20 characters; the browser part is the demo page.
++import { test } from "../../core/Test/Test.js";
++
++// Recite is a browser class (its parts build DOM on import), so this runs on the test page:
++// /framework/core/Test/view/?file=audio/Recite/Recite.test.mjs — in node it skips. The server has its own node test: Servex/ext/recite/recite.test.mjs
++const Recite = typeof document === "undefined" ? null : (await import("./Recite.js")).default;
++if (!Recite) console.log("skip in node — Recite needs the DOM; open /framework/core/Test/view/?file=audio/Recite/Recite.test.mjs");
++
++globalThis.URL.createObjectURL ??= () => "blob:fake";
++globalThis.URL.revokeObjectURL ??= () => {};
++const fake_voice = { name: "Fake", rate: 1, render: async text => ({ blob: typeof Blob === "function" ? new Blob([]) : {}, seconds: text.length / 20 }) };
++
++if (Recite) test("Recite: split, render, timeline, seek", async t => {
++	const parts = Recite.split("# Done\n\nI fixed **the bar**. See [the page](/x/) for more. ```js\nlet a = 1;\n``` Then `node run.mjs` again! Ok.");
++	t.eq(parts[0], "Done", "a heading becomes its own short first sentence (it starts sooner)");
++	t.ok(parts.some(p => p.startsWith("I fixed the bar.")), "markdown bold is taken out (a short sentence joins the next one)");
++	t.ok(parts.some(p => p.includes("See the page for more.")), "a link reads as its text");
++	t.ok(parts.join(" ").includes("(a code block)"), "a code block is named, not read");
++	t.ok(parts.join(" ").includes("node run.mjs again!"), "inline code is read plainly");
++	t.ok(parts.every(p => p.length <= 300), "no piece is over 300 characters");
++	t.eq(Recite.split("a ".repeat(400)).length > 1, true, "one long run-on is cut into pieces");
++
++	const r = new Recite({ voice: fake_voice });
++	r.barge.on = false;   // no mic in a test
++	t.eq(r.state, "idle", "a new Recite is idle");
++	t.ok(r.url.endsWith(":8177") || r.url.endsWith("/recite"), "it talks to recite-server, or to the page's /recite proxy off this machine");
++
++	r.queue("First sentence is here. Second sentence is a bit longer. Third.");   // play() fails quietly in node (no Audio): we only check the timeline
++	await Promise.all(r.chunks.map((c, i) => r.render(i)));
++	t.eq(r.chunks.length, 3, "three sentences, three chunks");
++	t.eq(r.chunks[1].start, r.chunks[0].seconds, "chunk 2 starts where chunk 1 ends");
++	t.eq(+r.duration().toFixed(2), +(r.chunks.reduce((s, c) => s + c.text.length, 0) / 20).toFixed(2), "duration is the sum of the rendered sentences");
++	t.eq(r.server, "online", "a successful render marks the server online");
++
++	const mid = r.chunks[1].start + 0.5;
++	t.eq(r.find(mid).i, 1, "find() puts a time inside chunk 2 in chunk 2");
++	t.eq(+r.find(mid).offset.toFixed(2), 0.5, "and gives the offset into it");
++	t.eq(r.find(0).i, 0, "time 0 is chunk 1");
++	t.eq(r.find(999).i, 2, "past the end is the last chunk");
++
++	r.pick("George");
++	t.eq(r.voice.name, "George", "pick() changes the persona");
++	t.eq(r.chunks[2].src, null, "sentences still ahead are rendered again in the new voice");
++
++	r.stop();
++	t.eq(r.chunks.length, 0, "stop() clears the queue");
++	t.eq(r.state, "idle", "and is idle");
++	t.eq(Recite.BargeIn.noise("[BLANK_AUDIO]"), true, "Whisper's blank mark counts as noise");
++	t.eq(Recite.BargeIn.noise("wait, stop"), false, "real words do not");
++	return r;
++});
+diff --git a/public/framework/audio/Recite/ReciteBar.js b/public/framework/audio/Recite/ReciteBar.js
+new file mode 100644
+index 000000000..ecf0fdc29
+--- /dev/null
++++ b/public/framework/audio/Recite/ReciteBar.js
+@@ -0,0 +1,73 @@
++import { View, div, span, button, select, option, input, icon } from "../../core/View/View.js";
++import Voice from "../Voice/Voice.js";
++
++/**
++ * class ReciteBar extends View — `Recite.Bar`, the one small control line:
++ * read new replies by themselves (on/off), play/pause, back 10 s, restart, the progress line (or the last barge-in
++ * note), the voice, and the barge-in mic with its threshold.
++ *
++ *   new Recite.Bar({ recite });   // or recite.bar
++ */
++export default class ReciteBar extends View {
++
++	render(){
++		const r = this.recite;
++		this.ac("audio-recite-bar");
++		this.$auto = button.c("audio-recite-btn", () => { this.$auto_icon = icon("record_voice_over"); }).attr("title", "Read new replies aloud by themselves").click(() => r.set_auto(!r.auto));
++		this.$play = button.c("audio-recite-btn", () => { this.$play_icon = icon("play_arrow"); }).attr("title", "Play / pause").click(() => r.toggle());
++		this.$back = button.c("audio-recite-btn", () => icon("replay_10")).attr("title", "Back 10 seconds").click(() => r.back(10));
++		this.$restart = button.c("audio-recite-btn", () => icon("skip_previous")).attr("title", "From the beginning").click(() => r.restart());
++		this.$track = div.c("audio-recite-track", () => {
++			this.$fill = div.c("audio-recite-fill");
++			this.$label = span.c("audio-recite-label", "");
++		});
++		this.$voice = select.c("audio-recite-voice").attr("title", "Voice").on("change", e => r.pick(e.target.value));
++		this.$voice.append(() => Voice.PERSONAS.forEach(p => option(p.name).attr("value", p.name)));
++		this.$voice.el.value = r.voice.name;
++		this.$mic = button.c("audio-recite-btn", () => { this.$mic_icon = icon("hearing"); }).attr("title", "Pause when I talk (barge-in) — off: manual playback only").click(() => r.barge.set_on(!r.barge.on));
++		this.$threshold = input.c("audio-recite-threshold").attr("type", "range").attr("min", "0.05").attr("max", "0.95").attr("step", "0.05")
++			.attr("value", String(r.barge.threshold)).attr("title", "How loud counts as talking (the bar behind it is the mic level)")
++			.on("input", e => r.barge.set_threshold(e.target.value));
++
++		this.off = r.on(() => {
++			if (this.el.isConnected) this.seen = true;
++			else if (this.seen) return this.off();   // removed from the page: stop listening
++			this.draw();
++		});
++		this.draw();
++	}
++
++	draw(){
++		const r = this.recite, b = r.barge;
++		const busy = r.state === "playing" || r.state === "loading";
++		this.$play_icon.text(busy ? "pause" : "play_arrow");
++		this.$play.tc("is-loading", r.state === "loading");
++		this.$play.el.disabled = !r.chunks.length;
++		this.$back.el.disabled = this.$restart.el.disabled = !r.chunks.length;
++
++		const total = r.duration(), at = r.position();
++		this.$fill.style("inlineSize", total ? Math.min(100, at / total * 100).toFixed(1) + "%" : "0");
++		const note = r.state === "heard" || b.state === "checking" ? b.note : r.error || (r.chunks.length ? `${ReciteBar.clock(at)} / ${ReciteBar.clock(total)}${r.engine === "browser" ? " · browser voice" : ""}` : "nothing to read yet");
++		this.$label.text(note);
++		this.$track.attr("title", r.error || b.note || "");
++		this.tc("is-heard", r.state === "heard");
++		this.tc("is-error", !!r.error && r.state !== "heard");
++
++		this.$auto_icon.text(r.auto ? "record_voice_over" : "voice_over_off");
++		this.$auto.tc("is-on", r.auto);
++		this.$mic_icon.text(b.on ? "hearing" : "hearing_disabled");
++		this.$mic.tc("is-on", b.on).tc("is-open", !!b.mic);
++		this.$threshold.tc("audio-recite-hide", !b.on);
++		if (b.mic && !this.meter) this.meter = requestAnimationFrame(() => this.draw_level());
++	}
++
++	/** The mic level behind the threshold slider, once per frame while the mic is open. */
++	draw_level(){
++		this.meter = 0;
++		const b = this.recite.barge;
++		this.$threshold.style("--audio-recite-level", (b.mic ? Math.min(1, b.level) * 100 : 0).toFixed(0) + "%");
++		if (b.mic && this.el.isConnected) this.meter = requestAnimationFrame(() => this.draw_level());
++	}
++
++	static clock(s){ s = Math.max(0, Math.round(s)); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); }
++}
+diff --git a/public/framework/audio/Recite/doc/architecture.md b/public/framework/audio/Recite/doc/architecture.md
+new file mode 100644
+index 000000000..803a268bc
+--- /dev/null
++++ b/public/framework/audio/Recite/doc/architecture.md
+@@ -0,0 +1,13 @@
++# Recite: decisions
++
++Built 2026-11-01 in the voice-recite task ([requirements](/framework/ai/sessions/2026/10/20/session-e00f55c9/voice-recite/requirements.md), [plan](/framework/ai/sessions/2026/10/20/session-e00f55c9/voice-recite/plan.md)).
++
++- **Kokoro-82M on the CPU, not a GPU model.** It reads 6x faster than real time on this CPU (11 s of speech in 1.7 s), so it takes no VRAM from Whisper (2 GB) or the local LLMs. Rejected for now: Piper (more robotic), Chatterbox or XTTS (3–4 GB of VRAM, about real time; the option if a cloned voice is wanted). The server's `/speak` route would stay the same.
++- **The names are the owner's:** `Voice` is one voice or persona, `Recite` is the overall control. `Voice` already existed (the browser's speechSynthesis), so it was extended, not duplicated (law 6).
++- **One `<audio>` element, not Web Audio.** The element keeps its place when paused, keeps playing with the screen locked, and gives Android's lock-screen and headphone controls (Media Session). Web Audio gives none of those.
++- **Sentence by sentence, two ahead.** The first sentence is kept short, so the first sound comes in about 0.4 s. Each sentence's length comes back in the `X-Recite-Seconds` header, which builds the timeline for back 10 s.
++- **Barge-in in two steps.** A level alone pauses for wind or a truck, so a loud moment pauses at once and Whisper decides. Whisper's silero VAD returns no text for noise (tested with `silence.wav` and a fake wind clip), and reading resumes. After a noise verdict the trigger level rises to that noise and fades over about 10 s, so steady wind stops pausing it.
++- **Echo is checked by words.** If most of what Whisper heard is in the sentence being read, it was the speaker, and reading resumes.
++- **The chat's wire, not a chat view.** Recite hears replies from the session's live wire (`Session.stream`), which feeds all three chat views, so it works whichever view is on. Advised by the dictation-map task ([dictation-notes.md](/framework/ai/sessions/2026/10/20/session-e00f55c9/voice-recite/dictation-notes.md)).
++- **Never two mics.** With the chat's own mic on, barge-in listens to that mic's level, and the owner's line arriving on the wire is the check (no line in 5 s means noise).
++- **Read new replies is on by default only on a phone** (coarse pointer), so a desk tab does not start talking by itself.
+diff --git a/public/framework/audio/Recite/doc/files.jsonl b/public/framework/audio/Recite/doc/files.jsonl
+new file mode 100644
+index 000000000..76e2a63e9
+--- /dev/null
++++ b/public/framework/audio/Recite/doc/files.jsonl
+@@ -0,0 +1 @@
++{"file":"architecture.md"}
+diff --git a/public/framework/audio/Recite/files.jsonl b/public/framework/audio/Recite/files.jsonl
+new file mode 100644
+index 000000000..0ebe712a2
+--- /dev/null
++++ b/public/framework/audio/Recite/files.jsonl
+@@ -0,0 +1,8 @@
++{"file":"BargeIn.js"}
++{"file":"page.js"}
++{"file":"Recite.css"}
++{"file":"Recite.js"}
++{"file":"Recite.test.mjs"}
++{"file":"ReciteBar.js"}
++{"file":"readme.md"}
++{"file":"doc/"}
+diff --git a/public/framework/audio/Recite/page.js b/public/framework/audio/Recite/page.js
+new file mode 100644
+index 000000000..b04b81352
+--- /dev/null
++++ b/public/framework/audio/Recite/page.js
+@@ -0,0 +1,42 @@
++import { Page, div, p, button, textarea, demo, md } from "/app.js";
++import Recite from "./Recite.js";
++
++const SAMPLE = "Here is a reply, read aloud. Recite splits it into sentences and reads them one after another, so it starts in under a second. "
++	+ "Press pause, then play, and it picks up where it stopped. The back button jumps ten seconds, even into the sentence before. "
++	+ "Turn on the ear button and start talking: it pauses to listen, checks with Whisper whether that was a voice or just wind, and remembers its place.";
++
++/** The one demo: a reply in a text box, the Read button, and the control line under it. */
++const example = () => {
++	const recite = Recite.shared;
++	return div.c("flex v gap", () => {
++		const $text = textarea.c("audio-recite-demo-text").attr("rows", "4");
++		$text.el.value = SAMPLE;
++		div.c("flex gap v-center wrap", () => {
++			button("Read it aloud").click(() => recite.read($text.el.value));
++			const $server = p.c("muted", "checking recite-server…");
++			recite.check().then(s => $server.text(s === "online" ? `recite-server is online (${recite.url})` : `recite-server is offline — the browser's own voice reads instead. ${recite.error}`));
++		});
++		recite.bar;
++	});
++};
++
++export default new Page({
++	meta: import.meta,
++	title: "Recite",
++	description: "Reads the AI's replies aloud with a local voice: pause, back 10 s, restart, and it pauses when you talk.",
++	icon: "volume_up",
++
++	content(){
++		demo(example, "Press **Read it aloud**. The line under it is the whole control: play or pause, back 10 s, from the beginning, the voice, and the ear (pause when I talk) with how loud counts as talking.");
++
++		md("## Use");
++		md("```js\nimport Recite from \"/framework/audio/Recite/Recite.js\";\n\nconst recite = Recite.shared;   // one per page, so two chat views never talk over each other\nrecite.read(\"A reply to read.\");   // or recite.queue(text) to add after what is playing\nrecite.bar;                        // the one-line control\n```");
++
++		md("## Watch out");
++		md("- **A phone plays sound only after a tap on the page.** Pressing the mic or any button counts; until then the bar says to tap play.");
++		md("- **Back 10 s and the progress line need recite-server.** With the browser's voice (server down) it steps by sentence instead.");
++		md("- **Speakers leak into the mic.** The browser's echo cancelling removes most of it, and Recite ignores what Whisper hears when it matches the sentence being read. Headphones are best on a walk.");
++
++		md.details(import.meta, "readme.md", "Readme");
++	},
++});
+diff --git a/public/framework/audio/Recite/readme.md b/public/framework/audio/Recite/readme.md
+new file mode 100644
+index 000000000..80e1f2e8d
+--- /dev/null
++++ b/public/framework/audio/Recite/readme.md
+@@ -0,0 +1,45 @@
++# Recite — reads the AI's replies aloud
++
++Recite is text to speech, the reverse of transcription. It reads a reply out loud with a local voice, so you can use the site on a walk without looking at the screen. It has a playhead (pause, back 10 s, restart), and it pauses when you start talking. [The live demo](/framework/audio/Recite/).
++
++## Use
++
++```js
++import Recite from "/framework/audio/Recite/Recite.js";
++
++const recite = Recite.shared;        // one per page, so two chat views never read over each other
++recite.read("A reply to read.");     // or recite.queue(text): after what is playing
++recite.pause(); recite.back(10); recite.restart();
++recite.bar;                          // the one-line control
++```
++
++In the chat it is already wired: the phone sheet (✦) shows the bar above the mic, and every reply from the smart assistant is read as it streams.
++
++## Architecture
++
++- **`Recite`** ([Recite.js](Recite.js)) is the manager. It splits text into sentences, has its `Voice` render each one, and plays them on one timeline through one `<audio>` element. It checks the server and falls back to the browser's voice when it is down. It also follows a chat session's live wire (`from_wire(ev)`).
++- **`Voice`** ([../Voice/Voice.js](../Voice/Voice.js)) is one voice, a persona: a recite-server voice id and a speed. `render(text)` returns one sentence as a WAV; `speak(text)` is the browser's own voice. `Voice.PERSONAS` lists seven.
++- **`Recite.BargeIn`** ([BargeIn.js](BargeIn.js)) listens while Recite reads. A sound above the threshold pauses at once; then Whisper checks it. No words means noise, and reading resumes; your words keep it paused. With the chat's mic on, it listens to that mic instead of opening a second one.
++- **`Recite.Bar`** ([ReciteBar.js](ReciteBar.js)) is the control line: read new replies (on/off), play/pause, back 10 s, restart, the progress line, the voice, and the ear (barge-in on/off) with its threshold.
++
++Decisions and why: [doc/architecture.md](doc/architecture.md).
++
++## How it is wired
++
++- **The server:** recite-server, Kokoro-82M on the CPU, port 8177. Servex starts and watches it ([Servex/ext/recite/readme.md](../../../../Servex/ext/recite/readme.md)).
++- **The URL:** `http://127.0.0.1:8177` on this machine; `<origin>/recite` anywhere else, through the dev server's proxy ([Server/plugins/Recite.js](../../../../Server/plugins/Recite.js)).
++- **The chat:** [ux/Dictate/chat.js](../../ux/Dictate/chat.js) passes every event on the session's live wire to `Recite.shared.from_wire(ev)`, and gives barge-in the chat's mic (`barge.use_mic`). [ux/Dictate/DictationBar.js](../../ux/Dictate/DictationBar.js) puts the bar above the mic.
++- **Saved settings:** localStorage keys `lew42.recite.voice`, `.auto`, `.barge`, `.threshold`, per browser.
++
++## Watch out
++
++- **A phone plays sound only after a tap on the page.** Any tap counts (the mic, a button). Until then the bar says to tap play.
++- **Back 10 s needs recite-server.** With the browser's voice it steps by sentence.
++- **Speakers leak into the mic.** Echo cancelling removes most of it, and words that match the sentence being read are ignored. Headphones are best.
++- **Reading starts only for new replies** (lines under 2 minutes old), never for history on a reload.
++
++## Files
++
++- [Recite.js](Recite.js), [BargeIn.js](BargeIn.js), [ReciteBar.js](ReciteBar.js), [Recite.css](Recite.css), [page.js](page.js) (the demo)
++- [Recite.test.mjs](Recite.test.mjs): runs on [the test page](/framework/core/Test/view/?file=audio/Recite/Recite.test.mjs) (it needs the DOM; in node it skips). The server's test is `Servex/ext/recite/recite.test.mjs`.
++- [doc/architecture.md](doc/architecture.md)
+diff --git a/public/framework/audio/Voice/Voice.js b/public/framework/audio/Voice/Voice.js
+index b93bdaf3f..e718728ce 100644
+--- a/public/framework/audio/Voice/Voice.js
++++ b/public/framework/audio/Voice/Voice.js
+@@ -5,19 +5,14 @@ import Part, { PartView } from "../Part.js";
+ View.stylesheet(import.meta, "Voice.css");
+ 
+ /**
+- * class Voice extends Part — text to speech, the output half of the mic pair:
+- * `Transcriber` turns speech INTO text, `Voice` turns text BACK into speech.
+- * `window.speechSynthesis` (the browser's own `SpeechSynthesisUtterance`) is
+- * the whole engine here — built into every modern browser, nothing to
+- * install, nothing to run — the same zero-dependency tier as
+- * `Transcriber.Browser` (its speech-to-text twin). Why not a local engine
+- * like whisper-server: `doc/decisions.md`'s `d-voice-engine` — there is no
+- * local TTS binary on this machine today, so there is nothing yet to wrap.
++ * class Voice extends Part — one voice, a persona (name, recite-server voice id, speed).
++ * Two engines: render(text, url) gets one sentence as a WAV from recite-server (local
++ * Kokoro; audio/Recite uses it), and speak(text) uses the browser's own speechSynthesis.
++ * readme.md has both; Voice.PERSONAS lists the personas.
+  *
+- *   const voice = new Voice();
+- *   voice.speak("Hello there.");    // → voice.state === "speaking", then "idle" when done
+- *   voice.rate = 1.3;                // takes effect on the NEXT speak()
+- *   voice.pick(voice.voices()[2]);   // choose a voice by its SpeechSynthesisVoice object
++ *   const voice = Voice.persona("George");
++ *   await voice.render("Hello.", recite.url);   // {blob, seconds}
++ *   voice.speak("Hello there.");                // the browser's voice
+  */
+ export default class Voice extends Part {
+ 
+@@ -27,6 +22,8 @@ export default class Voice extends Part {
+ 	volume = 1;            // 0 .. 1
+ 	text = "";             // the last text given to speak()
+ 	chosen_voice = null;   // a SpeechSynthesisVoice, or null = the browser's own default
++	name = "Heart";        // the persona's name, what a picker shows
++	id = "af_heart";       // the recite-server (Kokoro) voice id; render() uses it, speak() does not
+ 
+ 	constructor(...args){
+ 		super(...args);
+@@ -69,7 +66,7 @@ export default class Voice extends Part {
+ 	 *  different `Voice` instance's speech — `window.speechSynthesis` is one
+ 	 *  shared browser queue, so two `Voice`s both calling `speak()` still take
+ 	 *  turns at the browser level; this class does not try to hide that. */
+-	speak(text){
++	speak(text, done){
+ 		if (!window.speechSynthesis){ this.on_error?.(new Error("This browser has no window.speechSynthesis — text to speech is not available here.")); return; }
+ 		window.speechSynthesis.cancel();
+ 		this.text = text;
+@@ -77,7 +74,7 @@ export default class Voice extends Part {
+ 		u.rate = this.rate; u.pitch = this.pitch; u.volume = this.volume;
+ 		if (this.chosen_voice) u.voice = this.chosen_voice;
+ 		u.onstart = () => { this.state = "speaking"; this.on_change?.(); };
+-		u.onend = () => { this.state = "idle"; this.on_change?.(); };
++		u.onend = () => { this.state = "idle"; this.on_change?.(); done?.(); };   // done: Recite's browser fallback moves to its next sentence
+ 		u.onerror = e => { this.state = "idle"; this.on_change?.(); this.on_error?.(e); };
+ 		u.onboundary = e => { this.on_boundary?.(e); };
+ 		this.utterance = u;
+@@ -89,12 +86,39 @@ export default class Voice extends Part {
+ 	pause(){ if (this.state !== "speaking") return; window.speechSynthesis.pause(); this.state = "paused"; this.on_change?.(); }
+ 	resume(){ if (this.state !== "paused") return; window.speechSynthesis.resume(); this.state = "speaking"; this.on_change?.(); }
+ 
++	/** The local engine: the audio of `text` in this voice, from recite-server
++	 *  (`url` is `Recite.url`). Returns {blob, seconds}; throws one plain line
++	 *  when the server is down or refuses. One sentence or paragraph per call. */
++	async render(text, url, signal){
++		const r = await fetch(url + "/speak", { method: "POST", headers: { "content-type": "application/json" },
++			body: JSON.stringify({ text, voice: this.id, speed: this.rate }), signal: signal ?? AbortSignal.timeout(20000) });
++		if (!r.ok) throw new Error((await r.json().catch(() => null))?.error ?? `recite-server answered ${r.status}`);
++		return { blob: await r.blob(), seconds: Number(r.headers.get("x-recite-seconds")) || 0 };
++	}
++
++	/** A persona by name (`Voice.PERSONAS`), as a new Voice. */
++	static persona(name){
++		const p = Voice.PERSONAS.find(v => v.name === name) ?? Voice.PERSONAS[0];
++		return new Voice({ ...p });
++	}
++
+ 	/** Stops now, with nothing queued after it — the Stop button's verb. */
+ 	stop(){ window.speechSynthesis?.cancel(); this.state = "idle"; this.on_change?.(); }
+ }
+ 
+ track(Voice);
+ 
++/** A few personas: a recite-server voice id and a speed each (the 54 ids: GET /recite/voices). */
++Voice.PERSONAS = [
++	{ name: "Heart", id: "af_heart", rate: 1 },
++	{ name: "Bella", id: "af_bella", rate: 1 },
++	{ name: "Nicole", id: "af_nicole", rate: 1 },
++	{ name: "Puck", id: "am_puck", rate: 1 },
++	{ name: "Fenrir", id: "am_fenrir", rate: 1 },
++	{ name: "George", id: "bm_george", rate: 1 },
++	{ name: "Emma", id: "bf_emma", rate: 1 },
++];
++
+ /**
+  * `Voice.Controls` — the text box + Speak/Pause/Stop buttons + a voice
+  * picker and rate/pitch sliders, all pointed at one `Voice`. Not
+diff --git a/public/framework/audio/Voice/page.js b/public/framework/audio/Voice/page.js
+index b8f2e8341..8bd5013cd 100644
+--- a/public/framework/audio/Voice/page.js
++++ b/public/framework/audio/Voice/page.js
+@@ -32,7 +32,7 @@ export default new Page({
+ 
+ 		md("## Watch out");
+ 		md("- **The voice list can start empty.** `voice.voices()` only fills in once the browser has loaded it, which can happen a moment after the page does — `Voice.Controls` waits for `on_voices_ready()` rather than reading the list once. Until then the picker above just says \"default voice\", which still speaks fine.");
+-		md("- **No local engine yet.** This is `window.speechSynthesis` only — see [`../doc/decisions.md`](../doc/decisions.md)'s `d-voice-engine` for why, and what a local engine (paralleling whisper-server) would need.");
++		md("- **This demo is the browser's voice.** The local voice (recite-server, Kokoro) is `voice.render()`, and [Recite](../Recite/) reads whole replies with it.");
+ 
+ 		md.details(import.meta, "readme.md", "Readme");
+ 	},
+diff --git a/public/framework/audio/Voice/readme.md b/public/framework/audio/Voice/readme.md
+index 071637388..a2339a90f 100644
+--- a/public/framework/audio/Voice/readme.md
++++ b/public/framework/audio/Voice/readme.md
+@@ -1,30 +1,31 @@
+-# Voice — text to speech
++# Voice — one voice that turns text into speech
+ 
+-`window.speechSynthesis` is the whole engine — the browser's own built-in text-to-speech, the
+-output half of the mic pair (`Transcriber` turns speech INTO text; `Voice` turns text BACK into
+-speech). Nothing to install, nothing to run.
++A `Voice` is one voice, a persona: a name, a recite-server voice id and a speed. It is the output half of the mic pair: `Transcriber` turns speech into text, `Voice` turns text back into speech. It has two engines:
++
++- **Local:** `render(text, url)` returns one sentence as a WAV from recite-server (Kokoro, on the CPU). [Recite](../Recite/) uses this to read whole replies with a playhead.
++- **Browser:** `speak(text)` uses `window.speechSynthesis`, the browser's own voice. Nothing to install; it is Recite's fallback when the server is down.
+ 
+ ## Use
+ 
+ ```js
+ import Voice from "/framework/audio/Voice/Voice.js";
+ 
++const george = Voice.persona("George");                    // one of Voice.PERSONAS
++const { blob, seconds } = await george.render("Hello.", "http://127.0.0.1:8177");
++
+ const voice = new Voice();
+-voice.speak("Hello there.");   // → voice.state === "speaking", then "idle" when done
+-voice.rate = 1.3;               // takes effect on the NEXT speak()
+-voice.pick(voice.voices()[2]);  // choose a voice by its SpeechSynthesisVoice object
++voice.speak("Hello there.");   // the browser's voice: state "speaking", then "idle"
+ ```
+ 
+ ## Watch out
+ 
+-- The browser's voice list (`voice.voices()`) can come back empty right after the page loads —
+-  wait for `on_voices_ready()`, don't read it once and give up.
+-- There's no local engine (the way `Transcriber.Whisper` wraps whisper-server) — checked, nothing
+-  like that is installed on this machine today. `doc/decisions.md`'s `d-voice-engine` has the
+-  reasoning and what a local one would need.
++- **The browser's voice list can start empty.** Wait for `on_voices_ready()`.
++- **To read a whole reply, use Recite,** not `render()` in a loop: Recite splits, renders ahead, and keeps the playhead.
++- **Personas** are in `Voice.PERSONAS` (seven of Kokoro's 54 voices; `GET /recite/voices` lists them all).
+ 
+ ## More
+ 
+-- [Overview](/framework/audio/Voice/) — the live demo
+-- [`../readme.md`](../readme.md) — the audio/ library
+-- [`../doc/decisions.md`](../doc/decisions.md) — `d-voice-engine`: why browser, not local, for now
++- [Overview](/framework/audio/Voice/): the browser-voice demo
++- [Recite](../Recite/readme.md): reads replies aloud, the local engine's main user
++- [Servex/ext/recite/readme.md](../../../../Servex/ext/recite/readme.md): recite-server
++- [doc/owner-2026-10-16-voice-conversation.md](doc/owner-2026-10-16-voice-conversation.md): the owner's notes on a full voice loop
+diff --git a/public/framework/audio/page.js b/public/framework/audio/page.js
+index 457b940d3..d90817dba 100644
+--- a/public/framework/audio/page.js
++++ b/public/framework/audio/page.js
+@@ -15,6 +15,8 @@ const TOOLS = [
+ 	{ name: "Recorder", slug: "Recorder/", icon: "fiber_manual_record", blurb: "records, plays back, saves a clip" },
+ 	{ name: "Transcriber", slug: "Transcriber/", icon: "subtitles", blurb: "turns a stream into text — Whisper or Chrome" },
+ 	{ name: "Whisper", slug: "Whisper/", icon: "graphic_eq", blurb: "the local whisper-server as an object, and a live log of every answer" },
++	{ name: "Voice", slug: "Voice/", icon: "record_voice_over", blurb: "one voice (a persona): renders a sentence on recite-server, or speaks with the browser" },
++	{ name: "Recite", slug: "Recite/", icon: "volume_up", blurb: "reads a reply aloud: pause, back 10 s, restart, and it pauses when you talk" },
+ ];
+ 
+ /** How long to wait for whisper-server before giving up on it and using the
+@@ -131,7 +133,7 @@ export default new Doc({
+ 	files: "Part.js audio.css page.js readme.md",
+ 	notes: "decisions",
+ 
+-	children: "MicStream Recorder Transcriber Whisper v1 MicPicker LevelMeter PushToTalk sound-recorder push-to-talk mic-to-text",
++	children: "MicStream Recorder Transcriber Whisper Voice Recite v1 MicPicker LevelMeter PushToTalk sound-recorder push-to-talk mic-to-text",
+ 
+ 	content(){
+ 		// "audio v1" OUT OF THE TAB STRIP (fix 5) — same `tab({nav:false})` +
+diff --git a/public/framework/audio/readme.md b/public/framework/audio/readme.md
+index eed09627c..71e25f7f5 100644
+--- a/public/framework/audio/readme.md
++++ b/public/framework/audio/readme.md
+@@ -6,6 +6,11 @@ hold/toggle-to-talk (`mode`); **[Recorder](./Recorder/)** records, plays back an
+ **[Whisper](./Whisper/)** is the whisper-server as an object plus a log per dictation surface.
+ 
+ **[Transcriber](./Transcriber/)** turns a stream into text, with Whisper or Chrome as the engine.
++
++The output half: **[Voice](./Voice/)** is one voice (a persona) that turns a sentence into speech, and
++**[Recite](./Recite/)** reads a whole reply aloud with a playhead and pauses when you talk. The local
++voice runs on recite-server (Kokoro, on the CPU), which Servex supervises beside whisper-server
++([Servex/ext/recite/readme.md](../../../Servex/ext/recite/readme.md)).
+ The [live demo at the top of this page](./) shows all three working together — pick a mic, talk,
+ watch the transcript settle, optionally record.
+ 
+@@ -84,4 +89,3 @@ The owner reports the `Transcriber` page layout "is all broken". Not investigate
+ ## Also here (readme audit, 2026-10-13)
+ - [mic-to-text](./mic-to-text/)
+ - [sound-recorder](./sound-recorder/)
+-- [Voice](./Voice/) — Voice — text to speech
+diff --git a/public/framework/readme.md b/public/framework/readme.md
+index 521336cff..f1f4ec958 100644
+--- a/public/framework/readme.md
++++ b/public/framework/readme.md
+@@ -80,7 +80,7 @@ p("Hello world.");
+ - Files that matter: `/app.js` (the one import), `page.js` (sidebar + walls layout), `framework.css` (the utility vocabulary)
+ 
+ ## Also here (readme audit, 2026-10-13)
+-- [audio](./audio/) — microphone building blocks: MicStream, Recorder, Whisper
++- [audio](./audio/) — microphone and voice building blocks: MicStream, Recorder, Whisper, Voice, Recite (reads replies aloud)
+ - [code](./code/) — code in the framework: patterns, dos and don'ts
+ - [design](./design/) — layout, color, navigation, content and UI decisions
+ - [servex](./servex/) — the always-on process: runs agents, starts servers, owns logs
+diff --git a/public/framework/ux/Dictate/DictationBar.js b/public/framework/ux/Dictate/DictationBar.js
+index 2245a928f..de76e4aae 100644
+--- a/public/framework/ux/Dictate/DictationBar.js
++++ b/public/framework/ux/Dictate/DictationBar.js
+@@ -1,4 +1,5 @@
+ import { View, span, button } from "../../core/View/View.js";
++import Recite from "/framework/audio/Recite/Recite.js";
+ 
+ View.stylesheet(import.meta, "DictationBar.css");
+ 
+@@ -30,6 +31,7 @@ export default class DictationBar extends View {
+ 		if (box) box.placeholder = "type, then Enter to send";
+ 		const bars = [];
+ 		new View({ el: compose, capture: false }).append(() => { bars.push(new this({ mic, compose })); });
++		compose.before(Recite.shared.bar.el);   // the read-aloud line, directly above the mic (audio/Recite)
+ 		if (live){
+ 			const row = live.el ?? live;
+ 			new View({ el: row, capture: false }).append(() => { bars.push(new this({ mic, compose, compact: true })); });
+diff --git a/public/framework/ux/Dictate/chat.js b/public/framework/ux/Dictate/chat.js
+index 3f020555f..b6ffa8c88 100644
+--- a/public/framework/ux/Dictate/chat.js
++++ b/public/framework/ux/Dictate/chat.js
+@@ -5,6 +5,7 @@ import floor from "./floor.js";
+ import * as Session from "/framework/ext/Session/Session.js";
+ import ChatV2Model from "/framework/ext/Chat/v2/ChatV2Model.js";
+ import DictateHealth from "./DictateHealth.js";
++import Recite from "/framework/audio/Recite/Recite.js";
+ import * as report from "/framework/ext/Chat/v2/report.js";
+ 
+ // One chat box, every surface: doc/chat-notes.md
+@@ -207,6 +208,7 @@ export default function chat(el, { path = location.pathname, card, placeholder,
+ 				: Promise.reject(new Error("no voice session yet, so the reaction is not saved")),
+ 		});
+ 	});
++	Recite.shared.barge.use_mic(panel.dictate);   // barge-in hears this chat's own mic while it is on (audio/Recite)
+ 
+ 	// Drawing one line must never stop the lines after it: a throw lands on the Page light, with the raw error.
+ 	function draw(line){
+@@ -298,6 +300,7 @@ export default function chat(el, { path = location.pathname, card, placeholder,
+ 			else if (kind === "line_failed") DictateHealth.fail("page", d.error, `drawing line ${d.n} of the session log`);
+ 		} });
+ 		stop_stream = Session.stream(owner.ctl.session, ev => {
++			Recite.shared.from_wire(ev);   // the smart seat's reply is read aloud as it streams (audio/Recite/readme.md)
+ 			if (ev.kind === "stream"){ panel.stream(ev.role, ev.text); if (ev.text) DictateHealth.set("llm", "ok", `${ev.role} is writing an answer…`, { quiet: true }); }
+ 			else if (ev.kind === "line") draw(ev.line);
+ 			// The session's own title just changed (session_summary/rename_session, Sessions.js). No title

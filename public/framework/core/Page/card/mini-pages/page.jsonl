@@ -1,0 +1,5 @@
+{"class": "./MiniPages.js", "title": "Mini pages", "icon": "auto_stories", "description": "A card is a tiny page: its data is one line in this file, its url is real, and there is no folder for it anywhere on disk."}
+{"file": "MiniPages.js"}
+{"card": {"slug": "first-steps", "title": "First steps", "ground": "", "body": "The first card — default ground, one paragraph. Its whole existence is the one line in page.jsonl that made it."}}
+{"card": {"slug": "the-decision", "title": "The decision", "ground": "card-gray", "body": "A light gray card. Reload this exact url and you land right back here, because the data this page reads from is still the same file, every time."}}
+{"card": {"slug": "going-deep", "title": "Going deep", "ground": "card-dark", "body": "A dark card, read the same way as the other two. Three cards, one file, zero folders below this page."}}

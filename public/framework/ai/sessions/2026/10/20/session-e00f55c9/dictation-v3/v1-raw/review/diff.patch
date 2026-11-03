@@ -1,0 +1,145 @@
+diff --git a/public/framework/ux/Dictate/Widget.js b/public/framework/ux/Dictate/Widget.js
+index 667b0db50..02febdc13 100644
+--- a/public/framework/ux/Dictate/Widget.js
++++ b/public/framework/ux/Dictate/Widget.js
+@@ -479,9 +479,9 @@ Widget.Thread = class WidgetThread extends View {
+ 			after.insertAdjacentElement("afterend", node);
+ 		}
+ 		if (parent) node.dataset.under = t.at;
+-		// A Question card replaces the plain bubble it came from: hide that source bubble (view only, the log keeps it).
+-		// Hiding is idempotent, so a second Question from the same bubble changes nothing.
+-		if (parent && t.question) parent.style.display = "none";
++		// V1 is the raw log (the owner, 2026-11-01): a Question or Task made from a sentence is drawn IN
++		// ADDITION to it, never in place of it — the source bubble used to be hidden here, which swallowed
++		// the owner's own words the moment the fast seat turned one into a Question (ux/Dictate/tasks/v1-raw).
+ 		rows.set(t.id, node);
+ 		this.anchor();
+ 	}
+diff --git a/public/framework/ux/Dictate/readme.md b/public/framework/ux/Dictate/readme.md
+index dad264876..22f6c8aa9 100644
+--- a/public/framework/ux/Dictate/readme.md
++++ b/public/framework/ux/Dictate/readme.md
+@@ -31,9 +31,10 @@ You speak and Whisper turns the sound into text, one sentence at a time. The pag
+ - `class DictateDocs` (the Docs tab: this readme and the docs, rendered in place; [DictateDocs.js](DictateDocs.js), [DictateDocs.css](DictateDocs.css); proof `test/docs-tab.mjs`)
+ - `chat.js` calls `report.init(session)` ([ext/Chat/v2/report.js](/framework/ext/Chat/v2/report.js)) once the voice session id is known.
+ - **A Question card moves to the end of the chat when it is answered** (2026-10-25): `Widget.js`'s `show_task` drops the row where it was just built (the end of `$bubbles`) instead of moving it back to where it was asked, when `chat.js`'s `draw_task` says `moved` — the same rule, and the same shared signal (`ChatV2Model.newly_answered`), as v2's root-surfacing: [`ext/Chat/readme.md`](/framework/ext/Chat/readme.md).
++- **V1 is the raw log** (the owner, 2026-11-01): every sentence the owner said stays visible, in order, whatever an assistant does with it later — a Question or a Task made from a sentence is drawn IN ADDITION to it, never in place of it. `show_task()` used to set `parent.style.display = "none"` on the owner's own bubble the moment the fast seat turned it into a Question, swallowing the raw words; fixed, proof at `test/raw-stays.mjs` (replays a real exchange from `public/framework/ai/sessions/2026/11/01/v-u48msei/session.jsonl`).
+ - **`chat-live` window event:** the composer's mic (`Widget.js`, `on_live`) also dispatches `new CustomEvent("chat-live", {detail: {text, settled, guess, sent}})` on `window` each time it reports the unsent words, beside the V1 `$thread.live()` call. Nothing in V1 listens; [Chat v3](/framework/ext/Chat/v3/readme.md) draws the same words as its faint draft.
+ - The Debug panel in the phone sheet has a resize handle whose height survives a reload ([`SheetPanel.tabs_grip`](/framework/ext/drawer/doc/sheet.md#the-debug-panel-handle-2026-10-25)).
+-- Proofs `test/errors.mjs` (every error is caught and shown), `test/stall.mjs`, `test/debug-tab.mjs`, `test/deltas.mjs`, `test/repeat.mjs` (Whisper's repeated tail), `test/active-session.mjs` (the send, the view and read-aloud agree on the active session through first open, switch, New session and reload: [`doc/chat.md#the-active-session`](doc/chat.md)), `test/order.mjs` (bubbles in the order spoken; a reply between two sentences stays between), `test/v1-order.mjs` (a reply never ends up above an owner line it arrived after: the incident replayed from `test/v1-order-fixture.jsonl` plus the live open-bubble case; nothing on screen swaps places), `test/flicker.mjs` (no word vanishes or moves), `test/chat-sent.mjs` (the two moving cursors reach "done"; the scroll lock and the ↓ button; Questions under their Prompt; bubbles and Chat v2), `test/chat-gray.mjs` (gray-state labels and the faded sent bubble), `test/refresh.mjs` (reload, then dictate: [`doc/debug-tab.md#refresh-then-dictate`](doc/debug-tab.md#refresh-then-dictate)).
++- Proofs `test/errors.mjs` (every error is caught and shown), `test/stall.mjs`, `test/debug-tab.mjs`, `test/deltas.mjs`, `test/repeat.mjs` (Whisper's repeated tail), `test/active-session.mjs` (the send, the view and read-aloud agree on the active session through first open, switch, New session and reload: [`doc/chat.md#the-active-session`](doc/chat.md)), `test/order.mjs` (bubbles in the order spoken; a reply between two sentences stays between), `test/v1-order.mjs` (a reply never ends up above an owner line it arrived after: the incident replayed from `test/v1-order-fixture.jsonl` plus the live open-bubble case; nothing on screen swaps places), `test/flicker.mjs` (no word vanishes or moves), `test/chat-sent.mjs` (the two moving cursors reach "done"; the scroll lock and the ↓ button; Questions under their Prompt, their source bubble still visible; bubbles and Chat v2), `test/raw-stays.mjs` (the raw-log rule: a sentence stays on screen once it has a Question or a Task), `test/chat-gray.mjs` (gray-state labels and the faded sent bubble), `test/refresh.mjs` (reload, then dictate: [`doc/debug-tab.md#refresh-then-dictate`](doc/debug-tab.md#refresh-then-dictate)).
+ - **Two moving cursors (2026-10-25):** the bubble chat draws the same ✓ (fast seat) / 🧠 (smart seat) cursors Chat v2 has — the one shared pair for the whole bubble (`ext/Chat/cursors.js`), moved onto whichever live piece is newest, never one pair per piece. `ext/Chat/chunks.js` says what a fast chunk / a finished sentence is; `Chat.js`'s `place_live_cursors()` moves the pair. The green Understand check is off for now, the yellow `?` stays: [`ux/Understand/readme.md`](/framework/ux/Understand/readme.md).
+ - Errors: [failures.jsonl](/framework/ux/Dictate/failures.jsonl) (dev only: git-ignored, written on this machine at the first failure).
+ 
+diff --git a/public/framework/ux/Dictate/test/chat-sent.mjs b/public/framework/ux/Dictate/test/chat-sent.mjs
+index c0b06a105..9dedbb48c 100644
+--- a/public/framework/ux/Dictate/test/chat-sent.mjs
++++ b/public/framework/ux/Dictate/test/chat-sent.mjs
+@@ -96,12 +96,15 @@ ${ev(queue.splice(0))}` });
+ 		// never merged into line 29's (review finding 3, 2026-10-25).
+ 		const where = await page.evaluate(() => {
+ 			const q = document.querySelector(".drawer-rail-sheet.on .chatbox-task[data-id=q-1792961349]");
+-			const next = q?.nextElementSibling;
+-			return q && { before: q.previousElementSibling?.textContent.slice(0, 40), after: next?.textContent, pieces: next?.querySelectorAll("[data-re]").length };
++			const next = q?.nextElementSibling, before = q?.previousElementSibling;
++			return q && { before: before?.textContent.slice(0, 40), before_visible: before ? getComputedStyle(before).display !== "none" : false, after: next?.textContent, pieces: next?.querySelectorAll("[data-re]").length };
+ 		});
+ 		console.log(tag, "real Question sits:", JSON.stringify(where));
+ 		check(!!where && /So, The words/.test(where.before ?? "") && /And then if I start/.test(where.after ?? "") && where.pieces === 1,
+ 			tag + ": the real Question sits right under its own Prompt's bubble; a later, different Prompt gets its OWN, separate bubble (never merged across the boundary)");
++		// V1 is the raw log (the owner, 2026-11-01, ux/Dictate/tasks/v1-raw): the Prompt's own bubble must stay
++		// visible once it has a Question — it used to be hidden here, swallowing the owner's own words.
++		check(!!where?.before_visible, tag + ": the Prompt's own bubble stays visible once it has a Question (never hidden)");
+ 	}
+ 	await page.screenshot({ path: `${shots}/${tag}-5-question.png` });
+ 	queue.push(...Array.from({ length: 40 }, (_, i) => owner(i + 1, Date.now() + i)));
+diff --git a/public/framework/ux/Dictate/test/raw-stays-fixture.jsonl b/public/framework/ux/Dictate/test/raw-stays-fixture.jsonl
+new file mode 100644
+index 000000000..f880e08aa
+--- /dev/null
++++ b/public/framework/ux/Dictate/test/raw-stays-fixture.jsonl
+@@ -0,0 +1,5 @@
++{"tasks":{"add":{"type":"Prompt","id":"p-1793574312076","raw":["All right, are we working?"],"paragraphs":[{"id":"a","text":"All right, are we working?"}]}},"ts":"2026-11-01T23:05:12.077Z","by":"fast"}
++{"chat":{"at":"2026-11-01T17:05:12.079-06:00","session":"v-u48msei","path":"/","from":{"kind":"owner"},"via":"voice","text":"All right, are we working?","prompt":"p-1793574312076","said_at":"2026-11-01T23:05:11.644Z","floor":"done","cues":{"mic_on_at":"2026-11-01T23:05:05.817Z","pauses":[{"start":3764,"end":null,"ms":2159}],"speaking_ms":734}}}
++{"place":{"re":"2026-11-01T17:05:12.079-06:00","to":"same","edit":"improve","text":"All right, are we working?"},"by":"voice-assistant-v-u48msei","ts":"2026-11-01T23:05:15.766Z"}
++{"p-1793574312076":{"tasks":{"add":{"id":"q-1793574312079","type":"Question","text":"Are we working?","from":"p-1793574312076"}}},"by":"voice-assistant-v-u48msei","ts":"2026-11-01T23:05:16.143Z"}
++{"p-1793574312076":{"tasks":{"add":{"id":"t-raw-stays-1","type":"Task","text":"follow up on this","from":"p-1793574312076"}}},"by":"raw-stays-fixture","ts":"2026-11-01T23:05:17.000Z"}
+diff --git a/public/framework/ux/Dictate/test/raw-stays.mjs b/public/framework/ux/Dictate/test/raw-stays.mjs
+new file mode 100644
+index 000000000..85fc8a003
+--- /dev/null
++++ b/public/framework/ux/Dictate/test/raw-stays.mjs
+@@ -0,0 +1,73 @@
++// Proof for the owner's rule (v1-raw/requirements.md): V1 is the raw log — every sentence the owner said
++// stays visible, in order, whatever an assistant does with it later. A Question or a Task made from a
++// sentence is drawn IN ADDITION to it, never in place of it.
++//   node public/framework/ux/Dictate/test/raw-stays.mjs <base-url> [shots-dir]
++// Fixture (raw-stays-fixture.jsonl): the first four lines are copied verbatim from a real voice session,
++// public/framework/ai/sessions/2026/11/01/v-u48msei/session.jsonl lines 3, 4, 10, 12 — a Prompt, the
++// owner's own chat line ("All right, are we working?"), the voice assistant's `place`/`improve` edit, then
++// the fast seat turning it into a Question ("Are we working?"). The fifth line is synthetic (not in the
++// real file, which has no Task tied to a Prompt): a Task from the same Prompt, to cover that path too.
++// Replayed through the real ux/Dictate/chat.js pipeline (a stubbed session file, no live stream lines —
++// the same "reload from a file" path test/order.mjs's `reload: true` run uses), the same code a live voice
++// session runs in production.
++import fs from "fs";
++import Browser from "../../../../../Server/Browser.mjs";
++
++const [base = "http://monorepo.localhost", shots] = process.argv.slice(2);
++const fixture = fs.readFileSync(new URL("./raw-stays-fixture.jsonl", import.meta.url), "utf8")
++	.split("\n").filter(Boolean);
++
++const browser = await Browser.browser({});
++const kill = setTimeout(() => { console.log("FAIL killed after 60 s"); process.exit(2); }, 60000);
++let failed = 0;
++const check = (ok, msg) => { console.log(ok ? "ok  " : "FAIL", msg); if (!ok) failed++; };
++const cors = { "access-control-allow-origin": "*", "access-control-allow-headers": "content-type" };
++
++const ctx = await browser.newContext({ viewport: { width: 400, height: 860 } });
++const page = await ctx.newPage();
++const errors = []; page.on("pageerror", e => errors.push(String(e).slice(0, 200)));
++
++await page.route(/\/api\/session\//, async route => {
++	const req = route.request(), verb = req.url().split("/api/session/")[1].split("?")[0];
++	if (req.method() === "OPTIONS") return route.fulfill({ status: 204, headers: cors });
++	if (verb.endsWith("/stream")) return route.fulfill({ status: 200, contentType: "text/event-stream", headers: cors, body: "retry: 60000\n\n" });   // idle: the fixture arrives through the file poll only, as a reload does
++	const out = verb === "new" || verb === "resume" ? { ok: true, session: "stub-session", file: "/stub-raw-stays.jsonl" } : { ok: true };
++	await route.fulfill({ status: 200, contentType: "application/json", headers: cors, body: JSON.stringify(out) });
++});
++await page.route(/\/stub-raw-stays\.jsonl/, r => r.fulfill({ status: 200, contentType: "text/plain", body: fixture.join("\n") }));
++await page.route(/\/api\/sessions\?/, r => r.fulfill({ status: 200, contentType: "application/json", headers: cors, body: JSON.stringify({ ok: true, sessions: [] }) }));
++await page.route(/\/api\/hitl/, r => r.fulfill({ status: 200, contentType: "application/json", headers: cors, body: JSON.stringify({ ok: true, marks: [{ mark: "ok" }] }) }));
++await page.route(/\/log\/prompts/, r => r.fulfill({ status: 200, contentType: "application/json", headers: cors, body: "{}" }));
++
++await page.goto(base + "/framework/ext/drawer/", { waitUntil: "domcontentloaded" });
++await page.waitForSelector(".drawer-rail-ai", { timeout: 20000 });
++await page.evaluate(async () => { const { default: Sheet } = await import("/framework/ext/drawer/Sheet.js"); window.$sheet = Sheet.of(); await window.$sheet.to("full", { listen: false }); });
++await page.waitForSelector(".drawer-rail-sheet.on .ux-dictate-widget", { timeout: 20000 });
++await page.evaluate(async () => { await (await import("/framework/ux/Dictate/chat.js")).resume("stub-session"); });
++await page.waitForTimeout(2000);
++
++const state = await page.evaluate(() => {
++	const sheet = document.querySelector(".drawer-rail-sheet.on");
++	const owner_bubble = [...sheet.querySelectorAll(".chatbox-you")].find(b => b.textContent.includes("working"));
++	const question = sheet.querySelector(".chatbox-task[data-id=q-1793574312079]");
++	const task = sheet.querySelector(".chatbox-task[data-id=t-raw-stays-1]");
++	return {
++		owner_text: owner_bubble?.textContent ?? null,
++		owner_visible: owner_bubble ? getComputedStyle(owner_bubble).display !== "none" : false,
++		question_text: question?.textContent ?? null,
++		task_text: task?.textContent ?? null,
++	};
++});
++
++if (shots){ fs.mkdirSync(shots, { recursive: true }); await page.screenshot({ path: `${shots}/raw-stays-400.png` }); }
++
++check(!!state.owner_text && /working/.test(state.owner_text), `the owner's own sentence is drawn: ${JSON.stringify(state.owner_text)}`);
++check(state.owner_visible, "the owner's bubble is still visible once it has a Question (display never set to none)");
++check(!!state.question_text && /Are we working/.test(state.question_text), `the Question card is drawn too, in addition to the raw bubble: ${JSON.stringify(state.question_text)}`);
++check(!!state.task_text, `a Task from the same prompt is drawn too, in addition to the raw bubble: ${JSON.stringify(state.task_text)}`);
++check(!errors.length, `no page errors ${errors.join(" ")}`);
++
++await ctx.close();
++clearTimeout(kill);
++console.log(failed ? `${failed} failed` : "all passed");
++process.exit(failed ? 1 : 0);

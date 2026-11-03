@@ -1,0 +1,207 @@
+[
+	{
+		"name": "minion",
+		"readme": "minion",
+		"prefix": "minion",
+		"tier": "scan",
+		"model": "claude-haiku-5-5",
+		"effort": "low",
+		"permission_mode": "bypassPermissions",
+		"compact_after": null,
+		"skills": []
+	},
+	{
+		"name": "task-mastermind",
+		"readme": "task-mastermind",
+		"skills": [
+			"page"
+		],
+		"prefix": "task-mastermind",
+		"alias": "sub-mastermind",
+		"tier": "manager",
+		"model": "claude-sonnet-5-5",
+		"effort": "medium",
+		"permission_mode": "bypassPermissions",
+		"compact_after": {
+			"tokens": 150000,
+			"sleep": 100000
+		}
+	},
+	{
+		"name": "ai-system-mastermind",
+		"readme": "ai-system-mastermind",
+		"prefix": "ai-system-mastermind",
+		"alias": "servex-mastermind",
+		"singleton": true,
+		"renew": {
+			"hours": 24,
+			"tokens": 100000
+		},
+		"tier": "architect",
+		"model": "claude-sonnet-5-5",
+		"effort": "high",
+		"permission_mode": "bypassPermissions",
+		"skills": []
+	},
+	{
+		"name": "mastermind",
+		"readme": "mastermind",
+		"prefix": "mastermind",
+		"tier": "architect",
+		"model": "claude-sonnet-5-5",
+		"effort": "high",
+		"permission_mode": "bypassPermissions",
+		"compact_after": {
+			"tokens": 150000,
+			"sleep": 100000
+		},
+		"skills": []
+	},
+	{
+		"name": "assistant",
+		"retired": "voice-assistant",
+		"prefix": "assistant",
+		"alias": "every-prompt",
+		"tier": "fast",
+		"model": "claude-haiku-5-5",
+		"effort": "low",
+		"permission_mode": "acceptEdits",
+		"skills": [
+			"every-prompt"
+		]
+	},
+	{
+		"name": "page-assistant",
+		"prefix": "assistant",
+		"alias": "card-assistant",
+		"tier": "fast",
+		"model": "claude-haiku-5-5",
+		"effort": "low",
+		"permission_mode": "bypassPermissions",
+		"skills": [
+			"every-prompt"
+		]
+	},
+	{
+		"name": "page-mastermind",
+		"readme": "task-mastermind",
+		"skills": [
+			"page"
+		],
+		"prefix": "manager",
+		"alias": "manager",
+		"tier": "manager",
+		"model": "claude-sonnet-5-5",
+		"effort": "medium",
+		"permission_mode": "bypassPermissions"
+	},
+	{
+		"name": "master-assistant",
+		"prefix": "master-assistant",
+		"tier": "architect",
+		"model": "claude-sonnet-5-5",
+		"effort": "high",
+		"permission_mode": "plan",
+		"compact_after": {
+			"tokens": 150000,
+			"sleep": 100000
+		},
+		"skills": [
+			"master-assistant"
+		]
+	},
+	{
+		"name": "clarity",
+		"readme": "clarity",
+		"prefix": "clarity",
+		"tier": "manager",
+		"model": "claude-sonnet-5-5",
+		"effort": "medium",
+		"permission_mode": "bypassPermissions",
+		"skills": []
+	},
+	{
+		"name": "session-fast",
+		"retired": "voice-assistant",
+		"prefix": "session-fast",
+		"tier": "fast",
+		"model": "claude-haiku-5-5",
+		"effort": "low",
+		"permission_mode": "bypassPermissions",
+		"skills": []
+	},
+	{
+		"name": "voice-assistant",
+		"prefix": "voice-assistant",
+		"tier": "fast",
+		"model": "claude-haiku-5-5",
+		"effort": "low",
+		"permission_mode": "bypassPermissions",
+		"skills": [
+			"voice-assistant"
+		]
+	},
+	{
+		"name": "session-smart",
+		"prefix": "session-smart",
+		"tier": "manager",
+		"model": "claude-sonnet-5-5",
+		"effort": "medium",
+		"permission_mode": "bypassPermissions",
+		"skills": []
+	},
+	{
+		"name": "directory-mastermind",
+		"readme": "task-mastermind",
+		"skills": [
+			"page"
+		],
+		"prefix": "directory-mastermind",
+		"tier": "manager",
+		"model": "claude-sonnet-5-5",
+		"effort": "medium",
+		"permission_mode": "plan"
+	},
+	{
+		"name": "reviewer",
+		"readme": "reviewer",
+		"prefix": "reviewer",
+		"tier": "manager",
+		"model": "claude-sonnet-5-5",
+		"effort": "medium",
+		"permission_mode": "bypassPermissions",
+		"skills": []
+	},
+	{
+		"name": "checker",
+		"readme": "reviewer",
+		"prefix": "checker",
+		"tier": "manager",
+		"model": "claude-sonnet-5-5",
+		"effort": "medium",
+		"permission_mode": "bypassPermissions",
+		"skills": []
+	},
+	{
+		"name": "voter",
+		"prefix": "voter",
+		"tier": "manager",
+		"model": "claude-sonnet-5-5",
+		"effort": "medium",
+		"permission_mode": "bypassPermissions",
+		"skills": [
+			"research"
+		]
+	},
+	{
+		"name": "log-assistant",
+		"prefix": "log-assistant",
+		"tier": "fast",
+		"model": "claude-haiku-5-5",
+		"effort": "low",
+		"permission_mode": "acceptEdits",
+		"skills": [
+			"log-assistant"
+		]
+	}
+]

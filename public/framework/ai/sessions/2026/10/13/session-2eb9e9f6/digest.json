@@ -1,0 +1,36 @@
+{
+ "id": "2eb9e9f6-b898-4c4c-9172-d71414fc0c9c",
+ "first": "2026-10-13T22:26:40.194Z",
+ "last": "2026-10-13T22:26:42.489Z",
+ "models": {
+  "claude-haiku-5-5": 1
+ },
+ "sizes": {
+  "raw": 16201,
+  "content": 21,
+  "stripped": 21,
+  "owner_only": 2
+ },
+ "usd": 0.016508,
+ "usd_main": 0.016508,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 2,
+  "output": 20,
+  "cache_read": 0,
+  "cache_write": 8203,
+  "w5": 0,
+  "w1": 8203
+ },
+ "messages": 1,
+ "subagent_files": 0,
+ "prompts": [
+  {
+   "at": "2026-10-13T22:26:40.203Z",
+   "t": "Say hi."
+  }
+ ],
+ "result": "Hi! What can I help you with in the Servex directory?",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.321Z"
+}

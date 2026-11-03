@@ -1,0 +1,202 @@
+[
+ {
+  "id": "03c92ceb19",
+  "sort": "note",
+  "module": "styles",
+  "title": "",
+  "note": "New or edited tokens and major refactors get careful review, since many things may break; approved content blocks that must never break need no review.",
+  "evidence": ""
+ },
+ {
+  "id": "1c19754940",
+  "sort": "done",
+  "module": "ext/Query",
+  "title": "",
+  "note": "",
+  "evidence": "ext/Query/readme.md:3 - node runs it over items it already holds in memory"
+ },
+ {
+  "id": "ff1a3183c5",
+  "sort": "obsolete",
+  "module": "ext/Query",
+  "title": "",
+  "note": "",
+  "evidence": "Superseded: queries are data, never code (ext/Query/readme.md:16); the socket query API over held items is built (ext/Query/QueryServer.mjs:32)."
+ },
+ {
+  "id": "3decf146c1",
+  "sort": "task",
+  "module": "ext/Query",
+  "title": "Render query rows on the server, not only query them",
+  "note": "",
+  "evidence": "ext/Query/QueryServer.mjs:41 - query.run(src.items(), src.arrange): the querying is node-side; no server-side row rendering found in ext/Query."
+ },
+ {
+  "id": "ef346bb7e4",
+  "sort": "done",
+  "module": "code/performance",
+  "title": "",
+  "note": "",
+  "evidence": "ext/Query/readme.md:12 - Numbers: [code/performance/doc/server-query.md] (the comparison is recorded there)"
+ },
+ {
+  "id": "db022dffa7",
+  "sort": "task",
+  "module": "code/performance",
+  "title": "Cut client subscriptions on session pages for phones",
+  "note": "",
+  "evidence": "grep for 'subscri' in code/performance finds no matches; no subscription reduction exists under the performance system."
+ },
+ {
+  "id": "675872c61c",
+  "sort": "note",
+  "module": "ext/filesystem",
+  "title": "",
+  "note": "The file system is the data store, kept simple and robust so data stays as plain files.",
+  "evidence": ""
+ },
+ {
+  "id": "d05a122d41",
+  "sort": "task",
+  "module": "core",
+  "title": "Give every core module an inbox",
+  "note": "",
+  "evidence": "An inbox exists only in core/Page (core/Page/inbox.jsonl, PageInbox.js); other core modules such as core/Item/readme.md and core/Task/readme.md mention inbox only in docs."
+ },
+ {
+  "id": "538dc63146",
+  "sort": "note",
+  "module": "core/Page/ext",
+  "title": "",
+  "note": "Inbox zero is the aim across core: a row that needs no action should not sit in the inbox.",
+  "evidence": ""
+ },
+ {
+  "id": "41e27ffaf4",
+  "sort": "note",
+  "module": "ux/Content",
+  "title": "",
+  "note": "A question can go into the inbox as a reminder, but a small one that needs no record stays out of it.",
+  "evidence": ""
+ },
+ {
+  "id": "2cbc723ba6",
+  "sort": "task",
+  "module": "core/Page/ext",
+  "title": "Show a live interaction about one item in the inbox",
+  "note": "",
+  "evidence": "core/Page/ext/Inbox/Rail.js:28 - watching: detail pages on screen, each redrawn from the list; no live exchange about one item was found in core/Page/ext/Inbox."
+ },
+ {
+  "id": "472c73be67",
+  "sort": "obsolete",
+  "module": "ux/Content",
+  "title": "",
+  "note": "",
+  "evidence": "A status question; ux/Content already holds the card kinds (ux/Content/Question, Decision, Quotation, Disclosure)."
+ },
+ {
+  "id": "20ead2854c",
+  "sort": "note",
+  "module": "core/Test",
+  "title": "",
+  "note": "Work is tested before it is handed back, so it does not fail on first pass and need owner fixes.",
+  "evidence": ""
+ },
+ {
+  "id": "a35455a5f8",
+  "sort": "done",
+  "module": "core/Page/ext",
+  "title": "",
+  "note": "",
+  "evidence": "core/Page/ext/Inbox/Rail.js:159 - this.$archived = button.c(\"inbox-word inbox-archived-word\"); Rail.js:161 - button.c(\"inbox-word inbox-clear-all\"); Rail.js:226 - this.store_set(this.key + \"-read-ids\", JSON.stringify([...set]));"
+ },
+ {
+  "id": "36f375e8e6",
+  "sort": "done",
+  "module": "core/Page/ext",
+  "title": "",
+  "note": "",
+  "evidence": "core/Page/ext/Inbox/timeline/landings.jsonl:1283 - Rail and detail share one light gray ground; rows white; scrollbar transparent until hover (ux/Inbox/Inbox.css)."
+ },
+ {
+  "id": "3ebf381426",
+  "sort": "done",
+  "module": "core/Page/ext",
+  "title": "",
+  "note": "",
+  "evidence": "ux/Inbox/Inbox.css:438 - background: var(--surface);   /* white on the rail's gray ground */"
+ },
+ {
+  "id": "73455782f0",
+  "sort": "note",
+  "module": "core/Page/layout",
+  "title": "",
+  "note": "The column paging header's border stays as it is until the owner's design is settled.",
+  "evidence": ""
+ },
+ {
+  "id": "d73b654d14",
+  "sort": "done",
+  "module": "ux/Inbox",
+  "title": "",
+  "note": "",
+  "evidence": "ux/Inbox/Inbox.css:413 - Thin, and invisible until the rail is hovered: only the colour changes, so nothing jumps."
+ },
+ {
+  "id": "7da95af28d",
+  "sort": "done",
+  "module": "ux/Inbox",
+  "title": "",
+  "note": "",
+  "evidence": "ux/Inbox/Inbox.css:414 - scrollbar-width: thin;"
+ },
+ {
+  "id": "b8452c9779",
+  "sort": "done",
+  "module": "ux/Inbox",
+  "title": "",
+  "note": "",
+  "evidence": "ux/Inbox/Inbox.css:415 - scrollbar-color: transparent transparent;  (the track is transparent, so the rail's gray shows through)"
+ },
+ {
+  "id": "9ff8e63bd5",
+  "sort": "done",
+  "module": "ux/Inbox",
+  "title": "",
+  "note": "",
+  "evidence": "ux/Inbox/Inbox.css:682 - Below 40em each level is its own screen: the rail, then a row's page, then a sub-page."
+ },
+ {
+  "id": "a52f51233b",
+  "sort": "done",
+  "module": "ux/Inbox",
+  "title": "",
+  "note": "",
+  "evidence": "ux/Inbox/Inbox.css:686 - .inbox-shell { grid-template-columns: minmax(0, 1fr); } (inside @media (width < 40em), with the detail shown and the rail hidden when a row is open at 689-690)"
+ },
+ {
+  "id": "4796e3ecad",
+  "sort": "obsolete",
+  "module": "",
+  "title": "",
+  "note": "",
+  "evidence": "A one-time instruction to finish the current session; the items it refers to are sorted on their own lines."
+ },
+ {
+  "id": "b3fc475e65",
+  "sort": "obsolete",
+  "module": "",
+  "title": "",
+  "note": "",
+  "evidence": "A one-time wrap-up request for a session that has passed."
+ },
+ {
+  "id": "51d7264c7d",
+  "sort": "note",
+  "module": "ai",
+  "title": "",
+  "note": "Every wrap-up reports the token usage.",
+  "evidence": ""
+ }
+]

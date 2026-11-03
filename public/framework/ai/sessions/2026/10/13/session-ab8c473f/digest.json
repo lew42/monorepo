@@ -1,0 +1,32 @@
+{
+ "id": "ab8c473f-fb8c-4181-b159-aa39af068f24",
+ "first": "2026-10-13T19:58:53.562Z",
+ "last": "2026-10-13T21:42:12.499Z",
+ "task": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/nesting",
+ "models": {
+  "claude-sonnet-5-5": 69
+ },
+ "sizes": {
+  "raw": 1718064,
+  "content": 55969,
+  "stripped": 11394,
+  "owner_only": 0
+ },
+ "usd": 2.843605,
+ "usd_main": 2.843605,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 138,
+  "output": 54940,
+  "cache_read": 7738827,
+  "cache_write": 186541,
+  "w5": 0,
+  "w1": 186541
+ },
+ "messages": 69,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "Still idle. The `Kit · Nesting` work is finished and committed, and I have no open tasks.",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.272Z"
+}

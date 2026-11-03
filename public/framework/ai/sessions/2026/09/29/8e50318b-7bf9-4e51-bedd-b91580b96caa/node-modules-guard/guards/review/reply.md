@@ -1,0 +1,1 @@
+4. [accept] The blocking window only opens on a rare, already-broken path (missing package, throttled to once per 10 minutes, Servex already down), so the simplicity of a synchronous call outweighs the responsiveness cost there.

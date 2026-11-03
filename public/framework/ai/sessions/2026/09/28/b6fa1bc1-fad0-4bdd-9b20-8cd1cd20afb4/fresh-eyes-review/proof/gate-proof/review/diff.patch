@@ -1,0 +1,15 @@
+diff --git a/public/framework/scratch/fer-gate-proof/page.js b/public/framework/scratch/fer-gate-proof/page.js
+new file mode 100644
+index 00000000..cb67793f
+--- /dev/null
++++ b/public/framework/scratch/fer-gate-proof/page.js
+@@ -0,0 +1,9 @@
++/* Throwaway page for fresh-eyes-review's merge.mjs gate proof (2026-09-28). Never merged, never
++ * routed anywhere — its only job is to be an ADDED page.js so `sizeOf()` calls this branch `full`
++ * and merge.mjs's review gate has something real to refuse, then accept. Torn down with the rest
++ * of the `fer-gate-proof` worktree. */
++export class Page {
++	static title = "Gate proof scratch page";
++	content(){ return "gate proof scratch page — never linked, never merged"; }
++}
++export default Page;

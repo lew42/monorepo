@@ -1,0 +1,35 @@
+verdict: fix
+1. [fix] The Sentence light's log line drops every letter "s": `ext/Chat/Mic.js:650` uses `text.replace(/s+/g, " ")`, which should be `/\s+/g`. You can see it in `shots/debug-1920.png` ("left the draft: “And o, my fellow American ,”") and `shots/debug-390.png`.
+2. [fix] Step 4 asks for the raw data one click down for "each send, each reply". Only Whisper answers and errors carry `raw`. The sent, sent-late and answered calls (`ux/Dictate/chat.js:124`, `:130`, `:225`) pass none, so opening a Send or Reply line shows its summary text again (`DictateDebug.js` falls back to `e.why`). `doc/debug-tab.md` "The log" also claims raw data for "each send, Servex writing it, each reply, each placement", which isn't true yet.
+3. [fix] `doc/debug-tab.md` ("Every error caught", first bullet) says "a half-written last line is read again on the next poll instead of being skipped". But `Session.watch` still runs `continue` inside `for (; seen < lines.length; seen++)` (diff `ext/Session/Session.js`, the `bad_line` branch), so the line is skipped for good. Worse, it now calls `DictateHealth.fail("wire", …)` (`chat.js`, the `bad_line` handler), so an ordinary append race turns the Wire light red. Either stop at a bad *last* line without advancing `seen`, or fix the doc and use an event in place of `fail`.
+4. [fix] `ext/Session/readme.md:15` and `doc/architecture.md` still describe `watch(file, on_line)` only. The new `on_status` option and its four kinds (`poll_failed`, `poll_ok`, `bad_line`, `line_failed`) aren't in the module's own docs, only in the JSDoc.
+5. [fix] `ext/drawer/doc/sheet.md` doesn't mention the new handle between the chat and the tab body (`SheetPanel.tabs_grip`, `saved_tabs_h`, `tabs_to`, the `lew42.sheet.tabs_h` key, the `drawer-rail-sheet-tabs-sized` class in `rail.css`). Only `ux/Dictate/doc/debug-tab.md` has it, and it calls the method `Sheet.Panel.tabs_grip` while `readme.md` says `Sheet.tabs_grip`. Name it once, correctly (`SheetPanel.tabs_grip`), in the module that owns it.
+6. [fix] A fresh agent can't confirm the step 3–4 proofs from this folder. There is no saved output of `test/errors.mjs`, `test/debug-tab.mjs` or a re-run of `test/refresh.mjs` (the brief, step 4 of "Do"). `proof/` holds only `refresh-5-runs.txt` from step 2, and the `session.jsonl` log names the tests without their results. Save each run's output under `proof/`.
+7. [note] Hover or tap shows the light's *current* word, not its last error (`DictateDebug.draw` calls `conn.set(id, state, label: why)`). A light that went red and then green loses the error, unless you narrow the log. Step 4 says "shows its last error". Keeping `last_bad` per layer in `DictateHealth.set` would answer it.
+8. [note] The Page light goes red on *any* uncaught error or rejection on the page (`DictateHealth.watch_window`, run at import), including ones from modules that have nothing to do with dictation, and it never turns green again. That matches step 3's words, but "all green = should work" can then be false for an unrelated reason. The detail line could say the light covers the whole page, with a clear-on-tap.
+9. [note] `test/debug-tab.mjs:49` now hands the `/stream` route to the real Servex (`route.continue()`), so this proof needs Servex running and talks to it. `test/errors.mjs:55` stubs the same route. Stubbing it in both keeps the test headless and self-contained.
+10. [note] Simpler: `DictateDebug.LINES = 200` copies `DictateHealth.KEEP`, so use the one constant. `DictateHealth.event` now calls `tell()`, and `set()` calls it again after `event()`, so every change redraws twice. `draw_log` only adds new lines, so the cost is small.
+11. [note] At 1920 each log line is about 32 px tall (`shots/debug-1920.png`, lower half), against about 24 px at 390. That's loose for "compact". It's probably the `details` element's base padding or margin under `.dictate-debug-line`. There's also an empty band of about 80 px between the AI view's tab row and the lights.
+
+Widths given: the builder's own shots at 390 (`debug-390.png`, `debug-390-send.png`, `debug-390-reloaded.png`) and 1920 (`debug-1920.png`). There's no `layout.json`, so nothing was measured.
+
+## Requirements
+- 1 "Reconnect … names what it reconnects and why" — n/a — step 1, landed earlier (afcc2dca4). This diff only renames the light to Wire and links `doc/debug-tab.md#reconnect`.
+- 2 "Refresh, then dictate … `test/refresh.mjs` passes 5 runs" — n/a — step 2, landed (e5c20130c). The doc section is kept here, moved up.
+- 3 "Every error caught, deliberately … shows them or ignores them on purpose, with a one-line comment" — yes, mostly — console-only catches in `Mic.js`, `Dictate.js` and `chat.js` now call `DictateHealth.fail` or `quiet_note`, and the ignored ones carry a reason comment. But see finding 3: a partial line is now a red Wire light.
+- 3 "A window error / unhandledrejection lands in the Debug log too" — yes — `DictateHealth.watch_window`, `test/errors.mjs` uncaught and rejection checks.
+- 3 brief "wire report.js: `init(session)` once the voice session id is known" — yes — `chat.js`, beside `Session.watch`. `init` is safe to call again (`report.js:23`).
+- 4 "A row of lights … green / amber / red, all green = should work" — yes — `shots/debug-390.png`, top band: eight lights in two rows. `shots/debug-1920.png`: one row.
+- 4 "hover or tap shows its last error" — partly — it shows the current word, not the last error (finding 7).
+- 4 "compact live log, timestamp and stage tag, raw data one click down (Whisper's raw text, each send, each reply, each error)" — partly — the Whisper raw shows in `shots/debug-390.png`, but sends and replies have no raw (finding 2).
+- 4 "A resize handle between the Debug panel and the chat … height survives a reload" — yes — `Sheet.js` `tabs_grip`, and `test/debug-tab.mjs` checks the drag and the reload. The grip isn't visible in `debug-390.png`.
+- 4 "Use the existing DictateHealth state; don't build a second pipeline" — yes — the same store, the same `Connection` row (new `lights` layout).
+- 4 "Shots at 390 and 1920 into solid/shots/" — yes — four pngs in the diff.
+- Done when "doc/debug-tab.md updated (the lights, the log, the handle, what Reconnect does)" — yes, with two inaccuracies (findings 2, 3).
+- Show the class and its live instances — note — `DictateHealth` is a static store, and `globalThis.DictateHealth` plus the Debug tab itself show it live. Nothing more needed.
+
+## Words
+- content 1 (says what it is first) — yes — `doc/debug-tab.md` opens with what the tab is and "All green = it should work".
+- content (plain, no jargon) — yes — the light names (Heard, Sentence, Send, Reply, Wire, Page) each have a plain question.
+- content (true) — no — findings 2 and 3: the doc promises raw data and a re-read that the code doesn't do.
+- readme line length — note — `ux/Dictate/readme.md:3` is now one long sentence carrying eight lights, `report.init`, the handle and five proofs. Splitting it into two or three bullets would scan better.

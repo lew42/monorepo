@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/styles/layouts/catalog/",
+ "widths": {
+  "1280": {
+   "empty": 0.288,
+   "widest_text": 590,
+   "widest_text_sample": "Find your content below, then use the la",
+   "overflow_x": false,
+   "items": 142,
+   "narrow_share": 0.085
+  },
+  "1920": {
+   "empty": 0.391,
+   "widest_text": 628,
+   "widest_text_sample": "Find your content below, then use the la",
+   "overflow_x": false,
+   "items": 142,
+   "narrow_share": 0.507
+  },
+  "2560": {
+   "empty": 0.392,
+   "widest_text": 706,
+   "widest_text_sample": "Find your content below, then use the la",
+   "overflow_x": false,
+   "items": 142,
+   "narrow_share": 0.507
+  },
+  "3440": {
+   "empty": 0.391,
+   "widest_text": 706,
+   "widest_text_sample": "Find your content below, then use the la",
+   "overflow_x": false,
+   "items": 142,
+   "narrow_share": 1
+  }
+ },
+ "errors": []
+}

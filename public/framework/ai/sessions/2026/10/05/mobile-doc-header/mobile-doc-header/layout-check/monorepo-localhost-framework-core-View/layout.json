@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/core/View/",
+ "widths": {
+  "1280": {
+   "empty": 0.74,
+   "widest_text": 513,
+   "widest_text_sample": "Every HTML tag is a function. Call it, a",
+   "overflow_x": false,
+   "items": 110,
+   "narrow_share": 0.673
+  },
+  "1920": {
+   "empty": 0.814,
+   "widest_text": 546,
+   "widest_text_sample": "Every HTML tag is a function. Call it, a",
+   "overflow_x": false,
+   "items": 110,
+   "narrow_share": 0.945
+  },
+  "2560": {
+   "empty": 0.825,
+   "widest_text": 614,
+   "widest_text_sample": "Every HTML tag is a function. Call it, a",
+   "overflow_x": false,
+   "items": 110,
+   "narrow_share": 0.945
+  },
+  "3440": {
+   "empty": 0.858,
+   "widest_text": 614,
+   "widest_text_sample": "Every HTML tag is a function. Call it, a",
+   "overflow_x": false,
+   "items": 110,
+   "narrow_share": 0.945
+  }
+ },
+ "errors": []
+}

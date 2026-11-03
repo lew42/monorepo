@@ -1,0 +1,1 @@
+`Dictate.js` is the dictation class: the mic button, the state machine (idle, connecting, listening, transcribing), Whisper streaming and the level. It tells [`MicIndicator.js`](/framework/ux/Dictate/files/) the open state and level, so every surface shows the same indicator. Long form: [decisions](/framework/ux/Dictate/doc/decisions/).

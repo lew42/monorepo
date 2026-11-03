@@ -1,0 +1,44 @@
+{
+ "id": "3e5ac311-9520-4c76-a23b-f13aab15d5a3",
+ "first": "2026-10-13T22:17:58.528Z",
+ "last": "2026-10-13T22:34:13.940Z",
+ "models": {
+  "claude-haiku-5-5": 3
+ },
+ "sizes": {
+  "raw": 9028,
+  "content": 211,
+  "stripped": 211,
+  "owner_only": 154
+ },
+ "usd": 0.00626,
+ "usd_main": 0.00626,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 6,
+  "output": 314,
+  "cache_read": 3661,
+  "cache_write": 2159,
+  "w5": 0,
+  "w1": 2159
+ },
+ "messages": 3,
+ "subagent_files": 0,
+ "prompts": [
+  {
+   "at": "2026-10-13T22:17:58.576Z",
+   "t": "[from: owner]\n[on /framework/] Can you hit or me?\n(the owner has stopped: quiet for 2.5 s)"
+  },
+  {
+   "at": "2026-10-13T22:18:01.130Z",
+   "t": "[from: owner]\n[on /framework/] I said, can you hear me?\n(the owner has stopped: quiet for 6.8 s)"
+  },
+  {
+   "at": "2026-10-13T22:34:12.826Z",
+   "t": "[from: owner]\n(the owner moved to /framework/research/)\n(the owner moved to /framework/ai/)\n(the owner moved to /framework/ai/2026/10/03/now/, card 2026/10/03/now)\n(the owner moved to /framework/)\n[on /framework/] Timing test: please reply with one short line."
+  }
+ ],
+ "result": "Timing received on /framework/: I'm responding right away.",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.201Z"
+}

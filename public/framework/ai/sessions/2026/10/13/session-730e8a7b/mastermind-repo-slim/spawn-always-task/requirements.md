@@ -1,0 +1,21 @@
+# Spawn always opens a task dir
+
+A spawn with no `task` option gets a task dir from Servex anyway, so no agent works outside the one state.
+
+Budget: $5. Sonnet. Load the `minion` and `code` skills. Your log is this dir's `task.jsonl`.
+
+**Why** (`public/framework/ai/todo.md` line 178, 2026-10-01):
+
+- Without a task dir the agent is invisible to `Server/State.mjs`, `Servex/Landed.js`, the follow-up and `/tasks/`.
+- The minion skill carries a "no brief, no task dir" line only because models skip `new-task`.
+- Since 10-18 a dir opened at spawn also gets `past-work.md` (`Servex/agents/Agents.js`, `spawn` after `open_task`); the dispatcher writes a first line (`Servex/agents/Dispatcher.js`).
+
+**Read:** `Servex/agents/Agents.js` (`spawn`, `open_task`: `grep -n "open_task" Servex/agents/*.js`), `Servex/agents/tools.js` (the `spawn_agent` `task` option's shape: `dir`, `card`, `brief`, `parent_task`), `Server/TaskDirs.mjs` (`dir`, `day` through `Day.of`), `ai/doc/task-folders.md`, and `.claude/skills/minion/SKILL.md` (the line to delete). CLAUDE.md laws 6, 7 and 8.
+
+## Deliverable
+
+1. **The rule:** when `spawn_agent` is called without `task`, `Agents.spawn` opens one anyway: dir `ai/sessions/<local day>/<parent session or "spawned">/<agent name slug>/` (say in a `decision` line why that home and the alternative: under the caller's own task dir when it has one), with the same first line the `task` option writes (session id, agent id, model, `brief: null`, the prompt's first line as `title`, `parent_task` when the caller has one), then the same `past-work.md` step. The agent's first turn is told where its log is exactly as a briefed agent is. A caller that passes `task: false` on purpose (a throwaway probe) is the one way to opt out; say so in the tool description.
+2. **Proof on a private Servex** (`SERVEX_API_PORT`, `SERVEX_HOME`, from your worktree): spawn one minion with a bare prompt and no `task`; show the dir and its line 1 exist when the spawn returns, that `node Server/State.mjs` on that store lists it (`queued` or `in_flight`), and that its heartbeat lands it when it ends with a `finish` line. Spawn one with `task: false` and show no dir is made.
+3. Delete the "no brief, no task dir" line from `.claude/skills/minion/SKILL.md` and say in `Servex/agents/readme.md` (one line) that every spawn has a task dir since 10-18; strike todo line 178 (`~~`, the landing commit named). Worktree, `node --check`, `Server/smoke.mjs` clean, `merge.mjs` (`--no-review` naming your review if the gate cannot see this 2026-10-13 task dir), a `finish` line with the proof's two paths checked with `tail -1`, `git status` clean for your paths. **Never restart the live Servex** (the mastermind does after your merge; say so in the finish line); never drive the owner's tabs.
+
+Fence: `Servex/agents/Agents.js` (`spawn`/`open_task`), `Servex/agents/tools.js` (the `task` option's description and the `false` case), the minion skill line, the readme line, the todo line, this task dir. Not `Server/State.mjs`, not `core/Task`, not the pages.

@@ -1,0 +1,619 @@
+  (console-allow.jsonl: "List — insert\(\): ".*" is already a property name on the list or its owner — refused" expired 2026-10-17 — no longer covered)
+  (console-allow.jsonl: "Doc: .* has no member ".*" — nothing added" expired 2026-10-10 — no longer covered)
+  (console-allow.jsonl: "Item\.Store: unparsed line in .*files\.jsonl" expired 2026-10-10 — no longer covered)
+  (console-allow.jsonl: "Failed to load resource: the server responded with a status of 404.*(spend\.json|usage\.json|tasks\.json|/shots/.*\.png)" expired 2026-10-20 — no longer covered)
+  (console-allow.jsonl: "Doc: .* has no member ".*" — nothing added" expired 2026-10-26 — no longer covered)
+  (console-allow.jsonl: "Item\.Store: unparsed line in .*files\.jsonl" expired 2026-10-26 — no longer covered)
+  (console-allow.jsonl: "HTTP 404: .*/framework/ai/sessions/[0-9a-f-]{36}/session.jsonl" expired 2026-10-26 — no longer covered)
+  (console-allow.jsonl: "HTTP 404: .*/framework/ai/sessions/[a-z][a-z0-9-]*/session.jsonl" expired 2026-10-26 — no longer covered)
+  (console-allow.jsonl: "HTTP 404: .*/framework/ai/sessions/[0-9a-f-]{36}/prompts.jsonl" expired 2026-10-26 — no longer covered)
+ok   /framework/
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/ai2/
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/usage.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/usage.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/index.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise [dictate] socket: connected
+  noise [dictate] whisper: checking…
+  noise [dictate] whisper: connected
+ok   /framework/core/Item/
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+ok   /framework/core/List/
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/core/Test/view/?test=Task
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/ai/sessions/2026/10/20/session-e00f55c9/
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/session-index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/session-index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/session-tree.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/session-tree.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/usage.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/usage.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/20/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/20/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/21/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/21/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/22/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/22/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/23/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/23/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/28/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/28/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/24/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/24/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/25/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/25/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/26/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/26/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/27/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/27/index.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise List — insert(): "items" is already a property name on the list or its owner — refused
+  noise List — insert(): "completion" is already a property name on the list or its owner — refused
+  noise List — insert(): "settings" is already a property name on the list or its owner — refused
+  (6 warn/log lines allow-listed — console-allow.jsonl)
+ok   /framework/core/Item/methods/  (link found on /framework/core/Item/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+ok   /framework/core/Item/live/  (link found on /framework/core/Item/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+ok   /framework/core/Item/watch/  (link found on /framework/core/Item/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+  noise PASS DefaultView (16 checks)
+ok   /framework/core/Item/Dated/  (link found on /framework/core/Item/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+ok   /framework/core/Item/doc/  (link found on /framework/core/Item/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+ok   /framework/core/Item/md/  (link found on /framework/core/Item/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+ok   /framework/core/Item/files/  (link found on /framework/core/Item/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+ok   /framework/core/Item/tasks/  (link found on /framework/core/Item/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+ok   /framework/core/Item/inbox/  (link found on /framework/core/Item/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+ok   /framework/core/Item/overview/intro/  (link found on /framework/core/Item/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+ok   /framework/core/Item/methods/get/  (link found on /framework/core/Item/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+ok   /framework/core/Item/methods/set/  (link found on /framework/core/Item/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+ok   /framework/core/Item/methods/find/  (link found on /framework/core/Item/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+ok   /framework/core/Item/methods/remove/  (link found on /framework/core/Item/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+ok   /framework/core/Item/methods/root/  (link found on /framework/core/Item/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+ok   /framework/core/Item/methods/walk/  (link found on /framework/core/Item/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+ok   /framework/core/Item/methods/contains/  (link found on /framework/core/Item/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+ok   /framework/core/Item/methods/lists/  (link found on /framework/core/Item/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+ok   /framework/core/Item/methods/toJSON/  (link found on /framework/core/Item/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+ok   /framework/core/Item/methods/hydrate/  (link found on /framework/core/Item/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+ok   /framework/core/Item/methods/register/  (link found on /framework/core/Item/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+ok   /framework/core/Item/methods/replay/  (link found on /framework/core/Item/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+ok   /framework/core/List/methods/  (link found on /framework/core/List/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/core/List/doc/  (link found on /framework/core/List/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/core/List/md/  (link found on /framework/core/List/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/core/List/files/  (link found on /framework/core/List/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/core/List/tasks/  (link found on /framework/core/List/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/core/List/inbox/  (link found on /framework/core/List/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/core/List/overview/intro/  (link found on /framework/core/List/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/core/List/methods/add/  (link found on /framework/core/List/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/core/List/methods/remove/  (link found on /framework/core/List/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/core/List/methods/move/  (link found on /framework/core/List/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/core/List/methods/order/  (link found on /framework/core/List/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/core/List/methods/find/  (link found on /framework/core/List/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/core/List/methods/at/  (link found on /framework/core/List/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/core/List/methods/forEach/  (link found on /framework/core/List/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/core/List/methods/map/  (link found on /framework/core/List/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/core/List/methods/insert/  (link found on /framework/core/List/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/core/List/methods/toJSON/  (link found on /framework/core/List/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/ai/queue/  (link found on /framework/ai/sessions/2026/10/20/session-e00f55c9/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/queue/dropped.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/queue/dropped.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/usage.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/usage.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/queue/done-check.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/queue/done-check.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/index.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/ai/sessions/2026/10/20/session-e00f55c9/settings/  (link found on /framework/ai/sessions/2026/10/20/session-e00f55c9/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/session-index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/session-index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/session-tree.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/session-tree.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/20/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/20/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/21/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/21/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/22/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/22/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/23/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/23/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/24/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/24/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/25/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/25/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/28/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/28/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/26/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/26/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/27/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/27/index.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise List — insert(): "items" is already a property name on the list or its owner — refused
+  noise List — insert(): "completion" is already a property name on the list or its owner — refused
+  noise List — insert(): "settings" is already a property name on the list or its owner — refused
+  (6 warn/log lines allow-listed — console-allow.jsonl)
+ok   /framework/ai/sessions/task-mastermind-note-tasks/  (link found on /framework/ai/sessions/2026/10/20/session-e00f55c9/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/session-index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/session-index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/session-tree.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/session-tree.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/ai/sessions/prompt-tasks/  (link found on /framework/ai/sessions/2026/10/20/session-e00f55c9/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/session-index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/session-index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/session-tree.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/session-tree.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/usage.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/usage.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/28/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/28/index.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/ai/sessions/PromptRecords/  (link found on /framework/ai/sessions/2026/10/20/session-e00f55c9/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/session-index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/session-index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/session-tree.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/session-tree.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/usage.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/usage.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/28/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/28/index.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/ai/sessions/mastermind-deputy/  (link found on /framework/ai/sessions/2026/10/20/session-e00f55c9/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/session-index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/session-index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/session-tree.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/session-tree.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/usage.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/usage.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/28/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/28/index.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/ai/sessions/task-mastermind-session-closeout/  (link found on /framework/ai/sessions/2026/10/20/session-e00f55c9/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/session-index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/session-index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/session-tree.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/session-tree.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/usage.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/usage.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/28/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/28/index.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/ai/sessions/minion-review-stops/  (link found on /framework/ai/sessions/2026/10/20/session-e00f55c9/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/session-index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/session-index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/session-tree.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/session-tree.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/usage.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/usage.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/28/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/28/index.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/ai/sessions/mastermind-dictation-2/  (link found on /framework/ai/sessions/2026/10/20/session-e00f55c9/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/session-index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/session-index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/session-tree.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/session-tree.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/usage.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/usage.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/28/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/28/index.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/ai/sessions/e00f55c9-bad4-4ee2-899e-d629ea1eede6/?tab=timeline  (link found on /framework/ai/sessions/2026/10/20/session-e00f55c9/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/session-index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/session-index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/session-tree.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/session-tree.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/28/session-e00f55c9/session.jsonl
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/28/session-e00f55c9/session.jsonl)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/27/session-e00f55c9/session.jsonl
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/27/session-e00f55c9/session.jsonl)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/26/session-e00f55c9/session.jsonl
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/26/session-e00f55c9/session.jsonl)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/25/session-e00f55c9/session.jsonl
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/25/session-e00f55c9/session.jsonl)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/24/session-e00f55c9/session.jsonl
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/24/session-e00f55c9/session.jsonl)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/23/session-e00f55c9/session.jsonl
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/23/session-e00f55c9/session.jsonl)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/22/session-e00f55c9/session.jsonl
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/22/session-e00f55c9/session.jsonl)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/21/session-e00f55c9/session.jsonl
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/21/session-e00f55c9/session.jsonl)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/19/session-e00f55c9/session.jsonl
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/19/session-e00f55c9/session.jsonl)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/18/session-e00f55c9/session.jsonl
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/18/session-e00f55c9/session.jsonl)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/17/session-e00f55c9/session.jsonl
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/17/session-e00f55c9/session.jsonl)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/16/session-e00f55c9/session.jsonl
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/16/session-e00f55c9/session.jsonl)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/15/session-e00f55c9/session.jsonl
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/15/session-e00f55c9/session.jsonl)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/14/session-e00f55c9/session.jsonl
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/14/session-e00f55c9/session.jsonl)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/13/session-e00f55c9/session.jsonl
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/13/session-e00f55c9/session.jsonl)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/12/session-e00f55c9/session.jsonl
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/12/session-e00f55c9/session.jsonl)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/11/session-e00f55c9/session.jsonl
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/11/session-e00f55c9/session.jsonl)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/10/session-e00f55c9/session.jsonl
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/10/session-e00f55c9/session.jsonl)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/09/session-e00f55c9/session.jsonl
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/09/session-e00f55c9/session.jsonl)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/08/session-e00f55c9/session.jsonl
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/08/session-e00f55c9/session.jsonl)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/usage.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/usage.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/20/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/20/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/21/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/21/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/22/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/22/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/23/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/23/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/24/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/24/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/25/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/25/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/28/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/28/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/26/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/26/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/27/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/27/index.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise List — insert(): "items" is already a property name on the list or its owner — refused
+  (5 warn/log lines allow-listed — console-allow.jsonl)
+FAIL /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/  (link found on /framework/ai/sessions/2026/10/20/session-e00f55c9/)  1 error
+       console warn/log budget exceeded: 6 > 5 (not in console-allow.jsonl)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/session-index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/session-index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/session-tree.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/session-tree.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/20/session-e00f55c9/page.jsonl
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/20/session-e00f55c9/page.jsonl)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/usage.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/usage.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/20/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/20/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/21/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/21/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/22/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/22/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/23/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/23/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/28/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/28/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/24/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/24/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/25/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/25/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/26/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/26/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/27/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/27/index.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise JSONL: unknown verb "type" in /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/session.jsonl (further lines with this verb stay silent) {task: /framework/ai/sessions/2026/10/20/session-e00f55c9…sions-and-tasks/process-system/cracks-inbox-wait/, type: Session, spawn: Object, by: ChildLinks --entries, ts: 2026-10-25T06:13:18.883Z}
+  noise JSONL: unknown verb "spawn" in /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/session.jsonl (further lines with this verb stay silent) {task: /framework/ai/sessions/2026/10/20/session-e00f55c9…sions-and-tasks/process-system/cracks-inbox-wait/, type: Session, spawn: Object, by: ChildLinks --entries, ts: 2026-10-25T06:13:18.883Z}
+  noise JSONL: unknown verb "complete" in /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/session.jsonl (further lines with this verb stay silent) {complete: Object, by: minion-review-stops, ts: 2026-10-25T13:34:11.757Z}
+  noise List — insert(): "completion" is already a property name on the list or its owner — refused
+  noise List — insert(): "items" is already a property name on the list or its owner — refused
+  (8 warn/log lines allow-listed — console-allow.jsonl)
+ok   /framework/core/Test/tasks/test-system/  (link found on /framework/ai/sessions/2026/10/20/session-e00f55c9/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+skip /framework/ext/Refine/tasks/prompt-records/  (link found on /framework/ai/sessions/2026/10/20/session-e00f55c9/)  (skipped: exists uncommitted in the main tree)
+ok   /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/worktree-closure/  (link found on /framework/ai/sessions/2026/10/20/session-e00f55c9/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/session-index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/session-index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/session-tree.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/session-tree.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/20/session-e00f55c9/page.jsonl
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/20/session-e00f55c9/page.jsonl)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/usage.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/usage.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/20/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/20/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/21/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/21/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/22/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/22/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/23/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/23/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/24/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/24/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/28/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/28/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/25/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/25/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/26/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/26/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/27/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/27/index.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise List — insert(): "completion" is already a property name on the list or its owner — refused
+  noise List — insert(): "items" is already a property name on the list or its owner — refused
+  noise List — insert(): "settings" is already a property name on the list or its owner — refused
+  (9 warn/log lines allow-listed — console-allow.jsonl)
+ok   /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/readme-roles/  (link found on /framework/ai/sessions/2026/10/20/session-e00f55c9/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/session-index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/session-index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/session-tree.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/session-tree.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/20/session-e00f55c9/page.jsonl
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/20/session-e00f55c9/page.jsonl)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/usage.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/usage.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/20/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/20/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/21/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/21/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/22/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/22/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/23/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/23/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/24/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/24/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/25/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/25/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/26/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/26/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/27/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/27/index.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/sessions/2026/10/28/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/sessions/2026/10/28/index.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise List — insert(): "completion" is already a property name on the list or its owner — refused
+  noise List — insert(): "items" is already a property name on the list or its owner — refused
+  (8 warn/log lines allow-listed — console-allow.jsonl)

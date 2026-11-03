@@ -1,0 +1,7 @@
+{"class":"/framework/ai2/card.js","title":"Answers as big cards","type":"card","id":"2026/09/19/answer-cards","created":"2026-09-19T16:20:06-05:00","by":"mastermind","tags":[]}
+{"legacy":"answer-cards"}
+{"status":"working"}
+{"icon":"center_focus_strong"}
+{"re":"o-162002"}
+{"text":"Done on the writing side: a card can now be marked as your current focus, and the assistant will mark its answer to a question that way. The dashboard making the focus card the biggest goes to the V3 minion."}
+{"focus":true}

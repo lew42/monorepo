@@ -1,0 +1,36 @@
+{
+ "id": "501f8464-5e9d-4cb1-8a32-c091a959e26f",
+ "first": "2026-10-15T22:53:08.739Z",
+ "last": "2026-10-15T22:53:10.141Z",
+ "models": {
+  "claude-haiku-5-5": 1
+ },
+ "sizes": {
+  "raw": 17225,
+  "content": 91,
+  "stripped": 91,
+  "owner_only": 57
+ },
+ "usd": 0.017433,
+ "usd_main": 0.017433,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 2,
+  "output": 47,
+  "cache_read": 0,
+  "cache_write": 8598,
+  "w5": 0,
+  "w1": 8598
+ },
+ "messages": 1,
+ "subagent_files": 0,
+ "prompts": [
+  {
+   "at": "2026-10-15T22:53:08.754Z",
+   "t": "SENTENCE: I keep getting this refining with a model, usually about 8 seconds and about 3 cents.\nAfter: The clean text is already usable. Pretty useless to be honest."
+  }
+ ],
+ "result": "{\"clarity\": 0.8, \"why\": \"Clear: refining costs about 8s and 3 cents; 'after' result judged useless\"}",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.212Z"
+}

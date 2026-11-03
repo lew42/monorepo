@@ -1,0 +1,824 @@
+{
+	"name": "svelte-docs-overview",
+	"url": "https://svelte.dev/docs/svelte",
+	"title": "Overview • Svelte Docs",
+	"category": "documentation",
+	"captured_at": "2026-09-08T05:53:29.986Z",
+	"embed": "allowed",
+	"embed_note": "no x-frame-options and no restrictive frame-ancestors",
+	"shots": {
+		"400": "site/svelte-docs-overview/400.jpg",
+		"1280": "site/svelte-docs-overview/1280.jpg",
+		"1920": "site/svelte-docs-overview/1920.jpg",
+		"3440": "site/svelte-docs-overview/3440.jpg",
+		"long": "site/svelte-docs-overview/long.jpg"
+	},
+	"layout": {
+		"400": "1-flow",
+		"1280": "3-holy-grail",
+		"1920": "3-holy-grail",
+		"3440": "3-holy-grail"
+	},
+	"sections": [
+		{
+			"name": "top nav + promo banner",
+			"layout": "1-flow",
+			"css": "grid (nav) + block (banner)",
+			"note": "the same 'Svelte Summit' announcement bar sits at the very TOP of the screen on a phone but moves to a fixed bar pinned to the very BOTTOM on a desktop — identical content, a different position depending on width, which only a screenshot at both sizes would ever catch."
+		},
+		{
+			"name": "left nav tree",
+			"layout": "3-holy-grail",
+			"css": "fixed 280px list inside a flexible gutter track",
+			"note": "the link list itself never resizes; the empty column it sits in grows instead as the window widens, so a 3440 screen just gets more blank space to the left of the links, not wider ones."
+		},
+		{
+			"name": "article",
+			"layout": "3-holy-grail",
+			"css": "block, capped width",
+			"note": "the reading column grows from 624px at 1280 up to a 760px ceiling that is already reached by 1920 — unchanged at 3440, a proper measure cap."
+		},
+		{
+			"name": "on this page",
+			"layout": "3-holy-grail",
+			"css": "flex column, position: fixed",
+			"note": "a short heading list mirroring the left nav's trick: fixed-width content anchored inside a growing gutter, so it stays close to the article instead of drifting to the screen's outer edge."
+		},
+		{
+			"name": "mobile toolbar",
+			"layout": "1-flow",
+			"css": "flex row, position: fixed to the bottom",
+			"note": "below about 768px the whole three-column chrome is replaced by five icon buttons (docs, search, text size, theme, menu) pinned to the bottom edge of the screen instead of the top."
+		}
+	],
+	"tags": [
+		"3-holy-grail",
+		"1-flow",
+		"3 column flex",
+		"measure",
+		"max-width",
+		"bottom toolbar",
+		"dark",
+		"documentation"
+	],
+	"responsive": {
+		"strategy": "A holy-grail docs layout where the two side columns are technically fluid tracks, but the link lists inside them are not: they stay a fixed width and just get pushed closer to (or further from) the centre as the window resizes, so extra width on an ultrawide screen becomes blank margin rather than wider sidebars — the opposite trick from the Kubernetes docs site in this batch, which lets its sidebars themselves grow. Below about 768px both side columns vanish and a five-icon toolbar takes over, fixed to the BOTTOM of the screen rather than the top.",
+		"breakpoints": [
+			480,
+			768,
+			900
+		]
+	},
+	"scan": {
+		"scanned_at": "2026-09-08T05:53:42.583Z",
+		"css": {
+			"sheets": 9,
+			"bytes": 105341,
+			"inline_bytes": 227
+		},
+		"media": [
+			"(-webkit-device-pixel-ratio>=1.75),(resolution>=1.75x){",
+			"(prefers-color-scheme:dark){",
+			"(width<=1199px){",
+			"(width<=767px){",
+			"(width<=831px){",
+			"(width>=1200px){",
+			"(width>=480px){",
+			"(width>=767px){",
+			"(width>=768px){",
+			"(width>=800px){",
+			"(width>=832px){",
+			"(width>=900px){",
+			"(width>=960px){",
+			"screen and (width>=480px){",
+			"screen and (width>=800px){"
+		],
+		"container": [
+			"(height<450px){",
+			"(width<12rem){"
+		],
+		"breakpoints_seen": [
+			{
+				"px": 480,
+				"count": 2
+			},
+			{
+				"px": 767,
+				"count": 2
+			},
+			{
+				"px": 800,
+				"count": 2
+			},
+			{
+				"px": 768,
+				"count": 1
+			},
+			{
+				"px": 831,
+				"count": 1
+			},
+			{
+				"px": 832,
+				"count": 1
+			},
+			{
+				"px": 900,
+				"count": 1
+			},
+			{
+				"px": 960,
+				"count": 1
+			},
+			{
+				"px": 1199,
+				"count": 1
+			},
+			{
+				"px": 1200,
+				"count": 1
+			}
+		],
+		"widths": {
+			"400": {
+				"doc": [
+					400,
+					1358
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "svelte-wf8082 visible",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"position": "fixed",
+						"rect": [
+							0,
+							784,
+							400,
+							60
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"id": "main",
+						"class": "svelte-1ftfg6q",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							400,
+							844
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"display": "block",
+						"rect": [
+							16,
+							102,
+							368,
+							63
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "container svelte-13r3uwa",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							42,
+							400,
+							1316
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "page content",
+						"display": "block",
+						"rect": [
+							0,
+							42,
+							400,
+							1316
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "docs-content",
+						"display": "block",
+						"rect": [
+							16,
+							102,
+							368,
+							1176
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							400,
+							844
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "text content",
+						"display": "block",
+						"rect": [
+							16,
+							205,
+							368,
+							915
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1280": {
+				"doc": [
+					1280,
+					1283
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "svelte-wf8082 visible",
+						"display": "grid",
+						"cols": "132px 526px 526px",
+						"rows": "60px",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							1280,
+							60
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "dropdown-content svelte-fwukmr",
+						"display": "block",
+						"position": "absolute",
+						"rect": [
+							170,
+							45,
+							94,
+							154
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"id": "main",
+						"class": "svelte-1ftfg6q",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							1280,
+							800
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "svelte-1dx26b8",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							60,
+							280,
+							740
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"display": "block",
+						"rect": [
+							328,
+							140,
+							624,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "aside",
+						"class": "on-this-page svelte-42rdnp",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "fixed",
+						"rect": [
+							1000,
+							140,
+							280,
+							660
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "svelte-42rdnp",
+						"display": "block",
+						"rect": [
+							990,
+							172,
+							290,
+							104
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "container svelte-13r3uwa",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							60,
+							1280,
+							1223
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "page content",
+						"display": "block",
+						"rect": [
+							0,
+							60,
+							1280,
+							1223
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							1280,
+							800
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "largest",
+						"tag": "ul",
+						"class": "sidebar svelte-1dx26b8",
+						"display": "block",
+						"columns": "1",
+						"rect": [
+							0,
+							60,
+							280,
+							2824
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "docs-content",
+						"display": "block",
+						"rect": [
+							328,
+							140,
+							624,
+							1063
+						],
+						"side_by_side": 2
+					}
+				]
+			},
+			"1920": {
+				"doc": [
+					1920,
+					1229
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "svelte-wf8082 visible",
+						"display": "grid",
+						"cols": "132px 846px 846px",
+						"rows": "60px",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							1920,
+							60
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "dropdown-content svelte-fwukmr",
+						"display": "block",
+						"position": "absolute",
+						"rect": [
+							170,
+							45,
+							94,
+							154
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"id": "main",
+						"class": "svelte-1ftfg6q",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							1920,
+							1080
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "svelte-1dx26b8",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							60,
+							532,
+							1020
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"display": "block",
+						"rect": [
+							580,
+							140,
+							760,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "aside",
+						"class": "on-this-page svelte-42rdnp",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "fixed",
+						"rect": [
+							1388,
+							140,
+							532,
+							940
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "svelte-42rdnp",
+						"display": "block",
+						"rect": [
+							1378,
+							172,
+							542,
+							104
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "container svelte-13r3uwa",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							60,
+							1920,
+							1169
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "page content",
+						"display": "block",
+						"rect": [
+							0,
+							60,
+							1920,
+							1169
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							1920,
+							1080
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "largest",
+						"tag": "ul",
+						"class": "sidebar svelte-1dx26b8",
+						"display": "block",
+						"columns": "1",
+						"rect": [
+							252,
+							60,
+							280,
+							2824
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "docs-content",
+						"display": "block",
+						"rect": [
+							580,
+							140,
+							760,
+							1009
+						],
+						"side_by_side": 2
+					}
+				]
+			},
+			"3440": {
+				"doc": [
+					3440,
+					1440
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "svelte-wf8082 visible",
+						"display": "grid",
+						"cols": "132px 1606px 1606px",
+						"rows": "60px",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							3440,
+							60
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "dropdown-content svelte-fwukmr",
+						"display": "block",
+						"position": "absolute",
+						"rect": [
+							170,
+							45,
+							94,
+							154
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"id": "main",
+						"class": "svelte-1ftfg6q",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							3440,
+							1440
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "svelte-1dx26b8",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							60,
+							1292,
+							1380
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"display": "block",
+						"rect": [
+							1340,
+							140,
+							760,
+							84
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "aside",
+						"class": "on-this-page svelte-42rdnp",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"position": "fixed",
+						"rect": [
+							2148,
+							140,
+							1292,
+							1300
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "svelte-42rdnp",
+						"display": "block",
+						"rect": [
+							2138,
+							172,
+							1302,
+							104
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							3440,
+							1440
+						],
+						"side_by_side": 3
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "container svelte-13r3uwa",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							60,
+							3440,
+							1169
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "page content",
+						"display": "block",
+						"rect": [
+							0,
+							60,
+							3440,
+							1169
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "toc-container svelte-13r3uwa",
+						"display": "block",
+						"position": "fixed",
+						"rect": [
+							0,
+							60,
+							1292,
+							1338
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "ul",
+						"class": "sidebar svelte-1dx26b8",
+						"display": "block",
+						"columns": "1",
+						"rect": [
+							1012,
+							60,
+							280,
+							2824
+						],
+						"side_by_side": 1
+					}
+				]
+			}
+		}
+	},
+	"notes": "Svelte's docs use the same three-column shape as Wikipedia and Kubernetes — links on the left, the article in the middle, an on-this-page list on the right — but with its own twist: the two side columns are flexible tracks, yet the actual link lists inside them are a fixed width and simply slide closer to the middle column as the window narrows, or drift outward as it widens, so a huge monitor just adds blank space at the far edges instead of making anything bigger. The middle column itself does grow, but only up to about 760px, then stops. Below about 768px, all three columns disappear and are replaced by a five-icon bar fixed to the BOTTOM of the screen — an unusual choice, since the same promotional banner sits at the TOP of the page on a phone but moves to a fixed bar at the bottom of the screen on a desktop, something only a picture at both sizes would show you.",
+	"wire": {
+		"role": "page",
+		"kids": [
+			{
+				"role": "header",
+				"h": "3.5em"
+			},
+			{
+				"role": "main",
+				"dir": "row",
+				"floor": "768px",
+				"kids": [
+					{
+						"role": "nav",
+						"w": "16em",
+						"lines": 10
+					},
+					{
+						"role": "main",
+						"w": "48em",
+						"lines": 14
+					},
+					{
+						"role": "aside",
+						"w": "14em",
+						"lines": 2
+					}
+				]
+			},
+			{
+				"role": "footer",
+				"h": "3em"
+			}
+		]
+	}
+}

@@ -1,0 +1,4 @@
+{"id":"plan-539-tasks","title":"Plan for the 539 tasks in module tasks/ folders: which become projects, which become log lines","module":"core/Task","at":"2026-10-20T17:05:00-05:00"}
+{"start":{"at":"2026-10-20T17:05:00-05:00"}}
+{"tasks":{"add":{"id":"classify","title":"Count and classify every task in module tasks/ folders"}}}
+{"tasks":{"add":{"id":"write-plan","title":"Write ai/tasks/doc/projects.md"}}}

@@ -1,0 +1,207 @@
+[
+    {
+        "name":  "node.exe",
+        "pid":  14860,
+        "cmd":  "\"C:\\Program Files\\nodejs\\node.exe\" Servex/sustain.mjs "
+    },
+    {
+        "name":  "node.exe",
+        "pid":  33564,
+        "cmd":  "\"C:\\Program Files\\nodejs\\node.exe\" C:\\Code\\lew42\\monorepo\\Servex\\gate.mjs 80 8079"
+    },
+    {
+        "name":  "node.exe",
+        "pid":  42080,
+        "cmd":  "\"C:\\Program Files\\nodejs\\node.exe\" C:\\Users\\mike\\AppData\\Local\\Temp\\pop\\l.js "
+    },
+    {
+        "name":  "node.exe",
+        "pid":  42492,
+        "cmd":  "\"C:\\Program Files\\nodejs\\node.exe\" Server/window-watch.mjs"
+    },
+    {
+        "name":  "node.exe",
+        "pid":  25824,
+        "cmd":  "\"C:\\Program Files\\nodejs\\node.exe\" Server/health.mjs"
+    },
+    {
+        "name":  "chrome.exe",
+        "pid":  68708,
+        "cmd":  "\"C:\\Users\\mike\\AppData\\Local\\ms-playwright\\chromium-1234\\chrome-win64\\chrome.exe\" --type=renderer --noerrdialogs --user-data-dir=\"C:\\Users\\m"
+    },
+    {
+        "name":  "node.exe",
+        "pid":  53352,
+        "cmd":  "\"C:\\Program Files\\nodejs\\node.exe\" Server/health-supervisor.mjs "
+    },
+    {
+        "name":  "node.exe",
+        "pid":  63016,
+        "cmd":  "\"C:\\Program Files\\nodejs\\node.exe\" C:\\Code\\lew42\\worktrees\\qf-6\\Server\\health.mjs"
+    },
+    {
+        "name":  "chrome.exe",
+        "pid":  83460,
+        "cmd":  "C:\\Users\\mike\\AppData\\Local\\ms-playwright\\chromium-1234\\chrome-win64\\chrome.exe --disable-field-trial-config --disable-background-networking"
+    },
+    {
+        "name":  "chrome.exe",
+        "pid":  22500,
+        "cmd":  "C:\\Users\\mike\\AppData\\Local\\ms-playwright\\chromium-1234\\chrome-win64\\chrome.exe --type=crashpad-handler --user-data-dir=C:\\Users\\mike\\AppDat"
+    },
+    {
+        "name":  "chrome.exe",
+        "pid":  56964,
+        "cmd":  "C:\\Users\\mike\\AppData\\Local\\ms-playwright\\chromium-1234\\chrome-win64\\chrome.exe --type=crashpad-handler --user-data-dir=C:\\Users\\mike\\AppDat"
+    },
+    {
+        "name":  "chrome.exe",
+        "pid":  88036,
+        "cmd":  "\"C:\\Users\\mike\\AppData\\Local\\ms-playwright\\chromium-1234\\chrome-win64\\chrome.exe\" --type=gpu-process --no-sandbox --disable-breakpad --headl"
+    },
+    {
+        "name":  "chrome.exe",
+        "pid":  60648,
+        "cmd":  "\"C:\\Users\\mike\\AppData\\Local\\ms-playwright\\chromium-1234\\chrome-win64\\chrome.exe\" --type=utility --utility-sub-type=network.mojom.NetworkSer"
+    },
+    {
+        "name":  "chrome.exe",
+        "pid":  29060,
+        "cmd":  "\"C:\\Users\\mike\\AppData\\Local\\ms-playwright\\chromium-1234\\chrome-win64\\chrome.exe\" --type=utility --utility-sub-type=storage.mojom.StorageSer"
+    },
+    {
+        "name":  "node.exe",
+        "pid":  72404,
+        "cmd":  "\"C:\\Program Files\\nodejs\\node.exe\" Server/health-supervisor.mjs "
+    },
+    {
+        "name":  "node.exe",
+        "pid":  81892,
+        "cmd":  "\"C:\\Program Files\\nodejs\\node.exe\" C:\\Code\\lew42\\worktrees\\qf-9\\Server\\health.mjs"
+    },
+    {
+        "name":  "node.exe",
+        "pid":  64020,
+        "cmd":  "\"C:\\Program Files\\Adobe\\Adobe Creative Cloud Experience\\libs\\node.exe\" \"C:\\Program Files\\Adobe\\Adobe Creative Cloud Experience\\js\\main.js\""
+    },
+    {
+        "name":  "claude.exe",
+        "pid":  31880,
+        "cmd":  "c:\\Users\\mike\\.vscode\\extensions\\anthropic.claude-code-2.1.285-win32-x64\\resources\\native-binary\\claude.exe --output-format stream-json --ve"
+    },
+    {
+        "name":  "node.exe",
+        "pid":  74496,
+        "cmd":  "\"C:\\Program Files\\nodejs\\node.exe\" server.js "
+    },
+    {
+        "name":  "node.exe",
+        "pid":  81836,
+        "cmd":  "\"C:\\Program Files\\nodejs\\node.exe\" C:\\Code\\lew42\\worktrees\\framework-home-grids\\Server\\run.js"
+    },
+    {
+        "name":  "node.exe",
+        "pid":  57840,
+        "cmd":  "\"C:\\Program Files\\nodejs\\node.exe\" server.js "
+    },
+    {
+        "name":  "node.exe",
+        "pid":  30684,
+        "cmd":  "\"C:\\Program Files\\nodejs\\node.exe\" server.js "
+    },
+    {
+        "name":  "node.exe",
+        "pid":  57676,
+        "cmd":  "\"C:\\Program Files\\nodejs\\node.exe\" C:\\Code\\lew42\\worktrees\\voice-refine\\Server\\run.js"
+    },
+    {
+        "name":  "node.exe",
+        "pid":  39088,
+        "cmd":  "\"C:\\Program Files\\nodejs\\node.exe\" server.js "
+    },
+    {
+        "name":  "node.exe",
+        "pid":  78276,
+        "cmd":  "\"C:\\Program Files\\nodejs\\node.exe\" C:\\Code\\lew42\\worktrees\\ui-system-clean-land\\Server\\run.js"
+    },
+    {
+        "name":  "node.exe",
+        "pid":  65280,
+        "cmd":  "\"C:\\Program Files\\nodejs\\node.exe\" C:\\Code\\lew42\\monorepo\\Servex\\index.js"
+    },
+    {
+        "name":  "whisper-server.exe",
+        "pid":  34684,
+        "cmd":  "C:\\Users\\mike\\AppData\\Local\\lew42\\whisper\\bin\\whisper-server.exe -m C:\\Users\\mike\\AppData\\Local\\lew42\\whisper\\models\\ggml-large-v3-turbo.bin"
+    },
+    {
+        "name":  "node.exe",
+        "pid":  31988,
+        "cmd":  "\"C:\\Program Files\\nodejs\\node.exe\" C:\\Code\\lew42\\monorepo\\Server\\run.js"
+    },
+    {
+        "name":  "chrome.exe",
+        "pid":  66384,
+        "cmd":  "C:\\Users\\mike\\AppData\\Local\\ms-playwright\\chromium-1234\\chrome-win64\\chrome.exe --disable-field-trial-config --disable-background-networking"
+    },
+    {
+        "name":  "chrome.exe",
+        "pid":  19204,
+        "cmd":  "C:\\Users\\mike\\AppData\\Local\\ms-playwright\\chromium-1234\\chrome-win64\\chrome.exe --type=crashpad-handler --user-data-dir=C:\\Users\\mike\\AppDat"
+    },
+    {
+        "name":  "chrome.exe",
+        "pid":  52328,
+        "cmd":  "C:\\Users\\mike\\AppData\\Local\\ms-playwright\\chromium-1234\\chrome-win64\\chrome.exe --type=crashpad-handler --user-data-dir=C:\\Users\\mike\\AppDat"
+    },
+    {
+        "name":  "chrome.exe",
+        "pid":  26740,
+        "cmd":  "\"C:\\Users\\mike\\AppData\\Local\\ms-playwright\\chromium-1234\\chrome-win64\\chrome.exe\" --type=gpu-process --no-sandbox --disable-breakpad --headl"
+    },
+    {
+        "name":  "chrome.exe",
+        "pid":  21548,
+        "cmd":  "\"C:\\Users\\mike\\AppData\\Local\\ms-playwright\\chromium-1234\\chrome-win64\\chrome.exe\" --type=utility --utility-sub-type=network.mojom.NetworkSer"
+    },
+    {
+        "name":  "chrome.exe",
+        "pid":  54880,
+        "cmd":  "\"C:\\Users\\mike\\AppData\\Local\\ms-playwright\\chromium-1234\\chrome-win64\\chrome.exe\" --type=utility --utility-sub-type=storage.mojom.StorageSer"
+    },
+    {
+        "name":  "claude.exe",
+        "pid":  68668,
+        "cmd":  "c:\\Users\\mike\\.vscode\\extensions\\anthropic.claude-code-2.1.285-win32-x64\\resources\\native-binary\\claude.exe --output-format stream-json --ve"
+    },
+    {
+        "name":  "claude.exe",
+        "pid":  86624,
+        "cmd":  "C:\\Code\\lew42\\monorepo\\Servex\\node_modules\\@anthropic-ai\\claude-agent-sdk-win32-x64\\claude.exe --output-format stream-json --verbose --input"
+    },
+    {
+        "name":  "claude.exe",
+        "pid":  37396,
+        "cmd":  "C:\\Code\\lew42\\monorepo\\Servex\\node_modules\\@anthropic-ai\\claude-agent-sdk-win32-x64\\claude.exe --output-format stream-json --verbose --input"
+    },
+    {
+        "name":  "claude.exe",
+        "pid":  67840,
+        "cmd":  "C:\\Code\\lew42\\monorepo\\Servex\\node_modules\\@anthropic-ai\\claude-agent-sdk-win32-x64\\claude.exe --output-format stream-json --verbose --input"
+    },
+    {
+        "name":  "node.exe",
+        "pid":  35208,
+        "cmd":  "\"C:\\Program Files\\nodejs\\node.exe\" C:\\Code\\lew42\\monorepo\\Server\\clarity.mjs proposal C:\\Code\\lew42\\monorepo\\public\\framework\\ai\\2026-10-03\\"
+    },
+    {
+        "name":  "claude.exe",
+        "pid":  86940,
+        "cmd":  "C:\\Code\\lew42\\monorepo\\Servex\\node_modules\\@anthropic-ai\\claude-agent-sdk-win32-x64\\claude.exe --output-format stream-json --verbose --input"
+    },
+    {
+        "name":  "claude.exe",
+        "pid":  23588,
+        "cmd":  "C:\\Code\\lew42\\monorepo\\Servex\\node_modules\\@anthropic-ai\\claude-agent-sdk-win32-x64\\claude.exe --output-format stream-json --verbose --input"
+    }
+]

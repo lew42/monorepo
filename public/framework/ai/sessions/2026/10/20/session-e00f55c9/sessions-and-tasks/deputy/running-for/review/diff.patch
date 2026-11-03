@@ -1,0 +1,162 @@
+diff --git a/Server/session-summary.mjs b/Server/session-summary.mjs
+index 1233bb625..fbb4ffc23 100644
+--- a/Server/session-summary.mjs
++++ b/Server/session-summary.mjs
+@@ -78,7 +78,7 @@ export function print_audit(r){
+ /** One grid row as the short array the index stores.  */
+ export function slim_of(r){
+ 	const r4 = n => Math.round(n * 1e4) / 1e4;
+-	return [r4(r.usd), r4(r.tree_usd), r.children, Math.round(r.wall_ms), r.model === "unknown" ? 0 : r.model, r.effort ?? 0, r.flags, AISession.day(r.first_at) ?? 0, r.provider === "openrouter" ? "openrouter" : 0];
++	return [r4(r.usd), r4(r.tree_usd), r.children, Math.round(r.wall_ms), r.model === "unknown" ? 0 : r.model, r.effort ?? 0, r.flags, AISession.day(r.first_at) ?? 0, r.provider === "openrouter" ? "openrouter" : 0, Math.round(r.active_ms ?? 0)];
+ }
+ 
+ export async function build_index({ days = 30 } = {}){
+@@ -135,7 +135,7 @@ export async function build_index({ days = 30 } = {}){
+ 	}
+ 	// sessions that have a trace.json: the page asks for one only for these (a 404 is a smoke-test failure)
+ 	const traces = Object.keys(slim).filter(id => fs.existsSync(path.join(fileURLToPath(AISession.dir_url(id, AISession.day(rows[id].first_at) ?? undefined)), "trace.json")));
+-	const index = { generated_at: new Date().toISOString(), days, traces, columns: ["usd", "tree_usd", "children", "wall_ms", "model", "effort", "flags", "day", "provider"], count: Object.keys(slim).length, scanned: Object.keys(rows).length, unlinked_spawned: unlinked.length, unlinked_sample: unlinked.slice(0, 5), closed, meta, rows: slim };
++	const index = { generated_at: new Date().toISOString(), days, traces, columns: ["usd", "tree_usd", "children", "wall_ms", "model", "effort", "flags", "day", "provider", "active_ms"], count: Object.keys(slim).length, scanned: Object.keys(rows).length, unlinked_spawned: unlinked.length, unlinked_sample: unlinked.slice(0, 5), closed, meta, rows: slim };
+ 	fs.writeFileSync(path.join(SESSIONS_DIR, "session-tree.json"), JSON.stringify(tree));
+ 	fs.writeFileSync(path.join(SESSIONS_DIR, "session-index.json"), JSON.stringify(index));
+ 	return { ...index, rows: undefined, new_lines };
+diff --git a/public/framework/ai/AISession/AISession.js b/public/framework/ai/AISession/AISession.js
+index b8f3080ce..0c9ca4fd6 100644
+--- a/public/framework/ai/AISession/AISession.js
++++ b/public/framework/ai/AISession/AISession.js
+@@ -378,7 +378,7 @@ export default class AISession extends Session {
+ 	// `all` is the registry. A light Session carries only the grid's fields in `ix`; the full computed totals stay in `s`
+ 	// (blank here) and arrive from the session's own cache when its detail page opens.
+ 	static all = new Map();
+-	static INDEX_COLUMNS = ["usd", "tree_usd", "children", "wall_ms", "model", "effort", "flags", "day", "provider"];
++	static INDEX_COLUMNS = ["usd", "tree_usd", "children", "wall_ms", "model", "effort", "flags", "day", "provider", "active_ms"];
+ 
+ 	/** The light Session for an id, made from one index row (the short array build_index writes). Re-reading the index refreshes it in place. */
+ 	static from_index(id, arr, columns = AISession.INDEX_COLUMNS){
+@@ -432,7 +432,7 @@ export default class AISession extends Session {
+ 	}
+ 
+ 	/** The grid row for this session in the object shape AISessionRows.row_of has always returned. */
+-	index_row(){ const { usd, tree_usd, children, wall_ms, model, effort, flags, day, provider } = this.ix; return { id: this.id, usd, tree_usd, children, wall_ms, model, effort, flags, day, provider: provider || "claude" }; }
++	index_row(){ const { usd, tree_usd, children, wall_ms, model, effort, flags, day, provider, active_ms } = this.ix; return { id: this.id, usd, tree_usd, children, wall_ms, model, effort, flags, day, provider: provider || "claude", active_ms }; }
+ 
+ 	static root_url(){
+ 		// SESSIONS_ROOT (node only) lets a script run from a worktree write into the main tree's sessions/ folder.
+diff --git a/public/framework/ai/AISession/AISessionIndex.mjs b/public/framework/ai/AISession/AISessionIndex.mjs
+index 2d1ad535b..b849ed174 100644
+--- a/public/framework/ai/AISession/AISessionIndex.mjs
++++ b/public/framework/ai/AISession/AISessionIndex.mjs
+@@ -277,7 +277,7 @@ export default class AISessionIndex {
+ 		const snap = {
+ 			id, state: age < AISessionIndex.ACTIVE_MS ? "active" : "idle", model: pv.model === "unknown" ? null : pv.model, effort: pv.effort ?? null,
+ 			provider: pv.provider === "openrouter" ? "openrouter" : "claude", usd: own, usd_source, cost_v: AISession.STATE_V, tree_usd: r4(own + below),
+-			children: prev?.children ?? 0, wall_ms: Math.round(pv.wall_ms), flags: pv.flags.length, tokens, first_at: s.first_at ?? null, last_activity: s.last_at ?? null,
++			children: prev?.children ?? 0, wall_ms: Math.round(pv.wall_ms), active_ms: Math.round(pv.active_ms ?? 0), flags: pv.flags.length, tokens, first_at: s.first_at ?? null, last_activity: s.last_at ?? null,
+ 			day: AISession.day(s.first_at) ?? prev?.day ?? null, folder: this.dirs.has(id) ? path.basename(this.dirs.get(id)) : (this.snaps.get(id)?.folder ?? null), tags: prev?.tags ?? [], alerts: prev?.alerts ?? 0,
+ 			parent: reg?.parent ?? prev?.parent ?? null, agent: reg?.id ?? prev?.agent ?? null,
+ 			title: s.title ?? prev?.title ?? null,
+diff --git a/public/framework/ai/AISession/AISessionRows.js b/public/framework/ai/AISession/AISessionRows.js
+index b21a709d3..64d3eb391 100644
+--- a/public/framework/ai/AISession/AISessionRows.js
++++ b/public/framework/ai/AISession/AISessionRows.js
+@@ -108,7 +108,7 @@ export default class AISessionRows {
+ 		if (ses?.ix.usd != null) return ses.index_row();
+ 		const v = index?.rows?.[id];
+ 		if (!v) return null;
+-		return { id, usd: v[0], tree_usd: v[1], children: v[2], wall_ms: v[3], model: v[4] || null, effort: v[5] || null, flags: v[6], day: v[7] || null, provider: v[8] || "claude" };
++		return { id, usd: v[0], tree_usd: v[1], children: v[2], wall_ms: v[3], model: v[4] || null, effort: v[5] || null, flags: v[6], day: v[7] || null, provider: v[8] || "claude", active_ms: v[9] };
+ 	}
+ 
+ 	// ---- one row's facts ----------------------------------------------------------------------------
+@@ -183,7 +183,7 @@ export default class AISessionRows {
+ 		if (r.source === "servex" && r.tab_title) return { text: r.tab_title, from: "agent" };
+ 		// a prompt that is only a routing tag or a skill preamble says nothing about the session
+ 		if (r.last_prompt_first_line && !/^\[from:|^Base directory for this skill/.test(r.last_prompt_first_line)) return { text: r.last_prompt_first_line.replace(/\s+/g, " ").trim().slice(0, 70), from: "prompt" };
+-		return { text: (AISessionRows.SOURCE[r.source]?.label ?? "session") + " " + String(sid).slice(0, 8), from: "id" };
++		return { text: (r.source === "vscode" || r.kind === "vscode-tab" ? "VS Code tab" : AISessionRows.SOURCE[r.source]?.label ?? "session") + " " + String(sid).slice(0, 8), from: "id" };
+ 	}
+ 
+ 	/** `end` if it is a real time at or after `start`, else null. */
+diff --git a/public/framework/ai/AISession/AISessionView.js b/public/framework/ai/AISession/AISessionView.js
+index ab47d1ecd..b3b06347c 100644
+--- a/public/framework/ai/AISession/AISessionView.js
++++ b/public/framework/ai/AISession/AISessionView.js
+@@ -1,6 +1,6 @@
+ import { View, div, span, small, p, a } from "/app.js";
+ import { age } from "/framework/core/Page/ext/Inbox/Inbox.js";
+-import { dur, elapsed } from "/framework/ai/AITask/stats.js";
++import { dur, elapsed, span_active } from "/framework/ai/AITask/stats.js";
+ import AISessionRows from "./AISessionRows.js";
+ import AISession from "./AISession.js";
+ import AISessionFlags from "./AISessionFlags.js";
+@@ -86,7 +86,7 @@ export default class AISessionView extends View {
+ 		});
+ 
+ 		div.c("sessions-cell", () => small.c("muted").text(working ? "now" : (r.last_activity ? age(r.last_activity) : "—")).attr("title", r.last_activity ?? ""));
+-		div.c("sessions-cell", () => small.c("muted", dur(AISessionRows.span_ms(r))));
++		div.c("sessions-cell", () => { const ix = row_of(this.session_index, r.session_id || r.id); small.c("muted", ix?.wall_ms > 0 ? span_active(ix.wall_ms, ix.active_ms) : dur(AISessionRows.span_ms(r))).attr("title", "From the session's first line to its last (a stop and restart does not reset it), and the hours it was actually working"); });
+ 		div.c("sessions-cell", () => { if (r.role) { const { label: text, title } = role_label(r.role); small.c("muted").attr("title", title).text(text); } { const f = AISessionFlags.of(r); if (f?.last){ const { tier, why } = AISessionResume.tier(f), t = AISessionResume.TIERS[tier]; span.c("sessions-tag sessions-tier sessions-tier-" + tier, t.label).attr("title", t.title + " (" + why + ")"); } } if (AISessionFlags.is_mastermind(r)) span.c("sessions-tag sessions-tag-mm", "mastermind").attr("title", "A mastermind: it registered as one in Servex, or its first prompt loads the mastermind skill."); });
+ 		div.c("sessions-cell", () => span.c("sessions-tag sessions-tag-" + r.source, src.label));
+ 		// Plain `if`s, not `&&`: a cell callback's return value can end up rendered as a stray text node (a `false` once printed "false").
+diff --git a/public/framework/ai/AISession/SessionStats.js b/public/framework/ai/AISession/SessionStats.js
+index 351672f53..7adb52da5 100644
+--- a/public/framework/ai/AISession/SessionStats.js
++++ b/public/framework/ai/AISession/SessionStats.js
+@@ -3,6 +3,8 @@ import { names } from "/framework/core/Router/listing.js";
+ import TaskView from "/framework/core/Task/TaskView.js";
+ import Task from "/framework/core/Task/Task.js";
+ import SessionWork from "./SessionWork.js";
++import { span_active } from "/framework/ai/AITask/stats.js";
++import AISessionRows from "./AISessionRows.js";
+ import AICost from "/framework/ai/AITask/AICost.js";
+ 
+ View.stylesheet(import.meta, "SessionOverview.css");
+@@ -45,8 +47,10 @@ export default class SessionStats extends View {
+ 		this.empty(() => {
+ 			div.c("sov-stat-row", () => {
+ 				div.c("sov-stat", () => { small.c("sov-k", "Cost"); SessionStats.cost(strong.c("sov-v" + (this.open_cost ? " sov-link" : ""), "…"), work, { row: this.row, open: this.open_cost }); });
++				const running = { el: null };
+ 				for (const [label, value] of [["Model", tree.snap?.model ?? "—"], ["Running for", SessionStats.elapsed(root.ms())], ["Task folders done", total ? `${done} of ${total}` : "no task folders"]])
+-					div.c("sov-stat", () => { small.c("sov-k", label); strong.c("sov-v", value); });
++					div.c("sov-stat", () => { small.c("sov-k", label); const v = strong.c("sov-v", value); if (label === "Running for") running.el = v; });
++				if (work.id && running.el) AISessionRows.load_index("/framework/ai/sessions/").then(index => { const ix = AISessionRows.row_of(index, work.id); if (ix?.wall_ms > 0) running.el.text(span_active(ix.wall_ms, ix.active_ms)).attr("title", "From the session's first line to its last (a stop and restart does not reset it), and the hours it was working: the session index's wall_ms and active_ms"); });
+ 			});
+ 			if (part.counted.length) div.c("sov-bar", () => TaskView.draw_bar(part.counted.map(n => n.state), 12));
+ 			small.c("sov-caption", `Task folders: ${done} done · ${part.running} running · ${total - done - part.running} queued or waiting · ${part.dropped.length} dropped (not counted)`);   // one count each, so the parts add up to the total
+diff --git a/public/framework/ai/AITask/stats.js b/public/framework/ai/AITask/stats.js
+index 9dd8806bc..57c00f30e 100644
+--- a/public/framework/ai/AITask/stats.js
++++ b/public/framework/ai/AITask/stats.js
+@@ -12,6 +12,13 @@ export const dur = ms => {
+ 	return m < 60 ? m + "m" : Math.floor(m / 60) + "h " + (m % 60) + "m";
+ };
+ 
++/** A session's real span with its active time: "4 days · 9h active" (span from its first line, not from the last restart). */
++export const span_active = (span_ms, active_ms) => {
++	if (!(span_ms > 0)) return "—";
++	const h = Math.round(span_ms / 36e5), span = h < 1 ? dur(span_ms) : h < 48 ? h + "h" : Math.round(h / 24) + " days";
++	return span + (active_ms > 0 ? " · " + (active_ms < 36e5 ? Math.round(active_ms / 6e4) + "m" : Math.round(active_ms / 36e5) + "h") + " active" : "");
++};
++
+ /** A chip that puts `value` on the clipboard — a session id or a turn ref. */
+ export function ref(value, label = value.slice(0, 8)){
+ 	return button.c("ai-ref", label)
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/running-for/shoot.mjs b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/running-for/shoot.mjs
+new file mode 100644
+index 000000000..ef2d1a190
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/running-for/shoot.mjs
+@@ -0,0 +1,13 @@
++import { chromium } from "file:///C:/Users/mike/AppData/Roaming/npm/node_modules/playwright/index.mjs";
++const b = await chromium.launch(), p = await b.newPage({ viewport: { width: 1920, height: 1000 } });
++const D = process.argv[2];
++await p.goto("http://qf-4.localhost/framework/ai/sessions/e00f55c9-bad4-4ee2-899e-d629ea1eede6/"); await p.waitForTimeout(6000);
++console.log("page:", await p.evaluate(() => [...document.querySelectorAll(".sov-stat")].map(e => e.innerText.replace(/\n/g, ": ")).join(" | ")));
++await p.screenshot({ path: D + "/page-shot.png" });
++await p.goto("http://qf-4.localhost/framework/ai/sessions/"); await p.waitForTimeout(8000);
++const row = p.locator(".sessions-row", { hasText: "e00f55c9" }).first().or(p.locator(".sessions-row", { hasText: "VS Code tab" }).first());
++console.log("rows:", await p.locator(".sessions-row").count());
++const t = await p.evaluate(() => [...document.querySelectorAll(".sessions-row")].filter(r => /4 days|active/.test(r.innerText)).slice(0, 3).map(r => r.innerText.replace(/\n/g, " | ")));
++console.log(t);
++await p.screenshot({ path: D + "/list-shot.png" });
++await b.close();

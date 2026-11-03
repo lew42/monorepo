@@ -1,0 +1,6 @@
+verdict: pass
+1. [note] The batch delivers 12 modules (Section, Mention, System, catalog, toc, accordion, avatar, badge, panel, table, timeline, toolbar). Each doc is under 80 lines and has no dates, and each readme gets a "More" line, as requirements.md asked.
+2. [note] ui/badge, ui/panel and ui/toolbar get no `doc/files.jsonl` entry and no `files.jsonl` "doc/" line, but accordion, avatar, table and timeline do. The readme link still makes the docs reachable. The "link once in doc/files.jsonl" ask is only met for 9 of 12, and those three could get the same entry.
+3. [note] ext/toc/doc/architecture.md:~462 ends with a rule ("toc.css stays ASCII") that its own warning says is false today. ext/System/doc/architecture.md:~249 likewise records that `heal_limit` is never read. Both are honest, but they put known code gaps into a decisions doc, so each deserves a follow-up task outside this fence.
+4. [note] ext/System/doc/architecture.md:~225 cites "the owner's rule" (CLAUDE.md law 7). The batch-4 lesson was to drop "the owner said" lines, so reword it to "law 7".
+5. [note] ui/panel/doc/architecture.md links `/framework/ui/doc/record.md` and `/framework/ui/doc/decisions.md`. Neither is in the diff, so the links should be checked. The ui/panel and ui/timeline readmes still say "Stub — more to come" above the new "More" section.

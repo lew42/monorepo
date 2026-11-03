@@ -1,0 +1,927 @@
+{
+  "meta": {
+    "generated": "2026-08-30T19:48:12.782Z",
+    "methodology": "grep -rn demo\\.app\\( public/**/*.js (84 raw hits) + grep -rn 'demo\\.tree\\(\\{' (44 raw hits) = 128 raw; excluding jsdoc/comment/doc-string occurrences and the function's own definition (ext/demo/app.js), and excluding the 2 already-fixed sites (public/page.js homepage, framework/ext/demo/page.js), leaves 91 real render call sites = rows below. Each verified by reading its tree-building source; representative samples per shape verified headless (playwright, private :8096 dev server) by loading the real page, reading the rendered <a href>/[data-demo-url], then navigating to that url directly and checking for the client Router's 'Page Load Error / 404 — nothing matches' text (curl alone can't tell — every path 200s at the HTTP layer since it's an SPA shell).",
+    "already_audited_exempt": [
+      "public/page.js:99 (homepage) - already urls:false",
+      "framework/ext/demo/page.js:165 (ext/demo's own doc) - already urls:false"
+    ],
+    "structural_exception_found": "framework/ext/demo/shell.js:86 - page.demo()'s DemoApp always passes scope:this.page (a REAL page), so it ALWAYS wants real hrefs. Only 3 call sites today (framework/ext/demo/shell/page.js, ext/demo's own demo of the mechanism) - already exempt as ext/demo's own page. Nowhere else on the site calls page.demo().",
+    "total_rows": 91,
+    "dead": 79,
+    "aliased_dead": 12,
+    "real": 0
+  },
+  "rows": [
+    {
+      "id": "A001",
+      "call_site": "public/imagine/vary/colstyles/hooks/page.js:21",
+      "page_url": "/imagine/vary/colstyles/hooks/",
+      "group": "direct-demo.app",
+      "tree_shape": "local-fabricated",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "trees.js: widths/tokens/custom_column/etc, titles like Track/Selected - no real analog"
+    },
+    {
+      "id": "A002",
+      "call_site": "public/imagine/vary/colstyles/hooks/page.js:27",
+      "page_url": "/imagine/vary/colstyles/hooks/",
+      "group": "direct-demo.app",
+      "tree_shape": "local-fabricated",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "trees.js: widths/tokens/custom_column/etc, titles like Track/Selected - no real analog"
+    },
+    {
+      "id": "A003",
+      "call_site": "public/imagine/vary/colstyles/hooks/page.js:28",
+      "page_url": "/imagine/vary/colstyles/hooks/",
+      "group": "direct-demo.app",
+      "tree_shape": "local-fabricated",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "trees.js: widths/tokens/custom_column/etc, titles like Track/Selected - no real analog"
+    },
+    {
+      "id": "A004",
+      "call_site": "public/imagine/vary/colstyles/hooks/page.js:34",
+      "page_url": "/imagine/vary/colstyles/hooks/",
+      "group": "direct-demo.app",
+      "tree_shape": "local-fabricated",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "trees.js: widths/tokens/custom_column/etc, titles like Track/Selected - no real analog"
+    },
+    {
+      "id": "A005",
+      "call_site": "public/imagine/vary/colstyles/hooks/page.js:39",
+      "page_url": "/imagine/vary/colstyles/hooks/",
+      "group": "direct-demo.app",
+      "tree_shape": "local-fabricated",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "trees.js: widths/tokens/custom_column/etc, titles like Track/Selected - no real analog"
+    },
+    {
+      "id": "A006",
+      "call_site": "public/imagine/vary/colstyles/hooks/page.js:44",
+      "page_url": "/imagine/vary/colstyles/hooks/",
+      "group": "direct-demo.app",
+      "tree_shape": "local-fabricated",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "trees.js: widths/tokens/custom_column/etc, titles like Track/Selected - no real analog"
+    },
+    {
+      "id": "A007",
+      "call_site": "public/imagine/vary/colstyles/hooks/page.js:49",
+      "page_url": "/imagine/vary/colstyles/hooks/",
+      "group": "direct-demo.app",
+      "tree_shape": "local-fabricated",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "trees.js: widths/tokens/custom_column/etc, titles like Track/Selected - no real analog"
+    },
+    {
+      "id": "A008",
+      "call_site": "public/imagine/vary/colstyles/hooks/page.js:64",
+      "page_url": "/imagine/vary/colstyles/hooks/",
+      "group": "direct-demo.app",
+      "tree_shape": "local-fabricated",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "trees.js: widths/tokens/custom_column/etc, titles like Track/Selected - no real analog"
+    },
+    {
+      "id": "A009",
+      "call_site": "public/framework/ai/2026-08-12/unify/page.js:86",
+      "page_url": "/framework/ai/2026-08-12/unify/",
+      "group": "direct-demo.app",
+      "tree_shape": "local-fabricated",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "tree() -> title 'Form field', fake"
+    },
+    {
+      "id": "A010",
+      "call_site": "public/framework/ext/catalog/page.js:25",
+      "page_url": "/framework/ext/catalog/",
+      "group": "direct-demo.app",
+      "tree_shape": "sample-alias",
+      "href_kind": "aliased-dead",
+      "verdict": "wants_urls_false",
+      "note": "sample() root 'Web' aliases real /web/; children /web/html.. 404"
+    },
+    {
+      "id": "A011",
+      "call_site": "public/framework/ext/catalog/page.js:37",
+      "page_url": "/framework/ext/catalog/",
+      "group": "direct-demo.app",
+      "tree_shape": "sample-alias",
+      "href_kind": "aliased-dead",
+      "verdict": "wants_urls_false",
+      "note": "sample() root 'Web' aliases real /web/; children /web/html.. 404"
+    },
+    {
+      "id": "A012",
+      "call_site": "public/framework/ext/catalog/page.js:41",
+      "page_url": "/framework/ext/catalog/",
+      "group": "direct-demo.app",
+      "tree_shape": "sample-alias",
+      "href_kind": "aliased-dead",
+      "verdict": "wants_urls_false",
+      "note": "sample() root 'Web' aliases real /web/; children /web/html.. 404"
+    },
+    {
+      "id": "A013",
+      "call_site": "public/framework/ext/tabs/page.js:22",
+      "page_url": "/framework/ext/tabs/",
+      "group": "direct-demo.app",
+      "tree_shape": "sample-alias",
+      "href_kind": "aliased-dead",
+      "verdict": "wants_urls_false",
+      "note": "sample({title:'', children:{what,why}}) - fake edge-case root"
+    },
+    {
+      "id": "A014",
+      "call_site": "public/framework/ext/tabs/page.js:59",
+      "page_url": "/framework/ext/tabs/",
+      "group": "direct-demo.app",
+      "tree_shape": "sample-alias",
+      "href_kind": "aliased-dead",
+      "verdict": "wants_urls_false",
+      "note": "sample({title:'', children:{what,why}}) - fake edge-case root"
+    },
+    {
+      "id": "A015",
+      "call_site": "public/framework/core/Page/overview/region/page.js:62",
+      "page_url": "/framework/core/Page/overview/region/",
+      "group": "direct-demo.app",
+      "tree_shape": "local-fabricated",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "tabbed() root 'Doc', fake"
+    },
+    {
+      "id": "A016",
+      "call_site": "public/framework/core/Page/overview/region/page.js:65",
+      "page_url": "/framework/core/Page/overview/region/",
+      "group": "direct-demo.app",
+      "tree_shape": "sample-alias",
+      "href_kind": "aliased-dead",
+      "verdict": "wants_urls_false",
+      "note": "sample() root 'Web' aliases real /web/"
+    },
+    {
+      "id": "A017",
+      "call_site": "public/framework/core/Page/old/nav/page.js:13",
+      "page_url": "/framework/core/Page/old/nav/",
+      "group": "direct-demo.app",
+      "tree_shape": "sample-alias",
+      "href_kind": "aliased-dead",
+      "verdict": "wants_urls_false",
+      "note": "sample() root 'Web' aliases real /web/"
+    },
+    {
+      "id": "A018",
+      "call_site": "public/framework/core/Page/old/nav/page.js:23",
+      "page_url": "/framework/core/Page/old/nav/",
+      "group": "direct-demo.app",
+      "tree_shape": "sample-alias",
+      "href_kind": "aliased-dead",
+      "verdict": "wants_urls_false",
+      "note": "sample() root 'Web' aliases real /web/"
+    },
+    {
+      "id": "A019",
+      "call_site": "public/framework/core/Page/old/nav/page.js:41",
+      "page_url": "/framework/core/Page/old/nav/",
+      "group": "direct-demo.app",
+      "tree_shape": "sample-alias",
+      "href_kind": "aliased-dead",
+      "verdict": "wants_urls_false",
+      "note": "site=sample({...}) + Sidebar, root 'Web' aliases real /web/"
+    },
+    {
+      "id": "A020",
+      "call_site": "public/framework/core/Page/old/nav/page.js:56",
+      "page_url": "/framework/core/Page/old/nav/",
+      "group": "direct-demo.app",
+      "tree_shape": "local-fabricated",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "new Page({title:'Web', children:{CSS:{children:{Layout}}}}) - also titled Web, aliases /web/, children fake"
+    },
+    {
+      "id": "A021",
+      "call_site": "public/imagine/blogx/finder/page.js:93",
+      "page_url": "/imagine/blogx/finder/",
+      "group": "direct-demo.app",
+      "tree_shape": "local-fabricated",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "notes tree title 'Blogx Notes' -> /blogx-notes/, wrong prefix vs real /imagine/blogx/columns/.. route"
+    },
+    {
+      "id": "A022",
+      "call_site": "public/imagine/blogx/parts/page.js:66",
+      "page_url": "/imagine/blogx/parts/",
+      "group": "direct-demo.app",
+      "tree_shape": "local-fabricated",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "post tree title = a real post's title but top-level slug, wrong prefix vs real nested post url"
+    },
+    {
+      "id": "A023",
+      "call_site": "public/imagine/shells/columns/page.js:75",
+      "page_url": "/imagine/shells/columns/",
+      "group": "direct-demo.app",
+      "tree_shape": "local-fabricated",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "library tree, root 'Library' -> /library/, fake"
+    },
+    {
+      "id": "A024",
+      "call_site": "public/imagine/vary/tone/up/page.js:38",
+      "page_url": "/imagine/vary/tone/up/",
+      "group": "direct-demo.app",
+      "tree_shape": "local-fabricated",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "tree() -> Depth-1/2/3, fake"
+    },
+    {
+      "id": "A025",
+      "call_site": "public/imagine/vary/tone/live/page.js:62",
+      "page_url": "/imagine/vary/tone/live/",
+      "group": "direct-demo.app",
+      "tree_shape": "local-fabricated",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "tree() -> Depth-1/2/3, fake"
+    },
+    {
+      "id": "A026",
+      "call_site": "public/imagine/vary/tone/flip/page.js:37",
+      "page_url": "/imagine/vary/tone/flip/",
+      "group": "direct-demo.app",
+      "tree_shape": "local-fabricated",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "tree() -> Depth-1/2/3, fake"
+    },
+    {
+      "id": "A027",
+      "call_site": "public/imagine/vary/tone/down/page.js:37",
+      "page_url": "/imagine/vary/tone/down/",
+      "group": "direct-demo.app",
+      "tree_shape": "local-fabricated",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "tree() -> Depth-1/2/3, fake"
+    },
+    {
+      "id": "A028",
+      "call_site": "public/imagine/vary/tone/alt/page.js:37",
+      "page_url": "/imagine/vary/tone/alt/",
+      "group": "direct-demo.app",
+      "tree_shape": "local-fabricated",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "tree() -> Depth-1/2/3, fake"
+    },
+    {
+      "id": "A029",
+      "call_site": "public/imagine/vary/colstyles/ink/page.js:17",
+      "page_url": "/imagine/vary/colstyles/ink/",
+      "group": "direct-demo.app",
+      "tree_shape": "local-fabricated",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "tree.js: Shelf/Fiction/Selected, fake"
+    },
+    {
+      "id": "A030",
+      "call_site": "public/imagine/vary/colstyles/cards/page.js:17",
+      "page_url": "/imagine/vary/colstyles/cards/",
+      "group": "direct-demo.app",
+      "tree_shape": "local-fabricated",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "tree.js: Shelf/Fiction/Selected, fake"
+    },
+    {
+      "id": "A031",
+      "call_site": "public/imagine/vary/colstyles/finder/page.js:17",
+      "page_url": "/imagine/vary/colstyles/finder/",
+      "group": "direct-demo.app",
+      "tree_shape": "local-fabricated",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "tree.js: Shelf/Fiction/Selected, fake"
+    },
+    {
+      "id": "A032",
+      "call_site": "public/web/nav/tabs/page.js:37",
+      "page_url": "/web/nav/tabs/",
+      "group": "direct-demo.app",
+      "tree_shape": "local-fabricated",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "ledger tree, root 'Ledger' -> /ledger/, fake"
+    },
+    {
+      "id": "A033",
+      "call_site": "public/web/nav/tabs/page.js:38",
+      "page_url": "/web/nav/tabs/",
+      "group": "direct-demo.app",
+      "tree_shape": "local-fabricated",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "folio tree, root 'Folio' -> /folio/, fake"
+    },
+    {
+      "id": "A034",
+      "call_site": "public/web/nav/drill/page.js:70",
+      "page_url": "/web/nav/drill/",
+      "group": "direct-demo.app",
+      "tree_shape": "sample-alias",
+      "href_kind": "aliased-dead",
+      "verdict": "wants_urls_false",
+      "note": "depot/vault/rack built from sample(), root retitled but derives from 'Web' shape; aliases-ish, still 404 on descent"
+    },
+    {
+      "id": "A035",
+      "call_site": "public/web/nav/jumps/page.js:63",
+      "page_url": "/web/nav/jumps/",
+      "group": "direct-demo.app",
+      "tree_shape": "local-fabricated",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "drift tree, root 'Drift' -> /drift/, fake"
+    },
+    {
+      "id": "A036",
+      "call_site": "public/web/nav/jumps/page.js:64",
+      "page_url": "/web/nav/jumps/",
+      "group": "direct-demo.app",
+      "tree_shape": "local-fabricated",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "anchor tree, root 'Anchor' -> /anchor/, fake"
+    },
+    {
+      "id": "A037",
+      "call_site": "public/framework/ai/2026-08-08/page.js:18",
+      "page_url": "/framework/ai/2026-08-08/",
+      "group": "direct-demo.app",
+      "tree_shape": "local-fabricated",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "tour() historical daily-log demo, fake tree"
+    },
+    {
+      "id": "A038",
+      "call_site": "public/framework/ai/2026-08-12/apps/navigation/page.js:28",
+      "page_url": "/framework/ai/2026-08-12/apps/navigation/",
+      "group": "direct-demo.app",
+      "tree_shape": "local-fabricated",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "dress[name]() from sitemap(), fake"
+    },
+    {
+      "id": "A039",
+      "call_site": "public/framework/ai/2026-08-10/page.js:24",
+      "page_url": "/framework/ai/2026-08-10/",
+      "group": "direct-demo.app",
+      "tree_shape": "sample-alias",
+      "href_kind": "aliased-dead",
+      "verdict": "wants_urls_false",
+      "note": "sample() root 'Web' aliases real /web/"
+    },
+    {
+      "id": "A040",
+      "call_site": "public/framework/core/Page/overview/replace/page.js:23",
+      "page_url": "/framework/core/Page/overview/replace/",
+      "group": "direct-demo.app",
+      "tree_shape": "local-fabricated",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "sibling/own trees, root 'Parent', fake"
+    },
+    {
+      "id": "A041",
+      "call_site": "public/framework/core/Page/overview/mounts/page.js:25",
+      "page_url": "/framework/core/Page/overview/mounts/",
+      "group": "direct-demo.app",
+      "tree_shape": "local-fabricated",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "sibling/owner/regioned trees, root 'Parent', fake"
+    },
+    {
+      "id": "A042",
+      "call_site": "public/framework/core/Page/overview/columns/examples/looks/backgrounds/page.js:29",
+      "page_url": "/framework/core/Page/overview/columns/examples/looks/backgrounds/",
+      "group": "direct-demo.app",
+      "tree_shape": "local-fabricated",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "pair() trees, root e.g. 'Ambient'/'Tint'/'Surface', fake"
+    },
+    {
+      "id": "A043",
+      "call_site": "public/framework/core/Page/overview/columns/examples/looks/scrollbars/page.js:41",
+      "page_url": "/framework/core/Page/overview/columns/examples/looks/scrollbars/",
+      "group": "direct-demo.app",
+      "tree_shape": "local-fabricated",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "tree()/connected(), root 'Broken'/'Fixed'/'Rail', fake"
+    },
+    {
+      "id": "A044",
+      "call_site": "public/framework/core/Page/overview/columns/examples/looks/padding/page.js:24",
+      "page_url": "/framework/core/Page/overview/columns/examples/looks/padding/",
+      "group": "direct-demo.app",
+      "tree_shape": "local-fabricated",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "grid() trees, root 'Padded'/'Flush', fake"
+    },
+    {
+      "id": "A045",
+      "call_site": "public/framework/core/Page/old/shell/page.js:28",
+      "page_url": "/framework/core/Page/old/shell/",
+      "group": "direct-demo.app",
+      "tree_shape": "local-fabricated",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "new Page({...}) inline, fake (legacy duplicate of a current overview page)"
+    },
+    {
+      "id": "A046",
+      "call_site": "public/framework/core/Page/old/previews/page.js:31",
+      "page_url": "/framework/core/Page/old/previews/",
+      "group": "direct-demo.app",
+      "tree_shape": "local-fabricated",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "gallery tree, fake (legacy duplicate)"
+    },
+    {
+      "id": "A047",
+      "call_site": "public/framework/core/Page/old/children/page.js:70",
+      "page_url": "/framework/core/Page/old/children/",
+      "group": "direct-demo.app",
+      "tree_shape": "sample-alias",
+      "href_kind": "aliased-dead",
+      "verdict": "wants_urls_false",
+      "note": "sample() root 'Web' aliases real /web/ (legacy duplicate)"
+    },
+    {
+      "id": "B048",
+      "call_site": "public/web/nav/wall/page.js:40",
+      "page_url": "/web/nav/wall/",
+      "group": "demo.tree-sugar",
+      "tree_shape": "demo.tree({tree:...}) -> exhibit.js:174 demo.app(this.tree(),{nav,shown})",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "fabricated site tree, own fictional root title (Shelf/Acme/Gallery/etc); confirmed via headless: /shelf/ -> client 404"
+    },
+    {
+      "id": "B049",
+      "call_site": "public/web/nav/sidebar/page.js:53",
+      "page_url": "/web/nav/sidebar/",
+      "group": "demo.tree-sugar",
+      "tree_shape": "demo.tree({tree:...}) -> exhibit.js:174 demo.app(this.tree(),{nav,shown})",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "fabricated site tree, own fictional root title (Shelf/Acme/Gallery/etc); confirmed via headless: /shelf/ -> client 404"
+    },
+    {
+      "id": "B050",
+      "call_site": "public/web/nav/bar/page.js:42",
+      "page_url": "/web/nav/bar/",
+      "group": "demo.tree-sugar",
+      "tree_shape": "demo.tree({tree:...}) -> exhibit.js:174 demo.app(this.tree(),{nav,shown})",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "fabricated site tree, own fictional root title (Shelf/Acme/Gallery/etc); confirmed via headless: /shelf/ -> client 404"
+    },
+    {
+      "id": "B051",
+      "call_site": "public/web/nav/footer/page.js:39",
+      "page_url": "/web/nav/footer/",
+      "group": "demo.tree-sugar",
+      "tree_shape": "demo.tree({tree:...}) -> exhibit.js:174 demo.app(this.tree(),{nav,shown})",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "fabricated site tree, own fictional root title (Shelf/Acme/Gallery/etc); confirmed via headless: /shelf/ -> client 404"
+    },
+    {
+      "id": "B052",
+      "call_site": "public/web/nav/rail/page.js:22",
+      "page_url": "/web/nav/rail/",
+      "group": "demo.tree-sugar",
+      "tree_shape": "demo.tree({tree:...}) -> exhibit.js:174 demo.app(this.tree(),{nav,shown})",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "fabricated site tree, own fictional root title (Shelf/Acme/Gallery/etc); confirmed via headless: /shelf/ -> client 404"
+    },
+    {
+      "id": "B053",
+      "call_site": "public/web/nav/links/page.js:23",
+      "page_url": "/web/nav/links/",
+      "group": "demo.tree-sugar",
+      "tree_shape": "demo.tree({tree:...}) -> exhibit.js:174 demo.app(this.tree(),{nav,shown})",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "fabricated site tree, own fictional root title (Shelf/Acme/Gallery/etc); confirmed via headless: /shelf/ -> client 404"
+    },
+    {
+      "id": "B054",
+      "call_site": "public/web/nav/drawer/page.js:58",
+      "page_url": "/web/nav/drawer/",
+      "group": "demo.tree-sugar",
+      "tree_shape": "demo.tree({tree:...}) -> exhibit.js:174 demo.app(this.tree(),{nav,shown})",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "fabricated site tree, own fictional root title (Shelf/Acme/Gallery/etc); confirmed via headless: /shelf/ -> client 404"
+    },
+    {
+      "id": "B055",
+      "call_site": "public/web/nav/crumbs/page.js:39",
+      "page_url": "/web/nav/crumbs/",
+      "group": "demo.tree-sugar",
+      "tree_shape": "demo.tree({tree:...}) -> exhibit.js:174 demo.app(this.tree(),{nav,shown})",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "fabricated site tree, own fictional root title (Shelf/Acme/Gallery/etc); confirmed via headless: /shelf/ -> client 404"
+    },
+    {
+      "id": "B056",
+      "call_site": "public/web/layout/screens/page.js:81",
+      "page_url": "/web/layout/screens/",
+      "group": "demo.tree-sugar",
+      "tree_shape": "demo.tree({tree:...}) -> exhibit.js:174 demo.app(this.tree(),{nav,shown})",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "fabricated site tree, own fictional root title (Shelf/Acme/Gallery/etc); confirmed via headless: /shelf/ -> client 404"
+    },
+    {
+      "id": "B057",
+      "call_site": "public/framework/core/Page/overview/wall/page.js:21",
+      "page_url": "/framework/core/Page/overview/wall/",
+      "group": "demo.tree-sugar",
+      "tree_shape": "demo.tree({tree:...}) -> exhibit.js:174 demo.app(this.tree(),{nav,shown})",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "fabricated site tree, own fictional root title (Shelf/Acme/Gallery/etc); confirmed via headless: /shelf/ -> client 404"
+    },
+    {
+      "id": "B058",
+      "call_site": "public/framework/core/Page/overview/vtabs/page.js:15",
+      "page_url": "/framework/core/Page/overview/vtabs/",
+      "group": "demo.tree-sugar",
+      "tree_shape": "demo.tree({tree:...}) -> exhibit.js:174 demo.app(this.tree(),{nav,shown})",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "fabricated site tree, own fictional root title (Shelf/Acme/Gallery/etc); confirmed via headless: /shelf/ -> client 404"
+    },
+    {
+      "id": "B059",
+      "call_site": "public/framework/core/Page/overview/tabs/page.js:17",
+      "page_url": "/framework/core/Page/overview/tabs/",
+      "group": "demo.tree-sugar",
+      "tree_shape": "demo.tree({tree:...}) -> exhibit.js:174 demo.app(this.tree(),{nav,shown})",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "fabricated site tree, own fictional root title (Shelf/Acme/Gallery/etc); confirmed via headless: /shelf/ -> client 404"
+    },
+    {
+      "id": "B060",
+      "call_site": "public/framework/core/Page/overview/strip/page.js:28",
+      "page_url": "/framework/core/Page/overview/strip/",
+      "group": "demo.tree-sugar",
+      "tree_shape": "demo.tree({tree:...}) -> exhibit.js:174 demo.app(this.tree(),{nav,shown})",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "fabricated site tree, own fictional root title (Shelf/Acme/Gallery/etc); confirmed via headless: /shelf/ -> client 404"
+    },
+    {
+      "id": "B061",
+      "call_site": "public/framework/core/Page/overview/site/page.js:77",
+      "page_url": "/framework/core/Page/overview/site/",
+      "group": "demo.tree-sugar",
+      "tree_shape": "demo.tree({tree:...}) -> exhibit.js:174 demo.app(this.tree(),{nav,shown})",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "fabricated site tree, own fictional root title (Shelf/Acme/Gallery/etc); confirmed via headless: /shelf/ -> client 404"
+    },
+    {
+      "id": "B062",
+      "call_site": "public/framework/core/Page/overview/route/page.js:23",
+      "page_url": "/framework/core/Page/overview/route/",
+      "group": "demo.tree-sugar",
+      "tree_shape": "demo.tree({tree:...}) -> exhibit.js:174 demo.app(this.tree(),{nav,shown})",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "fabricated site tree, own fictional root title (Shelf/Acme/Gallery/etc); confirmed via headless: /shelf/ -> client 404"
+    },
+    {
+      "id": "B063",
+      "call_site": "public/framework/core/Page/overview/rail/page.js:21",
+      "page_url": "/framework/core/Page/overview/rail/",
+      "group": "demo.tree-sugar",
+      "tree_shape": "demo.tree({tree:...}) -> exhibit.js:174 demo.app(this.tree(),{nav,shown})",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "fabricated site tree, own fictional root title (Shelf/Acme/Gallery/etc); confirmed via headless: /shelf/ -> client 404"
+    },
+    {
+      "id": "B064",
+      "call_site": "public/framework/core/Page/overview/prose/page.js:14",
+      "page_url": "/framework/core/Page/overview/prose/",
+      "group": "demo.tree-sugar",
+      "tree_shape": "demo.tree({tree:...}) -> exhibit.js:174 demo.app(this.tree(),{nav,shown})",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "fabricated site tree, own fictional root title (Shelf/Acme/Gallery/etc); confirmed via headless: /shelf/ -> client 404"
+    },
+    {
+      "id": "B065",
+      "call_site": "public/framework/core/Page/overview/page/page.js:11",
+      "page_url": "/framework/core/Page/overview/page/",
+      "group": "demo.tree-sugar",
+      "tree_shape": "demo.tree({tree:...}) -> exhibit.js:174 demo.app(this.tree(),{nav,shown})",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "fabricated site tree, own fictional root title (Shelf/Acme/Gallery/etc); confirmed via headless: /shelf/ -> client 404"
+    },
+    {
+      "id": "B066",
+      "call_site": "public/framework/core/Page/overview/list/page.js:20",
+      "page_url": "/framework/core/Page/overview/list/",
+      "group": "demo.tree-sugar",
+      "tree_shape": "demo.tree({tree:...}) -> exhibit.js:174 demo.app(this.tree(),{nav,shown})",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "fabricated site tree, own fictional root title (Shelf/Acme/Gallery/etc); confirmed via headless: /shelf/ -> client 404"
+    },
+    {
+      "id": "B067",
+      "call_site": "public/framework/core/Page/overview/landing/page.js:23",
+      "page_url": "/framework/core/Page/overview/landing/",
+      "group": "demo.tree-sugar",
+      "tree_shape": "demo.tree({tree:...}) -> exhibit.js:174 demo.app(this.tree(),{nav,shown})",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "fabricated site tree, own fictional root title (Shelf/Acme/Gallery/etc); confirmed via headless: /shelf/ -> client 404"
+    },
+    {
+      "id": "B068",
+      "call_site": "public/framework/core/Page/overview/dashboard/page.js:45",
+      "page_url": "/framework/core/Page/overview/dashboard/",
+      "group": "demo.tree-sugar",
+      "tree_shape": "demo.tree({tree:...}) -> exhibit.js:174 demo.app(this.tree(),{nav,shown})",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "fabricated site tree, own fictional root title (Shelf/Acme/Gallery/etc); confirmed via headless: /shelf/ -> client 404"
+    },
+    {
+      "id": "B069",
+      "call_site": "public/framework/core/Page/overview/labels/page.js:51",
+      "page_url": "/framework/core/Page/overview/labels/",
+      "group": "demo.tree-sugar",
+      "tree_shape": "demo.tree({tree:...}) -> exhibit.js:174 demo.app(this.tree(),{nav,shown})",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "fabricated site tree, own fictional root title (Shelf/Acme/Gallery/etc); confirmed via headless: /shelf/ -> client 404"
+    },
+    {
+      "id": "B070",
+      "call_site": "public/framework/core/Page/overview/crumbs/page.js:25",
+      "page_url": "/framework/core/Page/overview/crumbs/",
+      "group": "demo.tree-sugar",
+      "tree_shape": "demo.tree({tree:...}) -> exhibit.js:174 demo.app(this.tree(),{nav,shown})",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "fabricated site tree, own fictional root title (Shelf/Acme/Gallery/etc); confirmed via headless: /shelf/ -> client 404"
+    },
+    {
+      "id": "B071",
+      "call_site": "public/framework/core/Page/overview/grid/page.js:19",
+      "page_url": "/framework/core/Page/overview/grid/",
+      "group": "demo.tree-sugar",
+      "tree_shape": "demo.tree({tree:...}) -> exhibit.js:174 demo.app(this.tree(),{nav,shown})",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "fabricated site tree, own fictional root title (Shelf/Acme/Gallery/etc); confirmed via headless: /shelf/ -> client 404"
+    },
+    {
+      "id": "B072",
+      "call_site": "public/framework/core/Page/overview/flush/page.js:21",
+      "page_url": "/framework/core/Page/overview/flush/",
+      "group": "demo.tree-sugar",
+      "tree_shape": "demo.tree({tree:...}) -> exhibit.js:174 demo.app(this.tree(),{nav,shown})",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "fabricated site tree, own fictional root title (Shelf/Acme/Gallery/etc); confirmed via headless: /shelf/ -> client 404"
+    },
+    {
+      "id": "B073",
+      "call_site": "public/framework/core/Page/overview/docs/page.js:52",
+      "page_url": "/framework/core/Page/overview/docs/",
+      "group": "demo.tree-sugar",
+      "tree_shape": "demo.tree({tree:...}) -> exhibit.js:174 demo.app(this.tree(),{nav,shown})",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "fabricated site tree, own fictional root title (Shelf/Acme/Gallery/etc); confirmed via headless: /shelf/ -> client 404"
+    },
+    {
+      "id": "B074",
+      "call_site": "public/framework/core/Page/overview/columns/page.js:59",
+      "page_url": "/framework/core/Page/overview/columns/",
+      "group": "demo.tree-sugar",
+      "tree_shape": "demo.tree({tree:...}) -> exhibit.js:174 demo.app(this.tree(),{nav,shown})",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "fabricated site tree, own fictional root title (Shelf/Acme/Gallery/etc); confirmed via headless: /shelf/ -> client 404"
+    },
+    {
+      "id": "B075",
+      "call_site": "public/framework/core/Page/overview/children/page.js:31",
+      "page_url": "/framework/core/Page/overview/children/",
+      "group": "demo.tree-sugar",
+      "tree_shape": "demo.tree({tree:...}) -> exhibit.js:174 demo.app(this.tree(),{nav,shown})",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "fabricated site tree, own fictional root title (Shelf/Acme/Gallery/etc); confirmed via headless: /shelf/ -> client 404"
+    },
+    {
+      "id": "B076",
+      "call_site": "public/framework/core/Page/overview/catalog/page.js:32",
+      "page_url": "/framework/core/Page/overview/catalog/",
+      "group": "demo.tree-sugar",
+      "tree_shape": "demo.tree({tree:...}) -> exhibit.js:174 demo.app(this.tree(),{nav,shown})",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "fabricated site tree, own fictional root title (Shelf/Acme/Gallery/etc); confirmed via headless: /shelf/ -> client 404"
+    },
+    {
+      "id": "B077",
+      "call_site": "public/framework/core/Page/old/overview/wall/page.js:21",
+      "page_url": "/framework/core/Page/old/overview/wall/",
+      "group": "demo.tree-sugar",
+      "tree_shape": "demo.tree({tree:...}) -> exhibit.js:174 demo.app(this.tree(),{nav,shown})",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "fabricated site tree, own fictional root title (Shelf/Acme/Gallery/etc); confirmed via headless: /shelf/ -> client 404"
+    },
+    {
+      "id": "B078",
+      "call_site": "public/framework/core/Page/old/overview/strip/page.js:28",
+      "page_url": "/framework/core/Page/old/overview/strip/",
+      "group": "demo.tree-sugar",
+      "tree_shape": "demo.tree({tree:...}) -> exhibit.js:174 demo.app(this.tree(),{nav,shown})",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "fabricated site tree, own fictional root title (Shelf/Acme/Gallery/etc); confirmed via headless: /shelf/ -> client 404"
+    },
+    {
+      "id": "B079",
+      "call_site": "public/framework/core/Page/old/overview/site/page.js:77",
+      "page_url": "/framework/core/Page/old/overview/site/",
+      "group": "demo.tree-sugar",
+      "tree_shape": "demo.tree({tree:...}) -> exhibit.js:174 demo.app(this.tree(),{nav,shown})",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "fabricated site tree, own fictional root title (Shelf/Acme/Gallery/etc); confirmed via headless: /shelf/ -> client 404"
+    },
+    {
+      "id": "B080",
+      "call_site": "public/framework/core/Page/old/overview/shapes/page.js:41",
+      "page_url": "/framework/core/Page/old/overview/shapes/",
+      "group": "demo.tree-sugar",
+      "tree_shape": "demo.tree({tree:...}) -> exhibit.js:174 demo.app(this.tree(),{nav,shown})",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "fabricated site tree, own fictional root title (Shelf/Acme/Gallery/etc); confirmed via headless: /shelf/ -> client 404"
+    },
+    {
+      "id": "B081",
+      "call_site": "public/framework/core/Page/old/overview/route/page.js:23",
+      "page_url": "/framework/core/Page/old/overview/route/",
+      "group": "demo.tree-sugar",
+      "tree_shape": "demo.tree({tree:...}) -> exhibit.js:174 demo.app(this.tree(),{nav,shown})",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "fabricated site tree, own fictional root title (Shelf/Acme/Gallery/etc); confirmed via headless: /shelf/ -> client 404"
+    },
+    {
+      "id": "B082",
+      "call_site": "public/framework/core/Page/old/overview/page/page.js:11",
+      "page_url": "/framework/core/Page/old/overview/page/",
+      "group": "demo.tree-sugar",
+      "tree_shape": "demo.tree({tree:...}) -> exhibit.js:174 demo.app(this.tree(),{nav,shown})",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "fabricated site tree, own fictional root title (Shelf/Acme/Gallery/etc); confirmed via headless: /shelf/ -> client 404"
+    },
+    {
+      "id": "B083",
+      "call_site": "public/framework/core/Page/old/overview/landing/page.js:23",
+      "page_url": "/framework/core/Page/old/overview/landing/",
+      "group": "demo.tree-sugar",
+      "tree_shape": "demo.tree({tree:...}) -> exhibit.js:174 demo.app(this.tree(),{nav,shown})",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "fabricated site tree, own fictional root title (Shelf/Acme/Gallery/etc); confirmed via headless: /shelf/ -> client 404"
+    },
+    {
+      "id": "B084",
+      "call_site": "public/framework/core/Page/old/overview/labels/page.js:51",
+      "page_url": "/framework/core/Page/old/overview/labels/",
+      "group": "demo.tree-sugar",
+      "tree_shape": "demo.tree({tree:...}) -> exhibit.js:174 demo.app(this.tree(),{nav,shown})",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "fabricated site tree, own fictional root title (Shelf/Acme/Gallery/etc); confirmed via headless: /shelf/ -> client 404"
+    },
+    {
+      "id": "B085",
+      "call_site": "public/framework/core/Page/old/overview/docs/page.js:52",
+      "page_url": "/framework/core/Page/old/overview/docs/",
+      "group": "demo.tree-sugar",
+      "tree_shape": "demo.tree({tree:...}) -> exhibit.js:174 demo.app(this.tree(),{nav,shown})",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "fabricated site tree, own fictional root title (Shelf/Acme/Gallery/etc); confirmed via headless: /shelf/ -> client 404"
+    },
+    {
+      "id": "B086",
+      "call_site": "public/framework/core/Page/old/overview/deep/page.js:47",
+      "page_url": "/framework/core/Page/old/overview/deep/",
+      "group": "demo.tree-sugar",
+      "tree_shape": "demo.tree({tree:...}) -> exhibit.js:174 demo.app(this.tree(),{nav,shown})",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "fabricated site tree, own fictional root title (Shelf/Acme/Gallery/etc); confirmed via headless: /shelf/ -> client 404"
+    },
+    {
+      "id": "B087",
+      "call_site": "public/framework/core/Page/old/overview/dashboard/page.js:45",
+      "page_url": "/framework/core/Page/old/overview/dashboard/",
+      "group": "demo.tree-sugar",
+      "tree_shape": "demo.tree({tree:...}) -> exhibit.js:174 demo.app(this.tree(),{nav,shown})",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "fabricated site tree, own fictional root title (Shelf/Acme/Gallery/etc); confirmed via headless: /shelf/ -> client 404"
+    },
+    {
+      "id": "B088",
+      "call_site": "public/framework/core/Page/old/overview/children/page.js:31",
+      "page_url": "/framework/core/Page/old/overview/children/",
+      "group": "demo.tree-sugar",
+      "tree_shape": "demo.tree({tree:...}) -> exhibit.js:174 demo.app(this.tree(),{nav,shown})",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "fabricated site tree, own fictional root title (Shelf/Acme/Gallery/etc); confirmed via headless: /shelf/ -> client 404"
+    },
+    {
+      "id": "B089",
+      "call_site": "public/framework/core/Page/old/overview/catalog/page.js:32",
+      "page_url": "/framework/core/Page/old/overview/catalog/",
+      "group": "demo.tree-sugar",
+      "tree_shape": "demo.tree({tree:...}) -> exhibit.js:174 demo.app(this.tree(),{nav,shown})",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "fabricated site tree, own fictional root title (Shelf/Acme/Gallery/etc); confirmed via headless: /shelf/ -> client 404"
+    },
+    {
+      "id": "B090",
+      "call_site": "public/framework/core/Page/old/overview/add/page.js:39",
+      "page_url": "/framework/core/Page/old/overview/add/",
+      "group": "demo.tree-sugar",
+      "tree_shape": "demo.tree({tree:...}) -> exhibit.js:174 demo.app(this.tree(),{nav,shown})",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "fabricated site tree, own fictional root title (Shelf/Acme/Gallery/etc); confirmed via headless: /shelf/ -> client 404"
+    },
+    {
+      "id": "B091",
+      "call_site": "public/framework/ai/2026-08-12/apps/columns/page.js:5",
+      "page_url": "/framework/ai/2026-08-12/apps/columns/",
+      "group": "demo.tree-sugar",
+      "tree_shape": "demo.tree({tree:...}) -> exhibit.js:174 demo.app(this.tree(),{nav,shown})",
+      "href_kind": "dead",
+      "verdict": "wants_urls_false",
+      "note": "fabricated site tree, own fictional root title (Shelf/Acme/Gallery/etc); confirmed via headless: /shelf/ -> client 404"
+    }
+  ]
+}

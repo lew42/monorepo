@@ -1,0 +1,2486 @@
+diff --git a/public/framework/ai/2026-08-17/day-page-ux/files.jsonl b/public/framework/ai/2026-08-17/day-page-ux/files.jsonl
+index 62338758..b7667999 100644
+--- a/public/framework/ai/2026-08-17/day-page-ux/files.jsonl
++++ b/public/framework/ai/2026-08-17/day-page-ux/files.jsonl
+@@ -30,3 +30,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-08-17/designtool-ui-build/files.jsonl b/public/framework/ai/2026-08-17/designtool-ui-build/files.jsonl
+index f16c0c32..17ca3772 100644
+--- a/public/framework/ai/2026-08-17/designtool-ui-build/files.jsonl
++++ b/public/framework/ai/2026-08-17/designtool-ui-build/files.jsonl
+@@ -6,3 +6,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-08-17/designtool-ui/files.jsonl b/public/framework/ai/2026-08-17/designtool-ui/files.jsonl
+index 4bdbf48d..c69acfc1 100644
+--- a/public/framework/ai/2026-08-17/designtool-ui/files.jsonl
++++ b/public/framework/ai/2026-08-17/designtool-ui/files.jsonl
+@@ -8,3 +8,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-08-17/layout-wave-2/files.jsonl b/public/framework/ai/2026-08-17/layout-wave-2/files.jsonl
+index 10475be0..aa12497a 100644
+--- a/public/framework/ai/2026-08-17/layout-wave-2/files.jsonl
++++ b/public/framework/ai/2026-08-17/layout-wave-2/files.jsonl
+@@ -7,3 +7,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-08-17/layout-wave-3/files.jsonl b/public/framework/ai/2026-08-17/layout-wave-3/files.jsonl
+index 33633659..01b46b7f 100644
+--- a/public/framework/ai/2026-08-17/layout-wave-3/files.jsonl
++++ b/public/framework/ai/2026-08-17/layout-wave-3/files.jsonl
+@@ -8,3 +8,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-08-17/vision-after/files.jsonl b/public/framework/ai/2026-08-17/vision-after/files.jsonl
+index f292e989..67438857 100644
+--- a/public/framework/ai/2026-08-17/vision-after/files.jsonl
++++ b/public/framework/ai/2026-08-17/vision-after/files.jsonl
+@@ -6,3 +6,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-08-17/vision-browse/files.jsonl b/public/framework/ai/2026-08-17/vision-browse/files.jsonl
+index 37f20a2f..3b72ee5b 100644
+--- a/public/framework/ai/2026-08-17/vision-browse/files.jsonl
++++ b/public/framework/ai/2026-08-17/vision-browse/files.jsonl
+@@ -6,3 +6,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-08-17/vision-direction/files.jsonl b/public/framework/ai/2026-08-17/vision-direction/files.jsonl
+index 88e930be..66d4ee30 100644
+--- a/public/framework/ai/2026-08-17/vision-direction/files.jsonl
++++ b/public/framework/ai/2026-08-17/vision-direction/files.jsonl
+@@ -8,3 +8,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-08-17/vision-fixes/files.jsonl b/public/framework/ai/2026-08-17/vision-fixes/files.jsonl
+index 1e0481a6..cb49d959 100644
+--- a/public/framework/ai/2026-08-17/vision-fixes/files.jsonl
++++ b/public/framework/ai/2026-08-17/vision-fixes/files.jsonl
+@@ -7,3 +7,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-08-17/vision-pilot/files.jsonl b/public/framework/ai/2026-08-17/vision-pilot/files.jsonl
+index 9fae090e..7fa98b0d 100644
+--- a/public/framework/ai/2026-08-17/vision-pilot/files.jsonl
++++ b/public/framework/ai/2026-08-17/vision-pilot/files.jsonl
+@@ -5,3 +5,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-08-17/vision-remeasure/files.jsonl b/public/framework/ai/2026-08-17/vision-remeasure/files.jsonl
+index 543aa03d..35da6ab5 100644
+--- a/public/framework/ai/2026-08-17/vision-remeasure/files.jsonl
++++ b/public/framework/ai/2026-08-17/vision-remeasure/files.jsonl
+@@ -6,3 +6,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-08-17/vision-sweep/files.jsonl b/public/framework/ai/2026-08-17/vision-sweep/files.jsonl
+index 2d33117a..d6ed7655 100644
+--- a/public/framework/ai/2026-08-17/vision-sweep/files.jsonl
++++ b/public/framework/ai/2026-08-17/vision-sweep/files.jsonl
+@@ -7,3 +7,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-08-18/figma-home/files.jsonl b/public/framework/ai/2026-08-18/figma-home/files.jsonl
+index f16c0c32..17ca3772 100644
+--- a/public/framework/ai/2026-08-18/figma-home/files.jsonl
++++ b/public/framework/ai/2026-08-18/figma-home/files.jsonl
+@@ -6,3 +6,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-08-18/figma-spec-sheet/files.jsonl b/public/framework/ai/2026-08-18/figma-spec-sheet/files.jsonl
+index 09c8c2c6..a8b57ceb 100644
+--- a/public/framework/ai/2026-08-18/figma-spec-sheet/files.jsonl
++++ b/public/framework/ai/2026-08-18/figma-spec-sheet/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-08-18/figma/files.jsonl b/public/framework/ai/2026-08-18/figma/files.jsonl
+index 47729fa1..2b3155fe 100644
+--- a/public/framework/ai/2026-08-18/figma/files.jsonl
++++ b/public/framework/ai/2026-08-18/figma/files.jsonl
+@@ -32,3 +32,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-08-18/layout-anatomy/files.jsonl b/public/framework/ai/2026-08-18/layout-anatomy/files.jsonl
+index f16c0c32..17ca3772 100644
+--- a/public/framework/ai/2026-08-18/layout-anatomy/files.jsonl
++++ b/public/framework/ai/2026-08-18/layout-anatomy/files.jsonl
+@@ -6,3 +6,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-08-29/feeds-lab/files.jsonl b/public/framework/ai/2026-08-29/feeds-lab/files.jsonl
+index 822e2cf6..86242764 100644
+--- a/public/framework/ai/2026-08-29/feeds-lab/files.jsonl
++++ b/public/framework/ai/2026-08-29/feeds-lab/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-08-29/imagine-tidy/files.jsonl b/public/framework/ai/2026-08-29/imagine-tidy/files.jsonl
+index 554cc567..64e72c97 100644
+--- a/public/framework/ai/2026-08-29/imagine-tidy/files.jsonl
++++ b/public/framework/ai/2026-08-29/imagine-tidy/files.jsonl
+@@ -5,3 +5,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-08-29/screens-comp/files.jsonl b/public/framework/ai/2026-08-29/screens-comp/files.jsonl
+index 822e2cf6..86242764 100644
+--- a/public/framework/ai/2026-08-29/screens-comp/files.jsonl
++++ b/public/framework/ai/2026-08-29/screens-comp/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-08-29/screens-lab/files.jsonl b/public/framework/ai/2026-08-29/screens-lab/files.jsonl
+index 822e2cf6..86242764 100644
+--- a/public/framework/ai/2026-08-29/screens-lab/files.jsonl
++++ b/public/framework/ai/2026-08-29/screens-lab/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-08-29/shells-lab/files.jsonl b/public/framework/ai/2026-08-29/shells-lab/files.jsonl
+index 822e2cf6..86242764 100644
+--- a/public/framework/ai/2026-08-29/shells-lab/files.jsonl
++++ b/public/framework/ai/2026-08-29/shells-lab/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-08-29/sweep-400/files.jsonl b/public/framework/ai/2026-08-29/sweep-400/files.jsonl
+index 575fa19a..c0ac6d6f 100644
+--- a/public/framework/ai/2026-08-29/sweep-400/files.jsonl
++++ b/public/framework/ai/2026-08-29/sweep-400/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-08-29/vary-labs/files.jsonl b/public/framework/ai/2026-08-29/vary-labs/files.jsonl
+index 822e2cf6..86242764 100644
+--- a/public/framework/ai/2026-08-29/vary-labs/files.jsonl
++++ b/public/framework/ai/2026-08-29/vary-labs/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-08-30/audit-fixes/files.jsonl b/public/framework/ai/2026-08-30/audit-fixes/files.jsonl
+index 822e2cf6..86242764 100644
+--- a/public/framework/ai/2026-08-30/audit-fixes/files.jsonl
++++ b/public/framework/ai/2026-08-30/audit-fixes/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-08-30/blog-layouts/files.jsonl b/public/framework/ai/2026-08-30/blog-layouts/files.jsonl
+index 822e2cf6..86242764 100644
+--- a/public/framework/ai/2026-08-30/blog-layouts/files.jsonl
++++ b/public/framework/ai/2026-08-30/blog-layouts/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-08-30/cms-thinking/files.jsonl b/public/framework/ai/2026-08-30/cms-thinking/files.jsonl
+index 822e2cf6..86242764 100644
+--- a/public/framework/ai/2026-08-30/cms-thinking/files.jsonl
++++ b/public/framework/ai/2026-08-30/cms-thinking/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-08-30/col-styles/files.jsonl b/public/framework/ai/2026-08-30/col-styles/files.jsonl
+index 822e2cf6..86242764 100644
+--- a/public/framework/ai/2026-08-30/col-styles/files.jsonl
++++ b/public/framework/ai/2026-08-30/col-styles/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-08-30/cols-lab/files.jsonl b/public/framework/ai/2026-08-30/cols-lab/files.jsonl
+index 822e2cf6..86242764 100644
+--- a/public/framework/ai/2026-08-30/cols-lab/files.jsonl
++++ b/public/framework/ai/2026-08-30/cols-lab/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-08-30/critique-imagine/files.jsonl b/public/framework/ai/2026-08-30/critique-imagine/files.jsonl
+index 822e2cf6..86242764 100644
+--- a/public/framework/ai/2026-08-30/critique-imagine/files.jsonl
++++ b/public/framework/ai/2026-08-30/critique-imagine/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-08-30/critique-web-resume/files.jsonl b/public/framework/ai/2026-08-30/critique-web-resume/files.jsonl
+index 822e2cf6..86242764 100644
+--- a/public/framework/ai/2026-08-30/critique-web-resume/files.jsonl
++++ b/public/framework/ai/2026-08-30/critique-web-resume/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-08-30/decks-lab/files.jsonl b/public/framework/ai/2026-08-30/decks-lab/files.jsonl
+index 822e2cf6..86242764 100644
+--- a/public/framework/ai/2026-08-30/decks-lab/files.jsonl
++++ b/public/framework/ai/2026-08-30/decks-lab/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-08-30/homepage/files.jsonl b/public/framework/ai/2026-08-30/homepage/files.jsonl
+index 822e2cf6..86242764 100644
+--- a/public/framework/ai/2026-08-30/homepage/files.jsonl
++++ b/public/framework/ai/2026-08-30/homepage/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-08-30/root-folds/files.jsonl b/public/framework/ai/2026-08-30/root-folds/files.jsonl
+index 822e2cf6..86242764 100644
+--- a/public/framework/ai/2026-08-30/root-folds/files.jsonl
++++ b/public/framework/ai/2026-08-30/root-folds/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-08-30/site-audit/files.jsonl b/public/framework/ai/2026-08-30/site-audit/files.jsonl
+index ce92a65c..a8f95a3c 100644
+--- a/public/framework/ai/2026-08-30/site-audit/files.jsonl
++++ b/public/framework/ai/2026-08-30/site-audit/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-08-30/web-resume-fixes/files.jsonl b/public/framework/ai/2026-08-30/web-resume-fixes/files.jsonl
+index 822e2cf6..86242764 100644
+--- a/public/framework/ai/2026-08-30/web-resume-fixes/files.jsonl
++++ b/public/framework/ai/2026-08-30/web-resume-fixes/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-08-31/improve-game-team/files.jsonl b/public/framework/ai/2026-08-31/improve-game-team/files.jsonl
+index 822e2cf6..86242764 100644
+--- a/public/framework/ai/2026-08-31/improve-game-team/files.jsonl
++++ b/public/framework/ai/2026-08-31/improve-game-team/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-08-31/mag-game-round-2/files.jsonl b/public/framework/ai/2026-08-31/mag-game-round-2/files.jsonl
+index 822e2cf6..86242764 100644
+--- a/public/framework/ai/2026-08-31/mag-game-round-2/files.jsonl
++++ b/public/framework/ai/2026-08-31/mag-game-round-2/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-04/imagine-review/files.jsonl b/public/framework/ai/2026-09-04/imagine-review/files.jsonl
+index 259d976d..42314686 100644
+--- a/public/framework/ai/2026-09-04/imagine-review/files.jsonl
++++ b/public/framework/ai/2026-09-04/imagine-review/files.jsonl
+@@ -6,3 +6,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-04/omnibox-prototype/files.jsonl b/public/framework/ai/2026-09-04/omnibox-prototype/files.jsonl
+index a9805132..2de38501 100644
+--- a/public/framework/ai/2026-09-04/omnibox-prototype/files.jsonl
++++ b/public/framework/ai/2026-09-04/omnibox-prototype/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-04/paging-clarity/files.jsonl b/public/framework/ai/2026-09-04/paging-clarity/files.jsonl
+index 822e2cf6..86242764 100644
+--- a/public/framework/ai/2026-09-04/paging-clarity/files.jsonl
++++ b/public/framework/ai/2026-09-04/paging-clarity/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-04/paging-core/files.jsonl b/public/framework/ai/2026-09-04/paging-core/files.jsonl
+index 822e2cf6..86242764 100644
+--- a/public/framework/ai/2026-09-04/paging-core/files.jsonl
++++ b/public/framework/ai/2026-09-04/paging-core/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-04/paging-explorer/files.jsonl b/public/framework/ai/2026-09-04/paging-explorer/files.jsonl
+index 3a2c345f..4e57b24d 100644
+--- a/public/framework/ai/2026-09-04/paging-explorer/files.jsonl
++++ b/public/framework/ai/2026-09-04/paging-explorer/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-04/paging-rightnav/files.jsonl b/public/framework/ai/2026-09-04/paging-rightnav/files.jsonl
+index 822e2cf6..86242764 100644
+--- a/public/framework/ai/2026-09-04/paging-rightnav/files.jsonl
++++ b/public/framework/ai/2026-09-04/paging-rightnav/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-04/paging-toolbars/files.jsonl b/public/framework/ai/2026-09-04/paging-toolbars/files.jsonl
+index 822e2cf6..86242764 100644
+--- a/public/framework/ai/2026-09-04/paging-toolbars/files.jsonl
++++ b/public/framework/ai/2026-09-04/paging-toolbars/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-04/realm-alternates/files.jsonl b/public/framework/ai/2026-09-04/realm-alternates/files.jsonl
+index 822e2cf6..86242764 100644
+--- a/public/framework/ai/2026-09-04/realm-alternates/files.jsonl
++++ b/public/framework/ai/2026-09-04/realm-alternates/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/codrops-2/files.jsonl b/public/framework/ai/2026-09-05/codrops-2/files.jsonl
+index bb2a0234..9c7712f0 100644
+--- a/public/framework/ai/2026-09-05/codrops-2/files.jsonl
++++ b/public/framework/ai/2026-09-05/codrops-2/files.jsonl
+@@ -2,3 +2,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/codrops-3/files.jsonl b/public/framework/ai/2026-09-05/codrops-3/files.jsonl
+index bb2a0234..9c7712f0 100644
+--- a/public/framework/ai/2026-09-05/codrops-3/files.jsonl
++++ b/public/framework/ai/2026-09-05/codrops-3/files.jsonl
+@@ -2,3 +2,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/codrops-4/files.jsonl b/public/framework/ai/2026-09-05/codrops-4/files.jsonl
+index bb2a0234..9c7712f0 100644
+--- a/public/framework/ai/2026-09-05/codrops-4/files.jsonl
++++ b/public/framework/ai/2026-09-05/codrops-4/files.jsonl
+@@ -2,3 +2,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/codrops/files.jsonl b/public/framework/ai/2026-09-05/codrops/files.jsonl
+index a71bcd0f..6e1cbf39 100644
+--- a/public/framework/ai/2026-09-05/codrops/files.jsonl
++++ b/public/framework/ai/2026-09-05/codrops/files.jsonl
+@@ -7,3 +7,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/paging-audit-1/files.jsonl b/public/framework/ai/2026-09-05/paging-audit-1/files.jsonl
+index a9805132..2de38501 100644
+--- a/public/framework/ai/2026-09-05/paging-audit-1/files.jsonl
++++ b/public/framework/ai/2026-09-05/paging-audit-1/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/paging-audit-2/files.jsonl b/public/framework/ai/2026-09-05/paging-audit-2/files.jsonl
+index a9805132..2de38501 100644
+--- a/public/framework/ai/2026-09-05/paging-audit-2/files.jsonl
++++ b/public/framework/ai/2026-09-05/paging-audit-2/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/paging-audit-3/files.jsonl b/public/framework/ai/2026-09-05/paging-audit-3/files.jsonl
+index 822e2cf6..86242764 100644
+--- a/public/framework/ai/2026-09-05/paging-audit-3/files.jsonl
++++ b/public/framework/ai/2026-09-05/paging-audit-3/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/paging-audit-4/files.jsonl b/public/framework/ai/2026-09-05/paging-audit-4/files.jsonl
+index 822e2cf6..86242764 100644
+--- a/public/framework/ai/2026-09-05/paging-audit-4/files.jsonl
++++ b/public/framework/ai/2026-09-05/paging-audit-4/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/paging-audit-4b/files.jsonl b/public/framework/ai/2026-09-05/paging-audit-4b/files.jsonl
+index a9805132..2de38501 100644
+--- a/public/framework/ai/2026-09-05/paging-audit-4b/files.jsonl
++++ b/public/framework/ai/2026-09-05/paging-audit-4b/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/paging-audit-5/files.jsonl b/public/framework/ai/2026-09-05/paging-audit-5/files.jsonl
+index 822e2cf6..86242764 100644
+--- a/public/framework/ai/2026-09-05/paging-audit-5/files.jsonl
++++ b/public/framework/ai/2026-09-05/paging-audit-5/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/paging-audit-5b/files.jsonl b/public/framework/ai/2026-09-05/paging-audit-5b/files.jsonl
+index a9805132..2de38501 100644
+--- a/public/framework/ai/2026-09-05/paging-audit-5b/files.jsonl
++++ b/public/framework/ai/2026-09-05/paging-audit-5b/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/paging-audit-6/files.jsonl b/public/framework/ai/2026-09-05/paging-audit-6/files.jsonl
+index 492a43e4..0a2a8191 100644
+--- a/public/framework/ai/2026-09-05/paging-audit-6/files.jsonl
++++ b/public/framework/ai/2026-09-05/paging-audit-6/files.jsonl
+@@ -5,3 +5,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/paging-audit-6b/files.jsonl b/public/framework/ai/2026-09-05/paging-audit-6b/files.jsonl
+index 822e2cf6..86242764 100644
+--- a/public/framework/ai/2026-09-05/paging-audit-6b/files.jsonl
++++ b/public/framework/ai/2026-09-05/paging-audit-6b/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/paging-audit-7/files.jsonl b/public/framework/ai/2026-09-05/paging-audit-7/files.jsonl
+index 492a43e4..0a2a8191 100644
+--- a/public/framework/ai/2026-09-05/paging-audit-7/files.jsonl
++++ b/public/framework/ai/2026-09-05/paging-audit-7/files.jsonl
+@@ -5,3 +5,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/paging-audit-7b/files.jsonl b/public/framework/ai/2026-09-05/paging-audit-7b/files.jsonl
+index 822e2cf6..86242764 100644
+--- a/public/framework/ai/2026-09-05/paging-audit-7b/files.jsonl
++++ b/public/framework/ai/2026-09-05/paging-audit-7b/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/paging-audit-8/files.jsonl b/public/framework/ai/2026-09-05/paging-audit-8/files.jsonl
+index 82edaefe..8028bafd 100644
+--- a/public/framework/ai/2026-09-05/paging-audit-8/files.jsonl
++++ b/public/framework/ai/2026-09-05/paging-audit-8/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/paging-audit-8b/files.jsonl b/public/framework/ai/2026-09-05/paging-audit-8b/files.jsonl
+index a9805132..2de38501 100644
+--- a/public/framework/ai/2026-09-05/paging-audit-8b/files.jsonl
++++ b/public/framework/ai/2026-09-05/paging-audit-8b/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/paging-fix-2/files.jsonl b/public/framework/ai/2026-09-05/paging-fix-2/files.jsonl
+index a9805132..2de38501 100644
+--- a/public/framework/ai/2026-09-05/paging-fix-2/files.jsonl
++++ b/public/framework/ai/2026-09-05/paging-fix-2/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/paging-fix-3/files.jsonl b/public/framework/ai/2026-09-05/paging-fix-3/files.jsonl
+index 822e2cf6..86242764 100644
+--- a/public/framework/ai/2026-09-05/paging-fix-3/files.jsonl
++++ b/public/framework/ai/2026-09-05/paging-fix-3/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/paging-fix-4/files.jsonl b/public/framework/ai/2026-09-05/paging-fix-4/files.jsonl
+index 822e2cf6..86242764 100644
+--- a/public/framework/ai/2026-09-05/paging-fix-4/files.jsonl
++++ b/public/framework/ai/2026-09-05/paging-fix-4/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/paging-fix-5/files.jsonl b/public/framework/ai/2026-09-05/paging-fix-5/files.jsonl
+index 822e2cf6..86242764 100644
+--- a/public/framework/ai/2026-09-05/paging-fix-5/files.jsonl
++++ b/public/framework/ai/2026-09-05/paging-fix-5/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/paging-fix-6/files.jsonl b/public/framework/ai/2026-09-05/paging-fix-6/files.jsonl
+index 822e2cf6..86242764 100644
+--- a/public/framework/ai/2026-09-05/paging-fix-6/files.jsonl
++++ b/public/framework/ai/2026-09-05/paging-fix-6/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/paging-fix-7/files.jsonl b/public/framework/ai/2026-09-05/paging-fix-7/files.jsonl
+index 822e2cf6..86242764 100644
+--- a/public/framework/ai/2026-09-05/paging-fix-7/files.jsonl
++++ b/public/framework/ai/2026-09-05/paging-fix-7/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/paging-fix-8/files.jsonl b/public/framework/ai/2026-09-05/paging-fix-8/files.jsonl
+index 822e2cf6..86242764 100644
+--- a/public/framework/ai/2026-09-05/paging-fix-8/files.jsonl
++++ b/public/framework/ai/2026-09-05/paging-fix-8/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/paging-mechanisms-v2/files.jsonl b/public/framework/ai/2026-09-05/paging-mechanisms-v2/files.jsonl
+index 9c378bc3..873b5d21 100644
+--- a/public/framework/ai/2026-09-05/paging-mechanisms-v2/files.jsonl
++++ b/public/framework/ai/2026-09-05/paging-mechanisms-v2/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/paging-v3/files.jsonl b/public/framework/ai/2026-09-05/paging-v3/files.jsonl
+index 822e2cf6..86242764 100644
+--- a/public/framework/ai/2026-09-05/paging-v3/files.jsonl
++++ b/public/framework/ai/2026-09-05/paging-v3/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/spacing-audit-a/files.jsonl b/public/framework/ai/2026-09-05/spacing-audit-a/files.jsonl
+index 7e97225b..555c7272 100644
+--- a/public/framework/ai/2026-09-05/spacing-audit-a/files.jsonl
++++ b/public/framework/ai/2026-09-05/spacing-audit-a/files.jsonl
+@@ -5,3 +5,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/spacing-audit-b/files.jsonl b/public/framework/ai/2026-09-05/spacing-audit-b/files.jsonl
+index f6075848..6a359bcd 100644
+--- a/public/framework/ai/2026-09-05/spacing-audit-b/files.jsonl
++++ b/public/framework/ai/2026-09-05/spacing-audit-b/files.jsonl
+@@ -6,3 +6,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/spacing-audit-c/files.jsonl b/public/framework/ai/2026-09-05/spacing-audit-c/files.jsonl
+index 23ef4bee..8166f643 100644
+--- a/public/framework/ai/2026-09-05/spacing-audit-c/files.jsonl
++++ b/public/framework/ai/2026-09-05/spacing-audit-c/files.jsonl
+@@ -7,3 +7,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/spacing-audit-d/files.jsonl b/public/framework/ai/2026-09-05/spacing-audit-d/files.jsonl
+index 7e97225b..555c7272 100644
+--- a/public/framework/ai/2026-09-05/spacing-audit-d/files.jsonl
++++ b/public/framework/ai/2026-09-05/spacing-audit-d/files.jsonl
+@@ -5,3 +5,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/spacing-study/files.jsonl b/public/framework/ai/2026-09-05/spacing-study/files.jsonl
+index 19bdba71..f428b923 100644
+--- a/public/framework/ai/2026-09-05/spacing-study/files.jsonl
++++ b/public/framework/ai/2026-09-05/spacing-study/files.jsonl
+@@ -7,3 +7,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/tabs-panel/files.jsonl b/public/framework/ai/2026-09-05/tabs-panel/files.jsonl
+index 822e2cf6..86242764 100644
+--- a/public/framework/ai/2026-09-05/tabs-panel/files.jsonl
++++ b/public/framework/ai/2026-09-05/tabs-panel/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/ux-blogx/files.jsonl b/public/framework/ai/2026-09-05/ux-blogx/files.jsonl
+index 53c8d74e..a468ba57 100644
+--- a/public/framework/ai/2026-09-05/ux-blogx/files.jsonl
++++ b/public/framework/ai/2026-09-05/ux-blogx/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/ux-cms/files.jsonl b/public/framework/ai/2026-09-05/ux-cms/files.jsonl
+index bb2a0234..9c7712f0 100644
+--- a/public/framework/ai/2026-09-05/ux-cms/files.jsonl
++++ b/public/framework/ai/2026-09-05/ux-cms/files.jsonl
+@@ -2,3 +2,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/ux-decks/files.jsonl b/public/framework/ai/2026-09-05/ux-decks/files.jsonl
+index bb2a0234..737b8c50 100644
+--- a/public/framework/ai/2026-09-05/ux-decks/files.jsonl
++++ b/public/framework/ai/2026-09-05/ux-decks/files.jsonl
+@@ -2,3 +2,5 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/ux-design/files.jsonl b/public/framework/ai/2026-09-05/ux-design/files.jsonl
+index bb2a0234..9c7712f0 100644
+--- a/public/framework/ai/2026-09-05/ux-design/files.jsonl
++++ b/public/framework/ai/2026-09-05/ux-design/files.jsonl
+@@ -2,3 +2,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/ux-feeds/files.jsonl b/public/framework/ai/2026-09-05/ux-feeds/files.jsonl
+index bb2a0234..9c7712f0 100644
+--- a/public/framework/ai/2026-09-05/ux-feeds/files.jsonl
++++ b/public/framework/ai/2026-09-05/ux-feeds/files.jsonl
+@@ -2,3 +2,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/ux-gallery/files.jsonl b/public/framework/ai/2026-09-05/ux-gallery/files.jsonl
+index bb2a0234..9c7712f0 100644
+--- a/public/framework/ai/2026-09-05/ux-gallery/files.jsonl
++++ b/public/framework/ai/2026-09-05/ux-gallery/files.jsonl
+@@ -2,3 +2,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/ux-game/files.jsonl b/public/framework/ai/2026-09-05/ux-game/files.jsonl
+index bb2a0234..9c7712f0 100644
+--- a/public/framework/ai/2026-09-05/ux-game/files.jsonl
++++ b/public/framework/ai/2026-09-05/ux-game/files.jsonl
+@@ -2,3 +2,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/ux-generated/files.jsonl b/public/framework/ai/2026-09-05/ux-generated/files.jsonl
+index bb2a0234..9c7712f0 100644
+--- a/public/framework/ai/2026-09-05/ux-generated/files.jsonl
++++ b/public/framework/ai/2026-09-05/ux-generated/files.jsonl
+@@ -2,3 +2,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/ux-mag/files.jsonl b/public/framework/ai/2026-09-05/ux-mag/files.jsonl
+index 32c08643..2d241740 100644
+--- a/public/framework/ai/2026-09-05/ux-mag/files.jsonl
++++ b/public/framework/ai/2026-09-05/ux-mag/files.jsonl
+@@ -3,3 +3,5 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/ux-platform/files.jsonl b/public/framework/ai/2026-09-05/ux-platform/files.jsonl
+index f614b0e7..d2cf95c4 100644
+--- a/public/framework/ai/2026-09-05/ux-platform/files.jsonl
++++ b/public/framework/ai/2026-09-05/ux-platform/files.jsonl
+@@ -6,3 +6,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/ux-research/files.jsonl b/public/framework/ai/2026-09-05/ux-research/files.jsonl
+index bb2a0234..737b8c50 100644
+--- a/public/framework/ai/2026-09-05/ux-research/files.jsonl
++++ b/public/framework/ai/2026-09-05/ux-research/files.jsonl
+@@ -2,3 +2,5 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/ux-rethink/files.jsonl b/public/framework/ai/2026-09-05/ux-rethink/files.jsonl
+index 8fcf399e..f67ebe93 100644
+--- a/public/framework/ai/2026-09-05/ux-rethink/files.jsonl
++++ b/public/framework/ai/2026-09-05/ux-rethink/files.jsonl
+@@ -4,3 +4,5 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/ux-scenes/files.jsonl b/public/framework/ai/2026-09-05/ux-scenes/files.jsonl
+index 53c8d74e..a468ba57 100644
+--- a/public/framework/ai/2026-09-05/ux-scenes/files.jsonl
++++ b/public/framework/ai/2026-09-05/ux-scenes/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/ux-screens/files.jsonl b/public/framework/ai/2026-09-05/ux-screens/files.jsonl
+index 676ce481..67bddce4 100644
+--- a/public/framework/ai/2026-09-05/ux-screens/files.jsonl
++++ b/public/framework/ai/2026-09-05/ux-screens/files.jsonl
+@@ -5,3 +5,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/ux-shells/files.jsonl b/public/framework/ai/2026-09-05/ux-shells/files.jsonl
+index bb2a0234..9c7712f0 100644
+--- a/public/framework/ai/2026-09-05/ux-shells/files.jsonl
++++ b/public/framework/ai/2026-09-05/ux-shells/files.jsonl
+@@ -2,3 +2,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/ux-stream/files.jsonl b/public/framework/ai/2026-09-05/ux-stream/files.jsonl
+index bb2a0234..9c7712f0 100644
+--- a/public/framework/ai/2026-09-05/ux-stream/files.jsonl
++++ b/public/framework/ai/2026-09-05/ux-stream/files.jsonl
+@@ -2,3 +2,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/ux-team/files.jsonl b/public/framework/ai/2026-09-05/ux-team/files.jsonl
+index bb2a0234..9c7712f0 100644
+--- a/public/framework/ai/2026-09-05/ux-team/files.jsonl
++++ b/public/framework/ai/2026-09-05/ux-team/files.jsonl
+@@ -2,3 +2,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/ux-vary/files.jsonl b/public/framework/ai/2026-09-05/ux-vary/files.jsonl
+index 53c8d74e..ab27532c 100644
+--- a/public/framework/ai/2026-09-05/ux-vary/files.jsonl
++++ b/public/framework/ai/2026-09-05/ux-vary/files.jsonl
+@@ -3,3 +3,5 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/ux-youtube/files.jsonl b/public/framework/ai/2026-09-05/ux-youtube/files.jsonl
+index bb2a0234..9c7712f0 100644
+--- a/public/framework/ai/2026-09-05/ux-youtube/files.jsonl
++++ b/public/framework/ai/2026-09-05/ux-youtube/files.jsonl
+@@ -2,3 +2,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-06/spacing-constants/files.jsonl b/public/framework/ai/2026-09-06/spacing-constants/files.jsonl
+index a9805132..2de38501 100644
+--- a/public/framework/ai/2026-09-06/spacing-constants/files.jsonl
++++ b/public/framework/ai/2026-09-06/spacing-constants/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-08/critic-3440/files.jsonl b/public/framework/ai/2026-09-08/critic-3440/files.jsonl
+index 822e2cf6..86242764 100644
+--- a/public/framework/ai/2026-09-08/critic-3440/files.jsonl
++++ b/public/framework/ai/2026-09-08/critic-3440/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-08/critic-layouts/files.jsonl b/public/framework/ai/2026-09-08/critic-layouts/files.jsonl
+index 822e2cf6..5a0c49ba 100644
+--- a/public/framework/ai/2026-09-08/critic-layouts/files.jsonl
++++ b/public/framework/ai/2026-09-08/critic-layouts/files.jsonl
+@@ -3,3 +3,5 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-08/layouts-standard/files.jsonl b/public/framework/ai/2026-09-08/layouts-standard/files.jsonl
+index a9805132..2de38501 100644
+--- a/public/framework/ai/2026-09-08/layouts-standard/files.jsonl
++++ b/public/framework/ai/2026-09-08/layouts-standard/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-08/websites-db/files.jsonl b/public/framework/ai/2026-09-08/websites-db/files.jsonl
+index a9805132..1e13d30d 100644
+--- a/public/framework/ai/2026-09-08/websites-db/files.jsonl
++++ b/public/framework/ai/2026-09-08/websites-db/files.jsonl
+@@ -4,3 +4,5 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-17/polish-critic/files.jsonl b/public/framework/ai/2026-09-17/polish-critic/files.jsonl
+index 822e2cf6..86242764 100644
+--- a/public/framework/ai/2026-09-17/polish-critic/files.jsonl
++++ b/public/framework/ai/2026-09-17/polish-critic/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-17/practice-critic/files.jsonl b/public/framework/ai/2026-09-17/practice-critic/files.jsonl
+index 822e2cf6..86242764 100644
+--- a/public/framework/ai/2026-09-17/practice-critic/files.jsonl
++++ b/public/framework/ai/2026-09-17/practice-critic/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-17/tree-component/files.jsonl b/public/framework/ai/2026-09-17/tree-component/files.jsonl
+index 822e2cf6..86242764 100644
+--- a/public/framework/ai/2026-09-17/tree-component/files.jsonl
++++ b/public/framework/ai/2026-09-17/tree-component/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-17/type-color-study/files.jsonl b/public/framework/ai/2026-09-17/type-color-study/files.jsonl
+index 822e2cf6..86242764 100644
+--- a/public/framework/ai/2026-09-17/type-color-study/files.jsonl
++++ b/public/framework/ai/2026-09-17/type-color-study/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-18/stage-cap/files.jsonl b/public/framework/ai/2026-09-18/stage-cap/files.jsonl
+index 822e2cf6..86242764 100644
+--- a/public/framework/ai/2026-09-18/stage-cap/files.jsonl
++++ b/public/framework/ai/2026-09-18/stage-cap/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-19/blunder-critic/files.jsonl b/public/framework/ai/2026-09-19/blunder-critic/files.jsonl
+index 95e270b1..c7e71deb 100644
+--- a/public/framework/ai/2026-09-19/blunder-critic/files.jsonl
++++ b/public/framework/ai/2026-09-19/blunder-critic/files.jsonl
+@@ -6,3 +6,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-19/card-adopt/files.jsonl b/public/framework/ai/2026-09-19/card-adopt/files.jsonl
+index 459466ea..d2a3832b 100644
+--- a/public/framework/ai/2026-09-19/card-adopt/files.jsonl
++++ b/public/framework/ai/2026-09-19/card-adopt/files.jsonl
+@@ -5,3 +5,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-19/devbar-chat/files.jsonl b/public/framework/ai/2026-09-19/devbar-chat/files.jsonl
+index 32c770fd..1e456205 100644
+--- a/public/framework/ai/2026-09-19/devbar-chat/files.jsonl
++++ b/public/framework/ai/2026-09-19/devbar-chat/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-19/incident-site-down/files.jsonl b/public/framework/ai/2026-09-19/incident-site-down/files.jsonl
+index 459466ea..d2a3832b 100644
+--- a/public/framework/ai/2026-09-19/incident-site-down/files.jsonl
++++ b/public/framework/ai/2026-09-19/incident-site-down/files.jsonl
+@@ -5,3 +5,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-19/mistake-audit/files.jsonl b/public/framework/ai/2026-09-19/mistake-audit/files.jsonl
+index 459466ea..d2a3832b 100644
+--- a/public/framework/ai/2026-09-19/mistake-audit/files.jsonl
++++ b/public/framework/ai/2026-09-19/mistake-audit/files.jsonl
+@@ -5,3 +5,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-19/padding-audit/files.jsonl b/public/framework/ai/2026-09-19/padding-audit/files.jsonl
+index bd1c8a95..461086bb 100644
+--- a/public/framework/ai/2026-09-19/padding-audit/files.jsonl
++++ b/public/framework/ai/2026-09-19/padding-audit/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-19/popover-system/files.jsonl b/public/framework/ai/2026-09-19/popover-system/files.jsonl
+index 822e2cf6..86242764 100644
+--- a/public/framework/ai/2026-09-19/popover-system/files.jsonl
++++ b/public/framework/ai/2026-09-19/popover-system/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-19/sidebar-repair/files.jsonl b/public/framework/ai/2026-09-19/sidebar-repair/files.jsonl
+index 27bafc2f..619795e1 100644
+--- a/public/framework/ai/2026-09-19/sidebar-repair/files.jsonl
++++ b/public/framework/ai/2026-09-19/sidebar-repair/files.jsonl
+@@ -6,3 +6,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-19/skill-roles/files.jsonl b/public/framework/ai/2026-09-19/skill-roles/files.jsonl
+index 8c87af71..51637acb 100644
+--- a/public/framework/ai/2026-09-19/skill-roles/files.jsonl
++++ b/public/framework/ai/2026-09-19/skill-roles/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-19/v3-data/files.jsonl b/public/framework/ai/2026-09-19/v3-data/files.jsonl
+index 53516c35..ad191fec 100644
+--- a/public/framework/ai/2026-09-19/v3-data/files.jsonl
++++ b/public/framework/ai/2026-09-19/v3-data/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-19/verify-design/files.jsonl b/public/framework/ai/2026-09-19/verify-design/files.jsonl
+index fd128dfe..67efc85a 100644
+--- a/public/framework/ai/2026-09-19/verify-design/files.jsonl
++++ b/public/framework/ai/2026-09-19/verify-design/files.jsonl
+@@ -5,3 +5,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-19/verify-server/files.jsonl b/public/framework/ai/2026-09-19/verify-server/files.jsonl
+index 3f3483e4..58f1aba8 100644
+--- a/public/framework/ai/2026-09-19/verify-server/files.jsonl
++++ b/public/framework/ai/2026-09-19/verify-server/files.jsonl
+@@ -6,3 +6,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-19/whisper-local/files.jsonl b/public/framework/ai/2026-09-19/whisper-local/files.jsonl
+index 822e2cf6..86242764 100644
+--- a/public/framework/ai/2026-09-19/whisper-local/files.jsonl
++++ b/public/framework/ai/2026-09-19/whisper-local/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-20/ai-padding/files.jsonl b/public/framework/ai/2026-09-20/ai-padding/files.jsonl
+index 459466ea..d2a3832b 100644
+--- a/public/framework/ai/2026-09-20/ai-padding/files.jsonl
++++ b/public/framework/ai/2026-09-20/ai-padding/files.jsonl
+@@ -5,3 +5,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-20/approve-loop/files.jsonl b/public/framework/ai/2026-09-20/approve-loop/files.jsonl
+index 311df40e..3e18e8d3 100644
+--- a/public/framework/ai/2026-09-20/approve-loop/files.jsonl
++++ b/public/framework/ai/2026-09-20/approve-loop/files.jsonl
+@@ -7,3 +7,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-20/dictate-fix/files.jsonl b/public/framework/ai/2026-09-20/dictate-fix/files.jsonl
+index 53516c35..ad191fec 100644
+--- a/public/framework/ai/2026-09-20/dictate-fix/files.jsonl
++++ b/public/framework/ai/2026-09-20/dictate-fix/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-20/v3-axis-fix/files.jsonl b/public/framework/ai/2026-09-20/v3-axis-fix/files.jsonl
+index 311df40e..862dc24f 100644
+--- a/public/framework/ai/2026-09-20/v3-axis-fix/files.jsonl
++++ b/public/framework/ai/2026-09-20/v3-axis-fix/files.jsonl
+@@ -7,3 +7,5 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-22/ai2-master-detail/files.jsonl b/public/framework/ai/2026-09-22/ai2-master-detail/files.jsonl
+index 459466ea..d2a3832b 100644
+--- a/public/framework/ai/2026-09-22/ai2-master-detail/files.jsonl
++++ b/public/framework/ai/2026-09-22/ai2-master-detail/files.jsonl
+@@ -5,3 +5,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-22/board-declutter/files.jsonl b/public/framework/ai/2026-09-22/board-declutter/files.jsonl
+index 53516c35..ad191fec 100644
+--- a/public/framework/ai/2026-09-22/board-declutter/files.jsonl
++++ b/public/framework/ai/2026-09-22/board-declutter/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-22/board-from-events/files.jsonl b/public/framework/ai/2026-09-22/board-from-events/files.jsonl
+index 822e2cf6..86242764 100644
+--- a/public/framework/ai/2026-09-22/board-from-events/files.jsonl
++++ b/public/framework/ai/2026-09-22/board-from-events/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-22/days-view/files.jsonl b/public/framework/ai/2026-09-22/days-view/files.jsonl
+index 822e2cf6..86242764 100644
+--- a/public/framework/ai/2026-09-22/days-view/files.jsonl
++++ b/public/framework/ai/2026-09-22/days-view/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-22/dictate-silence/files.jsonl b/public/framework/ai/2026-09-22/dictate-silence/files.jsonl
+index 916a7d24..f4c2cd7e 100644
+--- a/public/framework/ai/2026-09-22/dictate-silence/files.jsonl
++++ b/public/framework/ai/2026-09-22/dictate-silence/files.jsonl
+@@ -5,3 +5,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-22/inbox-model/files.jsonl b/public/framework/ai/2026-09-22/inbox-model/files.jsonl
+index 53516c35..ad191fec 100644
+--- a/public/framework/ai/2026-09-22/inbox-model/files.jsonl
++++ b/public/framework/ai/2026-09-22/inbox-model/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-22/layout-analysis/files.jsonl b/public/framework/ai/2026-09-22/layout-analysis/files.jsonl
+index 0e8bf7c6..3b76e4e3 100644
+--- a/public/framework/ai/2026-09-22/layout-analysis/files.jsonl
++++ b/public/framework/ai/2026-09-22/layout-analysis/files.jsonl
+@@ -6,3 +6,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-22/mastermind-servex/files.jsonl b/public/framework/ai/2026-09-22/mastermind-servex/files.jsonl
+index b92082c5..1976e0ea 100644
+--- a/public/framework/ai/2026-09-22/mastermind-servex/files.jsonl
++++ b/public/framework/ai/2026-09-22/mastermind-servex/files.jsonl
+@@ -4,3 +4,5 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-22/object-layer/files.jsonl b/public/framework/ai/2026-09-22/object-layer/files.jsonl
+index 21ee4380..b21db2a6 100644
+--- a/public/framework/ai/2026-09-22/object-layer/files.jsonl
++++ b/public/framework/ai/2026-09-22/object-layer/files.jsonl
+@@ -7,3 +7,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-22/padding-law/files.jsonl b/public/framework/ai/2026-09-22/padding-law/files.jsonl
+index 5ae968d0..aa02f712 100644
+--- a/public/framework/ai/2026-09-22/padding-law/files.jsonl
++++ b/public/framework/ai/2026-09-22/padding-law/files.jsonl
+@@ -5,3 +5,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-22/prompt-lifecycle/files.jsonl b/public/framework/ai/2026-09-22/prompt-lifecycle/files.jsonl
+index 53516c35..ad191fec 100644
+--- a/public/framework/ai/2026-09-22/prompt-lifecycle/files.jsonl
++++ b/public/framework/ai/2026-09-22/prompt-lifecycle/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-22/reload-rethink/files.jsonl b/public/framework/ai/2026-09-22/reload-rethink/files.jsonl
+index 53516c35..ad191fec 100644
+--- a/public/framework/ai/2026-09-22/reload-rethink/files.jsonl
++++ b/public/framework/ai/2026-09-22/reload-rethink/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-22/reuse-audit/files.jsonl b/public/framework/ai/2026-09-22/reuse-audit/files.jsonl
+index 613c0e67..1d0e4640 100644
+--- a/public/framework/ai/2026-09-22/reuse-audit/files.jsonl
++++ b/public/framework/ai/2026-09-22/reuse-audit/files.jsonl
+@@ -5,3 +5,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-22/review-3-days/files.jsonl b/public/framework/ai/2026-09-22/review-3-days/files.jsonl
+index 53516c35..ad191fec 100644
+--- a/public/framework/ai/2026-09-22/review-3-days/files.jsonl
++++ b/public/framework/ai/2026-09-22/review-3-days/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-22/servex-hardening/files.jsonl b/public/framework/ai/2026-09-22/servex-hardening/files.jsonl
+index 822e2cf6..86242764 100644
+--- a/public/framework/ai/2026-09-22/servex-hardening/files.jsonl
++++ b/public/framework/ai/2026-09-22/servex-hardening/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-22/servex-integrate/files.jsonl b/public/framework/ai/2026-09-22/servex-integrate/files.jsonl
+index 53516c35..ad191fec 100644
+--- a/public/framework/ai/2026-09-22/servex-integrate/files.jsonl
++++ b/public/framework/ai/2026-09-22/servex-integrate/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-22/talk-to-assistant/files.jsonl b/public/framework/ai/2026-09-22/talk-to-assistant/files.jsonl
+index 822e2cf6..86242764 100644
+--- a/public/framework/ai/2026-09-22/talk-to-assistant/files.jsonl
++++ b/public/framework/ai/2026-09-22/talk-to-assistant/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-22/tiers-design/files.jsonl b/public/framework/ai/2026-09-22/tiers-design/files.jsonl
+index 27bafc2f..619795e1 100644
+--- a/public/framework/ai/2026-09-22/tiers-design/files.jsonl
++++ b/public/framework/ai/2026-09-22/tiers-design/files.jsonl
+@@ -6,3 +6,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-22/ux-subpages/files.jsonl b/public/framework/ai/2026-09-22/ux-subpages/files.jsonl
+index 822e2cf6..86242764 100644
+--- a/public/framework/ai/2026-09-22/ux-subpages/files.jsonl
++++ b/public/framework/ai/2026-09-22/ux-subpages/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-22/whisper-servex/files.jsonl b/public/framework/ai/2026-09-22/whisper-servex/files.jsonl
+index c8f99ee3..793cc7f9 100644
+--- a/public/framework/ai/2026-09-22/whisper-servex/files.jsonl
++++ b/public/framework/ai/2026-09-22/whisper-servex/files.jsonl
+@@ -6,3 +6,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-22/worktree-design/files.jsonl b/public/framework/ai/2026-09-22/worktree-design/files.jsonl
+index 53516c35..ad191fec 100644
+--- a/public/framework/ai/2026-09-22/worktree-design/files.jsonl
++++ b/public/framework/ai/2026-09-22/worktree-design/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-22/worktree-proof/files.jsonl b/public/framework/ai/2026-09-22/worktree-proof/files.jsonl
+index 53516c35..ad191fec 100644
+--- a/public/framework/ai/2026-09-22/worktree-proof/files.jsonl
++++ b/public/framework/ai/2026-09-22/worktree-proof/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-23/ai2-live-card/files.jsonl b/public/framework/ai/2026-09-23/ai2-live-card/files.jsonl
+index 74689172..9f90cd2d 100644
+--- a/public/framework/ai/2026-09-23/ai2-live-card/files.jsonl
++++ b/public/framework/ai/2026-09-23/ai2-live-card/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"layout-check/"}
+ {"file":"layout-check/","gone":true}
+ {"file":"layout-check/"}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/ai/2026-09-24/assistant-layers/files.jsonl b/public/framework/ai/2026-09-24/assistant-layers/files.jsonl
+index f82cefa5..0f444597 100644
+--- a/public/framework/ai/2026-09-24/assistant-layers/files.jsonl
++++ b/public/framework/ai/2026-09-24/assistant-layers/files.jsonl
+@@ -16,3 +16,5 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-24/card-consolidation/files.jsonl b/public/framework/ai/2026-09-24/card-consolidation/files.jsonl
+index aba2a794..2b617dc9 100644
+--- a/public/framework/ai/2026-09-24/card-consolidation/files.jsonl
++++ b/public/framework/ai/2026-09-24/card-consolidation/files.jsonl
+@@ -9,3 +9,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-24/concurrency/files.jsonl b/public/framework/ai/2026-09-24/concurrency/files.jsonl
+index 9499f1c4..f42df0c6 100644
+--- a/public/framework/ai/2026-09-24/concurrency/files.jsonl
++++ b/public/framework/ai/2026-09-24/concurrency/files.jsonl
+@@ -18,3 +18,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-24/core-columns/files.jsonl b/public/framework/ai/2026-09-24/core-columns/files.jsonl
+index ff5fb790..6bf93bf5 100644
+--- a/public/framework/ai/2026-09-24/core-columns/files.jsonl
++++ b/public/framework/ai/2026-09-24/core-columns/files.jsonl
+@@ -8,3 +8,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-24/popups/files.jsonl b/public/framework/ai/2026-09-24/popups/files.jsonl
+index 670eb1a2..5b3689d5 100644
+--- a/public/framework/ai/2026-09-24/popups/files.jsonl
++++ b/public/framework/ai/2026-09-24/popups/files.jsonl
+@@ -3,3 +3,5 @@
+ {"file":"layout-check/"}
+ {"file":"layout-check/","gone":true}
+ {"file":"layout-check/"}
++{"file":"layout-check/","gone":true}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/ai/2026-09-25/ai2-lead/files.jsonl b/public/framework/ai/2026-09-25/ai2-lead/files.jsonl
+index 8850c794..bc7f0c6b 100644
+--- a/public/framework/ai/2026-09-25/ai2-lead/files.jsonl
++++ b/public/framework/ai/2026-09-25/ai2-lead/files.jsonl
+@@ -7,3 +7,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-25/ai2-resurface-bar/files.jsonl b/public/framework/ai/2026-09-25/ai2-resurface-bar/files.jsonl
+index 22c97203..522bc342 100644
+--- a/public/framework/ai/2026-09-25/ai2-resurface-bar/files.jsonl
++++ b/public/framework/ai/2026-09-25/ai2-resurface-bar/files.jsonl
+@@ -10,3 +10,4 @@
+ {"file":"layout-check/"}
+ {"file":"layout-check/","gone":true}
+ {"file":"layout-check/"}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/ai/2026-09-25/feedback-council/files.jsonl b/public/framework/ai/2026-09-25/feedback-council/files.jsonl
+index aeb2d92d..b03b9f50 100644
+--- a/public/framework/ai/2026-09-25/feedback-council/files.jsonl
++++ b/public/framework/ai/2026-09-25/feedback-council/files.jsonl
+@@ -11,3 +11,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-25/layout-check/files.jsonl b/public/framework/ai/2026-09-25/layout-check/files.jsonl
+index 1a7b67ae..4b2888b7 100644
+--- a/public/framework/ai/2026-09-25/layout-check/files.jsonl
++++ b/public/framework/ai/2026-09-25/layout-check/files.jsonl
+@@ -6,3 +6,4 @@
+ {"file":"layout-check/"}
+ {"file":"layout-check/","gone":true}
+ {"file":"layout-check/"}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/ai/2026-09-25/now-card-tabs/files.jsonl b/public/framework/ai/2026-09-25/now-card-tabs/files.jsonl
+index a80dede8..167eeb46 100644
+--- a/public/framework/ai/2026-09-25/now-card-tabs/files.jsonl
++++ b/public/framework/ai/2026-09-25/now-card-tabs/files.jsonl
+@@ -5,3 +5,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-25/overview-fix/files.jsonl b/public/framework/ai/2026-09-25/overview-fix/files.jsonl
+index 54bfba05..8ec5e7e4 100644
+--- a/public/framework/ai/2026-09-25/overview-fix/files.jsonl
++++ b/public/framework/ai/2026-09-25/overview-fix/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-25/recursive-pairs/files.jsonl b/public/framework/ai/2026-09-25/recursive-pairs/files.jsonl
+index 13a7ab98..046c0aaa 100644
+--- a/public/framework/ai/2026-09-25/recursive-pairs/files.jsonl
++++ b/public/framework/ai/2026-09-25/recursive-pairs/files.jsonl
+@@ -30,3 +30,15 @@
+ {"file":"review/"}
+ {"file":"review.jsonl"}
+ {"file":"review.md"}
++{"file":"fix/","gone":true}
++{"file":"fix2/","gone":true}
++{"file":"layout-check/","gone":true}
++{"file":"merge/","gone":true}
++{"file":"report.md","gone":true}
++{"file":"review/","gone":true}
++{"file":"report.md","gone":true}
++{"file":"review.jsonl","gone":true}
++{"file":"review/","gone":true}
++{"file":"review.md","gone":true}
++{"file":"review.jsonl","gone":true}
++{"file":"review.md","gone":true}
+diff --git a/public/framework/ai/2026-09-25/tabbed-card/files.jsonl b/public/framework/ai/2026-09-25/tabbed-card/files.jsonl
+index a80dede8..ba3e627e 100644
+--- a/public/framework/ai/2026-09-25/tabbed-card/files.jsonl
++++ b/public/framework/ai/2026-09-25/tabbed-card/files.jsonl
+@@ -5,3 +5,5 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-28/ai2-overview/files.jsonl b/public/framework/ai/2026-09-28/ai2-overview/files.jsonl
+index b014d09c..ad54c2d9 100644
+--- a/public/framework/ai/2026-09-28/ai2-overview/files.jsonl
++++ b/public/framework/ai/2026-09-28/ai2-overview/files.jsonl
+@@ -7,3 +7,14 @@
+ {"file":"spend.json"}
+ {"file":"task.jsonl"}
+ {"file":"ui/"}
++{"file":"index/","gone":true}
++{"file":"live-1920.png","gone":true}
++{"file":"requirements.md","gone":true}
++{"file":"review/","gone":true}
++{"file":"review.jsonl","gone":true}
++{"file":"review.md","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"task.jsonl","gone":true}
++{"file":"ui/","gone":true}
++{"file":"task.jsonl","gone":true}
++{"file":"ui/","gone":true}
+diff --git a/public/framework/ai/2026-09-28/ai2-rail-rhythm/files.jsonl b/public/framework/ai/2026-09-28/ai2-rail-rhythm/files.jsonl
+index 1fa0a775..02435f30 100644
+--- a/public/framework/ai/2026-09-28/ai2-rail-rhythm/files.jsonl
++++ b/public/framework/ai/2026-09-28/ai2-rail-rhythm/files.jsonl
+@@ -10,3 +10,8 @@
+ {"file":"shots/"}
+ {"file":"spend.json"}
+ {"file":"task.jsonl"}
++{"file":"shots/","gone":true}
++{"file":"task.jsonl","gone":true}
++{"file":"task.jsonl","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"spend.json","gone":true}
+diff --git a/public/framework/ai/2026-09-28/ai2-workspace/files.jsonl b/public/framework/ai/2026-09-28/ai2-workspace/files.jsonl
+index 87472c17..d56b8a4a 100644
+--- a/public/framework/ai/2026-09-28/ai2-workspace/files.jsonl
++++ b/public/framework/ai/2026-09-28/ai2-workspace/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-28/ask-each/files.jsonl b/public/framework/ai/2026-09-28/ask-each/files.jsonl
+index 5ac09f46..ea43a6bc 100644
+--- a/public/framework/ai/2026-09-28/ask-each/files.jsonl
++++ b/public/framework/ai/2026-09-28/ask-each/files.jsonl
+@@ -6,3 +6,18 @@
+ {"file":"task.jsonl"}
+ {"file":"test-context.md"}
+ {"file":"test-questions.md"}
++{"file":"answers-one-at-a-time.md","gone":true}
++{"file":"answers-one-prompt.md","gone":true}
++{"file":"answers-one-prompt.md","gone":true}
++{"file":"layout-check/","gone":true}
++{"file":"layout-check/","gone":true}
++{"file":"requirements.md","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"requirements.md","gone":true}
++{"file":"task.jsonl","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"test-context.md","gone":true}
++{"file":"test-questions.md","gone":true}
++{"file":"task.jsonl","gone":true}
++{"file":"test-context.md","gone":true}
++{"file":"test-questions.md","gone":true}
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/files.jsonl b/public/framework/ai/2026-09-28/collab-rounds/files.jsonl
+index fafcec42..0d39451e 100644
+--- a/public/framework/ai/2026-09-28/collab-rounds/files.jsonl
++++ b/public/framework/ai/2026-09-28/collab-rounds/files.jsonl
+@@ -22,3 +22,7 @@
+ {"file":"shots/","gone":true}
+ {"file":"layout-check/"}
+ {"file":"shots/"}
++{"file":"layout-check/","gone":true}
++{"file":"shots/","gone":true}
++{"file":"layout-check/","gone":true}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-28/commit-live-system/files.jsonl b/public/framework/ai/2026-09-28/commit-live-system/files.jsonl
+index de284cdf..c4bf390f 100644
+--- a/public/framework/ai/2026-09-28/commit-live-system/files.jsonl
++++ b/public/framework/ai/2026-09-28/commit-live-system/files.jsonl
+@@ -13,3 +13,5 @@
+ {"file":"spend.json","gone":true}
+ {"file":"layout-check/"}
+ {"file":"spend.json"}
++{"file":"layout-check/","gone":true}
++{"file":"spend.json","gone":true}
+diff --git a/public/framework/ai/2026-09-28/figma-sept-frame/files.jsonl b/public/framework/ai/2026-09-28/figma-sept-frame/files.jsonl
+index d4715aca..4510e6ad 100644
+--- a/public/framework/ai/2026-09-28/figma-sept-frame/files.jsonl
++++ b/public/framework/ai/2026-09-28/figma-sept-frame/files.jsonl
+@@ -15,3 +15,7 @@
+ {"file":"ui-reuse.md","gone":true}
+ {"file":"review.jsonl"}
+ {"file":"ui-reuse.md"}
++{"file":"review.jsonl","gone":true}
++{"file":"ui-reuse.md","gone":true}
++{"file":"review.jsonl","gone":true}
++{"file":"ui-reuse.md","gone":true}
+diff --git a/public/framework/ai/2026-09-28/file-explorer-fs/files.jsonl b/public/framework/ai/2026-09-28/file-explorer-fs/files.jsonl
+index 1b16f3af..505ce670 100644
+--- a/public/framework/ai/2026-09-28/file-explorer-fs/files.jsonl
++++ b/public/framework/ai/2026-09-28/file-explorer-fs/files.jsonl
+@@ -19,3 +19,12 @@
+ {"file":"review.jsonl"}
+ {"file":"review.md"}
+ {"file":"walkthrough/page.js"}
++{"file":"minion-c/","gone":true}
++{"file":"review/","gone":true}
++{"file":"review.jsonl","gone":true}
++{"file":"review/","gone":true}
++{"file":"review.md","gone":true}
++{"file":"review.jsonl","gone":true}
++{"file":"walkthrough/page.js","gone":true}
++{"file":"review.md","gone":true}
++{"file":"walkthrough/page.js","gone":true}
+diff --git a/public/framework/ai/2026-09-28/harness-research/files.jsonl b/public/framework/ai/2026-09-28/harness-research/files.jsonl
+index a8750872..20446873 100644
+--- a/public/framework/ai/2026-09-28/harness-research/files.jsonl
++++ b/public/framework/ai/2026-09-28/harness-research/files.jsonl
+@@ -10,3 +10,5 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-28/layout-system/files.jsonl b/public/framework/ai/2026-09-28/layout-system/files.jsonl
+index c01cc7fe..29aea890 100644
+--- a/public/framework/ai/2026-09-28/layout-system/files.jsonl
++++ b/public/framework/ai/2026-09-28/layout-system/files.jsonl
+@@ -5,3 +5,10 @@
+ {"file":"review.md"}
+ {"file":"spend.json"}
+ {"file":"task.jsonl"}
++{"file":"layout-check/","gone":true}
++{"file":"requirements.md","gone":true}
++{"file":"review/","gone":true}
++{"file":"review.jsonl","gone":true}
++{"file":"review.md","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"task.jsonl","gone":true}
+diff --git a/public/framework/ai/2026-09-28/section-variants/files.jsonl b/public/framework/ai/2026-09-28/section-variants/files.jsonl
+index 8b21be45..5c98d6fc 100644
+--- a/public/framework/ai/2026-09-28/section-variants/files.jsonl
++++ b/public/framework/ai/2026-09-28/section-variants/files.jsonl
+@@ -20,3 +20,6 @@
+ {"file":"layout-check/"}
+ {"file":"review/"}
+ {"file":"spend.json"}
++{"file":"layout-check/","gone":true}
++{"file":"review/","gone":true}
++{"file":"spend.json","gone":true}
+diff --git a/public/framework/ai/2026-09-28/shared-browser/files.jsonl b/public/framework/ai/2026-09-28/shared-browser/files.jsonl
+index fc5607cf..1c8aa0d6 100644
+--- a/public/framework/ai/2026-09-28/shared-browser/files.jsonl
++++ b/public/framework/ai/2026-09-28/shared-browser/files.jsonl
+@@ -19,3 +19,9 @@
+ {"file":"review.jsonl"}
+ {"file":"review.md"}
+ {"file":"spend.json"}
++{"file":"layout-check/","gone":true}
++{"file":"review/","gone":true}
++{"file":"review.jsonl","gone":true}
++{"file":"review.md","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"spend.json","gone":true}
+diff --git a/public/framework/ai/2026-09-28/source-library/files.jsonl b/public/framework/ai/2026-09-28/source-library/files.jsonl
+index f55358c4..5e16d552 100644
+--- a/public/framework/ai/2026-09-28/source-library/files.jsonl
++++ b/public/framework/ai/2026-09-28/source-library/files.jsonl
+@@ -12,3 +12,5 @@
+ {"file":"layout-check/"}
+ {"file":"layout-check/","gone":true}
+ {"file":"layout-check/"}
++{"file":"layout-check/","gone":true}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/ai/2026-09-28/task-loop/files.jsonl b/public/framework/ai/2026-09-28/task-loop/files.jsonl
+index 159c23c2..d59989ff 100644
+--- a/public/framework/ai/2026-09-28/task-loop/files.jsonl
++++ b/public/framework/ai/2026-09-28/task-loop/files.jsonl
+@@ -21,3 +21,7 @@
+ {"file":"step-loop/"}
+ {"file":"taskloop-gate/"}
+ {"file":"worktree-down/"}
++{"file":"heartbeat/","gone":true}
++{"file":"step-loop/","gone":true}
++{"file":"taskloop-gate/","gone":true}
++{"file":"worktree-down/","gone":true}
+diff --git a/public/framework/ai/2026-09-28/task-placement/files.jsonl b/public/framework/ai/2026-09-28/task-placement/files.jsonl
+index b0625d01..a1221d4e 100644
+--- a/public/framework/ai/2026-09-28/task-placement/files.jsonl
++++ b/public/framework/ai/2026-09-28/task-placement/files.jsonl
+@@ -1 +1,2 @@
+ {"file":"requirements.md"}
++{"file":"task.jsonl"}
+diff --git a/public/framework/ai/2026-09-28/tooling-gaps/files.jsonl b/public/framework/ai/2026-09-28/tooling-gaps/files.jsonl
+index b0625d01..a1221d4e 100644
+--- a/public/framework/ai/2026-09-28/tooling-gaps/files.jsonl
++++ b/public/framework/ai/2026-09-28/tooling-gaps/files.jsonl
+@@ -1 +1,2 @@
+ {"file":"requirements.md"}
++{"file":"task.jsonl"}
+diff --git a/public/framework/ai/2026-09-28/waiting-on-you/files.jsonl b/public/framework/ai/2026-09-28/waiting-on-you/files.jsonl
+index 82fc0e02..ccaec61c 100644
+--- a/public/framework/ai/2026-09-28/waiting-on-you/files.jsonl
++++ b/public/framework/ai/2026-09-28/waiting-on-you/files.jsonl
+@@ -76,3 +76,35 @@
+ {"file":"review/"}
+ {"file":"review.jsonl"}
+ {"file":"review.md"}
++{"file":"answer-refused-1920.png","gone":true}
++{"file":"brief-d-needs-you.md","gone":true}
++{"file":"brief-e-review-filter.md","gone":true}
++{"file":"brief-f-servex.md","gone":true}
++{"file":"brief-e-review-filter.md","gone":true}
++{"file":"brief-f-servex.md","gone":true}
++{"file":"brief-g-page.md","gone":true}
++{"file":"brief-g-page.md","gone":true}
++{"file":"card-reviewed-1920.png","gone":true}
++{"file":"contract-v2.md","gone":true}
++{"file":"card-reviewed-1920.png","gone":true}
++{"file":"layout-check/","gone":true}
++{"file":"contract-v2.md","gone":true}
++{"file":"live-1920.png","gone":true}
++{"file":"needs-1280.png","gone":true}
++{"file":"layout-check/","gone":true}
++{"file":"needs-1920.png","gone":true}
++{"file":"live-1920.png","gone":true}
++{"file":"overview-1920.png","gone":true}
++{"file":"owner-words-0929.md","gone":true}
++{"file":"needs-1280.png","gone":true}
++{"file":"rail-review-1920.png","gone":true}
++{"file":"needs-1920.png","gone":true}
++{"file":"review/","gone":true}
++{"file":"review.jsonl","gone":true}
++{"file":"overview-1920.png","gone":true}
++{"file":"owner-words-0929.md","gone":true}
++{"file":"review.md","gone":true}
++{"file":"rail-review-1920.png","gone":true}
++{"file":"review/","gone":true}
++{"file":"review.jsonl","gone":true}
++{"file":"review.md","gone":true}
+diff --git a/public/framework/ai/2026-09-29/audio/files.jsonl b/public/framework/ai/2026-09-29/audio/files.jsonl
+index d9c1c0ef..ce6186d5 100644
+--- a/public/framework/ai/2026-09-29/audio/files.jsonl
++++ b/public/framework/ai/2026-09-29/audio/files.jsonl
+@@ -25,3 +25,6 @@
+ {"file":"next-clean-transcription/"}
+ {"file":"shots/"}
+ {"file":"shots/"}
++{"file":"next-drill-in/"}
++{"file":"shots/","gone":true}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-29/card-mobile/files.jsonl b/public/framework/ai/2026-09-29/card-mobile/files.jsonl
+index dd8bbae1..61504d68 100644
+--- a/public/framework/ai/2026-09-29/card-mobile/files.jsonl
++++ b/public/framework/ai/2026-09-29/card-mobile/files.jsonl
+@@ -2,3 +2,6 @@
+ {"file":"inbox-400.png"}
+ {"file":"task.jsonl"}
+ {"file":"task.jsonl"}
++{"file":"card-experiment-400.png","gone":true}
++{"file":"inbox-400.png","gone":true}
++{"file":"task.jsonl","gone":true}
+diff --git a/public/framework/ai/2026-09-29/chip-context-fix/files.jsonl b/public/framework/ai/2026-09-29/chip-context-fix/files.jsonl
+index bc1a516f..abc3c99d 100644
+--- a/public/framework/ai/2026-09-29/chip-context-fix/files.jsonl
++++ b/public/framework/ai/2026-09-29/chip-context-fix/files.jsonl
+@@ -2,3 +2,10 @@
+ {"file":"requirements.md"}
+ {"file":"spend.json"}
+ {"file":"task.jsonl"}
++{"file":"layout-check/","gone":true}
++{"file":"requirements.md","gone":true}
++{"file":"requirements.md","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"task.jsonl","gone":true}
++{"file":"task.jsonl","gone":true}
+diff --git a/public/framework/ai/2026-09-29/decide-tool/files.jsonl b/public/framework/ai/2026-09-29/decide-tool/files.jsonl
+index 907deeb6..a256645e 100644
+--- a/public/framework/ai/2026-09-29/decide-tool/files.jsonl
++++ b/public/framework/ai/2026-09-29/decide-tool/files.jsonl
+@@ -33,3 +33,18 @@
+ {"file":"review.md"}
+ {"file":"spend.json"}
+ {"file":"task.jsonl"}
++{"file":"inbox.jsonl","gone":true}
++{"file":"layout-check/","gone":true}
++{"file":"requirements.md","gone":true}
++{"file":"layout-check/","gone":true}
++{"file":"review/","gone":true}
++{"file":"requirements.md","gone":true}
++{"file":"review.jsonl","gone":true}
++{"file":"review/","gone":true}
++{"file":"review.md","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"review.jsonl","gone":true}
++{"file":"review.md","gone":true}
++{"file":"task.jsonl","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"task.jsonl","gone":true}
+diff --git a/public/framework/ai/2026-09-29/dictate-lag/files.jsonl b/public/framework/ai/2026-09-29/dictate-lag/files.jsonl
+index 8969784d..055c9f94 100644
+--- a/public/framework/ai/2026-09-29/dictate-lag/files.jsonl
++++ b/public/framework/ai/2026-09-29/dictate-lag/files.jsonl
+@@ -2,3 +2,11 @@
+ {"file":"review.jsonl"}
+ {"file":"review.md"}
+ {"file":"task.jsonl"}
++{"file":"review/","gone":true}
++{"file":"review.jsonl","gone":true}
++{"file":"review/","gone":true}
++{"file":"review.md","gone":true}
++{"file":"review.jsonl","gone":true}
++{"file":"task.jsonl","gone":true}
++{"file":"review.md","gone":true}
++{"file":"task.jsonl","gone":true}
+diff --git a/public/framework/ai/2026-09-29/dictate-spacing/files.jsonl b/public/framework/ai/2026-09-29/dictate-spacing/files.jsonl
+index c9b6b0f7..bc7881d9 100644
+--- a/public/framework/ai/2026-09-29/dictate-spacing/files.jsonl
++++ b/public/framework/ai/2026-09-29/dictate-spacing/files.jsonl
+@@ -12,3 +12,29 @@
+ {"file":"review.jsonl"}
+ {"file":"review.md"}
+ {"file":"task.jsonl"}
++{"file":"after-1920.png","gone":true}
++{"file":"after-400.png","gone":true}
++{"file":"answer-haiku.md","gone":true}
++{"file":"answer-opus.md","gone":true}
++{"file":"answer-haiku.md","gone":true}
++{"file":"answer-sonnet.md","gone":true}
++{"file":"before-1920.png","gone":true}
++{"file":"answer-opus.md","gone":true}
++{"file":"before-400.png","gone":true}
++{"file":"brief.md","gone":true}
++{"file":"answer-sonnet.md","gone":true}
++{"file":"desktop-1920.png","gone":true}
++{"file":"before-1920.png","gone":true}
++{"file":"mobile-400.png","gone":true}
++{"file":"before-400.png","gone":true}
++{"file":"review/","gone":true}
++{"file":"brief.md","gone":true}
++{"file":"review.jsonl","gone":true}
++{"file":"desktop-1920.png","gone":true}
++{"file":"review.md","gone":true}
++{"file":"mobile-400.png","gone":true}
++{"file":"task.jsonl","gone":true}
++{"file":"review/","gone":true}
++{"file":"review.jsonl","gone":true}
++{"file":"review.md","gone":true}
++{"file":"task.jsonl","gone":true}
+diff --git a/public/framework/ai/2026-09-29/file-system/files.jsonl b/public/framework/ai/2026-09-29/file-system/files.jsonl
+index 3f03cb28..830328c1 100644
+--- a/public/framework/ai/2026-09-29/file-system/files.jsonl
++++ b/public/framework/ai/2026-09-29/file-system/files.jsonl
+@@ -32,3 +32,31 @@
+ {"file":"shots-before/"}
+ {"file":"spend.json"}
+ {"file":"task.jsonl"}
++{"file":"audit.md","gone":true}
++{"file":"inbox.jsonl","gone":true}
++{"file":"minion-a/","gone":true}
++{"file":"minion-b/","gone":true}
++{"file":"minion-a/","gone":true}
++{"file":"minion-c/","gone":true}
++{"file":"minion-b/","gone":true}
++{"file":"owner-words.md","gone":true}
++{"file":"minion-c/","gone":true}
++{"file":"requirements.md","gone":true}
++{"file":"review/","gone":true}
++{"file":"owner-words.md","gone":true}
++{"file":"review.jsonl","gone":true}
++{"file":"requirements.md","gone":true}
++{"file":"review.md","gone":true}
++{"file":"review/","gone":true}
++{"file":"shots-after/","gone":true}
++{"file":"review.jsonl","gone":true}
++{"file":"shots-before/","gone":true}
++{"file":"review.md","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"shots-after/","gone":true}
++{"file":"task.jsonl","gone":true}
++{"file":"shots-before/","gone":true}
++{"file":"layout-check/","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"task.jsonl","gone":true}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/ai/2026-09-29/files.jsonl b/public/framework/ai/2026-09-29/files.jsonl
+index c1dd4b55..6f150a93 100644
+--- a/public/framework/ai/2026-09-29/files.jsonl
++++ b/public/framework/ai/2026-09-29/files.jsonl
+@@ -110,3 +110,9 @@
+ {"file":"servex-mastermind/"}
+ {"file":"slow-card-fix/"}
+ {"file":"summary-styles/"}
++{"file":"decided-default/"}
++{"file":"decided-default/"}
++{"file":"grip-everywhere/"}
++{"file":"grip-everywhere/"}
++{"file":"voice-on-panel/"}
++{"file":"voice-on-panel/"}
+diff --git a/public/framework/ai/2026-09-29/follow/files.jsonl b/public/framework/ai/2026-09-29/follow/files.jsonl
+index 495cbb92..e81a9408 100644
+--- a/public/framework/ai/2026-09-29/follow/files.jsonl
++++ b/public/framework/ai/2026-09-29/follow/files.jsonl
+@@ -4,3 +4,6 @@
+ {"file":"task.jsonl"}
+ {"file":"build/"}
+ {"file":"build/"}
++{"file":"requirements.md","gone":true}
++{"file":"task.jsonl","gone":true}
++{"file":"build/","gone":true}
+diff --git a/public/framework/ai/2026-09-29/harness-spike/files.jsonl b/public/framework/ai/2026-09-29/harness-spike/files.jsonl
+index a1221d4e..8f2f7b30 100644
+--- a/public/framework/ai/2026-09-29/harness-spike/files.jsonl
++++ b/public/framework/ai/2026-09-29/harness-spike/files.jsonl
+@@ -1,2 +1,5 @@
+ {"file":"requirements.md"}
+ {"file":"task.jsonl"}
++{"file":"requirements.md","gone":true}
++{"file":"task.jsonl","gone":true}
++{"file":"task.jsonl","gone":true}
+diff --git a/public/framework/ai/2026-09-29/item-ui/files.jsonl b/public/framework/ai/2026-09-29/item-ui/files.jsonl
+index 30a060c9..02af2c3b 100644
+--- a/public/framework/ai/2026-09-29/item-ui/files.jsonl
++++ b/public/framework/ai/2026-09-29/item-ui/files.jsonl
+@@ -7,3 +7,20 @@
+ {"file":"requirements.md"}
+ {"file":"spend.json"}
+ {"file":"task.jsonl"}
++{"file":"a-item/","gone":true}
++{"file":"b-census/","gone":true}
++{"file":"c-views/","gone":true}
++{"file":"b-census/","gone":true}
++{"file":"inbox.jsonl","gone":true}
++{"file":"c-views/","gone":true}
++{"file":"layout-check/","gone":true}
++{"file":"owner-words.md","gone":true}
++{"file":"inbox.jsonl","gone":true}
++{"file":"requirements.md","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"layout-check/","gone":true}
++{"file":"owner-words.md","gone":true}
++{"file":"task.jsonl","gone":true}
++{"file":"requirements.md","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"task.jsonl","gone":true}
+diff --git a/public/framework/ai/2026-09-29/layout-explorer/files.jsonl b/public/framework/ai/2026-09-29/layout-explorer/files.jsonl
+index 2b68da8b..d72236b0 100644
+--- a/public/framework/ai/2026-09-29/layout-explorer/files.jsonl
++++ b/public/framework/ai/2026-09-29/layout-explorer/files.jsonl
+@@ -31,3 +31,5 @@
+ {"file":"layout-check/"}
+ {"file":"layout-check/","gone":true}
+ {"file":"layout-check/"}
++{"file":"layout-check/","gone":true}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/ai/2026-09-29/lifecycle/files.jsonl b/public/framework/ai/2026-09-29/lifecycle/files.jsonl
+index c6e06aa1..c022c8bc 100644
+--- a/public/framework/ai/2026-09-29/lifecycle/files.jsonl
++++ b/public/framework/ai/2026-09-29/lifecycle/files.jsonl
+@@ -39,3 +39,11 @@
+ {"file":"layout-check/"}
+ {"file":"review/"}
+ {"file":"spend.json"}
++{"file":"inbox.jsonl","gone":true}
++{"file":"review/","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"inbox.jsonl","gone":true}
++{"file":"layout-check/","gone":true}
++{"file":"review/","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/ai/2026-09-29/mobile-nav/files.jsonl b/public/framework/ai/2026-09-29/mobile-nav/files.jsonl
+index 61a3276a..5ef10f20 100644
+--- a/public/framework/ai/2026-09-29/mobile-nav/files.jsonl
++++ b/public/framework/ai/2026-09-29/mobile-nav/files.jsonl
+@@ -24,3 +24,5 @@
+ {"file":"review-1/"}
+ {"file":"review-2/"}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-29/module-experts/files.jsonl b/public/framework/ai/2026-09-29/module-experts/files.jsonl
+index 91b69be1..e5981a7d 100644
+--- a/public/framework/ai/2026-09-29/module-experts/files.jsonl
++++ b/public/framework/ai/2026-09-29/module-experts/files.jsonl
+@@ -20,3 +20,5 @@
+ {"file":"layout-check/"}
+ {"file":"layout-check/","gone":true}
+ {"file":"layout-check/"}
++{"file":"layout-check/","gone":true}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/ai/2026-09-29/naming-skill/files.jsonl b/public/framework/ai/2026-09-29/naming-skill/files.jsonl
+index 8bd5cb28..136c757d 100644
+--- a/public/framework/ai/2026-09-29/naming-skill/files.jsonl
++++ b/public/framework/ai/2026-09-29/naming-skill/files.jsonl
+@@ -1,3 +1,6 @@
+ {"file":"requirements.md"}
+ {"file":"task.jsonl"}
+ {"file":"task.jsonl"}
++{"file":"requirements.md","gone":true}
++{"file":"task.jsonl","gone":true}
++{"file":"task.jsonl","gone":true}
+diff --git a/public/framework/ai/2026-09-29/nested-tasks/files.jsonl b/public/framework/ai/2026-09-29/nested-tasks/files.jsonl
+index 28916a70..bd35ba93 100644
+--- a/public/framework/ai/2026-09-29/nested-tasks/files.jsonl
++++ b/public/framework/ai/2026-09-29/nested-tasks/files.jsonl
+@@ -11,3 +11,24 @@
+ {"file":"tree-live-1920.png"}
+ {"file":"layout-check/"}
+ {"file":"layout-check/"}
++{"file":"inbox.jsonl","gone":true}
++{"file":"minion-data/","gone":true}
++{"file":"minion-data/","gone":true}
++{"file":"minion-view/","gone":true}
++{"file":"requirements.md","gone":true}
++{"file":"minion-view/","gone":true}
++{"file":"requirements.md","gone":true}
++{"file":"review/","gone":true}
++{"file":"review/","gone":true}
++{"file":"review.jsonl","gone":true}
++{"file":"review.jsonl","gone":true}
++{"file":"review.md","gone":true}
++{"file":"review.md","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"task.jsonl","gone":true}
++{"file":"task.jsonl","gone":true}
++{"file":"tree-live-1920.png","gone":true}
++{"file":"tree-live-1920.png","gone":true}
++{"file":"layout-check/","gone":true}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/ai/2026-09-29/node-modules-guard/files.jsonl b/public/framework/ai/2026-09-29/node-modules-guard/files.jsonl
+index e52e7296..ad593424 100644
+--- a/public/framework/ai/2026-09-29/node-modules-guard/files.jsonl
++++ b/public/framework/ai/2026-09-29/node-modules-guard/files.jsonl
+@@ -5,3 +5,17 @@
+ {"file":"requirements.md"}
+ {"file":"spend.json"}
+ {"file":"task.jsonl"}
++{"file":"cause/","gone":true}
++{"file":"guards/","gone":true}
++{"file":"cause/","gone":true}
++{"file":"inbox.jsonl","gone":true}
++{"file":"guards/","gone":true}
++{"file":"layout-check/","gone":true}
++{"file":"inbox.jsonl","gone":true}
++{"file":"requirements.md","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"layout-check/","gone":true}
++{"file":"task.jsonl","gone":true}
++{"file":"requirements.md","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"task.jsonl","gone":true}
+diff --git a/public/framework/ai/2026-09-29/node-reliability/files.jsonl b/public/framework/ai/2026-09-29/node-reliability/files.jsonl
+index a1221d4e..0b715882 100644
+--- a/public/framework/ai/2026-09-29/node-reliability/files.jsonl
++++ b/public/framework/ai/2026-09-29/node-reliability/files.jsonl
+@@ -1,2 +1,16 @@
+ {"file":"requirements.md"}
+ {"file":"task.jsonl"}
++{"file":"checkpoint-1.md"}
++{"file":"draft/"}
++{"file":"jsonl-keep-proof.txt"}
++{"file":"queue-proof.txt"}
++{"file":"jsonl-keep-proof.txt"}
++{"file":"review-queue.md"}
++{"file":"queue-proof.txt"}
++{"file":"review.md"}
++{"file":"review-queue.md"}
++{"file":"revive-guard-proof.txt"}
++{"file":"task.jsonl","gone":true}
++{"file":"review.md"}
++{"file":"revive-guard-proof.txt"}
++{"file":"task.jsonl","gone":true}
+diff --git a/public/framework/ai/2026-09-29/openrouter-brain/files.jsonl b/public/framework/ai/2026-09-29/openrouter-brain/files.jsonl
+index a03f99c9..0b668153 100644
+--- a/public/framework/ai/2026-09-29/openrouter-brain/files.jsonl
++++ b/public/framework/ai/2026-09-29/openrouter-brain/files.jsonl
+@@ -5,3 +5,15 @@
+ {"file":"review.md"}
+ {"file":"spend.json"}
+ {"file":"task.jsonl"}
++{"file":"minion-a-snapshot-sources/","gone":true}
++{"file":"minion-b-readme-skill/","gone":true}
++{"file":"requirements.md","gone":true}
++{"file":"requirements.md","gone":true}
++{"file":"review.jsonl","gone":true}
++{"file":"review.md","gone":true}
++{"file":"review.jsonl","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"review.md","gone":true}
++{"file":"task.jsonl","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"task.jsonl","gone":true}
+diff --git a/public/framework/ai/2026-09-29/page-files-log/files.jsonl b/public/framework/ai/2026-09-29/page-files-log/files.jsonl
+index cd31e86d..f0c6b72d 100644
+--- a/public/framework/ai/2026-09-29/page-files-log/files.jsonl
++++ b/public/framework/ai/2026-09-29/page-files-log/files.jsonl
+@@ -52,3 +52,38 @@
+ {"file":"deleted-folders.txt"}
+ {"file":"deleted-paths.txt"}
+ {"file":"deleted-paths.txt"}
++{"file":"inbox.jsonl","gone":true}
++{"file":"main-tree-groups.js.patch","gone":true}
++{"file":"measure/","gone":true}
++{"file":"merge-union/","gone":true}
++{"file":"main-tree-groups.js.patch","gone":true}
++{"file":"owner-words.md","gone":true}
++{"file":"measure/","gone":true}
++{"file":"readers/","gone":true}
++{"file":"merge-union/","gone":true}
++{"file":"requirements.md","gone":true}
++{"file":"review/","gone":true}
++{"file":"owner-words.md","gone":true}
++{"file":"review.jsonl","gone":true}
++{"file":"readers/","gone":true}
++{"file":"review.md","gone":true}
++{"file":"requirements.md","gone":true}
++{"file":"review/","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"task.jsonl","gone":true}
++{"file":"review.jsonl","gone":true}
++{"file":"writer/","gone":true}
++{"file":"review.md","gone":true}
++{"file":"md-1920.png","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"fs-1920.png","gone":true}
++{"file":"task.jsonl","gone":true}
++{"file":"files-jsonl/","gone":true}
++{"file":"writer/","gone":true}
++{"file":"md-1920.png","gone":true}
++{"file":"deleted-folders.txt","gone":true}
++{"file":"deleted-paths.txt","gone":true}
++{"file":"fs-1920.png","gone":true}
++{"file":"files-jsonl/","gone":true}
++{"file":"deleted-folders.txt","gone":true}
++{"file":"deleted-paths.txt","gone":true}
+diff --git a/public/framework/ai/2026-09-29/page-files-merge-fix/files.jsonl b/public/framework/ai/2026-09-29/page-files-merge-fix/files.jsonl
+index 6f25d0d5..748bb0ab 100644
+--- a/public/framework/ai/2026-09-29/page-files-merge-fix/files.jsonl
++++ b/public/framework/ai/2026-09-29/page-files-merge-fix/files.jsonl
+@@ -2,3 +2,5 @@
+ {"file":"requirements.md"}
+ {"file":"task.jsonl"}
+ {"file":"task.jsonl"}
++{"file":"requirements.md","gone":true}
++{"file":"task.jsonl","gone":true}
+diff --git a/public/framework/ai/2026-09-29/page-system/files.jsonl b/public/framework/ai/2026-09-29/page-system/files.jsonl
+index 6d0ecd85..a8104494 100644
+--- a/public/framework/ai/2026-09-29/page-system/files.jsonl
++++ b/public/framework/ai/2026-09-29/page-system/files.jsonl
+@@ -44,3 +44,5 @@
+ {"file":"inventory-audit/"}
+ {"file":"inventory-audit.md"}
+ {"file":"inventory-audit.md"}
++{"file":"shots/","gone":true}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-29/prompt-refine/files.jsonl b/public/framework/ai/2026-09-29/prompt-refine/files.jsonl
+index 444a25a4..ed648372 100644
+--- a/public/framework/ai/2026-09-29/prompt-refine/files.jsonl
++++ b/public/framework/ai/2026-09-29/prompt-refine/files.jsonl
+@@ -24,3 +24,10 @@
+ {"file":"review/"}
+ {"file":"spend.json"}
+ {"file":"task.jsonl"}
++{"file":"inbox.jsonl","gone":true}
++{"file":"review/","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"task.jsonl","gone":true}
++{"file":"review/","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"task.jsonl","gone":true}
+diff --git a/public/framework/ai/2026-09-29/readme-system/files.jsonl b/public/framework/ai/2026-09-29/readme-system/files.jsonl
+index 8bd5cb28..86846cdf 100644
+--- a/public/framework/ai/2026-09-29/readme-system/files.jsonl
++++ b/public/framework/ai/2026-09-29/readme-system/files.jsonl
+@@ -1,3 +1,5 @@
+ {"file":"requirements.md"}
+ {"file":"task.jsonl"}
+ {"file":"task.jsonl"}
++{"file":"requirements.md","gone":true}
++{"file":"task.jsonl","gone":true}
+diff --git a/public/framework/ai/2026-09-29/restart-outside-tree/files.jsonl b/public/framework/ai/2026-09-29/restart-outside-tree/files.jsonl
+index c01cc7fe..dc813185 100644
+--- a/public/framework/ai/2026-09-29/restart-outside-tree/files.jsonl
++++ b/public/framework/ai/2026-09-29/restart-outside-tree/files.jsonl
+@@ -5,3 +5,11 @@
+ {"file":"review.md"}
+ {"file":"spend.json"}
+ {"file":"task.jsonl"}
++{"file":"layout-check/","gone":true}
++{"file":"requirements.md","gone":true}
++{"file":"review/","gone":true}
++{"file":"review.jsonl","gone":true}
++{"file":"review.md","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"task.jsonl","gone":true}
++{"file":"task.jsonl","gone":true}
+diff --git a/public/framework/ai/2026-09-29/servex-docs-tab/files.jsonl b/public/framework/ai/2026-09-29/servex-docs-tab/files.jsonl
+index d72bfb87..8444646d 100644
+--- a/public/framework/ai/2026-09-29/servex-docs-tab/files.jsonl
++++ b/public/framework/ai/2026-09-29/servex-docs-tab/files.jsonl
+@@ -27,3 +27,17 @@
+ {"file":"requirements.md"}
+ {"file":"spend.json"}
+ {"file":"task.jsonl"}
++{"file":"docs-tab-live-openrouter.png","gone":true}
++{"file":"inbox.jsonl","gone":true}
++{"file":"docs-tab-live-openrouter.png","gone":true}
++{"file":"layout-check/","gone":true}
++{"file":"inbox.jsonl","gone":true}
++{"file":"minion-b-ui/","gone":true}
++{"file":"layout-check/","gone":true}
++{"file":"minion-b-ui/","gone":true}
++{"file":"requirements.md","gone":true}
++{"file":"requirements.md","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"task.jsonl","gone":true}
++{"file":"task.jsonl","gone":true}
+diff --git a/public/framework/ai/2026-09-29/servex-mastermind/files.jsonl b/public/framework/ai/2026-09-29/servex-mastermind/files.jsonl
+index c9572cc7..4391aaee 100644
+--- a/public/framework/ai/2026-09-29/servex-mastermind/files.jsonl
++++ b/public/framework/ai/2026-09-29/servex-mastermind/files.jsonl
+@@ -4,3 +4,15 @@
+ {"file":"gate.mjs"}
+ {"file":"spend.json"}
+ {"file":"task.jsonl"}
++{"file":"checkpoint-7.md"}
++{"file":"audit/","gone":true}
++{"file":"checkpoint-4.md","gone":true}
++{"file":"checkpoint-5.md","gone":true}
++{"file":"checkpoint-4.md","gone":true}
++{"file":"gate.mjs","gone":true}
++{"file":"checkpoint-5.md","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"gate.mjs","gone":true}
++{"file":"task.jsonl","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"task.jsonl","gone":true}
+diff --git a/public/framework/ai/2026-09-29/slow-card-fix/files.jsonl b/public/framework/ai/2026-09-29/slow-card-fix/files.jsonl
+index 4cfa282a..61381928 100644
+--- a/public/framework/ai/2026-09-29/slow-card-fix/files.jsonl
++++ b/public/framework/ai/2026-09-29/slow-card-fix/files.jsonl
+@@ -6,3 +6,18 @@
+ {"file":"review.md"}
+ {"file":"spend.json"}
+ {"file":"task.jsonl"}
++{"file":"layout-check/","gone":true}
++{"file":"measurement.md","gone":true}
++{"file":"measurement.md","gone":true}
++{"file":"requirements.md","gone":true}
++{"file":"requirements.md","gone":true}
++{"file":"review/","gone":true}
++{"file":"review/","gone":true}
++{"file":"review.jsonl","gone":true}
++{"file":"review.jsonl","gone":true}
++{"file":"review.md","gone":true}
++{"file":"review.md","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"task.jsonl","gone":true}
++{"file":"task.jsonl","gone":true}
+diff --git a/public/framework/ai/2026-09-29/summary-styles/files.jsonl b/public/framework/ai/2026-09-29/summary-styles/files.jsonl
+index 028d113a..855307bd 100644
+--- a/public/framework/ai/2026-09-29/summary-styles/files.jsonl
++++ b/public/framework/ai/2026-09-29/summary-styles/files.jsonl
+@@ -3,3 +3,12 @@
+ {"file":"shots/"}
+ {"file":"spend.json"}
+ {"file":"task.jsonl"}
++{"file":"layout-check/","gone":true}
++{"file":"requirements.md","gone":true}
++{"file":"requirements.md","gone":true}
++{"file":"shots/","gone":true}
++{"file":"shots/","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"task.jsonl","gone":true}
++{"file":"task.jsonl","gone":true}
+diff --git a/public/framework/ai/2026-09-29/voice-on-panel/files.jsonl b/public/framework/ai/2026-09-29/voice-on-panel/files.jsonl
+index 0a1bf95e..63c9061f 100644
+--- a/public/framework/ai/2026-09-29/voice-on-panel/files.jsonl
++++ b/public/framework/ai/2026-09-29/voice-on-panel/files.jsonl
+@@ -5,3 +5,4 @@
+ {"file":"review.jsonl"}
+ {"file":"review.md"}
+ {"file":"review.md"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-29/voice-sessions/files.jsonl b/public/framework/ai/2026-09-29/voice-sessions/files.jsonl
+index 22d97a74..f0c81bea 100644
+--- a/public/framework/ai/2026-09-29/voice-sessions/files.jsonl
++++ b/public/framework/ai/2026-09-29/voice-sessions/files.jsonl
+@@ -7,3 +7,14 @@
+ {"file":"refine-640/"}
+ {"file":"refine-655/"}
+ {"file":"task.jsonl"}
++{"file":"refine/","gone":true}
++{"file":"voice-sessions.svg","gone":true}
++{"file":"voice-sessions.svg","gone":true}
++{"file":"requirements.md","gone":true}
++{"file":"requirements.md","gone":true}
++{"file":"refine-640/","gone":true}
++{"file":"refine-640/","gone":true}
++{"file":"refine-655/","gone":true}
++{"file":"refine-655/","gone":true}
++{"file":"task.jsonl","gone":true}
++{"file":"task.jsonl","gone":true}
+diff --git a/public/framework/ai/2026/09/25/cards-that-show-the-thing/page.jsonl b/public/framework/ai/2026/09/25/cards-that-show-the-thing/page.jsonl
+index f129abca..bf997aeb 100644
+--- a/public/framework/ai/2026/09/25/cards-that-show-the-thing/page.jsonl
++++ b/public/framework/ai/2026/09/25/cards-that-show-the-thing/page.jsonl
+@@ -27,3 +27,4 @@
+ {"message":{"by":"assistant-cards-that-show-the-thing","text":"Got it — desktop proof received (1790720395042).","kind":"reply","at":"2026-09-29T17:19:58-05:00"}}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026/09/25/why-padding-keeps-going-missing/page.jsonl b/public/framework/ai/2026/09/25/why-padding-keeps-going-missing/page.jsonl
+index 5091a2d0..5a2f715c 100644
+--- a/public/framework/ai/2026/09/25/why-padding-keeps-going-missing/page.jsonl
++++ b/public/framework/ai/2026/09/25/why-padding-keeps-going-missing/page.jsonl
+@@ -10,3 +10,4 @@
+ {"message":{"by":"task-mastermind-padding-system","text":"Landed. The padding check now sees neighbouring columns, controls and framed boxes, and it runs by itself on every landing. The page skill asks \"how wide, does it need padding, how does it meet its neighbours\" every time. Padding stays opt-in with .pad. It already caught one real miss: the Assistant box on AI 2 at 1280.","kind":"reply","at":"2026-09-25T18:14:12-05:00"}}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026/09/28/ai-2-rhythm-tabs-sections-and-sidebar-va/page.jsonl b/public/framework/ai/2026/09/28/ai-2-rhythm-tabs-sections-and-sidebar-va/page.jsonl
+index 3741d78b..035bb6c2 100644
+--- a/public/framework/ai/2026/09/28/ai-2-rhythm-tabs-sections-and-sidebar-va/page.jsonl
++++ b/public/framework/ai/2026/09/28/ai-2-rhythm-tabs-sections-and-sidebar-va/page.jsonl
+@@ -20,3 +20,6 @@
+ {"file":"walkthrough.md"}
+ {"place":"walkthrough.md"}
+ {"file":"walkthrough.md"}
++{"file":"owner-words.md","gone":true}
++{"file":"imagine-merge.md","gone":true}
++{"file":"which-sidebar-variant/page.jsonl","gone":true}
+diff --git a/public/framework/ai/2026/09/29/files.jsonl b/public/framework/ai/2026/09/29/files.jsonl
+index e3d6553c..52fd6fca 100644
+--- a/public/framework/ai/2026/09/29/files.jsonl
++++ b/public/framework/ai/2026/09/29/files.jsonl
+@@ -38,3 +38,21 @@
+ {"file":"why-yesterday-s-paid-tasks-never-landed/page.jsonl"}
+ {"file":"the-page-system-layout-navigation-new-pa/page.jsonl"}
+ {"file":"why-yesterday-s-paid-tasks-never-landed/page.jsonl"}
++{"file":"audio-a-library-of-audio-parts-transcrip/page.jsonl","gone":true}
++{"file":"choosing-a-layout-five-questions-and-col/page.jsonl","gone":true}
++{"file":"experiment-3-models-read-the-dictate-spa/page.jsonl","gone":true}
++{"file":"familiar-structure-every-named-system-ge/page.jsonl","gone":true}
++{"file":"file-system-file-and-directory-objects-f/page.jsonl","gone":true}
++{"file":"item-ui-and-object-views-icon-items-tree/page.jsonl","gone":true}
++{"file":"lifecycle-nothing-left-running-nested-ta/page.jsonl","gone":true}
++{"file":"mobile-nav-back-an-ai-rail-at-the-bottom/page.jsonl","gone":true}
++{"file":"module-experts-a-ready-page-mastermind-t/page.jsonl","gone":true}
++{"file":"new-card/page.jsonl","gone":true}
++{"file":"openrouter-brain-a-knowledge-base-that-o/page.jsonl","gone":true}
++{"file":"openrouter-key-for-the-harness-spike/page.jsonl","gone":true}
++{"file":"personal-errands/page.jsonl","gone":true}
++{"file":"personal-errands-2/page.jsonl","gone":true}
++{"file":"summary-details-styles-full-width-varian/page.jsonl","gone":true}
++{"file":"system-audit-skills-tools-handover-loose/page.jsonl","gone":true}
++{"file":"the-page-system-layout-navigation-new-pa/page.jsonl","gone":true}
++{"file":"why-yesterday-s-paid-tasks-never-landed/page.jsonl","gone":true}
+diff --git a/public/framework/ai/2026/09/29/from-dictation-to-a-brief-with-nothing-l/page.jsonl b/public/framework/ai/2026/09/29/from-dictation-to-a-brief-with-nothing-l/page.jsonl
+index dd2b91fe..3180eada 100644
+--- a/public/framework/ai/2026/09/29/from-dictation-to-a-brief-with-nothing-l/page.jsonl
++++ b/public/framework/ai/2026/09/29/from-dictation-to-a-brief-with-nothing-l/page.jsonl
+@@ -41,3 +41,13 @@
+ {"message":{"by":"task-mastermind-prompt-refine","text":"The repair round works: on the harness dictation, the asks the tool's first brief had dropped went from 8 to 1, for 26 cents. The audit so far: the VS Code tab dropped 4, 3 and 7 of your asks and turned several suggestions into rules, but it always passed your raw words along beside the brief.","at":"2026-09-29T15:38:23-05:00"}}
+ {"message":{"by":"task-mastermind-prompt-refine","text":"Landed. refine.mjs is merged, and this card shows it on your three dictations beside the audit table. It went well over budget: $47 against $10, mostly two minions whose context kept growing through five Servex restarts. The next step is coverage checked per idea, not per sentence, because the audit shows the current check still misses drops inside long sentences.","at":"2026-09-29T15:58:26-05:00"}}
+ {"file":"content.js"}
++{"file":"owner-words.md","gone":true}
++{"file":"drawer-element-picker-context-pill-file/page.jsonl","gone":true}
++{"file":"hover-before-fold.png","gone":true}
++{"file":"hover-before.png","gone":true}
++{"file":"hover-while.png","gone":true}
++{"file":"codeblock-only.png","gone":true}
++{"file":"codeblock-hover.png","gone":true}
++{"file":"select-drag.png","gone":true}
++{"file":"layout-explorer-3-column-browse-categori/page.jsonl","gone":true}
++{"file":"study-sidebar-paging-html-structure-site/page.jsonl","gone":true}
+diff --git a/public/framework/core/Page/audit/design/files.jsonl b/public/framework/core/Page/audit/design/files.jsonl
+index a96ad2fc..7ae1b1c4 100644
+--- a/public/framework/core/Page/audit/design/files.jsonl
++++ b/public/framework/core/Page/audit/design/files.jsonl
+@@ -1,3 +1,4 @@
+ {"file":"shots/"}
+ {"file":"data.js"}
+ {"file":"page.js"}
++{"file":"findings.md"}
+diff --git a/public/framework/core/Page/files.jsonl b/public/framework/core/Page/files.jsonl
+index 8961f662..efe2037b 100644
+--- a/public/framework/core/Page/files.jsonl
++++ b/public/framework/core/Page/files.jsonl
+@@ -53,3 +53,4 @@
+ {"file":"words.js"}
+ {"file":"settings/page.jsonl"}
+ {"file":"settings/page.jsonl"}
++{"file":"audit/page.js"}
+diff --git a/public/framework/core/Page/layout/files.jsonl b/public/framework/core/Page/layout/files.jsonl
+index 6349d2da..ad45c0a8 100644
+--- a/public/framework/core/Page/layout/files.jsonl
++++ b/public/framework/core/Page/layout/files.jsonl
+@@ -5,3 +5,4 @@
+ {"file":"doc/"}
+ {"file":"v2/page.js"}
+ {"file":"weight.jsonl"}
++{"file":"switcher/page.js"}
+diff --git a/public/framework/ext/Chat/doc/files.jsonl b/public/framework/ext/Chat/doc/files.jsonl
+index 1d613498..89f59f76 100644
+--- a/public/framework/ext/Chat/doc/files.jsonl
++++ b/public/framework/ext/Chat/doc/files.jsonl
+@@ -1,2 +1,3 @@
+ {"file":"scroll.md"}
+ {"file":"decisions.md"}
++{"file":"floor.md"}
+diff --git a/public/framework/ext/drawer/doc/files.jsonl b/public/framework/ext/drawer/doc/files.jsonl
+index fb86340b..7604c183 100644
+--- a/public/framework/ext/drawer/doc/files.jsonl
++++ b/public/framework/ext/drawer/doc/files.jsonl
+@@ -6,3 +6,4 @@
+ {"file":"tabs.png"}
+ {"file":"file/page.jsonl"}
+ {"file":"file/"}
++{"file":"sheet.md"}
+diff --git a/public/framework/ext/drawer/rail/shots/files.jsonl b/public/framework/ext/drawer/rail/shots/files.jsonl
+index bc967d10..ef5e95f8 100644
+--- a/public/framework/ext/drawer/rail/shots/files.jsonl
++++ b/public/framework/ext/drawer/rail/shots/files.jsonl
+@@ -1,3 +1,8 @@
+ {"file":"desktop-1920-no-rail.png"}
+ {"file":"rail-400.png"}
+ {"file":"sheet-cards-400.png"}
++{"file":"sheet-1-open.png"}
++{"file":"sheet-2-dragged.png"}
++{"file":"sheet-3-full.png"}
++{"file":"sheet-4-after-back.png"}
++{"file":"sheet-5-closed.png"}
+diff --git a/public/framework/ext/files.jsonl b/public/framework/ext/files.jsonl
+index 7595810d..33f6e18b 100644
+--- a/public/framework/ext/files.jsonl
++++ b/public/framework/ext/files.jsonl
+@@ -100,3 +100,5 @@
+ {"file":"tabs/page.js"}
+ {"file":"Timeline/page.js"}
+ {"file":"toc/page.js"}
++{"file":"Session/page.js"}
++{"file":"Session/page.js"}
+diff --git a/public/framework/ext/tabs/files.jsonl b/public/framework/ext/tabs/files.jsonl
+index 0bb599e2..80114723 100644
+--- a/public/framework/ext/tabs/files.jsonl
++++ b/public/framework/ext/tabs/files.jsonl
+@@ -5,3 +5,4 @@
+ {"file":"tabs.js"}
+ {"file":"doc/page.jsonl"}
+ {"file":"doc/"}
++{"file":"switcher.js"}
+diff --git a/public/framework/sources/openrouter/files.jsonl b/public/framework/sources/openrouter/files.jsonl
+index 07c90923..dc6bef25 100644
+--- a/public/framework/sources/openrouter/files.jsonl
++++ b/public/framework/sources/openrouter/files.jsonl
+@@ -20,3 +20,7 @@
+ {"file":"anthropic-agent-sdk-integration-openrouter-sdk-support.md"}
+ {"file":"claude-code-integration-guide-openrouter.md"}
+ {"file":"claude-code-with-openrouter-setup.md"}
++{"file":"agent-sdk-overview-anthropic.md","gone":true}
++{"file":"anthropic-agent-sdk-integration-openrouter-sdk-support.md","gone":true}
++{"file":"claude-code-integration-guide-openrouter.md","gone":true}
++{"file":"claude-code-with-openrouter-setup.md","gone":true}
+diff --git a/public/framework/ux/Content/Disclosure/doc/files.jsonl b/public/framework/ux/Content/Disclosure/doc/files.jsonl
+index acfb368b..68bef37f 100644
+--- a/public/framework/ux/Content/Disclosure/doc/files.jsonl
++++ b/public/framework/ux/Content/Disclosure/doc/files.jsonl
+@@ -1 +1,2 @@
+ {"file":"decisions.md"}
++{"file":"decisions.md","gone":true}
+diff --git a/public/framework/ux/Content/Disclosure/files.jsonl b/public/framework/ux/Content/Disclosure/files.jsonl
+index b9e5f357..6f5537b4 100644
+--- a/public/framework/ux/Content/Disclosure/files.jsonl
++++ b/public/framework/ux/Content/Disclosure/files.jsonl
+@@ -8,3 +8,4 @@
+ {"file":"variants/page.js","gone":true}
+ {"file":"doc/"}
+ {"file":"variants/page.js"}
++{"file":"variants/"}
+diff --git a/public/framework/ux/Content/Disclosure/variants/files.jsonl b/public/framework/ux/Content/Disclosure/variants/files.jsonl
+index ffae31da..e2383848 100644
+--- a/public/framework/ux/Content/Disclosure/variants/files.jsonl
++++ b/public/framework/ux/Content/Disclosure/variants/files.jsonl
+@@ -1 +1,2 @@
+ {"file":"page.js"}
++{"file":"page.js","gone":true}
+diff --git a/public/framework/ux/Dictate/ai/files.jsonl b/public/framework/ux/Dictate/ai/files.jsonl
+index 948b1a60..2d9a41b9 100644
+--- a/public/framework/ux/Dictate/ai/files.jsonl
++++ b/public/framework/ux/Dictate/ai/files.jsonl
+@@ -1 +1,2 @@
+ {"file":"chat.jsonl"}
++{"file":"chat.jsonl","gone":true}
+diff --git a/public/framework/ux/Dictate/files.jsonl b/public/framework/ux/Dictate/files.jsonl
+index 5c6d0d50..0861ffef 100644
+--- a/public/framework/ux/Dictate/files.jsonl
++++ b/public/framework/ux/Dictate/files.jsonl
+@@ -13,3 +13,5 @@
+ {"file":"ai/"}
+ {"file":"ai/","gone":true}
+ {"file":"ai/"}
++{"file":"floor.js"}
++{"file":"floor.js"}
+diff --git a/public/framework/ux/files.jsonl b/public/framework/ux/files.jsonl
+index 967f5d54..26f02025 100644
+--- a/public/framework/ux/files.jsonl
++++ b/public/framework/ux/files.jsonl
+@@ -36,3 +36,7 @@
+ {"file":"doc/"}
+ {"file":"ai/"}
+ {"file":"ai/","gone":true}
++{"file":"Rename/page.js"}
++{"file":"Revise/page.js"}
++{"file":"Understand/page.js"}
++{"file":"Understand/page.js"}
+diff --git a/public/notes/files.jsonl b/public/notes/files.jsonl
+index 976ab37e..244cd337 100644
+--- a/public/notes/files.jsonl
++++ b/public/notes/files.jsonl
+@@ -77,3 +77,4 @@
+ {"file":"inbox/"}
+ {"file":"inbox/","gone":true}
+ {"file":"inbox/"}
++{"file":"inbox/","gone":true}

@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/core/Item/live/",
+ "widths": {
+  "1280": {
+   "empty": 0.712,
+   "widest_text": 832,
+   "widest_text_sample": "{\"add\":{\"id\":\"b43721fe-2db7-4ac2-9dc7-a2",
+   "overflow_x": false,
+   "items": 64,
+   "narrow_share": 0.25
+  },
+  "1920": {
+   "empty": 0.763,
+   "widest_text": 833,
+   "widest_text_sample": "{\"add\":{\"id\":\"b43721fe-2db7-4ac2-9dc7-a2",
+   "overflow_x": false,
+   "items": 64,
+   "narrow_share": 0.781
+  },
+  "2560": {
+   "empty": 0.773,
+   "widest_text": 996,
+   "widest_text_sample": "{\"add\":{\"id\":\"b43721fe-2db7-4ac2-9dc7-a2",
+   "overflow_x": false,
+   "items": 64,
+   "narrow_share": 0.781
+  },
+  "3440": {
+   "empty": 0.819,
+   "widest_text": 996,
+   "widest_text_sample": "{\"add\":{\"id\":\"b43721fe-2db7-4ac2-9dc7-a2",
+   "overflow_x": false,
+   "items": 64,
+   "narrow_share": 0.781
+  }
+ },
+ "errors": []
+}

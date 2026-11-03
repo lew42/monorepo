@@ -1,0 +1,14 @@
+[  2239ms] watch link: /framework/ai/sessions/e771e884-d7e8-4901-afae-37fde90fa275/
+[  2371ms] strip says before mic: Ready. Press the mic.
+[  2396ms] tapped mic
+[  3911ms] strip says after tap: Listening.
+[  5077ms] stage visible on session page: raw
+[  5077ms] stage visible on session page: clean
+[  9749ms] raw stage shows the last words
+[  9750ms] clean stage shows the last words
+[ 12564ms] box after the clip: "And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country."
+[ 13422ms] rects: {"go":[186,221],"toolbar":[154,445],"foot":[2458,2698],"scrollY":0,"vh":800,"docH":800}
+[ 13430ms] tapping Refine
+[ 24123ms] stage visible on session page: structure
+[ 24123ms] stage visible on session page: refined
+[ 24123ms] stage visible on session page: cards

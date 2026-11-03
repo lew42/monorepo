@@ -1,0 +1,695 @@
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/perf/report.md b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/perf/report.md
+new file mode 100644
+index 000000000..eef5840c4
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/perf/report.md
+@@ -0,0 +1,46 @@
++# Dictation perf: the phone sheet opens in 0.4 s at 4x CPU
++
++Brief: [requirements.md](./requirements.md). Branch `worktree/dictation-perf`, five commits, one per step, biggest saving first. Nothing is merged.
++
++## Before and after
++
++Measured at 4x CPU, 390 px phone, cold cache, a 207-bubble session, Servex and `/api/hitl` stubbed (0 paid calls). Harnesses: `ux/Dictate/test/load.mjs` (3 runs) and `freeze.mjs` (60 s, hand-driven captions and the fake real mic).
++
++| Measure | Before | After |
++|---|---|---|
++| First bubble painted after tapping ✦ | 8016 / 8159 / 8762 ms | 421 / 387 / 403 ms |
++| Sheet visible after the tap | 165 to 184 ms | 161 to 175 ms |
++| Bytes loaded on open | 3.55 MB | 3.08 MB |
++| Bubbles drawn on open | 207 | 43 (the newest 50 chat lines) |
++| Tasks over 50 ms while talking (hand mode) | 14 (longest 81 ms, 783 ms blocked) | 0 |
++| Tasks over 50 ms while talking (fake mic) | 6 (longest 105 ms, 473 ms blocked) | 0 |
++
++Both targets are met: under 0.5 s to open, nothing frozen over 100 ms.
++
++## What each commit did
++
++1. **`anchor()`** (`Widget.js`): asks for an animation frame; the frame reads layout once however many lines were drawn or captions redrawn. Most of the saving: the replay read layout once per drawn line.
++2. **`refresh()`** (`Widget.js`): a history replay refreshes the lines once after the batch, not once per line.
++3. **`on_level`** (`Dictate.js`): the meter writes (button fill, mic indicator, `on_meter`) happen once per frame with the newest level, as `DictationBar` already did.
++4. **History window** (`Widget.js`, `chat.js`, `Session.watch`'s new `on_history`): only the newest 50 chat lines are drawn; "show earlier (N)" draws the previous 50 above without moving the reader. Proof: `test/earlier.mjs` (225 held lines come back in five clicks, in time order, the reader's line did not move).
++5. **`Session.watch()`** (`Session.js`): after the first read, a poll asks only for the bytes past the last line (`Range`, one byte early so an idle poll is a 1-byte 206). It was 237 KB every 1.5 s. Proof: `test/watch.mjs` (half-written line, multi-byte text, bad line, a server that ignores `Range`). Docs: `ext/Session/doc/watch.md`.
++
++## Decisions
++
++- **Not done: skipping `anchor()` when the draft's height did not change.** Layout is read inside the frame callback just before paint, so the read adds no extra layout; a height check would not save it. Commit 1 already removes the cost.
++- **The poll stays.** The live wire is cut every 30 s and the poll carries the history when a sheet opens, so it was made cheap (a tail read), not removed.
++- **`chat.js` was edited though it is outside the stated fence:** it is the only caller that can pass `on_history`; the change is one line.
++
++## Checks
++
++- `flicker`, `reconnect`, `order`, `refresh`, `earlier`, `watch`: pass.
++- `stall` (2 failures in the "late" scenario) and `anchor` (1 failure, "no box moved while words streamed in": the drawer feed and first bubble move once each) fail the same way on the untouched `monorepo.localhost`, so they are not from this work. Left for the dictation mastermind.
++- `node Server/smoke.mjs` on the worktree: no FAIL.
++
++## Docs updated
++
++`ux/Dictate/doc/voice-assistant.md#nothing-jumps`, `ext/Session/readme.md`, new `ext/Session/doc/watch.md`.
++
++## Known loss
++
++A placement or refinement line in the shown part that points at a bubble still behind "show earlier" is not re-applied when that bubble is drawn.
+diff --git a/public/framework/ext/Session/Session.js b/public/framework/ext/Session/Session.js
+index b83e2e367..0f80087c2 100644
+--- a/public/framework/ext/Session/Session.js
++++ b/public/framework/ext/Session/Session.js
+@@ -205,26 +205,45 @@ export async function recent_project({ limit = 10, host = location.host } = {}){
+ 	return out.sessions;
+ }
+ 
+-/** Poll `file` every 1.5 s (never cached) and hand each new line, parsed, to `on_line`.
++/** Poll `file` every 1.5 s (never cached) and hand each new line, parsed, to `on_line`. After the first read a poll asks only for
++ *  the bytes past the last line it handled (a `Range` request, one byte early so an idle poll is a 1-byte 206, never a 416; a server
++ *  that ignores `Range` sends the whole file and the new part is cut from it): see doc/watch.md.
+  *  Returns `stop()`. A missing file (404) is just "nothing yet". `on_status(kind, detail)` hears what would otherwise be silent:
+  *  "poll_failed" (a non-404 status or a network error; heard again each failed poll), "poll_ok" (the first good poll after
+- *  failures), "bad_line" (a line that is not JSON) and "line_failed" (`on_line` threw: that line is skipped, the next ones still arrive). */
+-export function watch(file, on_line, { every = 1500, on_status } = {}){
+-	let seen = 0, timer = null, stopped = false, failing = false;
++ *  failures), "bad_line" (a line that is not JSON) and "line_failed" (`on_line` threw: that line is skipped, the next ones still arrive).
++ *  `on_history(lines)` gets the whole first read as parsed lines and returns the ones to draw now (it may keep older ones back). */
++export function watch(file, on_line, { every = 1500, on_status, on_history } = {}){
++	let seen = 0, offset = 0, timer = null, stopped = false, failing = false, first = !!on_history;
+ 	const status = (kind, detail) => { try { on_status?.(kind, detail); } catch (e){ console.error("Session.watch on_status:", e); } };
++	const encoder = new TextEncoder(), decoder = new TextDecoder();
+ 	async function tick(){
+ 		try {
+-			const res = await fetch(file, { cache: "no-store" });
+-			if (res.ok || res.status === 404){
++			const res = await fetch(file, { cache: "no-store", headers: offset > 0 ? { Range: `bytes=${offset - 1}-` } : {} });
++			if (res.ok || res.status === 404 || res.status === 416){
+ 				if (failing){ failing = false; status("poll_ok", { status: res.status }); }
+ 				if (res.ok){
+-					const body = await res.text(), lines = body.split("\n").filter(l => l.trim());
+-					for (; seen < lines.length; seen++){
++					const bytes = new Uint8Array(await res.arrayBuffer());
++					const tail = decoder.decode(res.status === 206 ? bytes.subarray(1) : bytes.subarray(offset));   // 206 starts one byte early (the newline before the new part)
++					const history = first ? [] : null;   // the first read of a file is handed to on_history, which may keep some of it back
++					first = false;
++					const parts = tail.split("\n");
++					for (let i = 0; i < parts.length; i++){
++						const text = parts[i], last = i === parts.length - 1;
++						if (last && !text) break;   // the tail ended with a newline: nothing half-written
++						if (!text.trim()){ offset += encoder.encode(text).length + 1; continue; }
+ 						let line;
+-						try { line = JSON.parse(lines[seen]); } catch (e){
+-							if (seen === lines.length - 1 && !body.endsWith("\n")) break;   // a half-written last line: read it again on the next poll
+-							status("bad_line", { n: seen + 1, text: lines[seen].slice(0, 200), error: e }); continue; }
+-						try { on_line(line); } catch (e){ status("line_failed", { n: seen + 1, line, error: e }); }
++						try { line = JSON.parse(text); } catch (e){
++							if (last) break;   // a half-written last line: read it again on the next poll
++							offset += encoder.encode(text).length + 1; seen++;
++							status("bad_line", { n: seen, text: text.slice(0, 200), error: e }); continue; }
++						offset += encoder.encode(text).length + (last ? 0 : 1); seen++;
++						if (history) history.push(line);
++						else try { on_line(line); } catch (e){ status("line_failed", { n: seen, line, error: e }); }
++					}
++					if (history){
++						let draw = history;
++						try { draw = on_history(history) ?? history; } catch (e){ status("line_failed", { n: seen, line: null, error: e }); }
++						for (const line of draw) try { on_line(line); } catch (e){ status("line_failed", { n: seen, line, error: e }); }
+ 					}
+ 				}
+ 			} else { failing = true; status("poll_failed", { status: res.status, error: new Error(`HTTP ${res.status}`) }); }
+diff --git a/public/framework/ext/Session/doc/watch.md b/public/framework/ext/Session/doc/watch.md
+new file mode 100644
+index 000000000..35dcfbb99
+--- /dev/null
++++ b/public/framework/ext/Session/doc/watch.md
+@@ -0,0 +1,19 @@
++# `watch()`: how the session file is followed
++
++`watch(file, on_line, { every, on_status, on_history })` in `Session.js` polls the session's `session.jsonl` and hands each line, once, to `on_line`. The live wire (`stream()`) is the fast path; the poll is the safety net and the way history arrives when a sheet opens, so it cannot be dropped (the wire is cut every 30 s by the LAN proxy).
++
++## What a poll costs
++
++- **First read:** the whole file (a long session is 200+ KB).
++- **Every later poll:** only the bytes after the last line handled. The request is `Range: bytes=<offset - 1>-`, one byte early on purpose: an idle poll is then a 1-byte `206`, never a `416` (which Chrome writes to the console on every poll). The extra byte is the newline before the new part and is dropped.
++- A server that ignores `Range` answers `200` with the whole file; `watch()` cuts the new part from it (`bytes.subarray(offset)`), so it works anywhere, only without the saving. The static production site and the dev server both honour `Range`.
++- `offset` counts bytes of lines already handled, so multi-byte text is safe. A half-written last line is not counted: the next poll starts before it. A bad line is reported once (`bad_line`) and counted.
++- A `416` (the file became shorter than `offset`) is treated as "nothing new", as a shorter file always was.
++
++Before 2026-10-25 every poll downloaded and re-parsed the whole file: on a 207-bubble session that was 237 KB every 1.5 s.
++
++## `on_history(lines)`
++
++Called once, with all lines of the first read (parsed), and returns the lines to draw now. The phone sheet (`ux/Dictate/chat.js`) uses it to keep all but the newest 50 chat lines back behind a "show earlier (N)" button (`Widget.Thread.hold_history()`); the chat is not slowed by a long past. Return nothing to draw everything.
++
++Proofs: `ux/Dictate/test/watch.mjs` (tailing, half-written line, multi-byte, with and without `Range`), `test/earlier.mjs` (the button).
+diff --git a/public/framework/ext/Session/readme.md b/public/framework/ext/Session/readme.md
+index e264fd3b7..eae4283f9 100644
+--- a/public/framework/ext/Session/readme.md
++++ b/public/framework/ext/Session/readme.md
+@@ -12,7 +12,7 @@ A session starts on the page you are on (its home), follows you from page to pag
+ import { start, resume, recent, say, floor, nav, pause, report_pause, select, react, watch, entry } from "/framework/ext/Session/Session.js";
+ 
+ const { session, file, resumed, previous } = await start({ path: location.pathname });
+-const stop = watch(file, line => draw(entry(line)), { on_status });   // every line, old and new; on_status(kind, detail) hears what would be silent
++const stop = watch(file, line => draw(entry(line)), { on_status, on_history });   // every line, old and new, polled by byte range; on_status(kind, detail) hears what would be silent; on_history(lines) may hold the oldest back (doc/watch.md)
+ await say({ session, text: "can you hear me?", via: "voice", floor: "speaking" });
+ await floor({ session, floor: "done" });               // the owner stopped talking: the held fast reply lands
+ await nav({ session, from: "/a/", to: "/b/", card });   // card: optional, the card showing now
+@@ -48,5 +48,6 @@ whole thought. The fast one mostly stays silent. Replies stream in token by toke
+ 
+ - Page: [/framework/ext/Session/](/framework/ext/Session/) · the file format, routes, levels and sleep/wake: [doc/sessions.md](./doc/sessions.md)
+ - The design: [ai/sessions/2026/09/30/voice-sessions/voice-sessions/design.md](/framework/ai/sessions/2026/09/30/voice-sessions/voice-sessions/design.md)
++- How `watch()` polls (byte-range tail, `on_history`): [doc/watch.md](./doc/watch.md)
+ - Open items: [doc/decisions.md](./doc/decisions.md)
+ - [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
+diff --git a/public/framework/ux/Dictate/Dictate.js b/public/framework/ux/Dictate/Dictate.js
+index 18c424317..e8da426e3 100644
+--- a/public/framework/ux/Dictate/Dictate.js
++++ b/public/framework/ux/Dictate/Dictate.js
+@@ -444,13 +444,23 @@ export default class Dictate extends View {
+ 		if (this.state === "idle" || this.state === "error") return;   // a late tick after stop
+ 		if (!this.heard_first_sample){ this.heard_first_sample = true; this.log_step("mic", "on, level ok"); }
+ 		this.level = this.level * 0.6 + level * 0.4;
+-		this.$button.style("--ux-dictate-level", Math.min(1, this.level * 6).toFixed(3));
+-		MicIndicator.set_level(Math.min(1, this.level * 6));
+-		this.on_meter?.(Math.min(1, this.level * 6));   // same smoothed number, for a caller's own bigger bar
++		this.paint_level();
+ 		if (this.level > this.silence_at){ this.has_speech = true; this.last_loud_at = performance.now(); }
+ 		floor.level(this, this.level > this.silence_at);   // pauses and speaking time for `entry.cues`
+ 	}
+ 
++	/** The meter writes (button fill, mic indicator, `on_meter`) happen once per animation frame, with the newest smoothed level. */
++	paint_level(){
++		if (this.level_frame) return;
++		this.level_frame = requestAnimationFrame(() => {
++			this.level_frame = 0;
++			const v = Math.min(1, this.level * 6);
++			this.$button.style("--ux-dictate-level", v.toFixed(3));
++			MicIndicator.set_level(v);
++			this.on_meter?.(v);   // same smoothed number, for a caller's own bigger bar
++		});
++	}
++
+ 	heartbeat(){
+ 		if (!this.el.isConnected){
+ 			// The box holding this mic left the page while it listened (the chat moved: page, dock, sheet). A mic mounted since
+diff --git a/public/framework/ux/Dictate/Widget.js b/public/framework/ux/Dictate/Widget.js
+index 5c6be29a1..76226783f 100644
+--- a/public/framework/ux/Dictate/Widget.js
++++ b/public/framework/ux/Dictate/Widget.js
+@@ -131,6 +131,7 @@ Widget.prototype.marks = false;
+ Widget.prototype.v1 = false;         // true = the OLD thread (one bubble per sentence) + composer (Dictate's own open mic)
+ Widget.prototype.mode = "dictate";
+ Widget.MODES = MODES;
++Widget.HISTORY = 50;   // the sheet draws only this many newest chat lines of a long session; the rest wait behind "show earlier (N)" (doc/voice-assistant.md#nothing-jumps)
+ Widget.HEADROOM = 0.75;   // a new bubble keeps this share of the box under it before the page turns (doc/voice-assistant.md#nothing-jumps)
+ Widget.STREAM_END_MS = 15000;   // an ended stream bubble with no settled line after this long goes (the reply was dropped or became a reaction)
+ 
+@@ -248,6 +249,11 @@ Widget.Thread = class WidgetThread extends View {
+ 	 * when under HEADROOM of a box is left below it, and again, half a box at a time, for a bubble taller than the box. A reader who
+ 	 * scrolled up is never moved. Rule and the alternative: doc/voice-assistant.md#nothing-jumps */
+ 	anchor(){
++		if (this.anchor_frame) return;   // once per animation frame: a replay of 200 lines or 3 caption redraws a second reads layout once (ux/Dictate/doc/voice-assistant.md#nothing-jumps)
++		this.anchor_frame = requestAnimationFrame(() => { this.anchor_frame = 0; this.place_anchor(); });
++	}
++
++	place_anchor(){
+ 		const box = this.el, host = this.$bubbles.el, b = host.lastElementChild;
+ 		if (!b || !this.scroll.locked()) return;
+ 		const r = b.getBoundingClientRect(), top = r.top - box.getBoundingClientRect().top + box.scrollTop, view = box.clientHeight;
+@@ -309,12 +315,60 @@ Widget.Thread = class WidgetThread extends View {
+ 		const text_node = bubble.querySelector(`:scope > [data-re="${CSS.escape(String(at))}"]`) ?? bubble.lastElementChild;
+ 		const ref = { id: at };
+ 		this.lines.set(at, { bubble, text: text_node, ref, said: chat.text, spoken: !assistant && (chat.via === "voice" || chat.via === "whisper") });   // `said`: the raw words, kept when a placement improves the text
+-		this.refresh();
++		entry.history ? this.refresh_after_batch() : this.refresh();   // a replay of 200 lines walks the lines once, not 200 times
+ 		this.anchor();
+ 		// stored on the piece so it survives a later merge (see doc/widget-notes.md#thread-marks); new lines only: each mark is a paid model call
+ 		if (!assistant && this.widget.marks && !entry.history) this.mark(chat.text, bubble, ref);
+ 	}
+ 
++	/** Session lines are older than the newest `Widget.HISTORY` chat lines wait here, behind a "show earlier (N)" button; returns
++	 * the lines to draw now. `draw(line)` is how a waiting line is drawn later. */
++	hold_history(lines, draw){
++		let n = 0, cut = 0;
++		for (let i = lines.length - 1; i >= 0; i--) if (lines[i]?.chat && ++n > Widget.HISTORY){ cut = i + 1; break; }
++		if (!cut) return lines;
++		this.waiting = lines.slice(0, cut);
++		this.waiting_draw = draw;
++		this.show_earlier_button();
++		return lines.slice(cut);
++	}
++
++	show_earlier_button(){
++		const n = this.waiting?.reduce((sum, l) => sum + (l?.chat ? 1 : 0), 0) ?? 0;
++		if (!n){ this.$earlier?.remove(); this.$earlier = null; return; }
++		if (!this.$earlier){
++			this.$earlier = document.createElement("button");
++			this.$earlier.type = "button"; this.$earlier.className = "chatbox-earlier";
++			this.$earlier.addEventListener("click", () => this.load_earlier());
++			this.el.insertBefore(this.$earlier, this.$bubbles.el);
++		}
++		this.$earlier.textContent = "show earlier (" + n + ")";
++	}
++
++	/** Draw the previous chunk ABOVE what is shown, keeping the reader where they were. speak() only merges onto the last bubble, so the
++	 * chunk is drawn into an emptied box and the shown bubbles put back after it (the same trick as ext/Chat's load_earlier). */
++	load_earlier(){
++		const rest = this.waiting ?? [];
++		let n = 0, from = 0;
++		for (let i = rest.length - 1; i >= 0; i--) if (rest[i]?.chat && ++n >= Widget.HISTORY){ from = i; break; }
++		const chunk = rest.slice(from);
++		this.waiting = rest.slice(0, from);
++		const box = this.el, host = this.$bubbles.el, before = box.scrollHeight - box.scrollTop;
++		const shown = [...host.children];
++		shown.forEach(c => c.remove());
++		for (const line of chunk) this.waiting_draw(line);
++		host.append(...shown);   // moves a draft or live bubble that follow() re-added back to its place
++		this.show_earlier_button();
++		box.scrollTop = box.scrollHeight - before;
++	}
++
++	/** refresh() once, when the synchronous batch that is drawing history lines has ended. */
++	refresh_after_batch(){
++		if (this.refresh_queued) return;
++		this.refresh_queued = true;
++		queueMicrotask(() => { this.refresh_queued = false; this.refresh(); });
++	}
++
+ 	/** Re-apply the two views over the lines (a redraw of a bubble rebuilds its nodes): raw look, and folded cards. Idempotent. */
+ 	refresh(){
+ 		const d = this.draft;   // a redraw of the draft's host bubble (Chat.js fill) puts the pieces after the draft: it goes back to the end
+@@ -583,6 +637,7 @@ Widget.Thread = class WidgetThread extends View {
+ 		this.settled = new Set();
+ 		this.summaries = new Map();
+ 		this.draft = null;
++		this.waiting = null; this.show_earlier_button();
+ 		this.$bubbles.empty();
+ 		this.$bubbles.el.style.paddingBlockEnd = ""; this.pad = 0; this.newest = null;
+ 		this.$empty.show();
+diff --git a/public/framework/ux/Dictate/chat.js b/public/framework/ux/Dictate/chat.js
+index f28cade53..0a1bc84ab 100644
+--- a/public/framework/ux/Dictate/chat.js
++++ b/public/framework/ux/Dictate/chat.js
+@@ -263,7 +263,7 @@ export default function chat(el, { path = location.pathname, card, placeholder,
+ 		if (!owner.ctl.session){ maybe_offer(); return; }
+ 		watching_since = Date.now();   // lines older than this are history, not an answer just now
+ 		report.init(owner.ctl.session);   // the page's own errors reach the assistants too (ext/Chat/v2/report.js): a log line, never a wake-up
+-		stop_watch = Session.watch(owner.ctl.file, draw, { on_status: (kind, d) => {
++		stop_watch = Session.watch(owner.ctl.file, draw, { on_history: lines => panel.$thread?.hold_history?.(lines, draw), on_status: (kind, d) => {
+ 			// The poll reads the session file every 1.5 s; its trouble is the Wire light's, so a dead file cannot pass for "no answer yet".
+ 			if (kind === "poll_failed") DictateHealth.set("wire", "bad", `poll of the session log failed: ${d.error?.message ?? d.error}`, { always: true, raw: { error: String(d.error?.message ?? d.error), status: d.status ?? null, file: owner.ctl.file } });
+ 			else if (kind === "poll_ok") DictateHealth.set("wire", "ok", "polling the session log works again", { always: true, raw: { status: d.status } });
+diff --git a/public/framework/ux/Dictate/doc/voice-assistant.md b/public/framework/ux/Dictate/doc/voice-assistant.md
+index 5c9a9e84c..6422a7f8d 100644
+--- a/public/framework/ux/Dictate/doc/voice-assistant.md
++++ b/public/framework/ux/Dictate/doc/voice-assistant.md
+@@ -57,7 +57,7 @@ In live mode the words you are saying grow in a **separate draft bubble** at the
+ 
+ ## Nothing jumps
+ 
+-The chat thread is anchored on the **top of the newest bubble**, not on the bottom edge. Words growing inside a bubble never scroll the box, so the lines above them stay where you are reading them. The box turns a page only twice: when a new bubble starts with less than 75% of a box left under it (`Widget.HEADROOM`), and when one bubble grows taller than the box (its tail then lands mid-box, half a box at a time). If you scrolled up, nothing moves at all. The code is `Widget.Thread.anchor()` in `Widget.js` (it sets `data-turns` on the thread for the proof); the proof is `test/anchor.mjs` (fake mic, five sentences at 400): before, 27 to 38 older-line moves in the split size; after, 0 while words stream in, 5 page turns, and 0 when the reader had scrolled up. The strip has no thread to move. **Rejected:** pinning the newest line to the bottom (`overflow-anchor` plus scroll-to-bottom), because every added line shifts every older bubble up; and pinning the newest line at the very top at every turn, because it hides the reply you were reading the moment you speak.
++The chat thread is anchored on the **top of the newest bubble**, not on the bottom edge. Words growing inside a bubble never scroll the box, so the lines above them stay where you are reading them. The box turns a page only twice: when a new bubble starts with less than 75% of a box left under it (`Widget.HEADROOM`), and when one bubble grows taller than the box (its tail then lands mid-box, half a box at a time). If you scrolled up, nothing moves at all. The code is `Widget.Thread.anchor()` in `Widget.js` (it sets `data-turns` on the thread for the proof); the proof is `test/anchor.mjs` (fake mic, five sentences at 400): before, 27 to 38 older-line moves in the split size; after, 0 while words stream in, 5 page turns, and 0 when the reader had scrolled up. The strip has no thread to move. **Cost (2026-10-25, ask `perf`):** `anchor()` only asks for a frame; one animation frame reads layout once, however many lines were drawn or captions redrawn in it (`place_anchor()` is the old body). A replay of history refreshes the lines once after the batch (`refresh_after_batch()`), not once per line. The sheet draws only the newest `Widget.HISTORY` (50) chat lines of a long session; the rest wait behind **show earlier (N)** (`hold_history()`, `load_earlier()`: the older chunk is drawn above while the reader stays where they were; `test/earlier.mjs`). `Session.watch()` tails the file by byte range ([ext/Session/doc/watch.md](/framework/ext/Session/doc/watch.md)), and the mic's meter is written once per frame (`Dictate.paint_level()`). Measured at 4x CPU, 390 px, 207 bubbles: first bubble 8.0 to 8.8 s before, about 0.4 s after; tasks over 50 ms while talking 14 before, 0 after ([perf report](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/perf/report.md)). Known loss: a placement or refinement line in the shown part that points at a bubble still behind the button finds nothing to change and is not re-applied when that bubble is drawn. **Rejected:** pinning the newest line to the bottom (`overflow-anchor` plus scroll-to-bottom), because every added line shifts every older bubble up; and pinning the newest line at the very top at every turn, because it hides the reply you were reading the moment you speak.
+ 
+ ---
+ 
+diff --git a/public/framework/ux/Dictate/test/earlier.mjs b/public/framework/ux/Dictate/test/earlier.mjs
+new file mode 100644
+index 000000000..9a5e3e412
+--- /dev/null
++++ b/public/framework/ux/Dictate/test/earlier.mjs
+@@ -0,0 +1,55 @@
++// The sheet draws only the newest Widget.HISTORY chat lines; "show earlier (N)" brings the rest, above, without moving the reader.
++// node earlier.mjs <base> <page> <session-file>   (Servex and hitl are stubbed; pass the worktree URL, never monorepo.localhost)
++import path from "path";
++import { pathToFileURL } from "url";
++const [base = "http://monorepo.localhost", page_path = "/framework/ext/drawer/", file = "/ai/v-yxnts4l.jsonl"] = process.argv.slice(2);
++const here = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1"));
++const { default: Browser } = await import(pathToFileURL(path.join(here, "../../../../../Server/Browser.mjs")).href);
++const browser = await Browser.browser({});
++const session = path.basename(file, ".jsonl");
++const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
++const page = await ctx.newPage();
++await ctx.addInitScript(({ session, file }) => { try { sessionStorage.setItem("lew42-voice-session", JSON.stringify({ session, file })); } catch {} }, { session, file });
++const cors = { "access-control-allow-origin": "*", "access-control-allow-headers": "content-type" };
++const json = (route, out) => route.fulfill({ status: 200, contentType: "application/json", headers: cors, body: JSON.stringify(out) }).catch(() => {});
++await page.route(/127\.0\.0\.1:8090\/api\/session\//, async route => {
++	const req = route.request(), verb = req.url().split("/api/session/")[1].split("?")[0];
++	if (req.method() === "OPTIONS") return route.fulfill({ status: 204, headers: cors });
++	if (verb.endsWith("/stream")) return route.fulfill({ status: 200, contentType: "text/event-stream", headers: cors, body: "retry: 60000\n\n" });
++	return json(route, verb === "new" || verb === "resume" ? { ok: true, session, file } : { ok: true });
++});
++await page.route(/127\.0\.0\.1:8090\/api\/hitl/, route => route.request().method() === "OPTIONS" ? route.fulfill({ status: 204, headers: cors }) : json(route, { ok: true, marks: [] }));
++await page.route(/127\.0\.0\.1:8090\/api\/sessions\?/, r => json(r, { ok: true, sessions: [] }));
++await page.goto(base + page_path, { waitUntil: "load" });
++await page.waitForSelector(".drawer-rail-ai");
++await page.click(".drawer-rail-ai");
++await page.waitForSelector(".drawer-rail-sheet.on .chatbox");
++await page.waitForTimeout(1500);
++
++const state = () => page.evaluate(() => {
++	const t = document.querySelector(".drawer-rail-sheet.on .ux-dictate-widget-thread");
++	const ats = [...t.querySelectorAll("[data-re]")].map(n => n.dataset.re).filter(a => /^\d{4}-/.test(a)).map(Date.parse);
++	return { pieces: ats.length, sorted: ats.every((a, i) => i === 0 || a >= ats[i - 1]), button: t.querySelector(".chatbox-earlier")?.textContent ?? null, scroll_top: t.scrollTop, height: t.scrollHeight };
++});
++const first = await state();
++const fail = [];
++if (!first.button) fail.push("no 'show earlier' button on a long session");
++if (first.pieces > 60) fail.push(`first draw showed ${first.pieces} chat pieces, expected about 50`);
++let last = first, clicks = 0;
++while (last.button && clicks < 10){
++	await page.evaluate(() => { const t = document.querySelector(".drawer-rail-sheet.on .ux-dictate-widget-thread"); t.scrollTop = 0; });
++	await page.waitForTimeout(100);
++	const anchor = await page.evaluate(() => { const t = document.querySelector(".drawer-rail-sheet.on .ux-dictate-widget-thread"); const n = t.querySelector("[data-re]"); return { re: n.dataset.re, y: n.getBoundingClientRect().top - t.getBoundingClientRect().top }; });
++	await page.click(".drawer-rail-sheet.on .chatbox-earlier");
++	await page.waitForTimeout(400);
++	const next = await state();
++	const moved = await page.evaluate(({ re }) => { const t = document.querySelector(".drawer-rail-sheet.on .ux-dictate-widget-thread"); const n = [...t.querySelectorAll("[data-re]")].find(x => x.dataset.re === re); return n ? n.getBoundingClientRect().top - t.getBoundingClientRect().top : null; }, anchor);
++	if (next.pieces <= last.pieces) fail.push(`click ${clicks + 1} added no pieces`);
++	if (!next.sorted) fail.push(`click ${clicks + 1}: pieces are not in time order`);
++	if (moved == null || Math.abs(moved - anchor.y) > 3) fail.push(`click ${clicks + 1}: the reader moved (${anchor.y} -> ${moved})`);
++	last = next; clicks++;
++}
++if (last.button) fail.push("the button never ran out");
++console.log(JSON.stringify({ first, last, clicks, fail }));
++await Browser.close();
++process.exit(fail.length ? 1 : 0);
+diff --git a/public/framework/ux/Dictate/test/freeze.mjs b/public/framework/ux/Dictate/test/freeze.mjs
+new file mode 100644
+index 000000000..b6b70cc16
+--- /dev/null
++++ b/public/framework/ux/Dictate/test/freeze.mjs
+@@ -0,0 +1,133 @@
++// Freezes while dictating, measured. node freeze.mjs <base> <session-file> <seconds> <tag>   [THROTTLE=n]
++// Phone sheet over a saved session, a fake mic (driven by hand, as ux/Dictate/test/flicker.mjs does), every Servex call stubbed.
++// Long tasks (>50 ms) come from a PerformanceObserver; each is matched to the CDP sampling profile for its time window.
++import fs from "fs";
++import os from "os";
++import path from "path";
++import { pathToFileURL } from "url";
++const [base = "http://monorepo.localhost", file = "/framework/ai/sessions/2026/10/05/v-yxnts4l/session.jsonl", SECONDS = "60", tag = "freeze"] = process.argv.slice(2);
++const here = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1"));
++const repo = path.resolve(here, "../../../../..");
++const { default: Browser } = await import(pathToFileURL(path.join(repo, "Server/Browser.mjs")).href);
++const browser = await Browser.browser({ args: ["--use-fake-device-for-media-stream", "--use-fake-ui-for-media-stream"] });
++const session = path.basename(path.dirname(file));
++const SAY_MS = 1000, WORD_MS = 300;
++
++const original = fs.readFileSync(path.join(repo, "public", file), "utf8");
++const lines = [];   // chat lines the stubbed `say` adds
++const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, permissions: ["microphone"] });
++const page = await ctx.newPage();
++const errors = []; page.on("pageerror", e => errors.push(String(e.stack || e).slice(0, 500)));
++await ctx.addInitScript(({ session, file }) => {
++	try { sessionStorage.setItem("lew42-voice-session", JSON.stringify({ session, file })); } catch {}
++	window.$m = { long: [], marks: {} };
++	try { new PerformanceObserver(l => { for (const e of l.getEntries()) window.$m.long.push({ start: e.startTime, dur: e.duration }); }).observe({ type: "longtask", buffered: true }); } catch {}
++}, { session, file });
++const cors = { "access-control-allow-origin": "*", "access-control-allow-headers": "content-type" };
++const json = (route, out) => route.fulfill({ status: 200, contentType: "application/json", headers: cors, body: JSON.stringify(out) }).catch(() => {});
++let hitl = 0, says = 0;
++await page.route(/127\.0\.0\.1:8090\/api\/session\//, async route => {
++	const req = route.request(), verb = req.url().split("/api/session/")[1].split("?")[0];
++	if (req.method() === "OPTIONS") return route.fulfill({ status: 204, headers: cors });
++	if (verb.endsWith("/stream")) return route.fulfill({ status: 200, contentType: "text/event-stream", headers: cors, body: "retry: 60000\n\n" });
++	let body = {}; try { body = JSON.parse(req.postData() ?? "{}"); } catch {}
++	if (verb === "say"){
++		says++; const at = new Date().toISOString();
++		lines.push({ chat: { at, from: { kind: "owner" }, via: "voice", text: body.text } });
++		await new Promise(r => setTimeout(r, SAY_MS));
++		return json(route, { ok: true, at });
++	}
++	return json(route, verb === "new" || verb === "resume" ? { ok: true, session, file } : { ok: true });
++});
++await page.route(new RegExp(file.replace(/[.*+?^${}()|[\]\\\/]/g, "\\$&") + "$"), r => r.fulfill({ status: 200, contentType: "text/plain", headers: cors, body: original + (original.endsWith("\n") ? "" : "\n") + lines.map(l => JSON.stringify(l)).join("\n") + (lines.length ? "\n" : "") }));
++await page.route(/127\.0\.0\.1:8090\/api\/hitl/, async route => {
++	if (route.request().method() === "OPTIONS") return route.fulfill({ status: 204, headers: cors });
++	hitl++; await new Promise(r => setTimeout(r, 300)); return json(route, { ok: true, marks: [{ i: 0, mark: "ok", purpose: "stub" }] });
++});
++await page.route(/127\.0\.0\.1:8090\/api\/sessions\?/, r => json(r, { ok: true, sessions: [] }));
++const POOLW = "so the thing I want to try next is a smaller sheet that opens faster we should keep the words on screen while the model cleans them up the phone is slower than this computer so everything costs more there I think the first bubble has to be drawn before the history is read and then the pause sends everything that is on the screen at once maybe the marks should only be asked for when I actually talk it freezes for a moment every time a new sentence lands in the chat let me say another few words so the list keeps growing a little".split(" ");
++let whisper_calls = 0;
++await page.route(/127\.0\.0\.1:8178/, async route => {   // the Whisper server, stubbed: a guess that grows with the audio sent
++	const req = route.request(), h = { "access-control-allow-origin": "*", "access-control-allow-headers": "*" };
++	if (req.method() === "OPTIONS") return route.fulfill({ status: 204, headers: h });
++	if (req.method() === "GET") return route.fulfill({ status: 200, contentType: "text/html", headers: h, body: "ok" });
++	whisper_calls++;
++	const secs = Math.max(0, (req.postDataBuffer()?.length ?? 0) - 400) / 32000;   // a 16 kHz mono 16-bit wav is 32000 bytes a second
++	const n = Math.max(1, Math.floor(secs / 0.3)), words = []; for (let i = 0; i < n; i++) words.push(POOLW[i % POOLW.length]);
++	await new Promise(r => setTimeout(r, 70));
++	return route.fulfill({ status: 200, contentType: "application/json", headers: h, body: JSON.stringify({ text: " " + words.join(" ") + " ", segments: [] }) });
++});
++await page.route(/\/log\/prompts/, r => json(r, {}));
++await page.route(/\/api\/refine\/live/, r => json(r, { ok: true, slots: [], outline: { sections: [] } }));
++
++const cdp = await ctx.newCDPSession(page);
++if (process.env.THROTTLE) await cdp.send("Emulation.setCPUThrottlingRate", { rate: Number(process.env.THROTTLE) });
++await cdp.send("Profiler.enable"); await cdp.send("Profiler.setSamplingInterval", { interval: 500 });
++await page.goto(base + "/", { waitUntil: "load" });
++await page.waitForSelector(".drawer-rail-ai", { timeout: 20000 });
++await page.waitForTimeout(1500);
++await page.click(".drawer-rail-ai");
++await page.waitForFunction(() => document.querySelectorAll(".drawer-rail-sheet.on .chatbox").length > 20, null, { timeout: 60000 });
++await page.waitForTimeout(6000);   // replay done, the first polls in
++const bubbles_before = await page.evaluate(() => document.querySelectorAll(".drawer-rail-sheet.on .chatbox").length);
++
++await cdp.send("Profiler.start");
++const t0_page = await page.evaluate(() => { window.$m.t0 = performance.now(); return window.$m.t0; });
++
++// The script: continuous speech, a pause (send) after every 2 sentences
++await page.evaluate(({ SECONDS, WORD_MS, REAL }) => {
++	const m = globalThis.$dictate_widget.dictate, wait = ms => new Promise(r => setTimeout(r, ms));
++	m.revise = false; window.$m.words = 0; window.$m.sent = 0;
++	if (REAL){ (async () => { await m.start(); await wait(SECONDS * 1000 + 1000); try { await m.stop(); } catch {} await wait(1000); window.$m.done = true; })(); return; }
++	m.state = "listening"; if (m.mic) m.mic.chunks ??= [];
++	const POOL = ["so the thing I want to try next is a smaller sheet that opens faster", "we should keep the words on screen while the model cleans them up", "the phone is slower than this computer so everything costs more there", "I think the first bubble has to be drawn before the history is read", "and then the pause sends everything that is on the screen at once", "maybe the marks should only be asked for when I actually talk", "it freezes for a moment every time a new sentence lands in the chat", "let me say another few words so the list keeps growing a little"];
++	let chunk = 0, k = 0;
++	window.$m.words = 0; window.$m.sent = 0;
++	globalThis.$freeze_done = (async () => {
++		const end = performance.now() + SECONDS * 1000;
++		while (performance.now() < end){
++			for (let s = 0; s < 2 && performance.now() < end; s++){
++				const text = POOL[k++ % POOL.length], words = text.split(" ");
++				for (let n = 1; n <= words.length; n++){ m.partial_text = words.slice(0, n).join(" "); m.draw_caption(); window.$m.words++; await wait(WORD_MS); }
++				m.partial_text = ""; m.log_prompt(text, ++chunk);
++			}
++			await wait(400); m.send_screen(); window.$m.sent++; await wait(600);
++		}
++		await wait(3000);
++		return true;
++	})();
++}, { SECONDS: Number(SECONDS), WORD_MS, REAL: process.env.MODE !== "hand" });
++await page.waitForFunction(() => window.$m.done === true, null, { timeout: (Number(SECONDS) + 60) * 1000, polling: 500 }).catch(() => {});
++const prof = (await cdp.send("Profiler.stop")).profile;
++const m = await page.evaluate(() => ({ ...window.$m, now: performance.now() }));
++const bubbles_after = await page.evaluate(() => document.querySelectorAll(".drawer-rail-sheet.on .chatbox").length);
++const offset = prof.startTime / 1000 - m.t0;   // profile clock (ms) minus page clock (ms), at the start of the window
++
++// per-sample absolute page time
++const byId = new Map(prof.nodes.map(n => [n.id, n])), parent = new Map();
++for (const n of prof.nodes) for (const c of n.children ?? []) parent.set(c, n.id);
++const keyOf = n => { const cf = n.callFrame; return `${cf.functionName || "(anon)"} ${cf.url.replace(/^https?:\/\/[^/]+/, "")}:${cf.lineNumber + 1}`; };
++const samples = []; let tcur = prof.startTime;
++for (let i = 0; i < prof.samples.length; i++){ tcur += prof.timeDeltas[i]; samples.push({ t: tcur / 1000 - offset, id: prof.samples[i], dt: (prof.timeDeltas[i + 1] ?? prof.timeDeltas[i]) / 1000 }); }
++const long = m.long.filter(l => l.start >= m.t0 - 1).map(l => ({ start: Math.round(l.start - m.t0), dur: Math.round(l.dur), s: l.start, e: l.start + l.dur }));
++const chain = id => { const out = []; while (id != null){ out.push(byId.get(id)); id = parent.get(id); } return out.reverse(); };
++for (const l of long){
++	const incl = new Map(), self = new Map(), roots = new Map(); let n = 0;
++	for (const s of samples){
++		if (s.t < l.s || s.t > l.e) continue; n++;
++		const ch = chain(s.id), seen = new Set();
++		for (const nd of ch){ if (!nd.callFrame.url) continue; const k = keyOf(nd); if (!seen.has(k)){ seen.add(k); incl.set(k, (incl.get(k) ?? 0) + s.dt); } }
++		const user = ch.filter(nd => nd.callFrame.url); const first = user[0]; if (first){ const k = keyOf(first); roots.set(k, (roots.get(k) ?? 0) + s.dt); }
++		const leaf = ch.at(-1); const lk = keyOf(leaf); self.set(lk, (self.get(lk) ?? 0) + s.dt);
++	}
++	const top = (map, k) => [...map].sort((a, b) => b[1] - a[1]).slice(0, k).map(([a, v]) => ({ at: a, ms: Math.round(v) }));
++	l.entry = top(roots, 2); l.inclusive = top(incl, 6); l.self = top(self, 4); l.samples = n; delete l.s; delete l.e;
++}
++// whole-window self time (all main-thread activity, not only >50 ms tasks), by file:function
++const wself = new Map(), wincl = new Map();
++for (const s of samples){ const ch = chain(s.id), seen = new Set(); const lk = keyOf(ch.at(-1)); wself.set(lk, (wself.get(lk) ?? 0) + s.dt); for (const nd of ch){ if (!nd.callFrame.url) continue; const k = keyOf(nd); if (!seen.has(k)){ seen.add(k); wincl.set(k, (wincl.get(k) ?? 0) + s.dt); } } }
++const topN = (map, k) => [...map].sort((a, b) => b[1] - a[1]).slice(0, k).map(([a, v]) => ({ at: a, ms: Math.round(v) }));
++const out = { base, file, throttle: Number(process.env.THROTTLE || 1), seconds: Number(SECONDS), bubbles_before, bubbles_after, words: m.words, sends: m.sent, says, hitl_calls: hitl, whisper_calls, mode: process.env.MODE || "real", long_tasks: long, long_over_50: long.length, longest_ms: long.reduce((a, l) => Math.max(a, l.dur), 0), total_blocked_ms: long.reduce((a, l) => a + l.dur, 0), window_self_top: topN(wself, 14), window_inclusive_top: topN(wincl, 25), errors };
++fs.writeFileSync(path.join(process.env.OUT_DIR ?? os.tmpdir(), `${tag}.json`), JSON.stringify(out, null, 1));
++console.log(JSON.stringify({ throttle: out.throttle, bubbles_before, bubbles_after, words: m.words, sends: m.sent, says, hitl, whisper_calls, long_over_50: out.long_over_50, longest_ms: out.longest_ms, total_blocked_ms: out.total_blocked_ms, errors }));
++await ctx.close(); await Browser.close();
+diff --git a/public/framework/ux/Dictate/test/load.mjs b/public/framework/ux/Dictate/test/load.mjs
+new file mode 100644
+index 000000000..e088a8e68
+--- /dev/null
++++ b/public/framework/ux/Dictate/test/load.mjs
+@@ -0,0 +1,113 @@
++// Load of the phone sheet's chat, measured. node load.mjs <base> <page> <session-file> [runs]
++// Output goes to OUT_DIR (default: the OS temp dir). Pass the worktree URL, never monorepo.localhost.
++// Cold context (no cache), 390 px phone, a saved session in sessionStorage (what a reload has), every Servex call stubbed.
++import fs from "fs";
++import os from "os";
++import path from "path";
++import { pathToFileURL } from "url";
++const [base = "http://monorepo.localhost", page_path = "/framework/ext/drawer/", file = "/ai/v-yxnts4l.jsonl", RUNS = "3", tag = "sheet"] = process.argv.slice(2);
++const here = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1"));
++const repo = path.resolve(here, "../../../../..");
++const { default: Browser } = await import(pathToFileURL(path.join(repo, "Server/Browser.mjs")).href);
++const browser = await Browser.browser({ args: ["--use-fake-device-for-media-stream", "--use-fake-ui-for-media-stream"] });
++const session = path.basename(file, ".jsonl");
++
++async function one(i){
++	const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, permissions: ["microphone"] });
++	const page = await ctx.newPage();
++	await ctx.addInitScript(({ session, file }) => {
++		try { sessionStorage.setItem("lew42-voice-session", JSON.stringify({ session, file })); } catch {}
++		window.$m = { marks: {}, long: [] };
++		const mark = k => { if (!(k in window.$m.marks)) window.$m.marks[k] = performance.now(); };
++		window.$mark = mark;
++		try { new PerformanceObserver(l => { for (const e of l.getEntries()) window.$m.long.push({ start: e.startTime, dur: e.duration, attr: (e.attribution || []).map(a => a.containerSrc || a.name) }); }).observe({ type: "longtask", buffered: true }); } catch {}
++		const scan = () => {
++			if (document.querySelector(".drawer-rail-sheet.on")) mark("sheet_in_dom");
++			const s = document.querySelector(".drawer-rail-sheet.on");
++			if (s && !("sheet_visible" in window.$m.marks) && s.getBoundingClientRect().height > 50) mark("sheet_visible");
++			if (document.querySelector(".drawer-rail-sheet.on .ux-dictate-widget")) mark("widget");
++			if (document.querySelector(".drawer-rail-sheet.on .ux-dictate-widget-thread")) mark("thread");
++			const b = document.querySelectorAll(".drawer-rail-sheet.on .chatbox");
++			if (b.length && !("first_bubble" in window.$m.marks)){ mark("first_bubble"); requestAnimationFrame(() => requestAnimationFrame(() => mark("bubble_painted"))); }
++			window.$m.bubbles = b.length;
++			if (b.length) window.$m.last_bubble_at = performance.now();
++		};
++		new MutationObserver(scan).observe(document, { childList: true, subtree: true, attributes: true, attributeFilter: ["class"] });
++	}, { session, file });
++	const cors = { "access-control-allow-origin": "*", "access-control-allow-headers": "content-type" };
++	const json = (route, out) => route.fulfill({ status: 200, contentType: "application/json", headers: cors, body: JSON.stringify(out) }).catch(() => {});
++	await page.route(/127\.0\.0\.1:8090\/api\/session\//, async route => {
++		const req = route.request(), verb = req.url().split("/api/session/")[1].split("?")[0];
++		if (req.method() === "OPTIONS") return route.fulfill({ status: 204, headers: cors });
++		if (verb.endsWith("/stream")) return route.fulfill({ status: 200, contentType: "text/event-stream", headers: cors, body: "retry: 60000\n\n" });
++		return json(route, verb === "new" || verb === "resume" ? { ok: true, session, file } : { ok: true });
++	});
++	let hitl = 0;
++	await page.route(/127\.0\.0\.1:8090\/api\/hitl/, async route => {   // stubbed: each one is a paid model call on the real Servex
++		if (route.request().method() === "OPTIONS") return route.fulfill({ status: 204, headers: cors });
++		hitl++; await new Promise(r => setTimeout(r, 300));
++		return json(route, { ok: true, marks: [{ i: 0, mark: "ok", purpose: "stub" }] });
++	});
++	await page.route(/127\.0\.0\.1:8090\/api\/sessions\?/, r => json(r, { ok: true, sessions: [] }));
++
++	const cdp = await ctx.newCDPSession(page);
++	await cdp.send("Network.enable");
++	await cdp.send("Network.setCacheDisabled", { cacheDisabled: true });
++	if (process.env.THROTTLE) await cdp.send("Emulation.setCPUThrottlingRate", { rate: Number(process.env.THROTTLE) });
++	await cdp.send("Profiler.enable"); await cdp.send("Profiler.setSamplingInterval", { interval: 500 });
++	const reqs = new Map(); let base_ts = null, base_wall = null;
++	cdp.on("Network.requestWillBeSent", e => { if (base_ts === null){ base_ts = e.timestamp; } reqs.set(e.requestId, { url: e.request.url, method: e.request.method, type: e.type, start: (e.timestamp - base_ts) * 1000, initiator: e.initiator?.type, data_chunks: 0 }); });
++	cdp.on("Network.responseReceived", e => { const r = reqs.get(e.requestId); if (r){ r.status = e.response.status; r.first_byte = (e.timestamp - base_ts) * 1000; r.mime = e.response.mimeType; r.encoding = e.response.headers["content-encoding"] ?? e.response.headers["Content-Encoding"]; } });
++	cdp.on("Network.dataReceived", e => { const r = reqs.get(e.requestId); if (r){ r.data_chunks += e.encodedDataLength; r.body_chunks = (r.body_chunks ?? 0) + e.dataLength; } });
++	cdp.on("Network.loadingFinished", e => { const r = reqs.get(e.requestId); if (r){ r.end = (e.timestamp - base_ts) * 1000; r.size = e.encodedDataLength; } });
++	cdp.on("Network.loadingFailed", e => { const r = reqs.get(e.requestId); if (r){ r.end = (e.timestamp - base_ts) * 1000; r.failed = e.errorText; } });
++
++	const t_nav = Date.now();
++	await page.goto(base + page_path, { waitUntil: "load" });
++	await page.waitForSelector(".drawer-rail-ai", { timeout: 20000 });
++	const t_btn = await page.evaluate(() => performance.now());
++	await page.waitForTimeout(1500);   // the page settles before the press, as it does for a person
++	await cdp.send("Profiler.start");
++	const t_click = await page.evaluate(() => { window.$mark("click"); return performance.now(); });
++	await page.click(".drawer-rail-ai");
++	await page.waitForFunction(() => window.$m.marks.bubble_painted, null, { timeout: 40000 }).catch(() => {});
++	await page.waitForTimeout(4000);
++	const prof = (await cdp.send("Profiler.stop")).profile;
++	const m = await page.evaluate(() => ({ ...window.$m, now: performance.now(), nav: performance.getEntriesByType("navigation")[0]?.toJSON?.() }));
++	const bubbles_end = await page.evaluate(() => ({ bubbles: document.querySelectorAll(".drawer-rail-sheet.on .chatbox").length, text: (document.querySelector(".drawer-rail-sheet.on .ux-dictate-widget-thread")?.textContent ?? "").length }));
++	await ctx.close();
++
++	// self time per file:function in the profile
++	const self = new Map(); const byId = new Map(prof.nodes.map(n => [n.id, n]));
++	const dt = prof.timeDeltas; for (let k = 0; k < prof.samples.length; k++){ const n = byId.get(prof.samples[k]); const cf = n.callFrame; const key = `${cf.functionName || "(anon)"} ${cf.url.replace(/^https?:\/\/[^/]+/, "")}:${cf.lineNumber + 1}`; self.set(key, (self.get(key) ?? 0) + (dt[k] ?? 0) / 1000); }
++	const parent = new Map(); for (const n of prof.nodes) for (const c of n.children ?? []) parent.set(c, n.id);
++	const keyOf = n => { const cf = n.callFrame; return `${cf.functionName || "(anon)"} ${cf.url.replace(/^https?:\/\/[^/]+/, "")}:${cf.lineNumber + 1}`; };
++	const incl = new Map(), callers = new Map();
++	for (let k = 0; k < prof.samples.length; k++){
++		const ms = (dt[k] ?? 0) / 1000; let id = prof.samples[k]; const seen = new Set();
++		const leaf = byId.get(id), fn = leaf.callFrame.functionName;
++		if (fn === "getBoundingClientRect" || fn === "querySelector" || fn === "setProperty"){ const par = byId.get(parent.get(id)); const ck = fn + " <- " + (par ? keyOf(par) : "?"); callers.set(ck, (callers.get(ck) ?? 0) + ms); }
++		while (id != null){ const n = byId.get(id); const key = keyOf(n); if (n.callFrame.url && !seen.has(key)){ seen.add(key); incl.set(key, (incl.get(key) ?? 0) + ms); } id = parent.get(id); }
++	}
++	const incl_top = [...incl].sort((a, b) => b[1] - a[1]).slice(0, 30).map(([k, v]) => ({ at: k, incl_ms: Math.round(v) }));
++	const callers_top = [...callers].sort((a, b) => b[1] - a[1]).slice(0, 12).map(([k, v]) => ({ at: k, self_ms: Math.round(v) }));
++	const top = [...self].sort((a, b) => b[1] - a[1]).slice(0, 12).map(([k, v]) => ({ at: k, self_ms: Math.round(v) }));
++	const list = [...reqs.values()].map(r => ({ ...r, start: Math.round(r.start), end: r.end == null ? null : Math.round(r.end), first_byte: r.first_byte == null ? null : Math.round(r.first_byte) }));
++	const total_loading = list.reduce((s, r) => s + (r.size ?? 0), 0), total_chunks = list.reduce((s, r) => s + r.data_chunks, 0);
++	const mk = m.marks;
++	const sec = {
++		page_load_ms: Math.round(m.nav?.loadEventEnd ?? 0), click_at: Math.round(t_click),
++		sheet_visible_after_click: mk.sheet_visible != null ? Math.round(mk.sheet_visible - mk.click) : null,
++		widget_after_click: mk.widget != null ? Math.round(mk.widget - mk.click) : null,
++		first_bubble_dom_after_click: mk.first_bubble != null ? Math.round(mk.first_bubble - mk.click) : null,
++		first_bubble_painted_after_click: mk.bubble_painted != null ? Math.round(mk.bubble_painted - mk.click) : null,
++		hitl_calls: hitl, throttle: Number(process.env.THROTTLE || 1),
++				bubbles_end: bubbles_end.bubbles,
++	};
++	return { run: i, summary: sec, marks: Object.fromEntries(Object.entries(mk).map(([k, v]) => [k, Math.round(v)])), requests: list, files: list.length, total_bytes_loading_finished: total_loading, total_bytes_data_received: total_chunks, long_tasks: m.long.map(l => ({ start: Math.round(l.start), dur: Math.round(l.dur) })), cpu_top: top, cpu_inclusive: incl_top, native_callers: callers_top };
++}
++
++const out = [];
++for (let i = 1; i <= Number(RUNS); i++){ const r = await one(i); out.push(r); console.log(JSON.stringify({ run: i, ...r.summary, files: r.files, bytes: r.total_bytes_loading_finished, bytes2: r.total_bytes_data_received })); }
++fs.writeFileSync(path.join(process.env.OUT_DIR ?? os.tmpdir(), `load-${tag}.json`), JSON.stringify({ base, page_path, file, runs: out }, null, 1));
++await Browser.close();
+diff --git a/public/framework/ux/Dictate/test/watch.mjs b/public/framework/ux/Dictate/test/watch.mjs
+new file mode 100644
+index 000000000..37d02d831
+--- /dev/null
++++ b/public/framework/ux/Dictate/test/watch.mjs
+@@ -0,0 +1,60 @@
++// Session.watch() tails by byte range: new lines arrive once each, a half-written line waits, multi-byte text survives,
++// an idle poll is a 1-byte 206, and a server that ignores Range still works. node watch.mjs <base>
++import path from "path";
++import { pathToFileURL } from "url";
++const base = process.argv[2] ?? "http://monorepo.localhost";
++const here = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1"));
++const { default: Browser } = await import(pathToFileURL(path.join(here, "../../../../../Server/Browser.mjs")).href);
++const browser = await Browser.browser({});
++const fail = [];
++
++async function run(honour_range){
++	const ctx = await browser.newContext();
++	const page = await ctx.newPage();
++	let file = Buffer.from(`{"n":1,"t":"héllo ✓"}\n{"n":2}\n`), served = [];
++	await page.route("**/scratch-watch.jsonl", route => {
++		const range = route.request().headers()["range"], m = /bytes=(\d+)-/.exec(range ?? "");
++		if (!honour_range || !m) { served.push({ status: 200, bytes: file.length }); return route.fulfill({ status: 200, body: file }); }
++		const start = +m[1];
++		if (start >= file.length) { served.push({ status: 416 }); return route.fulfill({ status: 416, headers: { "content-range": `bytes */${file.length}` } }); }
++		served.push({ status: 206, bytes: file.length - start });
++		return route.fulfill({ status: 206, body: file.subarray(start), headers: { "content-range": `bytes ${start}-${file.length - 1}/${file.length}` } });
++	});
++	await page.goto(base + "/framework/ux/Dictate/", { waitUntil: "load" });
++	await page.evaluate(async () => {
++		const Session = await import("/framework/ext/Session/Session.js");
++		window.$got = []; window.$status = [];
++		window.$stop = Session.watch("/scratch-watch.jsonl", l => window.$got.push(l.n), { every: 100, on_status: (k, d) => window.$status.push(k) });
++	});
++	const got = () => page.evaluate(() => window.$got.join(","));
++	const wait = ms => page.waitForTimeout(ms);
++	await wait(400);
++	const tag = honour_range ? "range" : "no-range";
++	if (await got() !== "1,2") fail.push(`${tag}: first read got ${await got()}`);
++	await wait(400);   // idle polls
++	file = Buffer.concat([file, Buffer.from(`{"n":3,"t":"ü"}\n`)]); await wait(400);
++	if (await got() !== "1,2,3") fail.push(`${tag}: appended line got ${await got()}`);
++	file = Buffer.concat([file, Buffer.from(`{"n":4,"t":"half`)]); await wait(400);   // half-written
++	if (await got() !== "1,2,3") fail.push(`${tag}: a half-written line was drawn: ${await got()}`);
++	file = Buffer.concat([file, Buffer.from(`way"}\n{"n":5}\n`)]); await wait(400);
++	if (await got() !== "1,2,3,4,5") fail.push(`${tag}: finished line got ${await got()}`);
++	file = Buffer.concat([file, Buffer.from(`not json\n{"n":6}`)]); await wait(400);   // a bad line, then a last line with no newline
++	if (await got() !== "1,2,3,4,5,6") fail.push(`${tag}: bad line / unterminated line got ${await got()}`);
++	file = Buffer.concat([file, Buffer.from(`\n{"n":7}\n`)]); await wait(400);
++	if (await got() !== "1,2,3,4,5,6,7") fail.push(`${tag}: after unterminated got ${await got()}`);
++	const status = await page.evaluate(() => window.$status);
++	if (status.filter(k => k === "bad_line").length !== 1) fail.push(`${tag}: bad_line heard ${status.filter(k => k === "bad_line").length} times`);
++	if (status.includes("poll_failed")) fail.push(`${tag}: poll_failed heard`);
++	if (honour_range){
++		if (served.some(s => s.status === 416)) fail.push(`${tag}: an idle poll was a 416`);
++		const small = served.slice(1).filter(s => s.bytes <= 1).length;
++		if (!small) fail.push(`${tag}: no idle poll was a 1-byte 206 (${JSON.stringify(served.slice(-4))})`);
++		if (served.slice(1).some(s => s.bytes > 60)) fail.push(`${tag}: a poll re-sent the file (${JSON.stringify(served.slice(1).filter(s => s.bytes > 60))})`);
++	}
++	await ctx.close();
++	return served.length;
++}
++const a = await run(true), b = await run(false);
++console.log(JSON.stringify({ polls_range: a, polls_no_range: b, fail }));
++await Browser.close();
++process.exit(fail.length ? 1 : 0);

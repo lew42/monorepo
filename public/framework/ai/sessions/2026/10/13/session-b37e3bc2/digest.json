@@ -1,0 +1,32 @@
+{
+ "id": "b37e3bc2-4037-4d1a-acb0-db874d06cc34",
+ "first": "2026-10-13T02:02:43.412Z",
+ "last": "2026-10-13T21:14:12.511Z",
+ "task": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/web-select",
+ "models": {
+  "claude-sonnet-5-5": 42
+ },
+ "sizes": {
+  "raw": 288739,
+  "content": 30799,
+  "stripped": 10416,
+  "owner_only": 0
+ },
+ "usd": 4.776585,
+ "usd_main": 4.776585,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 84,
+  "output": 10100,
+  "cache_read": 2362184,
+  "cache_write": 1050745,
+  "w5": 0,
+  "w1": 1050745
+ },
+ "messages": 42,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "Done and idle. The `.fig-select` work is merged into `michael/dev` and `kit/web-select.md` is committed. Nothing is running, so the task can be closed.",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.277Z"
+}

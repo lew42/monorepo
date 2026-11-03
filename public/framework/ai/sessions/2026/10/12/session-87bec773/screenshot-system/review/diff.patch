@@ -1,0 +1,517 @@
+diff --git a/Server/shots.mjs b/Server/shots.mjs
+index 87dfd70fc..f08387d40 100644
+--- a/Server/shots.mjs
++++ b/Server/shots.mjs
+@@ -2,6 +2,13 @@
+  *    [--task <task dir>] [--by <agent>] [--base <origin>]`
+  *   Shoots one round of a page at its own widths (or the comma list given), diffs it against
+  *   `--vs` or the url's own latest round, and prints one short summary line per width.
++ * `node Server/shots.mjs --figma <png path | fileKey:nodeId> <url> [width] [--note "..."]
++ *    [--task <task dir>] [--by <agent>] [--base <origin>]`
++ *   Figma mode (build-c, figma-browser-loop.md): a Figma frame's own screenshot vs the built
++ *   page at the same width, cropped to content and scaled to match. Width defaults to the
++ *   frame's own. The `fileKey:nodeId` form needs the png already saved at
++ *   `ext/Figma/data/<fileKey>/shots/<nodeId, ":"→"-">.png` — fetch it with the Figma MCP's
++ *   `get_screenshot` first if it isn't there yet; this CLI can't call an MCP tool itself.
+  * `node Server/shots.mjs --judge <round id> better|worse|same "why" [--by <agent>]`
+  *   Records a verdict against that round (plan.md "The loop, and who does what").
+  * `node Server/shots.mjs --list <url>`
+@@ -35,6 +42,39 @@ async function main(){
+ 		return;
+ 	}
+ 
++	if (argv.includes("--figma")){
++		const i = argv.indexOf("--figma");
++		const ref = argv[i + 1], url = argv[i + 2];
++		const widthArg = argv[i + 3] && !argv[i + 3].startsWith("--") ? argv[i + 3] : null;
++		if (!ref || !url) usage(2);
++		const note = opt("note", null);
++		const task = opt("task", null);
++		const by = opt("by", null);
++		const base = opt("base", null);
++		const { run, diffs } = await Shots.figma(ref, url, {
++			width: widthArg ? Number(widthArg) : undefined, note, task, by, base: base || undefined,
++		});
++		console.log(`figma round ${run.id}  ${run.url}  dir: ${run.dir}`);
++		for (const w of run.widths){
++			const shot = run.shots[w];
++			const diff = diffs.find(d => d.width === w);
++			const line = [`  ${w}px: ${run.dir}/${shot.file}`, `h${shot.height}`];
++			if (diff){
++				const movedTotal = diff.moved.length + (diff.movedMore || 0);
++				const changedTotal = diff.regions.length + (diff.regionsMore || 0);
++				const signed = n => (n >= 0 ? "+" : "") + n;
++				const largestMoved = diff.moved[0];
++				const movedPart = `moved ${movedTotal} region${movedTotal === 1 ? "" : "s"}` + (largestMoved ? ` (largest ${largestMoved[2]}×${largestMoved[3]} by ${signed(largestMoved[4])},${signed(largestMoved[5])})` : "");
++				const largestChanged = diff.regions[0];
++				const changedPart = `changed ${changedTotal}` + (largestChanged ? ` (largest ${largestChanged[2]}×${largestChanged[3]} at ${largestChanged[0]},${largestChanged[1]})` : "");
++				line.push(`vs ${diff.vs}: ${movedPart}, ${changedPart}`);
++				line.push(`overlay: ${run.dir}/${diff.overlay}`);
++			}
++			console.log(line.join("  ·  "));
++		}
++		return;
++	}
++
+ 	if (argv.includes("--list")){
+ 		const i = argv.indexOf("--list");
+ 		const url = argv[i + 1];
+diff --git a/public/framework/ext/Figma/Figma.css b/public/framework/ext/Figma/Figma.css
+index 408c94612..61f8337ff 100644
+--- a/public/framework/ext/Figma/Figma.css
++++ b/public/framework/ext/Figma/Figma.css
+@@ -17,4 +17,8 @@
+ 	.figma-side img { width: 100%; height: auto; display: block; }
+ 	.figma-stage { position: relative; overflow: hidden; border: 1px solid color-mix(in srgb, currentColor 20%, transparent); }
+ 	.figma-stage iframe { position: absolute; inset: 0 auto auto 0; }
++
++	/* build-c: the latest Shots figma-kind round, hung under the compare view. */
++	.figma-overlay { margin-top: 1em; }
++	.figma-overlay-img { max-width: 100%; display: block; border: 1px solid color-mix(in srgb, currentColor 20%, transparent); }
+ }
+diff --git a/public/framework/ext/Figma/FigmaComparePage.js b/public/framework/ext/Figma/FigmaComparePage.js
+index 27fd64d60..b78310910 100644
+--- a/public/framework/ext/Figma/FigmaComparePage.js
++++ b/public/framework/ext/Figma/FigmaComparePage.js
+@@ -1,4 +1,5 @@
+-import { Page, a, h2, p, div, img } from "/app.js";
++import { Page, a, h2, h3, p, div, img } from "/app.js";
++import { ShotsJSONL } from "../Shots/ShotsView.js";
+ 
+ /* Figma original beside the page built from it, at the same width —
+    `/framework/ext/Figma/<file-slug>/<page-slug>/compare/<node-slug>/`. `node` is a frame,
+@@ -17,6 +18,40 @@ export class FigmaComparePage extends Page {
+ 				this.fit(stage.el, node.built?.path, w, h);
+ 			});
+ 		});
++		this.figma_overlay(node.built?.path);
++	}
++
++	/* The latest figma-kind Shots round for the built page, if there is one — its diff
++	   overlay and % changed, with a link into Shots itself. Reads `runs.jsonl` through
++	   `ShotsView`'s own `ShotsJSONL` (never a second reader of the log — build-c). */
++	figma_overlay(pagePath){
++		if (!pagePath) return;
++		const url = pagePath.endsWith("/") ? pagePath : pagePath + "/";
++
++		div.c("figma-overlay flow", $v => {
++			this.$overlay = $v;
++			this.overlayLog = new ShotsJSONL({ url: "/framework/ext/Shots/runs.jsonl" });
++			this.overlayLog.live(() => this.draw_overlay(url));
++			this.draw_overlay(url);
++		});
++	}
++
++	draw_overlay(url){
++		this.$overlay.empty(() => {
++			const runs = this.overlayLog.runs_for(url).filter(r => r.kind === "figma");
++			if (!this.overlayLog.loaded || !runs.length){
++				p.c("muted", `No Figma-vs-page shot yet: \`node Server/shots.mjs --figma <png path | fileKey:nodeId> ${url}\``);
++				return;
++			}
++			const run = runs[0];
++			const width = run.widths?.[0];
++			const diff = this.overlayLog.diff_at(run.id, width);
++
++			h3("Latest Figma-vs-page overlay");
++			if (diff?.overlay) img.c("figma-overlay-img").attr("src", "/" + run.dir.replace(/^public\//, "") + "/" + diff.overlay).attr("alt", "diff overlay");
++			if (diff) p.c("muted", `${Math.round((diff.changed ?? 0) * 100)}% changed, round ${run.id} at ${width}px`);
++			a.c("figma-overlay-link", "Open this round in Shots").href(`/framework/ext/Shots/?url=${encodeURIComponent(url)}&round=${run.id}`);
++		});
+ 	}
+ 
+ 	fit(stage, path, w, h){
+diff --git a/public/framework/ext/Figma/data/QYN0G2URSBHYH5I06MOjxU/shots/131-1062.png b/public/framework/ext/Figma/data/QYN0G2URSBHYH5I06MOjxU/shots/131-1062.png
+new file mode 100644
+index 000000000..88dc4b400
+Binary files /dev/null and b/public/framework/ext/Figma/data/QYN0G2URSBHYH5I06MOjxU/shots/131-1062.png differ
+diff --git a/public/framework/ext/Shots/PNG.mjs b/public/framework/ext/Shots/PNG.mjs
+index 55ac15b9d..ac801fd41 100644
+--- a/public/framework/ext/Shots/PNG.mjs
++++ b/public/framework/ext/Shots/PNG.mjs
+@@ -58,6 +58,56 @@ export class PNG {
+ 		return { width, height, data: channels === 4 ? data : rgbToRgba(data, width, height) };
+ 	}
+ 
++	/** PNG.trim(image, {tolerance}) → {width, height, data, x, y} — strips uniform margins of the
++	 * image's own corner colour from every edge (build-c, figma mode: a Figma frame and a browser
++	 * screenshot both carry flat background around the real content, at different sizes, and a
++	 * diff over that margin is noise). Only full rows/columns that are entirely within `tolerance`
++	 * of the top-left pixel's colour are stripped — an inner row of the same colour (a plain
++	 * section of the page) survives, because trimming walks in from the edges only. `x`/`y` are
++	 * the crop's own offset into the source image, for a caller that wants to say where it fell. */
++	static trim(image, { tolerance = 8 } = {}){
++		const { width, height, data } = image;
++		const bg = [data[0], data[1], data[2]];
++		const close = (x, y) => {
++			const i = (y * width + x) * 4;
++			return Math.abs(data[i] - bg[0]) <= tolerance && Math.abs(data[i + 1] - bg[1]) <= tolerance && Math.abs(data[i + 2] - bg[2]) <= tolerance;
++		};
++		const rowIsBg = y => { for (let x = 0; x < width; x++) if (!close(x, y)) return false; return true; };
++		let top = 0, bottom = height - 1;
++		while (top < bottom && rowIsBg(top)) top++;
++		while (bottom > top && rowIsBg(bottom)) bottom--;
++		const colIsBg = x => { for (let y = top; y <= bottom; y++) if (!close(x, y)) return false; return true; };
++		let left = 0, right = width - 1;
++		while (left < right && colIsBg(left)) left++;
++		while (right > left && colIsBg(right)) right--;
++
++		const w = right - left + 1, h = bottom - top + 1;
++		const out = new Uint8Array(w * h * 4);
++		for (let y = 0; y < h; y++){
++			const si = ((top + y) * width + left) * 4;
++			out.set(data.subarray(si, si + w * 4), y * w * 4);
++		}
++		return { width: w, height: h, data: out, x: left, y: top };
++	}
++
++	/** PNG.scale(image, targetWidth, targetHeight) → {width, height, data} — nearest-neighbour
++	 * resample (no npm dependency; a box filter would look smoother but Diff compares in 16px
++	 * cells anyway, so nearest-neighbour costs nothing it will notice). Used to bring a Figma
++	 * frame's own picture to the built page's width before comparing them (build-c). */
++	static scale(image, targetWidth, targetHeight){
++		const { width, height, data } = image;
++		const out = new Uint8Array(targetWidth * targetHeight * 4);
++		for (let y = 0; y < targetHeight; y++){
++			const sy = Math.min(height - 1, Math.floor((y * height) / targetHeight));
++			for (let x = 0; x < targetWidth; x++){
++				const sx = Math.min(width - 1, Math.floor((x * width) / targetWidth));
++				const si = (sy * width + sx) * 4, di = (y * targetWidth + x) * 4;
++				out[di] = data[si]; out[di + 1] = data[si + 1]; out[di + 2] = data[si + 2]; out[di + 3] = data[si + 3];
++			}
++		}
++		return { width: targetWidth, height: targetHeight, data: out };
++	}
++
+ 	/** PNG.encode({width, height, data}) → Buffer. `data` is RGBA, same layout as decode()
+ 	 * returns. Always writes colour type 6, filter 0 (no per-row filtering — Diff's overlay
+ 	 * gains nothing from the extra CPU a real filter choice would cost). */
+diff --git a/public/framework/ext/Shots/Shots.mjs b/public/framework/ext/Shots/Shots.mjs
+index 40f833476..f8c16af72 100644
+--- a/public/framework/ext/Shots/Shots.mjs
++++ b/public/framework/ext/Shots/Shots.mjs
+@@ -143,6 +143,87 @@ export class Shots {
+ 		return { run, diffs };
+ 	}
+ 
++	/** Shots.resolveFigmaRef(ref) → {key, node, pngPath} — `ref` is either a direct png path, or
++	 * "<fileKey>:<nodeId>" (the node id itself may contain its own ":", e.g. "131:1062", so only
++	 * the FIRST colon splits key from node). The png path for the id form follows `ext/Figma/
++	 * track.mjs`'s own naming: `ext/Figma/data/<key>/shots/<node, ":" → "-">.png`. */
++	static resolveFigmaRef(ref){
++		if (/\.png$/i.test(ref)) return { key: null, node: null, pngPath: path.resolve(ROOT, ref) };
++		const i = ref.indexOf(":");
++		if (i < 0) throw new Error(`Shots.figma: expected "<png path>" or "<fileKey>:<nodeId>", got "${ref}"`);
++		const key = ref.slice(0, i), node = ref.slice(i + 1);
++		const slug = node.replace(/[:;]/g, "-");
++		const pngPath = path.join(ROOT, "public/framework/ext/Figma/data", key, "shots", `${slug}.png`);
++		return { key, node, pngPath };
++	}
++
++	/** Shots.figma(figmaRef, url, opts) → one round comparing a Figma frame's own screenshot
++	 * against the built page at the same width (figma-browser-loop.md "What is missing").
++	 * The Figma picture must already sit at the resolved path — `Shots.mjs` is a plain node
++	 * script and cannot call the Figma MCP itself; an agent session fetches it first with
++	 * `mcp__figma__get_screenshot` and saves it the way `ext/Figma/track.mjs` does (see
++	 * doc/architecture.md). Both pictures are cropped to their content (PNG.trim), the Figma one
++	 * then scaled to the page's own width (PNG.scale) when they differ, and diffed exactly as a
++	 * normal round. There is no earlier `run` line to point `parent` at, so the round's `vs` is
++	 * the pseudo id `figma-<key>-<node>` and the Figma picture is copied into the round's own
++	 * folder as `figma.png` — a reader never has to resolve a parent round that doesn't exist. */
++	static async figma(figmaRef, url, opts = {}){
++		const { key, node, pngPath } = Shots.resolveFigmaRef(figmaRef);
++		if (!fs.existsSync(pngPath))
++			throw new Error(`Shots.figma: no local png at ${repo_rel(pngPath)} — fetch it with the Figma MCP's get_screenshot (key ${key}, node ${node}) and save the image there first, the way ext/Figma/track.mjs does (doc/architecture.md)`);
++
++		const figmaRaw = PNG.decode(fs.readFileSync(pngPath));
++		const width = opts.width || figmaRaw.width;
++
++		const base = opts.base || DEFAULT_BASE;
++		const full = new URL(url, base).toString();
++		const screenshotsRoot = Shots.dir(url);
++		const id = round_id();
++		const roundDir = path.join(screenshotsRoot, id);
++		fs.mkdirSync(roundDir, { recursive: true });
++
++		const b = await launch();
++		const context = await b.newContext();
++		const page = await context.newPage();
++		await page.goto(full, { waitUntil: "load", timeout: 20000 });
++		await page.setViewportSize({ width, height: 1080 });
++		await settle(page);
++		const pageRaw = await full_picture(page);
++		await context.close();
++
++		const figmaCropped = PNG.trim(figmaRaw);
++		const pageCropped = PNG.trim(pageRaw);
++		const figmaScaled = figmaCropped.width === pageCropped.width ? figmaCropped
++			: PNG.scale(figmaCropped, pageCropped.width, Math.round((figmaCropped.height * pageCropped.width) / figmaCropped.width));
++
++		fs.writeFileSync(path.join(roundDir, "figma.png"), PNG.encode(figmaScaled));
++		const file = `${width}.png`;
++		fs.writeFileSync(path.join(roundDir, file), PNG.encode(pageCropped));
++
++		const result = Diff.compare(figmaScaled, pageCropped);
++		const overlay = `diff-${width}.png`;
++		fs.writeFileSync(path.join(roundDir, overlay), PNG.encode(result.overlay));
++
++		const vsId = `figma-${key ?? "png"}-${node ?? path.basename(pngPath, ".png")}`;
++		const run = {
++			id, url: as_url(url), dir: repo_rel(roundDir), widths: [width], parent: null,
++			note: opts.note ?? null, css: null, task: opts.task ?? null, by: opts.by ?? null,
++			at: now_iso(), shots: { [width]: { file, height: pageCropped.height, cut: false } },
++			kind: "figma", figma: { key, node, file: "figma.png" },
++		};
++		append_line({ run });
++
++		const diff = {
++			id, vs: vsId, width, changed: result.changed,
++			regions: result.regions, regionsMore: result.regionsMore,
++			moved: result.moved, movedMore: result.movedMore,
++			overlay, height: result.height,
++		};
++		append_line({ diff });
++
++		return { run, diffs: [diff] };
++	}
++
+ 	/** Shots.judge(id, verdict, why, by) → appends a `judge` line. `vs` is read back off the
+ 	 * round's own `run` line (its `parent`) so a caller never has to look it up by hand. */
+ 	static judge(id, verdict, why, by){
+diff --git a/public/framework/ext/Shots/Shots.test.mjs b/public/framework/ext/Shots/Shots.test.mjs
+index 0c9a947df..686e6e32c 100644
+--- a/public/framework/ext/Shots/Shots.test.mjs
++++ b/public/framework/ext/Shots/Shots.test.mjs
+@@ -97,6 +97,27 @@ function check(name, ok){ results.push([name, ok]); console.log(`${ok ? "PASS" :
+ 	check("Diff: finds the recoloured block as a changed region", foundChanged);
+ }
+ 
++// ---- PNG.trim + PNG.scale: a known content rectangle inside a flat background ------------
++{
++	const width = 120, height = 80;
++	const data = new Uint8Array(width * height * 4);
++	for (let i = 0; i < data.length; i += 4){ data[i] = 240; data[i + 1] = 240; data[i + 2] = 240; data[i + 3] = 255; }
++	const CONTENT = { x: 20, y: 10, w: 60, h: 40 };
++	for (let y = CONTENT.y; y < CONTENT.y + CONTENT.h; y++){
++		for (let x = CONTENT.x; x < CONTENT.x + CONTENT.w; x++){
++			const i = (y * width + x) * 4;
++			data[i] = 10; data[i + 1] = 100; data[i + 2] = 200;
++		}
++	}
++	const trimmed = PNG.trim({ width, height, data });
++	check("PNG.trim: crops to the content rectangle", trimmed.width === CONTENT.w && trimmed.height === CONTENT.h && trimmed.x === CONTENT.x && trimmed.y === CONTENT.y);
++	check("PNG.trim: cropped pixels are the content colour", trimmed.data[0] === 10 && trimmed.data[1] === 100 && trimmed.data[2] === 200);
++
++	const scaled = PNG.scale(trimmed, 120, 80);
++	check("PNG.scale: reports the requested size", scaled.width === 120 && scaled.height === 80);
++	check("PNG.scale: a pixel near the middle keeps the content colour", scaled.data[((40 * 120 + 60) * 4)] === 10);
++}
++
+ const failed = results.filter(([, ok]) => !ok);
+ console.log(`\n${results.length - failed.length}/${results.length} passed`);
+ process.exit(failed.length ? 1 : 0);
+diff --git a/public/framework/ext/Shots/ShotsView.css b/public/framework/ext/Shots/ShotsView.css
+index 91d2cc881..8ca5e528c 100644
+--- a/public/framework/ext/Shots/ShotsView.css
++++ b/public/framework/ext/Shots/ShotsView.css
+@@ -8,6 +8,18 @@
+ 	.shots-view { --flow: 0.8em; }
+ 	.shots-empty { padding: 1em 0; }
+ 
++	/* Stacked by default (narrow); ≥1200px puts the tree left and the
++	   selected round's detail right, so the detail never falls below the
++	   fold (first live look, build-c). */
++	.shots-layout { --gap: 1.2em; flex-direction: column; align-items: stretch; }
++	.shots-tree-col { flex: 1 1 auto; }
++	.shots-detail-col { flex: 1 1 auto; }
++	@media (min-width: 1200px) {
++		.shots-layout { flex-direction: row; align-items: flex-start; }
++		.shots-tree-col { flex: 1 1 20em; min-width: 18em; max-width: 26em; }
++		.shots-detail-col { flex: 2 1 32em; min-width: 0; }
++	}
++
+ 	.shots-tree { --flow: 0.4em; }
+ 	.shots-round { --flow: 0.4em; }
+ 	/* One indent per generation — a variant branch reads as a child, not a
+@@ -35,7 +47,13 @@
+ 	.shots-pane { flex: 1 1 18em; min-width: 14em; }
+ 	.shots-pane-img { display: block; width: 100%; border: 1px solid var(--line); border-radius: var(--radius); }
+ 
++	/* A missing picture (gitignored — another machine has the log but not
++	   the png) reads as a small labelled box, never a broken image icon. */
++	.shots-missing { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 4em; border: 1px dashed var(--line); border-radius: var(--radius); text-align: center; padding: 0.5em; }
++	.shots-thumb-img.shots-missing { width: 8em; height: 6em; min-height: 0; font-size: 0.7em; }
++
+ 	.shots-diff-pct { font-weight: 600; }
++	.shots-diff-moved { font-size: 0.9em; }
+ 	.shots-judges { --flow: 0.2em; }
+ 	.shots-judge-line { font-size: 0.9em; }
+ 
+diff --git a/public/framework/ext/Shots/ShotsView.js b/public/framework/ext/Shots/ShotsView.js
+index 16e017389..9f5a75032 100644
+--- a/public/framework/ext/Shots/ShotsView.js
++++ b/public/framework/ext/Shots/ShotsView.js
+@@ -93,6 +93,10 @@ export class ShotsView extends View {
+ 		});
+ 	}
+ 
++	/* ≥1200px: the round tree sits in a column on the left, the selected round's
++	   detail (before/after/overlay) on the right where it's never below the
++	   fold; narrower, they stack — one CSS rule (`.shots-layout`), no JS
++	   breakpoint (first live look, build-c). */
+ 	draw(){
+ 		this.$root.empty(() => {
+ 			const roots = this.log.roots_for(this.url);
+@@ -102,12 +106,19 @@ export class ShotsView extends View {
+ 				return;
+ 			}
+ 
+-			div.c("shots-tree flow", () => roots.forEach(run => this.branch(run, 0)));
++			div.c("shots-layout flex gap", () => {
++				div.c("shots-tree-col", () =>
++					div.c("shots-tree flow", () => roots.forEach(run => this.branch(run, 0))));
++
++				const selectedRun = this.selected && this.log.runs.get(this.selected.id);
++				if (selectedRun) div.c("shots-detail-col", () => this.detail(selectedRun));
++			});
+ 		});
+ 	}
+ 
+ 	/* One round, newest-first children nested under it — a row of width
+-	   thumbnails, then its own children one indent in. */
++	   thumbnails, then its own children one indent in. Detail for the selected
++	   round renders in the separate column (draw()), not inline here. */
+ 	// ⚠ Not named `round` — a `{round}` constructor option (the query-param
+ 	// name the brief asks for) would overwrite a method of that name on this
+ 	// instance (JSONL.js's own trap: a field never replaces a method).
+@@ -127,8 +138,6 @@ export class ShotsView extends View {
+ 			div.c("shots-thumbs flex wrap gap", () =>
+ 				(run.widths ?? []).forEach(w => this.thumb(run, w)));
+ 
+-			if (selected) this.detail(run);
+-
+ 			this.children_of(run).forEach(child => this.branch(child, depth + 1));
+ 		});
+ 	}
+@@ -152,12 +161,25 @@ export class ShotsView extends View {
+ 		if (!shot) return;
+ 
+ 		button.c("shots-thumb").click(() => this.select(run, w)).append(() => {
+-			img.c("shots-thumb-img").attr("src", shot_url(run.dir, shot.file)).attr("alt", `${run.url} at ${w}px`);
++			this.pic("shots-thumb-img", shot_url(run.dir, shot.file), `${run.url} at ${w}px`);
+ 			span.c("shots-thumb-w muted", w + "px");
+ 			if (shot.cut) span.c("shots-thumb-cut muted", "cut");
+ 		});
+ 	}
+ 
++	/* An <img> that, on a 404 (pictures are gitignored — another machine has
++	   the log but not the png, plan.md "Where the files go"), swaps itself for
++	   a small "picture not on this machine" box instead of a broken image or a
++	   console 404 storm. One `error` listener per picture, never a fetch probe
++	   per round (first live look, build-c). */
++	pic(cls, url, alt){
++		div.c("shots-pic-wrap", $w => {
++			img.c(cls).attr("src", url).attr("alt", alt).on("error", () => {
++				$w.empty(() => div.c(cls + " shots-missing muted", "picture not on this machine"));
++			});
++		});
++	}
++
+ 	select(run, width){
+ 		this.selected = { id: run.id, width: width ?? this.selected?.width ?? run.widths?.[0] };
+ 		this.draw();
+@@ -170,12 +192,16 @@ export class ShotsView extends View {
+ 		const width = this.selected.width ?? run.widths?.[0];
+ 		const parent = run.parent ? this.log.runs.get(run.parent) : null;
+ 		const diff = this.log.diff_at(run.id, width);
++		// A figma-kind round has no earlier `run` line to be its `parent` — its own BEFORE is
++		// the Figma picture, copied into its own round folder as `figma.png` (Shots.figma).
++		const figmaBefore = run.kind === "figma" && run.figma ? shot_url(run.dir, run.figma.file) : null;
+ 
+ 		div.c("shots-detail flow").append(() => {
+ 			if ((run.widths ?? []).length > 1) this.width_picker(run, width);
+ 
+ 			div.c("shots-compare flex wrap gap", () => {
+-				if (parent?.shots?.[width]) this.pane("before", shot_url(parent.dir, parent.shots[width].file));
++				if (figmaBefore) this.pane("figma", figmaBefore);
++				else if (parent?.shots?.[width]) this.pane("before", shot_url(parent.dir, parent.shots[width].file));
+ 				if (run.shots?.[width]) this.pane("after", shot_url(run.dir, run.shots[width].file));
+ 				if (diff?.overlay) this.pane("overlay", shot_url(run.dir, diff.overlay));
+ 			});
+@@ -197,13 +223,22 @@ export class ShotsView extends View {
+ 	pane(label, url){
+ 		div.c("shots-pane flow").append(() => {
+ 			span.c("shots-pane-label muted", label);
+-			img.c("shots-pane-img").attr("src", url).attr("alt", label);
++			this.pic("shots-pane-img", url, label);
+ 		});
+ 	}
+ 
++	/* The diff's own numbers: % changed, then moved regions beside the changed
++	   ones (build-c — the diff already finds them, Diff.compare's `moved`;
++	   this just shows what was there) and a height change, when there is one. */
+ 	diff_line(diff){
+-		div.c("shots-diff-line flex gap v-center", () => {
++		div.c("shots-diff-line flex gap v-center wrap", () => {
+ 			span.c("shots-diff-pct", Math.round((diff.changed ?? 0) * 100) + "% changed");
++			if (diff.moved?.length){
++				const total = diff.moved.length + (diff.movedMore || 0);
++				const [, , w, h, dx, dy] = diff.moved[0];
++				const signed = n => (n >= 0 ? "+" : "") + n;
++				span.c("shots-diff-moved muted", `moved ${total} (largest ${w}×${h} by ${signed(dx)},${signed(dy)})`);
++			}
+ 			if (diff.height && diff.height[0] !== diff.height[1])
+ 				span.c("muted", `height ${diff.height[0]} → ${diff.height[1]}`);
+ 		});
+diff --git a/public/framework/ext/Shots/doc/architecture.md b/public/framework/ext/Shots/doc/architecture.md
+index 9c536c565..790e8e918 100644
+--- a/public/framework/ext/Shots/doc/architecture.md
++++ b/public/framework/ext/Shots/doc/architecture.md
+@@ -45,3 +45,37 @@ One default clamped padding token should work in about 90% of places: a containe
+ - **Does the overlay help a model?** One trial, Haiku, same question: with the two pictures alone it found 6 of the changes and missed the recoloured "prime-bound" labels; with the overlay and the diff line added it found 7, including those labels (it placed them in the wrong card). A small gain for about 2k more tokens; repeat on a padding change before trusting it.
+ - **Small false "moved" regions** (a 16 × 44 px block of text "moved by −3, +68") appear on colour-only changes; ignore moved regions under two cells until the threshold is tuned.
+ - **Next:** run the line filter (`public/imagine/lines/lines.js`) on both pictures to report edges that moved, which is the padding question.
++
++## Figma mode (build-c, 2026-10-12)
++
++`Shots.figma(figmaRef, url, {width})` (CLI: `--figma`) compares a Figma frame's own screenshot
++against the built page at the same width — figma-browser-loop.md's missing piece. Both pictures
++are cropped to content with `PNG.trim` (walks uniform background in from every edge, by the
++corner pixel's own colour) and the Figma one is scaled to the page's width with `PNG.scale`
++(nearest-neighbour; Diff compares in 16px cells, so a box filter would buy nothing) when the two
++widths differ after cropping. `Shots.mjs` is a plain node script with no MCP access, so the Figma
++png must already exist at `ext/Figma/data/<fileKey>/shots/<nodeId, ":"→"-">.png` (`track.mjs`'s
++own naming) before `--figma key:nodeId` is used — an agent session fetches it first with
++`mcp__figma__get_screenshot` and saves it there.
++
++There is no earlier `run` line to be the round's `parent` (a figma round isn't compared with a
++previous page round), so the chosen shape is: `parent: null`, the Figma picture copied into the
++round's own folder as `figma.png`, and the `diff` line's `vs` set to the pseudo id
++`figma-<key>-<node>` purely as a label. `ShotsView.detail()` special-cases `run.kind === "figma"`
++to show `figma.png` as the BEFORE pane instead of looking up a parent round that was never
++written — simplest shape that keeps the log readable, at the cost of a reader not being able to
++click through "vs" to another real round (there isn't one).
++
++**First real pair (2026-10-12):** `QYN0G2URSBHYH5I06MOjxU` frame `131:1062` ("How Claude draws in
++Figma", a design mock of the Figma guide's own content) vs `/framework/ext/Figma/guide/` at 3440 —
++`node Server/shots.mjs --figma QYN0G2URSBHYH5I06MOjxU:131:1062 /framework/ext/Figma/guide/ 3440`.
++Round `2026-10-12-171622`; overlay at
++`public/framework/ext/Figma/guide/screenshots/2026-10-12-171622/diff-3440.png`. The diff reports a
++height change (1236→1967) and most of the page as changed, which matches what the overlay shows
++by eye: the Figma frame is a flat mock-up of the three content cards (white/prime/dark bases)
++with no real site chrome, while the built guide page is the live framework site — a real sidebar
++nav, a taller document (more guide sections below the fold), and dark-mode colours the mock never
++drew. The few genuinely small, real differences (card corner radii, a couple of heading sizes) are
++swamped by that structural gap, so this first pair mostly proves the plumbing works end to end,
++not yet a useful "is this still on-spec" check — that wants a frame actually built to the guide
++page's own chrome, which build-c didn't have time to pick and track.
+diff --git a/public/framework/ext/Shots/runs.jsonl b/public/framework/ext/Shots/runs.jsonl
+index 996981830..62569a339 100644
+--- a/public/framework/ext/Shots/runs.jsonl
++++ b/public/framework/ext/Shots/runs.jsonl
+@@ -8,3 +8,5 @@
+ {"run":{"id":"2026-10-12-164508","url":"/framework/ext/Figma/colors/","dir":"public/framework/ext/Figma/colors/screenshots/2026-10-12-164508","widths":[400,1920],"parent":"2026-10-12-164502","note":"after: site tokens (9ca7fa778); stitched full page","css":null,"task":null,"by":"mastermind-screenshot-system","at":"2026-10-12T21:45:12.493Z","shots":{"400":{"file":"400.png","height":2681,"cut":false},"1920":{"file":"1920.png","height":2433,"cut":false}}}}
+ {"diff":{"id":"2026-10-12-164508","vs":"2026-10-12-164502","width":400,"changed":495,"regions":[[16,672,352,288,40047],[48,1008,224,64,909],[64,1168,224,48,748],[96,2032,112,16,195],[128,2400,48,32,118],[48,416,80,16,140],[64,576,80,16,139],[64,1872,80,16,139]],"regionsMore":12,"moved":[[176,1056,64,16,68,-61],[224,1168,64,16,4,0]],"movedMore":0,"overlay":"diff-400.png","height":[2681,2681]}}
+ {"diff":{"id":"2026-10-12-164508","vs":"2026-10-12-164502","width":1920,"changed":987,"regions":[[832,304,512,448,93832],[1392,640,224,32,699],[1376,432,224,16,640],[1536,592,128,16,441],[1520,384,112,16,267],[496,2112,96,16,181],[608,2112,96,16,176],[352,432,80,16,143]],"regionsMore":14,"moved":[],"movedMore":0,"overlay":"diff-1920.png","height":[2433,2433]}}
++{"run":{"id":"2026-10-12-171622","url":"/framework/ext/Figma/guide/","dir":"public/framework/ext/Figma/guide/screenshots/2026-10-12-171622","widths":[3440],"parent":null,"note":null,"css":null,"task":null,"by":"screenshot-build-c","at":"2026-10-12T22:16:30.553Z","shots":{"3440":{"file":"3440.png","height":1967,"cut":false}},"kind":"figma","figma":{"key":"QYN0G2URSBHYH5I06MOjxU","node":"131:1062","file":"figma.png"}}}
++{"diff":{"id":"2026-10-12-171622","vs":"figma-QYN0G2URSBHYH5I06MOjxU-131:1062","width":3440,"changed":10900,"regions":[[1744,0,1696,1236,434897],[368,144,1472,1092,457659],[0,0,320,1236,209089],[928,960,816,160,38027],[1872,1168,848,68,35445],[368,48,368,64,6522],[1696,128,560,32,4917],[2912,864,240,48,1439]],"regionsMore":26,"moved":[[272,112,16,960,-40,64],[1056,512,480,16,64,-44],[2960,656,336,16,64,40],[2960,752,336,16,64,-52],[2960,928,336,16,64,-60],[2960,1136,336,16,64,-36],[2976,960,320,16,68,-47],[2816,240,16,288,-56,64]],"movedMore":43,"overlay":"diff-3440.png","height":[1236,1967]}}

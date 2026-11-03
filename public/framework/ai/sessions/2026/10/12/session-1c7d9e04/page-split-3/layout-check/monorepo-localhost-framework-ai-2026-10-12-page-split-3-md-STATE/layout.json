@@ -1,0 +1,43 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/2026-10-12/page-split-3/md/STATE/",
+ "widths": {
+  "1280": {
+   "empty": 0.554,
+   "widest_text": 590,
+   "widest_text_sample": "Decisions (alternative in brackets)",
+   "overflow_x": false,
+   "items": 142,
+   "narrow_share": 0.739
+  },
+  "1920": {
+   "empty": 0.686,
+   "widest_text": 628,
+   "widest_text_sample": "Decisions (alternative in brackets)",
+   "overflow_x": false,
+   "items": 142,
+   "narrow_share": 0.887
+  },
+  "2560": {
+   "empty": 0.74,
+   "widest_text": 706,
+   "widest_text_sample": "Decisions (alternative in brackets)",
+   "overflow_x": false,
+   "items": 142,
+   "narrow_share": 0.901
+  },
+  "3440": {
+   "empty": 0.803,
+   "widest_text": 706,
+   "widest_text_sample": "Decisions (alternative in brackets)",
+   "overflow_x": false,
+   "items": 142,
+   "narrow_share": 0.901
+  }
+ },
+ "errors": [
+  "1920: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "3440: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1280: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "2560: Failed to load resource: the server responded with a status of 404 (Not Found)"
+ ]
+}

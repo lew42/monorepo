@@ -1,0 +1,36 @@
+{
+ "id": "9df12d46-642a-4cd0-9fe6-1681839f4efa",
+ "first": "2026-10-13T22:55:52.650Z",
+ "last": "2026-10-13T22:57:43.330Z",
+ "models": {
+  "claude-haiku-5-5": 1
+ },
+ "sizes": {
+  "raw": 114935,
+  "content": 7165,
+  "stripped": 7165,
+  "owner_only": 3330
+ },
+ "usd": 0.201728,
+ "usd_main": 0.201728,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 2,
+  "output": 30001,
+  "cache_read": 20671,
+  "cache_write": 24827,
+  "w5": 0,
+  "w1": 24827
+ },
+ "messages": 1,
+ "subagent_files": 0,
+ "prompts": [
+  {
+   "at": "2026-10-13T22:55:52.669Z",
+   "t": "Below is a brief (numbered asks a mastermind would act on) refined from the owner's raw words, then the raw words. For EACH numbered ask, give two confidences.\nScale (a probability that the statement is right): 0.5 = not sure (your default; start there). Below 0.3 = probably wrong. Above 0.7 ONLY with evidence: name what in the raw words makes it unmistakable. Never answer 0.9 out of habit.\n- ask_clear: how sure are we what was actually requested?\n- outcome_clear: how sure are we what a finished job would look like (a checkable end state)? Often lower than ask_clear.\nReply with ONLY a JSON array, one object per ask: {\"n\":<ask number>,\"kind\":\"command\"|\"question\"|\"directive\",\"ask\":\"<under 15 words>\",\"quote\":\"<6-12 words copied from the raw>\",\"ask_clear\":{\"p\":<0-1>,\"evidence\":\"<under 15 words>\"},\"outcome_clear\":{\"p\":<0-1>,\"evidence\":\"<under 15 words>\"}}\n\nBRIEF:\n1. Give each of the five chec … thods).\n- **Core API & Importance Weighting**:\n  - The top of the card shows the **Core API** (the 5–7 most critical methods/properties).\n  - Properties and methods are ranked by importance/usage weight (manually ranked in docs/metadata first).\n\n\n\"\"\""
+  }
+ ],
+ "result": "[{\"n\":1,\"kind\":\"command\",\"ask\":\"Give each of five checkers the feedback-council brief\",\"quote\":\"Feedback council — brief for each of the five checkers\",\"ask_clear\":{\"p\":0.6,\"evidence\":\"Brief text exists; spawn mechanics and checker count are spelled out\"},\"outcome_clear\":{\"p\":0.6,\"evidence\":\"Five votes files appear; the checker count is only implied\"}},{\"n\":2,\"kind\":\"command\",\"ask\":\"Check the owner's brief for the three features\",\"quote\":\"Brief recorded verbatim from the owner's dictation on 2026-10-06\",\"ask_clear\":{\"p\":0.4,\"evidence\":\"Check never defines what to verify in the brief\"},\"outcome_clear\":{\"p\":0.3,\"evidence\":\"No checkable end state; verbatim match is the only criterion\"}},{\"n\":3,\"kind\":\"command\",\"ask\":\"Check new asks from words.jsonl plus open council asks not done\",\"quote\":\"Asks to check: new asks extracted from\",\"ask_clear\":{\"p\":0.6,\"evidence\":\"'open' and 'latest verdict' depend on unseen file format\"},\"outcome_clear\":{\"p\":0.55,\"evidence\":\"Every listed ask gets a verdict; the list itself is not enumerated\"}},{\"n\":4,\"kind\":\"directive\",\"ask\":\"Give every ask one verdict after checking the real result\",\"quote\":\"For EVERY ask, LOOK at the real result and give one verdict\",\"ask_clear\":{\"p\":0.8,\"evidence\":\"Four-verdict set and one-line evidence format are explicitly listed\"},\"outcome_clear\":{\"p\":0.65,\"evidence\":\"Each ask has a verdict line; 'real result' standard is loose\"}},{\"n\":5,\"kind\":\"directive\",\"ask\":\"Search for existing work before marking anything missing\",\"quo …",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.355Z"
+}

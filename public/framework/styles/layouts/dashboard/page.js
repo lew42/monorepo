@@ -1,26 +1,39 @@
-import { Page, md, demo } from "/app.js";
-import layout from "./layout.js";
-import full from "../full.js";
-import fit from "../fit.js";
+import { Page, demo, div, span } from "/app.js";
+import { site } from "../web.js";
 
-export default new Page({
+export default new Page(demo.layout({
 	meta: import.meta,
 	title: "Dashboard",
-	description: "Stat tiles over a wide panel and a rail — a grid retuned by one token.",
-	icon: "dashboard",
+	description: "A strip of numbers over a wall of panels, with a rail that only appears when there is room.",
+	icon: "insights",
+	group: "Apps",
 
-	route(name){ return name === "full" && full(this, layout); },
+	twin: true,
+	parts: "header toolbar aside",
 
-	content(){
-		demo(layout, { full: this }, "The tile row is the *same* `grid gap auto` as [Cards](/framework/styles/layouts/cards/), with `--column` set to `8em` so four tiles fit where two cards would. **A token override, not a rule** — and it stays responsive, because `auto-fit` is still doing the counting.");
+	note: "Two walls, one knob each. The numbers hold `--column: 9em` and the panels `20em`, so the board counts its own columns — four numbers across a phone, ten across a 3440 monitor, and not a breakpoint between them.",
 
+	layout(){
 
-		md("The panel row is `flex gap flex-1`: the chart takes what's left, the rail is `.layout-rail`. Two arrangements, one stylesheet rule between them.");
+		return div.c("page full fill flex v", () => {
 
-		fit("A metrics overview · An analytics home · A status board · An order summary",
-			"wide",
-			"The same call as Cards, for the same reason: tiles are not prose. `--column: 8em` is what makes them tiles rather than cards, and it is a token override, not a rule.");
+			if (this.shows("header")) site.topbar();
+			if (this.shows("toolbar")) site.toolbar();
 
-		md("Next: [Split](/framework/styles/layouts/split/) — two panes that stack themselves.");
-	}
-});
+			div.c("flex gap wrap flex-1", () => {
+
+				div.c("flex v gap pad", () => {
+					site.cards(6, "9em");
+					site.tiles(4, "20em");
+				}).style({ flex: "1 1 24em", minWidth: "0", "--gap": "calc(var(--gap) * 1.2)" });
+
+				if (this.shows("aside"))
+					div.c("basis pad flex v gap", () => {
+						span.c("h4", "Activity");
+						site.rows(4);
+					}).style({ "--basis": "17em", "--gap": "calc(var(--gap) * 0.8)" });
+
+			}).style({ minHeight: "0", overflowY: "auto" });
+		});
+	},
+}));

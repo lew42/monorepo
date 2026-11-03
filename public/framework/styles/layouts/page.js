@@ -1,101 +1,59 @@
-import { Page, View, md, demo, div, a, span, icon, code, details, summary } from "/app.js";
-import card from "../gallery/gallery.js";
+import { Page, View, div, h1 } from "/app.js";
 
-import holy_grail from "./holy-grail/layout.js";
-import sidebar from "./sidebar/layout.js";
-import cards from "./cards/layout.js";
-import dashboard from "./dashboard/layout.js";
-import split from "./split/layout.js";
-import centered from "./centered/layout.js";
-import stack from "./stack/layout.js";
-import masthead from "./masthead/layout.js";
-
-/* css: .layout-side, .layout-rail, .layout-measure, .layout-fit,
-   .layout-full, .layout-close — plus `.page-preview` (Page.css) and `.zoom-25`
-   (framework.css), both loaded via /app.js. The gallery card comes from
-   styles/gallery/, imported above, which owns the `.gallery-*` classes. */
+/* css: .layouts — the page's own gutter. The rail and the wall are ext/catalog's
+   browse(), and its stylesheet is browse.css. */
 View.stylesheet(import.meta, "layouts.css");
 
-/* Eight tiny modules, imported eagerly and on purpose: the gallery renders every
- * one of them, so there is nothing to defer. Each is also imported by its own
- * page.js, which draws it twice — in the demo and, through `route()`, in the
- * viewport view. One function, no second copy of the markup to drift. */
-const gallery = {
-	"holy-grail": holy_grail,
-	sidebar,
-	cards,
-	dashboard,
-	split,
-	centered,
-	stack,
-	masthead,
+/* Record: readme.md. ⚠ Declared, not derived from each child's `group:`, which two of
+   these cannot express: Words is grandchildren (see browse.js's entry()), and
+   `space/` belongs to another effort. */
+const BANDS = {
+	Choose:    "catalog",
+	Words:     "flex/gap flex/v flex/split flex/basis flex/auto grid/auto",
+	Pages:     "document docs landing hero home pricing stack toc-studio apidoc bold-editorial",
+	Apps:      "shell dashboard split overlay gallery sidebar masonry feed carousel mail chat",
+	Reference: "model fit flex grid 400 space wire cols anatomy set screens spec",
 };
+
+const paths = Object.values(BANDS).flatMap(band => band.split(" "));
 
 export default new Page({
 	meta: import.meta,
 	title: "Layouts",
-	description: "Eight page layouts, live at zoom-25 — click one for the full size and the source.",
+	description: "Every whole-page layout, the class strings they are built from, and the pages that explain both — one filterable wall.",
 	icon: "dashboard_customize",
 
-	// a gallery is not prose: no measure, so the wall gets the room it has
-	classes: "pad",
+	children: paths.filter(path => !path.includes("/")).join(" "),
 
-	children: "fit holy-grail sidebar cards dashboard split centered stack masthead",
+	/* ⚠ Page.render() emits the h1 OUTSIDE content(), so this replaces the view rather
+	   than patching it, the way Doc.render() does, and content() draws the title itself.
+	   ⚠ A bare `page` now — no `full`, and no wrapper. `full` zeroed the gutter and a
+	     `flex v gap pad` wrapper put it back, which meant the browse row underneath was
+	     a child of the WRAPPER and so sat in the page's `main` track: measured
+	     2026-08-17, the rail-beside-wall row got 684px of a 3440 screen at every width,
+	     and its container query read 684 and drew a mobile strip on an ultrawide. The
+	     shell's own grid pays the inset, and `.browse` claims `wide` (browse.css).
+	   ⚠ No `fill`/`solo`: that is a region height plus scrolling, which this page does
+	     not need — the region scrolls and the rail sticks. */
+	render(){
+		return this.view ??= div.c("page", () => this.content.render())
+			.ac(this.name && "page--" + this.name);
+	},
 
-	/* No `nav` map. Every label here is the child's own `title` and every icon its
-	   own `icon`, so a layout is named in exactly one place — see
-	   core/Page/readme.md, "nav". The eight imports that costs are already paid:
-	   this page renders all eight layouts in the gallery below. */
-	initialize(){ this.load_all_children(); },
-
+	/* ⚠ `--column: 22em`. A thumb is the page at `zoom-25`, so the card's width times
+	   FOUR is the width the layout lays out at — 22em lands it on ~1450px, a real
+	   desktop. A narrower card would show every layout in its tablet form. */
 	content(){
+		h1.c("h3", this.title);
+		this.browse(BANDS, { "--column": "22em", "--gap": "var(--flow)", "--stage-max": "14em" });
+	},
 
-		// The gallery first, because it IS the page. Each card is the layout's own
-		// function, run here — `nav_for()` supplies the label, icon and url, so
-		// this list and the nav above cannot disagree. One card() per child —
-		// the markup lives in styles/gallery/, once, for all three indexes.
-		// `fit` is a doc page, not a layout — no gallery entry, so no card.
-		div.c("grid gap auto", () => this.children.forEach((page, name) =>
-			gallery[name] && card(this.nav_for(name), gallery[name])));
-
-		md("Every card above is a **live render**, not a picture: `zoom-25` lays the layout out at four times the card's width and paints it back down, so a preview is shrunken rather than squashed. Click one for the full size and its source.");
-
-		md("## Utilities go a long way");
-
-		demo(cards, "`cards/layout.js`, whole. `grid auto` is `repeat(auto-fit, minmax(min(var(--column), 100%), 1fr))` — a responsive card wall with **no stylesheet and no media query**. Three of the eight need no CSS at all.");
-
-		md("## What each one needed");
-
-		md("| layout | built from | its own CSS |\n| --- | --- | --- |\n| [Holy grail](/framework/styles/layouts/holy-grail/) | `flex v gap` + `flex gap flex-1` | `.layout-rail` |\n| [Sidebar](/framework/styles/layouts/sidebar/) | `flex gap` + `flex-1` | `.layout-side` |\n| [Cards](/framework/styles/layouts/cards/) | `grid gap auto` | — |\n| [Dashboard](/framework/styles/layouts/dashboard/) | `grid auto` + `--column` override | `.layout-rail` |\n| [Split](/framework/styles/layouts/split/) | `flex gap auto` + `--column` override | — |\n| [Centered](/framework/styles/layouts/centered/) | `pad flow` | `.layout-measure` |\n| [Stack](/framework/styles/layouts/stack/) | `flow` + `flex gap` | `.layout-measure` |\n| [Masthead](/framework/styles/layouts/masthead/) | `flex v gap` + `grid gap three` | — |\n\nThree rules for eight layouts, and they name two gaps: **a flex basis** (`.layout-side`, `.layout-rail`) and **a centred measure** (`.layout-measure`). `flex-1` names the fluid half of a two-column row; nothing names the fixed half.");
-
-		md("## The filler");
-
-		details(() => {
-			summary("parts.js — box, lines, items, tile");
-			return code.file(import.meta, "parts.js");
-		});
-
-		md("Four builders, shared by all eight, so a layout file is only its layout. The tint is an inline token value rather than a class — `layouts.css` stays layout-only, which is the same call `styles/layers/util/page.js` makes for its demo cells.");
-
-		md("## Which page should hold it");
-
-		md(`Each layout page ends with the same two questions — what you would build with it, and how the page around it should be shaped. The four shapes are the four things \`--measure\` and \`--page-pad\` can be, and the summary is here:
-
-| layout | fit | the page says |
-|---|---|---|
-| [Holy grail](/framework/styles/layouts/holy-grail/) | **Full** | its own url, \`position: fixed\` |
-| [Sidebar](/framework/styles/layouts/sidebar/) | **Bleed** | \`--measure: none\`, \`--page-pad: 0\` |
-| [Cards](/framework/styles/layouts/cards/) | **Wide** | \`--measure: none\`, \`--page-pad: 2em\` |
-| [Dashboard](/framework/styles/layouts/dashboard/) | **Wide** | \`--measure: none\`, \`--page-pad: 2em\` |
-| [Split](/framework/styles/layouts/split/) | **Measured** | the default — no class |
-| [Centered](/framework/styles/layouts/centered/) | **Measured** | the default — no class |
-| [Stack](/framework/styles/layouts/stack/) | **Measured** | the default — no class |
-| [Masthead](/framework/styles/layouts/masthead/) | **Bleed** | \`--measure: none\`, \`--page-pad: 0\` |
-
-**Half of them are measured**, which is the finding: a layout is usually arranging *reading*, and reading wants a column. The two that bleed both have a band that must touch the window, and the one that goes full has five regions and a \`flex-1\` middle that only proves itself against a real viewport.`);
-
-		md("Next: [Sections](/framework/styles/sections/) — these layouts, filled with real elements and components.");
-
-		md.details(import.meta, "readme.md", "Design record — zoom vs transform, one layout three ways, maximize without a query param");
-	}
+	/* The layouts nav, as plain entries — handed to whichever layout draws one, so a
+	   thumbnail's rail is the same rail. Adoption, not an import: a child reaches UP
+	   through `this.parent`, and a mutual import here would break deep reloads only. */
+	rail(){
+		return [...this.children]
+			.filter(([, page]) => page?.layout)
+			.map(([name]) => this.nav_for(name));
+	},
 });

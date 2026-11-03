@@ -1,0 +1,29 @@
+/* Ported from Codrops' "Type Shuffle Animation" (MIT licence, LICENSE file read on
+   github.com/codrops/TypeShuffleAnimation) — https://tympanus.net/codrops/?p=70337 —
+   three of its six effects (fx1, fx3, fx6). Rebuilt: see page.js for what changed. */
+@layer site {
+	.codrops-shuffle-stage {
+		font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+		font-weight: 700;
+		font-size: clamp(1.4rem, 1rem + 1.6vw, 2.4rem);
+		line-height: 1.3;
+		padding: 1em;
+		border-radius: 0.75em;
+		background: var(--bg-alt, rgb(0 0 0 / 0.03));
+	}
+
+	.codrops-shuffle-word {
+		display: inline-flex;
+		margin: 0 0.25em 0.25em 0;
+	}
+
+	.codrops-shuffle-char {
+		display: inline-block;
+		min-width: 0.6em;
+		text-align: center;
+	}
+
+	.codrops-shuffle-btn {
+		min-width: 7em;
+	}
+}

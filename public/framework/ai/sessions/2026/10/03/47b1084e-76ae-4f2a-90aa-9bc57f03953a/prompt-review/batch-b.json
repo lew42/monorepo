@@ -1,0 +1,2054 @@
+{
+  "model": "openai/gpt-6-luna",
+  "start": 10,
+  "end": 19,
+  "cost_usd": 8.3632,
+  "real_cost_usd": 0.38282176500000276,
+  "items": [
+    {
+      "index": 10,
+      "at": "2026-10-02T22:44:54.531Z",
+      "raw": "Think that through. I, I think uh, item extending live list might be a way to go. Is our is does does the list use children or it could even just use items? I kind of went back and forth on that, but a list could uh, could you have an items array, and so when you extend it to live list and then page, well live list and then item and then page, it's still all using. the items array to store. But the, I guess the idea there is that the page and the item and the live list, they, they all kind of are inheriting each other's functionality. I'm not sure if that, that's the right shape. ",
+      "clean": [
+        {
+          "n": 1,
+          "text": "Think that through."
+        },
+        {
+          "n": 2,
+          "text": "I think item extending live list might be a way to go."
+        },
+        {
+          "n": 3,
+          "text": "Does the list use children, or it could even just use items?"
+        },
+        {
+          "n": 4,
+          "text": "I kind of went back and forth on that, but a list could—could you have an items array, and so when you extend it to live list and then page—well, live list and then item and then page—it's still all using the items array to store."
+        },
+        {
+          "n": 5,
+          "text": "But I guess the idea there is that the page and the item and the live list, they all kind of are inheriting each other's functionality."
+        },
+        {
+          "n": 6,
+          "text": "I'm not sure if that's the right shape."
+        }
+      ],
+      "structure": [
+        {
+          "title": "Inheritance",
+          "bullets": [
+            {
+              "text": "Think that through: I think Item extending Live List might be a way to go, with Page, Item, and Live List kind of inheriting each other’s functionality, though I’m not sure that’s the right shape.",
+              "cites": [
+                1,
+                2,
+                5,
+                6
+              ],
+              "label": "S1,S2,S5,S6"
+            }
+          ]
+        },
+        {
+          "title": "Items array",
+          "bullets": [
+            {
+              "text": "Does the list use children, or could it even just use items?",
+              "cites": [
+                3
+              ],
+              "label": "S3"
+            }
+          ]
+        }
+      ],
+      "structure_error": null,
+      "title": "Inheritance",
+      "bullets": [
+        "Think that through: I think Item extending Live List might be a way to go, with Page, Item, and Live List kind of inheriting each other’s functionality, though I’m not sure that’s the right shape.",
+        "Does the list use children, or could it even just use items?"
+      ],
+      "tags": [
+        "#Page",
+        "#Item"
+      ],
+      "flags": [],
+      "strikes": [],
+      "misheard": [],
+      "model": "openai/gpt-6-luna"
+    },
+    {
+      "index": 11,
+      "at": "2026-10-02T22:46:52.579Z",
+      "raw": "Well, so with the this the, the one thing I, I don't that doesn't make perfect sense here. I think for for lists to have items makes sense. To have a live list have items makes sense. Well, I don't know. It's like because here's the other thing. If we actually have well, so items are lists. I guess that's the kind of the confusing thing. The question is, do you, when do you reach for a list versus an item? I mean, I guess it kind of, you know, the list is a lot lighter weight. And so the hierarchy of complexity is sort of like list, then live list, then item and page. However, then having page using items for sub pages, I mean, it just feel the the property pages makes way more sense for a page. Now, I, I so, uh, suppose you could just a, uh, do an alias because it's a, an array. And so you could just say this dot pages equals this dot items and so that then I don't know why you you probably wouldn't need to do that there's really no advantage to it and honestly you know if everyone's uh aware that you know the items are the pages it's just that's the confusing part is if you're if all the UI and UX and documentation is talking about pages and these pages are recursive naming that property pages just makes more sense right uh and there's probably not an easy way to have a dynamic like have all the methods that use the items or pages array look at a dynamic property name, that would probably slow things down a bit, wouldn't it?",
+      "clean": [
+        {
+          "n": 1,
+          "text": "Well, so with this, the one thing that doesn't make perfect sense here."
+        },
+        {
+          "n": 2,
+          "text": "I think for lists to have items makes sense."
+        },
+        {
+          "n": 3,
+          "text": "To have a live list have items makes sense."
+        },
+        {
+          "n": 4,
+          "text": "Well, I don't know."
+        },
+        {
+          "n": 5,
+          "text": "It's because here's the other thing."
+        },
+        {
+          "n": 6,
+          "text": "Well, so items are lists."
+        },
+        {
+          "n": 7,
+          "text": "I guess that's the kind of the confusing thing."
+        },
+        {
+          "n": 8,
+          "text": "The question is, when do you reach for a list versus an item?"
+        },
+        {
+          "n": 9,
+          "text": "I mean, I guess it kind of—the list is a lot lighter weight."
+        },
+        {
+          "n": 10,
+          "text": "And so the hierarchy of complexity is sort of like list, then live list, then item and page."
+        },
+        {
+          "n": 11,
+          "text": "However, then having page using items for sub pages, I mean, it just feel the the property pages makes way more sense for a page."
+        },
+        {
+          "n": 12,
+          "text": "Now, I suppose you could just do an alias because it's an array."
+        },
+        {
+          "n": 13,
+          "text": "And so you could just say this dot pages equals this dot items, and so then I don't know why you probably wouldn't need to do that. There's really no advantage to it."
+        },
+        {
+          "n": 14,
+          "text": "And honestly, if everyone's aware that the items are the pages, it's just—that's the confusing part, is if you're, if all the UI and UX and documentation is talking about pages, and these pages are recursive, naming that property pages just makes more sense, right?"
+        },
+        {
+          "n": 15,
+          "text": "And there's probably not an easy way to have a dynamic, like, have all the methods that use the items or pages array look at a dynamic property name. That would probably slow things down a bit, wouldn't it?"
+        }
+      ],
+      "structure": [
+        {
+          "title": "List and Item",
+          "bullets": [
+            {
+              "text": "For lists to have items, and for a live list to have items, makes sense.",
+              "cites": [
+                2,
+                3
+              ],
+              "label": "S2,S3"
+            },
+            {
+              "text": "I don’t know; items are lists, and that’s the confusing part: when do you reach for a list versus an item?",
+              "cites": [
+                1,
+                4,
+                5,
+                6,
+                7,
+                8
+              ],
+              "label": "S1,S4,S5,S6,S7,S8"
+            },
+            {
+              "text": "The list is a lot lighter weight.",
+              "cites": [
+                9
+              ],
+              "label": "S9"
+            },
+            {
+              "text": "The hierarchy of complexity is sort of like list, then live list, then item and page.",
+              "cites": [
+                10
+              ],
+              "label": "S10"
+            }
+          ]
+        },
+        {
+          "title": "Page",
+          "bullets": [
+            {
+              "text": "Having Page use items for subpages feels right, but naming that property `pages` makes way more sense when the UI and documentation talk about pages and pages are recursive.",
+              "cites": [
+                11,
+                14
+              ],
+              "label": "S11,S14"
+            },
+            {
+              "text": "I suppose you could just do an alias because it’s an array: `this.pages = this.items`. I don’t know why you probably wouldn’t need to do that; there’s really no advantage to it.",
+              "cites": [
+                12,
+                13
+              ],
+              "label": "S12,S13"
+            },
+            {
+              "text": "There’s probably not an easy way to have all the methods that use the items or pages array look at a dynamic property name; that would probably slow things down a bit, wouldn’t it?",
+              "cites": [
+                15
+              ],
+              "label": "S15"
+            }
+          ]
+        }
+      ],
+      "structure_error": null,
+      "title": "List and Item",
+      "bullets": [
+        "For lists to have items, and for a live list to have items, makes sense.",
+        "I don’t know; items are lists, and that’s the confusing part: when do you reach for a list versus an item?",
+        "The list is a lot lighter weight.",
+        "The hierarchy of complexity is sort of like list, then live list, then item and page."
+      ],
+      "tags": [
+        "#Page",
+        "#Item"
+      ],
+      "flags": [
+        {
+          "sentence_n": 11,
+          "question": "The cleaned text adds or changes \"subpages\", which isn't anywhere in what was actually said — is this right, or should it be reverted?",
+          "confidence": 0.5,
+          "source": "mechanical"
+        }
+      ],
+      "strikes": [
+        {
+          "sentence_n": 1,
+          "struck_text": "It's like because here's the other thing"
+        },
+        {
+          "sentence_n": 7,
+          "struck_text": "when do you reach for a list versus an item?"
+        },
+        {
+          "sentence_n": 14,
+          "struck_text": "then having page using items for sub pages"
+        }
+      ],
+      "misheard": [],
+      "model": "openai/gpt-6-luna"
+    },
+    {
+      "index": 12,
+      "at": "2026-10-02T22:50:10.543Z",
+      "raw": "Yeah, I mean, the only thing with the pages thing is it's like, uh, you're probably not going to be accessing that array directly. If you're using, you know, a live list, you got all these uh, evented methods that you're leaning into and using those instead. And so in, in only rare cases would you actually have to reference the actual uh, array itself. You would just call the methods on the page itself, right? If it is a list. Also, you know, is that a mistake? Um, how many methods are now going to be on the page class? Maybe we've just polluted this namespace so much that it would have been better to keep pages on the page class as a, it could be a live list of itself. So that then, um, you know, the page would use the this.pages API that would be the live list API for adding and removing sub pages. Um, I mean, that kind of makes sense. That seems like it could be the right shape. I don't know if pages, the page class itself should actually have the full API. I mean, the get and set stuff that is the item class, I think makes sense. I feel like some classes could be much more modular and like just mix in a bowl. Like they don't really override a bunch of methods. They're more just uh, kind of a, a small selection. Uh, you know, the event system is a perfect mix-in. Like sometimes that, that one's pretty easily just attachable without much of a conflict or, uh, you know, it's not, it's not interacting with other classes' functionality. And so it's kind of just a battle-tested standalone tool. Um, anyway, it, give me a quick overview of the... the page namespace if it extends item and if item extends live list and if live list extends list which itself has a ton of methods doesn't it it's trying to be well a fair number and that might easily have clashes ",
+      "clean": [
+        {
+          "n": 1,
+          "text": "Yeah, I mean, the only thing with the pages thing is you're probably not going to be accessing that array directly."
+        },
+        {
+          "n": 2,
+          "text": "If you're using a live list, you got all these evented methods that you're leaning into and using those instead."
+        },
+        {
+          "n": 3,
+          "text": "And so in only rare cases would you actually have to reference the actual array itself."
+        },
+        {
+          "n": 4,
+          "text": "You would just call the methods on the page itself, right?"
+        },
+        {
+          "n": 5,
+          "text": "If it is a list."
+        },
+        {
+          "n": 6,
+          "text": "Also, is that a mistake?"
+        },
+        {
+          "n": 7,
+          "text": "How many methods are now going to be on the page class?"
+        },
+        {
+          "n": 8,
+          "text": "Maybe we've just polluted this namespace so much that it would have been better to keep pages on the page class as a—it could be a live list of itself."
+        },
+        {
+          "n": 9,
+          "text": "So that then, um, you know, the page would use the this.pages API that would be the live list API for adding and removing sub pages."
+        },
+        {
+          "n": 10,
+          "text": "I mean, that kind of makes sense."
+        },
+        {
+          "n": 11,
+          "text": "That seems like it could be the right shape."
+        },
+        {
+          "n": 12,
+          "text": "I don't know if pages, the page class itself, should actually have the full API."
+        },
+        {
+          "n": 13,
+          "text": "I mean, the get and set stuff that is the item class, I think, makes sense."
+        },
+        {
+          "n": 14,
+          "text": "I feel like some classes could be much more modular and just mix in a bowl."
+        },
+        {
+          "n": 15,
+          "text": "They don't really override a bunch of methods."
+        },
+        {
+          "n": 16,
+          "text": "They're more just kind of a small selection."
+        },
+        {
+          "n": 17,
+          "text": "The event system is a perfect mix-in."
+        },
+        {
+          "n": 18,
+          "text": "Sometimes that one's pretty easily just attachable without much of a conflict or, it's not interacting with other classes' functionality."
+        },
+        {
+          "n": 19,
+          "text": "And so it's kind of just a battle-tested standalone tool."
+        },
+        {
+          "n": 20,
+          "text": "Anyway, give me a quick overview of the page namespace if it extends item and if item extends live list and if live list extends list, which itself has a ton of methods, doesn't it?"
+        },
+        {
+          "n": 21,
+          "text": null,
+          "omitted_raw": "the page namespace if it extends item and if item extends live list and if live list extends list which itself has a ton of methods doesn't it it's trying to be well a fair number and that might easily have clashes"
+        }
+      ],
+      "structure": [],
+      "structure_error": "not ok: missing=[21] duplicated=[]",
+      "title": "Yeah, I mean, the only thing with the pages thing is you're…",
+      "bullets": [
+        "Yeah, I mean, the only thing with the pages thing is you're probably not going to be accessing that array…"
+      ],
+      "tags": [
+        "#Page",
+        "#Item"
+      ],
+      "flags": [
+        {
+          "sentence_n": 21,
+          "question": "What does “a fair number” refer to?",
+          "confidence": 0.3,
+          "source": "model",
+          "garbled": true
+        },
+        {
+          "sentence_n": 9,
+          "question": "The cleaned text adds or changes \"subpages\", which isn't anywhere in what was actually said — is this right, or should it be reverted?",
+          "confidence": 0.5,
+          "source": "mechanical"
+        }
+      ],
+      "strikes": [
+        {
+          "sentence_n": 1,
+          "struck_text": "Yeah"
+        },
+        {
+          "sentence_n": 3,
+          "struck_text": "And so in"
+        },
+        {
+          "sentence_n": 10,
+          "struck_text": "Um"
+        },
+        {
+          "sentence_n": 12,
+          "struck_text": "I don't know if pages"
+        }
+      ],
+      "misheard": [],
+      "model": "openai/gpt-6-luna"
+    },
+    {
+      "index": 13,
+      "at": "2026-10-02T23:05:42.355Z",
+      "raw": "If we don't already have a file class, and a, I usually call it a dir, D-I-R, rather than the full directory, a file and dir class, do we have those yet? And does the file class have an append method? ",
+      "clean": [
+        {
+          "n": 1,
+          "text": "If we don't already have a file class, I usually call it a dir, D-I-R, rather than the full directory, a file and dir class. Do we have those yet?"
+        },
+        {
+          "n": 2,
+          "text": "Does the file class have an append method?"
+        }
+      ],
+      "structure": [
+        {
+          "title": "Dir class",
+          "bullets": [
+            {
+              "text": "If we don't already have a file class, I usually call it a dir, D-I-R, rather than the full directory, a file and dir class. Do we have those yet?",
+              "cites": [
+                1
+              ],
+              "label": "S1"
+            }
+          ]
+        },
+        {
+          "title": "File class",
+          "bullets": [
+            {
+              "text": "Does the file class have an append method?",
+              "cites": [
+                2
+              ],
+              "label": "S2"
+            }
+          ]
+        }
+      ],
+      "structure_error": null,
+      "title": "Dir class",
+      "bullets": [
+        "If we don't already have a file class, I usually call it a dir, D-I-R, rather than the full directory, a file and dir class. Do we have those yet?",
+        "Does the file class have an append method?"
+      ],
+      "tags": [
+        "#General"
+      ],
+      "flags": [],
+      "strikes": [],
+      "misheard": [],
+      "model": "openai/gpt-6-luna"
+    },
+    {
+      "index": 14,
+      "at": "2026-10-02T23:06:36.837Z",
+      "raw": "What API are those using? Didn't we have an ext slash file? Like for the, the doing the socket file writing, are we using that API? The live reload socket, the dev socket or whatever, are we using that for tr triggering file writes? Because I think some old modules were doing full, you know, JSON file rewrites as persistence. ",
+      "clean": [
+        {
+          "n": 1,
+          "text": "What API are those using?"
+        },
+        {
+          "n": 2,
+          "text": "Didn't we have an ext/file?"
+        },
+        {
+          "n": 3,
+          "text": "For doing the socket file writing, are we using that API?"
+        },
+        {
+          "n": 4,
+          "text": "The live reload socket, the dev socket or whatever, are we using that for triggering file writes?"
+        },
+        {
+          "n": 5,
+          "text": "Because I think some old modules were doing full JSON file rewrites as persistence."
+        }
+      ],
+      "structure": [
+        {
+          "title": "`ext/file` API",
+          "bullets": [
+            {
+              "text": "What API are those using? Didn’t we have an `ext/file`? For socket file writing, are we using that API?",
+              "cites": [
+                1,
+                2,
+                3
+              ],
+              "label": "S1,S2,S3"
+            }
+          ]
+        },
+        {
+          "title": "Live reload socket",
+          "bullets": [
+            {
+              "text": "Are we using the live reload socket—the dev socket or whatever—to trigger file writes? I think some old modules were doing full JSON file rewrites as persistence.",
+              "cites": [
+                4,
+                5
+              ],
+              "label": "S4,S5"
+            }
+          ]
+        }
+      ],
+      "structure_error": null,
+      "title": "`ext/file` API",
+      "bullets": [
+        "What API are those using? Didn’t we have an `ext/file`? For socket file writing, are we using that API?",
+        "Are we using the live reload socket—the dev socket or whatever—to trigger file writes? I think some old modules were doing full JSON file rewrites as persistence."
+      ],
+      "tags": [
+        "#General"
+      ],
+      "flags": [],
+      "strikes": [],
+      "misheard": [],
+      "model": "openai/gpt-6-luna"
+    },
+    {
+      "index": 15,
+      "at": "2026-10-02T23:10:26.615Z",
+      "raw": "All right, make a note in anywhere that should have it, like especially in the file saver, uh, the ext files, the fs stuff, file system stuff. We need to converge all of this stuff. There shouldn't be, and if there needs to be different classes for fi- a file or for whatever, um, I don't want to spend a bunch of tokens on it now, but uh, you could write that, you know, we need to consider. And so in, in any future work being done in those directories to consider a consolidation amongst all of the similar file system things. And if we have uh, like a, a live list, essentially, that, you know, it's basically a, an array with intercepting events to make sure we fire off view updates, but also streaming, you know, we can, the, the UI can trigger the object, you know, the direct manipulation of the array or the live list rather. And then that can fire off the, uh, the delta essentially to the server to be written. I mean, frankly, it can just do an append on the JSON. Oh, you know, we can handle that logic client side right now. I suppose that's fine. However, if we want the those log files to be easily, more easily manipulated via the AI, which is more server side, it probably makes sense to have, uh, well, it sounds like we already have some scripts to append to the, um, to append to the, uh, Um, to the, the pages JSON L. So do we have a page that documents our whole AI system? I mean, I remember asking for that, but I kind of don't think it's there. We need to practice having you link to the things that I'm talking about so that I can click through and actually see them. Right now I'm on my mobile, so we're going to have to lean into the IP address route, but link me to our system documentation that kind of answers some of these questions.",
+      "clean": [
+        {
+          "n": 1,
+          "text": "All right, make a note anywhere that should have it, especially in the file saver, the ext files, the FS stuff, file system stuff."
+        },
+        {
+          "n": 2,
+          "text": "We need to converge all of this stuff."
+        },
+        {
+          "n": 3,
+          "text": null,
+          "omitted_raw": "There shouldn't be, and if there needs to be different classes for fi- a file or for whatever, um, I don't want to spend a bunch of tokens on it now, but uh, you could write that, you know, we need to consider."
+        },
+        {
+          "n": 4,
+          "text": "And if there needs to be different classes for a file or for whatever, I don't want to spend a bunch of tokens on it now, but you could write that we need to consider."
+        },
+        {
+          "n": 5,
+          "text": "And so, in any future work being done in those directories, consider a consolidation amongst all of the similar file system things."
+        },
+        {
+          "n": 6,
+          "text": "And if we have a live list, essentially, it's basically an array with intercepting events to make sure we fire off view updates, but also streaming."
+        },
+        {
+          "n": 7,
+          "text": "We can—the UI can trigger the object, the direct manipulation of the array or the live list, rather."
+        },
+        {
+          "n": 8,
+          "text": "And then that can fire off the delta, essentially, to the server to be written."
+        },
+        {
+          "n": 9,
+          "text": "I mean, frankly, it can just do an append on the JSON."
+        },
+        {
+          "n": 10,
+          "text": "Oh, we can handle that logic client-side right now."
+        },
+        {
+          "n": 11,
+          "text": "I suppose that's fine."
+        },
+        {
+          "n": 12,
+          "text": "However, if we want those log files to be easily, more easily manipulated via the AI, which is more server-side, it probably makes sense to have—well, it sounds like we already have some scripts to append to the pages JSONL."
+        },
+        {
+          "n": 13,
+          "text": "So do we have a page that documents our whole AI system?"
+        },
+        {
+          "n": 14,
+          "text": "I mean, I remember asking for that, but I kind of don't think it's there."
+        },
+        {
+          "n": 15,
+          "text": "We need to practice having you link to the things that I'm talking about so that I can click through and actually see them."
+        },
+        {
+          "n": 16,
+          "text": "Right now I'm on my mobile, so we're going to have to lean into the IP address route, but link me to our system documentation that kind of answers some of these questions."
+        }
+      ],
+      "structure": [
+        {
+          "title": "File system tools",
+          "bullets": [
+            {
+              "text": "We need to converge the similar file system things; make a note where it belongs, especially in the file saver, ext files, and file system stuff. Future work in those directories should consider consolidation.",
+              "cites": [
+                1,
+                2,
+                3,
+                5
+              ],
+              "label": "S1,S2,S3,S5"
+            },
+            {
+              "text": "Consider whether different classes are needed, but don’t spend a bunch of tokens on it now.",
+              "cites": [
+                4
+              ],
+              "label": "S4"
+            }
+          ]
+        },
+        {
+          "title": "Live list",
+          "bullets": [
+            {
+              "text": "A live list is basically an array with intercepting events to fire view updates and support streaming.",
+              "cites": [
+                6
+              ],
+              "label": "S6"
+            },
+            {
+              "text": "The UI can directly manipulate the array or live list, which can send a delta to the server to be written.",
+              "cites": [
+                7,
+                8
+              ],
+              "label": "S7,S8"
+            },
+            {
+              "text": "It can just append to the JSON, and we can handle that logic client-side right now; that’s fine.",
+              "cites": [
+                9,
+                10,
+                11
+              ],
+              "label": "S9,S10,S11"
+            }
+          ]
+        },
+        {
+          "title": "JSONL logs",
+          "bullets": [
+            {
+              "text": "If we want AI, which is more server-side, to manipulate log files more easily, it probably makes sense to use the scripts we already seem to have for appending to pages JSONL.",
+              "cites": [
+                12
+              ],
+              "label": "S12"
+            }
+          ]
+        },
+        {
+          "title": "AI system documentation",
+          "bullets": [
+            {
+              "text": "Is there a page that documents the whole AI system? I remember asking for that, but I kind of don’t think it’s there.",
+              "cites": [
+                13,
+                14
+              ],
+              "label": "S13,S14"
+            },
+            {
+              "text": "We need to link to the things being discussed so they can be clicked through and seen; link the system documentation that answers these questions, using the IP address route while I’m on mobile.",
+              "cites": [
+                15,
+                16
+              ],
+              "label": "S15,S16"
+            }
+          ]
+        }
+      ],
+      "structure_error": null,
+      "title": "File system tools",
+      "bullets": [
+        "We need to converge the similar file system things; make a note where it belongs, especially in the file saver, ext files, and file system stuff. Future work in those directories should consider consolidation.",
+        "Consider whether different classes are needed, but don’t spend a bunch of tokens on it now.",
+        "A live list is basically an array with intercepting events to fire view updates and support streaming.",
+        "The UI can directly manipulate the array or live list, which can send a delta to the server to be written."
+      ],
+      "tags": [
+        "#Page",
+        "#List"
+      ],
+      "flags": [
+        {
+          "sentence_n": 3,
+          "question": "What shouldn't there be?",
+          "confidence": 0.3,
+          "source": "model",
+          "garbled": true
+        }
+      ],
+      "strikes": [
+        {
+          "sentence_n": 9,
+          "struck_text": "the delta essentially to the server to be written"
+        },
+        {
+          "sentence_n": 14,
+          "struck_text": "So do we have a page that documents our whole AI system?"
+        },
+        {
+          "sentence_n": 15,
+          "struck_text": "but I kind of don't think it's there"
+        }
+      ],
+      "misheard": [],
+      "model": "openai/gpt-6-luna"
+    },
+    {
+      "index": 16,
+      "at": "2026-10-02T23:17:30.613Z",
+      "raw": "All right, so on the AI dashboard, we should have a prompt log and or a session log. So prompts are part of a session. Um, if I want to see a list, like a time-based list, kind of like the inbox view sorts itself, I want a preview card for each session. And that would be for agent spawn sessions too. So like any kind of time an agent has an ID, Uh, for this VS Code tab, you know, I should be able to see that probably with a tab or a tag or something that says, you know, VS Code on it or something. So I know that's this one or in the future additional ones. Um, definitely need a view on in the AI dashboard. Maybe it should be its own tab, but I'm kind of feeling like for this, uh, these like live views, time-based views, um, We should probably have like a toolbar and we sort of have a toolbar in the left side rail, but I'm thinking more of like a full width toolbar across the whole thing. Um, and maybe there's, you know, it should be pretty minimal height wise, so it doesn't take up too much space. Um, and then, you know, what goes in there and also if we have a separate toolbar for both the left and right side probably makes sense. That should be our panel system. I know our panel system got a little weird, trying to do too much. Okay, so leave the existing panel system just because there's some things that are using it. Let's create a new directory outside the panel directory called at ext slash panel two. Very simple name. This panel system I'd like to use as our standard UI kind of area. It should have Chrome, like it should have a header, a main content area, and a footer. But in the main content area, maybe each one should be able to have a drawer uh, or a side and or a sidebar on either side. So I don't know if we have to add those immediately because I'm imagining these as sort of like mobile re uh, friendly views. But the heading, you know, should be like a little toolbar essentially where we can put controls. that pertain to that area. And then you know we'll want to build up the, the logic for splitting them and resizing the uh, dimensions between them and maybe adding some layout kind of uh, switches. Like if you want it to go from fixed width to fluid width and you know exactly how that algorithm works has still uh, eluded me. But I do think a panel system would be useful for all over the site whenever we're creating these, you know, like this left sidebar on the dashboard. I think that could be called like a real-time inbox. Well, I, th I thought we created an inbox ta uh, class, didn't we? Didn't we create an inbox? Um, the inbox is sort of like the default. Well, it could be the default view, but maybe, maybe the inbox can be rendered in a compact view on the default view. So if you go to like the overview page, Uh, you know, if you go to the, the you know, framework slash AI page, by default, the overview tab, I think, is how it currently works. And that could show a kind of grid-like dashboard that includes the inbox, but also maybe includes the log next to it, especially on, you know, it could do it in a responsive way. Still haven't figured out the best responsive strategy. I mean, I kind of have always thought like the flex wrap way where it just automatically works and you don't have to specify sizes. I think there is, there are some like automatic grid based ones that you can kind of specify sizes, but I forget how that works. It's always confusing to me.",
+      "clean": [
+        {
+          "n": 1,
+          "text": "All right, so on the AI dashboard, we should have a prompt log and/or a session log."
+        },
+        {
+          "n": 2,
+          "text": "So prompts are part of a session."
+        },
+        {
+          "n": 3,
+          "text": "If I want to see a list, like a time-based list, kind of like the inbox view sorts itself, I want a preview card for each session."
+        },
+        {
+          "n": 4,
+          "text": "And that would be for agent spawn sessions too."
+        },
+        {
+          "n": 5,
+          "text": "So any kind of time an agent has an ID, for this VS Code tab, I should be able to see that probably with a tab or a tag or something that says VS Code on it or something."
+        },
+        {
+          "n": 6,
+          "text": "So I know that's this one or, in the future, additional ones."
+        },
+        {
+          "n": 7,
+          "text": "Definitely need a view in the AI dashboard."
+        },
+        {
+          "n": 8,
+          "text": "Maybe it should be its own tab, but I'm kind of feeling like, for these live views, time-based views, we should probably have a toolbar."
+        },
+        {
+          "n": 9,
+          "text": "And we sort of have a toolbar in the left side rail, but I'm thinking more of a full-width toolbar across the whole thing."
+        },
+        {
+          "n": 10,
+          "text": "And maybe it should be pretty minimal height-wise, so it doesn't take up too much space."
+        },
+        {
+          "n": 11,
+          "text": "And then what goes in there, and also if we have a separate toolbar for both the left and right side, probably makes sense."
+        },
+        {
+          "n": 12,
+          "text": "That should be our panel system."
+        },
+        {
+          "n": 13,
+          "text": "I know our panel system got a little weird trying to do too much."
+        },
+        {
+          "n": 14,
+          "text": "Okay, so leave the existing panel system just because there are some things that are using it."
+        },
+        {
+          "n": 15,
+          "text": "Let's create a new directory outside the panel directory called ext/Panel2. Very simple name."
+        },
+        {
+          "n": 16,
+          "text": "This panel system I'd like to use as our standard UI kind of area."
+        },
+        {
+          "n": 17,
+          "text": "It should have chrome, like it should have a header, a main content area, and a footer."
+        },
+        {
+          "n": 18,
+          "text": "But in the main content area, maybe each one should be able to have a drawer or a side and/or a sidebar on either side."
+        },
+        {
+          "n": 19,
+          "text": "So I don't know if we have to add those immediately because I'm imagining these as sort of mobile-friendly views."
+        },
+        {
+          "n": 20,
+          "text": "But the heading should be like a little toolbar essentially where we can put controls that pertain to that area."
+        },
+        {
+          "n": 21,
+          "text": "And then we'll want to build up the logic for splitting them and resizing the dimensions between them and maybe adding some layout switches."
+        },
+        {
+          "n": 22,
+          "text": "Like if you want it to go from fixed width to fluid width, and exactly how that algorithm works has still eluded me."
+        },
+        {
+          "n": 23,
+          "text": "But I do think a panel system would be useful all over the site whenever we're creating these, like this left sidebar on the dashboard."
+        },
+        {
+          "n": 24,
+          "text": "I think that could be called like a real-time inbox."
+        },
+        {
+          "n": 25,
+          "text": "Well, I thought we created an inbox class, didn't we?"
+        },
+        {
+          "n": 26,
+          "text": "Didn't we create an inbox?"
+        },
+        {
+          "n": 27,
+          "text": "The inbox is sort of like the default."
+        },
+        {
+          "n": 28,
+          "text": "Well, it could be the default view, but maybe the inbox can be rendered in a compact view on the default view."
+        },
+        {
+          "n": 29,
+          "text": "So if you go to the overview page, if you go to the framework/AI page, by default, the overview tab, I think, is how it currently works."
+        },
+        {
+          "n": 30,
+          "text": "And that could show a kind of grid-like dashboard that includes the inbox, but also maybe includes the log next to it; it could do it in a responsive way."
+        },
+        {
+          "n": 31,
+          "text": "Still haven't figured out the best responsive strategy."
+        },
+        {
+          "n": 32,
+          "text": "I mean, I kind of have always thought the flex-wrap way, where it just automatically works and you don't have to specify sizes."
+        },
+        {
+          "n": 33,
+          "text": "I think there are some automatic grid-based ones that you can kind of specify sizes, but I forget how that works."
+        },
+        {
+          "n": 34,
+          "text": "It's always confusing to me."
+        }
+      ],
+      "structure": [
+        {
+          "title": "Session log",
+          "bullets": [
+            {
+              "text": "The AI dashboard should have a prompt log and/or a session log; prompts are part of a session.",
+              "cites": [
+                1,
+                2
+              ],
+              "label": "S1,S2"
+            }
+          ]
+        },
+        {
+          "title": "Session list",
+          "bullets": [
+            {
+              "text": "I want a time-based list, like the inbox view, with a preview card for each session—including agent spawn sessions.",
+              "cites": [
+                3,
+                4
+              ],
+              "label": "S3,S4"
+            },
+            {
+              "text": "When an agent has an ID for this VS Code tab, the session should probably have a VS Code tab or tag, so I can tell which session is this one and distinguish future ones.",
+              "cites": [
+                5,
+                6
+              ],
+              "label": "S5,S6"
+            },
+            {
+              "text": "The AI dashboard definitely needs a view for this.",
+              "cites": [
+                7
+              ],
+              "label": "S7"
+            }
+          ]
+        },
+        {
+          "title": "Toolbar",
+          "bullets": [
+            {
+              "text": "It might be its own tab, but live, time-based views probably need a toolbar.",
+              "cites": [
+                8
+              ],
+              "label": "S8"
+            },
+            {
+              "text": "I’m thinking of a full-width toolbar across the whole view, rather than just the left-side rail.",
+              "cites": [
+                9
+              ],
+              "label": "S9"
+            },
+            {
+              "text": "Maybe it should be minimal in height so it doesn’t take up too much space.",
+              "cites": [
+                10
+              ],
+              "label": "S10"
+            },
+            {
+              "text": "Separate toolbars for the left and right sides probably make sense.",
+              "cites": [
+                11
+              ],
+              "label": "S11"
+            }
+          ]
+        },
+        {
+          "title": "Panel2",
+          "bullets": [
+            {
+              "text": "This should be a panel system and a standard UI area.",
+              "cites": [
+                12,
+                16
+              ],
+              "label": "S12,S16"
+            },
+            {
+              "text": "Leave the existing panel system in place because some things use it, and create a simple new directory called `ext/Panel2` outside the panel directory.",
+              "cites": [
+                13,
+                14,
+                15
+              ],
+              "label": "S13,S14,S15"
+            },
+            {
+              "text": "A panel should have a header, a main content area, and a footer.",
+              "cites": [
+                17
+              ],
+              "label": "S17"
+            },
+            {
+              "text": "The main area could have a drawer or sidebar on either side; they may not need to be added immediately, since I’m imagining mobile-friendly views.",
+              "cites": [
+                18,
+                19
+              ],
+              "label": "S18,S19"
+            },
+            {
+              "text": "The heading should work like a small toolbar for controls that belong to that area.",
+              "cites": [
+                20
+              ],
+              "label": "S20"
+            },
+            {
+              "text": "We’ll want logic for splitting panels, resizing them, and perhaps switching layouts.",
+              "cites": [
+                21
+              ],
+              "label": "S21"
+            },
+            {
+              "text": "Exactly how to switch from fixed width to fluid width still eludes me.",
+              "cites": [
+                22
+              ],
+              "label": "S22"
+            },
+            {
+              "text": "A panel system could be useful across the site, including for the dashboard’s left sidebar.",
+              "cites": [
+                23
+              ],
+              "label": "S23"
+            }
+          ]
+        },
+        {
+          "title": "Inbox",
+          "bullets": [
+            {
+              "text": "I think the dashboard’s left sidebar could be called a real-time inbox.",
+              "cites": [
+                24
+              ],
+              "label": "S24"
+            },
+            {
+              "text": "I thought we created an Inbox class—didn’t we create an inbox?",
+              "cites": [
+                25,
+                26
+              ],
+              "label": "S25,S26"
+            },
+            {
+              "text": "The inbox is sort of the default, and maybe it can appear in a compact view there.",
+              "cites": [
+                27,
+                28
+              ],
+              "label": "S27,S28"
+            }
+          ]
+        },
+        {
+          "title": "Overview",
+          "bullets": [
+            {
+              "text": "I think the overview tab is currently the default on the framework/AI page.",
+              "cites": [
+                29
+              ],
+              "label": "S29"
+            },
+            {
+              "text": "It could show a grid-like dashboard with the inbox and maybe the log next to it, arranged responsively.",
+              "cites": [
+                30
+              ],
+              "label": "S30"
+            }
+          ]
+        },
+        {
+          "title": "Responsive layout",
+          "bullets": [
+            {
+              "text": "I still haven’t figured out the best responsive strategy. I’ve usually liked flex-wrap because it works without specifying sizes, though I think there are automatic grid options with specified sizes; I forget how those work, and it’s confusing to me.",
+              "cites": [
+                31,
+                32,
+                33,
+                34
+              ],
+              "label": "S31,S32,S33,S34"
+            }
+          ]
+        }
+      ],
+      "structure_error": null,
+      "title": "Session log",
+      "bullets": [
+        "The AI dashboard should have a prompt log and/or a session log; prompts are part of a session.",
+        "I want a time-based list, like the inbox view, with a preview card for each session—including agent spawn sessions.",
+        "When an agent has an ID for this VS Code tab, the session should probably have a VS Code tab or tag, so I can tell which session is this one and distinguish future ones.",
+        "The AI dashboard definitely needs a view for this."
+      ],
+      "tags": [
+        "#Page",
+        "#Panel2"
+      ],
+      "flags": [],
+      "strikes": [
+        {
+          "sentence_n": 32,
+          "struck_text": "Still haven't figured out the best responsive strategy"
+        }
+      ],
+      "misheard": [],
+      "model": "openai/gpt-6-luna"
+    },
+    {
+      "index": 17,
+      "at": "2026-10-02T23:20:04.218Z",
+      "raw": "Summarize the last uh, few things that I've said and give kind of a, a very high level overview of what I've been talking about. A structured view, like use headings more. I'd appreciate it if you'd use, you know, on a lot of your responses, there are no headings. Use a heading to identify the topic area so that then on the next heading, I can kind of see. And when there's like, a, you know, a deep amount of content, then maybe use like bullets within a heading so that, you know, then, and then bold the title of each bullet so that then you can add like a sentence or two. But let's try and keep responses minimum and highly structured in that way. And use those headings to kind of like identify You know, it can be a sentence or a statement or a question or whatever. Just identify what you're about to respond with, with a contextual like identifier, not only so I can reference it, but just, it kind of primes my brain for what we're about to talk about and gives context. So, you know, helpful headings. We should put that in our Claude.mb or content skills or wherever it should be is, you know, we want helpful headings that, you know, shed light into what it is we're talking about. Um, If there's a, a thing and then like a part of that thing, you know, if it's not self-evident from another another location, you know, that the sub thing may or may not stand on its own, its name. So, you know, using the context of the parent thing is often very helpful. And so, you know, creating little UI cards, you know, I, I had asked for a, a character control system where like certain uh, text-based characters can trigger Uh, references and I kind of was you know talk, thinking of it as like a markdown type thing like when you're in chat but I almost think that we want to move towards like a text input system that tries to listen to the keystrokes and kind of you know reactively turns a f you know any control character into like an autocomplete essentially and so that and that needs to be mobile friendly and you know the autocomplete can be tricky so I'm not sure we want to spend a bunch of tokens on that, but where do we stand on that?",
+      "clean": [
+        {
+          "n": 1,
+          "text": "Summarize the last few things that I've said and give kind of a very high-level overview of what I've been talking about."
+        },
+        {
+          "n": 2,
+          "text": "A structured view, use headings more."
+        },
+        {
+          "n": 3,
+          "text": "I'd appreciate it if you'd use, on a lot of your responses, there are no headings."
+        },
+        {
+          "n": 4,
+          "text": "Use a heading to identify the topic area so that then on the next heading, I can kind of see."
+        },
+        {
+          "n": 5,
+          "text": "And when there's a deep amount of content, then maybe use bullets within a heading so that then, and then bold the title of each bullet so that then you can add a sentence or two."
+        },
+        {
+          "n": 6,
+          "text": "But let's try and keep responses minimum and highly structured in that way."
+        },
+        {
+          "n": 7,
+          "text": "And use those headings to kind of identify."
+        },
+        {
+          "n": 8,
+          "text": "It can be a sentence or a statement or a question or whatever."
+        },
+        {
+          "n": 9,
+          "text": "Just identify what you're about to respond with, with a contextual identifier, not only so I can reference it, but just, it kind of primes my brain for what we're about to talk about and gives context."
+        },
+        {
+          "n": 10,
+          "text": "So, helpful headings."
+        },
+        {
+          "n": 11,
+          "text": "We should put that in our CLAUDE.md or content skills or wherever it should be; we want helpful headings that shed light into what it is we're talking about."
+        },
+        {
+          "n": 12,
+          "text": "If there's a thing and then a part of that thing, if it's not self-evident from another location, that the sub-thing may or may not stand on its own, its name."
+        },
+        {
+          "n": 13,
+          "text": "And so, creating little UI cards, I had asked for a character control system where certain text-based characters can trigger references."
+        },
+        {
+          "n": 14,
+          "text": "And I kind of was thinking of it as a markdown type thing, like when you're in chat."
+        },
+        {
+          "n": 15,
+          "text": "But I almost think that we want to move towards a text input system that tries to listen to the keystrokes and kind of reactively turns any control character into an autocomplete, essentially."
+        },
+        {
+          "n": 16,
+          "text": "And that needs to be mobile friendly, and the autocomplete can be tricky, so I'm not sure we want to spend a bunch of tokens on that, but where do we stand on that?"
+        }
+      ],
+      "structure": [
+        {
+          "title": "Headings",
+          "bullets": [
+            {
+              "text": "Summarize recent things at a high level and use more headings; many responses have none, so put a topic heading first and use the next heading to show what’s coming.",
+              "cites": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "label": "S1,S2,S3,S4"
+            },
+            {
+              "text": "Headings should identify what you’re about to respond with. They can be a sentence, statement, or question, and give the reader a reference and context.",
+              "cites": [
+                7,
+                8,
+                9,
+                10
+              ],
+              "label": "S7,S8,S9,S10"
+            },
+            {
+              "text": "Name a thing and its parts clearly when a part’s name isn’t self-evident elsewhere, whether or not it stands alone.",
+              "cites": [
+                12
+              ],
+              "label": "S12"
+            },
+            {
+              "text": "Keep responses minimal and highly structured; add helpful-heading guidance to CLAUDE.md, content skills, or wherever it belongs.",
+              "cites": [
+                6,
+                11
+              ],
+              "label": "S6,S11"
+            }
+          ]
+        },
+        {
+          "title": "Bullets",
+          "bullets": [
+            {
+              "text": "For deep content, use bullets within a heading, bold each bullet’s title, then add a sentence or two.",
+              "cites": [
+                5
+              ],
+              "label": "S5"
+            }
+          ]
+        },
+        {
+          "title": "Character controls",
+          "bullets": [
+            {
+              "text": "The character control system would let certain text-based characters trigger references; the current idea is something Markdown-like in chat.",
+              "cites": [
+                13,
+                14
+              ],
+              "label": "S13,S14"
+            }
+          ]
+        },
+        {
+          "title": "Autocomplete",
+          "bullets": [
+            {
+              "text": "Maybe move toward text input that listens to keystrokes and reactively turns control characters into autocomplete.",
+              "cites": [
+                15
+              ],
+              "label": "S15"
+            },
+            {
+              "text": "It needs to work on mobile. Autocomplete may be tricky, so you’re unsure whether it’s worth spending many tokens on and ask where it stands.",
+              "cites": [
+                16
+              ],
+              "label": "S16"
+            }
+          ]
+        }
+      ],
+      "structure_error": null,
+      "title": "Headings",
+      "bullets": [
+        "Summarize recent things at a high level and use more headings; many responses have none, so put a topic heading first and use the next heading to show what’s coming.",
+        "Headings should identify what you’re about to respond with. They can be a sentence, statement, or question, and give the reader a reference and context.",
+        "Name a thing and its parts clearly when a part’s name isn’t self-evident elsewhere, whether or not it stands alone.",
+        "Keep responses minimal and highly structured; add helpful-heading guidance to CLAUDE.md, content skills, or wherever it belongs."
+      ],
+      "tags": [
+        "#General"
+      ],
+      "flags": [],
+      "strikes": [],
+      "misheard": [],
+      "model": "openai/gpt-6-luna"
+    },
+    {
+      "index": 18,
+      "at": "2026-10-02T23:21:29.322Z",
+      "raw": "is the page slash ext slash inbox, uh, the end up inbox rail. Is that the only class in that directory? Like if it's if the class name is inbox rail, then the property name should be like inbox lower space uh, underscore rather inbox underscore rail. And so we need to be consistent with names. Uh, if the inbox well, or maybe the inbox rail is a subclass. Is it uh, accessible on inbox.rail like our directions say? ",
+      "clean": [
+        {
+          "n": 1,
+          "text": "Is the page /ext/Inbox the InboxRail?"
+        },
+        {
+          "n": 2,
+          "text": "Is that the only class in that directory?"
+        },
+        {
+          "n": 3,
+          "text": null,
+          "omitted_raw": "Like if it's if the class name is inbox rail, then the property name should be like inbox lower space uh, underscore rather inbox underscore rail."
+        },
+        {
+          "n": 4,
+          "text": "And so we need to be consistent with names."
+        },
+        {
+          "n": 5,
+          "text": "If the inbox—well, or maybe the InboxRail is a subclass."
+        },
+        {
+          "n": 6,
+          "text": "Is it accessible on inbox.rail like our directions say?"
+        }
+      ],
+      "structure": [
+        {
+          "title": "Page",
+          "bullets": [
+            {
+              "text": "Is the page `/ext/Inbox` the InboxRail?",
+              "cites": [
+                1
+              ],
+              "label": "S1"
+            }
+          ]
+        },
+        {
+          "title": "Directory",
+          "bullets": [
+            {
+              "text": "Is that the only class in that directory?",
+              "cites": [
+                2
+              ],
+              "label": "S2"
+            }
+          ]
+        },
+        {
+          "title": "Names",
+          "bullets": [
+            {
+              "text": "We need to be consistent with names.",
+              "cites": [
+                3,
+                4
+              ],
+              "label": "S3,S4"
+            }
+          ]
+        },
+        {
+          "title": "Subclass",
+          "bullets": [
+            {
+              "text": "Maybe the InboxRail is a subclass.",
+              "cites": [
+                5
+              ],
+              "label": "S5"
+            }
+          ]
+        },
+        {
+          "title": "Route",
+          "bullets": [
+            {
+              "text": "Is it accessible at `inbox.rail`, like our directions say?",
+              "cites": [
+                6
+              ],
+              "label": "S6"
+            }
+          ]
+        }
+      ],
+      "structure_error": null,
+      "title": "Page",
+      "bullets": [
+        "Is the page `/ext/Inbox` the InboxRail?",
+        "Is that the only class in that directory?",
+        "We need to be consistent with names.",
+        "Maybe the InboxRail is a subclass."
+      ],
+      "tags": [
+        "#Page",
+        "#Inbox"
+      ],
+      "flags": [
+        {
+          "sentence_n": 3,
+          "question": "Did you mean `inbox_lower` or `inbox_rail`?",
+          "confidence": 0.3,
+          "source": "model",
+          "garbled": true
+        }
+      ],
+      "strikes": [],
+      "misheard": [],
+      "model": "openai/gpt-6-luna"
+    },
+    {
+      "index": 19,
+      "at": "2026-10-02T23:30:33.109Z",
+      "raw": "By the way, I never saw anything on my dashboard about this uh, inbox stuff. Like when I'm asking for like a new class or a new system or, you know, like major work being done. Um, I don't know. Let's use let's use dark cards, dark themed cards for classes from now on. I think that'll help them stand out. So whether it's a reference in line, you can use dark mode. And whether it's a, uh, it, it kind of differentiates it from just being a standard page. Like it's not just a content page, it's a, it's a class. And so then whenever we reference those, um, you know, what is this mention link you're linking to? I'm not sure I know where that is. I'm not familiar with it enough. I think we need to give a weight to our uh, modules. Like, our classes basically. We kind of don't really have a data system for each class. And frankly, I mean, the page.jsonl could work, but um, it seems like there should be more data structures surrounding each of our classes, just for kind of documenting exactly what's happening and, you know, kind of all of the prompts, all of the, well, I don't, I don't know if we want to save prompts into the, uh, specific module directory. We don't want to duplicate data, and I'm not sure where the prompts actually go. I think the the summarized requests could easily go in each module directory. And so each page has the slash AI subdirectory that's, you know, already kind of a system for putting AI pages and logs and data. Um, it could go into there. However, I don't know if AI is the right place. The AI folder. We gotta think these things through, but I, I need to see better documentation. I want to see, like, um, all right. So when I go to the framework page, I want to see all the things in the framework. I think we're neglecting our our slash framework page. um, it has a, a demo there. I don't know. Maybe link to. A framework slash old page and move that there like make an old back up the old version for now um, not sure what was on there it, it had like a three column it was kind of a, a decent layout that could have been cleaned up but I didn't really spend much time trying to clean it up just move that to old and make a new framework default page and what I want to see is sections kind of like the sidebar section the core and then the icon items dark mode Probably is like a, I don't know, maybe each, uh, you know, the core is like a whole dark mode. And then the, the pages, the page like link, inline link uh, rendering that has basically the page icon and the, uh, it's really the class icon. I think each class should have an icon. I think they do in the navigation. Um, In, in fact, the navigation icons should be rendering from the page's icon property so that when we go into a page and we edit its icon, it updates everywhere, all the links and whatnot, obviously. Um, make sure that's somewhere in our uh, design documentation to have, a, you know, almost always you want a single source of truth. And if you're going to have duplicate data that you have to sync, you better have a good reason to do it, like for, for performance or just convenience or I don't know. Um, cause often you can just look up, you know, have a reference and look up the actual data. So all of the classes that we're creating, all the work that's being done. Well, so all the work that's being done needs to be organized better. Like the AI inbox is still just, I don't know, the items that are appearing as super high priority above 90, um, seems like they're kind of arbitrary numbers and I'm not even sure what to do with them. When I click through to those cards, there's not a lot of helpful information. I think a lot of times they're associated with a task that may or may not even be linked to right now. So we want to check into that, but like those, the dashboard cards need to be much more helpful in terms of what content goes on there. And we kind of want to review what content goes on the card much more carefully, because when I clicked through a bunch of those, uh, AI dashboard cards, there wasn't anything on the card. And so like, it's not helpful at all. Now what we put on there should probably be an evolution where, you know, obviously we want to see the title and kind of the most important things, like the first section should be the most important things. Now, maybe you need like two or three sections of important things because it's a big complex thing. And so in that case, you know, it would be evident that you need to scroll through the rest of the things, but still you kind of, you, we want to prioritize. This is that iceberg content strategy. Um, so, the content cards that we're making, like a question type card that has like a question mark icon and states a question and maybe has some sort of like, maybe at first there's no answer and later there's an answer and so the answer gets added within that card. Um, and then that question can be referenceable. Maybe the question can, well, you probably don't need to give a question a title. Um, maybe you give it tags though. If it's referencing some other thing, you could tag it. Uh, so having these little content cards, frankly, they should probably be pages, at least in a functional sense. Like, so all of the modules that any content card has, has it because it's, you know, a page. Um, I mean, we could differentiate between pages and cards or something if we wanted to have, like, pages be bigger and take up more space and kind of be more substantial and path-based and cards could then be, you know, more internal. But, like... You might need to use the file system to save card data, so I don't know if that's an absolute distinction, but um, yeah, so there's like the UI and the visual hierarchy and the nesting of content cards. We definitely want cards to be nested when it makes sense. We gotta be careful about how many nesting levels we have. Um, in this uh, framework page, in this overview of like all the things, I don't mind if this is a big sprawling page right now. Let's try and use horizontal friendly layouts for the the main layouts for this page. So like, you know, don't limit the width, use all the space and then show a grid, but make sure you do use our, our uh, responsive padding so that the huge space gets enough padding to make and, and gap to make it look uh, right. We might need to adjust that obviously, but uh, use, you know, horizontally friendly layouts where if there's 12 or more items, they'll just kind of, well, I don't know, have, having a small text base based list that wraps onto a single line and is 12 items wide is definitely not the objective. If they're big cards, then like, you know, if, if on a, uh, in a thousand pixels, if we could have like full width sections in, and on a thousand pixel monitor or in a thousand pixel container or whatever, those would stack, you know, into three rows, each is a thousand pixels wide, and there's three of them tall. Um, you know, on a, on a, that would be a good candidate for a sprawling out across a 3000 pixel monitor. Now you have three columns that are each a thousand ish pixels. And um, well, so then the, the big decision there is if you're going to I mean, we could call that verb sprawling. Like if we want to sprawl, we need, uh, number one, columns that are that have roughly the same content and think about whether they can fill, you know, whether their height can be adaptive. That's a big question that I haven't really thought of yet is like the column's height needs to be responsive. It's not something we think about as much in web design and development because oftentimes we're just using automatic heights. But... Uh, If a, a column's height can grow, or sorry, if a, if a panel, it's really a panel thing, right? If the panel can grow, I don't know if panels, I, I was asking for things about panels and splitting panels. And as, panels should definitely be able to do this. So maybe we do start with that, but maybe it needs to look, we, we well, yeah, I'm not sure if that's the right name, but we could uh, apply these concepts to panels, I suppose.",
+      "clean": [
+        {
+          "n": 1,
+          "text": "By the way, I never saw anything on my dashboard about this inbox stuff."
+        },
+        {
+          "n": 2,
+          "text": "When I'm asking for a new class or a new system or major work being done."
+        },
+        {
+          "n": 3,
+          "text": "I don't know."
+        },
+        {
+          "n": 4,
+          "text": "Let's use dark cards, dark themed cards for classes from now on."
+        },
+        {
+          "n": 5,
+          "text": "I think that'll help them stand out."
+        },
+        {
+          "n": 6,
+          "text": "So whether it's a reference inline, you can use dark mode."
+        },
+        {
+          "n": 7,
+          "text": "And whether it's a, it kind of differentiates it from just being a standard page."
+        },
+        {
+          "n": 8,
+          "text": "It's not just a content page, it's a class."
+        },
+        {
+          "n": 9,
+          "text": "And so then whenever we reference those, what is this mention link you're linking to?"
+        },
+        {
+          "n": 10,
+          "text": "I'm not sure I know where that is."
+        },
+        {
+          "n": 11,
+          "text": "I'm not familiar with it enough."
+        },
+        {
+          "n": 12,
+          "text": "I think we need to give a weight to our modules, our classes basically."
+        },
+        {
+          "n": 13,
+          "text": "We kind of don't really have a data system for each class."
+        },
+        {
+          "n": 14,
+          "text": "And frankly, I mean, the page.jsonl could work, but it seems like there should be more data structures surrounding each of our classes, just for kind of documenting exactly what's happening and kind of all of the prompts, all of the, well, I don't know if we want to save prompts into the specific module directory."
+        },
+        {
+          "n": 15,
+          "text": "We don't want to duplicate data, and I'm not sure where the prompts actually go."
+        },
+        {
+          "n": 16,
+          "text": "I think the summarized requests could easily go in each module directory."
+        },
+        {
+          "n": 17,
+          "text": "And so each page has the /AI subdirectory that's already kind of a system for putting AI pages and logs and data."
+        },
+        {
+          "n": 18,
+          "text": "It could go into there."
+        },
+        {
+          "n": 19,
+          "text": "However, I don't know if AI is the right place."
+        },
+        {
+          "n": 20,
+          "text": "The AI folder."
+        },
+        {
+          "n": 21,
+          "text": "We gotta think these things through, but I need to see better documentation."
+        },
+        {
+          "n": 22,
+          "text": "I want to see."
+        },
+        {
+          "n": 23,
+          "text": "All right, so when I go to the framework page, I want to see all the things in the framework."
+        },
+        {
+          "n": 24,
+          "text": "I think we're neglecting our /framework page."
+        },
+        {
+          "n": 25,
+          "text": "It has a demo there."
+        },
+        {
+          "n": 26,
+          "text": "I don't know."
+        },
+        {
+          "n": 27,
+          "text": "Maybe link to a /framework/old page and move that there, make an old backup, the old version for now."
+        },
+        {
+          "n": 28,
+          "text": "Not sure what was on there."
+        },
+        {
+          "n": 29,
+          "text": "It had a three-column layout."
+        },
+        {
+          "n": 30,
+          "text": "It was kind of a decent layout that could have been cleaned up, but I didn't really spend much time trying to clean it up."
+        },
+        {
+          "n": 31,
+          "text": "Just move that to old and make a new framework default page."
+        },
+        {
+          "n": 32,
+          "text": "And what I want to see is sections kind of like the sidebar section, the core, and then the icon items."
+        },
+        {
+          "n": 33,
+          "text": "Dark mode probably is like a, I don't know, maybe each, the core is like a whole dark mode."
+        },
+        {
+          "n": 34,
+          "text": "And the pages, the page-like link, inline link rendering that has basically the page icon and the, it's really the class icon."
+        },
+        {
+          "n": 35,
+          "text": "I think each class should have an icon."
+        },
+        {
+          "n": 36,
+          "text": "I think they do in the navigation."
+        },
+        {
+          "n": 37,
+          "text": "In fact, the navigation icons should be rendering from the page's icon property so that when we go into a page and we edit its icon, it updates everywhere, all the links and whatnot, obviously."
+        },
+        {
+          "n": 38,
+          "text": "Make sure that's somewhere in our design documentation to have, almost always, you want a single source of truth."
+        },
+        {
+          "n": 39,
+          "text": "And if you're going to have duplicate data that you have to sync, you better have a good reason to do it, for performance or just convenience or I don't know."
+        },
+        {
+          "n": 40,
+          "text": "Because often you can just look up, have a reference and look up the actual data."
+        },
+        {
+          "n": 41,
+          "text": "So all of the classes that we're creating, all the work that's being done."
+        },
+        {
+          "n": 42,
+          "text": "Well, so all the work that's being done needs to be organized better."
+        },
+        {
+          "n": 43,
+          "text": "The AI inbox is still just, I don't know, the items that are appearing as super high priority above 90 seems like they're kind of arbitrary numbers, and I'm not even sure what to do with them."
+        },
+        {
+          "n": 44,
+          "text": "When I click through to those cards, there's not a lot of helpful information."
+        },
+        {
+          "n": 45,
+          "text": "I think a lot of times they're associated with a task that may or may not even be linked to right now."
+        },
+        {
+          "n": 46,
+          "text": "So we want to check into that, but those dashboard cards need to be much more helpful in terms of what content goes on there."
+        },
+        {
+          "n": 47,
+          "text": "And we kind of want to review what content goes on the card much more carefully, because when I clicked through a bunch of those AI dashboard cards, there wasn't anything on the card."
+        },
+        {
+          "n": 48,
+          "text": "And so it's not helpful at all."
+        },
+        {
+          "n": 49,
+          "text": "Now what we put on there should probably be an evolution where, obviously, we want to see the title and kind of the most important things, like the first section should be the most important things."
+        },
+        {
+          "n": 50,
+          "text": "Now, maybe you need two or three sections of important things because it's a big complex thing."
+        },
+        {
+          "n": 51,
+          "text": "And so in that case, it would be evident that you need to scroll through the rest of the things, but still, we want to prioritize."
+        },
+        {
+          "n": 52,
+          "text": "This is that iceberg content strategy."
+        },
+        {
+          "n": 53,
+          "text": "So, the content cards that we're making, like a question-type card that has a question mark icon and states a question and maybe has some sort of, maybe at first there's no answer and later there's an answer, and so the answer gets added within that card."
+        },
+        {
+          "n": 54,
+          "text": "And then that question can be referenceable."
+        },
+        {
+          "n": 55,
+          "text": "Maybe the question can—well, you probably don't need to give a question a title."
+        },
+        {
+          "n": 56,
+          "text": "Maybe you give it tags, though."
+        },
+        {
+          "n": 57,
+          "text": "If it's referencing some other thing, you could tag it."
+        },
+        {
+          "n": 58,
+          "text": "So having these little content cards, frankly, they should probably be pages, at least in a functional sense."
+        },
+        {
+          "n": 59,
+          "text": "So all of the modules that any content card has, has it because it's a page."
+        },
+        {
+          "n": 60,
+          "text": "I mean, we could differentiate between pages and cards or something if we wanted to have pages be bigger and take up more space and kind of be more substantial and path-based, and cards could then be more internal."
+        },
+        {
+          "n": 61,
+          "text": "But you might need to use the file system to save card data, so I don't know if that's an absolute distinction."
+        },
+        {
+          "n": 62,
+          "text": "But yeah, so there's the UI and the visual hierarchy and the nesting of content cards."
+        },
+        {
+          "n": 63,
+          "text": "We definitely want cards to be nested when it makes sense."
+        },
+        {
+          "n": 64,
+          "text": "We gotta be careful about how many nesting levels we have."
+        },
+        {
+          "n": 65,
+          "text": "In this framework page, in this overview of all the things, I don't mind if this is a big sprawling page right now."
+        },
+        {
+          "n": 66,
+          "text": "Let's try and use horizontal-friendly layouts for the main layouts for this page."
+        },
+        {
+          "n": 67,
+          "text": "So don't limit the width, use all the space and then show a grid, but make sure you do use our responsive padding so that the huge space gets enough padding and gap to make it look right."
+        },
+        {
+          "n": 68,
+          "text": "We might need to adjust that, obviously, but use horizontally friendly layouts where if there's 12 or more items, they'll just kind of, well, I don't know, having a small text-based list that wraps onto a single line and is 12 items wide is definitely not the objective."
+        },
+        {
+          "n": 69,
+          "text": "If they're big cards, then in a thousand pixels, if we could have full-width sections in, and on a thousand-pixel monitor or in a thousand-pixel container or whatever, those would stack into three rows, each is a thousand pixels wide, and there's three of them tall."
+        },
+        {
+          "n": 70,
+          "text": "Now you have three columns that are each a thousand-ish pixels."
+        },
+        {
+          "n": 71,
+          "text": "And, well, so then the big decision there is if you're going to—I mean, we could call that verb sprawling."
+        },
+        {
+          "n": 72,
+          "text": "If we want to sprawl, we need, number one, columns that have roughly the same content and think about whether they can fill, whether their height can be adaptive."
+        },
+        {
+          "n": 73,
+          "text": "That's a big question that I haven't really thought of yet: the column's height needs to be responsive."
+        },
+        {
+          "n": 74,
+          "text": "It's not something we think about as much in web design and development because oftentimes we're just using automatic heights."
+        },
+        {
+          "n": 75,
+          "text": "If a column's height can grow, or sorry, if a panel—it's really a panel thing, right?"
+        },
+        {
+          "n": 76,
+          "text": "If the panel can grow, I don't know if panels, I was asking for things about panels and splitting panels."
+        },
+        {
+          "n": 77,
+          "text": "And panels should definitely be able to do this."
+        },
+        {
+          "n": 78,
+          "text": "So maybe we do start with that, but maybe it needs to look—well, yeah, I'm not sure if that's the right name, but we could apply these concepts to panels, I suppose."
+        }
+      ],
+      "structure": [
+        {
+          "title": "Class cards",
+          "bullets": [
+            {
+              "text": "Let's use dark-themed cards for classes from now on; I think they’ll help classes stand out, including when referenced inline, and distinguish a class from a standard content page.",
+              "cites": [
+                4,
+                5,
+                6,
+                7,
+                8
+              ],
+              "label": "S4,S5,S6,S7,S8"
+            }
+          ]
+        },
+        {
+          "title": "Mention links",
+          "bullets": [
+            {
+              "text": "When we reference a class, I’m not sure I know what the mention link is linking to; I’m not familiar with it enough.",
+              "cites": [
+                9,
+                10,
+                11
+              ],
+              "label": "S9,S10,S11"
+            }
+          ]
+        },
+        {
+          "title": "Class data",
+          "bullets": [
+            {
+              "text": "I think we need to give our modules—our classes, basically—a weight.",
+              "cites": [
+                12
+              ],
+              "label": "S12"
+            },
+            {
+              "text": "We kind of don’t really have a data system for each class. The page.jsonl could work, but there should be more data structures around each class to document what’s happening and maybe the prompts; I don’t know if prompts belong in the module directory or where they should go, and we don’t want to duplicate data.",
+              "cites": [
+                13,
+                14,
+                15
+              ],
+              "label": "S13,S14,S15"
+            },
+            {
+              "text": "I think summarized requests could easily go in each module directory.",
+              "cites": [
+                16
+              ],
+              "label": "S16"
+            },
+            {
+              "text": "Each page has an /AI subdirectory for AI pages, logs, and data; class data could go there, but I don’t know if AI is the right place.",
+              "cites": [
+                17,
+                18,
+                19,
+                20
+              ],
+              "label": "S17,S18,S19,S20"
+            },
+            {
+              "text": "We gotta think these things through, but I need to see better documentation. I want to see.",
+              "cites": [
+                21,
+                22
+              ],
+              "label": "S21,S22"
+            }
+          ]
+        },
+        {
+          "title": "Framework page",
+          "bullets": [
+            {
+              "text": "When I go to the framework page, I want to see all the things in the framework; I think we’re neglecting that page.",
+              "cites": [
+                23,
+                24
+              ],
+              "label": "S23,S24"
+            },
+            {
+              "text": "It has a demo there. Maybe link the old page at /framework/old and move it there as a backup; I’m not sure what was on it.",
+              "cites": [
+                25,
+                26,
+                27,
+                28
+              ],
+              "label": "S25,S26,S27,S28"
+            },
+            {
+              "text": "It had a three-column layout that was kind of decent and could have been cleaned up, but I didn’t spend much time trying to clean it up.",
+              "cites": [
+                29,
+                30
+              ],
+              "label": "S29,S30"
+            },
+            {
+              "text": "Just move that to old and make a new framework default page.",
+              "cites": [
+                31
+              ],
+              "label": "S31"
+            },
+            {
+              "text": "I want sections kind of like the sidebar section, the core, and then the icon items.",
+              "cites": [
+                32
+              ],
+              "label": "S32"
+            },
+            {
+              "text": "Dark mode might mean each core is like a whole dark mode; I don’t know.",
+              "cites": [
+                33
+              ],
+              "label": "S33"
+            }
+          ]
+        },
+        {
+          "title": "Icons",
+          "bullets": [
+            {
+              "text": "The page-like inline link should have the page icon—really, the class icon. I think each class should have an icon, and I think they do in the navigation.",
+              "cites": [
+                34,
+                35,
+                36
+              ],
+              "label": "S34,S35,S36"
+            },
+            {
+              "text": "Navigation icons should render from the page’s icon property so editing it updates icons everywhere, including links.",
+              "cites": [
+                37
+              ],
+              "label": "S37"
+            },
+            {
+              "text": "Put this in the design documentation: almost always, you want a single source of truth. If duplicate data has to be synced, have a good reason, like performance or convenience; often you can reference and look up the actual data.",
+              "cites": [
+                38,
+                39,
+                40
+              ],
+              "label": "S38,S39,S40"
+            }
+          ]
+        },
+        {
+          "title": "AI dashboard",
+          "bullets": [
+            {
+              "text": "I never saw anything on my dashboard about this inbox stuff when I’m asking for a new class, a new system, or major work being done. I don’t know.",
+              "cites": [
+                1,
+                2,
+                3
+              ],
+              "label": "S1,S2,S3"
+            },
+            {
+              "text": "All the classes we’re creating and all the work being done needs to be organized better.",
+              "cites": [
+                41,
+                42
+              ],
+              "label": "S41,S42"
+            },
+            {
+              "text": "The AI inbox items appearing as super high priority above 90 seem kind of arbitrary, and I’m not even sure what to do with them.",
+              "cites": [
+                43
+              ],
+              "label": "S43"
+            },
+            {
+              "text": "When I click through to those cards, there isn’t much helpful information; often they’re associated with a task that may or may not even be linked right now.",
+              "cites": [
+                44,
+                45
+              ],
+              "label": "S44,S45"
+            },
+            {
+              "text": "We want to check into that and make dashboard cards much more helpful; we should review their content carefully, because a bunch of cards had nothing on them and weren’t helpful at all.",
+              "cites": [
+                46,
+                47,
+                48
+              ],
+              "label": "S46,S47,S48"
+            },
+            {
+              "text": "Cards should show the title and most important things first. Maybe a big, complex thing needs two or three important sections, with the rest there to scroll through, but we still want to prioritize. This is the iceberg content strategy.",
+              "cites": [
+                49,
+                50,
+                51,
+                52
+              ],
+              "label": "S49,S50,S51,S52"
+            }
+          ]
+        },
+        {
+          "title": "Content cards",
+          "bullets": [
+            {
+              "text": "A question-type card could have a question mark icon and state a question; maybe it starts without an answer, and later the answer gets added within that card.",
+              "cites": [
+                53
+              ],
+              "label": "S53"
+            },
+            {
+              "text": "The question can be referenceable. You probably don’t need to give it a title; maybe give it tags, including a tag for something it references.",
+              "cites": [
+                54,
+                55,
+                56,
+                57
+              ],
+              "label": "S54,S55,S56,S57"
+            },
+            {
+              "text": "Little content cards should probably be pages, at least in a functional sense; a content card has its modules because it’s a page.",
+              "cites": [
+                58,
+                59
+              ],
+              "label": "S58,S59"
+            },
+            {
+              "text": "We could distinguish bigger, more substantial, path-based pages from more internal cards, but card data might need the file system, so I don’t know if that’s an absolute distinction.",
+              "cites": [
+                60,
+                61
+              ],
+              "label": "S60,S61"
+            },
+            {
+              "text": "There’s the UI, visual hierarchy, and nesting of content cards. We definitely want cards nested when it makes sense, but we have to be careful about how many levels.",
+              "cites": [
+                62,
+                63,
+                64
+              ],
+              "label": "S62,S63,S64"
+            }
+          ]
+        },
+        {
+          "title": "Page layout",
+          "bullets": [
+            {
+              "text": "I don’t mind if the framework overview is a big, sprawling page right now. Let’s use horizontal-friendly main layouts: don’t limit the width; use all the space and show a grid, with responsive padding and enough gap for huge spaces. We might need to adjust that.",
+              "cites": [
+                65,
+                66,
+                67
+              ],
+              "label": "S65,S66,S67"
+            },
+            {
+              "text": "With 12 or more items, a small text-based list wrapping onto one line and stretching 12 items wide is definitely not the objective.",
+              "cites": [
+                68
+              ],
+              "label": "S68"
+            },
+            {
+              "text": "If they’re big cards, a thousand-pixel monitor or container could have full-width sections stacked into three rows, each a thousand pixels wide and three rows tall; then you have three columns that are each a thousand-ish pixels.",
+              "cites": [
+                69,
+                70
+              ],
+              "label": "S69,S70"
+            }
+          ]
+        },
+        {
+          "title": "Columns",
+          "bullets": [
+            {
+              "text": "We could call that verb sprawling. If we want to sprawl, columns need roughly the same content, and we should think about whether they can fill and whether their height can be adaptive.",
+              "cites": [
+                71,
+                72
+              ],
+              "label": "S71,S72"
+            },
+            {
+              "text": "Column height needs to be responsive; that’s a big question I haven’t really thought through, since in web design and development we often use automatic heights.",
+              "cites": [
+                73,
+                74
+              ],
+              "label": "S73,S74"
+            }
+          ]
+        },
+        {
+          "title": "Panels",
+          "bullets": [
+            {
+              "text": "If a column’s height can grow—or, sorry, if a panel can grow—it’s really a panel thing. I was asking about panels and splitting panels, and panels should definitely be able to do this.",
+              "cites": [
+                75,
+                76,
+                77
+              ],
+              "label": "S75,S76,S77"
+            },
+            {
+              "text": "Maybe we do start with panels, though I’m not sure that’s the right name; we could apply these concepts to panels.",
+              "cites": [
+                78
+              ],
+              "label": "S78"
+            }
+          ]
+        }
+      ],
+      "structure_error": null,
+      "title": "Class cards",
+      "bullets": [
+        "Let's use dark-themed cards for classes from now on; I think they’ll help classes stand out, including when referenced inline, and distinguish a class from a standard content page.",
+        "When we reference a class, I’m not sure I know what the mention link is linking to; I’m not familiar with it enough.",
+        "I think we need to give our modules—our classes, basically—a weight.",
+        "We kind of don’t really have a data system for each class. The page.jsonl could work, but there should be more data structures around each class to document what’s happening and maybe the prompts; I don’t know if prompts belong in the module directory or where they should go, and we don’t want to duplicate data."
+      ],
+      "tags": [
+        "#Page",
+        "#Task"
+      ],
+      "flags": [],
+      "strikes": [
+        {
+          "sentence_n": 14,
+          "struck_text": "And frankly"
+        },
+        {
+          "sentence_n": 15,
+          "struck_text": "We don't want to duplicate data"
+        },
+        {
+          "sentence_n": 60,
+          "struck_text": "Um"
+        },
+        {
+          "sentence_n": 71,
+          "struck_text": "so then the"
+        }
+      ],
+      "misheard": [],
+      "model": "openai/gpt-6-luna"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{"log":{"at":"2026-09-23T13:03:30-05:00","task":"ai2-nested","msg":"landed - AI 2 opens on four columns by importance; per-card storage on Servex; sub-cards in a third column (merged fdbd9f48, hand fix in overview.js draw() after a live break)"}}
+{"log":{"at":"2026-09-23T14:14:19-05:00","task":"servex-port-80","msg":"task opened - Servex's proxy takes port 80: servex.localhost, monorepo.localhost with no port"}}
+{"log":{"at":"2026-09-23T14:17:50-05:00","task":"servex-port-80","msg":"landed - Servex owns port 80: localhost/servex.localhost = dashboard, monorepo.localhost = the site; Hosts.js removed; boot crash on reset sockets fixed"}}
+{"log":{"at":"2026-09-23T14:28:39-05:00","task":"editor-deps","msg":"task opened - an Opus minion maps ext/Editor's dependencies and its overlap with ext/Panel and the playground (spawned through Servex)"}}
+{"log":{"at":"2026-09-23T14:41:24-05:00","task":"editor-deps","msg":"landed — Editor mapped against Panel and the playground; found two live bugs (Editor selection lost to hidden viewport copies; Make toolbar.js $dot undefined); report.md"}}
+{"log":{"at":"2026-09-23T14:51:23-05:00","task":"ai2-routes","msg":"landed - AI 2: inbox is the default, overview/ is a routed page with full-height equal columns, New card works on monorepo.localhost"}}
+{"log":{"at":"2026-09-23T15:03:55-05:00","task":"ai2-live-card","msg":"task opened — ai2 cards: assistant replies, one mic, live card"}}
+{"log":{"at":"2026-09-23T15:15:40-05:00","task":"ai2-live-card","msg":"landed — AI 2 cards are chat rooms (assistant replies reach them, one mic at a time), the Live card, and the Dispatcher's paused-loop crash fixed"}}

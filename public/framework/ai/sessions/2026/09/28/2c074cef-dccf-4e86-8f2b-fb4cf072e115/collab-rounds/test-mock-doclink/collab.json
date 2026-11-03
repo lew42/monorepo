@@ -1,0 +1,9 @@
+{
+  "question": "Design a small Gizmo class: on, off, state.",
+  "kind": "design",
+  "target": {"module": "ext/Gizmo", "class": "Gizmo"},
+  "members": [
+    {"id": "haiku-a", "model": "claude-haiku-4-5-20251001"},
+    {"id": "sonnet-b", "model": "claude-sonnet-5"}
+  ]
+}

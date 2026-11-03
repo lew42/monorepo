@@ -1,0 +1,243 @@
+{
+  "note": "Pass B -- the blind re-score. Same model as the baseline (claude-opus-5[1m]), same rubric text, same 18 byte-identical PNGs, independent context. Written BEFORE any of baseline.json's scores, feedback or notes entered context: only url, image, hash, rubric and shot metadata were extracted from that file. This file exists so the repeatability number is reproducible; baseline.json is untouched.",
+  "scored_at": "2026-08-17T11:12:00-05:00",
+  "scorer": "claude-opus-5[1m]",
+  "protocol": "All 18 images loaded into one context first, then all 18 scored against the written 30/60/90 anchors. Whether pass A scored sequentially instead is unknown at the time of writing -- flagged as a protocol difference to check afterwards.",
+  "rows": [
+    {
+      "url": "/framework/",
+      "hash": "889e9993e40979c0",
+      "scores": { "layout": 72, "typography": 80, "contrast": 80, "density": 78, "hierarchy": 85 },
+      "overall": 82,
+      "feedback": {
+        "layout": "Sidebar plus a content column with a clean stat-card row spanning it, but four different right edges (h1 wraps at 940, prose at 1030, cards and code at 1073) and a 200px dead gutter to 1280.",
+        "typography": "48px bold h1 against 17px body is real scale, small-caps grey card labels over large bold numerals is a second real scale, and the body measure runs a bit long at ~80 chars.",
+        "contrast": "Near-black on light grey throughout, an orange underline accent doing actual work, and dark inline code chips that read strongly -- if anything slightly heavy against the line.",
+        "density": "A headline, a claim, five proof cards, a code sample and the start of the next block in 800px: filled without crowding, and the gaps group rather than pad.",
+        "hierarchy": "One second: headline says what it is, the five zeros prove it, the code block shows the use. Nothing competes.",
+        "overall": "The only page in the corpus that reads as deliberately composed rather than assembled; the ragged right edge is the nit."
+      }
+    },
+    {
+      "url": "/framework/ext/LayoutTool/tests/",
+      "hash": "fb97adb5c8dc2caa",
+      "scores": { "layout": 70, "typography": 64, "contrast": 70, "density": 78, "hierarchy": 74 },
+      "overall": 70,
+      "feedback": {
+        "layout": "A clean 4-column card grid that actually uses the 1280, undercut by a tab bar that overflows and is clipped mid-word at the right edge.",
+        "typography": "Sound h1/title/body scale, but nearly every one of the twelve cards truncates mid-word with an ellipsis, so the grid reads as unfinished text rather than set text.",
+        "contrast": "Legible everywhere; the card descriptions sit lighter than they need to, and the active tab's orange underline is the one accent carrying weight.",
+        "density": "Twelve cards plus header and a width-picker row in 800px -- the fullest honest use of the viewport in the corpus.",
+        "hierarchy": "Title, then a one-line statement of what the corpus is, then the uniform grid; the tab bar tells you where you are."
+      }
+    },
+    {
+      "url": "/web/nav/sidebar/",
+      "hash": "0a5990c4a269835a",
+      "scores": { "layout": 66, "typography": 60, "contrast": 52, "density": 55, "hierarchy": 64 },
+      "overall": 60,
+      "feedback": {
+        "layout": "Preview rail plus demo stage is a legible two-column idea, but the stage runs ~300px taller than its content and the third thumbnail is a two-up shrunk past any use.",
+        "typography": "The huge lowercase h1 and the type inside the stage are fine; the rail's thumbnails render prose at 4-6px, which is not small type, it is no type.",
+        "contrast": "The bottom control strip -- standard / FILL / FLOW / measure / 52em -- is light grey on light grey and reads as disabled, and the width links are barely darker; the stage is the only part with real tonal range.",
+        "density": "The stage is over half empty white, the right column is mostly air, and the rail is packed -- unbalanced rather than either full or spare.",
+        "hierarchy": "You know the subject is `sidebar` and that the box on the right is a live example; what the rail is for, and why one of its cards is ringed orange, you have to work out."
+      }
+    },
+    {
+      "url": "/framework/ext/toc/",
+      "hash": "a1ba9bf8fcaccef7",
+      "scores": { "layout": 62, "typography": 66, "contrast": 74, "density": 62, "hierarchy": 50 },
+      "overall": 60,
+      "feedback": {
+        "layout": "A single prose column with a 227px dead gutter and a 90px blank band above the first block; the page opens on a code sample sitting in nothing.",
+        "typography": "h2 to h3 to body is a genuine scale with generous leading, but the measure runs ~90 characters and the density of dark inline chips stipples every line it touches.",
+        "contrast": "Text sits dark on near-white with no weak spots; the only complaint is that the emphasis is over-applied rather than under.",
+        "density": "Three prose blocks and a code sample in 800px with 18% of the width unused -- comfortable, unambitious.",
+        "hierarchy": "No h1 in the viewport at all: the page's own name exists only as a 26px tab label, so the largest text on screen is a mid-page h2 and the first read is a code block."
+      }
+    },
+    {
+      "url": "/framework/ui/panel/",
+      "hash": "c90ab4127bf511f1",
+      "scores": { "layout": 72, "typography": 76, "contrast": 62, "density": 65, "hierarchy": 76 },
+      "overall": 72,
+      "feedback": {
+        "layout": "Title, width links, stage, controls, source -- a repeating page shape that holds, with the dialog inside it cleanly banded into head, body and foot.",
+        "typography": "48px h1, 24px dialog heading, 16px body, small-caps buttons: four levels that each out-rank the next, on a short comfortable measure.",
+        "contrast": "The dialog is strong, but the coral DELETE button carries white text at roughly 2.6:1 and the control strip below the stage is again light grey on light grey.",
+        "density": "One small dialog in a large stage leaves the middle airy; the source block below carries the rest of the screen.",
+        "hierarchy": "Name, then the artifact, then how it was made -- and the artifact has its own internal first read."
+      }
+    },
+    {
+      "url": "/framework/ui/tags/",
+      "hash": "7767f3952d201e8c",
+      "scores": { "layout": 70, "typography": 74, "contrast": 68, "density": 66, "hierarchy": 74 },
+      "overall": 70,
+      "feedback": {
+        "layout": "Same page shape as panel and it still holds; the stage is sized to its one input row rather than padded out, which is right, but an 80px blank band sits between h1 and stage.",
+        "typography": "48px h1 over small-caps pills over a syntax-coloured source block: distinct registers, and the closing prose runs a comfortable measure.",
+        "contrast": "Pills and placeholder are correctly differentiated and the source block is high contrast; the control strip under the stage is washed out to the point of looking inert.",
+        "density": "A single line of demo in a bordered frame, then a tall code block -- the vertical rhythm is lumpy rather than crowded or empty.",
+        "hierarchy": "Name, the thing, the code, then the caveat about why it barely exists: a clear and honest path."
+      }
+    },
+    {
+      "url": "/web/layout/flow/",
+      "hash": "f69243398bb933ed",
+      "scores": { "layout": 42, "typography": 52, "contrast": 55, "density": 45, "hierarchy": 52 },
+      "overall": 48,
+      "feedback": {
+        "layout": "Three competing left edges (64, 402, 613), a 280px empty channel straight down the middle, and a `Source` toggle floating at x=404 aligned with nothing on the page.",
+        "typography": "The right column is well set -- 22px h2 over 17px body at ~50 characters -- while the left rail runs two unlabelled blocks of 5px prose at two different indents.",
+        "contrast": "Body copy in the right column is a touch light for its size, the code chips are strong, and the rail's micro-prose is grey text at a size where contrast stops being the problem.",
+        "density": "Roughly half the screen is empty and the content that exists sits in narrow strips with a dead channel between them.",
+        "hierarchy": "The h1 and the right column's h2/body rhythm are clear, and then the rail's two unexplained text blobs and the orphaned Source line undo it."
+      }
+    },
+    {
+      "url": "/framework/core/Page/",
+      "hash": "6b12bc16698ec259",
+      "scores": { "layout": 58, "typography": 60, "contrast": 62, "density": 58, "hierarchy": 52 },
+      "overall": 56,
+      "feedback": {
+        "layout": "A 313px code block beside a 340px demo area that is mostly empty, and below y=530 the pair collapses back to a full-width prose column -- plus the width links wrap onto three lines and the tab bar is clipped.",
+        "typography": "The range runs from 6px illegible thumbnail prose to a 40px demo heading with 11px mono between them; the live demo is set properly, the rail is not set at all.",
+        "contrast": "High-contrast source block, mid-grey prose, washed micro-text in the rail and pale grey width links -- four different tonal registers with no evident intent.",
+        "density": "The most crowded page in the corpus and simultaneously the one with the emptiest single region; the narrow code column forces mono lines to break early.",
+        "hierarchy": "Three entry points -- rail, code block, live demo -- and no page h1 to arbitrate, so the first second is spent deciding what the subject is."
+      }
+    },
+    {
+      "url": "/framework/ext/layout/",
+      "hash": "9cc8564209d748d1",
+      "scores": { "layout": 58, "typography": 66, "contrast": 76, "density": 74, "hierarchy": 48 },
+      "overall": 60,
+      "feedback": {
+        "layout": "Row one is four 228px cards, row two is two 476px cards -- the same grid at half the resolution, and it reads as a wrap that nobody looked at. Right and left edges are otherwise consistent.",
+        "typography": "24px card titles over 16px card body is a clean pair; the page prose runs ~90 characters, and there is no h1 to set a top level.",
+        "contrast": "The cleanest tonal range in the corpus: near-black titles, mid-grey body, dark chips, high-contrast code, nothing washed and nothing harsh.",
+        "density": "Six cards, a paragraph and a source block fill the 800px with whitespace that groups.",
+        "hierarchy": "No title, and the content is six cards named Alpha through Zeta -- placeholders that say nothing -- so after a second you still cannot say what the page is for."
+      }
+    },
+    {
+      "url": "/web/nav/wall/",
+      "hash": "fa3256602b1da481",
+      "scores": { "layout": 66, "typography": 64, "contrast": 70, "density": 70, "hierarchy": 68 },
+      "overall": 66,
+      "feedback": {
+        "layout": "The stage's internal 3-up grid is clean and repeats correctly across three sections; the rail opens with a white strip containing nothing, which is a card rendered empty.",
+        "typography": "Section headings inside the demo are 30px and underlined, which makes headings look like links; the rail's thumbnail prose is again illegible.",
+        "contrast": "Strong inside the stage -- dark labels on white cards with orange icons carrying the accent; the rail is washed and the heading underlines add noise rather than emphasis.",
+        "density": "Three sections of cards fill the stage properly; the rail is sparse and starts with a blank.",
+        "hierarchy": "The best first read of the three /web/nav/ pages: name, then a demo whose own section headings give the eye a path. The rail is still unlabelled."
+      }
+    },
+    {
+      "url": "/framework/styles/layers/theme/lew42/",
+      "hash": "81b8db88c3f54fee",
+      "scores": { "layout": 64, "typography": 58, "contrast": 72, "density": 66, "hierarchy": 50 },
+      "overall": 60,
+      "feedback": {
+        "layout": "Three different right edges on one page (1157, 1107, 975) and a checkerboard stage indented 48px inside its own frame -- honest about transparency, undecided about alignment.",
+        "typography": "The demo's h1 is 40px and its h2 is 34px: adjacent levels six pixels apart, so the second heading does not out-rank the first in any way a reader would notice.",
+        "contrast": "Text sits dark on white with the checkerboard confined to the margins, and the dark READ GUIDE button is a real accent; the ground pattern is noise but never touches legibility.",
+        "density": "Code, a two-heading demo, a button pair and closing prose -- adequately filled with a couple of airy bands.",
+        "hierarchy": "Inverted: the page has no h1 of its own, so the largest text on screen -- `App` -- belongs to the demo, and the demo's subject outranks the page's."
+      }
+    },
+    {
+      "url": "/web/nav/crumbs/",
+      "hash": "7a2c02f8cde839cc",
+      "scores": { "layout": 64, "typography": 62, "contrast": 62, "density": 60, "hierarchy": 60 },
+      "overall": 60,
+      "feedback": {
+        "layout": "The familiar two-column shape, but the rail's first item is a two-up thumbnail with no label above it while the `tabs` label below belongs to the group beneath, so the top of the rail is orphaned.",
+        "typography": "The demo's 44px `Letters` nearly matches the page's own 54px `crumbs`, and the prose inside the demo runs ~770px, long for a box that narrow.",
+        "contrast": "The breadcrumb sets three of four segments in orange at body size, around 3:1, and the control strip under the stage is washed to the point of looking disabled.",
+        "density": "150px of trailing white inside the stage against a rail stacked to the bottom edge.",
+        "hierarchy": "Page title and demo title compete at nearly the same size, and the rail gives no reason for its order."
+      }
+    },
+    {
+      "url": "/framework/core/Page/overview/children/",
+      "hash": "4cf821cf560f9c5d",
+      "scores": { "layout": 60, "typography": 66, "contrast": 68, "density": 64, "hierarchy": 70 },
+      "overall": 64,
+      "feedback": {
+        "layout": "Three 300px cards in a 630px stage wrap 2+1 and leave an obvious hole beside the third -- the demo demonstrates the wrong thing about itself.",
+        "typography": "48px h1, a bold 17px lead sentence, 17px card labels: legible and correctly ranked, with the rail's thumbnail prose again below reading size.",
+        "contrast": "Near-black on white inside the stage with light card borders; the control strip is the only weak region.",
+        "density": "Three columns of chrome around one sentence and three cards -- the screen is full, the subject is not.",
+        "hierarchy": "The lead sentence names what to look at and the orange ring in the rail says where you are: the clearest first read of the Page sub-pages."
+      }
+    },
+    {
+      "url": "/framework/audit/",
+      "hash": "96f07eb32343f5be",
+      "scores": { "layout": 68, "typography": 70, "contrast": 76, "density": 76, "hierarchy": 58 },
+      "overall": 68,
+      "feedback": {
+        "layout": "A clean two-column split with consistent edges; the rail's cards are separated by a ~180px gap that presumably tracks the sections they belong to, but nothing on screen says so, so it reads as accidental.",
+        "typography": "30px h2s over a 17px body running ~75 characters is the best-set prose in the corpus -- and there is no h1, so the scale starts one level down.",
+        "contrast": "Mid-grey body with dark orange-underlined links and dark chips: emphasis that reads without shouting, and nothing washed out.",
+        "density": "Two columns of real content plus the head of a table, with no dead regions except the rail gap.",
+        "hierarchy": "The page opens on body prose. The largest text on screen is a mid-page h2, and it takes about three seconds of reading to learn what the page is."
+      }
+    },
+    {
+      "url": "/framework/core/Page/nav/",
+      "hash": "5c90228c14a48099",
+      "scores": { "layout": 62, "typography": 68, "contrast": 74, "density": 58, "hierarchy": 72 },
+      "overall": 66,
+      "feedback": {
+        "layout": "Nine cards wrap 6+3 leaving a hole at the right of the second row, and the stage runs ~150px of empty white below them; the outer column edges are consistent.",
+        "typography": "48px h1 over 16px card labels with 11px mono between -- only two levels doing real work, but they are cleanly separated.",
+        "contrast": "Near-black labels on white cards, high-contrast source block, checkerboard confined to the margins: strong throughout.",
+        "density": "Roughly 45% of the stage is empty, so the page reads sparser than its card count suggests.",
+        "hierarchy": "Title, then the code that produced it, then the result: a short, obvious path."
+      }
+    },
+    {
+      "url": "/framework/styles/layers/util/",
+      "hash": "aaa5f55a0224f98c",
+      "scores": { "layout": 60, "typography": 68, "contrast": 74, "density": 55, "hierarchy": 74 },
+      "overall": 64,
+      "feedback": {
+        "layout": "A clean single column above, and below it a 870px stage holding four small boxes across 210px of it -- a strip of content on an empty field.",
+        "typography": "48px h1, 30px h2, 17px body: a proper ladder, on a measure running ~90 characters.",
+        "contrast": "Headings near-black, body mid-grey, source blocks high contrast, numerals dark on light boxes: no weak region.",
+        "density": "The prose half is well paced; the demo half is about three-quarters empty checkerboard, which drags the page down.",
+        "hierarchy": "Title, one sentence on what the layer is for, then the first example: you know where you are immediately."
+      }
+    },
+    {
+      "url": "/notes/git-branch-names/",
+      "hash": "c06b55bc591c6960",
+      "scores": { "layout": 52, "typography": 68, "contrast": 72, "density": 56, "hierarchy": 78 },
+      "overall": 62,
+      "feedback": {
+        "layout": "A ~780px column on a 1280 canvas with no sidebar to justify it: 448px, 35% of the width, is dead gutter, and the blocks inside end at three different right edges (598, 832, 609).",
+        "typography": "48px h1 and 30px h2s over a 17px body, but the measure runs ~90 characters and one h2 embeds a 30px dark code chip that makes the heading lumpy.",
+        "contrast": "Mid-grey body on near-white, white-on-dark code, and a deploy URL set in orange at body size around 3:1 -- legible, with the heading's chip heavier than anything around it.",
+        "density": "Vertically well paced and horizontally a third empty, with a small table stranded at 598px.",
+        "hierarchy": "The strongest first read in the corpus: the h1 says exactly what the page is, the h2s section it, and the eye goes straight down."
+      }
+    },
+    {
+      "url": "/framework/ai/",
+      "hash": "54fe1ea165f8b436",
+      "scores": { "layout": 80, "typography": 76, "contrast": 72, "density": 80, "hierarchy": 82 },
+      "overall": 80,
+      "feedback": {
+        "layout": "966px cards actually spanning the content width, each split at the same internal x=639, timestamps hung consistently outside them, model labels flushed right: the most disciplined grid in the corpus.",
+        "typography": "Five levels -- h1, card title, meta, request, step -- each distinguishable at a glance, with small-caps grey doing the labelling.",
+        "contrast": "Slug near-black down to a pale grey status line is a real tonal range; the unfilled progress segments and that status line sit weaker than they should.",
+        "density": "Three cards carrying six facts each, plus a header, in 800px, with the whitespace grouping rather than padding.",
+        "hierarchy": "Title, count, then cards whose own internal order -- what, how far, what now -- repeats identically; nothing to decode."
+      }
+    }
+  ]
+}

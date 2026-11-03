@@ -1,0 +1,290 @@
+diff --git a/Server/ChatToMessages.mjs b/Server/ChatToMessages.mjs
+index 1e991d624..8984e3b1a 100644
+--- a/Server/ChatToMessages.mjs
++++ b/Server/ChatToMessages.mjs
+@@ -7,7 +7,7 @@
+  * - Dry run by default: prints, per file, how many V1 lines it read and how many lines it would append, plus the first few.
+  * - `--apply` APPENDS those lines at the end of the file (append-only: no line is rewritten or removed) and records each file in
+  *   public/framework/ai/sessions/chat-messages-moves.jsonl ({file, lines, at}), so it can be audited and undone (cut the tail).
+- * - A file that already has a `messages` or `sentences` line is skipped: the live writer already keeps it.
++ * - A partly mirrored file is FILLED: only the missing messages are added, each `after` the message of the chat line before it, with no twins; a mirrored sentence missing `said_at` gets it set in place.
+  * - What it cannot know: whether the owner was mid-thought when a reply landed, so a reply goes where V1 had it (no holding).
+  */
+ import fs from "node:fs";
+@@ -19,11 +19,63 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+ const MANIFEST = path.join(ROOT, "public/framework/ai/sessions/chat-messages-moves.jsonl");
+ 
+ export default class ChatToMessages {
+-	/** The lines to append for one file's parsed lines, or null when it already has the list. */
++	/** The lines to append for one file's parsed lines (V1 `{chat}` lines, plus whatever of the list is already there). Every
++	 * unmirrored chat line gets its mirror, placed `after` the message of the chat line before it, so a hole in the middle or at the
++	 * front fills in its own place and never twins a line that is there. A sentence already mirrored that lacks the V1 line's
++	 * `said_at` gets it set in place. Nothing mirrored yet gives the plain append the live writer would have made. Returns [] when
++	 * the list is complete. */
+ 	static plan(lines){
+-		if (lines.some(l => l && (l.messages || l.sentences))) return null;
++		const have_msg = new Map(), have_said = new Set();   // at -> message id (a sentence's Prompt) / reply id
++		const sentence_id_at = new Map(), said_ids = new Set();
++		for (const l of lines){
++			if (!l) continue;
++			const ss = l.sentences?.add; if (ss?.at) sentence_id_at.set(ss.id, ss);
++			if (ss?.said_at) have_said.add(ss.at);
++			for (const [id, ch] of Object.entries(l.sentences ?? {})) if (id !== "add" && ch?.said_at) said_ids.add(id);
++			const add = l.messages?.add;
++			if (add?.type === "Prompt") for (const sid of add.sentences ?? []) { const x = sentence_id_at.get(sid); if (x) have_msg.set(x.at, add.id); }
++			else if (add && add.at && add.type !== "Ref") have_msg.set(add.at, add.id);
++			for (const [id, ch] of Object.entries(l.messages ?? {})) {
++				if (id === "add" || !ch?.sentences?.push) continue;
++				for (const sid of [].concat(ch.sentences.push)) { const x = sentence_id_at.get(sid); if (x) have_msg.set(x.at, id); }
++			}
++		}
++		const chats = lines.filter(l => l?.chat).map(l => l.chat);
++		const last_have = chats.reduce((n, c, i) => have_msg.has(c.at) ? i : n, -1);
+ 		const writer = new ChatWriter({ find_sentence: () => null }), out = [];
+-		for (const l of lines) if (l?.chat) out.push(...writer.mirror("s", l.chat));
++		for (const l of lines) for (const id of [l?.sentences?.add?.id, l?.messages?.add?.id]) { const m = /^([sm])-(\d+)$/.exec(id ?? ""); if (m) writer.last_ms.set(m[1], Math.max(writer.last_ms.get(m[1]) ?? 0, +m[2])); }   // new ids never collide with old ones
++		let prev = null;   // id of the message the previous chat line lives in
++		chats.forEach((c, i) => {
++			const known = have_msg.get(c.at);
++			if (known){
++				const st = writer.state("s"); st.open = null; st.last = known; prev = known;
++				if (c.said_at && c.from?.kind === "owner" && !have_said.has(c.at)){
++					const sid = [...sentence_id_at.values()].find(x => x.at === c.at)?.id;
++					if (sid && !said_ids.has(sid)) out.push({ sentences: { [sid]: { said_at: c.said_at } }, by: "servex", ts: new Date().toISOString() });
++				}
++				return;
++			}
++			for (const l of writer.mirror("s", c)){
++				const add = l.messages?.add, grow = Object.keys(l.messages ?? {}).find(k => k !== "add");
++				if (add && i < last_have) add.after = prev;
++				if (add) prev = add.id; else if (grow) prev = grow;
++				out.push(l);
++			}
++		});
++		// The fast seat's {place} improves: the cleaned text lands as that sentence's `clean`, in place, if the file does not say so yet.
++		const sid_of = new Map([...sentence_id_at.values()].map(x => [x.at, x.id])), mid_of = new Map(have_msg);
++		for (const l of out){ const ss = l.sentences?.add; if (ss?.at) sid_of.set(ss.at, ss.id); const add = l.messages?.add;
++			if (add?.type === "Prompt") for (const sid of add.sentences) mid_of.set([...sid_of].find(([, v]) => v === sid)?.[0], add.id);
++			for (const [id, ch] of Object.entries(l.messages ?? {})) if (id !== "add" && ch?.sentences?.push) mid_of.set([...sid_of].find(([, v]) => v === ch.sentences.push)?.[0], id); }
++		const clean_now = new Map();
++		for (const l of lines) for (const ch of Object.values(l?.messages ?? {})) for (const [sid, t] of Object.entries(ch?.clean ?? {})) clean_now.set(sid, t);
++		for (const l of lines){
++			const p = l?.place; if (!p || !["improve", "both"].includes(p.edit) || !String(p.text ?? "").trim() || !p.re) continue;
++			const sid = sid_of.get(p.re), mid = mid_of.get(p.re);
++			if (!sid || !mid || clean_now.get(sid) === String(p.text)) continue;
++			clean_now.set(sid, String(p.text));
++			out.push({ ...ChatWriter.clean_line(mid, sid, p.text), by: "servex", ts: new Date().toISOString() });
++		}
+ 		return out;
+ 	}
+ 	static read(file){
+@@ -32,7 +84,7 @@ export default class ChatToMessages {
+ 	static run(files, { apply = false } = {}){
+ 		for (const file of files){
+ 			const lines = this.read(file), add = this.plan(lines);
+-			if (!add){ console.log(`${file}: already has the chat list, skipped`); continue; }
++			if (!add.length){ console.log(`${file}: the chat list is complete, nothing to add`); continue; }
+ 			console.log(`${file}: ${lines.filter(l => l?.chat).length} V1 chat lines -> ${add.length} lines to append`);
+ 			for (const l of add.slice(0, 3)) console.log("   ", JSON.stringify(l).slice(0, 160));
+ 			if (!apply || !add.length) continue;
+diff --git a/Server/ChatToMessages.test.mjs b/Server/ChatToMessages.test.mjs
+new file mode 100644
+index 000000000..b95f2fc43
+--- /dev/null
++++ b/Server/ChatToMessages.test.mjs
+@@ -0,0 +1,45 @@
++// node Server/ChatToMessages.test.mjs — the fill: a partly mirrored session gets only what is missing, in its place, no twins.
++import fs from "node:fs";
++import assert from "node:assert/strict";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++import ChatToMessages from "./ChatToMessages.mjs";
++import ChatWriter from "../Servex/agents/ChatWriter.js";
++import Session from "../public/framework/core/Session/Session.js";
++import V1Bubbles from "../public/framework/core/Session/Chat/V1Bubbles.js";
++
++const here = path.dirname(fileURLToPath(import.meta.url));
++let n = 0; const ok = (c, m) => { assert.ok(c, m); n++; };
++const chat = (at, kind, text, extra = {}) => ({ chat: { at, from: kind === "owner" ? { kind } : { kind: "assistant", id: "smart" }, text, via: "text", ...extra } });
++const T = i => `2026-11-02T10:00:${String(i).padStart(2, "0")}.000-06:00`;
++
++// 1. said_at is copied onto the Sentence by the live writer.
++const w = new ChatWriter();
++const l = w.mirror("k", { at: T(1), from: { kind: "owner" }, text: "hi", prompt: "p-1", said_at: T(0) })[0];
++ok(l.sentences.add.said_at === T(0), "ChatWriter copies said_at onto the sentence");
++ok(!("said_at" in w.mirror("k", { at: T(2), from: { kind: "owner" }, text: "yo", prompt: "p-2" })[0].sentences.add), "no said_at, none written");
++
++// 2. a hole at the front: the missing lines go BEFORE the mirrored tail, nothing twinned, said_at filled on the existing sentence.
++const v1 = [chat(T(1), "owner", "one", { prompt: "p-1" }), chat(T(2), "smart", "reply one"), chat(T(3), "owner", "two", { prompt: "p-2", said_at: T(2) }), chat(T(4), "smart", "reply two")];
++const tail = new ChatWriter(); tail.state("s");
++const have = [...tail.mirror("s", { ...v1[2].chat, said_at: undefined }), ...tail.mirror("s", v1[3].chat)];
++const file = [...v1, ...have];
++const add = ChatToMessages.plan(file);
++ok(add.length === 3, "two missing messages and the said_at: " + add.length);
++ok(add.some(x => x.sentences?.["" + have[0].sentences.add.id]?.said_at === T(2)), "said_at set in place on the mirrored sentence");
++const s = Session.replay([...file, ...add]);
++const texts = s.messages.messages.map(m => m.sentence_items ? m.sentence_items.map(x => x.text).join(" ") : m.text);
++ok(JSON.stringify(texts) === JSON.stringify(["one", "reply one", "two", "reply two"]), "list order is the chat order: " + JSON.stringify(texts));
++ok(s.sentences.length === 2, "no twin sentence");
++ok(JSON.stringify(V1Bubbles.from_session(s).map(b => b.pieces[0].text)) === JSON.stringify(V1Bubbles.from_chat_lines(file).map(b => b.pieces[0].text)), "same bubbles as V1");
++ok(ChatToMessages.plan([...file, ...add]).length === 0, "idempotent: planning again adds nothing");
++
++// 3. a complete file adds nothing; a file with nothing mirrored gets a plain append (no `after`).
++ok(!ChatToMessages.plan(v1).some(x => x.messages?.add && "after" in x.messages.add), "nothing mirrored: no `after`");
++
++// 4. // the real, partly mirrored v-u48msei session (tracked in git; read only, never written): filled in memory, V1 draws the same.
++const big = ChatToMessages.read(path.join(here, "../public/framework/ai/sessions/2026/11/01/v-u48msei/session.jsonl")), big_add = ChatToMessages.plan(big);
++const rs = Session.replay([...big, ...big_add]), a = V1Bubbles.from_session(rs), b = V1Bubbles.from_chat_lines(big);
++ok(ChatToMessages.plan([...big, ...big_add]).length === 0, "real session: idempotent");
++ok(a.length === b.length && a.every((x, i) => x.sender === b[i].sender && x.pieces.map(p => p.text).join(" ") === b[i].pieces.map(p => p.text).join(" ")), "real session: 0 differing bubbles");
++console.log(`ChatToMessages.test: ${n} checks passed`);
+diff --git a/Server/ChatV1Compare.mjs b/Server/ChatV1Compare.mjs
+index 06c4fb3af..0be20de1f 100644
+--- a/Server/ChatV1Compare.mjs
++++ b/Server/ChatV1Compare.mjs
+@@ -68,12 +68,10 @@ function compare_one(file){
+ 	const lines = read_lines(file);
+ 	const now = coverage(lines, Session.replay(lines));
+ 	let replay_lines = lines, note = ` — ${now.status} mirror (${now.mirrored}/${now.total} {chat} lines)`;
+-	if (now.status === "none"){
+-		const planned = ChatToMessages.plan(lines) ?? [];
++	if (now.status !== "full"){
++		const planned = ChatToMessages.plan(lines);
+ 		replay_lines = [...lines, ...planned];
+ 		note += `, ${planned.length} lines built in memory by ChatToMessages.plan() (never --apply'd) to compare against`;
+-	} else if (now.status === "partial"){
+-		note += " — plan() refuses a file that already has messages lines, so the adapter side below is genuinely short, not a bug";
+ 	}
+ 	const session = Session.replay(replay_lines);
+ 	const v1 = V1Bubbles.from_chat_lines(lines);
+diff --git a/Servex/agents/ChatWriter.js b/Servex/agents/ChatWriter.js
+index 33b92ace7..9dc162fae 100644
+--- a/Servex/agents/ChatWriter.js
++++ b/Servex/agents/ChatWriter.js
+@@ -55,7 +55,7 @@ export default class ChatWriter {
+ 		const st = this.state(key), sid = this.id("s");
+ 		st.by_at.set(chat.at, sid);
+ 		if (st.by_at.size > ChatWriter.KEEP) st.by_at.delete(st.by_at.keys().next().value);
+-		const sentence = { id: sid, at: chat.at, text: chat.text, via: chat.via ?? "text", ...(chat.raw ? { raw: chat.raw } : {}) };
++		const sentence = { id: sid, at: chat.at, text: chat.text, via: chat.via ?? "text", ...(chat.said_at ? { said_at: chat.said_at } : {}), ...(chat.raw ? { raw: chat.raw } : {}) };
+ 		const prompt = chat.prompt ?? null;
+ 		if (st.open && st.last === st.open && st.open_prompt === prompt){
+ 			st.msg_at.set(chat.at, st.open);
+@@ -112,6 +112,9 @@ export default class ChatWriter {
+ 		return { messages: { [mid]: { sent: { [to]: { at } } } }, by: "servex", ts: now_iso() };
+ 	}
+ 
++	/** The line that sets one sentence's cleaned text on its Prompt, in place (used live by `place()` and by the migration). */
++	static clean_line(mid, sid, text){ return { messages: { [mid]: { clean: { [sid]: String(text) } } } }; }
++
+ 	/* A `{place}` line from the fast seat (ux/Dictate/doc/voice-assistant.md), as the line that updates the chat list: its cleaned
+ 	 * `text` (edit "improve" or "both") becomes that sentence's cleaned text on the Prompt that holds it, IN PLACE: the Prompt keeps its
+ 	 * position and its raw words. `session` is the replayed Session; null when there is no text, or no sentence with that `at`.
+@@ -120,6 +123,6 @@ export default class ChatWriter {
+ 		if (!place || !["improve", "both"].includes(place.edit) || !String(place.text ?? "").trim() || !place.re) return null;
+ 		const s = [...(session?._sentences ?? [])].find(x => x.at === place.re);
+ 		const p = s && session._messages?.messages.find(m => m.sentences?.includes?.(s.id));
+-		return p ? { messages: { [p.id]: { clean: { [s.id]: String(place.text) } } } } : null;
++		return p ? ChatWriter.clean_line(p.id, s.id, place.text) : null;
+ 	}
+ }
+diff --git a/public/framework/core/Session/Chat/Sentence.js b/public/framework/core/Session/Chat/Sentence.js
+index 0d422f173..9c1d01c3e 100644
+--- a/public/framework/core/Session/Chat/Sentence.js
++++ b/public/framework/core/Session/Chat/Sentence.js
+@@ -8,6 +8,8 @@ export class Sentence extends Item {
+ 	/** "voice" | "text" (typed). */
+ 	get via(){ return this.get_one("via") ?? null; }
+ 	get at(){ return this.get_one("at") ?? null; }
++	/** When the words left the owner's draft (the V1 line's `said_at`), if it differs from `at`; V1 orders its bubbles by this. */
++	get said_at(){ return this.get_one("said_at") ?? null; }
+ 	get raw(){ return this.get_one("raw") ?? null; }
+ }
+ 
+diff --git a/public/framework/core/Session/Chat/V1Bubbles.js b/public/framework/core/Session/Chat/V1Bubbles.js
+index 0592e9214..fbb76dcce 100644
+--- a/public/framework/core/Session/Chat/V1Bubbles.js
++++ b/public/framework/core/Session/Chat/V1Bubbles.js
+@@ -28,9 +28,9 @@ export class V1Bubbles {
+ 		for (const m of session.messages.messages){
+ 			if (m instanceof Prompt){
+ 				const clean = m.clean;
+-				for (const s of m.sentence_items) out.push({ id: s.id, sender: "owner", text: clean[s.id] ?? s.text, at: V1Bubbles.ms(s.at) });
++				for (const s of m.sentence_items) out.push({ id: s.id, sender: "owner", text: clean[s.id] ?? s.text, at: V1Bubbles.ms(s.said_at ?? s.at) });
+ 			} else if (m instanceof Message){   // Reply or a plain Message; a Ref is not a Message — V1 never draws one as a chat bubble
+-				out.push({ id: m.id, sender: m.by, text: m.text, at: V1Bubbles.ms(m.at) });
++				out.push({ id: m.id, sender: m.by === "system" ? "servex" : m.by, text: m.text, at: V1Bubbles.ms(m.said_at ?? m.at), re: m.re?.to ?? null, level: m.level ?? null });
+ 			}
+ 		}
+ 		return out;
+@@ -38,12 +38,16 @@ export class V1Bubbles {
+ 
+ 	/** The same shape, read straight from the session's own `{chat}` lines, plus the `fix`/`re`/`level` flags `bubbles()` needs. */
+ 	static chat_events(lines){
+-		const out = [];
++		const out = [], by_id = new Map();
+ 		for (const line of lines){
++			const p = line?.place;   // a fast-seat improve rewrites that line's text in place (ext/Chat/Chat.js's fix); the latest wins
++			if (p && ["improve", "both"].includes(p.edit) && String(p.text ?? "").trim() && p.re){ const hit = by_id.get(p.re); if (hit) hit.text = String(p.text); continue; }
+ 			const c = line?.chat;
+ 			if (!c) continue;
+ 			const sender = (c.from?.kind ?? "") === "owner" ? "owner" : (c.from?.id || c.from?.kind || "");
+-			out.push({ id: c.at, sender, text: c.text, at: V1Bubbles.ms(c.said_at ?? c.at), fix: !!c.fix, re: c.re ?? null, level: c.level ?? null });
++			const e = { id: c.at, sender, text: c.text, at: V1Bubbles.ms(c.said_at ?? c.at), fix: !!c.fix, re: c.re ?? null, level: c.level ?? null };
++			by_id.set(c.at, e);
++			out.push(e);
+ 		}
+ 		return out;
+ 	}
+diff --git a/public/framework/core/Session/Chat/doc/pseudo-properties.md b/public/framework/core/Session/Chat/doc/pseudo-properties.md
+index eb21f08ce..ffcc99238 100644
+--- a/public/framework/core/Session/Chat/doc/pseudo-properties.md
++++ b/public/framework/core/Session/Chat/doc/pseudo-properties.md
+@@ -38,10 +38,11 @@ Chat V2 (`ext/Chat/v2/ChatV2Model.js:20`) reads `chat` only to remember which Pr
+ Each step only starts once `node Server/ChatV1Compare.mjs` (read-only; `core/Session/Chat/V1Bubbles.js` is the adapter, `compare.txt` beside this doc's task is one real run) shows the thing that step needs. Run it again before trusting any of these — it moves as more sessions get mirrored.
+ 
+ 1. **V2 and V3 read `messages` first** ([views-on-messages.md](views-on-messages.md)) — done; nothing for the compare to check here.
+-2. **Every session must be FULLY mirrored, not just started.** `ChatV1Compare.mjs` checks every `{chat}` line's `at` against a mirrored Sentence or Message, not just whether any `messages` line exists at all — a file with some but not all mirrored shows as `partial`, never counted as done. By that measure, of the 5 largest real sessions: `v-timqv56` and `v-yxnts4l` have **none** mirrored (every line goes through `ChatToMessages.plan()` in memory to compare at all); `v-u48msei` is **partial** (278 V1 bubbles against 63 from the adapter — only its tail was ever mirrored, `readme.md`'s "only the tail written after chat-model step 1 landed"); `v-sq8y7db` and `v-9dvbbrn` are also **none**. The compare must show **0 `partial` sessions and 0 `none` sessions among the ones that matter** (`v-u48msei` needs a real migration run, not a dry-run plan, before it can pass). ⚠ A `partial` session has no migration path yet: `ChatToMessages.mjs` skips any file that already holds a `messages` or `sentences` line (line 24), so it would need to fill in only the missing lines first. ⬜ Teach `ChatToMessages.mjs` to fill a partial file. Nothing is migrated for real until this step; `--apply` stays unused.
+-3. **`said_at` must be mirrored, or ordering can't match.** `ChatWriter` never writes `said_at` onto a Sentence or Message (grep confirms it: the field only exists on the raw `{chat}` lines) — only the plain `at`. V1 orders and merges bubbles by `said_at ?? at` (`ext/Chat/Chat.js:785`); where a `{chat}` line's `said_at` differs from its `at` (1,648 of `v-sq8y7db`'s lines, 1,004 of `v-9dvbbrn`'s — checked directly, `grep -c said_at`), the adapter is reading a different clock than V1 and the two bubble lists drift apart from that point on (`compare.txt`: 1183 of 1314 bubbles differ on `v-sq8y7db`, 716 of 765 on `v-9dvbbrn`). The two sessions with **no** `said_at` lines at all (`v-yxnts4l`, `v-timqv56`) show 7 and 0 differing bubbles instead — `said_at` is confirmed as the cause, not a flaw in how bubbles are read (`V1Bubbles.test.mjs` proves the merge/reorder/fix logic itself matches V1 exactly on a fixture built to exercise it). A second check makes it firm: with `said_at` stripped from both sides, the compare drops from 1183 differing bubbles to 2 on `v-sq8y7db` and from 716 to 0 on `v-9dvbbrn` (step-8 review). The compare must show **0 differing bubbles**, not just equal counts, once step 2 holds — and that needs `said_at` mirrored onto the Sentence/Message first.
+-4. **V1's `Widget.js` draws `session.messages` instead of `{chat}`/`{place}`,** and its `waiting`/`orphans` machinery goes — only once a session clears step 3.
++2. ✅ **Every session can be filled to FULLY mirrored (2026-11-02, v1-switch-prep).** `ChatToMessages.plan()` now fills a partly mirrored file: it adds only the missing messages, each `after` the message of the chat line before it (so a hole at the front lands at the front), never twins one that is there, copies `{place}` improves into `clean`, and plans nothing on a complete file (running its own output again plans nothing). Dry run by default; `--apply` appends. Nothing was applied to a real session: the compare fills each in memory. What is left is the real run, `--apply` per file, when the owner decides (step 6).
++3. ✅ **`said_at` is mirrored.** `ChatWriter.owner()` copies the V1 line's `said_at` onto the Sentence (`Sentence.said_at`); `V1Bubbles` orders by `said_at ?? at` like V1 does; the fill sets it in place on an already-mirrored sentence that lacks it. Servex has to restart to write it live; older sessions get it from the fill. Two more differences the compare found and fixed on the adapter side (not data): a Servex note is `by: "system"` in the list and `servex` in V1 (`V1Bubbles` maps it), and a `level` reply to a sentence is a revision of that bubble, not a bubble of its own (`re`/`level` are now passed through).
++   **Result, the same 5 sessions, each filled in memory only:** `v-sq8y7db` 1314 bubbles / 0 differing, `v-9dvbbrn` 765 / 0, `v-u48msei` (partial) 278 / 0, `v-yxnts4l` 215 / 0, `v-timqv56` 170 / 0. Before: 1183, 716, and the rest.
++4. **V1's `Widget.js` draws `session.messages` instead of `{chat}`/`{place}`,** and its `waiting`/`orphans` machinery goes — only once a session clears step 3 (all five do; the live sessions need a Servex restart so new lines carry `said_at`).
+ 5. **The other ~20 readers move one by one** (read-aloud, timeline, mobile — the list above, "Who draws them").
+-6. **Last, Servex stops writing `{chat}` and `{place}`,** and every remaining old session is migrated for real: `node Server/ChatToMessages.mjs --apply` on each file the compare still finds `none`; a `partial` file waits for the fill-in above.
++6. **Last, Servex stops writing `{chat}` and `{place}`,** and every remaining old session is migrated for real: `node Server/ChatToMessages.mjs --apply` on each file the compare still finds `none`; a `partial` file is filled by the same command (step 2).
+ 
+-Until step 6 both are written, and the `{chat}` lines stay exactly as they were. Steps 2 to 6 are not built yet; `V1Bubbles.js` and `ChatV1Compare.mjs` are read-only tools, not a migration.
++Until step 6 both are written, and the `{chat}` lines stay exactly as they were. Steps 4 to 6 are not built yet; `V1Bubbles.js` and `ChatV1Compare.mjs` are read-only tools, not a migration.
+diff --git a/public/framework/core/Session/Chat/readme.md b/public/framework/core/Session/Chat/readme.md
+index 30ca0bd0f..38ca0b266 100644
+--- a/public/framework/core/Session/Chat/readme.md
++++ b/public/framework/core/Session/Chat/readme.md
+@@ -10,7 +10,7 @@ Why: the chat used to live in pseudo lines (`{chat}`, `{place}`) that each view
+ session.sentences: List<Sentence>     // the raw words, append-only, never moved
+ session.messages:  Chat               // the conversation, in order (class Chat extends List)
+ 
+-class Sentence extends Item { text, via: "voice"|"text", at, raw? }                // ./Sentence.js
++class Sentence extends Item { text, via: "voice"|"text", at, said_at?, raw? }                // ./Sentence.js
+ class Message  extends Item { by: "owner"|"smart"|"fast"|"system", at, text }      // ./Message.js
+ class Prompt   extends Message { sentences: [ids], clean: {<sentence id>: text}, title?, text?, state, prompt?, raw, cleaned,
+                                   kind?: "task"|"request"|"question", items: List<PromptItem|Ref>, sent: {fast?, smart?}, working? }  // ./Prompt.js
+@@ -77,7 +77,7 @@ Ids: `s-<ms>` and `m-<ms>` from Servex; the item tool gives an agent's add an 8-
+ 
+ ## Migration (written, not run)
+ 
+-`node Server/ChatToMessages.mjs <session.jsonl …>` prints the lines an older session would have had, made by the same `ChatWriter`; `--apply` appends them (never rewrites) and records each file in `ai/sessions/chat-messages-moves.jsonl`. Not run: the owner wants the list to prove itself first. It cannot know when the owner was mid-thought, so old replies keep V1's positions.
++`node Server/ChatToMessages.mjs <session.jsonl …>` prints the lines an older session would have had, made by the same `ChatWriter`; `--apply` appends them (never rewrites; a partly mirrored file gets only what is missing, with `after` to place it) and records each file in `ai/sessions/chat-messages-moves.jsonl`. Not run on real sessions: the owner wants the list to prove itself first. It cannot know when the owner was mid-thought, so old replies keep V1's positions. Test: `node Server/ChatToMessages.test.mjs`.
+ 
+ ## More
+ 
+@@ -94,6 +94,6 @@ Ids: `s-<ms>` and `m-<ms>` from Servex; the item tool gives an agent's add an 8-
+ - ✅ V1 side by side, read-only (2026-11-02, chat-model step 8): `V1Bubbles.js` turns `session.messages` into the bubble list V1 draws (merge, `place()`'s time-reordering, and a `fix`'s in-place correction, all mirrored as plain data); `Server/ChatV1Compare.mjs` builds that list the V1 way (from `{chat}` lines) and the adapter way for real sessions and prints where they differ — run on the 5 largest voice sessions, raw output at `ai/sessions/2026/10/20/session-e00f55c9/chat-model/s8/compare.txt`. Found: none of the 5 are fully mirrored (2 `none`, 1 `partial`, and `said_at` — mirrored nowhere today — is the main reason the two others' bubble lists drift once `{chat}`'s `said_at` differs from its `at`). The switch-over steps it gates: [doc/pseudo-properties.md](doc/pseudo-properties.md#how-v1-switches-over-not-yet-buildermd-step-8).
+ - ⬜ Question and Card as messages, when a writer needs them.
+ - ⬜ remove the old `said` alias once Chat V3 reads `sent.smart` (and `raw`) directly, instead of `ext/Chat/v3/ChatV3.js:163`'s `p.cleaned || p.said`.
+-- ⬜ Mirror `said_at` onto the Sentence/Message (`ChatWriter`): without it V1 and the adapter sort by different clocks (with it stripped, the compare drops to 2 and 0 differing bubbles; [pseudo-properties.md](doc/pseudo-properties.md#how-v1-switches-over-not-yet-buildermd-step-8) step 3).
+-- ⬜ Teach `Server/ChatToMessages.mjs` to fill a `partial` file (only the unmirrored `{chat}` lines); today it skips any file that already has `messages` lines.
++- ✅ `said_at` is mirrored onto the Sentence by `ChatWriter` and read by `V1Bubbles` (2026-11-02, v1-switch-prep).
++- ✅ `Server/ChatToMessages.mjs` fills a partly mirrored session (missing messages only, in place, no twins; `{place}` improves into `clean`; `said_at` set in place): `node Server/ChatToMessages.test.mjs` (11 checks). The compare, each of the 5 largest sessions filled in memory: 0 differing bubbles.
+ - ⬜ V1 switches to the list, then the `{chat}` lines stop (the owner's decision #1, "later").

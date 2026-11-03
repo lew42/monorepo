@@ -1,0 +1,826 @@
+{
+ "note": "Raw per-page scores from the controlled rubric experiment: independent claude-sonnet-5 passes over the SAME 18 byte-identical PNGs, identical harness and prompt, differing ONLY in which rubric file the scorer read. v1 = the five axes and 30/60/90 anchors verbatim from vision-baseline/baseline.json plus a judged overall. v2 = the rejected rewrite (six axes, contrast split into legibility+emphasis, every anchor a countable fact, no judged overall). Derived statistics are in agreement.json; the verdict and the diagnosis are in task.jsonl. Feedback prose is omitted for size -- the two decisive quotes are logged.",
+ "generated_at": "2026-08-17T17:00:11.921Z",
+ "model": "claude-sonnet-5",
+ "harness": "claude -p --output-format json --allowedTools Read Write --permission-mode acceptEdits, fenced from every existing score file in the repo",
+ "v2_pass_3": "FAILED: response exceeded the 32000 output token maximum after 1506s, $3.93 spent, no output. v1 completed 3/3.",
+ "passes": [
+  {
+   "rubric": "v1",
+   "pass": 1,
+   "axes": [
+    "layout",
+    "typography",
+    "contrast",
+    "density",
+    "hierarchy"
+   ],
+   "cost_usd": 1.282,
+   "cost_per_image_usd": 0.071,
+   "tokens": 426765,
+   "tokens_per_image": 23709,
+   "turns": 21,
+   "seconds": 216,
+   "scores": {
+    "/framework/": {
+     "layout": 78,
+     "typography": 85,
+     "contrast": 85,
+     "density": 80,
+     "hierarchy": 85,
+     "overall": 82
+    },
+    "/framework/ext/LayoutTool/tests/": {
+     "layout": 74,
+     "typography": 82,
+     "contrast": 80,
+     "density": 76,
+     "hierarchy": 78,
+     "overall": 76
+    },
+    "/web/nav/sidebar/": {
+     "layout": 68,
+     "typography": 74,
+     "contrast": 74,
+     "density": 60,
+     "hierarchy": 66,
+     "overall": 65
+    },
+    "/framework/ext/toc/": {
+     "layout": 82,
+     "typography": 85,
+     "contrast": 85,
+     "density": 74,
+     "hierarchy": 80,
+     "overall": 80
+    },
+    "/framework/ui/panel/": {
+     "layout": 80,
+     "typography": 85,
+     "contrast": 88,
+     "density": 66,
+     "hierarchy": 88,
+     "overall": 79
+    },
+    "/framework/ui/tags/": {
+     "layout": 83,
+     "typography": 85,
+     "contrast": 85,
+     "density": 78,
+     "hierarchy": 82,
+     "overall": 82
+    },
+    "/web/layout/flow/": {
+     "layout": 50,
+     "typography": 78,
+     "contrast": 80,
+     "density": 42,
+     "hierarchy": 58,
+     "overall": 52
+    },
+    "/framework/core/Page/": {
+     "layout": 73,
+     "typography": 80,
+     "contrast": 82,
+     "density": 76,
+     "hierarchy": 64,
+     "overall": 72
+    },
+    "/framework/ext/layout/": {
+     "layout": 85,
+     "typography": 85,
+     "contrast": 85,
+     "density": 82,
+     "hierarchy": 83,
+     "overall": 84
+    },
+    "/web/nav/wall/": {
+     "layout": 78,
+     "typography": 82,
+     "contrast": 82,
+     "density": 80,
+     "hierarchy": 82,
+     "overall": 80
+    },
+    "/framework/styles/layers/theme/lew42/": {
+     "layout": 80,
+     "typography": 82,
+     "contrast": 82,
+     "density": 78,
+     "hierarchy": 80,
+     "overall": 80
+    },
+    "/web/nav/crumbs/": {
+     "layout": 58,
+     "typography": 82,
+     "contrast": 82,
+     "density": 52,
+     "hierarchy": 66,
+     "overall": 63
+    },
+    "/framework/core/Page/overview/children/": {
+     "layout": 76,
+     "typography": 80,
+     "contrast": 82,
+     "density": 70,
+     "hierarchy": 78,
+     "overall": 75
+    },
+    "/framework/audit/": {
+     "layout": 62,
+     "typography": 78,
+     "contrast": 80,
+     "density": 60,
+     "hierarchy": 72,
+     "overall": 68
+    },
+    "/framework/core/Page/nav/": {
+     "layout": 72,
+     "typography": 80,
+     "contrast": 80,
+     "density": 74,
+     "hierarchy": 78,
+     "overall": 75
+    },
+    "/framework/styles/layers/util/": {
+     "layout": 78,
+     "typography": 82,
+     "contrast": 82,
+     "density": 78,
+     "hierarchy": 80,
+     "overall": 79
+    },
+    "/notes/git-branch-names/": {
+     "layout": 62,
+     "typography": 80,
+     "contrast": 85,
+     "density": 78,
+     "hierarchy": 82,
+     "overall": 75
+    },
+    "/framework/ai/": {
+     "layout": 82,
+     "typography": 80,
+     "contrast": 82,
+     "density": 80,
+     "hierarchy": 82,
+     "overall": 80
+    }
+   }
+  },
+  {
+   "rubric": "v1",
+   "pass": 2,
+   "axes": [
+    "layout",
+    "typography",
+    "contrast",
+    "density",
+    "hierarchy"
+   ],
+   "cost_usd": 1.5289,
+   "cost_per_image_usd": 0.085,
+   "tokens": 270815,
+   "tokens_per_image": 15045,
+   "turns": 21,
+   "seconds": 281,
+   "scores": {
+    "/framework/": {
+     "layout": 85,
+     "typography": 85,
+     "contrast": 80,
+     "density": 78,
+     "hierarchy": 88,
+     "overall": 85
+    },
+    "/framework/ext/LayoutTool/tests/": {
+     "layout": 78,
+     "typography": 72,
+     "contrast": 82,
+     "density": 75,
+     "hierarchy": 80,
+     "overall": 76
+    },
+    "/web/nav/sidebar/": {
+     "layout": 66,
+     "typography": 68,
+     "contrast": 78,
+     "density": 62,
+     "hierarchy": 72,
+     "overall": 69
+    },
+    "/framework/ext/toc/": {
+     "layout": 68,
+     "typography": 78,
+     "contrast": 82,
+     "density": 65,
+     "hierarchy": 70,
+     "overall": 71
+    },
+    "/framework/ui/panel/": {
+     "layout": 85,
+     "typography": 82,
+     "contrast": 88,
+     "density": 80,
+     "hierarchy": 88,
+     "overall": 86
+    },
+    "/framework/ui/tags/": {
+     "layout": 84,
+     "typography": 82,
+     "contrast": 80,
+     "density": 78,
+     "hierarchy": 85,
+     "overall": 82
+    },
+    "/web/layout/flow/": {
+     "layout": 55,
+     "typography": 60,
+     "contrast": 68,
+     "density": 55,
+     "hierarchy": 62,
+     "overall": 59
+    },
+    "/framework/core/Page/": {
+     "layout": 80,
+     "typography": 82,
+     "contrast": 84,
+     "density": 74,
+     "hierarchy": 76,
+     "overall": 78
+    },
+    "/framework/ext/layout/": {
+     "layout": 87,
+     "typography": 85,
+     "contrast": 87,
+     "density": 82,
+     "hierarchy": 88,
+     "overall": 87
+    },
+    "/web/nav/wall/": {
+     "layout": 84,
+     "typography": 84,
+     "contrast": 85,
+     "density": 80,
+     "hierarchy": 85,
+     "overall": 84
+    },
+    "/framework/styles/layers/theme/lew42/": {
+     "layout": 82,
+     "typography": 83,
+     "contrast": 84,
+     "density": 78,
+     "hierarchy": 82,
+     "overall": 82
+    },
+    "/web/nav/crumbs/": {
+     "layout": 78,
+     "typography": 82,
+     "contrast": 84,
+     "density": 68,
+     "hierarchy": 80,
+     "overall": 77
+    },
+    "/framework/core/Page/overview/children/": {
+     "layout": 80,
+     "typography": 81,
+     "contrast": 83,
+     "density": 76,
+     "hierarchy": 80,
+     "overall": 80
+    },
+    "/framework/audit/": {
+     "layout": 68,
+     "typography": 80,
+     "contrast": 82,
+     "density": 66,
+     "hierarchy": 74,
+     "overall": 73
+    },
+    "/framework/core/Page/nav/": {
+     "layout": 84,
+     "typography": 82,
+     "contrast": 85,
+     "density": 78,
+     "hierarchy": 84,
+     "overall": 83
+    },
+    "/framework/styles/layers/util/": {
+     "layout": 82,
+     "typography": 82,
+     "contrast": 84,
+     "density": 78,
+     "hierarchy": 82,
+     "overall": 81
+    },
+    "/notes/git-branch-names/": {
+     "layout": 45,
+     "typography": 78,
+     "contrast": 82,
+     "density": 55,
+     "hierarchy": 65,
+     "overall": 56
+    },
+    "/framework/ai/": {
+     "layout": 84,
+     "typography": 82,
+     "contrast": 80,
+     "density": 80,
+     "hierarchy": 85,
+     "overall": 83
+    }
+   }
+  },
+  {
+   "rubric": "v1",
+   "pass": 3,
+   "axes": [
+    "layout",
+    "typography",
+    "contrast",
+    "density",
+    "hierarchy"
+   ],
+   "cost_usd": 1.8408,
+   "cost_per_image_usd": 0.102,
+   "tokens": 1300995,
+   "tokens_per_image": 72278,
+   "turns": 31,
+   "seconds": 259,
+   "scores": {
+    "/framework/": {
+     "layout": 82,
+     "typography": 78,
+     "contrast": 80,
+     "density": 78,
+     "hierarchy": 85,
+     "overall": 82
+    },
+    "/framework/ext/LayoutTool/tests/": {
+     "layout": 84,
+     "typography": 74,
+     "contrast": 78,
+     "density": 72,
+     "hierarchy": 80,
+     "overall": 78
+    },
+    "/web/nav/sidebar/": {
+     "layout": 62,
+     "typography": 72,
+     "contrast": 76,
+     "density": 55,
+     "hierarchy": 65,
+     "overall": 65
+    },
+    "/framework/ext/toc/": {
+     "layout": 80,
+     "typography": 76,
+     "contrast": 82,
+     "density": 78,
+     "hierarchy": 80,
+     "overall": 79
+    },
+    "/framework/ui/panel/": {
+     "layout": 82,
+     "typography": 80,
+     "contrast": 84,
+     "density": 78,
+     "hierarchy": 84,
+     "overall": 82
+    },
+    "/framework/ui/tags/": {
+     "layout": 82,
+     "typography": 78,
+     "contrast": 74,
+     "density": 76,
+     "hierarchy": 80,
+     "overall": 79
+    },
+    "/web/layout/flow/": {
+     "layout": 46,
+     "typography": 74,
+     "contrast": 76,
+     "density": 38,
+     "hierarchy": 55,
+     "overall": 52
+    },
+    "/framework/core/Page/": {
+     "layout": 84,
+     "typography": 78,
+     "contrast": 80,
+     "density": 74,
+     "hierarchy": 76,
+     "overall": 78
+    },
+    "/framework/ext/layout/": {
+     "layout": 84,
+     "typography": 82,
+     "contrast": 82,
+     "density": 80,
+     "hierarchy": 82,
+     "overall": 82
+    },
+    "/web/nav/wall/": {
+     "layout": 68,
+     "typography": 78,
+     "contrast": 78,
+     "density": 68,
+     "hierarchy": 68,
+     "overall": 70
+    },
+    "/framework/styles/layers/theme/lew42/": {
+     "layout": 80,
+     "typography": 78,
+     "contrast": 80,
+     "density": 76,
+     "hierarchy": 78,
+     "overall": 78
+    },
+    "/web/nav/crumbs/": {
+     "layout": 66,
+     "typography": 80,
+     "contrast": 82,
+     "density": 58,
+     "hierarchy": 74,
+     "overall": 71
+    },
+    "/framework/core/Page/overview/children/": {
+     "layout": 82,
+     "typography": 78,
+     "contrast": 78,
+     "density": 76,
+     "hierarchy": 80,
+     "overall": 79
+    },
+    "/framework/audit/": {
+     "layout": 54,
+     "typography": 74,
+     "contrast": 80,
+     "density": 56,
+     "hierarchy": 66,
+     "overall": 64
+    },
+    "/framework/core/Page/nav/": {
+     "layout": 84,
+     "typography": 78,
+     "contrast": 80,
+     "density": 82,
+     "hierarchy": 84,
+     "overall": 82
+    },
+    "/framework/styles/layers/util/": {
+     "layout": 66,
+     "typography": 78,
+     "contrast": 68,
+     "density": 55,
+     "hierarchy": 68,
+     "overall": 66
+    },
+    "/notes/git-branch-names/": {
+     "layout": 56,
+     "typography": 82,
+     "contrast": 84,
+     "density": 62,
+     "hierarchy": 82,
+     "overall": 71
+    },
+    "/framework/ai/": {
+     "layout": 84,
+     "typography": 80,
+     "contrast": 82,
+     "density": 80,
+     "hierarchy": 84,
+     "overall": 82
+    }
+   }
+  },
+  {
+   "rubric": "v2",
+   "pass": 1,
+   "axes": [
+    "layout",
+    "typography",
+    "legibility",
+    "emphasis",
+    "density",
+    "hierarchy"
+   ],
+   "cost_usd": 0.9821,
+   "cost_per_image_usd": 0.055,
+   "tokens": 358742,
+   "tokens_per_image": 19930,
+   "turns": 21,
+   "seconds": 123,
+   "scores": {
+    "/framework/": {
+     "layout": 88,
+     "typography": 78,
+     "legibility": 90,
+     "emphasis": 82,
+     "density": 62,
+     "hierarchy": 90
+    },
+    "/framework/ext/LayoutTool/tests/": {
+     "layout": 60,
+     "typography": 65,
+     "legibility": 88,
+     "emphasis": 70,
+     "density": 78,
+     "hierarchy": 82
+    },
+    "/web/nav/sidebar/": {
+     "layout": 30,
+     "typography": 68,
+     "legibility": 65,
+     "emphasis": 60,
+     "density": 42,
+     "hierarchy": 78
+    },
+    "/framework/ext/toc/": {
+     "layout": 90,
+     "typography": 72,
+     "legibility": 90,
+     "emphasis": 75,
+     "density": 68,
+     "hierarchy": 85
+    },
+    "/framework/ui/panel/": {
+     "layout": 90,
+     "typography": 68,
+     "legibility": 88,
+     "emphasis": 65,
+     "density": 60,
+     "hierarchy": 88
+    },
+    "/framework/ui/tags/": {
+     "layout": 90,
+     "typography": 70,
+     "legibility": 90,
+     "emphasis": 68,
+     "density": 65,
+     "hierarchy": 88
+    },
+    "/web/layout/flow/": {
+     "layout": 30,
+     "typography": 65,
+     "legibility": 62,
+     "emphasis": 65,
+     "density": 30,
+     "hierarchy": 80
+    },
+    "/framework/core/Page/": {
+     "layout": 60,
+     "typography": 68,
+     "legibility": 85,
+     "emphasis": 68,
+     "density": 72,
+     "hierarchy": 82
+    },
+    "/framework/ext/layout/": {
+     "layout": 90,
+     "typography": 65,
+     "legibility": 88,
+     "emphasis": 72,
+     "density": 55,
+     "hierarchy": 85
+    },
+    "/web/nav/wall/": {
+     "layout": 30,
+     "typography": 70,
+     "legibility": 85,
+     "emphasis": 70,
+     "density": 55,
+     "hierarchy": 82
+    },
+    "/framework/styles/layers/theme/lew42/": {
+     "layout": 90,
+     "typography": 68,
+     "legibility": 82,
+     "emphasis": 70,
+     "density": 65,
+     "hierarchy": 85
+    },
+    "/web/nav/crumbs/": {
+     "layout": 30,
+     "typography": 68,
+     "legibility": 88,
+     "emphasis": 72,
+     "density": 40,
+     "hierarchy": 85
+    },
+    "/framework/core/Page/overview/children/": {
+     "layout": 60,
+     "typography": 65,
+     "legibility": 85,
+     "emphasis": 65,
+     "density": 72,
+     "hierarchy": 78
+    },
+    "/framework/audit/": {
+     "layout": 60,
+     "typography": 68,
+     "legibility": 88,
+     "emphasis": 65,
+     "density": 42,
+     "hierarchy": 82
+    },
+    "/framework/core/Page/nav/": {
+     "layout": 60,
+     "typography": 62,
+     "legibility": 88,
+     "emphasis": 62,
+     "density": 55,
+     "hierarchy": 80
+    },
+    "/framework/styles/layers/util/": {
+     "layout": 90,
+     "typography": 62,
+     "legibility": 88,
+     "emphasis": 62,
+     "density": 55,
+     "hierarchy": 85
+    },
+    "/notes/git-branch-names/": {
+     "layout": 90,
+     "typography": 72,
+     "legibility": 88,
+     "emphasis": 68,
+     "density": 65,
+     "hierarchy": 88
+    },
+    "/framework/ai/": {
+     "layout": 88,
+     "typography": 55,
+     "legibility": 55,
+     "emphasis": 55,
+     "density": 62,
+     "hierarchy": 85
+    }
+   }
+  },
+  {
+   "rubric": "v2",
+   "pass": 2,
+   "axes": [
+    "layout",
+    "typography",
+    "legibility",
+    "emphasis",
+    "density",
+    "hierarchy"
+   ],
+   "cost_usd": 2.5434,
+   "cost_per_image_usd": 0.141,
+   "tokens": 501146,
+   "tokens_per_image": 27841,
+   "turns": 21,
+   "seconds": 700,
+   "scores": {
+    "/framework/": {
+     "layout": 60,
+     "typography": 58,
+     "legibility": 85,
+     "emphasis": 85,
+     "density": 75,
+     "hierarchy": 88
+    },
+    "/framework/ext/LayoutTool/tests/": {
+     "layout": 55,
+     "typography": 60,
+     "legibility": 60,
+     "emphasis": 82,
+     "density": 82,
+     "hierarchy": 58
+    },
+    "/web/nav/sidebar/": {
+     "layout": 88,
+     "typography": 88,
+     "legibility": 60,
+     "emphasis": 85,
+     "density": 55,
+     "hierarchy": 90
+    },
+    "/framework/ext/toc/": {
+     "layout": 60,
+     "typography": 60,
+     "legibility": 60,
+     "emphasis": 82,
+     "density": 60,
+     "hierarchy": 85
+    },
+    "/framework/ui/panel/": {
+     "layout": 85,
+     "typography": 65,
+     "legibility": 60,
+     "emphasis": 82,
+     "density": 78,
+     "hierarchy": 82
+    },
+    "/framework/ui/tags/": {
+     "layout": 85,
+     "typography": 65,
+     "legibility": 78,
+     "emphasis": 80,
+     "density": 80,
+     "hierarchy": 85
+    },
+    "/web/layout/flow/": {
+     "layout": 30,
+     "typography": 82,
+     "legibility": 88,
+     "emphasis": 78,
+     "density": 40,
+     "hierarchy": 75
+    },
+    "/framework/core/Page/": {
+     "layout": 55,
+     "typography": 70,
+     "legibility": 60,
+     "emphasis": 80,
+     "density": 82,
+     "hierarchy": 55
+    },
+    "/framework/ext/layout/": {
+     "layout": 82,
+     "typography": 70,
+     "legibility": 82,
+     "emphasis": 78,
+     "density": 78,
+     "hierarchy": 85
+    },
+    "/web/nav/wall/": {
+     "layout": 85,
+     "typography": 85,
+     "legibility": 62,
+     "emphasis": 78,
+     "density": 72,
+     "hierarchy": 85
+    },
+    "/framework/styles/layers/theme/lew42/": {
+     "layout": 80,
+     "typography": 72,
+     "legibility": 80,
+     "emphasis": 75,
+     "density": 75,
+     "hierarchy": 58
+    },
+    "/web/nav/crumbs/": {
+     "layout": 85,
+     "typography": 82,
+     "legibility": 60,
+     "emphasis": 80,
+     "density": 50,
+     "hierarchy": 88
+    },
+    "/framework/core/Page/overview/children/": {
+     "layout": 55,
+     "typography": 68,
+     "legibility": 60,
+     "emphasis": 78,
+     "density": 78,
+     "hierarchy": 50
+    },
+    "/framework/audit/": {
+     "layout": 55,
+     "typography": 78,
+     "legibility": 85,
+     "emphasis": 75,
+     "density": 55,
+     "hierarchy": 80
+    },
+    "/framework/core/Page/nav/": {
+     "layout": 82,
+     "typography": 70,
+     "legibility": 60,
+     "emphasis": 75,
+     "density": 62,
+     "hierarchy": 85
+    },
+    "/framework/styles/layers/util/": {
+     "layout": 78,
+     "typography": 68,
+     "legibility": 80,
+     "emphasis": 78,
+     "density": 68,
+     "hierarchy": 85
+    },
+    "/notes/git-branch-names/": {
+     "layout": 35,
+     "typography": 82,
+     "legibility": 88,
+     "emphasis": 80,
+     "density": 42,
+     "hierarchy": 85
+    },
+    "/framework/ai/": {
+     "layout": 82,
+     "typography": 68,
+     "legibility": 78,
+     "emphasis": 70,
+     "density": 80,
+     "hierarchy": 78
+    }
+   }
+  }
+ ]
+}

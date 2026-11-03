@@ -1,0 +1,2 @@
+2. [accept] The measurements show 40 live iframes cannot load in 2 s, and the real fix (a picture per card) is a separate hour of work. It is recorded with numbers in catalog/doc/next.md, and the queue shipped as a partial fix.
+5. [accept] The 2-row tab bar comes from the shared ext/Doc tab layout, outside this task's fence, and it is recorded as review.md finding 6 plus an owner note. The new INSTANCETREE tab does add to the crowding, so the owner note must stay visible.

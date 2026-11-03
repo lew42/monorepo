@@ -1,0 +1,9941 @@
+{
+	"what": "Every already-open column's shift when a new column opens, core columns as they are on 2026-09-17.",
+	"how": "Headless Chromium, http://localhost:8096, one fresh context per page+width. Arrive, then click the first un-opened nav link in the rightmost column that has one, five times. Measured per visible .page-column-body inside the widest visible .page-columns-row: viewport x, offsetLeft inside the row, width, and the top of its first five a.page-column-item links.",
+	"columns": {
+		"dx": "viewport x shift of a column that was already open",
+		"dleft": "its layout shift inside the row",
+		"dw": "its width change",
+		"dy": "the largest y shift of one of its first five nav links",
+		"closed": "columns that were open before and are gone after"
+	},
+	"runs": [
+		{
+			"url": "/imagine/",
+			"width": 1280,
+			"errs": [],
+			"steps": [
+				{
+					"what": "arrival",
+					"snap": {
+						"row": {
+							"x": 0,
+							"y": 40.4,
+							"w": 1280,
+							"scrollLeft": 0,
+							"scrollW": 1280
+						},
+						"bar": {
+							"x": 0,
+							"y": 0,
+							"w": 1280,
+							"h": 40.4
+						},
+						"crumbs": [
+							{
+								"t": "Imagine",
+								"x": 20.5,
+								"y": 7.5
+							}
+						],
+						"cols": [
+							{
+								"title": "Imagine",
+								"cls": "page-column-small",
+								"x": 0,
+								"left": 0,
+								"w": 210.5,
+								"links": [
+									{
+										"t": "grid_viewStart",
+										"y": 98.3
+									},
+									{
+										"t": "groupsTeamchevron_right",
+										"y": 132.2
+									},
+									{
+										"t": "paletteDesignchevron_rig",
+										"y": 166
+									},
+									{
+										"t": "publicPlatformchevron_ri",
+										"y": 199.8
+									},
+									{
+										"t": "equalizerImportancechevr",
+										"y": 233.6
+									}
+								]
+							},
+							{
+								"title": "Start",
+								"cls": "page-column-large",
+								"x": 210.5,
+								"left": 211,
+								"w": 962.5,
+								"links": []
+							}
+						]
+					}
+				},
+				{
+					"what": "click 2",
+					"clicked": "grid_viewStart",
+					"from_col": 0,
+					"cols_before": 2,
+					"cols_after": 2,
+					"snap": {
+						"row": {
+							"x": 0,
+							"y": 40.4,
+							"w": 1280,
+							"scrollLeft": 0,
+							"scrollW": 1280
+						},
+						"bar": {
+							"x": 0,
+							"y": 0,
+							"w": 1280,
+							"h": 40.4
+						},
+						"crumbs": [
+							{
+								"t": "Imagine",
+								"x": 20.5,
+								"y": 7.5
+							},
+							{
+								"t": "Start",
+								"x": 100.9,
+								"y": 7.5
+							}
+						],
+						"cols": [
+							{
+								"title": "Imagine",
+								"cls": "page-column-small",
+								"x": 0,
+								"left": 0,
+								"w": 210.5,
+								"links": [
+									{
+										"t": "grid_viewStart",
+										"y": 98.3
+									},
+									{
+										"t": "groupsTeamchevron_right",
+										"y": 132.2
+									},
+									{
+										"t": "paletteDesignchevron_rig",
+										"y": 166
+									},
+									{
+										"t": "publicPlatformchevron_ri",
+										"y": 199.8
+									},
+									{
+										"t": "equalizerImportancechevr",
+										"y": 233.6
+									}
+								]
+							},
+							{
+								"title": "Start",
+								"cls": "page-column-large",
+								"x": 210.5,
+								"left": 211,
+								"w": 962.5,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Imagine",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 0,
+								"w": 210.5
+							},
+							"after": {
+								"x": 0,
+								"w": 210.5
+							}
+						},
+						{
+							"title": "Start",
+							"cls": "page-column-large",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 210.5,
+								"w": 962.5
+							},
+							"after": {
+								"x": 210.5,
+								"w": 962.5
+							}
+						}
+					]
+				},
+				{
+					"what": "click 3",
+					"clicked": "groupsTeamchevron_right",
+					"from_col": 0,
+					"cols_before": 2,
+					"cols_after": 3,
+					"snap": {
+						"row": {
+							"x": 0,
+							"y": 40.4,
+							"w": 1280,
+							"scrollLeft": 0,
+							"scrollW": 1280
+						},
+						"bar": {
+							"x": 0,
+							"y": 0,
+							"w": 1280,
+							"h": 40.4
+						},
+						"crumbs": [
+							{
+								"t": "Imagine",
+								"x": 20.5,
+								"y": 7.5
+							},
+							{
+								"t": "Team",
+								"x": 100.9,
+								"y": 7.5
+							}
+						],
+						"cols": [
+							{
+								"title": "Imagine",
+								"cls": "page-column-small",
+								"x": 0,
+								"left": 0,
+								"w": 210.5,
+								"links": [
+									{
+										"t": "grid_viewStart",
+										"y": 98.3
+									},
+									{
+										"t": "groupsTeamchevron_right",
+										"y": 132.2
+									},
+									{
+										"t": "paletteDesignchevron_rig",
+										"y": 166
+									},
+									{
+										"t": "publicPlatformchevron_ri",
+										"y": 199.8
+									},
+									{
+										"t": "equalizerImportancechevr",
+										"y": 233.6
+									}
+								]
+							},
+							{
+								"title": "Team",
+								"cls": "page-column-small",
+								"x": 210.5,
+								"left": 211,
+								"w": 210.5,
+								"links": []
+							},
+							{
+								"title": "Board",
+								"cls": "page-column-fill",
+								"x": 421.1,
+								"left": 421,
+								"w": 858.9,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Imagine",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 0,
+								"w": 210.5
+							},
+							"after": {
+								"x": 0,
+								"w": 210.5
+							}
+						},
+						{
+							"title": "Start",
+							"cls": "page-column-large",
+							"closed": true
+						}
+					]
+				},
+				{
+					"what": "click 4",
+					"clicked": "grid_viewStart",
+					"from_col": 0,
+					"cols_before": 3,
+					"cols_after": 2,
+					"snap": {
+						"row": {
+							"x": 0,
+							"y": 40.4,
+							"w": 1280,
+							"scrollLeft": 0,
+							"scrollW": 1280
+						},
+						"bar": {
+							"x": 0,
+							"y": 0,
+							"w": 1280,
+							"h": 40.4
+						},
+						"crumbs": [
+							{
+								"t": "Imagine",
+								"x": 20.5,
+								"y": 7.5
+							},
+							{
+								"t": "Start",
+								"x": 100.9,
+								"y": 7.5
+							}
+						],
+						"cols": [
+							{
+								"title": "Imagine",
+								"cls": "page-column-small",
+								"x": 0,
+								"left": 0,
+								"w": 210.5,
+								"links": [
+									{
+										"t": "grid_viewStart",
+										"y": 98.3
+									},
+									{
+										"t": "groupsTeamchevron_right",
+										"y": 132.2
+									},
+									{
+										"t": "paletteDesignchevron_rig",
+										"y": 166
+									},
+									{
+										"t": "publicPlatformchevron_ri",
+										"y": 199.8
+									},
+									{
+										"t": "equalizerImportancechevr",
+										"y": 233.6
+									}
+								]
+							},
+							{
+								"title": "Start",
+								"cls": "page-column-large",
+								"x": 210.5,
+								"left": 211,
+								"w": 962.5,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Imagine",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 0,
+								"w": 210.5
+							},
+							"after": {
+								"x": 0,
+								"w": 210.5
+							}
+						},
+						{
+							"title": "Team",
+							"cls": "page-column-small",
+							"closed": true
+						},
+						{
+							"title": "Board",
+							"cls": "page-column-fill",
+							"closed": true
+						}
+					]
+				},
+				{
+					"what": "click 5",
+					"clicked": "groupsTeamchevron_right",
+					"from_col": 0,
+					"cols_before": 2,
+					"cols_after": 3,
+					"snap": {
+						"row": {
+							"x": 0,
+							"y": 40.4,
+							"w": 1280,
+							"scrollLeft": 0,
+							"scrollW": 1280
+						},
+						"bar": {
+							"x": 0,
+							"y": 0,
+							"w": 1280,
+							"h": 40.4
+						},
+						"crumbs": [
+							{
+								"t": "Imagine",
+								"x": 20.5,
+								"y": 7.5
+							},
+							{
+								"t": "Team",
+								"x": 100.9,
+								"y": 7.5
+							}
+						],
+						"cols": [
+							{
+								"title": "Imagine",
+								"cls": "page-column-small",
+								"x": 0,
+								"left": 0,
+								"w": 210.5,
+								"links": [
+									{
+										"t": "grid_viewStart",
+										"y": 98.3
+									},
+									{
+										"t": "groupsTeamchevron_right",
+										"y": 132.2
+									},
+									{
+										"t": "paletteDesignchevron_rig",
+										"y": 166
+									},
+									{
+										"t": "publicPlatformchevron_ri",
+										"y": 199.8
+									},
+									{
+										"t": "equalizerImportancechevr",
+										"y": 233.6
+									}
+								]
+							},
+							{
+								"title": "Team",
+								"cls": "page-column-small",
+								"x": 210.5,
+								"left": 211,
+								"w": 210.5,
+								"links": []
+							},
+							{
+								"title": "Board",
+								"cls": "page-column-fill",
+								"x": 421.1,
+								"left": 421,
+								"w": 858.9,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Imagine",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 0,
+								"w": 210.5
+							},
+							"after": {
+								"x": 0,
+								"w": 210.5
+							}
+						},
+						{
+							"title": "Start",
+							"cls": "page-column-large",
+							"closed": true
+						}
+					]
+				},
+				{
+					"what": "click 6",
+					"clicked": "grid_viewStart",
+					"from_col": 0,
+					"cols_before": 3,
+					"cols_after": 2,
+					"snap": {
+						"row": {
+							"x": 0,
+							"y": 40.4,
+							"w": 1280,
+							"scrollLeft": 0,
+							"scrollW": 1280
+						},
+						"bar": {
+							"x": 0,
+							"y": 0,
+							"w": 1280,
+							"h": 40.4
+						},
+						"crumbs": [
+							{
+								"t": "Imagine",
+								"x": 20.5,
+								"y": 7.5
+							},
+							{
+								"t": "Start",
+								"x": 100.9,
+								"y": 7.5
+							}
+						],
+						"cols": [
+							{
+								"title": "Imagine",
+								"cls": "page-column-small",
+								"x": 0,
+								"left": 0,
+								"w": 210.5,
+								"links": [
+									{
+										"t": "grid_viewStart",
+										"y": 98.3
+									},
+									{
+										"t": "groupsTeamchevron_right",
+										"y": 132.2
+									},
+									{
+										"t": "paletteDesignchevron_rig",
+										"y": 166
+									},
+									{
+										"t": "publicPlatformchevron_ri",
+										"y": 199.8
+									},
+									{
+										"t": "equalizerImportancechevr",
+										"y": 233.6
+									}
+								]
+							},
+							{
+								"title": "Start",
+								"cls": "page-column-large",
+								"x": 210.5,
+								"left": 211,
+								"w": 962.5,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Imagine",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 0,
+								"w": 210.5
+							},
+							"after": {
+								"x": 0,
+								"w": 210.5
+							}
+						},
+						{
+							"title": "Team",
+							"cls": "page-column-small",
+							"closed": true
+						},
+						{
+							"title": "Board",
+							"cls": "page-column-fill",
+							"closed": true
+						}
+					]
+				}
+			]
+		},
+		{
+			"url": "/framework/core/Page/overview/columns/finder/",
+			"width": 1280,
+			"errs": [],
+			"steps": [
+				{
+					"what": "arrival",
+					"snap": {
+						"row": {
+							"x": 228.6,
+							"y": 40.4,
+							"w": 1051.4,
+							"scrollLeft": 0,
+							"scrollW": 1051
+						},
+						"bar": {
+							"x": 228.6,
+							"y": 0,
+							"w": 1051.4,
+							"h": 40.4
+						},
+						"crumbs": [
+							{
+								"t": "Finder",
+								"x": 249.1,
+								"y": 7.5
+							}
+						],
+						"cols": [
+							{
+								"title": "Finder",
+								"cls": "page-column-small",
+								"x": 228.6,
+								"left": 229,
+								"w": 210.5,
+								"links": [
+									{
+										"t": "descriptionGuideschevron",
+										"y": 350.5
+									},
+									{
+										"t": "sticky_note_2Noteschevro",
+										"y": 384.3
+									},
+									{
+										"t": "About",
+										"y": 418.1
+									}
+								]
+							}
+						]
+					}
+				},
+				{
+					"what": "click 2",
+					"clicked": "descriptionGuideschevron_right",
+					"from_col": 0,
+					"cols_before": 1,
+					"cols_after": 2,
+					"snap": {
+						"row": {
+							"x": 228.6,
+							"y": 40.4,
+							"w": 1051.4,
+							"scrollLeft": 0,
+							"scrollW": 1051
+						},
+						"bar": {
+							"x": 228.6,
+							"y": 0,
+							"w": 1051.4,
+							"h": 40.4
+						},
+						"crumbs": [
+							{
+								"t": "Finder",
+								"x": 249.1,
+								"y": 7.5
+							},
+							{
+								"t": "Guides",
+								"x": 316.9,
+								"y": 7.5
+							}
+						],
+						"cols": [
+							{
+								"title": "Finder",
+								"cls": "page-column-small",
+								"x": 228.6,
+								"left": 229,
+								"w": 210.5,
+								"links": [
+									{
+										"t": "descriptionGuideschevron",
+										"y": 350.5
+									},
+									{
+										"t": "sticky_note_2Noteschevro",
+										"y": 384.3
+									},
+									{
+										"t": "About",
+										"y": 418.1
+									}
+								]
+							},
+							{
+								"title": "Guides",
+								"cls": "page-column-small",
+								"x": 439.1,
+								"left": 439,
+								"w": 210.5,
+								"links": [
+									{
+										"t": "Start",
+										"y": 155.7
+									},
+									{
+										"t": "Wordschevron_right",
+										"y": 189.5
+									},
+									{
+										"t": "Deepchevron_right",
+										"y": 223.4
+									}
+								]
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Finder",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 228.6,
+								"w": 210.5
+							},
+							"after": {
+								"x": 228.6,
+								"w": 210.5
+							}
+						}
+					]
+				},
+				{
+					"what": "click 3",
+					"clicked": "Start",
+					"from_col": 1,
+					"cols_before": 2,
+					"cols_after": 3,
+					"snap": {
+						"row": {
+							"x": 228.6,
+							"y": 40.4,
+							"w": 1051.4,
+							"scrollLeft": 0,
+							"scrollW": 1051
+						},
+						"bar": {
+							"x": 228.6,
+							"y": 0,
+							"w": 1051.4,
+							"h": 40.4
+						},
+						"crumbs": [
+							{
+								"t": "Finder",
+								"x": 249.1,
+								"y": 7.5
+							},
+							{
+								"t": "Guides",
+								"x": 316.9,
+								"y": 7.5
+							},
+							{
+								"t": "Start",
+								"x": 387.7,
+								"y": 7.5
+							}
+						],
+						"cols": [
+							{
+								"title": "Finder",
+								"cls": "page-column-small",
+								"x": 228.6,
+								"left": 229,
+								"w": 210.5,
+								"links": [
+									{
+										"t": "descriptionGuideschevron",
+										"y": 350.5
+									},
+									{
+										"t": "sticky_note_2Noteschevro",
+										"y": 384.3
+									},
+									{
+										"t": "About",
+										"y": 418.1
+									}
+								]
+							},
+							{
+								"title": "Guides",
+								"cls": "page-column-small",
+								"x": 439.1,
+								"left": 439,
+								"w": 210.5,
+								"links": [
+									{
+										"t": "Start",
+										"y": 155.7
+									},
+									{
+										"t": "Wordschevron_right",
+										"y": 189.5
+									},
+									{
+										"t": "Deepchevron_right",
+										"y": 223.4
+									}
+								]
+							},
+							{
+								"title": "Start",
+								"cls": "(default)",
+								"x": 649.7,
+								"left": 650,
+								"w": 601.6,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Finder",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 228.6,
+								"w": 210.5
+							},
+							"after": {
+								"x": 228.6,
+								"w": 210.5
+							}
+						},
+						{
+							"title": "Guides",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 439.1,
+								"w": 210.5
+							},
+							"after": {
+								"x": 439.1,
+								"w": 210.5
+							}
+						}
+					]
+				},
+				{
+					"what": "click 4",
+					"clicked": "Wordschevron_right",
+					"from_col": 1,
+					"cols_before": 3,
+					"cols_after": 3,
+					"snap": {
+						"row": {
+							"x": 228.6,
+							"y": 40.4,
+							"w": 1051.4,
+							"scrollLeft": 0,
+							"scrollW": 1051
+						},
+						"bar": {
+							"x": 228.6,
+							"y": 0,
+							"w": 1051.4,
+							"h": 40.4
+						},
+						"crumbs": [
+							{
+								"t": "Finder",
+								"x": 249.1,
+								"y": 7.5
+							},
+							{
+								"t": "Guides",
+								"x": 316.9,
+								"y": 7.5
+							},
+							{
+								"t": "Words",
+								"x": 387.7,
+								"y": 7.5
+							}
+						],
+						"cols": [
+							{
+								"title": "Finder",
+								"cls": "page-column-small",
+								"x": 228.6,
+								"left": 229,
+								"w": 210.5,
+								"links": [
+									{
+										"t": "descriptionGuideschevron",
+										"y": 350.5
+									},
+									{
+										"t": "sticky_note_2Noteschevro",
+										"y": 384.3
+									},
+									{
+										"t": "About",
+										"y": 418.1
+									}
+								]
+							},
+							{
+								"title": "Guides",
+								"cls": "page-column-small",
+								"x": 439.1,
+								"left": 439,
+								"w": 210.5,
+								"links": [
+									{
+										"t": "Start",
+										"y": 155.7
+									},
+									{
+										"t": "Wordschevron_right",
+										"y": 189.5
+									},
+									{
+										"t": "Deepchevron_right",
+										"y": 223.4
+									}
+								]
+							},
+							{
+								"title": "Words",
+								"cls": "page-column-small",
+								"x": 649.7,
+								"left": 650,
+								"w": 210.5,
+								"links": [
+									{
+										"t": "Small",
+										"y": 277.5
+									},
+									{
+										"t": "Hug",
+										"y": 311.3
+									},
+									{
+										"t": "Default",
+										"y": 345.1
+									},
+									{
+										"t": "Large",
+										"y": 378.9
+									},
+									{
+										"t": "Fill",
+										"y": 412.7
+									}
+								]
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Finder",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 228.6,
+								"w": 210.5
+							},
+							"after": {
+								"x": 228.6,
+								"w": 210.5
+							}
+						},
+						{
+							"title": "Guides",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 439.1,
+								"w": 210.5
+							},
+							"after": {
+								"x": 439.1,
+								"w": 210.5
+							}
+						},
+						{
+							"title": "Start",
+							"cls": "(default)",
+							"closed": true
+						}
+					]
+				},
+				{
+					"what": "click 5",
+					"clicked": "Small",
+					"from_col": 2,
+					"cols_before": 3,
+					"cols_after": 4,
+					"snap": {
+						"row": {
+							"x": 228.6,
+							"y": 40.4,
+							"w": 1051.4,
+							"scrollLeft": 0,
+							"scrollW": 1051
+						},
+						"bar": {
+							"x": 228.6,
+							"y": 0,
+							"w": 1051.4,
+							"h": 40.4
+						},
+						"crumbs": [
+							{
+								"t": "Finder",
+								"x": 249.1,
+								"y": 7.5
+							},
+							{
+								"t": "Guides",
+								"x": 316.9,
+								"y": 7.5
+							},
+							{
+								"t": "Words",
+								"x": 387.7,
+								"y": 7.5
+							},
+							{
+								"t": "Small",
+								"x": 455.6,
+								"y": 7.5
+							}
+						],
+						"cols": [
+							{
+								"title": "Finder",
+								"cls": "page-column-small",
+								"x": 228.6,
+								"left": 229,
+								"w": 210.5,
+								"links": [
+									{
+										"t": "descriptionGuideschevron",
+										"y": 350.5
+									},
+									{
+										"t": "sticky_note_2Noteschevro",
+										"y": 384.3
+									},
+									{
+										"t": "About",
+										"y": 418.1
+									}
+								]
+							},
+							{
+								"title": "Guides",
+								"cls": "page-column-small",
+								"x": 439.1,
+								"left": 439,
+								"w": 210.5,
+								"links": [
+									{
+										"t": "Start",
+										"y": 155.7
+									},
+									{
+										"t": "Wordschevron_right",
+										"y": 189.5
+									},
+									{
+										"t": "Deepchevron_right",
+										"y": 223.4
+									}
+								]
+							},
+							{
+								"title": "Words",
+								"cls": "page-column-small",
+								"x": 649.7,
+								"left": 650,
+								"w": 210.5,
+								"links": [
+									{
+										"t": "Small",
+										"y": 277.5
+									},
+									{
+										"t": "Hug",
+										"y": 311.3
+									},
+									{
+										"t": "Default",
+										"y": 345.1
+									},
+									{
+										"t": "Large",
+										"y": 378.9
+									},
+									{
+										"t": "Fill",
+										"y": 412.7
+									}
+								]
+							},
+							{
+								"title": "Small",
+								"cls": "(default)",
+								"x": 860.2,
+								"left": 860,
+								"w": 419.8,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Finder",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 228.6,
+								"w": 210.5
+							},
+							"after": {
+								"x": 228.6,
+								"w": 210.5
+							}
+						},
+						{
+							"title": "Guides",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 439.1,
+								"w": 210.5
+							},
+							"after": {
+								"x": 439.1,
+								"w": 210.5
+							}
+						},
+						{
+							"title": "Words",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 649.7,
+								"w": 210.5
+							},
+							"after": {
+								"x": 649.7,
+								"w": 210.5
+							}
+						}
+					]
+				},
+				{
+					"what": "click 6",
+					"clicked": "Hug",
+					"from_col": 2,
+					"cols_before": 4,
+					"cols_after": 4,
+					"snap": {
+						"row": {
+							"x": 228.6,
+							"y": 40.4,
+							"w": 1051.4,
+							"scrollLeft": 0,
+							"scrollW": 1051
+						},
+						"bar": {
+							"x": 228.6,
+							"y": 0,
+							"w": 1051.4,
+							"h": 40.4
+						},
+						"crumbs": [
+							{
+								"t": "Finder",
+								"x": 249.1,
+								"y": 7.5
+							},
+							{
+								"t": "Guides",
+								"x": 316.9,
+								"y": 7.5
+							},
+							{
+								"t": "Words",
+								"x": 387.7,
+								"y": 7.5
+							},
+							{
+								"t": "Hug",
+								"x": 455.6,
+								"y": 7.5
+							}
+						],
+						"cols": [
+							{
+								"title": "Finder",
+								"cls": "page-column-small",
+								"x": 228.6,
+								"left": 229,
+								"w": 210.5,
+								"links": [
+									{
+										"t": "descriptionGuideschevron",
+										"y": 350.5
+									},
+									{
+										"t": "sticky_note_2Noteschevro",
+										"y": 384.3
+									},
+									{
+										"t": "About",
+										"y": 418.1
+									}
+								]
+							},
+							{
+								"title": "Guides",
+								"cls": "page-column-small",
+								"x": 439.1,
+								"left": 439,
+								"w": 210.5,
+								"links": [
+									{
+										"t": "Start",
+										"y": 155.7
+									},
+									{
+										"t": "Wordschevron_right",
+										"y": 189.5
+									},
+									{
+										"t": "Deepchevron_right",
+										"y": 223.4
+									}
+								]
+							},
+							{
+								"title": "Words",
+								"cls": "page-column-small",
+								"x": 649.7,
+								"left": 650,
+								"w": 210.5,
+								"links": [
+									{
+										"t": "Small",
+										"y": 277.5
+									},
+									{
+										"t": "Hug",
+										"y": 311.3
+									},
+									{
+										"t": "Default",
+										"y": 345.1
+									},
+									{
+										"t": "Large",
+										"y": 378.9
+									},
+									{
+										"t": "Fill",
+										"y": 412.7
+									}
+								]
+							},
+							{
+								"title": "Hug",
+								"cls": "page-column-hug",
+								"x": 860.2,
+								"left": 860,
+								"w": 361,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Finder",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 228.6,
+								"w": 210.5
+							},
+							"after": {
+								"x": 228.6,
+								"w": 210.5
+							}
+						},
+						{
+							"title": "Guides",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 439.1,
+								"w": 210.5
+							},
+							"after": {
+								"x": 439.1,
+								"w": 210.5
+							}
+						},
+						{
+							"title": "Words",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 649.7,
+								"w": 210.5
+							},
+							"after": {
+								"x": 649.7,
+								"w": 210.5
+							}
+						},
+						{
+							"title": "Small",
+							"cls": "(default)",
+							"closed": true
+						}
+					]
+				}
+			]
+		},
+		{
+			"url": "/framework/core/Page/overview/columns/uses/docs/",
+			"width": 1280,
+			"errs": [],
+			"steps": [
+				{
+					"what": "arrival",
+					"snap": {
+						"row": {
+							"x": 228.6,
+							"y": 40.4,
+							"w": 1051.4,
+							"scrollLeft": 0,
+							"scrollW": 1051
+						},
+						"bar": {
+							"x": 228.6,
+							"y": 0,
+							"w": 1051.4,
+							"h": 40.4
+						},
+						"crumbs": [
+							{
+								"t": "Docs",
+								"x": 249.1,
+								"y": 7.5
+							}
+						],
+						"cols": [
+							{
+								"title": "Docs",
+								"cls": "(default)",
+								"x": 228.6,
+								"left": 229,
+								"w": 601.6,
+								"links": [
+									{
+										"t": "descriptionGuidechevron_",
+										"y": 675.1
+									},
+									{
+										"t": "codeAPIchevron_right",
+										"y": 708.9
+									}
+								]
+							}
+						]
+					}
+				},
+				{
+					"what": "click 2",
+					"clicked": "descriptionGuidechevron_right",
+					"from_col": 0,
+					"cols_before": 1,
+					"cols_after": 2,
+					"snap": {
+						"row": {
+							"x": 228.6,
+							"y": 40.4,
+							"w": 1051.4,
+							"scrollLeft": 0,
+							"scrollW": 1051
+						},
+						"bar": {
+							"x": 228.6,
+							"y": 0,
+							"w": 1051.4,
+							"h": 40.4
+						},
+						"crumbs": [
+							{
+								"t": "Docs",
+								"x": 249.1,
+								"y": 7.5
+							},
+							{
+								"t": "Guide",
+								"x": 306.4,
+								"y": 7.5
+							}
+						],
+						"cols": [
+							{
+								"title": "Docs",
+								"cls": "(default)",
+								"x": 228.6,
+								"left": 229,
+								"w": 601.6,
+								"links": [
+									{
+										"t": "descriptionGuidechevron_",
+										"y": 675.1
+									},
+									{
+										"t": "codeAPIchevron_right",
+										"y": 708.9
+									}
+								]
+							},
+							{
+								"title": "Guide",
+								"cls": "page-column-small",
+								"x": 830.2,
+								"left": 830,
+								"w": 210.5,
+								"links": [
+									{
+										"t": "Installchevron_right",
+										"y": 155.7
+									},
+									{
+										"t": "Tasks",
+										"y": 189.5
+									},
+									{
+										"t": "Watching",
+										"y": 223.4
+									}
+								]
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Docs",
+							"cls": "(default)",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 228.6,
+								"w": 601.6
+							},
+							"after": {
+								"x": 228.6,
+								"w": 601.6
+							}
+						}
+					]
+				},
+				{
+					"what": "click 3",
+					"clicked": "Installchevron_right",
+					"from_col": 1,
+					"cols_before": 2,
+					"cols_after": 3,
+					"snap": {
+						"row": {
+							"x": 228.6,
+							"y": 40.4,
+							"w": 1051.4,
+							"scrollLeft": 0,
+							"scrollW": 1051
+						},
+						"bar": {
+							"x": 228.6,
+							"y": 0,
+							"w": 1051.4,
+							"h": 40.4
+						},
+						"crumbs": [
+							{
+								"t": "Docs",
+								"x": 249.1,
+								"y": 7.5
+							},
+							{
+								"t": "Guide",
+								"x": 306.4,
+								"y": 7.5
+							},
+							{
+								"t": "Install",
+								"x": 370.3,
+								"y": 7.5
+							}
+						],
+						"cols": [
+							{
+								"title": "Docs",
+								"cls": "(default)",
+								"x": 228.6,
+								"left": 229,
+								"w": 420.4,
+								"links": [
+									{
+										"t": "descriptionGuidechevron_",
+										"y": 845.5
+									},
+									{
+										"t": "codeAPIchevron_right",
+										"y": 879.3
+									}
+								]
+							},
+							{
+								"title": "Guide",
+								"cls": "page-column-small",
+								"x": 649,
+								"left": 649,
+								"w": 210.5,
+								"links": [
+									{
+										"t": "Installchevron_right",
+										"y": 155.7
+									},
+									{
+										"t": "Tasks",
+										"y": 189.5
+									},
+									{
+										"t": "Watching",
+										"y": 223.4
+									}
+								]
+							},
+							{
+								"title": "Install",
+								"cls": "(default)",
+								"x": 859.6,
+								"left": 860,
+								"w": 420.4,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Docs",
+							"cls": "(default)",
+							"dx": 0,
+							"dleft": 0,
+							"dw": -181.2,
+							"dy": 170.4,
+							"before": {
+								"x": 228.6,
+								"w": 601.6
+							},
+							"after": {
+								"x": 228.6,
+								"w": 420.4
+							}
+						},
+						{
+							"title": "Guide",
+							"cls": "page-column-small",
+							"dx": -181.2,
+							"dleft": -181,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 830.2,
+								"w": 210.5
+							},
+							"after": {
+								"x": 649,
+								"w": 210.5
+							}
+						}
+					]
+				},
+				{
+					"what": "click 4",
+					"clicked": "Tasks",
+					"from_col": 1,
+					"cols_before": 3,
+					"cols_after": 3,
+					"snap": {
+						"row": {
+							"x": 228.6,
+							"y": 40.4,
+							"w": 1051.4,
+							"scrollLeft": 0,
+							"scrollW": 1051
+						},
+						"bar": {
+							"x": 228.6,
+							"y": 0,
+							"w": 1051.4,
+							"h": 40.4
+						},
+						"crumbs": [
+							{
+								"t": "Docs",
+								"x": 249.1,
+								"y": 7.5
+							},
+							{
+								"t": "Guide",
+								"x": 306.4,
+								"y": 7.5
+							},
+							{
+								"t": "Tasks",
+								"x": 370.3,
+								"y": 7.5
+							}
+						],
+						"cols": [
+							{
+								"title": "Docs",
+								"cls": "(default)",
+								"x": 228.6,
+								"left": 229,
+								"w": 420.4,
+								"links": [
+									{
+										"t": "descriptionGuidechevron_",
+										"y": 845.5
+									},
+									{
+										"t": "codeAPIchevron_right",
+										"y": 879.3
+									}
+								]
+							},
+							{
+								"title": "Guide",
+								"cls": "page-column-small",
+								"x": 649,
+								"left": 649,
+								"w": 210.5,
+								"links": [
+									{
+										"t": "Installchevron_right",
+										"y": 155.7
+									},
+									{
+										"t": "Tasks",
+										"y": 189.5
+									},
+									{
+										"t": "Watching",
+										"y": 223.4
+									}
+								]
+							},
+							{
+								"title": "Tasks",
+								"cls": "(default)",
+								"x": 859.6,
+								"left": 860,
+								"w": 420.4,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Docs",
+							"cls": "(default)",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 228.6,
+								"w": 420.4
+							},
+							"after": {
+								"x": 228.6,
+								"w": 420.4
+							}
+						},
+						{
+							"title": "Guide",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 649,
+								"w": 210.5
+							},
+							"after": {
+								"x": 649,
+								"w": 210.5
+							}
+						},
+						{
+							"title": "Install",
+							"cls": "(default)",
+							"closed": true
+						}
+					]
+				},
+				{
+					"what": "click 5",
+					"clicked": "Installchevron_right",
+					"from_col": 1,
+					"cols_before": 3,
+					"cols_after": 3,
+					"snap": {
+						"row": {
+							"x": 228.6,
+							"y": 40.4,
+							"w": 1051.4,
+							"scrollLeft": 0,
+							"scrollW": 1051
+						},
+						"bar": {
+							"x": 228.6,
+							"y": 0,
+							"w": 1051.4,
+							"h": 40.4
+						},
+						"crumbs": [
+							{
+								"t": "Docs",
+								"x": 249.1,
+								"y": 7.5
+							},
+							{
+								"t": "Guide",
+								"x": 306.4,
+								"y": 7.5
+							},
+							{
+								"t": "Install",
+								"x": 370.3,
+								"y": 7.5
+							}
+						],
+						"cols": [
+							{
+								"title": "Docs",
+								"cls": "(default)",
+								"x": 228.6,
+								"left": 229,
+								"w": 420.4,
+								"links": [
+									{
+										"t": "descriptionGuidechevron_",
+										"y": 845.5
+									},
+									{
+										"t": "codeAPIchevron_right",
+										"y": 879.3
+									}
+								]
+							},
+							{
+								"title": "Guide",
+								"cls": "page-column-small",
+								"x": 649,
+								"left": 649,
+								"w": 210.5,
+								"links": [
+									{
+										"t": "Installchevron_right",
+										"y": 155.7
+									},
+									{
+										"t": "Tasks",
+										"y": 189.5
+									},
+									{
+										"t": "Watching",
+										"y": 223.4
+									}
+								]
+							},
+							{
+								"title": "Install",
+								"cls": "(default)",
+								"x": 859.6,
+								"left": 860,
+								"w": 420.4,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Docs",
+							"cls": "(default)",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 228.6,
+								"w": 420.4
+							},
+							"after": {
+								"x": 228.6,
+								"w": 420.4
+							}
+						},
+						{
+							"title": "Guide",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 649,
+								"w": 210.5
+							},
+							"after": {
+								"x": 649,
+								"w": 210.5
+							}
+						},
+						{
+							"title": "Tasks",
+							"cls": "(default)",
+							"closed": true
+						}
+					]
+				},
+				{
+					"what": "click 6",
+					"clicked": "Tasks",
+					"from_col": 1,
+					"cols_before": 3,
+					"cols_after": 3,
+					"snap": {
+						"row": {
+							"x": 228.6,
+							"y": 40.4,
+							"w": 1051.4,
+							"scrollLeft": 0,
+							"scrollW": 1051
+						},
+						"bar": {
+							"x": 228.6,
+							"y": 0,
+							"w": 1051.4,
+							"h": 40.4
+						},
+						"crumbs": [
+							{
+								"t": "Docs",
+								"x": 249.1,
+								"y": 7.5
+							},
+							{
+								"t": "Guide",
+								"x": 306.4,
+								"y": 7.5
+							},
+							{
+								"t": "Tasks",
+								"x": 370.3,
+								"y": 7.5
+							}
+						],
+						"cols": [
+							{
+								"title": "Docs",
+								"cls": "(default)",
+								"x": 228.6,
+								"left": 229,
+								"w": 420.4,
+								"links": [
+									{
+										"t": "descriptionGuidechevron_",
+										"y": 845.5
+									},
+									{
+										"t": "codeAPIchevron_right",
+										"y": 879.3
+									}
+								]
+							},
+							{
+								"title": "Guide",
+								"cls": "page-column-small",
+								"x": 649,
+								"left": 649,
+								"w": 210.5,
+								"links": [
+									{
+										"t": "Installchevron_right",
+										"y": 155.7
+									},
+									{
+										"t": "Tasks",
+										"y": 189.5
+									},
+									{
+										"t": "Watching",
+										"y": 223.4
+									}
+								]
+							},
+							{
+								"title": "Tasks",
+								"cls": "(default)",
+								"x": 859.6,
+								"left": 860,
+								"w": 420.4,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Docs",
+							"cls": "(default)",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 228.6,
+								"w": 420.4
+							},
+							"after": {
+								"x": 228.6,
+								"w": 420.4
+							}
+						},
+						{
+							"title": "Guide",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 649,
+								"w": 210.5
+							},
+							"after": {
+								"x": 649,
+								"w": 210.5
+							}
+						},
+						{
+							"title": "Install",
+							"cls": "(default)",
+							"closed": true
+						}
+					]
+				}
+			]
+		},
+		{
+			"url": "/framework/core/Page/overview/columns/uses/workbench/",
+			"width": 1280,
+			"errs": [],
+			"steps": [
+				{
+					"what": "arrival",
+					"snap": {
+						"row": {
+							"x": 228.6,
+							"y": 40.4,
+							"w": 1051.4,
+							"scrollLeft": 0,
+							"scrollW": 1051
+						},
+						"bar": {
+							"x": 228.6,
+							"y": 0,
+							"w": 1051.4,
+							"h": 40.4
+						},
+						"crumbs": [
+							{
+								"t": "Workbench",
+								"x": 249.1,
+								"y": 7.5
+							}
+						],
+						"cols": [
+							{
+								"title": "Workbench",
+								"cls": "page-column-small",
+								"x": 228.6,
+								"left": 229,
+								"w": 210.5,
+								"links": [
+									{
+										"t": "articleSpecchevron_right",
+										"y": 180.1
+									},
+									{
+										"t": "view_moduleBoard",
+										"y": 213.9
+									}
+								]
+							}
+						]
+					}
+				},
+				{
+					"what": "click 2",
+					"clicked": "articleSpecchevron_right",
+					"from_col": 0,
+					"cols_before": 1,
+					"cols_after": 2,
+					"snap": {
+						"row": {
+							"x": 228.6,
+							"y": 40.4,
+							"w": 1051.4,
+							"scrollLeft": 0,
+							"scrollW": 1051
+						},
+						"bar": {
+							"x": 228.6,
+							"y": 0,
+							"w": 1051.4,
+							"h": 40.4
+						},
+						"crumbs": [
+							{
+								"t": "Workbench",
+								"x": 249.1,
+								"y": 7.5
+							},
+							{
+								"t": "Spec",
+								"x": 353.4,
+								"y": 7.5
+							}
+						],
+						"cols": [
+							{
+								"title": "Workbench",
+								"cls": "page-column-small",
+								"x": 228.6,
+								"left": 229,
+								"w": 210.5,
+								"links": [
+									{
+										"t": "articleSpecchevron_right",
+										"y": 180.1
+									},
+									{
+										"t": "view_moduleBoard",
+										"y": 213.9
+									}
+								]
+							},
+							{
+								"title": "Spec",
+								"cls": "(default)",
+								"x": 439.1,
+								"left": 439,
+								"w": 601.6,
+								"links": [
+									{
+										"t": "compare_arrowsDiffchevro",
+										"y": 358.6
+									}
+								]
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Workbench",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 228.6,
+								"w": 210.5
+							},
+							"after": {
+								"x": 228.6,
+								"w": 210.5
+							}
+						}
+					]
+				},
+				{
+					"what": "click 3",
+					"clicked": "compare_arrowsDiffchevron_righ",
+					"from_col": 1,
+					"cols_before": 2,
+					"cols_after": 3,
+					"snap": {
+						"row": {
+							"x": 228.6,
+							"y": 40.4,
+							"w": 1051.4,
+							"scrollLeft": 0,
+							"scrollW": 1051
+						},
+						"bar": {
+							"x": 228.6,
+							"y": 0,
+							"w": 1051.4,
+							"h": 40.4
+						},
+						"crumbs": [
+							{
+								"t": "Workbench",
+								"x": 249.1,
+								"y": 7.5
+							},
+							{
+								"t": "Spec",
+								"x": 353.4,
+								"y": 7.5
+							},
+							{
+								"t": "Diff",
+								"x": 410,
+								"y": 7.5
+							}
+						],
+						"cols": [
+							{
+								"title": "Workbench",
+								"cls": "page-column-small",
+								"x": 228.6,
+								"left": 229,
+								"w": 210.5,
+								"links": [
+									{
+										"t": "articleSpecchevron_right",
+										"y": 180.1
+									},
+									{
+										"t": "view_moduleBoard",
+										"y": 213.9
+									}
+								]
+							},
+							{
+								"title": "Spec",
+								"cls": "(default)",
+								"x": 439.1,
+								"left": 439,
+								"w": 420.4,
+								"links": [
+									{
+										"t": "compare_arrowsDiffchevro",
+										"y": 407.3
+									}
+								]
+							},
+							{
+								"title": "Diff",
+								"cls": "(default)",
+								"x": 859.6,
+								"left": 860,
+								"w": 420.4,
+								"links": [
+									{
+										"t": "rate_reviewNotes",
+										"y": 361.5
+									}
+								]
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Workbench",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 228.6,
+								"w": 210.5
+							},
+							"after": {
+								"x": 228.6,
+								"w": 210.5
+							}
+						},
+						{
+							"title": "Spec",
+							"cls": "(default)",
+							"dx": 0,
+							"dleft": 0,
+							"dw": -181.2,
+							"dy": 48.7,
+							"before": {
+								"x": 439.1,
+								"w": 601.6
+							},
+							"after": {
+								"x": 439.1,
+								"w": 420.4
+							}
+						}
+					]
+				},
+				{
+					"what": "click 4",
+					"clicked": "rate_reviewNotes",
+					"from_col": 2,
+					"cols_before": 3,
+					"cols_after": 4,
+					"snap": {
+						"row": {
+							"x": 228.6,
+							"y": 40.4,
+							"w": 1051.4,
+							"scrollLeft": 62,
+							"scrollW": 1113
+						},
+						"bar": {
+							"x": 228.6,
+							"y": 0,
+							"w": 1051.4,
+							"h": 40.4
+						},
+						"crumbs": [
+							{
+								"t": "Workbench",
+								"x": 249.1,
+								"y": 7.5
+							},
+							{
+								"t": "Spec",
+								"x": 353.4,
+								"y": 7.5
+							},
+							{
+								"t": "Diff",
+								"x": 410,
+								"y": 7.5
+							},
+							{
+								"t": "Notes",
+								"x": 457.8,
+								"y": 7.5
+							}
+						],
+						"cols": [
+							{
+								"title": "Workbench",
+								"cls": "page-column-small",
+								"x": 166.6,
+								"left": 229,
+								"w": 210.5,
+								"links": [
+									{
+										"t": "articleSpecchevron_right",
+										"y": 180.1
+									},
+									{
+										"t": "view_moduleBoard",
+										"y": 213.9
+									}
+								]
+							},
+							{
+								"title": "Spec",
+								"cls": "(default)",
+								"x": 377.1,
+								"left": 439,
+								"w": 240.6,
+								"links": [
+									{
+										"t": "compare_arrowsDiffchevro",
+										"y": 553.4
+									}
+								]
+							},
+							{
+								"title": "Diff",
+								"cls": "(default)",
+								"x": 617.8,
+								"left": 680,
+								"w": 240.6,
+								"links": [
+									{
+										"t": "rate_reviewNotes",
+										"y": 434.6
+									}
+								]
+							},
+							{
+								"title": "Notes",
+								"cls": "page-column-large",
+								"x": 858.4,
+								"left": 920,
+								"w": 421.1,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Workbench",
+							"cls": "page-column-small",
+							"dx": -62,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 228.6,
+								"w": 210.5
+							},
+							"after": {
+								"x": 166.6,
+								"w": 210.5
+							}
+						},
+						{
+							"title": "Spec",
+							"cls": "(default)",
+							"dx": -62,
+							"dleft": 0,
+							"dw": -179.8,
+							"dy": 146.1,
+							"before": {
+								"x": 439.1,
+								"w": 420.4
+							},
+							"after": {
+								"x": 377.1,
+								"w": 240.6
+							}
+						},
+						{
+							"title": "Diff",
+							"cls": "(default)",
+							"dx": -241.8,
+							"dleft": -180,
+							"dw": -179.8,
+							"dy": 73.1,
+							"before": {
+								"x": 859.6,
+								"w": 420.4
+							},
+							"after": {
+								"x": 617.8,
+								"w": 240.6
+							}
+						}
+					]
+				},
+				{
+					"what": "click 5",
+					"clicked": "view_moduleBoard",
+					"from_col": 0,
+					"cols_before": 4,
+					"cols_after": 1,
+					"snap": {
+						"row": {
+							"x": 228.6,
+							"y": 40.4,
+							"w": 1051.4,
+							"scrollLeft": 0,
+							"scrollW": 1051
+						},
+						"bar": {
+							"x": 228.6,
+							"y": 0,
+							"w": 1051.4,
+							"h": 40.4
+						},
+						"crumbs": [
+							{
+								"t": "Workbench",
+								"x": 249.1,
+								"y": 7.5
+							},
+							{
+								"t": "Board",
+								"x": 353.4,
+								"y": 7.5
+							}
+						],
+						"cols": [
+							{
+								"title": "Board",
+								"cls": "page-column-full",
+								"x": 228.6,
+								"left": 229,
+								"w": 1051.4,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Workbench",
+							"cls": "page-column-small",
+							"closed": true
+						},
+						{
+							"title": "Spec",
+							"cls": "(default)",
+							"closed": true
+						},
+						{
+							"title": "Diff",
+							"cls": "(default)",
+							"closed": true
+						},
+						{
+							"title": "Notes",
+							"cls": "page-column-large",
+							"closed": true
+						}
+					]
+				},
+				{
+					"what": "click 6",
+					"skipped": "no unopened nav link anywhere in the row"
+				}
+			]
+		},
+		{
+			"url": "/imagine/",
+			"width": 1920,
+			"errs": [],
+			"steps": [
+				{
+					"what": "arrival",
+					"snap": {
+						"row": {
+							"x": 0,
+							"y": 42.9,
+							"w": 1920,
+							"scrollLeft": 0,
+							"scrollW": 1920
+						},
+						"bar": {
+							"x": 0,
+							"y": 0,
+							"w": 1920,
+							"h": 42.9
+						},
+						"crumbs": [
+							{
+								"t": "Imagine",
+								"x": 30.7,
+								"y": 8
+							}
+						],
+						"cols": [
+							{
+								"title": "Imagine",
+								"cls": "page-column-small",
+								"x": 0,
+								"left": 0,
+								"w": 307.2,
+								"links": [
+									{
+										"t": "grid_viewStart",
+										"y": 117.4
+									},
+									{
+										"t": "groupsTeamchevron_right",
+										"y": 153.3
+									},
+									{
+										"t": "paletteDesignchevron_rig",
+										"y": 189.3
+									},
+									{
+										"t": "publicPlatformchevron_ri",
+										"y": 225.3
+									},
+									{
+										"t": "equalizerImportancechevr",
+										"y": 261.3
+									}
+								]
+							},
+							{
+								"title": "Start",
+								"cls": "page-column-large",
+								"x": 307.2,
+								"left": 307,
+								"w": 1024,
+								"links": []
+							}
+						]
+					}
+				},
+				{
+					"what": "click 2",
+					"clicked": "grid_viewStart",
+					"from_col": 0,
+					"cols_before": 2,
+					"cols_after": 2,
+					"snap": {
+						"row": {
+							"x": 0,
+							"y": 42.9,
+							"w": 1920,
+							"scrollLeft": 0,
+							"scrollW": 1920
+						},
+						"bar": {
+							"x": 0,
+							"y": 0,
+							"w": 1920,
+							"h": 42.9
+						},
+						"crumbs": [
+							{
+								"t": "Imagine",
+								"x": 30.7,
+								"y": 8
+							},
+							{
+								"t": "Start",
+								"x": 121.3,
+								"y": 8
+							}
+						],
+						"cols": [
+							{
+								"title": "Imagine",
+								"cls": "page-column-small",
+								"x": 0,
+								"left": 0,
+								"w": 307.2,
+								"links": [
+									{
+										"t": "grid_viewStart",
+										"y": 117.4
+									},
+									{
+										"t": "groupsTeamchevron_right",
+										"y": 153.3
+									},
+									{
+										"t": "paletteDesignchevron_rig",
+										"y": 189.3
+									},
+									{
+										"t": "publicPlatformchevron_ri",
+										"y": 225.3
+									},
+									{
+										"t": "equalizerImportancechevr",
+										"y": 261.3
+									}
+								]
+							},
+							{
+								"title": "Start",
+								"cls": "page-column-large",
+								"x": 307.2,
+								"left": 307,
+								"w": 1024,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Imagine",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 0,
+								"w": 307.2
+							},
+							"after": {
+								"x": 0,
+								"w": 307.2
+							}
+						},
+						{
+							"title": "Start",
+							"cls": "page-column-large",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 307.2,
+								"w": 1024
+							},
+							"after": {
+								"x": 307.2,
+								"w": 1024
+							}
+						}
+					]
+				},
+				{
+					"what": "click 3",
+					"clicked": "groupsTeamchevron_right",
+					"from_col": 0,
+					"cols_before": 2,
+					"cols_after": 3,
+					"snap": {
+						"row": {
+							"x": 0,
+							"y": 42.9,
+							"w": 1920,
+							"scrollLeft": 0,
+							"scrollW": 1920
+						},
+						"bar": {
+							"x": 0,
+							"y": 0,
+							"w": 1920,
+							"h": 42.9
+						},
+						"crumbs": [
+							{
+								"t": "Imagine",
+								"x": 30.7,
+								"y": 8
+							},
+							{
+								"t": "Team",
+								"x": 121.3,
+								"y": 8
+							}
+						],
+						"cols": [
+							{
+								"title": "Imagine",
+								"cls": "page-column-small",
+								"x": 0,
+								"left": 0,
+								"w": 307.2,
+								"links": [
+									{
+										"t": "grid_viewStart",
+										"y": 117.4
+									},
+									{
+										"t": "groupsTeamchevron_right",
+										"y": 153.3
+									},
+									{
+										"t": "paletteDesignchevron_rig",
+										"y": 189.3
+									},
+									{
+										"t": "publicPlatformchevron_ri",
+										"y": 225.3
+									},
+									{
+										"t": "equalizerImportancechevr",
+										"y": 261.3
+									}
+								]
+							},
+							{
+								"title": "Team",
+								"cls": "page-column-small",
+								"x": 307.2,
+								"left": 307,
+								"w": 307.2,
+								"links": []
+							},
+							{
+								"title": "Board",
+								"cls": "page-column-fill",
+								"x": 614.4,
+								"left": 614,
+								"w": 1305.6,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Imagine",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 0,
+								"w": 307.2
+							},
+							"after": {
+								"x": 0,
+								"w": 307.2
+							}
+						},
+						{
+							"title": "Start",
+							"cls": "page-column-large",
+							"closed": true
+						}
+					]
+				},
+				{
+					"what": "click 4",
+					"clicked": "grid_viewStart",
+					"from_col": 0,
+					"cols_before": 3,
+					"cols_after": 2,
+					"snap": {
+						"row": {
+							"x": 0,
+							"y": 42.9,
+							"w": 1920,
+							"scrollLeft": 0,
+							"scrollW": 1920
+						},
+						"bar": {
+							"x": 0,
+							"y": 0,
+							"w": 1920,
+							"h": 42.9
+						},
+						"crumbs": [
+							{
+								"t": "Imagine",
+								"x": 30.7,
+								"y": 8
+							},
+							{
+								"t": "Start",
+								"x": 121.3,
+								"y": 8
+							}
+						],
+						"cols": [
+							{
+								"title": "Imagine",
+								"cls": "page-column-small",
+								"x": 0,
+								"left": 0,
+								"w": 307.2,
+								"links": [
+									{
+										"t": "grid_viewStart",
+										"y": 117.4
+									},
+									{
+										"t": "groupsTeamchevron_right",
+										"y": 153.3
+									},
+									{
+										"t": "paletteDesignchevron_rig",
+										"y": 189.3
+									},
+									{
+										"t": "publicPlatformchevron_ri",
+										"y": 225.3
+									},
+									{
+										"t": "equalizerImportancechevr",
+										"y": 261.3
+									}
+								]
+							},
+							{
+								"title": "Start",
+								"cls": "page-column-large",
+								"x": 307.2,
+								"left": 307,
+								"w": 1024,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Imagine",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 0,
+								"w": 307.2
+							},
+							"after": {
+								"x": 0,
+								"w": 307.2
+							}
+						},
+						{
+							"title": "Team",
+							"cls": "page-column-small",
+							"closed": true
+						},
+						{
+							"title": "Board",
+							"cls": "page-column-fill",
+							"closed": true
+						}
+					]
+				},
+				{
+					"what": "click 5",
+					"clicked": "groupsTeamchevron_right",
+					"from_col": 0,
+					"cols_before": 2,
+					"cols_after": 3,
+					"snap": {
+						"row": {
+							"x": 0,
+							"y": 42.9,
+							"w": 1920,
+							"scrollLeft": 0,
+							"scrollW": 1920
+						},
+						"bar": {
+							"x": 0,
+							"y": 0,
+							"w": 1920,
+							"h": 42.9
+						},
+						"crumbs": [
+							{
+								"t": "Imagine",
+								"x": 30.7,
+								"y": 8
+							},
+							{
+								"t": "Team",
+								"x": 121.3,
+								"y": 8
+							}
+						],
+						"cols": [
+							{
+								"title": "Imagine",
+								"cls": "page-column-small",
+								"x": 0,
+								"left": 0,
+								"w": 307.2,
+								"links": [
+									{
+										"t": "grid_viewStart",
+										"y": 117.4
+									},
+									{
+										"t": "groupsTeamchevron_right",
+										"y": 153.3
+									},
+									{
+										"t": "paletteDesignchevron_rig",
+										"y": 189.3
+									},
+									{
+										"t": "publicPlatformchevron_ri",
+										"y": 225.3
+									},
+									{
+										"t": "equalizerImportancechevr",
+										"y": 261.3
+									}
+								]
+							},
+							{
+								"title": "Team",
+								"cls": "page-column-small",
+								"x": 307.2,
+								"left": 307,
+								"w": 307.2,
+								"links": []
+							},
+							{
+								"title": "Board",
+								"cls": "page-column-fill",
+								"x": 614.4,
+								"left": 614,
+								"w": 1305.6,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Imagine",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 0,
+								"w": 307.2
+							},
+							"after": {
+								"x": 0,
+								"w": 307.2
+							}
+						},
+						{
+							"title": "Start",
+							"cls": "page-column-large",
+							"closed": true
+						}
+					]
+				},
+				{
+					"what": "click 6",
+					"clicked": "grid_viewStart",
+					"from_col": 0,
+					"cols_before": 3,
+					"cols_after": 2,
+					"snap": {
+						"row": {
+							"x": 0,
+							"y": 42.9,
+							"w": 1920,
+							"scrollLeft": 0,
+							"scrollW": 1920
+						},
+						"bar": {
+							"x": 0,
+							"y": 0,
+							"w": 1920,
+							"h": 42.9
+						},
+						"crumbs": [
+							{
+								"t": "Imagine",
+								"x": 30.7,
+								"y": 8
+							},
+							{
+								"t": "Start",
+								"x": 121.3,
+								"y": 8
+							}
+						],
+						"cols": [
+							{
+								"title": "Imagine",
+								"cls": "page-column-small",
+								"x": 0,
+								"left": 0,
+								"w": 307.2,
+								"links": [
+									{
+										"t": "grid_viewStart",
+										"y": 117.4
+									},
+									{
+										"t": "groupsTeamchevron_right",
+										"y": 153.3
+									},
+									{
+										"t": "paletteDesignchevron_rig",
+										"y": 189.3
+									},
+									{
+										"t": "publicPlatformchevron_ri",
+										"y": 225.3
+									},
+									{
+										"t": "equalizerImportancechevr",
+										"y": 261.3
+									}
+								]
+							},
+							{
+								"title": "Start",
+								"cls": "page-column-large",
+								"x": 307.2,
+								"left": 307,
+								"w": 1024,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Imagine",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 0,
+								"w": 307.2
+							},
+							"after": {
+								"x": 0,
+								"w": 307.2
+							}
+						},
+						{
+							"title": "Team",
+							"cls": "page-column-small",
+							"closed": true
+						},
+						{
+							"title": "Board",
+							"cls": "page-column-fill",
+							"closed": true
+						}
+					]
+				}
+			]
+		},
+		{
+			"url": "/framework/core/Page/overview/columns/finder/",
+			"width": 1920,
+			"errs": [],
+			"steps": [
+				{
+					"what": "arrival",
+					"snap": {
+						"row": {
+							"x": 243.2,
+							"y": 42.9,
+							"w": 1676.8,
+							"scrollLeft": 0,
+							"scrollW": 1677
+						},
+						"bar": {
+							"x": 243.2,
+							"y": 0,
+							"w": 1676.8,
+							"h": 42.9
+						},
+						"crumbs": [
+							{
+								"t": "Finder",
+								"x": 273.9,
+								"y": 8
+							}
+						],
+						"cols": [
+							{
+								"title": "Finder",
+								"cls": "page-column-small",
+								"x": 243.2,
+								"left": 243,
+								"w": 268.3,
+								"links": [
+									{
+										"t": "descriptionGuideschevron",
+										"y": 332.3
+									},
+									{
+										"t": "sticky_note_2Noteschevro",
+										"y": 368.3
+									},
+									{
+										"t": "About",
+										"y": 404.3
+									}
+								]
+							}
+						]
+					}
+				},
+				{
+					"what": "click 2",
+					"clicked": "descriptionGuideschevron_right",
+					"from_col": 0,
+					"cols_before": 1,
+					"cols_after": 2,
+					"snap": {
+						"row": {
+							"x": 243.2,
+							"y": 42.9,
+							"w": 1676.8,
+							"scrollLeft": 0,
+							"scrollW": 1677
+						},
+						"bar": {
+							"x": 243.2,
+							"y": 0,
+							"w": 1676.8,
+							"h": 42.9
+						},
+						"crumbs": [
+							{
+								"t": "Finder",
+								"x": 273.9,
+								"y": 8
+							},
+							{
+								"t": "Guides",
+								"x": 351.1,
+								"y": 8
+							}
+						],
+						"cols": [
+							{
+								"title": "Finder",
+								"cls": "page-column-small",
+								"x": 243.2,
+								"left": 243,
+								"w": 268.3,
+								"links": [
+									{
+										"t": "descriptionGuideschevron",
+										"y": 332.3
+									},
+									{
+										"t": "sticky_note_2Noteschevro",
+										"y": 368.3
+									},
+									{
+										"t": "About",
+										"y": 404.3
+									}
+								]
+							},
+							{
+								"title": "Guides",
+								"cls": "page-column-small",
+								"x": 511.5,
+								"left": 511,
+								"w": 268.3,
+								"links": [
+									{
+										"t": "Start",
+										"y": 176.8
+									},
+									{
+										"t": "Wordschevron_right",
+										"y": 212.7
+									},
+									{
+										"t": "Deepchevron_right",
+										"y": 248.7
+									}
+								]
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Finder",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 243.2,
+								"w": 268.3
+							},
+							"after": {
+								"x": 243.2,
+								"w": 268.3
+							}
+						}
+					]
+				},
+				{
+					"what": "click 3",
+					"clicked": "Start",
+					"from_col": 1,
+					"cols_before": 2,
+					"cols_after": 3,
+					"snap": {
+						"row": {
+							"x": 243.2,
+							"y": 42.9,
+							"w": 1676.8,
+							"scrollLeft": 0,
+							"scrollW": 1677
+						},
+						"bar": {
+							"x": 243.2,
+							"y": 0,
+							"w": 1676.8,
+							"h": 42.9
+						},
+						"crumbs": [
+							{
+								"t": "Finder",
+								"x": 273.9,
+								"y": 8
+							},
+							{
+								"t": "Guides",
+								"x": 351.1,
+								"y": 8
+							},
+							{
+								"t": "Start",
+								"x": 431.6,
+								"y": 8
+							}
+						],
+						"cols": [
+							{
+								"title": "Finder",
+								"cls": "page-column-small",
+								"x": 243.2,
+								"left": 243,
+								"w": 268.3,
+								"links": [
+									{
+										"t": "descriptionGuideschevron",
+										"y": 332.3
+									},
+									{
+										"t": "sticky_note_2Noteschevro",
+										"y": 368.3
+									},
+									{
+										"t": "About",
+										"y": 404.3
+									}
+								]
+							},
+							{
+								"title": "Guides",
+								"cls": "page-column-small",
+								"x": 511.5,
+								"left": 511,
+								"w": 268.3,
+								"links": [
+									{
+										"t": "Start",
+										"y": 176.8
+									},
+									{
+										"t": "Wordschevron_right",
+										"y": 212.7
+									},
+									{
+										"t": "Deepchevron_right",
+										"y": 248.7
+									}
+								]
+							},
+							{
+								"title": "Start",
+								"cls": "(default)",
+								"x": 779.8,
+								"left": 780,
+								"w": 704.3,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Finder",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 243.2,
+								"w": 268.3
+							},
+							"after": {
+								"x": 243.2,
+								"w": 268.3
+							}
+						},
+						{
+							"title": "Guides",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 511.5,
+								"w": 268.3
+							},
+							"after": {
+								"x": 511.5,
+								"w": 268.3
+							}
+						}
+					]
+				},
+				{
+					"what": "click 4",
+					"clicked": "Wordschevron_right",
+					"from_col": 1,
+					"cols_before": 3,
+					"cols_after": 3,
+					"snap": {
+						"row": {
+							"x": 243.2,
+							"y": 42.9,
+							"w": 1676.8,
+							"scrollLeft": 0,
+							"scrollW": 1677
+						},
+						"bar": {
+							"x": 243.2,
+							"y": 0,
+							"w": 1676.8,
+							"h": 42.9
+						},
+						"crumbs": [
+							{
+								"t": "Finder",
+								"x": 273.9,
+								"y": 8
+							},
+							{
+								"t": "Guides",
+								"x": 351.1,
+								"y": 8
+							},
+							{
+								"t": "Words",
+								"x": 431.6,
+								"y": 8
+							}
+						],
+						"cols": [
+							{
+								"title": "Finder",
+								"cls": "page-column-small",
+								"x": 243.2,
+								"left": 243,
+								"w": 268.3,
+								"links": [
+									{
+										"t": "descriptionGuideschevron",
+										"y": 332.3
+									},
+									{
+										"t": "sticky_note_2Noteschevro",
+										"y": 368.3
+									},
+									{
+										"t": "About",
+										"y": 404.3
+									}
+								]
+							},
+							{
+								"title": "Guides",
+								"cls": "page-column-small",
+								"x": 511.5,
+								"left": 511,
+								"w": 268.3,
+								"links": [
+									{
+										"t": "Start",
+										"y": 176.8
+									},
+									{
+										"t": "Wordschevron_right",
+										"y": 212.7
+									},
+									{
+										"t": "Deepchevron_right",
+										"y": 248.7
+									}
+								]
+							},
+							{
+								"title": "Words",
+								"cls": "page-column-small",
+								"x": 779.8,
+								"left": 780,
+								"w": 268.3,
+								"links": [
+									{
+										"t": "Small",
+										"y": 280.4
+									},
+									{
+										"t": "Hug",
+										"y": 316.4
+									},
+									{
+										"t": "Default",
+										"y": 352.4
+									},
+									{
+										"t": "Large",
+										"y": 388.4
+									},
+									{
+										"t": "Fill",
+										"y": 424.4
+									}
+								]
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Finder",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 243.2,
+								"w": 268.3
+							},
+							"after": {
+								"x": 243.2,
+								"w": 268.3
+							}
+						},
+						{
+							"title": "Guides",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 511.5,
+								"w": 268.3
+							},
+							"after": {
+								"x": 511.5,
+								"w": 268.3
+							}
+						},
+						{
+							"title": "Start",
+							"cls": "(default)",
+							"closed": true
+						}
+					]
+				},
+				{
+					"what": "click 5",
+					"clicked": "Small",
+					"from_col": 2,
+					"cols_before": 3,
+					"cols_after": 4,
+					"snap": {
+						"row": {
+							"x": 243.2,
+							"y": 42.9,
+							"w": 1676.8,
+							"scrollLeft": 0,
+							"scrollW": 1677
+						},
+						"bar": {
+							"x": 243.2,
+							"y": 0,
+							"w": 1676.8,
+							"h": 42.9
+						},
+						"crumbs": [
+							{
+								"t": "Finder",
+								"x": 273.9,
+								"y": 8
+							},
+							{
+								"t": "Guides",
+								"x": 351.1,
+								"y": 8
+							},
+							{
+								"t": "Words",
+								"x": 431.6,
+								"y": 8
+							},
+							{
+								"t": "Small",
+								"x": 508.9,
+								"y": 8
+							}
+						],
+						"cols": [
+							{
+								"title": "Finder",
+								"cls": "page-column-small",
+								"x": 243.2,
+								"left": 243,
+								"w": 268.3,
+								"links": [
+									{
+										"t": "descriptionGuideschevron",
+										"y": 332.3
+									},
+									{
+										"t": "sticky_note_2Noteschevro",
+										"y": 368.3
+									},
+									{
+										"t": "About",
+										"y": 404.3
+									}
+								]
+							},
+							{
+								"title": "Guides",
+								"cls": "page-column-small",
+								"x": 511.5,
+								"left": 511,
+								"w": 268.3,
+								"links": [
+									{
+										"t": "Start",
+										"y": 176.8
+									},
+									{
+										"t": "Wordschevron_right",
+										"y": 212.7
+									},
+									{
+										"t": "Deepchevron_right",
+										"y": 248.7
+									}
+								]
+							},
+							{
+								"title": "Words",
+								"cls": "page-column-small",
+								"x": 779.8,
+								"left": 780,
+								"w": 268.3,
+								"links": [
+									{
+										"t": "Small",
+										"y": 280.4
+									},
+									{
+										"t": "Hug",
+										"y": 316.4
+									},
+									{
+										"t": "Default",
+										"y": 352.4
+									},
+									{
+										"t": "Large",
+										"y": 388.4
+									},
+									{
+										"t": "Fill",
+										"y": 424.4
+									}
+								]
+							},
+							{
+								"title": "Small",
+								"cls": "(default)",
+								"x": 1048,
+								"left": 1048,
+								"w": 704.3,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Finder",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 243.2,
+								"w": 268.3
+							},
+							"after": {
+								"x": 243.2,
+								"w": 268.3
+							}
+						},
+						{
+							"title": "Guides",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 511.5,
+								"w": 268.3
+							},
+							"after": {
+								"x": 511.5,
+								"w": 268.3
+							}
+						},
+						{
+							"title": "Words",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 779.8,
+								"w": 268.3
+							},
+							"after": {
+								"x": 779.8,
+								"w": 268.3
+							}
+						}
+					]
+				},
+				{
+					"what": "click 6",
+					"clicked": "Hug",
+					"from_col": 2,
+					"cols_before": 4,
+					"cols_after": 4,
+					"snap": {
+						"row": {
+							"x": 243.2,
+							"y": 42.9,
+							"w": 1676.8,
+							"scrollLeft": 0,
+							"scrollW": 1677
+						},
+						"bar": {
+							"x": 243.2,
+							"y": 0,
+							"w": 1676.8,
+							"h": 42.9
+						},
+						"crumbs": [
+							{
+								"t": "Finder",
+								"x": 273.9,
+								"y": 8
+							},
+							{
+								"t": "Guides",
+								"x": 351.1,
+								"y": 8
+							},
+							{
+								"t": "Words",
+								"x": 431.6,
+								"y": 8
+							},
+							{
+								"t": "Hug",
+								"x": 508.9,
+								"y": 8
+							}
+						],
+						"cols": [
+							{
+								"title": "Finder",
+								"cls": "page-column-small",
+								"x": 243.2,
+								"left": 243,
+								"w": 268.3,
+								"links": [
+									{
+										"t": "descriptionGuideschevron",
+										"y": 332.3
+									},
+									{
+										"t": "sticky_note_2Noteschevro",
+										"y": 368.3
+									},
+									{
+										"t": "About",
+										"y": 404.3
+									}
+								]
+							},
+							{
+								"title": "Guides",
+								"cls": "page-column-small",
+								"x": 511.5,
+								"left": 511,
+								"w": 268.3,
+								"links": [
+									{
+										"t": "Start",
+										"y": 176.8
+									},
+									{
+										"t": "Wordschevron_right",
+										"y": 212.7
+									},
+									{
+										"t": "Deepchevron_right",
+										"y": 248.7
+									}
+								]
+							},
+							{
+								"title": "Words",
+								"cls": "page-column-small",
+								"x": 779.8,
+								"left": 780,
+								"w": 268.3,
+								"links": [
+									{
+										"t": "Small",
+										"y": 280.4
+									},
+									{
+										"t": "Hug",
+										"y": 316.4
+									},
+									{
+										"t": "Default",
+										"y": 352.4
+									},
+									{
+										"t": "Large",
+										"y": 388.4
+									},
+									{
+										"t": "Fill",
+										"y": 424.4
+									}
+								]
+							},
+							{
+								"title": "Hug",
+								"cls": "page-column-hug",
+								"x": 1048,
+								"left": 1048,
+								"w": 384,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Finder",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 243.2,
+								"w": 268.3
+							},
+							"after": {
+								"x": 243.2,
+								"w": 268.3
+							}
+						},
+						{
+							"title": "Guides",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 511.5,
+								"w": 268.3
+							},
+							"after": {
+								"x": 511.5,
+								"w": 268.3
+							}
+						},
+						{
+							"title": "Words",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 779.8,
+								"w": 268.3
+							},
+							"after": {
+								"x": 779.8,
+								"w": 268.3
+							}
+						},
+						{
+							"title": "Small",
+							"cls": "(default)",
+							"closed": true
+						}
+					]
+				}
+			]
+		},
+		{
+			"url": "/framework/core/Page/overview/columns/uses/docs/",
+			"width": 1920,
+			"errs": [],
+			"steps": [
+				{
+					"what": "arrival",
+					"snap": {
+						"row": {
+							"x": 243.2,
+							"y": 42.9,
+							"w": 1676.8,
+							"scrollLeft": 0,
+							"scrollW": 1677
+						},
+						"bar": {
+							"x": 243.2,
+							"y": 0,
+							"w": 1676.8,
+							"h": 42.9
+						},
+						"crumbs": [
+							{
+								"t": "Docs",
+								"x": 273.9,
+								"y": 8
+							}
+						],
+						"cols": [
+							{
+								"title": "Docs",
+								"cls": "(default)",
+								"x": 243.2,
+								"left": 243,
+								"w": 704.3,
+								"links": [
+									{
+										"t": "descriptionGuidechevron_",
+										"y": 748.3
+									},
+									{
+										"t": "codeAPIchevron_right",
+										"y": 784.3
+									}
+								]
+							}
+						]
+					}
+				},
+				{
+					"what": "click 2",
+					"clicked": "descriptionGuidechevron_right",
+					"from_col": 0,
+					"cols_before": 1,
+					"cols_after": 2,
+					"snap": {
+						"row": {
+							"x": 243.2,
+							"y": 42.9,
+							"w": 1676.8,
+							"scrollLeft": 0,
+							"scrollW": 1677
+						},
+						"bar": {
+							"x": 243.2,
+							"y": 0,
+							"w": 1676.8,
+							"h": 42.9
+						},
+						"crumbs": [
+							{
+								"t": "Docs",
+								"x": 273.9,
+								"y": 8
+							},
+							{
+								"t": "Guide",
+								"x": 340,
+								"y": 8
+							}
+						],
+						"cols": [
+							{
+								"title": "Docs",
+								"cls": "(default)",
+								"x": 243.2,
+								"left": 243,
+								"w": 704.3,
+								"links": [
+									{
+										"t": "descriptionGuidechevron_",
+										"y": 748.3
+									},
+									{
+										"t": "codeAPIchevron_right",
+										"y": 784.3
+									}
+								]
+							},
+							{
+								"title": "Guide",
+								"cls": "page-column-small",
+								"x": 947.4,
+								"left": 947,
+								"w": 268.3,
+								"links": [
+									{
+										"t": "Installchevron_right",
+										"y": 150.8
+									},
+									{
+										"t": "Tasks",
+										"y": 186.8
+									},
+									{
+										"t": "Watching",
+										"y": 222.8
+									}
+								]
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Docs",
+							"cls": "(default)",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 243.2,
+								"w": 704.3
+							},
+							"after": {
+								"x": 243.2,
+								"w": 704.3
+							}
+						}
+					]
+				},
+				{
+					"what": "click 3",
+					"clicked": "Installchevron_right",
+					"from_col": 1,
+					"cols_before": 2,
+					"cols_after": 3,
+					"snap": {
+						"row": {
+							"x": 243.2,
+							"y": 42.9,
+							"w": 1676.8,
+							"scrollLeft": 0,
+							"scrollW": 1677
+						},
+						"bar": {
+							"x": 243.2,
+							"y": 0,
+							"w": 1676.8,
+							"h": 42.9
+						},
+						"crumbs": [
+							{
+								"t": "Docs",
+								"x": 273.9,
+								"y": 8
+							},
+							{
+								"t": "Guide",
+								"x": 340,
+								"y": 8
+							},
+							{
+								"t": "Install",
+								"x": 413,
+								"y": 8
+							}
+						],
+						"cols": [
+							{
+								"title": "Docs",
+								"cls": "(default)",
+								"x": 243.2,
+								"left": 243,
+								"w": 704.3,
+								"links": [
+									{
+										"t": "descriptionGuidechevron_",
+										"y": 748.3
+									},
+									{
+										"t": "codeAPIchevron_right",
+										"y": 784.3
+									}
+								]
+							},
+							{
+								"title": "Guide",
+								"cls": "page-column-small",
+								"x": 947.4,
+								"left": 947,
+								"w": 268.3,
+								"links": [
+									{
+										"t": "Installchevron_right",
+										"y": 150.8
+									},
+									{
+										"t": "Tasks",
+										"y": 186.8
+									},
+									{
+										"t": "Watching",
+										"y": 222.8
+									}
+								]
+							},
+							{
+								"title": "Install",
+								"cls": "(default)",
+								"x": 1215.7,
+								"left": 1216,
+								"w": 704.3,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Docs",
+							"cls": "(default)",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 243.2,
+								"w": 704.3
+							},
+							"after": {
+								"x": 243.2,
+								"w": 704.3
+							}
+						},
+						{
+							"title": "Guide",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 947.4,
+								"w": 268.3
+							},
+							"after": {
+								"x": 947.4,
+								"w": 268.3
+							}
+						}
+					]
+				},
+				{
+					"what": "click 4",
+					"clicked": "Tasks",
+					"from_col": 1,
+					"cols_before": 3,
+					"cols_after": 3,
+					"snap": {
+						"row": {
+							"x": 243.2,
+							"y": 42.9,
+							"w": 1676.8,
+							"scrollLeft": 0,
+							"scrollW": 1677
+						},
+						"bar": {
+							"x": 243.2,
+							"y": 0,
+							"w": 1676.8,
+							"h": 42.9
+						},
+						"crumbs": [
+							{
+								"t": "Docs",
+								"x": 273.9,
+								"y": 8
+							},
+							{
+								"t": "Guide",
+								"x": 340,
+								"y": 8
+							},
+							{
+								"t": "Tasks",
+								"x": 413,
+								"y": 8
+							}
+						],
+						"cols": [
+							{
+								"title": "Docs",
+								"cls": "(default)",
+								"x": 243.2,
+								"left": 243,
+								"w": 704.3,
+								"links": [
+									{
+										"t": "descriptionGuidechevron_",
+										"y": 748.3
+									},
+									{
+										"t": "codeAPIchevron_right",
+										"y": 784.3
+									}
+								]
+							},
+							{
+								"title": "Guide",
+								"cls": "page-column-small",
+								"x": 947.4,
+								"left": 947,
+								"w": 268.3,
+								"links": [
+									{
+										"t": "Installchevron_right",
+										"y": 150.8
+									},
+									{
+										"t": "Tasks",
+										"y": 186.8
+									},
+									{
+										"t": "Watching",
+										"y": 222.8
+									}
+								]
+							},
+							{
+								"title": "Tasks",
+								"cls": "(default)",
+								"x": 1215.7,
+								"left": 1216,
+								"w": 704.3,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Docs",
+							"cls": "(default)",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 243.2,
+								"w": 704.3
+							},
+							"after": {
+								"x": 243.2,
+								"w": 704.3
+							}
+						},
+						{
+							"title": "Guide",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 947.4,
+								"w": 268.3
+							},
+							"after": {
+								"x": 947.4,
+								"w": 268.3
+							}
+						},
+						{
+							"title": "Install",
+							"cls": "(default)",
+							"closed": true
+						}
+					]
+				},
+				{
+					"what": "click 5",
+					"clicked": "Installchevron_right",
+					"from_col": 1,
+					"cols_before": 3,
+					"cols_after": 3,
+					"snap": {
+						"row": {
+							"x": 243.2,
+							"y": 42.9,
+							"w": 1676.8,
+							"scrollLeft": 0,
+							"scrollW": 1677
+						},
+						"bar": {
+							"x": 243.2,
+							"y": 0,
+							"w": 1676.8,
+							"h": 42.9
+						},
+						"crumbs": [
+							{
+								"t": "Docs",
+								"x": 273.9,
+								"y": 8
+							},
+							{
+								"t": "Guide",
+								"x": 340,
+								"y": 8
+							},
+							{
+								"t": "Install",
+								"x": 413,
+								"y": 8
+							}
+						],
+						"cols": [
+							{
+								"title": "Docs",
+								"cls": "(default)",
+								"x": 243.2,
+								"left": 243,
+								"w": 704.3,
+								"links": [
+									{
+										"t": "descriptionGuidechevron_",
+										"y": 748.3
+									},
+									{
+										"t": "codeAPIchevron_right",
+										"y": 784.3
+									}
+								]
+							},
+							{
+								"title": "Guide",
+								"cls": "page-column-small",
+								"x": 947.4,
+								"left": 947,
+								"w": 268.3,
+								"links": [
+									{
+										"t": "Installchevron_right",
+										"y": 150.8
+									},
+									{
+										"t": "Tasks",
+										"y": 186.8
+									},
+									{
+										"t": "Watching",
+										"y": 222.8
+									}
+								]
+							},
+							{
+								"title": "Install",
+								"cls": "(default)",
+								"x": 1215.7,
+								"left": 1216,
+								"w": 704.3,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Docs",
+							"cls": "(default)",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 243.2,
+								"w": 704.3
+							},
+							"after": {
+								"x": 243.2,
+								"w": 704.3
+							}
+						},
+						{
+							"title": "Guide",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 947.4,
+								"w": 268.3
+							},
+							"after": {
+								"x": 947.4,
+								"w": 268.3
+							}
+						},
+						{
+							"title": "Tasks",
+							"cls": "(default)",
+							"closed": true
+						}
+					]
+				},
+				{
+					"what": "click 6",
+					"clicked": "Tasks",
+					"from_col": 1,
+					"cols_before": 3,
+					"cols_after": 3,
+					"snap": {
+						"row": {
+							"x": 243.2,
+							"y": 42.9,
+							"w": 1676.8,
+							"scrollLeft": 0,
+							"scrollW": 1677
+						},
+						"bar": {
+							"x": 243.2,
+							"y": 0,
+							"w": 1676.8,
+							"h": 42.9
+						},
+						"crumbs": [
+							{
+								"t": "Docs",
+								"x": 273.9,
+								"y": 8
+							},
+							{
+								"t": "Guide",
+								"x": 340,
+								"y": 8
+							},
+							{
+								"t": "Tasks",
+								"x": 413,
+								"y": 8
+							}
+						],
+						"cols": [
+							{
+								"title": "Docs",
+								"cls": "(default)",
+								"x": 243.2,
+								"left": 243,
+								"w": 704.3,
+								"links": [
+									{
+										"t": "descriptionGuidechevron_",
+										"y": 748.3
+									},
+									{
+										"t": "codeAPIchevron_right",
+										"y": 784.3
+									}
+								]
+							},
+							{
+								"title": "Guide",
+								"cls": "page-column-small",
+								"x": 947.4,
+								"left": 947,
+								"w": 268.3,
+								"links": [
+									{
+										"t": "Installchevron_right",
+										"y": 150.8
+									},
+									{
+										"t": "Tasks",
+										"y": 186.8
+									},
+									{
+										"t": "Watching",
+										"y": 222.8
+									}
+								]
+							},
+							{
+								"title": "Tasks",
+								"cls": "(default)",
+								"x": 1215.7,
+								"left": 1216,
+								"w": 704.3,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Docs",
+							"cls": "(default)",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 243.2,
+								"w": 704.3
+							},
+							"after": {
+								"x": 243.2,
+								"w": 704.3
+							}
+						},
+						{
+							"title": "Guide",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 947.4,
+								"w": 268.3
+							},
+							"after": {
+								"x": 947.4,
+								"w": 268.3
+							}
+						},
+						{
+							"title": "Install",
+							"cls": "(default)",
+							"closed": true
+						}
+					]
+				}
+			]
+		},
+		{
+			"url": "/framework/core/Page/overview/columns/uses/workbench/",
+			"width": 1920,
+			"errs": [],
+			"steps": [
+				{
+					"what": "arrival",
+					"snap": {
+						"row": {
+							"x": 243.2,
+							"y": 42.9,
+							"w": 1676.8,
+							"scrollLeft": 0,
+							"scrollW": 1677
+						},
+						"bar": {
+							"x": 243.2,
+							"y": 0,
+							"w": 1676.8,
+							"h": 42.9
+						},
+						"crumbs": [
+							{
+								"t": "Workbench",
+								"x": 273.9,
+								"y": 8
+							}
+						],
+						"cols": [
+							{
+								"title": "Workbench",
+								"cls": "page-column-small",
+								"x": 243.2,
+								"left": 243,
+								"w": 268.3,
+								"links": [
+									{
+										"t": "articleSpecchevron_right",
+										"y": 202.7
+									},
+									{
+										"t": "view_moduleBoard",
+										"y": 238.7
+									}
+								]
+							}
+						]
+					}
+				},
+				{
+					"what": "click 2",
+					"clicked": "articleSpecchevron_right",
+					"from_col": 0,
+					"cols_before": 1,
+					"cols_after": 2,
+					"snap": {
+						"row": {
+							"x": 243.2,
+							"y": 42.9,
+							"w": 1676.8,
+							"scrollLeft": 0,
+							"scrollW": 1677
+						},
+						"bar": {
+							"x": 243.2,
+							"y": 0,
+							"w": 1676.8,
+							"h": 42.9
+						},
+						"crumbs": [
+							{
+								"t": "Workbench",
+								"x": 273.9,
+								"y": 8
+							},
+							{
+								"t": "Spec",
+								"x": 390,
+								"y": 8
+							}
+						],
+						"cols": [
+							{
+								"title": "Workbench",
+								"cls": "page-column-small",
+								"x": 243.2,
+								"left": 243,
+								"w": 268.3,
+								"links": [
+									{
+										"t": "articleSpecchevron_right",
+										"y": 202.7
+									},
+									{
+										"t": "view_moduleBoard",
+										"y": 238.7
+									}
+								]
+							},
+							{
+								"title": "Spec",
+								"cls": "(default)",
+								"x": 511.5,
+								"left": 511,
+								"w": 704.3,
+								"links": [
+									{
+										"t": "compare_arrowsDiffchevro",
+										"y": 411.3
+									}
+								]
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Workbench",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 243.2,
+								"w": 268.3
+							},
+							"after": {
+								"x": 243.2,
+								"w": 268.3
+							}
+						}
+					]
+				},
+				{
+					"what": "click 3",
+					"clicked": "compare_arrowsDiffchevron_righ",
+					"from_col": 1,
+					"cols_before": 2,
+					"cols_after": 3,
+					"snap": {
+						"row": {
+							"x": 243.2,
+							"y": 42.9,
+							"w": 1676.8,
+							"scrollLeft": 0,
+							"scrollW": 1677
+						},
+						"bar": {
+							"x": 243.2,
+							"y": 0,
+							"w": 1676.8,
+							"h": 42.9
+						},
+						"crumbs": [
+							{
+								"t": "Workbench",
+								"x": 273.9,
+								"y": 8
+							},
+							{
+								"t": "Spec",
+								"x": 390,
+								"y": 8
+							},
+							{
+								"t": "Diff",
+								"x": 455.3,
+								"y": 8
+							}
+						],
+						"cols": [
+							{
+								"title": "Workbench",
+								"cls": "page-column-small",
+								"x": 243.2,
+								"left": 243,
+								"w": 268.3,
+								"links": [
+									{
+										"t": "articleSpecchevron_right",
+										"y": 202.7
+									},
+									{
+										"t": "view_moduleBoard",
+										"y": 238.7
+									}
+								]
+							},
+							{
+								"title": "Spec",
+								"cls": "(default)",
+								"x": 511.5,
+								"left": 511,
+								"w": 704.3,
+								"links": [
+									{
+										"t": "compare_arrowsDiffchevro",
+										"y": 411.3
+									}
+								]
+							},
+							{
+								"title": "Diff",
+								"cls": "(default)",
+								"x": 1215.7,
+								"left": 1216,
+								"w": 704.3,
+								"links": [
+									{
+										"t": "rate_reviewNotes",
+										"y": 382.1
+									}
+								]
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Workbench",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 243.2,
+								"w": 268.3
+							},
+							"after": {
+								"x": 243.2,
+								"w": 268.3
+							}
+						},
+						{
+							"title": "Spec",
+							"cls": "(default)",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 511.5,
+								"w": 704.3
+							},
+							"after": {
+								"x": 511.5,
+								"w": 704.3
+							}
+						}
+					]
+				},
+				{
+					"what": "click 4",
+					"clicked": "rate_reviewNotes",
+					"from_col": 2,
+					"cols_before": 3,
+					"cols_after": 4,
+					"snap": {
+						"row": {
+							"x": 243.2,
+							"y": 42.9,
+							"w": 1676.8,
+							"scrollLeft": 0,
+							"scrollW": 1677
+						},
+						"bar": {
+							"x": 243.2,
+							"y": 0,
+							"w": 1676.8,
+							"h": 42.9
+						},
+						"crumbs": [
+							{
+								"t": "Workbench",
+								"x": 273.9,
+								"y": 8
+							},
+							{
+								"t": "Spec",
+								"x": 390,
+								"y": 8
+							},
+							{
+								"t": "Diff",
+								"x": 455.3,
+								"y": 8
+							},
+							{
+								"t": "Notes",
+								"x": 511.2,
+								"y": 8
+							}
+						],
+						"cols": [
+							{
+								"title": "Workbench",
+								"cls": "page-column-small",
+								"x": 243.2,
+								"left": 243,
+								"w": 268.3,
+								"links": [
+									{
+										"t": "articleSpecchevron_right",
+										"y": 202.7
+									},
+									{
+										"t": "view_moduleBoard",
+										"y": 238.7
+									}
+								]
+							},
+							{
+								"title": "Spec",
+								"cls": "(default)",
+								"x": 511.5,
+								"left": 511,
+								"w": 469.5,
+								"links": [
+									{
+										"t": "compare_arrowsDiffchevro",
+										"y": 463.2
+									}
+								]
+							},
+							{
+								"title": "Diff",
+								"cls": "(default)",
+								"x": 981,
+								"left": 981,
+								"w": 469.5,
+								"links": [
+									{
+										"t": "rate_reviewNotes",
+										"y": 408.1
+									}
+								]
+							},
+							{
+								"title": "Notes",
+								"cls": "page-column-large",
+								"x": 1450.5,
+								"left": 1450,
+								"w": 469.5,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Workbench",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 243.2,
+								"w": 268.3
+							},
+							"after": {
+								"x": 243.2,
+								"w": 268.3
+							}
+						},
+						{
+							"title": "Spec",
+							"cls": "(default)",
+							"dx": 0,
+							"dleft": 0,
+							"dw": -234.8,
+							"dy": 51.9,
+							"before": {
+								"x": 511.5,
+								"w": 704.3
+							},
+							"after": {
+								"x": 511.5,
+								"w": 469.5
+							}
+						},
+						{
+							"title": "Diff",
+							"cls": "(default)",
+							"dx": -234.7,
+							"dleft": -235,
+							"dw": -234.8,
+							"dy": 26,
+							"before": {
+								"x": 1215.7,
+								"w": 704.3
+							},
+							"after": {
+								"x": 981,
+								"w": 469.5
+							}
+						}
+					]
+				},
+				{
+					"what": "click 5",
+					"clicked": "view_moduleBoard",
+					"from_col": 0,
+					"cols_before": 4,
+					"cols_after": 1,
+					"snap": {
+						"row": {
+							"x": 243.2,
+							"y": 42.9,
+							"w": 1676.8,
+							"scrollLeft": 0,
+							"scrollW": 1677
+						},
+						"bar": {
+							"x": 243.2,
+							"y": 0,
+							"w": 1676.8,
+							"h": 42.9
+						},
+						"crumbs": [
+							{
+								"t": "Workbench",
+								"x": 273.9,
+								"y": 8
+							},
+							{
+								"t": "Board",
+								"x": 390,
+								"y": 8
+							}
+						],
+						"cols": [
+							{
+								"title": "Board",
+								"cls": "page-column-full",
+								"x": 243.2,
+								"left": 243,
+								"w": 1676.8,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Workbench",
+							"cls": "page-column-small",
+							"closed": true
+						},
+						{
+							"title": "Spec",
+							"cls": "(default)",
+							"closed": true
+						},
+						{
+							"title": "Diff",
+							"cls": "(default)",
+							"closed": true
+						},
+						{
+							"title": "Notes",
+							"cls": "page-column-large",
+							"closed": true
+						}
+					]
+				},
+				{
+					"what": "click 6",
+					"skipped": "no unopened nav link anywhere in the row"
+				}
+			]
+		},
+		{
+			"url": "/imagine/",
+			"width": 3440,
+			"errs": [],
+			"steps": [
+				{
+					"what": "arrival",
+					"snap": {
+						"row": {
+							"x": 0,
+							"y": 48.2,
+							"w": 3440,
+							"scrollLeft": 0,
+							"scrollW": 3440
+						},
+						"bar": {
+							"x": 0,
+							"y": 0,
+							"w": 3440,
+							"h": 48.2
+						},
+						"crumbs": [
+							{
+								"t": "Imagine",
+								"x": 54,
+								"y": 9
+							}
+						],
+						"cols": [
+							{
+								"title": "Imagine",
+								"cls": "page-column-small",
+								"x": 0,
+								"left": 0,
+								"w": 432,
+								"links": [
+									{
+										"t": "grid_viewStart",
+										"y": 160.9
+									},
+									{
+										"t": "groupsTeamchevron_right",
+										"y": 201.3
+									},
+									{
+										"t": "paletteDesignchevron_rig",
+										"y": 241.8
+									},
+									{
+										"t": "publicPlatformchevron_ri",
+										"y": 282.3
+									},
+									{
+										"t": "equalizerImportancechevr",
+										"y": 322.7
+									}
+								]
+							},
+							{
+								"title": "Start",
+								"cls": "page-column-large",
+								"x": 432,
+								"left": 432,
+								"w": 1152,
+								"links": []
+							}
+						]
+					}
+				},
+				{
+					"what": "click 2",
+					"clicked": "grid_viewStart",
+					"from_col": 0,
+					"cols_before": 2,
+					"cols_after": 2,
+					"snap": {
+						"row": {
+							"x": 0,
+							"y": 48.2,
+							"w": 3440,
+							"scrollLeft": 0,
+							"scrollW": 3440
+						},
+						"bar": {
+							"x": 0,
+							"y": 0,
+							"w": 3440,
+							"h": 48.2
+						},
+						"crumbs": [
+							{
+								"t": "Imagine",
+								"x": 54,
+								"y": 9
+							},
+							{
+								"t": "Start",
+								"x": 164.7,
+								"y": 9
+							}
+						],
+						"cols": [
+							{
+								"title": "Imagine",
+								"cls": "page-column-small",
+								"x": 0,
+								"left": 0,
+								"w": 432,
+								"links": [
+									{
+										"t": "grid_viewStart",
+										"y": 160.9
+									},
+									{
+										"t": "groupsTeamchevron_right",
+										"y": 201.3
+									},
+									{
+										"t": "paletteDesignchevron_rig",
+										"y": 241.8
+									},
+									{
+										"t": "publicPlatformchevron_ri",
+										"y": 282.3
+									},
+									{
+										"t": "equalizerImportancechevr",
+										"y": 322.7
+									}
+								]
+							},
+							{
+								"title": "Start",
+								"cls": "page-column-large",
+								"x": 432,
+								"left": 432,
+								"w": 1152,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Imagine",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 0,
+								"w": 432
+							},
+							"after": {
+								"x": 0,
+								"w": 432
+							}
+						},
+						{
+							"title": "Start",
+							"cls": "page-column-large",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 432,
+								"w": 1152
+							},
+							"after": {
+								"x": 432,
+								"w": 1152
+							}
+						}
+					]
+				},
+				{
+					"what": "click 3",
+					"clicked": "groupsTeamchevron_right",
+					"from_col": 0,
+					"cols_before": 2,
+					"cols_after": 3,
+					"snap": {
+						"row": {
+							"x": 0,
+							"y": 48.2,
+							"w": 3440,
+							"scrollLeft": 0,
+							"scrollW": 3440
+						},
+						"bar": {
+							"x": 0,
+							"y": 0,
+							"w": 3440,
+							"h": 48.2
+						},
+						"crumbs": [
+							{
+								"t": "Imagine",
+								"x": 54,
+								"y": 9
+							},
+							{
+								"t": "Team",
+								"x": 164.7,
+								"y": 9
+							}
+						],
+						"cols": [
+							{
+								"title": "Imagine",
+								"cls": "page-column-small",
+								"x": 0,
+								"left": 0,
+								"w": 432,
+								"links": [
+									{
+										"t": "grid_viewStart",
+										"y": 160.9
+									},
+									{
+										"t": "groupsTeamchevron_right",
+										"y": 201.3
+									},
+									{
+										"t": "paletteDesignchevron_rig",
+										"y": 241.8
+									},
+									{
+										"t": "publicPlatformchevron_ri",
+										"y": 282.3
+									},
+									{
+										"t": "equalizerImportancechevr",
+										"y": 322.7
+									}
+								]
+							},
+							{
+								"title": "Team",
+								"cls": "page-column-small",
+								"x": 432,
+								"left": 432,
+								"w": 432,
+								"links": []
+							},
+							{
+								"title": "Board",
+								"cls": "page-column-fill",
+								"x": 864,
+								"left": 864,
+								"w": 2576,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Imagine",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 0,
+								"w": 432
+							},
+							"after": {
+								"x": 0,
+								"w": 432
+							}
+						},
+						{
+							"title": "Start",
+							"cls": "page-column-large",
+							"closed": true
+						}
+					]
+				},
+				{
+					"what": "click 4",
+					"clicked": "grid_viewStart",
+					"from_col": 0,
+					"cols_before": 3,
+					"cols_after": 2,
+					"snap": {
+						"row": {
+							"x": 0,
+							"y": 48.2,
+							"w": 3440,
+							"scrollLeft": 0,
+							"scrollW": 3440
+						},
+						"bar": {
+							"x": 0,
+							"y": 0,
+							"w": 3440,
+							"h": 48.2
+						},
+						"crumbs": [
+							{
+								"t": "Imagine",
+								"x": 54,
+								"y": 9
+							},
+							{
+								"t": "Start",
+								"x": 164.7,
+								"y": 9
+							}
+						],
+						"cols": [
+							{
+								"title": "Imagine",
+								"cls": "page-column-small",
+								"x": 0,
+								"left": 0,
+								"w": 432,
+								"links": [
+									{
+										"t": "grid_viewStart",
+										"y": 160.9
+									},
+									{
+										"t": "groupsTeamchevron_right",
+										"y": 201.3
+									},
+									{
+										"t": "paletteDesignchevron_rig",
+										"y": 241.8
+									},
+									{
+										"t": "publicPlatformchevron_ri",
+										"y": 282.3
+									},
+									{
+										"t": "equalizerImportancechevr",
+										"y": 322.7
+									}
+								]
+							},
+							{
+								"title": "Start",
+								"cls": "page-column-large",
+								"x": 432,
+								"left": 432,
+								"w": 1152,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Imagine",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 0,
+								"w": 432
+							},
+							"after": {
+								"x": 0,
+								"w": 432
+							}
+						},
+						{
+							"title": "Team",
+							"cls": "page-column-small",
+							"closed": true
+						},
+						{
+							"title": "Board",
+							"cls": "page-column-fill",
+							"closed": true
+						}
+					]
+				},
+				{
+					"what": "click 5",
+					"clicked": "groupsTeamchevron_right",
+					"from_col": 0,
+					"cols_before": 2,
+					"cols_after": 3,
+					"snap": {
+						"row": {
+							"x": 0,
+							"y": 48.2,
+							"w": 3440,
+							"scrollLeft": 0,
+							"scrollW": 3440
+						},
+						"bar": {
+							"x": 0,
+							"y": 0,
+							"w": 3440,
+							"h": 48.2
+						},
+						"crumbs": [
+							{
+								"t": "Imagine",
+								"x": 54,
+								"y": 9
+							},
+							{
+								"t": "Team",
+								"x": 164.7,
+								"y": 9
+							}
+						],
+						"cols": [
+							{
+								"title": "Imagine",
+								"cls": "page-column-small",
+								"x": 0,
+								"left": 0,
+								"w": 432,
+								"links": [
+									{
+										"t": "grid_viewStart",
+										"y": 160.9
+									},
+									{
+										"t": "groupsTeamchevron_right",
+										"y": 201.3
+									},
+									{
+										"t": "paletteDesignchevron_rig",
+										"y": 241.8
+									},
+									{
+										"t": "publicPlatformchevron_ri",
+										"y": 282.3
+									},
+									{
+										"t": "equalizerImportancechevr",
+										"y": 322.7
+									}
+								]
+							},
+							{
+								"title": "Team",
+								"cls": "page-column-small",
+								"x": 432,
+								"left": 432,
+								"w": 432,
+								"links": []
+							},
+							{
+								"title": "Board",
+								"cls": "page-column-fill",
+								"x": 864,
+								"left": 864,
+								"w": 2576,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Imagine",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 0,
+								"w": 432
+							},
+							"after": {
+								"x": 0,
+								"w": 432
+							}
+						},
+						{
+							"title": "Start",
+							"cls": "page-column-large",
+							"closed": true
+						}
+					]
+				},
+				{
+					"what": "click 6",
+					"clicked": "grid_viewStart",
+					"from_col": 0,
+					"cols_before": 3,
+					"cols_after": 2,
+					"snap": {
+						"row": {
+							"x": 0,
+							"y": 48.2,
+							"w": 3440,
+							"scrollLeft": 0,
+							"scrollW": 3440
+						},
+						"bar": {
+							"x": 0,
+							"y": 0,
+							"w": 3440,
+							"h": 48.2
+						},
+						"crumbs": [
+							{
+								"t": "Imagine",
+								"x": 54,
+								"y": 9
+							},
+							{
+								"t": "Start",
+								"x": 164.7,
+								"y": 9
+							}
+						],
+						"cols": [
+							{
+								"title": "Imagine",
+								"cls": "page-column-small",
+								"x": 0,
+								"left": 0,
+								"w": 432,
+								"links": [
+									{
+										"t": "grid_viewStart",
+										"y": 160.9
+									},
+									{
+										"t": "groupsTeamchevron_right",
+										"y": 201.3
+									},
+									{
+										"t": "paletteDesignchevron_rig",
+										"y": 241.8
+									},
+									{
+										"t": "publicPlatformchevron_ri",
+										"y": 282.3
+									},
+									{
+										"t": "equalizerImportancechevr",
+										"y": 322.7
+									}
+								]
+							},
+							{
+								"title": "Start",
+								"cls": "page-column-large",
+								"x": 432,
+								"left": 432,
+								"w": 1152,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Imagine",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 0,
+								"w": 432
+							},
+							"after": {
+								"x": 0,
+								"w": 432
+							}
+						},
+						{
+							"title": "Team",
+							"cls": "page-column-small",
+							"closed": true
+						},
+						{
+							"title": "Board",
+							"cls": "page-column-fill",
+							"closed": true
+						}
+					]
+				}
+			]
+		},
+		{
+			"url": "/framework/core/Page/overview/columns/finder/",
+			"width": 3440,
+			"errs": [],
+			"steps": [
+				{
+					"what": "arrival",
+					"snap": {
+						"row": {
+							"x": 273.6,
+							"y": 48.2,
+							"w": 3166.4,
+							"scrollLeft": 0,
+							"scrollW": 3166
+						},
+						"bar": {
+							"x": 273.6,
+							"y": 0,
+							"w": 3166.4,
+							"h": 48.2
+						},
+						"crumbs": [
+							{
+								"t": "Finder",
+								"x": 327.6,
+								"y": 9
+							}
+						],
+						"cols": [
+							{
+								"title": "Finder",
+								"cls": "page-column-small",
+								"x": 273.6,
+								"left": 274,
+								"w": 432,
+								"links": [
+									{
+										"t": "descriptionGuideschevron",
+										"y": 356.2
+									},
+									{
+										"t": "sticky_note_2Noteschevro",
+										"y": 396.6
+									},
+									{
+										"t": "About",
+										"y": 437.1
+									}
+								]
+							}
+						]
+					}
+				},
+				{
+					"what": "click 2",
+					"clicked": "descriptionGuideschevron_right",
+					"from_col": 0,
+					"cols_before": 1,
+					"cols_after": 2,
+					"snap": {
+						"row": {
+							"x": 273.6,
+							"y": 48.2,
+							"w": 3166.4,
+							"scrollLeft": 0,
+							"scrollW": 3166
+						},
+						"bar": {
+							"x": 273.6,
+							"y": 0,
+							"w": 3166.4,
+							"h": 48.2
+						},
+						"crumbs": [
+							{
+								"t": "Finder",
+								"x": 327.6,
+								"y": 9
+							},
+							{
+								"t": "Guides",
+								"x": 423.2,
+								"y": 9
+							}
+						],
+						"cols": [
+							{
+								"title": "Finder",
+								"cls": "page-column-small",
+								"x": 273.6,
+								"left": 274,
+								"w": 432,
+								"links": [
+									{
+										"t": "descriptionGuideschevron",
+										"y": 356.2
+									},
+									{
+										"t": "sticky_note_2Noteschevro",
+										"y": 396.6
+									},
+									{
+										"t": "About",
+										"y": 437.1
+									}
+								]
+							},
+							{
+								"title": "Guides",
+								"cls": "page-column-small",
+								"x": 705.6,
+								"left": 706,
+								"w": 432,
+								"links": [
+									{
+										"t": "Start",
+										"y": 239.5
+									},
+									{
+										"t": "Wordschevron_right",
+										"y": 280
+									},
+									{
+										"t": "Deepchevron_right",
+										"y": 320.5
+									}
+								]
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Finder",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 273.6,
+								"w": 432
+							},
+							"after": {
+								"x": 273.6,
+								"w": 432
+							}
+						}
+					]
+				},
+				{
+					"what": "click 3",
+					"clicked": "Start",
+					"from_col": 1,
+					"cols_before": 2,
+					"cols_after": 3,
+					"snap": {
+						"row": {
+							"x": 273.6,
+							"y": 48.2,
+							"w": 3166.4,
+							"scrollLeft": 0,
+							"scrollW": 3166
+						},
+						"bar": {
+							"x": 273.6,
+							"y": 0,
+							"w": 3166.4,
+							"h": 48.2
+						},
+						"crumbs": [
+							{
+								"t": "Finder",
+								"x": 327.6,
+								"y": 9
+							},
+							{
+								"t": "Guides",
+								"x": 423.2,
+								"y": 9
+							},
+							{
+								"t": "Start",
+								"x": 522.4,
+								"y": 9
+							}
+						],
+						"cols": [
+							{
+								"title": "Finder",
+								"cls": "page-column-small",
+								"x": 273.6,
+								"left": 274,
+								"w": 432,
+								"links": [
+									{
+										"t": "descriptionGuideschevron",
+										"y": 356.2
+									},
+									{
+										"t": "sticky_note_2Noteschevro",
+										"y": 396.6
+									},
+									{
+										"t": "About",
+										"y": 437.1
+									}
+								]
+							},
+							{
+								"title": "Guides",
+								"cls": "page-column-small",
+								"x": 705.6,
+								"left": 706,
+								"w": 432,
+								"links": [
+									{
+										"t": "Start",
+										"y": 239.5
+									},
+									{
+										"t": "Wordschevron_right",
+										"y": 280
+									},
+									{
+										"t": "Deepchevron_right",
+										"y": 320.5
+									}
+								]
+							},
+							{
+								"title": "Start",
+								"cls": "(default)",
+								"x": 1137.6,
+								"left": 1138,
+								"w": 828,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Finder",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 273.6,
+								"w": 432
+							},
+							"after": {
+								"x": 273.6,
+								"w": 432
+							}
+						},
+						{
+							"title": "Guides",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 705.6,
+								"w": 432
+							},
+							"after": {
+								"x": 705.6,
+								"w": 432
+							}
+						}
+					]
+				},
+				{
+					"what": "click 4",
+					"clicked": "Wordschevron_right",
+					"from_col": 1,
+					"cols_before": 3,
+					"cols_after": 3,
+					"snap": {
+						"row": {
+							"x": 273.6,
+							"y": 48.2,
+							"w": 3166.4,
+							"scrollLeft": 0,
+							"scrollW": 3166
+						},
+						"bar": {
+							"x": 273.6,
+							"y": 0,
+							"w": 3166.4,
+							"h": 48.2
+						},
+						"crumbs": [
+							{
+								"t": "Finder",
+								"x": 327.6,
+								"y": 9
+							},
+							{
+								"t": "Guides",
+								"x": 423.2,
+								"y": 9
+							},
+							{
+								"t": "Words",
+								"x": 522.4,
+								"y": 9
+							}
+						],
+						"cols": [
+							{
+								"title": "Finder",
+								"cls": "page-column-small",
+								"x": 273.6,
+								"left": 274,
+								"w": 432,
+								"links": [
+									{
+										"t": "descriptionGuideschevron",
+										"y": 356.2
+									},
+									{
+										"t": "sticky_note_2Noteschevro",
+										"y": 396.6
+									},
+									{
+										"t": "About",
+										"y": 437.1
+									}
+								]
+							},
+							{
+								"title": "Guides",
+								"cls": "page-column-small",
+								"x": 705.6,
+								"left": 706,
+								"w": 432,
+								"links": [
+									{
+										"t": "Start",
+										"y": 239.5
+									},
+									{
+										"t": "Wordschevron_right",
+										"y": 280
+									},
+									{
+										"t": "Deepchevron_right",
+										"y": 320.5
+									}
+								]
+							},
+							{
+								"title": "Words",
+								"cls": "page-column-small",
+								"x": 1137.6,
+								"left": 1138,
+								"w": 432,
+								"links": [
+									{
+										"t": "Small",
+										"y": 297.9
+									},
+									{
+										"t": "Hug",
+										"y": 338.3
+									},
+									{
+										"t": "Default",
+										"y": 378.8
+									},
+									{
+										"t": "Large",
+										"y": 419.3
+									},
+									{
+										"t": "Fill",
+										"y": 459.7
+									}
+								]
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Finder",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 273.6,
+								"w": 432
+							},
+							"after": {
+								"x": 273.6,
+								"w": 432
+							}
+						},
+						{
+							"title": "Guides",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 705.6,
+								"w": 432
+							},
+							"after": {
+								"x": 705.6,
+								"w": 432
+							}
+						},
+						{
+							"title": "Start",
+							"cls": "(default)",
+							"closed": true
+						}
+					]
+				},
+				{
+					"what": "click 5",
+					"clicked": "Small",
+					"from_col": 2,
+					"cols_before": 3,
+					"cols_after": 4,
+					"snap": {
+						"row": {
+							"x": 273.6,
+							"y": 48.2,
+							"w": 3166.4,
+							"scrollLeft": 0,
+							"scrollW": 3166
+						},
+						"bar": {
+							"x": 273.6,
+							"y": 0,
+							"w": 3166.4,
+							"h": 48.2
+						},
+						"crumbs": [
+							{
+								"t": "Finder",
+								"x": 327.6,
+								"y": 9
+							},
+							{
+								"t": "Guides",
+								"x": 423.2,
+								"y": 9
+							},
+							{
+								"t": "Words",
+								"x": 522.4,
+								"y": 9
+							},
+							{
+								"t": "Small",
+								"x": 618.1,
+								"y": 9
+							}
+						],
+						"cols": [
+							{
+								"title": "Finder",
+								"cls": "page-column-small",
+								"x": 273.6,
+								"left": 274,
+								"w": 432,
+								"links": [
+									{
+										"t": "descriptionGuideschevron",
+										"y": 356.2
+									},
+									{
+										"t": "sticky_note_2Noteschevro",
+										"y": 396.6
+									},
+									{
+										"t": "About",
+										"y": 437.1
+									}
+								]
+							},
+							{
+								"title": "Guides",
+								"cls": "page-column-small",
+								"x": 705.6,
+								"left": 706,
+								"w": 432,
+								"links": [
+									{
+										"t": "Start",
+										"y": 239.5
+									},
+									{
+										"t": "Wordschevron_right",
+										"y": 280
+									},
+									{
+										"t": "Deepchevron_right",
+										"y": 320.5
+									}
+								]
+							},
+							{
+								"title": "Words",
+								"cls": "page-column-small",
+								"x": 1137.6,
+								"left": 1138,
+								"w": 432,
+								"links": [
+									{
+										"t": "Small",
+										"y": 297.9
+									},
+									{
+										"t": "Hug",
+										"y": 338.3
+									},
+									{
+										"t": "Default",
+										"y": 378.8
+									},
+									{
+										"t": "Large",
+										"y": 419.3
+									},
+									{
+										"t": "Fill",
+										"y": 459.7
+									}
+								]
+							},
+							{
+								"title": "Small",
+								"cls": "(default)",
+								"x": 1569.6,
+								"left": 1570,
+								"w": 828,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Finder",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 273.6,
+								"w": 432
+							},
+							"after": {
+								"x": 273.6,
+								"w": 432
+							}
+						},
+						{
+							"title": "Guides",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 705.6,
+								"w": 432
+							},
+							"after": {
+								"x": 705.6,
+								"w": 432
+							}
+						},
+						{
+							"title": "Words",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 1137.6,
+								"w": 432
+							},
+							"after": {
+								"x": 1137.6,
+								"w": 432
+							}
+						}
+					]
+				},
+				{
+					"what": "click 6",
+					"clicked": "Hug",
+					"from_col": 2,
+					"cols_before": 4,
+					"cols_after": 4,
+					"snap": {
+						"row": {
+							"x": 273.6,
+							"y": 48.2,
+							"w": 3166.4,
+							"scrollLeft": 0,
+							"scrollW": 3166
+						},
+						"bar": {
+							"x": 273.6,
+							"y": 0,
+							"w": 3166.4,
+							"h": 48.2
+						},
+						"crumbs": [
+							{
+								"t": "Finder",
+								"x": 327.6,
+								"y": 9
+							},
+							{
+								"t": "Guides",
+								"x": 423.2,
+								"y": 9
+							},
+							{
+								"t": "Words",
+								"x": 522.4,
+								"y": 9
+							},
+							{
+								"t": "Hug",
+								"x": 618.1,
+								"y": 9
+							}
+						],
+						"cols": [
+							{
+								"title": "Finder",
+								"cls": "page-column-small",
+								"x": 273.6,
+								"left": 274,
+								"w": 432,
+								"links": [
+									{
+										"t": "descriptionGuideschevron",
+										"y": 356.2
+									},
+									{
+										"t": "sticky_note_2Noteschevro",
+										"y": 396.6
+									},
+									{
+										"t": "About",
+										"y": 437.1
+									}
+								]
+							},
+							{
+								"title": "Guides",
+								"cls": "page-column-small",
+								"x": 705.6,
+								"left": 706,
+								"w": 432,
+								"links": [
+									{
+										"t": "Start",
+										"y": 239.5
+									},
+									{
+										"t": "Wordschevron_right",
+										"y": 280
+									},
+									{
+										"t": "Deepchevron_right",
+										"y": 320.5
+									}
+								]
+							},
+							{
+								"title": "Words",
+								"cls": "page-column-small",
+								"x": 1137.6,
+								"left": 1138,
+								"w": 432,
+								"links": [
+									{
+										"t": "Small",
+										"y": 297.9
+									},
+									{
+										"t": "Hug",
+										"y": 338.3
+									},
+									{
+										"t": "Default",
+										"y": 378.8
+									},
+									{
+										"t": "Large",
+										"y": 419.3
+									},
+									{
+										"t": "Fill",
+										"y": 459.7
+									}
+								]
+							},
+							{
+								"title": "Hug",
+								"cls": "page-column-hug",
+								"x": 1569.6,
+								"left": 1570,
+								"w": 432,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Finder",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 273.6,
+								"w": 432
+							},
+							"after": {
+								"x": 273.6,
+								"w": 432
+							}
+						},
+						{
+							"title": "Guides",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 705.6,
+								"w": 432
+							},
+							"after": {
+								"x": 705.6,
+								"w": 432
+							}
+						},
+						{
+							"title": "Words",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 1137.6,
+								"w": 432
+							},
+							"after": {
+								"x": 1137.6,
+								"w": 432
+							}
+						},
+						{
+							"title": "Small",
+							"cls": "(default)",
+							"closed": true
+						}
+					]
+				}
+			]
+		},
+		{
+			"url": "/framework/core/Page/overview/columns/uses/docs/",
+			"width": 3440,
+			"errs": [],
+			"steps": [
+				{
+					"what": "arrival",
+					"snap": {
+						"row": {
+							"x": 273.6,
+							"y": 48.2,
+							"w": 3166.4,
+							"scrollLeft": 0,
+							"scrollW": 3166
+						},
+						"bar": {
+							"x": 273.6,
+							"y": 0,
+							"w": 3166.4,
+							"h": 48.2
+						},
+						"crumbs": [
+							{
+								"t": "Docs",
+								"x": 327.6,
+								"y": 9
+							}
+						],
+						"cols": [
+							{
+								"title": "Docs",
+								"cls": "(default)",
+								"x": 273.6,
+								"left": 274,
+								"w": 828,
+								"links": [
+									{
+										"t": "descriptionGuidechevron_",
+										"y": 885.9
+									},
+									{
+										"t": "codeAPIchevron_right",
+										"y": 926.3
+									}
+								]
+							}
+						]
+					}
+				},
+				{
+					"what": "click 2",
+					"clicked": "descriptionGuidechevron_right",
+					"from_col": 0,
+					"cols_before": 1,
+					"cols_after": 2,
+					"snap": {
+						"row": {
+							"x": 273.6,
+							"y": 48.2,
+							"w": 3166.4,
+							"scrollLeft": 0,
+							"scrollW": 3166
+						},
+						"bar": {
+							"x": 273.6,
+							"y": 0,
+							"w": 3166.4,
+							"h": 48.2
+						},
+						"crumbs": [
+							{
+								"t": "Docs",
+								"x": 327.6,
+								"y": 9
+							},
+							{
+								"t": "Guide",
+								"x": 410.6,
+								"y": 9
+							}
+						],
+						"cols": [
+							{
+								"title": "Docs",
+								"cls": "(default)",
+								"x": 273.6,
+								"left": 274,
+								"w": 828,
+								"links": [
+									{
+										"t": "descriptionGuidechevron_",
+										"y": 859.9
+									},
+									{
+										"t": "codeAPIchevron_right",
+										"y": 900.3
+									}
+								]
+							},
+							{
+								"title": "Guide",
+								"cls": "page-column-small",
+								"x": 1101.6,
+								"left": 1102,
+								"w": 432,
+								"links": [
+									{
+										"t": "Installchevron_right",
+										"y": 210.4
+									},
+									{
+										"t": "Tasks",
+										"y": 250.9
+									},
+									{
+										"t": "Watching",
+										"y": 291.3
+									}
+								]
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Docs",
+							"cls": "(default)",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 26,
+							"before": {
+								"x": 273.6,
+								"w": 828
+							},
+							"after": {
+								"x": 273.6,
+								"w": 828
+							}
+						}
+					]
+				},
+				{
+					"what": "click 3",
+					"clicked": "Installchevron_right",
+					"from_col": 1,
+					"cols_before": 2,
+					"cols_after": 3,
+					"snap": {
+						"row": {
+							"x": 273.6,
+							"y": 48.2,
+							"w": 3166.4,
+							"scrollLeft": 0,
+							"scrollW": 3166
+						},
+						"bar": {
+							"x": 273.6,
+							"y": 0,
+							"w": 3166.4,
+							"h": 48.2
+						},
+						"crumbs": [
+							{
+								"t": "Docs",
+								"x": 327.6,
+								"y": 9
+							},
+							{
+								"t": "Guide",
+								"x": 410.6,
+								"y": 9
+							},
+							{
+								"t": "Install",
+								"x": 501.5,
+								"y": 9
+							}
+						],
+						"cols": [
+							{
+								"title": "Docs",
+								"cls": "(default)",
+								"x": 273.6,
+								"left": 274,
+								"w": 828,
+								"links": [
+									{
+										"t": "descriptionGuidechevron_",
+										"y": 859.9
+									},
+									{
+										"t": "codeAPIchevron_right",
+										"y": 900.3
+									}
+								]
+							},
+							{
+								"title": "Guide",
+								"cls": "page-column-small",
+								"x": 1101.6,
+								"left": 1102,
+								"w": 432,
+								"links": [
+									{
+										"t": "Installchevron_right",
+										"y": 210.4
+									},
+									{
+										"t": "Tasks",
+										"y": 250.9
+									},
+									{
+										"t": "Watching",
+										"y": 291.3
+									}
+								]
+							},
+							{
+								"title": "Install",
+								"cls": "(default)",
+								"x": 1533.6,
+								"left": 1534,
+								"w": 828,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Docs",
+							"cls": "(default)",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 273.6,
+								"w": 828
+							},
+							"after": {
+								"x": 273.6,
+								"w": 828
+							}
+						},
+						{
+							"title": "Guide",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 1101.6,
+								"w": 432
+							},
+							"after": {
+								"x": 1101.6,
+								"w": 432
+							}
+						}
+					]
+				},
+				{
+					"what": "click 4",
+					"clicked": "Tasks",
+					"from_col": 1,
+					"cols_before": 3,
+					"cols_after": 3,
+					"snap": {
+						"row": {
+							"x": 273.6,
+							"y": 48.2,
+							"w": 3166.4,
+							"scrollLeft": 0,
+							"scrollW": 3166
+						},
+						"bar": {
+							"x": 273.6,
+							"y": 0,
+							"w": 3166.4,
+							"h": 48.2
+						},
+						"crumbs": [
+							{
+								"t": "Docs",
+								"x": 327.6,
+								"y": 9
+							},
+							{
+								"t": "Guide",
+								"x": 410.6,
+								"y": 9
+							},
+							{
+								"t": "Tasks",
+								"x": 501.5,
+								"y": 9
+							}
+						],
+						"cols": [
+							{
+								"title": "Docs",
+								"cls": "(default)",
+								"x": 273.6,
+								"left": 274,
+								"w": 828,
+								"links": [
+									{
+										"t": "descriptionGuidechevron_",
+										"y": 859.9
+									},
+									{
+										"t": "codeAPIchevron_right",
+										"y": 900.3
+									}
+								]
+							},
+							{
+								"title": "Guide",
+								"cls": "page-column-small",
+								"x": 1101.6,
+								"left": 1102,
+								"w": 432,
+								"links": [
+									{
+										"t": "Installchevron_right",
+										"y": 210.4
+									},
+									{
+										"t": "Tasks",
+										"y": 250.9
+									},
+									{
+										"t": "Watching",
+										"y": 291.3
+									}
+								]
+							},
+							{
+								"title": "Tasks",
+								"cls": "(default)",
+								"x": 1533.6,
+								"left": 1534,
+								"w": 828,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Docs",
+							"cls": "(default)",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 273.6,
+								"w": 828
+							},
+							"after": {
+								"x": 273.6,
+								"w": 828
+							}
+						},
+						{
+							"title": "Guide",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 1101.6,
+								"w": 432
+							},
+							"after": {
+								"x": 1101.6,
+								"w": 432
+							}
+						},
+						{
+							"title": "Install",
+							"cls": "(default)",
+							"closed": true
+						}
+					]
+				},
+				{
+					"what": "click 5",
+					"clicked": "Installchevron_right",
+					"from_col": 1,
+					"cols_before": 3,
+					"cols_after": 3,
+					"snap": {
+						"row": {
+							"x": 273.6,
+							"y": 48.2,
+							"w": 3166.4,
+							"scrollLeft": 0,
+							"scrollW": 3166
+						},
+						"bar": {
+							"x": 273.6,
+							"y": 0,
+							"w": 3166.4,
+							"h": 48.2
+						},
+						"crumbs": [
+							{
+								"t": "Docs",
+								"x": 327.6,
+								"y": 9
+							},
+							{
+								"t": "Guide",
+								"x": 410.6,
+								"y": 9
+							},
+							{
+								"t": "Install",
+								"x": 501.5,
+								"y": 9
+							}
+						],
+						"cols": [
+							{
+								"title": "Docs",
+								"cls": "(default)",
+								"x": 273.6,
+								"left": 274,
+								"w": 828,
+								"links": [
+									{
+										"t": "descriptionGuidechevron_",
+										"y": 859.9
+									},
+									{
+										"t": "codeAPIchevron_right",
+										"y": 900.3
+									}
+								]
+							},
+							{
+								"title": "Guide",
+								"cls": "page-column-small",
+								"x": 1101.6,
+								"left": 1102,
+								"w": 432,
+								"links": [
+									{
+										"t": "Installchevron_right",
+										"y": 210.4
+									},
+									{
+										"t": "Tasks",
+										"y": 250.9
+									},
+									{
+										"t": "Watching",
+										"y": 291.3
+									}
+								]
+							},
+							{
+								"title": "Install",
+								"cls": "(default)",
+								"x": 1533.6,
+								"left": 1534,
+								"w": 828,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Docs",
+							"cls": "(default)",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 273.6,
+								"w": 828
+							},
+							"after": {
+								"x": 273.6,
+								"w": 828
+							}
+						},
+						{
+							"title": "Guide",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 1101.6,
+								"w": 432
+							},
+							"after": {
+								"x": 1101.6,
+								"w": 432
+							}
+						},
+						{
+							"title": "Tasks",
+							"cls": "(default)",
+							"closed": true
+						}
+					]
+				},
+				{
+					"what": "click 6",
+					"clicked": "Tasks",
+					"from_col": 1,
+					"cols_before": 3,
+					"cols_after": 3,
+					"snap": {
+						"row": {
+							"x": 273.6,
+							"y": 48.2,
+							"w": 3166.4,
+							"scrollLeft": 0,
+							"scrollW": 3166
+						},
+						"bar": {
+							"x": 273.6,
+							"y": 0,
+							"w": 3166.4,
+							"h": 48.2
+						},
+						"crumbs": [
+							{
+								"t": "Docs",
+								"x": 327.6,
+								"y": 9
+							},
+							{
+								"t": "Guide",
+								"x": 410.6,
+								"y": 9
+							},
+							{
+								"t": "Tasks",
+								"x": 501.5,
+								"y": 9
+							}
+						],
+						"cols": [
+							{
+								"title": "Docs",
+								"cls": "(default)",
+								"x": 273.6,
+								"left": 274,
+								"w": 828,
+								"links": [
+									{
+										"t": "descriptionGuidechevron_",
+										"y": 859.9
+									},
+									{
+										"t": "codeAPIchevron_right",
+										"y": 900.3
+									}
+								]
+							},
+							{
+								"title": "Guide",
+								"cls": "page-column-small",
+								"x": 1101.6,
+								"left": 1102,
+								"w": 432,
+								"links": [
+									{
+										"t": "Installchevron_right",
+										"y": 210.4
+									},
+									{
+										"t": "Tasks",
+										"y": 250.9
+									},
+									{
+										"t": "Watching",
+										"y": 291.3
+									}
+								]
+							},
+							{
+								"title": "Tasks",
+								"cls": "(default)",
+								"x": 1533.6,
+								"left": 1534,
+								"w": 828,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Docs",
+							"cls": "(default)",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 273.6,
+								"w": 828
+							},
+							"after": {
+								"x": 273.6,
+								"w": 828
+							}
+						},
+						{
+							"title": "Guide",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 1101.6,
+								"w": 432
+							},
+							"after": {
+								"x": 1101.6,
+								"w": 432
+							}
+						},
+						{
+							"title": "Install",
+							"cls": "(default)",
+							"closed": true
+						}
+					]
+				}
+			]
+		},
+		{
+			"url": "/framework/core/Page/overview/columns/uses/workbench/",
+			"width": 3440,
+			"errs": [],
+			"steps": [
+				{
+					"what": "arrival",
+					"snap": {
+						"row": {
+							"x": 273.6,
+							"y": 48.2,
+							"w": 3166.4,
+							"scrollLeft": 0,
+							"scrollW": 3166
+						},
+						"bar": {
+							"x": 273.6,
+							"y": 0,
+							"w": 3166.4,
+							"h": 48.2
+						},
+						"crumbs": [
+							{
+								"t": "Workbench",
+								"x": 327.6,
+								"y": 9
+							}
+						],
+						"cols": [
+							{
+								"title": "Workbench",
+								"cls": "page-column-small",
+								"x": 273.6,
+								"left": 274,
+								"w": 432,
+								"links": [
+									{
+										"t": "articleSpecchevron_right",
+										"y": 239.5
+									},
+									{
+										"t": "view_moduleBoard",
+										"y": 280
+									}
+								]
+							}
+						]
+					}
+				},
+				{
+					"what": "click 2",
+					"clicked": "articleSpecchevron_right",
+					"from_col": 0,
+					"cols_before": 1,
+					"cols_after": 2,
+					"snap": {
+						"row": {
+							"x": 273.6,
+							"y": 48.2,
+							"w": 3166.4,
+							"scrollLeft": 0,
+							"scrollW": 3166
+						},
+						"bar": {
+							"x": 273.6,
+							"y": 0,
+							"w": 3166.4,
+							"h": 48.2
+						},
+						"crumbs": [
+							{
+								"t": "Workbench",
+								"x": 327.6,
+								"y": 9
+							},
+							{
+								"t": "Spec",
+								"x": 466.9,
+								"y": 9
+							}
+						],
+						"cols": [
+							{
+								"title": "Workbench",
+								"cls": "page-column-small",
+								"x": 273.6,
+								"left": 274,
+								"w": 432,
+								"links": [
+									{
+										"t": "articleSpecchevron_right",
+										"y": 239.5
+									},
+									{
+										"t": "view_moduleBoard",
+										"y": 280
+									}
+								]
+							},
+							{
+								"title": "Spec",
+								"cls": "(default)",
+								"x": 705.6,
+								"left": 706,
+								"w": 828,
+								"links": [
+									{
+										"t": "compare_arrowsDiffchevro",
+										"y": 506.8
+									}
+								]
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Workbench",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 273.6,
+								"w": 432
+							},
+							"after": {
+								"x": 273.6,
+								"w": 432
+							}
+						}
+					]
+				},
+				{
+					"what": "click 3",
+					"clicked": "compare_arrowsDiffchevron_righ",
+					"from_col": 1,
+					"cols_before": 2,
+					"cols_after": 3,
+					"snap": {
+						"row": {
+							"x": 273.6,
+							"y": 48.2,
+							"w": 3166.4,
+							"scrollLeft": 0,
+							"scrollW": 3166
+						},
+						"bar": {
+							"x": 273.6,
+							"y": 0,
+							"w": 3166.4,
+							"h": 48.2
+						},
+						"crumbs": [
+							{
+								"t": "Workbench",
+								"x": 327.6,
+								"y": 9
+							},
+							{
+								"t": "Spec",
+								"x": 466.9,
+								"y": 9
+							},
+							{
+								"t": "Diff",
+								"x": 549.1,
+								"y": 9
+							}
+						],
+						"cols": [
+							{
+								"title": "Workbench",
+								"cls": "page-column-small",
+								"x": 273.6,
+								"left": 274,
+								"w": 432,
+								"links": [
+									{
+										"t": "articleSpecchevron_right",
+										"y": 239.5
+									},
+									{
+										"t": "view_moduleBoard",
+										"y": 280
+									}
+								]
+							},
+							{
+								"title": "Spec",
+								"cls": "(default)",
+								"x": 705.6,
+								"left": 706,
+								"w": 828,
+								"links": [
+									{
+										"t": "compare_arrowsDiffchevro",
+										"y": 506.8
+									}
+								]
+							},
+							{
+								"title": "Diff",
+								"cls": "(default)",
+								"x": 1533.6,
+								"left": 1534,
+								"w": 828,
+								"links": [
+									{
+										"t": "rate_reviewNotes",
+										"y": 473
+									}
+								]
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Workbench",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 273.6,
+								"w": 432
+							},
+							"after": {
+								"x": 273.6,
+								"w": 432
+							}
+						},
+						{
+							"title": "Spec",
+							"cls": "(default)",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 705.6,
+								"w": 828
+							},
+							"after": {
+								"x": 705.6,
+								"w": 828
+							}
+						}
+					]
+				},
+				{
+					"what": "click 4",
+					"clicked": "rate_reviewNotes",
+					"from_col": 2,
+					"cols_before": 3,
+					"cols_after": 4,
+					"snap": {
+						"row": {
+							"x": 273.6,
+							"y": 48.2,
+							"w": 3166.4,
+							"scrollLeft": 0,
+							"scrollW": 3166
+						},
+						"bar": {
+							"x": 273.6,
+							"y": 0,
+							"w": 3166.4,
+							"h": 48.2
+						},
+						"crumbs": [
+							{
+								"t": "Workbench",
+								"x": 327.6,
+								"y": 9
+							},
+							{
+								"t": "Spec",
+								"x": 466.9,
+								"y": 9
+							},
+							{
+								"t": "Diff",
+								"x": 549.1,
+								"y": 9
+							},
+							{
+								"t": "Notes",
+								"x": 620.7,
+								"y": 9
+							}
+						],
+						"cols": [
+							{
+								"title": "Workbench",
+								"cls": "page-column-small",
+								"x": 273.6,
+								"left": 274,
+								"w": 432,
+								"links": [
+									{
+										"t": "articleSpecchevron_right",
+										"y": 239.5
+									},
+									{
+										"t": "view_moduleBoard",
+										"y": 280
+									}
+								]
+							},
+							{
+								"title": "Spec",
+								"cls": "(default)",
+								"x": 705.6,
+								"left": 706,
+								"w": 828,
+								"links": [
+									{
+										"t": "compare_arrowsDiffchevro",
+										"y": 506.8
+									}
+								]
+							},
+							{
+								"title": "Diff",
+								"cls": "(default)",
+								"x": 1533.6,
+								"left": 1534,
+								"w": 828,
+								"links": [
+									{
+										"t": "rate_reviewNotes",
+										"y": 473
+									}
+								]
+							},
+							{
+								"title": "Notes",
+								"cls": "page-column-large",
+								"x": 2361.6,
+								"left": 2362,
+								"w": 1078.4,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Workbench",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 273.6,
+								"w": 432
+							},
+							"after": {
+								"x": 273.6,
+								"w": 432
+							}
+						},
+						{
+							"title": "Spec",
+							"cls": "(default)",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 705.6,
+								"w": 828
+							},
+							"after": {
+								"x": 705.6,
+								"w": 828
+							}
+						},
+						{
+							"title": "Diff",
+							"cls": "(default)",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 1533.6,
+								"w": 828
+							},
+							"after": {
+								"x": 1533.6,
+								"w": 828
+							}
+						}
+					]
+				},
+				{
+					"what": "click 5",
+					"clicked": "view_moduleBoard",
+					"from_col": 0,
+					"cols_before": 4,
+					"cols_after": 1,
+					"snap": {
+						"row": {
+							"x": 273.6,
+							"y": 48.2,
+							"w": 3166.4,
+							"scrollLeft": 0,
+							"scrollW": 3166
+						},
+						"bar": {
+							"x": 273.6,
+							"y": 0,
+							"w": 3166.4,
+							"h": 48.2
+						},
+						"crumbs": [
+							{
+								"t": "Workbench",
+								"x": 327.6,
+								"y": 9
+							},
+							{
+								"t": "Board",
+								"x": 466.9,
+								"y": 9
+							}
+						],
+						"cols": [
+							{
+								"title": "Board",
+								"cls": "page-column-full",
+								"x": 273.6,
+								"left": 274,
+								"w": 3166.4,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Workbench",
+							"cls": "page-column-small",
+							"closed": true
+						},
+						{
+							"title": "Spec",
+							"cls": "(default)",
+							"closed": true
+						},
+						{
+							"title": "Diff",
+							"cls": "(default)",
+							"closed": true
+						},
+						{
+							"title": "Notes",
+							"cls": "page-column-large",
+							"closed": true
+						}
+					]
+				},
+				{
+					"what": "click 6",
+					"skipped": "no unopened nav link anywhere in the row"
+				}
+			]
+		},
+		{
+			"url": "/imagine/",
+			"width": 400,
+			"errs": [],
+			"steps": [
+				{
+					"what": "arrival",
+					"snap": {
+						"row": {
+							"x": 0,
+							"y": 37.7,
+							"w": 400,
+							"scrollLeft": 400,
+							"scrollW": 800
+						},
+						"bar": {
+							"x": 0,
+							"y": 0,
+							"w": 400,
+							"h": 37.7
+						},
+						"crumbs": [
+							{
+								"t": "Imagine",
+								"x": 12.6,
+								"y": 7
+							}
+						],
+						"cols": [
+							{
+								"title": "Imagine",
+								"cls": "page-column-small",
+								"x": -400,
+								"left": 0,
+								"w": 400,
+								"links": [
+									{
+										"t": "grid_viewStart",
+										"y": 91
+									},
+									{
+										"t": "groupsTeamchevron_right",
+										"y": 122.5
+									},
+									{
+										"t": "paletteDesignchevron_rig",
+										"y": 153.9
+									},
+									{
+										"t": "publicPlatformchevron_ri",
+										"y": 185.4
+									},
+									{
+										"t": "equalizerImportancechevr",
+										"y": 216.9
+									}
+								]
+							},
+							{
+								"title": "Start",
+								"cls": "page-column-large",
+								"x": 0,
+								"left": 400,
+								"w": 400,
+								"links": []
+							}
+						]
+					}
+				},
+				{
+					"what": "click 2",
+					"clicked": "grid_viewStart",
+					"from_col": 0,
+					"cols_before": 2,
+					"cols_after": 2,
+					"snap": {
+						"row": {
+							"x": 0,
+							"y": 37.7,
+							"w": 400,
+							"scrollLeft": 400,
+							"scrollW": 800
+						},
+						"bar": {
+							"x": 0,
+							"y": 0,
+							"w": 400,
+							"h": 37.7
+						},
+						"crumbs": [
+							{
+								"t": "Imagine",
+								"x": 12.6,
+								"y": 7
+							},
+							{
+								"t": "Start",
+								"x": 86.6,
+								"y": 7
+							}
+						],
+						"cols": [
+							{
+								"title": "Imagine",
+								"cls": "page-column-small",
+								"x": -400,
+								"left": 0,
+								"w": 400,
+								"links": [
+									{
+										"t": "grid_viewStart",
+										"y": 91
+									},
+									{
+										"t": "groupsTeamchevron_right",
+										"y": 122.5
+									},
+									{
+										"t": "paletteDesignchevron_rig",
+										"y": 153.9
+									},
+									{
+										"t": "publicPlatformchevron_ri",
+										"y": 185.4
+									},
+									{
+										"t": "equalizerImportancechevr",
+										"y": 216.9
+									}
+								]
+							},
+							{
+								"title": "Start",
+								"cls": "page-column-large",
+								"x": 0,
+								"left": 400,
+								"w": 400,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Imagine",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": -400,
+								"w": 400
+							},
+							"after": {
+								"x": -400,
+								"w": 400
+							}
+						},
+						{
+							"title": "Start",
+							"cls": "page-column-large",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 0,
+								"w": 400
+							},
+							"after": {
+								"x": 0,
+								"w": 400
+							}
+						}
+					]
+				},
+				{
+					"what": "click 3",
+					"clicked": "groupsTeamchevron_right",
+					"from_col": 0,
+					"cols_before": 2,
+					"cols_after": 3,
+					"snap": {
+						"row": {
+							"x": 0,
+							"y": 37.7,
+							"w": 400,
+							"scrollLeft": 800,
+							"scrollW": 1200
+						},
+						"bar": {
+							"x": 0,
+							"y": 0,
+							"w": 400,
+							"h": 37.7
+						},
+						"crumbs": [
+							{
+								"t": "Imagine",
+								"x": 12.6,
+								"y": 7
+							},
+							{
+								"t": "Team",
+								"x": 86.6,
+								"y": 7
+							}
+						],
+						"cols": [
+							{
+								"title": "Imagine",
+								"cls": "page-column-small",
+								"x": -800,
+								"left": 0,
+								"w": 400,
+								"links": [
+									{
+										"t": "grid_viewStart",
+										"y": 91
+									},
+									{
+										"t": "groupsTeamchevron_right",
+										"y": 122.5
+									},
+									{
+										"t": "paletteDesignchevron_rig",
+										"y": 153.9
+									},
+									{
+										"t": "publicPlatformchevron_ri",
+										"y": 185.4
+									},
+									{
+										"t": "equalizerImportancechevr",
+										"y": 216.9
+									}
+								]
+							},
+							{
+								"title": "Team",
+								"cls": "page-column-small",
+								"x": -400,
+								"left": 400,
+								"w": 400,
+								"links": []
+							},
+							{
+								"title": "Board",
+								"cls": "page-column-fill",
+								"x": 0,
+								"left": 800,
+								"w": 400,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Imagine",
+							"cls": "page-column-small",
+							"dx": -400,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": -400,
+								"w": 400
+							},
+							"after": {
+								"x": -800,
+								"w": 400
+							}
+						},
+						{
+							"title": "Start",
+							"cls": "page-column-large",
+							"closed": true
+						}
+					]
+				},
+				{
+					"what": "click 4",
+					"clicked": "grid_viewStart",
+					"from_col": 0,
+					"cols_before": 3,
+					"cols_after": 2,
+					"snap": {
+						"row": {
+							"x": 0,
+							"y": 37.7,
+							"w": 400,
+							"scrollLeft": 400,
+							"scrollW": 800
+						},
+						"bar": {
+							"x": 0,
+							"y": 0,
+							"w": 400,
+							"h": 37.7
+						},
+						"crumbs": [
+							{
+								"t": "Imagine",
+								"x": 12.6,
+								"y": 7
+							},
+							{
+								"t": "Start",
+								"x": 86.6,
+								"y": 7
+							}
+						],
+						"cols": [
+							{
+								"title": "Imagine",
+								"cls": "page-column-small",
+								"x": -400,
+								"left": 0,
+								"w": 400,
+								"links": [
+									{
+										"t": "grid_viewStart",
+										"y": 91
+									},
+									{
+										"t": "groupsTeamchevron_right",
+										"y": 122.5
+									},
+									{
+										"t": "paletteDesignchevron_rig",
+										"y": 153.9
+									},
+									{
+										"t": "publicPlatformchevron_ri",
+										"y": 185.4
+									},
+									{
+										"t": "equalizerImportancechevr",
+										"y": 216.9
+									}
+								]
+							},
+							{
+								"title": "Start",
+								"cls": "page-column-large",
+								"x": 0,
+								"left": 400,
+								"w": 400,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Imagine",
+							"cls": "page-column-small",
+							"dx": 400,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": -800,
+								"w": 400
+							},
+							"after": {
+								"x": -400,
+								"w": 400
+							}
+						},
+						{
+							"title": "Team",
+							"cls": "page-column-small",
+							"closed": true
+						},
+						{
+							"title": "Board",
+							"cls": "page-column-fill",
+							"closed": true
+						}
+					]
+				},
+				{
+					"what": "click 5",
+					"clicked": "groupsTeamchevron_right",
+					"from_col": 0,
+					"cols_before": 2,
+					"cols_after": 3,
+					"snap": {
+						"row": {
+							"x": 0,
+							"y": 37.7,
+							"w": 400,
+							"scrollLeft": 800,
+							"scrollW": 1200
+						},
+						"bar": {
+							"x": 0,
+							"y": 0,
+							"w": 400,
+							"h": 37.7
+						},
+						"crumbs": [
+							{
+								"t": "Imagine",
+								"x": 12.6,
+								"y": 7
+							},
+							{
+								"t": "Team",
+								"x": 86.6,
+								"y": 7
+							}
+						],
+						"cols": [
+							{
+								"title": "Imagine",
+								"cls": "page-column-small",
+								"x": -800,
+								"left": 0,
+								"w": 400,
+								"links": [
+									{
+										"t": "grid_viewStart",
+										"y": 91
+									},
+									{
+										"t": "groupsTeamchevron_right",
+										"y": 122.5
+									},
+									{
+										"t": "paletteDesignchevron_rig",
+										"y": 153.9
+									},
+									{
+										"t": "publicPlatformchevron_ri",
+										"y": 185.4
+									},
+									{
+										"t": "equalizerImportancechevr",
+										"y": 216.9
+									}
+								]
+							},
+							{
+								"title": "Team",
+								"cls": "page-column-small",
+								"x": -400,
+								"left": 400,
+								"w": 400,
+								"links": []
+							},
+							{
+								"title": "Board",
+								"cls": "page-column-fill",
+								"x": 0,
+								"left": 800,
+								"w": 400,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Imagine",
+							"cls": "page-column-small",
+							"dx": -400,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": -400,
+								"w": 400
+							},
+							"after": {
+								"x": -800,
+								"w": 400
+							}
+						},
+						{
+							"title": "Start",
+							"cls": "page-column-large",
+							"closed": true
+						}
+					]
+				},
+				{
+					"what": "click 6",
+					"clicked": "grid_viewStart",
+					"from_col": 0,
+					"cols_before": 3,
+					"cols_after": 2,
+					"snap": {
+						"row": {
+							"x": 0,
+							"y": 37.7,
+							"w": 400,
+							"scrollLeft": 400,
+							"scrollW": 800
+						},
+						"bar": {
+							"x": 0,
+							"y": 0,
+							"w": 400,
+							"h": 37.7
+						},
+						"crumbs": [
+							{
+								"t": "Imagine",
+								"x": 12.6,
+								"y": 7
+							},
+							{
+								"t": "Start",
+								"x": 86.6,
+								"y": 7
+							}
+						],
+						"cols": [
+							{
+								"title": "Imagine",
+								"cls": "page-column-small",
+								"x": -400,
+								"left": 0,
+								"w": 400,
+								"links": [
+									{
+										"t": "grid_viewStart",
+										"y": 91
+									},
+									{
+										"t": "groupsTeamchevron_right",
+										"y": 122.5
+									},
+									{
+										"t": "paletteDesignchevron_rig",
+										"y": 153.9
+									},
+									{
+										"t": "publicPlatformchevron_ri",
+										"y": 185.4
+									},
+									{
+										"t": "equalizerImportancechevr",
+										"y": 216.9
+									}
+								]
+							},
+							{
+								"title": "Start",
+								"cls": "page-column-large",
+								"x": 0,
+								"left": 400,
+								"w": 400,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Imagine",
+							"cls": "page-column-small",
+							"dx": 400,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": -800,
+								"w": 400
+							},
+							"after": {
+								"x": -400,
+								"w": 400
+							}
+						},
+						{
+							"title": "Team",
+							"cls": "page-column-small",
+							"closed": true
+						},
+						{
+							"title": "Board",
+							"cls": "page-column-fill",
+							"closed": true
+						}
+					]
+				}
+			]
+		},
+		{
+			"url": "/framework/core/Page/overview/columns/finder/",
+			"width": 400,
+			"errs": [],
+			"steps": [
+				{
+					"what": "arrival",
+					"snap": {
+						"row": {
+							"x": 0,
+							"y": 88.7,
+							"w": 400,
+							"scrollLeft": 0,
+							"scrollW": 400
+						},
+						"bar": {
+							"x": 0,
+							"y": 51,
+							"w": 400,
+							"h": 37.7
+						},
+						"crumbs": [
+							{
+								"t": "Finder",
+								"x": 12.6,
+								"y": 58
+							}
+						],
+						"cols": [
+							{
+								"title": "Finder",
+								"cls": "page-column-small",
+								"x": 0,
+								"left": 0,
+								"w": 400,
+								"links": [
+									{
+										"t": "descriptionGuideschevron",
+										"y": 241.5
+									},
+									{
+										"t": "sticky_note_2Noteschevro",
+										"y": 272.9
+									},
+									{
+										"t": "About",
+										"y": 304.4
+									}
+								]
+							}
+						]
+					}
+				},
+				{
+					"what": "click 2",
+					"clicked": "descriptionGuideschevron_right",
+					"from_col": 0,
+					"cols_before": 1,
+					"cols_after": 2,
+					"snap": {
+						"row": {
+							"x": 0,
+							"y": 88.7,
+							"w": 400,
+							"scrollLeft": 400,
+							"scrollW": 800
+						},
+						"bar": {
+							"x": 0,
+							"y": 51,
+							"w": 400,
+							"h": 37.7
+						},
+						"crumbs": [
+							{
+								"t": "Finder",
+								"x": 12.6,
+								"y": 58
+							},
+							{
+								"t": "Guides",
+								"x": 74.8,
+								"y": 58
+							}
+						],
+						"cols": [
+							{
+								"title": "Finder",
+								"cls": "page-column-small",
+								"x": -400,
+								"left": 0,
+								"w": 400,
+								"links": [
+									{
+										"t": "descriptionGuideschevron",
+										"y": 241.5
+									},
+									{
+										"t": "sticky_note_2Noteschevro",
+										"y": 272.9
+									},
+									{
+										"t": "About",
+										"y": 304.4
+									}
+								]
+							},
+							{
+								"title": "Guides",
+								"cls": "page-column-small",
+								"x": 0,
+								"left": 400,
+								"w": 400,
+								"links": [
+									{
+										"t": "Start",
+										"y": 173.5
+									},
+									{
+										"t": "Wordschevron_right",
+										"y": 205
+									},
+									{
+										"t": "Deepchevron_right",
+										"y": 236.4
+									}
+								]
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Finder",
+							"cls": "page-column-small",
+							"dx": -400,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 0,
+								"w": 400
+							},
+							"after": {
+								"x": -400,
+								"w": 400
+							}
+						}
+					]
+				},
+				{
+					"what": "click 3",
+					"clicked": "Start",
+					"from_col": 1,
+					"cols_before": 2,
+					"cols_after": 3,
+					"snap": {
+						"row": {
+							"x": 0,
+							"y": 88.7,
+							"w": 400,
+							"scrollLeft": 800,
+							"scrollW": 1200
+						},
+						"bar": {
+							"x": 0,
+							"y": 51,
+							"w": 400,
+							"h": 37.7
+						},
+						"crumbs": [
+							{
+								"t": "Finder",
+								"x": 12.6,
+								"y": 58
+							},
+							{
+								"t": "Guides",
+								"x": 74.8,
+								"y": 58
+							},
+							{
+								"t": "Start",
+								"x": 139.9,
+								"y": 58
+							}
+						],
+						"cols": [
+							{
+								"title": "Finder",
+								"cls": "page-column-small",
+								"x": -800,
+								"left": 0,
+								"w": 400,
+								"links": [
+									{
+										"t": "descriptionGuideschevron",
+										"y": 241.5
+									},
+									{
+										"t": "sticky_note_2Noteschevro",
+										"y": 272.9
+									},
+									{
+										"t": "About",
+										"y": 304.4
+									}
+								]
+							},
+							{
+								"title": "Guides",
+								"cls": "page-column-small",
+								"x": -400,
+								"left": 400,
+								"w": 400,
+								"links": [
+									{
+										"t": "Start",
+										"y": 173.5
+									},
+									{
+										"t": "Wordschevron_right",
+										"y": 205
+									},
+									{
+										"t": "Deepchevron_right",
+										"y": 236.4
+									}
+								]
+							},
+							{
+								"title": "Start",
+								"cls": "(default)",
+								"x": 0,
+								"left": 800,
+								"w": 400,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Finder",
+							"cls": "page-column-small",
+							"dx": -400,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": -400,
+								"w": 400
+							},
+							"after": {
+								"x": -800,
+								"w": 400
+							}
+						},
+						{
+							"title": "Guides",
+							"cls": "page-column-small",
+							"dx": -400,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 0,
+								"w": 400
+							},
+							"after": {
+								"x": -400,
+								"w": 400
+							}
+						}
+					]
+				},
+				{
+					"what": "click 4",
+					"clicked": "Wordschevron_right",
+					"from_col": 1,
+					"cols_before": 3,
+					"cols_after": 3,
+					"snap": {
+						"row": {
+							"x": 0,
+							"y": 88.7,
+							"w": 400,
+							"scrollLeft": 800,
+							"scrollW": 1200
+						},
+						"bar": {
+							"x": 0,
+							"y": 51,
+							"w": 400,
+							"h": 37.7
+						},
+						"crumbs": [
+							{
+								"t": "Finder",
+								"x": 12.6,
+								"y": 58
+							},
+							{
+								"t": "Guides",
+								"x": 74.8,
+								"y": 58
+							},
+							{
+								"t": "Words",
+								"x": 139.9,
+								"y": 58
+							}
+						],
+						"cols": [
+							{
+								"title": "Finder",
+								"cls": "page-column-small",
+								"x": -800,
+								"left": 0,
+								"w": 400,
+								"links": [
+									{
+										"t": "descriptionGuideschevron",
+										"y": 241.5
+									},
+									{
+										"t": "sticky_note_2Noteschevro",
+										"y": 272.9
+									},
+									{
+										"t": "About",
+										"y": 304.4
+									}
+								]
+							},
+							{
+								"title": "Guides",
+								"cls": "page-column-small",
+								"x": -400,
+								"left": 400,
+								"w": 400,
+								"links": [
+									{
+										"t": "Start",
+										"y": 173.5
+									},
+									{
+										"t": "Wordschevron_right",
+										"y": 205
+									},
+									{
+										"t": "Deepchevron_right",
+										"y": 236.4
+									}
+								]
+							},
+							{
+								"title": "Words",
+								"cls": "page-column-small",
+								"x": 0,
+								"left": 800,
+								"w": 400,
+								"links": [
+									{
+										"t": "Small",
+										"y": 218.8
+									},
+									{
+										"t": "Hug",
+										"y": 250.3
+									},
+									{
+										"t": "Default",
+										"y": 281.7
+									},
+									{
+										"t": "Large",
+										"y": 313.2
+									},
+									{
+										"t": "Fill",
+										"y": 344.7
+									}
+								]
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Finder",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": -800,
+								"w": 400
+							},
+							"after": {
+								"x": -800,
+								"w": 400
+							}
+						},
+						{
+							"title": "Guides",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": -400,
+								"w": 400
+							},
+							"after": {
+								"x": -400,
+								"w": 400
+							}
+						},
+						{
+							"title": "Start",
+							"cls": "(default)",
+							"closed": true
+						}
+					]
+				},
+				{
+					"what": "click 5",
+					"clicked": "Small",
+					"from_col": 2,
+					"cols_before": 3,
+					"cols_after": 4,
+					"snap": {
+						"row": {
+							"x": 0,
+							"y": 88.7,
+							"w": 400,
+							"scrollLeft": 1200,
+							"scrollW": 1600
+						},
+						"bar": {
+							"x": 0,
+							"y": 51,
+							"w": 400,
+							"h": 37.7
+						},
+						"crumbs": [
+							{
+								"t": "Finder",
+								"x": 12.6,
+								"y": 58
+							},
+							{
+								"t": "Guides",
+								"x": 74.8,
+								"y": 58
+							},
+							{
+								"t": "Words",
+								"x": 139.9,
+								"y": 58
+							},
+							{
+								"t": "Small",
+								"x": 202.2,
+								"y": 58
+							}
+						],
+						"cols": [
+							{
+								"title": "Finder",
+								"cls": "page-column-small",
+								"x": -1200,
+								"left": 0,
+								"w": 400,
+								"links": [
+									{
+										"t": "descriptionGuideschevron",
+										"y": 241.5
+									},
+									{
+										"t": "sticky_note_2Noteschevro",
+										"y": 272.9
+									},
+									{
+										"t": "About",
+										"y": 304.4
+									}
+								]
+							},
+							{
+								"title": "Guides",
+								"cls": "page-column-small",
+								"x": -800,
+								"left": 400,
+								"w": 400,
+								"links": [
+									{
+										"t": "Start",
+										"y": 173.5
+									},
+									{
+										"t": "Wordschevron_right",
+										"y": 205
+									},
+									{
+										"t": "Deepchevron_right",
+										"y": 236.4
+									}
+								]
+							},
+							{
+								"title": "Words",
+								"cls": "page-column-small",
+								"x": -400,
+								"left": 800,
+								"w": 400,
+								"links": [
+									{
+										"t": "Small",
+										"y": 218.8
+									},
+									{
+										"t": "Hug",
+										"y": 250.3
+									},
+									{
+										"t": "Default",
+										"y": 281.7
+									},
+									{
+										"t": "Large",
+										"y": 313.2
+									},
+									{
+										"t": "Fill",
+										"y": 344.7
+									}
+								]
+							},
+							{
+								"title": "Small",
+								"cls": "(default)",
+								"x": 0,
+								"left": 1200,
+								"w": 400,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Finder",
+							"cls": "page-column-small",
+							"dx": -400,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": -800,
+								"w": 400
+							},
+							"after": {
+								"x": -1200,
+								"w": 400
+							}
+						},
+						{
+							"title": "Guides",
+							"cls": "page-column-small",
+							"dx": -400,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": -400,
+								"w": 400
+							},
+							"after": {
+								"x": -800,
+								"w": 400
+							}
+						},
+						{
+							"title": "Words",
+							"cls": "page-column-small",
+							"dx": -400,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 0,
+								"w": 400
+							},
+							"after": {
+								"x": -400,
+								"w": 400
+							}
+						}
+					]
+				},
+				{
+					"what": "click 6",
+					"clicked": "Hug",
+					"from_col": 2,
+					"cols_before": 4,
+					"cols_after": 4,
+					"snap": {
+						"row": {
+							"x": 0,
+							"y": 88.7,
+							"w": 400,
+							"scrollLeft": 1200,
+							"scrollW": 1600
+						},
+						"bar": {
+							"x": 0,
+							"y": 51,
+							"w": 400,
+							"h": 37.7
+						},
+						"crumbs": [
+							{
+								"t": "Finder",
+								"x": 12.6,
+								"y": 58
+							},
+							{
+								"t": "Guides",
+								"x": 74.8,
+								"y": 58
+							},
+							{
+								"t": "Words",
+								"x": 139.9,
+								"y": 58
+							},
+							{
+								"t": "Hug",
+								"x": 202.2,
+								"y": 58
+							}
+						],
+						"cols": [
+							{
+								"title": "Finder",
+								"cls": "page-column-small",
+								"x": -1200,
+								"left": 0,
+								"w": 400,
+								"links": [
+									{
+										"t": "descriptionGuideschevron",
+										"y": 241.5
+									},
+									{
+										"t": "sticky_note_2Noteschevro",
+										"y": 272.9
+									},
+									{
+										"t": "About",
+										"y": 304.4
+									}
+								]
+							},
+							{
+								"title": "Guides",
+								"cls": "page-column-small",
+								"x": -800,
+								"left": 400,
+								"w": 400,
+								"links": [
+									{
+										"t": "Start",
+										"y": 173.5
+									},
+									{
+										"t": "Wordschevron_right",
+										"y": 205
+									},
+									{
+										"t": "Deepchevron_right",
+										"y": 236.4
+									}
+								]
+							},
+							{
+								"title": "Words",
+								"cls": "page-column-small",
+								"x": -400,
+								"left": 800,
+								"w": 400,
+								"links": [
+									{
+										"t": "Small",
+										"y": 218.8
+									},
+									{
+										"t": "Hug",
+										"y": 250.3
+									},
+									{
+										"t": "Default",
+										"y": 281.7
+									},
+									{
+										"t": "Large",
+										"y": 313.2
+									},
+									{
+										"t": "Fill",
+										"y": 344.7
+									}
+								]
+							},
+							{
+								"title": "Hug",
+								"cls": "page-column-hug",
+								"x": 0,
+								"left": 1200,
+								"w": 400,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Finder",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": -1200,
+								"w": 400
+							},
+							"after": {
+								"x": -1200,
+								"w": 400
+							}
+						},
+						{
+							"title": "Guides",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": -800,
+								"w": 400
+							},
+							"after": {
+								"x": -800,
+								"w": 400
+							}
+						},
+						{
+							"title": "Words",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": -400,
+								"w": 400
+							},
+							"after": {
+								"x": -400,
+								"w": 400
+							}
+						},
+						{
+							"title": "Small",
+							"cls": "(default)",
+							"closed": true
+						}
+					]
+				}
+			]
+		},
+		{
+			"url": "/framework/core/Page/overview/columns/uses/docs/",
+			"width": 400,
+			"errs": [],
+			"steps": [
+				{
+					"what": "arrival",
+					"snap": {
+						"row": {
+							"x": 0,
+							"y": 88.7,
+							"w": 400,
+							"scrollLeft": 0,
+							"scrollW": 400
+						},
+						"bar": {
+							"x": 0,
+							"y": 51,
+							"w": 400,
+							"h": 37.7
+						},
+						"crumbs": [
+							{
+								"t": "Docs",
+								"x": 12.6,
+								"y": 58
+							}
+						],
+						"cols": [
+							{
+								"title": "Docs",
+								"cls": "(default)",
+								"x": 0,
+								"left": 0,
+								"w": 400,
+								"links": [
+									{
+										"t": "descriptionGuidechevron_",
+										"y": 815.5
+									},
+									{
+										"t": "codeAPIchevron_right",
+										"y": 846.9
+									}
+								]
+							}
+						]
+					}
+				},
+				{
+					"what": "click 2",
+					"clicked": "descriptionGuidechevron_right",
+					"from_col": 0,
+					"cols_before": 1,
+					"cols_after": 2,
+					"snap": {
+						"row": {
+							"x": 0,
+							"y": 88.7,
+							"w": 400,
+							"scrollLeft": 400,
+							"scrollW": 800
+						},
+						"bar": {
+							"x": 0,
+							"y": 51,
+							"w": 400,
+							"h": 37.7
+						},
+						"crumbs": [
+							{
+								"t": "Docs",
+								"x": 12.6,
+								"y": 58
+							},
+							{
+								"t": "Guide",
+								"x": 65.1,
+								"y": 58
+							}
+						],
+						"cols": [
+							{
+								"title": "Docs",
+								"cls": "(default)",
+								"x": -400,
+								"left": 0,
+								"w": 400,
+								"links": [
+									{
+										"t": "descriptionGuidechevron_",
+										"y": 815.5
+									},
+									{
+										"t": "codeAPIchevron_right",
+										"y": 846.9
+									}
+								]
+							},
+							{
+								"title": "Guide",
+								"cls": "page-column-small",
+								"x": 0,
+								"left": 400,
+								"w": 400,
+								"links": [
+									{
+										"t": "Installchevron_right",
+										"y": 173.5
+									},
+									{
+										"t": "Tasks",
+										"y": 205
+									},
+									{
+										"t": "Watching",
+										"y": 236.4
+									}
+								]
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Docs",
+							"cls": "(default)",
+							"dx": -400,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 0,
+								"w": 400
+							},
+							"after": {
+								"x": -400,
+								"w": 400
+							}
+						}
+					]
+				},
+				{
+					"what": "click 3",
+					"clicked": "Installchevron_right",
+					"from_col": 1,
+					"cols_before": 2,
+					"cols_after": 3,
+					"snap": {
+						"row": {
+							"x": 0,
+							"y": 88.7,
+							"w": 400,
+							"scrollLeft": 800,
+							"scrollW": 1200
+						},
+						"bar": {
+							"x": 0,
+							"y": 51,
+							"w": 400,
+							"h": 37.7
+						},
+						"crumbs": [
+							{
+								"t": "Docs",
+								"x": 12.6,
+								"y": 58
+							},
+							{
+								"t": "Guide",
+								"x": 65.1,
+								"y": 58
+							},
+							{
+								"t": "Install",
+								"x": 123.7,
+								"y": 58
+							}
+						],
+						"cols": [
+							{
+								"title": "Docs",
+								"cls": "(default)",
+								"x": -800,
+								"left": 0,
+								"w": 400,
+								"links": [
+									{
+										"t": "descriptionGuidechevron_",
+										"y": 815.5
+									},
+									{
+										"t": "codeAPIchevron_right",
+										"y": 846.9
+									}
+								]
+							},
+							{
+								"title": "Guide",
+								"cls": "page-column-small",
+								"x": -400,
+								"left": 400,
+								"w": 400,
+								"links": [
+									{
+										"t": "Installchevron_right",
+										"y": 173.5
+									},
+									{
+										"t": "Tasks",
+										"y": 205
+									},
+									{
+										"t": "Watching",
+										"y": 236.4
+									}
+								]
+							},
+							{
+								"title": "Install",
+								"cls": "(default)",
+								"x": 0,
+								"left": 800,
+								"w": 400,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Docs",
+							"cls": "(default)",
+							"dx": -400,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": -400,
+								"w": 400
+							},
+							"after": {
+								"x": -800,
+								"w": 400
+							}
+						},
+						{
+							"title": "Guide",
+							"cls": "page-column-small",
+							"dx": -400,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 0,
+								"w": 400
+							},
+							"after": {
+								"x": -400,
+								"w": 400
+							}
+						}
+					]
+				},
+				{
+					"what": "click 4",
+					"clicked": "Tasks",
+					"from_col": 1,
+					"cols_before": 3,
+					"cols_after": 3,
+					"snap": {
+						"row": {
+							"x": 0,
+							"y": 88.7,
+							"w": 400,
+							"scrollLeft": 800,
+							"scrollW": 1200
+						},
+						"bar": {
+							"x": 0,
+							"y": 51,
+							"w": 400,
+							"h": 37.7
+						},
+						"crumbs": [
+							{
+								"t": "Docs",
+								"x": 12.6,
+								"y": 58
+							},
+							{
+								"t": "Guide",
+								"x": 65.1,
+								"y": 58
+							},
+							{
+								"t": "Tasks",
+								"x": 123.7,
+								"y": 58
+							}
+						],
+						"cols": [
+							{
+								"title": "Docs",
+								"cls": "(default)",
+								"x": -800,
+								"left": 0,
+								"w": 400,
+								"links": [
+									{
+										"t": "descriptionGuidechevron_",
+										"y": 815.5
+									},
+									{
+										"t": "codeAPIchevron_right",
+										"y": 846.9
+									}
+								]
+							},
+							{
+								"title": "Guide",
+								"cls": "page-column-small",
+								"x": -400,
+								"left": 400,
+								"w": 400,
+								"links": [
+									{
+										"t": "Installchevron_right",
+										"y": 173.5
+									},
+									{
+										"t": "Tasks",
+										"y": 205
+									},
+									{
+										"t": "Watching",
+										"y": 236.4
+									}
+								]
+							},
+							{
+								"title": "Tasks",
+								"cls": "(default)",
+								"x": 0,
+								"left": 800,
+								"w": 400,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Docs",
+							"cls": "(default)",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": -800,
+								"w": 400
+							},
+							"after": {
+								"x": -800,
+								"w": 400
+							}
+						},
+						{
+							"title": "Guide",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": -400,
+								"w": 400
+							},
+							"after": {
+								"x": -400,
+								"w": 400
+							}
+						},
+						{
+							"title": "Install",
+							"cls": "(default)",
+							"closed": true
+						}
+					]
+				},
+				{
+					"what": "click 5",
+					"clicked": "Installchevron_right",
+					"from_col": 1,
+					"cols_before": 3,
+					"cols_after": 3,
+					"snap": {
+						"row": {
+							"x": 0,
+							"y": 88.7,
+							"w": 400,
+							"scrollLeft": 800,
+							"scrollW": 1200
+						},
+						"bar": {
+							"x": 0,
+							"y": 51,
+							"w": 400,
+							"h": 37.7
+						},
+						"crumbs": [
+							{
+								"t": "Docs",
+								"x": 12.6,
+								"y": 58
+							},
+							{
+								"t": "Guide",
+								"x": 65.1,
+								"y": 58
+							},
+							{
+								"t": "Install",
+								"x": 123.7,
+								"y": 58
+							}
+						],
+						"cols": [
+							{
+								"title": "Docs",
+								"cls": "(default)",
+								"x": -800,
+								"left": 0,
+								"w": 400,
+								"links": [
+									{
+										"t": "descriptionGuidechevron_",
+										"y": 815.5
+									},
+									{
+										"t": "codeAPIchevron_right",
+										"y": 846.9
+									}
+								]
+							},
+							{
+								"title": "Guide",
+								"cls": "page-column-small",
+								"x": -400,
+								"left": 400,
+								"w": 400,
+								"links": [
+									{
+										"t": "Installchevron_right",
+										"y": 173.5
+									},
+									{
+										"t": "Tasks",
+										"y": 205
+									},
+									{
+										"t": "Watching",
+										"y": 236.4
+									}
+								]
+							},
+							{
+								"title": "Install",
+								"cls": "(default)",
+								"x": 0,
+								"left": 800,
+								"w": 400,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Docs",
+							"cls": "(default)",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": -800,
+								"w": 400
+							},
+							"after": {
+								"x": -800,
+								"w": 400
+							}
+						},
+						{
+							"title": "Guide",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": -400,
+								"w": 400
+							},
+							"after": {
+								"x": -400,
+								"w": 400
+							}
+						},
+						{
+							"title": "Tasks",
+							"cls": "(default)",
+							"closed": true
+						}
+					]
+				},
+				{
+					"what": "click 6",
+					"clicked": "Tasks",
+					"from_col": 1,
+					"cols_before": 3,
+					"cols_after": 3,
+					"snap": {
+						"row": {
+							"x": 0,
+							"y": 88.7,
+							"w": 400,
+							"scrollLeft": 800,
+							"scrollW": 1200
+						},
+						"bar": {
+							"x": 0,
+							"y": 51,
+							"w": 400,
+							"h": 37.7
+						},
+						"crumbs": [
+							{
+								"t": "Docs",
+								"x": 12.6,
+								"y": 58
+							},
+							{
+								"t": "Guide",
+								"x": 65.1,
+								"y": 58
+							},
+							{
+								"t": "Tasks",
+								"x": 123.7,
+								"y": 58
+							}
+						],
+						"cols": [
+							{
+								"title": "Docs",
+								"cls": "(default)",
+								"x": -800,
+								"left": 0,
+								"w": 400,
+								"links": [
+									{
+										"t": "descriptionGuidechevron_",
+										"y": 815.5
+									},
+									{
+										"t": "codeAPIchevron_right",
+										"y": 846.9
+									}
+								]
+							},
+							{
+								"title": "Guide",
+								"cls": "page-column-small",
+								"x": -400,
+								"left": 400,
+								"w": 400,
+								"links": [
+									{
+										"t": "Installchevron_right",
+										"y": 173.5
+									},
+									{
+										"t": "Tasks",
+										"y": 205
+									},
+									{
+										"t": "Watching",
+										"y": 236.4
+									}
+								]
+							},
+							{
+								"title": "Tasks",
+								"cls": "(default)",
+								"x": 0,
+								"left": 800,
+								"w": 400,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Docs",
+							"cls": "(default)",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": -800,
+								"w": 400
+							},
+							"after": {
+								"x": -800,
+								"w": 400
+							}
+						},
+						{
+							"title": "Guide",
+							"cls": "page-column-small",
+							"dx": 0,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": -400,
+								"w": 400
+							},
+							"after": {
+								"x": -400,
+								"w": 400
+							}
+						},
+						{
+							"title": "Install",
+							"cls": "(default)",
+							"closed": true
+						}
+					]
+				}
+			]
+		},
+		{
+			"url": "/framework/core/Page/overview/columns/uses/workbench/",
+			"width": 400,
+			"errs": [],
+			"steps": [
+				{
+					"what": "arrival",
+					"snap": {
+						"row": {
+							"x": 0,
+							"y": 88.7,
+							"w": 400,
+							"scrollLeft": 0,
+							"scrollW": 400
+						},
+						"bar": {
+							"x": 0,
+							"y": 51,
+							"w": 400,
+							"h": 37.7
+						},
+						"crumbs": [
+							{
+								"t": "Workbench",
+								"x": 12.6,
+								"y": 58
+							}
+						],
+						"cols": [
+							{
+								"title": "Workbench",
+								"cls": "page-column-small",
+								"x": 0,
+								"left": 0,
+								"w": 400,
+								"links": [
+									{
+										"t": "articleSpecchevron_right",
+										"y": 196.1
+									},
+									{
+										"t": "view_moduleBoard",
+										"y": 227.6
+									}
+								]
+							}
+						]
+					}
+				},
+				{
+					"what": "click 2",
+					"clicked": "articleSpecchevron_right",
+					"from_col": 0,
+					"cols_before": 1,
+					"cols_after": 2,
+					"snap": {
+						"row": {
+							"x": 0,
+							"y": 88.7,
+							"w": 400,
+							"scrollLeft": 400,
+							"scrollW": 800
+						},
+						"bar": {
+							"x": 0,
+							"y": 51,
+							"w": 400,
+							"h": 37.7
+						},
+						"crumbs": [
+							{
+								"t": "Workbench",
+								"x": 12.6,
+								"y": 58
+							},
+							{
+								"t": "Spec",
+								"x": 108.8,
+								"y": 58
+							}
+						],
+						"cols": [
+							{
+								"title": "Workbench",
+								"cls": "page-column-small",
+								"x": -400,
+								"left": 0,
+								"w": 400,
+								"links": [
+									{
+										"t": "articleSpecchevron_right",
+										"y": 196.1
+									},
+									{
+										"t": "view_moduleBoard",
+										"y": 227.6
+									}
+								]
+							},
+							{
+								"title": "Spec",
+								"cls": "(default)",
+								"x": 0,
+								"left": 400,
+								"w": 400,
+								"links": [
+									{
+										"t": "compare_arrowsDiffchevro",
+										"y": 430.3
+									}
+								]
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Workbench",
+							"cls": "page-column-small",
+							"dx": -400,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 0,
+								"w": 400
+							},
+							"after": {
+								"x": -400,
+								"w": 400
+							}
+						}
+					]
+				},
+				{
+					"what": "click 3",
+					"clicked": "compare_arrowsDiffchevron_righ",
+					"from_col": 1,
+					"cols_before": 2,
+					"cols_after": 3,
+					"snap": {
+						"row": {
+							"x": 0,
+							"y": 88.7,
+							"w": 400,
+							"scrollLeft": 800,
+							"scrollW": 1200
+						},
+						"bar": {
+							"x": 0,
+							"y": 51,
+							"w": 400,
+							"h": 37.7
+						},
+						"crumbs": [
+							{
+								"t": "Workbench",
+								"x": 12.6,
+								"y": 58
+							},
+							{
+								"t": "Spec",
+								"x": 108.8,
+								"y": 58
+							},
+							{
+								"t": "Diff",
+								"x": 160.7,
+								"y": 58
+							}
+						],
+						"cols": [
+							{
+								"title": "Workbench",
+								"cls": "page-column-small",
+								"x": -800,
+								"left": 0,
+								"w": 400,
+								"links": [
+									{
+										"t": "articleSpecchevron_right",
+										"y": 196.1
+									},
+									{
+										"t": "view_moduleBoard",
+										"y": 227.6
+									}
+								]
+							},
+							{
+								"title": "Spec",
+								"cls": "(default)",
+								"x": -400,
+								"left": 400,
+								"w": 400,
+								"links": [
+									{
+										"t": "compare_arrowsDiffchevro",
+										"y": 430.3
+									}
+								]
+							},
+							{
+								"title": "Diff",
+								"cls": "(default)",
+								"x": 0,
+								"left": 800,
+								"w": 400,
+								"links": [
+									{
+										"t": "rate_reviewNotes",
+										"y": 387.7
+									}
+								]
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Workbench",
+							"cls": "page-column-small",
+							"dx": -400,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": -400,
+								"w": 400
+							},
+							"after": {
+								"x": -800,
+								"w": 400
+							}
+						},
+						{
+							"title": "Spec",
+							"cls": "(default)",
+							"dx": -400,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 0,
+								"w": 400
+							},
+							"after": {
+								"x": -400,
+								"w": 400
+							}
+						}
+					]
+				},
+				{
+					"what": "click 4",
+					"clicked": "rate_reviewNotes",
+					"from_col": 2,
+					"cols_before": 3,
+					"cols_after": 4,
+					"snap": {
+						"row": {
+							"x": 0,
+							"y": 88.7,
+							"w": 400,
+							"scrollLeft": 1200,
+							"scrollW": 1600
+						},
+						"bar": {
+							"x": 0,
+							"y": 51,
+							"w": 400,
+							"h": 37.7
+						},
+						"crumbs": [
+							{
+								"t": "Workbench",
+								"x": 12.6,
+								"y": 58
+							},
+							{
+								"t": "Spec",
+								"x": 108.8,
+								"y": 58
+							},
+							{
+								"t": "Diff",
+								"x": 160.7,
+								"y": 58
+							},
+							{
+								"t": "Notes",
+								"x": 204.2,
+								"y": 58
+							}
+						],
+						"cols": [
+							{
+								"title": "Workbench",
+								"cls": "page-column-small",
+								"x": -1200,
+								"left": 0,
+								"w": 400,
+								"links": [
+									{
+										"t": "articleSpecchevron_right",
+										"y": 196.1
+									},
+									{
+										"t": "view_moduleBoard",
+										"y": 227.6
+									}
+								]
+							},
+							{
+								"title": "Spec",
+								"cls": "(default)",
+								"x": -800,
+								"left": 400,
+								"w": 400,
+								"links": [
+									{
+										"t": "compare_arrowsDiffchevro",
+										"y": 430.3
+									}
+								]
+							},
+							{
+								"title": "Diff",
+								"cls": "(default)",
+								"x": -400,
+								"left": 800,
+								"w": 400,
+								"links": [
+									{
+										"t": "rate_reviewNotes",
+										"y": 387.7
+									}
+								]
+							},
+							{
+								"title": "Notes",
+								"cls": "page-column-large",
+								"x": 0,
+								"left": 1200,
+								"w": 400,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Workbench",
+							"cls": "page-column-small",
+							"dx": -400,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": -800,
+								"w": 400
+							},
+							"after": {
+								"x": -1200,
+								"w": 400
+							}
+						},
+						{
+							"title": "Spec",
+							"cls": "(default)",
+							"dx": -400,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": -400,
+								"w": 400
+							},
+							"after": {
+								"x": -800,
+								"w": 400
+							}
+						},
+						{
+							"title": "Diff",
+							"cls": "(default)",
+							"dx": -400,
+							"dleft": 0,
+							"dw": 0,
+							"dy": 0,
+							"before": {
+								"x": 0,
+								"w": 400
+							},
+							"after": {
+								"x": -400,
+								"w": 400
+							}
+						}
+					]
+				},
+				{
+					"what": "click 5",
+					"clicked": "view_moduleBoard",
+					"from_col": 0,
+					"cols_before": 4,
+					"cols_after": 1,
+					"snap": {
+						"row": {
+							"x": 0,
+							"y": 88.7,
+							"w": 400,
+							"scrollLeft": 0,
+							"scrollW": 400
+						},
+						"bar": {
+							"x": 0,
+							"y": 51,
+							"w": 400,
+							"h": 37.7
+						},
+						"crumbs": [
+							{
+								"t": "Workbench",
+								"x": 12.6,
+								"y": 58
+							},
+							{
+								"t": "Board",
+								"x": 108.8,
+								"y": 58
+							}
+						],
+						"cols": [
+							{
+								"title": "Board",
+								"cls": "page-column-full",
+								"x": 0,
+								"left": 0,
+								"w": 400,
+								"links": []
+							}
+						]
+					},
+					"moved": [
+						{
+							"title": "Workbench",
+							"cls": "page-column-small",
+							"closed": true
+						},
+						{
+							"title": "Spec",
+							"cls": "(default)",
+							"closed": true
+						},
+						{
+							"title": "Diff",
+							"cls": "(default)",
+							"closed": true
+						},
+						{
+							"title": "Notes",
+							"cls": "page-column-large",
+							"closed": true
+						}
+					]
+				},
+				{
+					"what": "click 6",
+					"skipped": "no unopened nav link anywhere in the row"
+				}
+			]
+		}
+	]
+}

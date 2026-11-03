@@ -1,0 +1,10 @@
+{
+  "id": "v-g7vhxik",
+  "home": "/framework/ai/sessions/",
+  "title": "Chat duplicate-readback bug found",
+  "summary": "Root cause found: ux/Dictate/chat.js draw() doesn't dedup line.refined/line.para the way it dedups line.chat, causing double/quadruple rendering; spawning a fix.",
+  "at": "2026-10-04T19:03:56.784-05:00",
+  "visited": [
+    "/framework/ai/sessions/"
+  ]
+}

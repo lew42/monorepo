@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/core/Page/navigation/model/",
+ "widths": {
+  "1280": {
+   "empty": 0.423,
+   "widest_text": 592,
+   "widest_text_sample": "2. Nest or swap: swap, at a section root",
+   "overflow_x": false,
+   "items": 250,
+   "narrow_share": 0.24
+  },
+  "1920": {
+   "empty": 0.553,
+   "widest_text": 729,
+   "widest_text_sample": "to keep the reader where they were, for ",
+   "overflow_x": false,
+   "items": 256,
+   "narrow_share": 0.488
+  },
+  "2560": {
+   "empty": 0.63,
+   "widest_text": 820,
+   "widest_text_sample": "to keep the reader where they were, for ",
+   "overflow_x": false,
+   "items": 256,
+   "narrow_share": 0.488
+  },
+  "3440": {
+   "empty": 0.712,
+   "widest_text": 820,
+   "widest_text_sample": "to keep the reader where they were, for ",
+   "overflow_x": false,
+   "items": 256,
+   "narrow_share": 0.469
+  }
+ },
+ "errors": []
+}

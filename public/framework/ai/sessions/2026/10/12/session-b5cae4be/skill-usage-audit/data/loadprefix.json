@@ -1,0 +1,74 @@
+{
+ "minion": {
+  "n": 704,
+  "told": 704,
+  "loaded_after_told": 649,
+  "loaded_untold": 0
+ },
+ "task": {
+  "n": 186,
+  "told": 186,
+  "loaded_after_told": 182,
+  "loaded_untold": 0
+ },
+ "clarity": {
+  "n": 591,
+  "told": 591,
+  "loaded_after_told": 591,
+  "loaded_untold": 0
+ },
+ "reviewer": {
+  "n": 413,
+  "told": 0,
+  "loaded_after_told": 0,
+  "loaded_untold": 2
+ },
+ "helper": {
+  "n": 68,
+  "told": 1,
+  "loaded_after_told": 1,
+  "loaded_untold": 0
+ },
+ "mastermind": {
+  "n": 40,
+  "told": 40,
+  "loaded_after_told": 40,
+  "loaded_untold": 0
+ },
+ "manager": {
+  "n": 31,
+  "told": 31,
+  "loaded_after_told": 28,
+  "loaded_untold": 0
+ },
+ "expert": {
+  "n": 14,
+  "told": 0,
+  "loaded_after_told": 0,
+  "loaded_untold": 0
+ },
+ "checker": {
+  "n": 28,
+  "told": 0,
+  "loaded_after_told": 0,
+  "loaded_untold": 0
+ },
+ "proof": {
+  "n": 56,
+  "told": 0,
+  "loaded_after_told": 0,
+  "loaded_untold": 0
+ },
+ "voter": {
+  "n": 21,
+  "told": 0,
+  "loaded_after_told": 0,
+  "loaded_untold": 0
+ },
+ "agent": {
+  "n": 14,
+  "told": 2,
+  "loaded_after_told": 2,
+  "loaded_untold": 0
+ }
+}

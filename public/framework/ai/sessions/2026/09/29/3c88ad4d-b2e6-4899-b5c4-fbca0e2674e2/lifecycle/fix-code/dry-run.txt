@@ -1,0 +1,43 @@
+lifecycle sweep (dry — nothing touched): 0 to close, 0 dead log lines to end, 18 kept
+
+WOULD CLOSE
+
+LOG LINES WHOSE PROCESS IS GONE
+
+KEPT
+  server  run.js:29560                       pid 42032 port 54967 task 2026-09-29/lifecycle
+          minion-lifecycle-fix-code is working there
+  server  worktree:page-system-929           pid 1736 port 51061 task -
+          minion-page-fix-tabs is working there
+  server  worktree:file-system               pid 30220 port 55895 task 2026-09-29/file-system
+          still in use
+  server  worktree:page-files-log            pid 44852 port 53780 task 2026-09-29/page-files-log
+          still in use
+  server  worktree:page-switcher             pid 51504 port 59934 task -
+          minion-switcher-review is working there
+  server  worktree:qf-5                      pid 11224 port 52847 task 2026-09-29/nested-tasks
+          a pool slot (Pool.js looks after it)
+  health  health:34172                       pid 37084 port - task 2026-09-29/nested-tasks
+          a pool slot (Pool.js looks after it)
+  server  run:42744                          pid 49268 port 8137 task -
+          port 8137 is on the keep list
+  server  run:26436                          pid 19132 port 3104 task -
+          port 3104 is on the keep list
+  server  wrapper:14368                      pid 14368 port 8177 task 2026-09-29/page-system
+          still in use
+  agent   assistant-fast                     pid - port - task -
+          one of Servex's own standing agents
+  agent   dispatcher                         pid - port - task -
+          one of Servex's own standing agents
+  agent   task-mastermind-mobile-nav         pid - port - task -
+          still in use
+  agent   task-mastermind-page-files-log     pid - port - task -
+          still in use
+  agent   task-mastermind-page-system-2      pid - port - task -
+          still in use
+  agent   minion-nested-view                 pid - port - task -
+          still in use
+  agent   task-mastermind-lifecycle-3        pid - port - task -
+          still in use
+  agent   mastermind-servex-6                pid - port - task -
+          one of Servex's own standing agents

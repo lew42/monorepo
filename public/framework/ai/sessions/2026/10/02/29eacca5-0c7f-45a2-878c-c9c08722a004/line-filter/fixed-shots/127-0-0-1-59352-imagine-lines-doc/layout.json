@@ -1,0 +1,212 @@
+{
+ "url": "http://127.0.0.1:59352/imagine/lines/doc/",
+ "widths": {
+  "400": {
+   "empty": 0.204,
+   "widest_text": 368,
+   "widest_text_sample": "This is a deterministic confidence heuri",
+   "overflow_x": false,
+   "items": 35,
+   "narrow_share": 0,
+   "layout": "columns",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 0,
+     "layers": []
+    },
+    "p": {
+     "total": 11,
+     "layers": [
+      {
+       "cls": "page-column-prose",
+       "px": 11
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-column-body",
+     "y": 38,
+     "h": 912,
+     "share": 0.912,
+     "ink": 0.787,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "drawer-rail-ai",
+     "text": "✦AI",
+     "lines": 3.2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-rail-menu",
+     "text": "⋯More",
+     "lines": 3.2
+    }
+   ]
+  },
+  "1200": {
+   "empty": 0.318,
+   "widest_text": 366,
+   "widest_text_sample": "The interactive tool resizes to at most ",
+   "overflow_x": false,
+   "items": 35,
+   "narrow_share": 0.229,
+   "layout": "columns",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 0,
+     "layers": []
+    },
+    "p": {
+     "total": 19,
+     "layers": [
+      {
+       "cls": "page-column-prose",
+       "px": 19
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-column-body",
+     "y": 40,
+     "h": 960,
+     "share": 0.96,
+     "ink": 0.698,
+     "big_empty": false
+    },
+    {
+     "cls": "page-column-grab",
+     "y": 40,
+     "h": 960,
+     "share": 0.96,
+     "ink": 0.698,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  },
+  "1920": {
+   "empty": 0.409,
+   "widest_text": 570,
+   "widest_text_sample": "This is a deterministic confidence heuri",
+   "overflow_x": false,
+   "items": 35,
+   "narrow_share": 0.229,
+   "layout": "columns",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 0,
+     "layers": []
+    },
+    "p": {
+     "total": 31,
+     "layers": [
+      {
+       "cls": "page-column-prose",
+       "px": 31
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-column-body",
+     "y": 43,
+     "h": 957,
+     "share": 0.957,
+     "ink": 0.607,
+     "big_empty": false
+    },
+    {
+     "cls": "page-column-grab",
+     "y": 43,
+     "h": 957,
+     "share": 0.957,
+     "ink": 0.607,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  },
+  "3440": {
+   "empty": 0.586,
+   "widest_text": 642,
+   "widest_text_sample": "This is a deterministic confidence heuri",
+   "overflow_x": false,
+   "items": 35,
+   "narrow_share": 0.714,
+   "layout": "columns",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 0,
+     "layers": []
+    },
+    "p": {
+     "total": 49,
+     "layers": [
+      {
+       "cls": "page-column-prose",
+       "px": 49
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-column-body",
+     "y": 48,
+     "h": 952,
+     "share": 0.952,
+     "ink": 0.425,
+     "big_empty": false
+    },
+    {
+     "cls": "page-column-grab",
+     "y": 48,
+     "h": 952,
+     "share": 0.952,
+     "ink": 0.425,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  }
+ },
+ "errors": []
+}

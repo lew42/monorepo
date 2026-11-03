@@ -1,0 +1,601 @@
+[
+ {
+  "task": "mastermind-proposals",
+  "date": "2026-08-21",
+  "link": "/framework/ai/2026-08-21/mastermind-proposals/",
+  "title": "Owner: run with all 7 proposals, work autonomously. Playground: gesture shortcut, save fallback, parked geometry. UX: framework.css tokeniza",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "ux items 1-3 harvested; 8918 left running pid 13056 for the retirement wave; awaiting playground migration to release the gate",
+   "post-close sweep: 35 chrome all owner-owned (0 headless/playwright - no orphans); the mystery 17:02 pg-server restart traced to the pg crew own final verification bash (my session scratchpad lineage) - stopped it (pid 38824); port 80 still "
+  ]
+ },
+ {
+  "task": "mastermind-ui-ux",
+  "date": "2026-08-21",
+  "link": "/framework/ai/2026-08-21/mastermind-ui-ux/",
+  "title": "Autonomous ui/ux + Playground program: sonnet audit of ui/ behaviors; Fable UX mastermind for ui/ + ux/ systems, themes, cards, workflows, l",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "quiet hold: nothing in flight, cpu quiet, session 37 pct - holding new work pending the owner (7 proposals gate the next directions)"
+  ]
+ },
+ {
+  "task": "pg-baseline",
+  "date": "2026-08-21",
+  "link": "/framework/ai/2026-08-21/pg-baseline/",
+  "title": "baseline the current Playground zero-to-hero flow",
+  "status": "landed"
+ },
+ {
+  "task": "pg-geometry",
+  "date": "2026-08-21",
+  "link": "/framework/ai/2026-08-21/pg-geometry/",
+  "title": "grid handles + min-width floor skew + wrapped-flex: fix or bound with evidence",
+  "status": "landed"
+ },
+ {
+  "task": "pg-hero",
+  "date": "2026-08-21",
+  "link": "/framework/ai/2026-08-21/pg-hero/",
+  "title": "zero-to-hero gesture-counted proofs for 3 layouts + doc consolidation",
+  "status": "landed"
+ },
+ {
+  "task": "pg-placeholder",
+  "date": "2026-08-21",
+  "link": "/framework/ai/2026-08-21/pg-placeholder/",
+  "title": "hover + placeholder that adds an in-place child; toolbar collapses to one +",
+  "status": "landed"
+ },
+ {
+  "task": "pg-proposals",
+  "date": "2026-08-21",
+  "link": "/framework/ai/2026-08-21/pg-proposals/",
+  "title": "Owner approved all proposals verbatim. Priority: (1) save fallback newest-wins/nothing-deleted, (2) migrate Playground tree to ux/Tree EARLY",
+  "status": "landed"
+ },
+ {
+  "task": "pg-resize",
+  "date": "2026-08-21",
+  "link": "/framework/ai/2026-08-21/pg-resize/",
+  "title": "drag handles between flex split columns: grow distribution, fixed-basis sidebar mode",
+  "status": "landed"
+ },
+ {
+  "task": "pg-save",
+  "date": "2026-08-21",
+  "link": "/framework/ai/2026-08-21/pg-save/",
+  "title": "save fallback: Socket.ready 2s race -> LocalStorageSaver, newest-wins nothing-deleted, saving-locally pip",
+  "status": "landed"
+ },
+ {
+  "task": "pg-shift",
+  "date": "2026-08-21",
+  "link": "/framework/ai/2026-08-21/pg-shift/",
+  "title": "Shift-click + adds Flex; strict holy-grail recount target <=9",
+  "status": "landed"
+ },
+ {
+  "task": "pg-sidebar",
+  "date": "2026-08-21",
+  "link": "/framework/ai/2026-08-21/pg-sidebar/",
+  "title": "minimal modular sidebar: type toggles convert the node, flex/grid sections conditional, hug/fill per axis, pad calibration, bg tokens",
+  "status": "landed"
+ },
+ {
+  "task": "pg-tree",
+  "date": "2026-08-21",
+  "link": "/framework/ai/2026-08-21/pg-tree/",
+  "title": "migrate Playground tree pane to ux/Tree (2 call sites); sibling gated on it",
+  "status": "unlanded"
+ },
+ {
+  "task": "playground-mastermind",
+  "date": "2026-08-21",
+  "link": "/framework/ai/2026-08-21/playground-mastermind/",
+  "title": "Fable sub-mastermind: ext/Playground zero-to-hero. Hover + placeholder that adds an in-place child; minimal modular right sidebar (flex/grid",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "usage 24% used vs ~38% elapsed - under pace. Wave 5 = pg-hero (sonnet, docs-only fence): 3 gesture-counted zero-to-hero filmstrips (holy-grail vs baseline 9, dashboard, mobile 400) + documentation skill pass. Then I write the dev-server-dow",
+   "cycle duty: applied all 3 fail-safe ui-test improvements to SKILL.md (quote spaced selectors; type sel is one bare token; click no-ops on ancestor-hover-revealed children - use hover + coordinate down/up) and cleared improvements.md. Wrote "
+  ]
+ },
+ {
+  "task": "ui-behaviors-audit",
+  "date": "2026-08-21",
+  "link": "/framework/ai/2026-08-21/ui-behaviors-audit/",
+  "title": "spawn a minion to look at our current ui/. assess how many of the ui elements have behaviors. i'm thinking: \"ui/*\" should generally be html+",
+  "status": "landed"
+ },
+ {
+  "task": "ux-auth",
+  "date": "2026-08-21",
+  "link": "/framework/ai/2026-08-21/ux-auth/",
+  "title": "ux/Auth: login, signup, password reset, social-login row as one behavioral class assembled from ui/ templates, responsive phone to 3440. Exe",
+  "status": "landed"
+ },
+ {
+  "task": "ux-cards",
+  "date": "2026-08-21",
+  "link": "/framework/ai/2026-08-21/ux-cards/",
+  "title": "Card variants + toolbar variants as child pages under ui/card/ and ui/toolbar/, the words matrix on ui/card/page.js, responsive proof at 360",
+  "status": "landed"
+ },
+ {
+  "task": "ux-consolidate",
+  "date": "2026-08-21",
+  "link": "/framework/ai/2026-08-21/ux-consolidate/",
+  "title": "Close the ui/ + ux/ program for today: make ux/readme.md and ux/page.js current (5 classes exist, name them), consolidate the day's pattern ",
+  "status": "landed"
+ },
+ {
+  "task": "ux-course",
+  "date": "2026-08-21",
+  "link": "/framework/ai/2026-08-21/ux-course/",
+  "title": "ux/Course - a whole chapters/lessons course system, THE large-screen showcase: rail + reading column + a third coordinated region at 3440, h",
+  "status": "landed"
+ },
+ {
+  "task": "ux-doc-convert",
+  "date": "2026-08-21",
+  "link": "/framework/ai/2026-08-21/ux-doc-convert/",
+  "title": "Convert the eight ux module pages (Auth, Wizard, Tree, Course, Filter, Menu, Pagination, Tags) from Page to Doc so each module's doc/*.md ge",
+  "status": "landed"
+ },
+ {
+  "task": "ux-filter",
+  "date": "2026-08-21",
+  "link": "/framework/ai/2026-08-21/ux-filter/",
+  "title": "ux/Filter - a filter bar as a behavioral class (segments + text search, active-filter state) plus the coordinated-regions dashboard demo: on",
+  "status": "landed"
+ },
+ {
+  "task": "ux-graduations",
+  "date": "2026-08-21",
+  "link": "/framework/ai/2026-08-21/ux-graduations/",
+  "title": "Graduate Menu, Pagination, Tags from ui/ templates to ux/ classes copying the ux/Tree split discipline (caller census, additive, CSS stays u",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "FIELD VERDICT: NO -- stays a template. ui/field graduates nothing (no state, no self-installed listener, no lifecycle -- all three graduation criteria miss). Matches the default this wave's brief set and confirms ux/Auth's existing preceden"
+  ]
+ },
+ {
+  "task": "ux-mastermind",
+  "date": "2026-08-21",
+  "link": "/framework/ai/2026-08-21/ux-mastermind/",
+  "title": "Fable UX sub-mastermind: plan and build the ui/ + ux/ program — system plan, config words/themes, card systems, workflow library, large-scre",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "wave 5 harvested: docs current, verdicts consolidated, 2 skill-suggestions files, 19-page link trail walked clean. Fable fixed the last trail gap itself (ui/readme.md: tree graduation line + skill-suggestions link). ux-server.mjs (8918, min"
+  ]
+ },
+ {
+  "task": "ux-system-plan",
+  "date": "2026-08-21",
+  "link": "/framework/ai/2026-08-21/ux-system-plan/",
+  "title": "Be the design keystone of the ui/ + ux/ program: create ux/ and state the system, decide and implement a small set of config words (CSS clas",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "unrelated finding: day.jsonl lines 1-4 (11:56:03, written by a sibling) are cp1252, not utf-8 - byte 0x97 where an em dash was meant. json.loads fails on all four, so the day board drops them. Not fixed here: the file is shared and other ag"
+  ]
+ },
+ {
+  "task": "ux-tokenize",
+  "date": "2026-08-21",
+  "link": "/framework/ai/2026-08-21/ux-tokenize/",
+  "title": "Tokenize the four values no config word could reach: four one-line fallback edits in styles/framework.css (pad-cell, pad-control x2, muted),",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "VERDICT --density (the mastermind's call, documented here): the shipped default stays 0.5 and 0.7 stays the documented half-step. A config word must be visibly different or it is not a word - 0.5 is the measured, demonstrated value (7.52 vs",
+   "STALE, not mine to fix: ux/doc/system.md section 4 (the consequence: a word is also an audit) still lists th/td, button/input and .muted as a PROPOSAL against framework.css. Three of the four now ship. A sibling agent owns ux/ right now - f"
+  ]
+ },
+ {
+  "task": "ux-tree",
+  "date": "2026-08-21",
+  "link": "/framework/ai/2026-08-21/ux-tree/",
+  "title": "The graduation flagship: split ui/tree -- .ui-tree-* CSS stays in ui/, the stateful half becomes class Tree in ux/Tree/, extendable, with ke",
+  "status": "landed"
+ },
+ {
+  "task": "ux-tree-retire",
+  "date": "2026-08-21",
+  "link": "/framework/ai/2026-08-21/ux-tree-retire/",
+  "title": "One deletion, done cleanly: retire the ui.tree() closure/export now that ext/Playground migrated to ux/Tree. Census first, then ui/tree/tree",
+  "status": "landed"
+ },
+ {
+  "task": "ux-treedrag",
+  "date": "2026-08-21",
+  "link": "/framework/ai/2026-08-21/ux-treedrag/",
+  "title": "Build TreeDrag -- drag-reorder for ux/Tree, from the design parked in doc/decisions.md: a third named subclass replacing Tree.Row, a moved(n",
+  "status": "landed"
+ },
+ {
+  "task": "ux-wizard",
+  "date": "2026-08-21",
+  "link": "/framework/ai/2026-08-21/ux-wizard/",
+  "title": "ux/Wizard - the generic multi-step engine: steps, next/back, progress, validation gate per step, keyboard (Enter advances, arrows where sane",
+  "status": "landed"
+ },
+ {
+  "task": "column-core",
+  "date": "2026-08-26",
+  "link": "/framework/ai/2026-08-26/column-core/",
+  "title": "S1 - graduate the columnar paging system into core/Page: .page.columns as a first-class shape, width words (small/default/large/full), bread",
+  "status": "landed"
+ },
+ {
+  "task": "column-pages",
+  "date": "2026-08-26",
+  "link": "/framework/ai/2026-08-26/column-pages/",
+  "title": "Improve the columnar paging system: full-height column pages where sub pages open to the right, width words (small/default/large/full), sing",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "S3 observed S1 land mid-build with a better API than design.md sec2: page.columns() opt-in, width words .page-column-small/large/full from a width: field; awaiting S1 own report before smoke-testing the seam myself"
+  ]
+ },
+ {
+  "task": "drawer-sharing-note",
+  "date": "2026-08-26",
+  "link": "/framework/ai/2026-08-26/drawer-sharing-note/",
+  "title": "make a quick note in the drawer's readme about sharing it with other modules, and any dangers of doing so, or any best practices to make it ",
+  "status": "landed"
+ },
+ {
+  "task": "generator-wall",
+  "date": "2026-08-26",
+  "link": "/framework/ai/2026-08-26/generator-wall/",
+  "title": "TASK S5 - wave 2 of the page generator at core/Page/generator/. Build the three things v1 cut: (1) a permutation wall - a grid of many seede",
+  "status": "landed"
+ },
+ {
+  "task": "grids-lab",
+  "date": "2026-08-26",
+  "link": "/framework/ai/2026-08-26/grids-lab/",
+  "title": "TASK S6b - GRIDS lab: grid-column pairings for column pages at core/Page/overview/columns/examples/grids/",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "pairing 1 verdict: large grid + small detail works - the grid stays wide enough for real tiles, the small column reads like a drawer, not a squeeze",
+   "pairing 2 verdict: small list + large detail works when the detail is genuinely wide content (a stat grid) - large earns its width only when what opens actually needs it",
+   "pairing 3 verdict: default column stays readable at every width (602-720px, never cramped) but dead space is the real finding - 43% at 1280, 62% at 1920, 77% at 3440; a page that expects 3440 wants large or a real second column, not a wider",
+   "pairing 4 verdict: flush reads better once the grid IS the column's content (a media wall, no prose beside it); padded is the safer default the moment there is a caption or verdict line near it"
+  ]
+ },
+ {
+  "task": "looks-lab",
+  "date": "2026-08-26",
+  "link": "/framework/ai/2026-08-26/looks-lab/",
+  "title": "LOOKS lab: appearance recipes for column pages at core/Page/overview/columns/examples/looks/ — backgrounds, padding, seams+scrollbars",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "verdict backgrounds: a column never inherits its neighbour background - naming both sides the same token (--surface/--surface) reads as one connected surface; naming just one side makes the seam a real edge, worst at --surface beside ambien"
+  ]
+ },
+ {
+  "task": "overview-palette",
+  "date": "2026-08-26",
+  "link": "/framework/ai/2026-08-26/overview-palette/",
+  "title": "S2 - core/Page Overview becomes the visual palette of page building blocks: chrome-free static CSS miniatures for every card in the browse()",
+  "status": "landed"
+ },
+ {
+  "task": "page-generator",
+  "date": "2026-08-26",
+  "link": "/framework/ai/2026-08-26/page-generator/",
+  "title": "TASK S3 - a page generator at core/Page/generator/, a top tab on core/Page. Seed -> string DSL spec -> a real virtual Page tree mounted unde",
+  "status": "landed"
+ },
+ {
+  "task": "ux-inner-tabs",
+  "date": "2026-08-26",
+  "link": "/framework/ai/2026-08-26/ux-inner-tabs/",
+  "title": "S4 - a Doc nested inside another Doc should render vertical tabs instead of a second top tab-bar (fixes ux/* alternating --well bands)",
+  "status": "landed"
+ },
+ {
+  "task": "column-pages-2",
+  "date": "2026-08-27",
+  "link": "/framework/ai/2026-08-27/column-pages-2/",
+  "title": "Round 2: generator word semantics (in-place tabs/vtabs, inbox-style list, wall+grid merge, distinct child content, prune words to new Page()",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "relayed C methods:/notes:/files: patch to A (owns page.js, mid-flight); wave-3 pickups: flush-wall page.js one-word swap to bleed, looks/padding recipe verdict wrong (not actually flush), core/Page/readme.md roles+panels line",
+   "wave 2 dispatched (2 opus, ~500k expected); E generator findings relayed into B scope; wave-3 pool: finder initial void + hover affordances + collapsed recipes + absorb-the-rest trial + flush-wall bleed swap + looks/padding verdict + readme"
+  ]
+ },
+ {
+  "task": "column-polish",
+  "date": "2026-08-27",
+  "link": "/framework/ai/2026-08-27/column-polish/",
+  "title": "TASK W3 - core polish of the column system, driven by today's UX recon findings: (1) try 'let the last open column absorb the rest' for the ",
+  "status": "landed"
+ },
+ {
+  "task": "column-uses",
+  "date": "2026-08-27",
+  "link": "/framework/ai/2026-08-27/column-uses/",
+  "title": "TASK D - real-world usages of columnar pages at core/Page/overview/columns/uses/: a uses/ parent plus 4 exemplar trees (docs deep tree, inbo",
+  "status": "landed"
+ },
+ {
+  "task": "gen-controls",
+  "date": "2026-08-27",
+  "link": "/framework/ai/2026-08-27/gen-controls/",
+  "title": "TASK B - live controls for the page generator: switch any page's kind, control size and grid/flex, header controls. Kind switch per column e",
+  "status": "landed"
+ },
+ {
+  "task": "gen-semantics",
+  "date": "2026-08-27",
+  "link": "/framework/ai/2026-08-27/gen-semantics/",
+  "title": "Overhaul the page generator's word semantics per the owner's 2026-08-27 critique: words need children to visualize and all children look ide",
+  "status": "landed"
+ },
+ {
+  "task": "page-refs",
+  "date": "2026-08-27",
+  "link": "/framework/ai/2026-08-27/page-refs/",
+  "title": "TASK C - nearest-ancestor page refs (topic/document), a cross-page communication demo, promote the column flush hatch to a core word, and a ",
+  "status": "landed"
+ },
+ {
+  "task": "pg-edges",
+  "date": "2026-08-27",
+  "link": "/framework/ai/2026-08-27/pg-edges/",
+  "title": "for these edge resizers, make them clickable (opposed to a drag), and have a small + icon button appear. this way, for any edge, we can clic",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "PROOF 2 headlines, driven from the ux researcher's OWN seed (root Flex column, two boxes both fill). header/content/footer = 1 gesture (one gap-handle click) -> three 418px bands: MATCHES the proposal's proposed column. 3-across-equal = 2 g"
+  ]
+ },
+ {
+  "task": "pg-interactions",
+  "date": "2026-08-27",
+  "link": "/framework/ai/2026-08-27/pg-interactions/",
+  "title": "ext/Playground: kill the hover jank (zero layout shift on any hover), gate + and resize handles on selected+hover, allow repeated adds, fix ",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "MEASURED .pg-node-empty verdict: KEEP. An empty .pg-stack box is 32px with the rule and 32px without it (reserved + is 22px, padding 8px, border 2px) - a measured no-op there. But an empty row-Flex or Grid carries its + absolutely, so the r"
+  ]
+ },
+ {
+  "task": "pg-model",
+  "date": "2026-08-27",
+  "link": "/framework/ai/2026-08-27/pg-model/",
+  "title": "pg-model: pad/gap visual floors via max()+custom-property with toolbar class toggles; audit hug/fill/fixed for both axes across flex/grid/pl",
+  "status": "landed"
+ },
+ {
+  "task": "pg-ux-research",
+  "date": "2026-08-27",
+  "link": "/framework/ai/2026-08-27/pg-ux-research/",
+  "title": "Refine the ui-test skill until it gives usable feedback; figure out how to compact ext/Playground so any layout is reachable in as few click",
+  "status": "landed"
+ },
+ {
+  "task": "playground-mastermind",
+  "date": "2026-08-27",
+  "link": "/framework/ai/2026-08-27/playground-mastermind/",
+  "title": "work on ext/Playground: ui-test the interactions; kill all hover jank; better hover-only labels; pad/gap toggles + View.tc(cls, bool); audit",
+  "status": "landed"
+ },
+ {
+  "task": "ux-recon",
+  "date": "2026-08-27",
+  "link": "/framework/ai/2026-08-27/ux-recon/",
+  "title": "TASK E - UX recon of the columnar paging system: find the rough edges, with pictures.",
+  "status": "landed"
+ },
+ {
+  "task": "view-tc",
+  "date": "2026-08-27",
+  "link": "/framework/ai/2026-08-27/view-tc/",
+  "title": "look into the .tc() and .toggle_class() methods on View, and implement the .tc(\"class\", bool) variant for easier toggling.",
+  "status": "landed"
+ },
+ {
+  "task": "panel-clock-flicker",
+  "date": "2026-08-28",
+  "link": "/framework/ai/2026-08-28/panel-clock-flicker/",
+  "title": "DevTools CSS sidebar flickers on a 1s loop on the generator pages (.page--generator select.page-gen-menu values change and snap back); diagn",
+  "status": "landed"
+ },
+ {
+  "task": "select-chevron-auto",
+  "date": "2026-08-28",
+  "link": "/framework/ai/2026-08-28/select-chevron-auto/",
+  "title": "select { width: 100% } keeps getting unset and the chevron breaks on width:auto selects; verdict approved: keep the width rule, fix the arro",
+  "status": "landed"
+ },
+ {
+  "task": "col-resize",
+  "date": "2026-08-29",
+  "link": "/framework/ai/2026-08-29/col-resize/",
+  "title": "can we make the columns resizable? ... we need a \"fill\" and \"hug\" mode for columns. for small columns, we could set them to \"hug\", so they o",
+  "status": "landed"
+ },
+ {
+  "task": "core-fixes",
+  "date": "2026-08-29",
+  "link": "/framework/ai/2026-08-29/core-fixes/",
+  "title": "Two core bugs found by today's builds. BUG 1: width:\"full\" collapses the SITE SIDEBAR to 0px (full = flex: 1 0 100% on .page-column-body; pr",
+  "status": "landed"
+ },
+ {
+  "task": "core-pass-3",
+  "date": "2026-08-29",
+  "link": "/framework/ai/2026-08-29/core-pass-3/",
+  "title": "core pass: a word for 'index, not rail' (three sites hand-suppress column()'s child-row list), fix a host-built `default` column having no `",
+  "status": "landed"
+ },
+ {
+  "task": "feeds-lab",
+  "date": "2026-08-29",
+  "link": "/framework/ai/2026-08-29/feeds-lab/",
+  "title": "embeds + data-driven pages at /imagine/feeds/ - video picker, JSON dataset x3 renderings, live API dashboard",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "readme.md + doc/decisions.md written. feeds- prefix added to css-scopes.txt. Verdicts: video - lazy click-a-thumbnail costs one function, zero iframes until asked; data - one ancestor holds state, three children just read it, controls beat "
+  ]
+ },
+ {
+  "task": "game-round-2",
+  "date": "2026-08-29",
+  "link": "/framework/ai/2026-08-29/game-round-2/",
+  "title": "Round 2 of the game at /imagine/game/: make the loop complete. A win state (finale page, cold-loadable, run numbers, start over), one more r",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "store.js untouched - clear() already existed and the game needed nothing else; no gap, verdict (storage, no reactivity) holds."
+  ]
+ },
+ {
+  "task": "gen-widths",
+  "date": "2026-08-29",
+  "link": "/framework/ai/2026-08-29/gen-widths/",
+  "title": "generator width defaults + hug/fill width words in its controls",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Verify - header size chips: small,default,large,hug,fill; default is the initial active chip (was med). hug/fill entries have no tokens yet - honest no-op pending core CSS (Page.css has no .page-column-hug/-fill as of 2026-08-29)."
+  ]
+ },
+ {
+  "task": "imagine-mag",
+  "date": "2026-08-29",
+  "link": "/framework/ai/2026-08-29/imagine-mag/",
+  "title": "THE MAGAZINE: one composed experience at public/imagine/mag/ that uses everything today's column program proved - cover, contents, five-six ",
+  "status": "unlanded"
+ },
+ {
+  "task": "imagine-program",
+  "date": "2026-08-29",
+  "link": "/framework/ai/2026-08-29/imagine-program/",
+  "title": "Continuous mastermind: resizable columns + hug/fill words, generator default width, cross-page preview nav (browsable lists of all the thing",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "wave 2 queue: fix width:full sidebar collapse (core, diagnose properly), View.href(undefined), embeds/APIs lab, creative expansion from screenshot review; awaiting S-3d only",
+   "applied + deleted new-task improvements entry (day.jsonl path disambiguated in SKILL.md); verified both misplaced day lines exist in the live log - duplicates in stale ai/day.jsonl, no loss; awaiting S-screens + S-shells only",
+   "core queue growing: (1) a word for index-not-rail - THIRD site now overrides column() by hand (shells, vary, gallery share the shape); (2) nested columns hosts impossible (column_host returns shallowest) - question, not bug; (3) global .nav",
+   "mastermind: corrected shells/readme.md stale no-word-yet line to name index: true; awaiting W3 feeds + screens-comp + scenes-atmosphere"
+  ]
+ },
+ {
+  "task": "imagine-root",
+  "date": "2026-08-29",
+  "link": "/framework/ai/2026-08-29/imagine-root/",
+  "title": "build some team management ux, maybe some game ux. make a single root page (maybe... /imagine/page.js), and turn that page into an experienc",
+  "status": "landed"
+ },
+ {
+  "task": "imagine-tidy",
+  "date": "2026-08-29",
+  "link": "/framework/ai/2026-08-29/imagine-tidy/",
+  "title": "adopt index: true where owed in imagine/vary + imagine/gallery + imagine/screens, delete dead uses/split workarounds, final sweep crawl of /",
+  "status": "landed"
+ },
+ {
+  "task": "pg-chrome-polish",
+  "date": "2026-08-29",
+  "link": "/framework/ai/2026-08-29/pg-chrome-polish/",
+  "title": "the right sidebar needs a fixed size, it shouldn't grow/shrink when switching selection (which causes the viewport area to resize). the grip",
+  "status": "landed"
+ },
+ {
+  "task": "pg-seed-hug",
+  "date": "2026-08-29",
+  "link": "/framework/ai/2026-08-29/pg-seed-hug/",
+  "title": "the default document's page is set to fixed height. let's make this non-flex, height: hug (default div behavior).",
+  "status": "landed"
+ },
+ {
+  "task": "preview-nav",
+  "date": "2026-08-29",
+  "link": "/framework/ai/2026-08-29/preview-nav/",
+  "title": "can we import other pages, and add them to new pages, either in full, or as a preview? what happens if we render a preview of a page that do",
+  "status": "landed"
+ },
+ {
+  "task": "scenes-3d",
+  "date": "2026-08-29",
+  "link": "/framework/ai/2026-08-29/scenes-3d/",
+  "title": "3D paging system at /imagine/scenes/ using the vendored three.js: pages ARE scene nodes, click a 3D region to navigate, the /path/ bar refle",
+  "status": "landed"
+ },
+ {
+  "task": "scenes-atmosphere",
+  "date": "2026-08-29",
+  "link": "/framework/ai/2026-08-29/scenes-atmosphere/",
+  "title": "Atmosphere pass on /imagine/scenes/: in-scene labels, portals that preview their worlds, deliberate light + mood per scene, and one 2D x 3D ",
+  "status": "landed"
+ },
+ {
+  "task": "scenes-observatory",
+  "date": "2026-08-29",
+  "link": "/framework/ai/2026-08-29/scenes-observatory/",
+  "title": "One new artistic world for the 3D pager at /imagine/scenes/ - the Observatory: a fourth door in the foyer, a place (star field, instrument, ",
+  "status": "landed"
+ },
+ {
+  "task": "screens-comp",
+  "date": "2026-08-29",
+  "link": "/framework/ai/2026-08-29/screens-comp/",
+  "title": "Composition pass on /imagine/screens/ - don't restructure, recompose. Type scale (Divide's display numerals are the bar), placement (a lone ",
+  "status": "landed"
+ },
+ {
+  "task": "screens-lab",
+  "date": "2026-08-29",
+  "link": "/framework/ai/2026-08-29/screens-lab/",
+  "title": "try making some full screen experiences, and experiment with full screen layouts, as they pertain to navigation. for example, full screen ->",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "VERDICT divide (horizontal, add): 1 -> 2 -> 3 -> 4 columns, measured 1920/960/640/480 at 1920 and 3440/1720/1147/860 at 3440. Nothing re-renders - the screens already open just take a smaller share. `fill` is the whole of it.",
+   "VERDICT stack (vertical, swap): the two axes are NOT symmetrical. The row divides for free (a hop is a column); the height has no row to open into, so every band count is a screen that redraws - column count stays 1 at every hop. A band has",
+   "VERDICT title slide -> document: the cover keeps its column and gives up the screen - 1920 -> 224 + 1696, one :has() rule, no second render. Its inverse (peek) is the same two pages with the words swapped: document `full`, cover `small`, 16",
+   "VERDICT deck: `full` slides hide each other, so swap is free - one url per slide, cold-loadable, Back walks the deck backwards. Arrow keys click the real next/prev anchors, so the keyboard and the mouse take the identical path."
+  ]
+ },
+ {
+  "task": "shells-lab",
+  "date": "2026-08-29",
+  "link": "/framework/ai/2026-08-29/shells-lab/",
+  "title": "explore app layouts: sidebars, footers, canvas, inner sidebars/footers, etc",
+  "status": "landed"
+ },
+ {
+  "task": "sweep-400",
+  "date": "2026-08-29",
+  "link": "/framework/ai/2026-08-29/sweep-400/",
+  "title": "the 400px sweep the program hasn't had - 138 /imagine/ urls, headless Playwright at 400x800: console errors, 404s, .md-error, horizontal ove",
+  "status": "landed"
+ },
+ {
+  "task": "vary-labs",
+  "date": "2026-08-29",
+  "link": "/framework/ai/2026-08-29/vary-labs/",
+  "title": "variation trees at /imagine/vary/: scrollbars, background hierarchy, child placement",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "verdict scroll/full: a full-viewport scrollbar reads as an ordinary page scrolling, not a widget bolted onto one",
+   "verdict scroll/padded: cramped - two frames nested for one scroll region, content never reaches the column's real width",
+   "verdict scroll/flush: reads as part of the column, not a widget dropped into it - no wasted frame, no doubled inset",
+   "verdict tone/up: reads as hierarchy - each column sits visibly above the one before it"
+  ]
+ },
+ {
+  "skipped": [
+   "2026-08-21/day.jsonl",
+   "2026-08-21/page.js",
+   "2026-08-21/ux-proposals",
+   "2026-08-26/day.jsonl",
+   "2026-08-26/page.js",
+   "2026-08-27/day.jsonl",
+   "2026-08-27/page.js",
+   "2026-08-28/day.jsonl",
+   "2026-08-28/page.js",
+   "2026-08-29/day.jsonl",
+   "2026-08-29/page.js"
+  ]
+ }
+]

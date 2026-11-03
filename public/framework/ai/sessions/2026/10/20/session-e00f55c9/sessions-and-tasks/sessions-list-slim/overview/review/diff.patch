@@ -1,0 +1,686 @@
+diff --git a/public/framework/ai/AISession/AISessionDetail.js b/public/framework/ai/AISession/AISessionDetail.js
+index 7d140f571..4bde5ab37 100644
+--- a/public/framework/ai/AISession/AISessionDetail.js
++++ b/public/framework/ai/AISession/AISessionDetail.js
+@@ -26,7 +26,7 @@ import SessionWork from "./SessionWork.js";
+ import SessionStats from "./SessionStats.js";
+ import AICost from "/framework/ai/AITask/AICost.js";
+ import SessionOverview from "./SessionOverview.js";
+-import SessionFeed from "./SessionFeed.js";
++import SessionOutlineView from "./SessionOutlineView.js";
+ import "/framework/core/Page/parts/kinds.js";   // the kinds the page tool adds register themselves by import: one list
+ 
+ // One session's own page, opened at /framework/ai/sessions/<id>/ (a real route, so a reload lands on the same
+@@ -58,7 +58,7 @@ export default class AISessionDetail extends Page {
+ 			// The name lives in the day index snapshot (session-index.json can be days stale): fold in the row's own snapshot, as the live feed would.
+ 			const row = snap?.rows?.find(r => r.id === id || r.session_id === id), sid = row?.session_id ?? id;
+ 			if (!AISession.all.get(sid)?.ix?.title){
+-				const days = [...new Set([row?.last_activity, new Date().toISOString(), row?.started_at].map(at => at && AISession.day(new Date(at))).filter(Boolean))];
++				const days = [...new Set([AISession.days.get(sid), ...[row?.last_activity, new Date().toISOString(), row?.started_at].map(at => at && AISession.day(new Date(at)))].filter(Boolean))];   // the day the feed already gave the session comes first: a session sessions.json has no row for is found there
+ 				for (const day of days){
+ 					const hit = (await AISessionRows.get_json(new URL(`./${day}/index.json`, AISession.root_url()).pathname))?.snapshots?.find(x => x.id === sid);
+ 					if (hit){ AISession.apply_delta(hit); break; }
+@@ -105,10 +105,18 @@ export default class AISessionDetail extends Page {
+ 		});
+ 	}
+ 
++	/** The days from `first` ("2026/10/20") to today, newest first, at most a month: where a session's index snapshot can be. */
++	static days_since(first){
++		if (!first) return [];
++		const out = [], from = new Date(first.replaceAll("/", "-") + "T00:00:00");
++		for (let d = new Date(); d >= from && out.length < 32; d = new Date(d.getTime() - 864e5)) out.push(AISession.day(d));
++		return out;
++	}
++
+ 	/** The session's folder name, read from the day index of its last activity (where AISessionIndex writes its snapshot), folded in so AISession.dir_url() knows it. */
+ 	static async folder_from_day(row, session_id){
+ 		// sessions.json can be days stale, so its last activity, then today, then the start day: the first index naming the folder wins.
+-		const days = [...new Set([row?.last_activity, new Date().toISOString(), row?.started_at].map(at => at && AISession.day(new Date(at))).filter(Boolean))];
++		const days = [...new Set([...[row?.last_activity, new Date().toISOString(), row?.started_at].map(at => at && AISession.day(new Date(at))), ...AISessionDetail.days_since(AISession.days.get(session_id))].filter(Boolean))];   // a session sessions.json has no row for: every day from the one the feed gave it (its first) to today
+ 		for (const day of days){
+ 			const ix = await AISessionRows.get_json(new URL(`./${day}/index.json`, AISession.root_url()).pathname);
+ 			const snap = ix?.snapshots?.find(x => x.id === session_id);
+@@ -188,6 +196,7 @@ export default class AISessionDetail extends Page {
+ 		const TABS = [["overview", "Overview"], ["board", "Board"], ["tasks", "Tasks"], ["chat", "Chat"], ["coverage", "Coverage"], ["cost", "Cost"], ["models", "Models and tokens"], ["related", "Related"]];
+ 		const old_keys = { work: "tasks", conversation: "chat" }, asked = new URLSearchParams(location.search).get("tab"), want = old_keys[asked] ?? asked, panels = {}, buttons = {};
+ 		const show = key => {
++			if (!this.chat_ok && (key === "chat" || key === "coverage")) key = "overview";   // a child session has no chat or coverage: only a VS Code tab (or a session with prompts.jsonl) does
+ 			for (const [k] of TABS){ panels[k].el.hidden = k !== key; buttons[k].el.classList.toggle("sessions-chip-on", k === key); }
+ 			const q = new URLSearchParams(location.search); key === "overview" ? q.delete("tab") : q.set("tab", key);
+ 			history.replaceState(history.state, "", location.pathname + (q.size ? "?" + q : "") + location.hash);
+@@ -205,7 +214,7 @@ export default class AISessionDetail extends Page {
+ 		});
+ 		if (new URLSearchParams(location.search).has("full")) setTimeout(() => this.full_screen(true));
+ 		div.c("sessions-detail-body", () => {
+-			panels.overview = div.c("flow sessions-panel", () => { this.feed = new SessionFeed({ ready, sid: id }); });   // every task and child session, newest first (SessionFeed)
++			panels.overview = div.c("flow sessions-panel", () => { this.feed = new SessionOutlineView({ ready, sid: id }); });   // child sessions as groups, then this session's own work by prompt (SessionOutline)
+ 			panels.board = div.c("flow sessions-panel", () => new SessionOverview({ ready, sid: id, go: show }));   // four cards: open, project, done, dropped (Figma band E)
+ 			panels.tasks = div.c("flow sessions-panel", () => { $work = div.c("flow"); });   // what the session set going, nested, with Approve (SessionWork)
+ 			panels.chat = div.c("flow sessions-panel sov-chat", () => {
+@@ -220,6 +229,7 @@ export default class AISessionDetail extends Page {
+ 			panels.related = div.c("flow sessions-panel", () => { $spawn = div.c("flow"); $related = div.c("flow"); });   // who spawned this and what it spawned; the other records of this session
+ 		});
+ 		show(TABS.some(([k]) => k === want) ? want : "overview");
++		["chat", "coverage"].forEach(k => buttons[k].el.hidden = true);   // shown again below once the row says this is a VS Code tab
+ 		const conv = new AISessionConversation();
+ 		const voice = new VoiceFlow();
+ 		$voice.append(voice.view);
+@@ -229,6 +239,10 @@ export default class AISessionDetail extends Page {
+ 		// and the transcript and the date-path lookup both need the session_id.
+ 		row_p.then(async row => {
+ 			const session_id = row?.session_id ?? id;
++			await AISessionRows.load_index(url).catch(() => {});
++			const snap = await AISessionDetail.load_snapshot(session_id).catch(() => null), has_prompts = await PromptLog.read(session_id).then(l => l.length > 0).catch(() => false);
++			this.chat_ok = has_prompts || AICost.is_tab(row ?? (snap ? { id: snap.agent, role: snap.agent } : null));
++			if (this.chat_ok){ ["chat", "coverage"].forEach(k => buttons[k].el.hidden = false); if (want === "chat" || want === "coverage") show(want); }
+ 			AISessionRows.load_index(url).then(() => this.retitle(AISessionRows.display_name(row ?? { id, session_id }, AISessionRows.tree).text));   // a VS Code tab has no sessions.json row; its title is in the index
+ 			if (!/^[0-9a-f]{8}-/.test(session_id)){   // a name no agent list or index maps to a uuid: nothing on disk to ask for
+ 				$conv.append(() => p.c("muted", "This agent has no session id yet, so there is no transcript or log to show."));
+@@ -240,7 +254,7 @@ export default class AISessionDetail extends Page {
+ 			this.log_urls().then(() => PromptLog.read(session_id)).then(lines => coverage.read_records(PromptLog.fold(lines))).catch(() => {});   // the prompt records, when the session has them (ext/Refine/doc/prompt-records.md)
+ 			this.show_role($role, row, session_id);   // the Role class: this session's role and its properties
+ 			voice.follow(session_id);   // a phone has no dev socket: it follows Servex's voice stream
+-			this.record_if_there().then(file => { if (file && !this.tasks_log) this.tasks_log = new SessionTasks({ url: file, $box: $tasks, on_session: s => this.feed?.record(s) }).live(); });
++			this.record_if_there().then(file => {  if (file && !this.tasks_log) this.tasks_log = new SessionTasks({ url: file, $box: $tasks, on_session: s => this.feed?.record(s) }).live(); });
+ 			// FIRST, before the slow loads below: the session's own page log (tabs, layout words, AI cards), live.
+ 			this.log_urls().then(urls => {
+ 				if (this.logs) return;
+@@ -259,8 +273,10 @@ export default class AISessionDetail extends Page {
+ 			await AISessionRows.load_index(url);   // fills AISession.days; without this wait own_dir was computed before the index arrived, so the cost log and trace silently never showed
+ 			const fill = async () => {
+ 			await this.follow?.catch(() => {});   // the first feed pull names the real folder (a card-slug folder is not <id>/) via AISession.slugs
++			if (!AISession.slugs.has(session_id)) await AISessionDetail.folder_from_day(row, session_id).catch(() => {});   // the day index names the folder; without it the work tree below was read from <day>/<uuid>/ and the Overview stayed empty
+ 			const own_dir = AISession.dir_url(session_id).pathname, own = own_dir;
+-			if (!this.work){ this.work = true; work = new SessionWork({ dir: own_dir, id: session_id, snap: AISession.all.get(session_id)?.ix ? { id: session_id, ...AISession.all.get(session_id).ix } : null }); $work.append(work); work.loaded.then(() => this.work_ready(work)); }
++			if (!this.work && !AISession.slugs.has(session_id) && !this.work_waited) setTimeout(() => { this.work_waited = true; fill(); }, 10000);   // a session whose folder is its uuid never gets a slug: after 10 s the work tree is read from there
++			if (!this.work && (AISession.slugs.has(session_id) || this.work_waited)){ this.work = true; work = new SessionWork({ dir: own_dir, id: session_id, snap: AISession.all.get(session_id)?.ix ? { id: session_id, ...AISession.all.get(session_id).ix } : null }); $work.append(work); work.loaded.then(() => this.work_ready(work)); }
+ 			const old_dir = () => AISessionDetail.dir_index().then(index => AISessionDetail.dir_of(index, session_id));   // the slow directory.json walk is only the fallback, never in front of the own folder
+ 			const [costs, trace] = await Promise.all([
+ 				AISessionDetail.load_cost_log(own).then(async c => c ?? AISessionDetail.load_cost_log(await old_dir())),
+diff --git a/public/framework/ai/AISession/SessionOutline.css b/public/framework/ai/AISession/SessionOutline.css
+new file mode 100644
+index 000000000..61f364bfd
+--- /dev/null
++++ b/public/framework/ai/AISession/SessionOutline.css
+@@ -0,0 +1,49 @@
++/* The session page's Overview (SessionOutline + SessionOutlineView). Prefix soutline-. Groups are .card boxes in a multi-column grid; a task is one full-width row. */
++@layer site {
++	.soutline { width: 100%; min-width: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 1rem; }
++	.soutline-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem 1rem; }
++	.soutline-count { margin: 0; font-weight: 600; }
++	.soutline-toggle { font-size: .8rem; padding: .25em .75em; cursor: pointer; }
++	.soutline-groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 30rem), 1fr)); gap: 1rem; align-items: start; min-width: 0; }
++	.soutline-group { min-width: 0; box-sizing: border-box; padding: .5rem .75rem; }
++	.soutline-group.is-dropped { opacity: .55; }
++	.soutline-sum { display: flex; flex-direction: column; gap: .15rem; cursor: pointer; list-style: none; position: relative; padding-block: 0; padding-inline-end: 0; padding-inline-start: 1.25rem; width: auto; min-height: 0; font-size: inherit; color: inherit; background: none; border: 0; border-radius: 0; box-shadow: none; }   /* a summary wears the control box (framework.css control grammar); a row is not a control */
++	.soutline-sum::-webkit-details-marker { display: none; }
++	.soutline-sum::before { content: "▸"; position: absolute; inset-inline-start: 0; top: 0; color: color-mix(in srgb, var(--ink) 50%, transparent); }
++	details[open] > .soutline-sum::before { content: "▾"; }
++	.soutline-body { padding-top: .5rem; min-width: 0; }
++	.soutline-title { display: flex; flex-wrap: wrap; align-items: baseline; gap: .25rem .75rem; min-width: 0; }
++	.soutline-name { font-weight: 600; overflow-wrap: anywhere; }
++	.soutline-meta { display: flex; flex-wrap: wrap; gap: .1rem .75rem; }
++	.soutline-own { display: flex; flex-direction: column; gap: .75rem; }
++	.soutline-own-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: .25rem 1rem; }
++	.soutline-own-title { font-size: 1.05rem; }
++
++	.soutline-list { min-width: 0; overflow-wrap: anywhere; }
++	.soutline-item { min-width: 0; border-top: 1px solid var(--mob-line, color-mix(in srgb, var(--ink) 15%, transparent)); }
++	.soutline-list > .soutline-item:first-child { border-top: 0; }
++	.soutline-item.is-dropped { opacity: .5; }
++	.soutline-item.is-dropped .soutline-ttl { text-decoration: line-through; }
++	.soutline-item > .soutline-sum { display: block; padding-inline-start: 0; }
++	.soutline-item > .soutline-sum::before { content: none; }
++	.soutline-row { display: flex; align-items: flex-start; gap: .6rem; padding: .4rem 0; min-width: 0; width: 100%; }
++	.soutline-main { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: .1rem; }
++	.soutline-ttl { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
++	.soutline-prog { flex: 0 0 auto; }
++	.soutline-agent { display: flex; flex-wrap: wrap; gap: .1rem .75rem; align-items: baseline; }
++	.soutline-link { font-size: .8rem; }
++
++	.soutline-state { flex: 0 0 auto; display: inline-block; font-size: 1.25rem; line-height: 1; width: 1.25rem; text-align: center; }
++	.soutline-state.is-open { color: color-mix(in srgb, var(--ink) 55%, transparent); }
++	.soutline-state.is-done { color: var(--ok, #2e9d5b); }
++	.soutline-state.is-dropped { color: color-mix(in srgb, var(--ink) 35%, transparent); }
++	.soutline-state.is-running { width: .65rem; height: .65rem; margin: .3rem .3rem 0; border-radius: 50%; background: #e8a317; }
++	small.soutline-state { width: auto; font-size: .8rem; }
++
++	.soutline-kids { margin-inline-start: 1.25rem; border-inline-start: 1px solid var(--mob-line, color-mix(in srgb, var(--ink) 15%, transparent)); padding-inline-start: .5rem; }
++	.soutline-proof { display: flex; flex-direction: column; gap: .35rem; padding: .25rem 0 .6rem 1.85rem; min-width: 0; }
++	.soutline-outcome { margin: 0; overflow-wrap: anywhere; }
++	.soutline-refs { display: flex; flex-wrap: wrap; gap: .25rem 1rem; }
++	.soutline-ref { font-size: .85rem; overflow-wrap: anywhere; }
++	.soutline-none { margin: 0; padding: .25rem 0; }
++}
+diff --git a/public/framework/ai/AISession/SessionOutline.js b/public/framework/ai/AISession/SessionOutline.js
+new file mode 100644
+index 000000000..434c52ed9
+--- /dev/null
++++ b/public/framework/ai/AISession/SessionOutline.js
+@@ -0,0 +1,181 @@
++/** SessionOutline — the session page's Overview as data (DOM-free; SessionOutlineView draws it). It answers: which child sessions
++ *  did this session start, what did each one do, and what is left that no child holds?
++ *
++ *  Input (`new SessionOutline({ session, tree, prompts, snaps, self, linked, now, mode })`; `self` is this session's id, `linked` extra child ids):
++ *   - `session`: the replayed Session (what SessionTasks hands `record(session)`): `_tasks` are the record tasks, `get_one("sessions")` the
++ *     `{"sessions":[{id}]}` lines (agent names of the child sessions started so far).
++ *   - `tree`: the SessionTree (`root.kids`, `all()`), built from the task folders; a node with `session` was run by that agent session.
++ *   - `prompts`: PromptLog.fold(...) of prompts.jsonl, `{ id -> { subject } }`.
++ *   - `snaps`: the day-index snapshots of every session (AISession.all's `ix`, with `id`): name, state, model, usd, parent, links.
++ *
++ *  Output, `outline.groups`: `[{ kind: "child" | "own", ... , items, usd, done, total }]`; the last group is "own". See `children()` for how
++ *  a child is found, `holds()` for which tasks belong to it, and `source()` for the prompt join. */
++export default class SessionOutline {
++
++	static DAY = 864e5;
++	static HALF_LIFE_DAYS = 2;
++	static RECENCY = 0.25;   // the recency term's weight: a free ask from an hour ago beats a free ask from last week, and a $0.20 ask never beats a fresh one
++
++	constructor({ session = null, tree = null, prompts = {}, snaps = [], now = Date.now(), mode = "ranked", linked = [], self = null } = {}){
++		Object.assign(this, { session, tree, prompts, snaps, now, mode, linked, self });
++		this.refs = new Set(this.record_tasks().map(t => SessionOutline.path_of(t)).filter(Boolean));   // folders a record task points at
++		this.by_url = new Map((this.tree?.root?.all?.() ?? []).slice(1).map(n => [SessionOutline.slash(n.url), n]));
++		this.used = new Set();   // nodes whose folder kids a record task already drew: two tasks on one folder draw its kids once
++		this.found = this.children();
++		this.build();
++	}
++
++	// ---- the record -------------------------------------------------------------------------------------------------------------
++
++	/** Every record task at any depth, subtasks included. */
++	record_tasks(list = [...(this.session?._tasks ?? [])]){ return list.flatMap(t => [t, ...this.record_tasks([...(t._tasks ?? [])])]); }
++
++	static path_of(t){ const p = t?.get_one?.("path"); return typeof p === "string" && p.startsWith("/") ? (p.endsWith("/") ? p : p + "/") : null; }
++
++	/** THE PROMPT JOIN, in one place. Today a record task names its prompt in `source`: the string "prompt:<id>" (what the prompt-tasks
++	 *  writer files), or an object `{ prompt }`. When the record gets Prompt entries with their asks nested under them (plan:
++	 *  ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/session-entries/plan.md), return those instead: this method is the
++	 *  only place that changes. Returns a Map: top-level record task id -> prompt id, only for tasks that have one. */
++	static source(session){
++		const out = new Map();
++		for (const t of session?._tasks ?? []){
++			const s = t.get_one?.("source"), id = typeof s === "string" ? /^prompt:(.+)$/.exec(s)?.[1] : s?.prompt;
++			if (id) out.set(t.id, id);
++		}
++		return out;
++	}
++
++	// ---- the child sessions -----------------------------------------------------------------------------------------------------
++
++	static session_nodes(tree){ return (tree?.root?.all?.() ?? []).slice(1).filter(n => typeof n.session === "string"); }
++
++	/** The snapshot for an id or an agent name (a name can repeat across days: the latest activity wins). */
++	snap_of(key){
++		const hits = this.snaps.filter(s => s.id === key || s.agent === key);
++		return hits.sort((a, b) => Date.parse(b.last_activity ?? 0) - Date.parse(a.last_activity ?? 0))[0] ?? null;
++	}
++
++	/** THE UNION of four sources, de-duplicated by session id (by name while no id is known). Returns `{ list, counts }`; the counts are
++	 *  logged. 1: the `sessions` lines of the record. 2: tree nodes that carry `session`. 3: `links.children` of this session's snapshot
++	 *  (plus `linked`, ids a caller read from the item tool's summary). 4: snapshots whose `parent` is this session's agent name; skipped for
++	 *  a VS Code tab, because every tab shares the name "vscode-mastermind" and that would adopt another tab's children. */
++	children(){
++		const found = new Map(), counts = { lines: 0, nodes: 0, links: 0, parent: 0 };
++		const add = (key, from, extra = {}) => {
++			if (!key) return;
++			const snap = this.snap_of(key), id = snap?.id ?? (/^[0-9a-f]{8}-/.test(key) ? key : null), k = id ?? key;
++			if (this.self && id === this.self) return;   // a session is never its own child
++			const c = found.get(k) ?? { key: k, id, name: snap?.agent ?? (id ? null : key), snap, node: null, from: new Set() };
++			if (!c.from.has(from)) counts[from]++;
++			c.from.add(from);
++			if (extra.node && !c.node) c.node = extra.node;
++			found.set(k, c);
++		};
++		for (const s of this.session?.get_one?.("sessions") ?? []) add(typeof s === "string" ? s : s?.id, "lines");
++		for (const n of SessionOutline.session_nodes(this.tree)) add(n.session, "nodes", { node: n });
++		const own = this.snap_of(this.self ?? this.tree?.snap?.id ?? null) ?? this.tree?.snap ?? null;
++		for (const id of [...(own?.links?.children ?? []), ...this.linked]) add(id, "links");
++		if (own?.agent && !/^vscode/.test(own.agent)) for (const s of this.snaps) if (s.parent === own.agent) add(s.id, "parent");
++		const list = [...found.values()];
++		for (const c of list){   // a child found by name or id also owns the nodes that name it
++			c.node ??= SessionOutline.session_nodes(this.tree).find(n => n.session === c.id || n.session === c.name || n.agent === c.name) ?? null;
++			c.folder = c.node ? SessionOutline.slash(c.node.url) : null;
++		}
++		return { list, counts: { ...counts, union: list.length } };
++	}
++
++	static slash(u){ return typeof u === "string" ? (u.endsWith("/") ? u : u + "/") : null; }
++
++	/** Which child holds this folder url: the TOP-most child whose folder is a prefix of it (a grandchild's work is its parent child's). */
++	holds(url){
++		const u = SessionOutline.slash(url);
++		if (!u) return null;
++		return this.found.list.filter(c => c.folder && u.startsWith(c.folder)).sort((a, b) => a.folder.length - b.folder.length)[0]
++			?? this.found.list.find(c => c.name && u.split("/").includes(c.name)) ?? null;   // a child with no node yet: a folder named for it
++	}
++
++	// ---- the items --------------------------------------------------------------------------------------------------------------
++
++	static time(x){ return Date.parse(x?.started ?? x?.created_at ?? x?._created_at ?? x?._at ?? x?.ended ?? "") || 0; }
++
++	/** A record task as an item: its subtasks, the folder node it points at, and the unreferenced folder nodes under that node. */
++	record_item(t){
++		const url = SessionOutline.path_of(t), node = url ? this.by_url.get(url) ?? null : null;
++		const kids = [...(t._tasks ?? [])].map(k => this.record_item(k));
++		if (node && !this.used.has(node)){ this.used.add(node); kids.push(...node.kids.map(k => this.node_item(k)).filter(Boolean)); }
++		return this.item({ kind: "record", id: t.id, title: t.get_one("title") ?? t.id, state: t.state, task: t, node, at: SessionOutline.time(t), kids });
++	}
++
++	/** An unreferenced, non-session folder node as an item; null for one a record task points at or a child heads (drawn elsewhere). */
++	node_item(n){
++		if (this.refs.has(SessionOutline.slash(n.url)) || typeof n.session === "string") return null;
++		return this.item({ kind: "folder", id: n.rel, title: n.title ?? n.rel, state: n.state, node: n, at: SessionOutline.time(n), kids: n.kids.map(k => this.node_item(k)).filter(Boolean) });
++	}
++
++	item(o){
++		o.usd = Math.max(o.node?.usd ?? 0, 0) + o.kids.reduce((s, k) => s + k.usd, 0);   // weight for ranking only: never printed (the view asks AICost)
++		o.at = Math.max(o.at, ...o.kids.map(k => k.at));
++		o.child = o.node && typeof o.node.session === "string" ? this.found.list.find(c => c.node === o.node || c.id === o.node.session || c.name === o.node.session) ?? null : null;
++		return o;
++	}
++
++	/** Count an item and everything under it: `[done, live]`; a dropped (stopped) item is not counted, as SessionFeed.progress did. */
++	static progress(items){
++		let done = 0, total = 0;
++		const walk = i => { if (i.state === "stopped") return; total++; if (i.state === "complete") done++; i.kids.forEach(walk); };
++		items.forEach(walk);
++		return { done, total };
++	}
++	static count(items){ return items.reduce((n, i) => n + 1 + SessionOutline.count(i.kids), 0); }
++
++	// ---- the groups -------------------------------------------------------------------------------------------------------------
++
++	build(){
++		const by_child = new Map(this.found.list.map(c => [c, []])), prompt_of = SessionOutline.source(this.session), mine = new Map(), other = [];
++		for (const t of this.session?._tasks ?? []){
++			const url = SessionOutline.path_of(t), c = url ? this.holds(url) : null, it = this.record_item(t);
++			if (c) by_child.get(c).push(it);
++			else if (prompt_of.has(t.id)) (mine.get(prompt_of.get(t.id)) ?? mine.set(prompt_of.get(t.id), []).get(prompt_of.get(t.id))).push(it);
++			else other.push(it);
++		}
++		// Folder nodes no record task points at, each drawn once: a node hanging from the root goes to "Other work", one hanging from a session node
++		// to the child that holds it. (One under a task node is drawn by that item: record_item / node_item.)
++		const lift = (parent, into) => { for (const k of parent.kids){ const it = this.node_item(k); if (it) into(it); } };
++		lift(this.tree?.root ?? { kids: [] }, it => other.push(it));
++		for (const s of SessionOutline.session_nodes(this.tree)){ const c = this.holds(s.url); lift(s, it => (c ? by_child.get(c) : other).push(it)); }
++		const child_groups = this.found.list.map(c => this.group({ kind: "child", child: c, name: c.snap?.title ?? c.name ?? c.key, items: by_child.get(c) }));
++		const subs = [...mine].map(([id, items]) => this.group({ kind: "prompt", prompt: id, name: this.prompts[id]?.subject ?? this.prompts[id]?.refined?.subject ?? "Prompt " + String(id).slice(0, 8), items }));
++		if (other.length) subs.push(this.group({ kind: "other", name: "Other work", items: other }));
++		const own_items = subs.flatMap(g => g.items);
++		const own = { kind: "own", name: "This session's own work", groups: this.sort(subs), items: own_items, ...SessionOutline.progress(own_items), usd: own_items.reduce((s, i) => s + i.usd, 0), at: Math.max(0, ...subs.map(g => g.at)) };
++		this.groups = [...this.sort(child_groups), own];
++		this.drawn = SessionOutline.count(this.groups.flatMap(g => g.kind === "own" ? g.items : g.items));
++	}
++
++	group(g){
++		g.items = this.sort(g.items);
++		Object.assign(g, SessionOutline.progress(g.items));
++		const snap = g.child?.snap;
++		g.usd = g.items.reduce((s, i) => s + i.usd, 0) + (snap ? Math.max(snap.usd ?? 0, 0) : 0);
++		g.at = Math.max(0, ...g.items.map(i => i.at), snap ? Date.parse(snap.last_activity ?? "") || 0 : 0);
++		g.state = snap?.state ?? g.child?.node?.state ?? null;
++		return g;
++	}
++
++	// ---- ranking ----------------------------------------------------------------------------------------------------------------
++
++	/** cost × 0.5^(age days ÷ 2) plus a recency term. A $40 task from yesterday outranks a free ask from an hour ago; among free asks the
++	 *  newest is first. ⚠ Prompt-filed asks cost nothing until an agent runs them, so most groups rank by recency: intended. */
++	score(x){
++		const age = Math.max(0, (this.now - (x.at || 0)) / SessionOutline.DAY), decay = Math.pow(0.5, age / SessionOutline.HALF_LIFE_DAYS);
++		return (x.usd ?? 0) * decay + SessionOutline.RECENCY / (1 + age);
++	}
++
++	sort(list){
++		const order = new Map(list.map((x, i) => [x, i]));
++		return [...list].sort(this.mode === "newest" ? (a, b) => b.at - a.at || order.get(a) - order.get(b) : (a, b) => this.score(b) - this.score(a) || order.get(a) - order.get(b));
++	}
++
++	/** The same outline in another order; nothing is re-read. */
++	reorder(mode){ return new SessionOutline({ session: this.session, tree: this.tree, prompts: this.prompts, snaps: this.snaps, now: this.now, linked: this.linked, self: this.self, mode }); }
++}
+diff --git a/public/framework/ai/AISession/SessionOutline.test.mjs b/public/framework/ai/AISession/SessionOutline.test.mjs
+new file mode 100644
+index 000000000..4888c76f9
+--- /dev/null
++++ b/public/framework/ai/AISession/SessionOutline.test.mjs
+@@ -0,0 +1,82 @@
++// node public/framework/ai/AISession/SessionOutline.test.mjs — the join, the "Other work" group, the child union, the ranking order, and the two agreeing counts.
++import assert from "node:assert/strict";
++import SessionOutline from "./SessionOutline.js";
++
++const NOW = Date.parse("2026-10-25T12:00:00Z"), HOUR = 36e5, DAY = 864e5, iso = ms => new Date(NOW - ms).toISOString();
++const ME = "aaaaaaaa-0000-4000-8000-000000000000", B = "bbbbbbbb-0000-4000-8000-000000000000", C = "cccccccc-0000-4000-8000-000000000000", D = "dddddddd-0000-4000-8000-000000000000", E = "eeeeeeee-0000-4000-8000-000000000000";
++const BASE = "/framework/ai/sessions/2026/10/20/session-aaaaaaaa/";
++
++// record tasks, the same duck shape as core/Task: id, state, _tasks, get_one(field)
++const task = (id, fields = {}, ago = HOUR, kids = []) => ({ id, state: fields.state ?? "idle", created_at: iso(ago), _tasks: kids, get_one: k => k === "title" ? fields.title ?? id : fields[k] });
++const node = (rel, o = {}) => Object.assign({ rel, title: rel, url: BASE + rel + "/", state: "idle", kids: [], started: iso(DAY), usd: null }, o);
++const tree = (kids) => {
++	const root = { rel: "", url: BASE, kids, all(){ return [root, ...kids.flatMap(function walk(n){ return [n, ...n.kids.flatMap(walk)]; })]; } };
++	root.all = () => { const out = [root], walk = n => { out.push(n); n.kids.forEach(walk); }; kids.forEach(walk); return out; };
++	return { root, snap: null };
++};
++
++// folders: plain (nobody points at it), the node child B ran (with an unreferenced kid and a referenced kid), and one more plain one under a task
++const n_plain = node("plain-folder"), n_b_free = node("agent-b/free"), n_b_ref = node("agent-b/ref"), n_b = node("agent-b", { session: B, agent: "minion-b", kids: [n_b_free, n_b_ref], usd: 12 });
++const n_under = node("task-folder/inner"), n_task = node("task-folder", { kids: [n_under] });
++const T = tree([n_plain, n_b, n_task]);
++
++const tasks = [
++	task("t1", { source: "prompt:P1", title: "ask one" }, 3 * HOUR),
++	task("t2", { source: "prompt:P1", title: "ask two", state: "complete" }, 2 * HOUR, [task("t2a", { state: "complete" }), task("t2b", { state: "stopped" })]),
++	task("t3", { source: { prompt: "P2" }, title: "ask with the object form" }, HOUR),
++	task("t4", { title: "no prompt at all" }, 5 * DAY),
++	task("t5", { title: "points into child B's folder", path: n_b_ref.url, state: "complete" }, DAY),
++	task("t6", { title: "points at a plain folder", path: n_task.url, source: "prompt:P1" }, HOUR),
++];
++const session = { id: ME, _tasks: tasks, get_one: k => k === "sessions" ? [{ id: "minion-b" }, { id: "minion-a" }, { id: "minion-b" }] : undefined };
++const snaps = [
++	{ id: ME, agent: "mastermind-x", usd: 5, last_activity: iso(0), links: { children: [D] } },
++	{ id: B, agent: "minion-b", usd: 12, state: "idle", title: "Child B", last_activity: iso(DAY) },
++	{ id: C, agent: "minion-c", parent: "mastermind-x", usd: 1, state: "active", title: "Child C", last_activity: iso(HOUR) },
++	{ id: D, agent: "minion-d", usd: 0, state: "idle", title: "Child D", last_activity: iso(9 * DAY) },
++	{ id: E, agent: "minion-e", parent: "somebody-else", usd: 3, last_activity: iso(HOUR) },
++];
++const prompts = { P1: { subject: "Prompt one" } };
++const out = new SessionOutline({ session, tree: T, prompts, snaps, self: ME, now: NOW });
++
++// 1. the join: P1's asks sit together under its subject, the object form joins P2 (subject missing -> a placeholder), the rest is "Other work"
++assert.deepEqual([...SessionOutline.source(session)], [["t1", "P1"], ["t2", "P1"], ["t3", "P2"], ["t6", "P1"]]);
++const own = out.groups.at(-1), sub = Object.fromEntries(own.groups.map(g => [g.prompt ?? g.kind, g]));
++assert.equal(own.kind, "own");
++assert.equal(sub.P1.name, "Prompt one");
++assert.deepEqual(sub.P1.items.map(i => i.id).sort(), ["t1", "t2", "t6"]);
++assert.match(sub.P2.name, /^Prompt P2/);
++
++// 2. "Other work": the task with no prompt, plus the folder nobody points at
++assert.deepEqual(sub.other.items.map(i => i.id).sort(), ["plain-folder", "t4"]);
++assert.equal(sub.other.name, "Other work");
++
++// 3. the child union: lines (minion-b, minion-a), nodes (B), links (D), parent (C); de-duplicated; E (another parent) is not a child
++const keys = out.found.list.map(c => c.id ?? c.key).sort();
++assert.deepEqual(keys, [B, C, D, "minion-a"].sort());
++assert.deepEqual(out.found.counts, { lines: 2, nodes: 1, links: 1, parent: 1, union: 4 });
++assert.equal(out.found.list.find(c => c.id === B).from.size, 2);   // found by its sessions line AND its tree node, counted once
++
++// 4. a child holds the tasks whose path is its folder or below, and the unreferenced nodes under it; its group keeps the progress
++const gb = out.groups.find(g => g.child?.id === B);
++assert.deepEqual(gb.items.map(i => i.id).sort(), ["agent-b/free", "t5"]);
++assert.deepEqual([gb.done, gb.total], [1, 2]);
++
++// 5. an unreferenced node under a task node is drawn under that task, not twice
++assert.equal(sub.P1.items.find(i => i.id === "t6").kids.map(k => k.id).join(), "task-folder/inner");
++
++// 6. the ranking: a $40 task from yesterday beats a free ask from an hour ago, and among free asks the newest is first
++const rank = new SessionOutline({ session: { id: ME, _tasks: [
++	task("free-old", {}, 3 * DAY), task("free-new", {}, HOUR),
++	task("paid", { path: BASE + "agent-big/" }, DAY), task("free-newest", {}, 60000)], get_one: () => undefined },
++	tree: tree([node("agent-big", { usd: 40 })]), snaps: [], self: ME, now: NOW });
++assert.deepEqual(rank.groups.at(-1).items.map(i => i.id), ["paid", "free-newest", "free-new", "free-old"]);
++const newest = rank.reorder("newest");
++assert.deepEqual(newest.groups.at(-1).items.map(i => i.id), ["free-newest", "free-new", "paid", "free-old"]);
++
++// 7. the two numbers that must agree: tasks drawn = record tasks (every depth) + folder nodes no task points at and no session heads
++const deep = list => list.reduce((n, t) => n + 1 + deep(t._tasks), 0), refs = new Set(tasks.map(t => t.get_one("path")).filter(Boolean));
++const unreferenced = T.root.all().slice(1).filter(n => !refs.has(n.url) && typeof n.session !== "string").length;
++const independent = deep(tasks) + unreferenced;
++assert.equal(out.drawn, independent);
++console.log(`SessionOutline: ok. tasks drawn ${out.drawn} = ${independent} (record ${deep(tasks)} + unreferenced folders ${unreferenced}); children ${JSON.stringify(out.found.counts)}`);
+diff --git a/public/framework/ai/AISession/SessionOutlineView.js b/public/framework/ai/AISession/SessionOutlineView.js
+new file mode 100644
+index 000000000..4e67f3b80
+--- /dev/null
++++ b/public/framework/ai/AISession/SessionOutlineView.js
+@@ -0,0 +1,187 @@
++import View, { div, span, small, strong, a, p, button, details, summary, icon } from "/framework/core/View/View.js";
++import AICost from "../AITask/AICost.js";
++import PromptLog from "./PromptLog.js";
++import SessionOutline from "./SessionOutline.js";
++import Day from "/framework/core/Session/Day.js";
++
++View.stylesheet(import.meta, "SessionOutline.css");
++
++/** The session page's Overview: SessionOutline drawn. One box per child session (its name, state, model, cost line, "4 of 9 done", and the
++ *  tasks it holds), then this session's own work, grouped by the prompt that asked for it. Every child's name links to that child's own page,
++ *  the same page again, so the children of a child are its groups in turn. One full-width row per task; a done task opens its proof in place.
++ *  Built with `new SessionOutlineView({ ready, sid })`: `ready` is the promise of the loaded SessionWork; `record(session)` is called with each
++ *  replay of session.jsonl (SessionTasks), and the view redraws. Every dollar printed comes from AICost. */
++export default class SessionOutlineView extends View {
++
++	static ASK_ALL = 8;   // up to this many children, Servex is asked for every child's total at once; beyond it, only for the ones the reader opens
++
++	initialize(){
++		this.ac("soutline");
++		this.mode = "ranked";
++		this.open = new Map();      // fold key -> opened (true) or closed (false) by the reader; kept across a redraw
++		this.costs = new Map();     // child session url -> the AICost.summary cost once it has arrived
++		this.empty(() => p.c("muted", "Reading this session's record…"));
++		this.ready.then(work => { this.tree = work.tree; return Promise.all([this.read_prompts(), this.read_snaps(work.tree)]); })
++			.then(([prompts, snaps]) => { this.prompts = prompts; this.snaps = snaps; })
++			.catch(() => {})
++			.then(() => { this.loaded = true; this.draw(); });
++	}
++
++	/** Called with the replayed Session each time its record changes. */
++	record(session){ this.session = session; if (this.loaded) this.draw(); }
++
++	read_prompts(){ return PromptLog.read(this.sid).then(lines => PromptLog.fold(lines)).catch(() => ({})); }
++
++	/** Every session's index snapshot (name, parent, state, model, cost) from the session's folder day to today: the day files the tree is built from. */
++	async read_snaps(tree){
++		const day = tree?.day;
++		if (!day) return [];
++		const base = new Date(day.replaceAll("/", "-") + "T12:00:00"), today = Day.of(), out = [];
++		for (let i = 0; i <= 31; i++){
++			const d = Day.of(new Date(base.getTime() + i * 864e5)); if (d > today) break;
++			const res = await fetch(`/framework/ai/sessions/${Day.path(d)}/index.json`).catch(() => null);
++			const json = res?.ok && !(res.headers.get("content-type") ?? "").includes("html") ? await res.json().catch(() => null) : null;
++			out.push(...(json?.snapshots ?? []));
++		}
++		return out;
++	}
++
++	build(){ return new SessionOutline({ session: this.session, tree: this.tree, prompts: this.prompts ?? {}, snaps: this.snaps ?? [], self: this.sid, mode: this.mode }); }
++
++	draw(){
++		const outline = this.outline = this.build();
++		this.empty(() => {
++			this.head(outline);
++			const kids = outline.groups.filter(g => g.kind === "child");
++			if (kids.length) div.c("soutline-groups", () => kids.forEach((g, n) => this.child_group(g, n)));
++			this.own_group(outline.groups.at(-1));
++		});
++		this.el.dataset.children = JSON.stringify(outline.found.counts); this.el.dataset.drawn = outline.drawn;   // how many children each source found, and tasks drawn: read by the proofs
++	}
++
++	head(outline){
++		const n = outline.groups.filter(g => g.kind === "child").length;
++		div.c("soutline-head", () => {
++			p.c("soutline-count", `${n} child session${n === 1 ? "" : "s"} · ${outline.drawn} task${outline.drawn === 1 ? "" : "s"} drawn`);
++			button.c("soutline-toggle", this.mode === "ranked" ? "Ranked by cost · newest first" : "Newest first · ranked by cost")
++				.attr("title", this.mode === "ranked" ? "Showing: ranked by cost, then recency. Click to sort by time only." : "Showing: newest first. Click to rank by cost again.")
++				.on("click", () => { this.mode = this.mode === "ranked" ? "newest" : "ranked"; this.draw(); });
++		});
++	}
++
++	// ---- groups -----------------------------------------------------------------------------------------------------------------
++
++	/** A fold that remembers whether the reader opened it (`this.open` survives a redraw). `open_by_default` only decides the first draw. */
++	fold(key, cls, head, body, open_by_default = false){
++		const d = details.c(cls, () => { summary.c("soutline-sum", head); div.c("soutline-body", body); });
++		d.el.open = this.open.get(key) ?? open_by_default;
++		d.el.addEventListener("toggle", () => { this.open.set(key, d.el.open); if (d.el.open) d.el.dispatchEvent(new CustomEvent("soutline-open")); });
++		return d;
++	}
++
++	progress_text(g){ return g.total ? `${g.done} of ${g.total} done` : "no tasks yet"; }
++
++	when(at){
++		if (!at) return "";
++		const d = new Date(at);
++		return d.toDateString() === new Date().toDateString() ? d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : d.toLocaleDateString([], { month: "short", day: "numeric" });
++	}
++
++	static tab_of(snap){ return AICost.is_tab(snap ? { source: /^vscode/.test(snap.agent ?? "") ? "vscode" : "servex", id: snap.id } : null, null); }
++
++	child_group(g, n){
++		const c = g.child, id = c.id ?? c.name, url = AICost.session_url(id), snap = c.snap, key = "c:" + c.key, tab = SessionOutlineView.tab_of(snap);
++		let $cost;
++		const paint = () => { if ($cost) $cost.el.textContent = AICost.cost_line({ cost: this.costs.get(url) ?? AICost.known_cost(url), own_usd: snap?.usd ?? null, tab }).text; };
++		const ask = () => { if (!this.costs.has(url)) AICost.summary(url).then(ans => { if (ans?.summary?.cost) this.costs.set(url, ans.summary.cost); paint(); }); };
++		const d = this.fold(key, "soutline-group card" + (g.state === "stopped" ? " is-dropped" : ""), () => {
++			div.c("soutline-title", () => {
++				a.c("soutline-name", g.name).href(url).on("click", e => e.stopPropagation());
++				small.c("soutline-state", [g.state, snap?.model && AICost.model_name(snap.model)].filter(Boolean).join(" · "));
++			});
++			div.c("soutline-meta", () => { small.c("muted", `${this.when(g.at)}${g.at ? " · " : ""}${this.progress_text(g)}`); $cost = small.c("muted soutline-cost", ""); });
++			paint();
++		}, () => this.items(g.items, key), n < 2 && g.items.length > 0);
++		d.el.addEventListener("soutline-open", ask);
++		if (d.el.open || this.outline.found.list.length <= SessionOutlineView.ASK_ALL) ask();
++	}
++
++	own_group(g){
++		div.c("soutline-own", () => {
++			div.c("soutline-own-head", () => {
++				strong.c("soutline-own-title", g.name);
++				small.c("muted", this.progress_text(g));
++				this.self_cost();
++			});
++			if (!g.groups.length) return void p.c("muted", "No tasks or child sessions recorded for this session yet.");
++			div.c("soutline-groups", () => g.groups.forEach(sub => {
++				const key = "p:" + (sub.prompt ?? sub.kind);
++				this.fold(key, "soutline-group card", () => {
++					div.c("soutline-title", () => strong.c("soutline-name", sub.name));
++					div.c("soutline-meta", () => small.c("muted", `${this.when(sub.at)}${sub.at ? " · " : ""}${this.progress_text(sub)}`));
++				}, () => this.items(sub.items, key), sub.kind !== "other" || g.groups.length === 1);
++			}));
++		});
++	}
++
++	/** This session's own cost line, from AICost: its own spend at once, "with children" once Servex has added them up. */
++	self_cost(){
++		const url = AICost.session_url(this.sid), snap = (this.snaps ?? []).find(s => s.id === this.sid), tab = SessionOutlineView.tab_of(snap);
++		const $c = small.c("muted soutline-cost", "");
++		const paint = cost => { $c.el.textContent = AICost.cost_line({ cost, own_usd: snap?.usd ?? null, tab }).text; };
++		paint(AICost.known_cost(url));
++		AICost.summary(url).then(ans => paint(ans?.summary?.cost ?? null));
++	}
++
++	// ---- tasks ------------------------------------------------------------------------------------------------------------------
++
++	items(list, scope){
++		if (!list.length) return void p.c("muted soutline-none", "Nothing filed here yet.");
++		div.c("soutline-list", () => list.forEach(i => this.item(i, scope)));
++	}
++
++	static state_icon(state){
++		if (state === "complete") return icon("check_circle").ac("soutline-state", "is-done").attr("title", "done");
++		if (state === "running") return span.c("soutline-state is-running").attr("title", "running");
++		if (state === "stopped") return icon("radio_button_unchecked").ac("soutline-state", "is-dropped").attr("title", "dropped");
++		return icon("radio_button_unchecked").ac("soutline-state", "is-open").attr("title", state ?? "open");
++	}
++
++	/** One task: ONE full-width row. A done task, or one with subtasks, is a fold: the row is its summary, the proof and the subtasks sit under it. */
++	item(i, scope){
++		const key = scope + "/" + i.kind + ":" + i.id, done = i.state === "complete", kids = i.kids.length, cls = "soutline-item" + (i.state === "stopped" ? " is-dropped" : "");
++		const row = () => div.c("soutline-row", () => {
++			SessionOutlineView.state_icon(i.state);
++			div.c("soutline-main", () => { span.c("soutline-ttl", i.title); this.agent_line(i); });
++			if (kids){ const { done: d, total } = SessionOutline.progress(i.kids); small.c("muted soutline-prog", `${d}/${total}`); }
++		});
++		if (!done && !kids) return void div.c(cls, row);
++		this.fold(key, cls, row, () => { if (done) this.proof(i); if (kids) div.c("soutline-kids", () => i.kids.forEach(k => this.item(k, key))); });
++	}
++
++	/** The child session on the task's row: model · cost · state · link. The cost is AICost's short form of the session's own spend. */
++	agent_line(i){
++		const c = i.child, snap = c?.snap;
++		if (!c) return;
++		small.c("soutline-agent muted", () => {
++			span([snap?.model && AICost.model_name(snap.model), snap?.usd != null && AICost.short(snap.usd), snap?.state ?? i.node?.state].filter(Boolean).join(" · "));
++			a.c("soutline-link", "session →").href(AICost.session_url(c.id ?? c.name)).on("click", e => e.stopPropagation());
++		});
++	}
++
++	/** A done task's proof, in place: what it says it did (outcome), what shows it (evidence, links), the commit, and where it ran. */
++	proof(i){
++		const t = i.task, get = k => t?.get_one?.(k);
++		const outcome = get("outcome"), commits = [...(t?.commits ?? [])];
++		const refs = [get("evidence"), get("links")].flat().filter(Boolean).map(x => typeof x === "string" ? { href: x, text: x } : { href: x?.href ?? x?.url, text: x?.text ?? x?.title ?? x?.href ?? x?.url }).filter(x => x.href);
++		div.c("soutline-proof", () => {
++			if (outcome) p.c("soutline-outcome", String(outcome));
++			if (refs.length) div.c("soutline-refs", () => refs.forEach(r => /^(\/|https?:)/.test(r.href) ? a.c("soutline-ref", r.text).href(r.href) : span.c("muted", r.text)));
++			if (commits.length) small.c("muted soutline-commit", "commit " + commits.map(h => String(h).slice(0, 7)).join(" "));
++			const url = get("path") ?? i.node?.url;
++			if (url) a.c("soutline-ref", "Open the task →").href(url);
++			if (i.child) a.c("soutline-ref", "Session that did it →").href(AICost.session_url(i.child.id ?? i.child.name));
++			if (!outcome && !refs.length && !commits.length) small.c("muted", "No outcome, evidence or commit is recorded on this task.");
++		});
++	}
++}
+diff --git a/public/framework/ai/AISession/readme.md b/public/framework/ai/AISession/readme.md
+index 49b12f08a..19a341547 100644
+--- a/public/framework/ai/AISession/readme.md
++++ b/public/framework/ai/AISession/readme.md
+@@ -5,7 +5,7 @@
+ - `AISession.js` — one session's cost, read from its raw transcript (browser and node).
+ - `AISessionsPage.js` · `AISessionView.js` · `AISessionRows.js` · `AISessionBuckets.js` — the grid page, its row, how rows nest and fold.
+ - `AISessionDetail.js` · `AISessionConversation.js` · `AISessionCoverage.js` · `AISessionTrace.js` — a session's own page and its tabs. A clicked row opens that session's full page in place of the list (previews plus full detail views: [design/navigation](/framework/design/navigation/readme.md)); the sessions page no longer calls `columns()`. A named agent's url (`/framework/ai/sessions/<name>/`, a `reviewer-*` or `minion-*` row) resolves the name to its session through Servex's live agent list (`AISessionDetail.agent_row`), and every load asks the folder listing first, so the page never asks for a file that is not there.
+-- The session page's tabs are **Overview · Board · Tasks · Chat**, then Coverage, Cost, Models and tokens, Related. `?tab=work` opens Tasks and `?tab=conversation` opens Chat. Above the tabs sits the sticky stats bar (`SessionStats.js`: cost, model, running for, done X of Y, the one segmented bar); it reads the tree `SessionWork` loads, so one load serves the bar, the Overview and the Tasks tab. **A session's cost is one line from one function, `AICost.cost_line`: "$282 this tab · $1035 with children"** ("this session" when it is not a VS Code tab). The Cost tile, the Sessions list's Cost cell and its rail card all draw it. The own figure is the summary's `cost.own.usd` (before it arrives, the day snapshot's `usd`); "with children" is `summary.cost.total`, which the item tool computes (`AICost.summary(AICost.session_url(id))`, one cached answer per session for every surface), never `SessionWork`'s own sum. The list never asks for every row: it shows an answer already here, else a small "with children …" button that asks for that one row. Clicking the Cost tile opens the Cost tab, whose first block lists every child session behind the total (`AICost.draw_session`). `SessionFeed.js` (+ `SessionFeed.css`, prefix `sfeed-`) is the Overview tab: one list, newest first, of the session's task folders (a folder an agent session ran shows that session's model, cost and a link) and its record tasks (`SessionTasks` hands it each replay through `on_session`), subtasks folded under a parent with "N of M done", dropped ones dimmed, and the head line `Own tasks: N · Total: M`. `SessionOverview.js` draws the Board tab's four cards side by side (Open, Project, Done, Dropped), with the phone's classes (`MobileRow`, `MobileTaskRow`, `mob-` CSS); `SessionTaskRow.js` is the phone's task row that opens the task's full page and shows its cost. Their styles, and the full-screen mode with two floating buttons (`AISessionDetail.full_screen`, `?full`), are `SessionOverview.css` (prefix `sov-`).
++- The session page's tabs are **Overview · Board · Tasks · Chat**, then Coverage, Cost, Models and tokens, Related. `?tab=work` opens Tasks and `?tab=conversation` opens Chat. Above the tabs sits the sticky stats bar (`SessionStats.js`: cost, model, running for, done X of Y, the one segmented bar); it reads the tree `SessionWork` loads, so one load serves the bar, the Overview and the Tasks tab. **A session's cost is one line from one function, `AICost.cost_line`: "$282 this tab · $1035 with children"** ("this session" when it is not a VS Code tab). The Cost tile, the Sessions list's Cost cell and its rail card all draw it. The own figure is the summary's `cost.own.usd` (before it arrives, the day snapshot's `usd`); "with children" is `summary.cost.total`, which the item tool computes (`AICost.summary(AICost.session_url(id))`, one cached answer per session for every surface), never `SessionWork`'s own sum. The list never asks for every row: it shows an answer already here, else a small "with children …" button that asks for that one row. Clicking the Cost tile opens the Cost tab, whose first block lists every child session behind the total (`AICost.draw_session`). **The Overview tab is `SessionOutlineView.js` (+ `SessionOutline.css`, prefix `soutline-`), drawn from `SessionOutline.js`, which has no DOM and is tested by `node SessionOutline.test.mjs`.** It groups the session's work by child session: one box per child (name linking to that child's own page, state, model, an `AICost` cost line, "N of M done") holding the tasks whose folder is the child's or below it, then "This session's own work", sub-grouped by the prompt that asked for it (`SessionOutline.source(session)` is the one place that join lives) with "Other work" for the rest. The children are the union, de-duplicated by session id, of the `sessions` lines of `session.jsonl`, the tree nodes that carry `session`, the day snapshot's `links.children`, and the snapshots whose `parent` is this session's agent; groups are ranked by cost × 0.5^(age days ÷ 2) plus recency, with a "newest first" toggle. A task is one full-width row (open, running, done and dropped icons; the child session's model, cost and state; subtasks folded in), and a done task opens its proof in place. The rows use `TaskView.row(t, { verbs: false })`, so there are no start/pause/stop buttons here (the Tasks tab keeps them). `SessionTasks` hands it each replay through `on_session`, and the view redraws live. `SessionFeed.js` (+ `SessionFeed.css`, prefix `sfeed-`) is the older flat list and is no longer wired in. `SessionOverview.js` draws the Board tab's four cards side by side (Open, Project, Done, Dropped), with the phone's classes (`MobileRow`, `MobileTaskRow`, `mob-` CSS); `SessionTaskRow.js` is the phone's task row that opens the task's full page and shows its cost. Their styles, and the full-screen mode with two floating buttons (`AISessionDetail.full_screen`, `?full`), are `SessionOverview.css` (prefix `sov-`).
+ - `SessionWork.js` (+ `.css`) — the **Tasks** tab (the old Work view; its `SessionWork.split(root)` also feeds the stats bar and the Overview): its work nested by task folder (`sessions/doc/variants/SessionTree.js` over `ai/index.json`), own and rolled cost, tasks complete of created, open tasks, the Today ▾ pill (`ux/Filter/TimeFilter`), Approve. `Approvals.js` writes `{"approve":{"at","by":"owner"}}` to the session's own `session.jsonl` plus a pointer in that day's `day.jsonl` (the line the tab streams); `Review.js` is the leak rule and its numbers (finished 1 h, over $0.50, over a day old).
+ - `AISessionLive.js` · `AISessionFollow.js` · `AISessionResume.js` · `AISessionFlags.js` — live tail, follow, resume, flags.
+ - `AISessionDigest.mjs` — one transcript boiled down by plain Node: sizes, exact cost, owner prompts, result, `digest.json` and procedural `tags()` ([round 4](sessions/2026/10/16/voice-20261016/past-work/round4-result.md)).
+diff --git a/public/framework/ai/sessions/readme.md b/public/framework/ai/sessions/readme.md
+index 13d935b32..8159b3b4b 100644
+--- a/public/framework/ai/sessions/readme.md
++++ b/public/framework/ai/sessions/readme.md
+@@ -54,7 +54,7 @@ A session folder is one of three kinds:
+ 
+ - **The page**: `page.js` builds `AISessionsPage` (`ai/AISession/`), a table or rail of cards over [ext/DataGrid](/framework/ext/DataGrid/). Rows are `AISessionView`, order and nesting `AISessionsPage.arrange()`, built from `session-tree.json` plus the live `index.json` snapshots pushed over the page's socket.
+ - **A year, month or day folder** (`/framework/ai/sessions/2026/10/`): `StoreFolder.sessions` (`ai/AISession/StoreFolder.js`). A year lists its months and a month its days, each with its session count and cost from the rolled-up `index.json`; a day lists its sessions. A folder with no rolled-up `index.json` says so in words (it is asked for only when the folder listing shows one).
+-- **One session**: `/framework/ai/sessions/<id>/` → `AISessionDetail`: a sticky stats bar, then the tabs Overview (every task and child session of the session in one list, newest first, with own and total counts: `SessionFeed`) · Board (the four cards: open, project, done, dropped) · Tasks · Chat (the Work view is the Tasks tab; `?tab=work` and `?tab=conversation` still map), then Coverage, Cost and the rest. The stats bar reads `SessionWork`'s task tree; files `SessionOverview`, `SessionStats`, `SessionTaskRow` are in [AISession](/framework/ai/AISession/readme.md). Coverage tab: [ext/Refine/doc/refine-queue.md](/framework/ext/Refine/doc/refine-queue.md).
++- **One session**: `/framework/ai/sessions/<id>/` → `AISessionDetail`: a sticky stats bar, then the tabs Overview (the session's work grouped by child session, each child's name linking to its own page, then the session's own work grouped by prompt: `SessionOutlineView`) · Board (the four cards: open, project, done, dropped) · Tasks · Chat (the Work view is the Tasks tab; `?tab=work` and `?tab=conversation` still map), then Coverage, Cost and the rest. The stats bar reads `SessionWork`'s task tree; files `SessionOverview`, `SessionStats`, `SessionTaskRow` are in [AISession](/framework/ai/AISession/readme.md). Coverage tab: [ext/Refine/doc/refine-queue.md](/framework/ext/Refine/doc/refine-queue.md).
+ - **The class**: `class AISession extends Session` (`AISession.js`): totals, `apply_line()` per transcript line, `AISession.of(id)`, `AISession.log()`, `AISession.record(id)`. Classes of the detail page: [doc/ui/classes.md](doc/ui/classes.md).
+ - **Variants**: `/framework/ai/sessions/v/<name>/` is another look at the same data, for example [v/mobile/](/framework/ai/sessions/v/mobile/) (the phone pages: day list, nested sessions, a session, a task). `AISessionsPage.route()` passes the name `v` through to that folder instead of reading it as a session id.
+ - **Routine sessions are hidden** behind one chip per kind (prompt cleaning, short headless runs, reviews): [doc/buckets.md](doc/buckets.md).
+diff --git a/public/framework/core/Task/TaskView.js b/public/framework/core/Task/TaskView.js
+index ea98a3b8b..baf3af080 100644
+--- a/public/framework/core/Task/TaskView.js
++++ b/public/framework/core/Task/TaskView.js
+@@ -11,7 +11,7 @@ export default class TaskView extends View {
+ 	static VERBS = [["start", "play_arrow", "Start"], ["pause", "pause", "Pause"], ["resume", "play_arrow", "Resume"], ["stop", "stop", "Stop"], ["approve", "check", "Approve"]];   // [verb, Material icon, label]: the buttons, shown when Task.can(verb)
+ 	static SEGMENTS = 8;   // past this many children the bar is one meter and a count, so the title keeps the room
+ 	static chip(task){ return new this({ task, size: "chip" }); }
+-	static row(task){ return new this({ task, size: "row" }); }
++	static row(task, opts = {}){ return new this({ task, size: "row", ...opts }); }   // opts: { verbs: false } leaves out the start/pause/stop/approve buttons (this row and its subtask rows)
+ 	static card(task){ return new this({ task, size: "card" }); }
+ 
+ 	initialize(){
+@@ -59,13 +59,14 @@ export default class TaskView extends View {
+ 		if (!kids.length) return;
+ 		const shown = this.expanded ? kids : open.slice(0, this.constructor.PREVIEW);
+ 		div.c("task-row-kids", () => {
+-			shown.forEach(k => this.constructor.row(k));
++			shown.forEach(k => this.constructor.row(k, { verbs: this.verbs }));
+ 			if (!this.expanded && open.length > shown.length) small.c("task-row-more", `+ ${open.length - shown.length} more open`).click(() => { this.expanded = true; this.redraw(); });
+ 		});
+ 	}
+ 
+ 	// The verbs this task's state allows, as small icon buttons; a click saves the VERB (task.act), the row does not toggle.
+ 	actions(){
++		if (this.verbs === false) return;
+ 		const verbs = this.constructor.VERBS.filter(([verb]) => this.task.can(verb));
+ 		if (!verbs.length) return;
+ 		span.c("task-actions", () => verbs.forEach(([verb, glyph, label]) => {
+diff --git a/public/framework/styles/css-scopes.txt b/public/framework/styles/css-scopes.txt
+index 24395d293..606fcb8a7 100644
+--- a/public/framework/styles/css-scopes.txt
++++ b/public/framework/styles/css-scopes.txt
+@@ -268,3 +268,4 @@ mob-
+ # public/framework/ai/AISession — the desktop session page: Overview cards, sticky stats bar, Tasks tab (2026-10-24)
+ sov-
+ sw-
++soutline-

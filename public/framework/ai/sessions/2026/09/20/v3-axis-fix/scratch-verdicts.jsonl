@@ -1,0 +1,16 @@
+{"verdict":{"id":"health-revive","say":"approve","at":"2026-09-19T19:35:20-05:00","by":"owner"}}
+{"verdict":{"id":"page-health-dead","say":"improve","at":"2026-09-19T19:36:19-05:00","by":"owner","note":"The mastermind title reads fine but the card body repeats the title verbatim -- tighten the summary."}}
+{"verdict":{"id":"page-health-dead","say":"approve","at":"2026-09-19T19:38:21-05:00","by":"owner"}}
+{"verdict":{"id":"state","say":"approve","at":"2026-09-19T19:39:23-05:00","by":"owner"}}
+{"verdict":{"id":"v3-data","say":"improve","at":"2026-09-19T19:41:56-05:00","by":"owner","note":"The mastermind title reads fine but the card body repeats the title verbatim -- tighten the summary."}}
+{"verdict":{"id":"health-revive","say":"reopen","at":"2026-09-19T19:42:38-05:00","by":"inbox-zero","note":"undoing a test press made while proving Approve/Improve for ai/2026-09-19/inbox-zero/ -- not a real owner verdict"}}
+{"verdict":{"id":"page-health-dead","say":"reopen","at":"2026-09-19T19:42:38-05:00","by":"inbox-zero","note":"undoing test presses (improve, then approve) made while proving the inbox-zero controls -- not a real owner verdict"}}
+{"verdict":{"id":"state","say":"reopen","at":"2026-09-19T19:42:38-05:00","by":"inbox-zero","note":"undoing a test press made while proving Approve/Improve for ai/2026-09-19/inbox-zero/ -- not a real owner verdict"}}
+{"verdict":{"id":"v3-data","say":"reopen","at":"2026-09-19T19:42:38-05:00","by":"inbox-zero","note":"undoing a test Improve press made while proving the relay-to-mastermind mechanism -- not a real owner critique"}}
+{"verdict":{"id":"page-health-dead","say":"approve","at":"2026-09-19T19:43:32-05:00","by":"owner"}}
+{"verdict":{"id":"page-health-dead","say":"reopen","at":"2026-09-19T19:43:35-05:00","by":"owner"}}
+{"verdict":{"id":"page-health-dead","say":"reopen","at":"2026-09-19T19:53:47-05:00","by":"inbox-zero","note":"Correcting provenance: the two lines above at 19:43:32 (approve) and 19:43:35 (reopen), both by:owner, were also test presses (proving the Undo round trip end to end for ai/2026-09-19/inbox-zero/), not the owner. Net state is unchanged by this line -- already reopen. The code that wrote by:owner unconditionally has been fixed: it now writes window.$VERDICT_AUTHOR if a test script sets it, owner only by default for a real click."}}
+{"verdict":{"id":"system-eval","say":"approve","at":"2026-09-19T19:54:23-05:00","by":"inbox-zero-reverify"}}
+{"verdict":{"id":"system-eval","say":"reopen","at":"2026-09-19T19:56:19-05:00","by":"inbox-zero-reverify"}}
+{"verdict":{"id":"ready","say":"approve","at":"2026-09-19T20:06:54-05:00","by":"inbox-zero-elig-check"}}
+{"verdict":{"id":"ready","say":"reopen","at":"2026-09-19T20:09:00-05:00","by":"inbox-zero-elig-check"}}

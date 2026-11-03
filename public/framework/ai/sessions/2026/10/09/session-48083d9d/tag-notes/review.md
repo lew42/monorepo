@@ -1,0 +1,10 @@
+verdict: pass
+
+1. [note] All five asks are met in the worktree (`worktree/tag-notes`, c4c85f11c): `TagRouter.page_for` reads the real tree, notes go through the one `Inbox.note` (Servex/agents/inbox.js:154), tags with no page come back in `unrouted`, and the note links the session plus 1-based sentence numbers with no copied text. `node Servex/ext/refine/test/tag-router.mjs` passes all 5 checks.
+2. [note] The owner's smallest slice was "visible in that page's rail", and that has not been shown yet. The doc says as much (ext/Refine/doc/tag-notes-2026-10-12.md:13). After the Servex restart, one real refine with a screenshot of the `/framework/ext/Refine/` rail would close it.
+3. [note] Only prompts that come through `/api/refine` are routed (Servex/Servex.js:673; called from ext/Refine/Prompt.js and RefineSystem.js). If the VS Code Echo pipeline (Servex/doc/echo.md) refines without that route, tags on typed VS Code prompts never reach a page, so this is worth checking.
+4. [note] `tag_notes` goes back only in the HTTP response (Servex/ext/refine/run.js:61) and is never written to the session's prompts.jsonl. Nothing permanent records which notes a prompt left or which tags had no page, and the "listed" ask would last longer as a logged line.
+5. [note] On Windows, `fs.existsSync` ignores case, so a tag like `core/page` or `Servex` matches a folder and returns a path in the tag's own spelling (TagRouter.js:33). The note still lands in the right file, but `sent[].path` may be a URL with the wrong case. Reading back the real folder name would fix it.
+6. [note] `has_note` (TagRouter.js:56) checks for a substring in any `"note"` line, cleared notes included. So once the owner clears a note, re-running the same prompt never adds it back. That is probably the intended behaviour; it is just not written down.
+7. [note] Each note also wakes the page's coordinator if one exists (inbox.js:164). Refine runs on every prompt, so a module that gets tagged a lot could wake its agent often. Watch the volume once this is live.
+8. [note] The brief said "commit each step", but the work landed as one commit. It is small enough that this does no harm.

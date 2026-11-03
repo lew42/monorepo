@@ -1,0 +1,115 @@
+diff --git a/public/framework/ai/AIDashboard/AIDashboard.css b/public/framework/ai/AIDashboard/AIDashboard.css
+index bca4a4348..a9e4b7ee5 100644
+--- a/public/framework/ai/AIDashboard/AIDashboard.css
++++ b/public/framework/ai/AIDashboard/AIDashboard.css
+@@ -1,6 +1,9 @@
+ @layer site {
+-	.page.ad-page { --measure: none; --page-pad: 1.5em clamp(0.8em, 3%, 3em); }
+-	.ad-dash { display: flex; flex-direction: column; gap: 1em; padding: 0.8em 0 2em; }
++	/* The AI head (ai/page.js `head()`) runs edge to edge as on every AI page, so the page has no padding and the dashboard keeps its own.
++	   The head names the page: core's big title and its "Folder" link go (⚠ `!important`: core writes that link's display inline). */
++	.page.ad-page { --measure: none; --page-pad: 0; }
++	.page.ad-page > :is(.page-title, .page-fs-link) { display: none !important; }
++	.ad-dash { display: flex; flex-direction: column; gap: 1em; padding: 1em clamp(0.8em, 3%, 3em) 2em; }
+ 	.ad-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1em; align-items: start; }
+ 	.ad-col { display: flex; flex-direction: column; gap: 1em; min-width: 0; }
+ 	.ad-sec { display: flex; flex-direction: column; gap: 0.5em; min-width: 0; padding: 0.8em 1em; border: 1px solid var(--line); border-radius: 0.5em; }
+diff --git a/public/framework/ai/AIDashboard/AIDashboard.js b/public/framework/ai/AIDashboard/AIDashboard.js
+index 4f8d6508b..83e87f2b4 100644
+--- a/public/framework/ai/AIDashboard/AIDashboard.js
++++ b/public/framework/ai/AIDashboard/AIDashboard.js
+@@ -13,13 +13,10 @@ View.stylesheet(import.meta, "AIDashboard.css");
+  *  The day's sessions list is one click down, on the Sessions tab. Every section reads real state and says so when it cannot: nothing is drawn from a failed read.
+  *  The page's one live source is `AINow` (the "inflight" query); the queue, the waiting list, the merge list and priority.md are each read once. Class table: readme.md */
+ export default class AIDashboard extends View {
+-	// This page is a leaf, so `children:` draws no links: every page below that people need is linked here. Merge first, it is the one that needs a decision.
++	// This page is a leaf, so `children:` draws no links: the pages the tab row above does not name (Sessions, Tasks, Queue are tabs;
++	// Merge is the "Needs you" count) are linked here, in one quiet row at the bottom (the owner, 2026-10-24: one head row on every AI page).
+ 	static NAV = [
+-		PageNav.merge_link(),
+-		{ href: "/framework/ai/sessions/", label: "Sessions", title: "Every session, newest first, with filters" },
+ 		{ href: "/framework/ai/now/", label: "Now", title: "Every session active in the last hour" },
+-		{ href: "/framework/ai/tasks/", label: "Tasks", title: "The task log and board" },
+-		{ href: "/framework/ai/queue/", label: "Queue", title: "Every accepted task, ranked: what it is, why, its cost and its priority" },
+ 		{ href: "/framework/ai/asks/", label: "Asks", title: "Every ask, who owns it, whether it landed" },
+ 		{ href: "/framework/ai/review/", label: "Review", title: "Review pages" },
+ 		{ href: "/framework/ai/readmes/", label: "Readmes", title: "What an agent in each folder is given to read" },
+@@ -32,7 +29,6 @@ export default class AIDashboard extends View {
+ 	get classes(){ return "ad-dash"; }
+ 
+ 	render(){
+-		new PageNav({ links: AIDashboard.NAV });
+ 		div.c("ad-grid", () => {
+ 			div.c("ad-col ad-col-a", () => {
+ 				div.c("ad-sec ad-say", () => {
+@@ -52,5 +48,6 @@ export default class AIDashboard extends View {
+ 			});
+ 		});
+ 		div.c("ad-sec ad-usage-sec", () => { h2.c("ad-h", "Usage pace"); new UsageLine(); });
++		div.c("ad-sec ad-more-sec", () => { h2.c("ad-h", "More pages"); new PageNav({ links: AIDashboard.NAV }); });
+ 	}
+ }
+diff --git a/public/framework/ai/page.js b/public/framework/ai/page.js
+index 3f9fd6ece..2e292d0fc 100644
+--- a/public/framework/ai/page.js
++++ b/public/framework/ai/page.js
+@@ -23,7 +23,8 @@ const v1 = () => new URLSearchParams(location.search).has("v1");
+ 
+ // The bare url draws the AI dashboard; every other url under it (inbox/, a card, a day) keeps the rail. The Inbox link is a hard
+ // navigation (target=_self), because the root page is built once per load. Doc: doc/ai-dashboard-plan.md.
+-const is_dash = () => !v1() && location.pathname.replace(/\/?$/, "/") === "/framework/ai/";
++// ⚠ A query is an Inbox filter (the Tasks tab forwards to `?live&recent=today&kind=task`, ai/tasks/SavedFilter.js), so it keeps the rail.
++const is_dash = () => !v1() && !location.search && location.pathname.replace(/\/?$/, "/") === "/framework/ai/";
+ 
+ export default new Page({
+ 	meta: import.meta,
+@@ -41,22 +42,9 @@ export default new Page({
+ 	// `board_drawn` stays true so the board's own hand-back (v/3/page.js) never paints it here. Doc: doc/ai-page-notes.md.
+ 	board_drawn: true,
+ 	content(){
+-		if (is_dash()) return void new AIDashboard();
++		if (is_dash()){ this.head(); return void new AIDashboard(); }
+ 		if (!v1()){
+-			// Inbox owns the bare URL and wears `.tab-default`; the band is the title and tabs. Doc: doc/ai-page-notes.md.
+-			div.c("inbox-head", () => {
+-				// The title is the way back to the inbox from any page under it (the owner, 2026-10-13: the header did not navigate back).
+-				div.c("doc-well", () => h1.c("doc-title h2", () => a.c("inbox-head-home").href(this.url).attr("title", "Back to the AI inbox")
+-					.append(() => { icon(this.icon); span(this.title ?? "AI"); })));
+-				div.c("tabs block stick", () => {
+-					const $bar = div.c("tab-bar", () => { a.c("tab tab-default").href(this.url).text("Inbox"); });
+-					// Tabs are detected by AIOverview.detectTabs() and render after mark(). Doc: doc/ai-page-notes.md.
+-					AIOverview.detectTabs(this).then(tabs => {
+-						$bar.append(() => tabs.forEach(({ name }) => a.c("tab").href(this.url + name + "/").text(cap(name))));
+-						this.app?.router?.mark_links();
+-					});
+-				});
+-			});
++			this.head();
+ 			// AIRail is the same class AI 2 builds (CLAUDE.md law 6): one of everything.
+ 			this.ai2 = new AIRail({ page: this }).mount();
+ 			return;
+@@ -68,6 +56,24 @@ export default new Page({
+ 		if ($title?.matches(".page-title")) $head.el.prepend($title);
+ 		md("A card for each thing worth going back to. Everything else is in [the log](/framework/ai/log/).");
+ 	},
++
++	// THE HEAD every AI page wears, the dashboard included: icon, title and the tab strip in ONE row; only the strip swipes sideways
++	// (the owner, 2026-10-24; CSS: ux/Inbox/Inbox.css `.inbox-head`, ai/rail/rail.css). `Home` is the bare url, the dashboard; it wears `.tab-default`.
++	head(){
++		div.c("inbox-head", () => {
++			// The title is the way home from any page under it (the owner, 2026-10-13: the header did not navigate back).
++			div.c("doc-well", () => h1.c("doc-title h2", () => a.c("inbox-head-home").href(this.url).attr("title", "Back to the AI home")
++				.append(() => { icon(this.icon); span(this.title ?? "AI"); })));
++			div.c("tabs block stick", () => {
++				const $bar = div.c("tab-bar", () => { a.c("tab tab-default").href(this.url).text("Home"); });
++				// Tabs are detected by AIOverview.detectTabs() and render after mark(). Doc: doc/ai-page-notes.md.
++				AIOverview.detectTabs(this).then(tabs => {
++					$bar.append(() => tabs.forEach(({ name }) => a.c("tab").href(this.url + name + "/").text(cap(name))));
++					this.app?.router?.mark_links();
++				});
++			});
++		});
++	},
+ 	// ⚠ Both catalog() and previews() draw the V1 board and must stay off when V3 is showing.
+ 	initialize(){ if (v1()) this.catalog(); },
+ 	previews(){ return v1() ? rail(this) : []; },

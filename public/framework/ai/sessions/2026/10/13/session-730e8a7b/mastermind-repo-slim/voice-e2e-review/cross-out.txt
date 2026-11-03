@@ -1,0 +1,46 @@
+== before
+v-ih8xwwd phone 20 desk 20 DIFFERENT
+PHONE:
+👤This is 🎤 This is an end-to-end test of the dictation. 🎤 flow. 🎤
+👤Smart Assistant, which page lists all the sessions. 🎤
+⚡I think it's probably the widgetsFramework home page, but the smart assistant will confirm. ⌨
+👤The sheet should show every bubble in the order I set it. 🎤
+🧠Sessions list /framework/ai/sessions/ Which page lists all the sessions? It's /framework/ai/sessions/. The source is public/framework/ai/sessions/page.js. Dictation test /framework/ The dictation arrived whole: all three of your lines came through in order. The last one was "The sheet should show every bubble in the order I set it." I don't know which sheet you mean, so I haven't touched anything. Say which page it's on and I'll pass it on as a task. ⌨
+👤Smart Assistant, please reply with one short line to end the test. 🎤
+⚡Test ended; the fast assistant is signing off here. ⌨
+🧠Test complete: dictation, replies and the session name all worked end to end. ✅ ⌨
+👤an end-to-end test of the dictation flow. 🎤
+👤This is an end-to-end test of the dictation flow. 🎤
+🧠✅ Heard, the dictation flow is working. ⌨
+👤Smart Assistant, which page lists all the sessions. 🎤
+⚡I think it's probably the widgetsFramework home page; the smart assistant will confirm. ⌨
+🧠/framework/ai/sessions/ lists all the sessions. The source is public/framework/ai/sessions/page.js. ⌨
+👤The sheet should show every bubble in the order I set it. 🎤
+🧠I couldn't find a page called "Sheet", so I don't know which one you mean and haven't changed anything. Tell me which page or sheet it is and I'll send it to a task. The ask is that it shows every bubble in the order you set. ⌨
+👤Smart assistant, please reply with one short line to end the test. 🎤
+🧠Test ended: all replies arrived. ✅ ⌨
+👤This is an end-to-end test of the dictation flow. 🎤
+👤This is a 🎤
+DESK:
+👤This is 🎤 This is an end-to-end test of the dictation. ✓ 🎤 flow. 🎤
+👤Smart Assistant, which page lists all the sessions. ✓ 🎤
+⚡I think it's probably the widgetsFramework home page, but the smart assistant will confirm. ⌨
+👤The sheet should show every bubble in the order I set it. ✓ 🎤
+🧠Sessions list /framework/ai/sessions/ Which page lists all the sessions? It's /framework/ai/sessions/. The source is public/framework/ai/sessions/page.js. Dictation test /framework/ The dictation arrived whole: all three of your lines came through in order. The last one was "The sheet should show every bubble in the order I set it." I don't know which sheet you mean, so I haven't touched anything. Say which page it's on and I'll pass it on as a task. ⌨
+👤Smart Assistant, please reply with one short line to end the test. 🎤
+⚡Test ended; the fast assistant is signing off here. ⌨
+🧠Test complete: dictation, replies and the session name all worked end to end. ✅ ⌨
+👤an end-to-end test of the dictation flow. 🎤
+👤This is an end-to-end test of the dictation flow. 🎤
+🧠✅ Heard, the dictation flow is working. ⌨
+👤Smart Assistant, which page lists all the sessions. 🎤
+⚡I think it's probably the widgetsFramework home page; the smart assistant will confirm. ⌨
+🧠/framework/ai/sessions/ lists all the sessions. The source is public/framework/ai/sessions/page.js. ⌨
+👤The sheet should show every bubble in the order I set it. 🎤
+🧠I couldn't find a page called "Sheet", so I don't know which one you mean and haven't changed anything. Tell me which page or sheet it is and I'll send it to a task. The ask is that it shows every bubble in the order you set. ⌨
+👤Smart assistant, please reply with one short line to end the test. 🎤
+🧠Test ended: all replies arrived. ✅ ⌨
+👤This is an end-to-end test of the dictation flow. 🎤
+👤This is a 🎤
+== after
+v-ih8xwwd phone 20 desk 20 SAME TEXT

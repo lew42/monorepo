@@ -1,0 +1,32 @@
+{
+ "id": "289010e0-67e1-49b5-92fd-0a0677737592",
+ "first": "2026-10-16T04:04:35.753Z",
+ "last": "2026-10-16T05:40:10.898Z",
+ "task": "public/framework/ai/sessions/2026/10/16/voice-20261016/past-work/pilot",
+ "models": {
+  "claude-haiku-5-5": 8
+ },
+ "sizes": {
+  "raw": 248435,
+  "content": 60302,
+  "stripped": 5073,
+  "owner_only": 0
+ },
+ "usd": 0.334931,
+ "usd_main": 0.334931,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 16,
+  "output": 2969,
+  "cache_read": 666841,
+  "cache_write": 126693,
+  "w5": 0,
+  "w1": 126693
+ },
+ "messages": 8,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "Idle: the pilot reply is delivered and nothing is waiting on me.",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.192Z"
+}

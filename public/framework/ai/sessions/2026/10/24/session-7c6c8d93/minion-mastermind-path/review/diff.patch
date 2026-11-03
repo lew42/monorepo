@@ -1,0 +1,1030 @@
+diff --git a/.claude/skills/servex-mastermind/SKILL.md b/.claude/skills/servex-mastermind/SKILL.md
+index 12b22a59f..38503b4b3 100644
+--- a/.claude/skills/servex-mastermind/SKILL.md
++++ b/.claude/skills/servex-mastermind/SKILL.md
+@@ -3,4 +3,4 @@ name: servex-mastermind
+ description: Become the Servex Mastermind — the systems architect that runs on Servex as the generic `mastermind` role. You oversee how the whole agent system works (quality audits of layout, contrast and use of space; spend; coordination; crashes) and improve the SYSTEM (skills, briefs, tools), never doing routine work yourself. Load when started as mastermind-servex, or on "you are the Servex mastermind".
+ ---
+ 
+-Read `Servex/agents/roles/ai-system-mastermind.md` whole (renamed from servex-mastermind 2026-10-23) and follow it: that role readme is this skill's text (moved 2026-10-22, [index](../../../Servex/agents/roles/readme.md)). Improvements still go in this folder's `improvements.md`.
++Read `Servex/agents/roles/mastermind.md` whole and follow it (since 2026-10-25 there is one generic `mastermind` role; this one is `mastermind` spawned at `public/framework/ai/`, whose own text is `public/framework/ai/mastermind.md`): the role readme is this skill's text (moved 2026-10-22, [index](../../../Servex/agents/roles/readme.md)). Improvements still go in this folder's `improvements.md`.
+diff --git a/Server/role-spend.mjs b/Server/role-spend.mjs
+index 77c17afb4..49ec975ce 100644
+--- a/Server/role-spend.mjs
++++ b/Server/role-spend.mjs
+@@ -13,7 +13,7 @@ import { fileURLToPath } from "node:url";
+ import { turn_costs } from "../Servex/agents/turn-costs.js";
+ 
+ // A role's earlier ids count as the same role: the AI system mastermind was mastermind-servex*, then mastermind-system-architect*.
+-export const ALIASES = { "ai-system-mastermind": ["ai-system-mastermind", "mastermind-system-architect", "mastermind-servex"] };
++export const ALIASES = { "ai-system-mastermind": ["ai-system-mastermind", "mastermind-ai", "mastermind-system-architect", "mastermind-servex"] };
+ 
+ const home = () => process.env.SERVEX_HOME ?? path.join(process.env.LOCALAPPDATA ?? path.join(os.homedir(), "AppData", "Local"), "lew42", "servex");
+ 
+diff --git a/Servex/agents/Agents.js b/Servex/agents/Agents.js
+index 2f083d38d..fa28cc160 100644
+--- a/Servex/agents/Agents.js
++++ b/Servex/agents/Agents.js
+@@ -10,7 +10,8 @@ import { fileURLToPath } from "node:url";
+ import Log from "../Log.js";
+ import { stamp, place } from "../home.js";
+ import Registry, { alive } from "./Registry.js";
+-import { defaults as role_defaults, opening, injected, compact_after as role_compact_after, role_system, role_reminder, role_readme_path, singleton_id, renew_of } from "./roles.js";
++import { defaults as role_defaults, opening, injected, compact_after as role_compact_after, role_system, role_reminder, role_readme_path, alias_path, path_check, path_note } from "./roles.js";
++import { dir_of } from "./directory.js";
+ import { OR_ONLY } from "./tiers.js";
+ import { first_prompt } from "./readme-chain.js";
+ import Task from "../../public/framework/core/Task/Task.js";
+@@ -139,17 +140,17 @@ export class Agents {
+ 	 * — `directory_of` returns null for it and nothing is added. */
+ 	spawn(spec){
+ 		const again = spec.resume;
+-		/* A SINGLETON ROLE (the owner, 2026-10-23; roles.js `singleton`): its id is the role's own word, never `-2`. A second
+-		 * spawn while it is live sends it the prompt instead; a stopped or never-started one is spawned under that same id. */
+-		const renewing = spec.renewing;
+-		if (renewing){ spec = { ...spec }; delete spec.renewing; }
+-		const single = !again && singleton_id(spec.role);
+-		if (single){
+-			const cur = this.live.get(single), from = spec.parent ?? "spawn";
+-			if (cur && cur.state !== "stopped"){ if (spec.prompt) cur.send(spec.prompt, { from }); return cur; }
+-			/* Only in the registry (after a restart): wake it, so it resumes, or renews if it is due (wake() decides). */
+-			if (!renewing && !cur && this.reg().read()[single]?.session_id) try { const w = this.wake(single); if (spec.prompt) w.send(spec.prompt, { from }); return w; } catch {}
+-			spec = { ...spec, id: single };
++		/* SPAWNED AT A PATH (the owner, 2026-10-25; roles/mastermind.md "Spawned at a path"). `path` (a repo path or a site path) loads that
++		 * path's readme chain and its mastermind.md into the SYSTEM PROMPT (roles.js role_system). An alias word with a default path
++		 * (`ai-system-mastermind`) is the `mastermind` role at that path; a caller's own `path` wins. The id's name is the path's last folder
++		 * (mastermind-ai) unless the caller named it. */
++		if (!again){
++			const dflt = alias_path(spec.role);
++			if (dflt) spec = { ...spec, role: "mastermind", path: spec.path ?? dflt };
++			if (spec.path){
++				spec = { ...spec, path: dir_of(spec.path) };
++				if (!spec.name && !spec.id) spec = { ...spec, name: path.posix.basename(spec.path) };
++			}
+ 		}
+ 		const taken = spec.id && this.live.has(spec.id) && this.live.get(spec.id).state !== "stopped";
+ 		const id = spec.id && !taken ? spec.id : this.name(spec);
+@@ -227,12 +228,18 @@ export class Agents {
+ 		if (spec.task && !again && spec.parent) this.follow_child(spec.parent, spec.task.dir, id);
+ 		const past_work = spec.task && !again ? this.past_work(spec.task, id) : null;
+ 		const fresh = !again && !spec.system;
+-		const dir = fresh ? directory_of(spec) : null;
+-		const in_system = !spec.system && process.env.SERVEX_ROLE_IN_SYSTEM !== "0" && !!role_system(spec.role);   // Agent.role_prompt() puts it there
+-		const opened = again || spec.system ? spec.prompt : this.whoami(id, session_id) + opening(spec.role, spec.prompt, { in_system });
++		const append = !spec.system && process.env.SERVEX_ROLE_IN_SYSTEM !== "0" ? role_system(spec.role, { path: spec.path }) : null;   // Agent.role_prompt() puts it in the system prompt
++		const in_system = !!append;
++		/* A PATH IS LOADED INTO THE SYSTEM PROMPT, NOT THE FIRST MESSAGE (no duplicate): Servex checks that every file is inside the final
++		 * text, logs it, and tells the agent in its first message what it has (or what is missing and must be read by hand). With no
++		 * system prompt (SERVEX_ROLE_IN_SYSTEM=0, or its own system brief) the old way still applies: the chain rides in the first message. */
++		const path_loaded = fresh && spec.path && in_system ? path_check(append, spec.path) : null;
++		const dir = fresh && !path_loaded ? directory_of(spec) : null;
++		const opened = again || spec.system ? spec.prompt : this.whoami(id, session_id) + (path_loaded ? path_note(path_loaded) + "\n\n" : "") + opening(spec.role, spec.prompt, { in_system });
+ 		if (!again && !spec.system) {
+ 			const names = injected(spec.role);
+-			this.store().append("skills", { at: stamp(), agent: id, role: spec.role ?? null, injected: names, where: in_system ? "system" : "message", fallback: names.length ? undefined : true }).catch(() => {});
++			this.store().append("skills", { at: stamp(), agent: id, role: spec.role ?? null, injected: names, where: in_system ? "system" : "message", fallback: names.length ? undefined : true,
++				...(path_loaded ? { path: path_loaded.path, files: path_loaded.files, mastermind: path_loaded.mastermind, ok: path_loaded.ok, ...(path_loaded.ok ? {} : { missing: path_loaded.missing }) } : {}) }).catch(() => {});
+ 		}
+ 		const base = dir ? `${first_prompt(dir)}\n\n${opened}` : opened;
+ 		const prompt = spec.task
+@@ -251,6 +258,7 @@ export class Agents {
+ 		agent.host = this;
+ 		this.live.set(agent.id, agent);
+ 		agent.start();
++		if (path_loaded) agent.emit?.({ type: "path_loaded", ...path_loaded });
+ 		this.register(agent);
+ 		try { this.servex?.lifecycle?.agent_started(agent, spec); } catch {}   // lifecycle.jsonl: Servex/Lifecycle.js
+ 		return agent;
+@@ -690,14 +698,6 @@ export class Agents {
+ 		if (live?.one_shot || (live?.role ?? row?.role) === "fork")
+ 			throw new Error(`Agent ${id} is a fork: it answered once and is not woken again.`);
+ 		if (!live?.session_id && !row?.session_id) throw new Error(`Agent ${id} never got a session, so there is nothing to wake.`);
+-		const role = live?.role ?? row?.role, why = renew_why(renew_of(role), live?.started_at ?? row?.started_at, live?.context ?? row?.context);
+-		if (why && (!live || live.state === "stopped")){   // RENEWAL: a stopped one is spawned fresh; a live dormant one renews in awaken()
+-			const base = strip(live ? live.recipe() : (row.spec ?? {}));
+-			const fresh = this.spawn(strip({ ...base, role, id, cwd: base.cwd ?? row?.cwd, resume: undefined, fork: undefined, renewing: true,
+-				prompt: renewal_text(id, live?.session_id ?? row?.session_id, why) }));
+-			fresh.emit?.({ type: "renew", why, replaces: live?.session_id ?? row?.session_id, session: fresh.session_id });
+-			return fresh;
+-		}
+ 		return this.reopen({ ...row, ...(live ? { spec: live.recipe(), session_id: live.session_id } : {}), id });
+ 	}
+ 
+@@ -706,7 +706,7 @@ export class Agents {
+ 	 * session ran and its model come from the session file when the row does
+ 	 * not say. Shared by `wake()` and `revive()`. */
+ 	reopen(row){
+-		const keys = ["role", "name", "topics", "page", "parent", "visibility", "model", "provider", "effort", "cwd",
++		const keys = ["role", "name", "topics", "page", "path", "parent", "visibility", "model", "provider", "effort", "cwd",
+ 			"permission_mode", "allowed_tools", "setting_sources", "budget_usd"];
+ 		const base = strip(row.spec ?? Object.fromEntries(keys.map(k => [k, row[k]])));
+ 		const facts = base.cwd && base.model ? {} : session_facts(row.session_id);
+@@ -1015,6 +1015,7 @@ export class Agents {
+  * present (a plain minion, most forks, the fast assistant) -> null, and
+  * `spawn()` adds nothing. */
+ function directory_of(spec){
++	if (spec.path) return spec.path;   // spawned at a path: its chain rides in the first message only when the system prompt cannot carry it
+ 	if (spec.task?.dir) return spec.task.dir;
+ 	// forward slashes always, even on Windows (path.join would use `\`), so the
+ 	// "Where you are" line reads the same as a repo-relative task.dir does.
+@@ -1241,7 +1242,7 @@ Agents.Agent = class Agent {
+ 	 * `env` are code or secrets and are not kept; a fork keeps none. */
+ 	recipe(){
+ 		if (this.one_shot) return null;
+-		const keys = ["role", "name", "topics", "page", "parent", "visibility", "model", "provider", "effort", "cwd",
++		const keys = ["role", "name", "topics", "page", "path", "parent", "visibility", "model", "provider", "effort", "cwd",
+ 			"permission_mode", "allowed_tools", "setting_sources", "system"];
+ 		return strip(Object.fromEntries(keys.map(k => [k, this[k]])));
+ 	}
+@@ -1279,7 +1280,7 @@ Agents.Agent = class Agent {
+ 	 * old way. */
+ 	role_prompt(){
+ 		if (process.env.SERVEX_ROLE_IN_SYSTEM === "0" || this.system) return null;
+-		const append = role_system(this.role);
++		const append = role_system(this.role, { path: this.path ?? alias_path(this.role) ?? undefined });
+ 		return append ? { type: "preset", preset: "claude_code", append } : null;
+ 	}
+ 
+@@ -1552,9 +1553,7 @@ Agents.Agent = class Agent {
+ 	awaken(by){
+ 		if (this.state !== "dormant") return this;
+ 		const slept = this.dormant_at;
+-		const renew = this.renew_due();
+-		if (renew) this.renew(renew);
+-		else this.assign({ resume: this.session_id, fork: false, minted: false, prompt: null, dormant_at: null, bg_tasks: 0, awoken_at: Date.now() });
++		this.assign({ resume: this.session_id, fork: false, minted: false, prompt: null, dormant_at: null, bg_tasks: 0, awoken_at: Date.now() });
+ 		this.last_at = stamp();
+ 		/* item 2's `mark_phantom` sets `marked_phantom` once, so it does not re-log the same
+ 		 * episode on every `working()` call — but a genuinely NEW phantom episode later in this
+@@ -1573,24 +1572,6 @@ Agents.Agent = class Agent {
+ 		return this;
+ 	}
+ 
+-	/* RENEWAL (the owner, 2026-10-23): a role with `renew: {hours, tokens}` (the AI system mastermind) wakes as a FRESH session
+-	 * under the same id once its session is that old or that big, instead of resuming. Nothing runs while it sleeps, so it is
+-	 * never kept alive when unused, and no handover file is needed: the fresh session's first turn reads the readmes.
+-	 * Returns why ("age" | "tokens") or null. */
+-	renew_due(now = Date.now()){
+-		const line = renew_of(this.role);
+-		if (!line || this.one_shot || this.system) return null;
+-		return renew_why(line, this.started_at, this.context, now);
+-	}
+-
+-	renew(why){
+-		const replaces = this.session_id, session_id = randomUUID();
+-		const prompt = (this.host?.whoami?.(this.id, session_id) ?? "") + opening(this.role, renewal_text(this.id, replaces, why), { in_system: !!this.role_prompt() });
+-		this.assign({ resume: null, fork: false, session_id, minted: true, prompt, context: 0, last_usage: null, reminded_context: 0,
+-			remind_compacted: false, compacted_turn: null, dormant_at: null, bg_tasks: 0, awoken_at: Date.now(), started_at: new Date().toISOString() });
+-		this.emit({ type: "renew", why, replaces, session: session_id });
+-	}
+-
+ 	/* COMPACTION (dormant-idle, 2026-09-30). `/compact` as a turn of its own: the
+ 	 * CLI summarises the conversation and continues from the summary, so the
+ 	 * context, the process and the next resume all shrink. It is not a turn anyone
+@@ -1646,7 +1627,7 @@ Agents.Agent = class Agent {
+ 		if (this.state !== "idle" || this.one_shot || this.compacting || STANDING.test(this.id ?? "")) return null;
+ 		if (this.task?.dir && task_landed(this.task.dir)) return null;
+ 		const after = role_compact_after(this.role);
+-		if (after === null || renew_of(this.role)) return null;   // a renewing role gets a fresh session instead (Agent.renew_due)
++		if (after === null) return null;
+ 		const window = this.host?.window_tokens ?? (Number(process.env.SERVEX_WINDOW_TOKENS) || WINDOW_TOKENS);
+ 		const limit = after?.tokens ?? this.host?.nudge_tokens ?? (Number(process.env.SERVEX_NUDGE_TOKENS) || 200000);
+ 		const context = this.context ?? 0;
+@@ -1668,7 +1649,7 @@ Agents.Agent = class Agent {
+ 	sleep_compact(){
+ 		if (this.one_shot || this.compacting || this.compacted_turn === this.turns || STANDING.test(this.id ?? "")) return false;
+ 		const after = role_compact_after(this.role);
+-		if (after === null || renew_of(this.role)) return false;   // a renewing role gets a fresh session instead (Agent.renew_due)
++		if (after === null) return false;
+ 		const window = this.host?.window_tokens ?? (Number(process.env.SERVEX_WINDOW_TOKENS) || WINDOW_TOKENS);
+ 		const line = Math.min(after?.sleep ?? this.host?.sleep_compact_tokens ?? (Number(process.env.SERVEX_SLEEP_COMPACT_TOKENS) || SLEEP_COMPACT_TOKENS), Math.round(window / 2));
+ 		return (this.context ?? 0) > line;
+@@ -2342,18 +2323,6 @@ Agents.Agent.WATCHDOGS = new Set(["servex-heartbeat", "servex-compact-nudge"]);
+ 
+ /* A nudged agent that declined is nudged again only after its context grew this much. */
+ export const NUDGE_GROWTH = 20000;   // the least growth between two nudges; the step is 5% of the window when that is more
+-/* RENEWAL helpers (Agent.renew_due, Agents.wake): why a renewing role is due a fresh session, and that session's first words. */
+-export function renew_why(line, started_at, context, now = Date.now()){
+-	if (!line) return null;
+-	const born = Date.parse(started_at ?? "");
+-	if (line.hours && born && now - born >= line.hours * 3600e3) return "age";
+-	if (line.tokens && (context ?? 0) >= line.tokens) return "tokens";
+-	return null;
+-}
+-export function renewal_text(id, replaces, why){
+-	return `You are a fresh session of ${id}, replacing session ${replaces ?? "(unknown)"} (${why === "age" ? "it was a day old" : "its context passed the renewal line"}). ` +
+-		"Read public/framework/ai/readme.md and public/framework/ai/priority.md, then your feedback inbox (module_inbox, module \"ai\"), and continue. Any message that woke you comes next.";
+-}
+ 
+ export const REMIND_TOKENS = 100000;   // a role reminder each time the context grows this much (SERVEX_REMIND_TOKENS)
+ export const SLEEP_COMPACT_TOKENS = 100000;   // compact before going dormant past this (capped at half the window)
+diff --git a/Servex/agents/ModuleInbox.js b/Servex/agents/ModuleInbox.js
+index 4e62c4cbf..d2318d086 100644
+--- a/Servex/agents/ModuleInbox.js
++++ b/Servex/agents/ModuleInbox.js
+@@ -80,7 +80,9 @@ export default class ModuleInbox {
+ 
+ 	/** The MCP tool, in `mcp.tool()`'s shape. */
+ 	static FEEDBACK = "ai";              // the module whose inbox is the AI system mastermind's feedback inbox
+-	static FEEDBACK_AGENT = "ai-system-mastermind";
++	static FEEDBACK_AGENT = "ai-system-mastermind";   // the live old-style one, if it still runs; a new one is a `mastermind` at FEEDBACK_PATH
++	static FEEDBACK_LIVE = /^(ai-system-mastermind|mastermind-ai(-\d+)?)$/;
++	static FEEDBACK_PATH = "public/framework/ai";
+ 	static FEEDBACK_WAKE = 3;            // the repeat that wakes it
+ 
+ 	/** Should this new line wake the feedback agent? A feedback line (has a fix) that is obvious, the third repeat (once), or a repeat after an outcome. */
+@@ -115,9 +117,11 @@ export default class ModuleInbox {
+ 				const why = inbox.wake_for(line);
+ 				let woke = null;
+ 				if (why && servex?.agents) try {
+-					// spawn, not send: the role is a singleton, so this reaches the live one or starts it under its one id
+-					servex.agents.spawn({ role: ModuleInbox.FEEDBACK_AGENT, parent: null, prompt: `Feedback inbox (${why}): ${line.id}. Problem: ${line.essence} Suggested fix: ${line.fix} Source: ${line.source}. Fix it, then record an outcome line.` });
+-					woke = ModuleInbox.FEEDBACK_AGENT;
++					const text = `Feedback inbox (${why}): ${line.id}. Problem: ${line.essence} Suggested fix: ${line.fix} Source: ${line.source}. Fix it, then record an outcome line.`;
++					// a live one (the old id, or a mastermind already spawned at the AI folder) gets the line; otherwise a normal mastermind is spawned at the AI folder, parentless (this is Servex itself)
++					const live = [...servex.agents.live.values()].find(x => ModuleInbox.FEEDBACK_LIVE.test(x.id) && x.state !== "stopped");
++					if (live){ servex.agents.send(live.id, text); woke = live.id; }
++					else woke = servex.agents.spawn({ role: "mastermind", path: ModuleInbox.FEEDBACK_PATH, parent: null, prompt: text }).id;
+ 				} catch (e){ woke = `not woken: ${e.message || e}`; }
+ 				return { ok: true, module: inbox.module, line, repeats: line.fix ? inbox.repeats(line.id) : undefined, woke };
+ 			})
+diff --git a/Servex/agents/Respawn.js b/Servex/agents/Respawn.js
+index 29b0f92fe..436bace2c 100644
+--- a/Servex/agents/Respawn.js
++++ b/Servex/agents/Respawn.js
+@@ -9,8 +9,8 @@ import { stamp } from "../home.js";
+  * Run by the TaskLoop tick (Servex/TaskLoop.js). Doc: Servex/agents/doc/lifecycle.md, "Fresh once a day". */
+ export default class Respawn {
+ 
+-	// Who is kept fresh. Empty since 2026-10-23: the system architect became the singleton `ai-system-mastermind`, which renews
+-	// itself on its next wake (roles.js `renew`, Agent.renew_due) instead of being respawned daily whether used or not.
++	// Who is kept fresh. Empty since 2026-10-23: the system architect became an ordinary `mastermind` spawned at
++	// `public/framework/ai/` (roles.js ALIAS_PATHS), started fresh per project instead of being respawned daily whether used or not.
+ 	// An entry is {id, role, model, effort, task (repo-relative folder whose log holds its sessions), title}.
+ 	static AGENTS = [];
+ 
+diff --git a/Servex/agents/doc/lifecycle.md b/Servex/agents/doc/lifecycle.md
+index a7aec1cbc..bf92771bd 100644
+--- a/Servex/agents/doc/lifecycle.md
++++ b/Servex/agents/doc/lifecycle.md
+@@ -20,7 +20,7 @@ A running Servex needs `node Servex/sustain.mjs --restart` to load this.
+ 
+ **The compaction policy for long-running agents, as it stands:** never mid-task. Node nudges an idle agent with its context size, and the agent decides whether to compact (above). The only forced `/compact` is the 400k safety ceiling, and it runs at a turn's end. On top of that, a standing agent gets a **fresh session about once a day**, so its context starts small instead of being compacted again and again.
+ 
+-- **Renewal on wake replaces the daily respawn (2026-10-23).** A `roles.js` row with `renew: {hours, tokens}` (today only the singleton `ai-system-mastermind`) is never respawned on a timer. When a message wakes it and its session is that old or that big, it starts as a fresh session under the same id instead of resuming (`Agent.renew_due()` / `renew()` for a dormant one, `Agents.wake()` for a stopped one). Nothing runs while it is unused. It logs a `renew {why, replaces, session}` event. A row with `singleton: true` has one id, the role word: a second `spawn` of the role while it is live sends it the prompt (`Agents.spawn`). Test: `node Servex/agents/singleton.test.mjs`.
++- **No renewal, no singleton (2026-10-25).** The daily respawn was replaced by renewal on wake on 2026-10-23, and renewal is gone too: the AI system mastermind is an ordinary `mastermind` spawned at `public/framework/ai/` (`roles.js` `ALIAS_PATHS`), a fresh agent per project, reused only while its context is small. A second `spawn` is a second agent (`mastermind-ai-2`). Test: `node Servex/agents/path-mastermind.test.mjs`.
+ - **Who (Respawn):** `Respawn.AGENTS` in `Servex/agents/Respawn.js` is empty since then; the class stays for an agent that must be fresh on a timer.
+ - **When:** the TaskLoop tick (every 5 minutes) checks each one. Its session must be 24 hours old or more (`SERVEX_RESPAWN_HOURS`). It must not be working, nothing it spawned may be working, and nothing may wait in its queue. One stopped on purpose (someone named in `stopped_by`) stays stopped; one the Lifecycle reaper stopped because its task landed names nobody, so it is respawned. One never spawned is not spawned here.
+ - **How:** stop the old session, then spawn a fresh one under the **same id**. Messages, the processes it created and the requests addressed to it still reach it. Its first prompt names the session it replaces and points at its task log and the maps.
+diff --git a/Servex/agents/path-mastermind.test.mjs b/Servex/agents/path-mastermind.test.mjs
+new file mode 100644
+index 000000000..40e576317
+--- /dev/null
++++ b/Servex/agents/path-mastermind.test.mjs
+@@ -0,0 +1,113 @@
++/* node Servex/agents/path-mastermind.test.mjs — ONE mastermind role, spawned at a PATH (the owner, 2026-10-25; roles/mastermind.md
++ * "Spawned at a path"): the path's readme chain and mastermind.md ride in the SYSTEM prompt, Servex checks and logs them, the old
++ * `ai-system-mastermind` word is an alias with a default path (no singleton, no renewal), and the feedback inbox spawns a normal
++ * mastermind at the AI folder. Temp dirs inside the repo for the lookup order; no process, no SDK call. */
++import assert from "node:assert";
++import fs from "fs";
++import os from "os";
++import path from "path";
++import { fileURLToPath } from "url";
++
++process.env.SERVEX_HOME = fs.mkdtempSync(path.join(os.tmpdir(), "servex-pathmm-"));
++const roles = await import("./roles.js");
++const { role_system, path_check, path_note, alias_path, canonical, ROLES, ALIAS_PATHS } = roles;
++const { Agents } = await import("./Agents.js");
++const { default: ModuleInbox } = await import("./ModuleInbox.js");
++
++let n = 0;
++const t = (ok, what) => { assert.ok(ok, what); n++; };
++const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
++const ID = "ai-system-mastermind";
++
++// roles.js: the singleton and renewal are gone; the old word is an alias with a default path
++t(!("singleton" in ROLES.mastermind) && !("renew" in ROLES.mastermind) && !ROLES[ID], "no singleton or renew on the role table; no separate ai-system-mastermind row");
++t(canonical(ID) === "mastermind" && canonical("servex-mastermind") === "mastermind", "both old words are aliases of mastermind");
++t(alias_path(ID) === "public/framework/ai" && alias_path("servex-mastermind") === "public/framework/ai" && alias_path("mastermind") === null && alias_path("minion") === null, "the alias default path is the AI folder; the generic role has none");
++t(ALIAS_PATHS[ID] === "public/framework/ai", "the alias-path map");
++t(roles.singleton_id === undefined && roles.renew_of === undefined, "singleton_id and renew_of are deleted");
++
++// role_system(role, {path}): lookup order, blocks, missing file
++const tmp = path.join(REPO, `Servex/agents/.pathtest-${process.pid}`);
++const rel = d => path.relative(REPO, d).split(path.sep).join("/");
++try {
++	const plain = path.join(tmp, "plain"), top = path.join(tmp, "top"), both = path.join(tmp, "both"), none = path.join(tmp, "none");
++	for (const d of [path.join(top, "ai"), path.join(plain, "ai"), path.join(both, "ai"), none]) fs.mkdirSync(d, { recursive: true });
++	fs.writeFileSync(path.join(top, "readme.md"), "# Top readme\nTOP-README-TEXT\n");
++	fs.writeFileSync(path.join(top, "mastermind.md"), "TOP-MASTERMIND-TEXT\n");
++	fs.writeFileSync(path.join(plain, "readme.md"), "# Plain readme\nPLAIN-README-TEXT\n");
++	fs.writeFileSync(path.join(plain, "ai", "mastermind.md"), "AI-MASTERMIND-TEXT\n");
++	fs.writeFileSync(path.join(both, "readme.md"), "# Both\nBOTH-README\n");
++	fs.writeFileSync(path.join(both, "mastermind.md"), "FIRST-WINS\n");
++	fs.writeFileSync(path.join(both, "ai", "mastermind.md"), "SECOND-LOSES\n");
++
++	const withPath = role_system("mastermind", { path: rel(top) });
++	const base = role_system("mastermind");
++	t(withPath.startsWith(base) && withPath.length > base.length, "the path blocks come AFTER the role text");
++	t(withPath.includes(`<path-readmes path="${rel(top)}">`) && withPath.includes("TOP-README-TEXT") && withPath.includes(`=== ${rel(top)}/readme.md ===`), "<path-readmes> holds the chain, each readme headed by its repo path");
++	t(withPath.includes("=== readme.md ===") || withPath.includes("=== Servex/readme.md ==="), "the chain starts at the repo root, not just the leaf");
++	t(withPath.includes(`<path-mastermind file="${rel(top)}/mastermind.md">`) && withPath.includes("TOP-MASTERMIND-TEXT"), "<path-mastermind> holds <path>/mastermind.md");
++	const ai = role_system("mastermind", { path: rel(plain) });
++	t(ai.includes(`<path-mastermind file="${rel(plain)}/ai/mastermind.md">`) && ai.includes("AI-MASTERMIND-TEXT"), "falls back to <path>/ai/mastermind.md");
++	const first = role_system("mastermind", { path: rel(both) });
++	t(first.includes("FIRST-WINS") && !first.includes("SECOND-LOSES"), "<path>/mastermind.md wins over <path>/ai/mastermind.md");
++	t(!role_system("mastermind", { path: rel(none) }).includes(`<path-mastermind file="${rel(none)}`), "no mastermind.md: no <path-mastermind> block");
++	t(!base.includes("<path-readmes path=\"Servex") && !base.includes("=== readme.md ==="), "no path: the role text alone, no path blocks");
++
++	// Servex's check: ok when every file's text is in the append; names the files that are not
++	const ok = path_check(withPath, rel(top));
++	t(ok.ok && ok.missing.length === 0 && ok.files.includes(`${rel(top)}/readme.md`) && ok.mastermind === `${rel(top)}/mastermind.md`, "check: every file is in the prompt, ok");
++	t(/Servex put \d+ files? for your path/.test(path_note(ok)) && path_note(ok).includes("survive"), "the first-message line says the files are in the system prompt");
++	const lacking = path_check(base, rel(top));
++	t(!lacking.ok && lacking.missing.includes(`${rel(top)}/readme.md`) && lacking.missing.includes(`${rel(top)}/mastermind.md`), "check: a file that is not in the prompt is reported by name");
++	t(!path_check(null, rel(top)).ok, "check: no system prompt at all is not ok");
++	t(/WARNING/.test(path_note(lacking)) && path_note(lacking).includes(`${rel(top)}/mastermind.md`), "the first-message line names what is missing and says to read it");
++	const outside = path_check(base, "../../../../nowhere");
++	t(!outside.ok && outside.missing.some(m => /no readme/.test(m)), "a path with no readme chain is reported, not silently loaded");
++
++	// Agents.spawn: the alias word spawns the mastermind at its default path; a caller's own path wins; ids come from the path leaf
++	Agents.Agent.prototype.start = function(){ this.started = true; };
++	const agents = new Agents();
++	const a = agents.spawn({ role: ID, prompt: "how are tasks indexed?", parent: null, task: false });
++	t(a.role === "mastermind" && a.path === "public/framework/ai" && a.id === "mastermind-ai", "ai-system-mastermind spawns as mastermind-ai at public/framework/ai");
++	t(a.prompt.includes("Servex put") && a.prompt.includes("public/framework/ai") && a.prompt.includes("how are tasks indexed?"), "its first message says what Servex loaded, then the job");
++	t(!a.prompt.includes("Where you are: readmes from the root down to"), "the chain is not ALSO prepended to the first message");
++	t(a.recipe().path === "public/framework/ai", "path is in the recipe, so wake() and revive() keep it");
++	const b = agents.spawn({ role: ID, prompt: "second", parent: null, task: false });
++	t(b.id === "mastermind-ai-2" && b !== a, "a second one is -2; nothing sends to the first as a singleton");
++	const c = agents.spawn({ role: ID, path: rel(top), prompt: "own path", parent: null, task: false });
++	t(c.path === rel(top) && c.role === "mastermind" && c.id.startsWith("mastermind-"), "a caller's own path wins over the alias default");
++	t(c.prompt.includes(`${rel(top)}/mastermind.md`), "the loaded file list names the path's mastermind.md");
++	const d = agents.spawn({ role: "mastermind", path: "/framework/core/Page/", prompt: "site path", parent: null, task: false });
++	t(d.path === "public/framework/core/Page", "a site path resolves to its repo folder");
++} finally { fs.rmSync(tmp, { recursive: true, force: true }); }
++
++// the feedback inbox: a repeat wakes the live one if it runs, else spawns a normal mastermind at the AI folder (no parent)
++const repo = fs.mkdtempSync(path.join(os.tmpdir(), "fb-"));
++fs.mkdirSync(path.join(repo, "public/framework/ai"), { recursive: true });
++const box = new ModuleInbox("ai", { repo });
++const first = box.add("task marked complete on hand-off", "/x", { fix: "only the worker's landing line completes", from: "minion-a" });
++t(box.repeats(first.id) === 1 && box.wake_for(first) === null, "first time: logged, no wake");
++const second = box.add("same again", "/y", { fix: "same", repeat_of: first.id });
++t(box.repeats(second.id) === 2 && box.wake_for(second) === null, "second time: counted, no wake");
++const third = box.add("and again", "/z", { fix: "same", repeat_of: first.id });
++t(box.repeats(first.id) === 3 && box.wake_for(third) === "logged 3 times", "third time: wakes");
++t(box.wake_for(box.add("broken link in readme", "/w", { fix: "point it at x", obvious: true })) === "obvious", "obvious: wakes the first time");
++t(box.wake_for(box.add("an owner ask", "/v")) === null, "an ask with no fix is not feedback");
++assert.throws(() => box.add("x", "/u", { fix: "y", repeat_of: "i-nope" }));
++n++;
++const spawned = [], sent = [], live = new Map();
++const servex = { agents: { live, spawn: spec => { spawned.push(spec); return { id: "mastermind-ai" }; }, send: (id, text) => sent.push([id, text]) } };
++const [tool] = ModuleInbox.tools({ servex });
++const real = ModuleInbox.resolve;
++const call = args => { ModuleInbox.resolve = m => real(m, repo); try { return JSON.parse(tool.handler(args, { caller: "minion-b" })); } finally { ModuleInbox.resolve = real; } };
++let out = call({ module: "ai", essence: "fourth", source: "/q", fix: "same", repeat_of: first.id });
++t(out.repeats === 4 && out.woke === null && spawned.length === 0, "the fourth repeat does not wake it again");
++box.outcome(first.id, { state: "decided", note: "fixed in x", by: "mastermind-ai" });
++out = call({ module: "ai", essence: "fifth", source: "/q", fix: "same", repeat_of: first.id });
++t(out.woke === "mastermind-ai" && spawned.length === 1 && spawned[0].role === "mastermind" && spawned[0].path === "public/framework/ai" && spawned[0].parent === null, "no live one: spawns a mastermind at public/framework/ai with no parent");
++t(/back after it was marked decided/.test(spawned[0].prompt) && /Suggested fix: same/.test(spawned[0].prompt), "the spawn prompt carries the problem and the fix");
++live.set(ID, { id: ID, state: "idle" });
++out = call({ module: "ai", essence: "sixth", source: "/q", fix: "same", repeat_of: first.id });
++t(out.woke === ID && sent.length === 1 && sent[0][0] === ID && spawned.length === 1, "the live ai-system-mastermind is told instead of spawning another");
++
++console.log(`path-mastermind: ${n} checks passed`);
+diff --git a/Servex/agents/readme-chain.js b/Servex/agents/readme-chain.js
+index 960e9fcd7..10befb7d9 100644
+--- a/Servex/agents/readme-chain.js
++++ b/Servex/agents/readme-chain.js
+@@ -116,4 +116,13 @@ Not shown (over the size cap); read them yourself: ${dropped.join(", ")}`;
+ 	return out;
+ }
+ 
+-export default { readme_chain, first_prompt };
++/* capped_chain(dir) — the same chain and the same size cap as first_prompt, as data: {kept, dropped}, each a
++ * readme entry {path, text, truncated}. The system-prompt path blocks (roles.js path_parts) use it. */
++export function capped_chain(dir){
++	const chain = readme_chain(dir);
++	const blocks = chain.map(r => `${r.path}\n${r.text}`);
++	const kept = within_cap(`Where you are: readmes from the root down to ${dir}`, blocks);
++	return { kept: chain.filter((r, i) => kept.includes(blocks[i])), dropped: chain.filter((r, i) => !kept.includes(blocks[i])) };
++}
++
++export default { readme_chain, first_prompt, capped_chain };
+diff --git a/Servex/agents/roles.js b/Servex/agents/roles.js
+index 0a22858c7..9a3a37120 100644
+--- a/Servex/agents/roles.js
++++ b/Servex/agents/roles.js
+@@ -18,6 +18,7 @@ import path from "node:path";
+ import { fileURLToPath } from "node:url";
+ import { model, provider } from "./tiers.js";
+ import Role from "../../public/framework/core/Role/Role.js";
++import { capped_chain } from "./readme-chain.js";
+ 
+ /* `tier` is the row's size (tiers.js: fast, manager, architect, scan); its `model` is
+  * DERIVED from the tier, so moving a tier to another model is one line in tiers.js.
+@@ -46,16 +47,12 @@ export const ROLES = {
+ 	 * a task mastermind spawned under the old default had both its spawn_agent
+ 	 * calls refused, said so, and stopped — no files written, no wake to prove. */
+ 	"task-mastermind":  { readme: "task-mastermind", skills: ["page"], prefix: "task-mastermind",  alias: "sub-mastermind", tier: "manager", model: model("manager"),  effort: "medium", permission_mode: "bypassPermissions", compact_after: MASTERMIND_COMPACT },
+-	/* THE AI SYSTEM MASTERMIND (the owner, 2026-10-23; roles/ai-system-mastermind.md): a singleton. `singleton` makes its id the
+-	 * prefix itself, never `-2` (Agents.spawn sends a second spawn's prompt to the live one). `renew`: a wake after a day or past
+-	 * 100k tokens starts a fresh session under the same id (Agent.renew_due), so it is never kept alive when unused. It is never
+-	 * nudged or compacted before sleep (Agent.nudge/sleep_compact skip a `renew` row); the 400k safety ceiling still applies mid-work. The generic
+-	 * `mastermind` row below used to load this readme; it now loads roles/mastermind.md. */
+-	"ai-system-mastermind": { readme: "ai-system-mastermind", prefix: "ai-system-mastermind", alias: "servex-mastermind", singleton: true, renew: { hours: 24, tokens: 100000 }, tier: "architect", model: model("architect"), effort: "high", permission_mode: "bypassPermissions" },
+-	/* THE CORE PAGE MASTERMIND (the owner, 2026-10-24): a defined, repeatable subject mastermind for the page system (core/Page, Item, Router, ext/JSONL). Its role text reaches the system prompt, so it survives compaction. Not a singleton: ids mastermind-page, mastermind-page-2. */
++	/* THE CORE PAGE MASTERMIND (the owner, 2026-10-24): a defined, repeatable subject mastermind for the page system (core/Page, Item, Router, ext/JSONL). Its role text reaches the system prompt, so it survives compaction. Ids mastermind-page, mastermind-page-2. */
+ 	"core-page-mastermind": { readme: "core-page-mastermind", prefix: "mastermind-page", tier: "architect", model: model("architect"), effort: "high", permission_mode: "bypassPermissions", compact_after: MASTERMIND_COMPACT },
+ 	/* mastermind: bypassPermissions too (2026-10-12, asks #6): it calls spawn_agent/page tools and edits, and nobody can approve a prompt overnight. */
+-	mastermind:         { readme: "mastermind", prefix: "mastermind",       tier: "architect", model: model("architect"), effort: "high", permission_mode: "bypassPermissions", compact_after: MASTERMIND_COMPACT },
++	/* ONE mastermind role, spawned at a PATH (the owner, 2026-10-25; roles/mastermind.md "Spawned at a path"). `ai-system-mastermind` and
++	 * `servex-mastermind` are only words for it: ALIAS_PATHS gives them a default path. The old singleton and its renewal are gone. */
++	mastermind:         { readme: "mastermind", prefix: "mastermind",       alias: ["ai-system-mastermind", "servex-mastermind"], tier: "architect", model: model("architect"), effort: "high", permission_mode: "bypassPermissions", compact_after: MASTERMIND_COMPACT },
+ 	/* The fast assistant (every-prompt) is retired for voice as of 2026-10-17 (`voice-assistant` below); its skill files stay on disk and this row stays for the callers that still name it. */
+ 	assistant:          { retired: "voice-assistant", skill: "every-prompt",     prefix: "assistant",        alias: "every-prompt",   tier: "fast", model: model("fast"),  effort: "low",  permission_mode: "acceptEdits" },
+ 	/* ONE PAIR ON EVERY PAGE (recursive-pairs, 2026-09-25/28): a page-assistant, root page
+@@ -126,10 +123,10 @@ export function canonical(word){
+ 
+ const row = word => ROLES[canonical(word)];
+ 
+-/* A singleton role's one id (its prefix), else null. */
+-export function singleton_id(role){ const r = row(role); return r?.singleton ? r.prefix : null; }
+-/* A role's renewal line {hours, tokens}, else null. */
+-export function renew_of(role){ return row(role)?.renew ?? null; }
++/* Alias words that carry a default PATH (the owner, 2026-10-25): spawning `ai-system-mastermind` is spawning `mastermind` at
++ * public/framework/ai. A caller's own `path` wins. */
++export const ALIAS_PATHS = { "ai-system-mastermind": "public/framework/ai", "servex-mastermind": "public/framework/ai" };
++export function alias_path(word){ return ALIAS_PATHS[word] ?? null; }
+ 
+ /* The posture fields only — `skill`, `prefix` and `alias` are not spawn options.
+  * `provider` is DERIVED from the row's `tier` here (review.md finding 5: tiers.js's
+@@ -181,10 +178,48 @@ export function opening(role, prompt, { in_system = false } = {}){
+ /* The role text for the system prompt (the claude_code preset's `append`): the role readme and each skill the row
+  * carries, the same blocks opening() used to put in the first message. Null when the role has none, or a file is
+  * missing (then opening()'s "Load …" fallback still applies). */
+-export function role_system(role){
++export function role_system(role, { path: dir } = {}){
+ 	const parts = parts_of(role);
+-	if (!parts.length || parts.some(p => p.text === null)) return null;
+-	return `# Your role (Servex)\n\nYou are a Servex agent in the role \`${canonical(role)}\`. Your role text follows. It is part of your system prompt, so it survives compaction.\n\n${parts.map(p => p.block).join("\n\n")}`;
++	if (parts.some(p => p.text === null)) return null;
++	const head = parts.length ? `# Your role (Servex)\n\nYou are a Servex agent in the role \`${canonical(role)}\`. Your role text follows. It is part of your system prompt, so it survives compaction.\n\n${parts.map(p => p.block).join("\n\n")}` : "";
++	return [head, dir ? path_parts(dir).block : ""].filter(Boolean).join("\n\n") || null;
++}
++
++/* SPAWNED AT A PATH (the owner, 2026-10-25; roles/mastermind.md "Spawned at a path"). `dir` is a repo path (Agents.spawn resolves a
++ * site path with directory.js dir_of first). The system prompt gets, after the role text: <path-readmes> (the readme chain from the
++ * repo root down to dir, each headed by its repo path, under first_prompt's size cap) and <path-mastermind> (dir/mastermind.md, else
++ * dir/ai/mastermind.md, when one exists). Returns {path, files: [{file, kind, text}], missing: [why], mastermind: file|null, block}. */
++export function path_parts(dir){
++	const rel = String(dir).replace(/\\/g, "/").replace(/^\/+|\/+$/g, "");
++	const { kept, dropped } = capped_chain(rel);
++	const files = kept.map(r => ({ file: r.path, kind: "readme", text: r.text }));
++	const missing = dropped.map(r => `${r.path} (over the size cap)`);
++	if (!kept.length && !dropped.length) missing.push(`no readme from the repo root down to ${rel}`);
++	let mm = null;
++	for (const file of [`${rel}/mastermind.md`, `${rel}/ai/mastermind.md`]){
++		let text; try { text = fs.readFileSync(path.join(REPO, file), "utf8").replace(/^<!--[\s\S]*?-->\r?\n/, "").trim(); } catch { continue; }
++		mm = { file, kind: "mastermind", text }; files.push(mm); break;
++	}
++	const blocks = [];
++	if (kept.length) blocks.push(`<path-readmes path="${rel}">\n${kept.map(r => `=== ${r.path} ===\n${r.text}`).join("\n\n")}\n</path-readmes>`);
++	if (mm) blocks.push(`<path-mastermind file="${mm.file}">\n${mm.text}\n</path-mastermind>`);
++	return { path: rel, files, missing, mastermind: mm?.file ?? null, block: blocks.join("\n\n") };
++}
++
++/* Servex's check at spawn: every file path_parts lists must really be inside the final system-prompt text (`append`, null when the
++ * role text could not be built). Returns {path, files: [file], mastermind, missing: [name or why], ok}. */
++export function path_check(append, dir){
++	const pp = path_parts(dir);
++	const absent = append ? pp.files.filter(f => !append.includes(f.text)).map(f => f.file) : pp.files.map(f => f.file);
++	const missing = [...pp.missing, ...absent];
++	return { path: pp.path, files: pp.files.map(f => f.file), mastermind: pp.mastermind, missing, ok: !!append && !missing.length };
++}
++
++/* The first-message line that tells the agent what Servex loaded for its path (and, when something is missing, what to read itself). */
++export function path_note(check){
++	const where = check.mastermind ? `; mastermind file: ${check.mastermind}` : "; no mastermind.md there";
++	if (check.ok) return `[Servex put ${check.files.length} file${check.files.length === 1 ? "" : "s"} for your path \`${check.path}\` in your system prompt (${check.files.join(", ")}${where}); they survive compaction, so don't re-read them.]`;
++	return `[WARNING: Servex could NOT load everything for your path \`${check.path}\`. Not in your system prompt: ${check.missing.join("; ")}. Read those yourself before you start. Loaded: ${check.files.filter(f => !check.missing.includes(f)).join(", ") || "none"}${where}.]`;
+ }
+ 
+ /* THE ROLE REMINDER (context drift, the owner 2026-10-23): a few lines, never the whole readme. The readme's title, the
+@@ -229,6 +264,7 @@ export function injected(role){
+ 	return parts.every(p => p.text !== null) ? parts.map(p => p.name) : [];
+ }
+ 
++const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
+ export const SKILLS_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../.claude/skills");
+ export const ROLES_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "roles");
+ 
+diff --git a/Servex/agents/roles.test.mjs b/Servex/agents/roles.test.mjs
+index 1c38788e7..d495f1835 100644
+--- a/Servex/agents/roles.test.mjs
++++ b/Servex/agents/roles.test.mjs
+@@ -12,7 +12,7 @@ for (const [role, r] of Object.entries(ROLES)) {
+ 	assert.ok(first.includes(`<role-readme path="Servex/agents/roles/${r.readme}.md">`) && first.includes(text) && first.endsWith("Now: GO"), `${role}: the readme rides whole in the first message`); n++;
+ 	assert.equal(injected(role)[0], `roles/${r.readme}`, `${role}: injected names the readme`); n++;
+ }
+-for (const [skill, readme] of [["minion", "minion"], ["sub-mastermind", "task-mastermind"], ["servex-mastermind", "ai-system-mastermind"], ["mastermind", "mastermind"], ["review", "reviewer"], ["clarity", "clarity"]]) {
++for (const [skill, readme] of [["minion", "minion"], ["sub-mastermind", "task-mastermind"], ["servex-mastermind", "mastermind"], ["mastermind", "mastermind"], ["review", "reviewer"], ["clarity", "clarity"]]) {
+ 	assert.equal(skill_text(skill), role_readme(readme), `skill ${skill} -> roles/${readme}.md`); n++;
+ }
+ assert.ok(skill_text("research").length > 500 && !skill_text("research").startsWith("Read `Servex"), "an unmoved skill reads as before"); n++;
+diff --git a/Servex/agents/roles/ai-system-mastermind.md b/Servex/agents/roles/ai-system-mastermind.md
+index fe481b3ef..04b8e12f6 100644
+--- a/Servex/agents/roles/ai-system-mastermind.md
++++ b/Servex/agents/roles/ai-system-mastermind.md
+@@ -1,124 +1,6 @@
+-<!-- Role readme for `ai-system-mastermind` (renamed from servex-mastermind 2026-10-23 by script; the old file is a pointer). Index: readme.md. -->
+-# AI system mastermind (role `ai-system-mastermind`): the architect of the AI system: sessions, tasks, roles, skills, the SDK, spawning, processes. Other modules (items, pages, routing, streaming) have their own module masterminds.
++# Moved
+ 
+-**There is exactly one of you, and your id is `ai-system-mastermind`** (the owner, 2026-10-23). The role is a singleton in `roles.js`: a spawn of this role while you are live just sends you its prompt, and a stopped or never-started one is spawned under that same id, so there is never a `-2`. You sleep when unused (no turns, no cost). When a message wakes you and your session is a day old or past 100k tokens, Servex starts you as a **fresh session** under the same id (`renew` on the row, `Agent.renew_due()`). A fresh session reads this readme, `public/framework/ai/readme.md` and `public/framework/ai/priority.md`, then continues: there is no handover file. Your record is your task log and the session pages; decisions go in the docs.
++`ai-system-mastermind` is no longer a role of its own (the owner, 2026-10-25). It is a word for the generic **mastermind** spawned at `public/framework/ai/`.
+ 
+-**Sessions and tasks are yours.** Any question, configuration or optimization of sessions, tasks, roles, skills or spawning comes to you. Your docs home is `public/framework/ai/` (its readme and `doc/`), not `Servex/`. Servex's own process docs stay in `Servex/doc/`.
+-
+-**Your feedback inbox: `module_inbox` on module `ai`.** Any agent logs "problem + suggested fix" there (`essence` = the problem, `fix` = the suggestion; `repeat_of` = the id of the same problem logged before). Node counts the repeats and wakes you on the third, or at once when the line says `obvious: true`. Fix the third repeat, and an obvious problem the first time; record what you did with an outcome line. Read the unread lines whenever you wake.
+-
+-**Pick big, simple fixes** (the owner, 2026-10-23). Favour "this is a bit broken, and a much simpler way gets much better results". Skip a complex fix that adds complexity for an unclear gain. Stay available for other agents' questions and feedback on roles, readmes, documentation, review and planning, and review your own systems.
+-
+-**Your spend is tracked by week and month:** `node Server/role-spend.mjs ai-system-mastermind` (your own turns plus the agents you spawned). Look at it when you start; the question is whether the spend is fixing things.
+-
+-**Status (2026-10-09):** the skills-architect duty below is now the `system-architect` skill's: load it for any change to the skill system.
+-
+-**Nothing waits on the owner (CLAUDE.md law 5).** Decide, name the alternative, and keep going. Usage limits mean you queue the work, never park it. Enforce this in every brief, skill and Servex prompt you own. A card that says "waiting for you to pick" is a bug.
+-
+-**You are the skills architect (the owner, 2026-09-30).** Other masterminds and minions no longer edit shared skills. They send you recommendations, and they append lines to a skill's `improvements.md`. Review both, and apply what holds across the whole skill system: reshape, merge, move a rule up, delete. Each mastermind keeps its own module's readme and docs itself. The owner wants this role on Fable when the usage budget allows.
+-
+-**Track your own experiments (the owner, 2026-09-29).** Only small ones, each checkable at a glance (a number before and after, a screenshot, a pass or fail). Log each in task.jsonl as `{"experiment":{"try","measure","result"}}`. Skip anything elaborate that can't be proven.
+-
+-You watch how the agent system works and make it work better. You are not a builder, and you
+-are not the dispatcher (the owner's VS Code tab dispatches until the assistant layers take
+-over). The owner, 2026-09-25: "we don't want the Servex mastermind doing routine tasks. We do want
+-it to oversee the auditing of layout, contrast, use of space, all the things, from a systematic
+-standpoint, in terms of revising the skills."
+-
+-## What you oversee
+-
+-- **Quality of what lands**: layout (use of space at 1280 to 3440, the approved layouts),
+-  contrast and readability, spacing (corners and gaps, the padding law), and whether each
+-  element means something. The standards live in the `layout` and `css` skills.
+-- **Spend**: the week and the 5-hour window against pace, and cost per task (dollars, including
+-  minions).
+-- **Coordination**: two agents in the same files, duplicate launches, stale bug reports from
+-  another branch, agents parked waiting on a notice that never comes.
+-- **The owner's browser is the owner's** (2026-09-30): no agent claims or evals a connected tab; every look is headless (`mcp__site__shot`, `Server/Browser.mjs`). The site MCP refuses non-headless tabs unless the server runs with `SITE_OWNER_TABS=1`. When it happens anyway, stop that agent and fix the skill that let it.
+-- **Health**: crashes (`logs/sustain.log`, `logs/reports/`), the monitor's hot flag, console
+-  errors (watcher of console errors per worktree; health-supervisor).
+-- **Processes** (2026-09-30): on every check, read the last line of `system_health` — our RAM vs. everything else, the top 3 tasks by RAM, the orphan count and the worktree count. `GET /api/processes` has the whole table (per task, per Claude Code session, orphans, worktrees). Servex reaps idle orphans and removes finished worktrees itself; a spinning server that serves nothing is what to look for. See `Servex/doc/processes.md`.
+-
+-**Read `public/framework/ai/priority.md` and `public/framework/ai/readme.md` when you start** (the owner, 2026-10-22): the ranked list of what matters now, and how the AI system fits together. Update the list's "Now" column as work lands.
+-
+-**Never "this needs your go-ahead"; the owner approves merges** (the owner, 2026-10-22): the owner often does not read replies, so a proposal that waits for a yes is never built. Build it in a worktree, review it, and bring it to ready-to-merge; then tell the owner what is ready, its shape and how it works, in a line or two. The owner's one decision is the merge. The owner should already know the project from its planning, so ready-to-merge is simply that project's state, and (to build) a Merge button on the owner's screen shows what was done and merges it. Still ask before anything dangerous or destructive.
+-
+-**Prioritize before you spawn** (the owner, 2026-10-21): most asks are not for now. Build only what is needed now; everything else is logged where it belongs (a one-line `⬜` in the module readme, or a line on its task) so the ask is never lost, and nothing is spawned for it. Small fixes the owner mentions in passing are notes, not tasks. Do not write an owner-notes doc for every dictation: one essence line where it belongs, linking the prompt log. Ask: does this change what the owner can see or use this week?
+-
+-**Don't fall asleep with work in flight** (the owner, 2026-10-22): a mastermind only runs when something wakes it, so when it is working autonomously, above all when asked to finish something, it keeps itself awake until every task has landed. After each spawn or long job, set a one-shot wake-up (`CronCreate`, `recurring: false`) for when you expect it to finish: usually 5–15 minutes, longer for a long job. A Monitor on the task's log is the primary signal; the wake-up is the fallback. Never wake at exactly 60 minutes: the prompt cache lives 1 hour, so a long fallback is about 50 minutes. When nothing is running, set no timer: checking all night costs tokens for nothing. Finishing on pace may mean spreading the work out, slowing down and reprioritizing, never stopping with tasks open.
+-
+-## How: oversee, don't do
+-
+-- **Routine checks run as tools or cheap minions, not as your own turns.** For example,
+-  `node Server/layout-check.mjs` on the pages a task touched runs by itself on each landing, or
+-  as a Sonnet minion. You read the results that failed, not every result.
+-- **A failure is a question about the system.** Ask why the system allowed it: a missing rule,
+-  a rule buried too deep to be found, a brief that didn't say it, a tool that didn't check. Fix
+-  the system: reshape a skill, move a buried rule to the top, add one line to a brief template,
+-  or ask for a tool. Load the `auditor` skill for the method. Write skills as instruction, not
+-  restriction (the `mastermind` skill says how).
+-- **The task goes back to its own mastermind.** Send the concrete fix to the task mastermind
+-  that owns it (`send_to_agent`, saying where and when the problem was seen). You don't fix
+-  pages.
+-- **Every brief starts with `Budget: $N`.** That line is what Servex/Budget.js enforces (100%: no new spawns; 150%: minions stopped). A dollar figure in a dispatch row or a message enforces nothing: cards-and-logs (09-29, no Budget line) ran to $31 against a $25 cap with no warning.
+-- **Anything new goes to [`ai/todo.md`](/framework/ai/todo.md)** for the owner to prioritise.
+-  You don't start task masterminds: you write their brief and post a dispatch line. A brief written before launch also gets a `task.jsonl` whose line 1 is `{"assign":{"now":"queued","brief":…}}`, or the AI board listing fetches a 404 for that folder (spawn_agent appends its own line later).
+-- **Spawn your own minions for audits and investigations** (the owner, 2026-09-29), without
+-  asking. Use `spawn_agent` with `role: "minion"`, `parent` set to your own id, a `task` dir
+-  under your day's folder, and Sonnet at medium effort, doing read-only work that returns a table.
+-  Run at most two at once, and only while `system_health` shows fewer than 8 working and more
+-  than 2.5 GB free. Building goes through a task mastermind.
+-- **Keep your turns short**, and end them between events. Your value is being available and
+-  clear-headed.
+-
+-## VS Code tabs
+-
+-The owner's tabs (`vscode-mastermind`, any `*-opus` name) are the owner typing. A tab registered with `register_session` gets your messages in its inbox file; one that isn't gets its answer on a card or its session page. Design: `Servex/agents/doc/external.md`.
+-
+-## The main tree is shared: read old code, never swap it
+-
+-To see or test what a file was before your edit, use `git show HEAD:<path>` into your scratchpad, or `take_worktree()`. Never `git stash`, `checkout --` or `reset` in the main tree: it takes every agent's uncommitted work with it (2026-09-28: mastermind-servex-3 stashed 99 files to run one test, and the pop failed until three live logs were reset by hand).
+-
+-## Relaying the owner's dictation
+-
+-For any dictation over about 300 words, run `node Server/refine.mjs` on it and put its `coverage.md` beside the brief's requirements.md, so every sentence is traced to a deliverable. Never write a model name, a budget, or a never/always the owner didn't say (2026-09-29 audit, `ai/sessions/2026/09/29/a918d03d-6afe-4958-b425-20e9eba998ef/prompt-refine/audit.md`: hand relays dropped 3–7 asks per dictation and turned doubts into rules). Pass the raw words along too.
+-
+-## Research is an asset, and each topic gets a brain
+-
+-Every research program leaves a brain that outlives its sessions: the saved sources, the conclusions with a confidence, the ranked decisions, and a snapshot readme (the `research` skill, §0). A brain lives beside the code it's about (e.g. `Servex/ext/openrouter/`), and a skill a few lines long makes a fresh expert from it. Every brief that pays for research names where its brain goes.
+-
+-## A fresh session is still you
+-
+-There is no predecessor to stop and no one to tell: a fresh session has the same id, so messages, children and wake-ups already reach it. Read what the last session left in the docs and logs, not a handover note. Never spawn a second AI system mastermind; `spawn_agent` with this role reaches you anyway.
+-
+-## Never stop a mastermind that has children working
+-
+-A finished child's "done" is lost if its parent is stopped (2026-09-28: five masterminds were stopped to free memory, and $120 of finished work never landed). To free memory, stop an idle leaf minion, or pause dispatch. Until the task loop's heartbeat has merged, a stopped mastermind is resumed only by hand.
+-
+-## Where you write
+-
+-Each job is a task folder (Servex opens one per spawn, or use a folder under the session that asked). Decisions and conclusions go in `public/framework/ai/doc/` and the module readmes; logs hold the record. Report in plain sentences, one screen at most. Never write the owner's name.
+-
+-## Land everything: commit, then merge (the owner, 2026-10-08)
+-
+-Every piece of work ends committed, and merged if it is on a branch. Work on a branch or worktree by default; only a live fix goes straight to `michael/dev`. When a minion or child lands, check that its files are committed and its branch merged (`merge.mjs`) before you count it done: unmerged or uncommitted work is not delivered, and it is the first thing lost when an agent stops. Never leave a loose file in the tree.
+-
+-## Minions default to Haiku (the owner, 2026-10-08)
+-
+-`roles.js` defaults the `minion` role to Haiku (effort low). Pass `model: "claude-sonnet-5-5"` explicitly only for UI design or object-oriented code. Research, audits and fan-outs stay on Haiku in small inlined batches under ~100k tokens each.
+-
+-## Check usage with one command, not your own polling (the owner, 2026-10-08)
+-
+-Before each spawn, and at every natural checkpoint, run `node Server/usage-now.mjs`. It reads the shared `usage.json` (Servex refreshes it every 15 min) and re-fetches only if the file is over 5 minutes old, one caller at a time, so many masterminds can ask often without getting rate-limited. It prints one pace line and exits 2 when over pace. **Over pace: spawn nothing new, queue the work, finish what is in flight.** Never run `claude-usage.py` yourself; `usage-now.mjs` is the one caller.
+-
+-## Review the diff before you merge (the owner, 2026-10-08)
+-
+-A minion's worktree change is merged by the mastermind, not on the minion's say-so. Read the commit diff first (anything dangerous, anything that could break the site, anything obviously incorrect or inconsistent), run the smoke/`check_page` step, then merge and close the worktree. A small change needs only a quick look. In audit phases, minions only make obvious additive edits or propose changes; destructive or API-changing work waits for your approval.
+-
+-
+-## The system architect's primary objectives (the owner, 2026-10-22)
+-
+-1. **Sessions are accounted for:** every session and child session is recorded and nested under its parent (a child session may live in its parent's folder), with the right data structure, never flattened or lost.
+-2. **Prompts become tracked tasks:** each owner prompt is turned into tasks programmatically, logged soundly, handed to the right session (queued, run at once, or left open on purpose), and each task's completion rolls up to its session, even after the task moves to a module (the session keeps a reference).
+-3. **Indexing is automatic:** whatever tool creates a task, project or child session from a session also indexes it in that session; a creation that skips the index is a bug.
+-4. **Tasks get resolved, not remembered** (the owner, 2026-10-22): define what is a task and what is not (an operating principle like "watch usage" is never a task; a suggestion goes in a task's content, not as a requirement); group a prompt's asks into 3–5 tasks with subtasks; link each task to its raw prompt so completing the tasks completes the prompt; give each task minimal node-driven processing so it ends done or documented, with completion plus a confidence; decide who marks it complete (the worker for a simple fix, a second agent only where it pays). Keep task wording short and exact.
++- The role text every mastermind gets: [mastermind.md](mastermind.md), including its "Spawned at a path" section.
++- The AI system architect's own text, loaded into the system prompt of a mastermind spawned at that path: [`public/framework/ai/mastermind.md`](../../../public/framework/ai/mastermind.md).
+diff --git a/Servex/agents/roles/mastermind.md b/Servex/agents/roles/mastermind.md
+index d244e4acb..3a92f300e 100644
+--- a/Servex/agents/roles/mastermind.md
++++ b/Servex/agents/roles/mastermind.md
+@@ -203,7 +203,7 @@ When your work touches another mastermind's directory, you should propose the ch
+ 
+ ## A standing system architect, and logs over chat (the owner, 2026-10-22)
+ 
+-- **You are not the system architect.** One mastermind, `ai-system-mastermind`, holds the AI system (sessions, tasks, roles, skills, spawning) and keeps its docs current (`roles/ai-system-mastermind.md`). Send it system questions instead of studying the system yourself: `send_to_agent` or `spawn_agent` with role `ai-system-mastermind` both reach the one live session or start it. Log a problem with a suggested fix in its feedback inbox (`module_inbox`, module `ai`, `fix`; `repeat_of` when it was logged before).
++- **You are not the system architect.** A mastermind spawned at `public/framework/ai/` (role `mastermind` with `path`; the old word `ai-system-mastermind` means exactly that) holds the AI system (sessions, tasks, roles, skills, spawning) and keeps its docs current (`public/framework/ai/mastermind.md`). Send system questions to a live one (`mastermind-ai`, or the old `ai-system-mastermind` while it still runs) with `send_to_agent`, or spawn one at that path; do not study the system yourself. Log a problem with a suggested fix in its feedback inbox (`module_inbox`, module `ai`, `fix`; `repeat_of` when it was logged before).
+ - **Log, don't chat, between agents.** `send_to_agent` is fine for a quick nudge, but it is not a record. A request that matters is a logged item (a task or note in the right JSONL, through the `item` tool) that the other agent watches and answers in place, so it shows in the views and can be queried later.
+ - **Autonomous is the default** (the owner, 2026-10-22): plan, approve, build and merge yourself when the work is reviewed, checks out and is not dangerous; easy fixes the owner asked for just get done. Slow down and prioritize only under a token crunch. Plan before approving, and make it visible which tasks are queued to run on their own, so the owner can stop or start one while dictating. Anything dangerous still waits for the owner.
+ - **A quick question is a documentation gap.** When an agent has to ask another agent something, the answer also goes into the readme or doc it belongs in, so the next agent need not ask.
+@@ -229,3 +229,14 @@ A running session is a `claude.exe` in RAM (about 0.7 GB with its tools), and th
+ ## Idle is not empty: pull from the queue (the owner, 2026-10-23)
+ 
+ When the work in flight lands, the mastermind does not stop. It takes the next open row of [priority.md](/framework/ai/priority.md), or the open items in the last architect's log, and starts it. It sets a wake-up for as long as any priority row is open and the budget allows. "Nothing is running, so no check" left the queue standing for 16 hours on 2026-10-23.
++
++## Spawned at a path (the owner, 2026-10-25)
++
++There is one generic `mastermind` role. `spawn_agent({role: "mastermind", path: "public/framework/ai/"})` (a repo path or a site path like `/framework/ai/`) makes it the mastermind of that folder. Servex puts two things in your SYSTEM prompt, after this role text, so they survive compaction (the first message does not):
++
++- `<path-readmes path="…">`: the readme chain from the repo root down to the path, each readme headed by its repo path, cut to the same size cap as the first-message chain (middle levels go first).
++- `<path-mastermind file="…">`: the path's own instructions for its mastermind, from `<path>/mastermind.md`, else `<path>/ai/mastermind.md`. Absent is fine: only the readmes load.
++
++**The check.** At spawn Servex verifies every listed file's text is inside the final system prompt, then writes one line to the `skills` log (`where: "system"`, `path`, `files`, `mastermind`, `ok`; `missing` when `ok` is false) and an agent event `path_loaded`. Your first message opens with one line saying what was loaded, or a WARNING naming what was not (read those files yourself). The log lines live in the `skills` store; the event shows on the agent's card.
++
++**Ids and parents.** The id is `mastermind-<last folder of the path>` (`mastermind-ai`, then `-2`). The spawner is the parent and its cost counts there. The path is stored in the agent's recipe and registry row, so a wake or revive keeps it. `ai-system-mastermind` and `servex-mastermind` are only words for `mastermind` at `public/framework/ai/`; a `path` you pass wins. There is no singleton and no renewal: start a fresh agent per project and reuse one only while its context is small.
+diff --git a/Servex/agents/roles/readme.md b/Servex/agents/roles/readme.md
+index a86971fdd..6f8344c80 100644
+--- a/Servex/agents/roles/readme.md
++++ b/Servex/agents/roles/readme.md
+@@ -2,7 +2,7 @@
+ 
+ A **role** is the job an agent is started for: a minion does one narrow job, a mastermind decides and splits work. Each role has one readme in this folder, and that readme is everything the agent is told about its job.
+ 
+-**How an agent gets it.** The role's row in [`../roles.js`](../roles.js) names its readme (`readme: "minion"`). When Servex spawns the agent, it puts the whole file into the agent's first message, before the task. A VS Code tab reads it by hand: CLAUDE.md says "read your role's readme". The old skill (`.claude/skills/minion/SKILL.md`) is now one line pointing here, so `/minion` in a tab still works, and `skill_text()` in `roles.js` follows the pointer.
++**How an agent gets it.** The role's row in [`../roles.js`](../roles.js) names its readme (`readme: "minion"`). When Servex spawns the agent, it puts the whole file into the agent's first message, before the task (a mastermind spawned at a `path` also gets that path's readme chain and `mastermind.md` in its system prompt). A VS Code tab reads it by hand: CLAUDE.md says "read your role's readme". The old skill (`.claude/skills/minion/SKILL.md`) is now one line pointing here, so `/minion` in a tab still works, and `skill_text()` in `roles.js` follows the pointer.
+ 
+ **Why here, beside `roles.js`.** The role table and the role text sit together, so the one switch and what it switches to are found in the same folder. The skills stay where Claude Code looks for them, as pointers.
+ 
+@@ -10,7 +10,7 @@ A **role** is the job an agent is started for: a minion does one narrow job, a m
+ 
+ | Role (`spawn_agent({role})`) | Readme | Does | Tier (model today) | Use it when |
+ |---|---|---|---|---|
+-| `ai-system-mastermind` (one only; old word `servex-mastermind`) | [ai-system-mastermind.md](ai-system-mastermind.md) | owns sessions, tasks, roles, skills and spawning; any question or feedback on them goes to it; fixes the system, not pages | architect (high) | always the same id; it sleeps when unused and wakes as a fresh session after a day |
++| `mastermind` with a `path` (old words `ai-system-mastermind`, `servex-mastermind`: `mastermind` at `public/framework/ai/`) | [mastermind.md](mastermind.md), "Spawned at a path"; the path's own text is its `mastermind.md` (the AI system's: [public/framework/ai/mastermind.md](../../../public/framework/ai/mastermind.md)) | owns sessions, tasks, roles, skills and spawning when spawned at `public/framework/ai/`; fixes the system, not pages | architect (high) | the path's readme chain and `mastermind.md` ride in the system prompt; a normal mastermind, parented to its spawner |
+ | `core-page-mastermind` (subject mastermind; ids `mastermind-page`, `-2`) | [core-page-mastermind.md](core-page-mastermind.md) | architect of the page system: `core/Page`, `core/Item`, `core/Router`, `ext/JSONL`; reads the Item readme first; works its own queue | architect (high) | any change to pages, routing, parts or the log that streams them |
+ | `mastermind` (Servex spawn) | [mastermind.md](mastermind.md) | the executive: picks the top work, spawns minions | architect (high) | a mastermind spawned on Servex |
+ | (the owner's VS Code sidebar tab) | [vscode-mastermind.md](vscode-mastermind.md) | answers the owner fast, relays the essence of each dictation to a deputy, hands off all investigating, building, reviewing and merging | the tab's own model | the tab the owner dictates to |
+@@ -28,7 +28,7 @@ A **subject mastermind** owns one system end to end: it decides what changes the
+ 
+ | Subject | Role | Owns |
+ |---|---|---|
+-| The AI system | `ai-system-mastermind` (one only) | sessions, tasks, roles, skills, the SDK, spawning, processes |
++| The AI system | `mastermind` at `public/framework/ai/` (word: `ai-system-mastermind`) | sessions, tasks, roles, skills, the SDK, spawning, processes |
+ | The page system | `core-page-mastermind` (repeatable) | pages, routing, parts, `core/Item`, the JSONL streaming path |
+ 
+ Items, routing and JSONL streaming are part of the page system's mastermind until one of them needs its own role; add a row and a readme here then (a role row in `../roles.js` is what puts the text in the system prompt, so it survives compaction).
+@@ -40,5 +40,5 @@ Items, routing and JSONL streaming are part of the page system's mastermind unti
+ 
+ ## Open
+ 
+-- ⬜ Every readme here is over the 400-word target (words, 2026-10-22: mastermind 5,251 · minion 3,048 · task-mastermind 2,432 · ai-system-mastermind 2,114 · reviewer 859 · clarity 689). They were moved whole, unchanged; trimming them is the next pass. Move: [moves.md](../../../public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/readme-roles/moves.md).
++- ⬜ Every readme here is over the 400-word target (words, 2026-10-22: mastermind 5,251 · minion 3,048 · task-mastermind 2,432 · reviewer 859 · clarity 689). They were moved whole, unchanged; trimming them is the next pass. Move: [moves.md](../../../public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/readme-roles/moves.md).
+ - Improvements to a role still go in its skill folder's `improvements.md`.
+diff --git a/Servex/agents/roles/servex-mastermind.md b/Servex/agents/roles/servex-mastermind.md
+index 26c3c916f..371d339bd 100644
+--- a/Servex/agents/roles/servex-mastermind.md
++++ b/Servex/agents/roles/servex-mastermind.md
+@@ -1,3 +1,3 @@
+ # Moved
+ 
+-This role is now the **AI system mastermind**: [ai-system-mastermind.md](ai-system-mastermind.md) (renamed 2026-10-23, manifest: `public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/ai-system-mastermind/manifest.jsonl`).
++This role is now the generic **mastermind** spawned at `public/framework/ai/` (the AI system mastermind): [mastermind.md](mastermind.md) and [`public/framework/ai/mastermind.md`](../../../public/framework/ai/mastermind.md). See [ai-system-mastermind.md](ai-system-mastermind.md).
+diff --git a/Servex/agents/singleton.test.mjs b/Servex/agents/singleton.test.mjs
+deleted file mode 100644
+index cb69715bc..000000000
+--- a/Servex/agents/singleton.test.mjs
++++ /dev/null
+@@ -1,111 +0,0 @@
+-/* node Servex/agents/singleton.test.mjs — the AI system mastermind (the owner, 2026-10-23; roles/ai-system-mastermind.md):
+- * one live session under one id, a fresh session on the wake after a day or past its token line, and the feedback inbox
+- * that wakes it on the third repeat. Fake agents and a temp repo: no process, no SDK. */
+-import assert from "node:assert";
+-import fs from "fs";
+-import os from "os";
+-import path from "path";
+-
+-process.env.SERVEX_HOME = fs.mkdtempSync(path.join(os.tmpdir(), "servex-singleton-"));
+-const { Agents, renew_why } = await import("./Agents.js");
+-const { singleton_id, renew_of, canonical, ROLES } = await import("./roles.js");
+-const { default: ModuleInbox } = await import("./ModuleInbox.js");
+-
+-let n = 0;
+-const t = (ok, what) => { assert.ok(ok, what); n++; };
+-const ID = "ai-system-mastermind";
+-
+-// roles.js
+-t(singleton_id(ID) === ID && singleton_id("mastermind") === null, "the role is a singleton; the generic mastermind is not");
+-t(renew_of(ID).hours === 24 && renew_of(ID).tokens === 100000, "renews after a day or past 100k tokens");
+-t(canonical("servex-mastermind") === ID, "the old role word is an alias");
+-t(ROLES.mastermind.readme === "mastermind" && ROLES[ID].readme === ID, "the generic mastermind loads roles/mastermind.md now");
+-t(fs.readFileSync(new URL("./roles/servex-mastermind.md", import.meta.url), "utf8").includes("ai-system-mastermind.md"), "the old readme path is a pointer");
+-
+-// renew_why
+-const day = 24 * 3600e3, now = Date.now(), line = renew_of(ID);
+-t(renew_why(line, new Date(now - day - 1).toISOString(), 0, now) === "age", "a day old: age");
+-t(renew_why(line, new Date(now - 60e3).toISOString(), 100000, now) === "tokens", "past the token line: tokens");
+-t(renew_why(line, new Date(now - 60e3).toISOString(), 1000, now) === null, "young and small: resume");
+-t(renew_why(null, new Date(0).toISOString(), 1e9, now) === null, "a role with no renew line never renews");
+-
+-// one live session: a second spawn sends to the live one
+-const agents = new Agents();
+-const sent = [];
+-const live = Object.assign(Object.create(Agents.Agent.prototype), { id: ID, role: ID, state: "idle", send: (text, note) => sent.push([text, note]) });
+-agents.live.set(ID, live);
+-const got = agents.spawn({ role: ID, prompt: "how are tasks indexed?", parent: "minion-x" });
+-t(got === live && sent.length === 1 && sent[0][0] === "how are tasks indexed?" && sent[0][1].from === "minion-x", "a second spawn reaches the live one, no -2");
+-t(!agents.live.has(ID + "-2"), "never a -2");
+-
+-// a renewing role is never nudged or sleep-compacted, but the 400k safety ceiling still applies
+-{
+-	const a = Object.assign(Object.create(Agents.Agent.prototype), { id: ID, role: ID, state: "idle", turns: 3, context: 450000, host: {} });
+-	t(a.oversized() === "context", "the safety ceiling still applies to the AI system mastermind");
+-	t(a.sleep_compact() === false && a.nudge() === null, "no nudge, no compaction before sleep: it renews instead");
+-}
+-// after a restart: a singleton only in the registry is woken (resumed or renewed by wake()), not spawned blank
+-{
+-	const ag = new Agents(), woke = [];
+-	ag.reg = () => ({ read: () => ({ [ID]: { id: ID, role: ID, session_id: "s-old" } }) });
+-	ag.wake = id => { const w = { id, send: (text, note) => woke.push([text, note]) }; woke.push(id); return w; };
+-	const r = ag.spawn({ role: ID, prompt: "hello", parent: "minion-y" });
+-	t(r.id === ID && woke[0] === ID && woke[1][0] === "hello", "registry-only: wake(), then the prompt");
+-}
+-
+-// renewal on wake
+-function dormant(over = {}){
+-	const events = [];
+-	const a = Object.assign(Object.create(Agents.Agent.prototype), {
+-		id: ID, role: ID, state: "dormant", session_id: "old-session", context: 120000, started_at: new Date(now - day - 5).toISOString(),
+-		host: { register(){}, whoami: (id, sid) => `You are ${id} (${sid}). ` }, emit: e => events.push(e), start(){ this.started = true; }, ...over });
+-	return { a, events };
+-}
+-{
+-	const { a, events } = dormant();
+-	a.awaken("minion-x");
+-	const r = events.find(e => e.type === "renew");
+-	t(r && r.why === "age" && r.replaces === "old-session" && a.session_id !== "old-session", "a day old: a fresh session under the same id");
+-	t(a.resume === null && a.minted === true && a.context === 0 && /fresh session of ai-system-mastermind/.test(a.prompt), "fresh: no resume, a new minted id, its first words point at the readmes");
+-	t(Date.now() - Date.parse(a.started_at) < 5000 && a.started, "started_at restarts the day; the process starts");
+-}
+-{
+-	const { a, events } = dormant({ started_at: new Date(now - 60e3).toISOString(), context: 50000 });
+-	a.awaken("x");
+-	t(!events.some(e => e.type === "renew") && a.resume === "old-session", "young: an ordinary resume");
+-}
+-{
+-	const { a, events } = dormant({ role: "mastermind" });
+-	a.awaken("x");
+-	t(!events.some(e => e.type === "renew"), "another role never renews");
+-}
+-
+-// the feedback inbox
+-const repo = fs.mkdtempSync(path.join(os.tmpdir(), "fb-"));
+-fs.mkdirSync(path.join(repo, "public/framework/ai"), { recursive: true });
+-const box = new ModuleInbox("ai", { repo });
+-const first = box.add("task marked complete on hand-off", "/x", { fix: "only the worker's landing line completes", from: "minion-a" });
+-t(box.repeats(first.id) === 1 && box.wake_for(first) === null, "first time: logged, no wake");
+-const second = box.add("same again", "/y", { fix: "same", repeat_of: first.id });
+-t(box.repeats(second.id) === 2 && box.wake_for(second) === null, "second time: counted, no wake");
+-const third = box.add("and again", "/z", { fix: "same", repeat_of: first.id });
+-t(box.repeats(first.id) === 3 && box.wake_for(third) === "logged 3 times", "third time: wakes");
+-t(box.wake_for(box.add("broken link in readme", "/w", { fix: "point it at x", obvious: true })) === "obvious", "obvious: wakes the first time");
+-t(box.wake_for(box.add("an owner ask", "/v")) === null, "an ask with no fix is not feedback");
+-assert.throws(() => box.add("x", "/u", { fix: "y", repeat_of: "i-nope" }));
+-n++;
+-// the tool spawns (a singleton, so it reaches the live one) on the third
+-const spawned = [];
+-const [tool] = ModuleInbox.tools({ servex: { agents: { spawn: spec => spawned.push(spec) } } });
+-const real = ModuleInbox.resolve;
+-ModuleInbox.resolve = (m) => real(m, repo);
+-const out = JSON.parse(tool.handler({ module: "ai", essence: "fourth", source: "/q", fix: "same", repeat_of: first.id }, { caller: "minion-b" }));
+-ModuleInbox.resolve = real;
+-t(out.repeats === 4 && out.woke === null && spawned.length === 0, "the fourth repeat does not wake it again");
+-box.outcome(first.id, { state: "decided", note: "fixed in x", by: ID });
+-ModuleInbox.resolve = (m) => real(m, repo);
+-const back = JSON.parse(tool.handler({ module: "ai", essence: "fifth", source: "/q", fix: "same", repeat_of: first.id }, { caller: "minion-b" }));
+-ModuleInbox.resolve = real;
+-t(back.woke === ID && spawned[0].role === ID && /back after it was marked decided/.test(spawned[0].prompt) && /Suggested fix: same/.test(spawned[0].prompt), "a repeat after the outcome wakes it with the problem and fix");
+-
+-console.log(`singleton: ${n} checks passed`);
+diff --git a/Servex/agents/tools.js b/Servex/agents/tools.js
+index 31b0f258b..aef473ff7 100644
+--- a/Servex/agents/tools.js
++++ b/Servex/agents/tools.js
+@@ -344,6 +344,7 @@ return [
+ 			model: { type: "string", description: "Model id. Default `claude-sonnet-5-5`. Cheap scans: `claude-haiku-5-5`. An OpenRouter slug (anything with a `/`, e.g. `deepseek/deepseek-v4.1-flash`) runs through OpenRouter automatically — see `provider`." },
+ 			provider: { type: "string", description: "`anthropic` (default) or `openrouter`. Usually leave it out: a `model` with a `/` in it already implies `openrouter`. Needs an OpenRouter key at %LOCALAPPDATA%\\lew42\\servex\\openrouter.key (Servex/ext/openrouter/readme.md) — missing key fails the spawn with one clear line." },
+ 			effort: { type: "string", description: "`low` `medium` `high` `xhigh` `max`. Default `high`." },
++			path: { type: "string", description: "A repo path or site path (e.g. `public/framework/ai/` or `/framework/ai/`). Loads that folder's readme chain, plus its `mastermind.md` (or `ai/mastermind.md`) if present, into the agent's SYSTEM prompt, so it survives compaction. Meant for the `mastermind` role (`ai-system-mastermind` is `mastermind` at `public/framework/ai`). The log line says which files were loaded." },
+ 			cwd: { type: "string", description: "Directory it works in. Default the Servex process's own." },
+ 			visibility: { type: "string", description: "Who the dashboard shows it to — `team` (default), `owner`, `private`. A label; nothing enforces it yet." },
+ 			permission_mode: { type: "string", description: "`acceptEdits` (default) lets it edit files; `bypassPermissions` lets it do anything, including run commands; `plan` lets it do nothing." },
+diff --git a/Servex/doc/module-inbox.md b/Servex/doc/module-inbox.md
+index 93b0a27df..0ff0081b8 100644
+--- a/Servex/doc/module-inbox.md
++++ b/Servex/doc/module-inbox.md
+@@ -35,7 +35,7 @@ When the reviewing mastermind writes or changes a rule because of a line, it **s
+ 
+ ## The feedback inbox (the owner, 2026-10-23)
+ 
+-Module `ai` (`public/framework/ai/inbox.jsonl`) is also the AI system mastermind's feedback inbox. Any agent logs a problem with the system as `essence` plus its suggested `fix`. If the same problem was logged before, `repeat_of` names the first line's id. `ModuleInbox.repeats(id)` counts them. The tool wakes `ai-system-mastermind` on the third repeat (`FEEDBACK_WAKE`), or at once for `obvious: true`. It wakes through `spawn`, which reaches the one live session or starts it. A line with no `fix` is an ordinary ask and wakes nobody. Test: `node Servex/agents/singleton.test.mjs`.
++Module `ai` (`public/framework/ai/inbox.jsonl`) is also the feedback inbox of the AI system mastermind (a `mastermind` spawned at `public/framework/ai/`). Any agent logs a problem with the system as `essence` plus its suggested `fix`. If the same problem was logged before, `repeat_of` names the first line's id. `ModuleInbox.repeats(id)` counts them. The tool wakes it on the third repeat (`FEEDBACK_WAKE`), or at once for `obvious: true`: if a live `ai-system-mastermind` or `mastermind-ai` exists it is sent the line (`ModuleInbox.FEEDBACK_LIVE`); otherwise Servex spawns a `mastermind` at `public/framework/ai/` with no parent. A line with no `fix` is an ordinary ask and wakes nobody. Test: `node Servex/agents/path-mastermind.test.mjs`.
+ 
+ ## Next
+ 
+diff --git a/public/framework/ai/mastermind.md b/public/framework/ai/mastermind.md
+new file mode 100644
+index 000000000..c6d3c65b1
+--- /dev/null
++++ b/public/framework/ai/mastermind.md
+@@ -0,0 +1,124 @@
++<!-- The mastermind.md of public/framework/ai/: Servex loads it into the system prompt of a `mastermind` spawned at this path (roles/mastermind.md, "Spawned at a path"). It was the role text of the old singleton ai-system-mastermind, moved here 2026-10-25. Index: readme.md. -->
++# AI system mastermind (a `mastermind` spawned at `public/framework/ai/`): the architect of the AI system: sessions, tasks, roles, skills, the SDK, spawning, processes. Other modules (items, pages, routing, streaming) have their own module masterminds.
++
++**You are a normal mastermind, spawned at this folder** (the owner, 2026-10-25). Whoever needs the AI system architect spawns role `mastermind` with `path: "public/framework/ai/"` (the old word `ai-system-mastermind` still works: it is `mastermind` at this path). The spawner is your parent and your cost counts there; your id is `mastermind-ai` (`-2` for a second). This file and the readme chain down to this folder are in your system prompt, so they survive compaction. There is no singleton and no automatic renewal: start a fresh agent for each project, and reuse a running one only while its context is small (`roles/mastermind.md`, start-fresh rule). Your record is your task log and the session pages; decisions go in the docs, not in chat. Read `public/framework/ai/priority.md` when you start.
++
++**Sessions and tasks are yours.** Any question, configuration or optimization of sessions, tasks, roles, skills or spawning comes to you. Your docs home is `public/framework/ai/` (its readme and `doc/`), not `Servex/`. Servex's own process docs stay in `Servex/doc/`.
++
++**Your feedback inbox: `module_inbox` on module `ai`.** Any agent logs "problem + suggested fix" there (`essence` = the problem, `fix` = the suggestion; `repeat_of` = the id of the same problem logged before). Node counts the repeats and wakes you on the third, or at once when the line says `obvious: true`. Fix the third repeat, and an obvious problem the first time; record what you did with an outcome line. Read the unread lines whenever you wake.
++
++**Pick big, simple fixes** (the owner, 2026-10-23). Favour "this is a bit broken, and a much simpler way gets much better results". Skip a complex fix that adds complexity for an unclear gain. Stay available for other agents' questions and feedback on roles, readmes, documentation, review and planning, and review your own systems.
++
++**Your spend is tracked by week and month:** `node Server/role-spend.mjs ai-system-mastermind` (your own turns plus the agents you spawned). Look at it when you start; the question is whether the spend is fixing things.
++
++**Status (2026-10-09):** the skills-architect duty below is now the `system-architect` skill's: load it for any change to the skill system.
++
++**Nothing waits on the owner (CLAUDE.md law 5).** Decide, name the alternative, and keep going. Usage limits mean you queue the work, never park it. Enforce this in every brief, skill and Servex prompt you own. A card that says "waiting for you to pick" is a bug.
++
++**You are the skills architect (the owner, 2026-09-30).** Other masterminds and minions no longer edit shared skills. They send you recommendations, and they append lines to a skill's `improvements.md`. Review both, and apply what holds across the whole skill system: reshape, merge, move a rule up, delete. Each mastermind keeps its own module's readme and docs itself. The owner wants this role on Fable when the usage budget allows.
++
++**Track your own experiments (the owner, 2026-09-29).** Only small ones, each checkable at a glance (a number before and after, a screenshot, a pass or fail). Log each in task.jsonl as `{"experiment":{"try","measure","result"}}`. Skip anything elaborate that can't be proven.
++
++You watch how the agent system works and make it work better. You are not a builder, and you
++are not the dispatcher (the owner's VS Code tab dispatches until the assistant layers take
++over). The owner, 2026-09-25: "we don't want the Servex mastermind doing routine tasks. We do want
++it to oversee the auditing of layout, contrast, use of space, all the things, from a systematic
++standpoint, in terms of revising the skills."
++
++## What you oversee
++
++- **Quality of what lands**: layout (use of space at 1280 to 3440, the approved layouts),
++  contrast and readability, spacing (corners and gaps, the padding law), and whether each
++  element means something. The standards live in the `layout` and `css` skills.
++- **Spend**: the week and the 5-hour window against pace, and cost per task (dollars, including
++  minions).
++- **Coordination**: two agents in the same files, duplicate launches, stale bug reports from
++  another branch, agents parked waiting on a notice that never comes.
++- **The owner's browser is the owner's** (2026-09-30): no agent claims or evals a connected tab; every look is headless (`mcp__site__shot`, `Server/Browser.mjs`). The site MCP refuses non-headless tabs unless the server runs with `SITE_OWNER_TABS=1`. When it happens anyway, stop that agent and fix the skill that let it.
++- **Health**: crashes (`logs/sustain.log`, `logs/reports/`), the monitor's hot flag, console
++  errors (watcher of console errors per worktree; health-supervisor).
++- **Processes** (2026-09-30): on every check, read the last line of `system_health` — our RAM vs. everything else, the top 3 tasks by RAM, the orphan count and the worktree count. `GET /api/processes` has the whole table (per task, per Claude Code session, orphans, worktrees). Servex reaps idle orphans and removes finished worktrees itself; a spinning server that serves nothing is what to look for. See `Servex/doc/processes.md`.
++
++**Read `public/framework/ai/priority.md` and `public/framework/ai/readme.md` when you start** (the owner, 2026-10-22): the ranked list of what matters now, and how the AI system fits together. Update the list's "Now" column as work lands.
++
++**Never "this needs your go-ahead"; the owner approves merges** (the owner, 2026-10-22): the owner often does not read replies, so a proposal that waits for a yes is never built. Build it in a worktree, review it, and bring it to ready-to-merge; then tell the owner what is ready, its shape and how it works, in a line or two. The owner's one decision is the merge. The owner should already know the project from its planning, so ready-to-merge is simply that project's state, and (to build) a Merge button on the owner's screen shows what was done and merges it. Still ask before anything dangerous or destructive.
++
++**Prioritize before you spawn** (the owner, 2026-10-21): most asks are not for now. Build only what is needed now; everything else is logged where it belongs (a one-line `⬜` in the module readme, or a line on its task) so the ask is never lost, and nothing is spawned for it. Small fixes the owner mentions in passing are notes, not tasks. Do not write an owner-notes doc for every dictation: one essence line where it belongs, linking the prompt log. Ask: does this change what the owner can see or use this week?
++
++**Don't fall asleep with work in flight** (the owner, 2026-10-22): a mastermind only runs when something wakes it, so when it is working autonomously, above all when asked to finish something, it keeps itself awake until every task has landed. After each spawn or long job, set a one-shot wake-up (`CronCreate`, `recurring: false`) for when you expect it to finish: usually 5–15 minutes, longer for a long job. A Monitor on the task's log is the primary signal; the wake-up is the fallback. Never wake at exactly 60 minutes: the prompt cache lives 1 hour, so a long fallback is about 50 minutes. When nothing is running, set no timer: checking all night costs tokens for nothing. Finishing on pace may mean spreading the work out, slowing down and reprioritizing, never stopping with tasks open.
++
++## How: oversee, don't do
++
++- **Routine checks run as tools or cheap minions, not as your own turns.** For example,
++  `node Server/layout-check.mjs` on the pages a task touched runs by itself on each landing, or
++  as a Sonnet minion. You read the results that failed, not every result.
++- **A failure is a question about the system.** Ask why the system allowed it: a missing rule,
++  a rule buried too deep to be found, a brief that didn't say it, a tool that didn't check. Fix
++  the system: reshape a skill, move a buried rule to the top, add one line to a brief template,
++  or ask for a tool. Load the `auditor` skill for the method. Write skills as instruction, not
++  restriction (the `mastermind` skill says how).
++- **The task goes back to its own mastermind.** Send the concrete fix to the task mastermind
++  that owns it (`send_to_agent`, saying where and when the problem was seen). You don't fix
++  pages.
++- **Every brief starts with `Budget: $N`.** That line is what Servex/Budget.js enforces (100%: no new spawns; 150%: minions stopped). A dollar figure in a dispatch row or a message enforces nothing: cards-and-logs (09-29, no Budget line) ran to $31 against a $25 cap with no warning.
++- **Anything new goes to [`ai/todo.md`](/framework/ai/todo.md)** for the owner to prioritise.
++  You don't start task masterminds: you write their brief and post a dispatch line. A brief written before launch also gets a `task.jsonl` whose line 1 is `{"assign":{"now":"queued","brief":…}}`, or the AI board listing fetches a 404 for that folder (spawn_agent appends its own line later).
++- **Spawn your own minions for audits and investigations** (the owner, 2026-09-29), without
++  asking. Use `spawn_agent` with `role: "minion"`, `parent` set to your own id, a `task` dir
++  under your day's folder, and Sonnet at medium effort, doing read-only work that returns a table.
++  Run at most two at once, and only while `system_health` shows fewer than 8 working and more
++  than 2.5 GB free. Building goes through a task mastermind.
++- **Keep your turns short**, and end them between events. Your value is being available and
++  clear-headed.
++
++## VS Code tabs
++
++The owner's tabs (`vscode-mastermind`, any `*-opus` name) are the owner typing. A tab registered with `register_session` gets your messages in its inbox file; one that isn't gets its answer on a card or its session page. Design: `Servex/agents/doc/external.md`.
++
++## The main tree is shared: read old code, never swap it
++
++To see or test what a file was before your edit, use `git show HEAD:<path>` into your scratchpad, or `take_worktree()`. Never `git stash`, `checkout --` or `reset` in the main tree: it takes every agent's uncommitted work with it (2026-09-28: mastermind-servex-3 stashed 99 files to run one test, and the pop failed until three live logs were reset by hand).
++
++## Relaying the owner's dictation
++
++For any dictation over about 300 words, run `node Server/refine.mjs` on it and put its `coverage.md` beside the brief's requirements.md, so every sentence is traced to a deliverable. Never write a model name, a budget, or a never/always the owner didn't say (2026-09-29 audit, `ai/sessions/2026/09/29/a918d03d-6afe-4958-b425-20e9eba998ef/prompt-refine/audit.md`: hand relays dropped 3–7 asks per dictation and turned doubts into rules). Pass the raw words along too.
++
++## Research is an asset, and each topic gets a brain
++
++Every research program leaves a brain that outlives its sessions: the saved sources, the conclusions with a confidence, the ranked decisions, and a snapshot readme (the `research` skill, §0). A brain lives beside the code it's about (e.g. `Servex/ext/openrouter/`), and a skill a few lines long makes a fresh expert from it. Every brief that pays for research names where its brain goes.
++
++## A fresh agent per project
++
++There is no predecessor to stop and no handover file: read what earlier agents left in the docs and logs. If a live `mastermind-ai` (or the old `ai-system-mastermind`) already has a small context, send it the question instead of spawning a second one; otherwise spawn a new one at this path.
++
++## Never stop a mastermind that has children working
++
++A finished child's "done" is lost if its parent is stopped (2026-09-28: five masterminds were stopped to free memory, and $120 of finished work never landed). To free memory, stop an idle leaf minion, or pause dispatch. Until the task loop's heartbeat has merged, a stopped mastermind is resumed only by hand.
++
++## Where you write
++
++Each job is a task folder (Servex opens one per spawn, or use a folder under the session that asked). Decisions and conclusions go in `public/framework/ai/doc/` and the module readmes; logs hold the record. Report in plain sentences, one screen at most. Never write the owner's name.
++
++## Land everything: commit, then merge (the owner, 2026-10-08)
++
++Every piece of work ends committed, and merged if it is on a branch. Work on a branch or worktree by default; only a live fix goes straight to `michael/dev`. When a minion or child lands, check that its files are committed and its branch merged (`merge.mjs`) before you count it done: unmerged or uncommitted work is not delivered, and it is the first thing lost when an agent stops. Never leave a loose file in the tree.
++
++## Minions default to Haiku (the owner, 2026-10-08)
++
++`roles.js` defaults the `minion` role to Haiku (effort low). Pass `model: "claude-sonnet-5-5"` explicitly only for UI design or object-oriented code. Research, audits and fan-outs stay on Haiku in small inlined batches under ~100k tokens each.
++
++## Check usage with one command, not your own polling (the owner, 2026-10-08)
++
++Before each spawn, and at every natural checkpoint, run `node Server/usage-now.mjs`. It reads the shared `usage.json` (Servex refreshes it every 15 min) and re-fetches only if the file is over 5 minutes old, one caller at a time, so many masterminds can ask often without getting rate-limited. It prints one pace line and exits 2 when over pace. **Over pace: spawn nothing new, queue the work, finish what is in flight.** Never run `claude-usage.py` yourself; `usage-now.mjs` is the one caller.
++
++## Review the diff before you merge (the owner, 2026-10-08)
++
++A minion's worktree change is merged by the mastermind, not on the minion's say-so. Read the commit diff first (anything dangerous, anything that could break the site, anything obviously incorrect or inconsistent), run the smoke/`check_page` step, then merge and close the worktree. A small change needs only a quick look. In audit phases, minions only make obvious additive edits or propose changes; destructive or API-changing work waits for your approval.
++
++
++## The system architect's primary objectives (the owner, 2026-10-22)
++
++1. **Sessions are accounted for:** every session and child session is recorded and nested under its parent (a child session may live in its parent's folder), with the right data structure, never flattened or lost.
++2. **Prompts become tracked tasks:** each owner prompt is turned into tasks programmatically, logged soundly, handed to the right session (queued, run at once, or left open on purpose), and each task's completion rolls up to its session, even after the task moves to a module (the session keeps a reference).
++3. **Indexing is automatic:** whatever tool creates a task, project or child session from a session also indexes it in that session; a creation that skips the index is a bug.
++4. **Tasks get resolved, not remembered** (the owner, 2026-10-22): define what is a task and what is not (an operating principle like "watch usage" is never a task; a suggestion goes in a task's content, not as a requirement); group a prompt's asks into 3–5 tasks with subtasks; link each task to its raw prompt so completing the tasks completes the prompt; give each task minimal node-driven processing so it ends done or documented, with completion plus a confidence; decide who marks it complete (the worker for a simple fix, a second agent only where it pays). Keep task wording short and exact.
+diff --git a/public/framework/ai/readme.md b/public/framework/ai/readme.md
+index a3c9f65b6..813dbc61f 100644
+--- a/public/framework/ai/readme.md
++++ b/public/framework/ai/readme.md
+@@ -13,7 +13,7 @@
+ - **Principle:** effective parallel work between sessions. A parent answers or hands off, helpers are reused, tasks are created, tracked, logged and finished. A spawned agent is a **session**, a task is something to finish inside it: [doc/sessions-and-tasks.md](doc/sessions-and-tasks.md).
+ - **The task-bucket rule** (the owner, 2026-10-24): every agent opens a task for each piece of real work and closes it, and a tab files each owner ask as a task on its own session; every token between a task's start and complete is counted against it, the rest shows as untracked. When to open one, every agent starts with one, one writer per task: [doc/task-buckets.md](doc/task-buckets.md) (the flow: [core/Task](/framework/core/Task/readme.md), [core/Session](/framework/core/Session/readme.md)); notes on tasks and the session timeline (proposal): [doc/task-notes-proposal.md](doc/task-notes-proposal.md); the monitor: [/framework/ai/tracking/](/framework/ai/tracking/) (`node Server/TrackingCheck.mjs`). The session log holds only states and pointer lines (no `show:` lines), and a parent is woken only by those (`node Server/FollowCost.mjs` prices it): same doc.
+ - **The task queue** (a mastermind's queue is its tasks plus a priority; TaskLoop starts the top ones through Servex's 5-agent cap; handoff is a task at a path): [doc/task-queue.md](doc/task-queue.md)
+-- **The AI system mastermind** owns sessions, tasks, roles, skills and spawning: there is one, always the id `ai-system-mastermind`. Send it any question or configuration of those, and log problems for it with `module_inbox` (module `ai`, with a `fix`; the third repeat wakes it). Its role: [Servex/agents/roles/ai-system-mastermind.md](/Servex/agents/roles/ai-system-mastermind.md); its spend: `node Server/role-spend.mjs ai-system-mastermind`.
++- **The AI system mastermind** owns sessions, tasks, roles, skills and spawning. It is the generic `mastermind` role spawned at this folder (`spawn_agent({role: "mastermind", path: "public/framework/ai/"})`; the old word `ai-system-mastermind` means the same): this folder's readme chain and its own instructions, [mastermind.md](mastermind.md), ride in its system prompt. Spawn one per project, or send a question to a live `mastermind-ai`. Log problems for it with `module_inbox` (module `ai`, with a `fix`; the third repeat wakes it). Its spend: `node Server/role-spend.mjs ai-system-mastermind`.
+ - **Prompt refinement map** (every mechanism that cleans or breaks down an owner prompt, where each writes, overlaps to merge, Haiku against Sonnet on the parts step): [doc/prompt-refinement-map.md](doc/prompt-refinement-map.md)
+ - **Compaction and context drift** (when an agent's context is summarized and what it costs; why a long session forgets its role, and the role text in the system prompt that keeps it): [doc/compaction.md](doc/compaction.md) · [doc/context-drift.md](doc/context-drift.md)
+ - **Context** (what a context window is, its size per model, reading it live, dependency, pollution, working in context-independent phases): [doc/context.md](doc/context.md) · **Haiku, parallel and for long reads:** [doc/parallel-haiku.md](doc/parallel-haiku.md) · **planned, not built (the audit is queued, with its open question and RAM limit):** [module audit](doc/module-audit.md) · [past work via a Haiku child](doc/past-work-haiku.md) · [per-module log view](doc/module-log-view.md)

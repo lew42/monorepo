@@ -1,0 +1,43 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/2026-10-04/land-two-branches/",
+ "widths": {
+  "1280": {
+   "empty": 0.52,
+   "widest_text": 855,
+   "widest_text_sample": "The mastermind's share is what it spent ",
+   "overflow_x": false,
+   "items": 70,
+   "narrow_share": 0.586
+  },
+  "1920": {
+   "empty": 0.67,
+   "widest_text": 910,
+   "widest_text_sample": "The mastermind's share is what it spent ",
+   "overflow_x": false,
+   "items": 70,
+   "narrow_share": 0.914
+  },
+  "2560": {
+   "empty": 0.71,
+   "widest_text": 1024,
+   "widest_text_sample": "The mastermind's share is what it spent ",
+   "overflow_x": false,
+   "items": 70,
+   "narrow_share": 0.943
+  },
+  "3440": {
+   "empty": 0.777,
+   "widest_text": 1024,
+   "widest_text_sample": "The mastermind's share is what it spent ",
+   "overflow_x": false,
+   "items": 70,
+   "narrow_share": 0.943
+  }
+ },
+ "errors": [
+  "1280: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "2560: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1920: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "3440: Failed to load resource: the server responded with a status of 404 (Not Found)"
+ ]
+}

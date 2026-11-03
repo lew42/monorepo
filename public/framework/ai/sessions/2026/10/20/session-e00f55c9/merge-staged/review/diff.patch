@@ -1,0 +1,325 @@
+diff --git a/Server/Worktrees.mjs b/Server/Worktrees.mjs
+index 337c4048b..20c7279c0 100644
+--- a/Server/Worktrees.mjs
++++ b/Server/Worktrees.mjs
+@@ -31,6 +31,22 @@ export default class Worktrees {
+         return { act: "close", why: "its branch is merged, or its folder is gone" };
+     }
+ 
++    /* Is a worktree's server stale because its branch is "merged into the base"? (worktree-servers.mjs --stop-stale.)
++     * A FRESH branch with no commits is an ancestor of the base too, and read as merged (2026-11-02: replay-bubbles' server
++     * was stopped minutes after its worktree was made). So it must be both: the branch has commits of its own (its reflog holds
++     * more than the creation line) that are all on the base, AND the worktree saw no git activity (HEAD, index, log) for quiet_ms.
++     * Returns { stale, why }. */
++    static merged_stale(main, branch, wt_path, { base = Worktrees.BASE, quiet_ms = 30 * 60e3, now = Date.now() } = {}){
++        const g = (...a) => spawnSync("git", ["-C", main, ...a], { encoding: "utf8", windowsHide: true });
++        if (!branch || g("merge-base", "--is-ancestor", branch, base).status !== 0) return { stale: false, why: "not merged" };
++        const own = g("reflog", "show", "--format=%gs", `refs/heads/${branch}`).stdout.split(/\r?\n/).filter(l => l && !/^branch: Created from/.test(l));
++        if (!own.length) return { stale: false, why: "a fresh branch: no commits of its own yet" };
++        const gitdir = path.resolve(wt_path, spawnSync("git", ["-C", wt_path, "rev-parse", "--git-dir"], { encoding: "utf8", windowsHide: true }).stdout.trim() || ".git");
++        const touched = Math.max(0, ...["HEAD", "index", "logs/HEAD"].map(f => { try { return fs.statSync(path.join(gitdir, f)).mtimeMs; } catch { return 0; } }));
++        if (now - touched < quiet_ms) return { stale: false, why: `git activity ${Math.round((now - touched) / 60e3)} min ago` };
++        return { stale: true, why: `merged into ${base}` };
++    }
++
+     static main_repo(from = HERE){
+         return slash(path.resolve(from, execFileSync("git", ["rev-parse", "--git-common-dir"], { cwd: from, encoding: "utf8", windowsHide: true }).trim(), ".."));
+     }
+diff --git a/Server/Worktrees.test.mjs b/Server/Worktrees.test.mjs
+index 885c402b2..6ba354539 100644
+--- a/Server/Worktrees.test.mjs
++++ b/Server/Worktrees.test.mjs
+@@ -53,5 +53,15 @@ assert.match(live.find(r => r.path.endsWith("/busy")).why, /live agent/);
+ const blind = new Worktrees({ main, here: main }); blind.live_cwds = async () => null;
+ assert.ok((await blind.plan()).every(r => r.verdict === "KEEP"));
+ 
++// merged_stale (worktree-servers --stop-stale): a fresh 0-commit branch is an ancestor of the base but NOT stale
++const fresh = add("fresh"), later = Date.now() + 3600e3;
++assert.deepEqual(Worktrees.merged_stale(main, "worktree/fresh", fresh, { now: later }), { stale: false, why: "a fresh branch: no commits of its own yet" }, "fresh branch, even when quiet for an hour");
++// its own commit, landed on the base by a real merge (an ancestor), quiet for an hour -> stale
++const done = add("done"); put(done, "d.txt", "d\n"); git(done, "add", "."); git(done, "commit", "-qm", "d");
++git(main, "merge", "-q", "--no-edit", "worktree/done");
++assert.equal(Worktrees.merged_stale(main, "worktree/done", done, { now: later }).stale, true, "own commits on the base + quiet = stale");
++assert.match(Worktrees.merged_stale(main, "worktree/done", done).why, /git activity/, "same branch right now: recent git activity keeps it");
++assert.equal(Worktrees.merged_stale(main, "worktree/unmerged", unmerged, { now: later }).stale, false, "an unmerged branch is never stale here");
++
+ fs.rmSync(root, { recursive: true, force: true });
+ console.log("Worktrees.test: ok");
+diff --git a/Server/doc/review.md b/Server/doc/review.md
+index 1a16a52cb..be548bfbf 100644
+--- a/Server/doc/review.md
++++ b/Server/doc/review.md
+@@ -247,8 +247,15 @@ known limit, not a defended-against case.
+ (via OpenRouter) — the strongest version of fresh eyes, since it never trained alongside the
+ author. Not wired up yet.
+ 
+-**A merge never leaves a new file untracked** (2026-10-18). Every landed path is staged with `git add -A -- <paths>`
+-whether or not `merge.mjs` commits, and after landing `git status` must show no `??` among those paths, or the merge
++**A merge commits exactly its landed paths and never leaves anything staged** (2026-11-02, replacing the 2026-10-18 "stage with `git add -A`" rule).
++The old code, when other agents' files were already staged, skipped its own commit and left its landed paths staged; the next merge then saw
++those as "prior staged files": a self-feeding loop (212 stray staged files on 2026-11-02). Now `commitLanded()` builds the commit in a
++temporary index (`GIT_INDEX_FILE`: `read-tree`, `add -A -f` on the landed paths, `write-tree`, `commit-tree -p <old> -p <branch>`, then `update-ref`
++with the old value as a compare-and-swap, retried 3 times), then runs `git reset -q HEAD -- <landed paths>` so only those paths in the real
++index match the new commit. Files someone else staged are never touched: the merge prints `note: N file(s) were already staged in the main tree
++(not this merge's); they stay staged, untouched: ...` and carries on. A refused merge (conflict, locks, failed gate) leaves the index, HEAD
++and MERGE_HEAD exactly as found. (`git commit --only` is not usable here: git refuses it while a merge is in progress, and the second
++parent is needed so later `BASE...branch` diffs stay right.) After landing `git status` must show no `??` among the landed paths, or the merge
+ exits 5 naming them. `LandingCheck.verify` also checks every file the branch ADDED against `michael/dev`'s tree even when
+ `.merge-landed.json` vouches for the head (the ledger is written before the commit), and reports it as "new file not on dev".
+ Tests: `node Server/merge.test.mjs`.
+diff --git a/Server/doc/worktree-servers.md b/Server/doc/worktree-servers.md
+index 555b212aa..0049dcdb5 100644
+--- a/Server/doc/worktree-servers.md
++++ b/Server/doc/worktree-servers.md
+@@ -28,7 +28,7 @@ node Server/worktree-servers.mjs --stop-stale --older-than 24   also stop open w
+ The list shows each server's worktree, pid (the wrapper, the process whose death stops the whole tree), age in hours, MB for the wrapper and everything under it, and a state. A `*` marks a stale one:
+ 
+ - `gone`: the worktree folder is not a git worktree any more.
+-- `merged into michael/dev`: its branch is an ancestor of `michael/dev`.
++- `merged into michael/dev`: its branch has commits of its own, all on `michael/dev`, and its worktree's git metadata (HEAD, index, reflog) has not changed for 30 minutes. A fresh branch with no commits looks merged (it is an ancestor) but is never stale (`Worktrees.merged_stale`, test: `node Server/Worktrees.test.mjs`).
+ - `task landed`: the task that owns the worktree has landed.
+ - `pool slot, returned`: a `qf-N` slot nobody holds (`.worktree-pool.json`).
+ - `open (older than N h)`: only with `--older-than`.
+diff --git a/Server/merge.mjs b/Server/merge.mjs
+index 7436ac2e6..c440bea68 100644
+--- a/Server/merge.mjs
++++ b/Server/merge.mjs
+@@ -33,10 +33,11 @@
+  *               (2026-10-13: never `git merge` at all; see ai/sessions/doc/commit-rule.md).
+  *   Overlap:  a three-way merge per file (`git merge-file`: base = the merge base, ours = the main
+  *               tree's working file, theirs = the branch), computed for EVERY file in memory first;
+- *               one conflict and nothing is written. If no prior staged files exist, it stages only
+- *               the merged files and commits via MERGE_HEAD; otherwise leaves them in the working
+- *               tree and prints a one-line summary of what it left. The branch head is recorded in
+- *               .merge-landed.json.
++ *               one conflict and nothing is written. It then commits exactly the landed paths as a
++ *               two-parent merge commit through a TEMPORARY index (commitLanded), so the real index is
++ *               never fed: files other agents staged stay staged and untouched (named in a one-line
++ *               note, never a refusal), and nothing of this merge is ever left staged. The branch head
++ *               is recorded in .merge-landed.json.
+  *   A live log is never rewritten: every *.jsonl is read again at write time and any line appended
+  *               since planning is kept (jsonl-keep.mjs, 2026-09-29: readme-chain lost its landing line).
+  * Nothing is ever reset, stashed, checked out, forced or rewritten. `--main` points at another repo
+@@ -58,7 +59,7 @@
+  * `--asked <iso>` is the moment the fix was asked for (voice → smart assistant), so the final
+  * line's `ms` is the owner-felt latency, not just this script's own run time. The LAST line of
+  * stdout, only on a landed `--quick`, is one JSON object: `{"merged","shot","width","ms","asked_at"}`.
+- * Exit: 0 landed (or dry run clean), 1 refused or smoke failed, 2 too big for --quick, 3 lock wait timed out, 4 would conflict (nothing touched), 5 landed but a file is still untracked (a new file is staged with `git add -A` on every landed path; see Server/doc/review.md). */
++ * Exit: 0 landed (or dry run clean), 1 refused or smoke failed, 2 too big for --quick, 3 lock wait timed out, 4 would conflict (nothing touched), 5 landed but a file is still untracked (every landed path is added to the commit, so a new file cannot stay untracked; see Server/doc/review.md). */
+ import { spawnSync } from "node:child_process";
+ import fs from "node:fs";
+ import os from "node:os";
+@@ -437,7 +438,37 @@ function writeAll(plan) {
+ /* git add / status on a long path list, 200 at a time (Windows caps a command line). */
+ const chunks = list => Array.from({ length: Math.ceil(list.length / 200) }, (_, i) => list.slice(i * 200, i * 200 + 200));
+ // -f: every path here is one the branch tracks, even under a gitignored folder (a task's shots/, committed with -f); without it the merge commit fails.
+-const stagePaths = list => chunks(list).every(c => { const a = git(MAIN, "add", "-A", "-f", "--", ...c); if (a.status) console.error(`git add failed: ${a.stderr.trim()}`); return !a.status; });
++/* Commit exactly `list` as a merge of `head` into BASE WITHOUT touching the real index (2026-11-02: staging into it fed a
++ * loop: any stray staged file made the next merge leave its own paths staged too, 212 files by the third time).
++ * A temporary index (GIT_INDEX_FILE) starts from BASE's tree and takes only the landed paths from the working tree;
++ * commit-tree makes the two-parent commit and update-ref moves BASE (compare-and-swap, so a commit made in between
++ * is retried on top). Then only the landed paths are reset in the real index to the new HEAD: everything else staged
++ * there stays exactly as it was. Returns the commit sha, or null (after printing why) with nothing changed. */
++function commitLanded(list, head, branch) {
++	const gitDir = path.resolve(MAIN, git(MAIN, "rev-parse", "--git-dir").stdout.trim());
++	const tmp = path.join(gitDir, `merge-index.${process.pid}`);
++	const env = { ...process.env, GIT_INDEX_FILE: tmp };
++	const tg = (...a) => spawnSync("git", a, { cwd: MAIN, env, encoding: "utf8", windowsHide: true, maxBuffer: 64 << 20 });
++	const msg = `Merge branch '${branch}' into ${BASE}\n`;
++	try {
++		for (let attempt = 0; attempt < 3; attempt++) {
++			const old = git(MAIN, "rev-parse", "HEAD").stdout.trim();
++			fs.rmSync(tmp, { force: true });
++			let r = tg("read-tree", old);
++			for (const c of chunks(list)) if (!r.status) r = tg("add", "-A", "-f", "--", ...c);
++			if (r.status) { console.error(`merge commit failed (temporary index): ${r.stderr.trim()}`); return null; }
++			const tree = tg("write-tree");
++			const commit = tree.status ? tree : tg("commit-tree", tree.stdout.trim(), "-p", old, "-p", head, "-m", msg);
++			if (commit.status) { console.error(`merge commit failed: ${commit.stderr.trim()}`); return null; }
++			const sha = commit.stdout.trim();
++			if (git(MAIN, "update-ref", "-m", `merge: ${branch}`, `refs/heads/${BASE}`, sha, old).status) continue;   // BASE moved under us: redo on its new tip
++			for (const c of chunks(list)) { const s = git(MAIN, "reset", "-q", "HEAD", "--", ...c); if (s.status) console.error(`index sync failed (the commit stands): ${s.stderr.trim()}`); }
++			return sha;
++		}
++		console.error(`merge commit failed: ${BASE} kept moving`);
++		return null;
++	} finally { fs.rmSync(tmp, { force: true }); }
++}
+ const untrackedAmong = list => chunks(list).flatMap(c => lines(git(MAIN, "status", "--porcelain", "--untracked-files=all", "--", ...c).stdout).filter(l => l.startsWith("??")).map(l => l.slice(3)));
+ 
+ const printPlan = plan => console.log(plan.map(p => `  ${p.action.toUpperCase().padEnd(8)} ${p.f} — ${p.why}`).join("\n"));
+@@ -515,7 +546,9 @@ try {
+ 			} catch (e) { console.warn(`tests: the gate itself failed (${e.message}); not blocking`); }
+ 		}
+ 		const dirty = dirtyFiles();
+-		const staged = lines(git(MAIN, "diff", "--cached", "--name-only").stdout);   // git merge refuses any staged change, so treat it like overlap
++		// Other people's staged files never block a landing (commitLanded leaves the index as it found it): name them, once.
++		const staged = lines(git(MAIN, "diff", "--cached", "--name-only").stdout);
++		if (staged.length) console.warn(`note: ${staged.length} file(s) were already staged in the main tree (not this merge's); they stay staged, untouched: ${staged.slice(0, 5).join(", ")}${staged.length > 5 ? `, … +${staged.length - 5} more` : ""}`);
+ 		/* The three-way landing, per file, into the working tree. */
+ 		const threeWay = () => {
+ 			const plan = planAll(changed, branch);
+@@ -533,30 +566,13 @@ try {
+ 				let landed; try { landed = JSON.parse(fs.readFileSync(ledger, "utf8")); } catch { landed = []; }
+ 				landed.push({ branch, head, at: new Date().toISOString(), files: changed });
+ 				fs.writeFileSync(ledger, JSON.stringify(landed, null, "\t"));
+-				/* Stage every landed path whatever happens next: a new file written to the tree but never `add`ed
+-				 * reached michael/dev untracked three times (2026-10-14; Server/doc/review.md). */
+-				let committed = false;
+-				if (!staged.length) {
+-					const gitDir = path.resolve(MAIN, git(MAIN, "rev-parse", "--git-dir").stdout.trim());
+-					const mergeHead = path.join(gitDir, "MERGE_HEAD");
+-					const mergeMsg = path.join(gitDir, "MERGE_MSG");
+-					try {
+-						if (stagePaths(changed)) {
+-							fs.writeFileSync(mergeHead, head + "\n");
+-							fs.writeFileSync(mergeMsg, `Merge branch '${branch}' into ${BASE}\n`);
+-							committed = git(MAIN, "commit", "--no-edit").status === 0;
+-						}
+-					} catch {}
+-					if (committed) console.log(`three-way merge committed: Merge branch '${branch}' into ${BASE}`);
+-					else {
+-						try { if (fs.existsSync(mergeHead)) fs.unlinkSync(mergeHead); } catch {}
+-						try { if (fs.existsSync(mergeMsg)) fs.unlinkSync(mergeMsg); } catch {}
+-					}
+-				}
+-				if (!committed) {   // someone else's staged work, or a failed commit: stage ONLY our paths and leave them for that commit
+-					stagePaths(changed);
+-					console.log(`left staged, uncommitted in main tree: ${changed.join(", ")}`);
+-				}
++				/* Commit exactly the landed paths, always, through a temporary index (commitLanded): a new file
++				 * written to the tree but never added reached michael/dev untracked three times (2026-10-14), and
++				 * leaving paths staged for "the next commit" fed the stray-staged pile (2026-11-02). Nothing is
++				 * ever left staged; a failed commit leaves the files written and unstaged, and says so. */
++				const sha = commitLanded(changed, head, branch);
++				if (sha) console.log(`three-way merge committed: Merge branch '${branch}' into ${BASE} (${sha.slice(0, 9)})`);
++				else { console.error(`NOT COMMITTED: the landed files are written in the main tree, unstaged: ${changed.join(", ")}`); code = 1; }
+ 				// the check: nothing the diff touched may be untracked now (a modified live .jsonl is the site's own append, not a miss)
+ 				const untracked = untrackedAmong(changed);
+ 				if (untracked.length) { console.error(`merge FAILED: ${untracked.length} landed file(s) are untracked in the main tree: ${untracked.join(", ")}`); code = 5; }
+@@ -624,7 +640,7 @@ try {
+ 		else if (testRefusal) { console.error(testRefusal); code = 1; }
+ 		else if (navRefusal) { console.error("merge.mjs refused: " + navRefusal); code = 1; }
+ 		else if (!changed.length) console.log(`nothing to land: ${branch} changes no file against ${BASE}`);
+-		else if (!overlap.length && !staged.length) {
++		else if (!overlap.length) {
+ 			// prove the merge is clean BEFORE git merge touches anything
+ 			const mt = git(MAIN, "merge-tree", "--write-tree", "--name-only", "--no-messages", BASE, branch);
+ 			if (mt.status !== 0) {
+@@ -642,7 +658,7 @@ try {
+ 			}
+ 		} else {
+ 			// the main tree has uncommitted edits to files this branch changes: never git merge
+-			console.log(`the main tree has uncommitted edits to ${overlap.length ? overlap.join(", ") : "staged files"}; three-way merging each file into the working tree instead`);
++			console.log(`the main tree has uncommitted edits to ${overlap.join(", ")}; three-way merging each file into the working tree instead`);
+ 			threeWay();
+ 		}
+ 		}
+diff --git a/Server/merge.test.mjs b/Server/merge.test.mjs
+index 074774749..5d2f13cbc 100644
+--- a/Server/merge.test.mjs
++++ b/Server/merge.test.mjs
+@@ -34,16 +34,48 @@ test("a clean main: a new file and a changed file both land tracked, status clea
+ 	assert.equal(git(main, "status", "--porcelain").trim(), "", "git status --porcelain is empty");
+ });
+ 
+-test("someone else's staged file in main: the new file is still staged, not left untracked", () => {
++test("someone else's staged files in main: the merge commits only its paths and leaves theirs staged, exactly", () => {
+ 	const { main, wt } = scratch("worktree/two");
+-	write(main, "theirs.txt", "T\n"); git(main, "add", "theirs.txt");
++	write(main, "theirs.txt", "T\n"); write(main, "other.txt", "x\ny\n"); git(main, "add", "theirs.txt", "other.txt");
++	const before = git(main, "diff", "--cached", "--name-status");
+ 	const r = merge(wt, main);
+ 	assert.equal(r.status, 0, r.stdout + r.stderr);
+-	assert.ok(/left staged/.test(r.stdout), r.stdout);
+-	assert.ok(tracked(main, "b/new.txt"), "new file in git ls-files (index)");
++	assert.match(r.stderr, /2 file\(s\) were already staged/, "names the strays instead of refusing");
++	assert.ok(!/left staged/.test(r.stdout), "never leaves its own paths staged");
++	assert.equal(git(main, "diff", "--cached", "--name-status"), before, "the index holds exactly the strays, nothing of ours");
++	assert.deepEqual(git(main, "diff", "--name-only", "HEAD^1", "HEAD").split(/\r?\n/).filter(Boolean).sort(), ["a.txt", "b/new.txt"], "the commit holds only the landed paths");
++	assert.equal(git(main, "rev-list", "--parents", "-n1", "HEAD").trim().split(" ").length, 3, "a two-parent merge commit");
++	assert.equal(git(main, "rev-parse", "worktree/two").trim(), git(main, "rev-parse", "HEAD^2").trim(), "the branch head is the second parent");
++	assert.equal(git(main, "show", "HEAD:b/new.txt"), "NEW\n");
++	assert.ok(tracked(main, "b/new.txt"));
+ 	assert.ok(!/^\?\?/m.test(git(main, "status", "--porcelain")), "nothing untracked");
+ });
+ 
++test("a branch that DELETES a file lands the deletion through the temporary index, strays untouched", () => {
++	const { main, wt } = scratch("worktree/del");
++	git(wt, "rm", "-q", "other.txt"); git(wt, "commit", "-qm", "drop other");
++	write(main, "theirs.txt", "T\n"); git(main, "add", "theirs.txt");
++	const r = merge(wt, main);
++	assert.equal(r.status, 0, r.stdout + r.stderr);
++	assert.ok(!git(main, "ls-tree", "-r", "--name-only", "HEAD").includes("other.txt"), "deleted in HEAD");
++	assert.ok(!fs.existsSync(path.join(main, "other.txt")));
++	assert.equal(git(main, "diff", "--cached", "--name-only").trim(), "theirs.txt");
++});
++
++test("a refused merge (conflict) leaves the index exactly as it found it", () => {
++	const { main, wt } = scratch("worktree/conflict");
++	write(main, "a.txt", "main edit\n"); git(main, "commit", "-qam", "main moves a.txt");   // base moved: a.txt now conflicts
++	write(wt, "a.txt", "branch edit\n"); git(wt, "commit", "-qam", "branch edits a.txt differently");
++	write(main, "theirs.txt", "T\n"); git(main, "add", "theirs.txt");
++	const idx = git(main, "ls-files", "-s"), head = git(main, "rev-parse", "HEAD");
++	const r = merge(wt, main);
++	assert.notEqual(r.status, 0, "refused");
++	assert.equal(git(main, "ls-files", "-s"), idx, "index unchanged");
++	assert.equal(git(main, "rev-parse", "HEAD"), head, "HEAD unchanged");
++	assert.ok(!fs.existsSync(path.join(main, ".git", "MERGE_HEAD")));
++	assert.deepEqual(fs.readdirSync(path.join(main, ".git")).filter(f => f.startsWith("merge-index")), [], "no temporary index left");
++});
++
+ test("the main tree has an uncommitted edit to a landed file: three-way path still stages the new file", () => {
+ 	const { main, wt } = scratch("worktree/three");
+ 	fs.writeFileSync(path.join(main, "a.txt"), "1\n"); write(main, "other.txt", "x\ny\n");   // dirty, but not a landed file
+diff --git a/Server/worktree-servers.mjs b/Server/worktree-servers.mjs
+index 7c77a9290..3b13357f9 100644
+--- a/Server/worktree-servers.mjs
++++ b/Server/worktree-servers.mjs
+@@ -2,7 +2,7 @@
+  * whether its worktree is still wanted. A dry run; it stops nothing.
+  *
+  *   --list                   (default) the table
+- *   --stop-stale             stop the servers whose worktree is merged, gone, a returned pool slot, or whose task landed
++ *   --stop-stale             stop the servers whose worktree is merged (own commits all on the base, quiet 30 min; a fresh branch is not), gone, a returned pool slot, or whose task landed
+  *   --stop-stale --older-than <h>
+  *                            also stop a server of an unmerged worktree older than <h> hours with no agent working there
+  *   --dry                    with --stop-stale: say what would stop
+@@ -15,6 +15,7 @@ import { execFileSync } from "node:child_process";
+ import fs from "node:fs";
+ import path from "node:path";
+ import Lifecycle, { main_repo } from "../Servex/Lifecycle.js";
++import Worktrees from "./Worktrees.mjs";
+ 
+ const argv = process.argv.slice(2), arg = k => argv.includes(k) ? argv[argv.indexOf(k) + 1] : null;
+ const STOP = argv.includes("--stop-stale"), DRY = argv.includes("--dry"), OLDER_H = Number(arg("--older-than")) || 0;
+@@ -53,14 +54,14 @@ const out = [];
+ for (const r of rows) {
+ 	const age_h = r.born ? (Date.now() - r.born) / 3600e3 : null, name = path.basename(r.path);
+ 	const kept = lc.kept(r), slot = slot_of(r.path), branch = branch_of[slash(r.path)];
+-	let state, stale = false;
++	let state, stale = false, merged = null;
+ 	if (kept && !(slot && /pool slot/.test(kept))) state = `kept: ${kept}`;
+ 	else if (slot) { stale = !slot.taken_by && slot.state !== "taken"; state = !stale ? `pool slot, ${slot.state}${slot.taken_by ? ", taken by " + slot.taken_by : ""}` : `pool slot, ${slot.state} (returned)`; }
+ 	else if (!fs.existsSync(r.path) || !(slash(r.path) in branch_of)) { state = "gone (worktree removed)"; stale = true; }
+-	else if (branch && git("merge-base", "--is-ancestor", branch, BASE).ok) { state = `merged into ${BASE}`; stale = true; }
++	else if (branch && (merged = Worktrees.merged_stale(main, branch, r.path, { base: BASE })).stale) { state = merged.why; stale = true; }
+ 	else if (lc.task(r.owner_task)?.landed) { state = "task landed"; stale = true; }
+ 	else if (OLDER_H && age_h > OLDER_H) { state = `open, but up ${age_h.toFixed(0)} h (older than ${OLDER_H} h)`; stale = true; }
+-	else state = "open (in use or unmerged)";
++	else state = merged?.why && merged.why !== "not merged" ? `open (${merged.why})` : "open (in use or unmerged)";
+ 	out.push({ name, pid: r.pid, child: r.child, age_h, mb: tree_mb(r.pid), state, stale, r });
+ }
+ out.sort((a, b) => (b.stale - a.stale) || (b.age_h ?? 0) - (a.age_h ?? 0));
+diff --git a/public/framework/ai/sessions/doc/commit-rule.md b/public/framework/ai/sessions/doc/commit-rule.md
+index ee4e15814..b37f23ba7 100644
+--- a/public/framework/ai/sessions/doc/commit-rule.md
++++ b/public/framework/ai/sessions/doc/commit-rule.md
+@@ -22,6 +22,7 @@
+ 
+ - Every sweep takes only paths that match its allowlist (`LogSweeper.ALLOW`) and never one that matches `DENY` (code, markdown, `index.json`).
+ - It commits with `git commit --only --pathspec-from-file`, so another agent's staged work stays staged and uncommitted. Message: `servex: log sweep (N files)`.
++- `Server/merge.mjs` follows the same rule (2026-11-02): it commits only its landed paths through a temporary index and never leaves anything staged; files other agents staged are named in a warning and stay staged ([review.md](../../../../../Server/doc/review.md)).
+ - It skips while git is busy (`index.lock`, a merge, a rebase) or when the main tree is not on `michael/dev`.
+ - At most 400 files per commit; the rest wait. Nothing changed means no commit. It never deletes.
+ - Each sweep writes one line to Servex's `sweeper` log.

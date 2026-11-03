@@ -1,0 +1,179 @@
+{
+ "url": "C:/Program Files/Git/framework/core/Page/overview/columns/uses/docs/",
+ "widths": {
+  "400": {
+   "empty": 0.896,
+   "widest_text": 301,
+   "widest_text_sample": "Your file couldn’t be accessed",
+   "overflow_x": false,
+   "items": 0,
+   "narrow_share": 0,
+   "layout": "custom",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 24,
+     "layers": [
+      {
+       "cls": "interstitial-wrapper",
+       "px": 24
+      }
+     ]
+    },
+    "p": {
+     "total": 24,
+     "layers": [
+      {
+       "cls": "interstitial-wrapper",
+       "px": 24
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "div",
+     "y": 100,
+     "h": 279,
+     "share": 0.279,
+     "ink": 0.325,
+     "big_empty": false
+    }
+   ],
+   "wraps": []
+  },
+  "1200": {
+   "empty": 0.968,
+   "widest_text": 321,
+   "widest_text_sample": "Your file couldn’t be accessed",
+   "overflow_x": false,
+   "items": 0,
+   "narrow_share": 0,
+   "layout": "custom",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 292,
+     "layers": [
+      {
+       "cls": "interstitial-wrapper",
+       "px": 292
+      }
+     ]
+    },
+    "p": {
+     "total": 292,
+     "layers": [
+      {
+       "cls": "interstitial-wrapper",
+       "px": 292
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "div",
+     "y": 140,
+     "h": 291,
+     "share": 0.291,
+     "ink": 0.1,
+     "big_empty": true
+    }
+   ],
+   "wraps": []
+  },
+  "1920": {
+   "empty": 0.977,
+   "widest_text": 321,
+   "widest_text_sample": "Your file couldn’t be accessed",
+   "overflow_x": false,
+   "items": 0,
+   "narrow_share": 0,
+   "layout": "custom",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 652,
+     "layers": [
+      {
+       "cls": "interstitial-wrapper",
+       "px": 652
+      }
+     ]
+    },
+    "p": {
+     "total": 652,
+     "layers": [
+      {
+       "cls": "interstitial-wrapper",
+       "px": 652
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "div",
+     "y": 140,
+     "h": 291,
+     "share": 0.291,
+     "ink": 0.072,
+     "big_empty": true
+    }
+   ],
+   "wraps": []
+  },
+  "3440": {
+   "empty": 0.986,
+   "widest_text": 321,
+   "widest_text_sample": "Your file couldn’t be accessed",
+   "overflow_x": false,
+   "items": 0,
+   "narrow_share": 0,
+   "layout": "custom",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 1412,
+     "layers": [
+      {
+       "cls": "interstitial-wrapper",
+       "px": 1412
+      }
+     ]
+    },
+    "p": {
+     "total": 1412,
+     "layers": [
+      {
+       "cls": "interstitial-wrapper",
+       "px": 1412
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "div",
+     "y": 140,
+     "h": 291,
+     "share": 0.291,
+     "ink": 0.044,
+     "big_empty": true
+    }
+   ],
+   "wraps": []
+  }
+ },
+ "errors": [
+  "1920: goto page.goto: net::ERR_FILE_NOT_FOUND at c:/Program%20Files/Git/framework/core/Page/overview/columns/us",
+  "400: goto page.goto: net::ERR_FILE_NOT_FOUND at c:/Program%20Files/Git/framework/core/Page/overview/columns/us",
+  "3440: goto page.goto: net::ERR_FILE_NOT_FOUND at c:/Program%20Files/Git/framework/core/Page/overview/columns/us",
+  "1200: goto page.goto: net::ERR_FILE_NOT_FOUND at c:/Program%20Files/Git/framework/core/Page/overview/columns/us"
+ ]
+}

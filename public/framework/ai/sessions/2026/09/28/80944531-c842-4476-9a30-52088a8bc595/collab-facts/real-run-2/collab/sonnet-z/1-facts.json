@@ -1,0 +1,47 @@
+[
+  {
+    "id": "sz-report-length",
+    "text": "The sub-mastermind SKILL.md says a Landed report is 'one screen' of plain sentences with links, and says numbers stay in the log; it never states a two-or-three-sentence rule for card_reply specifically, so that exact wording is likely a convention enforced elsewhere (e.g. the mastermind/every-prompt tier docs), not something found as a hard rule in these two files.",
+    "certainty": "open"
+  },
+  {
+    "id": "sz-depth-stops-at-two",
+    "text": "The SKILL.md's Never list states plainly: 'spawn another task mastermind (depth stops at two until one measured run proves a three-deep tree can report failure upward)' — this is a settled, explicit hard rule with a named condition for when it could change (a measured run proving upward failure-reporting works at three deep).",
+    "certainty": "settled"
+  },
+  {
+    "id": "sz-depth-two-rationale",
+    "text": "The stated reason for the depth-two cap is about reporting failure upward through a background/nested-agent notification path, not about task scope or quality — so the edge case that would bend it is specifically a proven mechanism for a three-deep tree to surface a failure to the top, not just a 'this task is complex enough to need it' argument.",
+    "certainty": "likely"
+  },
+  {
+    "id": "sz-merge-gate-hard",
+    "text": "Server/doc/review.md describes Server/merge.mjs as a hard gate: it 'refuses' a light or full branch with no review newer than its last commit, or with an unanswered [fix] finding — this reads as an enforced mechanical rule (a script refusing), not a convention, for branches that are light or full size.",
+    "certainty": "settled"
+  },
+  {
+    "id": "sz-merge-none-size-exempt",
+    "text": "review.md's size table lists 'none' (only CSS or docs changed, 20 lines or fewer, no new file) as reviewed by nobody — implying the merge.mjs gate's review requirement is naturally moot for none-size changes, since there is no review to be newer than the last commit; this is the one clearly legitimate edge where 'every merge needs a review' does not bite, though the doc doesn't say merge.mjs explicitly special-cases it.",
+    "certainty": "likely"
+  },
+  {
+    "id": "sz-merge-mjs-only-path",
+    "text": "review.md never mentions a plain 'git merge' as an alternative path at all, and describes merge.mjs purely in terms of what it refuses and reads (task.jsonl) — there is no stated escape hatch or override for skipping merge.mjs in favor of a plain git merge, so nothing in these two files shows where that rule bends; it may simply be absolute within this doc's scope.",
+    "certainty": "open"
+  },
+  {
+    "id": "sz-size-can-be-lowered-not-raised",
+    "text": "review.md states the task mastermind may lower the review size only with a logged '--why self-evident: <one line>' reason, while raising the size needs no reason — this is a settled asymmetric rule, and it's the clearest example in the doc of a place a strict-sounding classification (size) is explicitly allowed to bend, with the exact condition for bending spelled out.",
+    "certainty": "settled"
+  },
+  {
+    "id": "sz-one-round-of-holds",
+    "text": "review.md is explicit that the four-turn review process has 'one round of holds only — turn 4 is the last word, there is no turn 5,' which is a settled hard rule about the review flow (though separate from the merge-mechanism question).",
+    "certainty": "settled"
+  },
+  {
+    "id": "sz-second-review-pass-unhandled",
+    "text": "review.md flags its own turns model as built for exactly one finding pass per task, and calls a genuine second full review pass after settlement 'a known limit, not a defended-against case' — this is an admitted edge case where the review/merge machinery does not have a clean rule yet, rather than a place the rule is known to bend safely.",
+    "certainty": "open"
+  }
+]

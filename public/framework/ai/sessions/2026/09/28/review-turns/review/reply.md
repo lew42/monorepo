@@ -1,0 +1,2 @@
+3. [accept] The fence for this deliverable really is Server/review.mjs and Server/doc/review.md; the sub-mastermind skill line is a different file owned by a different deliverable, and flagging it for pickup there is the right move rather than reaching outside the fence to fix it here.
+5. [accept] The one-review-pass model is what requirements.md actually asks for, so building cross-run scoping now would be solving a case nobody has yet; writing the limit plainly into doc/review.md is a fair substitute for code that isn't needed today.

@@ -1,0 +1,21 @@
+{
+	"measured_at": "2026-08-30T18:11:14-05:00",
+	"method": "the eager-load-cost probe, re-run: headless Chromium over raw CDP, Network.setCacheDisabled, one fresh browser context per url, 3.5s settle, responses deduped by path and filtered to status 200. The BEFORE column reproduced cost.json exactly on all five urls before the first edit.",
+	"change": "core/Page: a declared `depth` (default 2) bounds what a page fetches; the constructor fetches nothing; `leaf` spends none of a parent's budget; navigating into a page tops it up to its own depth. Declarations touched: imagine/page.js `depth: 1`, blog/page.js `depth: 0`.",
+	"urls": {
+		"/": { "before": { "page_js": 1, "kb": 7.6 }, "after": { "page_js": 1, "kb": 7.6 }, "cut": "0%", "previews": 11 },
+		"/blog/": { "before": { "page_js": 6, "kb": 16.9 }, "after": { "page_js": 2, "kb": 13.8 }, "cut": "67%", "previews": 16 },
+		"/framework/": { "before": { "page_js": 261, "kb": 1080 }, "after": { "page_js": 57, "kb": 279.1 }, "cut": "78%", "previews": 53 },
+		"/framework/core/Page/": { "before": { "page_js": 261, "kb": 1080 }, "after": { "page_js": 95, "kb": 378.7 }, "cut": "64%", "previews": 89 },
+		"/imagine/": { "before": { "page_js": 92, "kb": 316 }, "after": { "page_js": 20, "kb": 120.4 }, "cut": "78%", "previews": 24 }
+	},
+	"unchanged_on_screen": "the DOM census before vs after is identical on /framework/ and /imagine/: same 53 and 24 preview cards (href + text), 64 sidebar links, 14 column rail items, 5 wall titles. The /imagine/ full-page screenshot is MD5-identical; /framework/ differs only in the live clock's digits.",
+	"still_eager": {
+		"/framework/core/Page/ 95 vs a needed 86": "core/Page's `old` branch is a tab, not a wall, so its 7 children are fetched at depth 2 and drawn only on /framework/core/Page/old/. Left alone: a load hint on a page nobody complained about is worse than 7 modules.",
+		"/imagine/ 20 vs a needed 15": "imagine/scenes/page.js STATICALLY imports its 5 scene children (its own comment says why: the 3D host needs them synchronously). Not a declaration cost and not reachable from here."
+	},
+	"pre_existing_failures": [
+		"/imagine/cms/welcome/page.js 404s - cms declares a child with no page.js. Before this change the 404 fired on /imagine/ itself; now it fires on /imagine/cms/, where it belongs.",
+		"/framework/ux/Auth/ throws in demo.exhibit (page undefined) and /framework/ai/2026-08-13/ 404s a resource - both reproduce identically on the reverted eager code."
+	]
+}

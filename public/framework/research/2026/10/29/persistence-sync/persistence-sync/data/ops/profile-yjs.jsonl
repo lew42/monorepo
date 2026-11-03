@@ -1,0 +1,38 @@
+{"op":"set","id":"yjs","key":"summary","value":"Embeddable CRDT library for shared maps, lists and rich text; pure JS with binary updates, merged by the library on every replica.","by":"profile-yjs","at":"2026-10-30T03:14:33Z","src":"notes/sync_engines_crdts.md"}
+{"op":"set","id":"yjs","key":"category","value":"crdt","by":"profile-yjs","at":"2026-10-30T03:14:33Z","src":"taxonomy.md"}
+{"op":"set","id":"yjs","key":"subcategory","value":"crdt-core","by":"profile-yjs","at":"2026-10-30T03:14:33Z","src":"taxonomy.md"}
+{"op":"set","id":"yjs","key":"kind","value":"tool","by":"profile-yjs","at":"2026-10-30T03:14:33Z","src":"tools/yjs.md"}
+{"op":"set","id":"yjs","key":"status","value":{"id":"active","date":"2026-09-23","note":"13.6.33 stable on npm; v14 in beta, clone main at 14.0.0-rc.29"},"by":"profile-yjs","at":"2026-10-30T03:14:33Z","src":"notes/sync_engines_crdts.md"}
+{"op":"set","id":"yjs","key":"license","value":"MIT","by":"profile-yjs","at":"2026-10-30T03:14:33Z","src":"https://github.com/yjs/yjs/blob/0e0dc3401b9753fbffb60699f6b68460cf1bcdf9/LICENSE#L1"}
+{"op":"set","id":"yjs","key":"profile","value":"tools/yjs.md","by":"profile-yjs","at":"2026-10-30T03:14:33Z","src":"tools/yjs.md"}
+{"op":"add","id":"yjs","key":"layers","value":"client-state","by":"profile-yjs","at":"2026-10-30T03:14:33Z","src":"taxonomy.md"}
+{"op":"add","id":"yjs","key":"layers","value":"sync-authority","by":"profile-yjs","at":"2026-10-30T03:14:33Z","src":"taxonomy.md"}
+{"op":"add","id":"yjs","key":"strategies","value":"authority: hybrid","by":"profile-yjs","at":"2026-10-30T03:14:33Z","src":"notes/sync_engines_crdts.md"}
+{"op":"add","id":"yjs","key":"strategies","value":"conflict: crdt","by":"profile-yjs","at":"2026-10-30T03:14:33Z","src":"https://github.com/yjs/yjs/blob/0e0dc3401b9753fbffb60699f6b68460cf1bcdf9/src/utils/encoding.js#L354-L355"}
+{"op":"add","id":"yjs","key":"strategies","value":"change-format: crdt-updates","by":"profile-yjs","at":"2026-10-30T03:14:33Z","src":"https://github.com/yjs/yjs/blob/0e0dc3401b9753fbffb60699f6b68460cf1bcdf9/src/utils/Transaction.js#L320"}
+{"op":"add","id":"yjs","key":"strategies","value":"list-order: list-crdt","by":"profile-yjs","at":"2026-10-30T03:14:33Z","src":"notes/sync_engines_crdts.md"}
+{"op":"add","id":"yjs","key":"strategies","value":"client-model: documents","by":"profile-yjs","at":"2026-10-30T03:14:33Z","src":"notes/collab_app_architectures.md"}
+{"op":"add","id":"yjs","key":"strategies","value":"reactivity: events","by":"profile-yjs","at":"2026-10-30T03:14:33Z","src":"https://github.com/yjs/yjs/blob/0e0dc3401b9753fbffb60699f6b68460cf1bcdf9/src/ynode.js#L977-L990"}
+{"op":"add","id":"yjs","key":"features","value":"offline","by":"profile-yjs","at":"2026-10-30T03:14:33Z","src":"notes/sync_engines_crdts.md"}
+{"op":"add","id":"yjs","key":"features","value":"multi-user-merge","by":"profile-yjs","at":"2026-10-30T03:14:33Z","src":"notes/sync_engines_crdts.md"}
+{"op":"add","id":"yjs","key":"features","value":"undo-history","by":"profile-yjs","at":"2026-10-30T03:14:33Z","src":"https://github.com/yjs/yjs/blob/0e0dc3401b9753fbffb60699f6b68460cf1bcdf9/src/utils/UndoManager.js#L155"}
+{"op":"add","id":"yjs","key":"features","value":"nested-trees","by":"profile-yjs","at":"2026-10-30T03:14:33Z","src":"notes/collab_app_architectures.md"}
+{"op":"add","id":"yjs","key":"features","value":"indexeddb","by":"profile-yjs","at":"2026-10-30T03:14:33Z","src":"notes/sync_engines_crdts.md"}
+{"op":"add","id":"yjs","key":"features","value":"runs-on-cloudflare-workers","by":"profile-yjs","at":"2026-10-30T03:14:33Z","src":"notes/sync_engines_crdts.md"}
+{"op":"add","id":"yjs","key":"features","value":"self-hostable","by":"profile-yjs","at":"2026-10-30T03:14:33Z","src":"notes/sync_engines_crdts.md"}
+{"op":"add","id":"yjs","key":"features","value":"open-source","by":"profile-yjs","at":"2026-10-30T03:14:33Z","src":"https://github.com/yjs/yjs/blob/0e0dc3401b9753fbffb60699f6b68460cf1bcdf9/LICENSE#L1"}
+{"op":"add","id":"yjs","key":"pairs_with","value":{"id":"hocuspocus","why":"standard Node room server; its store hooks save the full Yjs state; Hocuspocus 4 runs on Workers too"},"by":"profile-yjs","at":"2026-10-30T03:14:33Z","src":"notes/sync_engines_crdts.md"}
+{"op":"add","id":"yjs","key":"pairs_with","value":{"id":"y-websocket","why":"development room server and starting point for your own"},"by":"profile-yjs","at":"2026-10-30T03:14:33Z","src":"notes/sync_engines_crdts.md"}
+{"op":"add","id":"yjs","key":"pairs_with","value":{"id":"y-leveldb","why":"keeps each update and merges them into one state past 500 stored updates"},"by":"profile-yjs","at":"2026-10-30T03:14:33Z","src":"notes/sync_engines_crdts.md"}
+{"op":"add","id":"yjs","key":"pairs_with","value":{"id":"y-sweet","why":"Rust Yjs server that persists to S3-compatible storage or a directory"},"by":"profile-yjs","at":"2026-10-30T03:14:33Z","src":"notes/sync_engines_crdts.md"}
+{"op":"add","id":"yjs","key":"pairs_with","value":{"id":"cloudflare-durable-objects","why":"y-partyserver keeps one Yjs room per Durable Object"},"by":"profile-yjs","at":"2026-10-30T03:14:33Z","src":"notes/sync_engines_crdts.md"}
+{"op":"add","id":"yjs","key":"pairs_with","value":{"id":"prosemirror","why":"y-prosemirror binds the doc to a ProseMirror editor"},"by":"profile-yjs","at":"2026-10-30T03:14:33Z","src":"notes/adopters_and_pairings.md"}
+{"op":"add","id":"yjs","key":"pairs_with","value":{"id":"lexical","why":"@lexical/yjs binds the doc to a Lexical editor"},"by":"profile-yjs","at":"2026-10-30T03:14:33Z","src":"notes/adopters_and_pairings.md"}
+{"op":"add","id":"yjs","key":"alternatives","value":{"id":"automerge","why":"different CRDT with its own storage and network repo; pick it when storage and sync should come built in"},"by":"profile-yjs","at":"2026-10-30T03:14:33Z","src":"tools/automerge-repo.md"}
+{"op":"add","id":"yjs","key":"alternatives","value":{"id":"loro","why":"CRDT with a native movable list and trees; pick it when list move matters"},"by":"profile-yjs","at":"2026-10-30T03:14:33Z","src":"taxonomy.md"}
+{"op":"add","id":"yjs","key":"adopters","value":{"name":"Outline","how":"Hocuspocus plus y-prosemirror; Yjs state in a Postgres Document.state column","src":"notes/adopters_and_pairings.md"},"by":"profile-yjs","at":"2026-10-30T03:14:33Z","src":"notes/adopters_and_pairings.md"}
+{"op":"add","id":"yjs","key":"adopters","value":{"name":"Plane","how":"stores description_binary (Yjs) next to HTML and JSON copies","src":"notes/adopters_and_pairings.md"},"by":"profile-yjs","at":"2026-10-30T03:14:33Z","src":"notes/adopters_and_pairings.md"}
+{"op":"add","id":"yjs","key":"adopters","value":{"name":"AFFiNE","how":"BlockSuite editor on a Yjs doc store; one doc per page; updates and snapshots in Postgres","src":"notes/adopters_and_pairings.md"},"by":"profile-yjs","at":"2026-10-30T03:14:33Z","src":"notes/adopters_and_pairings.md"}
+{"op":"add","id":"yjs","key":"adopters","value":{"name":"HedgeDoc","how":"raw ws server with in-memory Y.Docs; timer saves Revision rows with encoded Yjs state","src":"notes/adopters_and_pairings.md"},"by":"profile-yjs","at":"2026-10-30T03:14:33Z","src":"notes/adopters_and_pairings.md"}
+{"op":"add","id":"yjs","key":"adopters","value":{"name":"Proton Docs","how":"Lexical with @lexical/yjs and yjs in the browser editor","src":"notes/adopters_and_pairings.md"},"by":"profile-yjs","at":"2026-10-30T03:14:33Z","src":"notes/adopters_and_pairings.md"}
+{"op":"add","id":"yjs","key":"sources","value":"https://docs.yjs.dev/","by":"profile-yjs","at":"2026-10-30T03:14:33Z","src":"https://docs.yjs.dev/"}

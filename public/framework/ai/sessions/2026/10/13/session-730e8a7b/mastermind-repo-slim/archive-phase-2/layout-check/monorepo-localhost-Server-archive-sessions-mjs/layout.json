@@ -1,0 +1,42 @@
+{
+ "url": "http://monorepo.localhost/Server/archive-sessions.mjs",
+ "widths": {
+  "1280": {
+   "empty": 0.41,
+   "widest_text": 1237,
+   "widest_text_sample": "#!/usr/bin/env node\n// Move a month's un",
+   "overflow_x": false,
+   "items": 0,
+   "narrow_share": 0
+  },
+  "1920": {
+   "empty": 0.602,
+   "widest_text": 1880,
+   "widest_text_sample": "#!/usr/bin/env node\n// Move a month's un",
+   "overflow_x": false,
+   "items": 0,
+   "narrow_share": 0
+  },
+  "2560": {
+   "empty": 0.698,
+   "widest_text": 2330,
+   "widest_text_sample": "#!/usr/bin/env node\n// Move a month's un",
+   "overflow_x": false,
+   "items": 0,
+   "narrow_share": 0
+  },
+  "3440": {
+   "empty": 0.772,
+   "widest_text": 3102,
+   "widest_text_sample": "#!/usr/bin/env node\n// Move a month's un",
+   "overflow_x": false,
+   "items": 0,
+   "narrow_share": 0
+  }
+ },
+ "errors": [
+  "1280: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1920: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "2560: Failed to load resource: the server responded with a status of 404 (Not Found)"
+ ]
+}

@@ -6,7 +6,7 @@
 	   where the michael docs render. */
 
 	.column-pager .demo > * {
-		background: var(--prim);
+		background: var(--prime);
 		color: #fff;
 		padding: 0.8em 1em;
 		border-radius: 0.3em;

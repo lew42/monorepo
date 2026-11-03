@@ -13,7 +13,7 @@ export default new Page({
 
 		section("The ranked list — status after eleven applied changes");
 
-		note("Independently means: no seat could read another's work when it wrote this. Rank is seat count first, then how cheap the fix is. **Re-run after Master Mike applied eleven changes** — seven requests closed, one was ruled deliberately half-open, eleven survive. Verified against the source, not against the changelog.");
+		note("Independently means: no seat could read another's work when it wrote this. Rank is seat count first, then how cheap the fix is. **Re-run after the owner applied eleven changes** — seven requests closed, one was ruled deliberately half-open, eleven survive. Verified against the source, not against the changelog.");
 
 		ledger(["#", "request", "seats", "status"], [
 			["1", "**Something runs after a navigation completes.** Six seats, and three named three different lines.", "**6**", "**HALF CLOSED, on purpose.** `Router.activate()` now ends `this.app.navigated?.(page)`. `Page.entered()` refused as a separate request — the right call, see below."],
@@ -26,7 +26,7 @@ export default new Page({
 			["8", "**A module that throws is reported as a module that isn't there.**", "**2**", "**OPEN.** `Page.missing()` still sniffs the message."],
 			["9", "**Inline children of an inline child get broken urls.**", "**2**", "**CLOSED.** Adoption now goes in through the constructor — `new Page({…}, adopt)` — so `initialize()` sees a parent and a url."],
 			["10", "**`p()` is not markdown.**", "**2**", "**CLOSED as a rule**, not as code. Third seat to ship literal asterisks; now in the readme."],
-			["11", "**`ext/demo` and `ext/highlight` are unusable here.**", "**2**", "**CLOSED.** Six tokens at `:root` — the sixth, `--prim`, was one `md.css` also needed."],
+			["11", "**`ext/demo` and `ext/highlight` are unusable here.**", "**2**", "**CLOSED.** Six tokens at `:root` — the sixth, `--prime`, was one `md.css` also needed."],
 			["12", "Every navigation rescans every page you have ever visited.", "1", "**OPEN.**"],
 			["13", "`aria-current=\"page\"` in `mark_links()`.", "1", "**OPEN.** One line, still not in."],
 			["14", "`util/source` slices at the first `=>`.", "1", "**CLOSED.** Depth-tracking `arrow_at()`, and it keeps `({ a }) => body` working."],

@@ -1,0 +1,6 @@
+{"class":"/framework/ai2/card.js","title":"AI 2: the prioritized view is live","type":"card","id":"2026/09/23/ai2-nested","created":"2026-09-23T11:54:48-05:00","by":"","tags":[]}
+{"legacy":"ai2-nested"}
+{"icon":"build"}
+{"text":"AI 2 now opens on four columns by importance: needs you, reports, landed, live (agents, usage bars, the stream). Open any card or 'the full inbox' for the rail view; sub-cards open in a third column; every card has its own event file on Servex. After the merge the page broke in your tab (rows escaping into the site frame) - found by my own screenshot, fixed in one line, proven. Next round: stale stopped agents in the Live column, cost per card, the chain of who touched a card."}
+{"status":"done"}
+{"links":[{"url":"/framework/ai2/","label":"AI 2"},{"url":"/framework/ai/2026-09-22/ai2-nested/","label":"the task ($27.61, 57 min)"},{"url":"/framework/ai/2026-09-22/ai2-nested/next.md","label":"round 3 queue"}]}

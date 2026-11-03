@@ -1,0 +1,22 @@
+verdict: fix
+1. [fix] The "19 pass, 13 red against monorepo.localhost" claim (doc/health.md, "Per-script run" paragraph) still has no recorded run behind it. health.md says "each line is in results.jsonl, trigger `browser`", but every `browser` line for `dictation-bar`, `docs-tab` and `refresh` in results.jsonl, in both the worktree and the main checkout, is `ok:false`, so the latest result per script is 16 pass, the same as run-all.jsonl:1. Run `run-all.mjs --browser` from a checkout whose site is current and quote that line, or state 16 pass with those three as must-pass failures.
+2. [fix] The node-results table in health.md:14 still says `Files.move.test.mjs` "passes but needs 86 s, so the runner reports a timeout". The new bullet under "Still red" says it now fails with `EPERM` at 64 s even with the 150 s limit in timeouts.json. The table and the bullet contradict each other. Make the table row match the bullet, and file the EPERM failure in Server/improvements.jsonl with the failing output (requirement 3).
+3. [fix] The Dictate reds still aren't filed with their owner. health.md says "the Dictate ones with the ux/Dictate owner", but `debug-tab`, `swallow`, `reconnect`, `settings`, `stall`, `in-place`, `new-session` and `deltas` appear nowhere in ux/Dictate/improvements.jsonl, Servex/agents/inbox.jsonl or this task's session.jsonl, and nothing shows a `send_to_agent mastermind-dictation-v3`. The fence rule requires that hand-off. The same applies to the `ChatV2.test.mjs`/`ChatV3.test.mjs` reds, which go to mastermind-chat-model. Send both and link where they went.
+4. [fix] A fresh agent still can't continue from this folder. The last lines of session.jsonl are a failed review ("fetch failed") and "session resumed". No line says that ca0f9ddea on worktree/test-browser is the head waiting for review and merge, or what is left (the merge, a main-checkout proof run, the hand-offs). Every box in requirements.md is still unticked. Add that one log line and tick the boxes that are done.
+5. [note] health.md's first section, "The command to run everything" (doc/health.md:3–4), still names only `TestRunner.mjs` and "204 tests". The diff adds `run-all.mjs [--browser]` as the real whole-suite command, and requirement 5 asks for "the command to run everything". Lead with `run-all.mjs` there, and keep the second copy further down to a link.
+6. [note] health.md's red list still repeats every `why` from browser-scripts.mjs word for word, so the reasons now live in two places that will drift apart. Name the reds and link browser-scripts.mjs for the reasons.
+7. [note] `browser()` now removes its temp shots folder (TestRunner.mjs, `fs.rmSync`), so the earlier temp-folder note is fixed. On a timeout, `child.kill()` still stops only the node script, and on Windows the headless Chromium it started can keep running through a long unattended run.
+8. [note] The code is simple enough: one `--browser` branch, a status allow-list, and per-file limits read from a JSON file. I found no simpler design. The readme (core/Test/readme.md) indexes all four new files.
+
+## Requirements
+- 1 "Inventory every test… its path and module; whether merge/smoke/TestRunner runs it; browser or live server" — yes — health.md's table and gate section, plus browser-scripts.mjs, which lists the 34 browser scripts
+- 2 "Run them all against the main site… Record pass, fail, skip and time" — partly — results.jsonl has a line with its time for every script, but the only full browser run recorded was against test-browser.localhost, not the main site (run-all.jsonl:1, `site`)
+- 3 "For each failure, find the cause… stale fixed in a worktree; real bug filed in improvements.jsonl" — partly — the Refine reds are filed in ext/Refine/improvements.jsonl; the Dictate, Chat and Files.move EPERM reds are not filed (findings 2, 3)
+- 4 "Tests that never run are a finding… wire it if small and safe" — yes — `TestRunner.mjs --browser` and `run-all.mjs` are wired, and health.md says it is not scheduled
+- 5 "Write the result at core/Test/doc/health.md… table, command to run everything, what the gate runs; link from readme" — partly — linked from the readme, but the table is stale (finding 2) and the "run everything" section predates run-all.mjs (finding 5)
+- Class/live instances — n/a
+
+## Words
+- content: plain sentences — yes — health.md, the `--browser` section
+- content: one copy of each fact — no — the reds' reasons are copied from browser-scripts.mjs (finding 6)
+- content: claims backed by a recorded source — no — "19 pass" (finding 1)

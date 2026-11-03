@@ -1,0 +1,248 @@
+[
+  {
+    "file": "palette-1280.png",
+    "url": "http://localhost/framework/core/Page/",
+    "width": 1280,
+    "label": "palette wall"
+  },
+  {
+    "file": "palette-1920.png",
+    "url": "http://localhost/framework/core/Page/",
+    "width": 1920,
+    "label": "palette wall"
+  },
+  {
+    "file": "palette-3440.png",
+    "url": "http://localhost/framework/core/Page/",
+    "width": 3440,
+    "label": "palette wall"
+  },
+  {
+    "file": "generator-1280.png",
+    "url": "http://localhost/framework/core/Page/generator/",
+    "width": 1280,
+    "label": "generator base, seed 7"
+  },
+  {
+    "file": "generator-1920.png",
+    "url": "http://localhost/framework/core/Page/generator/",
+    "width": 1920,
+    "label": "generator base, seed 7"
+  },
+  {
+    "file": "generator-3440.png",
+    "url": "http://localhost/framework/core/Page/generator/",
+    "width": 3440,
+    "label": "generator base, seed 7"
+  },
+  {
+    "file": "generator-3840.png",
+    "url": "http://localhost/framework/core/Page/generator/",
+    "width": 3840,
+    "label": "generator base, seed 7"
+  },
+  {
+    "file": "generator-A-roll-seed917644.png",
+    "url": "http://localhost/framework/core/Page/generator/#917644",
+    "width": 1920,
+    "label": "rolled seed 917644"
+  },
+  {
+    "file": "generator-A-seed917644-l1.png",
+    "url": "http://localhost/framework/core/Page/generator/tabs/#917644",
+    "width": 1920,
+    "label": "seed 917644, 1 level(s) deep"
+  },
+  {
+    "file": "generator-A-seed917644-l2.png",
+    "url": "http://localhost/framework/core/Page/generator/tabs/list/#917644",
+    "width": 1920,
+    "label": "seed 917644, 2 level(s) deep"
+  },
+  {
+    "file": "generator-A-seed917644-l3.png",
+    "url": "http://localhost/framework/core/Page/generator/tabs/list/prose/#917644",
+    "width": 1920,
+    "label": "seed 917644, 3 level(s) deep"
+  },
+  {
+    "file": "generator-B-roll-seed13866.png",
+    "url": "http://localhost/framework/core/Page/generator/#13866",
+    "width": 1920,
+    "label": "rolled seed 13866"
+  },
+  {
+    "file": "generator-B-seed13866-l1.png",
+    "url": "http://localhost/framework/core/Page/generator/tabs/#13866",
+    "width": 1920,
+    "label": "seed 13866, 1 level(s) deep"
+  },
+  {
+    "file": "generator-B-seed13866-l2.png",
+    "url": "http://localhost/framework/core/Page/generator/tabs/vtabs/#13866",
+    "width": 1920,
+    "label": "seed 13866, 2 level(s) deep"
+  },
+  {
+    "file": "generator-B-seed13866-l3.png",
+    "url": "http://localhost/framework/core/Page/generator/tabs/vtabs/list/#13866",
+    "width": 1920,
+    "label": "seed 13866, 3 level(s) deep"
+  },
+  {
+    "file": "rolls42-1280.png",
+    "url": "http://localhost/framework/core/Page/generator/rolls/#42",
+    "width": 1280,
+    "label": "permutation wall, seed base 42"
+  },
+  {
+    "file": "rolls42-1920.png",
+    "url": "http://localhost/framework/core/Page/generator/rolls/#42",
+    "width": 1920,
+    "label": "permutation wall, seed base 42"
+  },
+  {
+    "file": "rolls42-3440.png",
+    "url": "http://localhost/framework/core/Page/generator/rolls/#42",
+    "width": 3440,
+    "label": "permutation wall, seed base 42"
+  },
+  {
+    "file": "rolls42-3840.png",
+    "url": "http://localhost/framework/core/Page/generator/rolls/#42",
+    "width": 3840,
+    "label": "permutation wall, seed base 42"
+  },
+  {
+    "file": "finder-initial-1280.png",
+    "url": "http://localhost/framework/core/Page/overview/columns/finder/",
+    "width": 1280,
+    "label": "finder initial state"
+  },
+  {
+    "file": "finder-initial-1920.png",
+    "url": "http://localhost/framework/core/Page/overview/columns/finder/",
+    "width": 1920,
+    "label": "finder initial state"
+  },
+  {
+    "file": "finder-initial-3440.png",
+    "url": "http://localhost/framework/core/Page/overview/columns/finder/",
+    "width": 3440,
+    "label": "finder initial state"
+  },
+  {
+    "file": "finder-initial-3840.png",
+    "url": "http://localhost/framework/core/Page/overview/columns/finder/",
+    "width": 3840,
+    "label": "finder initial state"
+  },
+  {
+    "file": "finder-hover-item.png",
+    "url": "http://localhost/framework/core/Page/overview/columns/finder/",
+    "width": 1920,
+    "label": "hover state on a column nav row"
+  },
+  {
+    "file": "finder-deepest.png",
+    "url": "http://localhost/framework/core/Page/overview/columns/finder/guides/deep/deeper/deepest/",
+    "width": 1920,
+    "label": "navigated to Guides > Deep > Deeper > Deepest, 4 columns"
+  },
+  {
+    "file": "finder-hover-close.png",
+    "url": "http://localhost/framework/core/Page/overview/columns/finder/guides/deep/deeper/deepest/",
+    "width": 1920,
+    "label": "hover state on a column close X"
+  },
+  {
+    "file": "finder-crumbback-guides.png",
+    "url": "http://localhost/framework/core/Page/overview/columns/finder/guides/",
+    "width": 1920,
+    "label": "back to Guides via crumb strip"
+  },
+  {
+    "file": "finder-full.png",
+    "url": "http://localhost/framework/core/Page/overview/columns/finder/guides/words/full/",
+    "width": 1920,
+    "label": "Full column collapses ancestors (width: full)"
+  },
+  {
+    "file": "finder-crumbback-root.png",
+    "url": "http://localhost/framework/core/Page/overview/columns/finder/",
+    "width": 1920,
+    "label": "back to Finder root via crumb strip"
+  },
+  {
+    "file": "examples-index-1920.png",
+    "url": "http://localhost/framework/core/Page/overview/columns/examples/",
+    "width": 1920,
+    "label": "examples index / recipe list"
+  },
+  {
+    "file": "example-backgrounds-1920.png",
+    "url": "http://localhost/framework/core/Page/overview/columns/examples/looks/backgrounds/",
+    "width": 1920,
+    "label": "recipe: backgrounds"
+  },
+  {
+    "file": "example-padding-1920.png",
+    "url": "http://localhost/framework/core/Page/overview/columns/examples/looks/padding/",
+    "width": 1920,
+    "label": "recipe: padding"
+  },
+  {
+    "file": "example-scrollbars-1920.png",
+    "url": "http://localhost/framework/core/Page/overview/columns/examples/looks/scrollbars/",
+    "width": 1920,
+    "label": "recipe: scrollbars"
+  },
+  {
+    "file": "example-flush-wall-1920.png",
+    "url": "http://localhost/framework/core/Page/overview/columns/examples/grids/flush-wall/",
+    "width": 1920,
+    "label": "recipe: flush-wall"
+  },
+  {
+    "file": "example-flush-wall-3440.png",
+    "url": "http://localhost/framework/core/Page/overview/columns/examples/grids/flush-wall/",
+    "width": 3440,
+    "label": "recipe: flush-wall at 3440"
+  },
+  {
+    "file": "example-grid-detail-1920.png",
+    "url": "http://localhost/framework/core/Page/overview/columns/examples/grids/grid-detail/",
+    "width": 1920,
+    "label": "recipe: grid-detail"
+  },
+  {
+    "file": "example-grid-detail-3440.png",
+    "url": "http://localhost/framework/core/Page/overview/columns/examples/grids/grid-detail/",
+    "width": 3440,
+    "label": "recipe: grid-detail at 3440"
+  },
+  {
+    "file": "example-list-large-1920.png",
+    "url": "http://localhost/framework/core/Page/overview/columns/examples/grids/list-large/",
+    "width": 1920,
+    "label": "recipe: list-large"
+  },
+  {
+    "file": "example-list-large-3440.png",
+    "url": "http://localhost/framework/core/Page/overview/columns/examples/grids/list-large/",
+    "width": 3440,
+    "label": "recipe: list-large at 3440"
+  },
+  {
+    "file": "example-measure-3440-1920.png",
+    "url": "http://localhost/framework/core/Page/overview/columns/examples/grids/measure-3440/",
+    "width": 1920,
+    "label": "recipe: measure-3440"
+  },
+  {
+    "file": "example-measure-3440-3440.png",
+    "url": "http://localhost/framework/core/Page/overview/columns/examples/grids/measure-3440/",
+    "width": 3440,
+    "label": "recipe: measure-3440 at 3440"
+  }
+]

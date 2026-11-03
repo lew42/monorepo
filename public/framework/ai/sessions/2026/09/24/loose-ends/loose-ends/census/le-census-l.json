@@ -1,0 +1,549 @@
+[
+ {
+  "task": "agent-host",
+  "date": "2026-09-22",
+  "link": "/framework/ai/2026-09-22/agent-host/",
+  "title": "Build Servex/agents/ — Claude sessions held in memory, spawned, messaged and interrupted through Servex. Agents.js (the host, five verbs), h",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Left for the integration task, on purpose.",
+   "Left because it is blocked."
+  ]
+ },
+ {
+  "task": "ai2-master-detail",
+  "date": "2026-09-22",
+  "link": "/framework/ai/2026-09-22/ai2-master-detail/",
+  "title": "AI 2 becomes a list on the left and one persistent page on the right; nothing ever jumps. Master-detail with URL selection, a quiet 'N new' ",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Left deliberately.",
+   "Deferred to tomorrow, by the mastermind: item 7 (three sizes by importance), 13 (the dark session card), 14 (url-backed views — the notes word is a filter, not a url, because route() claims every path segment as a card id), 16 (promote) and 20 (sections inside a card)."
+  ]
+ },
+ {
+  "task": "ai2-nested",
+  "date": "2026-09-22",
+  "link": "/framework/ai/2026-09-22/ai2-nested/",
+  "title": "AI 2: the prioritized four-column overview first, then persistence survey, per-card storage, preview > detail > sub-card columns, footer/scr",
+  "status": "landed"
+ },
+ {
+  "task": "board-declutter",
+  "date": "2026-09-22",
+  "link": "/framework/ai/2026-09-22/board-declutter/",
+  "title": "this ai dashboard has way too much bullshit. 1) there's like... 200px of dead space at the top. 2) Todays' board? Everything? Process? Start",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "Everything else the owner named is a real destination or a real control, so it folds behind one More and nothing is lost: Today's board, Everything, Process, Start here, the version picker, Live, the author filter, card width, and the N-left count with its approved toggle.",
+   "{\"at\":\"2026-09-22T17:45:40-05:00\",\"topic\":\"what the bare /framework/ai/ url does\",\"say\":\"it draws the board and immediately rewrites its own url to /framework/ai/<view>/ with history.replaceState\",\"why\":\"The owner's rule is that the URL decides the view, always."
+  ],
+  "left_open": [
+   "Left open, and why: the usage footer's own text sits 13px from the rail at 1280 rather than 15.1 — --pad's floor is one em of the box it is in, and that strip is typed a step smaller, so 13px IS its own gutter."
+  ]
+ },
+ {
+  "task": "board-from-events",
+  "date": "2026-09-22",
+  "link": "/framework/ai/2026-09-22/board-from-events/",
+  "title": "Run log-model's fold for real: an Agents strip on /framework/ai/v/3/ fed live from Servex's /agents and /api/stream, and a landed minion/tas",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Left named, not fixed: the deep link /framework/ai/v/3/ double-mounts the whole page (a pre-existing catalog-plus-leaf quirk, unrelated to this task, doubling every top-level fetch it makes) — proof screenshots use /framework/ai/ instead, which mounts once."
+  ]
+ },
+ {
+  "task": "card-to-task",
+  "date": "2026-09-22",
+  "link": "/framework/ai/2026-09-22/card-to-task/",
+  "title": "top priority for this whole system is to get the transcription user interface working with a fast assistant, where as I transcribe it also g",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "The fast assistant decides per sentence — build it (route: \"task\", a brief in the owner's own words, state: \"queued\") or just a note/question, no task line at all."
+  ],
+  "left_open": [
+   "Left open, on purpose: AI 2's own status-strip DOM (out of fence, that module is mid-reshape); a task line's page field points at /framework/ai2/ rather than a per-card url, because the prompts-log card has no address of its own to give it."
+  ]
+ },
+ {
+  "task": "card-to-task-proof",
+  "date": "2026-09-22",
+  "link": "/framework/ai/2026-09-22/card-to-task-proof/",
+  "title": "Make a page at /framework/ai/2026-09-22/card-to-task/proof/ that says hello and the time. Nothing more than that for now.",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Left out on purpose: no readme.md/doc/ for either new page — a one-line proof page and a one-paragraph task-dir index have no topic to document, matching the sibling small-hello-page task's own call.",
+   "Left out on purpose: no readme.md/doc/ — a one-line proof page and a one-paragraph task-dir index have no topic worth documenting (same call the sibling small-hello-page task made)."
+  ]
+ },
+ {
+  "task": "days-view",
+  "date": "2026-09-22",
+  "link": "/framework/ai/2026-09-22/days-view/",
+  "title": "our new ai dashboard system still sucks... i never have a nice clean report of what happened. Build a fourth 'days' view on /framework/ai/v/",
+  "status": "landed"
+ },
+ {
+  "task": "dictate-silence",
+  "date": "2026-09-22",
+  "link": "/framework/ai/2026-09-22/dictate-silence/",
+  "title": "whisper hears \"Thank you\" because the browser sends it silence; find where the sound is lost",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Left open: the speech floor (0.02 RMS, 120ms) is tuned to a quiet room with noise suppression on; a loud room may need it raised, and it is one prototype field (speech_floor, min_speech_ms) if so.",
+   "Left open: the speech floor (0.02 RMS over 120ms) is tuned to a quiet room with noise suppression on — a loud room may need it raised, and it is two prototype fields (speech_floor, min_speech_ms) if so.",
+   "Open it and the microphone picker, the level bars and the record button are the first things there (measured at 1280: the tool sits at y 219–522, above the fold, with only the tab bar above it).",
+   "Left open: the speech floor (0.02 RMS over 120ms) is tuned to a quiet room with noise suppression on — two prototype fields (speech_floor, min_speech_ms) if a loud room needs it raised."
+  ]
+ },
+ {
+  "task": "grip-fix",
+  "date": "2026-09-22",
+  "link": "/framework/ai/2026-09-22/grip-fix/",
+  "title": "the resize handle between the columns on the AI dashboard page is broken. It works inversely to what it should. You drag right and it resize",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Left alone: git apply --3way failed atomically because two of the six files had unrelated concurrent work in flight (board-declutter's route rewrite, a .dev-skipped block) — applied the same edits by hand after confirming byte-for-byte the untouched regions matched; nothing of theirs was disturbed."
+  ]
+ },
+ {
+  "task": "inbox-model",
+  "date": "2026-09-22",
+  "link": "/framework/ai/2026-09-22/inbox-model/",
+  "title": "AI 2, first build: your words become cards, live, in an inbox with one flag. Build /framework/ai2/ as the inbox: composer on top, cards newe",
+  "status": "landed"
+ },
+ {
+  "task": "layout-analysis",
+  "date": "2026-09-22",
+  "link": "/framework/ai/2026-09-22/layout-analysis/",
+  "title": "we need to do a strong analysis of our page layouts and why it's so hard to get the right look on each page. Like, getting things butting up",
+  "status": "landed"
+ },
+ {
+  "task": "log-model",
+  "date": "2026-09-22",
+  "link": "/framework/ai/2026-09-22/log-model/",
+  "title": "Design the log and content model for the Servex Mastermind: one append-only JSONL per session of typed immutable events; tasks, decisions, p",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "Left for the owner: nothing is waiting on you."
+  ],
+  "left_open": [
+   "Left for the owner: nothing is waiting on you.",
+   "Left deliberately: no server code — the appender that enforces these checks is the next task, and this is the shape it builds against."
+  ]
+ },
+ {
+  "task": "mastermind-servex",
+  "date": "2026-09-22",
+  "link": "/framework/ai/2026-09-22/mastermind-servex/",
+  "title": "Servex Mastermind — port Servex into the monorepo as the always-on agent host (Agent SDK sessions, single-writer JSONL, /mcp over HTTP), plu",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "Decision: the mastermind's hand-edit rule is for the screen the owner is reading; a new blank page is not that screen.",
+   "The owner restated the system in one sentence (ask in a card → cards → dig in → real things); that is card-to-task + open-mic + the per-card storage decided at 19:42."
+  ]
+ },
+ {
+  "task": "naming-checks",
+  "date": "2026-09-22",
+  "link": "/framework/ai/2026-09-22/naming-checks/",
+  "title": "The naming rules live in the appender, so no agent can bypass them: checks in Log.append for name/rename/approve/dispute, a proof script, ag",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "5 owner approve locks it.",
+   "Live HTTP smoke test against /log/<name>: first name 200, non-owner approve 409, owner approve 200 and locks, owner rename of the locked name 409 with the lock named."
+  ],
+  "left_open": [
+   "Left open, named, not silent: the broader table in log-model/events.md also wants a locked id to refuse a plain name or dispute, not just a rename — this appender only enforces the four checks this brief's proof actually exercises."
+  ]
+ },
+ {
+  "task": "nav-rerender",
+  "date": "2026-09-22",
+  "link": "/framework/ai/2026-09-22/nav-rerender/",
+  "title": "my navigation sometimes breaks when I'm clicking between AI and AI2 and back to AI. It just doesn't re-render the page. I have no idea what'",
+  "status": "landed"
+ },
+ {
+  "task": "object-layer",
+  "date": "2026-09-22",
+  "link": "/framework/ai/2026-09-22/object-layer/",
+  "title": "Section I: design (not build) one RPC envelope {target, method, args} for Servex<->dashboard, dev server<->browser, and three generic MCP to",
+  "status": "landed"
+ },
+ {
+  "task": "open-mic",
+  "date": "2026-09-22",
+  "link": "/framework/ai/2026-09-22/open-mic/",
+  "title": "Open-mic mode in Dictate (mic stays on, sentences commit continuously, nothing auto-fills the box); fast-assistant route field on cards; mas",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Open-mic mode landed: Dictate.js gets mode:\"open\" (mic stays on indefinitely, box never written into, settled sentences append as their own lines) wired into talk and AI 2's composer.",
+   "Left for the mastermind: items 9-12 of the mid-task addenda (mic-color CSS, AI 2's rail composer + a page.js checkbox, an inbox.js archive feature) touch two other minions' owned files and are logged as a deferred decision, not built here."
+  ]
+ },
+ {
+  "task": "padding-law",
+  "date": "2026-09-22",
+  "link": "/framework/ai/2026-09-22/padding-law/",
+  "title": "Text never touches an edge, anywhere, at any width: find the rule that breaks it, fix it once, and make it a check. The owner: 'I just click",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Left, four pages, named rather than fudged"
+  ]
+ },
+ {
+  "task": "prompt-lifecycle",
+  "date": "2026-09-22",
+  "link": "/framework/ai/2026-09-22/prompt-lifecycle/",
+  "title": "prompt-lifecycle - your words become names, cards and a proposal while you are still talking. A Servex-hosted fast assistant that answers ev",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Left on purpose: stages 4 and 5 (a full proposal naming classes, and the build) are phase 3 of your own brief."
+  ]
+ },
+ {
+  "task": "record",
+  "date": "2026-09-22",
+  "link": "/framework/ai/2026-09-22/record/",
+  "title": "the dictate thing should be able to just record a file to the server, right? I'd like to record my voice, you can save it to file, and then ",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Left deliberately: the literal 'save as jfk-fake.wav' proof step from before the redesign no longer applies (there's no name box any more) — the fake-mic recording instead proves the same thing under its real auto-generated name."
+  ]
+ },
+ {
+  "task": "reload-rethink",
+  "date": "2026-09-22",
+  "link": "/framework/ai/2026-09-22/reload-rethink/",
+  "title": "I don't really like live reload, as it is... it's always reloading the page (while minions are off working), which clobbers my scroll positi",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "On 2026-09-22 a tab left open on the AI board reloaded 215 times, and 203 of those (94%) were directory.json — the list of what is on disk, rebuilt every time any agent created any file anywhere under public/.",
+   "Still needs a reload, and cannot be helped without a build step: a changed ES module.",
+   "Left, in one line each:"
+  ]
+ },
+ {
+  "task": "reuse-audit",
+  "date": "2026-09-22",
+  "link": "/framework/ai/2026-09-22/reuse-audit/",
+  "title": "spawn a minion to look into a past request of mine to audit similar code/content/features across the public/imagine and framework (and anywh",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "DECISION - what I reduce now and what I leave for the owner."
+  ],
+  "left_open": [
+   "Not one existing readme was stale.",
+   "Left alone on purpose: three ways to open a list near a trigger, four append-log stores, and mulberry32 copied into four files — each duplicate has a stated reason in its own file."
+  ]
+ },
+ {
+  "task": "review-3-days",
+  "date": "2026-09-22",
+  "link": "/framework/ai/2026-09-22/review-3-days/",
+  "title": "create an opus minion to review the last few days, and see what's complete, what's left, and try to clean things up, and get them presentabl",
+  "status": "landed"
+ },
+ {
+  "task": "server-fixes",
+  "date": "2026-09-22",
+  "link": "/framework/ai/2026-09-22/server-fixes/",
+  "title": "Fix three Server/ bugs found by worktree-design: node_modules junction that empties main tree on worktree remove, worktree-down.mjs that can",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "Left for the owner: nothing — all three were fully resolvable without a decision only they can make."
+  ],
+  "left_open": [
+   "Left for the owner: nothing — all three were fully resolvable without a decision only they can make."
+  ]
+ },
+ {
+  "task": "servex-hardening",
+  "date": "2026-09-22",
+  "link": "/framework/ai/2026-09-22/servex-hardening/",
+  "title": "Fix five small things minions could not touch: /api/stream loopback guard, locked-id name/dispute checks, readme missing the assistant, v/3 ",
+  "status": "landed"
+ },
+ {
+  "task": "servex-integrate",
+  "date": "2026-09-22",
+  "link": "/framework/ai/2026-09-22/servex-integrate/",
+  "title": "Connect the two landed halves: Servex.js constructs Agents and registers tools.js through the MCP seam, the agent log seam points at Log.app",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Left for you, deliberately"
+  ]
+ },
+ {
+  "task": "servex-port",
+  "date": "2026-09-22",
+  "link": "/framework/ai/2026-09-22/servex-port/",
+  "title": "Audit the old Servex repo, port it into Servex/ in the monorepo, and add the single-writer JSONL log appender plus an /mcp endpoint over HTT",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Left, with reasons."
+  ]
+ },
+ {
+  "task": "servex-routes",
+  "date": "2026-09-22",
+  "link": "/framework/ai/2026-09-22/servex-routes/",
+  "title": "servex-routes: POST /api/projects and DELETE /api/projects/:name so a worktree can register itself with Servex and route through the proxy; ",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "It's written, not run - a machine-wide login task is the owner's own configuration to approve, one command, one minute.\"}"
+  ],
+  "left_open": [
+   "Left for the owner: running that one schtasks line — a login-time task is the owner's own machine config, not mine to set."
+  ]
+ },
+ {
+  "task": "skills-shrink-2",
+  "date": "2026-09-22",
+  "link": "/framework/ai/2026-09-22/skills-shrink-2/",
+  "title": "Apply the skill changes that have been written twice and applied never: 09-19 changes 4, 5, 2, the superseded 1, and the lean always-loaded ",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "Left as decisions, not edits: who owns the improvements loop (recommendation: merge the auditor into the master assistant), and every number and never-list the owner chose."
+  ],
+  "left_open": [
+   "Left as decisions, not edits: who owns the improvements loop (recommendation: merge the auditor into the master assistant), and every number and never-list the owner chose."
+  ]
+ },
+ {
+  "task": "spawn-role",
+  "date": "2026-09-22",
+  "link": "/framework/ai/2026-09-22/spawn-role/",
+  "title": "spawn-role — an agent's posture comes from its role, and a registry says who is alive",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Left: parent is never set automatically — a caller passes it, same as topics/page — because nothing yet needs auto-parenting; and master-assistant/log-assistant only got their roles.js table entries exercised, not a live spawn of either (no brief called for one)."
+  ]
+ },
+ {
+  "task": "sub-mastermind-live",
+  "date": "2026-09-22",
+  "link": "/framework/ai/2026-09-22/sub-mastermind-live/",
+  "title": "sub-mastermind-live: wake_parent on Agents so a child's landing wakes its parent, prove the parking then the fix, registry shows the tree, r",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Left open: the day page's children: needs sub-mastermind-live added by whoever owns that shared file (outside my fence) so the report page shows on the board — it works standalone at the link below either way."
+  ]
+ },
+ {
+  "task": "system-retro",
+  "date": "2026-09-22",
+  "link": "/framework/ai/2026-09-22/system-retro/",
+  "title": "Seriously think through the whole AI system - mastermind, master assistant, fast assistant, transcribing - and produce the day report, the l",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Left, named: padding-law did real work tonight (found the six causes of every padding violation, decided the 4px floor) but never got its own landing line — its dollar cost could not be recovered and is flagged, not guessed, in doc/state.md."
+  ]
+ },
+ {
+  "task": "talk",
+  "date": "2026-09-22",
+  "link": "/framework/ai/2026-09-22/talk/",
+  "title": "press the mic, talk, see your words on the screen, in one card that never jumps",
+  "status": "landed"
+ },
+ {
+  "task": "talk-to-assistant",
+  "date": "2026-09-22",
+  "link": "/framework/ai/2026-09-22/talk-to-assistant/",
+  "title": "so, is there a fast assistant i can talk to via the browser? where do i click? -- the typed box should reach the Servex assistant and live a",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Left alone on purpose: page.js needed no edit at all, since prompts_view() already owns its own DOM — so it was never touched, honoring the concurrent servex-hardening edit there."
+  ]
+ },
+ {
+  "task": "tiers-design",
+  "date": "2026-09-22",
+  "link": "/framework/ai/2026-09-22/tiers-design/",
+  "title": "be careful and thorough to architect a proper fast-assistant, master-assistant, mastermind, sub-mastermind, minion system, with proper logs,",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "Six kinds of agent in one ladder: the owner speaks, the fast assistant records and routes in ten seconds, the master assistant says the thing about to be forgotten, the master-mastermind decides what is worth doing, a task mastermind owns exactly one task and makes its worktree, minions build."
+  ],
+  "left_open": [
+   "Left open, with reasons."
+  ]
+ },
+ {
+  "task": "ux-subpages",
+  "date": "2026-09-22",
+  "link": "/framework/ai/2026-09-22/ux-subpages/",
+  "title": "the UX thing needs to be using sub pages... the layouts on this UX page are absolutely terrible... We need to get these UX cards through an ",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Left for a reason:"
+  ]
+ },
+ {
+  "task": "whisper-servex",
+  "date": "2026-09-22",
+  "link": "/framework/ai/2026-09-22/whisper-servex/",
+  "title": "whisper-servex: does dictation work today, and does the owner's voice reach the log?",
+  "status": "landed"
+ },
+ {
+  "task": "worktree-design",
+  "date": "2026-09-22",
+  "link": "/framework/ai/2026-09-22/worktree-design/",
+  "title": "Design how parallel work happens on this repo with git worktrees, without bloating the SSD: measure the repo, say where a worktree goes, who",
+  "status": "landed"
+ },
+ {
+  "task": "worktree-proof",
+  "date": "2026-09-22",
+  "link": "/framework/ai/2026-09-22/worktree-proof/",
+  "title": "worktree-proof: node Server/worktree-up.mjs proof-1 - up time and size vs 3.1s/274MB; through the proxy at proof-1.localhost:8080/framework/",
+  "status": "landed"
+ },
+ {
+  "task": "ai2-live-card",
+  "date": "2026-09-23",
+  "link": "/framework/ai/2026-09-23/ai2-live-card/",
+  "title": "figure out why the framework/ai2/ new card -> dictation works but the fast assistant isn't able to respond; double recordings from nested ca",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Not done: the mic swap was not tested with a real microphone (a headless browser has none)."
+  ]
+ },
+ {
+  "task": "ai2-routes",
+  "date": "2026-09-23",
+  "link": "/framework/ai/2026-09-23/ai2-routes/",
+  "title": "These four columns should be full height and share the full width... no padding on this page, no borders, radiuses or gap... substantial pad",
+  "status": "landed"
+ },
+ {
+  "task": "editor-deps",
+  "date": "2026-09-23",
+  "link": "/framework/ai/2026-09-23/editor-deps/",
+  "title": "look at the ext slash editor and what kind of dependencies it has it looks like it's rendering a tree of icon items it's got some sort of in",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Left alone: both bugs, because they are outside this task's fence."
+  ]
+ },
+ {
+  "task": "servex-port-80",
+  "date": "2026-09-23",
+  "link": "/framework/ai/2026-09-23/servex-port-80/",
+  "title": "so, the monorepo dev server shouldn't be a dependency of the servex... let's give servex port 80, so we can have *.localhost.  servex.localh",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Left: the proxy binds 127.0.0.1, so the site is no longer reachable from another device on the LAN.",
+   "Nothing starts the keeper after a reboot yet."
+  ]
+ },
+ {
+  "task": "agent-chat",
+  "date": "2026-09-24",
+  "link": "/framework/ai/2026-09-24/agent-chat/",
+  "title": "It would be cool if I could click into [an agent] and then send it messages just from my browser, on the live tab or the live sub page.",
+  "status": "unlanded"
+ },
+ {
+  "task": "ai2-dashboard",
+  "date": "2026-09-24",
+  "link": "/framework/ai/2026-09-24/ai2-dashboard/",
+  "title": "Spawn a mastermind to look into the framework AI2 dashboard. One thing it should do is spawn a lesser minion to read through all of the last",
+  "status": "unlanded"
+ },
+ {
+  "task": "card-folders",
+  "date": "2026-09-24",
+  "link": "/framework/ai/2026-09-24/card-folders/",
+  "title": "Module B of a pair: one folder per card, and cards as the shared memory between agents (handoff2 items 6 and 7).",
+  "status": "in-progress",
+  "note": "running sibling today"
+ },
+ {
+  "task": "concurrency",
+  "date": "2026-09-24",
+  "link": "/framework/ai/2026-09-24/concurrency/",
+  "title": "Agent concurrency for Servex: fork_self, wait_for_agent, spawn resume/fork, stale registry, collaboration design page. See requirements.md.",
+  "status": "in-progress",
+  "note": "running sibling today"
+ },
+ {
+  "task": "helper-fixes",
+  "date": "2026-09-24",
+  "link": "/framework/ai/2026-09-24/helper-fixes/",
+  "title": "First test of a task mastermind started from a VS Code tab: prove a worktree, a commit on its own branch, and a report on the board. Task: h",
+  "status": "landed"
+ },
+ {
+  "task": "live-card",
+  "date": "2026-09-24",
+  "link": "/framework/ai/2026-09-24/live-card/",
+  "title": "Fix the Live card on /framework/ai2/: no inner scroll areas, one column; usage shows 5-hour, weekly Fable, weekly all with the on-pace marke",
+  "status": "in-progress",
+  "note": "running sibling today",
+  "left_open": [
+   "Left: the rail's \"notes\" button pokes a few pixels into the card's top-left corner (outside this fence)."
+  ]
+ },
+ {
+  "task": "md-pages",
+  "date": "2026-09-24",
+  "link": "/framework/ai/2026-09-24/md-pages/",
+  "title": "Markdown files render as pages in the browser: /<module>/md/<name> built into base Page, /<module>/md/ index, existing .md links lead to the",
+  "status": "in-progress",
+  "note": "running sibling today"
+ },
+ {
+  "task": "page-jsonl",
+  "date": "2026-09-24",
+  "link": "/framework/ai/2026-09-24/page-jsonl/",
+  "title": "You own module A of a pair: page.jsonl as the default page format (handoff2 item 5). Sibling task-mastermind-card-folders builds module B (o",
+  "status": "in-progress",
+  "note": "running sibling today"
+ },
+ {
+  "task": "servex-crash",
+  "date": "2026-09-24",
+  "link": "/framework/ai/2026-09-24/servex-crash/",
+  "title": "The owner reloaded /framework/ai/ and got an error page. Find the likely cause of Servex's 0xC0000409 crash (or rule things out and add logg",
+  "status": "in-progress",
+  "note": "running sibling today"
+ },
+ {
+  "task": "servex-mastermind-opus",
+  "date": "2026-09-24",
+  "link": "/framework/ai/2026-09-24/servex-mastermind-opus/",
+  "title": "Remove the two-masterminds-at-once limit. Use Opus 5.5 medium effort for the masterminds. Run a test mastermind to get it set up and working",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "Left: merge worktree/helper-fixes and restart Servex (waiting for the owner's go), and give each mastermind one card of its own.",
+   "Not run yet: the merge + restart was blocked by the permission check; the owner decides.",
+   "Spawned ai2-dashboard (a Sonnet census of the owner's dashboard asks, then careful changes) and loose-ends (census of unlanded tasks and owner-blocked items; decide, fix the small ones, hand the big briefs back to this tab)."
+  ],
+  "left_open": [
+   "Left: merge worktree/helper-fixes and restart Servex (waiting for the owner's go), and give each mastermind one card of its own."
+  ]
+ },
+ {
+  "task": "servex-startup-note",
+  "date": "2026-09-24",
+  "link": "/framework/ai/2026-09-24/servex-startup-note/",
+  "title": "yes, add it as a note",
+  "status": "landed"
+ },
+ {
+  "skipped": [
+   "day.jsonl",
+   "page.js",
+   "day.jsonl",
+   "page.js",
+   "day.jsonl",
+   "page.js"
+  ]
+ }
+]

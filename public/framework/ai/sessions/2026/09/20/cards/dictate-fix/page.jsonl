@@ -1,0 +1,4 @@
+{"class":"/framework/ai2/card.js","title":"Checked your dictation — it's not broken.","type":"card","id":"2026/09/20/dictate-fix","created":"2026-09-20T14:35:49-05:00","by":"dictate-fix","tags":[]}
+{"legacy":"dictate-fix"}
+{"status":"done"}
+{"text":"I drove the mic four different ways with real speech and it worked every time, so I made no code changes. The actual thing last night's reset broke was a different dev-bar feature, already written up separately."}

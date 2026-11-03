@@ -1,0 +1,36 @@
+{
+ "id": "e0227bd6-1fc2-4c31-bec5-c534eeecad76",
+ "first": "2026-10-13T23:51:42.262Z",
+ "last": "2026-10-14T00:09:38.596Z",
+ "task": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/dictate-session",
+ "models": {
+  "claude-sonnet-5-5": 65
+ },
+ "sizes": {
+  "raw": 709453,
+  "content": 72879,
+  "stripped": 10440,
+  "owner_only": 0
+ },
+ "usd": 2.52359,
+ "usd_main": 2.52359,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 130,
+  "output": 36284,
+  "cache_read": 7881728,
+  "cache_write": 146036,
+  "w5": 0,
+  "w1": 146036
+ },
+ "messages": 65,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "There is now one New session button, and every mic surface shows the same indicator. It's merged into `michael/dev`, and the landing line is checked with `tail` on `task.jsonl`.\n\n- **New session:** the sheet, the AI tab and the Dictate page all call the button in `chat.js`; the two duplicate copies are gone. Pressing it cleared the session and the thread on the 400 px sheet and the 1200 px drawer.\n- **Mic indicator:** a new `MicIndicator` class in `ux/Dictate` shows a red dot, \"listening\" and a level bar under the chat composer. A dot-only version sits on the floating mic, the ✦ button and the ☰, so a collapsed surface still shows the mic is open. Shots are at 400 and 1200. Only the 400 px sheet shot has a real open mic; the drawer, collapsed and menu shots set the open state by hand, and the floating-mic shots also force the floating mic visible.\n- **Your call:** a press clears the session and the next sentence starts the new one, so the URL doesn't change. Routing to a new session page on every press would pull you off the page you're on. This is written in `doc/chat.md`; I did not put a `Note:` card on the board for it.\n- **Docs:** `doc/chat.md` and `doc/surfaces.md` are updated. I added a small `doc/file/Dictate.js.md` because the Files tab was 404ing on it and that blocked the merge.\n- **Fence:** I touched a few files outside the brief's fence (`menu.js`, `push-to-talk.js`, `Widget.js`, `rail.css`), each a one- or two-line change for the indicator.\n\nThe review asked to b …",
+ "edited": [
+  "public/framework/ux/Dictate/doc/chat.md",
+  "public/framework/ux/Dictate/doc/surfaces.md",
+  "C:/Users/mike/AppData/Local/Temp/landing-dictate-session.json"
+ ],
+ "digested_at": "2026-10-16T06:28:10.298Z"
+}

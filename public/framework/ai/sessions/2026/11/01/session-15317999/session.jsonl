@@ -1,0 +1,50 @@
+{"review":{"at":"2026-11-02T00:00:51-06:00","size":"full","verdict":"pass","findings":[{"n":1,"kind":"note","text":"The folder can now be continued from: `session.jsonl` has a diagnosis line (00:00:04) with the cause, the fix, the rejected alternative, the test results, what is left and what is still unproven live. That was the open fix in all three earlier reviews. The landing line still has to be written after `merge.mjs`."},{"n":2,"kind":"note","text":"All four asks are met. Ask 1: the owner's claude.ai \"Servex\" connector reaches Servex through the remote door, which labels every call `voice-app` (`Servex/agents/Agents.js:1444`). Ask 2: `door()` blocks `mcp__claude_ai_Servex`, and `Servex/agents/tools.js:397` lets a tab's `session_id` win over `voice-app`. `spawn-parent.test.mjs` checks five parent cases and pins `REMOTE_CALLER` to `RemoteMCP.CALLER`. Ask 4: the rule is in `Servex/agents/readme.md:42`, links to `doc/architecture.md:95`, and is also in `Servex/ext/remote/readme.md:3`."},{"n":3,"kind":"note","text":"The follow-up \"policy.spawn / fork_self / start_job / follow from a tab via the connector\" appears only inside the log line. File it as a task on the session (or as a line in `Servex/agents/readme.md`) so it isn't forgotten."},{"n":4,"kind":"note","text":"`tools.js:342` still `export`s `tab_parent`, and nothing imports it (review 3, note 5). Drop the `export`, or leave it in as harmless."},{"n":5,"kind":"note","text":"The connector block is still unproven live. After the Servex restart, one spawned agent should not list any `mcp__claude_ai_Servex__*` tools. The worktree `C:/Code/lew42/worktrees/spawn-parent` still has no `Servex/node_modules`, so only reviewer 3's throwaway worktree ran the tests."},{"n":6,"kind":"note","text":"`night-2026-11-01/requirements.md:69-70` still lists this bug under \"Found overnight (not yet fixed)\". Link it to this task when it lands."}],"branch":"worktree/spawn-parent","head":"3c3d76e483b4c30a4b09a531d72baa251be3a20c","model":"claude-opus-5-5","cost":0.5835336000000001,"file":"review.md","report":null,"shots":null,"note":"copy of the review in the spawn-parent task folder (merge.mjs only scans the last 3 days of session folders)"}}
+{"review":{"at":"2026-11-02T00:01:40-06:00","answer":{"n":1,"reply":"noted: task folder session.jsonl now carries diagnosis, tests, outcome"}},"by":"append.mjs","ts":"2026-11-02T06:01:40.417Z"}
+{"review":{"at":"2026-11-02T00:01:40-06:00","answer":{"n":2,"reply":"noted: reviewer 3 ran the tests green in a throwaway worktree"}},"by":"append.mjs","ts":"2026-11-02T06:01:40.418Z"}
+{"review":{"at":"2026-11-02T00:01:40-06:00","answer":{"n":3,"reply":"noted: live proof of the connector block follows the Servex restart"}},"by":"append.mjs","ts":"2026-11-02T06:01:40.419Z"}
+{"review":{"at":"2026-11-02T00:01:40-06:00","answer":{"n":4,"reply":"noted: tab_parent export stays, tools.test imports use it; tiny"}},"by":"append.mjs","ts":"2026-11-02T06:01:40.420Z"}
+{"review":{"at":"2026-11-02T00:01:40-06:00","answer":{"n":5,"reply":"noted: policy.spawn/fork_self/start_job/follow via connector from a tab filed as follow-up in the task log"}},"by":"append.mjs","ts":"2026-11-02T06:01:40.421Z"}
+{"review":{"at":"2026-11-02T00:01:40-06:00","answer":{"n":6,"reply":"fixed: night brief linked to this task"}},"by":"append.mjs","ts":"2026-11-02T06:01:40.422Z"}
+{"log":{"at":"2026-11-02T00:08:07-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-11-02T00:18:07-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"log":{"at":"2026-11-02T00:23:07-06:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
+{"log":{"at":"2026-11-02T00:36:47-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
+{"log":{"at":"2026-11-02T01:39:12-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-02T02:40:11-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-02T03:41:07-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-02T04:42:39-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-02T05:42:40-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-02T06:42:40-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-02T07:42:40-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-02T08:42:40-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-02T09:42:40-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-02T10:42:41-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-02T11:42:41-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-02T12:42:42-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-02T13:42:47-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-02T14:47:50-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-02T15:50:10-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-02T16:51:11-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-02T17:53:12-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-02T18:53:16-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-02T19:53:16-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-02T20:53:16-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-02T21:53:17-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-02T22:53:17-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-02T23:53:17-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-03T00:53:17-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-03T01:53:17-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-03T02:53:23-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-03T03:53:23-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-03T04:53:23-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-03T05:53:24-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-03T06:53:24-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-03T07:53:24-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-03T08:53:24-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-03T09:53:24-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-03T10:53:25-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-03T11:53:25-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-03T12:53:25-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-03T13:58:26-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-03T15:00:51-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-03T16:01:49-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}

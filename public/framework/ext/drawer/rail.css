@@ -1,0 +1,425 @@
+/* The mobile bottom rail (rail.js) — below 52em only, hidden entirely above it.
+   A normal flex child of `.app`, not `position: fixed`: `.app` is a 100%-height
+   column with `.pages` as its one growing row (framework.css), so this bar being
+   the LAST child of that column already takes its own space and `.pages` shrinks
+   to fit above it — no separate token to keep in sync. doc/decisions.md. */
+@layer theme {
+
+	.drawer-rail { display: none; }
+
+	@media (max-width: 52em) {
+		.drawer-rail {
+			display: flex; flex: 0 0 auto;
+			gap: 0.4em;
+			/* `env()`'s own fallback, not `max()` alone — a browser that has never
+			   heard of `env()` reads the second argument as invalid and drops the
+			   WHOLE declaration, leaving no bottom padding at all on a phone with
+			   a home-indicator strip. */
+			padding: 0.35em 0.6em calc(0.35em + env(safe-area-inset-bottom, 0px));
+			background: var(--surface);
+			border-top: 1px solid var(--line);
+		}
+		/* SHORTER — the default rail (mobile-nav, 2026-09-29): icons only, no text
+		   label line, so the bar takes less of the screen a phone has to give up
+		   permanently. `.drawer-rail-full` (`DrawerRail.V2`) restores the exact
+		   earlier padding below. */
+		.drawer-rail-compact { padding-block: 0.2em calc(0.2em + env(safe-area-inset-bottom, 0px)); }
+	}
+
+	/* ☰ on the strip (Sheet.open_nav) opens the page's Sidebar tree from the BOTTOM, just above the strip;
+	   a page with no sidebar has no ☰ (its drawer tabs live in the full sheet). */
+	@media (max-width: 52em) {
+		.sidebar.open.sidebar-from-strip .sidebar-menu {
+			position: fixed; top: auto; inset-inline: 0;
+			inset-block-end: var(--strip-h, 3.5rem);
+			border-bottom: 0; border-top: 1px solid var(--line);
+			box-shadow: 0 -0.4em 1.2em rgb(0 0 0 / 0.18);
+		}
+		.app:not(:has(.sidebar)) .drawer-rail-menu { display: none; }
+	}
+
+	.drawer-rail-home, .drawer-rail-ai, .drawer-rail-menu {
+		flex: 1 1 0;
+		display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.1em;
+		min-block-size: 0;   /* the theme gives every button a 44px touch floor */
+		padding: 0.3em 0.5em;
+		font: inherit; font-size: 0.7em; line-height: 1.2;
+		color: var(--subtle);
+		background: none;
+		border: 0;
+		border-radius: calc(var(--radius) / 2);
+		cursor: pointer;
+		position: relative;
+	}
+	.drawer-rail-home:hover, .drawer-rail-ai:hover, .drawer-rail-menu:hover { background: var(--fill-a08); }
+	.drawer-rail-home-icon, .drawer-rail-ai-icon, .drawer-rail-menu-icon { font-size: 1.3em; line-height: 1; position: relative; }
+	.drawer-rail-home { text-decoration: none; }
+	.drawer-rail-home-icon img { display: block; block-size: 1.3em; inline-size: 1.3em; }
+	.drawer-rail-ai { color: var(--prime); }
+	.drawer-rail-ai-label, .drawer-rail-menu-label { font-weight: 600; }
+
+	/* ICONS ONLY, ✦ ON THE THUMB (RIGHT) SIDE — the default rail's own two
+	   changes (mobile-nav, 2026-09-29). The text label stays in the DOM (the
+	   `aria-label`/`title` on each button say the same thing either way) —
+	   only its on-screen line is removed, so nothing but CSS has to change to
+	   bring it back. `order` swaps the ON-SCREEN position without touching
+	   `rail.js`'s own DOM order (✦ is built first, `.drawer-rail-menu` second),
+	   so `DrawerRail.V2` below only has to say "use source order" to get the
+	   original ✦-on-the-left layout back, not rebuild the markup. */
+	.drawer-rail-compact .drawer-rail-home-label,
+	.drawer-rail-compact .drawer-rail-ai-label,
+	.drawer-rail-compact .drawer-rail-menu-label { display: none; }
+	.drawer-rail-compact .drawer-rail-home { order: 0; }
+	.drawer-rail-compact .drawer-rail-ai { order: 2; }
+	.drawer-rail-compact .drawer-rail-menu { order: 1; }
+	/* A comfortable thumb target (the owner, 2026-09-29: "only 15 pixels… hard to click"):
+	   the 44px touch floor the theme gives buttons comes back, and the icon is drawn big. */
+	.drawer-rail-compact .drawer-rail-ai,
+	.drawer-rail-compact .drawer-rail-menu { min-block-size: 2.75rem; }
+	.drawer-rail-compact .drawer-rail-ai-icon,
+	.drawer-rail-compact .drawer-rail-menu-icon { font-size: 3.4em; }
+
+	/* THE OLD FULL LOOK — `DrawerRail.V2`, kept reachable verbatim: the label
+	   line shows again (source order above already gives it the old sizing) and
+	   ✦ sits first (left), because `order` is left at its default (source
+	   order) for every full-rail button. */
+	.drawer-rail-full { padding: 0.35em 0.6em calc(0.35em + env(safe-area-inset-bottom, 0px)); }
+
+	/* THE SHEET. Slides up from the same edge the rail sits on, over the rail
+	   too (a bottom sheet that left the tab bar showing under it would read as
+	   two floors) — closing it (✕) is the only way back to the rail. */
+	.drawer-rail-sheet {
+		position: fixed; z-index: 41; inset-inline: 0; inset-block-end: 0;
+		display: none; flex-direction: column;
+		/* 60% (rail.js sizes it to that) of the phone by default (four bubbles show, dictate-next-4); a height the reader dragged before, on this
+		   device, reads back here instead (rail.js's own `--sheet-h`, remembered in
+		   localStorage — grip-everywhere, 2026-09-29). */
+		max-block-size: var(--sheet-h, 60dvh);
+		gap: calc(var(--gap) * 0.6);
+		padding: 0.5em 0.9em calc(0.9em + env(safe-area-inset-bottom, 0px));   /* top 0.5em: the owner, 2026-10-19, "too much padding above the header" */
+		background: var(--surface);
+		color: var(--ink);
+		border-top: 1px solid var(--line);
+		border-radius: calc(var(--radius) * 1.5) calc(var(--radius) * 1.5) 0 0;
+		box-shadow: 0 -0.3em 1em var(--fill-a16);
+	}
+	/* A HEIGHT, not only a ceiling (sheet-as-page, 2026-09-30): once dragged, or
+	   read back from an earlier drag, the sheet IS `--sheet-h` tall, so dragging
+	   above its own content still moves it. A released drag, the step to full and
+	   the step back ease; a drag in progress (`html.grip-sizing`) follows the
+	   finger with no easing. `interpolate-size` lets the content-height default
+	   ease too where the browser supports it. */
+	.drawer-rail-sheet {
+		interpolate-size: allow-keywords;
+		transition: block-size 0.22s ease, max-block-size 0.22s ease, border-radius 0.22s ease;
+	}
+	html.grip-sizing .drawer-rail-sheet { transition: none; }
+	.drawer-rail-sheet-sized { block-size: var(--sheet-h); max-block-size: none; }
+
+	/* FULL — the sheet has become the page: the whole screen, square corners,
+	   no shadow (`DrawerRail`'s routing, rail.js). No ‹ Back button any more
+	   (voice-sheet-header, 2026-10-01) — the ✕ in the head already steps the
+	   sheet all the way closed from here, so a separate "one step down" button
+	   was removed rather than kept beside it. */
+	.drawer-rail-sheet-full {
+		border-radius: 0; box-shadow: none; border-top: 0;
+		padding-block-start: calc(0.9em + env(safe-area-inset-top, 0px));
+	}
+
+	/* ONE LINE (minion-polish, item 6, 2026-09-30 — the owner: "a resizable sheet
+	   that can collapse to one line"). `rail.js`'s `collapse()`/`settle()` add this
+	   class instead of closing the sheet once a drag reaches the bottom of its own
+	   travel. Everything except the composer row goes — the head, the thread, the
+	   folded links — so what's left really is one line: the typed box, the mic,
+	   Send. `!important` on the sized block-size: `.drawer-rail-sheet-sized` (above)
+	   already sets a `block-size` from `--sheet-h`, at the same specificity, and
+	   this rule has to win regardless of source order since `collapse()` also
+	   writes `--sheet-h` (`size_to`, so a stray resize mid-collapse still has a
+	   number to read) — `auto` here means "just the composer's own height",
+	   never whatever px the drag last measured. */
+	.drawer-rail-sheet-collapsed.drawer-rail-sheet-sized { block-size: auto !important; }
+	/* `!important` on every one of these: the head, the thread and the widget's
+	   own thread all carry framework.css's `.flex` utility class straight in
+	   their markup (`display: flex`, `@layer util`), and a utility in `@layer
+	   util` always wins over a `@layer theme` rule — this file's own rule, no
+	   matter its specificity (`css` skill, rule 3; this exact trap is why the
+	   composer row below in this same file already uses `!important` too). */
+	.drawer-rail-sheet-collapsed .drawer-rail-sheet-head,
+	.drawer-rail-sheet-collapsed .drawer-rail-sheet-links,
+	.drawer-rail-sheet-collapsed .drawer-rail-sheet-thread,
+	.drawer-rail-sheet-collapsed .ux-dictate-widget-thread,
+	.drawer-rail-sheet-collapsed .ux-dictate-widget-empty { display: none !important; }
+
+	/* THE STRIP (Sheet.Size, 2026-10-16): about 100 px, ABOVE the bottom bar so ⌂ ✦ ☰ stay in reach, and
+	   one line: the mic dot, the last line said, ⌃ up to split (variant A). Everything else is hidden, not
+	   removed: the chat stays mounted, so the mic keeps running. `!important` where a child wears `.flex`. */
+	/* 2026-10-20: the strip is no longer its own layout. It is the same three rows (head, well, mic footer) with the
+	   well squeezed to 0 px, sitting above the bottom bar so ⌂ ✦ ☰ stay in reach. Nothing is hidden or swapped. */
+	.drawer-rail-sheet-strip { inset-block-end: var(--rail-bar-h, 0px); }
+	/* A drag down on the head steps one size down (Sheet.Panel.head_drag): the head must not pan the page. */
+	.drawer-rail-sheet-head { touch-action: none; }
+
+	/* The sheet's own top-edge grip (`rail.js`'s `handle()`) is absolutely
+	   positioned, so it sits in whatever dead space the top padding above already
+	   reserves — the same trick both side rails use (grip.css's own note: "the dead
+	   strip both rails already have… so the target covers no content of its own").
+	   0.9em already clears the desktop grip (0.75rem, invisible until hover) but not
+	   the bigger touch one (1.25rem, grip.css) — bumped only where that one shows,
+	   so a mouse sees no change at all. */
+	@media (pointer: coarse), (hover: none) {
+		.drawer-rail-sheet { padding-block-start: 1.25rem; }   /* exactly the touch grip's height (grip.css), no more (2026-10-19) */
+	}
+	@media (max-width: 52em) {
+		/* No slide transition: `display: none -> flex` never animates a `transform`
+		   change in the same step (the browser has nothing to transition FROM,
+		   since the element wasn't rendered a moment ago) — the sheet always just
+		   popped in regardless (measured 2026-09-29). Deleted rather than fixed
+		   with a second mechanism (a class toggled a frame later, `@starting-style`)
+		   for a cosmetic slide nobody asked for. */
+		.drawer-rail-sheet.on { display: flex; }
+	}
+
+	.drawer-rail-sheet-head { flex: 0 0 auto; gap: 0.5em; }
+	/* `flex: 1 1 auto` — the title fills whatever space ✕ (and "More", added by
+	   a subclass) don't need, so it sits flush left and they sit flush right
+	   with no `space-between` guesswork (voice-sheet-header, 2026-10-01: the
+	   owner's own "text alignment in the header is way off"). Before this, the
+	   head's three buttons ("Back", the title, ✕) were spread by `justify-
+	   content: space-between` — once "Back" was hidden outside full height,
+	   only one of the two gaps had a second button to push against, and the
+	   title+path block drifted off-centre instead of sitting flush left. */
+	.drawer-rail-sheet-heading { flex: 1 1 auto; gap: 0.3em; min-inline-size: 0; }
+	.drawer-rail-sheet-title { font: inherit; font-weight: 600; color: inherit; background: none; border: 0; padding: 0.2em 0.3em; min-block-size: 0; white-space: nowrap; border-radius: calc(var(--radius) / 2); }
+	.drawer-rail-sheet-title:hover { background: var(--fill-a08); }
+	.drawer-rail-sheet-heading .drawer-rail-sheet-new { flex: none; font-size: 0.8em; padding: 0.3em 0.7em; min-block-size: 2rem; }
+	.drawer-rail-sheet-path { flex: 1 1 0; min-inline-size: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+	/* the tab menu: opens under the title; Dictation, Settings (and Element when it shows) */
+	.drawer-rail-sheet-head { position: relative; }
+	.drawer-rail-sheet-menu { display: none; position: absolute; z-index: 5; inset-block-start: 100%; inset-inline-start: 0; flex-direction: column; min-inline-size: 11em; padding: 0.25em; background: var(--surface); border: 1px solid var(--line); border-radius: calc(var(--radius) / 2); box-shadow: 0 0.4em 1.2em rgb(0 0 0 / 0.25); }
+	.drawer-rail-sheet-menu.on { display: flex; }
+	.drawer-rail-sheet-menu-item { font: inherit; text-align: start; padding: 0.5em 0.8em; min-block-size: 2.2rem; color: var(--ink); background: none; border: 0; border-radius: calc(var(--radius) / 2); }
+	.drawer-rail-sheet-menu-item:hover, .drawer-rail-sheet-menu-item.on { background: var(--fill-a08); }
+	.drawer-rail-sheet-menu-item.on { font-weight: 600; }
+	/* The current page path (voice-on-panel, 2026-09-29: "Ask, by voice ·
+	   /framework/"), set on every open (`update_path()`) and again on every
+	   in-app navigation (`DrawerRail.navigated()`). Long paths wrap under the
+	   title rather than push the ✕ off the edge of a 400px phone. */
+	.drawer-rail-sheet-path { font-size: 0.85em; overflow-wrap: anywhere; }
+
+	/* THE THREAD — either a card's own persisted chat (`ai2/chat.js`, one-ai
+	   2026-09-29) or, on a plain page, the local empty-state + growing list of
+	   prompt cards below. Either way it is the part that scrolls; the mic stays
+	   pinned under it. */
+	.drawer-rail-sheet-thread { flex: 1 1 auto; min-block-size: 0; overflow-y: auto; }
+	.drawer-rail-sheet-thread .chatbox-log { max-block-size: none; }
+
+	/* THE PANEL (`Widget`, `ux/Dictate/Widget.js`, `DrawerRailSheetPanel`, round 3 of
+	   `ai/2026-09-30/audio-consolidate/` — was `ChatPanel`, `ai/2026-09-29/audio/c-chat/`):
+	   the same bubbles-plus-composer-plus-mic widget the desktop drawer's AI tab now
+	   builds, in place of this sheet's own mic-only build. `.drawer-rail-sheet`
+	   already caps the WHOLE sheet at 70vh (above) — rather than guess how much
+	   of that the head and the links footer leave for the widget,
+	   `.drawer-rail-sheet-panel` and `Widget`'s own box are both told to grow to
+	   fill whatever is left (`flex: 1 1 auto; min-block-size: 0`) — the SAME
+	   nested-flex trick `Widget.css`'s own `.ux-dictate-widget-thread` uses
+	   internally for its own bubbles, one level up. `.ux-dictate-widget-card`'s
+	   own `max-block-size` (a sane cap for a STANDALONE widget on a long page,
+	   `Widget.css`) is turned off here — inside the sheet the SHEET is already the
+	   ceiling, so a second, smaller one left the widget short of the room the
+	   sheet actually gave it. Only the thread inside `Widget` ever actually
+	   scrolls; the head, the composer and the links stay put. */
+	/* ⚠ A DESCENDANT selector: the sheet's own box is ALSO `.drawer-rail-sheet-panel`
+	   (View stamps the class name `DrawerRailSheetPanel`), so a bare
+	   `.drawer-rail-sheet-panel { display: flex }` out-ranked `.drawer-rail-sheet {
+	   display: none }` and the sheet could never be hidden once built — ✕ removed
+	   `.on` and nothing changed on screen (found in sheet-as-page, 2026-09-30). */
+	.drawer-rail-sheet .drawer-rail-sheet-panel {
+		display: flex; flex-direction: column;
+		flex: 1 1 auto; min-block-size: 0;
+	}
+	.drawer-rail-sheet .drawer-rail-sheet-panel > .ux-dictate-widget {
+		flex: 1 1 auto; min-block-size: 0;
+	}
+	/* `.ux-dictate-widget-shell` (drawer-chat round 2, 2026-10-02) is the new flex parent of
+	 * the feed card AND the composer panel below it — same reasoning as the override right
+	 * below it had for the card alone, just one level further in now that the composer is
+	 * the card's own sibling instead of a child: `ux/Dictate/Widget.css`'s own doc comment. */
+	.drawer-rail-sheet .drawer-rail-sheet-panel .ux-dictate-widget-shell {
+		flex: 1 1 auto; min-block-size: 0; max-block-size: none;
+	}
+	.drawer-rail-sheet .drawer-rail-sheet-panel .ux-dictate-widget-card {
+		flex: 1 1 auto; min-block-size: 0; max-block-size: none;
+	}
+	/* ⚠ ONE LEVEL DEEPER THAN THE OVERRIDE ABOVE (fullscreen-rail-void, 2026-10-01 — the
+	   owner: "the scrollable text area is not filling the available space properly...
+	   there's a void underneath the buttons"). Turning off the CARD's own `max-block-size`
+	   (right above) was not enough: `Widget.css`'s `.ux-dictate-widget-thread` carries its
+	   OWN separate cap, `max-block-size: 22em`, sized for a standalone widget on a normal
+	   page. Inside the fullscreen sheet (100dvh on a phone) the thread hit that 22em
+	   ceiling and stopped growing — the composer row below it (`flex: 0 0 auto`) is a
+	   fixed height too, so the column's default `justify-content: flex-start` left the
+	   leftover space sitting empty BELOW the composer rather than inside the thread. */
+	.drawer-rail-sheet .drawer-rail-sheet-panel .ux-dictate-widget-thread {
+		max-block-size: none;
+	}
+
+	.drawer-rail-sheet-mic { flex: 0 0 auto; }
+	/* Every FINISHED sentence already gets its own card, or its own line in the
+	   card's real thread above (`rail.js`'s own `card()`) — the widget's own
+	   caption of the same finished text is hidden here so it never shows twice
+	   (measured 2026-09-29: the exact same sentence painted twice a few lines
+	   apart). Only the live, still-moving guess (the `muted` line — `Dictate.js`'s
+	   own `draw_caption()`, open mode) is left visible, so the owner still sees
+	   words appear while talking, before they land above. */
+	.drawer-rail-sheet-mic .ux-dictate-line:not(.muted) { display: none; }
+
+	.drawer-rail-sheet-cards {
+		display: flex; flex-direction: column;
+		gap: 0.4em;
+	}
+	.drawer-rail-sheet-card {
+		flex: 0 0 auto;
+		padding: 0.5em 0.6em;
+		font-size: 0.9em;
+		background: var(--fill-a08);
+		border: 1px solid var(--line);
+		border-radius: calc(var(--radius) / 2);
+	}
+	/* The reply, once `send()` answers — under the sentence's own card (deliverable
+	   1, mobile-nav 2026-09-29), not a separate box floating elsewhere. */
+	.drawer-rail-sheet-card-reply { margin-block-start: 0.3em; font-size: 0.9em; }
+
+	/* A card-page echo, shown the instant a sentence is said and removed once the
+	   real, persisted turn has drawn in its place (`Sheet.card()`'s own comment). */
+	.drawer-rail-sheet-pending { padding: 0.3em 0.6em; font-size: 0.9em; }
+
+	/* THE LINKS FOOTER — `DrawerRail.Sheet` only (not `SheetV1`): a few ways out of
+	   this small sheet into the real drawer, since this widget deliberately does
+	   not try to reproduce the desktop drawer's other tabs (deliverable 4,
+	   mobile-nav 2026-09-29). */
+	.drawer-rail-sheet-links { flex: 0 0 auto; gap: 0.4em; padding-block-start: 0.4em; border-top: 1px solid var(--line); }
+	.drawer-rail-sheet-link {
+		font: inherit; font-size: 0.8em;
+		padding: 0.3em 0.6em;
+		color: var(--ink);
+		background: var(--fill-a08);
+		border: 1px solid var(--line);
+		border-radius: calc(var(--radius) / 2);
+		cursor: pointer;
+	}
+	.drawer-rail-sheet-link:hover { background: var(--fill-a16); }
+
+	/* NEW SESSION — a PRIMARY action (the owner, 2026-09-29: "it's a primary
+	   action"), so it wears the same accent colour the ✦ button itself uses
+	   (`--prime`) instead of the other links' plain grey. */
+	.drawer-rail-sheet-new {
+		color: var(--prime-ink, #fff);
+		background: var(--prime);
+		border-color: var(--prime);
+		font-weight: 600;
+	}
+	.drawer-rail-sheet-new:hover { filter: brightness(1.1); }
+
+	/* CHAT V2 IN THE SHEET — the "v2" chip in the head swaps the old bubbles for
+	   ext/Chat/v2's drawing of the same session (Sheet.js, ChatView.js); the composer
+	   and the mic footer stay. aria-pressed marks the chip on. */
+	.drawer-rail-sheet-heading .drawer-rail-sheet-v2-chip { flex: none; font-size: 0.8em; padding: 0.3em 0.7em; min-block-size: 2rem; }
+
+	/* LINKS BEHIND "MORE" (sheet-regression, 2026-09-30): the links row is folded
+	   until "More" in the head is tapped, so the conversation and the mic are
+	   what the sheet shows first. */
+	/* `!important` because the row also wears the `.flex` utility, and `@layer util`
+	   beats `@layer theme` for a normal declaration (an important one in a lower
+	   layer wins back). */
+	.drawer-rail-sheet-links-folded { display: none !important; }
+	/* Full = the drawer's own tab row sits below, so the links row and More repeat it (voice-e2e-review). */
+	.drawer-rail-sheet-full .drawer-rail-sheet-links,
+	.drawer-rail-sheet-full .drawer-rail-sheet-more { display: none !important; }
+	.drawer-rail-sheet-more {
+		font: inherit; font-size: 0.8em; margin-inline-start: auto;
+		padding: 0.3em 0.7em; min-block-size: 2.2rem;
+		color: var(--ink); background: var(--fill-a08);
+		border: 1px solid var(--line); border-radius: calc(var(--radius) / 2);
+	}
+	/* The ✕ is a real touch target and sits above the top-edge grip, so a tap
+	   on it can never land on the resize strip instead. 2.25rem (down from
+	   2.75rem) — matched to "More" just beside it (also 2.2rem) — is the
+	   owner's own "make the header smaller, vertically, much more compact"
+	   (2026-10-01): it was the tallest thing in the row, so it set the whole
+	   head's height even though the title text beside it is far shorter. */
+	.drawer-rail-sheet .drawer-x {
+		position: relative; z-index: 2;
+		min-inline-size: 2.25rem; min-block-size: 2.25rem;
+		font: inherit; font-size: 1.1em;
+		color: var(--ink); background: transparent;
+		border: 0; border-radius: calc(var(--radius) / 2);
+		touch-action: manipulation;
+	}
+
+	/* COMPACT (the owner, 2026-10-09: "make the mobile dictation widget a little more compact"): the sheet's bubbles sit
+	   closer — tighter bubble padding, a thinner gap between bubbles, a smaller head. Only inside the sheet; the
+	   desktop drawer and the Chat page keep their own spacing (ext/Chat/Chat.css). */
+	.drawer-rail-sheet .chatbox-you { padding: 0.2em 0.55em; border-radius: 0.8em; }
+	.drawer-rail-sheet .chatbox-reply { padding-block: 0.2em; }   /* the assistant's words are plain text (ext/Chat/bubbles.css): no side padding */
+	.drawer-rail-sheet .chatbox { margin-block: 0.1em; }
+	.drawer-rail-sheet .ux-dictate-widget-bubbles { gap: 0.15em; }
+	.drawer-rail-sheet .chatbox-text + .chatbox-text { margin-block-start: 0.3em; }
+	.drawer-rail-sheet .chatbox-log { margin-block-end: 0.15em; }
+
+	/* FULL STATE TABS: the drawer's own tab row + body under the chat (rail.js mount_tabs). */
+	.drawer-rail-sheet-tabs { flex: 0 1 45%; min-block-size: 0; border-top: 1px solid var(--line); }
+	.drawer-rail-sheet-tabbody { flex: 1 1 auto; min-block-size: 0; overflow: auto; }
+	/* A PICKED TAB GETS THE ROOM (2026-10-25): the chat above keeps only its last lines, so all five Debug rows fit one
+	   phone screen (390×844, test/debug-tab.mjs). Follows the DOM (:has), so it ends the moment the tab body is unmounted. */
+	.drawer-rail-sheet:has(> .drawer-rail-sheet-tabs):not(.drawer-rail-sheet-chat-only) .drawer-rail-sheet-panel { flex: 0 0 10em; }
+	.drawer-rail-sheet:has(> .drawer-rail-sheet-tabs):not(.drawer-rail-sheet-chat-only) > .drawer-rail-sheet-tabs { flex: 1 1 auto; }
+	/* The handle between them (Sheet.tabs_grip): once dragged, the tab keeps --tabs-h and the chat takes what is left. */
+	.drawer-rail-sheet-tabs { position: relative; }
+	.drawer-rail-sheet:has(> .drawer-rail-sheet-tabs-sized):not(.drawer-rail-sheet-chat-only) > .drawer-rail-sheet-tabs { flex: 0 0 min(var(--tabs-h), calc(100% - 10.5rem)); }
+	.drawer-rail-sheet:has(> .drawer-rail-sheet-tabs-sized):not(.drawer-rail-sheet-chat-only) .drawer-rail-sheet-panel { flex: 1 1 0; min-block-size: 4em; }
+}
+
+/* AIPage (<path>/ai/): a page above 52em; below it the Sheet shows it, so the page behind stays the one it is about. */
+@layer theme {
+	.drawer-ai-page-views { gap: .5em 1em; align-items: baseline; margin-block-end: 1em; }
+	.drawer-ai-page-view.on { font-weight: 600; text-decoration: none; }
+	@media (max-width: 52em) { .page.drawer-ai-page { display: none !important; } }
+}
+
+/* ONE LAYER OF SIDE PADDING (the owner, 2026-10-19: "double padded… keep the left/right padding only on the scrollable
+   chat area; no top padding, the bubbles scroll under it"): inside the sheet the feed card drops its own `pad`, and only
+   the scrolling thread keeps a side inset, so bubbles run edge to edge of the card and scroll under nothing. */
+@layer util {   /* util: the card's own `pad` utility lives in util and beats any site rule */
+	/* Back on the AI tab the tab area (and its handle) is gone and the chat takes the full height. In util because the area carries `.flex`, which lives in util and beat the same rule in theme (2026-10-25). */
+	.drawer-rail-sheet-chat-only .drawer-rail-sheet-tabs { display: none; }
+	.drawer-rail-sheet .drawer-rail-sheet-panel .ux-dictate-widget-card { padding: 0; gap: 0; }
+	.drawer-rail-sheet .drawer-rail-sheet-panel .ux-dictate-widget-thread { padding-inline: 0.6em; padding-block: 0; }
+}
+@layer site {
+	/* no strip under the last bubble: the log's own bottom margin is what showed as a white row above the composer (2026-10-19) */
+	.drawer-rail-sheet .drawer-rail-sheet-panel .ux-dictate-widget-thread .chatbox-log, .drawer-rail-sheet .drawer-rail-sheet-panel .ux-dictate-widget-thread { margin-block: 0; }
+}
+
+/* FULL-WIDTH CHAT + ONE FOOTER RAIL (the owner, 2026-10-19): the sheet owns no side padding (the header, links and tab body add their own), so the chat card and the
+   composer run edge to edge: no side borders, no shadow, square corners. One layer of side space: the thread's 0.6em inset; bubbles are tight inside it.
+   The chat stretches to fill the sheet (flex 1, scrolls); the composer is a small footer pinned at the bottom. */
+@layer util {
+	.drawer-rail-sheet { padding: 0; gap: 0; }   /* the sheet owns NO padding: only the title bar below does (the grip sits in its top inset) */
+	.drawer-rail-sheet > .drawer-rail-sheet-head { padding: 0.5em 0.9em 0; }
+	@media (pointer: coarse), (hover: none) { .drawer-rail-sheet > .drawer-rail-sheet-head { padding-block-start: 1.25rem; } }
+	.drawer-rail-sheet-full > .drawer-rail-sheet-head { padding-block-start: calc(0.9em + env(safe-area-inset-top, 0px)); }
+	.drawer-rail-sheet > .drawer-rail-sheet-head { margin-block-end: 0.3em; }
+	.drawer-rail-sheet .drawer-rail-sheet-panel .ux-dictate-widget-card { border: 0; border-radius: 0; box-shadow: none; }
+	.drawer-rail-sheet .drawer-rail-sheet-panel .ux-dictate-widget-shell .ux-dictate-widget-composer .chatbox-compose {
+		border-inline: 0; border-block-end: 0; border-radius: 0; box-shadow: none;
+		padding: 0.2em 0.4em calc(0.2em + env(safe-area-inset-bottom, 0px));
+	}
+	.drawer-rail-sheet .drawer-rail-sheet-panel .ux-dictate-widget-composer { padding: 0; gap: 0; }
+	.drawer-rail-sheet .ux-dictate-mic-indicator:not(.compact), .drawer-rail-sheet .chatbox-compose .ux-dictate-level { display: none; }   /* the listening row: the mic is the meter */
+	.drawer-rail-sheet .chatbox-you { padding: 0.2em 0.5em; }
+	.drawer-rail-sheet .drawer-rail-sheet-panel .ux-dictate-widget-thread { padding-inline: 0.6em; }
+}
+@layer site {
+	.drawer-rail-sheet .drawer-rail-sheet-panel .ux-dictate-widget-thread { flex: 1 1 0; min-block-size: 0; overflow-y: auto; }
+	.drawer-rail-sheet .drawer-rail-sheet-panel .ux-dictate-widget-composer { position: sticky; inset-block-end: 0; }
+}

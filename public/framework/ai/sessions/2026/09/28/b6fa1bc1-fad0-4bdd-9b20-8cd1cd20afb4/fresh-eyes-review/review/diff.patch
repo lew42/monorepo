@@ -1,0 +1,713 @@
+diff --git a/.claude/skills/finish-task/SKILL.md b/.claude/skills/finish-task/SKILL.md
+index 3c9b7c2f..e242d4a9 100644
+--- a/.claude/skills/finish-task/SKILL.md
++++ b/.claude/skills/finish-task/SKILL.md
+@@ -5,7 +5,7 @@ description: Run every time a task lands — the closing report the /framework/a
+ 
+ # Finish a task
+ 
+-Run `documentation` first if the task touched a module. Then, in order:
++Run `documentation` first if the task touched a module. Then run `node Server/review.mjs <taskdir> <worktree>` (sizes none/light/full, see `Server/doc/review.md`), answer every finding, and put `node Server/review.mjs --status <taskdir>`'s phrase ("reviewed: pass" / "reviewed: 2 fixed, 1 declined") and a link to `review.md` in the outcome. Then, in order:
+ 
+ ## 1. Link the deliverables where a reader already is
+ 
+diff --git a/.claude/skills/minion/SKILL.md b/.claude/skills/minion/SKILL.md
+index 5482782d..d6d4fc1b 100644
+--- a/.claude/skills/minion/SKILL.md
++++ b/.claude/skills/minion/SKILL.md
+@@ -97,4 +97,6 @@ A problem you find is yours to fix now, the best way you can, kept easy to chang
+ 
+ Run the `documentation` skill if you touched a module, then `finish-task` to land. Run `skill-improvement` for any skill that misled you along the way. Your final report is one screen of plain sentences with links to what you built — the numbers belong in the task log, not the report.
+ 
++**A reviewer's finding is answered, not debated:** reply in `task.jsonl` as `fixed` or `declined: <why>` (`Server/doc/review.md`).
++
+ **The owner watches a live log, and you can write to it** (2026-09-19): one command puts a line on their screen under your task's name — `node .claude/skills/every-prompt/say.mjs say "<what just happened, as one sentence>" "<one or two more sentences>" --as <your-task-slug> --id <your-task-slug> --status working` (the steady `--id` makes your card EVOLVE instead of piling up; `--status done` when you land). Worth one line when you start, when something the owner can now go and see exists, and when you land. Plain words for a non-reader of code; an apostrophe is fine inside the double quotes, a double quote, a dollar sign or a backtick is not.
+diff --git a/.claude/skills/sub-mastermind/SKILL.md b/.claude/skills/sub-mastermind/SKILL.md
+index 2561c19e..0c839a33 100644
+--- a/.claude/skills/sub-mastermind/SKILL.md
++++ b/.claude/skills/sub-mastermind/SKILL.md
+@@ -22,6 +22,8 @@ unclear. Those verbatim words are the acceptance test; a summary of them is not.
+ **One task, and only one.** If more work arrives for this task, it goes in the next brief. A
+ mastermind that has taken five additions has stopped being able to land anything.
+ 
++When you split the task, decide its review size (none/light/full — `Server/doc/review.md`); after the minions deliver and before `merge.mjs`, run `node Server/review.mjs <taskdir> <worktree>` and judge any declined finding yourself.
++
+ ## Decide the worktree first
+ 
+ A single-page edit, a doc pass or a log append runs in the **main tree**. Multi-file work, work on
+diff --git a/Server/README.md b/Server/README.md
+index 9df3c7da..90eefe45 100644
+--- a/Server/README.md
++++ b/Server/README.md
+@@ -28,6 +28,10 @@ the bug that prompted it only appears above 1312px and `health.mjs` was looking
+ too — one definition, three callers. The before/after over 107 pages:
+ [`/framework/ai/2026-09-22/padding-law/`](/framework/ai/2026-09-22/padding-law/).
+ 
++**node Server/review.mjs <taskdir> [<worktree>]** gets a fresh agent — one that never saw the
++author's conversation — to read the brief and the diff and say pass or fix, before `merge.mjs`
++will take a `light` or `full` branch. Full story: [`doc/review.md`](./doc/review.md).
++
+ ## The supervisor
+ 
+ `server.js` at the repo root is a small supervisor: it forks the real server —
+diff --git a/Server/doc/review.md b/Server/doc/review.md
+new file mode 100644
+index 00000000..6d33d238
+--- /dev/null
++++ b/Server/doc/review.md
+@@ -0,0 +1,49 @@
++# review — a fresh agent checks the work before it merges
++
++An agent that reviews its own code agrees with itself. So before a branch merges, a **fresh**
++agent — one that never saw the author's conversation — reads the brief and the diff and says
++pass or fix. The review grows with the size of the change:
++
++| Size | When | Who reviews | What it looks at |
++|---|---|---|---|
++| **none** | only CSS or docs changed, 20 lines or fewer, no new file | nobody | — |
++| **light** | code changed, but no new page, module or Servex part | a fresh Sonnet | the brief and the diff: does it do what was asked, is anything broken, is there a simpler way |
++| **full** | a new page, module, tool or Servex change | a fresh Opus | the light questions, plus screenshots at 1280, 1920, 3440 and four UX questions: is the space used well, is the order right, can the reader find everything, is the navigation clear |
++
++## The one command
++
++```
++node Server/review.mjs <taskdir> [<worktree>]
++```
++
++Run it once the branch is ready to merge. It works out the size from the diff, spawns the
++reviewer (skipped entirely for `none`), and writes `review.md` beside the task plus one
++`{"review": {...}}` line in `task.jsonl` with the verdict (`pass` or `fix`) and the findings.
++
++## Answering a finding
++
++The author answers every finding in `task.jsonl`, never argues with it in chat:
++
++```json
++{"review":{"answer":{"n":2,"reply":"fixed"}}}
++{"review":{"answer":{"n":3,"reply":"declined: <why>"}}}
++```
++
++The task mastermind judges every decline. There is no second review round unless the mastermind
++doubts a decline it sees.
++
++## The merge gate
++
++`Server/merge.mjs` refuses a `light` or `full` branch that has no review newer than its last
++commit, or has a `[fix]` finding with no answer yet. The refusal names the one command above to
++run.
++
++`node Server/review.mjs --status <taskdir>` prints the phrase the task's card shows on the
++board: `reviewed: pass`, `reviewed: 2 fixed, 1 declined`, `reviewed: 1 unanswered`, or
++`not reviewed`.
++
++## Later, not now
++
++`--model <id>` is already there so the reviewer can one day be a different model family
++(via OpenRouter) — the strongest version of fresh eyes, since it never trained alongside the
++author. Not wired up yet.
+diff --git a/Server/merge.mjs b/Server/merge.mjs
+new file mode 100644
+index 00000000..081bcdce
+--- /dev/null
++++ b/Server/merge.mjs
+@@ -0,0 +1,377 @@
++/* `node Server/merge.mjs <worktree dir> [paths...] [--main <dir>] [--skip-smoke] [--dry-run]` — the one serialized way to land a worktree.
++ * It takes a lock (.merge.lock at the main repo root) so two merges never run at once, refuses
++ * uncommitted work in the worktree, smoke-tests it (Server/smoke.mjs), then lands its branch on
++ * michael/dev with the live-reload hold on. It NEVER runs `git merge` over uncommitted edits in the
++ * main tree (2026-09-25: that reset 85 of the owner's files): it compares the branch's files with
++ * the main tree's dirty files FIRST.
++ *
++ * `--no-review "why"` is also a flag, alongside the ones above — see below.
++ *
++ * REVIEW GATE (2026-09-28, fresh-eyes-review), before the smoke test: a light or full-size branch
++ * (`Server/review.mjs`'s `sizeOf`) needs a review newer than its head with every `[fix]` finding
++ * answered, or the merge refuses with the one command to fix that; `--no-review "why"` or `--main`
++ * skip it, loudly.
++ *
++ * IT FINDS THE CHANGED PAGES ITSELF (2026-09-28, smoke-links): every `page.js`/`page.jsonl` the
++ * branch touches, from `git diff --name-only BASE...branch`, is turned into that page's own site
++ * url (`pageUrlFor()` below — a card folder under `public/framework/ai/YYYY/MM/DD/…` maps to
++ * `/framework/ai2/YYYY/MM/DD/…`; anything else's url is just the directory holding the page.js)
++ * and handed to `smoke.mjs` alongside any paths given by hand — which now also FOLLOWS every
++ * link on each page it loads, one level deep. Why: 7 concept-tile links shipped 404ing because
++ * nothing had ever clicked them — not the landing screenshot, not the old smoke test (which only
++ * loaded the pages an agent remembered to list). Every NEW page.js in the diff (added, not
++ * modified) then gets a 1920 screenshot via `layout-check.mjs`, in `.merge-shots/` at the repo
++ * root, and the file paths print at the end.
++ *   No overlap: `git merge-tree` proves the merge is clean, then `git merge --no-ff` commits it.
++ *   Overlap:    a three-way merge per file (`git merge-file`: base = the merge base, ours = the main
++ *               tree's working file, theirs = the branch), computed for EVERY file in memory first;
++ *               one conflict and nothing is written. Working tree only (no index, no commit); the
++ *               branch head is recorded in .merge-landed.json; the owner commits. (`git apply` was
++ *               dropped 2026-09-25: it refused whenever an owner edit sat on a line next to a hunk.)
++ * Nothing is ever reset, stashed, checked out, forced or rewritten. `--main` points at another repo
++ * (for proofs on a scratch repo); `--skip-smoke` is for those proofs only; `--dry-run` computes and
++ * prints every file's result and writes nothing (no lock, no hold).
++ * Exit: 0 landed (or dry run clean), 1 refused or smoke failed, 3 lock wait timed out, 4 would conflict (nothing touched). */
++import { spawnSync } from "node:child_process";
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++import { sizeOf, status as reviewStatus } from "./review.mjs";
++
++const BASE = "michael/dev";
++const argv = process.argv.slice(2);
++const flag = name => { const i = argv.indexOf(name); if (i < 0) return undefined; const [, v] = argv.splice(i, 2); return v; };
++const bool = name => argv.includes(name) && (argv.splice(argv.indexOf(name), 1), true);
++const skipSmoke = bool("--skip-smoke");
++const dryRun = bool("--dry-run");
++const mainArg = flag("--main");
++const noReview = flag("--no-review");
++const [dirArg, ...paths] = argv;
++if (!dirArg) { console.error("usage: node Server/merge.mjs <worktree dir> [paths...] [--main <dir>] [--skip-smoke] [--dry-run]"); process.exit(1); }
++// (also --no-review "why": see the review-gate paragraph in the header above)
++const dir = path.resolve(dirArg);
++const run = (cmd, args, cwd) => spawnSync(cmd, args, { cwd, encoding: "utf8", windowsHide: true, maxBuffer: 64 << 20 });
++const git = (cwd, ...a) => run("git", a, cwd);
++// the main repo: the one this worktree belongs to, unless --main says otherwise
++const MAIN = mainArg ? path.resolve(mainArg)
++	: path.dirname(git(dir, "rev-parse", "--path-format=absolute", "--git-common-dir").stdout.trim());
++const alive = pid => { try { process.kill(pid, 0); return true; } catch (e) { return e.code === "EPERM"; } };
++const lockFile = path.join(MAIN, ".merge.lock");
++const lines = s => s.split(/\r?\n/).filter(Boolean);
++
++/* A changed page.js/page.jsonl's own site url, or null. The no-build site has no routing table
++ * besides "the url IS the directory that holds the page.js" (same rule health.mjs's
++ * nearest_page_url() walks live) — except an AI card folder, which core/Page's own AITask
++ * renders under /framework/ai2/, never at its filesystem path. */
++const CARD_RE = /^public\/framework\/ai\/(\d{4})\/(\d{2})\/(\d{2})\/(.+)\/page\.(?:js|jsonl)$/;
++function pageUrlFor(f){
++	const card = CARD_RE.exec(f);
++	if (card) return `/framework/ai2/${card[1]}/${card[2]}/${card[3]}/${card[4]}/`;
++	if (!f.startsWith("public/") || !/\/page\.(?:js|jsonl)$/.test(f)) return null;
++	return "/" + f.slice("public/".length).replace(/page\.(?:js|jsonl)$/, "");
++}
++
++// The worktree's own dev server — same lookup smoke.mjs makes, so a screenshot loads the branch's
++// own pages, not the main tree's.
++function worktreeBase(dir){
++	const f = path.join(MAIN, ".worktrees.json");
++	if (!fs.existsSync(f)) return null;
++	const norm = p => path.resolve(p).replace(/\\/g, "/").toLowerCase();
++	const entry = Object.values(JSON.parse(fs.readFileSync(f, "utf8"))).find(e => norm(e.path) === norm(dir));
++	return entry ? `http://127.0.0.1:${entry.port}` : null;
++}
++
++/* The review gate. null = ok to merge (nothing needed, or --main/--no-review skipped it).
++ * A string = the refusal to print. Scans the last 4 days of task dirs for the newest
++ * `{"review":…}` line (not an `answer`) naming this branch, then requires its `head` to be
++ * this branch's head, or an ancestor of it with every `[fix]` finding answered (`review.mjs`'s
++ * own `status()`, so the phrase and the gate can never disagree). */
++function reviewGate(branch, head){
++	if (mainArg) return null;
++	if (noReview) { console.warn(`!!! --no-review: ${noReview} — merging WITHOUT a fresh-eyes review !!!`); return null; }
++	const nameStatus = lines(git(MAIN, "diff", "--name-status", "--no-renames", `${BASE}...${branch}`).stdout)
++		.map(l => { const [s, ...f] = l.split("\t"); return { status: s[0], f: f.join("\t") }; });
++	const numstat = lines(git(MAIN, "diff", "--numstat", "--no-renames", `${BASE}...${branch}`).stdout)
++		.map(l => { const [a, d, ...f] = l.split("\t"); return { added: Number(a) || 0, deleted: Number(d) || 0, f: f.join("\t") }; });
++	if (sizeOf(nameStatus, numstat) === "none") return null;
++	const daysAgo = d => Math.floor((Date.now() - Date.parse(d)) / 86400000);
++	const aiDir = path.join(MAIN, "public/framework/ai");
++	// every task.jsonl under a day dir, AT ANY DEPTH — a task's own review lines usually sit one
++	// level down, but a proof run (or a sub-task in a subfolder) can nest deeper.
++	function taskLogs(dir){
++		let out = [];
++		for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
++			const p = path.join(dir, e.name);
++			if (e.isDirectory()) out.push(...taskLogs(p));
++			else if (e.name === "task.jsonl") out.push(p);
++		}
++		return out;
++	}
++	let best = null;
++	for (const day of fs.readdirSync(aiDir).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d) && daysAgo(d) <= 3 && daysAgo(d) >= 0))
++		for (const tj of taskLogs(path.join(aiDir, day))) {
++			const td = path.dirname(tj);
++			for (const l of lines(fs.readFileSync(tj, "utf8"))) {
++				let e; try { e = JSON.parse(l); } catch { continue; }
++				if (e.review?.verdict && !e.review.answer && e.review.branch === branch && (!best || e.review.at > best.e.review.at)) best = { td, e };
++			}
++		}
++	const cmd = `node Server/review.mjs ${best ? path.relative(MAIN, best.td).replaceAll("\\", "/") : "<taskdir or public/framework/ai/<date>/<slug>>"} ${dir}`;
++	if (!best) return `refused: ${branch} is size ${sizeOf(nameStatus, numstat)} and has no review; run: ${cmd}`;
++	const current = best.e.review.head === head || git(MAIN, "merge-base", "--is-ancestor", best.e.review.head, head).status === 0;
++	if (!current || /unanswered/.test(reviewStatus(best.td))) return `refused: ${branch}'s review is stale or has an unanswered finding; run: ${cmd}`;
++	return null;
++}
++
++async function takeLock() {
++	const deadline = Date.now() + 120000;
++	for (;;) {
++		try {
++			const fd = fs.openSync(lockFile, "wx");
++			fs.writeSync(fd, JSON.stringify({ pid: process.pid, dir, at: Date.now() }));
++			fs.closeSync(fd);
++			return true;
++		} catch (e) {
++			if (e.code !== "EEXIST") throw e;
++			let held; try { held = JSON.parse(fs.readFileSync(lockFile, "utf8")); } catch { held = null; }
++			if (!held || Date.now() - held.at > 300000 || !alive(held.pid)) { try { fs.unlinkSync(lockFile); } catch {} continue; }
++			if (Date.now() > deadline) return false;
++			await new Promise(r => setTimeout(r, 500));
++		}
++	}
++}
++
++/* Every path the main tree has uncommitted: modified, staged, deleted, untracked (and both sides of a rename). */
++function dirtyFiles() {
++	const parts = git(MAIN, "status", "--porcelain", "-z", "--untracked-files=all").stdout.split("\0").filter(Boolean);
++	const out = new Set();
++	for (let i = 0; i < parts.length; i++) {
++		out.add(parts[i].slice(3));
++		if (/^[RC]/.test(parts[i])) out.add(parts[++i]);   // a rename's second entry is its old path
++	}
++	return out;
++}
++
++/* ---- the three-way merge, per file, in memory. Buffers throughout: bytes in, bytes out. ---- */
++const blob = (rev, f) => { const r = spawnSync("git", ["cat-file", "blob", `${rev}:${f}`], { cwd: MAIN, windowsHide: true, maxBuffer: 256 << 20 }); return r.status === 0 ? r.stdout : null; };
++const readWork = f => { const p = path.join(MAIN, f); try { return fs.statSync(p).isFile() ? fs.readFileSync(p) : null; } catch { return null; } };
++const same = (a, b) => (a === null || b === null) ? a === b : a.equals(b);
++const binary = b => b !== null && b.includes(0);
++// latin1 maps every byte to one char and back, so these only touch the line endings
++const toLF = b => b === null ? null : Buffer.from(b.toString("latin1").replace(/\r\n/g, "\n"), "latin1");
++const toCRLF = b => Buffer.from(b.toString("latin1").replace(/\r?\n/g, "\r\n"), "latin1");
++
++/* One file's plan: { f, action: "write" | "delete" | "none" | "conflict", data?, why }. Touches nothing. */
++function planFile(f, baseRev, branch, tmp) {
++	const base = blob(baseRev, f), theirs = blob(branch, f), ours = readWork(f);
++	if (binary(base) || binary(theirs) || binary(ours)) {
++		if (same(ours, base)) return theirs === null ? { f, action: ours === null ? "none" : "delete", why: "binary; main tree unchanged from base: takes the branch's version" }
++			: { f, action: "write", data: theirs, why: "binary; main tree unchanged from base: takes the branch's version" };
++		if (same(ours, theirs)) return { f, action: "none", why: "binary; main tree already equals the branch" };
++		return { f, action: "conflict", why: "binary file edited in the main tree and on the branch" };
++	}
++	// keep the working file's line endings: compare and merge in LF, write back CRLF if ours had it
++	const crlf = ours !== null && ours.includes("\r\n");
++	const [b, t, o] = crlf ? [toLF(base), toLF(theirs), toLF(ours)] : [base, theirs, ours];
++	const out = data => crlf ? toCRLF(data) : data;
++	if (same(o, b)) {
++		if (t === null) return { f, action: ours === null ? "none" : "delete", why: "main tree unchanged from base; the branch deletes it" };
++		return { f, action: "write", data: out(t), why: ours === null ? "new file from the branch" : "main tree unchanged from base: takes the branch's version" };
++	}
++	if (same(o, t)) return { f, action: "none", why: "main tree already equals the branch" };
++	if (o === null) return { f, action: "conflict", why: "deleted in the main tree, changed on the branch" };
++	if (t === null) return { f, action: "conflict", why: "edited in the main tree, deleted on the branch" };
++	// base doesn't have this file at all (both sides added it independently): if every line of the
++	// main tree's version shows up in the branch's version, in the same order, the branch is just
++	// the main tree's file plus additions — nothing of ours is lost, so take theirs outright.
++	if (b === null) {
++		const oL = o.toString("latin1").split("\n"), tL = t.toString("latin1").split("\n");
++		let i = 0; for (const l of tL) if (i < oL.length && l === oL[i]) i++;
++		if (i === oL.length) return { f, action: "write", data: out(t), why: "both added; branch = main tree's file plus additions" };
++	}
++	const n = f.replace(/[^\w.-]/g, "_");
++	const [po, pb, pt] = ["ours", "base", "theirs"].map(s => path.join(tmp, `${n}.${s}`));
++	fs.writeFileSync(po, o); fs.writeFileSync(pb, b ?? Buffer.alloc(0)); fs.writeFileSync(pt, t);
++	const m = spawnSync("git", ["merge-file", "-p", "--diff3", `--marker-size=${MARK}`, po, pb, pt], { cwd: tmp, windowsHide: true, maxBuffer: 256 << 20 });
++	if (m.status < 0 || m.status === null || m.status > 127) return { f, action: "conflict", why: `git merge-file failed: ${m.stderr}` };
++	if (m.status === 0) return { f, action: "write", data: out(m.stdout), why: `both changed: merged cleanly${crlf ? " (CRLF kept)" : ""}` };
++	// git calls edits on ADJACENT lines a conflict; settle those blocks line by line, refuse the rest
++	const settled = settleAdjacent(m.stdout.toString("latin1"));
++	if (settled.left) return { f, action: "conflict", why: `${settled.left} conflicting hunk(s): the main tree's edits and the branch change the same lines` };
++	return { f, action: "write", data: out(Buffer.from(settled.text, "latin1")), why: `both changed: merged cleanly, ${m.status} adjacent-line block(s) settled line by line${crlf ? " (CRLF kept)" : ""}` };
++}
++
++/* ---- adjacent-line blocks. git merge-file refuses a block where one side edits line 2 and the other line 3.
++ * Inside each block (--diff3 gives base, ours and theirs), diff each side against the base line by line; if the
++ * two sides' edits touch different base lines, apply both; if any edit touches a line the other side touches
++ * (or both insert at the same spot), the block stays a conflict and the whole landing is refused. ---- */
++const MARK = 41;   // long markers, so a file that itself contains "<<<<<<<" cannot confuse the parser
++const splitLines = s => s.match(/[^\n]*\n|[^\n]+$/g) ?? [];
++
++/* The edits that turn a into b, as [{ s, e, add }]: replace a[s..e) with the lines in add. LCS, small blocks only. */
++function edits(a, b) {
++	const n = a.length, m = b.length;
++	if (n * m > 4e6) return null;
++	const L = Array.from({ length: n + 1 }, () => new Int32Array(m + 1));
++	for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--) L[i][j] = a[i] === b[j] ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
++	const out = []; let i = 0, j = 0, cur = null;
++	const flush = () => { if (cur) out.push(cur); cur = null; };
++	while (i < n || j < m) {
++		if (i < n && j < m && a[i] === b[j]) { flush(); i++; j++; }
++		else if (j < m && (i === n || L[i][j + 1] >= L[i + 1][j])) { cur ??= { s: i, e: i, add: [] }; cur.add.push(b[j++]); }
++		else { cur ??= { s: i, e: i, add: [] }; cur.e = ++i; }
++	}
++	flush();
++	return out;
++}
++
++/* Combine two edit lists on the same base, or null if any pair touches the same base line or insertion point. */
++function combine(base, x, y) {
++	for (const p of x) for (const q of y) {
++		const pIns = p.s === p.e, qIns = q.s === q.e;
++		if (pIns && qIns ? p.s === q.s : pIns ? (q.s < p.s && p.s < q.e) : qIns ? (p.s < q.s && q.s < p.e) : (p.s < q.e && q.s < p.e)) return null;
++	}
++	// at one start, an insertion goes before a replacement
++	const all = [...x, ...y].sort((p, q) => p.s - q.s || (p.e - p.s) - (q.e - q.s));
++	const out = []; let at = 0;
++	for (const c of all) { out.push(...base.slice(at, c.s), ...c.add); at = c.e; }
++	return out.concat(base.slice(at));
++}
++
++function settleAdjacent(text) {
++	const L = splitLines(text), res = []; let left = 0;
++	const is = (l, ch) => l.startsWith(ch.repeat(MARK)) && (l.length === MARK || /^[ \r\n]/.test(l.slice(MARK)));
++	for (let k = 0; k < L.length; k++) {
++		if (!is(L[k], "<")) { res.push(L[k]); continue; }
++		const start = k, ours = [], base = [], theirs = []; let part = ours;
++		for (k++; k < L.length && !is(L[k], ">"); k++) {
++			if (is(L[k], "|")) part = base; else if (is(L[k], "=")) part = theirs; else part.push(L[k]);
++		}
++		const x = edits(base, ours), y = edits(base, theirs), merged = x && y && combine(base, x, y);
++		if (merged) res.push(...merged); else { left++; res.push(...L.slice(start, k + 1)); }
++	}
++	return { text: res.join(""), left };
++}
++
++function planAll(files, branch) {
++	const baseRev = git(MAIN, "merge-base", BASE, branch).stdout.trim() || BASE;
++	const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "merge-"));
++	try { return files.map(f => planFile(f, baseRev, branch, tmp)); }
++	finally { fs.rmSync(tmp, { recursive: true, force: true }); }
++}
++
++/* Write every planned file; if one write throws, put back what was already written, then rethrow. */
++function writeAll(plan) {
++	const done = [];
++	try {
++		for (const p of plan) {
++			if (p.action !== "write" && p.action !== "delete") continue;
++			const full = path.join(MAIN, p.f);
++			done.push([full, readWork(p.f)]);
++			if (p.action === "delete") fs.rmSync(full, { force: true });
++			else { fs.mkdirSync(path.dirname(full), { recursive: true }); fs.writeFileSync(full, p.data); }
++		}
++	} catch (e) {
++		for (const [full, old] of done.reverse()) { try { old === null ? fs.rmSync(full, { force: true }) : fs.writeFileSync(full, old); } catch {} }
++		throw e;
++	}
++}
++
++const printPlan = plan => console.log(plan.map(p => `  ${p.action.toUpperCase().padEnd(8)} ${p.f} — ${p.why}`).join("\n"));
++
++if (skipSmoke) console.warn("\n!!! --skip-smoke: NO SMOKE TEST WILL RUN. This flag is for proofs on a scratch repo only. !!!\n");
++if (dryRun) console.log("DRY RUN: computing only; no lock, no hold, nothing written.");
++if (!dryRun && !(await takeLock())) { console.error("gave up waiting for .merge.lock"); process.exit(3); }
++let code = 0, held = false;
++const holdScript = path.join(MAIN, "Server", "hold.mjs");   // the main repo's own hold; a scratch repo has none
++const hold = (state, why, files = []) => {
++	if (!fs.existsSync(holdScript)) return false;
++	run("node", [holdScript, state, why, ...(state === "on" && files.length ? ["--paths", files.join(",")] : [])], MAIN);
++	return true;
++};
++try {
++	const branch = git(dir, "rev-parse", "--abbrev-ref", "HEAD").stdout.trim();
++	const head = git(dir, "rev-parse", "HEAD").stdout.trim();
++	// .jsonl streams are appended to by the running site itself, so they never count as your changes
++	if (git(dir, "status", "--porcelain", "--untracked-files=no").stdout.split(/\r?\n/).some(l => l.trim() && !l.trim().endsWith(".jsonl"))) { console.error("refused: the worktree has uncommitted changes"); code = 1; }
++	else if (git(MAIN, "rev-parse", "--abbrev-ref", "HEAD").stdout.trim() !== BASE) { console.error(`refused: the main repo is not on ${BASE}`); code = 1; }
++	else {
++		const gateWhy = reviewGate(branch, head);
++		if (gateWhy) { console.error(gateWhy); code = 1; }
++		else {
++		// --no-renames: a renamed file must list its old path too, or the old one would never be deleted
++		const changed = lines(git(MAIN, "diff", "--name-only", "--no-renames", `${BASE}...${branch}`).stdout);
++		const status = lines(git(MAIN, "diff", "--name-status", "--no-renames", `${BASE}...${branch}`).stdout)
++			.map(l => { const [s, ...f] = l.split("\t"); return { status: s[0], f: f.join("\t") }; });
++		// every page.js/page.jsonl the branch touches, as its own url — de-duped against paths given by hand
++		const autoPages = [...new Set(changed.map(pageUrlFor).filter(Boolean))].filter(u => !paths.includes(u));
++		if (autoPages.length) console.log(`merge.mjs found ${autoPages.length} changed page(s) from the diff: ${autoPages.join(", ")}`);
++		const smoke = skipSmoke ? { status: 0, stdout: "", stderr: "" }
++			: run("node", [path.join(path.dirname(fileURLToPath(import.meta.url)), "smoke.mjs"), dir, ...paths, ...autoPages], MAIN);
++		console.log(smoke.stdout + smoke.stderr);
++		const dirty = dirtyFiles();
++		const overlap = changed.filter(f => dirty.has(f));
++		const staged = lines(git(MAIN, "diff", "--cached", "--name-only").stdout);   // git merge refuses any staged change, so treat it like overlap
++		// a NEW page (status "A") gets a 1920 screenshot, against the worktree's own server, before the merge touches anything
++		if (smoke.status === 0 && !skipSmoke) {
++			const newPages = [...new Set(status.filter(s => s.status === "A").map(s => pageUrlFor(s.f)).filter(Boolean))];
++			const wtBase = newPages.length ? worktreeBase(dir) : null;
++			if (newPages.length && !wtBase) console.log(`${newPages.length} new page(s) but no worktree server found for ${dir} — skipping screenshots`);
++			else if (newPages.length) {
++				const shotDir = path.join(MAIN, ".merge-shots", `${branch.replace(/[^\w.-]/g, "_")}-${Date.now()}`);
++				// layout-check.mjs prints each file's own path (it slugs the url itself); this just says where they landed
++				console.log(`new page(s) — 1920 screenshot(s) into ${shotDir}:`);
++				const lc = run("node", [path.join(MAIN, "Server", "layout-check.mjs"), ...newPages.map(u => wtBase + u), "--widths", "1920", "--out", shotDir], MAIN);
++				console.log(lc.stdout + lc.stderr);
++			}
++		}
++		if (smoke.status !== 0) { console.error("smoke test failed; nothing merged"); code = 1; }
++		else if (!changed.length) console.log(`nothing to land: ${branch} changes no file against ${BASE}`);
++		else if (!overlap.length && !staged.length) {
++			// prove the merge is clean BEFORE git merge touches anything
++			const mt = git(MAIN, "merge-tree", "--write-tree", "--name-only", "--no-messages", BASE, branch);
++			if (mt.status !== 0) {
++				console.error(`refused: ${branch} conflicts with ${BASE}; nothing was touched. Conflicting files:\n` + lines(mt.stdout).slice(1).join("\n"));
++				code = 4;
++			} else if (dryRun) {
++				console.log(`no overlap with the main tree's uncommitted edits: would run git merge --no-ff (merge-tree says clean). Files:\n  ${changed.join("\n  ")}`);
++			} else {
++				held = hold("on", "merge — " + branch, changed);
++				const m = git(MAIN, "merge", "--no-ff", "--no-edit", branch);
++				console.log(m.stdout + m.stderr);
++				if (m.status !== 0) {
++					// should be impossible after merge-tree; abort only a merge that actually started
++					if (fs.existsSync(path.join(MAIN, ".git", "MERGE_HEAD"))) git(MAIN, "merge", "--abort");
++					console.error("git merge failed after merge-tree said it was clean — look at the output above");
++					code = 4;
++				}
++			}
++		} else {
++			// the main tree has uncommitted edits to files this branch changes: never git merge
++			console.log(`the main tree has uncommitted edits to ${overlap.length ? overlap.join(", ") : "staged files"}; three-way merging each file into the working tree instead`);
++			const plan = planAll(changed, branch);
++			printPlan(plan);
++			const conflicts = plan.filter(p => p.action === "conflict");
++			if (conflicts.length) {
++				console.error(`refused: ${conflicts.length} file(s) conflict; nothing was touched:\n${conflicts.map(p => `  ${p.f} — ${p.why}`).join("\n")}`);
++				code = 4;
++			} else if (dryRun) {
++				console.log("dry run: every file merges cleanly; nothing was written");
++			} else {
++				held = hold("on", "merge — three-way " + branch, changed);
++				writeAll(plan);
++				const ledger = path.join(MAIN, ".merge-landed.json");
++				let landed; try { landed = JSON.parse(fs.readFileSync(ledger, "utf8")); } catch { landed = []; }
++				landed.push({ branch, head, at: new Date().toISOString(), files: changed });
++				fs.writeFileSync(ledger, JSON.stringify(landed, null, "\t"));
++				console.log(`applied over uncommitted edits, not committed: the owner commits\n${changed.join("\n")}`);
++			}
++		}
++		}
++	}
++} finally {
++	if (held) hold("off", "merge");
++	if (!dryRun) try { fs.unlinkSync(lockFile); } catch {}
++}
++process.exit(code);
+diff --git a/Server/review.mjs b/Server/review.mjs
+new file mode 100644
+index 00000000..0927941f
+--- /dev/null
++++ b/Server/review.mjs
+@@ -0,0 +1,217 @@
++/* `node Server/review.mjs <taskdir> [<worktree dir>] [--range A..B] [--size none|light|full] [--why "..."] [--model <id>]`
++ * Fresh eyes on a finished task: an agent that never saw the author's conversation reads only the
++ * brief, the diff and (for a new page/module) screenshots, then says pass or fix. Why fresh: an
++ * agent that reviews its own code agrees with itself.
++ *
++ * SIZE (`sizeOf`, exported): `none` — only .css/.md changed, 20 changed lines or fewer, no added
++ * file: no agent runs, review.md just says so. `light` — code changed, but no new page/module/
++ * Servex file: a fresh Sonnet reads the brief and the diff. `full` — a new page.js, a new .js/.mjs
++ * module, or anything under Servex/: a fresh Opus also gets 1280/1920/3440 screenshots and the four
++ * layout questions. `--size` may only RAISE the computed size; lowering it needs `--why`, logged as
++ * a `{"decision":…}` line so the reason survives.
++ *
++ * DIFF: normally `git diff michael/dev...<branch>` run INSIDE the worktree (default: cwd) — the
++ * worktree shares the main repo's objects, so `michael/dev` is visible from there. `--range A..B`
++ * instead diffs two commits in the MAIN repo, for a task that already landed (the proof runs use
++ * this on old merge commits).
++ *
++ * The reviewer is a brand-new Servex agent (`spawn_agent` over the loopback MCP at
++ * http://127.0.0.1:8090/mcp, then `wait_for_agent`, then `stop_agent` — the same three calls
++ * `Server/clarity.mjs` makes) — never a `resume` or `fork`, so it truly has not seen the author's
++ * turns. It writes `<taskdir>/review.md` (first line `verdict: pass` or `verdict: fix`, then
++ * findings `N. [fix] …` / `N. [note] …`) and this script parses that (`parseReview`, exported) into
++ * one `{"review":{…}}` line appended to the task's task.jsonl.
++ *
++ * `--status <taskdir>` (no other args) prints one phrase for the dashboard card: `reviewed: pass`,
++ * `reviewed: 2 fixed, 1 declined`, `reviewed: 1 unanswered`, or `not reviewed` (`status`, exported;
++ * see doc/review.md for how a finding is answered). Every Node spawn here sets `windowsHide: true`.
++ * Never throws: a Servex problem becomes a `fix` finding saying so, not a crash. */
++import fs from "node:fs";
++import path from "node:path";
++import { spawnSync } from "node:child_process";
++import { fileURLToPath } from "node:url";
++
++const BASE = "michael/dev";
++const MCP = "http://127.0.0.1:8090/mcp";
++const WIDTHS = [1280, 1920, 3440];
++const lines = s => s.split(/\r?\n/).filter(Boolean);
++const run = (cmd, args, cwd) => spawnSync(cmd, args, { cwd, encoding: "utf8", windowsHide: true, maxBuffer: 64 << 20 });
++const git = (cwd, ...a) => run("git", a, cwd);
++const slug = u => u.replace(/^https?:\/\//, "").replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "") || "page";
++const now = () => { const d = new Date(), o = -d.getTimezoneOffset(), p = n => String(Math.floor(Math.abs(n))).padStart(2, "0"); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}${o < 0 ? "-" : "+"}${p(o / 60)}:${p(o % 60)}`; };
++function appendJSON(file, obj) {
++	let lead = ""; try { const b = fs.readFileSync(file); if (b.length && b.at(-1) !== 10) lead = "\n"; } catch {}
++	fs.appendFileSync(file, lead + JSON.stringify(obj) + "\n");
++}
++
++// A changed page.js/page.jsonl's own site url — the same rule merge.mjs's pageUrlFor() uses.
++const CARD_RE = /^public\/framework\/ai\/(\d{4})\/(\d{2})\/(\d{2})\/(.+)\/page\.(?:js|jsonl)$/;
++function pageUrlFor(f) {
++	const card = CARD_RE.exec(f);
++	if (card) return `/framework/ai2/${card[1]}/${card[2]}/${card[3]}/${card[4]}/`;
++	if (!f.startsWith("public/") || !/\/page\.(?:js|jsonl)$/.test(f)) return null;
++	return "/" + f.slice("public/".length).replace(/page\.(?:js|jsonl)$/, "");
++}
++function worktreeBase(main, dir) {
++	const f = path.join(main, ".worktrees.json");
++	if (!dir || !fs.existsSync(f)) return null;
++	const norm = p => path.resolve(p).replace(/\\/g, "/").toLowerCase();
++	try {
++		const entry = Object.values(JSON.parse(fs.readFileSync(f, "utf8"))).find(e => norm(e.path) === norm(dir));
++		return entry ? `http://127.0.0.1:${entry.port}` : null;
++	} catch { return null; }
++}
++
++/* The size of a diff. `files`: [{status, f}] from `git diff --name-status`. `numstat`:
++ * [{added, deleted, f}] from `git diff --numstat`. Exported so merge.mjs's gate can reuse it. */
++export function sizeOf(files, numstat) {
++	if (!files.length) return "none";
++	const added = files.filter(x => x.status === "A");
++	const totalLines = numstat.reduce((n, r) => n + (Number(r.added) || 0) + (Number(r.deleted) || 0), 0);
++	if (files.every(x => /\.(css|md)$/i.test(x.f)) && totalLines <= 20 && added.length === 0) return "none";
++	const full = files.some(x => x.f.startsWith("Servex/")
++		|| (x.status === "A" && (/(^|\/)page\.js$/.test(x.f) || /\.(mjs|js)$/i.test(x.f))));
++	return full ? "full" : "light";
++}
++
++/* review.md -> {verdict, findings:[{n, kind, text}]}. Exported for testing / --status. */
++export function parseReview(text) {
++	const rows = text.split(/\r?\n/);
++	const verdict = /^verdict:\s*pass/i.test((rows.find(l => l.trim()) || "").trim()) ? "pass" : "fix";
++	const findings = [];
++	for (const l of rows) {
++		const m = /^(\d+)\.\s*\[(fix|note)\]\s*(.+)$/i.exec(l.trim());
++		if (m) findings.push({ n: Number(m[1]), kind: m[2].toLowerCase(), text: m[3].trim() });
++	}
++	return { verdict, findings };
++}
++
++/* The dashboard's one-phrase answer, from task.jsonl: the newest {"review":…} line (not an
++ * answer), plus every {"review":{"answer":…}} line that answers its `[fix]` findings. */
++export function status(taskDir) {
++	let entries;
++	try { entries = fs.readFileSync(path.join(taskDir, "task.jsonl"), "utf8").split(/\r?\n/).filter(Boolean).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean); }
++	catch { return "not reviewed"; }
++	const reviews = entries.filter(e => e.review && e.review.verdict && !e.review.answer);
++	if (!reviews.length) return "not reviewed";
++	const latest = reviews.at(-1).review;
++	const fixes = (latest.findings || []).filter(f => f.kind === "fix");
++	if (!fixes.length) return "reviewed: pass";
++	const answers = entries.filter(e => e.review?.answer).map(e => e.review.answer);
++	let fixed = 0, declined = 0, unanswered = 0;
++	for (const f of fixes) {
++		const a = answers.filter(x => x.n === f.n).at(-1);
++		if (!a) unanswered++; else if (/^fixed$/i.test(a.reply)) fixed++; else declined++;
++	}
++	if (unanswered) return `reviewed: ${unanswered} unanswered`;
++	return `reviewed: ${[fixed && `${fixed} fixed`, declined && `${declined} declined`].filter(Boolean).join(", ")}`;
++}
++
++async function mcp(name, args, ms = 30000) {
++	const r = await fetch(MCP, { method: "POST", headers: { "content-type": "application/json", accept: "application/json, text/event-stream" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name, arguments: args } }), signal: AbortSignal.timeout(ms) });
++	const j = await r.json();
++	const text = j.result?.content?.[0]?.text ?? j.error?.message ?? "";
++	try { return JSON.parse(text); } catch { return { raw: text }; }
++}
++
++function buildPrompt(root, taskDir, cardDir, diffPath, shotPaths, size) {
++	const rel = p => path.relative(root, p).replaceAll("\\", "/");
++	const files = [rel(path.join(taskDir, "requirements.md")), ...(cardDir ? [rel(cardDir)] : []), rel(diffPath), ...shotPaths.map(rel)];
++	const q = "Does it do what the owner asked in requirements.md? Is anything broken? Is there a simpler way?"
++		+ (size === "full" ? " Also, from the screenshots: is the space used well, is the order right, can the reader find everything, is the navigation clear?" : "");
++	return `You are reviewing someone else's finished work with fresh eyes — you have never seen their conversation, only these files. Repo root: ${root.replaceAll("\\", "/")}.\n\n`
++		+ `Read: ${files.join(", ")}.\n\n${q}\n\n`
++		+ `Write ${rel(path.join(taskDir, "review.md"))}: its first line is exactly "verdict: pass" or "verdict: fix". Then numbered findings, one per line: "N. [fix] ..." for something that must change, or "N. [note] ..." for an observation worth a look — one or two plain sentences each, naming a file:line or a screenshot's file name.\n\n`
++		+ `Make no code edits. One pass, then stop.`;
++}
++
++async function main() {
++	const argv = process.argv.slice(2);
++	if (argv[0] === "--status") { console.log(status(path.resolve(argv[1]))); return; }
++	const flag = name => { const i = argv.indexOf(name); if (i < 0) return undefined; const [, v] = argv.splice(i, 2); return v; };
++	const range = flag("--range"), sizeArg = flag("--size"), why = flag("--why"), modelArg = flag("--model");
++	const [taskDirArg, worktreeArg] = argv;
++	if (!taskDirArg) { console.error('usage: node Server/review.mjs <taskdir> [<worktree dir>] [--range A..B] [--size none|light|full] [--why "..."] [--model <id>]'); process.exit(1); }
++	const taskDir = path.resolve(taskDirArg);
++	const worktreeDir = range ? null : path.resolve(worktreeArg || process.cwd());
++	// The main repo this worktree belongs to (the same trick merge.mjs uses): never assume it is
++	// wherever THIS copy of review.mjs happens to live — a worktree carries its own copy of this
++	// file, and .worktrees.json / Server/layout-check.mjs / the task's public/framework/ai only
++	// exist for certain in the MAIN tree.
++	const root = path.dirname(git(worktreeDir || process.cwd(), "rev-parse", "--path-format=absolute", "--git-common-dir").stdout.trim());
++	const cwd = range ? root : worktreeDir;
++	const spec = range ? range : `${BASE}...${git(worktreeDir, "rev-parse", "--abbrev-ref", "HEAD").stdout.trim()}`;
++	const [, rangeB] = range ? range.split(/\.\.\.?/) : [];
++	const branch = range ? rangeB : git(worktreeDir, "rev-parse", "--abbrev-ref", "HEAD").stdout.trim();
++	const head = range ? git(cwd, "rev-parse", rangeB).stdout.trim() : git(worktreeDir, "rev-parse", "HEAD").stdout.trim();
++
++	const status_ = lines(git(cwd, "diff", "--name-status", "--no-renames", spec).stdout).map(l => { const [s, ...f] = l.split("\t"); return { status: s[0], f: f.join("\t") }; });
++	const numstat = lines(git(cwd, "diff", "--numstat", "--no-renames", spec).stdout).map(l => { const [a, d, ...f] = l.split("\t"); return { added: a === "-" ? 0 : Number(a), deleted: d === "-" ? 0 : Number(d), f: f.join("\t") }; });
++	const files = status_.map(x => x.f);
++	const computed = sizeOf(status_, numstat);
++	let size = computed;
++	if (sizeArg) {
++		const rank = { none: 0, light: 1, full: 2 };
++		if (rank[sizeArg] < rank[computed] && !why) { console.error(`refused: lowering size from ${computed} to ${sizeArg} needs --why`); process.exit(1); }
++		if (rank[sizeArg] !== rank[computed]) appendJSON(path.join(taskDir, "task.jsonl"), { decision: { at: now(), question: "review size", computed, chose: sizeArg, why: why ?? "raised, no reason needed" } });
++		size = sizeArg;
++	}
++
++	const taskJsonl = path.join(taskDir, "task.jsonl");
++	if (size === "none") {
++		fs.writeFileSync(path.join(taskDir, "review.md"), `verdict: pass\n\nNo review needed: only CSS/docs changed (${numstat.reduce((n, r) => n + r.added + r.deleted, 0)} line(s)), no new file.\n`);
++		appendJSON(taskJsonl, { review: { at: now(), size, verdict: "pass", findings: [], branch, head, model: null, cost: 0, file: "review.md" } });
++		console.log(`review.mjs: size none — ${branch} — pass, no agent`);
++		return;
++	}
++
++	fs.mkdirSync(path.join(taskDir, "review"), { recursive: true });
++	const diffPath = path.join(taskDir, "review", "diff.patch");
++	fs.writeFileSync(diffPath, git(cwd, "diff", "--no-renames", spec).stdout);
++
++	let shotFiles = [];
++	if (size === "full") {
++		const pages = [...new Set(files.map(pageUrlFor).filter(Boolean))];
++		const HOST = "http://monorepo.localhost";
++		const already = pages.length && pages.every(p => WIDTHS.every(w => fs.existsSync(path.join(taskDir, "layout-check", slug(HOST + p), `${w}.png`))));
++		if (pages.length && already) shotFiles = pages.map(p => path.join(taskDir, "layout-check", slug(HOST + p), "sheet.png"));
++		else if (pages.length) {
++			const base = worktreeBase(root, worktreeDir) ?? HOST;
++			const shots = path.join(taskDir, "review", "shots");
++			fs.mkdirSync(shots, { recursive: true });
++			const lc = run("node", [path.join(root, "Server", "layout-check.mjs"), ...pages.map(p => base + p), "--widths", WIDTHS.join(","), "--out", shots]);
++			console.log(lc.stdout + lc.stderr);
++			shotFiles = pages.map(p => path.join(shots, slug(base + p), "sheet.png"));
++		}
++	}
++
++	let cardDir = null;
++	try {
++		const req = fs.readFileSync(path.join(taskDir, "requirements.md"), "utf8");
++		const m = /Card:\s*`([^`]+)`/.exec(req);
++		if (m) { const d = path.join(root, "public/framework/ai", m[1]); if (fs.existsSync(d)) cardDir = d; }
++	} catch {}
++
++	const model = modelArg || (size === "full" ? "claude-opus-5-5" : "claude-sonnet-5");
++	const name = path.basename(taskDir).replace(/[^a-z0-9-]+/gi, "-").slice(0, 40);
++	const prompt = buildPrompt(root, taskDir, cardDir, diffPath, shotFiles, size);
++	let verdict = "fix", findings = [{ n: 1, kind: "fix", text: "the reviewer never ran" }], cost = 0;
++	try {
++		const spawned = await mcp("spawn_agent", { role: "reviewer", name, prompt, model, effort: "medium", permission_mode: "bypassPermissions", cwd: root });
++		if (!spawned.id) throw new Error(spawned.raw || spawned.why || "spawn_agent did not return an id");
++		const waited = await mcp("wait_for_agent", { id: spawned.id, timeout_s: 900 }, 910000);
++		cost = waited.cost ?? 0;   // list_agents' row carries no cost field today; wait_for_agent's own answer does
++		await mcp("stop_agent", { id: spawned.id }, 20000);
++		const reviewPath = path.join(taskDir, "review.md");
++		if (fs.existsSync(reviewPath)) ({ verdict, findings } = parseReview(fs.readFileSync(reviewPath, "utf8")));
++		else findings = [{ n: 1, kind: "fix", text: "the reviewer wrote no review.md" }];
++	} catch (e) {
++		findings = [{ n: 1, kind: "fix", text: `reviewer failed to run: ${String(e?.message || e).slice(0, 200)}` }];
++		fs.writeFileSync(path.join(taskDir, "review.md"), `verdict: fix\n\n1. [fix] reviewer failed to run: ${String(e?.message || e).slice(0, 200)}\n`);
++	}
++	appendJSON(taskJsonl, { review: { at: now(), size, verdict, findings, branch, head, model, cost, file: "review.md" } });
++	console.log(`review.mjs: size ${size} — ${branch} — ${verdict}, ${findings.length} finding(s), $${cost}`);
++}
++
++const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
++if (isMain) main().catch(e => { console.error(String(e?.stack || e)); process.exitCode = 1; });

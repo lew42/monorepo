@@ -1,0 +1,59 @@
+{
+ "public/framework/ai/cards.jsonl": [
+  "{\"id\":\"2026/10/13/refine-confidence-0-5-means-not-sure-evi\",\"title\":\"Refine confidence: 0.5 means not sure, evidence required above 0.7; the refiner run on past days\",\"type\":\"task\",\"status\":\"open\",\"tags\":[\"repo-slim\",\"refine\"],\"created\":\"2026-10-13T17:02:40-05:00\",\"last\":\"2026-10-13T17:02:40-05:00\",\"preview\":null,\"state\":null,\"owner_note\":null,\"reviewed\":null}",
+  "{\"id\":\"2026/10/13/the-ai-system-defined-its-decisions-in-o\",\"title\":\"The AI system, defined: its decisions in one architecture.md and its components shown\",\"type\":\"task\",\"status\":\"open\",\"tags\":[\"repo-slim\",\"ai-system\"],\"created\":\"2026-10-13T17:02:40-05:00\",\"last\":\"2026-10-13T17:02:40-05:00\",\"preview\":null,\"state\":null,\"owner_note\":null,\"reviewed\":null}"
+ ],
+ "public/framework/core/Item/doc/files.jsonl": [
+  "{\"file\":\"architecture.md\"}"
+ ],
+ "public/framework/core/Layout/doc/files.jsonl": [
+  "{\"file\":\"architecture.md\"}",
+  "{\"file\":\"Layout-notes.md\"}",
+  "{\"file\":\"rules-notes.md\"}"
+ ],
+ "public/framework/core/Page/doc/files.jsonl": [
+  "{\"file\":\"storage-slice-1.md\"}",
+  "{\"file\":\"storage.md\"}"
+ ],
+ "public/framework/core/Router/doc/files.jsonl": [
+  "{\"file\":\"architecture.md\"}"
+ ],
+ "public/framework/core/View/doc/files.jsonl": [
+  "{\"file\":\"architecture.md\"}"
+ ],
+ "public/framework/dev/DevBar/doc/files.jsonl": [
+  "{\"file\":\"says-notes.md\"}"
+ ],
+ "public/framework/dev/Socket/doc/files.jsonl": [
+  "{\"file\":\"Socket-notes.md\"}"
+ ],
+ "public/framework/ext/Ask/doc/files.jsonl": [
+  "{\"file\":\"architecture.md\"}"
+ ],
+ "public/framework/ext/DesignTool/doc/files.jsonl": [
+  "{\"file\":\"polish-notes.md\"}",
+  "{\"file\":\"rules-notes.md\"}"
+ ],
+ "public/framework/ext/JSONL/doc/files.jsonl": [
+  "{\"file\":\"architecture.md\"}"
+ ],
+ "public/framework/ext/Research/doc/files.jsonl": [
+  "{\"file\":\"Program-notes.md\"}"
+ ],
+ "public/framework/ext/catalog/doc/files.jsonl": [
+  "{\"file\":\"browse-notes.md\"}"
+ ],
+ "public/framework/ext/demo/doc/files.jsonl": [
+  "{\"file\":\"architecture.md\"}",
+  "{\"file\":\"demo-notes.md\"}"
+ ],
+ "public/framework/ext/markdown/doc/files.jsonl": [
+  "{\"file\":\"architecture.md\"}"
+ ],
+ "public/framework/styles/layouts/doc/files.jsonl": [
+  "{\"file\":\"architecture.md\"}"
+ ],
+ "public/framework/styles/system/doc/files.jsonl": [
+  "{\"file\":\"architecture.md\"}"
+ ]
+}

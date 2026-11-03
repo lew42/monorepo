@@ -1,0 +1,43 @@
+{
+ "url": "http://monorepo.localhost/framework/ai2/",
+ "widths": {
+  "1280": {
+   "empty": 0.551,
+   "widest_text": 496,
+   "widest_text_sample": "a new class, Voice (text to speech), the",
+   "overflow_x": false,
+   "items": 48,
+   "narrow_share": 0.083
+  },
+  "1920": {
+   "empty": 0.552,
+   "widest_text": 502,
+   "widest_text_sample": "7.0 GB ours of 31.7 GB total · 18.4 GB o",
+   "overflow_x": false,
+   "items": 48,
+   "narrow_share": 0.458
+  },
+  "2560": {
+   "empty": 0.541,
+   "widest_text": 680,
+   "widest_text_sample": "a new class, Voice (text to speech), the",
+   "overflow_x": false,
+   "items": 48,
+   "narrow_share": 0.458
+  },
+  "3440": {
+   "empty": 0.616,
+   "widest_text": 642,
+   "widest_text_sample": "a new class, Voice (text to speech), the",
+   "overflow_x": false,
+   "items": 48,
+   "narrow_share": 0.458
+  }
+ },
+ "errors": [
+  "2560: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "3440: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1920: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1280: Failed to load resource: the server responded with a status of 404 (Not Found)"
+ ]
+}

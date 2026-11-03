@@ -1,0 +1,32 @@
+{
+ "id": "7e1f2802-9b17-468d-b17a-1988b5e09404",
+ "first": "2026-10-15T22:05:07.917Z",
+ "last": "2026-10-15T23:08:06.465Z",
+ "task": "public/framework/ai/sessions/2026/10/15/voice-20261015/standing-rules",
+ "models": {
+  "claude-sonnet-5-5": 20
+ },
+ "sizes": {
+  "raw": 169163,
+  "content": 19714,
+  "stripped": 6070,
+  "owner_only": 0
+ },
+ "usd": 0.56893,
+ "usd_main": 0.56893,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 40,
+  "output": 8358,
+  "cache_read": 1274729,
+  "cache_write": 57581,
+  "w5": 0,
+  "w1": 57581
+ },
+ "messages": 20,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "The class-page rule is now in the `make`, `code` and `minion` skills, and I've drafted the CLAUDE.md wording as a proposal only. It's all committed.\n\n**What existed:**\n- **`make` skill, section 4:** had a short \"Show it\" paragraph covering the class first (name, icon, core API, who calls it) and the rendered view beside a live debug tree.\n- **`code` skill:** had a line that a system's debug view belongs to its class.\n- **`page`, `documentation` and `minion` skills:** nothing on class pages.\n- **CLAUDE.md \"Show the class\":** the main text, limited by \"not a mass operation\".\n\n**What I added:**\n- **`make` skill:** the rule, merged into the existing section. A link to a class is the dark class card; the class page shows the core API beside a live-instance demo; module pages demo their real data structures; convert a class when you rebuild it, not in one mass pass.\n- **`code` and `minion` skills:** one line each pointing to the `make` section.\n- **Proposal:** a reworded \"Show the class\" in `standing-rules/claude-md-proposal.md`, for the owner to approve. CLAUDE.md is untouched.\n\n**Component paths:**\n- **Class link preview (dark card with icon):** `public/framework/ext/Mention/Mention.js`. `build_row()` and `entry.class_card` add `page-surface-dark`, and `core/Page/Previews.js` reuses it.\n- **Live instance view:** `public/framework/ux/Content/Object/Inspect.js` and `InstanceTree.js`.\n\nThe `ask-29c40ff7.md` file for this voice message doesn't exist in `voice-20261015/`, so the rule  …",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.247Z"
+}

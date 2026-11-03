@@ -1,7 +1,3 @@
-/* Layer order, restated IN FULL — a short list would misplace `site`.
-   See the header of framework.css. */
-@layer base, theme, site, util;
-
 /* This site's skin over the framework's structure.
  *
  * `@layer site` sits above `theme` and below `util`, so these rules beat the
@@ -14,37 +10,34 @@
  */
 @layer site {
 
-	/* ---- the site's chrome ----
-	   `.nav` is built once in /app.js, outside `$pages`, so navigation can never
-	   touch it. */
-
-	.nav {
-		display: flex; gap: 1.25em; flex: 0 0 auto;
-		padding: 0.9em 6%; border-bottom: 1px solid var(--line);
-	}
+	/* ---- link styles ----
+	   `.nav-link` used to style the site-wide top nav app.js built once outside
+	   `$pages` — deleted 2026-09-18 (`ai/2026-09-18/dead-nav/`): the root page
+	   (`/page.js`) has always carried `classes: "hides-nav"`, and root is a
+	   structural ancestor of every url (`Router.js`'s `load_segments()` always
+	   starts from `app.root`), so the nav's own `.app:has(.page.hides-nav
+	   .active-ancestor)` rule matched on all 14 real destinations tested headless,
+	   with no exception — the bar could never have painted, on any page, ever. The
+	   class survives here because `/framework/styles/elements/text/` still
+	   demonstrates it as one of three named link styles (`page-link` / `nav-link` /
+	   `tab`) beside real prose links — deleting the rule would leave that swatch
+	   unstyled. `hides-nav` itself (the class, and its old `--nav-display`
+	   mechanism) is gone with the nav it gated; four other files still wear the
+	   class name for their OWN local nav-hiding (`imagine/paging`,
+	   `layouts/labs/blogx`, `layouts/labs/shells`) — harmless now, just inert,
+	   since nothing reads it any more. */
 	.nav-link { text-decoration: none; color: var(--subtle); }
-	.nav-link:hover { color: var(--prim); }
-	.nav-link.active, .nav-link.in-path { color: var(--prim); font-weight: 600; }
-
-	/* A topic that brings its own navigation hides the global one — the app nav is
-	   for moving BETWEEN sections, and inside one it is noise.
-
-	   An inert class on the page (`classes: "hides-nav"`), not a call in a hook.
-	   Router.mark() rewrites the active classes on every navigation including Back,
-	   so this unsets itself: there is no paired show/hide to keep in sync, and any
-	   number of pages in the chain can carry it. */
-	.app:has(.page.hides-nav.active-page),
-	.app:has(.page.hides-nav.active-ancestor) { --nav-display: none; }
-	.nav { display: var(--nav-display, flex); }
+	.nav-link:hover { color: var(--prime); }
+	.nav-link.active, .nav-link.in-path { color: var(--prime); font-weight: 600; }
 
 	/* ---- the mark ----
 	   mask, not <img>: an image can't take a fill from CSS, and inlining the markup
 	   would be a second copy of the artwork. The svg's own colour is ignored — the
-	   alpha channel is the shape and `--prim` is the paint, so the logo retints with
+	   alpha channel is the shape and `--prime` is the paint, so the logo retints with
 	   the theme and never drifts from the file. */
 	.logo {
 		width: 1.9em; height: 1.9em; flex: 0 0 auto;
-		background: var(--prim, #FF8F60);
+		background: var(--prime, #FF8F60);
 		-webkit-mask: url(/assets/img/m_svg.svg) center / contain no-repeat;
 		        mask: url(/assets/img/m_svg.svg) center / contain no-repeat;
 	}
@@ -52,61 +45,242 @@
 	/* `app.brand()` builds this, and it is only ever placed inside a Sidebar — which
 	   owns the padding around it. No margin here: spacing belongs to whatever holds
 	   the brand. */
-	.brand { display: flex; align-items: center; gap: 0.75em; padding: 1em 1.2em; }
+	.brand { display: flex; align-items: center; gap: 0.75em; padding: 1em 1.2em; }   /* the mark's own em, never a ramp (2026-09-06) */
 	.brand-logo { display: flex; font-size: 1.3em; }
 	.brand-text {
 		font-weight: 800; font-size: 1.3em;
 		text-decoration: none; color: inherit;
 	}
-	.brand-text:hover { color: var(--prim); }
+	.brand-text:hover { color: var(--prime); }
 
 	/* On `.sidebar`, not `.sidebar-link` — it was the latter, which tuned the links
 	   and left the group titles reading the component's own gutter, so headings sat
 	   14px right of the items they head. One knob, one column. */
 	.sidebar { --gutter: 1.75em; font-size: 0.8em; }
 	.sidebar-nav { overflow-y: auto; scrollbar-width: thin; }
+	/* A rail ROW spans its rail on purpose (spacing-judge 2026-09-05, rule c): the
+	   list is the control and the row is its part, the hover fill IS the row — like
+	   `li` and `tr`. The auditors' 228px box / 24px ink is that row, not a strip.
+	   Its side inset is the sidebar's own `--gutter` (21px at 1280, 25px at 3440).
+	   ⚠ The 7.1× the auditors re-measured is NOT `align-items: stretch` — nothing
+	     declares that; `.sidebar-nav` is a flex COLUMN and a column's default cross
+	     size IS the rail's width. Un-stretching it would leave a ragged rail whose
+	     hover fill is a different width on every row, which is worse than the ratio.
+	   ⚠ Its HEIGHT is its own em, and that is not negotiable. For one day
+	     (2026-09-05 → 2026-09-06) this read `calc(var(--gap) * 0.6)`, on the
+	     theory that a 3440 rail of 11px-padded rows was cramped. That is a control
+	     riding a page ramp, which the spacing decision forbids: the ramp caps at
+	     2.6em, so block padding reached 22.5px and a nav item stood 67.6px tall at
+	     3440 (45.7px before). "The homepage nav items got way too fat" — the owner,
+	     the next morning. A rail row that genuinely needs more air gets a bigger
+	     number here, in em; it never gets a ramp. */
 	.sidebar-link { padding-block: 0.8em; }
-	.sidebar-group { margin-block: 1em; }
+	.sidebar-group { margin-block: calc(var(--gap) * 1); }   /* was margin-block 1em - 2026-09-05 ramps */
 	.sidebar-link:is(.active, .in-path) .sidebar-label { font-weight: 600; }
 	.sidebar-link.active::after, .sidebar-link.in-path::after { margin-bottom: 1px; }
 
-	.code-block { padding: 2em; }
+	/* ⚠ The token, not `2em` (2026-08-17): a two-line snippet under 2em of padding
+	     reads as an empty dark void with some text in a corner — vision-after #7,
+	     new at 1280. `--pad` is the size everything else on this site is padded by. */
+	.code-block { padding: var(--pad, var(--pad, 1em)); }
 
 	/* ---- a topic: its own nav beside its own region ----
 	   A topic page overrides render(), so its `.page` element IS the row — there is no
 	   wrapper div whose only job is `display: flex`. Any section that brings its own
-	   navigation says `div.c("page topic flex")`.
+	   navigation says `div.c("page topic flex fill")`.
 
-	   `flex` is the utility, in the class string, and that is now the whole of it. It
-	   used to be a PAIR of rules here, restating the contract's own `.active-page` /
-	   `.active-ancestor:has()` selectors, because a bare `.page.topic { display: flex }`
-	   in @layer site beat `.page { display: none }` in theme and left every topic on
-	   screen for every route. The contract moved to @layer util and out-ranks a util
-	   class on specificity, so a page can simply BE a flex row and still be hidden when
-	   it isn't in the chain. See core/Page/Page.css.
+	   `flex` and `fill` are both utilities/vocabulary now, and that is the whole of
+	   it here. `flex` used to need a PAIR of rules restating the contract's own
+	   `.active-page` / `.active-ancestor:has()` selectors — the contract moved to
+	   @layer util and out-ranks a util class on specificity, so a page can simply BE
+	   a flex row and still hide correctly. `fill` used to be three hand-written
+	   declarations in this file (`align-self: stretch`, `overflow: hidden`, an
+	   implicit height chain) — it is the framework's word now (core/Page/Page.css),
+	   found by measuring a topic first: without it the region grew to the topic's
+	   content (4273px) and 3373px became unreachable.
 
-	   Measure and padding are tokens for the same reason — set on the element, so they
-	   beat what the region hands down without this file having to win by layer.
+	   Only `--measure` (a token, so it beats what the region hands down without a
+	   layer fight) and `background: none` (a site look) are left here — everything
+	   else is now a class two other things also wear. */
+	/* ⚠ `40em`, never `none` (2026-08-17). `--measure: none` removes the ceiling, not
+	     the width: this shell measured 104 characters a line at 1280 and worse above
+	     it — the single most-reported layout defect in both vision runs. A block that
+	     genuinely wants the room says so below, one selector, instead of every page
+	     under this shell losing its reading column. */
+	/* ⚠ `padding: 0`, NOT `--page-pad: 0` (2026-08-17, day-page-ux). The owner: "there's 0
+	     space between the viewport top and the date header?!" — and there was none on
+	     ANY page under this shell. `--page-pad` INHERITS (Page.css says so in its own
+	     comment, one level down from where this bit): the shell's own opt-out was
+	     handed to every `.page` nested inside it, so `padding: var(--page-pad,
+	     var(--pad-y) 0)` resolved to `0` sitewide and `--pad-y: 3em` never once fired.
+	     Saying `padding: 0` opts THIS box out and leaves the token alone. Measured at
+	     1440: /framework/styles/ and /framework/ai/2026-08-17/ both go 0px → 45.84px,
+	     first element y=0 → y=46 / y=92. Twelve model reads of these pages never
+	     flagged it — a heading flush to the top edge reads as "already scrolled". */
+	.page.topic { --measure: 40em; padding: 0; background: none; }
 
-	   `align-self: stretch` is the important one, and it is the opposite of what an
-	   ordinary page wants: `.pages` is `align-items: flex-start` so a page can size to
-	   its content, but a topic must be exactly as tall as the region because it CLIPS
-	   and hands scrolling to its own inner `.pages`. Without it the topic grew to its
-	   content (4273px) and 3373px became unreachable. */
-	.page.topic {
-		--measure: none; --page-pad: 0;
-		overflow: hidden; background: none; align-self: stretch;
+	/* ---- the front ----
+	   ⚠ Every rule here is scoped to `.page-homepage`. The root page is an
+	     active-ANCESTOR of every url on this site, so a homepage rule written
+	     against `.page.topic` (or against `.default`) lands on every topic shell
+	     there is. The class is `classes:` in /page.js, and nothing else wears it. */
+
+	/* A front page is the one page that must not be a 40em reading column, and
+	   `.pages > .default` caps every region default at `--measure` (Page.css). The
+	   prose inside keeps a measure of its own, below; the ROW does not.
+
+	   `container-type` so the two breakpoints below measure the REGION — the
+	   window minus a 19em sidebar — rather than the window, which is off by 304px
+	   exactly where the layout changes. `inline-size`, never `size`: a size
+	   container is not sized by its own contents, and this box has no height of
+	   its own (css skill, 2026-08-18). */
+	.page-homepage > .pages > .default {
+		max-width: none;
+		container-type: inline-size;
 	}
 
-	/* A topic is the one page that is a LAYOUT, and it inherited page rhythm by being
-	   a `.page` — so `.pages`, as the second child, collected `margin-block-start:
-	   var(--flow)` from the flow rules in Page.css. Twenty pixels off the bottom of a
-	   region that was exactly as tall as it needed to be, and it scrolls, so nothing
-	   looked wrong until you reached the end.
+	/* FIVE REGIONS, and which of them may take a share of a wide screen is
+	   core/Page/doc/findings.md: of the content kinds, only a nav LIST does not
+	   scale. So the two card walls keep a fixed track and the hero and the demo
+	   spend everything left over — at 3440 the demo and the posts sit BESIDE the
+	   thesis, not under it. */
+	.home-front {
+		display: grid;
+		align-content: start;
+		gap: calc(var(--gap) * 1.25);   /* was gap 1.25em - 2026-09-05 ramps */
+		--column: 18em;
+		--gap: 0.8em;
 
-	   The general rule, for the next one: a page that overrides render() into a flex
-	   or grid layout owns its children's spacing, and must say so. `gap`, not flow. */
-	.page.topic > * { margin-block: 0; }
+		grid-template-columns: minmax(0, 1fr);
+		grid-template-areas: "hero" "stage" "blog" "nav" "more";
+	}
+
+	/* What `.grid > *` says for a grid claimed by its utility class — the `more`
+	   line is a `<p>`, and its default block margin is not the row gap. */
+	.home-front > * { margin: 0; }
+
+	/* SIX SECTION CARDS SINCE 2026-09-06 (Imagine and Notes joined the rail, and
+	   the rail and the cards come off one list in page.js). Six wrap differently
+	   from four: measured across seven widths, the front's own `--column: 18em`
+	   left 4+2 at 1600 and a lone stretched card at 1920. Six 12em cards plus five
+	   0.8em gaps need 76em of row, so that is exactly where the threshold drops —
+	   below it 18em still gives even rows (one per row at 400, 2+2+2 at 900,
+	   3+3 at 1280), above it all six sit on one line. */
+	@container (min-width: 76em) {
+		.home-nav > .flex { --column: 12em; }
+	}
+
+	.home-hero  { grid-area: hero; }
+	.home-stage { grid-area: stage; }
+	.home-blog  { grid-area: blog; }
+	.home-nav   { grid-area: nav; }
+	.home-more  { grid-area: more; }
+
+	/* The row earns the width; a sentence does not. */
+	.home-hero, .home-more { max-width: var(--measure); }
+
+	/* The thesis keeps a track of its own and the demo takes the rest. */
+	@container (min-width: 52em) {
+		.home-front {
+			grid-template-columns: minmax(16em, 24em) minmax(0, 1fr);
+			grid-template-areas:
+				"hero  stage"
+				"blog  stage"
+				"nav   nav"
+				"more  more";
+		}
+	}
+
+	/* Three regions across, so the demo and the posts sit BESIDE the thesis rather
+	   than under it, and the sections keep the full row below all three. */
+	@container (min-width: 90em) {
+		.home-front {
+			grid-template-columns: minmax(18em, 26em) minmax(0, 1.4fr) minmax(0, 1fr);
+			grid-template-areas:
+				"hero  stage blog"
+				"nav   nav   nav"
+				"more  more  more";
+		}
+	}
+
+	/* A region's label and the way in, on one line. */
+	.home-head { display: flex; align-items: baseline; gap: calc(var(--gap) * 1); margin-bottom: calc(var(--gap) * 0.6); }   /* was gap 1em; margin-bottom 0.6em - 2026-09-05 ramps */
+	.home-head-link { margin-inline-start: auto; font-size: 0.85em; }
+
+	.home-date { display: block; font-size: 0.8em; color: var(--subtle); }
+
+	/* THE DEMO IS THE FOLD'S BIGGEST BLOCK, so it is the one that has to be small:
+	   half the pane inset, the width PRESETS off — a front page is not a doc page,
+	   and the drag handle, the zoom and the fullscreen still work — and the render
+	   floored with `min-height`, never `height`, so a taller page inside it still
+	   grows the box (ext/demo/app.css says the same, one level down). */
+	.home-stage .demo { --demo-pad: 1rem; }
+	.home-stage .demo-devices { display: none; }
+	.home-stage .demo-app-body { min-height: 9em; }
+
+	/* A TOKEN, not a rule (css skill §4). The wall inside the miniature declares
+	   `--column: 14em`, which is right on a doc page and one card per row inside a
+	   600px demo column — four rows of chrome, and the fold pays for every one.
+	   ⚠ Measured, not guessed: the wall is a direct child of the miniature's page,
+	     so `.page > .page-previews`'s own `--gutter-x` takes 38px off the box
+	     before `auto-fill` counts tracks, and 11em still fitted exactly one. */
+	.home-stage .page-previews { --column: 9em; }
+
+	/* ⚠ The code pane SCROLLS (`pre { overflow-x: auto }`), so a line too long for
+	     the column is not lost — it is worse than lost: it is a sample cut off
+	     mid-word on the front page, and nobody scrolls a hero sideways. One step
+	     down is what fits the whole thing in the middle track at 1920. */
+	.home-stage .demo-code { font-size: 0.75em; }
+
+	/* On a phone the whole strip goes: below 34em of stage the dials wrap onto a
+	   second centred row (stage.css), which is 50px of chrome above a box you
+	   cannot drag with a finger anyway. The code and the running pages stay.
+
+	   ⚠ An unnamed `@container` asks the NEAREST container ancestor, and these
+	     selectors do not all share one: `.home-front` asks the region above, while
+	     everything under `.home-stage` asks `.demo-stage` — stage.css makes the
+	     stage a container of its own. Which is the right question in both cases
+	     (and the same 34em stage.css already breaks at), but it is two questions in
+	     one block, measured at 400 / 1280 / 1920 / 3440 rather than assumed. */
+	@container (max-width: 34em) {
+		.home-front { gap: calc(var(--gap) * 1); }   /* was gap 1em - 2026-09-05 ramps */
+		.home-stage .demo { --demo-pad: 0.8rem; }
+		.home-stage .demo-tools, .home-stage .demo-size { display: none; }
+
+		/* On a phone `9em` above is still one card per row and four rows of chrome
+		   nobody reads. Two across says the same thing in half the fold. */
+		.home-stage .page-previews { --column: 5em; }
+	}
+
+	/* ---- the framework landing ----
+	   Its content is ONE `.default` block, not a grid page, so `.pages`' measure caps
+	   the whole thing — the clock band and the tree included. So the block takes the
+	   region and its prose takes the measure. Replaces three hand-typed inline
+	   `max-width: 52em` and an inline `--measure: none` in `framework/page.js`. */
+	.page--framework > .pages > .default { max-width: none; }
+	.page--framework > .pages > .default > .flow { max-width: var(--measure); }
+
+	/* The stat strip — the landing's one `.grid` child. Five 9em tiles are 49em with
+	   their gaps, so in the 40em reading column the fifth stranded itself on a row of
+	   its own at 1280 and 3440 (measured, and the vision run called it broken at all
+	   three widths). A wall of numbers takes the width its own count needs, then stops
+	   — full region would leave the five hugging the left of a 3000px row instead. */
+	/* ⚠ The cap counts its four gaps (design-bands 2026-09-30). A flat `50em` held five
+	     9em tiles only while `--gap` was small; `--gap` ramps to ~43px at 3440, the five
+	     tiles then needed 982px of a 900px cap, and the fifth dropped to a row of its own
+	     again at 1920 and 3440. `--gap` resolves on this same box, which is also the box
+	     whose `gap` it sets, so the sum is exact at every width. */
+	.page--framework > .pages > .default > .grid { max-width: calc(45em + var(--gap) * 4); }
+
+	/* A topic USED to inherit page rhythm unconditionally, because the old flow
+	   selector matched any `.page` — so `.pages`, as the second child, collected
+	   `margin-block-start: var(--flow)` and a region exactly as tall as its content
+	   lost twenty pixels off the bottom, invisible until you scrolled to the end.
+	   Fixed properly rather than patched here: `flow` is opt-in now, added only by
+	   Page's own default `render()` — and a topic overrides `render()`, so it
+	   never gets the class at all. Nothing to zero. The general rule for the next
+	   layout-shaped override: it owns its children's spacing with `gap`, and now
+	   that is true by construction, not by a rule in this file. */
 
 	/* Placement only — the panel's look is Sidebar.css. The width is the shared
 	   token, so this site and the framework cannot disagree about it. */
@@ -131,12 +305,25 @@
 	@media (max-width: 52em) {
 		.page.topic { flex-direction: column; overflow: visible; }
 		.topic > .sidebar { flex: 0 0 auto; }
+
+		/* THE HEADER SCROLLS AWAY when the page has a `.tabs.stick` strip (ext/tabs; the
+		   owner, 2026-10-24: "the framework header should scroll away like normal
+		   content, and the tab row should stick at the top instead"). The header is a
+		   SIBLING above `.pages`, which is the scroller, so it could never leave; for
+		   such a topic the TOPIC scrolls and `.pages` just grows with its content
+		   (`1 0 auto`: a short page still fills the screen, so a `fill` child keeps its
+		   height). The header is `relative`, not static: its open menu is absolute
+		   against it. Opt-in through `:has()` and only for the ACTIVE page's strip (a visited page stays in the DOM, hidden, and its strip must not count), so an app page with its own inner scroll
+		   (chat, make) keeps the old model. `site` layer, like the rules it overrides. */
+		.page.topic:has(:is(.active-page, .active-ancestor) > .tabs.stick > .tab-bar, :is(.active-page, .active-ancestor) > .inbox-head > .tabs.stick > .tab-bar) { overflow: auto; }
+		.topic:has(:is(.active-page, .active-ancestor) > .tabs.stick > .tab-bar, :is(.active-page, .active-ancestor) > .inbox-head > .tabs.stick > .tab-bar) > .sidebar { position: relative; }
+		.topic:has(:is(.active-page, .active-ancestor) > .tabs.stick > .tab-bar, :is(.active-page, .active-ancestor) > .inbox-head > .tabs.stick > .tab-bar) > .pages { flex: 1 0 auto; overflow: visible; }
 	}
 
 	/* Rhythm is NOT here. It used to be two rules in this file AND four in Page.css,
 	   and this pair won by layer — so tuning the spacing meant editing whichever file
-	   you happened to find. ONE flow token now, registered, in core/Page/Page.css —
-	   retune with `--rhythm`. See core/Page/readme.md. */
+	   you happened to find. ONE flow token now, `--flow: 2em`, in framework.css's
+	   theme layer. See core/Page/readme.md. */
 
 	body.theme-1 {
 		background: #ddd;
@@ -162,10 +349,11 @@
 	   this silently loses. See styles/layers/theme/lew42/readme.md §7. */
 	.app { background: var(--wash); }
 
-	.page-link-block { background: rgba(0,0,0,0.1); display: block; padding: 1em; margin-bottom: 1em; }
+	.page-link-block { background: rgba(0,0,0,0.1); display: block; padding: 1em; margin-bottom: calc(var(--gap) * 1); }   /* was margin-bottom 1em - 2026-09-05 ramps */
 
 	/* Docs tables lead with a keyword — keep it on one line. "My first column is a
 	   term" is an opinion about *this site's writing*, not about markdown, which is
 	   why it isn't in md.css. */
 	.md td:first-child { white-space: nowrap; }
+
 }

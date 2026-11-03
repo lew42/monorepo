@@ -1,0 +1,202 @@
+[
+ {
+  "id": "6c556c9b83",
+  "sort": "note",
+  "module": "Server",
+  "title": "",
+  "note": "Worktrees sit in a workspace folder beside the monorepo, never inside it, so the repo folder holds only the repo.",
+  "evidence": "Session working directory is C:/Code/lew42/worktrees/asks-to-tasks, outside the monorepo folder; .gitignore:65-68 ignores worktree state files (.worktrees.json, .worktree-pool.json)."
+ },
+ {
+  "id": "08eadd7643",
+  "sort": "done",
+  "module": "",
+  "title": "",
+  "note": "",
+  "evidence": ".gitignore:173 - # screenshots in the AI work log: Playwright output (layout-check, proof, review), 84% of git history by size; .gitignore:65 - # which worktrees are up right now, on this machine"
+ },
+ {
+  "id": "597764863d",
+  "sort": "done",
+  "module": "",
+  "title": "",
+  "note": "",
+  "evidence": ".gitignore:161 - **/screenshots/ (machine-output screenshots are kept out of git; the alternative is already chosen)"
+ },
+ {
+  "id": "decf8c117c",
+  "sort": "note",
+  "module": "Server",
+  "title": "",
+  "note": "Passwords and API keys stay out of the repo, and a local secret such as the push key lives in a git-ignored file.",
+  "evidence": "Server/.push-vapid.json is git-ignored per .gitignore:141-142 ('push-notification VAPID private key, local secret'); no .env* file exists at the repo root (Glob returned none)."
+ },
+ {
+  "id": "6cdc554823",
+  "sort": "done",
+  "module": "",
+  "title": "",
+  "note": "",
+  "evidence": ".gitignore:161 - **/screenshots/"
+ },
+ {
+  "id": "99f4432968",
+  "sort": "task",
+  "module": "ai",
+  "title": "Log the backup location as an AI inbox item",
+  "note": "",
+  "evidence": "public/framework/ai/inbox.jsonl:58 holds only this ask's own text (id i-mv8szpdl6k0); no backup location is recorded there, so the location itself is still unlogged."
+ },
+ {
+  "id": "ca0f83b750",
+  "sort": "done",
+  "module": "",
+  "title": "",
+  "note": "",
+  "evidence": "public/framework/catalog/readme.md:3 - Click a card for the full demo."
+ },
+ {
+  "id": "a812e59905",
+  "sort": "done",
+  "module": "",
+  "title": "",
+  "note": "",
+  "evidence": "public/framework/ext/Doc/readme.md:25 - A class's API tab opens on a ClassCard: title card, Core API, own members, then inherited groups"
+ },
+ {
+  "id": "41ea5f74bc",
+  "sort": "done",
+  "module": "",
+  "title": "",
+  "note": "",
+  "evidence": "public/framework/catalog/readme.md:3 - then the live instance hierarchy links, the class cards (Refine, Dictate, System first), then every group."
+ },
+ {
+  "id": "12c396bed2",
+  "sort": "done",
+  "module": "",
+  "title": "",
+  "note": "",
+  "evidence": "public/framework/ux/Content/Object/InstanceTree.js:6 - class InstanceTree extends View — the live instance hierarchy of the running site."
+ },
+ {
+  "id": "3f5ecf54d7",
+  "sort": "done",
+  "module": "",
+  "title": "",
+  "note": "",
+  "evidence": "public/framework/catalog/readme.md:8 - Live instance hierarchy: exists as the Page object and the App object; the whole running site is now InstanceTree, live"
+ },
+ {
+  "id": "2c5a9e389b",
+  "sort": "note",
+  "module": "ai/review",
+  "title": "",
+  "note": "A reviewer flags clear mistakes, and treats opinions and trade-offs as open rather than absolute.",
+  "evidence": "Standing review rule from the owner; no existing review-question file was opened to check it."
+ },
+ {
+  "id": "0ad4be5822",
+  "sort": "task",
+  "module": "ai/readmes",
+  "title": "Add architecture.md to modules that lack one",
+  "note": "",
+  "evidence": "Glob public/framework/**/architecture.md finds about 100 modules that have one, but core/Task and core/Test have none."
+ },
+ {
+  "id": "7fa3910d6e",
+  "sort": "note",
+  "module": "ai/readmes",
+  "title": "",
+  "note": "A readme stays brief: it states the core architectural decisions and why, and links to architecture.md for the rest.",
+  "evidence": "Many readmes already link to architecture.md (Grep 'architecture.md' under public/framework, e.g. ux/Wizard/readme.md, ux/Tree/readme.md)."
+ },
+ {
+  "id": "57b7593d3a",
+  "sort": "note",
+  "module": "ai/readmes",
+  "title": "",
+  "note": "architecture.md keeps only conclusive decisions with why, alternatives and trade-offs, never the history of reversals.",
+  "evidence": "Owner rule for architecture.md content; no file was checked against it."
+ },
+ {
+  "id": "2699fd9561",
+  "sort": "task",
+  "module": "ai/rail",
+  "title": "Make the mobile sheet match the desktop AI sidebar, resizable",
+  "note": "",
+  "evidence": "Grep 'mobile' in public/framework/ai/rail finds nothing; the only mobile-sheet task, ux/Dictate/tasks/make-the-sidebar-and-mobile-sheet-run-th/task.jsonl:1, is about sharing dictation code, not matching size or resizing."
+ },
+ {
+  "id": "e357ae95dc",
+  "sort": "note",
+  "module": "ai/now",
+  "title": "",
+  "note": "Results go on the page or into files, never only into chat, and agent-facing notes live in the module's readme.",
+  "evidence": "Owner rule; the Now page is the place for substance (see the reply-on-the-Now-card memory note)."
+ },
+ {
+  "id": "ecaa35f6d3",
+  "sort": "done",
+  "module": "",
+  "title": "",
+  "note": "",
+  "evidence": "public/sw.js:1 - // The notification lab's service worker. Thin on purpose: no caching, no fetch interception."
+ },
+ {
+  "id": "d4457a72b2",
+  "sort": "done",
+  "module": "",
+  "title": "",
+  "note": "",
+  "evidence": "worker/room.js:1 - // worker/room.js — the Room Durable Object. One per url (`env.ROOM.idFromName(url)`, — one Durable Object per page is built"
+ },
+ {
+  "id": "02d88de30a",
+  "sort": "note",
+  "module": "ai",
+  "title": "",
+  "note": "Keep Durable Objects to one per page, never hundreds, because their runtime is paid.",
+  "evidence": "Cost rule from the owner; worker/room.js:1 shows the one-per-url design it applies to."
+ },
+ {
+  "id": "c1f86b8c44",
+  "sort": "task",
+  "module": "ai/now",
+  "title": "Build a recent-activity landing page as an iceberg",
+  "note": "",
+  "evidence": "public/framework/ai/page.js:152 uses the iceberg only for system pages; grep 'iceberg' found no recent-activity landing page (only design/content/page.js and ai/page.js matched)."
+ },
+ {
+  "id": "ff93a639eb",
+  "sort": "task",
+  "module": "ai",
+  "title": "Put inbox and sessions on one data source and one stream",
+  "note": "",
+  "evidence": "Grep 'board.jsonl|directory.json' hits ai/v/2/page.js and ai/v/3/timeline.js, so the inbox and the sessions read separate stores; no shared module found."
+ },
+ {
+  "id": "62f85eaf30",
+  "sort": "note",
+  "module": "ai",
+  "title": "",
+  "note": "Add no new database and install nothing for this; the JSONL files already in place are enough.",
+  "evidence": "Owner constraint; the JSONL streams in ai already carry the data."
+ },
+ {
+  "id": "e44ea5287c",
+  "sort": "note",
+  "module": "ext/JSONL",
+  "title": "",
+  "note": "JSONL stays the storage format: it is Git-friendly, compresses well, and stores changes as clean line deltas.",
+  "evidence": "ext/JSONL is the append-only log module (ext/JSONL module description); the owner's storage decision."
+ },
+ {
+  "id": "1e700362d2",
+  "sort": "done",
+  "module": "",
+  "title": "",
+  "note": "",
+  "evidence": ".gitignore:119 - # Servex machine state, regenerated continuously — not a record (2026-10-07, clean-tree pass)"
+ }
+]

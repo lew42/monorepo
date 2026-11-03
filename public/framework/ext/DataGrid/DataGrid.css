@@ -1,0 +1,144 @@
+/* ext/DataGrid — the behaviour layer's own small additions on top of
+   ui/datagrid/datagrid.js's base grid rules (header, cell, grip). Everything
+   here is the filter bar, the sort arrow and the row count — nothing about
+   the grid itself, which stays owned by the markup-only module so a plain
+   `ui.datagrid()` caller never loads this file. */
+@layer theme {
+	.datagrid-ext { display: flex; flex-direction: column; gap: var(--gap-50); }
+
+	/* No empty strip when a data set has no filterable column at all. */
+	.datagrid-filters:empty { display: none; }
+
+	/* Every filter row wraps instead of overflowing — the chip row already did
+	   (it needs `wrap` for a long list of checkboxes), but the date and number
+	   rows didn't, and a date range's two inputs + labels run off the right
+	   edge at 400px (caught by review.mjs, not by eye: it clips, it doesn't
+	   reflow, so nothing LOOKS broken until you measure at a real narrow width). */
+	.datagrid-filter { flex-wrap: wrap; }
+
+	.datagrid-filter label { cursor: pointer; }
+
+	/* The site's own input default is full-width, meant for a form field alone
+	   on its own line — inside a date/number filter's inline "from … to …" row
+	   that stretches each one to fill whatever's left, so two inputs plus their
+	   labels wrap onto several tall lines (review.mjs, second pass: five rows
+	   of the actual grid were all that fit above the fold at 400px because of
+	   it). A filter input is short by nature (a date, a number), so it only
+	   needs to be as wide as its own content calls for. */
+	.datagrid-filter input { inline-size: auto; max-inline-size: 9em; }
+
+	.datagrid-sort-arrow { font-size: 0.85em; color: var(--subtle); }
+
+	.datagrid-count { display: block; }
+
+	/* A windowed grid is a box that does NOT grow with its content — the whole
+	   point is that its content (hundreds of rows worth of height) never all
+	   exists at once. `block-size` here, not `max-height`: before any row has
+	   rendered yet, the grid would otherwise hug just its header's height, the
+	   first "how many rows fit the viewport" measurement would read that tiny
+	   number, and the grid would look collapsed until something else forced a
+	   re-layout. Fixing the actual height (not capping it) is what the layout
+	   skill calls a "deliberate scroll area" — the one case where a set height
+	   instead of a max-height is correct, because this box is exactly an
+	   inner-scroll rail, never a box that grows with what's inside it. */
+	.datagrid.datagrid-windowed { block-size: var(--datagrid-height, 28rem); }
+
+	/* ⚠ Must match `ROW_H` in DataGrid.js exactly. Windowing works out which
+	   rows are on screen from `scrollTop / ROW_H`, and sizes the two spacer
+	   boxes the same way — if a real row rendered taller or shorter than this,
+	   the scrollbar's length and the rows actually shown would drift apart the
+	   further down the grid you scroll. Only applied once windowing turns on
+	   (`.datagrid-windowed`, past 300 rows); a short, unwindowed grid keeps its
+	   natural, auto-height rows. */
+	.datagrid.datagrid-windowed .datagrid-cell { block-size: var(--datagrid-row-h, 36px); overflow: hidden; }
+}
+
+@layer theme {
+	/* `--datagrid-height`: the default cap on a plain markup-only grid, so a
+	   long one (ext/DataGrid's real use) scrolls INSIDE its own box instead of
+	   stretching the page — override with `.style("--datagrid-height", "...")`
+	   or `"none"` to let it grow with its content instead. */
+	.datagrid { display: grid; column-gap: var(--gap-50); overflow: auto; position: relative; max-height: var(--datagrid-height, 28rem); }
+	.datagrid-body, .datagrid-row { display: contents; }
+	/* The header is ONE sticky, opaque row (a subgrid on the grid's own columns), not a sticky cell each:
+	   per-cell sticky left the column gaps see-through, so scrolled rows showed between the headings (3440 bug, 2026-10-12). */
+	.datagrid-head {
+		display: grid; grid-template-columns: subgrid; grid-column: 1 / -1;
+		position: sticky; inset-block-start: 0; z-index: 1; background: var(--surface);
+	}
+
+	.datagrid-cell {
+		display: flex; align-items: center; min-width: 0;
+		/* Inline padding too, not just block -- without it the text sits flush
+		   against the column's left edge (caught by merge.mjs's smoke test:
+		   "text touching its box", 0px from left). column-gap on .datagrid
+		   already spaces cells from EACH OTHER; this is each cell's own edge. */
+		padding: var(--gap-50);
+		border-block-end: 1px solid var(--line);
+	}
+
+	.datagrid-head-cell { position: relative; font-weight: 600; border-block-end-width: 2px; }
+
+	/* The resize handle — the owner's measured bug was ext/grip's "near zone":
+	   a document-wide pointermove listener computing distance-to-edge every
+	   frame just to decide whether to light up. This is one plain :hover rule
+	   instead — the browser does that work for free, instantly, with no JS at
+	   all needed for the handle to appear. */
+	.datagrid-grip {
+		position: absolute; inset-block: 0;
+		inset-inline-end: calc(var(--gap-50) / -2 - 3px);
+		width: calc(var(--gap-50) + 6px);
+		cursor: col-resize; touch-action: none; z-index: 2;
+	}
+	.datagrid-grip::after {
+		content: ""; position: absolute; inset-block: 0; inset-inline-start: 50%;
+		width: 2px; transform: translateX(-50%);
+		background: var(--prim); opacity: 0; transition: opacity 0.1s;
+	}
+	.datagrid-grip:hover::after, .datagrid-grip:focus-visible::after { opacity: 0.6; }
+
+	.datagrid-label { display: inline-flex; align-items: center; gap: var(--gap-35); }
+	.datagrid-sortable .datagrid-label { cursor: pointer; }
+	.datagrid-sortable .datagrid-label:hover { text-decoration: underline; }
+}
+@layer theme {
+	.ui-table { width: 100%; }
+	.ui-table.num th + th, .ui-table.num td + td { text-align: end; }
+}
+
+@layer theme {
+	/* The header bar: the row count, and the Table / Rail toggle at the end. */
+	.datagrid-bar { justify-content: space-between; }
+	.datagrid-toggle { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+	.datagrid-toggle-btn { border: 0; border-radius: 0; background: none; padding: 0.25em 0.8em; cursor: pointer; font: inherit; }
+	.datagrid-toggle-btn.on { background: var(--prim); color: var(--bg); }
+
+	/* The stage holds whichever drawer is current; the rail view fills its box. */
+	.datagrid-stage { display: flex; flex-direction: column; min-block-size: 0; flex: 1 1 auto; }
+	.datagrid-ext.datagrid-view-rail { block-size: 100%; }
+
+	/* A row that is a link: still display: contents, so its cells sit in the grid. */
+	a.datagrid-row { color: inherit; text-decoration: none; }
+	a.datagrid-row:hover > .datagrid-cell { background: var(--darken-1); }
+	.datagrid-row.active > .datagrid-cell { background: var(--darken-1); }
+
+	/* Show more: the sentinel after the last drawn row. */
+	.datagrid-more { grid-column: 1 / -1; padding: var(--gap-50); text-align: center; }
+	.datagrid-more-btn { border: 0; background: none; color: var(--prim); cursor: pointer; font: inherit; text-decoration: underline; }
+
+	/* The rail: flush to its box, full height, scrolls inside; one .card per row. */
+	.datagrid-rail { flex: 1 1 auto; min-block-size: 0; overflow: auto; max-block-size: var(--datagrid-height, none); }
+	.datagrid-card { display: flex; flex-direction: column; gap: 0.15em; border-block-end: 1px solid var(--line); }
+	a.datagrid-card { color: inherit; text-decoration: none; }   /* the card is the link; its lines are not each underlined */
+	a.datagrid-card:hover { background: var(--darken-1); }
+	.datagrid-card.active { box-shadow: inset 4px 0 0 var(--prim); background: var(--darken-1); }
+	.datagrid-card-title { overflow-wrap: anywhere; font-weight: 600; }
+	.datagrid-card-line { font-size: 0.85em; overflow-wrap: anywhere; }
+}
+
+@layer theme {
+	.datagrid-demo { display: grid; grid-template-columns: minmax(0, 1fr) minmax(14rem, 20rem); gap: var(--gap-100, 1.5rem); align-items: start; }
+	.datagrid-debug { font-size: 0.85em; }
+	.datagrid-debug-out { margin: 0; white-space: pre-wrap; }
+	@media (max-width: 900px) { .datagrid-demo { grid-template-columns: minmax(0, 1fr); } }
+}

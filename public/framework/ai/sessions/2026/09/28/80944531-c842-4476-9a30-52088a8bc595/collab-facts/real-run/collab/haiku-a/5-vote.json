@@ -1,0 +1,4 @@
+{
+  "pick": "sonnet-b",
+  "caveat": "Both answers are solid, but sonnet-b's deeper exploration of the 'optional' re-prefixing risk (warning that nesting doesn't provide collision safety, only selector organization) and its proposal to document 'more specific prefix wins' as a stated default convention are more useful than the alternatives. One small improvement: rank the five hard rules by criticality — the live census check is the one mechanism that catches hidden class names and should come first."
+}

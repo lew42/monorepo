@@ -1,0 +1,445 @@
+[
+ {
+  "rank": 1,
+  "topic": "UI spacing and padding",
+  "asked": 17,
+  "days": 8,
+  "sessions": 10,
+  "first": "2026-09-22",
+  "last": "2026-10-16",
+  "status": "open",
+  "why": "Last ask 2026-10-16; commits from 2026-10-15 address spacing but recent asks still report ~50px padding issues.",
+  "commits": [
+   "f76c0f54e 2026-10-15 live: opened card starts at the top, tight back link (no padding band)",
+   "fde3542e8 2026-10-15 live: opened card is full width, no frame or double padding",
+   "4fe289eae 2026-10-14 LayoutControls: ext/layout/controls.js becomes a class (shim)",
+   "934ee7652 2026-10-14 Tasks: badge padding"
+  ],
+  "sources": [
+   "af645f9d-9488-49e4-a528-b409a9dd1532",
+   "2fb5e254-4c21-49ed-a8d8-3e8db41c70a3",
+   "e4fead5a-1523-4442-b749-6356b62a779a",
+   "ffdc43e0-e881-49bd-bfb7-a438acfd8e1d",
+   "a7df8364-5c81-45d4-8404-29b0c596f10f",
+   "09663221-8126-4c24-83fa-c58bb922a222"
+  ]
+ },
+ {
+  "rank": 2,
+  "topic": "duplicate chat messages",
+  "asked": 24,
+  "days": 6,
+  "sessions": 12,
+  "first": "2026-09-25",
+  "last": "2026-10-05",
+  "status": "fixed",
+  "why": "Commit e60d39ef6 2026-10-15 'mcp-unify: drop duplicate' after last ask 2026-10-05.",
+  "commits": [
+   "e60d39ef6 2026-10-15 mcp-unify: drop duplicate",
+   "116ea047d 2026-10-13 Chat: the composer's mic block shrinks, so a refused-mic message wraps at 400 px instead of running 330 px off screen",
+   "e660c858f 2026-10-13 Dictate: New session starts a fresh session; first line after a session start no longer vanishes; phone sheet title AI,",
+   "8a0055538 2026-10-13 ext/Chat: add doc/architecture.md (decisions and why), link it from the readme"
+  ],
+  "sources": [
+   "3a825c95-0c36-4f4d-b3d8-3d488b82be99",
+   "6887e9c3-1cae-45e4-b441-02d916e17233",
+   "bbaa0574-5a68-48da-97f6-1d029526b2bf",
+   "570d0fed-6dc2-4edd-bcc3-c9f13be395d5",
+   "ca9f9d02-b8ed-4283-a676-89202979ceea",
+   "a7df8364-5c81-45d4-8404-29b0c596f10f"
+  ]
+ },
+ {
+  "rank": 3,
+  "topic": "file routing to group inbox",
+  "asked": 27,
+  "days": 5,
+  "sessions": 6,
+  "first": "2026-09-25",
+  "last": "2026-10-13",
+  "status": "fixed",
+  "why": "Commit 42c0369a2 2026-10-16 'voice-20261016: overnight orders routed (refine-build, past-work, inbox-labels)' after last ask 2026-10-13.",
+  "commits": [
+   "42c0369a2 2026-10-16 voice-20261016: overnight orders routed (refine-build, past-work, inbox-labels); dead-band closed",
+   "196457a09 2026-10-16 voice-20261016: inbox-labels brief (stop owner_note FYIs counting as waiting)",
+   "fdb715ba5 2026-10-16 servex: log sweep (5 files)",
+   "e6e8b8ab7 2026-10-16 page/query round 3: files-touched numbers, free extraction pass, cost and tags on the live snapshot, newest-first plan"
+  ],
+  "sources": [
+   "a76b013e-2c06-42a7-8451-8de278e0eee5",
+   "7daa8f1c-d3dc-4546-b73a-d5f38874723d",
+   "45d184c2-3cd6-413f-801f-4e540c2a8c21",
+   "a18df918-ceec-4f26-872e-fd7f4f70c02f",
+   "d28d4925-0ccc-4917-9779-fbbaa7bb19f5",
+   "04e0d3f0-56bc-4ea4-b0c7-b2102b6d6bcf"
+  ]
+ },
+ {
+  "rank": 4,
+  "topic": "transcription not auto-sending",
+  "asked": 24,
+  "days": 5,
+  "sessions": 8,
+  "first": "2026-09-22",
+  "last": "2026-10-04",
+  "status": "open",
+  "why": "Last ask 2026-10-04; no matching commit addresses auto-sending transcription after that date.",
+  "commits": [
+   "69ede91cf 2026-10-15 docs(refine): explain how Refine works and propose voice-to-refine",
+   "f3c47de52 2026-10-12 page: opt-in children 'auto' from files.jsonl; Server/OrphanCheck.mjs as a merge warning; indexing answer",
+   "297f4a2bc 2026-10-14 Untrack 1,690 automated pictures under shots/ (files stay on disk; merge.mjs had left the deletions uncommitted)",
+   "8c2d4f287 2026-10-13 Figma page-layout: no Figma Sections (no auto layout)"
+  ],
+  "sources": [
+   "2fb5e254-4c21-49ed-a8d8-3e8db41c70a3",
+   "e4fead5a-1523-4442-b749-6356b62a779a",
+   "ee2761ee-916e-4f07-a767-b25b0442b8c3",
+   "bbaa0574-5a68-48da-97f6-1d029526b2bf",
+   "a76b013e-2c06-42a7-8451-8de278e0eee5",
+   "ca9f9d02-b8ed-4283-a676-89202979ceea"
+  ]
+ },
+ {
+  "rank": 5,
+  "topic": "agent spawning and mastermind",
+  "asked": 18,
+  "days": 5,
+  "sessions": 9,
+  "first": "2026-10-05",
+  "last": "2026-10-15",
+  "status": "fixed",
+  "why": "Commit 842ed5ead 2026-10-16 'voice-20261016: AI Inbox waiting-on-you diagnosis; refine-build spawned' after last ask 2026-10-15.",
+  "commits": [
+   "842ed5ead 2026-10-16 voice-20261016: AI Inbox waiting-on-you diagnosis; refine-build spawned",
+   "ae52119fa 2026-10-15 voice-20261016: stop past-work mastermind",
+   "842ab6fe2 2026-10-15 voice-20261016: log Q16 past-work spawn",
+   "1fff1f1c4 2026-10-15 voice-20261016/past-work: brief for the past-work discovery mastermind"
+  ],
+  "sources": [
+   "4f2ab93a-9723-45c1-a38f-29ee71e44076",
+   "d400fae5-5510-48f4-93dc-d3456afccb73",
+   "5c5f5b47-d20b-48f7-82c3-c6d022e51cf0",
+   "5b9997df-b700-496d-9eb3-2f92125fbf6f",
+   "06ec26e5-1d22-4cc6-af0e-fbefc07acd00",
+   "c0474be5-baa7-4d97-8090-4dd35143f4a9"
+  ]
+ },
+ {
+  "rank": 6,
+  "topic": "whisper transcription errors",
+  "asked": 19,
+  "days": 4,
+  "sessions": 8,
+  "first": "2026-09-23",
+  "last": "2026-10-05",
+  "status": "open",
+  "why": "Last ask 2026-10-05; no matching commit plainly fixes Whisper errors after that date.",
+  "commits": [
+   "33068996e 2026-10-13 catalog: featured Refine card shows its page description; instance-tree: demo buttons never wrap their words",
+   "df3e46742 2026-10-13 one-store: the last flat day folders move into the sessions store — ai/2026-10-12 (6 tasks) and ai/2026-10-13 (its list",
+   "c92aa1c12 2026-10-13 Dictate: prove phone-width mic transcription (LAN https), record sheet-vs-sidebar gap",
+   "03256814c 2026-10-13 Figma: Screens · Transcription report"
+  ],
+  "sources": [
+   "3532c029-8bc3-46c5-9741-3e58e57cc856",
+   "148166c7-959d-4c32-9341-7ae9ee9f7cb7",
+   "e4fead5a-1523-4442-b749-6356b62a779a",
+   "ee2761ee-916e-4f07-a767-b25b0442b8c3",
+   "13108408-b2b1-463c-8752-12c415194ee3",
+   "7930a2c3-dc4b-40aa-ab0f-fe49504be9b8"
+  ]
+ },
+ {
+  "rank": 7,
+  "topic": "transcription approval workflow",
+  "asked": 18,
+  "days": 4,
+  "sessions": 8,
+  "first": "2026-09-22",
+  "last": "2026-10-08",
+  "status": "open",
+  "why": "Last ask 2026-10-08; no matching commit addresses transcription approval workflow after that date.",
+  "commits": [
+   "010bebd07 2026-10-15 CLAUDE.md law 8: every new module or task settles its name and home first (owner-approved)",
+   "47a321ec0 2026-10-15 live: feed of preview cards, full card at /live/?card=id, newest first",
+   "3d868d162 2026-10-15 voice-20261016/handover-query: snooze until the owner reviews the plan",
+   "d3621f6b0 2026-10-15 handover-query: steps 2-5 and the owner summary (plan only)"
+  ],
+  "sources": [
+   "2fb5e254-4c21-49ed-a8d8-3e8db41c70a3",
+   "bbaa0574-5a68-48da-97f6-1d029526b2bf",
+   "e4fead5a-1523-4442-b749-6356b62a779a",
+   "0205e489-4cfc-4e2d-b8d0-a86ab9b80cbd",
+   "836fc7e9-a874-4b04-9cd1-34f5f16de370",
+   "0c3e8c80-05c0-4503-8caf-7c39cc86ee3a"
+  ]
+ },
+ {
+  "rank": 8,
+  "topic": "chat message fragmentation",
+  "asked": 17,
+  "days": 4,
+  "sessions": 7,
+  "first": "2026-09-25",
+  "last": "2026-10-09",
+  "status": "fixed",
+  "why": "Commit 112772918 2026-10-13 'ext/Chat: place a drawn bubble in time order; retag_piece re-places it' and earlier chat dedup work before last ask 2026-10-09.",
+  "commits": [
+   "116ea047d 2026-10-13 Chat: the composer's mic block shrinks, so a refused-mic message wraps at 400 px instead of running 330 px off screen",
+   "8a0055538 2026-10-13 ext/Chat: add doc/architecture.md (decisions and why), link it from the readme",
+   "812bcb64e 2026-10-13 voice: surfaces page records the dedupe decisions; Ask/chat.js kept (importers found)",
+   "9c7d12d75 2026-10-13 One New session button; one MicIndicator on every mic surface"
+  ],
+  "sources": [
+   "bbaa0574-5a68-48da-97f6-1d029526b2bf",
+   "a76b013e-2c06-42a7-8451-8de278e0eee5",
+   "e4fead5a-1523-4442-b749-6356b62a779a",
+   "4f2ab93a-9723-45c1-a38f-29ee71e44076",
+   "fb788dcb-397b-4883-a1ce-93709cc144f6",
+   "5b9997df-b700-496d-9eb3-2f92125fbf6f"
+  ]
+ },
+ {
+  "rank": 9,
+  "topic": "assistant response delay",
+  "asked": 16,
+  "days": 4,
+  "sessions": 7,
+  "first": "2026-09-23",
+  "last": "2026-09-30",
+  "status": "fixed",
+  "why": "Commit 7c149054f 2026-10-14 'Dictate: smart assistant starts lean...first reply 46 s to 6.8 s' after last ask 2026-09-30.",
+  "commits": [
+   "7c149054f 2026-10-14 Dictate: smart assistant starts lean (no settings, no connectors): context 68k to 44k, first reply 46 s to 6.8 s",
+   "baf293f25 2026-10-14 Dictate: fast assistant replies only when named 'fast' (prompt + gate)",
+   "d81697bd4 2026-10-13 assistant-chain: merge the flagged one-global-assistant slice (SERVEX_CHAIN=on), hop map doc and headless proof",
+   "d5039abf2 2026-10-13 assistant-chain: flagged one-global-assistant slice (SERVEX_CHAIN=on), hop map doc, headless proof"
+  ],
+  "sources": [
+   "2fb5e254-4c21-49ed-a8d8-3e8db41c70a3",
+   "6887e9c3-1cae-45e4-b441-02d916e17233",
+   "3a825c95-0c36-4f4d-b3d8-3d488b82be99",
+   "157aea57-8fa5-40eb-9710-b3deb9f0357c",
+   "a2a05dd2-3f5e-4eb8-9687-f5a5754f60e8",
+   "7e299128-35e6-467b-8f39-19c6128e3e38"
+  ]
+ },
+ {
+  "rank": 10,
+  "topic": "token usage and cost tracking",
+  "asked": 16,
+  "days": 4,
+  "sessions": 9,
+  "first": "2026-10-06",
+  "last": "2026-10-16",
+  "status": "fixed",
+  "why": "Commit f488310f0 2026-10-16 'Round 4: cost reconcile over 3 days' on same day as last ask 2026-10-16.",
+  "commits": [
+   "f488310f0 2026-10-16 Round 4: cost reconcile over 3 days (digest = audit on 559/559; snapshots 2x over on replayed transcripts; registry cos",
+   "1d699d8c4 2026-10-16 AISessionDigest: node-only transcript digest class + strip-size measure over the last 3 days (355 of 573 sessions over ",
+   "e6e8b8ab7 2026-10-16 page/query round 3: files-touched numbers, free extraction pass, cost and tags on the live snapshot, newest-first plan",
+   "f1c8d4dd7 2026-10-15 page/query: section 9, the way forward (stripped-transcript pilot, cost, tag design)"
+  ],
+  "sources": [
+   "5b9997df-b700-496d-9eb3-2f92125fbf6f",
+   "16b3b282-bcdf-4543-b671-89a74db06853",
+   "ae643467-efe7-4317-976e-f31a938e1091",
+   "c0474be5-baa7-4d97-8090-4dd35143f4a9",
+   "19ebe0c1-9dc9-4803-9411-aca2848e3886",
+   "241cd56b-1d71-4d08-8c94-d90d8cd08c10"
+  ]
+ },
+ {
+  "rank": 11,
+  "topic": "send button issues",
+  "asked": 15,
+  "days": 4,
+  "sessions": 7,
+  "first": "2026-09-23",
+  "last": "2026-10-16",
+  "status": "open",
+  "why": "Last ask 2026-10-16 about refine button; commits are from 2026-10-15 or earlier, no recent fix landed.",
+  "commits": [
+   "69ede91cf 2026-10-15 docs(refine): explain how Refine works and propose voice-to-refine",
+   "33068996e 2026-10-13 catalog: featured Refine card shows its page description; instance-tree: demo buttons never wrap their words",
+   "82347fb18 2026-10-13 ui/controls: add doc/architecture.md (decisions and why, verified against framework.css)",
+   "9b25b1a80 2026-10-13 voice: Echo and the Refine buttons share one call (run_refine, light mode)"
+  ],
+  "sources": [
+   "2fb5e254-4c21-49ed-a8d8-3e8db41c70a3",
+   "3a825c95-0c36-4f4d-b3d8-3d488b82be99",
+   "bbaa0574-5a68-48da-97f6-1d029526b2bf",
+   "e4fead5a-1523-4442-b749-6356b62a779a",
+   "ee2761ee-916e-4f07-a767-b25b0442b8c3",
+   "35420c79-6174-485b-8d35-8ecb4d15d6d7"
+  ]
+ },
+ {
+  "rank": 12,
+  "topic": "missing role labels",
+  "asked": 15,
+  "days": 3,
+  "sessions": 7,
+  "first": "2026-09-25",
+  "last": "2026-10-05",
+  "status": "fixed",
+  "why": "Commit baf293f25 2026-10-14 'Dictate: fast assistant replies only when named' and related assistant work after last ask 2026-10-05.",
+  "commits": [
+   "42c0369a2 2026-10-16 voice-20261016: overnight orders routed (refine-build, past-work, inbox-labels); dead-band closed",
+   "196457a09 2026-10-16 voice-20261016: inbox-labels brief (stop owner_note FYIs counting as waiting)",
+   "17877f6ce 2026-10-15 core/Page: owner start doc, class map, Router link; readme claims verified (6 stale fixed)",
+   "7c149054f 2026-10-14 Dictate: smart assistant starts lean (no settings, no connectors): context 68k to 44k, first reply 46 s to 6.8 s"
+  ],
+  "sources": [
+   "3a825c95-0c36-4f4d-b3d8-3d488b82be99",
+   "157aea57-8fa5-40eb-9710-b3deb9f0357c",
+   "a35eb0b7-b951-45e2-a19e-117e8ac4d7b4",
+   "570d0fed-6dc2-4edd-bcc3-c9f13be395d5",
+   "539d2396-70df-4d84-bfae-221f6413a038",
+   "13108408-b2b1-463c-8752-12c415194ee3"
+  ]
+ },
+ {
+  "rank": 13,
+  "topic": "transcription beeping issues",
+  "asked": 12,
+  "days": 3,
+  "sessions": 4,
+  "first": "2026-10-01",
+  "last": "2026-10-05",
+  "status": "open",
+  "why": "Last ask 2026-10-05; no matching commit plainly stops beeping after that date.",
+  "commits": [
+   "906777d43 2026-10-13 catalog: a class card with no page of its own links its parent, not a 404",
+   "e89c856f9 2026-10-13 lab: PWA and notifications state doc, next steps",
+   "c5331b0f8 2026-10-08 Merge branch 'worktree/notifications-lab' into michael/dev",
+   "3280259b7 2026-10-08 Notifications Lab: phone checklist names today's address; STATE landed"
+  ],
+  "sources": [
+   "a7df8364-5c81-45d4-8404-29b0c596f10f",
+   "ca9f9d02-b8ed-4283-a676-89202979ceea",
+   "13108408-b2b1-463c-8752-12c415194ee3",
+   "7930a2c3-dc4b-40aa-ab0f-fe49504be9b8"
+  ]
+ },
+ {
+  "rank": 14,
+  "topic": "microphone stops working",
+  "asked": 10,
+  "days": 3,
+  "sessions": 5,
+  "first": "2026-09-25",
+  "last": "2026-10-06",
+  "status": "open",
+  "why": "Last ask 2026-10-06; no matching commit fixes microphone starting after that date.",
+  "commits": [
+   "b00a81190 2026-10-13 task-log-race: re-append 165 more lost log/decision/experiment lines from three earlier dropped working trees (assign/a",
+   "6a9aee103 2026-10-13 AI Live card: Working on / Just landed link the day page, not the retired <date>/<task>/ folder url (404)",
+   "e5b10a61f 2026-10-13 repo-size.mjs: measure git history, HEAD, next push and working tree by path (read-only)",
+   "36e363be8 2026-10-12 TaskMove: relink skips .json records and rewrites only the bare day page, so skipped live tasks keep working links"
+  ],
+  "sources": [
+   "3a825c95-0c36-4f4d-b3d8-3d488b82be99",
+   "bbaa0574-5a68-48da-97f6-1d029526b2bf",
+   "a7df8364-5c81-45d4-8404-29b0c596f10f",
+   "fb788dcb-397b-4883-a1ce-93709cc144f6",
+   "5b9997df-b700-496d-9eb3-2f92125fbf6f"
+  ]
+ },
+ {
+  "rank": 15,
+  "topic": "idle agents consuming resources",
+  "asked": 10,
+  "days": 3,
+  "sessions": 6,
+  "first": "2026-09-29",
+  "last": "2026-10-08",
+  "status": "fixed",
+  "why": "Commit d93057259 2026-10-16 'voice-20261016: idle log line' on same day as last ask 2026-10-08.",
+  "commits": [
+   "d93057259 2026-10-16 voice-20261016: idle log line",
+   "44c14c586 2026-10-16 voice-20261016: idle log line",
+   "1f22c7385 2026-10-15 task-closeout: cover every task today's sessions worked on (any day folder); per-session report; stricter 'finished', i",
+   "38305fc31 2026-10-15 voice-opus: idle status line"
+  ],
+  "sources": [
+   "f462276d-777b-47db-a979-717e5974d418",
+   "183ed0a5-045b-435e-81d8-b6945f1d34e8",
+   "570d0fed-6dc2-4edd-bcc3-c9f13be395d5",
+   "b9523c9a-aa49-4f4b-8fc8-6e01d1a25352",
+   "19ebe0c1-9dc9-4803-9411-aca2848e3886",
+   "f4578618-657e-43c0-b2b5-ce74d6bdc11f"
+  ]
+ },
+ {
+  "rank": 16,
+  "topic": "text area workspace for dictation",
+  "asked": 9,
+  "days": 3,
+  "sessions": 5,
+  "first": "2026-09-25",
+  "last": "2026-10-05",
+  "status": "fixed",
+  "why": "Commit 7c149054f 2026-10-14 'Dictate: smart assistant starts lean' addresses dictation workspace after last ask 2026-10-05.",
+  "commits": [
+   "1b96fb2b4 2026-10-15 live: one-screen presentation; shared content.clear verb (List.clear, page_tools replay); RemoteMCP text says /live is ",
+   "be82a9021 2026-10-15 Objects: use a classic Material Icons name (data_object is not in the font and printed as text)",
+   "3b1f546c6 2026-10-15 Refine: fix clipped text box, strip S1. markers from Revise, point Cleaner link at engine",
+   "6b6043926 2026-10-15 voice-opus: route dictation d738360b — past-work audit minion, meter + page-ui briefs captured"
+  ],
+  "sources": [
+   "ee2761ee-916e-4f07-a767-b25b0442b8c3",
+   "570d0fed-6dc2-4edd-bcc3-c9f13be395d5",
+   "13108408-b2b1-463c-8752-12c415194ee3",
+   "7930a2c3-dc4b-40aa-ab0f-fe49504be9b8",
+   "c8c4ae30-26bd-4f04-99b6-3c9cb68b9763"
+  ]
+ },
+ {
+  "rank": 17,
+  "topic": "transcription wrong location",
+  "asked": 8,
+  "days": 3,
+  "sessions": 5,
+  "first": "2026-09-22",
+  "last": "2026-09-30",
+  "status": "open",
+  "why": "Last ask 2026-09-30; no matching commit fixes transcription label placement after that date.",
+  "commits": [
+   "c92aa1c12 2026-10-13 Dictate: prove phone-width mic transcription (LAN https), record sheet-vs-sidebar gap",
+   "03256814c 2026-10-13 Figma: Screens · Transcription report",
+   "4051726f3 2026-10-13 Figma brief: transcription addendum (streaming, pills, context cards)",
+   "79e18a5be 2026-10-13 Figma briefs: tidy pages into 1920 page components, nesting demo, transcription screens"
+  ],
+  "sources": [
+   "2fb5e254-4c21-49ed-a8d8-3e8db41c70a3",
+   "bbaa0574-5a68-48da-97f6-1d029526b2bf",
+   "e4fead5a-1523-4442-b749-6356b62a779a",
+   "45d184c2-3cd6-413f-801f-4e540c2a8c21",
+   "b23d1d95-1d45-45b2-8f75-838adca28902"
+  ]
+ },
+ {
+  "rank": 18,
+  "topic": "markdown rendering in chat",
+  "asked": 6,
+  "days": 3,
+  "sessions": 4,
+  "first": "2026-09-25",
+  "last": "2026-10-04",
+  "status": "fixed",
+  "why": "Commit d42fb0e78 2026-10-15 'markdown: code side-scrolls by default; fence word wrap wraps' after last ask 2026-10-04.",
+  "commits": [
+   "3fe868d29 2026-10-15 markdown: tab-size 3 on rendered code blocks",
+   "5216e5cfa 2026-10-15 live: remove gray strip above opened card; markdown: wrap demo",
+   "d42fb0e78 2026-10-15 markdown: code side-scrolls by default; fence word 'wrap' wraps",
+   "116ea047d 2026-10-13 Chat: the composer's mic block shrinks, so a refused-mic message wraps at 400 px instead of running 330 px off screen"
+  ],
+  "sources": [
+   "3a825c95-0c36-4f4d-b3d8-3d488b82be99",
+   "157aea57-8fa5-40eb-9710-b3deb9f0357c",
+   "a7df8364-5c81-45d4-8404-29b0c596f10f",
+   "13108408-b2b1-463c-8752-12c415194ee3"
+  ]
+ }
+]

@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ux/Dictate/md/doc/voice-architecture/",
+ "widths": {
+  "1280": {
+   "empty": 0.453,
+   "widest_text": 861,
+   "widest_text_sample": "Dictate                     ux/Dictate/D",
+   "overflow_x": false,
+   "items": 95,
+   "narrow_share": 0.326
+  },
+  "1920": {
+   "empty": 0.667,
+   "widest_text": 916,
+   "widest_text_sample": "Dictate                     ux/Dictate/D",
+   "overflow_x": false,
+   "items": 95,
+   "narrow_share": 0.8
+  },
+  "2560": {
+   "empty": 0.691,
+   "widest_text": 1030,
+   "widest_text_sample": "Dictate                     ux/Dictate/D",
+   "overflow_x": false,
+   "items": 95,
+   "narrow_share": 0.8
+  },
+  "3440": {
+   "empty": 0.76,
+   "widest_text": 1030,
+   "widest_text_sample": "Dictate                     ux/Dictate/D",
+   "overflow_x": false,
+   "items": 95,
+   "narrow_share": 0.8
+  }
+ },
+ "errors": []
+}

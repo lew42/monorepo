@@ -1,0 +1,235 @@
+diff --git a/public/framework/ext/Figma/doc/controls.md b/public/framework/ext/Figma/doc/controls.md
+index 96528bf36..5b8270912 100644
+--- a/public/framework/ext/Figma/doc/controls.md
++++ b/public/framework/ext/Figma/doc/controls.md
+@@ -12,4 +12,4 @@ Coded from the Figma pages `DS · 2.7 Toggles, checkboxes & radios`, `DS · 2.6
+ 
+ Shared: 44 px minimum height, off = 15% of the text ink (works on all three schemes), focus = 2 px accent outline, offset 2, disabled = 40% opacity (`<input disabled>`).
+ 
+-Watch out: the page must load the Symbols font itself (the demo adds a `<link>`); without it icons fall back to Material Icons, which has the same names for the common glyphs. `.fig-select` behaves via `FigSelect.install()` (`tokens/FigSelect.js`): a row click sets the trigger text, marks `aria-selected`, closes and fires a bubbling `fig-select` event (`detail.value`); outside click and Escape close; Arrow keys move, Enter picks; one open at a time. It reuses `ux/Menu`'s native-`<details>` recipe but with delegated listeners, so plain markup works with no per-instance setup. Not done: a phone bottom sheet (`ux/Popover` has no sheet mode); the 264 cap and scroll are CSS.
++Watch out: the page must load the Symbols font itself (the demo adds a `<link>`); without it icons fall back to Material Icons, which has the same names for the common glyphs. `.fig-select` behaves via `FigSelect.install()` (`tokens/FigSelect.js`): a row click sets the trigger text, marks `aria-selected`, closes and fires a bubbling `fig-select` event (`detail.value`); outside click and Escape close; Arrow keys move, Enter picks; one open at a time. It reuses `ux/Menu`'s native-`<details>` recipe but with delegated listeners, so plain markup works with no per-instance setup. **Phone sheet (DS 2.6 C):** under 600 px of screen width the open panel is a bottom sheet over a 40% scrim, pure CSS in `tokens.css` plus one line in `FigSelect.js` (a tap on the scrim, which is the `<details>` itself, closes it). Not `ux/Popover`: that anchors a JS-built box to a trigger, and the select is native `<details>` with delegated listeners, so adopting it would mean rebuilding the markup. The sheet is by screen width, not the `.fig-mobile` class, and does not work inside a `.fig-lay` (its container-type traps `position: fixed`). The 264 cap and scroll are CSS.
+diff --git a/public/framework/ext/Figma/doc/token-sync.md b/public/framework/ext/Figma/doc/token-sync.md
+index 675515018..e7c3dc46c 100644
+--- a/public/framework/ext/Figma/doc/token-sync.md
++++ b/public/framework/ext/Figma/doc/token-sync.md
+@@ -22,7 +22,7 @@ Read: at 1920 the two already agree on type and radius; Figma pads cards taller
+ 
+ ## The bridge (built, opt-in)
+ 
+-`ext/Figma/tokens/`: `variables.json` (the Figma variables, exported by `use_figma`), `FigmaTokens.mjs` (class; `node .../FigmaTokens.mjs` regenerates), `tokens.css` (generated). It defines `--fig-*` properties, the three modes as `.fig-mobile/.fig-default/.fig-mega` (and by viewport: Mobile under 600, Mega from 2560), the schemes as `.fig-white/.fig-gray/.fig-dark/.fig-prime` (each paints its ground and ink), and the kit's patterns `.fig-card .fig-section .fig-row .fig-stack .fig-inset`. **Nothing else loads it**, so nothing on the site changes; a page or component opts in with `View.stylesheet(import.meta, "/framework/ext/Figma/tokens/tokens.css")`. The proof is [/framework/ext/Figma/tokens/](/framework/ext/Figma/tokens/): the schemes, the three modes, and the Buttons page's "Button bar" sample coded with `--fig-*`, matching the Figma frame's padding, gap and grounds. Two lessons from it: `.fig-stack > *` must zero margins (auto layout has none), and buttons need `.fig-btn` (`.fig-btn-primary`, `.fig-btn-secondary`).
++`ext/Figma/tokens/`: `variables.json` (the Figma variables, exported by `use_figma`), `FigmaTokens.mjs` (class; `node .../FigmaTokens.mjs` regenerates), `tokens.css` (generated). It defines `--fig-*` properties, the three modes as `.fig-mobile/.fig-default/.fig-mega` (and by viewport: Mobile under 600, Mega from 2560), the schemes as `.fig-white/.fig-gray/.fig-dark/.fig-prime` (each paints its ground and ink) plus `.fig-near-black` (Figma's fourth Ground: Dark BG's ink over the dark ground mixed 50% with black, generated from `FigmaTokens.derived`; secondary text is 4.0:1 on plain dark but 7.3:1 on near-black, DS 1.2), and the kit's patterns `.fig-card .fig-section .fig-row .fig-stack .fig-inset`. **Nothing else loads it**, so nothing on the site changes; a page or component opts in with `View.stylesheet(import.meta, "/framework/ext/Figma/tokens/tokens.css")`. The proof is [/framework/ext/Figma/tokens/](/framework/ext/Figma/tokens/): the schemes, the three modes, and the Buttons page's "Button bar" sample coded with `--fig-*`, matching the Figma frame's padding, gap and grounds. Two lessons from it: `.fig-stack > *` must zero margins (auto layout has none), and buttons need `.fig-btn` (`.fig-btn-primary`, `.fig-btn-secondary`).
+ 
+ ## The path (slow and safe; nothing deleted)
+ 
+diff --git a/public/framework/ext/Figma/tokens/FigSelect.js b/public/framework/ext/Figma/tokens/FigSelect.js
+index 9e8bc9fbb..c2144c8f8 100644
+--- a/public/framework/ext/Figma/tokens/FigSelect.js
++++ b/public/framework/ext/Figma/tokens/FigSelect.js
+@@ -30,6 +30,7 @@ export default class FigSelect {
+ 			(rows.find(r => r.getAttribute("aria-selected") === "true") ?? rows[0])?.scrollIntoView({ block: "nearest" });
+ 		}, true);
+ 		document.addEventListener("click", e => {
++			if (e.target.matches?.(".fig-select[open]")) { e.target.open = false; return; }   // the phone sheet's scrim is the details itself
+ 			const row = e.target.closest?.(".fig-select-row");
+ 			if (row) return FigSelect.pick(row.closest(".fig-select"), row);
+ 			const inside = e.target.closest?.(".fig-select");   // outside click closes the rest
+diff --git a/public/framework/ext/Figma/tokens/FigmaTokens.mjs b/public/framework/ext/Figma/tokens/FigmaTokens.mjs
+index e6bb62509..5676bd40a 100644
+--- a/public/framework/ext/Figma/tokens/FigmaTokens.mjs
++++ b/public/framework/ext/Figma/tokens/FigmaTokens.mjs
+@@ -10,6 +10,8 @@ export class FigmaTokens {
+ 	// Figma mode → CSS class; a scheme class also paints its own ground and ink
+ 	static resolution = { Default: "fig-default", Mobile: "fig-mobile", Mega: "fig-mega" };
+ 	static schemes = { "Light BG": "fig-white", "Light gray BG": "fig-gray", "Dark BG": "fig-dark", "Prime BG": "fig-prime" };
++	// Figma's Ground has a fourth, Near-black: Dark BG's ink and accent over the dark ground mixed 50% with black. Opt-in, generated from the Dark BG mode
++	static derived = [{ cls: "fig-near-black", from: "Dark BG", surface: "color-mix(in srgb, var(--fig-dark) 50%, #000)" }];
+ 	static skip = new Set(["size", "ref"]);   // unfinished experiments in the file, not tokens
+ 
+ 	constructor(json) {
+@@ -26,6 +28,13 @@ export class FigmaTokens {
+ 		return `\t${selector} {\n${lines.join("\n")}\n\t}`;
+ 	}
+ 
++	// a scheme class: the Text variables of one mode, painting its own ground and ink; `surface` overrides the ground
++	scheme(cls, mode, surface) {
++		let css = this.block(`.${cls}`, this.col.Text.vars, mode);
++		if (surface) css = css.replace(/--fig-surface: [^;]+;/, `--fig-surface: ${surface};`);
++		return css.replace(/\n\t}$/, "\n\t\tbackground: var(--fig-surface);\n\t\tcolor: var(--fig-text);\n\t}");
++	}
++
+ 	css() {
+ 		const { Colors, Text, Resolution } = this.col;
+ 		const out = [];
+@@ -36,9 +45,8 @@ export class FigmaTokens {
+ 		out.push(`\t@media (min-width: 2560px) {\n${this.block(":root", Resolution.vars, "Mega")}\n\t}`);
+ 		out.push(this.block(".fig-mobile", Resolution.vars, "Mobile"));
+ 		out.push(this.block(".fig-mega", Resolution.vars, "Mega"));
+-		for (const [mode, cls] of Object.entries(FigmaTokens.schemes)) {
+-			out.push(this.block(`.${cls}`, Text.vars, mode).replace(/\n\t}$/, "\n\t\tbackground: var(--fig-surface);\n\t\tcolor: var(--fig-text);\n\t}"));
+-		}
++		for (const [mode, cls] of Object.entries(FigmaTokens.schemes)) out.push(this.scheme(cls, mode));
++		for (const d of FigmaTokens.derived) out.push(this.scheme(d.cls, d.from, d.surface));
+ 		out.push(FigmaTokens.utilities, FigmaTokens.controls, FigmaTokens.layouts);
+ 		return `/* GENERATED by FigmaTokens.mjs from variables.json (Figma ${this.json.file}, ${this.json.exported}). Do not edit; re-export and re-run.\n   Opt-in: nothing on the site loads this file yet. ../doc/token-sync.md */\n@layer theme {\n${out.join("\n\n")}\n}\n`;
+ 	}
+@@ -52,7 +60,7 @@ export class FigmaTokens {
+ 		"\t.fig-stack > * { margin: 0; }   /* auto layout has no margins: the gap is the only space, as in Figma */",
+ 		"	.fig-stack > .fig-btn { align-self: flex-start; }   /* buttons hug, as in Figma */",
+ 		"\t.fig-inset { background: rgb(0 0 0 / 0.1); }",
+-		"\t.fig-dark .fig-lift { background: rgb(255 255 255 / 0.1); }",
++		"\t:is(.fig-dark, .fig-near-black) .fig-lift { background: rgb(255 255 255 / 0.1); }",
+ 		"\t.fig-muted { color: var(--fig-muted); }",
+ 		"\t.fig-accent { color: var(--fig-accent); }",
+ 		"\t.fig-btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--fig-small-pad-x); min-height: 44px; padding: var(--fig-small-pad-y) var(--fig-gap); border: 0; border-radius: var(--fig-radius); font-family: inherit; font-weight: 700; font-size: 14px; line-height: 1.4; letter-spacing: 0.07em; text-transform: uppercase; color: var(--fig-text); background: none; }",
+@@ -85,7 +93,7 @@ export class FigmaTokens {
+ 		"	:is(.fig-toggle, .fig-check, .fig-radio):has(> input:disabled) { opacity: 0.4; cursor: default; }",
+ 		"	.fig-select { position: relative; display: block; width: 100%; box-sizing: border-box; }",
+ 		"	.fig-select > summary { list-style: none; display: flex; width: 100%; align-items: center; gap: var(--fig-small-pad-x); min-height: 44px; padding: var(--fig-small-pad-y) var(--fig-gap); border: 0; border-radius: var(--fig-radius); background: rgb(0 0 0 / 0.1); color: var(--fig-text); font: inherit; cursor: pointer; box-sizing: border-box; }",
+-		"	.fig-dark .fig-select > summary, .fig-dark.fig-select > summary { background: rgb(255 255 255 / 0.1); }",
++		"	:is(.fig-dark, .fig-near-black) .fig-select > summary, :is(.fig-dark, .fig-near-black).fig-select > summary { background: rgb(255 255 255 / 0.1); }",
+ 		"	.fig-select > summary::-webkit-details-marker { display: none; }",
+ 		"	.fig-select > summary > :first-child { flex: 1; }",
+ 		"	.fig-select > summary::after { content: 'expand_more'; font-family: 'Material Symbols Rounded', 'Material Icons'; font-size: 24px; line-height: 1; transition: transform 0.12s; }",
+@@ -96,6 +104,12 @@ export class FigmaTokens {
+ 		"	.fig-select-row:hover { background: color-mix(in srgb, var(--fig-text) 8%, transparent); }",
+ 		"	.fig-select-row[aria-selected=true] { background: color-mix(in srgb, var(--fig-text) 10%, transparent); font-weight: 700; }",
+ 		"	.fig-select-row > :first-child { flex: 1; }",
++		"	/* DS 2.6 variant C: under a phone width the open panel is a bottom sheet over a scrim (the scrim is the details itself, so a tap on it closes it: FigSelect.js). Not inside .fig-lay: its container-type traps position: fixed. */",
++		"	@media (max-width: 599px) {",
++		"		.fig-select[open]::before { content: ''; position: fixed; inset: 0; z-index: 4; background: rgb(0 0 0 / 0.4); }",
++		"		.fig-select-panel { position: fixed; z-index: 5; left: 0; right: 0; bottom: 0; top: auto; max-height: 70dvh; padding: var(--fig-gap) 4px calc(var(--fig-gap) + env(safe-area-inset-bottom)); border-radius: calc(var(--fig-radius) * 3) calc(var(--fig-radius) * 3) 0 0; border-width: 1px 0 0; box-shadow: 0 -8px 24px rgb(0 0 0 / 0.25); }",
++		"		.fig-select-panel::before { content: ''; display: block; width: 36px; height: 4px; margin: 0 auto var(--fig-small-pad-x); border-radius: 2px; background: color-mix(in srgb, var(--fig-text) 25%, transparent); }",
++		"	}",
+ 	].join("\n");
+ 
+ 	// Foundational layouts from DS 4.1; docs: ../doc/layouts.md. Stack is .fig-stack above (reused, not twinned).
+@@ -108,7 +122,7 @@ export class FigmaTokens {
+ 		"	.fig-split { grid-template-columns: repeat(2, minmax(0, 1fr)); }",
+ 		"	.fig-media { grid-template-columns: 160px minmax(0, 1fr); }",
+ 		"	.fig-media-box { aspect-ratio: 1; border-radius: var(--fig-radius); background: rgb(0 0 0 / 0.1); display: grid; place-content: center; }",
+-		"	.fig-dark .fig-media-box { background: rgb(255 255 255 / 0.1); }",
++		"	:is(.fig-dark, .fig-near-black) .fig-media-box { background: rgb(255 255 255 / 0.1); }",
+ 		"	.fig-media-sm { grid-template-columns: 120px minmax(0, 1fr); }",
+ 		"	.fig-side { grid-template-columns: 200px minmax(0, 1fr); }",
+ 		"	.fig-side-rail { display: flex; flex-direction: column; gap: var(--fig-small-pad-y); }",
+@@ -117,7 +131,7 @@ export class FigmaTokens {
+ 		"	.fig-bands > * { margin: 0; padding: var(--fig-pad-y) var(--fig-pad-x); border-radius: 0; }",
+ 		"	.fig-bands > .fig-body { flex: 1; }",
+ 		"	.fig-bands > .fig-head, .fig-bands > .fig-foot { background: rgb(0 0 0 / 0.1); }",
+-		"	.fig-dark .fig-bands > .fig-head, .fig-dark .fig-bands > .fig-foot { background: rgb(255 255 255 / 0.1); }",
++		"	:is(.fig-dark, .fig-near-black) .fig-bands > .fig-head, :is(.fig-dark, .fig-near-black) .fig-bands > .fig-foot { background: rgb(255 255 255 / 0.1); }",
+ 		"	@container (max-width: 479px) {",
+ 		"		.fig-cols, .fig-split, .fig-media, .fig-side, .fig-three { grid-template-columns: minmax(0, 1fr); }",
+ 		"		.fig-side-rail { flex-direction: row; flex-wrap: wrap; }",
+diff --git a/public/framework/ext/Figma/tokens/page.js b/public/framework/ext/Figma/tokens/page.js
+index 863dfab09..d2bdc8e86 100644
+--- a/public/framework/ext/Figma/tokens/page.js
++++ b/public/framework/ext/Figma/tokens/page.js
+@@ -8,7 +8,7 @@ View.stylesheet(import.meta, "page.css");
+ if (!document.querySelector("meta[name=fig-symbols]")) document.head.append(Object.assign(document.createElement("link"), { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:FILL@0..1" }), Object.assign(document.createElement("meta"), { name: "fig-symbols" }));
+ 
+ // The opt-in --fig-* tokens generated from the Figma variables; why: ../doc/token-sync.md
+-const schemes = [["fig-white", "White"], ["fig-gray", "Light gray"], ["fig-dark", "Dark"]];
++const schemes = [["fig-white", "White"], ["fig-gray", "Light gray"], ["fig-dark", "Dark"], ["fig-near-black", "Near-black"]];
+ const dom = (view, props) => (Object.assign(view.el, props), view);   // DOM properties (checked, open) that attributes cannot set
+ const icon = (name, size = 24) => span.c(`fig-icon fig-icon-${size}`, name);
+ const toggle = (label, on, dis) => div.c("fig-toggle", () => { span(label); dom(input().attr("type", "checkbox"), { checked: !!on, disabled: !!dis }); });
+@@ -19,7 +19,7 @@ const select = (value, rows, open) => {
+ 	summary(span(value));
+ 	div.c("fig-select-panel", () => rows.forEach(r => div.c("fig-select-row", () => { span(r); if (r === value) icon("check", 20); }).attr("aria-selected", r === value)));
+ });
+-	dom(d, { open: !!open });
++	dom(d, { open: !!open && innerWidth >= 600 });   // a phone shows the open panel as a sheet over a scrim, so the demo starts closed there
+ 	return d;
+ };
+ let uid = 0;
+@@ -39,7 +39,7 @@ function settings(scheme) {
+ 		h3("Settings");
+ 		toggle("Push notifications", true); toggle("Email digest", false); toggle("Location", true);
+ 		div.c("fig-select-label fig-muted", "Language");
+-		select("English", ["English", "Espa�ol", "Fran�ais"]);
++		select("English", ["English", "Espa�ol", "Fran�ais"]);
+ 		check("Remember me", true);
+ 		const g = "p" + uid++;
+ 		radio("Free", false, g); radio("Plus", true, g);
+@@ -120,7 +120,9 @@ export default new Page({
+ 		layoutsDemo();
+ 		h3("Layouts on a phone (390)");
+ 		div.c("flex wrap gap", () => div.c("fig-white fig-lay fig-card fig-tokens-phone", () => div.c("fig-side", () => { div.c("fig-side-rail", () => ["Profile", "Billing"].forEach(t => button.c("fig-btn fig-btn-secondary", t))); div.c("fig-cols", () => { h4("Profile"); p.c("fig-muted", "Rail on top; label above content."); }); })));
+-		h3("The settings screen (DS 2.7, In action)");
++		h3("Dropdown as a bottom sheet (DS 2.6 C)");
++			p("Under 600 px of screen width an open fig-select becomes a bottom sheet over a dimmed page; tap the dim area, press Escape or pick a row to close. Resize the window below 600 px to see it.");
++			h3("The settings screen (DS 2.7, In action)");
+ 		div.c("flex wrap gap", () => schemes.forEach(([cls]) => settings(cls)));
+ 	},
+ });
+diff --git a/public/framework/ext/Figma/tokens/tokens.css b/public/framework/ext/Figma/tokens/tokens.css
+index ce3a1e4d7..8d41af498 100644
+--- a/public/framework/ext/Figma/tokens/tokens.css
++++ b/public/framework/ext/Figma/tokens/tokens.css
+@@ -124,6 +124,16 @@
+ 		color: var(--fig-text);
+ 	}
+ 
++	.fig-near-black {
++		--fig-text: #ffffff;
++		--fig-muted: #ffffffb2;
++		--fig-surface: color-mix(in srgb, var(--fig-dark) 50%, #000);
++		--fig-accent: var(--fig-prime);
++		--fig-on-accent: #000000d9;
++		background: var(--fig-surface);
++		color: var(--fig-text);
++	}
++
+ 	.fig-card { padding: var(--fig-pad-y) var(--fig-pad-x); border-radius: var(--fig-radius); }
+ 	.fig-section { padding: var(--fig-section-pad-y) var(--fig-section-pad-x); }
+ 	.fig-row { padding: var(--fig-small-pad-y) var(--fig-small-pad-x); }
+@@ -131,7 +141,7 @@
+ 	.fig-stack > * { margin: 0; }   /* auto layout has no margins: the gap is the only space, as in Figma */
+ 	.fig-stack > .fig-btn { align-self: flex-start; }   /* buttons hug, as in Figma */
+ 	.fig-inset { background: rgb(0 0 0 / 0.1); }
+-	.fig-dark .fig-lift { background: rgb(255 255 255 / 0.1); }
++	:is(.fig-dark, .fig-near-black) .fig-lift { background: rgb(255 255 255 / 0.1); }
+ 	.fig-muted { color: var(--fig-muted); }
+ 	.fig-accent { color: var(--fig-accent); }
+ 	.fig-btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--fig-small-pad-x); min-height: 44px; padding: var(--fig-small-pad-y) var(--fig-gap); border: 0; border-radius: var(--fig-radius); font-family: inherit; font-weight: 700; font-size: 14px; line-height: 1.4; letter-spacing: 0.07em; text-transform: uppercase; color: var(--fig-text); background: none; }
+@@ -161,7 +171,7 @@
+ 	:is(.fig-toggle, .fig-check, .fig-radio):has(> input:disabled) { opacity: 0.4; cursor: default; }
+ 	.fig-select { position: relative; display: block; width: 100%; box-sizing: border-box; }
+ 	.fig-select > summary { list-style: none; display: flex; width: 100%; align-items: center; gap: var(--fig-small-pad-x); min-height: 44px; padding: var(--fig-small-pad-y) var(--fig-gap); border: 0; border-radius: var(--fig-radius); background: rgb(0 0 0 / 0.1); color: var(--fig-text); font: inherit; cursor: pointer; box-sizing: border-box; }
+-	.fig-dark .fig-select > summary, .fig-dark.fig-select > summary { background: rgb(255 255 255 / 0.1); }
++	:is(.fig-dark, .fig-near-black) .fig-select > summary, :is(.fig-dark, .fig-near-black).fig-select > summary { background: rgb(255 255 255 / 0.1); }
+ 	.fig-select > summary::-webkit-details-marker { display: none; }
+ 	.fig-select > summary > :first-child { flex: 1; }
+ 	.fig-select > summary::after { content: 'expand_more'; font-family: 'Material Symbols Rounded', 'Material Icons'; font-size: 24px; line-height: 1; transition: transform 0.12s; }
+@@ -172,6 +182,12 @@
+ 	.fig-select-row:hover { background: color-mix(in srgb, var(--fig-text) 8%, transparent); }
+ 	.fig-select-row[aria-selected=true] { background: color-mix(in srgb, var(--fig-text) 10%, transparent); font-weight: 700; }
+ 	.fig-select-row > :first-child { flex: 1; }
++	/* DS 2.6 variant C: under a phone width the open panel is a bottom sheet over a scrim (the scrim is the details itself, so a tap on it closes it: FigSelect.js). Not inside .fig-lay: its container-type traps position: fixed. */
++	@media (max-width: 599px) {
++		.fig-select[open]::before { content: ''; position: fixed; inset: 0; z-index: 4; background: rgb(0 0 0 / 0.4); }
++		.fig-select-panel { position: fixed; z-index: 5; left: 0; right: 0; bottom: 0; top: auto; max-height: 70dvh; padding: var(--fig-gap) 4px calc(var(--fig-gap) + env(safe-area-inset-bottom)); border-radius: calc(var(--fig-radius) * 3) calc(var(--fig-radius) * 3) 0 0; border-width: 1px 0 0; box-shadow: 0 -8px 24px rgb(0 0 0 / 0.25); }
++		.fig-select-panel::before { content: ''; display: block; width: 36px; height: 4px; margin: 0 auto var(--fig-small-pad-x); border-radius: 2px; background: color-mix(in srgb, var(--fig-text) 25%, transparent); }
++	}
+ 
+ 	.fig-lay { container-type: inline-size; }
+ 	.fig-cols, .fig-split, .fig-media, .fig-side, .fig-three { display: grid; gap: var(--fig-gap); align-items: start; }
+@@ -180,7 +196,7 @@
+ 	.fig-split { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+ 	.fig-media { grid-template-columns: 160px minmax(0, 1fr); }
+ 	.fig-media-box { aspect-ratio: 1; border-radius: var(--fig-radius); background: rgb(0 0 0 / 0.1); display: grid; place-content: center; }
+-	.fig-dark .fig-media-box { background: rgb(255 255 255 / 0.1); }
++	:is(.fig-dark, .fig-near-black) .fig-media-box { background: rgb(255 255 255 / 0.1); }
+ 	.fig-media-sm { grid-template-columns: 120px minmax(0, 1fr); }
+ 	.fig-side { grid-template-columns: 200px minmax(0, 1fr); }
+ 	.fig-side-rail { display: flex; flex-direction: column; gap: var(--fig-small-pad-y); }
+@@ -189,7 +205,7 @@
+ 	.fig-bands > * { margin: 0; padding: var(--fig-pad-y) var(--fig-pad-x); border-radius: 0; }
+ 	.fig-bands > .fig-body { flex: 1; }
+ 	.fig-bands > .fig-head, .fig-bands > .fig-foot { background: rgb(0 0 0 / 0.1); }
+-	.fig-dark .fig-bands > .fig-head, .fig-dark .fig-bands > .fig-foot { background: rgb(255 255 255 / 0.1); }
++	:is(.fig-dark, .fig-near-black) .fig-bands > .fig-head, :is(.fig-dark, .fig-near-black) .fig-bands > .fig-foot { background: rgb(255 255 255 / 0.1); }
+ 	@container (max-width: 479px) {
+ 		.fig-cols, .fig-split, .fig-media, .fig-side, .fig-three { grid-template-columns: minmax(0, 1fr); }
+ 		.fig-side-rail { flex-direction: row; flex-wrap: wrap; }

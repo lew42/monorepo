@@ -1,0 +1,25 @@
+# The single voice assistant: one agent per voice session
+
+**What this is.** A setting that gives a voice session ONE Sonnet agent in place of today's pair (the fast seat that places and cleans each sentence, the smart seat that answers). It hears every sentence as it ends, tidies it, files it silently, and speaks only when you pause. The default (`voice`, the pair) is untouched. The brief the agent reads: `Servex/agents/single-voice-assistant.md`. Built for [Chat V3](/framework/ext/Chat/v3/readme.md). Plan, findings and the owner's words: [the build's task folder](/framework/ai/sessions/2026/10/20/session-e00f55c9/single-voice-assistant/plan.md).
+
+## Turning it on
+- **Every session:** write the word `single` in `session-assistant.txt` (or set `SERVEX_SESSION_ASSISTANT=single`); read at boot, so Servex restarts for it. The word is one of `fast`, `voice` (default), `single`, `off`.
+- **From the phone:** the gear panel's **voice assistants** row (One assistant / Two assistants / Default) does the per-session POST below; its line shows which is live ([settings.md](settings.md)).
+- **One session:** `POST /api/session/settings {session, assistant: "single"}`. `assistant: null` drops it back to the boot word. If an agent is already awake for that session it is put to sleep; the next sentence wakes the new seat.
+
+## What happens to a sentence (`Servex/agents/Sessions.js`: `single_say`, `single_cue`, `heard`)
+1. `say()` hands the sentence straight to `single_say()`: no refine, no thought hold, no wake gate, no fast agent, no code-filed Question.
+2. The agent gets `[on <page> at <at>] <words>`, then `(sentence)`, `(prompt p-…)` and `(message m-…)`. **Per the brief (rewritten 2026-11-03, ask2c-brief-rewrite) it does the useful silent work on this one sentence, in this same turn** — a `{place}` item-tool call with `edit: "improve"` and the cleaned `text` only when the sentence is actually wrong (a right one gets no call), or a task filed, or a question forwarded to `mastermind-voice-system`. There is no batch held for a later cue: the owner reversed that plan the same day it was proposed (one sentence per send stays the default). A turn where none of that applied still ends with a call — `nothing()` — writing no text either way.
+3. Chat V3 draws the cleaned text through a `clean` line; the raw words stay behind "show raw". A card title is `messages.<message id>.title`.
+4. After `single_pause_ms` of quiet (default 1000, `SERVEX_SESSION_SINGLE_PAUSE_MS`), only when the agent is idle (a busy one is retried), Servex sends the bare tag `(pause)`. The tag carries no instruction of its own any more — the old "reply now only if a question is open" wording is gone from both the code and the brief. The only way to reach the owner is the `say` tool: plain text is never a reply (ask2a-say-tools, 2026-11-03; `heard()` always writes it as a muted `skip` line instead, cue open or not). The three tools, the gate's bands, and where each piece lives: [`Servex/agents/doc/say-tools.md`](/Servex/agents/doc/say-tools.md) (also linked from [`Servex/agents/readme.md`](/Servex/agents/readme.md)).
+5. Heavy work: the agent files a task on the session and spawns a helper with `spawn_agent task: {from, id}`; it does no digging and has no `eval`.
+
+## The voice style the brief enforces (the owner, 2026-11-03)
+Written into the brief's "Speaking" and "How you talk" sections: replies very small (one paragraph at most); one item at a time, never several at once; several ways forward are named briefly and the owner picks; no narration ever ("I've filed that" is noise, not a reply); an unclear or echo-like fragment ("proceed with this") is never a command, ask one short question first; feedback about the voice system itself is filed as a task and handed to `mastermind-voice-system`. These are prompt rules only: nothing in `Sessions.js` enforces them yet (a narrated `say` is still queued and released; only plain text is muted by code).
+
+## Where each piece is
+- Role row `single-voice-assistant`: `Servex/agents/roles.js`; model tier `voice_single` (Sonnet, effort low): `Servex/agents/tiers.js`.
+- The proof: `Servex/agents/Sessions.single.test.mjs` (plain node, no model). It runs every `js` example in the brief for real against a temp session file, then replays the file the way Chat V3 reads it (cleaned words, title, paragraphs, raw kept). `Servex/agents/single-brief.test.mjs` proves the brief itself: its own words, the real opening prompt (`brief() + where`) a seat is actually spawned with, and a replayed real session driven through the real `say`/`nothing`/`retract_say` handlers in `tools.js`.
+
+## Not built yet
+Read-aloud mechanics from reply-pacing · moving a sentence to another paragraph or card as data Chat V3 draws (the `place` line is written, V3 does not move cards from it yet) · Ref cards · the grey/green check in single · cards that absorb walls · heard-only context · a voice-system mastermind for the agent to hand its own fixes to. Live cost per sentence is to be measured on the first real session.

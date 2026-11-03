@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ext/drawer/walkthrough/",
+ "widths": {
+  "1280": {
+   "empty": 0.462,
+   "widest_text": 713,
+   "widest_text_sample": "Every page has a ☰ at its top right. Cli",
+   "overflow_x": false,
+   "items": 59,
+   "narrow_share": 0.203
+  },
+  "1920": {
+   "empty": 0.373,
+   "widest_text": 793,
+   "widest_text_sample": "Every page has a ☰ at its top right. Cli",
+   "overflow_x": false,
+   "items": 59,
+   "narrow_share": 1
+  },
+  "2560": {
+   "empty": 0.432,
+   "widest_text": 892,
+   "widest_text_sample": "Every page has a ☰ at its top right. Cli",
+   "overflow_x": false,
+   "items": 59,
+   "narrow_share": 1
+  },
+  "3440": {
+   "empty": 0.57,
+   "widest_text": 892,
+   "widest_text_sample": "Every page has a ☰ at its top right. Cli",
+   "overflow_x": false,
+   "items": 59,
+   "narrow_share": 1
+  }
+ },
+ "errors": []
+}

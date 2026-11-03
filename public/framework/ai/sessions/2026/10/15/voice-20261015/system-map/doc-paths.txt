@@ -1,0 +1,108 @@
+docs 66, paths checked 1772, not found 107 {"missing":46,"moved":35,"name-not-in-repo":26}
+missing           CLAUDE.md:6  public/framework/ai/2026-10-12/claude-md-consolidate/
+missing           CLAUDE.md:34  parent/child
+moved             CLAUDE.md:44  doc/flow.md  -> public/framework/ext/Panel/doc/flow.md
+missing           CLAUDE.md:46  /framework/ai/readmes/
+name-not-in-repo  CLAUDE.md:55  salvage/
+missing           readme.md:77  /path/page.js
+name-not-in-repo  public/framework/readme.md:37  lib/
+name-not-in-repo  public/framework/ai/sessions/readme.md:69  session.jsonl
+name-not-in-repo  public/framework/ai/sessions/readme.md:81  session.jsonl
+name-not-in-repo  Servex/readme.md:71  ports.json
+name-not-in-repo  Servex/readme.md:72  servex.jsonl
+missing           Servex/readme.md:77  logs/reports/
+missing           Servex/readme.md:78  logs/gate.log
+missing           Servex/readme.md:79  logs/windows.jsonl
+name-not-in-repo  Servex/readme.md:99  servex-mvp.md
+moved             Servex/agents/readme.md:98  tiers-design/doc/tools.md  -> public/framework/ai/sessions/2026/09/22/tiers-design/tiers-design/doc/tools.md
+moved             Server/README.md:27  /framework/ai2/2026-09-28/smoke-links/  -> public/framework/ai/archive/task-stubs/2026-09-28/smoke-links/moved.json
+moved             Server/README.md:38  /framework/ai2/2026-09-28/hidden-windows/  -> public/framework/ai/archive/task-stubs/2026-09-28/hidden-windows/moved.json
+moved             Server/README.md:66  /framework/ai2/2026-09-28/task-loop/landing-checks/  -> public/framework/ai/sessions/2026/09/28/task-loop/task-loop/landing-checks/requirements.md
+name-not-in-repo  Server/README.md:101  lifecycle.jsonl
+missing           Server/README.md:101  public/framework/ai/council/off
+moved             public/framework/ai/handover.md:23  2026-10-12/docs-handover/night.md  -> public/framework/ai/sessions/2026/10/12/session-c7880390/docs-handover/night.md
+moved             public/framework/ai/handover.md:23  2026-10-12/page-split-2/STATE.md  -> public/framework/ai/sessions/2026/10/12/session-e55f5a4b/page-split-2/STATE.md
+moved             public/framework/ai/handover.md:23  2026-10-12/refine-asks/STATE.md  -> public/framework/ai/sessions/2026/10/12/session-d399581f/refine-asks/STATE.md
+moved             public/framework/ai/handover.md:24  2026-10-12/voice-verify/STATE.md  -> public/framework/ai/sessions/2026/10/12/session-b0c9ab63/voice-verify/STATE.md
+moved             public/framework/ai/handover.md:25  2026-10-12/skill-reliability/STATE.md  -> public/framework/ai/sessions/2026/10/12/session-78fdc37f/skill-reliability/STATE.md
+moved             public/framework/ai/handover.md:25  2026-10-12/openrouter-gap/STATE.md  -> public/framework/ai/sessions/2026/10/12/session-fb77ab71/openrouter-gap/STATE.md
+moved             public/framework/ai/handover.md:25  2026-10-12/session-housekeeping/STATE.md  -> public/framework/ai/sessions/2026/10/12/session-19429b3d/session-housekeeping/STATE.md
+name-not-in-repo  public/framework/ai/handover.md:37  session-index.json
+name-not-in-repo  public/framework/ai/handover.md:55  openrouter.jsonl
+name-not-in-repo  public/framework/ai/handover.md:106  overview.js
+name-not-in-repo  public/framework/ai/handover.md:124  sessions.json
+name-not-in-repo  public/framework/ai/handover.md:126  openrouter-burst.json
+name-not-in-repo  public/framework/ai/handover.md:132  openrouter-burst.json
+missing           public/framework/ai/handover.md:136  openai/gpt-6-luna
+missing           public/framework/ai/handover.md:136  deepseek/deepseek-v4.1-flash
+missing           public/framework/ai/handover.md:200  2026-09-22/review-3-days/
+moved             public/framework/ai/handover.md:201  2026-09-22/mastermind-servex/  -> public/framework/ai/archive/task-stubs/2026-09-22/mastermind-servex/files.jsonl
+moved             public/framework/ai/handover.md:203  2026-09-22/tiers-design/doc/phases.md  -> public/framework/ai/sessions/2026/09/22/tiers-design/tiers-design/doc/phases.md
+moved             public/framework/ai/handover.md:203  tiers-design/doc/phases.md  -> public/framework/ai/sessions/2026/09/22/tiers-design/tiers-design/doc/phases.md
+name-not-in-repo  public/framework/ai/handover.md:219  2026-09-22/
+missing           public/framework/ai/handover.md:219  ai/2026-09-22/
+missing           public/framework/ai/handover.md:250  2026-09-22/system-retro/
+missing           public/framework/ai/handover.md:254  2026-09-22/ai2-nested/
+moved             public/framework/ai/handover.md:260  2026-09-22/ai2-nested/next.md  -> public/framework/ai/sessions/2026/09/23/session-1f93064d/ai2-nested/next.md
+name-not-in-repo  public/framework/ai/handover.md:260  overview.js
+missing           public/framework/ai/handover.md:261  Server/plugins/Hosts.js
+missing           public/framework/ai/handover.md:271  CardAnswer/Ask/Assistant.js
+moved             public/framework/ai/handover.md:288  2026-09-22/tiers-design/doc/tools.md  -> public/framework/ai/sessions/2026/09/22/tiers-design/tiers-design/doc/tools.md
+moved             public/framework/ai/handover.md:288  tiers-design/doc/tools.md  -> public/framework/ai/sessions/2026/09/22/tiers-design/tiers-design/doc/tools.md
+moved             public/framework/ai/handover.md:290  2026-09-22/ai2-nested/next.md  -> public/framework/ai/sessions/2026/09/23/session-1f93064d/ai2-nested/next.md
+moved             public/framework/ai/handover.md:290  ai2-nested/next.md  -> public/framework/ai/sessions/2026/09/23/session-1f93064d/ai2-nested/next.md
+missing           public/framework/ai/handover.md:299  2026-09-23/servex-port-80/
+missing           public/framework/ai/handover.md:299  Server/plugins/Hosts.js
+missing           public/framework/ai/handover.md:309  2026-09-22/review-3-days/
+missing           public/framework/ai/handover.md:311  2026-09-22/reuse-audit/
+moved             public/framework/ai/handover.md:332  new-task/SKILL.md  -> .claude/skills/new-task/SKILL.md
+missing           public/framework/ai/handover.md:333  .claude/sessions.mjs
+missing           public/framework/ai/handover.md:333  ai/sessions.jsonl
+moved             public/framework/ai/handover.md:334  auditor/SKILL.md  -> .claude/skills/auditor/SKILL.md
+moved             public/framework/ai/handover.md:334  mastermind/SKILL.md  -> .claude/skills/mastermind/SKILL.md
+missing           public/framework/ai/systems-map.md:18  /framework/ai/skills/
+moved             public/framework/ai/systems-map.md:26  2026-10-08/ai-system-docs/findings.md  -> public/framework/ai/sessions/2026/10/08/ai-system-docs-fa3e829d/ai-system-docs/findings.md
+name-not-in-repo  public/framework/ai/systems-map.md:32  tasks.jsonl
+name-not-in-repo  public/framework/ai/systems-map.md:58  sessions.json
+missing           Servex/doc/budget.md:24  public/framework/ai/sessions/2026/09/30/node-reliability/node-reliability/budget-proof.txt
+missing           Servex/doc/echo.md:10  google/gemini-3.8-flash
+missing           Servex/doc/echo.md:18  /framework/ai/2026/10/07/session-87bec773/
+name-not-in-repo  Servex/doc/echo.md:28  servex.jsonl
+missing           Servex/doc/inbox.md:3  /framework/ext/drawer/doc/inbox/
+missing           Servex/doc/inbox.md:58  /framework/core/Page/jsonl/md/doc/writers/
+name-not-in-repo  Servex/doc/inbox.md:58  shots/
+name-not-in-repo  Servex/doc/lifecycle.md:7  lifecycle.jsonl
+name-not-in-repo  Servex/doc/pool.md:93  spawn-queue.json
+missing           Servex/doc/pool.md:103  salvage/qf-6-2026-09-30-2
+missing           Servex/doc/pool.md:109  worktree/qf-N
+missing           Servex/doc/pool.md:116  ../never-lose-a-wake.md
+missing           Servex/doc/processes.md:100  logs/HEAD
+missing           Servex/doc/readme-full-2026-10-12.md:53  models/ggml-silero-v5.1.2.bin
+missing           Servex/doc/readme-full-2026-10-12.md:62  /log/prompts
+missing           Servex/doc/readme-full-2026-10-12.md:138  ai/2026-10-02/standing-voice-pair
+missing           Servex/doc/readme-full-2026-10-12.md:162  ai/2026-10-02/node-reap
+moved             Servex/doc/readme-full-2026-10-12.md:215  log-model/fold.js  -> public/framework/ai/sessions/2026/09/22/session-66db742f/log-model/fold.js
+moved             Servex/doc/skills.md:3  skill-reliability/MissSample.mjs  -> public/framework/ai/sessions/2026/10/12/session-78fdc37f/skill-reliability/MissSample.mjs
+moved             Servex/doc/steps.md:15  step-runner/requirements.md  -> public/framework/ai/sessions/2026/10/12/session-87bec773/step-runner/requirements.md
+name-not-in-repo  Servex/doc/task-loop.md:72  heartbeat-queue.json
+missing           Servex/doc/tool-process.md:23  page_set/add/call
+missing           .claude/skills/documentation/SKILL.md:38  ./child/
+moved             .claude/skills/documentation/SKILL.md:44  ./doc/focus.md  -> public/framework/ext/Panel/doc/focus.md
+moved             .claude/skills/documentation/SKILL.md:44  doc/focus.md  -> public/framework/ext/Panel/doc/focus.md
+moved             .claude/skills/documentation/SKILL.md:47  ./doc/generator.md  -> public/framework/ext/Panel/doc/generator.md
+moved             .claude/skills/documentation/SKILL.md:47  doc/generator.md  -> public/framework/ext/Panel/doc/generator.md
+missing           .claude/skills/documentation/SKILL.md:51  ./name/
+missing           .claude/skills/documentation/SKILL.md:80  /module/files/
+name-not-in-repo  .claude/skills/finish-task/SKILL.md:45  shot.png
+moved             .claude/skills/mastermind/SKILL.md:38  tiers-design/doc/roles.md  -> public/framework/ai/sessions/2026/09/22/tiers-design/tiers-design/doc/roles.md
+name-not-in-repo  .claude/skills/mastermind/SKILL.md:126  requirements-N.md
+moved             .claude/skills/mastermind/SKILL.md:126  doc/next.md  -> public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/one-store/doc/next.md
+moved             .claude/skills/mastermind/SKILL.md:132  minion/SKILL.md  -> .claude/skills/minion/SKILL.md
+name-not-in-repo  .claude/skills/new-task/SKILL.md:24  md-routes-probe.mjs
+missing           .claude/skills/research/SKILL.md:97  .../entry.mjs
+missing           .claude/skills/review/SKILL.md:58  n/a
+missing           .claude/skills/review/SKILL.md:62  n/a
+missing           .claude/skills/servex-mastermind/SKILL.md:32  logs/sustain.log
+missing           .claude/skills/servex-mastermind/SKILL.md:32  logs/reports/
+moved             .claude/skills/sub-mastermind/SKILL.md:65  collab/tally.md  -> public/framework/ai/sessions/2026/09/28/2c074cef-dccf-4e86-8f2b-fb4cf072e115/collab-rounds/design/collab/tally.md
+missing           .claude/skills/sub-mastermind/SKILL.md:83  Temp/lew42-health.lock

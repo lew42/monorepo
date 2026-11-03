@@ -1,0 +1,72 @@
+[
+  {
+    "slug": "feedback-council-2026-10-07",
+    "on_dev": "c9b4e43a9",
+    "left": "Nothing; council feedback system is operational with ongoing verification rounds",
+    "verdict": "landed",
+    "evidence": "Multiple commits on michael/dev (c9b4e43a9, 9880a6d14, c605563ee, c45feff4c, b182e8f6f); feedback-council system is running with regular verification passes"
+  },
+  {
+    "slug": "openrouter-agent-trial",
+    "on_dev": "8a1244a41 (brief only)",
+    "left": "The actual work: add one line to public/framework/log/readme.md about batched appends setting",
+    "verdict": "open",
+    "evidence": "Only brief commit (8a1244a41) exists; task was stopped by owner at 2026-10-05T14:05:31; git log shows no readme.md edit with batched appends text; brief task should have added a line but was interrupted"
+  },
+  {
+    "slug": "feedback-council-2026-10-06",
+    "on_dev": "c9b4e43a9 (same as first)",
+    "left": "Nothing; same council system as 2026-10-07 run",
+    "verdict": "landed",
+    "evidence": "Git log shows same feedback-council commits on michael/dev; this was a follow-on verification round of the same system"
+  },
+  {
+    "slug": "dictate-live-state",
+    "on_dev": "no (brief only)",
+    "left": "Full implementation: status signals for mic, socket, Whisper, session, assistants; Dictate as object-oriented instances; Live tab showing instances",
+    "verdict": "open",
+    "evidence": "Only brief commit (7cc8485b2) on michael/dev; task.jsonl shows only temp log file edits (Temp/dictate-live-state-log1.json); agent stopped by owner at 2026-10-04T23:49:52 before any code work was merged"
+  },
+  {
+    "slug": "dictate-one-engine",
+    "on_dev": "no (brief only)",
+    "left": "Full implementation: singleton Dictate engine per tab, proof via check_page, smoke.mjs test, worktree merge",
+    "verdict": "open",
+    "evidence": "Only brief commit (66dabdad6) on michael/dev; task.jsonl shows only temp log file edits; agent stopped by owner at 2026-10-05T00:24:44 with no code commits to Dictate.js or related files"
+  },
+  {
+    "slug": "local-ctx-fix",
+    "on_dev": "3e1d0530f (preceding task local-model-hunt)",
+    "left": "Nothing; fix already implemented by local-model-hunt task",
+    "verdict": "landed",
+    "evidence": "Work is on michael/dev at commit 3e1d0530f (llama-server --parallel 1 fix in Servex/ext/local/); this was done by the preceding local-model-hunt task; local-ctx-fix task.jsonl states 'its task local-model-hunt has landed'"
+  },
+  {
+    "slug": "voice-pipeline",
+    "on_dev": "4963c7c6f, dfc3f7c36, ec6d7692e, 87c74f95f",
+    "left": "Nothing; two bugs fixed and merged",
+    "verdict": "landed",
+    "evidence": "Multiple commits on michael/dev: Dictate dup-bubble fix (4963c7c6f), Whisper timing (dfc3f7c36), status words (ec6d7692e); task.jsonl shows landed at 9cf2bc75 with owner bugs fixed and merged"
+  },
+  {
+    "slug": "push-to-talk",
+    "on_dev": "c25c5a394, e7150933b",
+    "left": "Nothing; site-wide push-to-talk and hotkey manager complete",
+    "verdict": "landed",
+    "evidence": "Commits on michael/dev: c25c5a394 (site-wide push-to-talk), e7150933b (briefs: push-to-talk); task.jsonl shows agent was stopped by task-mastermind-one-dictation but work was already done"
+  },
+  {
+    "slug": "new-brain",
+    "on_dev": "6024de4c1, b42dfe9a0, and others",
+    "left": "Nothing; cheap model test suite complete with OpenRouter and local model scoring",
+    "verdict": "landed",
+    "evidence": "Multiple commits on michael/dev: 6024de4c1 (14-model sweep), b42dfe9a0 (input/output tokens per model), models catalog added; task.jsonl shows agent was stopped but work was landed"
+  },
+  {
+    "slug": "framework-home-grids-2026-10-03",
+    "on_dev": "no",
+    "left": "Full implementation: grids without voids, masonry layout for dark mode, section labels showing grid class names",
+    "verdict": "open",
+    "evidence": "No commits on michael/dev for 2026-10-03 task; only brief was created; agent stopped by owner at 2026-10-03T18:37:35; earlier framework-home task (2026-10-02) landed separately at fbe000a68 but this 10-03 task adds the grids-specific work"
+  }
+]

@@ -1,0 +1,257 @@
+[
+  {
+    "id": "C-206",
+    "url": "/framework/",
+    "width": 1280,
+    "kind": "strip",
+    "verdict": "fixed",
+    "note": "ratio now 1.25 (was 10.408304498269898), width 601.6→72.2px",
+    "before": {
+      "width": 601.6,
+      "ink": 57.8,
+      "padding": 0
+    },
+    "after": {
+      "found": true,
+      "width": 72.2,
+      "ink": 57.8,
+      "ratio": 1.25,
+      "padding": 0,
+      "rect": {
+        "x": 291.671875,
+        "y": 3588.203125,
+        "width": 72.15625,
+        "height": 40.5625
+      }
+    }
+  },
+  {
+    "id": "C-871",
+    "url": "/framework/core/",
+    "width": 1280,
+    "kind": "strip",
+    "verdict": "fixed",
+    "note": "ratio now 1.25 (was 10.408304498269898), width 601.6→72.2px",
+    "before": {
+      "width": 601.6,
+      "ink": 57.8,
+      "padding": 0
+    },
+    "after": {
+      "found": true,
+      "width": 72.2,
+      "ink": 57.8,
+      "ratio": 1.25,
+      "padding": 0,
+      "rect": {
+        "x": 270.640625,
+        "y": 2579.109375,
+        "width": 72.15625,
+        "height": 40.5625
+      }
+    }
+  },
+  {
+    "id": "C-1151",
+    "url": "/framework/ext/",
+    "width": 1280,
+    "kind": "strip",
+    "verdict": "fixed",
+    "note": "ratio now 1.25 (was 10.408304498269898), width 601.6→72.2px",
+    "before": {
+      "width": 601.6,
+      "ink": 57.8,
+      "padding": 0
+    },
+    "after": {
+      "found": true,
+      "width": 72.2,
+      "ink": 57.8,
+      "ratio": 1.25,
+      "padding": 0,
+      "rect": {
+        "x": 270.640625,
+        "y": 1628.53125,
+        "width": 72.15625,
+        "height": 40.5625
+      }
+    }
+  },
+  {
+    "id": "C-1492",
+    "url": "/framework/styles/",
+    "width": 1280,
+    "kind": "strip",
+    "verdict": "fixed",
+    "note": "ratio now 1.25 (was 10.408304498269898), width 601.6→72.2px",
+    "before": {
+      "width": 601.6,
+      "ink": 57.8,
+      "padding": 0
+    },
+    "after": {
+      "found": true,
+      "width": 72.2,
+      "ink": 57.8,
+      "ratio": 1.25,
+      "padding": 0,
+      "rect": {
+        "x": 270.640625,
+        "y": 4915.09375,
+        "width": 72.15625,
+        "height": 40.5625
+      }
+    }
+  },
+  {
+    "id": "C-1795",
+    "url": "/framework/ui/",
+    "width": 400,
+    "kind": "strip",
+    "verdict": "unchanged",
+    "note": "ratio 13.86→13.84, width 244→244px",
+    "before": {
+      "width": 244,
+      "ink": 17.6,
+      "padding": 5.6
+    },
+    "after": {
+      "found": true,
+      "width": 244,
+      "ink": 17.6,
+      "ratio": 13.84,
+      "padding": 5.6,
+      "rect": {
+        "x": 78,
+        "y": 2138.546875,
+        "width": 244,
+        "height": 15.375
+      }
+    }
+  },
+  {
+    "id": "C-1947",
+    "url": "/framework/ui/",
+    "width": 1280,
+    "kind": "strip",
+    "verdict": "fixed",
+    "note": "ratio now 1.25 (was 10.408304498269898), width 601.6→99.2px",
+    "before": {
+      "width": 601.6,
+      "ink": 57.8,
+      "padding": 0
+    },
+    "after": {
+      "found": true,
+      "width": 99.2,
+      "ink": 79.2,
+      "ratio": 1.25,
+      "padding": 9,
+      "rect": {
+        "x": 761.859375,
+        "y": 427.53125,
+        "width": 99.15625,
+        "height": 17.265625
+      }
+    }
+  },
+  {
+    "id": "C-2247",
+    "url": "/framework/ui/",
+    "width": 3440,
+    "kind": "strip",
+    "verdict": "unchanged",
+    "note": "ratio 10.08→9.75, width 371.1→358.6px",
+    "before": {
+      "width": 371.1,
+      "ink": 36.8,
+      "padding": 7.2
+    },
+    "after": {
+      "found": true,
+      "width": 358.6,
+      "ink": 36.8,
+      "ratio": 9.75,
+      "padding": 7.2,
+      "rect": {
+        "x": 1611.265625,
+        "y": 645.46875,
+        "width": 358.625,
+        "height": 19.78125
+      }
+    }
+  },
+  {
+    "id": "C-2542",
+    "url": "/framework/ux/",
+    "width": 1280,
+    "kind": "strip",
+    "verdict": "fixed",
+    "note": "ratio now 1.25 (was 10.408304498269898), width 601.6→72.2px",
+    "before": {
+      "width": 601.6,
+      "ink": 57.8,
+      "padding": 0
+    },
+    "after": {
+      "found": true,
+      "width": 72.2,
+      "ink": 57.8,
+      "ratio": 1.25,
+      "padding": 0,
+      "rect": {
+        "x": 322.890625,
+        "y": 1835.859375,
+        "width": 72.15625,
+        "height": 40.5625
+      }
+    }
+  },
+  {
+    "id": "C-13",
+    "url": "/framework/",
+    "width": 400,
+    "kind": "strip",
+    "verdict": "fixed",
+    "note": "ratio now 1 (was 6.022304832713755), width 324→60.2px",
+    "before": {
+      "width": 324,
+      "ink": 53.8,
+      "padding": 0
+    },
+    "after": {
+      "found": true,
+      "width": 60.2,
+      "ink": 60.2,
+      "ratio": 1,
+      "padding": 0,
+      "rect": {
+        "x": 38,
+        "y": 1167.546875,
+        "width": 60.203125,
+        "height": 25.1875
+      }
+    }
+  },
+  {
+    "id": "C-96",
+    "url": "/framework/",
+    "width": 400,
+    "kind": "touching",
+    "verdict": "unchanged",
+    "note": "gap stayed 0px",
+    "before": {
+      "gap": 0
+    },
+    "after": {
+      "found": true,
+      "gap": 0,
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 400,
+        "height": 900
+      }
+    }
+  }
+]

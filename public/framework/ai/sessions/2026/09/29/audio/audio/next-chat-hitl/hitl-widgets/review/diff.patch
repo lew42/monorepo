@@ -1,0 +1,1063 @@
+diff --git a/Servex/Servex.js b/Servex/Servex.js
+index fc452482..f4ccf490 100644
+--- a/Servex/Servex.js
++++ b/Servex/Servex.js
+@@ -33,6 +33,7 @@ import Global from "./agents/Global.js";
+ import External from "./agents/External.js";
+ import agent_tools from "./agents/tools.js";
+ import tidy from "./agents/tidy.js";
++import hitl from "./agents/hitl.js";
+ import { docs_list, docs_read_file } from "./pages.js";
+ 
+ const HERE = path.dirname(fileURLToPath(import.meta.url));
+@@ -505,6 +506,23 @@ export default class Servex extends Events {
+             res.json(await tidy(body));
+         });
+ 
++        /* THE HIT-API CHAT CALLS (chat-hitl, 2026-09-29) — two small no-tools
++         * model calls the human-in-the-loop chat uses: `marks` (per-sentence
++         * purpose + ambiguity flag) and `rename` (five title alternatives).
++         * See Servex/agents/hitl.js. Named ops only — an unknown `op`, or a
++         * caller-supplied `system`/`model`, is refused: this route (reachable
++         * from the LAN via `/servex`) never runs an arbitrary prompt. */
++        router.options("/api/hitl", cors, (req, res) => res.status(204).end());
++
++        router.post("/api/hitl", cors, express.json({ limit: "64kb" }), async (req, res) => {
++            const body = req.body ?? {};
++            if (body.system !== undefined || body.model !== undefined)
++                return res.status(400).json({ ok: false, why: "system and model are not accepted here" });
++            if (body.op !== "marks" && body.op !== "rename")
++                return res.status(400).json({ ok: false, why: `unknown op "${body.op}"` });
++            res.json(await hitl(body));
++        });
++
+         router.get("/api/logs", (req, res) => res.json(this.log.names()));
+ 
+         /* The dashboard's first paint. After this it hears about every change on
+diff --git a/Servex/agents/hitl.js b/Servex/agents/hitl.js
+new file mode 100644
+index 00000000..c0e9bd59
+--- /dev/null
++++ b/Servex/agents/hitl.js
+@@ -0,0 +1,107 @@
++import { query } from "@anthropic-ai/claude-agent-sdk";
++
++/* HITL — the smart assistant's two small model calls for the human-in-the-loop
++ * chat (owner's words: per-sentence purpose + ambiguity marks, and title
++ * rename suggestions). Same minimal no-tools Sonnet call as `tidy.js` — see
++ * that file's own comment for why these options keep the prefix ~800 tokens
++ * instead of ~51k. `run_query` is swappable so a proof (or a test) can fake
++ * the model call. */
++
++const MODEL = "claude-sonnet-5";
++
++const MARKS_SYSTEM = `You read sentences from a dictation transcript, one at a time, and decide the OBJECTIVE of each one.
++
++For EVERY sentence, in order, return one entry:
++- "purpose": one short line saying what the sentence is FOR (a request, an observation, a decision, a comment, a question, an aside, ...).
++- "mark": "ok" if the sentence's meaning is reasonably clear, "unclear" only if it is genuinely ambiguous and a reasonable reader could take it two different ways.
++
++Be LENIENT: comments, asides and observations are "ok" even when informal or vague — "unclear" is for a real fork in meaning, not for casual phrasing.
++
++When "mark" is "unclear", also return "question": {"ask": "Did you mean this or that?", "options": ["reading A", "reading B"]} — two concrete, specific readings, not generic ones.
++
++Return ONLY a JSON object, no commentary, no code fence:
++{"marks":[{"i":0,"mark":"ok","purpose":"..."},{"i":1,"mark":"unclear","purpose":"...","question":{"ask":"...","options":["...","..."]}}]}`;
++
++const RENAME_SYSTEM = `You suggest alternative titles for one thing the person is naming (a card, a title, a heading).
++
++Given the CURRENT title (and optional context about what it names), suggest exactly five short, distinct, self-evident alternative titles — none of them the current title, none of them near-duplicates of each other.
++
++Return ONLY a JSON object, no commentary, no code fence:
++{"names":["Alt one","Alt two","Alt three","Alt four","Alt five"]}`;
++
++/* Strip a ```json fence``` (or a bare ```` fence) a model wraps its JSON in,
++ * then JSON.parse — throws on genuinely broken JSON, which callers catch. */
++function parse_json(raw){
++	const stripped = raw.trim().replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/, "").trim();
++	return JSON.parse(stripped);
++}
++
++// Same minimal options `tidy.js` uses — see its comment for why.
++async function ask(system, prompt, run_query){
++	const t0 = Date.now();
++	let out = "";
++	for await (const m of run_query({ prompt, options: {
++		model: MODEL, tools: [], mcpServers: {}, strictMcpConfig: true, skills: [],
++		settingSources: [], maxTurns: 1, persistSession: false,
++		extraArgs: { "disable-slash-commands": null },
++		systemPrompt: system
++	} })){
++		if (m.type === "result") out = m.result ?? out;
++		else if (m.type === "assistant") out = (m.message?.content ?? []).filter(b => b.type === "text").map(b => b.text).join("") || out;
++	}
++	return { out, ms: Date.now() - t0 };
++}
++
++function with_context(context, body){
++	return (typeof context === "string" && context.trim() ? `Context: ${context.trim()}\n\n` : "") + body;
++}
++
++/* {sentences:[string], context?} -> {ok:true, marks:[{i, mark, purpose, question?}], model, ms} or {ok:false, why}. */
++export async function marks({ sentences, context } = {}, { run_query = query } = {}){
++	if (!Array.isArray(sentences) || !sentences.every(s => typeof s === "string"))
++		return { ok: false, why: "sentences must be an array of strings" };
++	if (!sentences.length) return { ok: true, marks: [], model: MODEL, ms: 0 };
++
++	const prompt = with_context(context, `Sentences:\n${sentences.map((s, i) => `${i}: ${s}`).join("\n")}`);
++
++	let out, ms;
++	try { ({ out, ms } = await ask(MARKS_SYSTEM, prompt, run_query)); }
++	catch (e){ return { ok: false, why: String(e.message || e) }; }
++
++	let parsed;
++	try { parsed = parse_json(out); }
++	catch (e){ return { ok: false, why: `parse failed: ${String(e.message || e)}` }; }
++	if (!Array.isArray(parsed?.marks)) return { ok: false, why: "no marks array in model reply" };
++
++	return { ok: true, marks: parsed.marks, model: MODEL, ms };
++}
++
++/* {title, context?} -> {ok:true, names:[5 strings], model, ms} or {ok:false, why}. */
++export async function rename({ title, context } = {}, { run_query = query } = {}){
++	if (typeof title !== "string" || !title.trim()) return { ok: false, why: "title must be a non-empty string" };
++
++	const prompt = with_context(context, `Current title: ${title.trim()}`);
++
++	let out, ms;
++	try { ({ out, ms } = await ask(RENAME_SYSTEM, prompt, run_query)); }
++	catch (e){ return { ok: false, why: String(e.message || e) }; }
++
++	let parsed;
++	try { parsed = parse_json(out); }
++	catch (e){ return { ok: false, why: `parse failed: ${String(e.message || e)}` }; }
++	if (!Array.isArray(parsed?.names) || parsed.names.length !== 5 || !parsed.names.every(n => typeof n === "string"))
++		return { ok: false, why: "no five-name array in model reply" };
++
++	return { ok: true, names: parsed.names, model: MODEL, ms };
++}
++
++const OPS = { marks, rename };
++
++/* {op, ...} -> dispatches to the named op above by `op`. Unknown op: {ok:false, why}. */
++export async function hitl(body = {}, { run_query = query } = {}){
++	const op = OPS[body?.op];
++	if (!op) return { ok: false, why: `unknown op "${body?.op}"` };
++	return op(body, { run_query });
++}
++
++export default hitl;
+diff --git a/Servex/agents/hitl.proof.mjs b/Servex/agents/hitl.proof.mjs
+new file mode 100644
+index 00000000..60ec3473
+--- /dev/null
++++ b/Servex/agents/hitl.proof.mjs
+@@ -0,0 +1,49 @@
++import { hitl } from "./hitl.js";
++
++/* Proof for Servex/agents/hitl.js — fake `run_query` cases first (good JSON,
++ * fenced JSON, garbage, unknown op), so this is testable with no model call
++ * and no network, then one real call of each op. Run: `node Servex/agents/hitl.proof.mjs`. */
++
++function fake(reply){
++	return async function* (){ yield { type: "result", result: reply }; };
++}
++
++// 1. Good JSON, no fence.
++const good = await hitl(
++	{ op: "marks", sentences: ["The sky is blue.", "Fix it."] },
++	{ run_query: fake(`{"marks":[{"i":0,"mark":"ok","purpose":"an observation"},{"i":1,"mark":"unclear","purpose":"a request","question":{"ask":"Fix what?","options":["the bug just discussed","the whole file"]}}]}`) }
++);
++console.log("1. good JSON:", JSON.stringify(good));
++
++// 2. The same shape wrapped in a ```json fence, as models often do.
++const fenced = await hitl(
++	{ op: "rename", title: "Untitled card" },
++	{ run_query: fake("```json\n" + `{"names":["Sign-up flow","Onboarding step","New user path","Welcome screen","First-run setup"]}` + "\n```") }
++);
++console.log("2. fenced JSON:", JSON.stringify(fenced));
++
++// 3. Garbage — not JSON at all.
++const garbage = await hitl(
++	{ op: "marks", sentences: ["hello"] },
++	{ run_query: fake("sorry, I can't do that") }
++);
++console.log("3. garbage reply:", JSON.stringify(garbage));
++
++// 4. Unknown op.
++const unknown = await hitl({ op: "translate", text: "hi" }, { run_query: fake("{}") });
++console.log("4. unknown op:", JSON.stringify(unknown));
++
++// 5, 6. One real call of each op, no fake run_query — an actual model call.
++console.log("\n--- real calls ---\n");
++
++const real_marks = await hitl({
++	op: "marks",
++	sentences: [
++		"So I was thinking we should build the playground next.",
++		"Maybe do it, or maybe not, I'm not sure which one is more important.",
++	],
++});
++console.log("5. real marks:", JSON.stringify(real_marks, null, 2));
++
++const real_rename = await hitl({ op: "rename", title: "Untitled card", context: "a task card about renaming chat titles" });
++console.log("6. real rename:", JSON.stringify(real_rename, null, 2));
+diff --git a/Servex/readme.md b/Servex/readme.md
+index 208c0262..d571a846 100644
+--- a/Servex/readme.md
++++ b/Servex/readme.md
+@@ -43,6 +43,12 @@ wire; `Servex.Agents`' `watch()` is what feeds it. `POST /api/agents/<id>/messag
+ says something to one running agent (queued behind its current turn) — the AI 2 Live card's
+ inline chat uses it; an unknown id is a 404, a stopped one a 409.
+ 
++**`POST /api/tidy`** (`agents/tidy.js`) cleans one chunk of dictated text with a single
++no-tools Sonnet call. **`POST /api/hitl`** (`agents/hitl.js`) is the human-in-the-loop chat's
++own two small model calls, `marks` (per-sentence purpose + a green-check/yellow-question flag)
++and `rename` (five title alternatives) — named ops only, and a `system` or `model` in the body
++is refused rather than run.
++
+ **Reverse proxy** — `ReverseProxy.js`. Reads the `Host` header, strips
+ `.localhost`, forwards to that project's port, HTTP and WebSocket alike. When
+ the port refuses, it *starts the project* and serves a page that polls itself
+diff --git a/public/framework/ux/Rename/Rename.css b/public/framework/ux/Rename/Rename.css
+new file mode 100644
+index 00000000..fac57370
+--- /dev/null
++++ b/public/framework/ux/Rename/Rename.css
+@@ -0,0 +1,33 @@
++/* A selectable title, its Rename action, and the dropdown it turns into. Record:
++ * readme.md. */
++@layer theme {
++
++	.ux-rename-row { padding-block: 0.25em; }
++
++	.ux-rename-title {
++		margin: 0;
++		cursor: pointer;
++		border: 1px dashed var(--line);
++		border-radius: var(--radius);
++		padding: 0.1em 0.4em;
++	}
++	.ux-rename-title:hover { border-color: var(--prim); }
++	.ux-rename-title:focus-visible { outline: 2px solid var(--prim); outline-offset: 2px; }
++
++	.ux-rename-selected {
++		border-color: var(--prim);
++		background: var(--wash);
++	}
++
++	.ux-rename-typed { max-inline-size: 12em; }
++
++	.ux-rename-fixtures { font-size: 0.85em; }
++
++	.ux-rename-log {
++		background: var(--wash);
++		border-radius: var(--radius);
++		padding: var(--pad-card, 1em);
++		white-space: pre-wrap;
++		font-size: 0.85em;
++	}
++}
+diff --git a/public/framework/ux/Rename/Rename.js b/public/framework/ux/Rename/Rename.js
+new file mode 100644
+index 00000000..0daeef69
+--- /dev/null
++++ b/public/framework/ux/Rename/Rename.js
+@@ -0,0 +1,186 @@
++import View, { div, span, h3, button, input, select, option, pre } from "/framework/core/View/View.js";
++import { servex_url } from "/framework/dev/servex_url.js";
++import { fixture_names } from "./fixtures.js";
++
++View.stylesheet(import.meta, "Rename.css");
++
++/** Where Servex answers `/api/hitl` — same helper every other caller already uses. */
++const HITL_URL = servex_url("/api/hitl");
++
++/**
++ * `title` in, `{ok, names, source}` out — never throws. `names` is 5 suggested titles.
++ * A network failure, or Servex answering `ok:false`, falls back to `fixtures.js`
++ * (`source: "fixtures"` says so) — the production site is static, so that fallback is
++ * what it actually shows.
++ *
++ *     import { rename_options } from "/framework/ux/Rename/Rename.js";
++ *     const out = await rename_options("Q3 planning");
++ *     // -> {ok: true, names: [5 strings], source: "assistant" | "fixtures"}
++ */
++export async function rename_options(title, context){
++	try {
++		const r = await fetch(HITL_URL, {
++			method: "POST", headers: { "Content-Type": "application/json" },
++			body: JSON.stringify({ op: "rename", title, context }),
++		});
++		if (r.ok){
++			const out = await r.json();
++			if (out?.ok && Array.isArray(out.names)) return { ok: true, names: out.names, source: "assistant" };
++		}
++	} catch { /* Servex isn't up yet — fixtures below */ }
++
++	return { ok: true, names: fixture_names(title), source: "fixtures" };
++}
++
++/**
++ * class Rename extends View — one card title. A tap SELECTS it (a visible border);
++ * once selected, pressing "Rename" — or typing "rename this" into the small field next
++ * to it — asks `rename_options()` and turns the title into a dropdown of the 5 answers
++ * plus "keep current". Picking one appends `{rename:{id, name, at}}` to an IN-MEMORY
++ * log (`this.log`, a plain array — several `Rename`s can share one to show a combined
++ * history); the latest line for this `id` always wins, and the title shows it.
++ *
++ *     new Rename({ id: "card-1", title: "Q3 planning", log: [] })
++ *
++ * The owner's own words: "I could click on a title and say, hey, can we rename this?
++ * And then it suggests… maybe it turns that title into a dropdown… I guess I just need
++ * like the basic function working for now." This is that basic function.
++ */
++export default class Rename extends View {
++
++	render(){
++		this.log ??= [];
++		this.selected = false;
++		this.editing = false;
++		this.draw();
++	}
++
++	/* The latest {rename:{id,...}} line for THIS card wins; nothing yet shows the
++	 * title it was given. */
++	current(){
++		const line = this.log.filter(l => l.rename?.id === this.id).pop();
++		return line ? line.rename.name : this.title;
++	}
++
++	draw(){
++		return this.empty(() => (this.editing ? this.dropdown() : this.head()));
++	}
++
++	head(){
++		div.c("ux-rename-row flex gap-35 v-center wrap", () => {
++			h3.c("ux-rename-title").attr("tabindex", "0").attr("role", "button")
++				.attr("aria-pressed", String(this.selected))
++				.text(this.current())
++				.click(() => this.select())
++				.on("keydown", e => { if (e.key === "Enter" || e.key === " "){ e.preventDefault(); this.select(); } })
++				.ac(this.selected ? "ux-rename-selected" : "");
++
++			if (this.selected){
++				div.c("ux-rename-actions flex gap-35 v-center", () => {
++					button.c("ux-rename-btn").attr("type", "button").text("Rename")
++						.click(() => this.start());
++					input.c("ux-rename-typed").attr("placeholder", "or type “rename this”…").attr("aria-label", "or type rename this")
++						.on("keydown", e => { if (e.key === "Enter" && /rename this/i.test(e.target.value)) this.start(); });
++				});
++			}
++		});
++	}
++
++	// Selecting THIS card deselects any sibling sharing the same `group` array (the
++	// demo's own three cards) — "first it kind of selects that card" reads as one
++	// selection at a time, and a shared demo let two cards look selected at once
++	// (review.md #4) before this.
++	select(){
++		this.selected = !this.selected;
++
++		if (this.selected) this.group?.forEach(r => {
++			if (r !== this && r.selected){ r.selected = false; r.editing = false; r.draw(); }
++		});
++
++		this.draw();
++	}
++
++	async start(){
++		this.editing = true;
++		this.loading = true;
++		this.draw();
++
++		const out = await rename_options(this.current());
++
++		this.names = out.names;
++		this.source = out.source;
++		this.loading = false;
++		this.draw();
++	}
++
++	dropdown(){
++		div.c("ux-rename-row flex gap-35 v-center wrap", () => {
++			if (this.loading){ span.c("muted", "asking…"); return; }
++
++			// A disabled placeholder is the one PRE-selected option — "Keep current"
++			// used to start selected instead, so picking it (leaving it as your real
++			// answer) never fired `change` at all (review.md #4). Now every real
++			// choice, "keep current" included, is a change away from the placeholder.
++			this.$select = select.c("ux-rename-select", () => {
++				option("Pick a name…").attr("value", "").attr("disabled", "").attr("selected", "");
++				option("Keep current — " + this.current()).attr("value", "__keep");
++				(this.names ?? []).forEach(name => option(name).attr("value", name));
++			}).attr("aria-label", "Rename " + this.current() + " to")
++				.on("change", e => this.choose(e.target.value));
++
++			button.c("ux-rename-cancel").attr("type", "button").text("Cancel")
++				.click(() => { this.editing = false; this.draw(); });
++
++			if (this.source === "fixtures") span.c("muted ux-rename-fixtures", "fixtures: Servex /api/hitl not reachable");
++		});
++	}
++
++	choose(name){
++		this.editing = false;
++		this.selected = false;
++
++		// "" is the disabled placeholder (never actually reachable via `change`) and
++		// "__keep" is an explicit, real choice to leave the title alone — neither
++		// writes a log line.
++		if (name && name !== "__keep"){
++			const line = { rename: { id: this.id, name, at: new Date().toISOString() } };
++			this.log.push(line);
++			this.on_rename?.(line);
++		}
++
++		this.draw();
++	}
++}
++
++Rename.prototype.classes = "ux-rename";
++
++/* ---- the demo: three cards, one shared in-memory log shown beneath ------------- */
++
++/* Three of the owner's own topics from this very brief — a title that names a real
++ * thing, not a placeholder like "Card A". */
++const CARDS = [
++	{ id: "card-1", title: "Clarification UI for chat" },
++	{ id: "card-2", title: "Rename cards by dropdown" },
++	{ id: "card-3", title: "Objective marks for each statement" },
++];
++
++Rename.Demo = class RenameDemo extends View {
++
++	render(){
++		this.ac("ux-rename-demo flex v gap");
++		this.log = [];
++
++		const group = [];
++		CARDS.forEach(c => group.push(new Rename({ ...c, log: this.log, group, on_rename: () => this.refresh_log() })));
++
++		div.c("h4 muted", "Log (latest line for an id wins)");
++		this.$log = pre.c("ux-rename-log muted");
++		this.refresh_log();
++	}
++
++	refresh_log(){
++		this.$log.text(this.log.length ? this.log.map(l => JSON.stringify(l)).join("\n") : "(no renames yet)");
++	}
++};
++
++export { Rename };
+diff --git a/public/framework/ux/Rename/doc/decisions.md b/public/framework/ux/Rename/doc/decisions.md
+new file mode 100644
+index 00000000..ead14247
+--- /dev/null
++++ b/public/framework/ux/Rename/doc/decisions.md
+@@ -0,0 +1,45 @@
++# Rename — decisions
++
++## A plain array, not `ux/Content`
++
++`ux/Content` (`Question`, `Decision`) is built for a card that remembers ONE thing
++against a real log file — reading it once with `history()`, writing through
++`ContentModule.write()`. A rename here needed neither: the brief asks for "the basic
++function working for now," several cards sharing one visible log in the demo, and — like
++`Understand` next door — never a real write. Reusing `ContentModule` would have meant
++overriding both its read and its write to stay in memory anyway, for no benefit over a
++plain array with a `.filter(...).pop()` for "latest wins." Kept it plain.
++
++**Why `Understand` (built the same week, for the same brief) made the opposite call:**
++its clarification card already needed the exact shape `ux/Content/Decision` draws —
++an ask, two options side by side, nothing pre-chosen, a "your choice" mark once one is
++picked. Reusing it there meant overriding two methods; building the same thing by hand
++would have been more code, not less. A rename's dropdown is a different shape — one
++value picked from a flat list, no options to lay out — so there was nothing of
++`Decision` worth reusing here. Same reasoning both times ("does the existing thing fit
++without a rewrite?"), different answer, because the two widgets ask different questions.
++
++## Select, then Rename — two taps, not one
++
++The owner's words named two separate moments: "first it kind of selects that card"
++(from the neighboring ask, same shape here) and only then "can we rename this?" A
++single tap that jumped straight to the dropdown would make a stray tap on a phone start
++an edit nobody asked for; `selected` and `editing` are kept as two different booleans
++for exactly that reason, the same way `Understand`'s spotlight is separate from its
++clarification card.
++
++## "Keep current" is a real option in the list, not a Cancel button in disguise
++
++The dropdown's second entry is "Keep current — <title>", not a separate button, so
++choosing to leave the title alone closes the dropdown the same way any other pick
++does (nothing is written to the log for it — `choose("__keep")` is a no-op). `Cancel`,
++beside the dropdown, is the one true escape hatch: it drops back to the plain title
++with no `rename_options()` call ever made, for someone who opened the dropdown by
++mistake.
++
++**The FIRST entry is a disabled placeholder ("Pick a name…"), not "Keep current."** A
++review caught the bug this fixed: `<select>` starts on its first option, so with "Keep
++current" in that slot, tapping it to confirm your real answer never fired a `change`
++event at all — nothing happened. A disabled placeholder holds that starting slot
++instead, so EVERY real pick, "keep current" included, is a change away from it and
++always fires.
+diff --git a/public/framework/ux/Rename/doc/files.jsonl b/public/framework/ux/Rename/doc/files.jsonl
+new file mode 100644
+index 00000000..acfb368b
+--- /dev/null
++++ b/public/framework/ux/Rename/doc/files.jsonl
+@@ -0,0 +1 @@
++{"file":"decisions.md"}
+diff --git a/public/framework/ux/Rename/files.jsonl b/public/framework/ux/Rename/files.jsonl
+new file mode 100644
+index 00000000..68cb79d0
+--- /dev/null
++++ b/public/framework/ux/Rename/files.jsonl
+@@ -0,0 +1,6 @@
++{"file":"fixtures.js"}
++{"file":"Rename.js"}
++{"file":"Rename.css"}
++{"file":"page.js"}
++{"file":"readme.md"}
++{"file":"doc/"}
+diff --git a/public/framework/ux/Rename/fixtures.js b/public/framework/ux/Rename/fixtures.js
+new file mode 100644
+index 00000000..ca3dfac3
+--- /dev/null
++++ b/public/framework/ux/Rename/fixtures.js
+@@ -0,0 +1,16 @@
++/* The rules pass `rename_options()` falls back to when Servex's `/api/hitl` isn't up
++ * or answers `ok:false` — plain, honest variations on the current title, never
++ * pretending to be a clever rename assistant. The production site is static, so this
++ * is what a real visitor actually sees. */
++export function fixture_names(title){
++	const base = title.trim();
++	const words = base.split(/\s+/).filter(Boolean);
++
++	// Five names, each visibly DIFFERENT from the title as typed — "keep current"
++	// (drawn separately, above this list) is already the "no change" option, so
++	// nothing here should read as a no-op pick.
++	const swapped = words.length > 1 ? [words.at(-1), ...words.slice(0, -1)].join(" ") : base + " (alt)";
++	const shorter = words.length > 1 ? words.slice(0, -1).join(" ") : base.slice(0, Math.ceil(base.length / 2));
++
++	return [swapped, base + " — v2", "New: " + base, shorter, base.length > 24 ? base.slice(0, 24).trim() + "…" : base + " (short)"];
++}
+diff --git a/public/framework/ux/Rename/page.js b/public/framework/ux/Rename/page.js
+new file mode 100644
+index 00000000..59187b1a
+--- /dev/null
++++ b/public/framework/ux/Rename/page.js
+@@ -0,0 +1,31 @@
++import { Doc, md } from "/app.js";
++import Rename from "./Rename.js";
++
++export default new Doc({
++	meta: import.meta,
++	title: "Rename",
++	description: "Tap a title to select it, then Rename turns it into a dropdown of 5 suggested names plus keep current.",
++	icon: "drive_file_rename_outline",
++
++	files: "Rename.js fixtures.js Rename.css page.js readme.md",
++	notes: "decisions",
++
++	content(){
++
++		md("**The owner's own ask:** \"I could click on a title and say, hey, can we rename this? And then it suggests… maybe it turns that title into a dropdown and then it has a whole bunch of alternatives that I can choose from… I guess I just need like the basic function working for now.\" Tap a title below to try it.");
++
++		new Rename.Demo();
++
++		md("## How it works");
++
++		md("**Tap a title** to select it (it gets a visible border). **Press Rename**, or type \"rename this\" into the small field that appears, and the title becomes a dropdown of 5 suggested names plus \"keep current\". **Pick one** and the title updates — the log beneath shows every rename, in order, so you can see the latest one winning.");
++
++		md("## Use");
++
++		md("```js\nimport Rename, { rename_options } from \"/framework/ux/Rename/Rename.js\";\n\nconst log = [];\nnew Rename({ id: \"card-1\", title: \"Q3 planning\", log });\n// or ask directly:\nconst out = await rename_options(\"Q3 planning\");\n// -> {ok: true, names: [5 strings], source: \"assistant\" | \"fixtures\"}\n```");
++
++		md("`rename_options()` asks Servex's `/api/hitl` (`{op:\"rename\", title, context}`); when that isn't reachable, or answers `ok:false`, it falls back to a plain rules pass in `fixtures.js`.");
++
++		md.details(import.meta, "readme.md", "Readme");
++	},
++});
+diff --git a/public/framework/ux/Rename/readme.md b/public/framework/ux/Rename/readme.md
+new file mode 100644
+index 00000000..5e5264dc
+--- /dev/null
++++ b/public/framework/ux/Rename/readme.md
+@@ -0,0 +1,44 @@
++# Rename — tap a title, Rename it, pick from a dropdown of 5
++
++The owner's own ask: click a card's title, ask to rename it, and get a dropdown of
++suggested names to pick from instead of typing a new one from scratch. See it working,
++live: [the demo](/framework/ux/Rename/).
++
++Built alongside [`ux/Understand`](/framework/ux/Understand/) for the same brief — a
++chat where the assistant needs to DO something to a card, not just answer in text.
++Understand marks what it read; this is the other half, for when the ask is "rename
++this thing" instead of "clarify this sentence." Both ask the same Servex endpoint,
++`/api/hitl`, with a different `op`.
++
++## Use
++```js
++import Rename, { rename_options } from "/framework/ux/Rename/Rename.js";
++
++const log = [];
++new Rename({ id: "card-1", title: "Q3 planning", log });
++// several Rename instances can share one `log` array to show a combined history
++
++const out = await rename_options("Q3 planning");
++// -> {ok: true, names: [5 strings], source: "assistant" | "fixtures"}
++```
++
++## Watch out
++- **Two ways in, same result:** the "Rename" button, or typing "rename this" into the
++  small field beside a selected title — both call the same `start()`.
++- **`rename_options()` asks Servex's `/api/hitl`, live only after a later restart** (a
++  sibling task is building the route). Until then, and any time the call fails, it
++  falls back to `fixtures.js` — plain variations on the current title — and says so in
++  a small status line next to the dropdown.
++- **The log is a plain array, not a real file.** A demo never writes a real log
++  (requirements.md); a real caller would pass its own log — a card's own line array,
++  or whatever it already writes decisions to — and read the latest `rename.id` line the
++  same way `current()` does here.
++- **The latest line for an `id` wins** — exactly the same rule `ux/Content/Decision`
++  uses for its `chose` lines, so this stays consistent with how every other "pick one,
++  change your mind later" widget on the site behaves.
++
++## More
++- [Live demo](/framework/ux/Rename/) — three cards, one shared log shown beneath
++- [`doc/decisions.md`](/framework/ux/Rename/doc/decisions/) — why a plain array, not `ux/Content`
++- [`ux/Understand`](/framework/ux/Understand/) — the other HITL widget from this same brief, ✓/? sentence marks with a clarification card; shares `/api/hitl` and the fixtures fallback pattern
++- Files: `Rename.js` (the class, `rename_options()`, the demo), `fixtures.js` (the offline rules pass), `Rename.css`
+diff --git a/public/framework/ux/Understand/Understand.css b/public/framework/ux/Understand/Understand.css
+new file mode 100644
+index 00000000..5f05bf9c
+--- /dev/null
++++ b/public/framework/ux/Understand/Understand.css
+@@ -0,0 +1,27 @@
++/* The ✓/? marks after each sentence, and the clarification card's flash when its ?
++ * is tapped. Record: readme.md. */
++@layer theme {
++
++	.ux-understand-row { padding-block: 0.15em; }
++
++	/* Inline, glued to the sentence by a non-breaking space in the markup (not a
++	 * margin here) — the mark wraps exactly like the word before it, never alone. */
++	.ux-understand-mark {
++		font-weight: 700;
++		cursor: default;
++	}
++
++	.ux-understand-ok { color: var(--ok); }
++
++	.ux-understand-unclear { color: var(--warn); cursor: pointer; }
++	.ux-understand-unclear:focus-visible { outline: 2px solid var(--warn); outline-offset: 2px; border-radius: 0.2em; }
++
++	.ux-understand-clarify { margin-block: 0.4em 1em; }
++
++	/* The owner's "first it kind of selects that card" — a brief, visible flash when
++	 * the ? that points at this card is tapped, so the connection reads at a glance. */
++	.ux-understand-flash { outline: 2px solid var(--warn); border-radius: var(--radius); transition: outline-color 0.3s ease; }
++
++	.ux-understand-status { font-size: 0.85em; }
++	.ux-understand-box { inline-size: 100%; max-inline-size: 40em; }
++}
+diff --git a/public/framework/ux/Understand/Understand.js b/public/framework/ux/Understand/Understand.js
+new file mode 100644
+index 00000000..8e26fa89
+--- /dev/null
++++ b/public/framework/ux/Understand/Understand.js
+@@ -0,0 +1,208 @@
++import View, { div, span, textarea, button } from "/framework/core/View/View.js";
++import Decision from "/framework/ux/Content/Decision/Decision.js";
++import { servex_url } from "/framework/dev/servex_url.js";
++import { fixture_marks } from "./fixtures.js";
++
++View.stylesheet(import.meta, "Understand.css");
++
++/** Where Servex answers `/api/hitl` — same helper every other caller already uses
++ *  (`dev/servex_url.js`), so this works on the phone too, not just localhost. */
++const HITL_URL = servex_url("/api/hitl");
++
++/**
++ * `sentences` in, `{ok, marks, source}` out — never throws. `marks` is
++ * `[{i, mark: "ok"|"unclear", purpose, question?: {ask, options: [a, b]}}]`, one entry
++ * per sentence. A network failure, or Servex answering `ok:false`, falls back to the
++ * FIXTURES rules pass (`source: "fixtures"` says so) — the production site is static,
++ * so that fallback is what it actually shows.
++ *
++ *     import { marks } from "/framework/ux/Understand/Understand.js";
++ *     const out = await marks(["I want a green check mark.", "Maybe a yellow one too."]);
++ *     // -> {ok: true, marks: [...], source: "assistant" | "fixtures"}
++ *
++ * Exported on its own (not just used inside the class below) so `ChatPanel` — the real
++ * chat this demo is a rehearsal for — can call it directly and hand the result straight
++ * to `new Understand({sentences, marks: out.marks})`.
++ */
++export async function marks(sentences, context){
++	try {
++		const r = await fetch(HITL_URL, {
++			method: "POST", headers: { "Content-Type": "application/json" },
++			body: JSON.stringify({ op: "marks", sentences, context }),
++		});
++		if (r.ok){
++			const out = await r.json();
++			if (out?.ok && Array.isArray(out.marks)) return { ok: true, marks: out.marks, source: "assistant" };
++		}
++	} catch { /* Servex isn't up yet — fixtures below, same as Revise.run()'s own fallback */ }
++
++	return { ok: true, marks: fixture_marks(sentences), source: "fixtures" };
++}
++
++/* The clarification card, in-memory only — a demo NEVER writes a real log
++ * (requirements.md). `Decision` (ux/Content/Decision) already draws "two options,
++ * nothing pre-chosen" exactly right; the only two methods a real log needs are its
++ * read (`history()`) and its write (`write()`), so overriding just those two keeps
++ * every other line of Decision — the options, the "your choice" mark, the
++ * scroll-guard against an accidental tap mid-scroll — completely unchanged.
++ * `on_chosen(say)` is the one extra seam Understand needs: the ? -> ✓ flip below. */
++class ClarifyCard extends Decision {
++	async history(){ return this.mem ?? []; }
++	async write(line){
++		(this.mem ??= []).push(line);
++		this.on_chosen?.(line.chose?.option);
++		return true;
++	}
++
++	// Decision's head() would print "Decided by owner" once an option is picked —
++	// true wording for a real record, false here (review.md #2: any visitor can
++	// click this demo, not just the owner). This card never sets rank/confidence
++	// either, so the head row never had anything real to show; skip it.
++	head(){}
++}
++
++/**
++ * class Understand extends View — sentences in, a small ✓/? mark after each one. `ok`
++ * draws a quiet green ✓ (`purpose` as its title tooltip); `unclear` draws a yellow ?,
++ * and right after that sentence a clarification card appears — "Did you mean A or B?"
++ * Tapping the ? scrolls its card into view and flashes it (the owner's own words:
++ * "first it kind of selects that card"). Choosing an option there writes ONE line to
++ * an IN-MEMORY log (`this.log`, a plain array the caller can also read) and turns
++ * that ? into a ✓.
++ *
++ *     import Understand, { marks } from "/framework/ux/Understand/Understand.js";
++ *     const out = await marks(sentences);
++ *     new Understand({ sentences, marks: out.marks, log: [] });
++ *
++ * This class only ever draws a `marks` array it is GIVEN — it never calls `marks()`
++ * itself — so a caller (this module's own demo below, or `ChatPanel` later) decides
++ * when to ask and can show a "marking…" state in between.
++ */
++export default class Understand extends View {
++
++	render(){
++		this.log ??= [];
++		this.draw();
++	}
++
++	draw(){
++		return this.empty(() => this.sentences.forEach((text, i) => this.row(text, i)));
++	}
++
++	row(text, i){
++		const m = this.marks.find(x => x.i === i) ?? { i, mark: "ok", purpose: "" };
++
++		div.c("ux-understand-row", () => {
++			// Plain inline flow, NOT flex — a flex row treats the sentence and its
++			// mark as two separate boxes and wraps the mark onto its own line the
++			// moment the sentence is long. A non-breaking space glues the mark to
++			// the sentence's last word instead, so it wraps like any other word
++			// would — small, right after the text, same line (the owner: "a green
++			// check mark after it").
++			div.c("ux-understand-sentence", () => {
++				span(text + " ");
++				this.badge(m, i);
++			});
++			if (m.mark === "unclear" && m.question) this.clarify(m, i);
++		});
++	}
++
++	badge(m, i){
++		if (m.mark === "ok"){
++			span.c("ux-understand-mark ux-understand-ok").attr("title", m.purpose || "Reads as clear.").text("✓");
++			return;
++		}
++
++		this.badges ??= {};
++		this.badges[i] = span.c("ux-understand-mark ux-understand-unclear")
++			.attr("tabindex", "0").attr("role", "button")
++			.attr("title", m.purpose || "This sentence might mean more than one thing.")
++			.text("?")
++			.click(() => this.spotlight(i))
++			.on("keydown", e => { if (e.key === "Enter" || e.key === " "){ e.preventDefault(); this.spotlight(i); } });
++	}
++
++	/* The owner's own words: "first it kind of selects that card" — scroll it into
++	 * view and flash its border for a moment, so a tap on the ? plainly points at
++	 * the right card instead of leaving the reader to hunt for it. */
++	spotlight(i){
++		const $card = this.cards?.[i];
++		if (!$card) return;
++		$card.el.scrollIntoView({ behavior: "smooth", block: "center" });
++		$card.ac("ux-understand-flash");
++		setTimeout(() => $card.rc("ux-understand-flash"), 900);
++	}
++
++	clarify(m, i){
++		this.cards ??= {};
++		this.cards[i] = div.c("ux-understand-clarify", () => {
++			new ClarifyCard({
++				id: `understand-${i}`,
++				ask: m.question.ask,
++				options: m.question.options.map(say => ({ say })),
++				on_chosen: say => this.resolve(i, say),
++			});
++		});
++	}
++
++	resolve(i, say){
++		this.log.push({ understood: { i, chosen: say, at: new Date().toISOString() } });
++		this.badges?.[i]?.rc("ux-understand-unclear").ac("ux-understand-ok").text("✓")
++			.attr("title", "Clarified: " + say);
++	}
++}
++
++Understand.prototype.classes = "ux-understand flex v gap";
++
++/* ---- the demo: a canned paragraph marked on load, plus "try your own" ---------- */
++
++/* Five real sentences from the owner's own words (requirements.md) — one of them
++ * ("maybe it's like a yellow question mark…") genuinely hedges, so the fixtures rule
++ * (HEDGES, above) catches exactly one without any thumb on the scale. */
++const CANNED = [
++	"I want to figure out the objective of each statement.",
++	"Let's put a green check mark after it, just so we see that visual feedback.",
++	"If a statement might have some ambiguity, maybe it's like a yellow question mark that goes after it.",
++	"The smart assistant could add clarification UI into the chat where it needs clarity.",
++	"Let's see if we can get a demo of that working.",
++];
++
++/* Split on sentence-ending punctuation or a blank line — good enough for a textarea
++ * of plain prose; a real chat message already arrives one sentence per line. */
++function split_sentences(text){
++	return text.split(/(?<=[.?!])\s+|\n+/).map(s => s.trim()).filter(Boolean);
++}
++
++Understand.Demo = class UnderstandDemo extends View {
++
++	render(){
++		this.ac("ux-understand-demo flex v gap");
++
++		div.c("h4 muted", "A canned paragraph, marked on load");
++		this.$canned_status = div.c("ux-understand-status muted", "marking…");
++		this.$canned = div.c("ux-understand-live");
++		this.run(CANNED, this.$canned, this.$canned_status);
++
++		div.c("h4 muted", "Try your own");
++		this.$box = textarea.c("ux-understand-box").attr("rows", 4)
++			.attr("placeholder", "Paste a paragraph — plain prose is fine, one or more sentences.");
++		button.c("prim").attr("type", "button").text("Mark it")
++			.click(() => this.run_own());
++		this.$own_status = div.c("ux-understand-status muted");
++		this.$own = div.c("ux-understand-live");
++	}
++
++	async run(sentences, $target, $status){
++		const out = await marks(sentences);
++		$status.text(out.source === "fixtures" ? "fixtures: Servex /api/hitl not reachable" : "marked live by the fast assistant");
++		$target.empty(() => new Understand({ sentences, marks: out.marks }));
++	}
++
++	run_own(){
++		const sentences = split_sentences(this.$box.el.value);
++		if (!sentences.length) return;
++		this.run(sentences, this.$own, this.$own_status);
++	}
++};
++
++export { Understand };
+diff --git a/public/framework/ux/Understand/doc/decisions.md b/public/framework/ux/Understand/doc/decisions.md
+new file mode 100644
+index 00000000..f5292810
+--- /dev/null
++++ b/public/framework/ux/Understand/doc/decisions.md
+@@ -0,0 +1,29 @@
++# Understand — decisions
++
++## Decision over Question
++
++The brief asked for whichever of `ux/Content/Decision` or `ux/Content/Question` could
++show "two options with nothing pre-chosen." `Question` is a free-text box with one
++answer — there is no second option to weigh, so it can't ask "did you mean A or B?" at
++all. `Decision` already draws exactly that shape: an ask, a row of options side by
++side, and nothing marked "chosen" until a `chose` line exists or a record sets
++`recommended`/`status: "decided"` — neither of which this demo ever sets. So `Decision`
++was the only one of the two that fit, not a close call.
++
++## Keeping the log in memory without forking Decision
++
++`Decision` (via `ContentModule`) reads its history with `history()` and writes with
++`write()` — those are the ONLY two methods that ever touch a real log (a file, or the
++dev socket). A three-line subclass (`ClarifyCard` in `Understand.js`) overrides just
++those two to use a plain array instead, so every other line of `Decision` — the
++"chosen" / "your choice" marks, the scroll-guard that ignores a tap mid-scroll on a
++phone — keeps working unchanged, and there is no real log for a demo to accidentally
++write into.
++
++## Why the ? scrolls and flashes instead of jumping straight to editable
++
++The owner's own words were "first it kind of selects that card" — naming a highlight
++step, not an edit. `spotlight()` in `Understand.js` scrolls the card into view and
++outlines it for under a second; it does not open, expand, or change anything, because
++selecting and clarifying are two different taps and conflating them would make a
++single accidental tap on a phone both pick a card AND start answering it.
+diff --git a/public/framework/ux/Understand/doc/files.jsonl b/public/framework/ux/Understand/doc/files.jsonl
+new file mode 100644
+index 00000000..acfb368b
+--- /dev/null
++++ b/public/framework/ux/Understand/doc/files.jsonl
+@@ -0,0 +1 @@
++{"file":"decisions.md"}
+diff --git a/public/framework/ux/Understand/files.jsonl b/public/framework/ux/Understand/files.jsonl
+new file mode 100644
+index 00000000..16b755d8
+--- /dev/null
++++ b/public/framework/ux/Understand/files.jsonl
+@@ -0,0 +1,6 @@
++{"file":"fixtures.js"}
++{"file":"Understand.js"}
++{"file":"Understand.css"}
++{"file":"page.js"}
++{"file":"readme.md"}
++{"file":"doc/"}
+diff --git a/public/framework/ux/Understand/fixtures.js b/public/framework/ux/Understand/fixtures.js
+new file mode 100644
+index 00000000..fdc3563a
+--- /dev/null
++++ b/public/framework/ux/Understand/fixtures.js
+@@ -0,0 +1,29 @@
++/* The rules pass `marks()` falls back to when Servex's `/api/hitl` isn't up (it goes
++ * live only after a later restart — see readme.md) or answers `ok:false`. The
++ * production site is static, so THIS is what a real visitor sees, not a placeholder:
++ * a plain, honest rule — a sentence carrying a hedge word ("maybe", "some", "I guess"…)
++ * is marked unclear; anything else reads as one clear statement. Never as sharp as the
++ * real assistant, but it never crashes and never claims to be live when it isn't. */
++const HEDGES = /\b(maybe|kind of|sort of|some|i guess|not sure|possibly|ambiguity|could be|might|or (is it|maybe))\b/i;
++
++export function fixture_marks(sentences){
++	return sentences.map((text, i) => {
++		const s = text.trim();
++
++		if (HEDGES.test(s)){
++			return {
++				i, mark: "unclear",
++				purpose: "A hedge word (\"maybe\", \"some\", \"I guess\"…) leaves more than one reading open.",
++				question: {
++					// No re-quote of the sentence — the card already sits right under it
++					// (review.md #1: repeating the whole sentence, bold, was four more
++					// lines under the same text on a phone).
++					ask: "Take that literally, or as a rough idea to refine together?",
++					options: ["Literally, as written", "A rough idea — help me refine it"],
++				},
++			};
++		}
++
++		return { i, mark: "ok", purpose: "Reads as one clear, unambiguous statement." };
++	});
++}
+diff --git a/public/framework/ux/Understand/page.js b/public/framework/ux/Understand/page.js
+new file mode 100644
+index 00000000..5b8bed2f
+--- /dev/null
++++ b/public/framework/ux/Understand/page.js
+@@ -0,0 +1,31 @@
++import { Doc, md } from "/app.js";
++import Understand from "./Understand.js";
++
++export default new Doc({
++	meta: import.meta,
++	title: "Understand",
++	description: "A ✓ or ? after every sentence the assistant read — green means clear, yellow opens a clarifying question right there in the flow.",
++	icon: "fact_check",
++
++	files: "Understand.js fixtures.js Understand.css page.js readme.md",
++	notes: "decisions",
++
++	content(){
++
++		md("**The owner's own ask:** \"trying to figure out the objective of each statement… put like a green check mark after it just so that we see that visual feedback… if there's a statement that might have some ambiguity, maybe it's like a yellow question mark that goes after it.\" This page is that, working — a canned paragraph below is marked the moment it loads.");
++
++		new Understand.Demo();
++
++		md("## What the yellow ? does");
++
++		md("Tap it. The clarification card scrolls into view and flashes — \"first it kind of selects that card,\" the owner's own words — then pick an option. The ? turns into a ✓ the instant you choose, and the choice is recorded (in memory only; a demo never writes a real log).");
++
++		md("## Use");
++
++		md("```js\nimport Understand, { marks } from \"/framework/ux/Understand/Understand.js\";\n\nconst out = await marks([\"Sentence one.\", \"Maybe sentence two?\"]);\n// -> {ok: true, marks: [...], source: \"assistant\" | \"fixtures\"}\n\nnew Understand({ sentences, marks: out.marks, log: [] });\n```");
++
++		md("`marks()` asks Servex's `/api/hitl` (`{op:\"marks\", sentences, context}`); when that isn't reachable, or answers `ok:false`, it falls back to a plain rules pass in `fixtures.js` — the production site is static, so that fallback is what a real visitor actually sees. `source` in the result says which one ran.");
++
++		md.details(import.meta, "readme.md", "Readme");
++	},
++});
+diff --git a/public/framework/ux/Understand/readme.md b/public/framework/ux/Understand/readme.md
+new file mode 100644
+index 00000000..2b2dff74
+--- /dev/null
++++ b/public/framework/ux/Understand/readme.md
+@@ -0,0 +1,40 @@
++# Understand — a ✓ or ? after every sentence, a clarifying question right in the flow
++
++The owner's own ask: figure out what each sentence is trying to say, mark it with a
++green ✓ when it's clear, and a yellow ? when it isn't — then let the assistant actually
++ask the clarifying question, in the chat, instead of guessing. See it happen, live:
++[the demo](/framework/ux/Understand/).
++
++## Use
++```js
++import Understand, { marks } from "/framework/ux/Understand/Understand.js";
++
++const out = await marks(["Sentence one.", "Maybe sentence two?"]);
++// -> {ok: true, marks: [...], source: "assistant" | "fixtures"}
++
++new Understand({ sentences, marks: out.marks, log: [] });
++```
++`marks()` is the client call that BUILDS the `marks` array — `Understand` only ever
++draws one it's given, so a real caller (the chat panel this rehearses) can call
++`marks()` itself and hand the result straight over.
++
++## Watch out
++- **`marks()` asks Servex's `/api/hitl`, live only after a later restart** (a sibling
++  task is building the route). Until then, and any time the call fails, it falls back
++  to `fixtures.js` — a plain "does this sentence hedge?" rule — and says so in a small
++  status line. The production site is static, so that fallback is what it really shows.
++- **The clarification card is `ux/Content/Decision`, unmodified** except for where its
++  log lives: a demo never writes a real log, so a small subclass in `Understand.js`
++  (`ClarifyCard`) keeps that log in memory instead of a file or the dev socket. Every
++  other behavior — the "your choice" mark, the guard against a stray tap mid-scroll —
++  comes along for free.
++- **A card with no options pre-chosen** is exactly what `Decision` already draws when
++  nothing sets `chosen` or `recommended` — no second component was needed.
++
++## More
++- [Live demo](/framework/ux/Understand/) — a canned paragraph marked on load, plus
++  "try your own"
++- [`doc/decisions.md`](/framework/ux/Understand/doc/decisions/) — why `Decision` over `Question`
++- [`ux/Content/Decision`](/framework/ux/Content/Decision/) — the clarification card itself
++- [`ux/Rename`](/framework/ux/Rename/) — the other HITL widget from this same brief, tap-to-rename by dropdown; shares Servex's `/api/hitl` (a different `op`) and the same fixtures fallback
++- Files: `Understand.js` (the class, `marks()`, the demo), `fixtures.js` (the offline rules pass), `Understand.css`
+diff --git a/public/framework/ux/page.js b/public/framework/ux/page.js
+index 57740a8f..f50a85a8 100644
+--- a/public/framework/ux/page.js
++++ b/public/framework/ux/page.js
+@@ -68,7 +68,7 @@ export default new Page({
+ 	description: "The behavior tier — ui/ hands you markup, ux/ hands you a class you can extend.",
+ 	icon: "layers",
+ 
+-	children: "Auth Wizard Tree Course Filter Menu Pagination Tags Dictate Revise Popover Content",
++	children: "Auth Wizard Tree Course Filter Menu Pagination Tags Dictate Revise Popover Content Understand Rename",
+ 
+ 	// The two long-form docs — `doc/system.md`, `doc/decisions.md` — are NOT declared
+ 	// children: a declared child is a CARD in the wall below, and a doc page is not a

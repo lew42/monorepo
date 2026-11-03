@@ -1,0 +1,13 @@
+@layer site {
+	/* The CSS hot-swap proof: the prove step edits `background` here while a
+	   headless tab watches for a `load` event. dev/Socket/Socket.js's existing
+	   restyle() bumps this file's own <link> href, so the colour changes with
+	   ZERO reloads — this file exists only to have a value worth watching. */
+	.rh-swatch {
+		display: inline-block;
+		inline-size: 3em; block-size: 3em;
+		border-radius: var(--radius);
+		background: var(--wash);
+		border: 1px solid var(--line);
+	}
+}

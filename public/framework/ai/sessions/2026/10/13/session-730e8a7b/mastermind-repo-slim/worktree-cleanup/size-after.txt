@@ -1,0 +1,6 @@
+﻿C:\Code\lew42\worktrees	   Bytes : 5224370073 5224370073         0         0         0         0
+C:\Code\lew42\monorepo\.claude\worktrees	   Bytes :         0         0         0         0         0         0
+C:\Code\lew42\wt-readme-audit	gone
+C:\Code\lew42\wt-refine-haiku-live	   Bytes : 812910716 812910716         0         0         0         0
+C:\Code\lew42\wt-task-folders	gone
+C:\Code\worktrees	   Bytes :       767       767         0         0         0         0

@@ -1,0 +1,17 @@
+jobs-proof 2026-10-24T04:14:28.199Z — Servex/agents/jobs-proof.mjs
+
+kind    return_ms  done_ms
+read           96      167
+grep            2       84
+watch           0     1035
+check           0       87
+decide          0     4785
+
+decide model: claude-sonnet-5, no tools, settingSources []
+decide question: In one sentence: what does wake_parent do, and when is it called?
+decide answer: wake_parent notifies a spawned agent's parent (including the Dispatcher's fake "dispatcher" parent) with a done/blocked signal, and it's called when a child agent finishes or gets stuck instead of the parent having to poll it.
+decide tokens: input 2 · output 81 · cache_read 0 · cache_write 12200
+decide cost: $0.053247 · wall 4745 ms · sdk 2588 ms
+
+not-live caller: done, 72 ms — read 9 file(s), 47434 bytes
+result: FAIL — read: returned in 96 ms

@@ -1,0 +1,158 @@
+diff --git a/.gitignore b/.gitignore
+index 0529db6f5..248196a14 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -142,6 +142,10 @@ test-layout-out/
+ Server/.push-vapid.json
+ # the day stream (YYYY/MM/DD/index.jsonl, Server/AIIndexStream.mjs) is derived from the logs and rebuildable, so it stays ignored like index.json
+ public/framework/ai/sessions/[0-9][0-9][0-9][0-9]/[0-9][0-9]/[0-9][0-9]/index.jsonl
++# the scope lists (month: its days, year: its months, sessions/index.jsonl: its years) are derived the same way (Server/SessionScopes.mjs)
++public/framework/ai/sessions/[0-9][0-9][0-9][0-9]/[0-9][0-9]/index.jsonl
++public/framework/ai/sessions/[0-9][0-9][0-9][0-9]/index.jsonl
++public/framework/ai/sessions/index.jsonl
+ # a session's card (moved here from ai/YYYY/MM/DD/session-<id8>/, which was ignored whole): live card state, not source
+ public/framework/ai/sessions/[0-9][0-9][0-9][0-9]/[0-9][0-9]/[0-9][0-9]/*/page.jsonl
+ public/framework/ai/sessions/[0-9][0-9][0-9][0-9]/[0-9][0-9]/[0-9][0-9]/*/trace.json
+diff --git a/Server/AIIndexStream.mjs b/Server/AIIndexStream.mjs
+index 493d0c5f6..a66fc5adc 100644
+--- a/Server/AIIndexStream.mjs
++++ b/Server/AIIndexStream.mjs
+@@ -18,10 +18,26 @@ export default class AIIndexStream {
+ 		if (!this.KINDS.includes(kind)) throw new Error(`AIIndexStream: unknown kind ${kind}`);
+ 		const file = this.file(sess, at), line = JSON.stringify({ [kind]: { ...row, at } });
+ 		fs.mkdirSync(path.dirname(file), { recursive: true });
++		const first = !fs.existsSync(file) || fs.statSync(file).size === 0;
+ 		fs.appendFileSync(file, line + "\n");
++		if (first) this.scopes(sess, Day.of(at));
+ 		return line;
+ 	}
+ 
++	/** The scope lists: month/index.jsonl lists its days, year/index.jsonl its months, sessions/index.jsonl its years, one line each ({"day":"2026/10/24"}, {"month":"2026/10"}, {"year":"2026"}). It climbs only while the list below was empty, and never repeats a line. */
++	static scopes(sess, day){
++		const [y, m, d] = day.split("-"), levels = [[path.join(sess, y, m, "index.jsonl"), "day", `${y}/${m}/${d}`], [path.join(sess, y, "index.jsonl"), "month", `${y}/${m}`], [path.join(sess, "index.jsonl"), "year", y]];
++		for (const [file, key, value] of levels){
++			const had = fs.existsSync(file) && fs.statSync(file).size > 0;
++			if (!this.scope_has(file, key, value)) fs.appendFileSync(file, JSON.stringify({ [key]: value }) + "\n");
++			if (had) break;
++		}
++	}
++
++	static scope_has(file, key, value){
++		try { return fs.readFileSync(file, "utf8").split(/\r?\n/).some(l => { try { return JSON.parse(l)[key] === value; } catch { return false; } }); } catch { return false; }
++	}
++
+ 	/** The fields of a task row that go on the stream; null when nothing the reader shows has changed since `prev`. */
+ 	static task_line(prev, row){
+ 		const keys = ["state", "title", "landed_at", "line"];
+diff --git a/Server/SessionScopes.mjs b/Server/SessionScopes.mjs
+new file mode 100644
+index 000000000..b0ffed8c0
+--- /dev/null
++++ b/Server/SessionScopes.mjs
+@@ -0,0 +1,48 @@
++// SessionScopes: backfill the scope lists of the sessions store. Doc: public/framework/ai/sessions/readme.md ("One index.jsonl per scope").
++//   node Server/SessionScopes.mjs [--root <sessions dir>] [--apply]
++// A day with a non-empty YYYY/MM/DD/index.jsonl is listed in YYYY/MM/index.jsonl as {"day":"YYYY/MM/DD"}, its month in YYYY/index.jsonl as {"month":"YYYY/MM"},
++// its year in index.jsonl as {"year":"YYYY"}. Dry run by default: prints every line it would append. Only appends, never rewrites a line; a line already there is skipped.
++import fs from "node:fs";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++import AIIndexStream from "./AIIndexStream.mjs";
++
++const HERE = path.dirname(fileURLToPath(import.meta.url));
++const numbered = (dir, n) => { try { return fs.readdirSync(dir, { withFileTypes: true }).filter(e => e.isDirectory() && new RegExp(`^\\d{${n}}$`).test(e.name)).map(e => e.name).sort(); } catch { return []; } };
++const filled = file => { try { return fs.statSync(file).size > 0; } catch { return false; } };
++
++export default class SessionScopes {
++	/** The lines a backfill would append: [{file, key, value}], oldest first, those already in their file left out. */
++	static plan(root){
++		const out = [], add = (file, key, value) => { if (!AIIndexStream.scope_has(file, key, value)) out.push({ file, key, value }); };
++		for (const y of numbered(root, 4)){
++			let year_has = false;
++			for (const m of numbered(path.join(root, y), 2)){
++				let month_has = false;
++				for (const d of numbered(path.join(root, y, m), 2)){
++					if (!filled(path.join(root, y, m, d, "index.jsonl"))) continue;
++					month_has = true; add(path.join(root, y, m, "index.jsonl"), "day", `${y}/${m}/${d}`);
++				}
++				if (month_has){ year_has = true; add(path.join(root, y, "index.jsonl"), "month", `${y}/${m}`); }
++			}
++			if (year_has) add(path.join(root, "index.jsonl"), "year", y);
++		}
++		return out;
++	}
++
++	/** Appends the planned lines; returns how many. */
++	static apply(plan){
++		for (const { file, key, value } of plan) fs.appendFileSync(file, JSON.stringify({ [key]: value }) + "\n");
++		return plan.length;
++	}
++}
++
++if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)){
++	const args = process.argv.slice(2), at = args.indexOf("--root");
++	const root = path.resolve(at >= 0 ? args[at + 1] : path.join(HERE, "..", "public", "framework", "ai", "sessions")), apply = args.includes("--apply");
++	const plan = SessionScopes.plan(root);
++	for (const { file, key, value } of plan) console.log(`${path.relative(root, file).replaceAll("\\", "/")}\t${JSON.stringify({ [key]: value })}`);
++	const by = k => plan.filter(p => p.key === k).length;
++	console.log(`${apply ? "APPLY" : "DRY RUN"}: ${plan.length} lines (${by("day")} day, ${by("month")} month, ${by("year")} year)`);
++	if (apply) console.log(`wrote ${SessionScopes.apply(plan)} lines`);
++}
+diff --git a/public/framework/ai/AISession/AISessionIndex.mjs b/public/framework/ai/AISession/AISessionIndex.mjs
+index 5970c9981..2d1ad535b 100644
+--- a/public/framework/ai/AISession/AISessionIndex.mjs
++++ b/public/framework/ai/AISession/AISessionIndex.mjs
+@@ -56,7 +56,9 @@ export default class AISessionIndex {
+ 	// ---- life -----------------------------------------------------------------------------------------------------
+ 	start(){
+ 		this.ready = this.load().catch(e => this.log("AISessionIndex: load failed — " + e.message));
++		this.watched = new Set();
+ 		for (const d of this.project_dirs()) this.watch(d);
++		this.watch_base();
+ 		this.watch_records();
+ 		this.sweeper = setInterval(() => this.sweep(), AISessionIndex.SWEEP_MS); this.sweeper.unref?.();
+ 		this.freezer = setInterval(() => this.freeze(), AISessionIndex.FREEZE_MS); this.freezer.unref?.();
+@@ -75,7 +77,21 @@ export default class AISessionIndex {
+ 
+ 	project_dirs(){ try { return fs.readdirSync(this.base).filter(d => /^c--code-lew42-/i.test(d)).map(d => path.join(this.base, d)); } catch { return []; } }
+ 
++	/** A project folder made after start-up (a new worktree's first Claude session) is watched too, and its transcripts the index has not seen are queued. */
++	watch_base(){
++		try {
++			this.watchers.push(fs.watch(this.base, (_, name) => {
++				if (!name || !/^c--code-lew42-/i.test(String(name))) return;
++				const dir = path.join(this.base, String(name));
++				if (this.watched.has(dir) || !fs.existsSync(dir)) return;
++				this.watch(dir);
++				for (const f of fs.readdirSync(dir)){ const m = TRANSCRIPT.exec(f); if (m && !this.snaps.has(m[1])) this.schedule(m[1], path.join(dir, f)); }
++			}));
++		} catch (e){ this.log("AISessionIndex: cannot watch " + this.base + " — " + e.message); }
++	}
++
+ 	watch(dir){
++		this.watched?.add(dir);
+ 		try {
+ 			this.watchers.push(fs.watch(dir, { recursive: true }, (_, name) => {
+ 				const m = name && TRANSCRIPT.exec(String(name));
+diff --git a/public/framework/ai/sessions/readme.md b/public/framework/ai/sessions/readme.md
+index 79ad7494d..ba2c484dc 100644
+--- a/public/framework/ai/sessions/readme.md
++++ b/public/framework/ai/sessions/readme.md
+@@ -14,6 +14,17 @@ sessions/
+   <top level>                              generated indexes and move ledgers (last section)
+ ```
+ 
++**One `index.jsonl` per scope** (derived, gitignored, append-only; a line is never rewritten). The writer is `AIIndexStream.append` (`Server/AIIndexStream.mjs`), called by `DatedFiles.sync` and `AIIndex`; the backfill is `node Server/SessionScopes.mjs` (dry run, `--apply` writes). Nothing in the browser reads the month, year or root lists yet; the rolled `index.json` totals stay as they are.
++
++| File | Lists | Line |
++|---|---|---|
++| `sessions/index.jsonl` | the years | `{"year":"2026"}` |
++| `YYYY/index.jsonl` | the months | `{"month":"2026/10"}` |
++| `YYYY/MM/index.jsonl` | the days | `{"day":"2026/10/24"}` |
++| `YYYY/MM/DD/index.jsonl` | the sessions, tasks and projects started that day | `{"session":{id,path,url,title,state,at}}` |
++
++When a day's `index.jsonl` gets its first row, the writer adds the day to its month's list; a month's first day adds the month to the year's list; a year's first month adds the year to the root list.
++
+ A session folder is one of three kinds:
+ 
+ | Kind | Folder name | Files | Written by |

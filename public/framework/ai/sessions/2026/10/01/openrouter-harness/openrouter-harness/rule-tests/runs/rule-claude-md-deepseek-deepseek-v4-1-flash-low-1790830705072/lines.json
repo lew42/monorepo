@@ -1,0 +1,4 @@
+[
+ {"log":{"at":"NOW","msg":"read C:/Code/lew42/monorepo/CLAUDE.md (root, Laws 1-6); law 6 bold title = One of everything; don't repeat yourself. Note: public/framework/ai/CLAUDE.md is a different file with only 4 laws, so the root file is the one that carries a law 6."}},
+ {"decision":{"at":"NOW","question":"which text is law 6's title sentence","options":["the bold title line only","the whole law 6 paragraph including its explanation and date"],"chose":"the bold title line only","why":"the question asks for the title sentence, not the law body"}}
+]

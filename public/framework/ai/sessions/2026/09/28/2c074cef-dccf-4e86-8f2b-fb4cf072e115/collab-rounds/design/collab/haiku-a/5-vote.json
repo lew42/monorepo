@@ -1,0 +1,4 @@
+{
+  "pick": "haiku-c",
+  "caveat": "haiku-c's Authority.guess domain allowlist is brittle and will silently default to 0.50 for most unknown docs sites; should switch to a domain-pattern approach like haiku-a's (includes + tier adjustments) to be extensible"
+}

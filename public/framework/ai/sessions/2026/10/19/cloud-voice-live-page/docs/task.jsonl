@@ -1,0 +1,45 @@
+{"assign":{"session_id":"c5dab844-059a-4284-8187-5fc5d6231bdd","agent":"task-mastermind-docs","title":"Documentation: every main system's readme states its structure and how it works, no history, no audits needed again","model":"claude-sonnet-5-5","home":"/framework/ai/","requested_at":"2026-10-19T20:40:41-05:00","now":"starting"}}
+{"action":{"at":"2026-10-19T20:42:38-05:00","did":"edit","files":[".claude/hooks/append.mjs"]}}
+{"commit":"4a8b8ed36997"}
+{"action":{"at":"2026-10-19T20:45:27-05:00","did":"edit","files":["public/framework/ai/sessions/readme.md"]}}
+{"commit":"ce66b0943dd0"}
+{"commit":"a787b35ed65f"}
+{"log":{"at":"2026-10-19T20:46:36-05:00","msg":"session resumed"}}
+{"action":{"at":"2026-10-19T20:48:39-05:00","did":"edit","files":["CLAUDE.md"]}}
+{"commit":"a40d197ca0f3"}
+{"commit":"6e3329ef1690"}
+{"commit":"c6be60657c8d"}
+{"action":{"at":"2026-10-19T20:51:21-05:00","did":"edit","files":["public/framework/ai/readme.md"]}}
+{"commit":"f3942e4f53e9"}
+{"log":{"at":"2026-10-19T20:51:32-05:00","msg":"readmes done+committed: sessions, Inbox, ai/tasks, AITask, ai; framework index lists every system; CLAUDE.md Where to look names the index; landing checklist is the two readme questions. Next: core/Page, Servex, MCP, cloud voice."}}
+{"action":{"at":"2026-10-19T20:51:53-05:00","did":"edit","files":["Servex/readme.md"]}}
+{"action":{"at":"2026-10-19T20:52:14-05:00","did":"edit","files":["public/framework/ai/doc/agents/mcp.md"]}}
+{"commit":"4ba121be8610"}
+{"commit":"e4ce9f01cab2"}
+{"commit":"c413cd142e22"}
+{"action":{"at":"2026-10-19T20:54:34-05:00","did":"edit","files":["Server/SessionReadme.mjs"]}}
+{"action":{"at":"2026-10-19T20:54:47-05:00","did":"edit","files":["public/framework/ai/sessions/doc/session-readme.md"]}}
+{"commit":"57fddd5abd7e"}
+{"log":{"at":"2026-10-19T20:54:56-05:00","msg":"readmes rewritten as structure+function (old text in doc/readme-before-2026-10-19.md): ai/sessions, ai/tasks, ai/AITask, ai, core/Page/ext/Inbox, core/Page, Servex; mcp.md, sdk.md, cloud-voice-agent.md verified; framework/readme.md module index; CLAUDE.md where-to-look; landing checklist; Server/SessionReadme.mjs + sessions/doc/session-readme.md"}}
+{"assign":{"landed_at":"2026-10-19T20:54:56-05:00"}}
+{"commit":"e49b88c64207"}
+{"log":{"at":"2026-10-19T20:55:03-05:00","msg":"landing refused: landed_at has no outcome. Append {\"assign\": {\"outcome\": \"…\"}}."}}
+{"assign":{"at":"2026-10-19T20:55:07-05:00","outcome":"**what landed** — readmes for ai, ai/sessions, ai/tasks, AITask, Inbox, core/Page and Servex now state structure and function (old text in doc/readme-before-2026-10-19.md); MCP, sdk and cloud-voice docs verified; framework/readme.md module index; CLAUDE.md where-to-look; two-question landing checklist; Server/SessionReadme.mjs with one generated example and sessions/doc/session-readme.md."}}
+{"commit":"a8b32f218f8f"}
+{"log":{"at":"2026-10-19T20:55:55-05:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
+{"log":{"at":"2026-10-19T20:59:37-05:00","msg":"session resumed"}}
+{"commit":"d1b5122d5ba4"}
+{"log":{"at":"2026-10-19T21:00:45-05:00","msg":"text-check: past-work.md: 733 words of prose (500 at most)"}}
+{"log":{"at":"2026-10-19T21:00:45-05:00","msg":"doc-check: 0 modules — clean"}}
+{"log":{"at":"2026-10-20T02:00:45.140Z","msg":"clarity: queued (once per task)"}}
+{"log":{"at":"2026-10-19T21:00:45-05:00","msg":"owner-check: no owner words found"}}
+{"log":{"at":"2026-10-19T21:00:51-05:00","msg":"lifecycle: nothing of this task's was left running"}}
+{"log":{"at":"2026-10-19T21:00:51-05:00","msg":"layout-check: skipped — the landing names no site pages"}}
+{"assign":{"at":"2026-10-19T21:01:29-05:00","outcome":"**Readmes now state structure and function.**\n- [x] Every main system's readme states its structure and how it works: ai, ai/sessions, ai/tasks, AITask, Inbox, core/Page, Servex rewritten (framework/readme.md indexes them).\n- [x] No history in them: old text moved to doc/readme-before-2026-10-19.md.\n- [ ] No audits needed again: not shown; only a two-question landing checklist was added.\n- [ ] MCP, SDK and cloud-voice docs: verified, but no proof is logged."}}
+{"log":{"at":"2026-10-19T21:13:04-05:00","msg":"session resumed"}}
+{"commit":"5d431d1ffc3b"}
+{"log":{"at":"2026-10-19T21:13:46-05:00","msg":"owner correction: branch rule is merge-yourself, log where found; mastermind skill updated, law-5 amendment proposed in claude-md-archive.md; task/docs merged to michael/dev (21e371e06)"}}
+{"commit":"273780195759"}
+{"log":{"at":"2026-10-19T21:20:42-05:00","msg":"session resumed"}}
+{"commit":"762628daa9cb"}
+{"commit":"67794306c0f5"}

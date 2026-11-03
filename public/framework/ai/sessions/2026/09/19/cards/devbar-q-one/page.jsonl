@@ -1,0 +1,5 @@
+{"class":"/framework/ai2/card.js","title":"Reply with just the word one","type":"card","id":"2026/09/19/devbar-q-one","created":"2026-09-19T16:21:53-05:00","by":"mastermind","tags":[]}
+{"legacy":"devbar-q-one"}
+{"icon":"science"}
+{"parent":"devbar-questions"}
+{"text":"Almost certainly a test prompt from the streaming minion, which sends tiny prompts to time how fast the first word arrives. Harmless. Test sessions should be hidden from that list."}

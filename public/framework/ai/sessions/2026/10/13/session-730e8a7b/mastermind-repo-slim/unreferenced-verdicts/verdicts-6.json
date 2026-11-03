@@ -1,0 +1,164 @@
+[
+  {
+    "file": "public/framework/styles/system/studies/themes/themes.css",
+    "verdict": "runtime-loaded",
+    "reason": "View.stylesheet(import.meta, \"themes.css\") in themes/page.js",
+    "evidence": "public/framework/styles/system/studies/themes/page.js:5"
+  },
+  {
+    "file": "public/framework/styles/system/studies/type/anchors/decisions.md",
+    "verdict": "record",
+    "reason": "Design decision doc for anchors study, part of type module",
+    "evidence": "referenced in public/framework/styles/system/studies/type/readme.md"
+  },
+  {
+    "file": "public/framework/ui/background/page.css",
+    "verdict": "runtime-loaded",
+    "reason": "View.stylesheet(import.meta, \"page.css\") in background/page.js",
+    "evidence": "public/framework/ui/background/page.js:4"
+  },
+  {
+    "file": "public/framework/ui/controls/controls.css",
+    "verdict": "runtime-loaded",
+    "reason": "View.stylesheet(import.meta, \"controls.css\") in controls/page.js",
+    "evidence": "public/framework/ui/controls/page.js:3"
+  },
+  {
+    "file": "public/framework/ui/icon/doc/icons.md",
+    "verdict": "record",
+    "reason": "Icon design and framing guide, referenced in icon/readme.md",
+    "evidence": "public/framework/ui/icon/readme.md:31"
+  },
+  {
+    "file": "public/framework/ui/item/doc/reuse.md",
+    "verdict": "record",
+    "reason": "Study of item reuse opportunities, referenced in item/readme.md",
+    "evidence": "public/framework/ui/item/readme.md:42"
+  },
+  {
+    "file": "public/framework/ux/Content/Decision/doc/shape.md",
+    "verdict": "record",
+    "reason": "Record shape documentation for Decision module",
+    "evidence": "public/framework/ux/Content/Decision/readme.md:3"
+  },
+  {
+    "file": "public/framework/ux/Content/Disclosure/doc/decisions.md",
+    "verdict": "record",
+    "reason": "Design decisions for Disclosure variants and behaviors",
+    "evidence": "referenced in public/framework/ux/Content/Disclosure/readme.md"
+  },
+  {
+    "file": "public/framework/ux/Content/Object/doc/census.md",
+    "verdict": "record",
+    "reason": "Census of classes worth a debug view, referenced in Object/readme.md",
+    "evidence": "public/framework/ux/Content/Object/readme.md mentions census"
+  },
+  {
+    "file": "public/framework/ux/Content/Object/doc/shape.md",
+    "verdict": "record",
+    "reason": "Object module record shape documentation",
+    "evidence": "public/framework/ux/Content/Object/readme.md"
+  },
+  {
+    "file": "public/framework/ux/Content/Question/doc/shape.md",
+    "verdict": "record",
+    "reason": "Question module record shape documentation",
+    "evidence": "public/framework/ux/Content/Question/readme.md"
+  },
+  {
+    "file": "public/framework/ux/Content/Quotation/doc/shape.md",
+    "verdict": "record",
+    "reason": "Quotation module record shape documentation",
+    "evidence": "public/framework/ux/Content/Quotation/readme.md"
+  },
+  {
+    "file": "public/framework/ux/Content/catalog/catalog.css",
+    "verdict": "runtime-loaded",
+    "reason": "View.stylesheet(import.meta, \"catalog.css\") in catalog/page.js",
+    "evidence": "public/framework/ux/Content/catalog/page.js:1"
+  },
+  {
+    "file": "public/framework/ux/Content/content.css",
+    "verdict": "runtime-loaded",
+    "reason": "View.stylesheet(import.meta, \"content.css\") in ContentModule.js",
+    "evidence": "public/framework/ux/Content/ContentModule.js:1"
+  },
+  {
+    "file": "public/framework/ux/Dictate/Dictate.css",
+    "verdict": "runtime-loaded",
+    "reason": "View.stylesheet(import.meta, \"Dictate.css\") in Dictate.js",
+    "evidence": "public/framework/ux/Dictate/Dictate.js:10"
+  },
+  {
+    "file": "public/framework/ux/Dictate/doc/chat.md",
+    "verdict": "record",
+    "reason": "Chat.js implementation guide and seaming documentation",
+    "evidence": "referenced in public/framework/ux/Dictate/readme.md"
+  },
+  {
+    "file": "public/framework/ux/Dictate/doc/notes.md",
+    "verdict": "record",
+    "reason": "Comment essays extracted from Dictate.js code, documentation",
+    "evidence": "public/framework/ux/Dictate/Dictate.js:12"
+  },
+  {
+    "file": "public/framework/ux/Dictate/playground/Playground.css",
+    "verdict": "runtime-loaded",
+    "reason": "View.stylesheet(import.meta, \"Playground.css\") in playground/Playground.js",
+    "evidence": "grep: public/framework/ux/Dictate/playground/Playground.js"
+  },
+  {
+    "file": "public/framework/ux/Dictate/variants/v1/Dictate.css",
+    "verdict": "runtime-loaded",
+    "reason": "View.stylesheet(import.meta, \"Dictate.css\") in variants/v1/Dictate.js",
+    "evidence": "grep: public/framework/ux/Dictate/variants/v1/Dictate.js"
+  },
+  {
+    "file": "public/framework/ux/Dictate/workspace/Workspace.css",
+    "verdict": "runtime-loaded",
+    "reason": "View.stylesheet(import.meta, \"Workspace.css\") in workspace/Workspace.js",
+    "evidence": "grep: public/framework/ux/Dictate/workspace/Workspace.js"
+  },
+  {
+    "file": "public/framework/ux/Hotkeys/doc/decisions.md",
+    "verdict": "record",
+    "reason": "Design decisions for Hotkeys module, referenced in readme",
+    "evidence": "public/framework/ux/Hotkeys/readme.md"
+  },
+  {
+    "file": "public/framework/ux/Menu/doc/decisions.md",
+    "verdict": "record",
+    "reason": "Menu module design decisions and caller census",
+    "evidence": "public/framework/ux/Menu/readme.md"
+  },
+  {
+    "file": "public/framework/ux/Pagination/doc/decisions.md",
+    "verdict": "record",
+    "reason": "Pagination module design decisions and caller census",
+    "evidence": "public/framework/ux/Pagination/readme.md"
+  },
+  {
+    "file": "public/framework/ux/Rename/doc/decisions.md",
+    "verdict": "record",
+    "reason": "Rename module design decisions, why plain array over ContentModule",
+    "evidence": "public/framework/ux/Rename/readme.md"
+  },
+  {
+    "file": "public/framework/ux/Tags/doc/decisions.md",
+    "verdict": "record",
+    "reason": "Tags module design decisions and caller census",
+    "evidence": "public/framework/ux/Tags/readme.md"
+  },
+  {
+    "file": "public/framework/ux/Understand/doc/decisions.md",
+    "verdict": "record",
+    "reason": "Understand module design: why Decision over Question",
+    "evidence": "public/framework/ux/Understand/readme.md"
+  },
+  {
+    "file": "public/web/nav/doc/study/navigation.css",
+    "verdict": "runtime-loaded",
+    "reason": "View.stylesheet(import.meta, \"navigation.css\") in study/page.js",
+    "evidence": "public/web/nav/doc/study/page.js:4"
+  }
+]

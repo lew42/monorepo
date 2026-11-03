@@ -1,0 +1,91 @@
+{
+  "bare": {
+    "returned": {
+      "id": "minion-proof-bare",
+      "role": "minion",
+      "model": "claude-haiku-5-5",
+      "state": "working",
+      "visibility": "team",
+      "started_at": "2026-10-18T22:46:47.740Z",
+      "stopped_at": null,
+      "turns": 0,
+      "session_id": "208ead4a-0bea-403d-af19-977f851e100a",
+      "cost": 0,
+      "parent": null,
+      "revivable": true,
+      "forked_from": null,
+      "resumed_from": null,
+      "context": null
+    },
+    "task_dir": "public/framework/ai/sessions/2026/10/18/spawned/minion-proof-bare",
+    "dir_exists_at_return": true,
+    "files_at_return": [
+      "past-work.md",
+      "task.jsonl"
+    ],
+    "line1": {
+      "assign": {
+        "session_id": "208ead4a-0bea-403d-af19-977f851e100a",
+        "agent": "minion-proof-bare",
+        "title": "Proof probe. Do exactly one thing: append this line to your task log with `node .claude/hooks/append.mjs <your task.json",
+        "model": "claude-haiku-5-5",
+        "worktree": "C:\\Code\\lew42\\worktrees\\spawn-task-dir",
+        "requested_at": "2026-10-18T17:46:44-05:00",
+        "now": "starting"
+      }
+    },
+    "first_turn_tells": "Your task is already open at public/framework/ai/sessions/2026/10/18/spawned/minion-proof-bare/task.jsonl; don't run new-task, log there. Your past-work.md is beside the brief (public/framework/ai/sessions/2026/10/18/spawned/minion-proof-bare/past-work.md): read it first.",
+    "state_while_running": {
+      "registry_rows": 2,
+      "found": {
+        "bucket": "in_flight",
+        "state": "running",
+        "dir": "public/framework/ai/sessions/2026/10/18/spawned/minion-proof-bare",
+        "title": "Proof probe. Do exactly one thing: append this line to your task log with `node .claude/hooks/append.mjs <your task.json",
+        "agent": "minion-proof-bare"
+      }
+    },
+    "log_tail": [
+      "{\"log\":{\"at\":\"2026-10-18T17:47:26-05:00\",\"msg\":\"session ended (other) without landing\"}}",
+      "{\"log\":{\"at\":\"2026-10-18T17:47:40-05:00\",\"heartbeat\":\"skipped\",\"msg\":\"heartbeat: skipped, landed\"}}"
+    ],
+    "task_landed": true,
+    "state_after_finish": {
+      "registry_rows": 4,
+      "found": {
+        "bucket": "landed",
+        "state": "complete",
+        "dir": "public/framework/ai/sessions/2026/10/18/spawned/minion-proof-bare",
+        "title": "Proof probe. Do exactly one thing: append this line to your task log with `node .claude/hooks/append.mjs <your task.json",
+        "agent": "minion-proof-bare"
+      }
+    },
+    "heartbeat_tick": {
+      "woke_it": false,
+      "lines_added": []
+    },
+    "cost_usd": 0.34574600000000005
+  },
+  "no_task": {
+    "returned": {
+      "id": "minion-proof-notask",
+      "role": "minion",
+      "model": "claude-haiku-5-5",
+      "state": "working",
+      "visibility": "team",
+      "started_at": "2026-10-18T22:46:52.849Z",
+      "stopped_at": null,
+      "turns": 0,
+      "session_id": "f839b366-e247-4a59-bb27-4cef63191481",
+      "cost": 0,
+      "parent": null,
+      "revivable": true,
+      "forked_from": null,
+      "resumed_from": null,
+      "context": null
+    },
+    "agent_task": false,
+    "new_siblings_in_spawned_dir": [],
+    "any_dir_named": []
+  }
+}

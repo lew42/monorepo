@@ -1,0 +1,21 @@
+{
+	"title": "Ideas",
+	"icon": "description",
+	"description": "A page you made.",
+	"mode": {
+		"navigation": "rail",
+		"content": "cards",
+		"room": "reading",
+		"arrangement": "plain",
+		"surface": "tint",
+		"background": "tint",
+		"type": "regular",
+		"blocks": [
+			{
+				"type": "prose",
+				"text": "**This paragraph is a block.** It was typed into Build's fifth control and saved inside this page's `mode`. Under it is whatever the **content** word says — right now `Card wall` — because the two compose."
+			}
+		]
+	},
+	"children": []
+}

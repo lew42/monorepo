@@ -1,0 +1,797 @@
+{
+ "date": "2026-10-03",
+ "claude_usd": 285.57,
+ "real_usd": 0,
+ "by_model": [
+  {
+   "model": "claude-sonnet-5",
+   "claude_usd": 283.84,
+   "real_usd": 0
+  },
+  {
+   "model": "sonnet",
+   "claude_usd": 1.72,
+   "real_usd": 0
+  }
+ ],
+ "tasks": [
+  {
+   "key": "2026-10-03/card-measure-colors",
+   "outcome": "Landed. - [x] widths lab, four arrangements, measured: [/framework/styles/widths/](/framework/styles/widths/) — found the real bug (`.page-content-rows` had no cap outside a `.page` grid) and fixed it in `core/Page/Page.css`, one line",
+   "tracked": true,
+   "claude_usd": 1.6,
+   "real_usd": 0,
+   "modules": [
+    ".claude",
+    "framework/design",
+    "framework/ai",
+    "public",
+    "framework/styles",
+    "core/Page"
+   ]
+  },
+  {
+   "key": "2026-10-03/console-clean",
+   "outcome": "Landed. /framework/ai/live/: console lines 210→1(allowed), same-origin 404s 351→0. All six asks done (checklist and proof in task.jsonl). smoke.mjs now fails merges on a same-origin 404 or >5 unlisted warn/log lines; Server/console-allow.jsonl holds the three known exceptions, each dated and owned.",
+   "tracked": false,
+   "claude_usd": 0,
+   "real_usd": 0,
+   "modules": [
+    "core/Page",
+    "Server",
+    ".claude",
+    "core/List"
+   ]
+  },
+  {
+   "key": "2026-10-03/data-grid",
+   "outcome": "",
+   "tracked": true,
+   "claude_usd": 26.3,
+   "real_usd": 0,
+   "modules": [
+    "ui/datagrid",
+    "ext/DataGrid",
+    "framework/ui",
+    "framework/ai",
+    "Server"
+   ]
+  },
+  {
+   "key": "2026-10-03/day-overview",
+   "outcome": "",
+   "tracked": false,
+   "claude_usd": 0,
+   "real_usd": 0,
+   "modules": [
+    "framework/ai",
+    "Server",
+    "ext/AITask"
+   ]
+  },
+  {
+   "key": "2026-10-03/drawer-cleanup",
+   "outcome": "Fixed. Root cause: the closed session-switcher list rendered at ~940px because its `.flex` class beat `[hidden]` — it pushed the composer off-screen and forced the whole body to scroll.",
+   "tracked": true,
+   "claude_usd": 2.75,
+   "real_usd": 0,
+   "modules": [
+    "ext/drawer"
+   ]
+  },
+  {
+   "key": "2026-10-03/drop-at-key",
+   "outcome": "Four owner passes, one merge — [Item](/framework/core/Item/), [List](/framework/core/List/), [Page](/framework/core/Page/)",
+   "tracked": true,
+   "claude_usd": 8.73,
+   "real_usd": 0,
+   "modules": [
+    "core/Item",
+    "core/List",
+    "core/Page",
+    "core/Task",
+    "framework/ai"
+   ]
+  },
+  {
+   "key": "2026-10-03/field-collision-throw",
+   "outcome": "Fields are code-only; a collision throws — [Item](/framework/core/Item/)",
+   "tracked": true,
+   "claude_usd": 1.61,
+   "real_usd": 0,
+   "modules": []
+  },
+  {
+   "key": "2026-10-03/flash-fix",
+   "outcome": "Found and fixed the flash of unstyled content on AI page reloads.",
+   "tracked": false,
+   "claude_usd": 0,
+   "real_usd": 0,
+   "modules": [
+    "framework/ai"
+   ]
+  },
+  {
+   "key": "2026-10-03/framework-home-grids",
+   "outcome": "",
+   "tracked": true,
+   "claude_usd": 11.32,
+   "real_usd": 0,
+   "modules": [
+    "framework/ai"
+   ]
+  },
+  {
+   "key": "2026-10-03/ghost-theme-fix",
+   "outcome": "The ghost stays themed — [Sortable](/framework/ext/Draggable/)",
+   "tracked": true,
+   "claude_usd": 21.63,
+   "real_usd": 0,
+   "modules": []
+  },
+  {
+   "key": "2026-10-03/inbox-cards-work",
+   "outcome": "Ten fixes landed on michael/dev.",
+   "tracked": true,
+   "claude_usd": 16.99,
+   "real_usd": 0,
+   "modules": [
+    "Servex",
+    "framework/ai2",
+    "framework/ai",
+    "ext/Mention",
+    "public",
+    "core/Page",
+    "core/Router"
+   ]
+  },
+  {
+   "key": "2026-10-03/layout-approve-join",
+   "outcome": "One verdict, two views — [Explorer](/layouts/explorer/) · [Browse](/layouts/browse/)",
+   "tracked": true,
+   "claude_usd": 0,
+   "real_usd": 0,
+   "modules": []
+  },
+  {
+   "key": "2026-10-03/layout-gate",
+   "outcome": "Landed — every `<a>` now gets the house link style, not just ones in prose, and `Server/smoke.mjs` fails the merge on text flush against an unpadded edge or anything above a page's title. Commit `a3248c70` on `michael/dev`.",
+   "tracked": true,
+   "claude_usd": 8.34,
+   "real_usd": 0,
+   "modules": [
+    "framework/ai"
+   ]
+  },
+  {
+   "key": "2026-10-03/main-branch-guard",
+   "outcome": "",
+   "tracked": false,
+   "claude_usd": 0,
+   "real_usd": 0,
+   "modules": [
+    "framework/ai"
+   ]
+  },
+  {
+   "key": "2026-10-03/mention-auto-sync",
+   "outcome": "Landed: `ext/Mention/maps/refs.js`'s icon rebuilds itself. [`Server/plugins/MentionSync.js`](/framework/servex/fs/?file=Server) sits on the dev server's shared watcher and rewrites a changed icon on its own — proved live by flipping `core/Sidebar/page.js`'s icon and watching `refs.js` update within ~2s, no `sync.mjs` run (`task.jsonl`).",
+   "tracked": true,
+   "claude_usd": 74.65,
+   "real_usd": 0,
+   "modules": [
+    "public"
+   ]
+  },
+  {
+   "key": "2026-10-03/move-nesting-fix",
+   "outcome": "One line down from Draggable, not inside it — `core/Item/Store.js`'s `hops()` dropped a list's own name whenever a change was the list's own add/remove/move/order.",
+   "tracked": true,
+   "claude_usd": 0,
+   "real_usd": 0,
+   "modules": []
+  },
+  {
+   "key": "2026-10-03/node-reap-run",
+   "outcome": "",
+   "tracked": false,
+   "claude_usd": 0,
+   "real_usd": 0,
+   "modules": []
+  },
+  {
+   "key": "2026-10-03/now-card-blank",
+   "outcome": "The Now card's sections are back, above Topics, and its rail preview never reads empty again. Details, the replay test and the review: [task log](task.jsonl).",
+   "tracked": true,
+   "claude_usd": 3.91,
+   "real_usd": 0,
+   "modules": [
+    "framework/ai2",
+    "framework/ai",
+    ".claude"
+   ]
+  },
+  {
+   "key": "2026-10-03/openrouter-reads-cache",
+   "outcome": "",
+   "tracked": false,
+   "claude_usd": 0,
+   "real_usd": 0,
+   "modules": [
+    "framework/ai"
+   ]
+  },
+  {
+   "key": "2026-10-03/page-ai-cost",
+   "outcome": "`Server/page-ai-cost.mjs` landed — splits each task's cost evenly across the pages it touched, writes it onto each page's own log (law 7: never recomputed).",
+   "tracked": true,
+   "claude_usd": 3.27,
+   "real_usd": 0,
+   "modules": []
+  },
+  {
+   "key": "2026-10-03/page-no-log",
+   "outcome": "PageLog is gone — Page extends Item directly (e7f5a714)",
+   "tracked": true,
+   "claude_usd": 2.66,
+   "real_usd": 0,
+   "modules": [
+    "core/Page",
+    "core/Item"
+   ]
+  },
+  {
+   "key": "2026-10-03/perf-audit",
+   "outcome": "",
+   "tracked": false,
+   "claude_usd": 0,
+   "real_usd": 0,
+   "modules": [
+    "framework/ai"
+   ]
+  },
+  {
+   "key": "2026-10-03/phone-server",
+   "outcome": "",
+   "tracked": false,
+   "claude_usd": 0,
+   "real_usd": 0,
+   "modules": []
+  },
+  {
+   "key": "2026-10-03/playwright-reap",
+   "outcome": "Every chrome.exe Playwright starts is recognisable and reaped; Servex can check a page's console for you.",
+   "tracked": false,
+   "claude_usd": 0,
+   "real_usd": 0,
+   "modules": [
+    "framework/ai",
+    "Server",
+    "Servex",
+    ".claude"
+   ]
+  },
+  {
+   "key": "2026-10-03/pool-unstick",
+   "outcome": "",
+   "tracked": false,
+   "claude_usd": 0,
+   "real_usd": 0,
+   "modules": [
+    "framework/ai"
+   ]
+  },
+  {
+   "key": "2026-10-03/prompt-relay-skip-agents",
+   "outcome": "A subagent's report is no longer logged as your prompt. The hook skipped nothing before, so four hand-backs in this tab were saved as your Prompts and refined at about $0.35 each, and your real prompt waited behind them.",
+   "tracked": false,
+   "claude_usd": 0,
+   "real_usd": 0,
+   "modules": [
+    ".claude"
+   ]
+  },
+  {
+   "key": "2026-10-03/prompts-live",
+   "outcome": "The echo refiner was silently dead since this morning — found and fixed. `read_item()` in Echo.js matched the retired line shape; today's wire change broke it with zero error. Fixed, verified live. Added real per-prompt + session cost. A deeper wiring break remains, routed to @mastermind-servex.",
+   "tracked": true,
+   "claude_usd": 2.44,
+   "real_usd": 0,
+   "modules": [
+    "Servex"
+   ]
+  },
+  {
+   "key": "2026-10-03/push-to-talk",
+   "outcome": "Landed on `michael/dev` (`c25c5a39`). Hold a bound key/mouse combo anywhere on the site, a floating mic (bottom-right) appears and scales with your voice; click it to open the dev shell's chat tab.",
+   "tracked": true,
+   "claude_usd": 24.52,
+   "real_usd": 0,
+   "modules": [
+    "framework/ai",
+    "ux/Hotkeys",
+    ".claude"
+   ]
+  },
+  {
+   "key": "2026-10-03/ref-content-rows",
+   "outcome": "Landed: a content row with `ref` draws as that page's own dark class card (#Mention's exact look, reused), linking to it, with the row's own text under it.",
+   "tracked": true,
+   "claude_usd": 26.95,
+   "real_usd": 0,
+   "modules": [
+    "public"
+   ]
+  },
+  {
+   "key": "2026-10-03/ref-row-context-card",
+   "outcome": "Landed: a ref row is now the inline #Page chip upgraded to a full-width card, per the owner's correction.",
+   "tracked": true,
+   "claude_usd": 40.97,
+   "real_usd": 0,
+   "modules": []
+  },
+  {
+   "key": "2026-10-03/restart-keeps-agents",
+   "outcome": "",
+   "tracked": false,
+   "claude_usd": 0,
+   "real_usd": 0,
+   "modules": [
+    "framework/ai"
+   ]
+  },
+  {
+   "key": "2026-10-03/retire-ai2",
+   "outcome": "finish retiring AI 2: carry over live imports, remove nav entry + directory, smoke test, land",
+   "tracked": false,
+   "claude_usd": 0,
+   "real_usd": 0,
+   "modules": []
+  },
+  {
+   "key": "2026-10-03/review-empty-diff",
+   "outcome": "",
+   "tracked": false,
+   "claude_usd": 0,
+   "real_usd": 0,
+   "modules": []
+  },
+  {
+   "key": "2026-10-03/session-trace",
+   "outcome": "Cost-over-time chart + waste-flagging table on the session detail page, per owner's vscode-mastermind observation.",
+   "tracked": false,
+   "claude_usd": 0,
+   "real_usd": 0,
+   "modules": []
+  },
+  {
+   "key": "2026-10-03/sessions-date-homes",
+   "outcome": "Reconciled the Sessions tab with three decisions made since it shipped. [`/framework/ai/sessions/`](/framework/ai/sessions/)",
+   "tracked": true,
+   "claude_usd": 1.72,
+   "real_usd": 0,
+   "modules": [
+    "Servex",
+    ".claude",
+    "framework/ai"
+   ]
+  },
+  {
+   "key": "2026-10-03/sessions-tab-polish",
+   "outcome": "Correction (clarity check): the after-shot's \"$0.00\" is a worktree-preview artifact, not a regression — that checkout can't see the main tree's live session dirs (same gap class as `/ai-logs/`, now named in `doc/decisions.md`). `compute_window()` itself is verified correct ($1482.68 from the main checkout, same window). Real figures show once merged.",
+   "tracked": true,
+   "claude_usd": 14.52,
+   "real_usd": 0,
+   "modules": [
+    "framework/ai"
+   ]
+  },
+  {
+   "key": "2026-10-03/spawn-logs-ask",
+   "outcome": "",
+   "tracked": false,
+   "claude_usd": 0,
+   "real_usd": 0,
+   "modules": []
+  },
+  {
+   "key": "2026-10-03/spend-gate",
+   "outcome": "",
+   "tracked": false,
+   "claude_usd": 0,
+   "real_usd": 0,
+   "modules": [
+    "framework/ai"
+   ]
+  },
+  {
+   "key": "2026-10-03/subcard-columns",
+   "outcome": "Landed on michael/dev — live at [Now → its sub-card](https://monorepo.lew42.workers.dev/framework/ai/2026/10/03/now/your-prompts-refined-live/), [shots](shots-final/).",
+   "tracked": true,
+   "claude_usd": 10.35,
+   "real_usd": 0,
+   "modules": [
+    "framework/ai"
+   ]
+  },
+  {
+   "key": "2026-10-03/topic-cards",
+   "outcome": "Topics are real, clickable sub-cards; the Now card is back in the rail. Details: [readme](/framework/ai2/).",
+   "tracked": true,
+   "claude_usd": 9.05,
+   "real_usd": 0,
+   "modules": [
+    "framework/ai2",
+    "ux/Card"
+   ]
+  },
+  {
+   "key": "2026-10-03/worktree-servers-revive",
+   "outcome": "",
+   "tracked": false,
+   "claude_usd": 0,
+   "real_usd": 0,
+   "modules": []
+  }
+ ],
+ "modules": [
+  {
+   "module": "framework/ai",
+   "tasks": [
+    {
+     "key": "2026-10-03/card-measure-colors",
+     "outcome": "Landed. - [x] widths lab, four arrangements, measured: [/framework/styles/widths/](/framework/styles/widths/) — found the real bug (`.page-content-rows` had no cap outside a `.page` grid) and fixed it in `core/Page/Page.css`, one line"
+    },
+    {
+     "key": "2026-10-03/data-grid",
+     "outcome": ""
+    },
+    {
+     "key": "2026-10-03/day-overview",
+     "outcome": ""
+    },
+    {
+     "key": "2026-10-03/drop-at-key",
+     "outcome": "Four owner passes, one merge — [Item](/framework/core/Item/), [List](/framework/core/List/), [Page](/framework/core/Page/)"
+    },
+    {
+     "key": "2026-10-03/flash-fix",
+     "outcome": "Found and fixed the flash of unstyled content on AI page reloads."
+    },
+    {
+     "key": "2026-10-03/framework-home-grids",
+     "outcome": ""
+    },
+    {
+     "key": "2026-10-03/inbox-cards-work",
+     "outcome": "Ten fixes landed on michael/dev."
+    },
+    {
+     "key": "2026-10-03/layout-gate",
+     "outcome": "Landed — every `<a>` now gets the house link style, not just ones in prose, and `Server/smoke.mjs` fails the merge on text flush against an unpadded edge or anything above a page's title. Commit `a3248c70` on `michael/dev`."
+    },
+    {
+     "key": "2026-10-03/main-branch-guard",
+     "outcome": ""
+    },
+    {
+     "key": "2026-10-03/now-card-blank",
+     "outcome": "The Now card's sections are back, above Topics, and its rail preview never reads empty again. Details, the replay test and the review: [task log](task.jsonl)."
+    },
+    {
+     "key": "2026-10-03/openrouter-reads-cache",
+     "outcome": ""
+    },
+    {
+     "key": "2026-10-03/perf-audit",
+     "outcome": ""
+    },
+    {
+     "key": "2026-10-03/playwright-reap",
+     "outcome": "Every chrome.exe Playwright starts is recognisable and reaped; Servex can check a page's console for you."
+    },
+    {
+     "key": "2026-10-03/pool-unstick",
+     "outcome": ""
+    },
+    {
+     "key": "2026-10-03/push-to-talk",
+     "outcome": "Landed on `michael/dev` (`c25c5a39`). Hold a bound key/mouse combo anywhere on the site, a floating mic (bottom-right) appears and scales with your voice; click it to open the dev shell's chat tab."
+    },
+    {
+     "key": "2026-10-03/restart-keeps-agents",
+     "outcome": ""
+    },
+    {
+     "key": "2026-10-03/sessions-date-homes",
+     "outcome": "Reconciled the Sessions tab with three decisions made since it shipped. [`/framework/ai/sessions/`](/framework/ai/sessions/)"
+    },
+    {
+     "key": "2026-10-03/sessions-tab-polish",
+     "outcome": "Correction (clarity check): the after-shot's \"$0.00\" is a worktree-preview artifact, not a regression — that checkout can't see the main tree's live session dirs (same gap class as `/ai-logs/`, now named in `doc/decisions.md`). `compute_window()` itself is verified correct ($1482.68 from the main checkout, same window). Real figures show once merged."
+    },
+    {
+     "key": "2026-10-03/spend-gate",
+     "outcome": ""
+    },
+    {
+     "key": "2026-10-03/subcard-columns",
+     "outcome": "Landed on michael/dev — live at [Now → its sub-card](https://monorepo.lew42.workers.dev/framework/ai/2026/10/03/now/your-prompts-refined-live/), [shots](shots-final/)."
+    }
+   ]
+  },
+  {
+   "module": ".claude",
+   "tasks": [
+    {
+     "key": "2026-10-03/card-measure-colors",
+     "outcome": "Landed. - [x] widths lab, four arrangements, measured: [/framework/styles/widths/](/framework/styles/widths/) — found the real bug (`.page-content-rows` had no cap outside a `.page` grid) and fixed it in `core/Page/Page.css`, one line"
+    },
+    {
+     "key": "2026-10-03/console-clean",
+     "outcome": "Landed. /framework/ai/live/: console lines 210→1(allowed), same-origin 404s 351→0. All six asks done (checklist and proof in task.jsonl). smoke.mjs now fails merges on a same-origin 404 or >5 unlisted warn/log lines; Server/console-allow.jsonl holds the three known exceptions, each dated and owned."
+    },
+    {
+     "key": "2026-10-03/now-card-blank",
+     "outcome": "The Now card's sections are back, above Topics, and its rail preview never reads empty again. Details, the replay test and the review: [task log](task.jsonl)."
+    },
+    {
+     "key": "2026-10-03/playwright-reap",
+     "outcome": "Every chrome.exe Playwright starts is recognisable and reaped; Servex can check a page's console for you."
+    },
+    {
+     "key": "2026-10-03/prompt-relay-skip-agents",
+     "outcome": "A subagent's report is no longer logged as your prompt. The hook skipped nothing before, so four hand-backs in this tab were saved as your Prompts and refined at about $0.35 each, and your real prompt waited behind them."
+    },
+    {
+     "key": "2026-10-03/push-to-talk",
+     "outcome": "Landed on `michael/dev` (`c25c5a39`). Hold a bound key/mouse combo anywhere on the site, a floating mic (bottom-right) appears and scales with your voice; click it to open the dev shell's chat tab."
+    },
+    {
+     "key": "2026-10-03/sessions-date-homes",
+     "outcome": "Reconciled the Sessions tab with three decisions made since it shipped. [`/framework/ai/sessions/`](/framework/ai/sessions/)"
+    }
+   ]
+  },
+  {
+   "module": "core/Page",
+   "tasks": [
+    {
+     "key": "2026-10-03/card-measure-colors",
+     "outcome": "Landed. - [x] widths lab, four arrangements, measured: [/framework/styles/widths/](/framework/styles/widths/) — found the real bug (`.page-content-rows` had no cap outside a `.page` grid) and fixed it in `core/Page/Page.css`, one line"
+    },
+    {
+     "key": "2026-10-03/console-clean",
+     "outcome": "Landed. /framework/ai/live/: console lines 210→1(allowed), same-origin 404s 351→0. All six asks done (checklist and proof in task.jsonl). smoke.mjs now fails merges on a same-origin 404 or >5 unlisted warn/log lines; Server/console-allow.jsonl holds the three known exceptions, each dated and owned."
+    },
+    {
+     "key": "2026-10-03/drop-at-key",
+     "outcome": "Four owner passes, one merge — [Item](/framework/core/Item/), [List](/framework/core/List/), [Page](/framework/core/Page/)"
+    },
+    {
+     "key": "2026-10-03/inbox-cards-work",
+     "outcome": "Ten fixes landed on michael/dev."
+    },
+    {
+     "key": "2026-10-03/page-no-log",
+     "outcome": "PageLog is gone — Page extends Item directly (e7f5a714)"
+    }
+   ]
+  },
+  {
+   "module": "public",
+   "tasks": [
+    {
+     "key": "2026-10-03/card-measure-colors",
+     "outcome": "Landed. - [x] widths lab, four arrangements, measured: [/framework/styles/widths/](/framework/styles/widths/) — found the real bug (`.page-content-rows` had no cap outside a `.page` grid) and fixed it in `core/Page/Page.css`, one line"
+    },
+    {
+     "key": "2026-10-03/inbox-cards-work",
+     "outcome": "Ten fixes landed on michael/dev."
+    },
+    {
+     "key": "2026-10-03/mention-auto-sync",
+     "outcome": "Landed: `ext/Mention/maps/refs.js`'s icon rebuilds itself. [`Server/plugins/MentionSync.js`](/framework/servex/fs/?file=Server) sits on the dev server's shared watcher and rewrites a changed icon on its own — proved live by flipping `core/Sidebar/page.js`'s icon and watching `refs.js` update within ~2s, no `sync.mjs` run (`task.jsonl`)."
+    },
+    {
+     "key": "2026-10-03/ref-content-rows",
+     "outcome": "Landed: a content row with `ref` draws as that page's own dark class card (#Mention's exact look, reused), linking to it, with the row's own text under it."
+    }
+   ]
+  },
+  {
+   "module": "Server",
+   "tasks": [
+    {
+     "key": "2026-10-03/console-clean",
+     "outcome": "Landed. /framework/ai/live/: console lines 210→1(allowed), same-origin 404s 351→0. All six asks done (checklist and proof in task.jsonl). smoke.mjs now fails merges on a same-origin 404 or >5 unlisted warn/log lines; Server/console-allow.jsonl holds the three known exceptions, each dated and owned."
+    },
+    {
+     "key": "2026-10-03/data-grid",
+     "outcome": ""
+    },
+    {
+     "key": "2026-10-03/day-overview",
+     "outcome": ""
+    },
+    {
+     "key": "2026-10-03/playwright-reap",
+     "outcome": "Every chrome.exe Playwright starts is recognisable and reaped; Servex can check a page's console for you."
+    }
+   ]
+  },
+  {
+   "module": "Servex",
+   "tasks": [
+    {
+     "key": "2026-10-03/inbox-cards-work",
+     "outcome": "Ten fixes landed on michael/dev."
+    },
+    {
+     "key": "2026-10-03/playwright-reap",
+     "outcome": "Every chrome.exe Playwright starts is recognisable and reaped; Servex can check a page's console for you."
+    },
+    {
+     "key": "2026-10-03/prompts-live",
+     "outcome": "The echo refiner was silently dead since this morning — found and fixed. `read_item()` in Echo.js matched the retired line shape; today's wire change broke it with zero error. Fixed, verified live. Added real per-prompt + session cost. A deeper wiring break remains, routed to @mastermind-servex."
+    },
+    {
+     "key": "2026-10-03/sessions-date-homes",
+     "outcome": "Reconciled the Sessions tab with three decisions made since it shipped. [`/framework/ai/sessions/`](/framework/ai/sessions/)"
+    }
+   ]
+  },
+  {
+   "module": "framework/ai2",
+   "tasks": [
+    {
+     "key": "2026-10-03/inbox-cards-work",
+     "outcome": "Ten fixes landed on michael/dev."
+    },
+    {
+     "key": "2026-10-03/now-card-blank",
+     "outcome": "The Now card's sections are back, above Topics, and its rail preview never reads empty again. Details, the replay test and the review: [task log](task.jsonl)."
+    },
+    {
+     "key": "2026-10-03/topic-cards",
+     "outcome": "Topics are real, clickable sub-cards; the Now card is back in the rail. Details: [readme](/framework/ai2/)."
+    }
+   ]
+  },
+  {
+   "module": "core/List",
+   "tasks": [
+    {
+     "key": "2026-10-03/console-clean",
+     "outcome": "Landed. /framework/ai/live/: console lines 210→1(allowed), same-origin 404s 351→0. All six asks done (checklist and proof in task.jsonl). smoke.mjs now fails merges on a same-origin 404 or >5 unlisted warn/log lines; Server/console-allow.jsonl holds the three known exceptions, each dated and owned."
+    },
+    {
+     "key": "2026-10-03/drop-at-key",
+     "outcome": "Four owner passes, one merge — [Item](/framework/core/Item/), [List](/framework/core/List/), [Page](/framework/core/Page/)"
+    }
+   ]
+  },
+  {
+   "module": "core/Item",
+   "tasks": [
+    {
+     "key": "2026-10-03/drop-at-key",
+     "outcome": "Four owner passes, one merge — [Item](/framework/core/Item/), [List](/framework/core/List/), [Page](/framework/core/Page/)"
+    },
+    {
+     "key": "2026-10-03/page-no-log",
+     "outcome": "PageLog is gone — Page extends Item directly (e7f5a714)"
+    }
+   ]
+  },
+  {
+   "module": "framework/design",
+   "tasks": [
+    {
+     "key": "2026-10-03/card-measure-colors",
+     "outcome": "Landed. - [x] widths lab, four arrangements, measured: [/framework/styles/widths/](/framework/styles/widths/) — found the real bug (`.page-content-rows` had no cap outside a `.page` grid) and fixed it in `core/Page/Page.css`, one line"
+    }
+   ]
+  },
+  {
+   "module": "framework/styles",
+   "tasks": [
+    {
+     "key": "2026-10-03/card-measure-colors",
+     "outcome": "Landed. - [x] widths lab, four arrangements, measured: [/framework/styles/widths/](/framework/styles/widths/) — found the real bug (`.page-content-rows` had no cap outside a `.page` grid) and fixed it in `core/Page/Page.css`, one line"
+    }
+   ]
+  },
+  {
+   "module": "ui/datagrid",
+   "tasks": [
+    {
+     "key": "2026-10-03/data-grid",
+     "outcome": ""
+    }
+   ]
+  },
+  {
+   "module": "ext/DataGrid",
+   "tasks": [
+    {
+     "key": "2026-10-03/data-grid",
+     "outcome": ""
+    }
+   ]
+  },
+  {
+   "module": "framework/ui",
+   "tasks": [
+    {
+     "key": "2026-10-03/data-grid",
+     "outcome": ""
+    }
+   ]
+  },
+  {
+   "module": "ext/AITask",
+   "tasks": [
+    {
+     "key": "2026-10-03/day-overview",
+     "outcome": ""
+    }
+   ]
+  },
+  {
+   "module": "ext/drawer",
+   "tasks": [
+    {
+     "key": "2026-10-03/drawer-cleanup",
+     "outcome": "Fixed. Root cause: the closed session-switcher list rendered at ~940px because its `.flex` class beat `[hidden]` — it pushed the composer off-screen and forced the whole body to scroll."
+    }
+   ]
+  },
+  {
+   "module": "core/Task",
+   "tasks": [
+    {
+     "key": "2026-10-03/drop-at-key",
+     "outcome": "Four owner passes, one merge — [Item](/framework/core/Item/), [List](/framework/core/List/), [Page](/framework/core/Page/)"
+    }
+   ]
+  },
+  {
+   "module": "ext/Mention",
+   "tasks": [
+    {
+     "key": "2026-10-03/inbox-cards-work",
+     "outcome": "Ten fixes landed on michael/dev."
+    }
+   ]
+  },
+  {
+   "module": "core/Router",
+   "tasks": [
+    {
+     "key": "2026-10-03/inbox-cards-work",
+     "outcome": "Ten fixes landed on michael/dev."
+    }
+   ]
+  },
+  {
+   "module": "ux/Hotkeys",
+   "tasks": [
+    {
+     "key": "2026-10-03/push-to-talk",
+     "outcome": "Landed on `michael/dev` (`c25c5a39`). Hold a bound key/mouse combo anywhere on the site, a floating mic (bottom-right) appears and scales with your voice; click it to open the dev shell's chat tab."
+    }
+   ]
+  },
+  {
+   "module": "ux/Card",
+   "tasks": [
+    {
+     "key": "2026-10-03/topic-cards",
+     "outcome": "Topics are real, clickable sub-cards; the Now card is back in the rail. Details: [readme](/framework/ai2/)."
+    }
+   ]
+  }
+ ]
+}

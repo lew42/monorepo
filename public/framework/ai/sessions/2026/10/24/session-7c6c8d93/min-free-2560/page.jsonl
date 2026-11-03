@@ -1,0 +1,21 @@
+{"assign":{"now":"running","title":"ai: lower the free-memory floor 4096 -> 2560 MB (owner, priority 1)","brief":"Global.js min_free_mb default and Echo.js floor to 2560; docs updated. Branch worktree/min-free-2560 (3805f1d00)."},"by":"ai-system-mastermind","ts":"2026-10-25T04:22:04.705Z"}
+{"file":"review/"}
+{"file":"review.md"}
+{"file":"task.jsonl"}
+{"file":"review.jsonl"}
+{"inbox":{"id":"n-ctd45vdp","from":"servex-task-loop","text":"min-free-2560 is started but silent: 3 status asks went unanswered. Close it, or keep chasing?","at":"2026-10-24T23:55:09.989-05:00"}}
+{"inbox":{"id":"n-f673fsfq","from":"servex-task-loop","text":"min-free-2560 is started but silent: still no new line on its log. Close it, or keep chasing?","at":"2026-10-25T01:01:07.947-05:00"}}
+{"inbox":{"id":"n-hbkvrfuo","from":"servex-task-loop","text":"min-free-2560 is started but silent: still no new line on its log. Close it, or keep chasing?","at":"2026-10-25T02:01:18.327-05:00"}}
+{"inbox":{"id":"n-jh0dphoy","from":"servex-task-loop","text":"min-free-2560 is started but silent: still no new line on its log. Close it, or keep chasing?","at":"2026-10-25T03:01:30.925-05:00"}}
+{"inbox":{"id":"n-mikc9h7y","from":"servex-task-loop","text":"min-free-2560 is started but silent: still no new line on its log. Close it, or keep chasing?","at":"2026-10-25T04:26:42.297-05:00"}}
+{"inbox":{"id":"n-onqfks6d","from":"servex-task-loop","text":"min-free-2560 is started but silent: still no new line on its log. Close it, or keep chasing?","at":"2026-10-25T05:26:42.704-05:00"}}
+{"inbox":{"id":"n-qswfvyyy","from":"servex-task-loop","text":"min-free-2560 is started but silent: still no new line on its log. Close it, or keep chasing?","at":"2026-10-25T06:26:43.003-05:00"}}
+{"inbox":{"id":"n-sy2krbbj","from":"servex-task-loop","text":"min-free-2560 is started but silent: still no new line on its log. Close it, or keep chasing?","at":"2026-10-25T07:26:43.467-05:00"}}
+{"inbox":{"id":"n-v38qylot","from":"servex-task-loop","text":"min-free-2560 is started but silent: still no new line on its log. Close it, or keep chasing?","at":"2026-10-25T08:26:43.978-05:00"}}
+{"inbox":{"id":"n-x8gzv1q0","from":"servex-task-loop","text":"min-free-2560 is started but silent: still no new line on its log. Close it, or keep chasing?","at":"2026-10-25T09:26:47.179-05:00"}}
+{"inbox":{"id":"n-zdls0tv5","from":"servex-task-loop","text":"min-free-2560 is started but silent: still no new line on its log. Close it, or keep chasing?","at":"2026-10-25T10:26:45.888-05:00"}}
+{"inbox":{"id":"n-1j0ubz1x","from":"servex-task-loop","text":"min-free-2560 is started but silent: still no new line on its log. Close it, or keep chasing?","at":"2026-10-25T11:26:57.923-05:00"}}
+{"inbox":{"id":"n-3sen2qu6","from":"servex-task-loop","text":"min-free-2560 is started but silent: still no new line on its log. Close it, or keep chasing?","at":"2026-10-25T12:30:14.942-05:00"}}
+{"inbox":{"id":"n-5xkqz201","from":"servex-task-loop","text":"min-free-2560 is started but silent: still no new line on its log. Close it, or keep chasing?","at":"2026-10-25T13:30:15.371-05:00"}}
+{"inbox":{"id":"n-84j7wvee","from":"servex-task-loop","text":"min-free-2560 is started but silent: still no new line on its log. Close it, or keep chasing?","at":"2026-10-25T14:31:39.212-05:00"}}
+{"inbox":{"id":"n-a9p8f4ko","from":"servex-task-loop","text":"min-free-2560 is started but silent: still no new line on its log. Close it, or keep chasing?","at":"2026-10-25T15:31:39.519-05:00"}}

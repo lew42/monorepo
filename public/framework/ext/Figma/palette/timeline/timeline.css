@@ -1,0 +1,40 @@
+@layer base, theme, site, util;
+
+@layer theme {
+	.tln-header { display: flex; flex-direction: column; align-items: center; gap: .5em; }
+	.tln-tagline { text-align: center; }
+
+	.tln-row { display: flex; gap: 1em; align-items: start; width: 100%; }
+	.tln-col { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 1em; }
+
+	.tln-timeline-header { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+	.tln-tag { padding: .4em .6em; border-radius: .3em; width: fit-content; }
+
+	.tln-timeline-box { position: relative; width: 100%; height: 382px; overflow: hidden; }
+
+	.tln-row-time { display: flex; gap: .75em; align-items: start; width: 100%; height: 42px; box-sizing: border-box; }
+	.tln-row-time .tln-label { width: 4em; height: 42px; flex-shrink: 0; display: flex; align-items: center; }
+	.tln-line { flex: 1; height: 1px; background: var(--line); align-self: center; }
+
+	.tln-event-card { position: absolute; display: flex; flex-direction: column; overflow: hidden; }
+	.tln-event-header { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+	.tln-accent { color: var(--prime); }
+
+	.tln-now-line { position: absolute; display: flex; gap: .4em; align-items: center; }
+	.tln-now-dot { width: 8px; height: 8px; background: var(--prime); border-radius: 4px; flex-shrink: 0; }
+	.tln-now-bar { flex: 1; height: 2px; background: var(--prime); }
+
+	.tln-pill { padding: .25em .5em; border-radius: 999px; width: fit-content; align-self: flex-start; }
+
+	.tln-avatar { width: 26px; height: 26px; border-radius: 50%; border: 2px solid #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: .7em; }
+	.tln-avatar-stack { display: flex; }
+	.tln-avatar-item:not(:last-child) { margin-right: -6px; position: relative; z-index: 1; }
+
+	.tln-detail-footer { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+	.tln-divider { width: 100%; height: 1px; background: var(--line); }
+
+	.tln-facts { display: flex; flex-direction: column; gap: .5em; width: 100%; }
+	.tln-fact-row { display: flex; gap: .5em; align-items: center; width: 100%; }
+
+	.tln-activity-box { padding: .6em; border-radius: .35em; display: flex; flex-direction: column; gap: .3em; }
+}

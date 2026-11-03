@@ -1,174 +1,489 @@
-import { View, div, h1, a, span, icon, is } from "../View/View.js";
+import { View, div, p, h1, h4, a, span, icon, is } from "../View/View.js";
+import PageFrame from "./Frame.js";
+import Item from "../Item/Item.js";
+import List from "../List/List.js";
+import { track } from "../track/track.js";
+import ai_cost from "./weight/ai-cost.js";
+import PageWork from "./ai/PageWork.js";
+import PageInbox from "./PageInbox.js";
+import PageFilesTab from "./FilesTab.js";
+import PageChildren from "./Children.js";
+import PageLogReader from "./Reader.js";
+import PageListing from "./Listing.js";
+import PageLoad from "./Load.js";
+import PagePrefs from "./Prefs.js";
+import PageRelated from "./Related.js";
+import PagePreviews from "./Previews.js";
+import PageColumns from "./Columns.js";
+import PageLinks from "./Links.js";
+import PageJsonl from "./Jsonl.js";
+import PageContent from "./PageContent.js";
 
-/* css: .pages, .page, .active-page, .active-ancestor, .page-title,
-   .page-link, .page-previews, .page-preview, .page-preview-title */
+// history and reasons: doc/Page-notes.md
+
 View.stylesheet(import.meta, "Page.css");
 
-/* A node: a url, some content, and children declared either way —
- *
- *     children: [intro]        eager — imported with me
- *     children: "intro guide"  lazy  — imported when walked to
- *
- * Both compose at any depth. Design record: core/Page/readme.md.
- */
-export class Page {
+// ⚠ Localhost only, the gate dev/Socket keeps: nothing below may ship behaviour.
+const dev = PageLogReader.dev;   // one localhost test, in Reader.js
+const marked = el => el?.matches(".page.active-page, .page.active-ancestor, .page.default");
 
-	/* Declared so `alias()`'s `if (!(key in this))` guard can see them. Without
-	 * this, a child named `view` or `$pages` overwrote real state and blanked the
-	 * page ON A COLD LOAD ONLY — it worked on a click, because the property had not
-	 * been written yet. */
-	view;          // built once by render(), never rebuilt
-	regions;       // named child -> container, written by tabs()
-	$pages;        // I claim the subtree below me
-	loading;       // load_all_children()'s promise
-	default_tab;   // the first tabs() set owns this page's url
-	parent;        // assigned by add(), the one place
-	app;           // assigned on the walk, in child()
+const ALIAS = { surface: "card", wash: "tint" };
 
+const is_md = url => /\.md(\?|#|$)/i.test(url);
+
+export class Page extends Item {
+
+	// ════ EXTENSIONS, CODE-REGISTERED — Page.use(Ext) runs Ext.setup(page) on EVERY page ═══
+	// ⚠ Nobody calls it by default, so the loop below is empty for a page with no extensions. (doc/jsonl.md)
+	static _ext = [];
+	static use(Ext){ Page._ext.push(Ext); return Page; }
+
+	// ⚠ Nothing is FETCHED here: a module page constructs itself at import. The caller budgets (doc/declaring.md).
 	constructor(...args){
-		this.assign(...args);
+		super(...args);
+		this.hoist_content();
+		this.build_assign(...args);   // again, so args win over Page's own class fields; build_assign: no set(), no line
+		if (!this.data || typeof this.data !== "object" || Array.isArray(this.data)) this.data = Object.create(null);
+		Page.track(this);
 		this.naming();
 		this.declare();
-		this.initialize?.();   // the seam for inline children — add() them here
-
-		console.log(`new ${this.log_label()} — "${this.title}", children [${[...this.children.keys()].join(", ")}]`);
+		Page._ext.forEach(Ext => Ext.setup?.(this));
+		this.initialize?.();
 	}
 
 	assign(...args){ return Object.assign(this, ...args); }
 
+	// Page.replay(lines) in node (the item tool, Page.test.mjs): the lines are only being REPLAYED, so a `file` line records itself and imports nothing.
+	static replay_new(lines){
+		const page = new this();
+		page.store = { replaying: true };
+		return page;
+	}
+
+	// The whole line reaches set(), stamp included, so `jsonl_lines` and the "line" event keep `by`/`ts` (the inbox, the log view).
+	replay_line(line){ return this.set(line); }
+
 	log_label(){ return `page{${this.url ?? "…"}}`; }
 
-	// Idempotent, so construction and adoption cannot produce different objects.
+	// ════ PAGE.JSONL ══════════════════
+
+	settings = { set(obj){ Object.assign(this, obj); } };
+
+	bubbles(){ return false; }
+
+	static new_id(){ return undefined; }
+
+	static fields = ["title", "icon", "description"];
+
+	set(obj){
+		if (Array.isArray(obj)){ for (const one of obj) this.set(one); return this; }
+
+		(this.jsonl_lines ??= []).push(obj);
+		this.emit("line", obj);
+		if (obj && ("by" in obj || "ts" in obj)){ const { by, ts, ...rest } = obj; obj = rest; }   // the writer's stamp: kept in the line above, never page data (Item.replay_line)
+		obj = this.take_words(obj);
+
+		if ("content" in obj){
+			const { content, ...rest } = obj;
+			this.content.fill(content);
+			return super.set(rest);
+		}
+
+		return super.set(obj);
+	}
+
+	// ════ CONTENT — (doc/content.md) ═══
+	get content(){ return this._content ??= new this.constructor.Content({ owner: this, name: "content" }); }
+	set content(value){ this.content.fill(value); }
+
+	// The helpers (Jsonl, Columns, Previews, Links, Related, Prefs) are made once per page, on first use. (doc/architecture.md)
+	// ⚠ Own map, not an inherited one: a Template.clone() reads through to its template and must build its own.
+	_helper(name){
+		const made = Object.hasOwn(this, "_helpers") ? this._helpers : (this._helpers = new Map());
+		if (!made.has(name)) made.set(name, new this.constructor[name]({ page: this }));
+		return made.get(name);
+	}
+
+	hoist_content(){
+		const own = Object.getOwnPropertyDescriptor(this, "content");
+		let method;
+		for (let proto = Object.getPrototypeOf(this); proto && proto !== Page.prototype; proto = Object.getPrototypeOf(proto)){
+			const desc = Object.getOwnPropertyDescriptor(proto, "content");
+			if (desc) { method = desc.value; break; }
+		}
+		if (!own && !method) return;
+
+		Object.defineProperty(this, "content", Object.getOwnPropertyDescriptor(Page.prototype, "content"));
+		if (method) this.content.fill(method);
+		if (own && "value" in own) this.content.fill(own.value);
+	}
+
+	has_content(){ return !!this._content?.drawn; }
+
+	take_content(){ const list = this._content; this._content = undefined; return list; }
+
+	get(key){ return key === "content" ? this.content : super.get(key); }
+
+	lists(){
+		const { _content, ...lists } = super.lists();
+		if (_content?.items.some(item => !item.transient)) lists.content = _content;
+		return lists;
+	}
+
+	get pages(){ return this._pages ??= new List({ owner: this, name: "pages", of: null }); }
+
+	// DEPRECATED (2026-10-28): use `page.pages` (a List). Guide: /framework/core/Page/doc/migration-children-to-pages.md. Remove when: the census (node Server/Deprecated.mjs) shows 0 live `page.children` callers and the docs teach `page.pages`; the config key `children:` is a separate, undecided word.
+	get children(){ return this._children ??= new PageChildren(this); }
+
+	// ⚠ A config `children: […]` is only STAGED here; declare() reads it. A `new Map()` means "forget everything". (doc/watch-out.md)
+	set children(list){
+		if (list instanceof Map){
+			const entries = [...list];
+			[...this.pages].forEach(page => this.pages.release(page));
+			entries.forEach(([name, page]) => this.children.set(name, page));
+			return;
+		}
+		this._raw_children = list;
+	}
+
+	// ════ EXTENSIONS ═══
+	ext(name){
+		const ready = import(new URL(`./ext/${name}/${name}.js`, import.meta.url).href)
+			.then(({ default: Ext }) => Ext.setup?.(this))
+			.catch(error => console.error(`${this.log_label()} — ext("${name}") failed to load:`, error));
+		(this.ext_ready ??= []).push(ready);
+	}
+
+	// ════ PAGE.JSONL HOOKS (Jsonl.js, doc/jsonl.md) ═══
+	file(name){ return this._helper("Jsonl").file(name); }
+	gone(yes){ return this._helper("Jsonl").gone(yes); }
+	child_file(entry){ return this._helper("Jsonl").child_file(entry); }
+	link_child(name){ return this._helper("Jsonl").link_child(name); }
+	unlink_child(key){ return this._helper("Jsonl").unlink_child(key); }
+	tab(obj){ return this._helper("Jsonl").tab(obj); }
+
+	static WORDS = ["navigation", "width", "arrangement", "surface", "background", "type_size"];
+
+	take_words(obj){ return this._helper("Jsonl").take_words(obj); }
+	overlay(line){ return this._helper("Jsonl").overlay(line); }
+
+	reshape(){
+		if (!this.view || this._reshaping) return;
+		this._reshaping = true;
+		queueMicrotask(() => { this._reshaping = false; this.rerender(); });
+	}
+
+	// Draw me again in place, no reload. ⚠ Not `redraw()`: Card already has its own. (doc/watch-out.md)
+	rerender(){
+		const old = this.view?.el;
+		if (!old) return this;
+
+		this.emit("left");
+		this.deactivated?.();
+		const was_default = old.classList.contains("default");
+		Page.views.delete(old);
+		this.view = null; this.regions = null; this._tab_redraws = null; this.default_tab = undefined; this.related_drawn = false;
+
+		this.render();
+		if (was_default) this.view.ac("default");
+		old.replaceWith(this.view.el);
+		globalThis.$page = this;
+		this.emit("entered");
+		this.activated?.();
+
+		const router = this.app?.router, open = router?.chain?.() ?? [];
+		const at = open.indexOf(this);
+		if (at >= 0) open.slice(at + 1).forEach(page => page.activate());
+		if (router?.active) router.mark();
+		return this;
+	}
+
+	tab_state(name){ return this._helper("Jsonl").tab_state(name); }
+	tab_visible(name){ return this._helper("Jsonl").tab_visible(name); }
+	nav_ready(name){ return this._helper("Jsonl").nav_ready(name); }
+	tab_order(name){ return this._helper("Jsonl").tab_order(name); }
+
+	place(value){ return this._helper("Jsonl").place(value); }
+	log_view(){ return this._helper("Jsonl").log_view(); }
+	draw_folder(){ return this._helper("Jsonl").draw_folder(); }
+	log_draw(){ return this._helper("Jsonl").log_draw(); }
+	log_folder(){ return this._helper("Jsonl").log_folder(); }
+	log_redraw(){ return this._helper("Jsonl").log_redraw(); }
+	draw_placed(entry){ return this._helper("Jsonl").draw_placed(entry); }
+	draw_md(url){ return this._helper("Jsonl").draw_md(url); }
+	draw_module(url, data){ return this._helper("Jsonl").draw_module(url, data); }
+	listing(){ return this._helper("Jsonl").listing(); }
+
+	// Every `data` key that is not a declared field. (doc/decisions.md)
+	get unknown(){ return Object.keys(this.data).filter(key => !this.constructor.fields.includes(key)); }
+
+	report_unknown(){ return this._helper("Jsonl").report_unknown(); }
+	log_forget(){ return this._helper("Jsonl").log_forget(); }
+
+	static jsonl(url){ return this.Jsonl.load(this, url); }
+
+	// A folder's own file list: a loaded page's lines, else files.jsonl, else page.jsonl, else null. Memoised per folder. (doc/decisions.md)
+	static listing(url, fresh){ return Page.Listing.listing(Page, url, fresh); }
+
+	// The two files, in the order the parent's listing suggests; the first one there wins.
+	static fetch_listing(url){ return Page.Listing.fetch_listing(Page, url); }
+
+	// A jsonl page already loaded at `url` (jsonl() registers it): its lines, as a listing.
+	static page_listing(url){ return Page.Listing.page_listing(Page, url); }
+
+	// ⚠ Folders inside a dated task folder get no log (PageFiles.js covers()): answer null at once. (doc/watch-out.md)
+	static UNLOGGED = /^\/framework\/ai\/\d{4}-\d\d-\d\d\/[^/]+\/[^/]+\//;
+
+	// The listing, only if it is already here — a loaded jsonl page, or a `listing()`
+	// call that has come back; never fetches.
+	// undefined = not asked yet, null = asked, no file list.
+	static loaded_listing(url){ return Page.Listing.loaded_listing(Page, url); }
+
+	static log_class(module, url){ return this.Jsonl.log_class(this, module, url); }
+
 	naming(){
 		this.url   ??= this.meta ? new URL(".", this.meta.url).pathname
 		             : this.parent && this.name ? this.parent.url + this.name + "/"
+		             : this.title ? "/" + Page.slug(this.title) + "/"
 		             : undefined;
 		this.name  ??= this.url?.split("/").filter(Boolean).at(-1);
-		this.title ??= this.name;
+		// `put()`, not `this.title = …`: a construction-time default is not a change. (doc/decisions.md)
+		if (this.title === undefined) this.put("title", this.name);
+
+		// A page's id is its folder name; new_id() returns undefined on purpose, so this is the only place one is set. (doc/decisions.md)
+		this.id ??= this.name;
+		return this.words();
+	}
+
+	// ════ THE SIX PAGE WORDS ═══
+	words(){
+		this.width      ??= this.room;
+		this.surface     = ALIAS[this.surface]    ?? this.surface;
+		this.background  = ALIAS[this.background] ?? this.background;
 		return this;
 	}
 
-	/* ONE map, name -> Page | null, in declaration order.
-	 *
-	 *   undefined   not a child of mine        -> 404
-	 *   null        declared, not loaded yet   -> import it
-	 *   Page        here                       -> use it
-	 *
-	 * Setting an existing key never moves it, so a name keeps its declared position
-	 * when it resolves.
-	 */
-	declare(){
-		const list = typeof this.children === "string" ? this.children.trim().split(/\s+/)
-		           : this.children ?? [];
+	word_classes(){
+		return [
+			this.navigation  && "page-nav-" + this.navigation,
+			this.arrangement && "page-arr-" + this.arrangement,
+			this.background  && "page-bg-" + this.background,
+			this.type_size   && "page-type-" + this.type_size,
+		].filter(Boolean);
+	}
 
-		this.children = new Map();
+	words_said(){ return !!(this.surface || this.word_classes().length); }
 
-		list.forEach(child => typeof child === "string"
-			? this.children.set(child, null)
-			: this.add(child.name, child));
+	declare(list = this._raw_children ?? []){
+		if (is.fn(list)) { this.child_source = list; list = []; }
+
+		// `children: "Named words auto"` — the word `auto` also adopts every subfolder holding a
+		// page.js / page.jsonl, read from this folder's files.jsonl, alphabetical, after the named
+		// ones. A new page appears with no edit here. doc/indexing-2026-10-08.md.
+		if (is.str(list) && /(^|\s)auto(\s|$)/.test(list)){
+			list = list.replace(/(^|\s)auto(?=\s|$)/, "");
+			this.child_source = async () => [...(await Page.listing(this.url))?.pages.keys() ?? []].filter(name => !this.children.has(name)).sort();
+		}
+
+		const entries = is.str(list) ? list.trim().split(/\s+/)
+		              : is.arr(list) ? list
+		              : Object.entries(list);
+
+		entries.forEach(child => {
+			if (is.str(child)) return this.children.set(this.child_file(child), null);   // "kid/page.jsonl" → kid
+
+			if (!is.arr(child)) {
+				const name = child.name ?? Page.slug(child.title);
+				if (this.children.has(name))
+					console.warn(`${this.log_label()} — two children named "${name}"; only the last survives. Give one an explicit \`name\`.`);
+				return this.add(name, child);
+			}
+
+			const [title, value] = child;
+			const name = Page.slug(title);
+
+			if (value === null) return this.children.set(name, null);
+			if (value instanceof Page) return this.add(name, value.assign({ title: value.title ?? title }));
+			if (is.fn(value) || is.str(value)) return this.add(name, { title, content: value });
+			if (is.pojo(value)) return this.add(name, { title, ...value });
+
+			throw new Error(`children.${title} — got a value, not a function; write ${title}(){ … } so content runs when the page renders`);
+		});
 
 		return this;
 	}
 
-	/* Attach a child. THE one place `parent` is assigned. Four shapes:
-	 *
-	 *   add("alpha", "just some text")              a string IS the content
-	 *   add("alpha", () => p("hi"))                 a content function
-	 *   add("alpha", { title: "A", content(){} })   options
-	 *   add("alpha", new Page({ … }))               a Page you built
-	 *
-	 * The url is MINE plus the name, so an inline page never writes a path and
-	 * moving a parent moves its whole subtree with it.
-	 */
 	add(name, child = {}){
-		// Adoption goes in through the CONSTRUCTOR, not after it: initialize() runs
-		// at the end of it, and an inline page used to reach there with no parent and
-		// therefore no url — so any child IT added computed `undefinedkid/`, silently.
 		const adopt = { name, parent: this, app: this.app };
 
 		const page = child instanceof Page ? child.assign(adopt)
 			: new Page(is.fn(child) || typeof child === "string" ? { content: child } : child, adopt);
 
-		page.naming();
-		this.children.set(name, page);
-		this.alias(name, page);
+		if (this.url) page.move(this.url + name + "/");
 
-		console.log(`${this.log_label()}.add("${name}") → ${page.log_label()}`);
+		page.naming();
+
+		const stub = this.pages.find(name);
+		stub ? this.pages.replace(stub, page) : this.children.put(page);
 		return page;
 	}
 
-	/* What render() READS, which is not the same as what the class assigns above:
-	 * a child named `content` would make a page render THE CHILD as its own
-	 * content, silently, and one named `classes` throws "arg.split is not a
-	 * function". A Set and not more class fields — an instance field shadows a
-	 * prototype method, so `content;` would break every subclass defining one.
-	 */
-	static reserved = new Set(["content", "classes", "col", "icon", "activated", "deactivated"]);
+	move(url){
+		if (this.url === url) return this;
 
-	alias(name, page){
-		const key = name.replaceAll("-", "_");
-		if (!Page.reserved.has(key) && !(key in this)) this[key] = page;
+		this.url = url;
+		this.pages.forEach(child => { if (!child.stub) child.move(url + child.id + "/"); });
+		return this;
 	}
 
-	// [root … me]
 	chain(){
 		const chain = [this];
 		for (let page = this; page.parent; ) chain.unshift(page = page.parent);
 		return chain;
 	}
 
-	/* One url segment -> a page: memory, then the filesystem, then no.
-	 *
-	 * Also the ONE place `app` is handed down — on the walk, to the page about to
-	 * need it. Safe to call twice for the same name before the first resolves: the
-	 * module registry hands both callers the same module.
-	 */
-	async child(name){
+	// ════ ROLES ═══
+	nearest(role){ return this.chain().findLast(page => page.is === role); }
+
+	topic(){ return this.nearest("topic"); }
+	document(){ return this.nearest("document"); }
+
+	// A `children()` function is called ONCE, on the first ask. ⚠ Memoised on `this.sourcing`. (doc/watch-out.md)
+	source_children(){
+		return this.sourcing ??= Promise.resolve(this.child_source.call(this))
+			.then(list => this.declare(list ?? []));
+	}
+
+	async child(name, levels){
+		if (this.child_source) await this.source_children();
+
 		const known = this.children.get(name);
 
-		if (known) return known.assign({ app: this.app });             // here already
+		if (known) return known.assign({ app: this.app }).load_all_children(levels);
 
-		if (known === null){                                           // declared — go get it
-			console.log(`${this.log_label()}.child("${name}") — import("${this.url + name}/page.js")`);
-			const page = await Page.load(this.url + name + "/");
-			return page ? this.add(name, page) : null;
+		if (this.child_kinds?.get(name) === "jsonl") {
+			const page = await Page.jsonl(this.url + name + "/");
+			return page && this.add(name, page).load_all_children(levels);
 		}
 
-		/* Never declared. I may still claim it — route() is how a page owns urls it
-		 * could not list in advance (`/items/42/`). It runs after the DECLARATION and
-		 * before nothing, so a dynamic name costs no doomed 404 and structurally
-		 * cannot shadow a page.js.
-		 *
-		 * `is.fn` and not `?.` — alias() writes a child onto `this` by name, so a
-		 * child called "route" makes `this.route` a Page and `this.route?.(name)`
-		 * throws where it should have 404'd.
-		 */
-		const claimed = is.fn(this.route) && this.route(name);
-		return claimed ? this.add(name, claimed) : null;
-	}
+		if (name === "md" && known === undefined) return this.add(name, await this.md_folder()).load_all_children(levels);
 
-	// A module that throws is NOT a module that isn't there. Swallowing both turns a
-	// syntax error in a page you just wrote into a silent 404.
-	static async load(url){
-		try { return (await import(url + "page.js")).default ?? null; }
-		catch (error){
-			if (!Page.missing(error))
-				console.error(`Page.load("${url}page.js") — the file EXISTS but failed to load:`, error);
-			return null;
+		if (name === "fs" && known === undefined) return this.add(name, await this.fs_folder()).load_all_children(levels);
+
+		if (name === "inbox" && known === undefined && !this.no_inbox) return this.add(name, PageInbox.route(this)).load_all_children(levels);
+
+		const claimed = known === undefined && is.fn(this.route) && this.route(name);
+		if (claimed) return this.add(name, claimed).load_all_children(levels);
+
+		await Page.listing(this.url);   // a child named only in this folder's page.jsonl / files.jsonl (doc/subpages.md)
+		const [listing, docs] = [Page.loaded_listing(this.url), Page.loaded_listing(this.md_dir())];
+		const kind = listing?.pages.get(name);
+		const md = !listing?.folder(name) && docs?.files.includes(name + ".md");
+
+		if (kind === "jsonl") {
+			const page = await Page.jsonl(this.url + name + "/");
+			if (page) return this.add(name, page).load_all_children(levels);
 		}
+
+		if (name === "files" && known === undefined && !this.no_files && !listing?.folder(name)) return this.add(name, PageFilesTab.route(this)).load_all_children(levels);   // <path>/files/: this folder's file list; a real files/ folder or page wins (doc/files.md)
+
+		if (name === "ai" && known === undefined && !kind && !this.no_ai) return this.add(name, await this.ai_page()).load_all_children(levels);   // <path>/ai/: the Sheet about this page; a real ai/ page wins (ext/drawer/doc/sheet.md)
+
+		if (name === "tasks" && kind !== "js") return this.add(name, await this.tasks_folder()).load_all_children(levels);   // a tasks/ with no page.js of its own: no import probe, no 404 (core/Task/readme.md)
+
+		const doc = md && await this.child_md(name, levels);
+		if (doc) return doc;
+
+		const readme = !kind && await this.child_readme(name, listing, levels);   // the listing shows no page.js, so it is not probed (a 404)
+		if (readme) return readme;
+
+		const page = await Page.load(this.url + name + "/", 0);
+		if (page) return this.add(name, page).load_all_children(levels);
+
+		return md ? null : this.child_md(name, levels);
 	}
 
-	static missing(error){
-		return /Failed to fetch dynamically imported module|error loading dynamically imported module|MIME type|Expected a JavaScript/i
-			.test(error?.message ?? "");
+	// A folder with no page.js or page.jsonl but its own readme.md opens as a page showing that readme (doc/subpages.md). Only a folder the parent's listing knows is asked.
+	async child_readme(name, listing, levels){
+		if (!listing?.folder(name)) return null;
+
+		const url = this.url + name + "/", own = await Page.listing(url);
+		if (!own?.files.includes("readme.md")) return null;
+
+		const file = await Page.file(url + "readme.md");
+		if (!file) return null;
+
+		const label = file.title?.split(/\s+[—–]\s+/)[0].replaceAll("`", "") || name;   // the sidebar gets "Events", not the readme's whole first heading
+		const more = own.dirs.includes("doc") || own.files.some(f => f.endsWith(".md") && f !== "readme.md");   // its other .md files get one link to the Markdown Explorer, since a plain Page has no md tab
+		const content = more ? () => file.content().then(doc => doc && doc.append(() => { p.c("muted").append(() => { a("Every .md file in this folder").href(url + "md/"); }); })) : file.content;
+		return this.add(name, { ...file, content, label, folder: url }).load_all_children(levels);
 	}
 
-	/* Where I mount, in order of how specific the claim is:
-	 *
-	 *   1. my parent put ME somewhere        `regions`  — one named child (a tab)
-	 *   2. an ancestor claimed the subtree   `$pages`   — everything below it
-	 *   3. the app                                      — the default, flat
-	 */
+	// ⚠ Imported on first use, like md_folder: core/Task imports Page.
+	async tasks_folder(){
+		const { default: TasksPage } = await import("../Task/TasksPage.js");
+		return new TasksPage({ title: "Tasks", icon: "task_alt" });
+	}
+
+	// ⚠ Imported on first use, like tasks_folder: AIPage extends Page.
+	async ai_page(){
+		const { default: AIPage } = await import("../../ext/drawer/AIPage.js");
+		return AIPage.route(this);
+	}
+
+	async child_md(name, levels){
+		const file = await Page.file(this.md_dir() + name + ".md");
+		return file ? this.add(name, { ...file, folder: this.md_dir() }).load_all_children(levels) : null;
+	}
+
+	// ⚠ Imported on first use: Markdown extends Page, so a static import is a cycle.
+	async md_folder(){
+		const { default: PageMarkdown } = await import("./Markdown.js");
+		return new PageMarkdown({ folder: this.md_dir(), title: "Markdown", name: "md" });
+	}
+
+	// This directory's real files, full screen, at my own `fs/` (`?v=1` is the old view). ⚠ Dynamic import. (doc/decisions.md)
+	async fs_folder(){
+		const v1 = new URLSearchParams(location.search).get("v") === "1";
+		const module = v1 ? "../../ext/files/fs.js" : "../../ext/files/explorer.js";
+		const { default: PageFiles } = await import(module);
+		return new PageFiles({ folder: this.md_dir() });
+	}
+
+	// ════ WHERE A CLICKED LINK OPENS ══
+
+	md_dir(){ return this.folder ?? this.url; }
+
+	open_link(link){ return this._helper("Links").open(link); }
+	swap_link(link){ return this._helper("Links").swap(link); }
+	swap_url(file){ return this._helper("Links").swap_url(file); }
+	md_files(names){ return this._helper("Links").files(names); }
+	static md_page(file){ return this.Links.md_page(file); }
+	static md_file(link){ return this.Links.md_file(link); }
+	static md_url(file){ return this.Links.md_url(file); }
+
+	static views = new WeakMap();
+	static of(el){
+		for (; el; el = el.parentElement) if (Page.views.has(el)) return Page.views.get(el);
+	}
+
+	// Last resort: a `.md` beside me IS a page. ⚠ The SPA fallback answers a miss with index.html at 200: content-type is the 404. (doc/watch-out.md)
+	static file(url){ return Page.Load.file(Page, url); }
+
+	// A module that throws is NOT a module that isn't there. ⚠ `levels` bounds its subtree (nothing = its own `depth`). (doc/watch-out.md)
+	static load(url, levels){ return Page.Load.load(Page, url, levels); }
+
+	// ⚠ The SPA fallback answers a miss with index.html at 200: content-type is the 404. `opts` goes to fetch. (doc/decisions.md)
+	static read_json(url, opts){ return Page.Load.read_json(Page, url, opts); }
+
+	static from(source, adopt){ return this.Load.from(this, source, adopt); }
+
+	static props(data, mode){ return Page.Load.props(Page, data, mode); }
+
+	static missing(error){ return Page.Load.missing(Page, error); }
+
+	static slug(title){ return Page.Load.slug(Page, title); }
+
 	container(){
 		const mine = this.parent?.regions?.get(this.name);
 		if (mine) return this.mounts_in(mine, `region of ${this.parent.log_label()}`);
@@ -179,182 +494,220 @@ export class Page {
 		return this.mounts_in(this.app.$pages, "app.$pages");
 	}
 
-	// container() is the one step a reader of THIS file cannot see — a parent it
-	// never mentions decides where it lands. So the choice is logged rather than
-	// silent.
-	mounts_in(view, claim){
-		console.log(`${this.log_label()}.container() → ${claim}`);
-		return view;
-	}
+	mounts_in(view, claim){ return view; }
 
-	// Placement, and nothing else. Router.activate() calls this root-to-leaf over
-	// the entering slice, so my ancestors — and their regions — already exist.
 	activate(){
+		// The page streams started during render/activated belong to (ext/JSONL/live.js drops them on "left").
+		globalThis.$page = this;
 		const container = this.container();
 
 		if (this.render().el.parentNode !== container.el)
 			container.append(this.view);
 
+		// ⚠ The fallback for a page whose own render() replaced this class's (ext/Doc): related still draws. (doc/watch-out.md)
+		if (this.related && !this.related_drawn)
+			this.view.append(() => { this.related_aside(); });
+
+		this.emit("entered");
 		this.activated?.();
+		this.column_host()?.reveal_column(this);
+		this.warn_if_hidden();
 		return this;
 	}
 
-	// Router drops my classes a moment later and CSS takes me off screen, so there
-	// is nothing to undo by default. `activated()`/`deactivated()` are yours, for
-	// PAGE-LOCAL things — a timer, a focus, a <video> to release.
+	// Dev only: an unmarked .page is display:none and nothing throws, so say so. (doc/api.md)
+	warn_if_hidden(){
+		if (!dev) return;
+
+		queueMicrotask(() => {
+			if (marked(this.view.el) || [...this.view.el.parentNode?.children ?? []].some(marked)) return;
+
+			console.warn(`${this.log_label()} was placed with no mark, so the arrangement contract hides it — add \`default\`, or route to it.`);
+		});
+	}
+
 	deactivate(){
+		this.emit("left");
 		this.deactivated?.();
+
+		// ⚠ Going UP the chain activates nothing, so the columns host is told here. (doc/decisions.md)
+		const host = this.column_host();
+		if (host && host !== this) host.reveal_column(this.parent);
+
 		return this;
 	}
 
-	// built once, so nothing is ever thrown away and rebuilt
+	in_doc(){
+		return this.chain().slice(0, -1).some(page => {
+			const cls = page.view?.el?.classList;
+			return cls?.contains("doc-page") || cls?.contains("doc-section");
+		});
+	}
+
 	render(){
 		if (this.view) return this.view;
 
-		console.groupCollapsed(`${this.log_label()}.render() — first build`);
+		const host = this.column_host();
+		if (host) return this.render_column(host);
 
-		this.view = div.c("page", () => {
+		this.view = div.c("page flow", () => {
 			if (this.title) h1.c("page-title", this.title);
-			// a function builds; anything else IS the content — a string, a view, an
-			// array. The capture callback's return value is appended.
-			return is.fn(this.content) ? this.content() : this.content;
-		})
-			.ac(this.name && "page-" + this.name)   // style THIS page
-			.ac(this.col)                            // per-page column width
-			.ac(this.classes);                       // style pages LIKE this one
 
-		console.groupEnd();
+			// A page that said any of the six words gets a Frame (Frame.js). ⚠ `page-frame-page` marks THIS frame as the page's own. (doc/watch-out.md)
+			if (this.words_said()) return void new this.constructor.Frame({ page: this }).ac("page-frame-page");
+
+			return this.render_content();
+		})
+			.ac(this.name && "page--" + this.name)
+			.ac(this.width && !this.column_host() && "page-w-" + this.width)
+			.ac(...this.word_classes())
+			.ac(this.classes ?? "standard");
+
+		// ⚠ Appended, not woven into the callback above: those branches return their own value on purpose. (doc/watch-out.md)
+		if (this.related) this.view.append(() => { this.related_aside(); });
+		if (this.title && this.url) this.view.append(() => {
+			span.c("page-ai-cost muted").append(ai_cost(this.url).then(c => {
+				if (!c || !(c.usd > 0)) return undefined;
+				return a(`$${c.usd.toFixed(2)} of AI work · ${c.tasks} task${c.tasks === 1 ? "" : "s"}`)
+					.href(`/framework/ai/log/?page=${encodeURIComponent(this.url)}`);
+			}));
+		});
+
+		if (this.title && this.url) this.view.append(() => { span.c("page-open").append(PageWork.line(this.url)); });
+
+		if (this.title && this.url && !this.no_inbox) this.view.append(() => { span.c("page-inbox-chip").append(PageInbox.chip(this)); });
+
+		if (this.title && this.url && !this.no_files) this.view.append(() => { span.c("page-files-chip").append(PageFilesTab.chip(this)); });
+
+		Page.views.set(this.view.el, this);
+		this.emit("render", this.view);
 		return this.view;
 	}
 
-	// navigate to me — the programmatic twin of clicking my link()
-	go(){ return this.app.router.go(this.url); }
+	render_content(){ return this.content.render(); }
+
+	render_content_list(list = this.content){ return new this.constructor.Content.View({ list, page: this, box: true }).result; }
+
+	// ⚠ A loop fuse: two levels draw, the third is a link. (doc/decisions.md)
+	content_at(url){
+		const level = (this.content_level ?? 0) + 1;
+
+		if (level > 2) return a.c("page-link", "Open " + url + " on its own").href(url);
+
+		return div.c("page-content-at", $box => {
+			$box.append(() => { p.c("muted", "Reading " + url + "…"); });
+
+			(is_md(url) ? Page.file(url) : Page.from(url))
+				.then(source => $box.empty(() => { this.drew_content(source, url, level); }))
+				.catch(() => $box.empty(() => { this.drew_content(null, url, level); }));
+		});
+	}
+
+	drew_content(source, url, level){
+		if (!source) return p.c("muted", "Nothing could be read at " + url + ".");
+
+		const page = source instanceof Page ? source : new Page(source);
+		page.content_level = level;
+		return page.render().ac("default");
+	}
 
 	link(text){ return a.c("page-link", text ?? this.title).href(this.url); }
 
-	/* How I present a child in navigation, answerable WITHOUT importing it.
-	 *
-	 *     nav: { start: "Start here" }                   // just a label
-	 *     nav: { core: { label: "Core", icon: "grid" } } // and an icon
-	 *
-	 * Three sources, weakest first: the segment, then the child's own `title` and
-	 * `icon` once it is imported, then whatever I declare here. So an icon lives on
-	 * the page it belongs to — change it once and every menu follows — and a parent
-	 * that needs a different word for one menu still has the last say.
-	 *
-	 * Synchronous, and it must stay that way: awaiting child() here would import
-	 * every declared child just to read its title. `load_all_children()` is the
-	 * explicit way to buy that.
-	 */
+	crumbs(from){
+		const chain = this.chain(), start = Math.max(chain.indexOf(from), 0);
+
+		return div.c("page-crumbs", () => chain.slice(start).forEach((page, i) => {
+			if (i) icon("chevron_right");
+			page.link();
+		}));
+	}
+
+	// ════ RELATED ═══
+	related_aside(){ return this._helper("Related").aside(); }
+
+	// ════ COLUMNS ═══
+	columns({ even = false, fit = "floor" } = {}){ this.columnar = true; this.column_even = even; this.column_fit = fit; return this; }
+
+	column_floor = 96;
+
+	// Asked at render time, never walked. ⚠ A page under a tab strip is a tab, not a column. (doc/decisions.md)
+	column_host(){
+		// `navigation: "columns"` is the word for calling `columns()`: the first time a render asks, it does.
+		const chain = this.chain(), at = chain.findIndex(page => page.columnar || page.navigation === "columns" && page.columns().columnar);
+		if (at < 0 || chain.slice(at, -1).some(page => page.navigation === "tabs")) return undefined;
+		return chain[at];
+	}
+
+	render_column(host){ return this._helper("Columns").render(host); }
+	column(host){ return this._helper("Columns").body(host); }
+	default_column(){ return this._helper("Columns").default(); }
+	column_grab($body){ return this._helper("Columns").grab($body); }
+	resize_column($body, px){ return this._helper("Columns").resize($body, px); }
+	static even_columns(row, fit){ return this.Columns.even(row, fit); }
+	even_columns(){ return this._helper("Columns").even(); }
+	settle_columns(slide){ return this._helper("Columns").settle(slide); }
+	column_slide(){ return this._helper("Columns").slide(); }
+	reveal_column(page){ return this._helper("Columns").reveal(page); }
+	scroll_column(slide){ return this._helper("Columns").scroll(slide); }
+
+	nav(){ return { url: this.url, label: this.label ?? this.title, icon: this.icon, card: this.card, description: this.description }; }
+
 	nav_for(name){
 		const child = this.children.get(name);
-		const entry = this.nav?.[name];
 
-		return {
-			url: this.url + name + "/",
-			label: child?.title ?? name,
-			icon: child?.icon,
-			...(is.str(entry) ? { label: entry } : entry),
-		};
+		return { ...child?.nav(), url: this.url + name + "/", label: child?.label ?? child?.title ?? name };
 	}
 
-	// A card per child. Real titles and icons if this page opted into
-	// load_all_children() — the Router waited for it before rendering me — and
-	// bare declared names forever if it stayed lazy: the honest, visible cost.
-	previews(){
-		return div.c("page-previews", () => this.cards());
+	// ════ PREVIEWS ═══
+	previews(pages, opts){ return this._helper("Previews").list(pages, opts); }
+	walls(){ return this._helper("Previews").walls(); }
+	wall_rungs(){ return this._helper("Previews").rungs(); }
+
+	preview(nav){ return this.preview_card(nav); }
+	preview_card(nav = this.nav(), thumb){ return this._helper("Previews").card(nav, thumb); }
+	preview_thumb(thumb){ return this._helper("Previews").thumb(thumb); }
+	preview_link(nav){ return this._helper("Previews").link(nav); }
+
+	depth = 2;
+	loaded = 0;
+
+	// My children fetched, and theirs, until the budget runs out. ⚠ Idempotent; a `leaf` child spends none of it. (doc/watch-out.md)
+	load_all_children(levels = this.depth){
+		if (levels <= this.loaded) return this;
+		this.loaded = levels;
+
+		// ⚠ The guard above is why the wait belongs here in core (no "Chaining cycle detected for promise"). (doc/decisions.md)
+		const walk = () => Promise.all([...this.children.keys()].map(name =>
+			this.child(name, 0).then(child => child?.load_all_children(child.leaf ? 0 : levels - 1).loading)));
+
+		this.loading = this.child_source ? this.source_children().then(walk) : walk();
+
+		return this;
 	}
 
-	// one card per child, into whatever is capturing
-	cards(){
-		this.children.forEach((page, name) => {
-			const nav = this.nav_for(name);
-
-			a.c("page-preview").href(nav.url).append(() => {
-				if (nav.icon) icon(nav.icon);
-				span.c("page-preview-title", nav.label);
-			});
-		});
-	}
-
-	preview(){ return a.c("page-preview", this.title).href(this.url); }
-
-	/* Import every declared child — the opt-out of laziness, and the reason to want
-	 * it is that titles and icons then live on the pages themselves instead of being
-	 * repeated by every menu that lists them. Call it from initialize().
-	 *
-	 * Each child's own `loading` is awaited too, so opt-ins COMPOSE: this promise
-	 * means "my opted-in subtree is ready", however deep the opt-ins go — and a
-	 * child that stayed lazy stays lazy. Router.load() awaits the chain's `loading`
-	 * before activating, so a page draws once, with real titles, never
-	 * names-then-sharpen.
-	 */
-	load_all_children(){
-		return this.loading = Promise.all([...this.children.keys()]
-			.map(name => this.child(name).then(child => child?.loading)));
-	}
-
-	/* A bar of links, and the panel those children mount into. Returns the view, so
-	 * you place it and class it:
-	 *
-	 *     this.$tabs = this.tabs("what why").ac("vertical");
-	 *
-	 * Which children are tabs is decided HERE, at placement — not marked on the
-	 * child — so a page can have several sets, and a child in none of them renders
-	 * wherever it would have anyway.
-	 *
-	 * The first tab's link is THIS page's url, not the child's, so /tabs/ is the
-	 * default tab rather than a second url showing the same thing. Only the FIRST
-	 * set can do that; a second tabs() on the same page is ordinary.
-	 */
-	tabs(names){
-		const list = names ? names.trim().split(/\s+/) : [...this.children.keys()];
-		const owns_url = !this.default_tab && (this.default_tab = list[0]);
-		let $bar, $panel;
-
-		// placed NOW, while the captor is still ours; filled once the first tab lands
-		const $tabs = div.c("tabs", () => {
-			$bar = div.c("tab-bar");
-			$panel = div.c("tab-panel");
-		});
-
-		this.regions ??= new Map();
-		list.forEach(name => this.regions.set(name, $panel));
-
-		// The first tab is always loaded so it can show its title. The rest stay
-		// NAMES unless load_all_children() was called: a label that appears only when
-		// you happen to have visited that tab is the bar-reads-differently bug.
-		const label = (name, i) => {
-			if (this.nav?.[name]) return this.nav_for(name).label;
-
-			const page = this.children.get(name);
-			return (this.loading || i === 0) && page?.title ? page.title : name;
-		};
-
-		const filling = Promise.resolve(this.loading ?? this.child(list[0])).then(() => {
-			// `tab-default` marks the one whose href is MY url. Every sibling url
-			// starts with it, so mark_links() gives it `.in-path` on every tab in the
-			// set — true, and the wrong signal for a flat bar. CSS reads the class;
-			// the knowledge stays here, where `owns_url` is known.
-			$bar.append(() => list.forEach((name, i) =>
-				a.c("tab", label(name, i))
-					.ac(owns_url && !i && "tab-default")
-					.href(owns_url && !i ? this.url : this.url + name + "/")));
-
-			// EVERY set renders its default, so no panel is ever blank. Which one
-			// shows is read entirely off the url, so a reload reproduces a click.
-			const first = this.children.get(list[0]);
-			if (first) $panel.append(first.render().ac("default"));
-
-			// these links were built after mark() ran, so they missed the pass
-			this.app?.router?.mark_links();
-		});
-
-		// so a cold load waits for the bar instead of painting an empty one
-		this.app?.loaders.push(filling);
-
-		return $tabs;
-	}
+	prefs(){ return this._helper("Prefs"); }
 }
+
+// The box the six page words open. ⚠ `PageFrame`, never `Frame`/`Stage`: View.classify() mints a CSS class from the name. (doc/watch-out.md)
+Page.Frame = PageFrame;
+
+Item.register(Page, "Page");
+
+Page.Reader = PageLogReader;
+Page.Listing = PageListing;
+Page.Load = PageLoad;
+Page.Prefs = PagePrefs;
+Page.Jsonl = PageJsonl;
+Page.Content = PageContent;
+PageJsonl.Page = Page;
+Page.Related = PageRelated;
+Page.Previews = PagePreviews;
+Page.Columns = PageColumns;
+Page.Links = PageLinks;
+Page.Inbox = PageInbox;
+Page.FilesTab = PageFilesTab;
+PageFilesTab.Page = Page;
+
+track(Page);
 
 export default Page;

@@ -1,0 +1,31 @@
+{
+ "id": "a918a36c-3d7d-404a-a944-a8653ae5adee",
+ "first": "2026-10-15T01:15:07.275Z",
+ "last": "2026-10-15T01:15:39.656Z",
+ "models": {
+  "claude-sonnet-5-5": 1
+ },
+ "sizes": {
+  "raw": 88495,
+  "content": 73,
+  "stripped": 73,
+  "owner_only": 0
+ },
+ "usd": 0.110846,
+ "usd_main": 0.110846,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 2,
+  "output": 16,
+  "cache_read": 20671,
+  "cache_write": 26637,
+  "w5": 0,
+  "w1": 26637
+ },
+ "messages": 1,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "Ready. Send the quick-fix request.",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.354Z"
+}

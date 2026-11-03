@@ -1,0 +1,20 @@
+diff --git a/Servex/Heartbeat.js b/Servex/Heartbeat.js
+index cbf0d283..8cf00aeb 100644
+--- a/Servex/Heartbeat.js
++++ b/Servex/Heartbeat.js
+@@ -1,6 +1,7 @@
+ import fs from "fs";
+ import path from "path";
+ import { place, stamp } from "./home.js";
++import Budget from "./Budget.js";
+ 
+ /* THE HEARTBEAT — a task's owner that goes quiet is asked how it is doing; one
+  * that died is revived; only when that fails does the owner of the machine hear.
+@@ -128,6 +129,7 @@ export default class Heartbeat {
+             }
+             await this.gate_sweep(now);
+             await this.drain(now);
++            if (!process.env.SERVEX_NO_BUDGET) await (this.budget ??= new Budget({ heartbeat: this })).sweep().catch(e => this.servex.say?.(`budget: ${e.message || e}`));
+         } finally { this.busy = false; }
+     }
+ 

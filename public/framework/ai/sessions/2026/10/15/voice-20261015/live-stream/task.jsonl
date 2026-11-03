@@ -1,0 +1,15 @@
+{"assign":{"session_id":"1ca12342-e4c3-4850-9f4d-f4530891e4a8","agent":"helper-live-stream","card":"2026/10/15/voice-session-2026-10-15-18-41","model":"claude-sonnet-5-5","parent_task":"public/framework/ai/sessions/2026/10/15/voice-20261015","requested_at":"2026-10-15T18:52:17-05:00","now":"starting","steps":[],"step":1}}
+{"log":{"at":"2026-10-15T18:52:50-05:00","msg":"skill: minion"}}
+{"log":{"at":"2026-10-15T18:52:50-05:00","msg":"skill: code"}}
+{"action":{"at":"2026-10-15T18:54:46-05:00","did":"edit","files":["public/live/Live.js"]}}
+{"action":{"at":"2026-10-15T18:54:50-05:00","did":"edit","files":["public/live/Live.css"]}}
+{"log":{"at":"2026-10-15T18:55:39-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-15T18:55:39-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-15T18:59:36-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-15T19:05:32-05:00","heartbeat":"check","msg":"status check sent to helper-live-stream"}}
+{"log":{"at":"2026-10-15T19:05:35-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-15T19:06:11-05:00","msg":"landed 21dce95ce on michael/dev (public/live only): tab self-reload when Live.js changes, edit-by-id, JSON pretty-print and pre-wrap. Earlier fix b0e536c42 was already in. Phone tab ran pre-fix code and needs one manual refresh. No Servex restart needed. Edited in the main tree (all worktrees taken), so merge.mjs was not run."}}
+{"assign":{"landed_at":"2026-10-15T19:06:11-05:00"}}
+{"log":{"at":"2026-10-15T19:06:13-05:00","msg":"landing refused: landed_at has no outcome. Append {\"assign\": {\"outcome\": \"…\"}}."}}
+{"assign":{"at":"2026-10-15T19:06:17-05:00","outcome":"**Open /live tabs now reload themselves when the page code changes** — the phone was running pre-fix code (the earlier fix b0e536c42 was already in), so it needs one manual refresh. Also fixed: cards edited by id update in place, JSON code blocks are indented, other code wraps. Commit 21dce95ce on michael/dev, public/live only; no Servex restart needed; merge.mjs not run because all worktrees were taken."}}
+{"log":{"at":"2026-10-15T19:06:19-05:00","heartbeat":"answered","msg":"The outcome line is now in the task log, so the task counts as landed. The `/live` fix is committed on `michael/dev` as `21dce95ce`, and the phone needs one manual refresh."}}

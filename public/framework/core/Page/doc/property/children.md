@@ -1,0 +1,74 @@
+> **Old way (deprecated 2026-10-28):** this page teaches or uses `page.children`; the replacement is `page.pages` (a List). Guide: [migration-children-to-pages.md](/framework/core/Page/doc/migration-children-to-pages.md).
+
+Declared children: **which ones, and in what order.**
+
+```js
+children: "intro guide api"     // folder names, in menu order
+```
+
+**Usage** — read by `declare()` in the constructor (`Page.class.js:32`), which
+turns it into a Map; from then on every reader uses the Map —
+`load_all_children()` (`:194`), `child()` (`:69`), `nav_for()` (`:157`),
+`previews()` (`:165`), `ext/tabs` (`framework/ext/tabs/tabs.js:18,35,45`),
+`ext/Doc` (`framework/ext/Doc/Doc.js:114`). Declared on ~60 pages.
+
+**Necessity** — yes, for the one job a filesystem cannot do: **order**. `api` before
+`guide` before `intro` is alphabetical, and alphabetical is not a curriculum.
+
+It is **not** registration. `child()` falls through `route()` to a filesystem probe,
+so an undeclared folder still resolves — *forgetting to declare costs the menu entry,
+not the url.* See the [Children](/framework/core/Page/old/children/) guide, which is this
+property's long form.
+
+**Simplicity** — one line, five accepted shapes: a space-separated string, an array
+of names, an array of Pages or option objects, **a plain object keyed by title**, and
+**a function** that answers with any of those, or a promise of one.
+An option object in the array form derives its `name` from `Page.slug(title)` when
+it declares no `name` of its own — `overview: [{ title: "A", … }, { title: "B", … }]`
+without a `name:` on either still gets two distinct cards.
+
+```js
+children: {
+    HTML(){ md("…"); },                          // a function is content
+    CSS: { icon: "palette", content(){ … } },    // an object is options
+    JS: null,                                    // declared only, like a bare name
+}
+```
+
+## A function, when the children live in data
+
+```js
+children(){ return fetch("/my/tree.json").then(r => r.json()).then(tree => tree.pages); }
+```
+
+Core stores the function and calls it **once**, the first time anyone asks for a child —
+the Router walking into a deep url, or someone landing on the page itself — then declares
+whatever it answered with. Nothing is fetched at import, and a page that declares its
+children the ordinary way pays nothing for this. `../method/source_children.md`, and the
+record is `../data-children.md`.
+
+The key **is** the title, and `Page.slug(key)` is the url segment — the same
+derivation `naming()` makes for a standalone page, so `HTML` lands at `…/html/`.
+A `title:` inside an object value wins over the key. Three warts:
+
+> **The property is a Map-shaped view.** You write a string/array/object and read
+> back a `PageChildren` instance (`extends Map`). The real underlying storage is
+> `this.pages: List` (see [`doc/property/pages.md`](./pages.md)); `children` provides
+> the Map interface (`get`, `has`, `set`, `delete`, iteration) so legacy callers remain
+> completely unchanged. `[...this.children.keys()]` or `[...this.pages]` is the idiom.
+
+> **Integer-like keys jump to the front.** JS hoists `"1"`, `"2"`, `"10"` above
+> every other key and sorts them numerically, whatever order you wrote — and this
+> repo has numeric page names. A POJO that mixes them silently reorders your menu;
+> use the string or array form for those.
+
+> **A value must be deferred.** `JS: md("…")` calls `md()` at *declaration* time,
+> under whatever captor was current — the synchronous-capture trap in value
+> position. `declare()` throws on anything that is not a function, string, plain
+> object, `Page` or `null`. Write `JS(){ md("…") }`.
+
+Declared children are imported **before the page draws**, which is what lets a menu
+draw once with real titles and icons — but only `depth` levels of them, and the
+constructor fetches none. A page states how far its own render reaches
+(`depth: 2` by default, `1` for a card wall, `0` for none) and navigating into a
+child is what deepens it. `../declaring.md`.

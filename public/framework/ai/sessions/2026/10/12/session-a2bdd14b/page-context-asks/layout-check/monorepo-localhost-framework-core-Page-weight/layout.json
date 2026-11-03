@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/core/Page/weight/",
+ "widths": {
+  "1280": {
+   "empty": 0.506,
+   "widest_text": 846,
+   "widest_text_sample": "1. Main navigation — weight ≥ 1 is liste",
+   "overflow_x": false,
+   "items": 131,
+   "narrow_share": 0.458
+  },
+  "1920": {
+   "empty": 0.615,
+   "widest_text": 962,
+   "widest_text_sample": "1. Main navigation — weight ≥ 1 is liste",
+   "overflow_x": false,
+   "items": 131,
+   "narrow_share": 0.863
+  },
+  "2560": {
+   "empty": 0.651,
+   "widest_text": 1083,
+   "widest_text_sample": "1. Main navigation — weight ≥ 1 is liste",
+   "overflow_x": false,
+   "items": 131,
+   "narrow_share": 0.916
+  },
+  "3440": {
+   "empty": 0.728,
+   "widest_text": 1083,
+   "widest_text_sample": "1. Main navigation — weight ≥ 1 is liste",
+   "overflow_x": false,
+   "items": 131,
+   "narrow_share": 0.931
+  }
+ },
+ "errors": []
+}

@@ -1,0 +1,1 @@
+The shared shape every `audio/` class is built on: an assign-based constructor and a `.view` that falls back to the framework's default object view, so any part (MicStream, Recorder, Recite, Voice…) can be dropped straight into a page. A class gets a look of its own by declaring `Klass.View`.

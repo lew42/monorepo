@@ -1,0 +1,80 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Chat view mockup: one bubble per prompt, context cards with cites</title>
+<style>
+	body{font:15px/1.45 system-ui,sans-serif;margin:0;background:#f4f4f2;color:#222}
+	main{max-width:900px;margin:1.2rem auto;padding:0 1rem;display:grid;gap:1.2rem}
+	h1{font-size:1.1rem;margin:0}
+	.note{color:#666;font-size:.85rem;margin:0}
+	.bubble{background:#fff;border:1px solid #d8d8d4;border-radius:14px;padding:.9rem 1rem;display:grid;gap:.7rem}
+	.head{display:flex;gap:.8rem;align-items:baseline;justify-content:space-between}
+	.head strong{font-size:1.05rem}
+	.score{white-space:nowrap;font-size:.8rem;border-radius:99px;padding:.15rem .6rem;background:#dff3e3;color:#165c26}
+	.score.low{background:#fbe9c9;color:#7a4b00}
+	.words{margin:0;color:#444;font-size:.9rem;border-left:3px solid #ddd;padding-left:.7rem}
+	.cards{display:grid;gap:.5rem}
+	.card{border:1px solid #d8d8d4;border-radius:10px;overflow:hidden;display:grid;grid-template-columns:9.5rem 1fr}
+	.mod{background:#eef1f7;padding:.5rem .6rem;font-size:.8rem;display:flex;gap:.4rem;align-items:flex-start}
+	.mod b{display:block;font-size:.85rem}
+	.mod i{font-style:normal;font-size:1.2rem;line-height:1}
+	.body{padding:.5rem .7rem;display:grid;gap:.25rem}
+	.kind{font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;color:#777}
+	.kind em{font-style:normal;border-radius:4px;padding:.05rem .35rem;margin-left:.3rem;text-transform:none;letter-spacing:0}
+	.task{background:#dce8fb;color:#1c3f7a}.answered,.documented{background:#dff3e3;color:#165c26}.open{background:#fbe9c9;color:#7a4b00}.none{background:#eee;color:#555}
+	.cite{font-size:.78rem;color:#2a5db0;text-decoration:underline;cursor:pointer;width:max-content}
+	.raw{background:#fffbe6;border:1px dashed #d9c75a;border-radius:8px;padding:.45rem .7rem;font-size:.82rem}
+	.raw mark{background:#ffe97a}
+	.nested{font-size:.8rem;color:#666}
+	.legend{font-size:.8rem;color:#555;display:grid;gap:.15rem}
+</style>
+<main>
+	<div><h1>Session chat view (mockup, real data from prompt 76cbf230)</h1>
+	<p class="note">Today's Coverage tab, re-dressed: a bubble per prompt, a heading the AI wrote, context cards wrapped in the module they concern, S-cites that open the raw sentences, a coverage score per prompt.</p></div>
+
+	<section class="bubble">
+		<div class="head"><strong>Every sentence of a prompt tagged; prompt relay; full coverage</strong><span class="score">100% of 126 sentences cited</span></div>
+		<p class="words">“Okay, so the automatic hook… I asked for the refinement system… What if we loosen that 1 to 3 asks… (125 sentences)”</p>
+		<div class="cards">
+			<div class="card"><div class="mod"><i>&#9881;</i><span><b>ext/Refine</b>prompt records</span></div><div class="body">
+				<div class="kind">ask <em class="task">task</em></div>
+				<div>Loosen the wording that caps main asks at 1 to 3; condensing loses the essence.</div>
+				<a class="cite">S16–19</a></div></div>
+			<div class="card"><div class="mod"><i>&#9881;</i><span><b>ext/Refine</b>prompt records</span></div><div class="body">
+				<div class="kind">ask <em class="task">task</em></div>
+				<div>Refinement must cover every sentence of each raw prompt, every item tagged to at least one.</div>
+				<div class="nested">+ 9 details: rule (S53–54), 4 questions, 3 ideas, 2 asks</div>
+				<a class="cite">S55–56</a></div></div>
+			<div class="card"><div class="mod"><i>&#128172;</i><span><b>ai/sessions</b>session page</span></div><div class="body">
+				<div class="kind">ask <em class="task">task</em></div>
+				<div>Add a chat view per session: refined prompts as bubbles, click through each to its raw sentences.</div>
+				<div class="nested">+ 8 details: headings, context cards, hierarchical content, typed instances</div>
+				<a class="cite">S94–119</a></div></div>
+			<div class="card"><div class="mod"><i>&#9881;</i><span><b>ai</b>role process</span></div><div class="body">
+				<div class="kind">idea <em class="documented">documented</em></div>
+				<div>Voice tab forwarding to an SDK mastermind: for (one system, local tools, phone dictation), against (two contexts, role coordination).</div>
+				<a class="cite">S23–48</a></div></div>
+			<div class="card"><div class="mod"><i>&#128295;</i><span><b>hooks</b>prompt-relay</span></div><div class="body">
+				<div class="kind">question <em class="answered">answered</em></div>
+				<div>Is the automatic hook a repo-level Claude setting? Can the relay be turned on and off?</div>
+				<a class="cite">S0–2, S49</a></div></div>
+			<div class="card"><div class="mod"><i>&#128220;</i><span><b>CLAUDE.md</b>rules</span></div><div class="body">
+				<div class="kind">rule <em class="open">open</em></div>
+				<div>Do not run the hook system and manual agent refinement at once.</div>
+				<a class="cite">S3</a></div></div>
+		</div>
+		<div class="raw"><b>After clicking “S55–56”:</b> <mark>S55. So what I want is for the refinement to cover every sentence of each raw prompt.</mark> <mark>S56. Every item should be tagged to at least one sentence.</mark></div>
+	</section>
+
+	<section class="bubble">
+		<div class="head"><strong>Where are we at</strong><span class="score low">67% of 3 sentences cited</span></div>
+		<p class="words">“Look into it. Let me know where we're at.”</p>
+		<div class="cards">
+			<div class="card"><div class="mod"><i>&#128172;</i><span><b>ai/sessions</b>session page</span></div><div class="body">
+				<div class="kind">question <em class="open">open</em></div>
+				<div>Let me know where we're at.</div><a class="cite">S125</a></div></div>
+		</div>
+		<p class="nested">1 sentence no card cites (S123): shown in the bubble, keeps the prompt open.</p>
+	</section>
+
+	<div class="legend"><span><b>Card colour</b> = its outcome: blue task, green answered or documented, amber open.</span><span><b>Cite</b> = sentence numbers the part covers; click shows them.</span><span><b>Score</b> = cited sentences ÷ all sentences, computed (Prompt.js).</span></div>
+</main>

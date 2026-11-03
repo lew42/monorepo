@@ -1,0 +1,1 @@
+5. [accept] A new arrival with no prior screen position has nothing to "jump" from, so forcing that one redraw isn't the bug the owner saw. The decline correctly narrows the claim: existing rows only move on a tap, same as before this fix, so nothing regressed here.

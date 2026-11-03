@@ -1,0 +1,19 @@
+verdict: fix
+1. [fix] `Server/ServexFence.mjs` and the new `FENCE_SERVEX=1` switch in `Server/Browser.mjs:66` are not indexed in `Server/readme.md` or `Server/doc/browser.md`. `browser.md` is the doc for "the one Chromium launcher", and it now has an env switch it doesn't mention. Add one line to each, linking `Servex/doc/restart.md#when-servex-crashes…`.
+2. [note] Two Dictate scripts still call `route.continue()`, against the new "fallback, never continue" rule (`Servex/doc/restart.md:68`, `core/Test/doc/health.md:38`): `ux/Dictate/test/stall.mjs:53` and `refresh.mjs:138`. Both are for Whisper `:8178/inference`, not Servex, so they are safe today. Still, `ext/Refine/test/composer-flow.mjs:20` continues `**/api/refine**`; check that it never reaches `:8090`.
+3. [note] The shutdown snapshot overwrites a `sustain --restart` snapshot whenever the exit handler runs (`Servex/Servex.js:1587`). The revived agent would then lose its "(asked by X)" note, because `Agents.js:513` drops `by` once `how` is set. That's harmless today, since `sustain.mjs` kills with `taskkill /f` and no handler runs. It's worth a line in restart.md.
+4. [note] `process.on("unhandledRejection")` (`Servex/Servex.js:1603`) changes Node's default from "crash" to "log and continue" for all of Servex. That's a reasonable call and it's documented. Watch `servex.jsonl` for `unhandled_rejection` events piling up silently.
+5. [note] The new tests (`crash-revive.test.mjs`, `voice-page-refused.test.mjs`, `ServexFence.test.mjs`) run by hand only, like `revive-sweep.test.mjs`. No gate runs them. I ran all three in the worktree: 9, 3 and 7 checks passed.
+
+## Requirements
+- 1 "Revive after a crash … rebuild the list from the registry … working or idle, live task, revivable … 'Servex crashed at <time>; resume' … a test that fakes a crash" — yes. The `crashed` term is at `Agents.js:471-475` and the message at `Agents.js:512-519`. `crash-revive.test.mjs` case 1 uses a registry with no snapshot. It also covers the real 00:31 case: the exit handler had stopped every row, and the shutdown now writes a snapshot first.
+- 2 "The crash cause: read the report … name the most likely cause … fix it if ours" — yes. `report.20261102.003135.50296.0.001.json` has `event: Exception`, message "no session f21bb81a…", which matches the diagnosis (an un-awaited `VoicePage.write()` rejection). It is fixed at `VoicePage.js:72-78` and has a test. The 0xC0000409 fast-fails are written up as "what to watch", including the WER LocalDumps step (`restart.md:61`).
+- 3 "Tests must not hit the live Servex … private Servex or stub; check Servex/test; tell mastermind-dictation-v3 today" — yes. The fence is a context route, wired through `TestRunner.mjs:166` and `playwright-fenced.mjs`. It notes that `Servex/test` has no stand-in. `reconnect.mjs` was switched to `fallback()`. The agent log shows a message sent to dictation-v3 at the session's dictation-v3 path.
+- 4 "Document both in Servex's readme and core/Test/doc/health.md" — yes. `Servex/readme.md` has a "Crash and revive" section, `restart.md` has the long form, and `health.md` has the "Never the live Servex" bullet. `playwright-fenced.mjs` is listed in `core/Test/files.jsonl`.
+- Class added or changed? — n/a. No new class; `Agents.snapshot()` gains a `how` field.
+
+## Words
+- Plain sentences, the takeaway first — yes. The restart.md section opens with "two kinds of crash, two causes", then answers why 00:31 revived nobody.
+- Owner's names used — yes (Servex, revive, snapshot, registry).
+- Under one screen at level 1 — yes. The readme section is one paragraph and links to the long form.
+- Can a fresh agent continue from the task folder? — mostly. `session.jsonl` logs the findings and the plan, and the docs name every file and test. The task has not landed yet, and no landing line or outcome is written.

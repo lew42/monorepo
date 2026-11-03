@@ -1,0 +1,16 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/sessions/72618945-9423-494f-979a-ad943ca6b900/?tab=coverage",
+ "widths": {
+  "1200": {
+   "empty": 0.469,
+   "widest_text": 404,
+   "widest_text_sample": "563 sessions listed (6,087 routine hidde",
+   "overflow_x": false,
+   "items": 500,
+   "narrow_share": 0.756
+  }
+ },
+ "errors": [
+  "1200: Failed to load resource: the server responded with a status of 404 (Not Found)"
+ ]
+}

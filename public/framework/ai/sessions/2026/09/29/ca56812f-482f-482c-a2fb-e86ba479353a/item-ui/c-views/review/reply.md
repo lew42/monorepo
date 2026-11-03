@@ -1,0 +1,1 @@
+8. [accept] The brief fences off ui/item/ for another minion's CSS restyle, so editing readme.md or page.js there would step outside this task; logging the mismatch instead of touching the file is the right call.

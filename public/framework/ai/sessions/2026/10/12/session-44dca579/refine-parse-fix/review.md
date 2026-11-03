@@ -1,0 +1,5 @@
+verdict: fix
+1. [fix] `review/diff.patch` is the wrong diff for this task: it changes only `.claude/hooks/step-prompt.mjs:11-13` and never touches `Servex/ext/refine/test/live-refine-measure.mjs`, which is the file the ask (task.jsonl line 1) names. Regenerate the packet from the commit that escaped the backticks (cc9e89b7d), or move the hook change to its own task.
+2. [note] `requirements.md` does not exist in `refine-parse-fix/`, so "met?" could only be judged against the one-line request in `task.jsonl` line 1.
+3. [note] The hook change itself is small and reasonable: it prefers the real path that `append.mjs` prints (`<target>: appended`, `append.mjs:68`) and falls back to the old regex. It only helps if `step-prompt.mjs` runs as a PostToolUse hook, since `tool_response` is absent before the tool runs. Check the hook's registration in settings.
+4. [note] The new regex `^(.*task\.jsonl): appended` is greedy and anchored per line. A path containing spaces works, but a multi-file append prints one line per target and only the first is used.

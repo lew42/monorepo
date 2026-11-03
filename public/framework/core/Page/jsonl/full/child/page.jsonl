@@ -1,0 +1,1 @@
+{"title": "A child page", "icon": "description", "content": "This child has no page.js either. Its parent's log listed child/page.jsonl, so the router read this page from that file, with no probe."}

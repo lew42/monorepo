@@ -1,0 +1,31 @@
+{
+ "id": "9f04ebbd-00f4-4689-b308-50032cea7291",
+ "first": "2026-10-13T22:17:28.577Z",
+ "last": "2026-10-13T22:17:34.854Z",
+ "models": {
+  "claude-haiku-5-5": 1
+ },
+ "sizes": {
+  "raw": 89430,
+  "content": 75,
+  "stripped": 75,
+  "owner_only": 0
+ },
+ "usd": 0.055672,
+ "usd_main": 0.055672,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 2,
+  "output": 47,
+  "cache_read": 20671,
+  "cache_write": 26684,
+  "w5": 0,
+  "w1": 26684
+ },
+ "messages": 1,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "Standing by. I'm the fast assistant: when your next words arrive, I'll turn them into named items, cards, and refined text on your screen.",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.267Z"
+}

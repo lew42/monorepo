@@ -1,0 +1,38 @@
+{
+ "id": "8d2cdcd2-c42a-452a-a348-5af50c8fc52d",
+ "first": "2026-10-14T03:42:12.644Z",
+ "last": "2026-10-14T04:13:01.241Z",
+ "task": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/voice-e2e-review",
+ "models": {
+  "claude-opus-5-5": 98
+ },
+ "sizes": {
+  "raw": 1716787,
+  "content": 104551,
+  "stripped": 11497,
+  "owner_only": 0
+ },
+ "usd": 9.420786,
+ "usd_main": 9.420786,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 196,
+  "output": 62990,
+  "cache_read": 15939064,
+  "cache_write": 223072,
+  "w5": 0,
+  "w1": 223072
+ },
+ "messages": 98,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "I walked the dictation flow on the phone sheet (400 px) and the desktop drawer (1200 px), through real Whisper. **New session** was broken and is now fixed and merged: on both surfaces, the first sentence after the press used to drop you back into the old conversation.\n\nThe walk played a spoken recording as the microphone and took a screenshot after every tap. It ran twice per surface, before and after the fix. Three more fixes landed in the same merge:\n- **First sentence:** the first sentence after New session sometimes vanished from the phone sheet. It now always shows.\n- **Phone sheet header:** the title was the class name \"DrawerRailSheetChat\"; it now says \"AI\". New session moved into the header, so it is one tap, as on the desktop.\n- **Refused microphone:** with the microphone refused, the error message ran off the right edge at 400 px. It now wraps.\n\nWhat passes now:\n- Bubbles appear in the same order as the session file, on both surfaces.\n- The sheet drags up to full height, and the AI, Dictation and Settings tabs appear.\n- The listening indicator shows while the mic is open.\n- The phone and the desktop show the same words for the same session.\n- The Refine page shows the same sentences.\n\n⚠️ **Three problems are left, all in Servex, which this task was not allowed to change:**\n- **The fast assistant talks when it isn't addressed.** It answered 4 of the 8 sentences addressed to the smart assistant, against your \"silent unless addressed\" rule. The exact one-line edit to  …",
+ "edited": [
+  "8d2cdcd2-c42a-452a-a348-5af50c8fc52d/scratch/probe.mjs",
+  "8d2cdcd2-c42a-452a-a348-5af50c8fc52d/scratch/walk.mjs",
+  "8d2cdcd2-c42a-452a-a348-5af50c8fc52d/scratch/cross.mjs",
+  "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/voice-e2e-review/review.md",
+  "8d2cdcd2-c42a-452a-a348-5af50c8fc52d/scratch/landing-voice-e2e-review.json"
+ ],
+ "digested_at": "2026-10-16T06:28:10.257Z"
+}

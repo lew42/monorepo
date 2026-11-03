@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ext/Query/",
+ "widths": {
+  "1280": {
+   "empty": 0.829,
+   "widest_text": 212,
+   "widest_text_sample": "Type a word: the same spec the dev serve",
+   "overflow_x": false,
+   "items": 67,
+   "narrow_share": 0.06
+  },
+  "1920": {
+   "empty": 0.879,
+   "widest_text": 226,
+   "widest_text_sample": "Type a word: the same spec the dev serve",
+   "overflow_x": false,
+   "items": 67,
+   "narrow_share": 1
+  },
+  "2560": {
+   "empty": 0.891,
+   "widest_text": 254,
+   "widest_text_sample": "Type a word: the same spec the dev serve",
+   "overflow_x": false,
+   "items": 67,
+   "narrow_share": 1
+  },
+  "3440": {
+   "empty": 0.911,
+   "widest_text": 254,
+   "widest_text_sample": "Type a word: the same spec the dev serve",
+   "overflow_x": false,
+   "items": 67,
+   "narrow_share": 1
+  }
+ },
+ "errors": []
+}

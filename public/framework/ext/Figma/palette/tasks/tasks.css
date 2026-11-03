@@ -1,0 +1,48 @@
+@layer base, theme, site, util;
+
+@layer theme {
+	.tsk-header { display: flex; flex-direction: column; align-items: center; gap: .5em; }
+	.tsk-tagline { text-align: center; }
+
+	.tsk-row { display: flex; flex-wrap: wrap; gap: 1em; align-items: start; width: 100%; }
+	.tsk-col { min-width: 18em; display: flex; flex-direction: column; gap: .5em; }
+
+	.tsk-pill { padding: .25em .5em; border-radius: 999px; width: fit-content; align-self: flex-start; }
+
+	.tsk-task-card { display: flex; flex-direction: column; width: 100%; }
+
+	.tsk-footer { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+	.tsk-avatar { width: 26px; height: 26px; border-radius: 50%; border: 2px solid #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: .7em; }
+	.tsk-avatar-stack { display: flex; }
+	.tsk-avatar-item:not(:last-child) { margin-right: -6px; position: relative; z-index: 1; }
+
+	.tsk-task-header { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+	.tsk-header-left { display: flex; gap: .5em; align-items: center; }
+
+	.tsk-subtasks { display: flex; flex-direction: column; gap: .4em; width: 100%; }
+	.tsk-subtask-row { display: flex; gap: .5em; align-items: center; width: 100%; }
+	.tsk-dot { width: 14px; height: 14px; border-radius: 7px; box-sizing: border-box; flex-shrink: 0; }
+
+	/* Progress cards: a `grid auto` wall, no media query needed to wrap. */
+	.tsk-progress-row { --column: 16em; }
+	.tsk-progress-card { min-width: 0; }
+	.tsk-progress-header { display: flex; justify-content: space-between; align-items: center; }
+
+	.tsk-bars { display: flex; gap: .3em; width: 100%; }
+	.tsk-bar { flex: 1 1 0; height: 7px; border-radius: 4px; }
+
+	.tsk-track { width: 100%; height: 7px; border-radius: 4px; overflow: hidden; }
+	.tsk-fill { height: 7px; border-radius: 4px; }
+
+	.tsk-milestone-row { display: flex; align-items: center; width: 100%; }
+	.tsk-milestone-item { display: flex; align-items: center; flex: 1; }
+	.tsk-milestone-circle { width: 16px; height: 16px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 10px; line-height: 1; flex-shrink: 0; }
+	.tsk-milestone-line { flex: 1; height: 2px; }
+	.tsk-milestone-final { width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+	.tsk-milestone-circle-hollow { width: 16px; height: 16px; border-radius: 8px; }
+
+	/* Priority cards: a flex row that wraps, no media query. */
+	.tsk-p0-card { min-width: 16em; display: flex; flex-direction: column; justify-content: space-between; gap: .75em; }
+	.tsk-col-p-right { min-width: 14em; display: flex; flex-direction: column; gap: .5em; }
+	.tsk-p1-card, .tsk-p2-card { display: flex; flex-direction: column; justify-content: space-between; gap: .5em; width: 100%; }
+}

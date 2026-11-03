@@ -1,0 +1,28 @@
+{
+ "at": "2026-10-14T01:01:19.338Z",
+ "dry_run": true,
+ "rule": "public/framework/ai/cards/CardDir.js",
+ "repo": "C:\\Code\\lew42\\monorepo",
+ "totals": {
+  "cards": 1,
+  "files": 0,
+  "skipped_listings": 3,
+  "target_exists": 0,
+  "odd": 0
+ },
+ "odd": [],
+ "skipped": [
+  "public/framework/ai/2026/10/13/files.jsonl",
+  "public/framework/ai/2026/10/files.jsonl",
+  "public/framework/ai/2026/files.jsonl"
+ ],
+ "moves": [
+  {
+   "kind": "card",
+   "id": "2026/10/13/one-tree-every-inbox-card-now-lives-in-t",
+   "from": "public/framework/ai/2026/10/13/one-tree-every-inbox-card-now-lives-in-t",
+   "to": "public/framework/ai/sessions/2026/10/13/cards/one-tree-every-inbox-card-now-lives-in-t",
+   "exists": false
+  }
+ ]
+}

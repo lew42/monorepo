@@ -1,38 +1,83 @@
-﻿/* Layer order, restated IN FULL â€” a short list would misplace `site`.
-   See the header of framework.css. */
-@layer base, theme, site, util;
-
+/* ASCII ONLY, comments included: a host that serves CSS with no charset decodes
+   UTF-8 as Windows-1252, and this file once shipped double-encoded em-dashes in
+   every heading. Same lesson as the sidebar's "\203A" chevron. */
 @layer theme {
 
-	/* A REAL COLUMN, not a rail floating over the page. It was `position: fixed`,
-	   which reserved no space â€” so the rail and the prose were placed by two
-	   unrelated numbers and overlapped on the way to the breakpoint that hid it. */
 	.toc { display: none; }
-
-	/* `:not(.grid)` â€” a breakout page already owns `grid-template-columns`, and
-	   both rules live in @layer theme, so the winner would be whichever <link> loaded
-	   last. They are two different page layouts and they do not combine: a breakout
-	   page is prose with escapes, a ToC page is prose with a rail. Pick one. */
 
 	@media (min-width: 82em) {
 
-		.pages > .page:not(.grid):has(> .toc) {
+		/* ⚠ NO `:not(.standard)` GUARD, and that is the fix, not an oversight
+		   (ai/2026-09-18/dead-nav/): `.standard` is the ordinary page's default
+		   class now (Page.class.js: ".ac(this.classes ?? 'standard')" — nearly
+		   every page gets it, since `classes:` is only ever set by a real
+		   breakout like `.full`), so `:not(.standard)` excluded almost every
+		   caller and this rule never fired anywhere: verified headless, 0 of the
+		   site's real toc()-calling pages drew a rail before this fix.
+		   `core/Page/Page.css`'s own `.page:has(> .page-related)` rule (landed
+		   the same day, one file over) proves the guard was never needed: this
+		   selector's specificity — two classes/pseudo-classes, (0,2,0) — already
+		   beats the base `.page` rule's plain (0,1,0), so it always wins on
+		   specificity, whichever stylesheet's `<link>` loaded last. The load-order
+		   worry this comment used to record was solved by counting selectors, not
+		   by carving out `.standard`.
+		   ⚠ NO `.pages >` PREFIX EITHER (cleanup-2, same day): that ancestor
+		   combinator is why `ext/Doc`'s own seven tabbed-module pages (core/App,
+		   core/Router, core/Sidebar, ext/demo, ext/markdown, ext/toc, util/markup)
+		   still drew nothing after the fix above — `toc()` runs inside a Doc
+		   module's "Overview" SECTION, itself a real child page (`Doc.js`'s
+		   `overview_section()`), so the `.page.doc-section` carrying the `.toc` is
+		   nested inside the Doc's own `.page.doc-page` > `.tabs` > `.tab-panel`,
+		   never a DIRECT child of `.pages` at all. `.page:has(> .page-related)`
+		   (above) never had this `.pages >` prefix and already reaches that same
+		   nested `.page.doc-section` today — this rule now matches that one's own
+		   shape exactly, at the same (0,2,0) specificity, still one selector.
+		   ⚠ 15rem, not 13: at 13 the rail was 208px of 0.8em text and thirteen of the
+		   FAQ's twenty-eight entries ellipsized. */
+		/* ⚠ RESTATE THE SHELL'S TRACKS, NEVER REPLACE THEM (padding-law, 2026-09-22).
+		   A page's left and right padding is not padding at all: it is the FIRST and
+		   LAST TRACK of `core/Page/Page.css`'s four-track grid, and `.page`'s own
+		   `padding: var(--page-pad, var(--pad-y) 0)` has no inline half to fall back
+		   on. This rule used to be `grid-template-columns: minmax(0, 1fr) 15rem` and
+		   nothing else, so above 82em EVERY page with a ToC silently lost both
+		   gutters: the owner opened `/framework/styles/` on a wide window and found
+		   the `h1` at x = the sidebar's right edge — 0px — while the card row below
+		   it, which pays the gutter back out of its own pocket, sat 90px in. The
+		   sibling rule one file over, `.page:has(> .page-related)` (Page.css:205),
+		   adds a right rail the same way and has always restated all four tracks;
+		   this one now matches it track for track.
+		   ⚠ `[bleed-end]` lands BEFORE the rail, exactly where the related rule puts
+		     it before `[related-start]`: a `bleed` child spends the prose region's
+		     two gutter tracks and stops where the rail begins, instead of running
+		     underneath a column that is sticky for 200 rows.
+		   ⚠ NO `column-gap` any more, and its loss costs nothing: the gutter track
+		     between `[wide-end]` and the rail IS the gap now. Left in, it would also
+		     have applied to the two gutter tracks and inset the page twice over.
+		   ⚠ NO `> * { grid-column: 1 }` either. `.page > *` already sends every child
+		     to `main` with `min-width: 0`, and forcing column 1 was what took `.wide`
+		     and `.bleed` away from ToC pages — the wall on `/framework/styles/` was
+		     paying a gutter back that it was no longer being given. */
+		.page:has(> .toc) {
 			display: grid;
-			grid-template-columns: minmax(0, 1fr) 13rem;
-			column-gap: 3rem;
+			grid-template-columns:
+				[bleed-start]           var(--gutter-x)
+				[wide-start main-start] minmax(0, 1fr) [main-end wide-end]
+				                        var(--gutter-x)
+				[bleed-end toc-start]   15rem [toc-end]
+				                        var(--gutter-x);
 			--measure: 78em;
 		}
 
-		/* Everything that is not the rail stacks in column 1, in source order. */
-		.pages > .page:not(.grid):has(> .toc) > * { grid-column: 1; min-width: 0; }
-
-		/* âš  `span 200`, not `1 / -1`: `-1` counts back from the EXPLICIT grid, and
+		/* ⚠ `span 200`, not `1 / -1`: `-1` counts back from the EXPLICIT grid and
 		   these rows are all implicit, so it resolves to line 1 and spans nothing.
-		   âš  `align-self: start` is what makes sticky work â€” a stretched grid item is
-		   already as tall as its row and has nowhere to stick to. */
-		.pages > .page:not(.grid):has(> .toc) > .toc {
+		   ⚠ `align-self: start` is what makes sticky work - a stretched grid item is
+		   already as tall as its row and has nowhere to stick to.
+		   ⚠ `scrollbar-width: none`: a 32px overflow bought a full-height second bar
+		   one gutter from the window's real one. toc.js keeps the current section in
+		   view, which is what makes hiding it honest. */
+		.page:has(> .toc) > .toc {
 			display: block;
-			grid-column: 2;
+			grid-column: toc;
 			grid-row: 1 / span 200;
 			align-self: start;
 			position: sticky;
@@ -41,29 +86,30 @@
 			max-height: calc(100vh - 4rem);
 			overflow-y: auto;
 			font-size: 0.8em;
-			scrollbar-width: thin;
+			scrollbar-width: none;
 		}
 	}
 
-	.toc-title { display: block; color: var(--subtle); margin-bottom: 0.6em; }
+	.toc-title { display: block; color: var(--subtle); margin-bottom: calc(var(--gap) * 0.6); }   /* was margin-bottom 0.6em - 2026-09-05 ramps */
 
 	.toc-links { display: flex; flex-direction: column; }
 
+	/* A long heading WRAPS: these rows have no height to keep and the words are the
+	   whole point. ⚠ `line-height` is pinned because it decides the row, and a theme
+	   is entitled to a loose one for body copy. */
 	.toc-link {
-		padding: 0.28em 0 0.28em 0.7em;
+		padding: 0.3em 0 0.3em 0.7em;
+		line-height: 1.35;
 		color: var(--subtle);
 		text-decoration: none;
 		border-inline-start: 2px solid var(--line);
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
 	}
 	.toc-link:hover { color: var(--ink); }
 
 	.toc-sub { padding-inline-start: 1.5em; }
 
-	/* `current`, not `active` â€” `.active` belongs to Router.mark_links(), which
-	   skips `#` hrefs and so would never clear this one. Two owners for one class
-	   is how a stale highlight happens. */
-	.toc-link.current { color: var(--prim); border-inline-start-color: var(--prim); }
+	/* ⚠ `current`, not `active` - `.active` belongs to Router.mark_links(), which
+	   skips `#` hrefs and so would never clear this one. */
+	/* `--prime-ink`, not `--prime`: prim is a fill, 2.2:1 as text (color study 2026-09-01). */
+	.toc-link.current { color: var(--prime-ink); border-inline-start-color: var(--prime); }
 }

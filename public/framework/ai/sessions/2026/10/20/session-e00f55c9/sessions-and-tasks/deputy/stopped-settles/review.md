@@ -1,0 +1,4 @@
+verdict: pass
+1. [note] Task.js:95 (the auto-complete when a child completes) still requires `every(t => t.state === "complete")`, so with a stopped sibling the parent never auto-completes when the last open child finishes; it now needs a manual `complete()`. The same stopped-is-settled test would make the two paths agree (the diff only changes `complete()`, line 371 in the main tree).
+2. [note] Task.js:99 (series mode) picks the next child with `state !== "complete"`, so a stopped child is re-picked as "next" and (being not idle) the series stalls there; it is outside the ask but is the same stopped-vs-open gap.
+3. [note] session-task.test.mjs: the new cases cover both asked behaviours (stopped does not block, open still blocks) and the readme rule is added; the change is the minimal one-line fix, and the rejected alternative is sound. The diff is not yet in the main tree's Task.js, so confirm it merges.

@@ -1,0 +1,27 @@
+{"task":{"dir":"public/framework/ai/2026-10-01/rail-fullscreen-textarea","event":"opened","title":"Fix fullscreen chat textarea not filling space, void under buttons","at":"2026-10-01T14:53:07.011-05:00"}}
+{"decision":{"dir":"public/framework/ai/2026-10-01/sheet-chrome-autohide","what":"Chrome's toolbar auto-hide cannot reach the ✦ sheet — position:fixed is the real wall, not the nested scroll thread alone — see doc/sheet.md","at":"2026-10-01T15:36:00-05:00"}}
+{"decision":{"dir":"public/framework/ai/2026-10-01/sheet-close-keep-mic","what":"closing the ✦ sheet no longer stops its mic — hide()'s own stop_mic() call, not the mic-hijack visibilitychange rule, was the real cause; only the window-widened-past-52em hide still stops it — see doc/sheet.md","at":"2026-10-01T15:40:00-05:00"}}
+{"decision":{"dir":"public/framework/ai/sessions/2026/10/16/voice-20261016/sheet","what":"sheet step 7 live check at 400px: this line was appended to ext/drawer/ai/log.jsonl and streamed into the open sheet (AIFeed)","at":"2026-10-17T09:01:38-05:00"}}
+{"decision":{"dir":"public/framework/ai/sessions/2026/10/16/voice-20261016/sheet","what":"sheet step 7 live check at 1200px: this line was appended to ext/drawer/ai/log.jsonl and streamed into the open sheet (AIFeed)","at":"2026-10-17T09:01:48-05:00"}}
+{"task":{"dir":"public/framework/ai/sessions/2026/10/16/voice-20261016/sheet","event":"opened","title":"Sheet: on a phone the hidden AIPage also mounts a second chat and feed (step 5 left-over)","at":"2026-10-17T09:06:54.285-05:00"}}
+{"session":{"id":"v-qyb352y","event":"started","title":null,"file":"/framework/ext/drawer/ai/v-qyb352y.jsonl","at":"2026-10-17T13:11:44.562-05:00"}}
+{"session":{"id":"v-qyb352y","event":"started","title":"Drawer page: README link task","file":"/framework/ext/drawer/ai/v-qyb352y.jsonl","at":"2026-10-17T13:11:55.784-05:00"}}
+{"task":{"dir":"public/framework/ext/drawer","event":"opened","title":"README links the architecture doc","at":"2026-10-17T13:11:58.811-05:00"}}
+{"session":{"id":"v-w49myh4","event":"started","title":null,"file":"/framework/ext/drawer/ai/v-w49myh4.jsonl","at":"2026-10-17T13:15:45.563-05:00"}}
+{"session":{"id":"v-w49myh4","event":"started","title":"Drawer README architecture link","file":"/framework/ext/drawer/ai/v-w49myh4.jsonl","at":"2026-10-17T13:15:56.958-05:00"}}
+{"task":{"dir":"public/framework/ext/drawer","event":"opened","title":"README links the architecture doc","at":"2026-10-17T13:15:59.059-05:00"}}
+{"session":{"id":"v-xtcntyl","event":"started","title":null,"file":"/framework/ext/drawer/ai/v-xtcntyl.jsonl","at":"2026-10-17T13:17:04.728-05:00"}}
+{"session":{"id":"v-qyb352y","event":"ended","title":"Drawer page: README link task","file":"/framework/ext/drawer/ai/v-qyb352y.jsonl","at":"2026-10-17T13:17:04.843-05:00"}}
+{"task":{"dir":"public/framework/ext/drawer","event":"opened","title":"README should link the architecture doc","at":"2026-10-17T13:17:15.434-05:00"}}
+{"session":{"id":"v-ypn9wa4","event":"started","title":null,"file":"/framework/ext/drawer/ai/v-ypn9wa4.jsonl","at":"2026-10-17T13:17:46.583-05:00"}}
+{"session":{"id":"v-w49myh4","event":"ended","title":"Drawer README architecture link","file":"/framework/ext/drawer/ai/v-w49myh4.jsonl","at":"2026-10-17T13:17:46.701-05:00"}}
+{"session":{"id":"v-ypn9wa4","event":"started","title":"Drawer README links architecture doc","file":"/framework/ext/drawer/ai/v-ypn9wa4.jsonl","at":"2026-10-17T13:17:56.674-05:00"}}
+{"task":{"dir":"public/framework/ext/drawer","event":"opened","title":"README links the architecture doc","at":"2026-10-17T13:17:58.995-05:00"}}
+{"session":{"id":"v-519tckm","event":"started","title":null,"file":"/framework/ext/drawer/ai/v-519tckm.jsonl","at":"2026-10-17T13:22:41.587-05:00"}}
+{"session":{"id":"v-xtcntyl","event":"ended","title":null,"file":"/framework/ext/drawer/ai/v-xtcntyl.jsonl","at":"2026-10-17T13:22:41.721-05:00"}}
+{"session":{"id":"v-ypn9wa4","event":"ended","title":"Drawer README links architecture doc","file":"/framework/ext/drawer/ai/v-ypn9wa4.jsonl","at":"2026-10-17T13:23:41.992-05:00"}}
+{"session":{"id":"v-8sqhbnl","event":"started","title":null,"file":"/framework/ext/drawer/ai/v-8sqhbnl.jsonl","at":"2026-10-17T13:25:37.147-05:00"}}
+{"task":{"dir":"public/framework/ext/drawer/tasks/coral-badge-when-readme-is-staying","event":"opened","title":"Coral badge when README is staying","at":"2026-10-17T13:25:49.740-05:00"}}
+{"session":{"id":"v-519tckm","event":"ended","title":null,"file":"/framework/ext/drawer/ai/v-519tckm.jsonl","at":"2026-10-17T13:28:41.965-05:00"}}
+{"session":{"id":"v-8sqhbnl","event":"ended","title":null,"file":"/framework/ext/drawer/ai/v-8sqhbnl.jsonl","at":"2026-10-17T13:31:42.041-05:00"}}
+{"task":{"dir":"public/framework/ext/drawer","event":"landed","title":"README links the architecture doc","at":"2026-10-17T13:52:52.451-05:00"}}

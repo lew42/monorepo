@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ext/Refine/",
+ "widths": {
+  "1280": {
+   "empty": 0.471,
+   "widest_text": 566,
+   "widest_text_sample": "1 · Said: speak, or type or paste here —",
+   "overflow_x": false,
+   "items": 90,
+   "narrow_share": 0.133
+  },
+  "1920": {
+   "empty": 0.485,
+   "widest_text": 602,
+   "widest_text_sample": "1 · Said: speak, or type or paste here —",
+   "overflow_x": false,
+   "items": 90,
+   "narrow_share": 0.8
+  },
+  "2560": {
+   "empty": 0.576,
+   "widest_text": 678,
+   "widest_text_sample": "1 · Said: speak, or type or paste here —",
+   "overflow_x": false,
+   "items": 90,
+   "narrow_share": 0.8
+  },
+  "3440": {
+   "empty": 0.606,
+   "widest_text": 678,
+   "widest_text_sample": "1 · Said: speak, or type or paste here —",
+   "overflow_x": false,
+   "items": 90,
+   "narrow_share": 0.8
+  }
+ },
+ "errors": []
+}

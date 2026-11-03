@@ -1,0 +1,6 @@
+verdict: pass
+1. [note] AIDay.js `ask()`: rows that landed today from an older folder come only from the first query, and the server pushes changes for the last query only, so those tasks do not update live; they appear on reload. The requirements already name this tradeoff (the `ext/Query` "any of" clause is the later fix), but the AIDay readme's Watch out list should say it too.
+2. [note] AIDay.js `ask()`: the two asks run one after the other, which doubles the load latency. `Promise.all` would not keep the "last query" ordering safe, so the sequential version is right; the cost is small.
+3. [note] AIDay.js `tree()`: the made-up session url comes from slicing `n.r.url` at `"/" + top + "/"`. It works for the dated session folders, but if `top` also appears earlier in the path it would cut in the wrong place. A rare case, no change needed.
+4. [note] The `AISession/readme.md` edit documents `AISessionDetail.agent_row`. That code is not in this diff, though the symbol exists in `AISessionDetail.js`, so it was presumably landed earlier. It is a docs-only mention here.
+5. [note] `landed_day` is set by `Server/SessionIndex.mjs:84`, so the new ask is valid. The "not live until restart" caveat does not apply, because the field already exists.

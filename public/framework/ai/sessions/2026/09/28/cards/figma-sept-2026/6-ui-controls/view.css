@@ -1,0 +1,140 @@
+/* Card 6 — UI Controls. A scaled recreation, not a reflowed one — see the note
+   at the top of view.js. Every number below is `em`, converted from the
+   Figma's own pixels at its 856px canvas (16px = 1em there), so
+   `ui-scale-body`'s own font-size (from `ui/scale`, set from the container's
+   width) carries every size in this file down or up together. Every class
+   carries this card's own `figma-ctrl-` prefix (review finding 1). */
+@layer site {
+
+	.figma-ctrl-panel {
+		border-radius: 0.5em;
+		padding: 2.25em 2em;   /* 36px / 32px at the Figma's own width */
+		display: flex;
+		flex-direction: column;
+		gap: 3.4em;   /* ~1.5x the section padding, more air between groups */
+	}
+
+	.figma-ctrl-title { font-size: 1.5em; font-weight: 600; }
+
+	.figma-ctrl-section { display: flex; flex-direction: column; gap: 0.9em; }
+
+	.figma-ctrl-group-title {
+		font-size: 0.7em;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: var(--subtle);
+	}
+
+	/* ── toggles — fine as they were, now scaled by the panel's own em ───────── */
+	.figma-ctrl-toggles { display: flex; flex-direction: column; gap: 0.9em; }
+
+	.figma-ctrl-toggle { display: flex; align-items: center; gap: 0.7em; cursor: pointer; }
+
+	.figma-ctrl-toggle-input {
+		position: absolute;
+		width: 1px; height: 1px;
+		opacity: 0;
+		pointer-events: none;
+	}
+
+	.figma-ctrl-toggle-track {
+		position: relative;
+		display: inline-block;
+		width: 2.4em; height: 1.3em;
+		border-radius: 999px;
+		background: var(--darken-1);
+		transition: background 0.15s;
+		flex-shrink: 0;
+	}
+
+	.figma-ctrl-toggle-track::before {
+		content: "";
+		position: absolute;
+		top: 0.15em; left: 0.15em;
+		width: 1em; height: 1em;
+		border-radius: 50%;
+		background: var(--surface);
+		transition: transform 0.15s;
+	}
+
+	.figma-ctrl-toggle-input:checked + .figma-ctrl-toggle-track { background: var(--prim); }
+	.figma-ctrl-toggle-input:checked + .figma-ctrl-toggle-track::before { transform: translateX(1.1em); }
+	.figma-ctrl-toggle-input:focus-visible + .figma-ctrl-toggle-track { outline: 2px solid var(--prim); outline-offset: 2px; }
+
+	/* ── chips — accent-filled vs a light box with a thin border, both small caps ── */
+	.figma-ctrl-chips { display: flex; flex-wrap: wrap; gap: 0.5em; }
+
+	.figma-ctrl-chip {
+		font-size: 0.7em;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.03em;
+		padding: 0.4em 0.9em;
+		border-radius: 999px;
+		background: var(--wash);
+		border: 1px solid var(--line);
+	}
+
+	.figma-ctrl-chip.accent { background: var(--prim); color: var(--surface); border-color: transparent; }
+
+	/* ── progress — a thin light track, three titled groups (one plain, one dark,
+	   one light), each square-ish with ~32px (2em) padding ────────────────────── */
+	.figma-ctrl-progress-section { gap: 0.9em; }
+
+	.figma-ctrl-progress-group { display: flex; flex-direction: column; gap: 0.9em; }
+	.figma-ctrl-progress-group.dark, .figma-ctrl-progress-group.light { padding: 2em; border-radius: 0.5em; }
+	.figma-ctrl-progress-group.dark { background: var(--darken-2); }
+	.figma-ctrl-progress-group.light { background: var(--surface); }   /* near-white, clearly lighter than the panel */
+
+	/* Sentence case, semibold, ~h3 size — not the small uppercase group label. */
+	.figma-ctrl-progress-title { font-size: 1.4em; font-weight: 600; }
+
+	.figma-ctrl-bar { display: flex; flex-direction: column; gap: 0.5em; }
+
+	.figma-ctrl-bar-row {
+		display: flex;
+		justify-content: space-between;
+		font-size: 0.7em;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.03em;
+		color: var(--subtle);
+	}
+
+	.figma-ctrl-bar-track {
+		width: 100%;
+		height: 0.375em;   /* 6px at the Figma's own width */
+		border-radius: 999px;
+		background: var(--darken-1);
+		overflow: hidden;
+	}
+
+	.figma-ctrl-bar-fill { height: 100%; border-radius: 999px; background: var(--prim); }
+
+	/* ── badges — compact light boxes, a small square accent count ───────────── */
+	.figma-ctrl-badges { display: flex; flex-wrap: wrap; gap: 0.6em; }
+
+	.figma-ctrl-badge {
+		display: flex;
+		align-items: center;
+		gap: 0.6em;
+		background: var(--wash);
+		border-radius: 0.4em;
+		padding: 0.6em 0.8em;
+		font-size: 0.9em;
+	}
+
+	.figma-ctrl-count {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-width: 1.5em;
+		padding: 0.15em 0.4em;
+		border-radius: 0.3em;
+		background: var(--prim);
+		color: var(--surface);
+		font-size: 0.75em;
+		font-weight: 700;
+	}
+}

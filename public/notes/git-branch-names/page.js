@@ -3,8 +3,10 @@ import { Page, md } from "/app.js";
 export default new Page({
 	meta: import.meta,
 	title: "Git branch names",
+	icon: "account_tree",
 	description: "Short-lived branches, named <yourname>/<branch>, and the preview url each one gets.",
 	content(){
+		this.crumbs();   // a dead-end leaf otherwise (audit 2026-08-30)
 
 		md("```bash\ngit switch main && git pull      # always start here\ngit switch -c michael/new-page   # <yourname>/<branch-name>\n```");
 

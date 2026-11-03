@@ -1,26 +1,45 @@
-import { Page, md, demo } from "/app.js";
-import layout from "./layout.js";
-import full from "../full.js";
-import fit from "../fit.js";
+import { Page, demo, Sidebar, div, span } from "/app.js";
+import { site } from "../web.js";
 
-export default new Page({
+export default new Page(demo.layout({
 	meta: import.meta,
 	title: "Sidebar",
-	description: "A fixed panel beside fluid content — two classes and one rule.",
+	description: "A fixed panel beside fluid content — two utility classes, no rule.",
 	icon: "view_sidebar",
+	group: "Apps",
 
-	route(name){ return name === "full" && full(this, layout); },
+	twin: true,
+	parts: "footer",
 
-	content(){
-		demo(layout, { full: this }, "`flex-1` names the fluid half. The fixed half is `.layout-side` — `flex: 0 0 var(--sidebar)`, the same token `.topic > .sidebar` uses, so this demo and the real sidebar beside it cannot disagree about a width.");
+	note: "**A real `Sidebar`, not a shape.** `new Sidebar({ pages }).ac(\"basis\").style(\"--basis\", \"var(--sidebar)\")` is the same View this site's own `/framework/` rail uses, so the token and the active-row highlight can never disagree with the real nav. `flex gap wrap` re-flows the pair at its own width: side by side at 1440 and 1000, stacked at 390, where the panel keeps its fixed basis on whichever line it wraps to.",
 
+	layout(){
 
-		md("To stack it on a narrow screen, swap `flex gap` for `flex gap auto` and drop the rule: `auto` gives every child `flex: 1 1 var(--column)` and wraps when two no longer fit. That is [Split](/framework/styles/layouts/split/), which is why this one keeps the fixed basis instead.");
+		/* `full`, because a navigation panel that stops short of the region's edge is a
+		   list, not a rail. NO `fill`, and that was measured: a wrapping flex row sizes
+		   its line to its CONTENT, so `fill`'s clip would cut the bottom of the article
+		   with nothing to scroll it. The page grows and the region scrolls. */
+		return div.c("page full flex v", () => {
 
-		fit("A documentation section · Any app screen with persistent navigation · A settings page with a category list",
-			"bleed",
-			"The panel wants to reach the region's edge and scroll separately from the content — padding here would put a gutter between the nav and the window. `/framework/` is this layout, and it is `div.c(\"page topic flex\")`.");
+			/* `wrap` plus a `22em` basis on the article, and no breakpoint: 19em + 22em
+			   fits at 1440 and at 1000, and runs out at 390, where the panel drops above
+			   the reading. The Sidebar's own query turns it into a top bar at 52em, so the
+			   stacked result is a bar over an article. */
+			div.c("flex gap wrap flex-1").style("minHeight", "0").append(() => {
 
-		md("Next: [Cards](/framework/styles/layouts/cards/) — the one that needs no CSS at all.");
-	}
-});
+				/* ⚠ The header REPLACES Sidebar's `brand()`, which is the element carrying
+				   the panel's inset — a bare span sits flush against the edge. */
+				new Sidebar({
+					pages: this.parent.rail(),
+					header: () => div.c("brand", () => span.c("h4", "LAYOUTS")),
+					footer: null,
+				}).ac("basis").style("--basis", "var(--sidebar)");
+
+				div.c("flow pad", () => site.sections(3))
+					.style({ flex: "1 1 22em", minWidth: "0" });
+			});
+
+			if (this.shows("footer")) site.footer();
+		});
+	},
+}));

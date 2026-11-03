@@ -1,0 +1,31 @@
+{
+ "id": "25e4a86e-96cd-4c74-ad93-d2d1847a1292",
+ "first": "2026-10-13T22:18:03.155Z",
+ "last": "2026-10-13T22:18:05.387Z",
+ "models": {
+  "claude-sonnet-5-5": 2
+ },
+ "sizes": {
+  "raw": 17609,
+  "content": 3056,
+  "stripped": 18,
+  "owner_only": 0
+ },
+ "usd": 0.033508,
+ "usd_main": 0.033508,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 4,
+  "output": 43,
+  "cache_read": 4052,
+  "cache_write": 8065,
+  "w5": 0,
+  "w1": 8065
+ },
+ "messages": 2,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "Nothing to say.",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.190Z"
+}

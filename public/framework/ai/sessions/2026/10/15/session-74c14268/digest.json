@@ -1,0 +1,41 @@
+{
+ "id": "74c14268-bd4f-4412-bd07-d4239e627e93",
+ "first": "2026-10-15T23:36:35.653Z",
+ "last": "2026-10-16T00:22:42.501Z",
+ "task": "public/framework/ai/sessions/2026/10/15/voice-20261015/page-instance",
+ "models": {
+  "claude-sonnet-5-5": 23
+ },
+ "sizes": {
+  "raw": 318784,
+  "content": 72593,
+  "stripped": 5469,
+  "owner_only": 11
+ },
+ "usd": 1.252686,
+ "usd_main": 1.252686,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 46,
+  "output": 21770,
+  "cache_read": 2585628,
+  "cache_write": 129442,
+  "w5": 0,
+  "w1": 129442
+ },
+ "messages": 23,
+ "subagent_files": 0,
+ "prompts": [
+  {
+   "at": "2026-10-15T23:38:32.106Z",
+   "t": "Continue from where you left off."
+  }
+ ],
+ "result": "The landing line is appended to `task.jsonl`, so the task is landed.\n\nI'm done, and nothing else is running. The design doc is `core/Page/doc/server-instance.md`, committed as `0c4423940`. I didn't commit `task.jsonl`, so it's uncommitted in the tree. I haven't marked the landing in the day log either.\n\n`mastermind-voice-20261015` still hasn't seen the report, because its task had already landed. The card on `/live/` carries the summary.",
+ "edited": [
+  "public/framework/core/Page/doc/server-instance.md",
+  "public/framework/core/Page/readme.md",
+  "C:/Users/mike/AppData/Local/Temp/landing-helper-page-instance.json"
+ ],
+ "digested_at": "2026-10-16T06:28:10.241Z"
+}

@@ -1,0 +1,31 @@
+/* Sources.css — the authority badge on a source, and the topic page's file-browser
+   frame. Everything else on this page is framework.css utilities (flex, gap, muted)
+   plus core/Page's own preview classes, reused rather than re-declared — see the css
+   skill's ladder. */
+@layer theme {
+
+	/* The topic page's file browser (ext/files) wants the whole page, not the standard
+	   reading column — same sizing ext/Doc's own Files tab gives its `.doc-files`
+	   (Doc.css), mirrored here under this module's own prefix rather than reaching into
+	   another module's class. */
+	.sources-files { display: flex; flex-direction: column; padding-block: 1em; gap: 0.5em; }
+	.sources-files-title { margin: 0; }
+	.sources-files > .files { flex: 1 1 auto; min-height: 0; --panel-height: min(74vh, 42em); }
+
+	/* A control, not a region — its own em, never --pad/--gap (css skill §4). */
+	.sources-badge {
+		display: inline-block;
+		padding: 0.15em 0.6em;
+		border-radius: 1em;
+		font-size: 0.85em;
+		color: white;
+		white-space: nowrap;
+	}
+
+	/* The three authority words, reusing the site's own status ramp (framework.css's
+	   --ok / --warn / --error) rather than inventing a second colour scale for the same
+	   idea of "how much to trust this". */
+	.sources-badge-high { background: var(--ok); }
+	.sources-badge-medium { background: var(--warn); color: black; }
+	.sources-badge-low { background: var(--error); }
+}

@@ -1,0 +1,2395 @@
+diff --git a/.claude/skills/page/improvements.md b/.claude/skills/page/improvements.md
+new file mode 100644
+index 00000000..681cf383
+--- /dev/null
++++ b/.claude/skills/page/improvements.md
+@@ -0,0 +1,3 @@
++# Page skill — improvements
++
++- 2026-09-30 (cards-and-logs/wire): a `page.jsonl` verb named the same as a Page PROPERTY silently wins — `core/Page/card/mini-pages/MiniPages.js` has a `card(data)` method (its own page.jsonl verb) that shadowed `this.card` (the CSS-class string `nav()` reads for `preview_card()`), so `nav().card` became a function and `.ac(function)` threw `arg.split is not a function` the first time that page appeared in a preview wall. The skill should warn: before adding a page.jsonl verb or an instance method, check it isn't already one of Page's own properties (`title children content url name label icon card classes description parent app view loading route regions depth related`, from core/Page/page.js's own `properties:` list).
+diff --git a/public/framework/ai/2026-09-29/cards-and-logs/docs-check.md b/public/framework/ai/2026-09-29/cards-and-logs/docs-check.md
+new file mode 100644
+index 00000000..de009bed
+--- /dev/null
++++ b/public/framework/ai/2026-09-29/cards-and-logs/docs-check.md
+@@ -0,0 +1,17 @@
++# Docs check — card/ readme chain
++
++Reviewed: card/readme.md, log/readme.md, log/whisper/readme.md, doc/system.md.
++
++**Makes sense.** Clear top-down story: inventory -> six demos -> one rule table in
++doc/system.md. The "reuse, don't reinvent" point (.card, --pad-card, --radius) is
++stated consistently at every level without repeating word for word.
++
++**Two small gaps:**
++1. doc/system.md's newest, least-settled decision (cards as one-line page.jsonl
++   entries with virtual routing) sits at the bottom, after all settled CSS rules -
++   no flag that it's the freshest/most provisional part. Worth a marker near the top.
++2. log/whisper/readme.md's "Watch out" explains the ClipMic/MicStream substitution
++   mechanism in detail - that belongs in doc/clipmic.md per "docs point, they don't
++   explain"; the readme should just point to it.
++
++Nothing missing structurally. No action taken - flagging only.
+diff --git a/public/framework/ai/2026-09-29/cards-and-logs/wire/card-1920.png b/public/framework/ai/2026-09-29/cards-and-logs/wire/card-1920.png
+new file mode 100644
+index 00000000..ec28c051
+Binary files /dev/null and b/public/framework/ai/2026-09-29/cards-and-logs/wire/card-1920.png differ
+diff --git a/public/framework/ai/2026-09-29/cards-and-logs/wire/card-400.png b/public/framework/ai/2026-09-29/cards-and-logs/wire/card-400.png
+new file mode 100644
+index 00000000..e7e678dc
+Binary files /dev/null and b/public/framework/ai/2026-09-29/cards-and-logs/wire/card-400.png differ
+diff --git a/public/framework/ai/2026-09-29/cards-and-logs/wire/mini-pages-1920.png b/public/framework/ai/2026-09-29/cards-and-logs/wire/mini-pages-1920.png
+new file mode 100644
+index 00000000..bd734466
+Binary files /dev/null and b/public/framework/ai/2026-09-29/cards-and-logs/wire/mini-pages-1920.png differ
+diff --git a/public/framework/ai/2026-09-29/cards-and-logs/wire/review.jsonl b/public/framework/ai/2026-09-29/cards-and-logs/wire/review.jsonl
+new file mode 100644
+index 00000000..17a6d7fb
+--- /dev/null
++++ b/public/framework/ai/2026-09-29/cards-and-logs/wire/review.jsonl
+@@ -0,0 +1,28 @@
++{"phase":{"at":"2026-09-30T13:38:27-05:00","n":1,"kind":"findings","status":"start"}}
++{"finding":{"at":"2026-09-30T13:38:27-05:00","n":1,"kind":"fix","text":"The wire work is not committed, but the brief says \"Commit by exact path\". `git status` in the worktree shows core/Page/page.js, core/Page/readme.md, card/page.js, card/mini-pages/MiniPages.js, card/inventory.json and card/doc/inventory.md all still modified. Because of that, review/diff.patch shows the older branch commits, not this change: it still has the old Concepts-tile card/page.js, so the patch cannot be used to review this work."}}
++{"finding":{"at":"2026-09-30T13:38:27-05:00","n":2,"kind":"note","text":"Brief items 1–3 are done in the working tree. `card` sits in core/Page/page.js:66 after `weight`, the readme line is word for word at core/Page/readme.md:21, and card/page.js:47–55 goes live sample → preview wall → a two-sentence paragraph. Every sample class exists in card.css (lines 21–69), so nothing new was added."}}
++{"finding":{"at":"2026-09-30T13:38:27-05:00","n":3,"kind":"note","text":"card/page.js:26 (and headers/page.js:29,42): the ⋯ menu is `<a href=\"#\">`. It opens nothing, and a click adds `#` to the url. A `<button>`, or a link to the headers/ page, would be honest."}}
++{"finding":{"at":"2026-09-30T13:38:27-05:00","n":4,"kind":"note","text":"MiniPages.js:55 has a sensible local fix for the `card` method hiding Page's `card` class string. The collision itself is a trap for any other page.jsonl verb named after a Page property, so worth a line in the page skill's improvements.md, or renaming the verb (e.g. `mini`) instead of patching preview()."}}
++{"finding":{"at":"2026-09-30T13:38:27-05:00","n":5,"kind":"note","text":"Page-card/sheet.png: the order is right, and at 1920 the four grounds fill one row with the six previews below. At 1280 \"Strong hue\" wraps alone onto a second row, so a `--column` near 16em would keep all four in one row. At 3440 the sample cards stretch very wide while the previews stop at about two thirds of the width (72% empty)."}}
++{"finding":{"at":"2026-09-30T13:38:27-05:00","n":6,"kind":"note","text":"The preview tiles in Page-card/sheet.png are text-only, and their descriptions are cut off after about two lines. A reader can find all six, but nothing shows what each one looks like. A small picture per tile would fit \"show, don't tell\" better."}}
++{"finding":{"at":"2026-09-30T13:38:27-05:00","n":7,"kind":"note","text":"Page-card-mini-pages/sheet.png (not in this fence, from an earlier commit): the dark \"Going deep\" card's text is almost invisible, dark on dark, at all three widths. The `a.card.card-dark` probably picks up the link or text color instead of the dark island's."}}
++{"finding":{"at":"2026-09-30T13:38:27-05:00","n":8,"kind":"note","text":"In Page-card/sheet.png, the Default sample's nested level-2 card is the same gray as the Light gray ground beside it. So in the row, the first two samples read as nearly the same thing."}}
++{"phase":{"at":"2026-09-30T13:38:27-05:00","n":1,"kind":"findings","status":"done","verdict":"fix","cost":0.5945584,"model":"claude-opus-5-5"}}
++{"phase":{"at":"2026-09-30T13:41:07-05:00","n":2,"kind":"answers","status":"start"}}
++{"answer":{"at":"2026-09-30T13:41:07-05:00","n":1,"reply":"fixed: committed (fdb587f1) — the work was real, just not committed yet when the reviewer ran; every named file is now in that commit."}}
++{"answer":{"at":"2026-09-30T13:41:07-05:00","n":2,"reply":"no action needed: confirms items 1-3."}}
++{"answer":{"at":"2026-09-30T13:41:07-05:00","n":3,"reply":"fixed: the ⋯ button is now a real <button class=\"card-menu-btn\"> (no href, no #). headers/page.js's own demo still uses a.href('#') for the same shape, but that file is outside this task's fence — left alone."}}
++{"answer":{"at":"2026-09-30T13:41:07-05:00","n":4,"reply":"fixed: appended a line to .claude/skills/page/improvements.md naming the exact trap (a page.jsonl verb shadowing a Page property) and the properties list to check against. Renaming MiniPages' own `card` verb is mastermind-page's call, not mine to make on a file outside this task's three named edits."}}
++{"answer":{"at":"2026-09-30T13:41:07-05:00","n":5,"reply":"fixed the 1280 wrap: sample grid --column dropped from 18em to 16em, all four now fit one row at 1280. Declined the 3440 preview-wall width: this.previews()'s --column is the same knob every other index page on the site uses (core/page.js, overview/wall, etc.) at the same rough size — widening it further here would be a site-wide convention change, not a wiring fix."}}
++{"answer":{"at":"2026-09-30T13:41:07-05:00","n":6,"reply":"declined for this task: a thumbnail needs each of the five child pages (grounds, nesting, headers, scale, log) to override preview() with its own live render (the `preview(nav){ return this.preview_card(nav, () => ...); }` pattern in Page.class.js) — five separate design decisions, not a wiring change. Left as a clean follow-up; this.previews()'s default text+icon card is exactly what most index pages on the site already show."}}
++{"answer":{"at":"2026-09-30T13:41:07-05:00","n":7,"reply":"declined: confirmed pre-existing, predates this task (card/mini-pages/page.jsonl's own earlier commit) and is outside this task's three named files. Real bug, worth its own fix — noted here so it doesn't get lost: card/mini-pages/page.jsonl's 'going-deep' (card-dark ground) needs its .card-dark island's own ink color, not the page's."}}
++{"answer":{"at":"2026-09-30T13:41:07-05:00","n":8,"reply":"declined: this is card.css's own by-design rule (grounds/page.js's own demo shows the same thing on purpose) — a plain .card nested inside a plain .card switches to var(--wash), the exact same token the Light gray ground itself uses, so the two DO read alike when placed side by side. That is the documented nesting rule (card.css:24-32), not a bug this wiring task introduced or should redesign."}}
++{"phase":{"at":"2026-09-30T13:41:07-05:00","n":2,"kind":"answers","status":"done"}}
++{"phase":{"at":"2026-09-30T13:41:07-05:00","n":3,"kind":"replies","status":"start"}}
++{"reply":{"at":"2026-09-30T13:41:24-05:00","n":6,"stance":"accept","text":"Adding thumbnails needs each of the five child pages to write its own `preview()` override, which is five separate design decisions, not a wiring fix; leaving the default text+icon card (which matches most index pages on the site) and filing the rest as a follow-up is reasonable.","cost":0.047177}}
++{"reply":{"at":"2026-09-30T13:41:24-05:00","n":7,"stance":"accept","text":"This is a real bug, but it predates this task and lives outside the three named files; declining it here and writing down exactly what needs fixing (card-dark's own ink color) so it isn't lost is the right call.","cost":0.047177}}
++{"reply":{"at":"2026-09-30T13:41:24-05:00","n":8,"stance":"accept","text":"The matching gray is card.css's documented nesting rule, not something this task introduced — a nested plain card and a Light gray ground both resolve to `--wash` on purpose, so this isn't a bug to fix here.","cost":0.047177}}
++{"phase":{"at":"2026-09-30T13:41:24-05:00","n":3,"kind":"replies","status":"done"}}
++{"phase":{"at":"2026-09-30T13:41:49-05:00","n":2,"kind":"answers","status":"start"}}
++{"answer":{"at":"2026-09-30T13:41:49-05:00","n":2,"reply":"noted: confirms items 1-3 are done, no action needed."}}
++{"phase":{"at":"2026-09-30T13:41:49-05:00","n":2,"kind":"answers","status":"done"}}
+diff --git a/public/framework/ai/2026-09-29/cards-and-logs/wire/review.md b/public/framework/ai/2026-09-29/cards-and-logs/wire/review.md
+new file mode 100644
+index 00000000..9fdd81aa
+--- /dev/null
++++ b/public/framework/ai/2026-09-29/cards-and-logs/wire/review.md
+@@ -0,0 +1,11 @@
++![](card-1920.png)
++
++verdict: fix
++1. [fix] The wire work is not committed, but the brief says "Commit by exact path". `git status` in the worktree shows core/Page/page.js, core/Page/readme.md, card/page.js, card/mini-pages/MiniPages.js, card/inventory.json and card/doc/inventory.md all still modified. Because of that, review/diff.patch shows the older branch commits, not this change: it still has the old Concepts-tile card/page.js, so the patch cannot be used to review this work.
++2. [note] Brief items 1–3 are done in the working tree. `card` sits in core/Page/page.js:66 after `weight`, the readme line is word for word at core/Page/readme.md:21, and card/page.js:47–55 goes live sample → preview wall → a two-sentence paragraph. Every sample class exists in card.css (lines 21–69), so nothing new was added.
++3. [note] card/page.js:26 (and headers/page.js:29,42): the ⋯ menu is `<a href="#">`. It opens nothing, and a click adds `#` to the url. A `<button>`, or a link to the headers/ page, would be honest.
++4. [note] MiniPages.js:55 has a sensible local fix for the `card` method hiding Page's `card` class string. The collision itself is a trap for any other page.jsonl verb named after a Page property, so worth a line in the page skill's improvements.md, or renaming the verb (e.g. `mini`) instead of patching preview().
++5. [note] Page-card/sheet.png: order is right — at 1920 the four grounds fill one row, six previews below. At 1280 "Strong hue" wraps alone onto a second row; a `--column` near 16em keeps all four in one row. At 3440 the previews stop near two-thirds width (72% empty) while the samples stretch wide.
++6. [note] The preview tiles in Page-card/sheet.png are text-only, and their descriptions are cut off after about two lines. A reader can find all six, but nothing shows what each one looks like. A small picture per tile would fit "show, don't tell" better.
++7. [note] Page-card-mini-pages/sheet.png (not in this fence, from an earlier commit): the dark "Going deep" card's text is almost invisible, dark on dark, at all three widths. The `a.card.card-dark` probably picks up the link or text color instead of the dark island's.
++8. [note] In Page-card/sheet.png, the Default sample's nested level-2 card is the same gray as the Light gray ground beside it. So in the row, the first two samples read as nearly the same thing.
+diff --git a/public/framework/ai/2026-09-29/cards-and-logs/wire/task.jsonl b/public/framework/ai/2026-09-29/cards-and-logs/wire/task.jsonl
+new file mode 100644
+index 00000000..1c785353
+--- /dev/null
++++ b/public/framework/ai/2026-09-29/cards-and-logs/wire/task.jsonl
+@@ -0,0 +1,37 @@
++{"assign":{"session_id":"867f4709-3df4-4080-967a-ddad70c98208","agent":"minion-card-wire-in","card":"2026/09/30/cards-and-logs-the-card-system-then-logs","brief":"public/framework/ai/2026-09-29/cards-and-logs/wire/requirements.md","model":"claude-sonnet-5","worktree":"C:\\Code\\lew42\\worktrees\\cards-and-logs","parent_task":"public/framework/ai/2026-09-29/cards-and-logs","after":["public/framework/ai/2026-09-29/cards-and-logs/system"],"requested_at":"2026-09-30T13:25:12-05:00","now":"starting","steps":["wire card into core/Page/page.js children + readme.md","rebuild core/Page/card/page.js: live sample, preview wall, 2-sentence paragraph","headless load + screenshot"],"step":1}}
++{"assign":{"step":1,"now":"wired card into core/Page/page.js children (after weight, before generator) and added the readme.md sub-systems line — touched nothing else in page.js per the brief"}}
++{"assign":{"step":2,"now":"rewrote core/Page/card/page.js: live sample first (one card per ground, 3 levels deep, header bar + ⋯ menu, all classes reused from card.css), then this.previews() at --column 22em as the six-children preview wall, then the paragraph cut to two sentences; replaced the old Concepts tile list entirely"}}
++{"action":{"at":"2026-09-30T13:29:08-05:00","did":"edit","files":["public/framework/core/Page/card/mini-pages/MiniPages.js"]}}
++{"action":{"at":"2026-09-30T13:30:13-05:00","did":"edit","files":["public/framework/core/Page/card/inventory.json"]}}
++{"action":{"at":"2026-09-30T13:30:27-05:00","did":"edit","files":["public/framework/core/Page/card/doc/inventory.md"]}}
++{"log":"headless load of core/Page/card/ surfaced a real bug, not one of mine: MiniPages (card/mini-pages/MiniPages.js) has an instance method named `card` (the page.jsonl verb that records each mini page), which shadows Page's own `.card` PROPERTY (a CSS-class string nav() reads for preview_card()). This made nav().card a function, and .ac(function) threw 'arg.split is not a function' the moment the new preview wall tried to draw the mini-pages tile. Fixed by overriding preview(nav) in MiniPages.js to strip .card before handing it to preview_card() — scoped to that one file, not the shared Page.class.js."}
++{"assign":{"step":3,"now":"mid-turn addition from task-mastermind-cards-and-logs: added two missed rows to card/inventory.json (panel region, switcher active row) and card/doc/inventory.md's table + prose, sourced from public/framework/ai/2026-09-29/page-system/inventory-audit.md's 'Missed' section and each system's own CSS (ext/Panel/panel.css + controls.css; core/Page/layout/switcher/switcher.css + ext/tabs/tabs.css). No screenshots, per the ask."}}
++{"assign":{"step":4,"now":"headless (windowsHide via Playwright launch, browser closed at end of script): /framework/core/Page/, /framework/core/Page/card/, /framework/core/Page/card/log/whisper/ all load with zero console errors and zero failed requests (a first pass showed 6 ERR_ABORTED on the whisper page's own page_work() poll to Servex :8090 — traced to my test script closing the page too soon while that fetch was in flight, not a real bug; confirmed clean with a longer settle). Screenshots of card/ at 1920 and 400 saved beside this file: card-1920.png, card-400.png."}}
++{"log":"fence respected: only card/page.js, core/Page/page.js (children: line only), core/Page/readme.md, card/mini-pages/MiniPages.js (the fix above), card/inventory.json and card/doc/inventory.md were touched. The many modified ai/**/page.jsonl and board.jsonl files are ambient site/log churn from other agents, left alone per the brief."}
++{"log":{"at":"2026-09-30T13:34:38-05:00","msg":"skill: finish-task"}}
++{"review":{"at":"2026-09-30T13:38:27-05:00","size":"full","verdict":"fix","findings":[{"n":1,"kind":"fix","text":"The wire work is not committed, but the brief says \"Commit by exact path\". `git status` in the worktree shows core/Page/page.js, core/Page/readme.md, card/page.js, card/mini-pages/MiniPages.js, card/inventory.json and card/doc/inventory.md all still modified. Because of that, review/diff.patch shows the older branch commits, not this change: it still has the old Concepts-tile card/page.js, so the patch cannot be used to review this work."},{"n":2,"kind":"note","text":"Brief items 1–3 are done in the working tree. `card` sits in core/Page/page.js:66 after `weight`, the readme line is word for word at core/Page/readme.md:21, and card/page.js:47–55 goes live sample → preview wall → a two-sentence paragraph. Every sample class exists in card.css (lines 21–69), so nothing new was added."},{"n":3,"kind":"note","text":"card/page.js:26 (and headers/page.js:29,42): the ⋯ menu is `<a href=\"#\">`. It opens nothing, and a click adds `#` to the url. A `<button>`, or a link to the headers/ page, would be honest."},{"n":4,"kind":"note","text":"MiniPages.js:55 has a sensible local fix for the `card` method hiding Page's `card` class string. The collision itself is a trap for any other page.jsonl verb named after a Page property, so worth a line in the page skill's improvements.md, or renaming the verb (e.g. `mini`) instead of patching preview()."},{"n":5,"kind":"note","text":"Page-card/sheet.png: the order is right, and at 1920 the four grounds fill one row with the six previews below. At 1280 \"Strong hue\" wraps alone onto a second row, so a `--column` near 16em would keep all four in one row. At 3440 the sample cards stretch very wide while the previews stop at about two thirds of the width (72% empty)."},{"n":6,"kind":"note","text":"The preview tiles in Page-card/sheet.png are text-only, and their descriptions are cut off after about two lines. A reader can find all six, but nothing shows what each one looks like. A small picture per tile would fit \"show, don't tell\" better."},{"n":7,"kind":"note","text":"Page-card-mini-pages/sheet.png (not in this fence, from an earlier commit): the dark \"Going deep\" card's text is almost invisible, dark on dark, at all three widths. The `a.card.card-dark` probably picks up the link or text color instead of the dark island's."},{"n":8,"kind":"note","text":"In Page-card/sheet.png, the Default sample's nested level-2 card is the same gray as the Light gray ground beside it. So in the row, the first two samples read as nearly the same thing."}],"branch":"worktree/cards-and-logs","head":"72d508804eff1e6320578e4e9b851985b1bcd5cd","model":"claude-opus-5-5","cost":0.5945584,"file":"review.md"}}
++{"log":{"at":"2026-09-30T13:39:13-05:00","msg":"skill: skill-improvement"}}
++{"action":{"at":"2026-09-30T13:39:27-05:00","did":"edit","files":["public/framework/core/Page/card/page.js"]}}
++{"review":{"answer":{"n":1,"reply":"fixed: committed (fdb587f1) — the work was real, just not committed yet when the reviewer ran; every named file is now in that commit."}}}
++{"review":{"answer":{"n":2,"reply":"no action needed: confirms items 1-3."}}}
++{"review":{"answer":{"n":3,"reply":"fixed: the ⋯ button is now a real <button class=\"card-menu-btn\"> (no href, no #). headers/page.js's own demo still uses a.href('#') for the same shape, but that file is outside this task's fence — left alone."}}}
++{"review":{"answer":{"n":4,"reply":"fixed: appended a line to .claude/skills/page/improvements.md naming the exact trap (a page.jsonl verb shadowing a Page property) and the properties list to check against. Renaming MiniPages' own `card` verb is mastermind-page's call, not mine to make on a file outside this task's three named edits."}}}
++{"review":{"answer":{"n":5,"reply":"fixed the 1280 wrap: sample grid --column dropped from 18em to 16em, all four now fit one row at 1280. Declined the 3440 preview-wall width: this.previews()'s --column is the same knob every other index page on the site uses (core/page.js, overview/wall, etc.) at the same rough size — widening it further here would be a site-wide convention change, not a wiring fix."}}}
++{"review":{"answer":{"n":6,"reply":"declined for this task: a thumbnail needs each of the five child pages (grounds, nesting, headers, scale, log) to override preview() with its own live render (the `preview(nav){ return this.preview_card(nav, () => ...); }` pattern in Page.class.js) — five separate design decisions, not a wiring change. Left as a clean follow-up; this.previews()'s default text+icon card is exactly what most index pages on the site already show."}}}
++{"review":{"answer":{"n":7,"reply":"declined: confirmed pre-existing, predates this task (card/mini-pages/page.jsonl's own earlier commit) and is outside this task's three named files. Real bug, worth its own fix — noted here so it doesn't get lost: card/mini-pages/page.jsonl's 'going-deep' (card-dark ground) needs its .card-dark island's own ink color, not the page's."}}}
++{"review":{"answer":{"n":8,"reply":"declined: this is card.css's own by-design rule (grounds/page.js's own demo shows the same thing on purpose) — a plain .card nested inside a plain .card switches to var(--wash), the exact same token the Light gray ground itself uses, so the two DO read alike when placed side by side. That is the documented nesting rule (card.css:24-32), not a bug this wiring task introduced or should redesign."}}}
++{"action":{"at":"2026-09-30T13:41:21-05:00","did":"edit","files":["public/framework/ai/2026-09-29/cards-and-logs/wire/review/reply.md"]}}
++{"review":{"answer":{"n":2,"reply":"noted: confirms items 1-3 are done, no action needed."}}}
++{"log":{"at":"2026-09-30T13:42:34-05:00","msg":"skill: check-claude-usage"}}
++{"assign":{"step":5,"title":"core/Page: card wired in, its index page finally shows itself","landed_at":"2026-09-30T13:43:12-05:00","outcome":"**Wired `card` into Page, and made its index page show, not tell.**\n\n- [x] `card` added to `core/Page/page.js` children, after `weight`\n- [x] one readme line under \"The sub-systems\" in `core/Page/readme.md`\n- [x] [card/page.js](/framework/core/Page/card/): live sample (4 grounds, 3 cards deep, header + ⋯ button) → the six children as the site's own preview wall → a 2-sentence paragraph, full 1920 width\n- [x] headless load of `/framework/core/Page/`, `card/`, `card/log/whisper/`: zero errors, zero failed requests — ![](card-1920.png) · [400px](card-400.png)\n- [x] two missed rows (ext/Panel, the switcher) added to `card/inventory.json` + `card/doc/inventory.md`\n\nReview: reviewed: 4 fixed, 3 declined, 1 noted — [review.md](review.md). Found and fixed a real bug along the way: MiniPages' own `card` verb shadowed Page's `card` property and crashed the new preview wall.","links":[{"url":"/framework/core/Page/card/","label":"Cards (the page)"},{"url":"/framework/core/Page/","label":"Page (now lists Cards)"}],"window":{"before":null,"after":0.37},"tokens":null,"usage":null}}
++{"log":{"at":"2026-09-30T13:43:48-05:00","msg":"text-check: review.md: a 64-word paragraph (\"5. [note] Page-card/sheet.png: the order is right,…\"); review.md: 380 words and no picture"}}
++{"log":{"at":"2026-09-30T13:43:48-05:00","msg":"doc-check: 1 module — clean"}}
++{"log":{"at":"2026-09-30T18:43:48.464Z","msg":"clarity: queued (once per task)"}}
++{"log":{"at":"2026-09-30T13:43:50-05:00","msg":"lifecycle: nothing of this task's was left running"}}
++{"log":{"at":"2026-09-30T13:43:55-05:00","msg":"layout-check: 1 pages at 1280/1920/2560/3440 — /framework/core/Page/card/: errors, empty 0.966 at 2560, empty 0.974 at 3440, narrow_share 1 at 3440; sheets in layout-check/"}}
++{"log":{"at":"2026-09-30T13:43:58-05:00","msg":"padding-check: 1 pages — clean"}}
++{"action":{"at":"2026-09-30T13:45:15-05:00","did":"edit","files":["public/framework/core/Page/card/card.css"]}}
++{"action":{"at":"2026-09-30T13:45:29-05:00","did":"edit","files":["public/framework/core/Page/card/headers/page.js"]}}
++{"action":{"at":"2026-09-30T13:46:00-05:00","did":"edit","files":["public/framework/core/Page/card/log/whisper/readme.md"]}}
++{"action":{"at":"2026-09-30T13:46:04-05:00","did":"edit","files":["public/framework/core/Page/card/doc/system.md"]}}
++{"action":{"at":"2026-09-30T13:47:48-05:00","did":"edit","files":["public/framework/ai/2026-09-29/cards-and-logs/wire/review.md"]}}
+diff --git a/public/framework/ai/2026-09-29/day.jsonl b/public/framework/ai/2026-09-29/day.jsonl
+index 2fd09685..14a53378 100644
+--- a/public/framework/ai/2026-09-29/day.jsonl
++++ b/public/framework/ai/2026-09-29/day.jsonl
+@@ -55,3 +55,4 @@
+ {"log":{"at":"2026-09-29T20:16:20-05:00","task":"ask-turn-quiet","msg":"landed — ext/Ask's /ask/turn probe is now lazy; AI 2 cards on the LAN stop logging a console error on load"}}
+ {"log":{"at":"2026-09-29T20:19:16-05:00","task":"voice-sessions/b-slice2","msg":"landed: voice sessions slice 2, no leaks + fast first (merged), titles/refined lines/ai log.jsonl/host (0ac19ab2)"}}
+ {"log":{"at":"2026-09-29T20:32:42-05:00","task":"decided-default","msg":"landed — decisions decided by default (decide.mjs), scroll-safe undoable tap in the Decision widget, traced who acts on a chose line"}}
++{"log":{"at":"2026-09-30T13:43:23-05:00","task":"cards-and-logs/wire","msg":"landed — core/Page/card wired into children + readme, card/page.js rebuilt as a live sample + preview wall, MiniPages bug fixed, two inventory rows added"}}
+diff --git a/public/framework/core/Page/card/card.css b/public/framework/core/Page/card/card.css
+new file mode 100644
+index 00000000..f45ffc7a
+--- /dev/null
++++ b/public/framework/core/Page/card/card.css
+@@ -0,0 +1,125 @@
++@layer theme {
++
++/* ===== Grounds — four backgrounds a card can sit on (the owner, 2026-09-29):
++   "if a background is like white, you could have a different colored
++   background card, like a light gray or a dark themed card, or even maybe a
++   strong hue, like a primary color." All four reuse framework.css's own
++   tokens — nothing here invents a colour:
++
++     default     .card              var(--surface)
++     light gray  .card.card-gray    var(--darken-1)
++     dark        .card.card-dark    var(--bg)   — an ALWAYS-DARK ISLAND
++     strong hue  .card.card-prim    var(--prim) — an ALWAYS-LIGHT ISLAND
++
++   "Always-dark/light island" is framework.css's own mechanism (line ~155
++   there): forcing `color-scheme` flips --ink / --line / every --fill-aNN
++   rung UNDERNEATH this element, in both page modes, so text stays readable
++   without a single hand-picked colour. styles/sections/tone.js already
++   proved this exact four-name set for a full-width band; these two classes
++   are the same idea at card scale. doc/system.md has the contrast table.
++
++   `--prim` (#FF6157, a mid-bright coral) is dark enough that the usual
++   "dark ground gets light ink" rule fails it: light --ink on --prim
++   measured about 2.5:1 (2026-09-30 review), below the 4.5:1 floor. Dark
++   ink on --prim measures about 5.9:1, so `.card-prim` forces
++   `color-scheme: light` instead of `dark` — the opposite flip from
++   `.card-dark` — so `--ink` resolves to its dark, light-mode value even
++   when the page itself is in dark mode.
++
++   `.card-gray` used `--wash` first, but `--wash` is also the page's own
++   ground in this theme — a `.card-gray` placed straight on the page (not
++   nested inside another card) painted nothing, just a faint outline
++   (2026-09-30 review). `--darken-1` is an alpha step (black/white at low
++   opacity — framework.css's lighten/darken ladder, line ~189) instead of a
++   flat colour, so it reads as a visible step darker than WHATEVER ground
++   sits under it — the page, a white card, or nested inside another card.
++   doc/system.md says the same. */
++.card-gray { background: var(--darken-1); }
++
++/* ⚠ `color-scheme: dark` alone is not enough (found 2026-09-30, the mini-pages
++   "Going deep" card): `--ink` is `light-dark(...)` (framework.css), and
++   `light-dark()` resolves using the color-scheme of the element the `color`
++   PROPERTY is declared on — not wherever the custom property is read. Nothing
++   here ever declares `color` directly, so every descendant just INHERITS the
++   already-resolved light-mode color from whatever light ancestor set it,
++   before this island ever flips. Stating `color: var(--ink)` here, ON the
++   island itself, forces that resolution to happen HERE, where color-scheme
++   really is dark — then every plain-text descendant (h3, p) inherits the
++   correct value. A `visited`/`hover` link inside is unaffected either way:
++   framework.css already declares THEIR colors directly on the `a` (not
++   inherited), so those were resolving right all along. */
++.card-dark { background: var(--bg); color-scheme: dark; }
++.card-prim { background: var(--prim); color-scheme: light; }
++
++/* ⚠ `.card.card-dark`, not `.card-dark` alone: when the card itself IS the
++   link (`a.card.card-dark` — exactly what mini-pages/MiniPages.js draws),
++   `a.card`'s own `color: inherit` (below, "a whole card as a link") is ONE
++   class + ONE tag, which beats a single-class `.card-dark` selector on
++   specificity alone — the first version of this fix looked right in the
++   CSS file and did nothing in the browser, still dark-on-dark, because of
++   exactly this. Two classes (`.card.card-dark`) outranks one class plus one
++   tag, so this wins regardless of which rule comes first in the file. */
++.card.card-dark, .card.card-prim { color: var(--ink); }
++
++/* Nest a plain .card ON one of these and it would go invisible
++   (surface-on-surface, wash-on-wash) — so a plain .card directly inside
++   another card switches to the OTHER neutral ground, generalizing the rule
++   content.css:181-183 already states for icon cards. Dark and strong-hue
++   already read against anything, so a card explicitly given one of the
++   three ground classes keeps it (the :not() below only catches the cards
++   that made no choice of their own). */
++.card:not(.card-gray, .card-dark, .card-prim) > .card:not(.card-gray, .card-dark, .card-prim) { background: var(--wash); }
++.card-gray > .card:not(.card-gray, .card-dark, .card-prim) { background: var(--surface); }
++
++/* ===== Nesting — level 1, 2, 3 are boxes; level 4 and deeper drop the box
++   (the owner: "after the third level, you're maxing out your padding
++   space... a big heading and the content underneath at the same
++   indentation, no extra box"). The LEVEL NUMBER is set in JS, one class per
++   level, the box added or left off there too — CSS alone cannot count how
++   many `.card`s an element sits inside without a separate :is() chain per
++   depth, and that chain would need to be rewritten by hand for a 6th level.
++   card/log/LogView.js already made this same call for a log group; doc/system.md
++   says why the JS-set class won over a pure CSS selector. */
++.card-level-4, .card-level-5 { margin-block-start: var(--gap); }
++.card-level-5 { color: var(--subtle); }
++
++/* ===== Scale — .size-small / .size-regular / .size-large already exist
++   site-wide (framework.css) and a card reads them for free: --pad-card is
++   already `calc(... * var(--size))`. Nothing new needed here; doc/system.md's
++   table says what content fits each size. */
++
++/* ===== Title, header and menu patterns ===================================
++   None and heading need no new CSS — a bare .card, or an h3/h4 inside one,
++   both already look finished (framework.css's own :where(.card) > * rhythm).
++   These four cover what is left: a header bar with room for an icon, a
++   title and a "more" menu button; a whole card as a click target; and a
++   native <details> card that expands in place. */
++
++.card-head { display: flex; align-items: center; gap: 0.5em; }
++.card-head .card-head-title { flex: 1; font-weight: 700; }
++
++/* A small round icon button for the "···" menu — the same reset shape
++   LogView.js already uses to turn framework's control grammar (grey fill,
++   border, a 2.4em floor) back into a plain icon. */
++.card-menu-btn {
++	border: none; background: none; box-shadow: none;
++	padding: 0.3em; min-height: 0; width: auto; min-width: 0; border-radius: 50%;
++	color: inherit; text-decoration: none;
++}
++.card-menu-btn:hover { background: var(--fill-a08); }
++
++/* A whole card as a link: framework.css's own link colour/underline is for
++   prose, not a card, so this resets both and adds a hover ring — the same
++   "feels clickable, not like a blue link" a page preview already gives. */
++a.card { cursor: pointer; display: block; color: inherit; text-decoration: none; }
++a.card:hover { box-shadow: 0 0 0 1px var(--line); }
++
++/* An expandable card: the native <details>/<summary> marker replaced with
++   plain bold text, no triangle — the same "not a control" reset
++   LogView.js's summary rule uses, so an expandable card and a log group
++   look like one family. */
++details.card > summary { cursor: pointer; list-style: none; font-weight: 700; }
++details.card > summary::-webkit-details-marker { display: none; }
++details.card[open] > summary { margin-block-end: var(--gap); }
++
++}
+diff --git a/public/framework/core/Page/card/depth.js b/public/framework/core/Page/card/depth.js
+new file mode 100644
+index 00000000..0f099ced
+--- /dev/null
++++ b/public/framework/core/Page/card/depth.js
+@@ -0,0 +1,9 @@
++// One nesting depth for every card-shaped thing on the site: levels 1
++// through BOXED_LEVELS get a box (`.card`); anything deeper drops the box
++// and becomes a plain, bigger heading at the same indentation instead — the
++// owner's rule, "after the third level, you're maxing out your padding
++// space" (2026-09-29). `nesting/page.js` (a plain card tree) and
++// `log/LogView.js` (a Logger's nested groups) both import this single
++// constant so the two can never drift apart again — they did, briefly: see
++// `card/doc/system.md`'s Nesting table.
++export const BOXED_LEVELS = 3;
+diff --git a/public/framework/core/Page/card/doc/files.jsonl b/public/framework/core/Page/card/doc/files.jsonl
+new file mode 100644
+index 00000000..583a80bb
+--- /dev/null
++++ b/public/framework/core/Page/card/doc/files.jsonl
+@@ -0,0 +1,2 @@
++{"file":"system.md"}
++{"file":"inventory.md"}
+diff --git a/public/framework/core/Page/card/doc/inventory.md b/public/framework/core/Page/card/doc/inventory.md
+new file mode 100644
+index 00000000..ae86ebd7
+--- /dev/null
++++ b/public/framework/core/Page/card/doc/inventory.md
+@@ -0,0 +1,42 @@
++# Card inventory — what the site already had
++
++Eleven kinds of card-shaped thing, found before this system was built (nine from the
++original three surveys, plus two the 2026-09-29 audit caught as missed —
++`inventory-audit.md`, "Missed"). Full detail, one object per kind:
++[`inventory.json`](../inventory.json). Screenshots of the first nine: [`inventory/`](../inventory/)
++(no shots for the last two — they're page-internal layout systems, not directory-index cards).
++
++| Kind | Uses | Background | Clickable | Expandable | Menu | Title pattern |
++|---|---|---|---|---|---|---|
++| Page preview | 71 | none / `--surface` on the thumb | yes | no | no | icon + title |
++| `.card` / `.surface` | 59 | `--surface` | no | no | no | none |
++| Chip / pill | 37 | `--wash` | sometimes | no | no | none |
++| Panel region | 37 files | none of its own — opts into `.surface`/`.wash` | no | no | **yes** (toolbar) | none |
++| Chat bubble | 13 | tint of `--prim` (the one kind NOT on a neutral ground) | no | no | no | none |
++| Icon card (icard) | 8 | `--surface`, switches to `--wash` nested | yes | no | no | icon + title |
++| AI2 rail row | 6 | none at rest, `--fill-a04` hover | yes | no | no | header bar |
++| Switcher (active row) | 6 files | none at rest, current row `--fill-a08` or `--surface` | yes | no | no | none |
++| Decision box | 3 | `--surface` | no | no | no | heading |
++| Accordion row | 2 | white / `--surface`, or none | yes | **yes** | no | header bar |
++| Object card | 2 | `--surface` | no | yes | no | heading |
++
++**Panel** ([`/framework/ext/Panel/`](/framework/ext/Panel/)) and **the switcher**
++([`/framework/core/Page/layout/switcher/`](/framework/core/Page/layout/switcher/)) are both
++page-*internal* arranging systems, not directory-index cards — Panel's toolbar (a row of icon
++buttons, transparent until hovered) is its stand-in for a ⋯ menu; the switcher's "card" is its
++current-row highlight, not a box.
++
++## What this system reused, and what it added
++
++Reused directly: `.card`, `.surface`, `.wash`, `--pad-card`, `--radius`, `--card-edge` — every
++kind above already leaned on at least one of these, just inconsistently (five different
++spellings of "padding", border widths split 1px/2px with no rule — the full list is in the
++inventory task's own [`findings.md`](/framework/ai/2026-09-29/cards-and-logs/inventory/)).
++
++Added, in `card/card.css`: two more grounds (dark, strong hue — nothing in the inventory had
++either), the nesting-level classes (nothing in the inventory nested past one level except
++icard), and the header-bar-with-menu shape (only the AI2 rail row had one, and it is
++deliberately corner-less, a variant rather than the base pattern).
++
++Not touched: every kind above still renders exactly as it did before this task. `doc/system.md`
++is where a NEW card picks a pattern from; nothing existing was migrated to it.
+diff --git a/public/framework/core/Page/card/doc/system.md b/public/framework/core/Page/card/doc/system.md
+new file mode 100644
+index 00000000..274126cf
+--- /dev/null
++++ b/public/framework/core/Page/card/doc/system.md
+@@ -0,0 +1,91 @@
++# The card system — which card, when
++
++## A card is a mini page — the owner's decision
++
++**The owner's decision (2026-09-29, about 8:40 PM), settled, not provisional:** a card is a
++tiny page and does not need a directory of its own. Its data is one line in the nearest
++`page.jsonl` that already exists, and its url is a VIRTUAL route through that parent's own
++`route()` method — a folder gets made only once a card outgrows a single line. `mini-pages/`
++is the worked example: `MiniPages.js` adds one new page.jsonl verb, `card(data)`, and one
++`route(name)` that answers any slug the lines named. Nothing on disk under `mini-pages/` is a
++folder per card — see [`doc/inventory.md`](inventory.md)'s note on reuse, and the live page
++itself.
++
++One table: pick a ground, a nesting depth, a header pattern and a size. Every row reuses
++a class or token `framework.css` already has; `card.css` only adds the handful nothing
++else in the site had a word for yet.
++
++## Grounds — which background
++
++| Ground | Class | Token | Use it when |
++|---|---|---|---|
++| Default | `.card` | `var(--surface)` | almost always — the ground every other card in the inventory already uses |
++| Light gray | `.card.card-gray` | `var(--darken-1)` | a quieter card beside a default one, or a default card nested inside a default card (done for you automatically — see Nesting grounds below) |
++| Dark | `.card.card-dark` | `var(--bg)` | a card that wants to read as "console" or "raw data", regardless of the page's own light/dark mode |
++| Strong hue | `.card.card-prim` | `var(--prim)` | one card that must be the loudest thing on the page — a call to action, a selected state's home card. Never more than one at a time; it stops meaning "important" the moment two exist |
++
++`.card-gray` started as `var(--wash)`, but `--wash` is also this theme's own page
++background — a `.card-gray` sitting straight on the page, not nested inside another
++card, painted nothing (2026-09-30 review). `--darken-1` is framework.css's alpha-based
++darken step (black at low opacity in light mode, white at low opacity in dark mode), so
++it reads as a visible step darker than whatever is underneath it — the page, a white
++card, or a card nested inside another card — instead of matching one specific ground.
++
++**Nesting grounds, automatically.** A plain `.card` (no ground class of its own)
++sitting directly inside another plain `.card` would be invisible — surface-on-surface.
++`card.css` switches it for you: default-in-default becomes light-gray, light-gray-in-anything
++becomes default. A card given `.card-dark` or `.card-prim` on purpose keeps it, because those
++two already read against anything (see `grounds/page.js`'s live demo). This generalizes the
++rule `ux/Content/content.css:181-183` already stated for icon cards: "a section with a
++background is the white ground, its child cards switch to wash so nesting still reads."
++
++**Contrast, both modes.** Nothing here is a fixed colour — `--surface`, `--darken-1`, `--bg` and
++`--prim` all resolve relative to the page's own mode already, and `.card-dark`/`.card-prim` each
++force a `color-scheme` (the same one-line "always-dark/light island" mechanism
++`styles/sections/tone.js` uses), so `--ink` flips underneath them too, regardless of which mode
++the page itself is in. `--bg` (a dark surface) forces `color-scheme: dark` so `--ink` resolves
++light. `--prim` (`#FF6157`, a mid-bright coral) is the one ground where the obvious answer is
++wrong: light ink on `--prim` measures about 2.5:1, below the 4.5:1 floor, so `.card-prim` forces
++`color-scheme: light` instead — `--ink` resolves to its dark value there, which measures about
++5.9:1 on `--prim` in both page modes (measured with `getComputedStyle`, 2026-09-30 review-fix).
++
++## Nesting — how deep
++
++| Level | Box? | How |
++|---|---|---|
++| 1 | Yes | `.card` |
++| 2 | Yes | `.card` |
++| 3 | Yes | `.card` — the last box |
++| 4 | No | a plain heading, no wrapper class needed for the look, `.card-level-4` only for the small vertical gap above it |
++| 5+ | No, quieter | `.card-level-5` dims the text with `color: var(--subtle)`; a real tree would keep adding levels the same way, capped in the demo at 5 because a reader's eye is by then |
++
++**Depth is set in JS, not CSS.** `nesting/page.js`'s `level(n, …)` function decides
++`boxed = n <= BOXED_LEVELS` itself and writes the class — `card-level-${n}` — onto the element
++it draws. A pure CSS answer (something like `.card .card .card .card`, one more `.card` per
++level) was considered and rejected: it cannot express "level 4 and DEEPER", only "exactly level
++4", so a 6-level tree would need a hand-written selector for level 6 that nobody would remember
++to add. `card/log/LogView.js` makes the identical call for a log group, from the same
++`BOXED_LEVELS` constant (`card/depth.js`) — the two used to disagree (log boxed only 2 levels,
++found and fixed 2026-09-30) and now can't drift apart again, because there is only one number to
++change.
++
++## Title, header and menu patterns
++
++| Pattern | Markup | Use it when |
++|---|---|---|
++| None | `.card` alone | the content speaks for itself — a chip, a quiet stat |
++| Heading | `.card` + `h3`/`h4` | most cards — a page preview, a Decision card |
++| Icon + title | `.card-head` with an `icon()` and a `.card-head-title` span | the concept needs to be spotted at a glance (`ux/Content`'s icon cards, page previews) |
++| Header bar + `⋯` menu | `.card-head` with an icon, a title, and a `.card-menu-btn` at the end | the card has actions beyond "click it" — AI 2's rail rows are this shape already |
++| Clickable | `a.card` (the whole element is the link) | a list of cards that are really links — most of the site's cards already are |
++| Expandable | `details.card > summary` | the card holds more than fits — the accordion rows in `ux/Content` already do this |
++
++A card can combine these: `mini-pages/page.jsonl`'s list is icon-free, heading-led, and
++clickable all at once — the header row is optional on every axis independently.
++
++## Scale — what content fits
++
++See [`scale/page.js`](../scale/) for the live table; the short version: small holds one line,
++default holds a title and a short paragraph, large holds a title, a longer body, and room for
++one more thing nested inside it. `.size-small` / `.size-regular` / `.size-large` are
++framework.css's own classes — nothing card-specific was added.
+diff --git a/public/framework/core/Page/card/files.jsonl b/public/framework/core/Page/card/files.jsonl
+new file mode 100644
+index 00000000..5ae44c2a
+--- /dev/null
++++ b/public/framework/core/Page/card/files.jsonl
+@@ -0,0 +1,31 @@
++{"file":"inventory.json"}
++{"file":"log/"}
++{"file":"inventory/"}
++{"file":"log/page.js"}
++{"file":"page.js"}
++{"file":"card.css"}
++{"file":"grounds/page.js"}
++{"file":"nesting/page.js"}
++{"file":"headers/page.js"}
++{"file":"scale/page.js"}
++{"file":"mini-pages/"}
++{"file":"mini-pages/page.jsonl"}
++{"file":"readme.md"}
++{"file":"doc/"}
++{"file":"card.css"}
++{"file":"readme.md"}
++{"file":"doc/"}
++{"file":"doc/system.md"}
++{"file":"doc/inventory.md"}
++{"file":"grounds/"}
++{"file":"grounds/page.js"}
++{"file":"nesting/"}
++{"file":"nesting/page.js"}
++{"file":"headers/"}
++{"file":"headers/page.js"}
++{"file":"scale/"}
++{"file":"scale/page.js"}
++{"file":"mini-pages/"}
++{"file":"mini-pages/page.jsonl"}
++{"file":"doc/"}
++{"file":"depth.js"}
+diff --git a/public/framework/core/Page/card/grounds/files.jsonl b/public/framework/core/Page/card/grounds/files.jsonl
+new file mode 100644
+index 00000000..ffae31da
+--- /dev/null
++++ b/public/framework/core/Page/card/grounds/files.jsonl
+@@ -0,0 +1 @@
++{"file":"page.js"}
+diff --git a/public/framework/core/Page/card/grounds/page.js b/public/framework/core/Page/card/grounds/page.js
+new file mode 100644
+index 00000000..8b72349e
+--- /dev/null
++++ b/public/framework/core/Page/card/grounds/page.js
+@@ -0,0 +1,39 @@
++import { Page, p, h4, div, demo } from "/app.js";
++
++// The four grounds: an empty class name means "the default" (plain `.card`).
++const GROUNDS = [
++	{ cls: "",          name: "Default",    token: "var(--surface)" },
++	{ cls: "card-gray", name: "Light gray", token: "var(--darken-1)" },
++	{ cls: "card-dark", name: "Dark",       token: "var(--bg)" },
++	{ cls: "card-prim", name: "Strong hue", token: "var(--prim)" },
++];
++
++export default new Page({
++	meta: import.meta,
++	title: "Grounds",
++	description: "Four backgrounds a card can sit on — default, light gray, dark, and the primary hue — and what happens when one sits on another.",
++	icon: "palette",
++
++	content(){
++		p("Four grounds, reusing framework.css's own tokens — nothing here is a new colour. \"Dark\" and \"strong hue\" each force a `color-scheme` (the same one-line mechanism `styles/sections/tone.js` already uses for a full band): every token underneath flips, so the text stays readable without picking a special colour for it — \"Dark\" flips to `color-scheme: dark` (a dark ground wants light ink), and \"strong hue\" flips to `color-scheme: light` instead, because light ink on this particular orange reads too faint (dark ink measures far better there). `card.css` has the four class names.");
++
++		h4("Each ground, on its own");
++		demo(() => {
++			div.c("grid auto gap", () => GROUNDS.forEach(g =>
++				div.c(`card ${g.cls}`.trim(), () => {
++					h4(g.name);
++					p(g.token);
++				})));
++		}, "The four, side by side — reload this page in dark mode too; nothing here is hand-tinted for either mode.");
++
++		h4("Each ground, ON each ground");
++		p("A plain default card loses all contrast sitting on another plain default card — so a `.card` directly inside a `.card` switches its OWN ground automatically (default ↔ light gray), the same rule `ux/Content`'s icon cards already use for exactly this. A dark or strong-hue card already reads against anything, so those two are left alone when nested.");
++		demo(() => {
++			div.c("grid auto gap", () => GROUNDS.forEach(outer =>
++				div.c(`card ${outer.cls}`.trim(), () => {
++					h4(outer.name + ", holding:");
++					div.c("card", () => p("a plain .card — no ground class of its own"));
++				})));
++		}, "Every outer ground, each holding a PLAIN nested card — watch it switch to stay readable, never invisible.");
++	},
++});
+diff --git a/public/framework/core/Page/card/headers/files.jsonl b/public/framework/core/Page/card/headers/files.jsonl
+new file mode 100644
+index 00000000..ffae31da
+--- /dev/null
++++ b/public/framework/core/Page/card/headers/files.jsonl
+@@ -0,0 +1 @@
++{"file":"page.js"}
+diff --git a/public/framework/core/Page/card/headers/page.js b/public/framework/core/Page/card/headers/page.js
+new file mode 100644
+index 00000000..5e4de633
+--- /dev/null
++++ b/public/framework/core/Page/card/headers/page.js
+@@ -0,0 +1,46 @@
++import { Page, p, h4, h3, div, span, a, button, details, summary, icon, demo } from "/app.js";
++
++export default new Page({
++	meta: import.meta,
++	title: "Headers & menus",
++	description: "Six patterns for the top of a card: no title, a heading, an icon beside the title, a header bar with a ⋯ menu — then the same shapes made clickable, expandable, or both.",
++	icon: "view_agenda",
++
++	content(){
++		p("A card's own content decides how much header it needs. These six are the whole set found on the site today (`doc/inventory.md`), reduced to one pattern each.");
++
++		h4("None");
++		demo(() => div.c("card", () => p("Just content — most chips and quiet cards need nothing above it.")));
++
++		h4("Heading");
++		demo(() => div.c("card", () => { h3("A plain heading"); p("The most common pattern: a bold title, then body text at the same indentation."); }));
++
++		h4("Icon + title");
++		demo(() => div.c("card", () => {
++			div.c("card-head", () => { icon("widgets"); span.c("card-head-title", "Icon + title"); });
++			p("The title carries a small icon beside it — `ux/Content`'s icon cards and every page preview use this.");
++		}));
++
++		h4("Header bar, with a ⋯ menu");
++		demo(() => div.c("card", () => {
++			div.c("card-head", () => {
++				icon("dashboard");
++				span.c("card-head-title", "Header bar");
++				button.c("card-menu-btn", () => icon("more_vert"));
++			});
++			p("A title row with room at both ends — an icon on the left, a ⋯ menu on the right. AI 2's rail rows use this same shape.");
++		}));
++
++		h4("Clickable — the whole card is a link");
++		demo(() => a.c("card", () => { h3("Clickable"); p("The whole box is one `<a>` — click anywhere on it, not just a link inside. This one is a real link: it routes to the first card in `mini-pages/`."); }).attr("href", "../mini-pages/first-steps/"));
++
++		h4("Expandable, with a menu");
++		demo(() => details.c("card", () => {
++			summary(() => { icon("expand_more"); span("Expandable"); });
++			div.c("card-head", () => {
++				p.c("card-head-title", "Open me and I still have my own header row.");
++				button.c("card-menu-btn", () => icon("more_vert"));
++			});
++		}).attr("open", ""));
++	},
++});
+diff --git a/public/framework/core/Page/card/inventory.json b/public/framework/core/Page/card/inventory.json
+new file mode 100644
+index 00000000..c8cde09b
+--- /dev/null
++++ b/public/framework/core/Page/card/inventory.json
+@@ -0,0 +1,178 @@
++[
++  {
++    "name": "page preview",
++    "where": "public/framework/core/Page/Page.class.js:1119 (preview_card), public/framework/core/Page/Page.css:1179",
++    "example_url": "/framework/core/",
++    "uses": 71,
++    "background": "none by default; var(--surface) on the thumb (or the whole card if it has no thumb)",
++    "padding": "0 (thumbed) or 0.9em 1em (no thumb)",
++    "radius": "var(--radius)",
++    "border": "no border; a 1px ring via box-shadow (var(--card-ring)) plus a soft drop shadow, not border-color",
++    "nesting": "sits in a .wall / .page-previews grid (the index page's body); holds a thumb (a shrunk live render or an image) and a title+description, nothing nested inside",
++    "clickable": true,
++    "expandable": false,
++    "menu": false,
++    "title_pattern": "icon+title",
++    "notes": "the most common card on the whole site — every directory index is a wall of these. /imagine/gallery and /layouts/browse reskin it (gal-flat, std-browse) instead of inventing a new card."
++  },
++  {
++    "name": "card / surface",
++    "where": "public/framework/framework.css:456-502 (.surface, .card)",
++    "example_url": "/framework/",
++    "uses": 59,
++    "background": "var(--surface) (via the .surface rule .card inherits)",
++    "padding": "var(--pad-card)",
++    "radius": "var(--radius) (from .surface)",
++    "border": "border-inline-start: 3px solid var(--card-edge, transparent) — a left stripe, not a full border",
++    "nesting": "the base class other cards extend or sit inside (ux-content-section.card, framework.css's own doc demos); a plain .card can hold any content, including another .card",
++    "clickable": false,
++    "expandable": false,
++    "menu": false,
++    "title_pattern": "none",
++    "notes": "the framework's one shared card primitive — everything else in this file is a variant or a sibling of this rule, not a separate system. Page.class.js even aliases surface: \"card\" so a page's own preview can ask for this look directly."
++  },
++  {
++    "name": "chip / pill",
++    "where": "public/framework/ux/Content/content.css:5 (.ux-content-decision-head > span), :85 (.ux-content-object-name)",
++    "example_url": "/framework/ux/Content/Decision/",
++    "uses": 37,
++    "background": "var(--wash) (var(--fill-a04) or var(--fill-a08) in ai2.css's versions)",
++    "padding": "0.1em 0.5em to 0.1em 0.55em",
++    "radius": ".3em, sometimes 1em (fully round) for a status dot",
++    "border": "none",
++    "nesting": "always inline, inside a row of other chips or beside text in a card's header; never holds another card",
++    "clickable": "sometimes (a.ux-content-object-link is an <a>)",
++    "expandable": false,
++    "menu": false,
++    "title_pattern": "none",
++    "notes": "the smallest 'card' on the site — a one-word background tag. The same look (wash/fill background, small radius, tight padding) is hand-rewritten in at least 6 files (ux/Content, ai2, decision) instead of sharing one class — see findings.md."
++  },
++  {
++    "name": "chat bubble",
++    "where": "public/framework/ext/Chat/Chat.css:220 (.chatbox-you), :224 (.chatbox-reply)",
++    "example_url": "/framework/ext/Chat/",
++    "uses": 13,
++    "background": "color-mix(in srgb, var(--prim) 22%, transparent) [you] / color-mix(in srgb, currentColor 10%, transparent) [reply]",
++    "padding": "inherited from a shared .chatbox-msg rule (not re-measured here)",
++    "radius": "shared with .chatbox-msg",
++    "border": "none",
++    "nesting": "sits in a scrolling column of messages; never nests another card",
++    "clickable": false,
++    "expandable": false,
++    "menu": false,
++    "title_pattern": "none",
++    "notes": "the one card kind on the site whose background is a tint of the ACCENT color rather than --surface/--wash — every other kind in this inventory uses a neutral ground."
++  },
++  {
++    "name": "icon card (icard)",
++    "where": "public/framework/ux/Content/content.css:163 (.ux-content-icard)",
++    "example_url": "/framework/ux/Content/structure/",
++    "uses": 8,
++    "background": "var(--surface); turns var(--wash) when nested inside a .ux-content-section.card so the two grounds read apart",
++    "padding": "not set directly here — comes from the flex gap (.4em) around centered content",
++    "radius": "var(--radius)",
++    "border": "1px solid var(--line) (removed when nested in a .card section)",
++    "nesting": "several sit in a .ux-content-icards flex row, which itself sits inside an optional .ux-content-section.card — the one place in the inventory where a card visibly nests one level inside another",
++    "clickable": true,
++    "expandable": false,
++    "menu": false,
++    "title_pattern": "icon+title",
++    "notes": "used for Concepts tiles; the comment at content.css:181 states the rule the owner wants generalized: a section with a background is the white ground, its child cards switch to wash so nesting still reads."
++  },
++  {
++    "name": "AI2 rail row",
++    "where": "public/framework/ai2/ai2.css:329 (.ai2-row)",
++    "example_url": "/framework/ai2/",
++    "uses": 6,
++    "background": "none at rest; var(--fill-a04) on hover; var(--surface) when active/in-path",
++    "padding": "var(--pad-card) — explicitly reuses .card's own padding value (ai2.css:320 comment)",
++    "radius": "0 — rows sit flush, divided by a 1px border-block-end",
++    "border": "1px solid var(--line) bottom only, plus a 3px left accent stripe that lights up on selection",
++    "nesting": "a flat list inside .ai2-rows (a scrolling rail), each row a link to a card's own full page",
++    "clickable": true,
++    "expandable": false,
++    "menu": false,
++    "title_pattern": "header bar (title, meter, path stacked with a fixed gap)",
++    "notes": "a card with the corners and border sanded off so many can sit edge-to-edge in a narrow rail — same padding token as .card, deliberately no radius or full border. The AI2 board's rail-row and the clicked-through full card are the same data shown two ways."
++  },
++  {
++    "name": "decision box (layouts/browse item page)",
++    "where": "public/layouts/browse/browse.css:171-188 (.std-browse-decide)",
++    "example_url": "/layouts/browse/approved-rail-content/",
++    "uses": 3,
++    "background": "var(--surface)",
++    "padding": "var(--pad)",
++    "radius": "var(--radius)",
++    "border": "box-shadow: inset 0 0 0 1px var(--line) (an inset hairline, not a real border)",
++    "nesting": "one per item page, standalone — not inside a wall",
++    "clickable": false,
++    "expandable": false,
++    "menu": false,
++    "title_pattern": "heading",
++    "notes": "the file's own comment calls this 'the one box on the item page, because it is the one thing the page exists for' — a deliberate single card per page, not a repeated kind."
++  },
++  {
++    "name": "accordion row (disclosure)",
++    "where": "public/framework/ux/Content/content.css:126 (.ux-content-stack .ux-content-disclosure)",
++    "example_url": "/framework/ux/Content/",
++    "uses": 2,
++    "background": "light-dark(#fff, var(--surface)); none in the 'lines' variant (a rule under each row instead of a box)",
++    "padding": "var(--pad-card, 1em) on the <summary> row",
++    "radius": "0 on the row; the stack's own wrapper can round the whole group",
++    "border": "1px solid var(--line) bottom, only in the 'flush' word",
++    "nesting": "native <details>/<summary>, each one a row inside a .ux-content-stack; a stack does not nest inside another card in the files read",
++    "clickable": true,
++    "expandable": true,
++    "menu": false,
++    "title_pattern": "header bar",
++    "notes": "the one expandable kind found — built on native <details>, not a custom widget. This is the piece closest to what the owner asked for next (a log group you can open), already proven for Decision/Question/Quotation/Spend."
++  },
++  {
++    "name": "object card",
++    "where": "public/framework/ux/Content/content.css:54 (.ux-content-object)",
++    "example_url": "/framework/ux/Content/Object/",
++    "uses": 2,
++    "background": "var(--surface)",
++    "padding": "not set directly on the rule read (inherited card padding)",
++    "radius": ".4em",
++    "border": "2px solid var(--line) (thicker than the 1px used elsewhere)",
++    "nesting": "holds property chips and method chips (this inventory's 'chip' kind) inside it; sits alone in a column, max-width 32em",
++    "clickable": false,
++    "expandable": true,
++    "menu": false,
++    "title_pattern": "heading",
++    "notes": "a 2px border is unique to this one and ux-content-answer/-field — every other card in the inventory uses 1px or none; worth reconciling (see findings.md)."
++  },
++  {
++    "name": "panel region",
++    "where": "public/framework/ext/Panel/panel.css:1 (\"what a panel LOOKS like is surface/wash off framework.css\"), :59 (.panel-body), :31 (.panel); public/framework/ext/Panel/controls.css (the toolbar)",
++    "example_url": "/framework/ext/Panel/",
++    "uses": 37,
++    "background": "none of its own — a caller opts a panel into `.surface` or `.wash` (framework.css) for its ground, same tokens this inventory's other kinds share",
++    "padding": "var(--panel-pad, 0) — zero unless a caller sets it; a template keeps its own inner padding on its own inner element, one layer further in",
++    "radius": "none set here — comes from `.surface`/`.wash` when a caller adds one of those",
++    "border": "none of its own, same reasoning as background",
++    "nesting": "a workspace of panels, split by a grip into rows/columns; a panel can hold another panel (a nested split) or a template payload",
++    "clickable": false,
++    "expandable": false,
++    "menu": true,
++    "title_pattern": "none — a panel is unnamed until a template gives it one",
++    "notes": "the toolbar (`panel-btn` row, controls.css) is this system's menu pattern: transparent until hovered (`--fill-a08`), a tinted `on` state (`color-mix(--prim 15%)`) for the pressed one — a row of icon buttons doing the job a single ⋯ menu does elsewhere, deliberately with no background of its own (the owner, 2026-08-16: chrome over content, not a bar). Missed by the three surveys that built this inventory (found in the 2026-09-29 audit, `inventory-audit.md`) because it is a page-*internal* layout system, not a directory-index card."
++  },
++  {
++    "name": "switcher (routed list + content)",
++    "where": "public/framework/core/Page/layout/switcher/switcher.css:156 (nav skin active row), public/framework/ext/tabs/tabs.css:260 (.tabs.vertical default active row)",
++    "example_url": "/framework/core/Page/layout/switcher/",
++    "uses": 6,
++    "background": "the list itself: none at rest; the CURRENT row is var(--fill-a08) (nav skin) or var(--tab-fill, var(--surface)) (default, no skin chosen)",
++    "padding": "inherited from ext/tabs' own .tab padding — nothing extra added here",
++    "radius": "var(--radius) on the current row only (nav skin); none in the default/tree skins",
++    "border": "1px solid var(--line) under the narrow-width dropdown and its sticky header; none around the list itself at normal width",
++    "nesting": "a list (the switcher) beside its content (a `.tab-panel`, which is the routed child page's own render()) — at under 30em the list collapses to a one-row sticky header that opens as a dropdown over the content",
++    "clickable": true,
++    "expandable": false,
++    "menu": false,
++    "title_pattern": "none — the list's own rows ARE the titles",
++    "notes": "three skins (tree/nav/plain), one mechanism: only which class marks the CURRENT row changes. Built 2026-09-29, after the three card-inventory surveys already ran, which is why it was missing (found in the same day's audit, `inventory-audit.md`) — a timing gap, not a blind spot in scope."
++  }
++]
+diff --git a/public/framework/core/Page/card/inventory/accordion-row.png b/public/framework/core/Page/card/inventory/accordion-row.png
+new file mode 100644
+index 00000000..fa5389e4
+Binary files /dev/null and b/public/framework/core/Page/card/inventory/accordion-row.png differ
+diff --git a/public/framework/core/Page/card/inventory/ai2-row.png b/public/framework/core/Page/card/inventory/ai2-row.png
+new file mode 100644
+index 00000000..6bcb3de3
+Binary files /dev/null and b/public/framework/core/Page/card/inventory/ai2-row.png differ
+diff --git a/public/framework/core/Page/card/inventory/card.png b/public/framework/core/Page/card/inventory/card.png
+new file mode 100644
+index 00000000..a3363d59
+Binary files /dev/null and b/public/framework/core/Page/card/inventory/card.png differ
+diff --git a/public/framework/core/Page/card/inventory/chat-bubble.png b/public/framework/core/Page/card/inventory/chat-bubble.png
+new file mode 100644
+index 00000000..c93d5d28
+Binary files /dev/null and b/public/framework/core/Page/card/inventory/chat-bubble.png differ
+diff --git a/public/framework/core/Page/card/inventory/chip.png b/public/framework/core/Page/card/inventory/chip.png
+new file mode 100644
+index 00000000..d629e84e
+Binary files /dev/null and b/public/framework/core/Page/card/inventory/chip.png differ
+diff --git a/public/framework/core/Page/card/inventory/decision-box.png b/public/framework/core/Page/card/inventory/decision-box.png
+new file mode 100644
+index 00000000..63744694
+Binary files /dev/null and b/public/framework/core/Page/card/inventory/decision-box.png differ
+diff --git a/public/framework/core/Page/card/inventory/files.jsonl b/public/framework/core/Page/card/inventory/files.jsonl
+new file mode 100644
+index 00000000..ef49f8f6
+--- /dev/null
++++ b/public/framework/core/Page/card/inventory/files.jsonl
+@@ -0,0 +1,8 @@
++{"file":"chip.png"}
++{"file":"chat-bubble.png"}
++{"file":"page-preview.png"}
++{"file":"accordion-row.png"}
++{"file":"ai2-row.png"}
++{"file":"decision-box.png"}
++{"file":"card.png"}
++{"file":"icon-card.png"}
+diff --git a/public/framework/core/Page/card/inventory/icon-card.png b/public/framework/core/Page/card/inventory/icon-card.png
+new file mode 100644
+index 00000000..bd7afcaa
+Binary files /dev/null and b/public/framework/core/Page/card/inventory/icon-card.png differ
+diff --git a/public/framework/core/Page/card/inventory/page-preview.png b/public/framework/core/Page/card/inventory/page-preview.png
+new file mode 100644
+index 00000000..a5a71a9e
+Binary files /dev/null and b/public/framework/core/Page/card/inventory/page-preview.png differ
+diff --git a/public/framework/core/Page/card/log/LogView.js b/public/framework/core/Page/card/log/LogView.js
+new file mode 100644
+index 00000000..e4ff1ae4
+--- /dev/null
++++ b/public/framework/core/Page/card/log/LogView.js
+@@ -0,0 +1,172 @@
++import { View, div, p, span, small, details, summary, style } from "../../../View/View.js";
++import { BOXED_LEVELS } from "../depth.js";
++
++/**
++ * LogView — renders a `Logger`'s entries (`logger.entries`, or a plain array
++ * from `Logger.from_jsonl(text)`) as nested cards.
++ *
++ *   new LogView({ logger }).append_to(somewhere);      // live: redraws itself
++ *   new LogView({ entries: Logger.from_jsonl(text) }); // static: one read
++ *
++ * Level 1 through `BOXED_LEVELS` (3) are boxes (`.card`, so they pick up
++ * framework.css's padding and rounded corners for free). Level 4 and deeper
++ * give up the box — a bare heading over its own content, at the SAME
++ * indentation — because a fourth level of nested boxes runs out of padding
++ * to give (the owner, 2026-09-29). `card/nesting/page.js` draws a plain card
++ * tree to the same rule, from the same constant, so the two can't drift
++ * apart again (`card/doc/system.md`'s Nesting table). Every group is a
++ * native `<details>`, open by default, so a reader can collapse the ones
++ * they don't care about.
++ */
++style(`@layer theme {
++	/* RHYTHM: a log reads like a log, not like paragraphs of prose. Two log
++	   LINES in a row sit tight (0.2em — the owner, 2026-09-30); anywhere a
++	   GROUP is one of the two neighbours, it keeps the full --gap, so a group
++	   still reads as its own thing. ":is(.log-view, .log-group-body) > *"
++	   covers both the root list and every nested one with one rule. */
++	:is(.log-view, .log-group-body) { display: flex; flex-direction: column; }
++	:is(.log-view, .log-group-body) > * { margin: 0; }
++	:is(.log-view, .log-group-body) > * + * { margin-block-start: var(--gap); }
++	:is(.log-view, .log-group-body) > .log-line + .log-line { margin-block-start: 0.2em; }
++
++	.log-group-body { margin-block-start: var(--gap); }
++
++	/* Boxed groups (level 1-2): .card already pads and rounds the corners, and
++	   already spaces summary from body (framework.css's ":where(.card) > *"
++	   rhythm) — so the body's own margin above is redundant there and switched
++	   off, one line, rather than fighting the two rules against each other. */
++	.log-group.card > .log-group-body { margin-block-start: 0; }
++
++	/* The summary reset — framework.css's control grammar reads a bare
++	   <summary> as a button (grey fill, border, a 2.4em floor, an inset-shadow
++	   hover); a log group's toggle is a plain heading, not a control, so
++	   every one of those declarations is reset back to nothing here.
++	   "summary.log-group-summary" (element + class) outweighs framework's
++	   bare "summary" (and its ":is(...)" hover rule, which counts as a plain
++	   class for specificity) regardless of stylesheet load order — the exact
++	   selector shape ui/item.js already uses for this same reset. */
++	summary.log-group-summary {
++		display: flex; align-items: baseline; gap: 0.4em;
++		width: auto; max-width: none; min-height: 0;
++		padding: 0; margin: 0; background: none; border: none; box-shadow: none;
++		font-weight: 700; cursor: pointer; list-style: none;
++	}
++	summary.log-group-summary:hover, summary.log-group-summary:active { --ctl-lift: transparent; border-color: transparent; }
++	summary.log-group-summary::-webkit-details-marker { display: none; }
++
++	/* The caret: one glyph, rotated open — not a second glyph swapped in,
++	   the same mechanism ui/item.js's .item-caret already uses. */
++	.log-caret { display: inline-block; color: var(--subtle); transition: transform 0.1s; }
++	details[open] > summary.log-group-summary > .log-caret { transform: rotate(90deg); }
++
++	.log-group-meta { font-weight: 400; }
++
++	/* Flat groups (level 4+, past BOXED_LEVELS): no box, no extra padding —
++	   just a bigger, bolder label standing in for the missing border. Capped
++	   at level 5 so a deep object graph doesn't shrink text past readable. */
++	.log-level-4 > .log-group-summary { font-size: 1.05em; }
++	.log-level-5 > .log-group-summary { font-size: 1em; color: var(--subtle); }
++
++	.log-line { font-family: monospace; font-size: 0.9em; }
++	.log-line-time { font-family: monospace; margin-inline-end: 0.5em; }
++
++	/* The two tags logger.note(tag, ...) can set. Muted: a skipped step, the
++	   detail nobody needs to read twice. Highlight: the one line worth the
++	   eye catching on — --ok-wash isn't a token every theme defines, so this
++	   falls back to --wash, which every theme does. */
++	.log-muted { color: var(--subtle); }
++	.log-highlight { background: var(--ok-wash, var(--wash)); border-radius: var(--radius); padding: 0.1em 0.4em; margin-inline-start: -0.4em; }
++}`);
++
++export default class LogView extends View {
++
++	render(){
++		this.max_level = this.max_level || 5;
++		this.ac("log-view");
++		this.draw();
++
++		// A live Logger: redraw on every event. Pushed onto `logger.outputs`
++		// rather than polled, so a page with no new logs costs nothing.
++		if (this.logger)
++			this.logger.outputs.push({
++				write: () => this.draw(),
++				open: () => this.draw(),
++				close: () => this.draw(),
++			});
++	}
++
++	// `this.entries` is a plain config field (`new LogView({ entries })`), not a
++	// method — Object.assign in the constructor would silently clobber a
++	// method of this name, so this reads it straight, falling back to the
++	// live logger's own tree when the view was built with `{ logger }` instead.
++	draw(){
++		const list = this.entries || (this.logger ? this.logger.entries : []);
++		this.empty(() => this.draw_entries(list, 1));
++	}
++
++	draw_entries(entries, level){
++		for (const entry of entries){
++			if (entry.kind === "group")
++				this.draw_group(entry, level);
++			else
++				this.draw_line(entry);
++		}
++	}
++
++	draw_group(entry, level){
++		const boxed = level <= BOXED_LEVELS;
++		const shown = Math.min(level, this.max_level);
++
++		// `entry.id`, when a caller (the Whisper debug view) sets one, gives
++		// this group a real anchor — `location.hash` or `scrollIntoView()`
++		// can jump straight to the tick that made it.
++		details.c(`log-group log-level-${shown}` + (boxed ? " card" : " log-group-flat")).attr("open", "").attr("id", entry.id).append(() => {
++			summary.c("log-group-summary", () => {
++				span.c("log-caret", "▸");
++				span.c("log-group-label", entry.label || "(group)");
++				small.c("log-group-meta muted", this.group_meta(entry));
++			});
++			div.c("log-group-body", () => this.draw_entries(entry.entries, level + 1));
++		});
++	}
++
++	// "2 lines · 3 ms" — the count is every log line anywhere inside (nested
++	// groups included, so a group holding sub-groups still says how much work
++	// happened in it); the duration is missing while the group is still open.
++	group_meta(entry){
++		const n = this.count_lines(entry.entries);
++		const parts = [n === 1 ? "1 line" : `${n} lines`];
++		if (entry.duration != null) parts.push(`${entry.duration} ms`);
++		return parts.join(" · ");
++	}
++
++	count_lines(entries){
++		let n = 0;
++		for (const e of entries) n += e.kind === "group" ? this.count_lines(e.entries) : 1;
++		return n;
++	}
++
++	// `entry.tag` ("muted" or "highlight", from `logger.note(tag, ...)") adds
++	// one class — a plain `log()` call has no tag and renders the plain way.
++	draw_line(entry){
++		p.c(`log-line${entry.tag ? " log-" + entry.tag : ""}`, () => {
++			small.c("log-line-time muted", this.format_time(entry.t));
++			span(entry.args.map(a => this.format_arg(a)).join(" "));
++		});
++	}
++
++	// Strings print as-is; anything else gets a short, safe JSON form — the
++	// same fallback `Logger.short()` uses for a group's own label.
++	format_arg(value){
++		if (typeof value === "string") return value;
++		try { return JSON.stringify(value); } catch { return String(value); }
++	}
++
++	format_time(t){
++		if (!t) return "";
++		const d = new Date(t);
++		return d.toTimeString().slice(0, 8) + "." + String(d.getMilliseconds()).padStart(3, "0");
++	}
++}
++
++export { LogView };
+diff --git a/public/framework/core/Page/card/log/Logger.js b/public/framework/core/Page/card/log/Logger.js
+new file mode 100644
+index 00000000..b17b6578
+--- /dev/null
++++ b/public/framework/core/Page/card/log/Logger.js
+@@ -0,0 +1,230 @@
++/**
++ * Logger — give any object its own nested log: `this.log("x")`, and
++ * `this.log.group("method()", fn)` to make one call its own group that
++ * contains every log made inside it, sync or async.
++ *
++ *   const logger = Logger.attach(counter);        // counter.log(...) now works
++ *   counter.log("starting");
++ *   counter.log.group("increment()", () => {
++ *       counter.log("was", 0);
++ *       counter.log("now", 1);
++ *   });
++ *
++ *   Logger.wrap(counter, ["increment", "load"]);  // every call is its own group
++ *   counter.increment();                          // logs inside land in that group
++ *
++ * An entry is `{ kind, t, depth, args, tag }` (a log line — `tag` is `null`
++ * for a plain `log()`, or a word `note(tag, ...)` set, for a view to render
++ * differently) or `{ kind: "group", t, depth, label, entries, duration }` (a
++ * group, holding its own children — `duration` is the milliseconds between
++ * open and close, set by `end()`, and missing while the group is still
++ * open). `logger.entries` is the whole tree, root to leaf — that tree is
++ * what `LogView` renders.
++ *
++ * Outputs are opt-in side effects, pushed onto `logger.outputs`: `Logger.Console`
++ * (real `console.group`/`console.log`), `Logger.JSONL` (one line per event, for a
++ * live stream). `Logger.Memory` is the one that is NOT opt-in — it IS the tree in
++ * `logger.entries`, attached by the constructor, capped so a long-lived object
++ * can't leak memory one log line at a time.
++ *
++ * Writing a JSONL stream to disk is the caller's job — `logger.outputs.push(new
++ * Logger.JSONL())`, then whenever you want, write `output.text()` to a file
++ * yourself. This module never touches the filesystem.
++ */
++export default class Logger {
++
++	constructor(...args){
++		this.depth = 0;
++		this.stack = [];
++		this.assign({ cap: 2000 }, ...args);
++		this.memory = this.memory || new Logger.Memory({ cap: this.cap });
++		this.outputs = [this.memory, ...(this.outputs || [])];
++	}
++
++	assign(...args){ return Object.assign(this, ...args); }
++
++	get entries(){ return this.memory.entries; }
++
++	// Where the next entry goes: the open group's own list, or the root.
++	target(){
++		return this.stack.length ? this.stack[this.stack.length - 1].entries : this.entries;
++	}
++
++	log(...args){
++		return this.record(null, args);
++	}
++
++	// Same as `log()`, with one word attached (`entry.tag`) that a view can key
++	// off to render the line differently — `LogView` reads "muted" (a skipped
++	// step, shown dim) and "highlight" (a line worth catching the eye, shown
++	// bright). Plain `log()` calls get `tag: null`, so nothing else changes.
++	note(tag, ...args){
++		return this.record(tag, args);
++	}
++
++	record(tag, args){
++		const entry = { kind: "log", t: Date.now(), depth: this.depth, args, tag };
++		this.target().push(entry);
++		for (const out of this.outputs) out.write?.(entry, this);
++		return entry;
++	}
++
++	// No `fn`: opens a group you close yourself with `end()`. With `fn`: opens,
++	// runs it (its return value passed through, a promise awaited), and closes
++	// it for you — so a group can wrap a sync OR an async call the same way.
++	group(label, fn){
++		const entry = { kind: "group", t: Date.now(), depth: this.depth, label, entries: [] };
++		this.target().push(entry);
++		this.stack.push(entry);
++		this.depth++;
++		for (const out of this.outputs) out.open?.(entry, this);
++
++		if (!fn) return entry;
++
++		const close = () => this.end();
++		try {
++			const result = fn(entry);
++			if (result && typeof result.then === "function")
++				return result.then(value => { close(); return value; }, error => { close(); throw error; });
++			close();
++			return result;
++		} catch (error){
++			close();
++			throw error;
++		}
++	}
++
++	// Closes the innermost open group. Pairs with `group(label)` called with no
++	// `fn` — a group opened WITH a function closes itself.
++	end(){
++		const entry = this.stack.pop();
++		if (!entry) return;
++		this.depth--;
++		entry.duration = Date.now() - entry.t;
++		for (const out of this.outputs) out.close?.(entry, this);
++	}
++
++	// Gives ANY object `this.log(...)`, `this.log.group(...)`, `this.log.end()`.
++	// `opts` (name, cap, outputs) become the new Logger's own fields.
++	static attach(obj, opts = {}){
++		const logger = new Logger(opts);
++
++		const log = (...args) => logger.log(...args);
++		log.group = (label, fn) => logger.group(label, fn);
++		log.note = (tag, ...args) => logger.note(tag, ...args);
++		log.end = () => logger.end();
++		log.logger = logger;
++
++		obj.log = log;
++		obj.logger = logger;
++		return logger;
++	}
++
++	// Wraps each named method so every CALL becomes its own group, holding
++	// every log the call makes — sync or async. Attaches a Logger first if
++	// `obj` doesn't have one yet.
++	static wrap(obj, methods){
++		const logger = obj.logger || Logger.attach(obj);
++
++		for (const name of methods){
++			const original = obj[name];
++			if (typeof original !== "function") continue;
++
++			obj[name] = function(...args){
++				return logger.group(`${name}(${args.map(a => Logger.short(a)).join(", ")})`, () => original.apply(this, args));
++			};
++		}
++
++		return logger;
++	}
++
++	// A short, safe one-liner for an argument inside a group's own label —
++	// never throws on a circular object, never floods the label with JSON.
++	static short(value){
++		if (typeof value === "string") return value.length > 30 ? value.slice(0, 27) + "…" : value;
++		try {
++			const text = JSON.stringify(value);
++			return text.length > 30 ? text.slice(0, 27) + "…" : text;
++		} catch {
++			return String(value);
++		}
++	}
++
++	// Reads a JSONL stream (one `Logger.JSONL` line per event) back into the
++	// same nested tree `logger.entries` holds, for `LogView` to render. The
++	// inverse of `Logger.JSONL`'s own `write`/`open`/`close` lines.
++	static from_jsonl(text){
++		const root = { entries: [] };
++		const stack = [root];
++
++		for (const line of text.split("\n")){
++			if (!line.trim()) continue;
++			const row = JSON.parse(line);
++			const parent = stack[stack.length - 1];
++
++			if (row.kind === "open"){
++				const group = { kind: "group", t: row.t, depth: row.depth, label: row.label, entries: [] };
++				parent.entries.push(group);
++				stack.push(group);
++			} else if (row.kind === "close"){
++				if (stack.length > 1) stack.pop().duration = row.duration;
++			} else {
++				parent.entries.push({ kind: "log", t: row.t, depth: row.depth, args: row.args, tag: row.tag ?? null });
++			}
++		}
++
++		return root.entries;
++	}
++}
++
++// In memory — the default, always-on output. `logger.entries` (the getter
++// above) just reads `logger.memory.entries`, so this class doubles as the
++// live data structure every other output only observes.
++//
++// ⚠ `cap` bounds the number of TOP-LEVEL entries only, dropping the oldest
++// once there are too many — a group that is still open keeps growing inside
++// itself regardless. Good enough for a first version; a truly unbounded
++// stream of long-lived groups wants a real ring buffer, not built here.
++Logger.Memory = class LoggerMemory {
++	constructor(...args){
++		this.cap = 1000;
++		this.entries = [];
++		this.assign(...args);
++	}
++	assign(...args){ return Object.assign(this, ...args); }
++
++	write(entry, logger){ this.keep(logger); }
++	open(entry, logger){ this.keep(logger); }
++	close(){}
++
++	keep(logger){
++		while (logger.entries.length > this.cap) logger.entries.shift();
++	}
++};
++
++// Real `console.group`/`console.groupEnd`, so a logged object's calls show up
++// nested in the browser console exactly the way they render in `LogView`.
++Logger.Console = class LoggerConsole {
++	write(entry){ console.log(...entry.args); }
++	open(entry){ console.group(entry.label); }
++	close(){ console.groupEnd(); }
++};
++
++// One JSON line per event (`open` / `log` / `close`), in the order they
++// happened — a flat log that still carries the nesting, via `depth`.
++// `Logger.from_jsonl(text)` is the read-back half.
++Logger.JSONL = class LoggerJSONL {
++	constructor(...args){
++		this.lines = [];
++		this.assign(...args);
++	}
++	assign(...args){ return Object.assign(this, ...args); }
++
++	write(entry){ this.lines.push(JSON.stringify({ kind: "log", t: entry.t, depth: entry.depth, args: entry.args, tag: entry.tag })); }
++	open(entry){ this.lines.push(JSON.stringify({ kind: "open", t: entry.t, depth: entry.depth, label: entry.label })); }
++	close(entry){ this.lines.push(JSON.stringify({ kind: "close", t: Date.now(), depth: entry.depth, duration: entry.duration })); }
++
++	text(){ return this.lines.join("\n"); }
++};
++
++export { Logger };
+diff --git a/public/framework/core/Page/card/log/doc/files.jsonl b/public/framework/core/Page/card/log/doc/files.jsonl
+new file mode 100644
+index 00000000..dccd8391
+--- /dev/null
++++ b/public/framework/core/Page/card/log/doc/files.jsonl
+@@ -0,0 +1 @@
++{"file":"logger.md"}
+diff --git a/public/framework/core/Page/card/log/doc/logger.md b/public/framework/core/Page/card/log/doc/logger.md
+new file mode 100644
+index 00000000..f0a99fc2
+--- /dev/null
++++ b/public/framework/core/Page/card/log/doc/logger.md
+@@ -0,0 +1,109 @@
++# The Logger API
++
++One topic: how `Logger.js` and `LogView.js` fit together, field by field.
++
++## The entry shape
++
++Everything a `Logger` records is one of two shapes, both carrying `t` (a timestamp,
++`Date.now()`) and `depth` (how many groups it sits inside):
++
++- A **log line**: `{ kind: "log", t, depth, args, tag }` — `args` is the exact array you
++  passed to `this.log(...)`, never stringified up front (so a live console output can
++  still print a real object, not its JSON text). `tag` is `null` for a plain `log()`
++  call, or the word `logger.note(tag, …)` set — `LogView` reads `"muted"` (dim) and
++  `"highlight"` (a coloured chip) and renders the line differently; any other value is
++  just ignored, so a new tag is free to invent.
++- A **group**: `{ kind: "group", t, depth, label, entries, duration, id }` — `entries`
++  is its own array of the same two shapes, nested to any depth. `duration` (ms) is set
++  by `end()` once the group closes — missing while it's still open. `id`, when a caller
++  sets it (inside the `group(label, fn)` callback — `fn` receives the entry as its
++  argument), becomes the real DOM `id` of that group's `<details>`, so a plain
++  `<a href="#that-id">` scrolls straight to it (`whisper/Transcript.js`'s seams do
++  exactly this). `logger.entries` is the root of the tree; that whole tree is what
++  `LogView` walks to draw nested cards.
++
++## `Logger`
++
++- `new Logger(opts)` — `opts.cap` (default 2000) bounds how many top-level entries
++  `logger.entries` keeps; `opts.outputs` are extra outputs (besides the always-on
++  `Logger.Memory`) to push onto `logger.outputs` right away.
++- `logger.log(...args)` — records a log line in whatever group is currently open (the
++  root, if none is). `tag` is `null`.
++- `logger.note(tag, ...args)` — the same, with one word attached (`entry.tag`) for
++  `LogView` to render differently — `"muted"` or `"highlight"` are the two it knows;
++  `Logger.attach()`'s mixin exposes this too, as `obj.log.note(tag, ...)`.
++- `logger.group(label, fn)` — opens a group, runs `fn`, and closes the group once `fn`
++  returns or its promise settles — so it closes correctly whether `fn` is sync or
++  `async`, and even if `fn` throws (the group still closes; the error still propagates).
++  Called with no `fn`, it just opens the group and returns its entry — pair it with
++  `logger.end()` to close it yourself.
++- `logger.end()` — closes the innermost open group. A no-op if nothing is open.
++- `logger.entries` — a getter for `logger.memory.entries`, the live nested tree.
++
++## `Logger.attach(obj, opts)`
++
++The mixin. Gives `obj` a `log` function (`obj.log(...args)`) with `.group(label, fn)`
++and `.end()` hung off it, plus `obj.logger`, the `Logger` instance underneath — so
++`obj.log("x")` and `obj.logger.log("x")` are the exact same call, written two ways.
++`opts` are the same as `new Logger(opts)`.
++
++## `Logger.wrap(obj, ["method", ...])`
++
++For each named method, replaces `obj.method` (as an own property on `obj`, so every
++OTHER instance of the same class is untouched) with a wrapper that opens a group
++labelled `method(short args…)`, calls the real method inside it, and closes the group
++when the call finishes — synchronously for a sync method, after the promise settles
++for an `async` one. Calls `Logger.attach(obj)` first if `obj` has no logger yet.
++`Logger.short(value)` is the small, safe stringifier the group's own label uses for
++each argument (strings pass through, everything else is a short `JSON.stringify`,
++and neither ever throws on a value that can't stringify).
++
++## The three outputs
++
++Push any of these onto `logger.outputs` (`Logger.Memory` is already there — it IS
++`logger.entries`, not really opt-in, because `LogView` has to have a tree to render).
++Every output can implement `write(entry, logger)` (a log line), `open(entry, logger)`
++(a group opened) and `close(entry, logger)` (a group closed) — all optional, called
++only if present.
++
++- **`Logger.Memory`** — the live tree, capped. Attached automatically; you never need
++  to add one yourself.
++- **`Logger.Console`** — real `console.group`/`console.groupEnd`/`console.log`, so a
++  logged object's calls nest in the browser's own devtools console too.
++- **`Logger.JSONL`** — collects one JSON line per event (`{kind:"log"|"open"|"close",
++  t, depth, ...}`) into `output.lines`; `output.text()` joins them with `\n`.
++  **Writing that text to a file is the caller's job** — this class never touches the
++  filesystem, on purpose (`core/Page/card/log/` runs in the browser, where there is no
++  filesystem to touch; a server-side caller writes `output.text()` out itself).
++
++`Logger.from_jsonl(text)` is the read-back half: given a JSONL string in exactly the
++shape `Logger.JSONL` produces, it rebuilds the same nested `entries` tree `logger.entries`
++would have held live — `new LogView({ entries: Logger.from_jsonl(text) })` renders it
++exactly like a live logger would.
++
++## `LogView`
++
++`new LogView({ logger })` for a live view (it pushes its own output onto
++`logger.outputs` and redraws on every event); `new LogView({ entries })` for a static
++one (a `Logger.from_jsonl(text)` result, or any hand-built array in the same shape).
++
++Levels 1 through `BOXED_LEVELS` (3, from `../depth.js`) render as `.card` — framework.css's
++own padded, rounded box, so they never need their own CSS for that part. Level 4 and deeper
++give up the box: no padding, no border, just the group's label rendered bigger and bolder
++than plain text, at the SAME indentation as its own content — the owner's own example, "a H2
++doesn't need an extra indentation for its content, it just uses a big heading." The level
++keeps scaling up to a `log-level-5` class and then stops, so a genuinely deep object graph
++doesn't shrink its labels past readable. `card/nesting/page.js` draws a plain card tree to
++this exact same rule, from the same constant, so the two can't disagree again.
++
++Every group is a native `<details open>`, so a reader can collapse the ones they don't
++want to read — no script beyond the browser's own disclosure widget. The toggle itself
++is a plain heading, not framework.css's button-shaped `<summary>` — a rotating ▸ caret
++(the same mechanism `ui/item.js`'s own caret uses), the label, and a muted
++`"N lines · X ms"` (`LogView.count_lines()` walks every nested log line, so a group of
++groups still says how much work happened inside it; the `ms` is the group's own
++`duration`, missing while it's still running).
++
++Two log LINES next to each other sit tight (0.2em of margin); a GROUP next to anything
++— another group, or a line — keeps the full page `--gap`, so a group still reads as its
++own thing even beside plain lines.
+diff --git a/public/framework/core/Page/card/log/files.jsonl b/public/framework/core/Page/card/log/files.jsonl
+new file mode 100644
+index 00000000..af271ad4
+--- /dev/null
++++ b/public/framework/core/Page/card/log/files.jsonl
+@@ -0,0 +1,7 @@
++{"file":"Logger.js"}
++{"file":"LogView.js"}
++{"file":"page.js"}
++{"file":"readme.md"}
++{"file":"doc/"}
++{"file":"whisper/"}
++{"file":"whisper/page.js"}
+diff --git a/public/framework/core/Page/card/log/page.js b/public/framework/core/Page/card/log/page.js
+new file mode 100644
+index 00000000..629526d2
+--- /dev/null
++++ b/public/framework/core/Page/card/log/page.js
+@@ -0,0 +1,100 @@
++import { Page, p, h3, pre, div, a, span, button, demo } from "/app.js";
++import { page_work } from "../../ai/work.js";
++import Logger from "./Logger.js";
++import LogView from "./LogView.js";
++
++// A tiny object with its own log — two methods, one of them async, so the
++// demo below can show a group closing itself either way.
++class Counter {
++	constructor(){ this.value = 0; }
++
++	increment(by = 1){
++		this.log("was", this.value);
++		this.value += by;
++		this.log("now", this.value);
++		return this.value;
++	}
++
++	async load(){
++		this.log("fetching a starting value");
++		await new Promise(resolve => setTimeout(resolve, 300));
++		this.value = 10;
++		this.log("loaded", this.value);
++		return this.value;
++	}
++}
++
++export default new Page({
++	meta: import.meta,
++	title: "Log",
++	description: "An object-oriented logger, rendered as nested cards — any object's own log, its methods as groups.",
++	icon: "terminal",
++	children: "whisper",
++
++	content(){
++		p("Any object can have its own log. `Logger.attach(obj)` gives it `this.log(...)`. `Logger.wrap(obj, [\"method\"])` makes every call of that method its own group, holding whatever it logs inside — sync or async, both the same way. `LogView` renders the result as nested cards, and redraws itself every time a new entry lands.");
++
++		demo(() => {
++			const counter = new Counter();
++			Logger.attach(counter);
++			Logger.wrap(counter, ["increment", "load"]);
++			counter.increment(); // one call already logged, so the group shows before any click
++
++			div.c("flex gap", () => {
++				button("Increment").click(() => counter.increment());
++				button("Load (async)").click(() => counter.load());
++			});
++
++			new LogView({ logger: counter.logger });
++		}, "One \"increment\" group is already there from load — click a button to open another.");
++
++		h3("How deep it can nest");
++		p("Levels 1 through 3 keep the box. Level 4 drops it — a bold heading at the same indentation as its own content, never a fourth nested border — and it keeps getting quieter, not smaller forever, past that. `card/nesting/page.js`'s plain card tree uses this exact same rule, from the same shared constant (`card/depth.js`), so the two can't disagree again.");
++
++		demo(() => {
++			const logger = new Logger();
++
++			logger.group("Section", () => {
++				logger.log("a level-1 line — boxed");
++				logger.group("Subsection", () => {
++					logger.log("a level-2 line — still boxed");
++					logger.group("Detail", () => {
++						logger.log("a level-3 line — the last box");
++						logger.group("Deeper still", () => {
++							logger.log("a level-4 line — no box, just a heading");
++							logger.group("Deepest", () => {
++								logger.log("a level-5 line — smaller, quieter");
++							});
++						});
++					});
++				});
++			});
++
++			new LogView({ logger });
++		}, "Five nested calls, rendered as: card, card, card, then a plain heading that just gets quieter as it goes deeper.");
++
++		h3("Reading a log back");
++		p("`Logger.JSONL` turns the same entries into one line per event — a group's open, its logs, its close. `Logger.from_jsonl(text)` reads that text back into the same nested shape `LogView` renders, so a saved log file looks exactly like a live one.");
++
++		demo(() => {
++			const sample = new Counter();
++			const jsonl = new Logger.JSONL();
++			Logger.attach(sample, { outputs: [jsonl] });
++			Logger.wrap(sample, ["increment"]);
++
++			sample.increment();
++			sample.increment(5);
++
++			pre(jsonl.text());
++			new LogView({ entries: Logger.from_jsonl(jsonl.text()) });
++		}, "The raw JSONL text above; the same text read back and rendered below.");
++
++		h3("A real use");
++		p(() => {
++			a("Whisper debug log").href("whisper/");
++			span(" runs this exact Logger against a real Transcriber.Whisper, ticking against a saved audio clip or the mic — one group per tick, the raw whisper-server text, what committed, and the seam it left in the running transcript.");
++		});
++
++		div.c("card pad", $box => page_work($box, { match: ["log", "logger"], page: this }));
++	},
++});
+diff --git a/public/framework/core/Page/card/log/readme.md b/public/framework/core/Page/card/log/readme.md
+new file mode 100644
+index 00000000..60b9d710
+--- /dev/null
++++ b/public/framework/core/Page/card/log/readme.md
+@@ -0,0 +1,50 @@
++# Log — an object-oriented logger, rendered as nested cards
++
++Give any object its own `this.log(...)`. Wrap a method and every call it makes becomes its
++own group, holding whatever it logs inside. Render the whole thing live, as nested cards —
++the first three levels boxed, deeper levels just a heading at the same indentation, because a
++fourth level of boxes runs out of padding to give. `../depth.js`'s `BOXED_LEVELS` is the one
++place that number lives; `card/nesting/page.js` (a plain card tree, not a log) uses the same
++constant, so the two nesting rules can't drift apart again. [Whisper debug log](whisper/) is
++the real use: a group per transcription tick.
++
++See it: [/framework/core/Page/card/log/](/framework/core/Page/card/log/)
++
++## Use
++```js
++import Logger from "/framework/core/Page/card/log/Logger.js";
++import LogView from "/framework/core/Page/card/log/LogView.js";
++
++Logger.attach(counter);                          // counter.log(...) now works
++Logger.wrap(counter, ["increment", "load"]);      // each call is its own group
++counter.log.note("highlight", "done");            // a tagged line — LogView shows it caught the eye
++
++new LogView({ logger: counter.logger });          // live cards, redraw on every entry
++```
++`Logger.from_jsonl(text)` reads a `Logger.JSONL` output's saved text back into the same
++shape `LogView` renders — `new LogView({ entries: Logger.from_jsonl(text) })` — so a log
++file on disk looks exactly like a live one. Every group carries `duration` (ms, set when it
++closes) — `LogView` shows it in the toggle: "increment() · 2 lines · 3 ms".
++
++## Watch out
++- **Writing to disk is the caller's job.** `Logger.JSONL` only builds the text
++  (`output.text()`); nothing in this module touches the filesystem.
++- **Two log LINES in a row sit tight (0.2em); a GROUP next to anything keeps the full
++  `--gap`.** If a line reads too close to its neighbour, check whether it's really a line and
++  not a one-entry group — the rhythm rule only looks at the two elements' own kind.
++- **Concurrent async calls on the same wrapped object can interleave their groups** —
++  `Logger.wrap()` opens and closes groups on one shared stack, so two overlapping async
++  calls to two different wrapped methods on the same object can nest into each other's
++  groups instead of staying separate. Fine for one call at a time (the common case, and
++  the demo); a page that fires several async calls on the same logged object at once
++  should give each one its own `Logger` instance instead of sharing one.
++- **`whisper/`'s classes carry the `log-` prefix too** (`log-whisper-*`), not a second
++  namespace — the fence that reopened `styles/css-scopes.txt` only covered the one `log-`
++  line, so everything under this module nests inside it rather than asking for another.
++
++## More
++- [doc/logger.md](doc/logger.md) — the full API: `Logger`, `Logger.attach`, `Logger.wrap`,
++  `logger.note(tag, …)`, the three output classes, the entry shape, `LogView`'s levels.
++- [page.js](page.js) — the live demo: a `Counter` object, two buttons, a JSONL read-back.
++- [whisper/](whisper/) — the real use: a real `Transcriber.Whisper` against a saved clip,
++  one log group per tick, a running transcript with its commit seams marked.
+diff --git a/public/framework/core/Page/card/log/whisper/ClipMic.js b/public/framework/core/Page/card/log/whisper/ClipMic.js
+new file mode 100644
+index 00000000..c525460b
+--- /dev/null
++++ b/public/framework/core/Page/card/log/whisper/ClipMic.js
+@@ -0,0 +1,67 @@
++import MicStream from "../../../../../audio/MicStream/MicStream.js";
++
++/**
++ * ClipMic extends MicStream — plays a saved WAV file through the exact same
++ * pipeline a real microphone uses (the worklet, the chunk buffer, the level
++ * events), so `Transcriber.Whisper` — and this page's own reads of
++ * `snapshot() / cut() / cut_at() / loudness() / wav() / rate()` — cannot
++ * tell it apart from `new MicStream()`. No mic needed to prove the debug
++ * view works.
++ *
++ *   const mic = new ClipMic({ url: "/framework/ai/recordings/jfk.wav" });
++ *   await mic.start();   // plays the clip, in real time, into the buffer
++ *
++ * HOW: `MicStream.start()` is never copied — `audio/**` is read-only for
++ * this task, and duplicating its worklet-wiring would drift the moment that
++ * file changes. Instead this decodes the clip into an `AudioBuffer`, plays
++ * it into a `MediaStreamDestinationNode` (a real `MediaStream`, just made
++ * from a file instead of a microphone), and hands THAT to the real
++ * `MicStream.start()` by standing in for `navigator.mediaDevices.
++ * getUserMedia` for the one call it makes — every other line of
++ * `MicStream.start()` runs completely unmodified, including the part that
++ * matters most: the worklet never learns its input wasn't a real mic.
++ */
++export default class ClipMic extends MicStream {
++
++	url = "/framework/ai/recordings/jfk.wav";
++
++	async start(){
++		const decode_ctx = new AudioContext();
++		const raw = await fetch(this.url).then(r => {
++			if (!r.ok) throw new Error(`ClipMic: ${this.url} — ${r.status}`);
++			return r.arrayBuffer();
++		});
++		const buffer = await decode_ctx.decodeAudioData(raw);
++		const dest = decode_ctx.createMediaStreamDestination();
++
++		this.clip_ctx = decode_ctx;
++		this.clip_source = decode_ctx.createBufferSource();
++		this.clip_source.buffer = buffer;
++		this.clip_source.connect(dest);
++		this.clip_source.connect(decode_ctx.destination);   // audible too, not required
++		this.clip_source.onended = () => this.on_ended?.();
++
++		// The worklet pipeline has to exist BEFORE the clip starts playing, or
++		// its first fraction of a second plays into a graph that isn't wired
++		// up yet and is lost — so `super.start()` (which builds that pipeline)
++		// runs first, and only once it returns does the clip actually start.
++		const real_gum = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
++		navigator.mediaDevices.getUserMedia = async () => dest.stream;
++		try {
++			await super.start();   // MicStream's own, real code — unmodified
++		} finally {
++			navigator.mediaDevices.getUserMedia = real_gum;
++		}
++		this.clip_source.start();
++	}
++
++	stop(){
++		this.clip_source?.stop();
++		this.clip_ctx?.close();
++		super.stop();
++	}
++
++	label(){ return this.url.split("/").pop(); }
++}
++
++export { ClipMic };
+diff --git a/public/framework/core/Page/card/log/whisper/Instrument.js b/public/framework/core/Page/card/log/whisper/Instrument.js
+new file mode 100644
+index 00000000..e750c165
+--- /dev/null
++++ b/public/framework/core/Page/card/log/whisper/Instrument.js
+@@ -0,0 +1,99 @@
++import Logger from "../Logger.js";
++
++/**
++ * instrument_whisper(whisper) — wires a `Logger` onto a live
++ * `Transcriber.Whisper` instance from the OUTSIDE: `audio/**` is read-only
++ * for this task, so nothing here edits `Whisper.js` — every line below only
++ * CALLS its public surface (`tick()` / `transcribe()` / `commit_all()` as
++ * plain methods it replaces on the INSTANCE, never the class; `on_final` as
++ * the exact compose-a-listener pattern `Transcriber.Transcript` and
++ * `Transcriber.View` already use on this same class, in `audio/Transcriber/
++ * Transcriber.js` — so this never competes with another listener already on
++ * the instance).
++ *
++ * Call it BEFORE `whisper.start(mic)` (the interval inside `start()` reads
++ * `this.tick` fresh on every fire, so replacing it first is enough — nothing
++ * needs to happen after `start()`).
++ *
++ *   const logger = instrument_whisper(whisper).logger;
++ *   const seams = instrument_whisper(whisper);
++ *   seams.on_seam((tick_id, text) => …);   // for the transcript view's own marks
++ *   await whisper.start(mic);
++ *
++ * One TICK is one group (the brief's own shape), holding: how many seconds
++ * of audio were sent, the previous tail, the raw text whisper-server
++ * returned (nested one level deeper, inside `transcribe()`'s own group —
++ * whose duration IS "the ms the request took"), what COMMITTED (highlighted
++ * — `logger.note("highlight", …)`, logged from ONE place, `on_final`, so an
++ * agreement commit and a forced one never both log it), and the new tail. A
++ * SKIPPED tick (already sending, or not loud enough — `tick()`'s own two
++ * early returns, read here rather than duplicated) is one muted line, never
++ * a group. A forced commit past `window_s` opens as its own nested group,
++ * labelled a seam — `on_final` still fires inside it, so "committed" nests
++ * under the right one either way.
++ *
++ * ⚠ Deliberate exception to "a partial guess is ephemeral, never logged"
++ * (`audio/Transcriber/readme.md`): THIS is the tool built to see exactly
++ * that, so the previous/new tail lines here log text the real dictation UI
++ * never would. Never copy this pattern into a production listener.
++ */
++export default function instrument_whisper(whisper){
++	const logger = Logger.attach(whisper);
++	const seam_listeners = [];
++	let tick_n = 0;
++
++	const real_tick = whisper.tick.bind(whisper);
++	const real_transcribe = whisper.transcribe.bind(whisper);
++	const real_commit_all = whisper.commit_all.bind(whisper);
++
++	whisper.transcribe = samples => logger.group("transcribe()", async () => {
++		const text = await real_transcribe(samples);
++		logger.log("whisper said:", text || "(nothing)");
++		return text;
++	});
++
++	whisper.commit_all = text => logger.group("forced commit — a seam (past window_s)", () => real_commit_all(text));
++
++	whisper.tick = async () => {
++		if (whisper.inflight){ logger.note("muted", "tick skipped — a request is already in flight"); return; }
++
++		const samples = whisper.mic.snapshot();
++		if (!whisper.worth_sending(samples)){
++			logger.note("muted", "tick skipped — not loud enough");
++			return real_tick();
++		}
++
++		const id = `whisper-tick-${++tick_n}`;
++		const prev_tail = whisper.prev_tail_words.join(" ");
++		const seconds = (samples.length / whisper.mic.rate()).toFixed(1);
++
++		await logger.group(`tick #${tick_n}`, async entry => {
++			entry.id = id;
++			logger.log(seconds + "s of audio sent");
++			if (prev_tail) logger.log("previous tail:", prev_tail);
++
++			await real_tick();
++
++			const new_tail = whisper.prev_tail_words.join(" ");
++			if (new_tail) logger.log("new tail:", new_tail);
++		});
++	};
++
++	// The ONE place "committed" logs, for BOTH paths: a normal agreement
++	// commit calls `note_final()` directly from inside `tick()`'s own group;
++	// a forced one calls it from inside `commit_all()`'s group (above) —
++	// either way `on_final` fires while the right group is still open, so
++	// this line always nests under the group that actually produced it.
++	const prior_final = whisper.on_final;
++	whisper.on_final = text => {
++		prior_final?.(text);
++		const n = text.trim().split(/\s+/).filter(Boolean).length;
++		logger.log(n === 1 ? "1 word agreed" : `${n} words agreed`);
++		logger.note("highlight", "committed:", text);
++		seam_listeners.forEach(fn => fn(`whisper-tick-${tick_n}`, text));
++	};
++
++	return { logger, on_seam(fn){ seam_listeners.push(fn); } };
++}
++
++export { instrument_whisper };
+diff --git a/public/framework/core/Page/card/log/whisper/Transcript.js b/public/framework/core/Page/card/log/whisper/Transcript.js
+new file mode 100644
+index 00000000..55d59aff
+--- /dev/null
++++ b/public/framework/core/Page/card/log/whisper/Transcript.js
+@@ -0,0 +1,56 @@
++import { View, span, a, style } from "../../../../View/View.js";
++
++/**
++ * Transcript — the running committed text, with a thin seam between each
++ * commit. Click a seam to jump to the tick group that made it: the seam is
++ * a plain `<a href="#whisper-tick-N">`, and `LogView` already gives that
++ * tick's `<details>` a real `id` (`whisper/Instrument.js` sets `entry.id`)
++ * — so the browser's own fragment-scroll does the jumping, no script needed.
++ *
++ *   const transcript = new Transcript();
++ *   seams.on_seam((tick_id, text) => transcript.commit(tick_id, text));
++ *
++ * Classes carry the `log-` prefix, not `whisper-` — this whole page nests
++ * inside `core/Page/card/log/`, and the task's fence only re-opened
++ * `styles/css-scopes.txt` for that one `log-` line, so everything whisper-
++ * specific stays inside the namespace already granted rather than asking
++ * for a second one.
++ */
++style(`@layer theme {
++	.log-whisper-transcript {
++		font-size: 1.1em;
++		line-height: 1.6;
++	}
++	.log-whisper-transcript:empty::before { content: "(nothing committed yet)"; color: var(--subtle); }
++
++	/* The seam: a thin vertical rule between two commits, not a word of its
++	   own — an em-wide target is still a fair click, even though it only
++	   PAINTS a couple of pixels. */
++	.log-whisper-seam {
++		display: inline-block; width: 1.2em; text-align: center;
++		color: var(--fill-a32); text-decoration: none; cursor: pointer;
++	}
++	.log-whisper-seam:hover { color: var(--prim); }
++}`);
++
++export default class Transcript extends View {
++	render(){
++		this.ac("log-whisper-transcript");
++	}
++
++	// `this.append(fn)` — not a bare factory call — because this runs from an
++	// async event callback, long after the page's own render() returned,
++	// where the ambient View.captor is app.$pages (App.js's permanent base
++	// captor), not this view. `append(fn)` sets the captor to `this` itself
++	// for the call, the same mechanism LogView's draw() relies on.
++	commit(tick_id, text){
++		if (!text) return;
++		this.append(() => {
++			if (this.el.children.length)
++				a.c("log-whisper-seam").attr("href", "#" + tick_id).attr("title", "jump to this tick in the log").text("│");
++			span(text + " ");
++		});
++	}
++}
++
++export { Transcript };
+diff --git a/public/framework/core/Page/card/log/whisper/doc/clipmic.md b/public/framework/core/Page/card/log/whisper/doc/clipmic.md
+new file mode 100644
+index 00000000..334f2c17
+--- /dev/null
++++ b/public/framework/core/Page/card/log/whisper/doc/clipmic.md
+@@ -0,0 +1,65 @@
++# ClipMic and the tick-by-tick log
++
++One topic: how a saved WAV file becomes a fake microphone, and how each of `Transcriber.
++Whisper`'s ticks becomes one log group. Both files only ever CALL `audio/**` — neither edits
++it; that tree is read-only for this task, owned by another one.
++
++## ClipMic: a WAV file playing into the real worklet pipeline
++
++`MicStream.start()` does four things: open a real microphone (`getUserMedia`), build an
++`AudioContext` + the `lew42-pcm` worklet, connect the microphone's stream into that worklet, and
++wire the worklet's messages into `this.chunks` (the buffer `snapshot()` / `cut()` / `cut_at()`
++read). `ClipMic` wants every one of those EXCEPT the first — it isn't a real microphone.
++
++Rather than copy the last three steps (which would silently drift the first time `MicStream.js`
++changes), `ClipMic.start()`:
++
++1. Decodes the clip (`fetch` + `AudioContext.decodeAudioData`) into an `AudioBuffer`.
++2. Plays it into a `MediaStreamDestinationNode` — this produces a REAL `MediaStream`, the exact
++   type `getUserMedia` would have handed back, just sourced from a file instead of hardware.
++3. Stands in for `navigator.mediaDevices.getUserMedia` — for the one call `MicStream.start()`
++   makes, and only while that call is in flight — so `super.start()` runs its own, real,
++   UNMODIFIED code and never knows the "microphone" was a file.
++
++The clip only starts playing AFTER `super.start()` returns (the worklet has to exist before
++audio reaches it, or the first fraction of a second is lost into a graph that isn't wired up
++yet — caught and fixed while building this).
++
++`stop()` adds one thing `MicStream.stop()` doesn't need: stopping the clip's own
++`AudioBufferSourceNode` and closing the decode context, on top of everything `super.stop()`
++already does.
++
++## Instrument.js: one group per tick
++
++`instrument_whisper(whisper)` replaces three of the instance's own methods — `tick`,
++`transcribe`, `commit_all` — with wrappers that open a `Logger` group around the real call, and
++composes one more listener onto `on_final` (the same pattern `Transcriber.Transcript` and
++`Transcriber.View` already use on this class). It does NOT edit `Whisper.js` — every wrapper
++calls the ORIGINAL method it replaced (captured before replacing it), so the engine's own logic
++never changes, only what gets logged around it.
++
++- **A skipped tick is one muted line, never a group.** `tick()` itself returns early twice —
++  already sending, or not loud enough — and the wrapper checks the exact same two conditions
++  BEFORE deciding whether to open a group, so a quiet stretch of audio doesn't fill the log with
++  empty ticks.
++- **`transcribe()` nests inside `tick()`'s group automatically** — it's called FROM `tick()`,
++  and `Logger`'s groups are a simple stack, so no special wiring makes that happen. Its own
++  group duration (a plain `LogView` feature, not built for this page) IS "the ms the request
++  took" the brief asked for.
++- **"Committed" logs from exactly ONE place: the `on_final` hook** — not from `commit_all`'s own
++  wrapper — so an agreement commit (the common case, called straight from `tick()`) and a forced
++  one (called from `commit_all()`, nested one level deeper) never both log the same line twice.
++  Either way `on_final` fires while the right group is still open, so the line always nests
++  under whichever call actually produced it.
++- **`entry.id` on the tick group** (`whisper-tick-N`) is what lets a click on a transcript seam
++  (`Transcript.js`) jump straight to it — `LogView` reads `entry.id` and sets it as the real
++  DOM id of that tick's `<details>`, so it's a plain `<a href="#whisper-tick-N">`, no script.
++
++## Watch out
++
++- **"Words agreed" is a word-count of the committed text**, not whisper_streaming's own
++  agreement-length number (that's a local, unexported function inside `Whisper.js`) — close
++  enough for a debug reading, not exact to the character.
++- **A forced commit's group is always labelled "a seam"**, even the one call `stop()` makes on
++  its own final flush — not really about `window_s` there, but it's one line, at the very end of
++  a run, and not worth a second label for.
+diff --git a/public/framework/core/Page/card/log/whisper/doc/files.jsonl b/public/framework/core/Page/card/log/whisper/doc/files.jsonl
+new file mode 100644
+index 00000000..7d4d60a2
+--- /dev/null
++++ b/public/framework/core/Page/card/log/whisper/doc/files.jsonl
+@@ -0,0 +1 @@
++{"file":"clipmic.md"}
+diff --git a/public/framework/core/Page/card/log/whisper/files.jsonl b/public/framework/core/Page/card/log/whisper/files.jsonl
+new file mode 100644
+index 00000000..d5031a17
+--- /dev/null
++++ b/public/framework/core/Page/card/log/whisper/files.jsonl
+@@ -0,0 +1,6 @@
++{"file":"ClipMic.js"}
++{"file":"Instrument.js"}
++{"file":"Transcript.js"}
++{"file":"page.js"}
++{"file":"readme.md"}
++{"file":"doc/"}
+diff --git a/public/framework/core/Page/card/log/whisper/page.js b/public/framework/core/Page/card/log/whisper/page.js
+new file mode 100644
+index 00000000..c76086b8
+--- /dev/null
++++ b/public/framework/core/Page/card/log/whisper/page.js
+@@ -0,0 +1,137 @@
++import { Page, p, h3, strong, div, button, select, option, input } from "/app.js";
++import Transcriber from "../../../../../audio/Transcriber/index.js";
++import MicStream from "../../../../../audio/MicStream/MicStream.js";
++import { page_work } from "../../../ai/work.js";
++import Logger from "../Logger.js";
++import LogView from "../LogView.js";
++import ClipMic from "./ClipMic.js";
++import Transcript from "./Transcript.js";
++import instrument_whisper from "./Instrument.js";
++
++const CLIPS = [
++	{ label: "JFK — inaugural line", url: "/framework/ai/recordings/jfk.wav" },
++	{ label: "just_a_test", url: "/framework/ai/recordings/just_a_test.wav" },
++	{ label: "whisper-servex clip", url: "/framework/ai/2026-09-22/whisper-servex/clip.wav" },
++];
++
++// `fetch`, but it gives up instead of hanging — copied from Whisper.js's own
++// `fetch_timeout()` (four lines; `audio/**` is read-only for this task).
++async function fetch_timeout(url, ms){
++	const ctrl = new AbortController();
++	const timer = setTimeout(() => ctrl.abort(), ms);
++	try { return await fetch(url, { signal: ctrl.signal }); }
++	finally { clearTimeout(timer); }
++}
++
++export default new Page({
++	meta: import.meta,
++	title: "Whisper debug log",
++	description: "Runs a real Transcriber.Whisper against a saved clip or the mic, and logs every tick as a nested card.",
++	icon: "subtitles",
++
++	content(){
++		p(function(){
++			this.backticks("This is the owner's own old idea, rebuilt: ");
++			strong("read the actual log file for the whisper process.");
++			this.backticks(" It runs a real `Transcriber.Whisper` against a saved audio clip — no microphone needed to see it work — and turns every tick into one log group: how many seconds of audio went in, the previous guess's tail, the raw text whisper-server answered (nested, its group's own duration is the request's `ms`), how many words agreed, what committed (highlighted), and the new tail. A forced commit past `window_s` opens as its own group, marked a seam.");
++		});
++
++		this.$status = p.c("muted", "checking whisper-server…");
++		this.check_server();
++
++		const $controls = div.c("card pad flex gap wrap");
++		$controls.append(() => {
++			this.$clip = select(() => CLIPS.forEach(c => option(c.label).attr("value", c.url)));
++			this.$start = button("Start with this clip").click(() => this.run({ url: this.$clip.el.value }));
++			this.$mic = button("Use the mic instead").click(() => this.run({ mic: true }));
++			this.$stop = button("Stop").attr("disabled", "").click(() => this.stop_run());
++		});
++
++		h3("Transcript");
++		p("The running committed text. A thin │ between two commits is a seam — click it to jump to the tick that made it.");
++		this.$transcript = new Transcript();
++
++		h3("Log");
++		this.$log_slot = div();
++
++		h3("Keep a run");
++		div.c("flex gap wrap", () => {
++			this.$download = button("Download JSONL").attr("disabled", "").click(() => this.download());
++			this.$file_input = input().attr("type", "file").attr("accept", ".jsonl,text/plain")
++				.on("change", e => this.load_file(e.target.files[0]));
++		});
++		this.$loaded_label = p.c("muted");
++		this.$loaded_slot = div();
++
++		div.c("card pad", $box => page_work($box, { match: ["whisper", "dictate", "transcrib"], page: this }));
++	},
++
++	// `Transcriber.Whisper.whisper_url` is a public instance field, set from
++	// the same `default_whisper_url()` Whisper.js uses internally — reading
++	// it off a throwaway instance is simpler than re-deriving the rule.
++	async check_server(){
++		const url = new Transcriber.Whisper().whisper_url;
++		try {
++			const r = await fetch_timeout(url + "/", 2500);
++			this.$status.text(r.ok || r.status < 500 ? "whisper-server is answering at " + url + "." : "whisper-server answered " + url + " with " + r.status + ".");
++		} catch {
++			this.$status.text("whisper-server isn't answering at " + url + " right now — Servex supervises it; ask for a restart.");
++		}
++	},
++
++	// `source` is `{ url }` (a saved clip) or `{ mic: true }` (a real
++	// microphone). Stops whatever run is already going first — Start is
++	// always safe to click again.
++	async run(source){
++		this.stop_run();
++		this.$transcript.empty();
++
++		this.mic = source.mic ? new MicStream() : new ClipMic({ url: source.url });
++		this.whisper = new Transcriber.Whisper();
++		const { logger, on_seam } = instrument_whisper(this.whisper);
++		this.jsonl = new Logger.JSONL();
++		logger.outputs.push(this.jsonl);
++		on_seam((tick_id, text) => this.$transcript.commit(tick_id, text));
++
++		this.$log_slot.empty(() => { new LogView({ logger }); });
++		this.$download.el.removeAttribute("disabled");
++		this.$start.attr("disabled", "");
++		this.$stop.el.removeAttribute("disabled");
++
++		try {
++			await this.mic.start();
++		} catch (e){
++			this.$status.text("Couldn't start " + (source.mic ? "the mic" : "the clip") + ": " + e.message);
++			this.stop_run();
++			return;
++		}
++		await this.whisper.start(this.mic);
++	},
++
++	stop_run(){
++		this.whisper?.stop();
++		this.mic?.stop();
++		this.whisper = null;
++		this.mic = null;
++		this.$start?.el.removeAttribute("disabled");
++		this.$stop?.attr("disabled", "");
++	},
++
++	download(){
++		if (!this.jsonl) return;
++		const blob = new Blob([this.jsonl.text()], { type: "application/jsonl" });
++		const url = URL.createObjectURL(blob);
++		const a = document.createElement("a");
++		a.href = url; a.download = "whisper-log.jsonl";
++		a.click();
++		URL.revokeObjectURL(url);
++	},
++
++	async load_file(file){
++		if (!file) return;
++		const text = await file.text();
++		const entries = Logger.from_jsonl(text);
++		this.$loaded_label.text("Loaded " + file.name + " — for comparison beside the run above, not replacing it.");
++		this.$loaded_slot.empty(() => { new LogView({ entries }); });
++	},
++});
+diff --git a/public/framework/core/Page/card/log/whisper/readme.md b/public/framework/core/Page/card/log/whisper/readme.md
+new file mode 100644
+index 00000000..f6f45d1e
+--- /dev/null
++++ b/public/framework/core/Page/card/log/whisper/readme.md
+@@ -0,0 +1,31 @@
++# Whisper debug log — read the actual log file for the whisper process
++
++The owner's own old idea, rebuilt with `Logger`/`LogView`: run a real `Transcriber.Whisper`
++against a saved clip (no mic needed), and turn every tick into a nested card — the seconds of
++audio sent, the raw whisper-server text, what agreed and committed, and the seam a forced
++commit leaves.
++
++See it: [/framework/core/Page/card/log/whisper/](/framework/core/Page/card/log/whisper/)
++
++## Use
++
++Load the page and click **Start with this clip** — the JFK clip plays in real time through
++`ClipMic` (a fake microphone reading a WAV file), `Transcriber.Whisper` transcribes it every
++second, and the log fills in live. **Use the mic instead** does the same with a real
++microphone. **Download JSONL** saves the run; the file picker below it reads one back for
++comparison.
++
++## Watch out
++
++- **`audio/**` and `ux/Dictate/**` are read-only here** — `ClipMic` and `Instrument.js` only ever call them, never edit them; the substitution mechanism is [doc/clipmic.md](doc/clipmic.md).
++- **This page deliberately logs partial guesses**, which a real dictation UI never would — the owner's own ask for this debug tool, never copy the pattern into a production listener.
++- **A forced commit's group is always labelled "a seam"**, even `Whisper.stop()`'s own final flush — [doc/clipmic.md](doc/clipmic.md) has why.
++- **The CSS prefix here is `log-whisper-*`, not `whisper-*`** — this page nests inside `core/Page/card/log/`, not a namespace of its own.
++
++## More
++
++- [doc/clipmic.md](doc/clipmic.md) — how a WAV file becomes a fake microphone, and the
++  instrumentation that turns `Transcriber.Whisper`'s calls into one log group per tick
++- [../readme.md](../readme.md) — `Logger`/`LogView`, the module this page is built on
++- [`Instrument.js`](Instrument.js) — the wiring, read top to bottom
++- [`audio/Transcriber/`](/framework/audio/Transcriber/) — the engine this page runs, unmodified
+diff --git a/public/framework/core/Page/card/mini-pages/MiniPages.js b/public/framework/core/Page/card/mini-pages/MiniPages.js
+new file mode 100644
+index 00000000..bbed8354
+--- /dev/null
++++ b/public/framework/core/Page/card/mini-pages/MiniPages.js
+@@ -0,0 +1,70 @@
++import { Page, div, h3, p, a } from "/app.js";
++
++/* MiniPages — the owner's decision, 2026-09-29 about 8:40 PM: "a card is
++ * kind of a tiny page and doesn't need a directory of its own" — its data is
++ * a LINE in the nearest existing parent page.jsonl, with a virtual routed
++ * url through that parent's `route()`. A folder is made only on demand,
++ * when a card outgrows a line.
++ *
++ * This file IS that parent. `page.jsonl` beside it names this class as its
++ * line 1 (`"class": "./MiniPages.js"`), so every line after that is one
++ * `set()` call (core/Page/Log.js) — a key that names a method calls it, and
++ * `card` below is a NEW method this page.jsonl format just learned, the same
++ * way `place` and `file` already work. Nothing below this file is a folder:
++ * open card/mini-pages/ on disk and you will find exactly two files, this
++ * one and page.jsonl, however many cards the list shows.
++ */
++export default class MiniPages extends Page {
++
++	// The new page.jsonl verb: `{"card": {"slug": ..., "title": ..., "body": ..., "ground": ...}}`.
++	// One call per line; `this.cards` is built before anyone can ask for a card, because
++	// every line in the file is read before render() or route() ever runs.
++	card(data){
++		(this.cards ??= []).push(data);
++	}
++
++	// A name nobody declared — this page's own `children` map has nothing in it,
++	// so child() (Page.class.js) asks route() for every url under this one. Found
++	// data becomes a real page, built on the spot: no fetch, no folder, because
++	// `this.cards` already has every card's data, read off the SAME page.jsonl
++	// this list itself came from.
++	route(name){
++		const found = this.cards?.find(c => c.slug === name);
++		if (!found) return null;
++
++		return {
++			title: found.title,
++			icon: found.icon || "description",
++			content(){
++				div.c(`card ${found.ground || ""}`.trim(), () => {
++					h3(found.title);
++					p(found.body);
++				});
++			},
++		};
++	}
++
++	// A naming collision, found 2026-09-30 wiring this page into a preview wall:
++	// `Page.nav()` reads `this.card` expecting a CSS-class STRING (the `card`
++	// property, Page.class.js's own doc/api.md), but this class also has a
++	// METHOD named `card` (above — the page.jsonl verb that records each mini
++	// page). The method wins, so `nav().card` is a function, and the default
++	// `preview_card()` throws trying to `.ac()` it. Only a page.jsonl that
++	// declares its own `card` line hits this, so the fix lives here rather
++	// than in the shared `Page.class.js`.
++	preview(nav = this.nav()){ return this.preview_card({ ...nav, card: undefined }); }
++
++	content(){
++		p("Every card below is one line in this folder's own `page.jsonl` — open the file (the `ext/files` tree at the bottom of this page) and you will see it in full. Click one: its url is real, a reload lands on the same card, and there is no folder anywhere on disk for it — only this one file and the class beside it.");
++
++		div.c("grid auto gap", () => (this.cards ?? []).forEach(c =>
++			a.c(`card ${c.ground || ""}`.trim(), () => {
++				h3(c.title);
++				p(c.body);
++			}).attr("href", this.url + c.slug + "/")));
++
++		this.log_view();
++	}
++}
++
++export { MiniPages };
+diff --git a/public/framework/core/Page/card/mini-pages/page.jsonl b/public/framework/core/Page/card/mini-pages/page.jsonl
+new file mode 100644
+index 00000000..65a8aaf3
+--- /dev/null
++++ b/public/framework/core/Page/card/mini-pages/page.jsonl
+@@ -0,0 +1,5 @@
++{"class": "./MiniPages.js", "title": "Mini pages", "icon": "auto_stories", "description": "A card is a tiny page: its data is one line in this file, its url is real, and there is no folder for it anywhere on disk."}
++{"file": "MiniPages.js"}
++{"card": {"slug": "first-steps", "title": "First steps", "ground": "", "body": "The first card — default ground, one paragraph. Its whole existence is the one line in page.jsonl that made it."}}
++{"card": {"slug": "the-decision", "title": "The decision", "ground": "card-gray", "body": "A light gray card. Reload this exact url and you land right back here, because the data this page reads from is still the same file, every time."}}
++{"card": {"slug": "going-deep", "title": "Going deep", "ground": "card-dark", "body": "A dark card, read the same way as the other two. Three cards, one file, zero folders below this page."}}
+diff --git a/public/framework/core/Page/card/nesting/files.jsonl b/public/framework/core/Page/card/nesting/files.jsonl
+new file mode 100644
+index 00000000..ffae31da
+--- /dev/null
++++ b/public/framework/core/Page/card/nesting/files.jsonl
+@@ -0,0 +1 @@
++{"file":"page.js"}
+diff --git a/public/framework/core/Page/card/nesting/page.js b/public/framework/core/Page/card/nesting/page.js
+new file mode 100644
+index 00000000..9d740981
+--- /dev/null
++++ b/public/framework/core/Page/card/nesting/page.js
+@@ -0,0 +1,43 @@
++import { Page, p, h3, h4, div, demo } from "/app.js";
++import { BOXED_LEVELS } from "../depth.js";
++
++// One function draws every level. Levels 1 through BOXED_LEVELS get the box
++// (`.card`); anything deeper drops it and just gets a bigger, bolder heading
++// standing in for the missing border — the owner's rule: "a big heading and
++// the content underneath at the same indentation, no extra box." The level
++// number is read here, in JS, not worked out from CSS — doc/system.md says
++// why. `card/log/LogView.js` draws a Logger's nested groups to this exact
++// same rule, from this same constant, so the two can't drift apart again.
++function level(n, title, body, deeper){
++	const boxed = n <= BOXED_LEVELS;
++	const heading = boxed ? h4 : h3;
++
++	div.c(`${boxed ? "card " : ""}card-level-${Math.min(n, 5)}`, () => {
++		heading(title);
++		p(body);
++		if (deeper) deeper();
++	});
++}
++
++export default new Page({
++	meta: import.meta,
++	title: "Nesting",
++	description: "Levels 1, 2 and 3 are boxes. Level 4 and deeper drop the box and become a plain heading at the same indentation — padding runs out before a reader's patience does.",
++	icon: "layers",
++
++	content(){
++		p("\"After the third level, you're kind of maxing out your padding space,\" the owner said — so this system stops adding boxes there. A section title doesn't need its own box either: \"a H2 section... uses a big heading and then the first paragraph underneath is at the same indentation level.\" Five levels below, and it still reads at 400px wide.");
++
++		demo(() =>
++			level(1, "Section", "Level 1 — boxed.", () =>
++				level(2, "Subsection", "Level 2 — still boxed.", () =>
++					level(3, "Detail", "Level 3 — the last box. One more level and padding runs out.", () =>
++						level(4, "Deeper still", "Level 4 — no box. A bigger heading carries the hierarchy instead, at the SAME indentation as level 3's own content.", () =>
++							level(5, "Deepest", "Level 5 — quieter again, and capped here: a real object graph would keep going, but a reader's eye would not.")
++						)
++					)
++				)
++			),
++		"Five calls deep: three boxes, then two plain headings, never a fourth border.");
++	},
++});
+diff --git a/public/framework/core/Page/card/page.js b/public/framework/core/Page/card/page.js
+new file mode 100644
+index 00000000..be3a7854
+--- /dev/null
++++ b/public/framework/core/Page/card/page.js
+@@ -0,0 +1,57 @@
++import { Page, View, p, div, span, button, icon } from "/app.js";
++
++// The card system's own stylesheet — loaded once, here, because every page
++// under this one is reached by walking DOWN through this file first (the
++// Router loads a parent's page.js before any child's). ai2/page.js and
++// ux/page.js load their own tier's CSS the same way.
++View.stylesheet(import.meta, "card.css");
++
++// The four grounds a card can sit on (card.css) — same list `grounds/page.js`
++// uses, kept here too so the live sample below needs no import from a child.
++const GROUNDS = [
++	{ cls: "",          name: "Default" },
++	{ cls: "card-gray", name: "Light gray" },
++	{ cls: "card-dark", name: "Dark" },
++	{ cls: "card-prim", name: "Strong hue" },
++];
++
++// One ground, drawn three cards deep, with a header bar and a ⋯ menu on the
++// outer card — every class here already exists in `card.css`; nothing new.
++// `nesting/page.js` shows the same level-1/2/3 boxing on its own, in full.
++function sample(ground){
++	div.c(`card card-level-1 ${ground.cls}`.trim(), () => {
++		div.c("card-head", () => {
++			icon("dashboard");
++			span.c("card-head-title", ground.name);
++			button.c("card-menu-btn", () => icon("more_vert"));
++		});
++		div.c("card card-level-2", () => {
++			p("Nested one level in.");
++			div.c("card card-level-3", () => p("Nested two levels in — three cards deep."));
++		});
++	});
++}
++
++export default new Page({
++	meta: import.meta,
++	title: "Cards",
++	description: "A card is a mini page: its own background, a title or header maybe, clickable or expandable, nested a few levels deep — and when there's a list of them, they're routed, real pages of their own.",
++	icon: "dashboard",
++	children: "grounds nesting headers mini-pages/page.jsonl scale log",
++
++	content(){
++		// Show, don't tell (the owner): the first thing on the page is a LIVE sample,
++		// not a description of one — one card per ground, three levels deep, with a
++		// header bar and a ⋯ menu. `wide` breaks it out of the narrow prose column so
++		// all four sit in a row at 1920.
++		div.c("wide grid auto gap", () => GROUNDS.forEach(sample)).style("--column", "16em");
++
++		// Then the six sub-topics, as the site's own page-preview wall — the same
++		// `this.previews()` call `core/page.js` uses for its own children — sized up
++		// from the 14em default so each card reads at 1920 without crowding.
++		this.previews().style({ "--column": "22em", "--gap": "1.5em" });
++
++		// Then the one paragraph, down to two sentences (was three).
++		p("A card is not a new widget — it's `.card` and `.surface`, the two classes framework.css already ships. This module is where the rules for using them live: which ground, how deep it nests, which header pattern, and that a list of cards is a list of real, routed pages, not a list of divs.");
++	},
++});
+diff --git a/public/framework/core/Page/card/readme.md b/public/framework/core/Page/card/readme.md
+new file mode 100644
+index 00000000..b2f4e121
+--- /dev/null
++++ b/public/framework/core/Page/card/readme.md
+@@ -0,0 +1,55 @@
++# card — the site's card design system
++
++## What
++
++A card is a mini page: it has its own background, works on mobile, sometimes has a
++title or a header, is sometimes clickable or expandable, and can nest a few levels
++deep before it runs out of padding. This module is where the rules for building one
++live — see it: [`/framework/core/Page/card/`](/framework/core/Page/card/).
++
++Built from an inventory of every card-like thing already on the site — page
++previews, `.card` itself, chips, chat bubbles, icon cards, the AI 2 rail, and more —
++at [`inventory.json`](inventory.json) and [`doc/inventory.md`](doc/inventory.md).
++
++## Use
++
++Six children, each one demo:
++
++- [`grounds/`](grounds/) — the four backgrounds a card can sit on, and what happens
++  when one sits on another.
++- [`nesting/`](nesting/) — how deep a card can go before the box gives way to a plain
++  heading.
++- [`headers/`](headers/) — none, heading, icon + title, or a header bar with a menu;
++  plus clickable and expandable.
++- [`mini-pages/`](mini-pages/) — the owner's decision: a card's data is one line in a
++  `page.jsonl`, routed to its own url, with no folder of its own.
++- [`scale/`](scale/) — small, default, large, and what content fits each.
++- [`log/`](log/) — an object-oriented logger, rendered as nested cards (the reason
++  this whole system exists: log groups needed a nesting rule first).
++
++`card/card.css` holds the new CSS — four grounds, the nesting classes, and the
++header/menu/clickable/expandable shapes. It reuses `.card`, `.surface`, `.wash` and
++`--pad-card`/`--radius` from `framework.css` rather than inventing new ones; see
++[`doc/system.md`](doc/system.md) for the one table of which card, when.
++
++## Watch out
++
++- **`.card` itself is the framework's, not this module's.** Nothing here restyles
++  it — every new class starts with `card-` (`.card-gray`, `.card-dark`,
++  `.card-prim`, `.card-level-N`, `.card-head`, `.card-menu-btn`), reserved in
++  `styles/css-scopes.txt`.
++- **A card's depth is set in JS, not guessed from CSS.** `nesting/page.js`'s `level()`
++  function decides `boxed = n <= 3` and stamps `card-level-N` itself — the same
++  choice `card/log/LogView.js` already made for a log group. `doc/system.md`
++  explains why a pure `:is()` depth selector was rejected.
++- **A mini page's data is NOT a new file format.** `mini-pages/page.jsonl`'s `card`
++  lines are read by the ordinary `page.jsonl` line reader (`core/Page/Log.js`); the
++  only thing new is the `card()` method that `MiniPages.js` adds, the same way
++  `place()` and `file()` already work.
++
++## More
++
++[`doc/system.md`](doc/system.md) — the rules, one table. [`doc/inventory.md`](doc/inventory.md)
++— the inventory this system was built from. [`core/Page/jsonl/`](/framework/core/Page/jsonl/)
++and [`core/Page/dynamic/`](/framework/core/Page/dynamic/) — the two mechanisms
++`mini-pages/` reuses.
+diff --git a/public/framework/core/Page/card/scale/files.jsonl b/public/framework/core/Page/card/scale/files.jsonl
+new file mode 100644
+index 00000000..ffae31da
+--- /dev/null
++++ b/public/framework/core/Page/card/scale/files.jsonl
+@@ -0,0 +1 @@
++{"file":"page.js"}
+diff --git a/public/framework/core/Page/card/scale/page.js b/public/framework/core/Page/card/scale/page.js
+new file mode 100644
+index 00000000..b0695d24
+--- /dev/null
++++ b/public/framework/core/Page/card/scale/page.js
+@@ -0,0 +1,30 @@
++import { Page, p, h4, div, table, thead, tbody, tr, th, td, demo } from "/app.js";
++
++const ROWS = [
++	["Small (`.size-small`)", "One line: a title, maybe one icon or chip. No body paragraph — there isn't room to read one comfortably.", "A chip-sized status card, a rail row (AI 2)."],
++	["Default (`.size-regular`)", "A title and a short paragraph or two, maybe one small piece of data (a chip, a number). What almost every card on the site already holds.", "A page preview, a Decision card, a Question card."],
++	["Large (`.size-large`)", "A title, a longer body, and room for a second thing inside it — another card, a small table, a row of chips.", "The object card (`ux/Content/Object`), a document's own summary card."],
++];
++
++export default new Page({
++	meta: import.meta,
++	title: "Scale",
++	description: "Small, default and large — the one --size knob framework.css already has, and what content actually fits at each.",
++	icon: "photo_size_select_large",
++
++	content(){
++		p("Nothing new here: `.size-small`, `.size-regular` and `.size-large` already exist site-wide. A card reads them for free, because `--pad-card` is already `calc(... * var(--size))` — no separate \"tight\" word needed for a card the way one was for other boxes.");
++
++		demo(() => div.c("flex wrap gap", () => {
++			div.c("card size-small", () => p("Small"));
++			div.c("card size-regular", () => p("Default"));
++			div.c("card size-large", () => p("Large"));
++		}), "The same card markup, three sizes — only the class changed.");
++
++		h4("What content fits each");
++		table(() => {
++			thead(() => tr(() => { th("Size"); th("Content it holds"); th("Example"); }));
++			tbody(() => ROWS.forEach(([size, content, example]) => tr(() => { td(size); td(content); td(example); })));
++		});
++	},
++});
+diff --git a/public/framework/core/Page/page.js b/public/framework/core/Page/page.js
+index 61ce9bbc..89ac0c54 100644
+--- a/public/framework/core/Page/page.js
++++ b/public/framework/core/Page/page.js
+@@ -63,7 +63,7 @@ export default new Doc({
+ 	// `jsonl` stays declared here, at its existing url — "Make a page › page.jsonl"
+ 	// links to it, same as before. `settings` (same day, tabs-settings task): tabs
+ 	// that manage themselves via a `tab` line, and a page's own nav switch.
+-	children: "make layout navigation ai dynamic weight generator old jsonl/page.jsonl settings/page.jsonl",
++	children: "make layout navigation ai dynamic weight card generator old jsonl/page.jsonl settings/page.jsonl",
+ 	overview: Object.values(BANDS).flatMap(b => b.split(" ")).join(" "),
+ 
+ 	// Every member, in the order a reader meets them: the tree, then rendering,
+diff --git a/public/framework/core/Page/readme.md b/public/framework/core/Page/readme.md
+index 4c44bd29..77e2cff7 100644
+--- a/public/framework/core/Page/readme.md
++++ b/public/framework/core/Page/readme.md
+@@ -18,6 +18,7 @@ each step and the two traps that catch people, is [`doc/loading.md`](./doc/loadi
+ [ai](./ai/) — the page-based AI system: dictation, the fast assistant, a manager per page, sessions and the SDK, plus `page_work()` — a page's own open tasks and agents, opt-in ([doc/work.md](./ai/doc/work.md))
+ [dynamic](./dynamic/) — a url with no `page.js` or `page.jsonl`, loaded by an ancestor's `route()`: data on disk plus one template
+ [weight](./weight/) — each page's weight: 1 by default, raised by the pages that reference it plus a manual adjustment; heaviest sorts first
++[card](./card/) — the card system: four grounds, nesting that drops the box after level 3, header and menu patterns, cards as routed mini pages; plus [log](./card/log/), any object's own nested log
+ [generator](./generator/) — builds a whole page tree from a short spec string, so you can try layouts without making files
+ [overview](./overview/) — the wall of one picture card per page building block
+ [old](./old/) — the first Page docs, kept as reference
+diff --git a/public/framework/styles/css-scopes.txt b/public/framework/styles/css-scopes.txt
+index 6aeb8aa8..a4f67bec 100644
+--- a/public/framework/styles/css-scopes.txt
++++ b/public/framework/styles/css-scopes.txt
+@@ -76,6 +76,10 @@ sidebar-     core/Sidebar
+ omnibox-     core/Search (the one search box; the class `.omnibox` itself is the View subclass's own name)
+ brand-       core/Sidebar
+ looks-       core/Page/overview/columns/examples/looks
++card-        core/Page/card (card-gray/-dark/-prim the three new grounds, card-level-N the
++             nesting depth classes, card-head/-head-title/-menu-btn the header-bar-with-menu
++             pattern — bare .card itself stays the framework's, in the block above)
++log-         core/Page/card/log
+ 
+ # ext
+ ai-          ext/AITask

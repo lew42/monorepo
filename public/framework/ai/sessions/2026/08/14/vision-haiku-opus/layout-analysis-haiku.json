@@ -1,0 +1,631 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "session_id": "26162f3e-46f2-41c1-987a-53f57bf4a41b",
+  "method": "One cold claude -p CLI session (claude-haiku-4-5-20251001), resumed once per image with the identical analysis prompt used for the Sonnet run, against the SAME 15 PNGs in ../vision-sonnet/shots/. Per-image numbers are the CLI reported usage for that turn. Unlike the Sonnet session, no capture phase preceded analysis: the session starts cold, so the first turn carries the one-time system-prompt cache write and baseline cache_read is smaller throughout.",
+  "shots_source": "../vision-sonnet/shots/",
+  "images": [
+    {
+      "file": "fit-400.png",
+      "url": "http://localhost/framework/styles/layouts/fit/",
+      "viewport_width": 400,
+      "image_px": "400x800",
+      "file_bytes": 23459,
+      "analysis_tokens": {
+        "input": 18,
+        "cache_write": 35115,
+        "cache_read": 34523,
+        "output": 904,
+        "total": 70560
+      },
+      "analysis_cost_usd": 0.07903829999999999,
+      "api_ms": 12892,
+      "wall_ms": 14058,
+      "findings": {
+        "regions": [
+          "Header with logo and hamburger menu",
+          "Navigation tabs (Layouts, Fit active, Flex)",
+          "Page title 'Fit'",
+          "Descriptive prose paragraph",
+          "Multi-column reference table with layout options and measurements"
+        ],
+        "width_use": "Full-width single column at 400px; prose text flows at comfortable reading width; columnar reference section below is compressed into 3 narrow columns (approximately 90-130px each) with minimal gutters, all content left-aligned with no horizontal scrolling",
+        "issues": [
+          {
+            "severity": "low",
+            "what": "Right-side tab ('Flex') is partially cut off or very tight against viewport edge",
+            "where": "Navigation tabs row"
+          },
+          {
+            "severity": "medium",
+            "what": "Reference table columns are quite narrow and text labels (like 'prose', 'track', 'grid t') wrap aggressively, reducing readability of the reference content",
+            "where": "Multi-column layout comparison section"
+          }
+        ],
+        "quality": "Responsive mobile layout that maintains content hierarchy and readability for the primary prose section, though the reference table at the bottom sacrifices clarity by forcing multiple columns into constrained widths at 400px."
+      }
+    },
+    {
+      "file": "fit-1920.png",
+      "url": "http://localhost/framework/styles/layouts/fit/",
+      "viewport_width": 1920,
+      "image_px": "1920x1080",
+      "file_bytes": 163401,
+      "analysis_tokens": {
+        "input": 18,
+        "cache_write": 1366,
+        "cache_read": 71255,
+        "output": 854,
+        "total": 73493
+      },
+      "analysis_cost_usd": 0.0141455,
+      "api_ms": 11741,
+      "wall_ms": 13388,
+      "findings": {
+        "regions": [
+          "Header with logo and navigation",
+          "Left sidebar with vertical menu",
+          "Main content area with 'Fit' title and introductory paragraph",
+          "Multi-card grid section showing layout options and variants",
+          "Section heading 'The measure is two tokens'",
+          "Code reference blocks with examples"
+        ],
+        "width_use": "Left sidebar (~200px fixed) + main content area (~1720px remaining); main content uses two to three columns with cards arranged in rows; prose text flows at comfortable reading measure (around 60-80 characters); ample gutters between cards and sections; footer code blocks arranged horizontally side-by-side with good breathing room",
+        "issues": [
+          {
+            "severity": "low",
+            "what": "Left sidebar consumes meaningful horizontal real estate that could expand the main content column; at 1920px the tradeoff between sidebar prominence and content width may be suboptimal",
+            "where": "Overall layout structure"
+          }
+        ],
+        "quality": "Well-structured responsive layout that effectively uses the wider viewport with clear information hierarchy, good whitespace distribution, and comfortable reading measures for prose content. Cards and reference sections are clearly organized."
+      }
+    },
+    {
+      "file": "fit-3440.png",
+      "url": "http://localhost/framework/styles/layouts/fit/",
+      "viewport_width": 3440,
+      "image_px": "3440x1440",
+      "file_bytes": 236211,
+      "analysis_tokens": {
+        "input": 18,
+        "cache_write": 1533,
+        "cache_read": 73933,
+        "output": 1017,
+        "total": 76501
+      },
+      "analysis_cost_usd": 0.015562300000000001,
+      "api_ms": 14436,
+      "wall_ms": 16077,
+      "findings": {
+        "regions": [
+          "Header with logo and navigation",
+          "Left sidebar with expanded vertical menu",
+          "Main content area with 'Fit' title",
+          "Vocabulary and introductory text section",
+          "Multi-card reference grid (layout options with measurements)",
+          "Section heading 'The measure is two tokens'",
+          "Code reference blocks",
+          "Section heading 'Why a measure at all' (bottom)"
+        ],
+        "width_use": "Left sidebar (~200px) + main content area (~3240px remaining); main content deliberately constrains reading measure to ~800-900px, leaving substantial right-side whitespace; cards remain in similar grid arrangement as at 1920px; prose text maintains comfortable single-column reading width; code blocks are wider but not full-viewport",
+        "issues": [
+          {
+            "severity": "high",
+            "what": "Significant unused whitespace on the right side of main content area; at 3440px the layout fails to expand card grids or content width proportionally, leaving 40-50% of available space empty",
+            "where": "Main content section and card grid"
+          },
+          {
+            "severity": "medium",
+            "what": "Cards and reference content maintain 1920px dimensions rather than scaling; layout appears the same width as at 1920px despite 1500px additional viewport space",
+            "where": "Multi-card grid and reference sections"
+          }
+        ],
+        "quality": "Layout prioritizes readable text measure but dramatically underutilizes the 3440px viewport by maintaining static content width; large swathes of whitespace significantly diminish the visual balance and purpose of providing an ultra-wide experience."
+      }
+    },
+    {
+      "file": "flex-400.png",
+      "url": "http://localhost/framework/styles/layouts/flex/",
+      "viewport_width": 400,
+      "image_px": "400x800",
+      "file_bytes": 11934,
+      "analysis_tokens": {
+        "input": 18,
+        "cache_write": 1728,
+        "cache_read": 77162,
+        "output": 819,
+        "total": 79727
+      },
+      "analysis_cost_usd": 0.015285200000000002,
+      "api_ms": 11103,
+      "wall_ms": 12660,
+      "findings": {
+        "regions": [
+          "Header with logo and hamburger menu",
+          "Navigation tabs (partially cut off, showing Fit and Flex active)",
+          "Page title 'Flex'",
+          "First example 'A row' with flex row visualization",
+          "Second example 'A row with air in it' with flex row with gaps visualization",
+          "Third example 'A column' with flex column visualization"
+        ],
+        "width_use": "Full-width single-column layout; navigation tabs overflow and truncate on left side ('...ts' visible); each example container spans full viewport width with internal flex items arranged horizontally or vertically to demonstrate the layout pattern; minimal gutters, content edge-to-edge",
+        "issues": [
+          {
+            "severity": "high",
+            "what": "Navigation tabs are truncated on the left side; leftmost tab text shows only '...ts' instead of full label",
+            "where": "Navigation tabs row"
+          },
+          {
+            "severity": "medium",
+            "what": "Right-side tab ('Flex') may also be cut off at viewport edge",
+            "where": "Navigation tabs row"
+          }
+        ],
+        "quality": "Responsive mobile layout that stacks content vertically and demonstrates flex concepts through visual examples, though tab navigation visibility is compromised by truncation at the 400px width."
+      }
+    },
+    {
+      "file": "flex-1920.png",
+      "url": "http://localhost/framework/styles/layouts/flex/",
+      "viewport_width": 1920,
+      "image_px": "1920x1080",
+      "file_bytes": 134502,
+      "analysis_tokens": {
+        "input": 18,
+        "cache_write": 2656,
+        "cache_read": 80422,
+        "output": 1051,
+        "total": 84147
+      },
+      "analysis_cost_usd": 0.0186272,
+      "api_ms": 15304,
+      "wall_ms": 16819,
+      "findings": {
+        "regions": [
+          "Header with logo",
+          "Left sidebar navigation with menu items (Start here, FAQ, Versus, Core, Styles, UI, Document/Docs)",
+          "Main content area with 'Layouts' link and 'Flex' tab",
+          "Page title 'Flex'",
+          "Flex examples grid (4 columns showing 'A row', 'A row with air in it', 'A column', 'Middles lined up', etc.)",
+          "Section 'Three, then straight to one' with prose explanation",
+          "Section 'Where the same markup breaks' with code reference"
+        ],
+        "width_use": "Left sidebar (~180px fixed) + main content (~1740px); main content subdivides into left vocabulary/pages column (~320px) and right examples/prose column (~1420px); flex examples displayed in 4-column grid; prose text flows at comfortable reading width (~800px); code blocks and section text use available width with moderate gutters",
+        "issues": [
+          {
+            "severity": "low",
+            "what": "Left vocabulary/pages sidebar takes up notable horizontal space that could expand the main examples area; the two-column main layout subdivides available width rather than maximizing example visibility",
+            "where": "Main content area structure"
+          }
+        ],
+        "quality": "Well-organized documentation layout with clear information hierarchy and visual flex examples displayed prominently in a responsive grid; vocabulary and navigation context are accessible but do consume valuable horizontal space."
+      }
+    },
+    {
+      "file": "flex-3440.png",
+      "url": "http://localhost/framework/styles/layouts/flex/",
+      "viewport_width": 3440,
+      "image_px": "3440x1440",
+      "file_bytes": 213701,
+      "analysis_tokens": {
+        "input": 18,
+        "cache_write": 1824,
+        "cache_read": 86059,
+        "output": 1036,
+        "total": 88937
+      },
+      "analysis_cost_usd": 0.0174519,
+      "api_ms": 14844,
+      "wall_ms": 16347,
+      "findings": {
+        "regions": [
+          "Header with logo",
+          "Left sidebar navigation",
+          "Main content area with 'Flex' title",
+          "Flex examples section with 8+ pattern examples displayed in a single horizontal row",
+          "Prose explanation text",
+          "Section 'Where the same markup breaks'",
+          "Code block with syntax highlighting",
+          "Grid/table reference section with COLUMN-HEAD, GAP, WRAP rows"
+        ],
+        "width_use": "Left sidebar (~180px) + main content (~3260px); flex examples compressed into a single extremely narrow horizontal row that spans the width; examples are displayed at minimal height/width, making individual patterns difficult to distinguish; prose and code sections maintain readable width but significant whitespace appears on the right edge; layout does not expand example cards proportionally to utilize available space",
+        "issues": [
+          {
+            "severity": "high",
+            "what": "Flex examples are compressed into an extremely narrow horizontal strip with minimal height, making individual layout patterns nearly illegible; examples are too small to effectively demonstrate their purpose",
+            "where": "Flex examples grid section"
+          },
+          {
+            "severity": "high",
+            "what": "Substantial unused whitespace on the right side of main content area; layout fails to scale example cards or content width proportionally to the 3440px viewport",
+            "where": "Overall main content area"
+          }
+        ],
+        "quality": "Layout collapses flex examples into an impractically narrow horizontal row at 3440px, sacrificing clarity and visual hierarchy; the ultra-wide viewport is poorly utilized with much of it remaining empty while example patterns become compressed to the point of illegibility."
+      }
+    },
+    {
+      "file": "grid-400.png",
+      "url": "http://localhost/framework/styles/layouts/grid/",
+      "viewport_width": 400,
+      "image_px": "400x800",
+      "file_bytes": 14523,
+      "analysis_tokens": {
+        "input": 18,
+        "cache_write": 1745,
+        "cache_read": 89598,
+        "output": 828,
+        "total": 92189
+      },
+      "analysis_cost_usd": 0.016607800000000002,
+      "api_ms": 11729,
+      "wall_ms": 13386,
+      "findings": {
+        "regions": [
+          "Header with logo and hamburger menu",
+          "Navigation tabs (partially cut off, showing Flex and Grid active)",
+          "Page title 'Grid'",
+          "First example section with horizontal strip visualization",
+          "Section 'A single column' with vertical column grid visualization",
+          "Section 'A wall that counts itself' with multi-column grid visualization",
+          "Section 'Three, then straight to one' (partial, at bottom)"
+        ],
+        "width_use": "Full-width single-column layout; navigation tabs overflow and truncate on left side; each grid example container spans viewport width with internal columns compressed to fit within 400px; grid patterns show multiple narrow columns squeezed side-by-side; minimal gutters between grid items",
+        "issues": [
+          {
+            "severity": "high",
+            "what": "Navigation tabs are truncated on the left; leftmost tab partially cut off",
+            "where": "Navigation tabs row"
+          },
+          {
+            "severity": "medium",
+            "what": "Grid tab may be cut off on right edge at viewport boundary",
+            "where": "Navigation tabs row"
+          },
+          {
+            "severity": "medium",
+            "what": "Grid column examples are very narrow and compressed; columns are still visible but quite tight at 400px width",
+            "where": "Grid example visualizations"
+          }
+        ],
+        "quality": "Responsive mobile layout that effectively stacks grid examples vertically and demonstrates column patterns even at narrow width, though tab navigation truncation affects discoverability."
+      }
+    },
+    {
+      "file": "grid-1920.png",
+      "url": "http://localhost/framework/styles/layouts/grid/",
+      "viewport_width": 1920,
+      "image_px": "1920x1080",
+      "file_bytes": 145877,
+      "analysis_tokens": {
+        "input": 18,
+        "cache_write": 2668,
+        "cache_read": 92884,
+        "output": 844,
+        "total": 96414
+      },
+      "analysis_cost_usd": 0.0188624,
+      "api_ms": 13967,
+      "wall_ms": 15567,
+      "findings": {
+        "regions": [
+          "Header with logo",
+          "Left sidebar navigation (Start here, FAQ, Versus, Core, Styles, UI, Document/Docs)",
+          "Main content area with 'Layouts' link and 'Grid' tab",
+          "Page title 'Grid'",
+          "Three grid example visualizations in horizontal row ('A single column', 'A wall that counts itself', 'Three, then straight to one')",
+          "Prose explanation section with inline code reference and code block",
+          "Section heading 'A cell that wants more'",
+          "Code block with grid CSS implementation example"
+        ],
+        "width_use": "Left sidebar (~180px) + main content (~1740px); main content subdivides into left vocabulary/pages column (~320px) and right examples/prose column (~1420px); three grid examples displayed side-by-side in horizontal row; prose text flows at comfortable reading width (~800px); code blocks expand to show full syntax-highlighted content with moderate gutters",
+        "issues": [
+          {
+            "severity": "low",
+            "what": "Left vocabulary/pages sidebar takes horizontal space that could be allocated to main examples area; two-column subdivision limits example card size",
+            "where": "Main content area structure"
+          }
+        ],
+        "quality": "Well-organized documentation layout with grid examples clearly displayed in a horizontal row and supporting prose and code samples; information hierarchy is clear with good use of whitespace and section separation."
+      }
+    },
+    {
+      "file": "grid-3440.png",
+      "url": "http://localhost/framework/styles/layouts/grid/",
+      "viewport_width": 3440,
+      "image_px": "3440x1440",
+      "file_bytes": 211079,
+      "analysis_tokens": {
+        "input": 18,
+        "cache_write": 1525,
+        "cache_read": 98234,
+        "output": 901,
+        "total": 100678
+      },
+      "analysis_cost_usd": 0.0173964,
+      "api_ms": 12975,
+      "wall_ms": 14554,
+      "findings": {
+        "regions": [
+          "Header with logo",
+          "Left sidebar navigation",
+          "Main content area with 'Grid' title",
+          "Three grid example visualizations in horizontal row ('A single column', 'A wall that counts itself', 'Three, then straight to one')",
+          "Prose explanation with inline code references",
+          "Code block showing grid CSS syntax",
+          "Section heading 'A cell that wants more'",
+          "Code block showing grid implementation example",
+          "Grid/table reference section at bottom"
+        ],
+        "width_use": "Left sidebar (~180px) + main content (~3260px); grid examples remain in horizontal row at similar dimensions to 1920px version; prose text maintains comfortable reading width (~800px); code blocks show content but do not expand proportionally; significant unused whitespace appears on right edge of main content area",
+        "issues": [
+          {
+            "severity": "high",
+            "what": "Grid examples maintain 1920px sizing rather than scaling proportionally to 3440px; examples do not expand to utilize additional 1500px of available width",
+            "where": "Grid example visualizations row"
+          },
+          {
+            "severity": "high",
+            "what": "Substantial unused whitespace on right side of main content area; layout fails to expand content width or add additional examples/sections to utilize ultra-wide viewport",
+            "where": "Overall main content area"
+          }
+        ],
+        "quality": "Layout fails to scale or reflow content to utilize the 3440px viewport, maintaining narrower 1920px-equivalent dimensions and leaving significant white space; the ultra-wide experience is not meaningfully different from desktop-width viewports."
+      }
+    },
+    {
+      "file": "document-400.png",
+      "url": "http://localhost/framework/styles/layouts/document/",
+      "viewport_width": 400,
+      "image_px": "400x800",
+      "file_bytes": 28276,
+      "analysis_tokens": {
+        "input": 18,
+        "cache_write": 1610,
+        "cache_read": 101339,
+        "output": 893,
+        "total": 103860
+      },
+      "analysis_cost_usd": 0.017836900000000003,
+      "api_ms": 12407,
+      "wall_ms": 14098,
+      "findings": {
+        "regions": [
+          "Header with logo and hamburger menu",
+          "Navigation tabs (partially cut off, showing Grid and Document active)",
+          "Page title 'Document'",
+          "Decorative icon element",
+          "Two-column preview layout showing document examples",
+          "Left preview column with thumbnail document view",
+          "Right preview column with document content sections (Aurora, Overview, Layout, Type, Colour)",
+          "Content cards and examples within preview area"
+        ],
+        "width_use": "Full-width 400px viewport; two-column preview layout compressed side-by-side within viewport; left column ~120-150px, right column ~200-250px; very tight gutters; both columns significantly narrowed, making preview content barely legible; content stacks within each narrow column",
+        "issues": [
+          {
+            "severity": "high",
+            "what": "Navigation tabs are truncated on left side; Grid tab text is cut off",
+            "where": "Navigation tabs row"
+          },
+          {
+            "severity": "high",
+            "what": "Two-column preview layout is extremely compressed at 400px; columns are too narrow to display content legibly, defeating the purpose of the preview demonstration",
+            "where": "Two-column preview area"
+          },
+          {
+            "severity": "medium",
+            "what": "Document tab likely cut off on right edge at viewport boundary",
+            "where": "Navigation tabs row"
+          }
+        ],
+        "quality": "Mobile layout forces a two-column preview into 400px width, severely compromising content legibility and preview functionality; the layout choice appears better suited for wider viewports."
+      }
+    },
+    {
+      "file": "document-1920.png",
+      "url": "http://localhost/framework/styles/layouts/document/",
+      "viewport_width": 1920,
+      "image_px": "1920x1080",
+      "file_bytes": 151674,
+      "analysis_tokens": {
+        "input": 18,
+        "cache_write": 1965,
+        "cache_read": 104647,
+        "output": 826,
+        "total": 107456
+      },
+      "analysis_cost_usd": 0.018542700000000002,
+      "api_ms": 12011,
+      "wall_ms": 13730,
+      "findings": {
+        "regions": [
+          "Header with logo",
+          "Left sidebar navigation (Start here, FAQ, Versus, Core, Styles, UI, Document/Docs)",
+          "Main content area with 'Layouts' link",
+          "Left vocabulary column with Fit/Flex/Grid descriptions and pages section with document previews",
+          "Right preview column with 'Document' title and document mockup",
+          "Document preview showing 'Aurora: one structure, many layouts' example",
+          "Content sections (Overview, Layout, Type) in right column"
+        ],
+        "width_use": "Left sidebar (~180px) + main content (~1740px); main content subdivides into left vocabulary/pages column (~320px) with stacked cards and thumbnail previews, and right column (~1420px) displaying large document preview mockup and descriptive content sections side-by-side; document preview shows example layout with clear visual hierarchy",
+        "issues": [
+          {
+            "severity": "low",
+            "what": "Left vocabulary/pages column takes horizontal space that could expand the document preview area for larger mockup demonstration",
+            "where": "Main content area structure"
+          }
+        ],
+        "quality": "Well-designed documentation layout with document preview example prominently displayed and clearly labeled content sections providing context; vocabulary and page references on the left provide good navigational context."
+      }
+    },
+    {
+      "file": "document-3440.png",
+      "url": "http://localhost/framework/styles/layouts/document/",
+      "viewport_width": 3440,
+      "image_px": "3440x1440",
+      "file_bytes": 297011,
+      "analysis_tokens": {
+        "input": 18,
+        "cache_write": 1507,
+        "cache_read": 108416,
+        "output": 786,
+        "total": 110727
+      },
+      "analysis_cost_usd": 0.0178036,
+      "api_ms": 14542,
+      "wall_ms": 16120,
+      "findings": {
+        "regions": [
+          "Header with logo",
+          "Left sidebar navigation",
+          "Main content area with three-column subdivision",
+          "Left vocabulary/pages column with stacked cards and previews",
+          "Middle document preview column showing 'Aurora: one structure, many layouts' mockup",
+          "Right code/content column with syntax-highlighted code blocks and technical explanations",
+          "Overview section in right column"
+        ],
+        "width_use": "Left sidebar (~180px) + main content (~3260px); main content expands to three-column layout: left vocabulary/pages (~320px), middle document preview (~700-800px), right technical/code content (~1240-1300px); prose text maintains readable width; code blocks and explanations utilize wider column space; improved width utilization compared to narrower viewports",
+        "issues": [
+          {
+            "severity": "low",
+            "what": "Left vocabulary/pages sidebar takes space that could further expand example or code preview areas at ultra-wide viewport",
+            "where": "Main content left subdivision"
+          }
+        ],
+        "quality": "Layout effectively expands to three-column arrangement at 3440px, showing document preview alongside technical implementation details in code column, providing better information density and utilization of ultra-wide space than other layout pages."
+      }
+    },
+    {
+      "file": "docs-400.png",
+      "url": "http://localhost/framework/styles/layouts/docs/",
+      "viewport_width": 400,
+      "image_px": "400x800",
+      "file_bytes": 25480,
+      "analysis_tokens": {
+        "input": 18,
+        "cache_write": 1495,
+        "cache_read": 111388,
+        "output": 879,
+        "total": 113780
+      },
+      "analysis_cost_usd": 0.0185418,
+      "api_ms": 12460,
+      "wall_ms": 14119,
+      "findings": {
+        "regions": [
+          "Header with logo and hamburger menu",
+          "Navigation tabs (partially cut off, showing Document and Docs active)",
+          "Page title 'Docs'",
+          "Decorative icon element",
+          "Two-column preview layout showing documentation page examples",
+          "Left preview column with form/content structure visualization",
+          "Right preview column with menu navigation and content sections (Overview, Layout, Type, Colour, Motion)",
+          "Footer reference section"
+        ],
+        "width_use": "Full-width 400px viewport; two-column preview layout compressed side-by-side; left column ~120-150px showing form/content structure, right column ~200-250px showing page with menu and sections; very tight gutters; both columns significantly narrowed making preview content difficult to read",
+        "issues": [
+          {
+            "severity": "high",
+            "what": "Navigation tabs are truncated on left side; Document tab text is cut off",
+            "where": "Navigation tabs row"
+          },
+          {
+            "severity": "high",
+            "what": "Two-column preview layout is extremely compressed at 400px; columns too narrow to display content legibly or effectively demonstrate the layout pattern",
+            "where": "Two-column preview area"
+          },
+          {
+            "severity": "medium",
+            "what": "Docs tab likely cut off on right edge at viewport boundary",
+            "where": "Navigation tabs row"
+          }
+        ],
+        "quality": "Mobile layout forces a two-column preview demonstration into 400px width, severely compromising content legibility and the utility of the preview; similar usability issues to the Document page at this viewport."
+      }
+    },
+    {
+      "file": "docs-1920.png",
+      "url": "http://localhost/framework/styles/layouts/docs/",
+      "viewport_width": 1920,
+      "image_px": "1920x1080",
+      "file_bytes": 146532,
+      "analysis_tokens": {
+        "input": 18,
+        "cache_write": 2719,
+        "cache_read": 114475,
+        "output": 902,
+        "total": 118114
+      },
+      "analysis_cost_usd": 0.021413500000000002,
+      "api_ms": 13236,
+      "wall_ms": 15942,
+      "findings": {
+        "regions": [
+          "Header with logo",
+          "Left sidebar navigation (Start here, FAQ, Versus, Core, Styles, UI, Document/Docs)",
+          "Main content area with 'Layouts' link",
+          "Left vocabulary column with Fit/Flex/Grid descriptions and pages previews section",
+          "Right content/preview column with 'Docs' title",
+          "Page layout preview showing three-column internal structure with left navigation, center content, and right menu panel",
+          "Collapsible sections menu (Overview, Layout, Type, Colour, Motion, Tokens, Icons, Forms)",
+          "Content sections with descriptions (Overview, Layout, Type, Colour, Motion visible)"
+        ],
+        "width_use": "Left sidebar (~180px) + main content (~1740px); main content subdivides into left vocabulary/pages column (~320px) and right preview/content column (~1420px); preview demonstrates a three-column internal layout with navigation menu, content sections, and expandable panel; prose text maintains comfortable reading width",
+        "issues": [
+          {
+            "severity": "low",
+            "what": "Left vocabulary/pages column takes horizontal space that could expand the documentation preview and content area",
+            "where": "Main content area structure"
+          }
+        ],
+        "quality": "Well-designed documentation layout that shows a three-column docs-style page structure within the preview, demonstrating the complexity of the layout being documented; clear information hierarchy with vocabulary context and navigation on the left."
+      }
+    },
+    {
+      "file": "docs-3440.png",
+      "url": "http://localhost/framework/styles/layouts/docs/",
+      "viewport_width": 3440,
+      "image_px": "3440x1440",
+      "file_bytes": 297688,
+      "analysis_tokens": {
+        "input": 18,
+        "cache_write": 1583,
+        "cache_read": 119934,
+        "output": 797,
+        "total": 122332
+      },
+      "analysis_cost_usd": 0.0191624,
+      "api_ms": 12904,
+      "wall_ms": 14593,
+      "findings": {
+        "regions": [
+          "Header with logo",
+          "Left sidebar navigation",
+          "Main content area with multi-column subdivision",
+          "Left vocabulary/pages column with stacked cards and previews",
+          "Middle-left docs/form preview column showing page structure and collapsible sections",
+          "Right code/technical column with syntax-highlighted implementation details",
+          "Far right content column with descriptive sections (Overview, Layout, Type)"
+        ],
+        "width_use": "Left sidebar (~180px) + main content (~3260px); main content expands to four-column layout: left vocabulary/pages (~320px), middle preview/structure (~650px), right code/technical (~850px), far right content/description (~800px); all columns maintain readable text width; code blocks show full syntax; information density significantly higher than at 1920px",
+        "issues": [
+          {
+            "severity": "low",
+            "what": "Left vocabulary/pages column continues to consume space; could be collapsed or hidden to expand other content areas at ultra-wide viewport",
+            "where": "Main content left subdivision"
+          }
+        ],
+        "quality": "Layout effectively expands to four-column arrangement at 3440px, showing documentation page structure, technical code implementation, and content descriptions simultaneously, providing excellent information density and comprehensive view of the docs layout pattern."
+      }
+    }
+  ],
+  "analysis_totals": {
+    "images_analyzed": 15,
+    "input": 270,
+    "cache_write": 61039,
+    "cache_read": 1364269,
+    "output": 13337,
+    "total": 1438915,
+    "cost_usd": 0.3263
+  }
+}

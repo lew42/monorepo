@@ -1,0 +1,7 @@
+{
+	"id": "foul-padding",
+	"kind": "ui-fouls",
+	"viewport": { "width": 800, "height": 400 },
+	"planted_foul": "zero padding — the notice text touches its own box border on every side",
+	"keywords": ["padding", "touch", "edge", "border", "flush", "crowd", "cramped", "spacing"]
+}

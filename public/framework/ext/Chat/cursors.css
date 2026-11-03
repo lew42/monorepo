@@ -1,0 +1,10 @@
+@layer site {
+	/* Two moving cursors, shared by V1 (Chat.js) and v2 (ChatV2.js) — ONE class set (law 6, review
+	   finding 4, 2026-10-25). Fixed inline-size so placing one never reflows the text around it.
+	   ✓ fast: gray, green once reached the fast seat. 🧠 smart: gray, warn-coloured once finalized/answered. */
+	.chat-cursor { display: inline-block; inline-size: 1.2em; text-align: center; margin-inline-start: .2em; color: var(--subtle); vertical-align: middle; }
+	.chat-cursor::after { content: "✓"; }
+	.chat-cursor.done { color: var(--ok); }
+	.chat-smart-cursor { display: inline-block; inline-size: 1.2em; text-align: center; margin-inline-start: .2em; color: var(--subtle); vertical-align: middle; opacity: .55; }
+	.chat-smart-cursor.done { color: var(--warn); opacity: 1; }
+}

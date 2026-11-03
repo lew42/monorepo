@@ -63,7 +63,7 @@ export default {
 }
 .card__title {
     font-weight: 600;
-    color: var(--prim);
+    color: var(--prime);
     margin-bottom: 0.3rem;
     font-size: clamp(1rem, 2.5vw, 1.25rem);
 }
@@ -136,7 +136,7 @@ div.c("card-list", ...).style("--card-min", "min(20rem, 100%)");`);
               div.c("card__title", "Horizontal Card");
               p.c("card__text", "Image beside text on wide screens, stacked on narrow. Resize to see it switch.");
               div.c("card__footer", () => {
-                button.c("card__btn card__btn--prim", "Primary");
+                button.c("card__btn card__btn--prime", "Primary");
               });
             });
           });
@@ -167,20 +167,20 @@ div.c("card-list", ...).style("--card-min", "min(20rem, 100%)");`);
               div.c("card__title", "Featured Card");
               p.c("card__text", "This card uses the --featured modifier.");
               div.c("card__footer", () => {
-                button.c("card__btn card__btn--prim", "Featured Action");
+                button.c("card__btn card__btn--prime", "Featured Action");
               });
             });
           });
         });
 
         pre(`.card--featured {
-    border-color: var(--prim);
+    border-color: var(--prime);
     box-shadow: 0 0.25rem 1rem var(--subtle);
 }
-.card__btn--prim {
-    background: var(--prim);
+.card__btn--prime {
+    background: var(--prime);
     color: white;
-    border-color: var(--prim);
+    border-color: var(--prime);
 }`);
 
         h2("Why it works here");
@@ -190,7 +190,7 @@ div.c("card-list", ...).style("--card-min", "min(20rem, 100%)");`);
         p("No CSS preprocessor needed — plain CSS selectors are flat by design with BEM.");
         p("Fluid responsiveness — `clamp()` and `min()` handle most scaling, with a media query only where fluid math can't reach.");
         p("Components are portable — copy a block's CSS and JS together and it works anywhere, because nothing leaks in or out.");
-        p("Modifiers compose — add `card--featured` and `card__btn--prim` independently, no cascade surprises.");
+        p("Modifiers compose — add `card--featured` and `card__btn--prime` independently, no cascade surprises.");
 
         h2("Notation rules");
         p("Use two underscores for elements: `block__element`, never `block-element` or `block_element`.");

@@ -1,0 +1,575 @@
+[
+ {
+  "task": "board-active-first",
+  "date": "2026-08-15",
+  "link": "/framework/ai/2026-08-15/board-active-first/",
+  "title": "one of my braindead ai agents decided to group these by topic rather than active... fix the framework/ai page so active ",
+  "status": "landed"
+ },
+ {
+  "task": "devbar-ai",
+  "date": "2026-08-15",
+  "link": "/framework/ai/2026-08-15/devbar-ai/",
+  "title": "we have a dev sidebar dev/DevBar — it is resizable. give it 4 icon buttons at the top that resize the devbar dynamically",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Deferred to the `ext/AI` task, as scoped: the browsable `<page>/ai/` route, the board crawling `*/ai/*/task.jsonl` site-wide, and moving the dashboard to `/ai/`."
+  ]
+ },
+ {
+  "task": "devbar-fouc",
+  "date": "2026-08-15",
+  "link": "/framework/ai/2026-08-15/devbar-fouc/",
+  "title": "the devbar renders and then animates away on reload, can you fix that?",
+  "status": "landed"
+ },
+ {
+  "task": "doc-system",
+  "date": "2026-08-15",
+  "link": "/framework/ai/2026-08-15/doc-system/",
+  "title": "modify the classdoc system to be a general \"Doc\" system for classes and non classes alike; make a skill \"documentation\" ",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "ext/Panel and ext/editor have NO git history — 972 lines in the working tree only; committing is not mine to do unasked.",
+   "ext/Ask's two production chat surfaces pass no tools restriction while start() in the same module floors itself at acceptEdits."
+  ]
+ },
+ {
+  "task": "editor-controls",
+  "date": "2026-08-15",
+  "link": "/framework/ai/2026-08-15/editor-controls/",
+  "title": "ext/editor adopts .panel-controls: one class per control-surface region so the hover bar stops covering first rows — the",
+  "status": "landed"
+ },
+ {
+  "task": "fix-split-screen-layout",
+  "date": "2026-08-15",
+  "link": "/framework/ai/2026-08-15/fix-split-screen-layout/",
+  "title": "look into the styles/layouts split screen mode (this might be the ext/demo?) — both sides of the responsive viewer show ",
+  "status": "landed"
+ },
+ {
+  "task": "generated-panels",
+  "date": "2026-08-15",
+  "link": "/framework/ai/2026-08-15/generated-panels/",
+  "title": "Window-2 feature (autonomy grant: keep improving): generated layouts become real panels — spec→Panel translator so gen(s",
+  "status": "landed"
+ },
+ {
+  "task": "grip-split",
+  "date": "2026-08-15",
+  "link": "/framework/ai/2026-08-15/grip-split/",
+  "title": "Hygiene: grip.js at 161 lines — extract the hug/fill seam menu into its own module (the seam recon pre-named day one), b",
+  "status": "landed"
+ },
+ {
+  "task": "law-hierarchy",
+  "date": "2026-08-15",
+  "link": "/framework/ai/2026-08-15/law-hierarchy/",
+  "title": "we need LAWS (never broken), RULES (dos and don'ts), and SUGGESTIONS (tips/maybe-wisdom). LAWS > RULES > SUGGESTIONS. Su",
+  "status": "landed"
+ },
+ {
+  "task": "layout-hunt",
+  "date": "2026-08-15",
+  "link": "/framework/ai/2026-08-15/layout-hunt/",
+  "title": "Integrate LayoutTool into the devbar to run on any page; Playwright-crawl all pages at 400/1920/3440 into a jsonl log; h",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "all fixes are PROPOSALS in audit.md per the ask — nothing applied to site CSS."
+  ],
+  "left_open": [
+   "grades are visibly broken (the tool can't yet see 'wrong')."
+  ]
+ },
+ {
+  "task": "layout-overnight",
+  "date": "2026-08-15",
+  "link": "/framework/ai/2026-08-15/layout-overnight/",
+  "title": "scan the entire framework for layout things (minion); width-based layout library — 400px: 1 column, mobile friendly; how",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "Parked for the owner on the report page: 7 items incl. the --measure token, 390-vs-400 twin card, stale layouts readme table, 400/ doc-shape."
+  ]
+ },
+ {
+  "task": "ledger-hooks",
+  "date": "2026-08-15",
+  "link": "/framework/ai/2026-08-15/ledger-hooks/",
+  "title": "Phase 2 of ai-server: move mechanical task logging into Claude Code hooks — first-touch action lines, Stop-gate on incom",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "until the owner pastes it the hooks do nothing."
+  ]
+ },
+ {
+  "task": "link-layout-space",
+  "date": "2026-08-15",
+  "link": "/framework/ai/2026-08-15/link-layout-space/",
+  "title": "add this link:  http://localhost/framework/ai/2026-08-14/layout-space/ to the frameork/styles/layouts/space/ page... i s",
+  "status": "landed"
+ },
+ {
+  "task": "live-streaming",
+  "date": "2026-08-15",
+  "link": "/framework/ai/2026-08-15/live-streaming/",
+  "title": "moving away from live reload (which goes crazy during parallel fan outs) to socket-based streaming content is one of the",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "a malformed-line guard queued as phase-2b."
+  ]
+ },
+ {
+  "task": "mastermind-run",
+  "date": "2026-08-15",
+  "link": "/framework/ai/2026-08-15/mastermind-run/",
+  "title": "you are the mastermind, begin! — overnight autonomous run: focus LAYOUT, haiku/sonnet minions to save tokens, visual evi",
+  "status": "landed"
+ },
+ {
+  "task": "mastermind-skill",
+  "date": "2026-08-15",
+  "link": "/framework/ai/2026-08-15/mastermind-skill/",
+  "title": "create a new skill, called \"mastermind\" — an autonomous agent that runs continuously, never stops, manages usage quotas ",
+  "status": "landed"
+ },
+ {
+  "task": "mcp-site-tools",
+  "date": "2026-08-15",
+  "link": "/framework/ai/2026-08-15/mcp-site-tools/",
+  "title": "Phase 3 of ai-server: dev server exposes MCP tools over HTTP so every Claude session can query live tabs (pages/eval) an",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "Pending approval. That is the documented .mcp.json project-scope behavior: the owner approves once in an interactive"
+  ],
+  "left_open": [
+   "Follow-up for the doc agent: dev/Socket/page.js `methods:` + a doc/method/eval.md — page.js was another agent's file."
+  ]
+ },
+ {
+  "task": "mirror-root-fix",
+  "date": "2026-08-15",
+  "link": "/framework/ai/2026-08-15/mirror-root-fix/",
+  "title": "DevBar layout section: full report → before/after renders the devbar instead of the offending element. Fix mirror's elem",
+  "status": "landed"
+ },
+ {
+  "task": "narrow-limits",
+  "date": "2026-08-15",
+  "link": "/framework/ai/2026-08-15/narrow-limits/",
+  "title": "The last two sketched Opens: cap --panel-hug so a hugged panel never exceeds its workspace (200px case), and let the tem",
+  "status": "landed"
+ },
+ {
+  "task": "panel-polish",
+  "date": "2026-08-15",
+  "link": "/framework/ai/2026-08-15/panel-polish/",
+  "title": "Polish pass: three measured fixes flagged across today's Panel tasks — align-content: safe center on .panel-body (centre",
+  "status": "landed"
+ },
+ {
+  "task": "panel-review",
+  "date": "2026-08-15",
+  "link": "/framework/ai/2026-08-15/panel-review/",
+  "title": "Fresh-eyes review of the day's Panel output as a unit: three lenses (JS correctness, CSS cascade, code-vs-docs contracts",
+  "status": "landed"
+ },
+ {
+  "task": "panel-ui-overhaul",
+  "date": "2026-08-15",
+  "link": "/framework/ai/2026-08-15/panel-ui-overhaul/",
+  "title": "Panel UI overhaul: nicer toolbar w/ light+dark modes as hover overlay; remove bottom flex-gap hover toolbar; remove pane",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Open: hug collapses cq scenes to 0px; narrow-panel bar affordance; spec→Panel translator proposed in doc/generator.md."
+  ]
+ },
+ {
+  "task": "plan-accept-queue",
+  "date": "2026-08-15",
+  "link": "/framework/ai/2026-08-15/plan-accept-queue/",
+  "title": "Plan the next layout-system feature (post layout-hunt): pick it, justify it against the alternatives, design its shape, ",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "Three decisions named for the owner: accept target, placement, seed scope."
+  ]
+ },
+ {
+  "task": "plan-task-queue",
+  "date": "2026-08-15",
+  "link": "/framework/ai/2026-08-15/plan-task-queue/",
+  "title": "Plan a new feature for the AI task management system (the owner's directive on finishing early). Chosen: the task queue — que",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "Three decisions reserved for the owner: bless the sessionless launch line, where the queue renders, whether scheduled draining is wanted."
+  ]
+ },
+ {
+  "task": "properties-region",
+  "date": "2026-08-15",
+  "link": "/framework/ai/2026-08-15/properties-region/",
+  "title": "Window-2 feature #2 (autonomy grant): the properties panel-region — implement the sidebar-strategy recommendation: a foc",
+  "status": "landed"
+ },
+ {
+  "task": "prune-claude-md",
+  "date": "2026-08-15",
+  "link": "/framework/ai/2026-08-15/prune-claude-md/",
+  "title": "spawn 3 opus minions, and ask them to analyze claude.md, .claude/instructions-audit.md, and give their feedback. instruc",
+  "status": "landed"
+ },
+ {
+  "task": "reflow-proposal",
+  "date": "2026-08-15",
+  "link": "/framework/ai/2026-08-15/reflow-proposal/",
+  "title": "Proposal (doc only): how should splits behave below desktop widths — the translated-layout no-reflow open item. Candidat",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "Open for the owner: does mobile-to-mega bind the workspace chrome or only its contents; scaled vs static embeds on phones; structure(seed,width) now or on demand."
+  ]
+ },
+ {
+  "task": "saver-panel-error-paths",
+  "date": "2026-08-15",
+  "link": "/framework/ai/2026-08-15/saver-panel-error-paths/",
+  "title": "Fix Saver.drain() error path (write() rejection wedges the save queue forever) and Panel workspace()'s load-failure-vs-a",
+  "status": "landed"
+ },
+ {
+  "task": "stream-polish",
+  "date": "2026-08-15",
+  "link": "/framework/ai/2026-08-15/stream-polish/",
+  "title": "Post-landing polish on the streaming stack: single-subscribe on connect, unsubscribe on legacy fallback, client-side qui",
+  "status": "landed"
+ },
+ {
+  "task": "tabs-catch-fix",
+  "date": "2026-08-15",
+  "link": "/framework/ai/2026-08-15/tabs-catch-fix/",
+  "title": "ext/tabs: the filling promise in Page.prototype.tabs has no .catch() — a throwing child content() leaves the tab bar bla",
+  "status": "landed"
+ },
+ {
+  "task": "toolbar-edges",
+  "date": "2026-08-15",
+  "link": "/framework/ai/2026-08-15/toolbar-edges/",
+  "title": "Toolbar edges: a narrow-panel affordance (bar clips below ~230px, no way to reach the tail) and one shared mechanism for",
+  "status": "landed"
+ },
+ {
+  "task": "usage-skill-pacing",
+  "date": "2026-08-15",
+  "link": "/framework/ai/2026-08-15/usage-skill-pacing/",
+  "title": "duplicate the check usage skill into this project, so it gets into the repo. add to the skill a note about token managem",
+  "status": "landed"
+ },
+ {
+  "task": "wire-reference",
+  "date": "2026-08-15",
+  "link": "/framework/ai/2026-08-15/wire-reference/",
+  "title": "Rewrite dev/Socket/doc/wire.md as THE wire reference for the ai-server relay (Claude -> /mcp -> server -> socket -> tab)",
+  "status": "landed"
+ },
+ {
+  "task": "ai-dashboard-dated-list",
+  "date": "2026-08-16",
+  "link": "/framework/ai/2026-08-16/ai-dashboard-dated-list/",
+  "title": "the framework/ai/ dashboard should remove the paragraph at the top. all cards should be listed by date, one card per row",
+  "status": "landed"
+ },
+ {
+  "task": "ai-rail-mobile",
+  "date": "2026-08-16",
+  "link": "/framework/ai/2026-08-16/ai-rail-mobile/",
+  "title": "/framework/ai/<day>/ is unreachable below 64em while routed. ai.css's mobile media query gives .ai-index-rail max-height",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "a new high gutter on /framework/ext/catalog/'s own .demo-app-pages, reported not fixed."
+  ]
+ },
+ {
+  "task": "audit-baseline",
+  "date": "2026-08-16",
+  "link": "/framework/ai/2026-08-16/audit-baseline/",
+  "title": "audit/findings.json regenerated to 2.0MB following the documented cap honestly; the OLD cap that kept it small was undoc",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "3 pages where analyze() itself hangs (styles/layouts/document/, ui/tooltip/ at 1280) -- outside this task's fence, flagged for the rules.js/polish.js owner."
+  ]
+ },
+ {
+  "task": "baseline-clean",
+  "date": "2026-08-16",
+  "link": "/framework/ai/2026-08-16/baseline-clean/",
+  "title": "Regenerate audit/findings.json and audit/taste.json with the corrected recipe (hoisted import(), context recycled every ",
+  "status": "landed"
+ },
+ {
+  "task": "baseline-final",
+  "date": "2026-08-16",
+  "link": "/framework/ai/2026-08-16/baseline-final/",
+  "title": "Regenerate audit/findings.json and audit/taste.json now that probe.js's depth-cull guard has landed (gutter.md, false-po",
+  "status": "landed"
+ },
+ {
+  "task": "browsable-page",
+  "date": "2026-08-16",
+  "link": "/framework/ai/2026-08-16/browsable-page/",
+  "title": "Build public/framework/audit/browsable/ — a permanent, re-derivable page measuring the site against the prime objective ",
+  "status": "landed"
+ },
+ {
+  "task": "browse-grids",
+  "date": "2026-08-16",
+  "link": "/framework/ai/2026-08-16/browse-grids/",
+  "title": "best way to get a masonry layout? / create examples of both, and add them to styles/layouts/ / let's redo the styles/lay",
+  "status": "landed"
+ },
+ {
+  "task": "catalog-demo-gutter",
+  "date": "2026-08-16",
+  "link": "/framework/ai/2026-08-16/catalog-demo-gutter/",
+  "title": "Fix a gutter: high finding on /framework/ext/catalog/'s own .demo-app-pages at 390/720 — out-of-fence find from the cata",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Found but explicitly out of scope: the WALL demo (sibling box in the same row) collapses to zero-width at 390"
+  ]
+ },
+ {
+  "task": "catalog-gutter",
+  "date": "2026-08-16",
+  "link": "/framework/ai/2026-08-16/catalog-gutter/",
+  "title": "Fix the gutter:high finding that catalog-scroll's fix revealed on catalog() pages (/framework/ai/, /framework/ui/, etc) ",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "/framework/ai/<day>/ is unreachable at <64em while ROUTED — belongs in ai.css not catalog.css."
+  ]
+ },
+ {
+  "task": "catalog-scroll",
+  "date": "2026-08-16",
+  "link": "/framework/ai/2026-08-16/catalog-scroll/",
+  "title": "ext/catalog's .page-catalog-pages never got its own scroll boundary, so the bottom 55%+ of every catalog() page is unrea",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "/framework/core/Page/ (a Doc Overview) has a 73-85px rail overshoot at 1280/3440, documented in decisions.md as a known trap"
+  ]
+ },
+ {
+  "task": "catalog-wall-demo",
+  "date": "2026-08-16",
+  "link": "/framework/ai/2026-08-16/catalog-wall-demo/",
+  "title": "On /framework/ext/catalog/, the sibling \"wall\" demo box in the flex gap wide row collapses to a near-zero-width column a",
+  "status": "landed"
+ },
+ {
+  "task": "dashboard-agents-fix",
+  "date": "2026-08-16",
+  "link": "/framework/ai/2026-08-16/dashboard-agents-fix/",
+  "title": "Urgent micro-fix: 2026-08-15/layout-overnight/task.jsonl has a scalar `\"agents\": 10` on its landing assign line, clobber",
+  "status": "landed"
+ },
+ {
+  "task": "demo-coverage",
+  "date": "2026-08-16",
+  "link": "/framework/ai/2026-08-16/demo-coverage/",
+  "title": "Point LayoutTool's taste/analyze audit at demo stages' own renders (their own simulated width, ignore:null) for a ~15-pa",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "verdict is the owner's."
+  ]
+ },
+ {
+  "task": "devbar-blockreload",
+  "date": "2026-08-16",
+  "link": "/framework/ai/2026-08-16/devbar-blockreload/",
+  "title": "add window.$BLOCKRELOAD as a boolean checkbox control in header of the devbar.  also, make the X slide to the right of t",
+  "status": "landed"
+ },
+ {
+  "task": "devbar-grip-offscreen",
+  "date": "2026-08-16",
+  "link": "/framework/ai/2026-08-16/devbar-grip-offscreen/",
+  "title": "the devbar needs to get farther off screen, the resize handle appears and hijacks user input",
+  "status": "landed"
+ },
+ {
+  "task": "devbar-grip-scrollbar",
+  "date": "2026-08-16",
+  "link": "/framework/ai/2026-08-16/devbar-grip-scrollbar/",
+  "title": "devbar's draggable edge intercepts scrollbar user input.",
+  "status": "landed"
+ },
+ {
+  "task": "element-insets",
+  "date": "2026-08-16",
+  "link": "/framework/ai/2026-08-16/element-insets/",
+  "title": "Verify and fix frame-gap text-tightness on 6 styles/elements pages found by the corrected text_bounds() band (mastermind",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Flagged, not fixed (out of fence, ext/LayoutTool/**): read.js's frame-gap band should carry the same TABLE exemption rules.js's cramped rule already has."
+  ]
+ },
+ {
+  "task": "element-pages",
+  "date": "2026-08-16",
+  "link": "/framework/ai/2026-08-16/element-pages/",
+  "title": "Turn the ~30 orphan demo() blocks in styles/elements/*/page.js into demo.page() children (mastermind-layout dispatch, br",
+  "status": "landed"
+ },
+ {
+  "task": "files-panels",
+  "date": "2026-08-16",
+  "link": "/framework/ai/2026-08-16/files-panels/",
+  "title": "make the Doc system's files implementation use ext/Panels for each region (file list, readme, code)",
+  "status": "landed"
+ },
+ {
+  "task": "improve-space-page",
+  "date": "2026-08-16",
+  "link": "/framework/ai/2026-08-16/improve-space-page/",
+  "title": "the framework/styles/layouts/space/ page needs a better layout. the 5 layouts aren't all visible at once, and they shoul",
+  "status": "landed"
+ },
+ {
+  "task": "last-highs",
+  "date": "2026-08-16",
+  "link": "/framework/ai/2026-08-16/last-highs/",
+  "title": "The last four pages on the site carrying a high finding: /framework/ext/editor/ (56/F, gutter), /framework/ext/files/ (6",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "BOTH real but separately-caused bugs in framework.css and ext/doc/doc.css (both out of fence, reported with exact declarations)."
+  ]
+ },
+ {
+  "task": "layout-generator-rules",
+  "date": "2026-08-16",
+  "link": "/framework/ai/2026-08-16/layout-generator-rules/",
+  "title": "work on the LayoutTool with styles/layouts/space/: an MCP skill that claims a browser tab with a visible ring, a chaos s",
+  "status": "landed"
+ },
+ {
+  "task": "layout-tool-live",
+  "date": "2026-08-16",
+  "link": "/framework/ai/2026-08-16/layout-tool-live/",
+  "title": "the layout tool should rerun when devbar resizes, maybe debounced by 200ms or so? but wait until after the resizing stop",
+  "status": "landed"
+ },
+ {
+  "task": "mastermind-layout",
+  "date": "2026-08-16",
+  "link": "/framework/ai/2026-08-16/mastermind-layout/",
+  "title": "be a mastermind, don't stop, keep working. you make the calls. stay on token pace. begin!",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "A `full` takeover on the page was measured at **0px change**; the cause is `ext/AITask/ai.css:181` and only reachable there."
+  ]
+ },
+ {
+  "task": "mastermind-run",
+  "date": "2026-08-16",
+  "link": "/framework/ai/2026-08-16/mastermind-run/",
+  "title": "Be a mastermind, don't stop, keep working. You make the calls. Stay on token pace.",
+  "status": "landed"
+ },
+ {
+  "task": "measure-token-proposal",
+  "date": "2026-08-16",
+  "link": "/framework/ai/2026-08-16/measure-token-proposal/",
+  "title": "Make the case about --measure, with numbers. Do not change the token — produce a written proposal at styles/doc/measure.",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "Verdict explicitly left to the owner."
+  ]
+ },
+ {
+  "task": "panel-icon-buttons",
+  "date": "2026-08-16",
+  "link": "/framework/ai/2026-08-16/panel-icon-buttons/",
+  "title": "convert ext/Panel buttons to transparent icon-only buttons, the icon button's square-ish bg only appears on hover. we'll",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**Not started, by design:** the panel words themselves — `display` as the switch with the control set following the mode, per-axis w/h, position seeded from parent context, edge strips + a slimmer bar."
+  ]
+ },
+ {
+  "task": "panel-swiss-army",
+  "date": "2026-08-16",
+  "link": "/framework/ai/2026-08-16/panel-swiss-army/",
+  "title": "The swiss army knife of web design: faint chrome, a 9-grid alignment overlay on by default, edge-click dual-sided split ",
+  "status": "landed"
+ },
+ {
+  "task": "space-depth-panels",
+  "date": "2026-08-16",
+  "link": "/framework/ai/2026-08-16/space-depth-panels/",
+  "title": "the detail buttons should become a Depth slider 0-10 for now, to specify max-nesting-depth, and the generator should cho",
+  "status": "landed"
+ },
+ {
+  "task": "taste-audit",
+  "date": "2026-08-16",
+  "link": "/framework/ai/2026-08-16/taste-audit/",
+  "title": "Rank the whole site by taste/rate() (what is GOOD), not just analyze() (what is broken) — dispatched by mastermind-layou",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "frame-gap band itself is STILL identical (1.4) on 5 of 7 — root cause (.page-preview-thumb excluded by probe.IGNORE) survives the guard fixes"
+  ]
+ },
+ {
+  "task": "taste-corpus",
+  "date": "2026-08-16",
+  "link": "/framework/ai/2026-08-16/taste-corpus/",
+  "title": "Follow-up to layout-generator-rules under the same standing instruction (don't stop, keep working). Close the taste tier",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "The tiers first Open item is narrowed, not closed — this validates the ORDER, and the PLACE of each band still needs a person."
+  ]
+ },
+ {
+  "task": "ui-wall-masonry",
+  "date": "2026-08-16",
+  "link": "/framework/ai/2026-08-16/ui-wall-masonry/",
+  "title": "can you use our new masonry layout for the framework/ui/ things?",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "`pack()` has two callers now, which is its own readme's bar for promoting it to `util/` — left for the owner."
+  ]
+ },
+ {
+  "task": "web-layout-repair",
+  "date": "2026-08-16",
+  "link": "/framework/ai/2026-08-16/web-layout-repair/",
+  "title": "Repair the worst /web/layout pages (flex 9, screens 17, respond 18) — diagnose the flex analyze-F9-vs-taste-D67 gap firs",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "recommending the catalog+.pages scroll-chain fix to whoever owns framework/ext/catalog/catalog.css and public/styles.css."
+  ]
+ },
+ {
+  "task": "web-nav-repair",
+  "date": "2026-08-16",
+  "link": "/framework/ai/2026-08-16/web-nav-repair/",
+  "title": "The two worst-scoring pages on the site that are actually broken: /web/nav/sidebar/ (7/F) and /web/nav/drawer/ (8/F). Di",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Verified fix (injected live, not committed): catalog.css `.page-catalog-pages { max-height: 100dvh; overflow-y: auto; }`"
+  ]
+ },
+ {
+  "task": "web-prose-variety",
+  "date": "2026-08-16",
+  "link": "/framework/ai/2026-08-16/web-prose-variety/",
+  "title": "web.js has no unique prose; give the fictional site real varied copy so a wall of N sections is N different sections; me",
+  "status": "landed"
+ },
+ {
+  "skipped": [
+   "2026-08-15/day.jsonl",
+   "2026-08-15/page.js",
+   "2026-08-15/usage.json",
+   "2026-08-16/day.jsonl",
+   "2026-08-16/page.js"
+  ]
+ }
+]

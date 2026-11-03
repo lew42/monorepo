@@ -1,0 +1,24 @@
+/* Ported from Codrops' "On-Scroll Letter Animations" (MIT licence, LICENSE file read on
+   github.com/codrops/OnScrollLetterAnimations) — https://tympanus.net/codrops/?p=... the
+   "bend" demo (demo 1). Rebuilt: see page.js for what changed. */
+@layer site {
+	.codrops-bend-spacer {
+		min-height: 40vh;
+		display: grid;
+		place-items: center;
+	}
+
+	.codrops-bend-heading {
+		margin: 0;
+		display: flex;
+		justify-content: center;
+		font-size: clamp(2.25rem, 6vw, 5rem);
+		font-weight: 700;
+		line-height: 1;
+	}
+
+	.codrops-bend-char {
+		display: inline-block;
+		will-change: transform;
+	}
+}

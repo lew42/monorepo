@@ -1,0 +1,7 @@
+{"id":"tasks","path":"/framework/core/Page/generator/tasks/","title":"core/Page/generator tasks","mode":"parallel"}
+{"task":"/framework/core/Page/generator/tasks/gen-controls/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/core/Page/generator/tasks/gen-widths/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/core/Page/generator/tasks/generator-export/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/core/Page/generator/tasks/generator-round-2/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/core/Page/generator/tasks/improve-generator/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/core/Page/generator/tasks/paging-explorer/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}

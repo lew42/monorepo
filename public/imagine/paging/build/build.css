@@ -1,0 +1,67 @@
+/* ── A BUILT PAGE'S BLOCKS ─────────────────────────────────────────────────────
+   The one sheet for the content a page carries as DATA: prose, a wall of cards, one
+   of the template families. `draw.js` is the only module that draws them, and it
+   loads this file itself — a page you made never imports anything else from this
+   directory.
+
+   ⚠ IT USED TO BE THE BUILDER'S WHOLE LAYOUT. `/imagine/paging/build/` was a
+     three-track card with its own control column, its own stage frame, its own file
+     and code boxes; on 2026-09-13 the builder became the right pane of
+     `/imagine/paging/make/` and those ~190 lines went with it. What is left is the
+     blocks and nothing else, because the blocks are the one thing `draw.js` still
+     paints for Make and for a saved page alike.                                  */
+
+@layer theme {
+
+	/* ── the blocks, in the arrangement ───────────────────────────────────────
+	   Four rules, one per layout number. Every track has a floor and a ceiling: an
+	   unbounded `1fr` keeps its content minimum and overflows at 400.
+
+	   ⚠ THE BLOCKS NEED A CONTAINER TO ASK, and they cannot be their own. The sheet
+	     used to be it; the sheet is gone, so the wrapper is. Without one, the
+	     `@container` rule below never matches and main+aside stays two 150px tracks
+	     at 400 (a box cannot restyle itself with its own container query). */
+	.build-blocks-box { container-type: inline-size; min-width: 0; }
+
+	.build-blocks { display: grid; gap: var(--gap); margin-block-end: 0.6em; }
+	.build-blocks > * { margin: 0; min-width: 0; }
+
+	.build-arrange-1-stack { grid-template-columns: minmax(0, 1fr); }
+
+	/* MAIN + ASIDE: the first block is the main track, every other block stacks in
+	   the aside beside it. ⚠ NOT `grid-row: span 99` on the main block — that is the
+	   obvious way to make it full height and it creates 99 implicit rows, each with a
+	   gap: the stage grew 1442px on the first block (measured 2026-09-05). Placing the
+	   rest in column 2 needs no span at all. */
+	.build-arrange-2-main-aside { grid-template-columns: minmax(0, 1.8fr) minmax(0, 1fr); }
+	.build-arrange-2-main-aside > * { grid-column: 2; }
+	.build-arrange-2-main-aside > :first-child { grid-column: 1; grid-row: 1; }
+
+	/* Under 34rem the two tracks are 200px each and the aside is unreadable, so it
+	   becomes the stack — the same threshold `.cols` uses, in rem for the same reason. */
+	@container (max-width: 34rem) {
+		.build-arrange-2-main-aside { grid-template-columns: minmax(0, 1fr); }
+		.build-arrange-2-main-aside > *, .build-arrange-2-main-aside > :first-child { grid-column: 1; grid-row: auto; }
+	}
+
+	.build-arrange-3-thirds { grid-template-columns: repeat(auto-fit, minmax(min(11rem, 100%), 1fr)); }
+
+	.build-arrange-4-wall { grid-template-columns: repeat(auto-fill, minmax(min(13rem, 100%), 1fr)); }
+
+	.build-block-prose > :first-child { margin-block-start: 0; }
+	.build-block-prose > :last-child { margin-block-end: 0; }
+
+	.build-cards {
+		display: grid; gap: 0.5em;
+		grid-template-columns: repeat(auto-fill, minmax(min(10rem, 100%), 1fr));
+	}
+
+	.build-card-item {
+		display: flex; flex-direction: column; gap: 0.15em;
+		padding: 0.5em;
+		border: 1px solid var(--line); border-radius: var(--radius);
+		background: var(--surface); font-size: 0.85em;
+	}
+	.build-card-item p { margin: 0; font-size: 0.9em; }
+	.build-card-title { font-weight: 600; }
+}

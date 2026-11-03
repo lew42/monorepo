@@ -1,0 +1,2 @@
+{"class":"/framework/ai2/card.js","title":"Drop the old git stash?","type":"card","id":"2026/09/28/drop-the-old-git-stash","created":"2026-09-28T14:20:07-05:00","by":"minion-waiting-sweep","tags":[]}
+{"ask":{"id":"a-mulmttlbni","title":"Drop the old git stash?","question":"Once the dead-file prune lands, may I drop git stash@{0} (the full working tree from the 2026-09-19 reset), since it looks fully subsumed by later work?","options":["drop after prune","keep for now"],"at":"2026-09-28T14:20:12-05:00"}}

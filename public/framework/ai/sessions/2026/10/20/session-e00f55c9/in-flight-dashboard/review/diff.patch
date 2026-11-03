@@ -1,0 +1,438 @@
+diff --git a/public/framework/ai/AIDashboard/AIDashboard.js b/public/framework/ai/AIDashboard/AIDashboard.js
+index 83e87f2b4..9d8f005b5 100644
+--- a/public/framework/ai/AIDashboard/AIDashboard.js
++++ b/public/framework/ai/AIDashboard/AIDashboard.js
+@@ -4,6 +4,8 @@ import AINow from "../now/AINow.js";
+ import DashNeeds from "./DashNeeds.js";
+ import DashBig from "./DashBig.js";
+ import DashQueue from "./DashQueue.js";
++import InFlightView from "/framework/core/Session/InFlightView.js";
++import QueryClient from "/framework/ext/Query/QueryClient.js";
+ import UsageLine from "./UsageLine.js";
+ import PageNav from "./PageNav.js";
+ 
+@@ -28,7 +30,16 @@ export default class AIDashboard extends View {
+ 
+ 	get classes(){ return "ad-dash"; }
+ 
++	// The 8 most recently active sessions (the "inflight" query, state active; no one-hour cutoff), then InFlightView over their records: only those with something in flight or waiting show.
++	async in_flight($box){
++		const res = await new QueryClient("inflight", { row: () => {}, stale: () => {} }).ask({ where: [{ field: "state", op: "eq", value: "active" }], sort: { by: "last_activity", dir: "desc" }, limit: 8 }, { timeout: 20000 });
++		if (res.error || !res.rows?.length) return;
++		$box.append(new InFlightView({ all: true, empty_text: "Nothing is in flight.", urls: res.rows.map(r => r.url.replace(/\/?$/, "/") + "session.jsonl") }));
++	}
++
+ 	render(){
++		const $if = div.c("ad-sec ad-inflight");
++		this.in_flight($if);
+ 		div.c("ad-grid", () => {
+ 			div.c("ad-col ad-col-a", () => {
+ 				div.c("ad-sec ad-say", () => {
+diff --git a/public/framework/ai/AIDashboard/readme.md b/public/framework/ai/AIDashboard/readme.md
+index 93d66b2ed..9e98614f7 100644
+--- a/public/framework/ai/AIDashboard/readme.md
++++ b/public/framework/ai/AIDashboard/readme.md
+@@ -23,6 +23,7 @@ The five files that drew the old sessions list are retired to [archive/retired/A
+ 
+ | Section | Source | How |
+ |---|---|---|
++| In flight (top) | `core/Session/InFlightView.js` over the `session.jsonl` of up to 8 sessions the "inflight" query reports active; sessions with nothing in flight or waiting are left out | one live reader per session; [doc](../../core/Session/doc/in-flight.md) |
+ | Say something | `ux/Dictate/chat.js` (`chat(el, {keep:true})`), the one global chat box | reused, not rebuilt |
+ | Needs you: waiting | Servex `GET /waiting` (decisions, questions, blockers, asks) | read once |
+ | Needs you: ready to merge | Servex `GET /api/ready-to-merge` (`Server/ReadyToMerge.mjs`), the same list as `/framework/ai/merge/` | read once |
+diff --git a/public/framework/ai/AISession/AISessionDetail.js b/public/framework/ai/AISession/AISessionDetail.js
+index 405934179..1ca4bc575 100644
+--- a/public/framework/ai/AISession/AISessionDetail.js
++++ b/public/framework/ai/AISession/AISessionDetail.js
+@@ -25,6 +25,7 @@ import SessionTasks from "/framework/core/Session/SessionTasks.js";
+ import SessionWork from "./SessionWork.js";
+ import SessionTasksGrid from "./SessionTasksGrid.js";
+ import SessionStats from "./SessionStats.js";
++import InFlightView from "/framework/core/Session/InFlightView.js";
+ import AICost from "/framework/ai/AITask/AICost.js";
+ import Day from "/framework/core/Session/Day.js";
+ import SessionOverview from "./SessionOverview.js";
+@@ -260,6 +261,8 @@ export default class AISessionDetail extends Page {
+ 		};
+ 		const row_p = AISessionDetail.load_row(url, id);   // this session's sessions.json row: the stats bar says "this tab" from its source
+ 		new SessionStats({ ready, row: row_p, open_cost: () => show("cost") });   // Figma band E: stats first, sticky, on every tab
++		const $inflight = div.c("flow");   // the simplest dashboard, on every tab: what is in flight, waiting and next (core/Session/InFlight.js)
++		this.record_if_there().then(file => { if (file) $inflight.append(new InFlightView({ url: file })); });
+ 		div.c("sessions-tabs flex gap-50", () => {   // one line: Overview · Timeline · Chat · Tasks · More ▾ (the rest, in a SessionPopover)
+ 			MAIN.forEach(([k, label]) => buttons[k] = button.c("sessions-chip", label).on("click", () => show(k)));
+ 			$more = button.c("sessions-chip sov-more", "More ▾").attr("type", "button");
+diff --git a/public/framework/ai/readme.md b/public/framework/ai/readme.md
+index f80074663..4ba59468a 100644
+--- a/public/framework/ai/readme.md
++++ b/public/framework/ai/readme.md
+@@ -33,7 +33,7 @@
+ - **Transcription:** [ux/Dictate](/framework/ux/Dictate/) · raw Whisper answers, live (guess → amend → final): [audio/Whisper](/framework/audio/Whisper/) · **Prompt refinement:** [ext/Refine](/framework/ext/Refine/)
+ - **Prompt audit** (Haiku sorts each owner prompt, Sonnet judges each item against what the session did; results in `prompt-audit.jsonl` / `prompt-review.jsonl` beside the session, never filed as tasks): [doc/prompt-audit.md](doc/prompt-audit.md) · `node Server/PromptAudit.mjs --days 7` · every older audit system and whether it still runs: [doc/audits.md](doc/audits.md)
+ - **Asks and follow-up:** [asks/](asks/) · [doc/asks-outcomes.md](doc/asks-outcomes.md) · [doc/follow-up.md](doc/follow-up.md) · [undone asks](/framework/ai/asks/undone/) · `node Server/PastWork.mjs <topic>`
+-- **The AI dashboard** (the default page at `/framework/ai/` since 2026-10-19, merge 6feb47b6f: sessions by origin, nested by parent, cost rolled up, mobile first; old Inbox at `/framework/ai/inbox/`): structure [AIDashboard/readme.md](AIDashboard/readme.md) · plan and data audit [doc/ai-dashboard-plan.md](doc/ai-dashboard-plan.md) · shots [400](doc/ai-dashboard-plan/shots5/localhost-51718-framework-ai/400.png), [1200](doc/ai-dashboard-plan/shots5/localhost-51718-framework-ai/1200.png)
++- **The AI dashboard** starts with the in-flight block ([core/Session/doc/in-flight.md](../core/Session/doc/in-flight.md)): what is running, what waits on the owner. The page itself (the default page at `/framework/ai/` since 2026-10-19, merge 6feb47b6f: sessions by origin, nested by parent, cost rolled up, mobile first; old Inbox at `/framework/ai/inbox/`): structure [AIDashboard/readme.md](AIDashboard/readme.md) · plan and data audit [doc/ai-dashboard-plan.md](doc/ai-dashboard-plan.md) · shots [400](doc/ai-dashboard-plan/shots5/localhost-51718-framework-ai/400.png), [1200](doc/ai-dashboard-plan/shots5/localhost-51718-framework-ai/1200.png)
+ - **Dashboard:** [doc/one-dashboard.md](doc/one-dashboard.md) · [doc/one-state.md](doc/one-state.md) · plan: [doc/ai-dashboard-plan.md](doc/ai-dashboard-plan.md) · known problem, asked 7 times: [doc/dashboard-layout-asks.md](doc/dashboard-layout-asks.md)
+ - **Ready to merge** (branches agents marked `ready:`, one Merge button each): [merge/readme.md](merge/readme.md) · [/framework/ai/merge/](/framework/ai/merge/)
+ - **Where things go:** [doc/organization.md](doc/organization.md) · [doc/task-folders.md](doc/task-folders.md) · [systems-map.md](systems-map.md) · [doc/repo-size.md](doc/repo-size.md)
+diff --git a/public/framework/core/Session/InFlight.css b/public/framework/core/Session/InFlight.css
+new file mode 100644
+index 000000000..be1330b68
+--- /dev/null
++++ b/public/framework/core/Session/InFlight.css
+@@ -0,0 +1,14 @@
++@layer base, theme, site, util;
++@layer site {
++	.in-flight { display: grid; gap: 1rem; max-width: 40rem; }
++	.in-flight .if-session, .in-flight .if-section { display: grid; gap: .5rem; }
++	.in-flight .if-h { font-size: .8rem; text-transform: uppercase; letter-spacing: .05em; opacity: .7; }
++	.in-flight .if-row { display: grid; grid-template-columns: 1fr 5rem 2.5rem; gap: .25rem .5rem; align-items: center; }
++	.in-flight .if-title { font-weight: 600; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
++	.in-flight .if-row.if-bare { grid-template-columns: 1fr; }
++	.in-flight .if-bar { height: .5rem; border-radius: 1rem; background: color-mix(in srgb, currentColor 15%, transparent); overflow: hidden; }
++	.in-flight .if-fill { display: block; height: 100%; background: var(--accent, #2a8); }
++	.in-flight .if-pct { text-align: right; }
++	.in-flight .if-now { grid-column: 1 / -1; font-size: .85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
++	.in-flight .if-session-name { font-weight: 700; }
++}
+diff --git a/public/framework/core/Session/InFlight.js b/public/framework/core/Session/InFlight.js
+new file mode 100644
+index 000000000..8db7c619a
+--- /dev/null
++++ b/public/framework/core/Session/InFlight.js
+@@ -0,0 +1,29 @@
++// InFlight.js — the simplest dashboard: what is being worked on now (at most 5, each with a progress bar and its current line), what waits
++// on the owner, what is next, and a count of what is done. `InFlight.pick(session)` chooses; one component for a session's
++// page and for the AI dashboard. DOM-free, so a node test runs it; the view is InFlightView.js. Doc: doc/in-flight.md
++
++export default class InFlight {
++	static MAX = 5;   // tasks shown as "in flight"
++	static NEXT = 3;  // idle tasks shown as "next"
++
++	/** A task's current line: a process shows its current step, a task its own `now`. */
++	static now_of(t){
++		const step = t.step;   // only a Process has one
++		return step ? `${step.get_one("title") ?? step.id}${step.get_one("now") ? ": " + step.get_one("now") : ""}` : (t.get_one("now") ?? "");
++	}
++
++	/** {inflight, more, waiting, next, done} from a session's top-level tasks. Prompts and dropped tasks are not work. */
++	static pick(session, { max = this.MAX, next = this.NEXT } = {}){
++		const all = [...(session._tasks ?? [])].filter(t => t.state !== "stopped" && t.constructor.name !== "Prompt");
++		const when = t => Date.parse(t._last_ts ?? t.get_one("started_at") ?? t.created_at ?? "") || 0;
++		const live = t => (this.now_of(t) || t.completion > 0) ? 1 : 0;   // a task with a current line or some progress is more "major" than a bare one
++		const running = all.filter(t => t.state === "running").sort((x, y) => live(y) - live(x) || when(y) - when(x));
++		const waiting = all.filter(t => t.state === "waiting" && [undefined, null, "owner", "creator"].includes(t.get_one("waiting_on"))).sort((x, y) => when(y) - when(x));
++		const idle = all.filter(t => t.state === "idle" || t.state === "paused").sort((x, y) => (Number(y.priority?.score) || 0) - (Number(x.priority?.score) || 0) || when(y) - when(x));
++		return {
++			inflight: running.slice(0, max), more: Math.max(0, running.length - max),
++			waiting: waiting.map(t => ({ task: t, on: t.get_one("waiting_on") ?? "owner", what: t.get_one("waiting_what") ?? "" })),
++			next: idle.slice(0, next), done: all.filter(t => t.state === "complete").length
++		};
++	}
++}
+diff --git a/public/framework/core/Session/InFlight.test.mjs b/public/framework/core/Session/InFlight.test.mjs
+new file mode 100644
+index 000000000..9fb0e075a
+--- /dev/null
++++ b/public/framework/core/Session/InFlight.test.mjs
+@@ -0,0 +1,30 @@
++// InFlight.pick(session): in flight (newest first, capped), waiting on the owner, next, done. `node public/framework/core/Session/InFlight.test.mjs`
++import Test from "../Test/Test.js";
++import Session from "./Session.js";
++import InFlight from "./InFlight.js";
++
++const t = new Test("InFlight: pick() sorts a session's tasks into in flight, waiting, next and done");
++const at = m => `2026-11-02T10:${String(m).padStart(2, "0")}:00.000Z`;
++const lines = [{ session: { id: "s" } }];
++for (let i = 1; i <= 7; i++){
++	lines.push({ tasks: { add: { type: "Task", id: "r" + i, title: "Run " + i } }, ts: at(i) });
++	lines.push({ tasks: { ["r" + i]: { start: {} } }, ts: at(i) });
++}
++lines.push({ tasks: { r7: { set: { now: "writing the test" } } }, ts: at(8) });
++lines.push({ tasks: { add: { type: "Task", id: "w", title: "Rename" } }, ts: at(9) }, { tasks: { w: { wait: { on: "owner", what: "go on the rename" } } }, ts: at(9) });
++lines.push({ tasks: { add: { type: "Task", id: "wa", title: "Other" } }, ts: at(9) }, { tasks: { wa: { wait: { on: "mastermind-x", what: "x" } } }, ts: at(9) });
++lines.push({ tasks: { add: { type: "Task", id: "n1", title: "Later" } }, ts: at(10) });
++lines.push({ tasks: { add: { type: "Task", id: "d", title: "Done" } }, ts: at(11) }, { tasks: { d: { start: {} } }, ts: at(11) }, { tasks: { d: { complete: { outcome: "o", evidence: ["e"] } } }, ts: at(12) });
++lines.push({ tasks: { add: { type: "Task", id: "x", title: "Dropped" } }, ts: at(13) }, { tasks: { x: { stop: { why: "no" } } }, ts: at(13) });
++const s = Session.replay(lines), p = InFlight.pick(s);
++
++t.eq(p.inflight.length, 5, "at most 5 in flight");
++t.eq(p.more, 2, "the rest are counted (7 running, 5 shown)");
++t.eq(p.inflight[0].id, "r7", "most recently started first");
++t.eq(InFlight.now_of(p.inflight[0]), "writing the test", "a task's current line is its now");
++t.eq(p.waiting.map(w => w.task.id).join(), "w", "waiting on the owner only, not on another agent");
++t.eq(p.waiting[0].what, "go on the rename", "the one thing needed");
++t.ok(p.next.some(x => x.id === "n1"), "an idle task is next");
++t.eq(p.done, 1, "done is a count");
++t.ok(![...p.inflight, ...p.next].some(x => x.id === "x"), "a stopped task is nowhere");
++t.done();
+diff --git a/public/framework/core/Session/InFlightView.js b/public/framework/core/Session/InFlightView.js
+new file mode 100644
+index 000000000..41e09c60b
+--- /dev/null
++++ b/public/framework/core/Session/InFlightView.js
+@@ -0,0 +1,51 @@
++// InFlightView.js — draws InFlight.pick for one session, or for several (the AI dashboard); live through SessionTasks (a JSONL tail).
++import View, { div, span, a, small, strong } from "../View/View.js";
++import SessionTasks from "./SessionTasks.js";
++import InFlight from "./InFlight.js";
++View.stylesheet(import.meta, "InFlight.css");
++
++export default class InFlightView extends View {
++	// { urls: [session.jsonl urls], all: true on the AI dashboard (a session with nothing in flight or waiting is left out) }
++	initialize(){
++		this.ac("in-flight");
++		this.sessions = new Map();
++		this.readers = (this.urls ?? [this.url]).filter(Boolean).map(url => new SessionTasks({ url, on_session: s => { this.sessions.set(url, s); this.redraw(); } }).live());
++		this.empty_text ??= "Nothing is in flight.";
++		this.redraw();
++	}
++
++	redraw(){
++		clearTimeout(this._t);
++		this._t = setTimeout(() => this.empty(() => this.paint()), 100);   // one repaint for a burst of lines
++	}
++
++	paint(){
++		const picks = [...this.sessions].map(([url, s]) => ({ url, s, ...InFlight.pick(s) }));
++		const shown = this.all ? picks.filter(p => p.inflight.length || p.waiting.length) : picks;
++		if (!shown.length || shown.every(p => !p.inflight.length && !p.waiting.length && !p.next.length)) return void div.c("if-empty", this.empty_text);
++		for (const p of shown){
++			div.c("if-session", () => {
++				if (this.all) a.c("if-session-name", p.s.get_one("title") ?? p.s.id ?? p.url).href(p.url.replace(/session\.jsonl$/, ""));
++				if (p.inflight.length) this.section("In flight", () => { p.inflight.forEach(t => this.row(t)); if (p.more) small.c("muted", `+ ${p.more} more running`); });
++				if (p.waiting.length) this.section("Waiting on you", () => p.waiting.forEach(w => this.row(w.task, w.what || "needs you", true)));
++				if (p.next.length && !this.all) this.section("Next", () => p.next.forEach(t => this.row(t)));
++				if (p.done && !this.all) small.c("muted if-done", `${p.done} done`);
++			});
++		}
++	}
++
++	section(title, fill){ div.c("if-section", () => { strong.c("if-h", title); fill(); }); }
++
++	row(t, line, bare){
++		const pct = Math.round(t.completion * 100), href = t.get_one("url") ?? t.get_one("path");
++		div.c("if-row" + (bare ? " if-bare" : ""), () => {
++			(href ? a.c("if-title", t.get_one("title") ?? t.id).href(href) : span.c("if-title", t.get_one("title") ?? t.id));
++			if (!bare){
++				span.c("if-bar", () => span.c("if-fill").style({ width: pct + "%" })).attr("title", pct + "%");
++				small.c("if-pct", pct + "%");
++			}
++			const now = line ?? InFlight.now_of(t);
++			if (now) div.c("if-now muted", now);
++		});
++	}
++}
+diff --git a/public/framework/core/Session/doc/files.jsonl b/public/framework/core/Session/doc/files.jsonl
+index 8bbaef4a8..31334d94e 100644
+--- a/public/framework/core/Session/doc/files.jsonl
++++ b/public/framework/core/Session/doc/files.jsonl
+@@ -8,3 +8,4 @@
+ {"file":"prompt-breakdown.md"}
+ {"file":"one-replay-plan.md"}
+ {"file":"classes.md"}
++{"file":"in-flight.md"}
+diff --git a/public/framework/core/Session/doc/in-flight.md b/public/framework/core/Session/doc/in-flight.md
+new file mode 100644
+index 000000000..f7bd7652d
+--- /dev/null
++++ b/public/framework/core/Session/doc/in-flight.md
+@@ -0,0 +1,34 @@
++# In flight: the simplest dashboard of a session
++
++A short block that shows, for one session: what is being worked on now, what waits on the owner, what is next, and how many are done. Nothing else (no log, no history).
++
++## What it shows
++
++- **In flight**: at most 5 running top-level tasks, newest activity first. Each row has the title (a link), a progress bar (`completion`), a percent, and the task's current line. A Process shows its current step; any other task shows its own `now`. If more than 5 run, a "+ N more running" line says so.
++- **Waiting on you**: tasks in the `waiting` state whose `waiting_on` is the owner or the creator (or unset), with `waiting_what` as the one thing needed. Tasks waiting on another agent are not shown.
++- **Next**: up to 3 idle or paused tasks, by priority.
++- **Done**: a count. Stopped (dropped) tasks and Prompts are never shown.
++
++## Files
++
++| File | What |
++| --- | --- |
++| [InFlight.js](../InFlight.js) | `InFlight.pick(session)` chooses the rows; `InFlight.now_of(task)` is the current line. DOM-free. |
++| [InFlightView.js](../InFlightView.js) | The view. One `SessionTasks` reader per session record (`.live()`), so it follows `session.jsonl` with no polling timer. `{url}` is one session; `{urls, all: true}` is many, showing only sessions with something in flight or waiting. |
++| [InFlight.css](../InFlight.css) | Styles, in `@layer site`. |
++| [InFlight.test.mjs](../InFlight.test.mjs) | `node public/framework/core/Session/InFlight.test.mjs` |
++
++## Where it is used
++
++- The top of every tab of a session page: [ai/AISession/AISessionDetail.js](/framework/ai/AISession/AISessionDetail.js).
++- The top of [/framework/ai/](/framework/ai/): [ai/AIDashboard/AIDashboard.js](/framework/ai/AIDashboard/AIDashboard.js), over the sessions the `inflight` query reports active.
++
++Not a new task card: the rows are plain links and bars over the same `Session` replay the Tasks tab uses.
++
++## Choices
++
++- **Done is a count of every completed task**, not only today's, because a Task has no completion date the view can rely on; it reads "N done". It is hidden on `/framework/ai/`.
++- **`/framework/ai/` leaves out Next and Done**: across sessions the point is what is moving and what needs the owner. A session with only Next tasks is not listed there. The session page shows all four.
++- **The row is not `core/Task/TaskView.js`**: that is a full task card with its own state and actions; this row is one title, one bar and one line, so reusing it would have meant hiding most of it.
++- The `/framework/ai/` block asks the same `inflight` query as `ai/now/AINow.js` (`state`, `last_activity`, `url` per row). It draws nothing if the query fails.
++- **Which five** are shown: running tasks that have a current line or some progress first, then by most recent activity.
+diff --git a/public/framework/core/Session/files.jsonl b/public/framework/core/Session/files.jsonl
+index 58d12868b..d4604e5c4 100644
+--- a/public/framework/core/Session/files.jsonl
++++ b/public/framework/core/Session/files.jsonl
+@@ -29,3 +29,10 @@
+ {"file":"failures.jsonl"}
+ {"file":"failures.jsonl","gone":true}
+ {"file":"failures.jsonl"}
++{"file":"failures.jsonl","gone":true}
++{"file":"InFlight.js"}
++{"file":"InFlight.css"}
++{"file":"InFlight.test.mjs"}
++{"file":"InFlightView.js"}
++{"file":"readme.md.tmp.51972.dc8b3d4431a3"}
++{"file":"readme.md.tmp.51972.dc8b3d4431a3","gone":true}
+diff --git a/public/framework/core/Session/readme.md b/public/framework/core/Session/readme.md
+index 5693952a1..2445d2195 100644
+--- a/public/framework/core/Session/readme.md
++++ b/public/framework/core/Session/readme.md
+@@ -144,6 +144,7 @@ Test: `node Servex/agents/session-state.test.mjs`.
+ - [doc/identity.md](doc/identity.md): which session owns each line, dollar and task; every way an id changes (compaction, resume, fork, renewal); the check `node Server/SessionIdentity.mjs <id>`
+ - [doc/one-replay-plan.md](doc/one-replay-plan.md): plan (not built): every line of `session.jsonl` applied through `set()`, why Chat V2 is broken, the pseudo-property table and the migration
+ - [Pseudo-property lines, how each is replayed and read today](/framework/ai/system-map.md) (section 3e) and the proposed replacements ([system-proposal.md](/framework/ai/system-proposal.md), change 24); the owner decided on 2026-10-26 to move away from them
++- [doc/in-flight.md](doc/in-flight.md): the simplest dashboard (in flight, waiting on you, next, done) at the top of a session page and of `/framework/ai/` (`InFlight.js`, `InFlightView.js`)
+ - [doc/prompt-tasks.md](doc/prompt-tasks.md): each owner prompt's work arrives as proposed tasks on the session page, live, with Approve and Reject (`SessionTasks.js`, Servex's `PromptTasks`)
+ - [doc/prompt-breakdown.md](doc/prompt-breakdown.md): a prompt files as one outcome task with its asks as subtasks (`PromptRecords.file()`), the measure, and the gap in what the tab sees
+ - [doc/menu.md](doc/menu.md): the session menu, a template (`Session.MENU`, settings first) drawn at the right end of the session's name line; settings saved as lines in `session.jsonl`
+diff --git a/public/framework/core/Session/tasks/data-shapes/build/backbone/layout-check/monorepo-localhost-framework-ai2/files.jsonl b/public/framework/core/Session/tasks/data-shapes/build/backbone/layout-check/monorepo-localhost-framework-ai2/files.jsonl
+index 88c46736c..858f005fe 100644
+--- a/public/framework/core/Session/tasks/data-shapes/build/backbone/layout-check/monorepo-localhost-framework-ai2/files.jsonl
++++ b/public/framework/core/Session/tasks/data-shapes/build/backbone/layout-check/monorepo-localhost-framework-ai2/files.jsonl
+@@ -28,3 +28,9 @@
+ {"file":"3440.png"}
+ {"file":"layout.json"}
+ {"file":"sheet.png"}
++{"file":"1920.png","gone":true}
++{"file":"3440.png","gone":true}
++{"file":"1280.png","gone":true}
++{"file":"2560.png","gone":true}
++{"file":"layout.json","gone":true}
++{"file":"sheet.png","gone":true}
+diff --git a/public/framework/core/Session/tasks/data-shapes/build/backbone/layout-check/monorepo-localhost-framework/files.jsonl b/public/framework/core/Session/tasks/data-shapes/build/backbone/layout-check/monorepo-localhost-framework/files.jsonl
+index 144bd1f6c..d3c879fb5 100644
+--- a/public/framework/core/Session/tasks/data-shapes/build/backbone/layout-check/monorepo-localhost-framework/files.jsonl
++++ b/public/framework/core/Session/tasks/data-shapes/build/backbone/layout-check/monorepo-localhost-framework/files.jsonl
+@@ -28,3 +28,9 @@
+ {"file":"3440.png"}
+ {"file":"layout.json"}
+ {"file":"sheet.png"}
++{"file":"1280.png","gone":true}
++{"file":"1920.png","gone":true}
++{"file":"2560.png","gone":true}
++{"file":"3440.png","gone":true}
++{"file":"layout.json","gone":true}
++{"file":"sheet.png","gone":true}
+diff --git a/public/framework/core/Session/tasks/data-shapes/build/browser-refs/files.jsonl b/public/framework/core/Session/tasks/data-shapes/build/browser-refs/files.jsonl
+index 678a64920..34b0e9129 100644
+--- a/public/framework/core/Session/tasks/data-shapes/build/browser-refs/files.jsonl
++++ b/public/framework/core/Session/tasks/data-shapes/build/browser-refs/files.jsonl
+@@ -10,3 +10,4 @@
+ {"file":"layout-check/"}
+ {"file":"layout-check/","gone":true}
+ {"file":"layout-check/"}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/core/Session/tasks/data-shapes/build/class-docs/files.jsonl b/public/framework/core/Session/tasks/data-shapes/build/class-docs/files.jsonl
+index 8b8c4fe86..0a96c23c6 100644
+--- a/public/framework/core/Session/tasks/data-shapes/build/class-docs/files.jsonl
++++ b/public/framework/core/Session/tasks/data-shapes/build/class-docs/files.jsonl
+@@ -14,3 +14,5 @@
+ {"file":"layout-check/","gone":true}
+ {"file":"layout-check/"}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/core/Session/tasks/data-shapes/build/default-view/files.jsonl b/public/framework/core/Session/tasks/data-shapes/build/default-view/files.jsonl
+index afb911fce..a5def2045 100644
+--- a/public/framework/core/Session/tasks/data-shapes/build/default-view/files.jsonl
++++ b/public/framework/core/Session/tasks/data-shapes/build/default-view/files.jsonl
+@@ -13,3 +13,5 @@
+ {"file":"layout-check/","gone":true}
+ {"file":"layout-check/"}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/core/Session/tasks/data-shapes/build/integration/files.jsonl b/public/framework/core/Session/tasks/data-shapes/build/integration/files.jsonl
+index e65c824fd..01bb3c9ff 100644
+--- a/public/framework/core/Session/tasks/data-shapes/build/integration/files.jsonl
++++ b/public/framework/core/Session/tasks/data-shapes/build/integration/files.jsonl
+@@ -14,3 +14,5 @@
+ {"file":"layout-check/","gone":true}
+ {"file":"layout-check/"}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/core/Session/tasks/data-shapes/build/item-tool/files.jsonl b/public/framework/core/Session/tasks/data-shapes/build/item-tool/files.jsonl
+index 16f46f393..18122028e 100644
+--- a/public/framework/core/Session/tasks/data-shapes/build/item-tool/files.jsonl
++++ b/public/framework/core/Session/tasks/data-shapes/build/item-tool/files.jsonl
+@@ -8,3 +8,4 @@
+ {"file":"review.md"}
+ {"file":"review.md","gone":true}
+ {"file":"review.md"}
++{"file":"review.md","gone":true}
+diff --git a/public/framework/core/Session/tasks/data-shapes/build/item-tool/review/files.jsonl b/public/framework/core/Session/tasks/data-shapes/build/item-tool/review/files.jsonl
+index c19a1432e..c683c6b11 100644
+--- a/public/framework/core/Session/tasks/data-shapes/build/item-tool/review/files.jsonl
++++ b/public/framework/core/Session/tasks/data-shapes/build/item-tool/review/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"diff.patch"}
+ {"file":"diff.patch","gone":true}
+ {"file":"diff.patch"}
++{"file":"diff.patch","gone":true}
+diff --git a/public/framework/core/Session/tasks/data-shapes/build/one-writer/layout-check/monorepo-localhost-api-item/files.jsonl b/public/framework/core/Session/tasks/data-shapes/build/one-writer/layout-check/monorepo-localhost-api-item/files.jsonl
+index 144bd1f6c..d3c879fb5 100644
+--- a/public/framework/core/Session/tasks/data-shapes/build/one-writer/layout-check/monorepo-localhost-api-item/files.jsonl
++++ b/public/framework/core/Session/tasks/data-shapes/build/one-writer/layout-check/monorepo-localhost-api-item/files.jsonl
+@@ -28,3 +28,9 @@
+ {"file":"3440.png"}
+ {"file":"layout.json"}
+ {"file":"sheet.png"}
++{"file":"1280.png","gone":true}
++{"file":"1920.png","gone":true}
++{"file":"2560.png","gone":true}
++{"file":"3440.png","gone":true}
++{"file":"layout.json","gone":true}
++{"file":"sheet.png","gone":true}
+diff --git a/public/framework/core/Session/tasks/data-shapes/build/phone-preview/files.jsonl b/public/framework/core/Session/tasks/data-shapes/build/phone-preview/files.jsonl
+index 0bdd21fd8..de3540fa7 100644
+--- a/public/framework/core/Session/tasks/data-shapes/build/phone-preview/files.jsonl
++++ b/public/framework/core/Session/tasks/data-shapes/build/phone-preview/files.jsonl
+@@ -7,3 +7,4 @@
+ {"file":"layout-check/"}
+ {"file":"layout-check/","gone":true}
+ {"file":"layout-check/"}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/core/Session/tasks/data-shapes/build/test-view/files.jsonl b/public/framework/core/Session/tasks/data-shapes/build/test-view/files.jsonl
+index 065ee07d5..6b7dd8032 100644
+--- a/public/framework/core/Session/tasks/data-shapes/build/test-view/files.jsonl
++++ b/public/framework/core/Session/tasks/data-shapes/build/test-view/files.jsonl
+@@ -13,3 +13,5 @@
+ {"file":"layout-check/","gone":true}
+ {"file":"layout-check/"}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/core/Session/tasks/do-not-move-the-ai-session-class-now-wri/files.jsonl b/public/framework/core/Session/tasks/do-not-move-the-ai-session-class-now-wri/files.jsonl
+index 6ef5ff3d4..3204a81a1 100644
+--- a/public/framework/core/Session/tasks/do-not-move-the-ai-session-class-now-wri/files.jsonl
++++ b/public/framework/core/Session/tasks/do-not-move-the-ai-session-class-now-wri/files.jsonl
+@@ -16,3 +16,5 @@
+ {"file":"task.jsonl","gone":true}
+ {"file":"page.js"}
+ {"file":"task.jsonl"}
++{"file":"page.js","gone":true}
++{"file":"task.jsonl","gone":true}
+diff --git a/public/framework/core/Session/tasks/files.jsonl b/public/framework/core/Session/tasks/files.jsonl
+index 5e6bf9c00..4fd695a7b 100644
+--- a/public/framework/core/Session/tasks/files.jsonl
++++ b/public/framework/core/Session/tasks/files.jsonl
+@@ -19,3 +19,5 @@
+ {"file":"task.jsonl","gone":true}
+ {"file":"do-not-move-the-ai-session-class-now-wri/page.js"}
+ {"file":"task.jsonl"}
++{"file":"do-not-move-the-ai-session-class-now-wri/"}
++{"file":"task.jsonl","gone":true}

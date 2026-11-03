@@ -1,0 +1,15 @@
+{
+	"title": "Archive",
+	"icon": "description",
+	"description": "A page you made.",
+	"mode": {
+		"navigation": "takeover",
+		"content": "dashboard",
+		"room": "reading",
+		"arrangement": "plain",
+		"surface": "dark",
+		"background": "dark",
+		"type": "regular"
+	},
+	"children": []
+}

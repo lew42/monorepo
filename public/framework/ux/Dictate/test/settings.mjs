@@ -1,0 +1,168 @@
+// The settings panel: the send delay holds across a reload, and it really is the wait before a send.
+//   node public/framework/ux/Dictate/test/settings.mjs <base-url> [shots-dir]
+// Headless, phone sheet at 400 , every Servex call stubbed (nothing is posted). The mic is driven by hand, as in test/order.mjs.
+// Checks: (1) change the send delay to 3 s, reload, the gear panel still shows 3; (2) by default every finished sentence leaves at once, even with the delay at 3 s (TWO prompts); with sentences_per_send 0 the delay is the wait:
+// 3 s joins two sentences 1 s apart into ONE prompt, 0.5 s leaves them as TWO; (3) the smart assistant's batch seconds POST /api/session/settings {gap_ms}.
+import fs from "fs";
+import path from "path";
+
+const [base = "http://monorepo.localhost", shots_arg] = process.argv.slice(2);
+const here = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1"));
+const shots = shots_arg ?? path.resolve(here, "../../../ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/settings/shots");
+fs.mkdirSync(shots, { recursive: true });
+const { default: Browser } = await import(new URL("../../../../../Server/Browser.mjs", import.meta.url).href);
+const browser = await Browser.launch();
+const kill = setTimeout(() => { console.log("FAIL killed after 120 s"); process.exit(2); }, 120000);
+let fails = 0;
+let server_assistant = null;   // the stub Servex's per-session word, shared by every page of the run
+const unstubbed = [];   // every API call no stub answered, over the whole run (must stay empty: this script never touches Servex)
+const check = (ok, what) => { console.log((ok ? "ok   " : "FAIL ") + what); if (!ok) fails++; };
+
+async function stub(page, said, knobs){
+	await page.route(u => (u.origin !== new URL(base).origin && !/(^|\.)fonts\.(gstatic|googleapis)\.com$/.test(u.hostname)), r => { unstubbed.push(r.request().method() + " " + r.request().url()); return r.abort(); });   // registered first = tried last: only a call to another origin (Servex lives on one) that no stub below claims lands here; the dev server's own read APIs are not Servex
+	const cors = { "access-control-allow-origin": "*", "access-control-allow-headers": "content-type" };
+	const json = (route, out) => route.fulfill({ status: 200, contentType: "application/json", headers: cors, body: JSON.stringify(out) }).catch(() => {});
+	await page.route(/\/api\/session\//, async route => {
+		const req = route.request(), verb = req.url().split("/api/session/")[1].split("?")[0];
+		if (req.method() === "OPTIONS") return route.fulfill({ status: 204, headers: cors });
+		if (verb.endsWith("/stream")) return route.fulfill({ status: 200, contentType: "text/event-stream", headers: cors, body: "retry: 60000\n\n" });
+		let body = {}; try { body = JSON.parse(req.postData() ?? "{}"); } catch {}
+		if (verb === "say"){ if (!body.kind) said.push(body.text);   /* a kind (error, click, context) is a diagnostic or context line, filed as a log line and never a prompt (ext/Chat/v2/report.js) */ return json(route, { ok: true, at: new Date().toISOString() }); }
+		if (verb === "settings"){ knobs.push(body); if ("assistant" in body) server_assistant = body.assistant; return json(route, { ok: true }); }
+		if (verb === "stub-session") return json(route, { ok: true, id: "stub-session", ...(server_assistant ? { assistant: server_assistant } : {}) });   // GET /api/session/<id>: the server's own word
+		return json(route, verb === "new" || verb === "resume" ? { ok: true, session: "stub-session", file: "/stub-session.jsonl" } : { ok: true });
+	});
+	await page.route(/\/stub-session\.jsonl/, r => r.fulfill({ status: 200, contentType: "text/plain", body: "" }));
+	await page.route(/\/api\/sessions\?/, r => json(r, { ok: true, sessions: [] }));
+	await page.route(/\/log\/(prompts|features)/, r => json(r, {}));
+	await page.route(/\/api\/hitl/, r => json(r, { ok: true, marks: [{ mark: "ok" }] }));
+	await page.route(/\/api\/refine\/live/, r => json(r, { ok: true, slots: [], outline: { sections: [] } }));
+}
+async function open(ctx, store){
+	const page = await ctx.newPage();
+	const errors = [], said = [], knobs = [];
+	page.on("pageerror", e => errors.push(String(e).slice(0, 200)));
+	await stub(page, said, knobs);
+	await page.goto(base + "/framework/ext/drawer/", { waitUntil: "domcontentloaded" });
+	await page.waitForSelector(".drawer-rail-ai", { state: "attached", timeout: 20000 });
+	await page.evaluate(async () => { const { default: Sheet } = await import("/framework/ext/drawer/Sheet.js"); window.$sheet = Sheet.of(); await window.$sheet.to("full", { listen: false }); });
+	await page.waitForSelector(".drawer-rail-sheet.on .ux-dictate-widget", { timeout: 20000 });
+	await page.waitForTimeout(800);
+	return { page, errors, said, knobs };
+}
+const gear = async page => {   // open the gear panel (the old "Dictation settings" sheet)
+	await page.locator(".drawer-rail-sheet.on .dictation-bar-gear").first().click();
+	await page.waitForSelector(".chatbox-compose-menu-panel:not([hidden]) input[data-key=send_delay]");
+};
+
+// 1. the value holds across a reload
+{
+	const ctx = await browser.newContext({ viewport: { width: 400, height: 800 }, hasTouch: true, isMobile: true });
+	let { page, errors } = await open(ctx);
+	await gear(page);
+	check(await page.inputValue("input[data-key=send_delay]") === "2", "default send delay is 2 s");
+	await page.screenshot({ path: path.join(shots, "panel-400.png") });
+	await page.fill("input[data-key=send_delay]", "3");
+	await page.locator("input[data-key=send_delay]").dispatchEvent("change");
+	await page.close();
+	({ page, errors } = await open(ctx));
+	await gear(page);
+	check(await page.inputValue("input[data-key=send_delay]") === "3", "after a reload the send delay still reads 3 s");
+	check(await page.locator("input[data-key=wake_gap_s]").getAttribute("placeholder") === "default (12)", "the batch seconds placeholder shows Servex's default, 12");
+	await page.fill("input[data-key=send_delay]", "1.5");   // 1.5 s was an old default that the migration used to drop
+	await page.locator("input[data-key=send_delay]").dispatchEvent("change");
+	await page.close();
+	({ page, errors } = await open(ctx));
+	await gear(page);
+	check(await page.inputValue("input[data-key=send_delay]") === "1.5", "after a reload a send delay of 1.5 s still reads 1.5 s");
+	check(await page.evaluate(() => document.querySelector(".chatbox-compose-menu-panel input[data-key]").dataset.key) === "send_delay", "send delay is the first row of the panel");
+	check(await page.locator("details:not([open]) input[data-key=guess_ms]").count() === 1, "the expert knobs sit under a closed More");
+	check(errors.length === 0, "no page errors" + (errors[0] ? ": " + errors[0] : ""));
+	await ctx.close();
+}
+// 1b. the one/two assistants switch: it POSTs assistant "single", the live line is read from the server, and it holds across a reload
+{
+	const ctx = await browser.newContext({ viewport: { width: 360, height: 740 }, hasTouch: true, isMobile: true });
+	let { page, errors, knobs } = await open(ctx);
+	await page.evaluate(() => { globalThis.$dictate_widget.dictate.wake_session = () => "stub-session"; });
+	await gear(page);
+	check(await page.locator("select[data-key=assistant]").inputValue() === "", "the assistants switch starts on Default");
+	await page.selectOption("select[data-key=assistant]", "single");
+	await page.waitForFunction(() => /one assistant/.test(document.querySelector("[data-role=assistant-live]")?.textContent ?? ""), null, { timeout: 5000 }).catch(() => {});
+	check(knobs.some(k => k.session === "stub-session" && k.assistant === "single"), "choosing One assistant POSTed assistant: single: " + JSON.stringify(knobs.at(-1) ?? null));
+	check(/Live now: one assistant/.test(await page.locator("[data-role=assistant-live]").textContent()), "the live line reads the server: " + await page.locator("[data-role=assistant-live]").textContent());
+	await page.screenshot({ path: path.join(shots, "assistants-360.png") });
+	await page.close();
+	({ page, errors } = await open(ctx));
+	await page.evaluate(() => { globalThis.$dictate_widget.dictate.wake_session = () => "stub-session"; });
+	await gear(page);
+	check(await page.locator("select[data-key=assistant]").inputValue() === "single", "after a reload the switch still reads One assistant");
+	await page.waitForFunction(() => /one assistant/.test(document.querySelector("[data-role=assistant-live]")?.textContent ?? ""), null, { timeout: 5000 }).catch(() => {});
+	check(/Live now: one assistant/.test(await page.locator("[data-role=assistant-live]").textContent()), "after a reload the live line still says one assistant (from the server)");
+	check(errors.length === 0, "no page errors" + (errors[0] ? ": " + errors[0] : ""));
+	await ctx.close();
+}
+// 2 and 3: the delay is the wait
+// per = sentences_per_send: 1 is the default since views-fix item 0 (commit e7f8e5d36, 2026-11-01: every finished sentence goes out at once, the
+// send delay only holds the unfinished tail); 0 is the older "join within the delay" path the delay knob still drives.
+for (const [delay_s, per, want] of [[3, 1, 2], [3, 0, 1], [0.5, 0, 2]]){
+	const ctx = await browser.newContext({ viewport: { width: 400, height: 800 }, hasTouch: true, isMobile: true });
+	const { page, errors, said, knobs } = await open(ctx);
+	await gear(page);
+	await page.fill("input[data-key=send_delay]", String(delay_s));
+	await page.locator("input[data-key=send_delay]").dispatchEvent("change");
+	await page.evaluate(async () => { await new Promise(r => setTimeout(r, 0)); document.querySelector(".chatbox-compose-menu-close")?.click(); });
+	const trace = await page.evaluate(async ({ delay_s, per }) => {   // the mic is driven by hand; the automatic-send timer is the real one
+		const m = globalThis.$dictate_widget.dictate, wait = ms => new Promise(r => setTimeout(r, ms));
+		m.state = "listening"; m.revise = false; m.sentences_per_send = per;
+		clearInterval(m.auto_timer); m.auto_timer = setInterval(() => m.auto_check(), 250);
+		let chunk = 0;
+		const say = async text => {
+			const words = text.replace(/[.!?]$/, "").split(" ");
+			for (let n = 1; n <= words.length; n++){ m.partial_text = words.slice(0, n).join(" "); m.draw_caption(); m.last_speech = performance.now(); await wait(60); }
+			m.partial_text = "";
+			m.log_prompt(text, ++chunk);
+			m.last_speech = performance.now();
+		};
+		await wait(300);
+		await say("Let us start with the flicker.");
+		await wait(1000 - 60 * 3);   // the second one starts about a second after the first
+		await say("Then check the order of words.");
+		const trace = [];
+		for (let i = 0; i < 6; i++){ await wait(delay_s * 1000 / 4 + 400); trace.push(Math.round(performance.now() - m.last_speech) + "ms quiet, box=" + JSON.stringify(m.box()?.value) + ", held=" + (m.held ?? []).length); }
+		clearInterval(m.auto_timer);
+		return trace;
+	}, { delay_s, per });
+	if (process.env.TRACE) console.log(trace.join("; ") + " said: " + JSON.stringify(said));
+	await page.waitForTimeout(500);
+	check(said.length === want, `delay ${delay_s} s, ${per ? "one prompt per finished sentence" : "join within the delay"}, sentences 1 s apart: ${said.length} prompt(s) sent (want ${want})${said.length ? ": " + said.map(t => JSON.stringify(t)).join(" + ") : ""}`);
+	if (want === 1) check(/flicker/i.test(said[0] ?? "") && /order/i.test(said[0] ?? ""), "the one prompt holds both sentences");
+	// 3. the smart assistant's knob goes to Servex (the session exists now that something was sent)
+	await gear(page);
+	await page.fill("input[data-key=wake_gap_s]", "12");
+	await page.locator("input[data-key=wake_gap_s]").dispatchEvent("change");
+	await page.waitForTimeout(500);
+	check(knobs.some(k => k.session === "stub-session" && k.gap_ms === 12000), "batch seconds POSTed as gap_ms 12000 to the session: " + JSON.stringify(knobs.at(-1) ?? null));
+	check(errors.length === 0, "no page errors" + (errors[0] ? ": " + errors[0] : ""));
+	await ctx.close();
+}
+// the same panel on a wide screen (the gear is the composer's own there, not the bar's)
+{
+	const ctx = await browser.newContext({ viewport: { width: 1920, height: 1000 } });
+	const page = await ctx.newPage();
+	await stub(page, [], []);
+	await page.goto(base + "/framework/ux/Dictate/", { waitUntil: "domcontentloaded" });
+	const g = page.locator(".chatbox-compose-menu").first();
+	await g.waitFor({ state: "attached", timeout: 20000 });
+	await g.scrollIntoViewIfNeeded().catch(() => {});
+	await g.click({ timeout: 5000 }).catch(() => g.evaluate(b => b.click()));
+	await page.waitForSelector(".chatbox-compose-menu-panel:not([hidden]) input[data-key=send_delay]");
+	check(await page.locator("input[data-key=wake_gap_s]").count() === 1, "1920: the smart assistant rows are in the panel");
+	await page.screenshot({ path: path.join(shots, "panel-1920.png") });
+	await ctx.close();
+}
+const bad = unstubbed.filter(u => !u.startsWith("GET ") || /\/api\/session\//.test(u));
+check(bad.length === 0, "no write or session call reached an unstubbed origin (read-only GETs such as the inbox are aborted, not stubbed)" + (bad[0] ? ": " + bad.slice(0, 3).join(" ") : ""));
+clearTimeout(kill);
+await browser.close();
+process.exit(fails ? 1 : 0);

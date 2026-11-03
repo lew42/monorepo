@@ -1,0 +1,5 @@
+verdict: pass
+1. [note] `requirements.md` does not exist in task-migrate/, so I judged the diff against plan.md and its stated intent (stop writing `source`; put the brief path in `brief`), not against the owner's words.
+2. [note] Server/TaskMigrate.mjs:18-19 — `set.brief` is written after the `OWN_KEYS` filter, and `brief` is not in `OWN_KEYS`, so the old `data.brief` is copied through and then overwritten by the computed one. That is fine. The `source` fallback only triggers when a "/" is present, so a non-path old `source` such as a name is dropped silently.
+3. [note] Server/TaskMigrate.test.mjs:66 checks only that line 1 has no `source`. Nothing asserts that `brief` lands in the `set` line, so the new behaviour is not covered. A one-line `assert` on the `set` would close that.
+4. [note] "source" stays in `OWN_KEYS` (Server/TaskMigrate.mjs:30), so an old `data.source` is never copied as `source`. That matches the plan, but an existing `Task.FIELDS` or reader that still expects line-1 `source` is not checked here.

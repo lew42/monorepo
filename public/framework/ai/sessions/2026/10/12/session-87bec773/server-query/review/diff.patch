@@ -1,0 +1,1136 @@
+diff --git a/Server/plugins/SocketServer/Socket.js b/Server/plugins/SocketServer/Socket.js
+index 5bf4f8113..6d8a147eb 100644
+--- a/Server/plugins/SocketServer/Socket.js
++++ b/Server/plugins/SocketServer/Socket.js
+@@ -24,10 +24,9 @@ export default class Socket extends Events {
+             const message = JSON.parse(data.toString());
+             if (process.env.SOCKET_LOG === "on") console.log("Socket message", message);   // off by default: it grew monorepo.out to 36 MB
+             this.emit("message", message);
+-			console.log("Socket message", message);
+ 
+             if (message.method) {
+-				console.log(`RPC: ${message.method}`);
++				if (process.env.SOCKET_LOG === "on") console.log(`RPC: ${message.method}`);
+                 this.emit(`rpc:${message.method}`, message.args, message.index);
+             }
+         } catch (e) {
+diff --git a/Server/run.js b/Server/run.js
+index 69cd456ae..370f4bb18 100644
+--- a/Server/run.js
++++ b/Server/run.js
+@@ -12,6 +12,7 @@ import DevSource from "./plugins/DevSource.js";   // read-only Servex/Server bro
+ import DevSocket from "./plugins/DevSocket/DevSocket.js";
+ import Runtime from "./plugins/SocketServer/Runtime.js";
+ import AILogs from "./plugins/AILogs.js";
++import QueryServer from "../public/framework/ext/Query/QueryServer.mjs";
+ import AISessionTailer, { AISessionSub } from "../public/framework/ai/AISession/AISessionTailer.mjs";
+ import Ask, { AskRoute } from "./plugins/Ask.js";
+ import CardAnswer from "./plugins/CardAnswer.js";
+@@ -34,6 +35,7 @@ DevSocket.Socket.use(CardAnswer);
+ DevSocket.Socket.use(Start);
+ DevSocket.Socket.use(Tab);
+ DevSocket.Socket.use(AISessionSub);   // pushes changed session snapshots - ai/AISession/AISessionTailer.mjs
++DevSocket.Socket.use(QueryServer);   // rpc:query over in-memory sources - ext/Query
+ DevSocket.Socket.use(Tail);
+ DevSocket.Socket.use(Append);
+ Server.use(DevSocket);
+diff --git a/public/framework/ai/2026-10-12/task-folders/files.jsonl b/public/framework/ai/2026-10-12/task-folders/files.jsonl
+deleted file mode 100644
+index a1221d4e8..000000000
+--- a/public/framework/ai/2026-10-12/task-folders/files.jsonl
++++ /dev/null
+@@ -1,2 +0,0 @@
+-{"file":"requirements.md"}
+-{"file":"task.jsonl"}
+diff --git a/public/framework/ai/2026-10-12/task-folders/page.jsonl b/public/framework/ai/2026-10-12/task-folders/page.jsonl
+index c5c5272fe..212235bc6 100644
+--- a/public/framework/ai/2026-10-12/task-folders/page.jsonl
++++ b/public/framework/ai/2026-10-12/task-folders/page.jsonl
+@@ -11,3 +11,7 @@
+ {"inbox":{"id":"n-pigx7978","from":"servex-heartbeat","text":"mastermind-task-folders it did not answer the status check, and was already revived 2 times this hour (2 today). Servex could not fix it; please look.","at":"2026-10-12T15:30:45.547-05:00"}}
+ {"file":"moved-task-1920.png"}
+ {"file":"layout-check/"}
++{"file":"review/","gone":true}
++{"file":"review.jsonl","gone":true}
++{"file":"shots/","gone":true}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/ai/2026/09/25/cards-that-show-the-thing/page.jsonl b/public/framework/ai/2026/09/25/cards-that-show-the-thing/page.jsonl
+index e4b3e3e9d..3a8b9d1e7 100644
+--- a/public/framework/ai/2026/09/25/cards-that-show-the-thing/page.jsonl
++++ b/public/framework/ai/2026/09/25/cards-that-show-the-thing/page.jsonl
+@@ -33,3 +33,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026/09/25/why-padding-keeps-going-missing/page.jsonl b/public/framework/ai/2026/09/25/why-padding-keeps-going-missing/page.jsonl
+index b13a4b220..ddf129fbd 100644
+--- a/public/framework/ai/2026/09/25/why-padding-keeps-going-missing/page.jsonl
++++ b/public/framework/ai/2026/09/25/why-padding-keeps-going-missing/page.jsonl
+@@ -16,3 +16,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026/10/02/page.jsonl b/public/framework/ai/2026/10/02/page.jsonl
+index 526fe6b02..a86b2a18e 100644
+--- a/public/framework/ai/2026/10/02/page.jsonl
++++ b/public/framework/ai/2026/10/02/page.jsonl
+@@ -9758,3 +9758,6 @@
+ {"file":"session-042b5fc9/page.jsonl"}
+ {"file":"session-74c3d080/page.jsonl"}
+ {"file":"session-a56900e3/page.jsonl"}
++{"file":"session-042b5fc9/page.jsonl","gone":true}
++{"file":"session-74c3d080/page.jsonl","gone":true}
++{"file":"session-a56900e3/page.jsonl","gone":true}
+diff --git a/public/framework/ai/2026/10/07/page.jsonl b/public/framework/ai/2026/10/07/page.jsonl
+index 690e25644..42c5c065b 100644
+--- a/public/framework/ai/2026/10/07/page.jsonl
++++ b/public/framework/ai/2026/10/07/page.jsonl
+@@ -191,3 +191,4 @@
+ {"file":"session-87bec773/page.jsonl"}
+ {"file":"session-87bec773/page.jsonl","gone":true}
+ {"file":"session-87bec773/page.jsonl"}
++{"file":"session-87bec773/page.jsonl","gone":true}
+diff --git a/public/framework/ai/2026/10/09/page.jsonl b/public/framework/ai/2026/10/09/page.jsonl
+index 8ea29cebb..96b607db1 100644
+--- a/public/framework/ai/2026/10/09/page.jsonl
++++ b/public/framework/ai/2026/10/09/page.jsonl
+@@ -155,3 +155,53 @@
+ {"file":"session-ee039f1c/page.jsonl"}
+ {"file":"session-f12b5f94/page.jsonl"}
+ {"file":"session-fc97c255/page.jsonl"}
++{"file":"session-1b18de6e/page.jsonl","gone":true}
++{"file":"session-24d3873b/page.jsonl","gone":true}
++{"file":"session-2cb18c1a/page.jsonl","gone":true}
++{"file":"session-322d5270/page.jsonl","gone":true}
++{"file":"session-348fceca/page.jsonl","gone":true}
++{"file":"session-451a3e6f/page.jsonl","gone":true}
++{"file":"session-5426fb6e/page.jsonl","gone":true}
++{"file":"session-58dad4d1/page.jsonl","gone":true}
++{"file":"session-5adbce37/page.jsonl","gone":true}
++{"file":"session-67eecfc0/page.jsonl","gone":true}
++{"file":"session-7efd07d5/page.jsonl","gone":true}
++{"file":"session-8a312084/page.jsonl","gone":true}
++{"file":"session-c33ad9eb/page.jsonl","gone":true}
++{"file":"session-ddcca6ba/page.jsonl","gone":true}
++{"file":"session-e51a9690/page.jsonl","gone":true}
++{"file":"session-fc97c255/page.jsonl","gone":true}
++{"file":"session-f12b5f94/page.jsonl","gone":true}
++{"file":"session-15159d23/page.jsonl","gone":true}
++{"file":"session-b48f1620/page.jsonl","gone":true}
++{"file":"session-46645ed4/page.jsonl","gone":true}
++{"file":"session-9e0d643b/page.jsonl","gone":true}
++{"file":"session-c320f6b2/page.jsonl","gone":true}
++{"file":"session-05d46e88/page.jsonl","gone":true}
++{"file":"session-1774173f/page.jsonl","gone":true}
++{"file":"session-40b254b9/page.jsonl","gone":true}
++{"file":"session-196d8953/page.jsonl","gone":true}
++{"file":"session-30922ee9/page.jsonl","gone":true}
++{"file":"session-8a100671/page.jsonl","gone":true}
++{"file":"session-dc7293be/page.jsonl","gone":true}
++{"file":"session-b53405f3/page.jsonl","gone":true}
++{"file":"session-b490f767/page.jsonl","gone":true}
++{"file":"session-35d7f59c/page.jsonl","gone":true}
++{"file":"session-0cacee39/page.jsonl","gone":true}
++{"file":"session-7356c8c8/page.jsonl","gone":true}
++{"file":"session-402f189d/page.jsonl","gone":true}
++{"file":"session-c90006cc/page.jsonl","gone":true}
++{"file":"session-d619ec02/page.jsonl","gone":true}
++{"file":"session-ee039f1c/page.jsonl","gone":true}
++{"file":"session-e8eafb48/page.jsonl","gone":true}
++{"file":"session-07a8a9ee/page.jsonl","gone":true}
++{"file":"session-b127eae4/page.jsonl","gone":true}
++{"file":"session-9f459d64/page.jsonl","gone":true}
++{"file":"session-4c841788/page.jsonl","gone":true}
++{"file":"session-0fa49ac0/page.jsonl","gone":true}
++{"file":"session-a4b8d74f/page.jsonl","gone":true}
++{"file":"session-ba60304c/page.jsonl","gone":true}
++{"file":"session-3c160880/page.jsonl","gone":true}
++{"file":"session-ad7ab1c0/page.jsonl","gone":true}
++{"file":"session-1ad9a2b7/page.jsonl","gone":true}
++{"file":"session-426400fa/page.jsonl","gone":true}
+diff --git a/public/framework/ai/2026/10/12/page.jsonl b/public/framework/ai/2026/10/12/page.jsonl
+index b1434ef2b..e7f11b654 100644
+--- a/public/framework/ai/2026/10/12/page.jsonl
++++ b/public/framework/ai/2026/10/12/page.jsonl
+@@ -51,3 +51,44 @@
+ {"file":"note-models-asks-landed-voice-fast-smart/page.jsonl"}
+ {"file":"session-0896fe19/page.jsonl"}
+ {"file":"session-9f33f4b3/page.jsonl"}
++{"file":"session-fbe81ab2/page.jsonl","gone":true}
++{"file":"session-4d6d8c66/page.jsonl","gone":true}
++{"file":"session-25a204a6/page.jsonl","gone":true}
++{"file":"session-6ec41c59/page.jsonl","gone":true}
++{"file":"session-aa997dba/page.jsonl","gone":true}
++{"file":"session-5a68c607/page.jsonl","gone":true}
++{"file":"session-cef12942/page.jsonl","gone":true}
++{"file":"session-5f360cb5/page.jsonl","gone":true}
++{"file":"session-0f0d988f/page.jsonl","gone":true}
++{"file":"session-031adfe9/page.jsonl","gone":true}
++{"file":"session-46706691/page.jsonl","gone":true}
++{"file":"session-dd91fe29/page.jsonl","gone":true}
++{"file":"session-5aaa4ae5/page.jsonl","gone":true}
++{"file":"session-c8c133d0/page.jsonl","gone":true}
++{"file":"session-cc9c0c62/page.jsonl","gone":true}
++{"file":"session-1b5bfb95/page.jsonl","gone":true}
++{"file":"session-2b3b7710/page.jsonl","gone":true}
++{"file":"session-c2d7c4e8/page.jsonl","gone":true}
++{"file":"session-b787d4b6/page.jsonl","gone":true}
++{"file":"session-22dda6dd/page.jsonl","gone":true}
++{"file":"session-1ae8330d/page.jsonl","gone":true}
++{"file":"session-189b7d26/page.jsonl","gone":true}
++{"file":"session-4cf6e92a/page.jsonl","gone":true}
++{"file":"session-3a9be227/page.jsonl","gone":true}
++{"file":"session-ea10831d/page.jsonl","gone":true}
++{"file":"session-d5164825/page.jsonl","gone":true}
++{"file":"session-185a6605/page.jsonl","gone":true}
++{"file":"session-9876c97a/page.jsonl","gone":true}
++{"file":"session-fd2c1a0c/page.jsonl","gone":true}
++{"file":"session-bcfc12a0/page.jsonl","gone":true}
++{"file":"session-f8217045/page.jsonl","gone":true}
++{"file":"session-b52ae844/page.jsonl","gone":true}
++{"file":"session-c3baa54f/page.jsonl","gone":true}
++{"file":"session-c8200d6c/page.jsonl","gone":true}
++{"file":"session-bb921b88/page.jsonl","gone":true}
++{"file":"session-e34f35c8/page.jsonl","gone":true}
++{"file":"session-e46b1215/page.jsonl","gone":true}
++{"file":"session-d24d2ee6/page.jsonl","gone":true}
++{"file":"session-96aa6a5e/page.jsonl","gone":true}
++{"file":"session-0896fe19/page.jsonl","gone":true}
++{"file":"session-9f33f4b3/page.jsonl","gone":true}
+diff --git a/public/framework/ai/AISession/AISessionTailer.mjs b/public/framework/ai/AISession/AISessionTailer.mjs
+index 58b078ee6..fcbd45cec 100644
+--- a/public/framework/ai/AISession/AISessionTailer.mjs
++++ b/public/framework/ai/AISession/AISessionTailer.mjs
+@@ -1,5 +1,6 @@
+ import fs from "fs";
+ import AISessionIndex from "./AISessionIndex.mjs";
++import QueryServer from "../../ext/Query/QueryServer.mjs";
+ 
+ /* Starts the AISessionIndex inside the dev server (ai/AISession/AISessionIndex.mjs): transcripts in, per-session index.json and the
+  * day composite files out, snapshot changes pushed to subscribed pages by AISessionSub (below). Runs on the MAIN checkout's
+@@ -8,6 +9,15 @@ import AISessionIndex from "./AISessionIndex.mjs";
+  * SESSION_TAIL_DIR points it at a scratch transcript folder; SESSION_ROOT at a scratch sessions folder. */
+ export const live = { index: null };
+ 
++/* The "sessions" query source (ext/Query): the index already holds every snapshot in memory, so load is its `ready` and unload is a no-op.
++ * Unavailable on a server with no index (a worktree's): the query answers { error: "no source" } and the page reads the files. */
++QueryServer.source("sessions", {
++    available: () => !!live.index,
++    load: () => live.index.ready,
++    items: () => live.index.snaps.values(),
++    on: fn => live.index.on(fn),
++});
++
+ export default class AISessionTailer {
+ 
+     static setup(server) {
+diff --git a/public/framework/ai/AISession/AISessionsPage.js b/public/framework/ai/AISession/AISessionsPage.js
+index 9be988d8c..e509ffb89 100644
+--- a/public/framework/ai/AISession/AISessionsPage.js
++++ b/public/framework/ai/AISession/AISessionsPage.js
+@@ -13,6 +13,7 @@ import AISession from "./AISession.js";
+ import AISessionDetail from "./AISessionDetail.js";
+ import AISessionFlags from "./AISessionFlags.js";
+ import StoreFolder from "./StoreFolder.js";
++import QueryClient from "/framework/ext/Query/QueryClient.js";
+ 
+ const sessions_dir = { url: new URL("../sessions/", import.meta.url).href };   // the page's folder: its stylesheet and docs stay beside page.js
+ View.stylesheet(sessions_dir, "sessions.css");
+@@ -102,7 +103,9 @@ export default class AISessionsPage extends Page {
+ 			href: r => r.bucket ? null : this.url + r.id + "/",
+ 			row: r => r.bucket ? this.bucket_view(r) : this.row_view(r, this.nests.get(r)),
+ 			card: r => r.bucket ? this.bucket_view(r, true) : new AISessionView({ row: r, url: this.url, spend: this.spend, session_index: this.session_index, card: true }),
+-			sort_rows: (rows, sort) => this.arrange(rows, sort),
++			sort_rows: (rows, sort) => this.remote ? this.remote_sort(rows, sort) : this.arrange(rows, sort),
++			has_more: () => !!this.remote && this.remote.rows.length < this.remote.total,   // the server holds the rest: the drawer's sentinel asks for it
++			load_more: () => this.remote_ask({ more: true }),
+ 			natural_dir: key => AISessionRows.natural_dir(key),
+ 		});
+ 	}
+@@ -329,8 +332,13 @@ export default class AISessionsPage extends Page {
+ 	// ⚠ A lifecycle, not a one-shot in content(): content() runs once ever (a cached singleton Page), while
+ 	// activated()/deactivated() fire every time the reader leaves and comes back, which is what starts and stops the stream.
+ 	activated(){
+-		const { get_json, load_index, load_tree, load_spend_tree } = AISessionRows;
+ 		this.polling = true;
++		this.start_remote().then(ok => { if (!ok && this.polling) this.activate_files(); });
++	}
++
++	/** The files path: every day file, the session index, the tree, the flags and Servex's agent list, loaded and merged in the browser. */
++	activate_files(){
++		const { get_json, load_index, load_tree, load_spend_tree } = AISessionRows;
+ 		this.last_agents = [];
+ 
+ 		const base = Prompts.base();
+@@ -411,10 +419,110 @@ export default class AISessionsPage extends Page {
+ 		if (!from) return;
+ 		this.date_from = from;
+ 		if (this.$from) this.$from.el.value = from;
++		if (this.remote) return void this.remote_ask();
+ 		this.render_rows(); this.render_stats();
+ 		if (this.live){ await this.live.load(await AISessionLive.days(this.url, from, this.date_to)); this.draw(); }
+ 	}
+ 
++	// ---- remote mode: node holds the sessions, the browser asks for the rows it shows (ext/Query, doc/server-query.md) --------------
++
++	static SORT_FIELD = { state: "state", name: "title", cost: "usd", updated: "last_activity", duration: "wall_ms", role: "agent", source: "provider", model: "model" };
++	static SEARCH_FIELDS = ["title", "agent", "id", "folder", "model"];
++
++	/** With `?source=node`: true when the dev server answers the first query; otherwise false and the page reads files (the default until remote mode reaches parity). */
++	async start_remote(){
++		if (new URLSearchParams(location.search).get("source") !== "node" || !AISessionLive.socket()) return false;   // opt-in until parity (buckets, nesting, provider): ext/Query/doc/architecture.md
++		this.remote = { rows: [], total: 0, totals: {}, ms: null, sort_key: "", search: "", busy: false };
++		this.client = new QueryClient("sessions", { row: snap => this.remote_row(snap), stale: () => this.polling && this.remote_ask({ refresh: true }) });
++		const ok = await this.remote_ask({ first: true });
++		if (!ok) { this.remote = null; this.client = null; return false; }
++		this.nests = new Map();
++		this.remote_controls();
++		const get_json = AISessionRows.get_json;
++		get_json(this.url + "../usage.json").then(usage => { this.usage = usage; this.render_stats(); });
++		get_json(this.url + "../sessions/openrouter-reconcile.json").then(r => { this.reconcile = r; this.render_stats(); }).catch(() => {});
++		return true;
++	}
++
++	/** The spec for the current filters and sort. */
++	remote_spec(){
++		const r = this.remote, where = [
++			{ field: "last_activity", op: "gte", value: this.date_from + "T00:00:00" },
++			{ field: "last_activity", op: "lte", value: this.date_to + "T23:59:59.999Z" },
++		];
++		if (this.inflight_only) where.push({ field: "state", op: "eq", value: "active" });
++		if (this.attention_only) where.push({ field: "flags", op: "gte", value: 1 });
++		if (r.search) where.push({ fields: AISessionsPage.SEARCH_FIELDS, op: "contains", value: r.search });
++		const [key, dir] = r.sort_key ? r.sort_key.split(":") : ["updated", "desc"];
++		return { where, sort: { by: AISessionsPage.SORT_FIELD[key], dir }, sum: ["usd", "tokens"] };
++	}
++
++	/** Ask for a page. `first`/default = a fresh query; `more` = the next 50; `refresh` = the same query again, keeping the rows already loaded. */
++	async remote_ask({ first, more, refresh } = {}){
++		const r = this.remote;
++		if (!r) return false;
++		if (r.busy && !first){ if (!more) r.pending = true; return true; }   // a new filter waits for the page in flight, then asks
++		r.busy = true;
++		try {
++			const spec = { ...this.remote_spec(), offset: more ? r.rows.length : 0, limit: refresh ? Math.max(AISessionsPage.PAGE_SIZE, r.rows.length) : AISessionsPage.PAGE_SIZE };
++			const res = await this.client.ask(spec, { more: more || refresh });
++			if (res.error) return false;
++			const rows = res.rows.map(snap => this.remote_row_of(snap));
++			Object.assign(r, { rows: more ? [...r.rows, ...rows] : rows, total: res.total, totals: res.totals, ms: res.ms });
++			this.filtered_count = res.total; this.shown_usd = res.totals.usd ?? 0;
++			this.grid.set_rows(r.rows, first);
++			this.$empty.el.hidden = r.rows.length > 0;
++			this.render_stats();
++			this.$asof?.text(`${res.ms} ms in node · updated ${new Date().toLocaleTimeString()}`);
++			return true;
++		} finally { r.busy = false; if (r.pending){ r.pending = false; this.remote_ask(); } }
++	}
++
++	/** One snapshot becomes the row AISessionView draws: the live Session holds its numbers, the row holds the identity. */
++	remote_row_of(snap){
++		const { ses } = AISession.apply_delta(snap), row = { ...ses.grid_row(), role: null };
++		row.role = AISessionRows.role_of(row);
++		return row;
++	}
++
++	/** A shown session changed: its Session notifies its own row view (AISessionView subscribes); the row object follows. */
++	remote_row(snap){
++		const { ses } = AISession.apply_delta(snap), row = this.remote?.rows.find(x => x.id === snap.id);
++		if (row) AISessionRows.apply_live(row, ses);
++	}
++
++	/** The grid's sort hook in remote mode: the server sorted the rows; a header click asks it again. */
++	remote_sort(rows, sort){
++		const key = sort ? sort.key + ":" + sort.dir : "";
++		if (key !== this.remote.sort_key){ this.remote.sort_key = key; queueMicrotask(() => this.remote_ask()); }
++		return rows;
++	}
++
++	/** The remote controls: the same checkboxes and dates as the files path, plus a search box (the server's `contains`). */
++	remote_controls(){
++		const check = (text, key, title) => label.c("flex gap-35 v-center h4", () => {
++			const $box = input().attr("type", "checkbox");
++			$box.el.checked = !!this[key];
++			$box.on("change", () => { this[key] = $box.el.checked; this.remote_ask(); });
++			span(text);
++		}).attr("title", title);
++		this.$controls.empty(() => div.c("sessions-filters flex gap-100 v-center wrap", () => {
++			const $q = input().attr("type", "search").attr("placeholder", "search title, agent, id, model").attr("title", "Searched in node (ext/Query `contains`)");
++			let t = null;
++			$q.on("input", () => { clearTimeout(t); t = setTimeout(() => { this.remote.search = $q.el.value.trim(); this.remote_ask(); }, 250); });
++			check("in flight", "inflight_only", "Only sessions working right now.");
++			check("needs attention", "attention_only", "Sessions with a red flag.");
++			div.c("sessions-daterange flex gap-50 v-center", () => {
++				small.c("muted", "from");
++				const $from = input().attr("type", "date"); $from.el.value = this.date_from; this.$from = $from;
++				$from.on("change", () => this.set_from($from.el.value));
++				small.c("muted", "to");
++				const $to = input().attr("type", "date"); $to.el.value = this.date_to;
++				$to.on("change", () => { this.date_to = $to.el.value; this.remote_ask(); });
++			});
++		}));
++	}
++
+ 	deactivated(){ this.polling = false; this.source?.close(); this.source = null; this.stream_open = false; clearInterval(this.tick); }
+ 
+ 	/** `/framework/ai/sessions/<id>/` is one session's page; `doc` and `readme` are this page's own docs. */
+diff --git a/public/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/after-1920.png b/public/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/after-1920.png
+new file mode 100644
+index 000000000..7dcd716ce
+Binary files /dev/null and b/public/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/after-1920.png differ
+diff --git a/public/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/after-400.png b/public/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/after-400.png
+new file mode 100644
+index 000000000..d9644ef2f
+Binary files /dev/null and b/public/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/after-400.png differ
+diff --git a/public/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/after-files-1920.png b/public/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/after-files-1920.png
+new file mode 100644
+index 000000000..b74c936fe
+Binary files /dev/null and b/public/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/after-files-1920.png differ
+diff --git a/public/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/after-files-400.png b/public/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/after-files-400.png
+new file mode 100644
+index 000000000..34d294236
+Binary files /dev/null and b/public/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/after-files-400.png differ
+diff --git a/public/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/before-1920.png b/public/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/before-1920.png
+new file mode 100644
+index 000000000..4d6faea67
+Binary files /dev/null and b/public/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/before-1920.png differ
+diff --git a/public/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/before-400.png b/public/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/before-400.png
+new file mode 100644
+index 000000000..11064dd48
+Binary files /dev/null and b/public/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/before-400.png differ
+diff --git a/public/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/f404.mjs b/public/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/f404.mjs
+new file mode 100644
+index 000000000..d0f5f75ca
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/f404.mjs
+@@ -0,0 +1,7 @@
++import { browser, close } from "../../../../../../../../../../../Server/browser.mjs";
++const b = await browser(), page = await (await b.newContext({ viewport: { width: 1920, height: 900 } })).newPage(), seen = new Map();
++page.on("response", r => { if (r.status() === 404) { const u = r.url().replace(/^https?:\/\/[^/]+/, ""); seen.set(u, (seen.get(u) || 0) + 1); } });
++await page.goto(process.argv[2] + "/framework/ai/sessions/" + (process.argv[3] || ""), { waitUntil: "commit" });
++await page.waitForSelector("a.sessions-row", { timeout: 60000, state: "attached" }); await page.waitForTimeout(3000);
++console.log([...seen].slice(0, 8)); console.log(seen.size, "distinct");
++await close();
+diff --git a/public/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/more.mjs b/public/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/more.mjs
+new file mode 100644
+index 000000000..c20d19de7
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/more.mjs
+@@ -0,0 +1,11 @@
++import { browser, close } from "../../../../../../../../../../../Server/browser.mjs";
++const b = await browser(), page = await (await b.newContext({ viewport: { width: 1920, height: 900 } })).newPage();
++await page.goto(process.argv[2] + "/framework/ai/sessions/", { waitUntil: "commit" });
++await page.waitForSelector("a.sessions-row", { state: "attached", timeout: 60000 }); await page.waitForTimeout(1500);
++const n = () => page.evaluate(() => document.querySelectorAll("a.sessions-row").length);
++const a = await n(); console.log(await page.evaluate(() => { const m = document.querySelector(".datagrid-more, [class*=more]"); return m ? m.outerHTML.slice(0,200) + getComputedStyle(m).display : "no more el"; }));
++for (let i = 0; i < 6; i++) { await page.evaluate(() => { for (const el of document.querySelectorAll("*")) { const o = getComputedStyle(el).overflowY; if ((o === "auto" || o === "scroll") && el.scrollHeight > el.clientHeight + 20) el.scrollTop = el.scrollHeight; } window.scrollTo(0, 1e9); }); await page.waitForTimeout(600); }
++console.log("rows", a, "->", await n());
++const sb = "input[placeholder^=\"search title\"]"; await page.fill(sb, "reviewer"); await page.waitForTimeout(1200);
++console.log("search rows", await n(), await page.textContent(".sessions-counts"));
++await close();
+diff --git a/public/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/more2.mjs b/public/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/more2.mjs
+new file mode 100644
+index 000000000..4e73b42ca
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/more2.mjs
+@@ -0,0 +1,11 @@
++import { browser, close } from "../../../../../../../../../../../Server/browser.mjs";
++const b = await browser(), page = await (await b.newContext({ viewport: { width: 1920, height: 900 } })).newPage();
++page.on("console", m => console.log("c:", m.text().slice(0, 200)));
++await page.goto(process.argv[2] + "/framework/ai/sessions/", { waitUntil: "commit" });
++await page.waitForSelector("a.sessions-row", { state: "attached", timeout: 60000 }); await page.waitForTimeout(1500);
++const n = () => page.evaluate(() => document.querySelectorAll("a.sessions-row").length);
++const d = await page.evaluate(() => { const m = document.querySelector(".datagrid-ext .datagrid-more"); return m ? getComputedStyle(m).display : "none-el"; });
++console.log("more display", d, "rows", await n());
++await page.click(".datagrid-ext .datagrid-more-btn"); await page.waitForTimeout(1500);
++console.log("after click", await n());
++await close();
+diff --git a/public/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/node.jsonl b/public/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/node.jsonl
+new file mode 100644
+index 000000000..035c29ba7
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/node.jsonl
+@@ -0,0 +1 @@
++{"sessions":8729,"median_ms":1.43,"heap_before_mb":5.2,"heap_after_mb":20.6,"at":"2026-10-12T21:18:37.749Z"}
+diff --git a/public/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/node.mjs b/public/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/node.mjs
+new file mode 100644
+index 000000000..ef4de7856
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/node.mjs
+@@ -0,0 +1,15 @@
++// node node.mjs - Query.run over every session in memory (median of 20) and heap, from the main tree's snapshots
++import fs from "node:fs"; import path from "node:path";
++import AISessionIndex from "../../../../../../../../../../../public/framework/ai/AISession/AISessionIndex.mjs";
++import Query from "../../../../../../../../../../../public/framework/ext/Query/Query.js";
++const h0 = process.memoryUsage().heapUsed;
++const ix = new AISessionIndex({ root: "C:/Code/lew42/monorepo/public/framework/ai/sessions", base: "C:/nonexistent" });
++await ix.load();
++global.gc?.(); const h1 = process.memoryUsage().heapUsed;
++const q = new Query({ where: [{ field: "last_activity", op: "gte", value: "2026-10-01T00:00:00" }, { fields: ["title", "agent", "id", "folder", "model"], op: "contains", value: "session" }], sort: { by: "usd", dir: "desc" }, sum: ["usd", "tokens"], limit: 50 });
++const t = [];
++for (let i = 0; i < 20; i++) { const s = performance.now(); q.run(ix.snaps.values()); t.push(performance.now() - s); }
++t.sort((a, b) => a - b);
++const rec = { sessions: ix.snaps.size, median_ms: +t[10].toFixed(2), heap_before_mb: +(h0 / 1048576).toFixed(1), heap_after_mb: +(h1 / 1048576).toFixed(1), at: new Date().toISOString() };
++fs.appendFileSync("node.jsonl", JSON.stringify(rec) + "\n"); console.log(rec);
++process.exit(0);
+diff --git a/public/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/perf.mjs b/public/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/perf.mjs
+new file mode 100644
+index 000000000..8557d9bb7
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/perf.mjs
+@@ -0,0 +1,66 @@
++// Sessions page perf: node perf.mjs <base-url> <label> [?query] [widths]
++// Same measurement before and after the DataGrid move. Appends to results.jsonl beside this file.
++import fs from "node:fs";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++import { browser, close } from "../../../../../../../../../../../Server/browser.mjs";
++
++const ROW_SELECTORS = ["a.sessions-row", ".datagrid-card"];   // a drawn session row (table) or card (rail); the header row is not one
++const WIDTHS = (process.argv[5] || "400,1920").split(",").map(Number);   // e.g. "400,1920"
++const here = path.dirname(fileURLToPath(import.meta.url));
++const base = (process.argv[2] || "http://monorepo.localhost").replace(/\/$/, "");
++const label = process.argv[3] || "run";
++const query = process.argv[4] || "";   // e.g. "?view=rail"
++const sel = ROW_SELECTORS.join(",");
++
++const b = await browser();
++for (const width of WIDTHS) {
++	const ctx = await b.newContext({ viewport: { width, height: 900 } });
++	const page = await ctx.newPage();
++	await page.addInitScript(() => {
++		window.__lt = [];
++		new PerformanceObserver(l => { for (const e of l.getEntries()) window.__lt.push(e.duration); }).observe({ type: "longtask", buffered: true });
++	});
++	const cdp = await ctx.newCDPSession(page);
++	await cdp.send("Network.enable");
++	let ws_bytes = 0;
++	cdp.on("Network.webSocketFrameReceived", e => { ws_bytes += (e.response.payloadData || "").length; });
++	const t0 = Date.now();
++	await page.goto(`${base}/framework/ai/sessions/${query}`, { waitUntil: "commit" });
++	await page.waitForSelector(sel, { timeout: 60000, state: "attached" });   // attached, not visible: a table row is display: contents
++	const first_row_ms = Date.now() - t0;
++	await page.waitForTimeout(1500);
++	const m = await page.evaluate((sel) => ({
++		long_tasks: window.__lt.length,
++		long_ms: Math.round(window.__lt.reduce((a, b) => a + b, 0)),
++		dom_nodes: document.getElementsByTagName("*").length,
++		rows: document.querySelectorAll(sel).length,
++		transfer_kb: Math.round(performance.getEntriesByType("resource").reduce((a, e) => a + (e.transferSize || 0), 0) / 1024),
++		heap_mb: performance.memory ? +(performance.memory.usedJSHeapSize / 1048576).toFixed(1) : null,
++	}), sel);
++	const before_scroll = m.long_ms;
++	await page.evaluate(() => {   // the biggest scrollable element, else the window
++		let best = null, size = 0;
++		for (const el of document.querySelectorAll("*")) {
++			const o = getComputedStyle(el).overflowY;
++			if ((o === "auto" || o === "scroll") && el.scrollHeight > el.clientHeight + 20 && el.scrollHeight > size) { best = el; size = el.scrollHeight; }
++		}
++		window.__scroller = best;
++	});
++	for (let i = 1; i <= 10; i++) {
++		await page.evaluate((f) => {
++			const s = window.__scroller;
++			if (s) s.scrollTop = (s.scrollHeight - s.clientHeight) * f;
++			else window.scrollTo(0, (document.documentElement.scrollHeight - innerHeight) * f);
++		}, i / 10);
++		await page.waitForTimeout(150);
++	}
++	await page.waitForTimeout(500);
++	const total_ms = await page.evaluate(() => Math.round(window.__lt.reduce((a, b) => a + b, 0)));
++	const rec = { label, width, first_row_ms, ...m, ws_kb: Math.round(ws_bytes / 1024), scroll_long_ms: total_ms - before_scroll, at: new Date().toISOString() };
++	await page.screenshot({ path: path.join(here, `${label}-${width}.png`) });
++	fs.appendFileSync(path.join(here, "results.jsonl"), JSON.stringify(rec) + "\n");
++	console.log(JSON.stringify(rec));
++	await ctx.close();
++}
++await close();
+diff --git a/public/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/proof-1920.png b/public/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/proof-1920.png
+new file mode 100644
+index 000000000..f97c5abe5
+Binary files /dev/null and b/public/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/proof-1920.png differ
+diff --git a/public/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/proof-400.png b/public/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/proof-400.png
+new file mode 100644
+index 000000000..fc61d9783
+Binary files /dev/null and b/public/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/proof-400.png differ
+diff --git a/public/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/results.jsonl b/public/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/results.jsonl
+new file mode 100644
+index 000000000..0b9b0557b
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/results.jsonl
+@@ -0,0 +1,6 @@
++{"label":"before","width":400,"first_row_ms":952,"long_tasks":2,"long_ms":125,"dom_nodes":2889,"rows":45,"transfer_kb":4647,"heap_mb":84.1,"ws_kb":976,"scroll_long_ms":0,"at":"2026-10-12T21:10:44.580Z"}
++{"label":"before","width":1920,"first_row_ms":4163,"long_tasks":8,"long_ms":636,"dom_nodes":2889,"rows":45,"transfer_kb":4647,"heap_mb":65.8,"ws_kb":977,"scroll_long_ms":0,"at":"2026-10-12T21:10:52.569Z"}
++{"label":"after","width":400,"first_row_ms":1167,"long_tasks":1,"long_ms":52,"dom_nodes":2713,"rows":50,"transfer_kb":3174,"heap_mb":17.4,"ws_kb":630,"scroll_long_ms":0,"at":"2026-10-12T21:18:12.197Z"}
++{"label":"after","width":1920,"first_row_ms":1218,"long_tasks":1,"long_ms":53,"dom_nodes":2713,"rows":50,"transfer_kb":3174,"heap_mb":17.8,"ws_kb":631,"scroll_long_ms":0,"at":"2026-10-12T21:18:17.173Z"}
++{"label":"after-files","width":400,"first_row_ms":1155,"long_tasks":1,"long_ms":51,"dom_nodes":2627,"rows":50,"transfer_kb":3485,"heap_mb":34.1,"ws_kb":984,"scroll_long_ms":0,"at":"2026-10-12T21:18:24.145Z"}
++{"label":"after-files","width":1920,"first_row_ms":1270,"long_tasks":0,"long_ms":0,"dom_nodes":2627,"rows":50,"transfer_kb":3484,"heap_mb":32.5,"ws_kb":980,"scroll_long_ms":0,"at":"2026-10-12T21:18:29.177Z"}
+diff --git a/public/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/serve.mjs b/public/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/serve.mjs
+new file mode 100644
+index 000000000..3416425db
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/serve.mjs
+@@ -0,0 +1,8 @@
++// node serve.mjs <port> - a PRIVATE dev server from this worktree with the session tailer on (SESSION_TAIL=1), detached. Same pattern as Server/session-latency.mjs.
++import { spawn } from "node:child_process";
++import fs from "node:fs";
++const port = process.argv[2] || "8461", repo = process.cwd();
++const out = fs.openSync(".priv.out", "w");
++const c = spawn(process.execPath, ["server.js"], { cwd: repo, windowsHide: true, detached: true, stdio: ["ignore", out, out], env: { ...process.env, PORT: port, SESSION_TAIL: "1", NO_PAGEFILES: "1", SESSION_ROOT: process.env.SESSION_ROOT || "" } });
++c.unref();
++console.log("pid", c.pid, "port", port);
+diff --git a/public/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/shot.mjs b/public/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/shot.mjs
+new file mode 100644
+index 000000000..acdc1455a
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/shot.mjs
+@@ -0,0 +1,17 @@
++// node shot.mjs <base> - screenshots /framework/ai/sessions/ at 400 and 1920, prints console errors and the first rows
++import { browser, close } from "../../../../../../../../../../../Server/browser.mjs";
++import path from "node:path"; import { fileURLToPath } from "node:url";
++const here = path.dirname(fileURLToPath(import.meta.url)), base = process.argv[2];
++const b = await browser();
++for (const width of [400, 1920]) {
++	const ctx = await b.newContext({ viewport: { width, height: 900 } }), page = await ctx.newPage(), errs = [];
++	page.on("console", m => { if (m.type() === "error" && !/404/.test(m.text())) errs.push(m.text()); }); page.on("pageerror", e => errs.push("pageerror " + e.message));
++	await page.goto(base + "/framework/ai/sessions/", { waitUntil: "commit" });
++	await page.waitForSelector("a.sessions-row, .datagrid-card", { timeout: 60000, state: "attached" });
++	await page.waitForTimeout(2500);
++	const info = await page.evaluate(() => ({ rows: document.querySelectorAll("a.sessions-row, .datagrid-card").length, counts: document.querySelector(".sessions-counts")?.textContent, asof: document.querySelector(".muted")?.textContent }));
++	await page.screenshot({ path: path.join(here, `proof-${width}.png`) });
++	console.log(width, JSON.stringify(info), "errors:", JSON.stringify(errs));
++	await ctx.close();
++}
++await close();
+diff --git a/public/framework/code/performance/doc/server-query.md b/public/framework/code/performance/doc/server-query.md
+new file mode 100644
+index 000000000..a52ef8d09
+--- /dev/null
++++ b/public/framework/code/performance/doc/server-query.md
+@@ -0,0 +1,16 @@
++# Server-side query: before and after (2026-10-12)
++
++The Sessions page can load from node, opt-in at [`?source=node`](/framework/ai/sessions/?source=node) until it matches the files view ([ext/Query](/framework/ext/Query/), [core/Page/doc/server.md](/framework/core/Page/doc/server.md)). Script and raw numbers: `measure/` in the [build folder](/framework/ai/sessions/2026/10/12/session-87bec773/server-query/build/measure/results.jsonl).
++
++| Run | Width | First row ms | Transfer KB | Socket KB | JS heap MB | Long tasks ms |
++|---|---|---|---|---|---|---|
++| before (main site, files) | 400 | 952 | 4,647 | 976 | 84 | 125 |
++| before (main site, files) | 1920 | 4,163 | 4,647 | 977 | 66 | 636 |
++| after (private server, remote) | 400 | 1,167 | 3,174 | 630 | 17 | 52 |
++| after (private server, remote) | 1920 | 1,218 | 3,174 | 631 | 18 | 53 |
++| after-files (same private server) | 400 | 1,155 | 3,485 | 984 | 34 | 51 |
++| after-files (same private server) | 1920 | 1,270 | 3,484 | 980 | 33 | 0 |
++
++**Fair reading:** the private worktree server lacks generated files the main site has, so compare the last two groups (same server): remote saves about 310 KB of transfer and 350 KB over the socket, and halves the JS heap. Time to first row is the same (about 1.2 s): the page is dominated by loading its own modules. The large before numbers (84 MB heap, 636 ms of long tasks) came from the main site and are not a like-for-like baseline.
++
++**Node:** one query over 8,729 sessions (date window, text search, sort, two sums) takes a median of 1.4 ms (20 runs); loading the index takes the heap from 5 to 21 MB. Screenshots at 400 and 1920 are `proof-400.png` and `proof-1920.png` in the build folder; no console errors apart from 404s for generated files missing in the worktree.
+diff --git a/public/framework/code/performance/readme.md b/public/framework/code/performance/readme.md
+index 78507ecaa..2cd4e40bb 100644
+--- a/public/framework/code/performance/readme.md
++++ b/public/framework/code/performance/readme.md
+@@ -31,5 +31,6 @@ A page should stay smooth with thousands of rows and multi-megabyte logs. The ru
+ ## More
+ 
+ - [doc/batching.md](doc/batching.md) — the measured comparison and the one helper (`Batch.js`).
++- [doc/server-query.md](doc/server-query.md) — the Sessions page asks node for its rows: before and after.
+ - [ai/sessions/doc/buckets.md](/framework/ai/sessions/doc/buckets.md) — condensing thousands of sessions.
+ - [/framework/servex/](/framework/servex/) — the machine-level monitor (CPU, RAM, processes) agents read through `system_health`.
+diff --git a/public/framework/core/Page/doc/architecture.md b/public/framework/core/Page/doc/architecture.md
+index 9d6e000cd..5e66a64fa 100644
+--- a/public/framework/core/Page/doc/architecture.md
++++ b/public/framework/core/Page/doc/architecture.md
+@@ -125,6 +125,10 @@ Each subclass names its own root folder and keeps its own `days`/`slugs` maps (s
+ of `AISession` (locate, scan, day, dir_url, slugs) moves up unchanged; `AISession` keeps the rest. Order: extract
+ `Session` first (done: [core/Session](../../Session/readme.md), commit 938b27dd0, by mastermind-ai-system), then `task-mastermind-refine-v3` builds `RefineSession` on it (not yet). `Session.Page` (the shared template) is not built: `AISessionDetail` still extends `Page` directly.
+ 
++## A Page on the server (2026-10-12)
++
++The data half of a page can live in node as a `QueryServer` source; see [server.md](server.md).
++
+ ## Open
+ 
+ - A session that has no folder yet: the tool makes one, but a tab already open on that session is not
+diff --git a/public/framework/core/Page/doc/server.md b/public/framework/core/Page/doc/server.md
+new file mode 100644
+index 000000000..3492648f1
+--- /dev/null
++++ b/public/framework/core/Page/doc/server.md
+@@ -0,0 +1,12 @@
++# A Page on the server (2026-10-12)
++
++Today a Page lives in the browser: it reads its files and draws. The Sessions page showed the cost: it loaded every day file and index into the browser to show 50 rows. The fix keeps the data in node and sends only the rows shown ([ext/Query](/framework/ext/Query/)).
++
++- **Where it is instantiated:** in the dev server, as a `QueryServer` source (`QueryServer.source("sessions", ...)` in `ai/AISession/AISessionTailer.mjs`). The browser Page stays; its data half is in node.
++- **When it fully loads:** on the first `query` for it (`source.load()`), once.
++- **When it unloads:** after `unload_after` (default 5 minutes) with no query and nobody watching, `source.unload()` drops it. Sessions has nothing to drop: the session index already holds every snapshot for the tailer, so a second copy is never made.
++- **First source:** Sessions. 8,729 snapshots; one query is a median of 1.4 ms ([numbers](/framework/code/performance/doc/server-query.md)).
++- **Next:** a source whose `load` replays a `page.jsonl` (the `page_read` path in `Servex/agents/page_tools.js`) and whose `unload` drops the state, so any live page can be queried the same way. Not built.
++- **Off the dev server** (production, static): no node, so the page reads its files as before.
++
++Design: [ext/Query/doc/architecture.md](/framework/ext/Query/doc/architecture.md).
+diff --git a/public/framework/core/Page/jsonl/part-link-demo/page.jsonl b/public/framework/core/Page/jsonl/part-link-demo/page.jsonl
+index 437ece023..51236be3c 100644
+--- a/public/framework/core/Page/jsonl/part-link-demo/page.jsonl
++++ b/public/framework/core/Page/jsonl/part-link-demo/page.jsonl
+@@ -5,3 +5,4 @@
+ {"file":"notes/page.jsonl"}
+ {"content":{"remove":"c2"}}
+ {"content":{"add":{"type":"part-link","id":"c2","path":"./notes/","title":"Notes worth a page","after":"c1"}}}
++{"file":"promoted.jsonl"}
+diff --git a/public/framework/core/Page/parts/page.jsonl b/public/framework/core/Page/parts/page.jsonl
+index 7c1689497..c0aec9cdb 100644
+--- a/public/framework/core/Page/parts/page.jsonl
++++ b/public/framework/core/Page/parts/page.jsonl
+@@ -25,3 +25,4 @@
+ {"file":"PageText.js"}
+ {"file":"PagePart.js","gone":true}
+ {"file":"PageText.js"}
++{"file":"PageLink.js"}
+diff --git a/public/framework/core/Page/readme.md b/public/framework/core/Page/readme.md
+index 6a728e2a2..455770c53 100644
+--- a/public/framework/core/Page/readme.md
++++ b/public/framework/core/Page/readme.md
+@@ -32,6 +32,8 @@ A page is a folder, and the folder is its storage:
+ - `page.jsonl` — a page written as a log: line 1 builds it, each later line is one change. Appending a line redraws every open tab, no reload.
+ - `files.jsonl` — the folder's own file list, kept by the dev server. (`directory.json`, the old whole-site list, is off: `Server/doc/directory-off.md`.)
+ 
++A Page whose data lives in node (a query source, loaded on first use, unloaded when idle): [`doc/server.md`](doc/server.md).
++
+ How a line travels from a writer to the screen, and who may write: [`doc/streaming.md`](doc/streaming.md).
+ The classes and the decisions (log growth, big collections, file vs database): [`doc/architecture.md`](doc/architecture.md).
+ **A page body as a list of parts** (heading, text, card; each one a line in `page.jsonl`): [`parts/`](parts/readme.md), [architecture](parts/doc/architecture.md). **Pages, content, parts: one way each, and the plan for `children` and `content`:** [`doc/content.md`](doc/content.md); step 1 built: [`doc/content-list-step-1.md`](doc/content-list-step-1.md).
+diff --git a/public/framework/ext/DataGrid/DataGridDrawer.js b/public/framework/ext/DataGrid/DataGridDrawer.js
+index 7089b70a5..5c90841bb 100644
+--- a/public/framework/ext/DataGrid/DataGridDrawer.js
++++ b/public/framework/ext/DataGrid/DataGridDrawer.js
+@@ -1,7 +1,7 @@
+ /* DataGridDrawer — what a drawer is: it draws the grid's current rows its own way
+  * (DataGridTable, DataGridRail). The shared part is paging: a variable-height list
+  * draws the first `page_size` rows, and the next page when a sentinel scrolls into view
+- * (or when "show more" is pressed). Doc: ext/DataGrid/doc/architecture.md. */
++ * (or when "show more" is pressed). Rows that live on a server: a page passes has_more() and load_more() and appends with set_rows(). Doc: ext/DataGrid/doc/architecture.md. */
+ export default class DataGridDrawer {
+ 
+ 	constructor(grid){
+@@ -36,7 +36,7 @@ export default class DataGridDrawer {
+ 	}
+ 
+ 	more(){
+-		if (this.shown >= this.rows.length) return;
++		if (this.shown >= this.rows.length) return this.more_remote();   // remote rows: the page appends the next page with set_rows()
+ 		const from = this.shown;
+ 		this.shown = Math.min(this.rows.length, from + this.grid.page_size);
+ 		this.$into.append(() => this.rows.slice(from, this.shown).forEach(r => this.draw_one(r)));
+@@ -47,7 +47,14 @@ export default class DataGridDrawer {
+ 		this.grid.changed();
+ 	}
+ 
++	/** The rows drawn are all there is here: if the page holds more elsewhere (has_more), it loads them (load_more appends with set_rows) and the next chunk is drawn. */
++	more_remote(){
++		if (!this.grid.has_more?.() || this.loading) return;
++		this.loading = true;
++		Promise.resolve(this.grid.load_more?.()).finally(() => { this.loading = false; if (this.shown < this.rows.length) this.more(); });
++	}
++
+ 	sync_more(){
+-		this.$more.el.style.display = this.shown < this.rows.length ? "" : "none";
++		this.$more.el.style.display = this.shown < this.rows.length || this.grid.has_more?.() ? "" : "none";
+ 	}
+ }
+diff --git a/public/framework/ext/Query/Query.js b/public/framework/ext/Query/Query.js
+new file mode 100644
+index 000000000..6451182a5
+--- /dev/null
++++ b/public/framework/ext/Query/Query.js
+@@ -0,0 +1,51 @@
++/* One query as plain JSON, run over an array of objects. Works in node and the browser (no imports).
++ * Doc: doc/architecture.md. Spec: { where: [{ field, op, value, fields? }], sort: { by, dir }, offset, limit, sum: [fields] }.
++ * ops: eq in gte lte contains (contains = case-insensitive substring over `field`, or over every name in `fields`). */
++export default class Query {
++
++	static OPS = {
++		eq: (v, w) => v === w,
++		in: (v, w) => Array.isArray(w) && w.includes(v),
++		gte: (v, w) => v != null && v >= w,
++		lte: (v, w) => v != null && v <= w,
++	};
++
++	constructor(spec = {}) {
++		this.where = spec.where ?? [];
++		this.sort = spec.sort ?? null;
++		this.offset = Math.max(0, spec.offset ?? 0);
++		this.limit = spec.limit ?? 50;
++		this.sum = spec.sum ?? [];
++		this.tests = this.where.map(w => Query.test(w));
++	}
++
++	/** A predicate for one `where` clause. */
++	static test({ field, fields, op, value }) {
++		if (op === "contains") {
++			const needle = String(value ?? "").toLowerCase(), names = fields ?? [field];
++			return item => !needle || names.some(n => item[n] != null && String(item[n]).toLowerCase().includes(needle));
++		}
++		const fn = Query.OPS[op];
++		if (!fn) throw new Error("Query: unknown op " + op);
++		return item => fn(item[field], value);
++	}
++
++	matches(item) { return this.tests.every(t => t(item)); }
++
++	/** `items` is any iterable. Returns { rows (the page), total (all matches), totals ({field: sum over ALL matches}), offset }. */
++	run(items) {
++		const hit = [];
++		for (const item of items) if (this.matches(item)) hit.push(item);
++		const totals = {};
++		for (const f of this.sum) totals[f] = hit.reduce((n, r) => n + (typeof r[f] === "number" ? r[f] : 0), 0);
++		if (this.sort?.by) {
++			const { by, dir } = this.sort, sign = dir === "asc" ? 1 : -1;
++			hit.sort((a, b) => {
++				const x = a[by], y = b[by];
++				if (x == null || y == null) return x == null ? (y == null ? 0 : 1) : -1;   // nulls last either way
++				return (x < y ? -1 : x > y ? 1 : 0) * sign;
++			});
++		}
++		return { rows: hit.slice(this.offset, this.offset + this.limit), total: hit.length, totals, offset: this.offset };
++	}
++}
+diff --git a/public/framework/ext/Query/QueryClient.js b/public/framework/ext/Query/QueryClient.js
+new file mode 100644
+index 000000000..0ea68784a
+--- /dev/null
++++ b/public/framework/ext/Query/QueryClient.js
+@@ -0,0 +1,36 @@
++import Socket from "/framework/dev/Socket/Socket.js";
++
++/* The browser half of ext/Query: asks the dev server (QueryServer.mjs) one query over the socket and hands back the page of rows.
++ *   const q = new QueryClient("sessions", { row: (qid, item) => …, stale: qid => … });
++ *   const res = await q.ask({ where, sort, offset, limit, sum });   // { rows, total, totals, offset, qid, ms } or { error }
++ * The server then pushes `query_row` (a shown row changed) and `query_stale` (the page may have new matches) for the last qid. Doc: doc/architecture.md. */
++export default class QueryClient {
++
++	static current = null;
++	static counter = 0;
++
++	/** The dev socket, or null off localhost (a static host): the caller falls back to reading files. */
++	static socket() {
++		if (typeof location === "undefined" || !/^(localhost|127\.0\.0\.1|.*\.localhost)$/.test(location.hostname)) return null;
++		try { return Socket.singleton(); } catch { return null; }
++	}
++
++	constructor(source, { row, stale } = {}) {
++		this.source = source; this.on_row = row; this.on_stale = stale;
++		this.qid = 0;
++		QueryClient.current = this;
++	}
++
++	/** `more`: the next page of the same query (same qid); otherwise a fresh query. */
++	async ask(spec, { more = false } = {}) {
++		const socket = QueryClient.socket();
++		if (!socket) return { error: "no socket" };
++		if (!more) this.qid = ++QueryClient.counter + Date.now() % 1e6 * 1e3;
++		await Promise.race([socket.ready, new Promise(r => setTimeout(r, 1500))]);
++		const answer = await Promise.race([socket.request({ method: "query", args: [{ ...spec, source: this.source, qid: this.qid }] }), new Promise(r => setTimeout(() => r({ response: { error: "timeout" } }), 5000))]);
++		return answer?.response ?? { error: "no answer" };
++	}
++}
++
++Socket.prototype.query_row = function (qid, item) { const q = QueryClient.current; if (q?.qid === qid) q.on_row?.(item); };
++Socket.prototype.query_stale = function (qid) { const q = QueryClient.current; if (q?.qid === qid) q.on_stale?.(); };
+diff --git a/public/framework/ext/Query/QueryServer.mjs b/public/framework/ext/Query/QueryServer.mjs
+new file mode 100644
+index 000000000..ab138358f
+--- /dev/null
++++ b/public/framework/ext/Query/QueryServer.mjs
+@@ -0,0 +1,112 @@
++import Query from "./Query.js";
++
++/* The node half of ext/Query: a registry of named SOURCES (each holds items in memory) and a socket plugin that answers
++ * rpc:query for them and keeps each browser's shown page current. Doc: doc/architecture.md, core/Page/doc/server.md.
++ *   QueryServer.source("sessions", { load, items, on, unload, unload_after, available })
++ *     load()          async; run on the first query, never again while loaded
++ *     items()         an iterable of plain objects (each with an `id`)
++ *     on(fn)          subscribe to changes: fn(item, changed, before); returns the unsubscribe
++ *     unload()        drop what load() built (optional); runs after `unload_after` ms (default 5 min) with no query and no watcher
++ *     available()     false = answer { error: "no source" } (optional) */
++export default class QueryServer {
++
++	static sources = new Map();
++	static STALE_MS = 1000;
++	static counter = 0;
++
++	static source(name, def) {
++		const src = new QueryServer.Source(name, def);
++		QueryServer.sources.set(name, src);
++		return src;
++	}
++
++	static setup(socket) { new QueryServer(socket); }
++
++	constructor(socket) {
++		this.socket = socket;
++		this.last = null;       // { qid, src, query, ids:Set } - the one query this browser is showing
++		this.src = null; this.off = null;
++		this.stale_at = 0; this.stale_timer = null;
++		socket.on("rpc:query", (args, index) => this.answer(args?.[0] ?? {}, index));
++		socket.on("closed", () => this.close());
++	}
++
++	async answer(spec, index) {
++		const t0 = performance.now(), src = QueryServer.sources.get(spec.source);
++		if (!src || src.available?.() === false) return this.socket.send({ response: { error: "no source", source: spec.source }, index });
++		try {
++			await src.ensure();
++			const query = new Query(spec), res = query.run(src.items());
++			const same = this.last?.qid === spec.qid && this.last?.src === src;
++			const qid = spec.qid ?? ++QueryServer.counter;
++			const ids = same ? this.last.ids : new Set();
++			res.rows.forEach(r => ids.add(r.id));
++			this.last = { qid, src, query, ids };
++			this.watch(src);
++			this.socket.send({ response: { ...res, qid, ms: +(performance.now() - t0).toFixed(1) }, index });
++		} catch (e) {
++			this.socket.send({ response: { error: e.message }, index });
++		}
++	}
++
++	/** One change listener per browser, on the source it last asked. */
++	watch(src) {
++		if (this.src === src) return;
++		this.close();
++		this.src = src;
++		this.off = src.subscribe(item => this.changed(item));
++	}
++
++	changed(item) {
++		const last = this.last;
++		if (!last) return;
++		if (last.ids.has(item.id)) return this.socket.rpc("query_row", last.qid, item);
++		if (last.query.matches(item)) this.stale(last.qid);
++	}
++
++	/** query_stale at most once a second; the browser re-asks for its page. */
++	stale(qid) {
++		const wait = QueryServer.STALE_MS - (Date.now() - this.stale_at);
++		const send = () => { this.stale_timer = null; this.stale_at = Date.now(); this.socket.rpc("query_stale", this.last?.qid ?? qid); };
++		if (wait <= 0) return send();
++		this.stale_timer ??= setTimeout(send, wait);
++	}
++
++	close() {
++		this.off?.(); this.off = null; this.src = null;
++		clearTimeout(this.stale_timer); this.stale_timer = null;
++	}
++}
++
++/* One named source: loads on demand, unloads when idle. */
++QueryServer.Source = class Source {
++
++	constructor(name, { load, items, on, unload, unload_after = 5 * 60000, available }) {
++		Object.assign(this, { name, load, items, on, unload, unload_after, available });
++		this.loaded = null; this.watchers = 0; this.timer = null;
++	}
++
++	ensure() {
++		this.loaded ??= Promise.resolve(this.load?.());
++		this.idle();
++		return this.loaded;
++	}
++
++	/** (Re)start the idle clock; at the end, unload if nobody is watching. */
++	idle() {
++		clearTimeout(this.timer);
++		this.timer = setTimeout(() => {
++			if (this.watchers > 0) return this.idle();
++			this.loaded = null;
++			this.unload?.();
++		}, this.unload_after);
++		this.timer.unref?.();
++	}
++
++	subscribe(fn) {
++		this.watchers++;
++		const off = this.on?.(fn);
++		let done = false;
++		return () => { if (done) return; done = true; this.watchers--; off?.(); };
++	}
++};
+diff --git a/public/framework/ext/Query/check.mjs b/public/framework/ext/Query/check.mjs
+new file mode 100644
+index 000000000..40d5a584c
+--- /dev/null
++++ b/public/framework/ext/Query/check.mjs
+@@ -0,0 +1,28 @@
++// node check.mjs - assertions for Query
++import assert from "node:assert/strict";
++import Query from "./Query.js";
++
++const items = [
++	{ id: "a", title: "Fix Sessions", usd: 1.5, tokens: 10, day: "2026-10-01", state: "idle" },
++	{ id: "b", title: "grid paging", usd: 3, tokens: 20, day: "2026-10-05", state: "active" },
++	{ id: "c", title: null, usd: 0.5, tokens: 5, day: "2026-10-09", state: "idle", agent: "SESSIONS-bot" },
++	{ id: "d", title: "other", usd: 2, tokens: null, day: "2026-10-12", state: "idle" },
++];
++const run = spec => new Query(spec).run(items);
++const ids = r => r.rows.map(x => x.id).join("");
++
++assert.equal(run({}).total, 4);
++assert.equal(ids(run({ where: [{ field: "state", op: "eq", value: "active" }] })), "b");
++assert.equal(ids(run({ where: [{ field: "id", op: "in", value: ["a", "d"] }] })), "ad");
++assert.equal(ids(run({ where: [{ field: "day", op: "gte", value: "2026-10-05" }, { field: "day", op: "lte", value: "2026-10-09" }] })), "bc");
++assert.equal(ids(run({ where: [{ field: "title", op: "contains", value: "SESSIONS" }] })), "a");
++assert.equal(ids(run({ where: [{ fields: ["title", "agent"], op: "contains", value: "sessions" }] })), "ac");
++assert.equal(ids(run({ sort: { by: "usd", dir: "desc" } })), "bdac");
++assert.equal(ids(run({ sort: { by: "tokens", dir: "desc" } })), "bac" + "d");   // null last
++assert.equal(ids(run({ sort: { by: "tokens", dir: "asc" } })), "cabd");         // null last
++assert.deepEqual(run({ sum: ["usd", "tokens"] }).totals, { usd: 7, tokens: 35 });
++const page = run({ sort: { by: "usd", dir: "desc" }, offset: 1, limit: 2, sum: ["usd"] });
++assert.equal(ids(page), "da"); assert.equal(page.total, 4); assert.equal(page.totals.usd, 7); assert.equal(page.offset, 1);   // totals cover ALL matches, not the page
++assert.equal(run({ where: [{ field: "day", op: "gte", value: "2027" }] }).total, 0);
++assert.throws(() => new Query({ where: [{ field: "x", op: "nope" }] }));
++console.log("Query: all assertions passed");
+diff --git a/public/framework/ext/Query/doc/architecture.md b/public/framework/ext/Query/doc/architecture.md
+new file mode 100644
+index 000000000..ec7f86532
+--- /dev/null
++++ b/public/framework/ext/Query/doc/architecture.md
+@@ -0,0 +1,21 @@
++# Query: architecture and decisions (2026-10-12)
++
++Plan: [server-query plan](/framework/ai/sessions/2026/10/12/session-87bec773/server-query/plan.md). The ask: node holds the data, the browser receives only the rows it shows.
++
++| Class | Job |
++|---|---|
++| `Query` | one query as JSON; `run(items)` filters, sorts, slices and adds up |
++| `QueryServer` | registry of sources + the socket plugin (`rpc:query`) |
++| `QueryServer.Source` | one named source: `load` on the first query, `unload` after `unload_after` idle |
++| `QueryClient` | `ask(spec)` over the dev socket; hears `query_row` and `query_stale` |
++
++## Decisions
++
++1. **Data, not code.** The socket already carries `rpc:cmd`; sending a function to eval would widen it. A declarative query is loggable. Ops: `eq in gte lte contains`; `contains` is a case-insensitive substring over `field` or `fields: [...]`. Sort puts nulls last either way.
++2. **Load and unload belong to the source.** The sessions source loads by waiting for the index's `ready`, and its data stays (the tailer needs it), so its `unload` is a no-op. A source over a `page.jsonl` would replay it on `load` and drop it on `unload`: [core/Page/doc/server.md](/framework/core/Page/doc/server.md).
++3. **Live updates are scoped.** Each socket remembers its last query and the ids it showed. A shown id changing pushes `query_row(qid, row)`; a new match pushes `query_stale(qid)`, at most once a second, and the client asks again.
++4. **Stale answers.** A query keeps its `qid` for "next page" and "refresh"; a new filter or sort gets a new one. The Sessions page queues a new filter behind a page still in flight.
++
++## Known gaps in the Sessions remote mode (why it is opt-in, `?source=node`)
++
++Flat rows only: no buckets, no nesting under a parent, no role chips, no "show closed"; `needs attention` counts the flag count only (not session-record alerts). Source shows "VS Code" for every row (the snapshot has no source tag; the files path takes it from `sessions.json` and Servex's agent list). The cost total is every provider; the files path shows Claude only. Closing these means running `AISessionBuckets` and the nesting in node as a step after `Query.run`.
+diff --git a/public/framework/ext/Query/doc/files.jsonl b/public/framework/ext/Query/doc/files.jsonl
+new file mode 100644
+index 000000000..76e2a63e9
+--- /dev/null
++++ b/public/framework/ext/Query/doc/files.jsonl
+@@ -0,0 +1 @@
++{"file":"architecture.md"}
+diff --git a/public/framework/ext/Query/files.jsonl b/public/framework/ext/Query/files.jsonl
+new file mode 100644
+index 000000000..4998c4399
+--- /dev/null
++++ b/public/framework/ext/Query/files.jsonl
+@@ -0,0 +1,7 @@
++{"file":"check.mjs"}
++{"file":"doc/"}
++{"file":"page.js"}
++{"file":"Query.js"}
++{"file":"QueryClient.js"}
++{"file":"QueryServer.mjs"}
++{"file":"readme.md"}
+diff --git a/public/framework/ext/Query/page.js b/public/framework/ext/Query/page.js
+new file mode 100644
+index 000000000..0903ad8fa
+--- /dev/null
++++ b/public/framework/ext/Query/page.js
+@@ -0,0 +1,36 @@
++import { Doc, md, demo, pre, input } from "/app.js";
++import Query from "./Query.js";
++
++const items = [
++	{ id: "a", title: "Fix Sessions grid", usd: 1.5, day: "2026-10-01" },
++	{ id: "b", title: "grid paging", usd: 3, day: "2026-10-05" },
++	{ id: "c", title: "Docs sweep", usd: 0.5, day: "2026-10-09" },
++	{ id: "d", title: "Sessions perf", usd: 2, day: "2026-10-12" },
++];
++
++export default new Doc({
++	meta: import.meta,
++	title: "Query",
++	description: "A query as plain JSON, run over items in memory: filter, sort, one page, and totals over every match.",
++	icon: "manage_search",
++
++	subject: Query,
++	methods: "matches run",
++	files: "Query.js QueryServer.mjs QueryClient.js check.mjs page.js readme.md",
++
++	overview: [
++		{ title: "Spec in, result out", icon: "manage_search", description: "Type a word: the same spec the dev server receives runs here.", content(){
++			md(`Four items, searched with \`contains\` and sorted by cost.`);
++			demo(() => {
++				const out = pre();
++				const show = text => {
++					const spec = { where: [{ field: "title", op: "contains", value: text }], sort: { by: "usd", dir: "desc" }, limit: 2, sum: ["usd"] };
++					out.text(JSON.stringify(spec) + "\n\n" + JSON.stringify(new Query(spec).run(items), null, 1));
++				};
++				const box = input().attr("placeholder", "search the titles, e.g. sessions");
++				box.on("input", () => show(box.el.value));
++				show("");
++			});
++		} },
++	],
++});
+diff --git a/public/framework/ext/Query/readme.md b/public/framework/ext/Query/readme.md
+new file mode 100644
+index 000000000..f17865110
+--- /dev/null
++++ b/public/framework/ext/Query/readme.md
+@@ -0,0 +1,16 @@
++# Query — ask node for just the rows a page shows
++
++A query is plain JSON (`where`, `sort`, `offset`, `limit`, `sum`); node runs it over items it already holds in memory and sends back one page. Dev server only: a static host has no node, so a page falls back to reading files. Why and how: [doc/architecture.md](doc/architecture.md). Live demo: [the Query page](/framework/ext/Query/).
++
++- `Query.js` (node and browser) — `new Query(spec).run(items)` gives `{ rows, total, totals, offset }`. Ops: `eq in gte lte contains`.
++- `QueryServer.mjs` (node) — `QueryServer.source(name, { load, items, on, unload_after })`, and the socket plugin that answers `rpc:query` and pushes `query_row` / `query_stale`.
++- `QueryClient.js` (browser) — `new QueryClient("sessions", { row, stale }).ask(spec)`.
++- `check.mjs` — `node check.mjs`: the assertions.
++
++First user: the [Sessions page](/framework/ai/sessions/) (remote mode is opt-in at [`?source=node`](/framework/ai/sessions/?source=node) until it matches the files view: buckets, nesting, provider; gaps in doc/architecture.md). A node-side Page: [core/Page/doc/server.md](/framework/core/Page/doc/server.md). Numbers: [code/performance/doc/server-query.md](/framework/code/performance/doc/server-query.md).
++
++## Watch out
++
++- A query is data, never code: no function is ever sent to node.
++- `totals` cover ALL matches, not just the page.
++- A server with no source answers `{ error: "no source" }` (a worktree dev server has no session index): the caller must fall back.
+diff --git a/public/framework/ext/files.jsonl b/public/framework/ext/files.jsonl
+index 192c823fd..0919daa2f 100644
+--- a/public/framework/ext/files.jsonl
++++ b/public/framework/ext/files.jsonl
+@@ -109,3 +109,4 @@
+ {"file":"ErrorLog/page.js"}
+ {"file":"Figma/page.js"}
+ {"file":"System/page.js"}
++{"file":"Query/page.js"}
+diff --git a/public/framework/ext/page.js b/public/framework/ext/page.js
+index d7783ae6b..edf7ae32c 100644
+--- a/public/framework/ext/page.js
++++ b/public/framework/ext/page.js
+@@ -6,7 +6,7 @@ export default new Page({
+ 	label: "Extensions",
+ 	description: "Opt-in addons. They may extend core; core never depends on them.",
+ 	icon: "extension",
+-	children: "Classify markdown demo highlight filesystem files toc Doc tabs catalog layout drawer grip Dropdown Omnibox depth DesignTool Saver Draggable editor Panel panel2 Timeline AITask JSONL Research Ask Chat Collab Refine ErrorLog Session Mention sprawl Figma System",
++	children: "Classify markdown demo highlight filesystem files toc Doc tabs catalog layout drawer grip Dropdown Omnibox depth DesignTool Saver Draggable editor Panel panel2 Query Timeline AITask JSONL Research Ask Chat Collab Refine ErrorLog Session Mention sprawl Figma System",
+ 
+ 	content(){
+ 
+diff --git a/public/framework/ext/readme.md b/public/framework/ext/readme.md
+index cd130d9f4..50f953d5d 100644
+--- a/public/framework/ext/readme.md
++++ b/public/framework/ext/readme.md
+@@ -16,6 +16,7 @@
+ - [panel2](./panel2/) — header/main/footer chrome you ship: an optional sidebar that becomes a drawer, a resizable split, a dashboard grid
+ - [Research](./Research/) — a question dug by several minions into append-only files, rendered live with credence per claim
+ - [Saver](./Saver/) — `save` / `load` / `delete` over one write queue, for anything that persists JSON
++- [Query](./Query/) — ask node for just the rows a page shows: a query as JSON over in-memory sources (dev server)
+ - [Timeline](./Timeline/) — horizontal or vertical timeline for dated items
+ - [catalog](./catalog/) — `catalog()` rail and `browse()` wall of `previews()` — use it for an index page
+ - [demo](./demo/) — show the code and run it from one source — the site's example mechanism

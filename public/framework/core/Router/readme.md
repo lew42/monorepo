@@ -1,66 +1,33 @@
-# Router — design record
+# Router — everything between "a url changed" and "the DOM reflects it"; for anyone building a page or a link
 
-Everything between *"a url changed"* and *"the DOM reflects it"*.
+## Use
+```html
+<a href="/docs/intro/">Intro</a>
+```
+That is the whole API. Each url segment is one `page.child(name)`, a miss is an `import`, and a url the Router can't resolve is handed to the browser. It writes four classes — `.active-page`, `.active-ancestor`, `a.active`, `a.in-path` — and CSS does the rest.
 
-Each verdict below is the short form. The full reasoning lives in `./doc/`, one
-file per question, and the same files render as note pages under
-`/framework/core/Router/`. A verdict of *keep* is as valuable as a change — it
-stops the same idea being re-litigated.
+## Watch out
+- Every in-app click goes through the page that holds the link: `page.open_link(link)` returns the url, or nothing when the page showed it itself (a card swapping a doc in place): [/framework/core/Page/doc/open.md](/framework/core/Page/doc/open.md)
+- A click on a link to a `.md` file opens its rendered page (`<module>/md/…/`), not the raw file; `x.md?raw` still opens the file: [/framework/core/Page/doc/markdown.md](/framework/core/Page/doc/markdown.md)
+- Anchors rendered *after* a navigation never get `.active`/`.in-path` on their own — call `app.router.mark_links()` bare, as `ext/tabs` and `ext/catalog` do: [doc/marking.md](./doc/marking.md)
+- Removing the scroll reset in `activate()` looks safe (`scrollTop` clamps); it isn't: [doc/scroll-reset.md](./doc/scroll-reset.md)
+- A cross-page `#fragment` lands at the top — the target does not exist yet when `activate()` scrolls: [doc/fragment.md](./doc/fragment.md)
+- Styles and titles are awaited in `load()` so `activate()` stays synchronous for `startViewTransition()`: [doc/styles-loaded.md](./doc/styles-loaded.md)
+- Constructing a Router starts it; a second one navigates every click twice, and two fast clicks race — known, unguarded: [doc/constructor.md](./doc/constructor.md)
+- `redirect()` / `Router.enter()` were backed out — two live urls for one state: [doc/backed-out.md](./doc/backed-out.md)
 
-## Decisions
+## More
+- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
+- [Overview](/framework/core/Router/) — the walk, the four classes, live anchors.
+- [doc/decisions.md](./doc/decisions.md) — the record: why a Router, verdicts, proposals, open items.
+- [doc/registry-gate.md](./doc/registry-gate.md) — optimistic interception: load first, push second.
+- [doc/chain-diff.md](./doc/chain-diff.md) — a navigation touches only the difference between two chains.
+- [doc/marking.md](./doc/marking.md) — the classes, scoped to `$app`; unmarks only what it marked.
+- [doc/navigated.md](./doc/navigated.md) — `app.navigated?.(page, from)`; why no `page.entered`.
+- [doc/measured.md](./doc/measured.md) — 0.2ms warm navigation; the serial walk's cost.
+- Members: `doc/method/<name>.md`, `doc/property/<name>.md`, `doc/file/<path>.md` — rendered under the source by `Doc`.
+- Files: `Router.js` (the class), `listing.js` (the one folder listing for routing: `names(dir)` asks the dev server's `/api/folder-names` synchronously, `has(url)` and `is_record_folder(url)` build on it; a page's `route(sub)` uses them so it probes no file that may be missing — `AITask` and `TaskPage` open step folders this way), `page.js` (the Doc index), `doc/` (one topic each).
 
-**Why a Router at all, when `App` used to do this?** The moment resolving a
-segment can `await` an import, it stopped being boot logic. App keeps boot and
-the one container; Router keeps the url — that is the whole split, and why `App`
-no longer has a `load_page`.
+## Notes from your asks
 
-**How does a click know a url is real before navigating?** It can't — a registry
-can only contain imported pages, which are exactly the ones laziness avoids
-importing. Verdict: optimistic interception — load first, push second, hand a
-genuine miss to the browser. See ./doc/registry-gate.md.
-
-**What does a navigation touch?** Only the difference between the two chains:
-deactivate deepest-first, activate shallowest-first, shared leading pages never
-touched — so a sidebar built by an ancestor is not rebuilt and does not flicker.
-See ./doc/chain-diff.md.
-
-**What does the Router write to the DOM?** Two classes (`.active-page`,
-`.active-ancestor`) and a link pass (`.active`, `.in-path`); every arrangement is
-CSS a page opted into. Scoped to `$app`, never `document`. See ./doc/marking.md.
-
-**Why await styles and titles in `load()`, not one line later in `activate()`?**
-`activate()` must stay synchronous so a site can wrap the swap in
-`document.startViewTransition()`; `allSettled`, so a broken child or a 404'd
-stylesheet costs a warning, not every later navigation. See ./doc/styles-loaded.md.
-
-**One post-navigation hook or two?** `app.navigated?.(page, from)` — built.
-`page.entered?.()` — refused: a page is `display: none` until `mark()` runs, and
-merging two different subjects produces one method with a flag. See
-./doc/navigated.md.
-
-**Why reset scroll on navigate, when removing it looks safe?** The browser clamps
-`scrollTop`, so short pages self-correct and hide the bug; `.closest(".pages")`
-because the region scrolls, not the page. No per-url scroll memory — Back lands
-at the top too. See ./doc/scroll-reset.md.
-
-**`redirect()` and `Router.enter()`?** Backed out — both existed to pay for one
-layout's convenience. If a real need returns it is "redirect, not alias": two
-live urls for one state breaks the url→state encoding. See ./doc/backed-out.md.
-
-## Measured
-
-Warm navigation 0.2ms median; `mark()` 89µs over 49 anchors; the serial walk is
-RTT + 16ms per segment and cannot be parallelised blindly — a segment's children
-are unknown until its module has run. Full numbers: ./doc/measured.md.
-
-## Open
-
-- **No in-flight guard.** Two fast clicks start two walks; the slower one can win.
-  Asked for by three seats. Unfixed because the correct behaviour isn't obvious —
-  cancel the first, ignore the second, or let the last win.
-- **The query string is dropped on a click.** `go()` pushes `link.pathname`.
-  Asked for by three seats.
-- **First paint waits for the whole walk.** Nothing paints until every loader
-  resolves; the chrome could have painted 1765ms earlier on a measured deep link.
-  Kept deliberately — an empty tab bar is the bug `tabs()` was changed to avoid —
-  but it is not free and should stop being described as if it were.
+- New things get a URL so they can be linked, unless that would duplicate data or break a coding rule. ([your words](/framework/ai/sessions/7efd07d5-7a58-434d-8847-1a1d7b640390/?tab=coverage#p603), 2026-10-09)

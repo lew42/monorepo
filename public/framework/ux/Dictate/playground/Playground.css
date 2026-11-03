@@ -1,0 +1,184 @@
+/* ux/Dictate/playground — the widget's own look. Layout is plain framework.css
+ * utilities (flex, gap, wrap, muted); this file is the rest: a bigger, always-visible
+ * level meter, a plain tab strip (not ext/tabs — this widget is ONE page's worth of
+ * DOM that never re-renders when a tab is picked, only shows/hides; doc/decisions.md),
+ * the code-font transcript box, the strike/add diff colours, and the Live tab's
+ * fade-then-collapse. */
+@layer theme {
+
+	/* `wide` (JS) opts the widget out of the page's default 40em reading measure. Below
+	 * the 1200px full-bleed breakpoint (just underneath) this still caps the widget at a
+	 * readable 60em, same as always. AT or above it, the full-bleed grid (below) needs
+	 * the whole `full` page track, so the cap lifts — a desktop reader gets the "lots of
+	 * space" the owner asked for, not a 60em column with grey on both sides of it. */
+	.ux-dictate-pg { max-width: 60em; }
+	@media (min-width: 1200px){ .ux-dictate-pg { max-width: none; } }
+
+	.ux-dictate-pg-sample { white-space: nowrap; }
+
+	/* The mic's own small caption (settled/partial text beside the button) would just
+	 * repeat the Raw panel below it — this widget IS that caption, at full size. */
+	.ux-dictate-pg-mic .ux-dictate-caption { display: none; }
+
+	/* ---- audio source panel: mic name, picker, and its own bigger meter ----- */
+
+	.ux-dictate-pg-audio-label, .ux-dictate-pg-meter-label { white-space: nowrap; }
+	.ux-dictate-pg-meter-label { font-size: .85em; }
+
+	/* A SEPARATE bar from the mic button's own tiny one (the owner: "larger" —
+	 * `Dictate.css`'s `.ux-dictate-level` is 3px wide and lives beside the icon,
+	 * too small to read as "the audio source panel"). Same signal, though: both
+	 * read the identical smoothed number, `Dictate`'s `on_meter()` hook — one
+	 * loudness calculation, two bars. Visible and FLAT at idle (`--ux-dictate-pg-level`
+	 * defaults to 0, set only while `Dictate` is actually listening) — never
+	 * invisible, so "is this even wired up" never has to be guessed.
+	 * ⚠ `--wash`/`--line` alone (8%/15% opacity) blended into the page at idle and read
+	 * as nothing at all, not a meter — a fresh review found it invisible in every
+	 * screenshot at every width. A darker mixed-in track and a plainly-visible border
+	 * fix that; the "level" label beside it (JS) removes any doubt further. */
+	.ux-dictate-pg-meter {
+		inline-size: 10em; block-size: 1.6em; border-radius: .3em; flex: none; overflow: hidden;
+		background: color-mix(in srgb, var(--ink) 10%, var(--wash));
+		border: 1px solid color-mix(in srgb, var(--ink) 35%, var(--line));
+	}
+	.ux-dictate-pg-meter-fill {
+		block-size: 100%; background: var(--prime);
+		inline-size: calc(var(--ux-dictate-pg-level, 0) * 100%);
+		transition: inline-size 80ms linear;
+	}
+
+	.ux-dictate-pg-status { font-style: italic; }
+	.ux-dictate-pg-status:empty { display: none; }
+
+	.ux-dictate-pg-note { font-size: .9em; }
+	.ux-dictate-pg-level-row { font-size: .9em; }
+
+	/* ---- Chunks: every Whisper resend as its own row (4a) --------------------- */
+	.ux-dictate-pg-chunk-row { padding-block: .15em; align-items: baseline; }
+	.ux-dictate-pg-chunk-seg, .ux-dictate-pg-chunk-ms { white-space: nowrap; font-size: .85em; }
+	.ux-dictate-pg-cut { padding-block: .3em; font-style: italic; border-block-end: 1px dashed var(--line); }
+
+	/* ---- Side: raw and revised in two plain columns (4b) ---------------------- */
+	.ux-dictate-pg-side-row { align-items: start; padding-block: .3em; border-block-end: 1px solid var(--line); }
+	.ux-dictate-pg-side-row .ux-dictate-pg-break { grid-column: 1 / -1; }
+	.ux-dictate-pg-side-raw { color: var(--muted); }
+
+	/* ---- the tab strip — quiet, the same shape ext/tabs draws (its own doc), ---
+	   just not ext/tabs itself: every panel below is ALREADY built and mounted, so
+	   picking a tab only shows/hides — nothing here is a Page and nothing re-renders. */
+	.ux-dictate-pg-tabs { display: flex; gap: 1.2em; border-bottom: 1px solid var(--line); }
+	.ux-dictate-pg-tab {
+		padding-block: .5em; border-bottom: 2px solid transparent; text-decoration: none;
+	}
+	.ux-dictate-pg-tab.active { font-weight: 600; border-color: var(--prime); }
+
+	/* ---- the panels, and the full-bleed 2D layout (minion-part2) -------------- */
+
+	/* Below 1200px these are plain blocks — exactly the old single `.ux-dictate-pg-
+	 * panels` wrapper this replaced, just split into two (the main five panels, and
+	 * the four debug ones). Every panel inside still shows/hides one at a time via its
+	 * own `[hidden]` attribute, set by `select_tab()` — nothing about narrow-mode
+	 * behavior changed; this is the "stack with tabs" the owner said is fine on
+	 * mobile. */
+	.ux-dictate-pg-grid, .ux-dictate-pg-debug-row { padding-block-start: .8em; }
+
+	/* At ≥1200px: the owner's own full-bleed, 2D desktop layout. **Explicit tracks, not
+	 * `auto-fit`** — the `layout` skill's own rule: a FIXED, known count (five named
+	 * panels here, never a variable one) wants the counts written out, not left to
+	 * `auto-fit`'s own guess. (`auto-fit` was tried first and wrapped the 5th column,
+	 * Structure, onto an unpredictable second row at in-between widths — fixed here.)
+	 * None of `core/Layout`'s 30 approved arrangements is an unequal-width row of named
+	 * panels either, so this is a new shape, logged as a `decision` (C5) rather than
+	 * invented silently. `[hidden]` is overridden on every child so ALL FIVE main
+	 * panels — Raw, Clean, Analysis, Chat, Structure — show AT ONCE regardless of which
+	 * tab is "active"; the debug row does the same for its four. With everything always
+	 * visible, the tab strip has nothing left to pick between, so it hides — see the
+	 * SEPARATE `@layer util` rule below this block for why that one line can't live
+	 * here. */
+	@media (min-width: 1200px){
+		/* Four even columns (Raw, Clean, Analysis, Chat), then one double-wide one —
+		 * "a wider structure panel," the owner's own phrase. */
+		.ux-dictate-pg-grid {
+			display: grid;
+			grid-template-columns: repeat(4, minmax(12em, 1fr)) minmax(20em, 2fr);
+			align-items: start;
+			gap: var(--gap);
+			padding-block-start: 0;
+		}
+		.ux-dictate-pg-debug-row {
+			display: grid;
+			grid-template-columns: repeat(4, minmax(14em, 1fr));
+			align-items: start;
+			gap: var(--gap);
+			padding-block-start: 0;
+		}
+		/* The floor half of "every track needs a floor and a ceiling" (`layout` skill) —
+		 * without it a long raw sentence with no natural break (Raw/Chunks) pushes its
+		 * own grid track wider than its `minmax()`, instead of wrapping inside it. */
+		.ux-dictate-pg-grid > *, .ux-dictate-pg-debug-row > * { min-width: 0; }
+		/* Un-hides a `[hidden]` panel — normal cascade, no `!important` needed: this
+		 * selector (one class + child combinator + attribute) outranks the UA
+		 * stylesheet's own bare `[hidden] { display: none }`. */
+		.ux-dictate-pg-grid > [hidden], .ux-dictate-pg-debug-row > [hidden] { display: block; }
+	}
+
+	.ux-dictate-pg-code, .ux-dictate-pg-diff {
+		font-family: var(--mono);
+		font-size: .95em;
+		white-space: pre-wrap;
+		background: var(--code-bg, var(--wash));
+		color: var(--code-ink, inherit);
+		border-radius: var(--radius, .4em);
+		padding: 1em;
+		min-height: 6em;
+	}
+
+	.ux-dictate-pg-line { padding-block: .15em; }
+	.ux-dictate-pg-break { block-size: 1em; }   /* the blank line a long pause earns */
+
+	.ux-dictate-pg-guess { font-style: italic; }
+	.ux-dictate-pg-guess:empty { display: none; }
+
+	/* The one line an empty panel shows until its first real chunk — plain prose, not
+	 * code, so it doesn't read as part of the transcript it's explaining. */
+	.ux-dictate-pg-empty { font-family: initial; white-space: normal; font-style: italic; }
+
+	/* Flat, not `light-dark()` — same reason `--code-ink`/`--syn-*` are flat in
+	 * lew42.css: this box (`--code-bg`) is dark in BOTH colour modes, but `--error`/
+	 * `--ok` follow the PAGE's mode, so in light mode they resolved to their light
+	 * variants (#c00, #15803d) — too dark to read on a dark ground. A review caught
+	 * "so um", "uh" and "the" barely visible in a light-mode screenshot. These two are
+	 * picked for exactly this dark ground, the same pair a GitHub dark diff uses. */
+	.ux-dictate-pg-strike { color: #ff7b72; text-decoration: line-through; }
+	.ux-dictate-pg-add    { color: #7ee787; }
+
+	/* The Live panel's whole point: the marks dissolve, the clean words stay. The
+	 * FADE DURATION is set per element from JS (`Playground.FADE_MS`, one constant) —
+	 * this sheet only says WHAT transitions. `.ux-dictate-pg-faded` is added a frame
+	 * after the line first paints, so the browser has a starting state to transition
+	 * FROM. Fading `opacity` alone left the struck word's own WIDTH behind — a gap
+	 * exactly its size ("we should␣␣we should") that read as broken, not clean; JS
+	 * also sets `display: none` on each struck word once the fade finishes, which is
+	 * what actually closes that gap (a CSS-only collapse would have to animate
+	 * `inline-size` on an inline element, which does not exist to animate). */
+	.ux-dictate-pg-strike, .ux-dictate-pg-add { transition-property: opacity, color; transition-timing-function: ease-out; }
+	.ux-dictate-pg-faded .ux-dictate-pg-strike { opacity: 0; }
+	.ux-dictate-pg-faded .ux-dictate-pg-add { color: inherit; }
+}
+
+/* **This one rule has to live in `@layer util`, not `theme` above.** The tab strip's
+ * own div carries the `flex gap` UTILITY classes (`Playground.js`'s `widget()`) — and
+ * `styles/doc/cascade.md`'s own rule is exact: "`util` beats `theme` at any
+ * specificity — a component rule cannot win by adding classes, only by moving to
+ * `util` too." A `theme`-layer `display: none` here was silently losing to `util`'s
+ * `.flex { display: flex }` regardless of the media query (caught in a real 1920px
+ * screenshot — the tab strip stayed visible even with every panel already shown as a
+ * column). Same layer as `.flex`, equal specificity, and this file loads after
+ * framework.css, so normal source order decides it — no `!important`, which
+ * `cascade.md` calls "an escalation ratchet" (spend it once, every later page fighting
+ * this same div pays for it, not just this one). */
+@layer util {
+	@media (min-width: 1200px){
+		.ux-dictate-pg-tabs { display: none; }
+	}
+}

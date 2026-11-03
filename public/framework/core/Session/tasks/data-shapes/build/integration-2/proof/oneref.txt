@@ -1,0 +1,15 @@
+{
+ "file": "/framework/core/Session/tasks/data-shapes/build/integration-2/oneref-probe/session.jsonl",
+ "one_object": true,
+ "tool_change_seen_by_ref": "running",
+ "after_cap": {
+  "same_root": false,
+  "old_ref_state": "running",
+  "live_state": "paused",
+  "fresh_ref_is_live": true,
+  "old_ref_after_resolve": {
+   "same": true,
+   "state": "paused"
+  }
+ }
+}

@@ -1,0 +1,20 @@
+[
+{"id":"f40949f956","work":"no","reason":"An instruction to spawn Sonnet minions; the component system it asks for is built in the Figma file, not a repo file."},
+{"id":"ff2a721ea7","work":"no","reason":"A working-mode instruction (read the READMEs, study systems as mastermind); no deliverable."},
+{"id":"6892e9283b","work":"no","reason":"A read-first instruction for the Figma MCP folder; no file change."},
+{"id":"fd5d25ba1e","work":"no","reason":"A standing rule to document as you go; a habit, not one finishable change."},
+{"id":"b994cb4cf7","work":"no","reason":"A working-mode instruction (read the README, study ext/figma as mastermind); no deliverable."},
+{"id":"474fbb95ce","work":"no","reason":"An open 'consider' with no defined outcome; an opinion about a possible skill."},
+{"id":"c2c6b98de3","work":"no","reason":"A read-first instruction for the Figma MCP folder before new pulls; no file change."},
+{"id":"84f4503641","work":"no","reason":"A standing rule to document as work proceeds; a habit, not one finishable change."},
+{"id":"1ff76d4742","work":"no","reason":"A preference ('the owner likes') with no testable definition of the growth behaviour to keep."},
+{"id":"8deadbfe09","work":"no","reason":"A question: is a page template the right approach; a judgment for the owner, answered in chat or a note."},
+{"id":"f4bae9450f","work":"no","reason":"A question asking for judgment on layouts and the gray background; not a build."},
+{"id":"b0b6e0f747","work":"no","reason":"Phrased as 'consider building' the whole UI kit; an opinion, not a testable build."},
+{"id":"32eccca1d5","work":"no","reason":"A question about what the owner meant by 'Path' in a menu; only the owner can answer."},
+{"id":"9b5b62c3c9","work":"no","reason":"A question about how one sidebar entry is counted; the owner checks the menu directly."},
+{"id":"f2e46a694c","work":"no","reason":"A rule about how to answer (cite sources, no hallucination); met in the reply, not a repo file."},
+{"id":"edd2b6e042","work":"no","reason":"A question whether the agent can see the current Figma page; answered by a live check and chat, not a repo change."},
+{"id":"d5012b0af2","work":"no","reason":"An opinion on whether to keep using the Figma workflow for layout; a decision for the owner."},
+{"id":"8bb1e87196","work":"no","reason":"An opinion on whether reviewing fits Figma files; a decision for the owner, not a build."}
+]

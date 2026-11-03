@@ -1,0 +1,82 @@
+{
+  "modelA": "openai/gpt-6-luna",
+  "modelB": "claude-sonnet-5",
+  "compared": 5,
+  "avg_title_agreement": 0.42,
+  "avg_tag_agreement": 1,
+  "rows": [
+    {
+      "index": 0,
+      "titleA": "Main column",
+      "titleB": "Hamburger menu",
+      "title_agreement": 0,
+      "tagsA": [
+        "#Page",
+        "#Columns"
+      ],
+      "tagsB": [
+        "#Page",
+        "#Columns"
+      ],
+      "tag_agreement": 1
+    },
+    {
+      "index": 1,
+      "titleA": "Sessions",
+      "titleB": "Also, this sidebar drawer that has the AI tab and the sessions…",
+      "title_agreement": 0.09,
+      "tagsA": [
+        "#Page",
+        "#Panel"
+      ],
+      "tagsB": [
+        "#Page",
+        "#Panel"
+      ],
+      "tag_agreement": 1
+    },
+    {
+      "index": 2,
+      "titleA": "Hover effect",
+      "titleB": "Hover effect",
+      "title_agreement": 1,
+      "tagsA": [
+        "#Page",
+        "#Inbox"
+      ],
+      "tagsB": [
+        "#Page",
+        "#Inbox"
+      ],
+      "tag_agreement": 1
+    },
+    {
+      "index": 3,
+      "titleA": "Overview",
+      "titleB": "Storage approach",
+      "title_agreement": 0,
+      "tagsA": [
+        "#Page",
+        "#Item"
+      ],
+      "tagsB": [
+        "#Page",
+        "#Item"
+      ],
+      "tag_agreement": 1
+    },
+    {
+      "index": 4,
+      "titleA": "Recent improvements",
+      "titleB": "Recent improvements",
+      "title_agreement": 1,
+      "tagsA": [
+        "#Page"
+      ],
+      "tagsB": [
+        "#Page"
+      ],
+      "tag_agreement": 1
+    }
+  ]
+}

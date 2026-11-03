@@ -1,0 +1,939 @@
+diff --git a/public/framework/ext/drawer/rail.js b/public/framework/ext/drawer/rail.js
+index a08451a6..d0f90936 100644
+--- a/public/framework/ext/drawer/rail.js
++++ b/public/framework/ext/drawer/rail.js
+@@ -3,7 +3,7 @@ import Dictate from "/framework/ux/Dictate/Dictate.js";
+ import grip from "/framework/ext/grip/grip.js";
+ import floor from "/framework/ux/Dictate/floor.js";
+ import Widget from "/framework/ux/Dictate/Widget.js";
+-import chat, { ago } from "/framework/ux/Dictate/chat.js";
++import chat, { ago, new_session_button as chat_new_session_button } from "/framework/ux/Dictate/chat.js";
+ import DrawerInbox from "./inbox.js";
+ import { servex_url } from "/framework/dev/servex_url.js";
+ // A NAMESPACE import, not `{ start, say, nav, watch }` named ones — the resume
+@@ -1123,13 +1123,22 @@ export class DrawerRailSheetChat extends DrawerRailSheetPanel {
+ 		this.mount?.nav(drawer.page(), this.active_card()?.id ?? null);
+ 	}
+ 
+-	// "New session" — resets the ONE global conversation (`chat.js`'s own `reset()`);
+-	// every other open mount (the desktop drawer's AI tab, if it happens to be open in
+-	// another tab of the same browser… it cannot be, `sessionStorage` is per-tab, but a
+-	// second sheet open on the SAME tab would) clears together, because after this
+-	// there is only the one conversation again, empty until the next sentence.
+-	new_session(){
+-		chat.reset();
++	// THE SHARED BUTTON (item 3, one-dictation — "a New session button lives in
++	// chat.js, so every surface gets the same one"). `chat_new_session_button()`
++	// calls `this.mount.reset()` on click, which is exactly what this class's old
++	// `new_session()` override did by hand (`chat.reset()` — a `keep: true` mount's
++	// own `reset()` IS `chat.reset()`); that override is gone now, replaced by this
++	// one button method (`DrawerRailSheet.new_session()`, the CARD-page route, is
++	// untouched — a plain page's sheet never calls it). The sheet's own look
++	// (`rail.css`'s `.drawer-rail-sheet-link`) is kept by adding those classes onto
++	// the shared button, not by styling a second one.
++	new_session_button(){
++		// `() => this.mount`, not `this.mount` — this button is built in `render()`,
++		// before `show()`'s own `ensure_mount()` has built the mount at all; the thunk
++		// reads it fresh at click time instead of capturing `undefined` forever.
++		return chat_new_session_button(() => this.mount)
++			.ac("drawer-rail-sheet-link drawer-rail-sheet-new")
++			.attr("title", "Clear this sheet and start a fresh conversation");
+ 	}
+ }
+ 
+diff --git a/public/framework/ux/Dictate/Widget.css b/public/framework/ux/Dictate/Widget.css
+index b9c5f459..52a90e5d 100644
+--- a/public/framework/ux/Dictate/Widget.css
++++ b/public/framework/ux/Dictate/Widget.css
+@@ -73,58 +73,75 @@
+ 	 * (`ext/drawer/tabs/ai.js`, moved here round 3). */
+ 	.ux-dictate-widget-models { align-self: flex-end; gap: 0.4em; font-size: 0.9em; }
+ 
+-	/* THE COMPOSER ROW — the typed box, the mic button (`.ux-dictate`), Send stay on one
+-	 * row at every width; the live-guess caption and the optional extras (meter, picker,
+-	 * Sample) drop to their own line underneath, never between the box and Send.
+-	 * ⚠ `Dictate.js`'s own root (`.ux-dictate`, "flex v-center gap") wraps its button AND
+-	 * its caption as ONE composer child, not two. That one box's OWN width is computed
+-	 * from its children's unwrapped (max-content) size, caption included — so giving the
+-	 * caption `order`/`flex-basis: 100%` only reordered it INSIDE that inner box; the box
+-	 * itself still claimed the full button+caption width in the composer row, and Send
+-	 * still wrapped to a second line at 1920 (caught only by reading each composer
+-	 * child's own `getBoundingClientRect()` — the first shot looked right by eye, because
+-	 * a hidden caption with no live guess yet is invisible either way, before or after).
+-	 * `display: contents` would remove the box and let the trio's rules apply to the
+-	 * caption directly, but the element ALSO carries framework.css's own `.flex` utility
+-	 * class (`display: flex`), and a utility in `@layer util` always wins over a
+-	 * component's `@layer theme` rule regardless of selector specificity (`css` skill,
+-	 * rule 3) — so `display: contents` here is silently overridden back to `flex`.
+-	 * The fix that actually works: take the caption OUT of flex flow entirely with
+-	 * `position: absolute`, pinned under `.ux-dictate` by its own row (composer gets
+-	 * `position: relative` as the containing block). An absolutely positioned box
+-	 * contributes nothing to `.ux-dictate`'s width, so `.ux-dictate` shrinks to just its
+-	 * button and the trio's combined width (about 230px) stays well under even a
+-	 * 320px-wide card. */
+-	/* `gap: 0.4em`, not the `.gap` utility's `var(--gap)` — `--gap` is a PAGE-scale clamp
+-	 * (`css` skill: "a control or row keeps its own em"), and it measured 24.7px between
+-	 * just three small controls at a wide viewport — on its own enough to push Send onto
+-	 * a second line. `!important`: the composer's own markup (`Widget.js`) carries the
+-	 * `.gap` utility class directly, which lives in `@layer util` — a layer that beats
+-	 * ANY `@layer theme` rule regardless of specificity (`css` skill, rule 3), so a plain
+-	 * `gap: 0.4em` here is silently ignored, proven with a DOM-rect measurement after it
+-	 * had no effect. The skill's own sanctioned fix — drop the utility class from the
+-	 * markup — is a `Widget.js` edit, outside this brief's CSS-only fence; `!important` is
+-	 * the only lever left inside this one file. */
+-	.ux-dictate-widget-composer {
+-		position: relative; flex-wrap: wrap; gap: 0.4em !important; padding-block-end: 1.3em;
++	/* THE COMPOSER, TOP TO BOTTOM (item 4 + 5, one-dictation — the owner: the live
++	 * guess "renders like over the top of something else… the layout is broken"; the
++	 * typed box should be "full width… the send button could be below it"). The
++	 * composer is now a COLUMN: the typed buffer first, full width; the controls row
++	 * (mic, Send, the optional extras) underneath it. Nothing in this column is
++	 * `position: absolute` any more — every child, the live-guess caption included,
++	 * sits in normal flow, so the card's own height GROWS to fit it instead of the
++	 * guess painting on top of whatever comes next. */
++	.ux-dictate-widget-composer { padding-block-end: 0.3em; }
++
++	/* THE TYPED BUFFER — full width (the card's own `.pad` already gives it the "a
++	 * little side padding on mobile" the brief asks for; no separate rule needed here),
++	 * auto-height (`Widget.js`'s own `autosize()` sets `style.height` to the content's
++	 * `scrollHeight` on every keystroke), and `resize: none` so the browser's own
++	 * corner-drag handle — which would fight that auto-height — never shows. `rows="1"`
++	 * (the markup) plus this `min-block-size` is the empty box's own one-line height;
++	 * it only grows taller than that once there is more than one line typed. */
++	.ux-dictate-widget-input {
++		width: 100%; resize: none; overflow: hidden; box-sizing: border-box;
++		min-block-size: 2.4em; font: inherit; line-height: 1.35;
+ 	}
+-	/* `flex-basis: 0`, not `10em` — flex-wrap decides which line an item lands on using
+-	 * its BASIS, not its post-shrink size, so a 10em basis (160px) made the browser treat
+-	 * the box as "too wide" to share a line with the mic and Send even though `min-width:
+-	 * 8em` (128px) was all it would ever actually render at — Send kept landing on its own
+-	 * line at the drawer's ~250px width. `min-width` still floors the basis at 8em. */
+-	.ux-dictate-widget-input { flex: 1 1 0; min-width: 8em; }
++
++	/* THE CONTROLS ROW — mic, Send, and the optional extras (meter, picker, Sample),
++	 * below the typed buffer. `gap: 0.4em`, not the `.gap` utility's `var(--gap)` —
++	 * `--gap` is a PAGE-scale clamp (`css` skill: "a control or row keeps its own em"),
++	 * and it measured 24.7px between just three small controls at a wide viewport — on
++	 * its own enough to push Send onto a second line. `!important`: the row's own
++	 * markup (`Widget.js`) carries the `.gap` utility class directly, which lives in
++	 * `@layer util` — a layer that beats ANY `@layer theme` rule regardless of
++	 * selector specificity (`css` skill, rule 3), so a plain `gap: 0.4em` here would be
++	 * silently ignored. */
++	.ux-dictate-widget-controls { gap: 0.4em !important; }
+ 	.ux-dictate-widget-send { flex: 0 0 auto; }
+ 	.ux-dictate-widget-sample { flex: 0 0 auto; order: 10; }
+ 
+ 	/* `Dictate`'s own markup is [button][engine/status/countdown/caption] — a settled
+ 	 * sentence draws one `.ux-dictate-line` per line there, which is ALREADY this widget's
+ 	 * own bubble above; only the `.muted` one (the still-moving guess) stays visible, the
+-	 * exact trick `ext/drawer/rail.css` uses for the ✦ sheet so nothing paints twice. */
++	 * exact trick `ext/drawer/rail.css` uses for the ✦ sheet so nothing paints twice.
++	 *
++	 * THE FIX, ROUND 2 (mastermind review, 2026-10-01, from the owner's own shots — the
++	 * mic sat on its own row, apart from Send; the live guess and any error landed
++	 * BETWEEN the mic and Send instead of above the whole row). Round 1 only let the
++	 * info column wrap INSIDE `.ux-dictate`'s own little box — that box still sat as
++	 * ONE item among Send/meter/source, with its own separate width, which is exactly
++	 * why the mic ended up apart from Send instead of beside it.
++	 *
++	 * `display: contents` on `.ux-dictate` removes that box: its two real children —
++	 * the mic BUTTON and the INFO column (engine/status/countdown + the live caption,
++	 * all `Dictate.js`'s own, untouched) — become direct items of THIS row's own flex
++	 * layout, exactly as if `Widget.js` had built them here itself. The info column
++	 * gets `order: -1` and `flex: 1 1 100%`, so the row's own `wrap` forces it onto its
++	 * OWN full-width line, first — sitting right after the typed buffer, it reads as
++	 * the buffer's own continuation, above the second line below. That second line is
++	 * everything else — the button, then Send (tied at the default `order: 0`, so DOM
++	 * order wins: the button is built first), then the optional extras (already
++	 * `order: 10`) — one baseline, nothing wrapping beneath any single one of them.
++	 *
++	 * ⚠ `!important`, because `.ux-dictate` itself still carries the plain `.flex`
++	 * UTILITY class (`Dictate.js`'s own `this.ac("ux-dictate flex v-center gap")`),
++	 * and `.flex { display: flex }` lives in `@layer util` — a layer that beats ANY
++	 * `@layer theme` rule regardless of selector specificity (`css` skill, rule 3).
++	 * Without it, `display: flex` quietly won, `.ux-dictate` never actually went
++	 * `contents`, and the button stayed centered beside the (now very tall) info
++	 * column instead of dropping to the row below — exactly the first shot of this
++	 * round's own fix showed, before this line was added. */
++	.ux-dictate-widget-controls .ux-dictate { display: contents !important; }
++	.ux-dictate-widget-controls .ux-dictate-info { order: -1; flex: 1 1 100%; min-width: 0; }
+ 	.ux-dictate-widget-composer .ux-dictate-line:not(.muted) { display: none; }
+-	.ux-dictate-widget-composer .ux-dictate-info {
+-		position: absolute; inset-inline: 0; top: 100%; margin-top: 0.2em; min-width: 0;
+-	}
+ 
+ 	/* A second, bigger level meter (`level: true`) — small and right beside the button, never
+ 	 * a full-width pill. Driven by the SAME smoothed number `Dictate`'s own tiny bar reads.
+diff --git a/public/framework/ux/Dictate/Widget.js b/public/framework/ux/Dictate/Widget.js
+index daeb5b14..7f1b6ce1 100644
+--- a/public/framework/ux/Dictate/Widget.js
++++ b/public/framework/ux/Dictate/Widget.js
+@@ -1,4 +1,4 @@
+-import { View, div, span, button, select, option, label, input } from "../../core/View/View.js";
++import { View, div, span, button, select, option, label, textarea } from "../../core/View/View.js";
+ import Dictate, { remember_device, remembered_device } from "./Dictate.js";
+ import { pg } from "./playground/Playground.js";
+ import { marks as fetch_marks } from "../Understand/Understand.js";
+@@ -328,42 +328,62 @@ Widget.Thread = class WidgetThread extends View {
+ 	}
+ };
+ 
+-/** **The composer** — the sheet's own bottom row: a typed box ("say something"), the mic
+- *  button, Send. `mode: "open"` — the live open mic: nothing is ever written into the typed
+- *  box (that box is typing's own, never the mic's), every finished sentence reaches
+- *  `on_text` instead, which becomes a bubble. Typing and Send work the same way, for a
+- *  reader who would rather not talk. */
++/** **The composer** — the rough-transcription buffer on top, FULL width, growing taller
++ *  as the owner types or talks (no empty void underneath a short line, never a fixed
++ *  height); the mic button and Send sit in their own row BELOW it (item 5, one-dictation
++ *  — the owner: "the text area was kind of partial width and would grow really tall and
++ *  then create this big void of empty space… if the text area is gonna grow, it needs to
++ *  be like full width… the send button could be below it"). `mode: "open"` — the live
++ *  open mic: nothing is ever written into the typed box (that box is typing's own, never
++ *  the mic's), every finished sentence reaches `on_text` instead, which becomes a bubble.
++ *  Typing and Send work the same way, for a reader who would rather not talk. */
+ Widget.Composer = class WidgetComposer extends View {
+ 	render(){
+-		this.ac("ux-dictate-widget-composer flex gap v-center");
++		this.ac("ux-dictate-widget-composer flex v gap");
+ 		const w = this.widget;
+ 
+-		this.$input = input.c("ux-dictate-widget-input").attr("type", "text")
++		this.$input = textarea.c("ux-dictate-widget-input")
+ 			.attr("placeholder", w.placeholder || "say something")
+-			.on("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); this.send(); } });
+-
+-		w.dictate = new Dictate({
+-			mode: "open",
+-			revise: w.revision || false,
+-			on_text: text => w.submit(text, "voice"),
+-			on_revised: text => w.submit(text, "voice"),
+-			on_meter: w.level ? level => this.set_level(level) : undefined,
+-		});
++			.attr("rows", "1")
++			.on("input", () => this.autosize())
++			// Enter sends (matches the old single-line box); Shift+Enter makes a new
++			// line in the buffer, same as any other multi-line text box on the web.
++			.on("keydown", e => { if (e.key === "Enter" && !e.shiftKey){ e.preventDefault(); this.send(); } });
++
++		// THE CONTROLS ROW — mic, Send, and the optional extras (meter, mic picker,
++		// Sample), all beneath the typed buffer now instead of beside it.
++		div.c("ux-dictate-widget-controls flex gap v-center wrap", () => {
++			w.dictate = new Dictate({
++				mode: "open",
++				revise: w.revision || false,
++				on_text: text => w.submit(text, "voice"),
++				on_revised: text => w.submit(text, "voice"),
++				on_meter: w.level ? level => this.set_level(level) : undefined,
++			});
++
++			if (w.level) this.meter();
++			if (w.source) this.source_picker();
+ 
+-		if (w.level) this.meter();
+-		if (w.source) this.source_picker();
++			this.$send = button.c("ux-dictate-widget-send", "Send").attr("type", "button")
++				.click(() => this.send());
+ 
+-		this.$send = button.c("ux-dictate-widget-send", "Send").attr("type", "button")
+-			.click(() => this.send());
++			// Same debug flag as the "Debug ▾" bar — no mic, no whisper, a scripted growing
++			// guess then a settle, through `Dictate`'s OWN `partial_text`/`draw_caption()`/
++			// `commit()` (the exact methods a real segment calls), so "does this widget
++			// actually transcribe" can be shown on a machine with no mic and no whisper-server
++			// — the playground's own `run_sample()` does the same thing, one level down.
++			if (w.debug) this.$sample = button.c("ux-dictate-widget-sample", "▶ Sample").attr("type", "button")
++				.attr("title", "a scripted line, no mic needed — proves the bubble + live-guess pipeline")
++				.click(() => this.sample());
++		});
++	}
+ 
+-		// Same debug flag as the "Debug ▾" bar — no mic, no whisper, a scripted growing
+-		// guess then a settle, through `Dictate`'s OWN `partial_text`/`draw_caption()`/
+-		// `commit()` (the exact methods a real segment calls), so "does this widget
+-		// actually transcribe" can be shown on a machine with no mic and no whisper-server
+-		// — the playground's own `run_sample()` does the same thing, one level down.
+-		if (w.debug) this.$sample = button.c("ux-dictate-widget-sample", "▶ Sample").attr("type", "button")
+-			.attr("title", "a scripted line, no mic needed — proves the bubble + live-guess pipeline")
+-			.click(() => this.sample());
++	// The buffer grows with what's typed into it, no scrollbar and no fixed number of
++	// rows — set to the browser's own natural "auto" first so a DELETED line can shrink
++	// the box back down too, not just grow it.
++	autosize(){
++		this.$input.el.style.height = "auto";
++		this.$input.el.style.height = this.$input.el.scrollHeight + "px";
+ 	}
+ 
+ 	send(){
+@@ -371,6 +391,7 @@ Widget.Composer = class WidgetComposer extends View {
+ 		if (!text) return;
+ 		this.widget.submit(text, "typed");
+ 		this.$input.el.value = "";
++		this.autosize();
+ 	}
+ 
+ 	// ⚠ Grows the guess through `partial_text`/`draw_caption()` (real `Dictate` fields and
+diff --git a/public/framework/ux/Dictate/chat.js b/public/framework/ux/Dictate/chat.js
+index 0521b7d9..8c866754 100644
+--- a/public/framework/ux/Dictate/chat.js
++++ b/public/framework/ux/Dictate/chat.js
+@@ -1,4 +1,4 @@
+-import View from "../../core/View/View.js";
++import { View, button } from "../../core/View/View.js";
+ import Widget from "./Widget.js";
+ import floor from "./floor.js";
+ import * as Session from "/framework/ext/Session/Session.js";
+@@ -9,7 +9,8 @@ import * as Session from "/framework/ext/Session/Session.js";
+  * (`ext/Session/Session.js`). Every caller — the ✦ sheet, the ☰ drawer's AI tab, a
+  * card's sidebar — calls this one function; none of them hold their own session logic.
+  * The call, why a reopened chat never loses old messages, `nav(path, card)`'s exact
+- * rules, and every older version still kept reachable:
++ * rules, `keep: false`'s page-local session, the shared `new_session_button()`, and
++ * every older version still kept reachable:
+  * [`doc/chat.md`](/framework/ux/Dictate/doc/chat/).
+  */
+ 
+@@ -41,155 +42,184 @@ function write_saved(v){
+ 	catch {}
+ }
+ 
+-/* THE CONTROLLER — one per browser tab, module-level (ES modules are singletons, so
+- * every importer of this file shares this one object). `session`/`file` are read from
+- * `sessionStorage` lazily, not just once at import time: a proof script (or a caller)
+- * can seed that key AFTER this module has already loaded, and `sync_from_storage()`
+- * (called at the top of every mount and every send) re-checks it as long as no session
+- * is known yet, so a late-seeded key is still picked up on the very next open. */
+-const ctl = {
+-	session: null,
+-	file: null,
+-	starting: null,   // a pending Session.start() promise — two mounts' first sentence at once share ONE session
+-	nav_path: null,   // the path last actually reported to the session (report_nav's own dedupe)
+-	nav_card: null,   // the card last actually reported alongside it (item 1, one-dictation)
+-	selection: null,  // the reader's last picked element, `{kind, label, text, selector}` or null (item 6)
+-};
+-sync_from_storage();
+-
+-function sync_from_storage(){
+-	if (ctl.session) return;
+-	const saved = read_saved();
+-	if (saved?.session && saved?.file){ ctl.session = saved.session; ctl.file = saved.file; }
+-}
++/* THE CONTROLLER FACTORY (item 2, one-dictation: `keep`). Everything this file used to
++ * do with one module-level singleton now lives here instead, so it can be built TWICE:
++ * once, here below, as `GLOBAL` — the one conversation per browser tab, shared by every
++ * `chat()` call made with `keep: true` (the default) — and once PER MOUNT, fresh, never
++ * saved anywhere, for a call made with `keep: false`. A `persist: false` controller never
++ * touches `sessionStorage`, so it can never be read back by a later mount — which is
++ * exactly "coming back starts fresh" (the owner's own words, `owner-words.md`). Nothing
++ * about the SHAPE of a controller changes between the two; only whether it reads/writes
++ * the shared storage key. */
++function create_controller({ persist }){
++	const ctl = {
++		session: null,
++		file: null,
++		starting: null,   // a pending Session.start() promise — two mounts' first sentence at once share ONE session
++		nav_path: null,   // the path last actually reported to the session (report_nav's own dedupe)
++		nav_card: null,   // the card last actually reported alongside it (item 1, one-dictation)
++		selection: null,  // the reader's last picked element, `{kind, label, text, selector}` or null (item 6) — GLOBAL only, see below
++	};
+ 
+-// Every live mount's own re-sync — called whenever the controller's session changes
+-// (a first start, a resume, a reset), so EVERY open mount notices, not just the one
+-// that caused the change.
+-const listeners = new Set();
+-function subscribe(fn){ listeners.add(fn); return () => listeners.delete(fn); }
+-function broadcast(){ for (const fn of listeners) fn(); }
++	function sync_from_storage(){
++		if (!persist || ctl.session) return;
++		const saved = read_saved();
++		if (saved?.session && saved?.file){ ctl.session = saved.session; ctl.file = saved.file; }
++	}
++	sync_from_storage();
+ 
+-// The ONE real navigation report, whoever calls it — deduped against `ctl.nav_path` so
+-// the rail's own `navigated()` hook AND a fresh mount noticing a new path never both
+-// send the same move twice ("A route change… sends Session.nav() once, from the
+-// controller, not per mount" — this task's own brief). `card` (item 1, one-dictation) is
+-// the card selected right now, or undefined for none — it travels with every nav report
+-// so a refinement written later can be attributed to the right card even after the owner
+-// has since moved on (`doc/sessions.md`'s "Refinement goes to the card selected at the
+-// time"; `Servex/agents/Sessions.js`'s `nav()` + `card_at()` do the actual attribution).
+-function report_nav(path, card){
+-	if (!ctl.session){ ctl.nav_path = path; ctl.nav_card = card; return; }
+-	if (path === ctl.nav_path && card === ctl.nav_card) return;
+-	const from = ctl.nav_path;
+-	ctl.nav_path = path; ctl.nav_card = card;
+-	Session.nav({ session: ctl.session, from, to: path, card }).catch(() => {});
+-}
++	// Every live mount's own re-sync — called whenever THIS controller's session changes
++	// (a first start, a resume, a reset), so every open mount sharing it notices, not just
++	// the one that caused the change. A `keep: false` controller usually has only one mount
++	// listening (its own), but the shape costs nothing to share.
++	const listeners = new Set();
++	function subscribe(fn){ listeners.add(fn); return () => listeners.delete(fn); }
++	function broadcast(){ for (const fn of listeners) fn(); }
+ 
+-// THE PAGE SELECTION (item 6, one-dictation: task-mastermind-selection's own
+-// `ext/drawer/select.js`, `selection-change` on `window`, detail `{kind, label, text,
+-// selector, url}` or null). That file is still mid-merge elsewhere, so this never imports
+-// it — it only listens for the plain DOM event any version of it can dispatch. Kept at
+-// the controller level, not per mount, since one browser tab has only one selection.
+-// Reported the moment it changes (an invisible `select` line, same shape `nav` takes)
+-// AND kept on `ctl.selection` so the next `say()` can stamp it onto that sentence too.
+-window.addEventListener("selection-change", e => {
+-	ctl.selection = e.detail ?? null;
+-	if (ctl.session) Session.select({ session: ctl.session, selection: ctl.selection }).catch(() => {});
+-});
++	// The ONE real navigation report, whoever calls it — deduped against `ctl.nav_path` so
++	// the rail's own `navigated()` hook AND a fresh mount noticing a new path never both
++	// send the same move twice. `card` (item 1, one-dictation) is the card selected right
++	// now, or undefined for none — it travels with every nav report so a refinement
++	// written later can be attributed to the right card even after the owner has since
++	// moved on (`doc/sessions.md`'s "Refinement goes to the card selected at the time").
++	function report_nav(path, card){
++		if (!ctl.session){ ctl.nav_path = path; ctl.nav_card = card; return; }
++		if (path === ctl.nav_path && card === ctl.nav_card) return;
++		const from = ctl.nav_path;
++		ctl.nav_path = path; ctl.nav_card = card;
++		Session.nav({ session: ctl.session, from, to: path, card }).catch(() => {});
++	}
+ 
+-// The first sentence, from ANY mount, starts (or silently resumes, inside `Session.
+-// start()` itself) the one session this browser tab will ever use until a reset.
+-async function ensure(target){
+-	sync_from_storage();
+-	if (ctl.session) return;
+-	if (!ctl.starting){
+-		ctl.starting = Session.start({ path: target.path, card: target.card }).then(made => {
+-			ctl.session = made.session; ctl.file = made.file;
+-			write_saved({ session: made.session, file: made.file });
+-			broadcast();
+-		}).finally(() => { ctl.starting = null; });
++	// The first sentence, from any mount sharing THIS controller, starts (or silently
++	// resumes, inside `Session.start()` itself) the one session it will ever use until a
++	// reset. For a `keep: false` controller this really does call the server and really
++	// does start two real agents (`rail.js`'s own note on `start()`) — a page-local
++	// session is still a REAL session, just not a remembered one.
++	async function ensure(target){
++		sync_from_storage();
++		if (ctl.session) return;
++		if (!ctl.starting){
++			ctl.starting = Session.start({ path: target.path, card: target.card }).then(made => {
++				ctl.session = made.session; ctl.file = made.file;
++				write_saved({ session: made.session, file: made.file });
++				broadcast();
++			}).finally(() => { ctl.starting = null; });
++		}
++		return ctl.starting;
+ 	}
+-	return ctl.starting;
+-}
+ 
+-// The mic held a sentence back while the owner kept talking (`entry.floor ===
+-// "speaking"`) — watch the mic's OWN floor state until it settles, then say so once, so
+-// the fast assistant's held reply lands. One watcher for the whole tab, not one per
+-// mount: a second sentence, from any mount, just restarts the same 30s window.
+-let floor_watch = null;
+-function watch_floor(){
+-	clearInterval(floor_watch);
+-	const session = ctl.session, started = Date.now();
+-	floor_watch = setInterval(() => {
+-		if (session !== ctl.session || Date.now() - started > 30000) return clearInterval(floor_watch);
+-		if (floor.state() !== "done") return;
++	// The mic held a sentence back while the owner kept talking (`entry.floor ===
++	// "speaking"`) — watch the mic's OWN floor state until it settles, then say so once, so
++	// the fast assistant's held reply lands. One watcher per controller, not one per mount.
++	let floor_watch = null;
++	function watch_floor(){
+ 		clearInterval(floor_watch);
+-		Session.floor({ session, floor: "done" }).catch(() => {});
+-	}, 250);
+-}
++		const session = ctl.session, started = Date.now();
++		floor_watch = setInterval(() => {
++			if (session !== ctl.session || Date.now() - started > 30000) return clearInterval(floor_watch);
++			if (floor.state() !== "done") return;
++			clearInterval(floor_watch);
++			Session.floor({ session, floor: "done" }).catch(() => {});
++		}, 250);
++	}
+ 
+-// Continue an OLDER session by id — the resume-offer's own "yes", and `tabs/sessions.js`'s
+-// click on a past voice session. Every open mount hears about it through `broadcast()`.
+-async function resume_to(session){
+-	const made = await Session.resume(session);
+-	ctl.session = made.session; ctl.file = made.file;
+-	write_saved({ session: made.session, file: made.file });
+-	broadcast();
+-}
++	// Continue an OLDER session by id — the resume-offer's own "yes", and `tabs/sessions.js`'s
++	// click on a past voice session. Every open mount sharing this controller hears about it.
++	async function resume_to(session){
++		const made = await Session.resume(session);
++		ctl.session = made.session; ctl.file = made.file;
++		write_saved({ session: made.session, file: made.file });
++		broadcast();
++	}
+ 
+-// "New session" — drops the tab's own saved session id; the NEXT sentence said, from
+-// whichever mount it comes from, starts a fresh one. Every open mount clears its own
+-// thread together, because there is only the one conversation now.
+-function reset(){
+-	ctl.session = null; ctl.file = null; ctl.starting = null;
+-	write_saved(null);
+-	broadcast();
++	// "New session" — drops this controller's own session id; the NEXT sentence said, from
++	// whichever mount it comes from, starts a fresh one. For `keep: false` there is nothing
++	// saved to drop — this just clears the in-memory id, same effect.
++	function reset(){
++		ctl.session = null; ctl.file = null; ctl.starting = null;
++		write_saved(null);
++		broadcast();
++	}
++
++	function current(){ return ctl.session; }
++
++	return { ctl, persist, subscribe, broadcast, report_nav, ensure, watch_floor, resume_to, reset, current, sync_from_storage };
+ }
+ 
+-// The tab's live session id, or null — `tabs/sessions.js` marks the matching row "live".
+-function current(){ return ctl.session; }
++// THE ONE GLOBAL CONTROLLER — one per browser tab, module-level (ES modules are
++// singletons, so every importer of this file shares this one object). Built once, here,
++// the moment this module first loads.
++const GLOBAL = create_controller({ persist: true });
++
++// THE PAGE SELECTION (item 6, one-dictation) is kept on the GLOBAL controller only — one
++// browser tab has only one on-screen selection, regardless of how many `keep: false`
++// mounts come and go, so a page-local session never needs its own copy. Reported the
++// moment it changes (an invisible `select` line, same shape `nav` takes) AND kept on
++// `GLOBAL.ctl.selection` so the next global `say()` can stamp it onto that sentence too.
++window.addEventListener("selection-change", e => {
++	GLOBAL.ctl.selection = e.detail ?? null;
++	if (GLOBAL.ctl.session) Session.select({ session: GLOBAL.ctl.session, selection: GLOBAL.ctl.selection }).catch(() => {});
++});
+ 
+-Session.report_quiet(() => ctl.session);   // started once, here — never one watcher per mount
+-Session.report_pause(() => ctl.session);   // the mic stopping and starting again (item 2, one-dictation)
++// Started once, here, for the GLOBAL session only — never one watcher per mount, and
++// never one for a page-local session either: the mic itself is one thing per tab, and
++// these report to whichever session is "the" conversation right now. A `keep: false`
++// mount's own session is a deliberate gap here — see `doc/chat.md`.
++Session.report_quiet(() => GLOBAL.ctl.session);
++Session.report_pause(() => GLOBAL.ctl.session);
+ 
+ /**
+- * Draw a chat `Widget` into `el` and wire it to the ONE global session. `path` is this
+- * mount's page right now (every `say()` re-reads it live through `nav()`, below — see
+- * this file's own doc for why `nav()` exists); `card` is only a hint for the very first
+- * sentence ever said, from any mount; `placeholder` is passed straight to `Widget`.
++ * Draw a chat `Widget` into `el` and wire it to a voice session. `path` is this mount's
++ * page right now (every `say()` re-reads it live through `nav()`, below — see this
++ * file's own doc for why `nav()` exists); `card` is only a hint for the very first
++ * sentence ever said, from any mount SHARING this session; `placeholder` is passed
++ * straight to `Widget`, as are `level`/`source`/`debug` (item 1, one-dictation — the
++ * Dictate page's own demo wants its meter, mic picker and Debug bar, same as the bare
++ * `new Widget(...)` it used to build directly).
++ *
++ * `keep` (item 2, one-dictation; default `true`) chooses which conversation this mount
++ * joins:
++ * - `keep: true` — today's one global session per browser tab, kept across every page
++ *   (the ✦ rail's whole reason to exist: say something on one page, keep talking on the
++ *   next).
++ * - `keep: false` — this ONE mount gets its own session, remembered only for as long as
++ *   the mount itself is alive. It is never written to `sessionStorage`, so a page reload,
++ *   or simply building a NEW mount later (leaving this page and coming back), can never
++ *   read it back — "coming back starts fresh" (the owner's own words). The global session
++ *   is never touched by a `keep: false` mount: they are two entirely separate controllers,
++ *   built by the same `create_controller()` above, one shared, one private.
+  */
+-export default function chat(el, { path = location.pathname, card, placeholder } = {}){
++export default function chat(el, { path = location.pathname, card, placeholder, keep = true, level, source, debug, revision, models } = {}){
+ 	const target = { path, card };
++	const owner = keep ? GLOBAL : create_controller({ persist: false });
+ 	let panel, stop_watch = null, stop_stream = null, own_ats = new Set(), watching = "unset";
+ 	let resume_label = null, resume_session = null;
+ 
+ 	new View({ el, capture: false }).append(() => {
+ 		panel = new Widget({
+-			placeholder,
++			placeholder, level, source, debug, revision, models,
+ 			marks: true,
+-			threads: true,
+-			answer: choice => {
+-				if (choice === resume_label) resume_to(resume_session).catch(() => {});
+-			},
+ 			deliver: async entry => {
+ 				try {
+-					sync_from_storage();
+-					await ensure(target);
+-					if (!ctl.session) return false;
++					owner.sync_from_storage();
++					await owner.ensure(target);
++					if (!owner.ctl.session) return false;
+ 					const via = entry.via === "typed" ? "text" : "voice";
+ 					floor.stamp(entry);
+ 					const thread = entry.thread ? { re: entry.thread, thread: true } : {};
+-					const r = await Session.say({ session: ctl.session, path: target.path, text: entry.text,
+-						via, raw: entry.raw, floor: entry.floor, cues: entry.cues, selection: ctl.selection, ...thread });
++					const r = await Session.say({ session: owner.ctl.session, path: target.path, text: entry.text,
++						via, raw: entry.raw, floor: entry.floor, cues: entry.cues, selection: owner.ctl.selection, ...thread });
+ 					own_ats.add(r.at);
+ 					panel.retag(entry.at, r.at);
+-					if (entry.floor === "speaking") watch_floor();
++					if (entry.floor === "speaking") owner.watch_floor();
+ 					return true;
+ 				} catch { return false; }
+ 			},
+-			react: r => ctl.session
+-				? Session.react({ session: ctl.session, ...r })
++			answer: choice => {
++				if (choice === resume_label) owner.resume_to(resume_session).catch(() => {});
++			},
++			react: r => owner.ctl.session
++				? Session.react({ session: owner.ctl.session, ...r })
+ 				: Promise.reject(new Error("no voice session yet, so the reaction is not saved")),
+ 		});
+ 	});
+@@ -206,10 +236,12 @@ export default function chat(el, { path = location.pathname, card, placeholder }
+ 	// Before a word is said: the tab's newest OLDER session, offered as one tappable
+ 	// line — same rule `rail.js` used to have (voice-fixes, 2026-09-29): a session that
+ 	// spoke within the hour is picked up silently by `ensure()` itself; only an older
+-	// one is worth asking about.
++	// one is worth asking about. Never offered for a `keep: false` mount — there is
++	// nothing saved for it to resume FROM; every one of its own sessions starts fresh.
+ 	function maybe_offer(){
++		if (!keep) return;
+ 		Session.recent(target.path, { limit: 1 }).then(([row]) => {
+-			if (!row || ctl.session) return;
++			if (!row || owner.ctl.session) return;
+ 			const at = row.at ?? row.last_at;
+ 			if (Date.now() - Date.parse(at ?? 0) < RESUME_OFFER_MS) return;
+ 			resume_label = `${row.title ?? "The last conversation"} · ${ago(at)}`;
+@@ -219,41 +251,50 @@ export default function chat(el, { path = location.pathname, card, placeholder }
+ 	}
+ 
+ 	// THE FIX: every (re)appearance of a session — this mount's own first paint, or a
+-	// LATER start/resume/reset from any mount — redraws this mount's thread whole, from
+-	// the file's own first line, via a brand new `Session.watch()` call (never a cursor
+-	// carried over from before). See this file's own class doc for the bug this replaces.
++	// LATER start/resume/reset from any mount sharing this controller — redraws this
++	// mount's thread whole, from the file's own first line, via a brand new
++	// `Session.watch()` call (never a cursor carried over from before). See this file's
++	// own class doc for the bug this replaces.
+ 	function attach(){
+-		sync_from_storage();
+-		if (ctl.session === watching) return;
+-		watching = ctl.session;
++		owner.sync_from_storage();
++		if (owner.ctl.session === watching) return;
++		watching = owner.ctl.session;
+ 		stop_watch?.(); stop_watch = null;
+ 		stop_stream?.(); stop_stream = null;
+ 		own_ats = new Set();
+ 		panel.reset();
+-		if (!ctl.session){ maybe_offer(); return; }
+-		stop_watch = Session.watch(ctl.file, draw);
+-		stop_stream = Session.stream(ctl.session, ev => {
++		if (!owner.ctl.session){ maybe_offer(); return; }
++		stop_watch = Session.watch(owner.ctl.file, draw);
++		stop_stream = Session.stream(owner.ctl.session, ev => {
+ 			if (ev.kind === "stream") panel.stream(ev.role, ev.text);
+ 			else if (ev.kind === "line") draw(ev.line);
+ 		});
+ 	}
+ 
+ 	attach();
+-	report_nav(target.path, target.card);
+-	const unsubscribe = subscribe(attach);
++	owner.report_nav(target.path, target.card);
++	const unsubscribe = owner.subscribe(attach);
+ 
+ 	return {
+ 		panel,
+-		session: () => ctl.session,
++		session: () => owner.ctl.session,
+ 		// Told by the caller on a real in-app navigation — see this file's own class doc.
+ 		// `card` is optional (item 1): a caller that only knows the new PATH (most of them)
+ 		// can still call `nav(path)` alone, and whatever card this mount already had keeps
+ 		// being reported; a caller that tracks its own card changing under an open mount
+ 		// (`ext/drawer/rail.js`'s sheet, which can show a different card without rebuilding)
+ 		// should pass the new one too, `nav(path, newCardId)`, so it is not lost.
+-		nav(path, card){ target.path = path; if (card !== undefined) target.card = card; report_nav(path, target.card); },
+-		// This ONE mount is gone; the global session, its file and its watch (any OTHER
+-		// mount's own) all carry on untouched.
++		nav(path, card){ target.path = path; if (card !== undefined) target.card = card; owner.report_nav(path, target.card); },
++		// Drop THIS mount's own conversation and start fresh on the next sentence — the
++		// shared button below (item 3) calls this. For `keep: true` this is exactly
++		// `chat.reset()`; for `keep: false` it only ever affected this one mount anyway.
++		reset(){ owner.reset(); },
++		// This ONE mount is gone; the session it was showing (global, or this mount's own
++		// private one) stops being watched by it. A `keep: true` mount leaving changes
++		// nothing else — the global session, and any OTHER open mount showing it, carry on
++		// completely untouched. A `keep: false` mount leaving drops its OWN controller too
++		// (nothing else holds a reference to it), which is what makes "coming back starts
++		// fresh" true without this file doing anything further.
+ 		remove(){
+ 			unsubscribe();
+ 			stop_watch?.(); stop_watch = null;
+@@ -262,11 +303,34 @@ export default function chat(el, { path = location.pathname, card, placeholder }
+ 	};
+ }
+ 
+-chat.current = current;
+-chat.resume = resume_to;
+-chat.reset = reset;
++/**
++ * THE SHARED "NEW SESSION" BUTTON (item 3, one-dictation — "a New session button lives
++ * in chat.js, so every surface gets the same one"). Pass the `mount` this call's own
++ * `chat()` returned, OR a function that returns it (a caller like `ext/drawer/rail.js`'s
++ * ✦ sheet builds this button before it has built its mount yet — `render()` runs before
++ * `show()`'s own `ensure_mount()` — so it hands over `() => this.mount` instead of the
++ * mount itself, read fresh on every click rather than captured too early as `undefined`).
++ * A click calls that mount's `reset()` — the global conversation for a `keep: true`
++ * mount, or just this one mount's own private session for a `keep: false` one, so the
++ * exact same button works for both without the caller choosing which `reset` to wire up
++ * itself. `ext/drawer/rail.js`'s ✦ sheet uses this now instead of building its own button
++ * (one of everything, CLAUDE.md law 6); so does the Dictate page's own demo.
++ */
++export function new_session_button(mount, { label = "New session", title = "Clear this chat and start a fresh conversation" } = {}){
++	return button.c("ux-dictate-chat-new-session", label).attr("type", "button")
++		.attr("title", title)
++		.click(() => (typeof mount === "function" ? mount() : mount)?.reset());
++}
++
++chat.current = () => GLOBAL.current();
++chat.resume = session => GLOBAL.resume_to(session);
++chat.reset = () => GLOBAL.reset();
+ chat.ago = ago;
++chat.new_session_button = new_session_button;
+ 
+ // `ago()` (review fix #9, 2026-09-30): `ext/drawer/rail.js` and `ext/drawer/tabs/sessions.js`
+ // each carried their own copy of this exact function — this is now the one, imported by both.
+-export { current, resume_to as resume, reset, ago };
++export { ago };
++export const current = chat.current;
++export const resume = chat.resume;
++export const reset = chat.reset;
+diff --git a/public/framework/ux/Dictate/doc/chat.md b/public/framework/ux/Dictate/doc/chat.md
+index 2b2cb045..3606142e 100644
+--- a/public/framework/ux/Dictate/doc/chat.md
++++ b/public/framework/ux/Dictate/doc/chat.md
+@@ -8,19 +8,67 @@ function all of them call. Change it once, and every surface changes.
+ ## The call
+ 
+ ```js
+-import chat from "/framework/ux/Dictate/chat.js";
++import chat, { new_session_button } from "/framework/ux/Dictate/chat.js";
+ 
+-const mount = chat(el, { path: "/framework/", card: undefined, placeholder: "say something" });
++const mount = chat(el, { path: "/framework/", card: undefined, placeholder: "say something",
++	keep: true, level: false, source: false, debug: false });
+ 
+ mount.panel;         // the Widget this mount drew, if a caller needs it directly
+ mount.session();     // the live session id, or null if nothing has been said yet
+ mount.nav(path, card);  // this mount's page (and, maybe, its card) changed
++mount.reset();        // drop THIS mount's own conversation; the next sentence starts fresh
+ mount.remove();      // this ONE mount is gone; the conversation itself keeps going
++
++new_session_button(mount);  // the one "New session" button every surface shares (below)
+ ```
+ 
+ `chat(el, opts)` draws a chat [`Widget`](/framework/ux/Dictate/) into `el` and wires it up so
+ typing or talking into it sends a real message and real replies come back. `path` is the page
+-this mount is on right now; `card` is explained below.
++this mount is on right now; `card` is explained below. `level`, `source` and `debug` are passed
++straight through to the `Widget` this draws (a bigger level meter, the mic picker, the "Debug ▾"
++bar) — the Dictate page's own demo (below) is the one caller that turns all three on.
++
++## `keep`: whose conversation this mount joins (item 2, one-dictation)
++
++`keep` (default `true`) answers one question: when this mount goes away, is its conversation
++remembered?
++
++- **`keep: true`** — this mount joins the ONE global session every `keep: true` mount on this
++  browser tab shares (the section right below). Leave the page, come back, open a different
++  surface — it's still the same conversation. This is what makes the ✦ rail useful: say
++  something on one page, keep talking on the next.
++- **`keep: false`** — this ONE mount gets its OWN session, private to it, remembered only for
++  as long as the mount itself exists. It is a REAL session — the first sentence said really
++  does start two real agents and really does cost what any other session costs — it is just
++  never written to `sessionStorage`, so nothing can ever read it back. Leave the page (the mount
++  is torn down) and come back (a brand-new `chat()` call builds a brand-new mount) and there is
++  nothing to resume: a fresh, empty conversation, exactly as if nothing had been said before.
++
++The Dictate page's own demo (`ux/Dictate/page.js`'s `demo_mount()`) is the one `keep: false`
++caller today — "the dictate page is the workbench," the owner's own words, and a workbench's own
++demo conversation should never leak into, or be confused with, the owner's real, kept-forever ✦
++conversation. A `keep: false` mount's controller is built fresh, by the same `create_controller()`
++function the global one uses, so the two share every bit of logic except whether `sessionStorage`
++is touched — see `chat.js`'s own comments on `create_controller` for the exact shape.
++
++**A gap, left as it is, not a bug:** the mic's own "the owner went quiet" / "the mic just turned
++off" reports (`Session.report_quiet`/`report_pause`, wired once, for the GLOBAL session only)
++never fire for a `keep: false` mount's own session. Fixing that would mean tracking which
++controller's mic is "the" one listening right now, across however many mounts are open at
++once — real work, and nothing in this task's brief needed it (the demo's own session answers
++fine without the fast assistant's quiet-prompt).
++
++## The shared "New session" button (item 3, one-dictation)
++
++`new_session_button(mount, { label, title })` builds the one button every surface uses to drop
++a conversation and start over. It calls `mount.reset()` — for a `keep: true` mount that IS
++`chat.reset()` (the global conversation, cleared for every open mount at once); for a
++`keep: false` mount it only ever affected that one mount anyway. `mount` can also be a function,
++`() => mount`, for a caller (like the ✦ sheet) that builds this button before it has built its
++own mount yet — the function is read fresh at click time, never captured early.
++
++The ✦ sheet (`ext/drawer/rail.js`) and the Dictate page's own demo both call this now, instead
++of each hand-rolling their own button — CLAUDE.md law 6, "one of everything."
+ 
+ ## The global session: one conversation per browser tab
+ 
+diff --git a/public/framework/ux/Dictate/page.js b/public/framework/ux/Dictate/page.js
+index fa4bee52..84d3bb72 100644
+--- a/public/framework/ux/Dictate/page.js
++++ b/public/framework/ux/Dictate/page.js
+@@ -1,6 +1,6 @@
+ import { Doc, md, demo, div, span, textarea, h2, icon, a, small, h4 } from "/app.js";
+ import Dictate from "./Dictate.js";
+-import Widget from "./Widget.js";
++import chat, { new_session_button } from "./chat.js";
+ import { page_work_strip } from "/framework/core/Page/ai/work.js";
+ 
+ /* Level 1, above the fold: what the dictation SYSTEM is made of, as linked
+@@ -58,13 +58,53 @@ const words = () => div.c("flex v gap-2em", () => {
+ 	div.c("flex v gap", () => { div.c("h4 muted", "ui-contrast ui-compact"); demo_box().ac("ui-contrast ui-compact"); }).style("--gap", "calc(var(--gap) * 0.5)");
+ });
+ 
++/* THE WORKBENCH (one-dictation, "the Dictate page is the workbench" — the owner,
++ * 2026-10-01). Before this, the main demo was a bare `new Widget({level, source,
++ * debug})`, with no session wired up, so nobody ever answered it. Now it's a real
++ * `chat()` mount — the exact same call the ✦ sheet, the ☰ drawer and every card
++ * sidebar make (`doc/chat.md`) — so a fix proved right here reaches every one of
++ * them. `keep: false`: this demo gets its OWN session, same as a real conversation
++ * (the first thing said really does start two real agents), but never remembered —
++ * leave this page and the mic stops; come back and it's a brand new, empty mount,
++ * never the old one resumed. The global, kept-forever session (the ✦ rail's own
++ * reason to exist) is never touched by this demo. `new_session_button()` (item 3)
++ * is the one button every surface shares — this demo gets it too, so a reader can
++ * clear this one demo's own session without affecting anything else on the site. */
++function demo_mount(){
++	let $slot, mount;
++	const $box = div.c("flex v gap", () => {
++		div.c("flex wrap gap v-center", () => {
++			new_session_button(() => mount);
++			span.c("muted", "This demo has its own session. It starts fresh when you leave the page.");
++		});
++		$slot = div.c("ux-dictate-page-demo");
++	}).style("--gap", "calc(var(--gap) * 0.5)");
++
++	mount = chat($slot.el, { placeholder: "say something", keep: false, level: true, source: true, debug: true });
++
++	// LEAVING THE PAGE: there is no framework-wide "unmount" hook to hang a cleanup
++	// on (`Dictate.js`'s own `hotkey()` doc names the same gap) — this watches for
++	// the slot itself leaving the page's DOM, the same trick `ext/drawer/tabs/ai.js`'s
++	// own mount cleanup uses, then stops the mic and drops the mount so its private
++	// session is gone for good, not just hidden.
++	const mo = new MutationObserver(() => {
++		if ($slot.el.isConnected) return;
++		mo.disconnect();
++		mount.panel?.stop_mic();
++		mount.remove();
++	});
++	mo.observe(document.body, { childList: true, subtree: true });
++
++	return $box;
++}
++
+ export default new Doc({
+ 	meta: import.meta,
+ 	title: "Dictate",
+ 	description: "A mic button with a state you can always see and an error said in plain words — whisper running on this machine first, the browser's own recognition second.",
+ 	icon: "mic",
+ 
+-	files: "Dictate.js capture.js pcm-worklet.js Dictate.css Widget.js Widget.css page.js readme.md",
++	files: "Dictate.js capture.js pcm-worklet.js Dictate.css Widget.js Widget.css chat.js page.js readme.md",
+ 	notes: "handover decisions silence https-lan widget chat",
+ 
+ 	children: [
+@@ -101,9 +141,14 @@ export default new Doc({
+ 		// Overview led with (Widget.Debug reuses `pg.widget()`, never rebuilds it); `level`
+ 		// and `source` add the meter and the mic picker. The OLD Overview, unchanged, is
+ 		// one click away at "v1" (deliverable 5, "never destroy a viable version").
+-		new Widget({ level: true, source: true, debug: true });
+-
+-		md("**The same widget as the ✦ sheet** — say something, or talk into the mic. [Docs](doc/) has the rest.");
++		//
++		// THIS IS THE WORKBENCH NOW (one-dictation, 2026-10-01) — not a bare `new
++		// Widget(...)` any more, but a real `chat()` mount (`demo_mount()`, above): say
++		// something here and the fast/smart pair actually answers, same as every other
++		// surface. See `demo_mount()`'s own doc for why `keep: false`.
++		demo_mount();
++
++		md("**The same widget as the ✦ sheet, now actually answered** — say something, or talk into the mic. [Docs](doc/) has the rest.");
+ 
+ 		h2("How it works");
+ 		md("**Dictation, assembled from four parts.** Talk into a mic; Whisper turns the sound into raw text; Revise cleans, edits or summarizes it; then it lands wherever it's going — a card, a composer, a prompt log.");
+diff --git a/public/framework/ux/Dictate/readme.md b/public/framework/ux/Dictate/readme.md
+index bec13694..836dc709 100644
+--- a/public/framework/ux/Dictate/readme.md
++++ b/public/framework/ux/Dictate/readme.md
+@@ -43,6 +43,15 @@ new Widget({ debug: true });                      // + the "Debug ▾" bar
+ new Widget({ revision: "edit" });                  // ux/Revise tidies each sentence too
+ ```
+ 
++**The composer is a column, not a row** (one-dictation, 2026-10-01 — the owner: the typed
++box "needs to be like full width… the send button could be below it"): the typed buffer sits
++on top, full width, growing taller line by line with no fixed height and no empty void below
++a short line; the mic, Send and any extras (meter, mic picker, Sample) sit in their own row
++underneath it. The live, still-moving guess (the grey caption) is never `position: absolute`
++any more — it takes its own space below the mic button and the whole card grows to fit it,
++instead of painting over whatever came next (the bug the owner found: "it's just rendering
++like over the top of something else").
++
+ Four plain properties, every one `false`/off by default:
+ 
+ - **`level`** — a level meter beside the mic (the same smoothed number `Dictate`'s own
+@@ -70,18 +79,32 @@ transcription is below another paragraph or two." The OLD Overview (the five-tab
+ playground leading, same as it always did) is kept one click away at
+ [v1](/framework/ux/Dictate/v1/) — never destroy a viable version.
+ 
+-## chat.js — one mount, one global session, every surface
+-
+-`chat(el, {path, card, placeholder})` draws the one chat box every surface uses — the
+-✦ sheet, the ☰ AI tab, a card's own sidebar, the dev bar — all sharing exactly ONE
+-conversation per browser tab, so a sentence said on the phone is still there at the desk.
+-The call, why a reopened chat never loses old messages, and every older version still
+-kept reachable (`aiV2`, `askV1`, `chat_v1`, `foot()`): [`doc/chat.md`](/framework/ux/Dictate/doc/chat/).
++**This page IS the workbench** (one-dictation, 2026-10-01 — the owner: "the Dictate page
++is the workbench… this whole thing is based on these AI sessions"). The Overview's demo is
++not just a display any more — it is a real [`chat()`](#chatjs--one-mount-one-conversation-every-surface)
++mount, so saying something there is actually answered, same as every other surface, and a fix
++proved right there reaches all of them. Its own conversation is real but never remembered
++(`keep: false` — see below); its own "New session" button is the one every surface shares.
++
++## chat.js — one mount, one conversation, every surface
++
++`chat(el, {path, card, placeholder, keep, level, source, debug})` draws the one chat box
++every surface uses — the ✦ sheet, the ☰ AI tab, a card's own sidebar, the dev bar, and now
++the Dictate page's own demo. `keep: true` (the default) joins the ONE global conversation
++per browser tab, kept across every page; `keep: false` gives this one mount its OWN
++conversation, remembered only as long as the mount itself exists — leave the page and come
++back to a brand-new, empty one. `new_session_button(mount)` is the one "New session" button
++every surface now shares, instead of each building its own. The call, `keep`'s exact rules,
++why a reopened chat never loses old messages, and every older version still kept reachable
++(`aiV2`, `askV1`, `chat_v1`, `foot()`): [`doc/chat.md`](/framework/ux/Dictate/doc/chat/).
+ 
+ ## Surfaces — the same chat, live on every place it is mounted
+ 
+ [`surfaces/`](/framework/ux/Dictate/surfaces/) shows all five places `chat.js` is mounted,
+-side by side, each with a screenshot and the one line of code that built it.
++side by side, each with a screenshot and the one line of code that built it. The full
++site-wide audit — every `new Widget(`/`new Dictate(`/`dictate(`/`chat(` call found, which
++ones are live, and why the rest are old versions kept reachable on purpose — is
++[`ai/2026-09-30/one-dictation/minion-workbench/audit.md`](/framework/ai/2026-09-30/one-dictation/minion-workbench/audit.md).
+ 
+ ## Revise — clean up the words after they're heard
+ 

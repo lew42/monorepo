@@ -1,0 +1,266 @@
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/docs-tab/shots/docs-1920.png b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/docs-tab/shots/docs-1920.png
+new file mode 100644
+index 000000000..139a30ea8
+Binary files /dev/null and b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/docs-tab/shots/docs-1920.png differ
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/docs-tab/shots/docs-400.png b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/docs-tab/shots/docs-400.png
+new file mode 100644
+index 000000000..85a4164c6
+Binary files /dev/null and b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/docs-tab/shots/docs-400.png differ
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/docs-tab/shots/docs-doc-1920.png b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/docs-tab/shots/docs-doc-1920.png
+new file mode 100644
+index 000000000..c43a57bc4
+Binary files /dev/null and b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/docs-tab/shots/docs-doc-1920.png differ
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/docs-tab/shots/docs-doc-400.png b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/docs-tab/shots/docs-doc-400.png
+new file mode 100644
+index 000000000..3cdf4c36a
+Binary files /dev/null and b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/docs-tab/shots/docs-doc-400.png differ
+diff --git a/public/framework/ext/drawer/AIPage.js b/public/framework/ext/drawer/AIPage.js
+index 9dd739b18..9c16c030d 100644
+--- a/public/framework/ext/drawer/AIPage.js
++++ b/public/framework/ext/drawer/AIPage.js
+@@ -16,11 +16,12 @@ export default class AIPage extends Page {
+ 		["live", "Live", null],                          // AIFeed, sheet step 7
+ 		["sessions", "Sessions", () => import("./tabs/sessions.js")],
+ 		["debug", "Debug", () => import("./tabs/debug.js")],             // dictation layer by layer (was Dictation, the playground, until 2026-10-24)
++		["docs", "Docs", () => import("./tabs/docs.js")],                 // the ux/Dictate readme and docs, rendered in place
+ 		["settings", "Settings", () => import("./tabs/settings.js")],
+ 	];
+ 
+ 	static ALIASES = { dictation: "debug" };   // an old view name: old_link() rewrites it once, before the Router reads the url
+-	static WIDE = new Set(["debug"]);   // views drawn across the page's wide track (two columns at 1920), not the reading column
++	static WIDE = new Set(["debug", "docs"]);   // views drawn across the page's wide track (two columns at 1920), not the reading column
+ 
+ 	// The view a url names inside an AI page ("debug" for <path>/ai/debug/), "chat" for <path>/ai/ itself, null outside one.
+ 	static view_of(pathname = location.pathname, ai = this.current){
+diff --git a/public/framework/ext/drawer/Sheet.js b/public/framework/ext/drawer/Sheet.js
+index a9ce3b589..be0c2bdc1 100644
+--- a/public/framework/ext/drawer/Sheet.js
++++ b/public/framework/ext/drawer/Sheet.js
+@@ -315,6 +315,7 @@ export class SheetPanel extends View {
+ 	links(){
+ 		return div.c("drawer-rail-sheet-links flex wrap", () => {
+ 			this.link("Debug", "debug");
++			this.link("Docs", "docs");
+ 			this.link("Settings", "settings");
+ 			this.link("Open full AI", "ai");
+ 		});
+diff --git a/public/framework/ext/drawer/tabs.js b/public/framework/ext/drawer/tabs.js
+index 1ba34da3b..08c9d4d9a 100644
+--- a/public/framework/ext/drawer/tabs.js
++++ b/public/framework/ext/drawer/tabs.js
+@@ -64,6 +64,7 @@ export class DrawerTabs {
+ 	list = [
+ 		{ name: "ai",        label: "AI",        load: () => import("./tabs/ai.js") },
+ 		{ name: "debug",     label: "Debug",     load: () => import("./tabs/debug.js") },   // was Dictation (the playground) until 2026-10-24: tabs/debug.js
++		{ name: "docs",      label: "Docs",      load: () => import("./tabs/docs.js") },   // the ux/Dictate readme and docs: ux/Dictate/doc/docs-tab.md
+ 		{ name: "settings",  label: "Settings",  load: () => import("./tabs/settings.js"), when: () => DEV },
+ 		// Only while something on the page is selected (select.js sets `selected`).
+ 		{ name: "element",   label: "Element",   load: () => import("./tabs/element.js"),  when: () => !!this.selected },
+diff --git a/public/framework/ext/drawer/tabs/docs.js b/public/framework/ext/drawer/tabs/docs.js
+new file mode 100644
+index 000000000..33d835ade
+--- /dev/null
++++ b/public/framework/ext/drawer/tabs/docs.js
+@@ -0,0 +1,11 @@
++import { div } from "/framework/core/View/View.js";
++
++/* THE DOCS TAB: the ux/Dictate readme and its docs, rendered in place. Routed as <path>/ai/docs/ (AIPage.VIEWS).
++   Imported only when the tab opens. ux/Dictate/doc/docs-tab.md */
++export default function docs(){
++	div.c("drawer-docs pad", $d => {
++		import("/framework/ux/Dictate/DictateDocs.js")
++			.then(m => $d.append(() => { new m.default(); }))
++			.catch(e => $d.append(() => { div.c("muted", "The Docs tab could not load: " + e.message); }));
++	});
++}
+diff --git a/public/framework/ux/Dictate/DictateDocs.css b/public/framework/ux/Dictate/DictateDocs.css
+new file mode 100644
+index 000000000..8160ace78
+--- /dev/null
++++ b/public/framework/ux/Dictate/DictateDocs.css
+@@ -0,0 +1,16 @@
++@layer base, theme, site, util;
++
++/* The Docs tab (class DictateDocs): a slim bar (Back), the list of docs, then the rendered markdown. Doc: doc/docs-tab.md */
++@layer site {
++	.drawer-docs { display: flex; flex-direction: column; block-size: 100%; min-block-size: 0; }
++	.dictate-docs { gap: 0.5em; max-inline-size: 60rem; min-block-size: 0; block-size: 100%; }
++	.dictate-docs > * { flex: none; }
++	.dictate-docs-bar { gap: 0.5em 0.75em; font-size: 0.85em; }
++	.app .dictate-docs-bar button { font: inherit; padding: 0.2em 0.6em; min-block-size: 2rem; }
++	.dictate-docs-list { gap: 0.25em 0.9em; font-size: 0.9em; }
++	.dictate-docs-body { flex: 1 1 auto; min-block-size: 6em; overflow-y: auto; overflow-wrap: anywhere; }
++	.dictate-docs-body img, .dictate-docs-body pre { max-inline-size: 100%; overflow-x: auto; }
++	.app .dictate-docs-body h1 { font-size: 1.5em; line-height: 1.2; margin-block: 0.4em; }
++	.app .dictate-docs-body h2 { font-size: 1.2em; line-height: 1.2; margin-block: 0.8em 0.3em; }
++	.app .dictate-docs-body h3 { font-size: 1.05em; }
++}
+diff --git a/public/framework/ux/Dictate/DictateDocs.js b/public/framework/ux/Dictate/DictateDocs.js
+new file mode 100644
+index 000000000..c7ffe9d2f
+--- /dev/null
++++ b/public/framework/ux/Dictate/DictateDocs.js
+@@ -0,0 +1,64 @@
++import { View, div, a, span, button } from "../../core/View/View.js";
++import md from "../../ext/markdown/md.js";
++
++View.stylesheet(import.meta, "DictateDocs.css");
++
++/**
++ * class DictateDocs — the Docs tab: this module's readme, rendered by ext/markdown, and a list of its docs. One click on a doc
++ * (in the list or any .md link in the text) opens it here, with a Back link; nothing leaves the tab. Doc: doc/docs-tab.md.
++ *
++ *   new DictateDocs();
++ */
++export default class DictateDocs extends View {
++
++	static HOME = "/framework/ux/Dictate/";
++	static DOCS = [
++		["settings.md", "Settings", "what the settings panel changes"],
++		["architecture.md", "Architecture", "two engines, one stream"],
++		["whisper.md", "Whisper", "the transcriber"],
++		["debug-tab.md", "Debug tab", "the lights and the live log"],
++		["voice-architecture.md", "Voice architecture", "the sessions and their seats"],
++	];
++
++	render(){
++		this.ac("dictate-docs flex v");
++		this.$bar = div.c("dictate-docs-bar flex wrap v-center");
++		this.$body = div.c("dictate-docs-body");
++		this.$body.el.addEventListener("click", e => {
++			const link = e.target.closest?.("a[data-md]");
++			if (!link || !link.dataset.md.startsWith(this.constructor.HOME) || e.metaKey || e.ctrlKey || e.shiftKey) return;
++			e.preventDefault();
++			this.open(link.dataset.md);
++		});
++		this.open(this.constructor.HOME + "readme.md");
++	}
++
++	// Show one .md file (an absolute path); the readme is home, any other file gets a Back link.
++	async open(path){
++		const home = path === this.constructor.HOME + "readme.md";
++		this.$bar.empty(() => {
++			if (home) span.c("muted", "ux/Dictate readme");
++			else {
++				button.c("dictate-docs-back", "← Back to the readme").attr("type", "button").click(() => this.open(this.constructor.HOME + "readme.md"));
++				span.c("muted", path.slice(this.constructor.HOME.length));
++			}
++		});
++		this.$body.empty(() => { span.c("muted", "loading…"); });
++		const view = await md.file(import.meta, path);
++		this.$body.empty(() => {
++			if (home) this.list();
++			this.$body.el.append(view.el);
++		});
++		this.$body.el.scrollTop = 0;
++		this.el.scrollIntoView?.({ block: "nearest" });
++	}
++
++	// The docs a reader wants first, above the readme: one line each.
++	list(){
++		div.c("dictate-docs-list flex wrap", () => {
++			span.c("muted", "Docs:");
++			this.constructor.DOCS.forEach(([file, label, why]) =>
++				a(label).href("#").attr("title", why).click(e => { e.preventDefault(); this.open(this.constructor.HOME + "doc/" + file); }));
++		});
++	}
++}
+diff --git a/public/framework/ux/Dictate/doc/docs-tab.md b/public/framework/ux/Dictate/doc/docs-tab.md
+new file mode 100644
+index 000000000..1f9868e0a
+--- /dev/null
++++ b/public/framework/ux/Dictate/doc/docs-tab.md
+@@ -0,0 +1,15 @@
++# The Docs tab — this module's readme and docs, read inside the dictation sheet
++
++**What it is.** A third tab beside AI and Debug. It shows the [readme](../readme.md) of `ux/Dictate`, rendered by the site's one markdown renderer ([ext/markdown](/framework/ext/markdown/), `md.file`), with a row of the docs a reader wants first above it: settings, architecture, Whisper, the Debug tab, the voice architecture. A click on one (or on any `.md` link inside the text) opens it in the same tab with a **← Back to the readme** button. Nothing leaves the tab.
++
++Open it from the sheet's **More** row (Debug · Docs · Settings), the drawer's tab row, or at `<page>/ai/docs/` (for example [/framework/ext/drawer/ai/docs/](/framework/ext/drawer/ai/docs/)).
++
++## Where it is made
++
++- The view: `class DictateDocs` ([DictateDocs.js](../DictateDocs.js), [DictateDocs.css](../DictateDocs.css)). It catches a click on an `a[data-md]` link (the attribute `md.route` puts on every rendered `.md` link) that points inside `ux/Dictate/` and opens it in place.
++- The registration (the same three lists the Debug tab is in, no second tab system): a row in `DrawerTabs.list` ([ext/drawer/tabs.js](/framework/ext/drawer/tabs.js)), a row in `AIPage.VIEWS` ([AIPage.js](/framework/ext/drawer/AIPage.js)), a link in the sheet's More row ([Sheet.js](/framework/ext/drawer/Sheet.js)), and the tab file [tabs/docs.js](/framework/ext/drawer/tabs/docs.js).
++- Proof: `test/docs-tab.mjs` opens the Docs view, sees the readme's heading, opens one doc, sees its heading, goes back.
++
++## The top of the readme
++
++"How messages travel" is the first section of the readme, with a numbered `file:line` footnote for every claim. If you change the code it names, change the footnotes.
+diff --git a/public/framework/ux/Dictate/readme.md b/public/framework/ux/Dictate/readme.md
+index 3c08acef2..fb2eefcbd 100644
+--- a/public/framework/ux/Dictate/readme.md
++++ b/public/framework/ux/Dictate/readme.md
+@@ -1,5 +1,21 @@
+ # Dictate — a mic button that always shows what is happening
+ 
++## How messages travel
++
++You speak and Whisper turns the sound into text, one sentence at a time. The page then sends each sentence to Servex with a plain HTTP `POST` to `/api/session/say` (no WebSocket carries your words out; the only live wire is a one-way `EventSource` stream, `/api/session/<id>/stream`, that brings the chat's new lines back).[1][2] The page does not make the voice session: the first time a sentence needs one, `chat.js` asks Servex with `POST /api/session/new`, and Servex's `Sessions.create()` picks the id (`v-…`), writes the session file and starts the fast assistant warming up.[3][4] The fast assistant is fed per thought, not per word: your sentences are held while you are still speaking and handed to it together once you have been quiet for 2.5 s (a typed line goes straight in).[5][6] The smart assistant is fed in batches by `WakePolicy`: one batch when you pause for 12 s, or ask a question, or call it by name, or when 6 sentences have piled up, and you can change the 12 s and the 6 in the dictation settings panel.[7][8]
++
++1. `ext/Session/Session.js:39` (`post()`: `fetch(servex_url("/api/session/<verb>"), {method: "POST"})`) and `:150-170` (`stream()`: `new EventSource(…/api/session/<id>/stream)`).
++2. `ext/Session/Session.js:83` (`say()` posts `say`); `Servex/agents/Sessions.js:1468` (the stream route) and `:1471` (the POST route for `new`, `say`, `settings` and the rest).
++3. `ux/Dictate/chat.js:72` (`Session.start(…)`, one shared promise so two mounts make one session) and `ext/Session/Session.js:56-57` (`start()` posts `new`).
++4. `Servex/agents/Sessions.js:766` (`create()`), `:783` (the `v-` id), `:792` (`prewarm_fast`).
++5. `Servex/agents/Sessions.js:970-972` (a spoken line is held with `hold_thought`, released when the floor is not "speaking" and the quiet is at least `answer_quiet_ms`, default 2500 at `:246`), `:975-982` (a typed line goes straight to the fast seat).
++6. `Servex/agents/Sessions.js:1107-1117` (`release_thought()` hands the held lines to the fast seat in one message).
++7. `Servex/agents/Sessions.js:1119` (the same lines also go to `waker.add()`) and `:254-265` (`waker` flushes into `feed_smart()`).
++8. `Servex/agents/WakePolicy.js:12` (`WAKE_DEFAULTS = {gap_ms: 12000, every: 6}`), `:66` (the sentence count flush), `:2-5` (pause, question or name, count); the settings panel posts `POST /api/session/settings`: `ext/Chat/Mic.js:388`.
++
++
++**Reading this inside the app:** the sheet's **Docs** tab shows this readme and the module's docs ([`doc/docs-tab.md`](doc/docs-tab.md)).
++
+ **Dictation stopped, or the AI never answered? Open the Debug tab** (each step from the mic to the AI's answer, live, with the real error; what the stall was and how it was fixed): [`doc/debug-tab.md`](doc/debug-tab.md).
+ 
+ - `class DictateHealth` (the eight lights, [DictateHealth.js](DictateHealth.js); every error from every stage lands here, and `window` errors and rejections too)
+diff --git a/public/framework/ux/Dictate/test/docs-tab.mjs b/public/framework/ux/Dictate/test/docs-tab.mjs
+new file mode 100644
+index 000000000..56e19753c
+--- /dev/null
++++ b/public/framework/ux/Dictate/test/docs-tab.mjs
+@@ -0,0 +1,46 @@
++// The Docs tab, proven: opens the Docs view, sees the readme's heading and its "How messages travel" section, opens one doc
++// (settings.md), sees its heading, clicks back; shot at 400 and 1920.
++//   node public/framework/ux/Dictate/test/docs-tab.mjs <base-url> <shots dir>
++// Headless; nothing is posted. Exit 1 on any failure.
++import fs from "fs";
++
++const [base = "http://monorepo.localhost", shots = "."] = process.argv.slice(2);
++fs.mkdirSync(shots, { recursive: true });
++const { default: Browser } = await import(new URL("../../../../../Server/Browser.mjs", import.meta.url).href);
++const browser = await Browser.launch({});
++const kill = setTimeout(() => { console.log("FAIL killed after 120 s"); process.exit(2); }, 120000);
++let failed = 0;
++const check = (ok, msg) => { console.log(ok ? "ok  " : "FAIL", msg); if (!ok) failed++; };
++const heading = page => page.evaluate(() => [...document.querySelectorAll(".dictate-docs-body h1")].find(e => e.offsetParent)?.textContent ?? null);
++
++for (const [w, h] of [[400, 844], [1920, 1000]]){
++	const ctx = await browser.newContext({ viewport: { width: w, height: h } });
++	const page = await ctx.newPage();
++	const errors = [];
++	page.on("pageerror", e => errors.push(String(e).slice(0, 200)));
++	await page.goto(base + "/framework/ext/drawer/ai/docs/", { waitUntil: "domcontentloaded" });
++	await page.waitForSelector(".dictate-docs-body h1", { timeout: 20000 }).catch(() => {});
++	const h1 = await heading(page);
++	check(/^Dictate/.test(h1 ?? ""), `${w}: the readme's heading shows (${h1})`);
++	check(await page.evaluate(() => [...document.querySelectorAll(".dictate-docs-body h2")].some(x => x.textContent === "How messages travel")), `${w}: "How messages travel" is in the readme`);
++	await page.screenshot({ path: `${shots}/docs-${w}.png` });
++	await page.locator('.dictate-docs-list a:visible', { hasText: 'Settings' }).first().click();
++	await page.waitForFunction(() => /settings panel/i.test([...document.querySelectorAll(".dictate-docs-body h1")].find(e => e.offsetParent)?.textContent ?? ""), null, { timeout: 10000 }).catch(() => {});
++	const h2 = await heading(page);
++	check(/settings panel/i.test(h2 ?? ""), `${w}: the settings doc opens in the tab (${h2})`);
++	await page.screenshot({ path: `${shots}/docs-doc-${w}.png` });
++	check(new URL(page.url()).pathname === "/framework/ext/drawer/ai/docs/", `${w}: the url did not leave the tab`);
++	await page.locator('.dictate-docs-back:visible').click();
++	await page.waitForFunction(() => /^Dictate/.test([...document.querySelectorAll(".dictate-docs-body h1")].find(e => e.offsetParent)?.textContent ?? ""), null, { timeout: 10000 }).catch(() => {});
++	check(/^Dictate/.test(await heading(page) ?? ""), `${w}: back shows the readme again`);
++	// a .md link inside the text opens in place too
++	await page.locator('.dictate-docs-body a[data-md$="/doc/debug-tab.md"]:visible').first().click();
++	await page.waitForFunction(() => /Debug tab/.test([...document.querySelectorAll(".dictate-docs-body h1")].find(e => e.offsetParent)?.textContent ?? ""), null, { timeout: 10000 }).catch(() => {});
++	check(/Debug tab/.test(await heading(page) ?? ""), `${w}: a link in the text opens in place`);
++	check(!errors.length, `${w}: no page errors ${errors.join(" | ")}`);
++	await ctx.close();
++}
++clearTimeout(kill);
++await browser.close();
++console.log(failed ? `${failed} FAIL` : "0 FAIL");
++process.exit(failed ? 1 : 0);

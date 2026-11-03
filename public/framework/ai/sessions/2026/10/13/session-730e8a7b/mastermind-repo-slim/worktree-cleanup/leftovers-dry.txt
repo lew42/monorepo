@@ -1,0 +1,23 @@
+would   ai2-real-pages: 0 files, 0 in git, 0 ignored, 0 server logs
+would   ai2-row-vanish: 0 files, 0 in git, 0 ignored, 0 server logs
+would   audit-page: 1 files, 0 in git, 1 ignored, 0 server logs
+would   core-columns: 1 files, 0 in git, 1 ignored, 0 server logs
+would   fixer: 0 files, 0 in git, 0 ignored, 0 server logs
+would   framework-home: 0 files, 0 in git, 0 ignored, 0 server logs
+would   module-experts: 0 files, 0 in git, 0 ignored, 0 server logs
+would   probe-p3wyez: 4144 files, 3296 in git, 0 ignored, 848 server logs
+would   probe-p48xwa: 4146 files, 3298 in git, 0 ignored, 848 server logs
+keep    proposal-flow: 10370 files, 8487 in git, 34 ignored, 1847 server logs — 2 file(s) git has never seen, e.g. public/framework/ai/2026-09-30/probe-tasks/runner/task.jsonl
+would   qf-9: 0 files, 0 in git, 0 ignored, 0 server logs
+would   recursive-pairs: 0 files, 0 in git, 0 ignored, 0 server logs
+would   refine-nothing: 7902 files, 6273 in git, 3 ignored, 1626 server logs
+would   refine-style: 35317 files, 9857 in git, 23475 ignored, 1985 server logs
+would   restart-outside-tree: 1 files, 0 in git, 1 ignored, 0 server logs
+would   review-turns: 171 files, 170 in git, 1 ignored, 0 server logs
+would   scratchpad: 0 files, 0 in git, 0 ignored, 0 server logs
+would   server-query: 411 files, 407 in git, 2 ignored, 2 server logs
+keep    server-query-parity: 14905 files, 7808 in git, 5259 ignored, 1809 server logs — 29 file(s) git has never seen, e.g. public/framework/ai/sessions/2026/09/04/index.json
+would   servex-docs-tab: 0 files, 0 in git, 0 ignored, 0 server logs
+would   session-class7: 362 files, 357 in git, 2 ignored, 3 server logs
+would   source-library: 167 files, 166 in git, 1 ignored, 0 server logs
+would   whisper-log: 10986 files, 9033 in git, 5 ignored, 1948 server logs

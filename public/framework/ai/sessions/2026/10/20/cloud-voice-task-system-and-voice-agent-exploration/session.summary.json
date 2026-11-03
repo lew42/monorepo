@@ -1,0 +1,8 @@
+{
+  "id": "cloud-voice-task-system-and-voice-agent-exploration",
+  "home": "/framework/ai/sessions/2026/10/20/cloud-voice-task-system-and-voice-agent-exploration/",
+  "title": "Task system and voice agent",
+  "summary": "Michael is exploring how the task system and cloud voice agent tooling actually work. Notes so far: prefer file-system tailing of JSON-L over direct agent messaging (avoid rapid real-time logging in tailed files); a VS Code mastermind session is active but not visible to Servex; need a way for the voice agent to reach it.",
+  "at": "2026-10-20T17:53:19.147-05:00",
+  "visited": []
+}

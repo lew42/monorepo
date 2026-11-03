@@ -1,0 +1,1 @@
+1. [accept] The spawn failure is tooling infrastructure, not a defect in the diff, so it isn't a code finding to fix in this change. Verifying the actual fix live with screenshots and measurements (two widths, plus a regression check on three other pages) is reasonable evidence in place of a re-run.

@@ -1,0 +1,663 @@
+{
+ "date": "2026-10-02",
+ "claude_usd": 312.53,
+ "real_usd": 0,
+ "by_model": [
+  {
+   "model": "claude-sonnet-5",
+   "claude_usd": 220.72,
+   "real_usd": 0
+  },
+  {
+   "model": "sonnet",
+   "claude_usd": 59.67,
+   "real_usd": 0
+  },
+  {
+   "model": "opus",
+   "claude_usd": 32.13,
+   "real_usd": 0
+  }
+ ],
+ "tasks": [
+  {
+   "key": "2026-10-02/ai-system-docs",
+   "outcome": "The [System tab](/framework/ai/system/) now answers the owner's mobile ask: a page that explains the whole AI system.",
+   "tracked": true,
+   "claude_usd": 7.54,
+   "real_usd": 0,
+   "modules": [
+    "framework/ai"
+   ]
+  },
+  {
+   "key": "2026-10-02/card-pipeline",
+   "outcome": "Every major ask now gets a real card, written by code — the owner's dashboard explains why each score is what it is.",
+   "tracked": true,
+   "claude_usd": 16.77,
+   "real_usd": 0,
+   "modules": [
+    "framework/ai"
+   ]
+  },
+  {
+   "key": "2026-10-02/card-pipeline-2",
+   "outcome": "",
+   "tracked": false,
+   "claude_usd": 0,
+   "real_usd": 0,
+   "modules": [
+    "framework/ai"
+   ]
+  },
+  {
+   "key": "2026-10-02/delete-guard",
+   "outcome": "What landed: git-guard.mjs now refuses a recursive delete whose target is inside the main checkout, from any cwd, and any delete fed by git status / ls-files output run in main. Worktrees, the scratchpad, %TEMP% and /tmp stay open; deleting one file by its exact path stays open everywhere.",
+   "tracked": false,
+   "claude_usd": 0,
+   "real_usd": 0,
+   "modules": []
+  },
+  {
+   "key": "2026-10-02/drawer-close",
+   "outcome": "",
+   "tracked": false,
+   "claude_usd": 0,
+   "real_usd": 0,
+   "modules": [
+    "framework/ai"
+   ]
+  },
+  {
+   "key": "2026-10-02/framework-home",
+   "outcome": "Landed. `/framework/` is a wall of sections, one per sidebar group, read from the sidebar's own tree. Classes get dark cards, columns balance by height, old page kept at /framework/old/.",
+   "tracked": true,
+   "claude_usd": 41.38,
+   "real_usd": 0,
+   "modules": [
+    "framework/ai",
+    "ext/Mention",
+    "core/Page",
+    "ext/Doc",
+    "ext/sprawl",
+    "framework/ext",
+    "framework/design",
+    "framework/styles",
+    "public"
+   ]
+  },
+  {
+   "key": "2026-10-02/jsonl-writers",
+   "outcome": "All 5 unchecked JSONL writers closed. A hand Write/Edit onto an existing .jsonl is now blocked; the browser's rpc:append validates every line before writing; ledger.mjs's own writes go through one checked path that can never go silent; flags.jsonl has a real schema; new-task's day.jsonl route is named. Two fresh-eyes reviews caught a real bug — a static import that could have taken the whole ledger down — now fixed. Proof: 75/75 tests pass, confirmed again after landing. Applied to michael/dev, not committed (merge.mjs 3-way-merged onto edits already uncommitted there) — the owner still needs to commit the touched files. Every step and both reviews are logged below.",
+   "tracked": true,
+   "claude_usd": 9.76,
+   "real_usd": 0,
+   "modules": [
+    "framework/ai",
+    ".claude",
+    "Server"
+   ]
+  },
+  {
+   "key": "2026-10-02/known-issues",
+   "outcome": "",
+   "tracked": false,
+   "claude_usd": 0,
+   "real_usd": 0,
+   "modules": [
+    "framework/ai"
+   ]
+  },
+  {
+   "key": "2026-10-02/list-events",
+   "outcome": "List now carries events itself — LiveList no longer exists. One class, [core/List/List.js](/framework/core/List/List.js): Events built in, the four verbs by id.",
+   "tracked": true,
+   "claude_usd": 6.48,
+   "real_usd": 0,
+   "modules": [
+    "core/List",
+    "core/Item",
+    "core/Events",
+    "core/Page"
+   ]
+  },
+  {
+   "key": "2026-10-02/model-weights",
+   "outcome": "Section 5 harness check done, rung 0 + primer A/B built and mechanically proven; live cross-family model runs queued behind two real infra faults, not this task. Card: /framework/ai/2026/10/02/model-weights-rung-0-primer-a-b-section/. Findings: /framework/ai/2026-10-02/model-weights/harness-findings.md. Tests: /framework/ai/tests/rung0-html-to-view/ and rung0-html-to-view-primer/.",
+   "tracked": false,
+   "claude_usd": 0,
+   "real_usd": 0,
+   "modules": []
+  },
+  {
+   "key": "2026-10-02/node-reap",
+   "outcome": "Reaped now, then guarded against it happening again.",
+   "tracked": false,
+   "claude_usd": 0,
+   "real_usd": 0,
+   "modules": [
+    "framework/ai",
+    ".claude"
+   ]
+  },
+  {
+   "key": "2026-10-02/page-extends-item",
+   "outcome": "Page extends Item; lists save as lines (e44930ad)",
+   "tracked": true,
+   "claude_usd": 55.15,
+   "real_usd": 0,
+   "modules": [
+    "framework/ai",
+    "core/Events",
+    "core/List",
+    "core/Item",
+    "ext/Draggable",
+    "ext/Panel",
+    "ext/editor",
+    "core/Page"
+   ]
+  },
+  {
+   "key": "2026-10-02/page-tools",
+   "outcome": "",
+   "tracked": false,
+   "claude_usd": 0,
+   "real_usd": 0,
+   "modules": [
+    "framework/ai"
+   ]
+  },
+  {
+   "key": "2026-10-02/panel2-sessions",
+   "outcome": "Landing this task's own ledger — the build itself has been live for a day, across several follow-up tasks that this entry never closed out. Part 1: [`ext/panel2`](/framework/ext/panel2/) merged 2026-10-02 (41007736). Part 2: [Dashboard](/framework/ai/dashboard/) and [Sessions](/framework/ai/sessions/) tabs merged the same day (6eda3ebb).",
+   "tracked": true,
+   "claude_usd": 42.83,
+   "real_usd": 0,
+   "modules": [
+    "ext/panel2",
+    "core/Page",
+    "framework/ai2",
+    "ext/drawer",
+    "framework/ai"
+   ]
+  },
+  {
+   "key": "2026-10-02/prompt-refine",
+   "outcome": "One refine() engine, shared by Dictate and the prompt log — landed.",
+   "tracked": true,
+   "claude_usd": 39.56,
+   "real_usd": 0,
+   "modules": [
+    "framework/ai",
+    ".claude",
+    "framework/styles",
+    "ext/Refine",
+    "framework/ai2",
+    "ux/Card",
+    "Server",
+    "Servex"
+   ]
+  },
+  {
+   "key": "2026-10-02/prompt-review",
+   "outcome": "Prompt review: Fri 2 Oct landed — all 42 of the owner's prompts from #session-361c4d18, refined on one card: raw -> clean -> structure, tagged, filterable, in List / Overview / Detail. Checked at 400 and 1920. 22/42 show Clean instead of an outline in Structured (queued fix).",
+   "tracked": true,
+   "claude_usd": 63.24,
+   "real_usd": 0,
+   "modules": [
+    "ext/Refine",
+    "framework/ai",
+    "framework/styles",
+    "public"
+   ]
+  },
+  {
+   "key": "2026-10-02/servex-mastermind",
+   "outcome": "",
+   "tracked": false,
+   "claude_usd": 0,
+   "real_usd": 0,
+   "modules": [
+    "framework/ai"
+   ]
+  },
+  {
+   "key": "2026-10-02/session-costs",
+   "outcome": "Real per-session Claude costs, Claude$ vs OpenRouter$, week vs $200 plan, sortable/RAM/blinking grid, per-prompt detail.",
+   "tracked": true,
+   "claude_usd": 16.06,
+   "real_usd": 0,
+   "modules": [
+    "framework/ai"
+   ]
+  },
+  {
+   "key": "2026-10-02/sessions-grid-v2",
+   "outcome": "Sessions is now a real data grid. [`/framework/ai/sessions/`](/framework/ai/sessions/) — six columns (Start, Source, Name, Model, State, Cost), newest activity first.",
+   "tracked": true,
+   "claude_usd": 1.58,
+   "real_usd": 0,
+   "modules": [
+    "framework/ai",
+    "ext/panel2"
+   ]
+  },
+  {
+   "key": "2026-10-02/stalled-and-budgets",
+   "outcome": "`public/framework/ai/tasks.json` exists now, regenerated every ~60s.",
+   "tracked": true,
+   "claude_usd": 2.6,
+   "real_usd": 0,
+   "modules": [
+    "framework/ai"
+   ]
+  },
+  {
+   "key": "2026-10-02/stamped-logs",
+   "outcome": "",
+   "tracked": false,
+   "claude_usd": 0,
+   "real_usd": 0,
+   "modules": [
+    "framework/ai"
+   ]
+  },
+  {
+   "key": "2026-10-02/standing-voice-pair",
+   "outcome": "",
+   "tracked": false,
+   "claude_usd": 0,
+   "real_usd": 0,
+   "modules": [
+    "framework/ai"
+   ]
+  },
+  {
+   "key": "2026-10-02/task-audit",
+   "outcome": "4 judges graded 5 landed tasks; consensus caught the known failure — GO.",
+   "tracked": true,
+   "claude_usd": 9.58,
+   "real_usd": 0,
+   "modules": [
+    "Server",
+    "framework/ai",
+    ".claude"
+   ]
+  },
+  {
+   "key": "2026-10-02/task-class",
+   "outcome": "core/Task/Task.js landed — state machine (idle/running/paused/stopped/finished), `duration()` (running time only), `progress()` (computed from subtasks), `finish()` refuses while a subtask is open and names it.",
+   "tracked": true,
+   "claude_usd": 0,
+   "real_usd": 0,
+   "modules": []
+  },
+  {
+   "key": "2026-10-02/token-reduction",
+   "outcome": "clarity: labeled item 7 (routing bug) \"riding along, not a saving\" so it isn't read as a token-saving step.",
+   "tracked": false,
+   "claude_usd": 0,
+   "real_usd": 0,
+   "modules": [
+    "framework/ai"
+   ]
+  }
+ ],
+ "modules": [
+  {
+   "module": "framework/ai",
+   "tasks": [
+    {
+     "key": "2026-10-02/ai-system-docs",
+     "outcome": "The [System tab](/framework/ai/system/) now answers the owner's mobile ask: a page that explains the whole AI system."
+    },
+    {
+     "key": "2026-10-02/card-pipeline",
+     "outcome": "Every major ask now gets a real card, written by code — the owner's dashboard explains why each score is what it is."
+    },
+    {
+     "key": "2026-10-02/card-pipeline-2",
+     "outcome": ""
+    },
+    {
+     "key": "2026-10-02/drawer-close",
+     "outcome": ""
+    },
+    {
+     "key": "2026-10-02/framework-home",
+     "outcome": "Landed. `/framework/` is a wall of sections, one per sidebar group, read from the sidebar's own tree. Classes get dark cards, columns balance by height, old page kept at /framework/old/."
+    },
+    {
+     "key": "2026-10-02/jsonl-writers",
+     "outcome": "All 5 unchecked JSONL writers closed. A hand Write/Edit onto an existing .jsonl is now blocked; the browser's rpc:append validates every line before writing; ledger.mjs's own writes go through one checked path that can never go silent; flags.jsonl has a real schema; new-task's day.jsonl route is named. Two fresh-eyes reviews caught a real bug — a static import that could have taken the whole ledger down — now fixed. Proof: 75/75 tests pass, confirmed again after landing. Applied to michael/dev, not committed (merge.mjs 3-way-merged onto edits already uncommitted there) — the owner still needs to commit the touched files. Every step and both reviews are logged below."
+    },
+    {
+     "key": "2026-10-02/known-issues",
+     "outcome": ""
+    },
+    {
+     "key": "2026-10-02/node-reap",
+     "outcome": "Reaped now, then guarded against it happening again."
+    },
+    {
+     "key": "2026-10-02/page-extends-item",
+     "outcome": "Page extends Item; lists save as lines (e44930ad)"
+    },
+    {
+     "key": "2026-10-02/page-tools",
+     "outcome": ""
+    },
+    {
+     "key": "2026-10-02/panel2-sessions",
+     "outcome": "Landing this task's own ledger — the build itself has been live for a day, across several follow-up tasks that this entry never closed out. Part 1: [`ext/panel2`](/framework/ext/panel2/) merged 2026-10-02 (41007736). Part 2: [Dashboard](/framework/ai/dashboard/) and [Sessions](/framework/ai/sessions/) tabs merged the same day (6eda3ebb)."
+    },
+    {
+     "key": "2026-10-02/prompt-refine",
+     "outcome": "One refine() engine, shared by Dictate and the prompt log — landed."
+    },
+    {
+     "key": "2026-10-02/prompt-review",
+     "outcome": "Prompt review: Fri 2 Oct landed — all 42 of the owner's prompts from #session-361c4d18, refined on one card: raw -> clean -> structure, tagged, filterable, in List / Overview / Detail. Checked at 400 and 1920. 22/42 show Clean instead of an outline in Structured (queued fix)."
+    },
+    {
+     "key": "2026-10-02/servex-mastermind",
+     "outcome": ""
+    },
+    {
+     "key": "2026-10-02/session-costs",
+     "outcome": "Real per-session Claude costs, Claude$ vs OpenRouter$, week vs $200 plan, sortable/RAM/blinking grid, per-prompt detail."
+    },
+    {
+     "key": "2026-10-02/sessions-grid-v2",
+     "outcome": "Sessions is now a real data grid. [`/framework/ai/sessions/`](/framework/ai/sessions/) — six columns (Start, Source, Name, Model, State, Cost), newest activity first."
+    },
+    {
+     "key": "2026-10-02/stalled-and-budgets",
+     "outcome": "`public/framework/ai/tasks.json` exists now, regenerated every ~60s."
+    },
+    {
+     "key": "2026-10-02/stamped-logs",
+     "outcome": ""
+    },
+    {
+     "key": "2026-10-02/standing-voice-pair",
+     "outcome": ""
+    },
+    {
+     "key": "2026-10-02/task-audit",
+     "outcome": "4 judges graded 5 landed tasks; consensus caught the known failure — GO."
+    },
+    {
+     "key": "2026-10-02/token-reduction",
+     "outcome": "clarity: labeled item 7 (routing bug) \"riding along, not a saving\" so it isn't read as a token-saving step."
+    }
+   ]
+  },
+  {
+   "module": "core/Page",
+   "tasks": [
+    {
+     "key": "2026-10-02/framework-home",
+     "outcome": "Landed. `/framework/` is a wall of sections, one per sidebar group, read from the sidebar's own tree. Classes get dark cards, columns balance by height, old page kept at /framework/old/."
+    },
+    {
+     "key": "2026-10-02/list-events",
+     "outcome": "List now carries events itself — LiveList no longer exists. One class, [core/List/List.js](/framework/core/List/List.js): Events built in, the four verbs by id."
+    },
+    {
+     "key": "2026-10-02/page-extends-item",
+     "outcome": "Page extends Item; lists save as lines (e44930ad)"
+    },
+    {
+     "key": "2026-10-02/panel2-sessions",
+     "outcome": "Landing this task's own ledger — the build itself has been live for a day, across several follow-up tasks that this entry never closed out. Part 1: [`ext/panel2`](/framework/ext/panel2/) merged 2026-10-02 (41007736). Part 2: [Dashboard](/framework/ai/dashboard/) and [Sessions](/framework/ai/sessions/) tabs merged the same day (6eda3ebb)."
+    }
+   ]
+  },
+  {
+   "module": ".claude",
+   "tasks": [
+    {
+     "key": "2026-10-02/jsonl-writers",
+     "outcome": "All 5 unchecked JSONL writers closed. A hand Write/Edit onto an existing .jsonl is now blocked; the browser's rpc:append validates every line before writing; ledger.mjs's own writes go through one checked path that can never go silent; flags.jsonl has a real schema; new-task's day.jsonl route is named. Two fresh-eyes reviews caught a real bug — a static import that could have taken the whole ledger down — now fixed. Proof: 75/75 tests pass, confirmed again after landing. Applied to michael/dev, not committed (merge.mjs 3-way-merged onto edits already uncommitted there) — the owner still needs to commit the touched files. Every step and both reviews are logged below."
+    },
+    {
+     "key": "2026-10-02/node-reap",
+     "outcome": "Reaped now, then guarded against it happening again."
+    },
+    {
+     "key": "2026-10-02/prompt-refine",
+     "outcome": "One refine() engine, shared by Dictate and the prompt log — landed."
+    },
+    {
+     "key": "2026-10-02/task-audit",
+     "outcome": "4 judges graded 5 landed tasks; consensus caught the known failure — GO."
+    }
+   ]
+  },
+  {
+   "module": "framework/styles",
+   "tasks": [
+    {
+     "key": "2026-10-02/framework-home",
+     "outcome": "Landed. `/framework/` is a wall of sections, one per sidebar group, read from the sidebar's own tree. Classes get dark cards, columns balance by height, old page kept at /framework/old/."
+    },
+    {
+     "key": "2026-10-02/prompt-refine",
+     "outcome": "One refine() engine, shared by Dictate and the prompt log — landed."
+    },
+    {
+     "key": "2026-10-02/prompt-review",
+     "outcome": "Prompt review: Fri 2 Oct landed — all 42 of the owner's prompts from #session-361c4d18, refined on one card: raw -> clean -> structure, tagged, filterable, in List / Overview / Detail. Checked at 400 and 1920. 22/42 show Clean instead of an outline in Structured (queued fix)."
+    }
+   ]
+  },
+  {
+   "module": "Server",
+   "tasks": [
+    {
+     "key": "2026-10-02/jsonl-writers",
+     "outcome": "All 5 unchecked JSONL writers closed. A hand Write/Edit onto an existing .jsonl is now blocked; the browser's rpc:append validates every line before writing; ledger.mjs's own writes go through one checked path that can never go silent; flags.jsonl has a real schema; new-task's day.jsonl route is named. Two fresh-eyes reviews caught a real bug — a static import that could have taken the whole ledger down — now fixed. Proof: 75/75 tests pass, confirmed again after landing. Applied to michael/dev, not committed (merge.mjs 3-way-merged onto edits already uncommitted there) — the owner still needs to commit the touched files. Every step and both reviews are logged below."
+    },
+    {
+     "key": "2026-10-02/prompt-refine",
+     "outcome": "One refine() engine, shared by Dictate and the prompt log — landed."
+    },
+    {
+     "key": "2026-10-02/task-audit",
+     "outcome": "4 judges graded 5 landed tasks; consensus caught the known failure — GO."
+    }
+   ]
+  },
+  {
+   "module": "public",
+   "tasks": [
+    {
+     "key": "2026-10-02/framework-home",
+     "outcome": "Landed. `/framework/` is a wall of sections, one per sidebar group, read from the sidebar's own tree. Classes get dark cards, columns balance by height, old page kept at /framework/old/."
+    },
+    {
+     "key": "2026-10-02/prompt-review",
+     "outcome": "Prompt review: Fri 2 Oct landed — all 42 of the owner's prompts from #session-361c4d18, refined on one card: raw -> clean -> structure, tagged, filterable, in List / Overview / Detail. Checked at 400 and 1920. 22/42 show Clean instead of an outline in Structured (queued fix)."
+    }
+   ]
+  },
+  {
+   "module": "core/List",
+   "tasks": [
+    {
+     "key": "2026-10-02/list-events",
+     "outcome": "List now carries events itself — LiveList no longer exists. One class, [core/List/List.js](/framework/core/List/List.js): Events built in, the four verbs by id."
+    },
+    {
+     "key": "2026-10-02/page-extends-item",
+     "outcome": "Page extends Item; lists save as lines (e44930ad)"
+    }
+   ]
+  },
+  {
+   "module": "core/Item",
+   "tasks": [
+    {
+     "key": "2026-10-02/list-events",
+     "outcome": "List now carries events itself — LiveList no longer exists. One class, [core/List/List.js](/framework/core/List/List.js): Events built in, the four verbs by id."
+    },
+    {
+     "key": "2026-10-02/page-extends-item",
+     "outcome": "Page extends Item; lists save as lines (e44930ad)"
+    }
+   ]
+  },
+  {
+   "module": "core/Events",
+   "tasks": [
+    {
+     "key": "2026-10-02/list-events",
+     "outcome": "List now carries events itself — LiveList no longer exists. One class, [core/List/List.js](/framework/core/List/List.js): Events built in, the four verbs by id."
+    },
+    {
+     "key": "2026-10-02/page-extends-item",
+     "outcome": "Page extends Item; lists save as lines (e44930ad)"
+    }
+   ]
+  },
+  {
+   "module": "ext/panel2",
+   "tasks": [
+    {
+     "key": "2026-10-02/panel2-sessions",
+     "outcome": "Landing this task's own ledger — the build itself has been live for a day, across several follow-up tasks that this entry never closed out. Part 1: [`ext/panel2`](/framework/ext/panel2/) merged 2026-10-02 (41007736). Part 2: [Dashboard](/framework/ai/dashboard/) and [Sessions](/framework/ai/sessions/) tabs merged the same day (6eda3ebb)."
+    },
+    {
+     "key": "2026-10-02/sessions-grid-v2",
+     "outcome": "Sessions is now a real data grid. [`/framework/ai/sessions/`](/framework/ai/sessions/) — six columns (Start, Source, Name, Model, State, Cost), newest activity first."
+    }
+   ]
+  },
+  {
+   "module": "framework/ai2",
+   "tasks": [
+    {
+     "key": "2026-10-02/panel2-sessions",
+     "outcome": "Landing this task's own ledger — the build itself has been live for a day, across several follow-up tasks that this entry never closed out. Part 1: [`ext/panel2`](/framework/ext/panel2/) merged 2026-10-02 (41007736). Part 2: [Dashboard](/framework/ai/dashboard/) and [Sessions](/framework/ai/sessions/) tabs merged the same day (6eda3ebb)."
+    },
+    {
+     "key": "2026-10-02/prompt-refine",
+     "outcome": "One refine() engine, shared by Dictate and the prompt log — landed."
+    }
+   ]
+  },
+  {
+   "module": "ext/Refine",
+   "tasks": [
+    {
+     "key": "2026-10-02/prompt-refine",
+     "outcome": "One refine() engine, shared by Dictate and the prompt log — landed."
+    },
+    {
+     "key": "2026-10-02/prompt-review",
+     "outcome": "Prompt review: Fri 2 Oct landed — all 42 of the owner's prompts from #session-361c4d18, refined on one card: raw -> clean -> structure, tagged, filterable, in List / Overview / Detail. Checked at 400 and 1920. 22/42 show Clean instead of an outline in Structured (queued fix)."
+    }
+   ]
+  },
+  {
+   "module": "ext/Mention",
+   "tasks": [
+    {
+     "key": "2026-10-02/framework-home",
+     "outcome": "Landed. `/framework/` is a wall of sections, one per sidebar group, read from the sidebar's own tree. Classes get dark cards, columns balance by height, old page kept at /framework/old/."
+    }
+   ]
+  },
+  {
+   "module": "ext/Doc",
+   "tasks": [
+    {
+     "key": "2026-10-02/framework-home",
+     "outcome": "Landed. `/framework/` is a wall of sections, one per sidebar group, read from the sidebar's own tree. Classes get dark cards, columns balance by height, old page kept at /framework/old/."
+    }
+   ]
+  },
+  {
+   "module": "ext/sprawl",
+   "tasks": [
+    {
+     "key": "2026-10-02/framework-home",
+     "outcome": "Landed. `/framework/` is a wall of sections, one per sidebar group, read from the sidebar's own tree. Classes get dark cards, columns balance by height, old page kept at /framework/old/."
+    }
+   ]
+  },
+  {
+   "module": "framework/ext",
+   "tasks": [
+    {
+     "key": "2026-10-02/framework-home",
+     "outcome": "Landed. `/framework/` is a wall of sections, one per sidebar group, read from the sidebar's own tree. Classes get dark cards, columns balance by height, old page kept at /framework/old/."
+    }
+   ]
+  },
+  {
+   "module": "framework/design",
+   "tasks": [
+    {
+     "key": "2026-10-02/framework-home",
+     "outcome": "Landed. `/framework/` is a wall of sections, one per sidebar group, read from the sidebar's own tree. Classes get dark cards, columns balance by height, old page kept at /framework/old/."
+    }
+   ]
+  },
+  {
+   "module": "ext/Draggable",
+   "tasks": [
+    {
+     "key": "2026-10-02/page-extends-item",
+     "outcome": "Page extends Item; lists save as lines (e44930ad)"
+    }
+   ]
+  },
+  {
+   "module": "ext/Panel",
+   "tasks": [
+    {
+     "key": "2026-10-02/page-extends-item",
+     "outcome": "Page extends Item; lists save as lines (e44930ad)"
+    }
+   ]
+  },
+  {
+   "module": "ext/editor",
+   "tasks": [
+    {
+     "key": "2026-10-02/page-extends-item",
+     "outcome": "Page extends Item; lists save as lines (e44930ad)"
+    }
+   ]
+  },
+  {
+   "module": "ext/drawer",
+   "tasks": [
+    {
+     "key": "2026-10-02/panel2-sessions",
+     "outcome": "Landing this task's own ledger — the build itself has been live for a day, across several follow-up tasks that this entry never closed out. Part 1: [`ext/panel2`](/framework/ext/panel2/) merged 2026-10-02 (41007736). Part 2: [Dashboard](/framework/ai/dashboard/) and [Sessions](/framework/ai/sessions/) tabs merged the same day (6eda3ebb)."
+    }
+   ]
+  },
+  {
+   "module": "ux/Card",
+   "tasks": [
+    {
+     "key": "2026-10-02/prompt-refine",
+     "outcome": "One refine() engine, shared by Dictate and the prompt log — landed."
+    }
+   ]
+  },
+  {
+   "module": "Servex",
+   "tasks": [
+    {
+     "key": "2026-10-02/prompt-refine",
+     "outcome": "One refine() engine, shared by Dictate and the prompt log — landed."
+    }
+   ]
+  }
+ ]
+}

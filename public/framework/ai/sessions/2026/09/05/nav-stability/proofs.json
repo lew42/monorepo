@@ -1,0 +1,1570 @@
+[
+  {
+    "name": "columns-elastic",
+    "width": 1280,
+    "url": "http://localhost:8097/imagine/paging/navigation/columns/",
+    "before": {
+      "x": 794,
+      "y": 443,
+      "w": 403,
+      "h": 183,
+      "text": "Setup close This is the column you are reading. Click Detai"
+    },
+    "also_before": {
+      "x": 391,
+      "y": 443,
+      "w": 403,
+      "h": 183,
+      "text": "Guide close An ordinary column. Setup chevron_right Usage"
+    },
+    "snap_before": {
+      "cols": [
+        92,
+        403,
+        403,
+        92,
+        241,
+        241
+      ],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "after": {
+      "x": 660,
+      "y": 443,
+      "w": 269,
+      "h": 207,
+      "text": "Setup close This is the column you are reading. Click Detai"
+    },
+    "also_after": {
+      "x": 391,
+      "y": 443,
+      "w": 269,
+      "h": 207,
+      "text": "Guide close An ordinary column. Setup chevron_right Usage"
+    },
+    "snap_after": {
+      "cols": [
+        92,
+        269,
+        269,
+        269,
+        92,
+        241,
+        241
+      ],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "reflow_x": 134,
+    "jump_y": 0,
+    "dh": 24,
+    "dw": -134,
+    "also_x": 0,
+    "also_y": 0,
+    "errors": []
+  },
+  {
+    "name": "columns-elastic",
+    "width": 3440,
+    "url": "http://localhost:8097/imagine/paging/navigation/columns/",
+    "before": {
+      "x": 1116,
+      "y": 534,
+      "w": 483,
+      "h": 219,
+      "text": "Setup close This is the column you are reading. Click Detai"
+    },
+    "also_before": {
+      "x": 633,
+      "y": 534,
+      "w": 483,
+      "h": 219,
+      "text": "Guide close An ordinary column. Setup chevron_right Usage"
+    },
+    "snap_before": {
+      "cols": [
+        110,
+        483,
+        483,
+        110,
+        288,
+        288
+      ],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "after": {
+      "x": 955,
+      "y": 534,
+      "w": 322,
+      "h": 248,
+      "text": "Setup close This is the column you are reading. Click Detai"
+    },
+    "also_after": {
+      "x": 633,
+      "y": 534,
+      "w": 322,
+      "h": 248,
+      "text": "Guide close An ordinary column. Setup chevron_right Usage"
+    },
+    "snap_after": {
+      "cols": [
+        110,
+        322,
+        322,
+        322,
+        110,
+        288,
+        288
+      ],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "reflow_x": 161,
+    "jump_y": 0,
+    "dh": 29,
+    "dw": -161,
+    "also_x": 0,
+    "also_y": 0,
+    "errors": []
+  },
+  {
+    "name": "columns-fixed",
+    "width": 1280,
+    "url": "http://localhost:8097/imagine/paging/navigation/columns/",
+    "before": {
+      "x": 631,
+      "y": 669,
+      "w": 241,
+      "h": 232,
+      "text": "Setup close This is the column you are reading. Click Detai"
+    },
+    "also_before": {
+      "x": 391,
+      "y": 669,
+      "w": 241,
+      "h": 232,
+      "text": "Guide close An ordinary column. Setup chevron_right Usage"
+    },
+    "snap_before": {
+      "cols": [
+        92,
+        403,
+        403,
+        92,
+        241,
+        241
+      ],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "after": {
+      "x": 631,
+      "y": 669,
+      "w": 241,
+      "h": 232,
+      "text": "Setup close This is the column you are reading. Click Detai"
+    },
+    "also_after": {
+      "x": 391,
+      "y": 669,
+      "w": 241,
+      "h": 232,
+      "text": "Guide close An ordinary column. Setup chevron_right Usage"
+    },
+    "snap_after": {
+      "cols": [
+        92,
+        403,
+        403,
+        92,
+        241,
+        241,
+        241
+      ],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "reflow_x": 0,
+    "jump_y": 0,
+    "dh": 0,
+    "dw": 0,
+    "also_x": 0,
+    "also_y": 0,
+    "errors": []
+  },
+  {
+    "name": "columns-fixed",
+    "width": 3440,
+    "url": "http://localhost:8097/imagine/paging/navigation/columns/",
+    "before": {
+      "x": 921,
+      "y": 1059,
+      "w": 288,
+      "h": 277,
+      "text": "Setup close This is the column you are reading. Click Detai"
+    },
+    "also_before": {
+      "x": 633,
+      "y": 1059,
+      "w": 288,
+      "h": 277,
+      "text": "Guide close An ordinary column. Setup chevron_right Usage"
+    },
+    "snap_before": {
+      "cols": [
+        110,
+        483,
+        483,
+        110,
+        288,
+        288
+      ],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "after": {
+      "x": 921,
+      "y": 1059,
+      "w": 288,
+      "h": 277,
+      "text": "Setup close This is the column you are reading. Click Detai"
+    },
+    "also_after": {
+      "x": 633,
+      "y": 1059,
+      "w": 288,
+      "h": 277,
+      "text": "Guide close An ordinary column. Setup chevron_right Usage"
+    },
+    "snap_after": {
+      "cols": [
+        110,
+        483,
+        483,
+        110,
+        288,
+        288,
+        288
+      ],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "reflow_x": 0,
+    "jump_y": 0,
+    "dh": 0,
+    "dw": 0,
+    "also_x": 0,
+    "also_y": 0,
+    "errors": []
+  },
+  {
+    "name": "stage-auto",
+    "width": 1280,
+    "url": "http://localhost:8097/imagine/paging/navigation/stage/",
+    "before": {
+      "x": 298,
+      "y": 563,
+      "w": 439,
+      "h": 27,
+      "text": "THE NEXT THING ON THE PAGE"
+    },
+    "also_before": {
+      "x": 298,
+      "y": 491,
+      "w": 439,
+      "h": 73,
+      "text": "Two lines. This panel is deliberately the short one, so the "
+    },
+    "snap_before": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "after": {
+      "x": 298,
+      "y": 815,
+      "w": 439,
+      "h": 27,
+      "text": "THE NEXT THING ON THE PAGE"
+    },
+    "also_after": {
+      "x": 298,
+      "y": 491,
+      "w": 439,
+      "h": 325,
+      "text": "The tall one — and it has to be tall at 3440 as well as at 1"
+    },
+    "snap_after": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "reflow_x": 0,
+    "jump_y": 252,
+    "dh": 0,
+    "dw": 0,
+    "also_x": 0,
+    "also_y": 0,
+    "errors": []
+  },
+  {
+    "name": "stage-auto",
+    "width": 3440,
+    "url": "http://localhost:8097/imagine/paging/navigation/stage/",
+    "before": {
+      "x": 522,
+      "y": 613,
+      "w": 1373,
+      "h": 33,
+      "text": "THE NEXT THING ON THE PAGE"
+    },
+    "also_before": {
+      "x": 522,
+      "y": 526,
+      "w": 1373,
+      "h": 87,
+      "text": "Two lines. This panel is deliberately the short one, so the "
+    },
+    "snap_before": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "after": {
+      "x": 522,
+      "y": 914,
+      "w": 1373,
+      "h": 33,
+      "text": "THE NEXT THING ON THE PAGE"
+    },
+    "also_after": {
+      "x": 522,
+      "y": 526,
+      "w": 1373,
+      "h": 388,
+      "text": "The tall one — and it has to be tall at 3440 as well as at 1"
+    },
+    "snap_after": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "reflow_x": 0,
+    "jump_y": 301,
+    "dh": 0,
+    "dw": 0,
+    "also_x": 0,
+    "also_y": 0,
+    "errors": []
+  },
+  {
+    "name": "stage-reserved",
+    "width": 1280,
+    "url": "http://localhost:8097/imagine/paging/navigation/stage/",
+    "before": {
+      "x": 784,
+      "y": 815,
+      "w": 439,
+      "h": 27,
+      "text": "THE NEXT THING ON THE PAGE"
+    },
+    "also_before": {
+      "x": 784,
+      "y": 491,
+      "w": 439,
+      "h": 325,
+      "text": "Two lines. This panel is deliberately the short one, so the "
+    },
+    "snap_before": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "after": {
+      "x": 784,
+      "y": 815,
+      "w": 439,
+      "h": 27,
+      "text": "THE NEXT THING ON THE PAGE"
+    },
+    "also_after": {
+      "x": 784,
+      "y": 491,
+      "w": 439,
+      "h": 325,
+      "text": "The tall one — and it has to be tall at 3440 as well as at 1"
+    },
+    "snap_after": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "reflow_x": 0,
+    "jump_y": 0,
+    "dh": 0,
+    "dw": 0,
+    "also_x": 0,
+    "also_y": 0,
+    "errors": []
+  },
+  {
+    "name": "stage-reserved",
+    "width": 3440,
+    "url": "http://localhost:8097/imagine/paging/navigation/stage/",
+    "before": {
+      "x": 1958,
+      "y": 914,
+      "w": 1373,
+      "h": 33,
+      "text": "THE NEXT THING ON THE PAGE"
+    },
+    "also_before": {
+      "x": 1958,
+      "y": 526,
+      "w": 1373,
+      "h": 388,
+      "text": "Two lines. This panel is deliberately the short one, so the "
+    },
+    "snap_before": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "after": {
+      "x": 1958,
+      "y": 914,
+      "w": 1373,
+      "h": 33,
+      "text": "THE NEXT THING ON THE PAGE"
+    },
+    "also_after": {
+      "x": 1958,
+      "y": 526,
+      "w": 1373,
+      "h": 388,
+      "text": "The tall one — and it has to be tall at 3440 as well as at 1"
+    },
+    "snap_after": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "reflow_x": 0,
+    "jump_y": 0,
+    "dh": 0,
+    "dw": 0,
+    "also_x": 0,
+    "also_y": 0,
+    "errors": []
+  },
+  {
+    "name": "tabs-auto",
+    "width": 1280,
+    "url": "http://localhost:8097/imagine/paging/navigation/tabs/",
+    "before": {
+      "x": 298,
+      "y": 598,
+      "w": 439,
+      "h": 27,
+      "text": "THE NEXT THING ON THE PAGE"
+    },
+    "also_before": {
+      "x": 298,
+      "y": 517,
+      "w": 439,
+      "h": 81,
+      "text": "Two lines. This panel is deliberately the short one, so the "
+    },
+    "snap_before": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "after": {
+      "x": 298,
+      "y": 850,
+      "w": 439,
+      "h": 27,
+      "text": "THE NEXT THING ON THE PAGE"
+    },
+    "also_after": {
+      "x": 298,
+      "y": 517,
+      "w": 439,
+      "h": 333,
+      "text": "The tall one — and it has to be tall at 3440 as well as at 1"
+    },
+    "snap_after": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "reflow_x": 0,
+    "jump_y": 252,
+    "dh": 0,
+    "dw": 0,
+    "also_x": 0,
+    "also_y": 0,
+    "errors": []
+  },
+  {
+    "name": "tabs-auto",
+    "width": 3440,
+    "url": "http://localhost:8097/imagine/paging/navigation/tabs/",
+    "before": {
+      "x": 522,
+      "y": 622,
+      "w": 1373,
+      "h": 33,
+      "text": "THE NEXT THING ON THE PAGE"
+    },
+    "also_before": {
+      "x": 522,
+      "y": 526,
+      "w": 1373,
+      "h": 97,
+      "text": "Two lines. This panel is deliberately the short one, so the "
+    },
+    "snap_before": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "after": {
+      "x": 522,
+      "y": 924,
+      "w": 1373,
+      "h": 33,
+      "text": "THE NEXT THING ON THE PAGE"
+    },
+    "also_after": {
+      "x": 522,
+      "y": 526,
+      "w": 1373,
+      "h": 398,
+      "text": "The tall one — and it has to be tall at 3440 as well as at 1"
+    },
+    "snap_after": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "reflow_x": 0,
+    "jump_y": 302,
+    "dh": 0,
+    "dw": 0,
+    "also_x": 0,
+    "also_y": 0,
+    "errors": []
+  },
+  {
+    "name": "tabs-reserved",
+    "width": 1280,
+    "url": "http://localhost:8097/imagine/paging/navigation/tabs/",
+    "before": {
+      "x": 784,
+      "y": 796,
+      "w": 439,
+      "h": 27,
+      "text": "THE NEXT THING ON THE PAGE"
+    },
+    "also_before": {
+      "x": 784,
+      "y": 463,
+      "w": 439,
+      "h": 333,
+      "text": "Two lines. This panel is deliberately the short one, so the "
+    },
+    "snap_before": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "after": {
+      "x": 784,
+      "y": 796,
+      "w": 439,
+      "h": 27,
+      "text": "THE NEXT THING ON THE PAGE"
+    },
+    "also_after": {
+      "x": 784,
+      "y": 463,
+      "w": 439,
+      "h": 333,
+      "text": "The tall one — and it has to be tall at 3440 as well as at 1"
+    },
+    "snap_after": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "reflow_x": 0,
+    "jump_y": 0,
+    "dh": 0,
+    "dw": 0,
+    "also_x": 0,
+    "also_y": 0,
+    "errors": []
+  },
+  {
+    "name": "tabs-reserved",
+    "width": 3440,
+    "url": "http://localhost:8097/imagine/paging/navigation/tabs/",
+    "before": {
+      "x": 1958,
+      "y": 891,
+      "w": 1373,
+      "h": 33,
+      "text": "THE NEXT THING ON THE PAGE"
+    },
+    "also_before": {
+      "x": 1958,
+      "y": 493,
+      "w": 1373,
+      "h": 398,
+      "text": "Two lines. This panel is deliberately the short one, so the "
+    },
+    "snap_before": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "after": {
+      "x": 1958,
+      "y": 891,
+      "w": 1373,
+      "h": 33,
+      "text": "THE NEXT THING ON THE PAGE"
+    },
+    "also_after": {
+      "x": 1958,
+      "y": 493,
+      "w": 1373,
+      "h": 398,
+      "text": "The tall one — and it has to be tall at 3440 as well as at 1"
+    },
+    "snap_after": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "reflow_x": 0,
+    "jump_y": 0,
+    "dh": 0,
+    "dw": 0,
+    "also_x": 0,
+    "also_y": 0,
+    "errors": []
+  },
+  {
+    "name": "screen-to-activity",
+    "width": 1280,
+    "url": "http://localhost:8097/imagine/paging/navigation/screen/",
+    "before": {
+      "x": 0,
+      "y": 45,
+      "w": 205,
+      "h": 810,
+      "text": "FULL SCREEN dashboard Overview timeline Activity settings Se"
+    },
+    "also_before": {
+      "x": 205,
+      "y": 45,
+      "w": 1075,
+      "h": 810,
+      "text": "Overview Click the other two names in the rail, then look b"
+    },
+    "snap_before": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "after": {
+      "x": 0,
+      "y": 45,
+      "w": 205,
+      "h": 810,
+      "text": "FULL SCREEN dashboard Overview timeline Activity settings Se"
+    },
+    "also_after": {
+      "x": 205,
+      "y": 45,
+      "w": 1075,
+      "h": 810,
+      "text": "Activity This panel is much longer than the other two, on p"
+    },
+    "snap_after": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "reflow_x": 0,
+    "jump_y": 0,
+    "dh": 0,
+    "dw": 0,
+    "also_x": 0,
+    "also_y": 0,
+    "errors": []
+  },
+  {
+    "name": "screen-to-activity",
+    "width": 3440,
+    "url": "http://localhost:8097/imagine/paging/navigation/screen/",
+    "before": {
+      "x": 0,
+      "y": 54,
+      "w": 320,
+      "h": 1292,
+      "text": "FULL SCREEN dashboard Overview timeline Activity settings Se"
+    },
+    "also_before": {
+      "x": 320,
+      "y": 54,
+      "w": 3120,
+      "h": 1292,
+      "text": "Overview Click the other two names in the rail, then look b"
+    },
+    "snap_before": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "after": {
+      "x": 0,
+      "y": 54,
+      "w": 320,
+      "h": 1292,
+      "text": "FULL SCREEN dashboard Overview timeline Activity settings Se"
+    },
+    "also_after": {
+      "x": 320,
+      "y": 54,
+      "w": 3120,
+      "h": 1292,
+      "text": "Activity This panel is much longer than the other two, on p"
+    },
+    "snap_after": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "reflow_x": 0,
+    "jump_y": 0,
+    "dh": 0,
+    "dw": 0,
+    "also_x": 0,
+    "also_y": 0,
+    "errors": []
+  },
+  {
+    "name": "screen-to-settings",
+    "width": 1280,
+    "url": "http://localhost:8097/imagine/paging/navigation/screen/activity/",
+    "before": {
+      "x": 0,
+      "y": 45,
+      "w": 205,
+      "h": 810,
+      "text": "FULL SCREEN dashboard Overview timeline Activity settings Se"
+    },
+    "also_before": {
+      "x": 205,
+      "y": 45,
+      "w": 1075,
+      "h": 810,
+      "text": "Activity This panel is much longer than the other two, on p"
+    },
+    "snap_before": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "after": {
+      "x": 0,
+      "y": 45,
+      "w": 205,
+      "h": 810,
+      "text": "FULL SCREEN dashboard Overview timeline Activity settings Se"
+    },
+    "also_after": {
+      "x": 205,
+      "y": 45,
+      "w": 1075,
+      "h": 810,
+      "text": "Settings Three lines, after a panel that was fourteen scree"
+    },
+    "snap_after": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "reflow_x": 0,
+    "jump_y": 0,
+    "dh": 0,
+    "dw": 0,
+    "also_x": 0,
+    "also_y": 0,
+    "errors": []
+  },
+  {
+    "name": "screen-to-settings",
+    "width": 3440,
+    "url": "http://localhost:8097/imagine/paging/navigation/screen/activity/",
+    "before": {
+      "x": 0,
+      "y": 54,
+      "w": 320,
+      "h": 1292,
+      "text": "FULL SCREEN dashboard Overview timeline Activity settings Se"
+    },
+    "also_before": {
+      "x": 320,
+      "y": 54,
+      "w": 3120,
+      "h": 1292,
+      "text": "Activity This panel is much longer than the other two, on p"
+    },
+    "snap_before": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "after": {
+      "x": 0,
+      "y": 54,
+      "w": 320,
+      "h": 1292,
+      "text": "FULL SCREEN dashboard Overview timeline Activity settings Se"
+    },
+    "also_after": {
+      "x": 320,
+      "y": 54,
+      "w": 3120,
+      "h": 1292,
+      "text": "Settings Three lines, after a panel that was fourteen scree"
+    },
+    "snap_after": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "reflow_x": 0,
+    "jump_y": 0,
+    "dh": 0,
+    "dw": 0,
+    "also_x": 0,
+    "also_y": 0,
+    "errors": []
+  },
+  {
+    "name": "screen-back-to-overview",
+    "width": 1280,
+    "url": "http://localhost:8097/imagine/paging/navigation/screen/settings/",
+    "before": {
+      "x": 0,
+      "y": 45,
+      "w": 205,
+      "h": 810,
+      "text": "FULL SCREEN dashboard Overview timeline Activity settings Se"
+    },
+    "also_before": {
+      "x": 205,
+      "y": 45,
+      "w": 1075,
+      "h": 810,
+      "text": "Settings Three lines, after a panel that was fourteen scree"
+    },
+    "snap_before": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "after": {
+      "x": 0,
+      "y": 45,
+      "w": 205,
+      "h": 810,
+      "text": "FULL SCREEN dashboard Overview timeline Activity settings Se"
+    },
+    "also_after": {
+      "x": 205,
+      "y": 45,
+      "w": 1075,
+      "h": 810,
+      "text": "Overview Click the other two names in the rail, then look b"
+    },
+    "snap_after": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "reflow_x": 0,
+    "jump_y": 0,
+    "dh": 0,
+    "dw": 0,
+    "also_x": 0,
+    "also_y": 0,
+    "errors": []
+  },
+  {
+    "name": "screen-back-to-overview",
+    "width": 3440,
+    "url": "http://localhost:8097/imagine/paging/navigation/screen/settings/",
+    "before": {
+      "x": 0,
+      "y": 54,
+      "w": 320,
+      "h": 1292,
+      "text": "FULL SCREEN dashboard Overview timeline Activity settings Se"
+    },
+    "also_before": {
+      "x": 320,
+      "y": 54,
+      "w": 3120,
+      "h": 1292,
+      "text": "Settings Three lines, after a panel that was fourteen scree"
+    },
+    "snap_before": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "after": {
+      "x": 0,
+      "y": 54,
+      "w": 320,
+      "h": 1292,
+      "text": "FULL SCREEN dashboard Overview timeline Activity settings Se"
+    },
+    "also_after": {
+      "x": 320,
+      "y": 54,
+      "w": 3120,
+      "h": 1292,
+      "text": "Overview Click the other two names in the rail, then look b"
+    },
+    "snap_after": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "reflow_x": 0,
+    "jump_y": 0,
+    "dh": 0,
+    "dw": 0,
+    "also_x": 0,
+    "also_y": 0,
+    "errors": []
+  },
+  {
+    "name": "lab-fluid",
+    "width": 1280,
+    "url": "http://localhost:8097/imagine/paging/navigation/",
+    "before": {
+      "x": 591,
+      "y": 375,
+      "w": 143,
+      "h": 62,
+      "text": "C"
+    },
+    "also_before": {
+      "x": 298,
+      "y": 506,
+      "w": 439,
+      "h": 27,
+      "text": "THE NEXT THING ON THE PAGE"
+    },
+    "snap_before": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "after": {
+      "x": 518,
+      "y": 375,
+      "w": 107,
+      "h": 62,
+      "text": "C"
+    },
+    "also_after": {
+      "x": 298,
+      "y": 506,
+      "w": 439,
+      "h": 27,
+      "text": "THE NEXT THING ON THE PAGE"
+    },
+    "snap_after": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "reflow_x": 73,
+    "jump_y": 0,
+    "dh": 0,
+    "dw": -36,
+    "also_x": 0,
+    "also_y": 0,
+    "errors": []
+  },
+  {
+    "name": "lab-fluid",
+    "width": 3440,
+    "url": "http://localhost:8097/imagine/paging/navigation/",
+    "before": {
+      "x": 1438,
+      "y": 453,
+      "w": 454,
+      "h": 75,
+      "text": "C"
+    },
+    "also_before": {
+      "x": 522,
+      "y": 610,
+      "w": 1373,
+      "h": 33,
+      "text": "THE NEXT THING ON THE PAGE"
+    },
+    "snap_before": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "after": {
+      "x": 1210,
+      "y": 453,
+      "w": 340,
+      "h": 75,
+      "text": "C"
+    },
+    "also_after": {
+      "x": 522,
+      "y": 610,
+      "w": 1373,
+      "h": 33,
+      "text": "THE NEXT THING ON THE PAGE"
+    },
+    "snap_after": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "reflow_x": 228,
+    "jump_y": 0,
+    "dh": 0,
+    "dw": -114,
+    "also_x": 0,
+    "also_y": 0,
+    "errors": []
+  },
+  {
+    "name": "lab-steady",
+    "width": 1280,
+    "url": "http://localhost:8097/imagine/paging/navigation/",
+    "before": {
+      "x": 981,
+      "y": 375,
+      "w": 95,
+      "h": 62,
+      "text": "C"
+    },
+    "also_before": {
+      "x": 784,
+      "y": 644,
+      "w": 439,
+      "h": 27,
+      "text": "THE NEXT THING ON THE PAGE"
+    },
+    "snap_before": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "after": {
+      "x": 981,
+      "y": 375,
+      "w": 95,
+      "h": 62,
+      "text": "C"
+    },
+    "also_after": {
+      "x": 784,
+      "y": 644,
+      "w": 439,
+      "h": 27,
+      "text": "THE NEXT THING ON THE PAGE"
+    },
+    "snap_after": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "reflow_x": 0,
+    "jump_y": 0,
+    "dh": 0,
+    "dw": 0,
+    "also_x": 0,
+    "also_y": 0,
+    "errors": []
+  },
+  {
+    "name": "lab-steady",
+    "width": 3440,
+    "url": "http://localhost:8097/imagine/paging/navigation/",
+    "before": {
+      "x": 2455,
+      "y": 453,
+      "w": 245,
+      "h": 75,
+      "text": "C"
+    },
+    "also_before": {
+      "x": 1958,
+      "y": 746,
+      "w": 1373,
+      "h": 33,
+      "text": "THE NEXT THING ON THE PAGE"
+    },
+    "snap_before": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "after": {
+      "x": 2455,
+      "y": 453,
+      "w": 245,
+      "h": 75,
+      "text": "C"
+    },
+    "also_after": {
+      "x": 1958,
+      "y": 746,
+      "w": 1373,
+      "h": 33,
+      "text": "THE NEXT THING ON THE PAGE"
+    },
+    "snap_after": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "reflow_x": 0,
+    "jump_y": 0,
+    "dh": 0,
+    "dw": 0,
+    "also_x": 0,
+    "also_y": 0,
+    "errors": []
+  },
+  {
+    "name": "lab-fluid-swap",
+    "width": 1280,
+    "url": "http://localhost:8097/imagine/paging/navigation/",
+    "before": {
+      "x": 298,
+      "y": 506,
+      "w": 439,
+      "h": 27,
+      "text": "THE NEXT THING ON THE PAGE"
+    },
+    "also_before": {
+      "x": 298,
+      "y": 451,
+      "w": 439,
+      "h": 45,
+      "text": "One short line."
+    },
+    "snap_before": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "after": {
+      "x": 298,
+      "y": 631,
+      "w": 439,
+      "h": 27,
+      "text": "THE NEXT THING ON THE PAGE"
+    },
+    "also_after": {
+      "x": 298,
+      "y": 451,
+      "w": 439,
+      "h": 169,
+      "text": "A much longer panel. Four lines of it, so the difference in "
+    },
+    "snap_after": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "reflow_x": 0,
+    "jump_y": 125,
+    "dh": 0,
+    "dw": 0,
+    "also_x": 0,
+    "also_y": 0,
+    "errors": []
+  },
+  {
+    "name": "lab-fluid-swap",
+    "width": 3440,
+    "url": "http://localhost:8097/imagine/paging/navigation/",
+    "before": {
+      "x": 522,
+      "y": 610,
+      "w": 1373,
+      "h": 33,
+      "text": "THE NEXT THING ON THE PAGE"
+    },
+    "also_before": {
+      "x": 522,
+      "y": 544,
+      "w": 1373,
+      "h": 53,
+      "text": "One short line."
+    },
+    "snap_before": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "after": {
+      "x": 522,
+      "y": 729,
+      "w": 1373,
+      "h": 33,
+      "text": "THE NEXT THING ON THE PAGE"
+    },
+    "also_after": {
+      "x": 522,
+      "y": 544,
+      "w": 1373,
+      "h": 173,
+      "text": "A much longer panel. Four lines of it, so the difference in "
+    },
+    "snap_after": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "reflow_x": 0,
+    "jump_y": 119,
+    "dh": 0,
+    "dw": 0,
+    "also_x": 0,
+    "also_y": 0,
+    "errors": []
+  },
+  {
+    "name": "lab-steady-swap",
+    "width": 1280,
+    "url": "http://localhost:8097/imagine/paging/navigation/",
+    "before": {
+      "x": 784,
+      "y": 644,
+      "w": 439,
+      "h": 27,
+      "text": "THE NEXT THING ON THE PAGE"
+    },
+    "also_before": {
+      "x": 784,
+      "y": 451,
+      "w": 439,
+      "h": 183,
+      "text": "One short line."
+    },
+    "snap_before": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "after": {
+      "x": 784,
+      "y": 644,
+      "w": 439,
+      "h": 27,
+      "text": "THE NEXT THING ON THE PAGE"
+    },
+    "also_after": {
+      "x": 784,
+      "y": 451,
+      "w": 439,
+      "h": 183,
+      "text": "A much longer panel. Four lines of it, so the difference in "
+    },
+    "snap_after": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 1280,
+        "cw": 1280,
+        "sh": 900
+      }
+    },
+    "reflow_x": 0,
+    "jump_y": 0,
+    "dh": 0,
+    "dw": 0,
+    "also_x": 0,
+    "also_y": 0,
+    "errors": []
+  },
+  {
+    "name": "lab-steady-swap",
+    "width": 3440,
+    "url": "http://localhost:8097/imagine/paging/navigation/",
+    "before": {
+      "x": 1958,
+      "y": 746,
+      "w": 1373,
+      "h": 33,
+      "text": "THE NEXT THING ON THE PAGE"
+    },
+    "also_before": {
+      "x": 1958,
+      "y": 544,
+      "w": 1373,
+      "h": 189,
+      "text": "One short line."
+    },
+    "snap_before": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "after": {
+      "x": 1958,
+      "y": 746,
+      "w": 1373,
+      "h": 33,
+      "text": "THE NEXT THING ON THE PAGE"
+    },
+    "also_after": {
+      "x": 1958,
+      "y": 544,
+      "w": 1373,
+      "h": 189,
+      "text": "A much longer panel. Four lines of it, so the difference in "
+    },
+    "snap_after": {
+      "cols": [],
+      "row": null,
+      "doc": {
+        "sw": 3440,
+        "cw": 3440,
+        "sh": 1400
+      }
+    },
+    "reflow_x": 0,
+    "jump_y": 0,
+    "dh": 0,
+    "dw": 0,
+    "also_x": 0,
+    "also_y": 0,
+    "errors": []
+  }
+]

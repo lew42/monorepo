@@ -1,0 +1,86 @@
+diff --git a/Servex/TaskLoop-launch.test.mjs b/Servex/TaskLoop-launch.test.mjs
+index c775e2f52..345596239 100644
+--- a/Servex/TaskLoop-launch.test.mjs
++++ b/Servex/TaskLoop-launch.test.mjs
+@@ -57,19 +57,24 @@ const c = make("c", [{ assign: { agent: "minion-old", requested_at: "2026-10-17T
+ await loop.launch(b); await loop.launch(c);
+ assert.equal(spawned.length, 1, "a task with no agent config spawns nothing");
+ 
++// approved_by comes from the approve line's own author when the verb carries no `by` (the item tool stamps `by` on the line)
++const e = make("e", [head(), wait, { approve: { note: "ok" }, by: "voice-app" }]);
++await loop.launch(e);
++assert.equal(spawn_lines(e)[0].approved_by, "voice-app", "approved_by falls back to the approve line's by");
++
+ // hot: queue, not spawn; then the tick retry spawns once it clears
+ const d = make("d", [head(), wait, approve]);
+ servex.monitor.flag = { reason: "CPU above 90%" };
+ const h = await loop.launch(d);
+ assert.equal(h.queued, true);
+-assert.equal(spawned.length, 1);
++assert.equal(spawned.length, 2);
+ assert.equal(spawn_lines(d).length, 0);
+ assert.equal(fs.readFileSync(d, "utf8").split("\n").filter(l => l.includes('"queue"')).length, 1);
+ await loop.launch(d);
+ assert.equal(fs.readFileSync(d, "utf8").split("\n").filter(l => l.includes('"queue"')).length, 1, "queued once");
+ servex.monitor.flag = null;
+ await loop.tick();
+-assert.equal(spawned.length, 2, "the tick retries a queued task");
++assert.equal(spawned.length, 3, "the tick retries a queued task");
+ assert.equal(spawn_lines(d).length, 1);
+ 
+ try { fs.rmSync(dir, { recursive: true, force: true }); } catch {}
+diff --git a/Servex/TaskLoop.js b/Servex/TaskLoop.js
+index 5d33aeb92..aeb92613f 100644
+--- a/Servex/TaskLoop.js
++++ b/Servex/TaskLoop.js
+@@ -215,7 +215,7 @@ export default class TaskLoop {
+         const landed = task.state === "complete", closed = task.state === "stopped";
+         return { state, task_state: task.state, waiting_on: d.waiting_on ?? null, waiting_since: d.waiting_since ?? null, waiting_what: d.waiting_what ?? null,
+             parent_task: lines.find(l => l.assign)?.assign?.parent_task ?? null,
+-            agent_cfg: cfg, template: d.template ?? null, first_by: lines[0]?.by ?? null, approved_by: d.approved_by ?? null, spawned, queued,
++            agent_cfg: cfg, template: d.template ?? null, first_by: lines[0]?.by ?? null, approved_by: d.approved_by ?? lines.findLast(l => l.approve)?.by ?? null, spawned, queued,
+             follow_ups: mine, last_chase, last_chase_at, escalated, landed, closed };
+     }
+ 
+diff --git a/Servex/agents/page_tools.js b/Servex/agents/page_tools.js
+index e71de6d20..e34717b1b 100644
+--- a/Servex/agents/page_tools.js
++++ b/Servex/agents/page_tools.js
+@@ -582,6 +582,8 @@ export async function run_item({ path: url, target, delta } = {}, ctx = {}, alia
+ 	if (delta === undefined) return { ok: true, ...(await extra()), ...(alias ? { state: state() } : {}) };
+ 	if (!is_plain(delta)) return { ok: false, why: "`delta` must be one object (a log line)" };
+ 	const flat = expand_dots(delta);
++	// A verdict verb given as a bare note ({"approve":"ok"}) would be written but ignored on replay (Task.replay_line reads verbs as objects): make it {note}.
++	for (const v of ["approve", "improve", "reject"]) if (typeof flat[v] === "string") flat[v] = { note: flat[v] };
+ 	if (Object.keys(flat).length === 1 && flat.help){
+ 		told.set(`${ctx.caller}|${kind}`, true);
+ 		return { ok: true, instructions: await instructions_for(kind, Class) };
+diff --git a/Servex/agents/verb-note.test.mjs b/Servex/agents/verb-note.test.mjs
+new file mode 100644
+index 000000000..fe5d15f41
+--- /dev/null
++++ b/Servex/agents/verb-note.test.mjs
+@@ -0,0 +1,23 @@
++/* node Servex/agents/verb-note.test.mjs — {"approve":"note"} through the item tool is written as {note} and takes effect (core/Task/doc/templates.md). */
++import assert from "node:assert";
++import fs from "node:fs";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++import { run_item } from "./page_tools.js";
++
++const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
++const REL = "public/framework/ai/sessions/2026/10/16/.verb-note-test-" + process.pid;
++const DIR = path.join(ROOT, REL), FILE = path.join(DIR, "task.jsonl"), URL = "/" + REL.slice("public/".length) + "/";
++const call = delta => run_item({ path: URL, delta }, { caller: "t1" });
++
++fs.mkdirSync(DIR, { recursive: true });
++fs.writeFileSync(FILE, JSON.stringify({ assign: { slug: "fixture", title: "Fixture" } }) + "\n");
++try {
++	await call({ wait: { on: "mastermind", what: "plan review" } });
++	const r = await call({ approve: "looks good" });
++	const last = fs.readFileSync(FILE, "utf8").trim().split("\n").map(l => JSON.parse(l)).filter(l => l.approve).at(-1);
++	assert.equal(last.approve.note, "looks good", "a string approve is written as {note}");
++	assert.equal(r.state.state, "running", "and it takes effect: waiting -> running");
++	console.log("verb-note.test.mjs: all checks passed");
++} finally { fs.rmSync(DIR, { recursive: true, force: true }); }
++process.exit(0);

@@ -1,0 +1,6225 @@
+{
+  "group": "D",
+  "round": "before",
+  "generated_at": "2026-09-05T18:54:50.862Z",
+  "pages": [
+    {
+      "url": "/",
+      "ok": true,
+      "medians": {
+        "400": 8.39,
+        "1280": 7.28,
+        "1920": 5.94,
+        "2560": 6.92,
+        "3440": 6.92
+      },
+      "growth_3440_over_1280": 0.95,
+      "boxes": {
+        "1280": 169,
+        "3440": 169
+      },
+      "widest_strip": {
+        "selector": "a.sidebar-link",
+        "width": 272.59,
+        "ink": 38.23,
+        "ratio": 7.13,
+        "parent": "flex / column"
+      }
+    },
+    {
+      "url": "/blog/",
+      "ok": true,
+      "medians": {
+        "400": 10.3,
+        "1280": 9.02,
+        "1920": 9.59,
+        "2560": 10.8,
+        "3440": 10.8
+      },
+      "growth_3440_over_1280": 1.2,
+      "boxes": {
+        "1280": 100,
+        "3440": 100
+      },
+      "widest_strip": {
+        "selector": "a.blog-more-link",
+        "width": 352,
+        "ink": 96.56,
+        "ratio": 3.65,
+        "parent": "flex / column"
+      }
+    },
+    {
+      "url": "/blog/framework/hello-lew42/",
+      "ok": true,
+      "medians": {
+        "400": 13.42,
+        "1280": 10.25,
+        "1920": 11.19,
+        "2560": 12.34,
+        "3440": 12.34
+      },
+      "growth_3440_over_1280": 1.2,
+      "boxes": {
+        "1280": 185,
+        "3440": 185
+      },
+      "widest_strip": {
+        "selector": "a.blog-part-link",
+        "width": 344,
+        "ink": 100.5,
+        "ratio": 3.42,
+        "parent": "flex / column"
+      }
+    },
+    {
+      "url": "/blog/framework/how-this-blog-works/",
+      "ok": true,
+      "medians": {
+        "400": 9.05,
+        "1280": 9.67,
+        "1920": 11.19,
+        "2560": 12.34,
+        "3440": 12.34
+      },
+      "growth_3440_over_1280": 1.28,
+      "boxes": {
+        "1280": 197,
+        "3440": 197
+      },
+      "widest_strip": {
+        "selector": "a.toc-link",
+        "width": 344,
+        "ink": 68.28,
+        "ratio": 5.04,
+        "parent": "flex / column"
+      }
+    },
+    {
+      "url": "/blog/systems/layout-generators/",
+      "ok": true,
+      "medians": {
+        "400": 23.45,
+        "1280": 19.46,
+        "1920": 10.66,
+        "2560": 11.99,
+        "3440": 11.03
+      },
+      "growth_3440_over_1280": 0.57,
+      "boxes": {
+        "1280": 117,
+        "3440": 117
+      },
+      "widest_strip": {
+        "selector": "a.toc-link",
+        "width": 344,
+        "ink": 96.17,
+        "ratio": 3.58,
+        "parent": "flex / column"
+      }
+    },
+    {
+      "url": "/resume/",
+      "ok": true,
+      "medians": {
+        "400": 15.11,
+        "1280": 20.89,
+        "1920": 22.23,
+        "2560": 25.01,
+        "3440": 25.01
+      },
+      "growth_3440_over_1280": 1.2,
+      "boxes": {
+        "1280": 87,
+        "3440": 87
+      },
+      "widest_strip": null
+    },
+    {
+      "url": "/notes/",
+      "ok": true,
+      "medians": {
+        "400": 14,
+        "1280": 9.02,
+        "1920": 9.59,
+        "2560": 10.8,
+        "3440": 10.8
+      },
+      "growth_3440_over_1280": 1.2,
+      "boxes": {
+        "1280": 18,
+        "3440": 18
+      },
+      "widest_strip": {
+        "selector": "a.page-preview-link",
+        "width": 316,
+        "ink": 101.19,
+        "ratio": 3.12,
+        "parent": "flex / column"
+      }
+    },
+    {
+      "url": "/notes/auth/",
+      "ok": true,
+      "medians": {
+        "400": 28,
+        "1280": 30.08,
+        "1920": 32,
+        "2560": 36,
+        "3440": 36
+      },
+      "growth_3440_over_1280": 1.2,
+      "boxes": {
+        "1280": 245,
+        "3440": 245
+      },
+      "widest_strip": null
+    },
+    {
+      "url": "/notes/git-branch-names/",
+      "ok": true,
+      "medians": {
+        "400": 28,
+        "1280": 30.08,
+        "1920": 32,
+        "2560": 36,
+        "3440": 36
+      },
+      "growth_3440_over_1280": 1.2,
+      "boxes": {
+        "1280": 43,
+        "3440": 43
+      },
+      "widest_strip": null
+    },
+    {
+      "url": "/notes/team-note/",
+      "ok": true,
+      "medians": {
+        "400": 28,
+        "1280": 30.08,
+        "1920": 32,
+        "2560": 36,
+        "3440": 36
+      },
+      "growth_3440_over_1280": 1.2,
+      "boxes": {
+        "1280": 62,
+        "3440": 62
+      },
+      "widest_strip": null
+    }
+  ],
+  "findings": [
+    {
+      "id": "D-01",
+      "kind": "no-growth",
+      "url": "/",
+      "width": 3440,
+      "selector": ".page",
+      "numbers": {
+        "median_1280": 7.28,
+        "median_3440": 6.92,
+        "growth": 0.95
+      },
+      "detail": "The typical gap between elements barely changes as the screen grows: 7.28px at 1280 wide vs 6.92px at 3440 wide (0.95x), even though the viewport itself is 2.69x wider.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-13",
+      "kind": "strip",
+      "url": "/",
+      "width": 1280,
+      "selector": "a.sidebar-link",
+      "numbers": {
+        "width": 227.59,
+        "ink": 19.92,
+        "padding": 103.84
+      },
+      "detail": "\"a.sidebar-link\" is 228px wide but its own text only needs 20px — the rest, about 208px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 5,
+      "crop": "shots/before/crop-D-13.jpg"
+    },
+    {
+      "id": "D-29",
+      "kind": "strip",
+      "url": "/",
+      "width": 1920,
+      "selector": "a.sidebar-link",
+      "numbers": {
+        "width": 242.19,
+        "ink": 21.2,
+        "padding": 110.49
+      },
+      "detail": "\"a.sidebar-link\" is 242px wide but its own text only needs 21px — the rest, about 221px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 5,
+      "crop": "shots/before/crop-D-29.jpg"
+    },
+    {
+      "id": "D-46",
+      "kind": "strip",
+      "url": "/",
+      "width": 2560,
+      "selector": "a.sidebar-link",
+      "numbers": {
+        "width": 272.59,
+        "ink": 23.83,
+        "padding": 124.38
+      },
+      "detail": "\"a.sidebar-link\" is 273px wide but its own text only needs 24px — the rest, about 249px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 5,
+      "crop": "shots/before/crop-D-46.jpg"
+    },
+    {
+      "id": "D-63",
+      "kind": "strip",
+      "url": "/",
+      "width": 3440,
+      "selector": "a.sidebar-link",
+      "numbers": {
+        "width": 272.59,
+        "ink": 23.83,
+        "padding": 124.38
+      },
+      "detail": "\"a.sidebar-link\" is 273px wide but its own text only needs 24px — the rest, about 249px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 5,
+      "crop": "shots/before/crop-D-63.jpg"
+    },
+    {
+      "id": "D-81",
+      "kind": "strip",
+      "url": "/blog/",
+      "width": 1280,
+      "selector": "a.sidebar-group-title.blog-nav-section",
+      "numbers": {
+        "width": 227.59,
+        "ink": 13.41,
+        "padding": 107.09
+      },
+      "detail": "\"a.sidebar-group-title.blog-nav-section\" is 228px wide but its own text only needs 13px — the rest, about 214px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 5,
+      "crop": "shots/before/crop-D-81.jpg"
+    },
+    {
+      "id": "D-88",
+      "kind": "strip",
+      "url": "/blog/",
+      "width": 1920,
+      "selector": "a.sidebar-group-title.blog-nav-section",
+      "numbers": {
+        "width": 242.19,
+        "ink": 14.28,
+        "padding": 113.95
+      },
+      "detail": "\"a.sidebar-group-title.blog-nav-section\" is 242px wide but its own text only needs 14px — the rest, about 228px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 5,
+      "crop": "shots/before/crop-D-88.jpg"
+    },
+    {
+      "id": "D-96",
+      "kind": "strip",
+      "url": "/blog/",
+      "width": 2560,
+      "selector": "a.sidebar-group-title.blog-nav-section",
+      "numbers": {
+        "width": 272.59,
+        "ink": 16.06,
+        "padding": 128.27
+      },
+      "detail": "\"a.sidebar-group-title.blog-nav-section\" is 273px wide but its own text only needs 16px — the rest, about 257px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 5,
+      "crop": "shots/before/crop-D-96.jpg"
+    },
+    {
+      "id": "D-104",
+      "kind": "strip",
+      "url": "/blog/",
+      "width": 3440,
+      "selector": "a.sidebar-group-title.blog-nav-section",
+      "numbers": {
+        "width": 272.59,
+        "ink": 16.06,
+        "padding": 128.27
+      },
+      "detail": "\"a.sidebar-group-title.blog-nav-section\" is 273px wide but its own text only needs 16px — the rest, about 257px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 5,
+      "crop": "shots/before/crop-D-104.jpg"
+    },
+    {
+      "id": "D-119",
+      "kind": "padding-thin",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 400,
+      "selector": "a.blog-part-link",
+      "numbers": {
+        "padding": 0,
+        "font_size": 12.6
+      },
+      "detail": "\"a.blog-part-link\" has only 0px of side padding, less than half its own 12.6px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5,
+      "crop": "shots/before/crop-D-119.jpg"
+    },
+    {
+      "id": "D-120",
+      "kind": "padding-thin",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 400,
+      "selector": "a.blog-part-link",
+      "numbers": {
+        "padding": 0,
+        "font_size": 12.6
+      },
+      "detail": "\"a.blog-part-link\" has only 0px of side padding, less than half its own 12.6px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5,
+      "crop": "shots/before/crop-D-120.jpg"
+    },
+    {
+      "id": "D-121",
+      "kind": "padding-thin",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 400,
+      "selector": "a.blog-part-link",
+      "numbers": {
+        "padding": 0,
+        "font_size": 12.6
+      },
+      "detail": "\"a.blog-part-link\" has only 0px of side padding, less than half its own 12.6px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-123",
+      "kind": "padding-thin",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 400,
+      "selector": "a.toc-link.current",
+      "numbers": {
+        "padding": 0,
+        "font_size": 12.6
+      },
+      "detail": "\"a.toc-link.current\" has only 0px of side padding, less than half its own 12.6px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-125",
+      "kind": "padding-thin",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 400,
+      "selector": "a.toc-link",
+      "numbers": {
+        "padding": 0,
+        "font_size": 12.6
+      },
+      "detail": "\"a.toc-link\" has only 0px of side padding, less than half its own 12.6px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-135",
+      "kind": "padding-thin",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 1280,
+      "selector": "a.blog-part-link",
+      "numbers": {
+        "padding": 0,
+        "font_size": 13.54
+      },
+      "detail": "\"a.blog-part-link\" has only 0px of side padding, less than half its own 13.54px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-136",
+      "kind": "padding-thin",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 1280,
+      "selector": "a.blog-part-link",
+      "numbers": {
+        "padding": 0,
+        "font_size": 13.54
+      },
+      "detail": "\"a.blog-part-link\" has only 0px of side padding, less than half its own 13.54px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-137",
+      "kind": "padding-thin",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 1280,
+      "selector": "a.blog-part-link",
+      "numbers": {
+        "padding": 0,
+        "font_size": 13.54
+      },
+      "detail": "\"a.blog-part-link\" has only 0px of side padding, less than half its own 13.54px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-138",
+      "kind": "padding-thin",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 1280,
+      "selector": "a.toc-link.current",
+      "numbers": {
+        "padding": 0,
+        "font_size": 13.54
+      },
+      "detail": "\"a.toc-link.current\" has only 0px of side padding, less than half its own 13.54px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-139",
+      "kind": "padding-thin",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 1280,
+      "selector": "a.toc-link",
+      "numbers": {
+        "padding": 0,
+        "font_size": 13.54
+      },
+      "detail": "\"a.toc-link\" has only 0px of side padding, less than half its own 13.54px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-149",
+      "kind": "padding-thin",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 1920,
+      "selector": "a.blog-part-link",
+      "numbers": {
+        "padding": 0,
+        "font_size": 14.4
+      },
+      "detail": "\"a.blog-part-link\" has only 0px of side padding, less than half its own 14.4px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-150",
+      "kind": "padding-thin",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 1920,
+      "selector": "a.blog-part-link",
+      "numbers": {
+        "padding": 0,
+        "font_size": 14.4
+      },
+      "detail": "\"a.blog-part-link\" has only 0px of side padding, less than half its own 14.4px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-151",
+      "kind": "padding-thin",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 1920,
+      "selector": "a.blog-part-link",
+      "numbers": {
+        "padding": 0,
+        "font_size": 14.4
+      },
+      "detail": "\"a.blog-part-link\" has only 0px of side padding, less than half its own 14.4px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-152",
+      "kind": "padding-thin",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 1920,
+      "selector": "a.toc-link.current",
+      "numbers": {
+        "padding": 0,
+        "font_size": 14.4
+      },
+      "detail": "\"a.toc-link.current\" has only 0px of side padding, less than half its own 14.4px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-153",
+      "kind": "padding-thin",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 1920,
+      "selector": "a.toc-link",
+      "numbers": {
+        "padding": 0,
+        "font_size": 14.4
+      },
+      "detail": "\"a.toc-link\" has only 0px of side padding, less than half its own 14.4px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-163",
+      "kind": "padding-thin",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 2560,
+      "selector": "a.blog-part-link",
+      "numbers": {
+        "padding": 0,
+        "font_size": 16.2
+      },
+      "detail": "\"a.blog-part-link\" has only 0px of side padding, less than half its own 16.2px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-164",
+      "kind": "padding-thin",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 2560,
+      "selector": "a.blog-part-link",
+      "numbers": {
+        "padding": 0,
+        "font_size": 16.2
+      },
+      "detail": "\"a.blog-part-link\" has only 0px of side padding, less than half its own 16.2px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-165",
+      "kind": "padding-thin",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 2560,
+      "selector": "a.blog-part-link",
+      "numbers": {
+        "padding": 0,
+        "font_size": 16.2
+      },
+      "detail": "\"a.blog-part-link\" has only 0px of side padding, less than half its own 16.2px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-166",
+      "kind": "padding-thin",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 2560,
+      "selector": "a.toc-link.current",
+      "numbers": {
+        "padding": 0,
+        "font_size": 16.2
+      },
+      "detail": "\"a.toc-link.current\" has only 0px of side padding, less than half its own 16.2px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-167",
+      "kind": "padding-thin",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 2560,
+      "selector": "a.toc-link",
+      "numbers": {
+        "padding": 0,
+        "font_size": 16.2
+      },
+      "detail": "\"a.toc-link\" has only 0px of side padding, less than half its own 16.2px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-177",
+      "kind": "padding-thin",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 3440,
+      "selector": "a.blog-part-link",
+      "numbers": {
+        "padding": 0,
+        "font_size": 16.2
+      },
+      "detail": "\"a.blog-part-link\" has only 0px of side padding, less than half its own 16.2px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-178",
+      "kind": "padding-thin",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 3440,
+      "selector": "a.blog-part-link",
+      "numbers": {
+        "padding": 0,
+        "font_size": 16.2
+      },
+      "detail": "\"a.blog-part-link\" has only 0px of side padding, less than half its own 16.2px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-179",
+      "kind": "padding-thin",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 3440,
+      "selector": "a.blog-part-link",
+      "numbers": {
+        "padding": 0,
+        "font_size": 16.2
+      },
+      "detail": "\"a.blog-part-link\" has only 0px of side padding, less than half its own 16.2px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-180",
+      "kind": "padding-thin",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 3440,
+      "selector": "a.toc-link.current",
+      "numbers": {
+        "padding": 0,
+        "font_size": 16.2
+      },
+      "detail": "\"a.toc-link.current\" has only 0px of side padding, less than half its own 16.2px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-181",
+      "kind": "padding-thin",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 3440,
+      "selector": "a.toc-link",
+      "numbers": {
+        "padding": 0,
+        "font_size": 16.2
+      },
+      "detail": "\"a.toc-link\" has only 0px of side padding, less than half its own 16.2px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-192",
+      "kind": "ratio",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 400,
+      "selector": "p",
+      "numbers": {
+        "gap_a": 57.91,
+        "gap_b": 7.53,
+        "ratio": 7.69
+      },
+      "detail": "Inside p, one gap between rows is 57.91px and the very next gap is 7.53px (7.69x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-193",
+      "kind": "ratio",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 400,
+      "selector": "p",
+      "numbers": {
+        "gap_a": 7.53,
+        "gap_b": 83.09,
+        "ratio": 11.03
+      },
+      "detail": "Inside p, one gap between rows is 7.53px and the very next gap is 83.09px (11.03x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-194",
+      "kind": "padding-thin",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 400,
+      "selector": "a.blog-part-link",
+      "numbers": {
+        "padding": 0,
+        "font_size": 12.6
+      },
+      "detail": "\"a.blog-part-link\" has only 0px of side padding, less than half its own 12.6px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-195",
+      "kind": "padding-thin",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 400,
+      "selector": "a.blog-part-link",
+      "numbers": {
+        "padding": 0,
+        "font_size": 12.6
+      },
+      "detail": "\"a.blog-part-link\" has only 0px of side padding, less than half its own 12.6px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-196",
+      "kind": "padding-thin",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 400,
+      "selector": "a.toc-link.current",
+      "numbers": {
+        "padding": 0,
+        "font_size": 12.6
+      },
+      "detail": "\"a.toc-link.current\" has only 0px of side padding, less than half its own 12.6px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-198",
+      "kind": "padding-thin",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 400,
+      "selector": "a.toc-link",
+      "numbers": {
+        "padding": 0,
+        "font_size": 12.6
+      },
+      "detail": "\"a.toc-link\" has only 0px of side padding, less than half its own 12.6px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-199",
+      "kind": "padding-thin",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 400,
+      "selector": "a.toc-link",
+      "numbers": {
+        "padding": 0,
+        "font_size": 12.6
+      },
+      "detail": "\"a.toc-link\" has only 0px of side padding, less than half its own 12.6px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-212",
+      "kind": "padding-thin",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 1280,
+      "selector": "a.blog-part-link",
+      "numbers": {
+        "padding": 0,
+        "font_size": 13.54
+      },
+      "detail": "\"a.blog-part-link\" has only 0px of side padding, less than half its own 13.54px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-213",
+      "kind": "padding-thin",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 1280,
+      "selector": "a.blog-part-link",
+      "numbers": {
+        "padding": 0,
+        "font_size": 13.54
+      },
+      "detail": "\"a.blog-part-link\" has only 0px of side padding, less than half its own 13.54px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-214",
+      "kind": "padding-thin",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 1280,
+      "selector": "a.toc-link.current",
+      "numbers": {
+        "padding": 0,
+        "font_size": 13.54
+      },
+      "detail": "\"a.toc-link.current\" has only 0px of side padding, less than half its own 13.54px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-215",
+      "kind": "padding-thin",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 1280,
+      "selector": "a.toc-link",
+      "numbers": {
+        "padding": 0,
+        "font_size": 13.54
+      },
+      "detail": "\"a.toc-link\" has only 0px of side padding, less than half its own 13.54px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-216",
+      "kind": "padding-thin",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 1280,
+      "selector": "a.toc-link",
+      "numbers": {
+        "padding": 0,
+        "font_size": 13.54
+      },
+      "detail": "\"a.toc-link\" has only 0px of side padding, less than half its own 13.54px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-229",
+      "kind": "padding-thin",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 1920,
+      "selector": "a.blog-part-link",
+      "numbers": {
+        "padding": 0,
+        "font_size": 14.4
+      },
+      "detail": "\"a.blog-part-link\" has only 0px of side padding, less than half its own 14.4px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-230",
+      "kind": "padding-thin",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 1920,
+      "selector": "a.blog-part-link",
+      "numbers": {
+        "padding": 0,
+        "font_size": 14.4
+      },
+      "detail": "\"a.blog-part-link\" has only 0px of side padding, less than half its own 14.4px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-231",
+      "kind": "padding-thin",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 1920,
+      "selector": "a.toc-link.current",
+      "numbers": {
+        "padding": 0,
+        "font_size": 14.4
+      },
+      "detail": "\"a.toc-link.current\" has only 0px of side padding, less than half its own 14.4px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-232",
+      "kind": "padding-thin",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 1920,
+      "selector": "a.toc-link",
+      "numbers": {
+        "padding": 0,
+        "font_size": 14.4
+      },
+      "detail": "\"a.toc-link\" has only 0px of side padding, less than half its own 14.4px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-233",
+      "kind": "padding-thin",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 1920,
+      "selector": "a.toc-link",
+      "numbers": {
+        "padding": 0,
+        "font_size": 14.4
+      },
+      "detail": "\"a.toc-link\" has only 0px of side padding, less than half its own 14.4px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-246",
+      "kind": "padding-thin",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 2560,
+      "selector": "a.blog-part-link",
+      "numbers": {
+        "padding": 0,
+        "font_size": 16.2
+      },
+      "detail": "\"a.blog-part-link\" has only 0px of side padding, less than half its own 16.2px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-247",
+      "kind": "padding-thin",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 2560,
+      "selector": "a.blog-part-link",
+      "numbers": {
+        "padding": 0,
+        "font_size": 16.2
+      },
+      "detail": "\"a.blog-part-link\" has only 0px of side padding, less than half its own 16.2px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-248",
+      "kind": "padding-thin",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 2560,
+      "selector": "a.toc-link.current",
+      "numbers": {
+        "padding": 0,
+        "font_size": 16.2
+      },
+      "detail": "\"a.toc-link.current\" has only 0px of side padding, less than half its own 16.2px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-249",
+      "kind": "padding-thin",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 2560,
+      "selector": "a.toc-link",
+      "numbers": {
+        "padding": 0,
+        "font_size": 16.2
+      },
+      "detail": "\"a.toc-link\" has only 0px of side padding, less than half its own 16.2px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-250",
+      "kind": "padding-thin",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 2560,
+      "selector": "a.toc-link",
+      "numbers": {
+        "padding": 0,
+        "font_size": 16.2
+      },
+      "detail": "\"a.toc-link\" has only 0px of side padding, less than half its own 16.2px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-263",
+      "kind": "padding-thin",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 3440,
+      "selector": "a.blog-part-link",
+      "numbers": {
+        "padding": 0,
+        "font_size": 16.2
+      },
+      "detail": "\"a.blog-part-link\" has only 0px of side padding, less than half its own 16.2px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-264",
+      "kind": "padding-thin",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 3440,
+      "selector": "a.blog-part-link",
+      "numbers": {
+        "padding": 0,
+        "font_size": 16.2
+      },
+      "detail": "\"a.blog-part-link\" has only 0px of side padding, less than half its own 16.2px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-265",
+      "kind": "padding-thin",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 3440,
+      "selector": "a.toc-link.current",
+      "numbers": {
+        "padding": 0,
+        "font_size": 16.2
+      },
+      "detail": "\"a.toc-link.current\" has only 0px of side padding, less than half its own 16.2px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-266",
+      "kind": "padding-thin",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 3440,
+      "selector": "a.toc-link",
+      "numbers": {
+        "padding": 0,
+        "font_size": 16.2
+      },
+      "detail": "\"a.toc-link\" has only 0px of side padding, less than half its own 16.2px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-267",
+      "kind": "padding-thin",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 3440,
+      "selector": "a.toc-link",
+      "numbers": {
+        "padding": 0,
+        "font_size": 16.2
+      },
+      "detail": "\"a.toc-link\" has only 0px of side padding, less than half its own 16.2px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-272",
+      "kind": "no-growth",
+      "url": "/blog/systems/layout-generators/",
+      "width": 3440,
+      "selector": ".page",
+      "numbers": {
+        "median_1280": 19.46,
+        "median_3440": 11.03,
+        "growth": 0.57
+      },
+      "detail": "The typical gap between elements barely changes as the screen grows: 19.46px at 1280 wide vs 11.03px at 3440 wide (0.57x), even though the viewport itself is 2.69x wider.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-277",
+      "kind": "ratio",
+      "url": "/blog/systems/layout-generators/",
+      "width": 400,
+      "selector": "p",
+      "numbers": {
+        "gap_a": 83.92,
+        "gap_b": 7.53,
+        "ratio": 11.14
+      },
+      "detail": "Inside p, one gap between rows is 83.92px and the very next gap is 7.53px (11.14x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-279",
+      "kind": "padding-thin",
+      "url": "/blog/systems/layout-generators/",
+      "width": 400,
+      "selector": "a.toc-link.current",
+      "numbers": {
+        "padding": 0,
+        "font_size": 12.6
+      },
+      "detail": "\"a.toc-link.current\" has only 0px of side padding, less than half its own 12.6px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-280",
+      "kind": "padding-thin",
+      "url": "/blog/systems/layout-generators/",
+      "width": 400,
+      "selector": "a.toc-link",
+      "numbers": {
+        "padding": 0,
+        "font_size": 12.6
+      },
+      "detail": "\"a.toc-link\" has only 0px of side padding, less than half its own 12.6px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-282",
+      "kind": "padding-thin",
+      "url": "/blog/systems/layout-generators/",
+      "width": 400,
+      "selector": "a.toc-link",
+      "numbers": {
+        "padding": 0,
+        "font_size": 12.6
+      },
+      "detail": "\"a.toc-link\" has only 0px of side padding, less than half its own 12.6px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-289",
+      "kind": "ratio",
+      "url": "/blog/systems/layout-generators/",
+      "width": 1280,
+      "selector": "p",
+      "numbers": {
+        "gap_a": 8.14,
+        "gap_b": 62.3,
+        "ratio": 7.65
+      },
+      "detail": "Inside p, one gap between rows is 8.14px and the very next gap is 62.3px (7.65x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-292",
+      "kind": "padding-thin",
+      "url": "/blog/systems/layout-generators/",
+      "width": 1280,
+      "selector": "a.toc-link.current",
+      "numbers": {
+        "padding": 0,
+        "font_size": 13.54
+      },
+      "detail": "\"a.toc-link.current\" has only 0px of side padding, less than half its own 13.54px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-293",
+      "kind": "padding-thin",
+      "url": "/blog/systems/layout-generators/",
+      "width": 1280,
+      "selector": "a.toc-link",
+      "numbers": {
+        "padding": 0,
+        "font_size": 13.54
+      },
+      "detail": "\"a.toc-link\" has only 0px of side padding, less than half its own 13.54px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-294",
+      "kind": "padding-thin",
+      "url": "/blog/systems/layout-generators/",
+      "width": 1280,
+      "selector": "a.toc-link",
+      "numbers": {
+        "padding": 0,
+        "font_size": 13.54
+      },
+      "detail": "\"a.toc-link\" has only 0px of side padding, less than half its own 13.54px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-300",
+      "kind": "ratio",
+      "url": "/blog/systems/layout-generators/",
+      "width": 1920,
+      "selector": "p",
+      "numbers": {
+        "gap_a": 7.61,
+        "gap_b": 65.2,
+        "ratio": 8.57
+      },
+      "detail": "Inside p, one gap between rows is 7.61px and the very next gap is 65.2px (8.57x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-303",
+      "kind": "padding-thin",
+      "url": "/blog/systems/layout-generators/",
+      "width": 1920,
+      "selector": "a.toc-link.current",
+      "numbers": {
+        "padding": 0,
+        "font_size": 14.4
+      },
+      "detail": "\"a.toc-link.current\" has only 0px of side padding, less than half its own 14.4px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-304",
+      "kind": "padding-thin",
+      "url": "/blog/systems/layout-generators/",
+      "width": 1920,
+      "selector": "a.toc-link",
+      "numbers": {
+        "padding": 0,
+        "font_size": 14.4
+      },
+      "detail": "\"a.toc-link\" has only 0px of side padding, less than half its own 14.4px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-305",
+      "kind": "padding-thin",
+      "url": "/blog/systems/layout-generators/",
+      "width": 1920,
+      "selector": "a.toc-link",
+      "numbers": {
+        "padding": 0,
+        "font_size": 14.4
+      },
+      "detail": "\"a.toc-link\" has only 0px of side padding, less than half its own 14.4px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-311",
+      "kind": "ratio",
+      "url": "/blog/systems/layout-generators/",
+      "width": 2560,
+      "selector": "p",
+      "numbers": {
+        "gap_a": 9.67,
+        "gap_b": 74.45,
+        "ratio": 7.7
+      },
+      "detail": "Inside p, one gap between rows is 9.67px and the very next gap is 74.45px (7.7x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-314",
+      "kind": "padding-thin",
+      "url": "/blog/systems/layout-generators/",
+      "width": 2560,
+      "selector": "a.toc-link.current",
+      "numbers": {
+        "padding": 0,
+        "font_size": 16.2
+      },
+      "detail": "\"a.toc-link.current\" has only 0px of side padding, less than half its own 16.2px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-315",
+      "kind": "padding-thin",
+      "url": "/blog/systems/layout-generators/",
+      "width": 2560,
+      "selector": "a.toc-link",
+      "numbers": {
+        "padding": 0,
+        "font_size": 16.2
+      },
+      "detail": "\"a.toc-link\" has only 0px of side padding, less than half its own 16.2px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-316",
+      "kind": "padding-thin",
+      "url": "/blog/systems/layout-generators/",
+      "width": 2560,
+      "selector": "a.toc-link",
+      "numbers": {
+        "padding": 0,
+        "font_size": 16.2
+      },
+      "detail": "\"a.toc-link\" has only 0px of side padding, less than half its own 16.2px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-322",
+      "kind": "ratio",
+      "url": "/blog/systems/layout-generators/",
+      "width": 3440,
+      "selector": "p",
+      "numbers": {
+        "gap_a": 9.67,
+        "gap_b": 74.45,
+        "ratio": 7.7
+      },
+      "detail": "Inside p, one gap between rows is 9.67px and the very next gap is 74.45px (7.7x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-325",
+      "kind": "padding-thin",
+      "url": "/blog/systems/layout-generators/",
+      "width": 3440,
+      "selector": "a.toc-link.current",
+      "numbers": {
+        "padding": 0,
+        "font_size": 16.2
+      },
+      "detail": "\"a.toc-link.current\" has only 0px of side padding, less than half its own 16.2px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-326",
+      "kind": "padding-thin",
+      "url": "/blog/systems/layout-generators/",
+      "width": 3440,
+      "selector": "a.toc-link",
+      "numbers": {
+        "padding": 0,
+        "font_size": 16.2
+      },
+      "detail": "\"a.toc-link\" has only 0px of side padding, less than half its own 16.2px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-327",
+      "kind": "padding-thin",
+      "url": "/blog/systems/layout-generators/",
+      "width": 3440,
+      "selector": "a.toc-link",
+      "numbers": {
+        "padding": 0,
+        "font_size": 16.2
+      },
+      "detail": "\"a.toc-link\" has only 0px of side padding, less than half its own 16.2px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-340",
+      "kind": "ratio",
+      "url": "/notes/auth/",
+      "width": 400,
+      "selector": "p",
+      "numbers": {
+        "gap_a": 58.73,
+        "gap_b": 7.53,
+        "ratio": 7.8
+      },
+      "detail": "Inside p, one gap between rows is 58.73px and the very next gap is 7.53px (7.8x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-342",
+      "kind": "ratio",
+      "url": "/notes/auth/",
+      "width": 400,
+      "selector": "p",
+      "numbers": {
+        "gap_a": 8.36,
+        "gap_b": 57.91,
+        "ratio": 6.93
+      },
+      "detail": "Inside p, one gap between rows is 8.36px and the very next gap is 57.91px (6.93x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 5
+    },
+    {
+      "id": "D-06",
+      "kind": "padding-fat",
+      "url": "/",
+      "width": 400,
+      "selector": "button.demo-btn",
+      "numbers": {
+        "padding": 13.33,
+        "width": 40.61
+      },
+      "detail": "\"button.demo-btn\" has 13.33px of side padding, more than a fifth of its own 40.61px width.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-10",
+      "kind": "strip",
+      "url": "/",
+      "width": 1280,
+      "selector": "a.sidebar-link",
+      "numbers": {
+        "width": 227.59,
+        "ink": 31.95,
+        "padding": 97.82
+      },
+      "detail": "\"a.sidebar-link\" is 228px wide but its own text only needs 32px — the rest, about 196px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-11",
+      "kind": "strip",
+      "url": "/",
+      "width": 1280,
+      "selector": "a.sidebar-link",
+      "numbers": {
+        "width": 227.59,
+        "ink": 32,
+        "padding": 97.8
+      },
+      "detail": "\"a.sidebar-link\" is 228px wide but its own text only needs 32px — the rest, about 196px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-17",
+      "kind": "padding-fat",
+      "url": "/",
+      "width": 1280,
+      "selector": "button.demo-btn",
+      "numbers": {
+        "padding": 14.32,
+        "width": 43.5
+      },
+      "detail": "\"button.demo-btn\" has 14.32px of side padding, more than a fifth of its own 43.5px width.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-19",
+      "kind": "padding-fat",
+      "url": "/",
+      "width": 1280,
+      "selector": "button.demo-btn.demo-scrub",
+      "numbers": {
+        "padding": 16.84,
+        "width": 48.92
+      },
+      "detail": "\"button.demo-btn.demo-scrub\" has 16.84px of side padding, more than a fifth of its own 48.92px width.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-21",
+      "kind": "padding-fat",
+      "url": "/",
+      "width": 1280,
+      "selector": "button.demo-btn",
+      "numbers": {
+        "padding": 16.84,
+        "width": 48.92
+      },
+      "detail": "\"button.demo-btn\" has 16.84px of side padding, more than a fifth of its own 48.92px width.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-24",
+      "kind": "ratio",
+      "url": "/",
+      "width": 1920,
+      "selector": "code.hljs.language-javascript",
+      "numbers": {
+        "gap_a": 5.59,
+        "gap_b": 24.19,
+        "ratio": 4.32
+      },
+      "detail": "Inside code.hljs.language-javascript, one gap between rows is 5.59px and the very next gap is 24.19px (4.32x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-25",
+      "kind": "ratio",
+      "url": "/",
+      "width": 1920,
+      "selector": "code.hljs.language-javascript",
+      "numbers": {
+        "gap_a": 24.19,
+        "gap_b": 5.59,
+        "ratio": 4.32
+      },
+      "detail": "Inside code.hljs.language-javascript, one gap between rows is 24.19px and the very next gap is 5.59px (4.32x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-26",
+      "kind": "strip",
+      "url": "/",
+      "width": 1920,
+      "selector": "a.sidebar-link",
+      "numbers": {
+        "width": 242.19,
+        "ink": 34,
+        "padding": 104.09
+      },
+      "detail": "\"a.sidebar-link\" is 242px wide but its own text only needs 34px — the rest, about 208px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-27",
+      "kind": "strip",
+      "url": "/",
+      "width": 1920,
+      "selector": "a.sidebar-link",
+      "numbers": {
+        "width": 242.19,
+        "ink": 34.06,
+        "padding": 104.06
+      },
+      "detail": "\"a.sidebar-link\" is 242px wide but its own text only needs 34px — the rest, about 208px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-33",
+      "kind": "padding-fat",
+      "url": "/",
+      "width": 1920,
+      "selector": "button.demo-btn",
+      "numbers": {
+        "padding": 15.23,
+        "width": 46.16
+      },
+      "detail": "\"button.demo-btn\" has 15.23px of side padding, more than a fifth of its own 46.16px width.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-35",
+      "kind": "padding-fat",
+      "url": "/",
+      "width": 1920,
+      "selector": "button.demo-btn.demo-scrub",
+      "numbers": {
+        "padding": 17.92,
+        "width": 51.91
+      },
+      "detail": "\"button.demo-btn.demo-scrub\" has 17.92px of side padding, more than a fifth of its own 51.91px width.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-37",
+      "kind": "padding-fat",
+      "url": "/",
+      "width": 1920,
+      "selector": "button.demo-btn",
+      "numbers": {
+        "padding": 17.92,
+        "width": 51.91
+      },
+      "detail": "\"button.demo-btn\" has 17.92px of side padding, more than a fifth of its own 51.91px width.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-41",
+      "kind": "ratio",
+      "url": "/",
+      "width": 2560,
+      "selector": "code.hljs.language-javascript",
+      "numbers": {
+        "gap_a": 6.92,
+        "gap_b": 27.84,
+        "ratio": 4.02
+      },
+      "detail": "Inside code.hljs.language-javascript, one gap between rows is 6.92px and the very next gap is 27.84px (4.02x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-42",
+      "kind": "ratio",
+      "url": "/",
+      "width": 2560,
+      "selector": "code.hljs.language-javascript",
+      "numbers": {
+        "gap_a": 27.84,
+        "gap_b": 6.92,
+        "ratio": 4.02
+      },
+      "detail": "Inside code.hljs.language-javascript, one gap between rows is 27.84px and the very next gap is 6.92px (4.02x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-43",
+      "kind": "strip",
+      "url": "/",
+      "width": 2560,
+      "selector": "a.sidebar-link",
+      "numbers": {
+        "width": 272.59,
+        "ink": 38.23,
+        "padding": 117.18
+      },
+      "detail": "\"a.sidebar-link\" is 273px wide but its own text only needs 38px — the rest, about 234px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-44",
+      "kind": "strip",
+      "url": "/",
+      "width": 2560,
+      "selector": "a.sidebar-link",
+      "numbers": {
+        "width": 272.59,
+        "ink": 38.3,
+        "padding": 117.15
+      },
+      "detail": "\"a.sidebar-link\" is 273px wide but its own text only needs 38px — the rest, about 234px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-50",
+      "kind": "padding-fat",
+      "url": "/",
+      "width": 2560,
+      "selector": "button.demo-btn",
+      "numbers": {
+        "padding": 17.14,
+        "width": 51.67
+      },
+      "detail": "\"button.demo-btn\" has 17.14px of side padding, more than a fifth of its own 51.67px width.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-52",
+      "kind": "padding-fat",
+      "url": "/",
+      "width": 2560,
+      "selector": "button.demo-btn.demo-scrub",
+      "numbers": {
+        "padding": 20.16,
+        "width": 58.16
+      },
+      "detail": "\"button.demo-btn.demo-scrub\" has 20.16px of side padding, more than a fifth of its own 58.16px width.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-54",
+      "kind": "padding-fat",
+      "url": "/",
+      "width": 2560,
+      "selector": "button.demo-btn",
+      "numbers": {
+        "padding": 20.16,
+        "width": 58.16
+      },
+      "detail": "\"button.demo-btn\" has 20.16px of side padding, more than a fifth of its own 58.16px width.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-58",
+      "kind": "ratio",
+      "url": "/",
+      "width": 3440,
+      "selector": "code.hljs.language-javascript",
+      "numbers": {
+        "gap_a": 6.92,
+        "gap_b": 27.84,
+        "ratio": 4.02
+      },
+      "detail": "Inside code.hljs.language-javascript, one gap between rows is 6.92px and the very next gap is 27.84px (4.02x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-59",
+      "kind": "ratio",
+      "url": "/",
+      "width": 3440,
+      "selector": "code.hljs.language-javascript",
+      "numbers": {
+        "gap_a": 27.84,
+        "gap_b": 6.92,
+        "ratio": 4.02
+      },
+      "detail": "Inside code.hljs.language-javascript, one gap between rows is 27.84px and the very next gap is 6.92px (4.02x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-60",
+      "kind": "strip",
+      "url": "/",
+      "width": 3440,
+      "selector": "a.sidebar-link",
+      "numbers": {
+        "width": 272.59,
+        "ink": 38.23,
+        "padding": 117.18
+      },
+      "detail": "\"a.sidebar-link\" is 273px wide but its own text only needs 38px — the rest, about 234px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-61",
+      "kind": "strip",
+      "url": "/",
+      "width": 3440,
+      "selector": "a.sidebar-link",
+      "numbers": {
+        "width": 272.59,
+        "ink": 38.3,
+        "padding": 117.15
+      },
+      "detail": "\"a.sidebar-link\" is 273px wide but its own text only needs 38px — the rest, about 234px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-67",
+      "kind": "padding-fat",
+      "url": "/",
+      "width": 3440,
+      "selector": "button.demo-btn",
+      "numbers": {
+        "padding": 17.14,
+        "width": 51.67
+      },
+      "detail": "\"button.demo-btn\" has 17.14px of side padding, more than a fifth of its own 51.67px width.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-69",
+      "kind": "padding-fat",
+      "url": "/",
+      "width": 3440,
+      "selector": "button.demo-btn.demo-scrub",
+      "numbers": {
+        "padding": 20.16,
+        "width": 58.16
+      },
+      "detail": "\"button.demo-btn.demo-scrub\" has 20.16px of side padding, more than a fifth of its own 58.16px width.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-71",
+      "kind": "padding-fat",
+      "url": "/",
+      "width": 3440,
+      "selector": "button.demo-btn",
+      "numbers": {
+        "padding": 20.16,
+        "width": 58.16
+      },
+      "detail": "\"button.demo-btn\" has 20.16px of side padding, more than a fifth of its own 58.16px width.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-78",
+      "kind": "strip",
+      "url": "/blog/",
+      "width": 400,
+      "selector": "a.blog-more-link",
+      "numbers": {
+        "width": 352,
+        "ink": 52.75,
+        "padding": 149.63
+      },
+      "detail": "\"a.blog-more-link\" is 352px wide but its own text only needs 53px — the rest, about 299px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-117",
+      "kind": "ratio",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 400,
+      "selector": "code.language-js.hljs",
+      "numbers": {
+        "gap_a": 9.05,
+        "gap_b": 53.14,
+        "ratio": 5.87
+      },
+      "detail": "Inside code.language-js.hljs, one gap between rows is 9.05px and the very next gap is 53.14px (5.87x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-126",
+      "kind": "strip",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 400,
+      "selector": "a.blog-more-link.in-path",
+      "numbers": {
+        "width": 344,
+        "ink": 55.89,
+        "padding": 144.05
+      },
+      "detail": "\"a.blog-more-link.in-path\" is 344px wide but its own text only needs 56px — the rest, about 288px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-127",
+      "kind": "touching",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 400,
+      "selector": "a.toc-link",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"a.toc-link.current\" and \"a.toc-link\" (both under div.toc-links) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-128",
+      "kind": "touching",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 400,
+      "selector": "a.blog-more-link.in-path",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"a.blog-more-link.in-path\" and \"a.blog-more-link.in-path\" (both under div.blog-more) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-134",
+      "kind": "ratio",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 1280,
+      "selector": "code.language-js.hljs",
+      "numbers": {
+        "gap_a": 9.67,
+        "gap_b": 57.02,
+        "ratio": 5.89
+      },
+      "detail": "Inside code.language-js.hljs, one gap between rows is 9.67px and the very next gap is 57.02px (5.89x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-141",
+      "kind": "touching",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 1280,
+      "selector": "a.toc-link",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"a.toc-link.current\" and \"a.toc-link\" (both under div.toc-links) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-142",
+      "kind": "touching",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 1280,
+      "selector": "a.blog-more-link.in-path",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"a.blog-more-link.in-path\" and \"a.blog-more-link.in-path\" (both under div.blog-more) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-148",
+      "kind": "ratio",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 1920,
+      "selector": "code.language-js.hljs",
+      "numbers": {
+        "gap_a": 11.19,
+        "gap_b": 61.56,
+        "ratio": 5.5
+      },
+      "detail": "Inside code.language-js.hljs, one gap between rows is 11.19px and the very next gap is 61.56px (5.5x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-155",
+      "kind": "touching",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 1920,
+      "selector": "a.toc-link",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"a.toc-link.current\" and \"a.toc-link\" (both under div.toc-links) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-156",
+      "kind": "touching",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 1920,
+      "selector": "a.blog-more-link.in-path",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"a.blog-more-link.in-path\" and \"a.blog-more-link.in-path\" (both under div.blog-more) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-162",
+      "kind": "ratio",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 2560,
+      "selector": "code.language-js.hljs",
+      "numbers": {
+        "gap_a": 12.34,
+        "gap_b": 69.03,
+        "ratio": 5.59
+      },
+      "detail": "Inside code.language-js.hljs, one gap between rows is 12.34px and the very next gap is 69.03px (5.59x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-169",
+      "kind": "touching",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 2560,
+      "selector": "a.toc-link",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"a.toc-link.current\" and \"a.toc-link\" (both under div.toc-links) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-170",
+      "kind": "touching",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 2560,
+      "selector": "a.blog-more-link.in-path",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"a.blog-more-link.in-path\" and \"a.blog-more-link.in-path\" (both under div.blog-more) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-176",
+      "kind": "ratio",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 3440,
+      "selector": "code.language-js.hljs",
+      "numbers": {
+        "gap_a": 12.34,
+        "gap_b": 69.03,
+        "ratio": 5.59
+      },
+      "detail": "Inside code.language-js.hljs, one gap between rows is 12.34px and the very next gap is 69.03px (5.59x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-183",
+      "kind": "touching",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 3440,
+      "selector": "a.toc-link",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"a.toc-link.current\" and \"a.toc-link\" (both under div.toc-links) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-184",
+      "kind": "touching",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 3440,
+      "selector": "a.blog-more-link.in-path",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"a.blog-more-link.in-path\" and \"a.blog-more-link.in-path\" (both under div.blog-more) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-200",
+      "kind": "strip",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 400,
+      "selector": "a.blog-more-link.in-path",
+      "numbers": {
+        "width": 344,
+        "ink": 55.89,
+        "padding": 144.05
+      },
+      "detail": "\"a.blog-more-link.in-path\" is 344px wide but its own text only needs 56px — the rest, about 288px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-201",
+      "kind": "touching",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 400,
+      "selector": "a.toc-link",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"a.toc-link.current\" and \"a.toc-link\" (both under div.toc-links) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-202",
+      "kind": "touching",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 400,
+      "selector": "a.toc-link",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"a.toc-link\" and \"a.toc-link\" (both under div.toc-links) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-203",
+      "kind": "touching",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 400,
+      "selector": "a.blog-more-link.in-path",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"a.blog-more-link.in-path\" and \"a.blog-more-link.in-path\" (both under div.blog-more) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-210",
+      "kind": "ratio",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 1280,
+      "selector": "p",
+      "numbers": {
+        "gap_a": 35.22,
+        "gap_b": 8.14,
+        "ratio": 4.33
+      },
+      "detail": "Inside p, one gap between rows is 35.22px and the very next gap is 8.14px (4.33x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-211",
+      "kind": "ratio",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 1280,
+      "selector": "p",
+      "numbers": {
+        "gap_a": 8.14,
+        "gap_b": 35.22,
+        "ratio": 4.33
+      },
+      "detail": "Inside p, one gap between rows is 8.14px and the very next gap is 35.22px (4.33x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-218",
+      "kind": "touching",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 1280,
+      "selector": "a.toc-link",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"a.toc-link.current\" and \"a.toc-link\" (both under div.toc-links) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-219",
+      "kind": "touching",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 1280,
+      "selector": "a.toc-link",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"a.toc-link\" and \"a.toc-link\" (both under div.toc-links) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-220",
+      "kind": "touching",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 1280,
+      "selector": "a.blog-more-link.in-path",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"a.blog-more-link.in-path\" and \"a.blog-more-link.in-path\" (both under div.blog-more) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-227",
+      "kind": "ratio",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 1920,
+      "selector": "p",
+      "numbers": {
+        "gap_a": 36.41,
+        "gap_b": 7.61,
+        "ratio": 4.78
+      },
+      "detail": "Inside p, one gap between rows is 36.41px and the very next gap is 7.61px (4.78x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-228",
+      "kind": "ratio",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 1920,
+      "selector": "p",
+      "numbers": {
+        "gap_a": 7.61,
+        "gap_b": 36.41,
+        "ratio": 4.78
+      },
+      "detail": "Inside p, one gap between rows is 7.61px and the very next gap is 36.41px (4.78x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-235",
+      "kind": "touching",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 1920,
+      "selector": "a.toc-link",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"a.toc-link.current\" and \"a.toc-link\" (both under div.toc-links) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-236",
+      "kind": "touching",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 1920,
+      "selector": "a.toc-link",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"a.toc-link\" and \"a.toc-link\" (both under div.toc-links) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-237",
+      "kind": "touching",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 1920,
+      "selector": "a.blog-more-link.in-path",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"a.blog-more-link.in-path\" and \"a.blog-more-link.in-path\" (both under div.blog-more) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-244",
+      "kind": "ratio",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 2560,
+      "selector": "p",
+      "numbers": {
+        "gap_a": 42.06,
+        "gap_b": 9.67,
+        "ratio": 4.35
+      },
+      "detail": "Inside p, one gap between rows is 42.06px and the very next gap is 9.67px (4.35x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-245",
+      "kind": "ratio",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 2560,
+      "selector": "p",
+      "numbers": {
+        "gap_a": 9.67,
+        "gap_b": 42.06,
+        "ratio": 4.35
+      },
+      "detail": "Inside p, one gap between rows is 9.67px and the very next gap is 42.06px (4.35x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-252",
+      "kind": "touching",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 2560,
+      "selector": "a.toc-link",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"a.toc-link.current\" and \"a.toc-link\" (both under div.toc-links) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-253",
+      "kind": "touching",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 2560,
+      "selector": "a.toc-link",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"a.toc-link\" and \"a.toc-link\" (both under div.toc-links) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-254",
+      "kind": "touching",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 2560,
+      "selector": "a.blog-more-link.in-path",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"a.blog-more-link.in-path\" and \"a.blog-more-link.in-path\" (both under div.blog-more) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-261",
+      "kind": "ratio",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 3440,
+      "selector": "p",
+      "numbers": {
+        "gap_a": 42.06,
+        "gap_b": 9.67,
+        "ratio": 4.35
+      },
+      "detail": "Inside p, one gap between rows is 42.06px and the very next gap is 9.67px (4.35x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-262",
+      "kind": "ratio",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 3440,
+      "selector": "p",
+      "numbers": {
+        "gap_a": 9.67,
+        "gap_b": 42.06,
+        "ratio": 4.35
+      },
+      "detail": "Inside p, one gap between rows is 9.67px and the very next gap is 42.06px (4.35x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-269",
+      "kind": "touching",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 3440,
+      "selector": "a.toc-link",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"a.toc-link.current\" and \"a.toc-link\" (both under div.toc-links) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-270",
+      "kind": "touching",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 3440,
+      "selector": "a.toc-link",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"a.toc-link\" and \"a.toc-link\" (both under div.toc-links) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-271",
+      "kind": "touching",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 3440,
+      "selector": "a.blog-more-link.in-path",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"a.blog-more-link.in-path\" and \"a.blog-more-link.in-path\" (both under div.blog-more) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-273",
+      "kind": "ratio",
+      "url": "/blog/systems/layout-generators/",
+      "width": 400,
+      "selector": "p",
+      "numbers": {
+        "gap_a": 7.53,
+        "gap_b": 32.72,
+        "ratio": 4.34
+      },
+      "detail": "Inside p, one gap between rows is 7.53px and the very next gap is 32.72px (4.34x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-275",
+      "kind": "ratio",
+      "url": "/blog/systems/layout-generators/",
+      "width": 400,
+      "selector": "p",
+      "numbers": {
+        "gap_a": 7.19,
+        "gap_b": 32.38,
+        "ratio": 4.5
+      },
+      "detail": "Inside p, one gap between rows is 7.19px and the very next gap is 32.38px (4.5x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-278",
+      "kind": "ratio",
+      "url": "/blog/systems/layout-generators/",
+      "width": 400,
+      "selector": "p",
+      "numbers": {
+        "gap_a": 7.53,
+        "gap_b": 31.55,
+        "ratio": 4.19
+      },
+      "detail": "Inside p, one gap between rows is 7.53px and the very next gap is 31.55px (4.19x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-284",
+      "kind": "strip",
+      "url": "/blog/systems/layout-generators/",
+      "width": 400,
+      "selector": "a.blog-more-link.in-path",
+      "numbers": {
+        "width": 344,
+        "ink": 55.89,
+        "padding": 144.05
+      },
+      "detail": "\"a.blog-more-link.in-path\" is 344px wide but its own text only needs 56px — the rest, about 288px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-285",
+      "kind": "touching",
+      "url": "/blog/systems/layout-generators/",
+      "width": 400,
+      "selector": "a.toc-link",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"a.toc-link.current\" and \"a.toc-link\" (both under div.toc-links) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-286",
+      "kind": "touching",
+      "url": "/blog/systems/layout-generators/",
+      "width": 400,
+      "selector": "a.toc-link",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"a.toc-link\" and \"a.toc-link\" (both under div.toc-links) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-287",
+      "kind": "touching",
+      "url": "/blog/systems/layout-generators/",
+      "width": 400,
+      "selector": "a.blog-more-link.in-path",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"a.blog-more-link.in-path\" and \"a.blog-more-link.in-path\" (both under div.blog-more) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-288",
+      "kind": "ratio",
+      "url": "/blog/systems/layout-generators/",
+      "width": 1280,
+      "selector": "p",
+      "numbers": {
+        "gap_a": 8.14,
+        "gap_b": 34.19,
+        "ratio": 4.2
+      },
+      "detail": "Inside p, one gap between rows is 8.14px and the very next gap is 34.19px (4.2x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-290",
+      "kind": "ratio",
+      "url": "/blog/systems/layout-generators/",
+      "width": 1280,
+      "selector": "p",
+      "numbers": {
+        "gap_a": 8.08,
+        "gap_b": 36.19,
+        "ratio": 4.48
+      },
+      "detail": "Inside p, one gap between rows is 8.08px and the very next gap is 36.19px (4.48x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-291",
+      "kind": "ratio",
+      "url": "/blog/systems/layout-generators/",
+      "width": 1280,
+      "selector": "p",
+      "numbers": {
+        "gap_a": 36.19,
+        "gap_b": 8.14,
+        "ratio": 4.45
+      },
+      "detail": "Inside p, one gap between rows is 36.19px and the very next gap is 8.14px (4.45x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-296",
+      "kind": "touching",
+      "url": "/blog/systems/layout-generators/",
+      "width": 1280,
+      "selector": "a.toc-link",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"a.toc-link.current\" and \"a.toc-link\" (both under div.toc-links) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-297",
+      "kind": "touching",
+      "url": "/blog/systems/layout-generators/",
+      "width": 1280,
+      "selector": "a.toc-link",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"a.toc-link\" and \"a.toc-link\" (both under div.toc-links) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-298",
+      "kind": "touching",
+      "url": "/blog/systems/layout-generators/",
+      "width": 1280,
+      "selector": "a.blog-more-link.in-path",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"a.blog-more-link.in-path\" and \"a.blog-more-link.in-path\" (both under div.blog-more) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-299",
+      "kind": "ratio",
+      "url": "/blog/systems/layout-generators/",
+      "width": 1920,
+      "selector": "p",
+      "numbers": {
+        "gap_a": 7.61,
+        "gap_b": 36.5,
+        "ratio": 4.8
+      },
+      "detail": "Inside p, one gap between rows is 7.61px and the very next gap is 36.5px (4.8x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-302",
+      "kind": "ratio",
+      "url": "/blog/systems/layout-generators/",
+      "width": 1920,
+      "selector": "p",
+      "numbers": {
+        "gap_a": 38.5,
+        "gap_b": 7.61,
+        "ratio": 5.06
+      },
+      "detail": "Inside p, one gap between rows is 38.5px and the very next gap is 7.61px (5.06x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-307",
+      "kind": "touching",
+      "url": "/blog/systems/layout-generators/",
+      "width": 1920,
+      "selector": "a.toc-link",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"a.toc-link.current\" and \"a.toc-link\" (both under div.toc-links) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-308",
+      "kind": "touching",
+      "url": "/blog/systems/layout-generators/",
+      "width": 1920,
+      "selector": "a.toc-link",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"a.toc-link\" and \"a.toc-link\" (both under div.toc-links) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-309",
+      "kind": "touching",
+      "url": "/blog/systems/layout-generators/",
+      "width": 1920,
+      "selector": "a.blog-more-link.in-path",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"a.blog-more-link.in-path\" and \"a.blog-more-link.in-path\" (both under div.blog-more) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-310",
+      "kind": "ratio",
+      "url": "/blog/systems/layout-generators/",
+      "width": 2560,
+      "selector": "p",
+      "numbers": {
+        "gap_a": 9.67,
+        "gap_b": 41.42,
+        "ratio": 4.28
+      },
+      "detail": "Inside p, one gap between rows is 9.67px and the very next gap is 41.42px (4.28x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-312",
+      "kind": "ratio",
+      "url": "/blog/systems/layout-generators/",
+      "width": 2560,
+      "selector": "p",
+      "numbers": {
+        "gap_a": 10.39,
+        "gap_b": 43.42,
+        "ratio": 4.18
+      },
+      "detail": "Inside p, one gap between rows is 10.39px and the very next gap is 43.42px (4.18x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-313",
+      "kind": "ratio",
+      "url": "/blog/systems/layout-generators/",
+      "width": 2560,
+      "selector": "p",
+      "numbers": {
+        "gap_a": 43.42,
+        "gap_b": 9.67,
+        "ratio": 4.49
+      },
+      "detail": "Inside p, one gap between rows is 43.42px and the very next gap is 9.67px (4.49x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-318",
+      "kind": "touching",
+      "url": "/blog/systems/layout-generators/",
+      "width": 2560,
+      "selector": "a.toc-link",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"a.toc-link.current\" and \"a.toc-link\" (both under div.toc-links) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-319",
+      "kind": "touching",
+      "url": "/blog/systems/layout-generators/",
+      "width": 2560,
+      "selector": "a.toc-link",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"a.toc-link\" and \"a.toc-link\" (both under div.toc-links) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-320",
+      "kind": "touching",
+      "url": "/blog/systems/layout-generators/",
+      "width": 2560,
+      "selector": "a.blog-more-link.in-path",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"a.blog-more-link.in-path\" and \"a.blog-more-link.in-path\" (both under div.blog-more) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-321",
+      "kind": "ratio",
+      "url": "/blog/systems/layout-generators/",
+      "width": 3440,
+      "selector": "p",
+      "numbers": {
+        "gap_a": 9.67,
+        "gap_b": 41.42,
+        "ratio": 4.28
+      },
+      "detail": "Inside p, one gap between rows is 9.67px and the very next gap is 41.42px (4.28x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-323",
+      "kind": "ratio",
+      "url": "/blog/systems/layout-generators/",
+      "width": 3440,
+      "selector": "p",
+      "numbers": {
+        "gap_a": 10.39,
+        "gap_b": 43.42,
+        "ratio": 4.18
+      },
+      "detail": "Inside p, one gap between rows is 10.39px and the very next gap is 43.42px (4.18x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-324",
+      "kind": "ratio",
+      "url": "/blog/systems/layout-generators/",
+      "width": 3440,
+      "selector": "p",
+      "numbers": {
+        "gap_a": 43.42,
+        "gap_b": 9.67,
+        "ratio": 4.49
+      },
+      "detail": "Inside p, one gap between rows is 43.42px and the very next gap is 9.67px (4.49x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-329",
+      "kind": "touching",
+      "url": "/blog/systems/layout-generators/",
+      "width": 3440,
+      "selector": "a.toc-link",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"a.toc-link.current\" and \"a.toc-link\" (both under div.toc-links) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-330",
+      "kind": "touching",
+      "url": "/blog/systems/layout-generators/",
+      "width": 3440,
+      "selector": "a.toc-link",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"a.toc-link\" and \"a.toc-link\" (both under div.toc-links) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-331",
+      "kind": "touching",
+      "url": "/blog/systems/layout-generators/",
+      "width": 3440,
+      "selector": "a.blog-more-link.in-path",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"a.blog-more-link.in-path\" and \"a.blog-more-link.in-path\" (both under div.blog-more) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-343",
+      "kind": "touching",
+      "url": "/notes/auth/",
+      "width": 400,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-344",
+      "kind": "touching",
+      "url": "/notes/auth/",
+      "width": 400,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-345",
+      "kind": "touching",
+      "url": "/notes/auth/",
+      "width": 400,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-346",
+      "kind": "touching",
+      "url": "/notes/auth/",
+      "width": 400,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-347",
+      "kind": "touching",
+      "url": "/notes/auth/",
+      "width": 400,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-348",
+      "kind": "ratio",
+      "url": "/notes/auth/",
+      "width": 1280,
+      "selector": "p",
+      "numbers": {
+        "gap_a": 36.19,
+        "gap_b": 8.14,
+        "ratio": 4.45
+      },
+      "detail": "Inside p, one gap between rows is 36.19px and the very next gap is 8.14px (4.45x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-351",
+      "kind": "touching",
+      "url": "/notes/auth/",
+      "width": 1280,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-352",
+      "kind": "touching",
+      "url": "/notes/auth/",
+      "width": 1280,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-353",
+      "kind": "touching",
+      "url": "/notes/auth/",
+      "width": 1280,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-354",
+      "kind": "touching",
+      "url": "/notes/auth/",
+      "width": 1280,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-355",
+      "kind": "touching",
+      "url": "/notes/auth/",
+      "width": 1280,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-356",
+      "kind": "ratio",
+      "url": "/notes/auth/",
+      "width": 1920,
+      "selector": "p",
+      "numbers": {
+        "gap_a": 38.5,
+        "gap_b": 7.61,
+        "ratio": 5.06
+      },
+      "detail": "Inside p, one gap between rows is 38.5px and the very next gap is 7.61px (5.06x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-359",
+      "kind": "touching",
+      "url": "/notes/auth/",
+      "width": 1920,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-360",
+      "kind": "touching",
+      "url": "/notes/auth/",
+      "width": 1920,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-361",
+      "kind": "touching",
+      "url": "/notes/auth/",
+      "width": 1920,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-362",
+      "kind": "touching",
+      "url": "/notes/auth/",
+      "width": 1920,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-363",
+      "kind": "touching",
+      "url": "/notes/auth/",
+      "width": 1920,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-364",
+      "kind": "ratio",
+      "url": "/notes/auth/",
+      "width": 2560,
+      "selector": "p",
+      "numbers": {
+        "gap_a": 43.42,
+        "gap_b": 9.67,
+        "ratio": 4.49
+      },
+      "detail": "Inside p, one gap between rows is 43.42px and the very next gap is 9.67px (4.49x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-367",
+      "kind": "touching",
+      "url": "/notes/auth/",
+      "width": 2560,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-368",
+      "kind": "touching",
+      "url": "/notes/auth/",
+      "width": 2560,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-369",
+      "kind": "touching",
+      "url": "/notes/auth/",
+      "width": 2560,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-370",
+      "kind": "touching",
+      "url": "/notes/auth/",
+      "width": 2560,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-371",
+      "kind": "touching",
+      "url": "/notes/auth/",
+      "width": 2560,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-372",
+      "kind": "ratio",
+      "url": "/notes/auth/",
+      "width": 3440,
+      "selector": "p",
+      "numbers": {
+        "gap_a": 43.42,
+        "gap_b": 9.67,
+        "ratio": 4.49
+      },
+      "detail": "Inside p, one gap between rows is 43.42px and the very next gap is 9.67px (4.49x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-375",
+      "kind": "touching",
+      "url": "/notes/auth/",
+      "width": 3440,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-376",
+      "kind": "touching",
+      "url": "/notes/auth/",
+      "width": 3440,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-377",
+      "kind": "touching",
+      "url": "/notes/auth/",
+      "width": 3440,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-378",
+      "kind": "touching",
+      "url": "/notes/auth/",
+      "width": 3440,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-379",
+      "kind": "touching",
+      "url": "/notes/auth/",
+      "width": 3440,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-382",
+      "kind": "touching",
+      "url": "/notes/team-note/",
+      "width": 400,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul.md) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-383",
+      "kind": "touching",
+      "url": "/notes/team-note/",
+      "width": 400,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul.md) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-384",
+      "kind": "touching",
+      "url": "/notes/team-note/",
+      "width": 400,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul.md) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-385",
+      "kind": "touching",
+      "url": "/notes/team-note/",
+      "width": 400,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul.md) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-386",
+      "kind": "touching",
+      "url": "/notes/team-note/",
+      "width": 400,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-387",
+      "kind": "touching",
+      "url": "/notes/team-note/",
+      "width": 400,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-388",
+      "kind": "touching",
+      "url": "/notes/team-note/",
+      "width": 400,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-389",
+      "kind": "touching",
+      "url": "/notes/team-note/",
+      "width": 400,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-390",
+      "kind": "touching",
+      "url": "/notes/team-note/",
+      "width": 1280,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul.md) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-391",
+      "kind": "touching",
+      "url": "/notes/team-note/",
+      "width": 1280,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul.md) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-392",
+      "kind": "touching",
+      "url": "/notes/team-note/",
+      "width": 1280,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul.md) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-393",
+      "kind": "touching",
+      "url": "/notes/team-note/",
+      "width": 1280,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul.md) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-394",
+      "kind": "touching",
+      "url": "/notes/team-note/",
+      "width": 1280,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-395",
+      "kind": "touching",
+      "url": "/notes/team-note/",
+      "width": 1280,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-396",
+      "kind": "touching",
+      "url": "/notes/team-note/",
+      "width": 1280,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-397",
+      "kind": "touching",
+      "url": "/notes/team-note/",
+      "width": 1280,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-398",
+      "kind": "touching",
+      "url": "/notes/team-note/",
+      "width": 1920,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul.md) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-399",
+      "kind": "touching",
+      "url": "/notes/team-note/",
+      "width": 1920,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul.md) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-400",
+      "kind": "touching",
+      "url": "/notes/team-note/",
+      "width": 1920,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul.md) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-401",
+      "kind": "touching",
+      "url": "/notes/team-note/",
+      "width": 1920,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul.md) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-402",
+      "kind": "touching",
+      "url": "/notes/team-note/",
+      "width": 1920,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-403",
+      "kind": "touching",
+      "url": "/notes/team-note/",
+      "width": 1920,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-404",
+      "kind": "touching",
+      "url": "/notes/team-note/",
+      "width": 1920,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-405",
+      "kind": "touching",
+      "url": "/notes/team-note/",
+      "width": 1920,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-406",
+      "kind": "touching",
+      "url": "/notes/team-note/",
+      "width": 2560,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul.md) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-407",
+      "kind": "touching",
+      "url": "/notes/team-note/",
+      "width": 2560,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul.md) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-408",
+      "kind": "touching",
+      "url": "/notes/team-note/",
+      "width": 2560,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul.md) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-409",
+      "kind": "touching",
+      "url": "/notes/team-note/",
+      "width": 2560,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul.md) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-410",
+      "kind": "touching",
+      "url": "/notes/team-note/",
+      "width": 2560,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-411",
+      "kind": "touching",
+      "url": "/notes/team-note/",
+      "width": 2560,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-412",
+      "kind": "touching",
+      "url": "/notes/team-note/",
+      "width": 2560,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-413",
+      "kind": "touching",
+      "url": "/notes/team-note/",
+      "width": 2560,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-414",
+      "kind": "touching",
+      "url": "/notes/team-note/",
+      "width": 3440,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul.md) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-415",
+      "kind": "touching",
+      "url": "/notes/team-note/",
+      "width": 3440,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul.md) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-416",
+      "kind": "touching",
+      "url": "/notes/team-note/",
+      "width": 3440,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul.md) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-417",
+      "kind": "touching",
+      "url": "/notes/team-note/",
+      "width": 3440,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul.md) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-418",
+      "kind": "touching",
+      "url": "/notes/team-note/",
+      "width": 3440,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-419",
+      "kind": "touching",
+      "url": "/notes/team-note/",
+      "width": 3440,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-420",
+      "kind": "touching",
+      "url": "/notes/team-note/",
+      "width": 3440,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-421",
+      "kind": "touching",
+      "url": "/notes/team-note/",
+      "width": 3440,
+      "selector": "li",
+      "numbers": {
+        "gap": 0
+      },
+      "detail": "\"li\" and \"li\" (both under ul) are only 0px apart — they visually touch.",
+      "reason": null,
+      "severity": 4
+    },
+    {
+      "id": "D-02",
+      "kind": "ratio",
+      "url": "/",
+      "width": 400,
+      "selector": "code.hljs.language-javascript",
+      "numbers": {
+        "gap_a": 6.27,
+        "gap_b": 22.53,
+        "ratio": 3.6
+      },
+      "detail": "Inside code.hljs.language-javascript, one gap between rows is 6.27px and the very next gap is 22.53px (3.6x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-03",
+      "kind": "ratio",
+      "url": "/",
+      "width": 400,
+      "selector": "code.hljs.language-javascript",
+      "numbers": {
+        "gap_a": 22.53,
+        "gap_b": 6.27,
+        "ratio": 3.6
+      },
+      "detail": "Inside code.hljs.language-javascript, one gap between rows is 22.53px and the very next gap is 6.27px (3.6x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-04",
+      "kind": "padding-fat",
+      "url": "/",
+      "width": 400,
+      "selector": "button.sidebar-toggle",
+      "numbers": {
+        "padding": 4.48,
+        "width": 22.39
+      },
+      "detail": "\"button.sidebar-toggle\" has 4.48px of side padding, more than a fifth of its own 22.39px width.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-05",
+      "kind": "strip",
+      "url": "/",
+      "width": 400,
+      "selector": "button.demo-btn",
+      "numbers": {
+        "width": 40.61,
+        "ink": 11.98,
+        "padding": 14.31
+      },
+      "detail": "\"button.demo-btn\" is 41px wide but its own text only needs 12px — the rest, about 29px, is empty strip inside a flex / row container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-07",
+      "kind": "strip",
+      "url": "/",
+      "width": 400,
+      "selector": "a.demo-app-link",
+      "numbers": {
+        "width": 96.19,
+        "ink": 29.81,
+        "padding": 33.19
+      },
+      "detail": "\"a.demo-app-link\" is 96px wide but its own text only needs 30px — the rest, about 66px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-08",
+      "kind": "ratio",
+      "url": "/",
+      "width": 1280,
+      "selector": "code.hljs.language-javascript",
+      "numbers": {
+        "gap_a": 6.48,
+        "gap_b": 23.97,
+        "ratio": 3.7
+      },
+      "detail": "Inside code.hljs.language-javascript, one gap between rows is 6.48px and the very next gap is 23.97px (3.7x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-09",
+      "kind": "ratio",
+      "url": "/",
+      "width": 1280,
+      "selector": "code.hljs.language-javascript",
+      "numbers": {
+        "gap_a": 23.97,
+        "gap_b": 6.48,
+        "ratio": 3.7
+      },
+      "detail": "Inside code.hljs.language-javascript, one gap between rows is 23.97px and the very next gap is 6.48px (3.7x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-12",
+      "kind": "strip",
+      "url": "/",
+      "width": 1280,
+      "selector": "a.sidebar-link",
+      "numbers": {
+        "width": 227.59,
+        "ink": 56.64,
+        "padding": 85.48
+      },
+      "detail": "\"a.sidebar-link\" is 228px wide but its own text only needs 57px — the rest, about 171px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-14",
+      "kind": "padding-thin",
+      "url": "/",
+      "width": 1280,
+      "selector": "button.mode-btn",
+      "numbers": {
+        "padding": 4.33,
+        "font_size": 9.63
+      },
+      "detail": "\"button.mode-btn\" has only 4.33px of side padding, less than half its own 9.63px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-15",
+      "kind": "padding-fat",
+      "url": "/",
+      "width": 1280,
+      "selector": "button.mode-btn",
+      "numbers": {
+        "padding": 4.33,
+        "width": 21.25
+      },
+      "detail": "\"button.mode-btn\" has 4.33px of side padding, more than a fifth of its own 21.25px width.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-16",
+      "kind": "strip",
+      "url": "/",
+      "width": 1280,
+      "selector": "button.demo-btn",
+      "numbers": {
+        "width": 43.5,
+        "ink": 12.88,
+        "padding": 15.31
+      },
+      "detail": "\"button.demo-btn\" is 44px wide but its own text only needs 13px — the rest, about 31px, is empty strip inside a flex / row container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-18",
+      "kind": "strip",
+      "url": "/",
+      "width": 1280,
+      "selector": "button.demo-btn.demo-scrub",
+      "numbers": {
+        "width": 48.92,
+        "ink": 13.23,
+        "padding": 17.84
+      },
+      "detail": "\"button.demo-btn.demo-scrub\" is 49px wide but its own text only needs 13px — the rest, about 36px, is empty strip inside a flex / row container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-20",
+      "kind": "strip",
+      "url": "/",
+      "width": 1280,
+      "selector": "button.demo-btn",
+      "numbers": {
+        "width": 48.92,
+        "ink": 13.23,
+        "padding": 17.84
+      },
+      "detail": "\"button.demo-btn\" is 49px wide but its own text only needs 13px — the rest, about 36px, is empty strip inside a flex / row container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-22",
+      "kind": "strip",
+      "url": "/",
+      "width": 1280,
+      "selector": "a.demo-app-link",
+      "numbers": {
+        "width": 135.36,
+        "ink": 32,
+        "padding": 51.68
+      },
+      "detail": "\"a.demo-app-link\" is 135px wide but its own text only needs 32px — the rest, about 103px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-23",
+      "kind": "strip",
+      "url": "/",
+      "width": 1280,
+      "selector": "a.demo-app-link",
+      "numbers": {
+        "width": 135.36,
+        "ink": 35.64,
+        "padding": 49.86
+      },
+      "detail": "\"a.demo-app-link\" is 135px wide but its own text only needs 36px — the rest, about 100px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-28",
+      "kind": "strip",
+      "url": "/",
+      "width": 1920,
+      "selector": "a.sidebar-link",
+      "numbers": {
+        "width": 242.19,
+        "ink": 60.28,
+        "padding": 90.95
+      },
+      "detail": "\"a.sidebar-link\" is 242px wide but its own text only needs 60px — the rest, about 182px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-30",
+      "kind": "padding-thin",
+      "url": "/",
+      "width": 1920,
+      "selector": "button.mode-btn",
+      "numbers": {
+        "padding": 4.61,
+        "font_size": 10.24
+      },
+      "detail": "\"button.mode-btn\" has only 4.61px of side padding, less than half its own 10.24px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-31",
+      "kind": "padding-fat",
+      "url": "/",
+      "width": 1920,
+      "selector": "button.mode-btn",
+      "numbers": {
+        "padding": 4.61,
+        "width": 22.45
+      },
+      "detail": "\"button.mode-btn\" has 4.61px of side padding, more than a fifth of its own 22.45px width.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-32",
+      "kind": "strip",
+      "url": "/",
+      "width": 1920,
+      "selector": "button.demo-btn",
+      "numbers": {
+        "width": 46.16,
+        "ink": 13.72,
+        "padding": 16.22
+      },
+      "detail": "\"button.demo-btn\" is 46px wide but its own text only needs 14px — the rest, about 32px, is empty strip inside a flex / row container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-34",
+      "kind": "strip",
+      "url": "/",
+      "width": 1920,
+      "selector": "button.demo-btn.demo-scrub",
+      "numbers": {
+        "width": 51.91,
+        "ink": 14.09,
+        "padding": 18.91
+      },
+      "detail": "\"button.demo-btn.demo-scrub\" is 52px wide but its own text only needs 14px — the rest, about 38px, is empty strip inside a flex / row container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-36",
+      "kind": "strip",
+      "url": "/",
+      "width": 1920,
+      "selector": "button.demo-btn",
+      "numbers": {
+        "width": 51.91,
+        "ink": 14.09,
+        "padding": 18.91
+      },
+      "detail": "\"button.demo-btn\" is 52px wide but its own text only needs 14px — the rest, about 38px, is empty strip inside a flex / row container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-38",
+      "kind": "strip",
+      "url": "/",
+      "width": 1920,
+      "selector": "a.demo-app-link",
+      "numbers": {
+        "width": 144,
+        "ink": 34.06,
+        "padding": 54.97
+      },
+      "detail": "\"a.demo-app-link\" is 144px wide but its own text only needs 34px — the rest, about 110px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-39",
+      "kind": "strip",
+      "url": "/",
+      "width": 1920,
+      "selector": "a.demo-app-link",
+      "numbers": {
+        "width": 144,
+        "ink": 37.94,
+        "padding": 53.03
+      },
+      "detail": "\"a.demo-app-link\" is 144px wide but its own text only needs 38px — the rest, about 106px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-40",
+      "kind": "strip",
+      "url": "/",
+      "width": 1920,
+      "selector": "a.page-preview-link",
+      "numbers": {
+        "width": 140.02,
+        "ink": 46.06,
+        "padding": 46.98
+      },
+      "detail": "\"a.page-preview-link\" is 140px wide but its own text only needs 46px — the rest, about 94px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-45",
+      "kind": "strip",
+      "url": "/",
+      "width": 2560,
+      "selector": "a.sidebar-link",
+      "numbers": {
+        "width": 272.59,
+        "ink": 67.78,
+        "padding": 102.41
+      },
+      "detail": "\"a.sidebar-link\" is 273px wide but its own text only needs 68px — the rest, about 205px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-47",
+      "kind": "padding-thin",
+      "url": "/",
+      "width": 2560,
+      "selector": "button.mode-btn",
+      "numbers": {
+        "padding": 5.18,
+        "font_size": 11.52
+      },
+      "detail": "\"button.mode-btn\" has only 5.18px of side padding, less than half its own 11.52px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-48",
+      "kind": "padding-fat",
+      "url": "/",
+      "width": 2560,
+      "selector": "button.mode-btn",
+      "numbers": {
+        "padding": 5.18,
+        "width": 25.02
+      },
+      "detail": "\"button.mode-btn\" has 5.18px of side padding, more than a fifth of its own 25.02px width.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-49",
+      "kind": "strip",
+      "url": "/",
+      "width": 2560,
+      "selector": "button.demo-btn",
+      "numbers": {
+        "width": 51.67,
+        "ink": 15.42,
+        "padding": 18.13
+      },
+      "detail": "\"button.demo-btn\" is 52px wide but its own text only needs 15px — the rest, about 36px, is empty strip inside a flex / row container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-51",
+      "kind": "strip",
+      "url": "/",
+      "width": 2560,
+      "selector": "button.demo-btn.demo-scrub",
+      "numbers": {
+        "width": 58.16,
+        "ink": 15.84,
+        "padding": 21.16
+      },
+      "detail": "\"button.demo-btn.demo-scrub\" is 58px wide but its own text only needs 16px — the rest, about 42px, is empty strip inside a flex / row container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-53",
+      "kind": "strip",
+      "url": "/",
+      "width": 2560,
+      "selector": "button.demo-btn",
+      "numbers": {
+        "width": 58.16,
+        "ink": 15.84,
+        "padding": 21.16
+      },
+      "detail": "\"button.demo-btn\" is 58px wide but its own text only needs 16px — the rest, about 42px, is empty strip inside a flex / row container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-55",
+      "kind": "strip",
+      "url": "/",
+      "width": 2560,
+      "selector": "a.demo-app-link",
+      "numbers": {
+        "width": 162,
+        "ink": 38.33,
+        "padding": 61.84
+      },
+      "detail": "\"a.demo-app-link\" is 162px wide but its own text only needs 38px — the rest, about 124px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-56",
+      "kind": "strip",
+      "url": "/",
+      "width": 2560,
+      "selector": "a.demo-app-link",
+      "numbers": {
+        "width": 162,
+        "ink": 42.67,
+        "padding": 59.66
+      },
+      "detail": "\"a.demo-app-link\" is 162px wide but its own text only needs 43px — the rest, about 119px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-57",
+      "kind": "strip",
+      "url": "/",
+      "width": 2560,
+      "selector": "a.page-preview-link",
+      "numbers": {
+        "width": 164.95,
+        "ink": 51.83,
+        "padding": 56.56
+      },
+      "detail": "\"a.page-preview-link\" is 165px wide but its own text only needs 52px — the rest, about 113px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-62",
+      "kind": "strip",
+      "url": "/",
+      "width": 3440,
+      "selector": "a.sidebar-link",
+      "numbers": {
+        "width": 272.59,
+        "ink": 67.78,
+        "padding": 102.41
+      },
+      "detail": "\"a.sidebar-link\" is 273px wide but its own text only needs 68px — the rest, about 205px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-64",
+      "kind": "padding-thin",
+      "url": "/",
+      "width": 3440,
+      "selector": "button.mode-btn",
+      "numbers": {
+        "padding": 5.18,
+        "font_size": 11.52
+      },
+      "detail": "\"button.mode-btn\" has only 5.18px of side padding, less than half its own 11.52px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-65",
+      "kind": "padding-fat",
+      "url": "/",
+      "width": 3440,
+      "selector": "button.mode-btn",
+      "numbers": {
+        "padding": 5.18,
+        "width": 25.02
+      },
+      "detail": "\"button.mode-btn\" has 5.18px of side padding, more than a fifth of its own 25.02px width.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-66",
+      "kind": "strip",
+      "url": "/",
+      "width": 3440,
+      "selector": "button.demo-btn",
+      "numbers": {
+        "width": 51.67,
+        "ink": 15.42,
+        "padding": 18.13
+      },
+      "detail": "\"button.demo-btn\" is 52px wide but its own text only needs 15px — the rest, about 36px, is empty strip inside a flex / row container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-68",
+      "kind": "strip",
+      "url": "/",
+      "width": 3440,
+      "selector": "button.demo-btn.demo-scrub",
+      "numbers": {
+        "width": 58.16,
+        "ink": 15.84,
+        "padding": 21.16
+      },
+      "detail": "\"button.demo-btn.demo-scrub\" is 58px wide but its own text only needs 16px — the rest, about 42px, is empty strip inside a flex / row container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-70",
+      "kind": "strip",
+      "url": "/",
+      "width": 3440,
+      "selector": "button.demo-btn",
+      "numbers": {
+        "width": 58.16,
+        "ink": 15.84,
+        "padding": 21.16
+      },
+      "detail": "\"button.demo-btn\" is 58px wide but its own text only needs 16px — the rest, about 42px, is empty strip inside a flex / row container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-72",
+      "kind": "strip",
+      "url": "/",
+      "width": 3440,
+      "selector": "a.demo-app-link",
+      "numbers": {
+        "width": 162,
+        "ink": 38.33,
+        "padding": 61.84
+      },
+      "detail": "\"a.demo-app-link\" is 162px wide but its own text only needs 38px — the rest, about 124px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-73",
+      "kind": "strip",
+      "url": "/",
+      "width": 3440,
+      "selector": "a.demo-app-link",
+      "numbers": {
+        "width": 162,
+        "ink": 42.67,
+        "padding": 59.66
+      },
+      "detail": "\"a.demo-app-link\" is 162px wide but its own text only needs 43px — the rest, about 119px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-74",
+      "kind": "no-growth",
+      "url": "/blog/",
+      "width": 3440,
+      "selector": ".page",
+      "numbers": {
+        "median_1280": 9.02,
+        "median_3440": 10.8,
+        "growth": 1.2
+      },
+      "detail": "The typical gap between elements barely changes as the screen grows: 9.02px at 1280 wide vs 10.8px at 3440 wide (1.2x), even though the viewport itself is 2.69x wider.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-75",
+      "kind": "padding-fat",
+      "url": "/blog/",
+      "width": 400,
+      "selector": "button.sidebar-toggle",
+      "numbers": {
+        "padding": 4.48,
+        "width": 22.39
+      },
+      "detail": "\"button.sidebar-toggle\" has 4.48px of side padding, more than a fifth of its own 22.39px width.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-76",
+      "kind": "padding-fat",
+      "url": "/blog/",
+      "width": 400,
+      "selector": "a.blog-chip",
+      "numbers": {
+        "padding": 7.94,
+        "width": 39.27
+      },
+      "detail": "\"a.blog-chip\" has 7.94px of side padding, more than a fifth of its own 39.27px width.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-77",
+      "kind": "strip",
+      "url": "/blog/",
+      "width": 400,
+      "selector": "a.blog-more-link",
+      "numbers": {
+        "width": 352,
+        "ink": 96.56,
+        "padding": 127.72
+      },
+      "detail": "\"a.blog-more-link\" is 352px wide but its own text only needs 97px — the rest, about 255px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-79",
+      "kind": "strip",
+      "url": "/blog/",
+      "width": 400,
+      "selector": "a.blog-more-link.blog-feed",
+      "numbers": {
+        "width": 352,
+        "ink": 78.47,
+        "padding": 136.77
+      },
+      "detail": "\"a.blog-more-link.blog-feed\" is 352px wide but its own text only needs 78px — the rest, about 274px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-80",
+      "kind": "strip",
+      "url": "/blog/",
+      "width": 1280,
+      "selector": "a.sidebar-group-title.blog-nav-section",
+      "numbers": {
+        "width": 227.59,
+        "ink": 57.08,
+        "padding": 85.26
+      },
+      "detail": "\"a.sidebar-group-title.blog-nav-section\" is 228px wide but its own text only needs 57px — the rest, about 171px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-82",
+      "kind": "strip",
+      "url": "/blog/",
+      "width": 1280,
+      "selector": "a.sidebar-link",
+      "numbers": {
+        "width": 227.59,
+        "ink": 56.64,
+        "padding": 85.48
+      },
+      "detail": "\"a.sidebar-link\" is 228px wide but its own text only needs 57px — the rest, about 171px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-83",
+      "kind": "padding-thin",
+      "url": "/blog/",
+      "width": 1280,
+      "selector": "button.mode-btn",
+      "numbers": {
+        "padding": 4.33,
+        "font_size": 9.63
+      },
+      "detail": "\"button.mode-btn\" has only 4.33px of side padding, less than half its own 9.63px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-84",
+      "kind": "padding-fat",
+      "url": "/blog/",
+      "width": 1280,
+      "selector": "button.mode-btn",
+      "numbers": {
+        "padding": 4.33,
+        "width": 21.25
+      },
+      "detail": "\"button.mode-btn\" has 4.33px of side padding, more than a fifth of its own 21.25px width.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-85",
+      "kind": "padding-fat",
+      "url": "/blog/",
+      "width": 1280,
+      "selector": "a.blog-chip",
+      "numbers": {
+        "padding": 8.53,
+        "width": 42
+      },
+      "detail": "\"a.blog-chip\" has 8.53px of side padding, more than a fifth of its own 42px width.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-86",
+      "kind": "strip",
+      "url": "/blog/",
+      "width": 1280,
+      "selector": "a.blog-more-link",
+      "numbers": {
+        "width": 230.56,
+        "ink": 56.64,
+        "padding": 86.96
+      },
+      "detail": "\"a.blog-more-link\" is 231px wide but its own text only needs 57px — the rest, about 174px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-87",
+      "kind": "strip",
+      "url": "/blog/",
+      "width": 1920,
+      "selector": "a.sidebar-group-title.blog-nav-section",
+      "numbers": {
+        "width": 242.19,
+        "ink": 60.75,
+        "padding": 90.72
+      },
+      "detail": "\"a.sidebar-group-title.blog-nav-section\" is 242px wide but its own text only needs 61px — the rest, about 181px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-89",
+      "kind": "strip",
+      "url": "/blog/",
+      "width": 1920,
+      "selector": "a.sidebar-link",
+      "numbers": {
+        "width": 242.19,
+        "ink": 60.28,
+        "padding": 90.95
+      },
+      "detail": "\"a.sidebar-link\" is 242px wide but its own text only needs 60px — the rest, about 182px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-90",
+      "kind": "padding-thin",
+      "url": "/blog/",
+      "width": 1920,
+      "selector": "button.mode-btn",
+      "numbers": {
+        "padding": 4.61,
+        "font_size": 10.24
+      },
+      "detail": "\"button.mode-btn\" has only 4.61px of side padding, less than half its own 10.24px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-91",
+      "kind": "padding-fat",
+      "url": "/blog/",
+      "width": 1920,
+      "selector": "button.mode-btn",
+      "numbers": {
+        "padding": 4.61,
+        "width": 22.45
+      },
+      "detail": "\"button.mode-btn\" has 4.61px of side padding, more than a fifth of its own 22.45px width.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-92",
+      "kind": "padding-fat",
+      "url": "/blog/",
+      "width": 1920,
+      "selector": "a.blog-chip",
+      "numbers": {
+        "padding": 9.07,
+        "width": 44.56
+      },
+      "detail": "\"a.blog-chip\" has 9.07px of side padding, more than a fifth of its own 44.56px width.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-93",
+      "kind": "strip",
+      "url": "/blog/",
+      "width": 1920,
+      "selector": "a.blog-more-link",
+      "numbers": {
+        "width": 306.8,
+        "ink": 60.28,
+        "padding": 123.26
+      },
+      "detail": "\"a.blog-more-link\" is 307px wide but its own text only needs 60px — the rest, about 247px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-94",
+      "kind": "strip",
+      "url": "/blog/",
+      "width": 1920,
+      "selector": "a.blog-more-link.blog-feed",
+      "numbers": {
+        "width": 306.8,
+        "ink": 89.38,
+        "padding": 108.71
+      },
+      "detail": "\"a.blog-more-link.blog-feed\" is 307px wide but its own text only needs 89px — the rest, about 217px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-95",
+      "kind": "strip",
+      "url": "/blog/",
+      "width": 2560,
+      "selector": "a.sidebar-group-title.blog-nav-section",
+      "numbers": {
+        "width": 272.59,
+        "ink": 68.34,
+        "padding": 102.13
+      },
+      "detail": "\"a.sidebar-group-title.blog-nav-section\" is 273px wide but its own text only needs 68px — the rest, about 204px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-97",
+      "kind": "strip",
+      "url": "/blog/",
+      "width": 2560,
+      "selector": "a.sidebar-link",
+      "numbers": {
+        "width": 272.59,
+        "ink": 67.78,
+        "padding": 102.41
+      },
+      "detail": "\"a.sidebar-link\" is 273px wide but its own text only needs 68px — the rest, about 205px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-98",
+      "kind": "padding-thin",
+      "url": "/blog/",
+      "width": 2560,
+      "selector": "button.mode-btn",
+      "numbers": {
+        "padding": 5.18,
+        "font_size": 11.52
+      },
+      "detail": "\"button.mode-btn\" has only 5.18px of side padding, less than half its own 11.52px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-99",
+      "kind": "padding-fat",
+      "url": "/blog/",
+      "width": 2560,
+      "selector": "button.mode-btn",
+      "numbers": {
+        "padding": 5.18,
+        "width": 25.02
+      },
+      "detail": "\"button.mode-btn\" has 5.18px of side padding, more than a fifth of its own 25.02px width.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-100",
+      "kind": "padding-fat",
+      "url": "/blog/",
+      "width": 2560,
+      "selector": "a.blog-chip",
+      "numbers": {
+        "padding": 10.21,
+        "width": 49.89
+      },
+      "detail": "\"a.blog-chip\" has 10.21px of side padding, more than a fifth of its own 49.89px width.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-101",
+      "kind": "strip",
+      "url": "/blog/",
+      "width": 2560,
+      "selector": "a.blog-more-link",
+      "numbers": {
+        "width": 346.39,
+        "ink": 67.83,
+        "padding": 139.28
+      },
+      "detail": "\"a.blog-more-link\" is 346px wide but its own text only needs 68px — the rest, about 279px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-102",
+      "kind": "strip",
+      "url": "/blog/",
+      "width": 2560,
+      "selector": "a.blog-more-link.blog-feed",
+      "numbers": {
+        "width": 346.39,
+        "ink": 100.3,
+        "padding": 123.05
+      },
+      "detail": "\"a.blog-more-link.blog-feed\" is 346px wide but its own text only needs 100px — the rest, about 246px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-103",
+      "kind": "strip",
+      "url": "/blog/",
+      "width": 3440,
+      "selector": "a.sidebar-group-title.blog-nav-section",
+      "numbers": {
+        "width": 272.59,
+        "ink": 68.34,
+        "padding": 102.13
+      },
+      "detail": "\"a.sidebar-group-title.blog-nav-section\" is 273px wide but its own text only needs 68px — the rest, about 204px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-105",
+      "kind": "strip",
+      "url": "/blog/",
+      "width": 3440,
+      "selector": "a.sidebar-link",
+      "numbers": {
+        "width": 272.59,
+        "ink": 67.78,
+        "padding": 102.41
+      },
+      "detail": "\"a.sidebar-link\" is 273px wide but its own text only needs 68px — the rest, about 205px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-106",
+      "kind": "padding-thin",
+      "url": "/blog/",
+      "width": 3440,
+      "selector": "button.mode-btn",
+      "numbers": {
+        "padding": 5.18,
+        "font_size": 11.52
+      },
+      "detail": "\"button.mode-btn\" has only 5.18px of side padding, less than half its own 11.52px letter size — the text sits almost at the edge of its own box.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-107",
+      "kind": "padding-fat",
+      "url": "/blog/",
+      "width": 3440,
+      "selector": "button.mode-btn",
+      "numbers": {
+        "padding": 5.18,
+        "width": 25.02
+      },
+      "detail": "\"button.mode-btn\" has 5.18px of side padding, more than a fifth of its own 25.02px width.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-108",
+      "kind": "padding-fat",
+      "url": "/blog/",
+      "width": 3440,
+      "selector": "a.blog-chip",
+      "numbers": {
+        "padding": 10.21,
+        "width": 49.89
+      },
+      "detail": "\"a.blog-chip\" has 10.21px of side padding, more than a fifth of its own 49.89px width.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-109",
+      "kind": "strip",
+      "url": "/blog/",
+      "width": 3440,
+      "selector": "a.blog-more-link",
+      "numbers": {
+        "width": 346.39,
+        "ink": 67.83,
+        "padding": 139.28
+      },
+      "detail": "\"a.blog-more-link\" is 346px wide but its own text only needs 68px — the rest, about 279px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-110",
+      "kind": "strip",
+      "url": "/blog/",
+      "width": 3440,
+      "selector": "a.blog-more-link.blog-feed",
+      "numbers": {
+        "width": 346.39,
+        "ink": 100.3,
+        "padding": 123.05
+      },
+      "detail": "\"a.blog-more-link.blog-feed\" is 346px wide but its own text only needs 100px — the rest, about 246px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-111",
+      "kind": "no-growth",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 3440,
+      "selector": ".page",
+      "numbers": {
+        "median_1280": 10.25,
+        "median_3440": 12.34,
+        "growth": 1.2
+      },
+      "detail": "The typical gap between elements barely changes as the screen grows: 10.25px at 1280 wide vs 12.34px at 3440 wide (1.2x), even though the viewport itself is 2.69x wider.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-112",
+      "kind": "ratio",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 400,
+      "selector": "code.language-js.hljs",
+      "numbers": {
+        "gap_a": 9.05,
+        "gap_b": 31.09,
+        "ratio": 3.44
+      },
+      "detail": "Inside code.language-js.hljs, one gap between rows is 9.05px and the very next gap is 31.09px (3.44x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-113",
+      "kind": "ratio",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 400,
+      "selector": "code.language-js.hljs",
+      "numbers": {
+        "gap_a": 31.09,
+        "gap_b": 9.05,
+        "ratio": 3.44
+      },
+      "detail": "Inside code.language-js.hljs, one gap between rows is 31.09px and the very next gap is 9.05px (3.44x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-114",
+      "kind": "ratio",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 400,
+      "selector": "code.language-js.hljs",
+      "numbers": {
+        "gap_a": 9.05,
+        "gap_b": 31.09,
+        "ratio": 3.44
+      },
+      "detail": "Inside code.language-js.hljs, one gap between rows is 9.05px and the very next gap is 31.09px (3.44x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-115",
+      "kind": "ratio",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 400,
+      "selector": "code.language-js.hljs",
+      "numbers": {
+        "gap_a": 9.05,
+        "gap_b": 31.09,
+        "ratio": 3.44
+      },
+      "detail": "Inside code.language-js.hljs, one gap between rows is 9.05px and the very next gap is 31.09px (3.44x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-116",
+      "kind": "ratio",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 400,
+      "selector": "code.language-js.hljs",
+      "numbers": {
+        "gap_a": 31.09,
+        "gap_b": 9.05,
+        "ratio": 3.44
+      },
+      "detail": "Inside code.language-js.hljs, one gap between rows is 31.09px and the very next gap is 9.05px (3.44x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-118",
+      "kind": "strip",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 400,
+      "selector": "a.blog-part-link",
+      "numbers": {
+        "width": 344,
+        "ink": 100.5,
+        "padding": 121.75
+      },
+      "detail": "\"a.blog-part-link\" is 344px wide but its own text only needs 101px — the rest, about 244px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-122",
+      "kind": "strip",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 400,
+      "selector": "a.toc-link.current",
+      "numbers": {
+        "width": 344,
+        "ink": 99.42,
+        "padding": 122.29
+      },
+      "detail": "\"a.toc-link.current\" is 344px wide but its own text only needs 99px — the rest, about 245px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-124",
+      "kind": "strip",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 400,
+      "selector": "a.toc-link",
+      "numbers": {
+        "width": 344,
+        "ink": 83.75,
+        "padding": 130.13
+      },
+      "detail": "\"a.toc-link\" is 344px wide but its own text only needs 84px — the rest, about 260px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-129",
+      "kind": "ratio",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 1280,
+      "selector": "code.language-js.hljs",
+      "numbers": {
+        "gap_a": 9.67,
+        "gap_b": 33.34,
+        "ratio": 3.45
+      },
+      "detail": "Inside code.language-js.hljs, one gap between rows is 9.67px and the very next gap is 33.34px (3.45x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-130",
+      "kind": "ratio",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 1280,
+      "selector": "code.language-js.hljs",
+      "numbers": {
+        "gap_a": 33.34,
+        "gap_b": 9.67,
+        "ratio": 3.45
+      },
+      "detail": "Inside code.language-js.hljs, one gap between rows is 33.34px and the very next gap is 9.67px (3.45x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-131",
+      "kind": "ratio",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 1280,
+      "selector": "code.language-js.hljs",
+      "numbers": {
+        "gap_a": 9.67,
+        "gap_b": 33.34,
+        "ratio": 3.45
+      },
+      "detail": "Inside code.language-js.hljs, one gap between rows is 9.67px and the very next gap is 33.34px (3.45x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-132",
+      "kind": "ratio",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 1280,
+      "selector": "code.language-js.hljs",
+      "numbers": {
+        "gap_a": 9.67,
+        "gap_b": 33.34,
+        "ratio": 3.45
+      },
+      "detail": "Inside code.language-js.hljs, one gap between rows is 9.67px and the very next gap is 33.34px (3.45x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-133",
+      "kind": "ratio",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 1280,
+      "selector": "code.language-js.hljs",
+      "numbers": {
+        "gap_a": 33.34,
+        "gap_b": 9.67,
+        "ratio": 3.45
+      },
+      "detail": "Inside code.language-js.hljs, one gap between rows is 33.34px and the very next gap is 9.67px (3.45x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-140",
+      "kind": "strip",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 1280,
+      "selector": "a.blog-more-link.in-path",
+      "numbers": {
+        "width": 193.03,
+        "ink": 60.02,
+        "padding": 66.51
+      },
+      "detail": "\"a.blog-more-link.in-path\" is 193px wide but its own text only needs 60px — the rest, about 133px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-143",
+      "kind": "ratio",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 1920,
+      "selector": "code.language-js.hljs",
+      "numbers": {
+        "gap_a": 11.19,
+        "gap_b": 36.38,
+        "ratio": 3.25
+      },
+      "detail": "Inside code.language-js.hljs, one gap between rows is 11.19px and the very next gap is 36.38px (3.25x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-144",
+      "kind": "ratio",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 1920,
+      "selector": "code.language-js.hljs",
+      "numbers": {
+        "gap_a": 36.38,
+        "gap_b": 11.19,
+        "ratio": 3.25
+      },
+      "detail": "Inside code.language-js.hljs, one gap between rows is 36.38px and the very next gap is 11.19px (3.25x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-145",
+      "kind": "ratio",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 1920,
+      "selector": "code.language-js.hljs",
+      "numbers": {
+        "gap_a": 11.19,
+        "gap_b": 36.38,
+        "ratio": 3.25
+      },
+      "detail": "Inside code.language-js.hljs, one gap between rows is 11.19px and the very next gap is 36.38px (3.25x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-146",
+      "kind": "ratio",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 1920,
+      "selector": "code.language-js.hljs",
+      "numbers": {
+        "gap_a": 11.19,
+        "gap_b": 36.38,
+        "ratio": 3.25
+      },
+      "detail": "Inside code.language-js.hljs, one gap between rows is 11.19px and the very next gap is 36.38px (3.25x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-147",
+      "kind": "ratio",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 1920,
+      "selector": "code.language-js.hljs",
+      "numbers": {
+        "gap_a": 36.38,
+        "gap_b": 11.19,
+        "ratio": 3.25
+      },
+      "detail": "Inside code.language-js.hljs, one gap between rows is 36.38px and the very next gap is 11.19px (3.25x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-154",
+      "kind": "strip",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 1920,
+      "selector": "a.blog-more-link.in-path",
+      "numbers": {
+        "width": 206,
+        "ink": 63.88,
+        "padding": 71.06
+      },
+      "detail": "\"a.blog-more-link.in-path\" is 206px wide but its own text only needs 64px — the rest, about 142px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-157",
+      "kind": "ratio",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 2560,
+      "selector": "code.language-js.hljs",
+      "numbers": {
+        "gap_a": 12.34,
+        "gap_b": 40.69,
+        "ratio": 3.3
+      },
+      "detail": "Inside code.language-js.hljs, one gap between rows is 12.34px and the very next gap is 40.69px (3.3x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-158",
+      "kind": "ratio",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 2560,
+      "selector": "code.language-js.hljs",
+      "numbers": {
+        "gap_a": 40.69,
+        "gap_b": 12.34,
+        "ratio": 3.3
+      },
+      "detail": "Inside code.language-js.hljs, one gap between rows is 40.69px and the very next gap is 12.34px (3.3x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-159",
+      "kind": "ratio",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 2560,
+      "selector": "code.language-js.hljs",
+      "numbers": {
+        "gap_a": 12.34,
+        "gap_b": 40.69,
+        "ratio": 3.3
+      },
+      "detail": "Inside code.language-js.hljs, one gap between rows is 12.34px and the very next gap is 40.69px (3.3x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-160",
+      "kind": "ratio",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 2560,
+      "selector": "code.language-js.hljs",
+      "numbers": {
+        "gap_a": 12.34,
+        "gap_b": 40.69,
+        "ratio": 3.3
+      },
+      "detail": "Inside code.language-js.hljs, one gap between rows is 12.34px and the very next gap is 40.69px (3.3x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-161",
+      "kind": "ratio",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 2560,
+      "selector": "code.language-js.hljs",
+      "numbers": {
+        "gap_a": 40.69,
+        "gap_b": 12.34,
+        "ratio": 3.3
+      },
+      "detail": "Inside code.language-js.hljs, one gap between rows is 40.69px and the very next gap is 12.34px (3.3x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-168",
+      "kind": "strip",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 2560,
+      "selector": "a.blog-more-link.in-path",
+      "numbers": {
+        "width": 233,
+        "ink": 71.86,
+        "padding": 80.57
+      },
+      "detail": "\"a.blog-more-link.in-path\" is 233px wide but its own text only needs 72px — the rest, about 161px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-171",
+      "kind": "ratio",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 3440,
+      "selector": "code.language-js.hljs",
+      "numbers": {
+        "gap_a": 12.34,
+        "gap_b": 40.69,
+        "ratio": 3.3
+      },
+      "detail": "Inside code.language-js.hljs, one gap between rows is 12.34px and the very next gap is 40.69px (3.3x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-172",
+      "kind": "ratio",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 3440,
+      "selector": "code.language-js.hljs",
+      "numbers": {
+        "gap_a": 40.69,
+        "gap_b": 12.34,
+        "ratio": 3.3
+      },
+      "detail": "Inside code.language-js.hljs, one gap between rows is 40.69px and the very next gap is 12.34px (3.3x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-173",
+      "kind": "ratio",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 3440,
+      "selector": "code.language-js.hljs",
+      "numbers": {
+        "gap_a": 12.34,
+        "gap_b": 40.69,
+        "ratio": 3.3
+      },
+      "detail": "Inside code.language-js.hljs, one gap between rows is 12.34px and the very next gap is 40.69px (3.3x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-174",
+      "kind": "ratio",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 3440,
+      "selector": "code.language-js.hljs",
+      "numbers": {
+        "gap_a": 12.34,
+        "gap_b": 40.69,
+        "ratio": 3.3
+      },
+      "detail": "Inside code.language-js.hljs, one gap between rows is 12.34px and the very next gap is 40.69px (3.3x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-175",
+      "kind": "ratio",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 3440,
+      "selector": "code.language-js.hljs",
+      "numbers": {
+        "gap_a": 40.69,
+        "gap_b": 12.34,
+        "ratio": 3.3
+      },
+      "detail": "Inside code.language-js.hljs, one gap between rows is 40.69px and the very next gap is 12.34px (3.3x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-182",
+      "kind": "strip",
+      "url": "/blog/framework/hello-lew42/",
+      "width": 3440,
+      "selector": "a.blog-more-link.in-path",
+      "numbers": {
+        "width": 233,
+        "ink": 71.86,
+        "padding": 80.57
+      },
+      "detail": "\"a.blog-more-link.in-path\" is 233px wide but its own text only needs 72px — the rest, about 161px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-185",
+      "kind": "no-growth",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 3440,
+      "selector": ".page",
+      "numbers": {
+        "median_1280": 9.67,
+        "median_3440": 12.34,
+        "growth": 1.28
+      },
+      "detail": "The typical gap between elements barely changes as the screen grows: 9.67px at 1280 wide vs 12.34px at 3440 wide (1.28x), even though the viewport itself is 2.69x wider.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-186",
+      "kind": "ratio",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 400,
+      "selector": "code.language-html.hljs",
+      "numbers": {
+        "gap_a": 9.05,
+        "gap_b": 31.09,
+        "ratio": 3.44
+      },
+      "detail": "Inside code.language-html.hljs, one gap between rows is 9.05px and the very next gap is 31.09px (3.44x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-187",
+      "kind": "ratio",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 400,
+      "selector": "code.language-html.hljs",
+      "numbers": {
+        "gap_a": 31.09,
+        "gap_b": 9.05,
+        "ratio": 3.44
+      },
+      "detail": "Inside code.language-html.hljs, one gap between rows is 31.09px and the very next gap is 9.05px (3.44x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-188",
+      "kind": "ratio",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 400,
+      "selector": "code.language-html.hljs",
+      "numbers": {
+        "gap_a": 9.05,
+        "gap_b": 31.09,
+        "ratio": 3.44
+      },
+      "detail": "Inside code.language-html.hljs, one gap between rows is 9.05px and the very next gap is 31.09px (3.44x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-189",
+      "kind": "ratio",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 400,
+      "selector": "code.language-html.hljs",
+      "numbers": {
+        "gap_a": 31.09,
+        "gap_b": 9.05,
+        "ratio": 3.44
+      },
+      "detail": "Inside code.language-html.hljs, one gap between rows is 31.09px and the very next gap is 9.05px (3.44x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-190",
+      "kind": "ratio",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 400,
+      "selector": "code.language-html.hljs",
+      "numbers": {
+        "gap_a": 9.05,
+        "gap_b": 31.09,
+        "ratio": 3.44
+      },
+      "detail": "Inside code.language-html.hljs, one gap between rows is 9.05px and the very next gap is 31.09px (3.44x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-191",
+      "kind": "ratio",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 400,
+      "selector": "code.language-html.hljs",
+      "numbers": {
+        "gap_a": 31.09,
+        "gap_b": 9.05,
+        "ratio": 3.44
+      },
+      "detail": "Inside code.language-html.hljs, one gap between rows is 31.09px and the very next gap is 9.05px (3.44x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-197",
+      "kind": "strip",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 400,
+      "selector": "a.toc-link",
+      "numbers": {
+        "width": 344,
+        "ink": 68.28,
+        "padding": 137.86
+      },
+      "detail": "\"a.toc-link\" is 344px wide but its own text only needs 68px — the rest, about 276px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-204",
+      "kind": "ratio",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 1280,
+      "selector": "code.language-html.hljs",
+      "numbers": {
+        "gap_a": 9.67,
+        "gap_b": 33.34,
+        "ratio": 3.45
+      },
+      "detail": "Inside code.language-html.hljs, one gap between rows is 9.67px and the very next gap is 33.34px (3.45x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-205",
+      "kind": "ratio",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 1280,
+      "selector": "code.language-html.hljs",
+      "numbers": {
+        "gap_a": 33.34,
+        "gap_b": 9.67,
+        "ratio": 3.45
+      },
+      "detail": "Inside code.language-html.hljs, one gap between rows is 33.34px and the very next gap is 9.67px (3.45x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-206",
+      "kind": "ratio",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 1280,
+      "selector": "code.language-html.hljs",
+      "numbers": {
+        "gap_a": 9.67,
+        "gap_b": 33.34,
+        "ratio": 3.45
+      },
+      "detail": "Inside code.language-html.hljs, one gap between rows is 9.67px and the very next gap is 33.34px (3.45x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-207",
+      "kind": "ratio",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 1280,
+      "selector": "code.language-html.hljs",
+      "numbers": {
+        "gap_a": 33.34,
+        "gap_b": 9.67,
+        "ratio": 3.45
+      },
+      "detail": "Inside code.language-html.hljs, one gap between rows is 33.34px and the very next gap is 9.67px (3.45x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-208",
+      "kind": "ratio",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 1280,
+      "selector": "code.language-html.hljs",
+      "numbers": {
+        "gap_a": 9.67,
+        "gap_b": 33.34,
+        "ratio": 3.45
+      },
+      "detail": "Inside code.language-html.hljs, one gap between rows is 9.67px and the very next gap is 33.34px (3.45x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-209",
+      "kind": "ratio",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 1280,
+      "selector": "code.language-html.hljs",
+      "numbers": {
+        "gap_a": 33.34,
+        "gap_b": 9.67,
+        "ratio": 3.45
+      },
+      "detail": "Inside code.language-html.hljs, one gap between rows is 33.34px and the very next gap is 9.67px (3.45x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-217",
+      "kind": "strip",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 1280,
+      "selector": "a.blog-more-link.in-path",
+      "numbers": {
+        "width": 193.03,
+        "ink": 60.02,
+        "padding": 66.51
+      },
+      "detail": "\"a.blog-more-link.in-path\" is 193px wide but its own text only needs 60px — the rest, about 133px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-221",
+      "kind": "ratio",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 1920,
+      "selector": "code.language-html.hljs",
+      "numbers": {
+        "gap_a": 11.19,
+        "gap_b": 36.38,
+        "ratio": 3.25
+      },
+      "detail": "Inside code.language-html.hljs, one gap between rows is 11.19px and the very next gap is 36.38px (3.25x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-222",
+      "kind": "ratio",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 1920,
+      "selector": "code.language-html.hljs",
+      "numbers": {
+        "gap_a": 36.38,
+        "gap_b": 11.19,
+        "ratio": 3.25
+      },
+      "detail": "Inside code.language-html.hljs, one gap between rows is 36.38px and the very next gap is 11.19px (3.25x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-223",
+      "kind": "ratio",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 1920,
+      "selector": "code.language-html.hljs",
+      "numbers": {
+        "gap_a": 11.19,
+        "gap_b": 36.38,
+        "ratio": 3.25
+      },
+      "detail": "Inside code.language-html.hljs, one gap between rows is 11.19px and the very next gap is 36.38px (3.25x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-224",
+      "kind": "ratio",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 1920,
+      "selector": "code.language-html.hljs",
+      "numbers": {
+        "gap_a": 36.38,
+        "gap_b": 11.19,
+        "ratio": 3.25
+      },
+      "detail": "Inside code.language-html.hljs, one gap between rows is 36.38px and the very next gap is 11.19px (3.25x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-225",
+      "kind": "ratio",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 1920,
+      "selector": "code.language-html.hljs",
+      "numbers": {
+        "gap_a": 11.19,
+        "gap_b": 36.38,
+        "ratio": 3.25
+      },
+      "detail": "Inside code.language-html.hljs, one gap between rows is 11.19px and the very next gap is 36.38px (3.25x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-226",
+      "kind": "ratio",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 1920,
+      "selector": "code.language-html.hljs",
+      "numbers": {
+        "gap_a": 36.38,
+        "gap_b": 11.19,
+        "ratio": 3.25
+      },
+      "detail": "Inside code.language-html.hljs, one gap between rows is 36.38px and the very next gap is 11.19px (3.25x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-234",
+      "kind": "strip",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 1920,
+      "selector": "a.blog-more-link.in-path",
+      "numbers": {
+        "width": 206,
+        "ink": 63.88,
+        "padding": 71.06
+      },
+      "detail": "\"a.blog-more-link.in-path\" is 206px wide but its own text only needs 64px — the rest, about 142px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-238",
+      "kind": "ratio",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 2560,
+      "selector": "code.language-html.hljs",
+      "numbers": {
+        "gap_a": 12.34,
+        "gap_b": 40.69,
+        "ratio": 3.3
+      },
+      "detail": "Inside code.language-html.hljs, one gap between rows is 12.34px and the very next gap is 40.69px (3.3x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-239",
+      "kind": "ratio",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 2560,
+      "selector": "code.language-html.hljs",
+      "numbers": {
+        "gap_a": 40.69,
+        "gap_b": 12.34,
+        "ratio": 3.3
+      },
+      "detail": "Inside code.language-html.hljs, one gap between rows is 40.69px and the very next gap is 12.34px (3.3x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-240",
+      "kind": "ratio",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 2560,
+      "selector": "code.language-html.hljs",
+      "numbers": {
+        "gap_a": 12.34,
+        "gap_b": 40.69,
+        "ratio": 3.3
+      },
+      "detail": "Inside code.language-html.hljs, one gap between rows is 12.34px and the very next gap is 40.69px (3.3x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-241",
+      "kind": "ratio",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 2560,
+      "selector": "code.language-html.hljs",
+      "numbers": {
+        "gap_a": 40.69,
+        "gap_b": 12.34,
+        "ratio": 3.3
+      },
+      "detail": "Inside code.language-html.hljs, one gap between rows is 40.69px and the very next gap is 12.34px (3.3x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-242",
+      "kind": "ratio",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 2560,
+      "selector": "code.language-html.hljs",
+      "numbers": {
+        "gap_a": 12.34,
+        "gap_b": 40.69,
+        "ratio": 3.3
+      },
+      "detail": "Inside code.language-html.hljs, one gap between rows is 12.34px and the very next gap is 40.69px (3.3x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-243",
+      "kind": "ratio",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 2560,
+      "selector": "code.language-html.hljs",
+      "numbers": {
+        "gap_a": 40.69,
+        "gap_b": 12.34,
+        "ratio": 3.3
+      },
+      "detail": "Inside code.language-html.hljs, one gap between rows is 40.69px and the very next gap is 12.34px (3.3x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-251",
+      "kind": "strip",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 2560,
+      "selector": "a.blog-more-link.in-path",
+      "numbers": {
+        "width": 233,
+        "ink": 71.86,
+        "padding": 80.57
+      },
+      "detail": "\"a.blog-more-link.in-path\" is 233px wide but its own text only needs 72px — the rest, about 161px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-255",
+      "kind": "ratio",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 3440,
+      "selector": "code.language-html.hljs",
+      "numbers": {
+        "gap_a": 12.34,
+        "gap_b": 40.69,
+        "ratio": 3.3
+      },
+      "detail": "Inside code.language-html.hljs, one gap between rows is 12.34px and the very next gap is 40.69px (3.3x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-256",
+      "kind": "ratio",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 3440,
+      "selector": "code.language-html.hljs",
+      "numbers": {
+        "gap_a": 40.69,
+        "gap_b": 12.34,
+        "ratio": 3.3
+      },
+      "detail": "Inside code.language-html.hljs, one gap between rows is 40.69px and the very next gap is 12.34px (3.3x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-257",
+      "kind": "ratio",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 3440,
+      "selector": "code.language-html.hljs",
+      "numbers": {
+        "gap_a": 12.34,
+        "gap_b": 40.69,
+        "ratio": 3.3
+      },
+      "detail": "Inside code.language-html.hljs, one gap between rows is 12.34px and the very next gap is 40.69px (3.3x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-258",
+      "kind": "ratio",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 3440,
+      "selector": "code.language-html.hljs",
+      "numbers": {
+        "gap_a": 40.69,
+        "gap_b": 12.34,
+        "ratio": 3.3
+      },
+      "detail": "Inside code.language-html.hljs, one gap between rows is 40.69px and the very next gap is 12.34px (3.3x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-259",
+      "kind": "ratio",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 3440,
+      "selector": "code.language-html.hljs",
+      "numbers": {
+        "gap_a": 12.34,
+        "gap_b": 40.69,
+        "ratio": 3.3
+      },
+      "detail": "Inside code.language-html.hljs, one gap between rows is 12.34px and the very next gap is 40.69px (3.3x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-260",
+      "kind": "ratio",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 3440,
+      "selector": "code.language-html.hljs",
+      "numbers": {
+        "gap_a": 40.69,
+        "gap_b": 12.34,
+        "ratio": 3.3
+      },
+      "detail": "Inside code.language-html.hljs, one gap between rows is 40.69px and the very next gap is 12.34px (3.3x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-268",
+      "kind": "strip",
+      "url": "/blog/framework/how-this-blog-works/",
+      "width": 3440,
+      "selector": "a.blog-more-link.in-path",
+      "numbers": {
+        "width": 233,
+        "ink": 71.86,
+        "padding": 80.57
+      },
+      "detail": "\"a.blog-more-link.in-path\" is 233px wide but its own text only needs 72px — the rest, about 161px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-274",
+      "kind": "ratio",
+      "url": "/blog/systems/layout-generators/",
+      "width": 400,
+      "selector": "p",
+      "numbers": {
+        "gap_a": 32.72,
+        "gap_b": 83.09,
+        "ratio": 2.54
+      },
+      "detail": "Inside p, one gap between rows is 32.72px and the very next gap is 83.09px (2.54x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-276",
+      "kind": "ratio",
+      "url": "/blog/systems/layout-generators/",
+      "width": 400,
+      "selector": "p",
+      "numbers": {
+        "gap_a": 32.38,
+        "gap_b": 83.92,
+        "ratio": 2.59
+      },
+      "detail": "Inside p, one gap between rows is 32.38px and the very next gap is 83.92px (2.59x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-281",
+      "kind": "strip",
+      "url": "/blog/systems/layout-generators/",
+      "width": 400,
+      "selector": "a.toc-link",
+      "numbers": {
+        "width": 344,
+        "ink": 96.17,
+        "padding": 123.91
+      },
+      "detail": "\"a.toc-link\" is 344px wide but its own text only needs 96px — the rest, about 248px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-283",
+      "kind": "strip",
+      "url": "/blog/systems/layout-generators/",
+      "width": 400,
+      "selector": "a.blog-more-link.in-path",
+      "numbers": {
+        "width": 344,
+        "ink": 110.91,
+        "padding": 116.55
+      },
+      "detail": "\"a.blog-more-link.in-path\" is 344px wide but its own text only needs 111px — the rest, about 233px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-295",
+      "kind": "strip",
+      "url": "/blog/systems/layout-generators/",
+      "width": 1280,
+      "selector": "a.blog-more-link.in-path",
+      "numbers": {
+        "width": 193.03,
+        "ink": 60.02,
+        "padding": 66.51
+      },
+      "detail": "\"a.blog-more-link.in-path\" is 193px wide but its own text only needs 60px — the rest, about 133px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-301",
+      "kind": "ratio",
+      "url": "/blog/systems/layout-generators/",
+      "width": 1920,
+      "selector": "p",
+      "numbers": {
+        "gap_a": 9.8,
+        "gap_b": 38.5,
+        "ratio": 3.93
+      },
+      "detail": "Inside p, one gap between rows is 9.8px and the very next gap is 38.5px (3.93x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-306",
+      "kind": "strip",
+      "url": "/blog/systems/layout-generators/",
+      "width": 1920,
+      "selector": "a.blog-more-link.in-path",
+      "numbers": {
+        "width": 206,
+        "ink": 63.88,
+        "padding": 71.06
+      },
+      "detail": "\"a.blog-more-link.in-path\" is 206px wide but its own text only needs 64px — the rest, about 142px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-317",
+      "kind": "strip",
+      "url": "/blog/systems/layout-generators/",
+      "width": 2560,
+      "selector": "a.blog-more-link.in-path",
+      "numbers": {
+        "width": 233,
+        "ink": 71.86,
+        "padding": 80.57
+      },
+      "detail": "\"a.blog-more-link.in-path\" is 233px wide but its own text only needs 72px — the rest, about 161px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-328",
+      "kind": "strip",
+      "url": "/blog/systems/layout-generators/",
+      "width": 3440,
+      "selector": "a.blog-more-link.in-path",
+      "numbers": {
+        "width": 233,
+        "ink": 71.86,
+        "padding": 80.57
+      },
+      "detail": "\"a.blog-more-link.in-path\" is 233px wide but its own text only needs 72px — the rest, about 161px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-332",
+      "kind": "no-growth",
+      "url": "/resume/",
+      "width": 3440,
+      "selector": ".page",
+      "numbers": {
+        "median_1280": 20.89,
+        "median_3440": 25.01,
+        "growth": 1.2
+      },
+      "detail": "The typical gap between elements barely changes as the screen grows: 20.89px at 1280 wide vs 25.01px at 3440 wide (1.2x), even though the viewport itself is 2.69x wider.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-333",
+      "kind": "padding-inversion",
+      "url": "/resume/",
+      "width": 1280,
+      "selector": "div.resume-card.flow",
+      "numbers": {
+        "box_padding": 37.34,
+        "page_gutter": 36.09
+      },
+      "detail": "\"div.resume-card.flow\" pads itself 37.34px on each side, more than the page's own 36.09px gutter — the box is padded past its own page margin.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-334",
+      "kind": "padding-inversion",
+      "url": "/resume/",
+      "width": 1920,
+      "selector": "div.resume-card.flow",
+      "numbers": {
+        "box_padding": 39.73,
+        "page_gutter": 38.39
+      },
+      "detail": "\"div.resume-card.flow\" pads itself 39.73px on each side, more than the page's own 38.39px gutter — the box is padded past its own page margin.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-335",
+      "kind": "padding-inversion",
+      "url": "/resume/",
+      "width": 2560,
+      "selector": "div.resume-card.flow",
+      "numbers": {
+        "box_padding": 44.7,
+        "page_gutter": 43.19
+      },
+      "detail": "\"div.resume-card.flow\" pads itself 44.7px on each side, more than the page's own 43.19px gutter — the box is padded past its own page margin.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-336",
+      "kind": "padding-inversion",
+      "url": "/resume/",
+      "width": 3440,
+      "selector": "div.resume-card.flow",
+      "numbers": {
+        "box_padding": 44.7,
+        "page_gutter": 43.19
+      },
+      "detail": "\"div.resume-card.flow\" pads itself 44.7px on each side, more than the page's own 43.19px gutter — the box is padded past its own page margin.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-337",
+      "kind": "no-growth",
+      "url": "/notes/",
+      "width": 3440,
+      "selector": ".page",
+      "numbers": {
+        "median_1280": 9.02,
+        "median_3440": 10.8,
+        "growth": 1.2
+      },
+      "detail": "The typical gap between elements barely changes as the screen grows: 9.02px at 1280 wide vs 10.8px at 3440 wide (1.2x), even though the viewport itself is 2.69x wider.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-338",
+      "kind": "strip",
+      "url": "/notes/",
+      "width": 400,
+      "selector": "a.page-preview-link",
+      "numbers": {
+        "width": 316,
+        "ink": 101.19,
+        "padding": 107.41
+      },
+      "detail": "\"a.page-preview-link\" is 316px wide but its own text only needs 101px — the rest, about 215px, is empty strip inside a flex / column container.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-339",
+      "kind": "no-growth",
+      "url": "/notes/auth/",
+      "width": 3440,
+      "selector": ".page",
+      "numbers": {
+        "median_1280": 30.08,
+        "median_3440": 36,
+        "growth": 1.2
+      },
+      "detail": "The typical gap between elements barely changes as the screen grows: 30.08px at 1280 wide vs 36px at 3440 wide (1.2x), even though the viewport itself is 2.69x wider.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-341",
+      "kind": "ratio",
+      "url": "/notes/auth/",
+      "width": 400,
+      "selector": "p",
+      "numbers": {
+        "gap_a": 8.36,
+        "gap_b": 31.55,
+        "ratio": 3.77
+      },
+      "detail": "Inside p, one gap between rows is 8.36px and the very next gap is 31.55px (3.77x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-349",
+      "kind": "ratio",
+      "url": "/notes/auth/",
+      "width": 1280,
+      "selector": "p",
+      "numbers": {
+        "gap_a": 9.11,
+        "gap_b": 34.19,
+        "ratio": 3.75
+      },
+      "detail": "Inside p, one gap between rows is 9.11px and the very next gap is 34.19px (3.75x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-350",
+      "kind": "ratio",
+      "url": "/notes/auth/",
+      "width": 1280,
+      "selector": "p",
+      "numbers": {
+        "gap_a": 34.19,
+        "gap_b": 9.11,
+        "ratio": 3.75
+      },
+      "detail": "Inside p, one gap between rows is 34.19px and the very next gap is 9.11px (3.75x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-357",
+      "kind": "ratio",
+      "url": "/notes/auth/",
+      "width": 1920,
+      "selector": "p",
+      "numbers": {
+        "gap_a": 9.7,
+        "gap_b": 36.5,
+        "ratio": 3.76
+      },
+      "detail": "Inside p, one gap between rows is 9.7px and the very next gap is 36.5px (3.76x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-358",
+      "kind": "ratio",
+      "url": "/notes/auth/",
+      "width": 1920,
+      "selector": "p",
+      "numbers": {
+        "gap_a": 36.5,
+        "gap_b": 9.7,
+        "ratio": 3.76
+      },
+      "detail": "Inside p, one gap between rows is 36.5px and the very next gap is 9.7px (3.76x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-365",
+      "kind": "ratio",
+      "url": "/notes/auth/",
+      "width": 2560,
+      "selector": "p",
+      "numbers": {
+        "gap_a": 11.03,
+        "gap_b": 41.42,
+        "ratio": 3.75
+      },
+      "detail": "Inside p, one gap between rows is 11.03px and the very next gap is 41.42px (3.75x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-366",
+      "kind": "ratio",
+      "url": "/notes/auth/",
+      "width": 2560,
+      "selector": "p",
+      "numbers": {
+        "gap_a": 41.42,
+        "gap_b": 11.03,
+        "ratio": 3.75
+      },
+      "detail": "Inside p, one gap between rows is 41.42px and the very next gap is 11.03px (3.75x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-373",
+      "kind": "ratio",
+      "url": "/notes/auth/",
+      "width": 3440,
+      "selector": "p",
+      "numbers": {
+        "gap_a": 11.03,
+        "gap_b": 41.42,
+        "ratio": 3.75
+      },
+      "detail": "Inside p, one gap between rows is 11.03px and the very next gap is 41.42px (3.75x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-374",
+      "kind": "ratio",
+      "url": "/notes/auth/",
+      "width": 3440,
+      "selector": "p",
+      "numbers": {
+        "gap_a": 41.42,
+        "gap_b": 11.03,
+        "ratio": 3.75
+      },
+      "detail": "Inside p, one gap between rows is 41.42px and the very next gap is 11.03px (3.75x) — no heading, no <details>, no visible reason for the jump.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-380",
+      "kind": "no-growth",
+      "url": "/notes/git-branch-names/",
+      "width": 3440,
+      "selector": ".page",
+      "numbers": {
+        "median_1280": 30.08,
+        "median_3440": 36,
+        "growth": 1.2
+      },
+      "detail": "The typical gap between elements barely changes as the screen grows: 30.08px at 1280 wide vs 36px at 3440 wide (1.2x), even though the viewport itself is 2.69x wider.",
+      "reason": null,
+      "severity": 3
+    },
+    {
+      "id": "D-381",
+      "kind": "no-growth",
+      "url": "/notes/team-note/",
+      "width": 3440,
+      "selector": ".page",
+      "numbers": {
+        "median_1280": 30.08,
+        "median_3440": 36,
+        "growth": 1.2
+      },
+      "detail": "The typical gap between elements barely changes as the screen grows: 30.08px at 1280 wide vs 36px at 3440 wide (1.2x), even though the viewport itself is 2.69x wider.",
+      "reason": null,
+      "severity": 3
+    }
+  ]
+}

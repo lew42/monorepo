@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ext/Chat/Mic.js",
+ "widths": {
+  "1280": {
+   "empty": 0.373,
+   "widest_text": 1251,
+   "widest_text_sample": "import Socket from \"/framework/dev/Socke",
+   "overflow_x": false,
+   "items": 0,
+   "narrow_share": 0
+  },
+  "1920": {
+   "empty": 0.565,
+   "widest_text": 1815,
+   "widest_text_sample": "import Socket from \"/framework/dev/Socke",
+   "overflow_x": false,
+   "items": 0,
+   "narrow_share": 0
+  },
+  "2560": {
+   "empty": 0.67,
+   "widest_text": 1815,
+   "widest_text_sample": "import Socket from \"/framework/dev/Socke",
+   "overflow_x": false,
+   "items": 0,
+   "narrow_share": 0
+  },
+  "3440": {
+   "empty": 0.752,
+   "widest_text": 1815,
+   "widest_text_sample": "import Socket from \"/framework/dev/Socke",
+   "overflow_x": false,
+   "items": 0,
+   "narrow_share": 0
+  }
+ },
+ "errors": []
+}

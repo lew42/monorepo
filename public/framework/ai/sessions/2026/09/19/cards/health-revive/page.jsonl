@@ -1,0 +1,4 @@
+{"class":"/framework/ai2/card.js","title":"The dead page-health watcher is back, and it now restarts itself if killed.","type":"card","id":"2026/09/19/health-revive","created":"2026-09-19T19:35:17-05:00","by":"health-revive","tags":[]}
+{"legacy":"health-revive"}
+{"status":"done"}
+{"text":"It watches your real localhost site, shows up alive on today's AI board, and I proved it catches a real page break end to end. Landed: /framework/ai/2026-09-19/health-revive/"}

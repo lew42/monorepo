@@ -1,0 +1,32 @@
+# Smart scroll
+
+Proof: `node ext/Chat/doc/proof/prove-scroll.mjs <site>` (fill, growth, shrink, wheel-up unlock, the newest button, a bar over the bottom edge, no horizontal scroll). The Dictate thread path is checked by `ux/Dictate/test/chat-sent.mjs` (the lock and the ↓ button).
+
+The log keeps one true-or-false fact, `locked` (`talk.locked()` reads it). It starts true, which means "stay at the bottom".
+
+- **Only the reader unlocks it** (2026-10-25). A `scroll` event unlocks only when the box moved UP within 1 s of a wheel, touch, key or pointer gesture; a redraw, a clamp or a `pin()` never counts. A reader who scrolled up is never moved again.
+- **Reaching the bottom locks it again** (within 40px), and the next new line follows.
+- **Late growth re-pins while locked** (a MutationObserver, once per frame; `observe: false` callers such as Widget's Thread do the same through their own `anchor()`).
+- **A fixed or sticky bar over the box's bottom edge** (the bottom toolbar) is measured with `elementsFromPoint`; the box gets that much tail padding, so "newest" lands the last line just above the bar.
+- **New lines follow only while locked.** After a line is drawn, the box jumps to the bottom if `locked` is true.
+- **A resize of the box re-pins the bottom.** A `ResizeObserver` watches the box itself: its first layout (it is 0px tall until the page is on screen) and the composer under it growing both change its size without firing any scroll event.
+- **A small ↓ button shows while unlocked** (chat-autoscroll, 2026-10-01) — a click jumps to the bottom and relocks, same as scrolling down by hand.
+
+## One function, every caller (2026-10-01)
+
+All of this lives in ONE place — `sticky_scroll(box)`, exported from `Chat.js` — not copied per caller (CLAUDE.md law 6). `chat()` (this file) and `ux/Dictate/Widget.js`'s `Thread`/`ThreadV1` (built by the Dictate page and the ✦ sheet, through `ux/Dictate/chat.js`) both call it on the element that actually scrolls. `Widget.Thread` used to call `this.$bubbles.el.scrollTop = …` instead — `$bubbles` is a plain, non-scrolling child div; the real scroll box is the `Thread` view's own element (`ux-dictate-widget-thread`, `overflow-y: auto`). Setting `scrollTop` on an element with nothing to scroll is a silent no-op, so neither the Dictate page nor the sheet ever actually auto-scrolled before this fix — this bug, not a design gap, is why the owner saw no follow at all. `sticky_scroll()` also moves its own button to the very end of `box` every time it jumps, so it never sits in `.chatbox-log > :first-child`'s own push-to-the-bottom spot (below).
+
+## Why "only a move up" (2026-09-24)
+
+The first version read "am I at the bottom?" on every scroll event. Our own jump to the bottom fires a scroll event one frame later, and by then the next batch of lines had already made the box taller, so the answer was "no" and the box unlocked itself. Every card opened on its oldest line. Our own jumps only ever move down, so a smaller `scrollTop` than last time is always the reader's.
+
+## Where the lines sit
+
+A short conversation sits at the bottom of a tall log, next to the box you type in, the way a chat app reads. That is `margin-block-start: auto` on the first line (`Chat.css`), not `justify-content: flex-end`, which would push the oldest lines above the top where no scroll can reach them.
+
+
+## Merged bubbles
+
+Messages from the same sender less than `MERGE_GAP_MS` (8 s, in `Chat.js`) apart draw as one bubble with one paragraph each, unless another speaker landed below the bubble in between (then it is closed and the next message starts a new bubble below that speaker — the owner, 2026-11-01, [notes.md#bubble-order](./notes.md#bubble-order)); `mergeable()` is the whole rule. The log keeps every message separate. Your bubbles hug their text and the assistant's text is plain; both stop at `--bubble-max` (`min(80%, 40rem)`), set in [`bubbles.css`](./bubbles.css) (see the readme's layout section).
+
+A `refined` line (`refine()` in `Chat.js`) replaces the raw paragraphs of the bubble holding its `of` ids; sections open in place to their `from` pieces, and clicking the bubble shows all raw pieces in time order. The card log is never rewritten.

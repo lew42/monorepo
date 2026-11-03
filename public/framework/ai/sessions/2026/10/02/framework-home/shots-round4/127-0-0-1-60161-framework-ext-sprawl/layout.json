@@ -1,0 +1,422 @@
+{
+ "url": "http://127.0.0.1:60161/framework/ext/sprawl/",
+ "widths": {
+  "400": {
+   "empty": 0.283,
+   "widest_text": 337,
+   "widest_text_sample": "Resize the window (or look at this page ",
+   "overflow_x": false,
+   "items": 26,
+   "narrow_share": 0,
+   "layout": "standard",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 28,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 28
+      }
+     ]
+    },
+    "p": {
+     "total": 28,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 28
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 72,
+     "h": 40,
+     "share": 0.04,
+     "ink": 0.35,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 154,
+     "h": 302,
+     "share": 0.302,
+     "ink": 0.803,
+     "big_empty": false
+    },
+    {
+     "cls": "h2",
+     "y": 519,
+     "h": 118,
+     "share": 0.118,
+     "ink": 0.7,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 665,
+     "h": 101,
+     "share": 0.101,
+     "ink": 0.756,
+     "big_empty": false
+    },
+    {
+     "cls": "sprawl",
+     "y": 794,
+     "h": 4328,
+     "share": 4.328,
+     "ink": 0.678,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "h2",
+     "cls": "h2",
+     "text": "Twelve sections, twelve very d",
+     "lines": 3
+    },
+    {
+     "tag": "h2",
+     "cls": "h2",
+     "text": "Section 1 — 1 paragraph",
+     "lines": 2
+    },
+    {
+     "tag": "h2",
+     "cls": "h2",
+     "text": "Section 2 — 6 paragraphs",
+     "lines": 2
+    },
+    {
+     "tag": "h2",
+     "cls": "h2",
+     "text": "Section 3 — 2 paragraphs",
+     "lines": 2
+    },
+    {
+     "tag": "h2",
+     "cls": "h2",
+     "text": "Section 4 — 1 paragraph",
+     "lines": 2
+    },
+    {
+     "tag": "h2",
+     "cls": "h2",
+     "text": "Section 5 — 1 paragraph",
+     "lines": 2
+    },
+    {
+     "tag": "h2",
+     "cls": "h2",
+     "text": "Section 6 — 3 paragraphs",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-rail-ai",
+     "text": "✦AI",
+     "lines": 3.2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-rail-menu",
+     "text": "⋯More",
+     "lines": 3.2
+    }
+   ]
+  },
+  "1200": {
+   "empty": 0.542,
+   "widest_text": 591,
+   "widest_text_sample": "— one column under ~60rem, about three a",
+   "overflow_x": false,
+   "items": 77,
+   "narrow_share": 0.052,
+   "layout": "standard",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 38,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 38
+      }
+     ]
+    },
+    "p": {
+     "total": 38,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 38
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 38,
+     "h": 49,
+     "share": 0.049,
+     "ink": 0.35,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 132,
+     "h": 188,
+     "share": 0.188,
+     "ink": 0.585,
+     "big_empty": false
+    },
+    {
+     "cls": "h2",
+     "y": 388,
+     "h": 84,
+     "share": 0.084,
+     "ink": 0.475,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 501,
+     "h": 81,
+     "share": 0.081,
+     "ink": 0.458,
+     "big_empty": false
+    },
+    {
+     "cls": "sprawl",
+     "y": 612,
+     "h": 3436,
+     "share": 3.436,
+     "ink": 0.422,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.7
+    },
+    {
+     "tag": "h2",
+     "cls": "h2",
+     "text": "Twelve sections, twelve very d",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  },
+  "1920": {
+   "empty": 0.698,
+   "widest_text": 634,
+   "widest_text_sample": "— one column under ~60rem, about three a",
+   "overflow_x": false,
+   "items": 77,
+   "narrow_share": 0.714,
+   "layout": "standard",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 67,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 67
+      }
+     ]
+    },
+    "p": {
+     "total": 67,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 67
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 48,
+     "h": 53,
+     "share": 0.053,
+     "ink": 0.263,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 160,
+     "h": 202,
+     "share": 0.202,
+     "ink": 0.358,
+     "big_empty": false
+    },
+    {
+     "cls": "h2",
+     "y": 434,
+     "h": 90,
+     "share": 0.09,
+     "ink": 0.331,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 564,
+     "h": 86,
+     "share": 0.086,
+     "ink": 0.342,
+     "big_empty": false
+    },
+    {
+     "cls": "sprawl",
+     "y": 690,
+     "h": 4121,
+     "share": 4.121,
+     "ink": 0.267,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.7
+    },
+    {
+     "tag": "h2",
+     "cls": "h2",
+     "text": "Twelve sections, twelve very d",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  },
+  "3440": {
+   "empty": 0.71,
+   "widest_text": 713,
+   "widest_text_sample": "— one column under ~60rem, about three a",
+   "overflow_x": false,
+   "items": 74,
+   "narrow_share": 0.743,
+   "layout": "standard",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 90,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 90
+      }
+     ]
+    },
+    "p": {
+     "total": 90,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 90
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 54,
+     "h": 59,
+     "share": 0.059,
+     "ink": 0.188,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 181,
+     "h": 227,
+     "share": 0.227,
+     "ink": 0.257,
+     "big_empty": false
+    },
+    {
+     "cls": "h2",
+     "y": 489,
+     "h": 101,
+     "share": 0.101,
+     "ink": 0.225,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 635,
+     "h": 97,
+     "share": 0.097,
+     "ink": 0.237,
+     "big_empty": false
+    },
+    {
+     "cls": "sprawl",
+     "y": 777,
+     "h": 1747,
+     "share": 1.747,
+     "ink": 0.442,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 2569,
+     "h": 194,
+     "share": 0.194,
+     "ink": 0.188,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.8
+    },
+    {
+     "tag": "h2",
+     "cls": "h2",
+     "text": "Twelve sections, twelve very d",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  }
+ },
+ "errors": []
+}

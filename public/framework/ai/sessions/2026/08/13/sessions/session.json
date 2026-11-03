@@ -1,0 +1,32 @@
+{
+	"group": "ai-log",
+	"session_id": "7554e7f0-1d8e-4235-9424-3188c76048e4",
+	"request": "Record what spawned agents did — the specific request (they keep getting forgotten), which models ran, whether the extra forks mattered, token usage per session, window usage, and a timeline of when tasks were requested and landed. Serve the raw session logs browsably without committing them or symlinking. Also: the AI pages dropped from the framework sidebar, and this morning's fan-out burned 95% of the 5h window — manage usage better.",
+	"requested_at": "2026-08-13T10:50-05:00",
+	"landed_at": "2026-08-13T13:10-05:00",
+	"model": "claude-sonnet-5 → claude-fable-5",
+	"window": { "before": null, "after": null, "note": "Spanned a window reset: 98% at 11:13 (the morning fan-out's tail), reset 12:10, built on the fresh window." },
+	"outcome": "**What landed:** the `ai` nav entry restored in framework/page.js (dropped in an uncommitted edit); `Server/plugins/AILogs.js` serving `/ai-logs/<uuid>` read-only from `~/.claude/projects/`; **[ext/AISession](/framework/ext/AISession/)** — `AISession` renders a manifest like this one, with transcript replays; the usage guardrail (target 50%, ceiling 75%, Sonnet workers) saved to memory. **Two spawn systems, distinguished en route:** Agent-tool subagents start cold and isolated — no library. The CLI fork-library system is real and cache-designed — but the transcripts show this morning's forks were launched staggered across separate messages and each re-WROTE ~124k of library context (cache_read only 19k) instead of reading it: the fan-out paid premium cache-write rates seven times for the same prefix. Transcripts carry exact per-call `message.usage`, so future manifests can be computed from the log rather than self-reported.",
+	"agents": [
+		{
+			"kind": "agent",
+			"type": "claude-code-guide",
+			"task": "agent-spawning and transcript mechanics",
+			"tokens": 54129,
+			"duration_ms": 87767,
+			"used": true,
+			"outcome": "Located .claude/agents definitions, transcript paths, SubagentStop hook fields; per-agent cost needs OTel."
+		},
+		{
+			"kind": "cli",
+			"task": "stream-json shape probe",
+			"model": "claude-haiku-4-5-20251001",
+			"session_id": "4c4b5c39-60ad-47fb-afff-0515e990be66",
+			"tokens": 38,
+			"duration_ms": 1239,
+			"cost_usd": 0.0037,
+			"used": true,
+			"outcome": "Confirmed the result line carries total_cost_usd, usage, modelUsage, duration_ms — and rate_limit_event carries window utilization."
+		}
+	]
+}

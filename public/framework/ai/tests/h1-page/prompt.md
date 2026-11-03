@@ -1,0 +1,1 @@
+Make a new page here: name it "hello", and give it an H1 that says exactly "Hello from the floor test". Build it the way this site's other pages are built — see the `new-page` skill if you have it, or read this folder's own page.js for the shape.

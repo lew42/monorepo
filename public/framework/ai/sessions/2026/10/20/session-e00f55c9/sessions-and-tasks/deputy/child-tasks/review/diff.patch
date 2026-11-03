@@ -1,0 +1,487 @@
+diff --git a/Server/ChildLinks.mjs b/Server/ChildLinks.mjs
+new file mode 100644
+index 000000000..f49212c63
+--- /dev/null
++++ b/Server/ChildLinks.mjs
+@@ -0,0 +1,135 @@
++// A child session is a task in its PARENT SESSION's record (doc: public/framework/core/Session/readme.md, "How work gets into a session").
++//   node Server/ChildLinks.mjs [--root <repo>] [--registry <registry.json>] [--names <session id>]   dry run: one manifest line per child, then the counts. Writes nothing.
++//   node Server/ChildLinks.mjs --apply [...]                                                          appends the lines
++// As a module: ChildLinks.link(child_dir, parent_session, agent) is what Agents.open_task calls at spawn; ChildLinks.plan() / apply() are this script.
++import fs from "node:fs";
++import path from "node:path";
++import { fileURLToPath, pathToFileURL } from "node:url";
++import SessionRecord from "./SessionRecord.mjs";
++
++const SELF_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
++const slash = p => String(p).replaceAll("\\", "/");
++const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
++const E00 = "e00f55c9-bad4-4ee2-899e-d629ea1eede6";
++
++export default class ChildLinks {
++	static by = "ChildLinks";
++	/** The cached session folders of a root: Map<id | id8, dir>. Rebuilt when a lookup misses and the cache is older than 10 s. */
++	static cache = new Map();
++
++	/** Every session folder under `root` keyed by its full id (folder name, or line 1: assign.session_id / session.id) and by its first 8 characters.
++	 *  Where one session has folders on several days, the earliest one that holds a record wins. */
++	static sessions(root = SELF_ROOT, rows = {}){
++		const map = new Map(), rec = new SessionRecord({ root });
++		const line1 = f => { try { return JSON.parse(fs.readFileSync(f, "utf8").split("\n", 1)[0]); } catch { return null; } };
++		for (const dir of rec.day_children()){
++			const f = SessionRecord.file(dir), l = f && line1(f), name = path.basename(dir);
++			const id = l?.assign?.session_id ?? l?.session?.id ?? (UUID.test(name) ? name : null);
++			const keys = [id, id && id.slice(0, 8), /^session-([0-9a-f]{8})$/.exec(name)?.[1]].filter(Boolean);
++			for (const k of keys) if (!map.has(k) || (f && !SessionRecord.file(map.get(k)))) map.set(k, dir);
++		}
++		// An agent session's own record is its task folder (Agents.open_task), wherever that sits: the registry knows it.
++		for (const r of Object.values(rows)) if (r?.session_id && r.task_dir && !map.has(r.session_id) && SessionRecord.file(this.local(r.task_dir, root))) map.set(r.session_id, this.local(r.task_dir, root));
++		return map;
++	}
++
++	/** A registry task_dir (an absolute path in the main tree or a worktree) as a folder under `root`. */
++	static local(dir, root = SELF_ROOT){ const u = this.url_of(dir, root); return u ? path.join(root, "public", u) : path.resolve(dir); }
++
++	/** The folder of session `id` (full id, else its first 8), or null. Looks in the cache first. */
++	static session_dir(id, root = SELF_ROOT, map = null){
++		if (!id) return null;
++		const hit = m => m.get(id) ?? m.get(String(id).slice(0, 8)) ?? null;
++		if (map) return hit(map);
++		let c = this.cache.get(root), found = c && hit(c.map);
++		if (found && SessionRecord.file(found)) return found;
++		if (!c || Date.now() - c.at > 10000){ c = { at: Date.now(), map: this.sessions(root) }; this.cache.set(root, c); found = hit(c.map); }
++		return found;
++	}
++
++	/** The url of a folder under `<root>/public`, "/framework/…/", or null. A path from another tree (a worktree, the main tree) is matched on its `/public/`. */
++	static url_of(dir, root = SELF_ROOT){
++		const m = slash(dir).match(/\/public\/(.+?)\/?$/);
++		return m && "/" + m[1] + "/";
++	}
++
++	/** THE WRITE: the child's folder becomes a task on its parent SESSION's record, when it does not already sit inside that session's folder
++	 *  (SessionRecord.link_parent has it then). One {"task":url,"as":agent} line, never twice (add_ref). Returns
++	 *  { why } when nothing was written (no-session, no-record, inside, no-folder, self), else { log, wrote: bool }. */
++	static link(child_dir, parent_session, agent, { root = process.cwd(), by = this.by, map = null, parent_dir = null } = {}){
++		const abs = path.resolve(root, child_dir), url = this.url_of(abs, root);
++		if (!url) return { why: "no-folder" };
++		let top = this.session_dir(parent_session, path.resolve(root), map);
++		// An agent parent keeps its record in its task folder: Agents.open_task passes it as parent_dir, and it counts when line 1 says it is that session.
++		if (!top && parent_dir){ const f = SessionRecord.file(path.resolve(root, parent_dir)); try { if (f && JSON.parse(fs.readFileSync(f, "utf8").split("\n", 1)[0]).assign?.session_id === parent_session) top = path.resolve(root, parent_dir); } catch {} }
++		if (!top) return { why: "no-session" };
++		if (path.resolve(abs).toLowerCase() === path.resolve(top).toLowerCase()) return { why: "self" };
++		if ((path.resolve(abs) + path.sep).toLowerCase().startsWith((path.resolve(top) + path.sep).toLowerCase())) return { why: "inside" };
++		const log = SessionRecord.file(top);
++		if (!log) return { why: "no-record" };
++		const before = fs.statSync(log).size;
++		SessionRecord.add_ref(log, url, by, agent);
++		return { log, url, wrote: fs.statSync(log).size !== before };
++	}
++
++	/** Which parent session each registry row belongs to: its recorded `parent_session`; or, for a row from before spawns carried one, the
++	 *  parent's name inside `names_session`'s span (the rule of Agents.agents_under), and then anything whose parent is such a child. */
++	static parents(rows, { names_session = E00, until = "2026-10-25T06:00:00.000Z", since = null } = {}){
++		const names = new Set([names_session, ...Object.entries(rows).filter(([, r]) => r?.session_id === names_session).map(([id]) => id)]), out = new Map();
++		for (const [id, r] of Object.entries(rows)){
++			if (!r) continue;
++			if (r.parent_session) out.set(id, r.parent_session);
++			else if (names.has(r.parent) && !names.has(id) && (!since || String(r.started_at ?? "") >= since) && String(r.started_at ?? "") < until) out.set(id, names_session);
++		}
++		for (let grew = true; grew;){ grew = false; for (const [id, r] of Object.entries(rows)) if (r && !out.has(id) && !names.has(id) && out.has(r.parent) && rows[r.parent]?.session_id) { out.set(id, rows[r.parent].session_id); grew = true; } }
++		return out;
++	}
++
++	/** The manifest: one row per child with a parent session: { agent, session, url, why|"append" }. A dry run; writes nothing. */
++	static plan(rows, root = SELF_ROOT, opts = {}){
++		const map = this.sessions(root, rows), out = [], seen = new Set();
++		const e00 = map.get(opts.names_session ?? E00), first = e00 && SessionRecord.file(e00);
++		let since = null; try { since = JSON.parse(fs.readFileSync(first, "utf8").split("\n", 1)[0]).session?.at ?? null; } catch {}
++		for (const [agent, session] of this.parents(rows, { ...opts, since })){
++			const r = rows[agent], dir = r.task_dir && path.resolve(r.task_dir);
++			const row = { agent, session: String(session).slice(0, 8), session_id: session, url: null, why: "append" };
++			out.push(row);
++			if (!dir) { row.why = "no-folder"; continue; }
++			row.url = this.url_of(dir, root);
++			if (!row.url || !fs.existsSync(path.join(root, "public", row.url))) { row.why = "no-folder"; continue; }
++			const top = this.session_dir(session, root, map), log = top && SessionRecord.file(top);
++			if (!top) { row.why = "no-session"; continue; }
++			if (!log) { row.why = "no-record"; continue; }
++			const abs = path.join(root, "public", row.url);
++			if (path.resolve(abs).toLowerCase() === path.resolve(top).toLowerCase()) { row.why = "self"; continue; }
++			if ((path.resolve(abs) + path.sep).toLowerCase().startsWith((path.resolve(top) + path.sep).toLowerCase())) { row.why = "inside"; continue; }
++			const text = fs.readFileSync(log, "utf8");
++			if (text.includes(`"task":"${row.url}"`) || text.includes(`"path":"${row.url}"`) || seen.has(log + row.url)) { row.why = "referenced"; continue; }
++			seen.add(log + row.url);
++			row.log = slash(path.relative(root, log));
++		}
++		return out;
++	}
++
++	/** Append the lines the plan says (`why: "append"`). Returns the number written. */
++	static apply(plan, root = SELF_ROOT, rows = {}){
++		const map = this.sessions(root, rows);
++		let n = 0;
++		for (const row of plan) if (row.why === "append" && this.link(path.join(root, "public", row.url), row.session_id, row.agent, { root, by: "ChildLinks --apply", map }).wrote) n++;
++		return n;
++	}
++}
++
++if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href){
++	const arg = n => { const i = process.argv.indexOf(n); return i > 0 ? process.argv[i + 1] : null; };
++	const root = path.resolve(arg("--root") ?? SELF_ROOT);
++	let regfile = arg("--registry");
++	if (!regfile){ const { place } = await import("../Servex/home.js"); regfile = place("registry.json"); }
++	const rows = JSON.parse(fs.readFileSync(regfile, "utf8"));
++	const plan = ChildLinks.plan(rows, root, arg("--names") ? { names_session: arg("--names") } : {});
++	for (const r of plan) console.log(`${r.session}  ${r.url ?? "-"}  ${r.agent}  ${r.why}`);
++	const by = {}; for (const r of plan) by[r.why] = (by[r.why] ?? 0) + 1;
++	console.log(`children with a parent session: ${plan.length}; ` + Object.entries(by).map(([k, v]) => `${k} ${v}`).join(", "));
++	if (process.argv.includes("--apply")) console.log(`appended ${ChildLinks.apply(plan, root, rows)} line(s)`);
++	else console.log(`dry run: --apply would append ${by.append ?? 0} line(s)`);
++}
+diff --git a/Server/SessionRecord.mjs b/Server/SessionRecord.mjs
+index f62cf2e51..3d4a75afb 100644
+--- a/Server/SessionRecord.mjs
++++ b/Server/SessionRecord.mjs
+@@ -100,10 +100,10 @@ export default class SessionRecord {
+ 		return /^session-[0-9a-f]{8}$/.test(path.basename(top)) && fs.existsSync(rec) ? rec : null;
+ 	}
+ 	/** One {"task":"<url>"} line on `log`, unless it already names the url (a reference, or a tasks.add with this path). Returns `log`. */
+-	static add_ref(log, url, by){
++	static add_ref(log, url, by, as = undefined){
+ 		let text = ""; try { text = fs.readFileSync(log, "utf8"); } catch {}
+ 		if (text.includes(`"task":"${url}"`) || text.includes(`"path":"${url}"`)) return log;
+-		fs.appendFileSync(log, (text && !text.endsWith("\n") ? "\n" : "") + JSON.stringify({ task: url, by, ts: new Date().toISOString() }) + "\n");
++		fs.appendFileSync(log, (text && !text.endsWith("\n") ? "\n" : "") + JSON.stringify({ task: url, as, by, ts: new Date().toISOString() }) + "\n");
+ 		return log;
+ 	}
+ 	/** The census behind `--links`: every folder below a session folder that has a log, and whether its parent references it.
+diff --git a/Servex/agents/Agents.js b/Servex/agents/Agents.js
+index a8dc60907..34c050c12 100644
+--- a/Servex/agents/Agents.js
++++ b/Servex/agents/Agents.js
+@@ -1,5 +1,6 @@
+ import { query, getSessionInfo, getSessionMessages } from "@anthropic-ai/claude-agent-sdk";
+ import SessionRecord from "../../Server/SessionRecord.mjs";
++import ChildLinks from "../../Server/ChildLinks.mjs";
+ import fs from "node:fs";
+ import { spawn } from "node:child_process";
+ import { randomUUID } from "node:crypto";
+@@ -219,7 +220,7 @@ export class Agents {
+ 		const session_id = !again ? (spec.session_id ?? randomUUID()) : spec.session_id;
+ 		/* EVERY SPAWN HAS A TASK DIR (2026-10-18): a bare spawn gets one here, `task: false` opts out (default_task below). */
+ 		if ((spec.task === undefined || (spec.task && !spec.task.dir)) && !again){ const task = this.default_task(spec, id); if (task) spec = { ...spec, task: { ...task, ...(spec.task || {}) } }; }   // a handoff `task: {from, id}` with no dir lands in the default folder
+-		if (spec.task && !again) open_task(spec.task, { session_id, agent: id, role: spec.role, by: spec.parent, model, worktree: worktree_of(spec.cwd), parent_dir: spec.parent ? this.task_dir_of?.(spec.parent) ?? this.live.get(spec.parent)?.task?.dir : null });
++		if (spec.task && !again) open_task(spec.task, { session_id, agent: id, role: spec.role, by: spec.parent, model, worktree: worktree_of(spec.cwd), parent_session: spec.parent ? spec.parent_session ?? this.live.get(spec.parent)?.session_id ?? this.reg().read()[spec.parent]?.session_id ?? null : null, parent_dir: spec.parent ? this.task_dir_of?.(spec.parent) ?? this.live.get(spec.parent)?.task?.dir : null });
+ 		if (spec.task && !again && spec.parent) this.follow_child(spec.parent, spec.task.dir, id);
+ 		const past_work = spec.task && !again ? this.past_work(spec.task, id) : null;
+ 		const fresh = !again && !spec.system;
+@@ -1024,7 +1025,7 @@ function directory_of(spec){
+  * a caller opened earlier (or a sibling agent shares), it just adds one more
+  * assign line with the same facts, exactly like every other `assign` a task
+  * log collects over its life — never touching what came before it. */
+-export function open_task(task, { session_id, agent, role, by, model, worktree, parent_dir }){
++export function open_task(task, { session_id, agent, role, by, model, worktree, parent_dir, parent_session }){
+ 	// An old-shaped dir (ai/YYYY-MM-DD/<slug>/) from a brief goes to the task store instead (Server/TaskDirs.mjs,
+ 	// ai/doc/task-folders.md); task.dir is rewritten so everything after this (directory_of, the inbox) sees the real place.
+ 	const dir = TaskDirs.normalize(path.isAbsolute(task.dir) ? task.dir : path.join(process.cwd(), task.dir), session_id);
+@@ -1045,7 +1046,9 @@ export function open_task(task, { session_id, agent, role, by, model, worktree,
+ 	fs.appendFileSync(SessionRecord.start_file(dir, JSON.parse(line)), line + "\n");
+ 	// A task folder under a session or another task counts as its task: the parent's log gets one {"task":"<url>"} reference (never twice).
+ 	// A handoff (`task: {from, id}`) is referenced by move_item's own `as` line; a second plain one would replay as a twin child, so link only without a handoff (or when it is refused, below).
+-	const link = () => { try { SessionRecord.link_parent(dir, "Servex", { parent: parent_task && path.resolve(parent_task), session_id }); } catch (e){ console.warn("link_parent failed for", dir, e); } };
++	const link = () => { try { SessionRecord.link_parent(dir, "Servex", { parent: parent_task && path.resolve(parent_task), session_id }); } catch (e){ console.warn("link_parent failed for", dir, e); }
++		// A folder outside the parent SESSION's own folder (core/Page/tasks/…, spawned/…) is still its child: one {"task","as"} line on the session's record (ChildLinks).
++		if (parent_session) try { ChildLinks.link(dir, parent_session, agent, { by: "Servex", parent_dir }); } catch (e){ console.warn("ChildLinks.link failed for", dir, e); } };
+ 	const handoff = !!(task.from && task.id);
+ 	if (!handoff) link();
+ 	// Handoff by task: `task: {from, id}` moves that subtask out of the spawner's log into this folder (page_tools.js move_item).
+diff --git a/Servex/agents/child-links.test.mjs b/Servex/agents/child-links.test.mjs
+new file mode 100644
+index 000000000..b875fd0fb
+--- /dev/null
++++ b/Servex/agents/child-links.test.mjs
+@@ -0,0 +1,63 @@
++// A child session is a task in its parent session's record, wherever its folder is (item 24). `node Servex/agents/child-links.test.mjs`
++// Throwaway dot-folders in the real store (the handover test's way: the resolvers are bound to it), removed at the end.
++import fs from "node:fs";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++import Test from "../../public/framework/core/Test/Test.js";
++import Session from "../../public/framework/core/Session/Session.js";
++import { run_item } from "./page_tools.js";
++import { open_task } from "./Agents.js";
++import ChildLinks from "../../Server/ChildLinks.mjs";
++
++const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
++process.chdir(ROOT);   // open_task resolves task.dir against cwd
++const SESS = "public/framework/ai/sessions", PID = `0c0c0c0c-aaaa-4bbb-8ccc-${String(process.pid).padStart(12, "0")}`, CID = "0d0d0d0d-aaaa-4bbb-8ccc-000000000001";
++const PARENT = path.join(ROOT, SESS, "2026/10/22", `.childlinks-parent-${process.pid}`), PFILE = path.join(PARENT, "session.jsonl");
++const OUT = `${SESS}/tasks/.childlinks-child-${process.pid}`, IN = path.join(PARENT, "inside-kid");
++const CURL = "/" + OUT.slice("public/".length) + "/", PURL = "/" + path.relative(path.join(ROOT, "public"), PARENT).replaceAll("\\", "/") + "/";
++const read = f => fs.readFileSync(f, "utf8").trim().split("\n").map(l => JSON.parse(l));
++const refs = url => read(PFILE).filter(l => l.task === url);
++
++const t = new Test("child-links");
++fs.mkdirSync(PARENT, { recursive: true });
++fs.writeFileSync(PFILE, JSON.stringify({ session: { id: PID, kind: "vscode-tab", at: "2026-10-22T10:00:00.000Z" } }) + "\n");
++try {
++	// spawn: a child whose folder is OUTSIDE the parent session's folder
++	open_task({ dir: OUT }, { session_id: CID, agent: "kid-x", parent_session: PID });
++	t.eq(refs(CURL).length, 1, "the spawn put one reference to the outside folder on the parent's record");
++	t.eq(refs(CURL)[0]?.as, "kid-x", "the line says which agent it is (as)");
++	open_task({ dir: OUT }, { session_id: CID, agent: "kid-x", parent_session: PID });
++	t.eq(refs(CURL).length, 1, "spawning again adds nothing (never twice)");
++	const P = () => Session.replay(read(PFILE));
++	t.ok(P().tasks.find("kid-x"), "the parent's replay has the child as a task");
++	t.eq(P().progress().total, 1, "the parent's tasks count includes the child");
++	t.eq(P().completion, 0, "an unfinished child: completion 0");
++
++	// a child folder INSIDE the parent's folder keeps link_parent's plain line, and ChildLinks adds no second one
++	open_task({ dir: path.relative(ROOT, IN) }, { session_id: "0e0e0e0e-aaaa-4bbb-8ccc-000000000002", agent: "kid-in", parent_session: PID });
++	const inside = refs(PURL + "inside-kid/");
++	t.ok(inside.length === 1 && inside[0].as === undefined, "a folder inside the parent's: one plain line from link_parent, none from ChildLinks");
++	t.eq(P().progress().total, 2, "two children now");
++
++	// complete the outside child; the parent's completion moves
++	const r = await run_item({ path: CURL, delta: { complete: { outcome: "done", evidence: ["test"] } } }, { caller: "kid-x" });
++	t.ok(r.ok, "the child completes its own task: " + (r.why ?? ""));
++	t.ok(P().tasks.find("kid-x")?.state === "complete" && P().progress().done === 1, "the parent sees the child complete");
++	t.eq(P().completion, 0.5, "completion moved 0 -> 0.5 (one of two children done)");
++
++	// the backfill: a registry row for a third child, dry run writes nothing, apply writes once
++	const third = path.join(ROOT, SESS, "tasks", `.childlinks-third-${process.pid}`); fs.mkdirSync(third, { recursive: true });
++	fs.writeFileSync(path.join(third, "task.jsonl"), JSON.stringify({ assign: { session_id: "0f0f0f0f-aaaa-4bbb-8ccc-000000000003", agent: "kid-3" } }) + "\n");
++	const rows = { "kid-3": { session_id: "0f0f0f0f-aaaa-4bbb-8ccc-000000000003", parent_session: PID, task_dir: third } };
++	const size = fs.statSync(PFILE).size, plan = ChildLinks.plan(rows, ROOT);
++	t.ok(plan.length === 1 && plan[0].why === "append" && plan[0].agent === "kid-3" && plan[0].session === PID.slice(0, 8), "the dry run's manifest names the child, its session and the action");
++	t.eq(fs.statSync(PFILE).size, size, "the dry run wrote nothing");
++	t.eq(ChildLinks.apply(plan, ROOT, rows), 1, "--apply appends one line");
++	t.eq(ChildLinks.apply(ChildLinks.plan(rows, ROOT), ROOT, rows), 0, "--apply again appends none");
++	t.eq(ChildLinks.plan(rows, ROOT)[0].why, "referenced", "and the manifest now says referenced");
++	fs.rmSync(third, { recursive: true, force: true });
++} finally {
++	fs.rmSync(PARENT, { recursive: true, force: true });
++	fs.rmSync(path.join(ROOT, OUT), { recursive: true, force: true });
++}
++t.done();
+diff --git a/Servex/agents/page_tools.js b/Servex/agents/page_tools.js
+index 906c56b6f..dd1cf493b 100644
+--- a/Servex/agents/page_tools.js
++++ b/Servex/agents/page_tools.js
+@@ -69,7 +69,7 @@ function resolve_file(url, item = false){
+  * file, so its segments go on the front of the target: ["notes", ...target]. Anything else
+  * resolves the plain way above. Returns { file, target } or null. */
+ const SESSION_ROUTE = /^\/?framework\/ai\/sessions\/([^/]+)\/(.*)$/;
+-const SESSION_QUERIES = ["progress", "cost", "total_cost", "duration", "children", "summary"];   // Task.queries: answered from the record, never written
++const SESSION_QUERIES = ["progress", "cost", "total_cost", "duration", "children", "summary", "completion"];   // Task.queries: answered from the record, never written
+ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+ 
+ async function resolve(url, target = [], item = false){
+@@ -646,7 +646,23 @@ function notify_requests(live, at, body, requests, by){
+ // Node's resolver for Task.from_ref: an app path -> that folder's parsed task.jsonl, or null. While a root is being replayed, `collect` gathers every child file it read.
+ let collect = null;
+ const sig = file => { try { const st = fs.statSync(file); return `${st.size}:${st.mtimeMs}`; } catch { return "none"; } };
++/* RECOMPUTE ONLY WHAT CHANGED: a replayed child is kept by ref and reused while its own file, and every file it read in turn, keep the same
++ * size and mtime. One changed child re-replays only itself (and the parent that holds it); an ancestor's totals are computed on read from
++ * its children, so they are never stale. The deps a child read are also handed up to the enclosing scope, so a root still knows all its files. */
++const kids = new Map();
++function ref_scope(key, build){
++	const hit = kids.get(key);
++	if (hit && hit.deps.every(([f, s]) => sig(f) === s)){ collect?.push(...hit.deps); return hit.kid; }
++	const outer = collect, mine = [];
++	collect = mine;
++	try {
++		const kid = build();
++		kids.set(key, { kid, deps: mine });
++		return kid;
++	} finally { collect = outer; outer?.push(...mine); }
++}
+ export function link_refs(Task){
++	Task.ref_scope ??= ref_scope;
+ 	Task.session_resolver ??= ref => { const dir = path.resolve(PUBLIC, String(ref ?? "").replace(/^[\/]+/, "")); return dir.startsWith(PUBLIC + path.sep) && path.basename(SessionRecord.file(dir) ?? "") === "session.jsonl"; };   // Task.children: does this folder hold a session record
+ 	Task.resolver ??= ref => {
+ 		const dir = path.resolve(PUBLIC, String(ref).replace(/^[\/]+/, ""));
+@@ -802,12 +818,14 @@ export function tell_parent_caveats(task_dir, caveats, by = "node"){
+  * {} / true / null = none, an array = the arguments, any other object = one argument. */
+ function query_args(arg){ return Array.isArray(arg) ? arg : is_plain(arg) && Object.keys(arg).length ? [arg] : []; }
+ // A Session's queries are answered here, from session_state (its one picture), because its cost needs node: own_cost reads cache.jsonl.
++// `completion` is the one tally every Task-family node answers: its tasks' current states and the number computed from them.
++const TALLY = n => ({ stopped: 0, ...n.progress(), completion: n.completion });
+ const NODE_QUERIES = { Session: { progress: n => n.progress(), cost: n => session_state(n, []).cost, summary: n => session_state(n, []) } };
+ function walk_queries(node, delta, trail = "", out = { answer: {}, queried: false, other: [], set: [] }){
+ 	const into = (kid, sub, here, put) => { const r = walk_queries(kid, sub, here); out.queried ||= r.queried; out.other.push(...r.other); out.set.push(...r.set); if (r.queried) put(r.answer); };
+ 	for (const [key, arg] of Object.entries(delta)){
+ 		const here = trail ? `${trail}.${key}` : key;
+-		const node_query = NODE_QUERIES[node.constructor.name]?.[key];
++		const node_query = NODE_QUERIES[node.constructor.name]?.[key] ?? (key === "completion" && node.constructor.queries?.includes(key) ? TALLY : null);
+ 		if (node_query || node.constructor.queries?.includes(key)){
+ 			out.queried = true;
+ 			if (typeof arg === "string" || typeof arg === "number" || arg === false){ out.set.push(here); continue; }   // a value is an attempt to SET a read-only key
+@@ -959,6 +977,7 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
+ 		return { ok: true, instructions: await instructions_for(kind, Class) };
+ 	}
+ 	if (Class?.replay){ const asked = ask(root(), at.target, flat); if (asked) return asked; }
++	else if (Object.keys(flat).length === 1 && "completion" in flat) return { ok: false, why: `no task record at "${url}" (${path.basename(at.file)} is not a session or task record), so there is no completion to answer. Nothing was written.` };
+ 	// An improvement proposed again adds weight, never a duplicate (the owner, 2026-10-22; readme-system.md): the same title becomes
+ 	// {"<id>": {"reinforce": {why}}} on the existing one, and Task.weight counts them.
+ 	if (path.basename(at.file) === "improvements.jsonl" && is_plain(flat.tasks?.add) && Object.keys(flat).length === 1 && Object.keys(flat.tasks).length === 1){
+diff --git a/Servex/agents/ref-cache.test.mjs b/Servex/agents/ref-cache.test.mjs
+new file mode 100644
+index 000000000..d17f269a3
+--- /dev/null
++++ b/Servex/agents/ref-cache.test.mjs
+@@ -0,0 +1,60 @@
++// Recompute only what changed (item 25): a child record is replayed again only when its own file (or one it read) changed. `node Servex/agents/ref-cache.test.mjs`
++// Throwaway dot-folders in the real store (the resolvers are bound to it), removed at the end.
++import fs from "node:fs";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++import Test from "../../public/framework/core/Test/Test.js";
++import Task from "../../public/framework/core/Task/Task.js";
++import { run_item } from "./page_tools.js";
++
++const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
++const REL = `public/framework/ai/sessions/2026/10/22/.refcache-${process.pid}`, DIR = path.join(ROOT, REL), URL = "/" + REL.slice("public/".length) + "/";
++const kid = n => path.join(DIR, "kid-" + n), line = o => JSON.stringify(o) + "\n";
++const done = { complete: { outcome: "done", evidence: ["test"], confidence: "high", caveats: [] } };
++const t = new Test("ref-cache");
++
++fs.mkdirSync(DIR, { recursive: true });
++fs.writeFileSync(path.join(DIR, "session.jsonl"), line({ session: { id: "1a1a1a1a-aaaa-4bbb-8ccc-000000000009", kind: "vscode-tab", at: "2026-10-22T10:00:00.000Z" } }));
++for (const n of ["a", "b", "c"]){ fs.mkdirSync(kid(n)); fs.writeFileSync(path.join(kid(n), "task.jsonl"), line({ assign: { agent: "kid-" + n } })); fs.appendFileSync(path.join(DIR, "session.jsonl"), line({ task: `${URL}kid-${n}/`, as: n })); }
++try {
++	const read = async () => (await run_item({ path: URL }, { caller: "t" })).state;
++	let s = await read();   // the first read links the resolver (link_refs) for this process
++	const calls = [], resolver = Task.resolver;
++	Task.resolver = ref => (calls.push(ref.split("/").filter(Boolean).at(-1)), resolver(ref));
++	t.eq(s.completion, 0, "three children, none done: completion 0");
++
++	calls.length = 0;
++	await read();
++	t.eq(calls.length, 0, "nothing changed: no child file is read or replayed again");
++
++	fs.appendFileSync(path.join(kid("a"), "task.jsonl"), line(done));   // only A changes
++	calls.length = 0;
++	s = await read();
++	t.eq(calls, ["kid-a"], "one child changed: only that child is replayed again");
++	t.eq(s.progress.done, 1, "and the parent's total moved (1 of 3 done)");
++	t.ok(Math.abs(s.completion - 1 / 3) < 1e-9, "completion is 1/3");
++
++	fs.appendFileSync(path.join(kid("b"), "task.jsonl"), line(done));
++	fs.appendFileSync(path.join(kid("c"), "task.jsonl"), line(done));
++	calls.length = 0;
++	s = await read();
++	t.eq(calls.sort(), ["kid-b", "kid-c"], "two changed: those two, not A");
++	t.eq(s.completion, 1, "all three done: completion 1");
++
++	fs.appendFileSync(path.join(DIR, "session.jsonl"), line({ log: { text: "the parent's own file changed" } }));
++	calls.length = 0;
++	await read();
++	t.eq(calls.length, 0, "only the parent changed: no child is replayed again");
++	Task.resolver = resolver;
++
++	// item 26: {"completion":{}} answers the tally and the number at once, and writes nothing
++	const size = fs.statSync(path.join(DIR, "session.jsonl")).size;
++	const r = await run_item({ path: URL, delta: { completion: {} } }, { caller: "t" });
++	t.eq(r.answer?.completion, { stopped: 0, done: 3, total: 3, completion: 1 }, "completion query: the tally (done, total, stopped) and the number");
++	t.eq(fs.statSync(path.join(DIR, "session.jsonl")).size, size, "and the query wrote nothing");
++	const kid_a = await run_item({ path: URL + "kid-a/", delta: { completion: {} } }, { caller: "t" });
++	t.ok(kid_a.ok && kid_a.answer?.completion?.done === 1, "a task folder answers it too");
++} finally {
++	fs.rmSync(DIR, { recursive: true, force: true });
++}
++t.done();
+diff --git a/public/framework/core/Session/readme.md b/public/framework/core/Session/readme.md
+index e28d9785d..fa67e134e 100644
+--- a/public/framework/core/Session/readme.md
++++ b/public/framework/core/Session/readme.md
+@@ -46,6 +46,9 @@ class Session extends Task                       // ../Task/Task.js (Task extend
+ **An AI spawns a child session.** `spawn_agent` (Servex):
+ - `open_task` (`Servex/agents/Agents.js`) writes the child's line 1 into its task folder.
+ - `SessionRecord.link_parent` appends `{"task":"<child folder url>"}` to the parent's record.
++- A child whose folder is **outside** the parent session's folder gets its line from `ChildLinks.link` (`Server/ChildLinks.mjs`, called by `open_task`): `{"task":"<child folder url>","as":"<agent id>"}` on the parent session's record, found by `parent_session`. `SessionRecord.add_ref` never writes the same reference twice. So the parent's numbers come from its own references, and a finished child moves its completion.
++- `node Server/ChildLinks.mjs` is the backfill for children spawned before this: a dry run by default (one line per child: session, folder url, agent, and what it would do), `--apply` appends. It covers every registry row with `parent_session`, plus older rows matched by name for session-e00f55c9.
++- Tests: `node Servex/agents/child-links.test.mjs`.
+ - The registry row records `parent_session`, the parent's session id at spawn.
+ - `Agents.agents_under` finds the child for the parent's cost and children. It matches `parent_session` exactly, and older rows by the parent's name within the parent's span.
+ - The child shows on the parent's page as the task it carries, with its model, cost and a link to its own session page.
+@@ -77,6 +80,10 @@ class Session extends Task                       // ../Task/Task.js (Task extend
+ | `progress`, `completion` | done of total, stopped tasks left out | `Task.progress_of` |
+ | `first_at`, `last_at`, `span_ms` | when the record began and last changed | the lines' own times |
+ 
++**Recompute only what changed.** Each child record's replay is cached by the file's own signature (size and modified time; `ref_scope` in `page_tools.js`, `Task.ref_scope`). When one child's file changes, only that child is replayed again; the parent's totals (progress, completion, counts) are still added up fresh on every read from the children it holds. Time to answer `{"summary":{}}` on session-e00f55c9 (101 child records) right after one child file changed: about 115-130 ms before, 12-20 ms after. Test: `node Servex/agents/ref-cache.test.mjs`.
++
++**Completion at once, for any session.** `item({path: "/framework/ai/sessions/<uuid>/", delta: {"completion": {}}})`, or the dated folder's url, answers `{ok: true, answer: {completion: {done, total, stopped, completion}}}`: the tally of its tasks' current states and the number. It only reads and writes nothing. It works for a past session too, as long as its folder holds a record; a folder with no record is refused, and nothing is written. On session-e00f55c9: `{done: 30, total: 132, stopped: 74, completion: 0.227}`.
++
+ Test: `node Servex/agents/session-state.test.mjs`.
+ 
+ ## Rules (the owner, 2026-10-20, 16:15)
+@@ -86,6 +93,10 @@ Test: `node Servex/agents/session-state.test.mjs`.
+ 3. **A session is never marked complete while a loose end exists.** If something is left over, add a task for it instead of closing. *Not built yet:* no code refuses a close. Queued as step 5, "Task as a line", in [sessions-and-tasks.md](/framework/ai/doc/sessions-and-tasks.md).
+ 4. **The session system should be portable** (the owner, 2026-10-20, session-e00f55c9 prompt line 1931): "a reusable, portable system, closer to a dev server than a Servex thing". *Not built yet:* `Session` and `Day` need only `Item` and a dated folder, but the writers (the SessionStart hook, `prompt-relay.mjs`, the item tool) live in this repo's `.claude/hooks` and `Servex/`, so another project cannot use it on its own.
+ 
++## Open items
++
++- Auditing the completion of every past session is later.
++
+ ## More
+ 
+ - [doc/prompt-tasks.md](doc/prompt-tasks.md): each owner prompt's work arrives as proposed tasks on the session page, live, with Approve and Reject (`SessionTasks.js`, Servex's `PromptTasks`)
+diff --git a/public/framework/core/Task/Task.js b/public/framework/core/Task/Task.js
+index fbf1c332c..40213d412 100644
+--- a/public/framework/core/Task/Task.js
++++ b/public/framework/core/Task/Task.js
+@@ -199,7 +199,7 @@ export class Task extends Item {
+ 
+ 	/* QUERIES: what the item tool answers without writing a line (`{"summary":{}}`). Each only reads.
+ 	   `children` are the child SESSIONS: child tasks (referenced or inline) whose `path` folder holds a session record (`session_resolver`, wired by node). */
+-	static queries = ["progress", "cost", "total_cost", "duration", "children", "summary"];
++	static queries = ["progress", "cost", "total_cost", "duration", "children", "summary", "completion"];
+ 	static session_resolver = null;
+ 	get children(){
+ 		const is_session = this.constructor.session_resolver;
+@@ -404,22 +404,28 @@ export class Task extends Item {
+ 	// task.jsonl into that stub through the Store (the way TaskPage does) and tails it live. "missing" only after a 404.
+ 	static resolver = null;
+ 	static resolving = new Set();
++	/** Node sets this to cache a replayed child by its file's signature: scope(key, build) returns the cached child while its file (and any file it read) is unchanged, else build(). Null in a browser. */
++	static ref_scope = null;
+ 	static from_ref(ref, as){
+-		const lines = !this.resolving.has(ref) && this.resolver ? this.resolver(ref) : null;
+-		const id = as ?? this.ref_id(ref);   // `as`: the id the task had in the parent (a moved item keeps it, whatever its new folder is called)
+-		let kid;
+-		if (lines?.length){
+-			this.resolving.add(ref);   // a cycle of references stops here
+-			const Own = Item.types.get(lines[0]?.class ?? (lines[0]?.session ? "Session" : undefined));   // line 1 may name a subclass (a Process), or be a session record ({session:{…}}): replay it as that, when it is loaded
+-			try { kid = (Own && Own.prototype instanceof this ? Own : this).replay(lines); } finally { this.resolving.delete(ref); }
+-			if (kid.id === "tasks" || kid.id === "task" || as) kid.id = id;   // a module list's line 1 says "tasks", an id-less log replays as "task": both are the same for every sibling, so the folder name stands in
+-		} else {   // no file (node), or not read yet (browser): a stub, never a throw
+-			kid = new this({ id });
+-			kid.put("title", id);
+-			const browser = !this.resolver && typeof document !== "undefined" && !this.resolving.has(ref);
+-			kid.put("state", browser ? "loading" : "missing");
+-			if (browser) kid.ready = this.open_ref(kid, ref);   // a promise: resolves once the file is read (or 404s)
+-		}
++		const make = () => {
++			const lines = !this.resolving.has(ref) && this.resolver ? this.resolver(ref) : null;
++			const id = as ?? this.ref_id(ref);
++			let kid;
++			if (lines?.length){
++				this.resolving.add(ref);   // a cycle of references stops here
++				const Own = Item.types.get(lines[0]?.class ?? (lines[0]?.session ? "Session" : undefined));   // line 1 may name a subclass (a Process), or be a session record ({session:{…}}): replay it as that, when it is loaded
++				try { kid = (Own && Own.prototype instanceof this ? Own : this).replay(lines); } finally { this.resolving.delete(ref); }
++				if (kid.id === "tasks" || kid.id === "task" || as) kid.id = id;   // a module list's line 1 says "tasks", an id-less log replays as "task": both are the same for every sibling, so the folder name stands in
++			} else {   // no file (node), or not read yet (browser): a stub, never a throw
++				kid = new this({ id });
++				kid.put("title", id);
++				const browser = !this.resolver && typeof document !== "undefined" && !this.resolving.has(ref);
++				kid.put("state", browser ? "loading" : "missing");
++				if (browser) kid.ready = this.open_ref(kid, ref);   // a promise: resolves once the file is read (or 404s)
++			}
++			return kid;
++		};
++		const kid = this.ref_scope && !this.resolving.has(ref) ? this.ref_scope(ref + "#" + (as ?? ""), make) : make();
+ 		if (kid.data.path === undefined) kid.put("path", ref);
+ 		kid._own_file = ref;   // a referenced child lives in its own file: the parent Store never records its changes (Store.js owned_below)
+ 		return kid;

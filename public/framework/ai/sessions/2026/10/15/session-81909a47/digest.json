@@ -1,0 +1,35 @@
+{
+ "id": "81909a47-46bc-491d-afa4-b55e737f4a26",
+ "first": "2026-10-15T23:20:31.452Z",
+ "last": "2026-10-15T23:23:57.306Z",
+ "task": "public/framework/ai/sessions/2026/10/15/voice-20261015/remote-full-registry",
+ "models": {
+  "claude-sonnet-5-5": 38
+ },
+ "sizes": {
+  "raw": 240442,
+  "content": 40567,
+  "stripped": 5064,
+  "owner_only": 0
+ },
+ "usd": 1.107968,
+ "usd_main": 1.107968,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 76,
+  "output": 16083,
+  "cache_read": 3102430,
+  "cache_write": 81625,
+  "w5": 0,
+  "w1": 81625
+ },
+ "messages": 38,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "`/mcp/remote` now serves the whole Servex tool registry plus `ask_mastermind`, merged into `michael/dev` as 786ea8aad. The running Servex still has the old code, so none of this is live until you restart it. I did not restart it.\n\n**What you must do**\n- **Restart Servex:** yes, once, at a time you pick.\n- **Tunnel URL:** no change. The tunnel is its own process (node pid 940 plus cloudflared, up since 10/14). It forwards to Servex on every request, so a restart only gives it a few seconds of 502s.\n- **Connector:** refresh or reconnect `lew42-remote` in the Claude app once after the restart, because the app caches its tool list. No reinstall and no new URL.\n\n**Tool count:** 82 on the remote route. That is the 81 tools in the live registry plus `ask_mastermind`.\n\n**What changed**\n- **One registry:** `RemoteMCP.js` reads the live Servex registry and sends any other tool call to that registry's own handler as caller `voice-app`, so page writes say `by: voice-app`. Nothing is copied.\n- **`live_post`:** reverted. The voice agent posts to `/live/` with `page_add`.\n- **Voice-agent directives:** `RemoteMCP.INSTRUCTIONS` now tells it about the extra tools. It says to use `page_add` on `/live/` and never call `restart_servex` mid-call.\n- **Docs:** `doc/mcp-unify.md` now records that one registry, fully exposed, is decided and the local/remote split is shelved.\n- **Tests:** `RemoteMCP.test.mjs` now checks the full list, `page_add` through the route, and the `voice-app` attribution. It pa …",
+ "edited": [
+  "C:/Code/lew42/wt-remote-registry/Servex/ext/remote/RemoteMCP.js",
+  "C:/Code/lew42/wt-remote-registry/Servex/ext/remote/RemoteMCP.test.mjs"
+ ],
+ "digested_at": "2026-10-16T06:28:10.250Z"
+}

@@ -1,0 +1,19 @@
+{
+ "changed": "2026/09/24/layout-columns",
+ "total": 19,
+ "by": {
+  "childList DIV.ai2-index +1/-0": 1,
+  "attributes A.ai2-toc-row +0/-0": 3,
+  "childList A.ai2-toc-row +1/-0": 2,
+  "attributes SPAN.material-icons +0/-0": 2,
+  "childList SPAN.material-icons +1/-0": 1,
+  "attributes DIV.ai2-toc-body +0/-0": 1,
+  "childList DIV.ai2-toc-body +1/-0": 2,
+  "attributes SPAN.ai2-toc-title +0/-0": 1,
+  "childList SPAN.ai2-toc-title +1/-0": 1,
+  "attributes SMALL.ai2-toc-line +0/-0": 2,
+  "childList SMALL.ai2-toc-line +1/-0": 1,
+  "childList DIV.ai2-index +0/-1": 1,
+  "childList DIV.ai2-index +1/-1": 1
+ }
+}

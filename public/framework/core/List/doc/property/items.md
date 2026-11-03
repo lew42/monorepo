@@ -1,0 +1,1 @@
+`items` is the plain array that holds the list's members (`this.items ??= []` in the constructor). It is an own field, not a getter: read it to iterate, but change it through `append`, `insert_before` and `remove` so the owner links and `notify` stay right. `length` just reads `items.length`.

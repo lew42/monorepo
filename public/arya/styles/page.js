@@ -25,14 +25,14 @@ export default new Page(import.meta, {
 
 		p("The whole palette is this:");
 
-		snippet(`--prim: #5a57ff;            /* accent, focus rings, .prim buttons */
+		snippet(`--prime: #5a57ff;            /* accent, focus rings, .prim buttons */
 --bg: #42404B;             /* the dark surface used by .bg buttons */
 --subtle: rgba(0,0,0,0.5); /* input borders */
 --column: 14em;            /* the width every layout utility wraps at */`);
 
 		demo(() => {
 			div.c("flex gap", () => {
-				div.c("pad", "--prim").style({ background: "var(--prim)", color: "white" });
+				div.c("pad", "--prime").style({ background: "var(--prime)", color: "white" });
 				div.c("pad", "--bg").style({ background: "var(--bg)", color: "white" });
 				div.c("pad", "--subtle").style({ border: "1px solid var(--subtle)" });
 			});

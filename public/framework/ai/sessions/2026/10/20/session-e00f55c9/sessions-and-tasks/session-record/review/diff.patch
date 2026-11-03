@@ -1,0 +1,177 @@
+diff --git a/.claude/hooks/naming-guard.mjs b/.claude/hooks/naming-guard.mjs
+index b3a6c2d41..d28c2dddc 100644
+--- a/.claude/hooks/naming-guard.mjs
++++ b/.claude/hooks/naming-guard.mjs
+@@ -2,6 +2,7 @@ import fs from "node:fs";
+ import os from "node:os";
+ import path from "node:path";
+ import { fileURLToPath } from "node:url";
++import SessionRecord from "../../Server/SessionRecord.mjs";
+ import { spawnSync } from "node:child_process";
+ 
+ // ⚠ Same override as ledger.mjs: a worktree session's task.jsonl usually lives in the
+@@ -38,8 +39,8 @@ const now = () => {
+ function find_task_by_path(file){
+ 	let dir = path.dirname(path.resolve(file));
+ 	while (dir === root || dir.startsWith(root + path.sep)) {
+-		const candidate = path.join(dir, "task.jsonl");
+-		if (fs.existsSync(candidate)) return candidate;
++		const candidate = SessionRecord.log_file(dir);
++		if (candidate) return candidate;
+ 		if (path.dirname(dir) === dir) return null;
+ 		dir = path.dirname(dir);
+ 	}
+diff --git a/.claude/hooks/prompt-relay.mjs b/.claude/hooks/prompt-relay.mjs
+index a07e6863c..826ccd91e 100644
+--- a/.claude/hooks/prompt-relay.mjs
++++ b/.claude/hooks/prompt-relay.mjs
+@@ -3,6 +3,7 @@ import os from "node:os";
+ import path from "node:path";
+ import { fileURLToPath } from "node:url";
+ import TaskDirs from "../../Server/TaskDirs.mjs";
++import SessionRecord from "../../Server/SessionRecord.mjs";
+ 
+ /* prompt-relay.mjs — the UserPromptSubmit hook (2026-09-19).
+  *
+@@ -178,7 +179,7 @@ function echo_context_line(session_id){
+ function mastermind_inbox() {
+ 	// Both shapes, newest day first (Server/TaskDirs.mjs; ai/doc/task-folders.md).
+ 	for (const t of TaskDirs.list(3).filter(t => t.slug.startsWith("mastermind-"))) {
+-		const file = path.join(t.dir, "task.jsonl");
++		const file = SessionRecord.log_or_old(t.dir);
+ 		const state = Object.assign({}, ...read(file).filter(e => e.assign).map(e => e.assign));
+ 		if (!state.landed_at) return file;
+ 	}
+diff --git a/Server/SessionRecord.mjs b/Server/SessionRecord.mjs
+index 30d4e2ef5..5c55d12da 100644
+--- a/Server/SessionRecord.mjs
++++ b/Server/SessionRecord.mjs
+@@ -44,11 +44,12 @@ export default class SessionRecord {
+ 	/** A session folder sits directly under a day of the sessions store (YYYY/MM/DD/<name>); a task folder is deeper. */
+ 	static is_session_dir(dir){ return /[\\/]sessions[\\/]\d{4}[\\/]\d\d[\\/]\d\d[\\/][^\\/]+$/.test(path.resolve(dir)); }
+ 	/** The file a line goes to in `dir`: the log or record that exists (either name); else session.jsonl for a NEW session folder
+-	 *  (directly under a day, `first` is the launch line {"assign":{"session_id":…}}); else task.jsonl. Writers ask this, never type the name. */
++	 *  (`first` is a spawn line {"assign":{"session_id","agent"}} at any depth, a {"session":…} line, or a session_id line directly under a day); else task.jsonl. Writers ask this, never type the name. */
+ 	static start_file(dir, first){
+ 		const have = this.log_file(dir); if (have) return have;
+ 		if (fs.existsSync(path.join(dir, this.NEW)) && !fs.existsSync(path.join(dir, this.OLD))) return path.join(dir, this.NEW);   // a tag-only record: the session's own file
+-		return path.join(dir, first?.assign?.session_id && this.is_session_dir(dir) ? this.NEW : this.OLD);
++		const a = first?.assign, spawn = a?.session_id && a?.agent, voice = first?.session?.id;   // a spawn line (only open_task writes it) or a cloud-voice line: a session at any depth
++		return path.join(dir, spawn || voice || (a?.session_id && this.is_session_dir(dir)) ? this.NEW : this.OLD);
+ 	}
+ 	/** For a directory walker: is this entry (dir, file name) the folder's log? Counts each folder once, whichever name it holds. */
+ 	static is_log_entry(dir, name){ return this.is_record(name) && this.log_file(dir) === path.join(dir, name); }
+diff --git a/Server/SessionRecord.test.mjs b/Server/SessionRecord.test.mjs
+index 17d61d3c0..d5223c36a 100644
+--- a/Server/SessionRecord.test.mjs
++++ b/Server/SessionRecord.test.mjs
+@@ -106,7 +106,11 @@ const launch = { assign: { session_id: "f6", title: "new session" } }, taskline
+ assert.ok(SessionRecord.is_session_dir(D("fresh")) && !SessionRecord.is_session_dir(D("fresh/child")));
+ assert.equal(SessionRecord.start_file(D("fresh"), launch), D("fresh/session.jsonl"));
+ assert.equal(SessionRecord.start_file(D("fresh"), taskline), D("fresh/task.jsonl"));              // a day-level task with no own session_id
+-assert.equal(SessionRecord.start_file(D("fresh/child"), launch), D("fresh/child/task.jsonl"));     // a task inside a session, even with a session_id
++assert.equal(SessionRecord.start_file(D("fresh/child"), launch), D("fresh/child/task.jsonl"));     // a tab's task: session_id but no agent, nested
++const spawn = { assign: { session_id: "f7", agent: "minion-x" } };
++assert.equal(SessionRecord.start_file(D("fresh/child"), spawn), D("fresh/child/session.jsonl"));   // a spawn line, nested: a sub-session
++assert.equal(SessionRecord.start_file(D("fresh/child"), { session: { id: "v1", kind: "cloud-voice-agent" } }), D("fresh/child/session.jsonl"));
++assert.equal(SessionRecord.start_file(D("fresh/child"), taskline), D("fresh/child/task.jsonl"));
+ assert.equal(SessionRecord.start_file(D("s-tags"), taskline), D("s-tags/session.jsonl"));          // digest tags only: that file is the record
+ assert.equal(SessionRecord.start_file(D("t-task"), launch), D("t-task/task.jsonl"));               // an existing task log is never renamed under a writer
+ const put_line = (dir, line) => { fs.writeFileSync(lines, JSON.stringify([line])); execFileSync(process.execPath, [hook, path.join(dir, "task.jsonl"), lines], { windowsHide: true, stdio: "pipe" }); };
+diff --git a/Server/State.test.mjs b/Server/State.test.mjs
+index e7c80b35e..83d2fe4dd 100644
+--- a/Server/State.test.mjs
++++ b/Server/State.test.mjs
+@@ -105,5 +105,11 @@ inc.dirty.add(path.join(wd, "task.jsonl"));
+ const after = inc.snapshot({ full: false }).check.landed_today;
+ assert.deepEqual([after.state - before.state, after.walk - before.walk, after.only_state.length - before.only_state.length, after.only_walk.length], [1, 1, 0, 0]);
+ 
++// A nested spawned agent (session.jsonl, spawn line) that landed today is counted once.
++const nd = path.join(root, S, "nested-sub"); fs.mkdirSync(nd, { recursive: true });
++fs.writeFileSync(path.join(nd, "session.jsonl"), [{ assign: { session_id: "s9", agent: "minion-n", title: "Nested session", requested_at: "2026-10-17T09:00:00-05:00" } }, { finish: { at: "2026-10-17T22:10:00-05:00", outcome: "Done." } }].map(l => JSON.stringify(l)).join("\n") + "\n");
++const nested = new State({ root, registry, now }).snapshot({ full: true }).check.landed_today;
++assert.deepEqual([nested.state - after.state, nested.walk - after.walk], [1, 1]);
++
+ fs.rmSync(root, { recursive: true, force: true });
+ console.log("State: ok (six tasks, every bucket, local days, check.ok true; broken copy: check.ok false, 2 vs 1; cards 5 = 5 = 5, asks 3 = 3 = 3, broken cards 2 vs 1)");
+diff --git a/Server/Steps.mjs b/Server/Steps.mjs
+index f2dbacf3a..858c079f2 100644
+--- a/Server/Steps.mjs
++++ b/Server/Steps.mjs
+@@ -136,7 +136,7 @@ export default class Steps {
+ 
+ 	/** Append ONE assign line through the validated path (.claude/hooks/append.mjs). Returns the spawn result. */
+ 	static plan(dir, given, kind){
+-		const file = path.join(path.resolve(TaskDirs.REPO, dir), "task.jsonl");
++		const file = SessionRecord.log_or_old(path.resolve(TaskDirs.REPO, dir));
+ 		const line = { assign: { steps: [...given, ...this.template(kind, given)], step: 1, ...(kind ? { kind } : {}), at: "NOW" } };
+ 		const tmp = path.join(os.tmpdir(), `steps-plan-${process.pid}.json`);
+ 		fs.writeFileSync(tmp, JSON.stringify(line));
+@@ -152,8 +152,8 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
+ 		console.log(`Step runner, last ${days} days\n  tasks ${r.tasks} | with steps ${r.with_steps} | with estimates ${r.with_estimates} | landed ${r.landed} | all steps reported ${r.all_reported}\n  followed fully ${r.followed_fully} | rate (of estimated) ${pct(r.rate)} | rate (of all with steps) ${pct(r.rate_all_with_steps)}`);
+ 		console.log(JSON.stringify(r));
+ 	} else if (has("--show")){
+-		const info = Steps.read(path.join(path.resolve(TaskDirs.REPO, after("--show")), "task.jsonl"));
+-		console.log(info ? (Steps.show(info) || "(no steps)") : "no task.jsonl there");
++		const info = Steps.read(SessionRecord.log_or_old(path.resolve(TaskDirs.REPO, after("--show"))));
++		console.log(info ? (Steps.show(info) || "(no steps)") : "no task.jsonl or session.jsonl there");
+ 	} else if (has("--plan")){
+ 		const rest = argv.slice(argv.indexOf("--plan") + 1), dir = rest[0], kind = rest.includes("--kind") ? rest[rest.indexOf("--kind") + 1] : undefined;
+ 		const given = rest.slice(1).filter((x, i, a) => x !== "--kind" && a[i - 1] !== "--kind");
+diff --git a/public/framework/ai/doc/sessions-and-tasks.md b/public/framework/ai/doc/sessions-and-tasks.md
+index ee9641f7d..3fc346ba1 100644
+--- a/public/framework/ai/doc/sessions-and-tasks.md
++++ b/public/framework/ai/doc/sessions-and-tasks.md
+@@ -53,7 +53,7 @@ The top half of this is done. `Server/SessionRecord.mjs` (2026-10-17) renamed `t
+ 
+ 1. ✅ This plan, merged.
+ 2. ⬜ **Readers.** Replace every hard-coded `"task.jsonl"` on a runtime path (`State`, `TaskState`, `TaskLoop`, `review`, `Steps`, `Landed`, `Cards`, hooks) with `SessionRecord`. No behaviour change; tests prove it.
+-3. ⬜ **New sub-sessions write `session.jsonl`.** One change in `SessionRecord.start_file`: any folder whose line 1 carries a `session_id` gets `session.jsonl`, at any depth.
++3. ✅ (2026-10-20) **New sub-sessions write `session.jsonl`.** `SessionRecord.start_file`: a spawn line (`session_id` AND `agent`) gets `session.jsonl` at any depth; a tab task (`session_id`, no `agent`) keeps `task.jsonl`.
+ 4. ⬜ **Old folders by script.** Extend `SessionRecord` plan/apply/undo to the 1,100 sub-session folders (dry run, manifest, reversible).
+ 5. ⬜ **Task as a line.** `completed` 0–1 plus start/complete times in `Task.replay`; a task with no folder; a session lists its tasks (closes gap b).
+ 6. ⬜ **`SessionDirs`** rename with alias; module placement per task-lifecycle (option A or B).
+diff --git a/public/framework/ai/sessions/doc/session-record.md b/public/framework/ai/sessions/doc/session-record.md
+index 0e678d917..7e09ad409 100644
+--- a/public/framework/ai/sessions/doc/session-record.md
++++ b/public/framework/ai/sessions/doc/session-record.md
+@@ -62,7 +62,7 @@ The brief expected 588 folders holding both files; there are none. The 588 diges
+ `SessionRecord.start_file(dir, first)` answers "which file does this line go to?" so no writer types the name:
+ 
+ - the log that already exists, by either name; else
+-- `session.jsonl`, when `dir` is directly under a day (`YYYY/MM/DD/<name>/`) and the first line is `{"assign":{"session_id":…}}`; else
++- `session.jsonl`, when the first line is a spawn line `{"assign":{"session_id","agent"}}` (any depth, a sub-session) or `{"session":…}` (cloud voice), or a `session_id` line directly under a day; else
+ - `task.jsonl` (any task folder, deeper in a session).
+ 
+ Two writers ask it: `Servex/agents/Agents.js` (`open_task`, the launch line of `spawn_agent`) and `.claude/hooks/append.mjs` (every agent's `new-task` launch line, which still names `<dir>/task.jsonl`; the hook redirects it). `node Server/TaskDirs.mjs --new` only makes the folder, never a record. `Server/review.mjs` appends to the existing log. `Server/plugins/Start.js` makes a task folder inside a session, so it keeps `task.jsonl`. A folder made this way needs no move: `--plan` counts it as nothing to do. Tests: `Server/SessionRecord.test.mjs`, `Servex/agents/open-task.test.mjs`.
+diff --git a/public/framework/ai/sessions/readme.md b/public/framework/ai/sessions/readme.md
+index 119d4d55a..e207d9b10 100644
+--- a/public/framework/ai/sessions/readme.md
++++ b/public/framework/ai/sessions/readme.md
+@@ -31,7 +31,7 @@ A session folder is one of three kinds:
+ | What | Writer (called from) |
+ |---|---|
+ | `cache.jsonl`, `index.json`, day/month/year `index.json` | `ai/AISession/AISessionIndex.mjs`: a file watch on the transcripts re-reads only the new bytes. Started inside the dev server by `AISession/AISessionTailer.mjs` (main checkout only). |
+-| a Servex agent's folder and line 1 | `open_task()` in `Servex/agents/Agents.js`, called from `Agents.spawn()` *before* the agent's first turn (the `spawn_agent` tool) |
++| a Servex agent's folder and line 1 (`session.jsonl`, at any depth) | `open_task()` in `Servex/agents/Agents.js`, called from `Agents.spawn()` *before* the agent's first turn (the `spawn_agent` tool) |
+ | any later line | `node .claude/hooks/append.mjs <file> <lines.json>`: validates against `.claude/hooks/jsonl-schema.mjs`, turns `"NOW"` into the clock, and picks `session.jsonl` vs `task.jsonl` through `SessionRecord.start_file()` |
+ | a cloud voice call's folder and lines | `Servex/ext/remote/RemoteMCP.js` `voice_session()` / `record()` / `after()` ([voice system](/Servex/ext/remote/doc/cloud-voice-agent.md)) |
+ | tags, notes, alerts, closed | `AISession.log()`; digests by `AISessionDigest.mjs` |
+diff --git a/public/framework/core/Task/TaskPage.js b/public/framework/core/Task/TaskPage.js
+index 2efcdb771..b2cdcdbe5 100644
+--- a/public/framework/core/Task/TaskPage.js
++++ b/public/framework/core/Task/TaskPage.js
+@@ -2,10 +2,11 @@ import { Page, div } from "/app.js";
+ import Task from "./Task.js";
+ import "./TaskView.js";   // sets Task.View
+ 
+-/* The thin route for a task folder: opens its task.jsonl and shows Task.View full-size. No task logic here. doc: readme.md */
++/* The thin route for a task folder: opens its session.jsonl or task.jsonl and shows Task.View full-size. No task logic here. doc: readme.md */
+ export class TaskPage extends Page {
+ 	async load_task(){
+-		const store = Task.Store.for(this.url + "task.jsonl");
++		const has = async n => (await fetch(this.url + n, { method: "HEAD" }).catch(() => null))?.ok;   // a spawned agent's folder holds session.jsonl, a task's task.jsonl
++		const store = Task.Store.for(this.url + (await has("session.jsonl") ? "session.jsonl" : "task.jsonl"));
+ 		await store.open();
+ 		if (!store.host) store.attach(Task.replay_new(store.entries));   // attach replays the held entries
+ 		return this.task = store.host;

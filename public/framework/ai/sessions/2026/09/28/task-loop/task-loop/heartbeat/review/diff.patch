@@ -1,0 +1,830 @@
+diff --git a/.claude/hooks/ledger.mjs b/.claude/hooks/ledger.mjs
+index 1f9e55f8..be6ef958 100644
+--- a/.claude/hooks/ledger.mjs
++++ b/.claude/hooks/ledger.mjs
+@@ -206,6 +206,19 @@ const run = async () => {
+ 		const task = cached_task(input.agent_id, input.session_id) || find_task(input.session_id, false);
+ 		if (!task) return;
+ 		const s = state(task);
++		// A landing needs an outcome (task-loop, 2026-09-28): a `landed_at` with nothing
++		// to show for it is not a landing, so block it here — before anything downstream
++		// (on-landing.mjs included) ever sees this as landed. Logged ONCE, not on every
++		// stop the agent bounces off this, so the log stays a record, not a chant.
++		if (s.landed_at && !String(s.outcome || "").trim()) {
++			const refusal = "landing refused: landed_at has no outcome. Append {\"assign\": {\"outcome\": \"…\"}}.";
++			if (!lines(task).some(e => e.log?.msg === refusal)) append(task, { log: { at: now(), msg: refusal } });
++			console.log(JSON.stringify({
++				decision: "block",
++				reason: `${rel(task)} has landed_at but no outcome, so it is not landed. Append ONE line: {"assign": {"outcome": "**what landed** — …"}} — then stop again.`
++			}));
++			return;
++		}
+ 		// A landed task gets its layout-check once, with no agent spending a turn: detached, so the hook stays instant.
+ 		if (s.landed_at) try {
+ 			const d = path.dirname(task);
+diff --git a/.claude/skills/new-task/SKILL.md b/.claude/skills/new-task/SKILL.md
+index 5e32b1ff..c9314ee7 100644
+--- a/.claude/skills/new-task/SKILL.md
++++ b/.claude/skills/new-task/SKILL.md
+@@ -8,6 +8,8 @@ description: Open a task — create its ai/<date>/<slug>/ dir, open its task.jso
+ Anything that changes the repo is a **task**: a dir at
+ `public/framework/ai/<YYYY-MM-DD>/<slug>/` whose append-only `task.jsonl` the day dashboard (`/framework/ai/<date>/`) renders live. Open it **before the first edit**. Format: `ext/JSONL/readme.md`; viewer: `ext/AITask/readme.md`.
+ 
++If your brief names a task dir, Servex already opened it: log there and skip step 1.
++
+ ## 1. Create the dir
+ 
+ - Slug: kebab-case, matching the VS Code tab title — `Get-Process Code -ErrorAction SilentlyContinue | Where-Object MainWindowTitle | Select-Object -ExpandProperty MainWindowTitle` lists the windows; yours matches this conversation's topic.
+diff --git a/Server/README.md b/Server/README.md
+index 54af4b11..41de90bc 100644
+--- a/Server/README.md
++++ b/Server/README.md
+@@ -46,6 +46,23 @@ the bug that prompted it only appears above 1312px and `health.mjs` was looking
+ too — one definition, three callers. The before/after over 107 pages:
+ [`/framework/ai/2026-09-22/padding-law/`](/framework/ai/2026-09-22/padding-law/).
+ 
++**`Server/on-landing.mjs`** runs automatically the first time the ledger hook sees a task with
++`landed_at`: text-check (walls of text), layout-check and padding-check on the pages the landing
++names, and — new in the task-loop work — **`Server/doc-check.mjs`**, which checks every module
++the task touched (the nearest directory at or above a touched file that has its own `page.js`,
++skipping a task's own `ai/**` notebook) for a `readme.md`, a `doc/` dir, and readme links that
++actually resolve. Each check appends one line to the task's own log; a dirty doc-check also
++posts one nag line on the task's card (Servex's `card_reply`, over its `/mcp` door) so the owner
++sees it without opening the log. ⚠ It is a plain file/dir existence check, so a module whose
++`page.js` routes some of its readme's links to *virtual* children (declared in code, no matching
++directory on disk) can flag those as dead when the site actually serves them fine — it does not
++understand the router, on purpose, to stay this simple.
++[`public/framework/ai/2026-09-28/task-loop/landing-checks/`](/framework/ai2/2026-09-28/task-loop/landing-checks/).
++
++**Landing needs an outcome.** The ledger hook (`.claude/hooks/ledger.mjs`) refuses a `landed_at`
++with an empty or missing `outcome` — it blocks the stop, every time, and logs the refusal to the
++task once (not on every retry), so `landed_at` alone can never read as done.
++
+ **node Server/review.mjs <taskdir> [<worktree>]** gets a fresh agent — one that never saw the
+ author's conversation — to read the brief and the diff and say pass or fix, before `merge.mjs`
+ will take a `light` or `full` branch. Full story: [`doc/review.md`](./doc/review.md).
+diff --git a/Server/doc-check.mjs b/Server/doc-check.mjs
+new file mode 100644
+index 00000000..ea57a921
+--- /dev/null
++++ b/Server/doc-check.mjs
+@@ -0,0 +1,107 @@
++/* `node Server/doc-check.mjs <task dir>` — does every module a task touched have a
++ * readme.md, a doc/ dir, and readme links that actually resolve? CLAUDE.md's rule for
++ * every module under public/ is: `readme.md`, `page.js`, `doc/`. This is the machine
++ * check of the first and third of those; on-landing.mjs imports `doc_check()` and logs
++ * the one line, then nags the task's card when something is missing. Same discipline as
++ * text-check.mjs beside it: no model, never throws, always returns a result.
++ *
++ * A MODULE is the nearest directory at or above a touched file, under `public/`, that
++ * holds its own `page.js` — walking up from the file until one is found or the walk
++ * runs out of `public/…` to climb. `public/framework/ai/**` (a task's own notebook, not
++ * a code module — even though a day dir has a page.js too) is skipped before that walk
++ * ever starts, so a task that only wrote to its own log never gets flagged for docs.
++ *
++ * A LINK counts when it is relative (resolved against the module's own directory) or a
++ * `/site/path` (mapped to `public/site/path`, the same rule the framework's own router
++ * uses); `http(s)://` links and bare `#anchor`s are never checked — this cannot know
++ * whether the internet is up, and an anchor is a spot on the same page, never a file. */
++import fs from "node:fs";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++
++const ROOT = path.resolve(fileURLToPath(import.meta.url), "../..");
++
++const lines = file => { try { return fs.readFileSync(file, "utf8").split("\n"); } catch { return []; } };
++
++/** Every path any `action` line in this task's log touched, deduped, in the order first seen. */
++function touched_files(dir){
++	const files = [];
++	const seen = new Set();
++	for (const l of lines(path.join(dir, "task.jsonl"))) {
++		if (!l.trim()) continue;
++		let e; try { e = JSON.parse(l); } catch { continue; }
++		for (const f of e.action?.files || []) if (!seen.has(f)) { seen.add(f); files.push(f); }
++	}
++	return files;
++}
++
++/** Climb from a touched file's own directory to the nearest one (itself included) that
++ *  holds a `page.js`, never climbing above `public/`. Null when nothing under `public/`
++ *  claims it (a file dropped straight in `public/` with no module of its own). */
++function nearest_module(root, relFile){
++	let dir = path.posix.dirname(relFile.replaceAll("\\", "/"));
++	while (dir && dir !== "." && (dir === "public" || dir.startsWith("public/"))) {
++		if (fs.existsSync(path.join(root, dir, "page.js"))) return dir;
++		const up = path.posix.dirname(dir);
++		if (up === dir) break;
++		dir = up;
++	}
++	return null;
++}
++
++/** The readme's own links that go nowhere: relative ones resolved against the module's
++ *  directory, `/site/path` ones resolved against `public/`. Ignores http(s) and `#…`. */
++function dead_links(root, moduleAbs, md){
++	const dead = [];
++	const seen = new Set();
++	for (const m of md.matchAll(/\]\(([^)]+)\)/g)) {
++		let target = m[1].trim().split(/[#?]/)[0].trim();
++		if (!target || seen.has(target) || /^(https?:)?\/\//i.test(target) || /^mailto:/i.test(target)) continue;
++		seen.add(target);
++		const abs = target.startsWith("/") ? path.join(root, "public", target.replace(/^\/+/, "")) : path.resolve(moduleAbs, target);
++		if (!fs.existsSync(abs)) dead.push(target);
++	}
++	return dead;
++}
++
++/** `[]` when `module` (a `public/...` path, forward slashes) is clean. */
++function module_issues(root, module){
++	const issues = [];
++	const abs = path.join(root, module);
++	const readme = path.join(abs, "readme.md");
++	const has_readme = fs.existsSync(readme);
++	if (!has_readme) issues.push("no readme");
++	if (!fs.existsSync(path.join(abs, "doc"))) issues.push("no doc/");
++	if (has_readme) {
++		let dead = [];
++		try { dead = dead_links(root, abs, fs.readFileSync(readme, "utf8")); } catch {}
++		if (dead.length) issues.push(`${dead.length} dead link${dead.length === 1 ? "" : "s"} (${dead.join(", ")})`);
++	}
++	return issues;
++}
++
++/** The one function on-landing.mjs calls. `dir` is the task's own directory (holding its
++ *  task.jsonl); `root` defaults to this repo. Never throws — a failure becomes the same
++ *  shape a real check would give, with the failure as its own module-less line. */
++export function doc_check(dir, root = ROOT){
++	try {
++		const modules = new Set();
++		for (const f of touched_files(dir)) {
++			const rel = f.replaceAll("\\", "/");
++			if (!rel.startsWith("public/") || rel.startsWith("public/framework/ai/")) continue;
++			const m = nearest_module(root, rel);
++			if (m) modules.add(m);
++		}
++		const dirty = [...modules].sort().map(module => ({ module, issues: module_issues(root, module) })).filter(d => d.issues.length);
++		const line = dirty.length
++			? "doc-check: " + dirty.map(d => `${d.module}: ${d.issues.join(", ")}`).join("; ")
++			: `doc-check: ${modules.size} module${modules.size === 1 ? "" : "s"} — clean`;
++		return { line, dirty, modules: modules.size };
++	} catch (e) {
++		return { line: "doc-check: not run — " + String(e && e.message || e).slice(0, 200), dirty: [], modules: 0 };
++	}
++}
++
++// Only when run directly: `node Server/doc-check.mjs <task dir>` prints the JSON result.
++if (path.resolve(process.argv[1] || "") === fileURLToPath(import.meta.url))
++	console.log(JSON.stringify(doc_check(path.resolve(process.argv[2] || ".")), null, 1));
+diff --git a/Server/on-landing.mjs b/Server/on-landing.mjs
+index dcba6890..548bb0ea 100644
+--- a/Server/on-landing.mjs
++++ b/Server/on-landing.mjs
+@@ -1,14 +1,19 @@
+-/* `node Server/on-landing.mjs <task dir>` — runs text-check (walls of text) and layout-check on what a landed task wrote.
++/* `node Server/on-landing.mjs <task dir>` — runs text-check (walls of text), doc-check
++ * (readme/doc/links on every module touched) and layout-check on what a landed task wrote.
+  * The ledger hook spawns it (detached) the first time it sees a task with `landed_at`.
+  * It reads the latest landing's `outcome`, takes up to 5 site links (paths starting with "/", no
+- * images or .md), runs layout-check into <task dir>/layout-check, and appends ONE log line to the
+- * task's task.jsonl. Flagged pages are also appended to servex-mastermind's task.jsonl. It never
+- * throws: any failure becomes one log line, and the exit code is always 0. */
++ * images or .md), runs layout-check into <task dir>/layout-check, and appends ONE log line per
++ * check to the task's task.jsonl. A dirty doc-check also gets ONE nag line on the task's own
++ * card (Servex's `card_reply` tool, over its MCP door); flagged pages from the other checks go
++ * to servex-mastermind's task.jsonl. It never throws: any failure becomes one log line, and the
++ * exit code is always 0. */
+ import fs from "node:fs";
+ import path from "node:path";
+-import { spawnSync, spawn } from "node:child_process";
++import { spawnSync, spawn, execFileSync } from "node:child_process";
+ import { fileURLToPath } from "node:url";
+ import { text_flags } from "./text-check.mjs";
++import { doc_check } from "./doc-check.mjs";
++import { can_stop, entry_for_task_dir } from "./worktree-sweep.mjs";
+ 
+ const root = path.resolve(fileURLToPath(import.meta.url), "../..");
+ const dir = path.resolve(process.argv[2] || ".");
+@@ -28,9 +33,10 @@ const append = (file, msg) => {
+ const slug = u => u.replace(/^https?:\/\//, "").replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "") || "page";
+ 
+ try {
+-	const landing = fs.readFileSync(task, "utf8").split("\n").flatMap(l => { try { return l.trim() ? [JSON.parse(l)] : []; } catch { return []; } })
+-		.filter(e => e.assign?.landed_at).pop()?.assign;
++	const entries = fs.readFileSync(task, "utf8").split("\n").flatMap(l => { try { return l.trim() ? [JSON.parse(l)] : []; } catch { return []; } });
++	const landing = entries.filter(e => e.assign?.landed_at).pop()?.assign;
+ 	if (!landing) throw new Error("no landing line in " + task);
++	const card = Object.assign({}, ...entries.filter(e => e.assign).map(e => e.assign)).card;
+ 	// the clarity agent (.claude/skills/clarity/): a fresh Sonnet inside Servex, detached so layout-check does not wait
+ 	try { spawn(process.execPath, [path.join(root, "Server/clarity.mjs"), "landing", dir], { detached: true, stdio: "ignore", windowsHide: true }).unref(); } catch {}
+ 	try {
+@@ -40,6 +46,68 @@ try {
+ 		const arch = path.join(root, "public/framework/ai", now().slice(0, 10), "servex-mastermind", "task.jsonl");
+ 		if (tf.length && fs.existsSync(arch)) append(arch, `${path.basename(dir)} — ${tm}`);
+ 	} catch {}
++	// The doc check (task-loop, 2026-09-28): every module this task touched needs a
++	// readme.md, a doc/ and readme links that resolve — CLAUDE.md's own module shape.
++	// ONE log line always; when something is missing, ONE nag line on the task's own
++	// card too, through Servex's MCP door, so the owner sees it without opening the
++	// log. Skipped when the task has no card (a headless run with nobody to nag).
++	try {
++		const dc = doc_check(dir);
++		append(task, dc.line);
++		if (dc.dirty.length && card) {
++			const text = `Docs missing for ${dc.dirty.map(d => d.module).join(", ")} (no readme / no doc/ / dead links). Please fix before this counts as done.`;
++			const port = process.env.SERVEX_PORT || 8090;
++			try {
++				await fetch(`http://127.0.0.1:${port}/mcp?as=on-landing`, {
++					method: "POST", headers: { "content-type": "application/json" },
++					body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name: "card_reply", arguments: { card, from: "on-landing", text } } }),
++					signal: AbortSignal.timeout(3000),
++				});
++			} catch (e) { append(task, "doc-check: card nag not sent — " + String(e && e.message || e).slice(0, 150)); }
++		}
++	} catch (e) {
++		try { append(task, "doc-check: not run — " + String(e && e.message || e).slice(0, 200)); } catch {}
++	}
++	// Worktree teardown (task-loop, worktree-down, 2026-09-29): a landed task's own private dev
++	// server (its task.jsonl line 1 `worktree`) goes down the moment it's actually safe — landed,
++	// its branch merged into michael/dev, and nobody still working there. can_stop() in
++	// worktree-sweep.mjs is the one place that decides "safe"; sweep() on the loop's own tick
++	// catches anything this misses (Servex down right now, a race with a still-running agent). A
++	// task built straight in the main tree (no `worktree` on its line 1) has nothing to tear down
++	// here — entry is null and this whole block is a no-op.
++	try {
++		const entry = entry_for_task_dir(dir);
++		if (entry) {
++			const { ok, reason, why } = await can_stop(entry);
++			if (ok) {
++				const r = spawnSync(process.execPath, [path.join(root, "Server/worktree-down.mjs"), entry.name], { encoding: "utf8", windowsHide: true });
++				append(task, `worktree-down: ${entry.name} - ${(r.stdout || r.stderr || "").trim().split("\n").pop() || (r.status === 0 ? "stopped" : "failed")}`);
++			} else {
++				append(task, `worktree-down: kept ${entry.name} running - ${why}`);
++				// "not-merged" fixes itself once merge.mjs lands the branch — this loop's own next
++				// tick sweeps it then, no one needs to act — so only every OTHER reason (still
++				// busy, no task found) is worth a line on the card.
++				if (card && reason !== "not-merged") {
++					let untracked = "";
++					try {
++						const st = execFileSync("git", ["-C", entry.path, "status", "--porcelain"], { encoding: "utf8", windowsHide: true });
++						const files = st.split("\n").filter(l => l.startsWith("??")).map(l => l.slice(3).trim());
++						if (files.length) untracked = ` Untracked in the worktree: ${files.join(", ")}.`;
++					} catch {}
++					const text = `Worktree ${entry.name} is still running - ${why}.${untracked}`;
++					try {
++						await fetch(`http://127.0.0.1:${process.env.SERVEX_PORT || 8090}/mcp?as=on-landing`, {
++							method: "POST", headers: { "content-type": "application/json" },
++							body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name: "card_reply", arguments: { card, from: "on-landing", text } } }),
++							signal: AbortSignal.timeout(3000),
++						});
++					} catch (e) { append(task, "worktree-down: card nag not sent - " + String(e && e.message || e).slice(0, 150)); }
++				}
++			}
++		}
++	} catch (e) {
++		try { append(task, "worktree-down: not run - " + String(e && e.message || e).slice(0, 200)); } catch {}
++	}
+ 	const paths = [...String(landing.outcome || "").matchAll(/\]\((\/[^)\s]*)\)|(?:^|[\s"'(])(\/[\w./~%-]+)/g)].map(m => m[1] || m[2])
+ 		.map(p => p.split(/[#?]/)[0]).filter(p => p && !/\.(png|jpe?g|gif|webp|svg|md|mp4|json|jsonl)$/i.test(p));
+ 	const out = path.join(dir, "layout-check");
+diff --git a/Server/worktree-down.mjs b/Server/worktree-down.mjs
+index e7434ddb..0378eb22 100644
+--- a/Server/worktree-down.mjs
++++ b/Server/worktree-down.mjs
+@@ -56,6 +56,25 @@ try {
+ 	});
+ } catch {}
+ 
++// The directory itself is already gone (removed by hand, or its disk cleaned up some other
++// way) — worktree-sweep.mjs hits this whenever a registered worktree's dir vanished. There is
++// nothing dirty to protect, so skip straight to clearing git's own record of it (`worktree
++// remove` when it still lists the path, else `prune` for the leftover admin files) and the
++// registry entry, rather than the "could not read git status" refusal below, which would
++// otherwise leave a dead entry in .worktrees.json forever.
++if (!fs.existsSync(entry.path)) {
++	console.log(`worktree-down: ${entry.path} no longer exists on disk — clearing its record only.`);
++	try { execFileSync("git", ["worktree", "remove", "--force", entry.path], { cwd: ROOT, windowsHide: true }); } catch {}
++	try { execFileSync("git", ["worktree", "prune"], { cwd: ROOT, windowsHide: true }); } catch {}
++	try { execFileSync("git", ["branch", "-D", entry.branch], { cwd: ROOT, windowsHide: true }); }
++	catch (e) { console.error(`worktree-down: could not delete branch ${entry.branch} — remove it by hand (\`git branch -D ${entry.branch}\`).`); }
++	if (entry.log) { try { fs.unlinkSync(entry.log); } catch {} }
++	delete registry[name];
++	write_registry(registry);
++	console.log(`worktree-down: done.`);
++	process.exit(0);
++}
++
+ let status = "";
+ try {
+ 	status = execFileSync("git", ["-C", entry.path, "status", "--porcelain"], { encoding: "utf8", windowsHide: true });
+diff --git a/Server/worktree-sweep.mjs b/Server/worktree-sweep.mjs
+new file mode 100644
+index 00000000..ca61c850
+--- /dev/null
++++ b/Server/worktree-sweep.mjs
+@@ -0,0 +1,169 @@
++/* `node Server/worktree-sweep.mjs [--dry] [--root <repo>]` — takes down a worktree's private dev
++ * server once its task is actually, safely done with it. Never run by hand as the normal way to
++ * stop one: the loop calls `sweep()` once per tick, and `on-landing.mjs` calls `can_stop()` the
++ * moment a task lands. `--root` points it at another checkout's `.worktrees.json` and task logs
++ * (proof only — same idea as merge.mjs's `--main`); every import (on-landing.mjs, TaskLoop.js)
++ * always sweeps its own checkout.
++ *
++ * WHY (task-loop, worktree-down, 2026-09-29): on 09-28, 24 worktree server pairs (about 2.1 GB)
++ * were still running for tasks that had landed days earlier — nothing ever took them down. But
++ * `landed_at` ALONE is not enough to prove it's safe: the same day, collab-rounds had a
++ * `landed_at` while its branch wasn't merged yet and its minion was still fixing a bug, and
++ * something stopped its server anyway. So `can_stop()` checks all three:
++ *   1. the worktree's OWN task has `landed_at` + a real `outcome` (found via its task.jsonl's
++ *      line 1 `worktree` field, which is set once at spawn and never changes);
++ *   2. that task's branch is fully merged into `michael/dev` (`git merge-base --is-ancestor`);
++ *   3. no live agent is still working there — the task's own mastermind, one of its minions
++ *      (registry `parent` chain), or any agent whose recorded `cwd` is inside the worktree.
++ * All three true = ok to stop. Any one false = skip, and say which one and why, so a nag on a
++ * card or a line in `--dry` output always names the real reason, never just "not yet". */
++import { execFileSync, spawnSync } from "node:child_process";
++import fs from "node:fs";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++
++// `ROOT` is normally this script's own repo (Server/.. — a worktree's copy sweeps that
++// worktree's own Servex state). `--root <dir>` (proof only, same idea as merge.mjs's `--main`)
++// points it at another checkout instead — the running one, say, when this fix isn't merged
++// there yet — without changing what an import (`on-landing.mjs`, `TaskLoop.js`) ever sees.
++let ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
++const registry_file = () => path.join(ROOT, ".worktrees.json");
++const ai_dir = () => path.join(ROOT, "public", "framework", "ai");
++
++const norm = p => path.resolve(String(p || "")).replace(/\\/g, "/").toLowerCase();
++
++function read_registry(){
++	try { return JSON.parse(fs.readFileSync(registry_file(), "utf8")); } catch { return {}; }
++}
++
++/* Every task.jsonl under public/framework/ai/, any depth (a sub-task's own dir included) —
++ * there are only a few hundred, so a full walk once per tick is cheap. Dot-dirs and
++ * node_modules skipped, same as TaskLoop.js's own walk(). */
++function all_task_files(){
++	const out = [];
++	(function walk(dir){
++		let entries;
++		try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
++		for (const e of entries){
++			if (e.name.startsWith(".") || e.name === "node_modules") continue;
++			const p = path.join(dir, e.name);
++			if (e.isDirectory()) walk(p);
++			else if (e.name === "task.jsonl") out.push(p);
++		}
++	})(ai_dir());
++	return out;
++}
++
++/** Every `assign` line merged, later wins — same rule TaskLoop.js's read_task() uses. */
++export function task_state(dir){
++	let text; try { text = fs.readFileSync(path.join(dir, "task.jsonl"), "utf8"); } catch { return null; }
++	const state = {};
++	for (const raw of text.split("\n")){
++		if (!raw.trim()) continue;
++		let obj; try { obj = JSON.parse(raw); } catch { continue; }
++		if (obj.assign && typeof obj.assign === "object") Object.assign(state, obj.assign);
++	}
++	return state;
++}
++
++const task_key = dir => path.relative(ai_dir(), dir).split(path.sep).join("/");
++
++/** The task whose line-1 `worktree` names this exact worktree path, or null. */
++function find_task_for_worktree(wtPath){
++	const target = norm(wtPath);
++	for (const file of all_task_files()){
++		const dir = path.dirname(file);
++		const state = task_state(dir);
++		if (state?.worktree && norm(state.worktree) === target) return { dir, key: task_key(dir), ...state };
++	}
++	return null;
++}
++
++/** The registry entry (from .worktrees.json) whose path is this task's own `worktree` field. */
++export function entry_for_task_dir(dir){
++	const state = task_state(dir);
++	if (!state?.worktree) return null;
++	const target = norm(state.worktree);
++	for (const entry of Object.values(read_registry())) if (norm(entry.path) === target) return entry;
++	return null;
++}
++
++function is_merged(branch){
++	if (!branch) return false;
++	const r = spawnSync("git", ["merge-base", "--is-ancestor", branch, "michael/dev"], { cwd: ROOT, windowsHide: true });
++	return r.status === 0;
++}
++
++/* The live agent list: Servex's own `GET /agents` when it's answering (the freshest truth —
++ * an agent that just ended its turn may not have written the registry file yet), else the
++ * registry.json file it reads that endpoint from. Either way this never throws: Servex being
++ * down just means "assume nothing is live", which is the safe direction for a --dry read but
++ * NOT for actually stopping something — callers only act on an `ok` that also passed the other
++ * two checks, so a false "no agents" here can't unstick a task that hasn't landed or merged. */
++async function live_agents(){
++	const port = process.env.SERVEX_PORT || 8090;
++	try {
++		const res = await fetch(`http://127.0.0.1:${port}/agents`, { signal: AbortSignal.timeout(2000) });
++		if (res.ok) return await res.json();
++	} catch {}
++	try {
++		const home = process.env.SERVEX_HOME || path.join(process.env.LOCALAPPDATA || "", "lew42", "servex");
++		return Object.values(JSON.parse(fs.readFileSync(path.join(home, "registry.json"), "utf8")));
++	} catch { return []; }
++}
++
++/** `can_stop(entry)` — entry is one value from `.worktrees.json` ({name, path, branch, pid, …}).
++ *  Returns `{ok, why, reason}`; `why` is always a plain sentence, ok or not. `reason` is a short
++ *  machine code a caller can branch on without parsing `why` — `on-landing.mjs` uses it to skip
++ *  nagging the card over "not-merged", the one reason that fixes itself (this loop's own next
++ *  tick, once `merge.mjs` lands the branch, sees it merged and sweeps the server then). */
++export async function can_stop(entry){
++	const task = find_task_for_worktree(entry.path);
++	if (!task) return { ok: false, reason: "no-task", why: `no task.jsonl names this worktree (${entry.path}) in its line 1` };
++	if (!task.landed_at || !String(task.outcome ?? "").trim())
++		return { ok: false, reason: "not-landed", why: `task ${task.key} has not landed (no landed_at + outcome yet)` };
++	if (!is_merged(entry.branch))
++		return { ok: false, reason: "not-merged", why: `branch ${entry.branch || "(none)"} is not merged into michael/dev yet` };
++	const mastermind = task.agent || null;
++	const agents = await live_agents();
++	// "Live" here means WORKING right now, not merely "not stopped yet" — the agent that landed
++	// this task normally goes straight to `idle`, not `stopped` (nothing stops it), so treating
++	// idle as a blocker would keep every worktree's server up forever, the exact bug this was
++	// built to fix. `mastermind` can be null (the task's line 1 never named an `agent`) — guarded
++	// so that never turns into "every parentless agent in the system blocks this one".
++	const acting = a => a.state === "working" || a.state === "starting";
++	const blockers = agents.filter(a => acting(a)
++		&& ((mastermind && (a.id === mastermind || a.parent === mastermind)) || (a.cwd && norm(a.cwd) === norm(entry.path))));
++	if (blockers.length) return { ok: false, reason: "busy", why: `still working: ${blockers.map(a => a.id).join(", ")}` };
++	return { ok: true, reason: null, why: `${task.key} landed ${task.landed_at}, ${entry.branch} merged, no live agent working there` };
++}
++
++/** Every registered worktree server: stop ones that are safe (worktree dir gone, or `can_stop`
++ *  ok) by calling worktree-down.mjs, which already refuses a dirty tree. Never the main tree —
++ *  it is never in this registry — and never Servex's own (same reason). `--dry` prints only. */
++export async function sweep({ dry = false } = {}){
++	const registry = read_registry(), rows = [];
++	for (const [name, entry] of Object.entries(registry)){
++		if (!entry?.path || norm(entry.path) === norm(ROOT)) continue;   // belt-and-suspenders: never the main tree
++		const gone = !fs.existsSync(entry.path);
++		const { ok, why } = gone ? { ok: true, why: "worktree directory no longer exists on disk" } : await can_stop(entry);
++		const row = { name, ok, why };
++		rows.push(row);
++		if (ok && !dry){
++			const r = spawnSync(process.execPath, [path.join(ROOT, "Server/worktree-down.mjs"), name], { encoding: "utf8", windowsHide: true });
++			row.result = (r.stdout || r.stderr || "").trim().split("\n").pop() || (r.status === 0 ? "stopped" : "failed");
++		}
++	}
++	return rows;
++}
++
++if (path.resolve(process.argv[1] || "") === fileURLToPath(import.meta.url)){
++	const argv = process.argv.slice(2);
++	const dry = argv.includes("--dry");
++	const rootIdx = argv.indexOf("--root");
++	if (rootIdx >= 0) ROOT = path.resolve(argv[rootIdx + 1]);
++	const rows = await sweep({ dry });
++	const stop = rows.filter(r => r.ok), skip = rows.filter(r => !r.ok);
++	console.log(`worktree-sweep: ${rows.length} registered worktree(s) — ${stop.length} ${dry ? "would stop" : "stopped"}, ${skip.length} skipped.`);
++	for (const r of rows) console.log(`  ${r.ok ? (dry ? "would stop" : (r.result || "stop")) : "skip"}  ${r.name} — ${r.why}`);
++}
+diff --git a/Servex/Heartbeat.js b/Servex/Heartbeat.js
+new file mode 100644
+index 00000000..4e0b1833
+--- /dev/null
++++ b/Servex/Heartbeat.js
+@@ -0,0 +1,260 @@
++import fs from "fs";
++import path from "path";
++import { place, stamp } from "./home.js";
++
++/* THE HEARTBEAT — a task's owner that goes quiet is asked how it is doing; one
++ * that died is revived; only when that fails does the owner of the machine hear.
++ * Doc: Servex/doc/task-loop.md, "The heartbeat". Plain node over agent events
++ * (`agents.watch`) and messages (`agents.send`), so any harness can feed it.
++ *
++ * Watched: every OPEN task (no landed_at + outcome, no closed_by) that opted in —
++ * line 1 dated at/after SERVEX_HEARTBEAT_SINCE, or line 1 `heartbeat: true` — so
++ * the boot sweep never wakes weeks-old tasks. Only its line-1 agent is watched. */
++export const CHECK = "Status check: where are you at? No change of plan needed; just a line on what you're doing.";
++const FROM = "servex-heartbeat";
++
++export default class Heartbeat {
++
++    constructor(...args){ Object.assign(this, ...args); this.initialize(); }
++
++    initialize(){
++        const env = (k, d) => Number(process.env[k]) || d;
++        this.silent_ms ??= env("SERVEX_HEARTBEAT_SILENT_MIN", 5) * 60000;
++        this.revive_gap_ms ??= env("SERVEX_HEARTBEAT_REVIVE_GAP_S", 30) * 1000;
++        this.since ??= Date.parse(process.env.SERVEX_HEARTBEAT_SINCE || "2026-09-29T13:00:00-05:00");
++        this.queue_file ??= place("heartbeat-queue.json");   // revives waiting on the gate survive a restart
++        this.seen = new Map();        // agent id -> { at, tool_at } — its last sign of life
++        this.watch = new Map();       // task.jsonl -> { owner, card, check_at, answered, told }
++        this.stopped_by = new Map();  // agent id -> { by, at } — stopped on purpose, never revived
++        this.gate = new Map();        // a queued spawn spec -> { at, reason, told }
++        this.admitted = new WeakSet();
++        this.booted = Date.now();
++        this.last_revive = 0;
++    }
++
++    get agents(){ return this.servex.agents; }
++
++    /* Hooks on the INSTANCE, the same way Servex's spawn gate wraps `spawn`. */
++    start(){
++        const a = this.agents, watch = a.watch.bind(a), stop = a.stop.bind(a);
++        a.watch = (event, agent) => { watch(event, agent); try { this.saw(event, agent); } catch {} };
++        a.stop = id => { if (!this.stopped_by.has(id)) this.stopped_by.set(id, { by: "in-process", at: stamp() }); return stop(id); };
++        a.task_dir_of = id => { for (const [f, w] of this.watch) if (w.owner === id) return path.dirname(f); };
++        this.servex.on?.("admitted", spec => this.admitted.add(spec));
++        const run = () => this.tick().catch(e => this.servex.say?.(`heartbeat: ${e.message || e}`));
++        this.timer = setInterval(run, Math.min(60000, this.silent_ms / 3));
++        this.timer.unref();
++        setTimeout(run, 3000).unref();   // the boot sweep: a task whose agent died in a restart is picked up at once
++        return this;
++    }
++
++    stop(){ clearInterval(this.timer); this.agents.closing = true; }   // Servex is shutting down: wake_parent must not revive anyone
++
++    /* Who called stop_agent — the MCP door knows (`ctx.caller`), the tool does not
++     * pass it on. Wrapped at the first tick, once Servex has registered its tools. */
++    wrap_stop(){
++        const h = this.servex.mcp?.handlers, tool = h?.get("stop_agent");
++        if (!tool || tool.heartbeat) return;
++        const wrapped = (args = {}, ctx = {}) => {
++            this.stopped_by.set(args.id, { by: ctx.caller ?? args.from ?? "unknown", at: stamp() });
++            return tool(args, ctx);
++        };
++        wrapped.heartbeat = true;
++        h.set("stop_agent", wrapped);
++    }
++
++    /* ── signs of life ─────────────────────────────────────────────── */
++
++    saw(event, agent){
++        const s = this.seen.get(agent.id) ?? {}, now = Date.now();
++        s.at = now;
++        if (event.type === "tool" && !event.nested) s.tool_at = now;
++        else if (!event.nested && event.type !== "delta") s.tool_at = null;
++        this.seen.set(agent.id, s);
++        if (agent.state !== "stopped") this.stopped_by.delete(agent.id);
++        for (const [file, w] of this.watch){
++            if (w.owner !== agent.id) continue;
++            if (event.type === "result" && !event.stopped && w.check_at){   // it answered: that goes on the card, nothing else
++                w.check_at = null; w.answered = (w.answered ?? 0) + 1;
++                const text = (agent.last_text ?? event.text ?? "").slice(0, 600);
++                this.log(file, "answered", text.slice(0, 200));
++                if (w.card) this.post(w.card, `${agent.id}: ${text}`);
++            } else if (event.type === "transcript" && !w.check_at) w.answered = 0;   // working on its own again
++        }
++    }
++
++    /* ── the sweep ─────────────────────────────────────────────────── */
++
++    async tick(){
++        if (this.busy) return;
++        this.busy = true;
++        try {
++            const now = Date.now();
++            this.wrap_stop();
++            for (const file of this.files()){
++                const t = this.read(file);
++                if (!t || t.done){ this.watch.delete(file); continue; }
++                const w = this.watch.get(file) ?? {};
++                this.watch.set(file, Object.assign(w, { owner: t.owner, card: t.card }));
++                if (t.escalated || this.queued_revive(file)) continue;
++                const live = this.agents.live.get(t.owner), alive = live && live.state !== "stopped";
++                const s = this.seen.get(t.owner), last = s?.at ?? (alive ? this.booted : t.mtime);
++                if (w.check_at){
++                    if (now - w.check_at >= this.silent_ms) await this.triage(file, t, w, "it did not answer the status check");
++                    continue;
++                }
++                if (now - last < this.silent_ms * 2 ** Math.min(w.answered ?? 0, 4)) continue;
++                if (this.children(t.owner).length) continue;   // waiting on its own children; their results wake it
++                if (!alive){ await this.triage(file, t, w, live?.last_error ? `its session failed: ${live.last_error}` : "its agent is not running"); continue; }
++                if (s?.tool_at){   // never interrupt a tool: note it, and escalate only a tool stuck 3x the silence
++                    const min = Math.round((now - s.tool_at) / 60000);
++                    if (now - s.tool_at >= 3 * this.silent_ms) await this.escalate(file, t, `${t.owner} has been inside one tool call for ${min} min`);
++                    else if (w.told !== "tool"){ w.told = "tool"; await this.log(file, "mid-tool", `${t.owner} is mid-tool; left alone`); }
++                    continue;
++                }
++                try { this.agents.send(t.owner, CHECK, { from: FROM }); w.check_at = now; await this.log(file, "check", `status check sent to ${t.owner}`); }
++                catch (e){ await this.triage(file, t, w, `the status check could not be sent: ${e.message || e}`); }
++            }
++            await this.gate_sweep(now);
++            await this.drain(now);
++        } finally { this.busy = false; }
++    }
++
++    files(){
++        const out = new Set(this.servex.task_loop?.find_task_files() ?? []);
++        for (const a of this.agents.live.values()) if (a.task?.dir) out.add(path.join(a.task.dir, "task.jsonl"));
++        return [...out].filter(f => fs.existsSync(f));
++    }
++
++    /* Line 1 names the owner and the opt-in; every assign merged says landed,
++     * closed or paused; this loop's own `heartbeat` lines count its revives. */
++    read(file){
++        let text, first, state = {}, revives = [], escalated = false;
++        try { text = fs.readFileSync(file, "utf8"); } catch { return null; }
++        for (const raw of text.split("\n")){
++            let o; try { o = raw.trim() && JSON.parse(raw); } catch {}
++            if (!o) continue;
++            if (o.assign){ first ??= o.assign; Object.assign(state, o.assign); }
++            if (o.log?.heartbeat === "revive") revives.push(Date.parse(o.log.at));
++            if (o.log?.heartbeat === "escalated") escalated = true;
++        }
++        if (!first || !(first.heartbeat === true || Date.parse(first.requested_at) >= this.since)) return null;
++        const owner = first.agent ?? this.agents.registry_list().find(r => r.session_id && r.session_id === first.session_id)?.id;
++        if (!owner) return null;
++        const done = (!!state.landed_at && !!String(state.outcome ?? "").trim()) || !!state.closed_by;
++        return { owner, session_id: first.session_id, card: state.card, paused: !!state.paused, done, escalated, revives,
++            mtime: fs.statSync(file).mtimeMs, slug: this.servex.task_loop?.slug(file) ?? path.basename(path.dirname(file)) };
++    }
++
++    children(id){
++        return [...[...this.agents.live.values()].filter(a => a.parent === id && a.state !== "stopped"),
++            ...(this.servex.queue ?? []).filter(e => e.spec.parent === id)];
++    }
++
++    /* ── triage: find why, fix it, escalate only when the fix fails ─── */
++
++    async triage(file, t, w, why){
++        w.check_at = null;
++        const held = (this.servex.queue ?? []).find(e => e.spec.id === t.owner);
++        const once = async (kind, msg) => { if (w.told === kind) return; w.told = kind; await this.log(file, kind, msg); if (t.card) await this.post(t.card, msg); };
++        if (held) return once("queued", `${t.owner} ${why}: it is queued at the spawn gate (${held.reason}).`);
++        if (t.paused) return once("paused", `${t.owner} ${why}, but the task is paused; not revived.`);
++        const by = this.stopped_by.get(t.owner);
++        if (by) return once("deliberate", `${t.owner} ${why}: it was stopped on purpose by ${by.by} at ${by.at}; not revived.`);
++        const hour = t.revives.filter(x => Date.now() - x < 3600000).length, day = t.revives.filter(x => Date.now() - x < 86400000).length;
++        if (hour >= 2 || day >= 5) return this.escalate(file, t, `${t.owner} ${why}, and was already revived ${hour} times this hour (${day} today)`);
++        this.enqueue({ file, owner: t.owner, session_id: t.session_id, why });
++        await this.log(file, "revive-queued", `${t.owner} ${why}; a revive is queued`);
++    }
++
++    /* The revive queue is a file, drained one every `revive_gap_ms`, and only
++     * while the spawn gate would admit — a revive counts toward the cap. */
++    jobs(){ try { return JSON.parse(fs.readFileSync(this.queue_file, "utf8")); } catch { return []; } }
++    save(jobs){ fs.writeFileSync(this.queue_file, JSON.stringify(jobs, null, 1)); }
++    enqueue(job){ const jobs = this.jobs(); if (!jobs.some(j => j.file === job.file)) this.save([...jobs, { ...job, at: stamp() }]); }
++    queued_revive(file){ return this.jobs().some(j => j.file === file); }
++
++    async drain(now){
++        const jobs = this.jobs();
++        if (!jobs.length || now - this.last_revive < this.revive_gap_ms) return;
++        if (this.servex.admit?.({ role: "task-mastermind" })) return;   // the gate says wait; the file keeps it
++        const job = jobs.shift();
++        this.save(jobs);
++        this.last_revive = now;
++        const t = this.read(job.file), w = this.watch.get(job.file);
++        if (!t || t.done || !w) return;
++        const dir = path.dirname(job.file), unread = this.inbox(dir);
++        const text = `Servex heartbeat: your task ${t.slug} is still open and ${job.why}. ${CHECK}`
++            + (unread ? `\n\nWhile you were away, your children reported (from ${path.join(dir, "inbox.jsonl")}):\n${unread}` : "");
++        try {
++            // a registry row is woken by send(); a task whose agent left no row is resumed from line 1's session id
++            if (this.agents.live.has(t.owner) || this.agents.reg().read()[t.owner]) this.agents.send(t.owner, text, { from: FROM });
++            else this.agents.reopen({ id: t.owner, session_id: t.session_id }).send(text, { from: FROM });
++            w.check_at = Date.now(); w.told = null;
++            await this.log(job.file, "revive", `revived ${t.owner} from session ${t.session_id}${unread ? ", with its unread inbox" : ""}`);
++            if (t.card) await this.post(t.card, `${t.owner} ${job.why}; Servex revived it and asked where it is at.`);
++        } catch (e){ await this.escalate(job.file, t, `${t.owner} ${job.why}, and the revive failed: ${e.message || e}`); }
++    }
++
++    /* Unread lines of a task's inbox.jsonl (Agents.wake_parent writes them), then marked read. */
++    inbox(dir){
++        const file = path.join(dir, "inbox.jsonl");
++        let lines; try { lines = fs.readFileSync(file, "utf8").split("\n").flatMap(l => { try { return l.trim() ? [JSON.parse(l)] : []; } catch { return []; } }); } catch { return ""; }
++        const from = lines.findLastIndex(l => l.read_upto !== undefined) + 1, unread = lines.slice(from).filter(l => l.text !== undefined);
++        if (!unread.length) return "";
++        fs.appendFileSync(file, JSON.stringify({ read_upto: lines.length, at: stamp(), by: FROM }) + "\n");
++        return unread.map(l => `- ${l.from} (${l.kind}, ${l.at}): ${String(l.text).slice(0, 300)}`).join("\n");
++    }
++
++    /* The same door TaskLoop.escalate() uses: card_ask when registered, else a card message. */
++    async escalate(file, t, why){
++        await this.log(file, "escalated", why);
++        if (t.card) await this.post(t.card, `${why.replace(/\.+$/, "")}. Servex could not fix it; please look.`, true);
++    }
++
++    async post(card, text, ask){
++        const h = this.servex.mcp?.handlers, a = ask && h?.get("card_ask"), ctx = { caller: FROM };
++        try {
++            return a ? await a({ card, question: text, options: ["look into it", "close it"] }, ctx)
++                : h?.get("card_reply") ? await h.get("card_reply")({ card, text }, ctx)
++                : await this.servex.assistant?.card_reply({ card, from: FROM, text });
++        } catch (e){ this.servex.say?.(`heartbeat: card ${card} not posted: ${e.message || e}`); }
++    }
++
++    log(file, kind, msg){
++        return this.servex.task_loop.write_line(file, { log: { at: stamp(), heartbeat: kind, msg } });
++    }
++
++    /* ── a minion stuck at the spawn gate: its parent hears, once ───── */
++
++    async gate_sweep(now){
++        const q = this.servex.queue ?? [];
++        for (const e of q) if (!this.gate.has(e.spec)) this.gate.set(e.spec, { at: Date.parse(e.at) || now });
++        for (const [spec, g] of this.gate){
++            const entry = q.find(e => e.spec === spec);
++            if (entry) g.reason = entry.reason;
++            if (!entry && (this.admitted.has(spec) || g.told || !spec.parent)){ this.gate.delete(spec); continue; }
++            if (g.told || !spec.parent || (entry && now - g.at < this.silent_ms)) continue;
++            g.told = true;
++            const who = spec.id ?? spec.name ?? spec.role ?? "a minion", min = Math.round((now - g.at) / 6000) / 10;
++            const text = entry ? `${who} has been waiting ${min} min at the spawn gate and has not started: ${g.reason}.`
++                : `${who} was dropped from the spawn queue without ever starting, after ${min} min: ${g.reason}.`;
++            try { this.agents.send(spec.parent, text, { from: FROM }); this.servex.say?.(`heartbeat: told ${spec.parent}: ${text}`); }
++            catch (e){ this.servex.say?.(`heartbeat: could not tell ${spec.parent} about ${who}: ${e.message || e}`); }
++        }
++    }
++
++    status(){
++        const now = Date.now();
++        return {
++            silent_min: this.silent_ms / 60000,
++            tasks: [...this.watch].map(([file, w]) => ({ task: this.servex.task_loop?.slug(file), owner: w.owner,
++                state: this.agents.live.get(w.owner)?.state ?? "not running",
++                silent_s: this.seen.get(w.owner) ? Math.round((now - this.seen.get(w.owner).at) / 1000) : null,
++                mid_tool: !!this.seen.get(w.owner)?.tool_at, check_pending: !!w.check_at, answered: w.answered ?? 0 })),
++            gate: [...this.gate].map(([spec, g]) => ({ who: spec.id ?? spec.name ?? spec.role, parent: spec.parent ?? null,
++                waited_s: Math.round((now - g.at) / 1000), told: !!g.told })),
++            revives_queued: this.jobs().length
++        };
++    }
++}
+diff --git a/Servex/Servex.js b/Servex/Servex.js
+index 339e9fe8..131d6c36 100644
+--- a/Servex/Servex.js
++++ b/Servex/Servex.js
+@@ -8,6 +8,8 @@ import Server from "../Server/Server.js";
+ import Events from "../Server/Events.js";
+ import Log from "./Log.js";
+ import Monitor from "./Monitor.js";
++import TaskLoop from "./TaskLoop.js";
++import Heartbeat from "./Heartbeat.js";
+ import Usage from "./Usage.js";
+ import Pool from "./Pool.js";
+ import MCP, { loopback } from "./MCP.js";
+@@ -170,6 +172,22 @@ export default class Servex extends Events {
+             this.monitor.on("tick", () => this.drain());
+         }
+ 
++        /* THE TASK LOOP (task-loop, 2026-09-28): every SERVEX_TASKLOOP_EVERY_MIN
++         * minutes, chase an open task quiet past SERVEX_TASKLOOP_QUIET_MIN, or whose
++         * owning agent stopped or is gone; escalate to its card after 2 chases
++         * SERVEX_TASKLOOP_GAP_MIN apart. `root: REPO`, not process.cwd(), so a
++         * worktree's Servex chases the worktree's own tasks, never the live site's.
++         * Built always (close_task and task_loop_status stay callable either way);
++         * `SERVEX_NO_TASKLOOP=1` only skips the ticking. Doc: Servex/doc/task-loop.md. */
++        this.task_loop = new this.constructor.TaskLoop({ servex: this, root: REPO });
++        if (!process.env.SERVEX_NO_TASKLOOP) this.task_loop.start();
++
++        /* THE HEARTBEAT (task-loop/heartbeat, 2026-09-29): a task owner silent
++         * SERVEX_HEARTBEAT_SILENT_MIN (5) gets a neutral status check; one that died
++         * is triaged and revived; the card hears only when that fails. A minion stuck
++         * at the spawn gate wakes its parent. `SERVEX_NO_HEARTBEAT=1` skips it. */
++        this.heartbeat = new this.constructor.Heartbeat({ servex: this });
++        if (!process.env.SERVEX_NO_HEARTBEAT) this.heartbeat.start();
+         /* The usage bars: claude-usage.py every 15 min, hidden (Usage.js). */
+         if (!process.env.SERVEX_NO_USAGE) this.usage = new Usage({ repo: path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..") }).start();
+ 
+@@ -562,6 +580,26 @@ export default class Servex extends Events {
+             const health = this.health();
+             return `${health.verdict}\n\n${JSON.stringify(health, null, 2)}`;
+         });
++
++        /* The task loop's own two tools (Servex/doc/task-loop.md). */
++        this.mcp.tool("close_task", {
++            description: "The only way a task leaves the task loop besides landing. Appends {closed_by: \"owner\","
++                + " closed_at, closed_why} to its task.jsonl; the loop then never chases or escalates it again.",
++            inputSchema: { type: "object", required: ["dir"], properties: {
++                dir: { type: "string", description: "The task's directory, e.g. `public/framework/ai/2026-09-28/my-task` — repo-relative or absolute." },
++                why: { type: "string", description: "One line: why it is being closed without landing." }
++            } }
++        }, async args => JSON.stringify(await this.task_loop.close_task(args)));
++
++        this.mcp.tool("task_loop_status", {
++            description: "The task loop's latest tick: how many tasks are open today, how many are quiet, and running"
++                + " totals chased/escalated since this Servex started."
++        }, () => JSON.stringify(this.task_loop.status()));
++
++        this.mcp.tool("heartbeat_status", {
++            description: "The heartbeat: every watched task owner, how long it has been silent, whether a status check is"
++                + " waiting on an answer or it is mid-tool; minions held at the spawn gate; revives queued."
++        }, () => JSON.stringify(this.heartbeat.status(), null, 1));
+     }
+ 
+     health(){
+@@ -700,6 +738,8 @@ export default class Servex extends Events {
+     shutdown(){
+         const down = () => {
+             try { this.monitor?.stop(); } catch {}
++            try { this.task_loop?.stop(); } catch {}
++            try { this.heartbeat?.stop(); } catch {}
+             for (const agent of this.agents.live.values()) try { agent.stop(); } catch {}

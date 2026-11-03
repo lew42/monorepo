@@ -1,0 +1,37 @@
+{
+ "id": "1ca12342-e4c3-4850-9f4d-f4530891e4a8",
+ "first": "2026-10-15T23:52:18.188Z",
+ "last": "2026-10-16T00:06:19.677Z",
+ "task": "public/framework/ai/sessions/2026/10/15/voice-20261015/live-stream",
+ "models": {
+  "claude-sonnet-5-5": 33
+ },
+ "sizes": {
+  "raw": 356194,
+  "content": 28642,
+  "stripped": 5612,
+  "owner_only": 0
+ },
+ "usd": 1.136071,
+ "usd_main": 1.136071,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 66,
+  "output": 13671,
+  "cache_read": 2494524,
+  "cache_write": 125081,
+  "w5": 0,
+  "w1": 125081
+ },
+ "messages": 33,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "The outcome line is now in the task log, so the task counts as landed. The `/live` fix is committed on `michael/dev` as `21dce95ce`, and the phone needs one manual refresh.",
+ "edited": [
+  "public/live/Live.js",
+  "public/live/Live.css",
+  "C:/Users/mike/AppData/Local/Temp/ls/land.json",
+  "C:/Users/mike/AppData/Local/Temp/ls/out.json"
+ ],
+ "digested_at": "2026-10-16T06:28:10.184Z"
+}

@@ -1,0 +1,37 @@
+{
+  "class": "Scoreboard",
+  "properties": [
+    "rows",
+    "_model_cache"
+  ],
+  "methods": [
+    {
+      "name": "apply",
+      "args": ["entry"]
+    },
+    {
+      "name": "models",
+      "args": []
+    },
+    {
+      "name": "retire",
+      "args": []
+    },
+    {
+      "name": "overrules",
+      "args": []
+    },
+    {
+      "name": "decision_details",
+      "args": ["id"]
+    },
+    {
+      "name": "model_history",
+      "args": ["name"]
+    },
+    {
+      "name": "cost_per_decision_median",
+      "args": ["min_decisions"]
+    }
+  ]
+}

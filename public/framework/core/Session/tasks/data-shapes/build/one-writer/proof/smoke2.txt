@@ -1,0 +1,635 @@
+  (console-allow.jsonl: "List — insert\(\): ".*" is already a property name on the list or its owner — refused" expired 2026-10-17 — no longer covered)
+  (console-allow.jsonl: "Doc: .* has no member ".*" — nothing added" expired 2026-10-10 — no longer covered)
+  (console-allow.jsonl: "Item\.Store: unparsed line in .*files\.jsonl" expired 2026-10-10 — no longer covered)
+  (console-allow.jsonl: "Failed to load resource: the server responded with a status of 404.*(spend\.json|usage\.json|tasks\.json|/shots/.*\.png)" expired 2026-10-20 — no longer covered)
+  (console-allow.jsonl: "Doc: .* has no member ".*" — nothing added" expired 2026-10-26 — no longer covered)
+  (console-allow.jsonl: "Item\.Store: unparsed line in .*files\.jsonl" expired 2026-10-26 — no longer covered)
+  (console-allow.jsonl: "HTTP 404: .*/framework/ai/sessions/[0-9a-f-]{36}/session.jsonl" expired 2026-10-26 — no longer covered)
+  (console-allow.jsonl: "HTTP 404: .*/framework/ai/sessions/[a-z][a-z0-9-]*/session.jsonl" expired 2026-10-26 — no longer covered)
+  (console-allow.jsonl: "HTTP 404: .*/framework/ai/sessions/[0-9a-f-]{36}/prompts.jsonl" expired 2026-10-26 — no longer covered)
+ok   /framework/
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+FAIL /framework/ai2/  1 error
+       console warn/log budget exceeded: 6 > 5 (not in console-allow.jsonl)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/usage.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/usage.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/index.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise [dictate] socket: connected
+  noise [dictate] whisper: checking…
+  noise [dictate] whisper: connected
+ok   /framework/
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+FAIL /framework/ai2/  1 error
+       console warn/log budget exceeded: 6 > 5 (not in console-allow.jsonl)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/usage.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/usage.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/index.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise [dictate] socket: connected
+  noise [dictate] whisper: checking…
+  noise [dictate] whisper: connected
+FAIL /framework/core/Item/  3 errors
+       layout: text touching its box — ".ux-content-defaultview-class" 1px from top
+       layout: text touching its box — ".doc-class-step-n" 1px from bottom
+       console warn/log budget exceeded: 6 > 5 (not in console-allow.jsonl)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+FAIL /framework/core/Item/watch/  1 error
+       console warn/log budget exceeded: 7 > 5 (not in console-allow.jsonl)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+  noise PASS DefaultView (16 checks)
+FAIL /framework/core/List/  2 errors
+       layout: text touching its box — ".ux-content-defaultview-class" 1px from top
+       layout: text touching its box — ".doc-class-step-n" 1px from bottom
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+FAIL /framework/core/Item/methods/set/  2 errors
+       layout: text touching its box — ".ux-content-defaultview-class" 1px from top
+       console warn/log budget exceeded: 6 > 5 (not in console-allow.jsonl)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+FAIL /framework/core/Item/methods/  1 error
+       console warn/log budget exceeded: 6 > 5 (not in console-allow.jsonl)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+FAIL /framework/core/Item/live/  1 error
+       console warn/log budget exceeded: 6 > 5 (not in console-allow.jsonl)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+FAIL /framework/core/Item/Dated/  1 error
+       console warn/log budget exceeded: 6 > 5 (not in console-allow.jsonl)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+FAIL /framework/core/Item/doc/  1 error
+       console warn/log budget exceeded: 6 > 5 (not in console-allow.jsonl)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+FAIL /framework/core/Item/md/  1 error
+       console warn/log budget exceeded: 6 > 5 (not in console-allow.jsonl)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+FAIL /framework/core/Item/files/  1 error
+       console warn/log budget exceeded: 6 > 5 (not in console-allow.jsonl)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+FAIL /framework/core/Item/inbox/  1 error
+       console warn/log budget exceeded: 6 > 5 (not in console-allow.jsonl)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+FAIL /framework/core/Item/overview/intro/  3 errors
+       layout: text touching its box — ".ux-content-defaultview-class" 1px from top
+       layout: text touching its box — ".doc-class-step-n" 1px from bottom
+       console warn/log budget exceeded: 6 > 5 (not in console-allow.jsonl)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+FAIL /framework/core/Item/methods/get/  1 error
+       console warn/log budget exceeded: 6 > 5 (not in console-allow.jsonl)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+FAIL /framework/core/Item/methods/find/  2 errors
+       layout: text touching its box — ".ux-content-defaultview-class" 1px from top
+       console warn/log budget exceeded: 6 > 5 (not in console-allow.jsonl)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+FAIL /framework/core/Item/methods/remove/  2 errors
+       layout: text touching its box — ".ux-content-defaultview-class" 1px from top
+       console warn/log budget exceeded: 6 > 5 (not in console-allow.jsonl)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+FAIL /framework/core/Item/methods/root/  2 errors
+       layout: text touching its box — ".ux-content-defaultview-class" 1px from top
+       console warn/log budget exceeded: 6 > 5 (not in console-allow.jsonl)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+FAIL /framework/core/Item/methods/walk/  2 errors
+       layout: text touching its box — ".ux-content-defaultview-class" 1px from top
+       console warn/log budget exceeded: 6 > 5 (not in console-allow.jsonl)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+FAIL /framework/core/Item/methods/contains/  2 errors
+       layout: text touching its box — ".ux-content-defaultview-class" 1px from top
+       console warn/log budget exceeded: 6 > 5 (not in console-allow.jsonl)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+FAIL /framework/core/Item/methods/lists/  2 errors
+       layout: text touching its box — ".ux-content-defaultview-class" 1px from top
+       console warn/log budget exceeded: 6 > 5 (not in console-allow.jsonl)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+FAIL /framework/core/Item/methods/toJSON/  2 errors
+       layout: text touching its box — ".ux-content-defaultview-class" 1px from top
+       console warn/log budget exceeded: 6 > 5 (not in console-allow.jsonl)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+FAIL /framework/core/Item/methods/hydrate/  2 errors
+       layout: text touching its box — ".ux-content-defaultview-class" 1px from top
+       console warn/log budget exceeded: 6 > 5 (not in console-allow.jsonl)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+FAIL /framework/core/Item/methods/register/  1 error
+       console warn/log budget exceeded: 6 > 5 (not in console-allow.jsonl)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+FAIL /framework/core/Item/methods/replay/  2 errors
+       layout: text touching its box — ".ux-content-defaultview-class" 1px from top
+       console warn/log budget exceeded: 6 > 5 (not in console-allow.jsonl)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+ok   /framework/core/List/methods/
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+ok   /framework/core/List/doc/
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+ok   /framework/core/List/md/
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+ok   /framework/core/List/files/
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+ok   /framework/core/List/tasks/
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+ok   /framework/core/List/inbox/
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+FAIL /framework/core/List/overview/intro/  2 errors
+       layout: text touching its box — ".ux-content-defaultview-class" 1px from top
+       layout: text touching its box — ".doc-class-step-n" 1px from bottom
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+FAIL /framework/core/List/methods/add/  1 error
+       layout: text touching its box — ".ux-content-defaultview-class" 1px from top
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+FAIL /framework/core/List/methods/remove/  1 error
+       layout: text touching its box — ".ux-content-defaultview-class" 1px from top
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+FAIL /framework/core/List/methods/move/  1 error
+       layout: text touching its box — ".ux-content-defaultview-class" 1px from top
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+FAIL /framework/core/List/methods/order/  1 error
+       layout: text touching its box — ".ux-content-defaultview-class" 1px from top
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+FAIL /framework/core/List/methods/find/  1 error
+       layout: text touching its box — ".ux-content-defaultview-class" 1px from top
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+FAIL /framework/core/List/methods/at/  1 error
+       layout: text touching its box — ".ux-content-defaultview-class" 1px from top
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+FAIL /framework/core/List/methods/forEach/  1 error
+       layout: text touching its box — ".ux-content-defaultview-class" 1px from top
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+FAIL /framework/core/List/methods/map/  1 error
+       layout: text touching its box — ".ux-content-defaultview-class" 1px from top
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+FAIL /framework/core/List/methods/insert/  1 error
+       layout: text touching its box — ".ux-content-defaultview-class" 1px from top
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+FAIL /framework/core/List/methods/toJSON/  1 error
+       layout: text touching its box — ".ux-content-defaultview-class" 1px from top
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+FAIL /framework/core/Item/md/doc/architecture/  1 error
+       console warn/log budget exceeded: 6 > 5 (not in console-allow.jsonl)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+FAIL /framework/ai/  (link found on /framework/)  1 error
+       console warn/log budget exceeded: 6 > 5 (not in console-allow.jsonl)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/usage.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/usage.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise [dictate] socket: connected
+  noise [dictate] whisper: checking…
+  noise [dictate] whisper: connected
+ok   /framework/core/  (link found on /framework/)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+ok   /framework/core/View/  (link found on /framework/)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+FAIL /framework/core/Page/  (link found on /framework/)  1 error
+       layout: text touching its box — ".ux-content-defaultview-class" 1px from top
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  warn HTTP 404: http://127.0.0.1:49570/directory.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/directory.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+ok   /framework/core/Router/  (link found on /framework/)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+ok   /framework/core/App/  (link found on /framework/)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+ok   /framework/core/Sidebar/  (link found on /framework/)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+ok   /framework/core/Shell/  (link found on /framework/)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+ok   /framework/core/Search/  (link found on /framework/)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+ok   /framework/core/Layout/  (link found on /framework/)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+ok   /framework/core/Section/  (link found on /framework/)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+ok   /framework/core/Property/  (link found on /framework/)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+ok   /framework/core/Task/  (link found on /framework/)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+ok   /framework/core/Test/  (link found on /framework/)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+ok   /framework/styles/  (link found on /framework/)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:49570/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:49570/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Doc: mentions has no member "mention_html" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.
+  noise Doc: Panel has no member "get" — nothing added. If the subject is an instance, pass its class: import { App } from "/app.js", not the default export.

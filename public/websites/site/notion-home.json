@@ -1,0 +1,1415 @@
+{
+	"name": "notion-home",
+	"url": "https://www.notion.so",
+	"title": "The AI workspace that works for you. | Notion",
+	"category": "marketing",
+	"captured_at": "2026-09-08T06:01:46.914Z",
+	"embed": "blocked",
+	"embed_note": "content-security-policy: frame-ancestors 'self' https://app.notion.com notion://app.notion.com notion://www.notion.so https://app.contentful.com",
+	"shots": {
+		"400": "site/notion-home/400.jpg",
+		"1280": "site/notion-home/1280.jpg",
+		"1920": "site/notion-home/1920.jpg",
+		"3440": "site/notion-home/3440.jpg",
+		"long": "site/notion-home/long.jpg"
+	},
+	"layout": {
+		"400": "1-bands",
+		"1280": "1-bands",
+		"1920": "1-bands",
+		"3440": "1-bands"
+	},
+	"sections": [
+		{
+			"name": "header nav",
+			"layout": "1-flow",
+			"css": "grid, full-bleed",
+			"note": "the one band that always reaches edge to edge, at every width tested, including 3440."
+		},
+		{
+			"name": "hero",
+			"layout": "1-flow",
+			"css": "block, inside a centred ~1252px cap",
+			"note": "headline, sub-copy and two buttons; the cap is already reached by 1920 and does not grow further at 3440 — a wide screen just gets bigger side margins."
+		},
+		{
+			"name": "bento feature grid",
+			"layout": "2-equal",
+			"css": "grid, two equal cards then one full-width card beneath",
+			"note": "two cards sit side by side, then a third spans the whole row underneath them — a small bento mosaic, the same word already used for Stripe's homepage in this corpus. All three stack to one column on a phone."
+		},
+		{
+			"name": "trust logos strip",
+			"layout": "1-flow",
+			"css": "flex row, full-bleed",
+			"note": "nine customer logos in one row, edge to edge like the header — the only other band that ignores the page's usual centred cap."
+		},
+		{
+			"name": "footer",
+			"layout": "n-wall",
+			"css": "grid, four equal columns (desktop) / two equal columns (phone)",
+			"note": "four link columns above about 840px; on a phone it becomes two columns side by side rather than collapsing all the way to one — most other sites in this batch drop straight to a single stacked column instead."
+		}
+	],
+	"tags": [
+		"1-bands",
+		"1-flow",
+		"2-equal",
+		"n-wall",
+		"4-1",
+		"full-bleed",
+		"measure",
+		"max-width",
+		"mega footer",
+		"marketing"
+	],
+	"responsive": {
+		"strategy": "The same shape as Figma's homepage in this batch: full-bleed bands (header nav, the trust-logo strip) alternating with bands whose content is capped near 1252px and centred, so an ultrawide screen mostly buys bigger side margins. The one small surprise is the footer, which keeps TWO columns of links even on a phone instead of collapsing all the way to one, unlike most other footers in this corpus.",
+		"breakpoints": [
+			600,
+			840,
+			1080
+		]
+	},
+	"scan": {
+		"scanned_at": "2026-09-08T06:02:04.319Z",
+		"css": {
+			"sheets": 20,
+			"bytes": 1559927,
+			"inline_bytes": 9917
+		},
+		"media": [
+			"(hover:hover){",
+			"(hover:none) and (pointer:coarse){",
+			"(hover:none){",
+			"(max-width:599px){",
+			"(max-width:668px){",
+			"(max-width:700px){",
+			"(max-width:799px){",
+			"(max-width:839px){",
+			"(max-width:919px){",
+			"(min-width: 640px){",
+			"(min-width:1032px){",
+			"(min-width:1080px) and (min-width:1080px){",
+			"(min-width:1080px) and (min-width:1280px){",
+			"(min-width:1080px) and (min-width:1440px){",
+			"(min-width:1080px) and (min-width:600px){",
+			"(min-width:1080px) and (min-width:840px){",
+			"(min-width:1080px){",
+			"(min-width:1120px){",
+			"(min-width:1156px){",
+			"(min-width:1200px){",
+			"(min-width:1280px) and (min-width:1080px){",
+			"(min-width:1280px) and (min-width:1280px){",
+			"(min-width:1280px) and (min-width:1440px){",
+			"(min-width:1280px) and (min-width:600px){",
+			"(min-width:1280px) and (min-width:840px){",
+			"(min-width:1280px){",
+			"(min-width:1300px){",
+			"(min-width:1440px) and (min-width:1080px){",
+			"(min-width:1440px) and (min-width:1280px){",
+			"(min-width:1440px) and (min-width:1440px){",
+			"(min-width:1440px) and (min-width:600px){",
+			"(min-width:1440px) and (min-width:840px){",
+			"(min-width:1440px){",
+			"(min-width:1600px){",
+			"(min-width:375px){",
+			"(min-width:600px) and (hover:hover){",
+			"(min-width:600px) and (min-width:1080px){",
+			"(min-width:600px) and (min-width:1280px){",
+			"(min-width:600px) and (min-width:1440px){",
+			"(min-width:600px) and (min-width:600px){",
+			"(min-width:600px) and (min-width:840px){",
+			"(min-width:600px){",
+			"(min-width:740px){",
+			"(min-width:768px){",
+			"(min-width:840px) and (min-width:1080px){",
+			"(min-width:840px) and (min-width:1280px){",
+			"(min-width:840px) and (min-width:1440px){",
+			"(min-width:840px) and (min-width:600px){",
+			"(min-width:840px) and (min-width:840px){",
+			"(min-width:840px){",
+			"(min-width:908px){",
+			"(min-width:960px){",
+			"(prefers-color-scheme:dark){",
+			"(prefers-reduced-motion){",
+			"(prefers-reduced-motion:no-preference){",
+			"(prefers-reduced-motion:reduce){",
+			"only screen and (max-width:410px){",
+			"screen and (max-width:374px){",
+			"screen and (max-width:600px){",
+			"screen and (min-height:400px){",
+			"screen and (min-width:1080px){",
+			"screen and (min-width:400px){",
+			"screen and (min-width:440px){",
+			"screen and (min-width:712px){",
+			"screen and (min-width:840px){",
+			"screen and (min-width:942px){"
+		],
+		"container": [
+			"(max-width:800px){",
+			"(min-inline-size:800px){",
+			"(min-width:400px){",
+			"(min-width:600px){",
+			"(min-width:700px){",
+			"(min-width:720px){",
+			"(min-width:750px){",
+			"(min-width:900px){",
+			"not (max-width:1024px){",
+			"not (max-width:1252px){",
+			"not (max-width:1392px){",
+			"not (max-width:600px){",
+			"not (max-width:840px){",
+			"not (min-width:600px){",
+			"not (min-width:900px){",
+			"social-proof (min-width:880px){",
+			"style(--hero-layout-row:1) and (min-width:800px){",
+			"style(--logo-wall-marquee-has-overflow:1){"
+		],
+		"breakpoints_seen": [
+			{
+				"px": 600,
+				"count": 13
+			},
+			{
+				"px": 840,
+				"count": 12
+			},
+			{
+				"px": 1080,
+				"count": 12
+			},
+			{
+				"px": 1280,
+				"count": 11
+			},
+			{
+				"px": 1440,
+				"count": 11
+			},
+			{
+				"px": 400,
+				"count": 2
+			},
+			{
+				"px": 374,
+				"count": 1
+			},
+			{
+				"px": 375,
+				"count": 1
+			},
+			{
+				"px": 410,
+				"count": 1
+			},
+			{
+				"px": 440,
+				"count": 1
+			},
+			{
+				"px": 599,
+				"count": 1
+			},
+			{
+				"px": 640,
+				"count": 1
+			}
+		],
+		"widths": {
+			"400": {
+				"doc": [
+					400,
+					3973
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "globalNavigation-module-scss-module__HWB10a__globalNavigation",
+						"display": "grid",
+						"cols": "400px",
+						"rows": "64px",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							400,
+							64
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"class": "layout-module-scss-module__18xgza__main layout-module-scss-module__18xgza__withoutPadding",
+						"display": "block",
+						"rect": [
+							0,
+							64,
+							400,
+							3200
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "homepageHeroTeamsAndAgents-module-scss-module__KlQGRG__contentHeader",
+						"display": "block",
+						"rect": [
+							16,
+							176,
+							368,
+							309
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "bento-module-scss-module__xvimDq__bento base-module-scss-module__QPCBRq__theme",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							32,
+							789,
+							336,
+							368
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "bento-module-scss-module__xvimDq__bentoHeader bentos-module-scss-module__KqyldW__bentoHeader",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							32,
+							789,
+							336,
+							116
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "bento-module-scss-module__xvimDq__bento base-module-scss-module__QPCBRq__theme",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							32,
+							1173,
+							336,
+							368
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "bento-module-scss-module__xvimDq__bentoHeader bentos-module-scss-module__KqyldW__bentoHeader",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							32,
+							1173,
+							336,
+							116
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "bento-module-scss-module__xvimDq__bento base-module-scss-module__QPCBRq__theme",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							32,
+							1557,
+							336,
+							368
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "bento-module-scss-module__xvimDq__bentoHeader bentos-module-scss-module__KqyldW__bentoHeader",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							32,
+							1557,
+							336,
+							116
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "_R_1n59jm_",
+						"display": "block",
+						"rect": [
+							32,
+							1941,
+							336,
+							442
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"display": "block",
+						"rect": [
+							32,
+							2447,
+							336,
+							472
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "_R_1jm_",
+						"display": "block",
+						"rect": [
+							0,
+							2964,
+							400,
+							300
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"id": "site-footer",
+						"class": "surface surfaceBase",
+						"display": "block",
+						"rect": [
+							0,
+							3264,
+							400,
+							709
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "footer-module-scss-module__U-iC1W__nav",
+						"display": "grid",
+						"cols": "178px 178px",
+						"rows": "180px 180px",
+						"rect": [
+							16,
+							3383,
+							368,
+							400
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "__next",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							400,
+							3973
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "homepage-module-scss-module__-Qs3Ha__main homepage-module-scss-module__-Qs3Ha__mainLoose",
+						"display": "block",
+						"rect": [
+							0,
+							661,
+							400,
+							1754
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "homepage-module-scss-module__-Qs3Ha__section homepage-module-scss-module__-Qs3Ha__tightSpacing",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							32,
+							693,
+							336,
+							1690
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "bentos-module-scss-module__KqyldW__bentoGrid bentos-module-scss-module__KqyldW__bentoGridAccentMuted",
+						"display": "grid",
+						"cols": "336px",
+						"rows": "368px 368px 368px",
+						"rect": [
+							32,
+							789,
+							336,
+							1136
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "layout-module-scss-module__e_tYXa__layout",
+						"display": "grid",
+						"cols": "[full-start] 16px [content-start] 368px [content-end] 16px [",
+						"rows": "657px",
+						"rect": [
+							0,
+							3304,
+							400,
+							657
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1280": {
+				"doc": [
+					1280,
+					4411
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "globalNavigation-module-scss-module__HWB10a__globalNavigation",
+						"display": "grid",
+						"cols": "1280px",
+						"rows": "64px",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							1280,
+							64
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"class": "layout-module-scss-module__18xgza__main layout-module-scss-module__18xgza__withoutPadding",
+						"display": "block",
+						"rect": [
+							0,
+							64,
+							1280,
+							3951
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "homepageHeroTeamsAndAgents-module-scss-module__KlQGRG__contentHeader",
+						"display": "block",
+						"rect": [
+							64,
+							248,
+							1152,
+							308
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "bento-module-scss-module__xvimDq__bento base-module-scss-module__QPCBRq__theme",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							93,
+							1681,
+							535,
+							533
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "bento-module-scss-module__xvimDq__bentoHeader bentos-module-scss-module__KqyldW__bentoHeader",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							93,
+							1681,
+							535,
+							132
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "bento-module-scss-module__xvimDq__bento base-module-scss-module__QPCBRq__theme",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							652,
+							1681,
+							535,
+							533
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "bento-module-scss-module__xvimDq__bentoHeader bentos-module-scss-module__KqyldW__bentoHeader",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							652,
+							1681,
+							535,
+							132
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "bento-module-scss-module__xvimDq__bento base-module-scss-module__QPCBRq__theme",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							93,
+							2238,
+							1094,
+							297
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "bento-module-scss-module__xvimDq__bentoHeader bentos-module-scss-module__KqyldW__bentoHeader",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							93,
+							2238,
+							500,
+							297
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "_R_1n59jm_",
+						"display": "block",
+						"rect": [
+							93,
+							2567,
+							1094,
+							188
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"display": "block",
+						"rect": [
+							93,
+							2947,
+							1094,
+							524
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "_R_1jm_",
+						"display": "block",
+						"rect": [
+							0,
+							3579,
+							1280,
+							436
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"id": "site-footer",
+						"class": "surface surfaceBase",
+						"display": "block",
+						"rect": [
+							0,
+							4015,
+							1280,
+							396
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "footer-module-scss-module__U-iC1W__nav",
+						"display": "grid",
+						"cols": "172px 172px 172px 172px",
+						"rows": "214px",
+						"rect": [
+							456,
+							4095,
+							760,
+							214
+						],
+						"side_by_side": 4
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "__next",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							1280,
+							4411
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "homepageHeroTeamsAndAgents-module-scss-module__KlQGRG__heroContainer",
+						"display": "block",
+						"rect": [
+							0,
+							64,
+							1280,
+							1433
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "homepage-module-scss-module__-Qs3Ha__main homepage-module-scss-module__-Qs3Ha__mainLoose",
+						"display": "block",
+						"rect": [
+							0,
+							1497,
+							1280,
+							1355
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "heroGrid-module-scss-module__Zc4oCG__heroGrid",
+						"display": "grid",
+						"cols": "[full-bleed-start] 0px [full-start] 64px [content-start] 72p",
+						"rows": "80px 72px 340.109px 680.75px 80px",
+						"rect": [
+							0,
+							64,
+							1280,
+							1253
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "homepage-module-scss-module__-Qs3Ha__section homepage-module-scss-module__-Qs3Ha__tightSpacing",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							93,
+							1593,
+							1094,
+							1163
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1920": {
+				"doc": [
+					1920,
+					4731
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "globalNavigation-module-scss-module__HWB10a__globalNavigation",
+						"display": "grid",
+						"cols": "1920px",
+						"rows": "64px",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							1920,
+							64
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"class": "layout-module-scss-module__18xgza__main layout-module-scss-module__18xgza__withoutPadding",
+						"display": "block",
+						"rect": [
+							0,
+							64,
+							1920,
+							4271
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "homepageHeroTeamsAndAgents-module-scss-module__KlQGRG__contentHeader",
+						"display": "block",
+						"rect": [
+							334,
+							248,
+							1252,
+							308
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "bento-module-scss-module__xvimDq__bento base-module-scss-module__QPCBRq__theme",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							334,
+							1681,
+							614,
+							569
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "bento-module-scss-module__xvimDq__bentoHeader bentos-module-scss-module__KqyldW__bentoHeader",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							334,
+							1681,
+							614,
+							108
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "bento-module-scss-module__xvimDq__bento base-module-scss-module__QPCBRq__theme",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							972,
+							1681,
+							614,
+							569
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "bento-module-scss-module__xvimDq__bentoHeader bentos-module-scss-module__KqyldW__bentoHeader",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							972,
+							1681,
+							614,
+							108
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "bento-module-scss-module__xvimDq__bento base-module-scss-module__QPCBRq__theme",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							334,
+							2273,
+							1252,
+							376
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "bento-module-scss-module__xvimDq__bentoHeader bentos-module-scss-module__KqyldW__bentoHeader",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							334,
+							2273,
+							500,
+							376
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "_R_1n59jm_",
+						"display": "block",
+						"rect": [
+							334,
+							2681,
+							1252,
+							188
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"display": "block",
+						"rect": [
+							334,
+							3061,
+							1252,
+							590
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "_R_1jm_",
+						"display": "block",
+						"rect": [
+							0,
+							3759,
+							1920,
+							576
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"id": "site-footer",
+						"class": "surface surfaceBase",
+						"display": "block",
+						"rect": [
+							0,
+							4335,
+							1920,
+							396
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "footer-module-scss-module__U-iC1W__nav",
+						"display": "grid",
+						"cols": "188.656px 188.672px 188.672px 188.672px",
+						"rows": "214px",
+						"rect": [
+							759,
+							4415,
+							827,
+							214
+						],
+						"side_by_side": 4
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "__next",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							1920,
+							4731
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "homepage-module-scss-module__-Qs3Ha__main homepage-module-scss-module__-Qs3Ha__mainLoose",
+						"display": "block",
+						"rect": [
+							0,
+							1497,
+							1920,
+							1469
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "homepageHeroTeamsAndAgents-module-scss-module__KlQGRG__heroContainer",
+						"display": "block",
+						"rect": [
+							0,
+							64,
+							1920,
+							1433
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "heroGrid-module-scss-module__Zc4oCG__heroGrid",
+						"display": "grid",
+						"cols": "[full-bleed-start] 270px [full-start] 64px [content-start] 1",
+						"rows": "80px 72px 340.109px 680.75px 80px",
+						"rect": [
+							0,
+							64,
+							1920,
+							1253
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "homepage-module-scss-module__-Qs3Ha__section homepage-module-scss-module__-Qs3Ha__tightSpacing",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							334,
+							1593,
+							1252,
+							1277
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"3440": {
+				"doc": [
+					3440,
+					4751
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "globalNavigation-module-scss-module__HWB10a__globalNavigation",
+						"display": "grid",
+						"cols": "3440px",
+						"rows": "64px",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							3440,
+							64
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"class": "layout-module-scss-module__18xgza__main layout-module-scss-module__18xgza__withoutPadding",
+						"display": "block",
+						"rect": [
+							0,
+							64,
+							3440,
+							4291
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "homepageHeroTeamsAndAgents-module-scss-module__KlQGRG__contentHeader",
+						"display": "block",
+						"rect": [
+							1094,
+							248,
+							1252,
+							308
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "bento-module-scss-module__xvimDq__bento base-module-scss-module__QPCBRq__theme",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1094,
+							1681,
+							614,
+							569
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "bento-module-scss-module__xvimDq__bentoHeader bentos-module-scss-module__KqyldW__bentoHeader",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							1094,
+							1681,
+							614,
+							108
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "bento-module-scss-module__xvimDq__bento base-module-scss-module__QPCBRq__theme",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1732,
+							1681,
+							614,
+							569
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "bento-module-scss-module__xvimDq__bentoHeader bentos-module-scss-module__KqyldW__bentoHeader",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							1732,
+							1681,
+							614,
+							108
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "bento-module-scss-module__xvimDq__bento base-module-scss-module__QPCBRq__theme",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							1094,
+							2273,
+							1252,
+							376
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "bento-module-scss-module__xvimDq__bentoHeader bentos-module-scss-module__KqyldW__bentoHeader",
+						"display": "flex",
+						"dir": "column",
+						"wrap": "nowrap",
+						"rect": [
+							1094,
+							2273,
+							500,
+							376
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "_R_1n59jm_",
+						"display": "block",
+						"rect": [
+							1094,
+							2681,
+							1252,
+							188
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"display": "block",
+						"rect": [
+							1094,
+							3061,
+							1252,
+							590
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"id": "_R_1jm_",
+						"display": "block",
+						"rect": [
+							0,
+							3759,
+							3440,
+							596
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"id": "site-footer",
+						"class": "surface surfaceBase",
+						"display": "block",
+						"rect": [
+							0,
+							4355,
+							3440,
+							396
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "footer-module-scss-module__U-iC1W__nav",
+						"display": "grid",
+						"cols": "188.656px 188.672px 188.672px 188.672px",
+						"rows": "214px",
+						"rect": [
+							1519,
+							4435,
+							827,
+							214
+						],
+						"side_by_side": 4
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "__next",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							3440,
+							4751
+						],
+						"side_by_side": 0
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "homepage-module-scss-module__-Qs3Ha__main homepage-module-scss-module__-Qs3Ha__mainLoose",
+						"display": "block",
+						"rect": [
+							0,
+							1497,
+							3440,
+							1469
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "homepageHeroTeamsAndAgents-module-scss-module__KlQGRG__heroContainer",
+						"display": "block",
+						"rect": [
+							0,
+							64,
+							3440,
+							1433
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "heroGrid-module-scss-module__Zc4oCG__heroGrid",
+						"display": "grid",
+						"cols": "[full-bleed-start] 1030px [full-start] 64px [content-start] ",
+						"rows": "80px 72px 340.109px 680.75px 80px",
+						"rect": [
+							0,
+							64,
+							3440,
+							1253
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "homepage-module-scss-module__-Qs3Ha__main homepage-module-scss-module__-Qs3Ha__mainLoose",
+						"display": "block",
+						"rect": [
+							0,
+							2965,
+							3440,
+							782
+						],
+						"side_by_side": 1
+					}
+				]
+			}
+		}
+	},
+	"notes": "Notion's homepage is another stack of full-width marketing bands, and it uses the exact same trick as Figma's in this batch: the header and the row of customer logos reach all the way to both edges of the browser, but everything in between — the headline, the feature cards — sits inside a column capped at about 1252px and centred, so extra width on a big monitor just becomes empty space on the sides. The feature cards are arranged as a small 'bento' grid: two cards side by side, then one wide card spanning the row underneath them, all stacking to a single column on a phone. The one place this page does something different from its neighbours is the footer — most sites in this batch drop straight to one stacked column of links on a phone, but Notion keeps two columns side by side even at the narrowest width tested.",
+	"wire": {
+		"role": "page",
+		"kids": [
+			{
+				"role": "header",
+				"h": "4.5em"
+			},
+			{
+				"role": "hero",
+				"dir": "row",
+				"center": true,
+				"floor": "none",
+				"h": "40em",
+				"kids": [
+					{
+						"role": "hero",
+						"w": "78em"
+					}
+				]
+			},
+			{
+				"role": "cards",
+				"dir": "col",
+				"kids": [
+					{
+						"role": "cards",
+						"dir": "row",
+						"center": true,
+						"floor": "52.5rem",
+						"kids": [
+							{
+								"role": "card",
+								"w": 1
+							},
+							{
+								"role": "card",
+								"w": 1
+							}
+						]
+					},
+					{
+						"role": "card",
+						"w": 1
+					}
+				]
+			},
+			{
+				"role": "main",
+				"dir": "row",
+				"h": "4em",
+				"floor": "none",
+				"kids": [
+					{
+						"role": "image",
+						"w": 1
+					},
+					{
+						"role": "image",
+						"w": 1
+					},
+					{
+						"role": "image",
+						"w": 1
+					},
+					{
+						"role": "image",
+						"w": 1
+					},
+					{
+						"role": "image",
+						"w": 1
+					}
+				]
+			},
+			{
+				"role": "footer",
+				"dir": "row",
+				"h": "12em",
+				"floor": "37.5rem",
+				"kids": [
+					{
+						"role": "aside",
+						"w": 1
+					},
+					{
+						"role": "aside",
+						"w": 1
+					},
+					{
+						"role": "aside",
+						"w": 1
+					},
+					{
+						"role": "aside",
+						"w": 1
+					}
+				]
+			}
+		]
+	}
+}

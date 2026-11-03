@@ -1,0 +1,87 @@
+/* PROMPT REVIEW — one row per prompt, newest shown oldest-first (same order the owner said
+   them). */
+@layer theme {
+
+	/* `.prompt-review` (List/Overview) carries the framework's own `wide` word (`page.js`:
+	   `div.c("prompt-review pad wide", …)`) so the wall of rows below can use a 3440 screen
+	   instead of sitting in a single 40em reading column with everything else empty beside it
+	   (CLAUDE.md: "any page you build is seen on a 3440 screen… give it several columns").
+	   `-sub` keeps its OWN narrower cap so the one paragraph of prose doesn't stretch into an
+	   unreadable mile-long line just because its container got wide. */
+	.prompt-review-sub { max-width: 42em; margin: 0; }
+
+	.prompt-review-head, .prompt-review-detail-head { display: flex; flex-direction: column; gap: 0.3em; margin-block-end: 0.6em; }
+	.prompt-review-title { margin: 0; }
+	.prompt-review-back { display: inline-block; margin-block-end: 0.3em; }
+
+	/* View words — plain links, same "on" look as every other view switch in this house
+	   (`ai/v/3/v3.css`'s `.v3-view-btn`), so List/Overview read as the same kind of control a
+	   reader has already learned there. */
+	.prompt-review-views { display: flex; gap: 0.4em; margin-block-start: 0.2em; }
+	.prompt-review-view-btn { text-decoration: none; color: var(--subtle); padding: 0.2em 0.7em; border-radius: 999px; }
+	.prompt-review-view-btn.on { color: var(--ink); background: var(--wash); font-weight: 600; }
+
+	/* FILTER BY TAG — a toggle row, not a navigation (same reasoning `ai/v/3`'s own author
+	   filter uses: a view REFINEMENT, saved as a preference, never a url — the url is for
+	   views you'd want to link to, and "my tag filter" isn't one of those). */
+	.prompt-review-tagbar { display: flex; flex-wrap: wrap; gap: 0.3em; margin-block-end: 0.6em; }
+	.prompt-review-tag-btn {
+		font: inherit; font-size: 0.8em; cursor: pointer; background: none;
+		border: 1px solid var(--border, color-mix(in srgb, var(--ink) 25%, transparent));
+		color: var(--subtle); border-radius: 999px; padding: 0.15em 0.65em;
+	}
+	.prompt-review-tag-btn.on { background: var(--ink); color: var(--surface); border-color: transparent; }
+
+	/* A WALL, not one narrow column (same reasoning as the `wide` word above) — each row stays
+	   a comfortable reading width (`minmax(22em, 1fr)`) and the wall just grows MORE columns as
+	   the screen does, never one row stretched edge to edge. */
+	.prompt-review-list, .prompt-review-group-rows {
+		display: grid; grid-template-columns: repeat(auto-fill, minmax(22em, 1fr)); gap: 0.6em; align-items: start;
+	}
+
+	/* ONE ROW = the owner's words as a small quote, then the gist as a big heading, then the
+	   bullets — the SAME shape this chat uses for a refined thought (small quote → big heading
+	   → bullets), not a generic "Prompt #3" label first. The whole row is the link through to
+	   the full detail (requirements.md: "preview → full view by a plain link"). */
+	.prompt-review-row { display: block; text-decoration: none; color: inherit; }
+	.prompt-review-row:hover, .prompt-review-row:focus-visible { background: var(--wash); }
+	.prompt-review-row-when { display: block; margin-block-end: 0.2em; }
+	.prompt-review-quote { display: block; font-style: italic; color: var(--subtle); margin-block-end: 0.2em; }
+	.prompt-review-heading { margin: 0 0 0.3em; }
+	.prompt-review-bullets { margin: 0 0 0.3em 1.2em; padding: 0; }
+	.prompt-review-bullet { margin-block-end: 0.15em; }
+	.prompt-review-tags { display: flex; flex-wrap: wrap; gap: 0.3em; margin-block-start: 0.2em; }
+
+	.prompt-review-groups { display: flex; flex-direction: column; gap: 1em; }
+	.prompt-review-group-head { margin: 0 0 0.4em; }
+
+	.prompt-review-detail-lead { margin-block-end: 0.6em; }
+	.prompt-review-model { display: block; margin-block-start: 0.6em; }
+
+	/* The detail's own switch is three-way only (requirements.md: "a three-way switch,
+	   Structured · Clean · Raw, replaces a row of tabs") — Condensed stays in `prompt-card.js`'s
+	   own vocabulary for `ai/v/3` and `ai2`, which both still want it; this page just never
+	   shows that fourth tab, so the shared component itself needs no change (law 6). */
+	.prompt-review-detail-modes .refine-modes-tab[data-mode="condensed"] { display: none; }
+
+	/* WIDE: Clean beside Raw, always-on — one column plus the switch is what mobile keeps
+	   (never seven tabs); past 64em of VIEWPORT width there's room to just show both at once,
+	   so the switch above becomes mainly "jump to the full Structured outline". Each pane's own
+	   tab row is hidden (`.refine-modes-tabs`) since there is nothing left to switch inside a
+	   pane that only ever shows one mode.
+	   ⚠ `wide`, not a plain class — `.page`'s own grid only gives a direct child the WIDE track
+	   (past the reading `--measure`, `core/Page/doc/layout-system.md`) when it carries that
+	   exact utility class AND is a direct child of `.page` itself (`.page > .wide`, a one-level-
+	   deep child combinator). Found live, proving this page: nesting this div inside another
+	   wrapper div silently capped it to the ~40em reading measure and the two-pane layout below
+	   never had the room to show — `page.js`'s own `build_detail()` builds this as a TOP-LEVEL
+	   sibling for exactly that reason, not inside the lead/modes wrapper. */
+	.prompt-review-detail-wide { display: none; }
+
+	@media (min-width: 64em) {
+		.prompt-review-detail-wide {
+			display: grid; grid-template-columns: 1fr 1fr; gap: 1em; margin-block-start: 0.8em;
+		}
+		.prompt-review-detail-wide .refine-modes-tabs { display: none; }
+	}
+}

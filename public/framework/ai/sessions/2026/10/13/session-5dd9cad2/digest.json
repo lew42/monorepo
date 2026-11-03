@@ -1,0 +1,39 @@
+{
+ "id": "5dd9cad2-53ff-4f62-bc86-5ab74ad0bc01",
+ "first": "2026-10-13T20:54:55.317Z",
+ "last": "2026-10-13T21:26:45.063Z",
+ "task": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/worktree-cleanup",
+ "models": {
+  "claude-opus-5-5": 88
+ },
+ "sizes": {
+  "raw": 654746,
+  "content": 94669,
+  "stripped": 11764,
+  "owner_only": 0
+ },
+ "usd": 8.501991,
+ "usd_main": 8.501991,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 176,
+  "output": 74147,
+  "cache_read": 13086248,
+  "cache_write": 222981,
+  "w5": 0,
+  "w1": 222981
+ },
+ "messages": 88,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "Worktree folders went from 33.3 GB to 6.0 GB, and nothing was lost: every file I removed was already in git, ignored by git, a dev-server log, or first committed on its worktree's own branch.\n\n### Worktrees: 56 seen, 8 left — [report.md](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/worktree-cleanup/report.md)\n- ✅ 28 merged worktrees pruned, including `inbox-ranking` as you asked.\n- ✅ 14 merged worktrees with leftover changes were salvaged: the changes were committed on their own branch, then the worktree was removed. [manifest.json](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/worktree-cleanup/manifest.json) lists them, and `git worktree add <path> <branch>` brings one back.\n- ✅ `wt-task-folders` needed no salvage branch: its HEAD (`a77fb7695`) is already in `michael/dev`.\n- ✅ The pool removed `qf-1` to `qf-4` by itself once I unblocked it. It had been stuck for 24 hours on a stale lock file in `qf-1`, and that loop left 150 duplicate `salvage/qf-1-*` branches. I did not delete those, because `pool.md` says salvage branches are never deleted.\n- ✅ 24 of 29 half-removed folders deleted, using a new script ([worktree-leftovers.mjs](../../../../../../../../../../Server/worktree-leftovers.mjs)). Five are kept, each with its reason in the report; one holds a local Cloudflare dev database that git never had.\n- ⚠️ 8 stay on purpose: 4 pool slots, the locked `qf-5`, and 3 unmerged branches (`orphans`, `readmeaudit`, `refine-demo`). …",
+ "edited": [
+  "Server/worktree-prune.mjs",
+  "C:/Users/mike/AppData/Local/Temp/wtc/edit.mjs",
+  "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/worktree-cleanup/doc/worktrees.md",
+  "Servex/doc/pool.md",
+  "Server/worktree-leftovers.mjs",
+  "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/worktree-cleanup/report.md"
+ ],
+ "digested_at": "2026-10-16T06:28:10.218Z"
+}

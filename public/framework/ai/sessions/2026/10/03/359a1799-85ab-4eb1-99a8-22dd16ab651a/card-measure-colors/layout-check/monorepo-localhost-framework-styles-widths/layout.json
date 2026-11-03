@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/styles/widths/",
+ "widths": {
+  "1280": {
+   "empty": 0.516,
+   "widest_text": 825,
+   "widest_text_sample": "Cards show their content: a section's te",
+   "overflow_x": false,
+   "items": 60,
+   "narrow_share": 0.35
+  },
+  "1920": {
+   "empty": 0.679,
+   "widest_text": 1008,
+   "widest_text_sample": "Cards show their content: a section's te",
+   "overflow_x": false,
+   "items": 60,
+   "narrow_share": 0.783
+  },
+  "2560": {
+   "empty": 0.709,
+   "widest_text": 1134,
+   "widest_text_sample": "Cards show their content: a section's te",
+   "overflow_x": false,
+   "items": 60,
+   "narrow_share": 0.8
+  },
+  "3440": {
+   "empty": 0.788,
+   "widest_text": 1134,
+   "widest_text_sample": "Cards show their content: a section's te",
+   "overflow_x": false,
+   "items": 60,
+   "narrow_share": 0.8
+  }
+ },
+ "errors": []
+}

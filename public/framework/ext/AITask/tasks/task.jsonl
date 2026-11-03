@@ -1,0 +1,9 @@
+{"id":"tasks","path":"/framework/ext/AITask/tasks/","title":"ext/AITask tasks","mode":"parallel"}
+{"task":"/framework/ext/AITask/tasks/ai-dashboard-dated-list/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ext/AITask/tasks/ai-rail/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ext/AITask/tasks/task-status/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ext/AITask/tasks/design-system/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ext/AITask/tasks/conclusions-first/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ext/AITask/tasks/report-order/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ext/AITask/tasks/c-roles/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ext/AITask/tasks/wire-provider/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}

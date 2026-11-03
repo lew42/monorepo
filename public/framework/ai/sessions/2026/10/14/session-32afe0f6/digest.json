@@ -1,0 +1,37 @@
+{
+ "id": "32afe0f6-dfed-47e8-a6cb-81ad1a0457d8",
+ "first": "2026-10-14T02:38:38.761Z",
+ "last": "2026-10-14T02:40:18.085Z",
+ "task": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/architecture-md-4/drawer",
+ "models": {
+  "claude-haiku-5-5": 14
+ },
+ "sizes": {
+  "raw": 205259,
+  "content": 34777,
+  "stripped": 10851,
+  "owner_only": 0
+ },
+ "usd": 0.302192,
+ "usd_main": 0.302192,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 28,
+  "output": 11439,
+  "cache_read": 1037253,
+  "cache_write": 70622,
+  "w5": 0,
+  "w1": 70622
+ },
+ "messages": 14,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "1. `ext/drawer/doc/architecture.md`: 97 lines, 14 decisions, each checked against `drawer.js`, `drawer.css`, `rail.js`, `select.js` and `tabs/ai.js`. It is over the 80-line guideline, which is the cost of one entry per decision.\n2. Also added: the `## More` line in `readme.md`, `architecture` in `page.js` notes, and `{\"file\":\"architecture.md\"}` in `doc/files.jsonl`. Commits `792b2245e` and `0ac0a5d9c`, by exact path.\n3. ⚠ mismatches: none. The `page-ai` route gap in `decisions.md` is an open issue, not a decision, so I left it out. `decisions.md` is untouched.",
+ "edited": [
+  "public/framework/ext/drawer/doc/architecture.md",
+  "public/framework/ext/drawer/page.js",
+  "public/framework/ext/drawer/readme.md",
+  "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/architecture-md-4/drawer/lines.json"
+ ],
+ "digested_at": "2026-10-16T06:28:10.334Z"
+}

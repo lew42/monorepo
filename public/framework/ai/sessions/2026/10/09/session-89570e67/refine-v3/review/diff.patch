@@ -1,0 +1,1191 @@
+diff --git a/Servex/ext/refine/ClarityScorer.js b/Servex/ext/refine/ClarityScorer.js
+new file mode 100644
+index 000000000..ad8f76313
+--- /dev/null
++++ b/Servex/ext/refine/ClarityScorer.js
+@@ -0,0 +1,30 @@
++import RefineCall from "./RefineCall.js";
++
++/**
++ * class ClarityScorer — asks a cheap model, ONE sentence at a time, how clear that sentence is,
++ * showing it only the sentence before and after for context. One new session per sentence, all
++ * run in parallel, so the whole text costs about one call's time.
++ *
++ *   const rows = await ClarityScorer.score(sentences, { model });   // [{ n, clarity, why }]
++ *
++ * Why not the rule-based `ext/Refine/Scorer`: it starts every sentence at 1 and only lowers it
++ * for flags, so most read 1.0 (measured in `doc/refine-v3-2026-10-09.md`). A model can say
++ * "this sentence has no subject" or "refers to something never named", which a rule cannot.
++ */
++export default class ClarityScorer {
++
++	static SYSTEM = `You rate how clear ONE sentence from a dictated message is, to a reader who sees only it and its neighbours. Clear = a reader knows exactly what is being said or asked. Unclear = vague ("it", "that thing" with no referent), cut off, contradictory, or missing what it is about.
++Reply with ONLY compact JSON: {"clarity": <0.0-1.0>, "why": "<under 12 words>"}. Use the whole range: 1.0 only if nothing could be misread; 0.5 if a reader would have to guess; 0.2 if it cannot be understood.`;
++
++	static async score(sentences, { model = "claude-sonnet-5-5" } = {}){
++		return Promise.all(sentences.map(async (s, i) => {
++			const prev = sentences[i - 1]?.text, next = sentences[i + 1]?.text;
++			const prompt = `${prev ? `Before: ${prev}\n` : ""}SENTENCE: ${s.text}${next ? `\nAfter: ${next}` : ""}`;
++			try {
++				const r = await RefineCall.run(prompt, { model, system: ClarityScorer.SYSTEM, stage: "clarity S" + s.n });
++				const j = JSON.parse(/\{[\s\S]*\}/.exec(r.answer)?.[0] ?? "{}");
++				return { n: s.n, clarity: Math.max(0, Math.min(1, +j.clarity)), why: String(j.why ?? "") };
++			} catch { return { n: s.n, clarity: null, why: "" }; }
++		}));
++	}
++}
+diff --git a/Servex/ext/refine/RefineCall.js b/Servex/ext/refine/RefineCall.js
+new file mode 100644
+index 000000000..5a10bd2f4
+--- /dev/null
++++ b/Servex/ext/refine/RefineCall.js
+@@ -0,0 +1,53 @@
++import { query } from "@anthropic-ai/claude-agent-sdk";
++
++/**
++ * class RefineCall — ONE model call as its OWN NEW session (never resumed), with the lean
++ * options `agents/tidy.js` uses (no tools, no MCP, no skills: a ~800-token prefix instead of ~50k,
++ * which is the difference between $0.01 and $0.18 per call). The session is persisted, so it has a
++ * page at `/framework/ai/sessions/<session_id>/`, and the call reports what it cost.
++ *
++ *   const r = await RefineCall.run(prompt, { model, system });
++ *   r.answer; r.session_id; r.model; r.cost_usd; r.duration_ms; r.tokens   // plain data
++ *
++ * `RefineCall.run` has the `(prompt, {model}) -> {answer, cost_usd}` shape `engine.js clean()` and
++ * `structure.js` take as `call`, so they run unchanged. Every finished call is also kept on
++ * `RefineCall.recorded` while a `RefineCall.collect()` is open, so a route can list its runs.
++ */
++export default class RefineCall {
++
++	static async run(prompt, { model = "claude-haiku-5-5", system, stage = "" } = {}){
++		const t0 = Date.now();
++		let answer = "", result = null, session_id = "";
++		const q = query({ prompt, options: {
++			model, tools: [], mcpServers: {}, strictMcpConfig: true, skills: [], settingSources: [],
++			maxTurns: 1, thinking: { type: "disabled" }, effort: "low", permissionMode: "bypassPermissions",
++			extraArgs: { "disable-slash-commands": null },
++			...(system ? { systemPrompt: system } : {}),
++		} });
++		for await (const m of q){
++			if (m.type === "system" && m.subtype === "init") session_id = m.session_id;
++			if (m.type === "assistant") answer = (m.message?.content ?? []).filter(b => b.type === "text").map(b => b.text).join("") || answer;
++			if (m.type === "result") result = m;
++		}
++		q.close?.();
++		const u = result?.usage ?? {};
++		const out = {
++			stage, model, session_id,
++			answer: (result?.result ?? answer ?? "").trim(),
++			cost_usd: +(result?.total_cost_usd ?? 0).toFixed(5),
++			duration_ms: Date.now() - t0,
++			tokens: { in: (u.input_tokens ?? 0) + (u.cache_read_input_tokens ?? 0) + (u.cache_creation_input_tokens ?? 0), out: u.output_tokens ?? 0 },
++		};
++		RefineCall.sink?.push(out);
++		return out;
++	}
++
++	/** Run `fn` while collecting every call it makes (calls are awaited inside it, one route at a time is fine). */
++	static async collect(fn){
++		const mine = [];
++		const prev = RefineCall.sink;
++		RefineCall.sink = mine;
++		try { return [await fn(), mine]; }
++		finally { RefineCall.sink = prev; }
++	}
++}
+diff --git a/Servex/ext/refine/run.js b/Servex/ext/refine/run.js
+index a323be262..c2d8131a6 100644
+--- a/Servex/ext/refine/run.js
++++ b/Servex/ext/refine/run.js
+@@ -1,21 +1,40 @@
+ /* run.js — the model calls behind the live demo on /framework/ext/Refine/.
+  *
+  * One function, no new pipeline (CLAUDE.md law 6): it runs the SAME `clean()` (engine.js) and
+- * `structure()` (structure.js) Echo and the prompt-log processor run, once each, on one prompt,
+- * and hands back plain data. The browser's `Prompt` class (ext/Refine/Prompt.js) turns that data
+- * into numbered sentences, cards, scores and flags. `structure()` is Node-only, which is the only
+- * reason this is a route instead of a browser import. */
++ * `structure()` (structure.js) Echo and the prompt-log processor run, on one prompt, and hands
++ * back plain data. Every model call is its OWN NEW session (`RefineCall`), reported in `runs`
++ * with its model, tokens, cost and duration so the page can show and link it. Structure and the
++ * per-sentence clarity scores run at the same time, since they only need the clean sentences.
++ * `structure()` is Node-only, which is the only reason this is a route instead of a browser import. */
+ import { clean } from "../../../public/framework/ext/Refine/engine.js";
+ import { structure } from "../../../public/framework/ext/Refine/structure.js";
++import RefineCall from "./RefineCall.js";
++import ClarityScorer from "./ClarityScorer.js";
+ 
+-export async function run_refine({ text } = {}){
++const MODEL = "claude-sonnet-5-5";   // measured fastest of the cheap models that do the job: doc/refine-v3-2026-10-09.md
++
++export async function run_refine({ text, model = MODEL, clarity_model = "claude-haiku-5-5" } = {}){
+ 	if (typeof text !== "string" || !text.trim()) return { ok: false, why: "text must be a non-empty string" };
+ 	if (text.length > 20000) return { ok: false, why: "text is over 20000 characters" };
+ 	try {
+ 		const t0 = Date.now();
+-		const c = await clean(text);
+-		const s = await structure(c.sentences);
+-		return { ok: true, ms: Date.now() - t0, clean: c, structure: s };
++		const stages = {};
++		const [result, runs] = await RefineCall.collect(async () => {
++			const call = stage => (p, o) => RefineCall.run(p, { ...o, stage });
++			const t_clean = Date.now();
++			const c = await clean(text, { call: call("clean"), model });
++			stages.clean_ms = Date.now() - t_clean;
++			const t_next = Date.now();
++			const [s, clar] = await Promise.all([
++				structure(c.sentences, { call: call("structure"), model }).then(r => (stages.structure_ms = Date.now() - t_next, r)),
++				ClarityScorer.score(c.sentences, { model: clarity_model }).then(r => (stages.clarity_ms = Date.now() - t_next, r)),
++			]);
++			return { c, s, clar };
++		});
++		return {
++			ok: true, ms: Date.now() - t0, stages, clean: result.c, structure: result.s, clarity: result.clar,
++			runs: runs.map(r => ({ stage: r.stage, model: r.model, session_id: r.session_id, cost_usd: r.cost_usd, duration_ms: r.duration_ms, tokens: r.tokens })),
++		};
+ 	} catch (e){
+ 		return { ok: false, why: String(e?.message ?? e) };
+ 	}
+diff --git a/public/framework/audio/Whisper/Whisper.css b/public/framework/audio/Whisper/Whisper.css
+new file mode 100644
+index 000000000..91200290e
+--- /dev/null
++++ b/public/framework/audio/Whisper/Whisper.css
+@@ -0,0 +1,17 @@
++@layer base, theme, site, util;
++@layer site {
++	.whisper-session { display: grid; gap: .25em; font-size: .85em; }
++	.whisper-h { margin: 0; display: flex; flex-wrap: wrap; gap: .2em .8em; align-items: baseline; }
++	.whisper-stat { font-weight: normal; opacity: .7; }
++	.whisper-rows { max-height: 14em; overflow: auto; display: grid; gap: .1em; }
++	.whisper-row { display: grid; grid-template-columns: 6.5em 4.5em 4.5em 8em 3.5em 1fr; gap: .5em; align-items: baseline; }
++	.whisper-row.is-interim { opacity: .65; }
++	.whisper-row.is-amended { background: color-mix(in srgb, orange 18%, transparent); }
++	.whisper-amend { padding-left: .5em; border-left: 3px solid orange; }
++	.whisper-empty { opacity: .6; }
++	.whisper-server { display: flex; flex-wrap: wrap; gap: .2em .8em; align-items: baseline; margin-bottom: .4em; }
++	.whisper-dot.is-up { color: seagreen; }
++	.whisper-dot.is-down { color: crimson; }
++	.whisper-dot.is-unknown { opacity: .4; }
++	.whisper-name { font-weight: 600; }
++}
+diff --git a/public/framework/audio/Whisper/Whisper.js b/public/framework/audio/Whisper/Whisper.js
+new file mode 100644
+index 000000000..db7864e05
+--- /dev/null
++++ b/public/framework/audio/Whisper/Whisper.js
+@@ -0,0 +1,77 @@
++import { View, div, span } from "../../core/View/View.js";
++import WhisperSession from "./WhisperSession.js";
++
++View.stylesheet(import.meta, "Whisper.css");
++
++/**
++ * class Whisper — the local whisper-server (speech to text) as one object: is it up, where, how fast it
++ * answers a ping, how many times it has gone down and come back, and the `WhisperSession`s (one per
++ * dictation surface) talking to it.
++ *
++ *   const whisper = Whisper.shared;                    // one per page
++ *   const mine = whisper.session("Refine demo");       // a WhisperSession, kept on whisper.sessions
++ *   await whisper.check();                             // then whisper.status is "up" or "down"
++ *   new Whisper.View({ subject: whisper });            // server + sessions, live
++ *
++ * Not the same as `audio/Transcriber/Whisper.js` (`Transcriber.Whisper`), the streaming ENGINE that
++ * sends audio; this class is the server's state and its logs. Doc: `audio/Whisper/readme.md`.
++ */
++export default class Whisper {
++
++	static icon = "mic";
++	static get shared(){ return (Whisper._shared ??= new Whisper()); }
++
++	url = Whisper.default_url();
++	status = "unknown";   // unknown | up | down
++	ping_ms = 0;
++	restarts = 0;         // times this page saw it down and then up again
++	checked_at = "";
++	sessions = [];
++
++	constructor(...args){ Object.assign(this, ...args); }
++
++	/** Same rule as `ux/Dictate`: direct on this machine, the page's `/whisper` proxy from a phone. */
++	static default_url(){
++		const h = globalThis.location?.hostname;
++		const local = h === "localhost" || h === "127.0.0.1" || h?.endsWith(".localhost");
++		return local || !globalThis.location ? "http://127.0.0.1:8178" : globalThis.location.origin + "/whisper";
++	}
++
++	session(name, fields){
++		let s = this.sessions.find(x => x.name === name);
++		if (!s){
++			s = new WhisperSession({ name, ...fields });
++			s.on_change = () => this.on_change?.(this);
++			this.sessions.push(s);
++			this.on_change?.(this);
++		}
++		return s;
++	}
++
++	/** Ask the server if it is there (any HTTP answer at all means up). Never throws. */
++	async check(){
++		const was = this.status;
++		const t0 = performance.now(), ctrl = new AbortController(), timer = setTimeout(() => ctrl.abort(), 2500);
++		try { await fetch(this.url + "/", { signal: ctrl.signal }); this.status = "up"; this.ping_ms = Math.round(performance.now() - t0); }
++		catch { this.status = "down"; this.ping_ms = 0; }
++		finally { clearTimeout(timer); }
++		if (was === "down" && this.status === "up") this.restarts++;
++		this.checked_at = new Date().toISOString();
++		this.on_change?.(this);
++		return this.status;
++	}
++}
++
++/** Whisper.View — the server's row plus one WhisperSession.View per session. */
++Whisper.View = class extends View {
++	render(){
++		const w = this.subject;
++		this.ac("whisper");
++		div.c("whisper-server", () => {
++			span.c(`whisper-dot is-${w.status}`, "●");
++			span.c("whisper-name", "Whisper server");
++			span.c("whisper-stat", `${w.status} · ${w.url} · ping ${w.ping_ms} ms · restarts seen ${w.restarts} · ${w.sessions.length} sessions`);
++		});
++		w.sessions.forEach(s => new WhisperSession.View({ subject: s }));
++	}
++};
+diff --git a/public/framework/audio/Whisper/WhisperSession.js b/public/framework/audio/Whisper/WhisperSession.js
+new file mode 100644
+index 000000000..4bed7122b
+--- /dev/null
++++ b/public/framework/audio/Whisper/WhisperSession.js
+@@ -0,0 +1,94 @@
++import { View, div, span, h4 } from "../../core/View/View.js";
++import FsFile from "../../ext/filesystem/FsFile.js";
++
++View.stylesheet(import.meta, "Whisper.css");
++
++const words = t => String(t ?? "").trim().split(/\s+/).filter(Boolean);
++const norm = w => w.toLowerCase().replace(/[.,!?;:]+$/, "");
++
++/**
++ * class WhisperSession — ONE dictation surface's conversation with the Whisper server: every request
++ * it sent (when, audio size, seconds of audio, how long Whisper took, what came back) and every time
++ * Whisper REVISED words it had already shown (an "amendment").
++ *
++ *   const s = Whisper.shared.session("Refine demo");
++ *   new Dictate({ on_whisper: line => s.record(line) });   // the one wire
++ *   new WhisperSession.View({ subject: s });                // its view, on any page
++ *
++ * `record({kind, ms, text, raw, bytes, seconds})` is called by `ux/Dictate`'s `on_whisper` for each
++ * answer (`kind` is "interim" for a guess that may still change, "final" for a settled chunk). Each
++ * becomes a plain `request` row, is appended to `/framework/ai/whisper/<date>.jsonl` (tagged with the
++ * session name), and fires `on_change`, so a view repaints in the same tick. Only plain data lives on
++ * the instance, so `ux/Content/Object/DefaultView` can show it. Doc: `audio/Whisper/readme.md`.
++ */
++export default class WhisperSession {
++
++	static icon = "graphic_eq";
++	static dir = "/framework/ai/whisper/";
++	static path(){ return `${WhisperSession.dir}${new Date().toISOString().slice(0, 10)}.jsonl`; }
++
++	name = "";
++	started_at = "";
++	requests = [];     // { at, t, kind, ms, bytes, seconds, gap_ms, text, raw, amended }
++	amendments = [];   // { at, request, from, to }: earlier words that changed
++	last_guess = "";   // the previous interim text, to spot revisions
++
++	constructor(...args){
++		Object.assign(this, ...args);
++		this.started_at ||= new Date().toISOString();
++	}
++
++	record({ kind, ms, text, raw, bytes = 0, seconds = 0 }){
++		if (!text) return;
++		const now = Date.now();
++		const prev = this.requests.at(-1);
++		const row = { at: new Date(now).toISOString(), t: now, kind, ms, bytes, seconds: +(+seconds).toFixed(2), gap_ms: prev ? now - prev.t : 0, text, raw, amended: false };
++		const change = this.revision(text);
++		if (change){ row.amended = true; this.amendments.push({ at: row.at, request: this.requests.length, ...change }); }
++		this.last_guess = kind === "interim" ? text : "";
++		this.requests.push(row);
++		FsFile.append(WhisperSession.path(), { at: row.at, session: this.name, kind, ms, bytes, seconds: row.seconds, gap_ms: row.gap_ms, msg: text, raw, amended: row.amended || undefined }).catch(() => {});
++		this.on_change?.(this);
++	}
++
++	/** Did this answer change words the PREVIOUS guess already showed? The last word of a guess is still
++	 *  forming, so it may change; any earlier word changing is a revision. */
++	revision(text){
++		const before = words(this.last_guess), now = words(text);
++		if (before.length < 2) return null;
++		let i = 0;
++		while (i < before.length && i < now.length && norm(before[i]) === norm(now[i])) i++;
++		if (i >= before.length - 1) return null;
++		return { from: before.slice(i).join(" "), to: now.slice(i).join(" ") };
++	}
++
++	get avg_ms(){ return this.requests.length ? Math.round(this.requests.reduce((a, r) => a + (r.ms || 0), 0) / this.requests.length) : 0; }
++	get total_bytes(){ return this.requests.reduce((a, r) => a + (r.bytes || 0), 0); }
++}
++
++/** WhisperSession.View — the request log of one session, newest last: time, kind, latency, audio size,
++ *  what came back; a revised row is highlighted and the revisions are listed under the log. */
++WhisperSession.View = class extends View {
++
++	render(){
++		const s = this.subject;
++		this.ac("whisper-session");
++		h4.c("whisper-h", () => {
++			span(`Whisper session: ${s.name}`);
++			span.c("whisper-stat", `${s.requests.length} requests · avg ${s.avg_ms} ms · ${(s.total_bytes / 1024).toFixed(0)} KB sent · ${s.amendments.length} revisions`);
++		});
++		const rows = div.c("whisper-rows");
++		const lines = s.requests.slice(-40);
++		if (!lines.length) div.c("whisper-empty muted", "Nothing yet. Press the mic and speak.");
++		lines.forEach(r => div.c(`whisper-row is-${r.kind}${r.amended ? " is-amended" : ""}`, () => {
++			span.c("whisper-at", r.at.slice(11, 23));
++			span.c("whisper-kind", r.kind);
++			span.c("whisper-ms", `${r.ms} ms`);
++			span.c("whisper-kb", `${(r.bytes / 1024).toFixed(0)} KB · ${r.seconds} s`);
++			span.c("whisper-gap", r.gap_ms ? `+${(r.gap_ms / 1000).toFixed(1)} s` : "");
++			span.c("whisper-text", r.text);
++		}));
++		s.amendments.slice(-5).forEach(m => div.c("whisper-amend", () => span(`Revised: “${m.from}” → “${m.to}”`)));
++		rows.el.scrollTop = rows.el.scrollHeight;
++	}
++};
+diff --git a/public/framework/audio/Whisper/files.jsonl b/public/framework/audio/Whisper/files.jsonl
+new file mode 100644
+index 000000000..79ac5b75e
+--- /dev/null
++++ b/public/framework/audio/Whisper/files.jsonl
+@@ -0,0 +1,5 @@
++{"file":"WhisperSession.js"}
++{"file":"Whisper.js"}
++{"file":"Whisper.css"}
++{"file":"readme.md"}
++{"file":"page.js"}
+diff --git a/public/framework/audio/Whisper/page.js b/public/framework/audio/Whisper/page.js
+new file mode 100644
+index 000000000..51048127a
+--- /dev/null
++++ b/public/framework/audio/Whisper/page.js
+@@ -0,0 +1,16 @@
++import { Page, md } from "/app.js";
++import Whisper from "./Whisper.js";
++
++export default new Page({
++	meta: import.meta,
++	title: "Whisper",
++	description: "The local whisper-server as an object, and one logged session per dictation surface.",
++	icon: "mic",
++
++	content(){
++		const whisper = Whisper.shared;
++		new Whisper.View({ subject: whisper });
++		whisper.check();
++		md("`Whisper` is the server (up or down, ping, restarts). Each dictation surface, such as the [Refine](/framework/ext/Refine/) page, adds a `WhisperSession` that logs every request. This page shows this browser tab's own instance.");
++	},
++});
+diff --git a/public/framework/audio/Whisper/readme.md b/public/framework/audio/Whisper/readme.md
+new file mode 100644
+index 000000000..18170007a
+--- /dev/null
++++ b/public/framework/audio/Whisper/readme.md
+@@ -0,0 +1,8 @@
++# audio/Whisper
++
++The local whisper-server as objects, and a log of every request to it.
++
++- `Whisper.js`: `class Whisper` (url, status up/down, ping, restarts seen, its sessions) and `Whisper.View`. `Whisper.shared` is one per page.
++- `WhisperSession.js`: `class WhisperSession`, one per dictation surface. `record(line)` logs each request (audio size, seconds, reply, latency) and notes revisions where an earlier word changed. Lines are appended to a per-day log under `ai/whisper/`. Has `WhisperSession.View`.
++- Not the same as `audio/Transcriber` (the engine that sends audio).
++- Used by [Refine](/framework/ext/Refine/). Details and open gaps: `ext/Refine/doc/refine-v3-2026-10-09.md`.
+diff --git a/public/framework/audio/files.jsonl b/public/framework/audio/files.jsonl
+index 94bf17ba0..d2c14a715 100644
+--- a/public/framework/audio/files.jsonl
++++ b/public/framework/audio/files.jsonl
+@@ -34,3 +34,5 @@
+ {"file":"sound-recorder/page.js"}
+ {"file":"Voice/page.js"}
+ {"file":"weight.jsonl"}
++{"file":"Whisper/"}
++{"file":"Whisper/page.js"}
+diff --git a/public/framework/audio/page.js b/public/framework/audio/page.js
+index 5b936db47..d431e0755 100644
+--- a/public/framework/audio/page.js
++++ b/public/framework/audio/page.js
+@@ -130,7 +130,7 @@ export default new Doc({
+ 	files: "Part.js audio.css page.js readme.md",
+ 	notes: "decisions",
+ 
+-	children: "MicStream Recorder Transcriber v1 MicPicker LevelMeter PushToTalk sound-recorder push-to-talk mic-to-text",
++	children: "Whisper MicStream Recorder Transcriber v1 MicPicker LevelMeter PushToTalk sound-recorder push-to-talk mic-to-text",
+ 
+ 	content(){
+ 		// "audio v1" OUT OF THE TAB STRIP (fix 5) — same `tab({nav:false})` +
+diff --git a/public/framework/audio/readme.md b/public/framework/audio/readme.md
+index c783cd0c8..f3e878f50 100644
+--- a/public/framework/audio/readme.md
++++ b/public/framework/audio/readme.md
+@@ -3,6 +3,8 @@
+ Three small classes, each a build block: **[MicStream](./MicStream/)** opens the microphone and
+ hands out its live stream, raw samples, level, and now also device choice and
+ hold/toggle-to-talk (`mode`); **[Recorder](./Recorder/)** records, plays back and saves a clip;
++**[Whisper](./Whisper/)** is the whisper-server as an object plus a log per dictation surface.
++
+ **[Transcriber](./Transcriber/)** turns a stream into text, with Whisper or Chrome as the engine.
+ The [live demo at the top of this page](./) shows all three working together — pick a mic, talk,
+ watch the transcript settle, optionally record.
+diff --git a/public/framework/ext/Refine/Prompt.css b/public/framework/ext/Refine/Prompt.css
+index edf97b784..507c6b420 100644
+--- a/public/framework/ext/Refine/Prompt.css
++++ b/public/framework/ext/Refine/Prompt.css
+@@ -4,14 +4,19 @@
+ @layer util {
+ 
+ 	.refine-demo { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--gap); margin-block-end: var(--gap); }
+-	@media (min-width: 1200px) { .refine-demo { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); } }
++	.refine-working { padding: 0.4em 0.6em; border-radius: 0.3em; background: color-mix(in srgb, var(--warn) 15%, transparent); grid-column: 1 / -1; margin: 0; }
++	.refine-section { min-width: 0; }
++	.refine-score, .refine-run { display: flex; flex-wrap: wrap; gap: 0.4em; align-items: center; padding-block: 0.15em; }
++	.refine-bar { display: inline-block; inline-size: 4em; block-size: 0.6em; border-radius: 1em; background: linear-gradient(to right, var(--warn) calc(var(--v) * 100%), color-mix(in srgb, currentColor 15%, transparent) 0); }
++	.refine-explorer-body { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22em), 1fr)); gap: var(--gap); align-items: start; }
++	.refine-section-tree { max-block-size: 40em; overflow: auto; }
+ 
+ 	.refine-input { display: flex; flex-direction: column; gap: 0.5em; }
+ 	.refine-input textarea { width: 100%; min-height: 6em; font: inherit; }
+ 	.refine-input-note { color: var(--muted, inherit); opacity: 0.75; font-size: 0.9em; min-block-size: 1.4em; }
+ 
+ 	.refine-prompt { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--gap); }
+-	@media (min-width: 700px) { .refine-prompt { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
++	.refine-prompt { grid-template-columns: repeat(auto-fit, minmax(min(100%, 22em), 1fr)); align-items: start; }
+ 	.refine-prompt-h { margin-block: 0.5em 0.25em; }
+ 	.refine-prompt-raw { opacity: 0.8; }
+ 	.refine-error { color: var(--error); }
+@@ -33,3 +38,26 @@
+ 	.refine-part-job { font-size: 0.9em; }
+ 	.refine-class-key { font-family: monospace; }
+ }
++
++@layer site {
++	/* One workspace: sticky bar on top, stages side by side, sticky footer (the owner, 2026-10-09). */
++	.refine-toolbar { position: sticky; top: 0; z-index: 5; display: grid; gap: .4em; padding-block: .5em; background: var(--paper, #fff); border-block-end: 1px solid color-mix(in srgb, currentColor 18%, transparent); }
++	.refine-toolbar textarea { min-height: 3.2em; max-height: 6em; }
++	.refine-said { display: flex; gap: 1em; align-items: baseline; }
++	.refine-said-label { font-weight: 600; }
++	.refine-go { font-weight: 700; }
++	.refine-model { display: inline-flex; gap: .4em; align-items: center; }
++	.refine-cost { margin-inline-start: auto; opacity: .75; }
++	.refine-what { margin: 0 0 .4em; font-size: .9em; opacity: .8; }
++	.refine-foot { position: sticky; bottom: 0; z-index: 5; padding-block: .3em; background: var(--paper, #fff); border-block-start: 1px solid color-mix(in srgb, currentColor 18%, transparent); }
++	.refine-foot-more > :not(summary) { max-height: 45vh; overflow: auto; }
++	.refine-foot-more summary { cursor: pointer; opacity: .8; }
++}
++
++@layer site {
++	.refine-toolbar { gap: .2em; }
++	.refine-toolbar .voice-strip-guess { min-block-size: 0; }
++	.refine-toolbar .voice-conn { max-block-size: 4.5em; overflow: hidden; }
++	.refine-toolbar textarea { min-height: 0; block-size: 3.4em; }
++	.refine-toolbar .voice-strip { gap: .2em; }
++}
+diff --git a/public/framework/ext/Refine/Prompt.js b/public/framework/ext/Refine/Prompt.js
+index 44523738b..27bde4a30 100644
+--- a/public/framework/ext/Refine/Prompt.js
++++ b/public/framework/ext/Refine/Prompt.js
+@@ -1,5 +1,5 @@
+ import Scorer from "./Scorer.js";
+-import { View, div, span, p, h4, button } from "../../core/View/View.js";
++import { View, div, span, p, h4, button, a } from "../../core/View/View.js";
+ 
+ View.stylesheet(import.meta, "Prompt.css");
+ 
+@@ -33,20 +33,31 @@ export default class Prompt {
+ 	refined = [];
+ 	ms = 0;
+ 	error = "";
++	stages = {};        // { clean_ms, structure_ms, clarity_ms } from the server
++	runs = [];          // one per model call: { stage, model, session_id, cost_usd, duration_ms, tokens }
++	timings = {};       // { quick_ms } measured in the browser
++	model = "";         // the model the server is using for the current run
++	quick = false;      // true while `clean` holds the instant (no-model) clean, before the real one lands
+ 
+ 	constructor(...args){ Object.assign(this, ...args); }
+ 
+ 	/** Fill the instance from one `/api/refine` answer (also how a saved answer is replayed). */
+-	load({ clean, structure, ms }){
++	load({ clean, structure, ms, clarity, stages, runs }){
+ 		const parsed = Prompt.parse_outline(structure?.md ?? "");
+ 		this.subject = parsed.subject;
+ 		this.refined = parsed.sections;
+ 		this.ms = ms ?? 0;
+ 		this.clean = (clean?.sentences ?? []).map(s => ({
+-			n: s.n, text: s.text, clarity: 1, weight: 0, flags: [], alternates: [], names: [], card: "",
++			n: s.n, text: s.text, clarity: 1, weight: 0, flags: [], alternates: [], names: [], card: "", why: "",
+ 		}));
+ 		Scorer.score(this, { clean, structure });
+-		this.set({ status: "done" });
++		// The cheap model's per-sentence score replaces the rule score when it answered; the rule
++		// score stays as `rule_clarity` so both can be compared (doc/refine-v3-2026-10-09.md).
++		for (const c of clarity ?? []){
++			const s = this.sentence(c.n);
++			if (s && c.clarity != null){ s.rule_clarity = s.clarity; s.clarity = +c.clarity.toFixed(2); s.why = c.why; }
++		}
++		this.set({ status: "done", quick: false, stages: stages ?? {}, runs: runs ?? [] });
+ 	}
+ 
+ 	set(fields){
+@@ -57,8 +68,15 @@ export default class Prompt {
+ 
+ 	sentence(n){ return this.clean.find(s => s.n === n); }
+ 
++	/** The instant clean (no model): shown within a moment of each Whisper chunk, before any refinement. */
++	load_quick(sentences, quick_ms){
++		this.clean = sentences.map(t => ({ n: t.n, text: t.text, clarity: null, weight: 0, flags: [], alternates: [], names: [], card: "", why: "" }));
++		this.timings = { ...this.timings, quick_ms };
++		this.set({ quick: true });
++	}
++
+ 	/** Sentences worth a yellow flag: unclear enough, or the pipeline asked a question about them. */
+-	get flagged(){ return this.clean.filter(s => s.clarity < Prompt.LOW_CLARITY || s.flags.some(f => f.kind === "model" || f.kind === "mechanical")); }
++	get flagged(){ return this.clean.filter(s => (s.clarity ?? 1) < Prompt.LOW_CLARITY || s.flags.some(f => f.kind === "model" || f.kind === "mechanical")); }
+ 
+ 	/**
+ 	 * The outline `structure()` writes ("# subject", "## card", "- sub-card [S1, S2]", indented
+@@ -107,42 +125,59 @@ export default class Prompt {
+  *  card's source chip are linked: click either and the other side lights up. */
+ Prompt.View = class extends View {
+ 
++	/** Each stage names itself: a number, a plain title, what it is in one line, and the class that makes it. */
++	static STAGES = {
++		said:    { title: "1 · Said",    what: "Exactly what Whisper heard. Type here too.", by: "Dictate", href: "/framework/ux/Dictate/" },
++		clean:   { title: "2 · Cleaned", what: "Your words, fixed: fillers out, sentences numbered. Nothing reworded.", by: "Cleaner", href: "/framework/ext/Refine/md/doc/refine-engine/" },
++		refined: { title: "3 · Outline", what: "The same ideas as a short outline. Click an S1 chip to jump to its sentence.", by: "Structurer", href: "/framework/ext/Refine/structure.js" },
++		scores:  { title: "4 · Scores",  what: "How clear each sentence is (1 = clear). ⚑ marks a sentence worth a second look.", by: "ClarityScorer", href: "/framework/ext/Refine/md/doc/prompt/" },
++	};
++
+ 	render(){
+ 		const prompt = this.subject;
+ 		this.ac("refine-prompt");
+ 
+-		if (prompt.status === "empty") return p.c("refine-empty", "Say or type a prompt, then press Refine.");
+-		if (prompt.status === "working") return p.c("refine-empty", "Refining… (clean, then structure — a few seconds)");
+-		if (prompt.status === "error") return p.c("refine-error", "Could not refine: " + prompt.error);
+-
++		const empty = !prompt.clean.length;
++		const working = prompt.status === "working";
++		const done = prompt.status === "done";
+ 		const sentence_els = new Map();
+ 		const light = n => {
+ 			sentence_els.forEach(($s, k) => $s.el.classList.toggle("lit", k === n));
+ 			sentence_els.get(n)?.el.scrollIntoView({ block: "nearest", behavior: "smooth" });
+ 		};
++		const secs = ms => (ms / 1000).toFixed(1) + " s";
++		const section = (key, note, fn) => {
++			const st = Prompt.View.STAGES[key];
++			return div.c("refine-section", () => {
++				h4.c("refine-prompt-h", () => { span(st.title); if (note) span.c("refine-s-scores", note); });
++				p.c("refine-what", () => { span(st.what + " "); a(st.by).href(st.href).ac("refine-class-key"); });
++				fn();
++			});
++		};
+ 
+-		div.c("refine-prompt-col", () => {
+-			h4.c("refine-prompt-h", "Raw — as heard");
+-			p.c("refine-prompt-raw", prompt.raw);
++		if (working) p.c("refine-working", `Refining with ${prompt.model || "a model"}… usually about 8 s and about 3 cents. The cleaned text is already usable.`);
++		if (prompt.status === "error") p.c("refine-error", "Could not refine: " + prompt.error);
++		if (this.show_raw !== false) section("said", "", () => p.c("refine-prompt-raw", prompt.raw));
+ 
+-			h4.c("refine-prompt-h", "Clean — numbered, near-verbatim");
++		section("clean", empty ? "" : prompt.quick || working ? `instant, ${prompt.timings.quick_ms ?? 0} ms, no model` : `by ${prompt.model || "a model"}, ${secs(prompt.stages.clean_ms ?? 0)}`, () => {
++			if (empty) return p.c("refine-empty", "Waiting for words.");
+ 			prompt.clean.forEach(s => {
+ 				const $s = div.c("refine-sentence", () => {
+ 					span.c("refine-s-num", "S" + s.n);
+ 					span.c("refine-s-text", s.text);
+ 					if (prompt.flagged.includes(s)){
+-						const q = s.flags.map(f => f.question).join(" ") || "This one may be unclear.";
++						const q = s.flags.map(f => f.question).join(" ") || s.why || "This one may be unclear.";
+ 						span.c("refine-flag", "⚑").attr("title", q);
+ 					}
+-					span.c("refine-s-scores", `clarity ${s.clarity} · weight ${s.weight}`);
+ 				});
+ 				$s.click(() => light(s.n));
+ 				sentence_els.set(s.n, $s);
+ 			});
+ 		});
+ 
+-		div.c("refine-prompt-col", () => {
+-			h4.c("refine-prompt-h", "Refined — " + (prompt.subject || "cards"));
++		section("refined", done ? secs(prompt.stages.structure_ms ?? 0) : "", () => {
++			if (!done) return p.c("refine-empty", working ? "Working… the model is writing the outline." : "Press Refine.");
++			if (prompt.subject) p.c("refine-subject", prompt.subject);
+ 			const cites = list => list.forEach(n => button.c("refine-cite", "S" + n).click(() => light(n)));
+ 			const draw = cards => cards.forEach(c => div.c("refine-card", () => {
+ 				span.c("refine-card-text", c.text);
+@@ -154,7 +189,22 @@ Prompt.View = class extends View {
+ 				cites(sec.cites);
+ 				div.c("refine-subcards", () => draw(sec.cards));
+ 			}));
+-			p.c("refine-s-scores", `${prompt.clean.length} sentences · ${prompt.flagged.length} flagged · ${(prompt.ms / 1000).toFixed(1)}s`);
++		});
++
++		section("scores", done ? `${prompt.flagged.length} of ${prompt.clean.length} flagged` : "", () => {
++			if (!done) return p.c("refine-empty", working ? "Scoring each sentence…" : "Press Refine.");
++			prompt.clean.forEach(s => div.c("refine-score", () => {
++				span.c("refine-s-num", "S" + s.n);
++				span.c("refine-bar").attr("style", `--v:${s.clarity ?? 0}`);
++				span.c("refine-s-text", `${s.clarity ?? "–"}`);
++				if (s.why) span.c("refine-s-scores", s.why);
++			}));
++			h4.c("refine-prompt-h", () => span("Model runs"));
++			p.c("refine-what", "Each run is its own session: click one to see exactly what was asked.");
++			prompt.runs.forEach(r => div.c("refine-run", () => {
++				a(r.stage).href(`/framework/ai/sessions/${r.session_id}/`);
++				span.c("refine-s-scores", `${r.model} · ${secs(r.duration_ms)} · $${r.cost_usd}`);
++			}));
+ 		});
+ 	}
+ };
+diff --git a/public/framework/ext/Refine/RefineDemo.js b/public/framework/ext/Refine/RefineDemo.js
+index 129fce026..987cf7231 100644
+--- a/public/framework/ext/Refine/RefineDemo.js
++++ b/public/framework/ext/Refine/RefineDemo.js
+@@ -1,24 +1,24 @@
+-import { View, div, span, p, textarea, button, h4, a } from "../../core/View/View.js";
++import { View, div, span, textarea, button, select, option, details, summary, label } from "../../core/View/View.js";
+ import ErrorLog from "../ErrorLog/ErrorLog.js";
+ import VoiceStrip from "../../ux/Dictate/VoiceStrip.js";
+-import WhisperLog from "../../ux/Dictate/WhisperLog.js";
+-import DefaultView from "../../ux/Content/Object/DefaultView.js";
++import Whisper from "../../audio/Whisper/Whisper.js";
+ import Prompt from "./Prompt.js";
+ import RefineSystem from "./RefineSystem.js";
++import RefineExplorer from "./RefineExplorer.js";
+ 
+ View.stylesheet(import.meta, "Prompt.css");
+ 
+ /**
+- * class RefineDemo — the working demo on the Refine page: speak (or type) ONE prompt, press
+- * Refine, and watch it become raw → clean → refined cards with clarity/weight scores and a
+- * yellow flag on anything unclear. "Record next prompt" starts over.
++ * class RefineDemo — the working demo on the Refine page: speak (or type) ONE prompt and watch it become
++ * raw → clean → refined cards with clarity/weight scores.
+  *
+- * Beside the result is the debug view: the live `Prompt` instance drawn property by property
+- * (`ux/Content/Object/DefaultView`, the generic tree) and the architecture card (`RefineSystem.parts`).
+- * One `Prompt` instance is the single source for all three, so they cannot disagree.
+- *
+- * The mic is `ux/Dictate` (the same one every page uses; on a phone it needs the https/LAN
+- * setup in `dev/mobile`). With no mic engine, the text box does the same job.
++ * Order of events (the owner, 2026-10-09, `ai/2026-10-09/refine-v3`):
++ *   1. every Whisper chunk (or keystroke) → `system.quick()`: the cleaned text appears in about a millisecond;
++ *   2. Refine → `system.go()`: ONE server call, each model call its own new session, shown with its model,
++ *      time and cost (links to the session page);
++ *   3. the Whisper log (`audio/Whisper` `WhisperSession.View`) and the instance explorer (`RefineExplorer`)
++ *      update as you dictate.
++ * One `Prompt` instance is the single source for all views, so they cannot disagree.
+  */
+ export default class RefineDemo extends View {
+ 
+@@ -26,56 +26,79 @@ export default class RefineDemo extends View {
+ 		this.ac("refine-demo");
+ 		this.system = new RefineSystem({ on_change: () => this.draw() });
+ 		this.prompt = this.system.prompt;
++		this.system.whisper.on_change = () => this.draw_whisper();
+ 		ErrorLog.watch(() => ({ status: this.prompt.status, raw: this.prompt.raw, error: this.prompt.error }));
+ 
+-		div.c("refine-demo-main", () => {
+-			div.c("refine-input", () => {
+-				// ux/Dictate/VoiceStrip: the one compact dictation panel (mic, steps, grey guess), fixed size.
+-				this.strip = new VoiceStrip({
+-					template: "full", refine: true,
+-					on_whisper: line => WhisperLog.record(line),
+-					$input: () => this.$box,   // the View, not its element: Dictate reads `.el` itself
+-					toolbar: () => {
+-						this.$go = button("Refine").click(() => this.go());
+-						button("Record next prompt").click(() => this.next());
+-					},
+-				});
+-				this.dictate = this.strip.dictate;
+-				this.conn = this.strip.conn;
++		// ONE workspace (the owner, 2026-10-09): a sticky toolbar on top, the stages side by side, a sticky footer.
++		div.c("refine-toolbar", () => {
++			// ux/Dictate/VoiceStrip: the one compact dictation panel (mic, steps, grey guess), fixed size.
++			this.strip = new VoiceStrip({
++				template: "full", refine: true,
++				on_whisper: line => this.system.session.record(line),
++				on_text: () => this.quick(),
++				on_guess: () => this.quick(),
++				$input: () => this.$box,   // the View, not its element: Dictate reads `.el` itself
++				toolbar: () => {
++					this.$go = button("Refine").ac("refine-go").click(() => this.go());
++					button("New prompt").click(() => this.next());
++					label.c("refine-model", () => {
++						span("Model");
++						this.$model = select(() => {
++							option("Sonnet 5.5 (faster)").attr("value", "claude-sonnet-5-5");
++							option("Haiku 5.5 (cheapest)").attr("value", "claude-haiku-5-5");
++						});
++						this.$model.el.addEventListener("change", () => { this.system.model = this.$model.el.value; });
++					});
++					this.$cost = span.c("refine-cost");
++				},
++			});
++			this.dictate = this.strip.dictate;
++			this.conn = this.strip.conn;
++			div.c("refine-said", () => {
++				span.c("refine-said-label", "1 · Said: speak, or type or paste here");
+ 				this.$note = span.c("refine-input-note");
+-				this.$box = textarea.c().attr("placeholder", "Speak with the mic, or type or paste a prompt here…");
+ 			});
+-			this.$result = div.c("refine-result");
++			this.$box = textarea.c().attr("placeholder", "Speak with the mic, or type or paste a prompt here…");
++			this.$box.el.addEventListener("input", () => this.quick());
+ 		});
+ 
+-		div.c("refine-demo-debug", () => {
+-			this.card();
+-			new WhisperLog();
+-			h4.c("refine-prompt-h", "The live Prompt instance (debug view)");
+-			this.$debug = div.c("refine-debug");
++		this.$result = div.c("refine-result");
++		div.c("refine-foot", () => {
++			this.$whisper = div.c("refine-whisper");
++			details.c("refine-foot-more", () => {
++				summary("The live objects behind this page (counts, classes, every property)");
++				this.explorer = new RefineExplorer({ subject: this.system });
++			});
+ 		});
+ 
++		this.system.whisper.check();
+ 		this.draw();
++		this.draw_whisper();
+ 	}
+ 
+ 	/** The one transcript the owner sees: whatever Dictate has committed into the box, plus the
+-	 *  grey still-moving guess if the mic has not settled it yet. Reading the box alone missed
+-	 *  text that was on screen only as that guess (2026-10-09). */
++	 *  grey still-moving guess if the mic has not settled it yet. */
+ 	transcript(){
+ 		const boxed = this.$box.el.value.trim();
+-		const guess = (this.dictate.partial_text || "").trim();
++		const guess = (this.dictate?.partial_text || "").trim();
+ 		return guess && !boxed.endsWith(guess) ? (boxed + " " + guess).trim() : boxed;
+ 	}
+ 
++	/** Instant stage: show the cleaned text now, with no model. */
++	quick(){
++		const text = this.transcript();
++		if (text) this.system.quick(text);
++	}
++
+ 	async go(){
+-		// Stop the mic FIRST and wait: stop() settles the open segment into the box. Reading the
+-		// box before that (the old order) saw it empty while the transcript was plainly on screen.
++		// Stop the mic FIRST and wait: stop() settles the open segment into the box.
+ 		const live = this.dictate.state === "listening" || this.dictate.state === "connecting";
+ 		if (live) this.$note.text("Finishing the last words…");
+ 		if (live) await this.dictate.stop();
+ 		const text = this.transcript();
+ 		if (!text) return this.$note.text("Nothing to refine yet.");
+ 		this.$note.text("");
++		if (this.prompt.status === "done") this.system.next();   // a new Refine starts a new prompt
+ 		this.system.go(text);
+ 	}
+ 
+@@ -89,22 +112,16 @@ export default class RefineDemo extends View {
+ 
+ 	draw(){
+ 		const prompt = this.prompt;
+-		this.$result.empty(() => new Prompt.View({ subject: prompt }));
++		this.$result.empty(() => new Prompt.View({ subject: prompt, show_raw: false }));
+ 		const st = prompt.status;
+ 		this.conn?.set("refine", st === "done" ? "ok" : st === "error" ? "bad" : st === "working" ? "wait" : "idle",
+ 			st === "done" ? `done, ${(prompt.ms / 1000).toFixed(1)} s` : st === "error" ? "error: " + String(prompt.error).slice(0, 60) : st === "working" ? "working…" : "not yet");
+-		this.$debug.empty(() => new DefaultView({ subject: prompt }));
++		this.$cost?.text(prompt.runs.length ? "$" + prompt.runs.reduce((n, r) => n + (r.cost_usd || 0), 0).toFixed(3) + " · " + (prompt.ms / 1000).toFixed(1) + " s" : "");
++		this.explorer?.draw();
+ 	}
+ 
+-	/** The class card: icon + name, core API, who calls it. */
+-	card(){
+-		div.c("refine-class-card", () => {
+-			span.c("refine-card-title", "▤ RefineSystem — the boss; the parts it composes");
+-			RefineSystem.parts.forEach(part => div.c("refine-part", () => {
+-				a(part.name).href(part.href).ac("refine-class-key");
+-				span.c("refine-part-job", part.job);
+-				span.c("refine-s-scores", part.relation);
+-			}));
+-		});
++	draw_whisper(){
++		this.$whisper.empty(() => new Whisper.View({ subject: this.system.whisper }));
++		this.explorer?.draw();
+ 	}
+ }
+diff --git a/public/framework/ext/Refine/RefineExplorer.js b/public/framework/ext/Refine/RefineExplorer.js
+new file mode 100644
+index 000000000..d75d45470
+--- /dev/null
++++ b/public/framework/ext/Refine/RefineExplorer.js
+@@ -0,0 +1,67 @@
++import { View, div, span, a, h4 } from "../../core/View/View.js";
++import DefaultView from "../../ux/Content/Object/DefaultView.js";
++import RefineSystem from "./RefineSystem.js";
++
++/**
++ * class RefineExplorer extends View — the live INSTANCE explorer of the Refine system: how many of each
++ * class exist right now, the class architecture card, and the framework's own default object tree
++ * (`ux/Content/Object/DefaultView`) of the running `RefineSystem`, which opens down through its
++ * `Prompt`, `Whisper` and `WhisperSession`s to their properties and logs.
++ *
++ *   const explorer = new RefineExplorer({ subject: system });
++ *   explorer.draw();      // call after the system changed; throttled so dictation stays smooth
++ *
++ * No page-specific tree: the tree IS DefaultView (law 6). The counts are computed from the live objects.
++ */
++export default class RefineExplorer extends View {
++
++	render(){
++		this.ac("refine-explorer");
++		this.$body = div.c("refine-explorer-body");
++		this.paint();
++	}
++
++	/** Throttled repaint: at most one per 400 ms, so a stream of Whisper chunks stays smooth. */
++	draw(){
++		if (this.timer) return;
++		this.timer = setTimeout(() => { this.timer = 0; this.paint(); }, 400);
++	}
++
++	/** The instances that exist now: [class name, count, href]. */
++	counts(){
++		const s = this.subject;
++		return [
++			["RefineSystem", 1, "/framework/ext/Refine/md/doc/architecture/"],
++			["Prompt", 1 + s.history.length, "/framework/ext/Refine/md/doc/prompt/"],
++			["Whisper", 1, "/framework/audio/Whisper/"],
++			["WhisperSession", s.whisper.sessions.length, "/framework/audio/Whisper/"],
++			["Whisper requests", s.whisper.sessions.reduce((n, x) => n + x.requests.length, 0), "/framework/audio/Whisper/"],
++			["Model runs (sessions)", s.prompt.runs.length, "/framework/ai/sessions/"],
++		];
++	}
++
++	paint(){
++		const s = this.subject;
++		this.$body.empty(() => {
++			div.c("refine-section", () => {
++				h4.c("refine-prompt-h", "Instances now");
++				this.counts().forEach(([name, n, href]) => div.c("refine-part", () => {
++					a(name).href(href).ac("refine-class-key");
++					span.c("refine-s-scores", String(n));
++				}));
++			});
++			div.c("refine-section", () => {
++				h4.c("refine-prompt-h", "RefineSystem: the boss and the parts it composes");
++				RefineSystem.parts.forEach(part => div.c("refine-part", () => {
++					a(part.name).href(part.href).ac("refine-class-key");
++					span.c("refine-part-job", part.job);
++					span.c("refine-s-scores", part.relation);
++				}));
++			});
++			div.c("refine-section refine-section-tree", () => {
++				h4.c("refine-prompt-h", "The live system (click to open; properties and logs)");
++				new DefaultView({ subject: s });
++			});
++		});
++	}
++}
+diff --git a/public/framework/ext/Refine/RefineSystem.js b/public/framework/ext/Refine/RefineSystem.js
+index b9b732b91..e89d0be36 100644
+--- a/public/framework/ext/Refine/RefineSystem.js
++++ b/public/framework/ext/Refine/RefineSystem.js
+@@ -1,5 +1,7 @@
+ import ErrorLog from "../ErrorLog/ErrorLog.js";
+ import Prompt from "./Prompt.js";
++import Whisper from "../../audio/Whisper/Whisper.js";
++import { quick_clean } from "./engine.js";
+ 
+ /**
+  * class RefineSystem — the boss of the refine system (`doc/architecture.md`). It owns ONE live
+@@ -10,7 +12,9 @@ import Prompt from "./Prompt.js";
+  *   const system = new RefineSystem({ on_change: prompt => redraw(prompt) });
+  *   await system.go("so the page should uh show a flag when unclear");
+  *   system.prompt          // the live Prompt (status, raw, clean, refined)
++ *   system.quick(text);    // the instant clean (no model, ~1 ms): call it on every Whisper chunk
+  *   system.next();         // start over with a fresh prompt
++ *   system.whisper / system.session   // the Whisper server and this surface's WhisperSession (audio/Whisper)
+  *
+  * Only plain data besides `on_change`, so the debug tree can show it (`ux/Content/Object/DefaultView`).
+  */
+@@ -31,25 +35,42 @@ export default class RefineSystem {
+ 	];
+ 
+ 	prompt = new Prompt();
++	whisper = Whisper.shared;
++	session = this.whisper.session("Refine demo");   // Dictate's on_whisper feeds it: system.session.record(line)
++	model = "claude-sonnet-5-5";                    // measured fastest cheap model: doc/refine-v3-2026-10-09.md
++	history = [];                                   // finished prompts of this page visit (plain summaries), newest last
+ 
+ 	constructor(...args){
+ 		Object.assign(this, ...args);
+ 		this.prompt.on_change = p => this.on_change?.(p, this);
+ 	}
+ 
++	/** Show the cleaned text NOW, with no model: the instant stage. Cheap enough to run on every chunk. */
++	quick(text){
++		const t0 = performance.now();
++		const prompt = this.prompt;
++		if (prompt.status === "done") return;   // a finished result is not overwritten by later chunks
++		prompt.raw = text;
++		prompt.load_quick(quick_clean(text), +(performance.now() - t0).toFixed(2));
++	}
++
+ 	/** Refine one prompt. Never throws: a failure becomes `prompt.status === "error"`. */
+ 	async go(text, { url } = {}){
+ 		const prompt = this.prompt;
+-		prompt.set({ status: "working", raw: text, subject: "", clean: [], refined: [], error: "", ms: 0 });
++		const t_start = performance.now();
++			if (!prompt.quick || prompt.raw !== text) this.quick(text);
++			prompt.set({ status: "working", model: this.model, raw: text, subject: "", refined: [], error: "", ms: 0, runs: [], stages: {} });
+ 		try {
+ 			if (!url){
+ 				const { servex_url } = await import("/framework/dev/servex_url.js");
+ 				url = servex_url("/api/refine");
+ 			}
+-			const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text }) });
++			const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, model: this.model }) });
+ 			const out = await res.json();
+ 			if (!out?.ok) throw new Error(out?.why ?? `Servex answered ${res.status}`);
+ 			prompt.load(out);
++			prompt.timings = { ...prompt.timings, total_ms: Math.round(performance.now() - t_start) };
++			this.history.push({ at: new Date().toISOString(), words: text.split(/s+/).length, total_ms: prompt.timings.total_ms, cost_usd: +prompt.runs.reduce((a, r) => a + r.cost_usd, 0).toFixed(4), runs: prompt.runs.length });
+ 		} catch (e){
+ 			prompt.set({ status: "error", error: String(e?.message ?? e) });
+ 			ErrorLog.report(e, { where: "RefineSystem.go" });
+@@ -59,6 +80,6 @@ export default class RefineSystem {
+ 
+ 	/** Start over: the same Prompt object, emptied (so the debug tree keeps showing the live one). */
+ 	next(){
+-		this.prompt.set({ status: "empty", raw: "", subject: "", clean: [], refined: [], error: "", ms: 0 });
++		this.prompt.set({ status: "empty", raw: "", subject: "", clean: [], refined: [], error: "", ms: 0, runs: [], stages: {}, timings: {}, quick: false });
+ 	}
+ }
+diff --git a/public/framework/ext/Refine/doc/files.jsonl b/public/framework/ext/Refine/doc/files.jsonl
+index a2b02a3a8..377f16ca7 100644
+--- a/public/framework/ext/Refine/doc/files.jsonl
++++ b/public/framework/ext/Refine/doc/files.jsonl
+@@ -3,3 +3,6 @@
+ {"file":"vision-2026-10-08.md"}
+ {"file":"prompt.md"}
+ {"file":"architecture.md"}
++{"file":"nothing-to-refine-2026-10-09.md"}
++{"file":"whisper-flow-2026-10-09.md"}
++{"file":"refine-v3-2026-10-09.md"}
+diff --git a/public/framework/ext/Refine/doc/refine-v3-2026-10-09.md b/public/framework/ext/Refine/doc/refine-v3-2026-10-09.md
+new file mode 100644
+index 000000000..f88ca9f12
+--- /dev/null
++++ b/public/framework/ext/Refine/doc/refine-v3-2026-10-09.md
+@@ -0,0 +1,29 @@
++# Refine v3 (2026-10-09)
++
++Brief: `ai/2026-10-09/refine-v3/requirements.md`. The page is now one workspace: a sticky toolbar (mic, Refine, model, cost, status), the stages side by side (2 Cleaned, 3 Outline, 4 Scores; stage 1 "Said" is the box in the toolbar), and a sticky footer (Whisper server and session log, plus the live instance explorer).
++
++## What changed, and the numbers
++
++| Step | Before | Now |
++|---|---|---|
++| Cleaned text visible | after the whole refine, about 64 s | `quick_clean()` in `engine.js`, no model, about 0.3 ms per chunk or keystroke |
++| Refine (clean, outline, clarity) | one slow call chain, about 64 s | clean first, then outline and clarity in parallel: about 8 to 9 s on Sonnet 5.5 |
++| Each model call | hidden | its own NEW session (`Servex/ext/refine/RefineCall.js`, Agent SDK, no tools or skills, thinking off, effort low), listed with model, time, cost and a link to `/framework/ai/sessions/<id>/` |
++| Cost per refine | n/a | about $0.003 to $0.0075 per call when the prompt cache is warm; a cold cache made parallel same-model calls about $0.07 each (one cold run cost $0.57) |
++
++## Haiku 5.5 vs Sonnet 5.5, low effort, thinking off
++
++Sonnet was faster on these small jobs. Haiku still "thinks" before answering, so it lost its speed edge; it stays the cheaper choice and is the default for the per-sentence clarity calls. The page's Model select switches the main clean and outline calls between them.
++
++## Clarity: model vs the old Scorer
++
++`ClarityScorer` (Haiku, one sentence at a time, with only the previous and next sentence) gives a score and a one-line reason per sentence. The old rule `Scorer.js` gave nearly every sentence the same number. The model scores spread from 0.55 to 0.8 on the test dictation and say why ("'it' refers to something not named"), so the model score is the one shown. The rule score is kept on each sentence as `rule_clarity`.
++
++## Whisper as classes
++
++`audio/Whisper` holds `Whisper` (server up or down, ping, restarts seen) and `WhisperSession` (one per dictation surface, logging every request: audio size, seconds, send frequency, reply, latency, revisions where an earlier word changed). Both have a `static View`. The hand-built log (`ux/Dictate/WhisperLog.js`) is left in place, unused by Refine. Not built: the server's model name (the server does not report it), and a replay timeline.
++
++## Still open
++
++- The "result disappeared" report was not reproduced; `system.quick()` now never overwrites a finished result.
++- The cold-cache cost spike is not mitigated.
+diff --git a/public/framework/ext/Refine/engine.js b/public/framework/ext/Refine/engine.js
+index 30f846eac..81c247b5a 100644
+--- a/public/framework/ext/Refine/engine.js
++++ b/public/framework/ext/Refine/engine.js
+@@ -362,6 +362,29 @@ export async function clean(text, { prev = "", onFlag, call, cwd, model } = {}){
+ 	};
+ }
+ 
++/* quick_clean — the INSTANT clean (no model, a few ms): what the page shows within a moment of each
++ * Whisper chunk, before the model clean lands. Only the mechanical part of "Clean": drop filler words
++ * ("um", "uh", "ah", "er", "you know", "like," used as a pause) and stutters ("the, the"), capitalise
++ * each sentence, make sure it ends in punctuation. It never rewords. Returns the same
++ * `[{ n, text }]` shape clean() returns, so the page draws both the same way. */
++export function quick_clean(text){
++	const t = String(text ?? "").replace(/\s+/g, " ").trim();
++	if (!t) return [];
++	const cleaned = t
++		.replace(/\b(?:um+|uh+|ah+|er+|erm|hmm+)\b[,.]?\s*/gi, "")
++		.replace(/\byou know,?\s*/gi, "")
++		.replace(/\blike,\s*/gi, "")
++		.replace(/\b(\w+)(?:,?\s+\1\b)+/gi, "$1")
++		.replace(/\s+([,.!?;:])/g, "$1")
++		.replace(/\s+/g, " ").trim();
++	return mechanicalSplit(cleaned).map((s, i) => {
++		let x = s.replace(/^[\s,;:-]+/, "");
++		x = x.charAt(0).toUpperCase() + x.slice(1);
++		if (!/[.!?]$/.test(x)) x += /^(who|what|when|where|why|how|is|are|do|does|can|could|should|would)\b/i.test(x) ? "?" : ".";
++		return { n: i + 1, text: x };
++	}).filter(s => s.text.length > 1);
++}
++
+ /* "A simple word-level diff %" (the owner, 2026-10-04, clean-test-page) — a plain Dice
+  * coefficient over each text's own set of 3+ letter words: 1.0 means the two share every
+  * word, 0 means no overlap at all. Same shape of heuristic `contentWords`/`stemsMatch`
+diff --git a/public/framework/ext/Refine/files.jsonl b/public/framework/ext/Refine/files.jsonl
+index 9fd2600a2..ea4f117ae 100644
+--- a/public/framework/ext/Refine/files.jsonl
++++ b/public/framework/ext/Refine/files.jsonl
+@@ -26,3 +26,7 @@
+ {"file":"RefineDemo.js"}
+ {"file":"RefineSystem.js"}
+ {"file":"Scorer.js"}
++{"file":"test/"}
++{"file":"RefineExplorer.js"}
++{"file":"ladder/"}
++{"file":"ladder/page.js"}
+diff --git a/public/framework/ext/Refine/ladder/files.jsonl b/public/framework/ext/Refine/ladder/files.jsonl
+new file mode 100644
+index 000000000..ffae31dad
+--- /dev/null
++++ b/public/framework/ext/Refine/ladder/files.jsonl
+@@ -0,0 +1 @@
++{"file":"page.js"}
+diff --git a/public/framework/ext/Refine/ladder/page.js b/public/framework/ext/Refine/ladder/page.js
+new file mode 100644
+index 000000000..e59d1cb7d
+--- /dev/null
++++ b/public/framework/ext/Refine/ladder/page.js
+@@ -0,0 +1,19 @@
++import { Page, p, a, md, h2 } from "/app.js";
++import refine from "../Refine.js";
++
++/* The saved-run ladder, moved off the Refine page (owner feedback 2026-10-09: one workspace, nothing below the fold).
++ * Same content as before: raw → clean → structured → brief on a finished long dictation. */
++export default new Page({
++	meta: import.meta,
++	title: "Saved run (ladder)",
++	description: "The same pipeline on a long, finished dictation: raw → clean → structured → brief, with a coverage table.",
++	icon: "fact_check",
++
++	content(){
++		p("`Server/refine.mjs` turns a long, rambling dictation into a numbered brief a mastermind can act on, and keeps every step. Click an ask below, or a bullet in Structured, and its source sentences light up in Clean and Raw.");
++		p(() => a("Back to the live Refine workspace").href("/framework/ext/Refine/"));
++		const DEFAULT_RUN = "/framework/ai/2026-09-29/prompt-refine/runs/c/";
++		refine(import.meta, { run: new URLSearchParams(location.search).get("run") || DEFAULT_RUN }).ac("wide");
++		md(`Run C, the harness and research dictation. \`?run=\` picks another run directory. A small hand-built [fixture](?run=${new URL("../fixture/", import.meta.url).pathname}) has the same file shape.`);
++	},
++});
+diff --git a/public/framework/ext/Refine/page.js b/public/framework/ext/Refine/page.js
+index 2b6e35062..6b194c1a0 100644
+--- a/public/framework/ext/Refine/page.js
++++ b/public/framework/ext/Refine/page.js
+@@ -1,43 +1,24 @@
+-import { Page, p, a, md, h2 } from "/app.js";
+-import refine from "./Refine.js";
++import { Page, p, a } from "/app.js";
+ import RefineDemo from "./RefineDemo.js";
+ 
+-/* ⚠ NOT `navigation: "tabs"`. Tried first (review/report.md, 2026-10-04 finding 1
+- * wanted "try" reachable as a real tab) — but `ext/tabs`'s `tabs()` has no "my own
+- * content()" entry, only `this.children`, so with one child ("try") it auto-fills
+- * the WHOLE page with Try-it's content and the ladder below never renders at all
+- * (confirmed live: public/framework/ai/2026-10-04/clean-test-page/task.jsonl). Doc
+- * pages dodge this by making their own content an explicit "overview" child
+- * (`ext/Doc`'s `overview_section()`) — real surgery, not a few lines on a
+- * hand-written Page. A plain, visible link to Try it is the honest small fix:
+- * still a real page at its own url ("try" is still a declared child), just not
+- * drawn as a framework tab strip. */
++/**
++ * The Refine page is ONE workspace (owner feedback 2026-10-09): sticky toolbar (mic, Refine, model, cost, status),
++ * the stages side by side, a sticky footer. The older saved-run ladder lives one click away at `ladder/`,
++ * and the model-comparison tool at `try/`.
++ */
+ export default new Page({
+ 	meta: import.meta,
+ 	title: "Refine",
+-	description: "One dictation, shown as a ladder: raw → clean → structured → brief, with a coverage table proving nothing was lost.",
++	description: "Speak one prompt: see it cleaned instantly, then refined into an outline with a clarity score per sentence.",
+ 	icon: "fact_check",
+-	children: "try",
++	children: "try ladder",
+ 
+ 	content(){
+-		// The demo comes first (the owner, 2026-10-08): speak one prompt, see it refined. The saved
+-		// ladder below is the older, longer view of the same pipeline on a finished dictation.
+-		md("Speak or type **one prompt** and press Refine: you get what was said, the cleaned numbered sentences, and the refined cards. A yellow ⚑ marks a sentence that may be unclear; click a card's `S#` to jump to its source sentence. How the classes fit: [architecture](/framework/ext/Refine/md/doc/architecture/) · the data class: [Prompt](/framework/ext/Refine/md/doc/prompt/).");
+ 		new RefineDemo().ac("wide");
+-
+-		h2("A saved run — the same pipeline on a long dictation");
+-		p("`Server/refine.mjs` turns a long, rambling dictation into a numbered brief a mastermind can act on — and keeps every step, so you can always ask \"wait, what did I actually say?\" Click an ask below, or a bullet in Structured, and its source sentences light up in Clean and Raw.");
+-
+-		p(() => a("Try it — run this same clean-up step against any model →").href(new URL("try/", import.meta.url).pathname));
+-
+-		// Run C (the harness dictation) is the longest of the four and the only
+-		// one with a dropped sentence AND a thin citation both present, so the
+-		// FIRST screen anyone lands on already shows what "dropped" looks like —
+-		// runs/sample has zero, and a first screen with nothing dropped reads as
+-		// "this never happens".
+-		const DEFAULT_RUN = "/framework/ai/2026-09-29/prompt-refine/runs/c/";
+-		refine(import.meta, { run: new URLSearchParams(location.search).get("run") || DEFAULT_RUN }).ac("wide");
+-
+-		md(`This page shows a real \`Server/refine.mjs\` run — run C, the harness and research dictation — on one of the owner's own 09-29 dictations. \`?run=\` picks any other run directory — the task's card on the AI 2 dashboard has a picker for sample / a / b / c. There's also a small hand-built [fixture](?run=${new URL("fixture/", import.meta.url).pathname}) this view was first built against, in the exact file shape \`refine.mjs\` writes.`);
++		p(() => {
++			a("Saved long run (ladder)").href(new URL("ladder/", import.meta.url).pathname);
++			a("Compare models (try)").href(new URL("try/", import.meta.url).pathname);
++			a("How it fits (architecture)").href("/framework/ext/Refine/md/doc/architecture/");
++		});
+ 	},
+ });
+diff --git a/public/framework/ext/Refine/readme.md b/public/framework/ext/Refine/readme.md
+index 6a65f195e..5c857db37 100644
+--- a/public/framework/ext/Refine/readme.md
++++ b/public/framework/ext/Refine/readme.md
+@@ -48,6 +48,8 @@ pulling a sample straight from a recent voice session — no index of raw dictat
+ today, so paste is the stand-in; see the page's own doc comment (`try/page.js`) for why.
+ 
+ ## More
++- [Refine v3](/framework/ext/Refine/md/doc/refine-v3-2026-10-09/) — the one-screen workspace, instant clean, a session per model run, per-sentence clarity, numbers (`doc/refine-v3-2026-10-09.md`). The old saved-run ladder moved to `ladder/`.
++- [audio/Whisper](/framework/audio/Whisper/) — the Whisper server and per-surface session classes (`Whisper`, `WhisperSession`)
+ - [Architecture](/framework/ext/Refine/md/doc/architecture/) — the classes, the boss (`RefineSystem`), what composes what (`doc/architecture.md`)
+ - [Nothing to refine yet](/framework/ext/Refine/md/doc/nothing-to-refine-2026-10-09/) — the mic-input bug and its test (`doc/nothing-to-refine-2026-10-09.md`)
+ - [Whisper flow](/framework/ext/Refine/md/doc/whisper-flow-2026-10-09/) — measured: Whisper did not fail; the errors were a page bug. Recommendation: keep local Whisper (`doc/whisper-flow-2026-10-09.md`)
+diff --git a/public/framework/ext/Refine/test/files.jsonl b/public/framework/ext/Refine/test/files.jsonl
+index 79d7d92e9..3cc06dafc 100644
+--- a/public/framework/ext/Refine/test/files.jsonl
++++ b/public/framework/ext/Refine/test/files.jsonl
+@@ -1 +1,2 @@
+ {"file":"nothing-to-refine.mjs"}
++{"file":"dictate-flow.mjs"}
+diff --git a/public/framework/ux/Dictate/Dictate.js b/public/framework/ux/Dictate/Dictate.js
+index 024093697..5eed29dd1 100644
+--- a/public/framework/ux/Dictate/Dictate.js
++++ b/public/framework/ux/Dictate/Dictate.js
+@@ -859,7 +859,7 @@ export default class Dictate extends View {
+ 		// left in, every one became a paragraph break in the box. Real breaks come from real pauses only.
+ 		const text = (body.text ?? "").replace(/\s+/g, " ").trim();
+ 		// The WhisperLog hook: exactly what whisper-server answered (`raw`) and what we kept (`text`).
+-		this.on_whisper?.({ kind, ms: Math.round(this.whisper_ms), text, raw: body.text ?? "" });
++		this.on_whisper?.({ kind, ms: Math.round(this.whisper_ms), text, raw: body.text ?? "", bytes: wav.size ?? 0, seconds: samples.length / (this.mic.rate?.() || 16000) });
+ 		return text;
+ 	}
+ 

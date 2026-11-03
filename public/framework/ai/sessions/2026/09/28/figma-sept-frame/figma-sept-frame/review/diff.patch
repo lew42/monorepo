@@ -1,0 +1,2484 @@
+diff --git a/public/framework/ai/2026/09/28/figma-sept-2026/1-typography/figma.png b/public/framework/ai/2026/09/28/figma-sept-2026/1-typography/figma.png
+new file mode 100644
+index 00000000..510ed35c
+Binary files /dev/null and b/public/framework/ai/2026/09/28/figma-sept-2026/1-typography/figma.png differ
+diff --git a/public/framework/ai/2026/09/28/figma-sept-2026/1-typography/view.css b/public/framework/ai/2026/09/28/figma-sept-2026/1-typography/view.css
+new file mode 100644
+index 00000000..692761ce
+--- /dev/null
++++ b/public/framework/ai/2026/09/28/figma-sept-2026/1-typography/view.css
+@@ -0,0 +1,61 @@
++/* Figma "Typography" section — the one rounded darken panel every section
++   sits in, tight 36px rhythm (the Figma spec's own gap, not the page's
++   fluid --flow), and a dark-ink/accent-text chip instead of the site's
++   orange pill badge. Scoped to this card's root so nothing here leaks. */
++@layer site {
++	.figma-typography .figma-panel {
++		border-radius: var(--radius);
++		padding: 2.25em 2em;   /* 36px / 32px at the root size */
++	}
++
++	/* The Figma frame's own gap (36px) read cramped at the site's own type
++	   scale, which runs smaller — ~0.6x (20px) reads the same, and the
++	   links row keeps its own slightly bigger gap above it (24px), same
++	   as the Figma. Flat, not `--flow`: that scales with font-size and the
++	   viewport, and measured 2-3x too tall here. */
++	.figma-typography .figma-panel > * + * { margin-top: 20px; }
++	.figma-typography .figma-panel > :first-child { margin-top: 0; }
++	.figma-typography .figma-panel > .figma-links { margin-top: 24px; }
++	.figma-typography .figma-panel h1,
++	.figma-typography .figma-panel h2,
++	.figma-typography .figma-panel h3,
++	.figma-typography .figma-panel h4,
++	.figma-typography .figma-panel p { margin: 0; }
++
++	/* A dark ink box, small radius, accent uppercase text — not `.ui-pill`'s
++	   fully-rounded orange fill. */
++	.figma-typography .figma-chip {
++		display: inline-block;
++		background: var(--bg);
++		color: var(--prim);
++		font-size: 0.8em;
++		font-weight: 700;
++		letter-spacing: 0.05em;
++		text-transform: uppercase;
++		border-radius: 0.375em;
++		padding: 0.4em 0.75em;
++	}
++
++	/* `flex-wrap` so a narrow card wraps to a SECOND ROW, never inside one
++	   link's own text — `white-space: nowrap` is what stops "Learn more"
++	   breaking into "Learn" / "more" when the row itself has no room left. */
++	.figma-typography .figma-links {
++		flex-wrap: wrap;
++		gap: 16px;
++	}
++	.figma-typography .figma-links .figma-link {
++		color: var(--ink);
++		font-weight: 600;
++		white-space: nowrap;
++		text-decoration-line: underline;
++		text-decoration-color: var(--prim);
++		text-decoration-thickness: 0.2em;
++		text-underline-offset: 0.2em;
++	}
++
++	.figma-typography .figma-compare {
++		margin-top: var(--flow);
++		padding-top: var(--gap);
++	}
++	.figma-typography .figma-compare img { border-radius: var(--radius); }
++}
+diff --git a/public/framework/ai/2026/09/28/figma-sept-2026/1-typography/view.js b/public/framework/ai/2026/09/28/figma-sept-2026/1-typography/view.js
+new file mode 100644
+index 00000000..9fbfb612
+--- /dev/null
++++ b/public/framework/ai/2026/09/28/figma-sept-2026/1-typography/view.js
+@@ -0,0 +1,36 @@
++import { View, div, span, h1, h2, h3, h4, p, a, img } from "/app.js";
++
++View.stylesheet(import.meta, "view.css");
++
++// The "Typography" section of the Figma "Sept 2026" frame, drawn as live site
++// markup — same headings, same body copy, same three links — inside the one
++// rounded darken panel every section sits in. The Figma png sits BELOW the
++// panel, outside it, for comparison.
++export default class Default extends View {
++
++	render(){
++		div.c("figma-typography", () => {
++			div.c("figma-panel darken-1", () => {
++				span.c("figma-chip", "TYPOGRAPHY");
++
++				h1("Heading One");
++				h2("Heading Two");
++				h3("Heading Three");
++				h4("Heading four");
++
++				p("Body text uses the scheme text color, adapting across Light, Dark, Prime, and PrimeInvert without any manual overrides.");
++
++				div.c("figma-links flex", () => {
++					a.c("figma-link", "Learn more").href("#");
++					a.c("figma-link", "Documentation").href("#");
++					a.c("figma-link", "Get started").href("#");
++				});
++			});
++
++			div.c("figma-compare", () => {
++				span.c("h4 muted", "Figma");
++				img().attr("src", new URL("figma.png", import.meta.url).href).attr("alt", "Figma: Typography section");
++			});
++		});
++	}
++}
+diff --git a/public/framework/ai/2026/09/28/figma-sept-2026/2-lists/figma.png b/public/framework/ai/2026/09/28/figma-sept-2026/2-lists/figma.png
+new file mode 100644
+index 00000000..4b10db9d
+Binary files /dev/null and b/public/framework/ai/2026/09/28/figma-sept-2026/2-lists/figma.png differ
+diff --git a/public/framework/ai/2026/09/28/figma-sept-2026/2-lists/view.css b/public/framework/ai/2026/09/28/figma-sept-2026/2-lists/view.css
+new file mode 100644
+index 00000000..f833fcbe
+--- /dev/null
++++ b/public/framework/ai/2026/09/28/figma-sept-2026/2-lists/view.css
+@@ -0,0 +1,34 @@
++/* Figma "Lists" section — the one rounded darken panel every section sits
++   in, Features/Steps as two columns that stay two-up down to a narrow card
++   (auto-fit, not a fixed-width word), and the Figma spec's own 16px label
++   gap / 45px row rhythm instead of the page's fluid --gap. */
++@layer site {
++	.figma-lists .figma-panel {
++		border-radius: var(--radius);
++		padding: 2.25em 2em;   /* 36px / 32px at the root size */
++	}
++
++	/* Unconditional two-up, not `auto-fit`: the card column measures ~336px
++	   of content, and `auto-fit, minmax(10em, 1fr)` needs 2 * 10em (320px)
++	   PLUS the gap to stay two-up, so it stacked instead. `1fr 1fr` always
++	   fits — a track can shrink below its content's natural width, unlike
++	   `minmax`'s floor. */
++	.figma-lists .figma-list-cols {
++		display: grid;
++		grid-template-columns: 1fr 1fr;
++		gap: 36px;
++	}
++
++	.figma-lists h4 { margin: 0 0 16px; }
++	.figma-lists .figma-list { padding-left: 1.4em; margin: 0; }
++	/* A wrapped item's second line lands under the TEXT, not the marker —
++	   the default `list-style-position: outside` already does this. */
++	.figma-lists .figma-list li::marker { color: var(--prim); font-weight: 700; }
++	.figma-lists .figma-list li + li { margin-top: 12px; }
++
++	.figma-lists .figma-compare {
++		margin-top: var(--flow);
++		padding-top: var(--gap);
++	}
++	.figma-lists .figma-compare img { border-radius: var(--radius); }
++}
+diff --git a/public/framework/ai/2026/09/28/figma-sept-2026/2-lists/view.js b/public/framework/ai/2026/09/28/figma-sept-2026/2-lists/view.js
+new file mode 100644
+index 00000000..79a49871
+--- /dev/null
++++ b/public/framework/ai/2026/09/28/figma-sept-2026/2-lists/view.js
+@@ -0,0 +1,38 @@
++import { View, div, h4, ul, ol, li, img } from "/app.js";
++
++View.stylesheet(import.meta, "view.css");
++
++// The "Lists" section: an unordered "Features" list and an ordered "Steps"
++// list, side by side inside the one rounded darken panel every section
++// sits in — an auto-fit grid so the two columns stay two-up down to a
++// narrow card and wrap only below it.
++export default class Default extends View {
++
++	render(){
++		div.c("figma-lists", () => {
++			div.c("figma-panel darken-1", () => {
++				div.c("figma-list-cols", () => {
++					div(() => {
++						h4.c("muted", "Features");
++						ul.c("figma-list", () => {
++							["Adaptive color schemes", "Nested lighten / darken", "Variable-bound tokens", "One-click theme switching"]
++								.forEach(text => li(text));
++						});
++					});
++					div(() => {
++						h4.c("muted", "Steps");
++						ol.c("figma-list", () => {
++							["Pick a base color", "Set up scheme modes", "Bind variables to layers", "Switch and verify"]
++								.forEach(text => li(text));
++						});
++					});
++				});
++			});
++
++			div.c("figma-compare", () => {
++				h4.c("muted", "Figma");
++				img().attr("src", new URL("figma.png", import.meta.url).href).attr("alt", "Figma: Lists section");
++			});
++		});
++	}
++}
+diff --git a/public/framework/ai/2026/09/28/figma-sept-2026/3-form-elements/figma.png b/public/framework/ai/2026/09/28/figma-sept-2026/3-form-elements/figma.png
+new file mode 100644
+index 00000000..a269d138
+Binary files /dev/null and b/public/framework/ai/2026/09/28/figma-sept-2026/3-form-elements/figma.png differ
+diff --git a/public/framework/ai/2026/09/28/figma-sept-2026/3-form-elements/view.css b/public/framework/ai/2026/09/28/figma-sept-2026/3-form-elements/view.css
+new file mode 100644
+index 00000000..b84a073b
+--- /dev/null
++++ b/public/framework/ai/2026/09/28/figma-sept-2026/3-form-elements/view.css
+@@ -0,0 +1,45 @@
++/* Figma's "Form Elements" section is one rounded panel: darken-1 for the fill
++   (the .darken-1 utility class carries that), this file for its own padding
++   and the spacing/control sizes Figma draws tighter than the site's default
++   flow rhythm. Kept to what .darken-1/.card/h4 do not already give. */
++@layer site {
++
++	.figma-form-elements {
++		border-radius: var(--radius);
++		padding: 36px 32px;
++	}
++
++	.figma-form-elements .figma-chip { margin-bottom: 24px; }
++
++	.figma-form-elements .figma-field + .figma-field { margin-top: 36px; }
++	.figma-form-elements .figma-field-label { margin-bottom: 12px; }
++
++	.figma-form-elements input,
++	.figma-form-elements textarea {
++		display: block;
++		width: 100%;
++		background: var(--surface);
++		border: 1px solid var(--line);
++		border-radius: var(--radius);
++		padding: 16px 26px;
++		font-size: 16px;
++	}
++
++	.figma-form-elements .figma-actions {
++		display: flex;
++		gap: 12px;
++		margin-top: 36px;
++	}
++
++	/* The site skin stopped giving buttons a shouty voice on 2026-09-06
++	   (lew42.css's own note) — Figma's SUBMIT/CANCEL still want one here. */
++	.figma-form-elements .figma-actions button {
++		text-transform: uppercase;
++		font-weight: 700;
++		letter-spacing: 0.05em;
++		font-size: 0.75em;
++		padding: 0.9em 1.6em;
++	}
++
++	.figma-form-elements .figma-status { margin-top: 12px; }
++}
+diff --git a/public/framework/ai/2026/09/28/figma-sept-2026/3-form-elements/view.js b/public/framework/ai/2026/09/28/figma-sept-2026/3-form-elements/view.js
+new file mode 100644
+index 00000000..f35f887a
+--- /dev/null
++++ b/public/framework/ai/2026/09/28/figma-sept-2026/3-form-elements/view.js
+@@ -0,0 +1,62 @@
++import { View, div, h4, input, textarea, button, img } from "/app.js";
++
++View.stylesheet(import.meta, "view.css");
++
++/* Figma "Form Elements" section (metadata.xml, frame 43:12819): one rounded
++ * darken panel holding an eyebrow label, three stacked fields — a text input,
++ * an email input, a message textarea — and a two-button row (Submit /
++ * Cancel). Every control is the site's own <input>/<textarea>/<button>;
++ * view.css only adds the panel's own padding and the tight label/field
++ * spacing and small uppercase buttons Figma draws, which framework.css's
++ * general-purpose rhythm does not give for free. "Submit" and "Cancel" work
++ * locally — a status line and a real reset — but nothing persists.
++ *
++ * `classify()` (core/View/View.js) already stamps this instance's own
++ * element with `.figma-form-elements` from the class name — view.css hangs
++ * off that directly, so render() only adds `darken-2` for the panel fill
++ * (measured against the Figma png: its panel is ~14% black on white, which
++ * `darken-2`'s 16% is closer to than `darken-1`'s 8%). */
++export default class FigmaFormElementsView extends View {
++
++	render(){
++		this.ac("darken-2");
++
++		h4("Form Elements").ac("figma-chip").style("color", "var(--prim)");
++
++		this.name_input = this.field("Full Name", () => input().attr("type", "text").attr("value", "Jane Cooper"));
++		this.email_input = this.field("Email", () => input().attr("type", "email").attr("placeholder", "you@example.com"));
++		this.message_input = this.field("Message", () => textarea().attr("placeholder", "Tell us about your project...").attr("rows", "3"));
++
++		div.c("figma-actions", () => {
++			button.c("prim", "Submit").click(() => this.submit());
++			button("Cancel").click(() => this.reset());
++		});
++
++		this.$status = div.c("h4 muted figma-status", "");
++
++		div.c("flex v gap", () => {
++			div.c("h4 muted", "Figma");
++			img().attr("src", new URL("figma.png", import.meta.url).href).style({ maxWidth: "100%", borderRadius: "var(--radius)" });
++		}).style({ "--gap": "calc(var(--gap) * 0.3)", marginTop: "24px" });
++	}
++
++	// One label above one control — the shape ui/field's own template uses,
++	// just without the wrapping <label> (three separate fields, not one).
++	field(text, build){
++		var made;
++		div.c("figma-field", () => { h4.c("figma-field-label muted", text); made = build(); });
++		return made;
++	}
++
++	submit(){
++		const name = this.name_input.el.value.trim() || "(no name)";
++		this.$status.text(`Submitted — ${name}. This demo does not save anything.`);
++	}
++
++	reset(){
++		this.name_input.el.value = "Jane Cooper";
++		this.email_input.el.value = "";
++		this.message_input.el.value = "";
++		this.$status.text("");
++	}
++}
+diff --git a/public/framework/ai/2026/09/28/figma-sept-2026/4-2-col-pricing/figma.png b/public/framework/ai/2026/09/28/figma-sept-2026/4-2-col-pricing/figma.png
+new file mode 100644
+index 00000000..e55f8fa4
+Binary files /dev/null and b/public/framework/ai/2026/09/28/figma-sept-2026/4-2-col-pricing/figma.png differ
+diff --git a/public/framework/ai/2026/09/28/figma-sept-2026/4-2-col-pricing/view.css b/public/framework/ai/2026/09/28/figma-sept-2026/4-2-col-pricing/view.css
+new file mode 100644
+index 00000000..3c720661
+--- /dev/null
++++ b/public/framework/ai/2026/09/28/figma-sept-2026/4-2-col-pricing/view.css
+@@ -0,0 +1,95 @@
++/* Figma's "2-Col: Pricing" section (metadata.xml, frame 17:1051) has NO panel
++ * behind the two plan cards — just the cards themselves, side by side, on
++ * the page's own background. Every measurement below comes straight off
++ * metadata.xml at the Figma frame's own 856px width (padding 32, card gap
++ * 24, row gap 16 — all multiples of the 16px body size), turned into `em`
++ * against `.figma-pricing-scale`'s own font-size instead of pixels, so the
++ * SAME numbers hold true at any width: `container-type: inline-size` on the
++ * root (`.figma-pricing`, which `classify()` already stamps on this view's
++ * own element) makes `cqi` mean "percent of THIS card's width", and
++ * `font-size: clamp(7px, calc(100cqi / 53.5), 16px)` is 16px exactly when
++ * the card is 856px wide (856 / 53.5 = 16) and shrinks below that — so a
++ * narrow AI 2 column gets the Figma proportions at a smaller size instead
++ * of the Figma pixels wrapping.
++ *
++ * ⚠ Every child uses a flex `gap`, not individual margins — Figma's five
++ * internal gaps (label→price, price→"per month", →divider, →checklist,
++ * →button) are ALL 16px, i.e. all exactly 1em, so one `gap: 1em` on the
++ * plan's own flex column reproduces every one of them with no per-element
++ * number to keep in sync. */
++@layer site {
++
++	.figma-pricing { container-type: inline-size; }
++
++	.figma-pricing-scale {
++		font-size: clamp(7px, calc(100cqi / 53.5), 16px);
++	}
++
++	.figma-pricing-grid {
++		display: grid;
++		grid-template-columns: 1fr 1fr;
++		gap: 1.5em;   /* 24px at 16px */
++	}
++
++	.figma-plan {
++		display: flex;
++		flex-direction: column;
++		gap: 1em;   /* 16px — every internal Figma gap, at once */
++		padding: 2em;   /* 32px */
++		border-radius: var(--radius);
++		background: var(--surface);
++		color: var(--ink);
++		border: 1px solid var(--line);
++	}
++	.figma-plan.figma-plan-dark {
++		background: var(--ink);
++		color: var(--surface);
++		border-color: var(--ink);
++	}
++
++	.figma-plan-label {
++		font-size: 0.875em;   /* 14px */
++		font-weight: 700;
++		letter-spacing: 0.08em;
++		text-transform: uppercase;
++		color: var(--prim);
++	}
++
++	.figma-plan-price {
++		font-size: 3em;   /* 48px */
++		font-weight: 900;
++		line-height: 1;
++	}
++
++	.figma-plan-sub { font-size: 1em; opacity: 0.7; }
++
++	.figma-plan hr {
++		border: none;
++		border-top: 1px solid color-mix(in oklab, currentColor 20%, transparent);
++		width: 100%;
++	}
++
++	/* [check][text], two real grid columns, so a line long enough to wrap
++	   ("Unlimited projects" at the narrowest width) wraps under its OWN
++	   text instead of under the checkmark. */
++	.figma-plan-features {
++		display: grid;
++		grid-template-columns: auto 1fr;
++		align-items: start;
++		column-gap: 0.625em;   /* 10px */
++		row-gap: 1em;   /* 16px, same unit as everything else */
++		font-size: 1em;
++	}
++	.figma-plan-check { color: var(--prim); }
++
++	.figma-plan button.prim {
++		display: block;
++		width: 100%;
++		font-size: 0.875em;   /* 14px */
++		text-transform: uppercase;
++		font-weight: 700;
++		letter-spacing: 0.04em;
++		padding: 0.9em 1em;
++		white-space: nowrap;
++	}
++}
+diff --git a/public/framework/ai/2026/09/28/figma-sept-2026/4-2-col-pricing/view.js b/public/framework/ai/2026/09/28/figma-sept-2026/4-2-col-pricing/view.js
+new file mode 100644
+index 00000000..b769aebc
+--- /dev/null
++++ b/public/framework/ai/2026/09/28/figma-sept-2026/4-2-col-pricing/view.js
+@@ -0,0 +1,56 @@
++import { View, div, span, hr, button, img, icon } from "/app.js";
++
++View.stylesheet(import.meta, "view.css");
++
++/* Figma "2-Col: Pricing" section (metadata.xml, frame 17:1051): two plan
++ * cards, Starter (light) and Pro (dark, the "highlighted" plan), each an
++ * eyebrow label, a big price, "per month", a divider, a checklist and a
++ * full-width CTA — no panel behind them, straight on the page.
++ *
++ * Every size in view.css is `em` against `.figma-pricing-scale`'s own
++ * `font-size: clamp(...)`, which reads `cqi` off `.figma-pricing`'s
++ * `container-type: inline-size` — the Figma layout (two cards, one line
++ * per feature, one line on the button) at ANY width, not just 1920, because
++ * the numbers are all relative to the card's own size instead of pixels.
++ * `classify()` (core/View/View.js) already stamps this instance's own
++ * element `.figma-pricing` from the class name, which is what makes it the
++ * container query's root with no extra wrapper needed. */
++const PLANS = [
++	{ name: "Starter", price: "$9", features: ["5 projects", "10GB storage", "Email support"], dark: false },
++	{ name: "Pro", price: "$29", features: ["Unlimited projects", "100GB storage", "Priority support", "Custom domains", "API access"], dark: true },
++];
++
++export default class FigmaPricingView extends View {
++
++	render(){
++		div.c("figma-pricing-scale", () => {
++			div.c("figma-pricing-grid", () => PLANS.forEach(plan => this.plan(plan)));
++		});
++
++		div.c("flex v gap", () => {
++			div.c("h4 muted", "Figma");
++			img().attr("src", new URL("figma.png", import.meta.url).href).style({ maxWidth: "100%", borderRadius: "var(--radius)" });
++		}).style({ "--gap": "calc(var(--gap) * 0.3)", marginTop: "1em" });
++	}
++
++	plan(plan){
++		div.c("figma-plan" + (plan.dark ? " figma-plan-dark" : ""), () => {
++			div.c("figma-plan-label", plan.name);
++			div.c("figma-plan-price", plan.price);
++			span.c("figma-plan-sub", "per month");
++			hr();
++			div.c("figma-plan-features", () => plan.features.forEach(text => {
++				icon("check").ac("figma-plan-check");
++				span(text);
++			}));
++			button.c("prim", "Choose Plan").click(() => this.choose(plan));
++		});
++	}
++
++	// Nothing persists — a status line under the card it was clicked on is the
++	// whole "it works" proof the brief asks for.
++	choose(plan){
++		if (this.$chosen) this.$chosen.remove();
++		this.$chosen = div.c("h4 muted", `${plan.name} chosen — nothing saved.`).append_to(this.el);
++	}
++}
+diff --git a/public/framework/ai/2026/09/28/figma-sept-2026/5-2-col-sidebar-content/figma.png b/public/framework/ai/2026/09/28/figma-sept-2026/5-2-col-sidebar-content/figma.png
+new file mode 100644
+index 00000000..8f2b2a66
+Binary files /dev/null and b/public/framework/ai/2026/09/28/figma-sept-2026/5-2-col-sidebar-content/figma.png differ
+diff --git a/public/framework/ai/2026/09/28/figma-sept-2026/5-2-col-sidebar-content/view.css b/public/framework/ai/2026/09/28/figma-sept-2026/5-2-col-sidebar-content/view.css
+new file mode 100644
+index 00000000..ba191c0c
+--- /dev/null
++++ b/public/framework/ai/2026/09/28/figma-sept-2026/5-2-col-sidebar-content/view.css
+@@ -0,0 +1,127 @@
++/* Card 5 — 2-Col: Sidebar + Content. A scaled recreation, not a reflowed one —
++   see the note at the top of view.js for why. Every number below is an `em`,
++   converted from the Figma's own pixels at its 856px canvas (16px = 1em there),
++   so `.figma-panel`'s own font-size (set from the container's width) carries
++   every size in this file down or up together. */
++@layer site {
++
++	.figma-scale { container-type: inline-size; }
++
++	.figma-panel {
++		font-size: clamp(7px, calc(100cqi / 53.5), 16px);
++		border-radius: 0.5em;
++		padding: 2.25em 2em;   /* 36px / 32px at the Figma's own width */
++	}
++
++	.figma-widget {
++		display: grid;
++		grid-template-columns: 33% 1fr;   /* the Figma's 280:576 sidebar/content split */
++		border-radius: 0.5em;
++		overflow: hidden;
++		border: 1px solid var(--line);
++		font-size: 1em;
++	}
++
++	.figma-sidebar {
++		display: flex;
++		flex-direction: column;
++		background: var(--prim);
++		color: var(--surface);
++		padding: 1.5em;
++		gap: 0.6em;
++	}
++
++	.figma-dash-title { font-size: 1.35em; font-weight: 600; margin-bottom: 0.4em; }
++
++	.figma-nav { display: flex; flex-direction: column; gap: 0.2em; }
++
++	.figma-nav-item { padding: 0.6em 0.7em; border-radius: 0.4em; }
++	.figma-nav-item.active { background: var(--lighten-2); font-weight: 600; }
++
++	.figma-user {
++		display: flex;
++		align-items: center;
++		gap: 0.6em;
++		margin-top: auto;
++		padding: 0.6em;
++		border-radius: 0.5em;
++		background: var(--darken-2);
++	}
++
++	.figma-user-avatar {
++		width: 2em; height: 2em;
++		border-radius: 50%;
++		background: var(--ink);
++		flex-shrink: 0;
++	}
++
++	.figma-user-info { display: flex; flex-direction: column; gap: 0.1em; }
++	.figma-user-name { font-weight: 700; font-size: 0.8em; }
++	.figma-user-role { font-size: 0.75em; opacity: 0.85; }
++
++	.figma-content {
++		display: flex;
++		flex-direction: column;
++		gap: 1em;
++		background: var(--surface);
++		color: var(--ink);
++		padding: 1.5em;
++	}
++
++	.figma-content-title { font-size: 1.9em; font-weight: 700; }
++
++	.figma-stats { display: flex; gap: 0.7em; }
++
++	.figma-tile {
++		flex: 1;
++		display: flex;
++		flex-direction: column;
++		gap: 0.3em;
++		background: var(--wash);
++		border-radius: 0.4em;
++		padding: 0.9em;
++	}
++
++	.figma-tile-label {
++		font-size: 0.65em;
++		font-weight: 700;
++		text-transform: uppercase;
++		letter-spacing: 0.05em;
++		color: var(--subtle);
++	}
++
++	.figma-tile-value { font-size: 1.4em; font-weight: 600; }
++
++	.figma-activity {
++		display: flex;
++		flex-direction: column;
++		gap: 0.6em;
++		background: var(--wash);
++		border-radius: 0.4em;
++		padding: 1em;
++	}
++
++	.figma-activity-title {
++		font-size: 0.65em;
++		font-weight: 700;
++		text-transform: uppercase;
++		letter-spacing: 0.05em;
++		color: var(--subtle);
++	}
++
++	.figma-activity-row {
++		display: flex;
++		align-items: center;
++		gap: 0.6em;
++		background: var(--surface);
++		border-radius: 0.35em;
++		padding: 0.6em 0.75em;
++		font-size: 0.9em;
++	}
++
++	.figma-activity-bar { width: 0.25em; align-self: stretch; background: var(--prim); border-radius: 999px; }
++
++	/* Outside the scaled container, and outside the panel — plain page rhythm. */
++	.figma-compare { display: flex; flex-direction: column; gap: 0.5em; margin-top: 1em; }
++	.figma-compare-label { font-size: 0.8em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--subtle); }
++}
+diff --git a/public/framework/ai/2026/09/28/figma-sept-2026/5-2-col-sidebar-content/view.js b/public/framework/ai/2026/09/28/figma-sept-2026/5-2-col-sidebar-content/view.js
+new file mode 100644
+index 00000000..1f26fff8
+--- /dev/null
++++ b/public/framework/ai/2026/09/28/figma-sept-2026/5-2-col-sidebar-content/view.js
+@@ -0,0 +1,87 @@
++import { View, div, span, img } from "/app.js";
++
++// Recreation of the Figma section "2-Col: Sidebar + Content" — a small dashboard:
++// an accent sidebar with a nav list and a user row, next to a white content area
++// with three stat tiles and a recent-activity list. The Figma accent (#72c4ff)
++// maps onto this site's one accent, `--prim`.
++//
++// SCALES, does not reflow (mastermind correction, 2026-09-28): the card column is
++// only ~400px at 1920, half the Figma's own 856px canvas, and reflowing a fixed
++// mockup breaks it (text clips, tiles stack). So `.figma-scale` is a size
++// container and `.figma-panel`'s own font-size is `100cqi / 53.5` (853px / 16 =
++// 53.5) — 16px at the Figma's real width, shrinking below it. Every padding, gap,
++// radius and font-size from here down is `em`, so the WHOLE panel is the same
++// layout at any width. None of the site's own type scale or --gap/--pad tokens
++// are used inside it — they are viewport-relative, not container-relative, and
++// would not shrink with the panel. The Figma comparison image sits below the
++// panel, outside the scaled container, at its own natural size.
++View.stylesheet(import.meta, "view.css");
++
++const NAV = ["Overview", "Analytics", "Settings", "Team", "Billing"];
++
++const STATS = [
++	["REVENUE", "$12,450"],
++	["USERS", "1,247"],
++	["GROWTH", "+18.2%"],
++];
++
++const ACTIVITY = [
++	"New signup: alex@demo.com",
++	"Payment received: $299",
++	"Team invite accepted",
++];
++
++export default class Default extends View {
++
++	render(){
++		div.c("figma-scale", () => {
++			div.c("figma-panel darken-1", () => {
++
++				div.c("figma-widget", () => {
++
++					// Sidebar — the active item is a lighter rounded row; the user sits
++					// in its own darker box pinned to the bottom.
++					div.c("figma-sidebar", () => {
++						div.c("figma-dash-title", "Dashboard");
++
++						div.c("figma-nav", () => NAV.forEach((label, i) =>
++							div.c("figma-nav-item" + (i === 0 ? " active" : ""), label)));
++
++						div.c("figma-user", () => {
++							span.c("figma-user-avatar", "");
++							div.c("figma-user-info", () => {
++								div.c("figma-user-name", "JANE COOPER");
++								div.c("figma-user-role", "Admin");
++							});
++						});
++					});
++
++					// Content — a heading, three stat tiles side by side, and a
++					// recent-activity box with three light rows on a darker fill.
++					div.c("figma-content", () => {
++						div.c("figma-content-title", "Overview");
++
++						div.c("figma-stats", () => STATS.forEach(([label, value]) =>
++							div.c("figma-tile", () => {
++								div.c("figma-tile-label", label);
++								div.c("figma-tile-value", value);
++							})));
++
++						div.c("figma-activity", () => {
++							div.c("figma-activity-title", "RECENT ACTIVITY");
++							ACTIVITY.forEach(line => div.c("figma-activity-row", () => {
++								div.c("figma-activity-bar");
++								span(line);
++							}));
++						});
++					});
++				});
++			});
++		});
++
++		div.c("figma-compare", () => {
++			div.c("figma-compare-label", "Figma");
++			img().attr("src", new URL("figma.png", import.meta.url).href).attr("alt", "Figma section 5").style("maxWidth", "100%");
++		});
++	}
++}
+diff --git a/public/framework/ai/2026/09/28/figma-sept-2026/6-ui-controls/figma.png b/public/framework/ai/2026/09/28/figma-sept-2026/6-ui-controls/figma.png
+new file mode 100644
+index 00000000..98fbf41d
+Binary files /dev/null and b/public/framework/ai/2026/09/28/figma-sept-2026/6-ui-controls/figma.png differ
+diff --git a/public/framework/ai/2026/09/28/figma-sept-2026/6-ui-controls/view.css b/public/framework/ai/2026/09/28/figma-sept-2026/6-ui-controls/view.css
+new file mode 100644
+index 00000000..088859ff
+--- /dev/null
++++ b/public/framework/ai/2026/09/28/figma-sept-2026/6-ui-controls/view.css
+@@ -0,0 +1,146 @@
++/* Card 6 — UI Controls. A scaled recreation, not a reflowed one — see the note at
++   the top of view.js. Every number below is `em`, converted from the Figma's own
++   pixels at its 856px canvas (16px = 1em there), so `.figma-panel`'s own
++   font-size (set from the container's width) carries every size in this file
++   down or up together. */
++@layer site {
++
++	.figma-scale { container-type: inline-size; }
++
++	.figma-panel {
++		font-size: clamp(7px, calc(100cqi / 53.5), 16px);
++		border-radius: 0.5em;
++		padding: 2.25em 2em;   /* 36px / 32px at the Figma's own width */
++		display: flex;
++		flex-direction: column;
++		gap: 3.4em;   /* ~1.5x the section padding, more air between groups */
++	}
++
++	.figma-title { font-size: 1.5em; font-weight: 600; }
++
++	.figma-section { display: flex; flex-direction: column; gap: 0.9em; }
++
++	.figma-group-title {
++		font-size: 0.7em;
++		font-weight: 700;
++		text-transform: uppercase;
++		letter-spacing: 0.05em;
++		color: var(--subtle);
++	}
++
++	/* ── toggles — fine as they were, now scaled by the panel's own em ───────── */
++	.figma-toggles { display: flex; flex-direction: column; gap: 0.9em; }
++
++	.figma-toggle { display: flex; align-items: center; gap: 0.7em; cursor: pointer; }
++
++	.figma-toggle-input {
++		position: absolute;
++		width: 1px; height: 1px;
++		opacity: 0;
++		pointer-events: none;
++	}
++
++	.figma-toggle-track {
++		position: relative;
++		display: inline-block;
++		width: 2.4em; height: 1.3em;
++		border-radius: 999px;
++		background: var(--darken-1);
++		transition: background 0.15s;
++		flex-shrink: 0;
++	}
++
++	.figma-toggle-track::before {
++		content: "";
++		position: absolute;
++		top: 0.15em; left: 0.15em;
++		width: 1em; height: 1em;
++		border-radius: 50%;
++		background: var(--surface);
++		transition: transform 0.15s;
++	}
++
++	.figma-toggle-input:checked + .figma-toggle-track { background: var(--prim); }
++	.figma-toggle-input:checked + .figma-toggle-track::before { transform: translateX(1.1em); }
++	.figma-toggle-input:focus-visible + .figma-toggle-track { outline: 2px solid var(--prim); outline-offset: 2px; }
++
++	/* ── chips — accent-filled vs a light box with a thin border, both small caps ── */
++	.figma-chips { display: flex; flex-wrap: wrap; gap: 0.5em; }
++
++	.figma-chip {
++		font-size: 0.7em;
++		font-weight: 700;
++		text-transform: uppercase;
++		letter-spacing: 0.03em;
++		padding: 0.4em 0.9em;
++		border-radius: 999px;
++		background: var(--wash);
++		border: 1px solid var(--line);
++	}
++
++	.figma-chip.accent { background: var(--prim); color: var(--surface); border-color: transparent; }
++
++	/* ── progress — a thin light track, three titled groups (one plain, one dark,
++	   one light), each square-ish with ~32px (2em) padding ────────────────────── */
++	.figma-progress-section { gap: 0.9em; }
++
++	.figma-progress-group { display: flex; flex-direction: column; gap: 0.9em; }
++	.figma-progress-group.dark, .figma-progress-group.light { padding: 2em; border-radius: 0.5em; }
++	.figma-progress-group.dark { background: var(--darken-2); }
++	.figma-progress-group.light { background: var(--surface); }   /* near-white, clearly lighter than the panel */
++
++	/* Sentence case, semibold, ~h3 size — not the small uppercase group label. */
++	.figma-progress-title { font-size: 1.4em; font-weight: 600; }
++
++	.figma-bar { display: flex; flex-direction: column; gap: 0.5em; }
++
++	.figma-bar-row {
++		display: flex;
++		justify-content: space-between;
++		font-size: 0.7em;
++		font-weight: 700;
++		text-transform: uppercase;
++		letter-spacing: 0.03em;
++		color: var(--subtle);
++	}
++
++	.figma-bar-track {
++		width: 100%;
++		height: 0.375em;   /* 6px at the Figma's own width */
++		border-radius: 999px;
++		background: var(--darken-1);
++		overflow: hidden;
++	}
++
++	.figma-bar-fill { height: 100%; border-radius: 999px; background: var(--prim); }
++
++	/* ── badges — compact light boxes, a small square accent count ───────────── */
++	.figma-badges { display: flex; flex-wrap: wrap; gap: 0.6em; }
++
++	.figma-badge {
++		display: flex;
++		align-items: center;
++		gap: 0.6em;
++		background: var(--wash);
++		border-radius: 0.4em;
++		padding: 0.6em 0.8em;
++		font-size: 0.9em;
++	}
++
++	.figma-count {
++		display: inline-flex;
++		align-items: center;
++		justify-content: center;
++		min-width: 1.5em;
++		padding: 0.15em 0.4em;
++		border-radius: 0.3em;
++		background: var(--prim);
++		color: var(--surface);
++		font-size: 0.75em;
++		font-weight: 700;
++	}
++
++	/* Outside the scaled container, and outside the panel — plain page rhythm. */
++	.figma-compare { display: flex; flex-direction: column; gap: 0.5em; margin-top: 1em; }
++	.figma-compare-label { font-size: 0.8em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--subtle); }
++}
+diff --git a/public/framework/ai/2026/09/28/figma-sept-2026/6-ui-controls/view.js b/public/framework/ai/2026/09/28/figma-sept-2026/6-ui-controls/view.js
+new file mode 100644
+index 00000000..e9b1e676
+--- /dev/null
++++ b/public/framework/ai/2026/09/28/figma-sept-2026/6-ui-controls/view.js
+@@ -0,0 +1,100 @@
++import { View, div, span, label, input, img } from "/app.js";
++
++// Recreation of the Figma section "UI Controls" — four little galleries: toggles,
++// chips, three separately-boxed "Progress & Sliders" groups (metadata.xml really
++// has three, each with its own heading — plain, then darken-2, then a lighter
++// fill), and counter badges.
++//
++// SCALES, does not reflow (mastermind correction, 2026-09-28, same as card 5):
++// `.figma-scale` is a size container and `.figma-panel`'s font-size is set from
++// its own width (100cqi / 53.5 = 16px at the Figma's real 856px), and every
++// padding, gap, radius and font-size below it is `em` — none of the site's own
++// type scale or --gap/--pad tokens, which are viewport- not container-relative.
++View.stylesheet(import.meta, "view.css");
++
++const TOGGLES = [
++	["Dark mode", true],
++	["Notifications", false],
++	["Auto-save", true],
++];
++
++const CHIPS = [
++	["Design", true], ["Tokens", false], ["Variables", true],
++	["Themes", false], ["Mobile", false], ["Adaptive", true],
++];
++
++const BARS = [["Upload", 72], ["Processing", 45]];
++
++const BADGES = [["Inbox", 12], ["Updates", 3], ["Tasks", 28]];
++
++// One toggle: a real checkbox (so it actually flips on a click) hidden under a
++// styled track. `label` already puts a click on the whole row onto the input.
++const toggle = (text, checked) => label.c("figma-toggle", () => {
++	const box = input().attr("type", "checkbox").ac("figma-toggle-input");
++	if (checked) box.attr("checked", "");
++	span.c("figma-toggle-track");
++	span(text);
++});
++
++// One progress row: a label + its percent on one line, then a thin track with a
++// fill sized by the percent.
++const bar = (text, pct) => div.c("figma-bar", () => {
++	div.c("figma-bar-row", () => {
++		span(text);
++		span(pct + "%");
++	});
++	div.c("figma-bar-track", () => div.c("figma-bar-fill").style("width", pct + "%"));
++});
++
++// The two BOXED "Progress & Sliders" groups (one darker, one lighter) — each
++// gets its own sentence-case heading, unlike the section's own small uppercase
++// label above the first, plain group.
++const progress_group = extra => div.c("figma-progress-group " + extra, () => {
++	div.c("figma-progress-title", "Progress & Sliders");
++	BARS.forEach(([text, pct]) => bar(text, pct));
++});
++
++export default class Default extends View {
++
++	render(){
++		div.c("figma-scale", () => {
++			div.c("figma-panel darken-1", () => {
++
++				div.c("figma-title", "UI Controls");
++
++				div.c("figma-section", () => {
++					div.c("figma-group-title", "Toggles");
++					div.c("figma-toggles", () => TOGGLES.forEach(([text, on]) => toggle(text, on)));
++				});
++
++				div.c("figma-section", () => {
++					div.c("figma-group-title", "Tags & Chips");
++					div.c("figma-chips", () => CHIPS.forEach(([text, accent]) =>
++						span.c("figma-chip" + (accent ? " accent" : ""), text)));
++				});
++
++				div.c("figma-section figma-progress-section", () => {
++					div.c("figma-group-title", "Progress & Sliders");
++					BARS.forEach(([text, pct]) => bar(text, pct));
++					progress_group("dark");
++					progress_group("light");
++				});
++
++				div.c("figma-section", () => {
++					div.c("figma-group-title", "Badges & Counters");
++					div.c("figma-badges", () => BADGES.forEach(([text, count]) =>
++						div.c("figma-badge", () => {
++							span(text);
++							span.c("figma-count", String(count));
++						})));
++				});
++			});
++		});
++
++		div.c("figma-compare", () => {
++			div.c("figma-compare-label", "Figma");
++			img().attr("src", new URL("figma.png", import.meta.url).href)
++				.attr("alt", "Figma section 6").style("maxWidth", "100%");
++		});
++	}
++}
+diff --git a/public/framework/ai/2026/09/28/figma-sept-2026/7-task-management-ai-patterns/ai.css b/public/framework/ai/2026/09/28/figma-sept-2026/7-task-management-ai-patterns/ai.css
+new file mode 100644
+index 00000000..8945bf8c
+--- /dev/null
++++ b/public/framework/ai/2026/09/28/figma-sept-2026/7-task-management-ai-patterns/ai.css
+@@ -0,0 +1,358 @@
++@layer site {
++
++	/* Figma "AI feedback patterns" (78:13866) — the bottom band of section 7:
++	   the compact/expanded composer pair, then a full conversation with code
++	   blocks and a reply composer at the bottom. Every colour, avatar shape
++	   and button style below was checked against sections/7-task-management-
++	   ai-patterns.png by the mastermind and corrected once already
++	   (2026-09-28) — see that round's report in the task log before changing
++	   any of it again. */
++
++	/* SCALE, DON'T REFLOW: the card column is ~400px at 1920, half the
++	   Figma frame's 856px — too narrow for the compact/expanded pair to sit
++	   side by side at the site's own spacing. So this band keeps Figma's
++	   exact layout and just shrinks it: the outer wrapper opens a
++	   container-query context on its own width, the panel's font-size is
++	   that width ÷ 53.5 (856px ÷ 16px, so 1em = 16px at the Figma's own
++	   size and less below it), and every length inside — padding, gap,
++	   radius, avatar size, border — is written in `em`, always relative to
++	   an element's own font-size. Shrink the one variable and the whole
++	   panel shrinks together, same proportions Figma drew. `--gap`/`--pad`/
++	   `--flow` are the site's page-rhythm tokens, tuned for a full page
++	   width, not a 400px card — overridden here to plain `em` so every
++	   `gap`/`pad` class already in ai.js becomes scale-safe for free. */
++	.figma-ai-scale {
++		container-type: inline-size;
++	}
++
++	.figma-ai-band {
++		--gap: 1em;
++		--pad: 2em;
++		--flow: 1.5em;
++		/* No status-green in framework.css (`ui/badge`'s own doc calls this
++		   "a third done") — defined locally, light-dark aware like the
++		   site's own tokens, used only inside this band. */
++		--figma-ai-green: light-dark(#1a8a5f, #34d399);
++		--figma-ai-green-bg: light-dark(#e3f6ec, #113826);
++		font-size: clamp(7px, calc(100cqi / 53.5), 16px);
++		background: var(--darken-1);
++		border-radius: var(--radius);
++		padding: 2.25em 2em;   /* Figma's pad-y 36 / pad-x 32, at 16px = 1em */
++	}
++
++	/* ── chips: three different shapes, not one reused three ways ── */
++
++	.figma-ai-eyebrow {
++		background: var(--ink);
++		color: var(--prim);
++		font-weight: 700;
++		letter-spacing: 0.05em;
++		border-radius: 0.3em;
++		padding: 0.4em 0.7em;
++	}
++
++	.figma-ai-status {
++		background: var(--prim);
++		color: white;
++		font-weight: 700;
++		border-radius: 999px;
++		padding: 0.3em 0.8em;
++		display: inline-block;
++		/* A flex COLUMN's children stretch to its full width by default
++		   (align-items: stretch) — without this the pill spans the whole
++		   card instead of hugging "In review". */
++		align-self: flex-start;
++	}
++
++	.figma-ai-tests-pass {
++		background: var(--figma-ai-green-bg);
++		color: var(--figma-ai-green);
++		font-weight: 700;
++		border-radius: 999px;
++		padding: 0.3em 0.8em;
++	}
++
++	.figma-ai-state-label {
++		letter-spacing: 0.05em;
++	}
++
++	/* `h4` (framework.css) is bold, tracked AND UPPERCASE — right for the
++	   eyebrow/status chips above, wrong for plain small text like a branch
++	   path or "You · 10:44", which Figma draws in normal case. This is just
++	   `h4`'s font-size, nothing else. */
++	.figma-ai-meta {
++		font-size: 0.8em;
++	}
++
++	/* framework.css has no `.bold` — a component may not invent one either, so
++	   this is scoped to the figures this band actually needs bold. */
++	.figma-ai-strong {
++		font-weight: 600;
++	}
++
++	/* The card column is ~400px at 1920 — a 15em min column never gets two
++	   across. 10em does, and still wraps to one below that. */
++	.figma-ai-states {
++		--column: 10em;
++	}
++
++	/* ── the compact footer example ── */
++
++	.figma-ai-compact-footer {
++		border-top: 1px solid var(--line);
++		margin-top: var(--gap);
++		padding-top: 0.6em;
++	}
++
++	.figma-ai-icon-btn {
++		color: var(--ink);
++		opacity: 0.6;
++		cursor: pointer;
++	}
++
++	.figma-ai-icon-btn:hover {
++		opacity: 1;
++	}
++
++	/* ── the four avatar voices ── */
++
++	.figma-ai-face-ai {
++		background: var(--ink);
++		color: white;
++	}
++
++	.figma-ai-face-bot {
++		background: var(--figma-ai-green);
++		color: white;
++	}
++
++	.figma-ai-face-mate {
++		background: light-dark(#7c5cff, #a78bfa);
++		color: white;
++	}
++
++	.figma-ai-face-you {
++		background: var(--prim);
++		color: white;
++		font-size: 0.6em;   /* "YOU" is three letters, not two initials */
++		font-weight: 700;
++	}
++
++	/* ── the expanded composer, reused for the standalone example AND the
++	   live reply box under the transcript ── */
++
++	.figma-ai-composer {
++		border: 1px solid var(--prim);
++		border-radius: var(--radius);
++		background: var(--surface);
++	}
++
++	.figma-ai-composer textarea {
++		width: 100%;
++		border: none;
++		background: none;
++		resize: none;
++		font: inherit;
++		color: var(--ink);
++		padding: 0;
++		/* `rows="2"` in ai.js reserves the room; this is what actually lets
++		   the placeholder wrap onto that second line instead of clipping. */
++		white-space: pre-wrap;
++		overflow: hidden;
++	}
++
++	.figma-ai-composer textarea:focus {
++		outline: none;
++	}
++
++	.figma-ai-send {
++		width: 2em;
++		height: 2em;
++		border-radius: 0.4em;
++		background: var(--prim);
++		color: white;
++		border: none;
++		display: grid;
++		place-items: center;
++		cursor: pointer;
++		flex: none;
++	}
++
++	.figma-ai-dictate {
++		border-radius: 999px;
++		background: var(--darken-1);
++		color: var(--ink);
++		padding: 0.3em 0.7em;
++		font-weight: 700;
++		text-transform: uppercase;
++		font-size: 0.75em;
++	}
++
++	.figma-ai-new-session {
++		border: 1px solid var(--line);
++		border-radius: 0.35em;
++		width: 1.8em;
++		height: 1.8em;
++		display: grid;
++		place-items: center;
++		background: none;
++		color: var(--ink);
++		cursor: pointer;
++	}
++
++	/* ── the conversation panel ── */
++
++	.figma-ai-conversation {
++		background: var(--surface);
++		border: 1px solid var(--line);
++		border-radius: var(--radius);
++		overflow: hidden;
++	}
++
++	.figma-ai-conv-header {
++		border-bottom: 1px solid var(--line);
++		padding: 0.75em var(--pad);
++	}
++
++	.figma-ai-messages {
++		padding: var(--pad);
++	}
++
++	.figma-ai-message + .figma-ai-message {
++		margin-top: var(--gap);
++	}
++
++	.figma-ai-message > .ui-avatar {
++		flex: none;
++	}
++
++	/* ── the message bubble — a bordered surface, the avatar sits OUTSIDE it
++	   (a "gutter"), not inside — and the two voices get two border colours ── */
++
++	.figma-ai-bubble {
++		flex: 1;
++		min-width: 0;
++		border: 1px solid var(--line);
++		border-radius: var(--radius);
++		background: var(--surface);
++		padding: 1em;
++	}
++
++	.figma-ai-bubble-you {
++		border-color: var(--prim);
++	}
++
++	.figma-ai-action-row {
++		justify-content: flex-end;
++	}
++
++	/* ── action buttons: small, bold, uppercase, right-aligned ── */
++
++	.figma-ai-action {
++		font-weight: 700;
++		text-transform: uppercase;
++		font-size: 0.75em;
++		padding: 0.5em 1em;
++		border-radius: 0.4em;
++	}
++
++	.figma-ai-action.chosen {
++		box-shadow: inset 0 0 0 2px var(--darken-2);
++	}
++
++	.figma-ai-action-prim {
++		background: var(--prim);
++		border-color: var(--prim);
++		color: white;
++	}
++
++	.figma-ai-action-reject {
++		background: none;
++		border-color: var(--error);
++		color: var(--error);
++	}
++
++	.figma-ai-action-approve {
++		background: var(--figma-ai-green);
++		border-color: var(--figma-ai-green);
++		color: white;
++	}
++
++	/* ── an inline code block: a dark header row + a dark body, both the
++	   same near-black fill — the header just one step lighter ── */
++
++	.figma-ai-code {
++		border-radius: var(--radius);
++		overflow: hidden;
++	}
++
++	.figma-ai-code-head {
++		background: color-mix(in srgb, var(--ink) 90%, white);
++		color: var(--surface);
++		padding: 0.5em 0.9em;
++	}
++
++	.figma-ai-code-lang {
++		text-transform: uppercase;
++		letter-spacing: 0.05em;
++		opacity: 0.7;
++	}
++
++	.figma-ai-code pre {
++		margin: 0;
++		padding: 0.9em;
++		overflow-x: auto;
++		background: var(--ink);
++	}
++
++	.figma-ai-code code {
++		background: none;
++		box-shadow: none;
++		color: var(--surface);
++		white-space: pre;
++		font-family: ui-monospace, "SF Mono", Consolas, monospace;
++	}
++
++	.figma-ai-copy {
++		border: none;
++		background: none;
++		color: inherit;
++		cursor: pointer;
++		opacity: 0.85;
++	}
++
++	/* ── a linked reference: underlined bold text with a small check icon,
++	   not a bordered chip (a task chip LOOKS like a link because it is one) ── */
++
++	.figma-ai-task-link {
++		font-weight: 700;
++		text-decoration: underline;
++		color: var(--ink);
++		cursor: pointer;
++	}
++
++	.figma-ai-task-link .icon {
++		color: var(--prim);
++	}
++
++	/* ── the embedded follow-up task card — an accent border, unlike the
++	   grey-bordered bubble it sits inside ── */
++
++	.figma-ai-task-embed {
++		border: 1px solid var(--prim);
++		border-radius: var(--radius);
++		padding: 0.75em;
++	}
++
++	.figma-ai-task-embed a.figma-ai-icon-btn {
++		text-decoration: none;
++	}
++
++	/* ── the reply composer sits in its own grey strip at the panel's foot ── */
++
++	.figma-ai-conv-footer {
++		background: var(--darken-1);
++		border-top: 1px solid var(--line);
++		padding: var(--pad);
++	}
++}
+diff --git a/public/framework/ai/2026/09/28/figma-sept-2026/7-task-management-ai-patterns/ai.js b/public/framework/ai/2026/09/28/figma-sept-2026/7-task-management-ai-patterns/ai.js
+new file mode 100644
+index 00000000..bbbc4f62
+--- /dev/null
++++ b/public/framework/ai/2026/09/28/figma-sept-2026/7-task-management-ai-patterns/ai.js
+@@ -0,0 +1,269 @@
++import { View, div, span, p, small, button, textarea, pre, code, a, icon, highlight } from "/app.js";
++
++View.stylesheet(import.meta, "ai.css");
++
++// AI 2 never imports the `ui/` tier itself, so `.ui-avatar`'s own CSS (the
++// 2.5em circle, the accent/wash fills) would never load without this —
++// every avatar in the gutter rendered as a bare, unstyled inline span.
++import "/framework/ui/avatar/avatar.js";
++
++/* Figma "Sept 2026" → section 7 "Task Management & AI Patterns" → the bottom
++   band, frame "AI feedback patterns" (node 78:13866): the compact/expanded
++   composer pair, then a full AI conversation with code blocks and a reply
++   composer. sections/7-task-management-ai-patterns.png is the picture; the
++   view.js/details.js siblings in this same folder draw everything above it —
++   this file draws only what is inside that one frame.
++
++   Reused as-is: `ui-avatar` (framework/ui/avatar) for every circle, `surface
++   pad flex v gap` (framework/ui/card) for the compact task card. Everything
++   else — every chip, bubble, button and code block, none of which match an
++   existing `ui-badge` variant closely enough after the mastermind's judging
++   pass — is `figma-ai-*`, one `@layer site` block in ai.css. */
++
++const CODE = "const retries = Math.min(config.retries ?? 3, 5)\nreturn withBackoff(runTask, { retries, signal })";
++
++// The dark-ink eyebrow chip — only the "AI FEEDBACK" section label uses this one.
++const eyebrow_chip = text => span.c("figma-ai-eyebrow h4", text);
++
++// A solid accent pill — "IN REVIEW".
++const status_chip = text => span.c("figma-ai-status h4", text);
++
++// A round avatar. `kind`: "ai" (dark circle, sparkle icon — the message rail),
++// "bot" (green circle, "AI" letters — a compact card's own avatar), "mate"
++// (purple circle, initials — a second agent on a task) or plain initials
++// (accent circle — "You").
++const face = (kind, initials) => span.c(`ui-avatar figma-ai-face-${kind}`, () => {
++	kind === "ai" ? icon("auto_awesome").style("fontSize", "0.9em") : span(initials);
++});
++
++// An icon, optionally with a label — the small, boxless actions in a toolbar row.
++const iconlink = (glyph, label) => span.c("figma-ai-icon-btn flex v-center gap", () => {
++	icon(glyph);
++	if (label) small(label);
++}).style("--gap", "0.3em");
++
++// A small, bold, uppercase action button — every button in an action row
++// (Cancel/Begin, Reject/Improve/Approve) is this shape, one CSS class away
++// from the framework's plain `button()`.
++const action_btn = (label, glyph, extra = "") => button.c(`figma-ai-action ${extra} flex v-center gap`, () => {
++	if (glyph) icon(glyph).style("fontSize", "0.85em");
++	small(label);
++}).style("--gap", "0.3em");
++
++export default class AiFeedback extends View {
++
++	// ═══ the compact/expanded pair — the SAME composer at its two sizes ═══
++	// (this is the whole point of the section: a task's AI action starts as
++	// one button in a card's footer and grows into a full composer).
++	compact_example(){
++		return div.c("flex v gap", () => {
++			small.c("figma-ai-state-label h4 muted", "Compact footer");
++
++			div.c("surface pad flex v gap", () => {
++				status_chip("In review");
++				p.c("figma-ai-strong", "Review retry policy for background jobs");
++				div.c("flex v-center split muted figma-ai-meta", () => {
++					iconlink("call_split", "infra/retries#61af");
++					face("bot", "AI");
++				});
++
++				div.c("figma-ai-compact-footer flex v-center split", () => {
++					iconlink("auto_awesome", "Ask AI").ac("figma-ai-strong");
++					div.c("flex v-center gap", () => {
++						iconlink("chat_bubble_outline");
++						iconlink("attach_file");
++						iconlink("more_horiz");
++					}).style("--gap", "0.6em");
++				});
++			}).style("--gap", "0.5em");
++		});
++	}
++
++	expanded_example(){
++		return div.c("flex v gap", () => {
++			small.c("figma-ai-state-label h4 muted", "Expanded composer");
++			this.composer("Ask about this task, request a revision, or dictate feedback…");
++		});
++	}
++
++	// ═══ the composer — the standalone example above, and the live reply box
++	// below the transcript, are the SAME call. `on_send` is what makes the
++	// second one real: typing and hitting send appends a message, locally. ═══
++	composer(placeholder, on_send){
++		return div.c("figma-ai-composer pad flex v gap", () => {
++			const $ta = textarea().attr("rows", "2").attr("placeholder", placeholder);
++
++			div.c("flex v-center split", () => {
++				div.c("flex v-center gap", () => {
++					span.c("figma-ai-dictate flex v-center gap", () => {
++						icon("mic").style("fontSize", "0.85em");
++						small("Dictate");
++					}).style("--gap", "0.3em");
++					iconlink("attach_file");
++				}).style("--gap", "0.5em");
++
++				button.c("figma-ai-send", () => icon("arrow_upward").style("fontSize", "1em")).click(() => {
++					const text = $ta.el.value.trim();
++					if (!text) return;
++					on_send?.(text);
++					$ta.el.value = "";
++				});
++			});
++		}).style("--gap", "0.6em");
++	}
++
++	// ═══ one chat message — an avatar OUTSIDE the bubble, then the bubble
++	// itself: "who · time" at its top, then whatever body() draws. ═══
++	message({ ai, who, time, body }){
++		return div.c("figma-ai-message flex gap", () => {
++			ai ? face("ai") : face("you", "YOU");
++			div.c(`figma-ai-bubble ${ai ? "" : "figma-ai-bubble-you"} flex v gap`, () => {
++				div.c("flex v-center split muted figma-ai-meta", () => {
++					span(ai ? "AI" : who);
++					span(time);
++				});
++				body();
++			}).style("--gap", "0.5em");
++		}).style("--gap", "0.6em");
++	}
++
++	// A linked reference — underlined bold text with a small check icon, not
++	// a bordered chip (the mastermind's correction: these read as LINKS).
++	task_link(text){
++		return span.c("figma-ai-task-link figma-ai-meta flex v-center gap", () => {
++			icon("check_box").style("fontSize", "0.9em");
++			small(text);
++		}).style("--gap", "0.3em");
++	}
++
++	// A code block: a header (language + copy button), a dark body (the snippet).
++	// `highlight()` (ext/highlight) lights up every `pre > code.language-*` under
++	// the card in one pass, at the end of render() — not per block, per its own doc.
++	code_block(){
++		return div.c("figma-ai-code", () => {
++			div.c("figma-ai-code-head flex v-center split", () => {
++				small.c("figma-ai-code-lang", "typescript");
++				const $copy = button.c("figma-ai-copy flex v-center gap", () => {
++					icon("content_copy").style("fontSize", "0.9em");
++					small("Copy");
++				}).style("--gap", "0.3em");
++
++				$copy.click(() => {
++					navigator.clipboard?.writeText(CODE).catch(() => {});
++					$copy.empty(() => { icon("check").style("fontSize", "0.9em"); small("Copied"); });
++					setTimeout(() => $copy.empty(() => {
++						icon("content_copy").style("fontSize", "0.9em"); small("Copy");
++					}), 1200);
++				});
++			});
++
++			pre(() => code.c("language-typescript", CODE));
++		});
++	}
++
++	// The outer div opens the container-query context; the inner one (the
++	// band) is sized off ITS width via `font-size: clamp(...)` in ai.css,
++	// so everything below — all written in `em` — scales as one piece
++	// instead of reflowing. See the note at `.figma-ai-scale` in ai.css.
++	render(){
++		div.c("figma-ai-scale", () => { div.c("figma-ai-band flex v gap", () => {
++
++			eyebrow_chip("AI feedback").style("width", "fit-content");
++
++			div.c("figma-ai-states grid gap auto", () => {
++				this.compact_example();
++				this.expanded_example();
++			});
++
++			div.c("figma-ai-conversation flex v", () => {
++				div.c("figma-ai-conv-header flex v-center split", () => {
++					div.c("flex v-center gap", () => {
++						icon("auto_awesome").style("fontSize", "1.1em");
++						span.c("figma-ai-strong", "Release readiness");
++						icon("expand_more").style("fontSize", "1.1em");
++
++						// Real: a fresh session — the transcript really clears.
++						button.c("figma-ai-new-session", () => icon("add").style("fontSize", "1em"))
++							.attr("title", "start a new session")
++							.click(() => this.$messages.empty());
++					}).style("--gap", "0.5em");
++
++					iconlink("close");
++				});
++
++				this.$messages = div.c("figma-ai-messages flex v");
++
++				this.$messages.append(() => {
++					this.message({ ai: true, time: "10:42", body: () => {
++						p("Before I begin: should retries stop after three attempts, or inherit the workspace maximum?");
++						div.c("flex wrap gap", () => {
++							this.task_link("Retry policy · #61af");
++							this.task_link("Worker backoff · #942e");
++						}).style("--gap", "1em");
++						div.c("figma-ai-action-row flex gap", () => {
++							action_btn("Cancel");
++							action_btn("Begin", "play_arrow", "figma-ai-action-prim");
++						}).style("--gap", "0.5em");
++					}});
++
++					this.message({ who: "You", time: "10:44", body: () => {
++						p("Cap this path at three attempts, preserve cancellation, and keep the workspace default everywhere else.");
++						this.code_block();
++					}});
++
++					this.message({ ai: true, time: "10:42", body: () => {
++						p("Implemented the cap. I also found an edge case: an aborted job can enter the next backoff cycle. I can track that as a separate task.");
++						div.c("figma-ai-task-embed flex v-center split", () => {
++							div.c("flex v-center gap", () => {
++								icon("check_box_outline_blank").ac("muted");
++								div.c("flex v", () => {
++									span.c("figma-ai-strong", "Add abort handling to retry helper");
++									small.c("muted flex v-center gap", () => {
++										icon("call_split").style("fontSize", "0.9em");
++										span("fix/retry-signal#7dd1");
++									}).style("--gap", "0.3em");
++								});
++							}).style("--gap", "0.6em");
++							div.c("flex v-center gap", () => {
++								face("bot", "AI");
++								face("mate", "AK");
++								a.c("figma-ai-icon-btn").href("#").append(() => icon("north_east"));
++							}).style("--gap", "0.3em");
++						});
++					}});
++
++					this.message({ who: "You", time: "10:44", body: () => {
++						p("Create the follow-up and improve the guard so the signal is checked before scheduling.");
++					}});
++
++					this.message({ ai: true, time: "10:42", body: () => {
++						div.c("flex v-center split", () => {
++							p.c("figma-ai-strong", "Ready for review");
++							span.c("figma-ai-tests-pass h4", "Tests pass");
++						});
++						this.code_block();
++						p.c("muted", "Cancellation now exits before the timer is registered. The original retry task remains unchanged outside this worktree.");
++						div.c("figma-ai-action-row flex gap", $row => {
++							const pick = (label, glyph, extra) => action_btn(label, glyph, extra).click(function(){
++								$row.el.querySelectorAll(".figma-ai-action").forEach(b => b.classList.remove("chosen"));
++								this.ac("chosen");
++							});
++
++							pick("Reject", "close", "figma-ai-action-reject");
++							pick("Improve", "auto_fix_high");
++							pick("Approve", "check", "figma-ai-action-approve");
++						}).style("--gap", "0.5em");
++					}});
++				});
++
++				div.c("figma-ai-conv-footer", () => this.composer(
++					"Ask about this task, request a revision, or dictate feedback…",
++					text => this.$messages.append(() => this.message({ who: "You", time: "now", body: () => p(text) }))
++				));
++			});
++
++		}); });
++
++		highlight(this.el);
++	}
++}
+diff --git a/public/framework/ai/2026/09/28/figma-sept-2026/7-task-management-ai-patterns/details.css b/public/framework/ai/2026/09/28/figma-sept-2026/7-task-management-ai-patterns/details.css
+new file mode 100644
+index 00000000..e80b81b1
+--- /dev/null
++++ b/public/framework/ai/2026/09/28/figma-sept-2026/7-task-management-ai-patterns/details.css
+@@ -0,0 +1,79 @@
++@layer site {
++	/* The container-query root (mastermind correction, 2026-09-28): its
++	   INLINE-SIZE is what `cqi` below measures — the card column, whatever
++	   width that turns out to be (~400px at 1920, the Figma frame is 856). */
++	.figma-details-frame { container-type: inline-size; }
++
++	/* 16px exactly when the container is 856px wide (the Figma frame's own
++	   width) — 100 / 53.5 ≈ 1.869, so 856 * 1.869% = 16px. Narrower than that,
++	   the whole band (every size below is written in `em`) shrinks with it,
++	   keeping the Figma's own layout instead of re-wrapping it. */
++	.figma-details {
++		font-size: clamp(7px, calc(100cqi / 53.5), 16px);
++		border-radius: var(--radius);
++	}
++
++	/* The base chip shape — `chip()` in details.js sets the fill/text colour
++	   per tone (accent / pale / white / outline) inline, since each one reads
++	   a different colour off the priority or status it names. */
++	.figma-details-chip {
++		display: inline-flex;
++		align-items: center;
++		flex: 0 0 auto;
++		font-weight: 700;
++		font-size: 0.7em;
++		letter-spacing: 0.04em;
++		padding: 0.3em 0.7em;
++		border-radius: 0.3em;
++		white-space: nowrap;
++	}
++
++	.figma-details-type {
++		font-size: 0.75em;
++		font-weight: 700;
++		letter-spacing: 0.06em;
++		color: color-mix(in srgb, currentColor 65%, transparent);
++	}
++
++	.figma-details-line { height: 0.0625em; background: var(--line); }
++
++	.figma-details-title { font-size: 1em; line-height: 1.3; }
++	.figma-details-title-lg { font-size: 1.5em; line-height: 1.3; margin: 0; font-weight: 700; }
++	/* The priority board's own titles — regular weight, sentence case (the
++	   mastermind's second read: bold/uppercase was the Figma's status chips
++	   bleeding into the title, not the title's own look). */
++	.figma-details-title-reg-lg { font-size: 1.4em; line-height: 1.3; margin: 0; font-weight: 400; }
++	/* This one is an h4 (for the right HTML level), but the site's own h4
++	   rule uppercases and tracks its text — wrong for a sentence-case title,
++	   so both are explicitly turned back off (mastermind correction,
++	   2026-09-28). */
++	.figma-details-title-reg-sm { font-size: 1em; line-height: 1.3; margin: 0; font-weight: 400; text-transform: none; letter-spacing: normal; }
++	.figma-details-desc { font-size: 0.875em; color: color-mix(in srgb, currentColor 65%, transparent); line-height: 1.4; }
++
++	.figma-details-field-label { font-size: 0.75em; letter-spacing: 0.04em; color: color-mix(in srgb, currentColor 65%, transparent); }
++	.figma-details-field-value { font-size: 0.875em; }
++	.figma-details-field .icon, .figma-details-path .icon { font-size: 0.9em; color: color-mix(in srgb, currentColor 55%, transparent); }
++
++	.figma-details-path { font-size: 0.8em; color: color-mix(in srgb, currentColor 65%, transparent); }
++	.figma-details-activity { font-size: 0.875em; line-height: 1.4; }
++
++	/* The sub-task row's assignee — small grey initials, not an avatar. */
++	.figma-details-subtask-owner { font-size: 0.7em; font-weight: 700; color: color-mix(in srgb, currentColor 55%, transparent); }
++
++	/* A determinate bar drawn from a custom property — the card already reads
++	   "done N of M" from the checklist above it, so a real <progress> would
++	   repeat the same number a second way. */
++	.figma-details-progress {
++		height: 0.4em;
++		border-radius: 999px;
++		background: var(--darken-1);
++	}
++	.figma-details-progress::before {
++		content: "";
++		display: block;
++		height: 100%;
++		width: var(--value, 0%);
++		border-radius: inherit;
++		background: var(--prim);
++	}
++}
+diff --git a/public/framework/ai/2026/09/28/figma-sept-2026/7-task-management-ai-patterns/details.js b/public/framework/ai/2026/09/28/figma-sept-2026/7-task-management-ai-patterns/details.js
+new file mode 100644
+index 00000000..07404761
+--- /dev/null
++++ b/public/framework/ai/2026/09/28/figma-sept-2026/7-task-management-ai-patterns/details.js
+@@ -0,0 +1,247 @@
++import { View, div, span, h3, h4, p, icon } from "/app.js";
++
++// AI 2 never imports the `ui/` tier itself — without this, `.ui-avatar`
++// carries no rule anywhere on the page and every avatar collapses to a
++// tiny, unstyled dot (mastermind correction, 2026-09-28).
++import "/framework/ui/avatar/avatar.js";
++
++View.stylesheet(import.meta, "details.css");
++
++/* My band of the "Task Management & AI Patterns" Figma section (frame
++ * "Details and priority", 78:13722): two task-detail cards, then a
++ * "Priority by scale" board. One rounded grey panel, same as every other
++ * Figma section on this card — the Figma comparison image sits below it,
++ * drawn by a sibling file (figma.js).
++ *
++ * SCALED, NOT REFLOWED (mastermind correction, 2026-09-28): the card column
++ * is ~400px wide, a quarter of the Figma frame's 856px, so a real two-up
++ * layout has no room by site rhythm. Instead the outer `.figma-details-frame`
++ * is a container-query root, and `.figma-details`'s own `font-size` is
++ * `100cqi / 53.5` — 16px exactly when the container is 856px wide, shrinking
++ * proportionally at any narrower width. Every size below it is written in
++ * `em` at the SAME ratio the Figma file itself used (their pixel ÷ 16), so
++ * the whole band keeps the Figma's layout and simply gets smaller, instead
++ * of re-wrapping into a taller, single-column mobile shape. No site
++ * `.pad`/`.gap`/`.card` classes inside this subtree — their tokens are
++ * themselves built from `cqi`/`%`, which would resolve against THIS new
++ * container instead of the page, and go wrong.
++ *
++ * ⚠ Every class here is prefixed `figma-details-`, not a bare `figma-` —
++ * the sibling `view.js`/`view.css` in this same card folder already used
++ * plain names (`figma-chip`, `figma-desc`, `figma-path`…) and a same-named
++ * rule in my stylesheet would have silently overridden theirs or the other
++ * way around, both loaded into the same page (census caught this).
++ *
++ * ⚠ `View.style(obj, callback)` drops the callback silently (code skill) —
++ * every capturing call below opens its children inside `.c()`'s own
++ * argument, and `.style()` only ever comes after, with no third argument.
++ *
++ * Colour gaps, named rather than hidden: the site's token set has one accent
++ * (a coral, `--prim`) and no purple/green/blue, where the Figma gives each
++ * agent and each "done" state its own hue. `AVATAR_TONE` below is a small
++ * fixed palette held ONLY in this file, picked to read the same as the
++ * reference image, not a new site-wide token.
++ */
++const AVATAR_TONE = { AK: "#8b5cf6", AI: "#22c55e", MC: "var(--prim)", JD: "#3b82f6" };
++const DONE_GREEN = "#22c55e";
++
++export default class Default extends View {
++
++	render(){
++		div.c("figma-details-frame", () => {
++			div.c("figma-details darken-1 flex v", () => {
++				this.chip("Task detail views");
++
++				this.row("1.5em", () => {
++					this.task_card("SIMPLE TASK", () => this.simple_task());
++					this.task_card("COMPLEX TASK", () => this.complex_task());
++				});
++
++				this.line();
++				this.priority_intro();
++				this.priority_board();
++			}).style({ gap: "1.5em", padding: "2.25em 2em" });
++		});
++	}
++
++	// A row that does NOT wrap — the whole point of scaling instead of
++	// reflowing is that two Figma-width columns always fit once shrunk.
++	row(gap, fn){ return div.c("flex", fn).style({ gap }); }
++
++	// The Figma look: a small box label. `tone` picks the fill —
++	// "accent" (solid `--prim`, on-accent text), "pale" (a light tint of
++	// `edge`, text in that same colour — IN PROGRESS, and the priority pills),
++	// "white" (a plain surface box, P2/P3's low-key reading) or "outline"
++	// (no fill, a hairline border — kept for anything else that wants it).
++	chip(text, tone, edge){
++		const $c = span.c("figma-details-chip", text.toUpperCase());
++		if (tone === "accent") $c.style({ background: "var(--prim)", color: "var(--on-accent, #fff)" });
++		else if (tone === "pale") $c.style({ background: `color-mix(in srgb, ${edge} 18%, var(--surface))`, color: edge });
++		else if (tone === "white") $c.style({ background: "var(--surface)", color: "var(--ink)", border: "0.0625em solid var(--line)" });
++		else if (tone === "outline") $c.style({ background: "none", color: "var(--ink)", border: "0.0625em solid var(--line)" });
++		return $c;
++	}
++
++	type_label(text){ div.c("figma-details-type", text); }
++
++	line(){ div.c("figma-details-line"); }
++
++	// A framed box — `.surface` for the fill/ink/radius, with the 1px border
++	// re-drawn in `em` so it thins out at small scale exactly as a real Figma
++	// stroke would, instead of staying a flat, relatively-thick 1px.
++	box(pad, fn){ return div.c("surface flex v", fn).style({ gap: "0.9em", padding: pad, borderWidth: "0.0625em" }); }
++
++	// One agent-initials circle in its own fixed colour (see AVATAR_TONE).
++	// ⚠ No per-avatar `font-size` override here — `--avatar` is itself an
++	// `em` value, so setting it on the SAME element whose own font-size was
++	// just shrunk resolves it against the ALREADY-shrunk size and the circle
++	// shrinks twice. `--avatar` is set once, on the row below, and every
++	// avatar inherits the row's own (unshrunk) font-size instead.
++	avatar(name){
++		return span.c("ui-avatar", name).style({ background: AVATAR_TONE[name] ?? "var(--ink)", color: "#fff" });
++	}
++
++	avatars(names){
++		div.c("ui-avatars flex", () => names.forEach(name => this.avatar(name))).style({ "--avatar": "1.6em" });
++	}
++
++	path_row(path){
++		div.c("figma-details-path flex v-center", () => {
++			icon("account_tree");
++			span(path);
++		}).style("gap", "0.35em");
++	}
++
++	// icon + label + value, one line — the Figma's "Detail field" repeated for
++	// due date / priority / label with no markup of its own per field.
++	detail_field(name, label, value){
++		div.c("figma-details-field flex v-center", () => {
++			icon(name);
++			span.c("figma-details-field-label", label);
++			span.c("figma-details-field-value", value);
++		}).style("gap", "0.6em");
++	}
++
++	// The shared shell of both cards: a type label above a framed box whose
++	// header row carries the status chip, the avatars, and the × close icon
++	// every "Task detail" card wears in the Figma.
++	task_card(label, fn){
++		div.c("flex v", () => {
++			this.type_label(label);
++			fn();
++		}).style({ gap: "0.6em", flex: "0 0 24.375em" });
++	}
++
++	simple_task(){
++		this.box("1.125em", () => {
++			div.c("flex split v-center", () => {
++				this.chip("In review", "accent");
++				div.c("flex v-center", () => { this.avatars(["AK", "AI"]); icon("close"); }).style("gap", "0.6em");
++			});
++
++			p.c("figma-details-title", "Update release notes with the final accessibility fixes.");
++			this.path_row("tasks/release-notes#a18f");
++			this.line();
++			this.detail_field("event", "DUE", "Today · 16:00");
++			this.detail_field("flag", "PRIORITY", "High");
++			this.detail_field("sell", "LABEL", "Documentation");
++
++			div.c("wash flex v", () => {
++				div.c("figma-details-field-label", "LATEST ACTIVITY");
++				p.c("figma-details-activity", "AI linked the keyboard-navigation fix and requested a final copy review.");
++			}).style({ gap: "0.3em", padding: "0.75em", borderRadius: "0.375em" });
++		});
++	}
++
++	complex_task(){
++		const subtasks = [
++			{ label: "Keyboard shortcuts", owner: "AI", done: true },
++			{ label: "Command search", owner: "AI", done: true },
++			{ label: "Recent actions", owner: "JD", done: false },
++			{ label: "Accessibility pass", owner: "AI", done: false },
++		];
++
++		this.box("1.125em", () => {
++			div.c("flex split v-center", () => {
++				this.chip("In progress", "pale", "#8b5cf6");
++				div.c("flex v-center", () => { this.avatars(["MC", "AI", "JD"]); icon("close"); }).style("gap", "0.6em");
++			});
++
++			h3.c("figma-details-title-lg", "Ship command palette");
++			p.c("figma-details-desc", "A keyboard-first surface for navigation, search, and common actions.");
++			this.path_row("feature/cmd-menu#c04b");
++
++			// Each sub-task is its own small box, not a bare row: done ones sit
++			// on a darker fill with a green check; open ones stay on the card's
++			// own surface with an empty ring. The assignee is small grey
++			// initials at the right, not a coloured avatar dot.
++			div.c("flex v", () => subtasks.forEach(t =>
++				div.c(t.done ? "darken-1 flex split v-center" : "surface flex split v-center", () => {
++					div.c("flex v-center", () => {
++						icon(t.done ? "check_circle" : "radio_button_unchecked").style("color", t.done ? DONE_GREEN : "var(--line)");
++						span(t.label);
++					}).style("gap", "0.5em");
++					span.c("figma-details-subtask-owner", t.owner);
++				}).style({ gap: "0.5em", padding: "0.5em 0.7em", borderRadius: "0.375em" }))).style("gap", "0.4em");
++
++			div.c("figma-details-progress").style("--value", `${subtasks.filter(t => t.done).length / subtasks.length * 100}%`);
++		});
++	}
++
++	priority_intro(){
++		div.c("flex split", () => {
++			div.c("flex v", () => {
++				h3.c("figma-details-title-lg", "Priority by scale");
++				p.c("figma-details-desc", "Visual size mirrors urgency and impact.");
++			}).style("gap", "0.2em");
++
++			div.c("figma-details-field-label", "IMPACT → URGENCY");
++		});
++	}
++
++	priority_board(){
++		div.c("flex v", () => {
++			// `align-items: flex-start` — the P0 card sizes to its own content
++			// and does NOT stretch to match the secondary column's full height,
++			// the flex default every browser otherwise applies to a row.
++			this.row("0.75em", () => {
++				this.priority_card({
++					// A distinct warm orange, not `--prim` — this site's one accent
++					// IS already an orange-coral, so P0 (blocker) needs its own hue
++					// to read as different from P1's accent border (mastermind
++					// correction, 2026-09-28).
++					width: "30em", badge: "P0 · BLOCKER", edge: "#e0892e", big: true,
++					title: "Resolve release-blocking focus trap",
++					desc: "Blocks the release candidate and receives the strongest visual weight.",
++					path: "fix/focus-trap-#912", owners: ["MC", "AI", "JD"],
++				});
++
++				div.c("flex v", () => {
++					this.priority_card({ badge: "P1 · HIGH", edge: "var(--prim)", accent: true, title: "Ship command palette", path: "feature/cmd-menu#c04b", owners: ["AI"] });
++					this.priority_card({ badge: "P2", white: true, title: "Update changelog", path: "docs/changelog#ec21", owners: ["AI"] });
++					this.priority_card({ badge: "P3", white: true, title: "Archive old flags", path: "ops/flags#10aa", owners: ["AI"] });
++				}).style({ gap: "0.625em", flex: "0 0 18.75em" });
++			}).style("align-items", "flex-start");
++		}).style("gap", "0.9em");
++	}
++
++	priority_card({ width, badge, edge, accent, white, big, title, desc, path, owners }){
++		return this.box(big ? "1.375em" : "0.875em", () => {
++			div.c("flex split v-center", () => {
++				this.chip(badge, white ? "white" : "pale", edge);
++				icon("drag_indicator");
++			});
++
++			if (big) h3.c("figma-details-title-reg-lg", title);
++			else h4.c("figma-details-title-reg-sm", title);
++			if (desc) p.c("figma-details-desc", desc);
++			div.c("flex split v-center", () => {
++				this.path_row(path);
++				this.avatars(owners ?? ["AI"]);
++			});
++		}).style({
++			flex: width ? `0 0 ${width}` : "1",
++			border: `0.125em solid ${edge ?? "var(--line)"}`,
++		});
++	}
++}
+diff --git a/public/framework/ai/2026/09/28/figma-sept-2026/7-task-management-ai-patterns/figma.js b/public/framework/ai/2026/09/28/figma-sept-2026/7-task-management-ai-patterns/figma.js
+new file mode 100644
+index 00000000..090d278a
+--- /dev/null
++++ b/public/framework/ai/2026/09/28/figma-sept-2026/7-task-management-ai-patterns/figma.js
+@@ -0,0 +1,16 @@
++import { View, div, span, img } from "/app.js";
++
++// The Figma comparison, on its own so the three views sharing this card
++// (view.js, details.js, ai.js) don't each embed the same screenshot —
++// this one placement, last, shows it once for the whole section.
++export default class Default extends View {
++
++	render(){
++		div.c("figma-compare flex v gap-50", () => {
++			span.c("h4 muted", "Figma");
++			img().attr("src", new URL("figma.png", import.meta.url).href)
++				.attr("alt", "Figma: Task Management & AI Patterns section")
++				.style("maxWidth", "100%");
++		});
++	}
++}
+diff --git a/public/framework/ai/2026/09/28/figma-sept-2026/7-task-management-ai-patterns/figma.png b/public/framework/ai/2026/09/28/figma-sept-2026/7-task-management-ai-patterns/figma.png
+new file mode 100644
+index 00000000..2e151069
+Binary files /dev/null and b/public/framework/ai/2026/09/28/figma-sept-2026/7-task-management-ai-patterns/figma.png differ
+diff --git a/public/framework/ai/2026/09/28/figma-sept-2026/7-task-management-ai-patterns/view.css b/public/framework/ai/2026/09/28/figma-sept-2026/7-task-management-ai-patterns/view.css
+new file mode 100644
+index 00000000..5b6a679c
+--- /dev/null
++++ b/public/framework/ai/2026/09/28/figma-sept-2026/7-task-management-ai-patterns/view.css
+@@ -0,0 +1,262 @@
++/* Figma "Task management" section (nodes 78:13556, 78:13559, 78:13653): the
++ * plain intro, then TWO separate rounded panels — "Task cards and progress"
++ * and "Timeline preview" — matching how the Figma frame itself draws two
++ * distinct grey bands rather than one.
++ *
++ * SCALE, DON'T REFLOW. The Figma frame is 856px wide; this card's own column
++ * is ~400px. Rather than stack every row into one tall column at full size,
++ * `.figma-scale` is a query container and `.figma-root`'s font-size is
++ * `clamp(7px, 100cqi / 53.5, 16px)` — 16px exactly when the container is
++ * 856px wide (856 / 16 = 53.5), shrinking below that. Every size after this
++ * point is `em`, off that one number, so the two-up cards, the three-up
++ * progress row and the timeline grid keep the Figma's proportions at any
++ * width instead of the site's own `--gap`/`--pad`/flow rhythm (sized for a
++ * full page, not a 400px card) blowing the layout out to one long column.
++ */
++@layer site {
++
++	.figma-scale { container-type: inline-size; }
++
++	.figma-root {
++		font-size: clamp(7px, calc(100cqi / 53.5), 16px);
++		display: flex;
++		flex-direction: column;
++		gap: 1.25em;
++	}
++
++	.figma-intro { text-align: center; display: flex; flex-direction: column; gap: 0.5em; }
++	.figma-intro h2 { margin: 0; font-size: 2em; }
++	.figma-intro p { margin: 0; font-size: 0.9em; }
++
++	.figma-panel {
++		padding: 1.5em 1.25em;
++		border-radius: 0.5em;
++		display: flex;
++		flex-direction: column;
++		gap: 1em;
++	}
++
++	.figma-group { display: flex; flex-direction: column; gap: 0.75em; }
++	.figma-label { font-size: 0.75em; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink); }
++	.figma-label.muted { color: color-mix(in srgb, currentColor 75%, transparent); }
++	.figma-caption { font-size: 0.75em; margin: 0; }
++	.figma-desc { margin: 0; font-size: 0.9em; }
++
++	/* The eyebrow chip — "a dark ink box with accent text", not a coloured
++	   pill: background and text both come from tokens the theme already
++	   guarantees read against each other. */
++	.figma-chip {
++		display: inline-block;
++		align-self: flex-start;
++		padding: 0.35em 0.7em;
++		border-radius: 0.3em;
++		background: var(--ink);
++		color: var(--prim);
++		font-weight: 700;
++		font-size: 0.85em;
++		letter-spacing: 0.08em;
++		text-transform: uppercase;
++	}
++
++	.figma-row { display: flex; align-items: center; justify-content: space-between; gap: 0.5em; }
++	.figma-row-tight { display: flex; align-items: center; gap: 0.4em; font-size: 0.9em; }
++
++	/* Two fixed-width columns in the Figma (330 / 450) become an auto-fit
++	   grid: two up once the panel is wide enough for both, one column below
++	   that — proportion, not a breakpoint. */
++	.figma-cards, .figma-progress-row {
++		display: grid;
++		grid-template-columns: repeat(auto-fit, minmax(9em, 1fr));
++		gap: 0.9em;
++	}
++	.figma-card-col { display: flex; flex-direction: column; gap: 0.4em; }
++	.figma-card-col-wide { grid-column: span 1; }
++
++	/* No font-size shrink on this box or any container below it — the one
++	   `.figma-root` clamp already carries the whole-panel scale, and
++	   stacking a second, third and fourth local shrink on top of it (one
++	   round of this drove avatars and icons down to a couple of px, reading
++	   as broken tiny glyphs) is the bug a mastermind review caught. Text
++	   hierarchy comes from each element's own em class instead. */
++	.figma-card-box {
++		background: var(--surface);
++		color: var(--ink);
++		border: 1px solid var(--line);
++		border-radius: 0.4em;
++		padding: 0.9em;
++		display: flex;
++		flex-direction: column;
++		gap: 0.6em;
++	}
++	.figma-card-title { font-weight: 700; }
++
++	.figma-badge {
++		display: inline-block;
++		padding: 0.2em 0.6em;
++		border-radius: 999px;
++		font-size: 0.75em;
++		font-weight: 700;
++		letter-spacing: 0.03em;
++		text-transform: uppercase;
++	}
++	/* Two small named hues beyond the one accent: the Figma's own "today"
++	   (accent) and "feature" (a light violet chip) badges read apart on
++	   sight, which is the job this one pair of colours is doing — local to
++	   this one card, not a new sitewide token (same reasoning as the
++	   timeline's agent-identity colours below). */
++	.figma-badge.accent { background: var(--prim); color: var(--surface); }
++	.figma-badge.feature { background: #ede9fe; color: #7c3aed; }
++
++	.figma-sub-tasks { display: flex; flex-direction: column; gap: 0.4em; }
++
++	/* Plain circles, not the icon font — a checkbox this small (this whole
++	   card is drawn at a fraction of full size) made "check_circle" and
++	   "radio_button_unchecked" render as unrecognisable square specks. */
++	.figma-marker {
++		width: 1em;
++		height: 1em;
++		border-radius: 999px;
++		border: 2px solid var(--line);
++		flex: 0 0 auto;
++		display: inline-flex;
++		align-items: center;
++		justify-content: center;
++	}
++	.figma-marker.done {
++		background: #2fa86a;
++		border-color: #2fa86a;
++	}
++	.figma-marker.done::after {
++		content: "✓";
++		color: #fff;
++		font-size: 0.6em;
++		line-height: 1;
++	}
++	.figma-done-label { color: color-mix(in srgb, currentColor 65%, transparent); text-decoration: line-through; }
++
++	.figma-path { display: flex; align-items: center; gap: 0.35em; font-size: 0.8em; }
++	.figma-path .icon { font-size: 1em; }
++	.figma-avatars { display: flex; }
++	/* Same size as the timeline's own avatars (`--avatar: 1.6em`, no local
++	   font-size). The earlier `font-size: 0.6em` here computed the avatar's
++	   OWN em box against its OWN now-smaller font, so 1.6em came out to a
++	   7px dot instead of 1.6em of the ambient text — the double-shrink bug
++	   a mastermind review caught a second time. */
++	.figma-avatars .ui-avatar { --avatar: 1.6em; border: 2px solid var(--surface); }
++	.figma-avatars .ui-avatar:not(:first-child) { margin-inline-start: -0.5em; }
++
++	/* Agent-identity colours: fixed hues so people/agents read apart at a
++	   glance, the same job the source file's own coloured dots do. The
++	   design system has one accent (`--prim`); these are local to this one
++	   card, not a new sitewide token. */
++	.figma-avatar-purple { background: #8b5cf6; color: #fff; }
++	.figma-avatar-green { background: #2fa86a; color: #fff; }
++	.figma-avatar-orange { background: #e08a3c; color: #fff; }
++	.figma-avatar-blue { background: #4a90e2; color: #fff; }
++
++	/* Migration bar: a plain two-div track/fill instead of the native
++	   `<progress>` — a light grey track with an accent fill, guaranteed
++	   rather than left to each browser's own UA styling. */
++	.figma-track { width: 100%; height: 0.5em; border-radius: 999px; background: var(--wash); overflow: hidden; }
++	.figma-track-fill { height: 100%; background: var(--prim); border-radius: 999px; }
++
++	/* Five-step rollout: discrete segments, not one bar — a `<progress>` can
++	   only show "how far", not "which step", so this is plain divs. */
++	.figma-segments { display: flex; gap: 0.25em; }
++	.figma-segment { flex: 1; height: 0.5em; border-radius: 999px; background: var(--wash); }
++	.figma-segment.on-green { background: #2fa86a; }
++	.figma-segment.on-accent { background: var(--prim); }
++
++	/* Milestones: a dot-and-connector row, the same shape as the timeline
++	   component's own rail, drawn horizontally instead of down a column. */
++	.figma-milestones { display: flex; align-items: center; gap: 0; }
++	.figma-milestone {
++		width: 1em;
++		height: 1em;
++		border-radius: 999px;
++		background: var(--surface);
++		border: 2px solid var(--line);
++		flex: 0 0 auto;
++		display: flex;
++		align-items: center;
++		justify-content: center;
++	}
++	.figma-milestone.on { background: var(--prim); border-color: var(--prim); }
++	.figma-milestone.on::after { content: "✓"; color: var(--surface); font-size: 0.6em; line-height: 1; }
++	.figma-connector { flex: 1 1 auto; height: 2px; background: var(--line); }
++	.figma-connector.on { background: var(--prim); }
++
++	/* Timeline preview: the same light `darken-1` panel as the task cards —
++	   the grid itself sits one shade lighter again, in an inset "surface"
++	   box, so it reads apart from the panel around it. */
++	.figma-timeline-inner {
++		background: var(--surface);
++		border-radius: 0.4em;
++		padding: 0.75em;
++	}
++
++	/* A day-grid: quarter-hour rows in a left gutter set the rhythm, a
++	   relatively positioned track to the right places each task card by
++	   its own time (top/height) and Figma x/width (left/width) — the
++	   frame's own proportions, not its pixels. The thin hour lines are ONE
++	   background on the whole grid (not a border per row in just the
++	   gutter column), so they run the full width, under the gutter AND the
++	   track, the way the Figma draws them. */
++	.figma-timeline {
++		display: grid;
++		grid-template-columns: 3em 1fr;
++		gap: 0.5em;
++		background: repeating-linear-gradient(
++			to bottom,
++			var(--line) 0, var(--line) 1px,
++			transparent 1px, transparent 2.6em
++		);
++	}
++	.figma-timeline-grid { display: flex; flex-direction: column; }
++	.figma-timeline-row { height: 2.6em; padding-top: 0.15em; }
++	.figma-time-label { font-weight: 400; text-transform: none; letter-spacing: 0; font-size: 0.75em; }
++
++	.figma-timeline-track { position: relative; }
++	.figma-timeline-card {
++		position: absolute;
++		min-height: 3em;
++		padding: 0.5em 0.6em 0.5em 0.7em;
++		border-radius: 0.3em;
++		background: var(--surface);
++		color: var(--ink);
++		border-inline-start: 3px solid var(--line);
++		box-shadow: 0 1px 4px color-mix(in srgb, black 15%, transparent);
++		display: flex;
++		flex-direction: column;
++		gap: 0.2em;
++		overflow: hidden;
++	}
++	.figma-time-range { font-size: 0.7em; font-weight: 600; }
++	.figma-timeline-avatar {
++		position: absolute;
++		top: 0.4em;
++		inset-inline-end: 0.4em;
++		--avatar: 1.6em;
++	}
++
++	.figma-timeline-card.orange { border-inline-start-color: #e08a3c; }
++	.figma-timeline-card.purple { border-inline-start-color: #8b5cf6; }
++	.figma-timeline-card.green { border-inline-start-color: #2fa86a; }
++	.figma-time-range.orange { color: #c06a1f; }
++	.figma-time-range.purple { color: #7c3aed; }
++	.figma-time-range.green { color: #218a53; }
++
++	.figma-now-line { position: absolute; inset-inline: 0; height: 2px; background: var(--prim); }
++	.figma-now-line::before {
++		content: "";
++		position: absolute;
++		inset-inline-start: -3px;
++		top: -3px;
++		width: 8px;
++		height: 8px;
++		border-radius: 999px;
++		background: var(--prim);
++	}
++
++	.figma-timeline-note { text-align: left; font-size: 0.8em; margin: 0.5em 0 0; }
++}
+diff --git a/public/framework/ai/2026/09/28/figma-sept-2026/7-task-management-ai-patterns/view.js b/public/framework/ai/2026/09/28/figma-sept-2026/7-task-management-ai-patterns/view.js
+new file mode 100644
+index 00000000..5b17d301
+--- /dev/null
++++ b/public/framework/ai/2026/09/28/figma-sept-2026/7-task-management-ai-patterns/view.js
+@@ -0,0 +1,224 @@
++import { View, div, span, p, h2, icon } from "/app.js";
++// AI 2 never imports the ui/ tier, so `.ui-avatar` has no rules there unless
++// this file loads them itself (mastermind finding, 2026-09-28) — that
++// missing CSS, not a font/sizing bug, is why the avatars rendered unstyled.
++import "/framework/ui/avatar/avatar.js";
++
++View.stylesheet(import.meta, "view.css");
++
++// The first part of the Figma "Task Management & AI Patterns" section, drawn as
++// live site markup instead of a screenshot: the plain intro, then TWO separate
++// rounded panels — "Task cards and progress" and "Timeline preview" — matching
++// how the Figma frame itself draws them as two distinct grey bands.
++//
++// The card column is only ~400px, a third of the Figma frame's own 856px, so
++// this keeps the Figma's LAYOUT (two-up cards, a three-up progress row, a real
++// time grid) by SCALING instead of re-flowing: a container query sets one
++// font-size for the whole thing (16px at 856px container width, shrinking
++// below that), and every spacing inside is `em` off that one number — never
++// the site's own `--gap`/`--pad`/flow tokens, which are sized for a full
++// page, not a 400px card.
++//
++// Two sibling views ("Details and priority" and "AI feedback patterns") draw
++// the rest of this same card, each its own panel; a separate figma.js (placed
++// last) shows the Figma png for comparison, so the picture is not duplicated
++// three times.
++export default class Default extends View {
++
++	render(){
++		div.c("figma-scale", () => {
++			div.c("figma-root", () => {
++
++				// Section introduction (node 78:13556) — no panel, plain.
++				div.c("figma-intro", () => {
++					h2("Task management");
++					p.c("muted", "Reusable patterns for planning, tracking, prioritizing, and collaborating with agents.");
++				});
++
++				// Panel A: task cards and progress (node 78:13559)
++				div.c("figma-panel darken-1", () => {
++					span.c("figma-chip", "TASK CARDS");
++
++					div.c("figma-cards", () => {
++						this.simple_card();
++						this.complex_card();
++					});
++
++					div.c("figma-group", () => {
++						div.c("figma-label muted", "PROGRESS TREATMENTS");
++						div.c("figma-progress-row", () => {
++							this.step_progress();
++							this.linear_progress();
++							this.milestone_progress();
++						});
++					});
++				});
++
++				// Panel B: timeline preview (node 78:13653) — same light panel.
++				this.timeline_preview();
++			});
++		});
++	}
++
++	simple_card(){
++		div.c("figma-card-col", () => {
++			div.c("figma-label muted", "SIMPLE · DESCRIPTION ONLY");
++			div.c("figma-card-box", () => {
++				div.c("figma-row", () => {
++					span.c("figma-badge accent", "TODAY");
++					icon("more_horiz").ac("muted");
++				});
++				p.c("figma-desc", "Update release notes with the final accessibility fixes.");
++				div.c("figma-row", () => {
++					span.c("figma-path muted", () => {
++						icon("account_tree");
++						span("tasks/release-notes#a18f");
++					});
++					div.c("figma-avatars", () => {
++						span.c("ui-avatar figma-avatar-purple", "AK");
++						span.c("ui-avatar figma-avatar-green", "AI");
++					});
++				});
++			});
++		});
++	}
++
++	complex_card(){
++		const subtasks = [
++			["Map keyboard shortcuts", true],
++			["Build command search", true],
++			["Add recent actions", false],
++			["Run accessibility pass", false],
++		];
++
++		div.c("figma-card-col figma-card-col-wide", () => {
++			div.c("figma-label muted", "COMPLEX · SUB-TASKS");
++			div.c("figma-card-box", () => {
++				div.c("figma-row", () => {
++					div.c("figma-row-tight", () => {
++						span.c("figma-badge feature", "FEATURE");
++						span.c("figma-card-title", "Ship command palette");
++					});
++					span.c("figma-label muted", "2/4");
++				});
++				p.c("figma-desc", "Unify navigation, search, and common actions behind one keyboard-first surface.");
++				div.c("figma-sub-tasks", () => {
++					subtasks.forEach(([label, done]) => div.c("figma-row-tight", () => {
++						span.c(done ? "figma-marker done" : "figma-marker");
++						span.c(done ? "figma-done-label" : "", label);
++					}));
++				});
++				div.c("figma-row", () => {
++					span.c("figma-path muted", () => {
++						icon("account_tree");
++						span("feature/command-menu#c04b");
++					});
++					div.c("figma-avatars", () => {
++						span.c("ui-avatar figma-avatar-orange", "MC");
++						span.c("ui-avatar figma-avatar-green", "AI");
++						span.c("ui-avatar figma-avatar-blue", "JD");
++					});
++				});
++			});
++		});
++	}
++
++	step_progress(){
++		div.c("figma-card-box", () => {
++			div.c("figma-row", () => {
++				span.c("figma-card-title", "Five-step rollout");
++				span.c("figma-label muted", "STEP 3");
++			});
++			div.c("figma-segments", () => {
++				["green", "green", "accent", "", ""].forEach(tone => div.c(tone ? `figma-segment on-${tone}` : "figma-segment"));
++			});
++			p.c("figma-caption muted", "Review in progress");
++		});
++	}
++
++	linear_progress(){
++		div.c("figma-card-box", () => {
++			div.c("figma-row", () => {
++				span.c("figma-card-title", "Migration");
++				span.c("figma-label muted", "68%");
++			});
++			div.c("figma-track", () => { div.c("figma-track-fill").style("width", "68%"); });
++			p.c("figma-caption muted", "17 of 25 modules");
++		});
++	}
++
++	milestone_progress(){
++		const steps = [true, true, true, false];
++
++		div.c("figma-card-box", () => {
++			span.c("figma-card-title", "Milestones");
++			div.c("figma-milestones", () => {
++				steps.forEach((done, i) => {
++					span.c(done ? "figma-milestone on" : "figma-milestone");
++					if (i < steps.length - 1) div.c(done ? "figma-connector on" : "figma-connector");
++				});
++			});
++			p.c("figma-caption muted", "QA is the final gate");
++		});
++	}
++
++	// A day's worth of quarter-hour rows (09:00–11:00, the Figma's own range) with
++	// three scheduled-task cards placed by time (top/height) AND by column
++	// (left/width, from the Figma's own x/width in its 792px-wide track) —
++	// the frame's own proportions, not its pixels. `tone` is an
++	// agent-identity colour, not a token: the design system has one accent,
++	// so these fixed hues just tell concurrent agents apart, the same job
++	// the source file's own dot colours do.
++	timeline_preview(){
++		const START = 9 * 60, END = 11 * 60;
++		const top = minutes => ((minutes - START) / (END - START)) * 100;
++		const clock = minutes => `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
++
++		const tasks = [
++			{ start: 9 * 60 + 10, end: 9 * 60 + 40, title: "Triage launch blockers", path: "ops/launch#91d2", who: "MC", tone: "orange", left: 12, width: 29 },
++			{ start: 9 * 60 + 30, end: 10 * 60 + 15, title: "Review command palette", path: "feature/cmd-menu#c04b", who: "AI", tone: "purple", left: 43, width: 31 },
++			{ start: 10 * 60 + 20, end: 10 * 60 + 50, title: "Publish release notes", path: "tasks/notes#a18f", who: "AK", tone: "green", left: 22, width: 32 },
++		];
++
++		div.c("figma-panel darken-1", () => {
++			div.c("figma-row", () => {
++				span.c("figma-chip", "TIMELINE PREVIEW");
++				span.c("figma-path muted", () => {
++					icon("calendar_today");
++					span("Tuesday · 24 Sep");
++				});
++			});
++
++			div.c("figma-timeline-inner", () => {
++				div.c("figma-timeline", () => {
++					div.c("figma-timeline-grid", () => {
++						for (let m = START; m <= END; m += 15) div.c("figma-timeline-row", () => {
++							span.c("figma-label figma-time-label muted", clock(m));
++						});
++					});
++
++					div.c("figma-timeline-track", () => {
++						tasks.forEach(task => div.c(`figma-timeline-card ${task.tone}`, () => {
++							span.c(`figma-time-range ${task.tone}`, `${clock(task.start)}–${clock(task.end)}`);
++							span.c("figma-card-title", task.title);
++							div.c("figma-path muted", () => {
++								icon("account_tree");
++								span(task.path);
++							});
++							span.c(`ui-avatar figma-avatar-${task.tone === "orange" ? "orange" : task.tone === "purple" ? "purple" : "green"} figma-timeline-avatar`, task.who);
++						}).style({
++							top: top(task.start) + "%",
++							height: (top(task.end) - top(task.start)) + "%",
++							insetInlineStart: task.left + "%",
++							width: task.width + "%",
++						}));
++
++						div.c("figma-now-line").style("top", top(10 * 60 + 7) + "%");
++					});
++				});
++			});
++
++			p.c("figma-timeline-note muted", "Fifteen-minute increments reveal sequencing, overlap, and handoff windows at a glance.");
++		});
++	}
++}

@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ext/drawer/doc/decisions/",
+ "widths": {
+  "1280": {
+   "empty": 0.547,
+   "widest_text": 592,
+   "widest_text_sample": "— below 52em, an ✦ button (a listening s",
+   "overflow_x": false,
+   "items": 285,
+   "narrow_share": 0.582
+  },
+  "1920": {
+   "empty": 0.673,
+   "widest_text": 630,
+   "widest_text_sample": "— below 52em, an ✦ button (a listening s",
+   "overflow_x": false,
+   "items": 285,
+   "narrow_share": 0.782
+  },
+  "2560": {
+   "empty": 0.734,
+   "widest_text": 706,
+   "widest_text_sample": "onto the same element the rail inherits ",
+   "overflow_x": false,
+   "items": 285,
+   "narrow_share": 0.782
+  },
+  "3440": {
+   "empty": 0.789,
+   "widest_text": 706,
+   "widest_text_sample": "onto the same element the rail inherits ",
+   "overflow_x": false,
+   "items": 285,
+   "narrow_share": 0.782
+  }
+ },
+ "errors": []
+}

@@ -1,0 +1,258 @@
+diff --git a/Servex/Pool.js b/Servex/Pool.js
+index 66155b3a7..0f3617ed5 100644
+--- a/Servex/Pool.js
++++ b/Servex/Pool.js
+@@ -199,8 +199,11 @@ export default class Pool extends Events {
+             + dirty.map(d => d.file).join("\n"));
+         const unmerged = (await this.git(slot.path, ["log", "--oneline", `${this.base}..HEAD`])).out;
+         if (unmerged && await this.landed(slot)){
+-            // merge.mjs APPLIED this branch over the owner's uncommitted edits: its commits are in the main
+-            // working tree but not in michael/dev, so a fast-forward would not bring it current. Remove it; make a fresh one.
++            // merge.mjs APPLIED this branch (over the owner's edits, or as a diff): its commits are not ancestors of
++            // michael/dev, so a fast-forward would not bring it current. Remove it; make a fresh one. The commits stay
++            // reachable on landed/<slot>-<date>, because worktree-down deletes the slot's own branch.
++            const sha = (await this.git(slot.path, ["rev-parse", "--short", "HEAD"])).out;
++            await this.git(slot.path, ["branch", "-f", `landed/${id}-${stamp().slice(0, 10)}-${sha}`, "HEAD"]);
+             this.remove(slot);
+             this.top_up();
+             this.say(`pool: ${id} returned; its branch was applied, not merged, so it is removed and a fresh one made`, { id });
+@@ -263,7 +266,7 @@ export default class Pool extends Events {
+                 reclaimed.push(slot.id);
+                 this.say(`pool: ${slot.id} reclaimed from ${holder}, which has stopped`, { id: slot.id, from: holder });
+             } catch (e) {
+-                const why = String(e.message).split("\n")[0].replace(/^Refused: \S+ /, "").replace(/\.+$/, "");
++                const why = String(e.message).split("\n")[0].replace(/^Refused: \S+ /, "").replace(/\.+$/, "") + ` (branch ${slot.branch})`;
+                 kept.push({ id: slot.id, holder, why });
+                 this.once(slot, `pool: ${slot.id} is held by stopped ${holder} but kept — ${why}. Nothing was moved; salvage by hand if it is truly abandoned: node Servex/Lifecycle.js --salvage ${slot.id}`, holder);
+             }
+@@ -281,7 +284,13 @@ export default class Pool extends Events {
+     /* Why a taken slot is still held, or null when rules 1 and 2 above let it go.
+      * `dead` is true when only rule 2 keeps it (the holder itself has stopped). */
+     held(slot, rows, queued = []){
+-        if (slot.held_by) return { why: `held by ${slot.held_by}` };   // an explicit hold wins outright — see hold() above
++        /* An explicit hold wins — see hold() above — until its holder has been stopped or gone for ORPHAN_HOURS (fixer-1, gone since
++         * 2026-10-14, kept qf-8 for days). A registry blip lasts minutes, so a day of "gone" is evidence, not a blip. */
++        if (slot.held_by){
++            const h = rows.find(r => r.id === slot.held_by || r.name === slot.held_by);
++            const away = h && (h.state === "stopped" || h.state === "gone") && (Date.now() - Date.parse(h.last_at || h.stopped_at || Date.now())) / 3600000 > Pool.ORPHAN_HOURS;
++            if (!away) return { why: `held by ${slot.held_by}` };
++        }
+         const LIVE = ["idle", "working", "queued", "starting"];
+         const row = rows.find(r => r.id === slot.taken_by || r.name === slot.taken_by);
+         if (!row){
+@@ -564,8 +573,54 @@ export default class Pool extends Events {
+      * (recorded in .merge-landed.json at the main root): as good as merged. */
+     async landed(slot){
+         const head = (await this.git(slot.path, ["rev-parse", "HEAD"])).out;
+-        try { return JSON.parse(fs.readFileSync(path.join(this.main, ".merge-landed.json"), "utf8")).some(e => e.head === head); }
+-        catch { return false; }
++        try { if (JSON.parse(fs.readFileSync(path.join(this.main, ".merge-landed.json"), "utf8")).some(e => e.head === head)) return true; }
++        catch {}
++        return this.on_base(slot);
++    }
++
++    /* True when everything this branch changed is already in the base, though its commits are not ancestors (merge.mjs lands a
++     * branch as a diff). Each file the branch changed since it left the base (`base...HEAD`) must read the same in the base
++     * and in the branch (`base HEAD` shows no difference in it). If the base changed such a file again later the answer is
++     * no: a slot is kept, never freed on a guess. Doc: doc/pool.md "When a slot is freed". */
++    async on_base(slot){
++        const mine = await this.git(slot.path, ["diff", "--name-only", `${this.base}...HEAD`]);
++        const apart = await this.git(slot.path, ["diff", "--name-only", this.base, "HEAD"]);
++        if (!mine.ok || !apart.ok) return false;
++        const differ = new Set(apart.out.split("\n").filter(Boolean));
++        for (const f of mine.out.split("\n").filter(Boolean)){
++            if (!differ.has(f)) continue;
++            if (!(f.endsWith(".jsonl") && await this.lines_on_base(slot, f))) return false;
++        }
++        return true;
++    }
++
++    /* A log (.jsonl) only grows, so the base moves on from the branch's copy. It counts as landed when every line the
++     * branch added is somewhere in the base's copy. */
++    async lines_on_base(slot, file){
++        const add = await this.git(slot.path, ["diff", "-U0", `${this.base}...HEAD`, "--", file]);
++        const there = await this.git(slot.path, ["show", `${this.base}:${file}`]);
++        if (!add.ok || !there.ok) return false;
++        const have = new Set(there.out.split("\n"));
++        return add.out.split("\n").filter(l => l.startsWith("+") && !l.startsWith("+++")).every(l => have.has(l.slice(1).trim()) || have.has(l.slice(1)));
++    }
++
++    /* A slot's standing against the base: commits ahead, files changed beyond the baseline, and whether the commits' work is on the base. */
++    async standing(slot){
++        const ahead = (await this.git(slot.path, ["log", "--oneline", `${this.base}..HEAD`])).out.split("\n").filter(Boolean);
++        const own = await this.own_dirt(slot);
++        return { ahead, own, on_base: ahead.length ? await this.landed(slot) : true };
++    }
++
++    /* What reclaim() does with one slot, as data: { free, why }. `free` = handed back at once, no grace wait. A slot that is
++     * not free but holds work is salvaged (never discarded) once its holder has been stopped GRACE_MIN minutes. */
++    async verdict(slot, rows = this.holders(), queued = this.queued_cwds()){
++        const held = this.held(slot, rows, queued);
++        if (held) return { free: false, why: held.why };
++        const { ahead, own, on_base } = await this.standing(slot);
++        if (own.length) return { free: false, work: true, why: `${own.length} uncommitted file(s) on ${slot.branch}` };
++        if (!ahead.length) return { free: true, why: "stopped, clean, nothing ahead of the base" };
++        if (on_base) return { free: true, why: `${ahead.length} commit(s) on ${slot.branch}, already on the base` };
++        return { free: false, work: true, why: `${ahead.length} unmerged commit(s) on ${slot.branch}` };
+     }
+ 
+     git(cwd, args){
+diff --git a/Servex/Pool.test.mjs b/Servex/Pool.test.mjs
+new file mode 100644
+index 000000000..cd3a8d945
+--- /dev/null
++++ b/Servex/Pool.test.mjs
+@@ -0,0 +1,69 @@
++/* node Servex/Pool.test.mjs — reclaim frees a slot whose work is already on the base, and keeps one that holds work (pool-reclaim, 2026-10-17).
++ * A scratch git repo, three taken slots whose holders have stopped: (1) clean, nothing ahead; (2) commits ahead that were
++ * landed as a diff (not ancestors; one file is a log that grew since); (3) a commit not on the base. Reclaim frees 1 and 2, keeps 3.
++ * Then a stale explicit hold. remove() and top_up() are stubbed: no server, no npm. Doc: Servex/doc/pool.md "When a slot is freed". */
++import assert from "node:assert/strict";
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import { execFileSync } from "node:child_process";
++
++const root = fs.mkdtempSync(path.join(os.tmpdir(), "pool-reclaim-"));
++process.env.SERVEX_HOME = path.join(root, "home");
++const { default: Pool } = await import("./Pool.js");
++const git = (cwd, ...a) => execFileSync("git", ["-C", cwd, ...a], { encoding: "utf8", windowsHide: true }).trim();
++const slash = p => p.split(path.sep).join("/");
++const write = (dir, file, text) => { fs.mkdirSync(path.dirname(path.join(dir, file)), { recursive: true }); fs.writeFileSync(path.join(dir, file), text); };
++
++const main = path.join(root, "main"); fs.mkdirSync(main);
++git(main, "init", "-q", "-b", "michael/dev"); git(main, "config", "user.email", "t@t"); git(main, "config", "user.name", "t");
++write(main, "a.txt", "a"); write(main, "log.jsonl", "{\"n\":0}\n"); git(main, "add", "."); git(main, "commit", "-qm", "init");
++fs.mkdirSync(path.join(root, "worktrees"));
++const wt = id => path.join(root, "worktrees", id);
++for (const id of ["qf-1", "qf-2", "qf-3"]) git(main, "worktree", "add", "-q", "-b", `worktree/${id}`, wt(id));
++for (const id of ["qf-1", "qf-2", "qf-3"]) { git(wt(id), "config", "user.email", "t@t"); git(wt(id), "config", "user.name", "t"); }
++
++// qf-2: a file and a log line, committed on its branch; then the base gets the same work as a DIFFERENT commit (merge.mjs lands a diff), and the log grows past it
++write(wt("qf-2"), "fix.txt", "the fix"); write(wt("qf-2"), "log.jsonl", "{\"n\":0}\n{\"n\":1}\n"); git(wt("qf-2"), "commit", "-qam", "fix"); git(wt("qf-2"), "add", "."); git(wt("qf-2"), "commit", "-qm", "fix file");
++write(main, "fix.txt", "the fix"); write(main, "log.jsonl", "{\"n\":0}\n{\"n\":1}\n{\"n\":2}\n"); git(main, "add", "."); git(main, "commit", "-qm", "landed as a diff");
++// qf-3: work that is NOT on the base
++write(wt("qf-3"), "mine.txt", "unmerged"); git(wt("qf-3"), "add", "."); git(wt("qf-3"), "commit", "-qm", "unmerged work");
++
++const ago = h => new Date(Date.now() - h * 3600000).toISOString();
++const rows = [
++    { id: "h1", state: "stopped", last_at: ago(1), stopped_at: ago(1) },
++    { id: "h2", state: "stopped", last_at: ago(1), stopped_at: ago(1) },
++    { id: "h3", state: "stopped", last_at: ago(0.1), stopped_at: ago(0.1) },   // stopped minutes ago: inside the grace, so its work is not salvaged yet
++    { id: "fx-old", state: "gone", last_at: ago(30) }, { id: "fx-new", state: "gone", last_at: ago(0.2) }
++];
++const said = [];
++const pool = new Pool({ main: slash(main), file: path.join(root, "pool.json"), servex: { say: m => said.push(m), agents: { registry_list: () => rows } } });
++pool.slots = ["qf-1", "qf-2", "qf-3"].map((id, i) => ({ id, path: slash(wt(id)), branch: `worktree/${id}`, url: null, state: "taken", taken_by: `h${i + 1}`, taken_at: ago(2) }));
++const removed = []; pool.remove = slot => { removed.push(slot.id); pool.forget(slot); }; pool.top_up = () => {};
++
++assert.equal((await pool.standing(pool.slots[1])).on_base, true, "qf-2: diff is on the base though the commits are not ancestors");
++assert.throws(() => git(main, "merge-base", "--is-ancestor", "worktree/qf-2", "michael/dev"), "qf-2 is not an ancestor: only its diff landed");
++const v = id => pool.verdict(pool.slots.find(s => s.id === id), rows, []);
++assert.equal((await v("qf-1")).free, true, "clean, stopped, nothing ahead");
++assert.equal((await v("qf-2")).free, true, "landed as a diff");
++const kept = await v("qf-3");
++assert.equal(kept.free, false); assert.match(kept.why, /1 unmerged commit\(s\) on worktree\/qf-3/, "the status names the branch");
++
++const { reclaimed, kept: still } = await pool.reclaim();
++assert.deepEqual(reclaimed.sort(), ["qf-1", "qf-2"], "two freed");
++assert.deepEqual(still.map(k => k.id), ["qf-3"], "one kept");
++assert.match(still[0].why, /worktree\/qf-3/);
++const landed_branch = git(main, "branch", "--list", "landed/qf-2-*").replace(/^[* +]+/, "").trim();
++assert.match(landed_branch, /^landed\/qf-2-/, "the freed branch's commits stay reachable under landed/");
++assert.equal(git(main, "show", `${landed_branch}:fix.txt`), "the fix");
++assert.equal(git(main, "branch", "--list", "worktree/qf-3").length > 0, true, "the unmerged branch is untouched");
++assert.ok(fs.existsSync(path.join(wt("qf-3"), "mine.txt")), "unmerged work still on disk");
++
++// an explicit hold: stale after ORPHAN_HOURS of its holder being gone, honoured before that
++const slot = { id: "qf-9", path: slash(wt("qf-3")), state: "taken", taken_by: "fx-old", held_by: "fx-old", taken_at: ago(40) };
++assert.equal(pool.held(slot, rows, []), null, "a hold whose holder has been gone 30 h is stale");
++assert.ok(pool.held({ ...slot, taken_by: "fx-new", held_by: "fx-new" }, rows, []), "a hold whose holder vanished minutes ago stays");
++assert.ok(pool.held({ ...slot, held_by: "nobody" }, rows, []), "a hold by an unknown holder stays");
++
++console.log("Pool.test: all checks passed");
++fs.rmSync(root, { recursive: true, force: true });
+diff --git a/Servex/doc/pool.md b/Servex/doc/pool.md
+index b2e69a9cd..c6ed70a07 100644
+--- a/Servex/doc/pool.md
++++ b/Servex/doc/pool.md
+@@ -114,3 +114,18 @@ Names run `qf-1` to `qf-9`. A name held only by a leftover (a merged `worktree/q
+ queued minion spawn reaches the front of the spawn gate's queue. That used to drop the spec
+ outright, with nobody told. It is re-queued at the head instead, with its held messages, and the
+ pool is asked to top itself up: [`../never-lose-a-wake.md`](../never-lose-a-wake.md).
++
++## When a slot is freed (2026-10-17)
++
++**Look first: `node Servex/pool-status.mjs`.** One line per slot: holder and its state, branch, commits ahead of `michael/dev`, uncommitted files, and the verdict `reclaim()` gives it (`FREE` or `KEPT`, with the reason and the branch). It frees nothing.
++
++A taken slot is freed at once, with no grace wait, when its holder is `stopped` or `gone` (or a `dormant` one idle 12 h), nobody works in the slot, and either:
++
++- the branch has **no commits ahead** of `michael/dev` and the tree is clean; or
++- the commits ahead are **already on `michael/dev`**. `merge.mjs` lands a branch as a diff, so its commits are not ancestors. The test is by content: every file the branch changed must read the same on `michael/dev`, and a `.jsonl` log counts when every line the branch added is somewhere in the base's copy (a log only grows).
++
++Nothing is thrown away. The slot's folder goes, and its commits stay on `landed/<slot>-<date>-<sha>`. A slot that truly holds unmerged commits or uncommitted files stays held, and its line names the branch (`1 unmerged commit(s) on worktree/qf-3`); after its holder has been stopped 30 minutes it is salvaged to `salvage/<slot>-<date>` as before.
++
++**A stale hold lets go.** `fixer-1` held `qf-8` with `hold()` for days after it was `gone`. A hold now stops counting once its holder has been `stopped` or `gone` for 12 h. A holder that vanished minutes ago (a registry blip) still holds.
++
++**What still keeps a slot** (the measurement of 2026-10-17, in [the task log](../../public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/pool-reclaim/task.jsonl)): a holder that is only `dormant` (a mastermind that may wake and write there). That is the case where a human or the holder calls `return_worktree`. Test: `node Servex/Pool.test.mjs`.
+diff --git a/Servex/pool-status.mjs b/Servex/pool-status.mjs
+new file mode 100644
+index 000000000..541c2b3b5
+--- /dev/null
++++ b/Servex/pool-status.mjs
+@@ -0,0 +1,32 @@
++/* node Servex/pool-status.mjs — one line per quick-fix slot: holder and its state, branch, commits ahead of the base,
++ * uncommitted files, and the verdict reclaim gives it. Read-only: it frees nothing. Doc: doc/pool.md "When a slot is freed". */
++import path from "node:path";
++import { fileURLToPath, pathToFileURL } from "node:url";
++import Pool from "./Pool.js";
++import Registry from "./agents/Registry.js";
++
++export default class PoolStatus {
++    constructor(pool = new Pool({ servex: { agents: { registry_list: () => new Registry().list() } } })){ this.pool = pool; }
++
++    async rows(){
++        const rows = this.pool.holders(), queued = this.pool.queued_cwds();
++        return Promise.all(this.pool.slots.map(async slot => {
++            const holder = rows.find(r => r.id === slot.taken_by || r.name === slot.taken_by);
++            const base = { id: slot.id, state: slot.state, branch: slot.branch, holder: slot.taken_by ?? "-", holder_state: holder?.state ?? (slot.taken_by ? "unknown" : "-") };
++            try {
++                const s = await this.pool.standing(slot), v = slot.state === "taken" ? await this.pool.verdict(slot, rows, queued) : { free: false, why: slot.state };
++                return { ...base, ahead: s.ahead.length, on_base: s.on_base, dirty: s.own.length, verdict: v.free ? "FREE" : "KEPT", why: v.why };
++            } catch (e) { return { ...base, ahead: "?", dirty: "?", verdict: "?", why: e.message.split("\n")[0] }; }
++        }));
++    }
++
++    async print(){
++        const rows = await this.rows();
++        for (const r of rows) console.log(`${r.id}  ${r.holder} (${r.holder_state})  ${r.branch}  ahead ${r.ahead}${r.on_base && r.ahead ? " (on base)" : ""}  uncommitted ${r.dirty}  ${r.verdict}: ${r.why}`);
++        const free = rows.filter(r => r.verdict === "FREE").length, ready = rows.filter(r => r.state === "ready").length;
++        console.log(`${rows.length} slot(s): ${ready} ready, ${free} would be freed by reclaim, ${rows.filter(r => r.verdict === "KEPT" && r.state === "taken").length} kept.`);
++        return rows;
++    }
++}
++
++if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) await new PoolStatus().print();
+diff --git a/Servex/readme.md b/Servex/readme.md
+index ca4f52141..fa6df5e45 100644
+--- a/Servex/readme.md
++++ b/Servex/readme.md
+@@ -55,6 +55,7 @@ Everything binds `127.0.0.1` and every route refuses a non-loopback caller
+ twice over. These tools start processes; nothing here is for a network.
+ 
+ - **Class plan for the two cores** — `Agents.js` and `directory.js` as classes, a plan awaiting the owner: [agents/doc/class-plan.md](agents/doc/class-plan.md)
++- **The quick-fix pool** — `node Servex/pool-status.mjs` shows every slot, its holder and why reclaim frees or keeps it: [doc/pool.md](doc/pool.md#when-a-slot-is-freed-2026-10-17).
+ - **The Step runner** — a task's steps carry estimates; node prompts each next step and nudges once at 2x: [doc/steps.md](doc/steps.md).
+ - **Landing check** — a landing line is flagged when the branch's files are not on michael/dev, by content: [doc/landing.md](doc/landing.md).
+ - **The six parts** — moved to [doc/readme-full-2026-10-12.md](doc/readme-full-2026-10-12.md#the-six-parts), verbatim.
+diff --git a/public/framework/ai/todo.md b/public/framework/ai/todo.md
+index 7a1f874d1..c4f997230 100644
+--- a/public/framework/ai/todo.md
++++ b/public/framework/ai/todo.md
+@@ -222,5 +222,6 @@ here instead of starting it. You pick what runs next. Each line links to its bri
+ - **Run "does it exist" at task creation, 2026-10-17:** `node Server/PastWork.mjs --task <dir>` exists; `Server/TaskDirs.mjs --new` and `spawn_agent` should call it so every new task gets a `past-work.md`. Owner: `checkup-task-system` (handed over by message); the Servex part needs a restart. See [finding past work](doc/owner-2026-10-17-finding-past-work.md).
+ 
+ - **The quick-fix pool refuses minions** (2026-10-17 00:15): `spawn_agent` with role `minion` failed twice with "No pool worktree is ready" even after a Servex restart; every slot is held by a stopped agent and `Pool.reclaim` did not free them. Helpers bypass the pool, which is how the work went on. Next: a `node Server/pool-status.mjs`-style check and a reclaim that returns a slot whose agent is stopped and whose branch is merged; also remove the leftover worktrees named by the checkups (`live-archive`, `usage-pace`, `ck-task-system`, `approve-spawns`) once merged. Record: `ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/task.jsonl`.
++- **Done 2026-10-17** — the pool entry above: `node Servex/pool-status.mjs`, reclaim frees landed-by-diff and stale-hold slots, kept slots name their branch (needs a Servex restart): [Servex/doc/pool.md](/framework/servex/doc/pool.md#when-a-slot-is-freed-2026-10-17).
+ 
+ - **/tasks/ at wide widths** (2026-10-17 00:19, from the asks-to-tasks landing): layout-check reports the page 99% empty at 2560 and 3440 and `span.task-meter-fill` at an edge at every width. Owner: core/Task (`TasksPage`). Record: `public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/asks-to-tasks/layout-check/`.

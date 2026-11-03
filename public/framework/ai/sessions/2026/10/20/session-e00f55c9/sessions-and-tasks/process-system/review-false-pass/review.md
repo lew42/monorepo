@@ -1,0 +1,6 @@
+verdict: fix
+1. [fix] `requirements.md` does not exist at the given path (the `review-false-pass/` folder is absent), so I could not check the owner's asks. I judged the diff against its own comment and the "false pass" goal only.
+2. [fix] `Server/review.mjs:22-25` says "Exported for review.test.mjs", but a grep finds no `branchTree` in `Server/review.test.mjs` or anywhere else. The new refuse/redirect behaviour is untested and the comment is false, so add a test or drop the claim.
+3. [note] `Server/review.mjs:31` finds the worktree with a regex over the raw task record for the last `"worktree":"..."`. That breaks on escaped backslashes (Windows paths such as `C:\\...` stay doubled) and on a `worktree` key that is not the task's own. Parsing the JSONL lines and reading the field would be safer. The `fs.existsSync` guard keeps it from misfiring silently.
+4. [note] The refusal at `Server/review.mjs:37` calls `process.exit(1)` inside a helper that is exported. Anything that imports it, such as a test or `merge.mjs`, would be killed instead of getting an error to catch. Throwing, with `main` doing the exit, is simpler to test.
+5. [note] The `Server/README.md:10` and `Server/review.mjs` changes are consistent. The doc that README points to (`Server/doc/review.md`) is not in the diff, so it may not mention the new refusal.

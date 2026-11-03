@@ -1,0 +1,6 @@
+{"class":"/framework/ai2/card.js","title":"The resize handle is fixed","type":"card","id":"2026/09/22/grip","created":"2026-09-22T18:03:48-05:00","by":"","tags":[]}
+{"legacy":"grip"}
+{"icon":"drag_indicator"}
+{"text":"All three faults were in the one shared grip: drag direction now follows the pointer, the knob sits under your mouse on the line, and the dev bar hides 16px past the edge so nothing peeks. Measured: a 120px drag moves the column exactly 120px. First worktree minion to land as one patch."}
+{"status":"done"}
+{"links":[{"url":"/framework/ext/grip/","label":"ext/grip"},{"url":"/framework/ai/timeline/","label":"try the split"}]}

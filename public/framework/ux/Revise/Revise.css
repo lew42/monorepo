@@ -1,0 +1,27 @@
+/* ux/Revise — a small demo widget: sample buttons, a textarea, a level picker,
+ * source and revised side by side. Layout is plain framework.css utilities
+ * (flex, gap, grid, wrap, card, muted); this file is only what's left: the
+ * textarea's size and the two output boxes' code-ish look. */
+@layer theme {
+
+	/* `wide` (JS) opts this out of the page's default 40em reading measure; this caps
+	 * it at something still readable instead of the full wide track — same number
+	 * `ux/Dictate/playground/Playground.css` uses, for the same reason. */
+	.ux-revise { max-width: 60em; }
+
+	.ux-revise-source, .ux-revise-prompt { inline-size: 100%; font-family: inherit; resize: vertical; }
+	.ux-revise-prompt { font-family: var(--mono); font-size: .9em; }
+	.ux-revise-reset { white-space: nowrap; }
+
+	.ux-revise-sample { white-space: nowrap; }
+
+	.ux-revise-status:empty { display: none; }
+	.ux-revise-status.error { color: var(--error); }
+
+	.ux-revise-out {
+		white-space: pre-wrap;
+		font-family: var(--mono);
+		font-size: .95em;
+		min-height: 4em;
+	}
+}

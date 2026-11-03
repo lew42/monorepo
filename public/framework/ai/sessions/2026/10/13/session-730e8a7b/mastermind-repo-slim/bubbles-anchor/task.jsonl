@@ -1,0 +1,61 @@
+{"assign":{"session_id":"9af95aed-fe94-440b-9c99-7295c499d762","agent":"helper-bubbles-anchor","card":"2026/10/16/voice-one-assistant-places-each-sentence","brief":"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/bubbles-anchor/requirements.md","model":"claude-sonnet-5-5","parent_task":"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim","requested_at":"2026-10-17T10:39:43-05:00","now":"starting"}}
+{"log":{"at":"2026-10-17T10:40:18-05:00","msg":"skill: minion"}}
+{"action":{"at":"2026-10-17T10:40:24-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/bubbles-anchor/requirements.md"]}}
+{"action":{"at":"2026-10-17T11:05:00-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/bubbles-anchor/lines1.json"]}}
+{"decision":{"at":"2026-10-17T11:05:02-05:00","msg":"Anchor = the NEWEST bubble's top, not the bottom edge. Widget.Thread.anchor() replaces the bottom pin: growing text never scrolls; the box turns a page only when a bubble starts with under 75% of a box below it, or when a bubble taller than the box grows (tail lands mid-box, half a box at a time). A reader who scrolled up is never moved. Alternative (a), overflow-anchor + pin to bottom on append, rejected: measured 27-38 moves at 400 split because every extra line scrolls every older bubble; the ResizeObserver inside sticky_scroll (ext/Chat) also re-pinned to the bottom on every box resize. Alternative (b), newest always at the top: rejected because it hides the reply you were reading the instant you speak; the 75% headroom keeps it until the page is really full."}}
+{"log":{"at":"2026-10-17T11:05:02-05:00","msg":"Change reaches into ext/Chat/Chat.js by one option: sticky_scroll(box, {observe:false}) skips its bottom-only ResizeObserver (default unchanged, so every other chat is untouched). Thread now has its own observer calling anchor(). Also Widget.css overflow-anchor:none, because Chrome scroll anchoring moved the box 50px mid-sentence once."}}
+{"commit":"718a1291f599"}
+{"commit":"60b9771ddb5a"}
+{"action":{"at":"2026-10-17T11:14:54-05:00","did":"edit","files":[".claude/tmp-bubbles-anchor-finish.json"]}}
+{"log":{"at":"2026-10-17T11:15:10-05:00","msg":"Landed 60b9771dd. Fake mic, 5 sentences, 400 wide: split 0 older-line moves while words stream (before: 27-38), 5 page turns; reader scrolled up first: 0 moves, 0 turns; strip 0. Bar, in-place, swallow proofs still pass. Caveats: Chat.js gained one additive sticky_scroll option {observe} (outside the fence); a page turn still moves older lines once when a bubble starts with under 75% of a box below it; the first sentence still hides the 64px empty placeholder once. Merged with --skip-smoke because the crawl 404s only on git-ignored shots in drawer/walkthrough and drawer/rail; check_page on Dictate and drawer clean. Docs now stale: ext/Chat sticky_scroll notes, ux/Dictate/doc/widget-notes.md#sticky-scroll."}}
+{"finish":{"at":"2026-10-17T11:15:10-05:00","msg":"split 0 stream moves (was 27-38), 5 page turns; scrolled-up 0 moves 0 turns; strip 0"}}
+{"commit":"f05eddac6454"}
+{"log":{"at":"2026-10-17T11:15:49-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-17T11:15:49-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-17T11:17:26-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-17T11:20:27-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-17T11:26:26-05:00","heartbeat":"check","msg":"status check sent to helper-bubbles-anchor"}}
+{"log":{"at":"2026-10-17T11:26:29-05:00","msg":"session resumed"}}
+{"finish":{"at":"2026-10-17T11:27:11-05:00","msg":"landed in 60b9771dd: split 0 stream moves at 400 (was 27-38), 5 page turns; scrolled-up 0 moves 0 turns; strip 0. Proof ux/Dictate/test/anchor.mjs; rule in ux/Dictate/doc/voice-assistant.md#nothing-jumps"}}
+{"log":{"at":"2026-10-17T11:27:19-05:00","heartbeat":"answered","msg":"The work is finished and merged (`60b9771dd`). At 400 wide with the fake mic, the chat thread on the phone sheet now moves no older lines while you read: 0 moves in split (it was 27–38), 0 when you've"}}
+{"log":{"at":"2026-10-17T11:30:32-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-17T11:41:26-05:00","heartbeat":"check","msg":"status check sent to helper-bubbles-anchor"}}
+{"log":{"at":"2026-10-17T11:41:29-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-17T11:41:59-05:00","heartbeat":"answered","msg":"Nothing is running: the bubbles-anchor work is merged (`60b9771dd`), the closing `finish` line is the last line of my `task.jsonl`, and the worktree is removed. The caveats are in my last report: the "}}
+{"log":{"at":"2026-10-17T11:45:34-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-17T12:06:29-05:00","heartbeat":"check","msg":"status check sent to helper-bubbles-anchor"}}
+{"log":{"at":"2026-10-17T12:06:31-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-17T12:07:01-05:00","heartbeat":"answered","msg":"Idle, with nothing left to do. The bubbles-anchor task is merged (`60b9771dd`), the `finish` line is logged in my `task.jsonl`, and the worktree is gone."}}
+{"log":{"at":"2026-10-17T12:10:34-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-17T12:51:29-05:00","heartbeat":"check","msg":"status check sent to helper-bubbles-anchor"}}
+{"log":{"at":"2026-10-17T12:51:32-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-17T12:52:02-05:00","heartbeat":"answered","msg":"Still idle: the bubbles-anchor task is done and merged (`60b9771dd`), and there's nothing left for me to do."}}
+{"log":{"at":"2026-10-17T12:55:42-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-17T14:16:31-05:00","heartbeat":"check","msg":"status check sent to helper-bubbles-anchor"}}
+{"log":{"at":"2026-10-17T14:16:34-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-17T14:17:04-05:00","heartbeat":"answered","msg":"Idle and finished. The bubbles-anchor task landed in `60b9771dd`, and its `finish` line with the measurement is in my `task.jsonl`."}}
+{"log":{"at":"2026-10-17T14:20:42-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-17T15:41:39-05:00","heartbeat":"check","msg":"status check sent to helper-bubbles-anchor"}}
+{"log":{"at":"2026-10-17T15:41:42-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-17T15:42:12-05:00","heartbeat":"answered","msg":"Still idle and finished: bubbles-anchor landed in `60b9771dd`, and I'm not doing anything now."}}
+{"log":{"at":"2026-10-17T15:46:05-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-17T17:06:40-05:00","heartbeat":"check","msg":"status check sent to helper-bubbles-anchor"}}
+{"log":{"at":"2026-10-17T17:06:44-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-17T17:07:14-05:00","heartbeat":"answered","msg":"Idle. bubbles-anchor is landed (`60b9771dd`) and logged, and I have no open work."}}
+{"log":{"at":"2026-10-17T17:11:07-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-17T18:31:42-05:00","heartbeat":"check","msg":"status check sent to helper-bubbles-anchor"}}
+{"log":{"at":"2026-10-17T18:31:45-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-17T18:32:15-05:00","heartbeat":"answered","msg":"Idle and finished. The bubbles-anchor task is merged (`60b9771dd`) and logged, with no open work."}}
+{"log":{"at":"2026-10-17T18:36:08-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-17T19:56:41-05:00","heartbeat":"check","msg":"status check sent to helper-bubbles-anchor"}}
+{"log":{"at":"2026-10-17T19:56:44-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-17T19:57:15-05:00","heartbeat":"answered","msg":"Still idle. The bubbles-anchor task is landed (`60b9771dd`) and logged, and nothing is left for me to do."}}
+{"log":{"at":"2026-10-17T20:01:09-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-17T21:21:42-05:00","heartbeat":"check","msg":"status check sent to helper-bubbles-anchor"}}
+{"log":{"at":"2026-10-17T21:21:45-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-17T21:22:15-05:00","heartbeat":"answered","msg":"Idle and finished: bubbles-anchor is merged (`60b9771dd`) and logged, with nothing left to do."}}
+{"log":{"at":"2026-10-17T21:26:09-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-17T22:46:45-05:00","heartbeat":"check","msg":"status check sent to helper-bubbles-anchor"}}
+{"log":{"at":"2026-10-17T22:46:49-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-17T22:47:19-05:00","heartbeat":"answered","msg":"Idle. The bubbles-anchor work landed in `60b9771dd` and is logged, so there's nothing left for me to do."}}
+{"log":{"at":"2026-10-17T22:51:10-05:00","msg":"session ended (other) without landing"}}

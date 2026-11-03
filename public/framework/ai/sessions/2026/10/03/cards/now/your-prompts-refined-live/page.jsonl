@@ -1,0 +1,4 @@
+{"class":"/framework/ai2/card.js","title":"Your prompts, refined live","type":"note","id":"2026/10/03/now/your-prompts-refined-live","created":"2026-10-03T13:35:33-05:00","by":"vscode-mastermind","tags":[]}
+{"chat":{"level":"summary","text":"Each prompt you give me appears here as you send it, then a refiner turns it into a structured list of statements, numbered, with nothing dropped. I answer under the statement I'm answering.","at":"2026-10-03T13:35:33-05:00","from":{"kind":"system","id":"vscode-mastermind"}}}
+{"type":"request"}
+{"status":"building"}

@@ -1,0 +1,43 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/sessions/3c35b6e2-3428-46ee-aae8-65c3f66e8c37/seeds/",
+ "widths": {
+  "400": {
+   "empty": 0.782,
+   "widest_text": 264,
+   "widest_text_sample": "3c35b6e2-3428-46ee-aae8-65c3f66e8c37",
+   "overflow_x": false,
+   "items": 1939,
+   "narrow_share": 0.487
+  },
+  "1200": {
+   "empty": 0.544,
+   "widest_text": 289,
+   "widest_text_sample": "No transcript for this session yet: eith",
+   "overflow_x": false,
+   "items": 1959,
+   "narrow_share": 0.734
+  },
+  "1920": {
+   "empty": 0.638,
+   "widest_text": 505,
+   "widest_text_sample": "No transcript for this session yet: eith",
+   "overflow_x": false,
+   "items": 1959,
+   "narrow_share": 0.781
+  },
+  "3440": {
+   "empty": 0.733,
+   "widest_text": 1330,
+   "widest_text_sample": "OpenRouter (real dollars, apart from the",
+   "overflow_x": false,
+   "items": 1959,
+   "narrow_share": 0.787
+  }
+ },
+ "errors": [
+  "1200: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "3440: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1920: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "400: Failed to load resource: the server responded with a status of 404 (Not Found)"
+ ]
+}

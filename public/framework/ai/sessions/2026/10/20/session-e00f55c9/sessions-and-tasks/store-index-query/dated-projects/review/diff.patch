@@ -1,0 +1,736 @@
+diff --git a/Server/DatedFiles.mjs b/Server/DatedFiles.mjs
+new file mode 100644
+index 000000000..97feaeb68
+--- /dev/null
++++ b/Server/DatedFiles.mjs
+@@ -0,0 +1,208 @@
++// DatedFiles: the node half of core/Item/Dated.js. Makes, moves, queries and checks a collection filed by day (today: "projects").
++//   create({module, slug, title})  mkdir <module>/projects/YYYY/MM/DD/<slug>/, line 1 of project.jsonl, and the index row, one call
++//   move({from, module, apply})    git mv a project folder into a module; rows on BOTH days, a pointer in its session, one manifest line (body of the old ProjectMove)
++//   undo({run})                    put a move back
++//   query({from, to, where, sort}) the index rows of a day range, run through ext/Query
++//   check()                        rebuild from the folders, diff with the index: {ok, missing, stale}
++// Index = the day stream ai/sessions/YYYY/MM/DD/index.jsonl (AIIndexStream). Doors: static tools() (SDK/MCP) and static setup(socket) (dev socket) call these same methods.
++// Doc: Server/doc/dated-files.md · plan: public/framework/core/Item/doc/store-index-query-plan.md
++import fs from "node:fs";
++import path from "node:path";
++import { execFileSync } from "node:child_process";
++import { fileURLToPath, pathToFileURL } from "node:url";
++import AIIndexStream from "./AIIndexStream.mjs";
++import SessionRecord from "./SessionRecord.mjs";
++import Day from "../public/framework/core/Session/Day.js";
++import Dated from "../public/framework/core/Item/Dated.js";
++import Query from "../public/framework/ext/Query/Query.js";
++
++const HERE = path.dirname(fileURLToPath(import.meta.url));
++const slash = p => p.split(path.sep).join("/");
++
++export default class DatedFiles extends Dated {
++	static ROOT = path.resolve(HERE, "..");                      // a test points this at a scratch repo
++	static MANIFEST = "public/framework/ai/sessions/project-moves.jsonl";
++
++	static abs(rel){ return path.join(this.ROOT, rel); }
++	static rel(abs){ return slash(path.relative(this.ROOT, abs)); }
++	static url(rel){ return "/" + rel.replace(/^public\//, "").replace(/\/?$/, "/"); }
++	static lines(file){
++		try { return fs.readFileSync(file, "utf8").split(/\r?\n/).filter(l => l.startsWith("{")).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean); }
++		catch { return []; }
++	}
++	static append(file, obj){ fs.mkdirSync(path.dirname(file), { recursive: true }); fs.appendFileSync(file, JSON.stringify(obj) + "\n"); }
++	static git(...args){ return execFileSync("git", args, { cwd: this.ROOT, encoding: "utf8", windowsHide: true, stdio: ["ignore", "pipe", "pipe"] }).trim(); }
++	static tracked(rel){ try { return !!this.git("ls-files", "--", rel); } catch { return false; } }
++	get store(){ return DatedFiles.abs(this.index); }
++
++	/** The project's own facts, replayed through core/Task/Project.js: title, state, completion (0..1). */
++	async read(dir){
++		const lines = DatedFiles.lines(path.join(dir, this.file));
++		if (!lines.length) throw new Error(`no ${this.file} in ${DatedFiles.rel(dir)}`);
++		const { default: Project } = await import(pathToFileURL(path.join(HERE, "../public/framework/core/Task/Project.js")).href);
++		const p = Project.from_lines(lines);
++		const at = lines.map(l => Object.values(l).find(v => v && typeof v === "object")?.at ?? l.at).find(Boolean);
++		return { title: p.get_one("title") ?? lines[0].title ?? path.basename(dir), state: p.state, completion: p.completion, at };
++	}
++
++	/** Which day the item started: the YYYY/MM/DD in its session path, else the first line's time, else today. */
++	start_day(rel, at){
++		const m = rel.match(/sessions\/(\d{4})\/(\d{2})\/(\d{2})\//);
++		return m ? `${m[1]}-${m[2]}-${m[3]}` : (Day.of(at) || Day.of());
++	}
++
++	/** The session folder that owns an item: the nearest ancestor holding a session.jsonl (or an old task.jsonl). */
++	session_of(dir){
++		const R = DatedFiles.ROOT;
++		for (let d = path.dirname(dir); d.startsWith(R) && d !== R; d = path.dirname(d)) if (SessionRecord.file(d)) return d;
++		return null;
++	}
++
++	row(slug, rel, facts){ return { id: slug, path: rel, url: DatedFiles.url(rel), title: facts.title, state: facts.state, completion: facts.completion }; }
++
++	/** Makes a new project in a module: the folder, line 1, and the index row on its day. */
++	create({ module, slug, title, day = Day.of(), at = new Date().toISOString() }){
++		if (!/^[a-z0-9][a-z0-9-]*$/.test(slug ?? "")) throw new Error(`create: slug "${slug}" must be lowercase words and dashes`);
++		const home = `public/framework/${String(module ?? "").replace(/^\/|\/$/g, "")}`;
++		if (!module || !fs.existsSync(DatedFiles.abs(home))) throw new Error(`module ${module} does not exist (${home})`);
++		const dir = this.path(day, slug, module);
++		if (fs.existsSync(DatedFiles.abs(dir))) throw new Error(`${dir} already exists`);
++		DatedFiles.append(path.join(DatedFiles.abs(dir), this.file), { id: slug, title: title ?? slug, module, at });
++		const row = this.row(slug, dir, { title: title ?? slug, state: "idle", completion: 0 });
++		AIIndexStream.append(this.store, this.kind, row, `${Day.of(day)}T00:00:00`);
++		return { dir, id: slug, url: row.url };
++	}
++
++	async plan({ from, module }){
++		const R = DatedFiles, rel = from.startsWith("/framework/") ? "public" + from.replace(/\/$/, "") : slash(path.relative(R.ROOT, path.resolve(R.ROOT, from)));
++		const dir = R.abs(rel);
++		if (!fs.existsSync(path.join(dir, this.file))) throw new Error(`${rel} has no ${this.file}; only a project folder moves`);
++		if (rel.includes("/projects/")) throw new Error(`${rel} is already in a module's projects/ folder`);
++		const home = `public/framework/${module.replace(/^\/|\/$/g, "")}`;
++		if (!fs.existsSync(R.abs(home))) throw new Error(`module ${module} does not exist (${home})`);
++		const facts = await this.read(dir), slug = path.basename(dir), day = this.start_day(rel, facts.at);
++		const to = this.path(day, slug, module);
++		if (fs.existsSync(R.abs(to))) throw new Error(`${to} already exists`);
++		const session = this.session_of(dir);
++		return { from: rel, to, module, slug, day, ...facts, session: session && R.rel(session) };
++	}
++
++	/** Dry run unless `apply`. Returns the plan, plus the run id when applied. */
++	async move({ from, module, apply = false }){
++		const R = DatedFiles, plan = await this.plan({ from, module });
++		if (!apply) return { dry_run: true, ...plan };
++		const now = new Date().toISOString();
++		fs.mkdirSync(path.dirname(R.abs(plan.to)), { recursive: true });
++		if (R.tracked(plan.from)) R.git("mv", plan.from, plan.to); else fs.renameSync(R.abs(plan.from), R.abs(plan.to));
++		const row = { ...this.row(plan.slug, plan.to, plan), moved_from: plan.from };
++		AIIndexStream.append(this.store, this.kind, row, `${plan.day}T00:00:00`);   // the start day's stream now points at the new home
++		AIIndexStream.append(this.store, this.kind, { ...row, moved: true }, now);   // today's stream shows the move
++		if (plan.session) R.append(SessionRecord.file(R.abs(plan.session)), { log: { at: now, msg: `project ${plan.slug} moved to ${R.url(plan.to)} (was ${plan.from})` } });
++		const run = now.replace(/\D/g, "").slice(0, 14);
++		R.append(R.abs(R.MANIFEST), { run, at: now, from: plan.from, to: plan.to, module, slug: plan.slug, day: plan.day, session: plan.session });
++		return { dry_run: false, run, ...plan };
++	}
++
++	/** Reverses one move (the last that is not undone, or `run`): the folder goes back and each day gets a mirror row. */
++	async undo({ run } = {}){
++		const R = DatedFiles, all = R.lines(R.abs(R.MANIFEST)), undone = new Set(all.filter(l => l.undone).map(l => l.undone));
++		const m = all.filter(l => l.to && !undone.has(l.run)).filter(l => !run || l.run === run).pop();
++		if (!m) throw new Error("no move to undo");
++		if (!fs.existsSync(R.abs(m.to))) throw new Error(`${m.to} is gone; nothing to put back`);
++		if (fs.existsSync(R.abs(m.from))) throw new Error(`${m.from} already exists; will not overwrite`);
++		const now = new Date().toISOString(), facts = await this.read(R.abs(m.to));
++		fs.mkdirSync(path.dirname(R.abs(m.from)), { recursive: true });
++		if (R.tracked(m.to)) R.git("mv", m.to, m.from); else fs.renameSync(R.abs(m.to), R.abs(m.from));
++		for (let d = path.dirname(R.abs(m.to)); d.includes(`${path.sep}projects${path.sep}`); d = path.dirname(d)) { try { fs.rmdirSync(d); } catch { break; } }
++		const row = this.row(m.slug, m.from, facts);
++		AIIndexStream.append(this.store, this.kind, row, `${m.day}T00:00:00`);
++		AIIndexStream.append(this.store, this.kind, { ...row, moved_back: true }, now);
++		if (m.session && SessionRecord.file(R.abs(m.session))) R.append(SessionRecord.file(R.abs(m.session)), { log: { at: now, msg: `project ${m.slug} moved back to ${m.from}` } });
++		R.append(R.abs(R.MANIFEST), { at: now, undone: m.run, from: m.to, to: m.from });
++		return { undone: m.run, from: m.to, to: m.from };
++	}
++
++	/** The index rows of a day range (default: the last 30 days), filtered, sorted and paged by ext/Query. Spec: {from, to, where, sort, offset, limit}. */
++	async query(spec = {}){
++		const to = spec.to ?? Day.of(), d = new Date(to + "T12:00:00"); d.setDate(d.getDate() - 30);
++		const rows = await this.rows({ from: spec.from ?? Day.of(d), to, load: async day => AIIndexStream.read(this.store, day) });
++		return new Query({ sort: { by: "at", dir: "desc" }, ...spec }).run(rows.map(r => ({ ...r, at: r.at ?? "" })));
++	}
++
++	/** Every project folder under <module>/projects/YYYY/MM/DD/<slug>/ in the repo. */
++	folders(){
++		const out = [], R = DatedFiles, walk = (dir, depth) => {
++			let names; try { names = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
++			for (const e of names) {
++				if (!e.isDirectory() || e.name === "node_modules" || e.name === ".git") continue;
++				const full = path.join(dir, e.name);
++				if (e.name === "projects" && fs.existsSync(path.join(full))) { this.days_under(full, out); continue; }
++				if (depth < 6) walk(full, depth + 1);
++			}
++		};
++		walk(R.abs("public/framework"), 0);
++		return out;
++	}
++	days_under(projects, out){
++		const R = DatedFiles, ls = d => { try { return fs.readdirSync(d, { withFileTypes: true }).filter(e => e.isDirectory()).map(e => path.join(d, e.name)); } catch { return []; } };
++		for (const y of ls(projects)) for (const m of ls(y)) for (const dd of ls(m)) for (const slug of ls(dd))
++			if (fs.existsSync(path.join(slug, this.file))) out.push({ path: R.rel(slug), day: `${path.basename(y)}-${path.basename(m)}-${path.basename(dd)}` });
++	}
++
++	/** Rebuild from the folders and diff with the index: `missing` = a folder with no row, `stale` = a row whose folder is gone. Never out of sync, or ok is false. */
++	async check(){
++		const R = DatedFiles, latest = new Map();
++		for (const day of Dated.days(Day.of(new Date(Date.now() - 400 * 864e5)), Day.of()))
++			for (const l of AIIndexStream.read(this.store, day)) { const r = l[this.kind]; if (r?.id) latest.set(r.id, { ...latest.get(r.id), ...r }); }
++		const found = this.folders(), have = new Set(found.map(f => f.path));
++		const indexed = new Set([...latest.values()].map(r => r.path));
++		const missing = found.filter(f => !indexed.has(f.path)).map(f => f.path);
++		const stale = [...latest.values()].filter(r => !fs.existsSync(R.abs(r.path))).map(r => r.path);
++		return { ok: !missing.length && !stale.length, folders: have.size, rows: latest.size, missing, stale };
++	}
++
++	// ── the doors: one set of methods, two adapters ─────────────────────────────────────────────
++	static get files(){ return this._files ??= new DatedFiles("projects"); }
++
++	/** SDK/MCP tools. `move_project` keeps its name (the one door); `dated_create` and `dated_query` are the other two. */
++	static tools(){
++		const f = () => this.files, json = async v => JSON.stringify(await v, null, 2);
++		return [
++			{
++				name: "move_project",
++				description: "Move a project folder (one holding project.jsonl) from its session into a module: git mv to <module>/projects/YYYY/MM/DD/<slug>/ and it indexes itself (both days' index.jsonl, a one-line pointer in the session's session.jsonl). Dry run unless apply is true. {undo:true} puts the last move back. Doc: /framework/ai/tasks/doc/projects.md",
++				inputSchema: { type: "object", properties: {
++					from: { type: "string", description: "The project folder: a repo path or a site path (/framework/ai/sessions/…/<slug>/)." },
++					module: { type: "string", description: 'The module that takes it, e.g. "core/Task".' },
++					apply: { type: "boolean", description: "Do it. Omitted = dry run." },
++					undo: { type: "boolean", description: "Reverse the last move (then from/module are ignored)." } } },
++				handler: a => json(a.undo ? f().undo() : f().move(a))
++			},
++			{
++				name: "dated_create",
++				description: "Make a new project in a module: <module>/projects/YYYY/MM/DD/<slug>/project.jsonl with its first line, and its row in the day's index. Doc: Server/doc/dated-files.md",
++				inputSchema: { type: "object", required: ["module", "slug"], properties: { module: { type: "string" }, slug: { type: "string", description: "lowercase words and dashes" }, title: { type: "string" } } },
++				handler: a => json(f().create(a))
++			},
++			{
++				name: "dated_query",
++				description: "Query the projects index (default: last 30 days). Spec: {from, to (YYYY-MM-DD), where:[{field,op,value}], sort, limit}. Returns {rows,total}.",
++				inputSchema: { type: "object", properties: { from: { type: "string" }, to: { type: "string" }, where: { type: "array" }, sort: { type: "object" }, limit: { type: "number" } } },
++				handler: a => json(f().query(a))
++			}
++		];
++	}
++
++	/** The dev-socket door: rpc:dated_create / dated_move / dated_query answer `{index, response}`. Local peers only (the socket refuses LAN commands). */
++	static socket(socket){
++		const door = (name, fn) => socket.on(`rpc:${name}`, async (args = [], index) => {
++			let response; try { response = { ok: true, ...(await fn(args[0] ?? {})) }; } catch (e) { response = { ok: false, error: e.message }; }
++			socket.send({ index, response });
++		});
++		door("dated_create", a => this.files.create(a));
++		door("dated_move", a => a.undo ? this.files.undo(a) : this.files.move(a));
++		door("dated_query", a => this.files.query(a));
++	}
++	/** `DevSocket.Socket.use(DatedFiles)` calls this for every socket. */
++	static setup(socket){ this.socket(socket); }
++}
+diff --git a/Server/ProjectMove.mjs b/Server/ProjectMove.mjs
+index aa1b36187..adb25d11d 100644
+--- a/Server/ProjectMove.mjs
++++ b/Server/ProjectMove.mjs
+@@ -1,122 +1,22 @@
+ #!/usr/bin/env node
+-// ProjectMove: moves a project folder (one holding project.jsonl) from its session into a module, and indexes the move itself.
++// ProjectMove: the command-line and old-name door for moving a project folder into its module. The work lives in Server/DatedFiles.mjs (move, undo); this is a thin caller.
+ //   node Server/ProjectMove.mjs <folder> <module>            dry run: prints where it would go (default)
+ //   node Server/ProjectMove.mjs <folder> <module> --apply    git mv to public/framework/<module>/projects/YYYY/MM/DD/<slug>/
+ //   node Server/ProjectMove.mjs --undo [--run <id>]          put the last (or named) move back
+-// <folder> is a repo path or a site path; <module> is "core/Task" (public/framework/<module>/ must exist).
+-// One apply does four things: moves the folder (git mv when tracked), appends a `project` line to the day stream (ai/sessions/YYYY/MM/DD/index.jsonl)
+-// of the project's start day AND of today, leaves a one-line `log` pointer in the owning session's session.jsonl, and appends the move to the manifest.
+-// Undo reverses the folder and appends a mirror line to each of them; nothing is rewritten. Door for agents: the Servex tool `move_project`. Doc: public/framework/ai/tasks/doc/projects.md
+-import fs from "node:fs";
++// Doc: Server/doc/dated-files.md · public/framework/ai/tasks/doc/projects.md
+ import path from "node:path";
+-import { execFileSync } from "node:child_process";
+-import { fileURLToPath, pathToFileURL } from "node:url";
+-import AIIndexStream from "./AIIndexStream.mjs";
+-import SessionRecord from "./SessionRecord.mjs";
+-import Day from "../public/framework/core/Session/Day.js";
+-
+-const HERE = path.dirname(fileURLToPath(import.meta.url));
+-const slash = p => p.split(path.sep).join("/");
++import { fileURLToPath } from "node:url";
++import DatedFiles from "./DatedFiles.mjs";
+ 
+ export default class ProjectMove {
+-	static ROOT = path.resolve(HERE, "..");                      // a test points this at a scratch repo
+-	static MANIFEST = "public/framework/ai/sessions/project-moves.jsonl";
+-
+-	static abs(rel){ return path.join(this.ROOT, rel); }
+-	static rel(abs){ return slash(path.relative(this.ROOT, abs)); }
+-	static url(rel){ return "/" + rel.replace(/^public\//, "").replace(/\/?$/, "/"); }
+-	static lines(file){
+-		try { return fs.readFileSync(file, "utf8").split(/\r?\n/).filter(l => l.startsWith("{")).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean); }
+-		catch { return []; }
+-	}
+-	static append(file, obj){ fs.mkdirSync(path.dirname(file), { recursive: true }); fs.appendFileSync(file, JSON.stringify(obj) + "\n"); }
+-	static git(...args){ return execFileSync("git", args, { cwd: this.ROOT, encoding: "utf8", windowsHide: true }).trim(); }
+-	static tracked(rel){ try { return !!this.git("ls-files", "--", rel); } catch { return false; } }
+-
+-	/** The project's own facts, replayed through core/Task/Project.js: title, state, completion (0..1). */
+-	static async read(dir){
+-		const lines = this.lines(path.join(dir, "project.jsonl"));
+-		if (!lines.length) throw new Error(`no project.jsonl in ${this.rel(dir)}`);
+-		const { default: Project } = await import(pathToFileURL(path.join(this.ROOT, "public/framework/core/Task/Project.js")).href);
+-		const p = Project.from_lines(lines);
+-		const at = lines.map(l => Object.values(l).find(v => v && typeof v === "object")?.at ?? l.at).find(Boolean);
+-		return { title: p.get_one("title") ?? path.basename(dir), state: p.state, completion: p.completion, at };
+-	}
+-
+-	/** Which day the project started: the YYYY/MM/DD in its session path, else the first line's time, else today. */
+-	static start_day(rel, at){
+-		const m = rel.match(/sessions\/(\d{4})\/(\d{2})\/(\d{2})\//);
+-		return m ? `${m[1]}-${m[2]}-${m[3]}` : (Day.of(at) || Day.of());
+-	}
+-
+-	/** The session folder that owns a project: the nearest ancestor holding a session.jsonl (or an old task.jsonl). */
+-	static session_of(dir){
+-		for (let d = path.dirname(dir); d.startsWith(this.ROOT) && d !== this.ROOT; d = path.dirname(d)) if (SessionRecord.file(d)) return d;
+-		return null;
+-	}
+-
+-	static async plan({ from, module }){
+-		const rel = from.startsWith("/framework/") ? "public" + from.replace(/\/$/, "") : slash(path.relative(this.ROOT, path.resolve(this.ROOT, from)));
+-		const dir = this.abs(rel);
+-		if (!fs.existsSync(path.join(dir, "project.jsonl"))) throw new Error(`${rel} has no project.jsonl; only a project folder moves`);
+-		if (rel.includes("/projects/")) throw new Error(`${rel} is already in a module's projects/ folder`);
+-		const home = `public/framework/${module.replace(/^\/|\/$/g, "")}`;
+-		if (!fs.existsSync(this.abs(home))) throw new Error(`module ${module} does not exist (${home})`);
+-		const facts = await this.read(dir), slug = path.basename(dir), day = this.start_day(rel, facts.at);
+-		const to = `${home}/projects/${day.replaceAll("-", "/")}/${slug}`;
+-		if (fs.existsSync(this.abs(to))) throw new Error(`${to} already exists`);
+-		const session = this.session_of(dir);
+-		return { from: rel, to, module, slug, day, ...facts, session: session && this.rel(session) };
+-	}
+-
+-	/** Dry run unless `apply`. Returns the plan, plus the run id and the lines written when applied. */
+-	static async move({ from, module, apply = false }){
+-		const plan = await this.plan({ from, module });
+-		if (!apply) return { dry_run: true, ...plan };
+-		const store = this.abs("public/framework/ai/sessions"), now = new Date().toISOString();
+-		fs.mkdirSync(path.dirname(this.abs(plan.to)), { recursive: true });
+-		if (this.tracked(plan.from)) this.git("mv", plan.from, plan.to); else fs.renameSync(this.abs(plan.from), this.abs(plan.to));
+-		const row = { id: plan.slug, path: plan.to, url: this.url(plan.to), title: plan.title, state: plan.state, completion: plan.completion, moved_from: plan.from };
+-		AIIndexStream.append(store, "project", row, `${plan.day}T00:00:00`);   // the start day's stream now points at the new home
+-		AIIndexStream.append(store, "project", { ...row, moved: true }, now);   // today's stream shows the move
+-		if (plan.session) this.append(SessionRecord.file(this.abs(plan.session)), { log: { at: now, msg: `project ${plan.slug} moved to ${this.url(plan.to)} (was ${plan.from})` } });
+-		const run = now.replace(/\D/g, "").slice(0, 14);
+-		this.append(this.abs(this.MANIFEST), { run, at: now, from: plan.from, to: plan.to, module, slug: plan.slug, day: plan.day, session: plan.session });
+-		return { dry_run: false, run, ...plan };
+-	}
+-
+-	/** Reverses one move (the last that is not undone, or `run`): the folder goes back and each stream gets a mirror line. */
+-	static async undo({ run } = {}){
+-		const all = this.lines(this.abs(this.MANIFEST)), undone = new Set(all.filter(l => l.undone).map(l => l.undone));
+-		const m = all.filter(l => l.to && !undone.has(l.run)).filter(l => !run || l.run === run).pop();
+-		if (!m) throw new Error("no move to undo");
+-		if (!fs.existsSync(this.abs(m.to))) throw new Error(`${m.to} is gone; nothing to put back`);
+-		if (fs.existsSync(this.abs(m.from))) throw new Error(`${m.from} already exists; will not overwrite`);
+-		const store = this.abs("public/framework/ai/sessions"), now = new Date().toISOString(), facts = await this.read(this.abs(m.to));
+-		fs.mkdirSync(path.dirname(this.abs(m.from)), { recursive: true });
+-		if (this.tracked(m.to)) this.git("mv", m.to, m.from); else fs.renameSync(this.abs(m.to), this.abs(m.from));
+-		for (let d = path.dirname(this.abs(m.to)); d.includes(`${path.sep}projects${path.sep}`); d = path.dirname(d)) { try { fs.rmdirSync(d); } catch { break; } }
+-		const row = { id: m.slug, path: m.from, url: this.url(m.from), title: facts.title, state: facts.state, completion: facts.completion };
+-		AIIndexStream.append(store, "project", row, `${m.day}T00:00:00`);
+-		AIIndexStream.append(store, "project", { ...row, moved_back: true }, now);
+-		if (m.session && SessionRecord.file(this.abs(m.session))) this.append(SessionRecord.file(this.abs(m.session)), { log: { at: now, msg: `project ${m.slug} moved back to ${m.from}` } });
+-		this.append(this.abs(this.MANIFEST), { at: now, undone: m.run, from: m.to, to: m.from });
+-		return { undone: m.run, from: m.to, to: m.from };
+-	}
+-
+-	/** The Servex MCP door (registered in Servex.js): `move_project`. Dry run unless apply; undo reverses the last move. */
+-	static tool(){
+-		return {
+-			name: "move_project",
+-			description: "Move a project folder (one holding project.jsonl) from its session into a module: git mv to <module>/projects/YYYY/MM/DD/<slug>/ and it indexes itself (both days' index.jsonl, a one-line pointer in the session's session.jsonl). Dry run unless apply is true. {undo:true} puts the last move back. Doc: /framework/ai/tasks/doc/projects.md",
+-			inputSchema: { type: "object", properties: {
+-				from: { type: "string", description: "The project folder: a repo path or a site path (/framework/ai/sessions/…/<slug>/)." },
+-				module: { type: "string", description: 'The module that takes it, e.g. "core/Task".' },
+-				apply: { type: "boolean", description: "Do it. Omitted = dry run." },
+-				undo: { type: "boolean", description: "Reverse the last move (then from/module are ignored)." } } },
+-			handler: async a => JSON.stringify(a.undo ? await this.undo() : await this.move(a), null, 2)
+-		};
+-	}
++	static get ROOT(){ return DatedFiles.ROOT; }
++	static set ROOT(v){ DatedFiles.ROOT = v; }                         // a test points this at a scratch repo
++	static get MANIFEST(){ return DatedFiles.MANIFEST; }
++	static plan(a){ return DatedFiles.files.plan(a); }
++	static move(a){ return DatedFiles.files.move(a); }
++	static undo(a){ return DatedFiles.files.undo(a); }
++	/** The Servex MCP door `move_project`, now one of DatedFiles.tools(). */
++	static tool(){ return DatedFiles.tools().find(t => t.name === "move_project"); }
+ }
+ 
+ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)){
+diff --git a/Server/doc/dated-files.md b/Server/doc/dated-files.md
+new file mode 100644
+index 000000000..04aee228b
+--- /dev/null
++++ b/Server/doc/dated-files.md
+@@ -0,0 +1,32 @@
++# DatedFiles: make, move, query and check a collection filed by day
++
++**What it is.** [`DatedFiles`](../DatedFiles.mjs) is the node half of [`Dated`](/framework/core/Item/Dated/) (`core/Item/Dated.js`). A collection is filed by day; each item is a folder, and each has one pointer row in that day's index. Today the only collection is **projects**. Plan: [store-index-query-plan.md](/framework/core/Item/doc/store-index-query-plan.md) (slice 1).
++
++## On disk
++
++```
++public/framework/<module>/projects/YYYY/MM/DD/<slug>/project.jsonl      the item (line 1: {id, title, module, at})
++public/framework/ai/sessions/YYYY/MM/DD/index.jsonl                     the day's index: {"project": {id, path, url, title, state, completion, at, moved_from?, moved?, moved_back?}}
++public/framework/ai/sessions/project-moves.jsonl                        the move manifest: {run, at, from, to, module, slug, day, session} and {undone, from, to}
++<owning session>/session.jsonl                                          a one-line `log` pointer when a project moved out of it
++```
++
++A later row for the same `id` updates the earlier one. The day index is the same file [`AIIndexStream`](../AIIndexStream.mjs) writes for tasks and sessions ([ai-index.md](ai-index.md)).
++
++## Who writes, who reads
++
++| Method | What it does | Called by |
++|---|---|---|
++| `create({module, slug, title})` | folder, line 1, index row | tool `dated_create`, rpc `dated_create` |
++| `move({from, module, apply})` | `git mv` into the module, rows on the start day and today, manifest line, session pointer (dry run unless `apply`) | tool `move_project`, rpc `dated_move`, CLI `node Server/ProjectMove.mjs` |
++| `undo({run})` | puts the last (or named) move back, with mirror rows | same three |
++| `query({from, to, where, sort, limit})` | rows of a day range (default last 30 days), run by [ext/Query](/framework/ext/Query/) | tool `dated_query`, rpc `dated_query` |
++| `check()` | rebuilds from the folders, diffs with the index: `{ok, missing, stale}` | tests; run it by hand |
++
++Reads in the browser go through `Dated.Index.open(url)`, which tails the day file ([the page](/framework/core/Item/Dated/)). The doors: `DatedFiles.tools()` is registered in `Servex/Servex.js`; `DatedFiles.setup(socket)` in `Server/run.js`. [`ProjectMove`](../ProjectMove.mjs) is only a thin caller now.
++
++## Decisions
++
++- `move` takes one object (`{from, module, apply}`) rather than the plan's `move(item, to)`, so the existing `move_project` tool keeps its exact inputs.
++- `watch()` (the safety net for a log written by another path) is not built: it needs Servex to host it, which is slice 2.
++- A restart of Servex (tools) and the dev server (rpc) loads the new doors; `check()` and the test do not need it. Test: `node public/framework/core/Item/Dated.test.mjs`.
+diff --git a/Server/run.js b/Server/run.js
+index 0f0058367..bd57f10de 100644
+--- a/Server/run.js
++++ b/Server/run.js
+@@ -29,6 +29,7 @@ import HttpsLan from "./plugins/HttpsLan.js";   // https beside http for the pho
+ import Tab from "./plugins/SocketServer/Tab.js";
+ import Tail from "./plugins/SocketServer/Tail.js";
+ import Append from "./plugins/SocketServer/Append.js";
++import DatedFiles from "./DatedFiles.mjs";
+ 
+ DevSocket.Socket.use(Runtime);
+ DevSocket.Socket.use(Ask);
+@@ -39,6 +40,7 @@ DevSocket.Socket.use(AISessionSub);   // pushes changed session snapshots - ai/A
+ DevSocket.Socket.use(QueryServer);   // rpc:query over in-memory sources - ext/Query
+ DevSocket.Socket.use(Tail);
+ DevSocket.Socket.use(Append);
++DevSocket.Socket.use(DatedFiles);   // rpc:dated_create / dated_move / dated_query - Server/DatedFiles.mjs
+ Server.use(DevSocket);
+ Server.use(Directory);
+ Server.use(MentionSync);
+diff --git a/Servex/Servex.js b/Servex/Servex.js
+index ff44fb6f5..b81afa742 100644
+--- a/Servex/Servex.js
++++ b/Servex/Servex.js
+@@ -59,7 +59,7 @@ import { warm_guard } from "./ext/openrouter/provider.js";
+ import { LLAMA_EXE, LLAMA_PORT, LOCAL_PROXY_PORT } from "./ext/local/provider.js";
+ import { LocalProxy } from "./ext/local/llama.js";
+ import { local_chat, local_model_slugs } from "./ext/local/chat.js";
+-import ProjectMove from "../Server/ProjectMove.mjs";
++import DatedFiles from "../Server/DatedFiles.mjs";
+ 
+ const HERE = path.dirname(fileURLToPath(import.meta.url));
+ const REPO = path.resolve(HERE, "..");
+@@ -965,7 +965,7 @@ export default class Servex extends Events {
+         for (const tool of directory_tools(this.agents)) this.mcp.tool(tool);   // ask_directory: agents/directory.js
+         for (const tool of this.cards.tools()) this.mcp.tool(tool);
+         for (const tool of this.pool?.tools() ?? []) this.mcp.tool(tool);   // take_worktree, return_worktree
+-        this.mcp.tool(ProjectMove.tool());   // move_project: Server/ProjectMove.mjs
++        for (const t of DatedFiles.tools()) this.mcp.tool(t);   // move_project, dated_create, dated_query: Server/DatedFiles.mjs
+         for (const tool of this.follow.tools()) this.mcp.tool(tool);   // follow, unfollow, list_follows
+         for (const tool of this.inbox.tools()) this.mcp.tool(tool);   // drop, clear, inbox
+ 
+diff --git a/public/framework/core/Item/Dated.js b/public/framework/core/Item/Dated.js
+new file mode 100644
+index 000000000..dfb528fb9
+--- /dev/null
++++ b/public/framework/core/Item/Dated.js
+@@ -0,0 +1,61 @@
++// Dated: one collection filed by day, <root>/YYYY/MM/DD/<slug>/, with one pointer row per item in the day's index file.
++// Portable (browser + node, no node imports). Node writes it through Server/DatedFiles.mjs. Plan: core/Item/doc/store-index-query-plan.md
++import Item from "./Item.js";
++import Day from "../Session/Day.js";
++
++export default class Dated {
++	/** The registry: one entry per collection. `root` has a `{module}` slot; `index` is the folder holding the YYYY/MM/DD/index.jsonl day streams. */
++	static collections = {
++		projects: { kind: "project", file: "project.jsonl", root: "public/framework/{module}/projects", index: "public/framework/ai/sessions" },
++	};
++
++	constructor(name = "projects", spec = Dated.collections[name]){
++		if (!spec) throw new Error(`Dated: unknown collection "${name}"`);
++		this.name = name;
++		Object.assign(this, spec);
++	}
++
++	/** The folder of one item: <root>/YYYY/MM/DD/<slug>. `day` is any time Day.of accepts. */
++	path(day, slug, module){
++		const root = this.root.replace("{module}", String(module ?? "").replace(/^\/|\/$/g, ""));
++		return `${root}/${Day.path(day)}/${slug}`;
++	}
++
++	/** The day's stream: <index>/YYYY/MM/DD/index.jsonl. */
++	index_path(day){ return `${this.index}/${Day.path(day)}/index.jsonl`; }
++
++	/** The days of a range (inclusive "YYYY-MM-DD" strings). */
++	static days(from, to = from){
++		const out = [], d = new Date(from + "T12:00:00"), end = new Date(to + "T12:00:00");
++		for (; d <= end; d.setDate(d.getDate() + 1)) out.push(Day.of(d));
++		return out;
++	}
++
++	/** Rows for a range of days. `load(day)` returns that day's parsed lines (a node reader, or a fetch in the browser). A later line for an id updates its row. */
++	async rows({ from, to, load } = {}){
++		const out = new Map();
++		for (const day of Dated.days(from, to)) {
++			for (const row of Dated.Index.replay(await load(day)).rows) if (row.kind === this.kind) out.set(row.id, { ...out.get(row.id), ...row });
++		}
++		return [...out.values()];
++	}
++}
++
++/** One day's index file replayed: a pointer row per item, never a copy. Open its url to tail it live: `await Dated.Index.open(url)`. */
++Dated.Index = class DatedIndex extends Item {
++	rows = [];
++	/** Item.open would read line 1 as the host's own data; in an index every line is a row, so attach first and replay all of them. */
++	static async open(url){
++		const store = this.Store.for(url);
++		await store.open();
++		return store.attach(new this()).host;
++	}
++	/** Each line is {<kind>: {id, path, title, state, at, …}}; the one object-valued key names the kind. */
++	replay_line(line){
++		const kind = Object.keys(line).find(k => line[k] && typeof line[k] === "object" && !Array.isArray(line[k]));
++		if (!kind || !line[kind].id) return;
++		const row = { kind, ...line[kind] }, i = this.rows.findIndex(r => r.kind === kind && r.id === row.id);
++		if (i < 0) this.rows.push(row); else this.rows[i] = { ...this.rows[i], ...row };
++		this.emit?.("rows", this.rows);
++	}
++};
+diff --git a/public/framework/core/Item/Dated.test.mjs b/public/framework/core/Item/Dated.test.mjs
+new file mode 100644
+index 000000000..1f3570b61
+--- /dev/null
++++ b/public/framework/core/Item/Dated.test.mjs
+@@ -0,0 +1,65 @@
++// Node test for Dated + DatedFiles on a scratch repo: create -> index row -> query finds it -> move -> rows on both days + manifest -> check ok.
++// Run: node public/framework/core/Item/Dated.test.mjs
++import assert from "node:assert/strict";
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import Dated from "./Dated.js";
++import DatedFiles from "../../../../Server/DatedFiles.mjs";
++
++let n = 0;
++const t = (v, msg) => { assert.ok(v, msg); n++; };
++
++// the portable half: the folder rule and the row replay
++const d = new Dated("projects");
++t(d.path("2026-10-20", "x", "core/Task") === "public/framework/core/Task/projects/2026/10/20/x", "folder rule");
++t(d.index_path("2026-10-20") === "public/framework/ai/sessions/2026/10/20/index.jsonl", "day index path");
++t(Dated.days("2026-10-30", "2026-11-02").join() === "2026-10-30,2026-10-31,2026-11-01,2026-11-02", "day range crosses a month");
++const idx = Dated.Index.replay([{ project: { id: "a", title: "A", state: "idle" } }, { project: { id: "a", state: "working" } }, { task: { id: "t1" } }]);
++t(idx.rows.length === 2 && idx.rows[0].state === "working" && idx.rows[0].title === "A", "later line updates its row");
++
++// the node half, on a scratch repo
++const root = fs.mkdtempSync(path.join(os.tmpdir(), "dated-"));
++DatedFiles.ROOT = root;
++fs.mkdirSync(path.join(root, "public/framework/core/Task"), { recursive: true });
++const sess = "public/framework/ai/sessions/2026/10/19/session-abc/proj-one";
++fs.mkdirSync(path.join(root, sess), { recursive: true });
++fs.writeFileSync(path.join(root, sess, "../session.jsonl"), JSON.stringify({ assign: { session_id: "abc" } }) + "\n");
++fs.writeFileSync(path.join(root, sess, "project.jsonl"), JSON.stringify({ id: "proj-one", title: "Project one", at: "2026-10-19T10:00:00" }) + "\n");
++
++const f = new DatedFiles("projects");
++const made = f.create({ module: "core/Task", slug: "fresh", title: "Fresh", day: "2026-10-20" });
++t(made.dir === "public/framework/core/Task/projects/2026/10/20/fresh" && fs.existsSync(path.join(root, made.dir, "project.jsonl")), "create makes the folder and line 1");
++t(DatedFiles.lines(path.join(root, "public/framework/ai/sessions/2026/10/20/index.jsonl")).some(l => l.project?.id === "fresh"), "create appends the index row");
++assert.throws(() => f.create({ module: "core/Task", slug: "fresh", day: "2026-10-20" }), /already exists/); n++;
++
++let q = await f.query({ from: "2026-10-19", to: "2026-10-20" });
++t(q.total === 1 && q.rows[0].id === "fresh", "query finds the created project");
++q = await f.query({ from: "2026-10-19", to: "2026-10-20", where: [{ field: "title", op: "contains", value: "zzz" }] });
++t(q.total === 0, "query filters");
++
++const dry = await f.move({ from: sess, module: "core/Task" });
++t(dry.dry_run && dry.to === "public/framework/core/Task/projects/2026/10/19/proj-one" && fs.existsSync(path.join(root, sess)), "dry run moves nothing");
++const done = await f.move({ from: sess, module: "core/Task", apply: true });
++t(!fs.existsSync(path.join(root, sess)) && fs.existsSync(path.join(root, done.to, "project.jsonl")), "apply moves the folder");
++const day19 = DatedFiles.lines(path.join(root, "public/framework/ai/sessions/2026/10/19/index.jsonl")), today = DatedFiles.lines(path.join(root, `public/framework/ai/sessions/${new Date().getFullYear()}/${String(new Date().getMonth() + 1).padStart(2, "0")}/${String(new Date().getDate()).padStart(2, "0")}/index.jsonl`));
++t(day19.some(l => l.project?.id === "proj-one" && l.project.path === done.to), "start day's row points at the new home");
++t(today.some(l => l.project?.id === "proj-one" && l.project.moved), "today's row shows the move");
++t(DatedFiles.lines(path.join(root, DatedFiles.MANIFEST)).some(l => l.run === done.run && l.to === done.to), "manifest line");
++t(DatedFiles.lines(path.join(root, "public/framework/ai/sessions/2026/10/19/session-abc/session.jsonl")).some(l => l.log?.msg.includes("proj-one")), "pointer in the session");
++
++const ok = await f.check();
++t(ok.ok && ok.folders === 2, "check ok after create + move: " + JSON.stringify(ok));
++fs.mkdirSync(path.join(root, "public/framework/core/Task/projects/2026/10/20/stray"), { recursive: true });
++fs.writeFileSync(path.join(root, "public/framework/core/Task/projects/2026/10/20/stray/project.jsonl"), "{\"id\":\"stray\"}\n");
++const bad = await f.check();
++t(!bad.ok && bad.missing.length === 1, "check fails loudly on a folder with no row");
++fs.rmSync(path.join(root, "public/framework/core/Task/projects/2026/10/20/stray"), { recursive: true });
++fs.rmSync(path.join(root, made.dir), { recursive: true });
++t((await f.check()).stale.length === 1, "check names a row whose folder is gone");
++
++const back = await f.undo();
++t(back.undone === done.run && fs.existsSync(path.join(root, sess)), "undo puts it back");
++
++fs.rmSync(root, { recursive: true, force: true });
++console.log(`Dated.test.mjs: ${n} checks passed`);
+diff --git a/public/framework/core/Item/Dated/files.jsonl b/public/framework/core/Item/Dated/files.jsonl
+new file mode 100644
+index 000000000..ffae31dad
+--- /dev/null
++++ b/public/framework/core/Item/Dated/files.jsonl
+@@ -0,0 +1 @@
++{"file":"page.js"}
+diff --git a/public/framework/core/Item/Dated/page.js b/public/framework/core/Item/Dated/page.js
+new file mode 100644
+index 000000000..3612f3e57
+--- /dev/null
++++ b/public/framework/core/Item/Dated/page.js
+@@ -0,0 +1,44 @@
++import { Doc, md, demo, div, span, button, pre } from "/app.js";
++import Dated from "../Dated.js";
++import Day from "../../Session/Day.js";
++import Socket from "/framework/dev/Socket/Socket.js";
++
++const today = () => Day.of();
++const collection = new Dated("projects");
++
++export default new Doc({
++	meta: import.meta,
++	title: "Dated",
++	description: "A collection filed by day: one folder per item, one pointer row per item in the day's index. Projects are the first.",
++	icon: "event_note",
++
++	subject: Dated,
++	methods: "path index_path rows",
++	files: "../Dated.js ../Dated.test.mjs page.js",
++
++	content(){
++			md(`A **project** lives at \`<module>/projects/YYYY/MM/DD/<slug>/\`. Its row sits in today's index file, \`${collection.index_path(today())}\`. This list tails that file, so a project made by anyone shows up here at once. The button makes a tiny real project folder in \`core/Item\`.`);
++			demo(() => {
++				const list = div.c("flex v gap"), note = span.c("muted");
++				const draw = rows => {
++					list.empty();
++					const mine = rows.filter(r => r.kind === collection.kind);
++					note.text(mine.length ? `${mine.length} project row${mine.length === 1 ? "" : "s"} today` : "no project rows today yet");
++					for (const r of mine.slice().reverse()) list.append(div.c("flex gap", () => { span(r.title ?? r.id); span.c("muted", r.path); }));
++				};
++				const open = async () => {
++					try { const index = await Dated.Index.open(`/${collection.index_path(today())}`.replace("/public", "")); index.on("rows", draw); draw(index.rows); }
++					catch (e){ note.text("no index file for today yet: make a project"); }
++				};
++				button("Make a demo project").on("click", async () => {
++					const socket = Socket.singleton();
++					if (socket.disabled) return note.text("no dev server here: this button needs one");
++					const slug = "demo-" + Date.now().toString(36);
++					const res = await socket.request({ method: "dated_create", args: [{ module: "core/Item", slug, title: "Demo project " + slug.slice(5) }] });
++					note.text(res?.response?.ok ? "made " + res.response.dir : "refused: " + (res?.response?.error ?? "no answer (restart the dev server to load dated_create)"));
++					if (res?.response?.ok) open();
++				});
++				open();
++			});
++	},
++});
+diff --git a/public/framework/core/Item/doc/files.jsonl b/public/framework/core/Item/doc/files.jsonl
+index 21f12442b..ef62d8a11 100644
+--- a/public/framework/core/Item/doc/files.jsonl
++++ b/public/framework/core/Item/doc/files.jsonl
+@@ -22,3 +22,4 @@
+ {"file":"architecture.md"}
+ {"file":"refined-asks.md"}
+ {"file":"next.md"}
++{"file":"store-index-query-plan.md"}
+diff --git a/public/framework/core/Item/doc/store-index-query-plan.md b/public/framework/core/Item/doc/store-index-query-plan.md
+index 1409c7269..a5bfb6ea6 100644
+--- a/public/framework/core/Item/doc/store-index-query-plan.md
++++ b/public/framework/core/Item/doc/store-index-query-plan.md
+@@ -172,7 +172,7 @@ Each is one Sonnet task in a worktree, merged after review. The first proves the
+ 
+ | # | Slice | Proof | Budget |
+ |---|---|---|---|
+-| 1 | **`Dated` + `DatedFiles` for projects only:** `create`, `move` (ProjectMove's body moves in), `query`, `check`; the tool and the socket rpc; doc home (section 5) | `Dated.test.mjs` (create → row → query finds it → move → both days → check ok); a page `/framework/core/Item/Dated/` that shows the projects query and updates live when a project is created | $6 |
++| 1 ✅ | **`Dated` + `DatedFiles` for projects only:** `create`, `move` (ProjectMove's body moves in), `query`, `check`; the tool and the socket rpc; doc home (section 5) | `Dated.test.mjs` (create → row → query finds it → move → both days → check ok); a page `/framework/core/Item/Dated/` that shows the projects query and updates live when a project is created | $6 |
+ | 2 | **Sessions on `Dated`:** `TaskDirs.dir/make`, `Session.scan/locate/day`, `open_task`, `voice_session`, the session hook call `create`; `SessionDayMove` becomes `move` | `TaskDirs.census()` and `Session.scan()` give identical output before and after; `check()` ok on the whole store | $6 |
+ | 3 | **Queries through `Dated`:** sources `sessions` and `tasks` read `DatedFiles.query`; `session-query.mjs` calls it; an "in flight" query page | the sessions grid in remote mode unchanged; `ext/Query/check.mjs` passes; in-flight count = `list_agents` working count | $5 |
+ | 4 | **Store backends** = storage.md slice 1, unchanged brief ([storage-slice-1.md](../../Page/doc/storage-slice-1.md)); independent, may run beside 1–3 | `Store.test.mjs` (its brief lists a–e) | $6 |
+diff --git a/public/framework/core/Item/files.jsonl b/public/framework/core/Item/files.jsonl
+index 32e4f6954..c8877c86d 100644
+--- a/public/framework/core/Item/files.jsonl
++++ b/public/framework/core/Item/files.jsonl
+@@ -10,3 +10,6 @@
+ {"file":"weight.jsonl"}
+ {"file":"inbox.jsonl"}
+ {"file":"tasks/"}
++{"file":"Dated.js"}
++{"file":"Dated.test.mjs"}
++{"file":"Dated/page.js"}
+diff --git a/public/framework/core/Item/page.js b/public/framework/core/Item/page.js
+index 55c98afa4..7727b8ae3 100644
+--- a/public/framework/core/Item/page.js
++++ b/public/framework/core/Item/page.js
+@@ -150,7 +150,7 @@ export default new Doc({
+ 	//   2026-10-02, task-mastermind review.
+ 	initialize(){
+ 		Doc.prototype.initialize.call(this);
+-		this.declare("live");
++		this.declare("live"); this.declare("Dated");
+ 	},
+ 
+ 	content(){
+diff --git a/public/framework/core/Item/readme.md b/public/framework/core/Item/readme.md
+index 2ab1bf541..6256790db 100644
+--- a/public/framework/core/Item/readme.md
++++ b/public/framework/core/Item/readme.md
+@@ -10,6 +10,7 @@
+ - [Page](/framework/core/Page/) (`Page.class.js`): an Item with a url; its parts [PageText, PageHeading, PageCard, PageLink, PageContentItem](/framework/core/Page/parts/) are Items too.
+ - [Task](/framework/core/Task/) (`Task.js`): one task's state machine, replayed from `task.jsonl`.
+ - [Session](/framework/core/Session/) (`Session.js`): a session record.
++- [Dated](/framework/core/Item/Dated/) (`Dated.js`, with `Dated.Index`): a collection filed by day (`<root>/YYYY/MM/DD/<slug>/`) and its pointer rows; the first is projects. Not an Item itself: its index is. Node half: [Server/DatedFiles.mjs](/Server/doc/dated-files.md).
+ - [Panel](/framework/ext/Panel/) (`Panel.js`) and `Block` (`ext/editor/blocks.js`): layout and editor pieces.
+ - `Item.Store` (`Store.js`) is not an Item; `Page.Reader` extends it.
+ 
+@@ -42,6 +43,8 @@ a PROPERTY instead of an inheritance: something that needs children gives ITSELF
+ 
+ ## Use
+ 
++Saving to a `.jsonl`: [core/Page/doc/jsonl.md](../Page/doc/jsonl.md) ("The store").
++
+ **A log file (`.jsonl`) — the usual way.** Every change is one appended line; opening the file replays them.
+ 
+ ```js
+@@ -94,7 +97,7 @@ A testing system is a need, not now (2026-10-20). Tests today are plain node fil
+ ## More
+ 
+ - [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
+-- [`doc/store-index-query-plan.md`](./doc/store-index-query-plan.md) — the plan (not built): one store, one dated index (`Dated`), one query for sessions, tasks and projects
++- [`doc/store-index-query-plan.md`](./doc/store-index-query-plan.md) — the plan (slice 1, projects, built): one store, one dated index (`Dated`), one query for sessions, tasks and projects
+ - [`doc/item-notes.md`](./doc/item-notes.md) — comments pruned from `Item.js`, verbatim.
+ - [Overview](/framework/core/Item/) — the page asserts every claim on load; red is a broken framework.
+ - [Live list](/framework/core/Item/live/) — the same List, on a real page, saved to a real file: drag, add, sort, reload.
+diff --git a/public/framework/core/Page/doc/jsonl.md b/public/framework/core/Page/doc/jsonl.md
+index f0db9e6b7..89ed96096 100644
+--- a/public/framework/core/Page/doc/jsonl.md
++++ b/public/framework/core/Page/doc/jsonl.md
+@@ -1,5 +1,15 @@
+ # page.jsonl — a page with no page.js
+ 
++## The store
++
++A `.jsonl` file is a log: one JSON object per line, only ever appended to. Who does what:
++
++- **Reads:** `Item.Store` ([Store.js](../../Item/Store.js)) replays a file into one live object and tails it.
++- **Writes:** appends go through the dev socket (`FsFile.send`); a validated single writer, `FileJournal`, is planned ([storage.md](storage.md)).
++- **Filed by day:** a collection of folders (projects today, sessions and tasks next) is made, moved, indexed and queried by [`Dated`](/framework/core/Item/Dated/) and [`DatedFiles`](/Server/doc/dated-files.md). Plan: [store-index-query-plan.md](../../Item/doc/store-index-query-plan.md).
++
++---
++
+ A folder can hold a `page.jsonl` instead of a `page.js`. It is a log: one JSON object per
+ line, read top to bottom. The live example is [/framework/core/Page/jsonl/](/framework/core/Page/jsonl/),
+ and the code lives in `Page.class.js` (`Page extends Item` directly, PageLog folded in; `Log.js` is a compat re-export).
+diff --git a/public/framework/ext/JSONL/readme.md b/public/framework/ext/JSONL/readme.md
+index f7ae10245..b62d3767c 100644
+--- a/public/framework/ext/JSONL/readme.md
++++ b/public/framework/ext/JSONL/readme.md
+@@ -1,6 +1,6 @@
+ # JSONL — append-only `.jsonl` logs the AI blindly appends to, replayed back into object state; the task and day logs under `ai/`, for the dashboards that read them
+ 
+-> **⚠ Converge (the owner, 2026-10-02):** file and saving code is scattered across [ext/Saver](/framework/ext/Saver/) (whole-JSON rewrites), [ext/filesystem](/framework/ext/filesystem/) (`FsFile`, `FsDir` → `Dir`), [ext/files](/framework/ext/files/) (the tree UI), [ext/JSONL](/framework/ext/JSONL/), and about 15 direct `Socket` `"append"`/`"write"` calls. Before adding to any of them, consider consolidating: ONE file object (`FsFile`: `read`, `write`, `append`, and a `store` for .jsonl) as the only caller of the dev socket. Logs are appended one line at a time, never rewritten. A `LiveList`'s change events are both the view update and the line that gets appended. Design: [page-item-design.md](/framework/ai/sessions/2026/09/30/proposal-flow/page-item-design.md).
++> **Converge:** how a `.jsonl` is written, read and indexed is one system: [core/Page/doc/jsonl.md](/framework/core/Page/doc/jsonl.md) ("The store"). Before adding file code here, read it.
+ 
+ ## Use
+ One JSON object per line, one verb per key, the value carrying its own `at`. Verbs: `assign` (merge onto the object — the constructor's `Object.assign`, replayed), `log` and `action` (append to `logs`/`actions`); `TaskJSONL` adds `agent` (merged by `task` when the same agent lands), `ask` (one thing the owner asked for, merged by `id`), `decision` (one choice and the alternatives it was made over, merged by `id`), `verdict` (the owner approving or improving one), `rank` (the owner's order for one of those lists — the last line wins outright), `chat`, `shot`, `note` (a message from the orchestrator to a task's own board, merged by `id`), `experiment` (one thing tried — try, measure, result — joins `logs` as one line), `review` (a review pass's summary or one answer, same deal), and `Server/review.mjs`'s own `shots` (a page-shot batch) and `bands` (one audit round's findings) — same deal again.

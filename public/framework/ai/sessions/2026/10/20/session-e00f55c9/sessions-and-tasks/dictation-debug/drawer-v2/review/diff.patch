@@ -1,0 +1,323 @@
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-v2/proof/proof.mjs b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-v2/proof/proof.mjs
+new file mode 100644
+index 000000000..10d30528f
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-v2/proof/proof.mjs
+@@ -0,0 +1,20 @@
++// Desktop drawer AI tab with Chat v2 on (1920, 3440) and the ✦ sheet with v2 on (400): node proof.mjs [base]
++import { browser } from "file:///C:/Code/lew42/monorepo/Server/Browser.mjs";
++import { fileURLToPath } from "node:url";
++const OUT = fileURLToPath(new URL(".", import.meta.url)), BASE = process.argv[2] || "http://dictation-drawer-v2.localhost";
++const b = await browser(), errs = [];
++for (const [w, h] of [[1920, 1000], [3440, 1200], [400, 800]]){
++  const ctx = await b.newContext({ viewport: { width: w, height: h } }), page = await ctx.newPage();
++  page.on("pageerror", e => errs.push(w + " " + e.message));
++  await page.addInitScript(() => { sessionStorage.setItem("lew42-voice-session", JSON.stringify({ session: "v-probe", file: "/framework/ai/sessions/2026/10/20/session-e00f55c9/session.jsonl" })); localStorage.setItem("lew42.sheet.chat_view", "v2"); });
++  await page.goto(BASE + "/framework/ux/Dictate/", { waitUntil: "networkidle" });
++  if (w >= 1000){
++    const open = page.locator(".drawer-toggle, .drawer-open, [data-drawer-open]").first();
++    console.log(w, "toggle candidates", await page.locator("[class*=drawer]").evaluateAll(els => els.slice(0, 12).map(e => e.className)));
++  } else await page.click(".drawer-rail-ai");
++  await page.waitForTimeout(2500);
++  console.log(w, "chip", await page.locator(".drawer-rail-sheet-v2-chip").count(), "prompts", await page.locator(".chat-v2-prompt").count());
++  await page.screenshot({ path: OUT + `v2-${w}.png` });
++  await ctx.close();
++}
++console.log("errors", JSON.stringify(errs)); await b.close();
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-v2/session.jsonl b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-v2/session.jsonl
+new file mode 100644
+index 000000000..3b8efc666
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-v2/session.jsonl
+@@ -0,0 +1 @@
++{"log":{"at":"2026-10-25T14:32:17-05:00","msg":"drawer-v2 done: ChatView.js (new, one class for Sheet + tabs/ai.js chip, same localStorage key). Tests: ChatV2.test 43/43, sheet probe chip+v2 on/off ok. Shots drawer-v2/proof: v2-1920 and v2-3440 show chip beside + New session and Chat v2 prompts in the AI tab; v2-400 sheet still shows v2 chip with prompts. Commit 94b3ea495"}}
+diff --git a/public/framework/ext/Chat/v2/readme.md b/public/framework/ext/Chat/v2/readme.md
+index cf876169d..512e5fc1c 100644
+--- a/public/framework/ext/Chat/v2/readme.md
++++ b/public/framework/ext/Chat/v2/readme.md
+@@ -32,7 +32,7 @@ Step 3 landed, round 2 (chat-v2-writers): a Prompt starts the moment the owner s
+ 
+ **Checked once:** the smart seat's `item` tool writes land in a session folder's `session.jsonl`, not a stray `page.jsonl` beside it. `Servex/agents/page_tools.js`'s own file-resolution rule (`resolve_file`, item-tool mode) run against a real voice session folder with no `page.jsonl` (`public/framework/ai/sessions/2026/10/01/v-6jvcrk2/`) resolved to that folder's `session.jsonl`, matching the rule verbatim: a folder with no `page.jsonl` is checked for `task.jsonl` then `session.jsonl` before falling back to `page.jsonl`.
+ 
+-**Where it shows:** the standalone page (`?src=<session.jsonl url>`), the session page's Chat tab under its **Chat v2** chip (`?tab=chat&chat_view=v2`; `ai/AISession/AISessionDetail.js`), and the ✦ sheet under the **v2** chip in its head (`ext/drawer/Sheet.js`, `sync_v2()`): it draws the sheet's own voice session file in place of the bubbles, follows a New session or a resume, and keeps the choice on this device (`localStorage` `lew42.sheet.chat_view`); the composer and the mic footer stay. Sessions migrated by `Server/PromptsToSession.mjs` already hold Prompts, for example [session e00f55c9](/framework/ai/sessions/2026/10/20/session-e00f55c9/?tab=chat&chat_view=v2).
++**Where it shows:** the standalone page (`?src=<session.jsonl url>`), the session page's Chat tab under its **Chat v2** chip (`?tab=chat&chat_view=v2`; `ai/AISession/AISessionDetail.js`), the ✦ sheet under the **v2** chip in its head, and the desktop drawer's AI tab under the same chip beside "+ New session" (both use `ext/drawer/ChatView.js`: one chip, one `lew42.sheet.chat_view` choice for both): it draws the sheet's own voice session file in place of the bubbles, follows a New session or a resume, and keeps the choice on this device (`localStorage` `lew42.sheet.chat_view`); the composer and the mic footer stay. Sessions migrated by `Server/PromptsToSession.mjs` already hold Prompts, for example [session e00f55c9](/framework/ai/sessions/2026/10/20/session-e00f55c9/?tab=chat&chat_view=v2).
+ 
+ ## Decisions
+ 
+diff --git a/public/framework/ext/drawer/ChatView.css b/public/framework/ext/drawer/ChatView.css
+new file mode 100644
+index 000000000..23a7e695c
+--- /dev/null
++++ b/public/framework/ext/drawer/ChatView.css
+@@ -0,0 +1,7 @@
++/* The v2 chip and Chat v2 box (ChatView.js), shared by the ✦ sheet and the desktop drawer's AI tab. */
++@layer base, theme, site, util;
++@layer theme {
++	.drawer-rail-sheet-v2-chip[aria-pressed="true"] { background: var(--fill-a16); border-color: var(--ink); font-weight: 600; }
++	.drawer-rail-sheet-v2-on .ux-dictate-widget-thread { display: none; }
++	.drawer-rail-sheet-v2 { flex: 1 1 auto; min-block-size: 0; overflow-y: auto; padding-inline: 0.6em; }   /* the same inset as the thread it replaces */
++}
+diff --git a/public/framework/ext/drawer/ChatView.js b/public/framework/ext/drawer/ChatView.js
+new file mode 100644
+index 000000000..bd24c2462
+--- /dev/null
++++ b/public/framework/ext/drawer/ChatView.js
+@@ -0,0 +1,55 @@
++import { View, div, button } from "/framework/core/View/View.js";
++import ChatV2 from "/framework/ext/Chat/v2/ChatV2.js";
++
++View.stylesheet(import.meta, "ChatView.css");
++
++/**
++ * The "v2" chip and the Chat v2 box it switches on, shared by the phone ✦ sheet (Sheet.js) and the desktop
++ * drawer's AI tab (tabs/ai.js). The chip swaps the chat's bubbles for ext/Chat/v2's drawing of the same
++ * session file; the composer and mic footer stay. One choice, kept on this device in localStorage, rules both.
++ *   slot  -> () => the element the chat mounted in (gets .drawer-rail-sheet-v2-on while v2 shows)
++ *   mount -> () => the chat.js mount (its file() is the session record)
++ */
++export default class ChatView {
++	static KEY = "lew42.sheet.chat_view";
++
++	constructor({ slot, mount }){
++		this.slot = slot; this.mount = mount;
++		this.on = (() => { try { return localStorage.getItem(this.constructor.KEY) === "v2"; } catch { return false; } })();
++	}
++
++	chip(classes = "drawer-rail-sheet-link"){
++		return this.$chip = button.c(`${classes} drawer-rail-sheet-v2-chip`, "v2").attr("type", "button")
++			.attr("aria-pressed", String(this.on)).attr("title", "Chat v2: this conversation as Prompts, the raw words one click down")
++			.click(() => this.set(!this.on));
++	}
++
++	set(on){
++		this.on = on;
++		this.$chip?.attr("aria-pressed", String(on));
++		try { on ? localStorage.setItem(this.constructor.KEY, "v2") : localStorage.removeItem(this.constructor.KEY); } catch {}   // storage off: the choice lasts until reload
++		this.sync();
++	}
++
++	// Draws (or drops) the Chat v2 box inside the chat's card, above the composer; called on a toggle and whenever the session changes.
++	sync(){
++		const slot = this.slot(), mount = this.mount();
++		slot?.classList.toggle("drawer-rail-sheet-v2-on", !!(this.on && mount));
++		const file = this.on ? mount?.file?.() ?? null : null;
++		if (this.file === file && (file || !this.on)) return;
++		this.chat_v2?.unsubscribe(); this.chat_v2 = null; this.file = file;
++		if (!this.on || !mount){ this.$box?.el.remove(); this.$box = null; return; }
++		if (!this.$box?.el.isConnected){
++			this.$box = div.c("drawer-rail-sheet-v2 flow");
++			(slot.querySelector(".ux-dictate-widget-card") ?? slot).prepend(this.$box.el);
++		}
++		if (file) this.chat_v2 = new ChatV2({ url: file, $box: this.$box }).live();
++		else this.$box.empty(() => div.c("chat-v2-empty", "Say something: Chat v2 draws this conversation once it has started."));
++	}
++
++	// The chat gave its box back: stop the stream and forget the box (the slot is emptied by the caller).
++	release(){
++		this.chat_v2?.unsubscribe();
++		this.chat_v2 = this.$box = this.file = null;
++	}
++}
+diff --git a/public/framework/ext/drawer/Sheet.js b/public/framework/ext/drawer/Sheet.js
+index be0c2bdc1..0e7a149cb 100644
+--- a/public/framework/ext/drawer/Sheet.js
++++ b/public/framework/ext/drawer/Sheet.js
+@@ -10,7 +10,7 @@ import AIPage from "./AIPage.js";
+ import AIFeed from "./AIFeed.js";
+ import DictationBar from "/framework/ux/Dictate/DictationBar.js";
+ import Socket from "/framework/dev/Socket/Socket.js";
+-import ChatV2 from "/framework/ext/Chat/v2/ChatV2.js";
++import ChatView from "./ChatView.js";
+ 
+ View.stylesheet(import.meta, "rail.css");
+ 
+@@ -273,7 +273,8 @@ export class SheetPanel extends View {
+ 				this.$title = button.c("drawer-rail-sheet-title", this.title + " ▾").attr("type", "button").attr("aria-haspopup", "menu").attr("aria-expanded", "false")
+ 					.click(e => { e.stopPropagation(); this.toggle_menu(); });
+ 				this.new_session_button();   // one tap, as in the desktop AI tab (voice-e2e-review 2026-10-13)
+-				this.v2_chip();
++				this.v2 = new ChatView({ slot: () => this.$slot?.el, mount: () => this.mount });
++				this.v2.chip();
+ 				this.$path = span.c("drawer-rail-sheet-path muted");
+ 			});
+ 			this.$menu = div.c("drawer-rail-sheet-menu").attr("role", "menu");
+@@ -405,39 +406,6 @@ export class SheetPanel extends View {
+ 		this.size_to("60dvh");   // a real default height, about four bubbles (dictate-next-4)
+ 	}
+ 
+-	// Chat v2 beside the old chat, to compare them (ext/Chat/v2/readme.md, "Where it shows"): the chip swaps the bubbles for Chat v2's
+-	// drawing of the same session file; the composer and the mic footer stay. The choice is kept on this device.
+-	static CHAT_VIEW_KEY = "lew42.sheet.chat_view";
+-	v2_chip(){
+-		this.v2_on = (() => { try { return localStorage.getItem(this.constructor.CHAT_VIEW_KEY) === "v2"; } catch { return false; } })();
+-		this.$v2_chip = button.c("drawer-rail-sheet-link drawer-rail-sheet-v2-chip", "v2").attr("type", "button")
+-			.attr("aria-pressed", String(this.v2_on)).attr("title", "Chat v2: this conversation as Prompts, the raw words one click down")
+-			.click(() => this.chat_view(!this.v2_on));
+-	}
+-
+-	chat_view(on){
+-		this.v2_on = on;
+-		this.$v2_chip?.attr("aria-pressed", String(on));
+-		try { on ? localStorage.setItem(this.constructor.CHAT_VIEW_KEY, "v2") : localStorage.removeItem(this.constructor.CHAT_VIEW_KEY); } catch {}   // storage off: the choice lasts until reload
+-		this.sync_v2();
+-	}
+-
+-	// Draws (or drops) the Chat v2 box inside the chat's card, above the composer; called on a toggle and whenever the session changes.
+-	sync_v2(){
+-		this.$slot?.el.classList.toggle("drawer-rail-sheet-v2-on", !!(this.v2_on && this.mount));
+-		const file = this.v2_on ? this.mount?.file?.() ?? null : null;
+-		if (this.v2_file === file && (file || !this.v2_on)) return;
+-		this.chat_v2?.unsubscribe(); this.chat_v2 = null; this.v2_file = file;
+-		if (!this.v2_on || !this.mount){ this.$v2?.el.remove(); this.$v2 = null; return; }
+-		if (!this.$v2?.el.isConnected){
+-			this.$v2 = div.c("drawer-rail-sheet-v2 flow");
+-			const card = this.$slot.el.querySelector(".ux-dictate-widget-card") ?? this.$slot.el;
+-			card.prepend(this.$v2.el);
+-		}
+-		if (file) this.chat_v2 = new ChatV2({ url: file, $box: this.$v2 }).live();
+-		else this.$v2.empty(() => div.c("chat-v2-empty", "Say something: Chat v2 draws this conversation once it has started."));
+-	}
+-
+ 	active_card(){
+ 		const active = this.rail?.app?.router?.active;
+ 		return active?.shell?.ai2 && active.id && typeof active.subs === "function" ? active : null;
+@@ -457,8 +425,8 @@ export class SheetPanel extends View {
+ 		const heard = this.panel.on_text;
+ 		this.panel.on_text = text => { heard?.(text); this.said(text); };   // the strip's last line said
+ 		this.feed = AIFeed.on(this.$slot.el, drawer.page());   // this page's events among the bubbles (step 7)
+-		this.v2_off_change = chat.on_change(() => this.sync_v2());   // a new or resumed session: Chat v2 follows its file
+-		this.sync_v2();
++		this.v2_off_change = chat.on_change(() => this.v2.sync());   // a new or resumed session: Chat v2 follows its file
++		this.v2.sync();
+ 		return this.mount;
+ 	}
+ 
+@@ -516,9 +484,9 @@ export class SheetPanel extends View {
+ 		this.hide();
+ 		this.mount?.remove();
+ 		this.feed?.stop();
+-		this.v2_off_change?.(); this.chat_v2?.unsubscribe();
++		this.v2_off_change?.(); this.v2?.release();
+ 		this.$slot?.empty();
+-		this.mount = this.panel = this.feed = this.v2_off_change = this.chat_v2 = this.$v2 = this.v2_file = null;
++		this.mount = this.panel = this.feed = this.v2_off_change = null;
+ 		return this;
+ 	}
+ 
+diff --git a/public/framework/ext/drawer/doc/sheet.md b/public/framework/ext/drawer/doc/sheet.md
+index 2228011e7..77598c7ae 100644
+--- a/public/framework/ext/drawer/doc/sheet.md
++++ b/public/framework/ext/drawer/doc/sheet.md
+@@ -8,7 +8,7 @@ Screenshots of every step: [Mobile bottom rail](/framework/ext/drawer/rail/).
+ 
+ ## One layout, opened in place, and the reconnect (2026-10-20)
+ 
+-**What the owner sees now.** ✦ opens the sheet over the page, and the page stays visible above it. The sheet is three rows at every height: the head (AI ▾, New session, v2, ✕), the chat well, and the mic footer. The **v2** chip swaps the bubbles for [Chat v2](/framework/ext/Chat/v2/readme.md) drawing the same session; the choice stays on this device. Dragging the top edge only changes the height: the well grows or shrinks, nothing swaps. At 90% it snaps open to the full screen. Dragged down to the bottom it is the compact strip: the same head and footer, with the well at 0 px. The 40 px series, before and after: [Voice and chat surfaces](/framework/ux/Dictate/surfaces/#the-phone-sheet-step-by-step).
++**What the owner sees now.** ✦ opens the sheet over the page, and the page stays visible above it. The sheet is three rows at every height: the head (AI ▾, New session, v2, ✕), the chat well, and the mic footer. The **v2** chip (class `ChatView.js`, also on the desktop AI tab, same localStorage choice) swaps the bubbles for [Chat v2](/framework/ext/Chat/v2/readme.md) drawing the same session; the choice stays on this device. Dragging the top edge only changes the height: the well grows or shrinks, nothing swaps. At 90% it snaps open to the full screen. Dragged down to the bottom it is the compact strip: the same head and footer, with the well at 0 px. The 40 px series, before and after: [Voice and chat surfaces](/framework/ux/Dictate/surfaces/#the-phone-sheet-step-by-step).
+ 
+ - **The well:** full width, padding left and right only, no top or bottom padding (bubbles scroll under the head and the footer), square, in an unpadded parent (`rail.css`, "FULL-WIDTH CHAT"). The owner's words, 10-19 and 10-20: [asks.md](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/mobile-sheet/well-asks/asks.md).
+ - **No unexplained arrows.** The strip's ⌃ and ▾ buttons are gone (drag the edge instead). The chat's jump button says its job: **↓ Newest**, a pill stuck to the well's bottom edge (`ext/Chat`, `sticky_scroll()`).
+diff --git a/public/framework/ext/drawer/rail.css b/public/framework/ext/drawer/rail.css
+index d014c210a..3e91c4ea4 100644
+--- a/public/framework/ext/drawer/rail.css
++++ b/public/framework/ext/drawer/rail.css
+@@ -327,12 +327,9 @@
+ 	.drawer-rail-sheet-new:hover { filter: brightness(1.1); }
+ 
+ 	/* CHAT V2 IN THE SHEET — the "v2" chip in the head swaps the old bubbles for
+-	   ext/Chat/v2's drawing of the same session (Sheet.js sync_v2); the composer
++	   ext/Chat/v2's drawing of the same session (Sheet.js, ChatView.js); the composer
+ 	   and the mic footer stay. aria-pressed marks the chip on. */
+ 	.drawer-rail-sheet-heading .drawer-rail-sheet-v2-chip { flex: none; font-size: 0.8em; padding: 0.3em 0.7em; min-block-size: 2rem; }
+-	.drawer-rail-sheet-v2-chip[aria-pressed="true"] { background: var(--fill-a16); border-color: var(--ink); font-weight: 600; }
+-	.drawer-rail-sheet-v2-on .ux-dictate-widget-thread { display: none; }
+-	.drawer-rail-sheet-v2 { flex: 1 1 auto; min-block-size: 0; overflow-y: auto; padding-inline: 0.6em; }   /* the same inset as the thread it replaces (below, .ux-dictate-widget-thread) */
+ 
+ 	/* LINKS BEHIND "MORE" (sheet-regression, 2026-09-30): the links row is folded
+ 	   until "More" in the head is tapped, so the conversation and the mic are
+diff --git a/public/framework/ext/drawer/readme.md b/public/framework/ext/drawer/readme.md
+index 99fba8b04..0f2b38380 100644
+--- a/public/framework/ext/drawer/readme.md
++++ b/public/framework/ext/drawer/readme.md
+@@ -29,6 +29,7 @@ drawer.showing();     // boolean
+ - **One chat, one feed** (2026-10-17): the sheet, the dock and the routed `AIPage` never mount two. `AIPage.holder()` names who holds them (the sheet below 52em, the dock when its AI tab is open, else the page); the others mount nothing · [`doc/sheet.md`](./doc/sheet.md#one-chat-one-feed).
+ - `menu.js`: The top-right ✦ button. On a phone the strip's ☰ Menu opens the page's Sidebar tree from the bottom (`Sheet.open_nav()`).
+ - `tabs.js`: Tab switcher routing (`AI`, `Debug`, `Docs`, `Settings`, `Element`); `tabs/debug.js` draws Debug (`?drawer=dictation` still opens it); `tabs/docs.js` draws Docs, the `ux/Dictate` readme and docs ([doc](/framework/ux/Dictate/doc/docs-tab.md)).
++- `ChatView.js` / `ChatView.css`: the **v2** chip and the Chat v2 box, one class used by `Sheet.js` (head) and `tabs/ai.js` (beside "+ New session"); `lew42.sheet.chat_view` in localStorage rules both.
+ - `Sheet.js` / `rail.css`: the phone's bottom strip and the voice sheet it raises, `export default class Sheet extends View` (`Sheet.of(app)`). It was `rail.js` / `DrawerRail` until 2026-10-16; `rail.js` now only re-exports it, so old imports keep working. **The mobile sheet for dictation is `Sheet.Panel`** (`class SheetPanel extends View`, one class since 2026-10-16; the old four-class chain `DrawerRailSheetV1` → `DrawerRailSheetChat` is kept in [`archive/sheet-chain-2026-10-16.js`](./archive/sheet-chain-2026-10-16.js), opt-in). Its sizes are one machine, `Sheet.Size`: ✦ opens the **strip** (about 100 px, above the bottom bar, the last line said and ⌃), drag up to **split**, past 90% to **full** (✕ and the drawer tabs); a drag down on the head steps one size down, and back steps down too Open means the url is `<path>/ai/`, an [`AIPage`](./AIPage.js) (`class AIPage extends Page`, minted by `Page.child()` for any page without a real `ai/` child; its views chat, live, sessions, debug and settings were the drawer's tabs). Old `?sheet=` and `?drawer=` links are rewritten once. On a desktop, `Sheet.Dock` opens the drawer docked by default at 1920 px and wider. [`AIFeed`](./AIFeed.js) streams the page's `ai/log.jsonl` events into the chat as one stream. The **v2** chip in the sheet's head (`SheetPanel.sync_v2()`) shows [Chat v2](../Chat/v2/readme.md) (`ChatV2`) in place of the bubbles, on the same session file. [doc/sheet.md](doc/sheet.md).
+ - `page.js`: Live interactive demo.
+ 
+diff --git a/public/framework/ext/drawer/tabs/ai.js b/public/framework/ext/drawer/tabs/ai.js
+index 41107bcd0..1a1da51b3 100644
+--- a/public/framework/ext/drawer/tabs/ai.js
++++ b/public/framework/ext/drawer/tabs/ai.js
+@@ -13,6 +13,7 @@ import { DEV } from "../tabs.js";
+ import Inbox from "../inbox.js";   // the page's inbox, at the top of this tab (doc/inbox.md)
+ import * as Session from "/framework/ext/Session/Session.js";
+ import floor from "/framework/ux/Dictate/floor.js";
++import ChatView from "../ChatView.js";   // the v2 chip, shared with the phone sheet
+ 
+ const SESSION_KEY = "lew42-voice-session";
+ 
+@@ -135,7 +136,7 @@ async function fetch_agent_states(session){
+  *  below the same way it already disposes the chat mount, so reopening this tab ten times
+  *  never leaves nine stale timers running (review finding 3's own bug, for the mount —
+  *  this strip is new code, so it is built with that fix already in it, not after). */
+-function session_header({ card }){
++function session_header({ card, view }){
+ 	const $box = div.c("drawer-ai-session flex v");
+ 	let $chips = null, chip_timer = null;
+ 
+@@ -179,6 +180,7 @@ function session_header({ card }){
+ 			let $list;
+ 			div.c("drawer-ai-switcher flex v-center wrap", () => {
+ 				chat.new_session_button(() => live_chat, { label: "+ New session" });
++				view.chip("drawer-ai-switch-btn");
+ 				if (elsewhere) button.c("drawer-ai-switch-btn", "Switch session ▾").attr("type", "button")
+ 					.click(() => { $list.el.hidden = !$list.el.hidden; });
+ 			});
+@@ -227,6 +229,8 @@ function session_header({ card }){
+ let live_chat = null;
+ let live_header = null;
+ let live_feed = null;   // the feed goes with its chat: one pair, never a feed left behind
++let live_view = null;   // Chat v2's chip and box (ChatView.js) and its follow-the-session subscription
++let live_view_off = null;
+ let live_slot = null;   // the box the chat mounted in: emptied with it, so a shut dock keeps no hidden second widget
+ function dispose_chat(){
+ 	const handle = live_chat;
+@@ -234,6 +238,8 @@ function dispose_chat(){
+ 	handle?.remove();
+ 	live_feed?.stop();
+ 	live_feed = null;
++	live_view_off?.(); live_view_off = null;
++	live_view?.release(); live_view = null;
+ 	live_slot?.replaceChildren();
+ 	live_slot = null;
+ 	live_header?.stop();
+@@ -260,7 +266,8 @@ export default function ai({ page, card, tabs }){
+ 	let mine = null;
+ 	div.c("drawer-ai flex v", () => {
+ 		inbox.view();
+-		live_header = session_header({ card });
++		const view = live_view = new ChatView({ slot: () => live_slot, mount: () => live_chat });
++		live_header = session_header({ card, view });
+ 		const $slot = div.c("drawer-ai-panel");
+ 		live_slot = $slot.el;
+ 		const handle = mine = live_chat = chat($slot.el, {
+@@ -268,6 +275,8 @@ export default function ai({ page, card, tabs }){
+ 			card: card?.id,
+ 			placeholder: card ? "talk into this card" : "say something",
+ 		});
++		live_view_off = chat.on_change(() => view.sync());   // a new or resumed session: Chat v2 follows its file
++		view.sync();
+ 		const feed = live_feed = AIFeed.on($slot.el, page);   // this page's events among the bubbles (sheet step 7)
+ 		// The OTHER way this mount's content can leave the drawer: a different tab's
+ 		// own refill clears $slot's own parent out from under it (see the doc above).
+@@ -282,6 +291,7 @@ export default function ai({ page, card, tabs }){
+ 				if (live_chat === handle) live_chat = null;
+ 				live_header?.stop();
+ 				live_header = null;
++				if (live_view === view){ live_view_off?.(); live_view_off = null; view.release(); live_view = null; }
+ 			});
+ 			mo.observe(host, { childList: true });
+ 		}

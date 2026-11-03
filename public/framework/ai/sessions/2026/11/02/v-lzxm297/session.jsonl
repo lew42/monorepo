@@ -1,0 +1,100 @@
+{"session":{"id":"v-lzxm297","home":"/framework/ux/Dictate/","kind":"voice","at":"2026-11-02T00:26:46.954-06:00","project":"dictate-red-tests","host":"dictate-red-tests.localhost","fast":null,"smart":null,"backing":{"fast":null,"smart":null}}}
+{"backing":{"at":"2026-11-02T00:26:47.284-06:00","fast":"85b96568-0a57-4933-8467-e7fb44f85a33","smart":null,"how":{"fast":"new"}}}
+{"log":{"at":"2026-11-02T00:27:14.902-06:00","msg":"recite: sheet follows {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":false,\"session\":\"v-lzxm297\",\"why\":\"the most recent voice session (Sheet.js loaded)\"}"}}
+{"log":{"at":"2026-11-02T00:27:24.664-06:00","msg":"recite: unlocked by a tap {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":true}"}}
+{"tasks":{"add":{"type":"Prompt","id":"p-1793600844680","raw":["first demo sentence"],"paragraphs":[{"id":"a","text":"first demo sentence"}]}},"ts":"2026-11-02T06:27:24.680Z","by":"fast"}
+{"chat":{"at":"2026-11-02T00:27:24.683-06:00","session":"v-lzxm297","path":"/framework/ux/Dictate/","from":{"kind":"owner"},"via":"text","text":"first demo sentence","prompt":"p-1793600844680","said_at":"2026-11-02T06:27:21.234Z","floor":"done"}}
+{"sentences":{"add":{"id":"s-1793600844686","at":"2026-11-02T00:27:24.683-06:00","text":"first demo sentence","via":"text"}},"messages":{"add":{"type":"Prompt","id":"m-1793600844686","by":"owner","at":"2026-11-02T00:27:24.683-06:00","sentences":["s-1793600844686"],"prompt":"p-1793600844680"}},"by":"servex","ts":"2026-11-02T06:27:24.686Z"}
+{"sent":{"to":"fast","at":"2026-11-02T00:27:24.766-06:00","re":["2026-11-02T00:27:24.683-06:00"],"delay_ms":3532}}
+{"backing":{"at":"2026-11-02T00:27:25.013-06:00","fast":"85b96568-0a57-4933-8467-e7fb44f85a33","smart":"8772519c-19f2-4fad-b0a6-9bf11839cc25","how":{"smart":"new"}}}
+{"sent":{"to":"smart","at":"2026-11-02T00:27:26.271-06:00","re":["2026-11-02T00:27:24.683-06:00"],"delay_ms":5037}}
+{"place":{"re":"2026-11-02T00:27:24.683-06:00","to":"same","edit":"improve","text":"First demo sentence."},"by":"voice-assistant-v-lzxm297","ts":"2026-11-02T06:27:26.459Z"}
+{"messages":{"m-1793600844686":{"clean":{"s-1793600844686":"First demo sentence."}}},"by":"voice-assistant-v-lzxm297","ts":"2026-11-02T06:27:26.462Z"}
+{"sessions":[{"id":"voice-assistant-v-lzxm297","task":"/framework/ai/sessions/2026/11/02/v-lzxm297/"}],"by":"voice-assistant-v-lzxm297","ts":"2026-11-02T06:27:26.464Z"}
+{"react":{"at":"2026-11-02T00:27:28.730-06:00","session":"v-lzxm297","re":"2026-11-02T00:27:24.683-06:00","emoji":"👍","from":{"kind":"assistant","id":"smart","agent":"session-smart-v-lzxm297"}}}
+{"log":{"at":"2026-11-02T00:27:39.760-06:00","msg":"recite: sheet follows {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":false,\"session\":\"v-lzxm297\",\"why\":\"the most recent voice session (Sheet.js loaded)\"}"}}
+{"log":{"at":"2026-11-02T00:27:49.369-06:00","msg":"recite: unlocked by a tap {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":true}"}}
+{"tasks":{"add":{"type":"Prompt","id":"p-1793600869376","raw":["first demo sentence"],"paragraphs":[{"id":"a","text":"first demo sentence"}]}},"ts":"2026-11-02T06:27:49.376Z","by":"fast"}
+{"chat":{"at":"2026-11-02T00:27:49.377-06:00","session":"v-lzxm297","path":"/framework/ux/Dictate/","from":{"kind":"owner"},"via":"text","text":"first demo sentence","prompt":"p-1793600869376","said_at":"2026-11-02T06:27:46.045Z","floor":"done"}}
+{"sentences":{"add":{"id":"s-1793600869379","at":"2026-11-02T00:27:49.377-06:00","text":"first demo sentence","via":"text"}},"messages":{"add":{"type":"Prompt","id":"m-1793600869379","by":"owner","at":"2026-11-02T00:27:49.377-06:00","sentences":["s-1793600869379"],"prompt":"p-1793600869376"}},"by":"servex","ts":"2026-11-02T06:27:49.379Z"}
+{"sent":{"to":"fast","at":"2026-11-02T00:27:49.434-06:00","re":["2026-11-02T00:27:49.377-06:00"],"delay_ms":3389}}
+{"place":{"re":"2026-11-02T00:27:49.377-06:00","to":"same","edit":"improve","text":"First demo sentence."},"by":"voice-assistant-v-lzxm297","ts":"2026-11-02T06:27:50.713Z"}
+{"messages":{"m-1793600869379":{"clean":{"s-1793600869379":"First demo sentence."}}},"by":"voice-assistant-v-lzxm297","ts":"2026-11-02T06:27:50.733Z"}
+{"sent":{"to":"smart","at":"2026-11-02T00:27:50.937-06:00","re":["2026-11-02T00:27:49.377-06:00"],"delay_ms":4892}}
+{"react":{"at":"2026-11-02T00:27:52.556-06:00","session":"v-lzxm297","re":"2026-11-02T00:27:49.377-06:00","emoji":"👍","from":{"kind":"assistant","id":"smart","agent":"session-smart-v-lzxm297"}}}
+{"log":{"at":"2026-11-02T00:27:55.589-06:00","msg":"recite: sheet follows {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":false,\"session\":\"v-lzxm297\",\"why\":\"the most recent voice session (Sheet.js loaded)\"}"}}
+{"log":{"at":"2026-11-02T00:27:56.001-06:00","msg":"recite: unlocked by a tap {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":true}"}}
+{"log":{"at":"2026-11-02T00:28:12.901-06:00","msg":"recite: sheet follows {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":false,\"session\":\"v-lzxm297\",\"why\":\"the most recent voice session (Sheet.js loaded)\"}"}}
+{"log":{"at":"2026-11-02T00:28:22.964-06:00","msg":"recite: unlocked by a tap {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":true}"}}
+{"tasks":{"add":{"type":"Prompt","id":"p-1793600902969","raw":["first demo sentence"],"paragraphs":[{"id":"a","text":"first demo sentence"}]}},"ts":"2026-11-02T06:28:22.969Z","by":"fast"}
+{"chat":{"at":"2026-11-02T00:28:22.971-06:00","session":"v-lzxm297","path":"/framework/ux/Dictate/","from":{"kind":"owner"},"via":"text","text":"first demo sentence","prompt":"p-1793600902969","said_at":"2026-11-02T06:28:19.180Z","floor":"done"}}
+{"sentences":{"add":{"id":"s-1793600902972","at":"2026-11-02T00:28:22.971-06:00","text":"first demo sentence","via":"text"}},"messages":{"add":{"type":"Prompt","id":"m-1793600902972","by":"owner","at":"2026-11-02T00:28:22.971-06:00","sentences":["s-1793600902972"],"prompt":"p-1793600902969"}},"by":"servex","ts":"2026-11-02T06:28:22.972Z"}
+{"sent":{"to":"fast","at":"2026-11-02T00:28:23.017-06:00","re":["2026-11-02T00:28:22.971-06:00"],"delay_ms":3837}}
+{"place":{"re":"2026-11-02T00:28:22.971-06:00","to":"same","edit":"improve","text":"First demo sentence."},"by":"voice-assistant-v-lzxm297","ts":"2026-11-02T06:28:24.216Z"}
+{"messages":{"m-1793600902972":{"clean":{"s-1793600902972":"First demo sentence."}}},"by":"voice-assistant-v-lzxm297","ts":"2026-11-02T06:28:24.218Z"}
+{"sent":{"to":"smart","at":"2026-11-02T00:28:24.568-06:00","re":["2026-11-02T00:28:22.971-06:00"],"delay_ms":5388}}
+{"react":{"at":"2026-11-02T00:28:26.270-06:00","session":"v-lzxm297","re":"2026-11-02T00:28:22.971-06:00","emoji":"👍","from":{"kind":"assistant","id":"smart","agent":"session-smart-v-lzxm297"}}}
+{"log":{"at":"2026-11-02T00:28:52.645-06:00","msg":"recite: sheet follows {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":false,\"session\":\"v-lzxm297\",\"why\":\"the most recent voice session (Sheet.js loaded)\"}"}}
+{"log":{"at":"2026-11-02T00:29:10.667-06:00","msg":"recite: sheet follows {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":false,\"session\":\"v-lzxm297\",\"why\":\"the most recent voice session (Sheet.js loaded)\"}"}}
+{"log":{"at":"2026-11-02T00:29:29.723-06:00","msg":"recite: sheet follows {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":false,\"session\":\"v-lzxm297\",\"why\":\"the most recent voice session (Sheet.js loaded)\"}"}}
+{"log":{"at":"2026-11-02T00:29:41.411-06:00","msg":"recite: sheet follows {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":false,\"session\":\"v-lzxm297\",\"why\":\"the most recent voice session (Sheet.js loaded)\"}"}}
+{"log":{"at":"2026-11-02T00:29:41.617-06:00","msg":"recite: unlocked by a tap {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":true}"}}
+{"log":{"at":"2026-11-02T00:29:45.148-06:00","msg":"recite: sheet follows {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":false,\"session\":\"v-lzxm297\",\"why\":\"the most recent voice session (Sheet.js loaded)\"}"}}
+{"log":{"at":"2026-11-02T00:29:50.407-06:00","msg":"recite: sheet follows {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":false,\"session\":\"v-lzxm297\",\"why\":\"the most recent voice session (Sheet.js loaded)\"}"}}
+{"log":{"at":"2026-11-02T00:29:50.468-06:00","msg":"recite: unlocked by a tap {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":true}"}}
+{"log":{"at":"2026-11-02T00:30:08.006-06:00","msg":"recite: sheet follows {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":false,\"session\":\"v-lzxm297\",\"why\":\"the most recent voice session (Sheet.js loaded)\"}"}}
+{"log":{"at":"2026-11-02T00:30:10.462-06:00","msg":"recite: sheet follows {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":false,\"session\":\"v-lzxm297\",\"why\":\"the most recent voice session (Sheet.js loaded)\"}"}}
+{"log":{"at":"2026-11-02T00:30:14.221-06:00","msg":"recite: sheet follows {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":false,\"session\":\"v-lzxm297\",\"why\":\"the most recent voice session (Sheet.js loaded)\"}"}}
+{"log":{"at":"2026-11-02T00:30:18.389-06:00","msg":"recite: sheet follows {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":false,\"session\":\"v-lzxm297\",\"why\":\"the most recent voice session (Sheet.js loaded)\"}"}}
+{"log":{"at":"2026-11-02T00:30:19.748-06:00","msg":"recite: unlocked by a tap {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":true}"}}
+{"log":{"at":"2026-11-02T00:31:04.869-06:00","msg":"recite: sheet follows {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":false,\"session\":\"v-lzxm297\",\"why\":\"the most recent voice session (Sheet.js loaded)\"}"}}
+{"log":{"at":"2026-11-02T00:31:06.421-06:00","msg":"recite: sheet follows {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":false,\"session\":\"v-lzxm297\",\"why\":\"the most recent voice session (Sheet.js loaded)\"}"}}
+{"log":{"at":"2026-11-02T00:31:06.780-06:00","msg":"recite: unlocked by a tap {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":true}"}}
+{"chat":{"at":"2026-11-02T00:31:46.152-06:00","session":"v-lzxm297","path":"/framework/ux/Dictate/","from":{"kind":"system","id":"servex"},"via":"text","text":"Servex restarted; this line wasn't answered. Say it again.","re":"2026-11-02T00:28:22.971-06:00"}}
+{"messages":{"add":{"id":"m-1793601106153","type":"Message","by":"system","at":"2026-11-02T00:31:46.152-06:00","text":"Servex restarted; this line wasn't answered. Say it again.","re":{"to":"s-1793600902972"}}},"by":"servex","ts":"2026-11-02T06:31:46.153Z"}
+{"log":{"at":"2026-11-02T00:32:05.209-06:00","msg":"recite: sheet follows {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":false,\"session\":\"v-lzxm297\",\"why\":\"the most recent voice session (Sheet.js loaded)\"}"}}
+{"log":{"at":"2026-11-02T00:32:09.885-06:00","msg":"recite: unlocked by a tap {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":true}"}}
+{"log":{"at":"2026-11-02T00:32:35.926-06:00","msg":"recite: sheet follows {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":false,\"session\":\"v-lzxm297\",\"why\":\"the most recent voice session (Sheet.js loaded)\"}"}}
+{"log":{"at":"2026-11-02T00:32:36.338-06:00","msg":"recite: unlocked by a tap {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":true}"}}
+{"log":{"at":"2026-11-02T00:41:48-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-11-02T00:46:48-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"log":{"at":"2026-11-02T00:51:48-06:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
+{"log":{"at":"2026-11-02T00:56:48-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
+{"log":{"at":"2026-11-02T01:59:19-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-02T02:59:38-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-02T04:02:38-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-02T05:02:40-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-02T06:02:40-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-02T07:02:40-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-02T08:02:40-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-02T09:02:40-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-02T10:02:40-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-02T11:02:41-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-02T12:02:41-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-02T13:02:46-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-02T14:07:45-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-02T15:07:48-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-02T16:10:10-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-02T17:11:36-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-02T18:13:15-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-02T19:13:16-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-02T20:13:16-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-02T21:13:16-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-02T22:13:17-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-02T23:13:17-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-03T00:13:17-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-03T01:13:17-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-03T02:13:17-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-03T03:13:23-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-03T04:13:23-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-03T05:13:24-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-03T06:13:24-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-03T07:13:24-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-03T08:13:24-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-03T09:13:24-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-03T10:13:24-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-03T11:13:24-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-03T12:13:25-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-03T13:18:25-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-03T14:22:48-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-03T15:31:34-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}

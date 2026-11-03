@@ -1,0 +1,127 @@
+[
+ {
+  "id": "d5fb04e30d",
+  "priority": "none",
+  "why": "Transparent-background rule for list pages is design/color, not the review page, task pipeline, or agent docs."
+ },
+ {
+  "id": "8a50698f18",
+  "priority": "none",
+  "why": "Layered nested sidebars belong to ext/Figma navigation, not any of the three big things."
+ },
+ {
+  "id": "201fbba1ff",
+  "priority": "none",
+  "why": "Wiring NavigationSystem to templates and TOC is site navigation, not approval, task-finishing, or agent rules."
+ },
+ {
+  "id": "7738531181",
+  "priority": "none",
+  "why": "Reordering the TOC on the core/Page overview is page layout, not one of the three big things."
+ },
+ {
+  "id": "da9d619f70",
+  "priority": "none",
+  "why": "Sorting pages is a core/Page feature; the sorting in the brief is of tasks, not pages."
+ },
+ {
+  "id": "52e7a3995d",
+  "priority": "none",
+  "why": "Material Symbols icon font is ui/icon work, not part of the three big things."
+ },
+ {
+  "id": "0267906446",
+  "priority": "none",
+  "why": "Regrouping Figma icon categories is ext/Figma design work, not one of the three big things."
+ },
+ {
+  "id": "a19fd87c60",
+  "priority": "none",
+  "why": "Making icons non-components for Figma performance is ext/Figma tooling, not one of the three big things."
+ },
+ {
+  "id": "8059e070f3",
+  "priority": "none",
+  "why": "A user avatar glyph is an ext/Figma icon task, not one of the three big things."
+ },
+ {
+  "id": "5f06398043",
+  "priority": "none",
+  "why": "Folder and tree icons are ext/Figma icon content, not one of the three big things."
+ },
+ {
+  "id": "209707af2f",
+  "priority": "none",
+  "why": "Flowchart connectors are ext/Figma design tooling, not one of the three big things."
+ },
+ {
+  "id": "9619a38363",
+  "priority": "none",
+  "why": "Condensed colour permutation views are an ext/Figma design decision, not one of the three big things."
+ },
+ {
+  "id": "064abde320",
+  "priority": "none",
+  "why": "Dragging colours from permutation views is ext/Figma interaction, not one of the three big things."
+ },
+ {
+  "id": "9a4047b7db",
+  "priority": "none",
+  "why": "Investigating nested-layer and opaque-card contrast is ext/Figma design research, not one of the three big things."
+ },
+ {
+  "id": "d637a6a159",
+  "priority": "none",
+  "why": "Testing lighten/darken for Figma card colours is ext/Figma colour work, not one of the three big things."
+ },
+ {
+  "id": "631af9ce85",
+  "priority": "none",
+  "why": "A colour scheme stack view is an ext/Figma design feature, not one of the three big things."
+ },
+ {
+  "id": "cf659dcbd7",
+  "priority": "none",
+  "why": "Permutation list for the stack view is ext/Figma design work, not one of the three big things."
+ },
+ {
+  "id": "629d86a302",
+  "priority": "none",
+  "why": "Filtering subtle colours by contrast ratio is ext/Figma colour tooling, not one of the three big things."
+ },
+ {
+  "id": "2e72539770",
+  "priority": "none",
+  "why": "Replacing blue layers in the Figma file is ext/Figma design work, not one of the three big things."
+ },
+ {
+  "id": "c26cdbe2ce",
+  "priority": "none",
+  "why": "Master-component palettes in Figma are ext/Figma design system work, not one of the three big things."
+ },
+ {
+  "id": "0cae5bbc03",
+  "priority": "none",
+  "why": "Applying master-and-duplicate to the wider Figma UI is ext/Figma design work, not one of the three big things."
+ },
+ {
+  "id": "11d0af4338",
+  "priority": "none",
+  "why": "A full-colour opaque-card contrast section is ext/Figma design work, not one of the three big things."
+ },
+ {
+  "id": "73fc13b3f1",
+  "priority": "none",
+  "why": "Handling the primary colour scheme is an ext/Figma design decision, not one of the three big things."
+ },
+ {
+  "id": "e3eb920220",
+  "priority": "none",
+  "why": "Content for each Figma colour scheme is ext/Figma design spec work, not one of the three big things."
+ },
+ {
+  "id": "f07fa769e9",
+  "priority": "none",
+  "why": "A mobile-to-mega two-column layouts page is styles/layouts work, not one of the three big things."
+ }
+]

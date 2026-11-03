@@ -1,0 +1,5 @@
+{"class":"/framework/ai2/card.js","title":"The outage audit is done: two mechanism gaps, not two rule gaps.","type":"card","id":"2026/09/19/auditor","created":"2026-09-19T15:12:49-05:00","by":"auditor","tags":[]}
+{"legacy":"auditor"}
+{"status":"done"}
+{"text":"A Server/ save that parsed but could not boot, and a supervisor that could not restart a child that had already died. The fix that makes this impossible is one task - the supervisor boot-tests a candidate on a spare port before swapping, and keeps the healthy server running if it fails. Report: /framework/ai/2026-09-19/incident-site-down/"}
+{"links":[{"url":"/framework/ai/2026-09-19/mistake-audit/","label":"the audit, one screen"}]}

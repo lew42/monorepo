@@ -1,0 +1,399 @@
+{
+  "at": "2026-10-04T06:35:29.232Z",
+  "model": "qwen2.5-coder",
+  "runs": 10,
+  "batch": {
+    "pass_rate": "10/10",
+    "avg_seconds": 35.1
+  },
+  "loop": {
+    "pass_rate": "0/10",
+    "avg_seconds": 31.9
+  },
+  "raw": {
+    "batch": [
+      {
+        "pass": true,
+        "perStep": [
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "perStepText": [
+          "assign, define_fields, get_one, put, set, apply, set_one, get, locate, remove, root, lists, walk, find, contains, view, save, delete, toJSON, wire, new_id, hydrate, register, open",
+          "set_one",
+          "\"change\", \"delta\"",
+          "\"change\"",
+          "When a field's value changes, it emits a \"change\" event with the key, new value, and old value as arguments, and a \"delta\" event with a delta object containing the change."
+        ],
+        "ms": 40285,
+        "ok": true
+      },
+      {
+        "pass": true,
+        "perStep": [
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "perStepText": [
+          "assign, define_fields, get_one, put, set, apply, set_one, get, locate, remove, root, lists, walk, find, contains, view, save, delete, toJSON, wire, new_id, hydrate, register, open",
+          "set_one",
+          "\"change\", \"delta\"",
+          "\"change\"",
+          "When a field's value changes, it emits a \"change\" event with the key, new value, and old value as arguments, and a \"delta\" event with a delta object containing the change."
+        ],
+        "ms": 33496,
+        "ok": true
+      },
+      {
+        "pass": true,
+        "perStep": [
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "perStepText": [
+          "assign, define_fields, get_one, put, set, apply, set_one, get, locate, remove, root, lists, walk, find, contains, view, save, delete, toJSON, wire, new_id, hydrate, register, open",
+          "set_one",
+          "\"change\", \"delta\"",
+          "\"change\"",
+          "When a field's value changes, it emits a \"change\" event with the key, new value, and old value as arguments, and a \"delta\" event with a delta object containing the change."
+        ],
+        "ms": 32196,
+        "ok": true
+      },
+      {
+        "pass": true,
+        "perStep": [
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "perStepText": [
+          "assign, define_fields, get_one, put, set, apply, set_one, get, locate, remove, root, lists, walk, find, contains, view, save, delete, toJSON, wire, new_id, hydrate, register, open",
+          "set_one",
+          "\"change\", \"delta\"",
+          "\"change\"",
+          "When a field's value changes, it emits a \"change\" event with the key, new value, and old value as arguments, and a \"delta\" event with a delta object containing the change."
+        ],
+        "ms": 38371,
+        "ok": true
+      },
+      {
+        "pass": true,
+        "perStep": [
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "perStepText": [
+          "assign, define_fields, get_one, put, set, apply, set_one, get, locate, remove, root, lists, walk, find, contains, view, save, delete, toJSON, wire, new_id, hydrate, register, open",
+          "set_one",
+          "\"change\", \"delta\"",
+          "\"change\"",
+          "When a field's value changes, it emits a \"change\" event with the key, new value, and old value as arguments, and a \"delta\" event with a delta object containing the change."
+        ],
+        "ms": 22989,
+        "ok": true
+      },
+      {
+        "pass": true,
+        "perStep": [
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "perStepText": [
+          "assign, define_fields, get_one, put, set, apply, set_one, get, locate, remove, root, lists, walk, find, contains, view, save, delete, toJSON, wire, new_id, hydrate, register, open",
+          "set_one",
+          "\"change\", \"delta\"",
+          "\"change\"",
+          "When a field's value changes, it emits a \"change\" event with the key, new value, and old value as arguments, and a \"delta\" event with a delta object containing the change."
+        ],
+        "ms": 29767,
+        "ok": true
+      },
+      {
+        "pass": true,
+        "perStep": [
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "perStepText": [
+          "assign, define_fields, get_one, put, set, apply, set_one, get, locate, remove, root, lists, walk, find, contains, view, save, delete, toJSON, wire, new_id, hydrate, register, open",
+          "set_one",
+          "\"change\", \"delta\"",
+          "\"change\"",
+          "When a field's value changes, it emits a \"change\" event with the key, new value, and old value as arguments, and a \"delta\" event with a delta object containing the change."
+        ],
+        "ms": 28917,
+        "ok": true
+      },
+      {
+        "pass": true,
+        "perStep": [
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "perStepText": [
+          "assign, define_fields, get_one, put, set, apply, set_one, get, locate, remove, root, lists, walk, find, contains, view, save, delete, toJSON, wire, new_id, hydrate, register, open",
+          "set_one",
+          "\"change\", \"delta\"",
+          "\"change\"",
+          "When a field's value changes, it emits a \"change\" event with the key, new value, and old value as arguments, and a \"delta\" event with a delta object containing the change."
+        ],
+        "ms": 35664,
+        "ok": true
+      },
+      {
+        "pass": true,
+        "perStep": [
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "perStepText": [
+          "assign, define_fields, get_one, put, set, apply, set_one, get, locate, remove, root, lists, walk, find, contains, view, save, delete, toJSON, wire, new_id, hydrate, register, open",
+          "set_one",
+          "\"change\", \"delta\"",
+          "\"change\"",
+          "When a field's value changes, it emits a \"change\" event with the key, new value, and old value as arguments, and a \"delta\" event with a delta object containing the change."
+        ],
+        "ms": 52766,
+        "ok": true
+      },
+      {
+        "pass": true,
+        "perStep": [
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "perStepText": [
+          "assign, define_fields, get_one, put, set, apply, set_one, get, locate, remove, root, lists, walk, find, contains, view, save, delete, toJSON, wire, new_id, hydrate, register, open",
+          "set_one",
+          "\"change\", \"delta\"",
+          "\"change\"",
+          "When a field's value changes, it emits a \"change\" event with the key, new value, and old value as arguments, and a \"delta\" event with a delta object containing the change."
+        ],
+        "ms": 36513,
+        "ok": true
+      }
+    ],
+    "loop": [
+      {
+        "pass": false,
+        "perStep": [
+          false,
+          true,
+          true,
+          true,
+          true
+        ],
+        "perStepText": [
+          "`assign, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields,",
+          "`set_one`",
+          "\"change\", \"delta\"",
+          "\"change\"",
+          "It updates the field's value, emits a \"change\" event with the new and old values, and emits a \"delta\" event with the change."
+        ],
+        "ms": 55227,
+        "ok": true
+      },
+      {
+        "pass": false,
+        "perStep": [
+          false,
+          true,
+          true,
+          true,
+          true
+        ],
+        "perStepText": [
+          "`assign, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields, define_fields,",
+          "`set_one`",
+          "\"change\", \"delta\"",
+          "\"change\"",
+          "It updates the field's value, emits a \"change\" event with the new and old values, and emits a \"delta\" event with the change."
+        ],
+        "ms": 59920,
+        "ok": true
+      },
+      {
+        "pass": false,
+        "perStep": [
+          false,
+          true,
+          false,
+          true,
+          false
+        ],
+        "perStepText": [
+          "",
+          "set_one",
+          "",
+          "\"change\"",
+          ""
+        ],
+        "ms": 42561,
+        "ok": true
+      },
+      {
+        "pass": false,
+        "perStep": [
+          false,
+          false,
+          false,
+          false,
+          true
+        ],
+        "perStepText": [
+          "",
+          "",
+          "",
+          "",
+          "It emits a \"change\" event and a \"delta\" event, notifying listeners of the key, new value, and old value."
+        ],
+        "ms": 26053,
+        "ok": true
+      },
+      {
+        "pass": false,
+        "perStep": [
+          false,
+          true,
+          true,
+          true,
+          true
+        ],
+        "perStepText": [
+          "",
+          "set_one",
+          "\"change\", \"delta\"",
+          "\"change\"",
+          "It emits a \"change\" event with the key, new value, and old value, and also emits a \"delta\" event containing the set operation."
+        ],
+        "ms": 24016,
+        "ok": true
+      },
+      {
+        "pass": false,
+        "perStep": [
+          false,
+          true,
+          false,
+          true,
+          false
+        ],
+        "perStepText": [
+          "",
+          "set_one",
+          "",
+          "\"change\"",
+          ""
+        ],
+        "ms": 19645,
+        "ok": true
+      },
+      {
+        "pass": false,
+        "perStep": [
+          false,
+          false,
+          false,
+          false,
+          true
+        ],
+        "perStepText": [
+          "",
+          "",
+          "",
+          "",
+          "It emits a \"change\" event and a \"delta\" event, notifying listeners of the key, new value, and old value."
+        ],
+        "ms": 25870,
+        "ok": true
+      },
+      {
+        "pass": false,
+        "perStep": [
+          false,
+          true,
+          true,
+          true,
+          false
+        ],
+        "perStepText": [
+          "",
+          "set_one",
+          "\"change\", \"delta\"",
+          "\"change\"",
+          ""
+        ],
+        "ms": 19732,
+        "ok": true
+      },
+      {
+        "pass": false,
+        "perStep": [
+          false,
+          true,
+          true,
+          true,
+          true
+        ],
+        "perStepText": [
+          "",
+          "set_one",
+          "\"change\", \"delta\"",
+          "\"change\"",
+          "It emits a \"change\" event with the key, new value, and old value, and also emits a \"delta\" event containing the set operation."
+        ],
+        "ms": 25336,
+        "ok": true
+      },
+      {
+        "pass": false,
+        "perStep": [
+          false,
+          true,
+          true,
+          true,
+          false
+        ],
+        "perStepText": [
+          "",
+          "set_one",
+          "\"change\", \"delta\"",
+          "\"change\"",
+          ""
+        ],
+        "ms": 20157,
+        "ok": true
+      }
+    ]
+  }
+}

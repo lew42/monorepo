@@ -1,0 +1,11 @@
+[22:29:18] started supervisor A, pid 63172
+[22:29:18] A: [health-supervisor] starting (pid 63172) — watching over health.mjs, checking against http://localhost:62566, heartbeat every 10000ms at public/framework/ai/health/heartbeat.json
+[22:29:18] A: health.mjs: watching C:\Code\lew42\worktrees\proposal-flow\public, checking against http://localhost:62566, log at public/framework/ai/health/2026-09-30.jsonl
+[22:29:22] started supervisor B, pid 58508
+[22:29:22] B: [health-supervisor] already running as pid 63172 (C:\Users\mike\AppData\Local\Temp\lew42-health-supervisor-8ccc3460.lock) — exiting quietly.
+[22:29:22] supervisor B exited, code 0
+[22:29:28] still running from this proof: 1 supervisor(s) [63172], 1 health.mjs child(ren) [35328 under 63172]
+[22:29:28] supervisor A MainWindowHandle: 0
+[22:29:28] PASS: one supervisor, one watcher; the second exited 0
+[22:29:29] killed supervisor A's tree (pid 63172)
+[22:29:29] supervisor A exited, code 1

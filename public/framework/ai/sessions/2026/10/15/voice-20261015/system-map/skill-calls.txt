@@ -1,0 +1,49 @@
+dupes skipped 584; files 9952, 7.7 GB, 1296323 lines
+minion                       repo  1149     0  1023 2026-09-17 2026-10-12
+finish-task                  repo   645     0   360 2026-09-01 2026-10-14
+clarity                      repo   609     0   608 2026-09-25 2026-10-12
+new-task                     repo   452     0   184 2026-09-01 2026-10-06
+compact                               0   424   184 2026-09-19 2026-10-15
+content                      repo   397     0   397 2026-09-25 2026-10-15
+code                         repo   315     0   176 2026-09-04 2026-10-12
+documentation                repo   271     0   122 2026-09-04 2026-10-08
+sub-mastermind               repo   245     0   243 2026-09-22 2026-10-12
+css                          repo   193     0    91 2026-09-01 2026-10-12
+page                         repo   179     0   177 2026-09-25 2026-10-12
+mastermind                   repo    11   159    12 2026-09-04 2026-10-15
+check-claude-usage           repo   153     0    98 2026-09-04 2026-10-12
+layout                       repo   147     0    61 2026-09-01 2026-10-12
+new-page                            128     0    75 2026-09-01 2026-10-08
+ui-test                      repo   119     0    23 2026-09-04 2026-10-14
+new-css-class                repo    92     0    34 2026-09-04 2026-10-02
+skill-improvement            repo    75     0    29 2026-09-04 2026-10-03
+servex-mastermind            repo    50     0    50 2026-09-25 2026-10-12
+fans                                 44     0    28 2026-09-04 2026-10-12
+figma:figma-use                      29     0    28 2026-10-13 2026-10-15
+research                     repo    15     0     7 2026-09-04 2026-09-30
+every-prompt                 repo    11     0     3 2026-09-19 2026-09-29
+review                       repo     8     0     8 2026-10-01 2026-10-14
+figma-use                             7     0     7 2026-10-13 2026-10-13
+claude-api                            6     0     6 2026-09-04 2026-10-05
+auditor                      repo     4     0     4 2026-09-19 2026-10-03
+system-architect             repo     4     0     4 2026-10-09 2026-10-15
+openrouter                   repo     4     0     4 2026-09-29 2026-10-06
+ui                           repo     4     0     4 2026-10-01 2026-10-12
+dataviz                               3     0     3 2026-09-30 2026-10-03
+decide                       repo     3     0     3 2026-09-30 2026-10-08
+color                        repo     3     0     3 2026-09-30 2026-10-02
+navigation                   repo     2     0     2 2026-10-01 2026-10-05
+past-work                    repo     2     0     2 2026-10-12 2026-10-12
+workflow-authoring                    1     1     2 2026-09-19 2026-10-09
+model                                 0     2     2 2026-09-19 2026-09-23
+naming                                2     0     2 2026-09-29 2026-09-29
+assistant                             0     2     2 2026-09-19 2026-09-19
+monorepo:minion                       1     0     1 2026-09-29 2026-09-29
+monorepo:new-task                     1     0     1 2026-09-29 2026-09-29
+mcp                                   0     1     1 2026-09-24 2026-09-24
+autocompact                           0     1     1 2026-10-09 2026-10-09
+master-assistant             repo     1     0     1 2026-09-19 2026-09-19
+voice-mastermind             repo     1     0     1 2026-10-15 2026-10-15
+fork-claude-session          repo     0     0     0  
+log-assistant                repo     0     0     0  
+make                         repo     0     0     0  

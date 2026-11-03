@@ -1,0 +1,446 @@
+diff --git a/public/ai/files.jsonl b/public/ai/files.jsonl
+index 9505067e6..23b8f4d20 100644
+--- a/public/ai/files.jsonl
++++ b/public/ai/files.jsonl
+@@ -17,3 +17,7 @@
+ {"file":"v-jag436k.jsonl"}
+ {"file":"v-jag436k.summary.json"}
+ {"file":"v-timqv56.jsonl"}
++{"file":"v-0kfikyu.summary.json","gone":true}
++{"file":"v-jag436k.jsonl","gone":true}
++{"file":"v-jag436k.summary.json","gone":true}
++{"file":"v-timqv56.jsonl","gone":true}
+diff --git a/public/framework/ai/2026/10/12/files.jsonl b/public/framework/ai/2026/10/12/files.jsonl
+index fc85a42e6..8c95e79a4 100644
+--- a/public/framework/ai/2026/10/12/files.jsonl
++++ b/public/framework/ai/2026/10/12/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"session-f155ecbd/page.jsonl"}
+ {"file":"session-f155ecbd/page.jsonl","gone":true}
+ {"file":"session-f155ecbd/page.jsonl"}
++{"file":"session-f155ecbd/page.jsonl","gone":true}
+diff --git a/public/framework/ai/2026/10/13/files.jsonl b/public/framework/ai/2026/10/13/files.jsonl
+index 010f4a695..73759efb1 100644
+--- a/public/framework/ai/2026/10/13/files.jsonl
++++ b/public/framework/ai/2026/10/13/files.jsonl
+@@ -10,3 +10,4 @@
+ {"file":"session-730e8a7b/page.jsonl"}
+ {"file":"session-730e8a7b/page.jsonl","gone":true}
+ {"file":"session-730e8a7b/page.jsonl"}
++{"file":"session-730e8a7b/page.jsonl","gone":true}
+diff --git a/public/framework/ai/2026/10/20/files.jsonl b/public/framework/ai/2026/10/20/files.jsonl
+index 0a4650195..16bbc0b48 100644
+--- a/public/framework/ai/2026/10/20/files.jsonl
++++ b/public/framework/ai/2026/10/20/files.jsonl
+@@ -1,2 +1,3 @@
+ {"file":"session-e00f55c9/page.jsonl"}
+ {"file":"note-the-servex-connector-in-the-claude/page.jsonl"}
++{"file":"session-e00f55c9/page.jsonl","gone":true}
+diff --git a/public/framework/ai/2026/10/23/files.jsonl b/public/framework/ai/2026/10/23/files.jsonl
+index 0d27b3b6f..193249983 100644
+--- a/public/framework/ai/2026/10/23/files.jsonl
++++ b/public/framework/ai/2026/10/23/files.jsonl
+@@ -1 +1,2 @@
+ {"file":"session-d88339a2/page.jsonl"}
++{"file":"session-d88339a2/page.jsonl","gone":true}
+diff --git a/public/framework/ai/AISession/StoreFolder.js b/public/framework/ai/AISession/StoreFolder.js
+index 46e410e3e..912e374f6 100644
+--- a/public/framework/ai/AISession/StoreFolder.js
++++ b/public/framework/ai/AISession/StoreFolder.js
+@@ -1,10 +1,10 @@
+-import { Page, div, a, p } from "/app.js";
++import { Page, div, a, p, small } from "/app.js";
+ import { AITask } from "/framework/ai/AITask/AITask.js";
+ import CardDir from "/framework/ai/cards/CardDir.js";
+ 
+ /* One folder of the sessions store, routed by its own path: /framework/ai/sessions/2026/10/12/<session>/<task>/.
+    Tasks live here since 2026-10-12 (ai/doc/task-folders.md); the flat /framework/ai/sessions/<id>/ session route is untouched.
+-   A year, month or day lists the tasks under it; a folder with a task.jsonl opens as a task (AITask); a folder with its own
++   A year lists its months, a month its days and a day its sessions (StoreFolder.sessions); a folder with a task.jsonl opens as a task (AITask); a folder with its own
+    page.js is left to Page.child()'s probe; any other folder (a session's) lists its tasks and links the session page. */
+ export default class StoreFolder extends Page {
+ 
+@@ -111,6 +111,7 @@ export default class StoreFolder extends Page {
+ 		if (this.segs.length === 4) p(() => a().href(this.home.url + name + "/").text("This session's page →"));
+ 		if (this.segs.length === 3) p(() => a().href("/framework/ai/" + this.segs.join("-") + "/").text("This day's dashboard →"));
+ 		const box = div.c("flow");   // captured now: the list fills in after the fetch (no DOM after an await)
++		if (this.segs.length < 4) return this.sessions(box);
+ 		StoreFolder.urls().then(urls => {
+ 			const mine = urls.filter(u => u.startsWith(this.url) && u !== this.url);
+ 			box.append(() => {
+@@ -119,4 +120,34 @@ export default class StoreFolder extends Page {
+ 			});
+ 		});
+ 	}
++
++	static usd(n){ return "$" + (n >= 100 ? n.toFixed(0) : n.toFixed(2)); }
++
++	/** A year lists its months, a month its days (both from the rolled-up index.json, with session counts and cost), a day lists its sessions (the day's index.json snapshots). */
++	sessions(box){
++		const level = this.segs.length, base = this.url, pad = n => String(n).padStart(2, "0");
++		const day_index = fetch(base + "index.json").then(r => r.ok ? r.json() : null, () => null);
++		const tasks = level < 3 ? StoreFolder.urls() : Promise.resolve([]);
++		Promise.all([day_index, tasks]).then(([ix, urls]) => box.append(() => {
++			if (level === 3){
++				const rows = [...(ix?.snapshots ?? [])].sort((x, y) => (x.first_at ?? "").localeCompare(y.first_at ?? ""));
++				if (!rows.length) return p.c("muted", "No sessions are recorded for this day.");
++				p.c("muted", `${rows.length} sessions, in the order they started.`);
++				for (const r of rows) div.c("flex gap-50", () => {
++					a().href(this.home.url + r.folder + "/").text(r.title || r.agent || r.folder);
++					small.c("muted", [r.agent && r.agent !== r.title ? r.agent : "", StoreFolder.usd(r.tree_usd ?? r.usd ?? 0), r.state].filter(Boolean).join(" · "));
++				});
++				return;
++			}
++			const known = level === 1 ? ix?.months : ix?.days;
++			const seen = new Set(Object.keys(known ?? {}));
++			for (const u of urls) { const seg = u.slice(base.length).split("/")[0]; if (u.startsWith(base) && /^\d\d$/.test(seg)) seen.add(seg); }
++			if (!seen.size) return p.c("muted", "No sessions are recorded under this folder.");
++			for (const k of [...seen].sort().reverse()) div.c("flex gap-50", () => {
++				const row = known?.[k];
++				a().href(base + k + "/").text(level === 1 ? `${this.segs[0]}-${pad(k)}` : `${this.segs[0]}-${this.segs[1]}-${pad(k)}`);
++				small.c("muted", row ? `${row.count} sessions · ${StoreFolder.usd(row.usd ?? 0)}${row.flagged ? " · " + row.flagged + " flagged" : ""}` : "no summary has been rolled up for it yet");
++			});
++		}));
++	}
+ }
+diff --git a/public/framework/ai/AISession/files.jsonl b/public/framework/ai/AISession/files.jsonl
+index cac587da8..1a7f34254 100644
+--- a/public/framework/ai/AISession/files.jsonl
++++ b/public/framework/ai/AISession/files.jsonl
+@@ -28,3 +28,7 @@
+ {"file":"doc/"}
+ {"file":"AISessionIndex.test.mjs"}
+ {"file":"tasks/"}
++{"file":"Approvals.js"}
++{"file":"Review.js"}
++{"file":"SessionWork.css"}
++{"file":"SessionWork.js"}
+diff --git a/public/framework/ai/AITask/AICost.js b/public/framework/ai/AITask/AICost.js
+index 325192b1b..cf62bc438 100644
+--- a/public/framework/ai/AITask/AICost.js
++++ b/public/framework/ai/AITask/AICost.js
+@@ -111,7 +111,7 @@ export default class AICost {
+ 	    minion, with its model — and the time the root's share was counted over. */
+ 	static breakdown(m){
+ 		const c = AICost.cost_of(m);
+-		if (!c) return div.c("muted", "Cost: not tracked — this task's log has no cost line. A task Servex ran gets one from Server/task-cost.mjs; a tab or a CLI session never does.");
++		if (!c) return div.c("muted", "No cost line in this task's log. A task Servex ran gets one from Server/task-cost.mjs.");
+ 		const { root, own_usd, minions_usd, parent_task, at, window: win } = c.cost;
+ 		const agents = AICost.agent_count(c.cost);
+ 		const list = AICost.agents_of(m);
+@@ -140,7 +140,7 @@ export default class AICost {
+ 					td(x.id);
+ 					td(AICost.model_name(x.model));
+ 					td(x.usd == null ? "not measured" : AICost.money(x.usd));
+-					if (has_cache_col) td(x.cache_read_pct != null ? x.cache_read_pct + "% of $" : "—");
++					if (has_cache_col) td(x.cache_read_pct != null ? x.cache_read_pct + "% of $" : "not measured");
+ 				})));
+ 			});
+ 			// The root is shared by every task it ran; this one's share is its time.
+@@ -150,4 +150,104 @@ export default class AICost {
+ 		});
+ 	}
+ 
++	/* THE ITEM TOOL'S ANSWER (session-report, 2026-10-23). A session folder has no cost line; Servex computes its whole picture
++	   (own spend, child sessions, task counts) and answers the item tool's `summary` query. The tab draws that answer and
++	   computes nothing: core/Session/readme.md, "What item() answers for a session". */
++	static known = new Map();   // folder url -> { at, answer }; one ask per folder per STALE_MS, however often the tab redraws
++	static STALE_MS = 30000;
++
++	/** `{ summary }` from the item tool, or `{ why }` in words when Servex cannot answer from here. */
++	static async ask(base){
++		try {
++			const { servex_url } = await import("../../dev/servex_url.js");
++			const res = await fetch(servex_url("/api/item"), { method: "POST", headers: { "content-type": "application/json" },
++				body: JSON.stringify({ path: base, delta: { summary: {} } }), signal: AbortSignal.timeout(150000) });
++			const body = await res.json();
++			if (body?.stubbed) return { why: "This is a worktree preview, which is not allowed to ask Servex for numbers; open the same page on the main site." };
++			if (!res.ok) return { why: "Servex refused the question (" + (body?.why ?? res.status) + "): this page is only answered on the machine that runs Servex." };
++			const summary = body?.answer?.summary;
++			return summary ? { summary } : { why: body?.why ?? "Servex has no record at this path to add up." };
++		} catch (e) {
++			if (e?.name === "TimeoutError") return { why: "Servex took more than two and a half minutes to add this session up, so no cost is shown yet; it is slow on a session with hundreds of tasks. Reload to ask again." };
++			return { why: "Servex did not answer, so no cost can be shown. It adds up the agents' spend on the machine that runs them; a static copy of the site cannot ask it." };
++		}
++	}
++
++	/** The Report tab's cost block: the last answer at once, a fresh one when it is stale. */
++	static report(base){
++		const hit = AICost.known.get(base);
++		const $d = div.c("ai-cost flow", () => hit ? AICost.draw(hit.answer) : span.c("muted", "Asking Servex for this page's cost… (it can take a minute for a session with many tasks)"));
++		if (!hit || Date.now() - hit.at > AICost.STALE_MS) AICost.ask(base).then(answer => {
++			AICost.known.set(base, { at: Date.now(), answer });
++			$d.empty(() => AICost.draw(answer));
++		});
++		return $d;
++	}
++
++	static draw({ summary: s, why }){
++		if (!s) return span.c("muted", why);
++		if (s.class === "Session") return AICost.draw_session(s);
++		return AICost.draw_task(s);
++	}
++
++	static usd = n => n == null ? null : AICost.money(n);
++	static minutes = ms => ms < 3600000 ? Math.round(ms / 60000) + " min" : (ms / 3600000).toFixed(1) + " h";
++
++	static draw_session(s){
++		const { total, own, children, tasks } = s.cost, { done, total: all, stopped } = s.progress, c = s.counts.all;
++		div(() => {
++			span(AICost.money(total) + " in all");
++			span.c("muted", " — " + [
++				own ? "this session " + AICost.money(own.usd) : "this session's own spend is unknown: no transcript has been read for it yet",
++				"child sessions " + AICost.money(children),
++				"the agents on its tasks cost " + AICost.money(tasks) + " (counted inside the child sessions)",
++			].join(" · "));
++		});
++		div(() => {
++			span(done + " of " + all + " tasks complete, " + (all - done) + " open");
++			span.c("muted", " — " + [
++				stopped && stopped + " stopped, left out of the count",
++				c.created + " created in all, " + c.started + " started, " + c.complete + " complete (this session and everything under it)",
++				s.span_ms && "over " + AICost.minutes(s.span_ms),
++			].filter(Boolean).join(" · "));
++		});
++		if (s.biggest?.length){
++			small.c("muted", "Costliest tasks");
++			table(() => tbody(() => s.biggest.forEach(t => tr(() => {
++				td(t.title ?? t.id); td(t.state); td(AICost.money(t.cost));
++			}))));
++		}
++		if (!s.children?.length) return small.c("muted", "No child sessions are registered under this session.");
++		small.c("muted", s.agents + " child session" + (s.agents === 1 ? "" : "s") + ", each with what it and its own children cost");
++		table(() => {
++			thead(() => tr(() => { th("session"); th("role"); th("state"); th("own"); th("with its children"); }));
++			tbody(() => AICost.flatten(s.children).forEach(({ n, depth }) => tr(() => {
++				td(n.id).style("padding-left", depth + "em");
++				td(n.role); td(n.state); td(AICost.money(n.cost)); td(AICost.money(n.total));
++			})));
++		});
++	}
++
++	static flatten = (list, depth = 0) => list.flatMap(n => [{ n, depth }, ...AICost.flatten(n.children ?? [], depth + 1)]);
++
++	static draw_task(s){
++		const { done, total } = s.progress;
++		div(() => {
++			span(s.cost > 0 ? AICost.money(s.cost) + " in all" : "No agent cost is recorded for this task's folder");
++			span.c("muted", " — " + [
++				s.state,
++				done + " of " + total + " tasks complete",
++				s.duration && "ran " + AICost.minutes(s.duration),
++			].filter(Boolean).join(" · "));
++		});
++		if (s.open?.length) {
++			small.c("muted", "Open");
++			table(() => tbody(() => s.open.forEach(t => tr(() => { td(t.title); td(t.state); }))));
++		}
++		if (s.children?.length) {
++			small.c("muted", "Child sessions");
++			table(() => tbody(() => s.children.forEach(t => tr(() => { td(t.title); td(t.state); }))));
++		}
++	}
++
+ }
+diff --git a/public/framework/ai/AITask/AITask.js b/public/framework/ai/AITask/AITask.js
+index 695e7887f..e76589220 100644
+--- a/public/framework/ai/AITask/AITask.js
++++ b/public/framework/ai/AITask/AITask.js
+@@ -14,7 +14,7 @@ import { names, has, is_record_folder } from "../../core/Router/listing.js";
+ import { segments, current, links_row } from "./card.js";
+ import { shot_wall } from "./shots.js";
+ import { chat } from "../../ext/Ask/chat.js";
+-import { breakdown } from "./cost.js";
++import AICost from "./AICost.js";
+ import { streamed as reply_streamed } from "../../ext/Ask/reply.js";
+ import { fold } from "./message.js";
+ import TaskViews from "./TaskViews.js";
+@@ -256,7 +256,7 @@ export class AITask extends Page {
+ 				.append(() => { span.c("ai-box"); span(s); })));
+ 	}
+ 
+-	cost(m){ return breakdown(m); }
++	cost(m){ return AICost.cost_of(m) ? AICost.breakdown(m) : AICost.report(this.base()); }
+ 
+ 	extra(m){}
+ 
+@@ -264,25 +264,23 @@ export class AITask extends Page {
+ 
+ 	figures(m){
+ 		const cost = spend(m);
+-		ui.table(
+-			["requested", "landed", "model", "window", "agents", cost?.[1] ?? "tokens"],
+-			[[m.requested_at ?? "—", m.landed_at ?? "—", m.model ?? "—",
+-				`${pct(m.window?.before)} → ${pct(m.window?.after)}`,
+-				String(m.agents?.length ?? 0), cost?.[0] ?? "—"]]
+-		);
++		const known = [["requested", m.requested_at], ["landed", m.landed_at], ["model", m.model],
++			["window", m.window?.before != null || m.window?.after != null ? `${pct(m.window?.before)} → ${pct(m.window?.after)}` : null],
++			["agents", m.agents?.length ? String(m.agents.length) : null], [cost?.[1] ?? "tokens", cost?.[0]]].filter(([, v]) => v != null);
++		if (known.length) ui.table(known.map(([k]) => k), [known.map(([, v]) => v)]);
+ 		if (m.window?.note) md("*" + m.window.note + "*");
+ 
+ 		if (m.usage) ui.table(
+ 			["input", "cache write", "cache read", "output", "api calls"],
+ 			[[m.usage.input, m.usage.cache_write, m.usage.cache_read, m.usage.output, m.usage.calls]
+-				.map(n => n?.toLocaleString() ?? "—")]
++				.map(n => n?.toLocaleString() ?? "not recorded")]
+ 		);
+ 
+ 		if (m.agents?.length) ui.table(
+ 			["agent", "model", "tokens", "time", "cost", "outcome"],
+-			m.agents.map(a => [a.task ?? a.type ?? "—", a.model ?? "—",
+-				a.tokens?.toLocaleString() ?? "—", time(a.duration_ms),
+-				a.cost_usd != null ? "$" + a.cost_usd : "—", a.outcome ? outcome_cell(a.outcome) : "—"])
++			m.agents.map(a => [a.task ?? a.type ?? "unnamed", a.model ?? "not recorded",
++				a.tokens?.toLocaleString() ?? "not recorded", a.duration_ms == null ? "not recorded" : time(a.duration_ms),
++				a.cost_usd != null ? "$" + a.cost_usd : "not recorded", a.outcome ? outcome_cell(a.outcome) : "no outcome logged"])
+ 		);
+ 	}
+ 
+diff --git a/public/framework/ai/ai/files.jsonl b/public/framework/ai/ai/files.jsonl
+index 7a103ba22..80ff962a5 100644
+--- a/public/framework/ai/ai/files.jsonl
++++ b/public/framework/ai/ai/files.jsonl
+@@ -11,3 +11,6 @@
+ {"file":"v-bn4knay.jsonl"}
+ {"file":"v-g6wux1j.jsonl"}
+ {"file":"v-g6wux1j.summary.json"}
++{"file":"v-bn4knay.jsonl","gone":true}
++{"file":"v-g6wux1j.jsonl","gone":true}
++{"file":"v-g6wux1j.summary.json","gone":true}
+diff --git a/public/framework/ai/audits/paging/files.jsonl b/public/framework/ai/audits/paging/files.jsonl
+index b7dcdb738..a7aea177b 100644
+--- a/public/framework/ai/audits/paging/files.jsonl
++++ b/public/framework/ai/audits/paging/files.jsonl
+@@ -55,3 +55,12 @@
+ {"file":"shot-library-1920.png"}
+ {"file":"shot-variants-1920.png"}
+ {"file":"shot-variants-type-1920.png"}
++{"file":"cols-after.png","gone":true}
++{"file":"cols-before.png","gone":true}
++{"file":"cols-dragged.png","gone":true}
++{"file":"shot-1920.png","gone":true}
++{"file":"shot-content-1920.png","gone":true}
++{"file":"shot-css-1920.png","gone":true}
++{"file":"shot-library-1920.png","gone":true}
++{"file":"shot-variants-1920.png","gone":true}
++{"file":"shot-variants-type-1920.png","gone":true}
+diff --git a/public/framework/ai/errors/files.jsonl b/public/framework/ai/errors/files.jsonl
+index 95b046594..373d308b4 100644
+--- a/public/framework/ai/errors/files.jsonl
++++ b/public/framework/ai/errors/files.jsonl
+@@ -6,3 +6,5 @@
+ {"file":"2026-10-09.jsonl","gone":true}
+ {"file":"2026-10-09.jsonl"}
+ {"file":"2026-10-21.jsonl"}
++{"file":"2026-10-09.jsonl","gone":true}
++{"file":"2026-10-21.jsonl","gone":true}
+diff --git a/public/framework/ai/files.jsonl b/public/framework/ai/files.jsonl
+index 93ead57ff..de7f01a4c 100644
+--- a/public/framework/ai/files.jsonl
++++ b/public/framework/ai/files.jsonl
+@@ -751,3 +751,21 @@
+ {"file":"merge/page.js"}
+ {"file":"process-test-34852/"}
+ {"file":"process-test-34852/","gone":true}
++{"file":"recordings/","gone":true}
++{"file":"usage.json","gone":true}
++{"file":"openrouter-usage.json","gone":true}
++{"file":"servex-queue.json","gone":true}
++{"file":"v-h999x0j.summary.json","gone":true}
++{"file":"v-s9g6vd1.summary.json","gone":true}
++{"file":"v-omwdzl5.summary.json","gone":true}
++{"file":"page-work.json","gone":true}
++{"file":"screenshots/","gone":true}
++{"file":"v-rs7u4o7.summary.json","gone":true}
++{"file":"v-ih8xwwd.jsonl","gone":true}
++{"file":"v-ih8xwwd.summary.json","gone":true}
++{"file":"v-s6za79d.jsonl","gone":true}
++{"file":"v-vnsnak7.jsonl","gone":true}
++{"file":"v-vnsnak7.summary.json","gone":true}
++{"file":"state.json","gone":true}
++{"file":"index.jsonl.lock","gone":true}
++{"file":"index.jsonl","gone":true}
+diff --git a/public/framework/catalog/files.jsonl b/public/framework/catalog/files.jsonl
+index 593bbf5f6..d90940750 100644
+--- a/public/framework/catalog/files.jsonl
++++ b/public/framework/catalog/files.jsonl
+@@ -10,3 +10,4 @@
+ {"file":"thumbs/"}
+ {"file":"thumbs/","gone":true}
+ {"file":"thumbs/"}
++{"file":"thumbs/","gone":true}
+diff --git a/public/framework/core/Item/tasks/ui-actions-as-deltas/files.jsonl b/public/framework/core/Item/tasks/ui-actions-as-deltas/files.jsonl
+index d6215791a..8c10617a9 100644
+--- a/public/framework/core/Item/tasks/ui-actions-as-deltas/files.jsonl
++++ b/public/framework/core/Item/tasks/ui-actions-as-deltas/files.jsonl
+@@ -5,3 +5,4 @@
+ {"file":"shots/"}
+ {"file":"inbox.jsonl"}
+ {"file":"layout-check/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/core/Page/files.jsonl b/public/framework/core/Page/files.jsonl
+index dd6c76c05..a57c70e5d 100644
+--- a/public/framework/core/Page/files.jsonl
++++ b/public/framework/core/Page/files.jsonl
+@@ -91,3 +91,5 @@
+ {"file":"readme.md","gone":true}
+ {"file":"readme.md"}
+ {"file":"Page.test.mjs"}
++{"file":"screenshots/","gone":true}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/core/Page/tasks/page-mastermind/files.jsonl b/public/framework/core/Page/tasks/page-mastermind/files.jsonl
+index f8ff48adc..d95e2f5fc 100644
+--- a/public/framework/core/Page/tasks/page-mastermind/files.jsonl
++++ b/public/framework/core/Page/tasks/page-mastermind/files.jsonl
+@@ -34,3 +34,5 @@
+ {"file":"part-types/page.js"}
+ {"file":"qf3-work-tab/"}
+ {"file":"nav-rule/"}
++{"file":"sessions-fit/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/core/Page/tasks/page-mastermind/part-types/files.jsonl b/public/framework/core/Page/tasks/page-mastermind/part-types/files.jsonl
+index 95314e292..cc89b0e13 100644
+--- a/public/framework/core/Page/tasks/page-mastermind/part-types/files.jsonl
++++ b/public/framework/core/Page/tasks/page-mastermind/part-types/files.jsonl
+@@ -15,3 +15,4 @@
+ {"file":"review.jsonl"}
+ {"file":"pt-l.json"}
+ {"file":"pt-l.json","gone":true}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/core/Test/files.jsonl b/public/framework/core/Test/files.jsonl
+index a69d3fe31..eeef8b234 100644
+--- a/public/framework/core/Test/files.jsonl
++++ b/public/framework/core/Test/files.jsonl
+@@ -8,3 +8,4 @@
+ {"file":"improvements.jsonl"}
+ {"file":"TestRunner.test.mjs"}
+ {"file":"save-results.jsonl"}
++{"file":"save-results.jsonl","gone":true}
+diff --git a/public/framework/core/Test/tasks/files.jsonl b/public/framework/core/Test/tasks/files.jsonl
+index 5950e86d2..fcf8ba781 100644
+--- a/public/framework/core/Test/tasks/files.jsonl
++++ b/public/framework/core/Test/tasks/files.jsonl
+@@ -1 +1,2 @@
+ {"file":"test-system/"}
++{"file":"test-system/page.js"}
+diff --git a/public/framework/core/Test/tasks/test-system/files.jsonl b/public/framework/core/Test/tasks/test-system/files.jsonl
+index 12e2705d3..d170574cd 100644
+--- a/public/framework/core/Test/tasks/test-system/files.jsonl
++++ b/public/framework/core/Test/tasks/test-system/files.jsonl
+@@ -10,3 +10,5 @@
+ {"file":"review.jsonl"}
+ {"file":"test-page-1400.png"}
+ {"file":"layout-check/"}
++{"file":"page.js"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ext/drawer/tasks/files.jsonl b/public/framework/ext/drawer/tasks/files.jsonl
+index 22a5c5c7d..d82240d06 100644
+--- a/public/framework/ext/drawer/tasks/files.jsonl
++++ b/public/framework/ext/drawer/tasks/files.jsonl
+@@ -5,3 +5,4 @@
+ {"file":"voice-on-panel/page.js"}
+ {"file":"coral-badge-when-readme-is-staying/page.js"}
+ {"file":"amber-badge-when-readme-is-stale/page.js"}
++{"file":"amber-badge-when-readme-is-stale/"}

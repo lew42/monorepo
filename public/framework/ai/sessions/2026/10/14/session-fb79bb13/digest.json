@@ -1,0 +1,52 @@
+{
+ "id": "fb79bb13-7967-41f5-a98b-cd61d8bf6413",
+ "first": "2026-10-14T03:56:39.457Z",
+ "last": "2026-10-14T03:57:52.172Z",
+ "models": {
+  "claude-haiku-5-5": 5
+ },
+ "sizes": {
+  "raw": 9755,
+  "content": 282,
+  "stripped": 282,
+  "owner_only": 220
+ },
+ "usd": 0.005709,
+ "usd_main": 0.005709,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 10,
+  "output": 75,
+  "cache_read": 7021,
+  "cache_write": 2311,
+  "w5": 0,
+  "w1": 2311
+ },
+ "messages": 5,
+ "subagent_files": 0,
+ "prompts": [
+  {
+   "at": "2026-10-14T03:56:39.508Z",
+   "t": "[from: owner]\n[on /framework/] This is an end-to-end test of the dictation flow.\n(the owner has stopped: quiet for 2.5 s)"
+  },
+  {
+   "at": "2026-10-14T03:56:50.149Z",
+   "t": "[from: owner]\n[on /framework/] Smart Assistant, which page lists all the sessions.\n(the owner has stopped: quiet for 2.5 s)"
+  },
+  {
+   "at": "2026-10-14T03:57:07.296Z",
+   "t": "[from: owner]\n[on /framework/] This third sentence only checks the order.\n[on /framework/] It is not a test.\n(the owner has stopped: quiet for 2.5 s)"
+  },
+  {
+   "at": "2026-10-14T03:57:20.987Z",
+   "t": "[from: owner]\n[on /framework/] Smart assistant, please reply with one short line to end the test.\n(the owner has stopped: quiet for 2.5 s)"
+  },
+  {
+   "at": "2026-10-14T03:57:51.495Z",
+   "t": "[from: owner]\n[on /framework/] an end-to-end test of the dictation.\n(the owner has stopped: the mic is off)"
+  }
+ ],
+ "result": "(listening)",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.318Z"
+}

@@ -1,0 +1,13 @@
+@layer base, theme, site, util;
+
+@layer site {
+	.instance-tree { font-size: .85em; }
+	.instance-tree-head { padding-block: .25em; }
+	.instance-node > .instance-kids { padding-inline-start: 1.2em; border-inline-start: 1px solid color-mix(in srgb, currentColor 20%, transparent); margin-inline-start: .5em; }
+	.instance-row { display: flex; border: 0; background: none; box-shadow: none; width: auto; align-items: center; gap: .4em; padding: .15em .3em; cursor: pointer; border-radius: .3em; }
+	.instance-row:hover { background: color-mix(in srgb, currentColor 8%, transparent); }
+	.instance-node.is-active > .instance-row { background: color-mix(in srgb, var(--accent, #4a8) 25%, transparent); font-weight: 600; }
+	.instance-class { opacity: .7; }
+	.instance-view { margin-inline-start: auto; font: inherit; font-size: .8em; padding: 0 .5em; }
+	.instance-props { padding: .3em .5em; }
+}

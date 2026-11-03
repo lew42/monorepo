@@ -1,0 +1,632 @@
+{
+	"name": "rust-book-intro",
+	"url": "https://doc.rust-lang.org/book/ch00-00-introduction.html",
+	"title": "Introduction - The Rust Programming Language",
+	"category": "documentation",
+	"captured_at": "2026-09-08T05:54:22.326Z",
+	"embed": "allowed",
+	"embed_note": "no x-frame-options and no restrictive frame-ancestors",
+	"shots": {
+		"400": "site/rust-book-intro/400.jpg",
+		"1280": "site/rust-book-intro/1280.jpg",
+		"1920": "site/rust-book-intro/1920.jpg",
+		"3440": "site/rust-book-intro/3440.jpg",
+		"long": "site/rust-book-intro/long.jpg"
+	},
+	"layout": {
+		"400": "1-flow",
+		"1280": "2-sidebar",
+		"1920": "2-sidebar",
+		"3440": "2-sidebar"
+	},
+	"sections": [
+		{
+			"name": "toolbar",
+			"layout": "1-flow",
+			"css": "flex row",
+			"note": "the menu, paintbrush (theme), search, print and GitHub icons sit in one row above the chapter title at every width, including 400."
+		},
+		{
+			"name": "chapter sidebar",
+			"layout": "2-sidebar left",
+			"css": "position: fixed, 300px",
+			"note": "not grid or flex — the whole page is plain blocks, and the sidebar is simply position: fixed at exactly 300px; below about 620px it is not squeezed or drawered, it is entirely absent from the scan and replaced by the menu icon."
+		},
+		{
+			"name": "chapter text",
+			"layout": "1-centered",
+			"css": "block, fixed measure centred in the leftover space",
+			"note": "the surprise is inside main: the scan measures it at exactly 750px wide at 1280, 1920 AND 3440 — the same pixel number at every desktop width — while the wrapper AROUND it keeps growing and pushes it toward the middle of the leftover room. The picture makes 3440 look like 'a bit of text in a lot of white'; the scan shows the text column itself never changed at all."
+		},
+		{
+			"name": "prev/next footer",
+			"layout": "2-equal",
+			"css": "block row, 2 links",
+			"note": "a two-item row (previous chapter / next chapter) at the end of the article, matching the width of the text column above it."
+		}
+	],
+	"tags": [
+		"2-sidebar",
+		"1-flow",
+		"1-centered",
+		"left",
+		"rail",
+		"measure",
+		"max-width",
+		"drawer",
+		"fixed sidebar",
+		"hamburger",
+		"documentation"
+	],
+	"responsive": {
+		"strategy": "A fixed 300px sidebar holds the whole book's table of contents on the left, and below about 620px it does not shrink or slide off-canvas — the scan shows it is simply gone, replaced by a menu button. The more interesting move happens to the text itself: the actual paragraph column keeps an exact 750px measure at every desktop width, and it centres itself in whatever room the sidebar leaves behind, so a laptop and an ultrawide monitor show the identical column width with very different amounts of empty margin around it.",
+		"breakpoints": [
+			420,
+			620,
+			1080
+		],
+		"queries": [
+			"(-moz-touch-enabled: 1), (pointer: coarse) {",
+			"(pointer: coarse) {",
+			"(prefers-color-scheme: dark) {",
+			"not (prefers-reduced-motion) {",
+			"only screen and (max-width: 1080px) {",
+			"only screen and (max-width: 1380px) {",
+			"only screen and (max-width: 420px) {",
+			"only screen and (min-width: 620px) {"
+		]
+	},
+	"scan": {
+		"scanned_at": "2026-09-08T05:54:34.403Z",
+		"css": {
+			"sheets": 12,
+			"bytes": 48362,
+			"inline_bytes": 0
+		},
+		"media": [
+			"(-moz-touch-enabled: 1), (pointer: coarse) {",
+			"(pointer: coarse) {",
+			"(prefers-color-scheme: dark) {",
+			"not (prefers-reduced-motion) {",
+			"only screen and (max-width: 1080px) {",
+			"only screen and (max-width: 1380px) {",
+			"only screen and (max-width: 420px) {",
+			"only screen and (min-width: 620px) {"
+		],
+		"container": [],
+		"breakpoints_seen": [
+			{
+				"px": 420,
+				"count": 1
+			},
+			{
+				"px": 620,
+				"count": 1
+			},
+			{
+				"px": 1080,
+				"count": 1
+			},
+			{
+				"px": 1380,
+				"count": 1
+			}
+		],
+		"widths": {
+			"400": {
+				"doc": [
+					400,
+					6826
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "main",
+						"display": "block",
+						"rect": [
+							20,
+							72,
+							360,
+							6598
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "note",
+						"display": "block",
+						"rect": [
+							20,
+							137,
+							360,
+							127
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "nav-wrapper",
+						"display": "block",
+						"rect": [
+							20,
+							6721,
+							360,
+							55
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "mdbook-body-container",
+						"display": "block",
+						"rect": [
+							0,
+							-50,
+							400,
+							6876
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "mdbook-page-wrapper",
+						"class": "page-wrapper",
+						"display": "block",
+						"rect": [
+							0,
+							-50,
+							400,
+							6876
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "page",
+						"display": "block",
+						"rect": [
+							0,
+							-50,
+							400,
+							6876
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "mdbook-content",
+						"class": "content",
+						"display": "block",
+						"rect": [
+							15,
+							51,
+							370,
+							6775
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "p",
+						"display": "block",
+						"rect": [
+							20,
+							3748,
+							360,
+							394
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1280": {
+				"doc": [
+					1280,
+					4307
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"id": "mdbook-sidebar",
+						"class": "sidebar",
+						"display": "block",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							300,
+							800
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"display": "block",
+						"rect": [
+							419,
+							72,
+							750,
+							4079
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "note",
+						"display": "block",
+						"rect": [
+							419,
+							137,
+							750,
+							80
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "nav-wrapper",
+						"display": "block",
+						"rect": [
+							328,
+							4202,
+							932,
+							55
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "mdbook-body-container",
+						"display": "block",
+						"rect": [
+							0,
+							-50,
+							1280,
+							4357
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "mdbook-page-wrapper",
+						"class": "page-wrapper",
+						"display": "block",
+						"rect": [
+							308,
+							-50,
+							972,
+							4357
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "page",
+						"display": "block",
+						"rect": [
+							308,
+							-50,
+							972,
+							4357
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "mdbook-content",
+						"class": "content",
+						"display": "block",
+						"rect": [
+							323,
+							51,
+							942,
+							4256
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "ol",
+						"class": "chapter",
+						"display": "block",
+						"rect": [
+							10,
+							24,
+							280,
+							4416
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1920": {
+				"doc": [
+					1920,
+					4218
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"id": "mdbook-sidebar",
+						"class": "sidebar",
+						"display": "block",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							300,
+							1080
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"display": "block",
+						"rect": [
+							739,
+							72,
+							750,
+							4079
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "note",
+						"display": "block",
+						"rect": [
+							739,
+							137,
+							750,
+							80
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "mdbook-body-container",
+						"display": "block",
+						"rect": [
+							0,
+							-50,
+							1920,
+							4268
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "mdbook-page-wrapper",
+						"class": "page-wrapper",
+						"display": "block",
+						"rect": [
+							308,
+							-50,
+							1612,
+							4268
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "page",
+						"display": "block",
+						"rect": [
+							308,
+							-50,
+							1612,
+							4268
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "mdbook-content",
+						"class": "content",
+						"display": "block",
+						"rect": [
+							323,
+							51,
+							1582,
+							4167
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "ol",
+						"class": "chapter",
+						"display": "block",
+						"rect": [
+							10,
+							24,
+							280,
+							4416
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"3440": {
+				"doc": [
+					3440,
+					4218
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"id": "mdbook-sidebar",
+						"class": "sidebar",
+						"display": "block",
+						"position": "fixed",
+						"rect": [
+							0,
+							0,
+							300,
+							1440
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"display": "block",
+						"rect": [
+							1499,
+							72,
+							750,
+							4079
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "section",
+						"class": "note",
+						"display": "block",
+						"rect": [
+							1499,
+							137,
+							750,
+							80
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "mdbook-body-container",
+						"display": "block",
+						"rect": [
+							0,
+							-50,
+							3440,
+							4268
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "mdbook-page-wrapper",
+						"class": "page-wrapper",
+						"display": "block",
+						"rect": [
+							308,
+							-50,
+							3132,
+							4268
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "page",
+						"display": "block",
+						"rect": [
+							308,
+							-50,
+							3132,
+							4268
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "mdbook-content",
+						"class": "content",
+						"display": "block",
+						"rect": [
+							323,
+							51,
+							3102,
+							4167
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "ol",
+						"class": "chapter",
+						"display": "block",
+						"rect": [
+							10,
+							24,
+							280,
+							4416
+						],
+						"side_by_side": 1
+					}
+				]
+			}
+		}
+	},
+	"notes": "This is a classic programming-book site: every chapter listed down the left side, the chapter you are reading on the right. On a phone that chapter list disappears completely and a menu button takes its place instead of shrinking to fit. The clever part only shows up in the measurements, not the picture: the paragraph column always stays exactly 750 pixels wide, whether the screen is a laptop or a giant ultrawide monitor, and it centres itself in the space next to the sidebar — a wider screen never gives you a longer line of text, only more quiet space around it. The little blue note box and the previous/next chapter buttons both simply match whatever width that text column already is.",
+	"wire": {
+		"role": "page",
+		"kids": [
+			{
+				"role": "header",
+				"h": "3.5em"
+			},
+			{
+				"role": "main",
+				"dir": "row",
+				"center": true,
+				"floor": "39rem",
+				"kids": [
+					{
+						"role": "aside",
+						"w": "18.75em",
+						"lines": 14
+					},
+					{
+						"role": "main",
+						"w": "46.875em",
+						"lines": 10
+					}
+				]
+			},
+			{
+				"role": "footer",
+				"dir": "row",
+				"floor": "none",
+				"h": "4em",
+				"kids": [
+					{
+						"role": "button",
+						"w": 1
+					},
+					{
+						"role": "button",
+						"w": 1
+					}
+				]
+			}
+		]
+	}
+}

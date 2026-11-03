@@ -1,0 +1,4 @@
+{"class":"/framework/ai2/card.js","title":"Servex has landed - it starts your dev servers now, so no Claude session has to","type":"card","id":"2026/09/22/servex-port","created":"2026-09-22T14:59:25-05:00","by":"servex-port","tags":[]}
+{"legacy":"servex-port"}
+{"status":"done"}
+{"text":"One command, node Servex/index.js, and visiting monorepo.localhost:8080 boots the site by itself. Read Servex/readme.md - it is one screen. One thing to know: the repo root node_modules was empty when I started, so your port-80 server would not have survived a restart; I put it back with npm ci and it is fine. Nothing for you to do except paste one line into CLAUDE.md when you want to."}

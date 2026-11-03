@@ -1,0 +1,688 @@
+{
+	"at": "2026-09-29T20:36:16.791Z",
+	"model": "claude-sonnet-5",
+	"module": "core/Page",
+	"build": {
+		"session_id": "2343162e-2cef-473d-b9d0-eb9e7c56d177",
+		"built_at": "2026-09-29T20:35:59.971Z",
+		"full_s": 2.1,
+		"tokens": 109604,
+		"files": 18,
+		"cost": 0.3180732,
+		"input": 2,
+		"cache_read": 31676,
+		"cache_write": 77921,
+		"output": 5
+	},
+	"runs": [
+		{
+			"q": 1,
+			"question": "How does a page.jsonl page route its children?",
+			"way": "a",
+			"answer": "A `page.jsonl` page routes its children through the same `Page.child(name)` in `Page.class.js`, but a `page.jsonl` file line short-circuits the ordinary filesystem probe.\n\nHere's the chain of reasoning:\n\n1. **Declaring the link.** `Log.js`'s `file(name)` method (called by `set()` for every `{\"file\": \"…\"}` line) tests the name against `CHILD` — the regex `/^([^/]+)\\/page\\.(jsonl|js)$/`. A line like `{\"file\": \"kid/page.jsonl\"}` matches, so it calls `link_child(name)`, which in turn calls `child_file(entry)`. That records `this.child_kinds.set(\"kid\", \"jsonl\")` (a Map on the page) and adds `\"kid\"` to `this.children` as an unresolved entry (`children.set(dir, null)`) if it isn't already there.\n\n2. **Resolving the link at navigation time.** When the Router walks a url and calls `page.child(\"kid\")` (`Page.class.js`), the ordinary order is: memory (`known = this.children.get(name)`), then `route()`, then a `page.js` probe (`Page.load`), then a `.md` fallback. But before the `route()`/probe steps, `child()` has this specific check:\n\n```js\nif (this.child_kinds?.get(name) === \"jsonl\") {\n    const page = await Page.jsonl(this.url + name + \"/\");\n    return page && this.add(name, page).load_all_children(levels);\n}\n```\n\nSo a child that was declared via a `kid/page.jsonl` file line is read straight through `Page.jsonl(url)` (in `Log.js`) — **no import probe, no guessing**. This is the \"no probe\" case doc/declaring.md and the jsonl doc call out explicitly: normal folders are discovered by trying `Page.load()` (a dynamic `import()`) and falling through to `.md`; a `page.jsonl`-linked child skips straight to the log reader because the page already told you what kind of file answers that name.\n\n3. **What `Page.jsonl()` does.** It's a static on `PageLog` (`Log.js`): builds a `Reader` over `<url>page.jsonl`, awaits `reader.open()` (which streams live on localhost via `ext/JSONL/live.js`, or does a one-shot fetch off localhost), reads line 1 as the constructor args (optionally naming `\"class\"` to build a `Page` subclass instead of a plain `Page`/`Card`), sets `page.content ??= page.log_view`, and attaches the reader so later lines stream in via `set()`.\n\nOne more wrinkle worth naming: a `page.js` parent can declare the same link by hand in its `children:` string — `children: \"generator jsonl/page.jsonl\"` — and `declare()` routes that string through `this.child_file(child)` too (`Page.class.js`, the `declare()` method calls `child_file` on each string entry), which populates `child_kinds` the same way the jsonl log's own `file()` line does. So both a `page.js` parent and a `page.jsonl` parent end up feeding the identical `child_kinds` Map that `child()` checks.",
+			"first_s": 2.2,
+			"full_s": 12.7,
+			"tools": 0,
+			"input": 2,
+			"cache_read": 109597,
+			"cache_write": 344,
+			"output": 1048,
+			"cost": 0.0338,
+			"stale_rebuilt": false,
+			"score": 3,
+			"reason": "Correct, and adds that a page.js parent's children:\"x/page.jsonl\" goes through declare()→child_file and fills the same child_kinds map.",
+			"used": [
+				"public/framework/core/Page/Log.js",
+				"public/framework/core/Page/Page.class.js",
+				"public/framework/core/Page/doc/jsonl.md",
+				"public/framework/core/Page/doc/declaring.md"
+			]
+		},
+		{
+			"q": 1,
+			"question": "How does a page.jsonl page route its children?",
+			"way": "b",
+			"answer": "I have enough concrete detail now. Let me look at the `child()` method context (lines ~1480-1500) precisely for line numbers in the actual source file.\n\nA `page.jsonl` page routes its children through `Page.class.js`'s `child(name, levels)` (around line 1487 in the loaded bundle) working together with `Log.js`'s `child_file()` and `link_child()`.\n\nConcretely: when a `page.jsonl` line is `{\"file\": \"kid/page.jsonl\"}` (or `\"kid/page.js\"`), `Log.js`'s `link_child(name)` calls `child_file(entry)` (Log.js, ~line 2749), which matches the entry against `CHILD = /^([^/]+)\\/page\\.(jsonl|js)$/` (Log.js, ~line 2702). That regex splits `\"kid/page.jsonl\"` into the child's name (`dir`) and its kind (`jsonl` or `js`), records the kind in `this.child_kinds` (a `Map`, keyed by the first path segment so `\"kid/\"` and `\"kid/page.jsonl\"` collapse to one entry — comment at Log.js ~2704), and returns just `dir` to be added to `this.children` as an unloaded (`null`) entry.\n\nRouting then happens lazily in `Page.class.js`'s `child(name, levels)` (~line 1487-1498), the same method every page type uses when the Router asks for a segment: it checks `this.child_kinds?.get(name) === \"jsonl\"` (line 1495) and, if so, calls the static loader `Page.jsonl(this.url + name + \"/\")` directly — \"read from that file — no probe\" (comment, line 1494) — rather than falling through to `route()` or a filesystem probe. `Page.jsonl()` itself (Log.js, static method ~line 2889) fetches `page.jsonl` at that url via a `Reader`, builds the page from line 1 (`new Class(line1)`, or a named `\"class\"` module), then feeds every subsequent line to `set()`.\n\nSo the routing chain is: jsonl `file` lines → `link_child`/`child_file` populate `children` + `child_kinds` (Log.js ~2749-2760) → Router asks for a name → `Page.class.js#child()` sees `child_kinds.get(name) === \"jsonl\"` (line 1495) → `Page.jsonl(url)` loads that child's own log file directly, skipping the probe/`route()` path that undeclared folders would otherwise use.",
+			"first_s": 48.3,
+			"full_s": 56.7,
+			"tools": 7,
+			"input": 16,
+			"cache_read": 388961,
+			"cache_write": 29070,
+			"output": 2384,
+			"cost": 0.219,
+			"timed_out": false,
+			"score": 3,
+			"reason": "Correct chain: file line → CHILD regex → child_file/link_child fill child_kinds and a null placeholder → child() jsonl branch calls Page.jsonl with no probe; line numbers refer to a bundle, not the source.",
+			"used": [
+				"public/framework/core/Page/Log.js",
+				"public/framework/core/Page/Page.class.js"
+			]
+		},
+		{
+			"q": 1,
+			"question": "How does a page.jsonl page route its children?",
+			"way": "c",
+			"answer": "A page.jsonl page routes children through the same `Page.child(name)` method every page uses (`Page.class.js`), but the log format pre-declares which names are children so `child()` never has to probe the filesystem for them.\n\nConcretely:\n\n1. **Linking happens on the way in, in `Log.js`.** Every `{\"file\": \"...\"}` line calls `file(name)`. `file()` tests the name against `CHILD = /^([^/]+)\\/page\\.(jsonl|js)$/`. A match (e.g. `\"kid/page.jsonl\"` or `\"kid/page.js\"`) calls `link_child(name)`, which calls `child_file(name)` to split it into `dir` (\"kid\") and `kind` (\"jsonl\" or \"js\"), records `this.child_kinds.set(dir, kind)`, and — if not already there — sets `this.children.set(dir, null)` (`Log.js`, `file()`/`child_file()`/`link_child()`). So by the time anyone routes, the page's `children` Map already has an entry for `kid`, and `child_kinds` remembers whether it's a `.jsonl` or `.js` child.\n\n2. **Routing itself is `Page.child(name)` in `Page.class.js`.** The relevant branch:\n```js\nasync child(name, levels){\n    ...\n    const known = this.children.get(name);\n    if (known) return known.assign({ app: this.app }).load_all_children(levels);\n\n    // A child the listing named as `kid/page.jsonl` is read from that file — no probe.\n    if (this.child_kinds?.get(name) === \"jsonl\") {\n        const page = await Page.jsonl(this.url + name + \"/\");\n        return page && this.add(name, page).load_all_children(levels);\n    }\n    ...\n}\n```\nSo there are two cases:\n   - **`kid/page.js`**: `child_kinds.get(\"kid\")` is `\"js\"`, which doesn't match the jsonl branch, so `child()` falls through to the ordinary `Page.load(this.url + name + \"/\", 0)` probe — a dynamic `import(url + \"page.js\")`. A `page.js` child wins over a same-named `page.jsonl` beside it (stated in `doc/jsonl.md`'s \"Three steps\" section, step 2).\n   - **`kid/page.jsonl`**: `child_kinds.get(\"kid\")` is `\"jsonl\"`, so `child()` calls `Page.jsonl(this.url + name + \"/\")` directly — no import probe, no 404 risk. `Page.jsonl` is `PageLog.jsonl` (`Log.js`), which fetches `page.jsonl` via `PageLog.Reader`, builds line 1 as `new Class(line)` (Class is `this` unless line 1 names `\"class\"`), attaches the reader, and returns the page. Back in `child()`, that returned page is adopted with `this.add(name, page)`.\n\n3. **`unlink_child(key)`** is the inverse — a `{\"file\": \"kid/page.jsonl\", \"gone\": true}` line calls `file()` then `gone(true)`, which deletes the `listed` entry and calls `unlink_child`, which deletes the `child_kinds` entry and removes it from `this.children` (`Log.js`).\n\nSo the one line of reasoning: **`link_child`/`child_kinds` (set by `file()` lines in `Log.js`) turns \"route by probing the filesystem\" into \"route by reading a recorded kind,\" and `Page.child()`'s `child_kinds?.get(name) === \"jsonl\"` check (`Page.class.js`) is the actual routing fork that calls `Page.jsonl()` instead of `Page.load()`.**",
+			"first_s": 2.1,
+			"full_s": 13,
+			"tools": 0,
+			"input": 2,
+			"cache_read": 31676,
+			"cache_write": 77985,
+			"output": 1211,
+			"cost": 0.3842,
+			"timed_out": false,
+			"score": 3,
+			"reason": "Correct and complete: link_child/child_kinds, the jsonl fork in child(), a kid/page.js child falling through to the Page.load probe, page.js winning over page.jsonl, and the gone/unlink_child inverse.",
+			"used": [
+				"public/framework/core/Page/Log.js",
+				"public/framework/core/Page/Page.class.js",
+				"public/framework/core/Page/doc/jsonl.md"
+			]
+		},
+		{
+			"q": 1,
+			"question": "How does a page.jsonl page route its children?",
+			"way": "d",
+			"answer": "A page.jsonl doesn't route its own children with special logic — it uses the same `child_kinds` map every Page has, just populated a different way.\n\nEach `{\"file\": \"kid/page.jsonl\"}` line runs `set()` → `file()` (Log.js:50-53), which sees the name matches `CHILD` (`/^([^/]+)\\/page\\.(jsonl|js)$/`, Log.js:19) and calls `link_child()` (Log.js:74-77). `link_child` calls `child_file(name)` (Log.js:66-72), which records `this.child_kinds.set(\"kid\", \"jsonl\")` and returns `\"kid\"`, then sets `this.children.set(\"kid\", null)` — a declared-but-unresolved child, same shape a page.js's `declare()` produces for a plain string entry (Page.class.js:114).\n\nRouting itself happens later, when something actually asks for that name via `Page.child(name, levels)` (Page.class.js:198-228). The relevant branch is line 206-208:\n\n```js\nif (this.child_kinds?.get(name) === \"jsonl\") {\n    const page = await Page.jsonl(this.url + name + \"/\");\n    return page && this.add(name, page).load_all_children(levels);\n}\n```\n\nBecause `child_kinds.get(\"kid\")` is `\"jsonl\"`, `child()` skips the normal `route()`/`Page.load()`/probe chain entirely and calls the static loader `Page.jsonl(url)` (Log.js:206-220), which reads `kid/page.jsonl` via `PageLog.Reader`, builds the child page from its first line, and streams the rest as `set()` calls. The child is then adopted with `this.add(name, page)` (Page.class.js:140-153), same as any other child.\n\nSo: the jsonl format's only routing contribution is stamping `child_kinds` (a plain `Map<name, \"jsonl\"|\"js\">`) during `file()`/`link_child()`/`child_file()` in Log.js; the actual dispatch-on-name still lives in `Page.child()` in Page.class.js, which checks that map before falling through to `route()` and the filesystem probe. This is also why `child()`'s comment at Page.class.js:205 says \"no probe\" — the jsonl case is resolved from the map, never guessed.",
+			"first_s": 20.7,
+			"full_s": 29.1,
+			"tools": 4,
+			"input": 8,
+			"cache_read": 208635,
+			"cache_write": 53975,
+			"output": 1424,
+			"cost": 0.2729,
+			"timed_out": false,
+			"score": 3,
+			"reason": "Correct, with accurate source line numbers (Log.js:19, 50-77, 206-220; Page.class.js:198-228).",
+			"used": [
+				"public/framework/core/Page/Log.js",
+				"public/framework/core/Page/Page.class.js"
+			]
+		},
+		{
+			"q": 2,
+			"question": "What does `display: contents` do in column pages?",
+			"way": "a",
+			"answer": "In a columns tree, `display: contents` is what makes the row of columns work without breaking the DOM tree into something else.\n\nEach page keeps its `$pages` region inside its own view — the DOM stays an ordinary nested tree (a page's children are really nested inside it), and the arrangement contract (`.active-page` / `.active-ancestor` visibility rules, `doc/css.md`) is untouched: a column closes because it lost its mark, not because anything physically moved it out of the tree.\n\nThen, per `doc/columns.md` under \"The mechanism\": `display: contents` is applied on every descendant *page* and every *region* — it deletes those wrapper boxes from layout, so the only flex items the columns row (`.page-columns-row`) actually sees are the column bodies (`.page-column-body`, built by `column()` in `Page.class.js`). So visually you get peers side by side in a flex row; structurally it's still a tree, several levels deep.\n\nThis is asked for at render time, not walked over the tree — `column_host()` in `Page.class.js` does `this.chain().find(page => page.columnar)`, so a page that only loads when you navigate to it still becomes a column the moment it renders, because `render()` checks `column_host()` and calls `render_column(host)` instead of the ordinary page shape.\n\nTwo watch-outs tied directly to `display: contents`, from the \"What has bitten\" section of `doc/columns.md`:\n- `:has()` doesn't care whether a `display: contents` element is painted — a closed page is still in the DOM (just contents-collapsed), so the selector that collapses ancestors under a `full` column kept matching after navigating away until the mark itself (`.active-page`/`.active-ancestor`/`.default`) was included in the test.\n- The three width tokens (`--page-column-flex`, `-min`, `-max`) are custom properties and inherit through `display: contents` elements same as any other — so a nested `.page.columns` row built inside a `full` column used to inherit its ancestor's values instead of its own defaults, until `.page.columns` was made to reset all three to `initial`.",
+			"first_s": 1.4,
+			"full_s": 8.3,
+			"tools": 0,
+			"input": 2,
+			"cache_read": 109597,
+			"cache_write": 344,
+			"output": 688,
+			"cost": 0.0302,
+			"stale_rebuilt": false,
+			"score": 3,
+			"reason": "Correct mechanism, plus render-time column_host and two real watch-outs from the doc: :has() still matching closed pages, and width tokens inheriting through contents.",
+			"used": [
+				"public/framework/core/Page/doc/columns.md",
+				"public/framework/core/Page/Page.class.js"
+			]
+		},
+		{
+			"q": 2,
+			"question": "What does `display: contents` do in column pages?",
+			"way": "b",
+			"answer": "The mechanism is documented in `public/framework/core/Page/doc/columns.md` (the \"The mechanism\" section, around text offset ~65666 in the loaded module).\n\nConcretely: `display: contents` is applied to every descendant `.page.column` and every `$pages` region in the column subtree. This deletes those elements' own boxes from layout entirely — they stop being flex items — while leaving the DOM tree itself untouched (`doc/columns.md`: \"the DOM is an ordinary nested tree ... `display: contents` on every descendant page and every region deletes those boxes from layout, so the only flex items the row ever sees are the column bodies. Peers on screen, a tree in the DOM.\").\n\nSo the row layout only ever sees the actual column *bodies* as flex children, even though those bodies are arbitrarily nested pages/regions in the real DOM tree — the intervening wrapper boxes (`.page.column`, `$pages` regions) are made to disappear from the box tree without being removed from the document. A column closes because it lost its mark, not because anything was physically moved (same doc, \"The mechanism\" intro).\n\nThis has a direct consequence noted twice (`doc/columns.md` line ~58092 and the code comment at ~121117 in the column-seam source): because `.page.column` is `display: contents`, it cannot host an event — there's no box to attach a listener/pointer-capture to. That's why the drag \"seam\" for resizing a column is implemented as a sibling of the body (not a child of it): `column_grab()` puts the seam between the body and the child region so the row itself sees and handles it, rather than trying to put it on the `contents`-collapsed wrapper. The seam also measures 0px so the row's pixel arithmetic still only accounts for the visible column bodies.\n\nThe \"shape\" (which pages become columns) is computed at render time by `column_host()` walking `chain()` — `display: contents` is just the CSS mechanism that makes that logical column tree render as a flat row of peers, not a system that itself decides the tree shape.",
+			"first_s": 15.8,
+			"full_s": 22.6,
+			"tools": 5,
+			"input": 12,
+			"cache_read": 272049,
+			"cache_write": 19625,
+			"output": 1945,
+			"cost": 0.1534,
+			"timed_out": false,
+			"score": 3,
+			"reason": "Correct, and names the seam consequence: sibling of the body, zero outer size.",
+			"used": [
+				"public/framework/core/Page/doc/columns.md",
+				"public/framework/core/Page/Page.class.js"
+			]
+		},
+		{
+			"q": 2,
+			"question": "What does `display: contents` do in column pages?",
+			"way": "c",
+			"answer": "`display: contents` deletes a box from layout while keeping it in the DOM. Two places apply it, per `doc/columns.md` under \"The mechanism\":\n\n1. **Every descendant page's own wrapper** — `render_column()` in `Page.class.js` builds `this.view` as `div.c(\"page\").ac(this === host ? \"columns\" : \"column\")`. That `.page.column`/`.page.columns` element is what `Page.css`'s arrangement contract stamps `display: contents` onto (the CSS side of the contract described in `doc/css.md`/`doc/columns.md`'s \"The mechanism\" section) — so the page tree stays a real nested DOM tree (parent `<div class=\"page column\">` containing child `<div class=\"page column\">`...), but none of those wrapper boxes participate in flex layout.\n\n2. **Every region** (`$pages`) — same rule, so the `page-column-pages` container that holds a column's children is also collapsed out of layout.\n\nBecause both the page wrapper and its region are `display: contents`, the only boxes the row's flexbox actually sees are the `.page-column-body` elements (built by `column()`, `Page.class.js`) — the sticky-head-plus-content box each page draws for itself. So structurally you get a real ancestor/descendant DOM tree (columns can close because a class is removed, not because anything was physically moved — \"a column closes because it lost its mark, not because anything moved it\"), but visually/layout-wise you get a flat row of peer column bodies as flex items.\n\nThis is also explicitly why `column_host()` uses `chain().find(...)` (shallowest match) rather than `findLast()`: since nested pages are already flattened into one row by `display: contents`, a columns host nested inside another columns host doesn't get its own row — its subtree just joins the outer row as more peers, because there's only one row of actual flex items regardless of DOM nesting depth.\n\nThe doc states the one-line summary directly: \"Peers on screen, a tree in the DOM.\"",
+			"first_s": 2.1,
+			"full_s": 9.9,
+			"tools": 0,
+			"input": 2,
+			"cache_read": 31676,
+			"cache_write": 77663,
+			"output": 649,
+			"cost": 0.3773,
+			"timed_out": false,
+			"score": 3,
+			"reason": "Correct: contents on descendant pages and regions leaves only .page-column-body as flex items, a tree in the DOM and peers on screen; the shallowest-host point matches the doc.",
+			"used": [
+				"public/framework/core/Page/doc/columns.md",
+				"public/framework/core/Page/Page.class.js"
+			]
+		},
+		{
+			"q": 2,
+			"question": "What does `display: contents` do in column pages?",
+			"way": "d",
+			"answer": "`display: contents` on every descendant page (and every region inside it) flattens the layout without touching the DOM.\n\nMethod: `page.columns()`, called in `initialize()` on the host page. Effect (`core/Page/Page.css:300-309`, doc at `core/Page/doc/columns.md:1-4`): each page still keeps its `$pages` region nested inside its own view — the DOM stays an ordinary tree, so the normal arrangement contract (a column closes because it lost its route mark, not because something physically moved it) is untouched. But `.page.column` and its regions get `display: contents`, which deletes their boxes from layout entirely — they generate no box, so the only elements the row's flex layout actually sees are the `.page-column-body` elements. Those become direct flex-item peers in one row, each opening to the right of its parent. Net effect: \"peers on screen, a tree in the DOM\" (`Page.css:309`).\n\nConsequence noted at `Page.css:311-315`: since a `display: contents` element has zero box, it can't carry padding/background/border or host a pointer event — that's why `.page-column-pages { display: contents; }` (`Page.css:395`) exists as a bare structural rule, and why the column seam has to live beside the flattened element rather than on it (also called out in `Page.class.js:859` and `ux/Content/structure/doc/weight.md:18-20`, and `core/Page/doc/decisions.md:313`).\n\nThis mechanism is a rediscovery of a proof done earlier in `core/new/1/starter` (`core/new/1/site/versus/lineage/page.js:90`), and was shipped for real as the Miller-columns demo on 2026-08-18 (`ai/2026-08-18/page-columns/task.jsonl`, `ai/2026-08-18/day.jsonl:78`), now live at `core/Page/overview/columns/`.",
+			"first_s": 8.8,
+			"full_s": 14.5,
+			"tools": 3,
+			"input": 6,
+			"cache_read": 129367,
+			"cache_write": 24788,
+			"output": 1098,
+			"cost": 0.137,
+			"timed_out": false,
+			"score": 3,
+			"reason": "Correct mechanism and consequence (no box, so the seam sits beside the body); pads with lineage citations outside the Page module that were not checked.",
+			"used": [
+				"public/framework/core/Page/doc/columns.md",
+				"public/framework/core/Page/Page.class.js"
+			]
+		},
+		{
+			"q": 3,
+			"question": "How does a url nobody declared get resolved (route() and child())?",
+			"way": "a",
+			"answer": "`Page.child(name, levels)` in `Page.class.js` is the resolver. It runs a fixed order of steps for a name that isn't already known, and each one only runs when the name wasn't claimed by an earlier step:\n\n1. **Memory** — `this.children.get(name)`. If a page (or a `null` placeholder from a declared-but-unresolved child) is already there, that wins outright and nothing below runs.\n2. **`md` and `fs`** — before anything else, `name === \"md\"` or `name === \"fs\"` are handled specially: every page gets an `md/` (its markdown files as pages, via `md_folder()`) and an `fs/` (its real directory, via `fs_folder()`), dynamically imported since core doesn't statically import ext.\n3. **`route(name)`** — `const claimed = known === undefined && is.fn(this.route) && this.route(name)`. The `known === undefined` guard is the important part: `route()` only ever gets asked about names the page did *not* declare as a child. A declared child (even one still unresolved, `null`) can never be shadowed by a catalogue route. If `route()` returns a truthy page config, it's added and loaded.\n4. **The filesystem probe** — `Page.load(this.url + name + \"/\", 0)`. This is a dynamic `import(url + \"page.js\")`. `Page.load` distinguishes \"the module doesn't exist\" (`Page.missing(error)`, matched against fetch/MIME-type error text) from \"the module exists but threw\" — only the latter logs an error, so a real syntax error in a page you just wrote doesn't look like a silent 404.\n5. **The `.md` fallback** — `Page.file(this.md_dir() + name + \".md\")`. If a folder has no `page.js` but a sibling `.md` file, that file becomes the page (title from its first `# `, content rendered by `md.file`). This step is last, so a real `page.js` always wins over a same-named `.md`.\n\nIf none of the five hit, `child()` returns `null` and the Router's `load_segments()` walk stops, which is what makes the whole navigation fail (handed to the browser as a real 404/miss).\n\nThe doc's framing for *why* it's shaped this way (`doc/declaring.md`): discovery used to be \"the declaration is the registration — an undeclared name is a loud 404.\" That's inverted now — a folder nobody declared **still works when routed to**, because there's no way to list a directory statically, so the probe just tries the one name it was asked for. The cost is real but bounded: one failed `import()` per genuine 404, and nothing at all for a url that resolves.",
+			"first_s": 3.6,
+			"full_s": 12.3,
+			"tools": 0,
+			"input": 2,
+			"cache_read": 109597,
+			"cache_write": 353,
+			"output": 854,
+			"cost": 0.0319,
+			"stale_rebuilt": false,
+			"score": 2,
+			"reason": "Mostly right, but it claims a null placeholder in memory 'wins outright'; `if (known)` is false for null, so a declared-unresolved name falls through to the probe.",
+			"used": [
+				"public/framework/core/Page/Page.class.js",
+				"public/framework/core/Page/doc/declaring.md"
+			]
+		},
+		{
+			"q": 3,
+			"question": "How does a url nobody declared get resolved (route() and child())?",
+			"way": "b",
+			"answer": "This is exactly what's needed. Here's the answer:\n\n`child(name, levels)` at `public/framework/core/Page/Page.class.js:198-228` is the resolver. For a url segment nobody declared, the order is: it first ensures declared children are loaded via `source_children()` (line 199, memoized on `this.sourcing`), then checks `this.children.get(name)` for a known/declared child (line 201-203). If that misses, it tries the special `md`/`fs` doors (lines 213, 218) and any `child_kinds` jsonl listing (line 206-209). Only after all declared/known paths miss does it reach `route()` at line 220: `const claimed = known === undefined && is.fn(this.route) && this.route(name);` — `route()` is a page-authored function that's given the bare name and returns a page (or falsy) for a name the page didn't declare as a static child, e.g. a wildcard/dynamic segment. The comment at line 191-193 states the invariant: \"Memory, then route(), then a filesystem probe... route() sees undeclared names only, so it cannot shadow a child\" — meaning a declared child always wins over `route()`, so `route()` only ever gets a chance for names that fell through the known-children check.\n\nIf `route()` doesn't claim it either, `child()` falls through to a filesystem probe: `Page.load(this.url + name + \"/\", 0)` (line 223) tries `page.js` at that path, and failing that, `Page.file(this.md_dir() + name + \".md\")` (line 226) tries a matching `.md` file. Whichever of these three (route, directory page.js, or .md file) succeeds gets registered via `this.add(name, ...)` and then `.load_all_children(levels)` is called to recurse to the requested depth. So the resolution order for an undeclared url is: declared children → md/fs special doors → `route(name)` → `Page.load()` directory probe → `Page.file()` markdown probe → null (404).",
+			"first_s": 27.4,
+			"full_s": 33.4,
+			"tools": 8,
+			"input": 18,
+			"cache_read": 425569,
+			"cache_write": 25956,
+			"output": 1946,
+			"cost": 0.2095,
+			"timed_out": false,
+			"score": 2,
+			"reason": "Order and the route()-cannot-shadow guard are right; it leaves out Page.missing (a missing file vs a broken one) and the content-type gate on the .md fallback.",
+			"used": [
+				"public/framework/core/Page/Page.class.js"
+			]
+		},
+		{
+			"q": 3,
+			"question": "How does a url nobody declared get resolved (route() and child())?",
+			"way": "c",
+			"answer": "Two methods, in `Page.class.js` — `child(name, levels)` and `route(name)` — plus the two file-probe fallbacks, all inside `child()`. This is the \"discovery — a probe, not a registry\" section of `doc/declaring.md`.\n\n`child()` runs the steps in this order, each one only tried when the name wasn't already known:\n\n1. **Memory** — `const known = this.children.get(name)`. If a `page.js` (or POJO) declared this name via `children:`, it's already in the `Map` and this returns immediately, no probing at all.\n\n2. **`md` and `fs`** — two hardcoded fallback names every page has (its markdown files, its real folder), checked before `route()` so a page that routes every name still gets them.\n\n3. **`route(name)`** — `const claimed = known === undefined && is.fn(this.route) && this.route(name)`. The `known === undefined` guard is the load-bearing part: `route()` only runs for names the parent never declared. That's what stops a catalogue `route()` from ever shadowing a real declared child — declared always wins, sight unseen. If `route()` returns a config object, `this.add(name, claimed)` builds it as a real child and it's loaded to `levels`.\n\n4. **`Page.load(this.url + name + \"/\", 0)`** — the filesystem probe. A dynamic `import(url + \"page.js\")`, wrapped in try/catch. `Page.missing(error)` pattern-matches the error message (`Failed to fetch dynamically imported module`, `MIME type`, etc.) to tell \"the file genuinely isn't there\" apart from \"the file exists but threw\" — the latter still logs `console.error`, so a real syntax error in a page you just wrote doesn't silently look like a 404.\n\n5. **`Page.file(this.md_dir() + name + \".md\")`** — last resort, a fetch for a sibling `.md` file. Gated on content-type, not HTTP status, because the SPA fallback answers every miss with `index.html` at 200 — `res.headers.get(\"content-type\")?.includes(\"html\")` is the actual 404 test. A hit becomes a page with title from the file's first `# ` line and `md.file` rendering the body.\n\nIf all of these come up empty, `child()` returns `null` and `Router.load_segments()` (`Router.js`) hands the miss to the browser as a real 404 — `load_segments` just awaits `page.child(name)` per url segment and bails the moment one comes back null.\n\nWhichever step succeeds, the result is wired in the same way: `this.add(name, result).load_all_children(levels)` — `add()` is what actually inserts it into `this.children` (the Map), so a name resolved this way is memoized and step 1 (memory) will catch it on the next ask, same as a declared child.",
+			"first_s": 2.4,
+			"full_s": 12.5,
+			"tools": 0,
+			"input": 2,
+			"cache_read": 31676,
+			"cache_write": 78222,
+			"output": 912,
+			"cost": 0.3822,
+			"timed_out": false,
+			"score": 3,
+			"reason": "Correct and complete, including Page.missing, the content-type 404 test, memoising through add(), and Router.load_segments.",
+			"used": [
+				"public/framework/core/Page/Page.class.js",
+				"public/framework/core/Page/doc/declaring.md",
+				"public/framework/core/Router/Router.js"
+			]
+		},
+		{
+			"q": 3,
+			"question": "How does a url nobody declared get resolved (route() and child())?",
+			"way": "d",
+			"answer": "Now let me read the actual `child()` implementation and `route()` in Page.class.js.\n\n`Page.child(name, levels)` in `framework/core/Page/Page.class.js:198-227` is the resolver, called once per URL segment by `Router.load_segments()` (`framework/core/Router/Router.js:79-88`, the walk `page = await page.child(name)`).\n\nFor a name nobody declared, `known = this.children.get(name)` (line 201) comes back `undefined` (not `null` — `null` means \"declared but not yet loaded\", `undefined` means \"never declared\"). That `undefined` is the gate: everything past it only fires when nothing was declared.\n\nOrder of resolution once `known` is `undefined`:\n\n1. `md`/`fs` special names first (lines 213, 218) — every page implicitly has these, checked before route() so a page whose route() claims everything still gets them.\n2. Line 220: `const claimed = known === undefined && is.fn(this.route) && this.route(name);` — if the page defines a `route()` method, it's called with the raw segment name. Whatever truthy value it returns (a page-like object) is treated as \"claimed,\" and line 221 does `this.add(name, claimed).load_all_children(levels)` — `add()` registers it into `this.children` (assigning `app`, `parent`, etc., the \"two branches that go through add() get app from the adopt object\" note above) and then loads its own subtree to `levels` depth.\n3. If `route()` didn't claim it (falsy/undefined), line 223 falls through to the filesystem probe: `Page.load(this.url + name + \"/\", 0)` — literally tries to import `<url>/<name>/page.js`. If that resolves, line 224 adds it the same way.\n4. If even that fails, line 226-227 tries `<name>.md` as a markdown page in the md folder.\n5. Otherwise `child()` returns `null` and the Router's walk (`load_segments`) stops, meaning 404.\n\nSo concretely: a URL segment nobody declared in `children` is resolved by `Page.child()` at `Page.class.js:198`, which after the `md`/`fs` carve-outs asks the page's own `route(name)` method (`Page.class.js:220`) — a plain-fn hook the site can define to synthesize a page for any name (used for dynamic/parameterized routes) — and only if that returns nothing does it fall back to the disk probe via `Page.load()` at line 223 (an on-disk `page.js` folder that exists but was never listed in `children`). Both paths run through `add()` so the result gets memoized into `this.children`, gets `app` assigned, and recurses `load_all_children(levels)` so the freshly-resolved child loads exactly as deep as the caller's remaining budget (none, if the Router itself is walking — see `doc/method/child.md:37-41`).",
+			"first_s": 16.5,
+			"full_s": 26.7,
+			"tools": 5,
+			"input": 10,
+			"cache_read": 236539,
+			"cache_write": 25079,
+			"output": 1617,
+			"cost": 0.1648,
+			"timed_out": false,
+			"score": 3,
+			"reason": "Correct and complete, including undefined vs null as the gate, route(), Page.load, the .md fallback, the Router stopping on null, and the levels budget.",
+			"used": [
+				"public/framework/core/Page/Page.class.js",
+				"public/framework/core/Router/Router.js"
+			]
+		},
+		{
+			"q": 4,
+			"question": "What makes a folder with a page.js exist as a page, and why does a declared child with no page.js 404?",
+			"way": "a",
+			"answer": "A folder with a `page.js` exists as a page because `page.js` is a module that constructs itself at import — `export default new Page({...})` runs the moment the module loads, and importing it is exactly what `Page.load()` does:\n\n```js\nstatic async load(url, levels){\n  try {\n    const page = (await import(url + \"page.js\")).default ?? null;\n    return page instanceof Page ? page.load_all_children(levels) : page;\n  }\n  ...\n}\n```\n\nNothing \"discovers\" the page in advance; the page is the side effect of a successful `import()`. There is no registry and no filesystem listing (`declaring.md`: \"a browser still cannot list a directory\") — resolving a url is a probe, not a lookup.\n\nThat probe is `child(name, levels)` in `Page.class.js`, and it runs in a fixed order:\n\n1. **memory** — is `name` already in `this.children` as a built `Page`?\n2. **`route(name)`** — only if `known === undefined`, so a declared child can never be shadowed by a catalogue route.\n3. **the filesystem probe** — `await Page.load(this.url + name + \"/\", 0)`. This is the `import(url + \"page.js\")` call above.\n4. **a `.md` file** — `Page.file(this.md_dir() + name + \".md\")`, last, so a real `page.js` always wins over a doc with the same name.\n\nIf none of the four produces a page, `child()` returns `null`, and the Router's walk (`load_segments` in `Router.js`) stops there: `page = await page.child(name); if (!page) return null;` — that's the 404.\n\nSo a **declared child with no `page.js`** 404s because declaring a name (`children: \"kid\"`) only ever populates `this.children.set(name, null)` in `declare()` — a placeholder, not a page. When `child(\"kid\")` is later called, step 1 finds `known = null` (falsy, so it doesn't short-circuit as \"already resolved\"), step 2's `route()` is skipped precisely because `known !== undefined` (declaring the name already answered \"is this mine\"), and step 3 tries to `import(\"kid/page.js\")` — if that file genuinely isn't on disk, the dynamic import throws a module-not-found error, caught in `Page.load()`:\n\n```js\ncatch (error){\n  if (!Page.missing(error))\n    console.error(...);   // only a REAL file that fails to load is logged\n  return null;\n}\n```\n\n`Page.missing(error)` pattern-matches the \"failed to fetch/load dynamically imported module\" family of messages, so a genuinely absent file returns `null` quietly (step 4 still gets a chance at a sibling `.md`, but if that's absent too, `child()` returns `null` and the url 404s in the Router).\n\nThe doc note in `declaring.md` names this precisely as the intended failure mode: *\"A forgotten declaration should cost the menu entry, not the url\"* — meaning the old fear (a typo'd child name silently 404s) is accepted as the trade for not needing a hand-maintained registry. The `Page.missing()` distinction is what keeps that 404 quiet instead of an alarming stack trace: a page that doesn't exist is different from a page whose `page.js` exists but has a syntax error or throws — the latter is *not* swallowed, and gets a `console.error` naming the real bug.",
+			"first_s": 6.1,
+			"full_s": 17.3,
+			"tools": 0,
+			"input": 2,
+			"cache_read": 109597,
+			"cache_write": 362,
+			"output": 1088,
+			"cost": 0.0343,
+			"stale_rebuilt": false,
+			"score": 2,
+			"reason": "The mechanism is right, but it misreads the declaring.md quote: 'cost the menu entry, not the url' means an UNDECLARED page still resolves, not that a typo 404 is accepted.",
+			"used": [
+				"public/framework/core/Page/Page.class.js",
+				"public/framework/core/Page/doc/declaring.md",
+				"public/framework/core/Router/Router.js"
+			]
+		},
+		{
+			"q": 4,
+			"question": "What makes a folder with a page.js exist as a page, and why does a declared child with no page.js 404?",
+			"way": "b",
+			"answer": "A folder becomes a page only through `Page.load()` (core/Page/Page.class.js:394-404): it does a dynamic `import(url + \"page.js\")` and takes the module's `default` export as the page, provided it's `instanceof Page`. That import is what \"existing as a page\" actually means here — there's no directory crawl or manifest; the framework never looks at the filesystem to see what's there, it just tries to import `page.js` at that exact URL and sees what comes back.\n\nThe 404 for a declared-but-fileless child happens in `child()` (line 198-227), the method that resolves one name in a page's `children` map:\n- Line 201-203: if the child is already resolved in the Map (`known`), it's returned directly — no fetch at all.\n- Line 206-209 and 211-213 and 215-218 are the special-cased sources (`kid/page.jsonl`, `md/`, `fs/`) that don't need a real `page.js`.\n- Line 220-221: `route()` gets a chance to claim the name.\n- Line 223-224 is the real probe: `Page.load(this.url + name + \"/\", 0)`. If that import 404s (the module doesn't exist), `Page.load`'s catch block at line 399-403 swallows it via `Page.missing(error)` (line 471-474, matching the browser's \"failed to fetch dynamically imported module\" family of messages) and returns `null` rather than throwing.\n- Line 226-227 then falls back to checking for a same-named `.md` file (`Page.file`). If that's also not there, `child()` itself returns `null`.\n\nSo a declared child with no `page.js` and no matching `.md` resolves to `null` all the way up — there is no page object to render, hence the address 404s. The comment block at lines 367-369 and 353-354 spells this out directly: \"Last resort, so a real page.js always wins: a `.md` file beside me IS a page… ⚠ The SPA fallback answers every miss with index.html at 200 — content-type is the 404,\" and separately: \"A guess: 68 of 2,276 .md files… sit where no page is, and a link to one 404s.\" The declaring-child comment on `declare()` (lines 97-103) also states the mechanism up front: a name declared with a bare string or `null` value is a promise, not a page — `undefined = not mine, null = declared, Page = here` — and it only becomes a `Page` when something (here, `child()`'s probe at line 223) actually resolves it.",
+			"first_s": 26.2,
+			"full_s": 35.4,
+			"tools": 6,
+			"input": 14,
+			"cache_read": 322596,
+			"cache_write": 43392,
+			"output": 1613,
+			"cost": 0.2553,
+			"timed_out": false,
+			"score": 3,
+			"reason": "Correct: existence is a successful import of page.js, and a declared name is only a null placeholder that the probe and the .md fallback both fail to fill, so it returns null.",
+			"used": [
+				"public/framework/core/Page/Page.class.js"
+			]
+		},
+		{
+			"q": 4,
+			"question": "What makes a folder with a page.js exist as a page, and why does a declared child with no page.js 404?",
+			"way": "c",
+			"answer": "A folder becomes a page only through `child(name, levels)` in `Page.class.js`. That method's probe chain, in order:\n\n1. Memory — already in `this.children`.\n2. `route()` — only if the name is undeclared.\n3. **`Page.load(this.url + name + \"/\", 0)`** — this is the \"folder with a `page.js`\" case. `Page.load()` does `(await import(url + \"page.js\")).default` inside a try/catch. If the import succeeds and yields a `Page` instance, that's the page. So what makes a folder \"exist\" as a page is nothing filesystem-level — it's that `import(url + \"page.js\")` resolves to a module with a `Page` default export.\n4. `Page.file(this.md_dir() + name + \".md\")` — the `.md`-as-page fallback, last so a real `page.js` always wins.\n\nNow the 404 case. `Page.load()` catches the import failure and distinguishes *missing* from *broken* via `Page.missing(error)`, which regexes the error message for `Failed to fetch dynamically imported module`, `MIME type`, `Expected a JavaScript`, etc. — i.e. \"this file doesn't exist,\" as opposed to a real syntax/runtime error in a file that does exist (which gets `console.error`'d instead of swallowed).\n\nThe reason a *declared* child with no `page.js` 404s: `declare()` (Page.class.js) puts every name in `children: \"…\"` into the `children` Map with value `null` (`this.children.set(this.child_file(child), null)`). In `child()`, `const known = this.children.get(name)` — for a declared-but-unresolved name, `known` is `null`, which is falsy, so it does NOT satisfy `known === undefined` (the guard `route()` and the `md`/`fs` synthetic routes require) — but it also isn't truthy so step 1 (memory) doesn't return it either. Execution falls through to `Page.load()`, which tries `import(url + \"page.js\")`. If that file genuinely isn't on disk, the dynamic import throws a \"module not found\" style error, `Page.missing()` matches it, `Page.load()` returns `null` quietly, then `Page.file()` also finds nothing (no `.md` there either), and `child()` returns `null` — the Router's `load_segments()` sees a null hop and stops, which surfaces as a 404.\n\nSo concretely: **declaring** a child in `children:` only reserves its name/order in the Map (`declare()`); it does not make the page exist. **Existence** is decided entirely by whether `import(url + \"page.js\")` at that url succeeds (`Page.load()`, called from `child()`). A declared name with no `page.js` on disk therefore always 404s — same as an undeclared one — the declaration just meant it skipped `route()`. This is the exact point `doc/declaring.md` makes under \"Discovery — a probe, not a registry\": *\"A forgotten declaration should cost the menu entry, not the url\"* — i.e. the menu (declared) and the url (probed via `Page.load`) are two separate, only loosely coupled things.",
+			"first_s": 4.1,
+			"full_s": 14.6,
+			"tools": 0,
+			"input": 2,
+			"cache_read": 31676,
+			"cache_write": 77999,
+			"output": 1015,
+			"cost": 0.3823,
+			"timed_out": false,
+			"score": 3,
+			"reason": "Correct, and reads the declaring.md quote rightly: the menu is declared, the url is probed, and a declaration only skips route().",
+			"used": [
+				"public/framework/core/Page/Page.class.js",
+				"public/framework/core/Page/doc/declaring.md",
+				"public/framework/core/Router/Router.js"
+			]
+		},
+		{
+			"q": 4,
+			"question": "What makes a folder with a page.js exist as a page, and why does a declared child with no page.js 404?",
+			"way": "d",
+			"answer": "I'll wait for the research agent's findings before answering, since I want file:line precision rather than guessing.",
+			"first_s": 10.7,
+			"full_s": 11,
+			"tools": 1,
+			"input": 4,
+			"cache_read": 75438,
+			"cache_write": 16229,
+			"output": 634,
+			"cost": 0.0874,
+			"timed_out": false,
+			"score": 0,
+			"reason": "No answer.",
+			"used": []
+		},
+		{
+			"q": 5,
+			"question": "How does `swap_link` keep a doc routed?",
+			"way": "a",
+			"answer": "`swap_link`, in `Page.class.js`, draws a `.md` doc inside the current page (over what it was showing) but still gives that swap a real url, so it stays routed rather than becoming an invisible in-place trick.\n\nConcretely:\n\n1. It computes `url = this.swap_url(file)` — `<my url>md/<doc>/` when the file is in my own folder, otherwise the file's module `md/` url (`Page.md_url`).\n2. It does `history.pushState({}, \"\", url + link.hash)` when the current location isn't already that url — so the address bar is honest immediately, before anything even finishes loading.\n3. It registers a `popstate` listener (`on_pop`) that calls `close()` whenever `location.pathname` no longer equals `url` — so Back (or any navigation away) tears the swap down and restores the hidden siblings.\n4. `back()` itself does `location.pathname === url ? history.back() : close()` — clicking the swap's own Back button drives real history when the swap owns the current entry, otherwise just closes the overlay.\n\nThe `md/` route this lands on isn't special-cased here — it's the ordinary `md/` child every page already has (`child()` in `Page.class.js`: `if (name === \"md\" ...) return this.add(name, await this.md_folder())...`), which is why `open.md` describes this as \"route everything\": a reload at `<page>/md/<doc>/` lands on the same doc as the child of the page rather than reading `swap_link`'s ephemeral overlay state at all. So \"kept routed\" really means two things layered together: the live overlay is synced to history via pushState/popstate for the current session, and independently the url it chose is one a cold reload can resolve through the ordinary child-routing path.",
+			"first_s": 2.3,
+			"full_s": 8.6,
+			"tools": 0,
+			"input": 2,
+			"cache_read": 109597,
+			"cache_write": 347,
+			"output": 567,
+			"cost": 0.029,
+			"stale_rebuilt": false,
+			"score": 3,
+			"reason": "Correct: swap_url, pushState, the popstate close, back(), and a reload resolving through child()'s md branch.",
+			"used": [
+				"public/framework/core/Page/Page.class.js",
+				"public/framework/core/Page/doc/open.md"
+			]
+		},
+		{
+			"q": 5,
+			"question": "How does `swap_link` keep a doc routed?",
+			"way": "b",
+			"answer": "`swap_link` is defined at `public/framework/core/Page/Page.class.js:281-314`, with `swap_url` right after it at lines 317-320.\n\nThe routing happens in three concrete steps inside `swap_link`:\n\n1. **It computes a real URL for the swap before touching the DOM.** Line 289: `const url = this.swap_url(file);` calls `swap_url` (line 317-320), which builds `<page>/md/<doc>/` — reusing the `md/` route every page already exposes (per the comment at line 278-280) — or falls back to `Page.md_url(file)` if the doc lives outside this page's own folder.\n\n2. **It pushes that URL into browser history**, but only if it isn't already there — line 312: `if (location.pathname !== url) history.pushState({}, \"\", url + link.hash);`. This is what makes reload land back on the same doc: the address bar now genuinely matches what's drawn, rather than the swap being a purely visual overlay with no URL of its own.\n\n3. **It wires `popstate` to keep the visible state and the address in sync in both directions.** Line 313: `addEventListener(\"popstate\", on_pop);`, where `on_pop` (line 291) is `() => { if (location.pathname !== url) close(); }` — if the user navigates back (browser Back) away from the swap's URL, the swap's `close()` (line 293-298) tears down the shell, restores the hidden siblings (`shown.forEach(el => el.style.display = \"\")`), and removes the listener. Conversely the in-page \"Back\" button (line 303, wired at line 290's `back` function) calls `history.back()` when the location still matches the swap's `url`, so the Back button and the browser's own back button drive the same state machine rather than two separate ones.\n\nSo \"kept routed\" means: the swap never exists without a corresponding pushed URL, and both exit paths (browser back and in-UI Back) are forced through the same `close()`/`on_pop` pair, so the DOM state and `location.pathname` can never drift apart — reload or Back always reconstructs (or removes) the same doc.",
+			"first_s": 9.7,
+			"full_s": 16.6,
+			"tools": 5,
+			"input": 12,
+			"cache_read": 273186,
+			"cache_write": 18675,
+			"output": 1452,
+			"cost": 0.1449,
+			"timed_out": false,
+			"score": 2,
+			"reason": "Line numbers and mechanism are right, but it overclaims that the DOM and location 'can never drift'; Forward does not re-open the swap.",
+			"used": [
+				"public/framework/core/Page/Page.class.js"
+			]
+		},
+		{
+			"q": 5,
+			"question": "How does `swap_link` keep a doc routed?",
+			"way": "c",
+			"answer": "`swap_link(link)` in `Page.class.js` (the block right after `open_link`) does the routing in three steps:\n\n1. **It computes a real url before touching the DOM**: `const url = this.swap_url(file);` — `swap_url` returns `this.url + \"md/\" + …` when the file lives in `this.md_dir()`, else `Page.md_url(file)`. So the swap always has an address of the same shape every other doc route uses (`<page>/md/<doc>/`).\n\n2. **It pushes that url only if you're not already there**: `if (location.pathname !== url) history.pushState({}, \"\", url + link.hash);` — this is the line that makes the swap \"routed\": the address bar changes, so a reload lands on `md/<doc>/` (which resolves through `child()`'s `md` branch, since every page has an `md/`), and Back/Forward see a real history entry rather than a DOM-only change.\n\n3. **It wires `popstate` to close itself**: `addEventListener(\"popstate\", on_pop)` where `on_pop = () => { if (location.pathname !== url) close(); }`. So navigating away (Back) triggers `close()`, which restores the hidden siblings (`shown.forEach(el => el.style.display = \"\")`) and removes the swap box (`$shell?.el.remove()`), and also removes its own popstate listener — `close()` is stored on `this.swap_close` and cleared there too.\n\nThe `back()` handler itself is push-then-pop symmetric: `const back = () => location.pathname === url ? history.back() : close();` — if the swap's url is still current, it calls real browser history back (which fires `on_pop` → `close()`); otherwise (edge case: url already changed under it) it just calls `close()` directly.\n\nOne more piece that keeps it \"routed\" rather than just \"url-tagged\": `this.swap_close?.()` at the top of `swap_link` closes any *previous* swap on this page before opening a new one, so only one swap's popstate listener and pushed state exist on this page at a time — no listener leak across repeated swaps.\n\nThe doc comment that states the contract is in `doc/open.md` under **Watch out**: \"A swap has a url — `<page>/md/<doc>/`. `swap_link` pushes it with `history.pushState`, so the address bar is honest, Back closes the swap, and a reload lands on that doc (as the page's `md/` child, shown beside its parent in columns).\"",
+			"first_s": 3.2,
+			"full_s": 11,
+			"tools": 0,
+			"input": 2,
+			"cache_read": 31676,
+			"cache_write": 77662,
+			"output": 793,
+			"cost": 0.3788,
+			"timed_out": false,
+			"score": 3,
+			"reason": "Correct and thorough, including swap_close closing any earlier swap and a quote of open.md's Watch out.",
+			"used": [
+				"public/framework/core/Page/Page.class.js",
+				"public/framework/core/Page/doc/open.md"
+			]
+		},
+		{
+			"q": 5,
+			"question": "How does `swap_link` keep a doc routed?",
+			"way": "d",
+			"answer": "`swap_link` (Page.class.js:281-314) is the method a card uses when it wants a doc drawn in place instead of navigating away.\n\nIt routes the doc by giving the swap its own URL rather than just toggling DOM visibility:\n\n- `swap_url(file)` (line 317-320) computes that address: `this.url + \"md/\" + <relative path>/` when the file lives under the page's own `md_dir()`, otherwise `Page.md_url(file)` for a doc that belongs to another module. This reuses the `md/` route every page already exposes, so it's a real, reloadable path.\n- At line 312, `swap_link` calls `history.pushState({}, \"\", url + link.hash)` — so the browser address bar and history actually change to that URL when it differs from the current one.\n- It wires `popstate` (line 291, 313: `on_pop`) so that hitting Back fires `close()`, which removes the swapped-in shell and restores the hidden siblings (line 293-298).\n- The in-page \"Back\" button (line 303) calls `back()` (line 290), which checks `location.pathname === url`: if the address is still showing the swap, it calls `history.back()` (letting popstate do the closing); otherwise it calls `close()` directly — this covers the case where the swap happened without a URL change (e.g., same path already).\n\nSo \"keeps a doc routed\" means: the swap is never just a visual overlay — it's registered as a real history entry at `<page>/md/<doc>/`, so reload lands back on the same doc (doc/open.md's file-loading path re-renders it) and Back/forward navigation correctly opens and closes it via the `popstate` listener, per the comment at lines 278-280.",
+			"first_s": 10.5,
+			"full_s": 16.7,
+			"tools": 3,
+			"input": 8,
+			"cache_read": 172378,
+			"cache_write": 17976,
+			"output": 920,
+			"cost": 0.1166,
+			"timed_out": false,
+			"score": 2,
+			"reason": "Mechanism is right, but it claims Back and Forward both open and close the swap correctly; open.md says Forward does not re-open it.",
+			"used": [
+				"public/framework/core/Page/Page.class.js",
+				"public/framework/core/Page/doc/open.md"
+			]
+		}
+	],
+	"judge": {
+		"first_s": 32.7,
+		"full_s": 45.7,
+		"tools": 3,
+		"input": 8,
+		"cache_read": 205865,
+		"cache_write": 41328,
+		"output": 4655,
+		"cost": 0.4787,
+		"key": {
+			"1|A": "b",
+			"1|B": "c",
+			"1|C": "a",
+			"1|D": "d",
+			"2|A": "c",
+			"2|B": "d",
+			"2|C": "a",
+			"2|D": "b",
+			"3|A": "b",
+			"3|B": "d",
+			"3|C": "c",
+			"3|D": "a",
+			"4|A": "b",
+			"4|B": "a",
+			"4|C": "d",
+			"4|D": "c",
+			"5|A": "d",
+			"5|B": "a",
+			"5|C": "c",
+			"5|D": "b"
+		},
+		"parsed": {
+			"scores": [
+				{
+					"id": "1A",
+					"score": 3,
+					"reason": "Correct chain: file line → CHILD regex → child_file/link_child fill child_kinds and a null placeholder → child() jsonl branch calls Page.jsonl with no probe; line numbers refer to a bundle, not the source.",
+					"used": [
+						"public/framework/core/Page/Log.js",
+						"public/framework/core/Page/Page.class.js"
+					]
+				},
+				{
+					"id": "1B",
+					"score": 3,
+					"reason": "Correct and complete: link_child/child_kinds, the jsonl fork in child(), a kid/page.js child falling through to the Page.load probe, page.js winning over page.jsonl, and the gone/unlink_child inverse.",
+					"used": [
+						"public/framework/core/Page/Log.js",
+						"public/framework/core/Page/Page.class.js",
+						"public/framework/core/Page/doc/jsonl.md"
+					]
+				},
+				{
+					"id": "1C",
+					"score": 3,
+					"reason": "Correct, and adds that a page.js parent's children:\"x/page.jsonl\" goes through declare()→child_file and fills the same child_kinds map.",
+					"used": [
+						"public/framework/core/Page/Log.js",
+						"public/framework/core/Page/Page.class.js",
+						"public/framework/core/Page/doc/jsonl.md",
+						"public/framework/core/Page/doc/declaring.md"
+					]
+				},
+				{
+					"id": "1D",
+					"score": 3,
+					"reason": "Correct, with accurate source line numbers (Log.js:19, 50-77, 206-220; Page.class.js:198-228).",
+					"used": [
+						"public/framework/core/Page/Log.js",
+						"public/framework/core/Page/Page.class.js"
+					]
+				},
+				{
+					"id": "2A",
+					"score": 3,
+					"reason": "Correct: contents on descendant pages and regions leaves only .page-column-body as flex items, a tree in the DOM and peers on screen; the shallowest-host point matches the doc.",
+					"used": [
+						"public/framework/core/Page/doc/columns.md",
+						"public/framework/core/Page/Page.class.js"
+					]
+				},
+				{
+					"id": "2B",
+					"score": 3,
+					"reason": "Correct mechanism and consequence (no box, so the seam sits beside the body); pads with lineage citations outside the Page module that were not checked.",
+					"used": [
+						"public/framework/core/Page/doc/columns.md",
+						"public/framework/core/Page/Page.class.js"
+					]
+				},
+				{
+					"id": "2C",
+					"score": 3,
+					"reason": "Correct mechanism, plus render-time column_host and two real watch-outs from the doc: :has() still matching closed pages, and width tokens inheriting through contents.",
+					"used": [
+						"public/framework/core/Page/doc/columns.md",
+						"public/framework/core/Page/Page.class.js"
+					]
+				},
+				{
+					"id": "2D",
+					"score": 3,
+					"reason": "Correct, and names the seam consequence: sibling of the body, zero outer size.",
+					"used": [
+						"public/framework/core/Page/doc/columns.md",
+						"public/framework/core/Page/Page.class.js"
+					]
+				},
+				{
+					"id": "3A",
+					"score": 2,
+					"reason": "Order and the route()-cannot-shadow guard are right; it leaves out Page.missing (a missing file vs a broken one) and the content-type gate on the .md fallback.",
+					"used": [
+						"public/framework/core/Page/Page.class.js"
+					]
+				},
+				{
+					"id": "3B",
+					"score": 3,
+					"reason": "Correct and complete, including undefined vs null as the gate, route(), Page.load, the .md fallback, the Router stopping on null, and the levels budget.",
+					"used": [
+						"public/framework/core/Page/Page.class.js",
+						"public/framework/core/Router/Router.js"
+					]
+				},
+				{
+					"id": "3C",
+					"score": 3,
+					"reason": "Correct and complete, including Page.missing, the content-type 404 test, memoising through add(), and Router.load_segments.",
+					"used": [
+						"public/framework/core/Page/Page.class.js",
+						"public/framework/core/Page/doc/declaring.md",
+						"public/framework/core/Router/Router.js"
+					]
+				},
+				{
+					"id": "3D",
+					"score": 2,
+					"reason": "Mostly right, but it claims a null placeholder in memory 'wins outright'; `if (known)` is false for null, so a declared-unresolved name falls through to the probe.",
+					"used": [
+						"public/framework/core/Page/Page.class.js",
+						"public/framework/core/Page/doc/declaring.md"
+					]
+				},
+				{
+					"id": "4A",
+					"score": 3,
+					"reason": "Correct: existence is a successful import of page.js, and a declared name is only a null placeholder that the probe and the .md fallback both fail to fill, so it returns null.",
+					"used": [
+						"public/framework/core/Page/Page.class.js"
+					]
+				},
+				{
+					"id": "4B",
+					"score": 2,
+					"reason": "The mechanism is right, but it misreads the declaring.md quote: 'cost the menu entry, not the url' means an UNDECLARED page still resolves, not that a typo 404 is accepted.",
+					"used": [
+						"public/framework/core/Page/Page.class.js",
+						"public/framework/core/Page/doc/declaring.md",
+						"public/framework/core/Router/Router.js"
+					]
+				},
+				{
+					"id": "4C",
+					"score": 0,
+					"reason": "No answer.",
+					"used": []
+				},
+				{
+					"id": "4D",
+					"score": 3,
+					"reason": "Correct, and reads the declaring.md quote rightly: the menu is declared, the url is probed, and a declaration only skips route().",
+					"used": [
+						"public/framework/core/Page/Page.class.js",
+						"public/framework/core/Page/doc/declaring.md",
+						"public/framework/core/Router/Router.js"
+					]
+				},
+				{
+					"id": "5A",
+					"score": 2,
+					"reason": "Mechanism is right, but it claims Back and Forward both open and close the swap correctly; open.md says Forward does not re-open it.",
+					"used": [
+						"public/framework/core/Page/Page.class.js",
+						"public/framework/core/Page/doc/open.md"
+					]
+				},
+				{
+					"id": "5B",
+					"score": 3,
+					"reason": "Correct: swap_url, pushState, the popstate close, back(), and a reload resolving through child()'s md branch.",
+					"used": [
+						"public/framework/core/Page/Page.class.js",
+						"public/framework/core/Page/doc/open.md"
+					]
+				},
+				{
+					"id": "5C",
+					"score": 3,
+					"reason": "Correct and thorough, including swap_close closing any earlier swap and a quote of open.md's Watch out.",
+					"used": [
+						"public/framework/core/Page/Page.class.js",
+						"public/framework/core/Page/doc/open.md"
+					]
+				},
+				{
+					"id": "5D",
+					"score": 2,
+					"reason": "Line numbers and mechanism are right, but it overclaims that the DOM and location 'can never drift'; Forward does not re-open the swap.",
+					"used": [
+						"public/framework/core/Page/Page.class.js"
+					]
+				}
+			],
+			"missing": [
+				{
+					"fact": "The CSS rules that apply display: contents to .page.column and .page-column-pages, and the arrangement contract (.active-page/.active-ancestor)",
+					"lives_in": "public/framework/core/Page/Page.css and public/framework/core/Page/doc/css.md"
+				},
+				{
+					"fact": "md_folder(): how the md/ child that a swap url and a reload resolve through is built",
+					"lives_in": "public/framework/core/Markdown/ (Markdown.js)"
+				},
+				{
+					"fact": "fs_folder(), the fs/ door checked before route()",
+					"lives_in": "ext (imported dynamically from Page.class.js; the module is not in the list)"
+				},
+				{
+					"fact": "PageLog.Reader live streaming vs a one-shot fetch",
+					"lives_in": "public/framework/ext/JSONL/live.js"
+				},
+				{
+					"fact": "The levels budget when the Router walks into child()",
+					"lives_in": "public/framework/core/Page/doc/method/child.md"
+				}
+			]
+		}
+	},
+	"fresh_test": {
+		"changed": [
+			"public/framework/core/Page/Page.class.js"
+		],
+		"fresh_before": false,
+		"stale_rebuilt": true,
+		"fresh_after": true,
+		"ms": 4852,
+		"answer": "Page.class.js exports the `Page` class both as a named export (`export class Page extends PageLog`) and as the default export (`export default Page` at the bottom of the file), with `Page.Frame` and `Page.Store` attached to it as static properties (`Page.Frame = PageFrame` and `Page.Store = class Pa",
+		"new_checkpoint": "042b2041-19d3-4591-9037-3cf11737e397"
+	}
+}

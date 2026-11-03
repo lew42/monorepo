@@ -1,0 +1,121 @@
+diff --git a/public/framework/core/Task/doc/process.md b/public/framework/core/Task/doc/process.md
+index 2f41181b4..61c4501e5 100644
+--- a/public/framework/core/Task/doc/process.md
++++ b/public/framework/core/Task/doc/process.md
+@@ -39,6 +39,10 @@ A process lives in its own folder inside the session that made it: `<session fol
+ 
+ **Creating one is one call** (never two steps): `item({path: <your session>, delta: {tasks: {add: {title, process: "build", brief}}}})`. The item tool sees `process`, makes the folder, writes line 1 and the step lines from the definition (the add's own `steps_over` overrides change a step's session), and tells ProcessRunner, which starts step 1.
+ 
++## Does finishing step N hand step N+1 its instructions? Yes
++
++Node does it, with no agent remembering. The `complete` line the step's agent writes through the item tool wakes `ProcessRunner.step()` (`page_tools` `hooks.changed`). `ProcessRunner.run()` replays the file and asks `Process.next()`: with step N complete, the first open step is N+1, idle, so `next()` answers `{start: N+1}`; the next loop turn answers `{launch: N+1}`. `ProcessRunner.launch()` then sends `Process.prompt(N+1)`: to a new agent (`fresh`), the previous step's agent (`same`) or the creator (`owner`). That prompt holds N+1's `do`, the brief, the `outcome` of every complete step, and the line that completes it. Test: "plan runs in the same session, told what investigate found" in `Servex/ProcessRunner.test.mjs`. The page that shows it live: [/framework/core/Task/process/](/framework/core/Task/process/).
++
+ ## Draft in the session, then move home
+ 
+ A process starts as a draft in the session that made it. When it names a `module` (`tasks.add: {title, process, module}`), it moves to `<module>/tasks/<id>/` once the plan is approved. The step marked `home_after` (build: approve-plan) completing makes `next()` answer `{move}`, and ProcessRunner calls `move_home` in `Servex/agents/page_tools.js`. The move does five things:
+diff --git a/public/framework/core/Task/files.jsonl b/public/framework/core/Task/files.jsonl
+index ac6eaf880..cdeac3be1 100644
+--- a/public/framework/core/Task/files.jsonl
++++ b/public/framework/core/Task/files.jsonl
+@@ -24,3 +24,4 @@
+ {"file":"improvements.jsonl"}
+ {"file":"TaskQueue.js"}
+ {"file":"TaskQueue.test.mjs"}
++{"file":"process/"}
+diff --git a/public/framework/core/Task/page.js b/public/framework/core/Task/page.js
+index b0f804734..2fe9e6b4c 100644
+--- a/public/framework/core/Task/page.js
++++ b/public/framework/core/Task/page.js
+@@ -11,12 +11,13 @@ export default new Doc({
+ 	subject: Task,
+ 	properties: "state tasks",
+ 	methods: "start pause resume stop complete approve improve reject settled duration progress",
+-	files: "Task.js Task.test.mjs readme.md page.js live/page.js",
++	files: "Task.js Task.test.mjs readme.md page.js live/page.js process/page.js",
+ 
+ 	initialize(){
+ 		Doc.prototype.initialize.call(this);
+ 		this.declare("live");
+ 		this.declare("page");
++		this.declare("process");
+ 	},
+ 
+ 	content(){
+diff --git a/public/framework/core/Task/process/page.js b/public/framework/core/Task/process/page.js
+new file mode 100644
+index 000000000..ab04eda71
+--- /dev/null
++++ b/public/framework/core/Task/process/page.js
+@@ -0,0 +1,59 @@
++import { Doc, md, h2, code, div, span, p } from "/app.js";
++import Process from "../Process.js";
++import "../processes/index.js";
++
++const MARK = { complete: "✓", running: "▶", waiting: "⏳", idle: "○", stopped: "■" };
++const RUN = "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/readmes-page/";
++
++export default new Doc({
++	meta: import.meta,
++	title: "Process",
++	description: "A Task whose children are named steps. Node runs them in order and hands each step's instructions to the next session.",
++	icon: "account_tree",
++
++	subject: Process,
++	properties: "process creator steps step",
++	methods: "next run_of prompt moves_home",
++	files: "page.js",
++
++	content(){
++		const box = div.c("flex v gap").style({ "max-width": "60em", width: "100%" });
++		box.empty(() => p.c("muted", "Loading the run log…"));
++		fetch(RUN + "task.jsonl").then(r => r.text())
++			.then(t => t.split(/\r?\n/).filter(l => l.trim()).map(l => JSON.parse(l)).filter(l => typeof l.task !== "string"))   // the step log only: a {task} line would swap a step for its own folder's file
++			.catch(() => null)
++			.then(lines => box.empty(() => this.body(lines)));
++	},
++
++	body(lines){
++		md("A **process** is a standard way of doing a kind of work, written down as steps. Node starts step 1, launches the session each step names, and when a step is done it starts the next. No agent has to remember the order.");
++
++		h2("A real run: the readmes page, through build");
++		if (!lines) return p("The run log could not be loaded.");
++		const run = Process.replay(lines);
++		const total = lines.filter(l => l.measure).reduce((n, l) => n + (l.measure.usd || 0), 0);
++		md(`**${run.get_one("title") ?? run.id}**, process \`${run.process}\`, state **${run.state}**, ${run.steps.length} steps, measured cost **$${total.toFixed(2)}**. Read live from [its log](${RUN}task.jsonl), not copied.`);
++		div.c("flex v gap", () => {
++			run.steps.forEach((s, i) => {
++				const sp = s.get_one("spawned"), m = s.get_one("measure"), w = s.get_one("wait");
++				div.c("flex gap v-center", () => {
++					span.c("h4", `${i + 1}. ${s.get_one("title") ?? s.id}`).style("flex", "1 1 8em");
++					span.c("", `${MARK[s.state] ?? "·"} ${s.state}`).style("color", s.state === "complete" ? "var(--success, green)" : s.state === "waiting" ? "var(--warning, #b60)" : "");
++					span.c("muted", sp ? `${sp.run}: ${sp.agent}` : (s.get_one("session")?.run ?? "") + (w ? ` · waits on ${w.on}` : ""));
++					span.c("muted", m ? `$${Number(m.usd).toFixed(2)}` : "");
++				});
++			});
++		});
++
++		h2("Does finishing step N hand step N+1 its instructions?");
++		md("**Yes, node does it, in a chain.** The agent's `complete` line wakes `ProcessRunner.step()` (the item tool hook). `run()` reads the file and asks `Process.next()`: step N is complete, so the first open step, N+1, is idle and the answer is `{start: N+1}`. `run()` writes that line, asks again, gets `{launch: N+1}`, and `launch()` sends `Process.prompt(N+1)` to the step's session: a new agent (`fresh`), the previous agent (`same`) or the creator (`owner`). That prompt carries N+1's job, the brief, **and the outcome text of every finished step**. See `ProcessRunner.js` `run` and `launch`, `Process.js` `next` and `prompt`.");
++		code.js(`// the prompt step 2 gets, built from the real run above
++${run.prompt("plan", "/run/").split("\n").slice(0, 8).join("\n")}`);
++
++		h2("The templates");
++		md(Process.names().map(n => `- \`${n}\`: ${Process.template(n).steps.map(s => s.id).join(" → ")}`).join("\n"));
++		md("Each template is a small subclass in `processes/` with `static steps = [...]`; a step names its `session` (`fresh`, `same`, `owner`, `wait`) and what to `do`.");
++
++		md.details(import.meta, "../doc/process.md", "Design doc");
++	}
++});
+diff --git a/public/framework/core/Task/readme.md b/public/framework/core/Task/readme.md
+index 783725709..ee78d9380 100644
+--- a/public/framework/core/Task/readme.md
++++ b/public/framework/core/Task/readme.md
+@@ -5,7 +5,7 @@
+ - **Built and tested:** the state machine, subtasks, replay of `task.jsonl` (`node Task.test.mjs`, 53 of 53 pass), `TaskView`, `TaskPage`, `TasksPage`, references between tasks (`Task.from_ref`), module homes made by the item tool's `tasks.add`.
+ - **Wired in:** `Server/AIIndex.mjs` replays every task through `Task.replay` into `ai/index.json`; Servex `open_task` and `TaskDirs --new` make the session-store folders that `Task` reads; the Inbox shows the result.
+ - **Wired in (2026-10-20):** [Project.js](Project.js) (`Project extends Task`: six stages, `completion` 0..1 = mean of subtasks, `Project.from_lines`; `node Project.test.mjs`, 9 of 9). `Server/ProjectMove.mjs` moves a project folder into a module and indexes it: [ai/tasks/doc/projects.md](/framework/ai/tasks/doc/projects.md).
+-- **Process:** [Process.js](Process.js) (`Process extends Task`: named steps node runs in series; `next()` decides, `Servex/ProcessRunner.js` writes the line and launches each step's session; one `tasks.add {process: "build"}` call creates one; or give your own `steps`). Templates, one subclass each in [processes/](/framework/servex/fs/?file=public/framework/core/Task/processes/): `build` (investigate to merge), `design` (Figma variants coded as pages), `investigate` (questions, scout, findings). Design and status: [doc/process.md](doc/process.md); the names, decided: [doc/process-names.md](doc/process-names.md). Tests: [Process.test.mjs](Process.test.mjs), `node Servex/ProcessRunner.test.mjs`.
++- **Process:** [Process.js](Process.js) (`Process extends Task`: named steps node runs in series; `next()` decides, `Servex/ProcessRunner.js` writes the line and launches each step's session; one `tasks.add {process: "build"}` call creates one; or give your own `steps`). Templates, one subclass each in [processes/](/framework/servex/fs/?file=public/framework/core/Task/processes/): `build` (investigate to merge), `design` (Figma variants coded as pages), `investigate` (questions, scout, findings). The page, with a real run replayed live: [process/](process/). Design and status: [doc/process.md](doc/process.md); the names, decided: [doc/process-names.md](doc/process-names.md). Tests: [Process.test.mjs](Process.test.mjs), `node Servex/ProcessRunner.test.mjs`.
+ - **Concept only:** `AITask extends Task` (below), a `phase` field ([ai/doc/task-lifecycle.md](/framework/ai/doc/task-lifecycle.md)). **Not automatic:** a module home. `TaskDirs.dir()` does not know modules; only the item tool (an agent's choice), `TaskMigrate` (one-off) and `UndoneToTasks` (idle tasks from undone asks) put a task in `<module>/tasks/`.
+ 
+ ## What it is

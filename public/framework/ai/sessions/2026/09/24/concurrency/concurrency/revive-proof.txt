@@ -1,0 +1,16 @@
+revive-proof — 2026-09-24T23:01:55.470Z — claude-haiku-4-5-20251001, registry in C:\Users\mike\AppData\Local\Temp\servex-revive-proof
+
+[4.3s] host 1 (pid 38148): proof-sleeper started Bash: command=sleep 20 && echo SLEPT-OK description=Sleep for 20 seconds then echo SLEPT-OK
+[7.8s] registry says proof-sleeper is "working" (boot mug4zjeg-38148); its claude process: claude.exe 38476
+[9.3s] host 1 KILLED mid-command. host 1 alive: false; its claude child alive: false
+[9.4s] → proof-sleeper got a message from servex: Servex restarted mid-turn; your last tool call may not have finished. Check and continue.
+[9.4s] host 2 booted and called revive(): {"revived":["proof-sleeper"],"told":["proof-sleeper"],"gone":[],"legacy":[]}
+[9.4s] back under the same id: proof-sleeper; same session: true (5c341c2e-9efc-4806-9029-538dca96c0ff); parent none
+[12.2s] proof-sleeper called Bash: command=sleep 20 && echo SLEPT-OK description=Sleep for 20 seconds then echo SLEPT-OK
+[34.2s] proof-sleeper said: FINISHED SLEPT-OK
+
+=== result ===
+state idle after 24.8s; said FINISHED: true; saw SLEPT-OK: true
+its claude child from host 1, still alive at the end: 38476=false
+registry row now: state idle, boot mug4zqj6-45032 (host 2's), resumed_from 5c341c2e-9efc-4806-9029-538dca96c0ff, session after the resumed turn UNCHANGED, context 35767 tokens
+total run: 34.2s

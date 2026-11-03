@@ -1,0 +1,4 @@
+{
+	"title": "1. Memory",
+	"body": "`child()` checks `children.get(name)` first. A page already built and remembered costs nothing to visit a second time — this is the fastest of the three steps, because nothing is fetched or run again."
+}

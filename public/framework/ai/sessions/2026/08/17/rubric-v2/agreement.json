@@ -1,0 +1,1001 @@
+{
+ "note": "Reliability numbers for the visual scoring rubric. Produced by ai/2026-08-17/rubric-v2/. The corpus is the 18 frozen 1280x800 PNGs from the sibling vision-baseline task, verified byte-identical by content hash before any scoring. baseline.json was NOT modified. Read the spread, flat-row and rank-correlation columns before the MAE column: MAE alone selects a scorer that refuses to discriminate.",
+ "generated_at": "2026-08-17T16:57:10.449Z",
+ "n": 18,
+ "critical_spearman": {
+  "p=0.05": 0.475,
+  "p=0.01": 0.6,
+  "note": "two-tailed, n=18. Coefficients below 0.475 are indistinguishable from noise."
+ },
+ "corpus": {
+  "images": 18,
+  "width": 1280,
+  "height": 800,
+  "hashes_verified": true,
+  "source": "ai/2026-08-17/vision-baseline/baseline.json",
+  "shots_dir": "C:/Users/mike/AppData/Local/Temp/claude/c--Code-lew42-monorepo/c6315543-dde2-46c6-b052-c819794f42e8/scratchpad/shots"
+ },
+ "opus_self_agreement_v1": {
+  "what": "claude-opus-5[1m] pass A (baseline.json) vs pass B (rubric-v2/pass-b.json). Same model, same rubric text, same pixels, independent context; pass B written before pass A's scores were read. This is the intra-rater reliability of the source of truth, and it bounds every other claim in the program.",
+  "axes": {
+   "layout": {
+    "mae": 6.44,
+    "drift": -3.78,
+    "centred_mae": 5.6,
+    "max_abs_diff": 20,
+    "sd_a": 8.37,
+    "sd_b": 8.46,
+    "range_a": [
+     38,
+     76
+    ],
+    "range_b": [
+     42,
+     80
+    ],
+    "spearman": 0.361,
+    "pearson": 0.648,
+    "icc": 0.6,
+    "best_constant": 67,
+    "constant_mae": 5.33,
+    "centred_over_constant": 1.05
+   },
+   "typography": {
+    "mae": 8.22,
+    "drift": -6.44,
+    "centred_mae": 5.95,
+    "max_abs_diff": 14,
+    "sd_a": 5.91,
+    "sd_b": 7.02,
+    "range_a": [
+     60,
+     82
+    ],
+    "range_b": [
+     52,
+     80
+    ],
+    "spearman": 0.473,
+    "pearson": 0.422,
+    "icc": 0.285,
+    "best_constant": 73,
+    "constant_mae": 4.78,
+    "centred_over_constant": 1.25
+   },
+   "contrast": {
+    "mae": 5.33,
+    "drift": -3,
+    "centred_mae": 5.22,
+    "max_abs_diff": 16,
+    "sd_a": 10.74,
+    "sd_b": 7.5,
+    "range_a": [
+     48,
+     88
+    ],
+    "range_b": [
+     52,
+     80
+    ],
+    "spearman": 0.793,
+    "pearson": 0.805,
+    "icc": 0.728,
+    "best_constant": 72,
+    "constant_mae": 8.72,
+    "centred_over_constant": 0.6
+   },
+   "density": {
+    "mae": 4.67,
+    "drift": -2.44,
+    "centred_mae": 4.4,
+    "max_abs_diff": 14,
+    "sd_a": 10.13,
+    "sd_b": 9.72,
+    "range_a": [
+     40,
+     82
+    ],
+    "range_b": [
+     45,
+     80
+    ],
+    "spearman": 0.78,
+    "pearson": 0.841,
+    "icc": 0.822,
+    "best_constant": 67,
+    "constant_mae": 7.89,
+    "centred_over_constant": 0.56
+   },
+   "hierarchy": {
+    "mae": 10.94,
+    "drift": -6.28,
+    "centred_mae": 9.31,
+    "max_abs_diff": 30,
+    "sd_a": 10.62,
+    "sd_b": 11.98,
+    "range_a": [
+     42,
+     88
+    ],
+    "range_b": [
+     48,
+     85
+    ],
+    "spearman": 0.335,
+    "pearson": 0.405,
+    "icc": 0.359,
+    "best_constant": 72,
+    "constant_mae": 8,
+    "centred_over_constant": 1.16
+   },
+   "overall": {
+    "mae": 7.89,
+    "drift": -5.33,
+    "centred_mae": 5.93,
+    "max_abs_diff": 16,
+    "sd_a": 8.21,
+    "sd_b": 8.15,
+    "range_a": [
+     44,
+     80
+    ],
+    "range_b": [
+     48,
+     82
+    ],
+    "spearman": 0.507,
+    "pearson": 0.607,
+    "icc": 0.51,
+    "best_constant": 70,
+    "constant_mae": 5.56,
+    "centred_over_constant": 1.07
+   }
+  },
+  "mean_of_5": {
+   "mae": 6.28,
+   "drift": -4.39,
+   "centred_mae": 4.57,
+   "max_abs_diff": 13.6,
+   "sd_a": 8.01,
+   "sd_b": 7,
+   "range_a": [
+    46.8,
+    81
+   ],
+   "range_b": [
+    49.2,
+    79
+   ],
+   "spearman": 0.552,
+   "pearson": 0.704,
+   "icc": 0.604,
+   "best_constant": 70,
+   "constant_mae": 5.9,
+   "centred_over_constant": 0.77
+  },
+  "flat_rows": {
+   "pass_a": 0,
+   "pass_b": 0,
+   "of": 18,
+   "definition": "all five dimensions identical"
+  },
+  "mean_within_row_span": {
+   "pass_a": 13.3,
+   "pass_b": 14.9
+  },
+  "overall_is_the_mean": {
+   "spearman_mean5_vs_judged_overall": {
+    "pass_a": 0.983,
+    "pass_b": 0.982
+   },
+   "mae": {
+    "pass_a": 0.97,
+    "pass_b": 1.89
+   },
+   "verdict": "The rubric says overall is 'informed by the five but NOT their mean'. It was the mean, in both passes. Delete the judgement, compute the mean."
+  }
+ },
+ "tiers_vs_both_baselines": {
+  "what": "Every candidate scorer's `overall`, measured against BOTH opus passes. A tier that agrees with one pass and not the other was never measuring the corpus -- it was fitting one pass's noise.",
+  "critical": "|rho| >= 0.475 for p=0.05",
+  "tiers": {
+   "sonnet_v1": {
+    "vs_pass_a": {
+     "mae": 6.44,
+     "bias": -4,
+     "spearman": 0.625,
+     "pearson": 0.54
+    },
+    "vs_pass_b": {
+     "mae": 4.44,
+     "bias": 1.33,
+     "spearman": 0.689,
+     "pearson": 0.647
+    },
+    "sd": 4.02,
+    "range": [
+     60,
+     72
+    ]
+   },
+   "haiku_v1": {
+    "vs_pass_a": {
+     "mae": 5.06,
+     "bias": 0.83,
+     "spearman": 0.207,
+     "pearson": 0.438
+    },
+    "vs_pass_b": {
+     "mae": 8.17,
+     "bias": 6.17,
+     "spearman": 0.421,
+     "pearson": 0.447
+    },
+    "sd": 1.7,
+    "range": [
+     68,
+     72
+    ]
+   },
+   "taste": {
+    "vs_pass_a": {
+     "mae": 7.22,
+     "bias": -1.33,
+     "spearman": 0.266,
+     "pearson": 0.134
+    },
+    "vs_pass_b": {
+     "mae": 11.67,
+     "bias": 4,
+     "spearman": -0.141,
+     "pearson": -0.327
+    },
+    "sd": 9.06,
+    "range": [
+     49,
+     91
+    ]
+   },
+   "math": {
+    "vs_pass_a": {
+     "mae": 12.78,
+     "bias": 11.67,
+     "spearman": -0.039,
+     "pearson": -0.393
+    },
+    "vs_pass_b": {
+     "mae": 18.33,
+     "bias": 17,
+     "spearman": -0.067,
+     "pearson": -0.433
+    },
+    "sd": 6.33,
+    "range": [
+     70,
+     96
+    ]
+   }
+  },
+  "controls": {
+   "constant_70": {
+    "vs_pass_a": {
+     "mae": 5.56
+    },
+    "vs_pass_b": {
+     "mae": 7.78
+    },
+    "sd": 0,
+    "spearman": null
+   },
+   "constant_72": {
+    "vs_pass_a": {
+     "mae": 5.22
+    },
+    "vs_pass_b": {
+     "mae": 9.11
+    },
+    "sd": 0,
+    "spearman": null
+   },
+   "opus_pass_b": {
+    "vs_pass_a": {
+     "mae": 7.89,
+     "spearman": 0.507
+    },
+    "sd": 8.15,
+    "note": "the baseline against itself -- the ceiling any tier can be shown to reach"
+   }
+  }
+ },
+ "rescale_verification": {
+  "map": "70.2 + (s - 66.2) * 2.04",
+  "spearman_cannot_move_check": {
+   "delta_spearman": 0,
+   "delta_pearson": -1.11e-16,
+   "rank_vectors_identical": true,
+   "verdict": "PASS -- no bug. A strictly increasing affine map cannot change a rank correlation, and it did not: +0.6252 before and after, to machine precision."
+  },
+  "before": {
+   "mae": 6.44,
+   "bias": -4,
+   "sd": 4.02,
+   "range": [
+    60,
+    72
+   ],
+   "spearman": 0.625
+  },
+  "after": {
+   "mae": 6.12,
+   "bias": 0.02,
+   "sd": 8.21,
+   "range": [
+    57.55,
+    82.03
+   ],
+   "spearman": 0.625
+  },
+  "published_figures_reproduce": {
+   "mae": "6.13 published, 6.12 computed",
+   "sd": "7.98 published is the POPULATION sd of the baseline; the sample sd is 8.21 and the slope 2.04 is the sample-sd ratio 8.21/4.02 -- a convention mismatch in the write-up, not an error in the map"
+  },
+  "but": {
+   "worse_than_a_constant": {
+    "rescaled_mae": 6.12,
+    "constant_70_mae": 5.56,
+    "constant_72_mae": 5.22
+   },
+   "mae_wants_shrinkage_not_expansion": {
+    "slope_sweep": {
+     "k=0": 5.51,
+     "k=0.5": 4.71,
+     "k=0.65": 4.66,
+     "k=1": 4.78,
+     "k=1.5": 5.3,
+     "k=2.04": 6.12,
+     "k=2.5": 7.03
+    },
+    "mae_optimal_slope": 0.65,
+    "mae_at_optimum": 4.66,
+    "note": "k=2.04 costs 1.46 MAE to buy honest spread. A legitimate trade, but it is a trade."
+   },
+   "cannot_reach_the_tail": {
+    "worst_page": "/web/layout/flow/",
+    "baseline": 44,
+    "sonnet_raw": 62,
+    "after_rescale": 61.6,
+    "still_high_by": 17.6,
+    "why": "Sonnet ties flow at 62 with three pages the baseline puts at 64, 68 and 71. A monotone map returns one output per input, so all four must receive the same score; the best any monotone map can do leaves flow at least 17.8 points high.",
+    "isotonic_lower_bound_mae": 3,
+    "isotonic_map_is_monotone": false
+   },
+   "overfits_the_pass_it_was_fitted_to": {
+    "sonnet_raw_vs_pass_b": {
+     "mae": 4.44,
+     "spearman": 0.689
+    },
+    "sonnet_rescaled_vs_pass_b": {
+     "mae": 6.61,
+     "spearman": 0.689
+    },
+    "note": "Both parameters are the baseline's own mean and sd -- unavailable for unscored pages. Against the pass it was not fitted to, the rescale makes agreement worse."
+   },
+   "verdict": "Ship Sonnet raw. Publish the spread beside every score. Do not rescale."
+  }
+ },
+ "rubric_experiment": {
+  "what": "Does rewriting the anchors as countable facts make the rubric reproducible? Independent claude-sonnet-5 CLI passes, identical harness, identical 18 PNGs in identical order, each fenced to Read+Write and told not to open any existing score file. The ONLY difference is which rubric file they read. v1 test-retest is the control.",
+  "v1_rubric": "the five axes and 30/60/90 anchors verbatim from vision-baseline/baseline.json, plus a judged overall",
+  "v2_rubric": "rubric.md's rejected rewrite: six axes (contrast split into legibility+emphasis), every anchor restated as a countable fact, an attribution table, no judged overall",
+  "passes_obtained": {
+   "v1": 3,
+   "v2": 2
+  },
+  "v2_third_pass": "FAILED -- 'Claude's response exceeded the 32000 output token maximum' after 1,506s, $3.93 spent, no output. v1 succeeded 3/3. The v2 rubric's demand for numbered region-naming prose across 6 axes x 18 images overflows the default output cap; that is a production cost against v2 in its own right.",
+  "headline": "v1 mean-of-axes ICC(3,1) 0.711, mean pairwise Spearman +0.683. v2 mean-of-axes ICC 0.041, Spearman +0.039. The rewrite is a regression by an order of magnitude.",
+  "detail": {
+   "v1": {
+    "axes": {
+     "layout": {
+      "pairwise_spearman": [
+       0.702,
+       0.551,
+       0.655
+      ],
+      "mean_spearman": 0.636,
+      "icc": 0.748,
+      "mean_centred_mae": 5.75,
+      "sd_of_pass_means": 1.66,
+      "sd_per_pass": [
+       9.73,
+       11.58,
+       12.47
+      ],
+      "ranges": [
+       [
+        50,
+        85
+       ],
+       [
+        45,
+        87
+       ],
+       [
+        46,
+        84
+       ]
+      ],
+      "best_constant": 73,
+      "constant_mae": 7.72,
+      "centred_over_constant": 0.74
+     },
+     "typography": {
+      "pairwise_spearman": [
+       0.576,
+       0.388,
+       0.571
+      ],
+      "mean_spearman": 0.512,
+      "icc": 0.418,
+      "mean_centred_mae": 3.12,
+      "sd_of_pass_means": 1.86,
+      "sd_per_pass": [
+       3.01,
+       6.47,
+       2.77
+      ],
+      "ranges": [
+       [
+        74,
+        85
+       ],
+       [
+        60,
+        85
+       ],
+       [
+        72,
+        82
+       ]
+      ],
+      "best_constant": 81,
+      "constant_mae": 2.39,
+      "centred_over_constant": 1.3
+     },
+     "contrast": {
+      "pairwise_spearman": [
+       0.279,
+       0.513,
+       0.352
+      ],
+      "mean_spearman": 0.381,
+      "icc": 0.296,
+      "mean_centred_mae": 3.07,
+      "sd_of_pass_means": 1.78,
+      "sd_per_pass": [
+       3.06,
+       4.34,
+       3.89
+      ],
+      "ranges": [
+       [
+        74,
+        88
+       ],
+       [
+        68,
+        88
+       ],
+       [
+        68,
+        84
+       ]
+      ],
+      "best_constant": 82,
+      "constant_mae": 2.06,
+      "centred_over_constant": 1.49
+     },
+     "density": {
+      "pairwise_spearman": [
+       0.655,
+       0.471,
+       0.632
+      ],
+      "mean_spearman": 0.586,
+      "icc": 0.674,
+      "mean_centred_mae": 5.94,
+      "sd_of_pass_means": 1.86,
+      "sd_per_pass": [
+       11.1,
+       8.65,
+       12.19
+      ],
+      "ranges": [
+       [
+        42,
+        82
+       ],
+       [
+        55,
+        82
+       ],
+       [
+        38,
+        82
+       ]
+      ],
+      "best_constant": 71,
+      "constant_mae": 8.78,
+      "centred_over_constant": 0.68
+     },
+     "hierarchy": {
+      "pairwise_spearman": [
+       0.74,
+       0.7,
+       0.588
+      ],
+      "mean_spearman": 0.676,
+      "icc": 0.626,
+      "mean_centred_mae": 4.5,
+      "sd_of_pass_means": 1.6,
+      "sd_per_pass": [
+       8.22,
+       7.84,
+       8.42
+      ],
+      "ranges": [
+       [
+        58,
+        88
+       ],
+       [
+        62,
+        88
+       ],
+       [
+        55,
+        85
+       ]
+      ],
+      "best_constant": 77,
+      "constant_mae": 6.44,
+      "centred_over_constant": 0.7
+     }
+    },
+    "passes": 3,
+    "cost": [
+     {
+      "usd": 1.2820335,
+      "tok": 426765,
+      "turns": 21,
+      "s": 216
+     },
+     {
+      "usd": 1.528886,
+      "tok": 270815,
+      "turns": 21,
+      "s": 281
+     },
+     {
+      "usd": 1.840806,
+      "tok": 1300995,
+      "turns": 31,
+      "s": 259
+     }
+    ],
+    "mean_of_axes": {
+     "pairwise_spearman": [
+      0.704,
+      0.669,
+      0.675
+     ],
+     "mean_spearman": 0.683,
+     "icc": 0.711,
+     "mean_centred_mae": 3.3,
+     "sd_per_pass": [
+      6.15,
+      7.13,
+      6.99
+     ],
+     "ranges": [
+      [
+       61.6,
+       84
+      ],
+      [
+       60,
+       85.8
+      ],
+      [
+       57.8,
+       82
+      ]
+     ],
+     "best_constant": 77,
+     "constant_mae": 4.7,
+     "centred_over_constant": 0.7,
+     "vs_opus": [
+      {
+       "vs_a": {
+        "mae": 8.08,
+        "spearman": 0.184
+       },
+       "vs_b": {
+        "mae": 12.17,
+        "spearman": 0.512
+       }
+      },
+      {
+       "vs_a": {
+        "mae": 9.72,
+        "spearman": 0.264
+       },
+       "vs_b": {
+        "mae": 13.06,
+        "spearman": 0.487
+       }
+      },
+      {
+       "vs_a": {
+        "mae": 7.77,
+        "spearman": 0.119
+       },
+       "vs_b": {
+        "mae": 10.61,
+        "spearman": 0.353
+       }
+      }
+     ],
+     "averaged_vs_opus": {
+      "vs_a": {
+       "mae": 8.15,
+       "spearman": 0.18
+      },
+      "vs_b": {
+       "mae": 11.82,
+       "spearman": 0.54
+      }
+     }
+    },
+    "judged_overall": {
+     "pairwise_spearman": [
+      0.696,
+      0.636,
+      0.703
+     ],
+     "mean_spearman": 0.678,
+     "icc": 0.693,
+     "mean_centred_mae": 4.34,
+     "centred_over_constant": 0.73,
+     "vs_opus": [
+      {
+       "vs_a": {
+        "mae": 7.06,
+        "spearman": 0.206
+       },
+       "vs_b": {
+        "mae": 9.94,
+        "spearman": 0.444
+       }
+      },
+      {
+       "vs_a": {
+        "mae": 10.33,
+        "spearman": 0.242
+       },
+       "vs_b": {
+        "mae": 13.11,
+        "spearman": 0.492
+       }
+      },
+      {
+       "vs_a": {
+        "mae": 7.89,
+        "spearman": 0.117
+       },
+       "vs_b": {
+        "mae": 10,
+        "spearman": 0.464
+       }
+      }
+     ],
+     "averaged_vs_opus": {
+      "vs_a": {
+       "mae": 7.72,
+       "spearman": 0.199
+      },
+      "vs_b": {
+       "mae": 10.65,
+       "spearman": 0.546
+      }
+     }
+    },
+    "flat_rows": [
+     5,
+     0,
+     3
+    ],
+    "mean_within_row_span": [
+     13.06,
+     11.22,
+     13.5
+    ]
+   },
+   "v2": {
+    "axes": {
+     "layout": {
+      "pairwise_spearman": [
+       -0.027
+      ],
+      "mean_spearman": -0.027,
+      "icc": 0.06,
+      "mean_centred_mae": 20.84,
+      "sd_of_pass_means": 0.43,
+      "sd_per_pass": [
+       24.6,
+       18.34
+      ],
+      "ranges": [
+       [
+        30,
+        90
+       ],
+       [
+        30,
+        88
+       ]
+      ],
+      "best_constant": 68,
+      "constant_mae": 21.44,
+      "centred_over_constant": 0.97
+     },
+     "typography": {
+      "pairwise_spearman": [
+       -0.012
+      ],
+      "mean_spearman": -0.012,
+      "icc": -0.027,
+      "mean_centred_mae": 8.05,
+      "sd_of_pass_means": 3.22,
+      "sd_per_pass": [
+       4.88,
+       9.08
+      ],
+      "ranges": [
+       [
+        55,
+        78
+       ],
+       [
+        58,
+        88
+       ]
+      ],
+      "best_constant": 67,
+      "constant_mae": 3.5,
+      "centred_over_constant": 2.3
+     },
+     "legibility": {
+      "pairwise_spearman": [
+       0.005
+      ],
+      "mean_spearman": 0.005,
+      "icc": -0.102,
+      "mean_centred_mae": 13.72,
+      "sd_of_pass_means": 8.13,
+      "sd_per_pass": [
+       10.6,
+       11.87
+      ],
+      "ranges": [
+       [
+        55,
+        90
+       ],
+       [
+        60,
+        88
+       ]
+      ],
+      "best_constant": 83,
+      "constant_mae": 7.5,
+      "centred_over_constant": 1.83
+     },
+     "emphasis": {
+      "pairwise_spearman": [
+       0.386
+      ],
+      "mean_spearman": 0.386,
+      "icc": 0.135,
+      "mean_centred_mae": 3.72,
+      "sd_of_pass_means": 8.13,
+      "sd_per_pass": [
+       6.06,
+       3.73
+      ],
+      "ranges": [
+       [
+        55,
+        82
+       ],
+       [
+        70,
+        85
+       ]
+      ],
+      "best_constant": 67,
+      "constant_mae": 4.56,
+      "centred_over_constant": 0.82
+     },
+     "density": {
+      "pairwise_spearman": [
+       0.662
+      ],
+      "mean_spearman": 0.662,
+      "icc": 0.56,
+      "mean_centred_mae": 6.77,
+      "sd_of_pass_means": 6.64,
+      "sd_per_pass": [
+       12.67,
+       13.95
+      ],
+      "ranges": [
+       [
+        30,
+        78
+       ],
+       [
+        40,
+        82
+       ]
+      ],
+      "best_constant": 58,
+      "constant_mae": 9.94,
+      "centred_over_constant": 0.68
+     },
+     "hierarchy": {
+      "pairwise_spearman": [
+       0.317
+      ],
+      "mean_spearman": 0.317,
+      "icc": 0.163,
+      "mean_centred_mae": 9.13,
+      "sd_of_pass_means": 4.36,
+      "sd_per_pass": [
+       3.51,
+       12.89
+      ],
+      "ranges": [
+       [
+        78,
+        90
+       ],
+       [
+        50,
+        90
+       ]
+      ],
+      "best_constant": 84,
+      "constant_mae": 2.89,
+      "centred_over_constant": 3.16
+     }
+    },
+    "passes": 2,
+    "cost": [
+     {
+      "usd": 0.982132,
+      "tok": 358742,
+      "turns": 21,
+      "s": 123
+     },
+     {
+      "usd": 2.5433665,
+      "tok": 501146,
+      "turns": 21,
+      "s": 700
+     }
+    ],
+    "mean_of_axes": {
+     "pairwise_spearman": [
+      0.039
+     ],
+     "mean_spearman": 0.039,
+     "icc": 0.041,
+     "mean_centred_mae": 7.16,
+     "sd_per_pass": [
+      7.56,
+      4.85
+     ],
+     "ranges": [
+      [
+       55.33,
+       81.67
+      ],
+      [
+       64.83,
+       79.17
+      ]
+     ],
+     "best_constant": 71,
+     "constant_mae": 6.18,
+     "centred_over_constant": 1.16,
+     "vs_opus": [
+      {
+       "vs_a": {
+        "mae": 6.34,
+        "spearman": 0.179
+       },
+       "vs_b": {
+        "mae": 8.31,
+        "spearman": 0.283
+       }
+      },
+      {
+       "vs_a": {
+        "mae": 7.28,
+        "spearman": 0.025
+       },
+       "vs_b": {
+        "mae": 9.37,
+        "spearman": 0.269
+       }
+      }
+     ],
+     "averaged_vs_opus": {
+      "vs_a": {
+       "mae": 5.6,
+       "spearman": 0.167
+      },
+      "vs_b": {
+       "mae": 8.4,
+       "spearman": 0.422
+      }
+     }
+    },
+    "flat_rows": [
+     0,
+     0
+    ],
+    "mean_within_row_span": [
+     34.78,
+     28.44
+    ]
+   }
+  }
+ },
+ "reliability_of_an_averaged_panel": {
+  "what": "Spearman-Brown applied to Sonnet's measured single-pass ICC of 0.711 on the v1 mean-of-axes: the reliability of averaging k independent passes.",
+  "formula": "k*ICC / (1 + (k-1)*ICC)",
+  "k": {
+   "1": 0.711,
+   "2": 0.831,
+   "3": 0.881,
+   "4": 0.908,
+   "5": 0.925
+  },
+  "recommendation": "Two passes averaged reaches 0.83, which is the value-for-money point. One pass at 0.71 is not enough to publish a per-page number."
+ },
+ "contrast_split": {
+  "what": "Is legibility+emphasis two constructs or one renamed? A low legibility-vs-emphasis correlation means two; a high one means the split bought nothing.",
+  "passes": [
+   {
+    "legibility_vs_emphasis_spearman": 0.527,
+    "mean_of_split_vs_v1_contrast": {
+     "spearman": 0.582,
+     "mae": 7.19
+    },
+    "legibility_vs_opus_contrast_spearman": 0.398,
+    "emphasis_vs_opus_contrast_spearman": 0.196
+   },
+   {
+    "legibility_vs_emphasis_spearman": -0.3,
+    "mean_of_split_vs_v1_contrast": {
+     "spearman": -0.47,
+     "mae": 9.36
+    },
+    "legibility_vs_opus_contrast_spearman": 0.389,
+    "emphasis_vs_opus_contrast_spearman": -0.096
+   }
+  ]
+ }
+}

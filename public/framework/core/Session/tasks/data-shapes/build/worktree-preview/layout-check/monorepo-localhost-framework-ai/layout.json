@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/",
+ "widths": {
+  "1280": {
+   "empty": 0.409,
+   "widest_text": 281,
+   "widest_text_sample": "the review home is a session's own page,",
+   "overflow_x": false,
+   "items": 48,
+   "narrow_share": 0.396
+  },
+  "1920": {
+   "empty": 0.491,
+   "widest_text": 381,
+   "widest_text_sample": "the review home is a session's own page,",
+   "overflow_x": false,
+   "items": 53,
+   "narrow_share": 0.868
+  },
+  "2560": {
+   "empty": 0.534,
+   "widest_text": 563,
+   "widest_text_sample": "the review home is a session's own page,",
+   "overflow_x": false,
+   "items": 53,
+   "narrow_share": 0.868
+  },
+  "3440": {
+   "empty": 0.591,
+   "widest_text": 850,
+   "widest_text_sample": "the documentation rule is written (docum",
+   "overflow_x": false,
+   "items": 53,
+   "narrow_share": 1
+  }
+ },
+ "errors": []
+}

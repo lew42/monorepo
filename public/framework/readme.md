@@ -1,372 +1,89 @@
-# Framework — design record
+# Framework — everything it offers is organized, visual, browsable: find any thing by clicking through previews, and every layout works from mobile to 3440
 
-Per-class records live next to their code (`core/Page/readme.md`,
-`ext/*/readme.md`, `styles/layers/theme/*/readme.md`). Pager-era records are in
-`core/legacy/`. This
-file is the cross-cutting one: open questions, alternatives considered, and the
-reasoning behind calls that touch more than one class.
+## Index
 
-Format: **the question → the options → the weighing → a verdict.** A verdict of
-*keep* is as valuable as a change — it stops the same idea being re-litigated.
+- **[Item system status](./core/doc/status.md)** — what's built of the save-and-stream plan, what isn't, the check that sessions and tasks still replay the same, and the next steps (2026-11-01)
+- [live](/live/) — the owner's live voice-work feed (lives at `public/live/`, not in this folder)
+- [core](./core/) — the seven classes under every page (View, Page, Router, App, Sidebar, Item, List); [how a page renders](./core/Page/doc/how-a-page-renders.md)
+- [ext](./ext/) — opt-in addons; core never imports them
+- [ui](./ui/) — the template tier: components, one page each
+- [library](./library/) — every ui and Figma item in three columns: siblings, the chosen one at full size, its variants
+- [catalog](./catalog/) — every page with a demo as a live preview card, plus the class cards
+- [ux](./ux/) — the behavior tier: classes you can extend; [every voice and chat surface](./ux/Dictate/surfaces/)
+- [styles](./styles/) — the CSS strategy: four layers, one vocabulary
+- [web](/web/) — the guide tier, live (it lives at `public/web/`, not in this folder; no readme here)
+- [start](./start/) — three files, no build step, a working site (no readme yet)
+- [faq](./faq/) — short answers, code first (no readme yet)
+- [versus](./versus/) — how this compares with other choices (no readme yet)
+- [util](./util/) — small plain helper functions (no readme yet)
+- [lab](./lab/) — small browser-feature experiments, each a live demo (today: notifications on Android; [PWA state](./lab/doc/pwa-state.md))
+- [dev](./dev/) — local-only live reload and the dev bar
+- [research](./research/) — research projects, filed by date (`research/YYYY/MM/DD/<topic>/`); its readme lists them (read one only when your task needs it)
+- [tasks](./tasks/readme.md) — framework-wide work asked for and not done yet, newest date first
+- [ai](./ai/) — the daily working log and task board (its card rail and inbox are AI 2's old code, being migrated in place; `ai2/` itself is retired)
+- [audit](./audit/) — the 2026-08-15 doc audit, a dated snapshot
+- [old](./old/) — the home page as it stood before the 2026-10-02 sprawl rebuild, kept reachable
+- [doc](./doc/decisions.md) — framework-wide decisions and doc-system notes; [doc/rules.md](./doc/rules.md) is the long form of the rules below; [doc/git.md](./doc/git.md) is how code gets from a worktree to the live site (proposal)
 
----
+## The systems (one line each; each links its own readme)
+- [core/Task](./core/Task/) — `class Task extends Item`: one task's state machine, plus the task pages
+- [core/Plugin](./core/Plugin/) — `Host.use(A, B)`: one plugin system for every pluggable class, with a live on/off and config list, per-instance overrides (`inst.overrides`, `Host.make_default(inst)`); `Server/Events.js` is a subclass of it
+- [core/Settings](./core/Settings/) — a plain settings store between data and UI: level defaults, one instance's own overrides (`s.get`/`s.set`/`s.own`), a `change` event, a save policy, groups, and a row-per-field `render()`
+- [core/Test](./core/Test/) — node tests: `X.test.mjs`, one command runs the ones a change covers, results at `/framework/core/Test/`
+- [core/Page/ext/Inbox](./core/Page/ext/Inbox/) — `class Inbox`: one ranked rail of notes, questions and tasks, read from `page.jsonl` and the AI files
+- [core/Page](./core/Page/) — the page system: a folder with `page.js` and/or `page.jsonl`, written by the page tools
+- [ai/tasks](./ai/tasks/) — the task log and board: where tasks live on disk, how `Server/AIIndex.mjs` folds them into `ai/index.json`
+- [ai/sessions](./ai/sessions/) — one folder per Claude session, by date, and the grid that lists them
+- [ai/AITask](./ai/AITask/) — the task viewer classes on the AI pages
+- [servex](./servex/) — the always-on process that runs agents: spawning, roles, dispatch (code in `Servex/`)
+- [Servex MCP](./ai/doc/agents/mcp.md) — the local `servex` MCP at `/mcp` and the remote door at `/mcp/remote` (`Servex/MCP.js`, `Servex/ext/remote/RemoteMCP.js`)
+- [Cloud voice agent](/Servex/ext/remote/doc/cloud-voice-agent.md) — the voice app's call into Servex: `ask_mastermind`, `/live/`, its session record
 
-## 1. `p()` backticks vs `md()`
+## Rules — every agent reads these (long form: [doc/rules.md](doc/rules.md), moved from CLAUDE.md 2026-10-22)
 
-**Today.** `p("...`code`...")` runs `backtick_append` — a hand-rolled quarter of
-markdown that only does `<code>`. Bold, links and tables silently render as
-literal text, which has bitten these docs repeatedly.
+- **Presentation — always the overwhelmed newcomer:** level 1 is one screen, shown not told; detail nests one click down. **Chat is the headline, not the report:** reply in 1–2 sentences, the most important first; anything contingent also goes on the AI board as a `Note:` card. **How to respond:** a `###` heading per thing with its path, `---` between sections, icons for status only.
+- **Design in Figma first; show it with the widget, then use words.** Clarity is familiar structure; a name is a name plus its scope.
+- **Route everything; link every mention, and every page:** every view a click reaches has a URL; every file you create is reachable by a visible link; anything named that has a URL is a link (`ext/Mention`).
+- **Anything that can fail tells the user what went wrong:** the failed step and its real reason, visible where the reader looks; every request has a time limit; the error is one line in its module's `failures.jsonl` ([the rule](doc/rules.md)).
+- **Readmes and docs:** docs point, they don't explain. A readme is a short index (under about 100 lines), read root to leaf before you work in a folder: `readme.md` is the index, a sibling `<topic>.md` holds an often-read topic, `doc/` holds everything else. No dated logs in readmes; edit what is there instead of transcribing the owner; the mastermind owns its area's docs ([the rule](/.claude/skills/documentation/SKILL.md)). Write `.md` links as file paths; fix a stale readme the moment you notice it.
+- **Classes:** classes are the structure; one class per file, named for the file, no function bags; every system is classes and instances, and a page shows the class and its live instances and properties as the program runs (a system used daily that isn't a class becomes one); design the class architecture before you build; **every class gets one lean core test** (`X.test.mjs`: one instance, the top ~50% of its work, an assert per call, under 1 s; [core/Test](./core/Test/readme.md)).
+- **Pages, cards, review:** pages are live, written in small steps through the page tools, the first line before any long step; every task reports on its card; `merge.mjs` refuses a page change with no review report; check at 400, 1200, 1920 and 3440.
+- **The site is live while you edit it:** `node Server/hold.mjs on "<you> — <what>"` before a batch of writes the site loads, `off` once it works.
+- **Traps that never throw:** a class's folder, file and name match; no DOM after an `await`; every CSS rule inside a layer; resolve URLs against `import.meta`; only `p()`/`h1`–`h6` read backticks; imports flow down.
+- **Law: code streams, AI does not:** a view plugs into raw data (a JSONL file, a log) and code streams the change; a card an agent has to rewrite is not live.
 
-Now that `md()` ships in `/app.js`, could `p()` just parse inline markdown?
-
-**No — and it's worth writing down why.** The factories are created once by
-`View.elements()` and exported as `const` bindings from `View.js`. An ext can
-patch `View.prototype`, but it cannot reassign another module's `const p`.
-`md.js` could export its own `p`, but `app.js` does `export * from App.js` and a
-second `p` export would be an ambiguity error.
-
-**Verdict: leave `p()` alone; docs use `md()`.** Changing `p()` would also
-silently re-render every existing page in the repo (`michael/`, `alex/`, …).
-Recorded so it isn't rediscovered a third time.
-
----
-
-## 2. Factories always capture — and how to opt out
-
-Creating a view appends it to the current captor. That's the framework's best
-idea and its sharpest edge: you cannot build a view *for later* inside a capture
-without opting out.
-
-```js
-new View({ capture: false })      // what md.file does
+## Use
+```js /path/page.js
+import { p } from "/app.js";
+p("Hello world.");
 ```
 
-**Alternative: a `detached()` helper**, which works because `prerender` already
-guards on `View.captor` being truthy:
+## Watch out
+- Capturing is synchronous: a factory call textually after an `await` appends to the wrong captor — capture the container first, fill it in a callback: [`core/View/doc/capturing.md`](/framework/core/View/doc/capturing.md)
+- Every stylesheet restates the full `@layer base, theme, site, util;` and every rule sits in a layer — one short list silently reorders the cascade: [`styles/doc/cascade.md`](/framework/styles/doc/cascade.md)
+- `core/` and `core/new/` both ship — a typo'd import path resolves to a same-named *different* class; `instanceof` fails, nothing throws: [`doc/decisions.md`](./doc/decisions.md)
+- A POJO page whose key collides with a `Page` method (`render`) shadows it and returns nothing — `content()` is the seam: [`doc/decisions.md`](./doc/decisions.md)
+- `instantiate()` is unawaited in the App constructor — a throw outside `load()` is a silent unhandled rejection: [`doc/decisions.md`](./doc/decisions.md)
+- Rename freely inside `framework/`, alias on the way out — the sandboxes' `lib/` are downstream packages: [`doc/decisions.md`](./doc/decisions.md)
 
-```js
-export function detached(fn){
-    View.set_captor(null);
-    const result = fn();
-    View.restore_captor();
-    return result;
-}
+## More
+- [Overview](/framework/) — then [Start here](/framework/start/), [FAQ](/framework/faq/), [Versus](/framework/versus/)
+- [`core/`](/framework/core/) — seven classes, every page
+- [`ext/`](/framework/ext/) — opt-in addons; core never imports them
+- [`styles/`](/framework/styles/) — four layers, one vocabulary
+- [`ui/`](/framework/ui/) — nineteen components, four bands
+- [`web/`](/web/) — the guide tier, live
+- [`dev/`](/framework/dev/) — local-only live reload
+- [`util/`](/framework/util/) — small plain helpers
+- [`ai/`](/framework/ai/) — the AI system: every AI agent reads [ai/readme.md](ai/readme.md) for the lay of the land; the working log, daily
+- [`doc/decisions.md`](./doc/decisions.md) (the record) · [`doc/injection.md`](./doc/injection.md) (nothing reads `window.app`) · [`doc/theme-behaviour.md`](./doc/theme-behaviour.md) (a theme is CSS)
+- [`doc/docs-system.md`](./doc/docs-system.md) (what a doc page is made of) · [`doc/reachability.md`](./doc/reachability.md) (the crawl + audit method)
+- **Decisions:** a module's readme gives the one-line overview and links `doc/architecture.md` for the conclusive decisions and why; `doc/decisions.md` (the log) is history, read when you need to know how a decision moved ([shape](/.claude/skills/documentation/architecture-template.md))
+- Files that matter: `/app.js` (the one import), `page.js` (sidebar + walls layout), `framework.css` (the utility vocabulary)
 
-const row = detached(() => tr(() => { td("a"); td("b"); }));   // build, place later
-```
-
-Five lines, no new concept, and `capture: false` becomes the single-view special
-case of it. **Verdict: add it when something needs it.** Nothing does today —
-`md.file` is the only detached construction in the codebase — but this is the
-answer when the second one appears.
-
----
-
-## 3. `window.app`
-
-`Router` and `Pager` both reach `window.app`. Three ways to give them an app:
-
-- `window.app` — honest for a real singleton, zero plumbing, no import cycle
-  (`app.js` imports `Router`, so `Router` can't import `app.js`), and it's what
-  you type in the console.
-- `App.current` — a namespaced static, set in the constructor. Tidier, and a
-  test can set it. But it is the *same assumption*: one ambient App per
-  document. It relocates the global, it doesn't remove it.
-- **Inject it** — `new Router(this.router, { app: this })`, read `this.app`.
-
-**Verdict (superseded — this entry previously said "do both, read
-`App.current`"): inject the app.** Both globals encode "there is exactly one App
-per document," which forbids two apps on a page, an app in an iframe or test
-harness, and any instance that isn't the global one. That's a real constraint to
-accept in the substrate in exchange for saving one constructor argument.
-
-`window.app` stays — as a **console convenience only**. Nothing under
-`framework/` may read it. See the OOP conventions in `CLAUDE.md`: because every
-constructor is `Object.assign(this, ...args)`, injection costs one extra object
-literal at the call site and needs no constructor change at all.
-
-**Done.** `Router` takes `{ app: this }` from `config_router`; `Pager.leaf()` and
-`ColumnPager.close()` read `this.app`. Nothing under `framework/` reads the
-global now.
-
-The `Pager` half looked like the hard one — it's a `View` constructed by
-`Page.render()`, and `Page` held no app either. The resolution was to notice that
-**`Page` can't take `app` in its constructor at all**: pages are built in
-userland at module scope (`export default new Page(…)`), so there is no call site
-to inject at. `App.load_page` assigns it at *render* time instead — the same
-adoption move that already wires `child.parent`. `Page` never uses `app` itself;
-it is purely a conduit to the layout tier, which is worth knowing before someone
-"cleans up" the forwarding.
-
-Two things this does **not** buy, recorded so they aren't claimed later:
-
-- **Two Apps in one document.** The ES module registry is per-realm, so both
-  Apps import the *same* `page.js` module and get the *same* `Page` instance,
-  which can only hold one `app`. `Page.registry`, `View.captor` and
-  `View.stylesheets` are statics and would clobber each other besides. The real
-  isolation boundary for two apps is an **iframe** — separate realm, separate
-  registry, separate statics — and there `window.app` is per-frame and correct.
-- **Removing the global.** `window.app` stays, as a console convenience.
-
----
-
-## 4. Odds and ends
-
-- **`Font` is its own file now** — `core/App/Font.js`, next to the only class
-  that constructs one. Not moved to `util/`, because `util/page.js`'s own pitch
-  is *"plain functions, no classes, no state"* and `Font` is a class with a
-  registry. The CDN point stands and is unresolved: the two registered faces are
-  `fonts.gstatic.com` urls, the one place in the framework that breaks the
-  "vendor the dependency" rule `ext/` is held to. Vendoring costs ~166KB in the
-  repo for a look most sites won't load.
-- **Three aliases for one function.** `View.stylesheet` (static),
-  `App.stylesheet` (static), `app.stylesheet` (instance). Same for
-  `View.meta_path` / `App.meta_path`. It is tempting to call the extras noise —
-  **don't delete them.** `arya/lib/Page.js` calls `app.stylesheet()`, the
-  instance one. See below.
-
-- **The framework has external consumers now.** Removing a public static is a
-  breaking change, and `grep public/` before a merge does not see the branches
-  about to land. `App.path_to_page_url` was moved to `Page.module_url` while it
-  had one caller; the merge then brought in `arya/lib/Router.js`, which calls it
-  on every page load, plus two doc pages describing it in prose. It's back as a
-  one-line alias — one implementation, two names, and the second name is load-
-  bearing. The rule this buys: **rename freely inside `framework/`, alias on the
-  way out.** A dev's `lib/` is a downstream package that happens to share a repo.
-- **`instantiate()` is an unawaited async call in the constructor.** `new App()`
-  returning before load is what makes `window.app = new App()` read well, and
-  `app.ready` covers the wait — but a throw anywhere outside `load_page`'s own
-  try/catch becomes a silent unhandled rejection. One `.catch(e => this.error(e))`
-  in the constructor fixes it.
-- **`.page` is styled by the site, emitted by core.** `Page` renders
-  `div.page`; the only rule for it lives in `/styles.css`. Someone using the
-  framework without this site's stylesheet gets an unstyled page. A minimal
-  `.page` default in `framework.css` would fix it — the risk is that this
-  site's rule and the framework's then both exist and drift.
-- **~~`mark_links` belongs on `App`, not `Router`.~~ It drifted anyway.** This
-  bullet said "settled; recorded so it doesn't drift to the Router later," and
-  the rewrite put it on `Router` (`Router.js`, called from `mark()`). Left
-  visible rather than quietly corrected, because the failure is the interesting
-  part: **writing a decision down did not keep it.** A note in a design record is
-  not a constraint — only a test or a structural impossibility is. The current
-  location is defensible (marking is part of activating a url, which is the
-  Router's job); what isn't defensible is a record that spent months asserting
-  the opposite of the code.
-- **`instanceof` across `core/` and `core/legacy/` is a trap.** Both directories
-  ship — `public/` *is* the deploy artifact, and a static host serves by path,
-  not by what is linked. A typo'd `../legacy/Page/Page.class.js` resolves
-  successfully, to a real file, and yields a *different class* with the same
-  name. Nothing throws. Nothing today does an `instanceof Page` across that line;
-  `Page.add()` does one internally, which is the one to watch.
-
----
-
-## 5. Can a theme carry behaviour?
-
-Asked directly: `theme-lew42` is a CSS class today, but it *used to be a class
-extending `App`*, and themes might want to ship plugins or behaviour. Settled by
-a three-persona council; all three landed in the same place, by different routes.
-
-**Verdict: the theme is CSS. Behaviour is a plain exported function the SITE
-calls. Never a class, and never triggered by the class appearing.**
-
-```js
-// styles/layers/theme/lew42/lew42.js
-export function lew42(app){ app.font("Montserrat"); app.font("Material Icons"); }
-
-// app.js
-new App({ config(){ lew42(this); } });
-```
-
-The weighing, shortest first:
-
-- **Inheritance imposes an order and a single lineage** on things that have
-  neither. `Theme extends App` makes every theme also a complete App variant —
-  N themes × M App configurations — and "lew42's fonts with a different Router
-  option" has no answer inside a class hierarchy except a deeper chain.
-- **The decisive one, which is smaller and harder to argue with: a theme is
-  designed to appear more than once on a page.** `theme/guide/page.js` renders
-  `.theme-paper` and `.theme-terminal` side by side *to prove that*, and
-  `lew42/page.js` renders light and dark together. Behaviour does not survive
-  duplication. Two boxes would run it twice; `app.font()` is safe only because
-  `Font.load` memoizes by name, for an unrelated reason. A theme that attached a
-  listener or started a timer would fire twice and **break its own demo page.**
-- A CSS class is a *value the cascade resolves*, any number of times, at any
-  depth. That is the property that makes themes composable, and behaviour is
-  exactly the thing that doesn't have it.
-
-**If a function isn't enough**, the escalation is `ext/` — the tier that already
-exists for "opt-in, may patch core" — or `app.navigated?.()`, which `Router`
-already calls on every navigation, duck-typed, for free. **Not** a `Theme`
-registry with lifecycle hooks: there is one theme with one behaviour, and an
-unused hook is permanent API surface.
-
----
-
-## 6. Two lessons from running the council itself
-
-Worth recording because both are cheap to repeat and both changed the output.
-
-- **Trace less, execute more.** Two personas reached *opposite* conclusions about
-  four lines of string-slicing in `util/source/source.js` — one said `source()`
-  drops a method's signature, the other said "I traced it, it works." Running it
-  took thirty seconds and settled it (the first was right; the second had
-  reasoned carefully to a wrong answer). Any claim about what code *does* is
-  cheaper to test than to argue.
-- **The best answer was nobody's.** `classdoc` needed Steve's `dedent(String(fn))`
-  (keep the signature), Tim's `getOwnPropertyDescriptor` (never invoke a getter),
-  and Eric's one-call shape. Each seat found one, none found all three. That is
-  the argument for a council over a single deeper pass — not that any member is
-  smarter, but that they *look in different places*.
-
----
-
-## 7. The documentation system — what a doc page is made of now
-
-Cross-cutting, because it changed how every page under `/framework/` is written
-rather than any one class. The brief was *"simpler, clearer, easier, on-demand —
-start super simple, but have links to more advanced examples."*
-
-**The four pieces, and what each replaced:**
-
-| piece | replaced |
-|---|---|
-| [`ext/files`](ext/files/) — a tree of real files, fetched | a wall of `code.html()` string literals showing `index.html` in full |
-| [`ext/toc`](ext/toc/) — a page's own headings, scroll-spied | scrolling to find a section |
-| `demo()`'s third pane — the real DOM, read back | "and this renders…", unverifiable |
-| `.tabs.vertical` + `classdoc.page()` — a members nav beside a panel | a grid of preview cards you had to leave the page to use |
-
-**The organising principle: a doc page should answer *"where do I click to see X"*
-in one glance.** Screen space is finite, so the three navs it can carry are
-deliberately different questions — the site sidebar is *which module*, the vertical
-tab bar is *which member of this module*, the toc rail is *which section of this
-page*. None of them duplicates another, and a page opts into the two inner ones by
-one call each.
-
-### Why the members nav is `tabs()` and not a new class
-
-`.tabs.vertical` is **CSS only** — no new JS, no new API. A bar of links beside its
-panel is a bar of links above its panel with the axis swapped, so the urls, the
-default tab, the `.active` marking and the labels are all `Page.tabs()`'s. Getting
-this for a stylesheet is the strongest evidence so far that the arrangement contract
-(`.active-page` / `.active-ancestor` and nothing else) was the right shape.
-
-It did surface one real bug in `tabs()`: the **default tab's href is the page's own
-url**, which is a prefix of every sibling's, so `mark_links()` gave it `.in-path` on
-every tab in the set — every bar on the site read as having two things selected.
-Fixed with a `tab-default` class written where `owns_url` is known, and a
-`:not(.tab-default)` in the CSS. Live and unnoticed for as long as tabs have existed,
-which is what a flat bar with one member does to your eye.
-
-### `classdoc.page()` — one call for a class page
-
-```js
-export default classdoc.page({
-    meta: import.meta, title: "View", Class: View,
-    methods: "append ac on style stylesheet",
-    content(){ … },        // the overview — becomes the first tab
-});
-```
-
-`ext/classdoc/readme.md` §5 previously decided *"neither tabs nor previews —
-`classdoc()` returns the page and the author picks"*, on the grounds that `tabs()`
-has no overflow handling and `View` has ~35 candidate methods. **That objection was
-about a horizontal bar.** A vertical one handles twenty names fine, so the verdict
-changed for the layout and not for the reasoning; the low-level
-`classdoc(page, Class, meta, names)` is still there for a page that wants to compose
-it differently.
-
-The overview being **a child page** rather than a special case is what makes it cost
-nothing: `tabs()` already renders its first child as the panel's `.default` and
-points its link at the parent url.
-
-### Trap found: a fixed rail cannot be sticky here
-
-`ext/toc` uses `position: fixed`, and the obvious `sticky` does nothing —
-**the region scrolls, not the page**, so a sticky element inside a `.page` sticks to
-a box that never moves. Same fact bit the scroll-spy listener (it has to be on
-`.pages`, not `window`) and the initial "current" marking, which read the *last*
-heading because a `display: none` page measures every rect at 0. Three separate
-symptoms, one cause, and all three are silent.
-
-## 8. Known and NOT fixed: ~40 orphaned pages in the sandboxes
-
-Found by crawling every in-app link from `/` rather than by checking a list — which
-is the only way this class of bug shows up, and the same method that caught
-`/notes/git-branch-names.page.js` last time.
-
-**`alex/`, `arya/`, `castin/` and `edric/` declare no `children` on their index
-pages.** Since declaring *is* the registration, every subpage under them 404s while
-still being linked from the page above it. Measured: **13 broken routes** reachable in
-one crawl, across 48 `page.js` files that no parent names.
-
-`michael/` is the exception and shows what the fix looks like — `children: [pageDoc,
-elements, layout, …]`, an eager array, so its 29 pages all resolve. One of them,
-`michael/branding/page.js`, still calls `app.nav()`, which no longer exists, so it
-renders a load error rather than a page; that one is a stale call, not a routing
-problem.
-
-> Corrected: an earlier version of this section said *none* of the four sandboxes
-> declared children, michael included. That came from a `grep` whose output was
-> truncated by a `head` — the claim was wrong in the direction of alarming, which is
-> the direction a design record must not be wrong in. Re-measured per directory.
-
-**Deliberately not fixed here.** These are other people's sandboxes, the fix is a
-judgement call per directory (some of that content is dead and should be deleted, not
-declared), and restoring reachability would turn some 404s into visible load errors.
-It is a conversation, not a silent edit.
-
-**The reusable part is the method, and there are two halves to it.** Both are
-scratch scripts rather than repo scripts — a work-in-progress check doesn't earn an
-npm script — but the ideas are what matter:
-
-- **Crawl the links.** Follow every in-app anchor from `/` and assert
-  `.active-page === 1` per route. This finds every unreachable-but-linked page in one
-  pass, and no amount of reading finds any of them. Retry each route once: a shared
-  browser page under load produces `networkidle` races that look exactly like real
-  failures, and five false alarms in one run is enough to make you stop trusting the
-  green.
-- **Audit the tree.** Walk `page.js` files on disk and check each one is named in its
-  parent's `children`. This is the *inverse* question — the crawl finds pages nothing
-  links to, the audit finds pages nothing declares — and it needs no browser.
-
-Run against `/framework/` today: **every page is declared by its parent**, and the
-only "undeclared" directory is `start/example/`, which is deliberate (it is a fetched
-doc fixture, not a route — see `ext/files/readme.md` §1).
-
-## Fixed since the last pass
-
-- **Four sections of this file described finished work as open questions.** §1
-  proposed "optimistic interception" that `Router.go()` already does; §6 proposed
-  renaming a `host()` that no longer exists; §2 and §3 narrated `ColumnPager` as
-  the live layout tier. Deleted, except §2/§3, whose reasoning moved to
-  `core/legacy/Pager/readme.md`. **This is the failure mode to watch in a design
-  record**: a stale TODO is worse than a stale fact, because it actively recruits
-  someone to redo finished work.
-- **The App rewrite silently dropped four public APIs** and took most of the site
-  down with them. `app.stylesheet()` is called at module scope by `alex/`,
-  `arya/` and `castin/` — all three 404'd. `App.path_to_page_url` had two sandbox
-  Routers calling it. `app.font()` had none left, because its docs were the only
-  consumer. `app.loaded` went getter → method, which is correct, and broke
-  `edric/`. The rule in §4 ("rename freely inside `framework/`, alias on the way
-  out") was already written down and was not followed — see §5's note on what a
-  written-down decision is worth.
-- **`/notes/git-branch-names.page.js` was unreachable.** The `.page.js` sibling
-  convention went away with the Router rewrite; every node is a directory now.
-  The file sat there, linked from the home page, resolving to nothing.
-- **A POJO default export whose key collides with a `Page` method shadows it.**
-  `castin/page.js` exported `{ render(){ … } }` in capture style, returning
-  nothing; `Page.add()` assigns it onto a real Page, so `activate()` called it
-  and read `.el` of `undefined`. `content()` is the seam that shape wants.
-- **A 404'd stylesheet froze the app forever.** `View.stylesheet`'s promise only
-  resolved on `load`; a `<link>` that 404s fires `error`. `App.load()` awaits
-  every stylesheet before `inject()`, so one typo'd url meant a permanently
-  blank page. Now resolves (not rejects) on error, with a console warning — a
-  missing stylesheet degrades to "unstyled", not "gone".
-- **`target="_blank"` and `download` links were hijacked** by the Router and
-  navigated in-place.
-- **In-page `#hash` links re-rendered the page** instead of scrolling.
-- **`styles.css` was unlayered**, so it beat every `@layer theme` rule in the
-  framework regardless of specificity — a four-class-deep component rule lost to
-  a one-class site rule. Now wrapped in `@layer theme`. Worth knowing generally:
-  unlayered CSS outranks *all* layers, so "just add a layer" is not cosmetic.
+## Also here (readme audit, 2026-10-13)
+- [audio](./audio/) — microphone and voice building blocks: MicStream, Recorder, Whisper, Voice, Recite (reads replies aloud)
+- [code](./code/) — code in the framework: patterns, dos and don'ts
+- [design](./design/) — layout, color, navigation, content and UI decisions
+- [servex](./servex/) — the always-on process: runs agents, starts servers, owns logs
+- [sources](./sources/) — source library wall of topics, each with a file browser

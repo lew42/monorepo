@@ -1,0 +1,98 @@
+[
+  {
+    "url": "/imagine/cms/",
+    "name": "CMS",
+    "what": "A content management system built from two existing seams: markdown files become pages via Page.file(), and the dev socket writes files back.",
+    "parts": ["Options matrix", "Markdown content file", "Live editor with preview", "Mock Cloudflare UI", "JSON page tree", "D1 database", "Guide column"],
+    "features": ["Write markdown files", "Edit with live preview", "Persist to git", "Mock backend services", "JSON and database backends", "Hot reload workarounds"],
+    "demos": [
+      {"url": "/imagine/cms/", "shows": "Six screenshot cards of each section: thinking matrix, welcome content, edit interface, services mock, json tree, d1 database", "covers": 50}
+    ],
+    "coverage": 50,
+    "gaps": ["No live editing demo in preview wall, only static screenshots", "Database queries and actual backend interaction not shown"],
+    "blurb": "Markdown and dev socket seams become a full CMS without a backend.",
+    "clarity": 5,
+    "stage": {"kind": "measure", "cap": "64em", "should_cap": null},
+    "reads": ["readme.md", "page.js", "cms.css"]
+  },
+  {
+    "url": "/imagine/codrops/",
+    "name": "Codrops",
+    "what": "Twelve web animation effects from Codrops, rebuilt on this framework to show what the framework carries into effect code.",
+    "parts": ["Grid hover", "Menu hover", "Scroll bend", "Circle reveal", "Sticky stack", "Type shuffle", "Expand menu", "Grid zoom", "Hover layout", "Layer reveal", "Warp cursor", "Shape swap"],
+    "features": ["Hover animations", "Scroll-triggered effects", "Click-to-reveal swaps", "Text scramble and shuffle", "Custom cursors", "Navigation-based transitions"],
+    "demos": [
+      {"url": "/imagine/codrops/", "shows": "Twelve cards grouped by paging mechanism; cards show thumbnails of each effect", "covers": 40}
+    ],
+    "coverage": 40,
+    "gaps": ["Index only shows card thumbnails, not the live effect animations", "Must click each demo to see it in action"],
+    "blurb": "Twelve effects ported from Codrops, grouped by animation mechanism type.",
+    "clarity": 5,
+    "stage": {"kind": "measure", "cap": "64em", "should_cap": null},
+    "reads": ["readme.md", "page.js (DEMOS array)"]
+  },
+  {
+    "url": "/imagine/design/",
+    "name": "Design",
+    "what": "A design review of the entire site built from overnight screenshot crawl, with focused studies per design dimension.",
+    "parts": ["Screenshot journey", "Padding study", "Scale study", "Layout study", "Navigation study", "Color study", "Typography study", "Controls study", "Vocabulary study", "System study", "Themes study", "Spacing study", "Size study", "Lists study"],
+    "features": ["Screenshot gallery of whole site", "Design pattern analysis", "Real site examples", "Live list comparisons", "Design decision documentation"],
+    "demos": [
+      {"url": "/imagine/design/", "shows": "Fourteen cards with screenshot previews of each design study topic", "covers": 35}
+    ],
+    "coverage": 35,
+    "gaps": ["Studies are analytical, not interactive", "Index shows only card thumbnails with titles", "Must click to see the actual design analysis"],
+    "blurb": "Screenshot-based design analysis of the site with ten focused study pages.",
+    "clarity": 5,
+    "stage": {"kind": "full bleed", "cap": null, "should_cap": "width: full spreads thumbnails wide at 3440, could constrain with measure"},
+    "reads": ["readme.md", "page.js"]
+  },
+  {
+    "url": "/imagine/feeds/",
+    "name": "Feeds",
+    "what": "Three small data-driven pages: a lazy YouTube embed picker, one dataset rendered three ways with a shared filter, and one live weather API.",
+    "parts": ["Video picker", "Data filter", "Card view", "Tree view", "Table view", "Live weather API"],
+    "features": ["Lazy embed loading", "Unified filtering across views", "Multiple data renderings", "Live API polling", "Offline fallback"],
+    "demos": [
+      {"url": "/imagine/feeds/", "shows": "Three cards with screenshot previews of video, data, and live sections", "covers": 35}
+    ],
+    "coverage": 35,
+    "gaps": ["Index only shows static cards", "Actual filtering, data views, and API interaction require clicking into children"],
+    "blurb": "YouTube picker, multi-view dataset, and live API in one column.",
+    "clarity": 4,
+    "stage": {"kind": "measure", "cap": "64em", "should_cap": null},
+    "reads": ["readme.md", "page.js (first 30 lines)"]
+  },
+  {
+    "url": "/imagine/gallery/",
+    "name": "Gallery",
+    "what": "Browsable collections of framework pages imported from elsewhere and shown with their own preview, never moved or copied.",
+    "parts": ["Lists collection", "Answers collection", "Cards collection", "Foreign page imports", "Title filter", "Preview rendering"],
+    "features": ["Foreign page borrowing", "Live preview rendering", "Client-side filtering", "Multi-item collections", "Thumbnail caching"],
+    "demos": [
+      {"url": "/imagine/gallery/", "shows": "Three cards showing Lists, Answers, and Cards collections with thumbnail previews", "covers": 30}
+    ],
+    "coverage": 30,
+    "gaps": ["Index does not explain what borrowing means", "Must read Answers child to understand the architecture", "Collections themselves are not shown, only three category cards"],
+    "blurb": "Framework pages borrowed and previewed, explained in Answers child.",
+    "clarity": 3,
+    "stage": {"kind": "measure", "cap": "64em", "should_cap": null},
+    "reads": ["readme.md", "page.js (first 30 lines)"]
+  },
+  {
+    "url": "/imagine/game/",
+    "name": "The world",
+    "what": "A text adventure game whose only mechanic is navigation: realms and rooms are pages, exits are links to siblings, state persists in browser storage.",
+    "parts": ["Run journal", "Realm rails", "Room pages", "Map visualization", "Field notes HUD", "Trading interface", "Item pack", "Goal list"],
+    "features": ["Navigation-based gameplay", "Item take and trade", "State persistence", "Multiple endings based on player discovery", "Keyboard navigation", "Hot keys for exits"],
+    "demos": [
+      {"url": "/imagine/game/", "shows": "Playable game with three realms, nine rooms, trading, items, and two endings; interactive on first load", "covers": 90}
+    ],
+    "coverage": 90,
+    "gaps": ["All core mechanics are playable from the index page itself"],
+    "blurb": "Text adventure using navigation, persistence, and a trading system.",
+    "clarity": 5,
+    "stage": {"kind": "column", "cap": "14em rails, 28-64em room", "should_cap": null},
+    "reads": ["readme.md (extensive)", "page.js (first 40 lines)"]
+  }
+]

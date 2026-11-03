@@ -1,0 +1,15 @@
+{
+  "url": "http://localhost/framework/ext/drawer/",
+  "viewport": { "width": 1280, "height": 900 },
+  "watch": [".drawer", ".pages"],
+  "out": "C:/Users/mike/AppData/Local/Temp/claude/c--Code-lew42-monorepo/fd78d27e-a28b-4bfe-bb68-7a73578f4f05/scratchpad/ui-test-forced",
+  "steps": [
+    "eval import('/app.js').then(m => { m.drawer(($slot, $body) => { $slot.el.textContent = 'Forced'; $body.el.textContent = 'Opened by eval — the module API, not a click.'; }); return m.drawer.showing(); })",
+    "wait 400",
+    "eval (document.documentElement.classList.add('grip-sizing'), document.documentElement.className)",
+    "eval (document.querySelector('.app').style.setProperty('--drawer-w', '1100px'), getComputedStyle(document.querySelector('.app')).getPropertyValue('--drawer'))",
+    "wait 300",
+    "eval (() => { const a = document.querySelector('.drawer').getBoundingClientRect(), b = document.querySelector('.pages').getBoundingClientRect(); return { drawer: [Math.round(a.x), Math.round(a.width)], pages: [Math.round(b.x), Math.round(b.width)], covered_px: Math.round(b.right - a.left) }; })()",
+    "shot"
+  ]
+}

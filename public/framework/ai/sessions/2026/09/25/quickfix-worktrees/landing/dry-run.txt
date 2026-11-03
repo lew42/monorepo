@@ -1,0 +1,26 @@
+
+!!! --skip-smoke: NO SMOKE TEST WILL RUN. This flag is for proofs on a scratch repo only. !!!
+
+DRY RUN: computing only; no lock, no hold, nothing written.
+
+the main tree has uncommitted edits to Servex/Servex.js, Servex/readme.md, public/framework/ai2/ai2.css, public/framework/ai2/live.js; three-way merging each file into the working tree instead
+  WRITE    .claude/skills/minion/improvements.md — main tree unchanged from base: takes the branch's version
+  WRITE    .gitignore — main tree unchanged from base: takes the branch's version
+  WRITE    Server/merge.mjs — new file from the branch
+  WRITE    Server/smoke.mjs — new file from the branch
+  WRITE    Servex/Pool.js — new file from the branch
+  CONFLICT Servex/Servex.js — 1 conflicting hunk(s): the main tree's edits and the branch change the same lines
+  WRITE    Servex/doc/pool.md — new file from the branch
+  WRITE    Servex/readme.md — both changed: merged cleanly
+  WRITE    public/framework/ai/2026-09-25/quickfix-worktrees/live/pool-1920.png — binary; main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/ai/2026-09-25/quickfix-worktrees/live/report.md — new file from the branch
+  WRITE    public/framework/ai/2026-09-25/quickfix-worktrees/pool/proof.mjs — new file from the branch
+  WRITE    public/framework/ai/2026-09-25/quickfix-worktrees/pool/proof.txt — new file from the branch
+  WRITE    public/framework/ai/2026-09-25/quickfix-worktrees/pool/report.md — new file from the branch
+  WRITE    public/framework/ai/2026-09-25/quickfix-worktrees/pool/task.jsonl — new file from the branch
+  WRITE    public/framework/ai2/ai2.css — both changed: merged cleanly
+  CONFLICT public/framework/ai2/live.js — 1 conflicting hunk(s): the main tree's edits and the branch change the same lines
+refused: 2 file(s) conflict; nothing was touched:
+  Servex/Servex.js — 1 conflicting hunk(s): the main tree's edits and the branch change the same lines
+  public/framework/ai2/live.js — 1 conflicting hunk(s): the main tree's edits and the branch change the same lines
+exit 4

@@ -1,0 +1,583 @@
+diff --git a/.claude/hooks/append.mjs b/.claude/hooks/append.mjs
+index e2ce4d2ac..e6e94743f 100644
+--- a/.claude/hooks/append.mjs
++++ b/.claude/hooks/append.mjs
+@@ -30,14 +30,13 @@ function fill(v, t){
+ 
+ let [target, source] = process.argv.slice(2);
+ if (!target || !source) { console.error("usage: node append.mjs <target.jsonl> <lines.json>"); process.exit(2); }
+-// A task log or day log named by its OLD path (ai/YYYY-MM-DD/...) goes to where it lives now (Server/TaskDirs.mjs,
+-// ai/doc/task-folders.md): a moved folder is followed; a day or task never made in the old shape is made in the new one.
+ {
+-	const abs = resolve_path(target), moved = TaskDirs.follow(abs);
+-	const m = /[\\/]public[\\/]framework[\\/]ai[\\/](\d{4}-\d{2}-\d{2})[\\/]/.exec(abs);
+-	const now = moved !== abs ? moved
+-		: m && !existsSync(dirname(abs)) ? (basename(abs) === "day.jsonl" && basename(dirname(abs)) === m[1] ? join(TaskDirs.day_dir(m[1]), "day.jsonl") : join(TaskDirs.normalize(dirname(abs), process.env.CLAUDE_CODE_SESSION_ID), basename(abs)))
+-		: abs;
++	// THE GUARD (2026-10-13): a moved or findable old path is followed; anything else new under ai/YYYY-MM-DD/ is refused, naming the right place.
++	const abs = resolve_path(target);
++	const m = /[\\/]public[\\/]framework[\\/]ai[\\/](\d{4}-\d{2}-\d{2})[\\/]day\.jsonl$/.exec(abs);
++	let now;
++	try { now = m ? join(TaskDirs.day_dir(m[1]), "day.jsonl") : existsSync(dirname(abs)) ? TaskDirs.follow(abs) : TaskDirs.refuse(abs); }
++	catch (e){ console.error(e.message + "\nNothing was written."); process.exit(3); }
+ 	if (now !== abs){ mkdirSync(dirname(now), { recursive: true }); console.error(`(old path followed: ${target} -> ${now})`); target = now; }
+ }
+ const strip_bom = s => s.replace(/^﻿/, "");
+diff --git a/.claude/hooks/jsonl-schema.mjs b/.claude/hooks/jsonl-schema.mjs
+index ab5da941f..e7dbaf5c3 100644
+--- a/.claude/hooks/jsonl-schema.mjs
++++ b/.claude/hooks/jsonl-schema.mjs
+@@ -22,7 +22,7 @@
+ 
+ export const schemas = {
+ 	"task.jsonl": {
+-		what: "a task's log (public/framework/ai/<date>/<slug>/task.jsonl)",
++		what: "a task's log (public/framework/ai/sessions/YYYY/MM/DD/<session>/<slug>/task.jsonl)",
+ 		reader: { file: "public/framework/ext/JSONL/JSONL.js", class: "TaskJSONL" },
+ 		verbs: {
+ 			assign:     { fields: [], eg: { step: 2, now: "what is happening" } },
+@@ -52,7 +52,7 @@ export const schemas = {
+ 		pending: ["snooze", "kill", "priority"],
+ 	},
+ 	"day.jsonl": {
+-		what: "a day's log (public/framework/ai/<date>/day.jsonl)",
++		what: "a day's log (public/framework/ai/sessions/YYYY/MM/DD/day.jsonl)",
+ 		reader: { file: "public/framework/ai/rail/inbox.js", class: "Day" },
+ 		verbs: {
+ 			assign: { fields: [], eg: { title: "…" } },
+@@ -94,7 +94,7 @@ export const schemas = {
+ 		eg: { at: "NOW", target: "task dir, url, or look:<page>", verdict: "clear", what: "one line on what was found", to: "agent or file" },
+ 	},
+ 	"audit.jsonl": {
+-		what: "one task's audit log (public/framework/ai/<date>/<slug>/audit.jsonl) — one line per auditor; audit.mjs reads every one and computes the consensus (never hand-write it)",
++		what: "one task's audit log (<task folder>/audit.jsonl) — one line per auditor; audit.mjs reads every one and computes the consensus (never hand-write it)",
+ 		verbs: {
+ 			audit: {
+ 				fields: ["at", "by", "model", "cost_usd", "complete", "obedience", "utility", "review_done", "name_ok", "icon_ok"],
+diff --git a/Server/TaskDirs.mjs b/Server/TaskDirs.mjs
+index 208b084ab..706016c0c 100644
+--- a/Server/TaskDirs.mjs
++++ b/Server/TaskDirs.mjs
+@@ -8,7 +8,8 @@
+ //   node Server/TaskDirs.mjs --day                print today's day folder (where day.jsonl goes)
+ //   node Server/TaskDirs.mjs --find <slug>        print the newest task folder with that slug
+ //   node Server/TaskDirs.mjs --list [days]        print every task folder of the last N days (default 7)
+-//   node Server/TaskDirs.mjs --follow <old dir>   print where an old ai/YYYY-MM-DD/<slug>/ path lives now
++//   node Server/TaskDirs.mjs --follow <old dir>   print where an old ai/YYYY-MM-DD/<slug>/ path lives now (moved, or the slug found in that day)
++//   node Server/TaskDirs.mjs --census             day folders still on disk + code that hand-joins one (exit 1 if any); TaskDirs.refuse() is the guard
+ // Old paths keep working: every move is a line in ai/sessions/task-moves.jsonl (Server/TaskMove.mjs) or the 2026-10-10
+ // ai/sessions/task-manifest.json; follow(), alias() and redirect() chain through both. The 2026-10-10 mover (plan/apply/verify/undo) is below.
+ import fs from "node:fs";
+@@ -107,13 +108,60 @@ export default class TaskDirs {
+ 		return p;
+ 	}
+ 
++	/** The task folder named `slug` on `day` ("YYYY-MM-DD") anywhere in that day of the store (inside a session, a parent
++	 *  task, up to 4 levels), newest first; null if none. What an old /framework/ai/<day>/<slug>/ guess meant. */
++	static locate(day, slug){
++		const hits = [], walk = (d, n) => { for (const e of ls(d)){ const f = path.join(d, e); if (e === slug && fs.existsSync(path.join(f, "task.jsonl"))) hits.push(f); if (n < 4) walk(f, n + 1); } };
++		walk(this.day_dir(day), 1);
++		return hits.sort((a, b) => fs.statSync(path.join(b, "task.jsonl")).mtimeMs - fs.statSync(path.join(a, "task.jsonl")).mtimeMs)[0] ?? null;
++	}
++
++	/** An old-shaped path (dir or file) -> where it is: a moved folder, else the same slug found in that day of the store; else itself. */
++	static resolve(p){
++		const abs = path.resolve(REPO, p), f = this.follow(abs);
++		if (f !== abs || fs.existsSync(abs)) return f;
++		const m = /^public\/framework\/ai\/(\d{4}-\d{2}-\d{2})\/([^/]+)((?:\/[^/]+)*)$/.exec(rel(abs));
++		const hit = m && this.locate(m[1], m[2]);
++		return hit ? path.join(hit, ...m[3].split("/").filter(Boolean)) : abs;
++	}
++
++	/** THE GUARD (2026-10-13, one-store/doc/why-the-day-folder-came-back.md): nothing new is made under the retired
++	 *  public/framework/ai/YYYY-MM-DD/. An old path that moved or can be found is followed; anything else throws, naming the right place. */
++	static refuse(p){
++		const abs = path.resolve(REPO, p), m = /^public\/framework\/ai\/(\d{4}-\d{2}-\d{2})(?:\/|$)/.exec(rel(abs));
++		if (!m) return abs;
++		const now = this.resolve(abs);
++		if (now !== abs) return now;
++		const day = rel(this.day_dir(m[1]));
++		throw Object.assign(new Error(`refused: ${rel(abs)} is under the retired day folder public/framework/ai/${m[1]}/. `
++			+ `A task folder goes in the store: \`node Server/TaskDirs.mjs --new <slug>\` (it lands in ${day}/<session>/<slug>/); `
++			+ `a script's run folder is TaskDirs.dir({slug}) (${day}/<slug>/); the day log is ${day}/day.jsonl. Why: public/framework/ai/doc/task-folders.md`), { code: "RETIRED_DAY_FOLDER" });
++	}
++
++	/** Every day folder still on disk, and every code line that joins public/framework/ai with a date by hand (a writer)
++	 *  or builds a /framework/ai/<date>/ url (a reader, which the router redirects). `node Server/TaskDirs.mjs --census`. */
++	static census(){
++		const days = ls(AI).filter(n => /^\d{4}-\d{2}-\d{2}$/.test(n)).map(n => ({ dir: rel(path.join(AI, n)), files: this.files(path.join(AI, n)).length }));
++		const writers = [], readers = [], skip = /node_modules|[\\/]public[\\/]framework[\\/]ai[\\/](sessions|\d{4}|\d{4}-\d{2}-\d{2}|archive)([\\/]|$)|\.test\.|TaskDirs\.mjs|TaskMove\.mjs/;
++		const WRITE = /["'`]public\/framework\/ai\/?["'`]\s*,\s*(?!["'`]sessions)[^)\n]*(date|day|now\(\)|stamp|slice\(0, ?10\))|path\.join\(AI, *(date|day)\b/i;
++		const READ = /\/framework\/ai\/\$\{[^}]*(date|day)[^}]*\}\//i;
++		const walk = d => { for (const e of fs.readdirSync(d, { withFileTypes: true })){
++			const f = path.join(d, e.name); if (skip.test(f)) continue;
++			if (e.isDirectory()) walk(f);
++			else if (/\.(m?js)$/.test(e.name)) fs.readFileSync(f, "utf8").split("\n").forEach((l, i) => {
++				if (WRITE.test(l)) writers.push(`${rel(f)}:${i + 1}`); else if (READ.test(l)) readers.push(`${rel(f)}:${i + 1}`); });
++		} };
++		for (const d of ["Server", "Servex", ".claude/hooks", "public/framework"]) walk(path.join(REPO, d));
++		return { days, writers, readers };
++	}
++
+ 	/** A site URL under an old task dir (/framework/ai/<date>/<task>/<rest>) -> the absolute file it now is, or null. */
+ 	static alias(url){
+ 		const m = /^\/framework\/ai\/(\d{4}-\d{2}-\d{2}\/.+)$/.exec(url);
+ 		if (!m) return null;
+ 		const old = path.join(AI, ...decodeURIComponent(m[1]).split("/"));
+ 		if (!old.startsWith(AI)) return null;
+-		const now = this.follow(old);
++		const now = this.resolve(old);
+ 		return now === old ? null : now;
+ 	}
+ 
+@@ -123,7 +171,7 @@ export default class TaskDirs {
+ 		if (day) return `/framework/ai/sessions/${day[1]}/${day[2]}/${day[3]}/`;
+ 		const m = /^\/framework\/ai\/(\d{4}-\d{2}-\d{2}\/[^/]+)(\/.*)?$/.exec(url);
+ 		if (!m) return null;
+-		const old = path.join(AI, ...m[1].split("/")), now = this.follow(old);
++		const old = path.join(AI, ...m[1].split("/")), now = this.resolve(old);
+ 		return now === old ? null : "/" + slash(path.relative(path.join(REPO, "public"), now)) + (m[2] ?? "/");
+ 	}
+ 
+@@ -212,10 +260,11 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
+ 	else if (flag("--day")){ const d = TaskDirs.day_dir(); fs.mkdirSync(d, { recursive: true }); console.log(rel(d)); }
+ 	else if (flag("--find")){ const d = TaskDirs.find(arg("--find")); if (!d) process.exit(1); console.log(rel(d)); }
+ 	else if (flag("--list")) for (const t of TaskDirs.list(Number(arg("--list")) || 7)) console.log(t.day, rel(t.dir));
+-	else if (flag("--follow")) console.log(rel(TaskDirs.follow(path.resolve(REPO, arg("--follow")))));
++	else if (flag("--follow")) console.log(rel(TaskDirs.resolve(arg("--follow"))));
++	else if (flag("--census")){ const c = TaskDirs.census(); console.log(JSON.stringify(c, null, 1)); console.error(`${c.days.length} day folders, ${c.writers.length} writers, ${c.readers.length} readers (redirected)`); process.exit(c.days.length || c.writers.length ? 1 : 0); }
+ 	else if (flag("--undo")) console.log(`moved back ${TaskDirs.undo()} folders`);
+ 	else if (flag("--verify")){ const r = TaskDirs.verify(); console.log(`${r.folders} folders, ${r.files} files, ${r.bytes} bytes checked: ${r.bad.length} missing/changed`); if (r.bad.length){ console.log(r.bad.slice(0, 20)); process.exit(1); } }
+ 	else if (flag("--apply")) console.log(await TaskDirs.apply());
+ 	else if (flag("--plan")){ const p = await TaskDirs.plan(); console.log(`move: ${p.moves.length}; stay: ${p.stay.length}; no session: ${p.orphans}`); }
+-	else console.log("usage: --new <slug> [--session id] [--parent dir] | --day | --find <slug> | --list [days] | --follow <dir> | 2026-10-10 mover: --plan --apply --verify --undo");
++	else console.log("usage: --new <slug> [--session id] [--parent dir] | --day | --find <slug> | --list [days] | --follow <dir> | --census | 2026-10-10 mover: --plan --apply --verify --undo");
+ }
+diff --git a/Server/TaskDirs.test.mjs b/Server/TaskDirs.test.mjs
+new file mode 100644
+index 000000000..e537c36f8
+--- /dev/null
++++ b/Server/TaskDirs.test.mjs
+@@ -0,0 +1,35 @@
++// node Server/TaskDirs.test.mjs — the day-folder guard (2026-10-13): old addresses resolve into the store, nothing new
++// is made under public/framework/ai/YYYY-MM-DD/, and no code hand-joins a day folder. Fixture repo in the OS temp dir.
++import assert from "node:assert/strict";
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++
++const here = path.dirname(fileURLToPath(import.meta.url));
++const real = path.resolve(here, "..");
++
++// 1. the census over the REAL repo: no writer joins public/framework/ai with a date
++const Real = (await import("./TaskDirs.mjs")).default;
++const c = Real.census();
++assert.deepEqual(c.writers, [], "code that hand-joins ai/<date>/: " + c.writers.join(", "));
++
++// 2. a fixture store
++const repo = fs.mkdtempSync(path.join(os.tmpdir(), "taskdirs-")), AI = path.join(repo, "public", "framework", "ai");
++const task = path.join(AI, "sessions", "2026", "10", "13", "session-abcd1234", "parent", "my-slug");
++fs.mkdirSync(task, { recursive: true }); fs.writeFileSync(path.join(task, "task.jsonl"), "{}\n");
++process.env.LEDGER_ROOT = repo;
++const T = (await import("./TaskDirs.mjs?fixture")).default;
++
++assert.equal(T.locate("2026-10-13", "my-slug"), task, "a slug is found at any depth in its day");
++assert.equal(T.locate("2026-10-13", "nope"), null);
++assert.equal(T.redirect("/framework/ai/2026-10-13/my-slug/"), "/framework/ai/sessions/2026/10/13/session-abcd1234/parent/my-slug/", "a guessed old url redirects");
++assert.equal(T.redirect("/framework/ai/2026-10-13/my-slug/task.jsonl"), "/framework/ai/sessions/2026/10/13/session-abcd1234/parent/my-slug/task.jsonl");
++assert.equal(T.redirect("/framework/ai/2026-10-13/"), "/framework/ai/sessions/2026/10/13/", "a bare day goes to the store's day");
++assert.equal(T.refuse(path.join(AI, "2026-10-13", "my-slug", "task.jsonl")), path.join(task, "task.jsonl"), "a findable old path is followed");
++assert.throws(() => T.refuse(path.join(AI, "2026-10-13", "brand-new", "task.jsonl")), /retired day folder.*sessions\/2026\/10\/13/s, "a new old-shaped path is refused, naming the store");
++assert.equal(T.refuse(path.join(AI, "doc", "x.md")), path.join(AI, "doc", "x.md"), "anything else passes");
++assert.ok(!fs.existsSync(path.join(AI, "2026-10-13")), "no day folder was made");
++
++fs.rmSync(repo, { recursive: true, force: true });
++console.log(`TaskDirs: ok (census: ${c.days.length} day folders left, ${c.readers.length} readers redirected)`);
+diff --git a/Server/TaskMove.mjs b/Server/TaskMove.mjs
+index 940f1bef0..a6bef1d64 100644
+--- a/Server/TaskMove.mjs
++++ b/Server/TaskMove.mjs
+@@ -7,8 +7,8 @@
+ //
+ //   node Server/TaskMove.mjs [--repo <path>]                                  dry run: plan + counts, writes the plan file (default)
+ //   node Server/TaskMove.mjs --apply [--only Y-M-D,...] [--skip slug,...] [--repo <path>]
+-//   node Server/TaskMove.mjs --verify [--repo <path>]
+-//   node Server/TaskMove.mjs --undo   [--repo <path>]
++//   node Server/TaskMove.mjs --verify [--run <stamp>|last] [--repo <path>]
++//   node Server/TaskMove.mjs --undo   [--run <stamp> | --all] [--repo <path>]  the last apply only, unless told
+ //   node Server/TaskMove.mjs --relink [--dry] [--repo <path>]
+ //   node Server/TaskMove.mjs --redirects [--repo <path>]
+ //   node Server/TaskMove.mjs --pages     [--repo <path>]                      ai/sessions/task-pages.json: moved tasks with their own page.js
+@@ -144,10 +144,11 @@ export default class TaskMove {
+ 		const man = this.ledger(repo), filesMan = this.filesLedger(repo);
+ 		fs.mkdirSync(path.dirname(man), { recursive: true });
+ 		let moved = 0;
++		const run = new Date().toISOString();   // every line of this apply carries it, so --undo reverses THIS run only (one-store, 2026-10-13)
+ 		for (const m of moves){
+ 			if (!wanted(m)) continue;
+ 			if (m.kind === "redirect"){   // virtual: no fs action, just the small line so old URLs resolve straight to the final dir
+-				fs.appendFileSync(man, JSON.stringify({ at: new Date().toISOString(), kind: m.kind, from: m.from, to: m.to, session: m.session }) + "\n");
++				fs.appendFileSync(man, JSON.stringify({ at: new Date().toISOString(), run, kind: m.kind, from: m.from, to: m.to, session: m.session }) + "\n");
+ 				continue;
+ 			}
+ 			const from = path.join(repo, m.from), to = path.join(repo, m.to);
+@@ -156,13 +157,13 @@ export default class TaskMove {
+ 			const files = m.kind === "dayfile"
+ 				? [{ p: path.basename(from), size: fs.statSync(from).size, sha1: crypto.createHash("sha1").update(fs.readFileSync(from)).digest("hex") }]
+ 				: TaskDirs.files(from);   // the snapshot: taken before the folder moves
+-			fs.appendFileSync(filesMan, JSON.stringify({ from: m.from, to: m.to, files }) + "\n");   // recorded first, so an interrupted run can still be undone
++			fs.appendFileSync(filesMan, JSON.stringify({ run, from: m.from, to: m.to, files }) + "\n");   // recorded first, so an interrupted run can still be undone
+ 			fs.mkdirSync(path.dirname(to), { recursive: true });
+ 			for (let n = 0; ; n++){   // Windows: a watcher or reader can hold a handle for a moment (EPERM/EBUSY); retry, then give up loudly
+ 				try { fs.renameSync(from, to); break; }
+ 				catch (e){ if (n >= 20 || !["EPERM", "EBUSY", "EACCES"].includes(e.code)) throw e; Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 250); }
+ 			}
+-			fs.appendFileSync(man, JSON.stringify({ at: new Date().toISOString(), kind: m.kind, from: m.from, to: m.to, session: m.session }) + "\n");   // after the rename: the log never claims a move that did not happen
++			fs.appendFileSync(man, JSON.stringify({ at: new Date().toISOString(), run, kind: m.kind, from: m.from, to: m.to, session: m.session }) + "\n");   // after the rename: the log never claims a move that did not happen
+ 			moved++;
+ 		}
+ 		// a day folder that is now empty goes away (never recursive: a non-empty one throws here and is left alone)
+@@ -170,21 +171,24 @@ export default class TaskMove {
+ 			const d = path.join(this.ai(repo), day);
+ 			try { if (fs.readdirSync(d).length === 0) fs.rmdirSync(d); } catch {}
+ 		}
+-		return { moved };
++		return { moved, run };
+ 	}
+ 
+ 	/** The physical (non-redirect) moves still in effect: a later {undone:true} line whose to/from is the exact reverse cancels one. */
+ 	static #active(repo){
+-		const lines = jsonl(this.ledger(repo));
+-		const cancelled = new Set();
+-		for (const l of lines) if (l.undone) cancelled.add(`${l.to}|${l.from}`);
+-		return lines.filter(l => !l.undone && ["task", "rename", "stub", "dayfile"].includes(l.kind) && !cancelled.has(`${l.from}|${l.to}`));
++		// in ledger order: an undo cancels the move it reverses, and a later re-apply of the same pair is active again
++		const on = new Map();
++		for (const l of jsonl(this.ledger(repo))){
++			if (l.undone) on.delete(`${l.to}|${l.from}`);
++			else if (["task", "rename", "stub", "dayfile"].includes(l.kind)) on.set(`${l.from}|${l.to}`, l);
++		}
++		return [...on.values()];
+ 	}
+ 	static #snapshot(repo, from, to){ return jsonl(this.filesLedger(repo)).find(f => f.from === from && f.to === to)?.files ?? []; }
+ 
+ 	/** Every snapshot file of every still-active move must exist at its new path with the same size and sha1. */
+-	static verify(repo){
+-		const active = this.#active(repo), bad = [];
++	static verify(repo, { run } = {}){
++		const active = this.#active(repo).filter(l => !run || l.run === run), bad = [];
+ 		let files = 0, bytes = 0;
+ 		for (const m of active){
+ 			const to = path.join(repo, m.to);
+@@ -200,9 +204,16 @@ export default class TaskMove {
+ 		return { folders: active.length, files, bytes, bad };
+ 	}
+ 
+-	/** Move every still-active physical move back, in reverse order; append {undone:true} lines rather than rewrite anything. */
+-	static undo(repo){
+-		const active = this.#active(repo), man = this.ledger(repo);
++	/** Move a run's still-active physical moves back, in reverse order; append {undone:true} lines rather than rewrite anything.
++	 *  Default: the LAST run only (its `run` stamp). `run` names another; `all` reverses every move ever made, the 10-12 ones too. */
++	static undo(repo, { run, all } = {}){
++		let active = this.#active(repo);
++		const man = this.ledger(repo);
++		if (!all){
++			run ??= active.map(l => l.run).filter(Boolean).sort().at(-1);
++			if (!run) throw new Error("no run-stamped move to undo (moves before 2026-10-13 have no run); --all reverses every move");
++			active = active.filter(l => l.run === run);
++		}
+ 		let n = 0;
+ 		for (const m of [...active].reverse()){
+ 			const from = path.join(repo, m.from), to = path.join(repo, m.to);
+@@ -210,7 +221,7 @@ export default class TaskMove {
+ 			fs.mkdirSync(path.dirname(from), { recursive: true });
+ 			if (fs.existsSync(from)) throw new Error("undo target occupied: " + m.from);
+ 			fs.renameSync(to, from);
+-			fs.appendFileSync(man, JSON.stringify({ at: new Date().toISOString(), kind: m.kind, from: m.to, to: m.from, session: m.session, undone: true }) + "\n");
++			fs.appendFileSync(man, JSON.stringify({ at: new Date().toISOString(), run: m.run, kind: m.kind, from: m.to, to: m.from, session: m.session, undone: true }) + "\n");
+ 			n++;
+ 		}
+ 		return n;
+@@ -350,9 +361,9 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
+ 	const skip = val("--skip")?.split(",").filter(Boolean);
+ 	const planOut = val("--plan-out") ?? (repoGiven ? path.join(os.tmpdir(), "task-moves.plan.json") : TaskMove.planFile(REPO));
+ 
+-	if (flag("--undo")) console.log(`moved back ${TaskMove.undo(REPO)} folders`);
++	if (flag("--undo")) console.log(`moved back ${TaskMove.undo(REPO, { run: val("--run"), all: flag("--all") })} folders`);
+ 	else if (flag("--verify")){
+-		const r = TaskMove.verify(REPO);
++		const r = TaskMove.verify(REPO, { run: val("--run") === "last" ? jsonl(TaskMove.ledger(REPO)).map(l => l.run).filter(Boolean).sort().at(-1) : val("--run") });
+ 		console.log(`${r.folders} folders, ${r.files} files, ${r.bytes} bytes checked: ${r.bad.length} missing/changed`);
+ 		if (r.bad.length){ console.log(r.bad.slice(0, 20)); process.exit(1); }
+ 	}
+diff --git a/Server/council.mjs b/Server/council.mjs
+index 6dcde2915..55da875f0 100644
+--- a/Server/council.mjs
++++ b/Server/council.mjs
+@@ -15,6 +15,7 @@
+ import fs from "node:fs";
+ import path from "node:path";
+ import { fileURLToPath } from "node:url";
++import TaskDirs from "./TaskDirs.mjs";
+ 
+ const root = path.resolve(fileURLToPath(import.meta.url), "../..");
+ const councilDir = path.join(root, "public/framework/ai/council");
+@@ -25,7 +26,7 @@ const MCP = "http://127.0.0.1:8090/mcp";
+ const [cmd, argDir] = process.argv.slice(2);
+ 
+ // run folders live in the sessions store (ai/doc/task-folders.md), never the retired ai/YYYY-MM-DD/ day folder
+-const storeDir = slug => path.join(root, "public/framework/ai/sessions", new Date().toISOString().slice(0, 10).replace(/-/g, "/"), slug);
++const storeDir = slug => TaskDirs.dir({ slug });
+ const now = () => {
+ 	const d = new Date(), o = -d.getTimezoneOffset(), p = n => String(Math.floor(Math.abs(n))).padStart(2, "0");
+ 	return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}${o < 0 ? "-" : "+"}${p(o / 60)}:${p(o % 60)}`;
+diff --git a/Server/crawl.mjs b/Server/crawl.mjs
+index 2918e39ed..d69e45b2d 100644
+--- a/Server/crawl.mjs
++++ b/Server/crawl.mjs
+@@ -18,6 +18,7 @@
+ import fs from "node:fs";
+ import path from "node:path";
+ import { fileURLToPath } from "node:url";
++import TaskDirs from "./TaskDirs.mjs";
+ import { browser as launch, close as closeBrowser } from "./browser.mjs";
+ import { check_page } from "./padding-check.mjs";
+ 
+@@ -47,7 +48,7 @@ const dateStr = () => {
+ 	return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+ };
+ 
+-const outDir = outOpt ? path.resolve(outOpt) : path.join(root, "public/framework/ai/sessions", new Date().toISOString().slice(0, 10).replace(/-/g, "/"), "crawl");
++const outDir = outOpt ? path.resolve(outOpt) : TaskDirs.dir({ slug: "crawl" })   // the store (ai/doc/task-folders.md), never ai/<date>/;
+ const shotsDir = path.join(outDir, "shots");
+ const jsonlFile = path.join(outDir, "crawl.jsonl");
+ const summaryFile = path.join(outDir, "summary.md");
+diff --git a/Server/merge.mjs b/Server/merge.mjs
+index 7c18ed071..f6dcae345 100644
+--- a/Server/merge.mjs
++++ b/Server/merge.mjs
+@@ -117,6 +117,13 @@ function guessTaskDir(aiDir, branch){
+ 		const p = path.join(aiDir, day, slug);
+ 		if (fs.existsSync(p)) return p;
+ 	}
++	// the sessions store, where every task has lived since 2026-10-12 (ai/doc/task-folders.md): the slug in the last 3 days
++	for (let i = 0; i <= 3; i++){
++		const [y, m, d] = new Date(Date.now() - i * 86400000).toISOString().slice(0, 10).split("-");
++		const hit = (function walk(dir, n){ let es; try { es = fs.readdirSync(dir, { withFileTypes: true }); } catch { return null; }
++			for (const e of es) if (e.isDirectory()){ const f = path.join(dir, e.name); if (e.name === slug && fs.existsSync(path.join(f, "task.jsonl"))) return f; const r = n < 4 && walk(f, n + 1); if (r) return r; } return null; })(path.join(aiDir, "sessions", y, m, d), 1);
++		if (hit) return hit;
++	}
+ 	return null;
+ }
+ 
+diff --git a/Server/on-landing.mjs b/Server/on-landing.mjs
+index 7386f3096..544dd2d9d 100644
+--- a/Server/on-landing.mjs
++++ b/Server/on-landing.mjs
+@@ -15,8 +15,11 @@ import { text_flags } from "./text-check.mjs";
+ import { card_flags } from "./card-check.mjs";
+ import { doc_check } from "./doc-check.mjs";
+ import { can_stop, entry_for_task_dir } from "./worktree-sweep.mjs";
++import TaskDirs from "./TaskDirs.mjs";
+ 
+ const root = path.resolve(fileURLToPath(import.meta.url), "../..");
++// servex-mastermind's own task log for today, found in the store (Server/TaskDirs.mjs), never a hand-joined ai/<date>/ path
++const arch_log = () => { const d = TaskDirs.find("servex-mastermind", 1); return d ? path.join(d, "task.jsonl") : ""; };
+ const dir = path.resolve(process.argv[2] || ".");
+ const task = path.join(dir, "task.jsonl");
+ const HOST = "http://monorepo.localhost";
+@@ -46,7 +49,7 @@ try {
+ 		const tf = text_flags(dir);
+ 		const tm = `text-check: ${tf.length ? tf.join("; ") : "no walls of text"}`;
+ 		append(task, tm);
+-		const arch = path.join(root, "public/framework/ai", now().slice(0, 10), "servex-mastermind", "task.jsonl");
++		const arch = arch_log();
+ 		if (tf.length && fs.existsSync(arch)) append(arch, `${path.basename(dir)} — ${tm}`);
+ 	} catch {}
+ 	// The card check (cards-that-show-the-thing, 2026-09-25): checks the card against the card standard
+@@ -56,7 +59,7 @@ try {
+ 			const cf = card_flags(cardDir);
+ 			const cm = `card-check: ${cf.length ? cf.join("; ") : "standard passed"}`;
+ 			append(task, cm);
+-			const arch = path.join(root, "public/framework/ai", now().slice(0, 10), "servex-mastermind", "task.jsonl");
++			const arch = arch_log();
+ 			if (cf.length && fs.existsSync(arch)) append(arch, `${path.basename(dir)} — ${cm}`);
+ 		}
+ 	} catch {}
+@@ -95,7 +98,7 @@ try {
+ 			const text = `${name} landed after deciding ${made.length} thing${made.length === 1 ? "" : "s"} for you:\n${lines.join("\n")}`;
+ 			const r = await fetch(`http://127.0.0.1:${process.env.SERVEX_PORT || 8090}/owner_note`, {
+ 				method: "POST", headers: { "content-type": "application/json" },
+-				body: JSON.stringify({ title: `${name} decided ${made.length} thing${made.length === 1 ? "" : "s"} for you`, text, kind: "decision", by: "on-landing", links: [`/framework/ai/${path.basename(path.dirname(dir))}/${name}/`] }),
++				body: JSON.stringify({ title: `${name} decided ${made.length} thing${made.length === 1 ? "" : "s"} for you`, text, kind: "decision", by: "on-landing", links: ["/" + path.relative(path.join(root, "public"), dir).split(path.sep).join("/") + "/"] }),
+ 				signal: AbortSignal.timeout(3000),
+ 			});
+ 			append(task, "owner-note: " + (r.ok ? `posted ${made.length} decision${made.length === 1 ? "" : "s"} to the Inbox` : "not posted (HTTP " + r.status + ")"));
+@@ -180,8 +183,7 @@ try {
+ 	const msg = `layout-check: ${urls.length} pages at ${WIDTHS.replaceAll(",", "/")} — ${flags.length ? flags.join("; ") : "no flags"}; sheets in layout-check/`;
+ 	append(task, msg);
+ 	if (flags.length) {
+-		const day = now().slice(0, 10).replaceAll("-", "-");
+-		const arch = path.join(root, "public/framework/ai", day, "servex-mastermind", "task.jsonl");
++		const arch = arch_log();
+ 		if (fs.existsSync(arch)) append(arch, `${path.basename(dir)} — ${msg}`);
+ 	}
+ 	// The padding law (padding-system, 2026-09-25): nothing a reader looks at sits
+@@ -195,7 +197,7 @@ try {
+ 			: `${x.url} ${x.width}: ${x.violations} at an edge ("${x.worst[0]?.text || ""}")`);
+ 		const pm = `padding-check: ${bad.length ? bad.join("; ") : `${pages.length} pages — clean`}`;
+ 		append(task, pm);
+-		const arch = path.join(root, "public/framework/ai", now().slice(0, 10), "servex-mastermind", "task.jsonl");
++		const arch = arch_log();
+ 		if (bad.length && fs.existsSync(arch)) append(arch, `${path.basename(dir)} — ${pm}`);
+ 	} catch (e) {
+ 		try { append(task, "padding-check: not run — " + String(e && e.message || e).slice(0, 200)); } catch {}
+diff --git a/Server/plugins/CardAnswer.js b/Server/plugins/CardAnswer.js
+index edb7be820..a512cba2b 100644
+--- a/Server/plugins/CardAnswer.js
++++ b/Server/plugins/CardAnswer.js
+@@ -1,4 +1,5 @@
+ import { spawn } from "child_process";
++import TaskDirs from "../TaskDirs.mjs";
+ import { randomUUID } from "crypto";
+ import fs from "fs";
+ import path from "path";
+@@ -196,12 +197,10 @@ export default class CardAnswer {
+ 	 * doorbell needs to write — spawning it would still leave this search duplicated
+ 	 * one level up. Ten lines, read-only, kept beside its one caller. */
+ 	static mastermind_run(){
+-		const AI = path.resolve("public/framework/ai");
+-		const days = fs.readdirSync(AI).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d)).sort().reverse();
+-		for (const day of days){
+-			const dir = path.join(AI, day);
+-			for (const slug of fs.readdirSync(dir).filter(s => s.startsWith("mastermind-")).sort().reverse()){
+-				const file = path.join(dir, slug, "task.jsonl");
++		// both task shapes, newest day first: the sessions store and any old ai/YYYY-MM-DD/ (Server/TaskDirs.mjs)
++		for (const { dir: d, slug } of TaskDirs.list(30).filter(t => t.slug.startsWith("mastermind-"))){
++			{
++				const file = path.join(d, "task.jsonl");
+ 				if (!fs.existsSync(file)) continue;
+ 				const lines = fs.readFileSync(file, "utf8").split("\n").flatMap(l => { try { return l.trim() ? [JSON.parse(l)] : []; } catch { return []; } });
+ 				const state = Object.assign({}, ...lines.filter(e => e.assign).map(e => e.assign));
+diff --git a/Server/plugins/Start.js b/Server/plugins/Start.js
+index 1e905c3cd..2d8ad26ed 100644
+--- a/Server/plugins/Start.js
++++ b/Server/plugins/Start.js
+@@ -3,6 +3,7 @@ import { randomUUID } from "crypto";
+ import fs from "fs";
+ import path from "path";
+ import stamp from "../stamp.js";
++import TaskDirs from "../TaskDirs.mjs";
+ 
+ const AI = path.resolve("public/framework/ai");
+ const STOP = new Set("the a an to of for and or in on it is we i you can lets let please make just some that this".split(" "));
+@@ -38,14 +39,12 @@ export default class Start {
+ 	 * writes by hand, so a browser-started task is indistinguishable from one a
+ 	 * session opened for itself. */
+ 	scaffold(prompt, { group, model = "sonnet", name }){
+-		const date = stamp().slice(0, 10);
+-		const day = path.join(AI, date);
+-		const slug = unique(day, slugify(name || prompt));
+-		const dir = path.join(day, slug);
+-		if (!dir.startsWith(AI)) throw new Error("refusing path " + dir);
+-
+-		fs.mkdirSync(dir, { recursive: true });
++		// The task's folder is in the sessions store, under the new session (Server/TaskDirs.mjs; ai/doc/task-folders.md).
+ 		const session_id = randomUUID(), at = stamp();
++		const home = TaskDirs.session_dir(session_id), day = TaskDirs.day_dir();
++		const slug = unique(home, slugify(name || prompt));
++		const dir = TaskDirs.make({ slug, session_id });
++		if (!dir.startsWith(AI)) throw new Error("refusing path " + dir);
+ 
+ 		this.write(path.join(dir, "requirements.md"),
+ 			`# ${slug}\n\n## The ask, verbatim\n\n> ${prompt.split("\n").join("\n> ")}\n\n`
+@@ -62,7 +61,8 @@ export default class Start {
+ 
+ 		// `task` is a path under `public/` — the one shape `rpc:ask` and `rpc:thread`
+ 		// also take, so a started task can be chatted to without a second format.
+-		return { task: `framework/ai/${date}/${slug}`, slug, session_id, url: `/framework/ai/${date}/${slug}/` };
++		const task = path.relative(path.join(TaskDirs.REPO, "public"), dir).split(path.sep).join("/");
++		return { task, slug, session_id, url: `/${task}/` };
+ 	}
+ 
+ 	/* ⚠ Muted for the tab that asked: three scaffold writes in a row would
+diff --git a/Servex/agents/Dispatcher.js b/Servex/agents/Dispatcher.js
+index 8bff9c797..1fa49886b 100644
+--- a/Servex/agents/Dispatcher.js
++++ b/Servex/agents/Dispatcher.js
+@@ -114,7 +114,7 @@ export default class Dispatcher {
+ 		const { topics } = await this.context(task);
+ 		const post = (state, now) => `append_log({name: "prompts", entry: {type: "task", id: "${task.id}",`
+ 			+ ` state: "${state}", now: "${now}"}})`;
+-		const opening = "you own this task; open `ai/<date>/<slug>/` with `new-task`; a"
++		const opening = "you own this task; open your task folder with `new-task` (`node Server/TaskDirs.mjs --new <slug>`; it lands in ai/sessions/YYYY/MM/DD/); a"
+ 			+ " worktree if you edit site files; land with `finish-task`. Separately from your own"
+ 			+ " task.jsonl, post your progress on THIS log — call the MCP tool"
+ 			+ ` \`${post("working", "<one line>")}\` as you start, again with state "blocked" if you`
+diff --git a/Servex/agents/brief.js b/Servex/agents/brief.js
+index a29787b26..ade6b0228 100644
+--- a/Servex/agents/brief.js
++++ b/Servex/agents/brief.js
+@@ -11,7 +11,7 @@ export function remember_focus(text){ focus = text ? String(text) : null; }
+ 
+ export function brief(servex){
+ 	const out = ["# Servex right now",
+-		"Who launched a task: the first line of its public/framework/ai/<date>/<slug>/task.jsonl (session_id, tab). The owner's VS Code tab dispatches work, and it is not in the list below. mastermind-servex audits and launches nothing.",
++		"Who launched a task: the first line of its task.jsonl (public/framework/ai/sessions/YYYY/MM/DD/<session>/<slug>/) (session_id, tab). The owner's VS Code tab dispatches work, and it is not in the list below. mastermind-servex audits and launches nothing.",
+ 		"If you don't know who did something, say you don't know. Never guess."];
+ 	try {
+ 		const claims = (servex?.claims?.list?.() ?? []).filter(c => !c.stale);
+diff --git a/public/framework/ai/AISession/StoreFolder.js b/public/framework/ai/AISession/StoreFolder.js
+index 7e8c5ba79..7ea7a5c63 100644
+--- a/public/framework/ai/AISession/StoreFolder.js
++++ b/public/framework/ai/AISession/StoreFolder.js
+@@ -48,6 +48,25 @@ export default class StoreFolder extends Page {
+ 		} });
+ 	}
+ 
++	/** An old-shaped /framework/ai/<day>/<slug>/ that no move ever recorded (a reader guessed it from a day log line):
++	    find the slug in that day of the store through the task index (ext/Query `tasks`, dev), and go there; with no
++	    index (the static site) or no hit, link the store's day folder, which lists its tasks. Node twin: TaskDirs.locate(). */
++	static lookup(url, day, slug){
++		const store = "/framework/ai/sessions/" + day.replaceAll("-", "/") + "/";
++		return new Page({ title: slug, icon: "move_up", url, content(){
++			const tail = location.pathname.startsWith(url) ? location.pathname.slice(url.length) : "";
++			const box = p("Finding " + slug + " in the sessions store…");   // captured now; filled after the query (no DOM after an await)
++			import("/framework/ext/Query/QueryClient.js")
++				.then(({ default: QueryClient }) => new QueryClient("tasks").ask({ where: [{ field: "day", op: "eq", value: day }, { field: "slug", op: "eq", value: slug }], limit: 5 }, { timeout: 3000 }))
++				.catch(() => null)
++				.then(res => {
++					const hit = res?.rows?.map(r => r.url ?? (r.dir && "/" + r.dir.replace(/^public\//, "") + "/")).find(Boolean);
++					if (hit) return location.replace(hit + tail + location.search + location.hash);
++					box.empty().append(() => a().href(store).text(`${slug} is not in the index; the ${day} tasks are in the sessions store →`));
++				});
++		} });
++	}
++
+ 	/** What the move log already knows, so a known folder routes without a probe (a 404 probe is a console error):
+ 	    the moved task urls, and the ones with their own page.js (ai/sessions/task-pages.json, Server/TaskMove.mjs --pages). */
+ 	static known(){
+diff --git a/public/framework/ai/page.js b/public/framework/ai/page.js
+index 50ea2a028..4a758c07e 100644
+--- a/public/framework/ai/page.js
++++ b/public/framework/ai/page.js
+@@ -1,4 +1,4 @@
+-import { Page, md, div, a, h1, icon, span, AITask } from "/app.js";
++import { Page, md, div, a, h1, icon, span } from "/app.js";
+ import AIRail, { card_page } from "/framework/ai/rail/rail.js";
+ 
+ // ⚠ Only these shapes: AI 2 claims EVERY unknown name as a card, but here a real folder with its own page.js is found by the probe AFTER route(). Doc: doc/ai-page-notes.md.
+@@ -111,10 +111,8 @@ export default new Page({
+ 					const moved = !task.includes(".") && StoreFolder.moved(this.url + task + "/");
+ 					if (moved) return StoreFolder.redirect(this.url + task + "/", moved);
+ 					if (task.includes(".") || has_page_js(name, task)) return;
+-					return new AITask({
+-						title: task, icon: "receipt_long",
+-						url: this.url + task + "/", src: this.url + task + "/session.json",
+-					});
++					// no task lives in a day folder any more: a reader guessed this url from the day log; find it in the store (one-store, 2026-10-13)
++					return StoreFolder.lookup(this.url + task + "/", name, task);
+ 				},
+ 			});
+ 		}

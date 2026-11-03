@@ -1,0 +1,1099 @@
+{
+	"name": "github-vscode-repo",
+	"url": "https://github.com/microsoft/vscode",
+	"title": "GitHub - microsoft/vscode: Visual Studio Code · GitHub",
+	"category": "app",
+	"captured_at": "2026-09-08T05:44:07.116Z",
+	"embed": "blocked",
+	"embed_note": "x-frame-options: deny",
+	"shots": {
+		"400": "site/github-vscode-repo/400.jpg",
+		"1280": "site/github-vscode-repo/1280.jpg",
+		"1920": "site/github-vscode-repo/1920.jpg",
+		"3440": "site/github-vscode-repo/3440.jpg",
+		"long": "site/github-vscode-repo/long.jpg"
+	},
+	"layout": {
+		"400": "1-flow",
+		"1280": "2-sidebar",
+		"1920": "2-sidebar",
+		"3440": "2-sidebar"
+	},
+	"sections": [
+		{
+			"name": "top bars",
+			"layout": "1-flow",
+			"css": "block",
+			"note": "the black marketing header and the repo breadcrumb/tab row are two full-width bars stacked on top of each other; the product menu collapses behind a hamburger icon below the desktop widths."
+		},
+		{
+			"name": "toolbar",
+			"layout": "1-flow",
+			"css": "flex",
+			"note": "the branch picker, the green Code button and the file-search box sit in one flex row above the file list, and wrap onto their own line before the file list ever changes shape."
+		},
+		{
+			"name": "file list + About panel",
+			"layout": "2-sidebar right",
+			"css": "grid",
+			"note": "the file browser and README sit in a wide left column whose own width (838px) never changes from 1280 up to 3440 — the page just grows its margins — while the About panel (stars, releases, contributors, languages) is a narrow right column that drops to a full-width block below the file list at 400."
+		}
+	],
+	"tags": [
+		"2-sidebar",
+		"1-flow",
+		"2 column grid",
+		"hamburger",
+		"right",
+		"fixed content width",
+		"app"
+	],
+	"responsive": {
+		"strategy": "The two-column body (file list, About panel) holds its shape at every desktop width we shot — 1280, 1920 and 3440 all show the same 838px-wide file list with only the outer margin growing — and only collapses to one column on a phone, where the About panel moves under the file list and the top product menu hides behind a hamburger button. There is no middle ground visible in our four shots: it is either the full two-column desktop page or the stacked phone page.",
+		"breakpoints": [
+			768,
+			1012,
+			1280
+		]
+	},
+	"scan": {
+		"scanned_at": "2026-09-08T05:44:19.914Z",
+		"css": {
+			"sheets": 24,
+			"bytes": 2436778,
+			"inline_bytes": 371
+		},
+		"media": [
+			"(forced-colors:active){",
+			"(height<=280px){",
+			"(height<=500px){",
+			"(height<=520px){",
+			"(height<=600px){",
+			"(height<=720px){",
+			"(height<=800px){",
+			"(hover:hover) and (pointer:fine){",
+			"(hover:hover){",
+			"(hover:none){",
+			"(pointer:coarse){",
+			"(pointer:fine){",
+			"(prefers-color-scheme:dark) and (width>=768px){",
+			"(prefers-color-scheme:dark){",
+			"(prefers-color-scheme:light) and (width>=768px){",
+			"(prefers-color-scheme:light){",
+			"(prefers-reduced-motion){",
+			"(prefers-reduced-motion:no-preference){",
+			"(prefers-reduced-motion:reduce){",
+			"(width<=1011.98px){",
+			"(width<=1012px){",
+			"(width<=1028px){",
+			"(width<=1279px){",
+			"(width<=1280px){",
+			"(width<=1320px){",
+			"(width<=320px){",
+			"(width<=34rem){",
+			"(width<=400px){",
+			"(width<=408px){",
+			"(width<=430px){",
+			"(width<=542px){",
+			"(width<=543.98px){",
+			"(width<=543px){",
+			"(width<=544px){",
+			"(width<=63.25rem){",
+			"(width<=750px){",
+			"(width<=767.98px){",
+			"(width<=767px) and (height<=500px){",
+			"(width<=767px){",
+			"(width<=768px) and (height>=670px){",
+			"(width<=768px) and (width>=544px){",
+			"(width<=768px){",
+			"(width<=950px){",
+			"(width<=calc(48rem - .02px)){",
+			"(width>=1012px) and (width<=1279px){",
+			"(width>=1012px) and (width<=1280px){",
+			"(width>=1012px){",
+			"(width>=1024px){",
+			"(width>=1028px){",
+			"(width>=1029px) and (width<=1150px){",
+			"(width>=1150px){",
+			"(width>=1280px){",
+			"(width>=1400px){",
+			"(width>=48rem){",
+			"(width>=542px) and (width<=1028px) and (height>=670px){",
+			"(width>=542px){",
+			"(width>=544px) and (width<=767.98px){",
+			"(width>=544px) and (width<=768px){",
+			"(width>=544px){",
+			"(width>=63.24rem){",
+			"(width>=63.25rem) and (width<=87.499rem){",
+			"(width>=63.25rem){",
+			"(width>=63.28rem){",
+			"(width>=767px){",
+			"(width>=768px) and (width<=1011.98px){",
+			"(width>=768px) and (width<=1011px){",
+			"(width>=768px) and (width<=1012px){",
+			"(width>=768px) and (width<=1350px){",
+			"(width>=768px) and (width>=1012px){",
+			"(width>=768px) and (width>=1280px){",
+			"(width>=768px) and (width>=544px){",
+			"(width>=768px) and (width>=768px){",
+			"(width>=768px){",
+			"(width>=80rem){",
+			"(width>=87.5rem){",
+			"only screen and (-moz-min-device-pixel-ratio:2),only screen and (min-device-pixe",
+			"only screen and (width<=768px){",
+			"print,screen and (width<=1011px) and (width>=768px){",
+			"print,screen and (width<=1349px) and (width>=768px){",
+			"print{",
+			"screen and (forced-colors:active){",
+			"screen and (prefers-reduced-motion:no-preference){",
+			"screen and (prefers-reduced-motion:reduce){",
+			"screen and (width<=1011px){",
+			"screen and (width<=1012px){",
+			"screen and (width<=1079px){",
+			"screen and (width<=1278px){",
+			"screen and (width<=320px){",
+			"screen and (width<=34rem){",
+			"screen and (width<=380px){",
+			"screen and (width<=40rem){",
+			"screen and (width<=47.99rem){",
+			"screen and (width<=470px){",
+			"screen and (width<=48rem){",
+			"screen and (width<=543px){",
+			"screen and (width<=544px){",
+			"screen and (width<=63.24rem){",
+			"screen and (width<=63.25rem){",
+			"screen and (width<=767px) and (prefers-color-scheme:dark){",
+			"screen and (width<=767px) and (prefers-reduced-motion:no-preference){",
+			"screen and (width<=767px){",
+			"screen and (width<=768px){",
+			"screen and (width<=840px){",
+			"screen and (width<=980px){",
+			"screen and (width<=calc(48rem - .02px)){",
+			"screen and (width>=0){",
+			"screen and (width>=1012px){",
+			"screen and (width>=1080px){",
+			"screen and (width>=1279px){",
+			"screen and (width>=1280px){",
+			"screen and (width>=1281px){",
+			"screen and (width>=1300px){",
+			"screen and (width>=1360px){",
+			"screen and (width>=34rem) and (width<=47.99rem){",
+			"screen and (width>=34rem){",
+			"screen and (width>=38.625rem){",
+			"screen and (width>=40rem) and (width<=63.25rem){",
+			"screen and (width>=40rem){",
+			"screen and (width>=48rem) and (width<=63.24rem){",
+			"screen and (width>=48rem){",
+			"screen and (width>=544px){",
+			"screen and (width>=618px){",
+			"screen and (width>=63.25rem) and (hover:hover) and (pointer:fine){",
+			"screen and (width>=63.25rem){",
+			"screen and (width>=64rem){",
+			"screen and (width>=768px) and (height>=900px) and (prefers-reduced-motion:no-pre",
+			"screen and (width>=768px){",
+			"screen and (width>=80rem){",
+			"screen and (width>=87.5rem){"
+		],
+		"container": [
+			"(width<20rem){",
+			"(width<34rem){",
+			"(width<480px){",
+			"(width<48rem){",
+			"(width<63.25rem){",
+			"(width<80rem){",
+			"(width<87.5rem){",
+			"(width<=320px){",
+			"(width<=768px){",
+			"(width>=1280px){",
+			"(width>=768px){",
+			"banner (width<=500px){",
+			"banner (width>=500px){",
+			"blankslate (width<=34rem){",
+			"budget-approvals (width>=550px){",
+			"controlbox (width<=500px){"
+		],
+		"breakpoints_seen": [
+			{
+				"px": 768,
+				"count": 22
+			},
+			{
+				"px": 544,
+				"count": 8
+			},
+			{
+				"px": 1012,
+				"count": 8
+			},
+			{
+				"px": 767,
+				"count": 6
+			},
+			{
+				"px": 98,
+				"count": 5
+			},
+			{
+				"px": 1280,
+				"count": 5
+			},
+			{
+				"px": 542,
+				"count": 3
+			},
+			{
+				"px": 1011,
+				"count": 3
+			},
+			{
+				"px": 1028,
+				"count": 3
+			},
+			{
+				"px": 1279,
+				"count": 3
+			},
+			{
+				"px": 2,
+				"count": 2
+			},
+			{
+				"px": 320,
+				"count": 2
+			}
+		],
+		"widths": {
+			"400": {
+				"doc": [
+					400,
+					5389
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "MarketingHeader-module__root__Tk7n3 HeaderMktg",
+						"role": "banner",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							400,
+							64
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "MarketingNavigation-module__nav__W0KYY",
+						"display": "block",
+						"rect": [
+							16,
+							104,
+							344,
+							324
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"id": "js-repo-pjax-container",
+						"display": "block",
+						"rect": [
+							0,
+							64,
+							400,
+							5150
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "js-repo-nav js-sidenav-container-pjax",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							123,
+							400,
+							48
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "prc-components-UnderlineWrapper-eT-Yj prc-UnderlineNav-UnderlineWrapper-GWONT",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							1,
+							764,
+							356,
+							48
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "markdown-body entry-content",
+						"display": "block",
+						"rect": [
+							33,
+							844,
+							334,
+							3794
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "footer f6",
+						"role": "contentinfo",
+						"display": "block",
+						"rect": [
+							0,
+							5214,
+							400,
+							175
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"display": "block",
+						"rect": [
+							16,
+							5262,
+							368,
+							62
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "ul",
+						"class": "prc-UnderlineNav-ItemsList-oj8gN prc-components-UnderlineItemList-xKlKC",
+						"role": "list",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "wrap",
+						"position": "relative",
+						"rect": [
+							9,
+							772,
+							252,
+							136
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "logged-out env-production",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							400,
+							5389
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "application-main",
+						"display": "block",
+						"rect": [
+							0,
+							64,
+							400,
+							5150
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"display": "block",
+						"rect": [
+							0,
+							64,
+							400,
+							5150
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "turbo-frame",
+						"id": "repo-content-turbo-frame",
+						"display": "block",
+						"rect": [
+							0,
+							171,
+							400,
+							5043
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "repo-content-pjax-container",
+						"class": "repository-content",
+						"display": "block",
+						"rect": [
+							0,
+							171,
+							400,
+							5043
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1280": {
+				"doc": [
+					1280,
+					5078
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "MarketingHeader-module__root__Tk7n3 HeaderMktg",
+						"role": "banner",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							1280,
+							72
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "MarketingNavigation-module__nav__W0KYY",
+						"display": "block",
+						"rect": [
+							80,
+							16,
+							628,
+							40
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"id": "js-repo-pjax-container",
+						"display": "block",
+						"rect": [
+							0,
+							72,
+							1280,
+							4893
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "js-repo-nav js-sidenav-container-pjax",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							134,
+							1280,
+							48
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "prc-components-UnderlineWrapper-eT-Yj prc-UnderlineNav-UnderlineWrapper-GWONT",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							33,
+							2006,
+							860,
+							48
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "markdown-body entry-content",
+						"display": "block",
+						"rect": [
+							65,
+							2086,
+							838,
+							2766
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "footer f6",
+						"role": "contentinfo",
+						"display": "block",
+						"rect": [
+							0,
+							4965,
+							1280,
+							113
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"display": "block",
+						"rect": [
+							365,
+							5017,
+							703,
+							18
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "ul",
+						"class": "prc-UnderlineNav-ItemsList-oj8gN prc-components-UnderlineItemList-xKlKC",
+						"role": "list",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "wrap",
+						"position": "relative",
+						"rect": [
+							41,
+							2014,
+							844,
+							40
+						],
+						"side_by_side": 5
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "logged-out env-production",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							1280,
+							5078
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "application-main",
+						"display": "block",
+						"rect": [
+							0,
+							72,
+							1280,
+							4893
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"display": "block",
+						"rect": [
+							0,
+							72,
+							1280,
+							4893
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "turbo-frame",
+						"id": "repo-content-turbo-frame",
+						"display": "block",
+						"rect": [
+							0,
+							182,
+							1280,
+							4783
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "repo-content-pjax-container",
+						"class": "repository-content",
+						"display": "block",
+						"rect": [
+							0,
+							182,
+							1280,
+							4783
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"1920": {
+				"doc": [
+					1920,
+					5078
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "MarketingHeader-module__root__Tk7n3 HeaderMktg",
+						"role": "banner",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							1920,
+							72
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "MarketingNavigation-module__nav__W0KYY",
+						"display": "block",
+						"rect": [
+							80,
+							16,
+							628,
+							40
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"id": "js-repo-pjax-container",
+						"display": "block",
+						"rect": [
+							0,
+							72,
+							1920,
+							4893
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "js-repo-nav js-sidenav-container-pjax",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							134,
+							1920,
+							48
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "prc-components-UnderlineWrapper-eT-Yj prc-UnderlineNav-UnderlineWrapper-GWONT",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							353,
+							2006,
+							860,
+							48
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "markdown-body entry-content",
+						"display": "block",
+						"rect": [
+							385,
+							2086,
+							838,
+							2766
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "footer f6",
+						"role": "contentinfo",
+						"display": "block",
+						"rect": [
+							0,
+							4965,
+							1920,
+							113
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"display": "block",
+						"rect": [
+							685,
+							5017,
+							703,
+							18
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "ul",
+						"class": "prc-UnderlineNav-ItemsList-oj8gN prc-components-UnderlineItemList-xKlKC",
+						"role": "list",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "wrap",
+						"position": "relative",
+						"rect": [
+							361,
+							2014,
+							844,
+							40
+						],
+						"side_by_side": 5
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "logged-out env-production",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							1920,
+							5078
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "application-main",
+						"display": "block",
+						"rect": [
+							0,
+							72,
+							1920,
+							4893
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"display": "block",
+						"rect": [
+							0,
+							72,
+							1920,
+							4893
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "turbo-frame",
+						"id": "repo-content-turbo-frame",
+						"display": "block",
+						"rect": [
+							0,
+							182,
+							1920,
+							4783
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "repo-content-pjax-container",
+						"class": "repository-content",
+						"display": "block",
+						"rect": [
+							0,
+							182,
+							1920,
+							4783
+						],
+						"side_by_side": 1
+					}
+				]
+			},
+			"3440": {
+				"doc": [
+					3440,
+					5078
+				],
+				"elements": [
+					{
+						"why": "landmark",
+						"tag": "header",
+						"class": "MarketingHeader-module__root__Tk7n3 HeaderMktg",
+						"role": "banner",
+						"display": "block",
+						"position": "relative",
+						"rect": [
+							0,
+							0,
+							3440,
+							72
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "MarketingNavigation-module__nav__W0KYY",
+						"display": "block",
+						"rect": [
+							80,
+							16,
+							628,
+							40
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "main",
+						"id": "js-repo-pjax-container",
+						"display": "block",
+						"rect": [
+							0,
+							72,
+							3440,
+							4893
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "js-repo-nav js-sidenav-container-pjax",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							0,
+							134,
+							3440,
+							48
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"class": "prc-components-UnderlineWrapper-eT-Yj prc-UnderlineNav-UnderlineWrapper-GWONT",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "nowrap",
+						"rect": [
+							1113,
+							2006,
+							860,
+							48
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "article",
+						"class": "markdown-body entry-content",
+						"display": "block",
+						"rect": [
+							1145,
+							2086,
+							838,
+							2766
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "landmark",
+						"tag": "footer",
+						"class": "footer f6",
+						"role": "contentinfo",
+						"display": "block",
+						"rect": [
+							0,
+							4965,
+							3440,
+							113
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "landmark",
+						"tag": "nav",
+						"display": "block",
+						"rect": [
+							1445,
+							5017,
+							703,
+							18
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "role",
+						"tag": "ul",
+						"class": "prc-UnderlineNav-ItemsList-oj8gN prc-components-UnderlineItemList-xKlKC",
+						"role": "list",
+						"display": "flex",
+						"dir": "row",
+						"wrap": "wrap",
+						"position": "relative",
+						"rect": [
+							1121,
+							2014,
+							844,
+							40
+						],
+						"side_by_side": 5
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "logged-out env-production",
+						"display": "block",
+						"rect": [
+							0,
+							0,
+							3440,
+							5078
+						],
+						"side_by_side": 2
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"class": "application-main",
+						"display": "block",
+						"rect": [
+							0,
+							72,
+							3440,
+							4893
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"display": "block",
+						"rect": [
+							0,
+							72,
+							3440,
+							4893
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "turbo-frame",
+						"id": "repo-content-turbo-frame",
+						"display": "block",
+						"rect": [
+							0,
+							182,
+							3440,
+							4783
+						],
+						"side_by_side": 1
+					},
+					{
+						"why": "largest",
+						"tag": "div",
+						"id": "repo-content-pjax-container",
+						"class": "repository-content",
+						"display": "block",
+						"rect": [
+							0,
+							182,
+							3440,
+							4783
+						],
+						"side_by_side": 1
+					}
+				]
+			}
+		}
+	},
+	"notes": "This is a repo page on GitHub: a file browser on the left and an About box on the right that lists stars, releases and contributors. On a laptop, a desktop monitor and an ultrawide screen the two columns are exactly the same width — GitHub does not stretch the reading column, it just adds more empty space on the sides, the same trick a book uses on a big table. On a phone the About box drops underneath the file list instead of sitting beside it, and the row of menu links at the top hides behind a small hamburger icon to save space. The scan's automatic box-finder missed this split — GitHub wraps it in a container class the scanner does not flag as a landmark — so the two-column call here comes from looking at the pictures, not from the measurements.",
+	"wire": {
+		"role": "page",
+		"kids": [
+			{
+				"role": "header",
+				"h": "6em"
+			},
+			{
+				"role": "nav",
+				"h": "3em"
+			},
+			{
+				"role": "main",
+				"dir": "row",
+				"floor": "63rem",
+				"kids": [
+					{
+						"role": "main",
+						"w": 1,
+						"lines": 10
+					},
+					{
+						"role": "aside",
+						"w": "20em",
+						"lines": 6
+					}
+				]
+			}
+		]
+	}
+}

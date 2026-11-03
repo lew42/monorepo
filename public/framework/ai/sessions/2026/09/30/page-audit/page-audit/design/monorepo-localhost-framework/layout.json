@@ -1,0 +1,274 @@
+{
+ "url": "http://monorepo.localhost/framework/",
+ "widths": {
+  "400": {
+   "empty": 0.489,
+   "widest_text": 350,
+   "widest_text_sample": "A no-build, native-ESM web framework",
+   "overflow_x": false,
+   "items": 119,
+   "narrow_share": 0.118,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 24,
+     "layers": [
+      {
+       "cls": "default",
+       "px": 24
+      }
+     ]
+    },
+    "p": {
+     "total": 24,
+     "layers": [
+      {
+       "cls": "default",
+       "px": 24
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "sidebar",
+     "y": 0,
+     "h": 51,
+     "share": 0.051,
+     "ink": 0.163,
+     "big_empty": false
+    },
+    {
+     "cls": "pages",
+     "y": 51,
+     "h": 898,
+     "share": 0.898,
+     "ink": 0.498,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "h1",
+     "cls": "h1",
+     "text": "A no-build, native-ESM web fra",
+     "lines": 3
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-rail-ai",
+     "text": "✦AI",
+     "lines": 3.2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-rail-menu",
+     "text": "⋯More",
+     "lines": 3.2
+    }
+   ]
+  },
+  "1200": {
+   "empty": 0.66,
+   "widest_text": 533,
+   "widest_text_sample": "A no-build, native-ESM web framework",
+   "overflow_x": false,
+   "items": 136,
+   "narrow_share": 0.213,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 58,
+     "layers": [
+      {
+       "cls": "default",
+       "px": 58
+      }
+     ]
+    },
+    "p": {
+     "total": 58,
+     "layers": [
+      {
+       "cls": "default",
+       "px": 58
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "sidebar",
+     "y": 0,
+     "h": 1000,
+     "share": 1,
+     "ink": 0.34,
+     "big_empty": false
+    },
+    {
+     "cls": "pages",
+     "y": 0,
+     "h": 1000,
+     "share": 1,
+     "ink": 0.34,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.7
+    },
+    {
+     "tag": "h1",
+     "cls": "h1",
+     "text": "A no-build, native-ESM web fra",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  },
+  "1920": {
+   "empty": 0.786,
+   "widest_text": 572,
+   "widest_text_sample": "A no-build, native-ESM web framework",
+   "overflow_x": false,
+   "items": 136,
+   "narrow_share": 0.904,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 80,
+     "layers": [
+      {
+       "cls": "default",
+       "px": 80
+      }
+     ]
+    },
+    "p": {
+     "total": 80,
+     "layers": [
+      {
+       "cls": "default",
+       "px": 80
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "sidebar",
+     "y": 0,
+     "h": 1000,
+     "share": 1,
+     "ink": 0.214,
+     "big_empty": false
+    },
+    {
+     "cls": "pages",
+     "y": 0,
+     "h": 1000,
+     "share": 1,
+     "ink": 0.214,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.7
+    },
+    {
+     "tag": "h1",
+     "cls": "h1",
+     "text": "A no-build, native-ESM web fra",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  },
+  "3440": {
+   "empty": 0.85,
+   "widest_text": 643,
+   "widest_text_sample": "A no-build, native-ESM web framework",
+   "overflow_x": false,
+   "items": 136,
+   "narrow_share": 0.904,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 90,
+     "layers": [
+      {
+       "cls": "default",
+       "px": 90
+      }
+     ]
+    },
+    "p": {
+     "total": 90,
+     "layers": [
+      {
+       "cls": "default",
+       "px": 90
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "sidebar",
+     "y": 0,
+     "h": 1000,
+     "share": 1,
+     "ink": 0.15,
+     "big_empty": false
+    },
+    {
+     "cls": "pages",
+     "y": 0,
+     "h": 1000,
+     "share": 1,
+     "ink": 0.15,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.8
+    },
+    {
+     "tag": "h1",
+     "cls": "h1",
+     "text": "A no-build, native-ESM web fra",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  }
+ },
+ "errors": []
+}

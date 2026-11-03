@@ -1,0 +1,5 @@
+# Brief: make `.fig-select` behave (2026-10-12, night)
+
+`.fig-select` on `/framework/ext/Figma/tokens/` is a styled `<details>` with no behaviour ([web-controls.md](web-controls.md), doc `ext/Figma/doc/controls.md`). Make it work: choosing a row sets the trigger value and closes; outside click and Escape close; arrow keys move, Enter picks; one open at a time. **Reuse what exists first**: read `ux/Menu`, `ux/Popover`, `ui/menu` and use their behaviour if it fits (a small class, one file, per the `code` skill); don't build a second popover system. Opt-in only: nothing outside `.fig-*` changes. Long lists cap at 264 and scroll inside (Figma variant A); on a phone width it may open as a bottom sheet (variant C) if Popover already supports that, otherwise note it.
+
+Worktree (`node Server/worktree-up.mjs fig-select`), commit each working step, check the demo at 400/1200/1920/3440, run `node Server/review.mjs <this task dir> <worktree>` and answer findings, then `MSYS_NO_PATHCONV=1 node Server/merge.mjs <worktree> /framework/ext/Figma/tokens/`. Update `doc/controls.md`. Report `kit/web-select.md`, committed by path.

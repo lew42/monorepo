@@ -1,0 +1,55 @@
+[   0.2s] private Servex started from C:\Code\lew42\worktrees\quickfix-worktrees — cmd pid 47092, dashboard http://127.0.0.1:8190, pool file C:\Users\mike\AppData\Local\Temp\claude\C--Code-lew42-worktrees-quickfix-worktrees\b445ad63-8367-4092-95c7-8a24ea4e7f6d\scratchpad\pool-proof\pool.json
+[   6.3s] PASS one slot ready at boot: qfp-1:ready — http://127.0.0.1:57611/
+[   6.3s] PASS its own server answers http://127.0.0.1:57611/ with 200
+[   9.6s] PASS its page watcher is on: health-supervisor pid 45932, running health.mjs as pid 31596 (its own temp dir, so the owner's watcher lock does not stop it)
+[   9.6s] PASS git identity present in the slot: yes
+[   9.7s] PASS take_worktree answered in 49 ms: { "id": "qfp-1", "path": "C:/Code/lew42/worktrees/qfp-1", "branch": "worktree/qfp-1", "url": "http://127.0.0.1:57611/" }
+[  15.7s] PASS a second slot became ready 6.1 s after the take: qfp-1:taken(proof-a) qfp-2:ready
+[  16.1s] PASS returned qfp-1 unused: it is ready again and the extra was removed: qfp-1:ready
+[  16.2s] PASS returning a dirty qfp-1 was refused, the file is still there: Refused: qfp-1 has uncommitted changes — commit and merge them, or move them, first. Nothing was discarded. pool-proof-dirty.txt
+[  29.4s] PASS three taken, none being made (K = 3): qfp-1:taken(proof-b) qfp-3:taken(proof-c) qfp-2:taken(proof-d)
+[  29.4s] PASS a fourth take is refused and names who holds each: All 3 worktrees are taken: qfp-1 by proof-b since 2026-09-25T19:00:43-05:00; qfp-3 by proof-c since 2026-09-25T19:00:51-05:00; qfp-2 by proof-d since 2026-09-25T19:00:57-05:00. Ask a holder to return_worktree, or wait.
+[  29.4s] GET /api/worktrees:
+{
+  "K": 3,
+  "N_hours": 6,
+  "slots": [
+    {
+      "id": "qfp-1",
+      "state": "taken",
+      "url": "http://127.0.0.1:57611/",
+      "path": "C:/Code/lew42/worktrees/qfp-1",
+      "branch": "worktree/qfp-1",
+      "taken_by": "proof-b",
+      "taken_at": "2026-09-25T19:00:43-05:00",
+      "idle_since": null
+    },
+    {
+      "id": "qfp-3",
+      "state": "taken",
+      "url": "http://127.0.0.1:58959/",
+      "path": "C:/Code/lew42/worktrees/qfp-3",
+      "branch": "worktree/qfp-3",
+      "taken_by": "proof-c",
+      "taken_at": "2026-09-25T19:00:51-05:00",
+      "idle_since": null
+    },
+    {
+      "id": "qfp-2",
+      "state": "taken",
+      "url": "http://127.0.0.1:51520/",
+      "path": "C:/Code/lew42/worktrees/qfp-2",
+      "branch": "worktree/qfp-2",
+      "taken_by": "proof-d",
+      "taken_at": "2026-09-25T19:00:57-05:00",
+      "idle_since": null
+    }
+  ]
+}
+[  29.6s] PASS every process started is hidden (MainWindowHandle 0): no node/cmd/powershell/chrome window opened since the proof began
+[  30.2s] all returned: qfp-2:ready
+[  33.2s] PASS the extra ready slots were removed (nothing left in the pool file's leaving list)
+[  36.0s] PASS after a Servex restart the same slot was adopted, not rebuilt: qfp-2:ready at http://127.0.0.1:51520/ (1.0 s)
+[  36.1s] private Servex stopped (taskkill /T on 4228)
+[  37.6s] pool: qfp-2 removed
+[  37.7s] PASS git worktree list shows no qfp-* worktree, and no worktree/qfp-* branch

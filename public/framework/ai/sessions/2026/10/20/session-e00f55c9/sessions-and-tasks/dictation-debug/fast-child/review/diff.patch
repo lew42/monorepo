@@ -1,0 +1,72 @@
+diff --git a/Servex/agents/Agents.js b/Servex/agents/Agents.js
+index f6aec5eac..020370907 100644
+--- a/Servex/agents/Agents.js
++++ b/Servex/agents/Agents.js
+@@ -765,7 +765,7 @@ export class Agents {
+ 		}
+ 		for (const id of ids){
+ 			const r = rows[id] ?? {};
+-			out.push({ id, parent: r.parent ?? null, role: r.role ?? null, state: this.live.get(id)?.state ?? r.state ?? null, session_id: r.session_id ?? null,
++			out.push({ id, parent: r.parent ?? null, parent_session: r.parent_session ?? null, role: r.role ?? null, state: this.live.get(id)?.state ?? r.state ?? null, session_id: r.session_id ?? null,
+ 				cost: Math.round(this.logged_cost(id, since) * 100) / 100, started_at: r.started_at ?? null });
+ 		}
+ 		return out.sort((a, b) => String(a.started_at).localeCompare(String(b.started_at)));
+diff --git a/Servex/agents/page_tools.js b/Servex/agents/page_tools.js
+index 518d53757..ae1ff1053 100644
+--- a/Servex/agents/page_tools.js
++++ b/Servex/agents/page_tools.js
+@@ -769,9 +769,14 @@ function counts(list){
+ }
+ 
+ /* Child sessions as a tree: an agent whose parent is also in the list sits under it; each node has its own cost and its subtree total. */
+-function nest_agents(agents){
++export function nest_agents(agents){
+ 	const by = new Map(agents.map(a => [a.id, { ...a, children: [] }])), roots = [];
+-	for (const a of by.values()) (by.get(a.parent)?.children ?? roots).push(a);
++	// A voice session's fast seat is counted under its smart seat (same parent_session); both keep parent "sessions" for events (Sessions.js).
++	const smart = new Map([...by.values()].filter(a => a.role === "session-smart" && a.parent_session).map(a => [a.parent_session, a]));
++	for (const a of by.values()){
++		const seat = /^(session-fast|voice-assistant)$/.test(a.role) ? smart.get(a.parent_session) : null;
++		(seat && seat !== a ? seat : by.get(a.parent))?.children?.push(a) ?? roots.push(a);
++	}
+ 	const sum = a => (a.total = r2(a.cost + a.children.reduce((s, k) => s + sum(k), 0)));
+ 	roots.forEach(sum);
+ 	return roots;
+diff --git a/Servex/agents/seat-cost.test.mjs b/Servex/agents/seat-cost.test.mjs
+new file mode 100644
+index 000000000..970d4135d
+--- /dev/null
++++ b/Servex/agents/seat-cost.test.mjs
+@@ -0,0 +1,19 @@
++/* node Servex/agents/seat-cost.test.mjs — a voice session's fast seat is counted under its smart seat (both keep parent "sessions"). */
++import assert from "node:assert";
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++process.env.SERVEX_HOME = fs.mkdtempSync(path.join(os.tmpdir(), "seatcost-home-"));
++const { nest_agents } = await import("./page_tools.js");
++
++const row = (id, role, cost, parent_session, parent = "sessions") => ({ id, role, cost, parent, parent_session });
++const roots = nest_agents([
++	row("fast-1", "session-fast", 0.1, "v-a"), row("smart-1", "session-smart", 0.5, "v-a"),
++	row("fast-2", "voice-assistant", 0.2, "v-b"),                       // no smart seat yet: stays a root
++	row("other", "minion", 1, "v-a", "smart-1"),                          // an ordinary child keeps its parent link
++]);
++const smart = roots.find(r => r.id === "smart-1");
++assert.deepEqual(smart.children.map(c => c.id).sort(), ["fast-1", "other"]);
++assert.equal(smart.total, 1.6, "smart own 0.5 + fast 0.1 + minion 1");
++assert.ok(roots.some(r => r.id === "fast-2") && !roots.some(r => r.id === "fast-1"));
++console.log("seat-cost: 4 passed");
+diff --git a/Servex/readme.md b/Servex/readme.md
+index 40128feaf..90eb8d08f 100644
+--- a/Servex/readme.md
++++ b/Servex/readme.md
+@@ -42,7 +42,7 @@ class Servex {
+ 
+ | Folder or file | What |
+ |---|---|
+-| `agents/` | `Agents.js` (`spawn` → `open_task` → SDK `query()`), `tools.js` (the in-process tools incl. `spawn_agent`), `roles.js` (role → its readme in [`roles/`](agents/roles/readme.md), skills and posture), `Dispatcher.js`, `Sessions.js`, `WakePolicy.js` (when a voice session's smart seat is woken; test `WakePolicy.test.mjs`: [wake-policy](/framework/ux/Dictate/doc/wake-policy.md)), `page_tools.js` (item, page_set/page_add/page_call/page_read/page_log/page_note; `item` also answers **queries** with no write, e.g. `item({path, delta:{"summary":{}}})`: [doc/item-tool.md](doc/item-tool.md)), `inbox.js`, `claims.js`, `directory.js` |
++| `agents/` | `Agents.js` (`spawn` → `open_task` → SDK `query()`), `tools.js` (the in-process tools incl. `spawn_agent`), `roles.js` (role → its readme in [`roles/`](agents/roles/readme.md), skills and posture), `Dispatcher.js`, `Sessions.js` (a voice session's fast and smart seats; both have `parent: "sessions"` so their turn-ends reach `Sessions.hire()`, and `nest_agents` in `page_tools.js` files the fast seat's cost under the smart seat of the same `parent_session`, test `seat-cost.test.mjs`), `WakePolicy.js` (when a voice session's smart seat is woken; test `WakePolicy.test.mjs`: [wake-policy](/framework/ux/Dictate/doc/wake-policy.md)), `page_tools.js` (item, page_set/page_add/page_call/page_read/page_log/page_note; `item` also answers **queries** with no write, e.g. `item({path, delta:{"summary":{}}})`: [doc/item-tool.md](doc/item-tool.md)), `inbox.js`, `claims.js`, `directory.js` |
+ | `asks/`, `cards/` | the asks ledger (`Asks.js`), cards (`Cards.js`, writes `ai/cards.jsonl`) |
+ | `ext/` | `remote/` (voice-app door), `openrouter/` (non-Anthropic models), `refine/`, `local/` |
+ | `doc/` | the detail; `proof/` and `*.test.mjs` are checks |

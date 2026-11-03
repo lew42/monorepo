@@ -1,0 +1,12 @@
+health.mjs: watching C:\Code\lew42\worktrees\proposal-flow\public, checking against http://localhost:62566, log at public/framework/ai/health/2026-09-30.jsonl
+health.mjs: data only, no check — 7 files (public/framework/ai/2026-09-30/health-proof/task.jsonl.tmp.8672.573ed173e45a, public/framework/ai/2026-09-30/health-proof/task.jsonl, public/framework/ai/2026-09-30/health-proof/files.jsonl, …)
+health.mjs: health: /framework/ai/2026-09-30/health-proof/ — 0 console errors, stall 3.0 s, 49 unknown-verb warnings, shot /framework/ai/health/shots/2026-09-30/framework-ai-2026-09-30-health-proof.png — first: stall: the main thread was blocked for 3.0 s (a long task starting 6.2 s after navigation; 1 over 2 s) → public/framework/ai/2026-09-30/health-proof/task.jsonl
+health.mjs: data only, no check — 4 files (public/directory.json, public/framework/directory.json, public/framework/ai/board.jsonl, …)
+health.mjs: data only, no check — 2 files (public/directory.json, public/framework/directory.json)
+health.mjs: health: /framework/ai/health/ — 3 console errors, stall 0.0 s, 2 other errors (status, request), shot /framework/ai/health/shots/2026-09-30/framework-ai-health.png — first: console: Page.load("/framework/ai/health/page.js") — the file EXISTS but failed to load: Error: health-proof: a deliberate break
+    at http://localhost:62566/framework/ → public/framework/ai/2026-09-30/health-proof/task.jsonl
+health.mjs: data only, no check — 4 files (public/directory.json, public/framework/directory.json, public/framework/ai/board.jsonl, …)
+health.mjs: data only, no check — 2 files (public/directory.json, public/framework/directory.json)
+health.mjs: health: /framework/ai/health/ — 0 console errors, stall 0.0 s, shot /framework/ai/health/shots/2026-09-30/framework-ai-health.png → public/framework/ai/2026-09-30/health-proof/task.jsonl
+health.mjs: data only, no check — 1 file (public/framework/ai/2026-09-30/health-proof/task.jsonl)
+health.mjs: data only, no check — 1 file (public/framework/ai/2026-09-30/health-proof/task.jsonl)

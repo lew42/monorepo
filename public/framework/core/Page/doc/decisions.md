@@ -1,0 +1,1194 @@
+# Page — decisions and record
+
+*moved from readme.md 2026-08-17; conclusive, not current guidance.*
+
+Every member has a page of its own under the API tab — who calls it, whether it
+is necessary, whether it is over-built. Fourteen live trees — six that build one,
+five that arrange one, three that are whole websites — are the **Overview's
+rail**: one directory each under `overview/`, listed in order by `overview:` in
+`page.js` and grouped by the `group:` each one declares. Every card is that tree
+running at half size; every demo page is that tree with its own `page.js` open
+beneath it. Record: `overview/readme.md`. Long form, one file per
+question: `./declaring.md` (the children list and the CMS question),
+`./labels.md` (titles, labels, icons, cards), `./css.md` (the whole CSS
+record — visibility, the sheet, rhythm, the cards).
+
+## Who uses this
+
+Every `page.js` on the site — around 160 of them — constructs a `Page` (or is one,
+via `class X extends Page`) as its default export, almost always through
+`import { Page } from "/app.js"`. That is the module's real caller list, and it is
+too large to enumerate; the more useful list is the dozen files that import
+`Page.class.js` **directly**, bypassing the re-export, because those are the ones
+that have to exist before `/app.js` itself can be trusted:
+
+| file | why it imports directly |
+|---|---|
+| `core/App/App.js` | adopts the routed root page in `App.load()` |
+| `ext/Doc/Doc.js` | `class Doc extends Page` — the class-page system this audit itself runs on |
+| `ai/AITask/AITask.js` | `class AITask extends Page` — the AI dashboard |
+| `ext/catalog/catalog.js`, `ext/demo/{app,demo,sample}.js`, `ext/tabs/{page,tabs}.js` | the arrangement exts — each fills or reads `$pages` / `regions`, the two properties `container()` looks for |
+| `styles/page.js`, `versus/page.js` | build demo trees outside `/app.js`'s own re-export |
+| `alex/framework/core/Page/ErrorPage.js` | a sandbox subclass |
+
+**A module with no callers is a finding; this one's finding is the opposite one.**
+`Page` is the single most depended-on class in the framework, reached through
+exactly two doors — the re-export almost everything uses, and the direct import
+the infrastructure above needs because it runs before `/app.js` has finished.
+
+## Decisions
+
+**Is `columns()` a page shape or an extension?** **A core page shape**, graduated
+2026-08-26 from `overview/columns/`. `columns()` sets one flag on the host; `render()`
+asks `column_host()` (a `chain()` walk) instead of walking the tree, so a lazily-loaded
+child is a column too. Every rule lives in `Page.css`, beside `.page.solo` — the other
+shape that claims a whole region. The demo is now an ordinary tree that calls the method.
+`./columns.md`.
+
+**Why a `width:` word instead of a class?** Because the CLASS is an implementation
+detail and the word is the vocabulary: `width: "small"` reads on the page, and
+`column()` stamps `.page-column-small`. The four words set **tokens**
+(`--page-column-flex/-min/-max`), never properties, so the narrow container query can
+page the row one column at a time without out-specifying four rules — and a page that
+wants 48em retunes one token instead of asking for a fifth word. `./columns.md`.
+
+**Does core own a breadcrumb now?** **Yes — `crumbs(from)`**, derived from `chain()`,
+which is the shape `ui/crumbs/` said a real one would have to take. It emits
+`.page-crumbs` links and nothing else; `Router.mark_links()` lights them. `from` is
+where the trail starts, so a columns host shows only its own subtree.
+
+**Are declared children eager or lazy?** **Eager to a declared `depth`, default 2.**
+`children: "a b c"` still draws a menu **once**, with real titles and icons —
+`Router.load()` awaits the chain's `loading` — but the fetch is a budget the caller
+spends, not a recursion the constructor starts. Two reversals, both measured:
+eager-with-no-opt-out replaced lazy-with-an-opt-in in Aug 2026 (every index page
+typed the opt-in anyway), and on **2026-08-30** the flat tax that shape had grown
+was measured — *every* url under `/framework/` paid 261 modules and 1.08 MB
+whatever the destination, 78% of it drawing nothing. `depth` bounds it to the
+levels a page actually draws: `/framework/` 261 → 57, `/imagine/` 92 → 20, the same
+53 and 24 cards on screen. `leaf` spends none of a parent's budget. `./declaring.md`.
+
+**Why a number and not a nav stub?** A stub — `{title, icon, description}` sitting
+in `children:` as data — was the proposal, and it does work. It reaches too little:
+the waste on `/framework/` was **depth 3 and below**, not depth 1, so a stub would
+have had to be hand-written for ~200 pages that already draw themselves live on
+their own url. One number per page that has an opinion, versus a second copy of
+every title on the site.
+
+**What happens to a child nobody declared?** It still resolves. `child()` falls
+through `route()` to a filesystem probe, so forgetting to declare costs the **menu
+entry**, not the url. The old verdict — "the declaration *is* the registration, so a
+miss fails loudly" — was the wrong loudness: a 404 for a file that exists on disk is
+a puzzle, not a report.
+
+**So what is `children` for now?** Navigation: **which children, in what order.**
+That is the one job left, and the one a filesystem cannot do.
+
+**Is a `.md` file a page?** **Yes, beside a page and nowhere else** (Aug 2026).
+After the `page.js` probe misses, `Page.file()` fetches `<url><name>.md` and renders
+a hit as a page. Gated on the content-type, because the SPA fallback answers a miss
+with `index.html` at 200. `./declaring.md`.
+
+**Four shapes, one meaning** (Aug 2026). A string of names, an array of names, an
+array of Pages or option objects, and a **POJO keyed by title** — `{ HTML(){ … } }`
+is `/html/`, the key slugged exactly the way `naming()` slugs a standalone page's
+title. The POJO is the lean form for children with no folder, which is every demo
+tree here. It **throws** on a value that is not a function, string, plain object,
+`Page` or `null`: `JS: md("…")` is the synchronous-capture trap in value position,
+and must fail loudly. Warts in `doc/property/children.md` — integer-like keys hoist.
+An option object *inside the array* form is the same idea one level down — no
+`name:`, it derives one from `Page.slug(title)`, and two that derive the same name
+warn instead of the earlier one silently losing (fixed 2026-08-15 — `ext/Timeline`'s
+two-card `overview:` was rendering one).
+
+**Where do a label and an icon live?** On the page they describe, as `label:` and
+`icon:`. The `nav:` map on the parent is **gone** (Aug 2026) — with `label` on the
+child it had one job left, and a parent that wants a different word in its own list
+now spreads over the entry at the call site, where you can see it:
+`{ ...this.nav_for(name), label: "Overview" }`. `./labels.md`.
+
+**What is a preview card, and who draws it?** **`preview(nav)` is THE card, and the
+child draws its own.** `previews()` only arranges: it calls
+`child.preview(this.nav_for(name))` per declared child, and falls back to the default
+card built from the nav entry alone when a child has not resolved.
+
+| | |
+|---|---|
+| `previews()` keeps building its cards inline | two markup shapes wearing one class — a rule reaching for `.page-preview-title` silently missed half of them |
+| a second method meaning *draw yourself small* (`thumb()`) | a second override point, and every page without one has to know it exists |
+| **`previews()` calls `preview()`** | ✓ one shape; a page that wants a live render overrides one method |
+
+A card is a `div.page-preview` holding an optional `.page-preview-thumb` and a
+`.page-preview-link`, in that order. An override reuses both pieces and costs a line:
+
+```js
+preview(nav){ return this.preview_card(nav, () => div.c("zoom-25", () => this.layout())); }
+```
+
+**The zoom is not an argument.** `preview_card()` takes `(nav, thumb)` and no stage
+options — the zoom and any padding are classes on a div the override writes, which is
+one word longer and visible where it happens.
+
+The hard-won parts came from the gallery module this replaces (Aug 2026): the
+thumb is **inert**, because an `<a>` inside an `<a>` is invalid and the browser
+silently un-nests it; the label below it is the only real link and its `::after`
+covers the card; a cell is its render's natural height up to `--thumb-max`, which
+is why no page declares a size. `./css.md`.
+
+**A card with a thumb wears no chrome** (Aug 2026). Surface, border, inset and a
+checkered board around a render is four frames, and it read as busy. The chrome
+now belongs to the plain icon-and-label card only — `:not(:has(> .page-preview-thumb))`
+— the thumb's `min-height` floor is gone (it was padding short renders out to a
+strip of board), and hover on a bare card outlines the thumb instead of the card.
+`./css.md` has the states.
+
+**Every page is a `standard` page unless it says otherwise** (Aug 2026). `render()`
+applies `this.classes ?? "standard"`, so the default page is the standard shape — a
+measure with `.wide` and `.bleed` tracks — and declaring `classes:` opts
+out *whole*. Before, half the site's pages declared the shape and the rest
+sat 60em wide in the region, and the split read as two different sites. The
+default lives in `render()`, not `naming()`, so a custom `render()` that never
+reads `classes` is untouched — which is exactly the Doc root and the topic
+pages.
+
+**One axis: title, prose, walls and exhibits share one left edge, and wider blocks
+grow rightward only** (the owner, 2026-08-12). A page used to run two compositions at
+once — a centred measure for the text, a left-packed edge for the walls — which
+reads broken at every scale and recurses inside a `demo.app`. So the template's
+gutter is fixed (`--gutter-x: clamp(2em, 4%, 5em)`), all the slack goes right, and
+`.page` carries no auto margins. `./css.md` has the diagnosis and the one
+counter-argument worth reopening it with.
+
+The shape was called `grid` until Aug 2026, which was the utility word doing an
+opinionated job; `page.ac("grid")` now means `display: grid`, as it does anywhere
+else.
+
+**`classes:` replaces the default wholesale, and that is knowingly a bit awkward.**
+A page that wants the template *plus* something writes `classes: "standard blue"` —
+it has to name the default to keep it. The alternative is a second property or an
+additive convention, and neither has been worth its API surface yet, so this is
+deferred rather than decided. Revisit it when a third page has to restate
+`standard` to add one word.
+
+**A title is an address** (Aug 2026). `naming()`'s url chain gained a fourth
+source: no `meta`, no parent, but a `title` → `"/" + Page.slug(title) + "/"` —
+so a demo tree's root writes no url line, and `new Page({ title: "Web" })` is
+`/web/`. The consequence lives in `add()`: a standalone page now arrives *with*
+an address, so adoption overwrites it — `move()` walks the resolved subtree to
+`parent.url + name + "/"`, the invariant `nav_for()` and marking always assumed.
+
+**Should `url` be computed — a walk up the parents — so it cannot go stale?**
+Asked when `move()` arrived (Aug 2026). **No, twice over.** The assign-based
+constructor makes `url` a *config key*, and a prototype method of the same name
+would be silently shadowed by any `new Page({ url: "/docs/intro/" })` — the
+add() sharp edge, installed deliberately on the most-read member of the class,
+and a second name for the same concept is worse than either. And staleness has
+exactly one window: adoption. `add()` is the single place `parent` is assigned,
+nothing re-parents a page afterward, and `move()` re-derives at that change
+point — the same pattern `naming()` is. A walk would defend against mutations
+the framework does not perform. **Revisit if re-parenting ever becomes real**
+(a CMS moving pages): `move()` is already the re-derivation hook that path
+would call.
+
+**`catalog()` is an ext, like `tabs()`.** `previews()` as a persistent rail beside
+a `$pages` region — the recipe the catalog demo proved by hand, promoted to a
+method when a third consumer was about to paste it. The Page overview's demo rail
+and every Doc Overview are catalogs. `ext/catalog/readme.md`.
+
+**`nav()` — my own menu entry.** `nav_for(name)` is still the parent's method, and
+still takes a name, because an entry belongs to the list it appears in. `nav()` is
+what it spreads, and it is what `preview()` falls back to when nobody passed one — so
+`page.preview()` on its own still works.
+
+**`alias()` — deleted.** `add()` used to write every child onto its parent by name.
+Nothing in `public/` ever read one, and it could not have been relied on anyway — an
+alias exists only after that child is imported. It cost a `reserved` deny-list,
+seven class fields declared only to be visible to a guard, and a cold-load-only
+blanking bug when a child was named `view`. **A convenience that needs a deny-list is
+not a convenience.**
+
+**`go()` — deleted** (Aug 2026). It had no caller anywhere, and it was the
+*imperative* way to do the one thing this framework does declaratively: navigation is
+a real `<a href>` that `Router.click()` upgrades. `app.router.go(url)` is one property
+longer and says which object is doing the work.
+
+**`description` is a card's second line.** Declared ~30 times and read nowhere until
+Aug 2026; `nav()` now carries it and `preview_card()` renders it, clamped, on a card
+with no thumb. A widely declared property with no behaviour behind it gets "fixed"
+three different ways, so this is the one way.
+
+**Where does a page mount?** `container()`, most specific claim first: a `regions`
+entry my parent set for me, then the nearest ancestor with a `$pages`, then
+`app.$pages`. It is the one step a reader of `Page.class.js` cannot see, which is
+why the choice is logged.
+
+**`tabs()` is not here.** `ext/tabs` patches it onto the prototype and fills
+`regions`; `container()` only reads. Core never imports an ext, so the tab bar's CSS
+left with it — 30% of `Page.css`, for one caller.
+
+**How does a doc page show a real tree?** `ext/demo/app.js` — born beside the
+demos here, promoted to the demo ext by the five-block census — a `View`
+that plays App and Router for exactly one tree: it holds the `$pages` those pages
+mount in, walks `child()` on a click, and marks what it shows. Everything inside is
+this class doing its own `render()`, `previews()`, `nav_for()` and `chain()`, so a
+demo cannot drift from the code it documents. Two things it deliberately does not
+borrow from the real app:
+
+| | why not | instead |
+|---|---|---|
+| the Router's clicks | a fictional url handed to `go()` would 404 the site | `preventDefault()` on its own subtree, for urls under its root only — `link_clicked()` bails on `defaultPrevented` |
+| `.active-page`, `.active` | `mark_links()` sweeps every anchor under `$app` on every navigation, this widget's included; and a page in here is not a page the Router routes to | `.default` — the arrangement contract's own "shown without being routed to" — and `aria-current` |
+
+`mark()` puts `.default` on **every page in `chain()` whose view contains the leaf's** —
+`.active-ancestor:has(.page.active-page)` written in JS. That one test covers both
+arrangements: a child that mounts in the box beside its parent hides that parent, and a
+child that mounts in a region the parent holds keeps it on screen. Its own record,
+and the rest of the demos' decisions: `overview/readme.md`.
+
+**What is an index of indexes called?** `/framework/` painted ten icon cards into a
+1080px column and left 72% of a 3440 viewport empty grey — it showed nothing and
+linked to ten places. The wanted shape was already invented locally:
+`styles/layouts/page.js` had a private `ladder()` — a heading that is a link, with that
+child's own `previews()` under it — and three consumers wanted it.
+
+| | |
+|---|---|
+| `tree()` | **taken**, by `demo.tree()` (`ext/demo/exhibit.js`), which means something else entirely |
+| `outline()` | reads as *text*. These are cards |
+| **`walls()`** | ✓ `previews()` is my children; `walls()` is my grandchildren, under their parent's name. Sits beside the arrangements the 08-09 session named — wall, catalog, dashboard, strip |
+
+**Verdict: `walls()`**, provisionally — the name is greenlit to unblock the landing
+and stays open for the owner, per the house rule that a new name on `Page` is proposed
+before it is written. `doc/method/walls.md` carries the depth rule and why a childless
+child gets no rung at all.
+
+### `nearest(role)`, and the two roles — 2026-08-27
+
+The ask: *"each child page should have a reference to its parent. Maybe a TopicPage
+could be referenced at `child.topic`, so all children can find their nearest `.topic`.
+Similar for a Document. Then deeply nested pages could interact relatively simply."*
+
+| | |
+|---|---|
+| a `TopicPage` **subclass** | ✗ a page's role is a word about it, like `width:` and `card:` — not an identity. A subclass also forces a file per role |
+| `topic: true` **as the flag** | ✗ it shadows the `topic()` method **on the topic page itself**, which is the page most likely to call it |
+| a **registry** on `app` | ✗ a second tree beside the one that already exists, and it has to be kept in step |
+| **`is: "topic"` + `nearest(role)`** | ✓ one declarative word, one line over `chain()`, no state anywhere |
+
+**Verdict: `nearest(role)`, with `topic()` and `document()` as the two named lookups.**
+`findLast`, so the closest claim wins — a document inside a topic is still your
+document, the same override direction as CSS. A third role needs no method:
+`nearest("thing")`. [`./roles.md`](/framework/core/Page/doc/roles/).
+
+**Core stops at the ref.** How a topic then talks to its subtree — a selection, a
+watcher list, a cached fetch — is that page's own three lines. Putting a subscription
+API on `Page` would make every page pay for a pattern four pages want.
+[Refs](/framework/core/Page/overview/columns/refs/) is the working proof: a picker and
+a reader four levels apart, neither importing the other.
+
+### The column flush word is `bleed` — 2026-08-27
+
+`.page-column-prose`'s 0.7em/0.9em inset had been cancelled by hand in a lab
+(`examples/grids/grids.css`, `margin: -0.7em -0.9em`) — a constant nothing kept in
+step with the rule it was cancelling. Promoted: the inset is now
+`--page-column-pad-x` / `--page-column-pad-y`, and `.page-column-prose > .bleed`
+spends them.
+
+**No new class.** `bleed` is already the site's word for edge-to-edge; `.page > .bleed`
+spends the page grid's gutter tracks and this spends the column's inset. One
+vocabulary, two containers. `./columns.md`.
+
+### Panels: the height split needs nothing new — 2026-08-27
+
+Asked for a way to split the viewport height into two independent regions. `.pages` —
+the region class — is already `flex: 1 1 auto; min-height: 0; overflow-y: scroll`,
+which *is* a panel; `solo flex v` on the page is the rest. **Verdict: a written
+pattern, not a core word**, with the honest limit that the Router activates one chain
+so only one panel can be "where you are". `./panels.md`, live at
+[Panels](/framework/core/Page/overview/columns/panels/).
+
+### Resizable columns, and `hug` / `fill` — 2026-08-29
+
+**The seam is a sibling of the body, and it costs the row nothing.** `.page.column` is
+`display: contents` so it cannot host a pointer event, and the body is a scroller so an
+overlay inside it scrolls away — the only place left is *between* the body and the child
+region, where the row sees it as a flex item. `flex: 0 0 6px` with
+`margin-inline-start: -6px` is an outer size of **zero**, pulled back onto the column it
+resizes. The rejected shape was a 0-width item with an overhanging `::before`: that reach
+is scrollable overflow of the row, and flexible columns fill their row exactly, so the last
+seam would have put a horizontal scrollbar under every un-capped arrangement.
+
+**No new mechanism for the width.** A drag writes the same three tokens the width words
+set (`--page-column-flex/-min/-max`) as an inline custom property, which out-ranks a class
+by one level; double-click sets them to `""`, which *removes* them, and the word is back.
+Nothing stores a previous value because nothing has to. **No `ext/grip`** — core does not
+depend on ext, and the whole gesture is `setPointerCapture` plus `lostpointercapture`.
+
+**`hug`'s ceiling is not a compromise** (`flex-basis: auto` is max-content, and a
+paragraph's max-content is the paragraph on one line), and its 6em floor is
+`Page.column_floor` in `em`: at 8em the floor decided every short rail and hug never
+hugged — measured 128px on a 100px list. **`fill` is `full` that lets its neighbours
+stay**: the same 100% basis, but it shrinks and keeps a floor, and it gets no `:has()`
+rule — collapsing the ancestors is the whole of what makes `full` a different word.
+Measured, gestures and both words: `./columns.md`.
+
+### `index: true` — a column whose cards are the nav — 2026-08-29
+
+A column lists its children as rows. An **index** column has already drawn them as a
+`previews()` wall, so the rows say the same things twice — cards, then a rail.
+
+| | |
+|---|---|
+| leave it to the page | ✗ three had already done it by hand: `imagine/shells` restated all ten lines of `column()`, `imagine/screens` did it in CSS, `imagine/vary` still ships the double list |
+| `nav: false` | ✗ `nav()` is a method here — the `opens()` collision exactly |
+| `rail: false` | ✗ `rail: true` is already four pages' own field (`overview/site`, `overview/docs`, two under `old/`) |
+| a class + a CSS rule | ✗ it builds the rows and then hides them; they stay in the accessibility tree |
+| **`index: true`** | ✓ one guard in `column()`, no CSS, and the shells override became one word |
+
+**Verdict: `index: true`.** Grepping the consumer pages for each candidate is what picked
+it — the step the `opens()` bug skipped. Measured on shells at 1280 and 1920: 10 rows + 10
+cards → **0 rows + 10 cards**. It is for a column that shows its children *another* way,
+never for hiding them: a column with neither wall nor rows is a dead end. `./columns.md`.
+
+### `app` reaches a page that is never routed to — 2026-08-29
+
+`child()` was "the one place `app` is handed down", and that was true only for pages the
+Router asks for. A `default` column is **built by its host**, so `child()` never runs for it
+and the `app` it was adopted with at module scope — `undefined` — survives to its content:
+`this.app.router` threw on `/imagine/screens/deck/`. `render_column()` now assigns it as it
+builds the child, making that the second of two places. The general shape: `add()` copies
+`app` at *declaration* time, when a `page.js` at module scope has none, and only routing
+fills it in later.
+
+**Not generalised into `activate()`.** One line there (`this.app ??= this.parent?.app`)
+would also cover a page a parent activates by hand into a region — `uses/split`'s two
+panels, whose `app` is undefined today and harmless, because `container()` finds a region
+before it ever reaches `this.app.$pages`. Touching `activate()` for every page on the site
+to fix a case that does not throw is the wrong trade; **open**, if a third case turns up.
+
+### `store()` — the page's url IS the storage key — 2026-08-31
+
+Every page wants to keep something between visits and none of them wants to invent a key.
+Production is static, so there is no server to hand out ids — but a page already has one
+thing unique, stable and human-readable, and `naming()` derives it, so it cannot drift out
+of step with the tree the way a hand-typed `id: "team-board"` would. Prototyped locally in
+`/imagine/store.js` for a month against two real consumers (the team board, the game run);
+this is that file moved into core unchanged in behaviour, and that file is gone.
+
+Three questions core must not guess, all three now answered:
+
+| | |
+|---|---|
+| the prefix | **`lew42:`** — one origin serves `/notes/`, `/imagine/` and every demo, so a bare url is a collision waiting for the next site on this domain |
+| a failed write | **in-memory `Map`, warn once a session** — `localStorage` throws *whole* in private mode, and a UI that loses its buttons because a save failed is worse than one that forgets. Once, not per write: a run saves on every move |
+| a page that moved | **`store_key`, defaulting to `url`** — `move()` re-addresses a subtree, so an adopted page changes key silently. The page declares the address it was saved at |
+
+**Storage, not state — rejected: watchers.** A `subscribe()` on the handle would let a
+board redraw itself, and both consumers already have a three-line `watch()` of their own.
+A subscription API on `Page` makes ~160 pages pay for a pattern four of them want — the
+same verdict `roles.md` reached about refs, and the readme's own.
+
+⚠ **`store` is a plain noun, which is exactly what bit `opens()`.** Landed only after
+grepping every `page.js` under `public/` for a `store` field or a `this.store` read: none
+— the other `store` in the tree is a module-scope `const` in `ext/Saver` consumers, which
+cannot shadow a method. Do that grep before the next noun goes on this prototype.
+
+### `Page.Store` absorbs `Sidebar.Store` and `LocalStorageSaver`'s own guard — 2026-09-18
+
+The overlap study (`ai/sessions/2026/09/18/overlap-study/`) found three classes each hand-rolling
+"read/write one JSON blob in `localStorage`, guarded, with a private-mode fallback":
+this one, `core/Sidebar`'s own `Sidebar.Store` (a fixed key, `lew42:sidebar` — a Sidebar
+is one piece of persistent chrome, not a per-page setting, so it could never key on
+`page.url`), and `ext/Saver`'s `LocalStorageSaver`.
+
+**`id` closed the actual gap.** `key()` now tries `this.id` before `this.page.store_key ??
+this.page.url` — a caller with no page at all gets one fixed key, `prefix + id`.
+`Sidebar.store()` is `new Page.Store({ id: "sidebar" })` now; `Sidebar.Store` is deleted,
+not a wrapper around it — the exact same `lew42:sidebar` key it always wrote.
+
+**`LocalStorageSaver` could not become a thin call to `get`/`set`, though — its own
+class stays**, because `ext/Saver`'s contract needs `write()` to report a real boolean
+(a page's `store()` is fine losing a save silently; `ext/Ask`'s `edit()` and the UI
+`saver-panel-error-paths` (2026-08-15) proved depends on `write()`'s answer are not). What
+moved instead is the GUARD itself: `read_raw`/`write_raw`/`clear_raw` (static, this class)
+are the one `try`/`catch`/`JSON.parse`/`JSON.stringify` now — `read`/`set`/`clear` above
+call them and keep their own silent-degrade promise; `LocalStorageSaver.js` calls the
+same three directly and keeps its own real-boolean promise. One guard, two contracts.
+
+**Lines:** `Sidebar.js`'s store block 25 → 13 (net −11 with its new one-line import);
+`LocalStorageSaver.js` 44 → 25 (−19); this file's `Page.Store` block 53 → 80 (+27,
+absorbing what both leaned on). Net −3 across the three — the study's 20–25 estimate
+costed deleting the duplicate CODE (about 31 lines of hand-rolled guard, gone from two
+files), not the line cost of writing the one place it lives now with this module's own
+comment density; reported as it landed, not forced to match the guess.
+
+### `fill` yields to an open child, and heads breathe on `pad-y` — 2026-09-05
+
+**`fill` yields.** `width: "fill"` claims everything left over — right, until a page wearing
+it is also `.active-ancestor`, meaning a child column opened beside it and "everything left
+over" is no longer this page's to take. `imagine/platform/research/`'s `fill` was reverted
+to `large` on 2026-09-04 for exactly this: a verdict beside it sat at its 16em floor. The
+fix is one rule, the same two tokens `large` already sets:
+
+```css
+.page.active-ancestor > .page-column-body.page-column-fill {
+	--page-column-flex: 1 1 0;   /* the base fallback — no more claiming 100% */
+	--page-column-max: 64em;     /* large's own ceiling */
+}
+```
+
+Both research fronts are back on `width: "fill"`. Measured (headless, 3440):
+
+| path | rail | hub | front | topic | verdict |
+|---|---|---|---|---|---|
+| `/imagine/research/` alone | 432 | — | **3008** (the whole row) | — | — |
+| `/imagine/research/stone/barabar-caves/` | 432 | — | 1090 | 828 | 1090 (leaf) |
+| `/imagine/platform/research/cloudflare/verdict/` | 432 | 752 | 752 | 752 | 752 |
+
+Alone, the front still fills the row. With a child open, every column reads well over
+600px — the four unconstrained columns on the cloudflare path split the leftover evenly
+(none hit its own ceiling), which reads *better* than the rough pre-measurement estimate
+in `ai/sessions/2026/09/05/mastermind-day/requirements.md` ("rail 432 / hub 500 / front ~1150 /
+topic ~700 / verdict ~700"). Direct child only, same shape as the `full` collapse above —
+`.active-page` is excluded on purpose, so a `fill` leaf with nothing open beside it still
+fills. `./columns.md` has the rule and the doc-level explanation.
+
+**Heads breathe on `pad-y`.** The head's padding was a hard `0.55em` that never grew with
+the row, while its horizontal inset (`--page-column-pad-x`) is a clamp reaching 3em at
+3440 — the title breathed, the head around it did not. Fix: `padding-block` on the token,
+and `padding-inline` split so the title's side (start) keeps `pad-x` while the `×`'s side
+(end) drops to `pad-y` — a square inset, the same token on both axes, for the first time:
+
+```css
+.page-column-head {
+	padding-block: var(--page-column-pad-y, 0.7em);
+	padding-inline: var(--page-column-pad-x, 0.9em) var(--page-column-pad-y, 0.7em);
+}
+```
+
+Measured (headless, the cloudflare verdict path, a head with a `×`):
+
+| viewport | head height | `×` inset from top | `×` inset from the right |
+|---|---|---|---|
+| 1280 | 73px | 25px | 11px |
+| 2474 | 71px | 21px | 20px |
+| 3440 | 87px | 29px | 28px |
+
+The two insets converge as the row widens (11 vs 41px was the old gap at 2474; 20 vs 20
+now) — a small residual is the close button's own `0.25em` touch-target padding, unchanged
+and identical on both axes since it no longer inherits `pad-x`'s much larger number on one
+side only. **Matching `pad-x` on both axes was tried on 2026-09-04 and measured a 108px
+bar — rejected.** This only moves the head's trailing edge to `pad-y`; the title keeps
+`pad-x`.
+
+### Two measured core defects, fixed at the cause — 2026-09-05
+
+**Nested columns now keep their own tokens.** `--page-column-flex` / `-min` / `-max` inherit, and a
+`demo.app()` row built inside a `full` column took that column's own three, rendering a wordless
+nested column 1202px wide in a 1202px row (nav-stability's finding). Fix: `.page.columns` resets
+all three to `initial`, so a nested host starts from its own defaults — one rule, `./columns.md`.
+
+**`bleed`'s block-margin half is no longer dead.** `framework.css`'s util-layer `:first-child` /
+`:last-child` beat this file's theme-layer bleed rule at any specificity, leaving a
+`--page-column-pad-y` strip above/below a bled first/last child in every column (the sections
+realm's finding, which restated the two lines in `util` locally as a workaround). Fix: the same two
+lines moved into `@layer util` here, beside the rule they were losing to — `styles/doc/cascade.md`.
+Both measured before/after at 1280 and 3440 on the reporting pages, with three unrelated columns
+pages checked unchanged: `ai/sessions/2026/09/05/core-fixes/`.
+
+### `children` may be a function — children that live in data — 2026-09-17
+
+**Applied**, from the proposal held since 2026-09-13 for exactly this: the house rule is that
+a new name on `Page` is **proposed before it is written**, and the two names —
+`child_source` and `source_children()` — were. What released them is the owner's own
+sentence that day: *"pages are everything and they don't have to be real paths… even if they
+don't have a real path slash page.js, they can still use this if they can pretend as if they
+did."*
+
+A page may answer `children` with a **function** that returns a promise. `declare()` takes the
+list as an argument now and stores a function instead of declaring it; `source_children()`
+calls it **once**, memoised on `this.sourcing`; `child()` and `load_all_children()` await it,
+the second with core's own `levels <= this.loaded` guard already above the await. **33 lines
+into `Page.class.js`, 8 of them code.**
+
+That deleted the two overrides [JSON pages](/imagine/cms/json/) and [Make](/imagine/paging/make/)
+had each written by hand, and the copy of that guard both carried — **87 lines out, 35 back,
+52 fewer.** Nothing else moved: a string, array, POJO or `Page`-object `children:` behaves
+exactly as before, and a page that declares no function never reaches the new branch. Seam 2,
+a core `redraw()`, stays **refuted** — `content()` is where pages subscribe, the Router holds
+the element, and a rebuilt view orphans every child.
+
+Proof: the 18 urls the proposal names answered identically before and after — same titles,
+same link sets, same page counts — and a cold deep url into each tree with the cache disabled
+drew with no *"Chaining cycle detected for promise"*.
+[`./data-children.md`](/framework/core/Page/doc/data-children/) · `ai/sessions/2026/09/17/core-data-children/`.
+
+## Traps
+
+- **`:has()` does not care whether a page is painted.** A closed page is still in the
+  DOM — `@layer util` only stops it *rendering* — so a `:has()` rule keyed on a
+  descendant's class keeps matching after you navigate away. Any such rule has to test
+  the mark too: `:is(.active-page, .active-ancestor, .default)`. It shipped a one-way
+  door in the `full` column collapse, 2026-08-26.
+- **Going up the chain activates nothing.** `Router.activate()` diffs the chains and
+  only touches what changed, so a navigation to an *ancestor* fires `deactivate()` and
+  no `activate()` at all. Anything that refreshes on navigation needs both ends.
+- **`View.stylesheet` is global, so two copies of one demo cannot both exist.**
+  `old/overview/columns/` shipped its own `.page.columns`; once the same names landed
+  in `Page.css` both sheets styled both demos and neither worked. The snapshot was
+  deleted rather than renamed — 2026-08-26.
+- **Overriding `render()`** owes three things, all silent when missed: set
+  `this.view` (`activate()` appends that, not the return value), carry the `.page`
+  class, and never nest a second `.page` inside.
+- **A page that overrides `render()` into a flex or grid layout owns its children's
+  spacing** — `gap`, not flow. `render()` emits `div.c("page flow", …)`, so a page
+  opts *in* to rhythm by wearing the class.
+- **`.active-page` and `.active-ancestor` are one question asked two ways** — "is any
+  of this mine". A rule that reads one and not the other breaks as soon as the tree
+  gets a level deeper.
+- **`.page` visibility is decided in `@layer util`**, not `theme`, so it out-ranks the
+  `.grid` / `.flex` a page is allowed to wear. `./css.md`.
+- **A page placed with no mark and no `default` is `display: none`**, and nothing
+  throws — the arrangement contract. `activate()` now says so on localhost:
+  `warn_if_hidden()` re-checks on a microtask, after whatever marks the chain has
+  run, and stays quiet when a sibling in the same box is marked (an ancestor
+  standing aside). Off localhost it does nothing at all.
+- **A captured callback's return value is appended.** `div.c("pages", $p => this.regions.set(name, $p))`
+  returns the `Map` and paints a literal `[object Map]` in the page. Nothing throws.
+  Block body for any callback whose last expression is not a view.
+- **`children` changes type.** You write a string, you read a `Map`.
+- **A page built for a demo must not name its children as a string.** `children: "a b"`
+  is a filesystem declaration: it probes the *server* for `<url>a/page.js`. A POJO
+  (`children: { HTML(){ … } }`), object children or `add()`, and a fictional url on
+  the root — which it needs anyway, since a child derives its url from its parent's.
+
+## Proposed
+
+Findings from the every-member audit. **None of these are applied** — they are for
+The owner and other agents to shoot at.
+
+### 1. `mounts_in()` is a public member whose whole job is a `console.log`
+
+It returns its first argument. It exists so `container()` reads as three claims in
+priority order rather than three claims interleaved with logging, which is the
+house rule working — but it puts a side-effect-only method on the public prototype
+with an imperative name that reads like a question.
+
+**Recommendation: keep, and revisit if the logging ever goes.** The observability is
+load-bearing: `container()` is the one piece of black magic left, and the log is what
+makes it observable rather than merely declarative.
+
+### 2. Two `parent` properties, one dot apart
+
+`Page.parent` is tree position; `View.parent` is DOM containment, written by
+`append()` and read by nothing. A Page's `view` is a View, so `page.parent` and
+`page.view.parent` answer different questions with the same word.
+
+**Recommendation: delete `View.parent`** (see `core/View/readme.md`, Proposed —
+`View.parent`). Nothing
+reads it, and its absence removes the collision entirely.
+
+### 3. `load_all_children()` could be `load_children()`
+
+The `all` distinguished it from the lazy tier, and there is no lazy tier. Two call
+sites, both in this file.
+
+**Recommendation: leave it.** `all` still says something true — it means *my whole
+subtree*, not just my direct children — and a rename touching a core method for four
+characters is not worth the churn. Recorded so it stops being re-proposed.
+
+### 4. `nav_for(name)` takes a name, not a child
+
+It reads `this.children` itself, so it cannot answer for a page that is not a child,
+and a caller holding a `Page` must know its name to ask. That is arguably correct —
+an entry belongs to the list it appears in — but it is why `styles/layouts/page.js`
+threads names rather than pages through its call sites.
+
+**Recommendation: keep, and document the constraint** (done, in
+`./method/nav_for.md`). Revisit if a fourth consumer has to thread names.
+
+### 5. Children that live in data — 2026-09-13 — **decided 2026-09-17**
+
+Seam 1 was applied; seam 2 stays refuted. The record is above, under Decisions.
+
+### 6. `related` — a right aside of links, resolved live — 2026-09-18
+
+The owner: *"a right sidebar — not the property drawer with a different
+background, but an internal right sidebar... related links to other things,
+maybe just an icon and the title. We probably want to import that thing so the
+title and icon update when we update the other thing."*
+
+**`related: "/a/ /b/"`**, read by a new `related_aside()`. One row per url, each
+resolved with `Page.load(url, 0)` — a dynamic import, so no import cycle and
+the target's REAL, current title and icon (a renamed target updates the row by
+itself). The owner's own sentence named `Page.from(url)`; it does not work for
+an ordinary `page.js` page (it reads a `page.json` and returns `null` when
+there is none — every consumer here). `doc/property/related.md` has the full
+comparison and the alternative (a static import of the target's config, which
+would break LOUDLY on a moved target instead of dropping the row silently —
+rejected for now: no caller needs "cannot ship broken" over "still works,
+degraded" yet).
+
+**Three call sites, one method.** A page's own `render()` decides whether core
+can place the aside inside its own grid at all:
+
+- The ordinary page grid (`render()`) — a real fourth grid track, `Page.css`'s
+  "RELATED" block, folding into `main` under `70em` (narrower than `ext/toc`'s
+  `82em`, because this rail is narrower than toc's own — the arithmetic is in
+  `Page.css`).
+- A columns host (`column()`) — no page grid exists there (layout skill Q1), so
+  it is a short list at the end of the column's own prose.
+- A page whose own `render()` fully replaces core's — `ext/Doc`'s well-and-tabs
+  shell, `/framework/ux/Tree/`'s shape — where core cannot reach inside chrome
+  it does not own. `activate()` (generic; Doc does not override it) appends the
+  aside after whatever that chrome built, so it reads as a block at the bottom
+  rather than a right rail. `ext/toc` hits the identical wall on the SAME shape
+  and simply shows nothing there (`ext/toc/doc/decisions.md`, "Traps"); this is
+  the more useful answer available without touching `ext/Doc/**`, which this
+  task's fence excludes.
+
+**Real bug found while shipping this, worth recording because it will recur:**
+two adjacent bracket line-name groups in a `grid-template-columns` value —
+`[bleed-end] [related-start]` — is invalid CSS grammar (`CSS.supports()`
+confirms `false`); Chromium does not warn, it silently drops the ENTIRE
+declaration, and the grid collapses to two tracks with no names at all. The fix
+is one bracket, both names, the same shape the base rule already uses for
+`[wide-start main-start]`: `[bleed-end related-start]`. Caught only because the
+aside rendered full-width instead of in its own column at 1280 — a headless
+crawl that only checks "does `.page-related` exist" would have missed it.
+
+**Verified:** both consumers, 400/1280/1920/3440, headless — rows drawn equal
+urls declared (3/3 each), aside beside content at 1280 and up, folded under at
+400, zero console errors. The columns-host path (`column()`) was sanity-checked
+with an in-memory probe page (no site page uses `columns()` + `related:` yet),
+not crawled at four widths — recorded as unverified-at-width, not skipped.
+
+## Open
+
+- **One variation still has no demo.** *An undeclared child resolves anyway* cannot be
+  shown at all — the lesson **is** the filesystem probe, and a demo tree must not touch
+  the network. *`container()`'s two levels* is demonstrated now, by the catalog
+  arrangement: a page that hands itself a `$pages` in `content()` is a master–detail
+  container, and its children mount in it. A miniature carrying a **tab set** works
+  now: `tabs()` ended with `this.app?.loaders.push(…)`, which threw for any `app` that
+  is not the App, and the `?.` moved onto `loaders`.
+- **`children` should shrink further.** With a generated manifest carrying titles, a
+  parent could read a child's title without *executing* it — the job the eager
+  imports currently pay HTTP requests for. `./declaring.md` has the shape. At
+  ~160 pages, not yet.
+- **The fetch cascade is on the critical path to paint**, roughly one round trip per
+  level, deep links included. Accepted deliberately; not free.
+- **`children` gets a property page and a guide page, at two urls.** `/api/children/`
+  is the audit entry; `/children/` is the long form. That only works because
+  `Doc` now nests members under an `api` group — before the split, a property
+  named `children` was added *before* `load_all_children()` ran and shadowed the
+  guide entirely. Worth remembering the next time a member and a guide share a word.
+- **A directory named after a class `Page.css` styles used to collide with it.**
+  `render()` stamped `page-<name>`, so a page named `previews` wore the card wall's
+  own `.page-previews` and silently took its gap, `align-items` and `dense` — the
+  fix stripped the class by hand in `activated()`. Fixed 2026-08-19: the stamp is
+  `page--<name>` (double dash), so a page directory can no longer collide with a
+  component class.
+
+## Page extends Item — 2026-10-02
+
+`page-item-design.md`'s "fourth pass" shipped: `Page extends PageLog extends Item`
+(`page instanceof Item` is true), `on`/`off`/`emit` are the Events mixin's, `set()` is Item's
+`apply()`-based delta routing with a thin PageLog wrapper (jsonl_lines, the `line` event, lazy
+`content`). Composition kept the list API off Page itself — `page.pages: List` is the real
+sub-page storage, `page.children` a Map-shaped view over it (`PageChildren`, Log.js) so the
+~215 existing callers across ~94 files never changed. `page.content: List` is made lazily,
+drawn by the one reusable `render_content_list()` (sortable rows, redrawn from the list's own
+events) — see it live at [`/framework/core/Item/live/`](/framework/core/Item/live/).
+`Page.Store` (the localStorage helper) is renamed `Page.Prefs`/`page.prefs()`, freeing
+`page.store` for the live jsonl `Item.Store` `Page.jsonl()` attaches.
+
+Three real bugs found proving it, all fixed same day: `naming()` never actually set `this.id`
+(a page's id is its folder name) despite the comment saying it did, so every `add()`-ed child
+was permanently unfindable by name; `Page.jsonl()`'s new one-store-per-url caching raced with
+`load_all_children()`'s own eager crawl of the same parent, corrupting a shared reader's
+entries and 404ing a real page; the `children` setter only handled a config array/string
+(staged for `declare()`) and silently swallowed a live `this.children = new Map()` reset
+(`core/Page/generator/`'s own `grow()`), so old children never actually cleared.
+
+Build log: `ai/sessions/2026/10/02/page-extends-item/page-extends-item/page-on-item/`.
+
+## Comments moved out of Page.class.js (2026-10-12)
+
+Wording kept as it was; the code keeps a one-line pointer here. Plan: [comment-plan.md](./comment-plan.md).
+
+### page.jsonl plumbing, folded in from the deleted PageLog middle class (
+
+*was Page.class.js line 25*
+
+`page.jsonl` plumbing, folded in from the deleted `PageLog` middle class (was
+`core/Page/Log.js`; 2026-10-03, the owner: "fold PageLog away, so Page extends Item
+directly"). "kid/page.jsonl" → ["kid", "jsonl"]; the server's watcher keys a file
+line by its FIRST path segment, so "kid/" and "kid/page.jsonl" are one entry and the
+latest line for it wins — key_of() below matches that.
+
+### Page extends Item (core/Item/Item.js) directly: page instanceof Item i
+
+*was Page.class.js line 33*
+
+`Page extends Item` (core/Item/Item.js) directly: `page instanceof Item` is true,
+Page's `on`/`off`/`emit` are Item's (the Events mixin), and Page's `set()` below is
+Item's `apply()`-based routing with the thin jsonl-specific bits added on top (kept
+every line for a late `on("line", …)` listener, `page.content` lazily a List the
+moment a content delta arrives). There used to be a `PageLog` class in between
+(`core/Page/Log.js`) — folded in here 2026-10-03; `Log.js` is now a one-line
+re-export for its four outside callers (ext/Inbox, ai2/tasks.js, ai2/groups.js,
+ext/drawer/tabs/sessions.js — all read-only static callers, never a subclass).
+
+### (2026-10-03, the owner's data decision) title/icon/description live
+
+*was Page.class.js line 92*
+
+(2026-10-03, the owner's data decision) `title`/`icon`/`description` live
+in `data`, like every other value — reading/writing `page.title` directly
+still works exactly as before, through the accessor `define_fields()`
+(Item.js) builds from this list. Page used to override `get_one`/`put` to
+write straight onto the instance instead; that override is GONE — one
+behaviour everywhere, Item's own. A key that names neither a method, a
+field above, nor a List/child id just lands in `data` too, read back by
+`report_unknown()` below.
+
+### compat only, one release (2026-10-03 — the owner: "drop the special at
+
+*was Page.class.js line 126*
+
+⚠ compat only, one release (2026-10-03 — the owner: "drop the special `at`
+key"): an OLD line can still carry `{"at": "content/…", …}`; `locate()`
+(Item.js, compat-only itself) needs `page.content` to already be a List
+before it can find anything inside it. A FRESH nested line never needs
+this at all — `get()` finds a content child by id with no `at` in sight.
+
+### Every data key that isn't one of my own declared fields — the only
+
+*was Page.class.js line 520*
+
+Every `data` key that isn't one of my own declared `fields` — the only
+kind of key that ever LANDS in `data` now (2026-10-03: everything else is
+a method call or a field/List/child-id accessor, none of which touch
+`data` at all). Was a separately-tracked Set `put()` built by hand; `data`
+itself already says the same thing, now that fields have their own home.
+
+### A FOLDER'S OWN FILE LIST — what used to cost the whole site's director
+
+*was Page.class.js line 582*
+
+A FOLDER'S OWN FILE LIST — what used to cost the whole site's directory.json.
+`url` is the folder (a trailing `/` is added). Where the list lives
+(Server/plugins/PageFiles.js, doc/jsonl.md):
+  - a jsonl page keeps it in its own page.jsonl — if that page is already loaded,
+    its `listed` lines ARE the listing, with no fetch at all;
+  - every other folder keeps it in files.jsonl.
+So: the loaded page, else files.jsonl, else page.jsonl (a jsonl page nobody has
+loaded, or a log from before files.jsonl), else null and the caller falls back to
+directory.json. When the parent's listing already says `kid/page.jsonl`, page.jsonl
+is asked first, so a card costs one request, not a 404 and then one. On the dev
+server the folder's names (`Router/listing.js` `names()`) are read first and only a log
+that exists is asked for, so a folder with neither makes no request.
+Memoised per folder (`fresh` refetches); no page is built.
+⚠ Not live unless it came from a loaded page: a file added after the fetch is
+missing until `fresh`.
+
+### put(), not this.title = …: a construction-time DEFAULT is not a
+
+*was Page.class.js line 656*
+
+`put()`, not `this.title = …`: a construction-time DEFAULT is not a
+change (same "loading is not a change" rule `List.insert()` follows) —
+`title` is a real `data`-backed accessor now (2026-10-03), and the plain
+`=` form would fire a `change`/`delta` event, and even try to WRITE this
+default back out through the Store, on every single page that never set
+its own title.
+
+### A page's id is its folder name — static new_id() above deliberately
+
+*was Page.class.js line 664*
+
+A page's id is its folder name — `static new_id()` above deliberately
+returns undefined, so this is the ONLY place a page ever gets one. Without
+it, `page.pages`'s `key(x) => x.id` never matches anything by name, and
+every `add()`-ed child becomes permanently unfindable by `children.get()`/
+`.has()` — found 2026-10-02 chasing a 404 in core/Page/generator/, whose
+own `grow()` adds children exactly this way.
+
+### The classes those words stamp ON THE PAGE. ONE method, so render() and
+
+*was Page.class.js line 698*
+
+The classes those words stamp ON THE PAGE. ONE method, so `render()` and
+`render_column()` cannot drift.
+
+⚠ `surface` IS NOT IN THIS LIST, and that is the difference between a card and a
+  card inside a card. The two colour words paint two DIFFERENT boxes: the page
+  wears `background`, and the content box — the one `Frame.box()` draws — wears
+  `surface`. One word, one class, one element. Stamped in both places for one
+  build, `surface: "card"` drew a bordered, shadowed card and then drew a second
+  one inside it (measured 2026-09-06 at 1280 with the paging lab's `card` word).
+
+### This directory's own files, full screen, at my own fs/ — ext/files/fs.
+
+*was Page.class.js line 892*
+
+This directory's own files, full screen, at my own `fs/` — ext/files/fs.js is
+the classic view (v1: no site nav at all); ext/files/explorer.js is v2 (the
+framework's own nav stays, tree + code columns fill the rest) and is the
+DEFAULT now — the owner's own words, 2026-09-29: "on framework pages, we
+want to leave the framework navigation there as much as possible." `?v=1` in
+the url is the one-click way back to v1, same as every other page word: the
+page never decides for itself, the url does.
+⚠ core does not import ext: the import is dynamic, same as md_folder() above.
+
+### Draw the doc INSIDE me, over what I was showing, with a way back. A ca
+
+*was Page.class.js line 940*
+
+Draw the doc INSIDE me, over what I was showing, with a way back. A card or any
+small box says `open_link(link){ return this.swap_link(link); }`.
+ROUTE EVERYTHING: the swap gets its own address, `<my url>md/<doc>/` — the md/
+route every page already has — so a reload lands on the same doc and Back closes
+it. doc/open.md.
+
+### THE SPA FALLBACK ANSWERS EVERY MISS WITH index.html AT 200, so res.ok 
+
+*was Page.class.js line 1070*
+
+⚠ THE SPA FALLBACK ANSWERS EVERY MISS WITH index.html AT 200, so `res.ok` is not
+  "the file is there" — the CONTENT-TYPE is the 404. The identical guard is in
+  Page.file() above, in imagine/paging/stage.js and in make/made.js.
+`opts` passes straight to `fetch` — e.g. `{ priority: "low" }`, so a big census
+file (directory.json) never queues ahead of the page's own small requests on
+a slow connection (ai/sessions/2026/09/29/slow-card-fix/slow-card-fix/).
+
+### A page.json — an object, or the url of a directory holding one — AS A 
+
+*was Page.class.js line 1082*
+
+A `page.json` — an object, or the url of a directory holding one — AS A REAL PAGE.
+Parents first, children by DIRECTORY NAME, which is exactly the shape
+`imagine/paging/make/made.js` writes:
+
+    { "title": "Notes", "icon": "description",
+      "mode": { "navigation": "tabs", "room": "reading", … },
+      "children": ["today", "later"] }
+
+THE THIRD WAY A PAGE ARRIVES. `Page.load()` is "the page.js at this url" and
+`Page.file()` is "the .md beside me"; this one is "the data that describes a
+page". It reads the way `Array.from` does.
+
+⚠ DO NOT WIRE IT INTO `child()`'s PROBE CHAIN. A third fetch on every would-be-404
+  child is paid by every `.md` child on the site. A page that owns a JSON subtree
+  calls this itself — the pattern `cms/json/page.js` documents. If you write that
+  override, carry core's own guard across (`if (levels <= this.loaded) return this;`)
+  or a second call reads back the promise being assigned and throws "Chaining cycle
+  detected for promise" with no file, no line and no stack.
+⚠ `new this(…)` AND `this.from(…)`, NEVER `new Page(…)`. A static is inherited, so
+  `Section.from(url)` reaches this method — and with `Page` hard-coded it handed
+  back a plain `Page`, which is why `core/Section` had a near-copy of the whole
+  thing. One word each, and the subclass is the thing that gets built, root and
+  children alike. (2026-09-06; the copy in `Section.js` is deleted.)
+⚠ THE KEYS ARE `props()`, one method down, so a subclass ADDS its own without
+  copying the reader — `Section` reads `layout` and `editing` that way.
+
+### Going UP the chain activates NOTHING — Router.activate() only touches 
+
+*was Page.class.js line 1206*
+
+⚠ Going UP the chain activates NOTHING — Router.activate() only touches what
+changed, so a columns host told to refresh only from activate() kept the
+departed leaf in its trail forever (measured 2026-08-26). Deactivation runs
+deepest-first, so the LAST page to leave is the shallowest and its parent is
+exactly where you landed; a sideways move activates after this and wins.
+
+### An ancestor drawn by ext/Doc (its top-level well-and-tabs shell, or on
+
+*was Page.class.js line 1217*
+
+An ancestor drawn by ext/Doc (its top-level well-and-tabs shell, or one of its
+nested tab-panel sections) already gives a Files tab to the same directory this
+page's own Folder link would open — a second way there is just noise. Checked
+by the ancestor's own DOM class, not `instanceof Doc`: core/Page doesn't (and
+shouldn't) import ext/Doc. Measured 2026-09-29: 50px of dead space (a 22px row
+plus its 28px flow gap) on every doc-page section.
+⚠ `page.view` is the VIEW WRAPPER (`div.c(...)` returns a `View`, not a raw
+  element) — its class list lives at `page.view.el.classList`, one level down.
+  A first version read `page.view.classList` (always undefined) and measured
+  the Folder link still there after "shipping" the fix. `this.chain()` itself
+  is safe to use here even though this ancestor Doc's own `tabs()` fills its
+  panel on a microtask (ext/tabs/tabs.js): by the time that microtask runs
+  `first.render()`, the ancestor's own `div.c(...)` call already returned and
+  assigned `.view`, so every ancestor in the chain has it set.
+
+### NOT a floating "Folder" link here any more. One existed briefly
+
+*was Page.class.js line 1248*
+
+⚠ NOT a floating "Folder" link here any more. One existed briefly
+(2026-09-28, "any path slash fs") and michael/dev re-added a refined
+version of it (in_doc()-guarded) in the SAME merge this comment
+resolves — but the owner found it unclear ON ITS OWN PAGE and it was
+deliberately deleted same-day (dbe94242, "a 'Files' item in the
+mobile-nav drawer replaces it"), which is real, separate, already-
+landed work (the mobile-nav task, several merges into michael/dev).
+Kept deleted: reintroducing it here would undo a dated, reasoned
+owner decision that the merge otherwise has no way to know about.
+`/fs/` itself is unaffected — every folder still has one, this was
+only ever the inline link TO it.
+
+### "$N.NN of AI work · M tasks" — computed by Server/page-ai-cost.mjs ont
+
+*was Page.class.js line 1287*
+
+"$N.NN of AI work · M tasks" — computed by Server/page-ai-cost.mjs onto this
+page's own log, never by this code (law 7). It goes at the END of the page: at
+the top it sat above a Doc page's tab title with no padding and pushed the whole
+page down (owner, 2026-10-03). Fails soft: no figure draws nothing.
+
+### WHAT IS IN THE BOX: a function, a string of text, or — a string starti
+
+*was Page.class.js line 1304*
+
+WHAT IS IN THE BOX: a function, a string of text, or — a string starting with
+`/` — an ADDRESS to render. Split out of `render()` because `Page.Frame` needs
+to draw the same thing inside its own canvas.
+⚠ A PLAIN STRING BECOMES A PARAGRAPH, never a bare text node. `.page` is a GRID,
+  and its `main` / `wide` / `bleed` tracks are assigned by `.page > *` — a rule
+  that cannot reach a text node. So a returned string became an ANONYMOUS grid
+  item in the first implicit track, which is the gutter: measured 2026-09-06, a
+  40-word `content: "…"` drew one character a line and 4,766px tall at 1280, with
+  nothing in the console. `p()` puts it in the same element the function form
+  produces, in the reading track, and reads backticks as code the way every other
+  paragraph on the site does.
+
+### A REFERENCE ROW (the owner, 2026-10-03): {"ref": "/framework/core/Page
+
+*was Page.class.js line 1350*
+
+A REFERENCE ROW (the owner, 2026-10-03): `{"ref": "/framework/core/Page/"}` on
+a content item makes the row BE that page — drawn as its own dark class card
+(ext/Mention's "#Page"-in-text look, reused rather than invented a second time,
+CLAUDE.md law 6), the row's own `title`/`text` reading as the caption UNDER that
+card. `ref_entry`/`build_row` are dynamically imported (core never imports ext
+statically) into a box captured synchronously here and filled in the callback —
+this framework's own no-DOM-after-an-await rule, same pattern `text` below already
+uses for `md()`. A `ref` refs.js doesn't know yet still renders — a bare icon +
+the raw url — rather than a blank gap (refs.js's own index is a sibling task).
+
+### The text under the title, as markdown. ext/markdown is dynamically imp
+
+*was Page.class.js line 1361*
+
+The text under the title, as markdown. ext/markdown is dynamically imported
+(core never imports ext statically); the box is captured now and filled in the
+callback, never DOM after an await. Before 2026-10-03 a titled item dropped its
+text entirely (the owner's "Now" card showed three bare titles).
+
+### A ref row is the inline "#Page" chip UPGRADED to a full-width card (th
+
+*was Page.class.js line 1373*
+
+A ref row is the inline "#Page" chip UPGRADED to a full-width card (the
+owner, 2026-10-03, the "context card"): the row is ALWAYS dark — the
+class-card look — never conditional on `entry.class_card` the way an
+inline mention is, because here the card IS the row, not a word in a
+sentence. Only the HEADER (the icon + name chip, `build_row`, same as the
+inline mention) links to the page; the card BODY — this item's own
+title/text — sits under it, inside the same dark card, and does NOT link
+through. That split is why `draw_body()` runs inside `$card`, not at the
+row level the way a plain (non-ref) item's title/text does below.
+
+### A BLOCK BODY, not () => list.forEach(draw_row) — forEach() returns the
+
+*was Page.class.js line 1406*
+
+⚠ A BLOCK BODY, not `() => list.forEach(draw_row)` — `forEach()` returns the
+  list itself, and an arrow function's IMPLICIT return hands that back to
+  `div.c()` as one more thing to append, which stringifies it into a stray
+  "[object Object]" text node after the real rows (found taking this
+  method's own screenshot, 2026-10-02).
+
+### A PAGE OR A FILE, AT AN ADDRESS, DRAWN IN THIS PAGE'S BOX. content: "/
+
+*was Page.class.js line 1425*
+
+A PAGE OR A FILE, AT AN ADDRESS, DRAWN IN THIS PAGE'S BOX. `content: "/notes/x.md"`
+is that file as prose; `content: "/notes/x/"` is the `page.json` at that address,
+run as a real page. There is no `content: "/…"` anywhere on the site today, so no
+existing page changes. `imagine/paging/stage.js:466` is where this was learned.
+
+⚠ A LOOP FUSE, and it is needed BECAUSE content takes a url: a page whose content
+  is its OWN address would read itself, draw itself, read itself… for ever, with
+  nothing thrown — and the bar on a page you made can produce exactly that in two
+  clicks. Two levels draw; the third hands over a link.
+⚠ NO DOM AFTER THE AWAIT. The box is captured synchronously and filled in the
+  callback — this framework's oldest trap.
+
+### The aside itself: a small "Related" heading (skipped if the page alrea
+
+*was Page.class.js line 1487*
+
+The aside itself: a small "Related" heading (skipped if the page already
+has one of its own), then one row per url — its target's OWN icon and
+title, read live so a renamed target updates this row without anyone
+touching this page.
+⚠ `Page.load(url, 0)`, not `Page.from(url)`. `Page.from()` reads a
+  `page.json` beside the url and answers null when there is none — which
+  is every ordinary page.js-backed page on the site, our two consumers
+  included. `Page.load()` is the one that already does what a related
+  link needs: a DYNAMIC `import(url + "page.js")`, so it costs no static
+  import (no cycle) and reads the target's real, current title and icon —
+  `0` for its depth budget, so it fetches none of the target's own
+  children. doc/property/related.md has the alternative this gave up.
+⚠ A url that 404s, or whose module throws, drops its row SILENTLY — the
+  `.catch(() => null)` here, not Page.load()'s own partial logging (which
+  still consoles a real syntax error). `related:` is a small nicety; it
+  must never be the thing that puts a red line in someone's console.
+
+### Asked at RENDER time, never walked — so a child that only loads when y
+
+*was Page.class.js line 1559*
+
+Asked at RENDER time, never walked — so a child that only loads when you
+navigate to it is a column too. Undefined when I am not in a columns tree.
+⚠ A page under a TAB STRIP is a tab: drawn as a page in that strip's panel, never as
+  one more column in the row (2026-10-09, the page tool — a session page is a column,
+  and a tab an agent adds to it must open inside it).
+
+### A page is BUILT when it activates, so a child marked default would
+
+*was Page.class.js line 1584*
+
+⚠ A page is BUILT when it activates, so a child marked `default` would
+  never exist for the contract to show. The host builds it — and hands down
+  `app`, the SECOND place that happens (`child()` is the other). Nothing
+  routes to a default column, so `child()` never runs for it and the `app`
+  it was adopted with at module scope is still undefined: `this.app.router`
+  in its content threw (`layouts/labs/screens/deck`, 2026-08-29).
+
+### The child that opens when nothing deeper is routed — a column browser 
+
+*was Page.class.js line 1611*
+
+The child that opens when nothing deeper is routed — a column browser that arrives
+showing only its own rail leaves 80–93% of the row empty (measured 2026-08-27).
+`default` is the arrangement contract's own word for "shown without being routed
+to" (doc/css.md), so a page opts in with the word it already knows and Page.css
+stands it down the moment a real column opens beside it.
+⚠ NOT `opens()`, which is what this was called for one build. A core method named
+  after a plain noun squats a name a page may already be using as its own state:
+  `overview/columns/uses/inbox` counts opened messages in `opens: 0`, the field
+  shadowed the method, and the whole page died on `this.opens is not a function`.
+  Every other method in this family is `*_column` / `column_*` for that reason.
+
+### render_content(), NOT the two-branch version written out by hand. It i
+
+*was Page.class.js line 1632*
+
+⚠ `render_content()`, NOT the two-branch version written out by hand. It is
+  the SAME reader `render()` uses, so `content: "/notes/columns.md"` is that
+  file drawn HERE too. Written out here for one build, a `content` url in a
+  columns row printed its own address as a line of text (2026-09-06) — one
+  of the two places what-is-in-the-box is decided, disagreeing with the
+  other. There is one now.
+A column that says `navigation: "tabs"` draws the one tab strip (ext/tabs), its own
+content as the first tab, instead of listing its children as rows that open beside it.
+
+### The room changed, or a column opened. Size the columns FIRST and scrol
+
+*was Page.class.js line 1761*
+
+The room changed, or a column opened. Size the columns FIRST and scroll second,
+so the scroll is measured against widths that are already final — the other
+order scrolls to where the newest column was about to stop being.
+`slide` is the ONE caller-known fact: this settle came from a NAVIGATION, so
+the move is worth animating. The resize observer leaves it off, and that is
+the whole reason it is an argument rather than a CSS declaration on the row —
+`scroll-behavior: smooth` in the sheet would also animate the ARRIVAL, and a
+page that slides 3153px while you are trying to read it is not a still page.
+
+### THE GUARD ABOVE IS WHY THE WAIT BELONGS HERE, IN CORE. A page whose ch
+
+*was Page.class.js line 1960*
+
+⚠ THE GUARD ABOVE IS WHY THE WAIT BELONGS HERE, IN CORE. A page whose children
+  arrive from a fetch used to write this override itself, and had to restate that
+  guard or read back the very promise being assigned on the next line — a
+  `p.then(() => p)` cycle, "Chaining cycle detected for promise", from the
+  microtask queue with no file and no stack. Both callers shipped that bug.
+
+### Registered (2026-10-03) so define_fields() actually runs and builds th
+
+*was Page.class.js line 1999*
+
+Registered (2026-10-03) so `define_fields()` actually runs and builds the
+`title`/`icon`/`description` accessors above — every other Item subclass
+that wants fields already goes through `register()` for its wire name; Page
+never had, until now, a reason to.
+
+### THE SHIM — a Map-shaped VIEW over page.pages (the real List storage), 
+
+*was Page.class.js line 2005*
+
+THE SHIM — a Map-shaped VIEW over `page.pages` (the real List storage), so
+every existing `.children` caller keeps working unchanged. `instanceof Map` is
+real (this class extends it), but the base Map's own storage is never touched —
+every method here reads or writes `page.pages` instead. Folded in from the
+deleted PageLog class, 2026-10-03.
+
+### List.insert() refuses an id that equals a property of the list's owner
+
+*was Page.class.js line 2040*
+
+List.insert() refuses an id that equals a property of the list's owner (core/List/List.js, because
+`get(name)` reads properties first). A child page is found by `pages.find(name)`, never by `get()`, and
+its name may equal a config key of its parent: core/Page's own `overview:` and `files:` strings name its
+Overview and Files tabs. The guard hid those tabs and every link into them (2026-10-09), so children skip it.
+
+### A tab or file line describes MY OWN children's state, so I redraw MY O
+
+*was Page.class.js line 2118*
+
+A `tab` or `file` line describes MY OWN children's state, so I redraw MY OWN
+tab strip (nav_redraw(), ext/tabs/tabs.js). A `settings` line is a page's
+preference about ITSELF, read by its PARENT's tab strip — so that redraw is
+asked of `this.host.parent` instead. Either way this replaces what used to be
+a `location.reload()` — the strip (and the rail, which nav_redraw() bubbles up
+to) fixes itself with no reload at all.
+
+### WHAT listing() ANSWERS — the entries directly inside one folder, repla
+
+*was Page.class.js line 2142*
+
+WHAT `listing()` ANSWERS — the entries directly inside one folder, replayed the way
+file() replays them (keyed by first segment, latest line wins, `gone` removes):
+    files  ["readme.md", …]         plain files
+    dirs   ["doc", …]               plain folders (each may have its own page.jsonl)
+    pages  Map { "kid" → "js" }     child pages, and which file makes each one
+    page   true/false               is this log itself a page (line 1 is not a file line)?
+    log    "files.jsonl" | "page.jsonl"   the file the list was read from
+
+### track() installs Page.track(instance) / Page.instances() — opt-in inst
+
+*was Page.class.js line 2180*
+
+`track()` installs `Page.track(instance)` / `Page.instances()` — opt-in instance
+tracking, installed once here so every Page (and every subclass that doesn't
+override the constructor — `Section`, `Doc`, …) shares ONE list. Called from the
+constructor above; the owner asked for exactly this by name (2026-09-29): "every
+class can easily track its new instances by just in the constructor calling the
+class dot track". core/track/track.js.
+
+### The whole idea, in one line. id is the seam for a caller that is not a
+
+*was Page.class.js line 2212*
+
+The whole idea, in one line. `id` is the seam for a caller that is not a
+page at all, one fixed key regardless of url — `core/Sidebar`'s rail
+(merged 2026-09-18, `Sidebar.Store` deleted: `new Page.Prefs({ id:
+"sidebar" })` is the same `lew42:sidebar` key that file always wrote).
+`store_key` is still the seam for a page that MOVED: move() re-addresses
+a whole subtree, so an adopted page would otherwise change key silently
+and lose everything saved under its old address.

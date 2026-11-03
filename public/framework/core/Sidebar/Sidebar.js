@@ -1,75 +1,45 @@
-import { View, div, a, span, img, icon, button } from "../View/View.js";
+import { View, div, a, span, img, icon, button, is } from "../View/View.js";
+import { Page } from "../Page/Page.class.js";
+import Tree from "../../ux/Tree/Tree.js";
+import Filter from "../../ux/Filter/Filter.js";
+import grip from "../../ext/grip/grip.js";
 
-/* css: .mode-btn — footer restyles the button this module emits.
- * core → core now: mode moved beside App (like Font.js) after the old
- * styles/layers/theme/ import took the site down mid-move. readme.md §9. */
+/* css: .mode-btn — the footer restyles the button this module emits. */
 import mode from "../App/mode.js";
 
 View.stylesheet(import.meta, "Sidebar.css");
 
-/**
- * Sidebar — [ 🖼 Brand ] over a list of links, over a footer that stays put.
- *
- *   new Sidebar({
- *       brand: "Lew42",
- *       pages: [{ title: "Framework", url: "/framework/" }, …]
- *   });
- *
- * `classify()` turns the class name into the CSS class, so this renders
- * `div.sidebar` with nothing to declare. Any page can render one — it is a View
- * subclass, not a layout tier.
- *
- *   brand      text beside the logo
- *   brand_url  where that text points          (default "/")
- *   logo       image url                       (default: the document's icon)
- *   logo_url   where the logo points           (default "/")
- *   pages      links — Pages, or {title, url}; an entry with its own `pages`
- *              is a titled GROUP of them
- *   app        the App — lets the footer render the colour-scheme toggle
- *
- * An entry may say `label` instead of `title`, and it wins — `Page.nav_for(name)`
- * returns exactly that shape, so a parent hands its nav entries straight in and the
- * sidebar, the tab bar and the preview cards cannot name a child three ways.
- *
- * The constructor is assign-based, so passing a method shadows it — which is how a
- * site with its own mark replaces the header instead of configuring it, and the
- * same is true of `footer` (pass `footer: null` for none):
- *
- *     new Sidebar({ header: () => this.app.brand("Framework", this.url), pages })
- *
- * An arrow, so `this` stays the page that knows the brand. It runs while the Sidebar
- * is capturing, so whatever it builds lands in the panel.
- *
- * Below 52em (Sidebar.css) the panel is a top bar — the header plus a hamburger —
- * and `open()` drops the menu below it. On a wide screen the same button is
- * `display: none` and the rail is exactly what it always was.
- *
- * Design record: core/Sidebar/readme.md.
- */
+// Design and architecture: doc/sidebar-notes.md, doc/decisions.md
 export class Sidebar extends View {
 
 	render(){
-		this.bar();
-		this.menu();
+		this.size(this.store().get({ px: null }).px, false);
 
-		// keyboard escape hatch for the narrow menu — bubbles up from any focused link
+		this.$rail = div.c("sidebar-rail", () => {
+			this.bar();
+			this.menu();
+		});
+
+		this.grab();
+
 		this.on("keydown", e => {
 			if (e.key === "Escape" && this.hc("open")){
 				this.open(false);
 				this.$toggle.el.focus();
 			}
 		});
+
+		window.addEventListener("popstate", () => this.reveal());
 	}
 
-	// [ header | ☰ ] — the whole sidebar on a narrow screen, the top strip of it wide
 	bar(){
-		return this.$bar = div.c("sidebar-bar", () => {
+		return div.c("sidebar-bar", () => {
 			this.header();
 			this.toggle();
 		});
 	}
 
-	// [ logo ][ brand ] — named header() so it can't collide with the `brand` property
+	// ⚠ header(), not brand(), to avoid colliding with brand property
 	header(){
 		return div.c("brand", () => {
 			const logo = this.logo ?? Sidebar.favicon();
@@ -83,9 +53,6 @@ export class Sidebar extends View {
 		});
 	}
 
-	/* The hamburger. Always in the DOM, shown only by the narrow media query — CSS
-	 * decides when a screen is narrow, so no resize listener. A real <button>: focus,
-	 * Enter/Space and the a11y tree come free, and `aria-expanded` is the state. */
 	toggle(){
 		return this.$toggle = button.c("sidebar-toggle", () => {
 			span.c("sidebar-toggle-bar");
@@ -103,72 +70,240 @@ export class Sidebar extends View {
 		return this;
 	}
 
-	/* Nav over footer, one box — so the narrow menu is a single thing to show and
-	 * hide, and the footer rides along. A click on any link closes it: navigation
-	 * happened, the menu's job is done. Harmless on a wide screen, where `.open`
-	 * does nothing. */
 	menu(){
-		return this.$menu = div.c("sidebar-menu", () => {
+		return div.c("sidebar-menu", () => {
+			this.filter();
 			this.nav();
+			this.restore_query();
 			this.footer?.();
 		}).on("click", e => e.target.closest("a") && this.open(false));
 	}
 
+	// Filter setup: doc/sidebar-notes.md. ⚠ chrome: false + .darken-2 are one pair
+	filter(){
+		const f = this.$filter = new Filter({
+			segments: [], chrome: false, search_field: "text", placeholder: "Filter pages…",
+			onChange: predicate => this.filtered(predicate),
+		}).ac("sidebar-filter darken-2");
+		f.$field.on("keydown", e => this.arrow(e, "field"));
+		return f;
+	}
+
+	// A reload keeps the query: `?q=` goes back into the box and runs.
+	restore_query(){
+		const q = new URLSearchParams(location.search).get("q");
+		if (!q) return;
+		this.$filter.$field.el.value = q;
+		this.$filter.query(q);
+	}
+
+	// Tree navigation: doc/sidebar-notes.md
 	nav(){
 		return div.c("sidebar-nav", () => {
-			(this.pages || []).forEach(page => page.pages ? this.group(page) : this.link(page));
+			if (this.root){
+				this.$tree = new Tree({ nodes: [], adapt: true });
+				this.$drawn = Tree.nodes_of(this.root).then(nodes => this.visible_nodes(this.root, nodes)).then(nodes => this.$tree.draw(nodes))
+					.then(() => this.reveal())
+					// ⚠ A slow load racing a fast typist: nodes that arrive after the
+					// reader has already started filtering would otherwise all show,
+					// unfiltered. Re-runs the CURRENT predicate against the just-drawn
+					// rows, only when there is one.
+					.then(() => this.$filter.needle.trim() && this.filtered(this.$filter.predicate()));
+
+				// A `tab`/`file`/`settings` line anywhere in the tree bubbles up
+				// through `nav_redraw()` (ext/tabs/tabs.js) to the ROOT page — the
+				// only page every bubble reaches — so registering here, once, is
+				// how the rail hears about ANY of them with no reload (2026-09-29
+				// fix round, finding 5). Cheap even though it rebuilds from the
+				// top: `ux/Tree` only ever re-fetches a branch a reader had opened.
+				(this.root._tab_redraws ??= new Set()).add(() => this.refresh_nav());
+			} else {
+				this.$tree = new Tree({ nodes: this.tree_nodes(this.pages), adapt: true });
+				this.reveal();
+			}
+			this.results();
 		});
 	}
 
-	/* A titled run of links — "CORE", then five items. Duck-typed off `.pages` rather
-	 * than a second `groups` property, so a flat sidebar, a grouped one, and a mix of
-	 * both are the same call.
-	 *
-	 * `.h4` on an inner SPAN, not on the padded box: `em` padding resolves against the
-	 * element that USES it, so sizing and padding the same element made group titles
-	 * indent 36.5px while every link indented 41.8px. **Size the text, pad the box,
-	 * never the same element.**
-	 */
-	group(group){
-		return div.c("sidebar-group", () => {
-			if (group.title) div.c("sidebar-group-title", () => span.c("h4", group.title));
-			group.pages.forEach(page => this.link(page));
+	// Tree update: doc/sidebar-notes.md. ⚠ draw() then reveal(); order matters
+	refresh_nav(){
+		if (!this.$tree) return;
+		Tree.nodes_of(this.root).then(nodes => this.visible_nodes(this.root, nodes)).then(nodes => this.$tree.draw(nodes))
+			.then(() => this.reveal());
+	}
+
+	// Visibility rules and filters: doc/sidebar-notes.md
+	// ⚠ ASYNC for cold-load race; ⚠ Tree nodes matched by name (a leaf's pinned list is a subset); ⚠ Deeper branches open lazily
+	async visible_nodes(page, nodes){
+		const visible = await Promise.all(nodes.map(node => page.nav_ready(node.name)));   // by name: a leaf's `pinned` list is a subset of its children
+
+		return nodes
+			.filter((node, i) => visible[i])
+			.map(node => !node.children ? node : {
+				...node,
+				children: () => Promise.resolve(node.children()).then(kids => this.visible_nodes(node.page, kids)),
+			});
+	}
+
+	// Search index: doc/sidebar-notes.md
+	filtered(predicate){
+		if (!this.$tree) return;
+		const q = this.$filter.needle.trim();
+
+		this.remember(q);
+		this.$tree.el.style.display = q ? "none" : "";
+		this.$results.el.style.display = q ? "" : "none";
+		if (!q) return;
+
+		const ask = this.asked = {};
+		this.$results.el.textContent = "Searching…";
+		this.index().then(list => {
+			if (this.asked !== ask) return;                 // a newer keystroke won
+			this.show_results(this.ranked(list.filter(predicate), q));
 		});
 	}
 
-	/* One shape serves both cases: a loaded `Page` and a plain `{title, url}` both
-	 * answer `.title` and `.url`, which is all a link needs — so a site can list
-	 * sections it does not want to eager-load. `.active`/`.in-path` come from
-	 * Router.mark_links().
-	 *
-	 * Built here rather than borrowed from `page.link()`: that handed every row a
-	 * second component's class, and which of the two won came down to stylesheet
-	 * order. A row in a sidebar is a sidebar's row.
-	 *
-	 * The label is a span because it carries the type size while the row's box stays
-	 * measured against the base — see `.sidebar-label`.
-	 */
-	link(page){
-		return a.c("sidebar-link").href(page.url).append(() => {
-			if (page.icon) icon(page.icon);
-			span.c("sidebar-label", page.label ?? page.title);
-		});
+	remember(q){
+		const url = new URL(location.href);
+		q ? url.searchParams.set("q", q) : url.searchParams.delete("q");
+		history.replaceState(history.state, "", url);
 	}
 
-	/* The pinned strip under the nav — the nav scrolls, this doesn't. Zero-config
-	 * default: the colour-scheme toggle and a placeholder avatar. The toggle is
-	 * mode(app) and mode needs the app (it styles app.$app), so it appears when the
-	 * sidebar was given one — `new Sidebar({ app: this.app, … })` — and is quietly
-	 * absent when it wasn't. Replace like header, or `footer: null` for none. */
+	index(){
+		return this._index ??= (async () => {
+			const out = [], seen = new Set();
+			const walk = async (nodes, trail) => {
+				await Promise.all(nodes.map(async node => {
+					// Once per url, and only urls that stay under their parent (a page whose child resolves back up the tree would loop).
+					if (node.href && (seen.has(node.href) || node.href.includes("//"))) return;
+					if (node.href) seen.add(node.href);
+					if (node.href) out.push({ text: node.text, href: node.href, trail: trail.join(" › ") });
+					let kids = is.fn(node.children) ? await node.children() : node.children;
+					// A `leaf: true` page (ui/, ...) draws flat in the rail but its declared children are still pages; data-fed ones (ai/ days) stay out.
+					// ⚠ Every child, even when the leaf draws a few `pinned` ones: the filter still finds the rest.
+					if (node.page?.leaf && node.page.children.size && !node.page.child_source)
+						kids = await this.visible_nodes(node.page, await Tree.nodes_of(node.page));
+					if (is.arr(kids)) await walk(kids, [...trail, node.text]);
+				}));
+			};
+			await this.$drawn;                               // the first level exists only once drawn
+			await walk(this.$tree.nodes, []);
+			return out;
+		})();
+	}
+
+	ranked(list, q){
+		const n = q.toLowerCase(), depth = h => h.split("/").filter(Boolean).length;
+		const score = h => { const t = h.text.toLowerCase(); return t === n ? 0 : t.startsWith(n) ? 1 : t.includes(n) ? 2 : 3; };
+		return [...list].sort((a, b) => score(a) - score(b) || depth(a.href) - depth(b.href) || a.text.localeCompare(b.text));
+	}
+
+	show_results(list){
+		const box = this.$results.el;
+		box.textContent = "";
+		if (!list.length){ box.textContent = "No page matches."; return; }
+
+		for (const hit of list.slice(0, 100)){
+			const link = document.createElement("a");
+			link.href = hit.href;
+			link.className = "sidebar-result";
+			link.innerHTML = "<b></b><small></small>";
+			link.firstChild.textContent = hit.text;
+			link.lastChild.textContent = hit.trail;
+			box.append(link);
+		}
+	}
+
+	results(){
+		return this.$results = div.c("sidebar-results")
+			.style("display", "none")
+			.on("click", e => {
+				if (!e.target.closest("a")) return;
+				setTimeout(() => { this.$filter.clear_query(); this.reveal(); }, 0);
+			})
+			.on("keydown", e => this.arrow(e, "results"));
+	}
+
+	arrow(e, from){
+		const links = [...this.$results.el.querySelectorAll("a")];
+		const i = links.indexOf(document.activeElement);
+		if (e.key === "ArrowDown") links[i + 1]?.focus();
+		else if (e.key === "ArrowUp") (i > 0 ? links[i - 1] : this.$filter.$field.el).focus();
+		else if (e.key === "Enter" && from === "field") links[0]?.click();
+		else return;
+		e.preventDefault();
+	}
+
+	// ⚠ leaf: true not in ux/Tree; it's consumed, not edited
+	tree_nodes(pages){
+		return (pages || []).map(page => ({
+			text: page.label ?? page.title,
+			href: page.pages ? undefined : page.url,
+			icon: page.icon ? () => icon(page.icon) : undefined,
+			children: page.pages ? this.tree_nodes(page.pages) : undefined,
+		}));
+	}
+
+	// Cold load: open branches to current page. ⚠ mark_links() may have missed new rows
+	async reveal(){
+		const here = this.app?.router?.active?.url ?? location.pathname;
+		let nodes = this.$tree.nodes, last = null;
+
+		for (let depth = 0; depth < 10; depth++){
+			const node = nodes.find(n => n.href ? here.startsWith(n.href) : this.under(n, here));
+			if (!node) break;
+
+			last = node;
+			if (here === node.href) break;
+
+			const item = this.$tree.rows.get(node)?.item;
+			if (!item?.kids) break;
+
+			await item.open().growing;
+			nodes = is.arr(node.children) ? node.children : [];
+		}
+
+		this.$tree.adapt_to(last);
+		this.app?.router?.mark_links();
+	}
+
+	// Group lookahead: does it hold a child whose href matches?
+	// ⚠ Only asked of already-resolved arrays; root trees have href always
+	under(node, here){
+		return is.arr(node.children) && node.children.some(c => (c.href && here.startsWith(c.href)) || this.under(c, here));
+	}
+
+	// Footer with mode toggle. ⚠ No $mode handle; doc/views.md measured it unused
 	footer(){
 		return div.c("sidebar-footer", () => {
-			if (this.app) this.$mode = mode(this.app);
+			if (this.app) mode(this.app);
 			div.c("sidebar-avatar").attr("title", "Account");
 		});
 	}
 
-	// The document already declares the site's icon — reuse it rather than hardcoding
-	// an asset path into a framework class.
+	// Resize grip: doc/sidebar-notes.md. Clamp lives in CSS, not code
+	grab(){
+		return grip({
+			from: "start",
+			write: px => this.size(px, false),
+			done: width => this.store().patch({ px: width }),
+			reset: () => this.size(null),
+		});
+	}
+
+	// Width in one place. ⚠ setProperty("", "") removes the declaration, true reset
+	size(px, save = true){
+		const width = px ? Math.round(px) : null;
+
+		this.style("--sidebar-w", width ? width + "px" : "");
+		if (save) this.store().patch({ px: width });
+
+		return width;
+	}
+
+	// One shared persistent key for all Sidebars
+	store(){ return new Page.Prefs({ id: "sidebar" }); }
+
 	static favicon(){
 		return document.querySelector('link[rel~="icon"]')?.href;
 	}

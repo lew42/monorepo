@@ -1,0 +1,587 @@
+# Dictate — decisions
+
+Landed 2026-09-19. Task log: [`ai/sessions/2026/09/19/whisper-local/`](/framework/ai/sessions/2026/09/19/whisper-local/).
+Owner's words opened this task: "the whole dictation thing is not working properly …
+click the microphone and it appears to start recording … but nothing's transcribed on
+my screen." Then, mid-task: "the thing they miss most is seeing words WHILE they
+talk." Both are answered below.
+
+## The install — what, where, and the one number that mattered
+
+`whisper.cpp` release `b5130` (2026-09-10), the `whisper-cublas-12.4.0-bin-x64.zip`
+asset — this machine's driver reports **CUDA 13.1** (`nvidia-smi`), and a driver is
+backward-compatible with an older CUDA build, so the newest cuBLAS asset that is NOT
+the ARM64-only `13.4` build was the right pick over the older `11.8.0` one. It started
+and used the GPU on the first try, so the plain (no-GPU) fallback zip was never needed.
+
+Installed at `%LOCALAPPDATA%\lew42\whisper\` — `bin\` (the release, `whisper-server.exe`
++ `whisper-cli.exe` + the CUDA DLLs it ships with, ~640MB) and `models\ggml-large-v3-turbo.bin`
+(1.51 GiB, from `huggingface.co/ggerganov/whisper.cpp`). Nothing under the repo.
+
+The release's zip did not ship `samples\jfk.wav` (older whisper.cpp releases did; this
+one doesn't). Rather than fetching one more thing, Windows' own built-in
+`System.Speech.Synthesis` (PowerShell, no install) spoke the JFK sentence straight to a
+16kHz mono WAV — proof audio, made locally, fetching nothing extra.
+
+**The numbers**, all on the RTX 4070 SUPER, `large-v3-turbo`:
+- `whisper-cli` on a 7.8s clip: 1.37s total (109ms of that was the actual encode) — GPU
+  confirmed by the CUDA0 log lines.
+- `whisper-server`'s `POST /inference` on the same clip: 0.39s round trip over HTTP.
+- The number that mattered for live partials: `POST /inference` on an exact 10.00s WAV,
+  three runs: **76ms, 98ms, 89ms**. About 1% of real time — a 1.5s partial-resend tick
+  finishes with roughly 1.4s to spare before the next one is due.
+
+## CORS — checked before touching anything server-side
+
+`whisper-server`'s response (and its `OPTIONS` preflight) carries
+`Access-Control-Allow-Origin: *`. That means a page open on `http://localhost` can
+`fetch()` `http://127.0.0.1:8178/inference` directly — **no dev-server change was
+needed**, so `Server/**` (owned by the sibling task `server-self`) was never touched.
+Checked with `curl -X OPTIONS … -H "Access-Control-Request-Method: POST"` before writing
+a line of browser code, per the brief.
+
+## Why the browser engine was silent for the owner
+
+`ext/Ask/mic.js` already wired `SpeechRecognition.onerror` to a visible message — that
+part worked. But Chrome can finish a WHOLE session firing neither a result NOR an error:
+`onstart` fires, the tab's recording indicator lights up exactly as the owner described,
+and `onend` fires with nothing ever having been heard or reported. No event exists to
+hang a message on, so the old control had nothing to show. `Dictate.start_browser()`
+adds a **watchdog**: if 6 seconds pass with no `onresult` and no `onerror`, it declares
+the silent failure itself, in plain words, rather than leaving the owner staring at a
+lit recording icon. This is the single most direct fix for "today's failure was silent."
+
+Also fixed: `mic.js`'s header comment claimed the browser's recognition "keeps audio on
+the machine." True for some browsers' on-device models, **false for Chrome** — Chrome's
+built-in `SpeechRecognition` sends the audio to Google's servers to be recognised. The
+comment now says so, and is also the reason whisper (private, and now measured fast) is
+tried first rather than second.
+
+## Why whisper isn't wired as one request per keystroke of silence
+
+The simplest "live" design would re-run the FULL session's audio on every tick, but that
+cost grows with the session length. Instead each **segment** (bounded by a ~700ms pause
+or a 15s cap) is its own buffer: the buffer starts at zero when a segment opens
+(`Capture.cut()`), a resend transcribes just that growing buffer, and closing the
+segment transcribes it one last time and appends the result to what's already
+committed. Cost per resend stays roughly proportional to ONE segment (≤15s), never the
+whole dictation.
+
+## The epoch guard — the one real concurrency trap here
+
+A partial resend takes ~100ms but is started, awaited, and only then checked against
+`this.segment_epoch`. If the segment closed WHILE that request was in flight (the owner
+paused right as a resend went out), the response comes back for audio that is no longer
+the current segment — painting it over the caption would show text for words already
+replaced. `segment_epoch` increments the instant a segment closes; `partial_tick()`
+captures the epoch before its `await` and only paints if it's unchanged after. `finish-task`
+did not need a repro — this was reasoned out before writing the send, per the code skill's
+"no DOM after an await" family of traps, and covered again by the headless proof (§ below).
+
+**The addendum's other rule — skip, don't queue** — lives in one line:
+`partial_tick()` returns immediately if `this.inflight` is already set, rather than
+awaiting it and re-sending, so a slow tick is dropped rather than stacking up a backlog
+that would fall further and further behind the live audio.
+
+## Why the grey partial text never touches the real textarea
+
+An earlier design (matching the old `mic.js`) considered rewriting the target
+textarea's whole value on every partial tick, the way Chrome's own interim results do.
+Rejected: a plain `<textarea>` cannot render one part of its value in a different
+colour, so "grey" would have to be simulated by fighting the DOM, AND overwriting
+`.value` every 1.5 seconds means an owner who clicks into the box to fix a word mid
+-dictation gets overwritten a moment later. Instead the grey/settled split lives in the
+component's OWN caption element (plain CSS, `.muted` for the grey half), and the real
+target box is only ever touched once a segment is FINAL — an *append*, not a rewrite,
+so it never clobbers an edit in progress. This is a genuine improvement on `mic.js`'s
+behaviour, not just a port of it.
+
+## The level meter is a starting number, not a calibrated one
+
+`on_level()` smooths the raw RMS (`level = level*0.6 + new*0.4`) and multiplies by 6
+before writing `--ux-dictate-level` — chosen by ear against one room and one
+microphone, not measured against a reference. The same rough number,
+`silence_at = 0.01`, decides what counts as a pause for the 700ms cut. Both are
+prototype defaults (`Dictate.prototype.silence_at`, easy to override per instance) —
+left un-tuned on purpose, since "does it hear the owner at all" mattered more today than
+"is the meter's swing exactly right," and no wrong number here breaks a segment, only
+makes the meter a little over- or under-eager.
+
+## No separate level meter for the browser engine
+
+Whisper's capture pipeline already reads raw samples (it has to, to build the WAV), so
+the level meter is nearly free there. The browser engine does not expose the raw stream
+it listens to by default, and opening a SECOND `getUserMedia` stream just to drive a
+meter — for an engine that is only ever the fallback once whisper is installed — was cut
+as not worth the extra permission prompt and audio graph. `.ux-dictate-btn.listening[data-engine="browser"]`
+gets the same plain pulse `ext/Ask/mic.js`'s button already used.
+
+## No "words" CSS of its own to check, but the child page exists anyway
+
+`Dictate.css` is four rules, none of them spacing — nothing here reads `--pad`/`--gap`/
+`--flow` in a way `ui-compact` would change. The `words` child page was still built
+(the tier's own rule: every `ux` ships one) mostly as the tier's own regression check —
+proof that wrapping the control in `ui-contrast ui-compact` breaks nothing, not proof
+that anything visibly changes.
+
+## Who starts whisper-server?
+
+Three shapes were on the table. Task log:
+[`ai/sessions/2026/09/19/whisper-autostart/`](/framework/ai/sessions/2026/09/19/whisper-autostart/).
+
+- **(a) The dev server starts it on demand**, from a small `Server/plugins/Whisper.js`
+  that checks the install exists and launches it lazily on first use. **Chosen and
+  built 2026-09-19**, once `Server/**` was free of the sibling task that owned it —
+  needs no separate step from anyone at all. What it does on boot, the four cases:
+  not installed (one line, falls back to the browser engine), already running
+  (left alone — it never kills a `whisper-server` it did not spawn itself, which is
+  also what keeps exactly one process alive across the dev server's own supervisor
+  restarts), spawned fresh (killed with the dev server, restarted up to 3 times if
+  it crashes), or skipped (`NO_WHISPER=1`, or a second, private dev server that
+  would only fight the first one over the port). Full detail:
+  [`Server/plugins/Whisper.js`](/Server/plugins/Whisper.js).
+- **(b) A `whisper.cmd`** the owner double-clicks or runs from a terminal. Simplest,
+  fully manual, zero new code paths to reason about — kept as the fallback for
+  `NO_WHISPER=1` or for running `whisper-server` outside the dev server entirely
+  (readme's "Fallback: start it by hand").
+- **(c) A Windows scheduled task at login.** Starts it before it's ever needed, at the
+  cost of a GPU process running whether or not dictation is used that session. Not
+  built — (a) already covers "no manual step" without paying that idle GPU cost.
+
+## The keyboard shortcut: `Ctrl+Shift+M`, and why not the obvious ones
+
+A second owner note, after trying another product's dictation: it showed live words
+(good) but a pause never sent anything — a second button press was required, and there
+was no keyboard shortcut to be found, "which is kind of weird." Two changes came from
+that.
+
+First, a shortcut. Checked against every global key already claimed on this site before
+picking one (`rg -n "shiftKey|ctrlKey|metaKey"` across `public/framework`): `/` and
+`Ctrl+K`/`Cmd+K` open the omnibox (`core/Search/Omnibox.js`), `Ctrl+\` toggles the dev
+bar (`dev/DevBar/DevBar.js`), and nothing anywhere binds a key with Shift+M. `Ctrl+D`
+was ruled out by the owner directly (Chrome's own bookmark shortcut — and page JS
+cannot reliably override it, since bookmarking is one of the handful of shortcuts Chrome
+intercepts before a page ever sees the keydown). `Ctrl+Shift+M` is not on that
+non-overridable list, is not claimed by this site, and is mnemonic ("Mic"). It is
+announced in the button's `title` tooltip AND the small engine line beside it, per the
+ask, rather than left for someone to guess or dig through a settings page for.
+
+**Alternative considered and rejected:** a single global shortcut that always targets
+"the" dictation control. Rejected because `ext/Ask/reply.js` can have many `Dictate`
+instances live on one page at once (a mic per ask card, plus the dictation box) — one
+global target would be ambiguous the moment two exist. `hotkey()` instead fires on
+whichever instance is already listening (so the shortcut can always stop what's
+running), or otherwise only the instance the owner's focus is actually inside — pressing
+it while typing in a specific reply box starts THAT box's mic, not some other card's.
+
+## `send_on_pause`: explicit by default, an opt-in countdown, never a silent auto-submit
+
+The same story that surfaced the shortcut gap also showed the opposite failure in
+another product: a pause auto-submitted with no warning, which is its own kind of
+surprising. The fix keeps ending a dictation **explicit by default** (button or
+shortcut, full stop — nothing here changed that) and adds an **opt-in** middle ground: a
+checkbox literally labelled "stop after a pause," off unless the owner turns it on, tied
+to a *longer* silence window (2.5s, `end_pause_ms`) that is completely separate from the
+700ms `pause_ms` that only closes one whisper segment for transcription and was never
+about ending anything. When it's on and a silence starts, a small countdown text appears
+("stopping in 1.8s — say something to keep going") and counts down every 200ms tick;
+speaking again resets `last_loud_at` and the countdown disappears before it ever
+reaches zero. Only once it visibly reaches zero does `stop()` actually run.
+
+**Alternative considered and rejected:** making `pause_ms` itself configurable to double
+as "end the dictation," i.e. one number for both "close this segment" and "end the whole
+session." Rejected because those are different questions asked on different timescales —
+700ms is barely enough to keep live partials feeling responsive between sentences, and
+ending an entire dictation on that same short a gap is exactly the "auto-submitted with
+no warning" behaviour the owner had just been annoyed by elsewhere. Keeping them as two
+separate numbers, one silent (segment cut, whisper-only, always on) and one visible
+(session end, opt-in, either engine), was the one line that made both true at once.
+
+## `ext/Ask` importing `ux/Dictate` — checked against "imports flow down"
+
+The brief names the exact wire: `ext/Ask/reply.js`'s `acts()` now does
+`import Dictate from "../../ux/Dictate/Dictate.js"` and builds `new Dictate({...})`
+where it used to build `mic()`. On its face this runs opposite the usual direction —
+`ux/Tree/Tree.js` imports `ext/Draggable`, i.e. **ux imports ext**, and nothing under
+`public/framework/ux` was found importing `ext/Ask` (checked with a grep of both
+directions before writing the import). Flagging it rather than either silently
+following the brief or silently "fixing" it against the brief's own explicit
+instruction.
+
+Landed as directed, because the actual hazard the "imports flow down" rule guards
+against is a CYCLE — the CLAUDE.md trap is "a parent↔child import cycle breaks only on
+deep reload" — and there is no cycle here: `ux/Dictate/Dictate.js` imports only
+`core/View` and its own `capture.js`; nothing in `ux/Dictate` reaches back into
+`ext/Ask` or anything that does. `ext/Ask` is also not a foundational utility other
+tiers build on the way `ext/Draggable` or `ext/Panel` are — it is itself a page-facing
+feature (a reply control, a Claude turn) consuming a UX component the same way a
+`page.js` anywhere else in the tree already does. If a second `ext/` module later
+wants a `ux/` component and a cycle risk shows up for real, that is the moment to
+revisit this, not before.
+
+## `Dictate.js` is 429 lines, not split into parts
+
+The `code` skill's guidance is "try to keep a file under ~100 lines — a signal to look, not
+a rule," and to split when "a logical piece wants to be its own class." The two engines
+(`start_whisper`/`heartbeat`/`partial_tick`/`close_segment`/`transcribe`, versus
+`start_browser`/`heard_browser`/`browser_error`/`stop_browser`) are a real seam and could
+become `Dictate.Whisper` / `Dictate.Browser` statics the way `Reply.Dictation` sits on
+`Reply`. Left as one file for now: every method here was written, then proven against the
+headless fake-microphone rig in this same session (§ below) — a split is a mechanical
+move but not a risk-free one this late, and the two engines already read cleanly under
+clear `// ----` section breaks. If this file grows further (a third engine, more per-engine
+state), that is the moment to make the split real rather than doing it speculatively today.
+
+## Voice → log, added 2026-09-22
+
+Task log: [`ai/sessions/2026/09/22/whisper-servex/whisper-servex/`](/framework/ai/sessions/2026/09/22/whisper-servex/whisper-servex/). Owner's
+words that opened it: "spawn a minion to look into our Whisper system, and see if we can get
+that working with Servex." Everything above still stood — `whisper-server` was already up and
+transcribing correctly — but the transcript only ever reached the screen. `commit()` now also
+calls `log_prompt(text)`, so every finished utterance (each committed whisper segment, or each
+`isFinal` browser result — the same granularity that was already reaching the caption and the
+target box) becomes one log line `{at, type: "prompt", by: "owner", text, via: "whisper"}`.
+
+**Primary target: Servex's own log**, `POST http://127.0.0.1:8090/log/prompts` — one constant
+(`Dictate.prototype.log_url`), a 1.2s timeout so a down Servex never stalls a dictation. Not up
+yet as of this task (`servex-port` is still building it); the moment it answers, this starts
+working with zero further changes to this file.
+
+**Fallback, proven working today:** the dev server's own generic append route. The brief
+guessed the fallback might be `Server/plugins/AILogs.js` or `Ask.js` — checked both and neither
+fits: `AILogs.js` is read-only (serves Claude Code transcripts, no writer at all), and `Ask.js`'s
+socket handlers only append to a `task.jsonl` whose path must contain an `ai` segment, not an
+arbitrary named log. The real generic writer, found by grepping every `rpc:` handler under
+`Server/`, is `Server/plugins/SocketServer/Append.js`'s `rpc:append(file, lines)` — already
+wired into `server.js`, writes any `.jsonl` under `public/`. `log_prompt()` falls back to
+`Socket.singleton().async_rpc("append", "framework/ai/prompts.jsonl", entry)` on any primary
+failure. Proven headless: a fake-mic dictation of the JFK clip on a private server, with Servex
+confirmed down by `curl`, left two real lines in `public/framework/ai/prompts.jsonl` in exactly
+the brief's shape.
+
+**Alternative considered and rejected:** logging only on `stop()` (one line per whole dictation)
+instead of per committed segment. Rejected because `commit()` is already the point where text is
+considered "finished" everywhere else in this file (the caption settles, the target box gets the
+append) — a second, coarser definition of "finished" would need its own buffering and would lag
+behind what the owner already sees on screen for no real benefit.
+
+## What the headless proof covered, and what it could not
+
+Playwright's fake-audio flag (`--use-file-for-fake-audio-capture`) feeds a WAV file as
+if it were the microphone — real enough to prove the whole pipeline (capture → segment →
+whisper → caption → textarea) end to end, including the "no 🎤 drawn" and "which engine
+did it fall back to" branches with `whisper-server` stopped. It cannot prove the level
+meter reacts to a human's actual voice, or that a real microphone's `NotAllowedError` /
+device-not-found paths fire exactly as written — those were read against the spec and
+against `ext/Ask/mic.js`'s own prior handling of `not-allowed`, not independently
+observed here.
+
+## "Thank you" — silent segments, fixed 2026-09-22
+
+The one the owner actually hit: whisper kept answering "Thank you" no matter what they
+said. The sound was never lost — the microphone, the 16kHz context, the worklet and the
+WAV header all measured correct end to end. `Dictate` was simply also sending whisper the
+quiet stretches (the tail after a settled sentence, and the 1.5s re-sends before the first
+word), and whisper answers silence by inventing a sentence rather than returning nothing.
+
+`Capture.loudness()` and `Dictate.worth_sending()` now refuse to send a segment carrying
+less than 120ms of speech, counted in 20ms frames rather than as one average — a quiet room
+with a single click in it measures 0.043 RMS, so an average cannot do this job. The full
+measurement, the alternatives rejected, and the `$DICTATE_DUMP` seam that captures the exact
+posted bytes: [`doc/silence.md`](/framework/ux/Dictate/doc/silence/).
+
+## Open mic — 2026-09-22
+
+The owner's own complaint: a segment used to land under the box, then get MOVED into it and
+submitted, all at once — surprising, and wrong for a mic meant to stay on indefinitely while
+a fast assistant listens to every sentence. `mode: "open"` makes both halves explicit instead
+of implicit: `push_to_target()` never touches `$input` at all (the box is for typing, full
+stop), and `draw_caption()` keeps every settled sentence as its own line, appended, instead of
+one string capped at 240 characters. Proven against a private Servex + a concatenated 3x `jfk.wav`
+clip on both `talk` and AI 2's composer: three real whisper segments, the box's `value` stayed
+`""` throughout, "stop after a pause" was absent, zero console errors — `ai/sessions/2026/10/09/session-81c5e98b/open-mic/`.
+
+## The dictation box: growth, jumping, breaks and delay (2026-09-24)
+
+- **Height.** The composer box grows with the words up to `min(40vh, 12lh)` (about twelve lines), then scrolls inside itself with the newest words in view (`ext/Chat/Chat.css`, `Mic.js`).
+- **Why it jumped.** Dictate's `close_segment()` blanked the guess the instant a pause closed a segment, then waited for Whisper's final (100–300 ms): the box emptied, shrank to two lines, and grew back. `ComposerMic` now keeps the guess in `pending` until its final arrives, and never lets the box shrink while dictating (`floor_h`, released on Send). The old italic caption line sat in a fixed row, so nothing below it could move.
+- **Odd breaks.** Whisper puts `\n` between its own segments mid-speech; `transcribe()` now collapses all whitespace. A paragraph break needs a 1.5 s pause **and** a finished sentence before it.
+- **Delay.** Whisper's answer reaches the box in about 4 ms; the time is Whisper itself (~100 ms warm, ~300 ms first request) plus the final queueing behind an in-flight guess (whisper-server is one request at a time). No guess is now started once the speaker has been quiet 300 ms (`skip_partial_after_ms`).
+
+## Send modes and the delay (2026-09-24)
+
+`ComposerMic.send_mode` (in `ext/Chat/Mic.js`) decides when finished sentences leave the box: `manual` (default — only Send, so nothing can go early), `pause` (4 s of silence, only if the last sentence is finished), `sentences` (every 3 finished sentences). Send never cuts the live guess: the moving sentence is kept out of what Send reads, then redrawn into the emptied box. Try all three at [`/framework/ux/Dictate/demo/`](/framework/ux/Dictate/demo/).
+
+Delay, measured over 20 updates: Whisper answers in about 67 ms (max 283 ms); everything after the answer — filler filter, paragraphing, setting the box — is under 0.5 ms in total. The felt delay was the wait between guesses, so `resend_ms` went from 1500 to 900. Paragraph breaks need a pause of 1.5 s AND a finished sentence before it; Whisper's own newlines are collapsed to spaces.
+
+## Mic feedback, the "connecting" state, and a testing note (2026-09-29)
+
+The owner's phone (`http://10.0.0.135:8137`, plain http) played the start sound with no
+mic ever really on, and no error. Traced headless: off a secure context (https, or
+`localhost`/`127.0.0.1`/`*.localhost`), `navigator.mediaDevices` is `undefined`, but
+`window.webkitSpeechRecognition`'s CONSTRUCTOR still exists — so `detect_engine()` still
+picked `"browser"`, and `Dictate.start()` was marking state `"listening"` (which is what
+played the sound, in `ext/Chat/Mic.js`) **before** the engine had actually connected, not
+after. Fixed: a new `"connecting"` state is set first; `set_state("listening")` — and
+therefore `ext/Chat/Mic.js`'s `on_listening()` hook the start sound is wired to — now only
+fires on the REAL transition, once whisper's own `capture.start()` resolves or the browser
+engine's own `rec.onstart` fires. An instant, first-line `insecure_context_message()` check
+in `start()` also means the insecure-LAN case now errors immediately with a plain fix,
+before any engine is even asked for. Proof and every case's exact wording:
+`ai/sessions/2026/09/29/mobile-nav/mobile-nav/`.
+
+**A real, previously-silent bug this surfaced:** `Dictate`'s own audio-capture object was
+held in `this.capture` — the same name `View.prototype.capture` already uses for an
+unrelated auto-append-to-captor flag (`core/View/View.js`). Any error path that ran BEFORE
+`start_whisper()` had assigned a real `Capture` instance (which is exactly what the new
+up-front insecure-context check does) hit `this.capture === true` (View's own default) and
+`true.stop()` threw, silently eating the error message before its text ever reached
+`$status`. Renamed the field to `this.mic` throughout `Dictate.js` and `ext/Chat/Mic.js`.
+
+**Testing note — "Not supported" in a screenshot is very likely a plain-headless artefact,
+not a mic bug.** A `NotSupportedError` (shown as "This browser can't run the audio pipeline
+dictation needs here…") is the shape Chromium gives when `AudioContext.audioWorklet` (or
+the fake/real audio backend behind it) is not usable at all — exactly what a Playwright
+run WITHOUT any fake-media flags tends to hit, since default headless Chromium has no real
+microphone and no synthetic one either. A proof that needs the mic to genuinely open —
+reaching real `"listening"`, seeing the start sound fire, exercising a mid-session failure —
+needs `chromium.launch({ args: ["--use-fake-device-for-media-stream",
+"--use-fake-ui-for-media-stream", "--use-file-for-fake-audio-capture=<abs path to a real
+wav>"] })` plus `context.grantPermissions?.(["microphone"])`-equivalent
+(`newContext({ permissions: ["microphone"] })`); without the file-capture flag the fake
+device's default tone may or may not cross the speech-loudness floor, so a real recorded
+clip (`ai/sessions/2026/09/22/whisper-servex/whisper-servex/clip.wav` was used here) is the reliable choice.
+
+## The stop chime dropped or doubled, fixed 2026-10-01
+
+The owner, on the Dictate Overview: "Seems like the transcription stopped and I didn't
+get a sound to let me know that it stopped. It doesn't seem like the sounds are playing
+properly." Both sentences traced to the same function, `beep()` in `ext/Chat/Mic.js`
+(the start/stop chime — see "Mic feedback" above for where `on_listening()` wires the
+START one; plain `Dictate` has no sound at all, only `ComposerMic` does):
+
+1. **Scheduled on a frozen clock.** `beep()` called `AudioContext.resume()` but never
+   *waited* for it before reading `currentTime` and scheduling its two oscillator notes.
+   A brand-new (or still-suspended) context's clock is frozen at 0 until `resume()`
+   actually finishes — so any chime fired with no fresh click right behind it (the very
+   first beep on a page, or the STOP chime fired by `release_on_hide()` when
+   `visibilitychange`/`pagehide` releases the mic — `readme.md`'s "Watch out", the
+   mic-hijack feature this landed the day before) could be scheduled against that
+   frozen instant and come out silent, clipped, or mistimed once the context actually
+   woke up a moment later. Fixed: `beep()` is now `async` and does
+   `if (beep_ctx.state !== "running") await beep_ctx.resume();` before computing `t0` —
+   every call site (`on_listening()`, both `stop()`s, `set_error()`) was already
+   fire-and-forget, so nothing needed to start awaiting `beep()` itself.
+2. **Doubled on an error mid-stop.** `ComposerMic.stop()`'s own `finally` beeped "stop"
+   whenever `was` (captured at the top, before `super.stop()` ran) was true — even when,
+   moments earlier in that SAME call, whisper going unreachable while sending the last
+   segment (`Dictate.close_segment()`'s own catch) had already called `set_error()`,
+   whose own override beeps "stop" right there (state is still `"transcribing"` then).
+   One stop produced TWO overlapping chimes — a garbled noise, not a clean tone, which
+   reads as "the sounds aren't playing properly" as much as a missing sound does. Fixed:
+   `stop()`'s `finally` now reads `if (was && this.state !== "error") beep("stop");` —
+   skipped when `set_error()` already beeped for this same stop.
+
+Neither case needed a live microphone to find — both are deterministic once you trace
+exactly when each `beep()` call happens relative to the async chain around it. Full
+reasoning: `ai/sessions/2026/10/01/dictate-stop-sound/dictate-stop-sound/task.jsonl`.
+
+## Why the "chat" mode (typed first, manual send) went, 2026-10-01
+
+The owner used the Dictate page and the ✦ sheet in the same afternoon and found they "look
+alike but behave differently" — the Dictate page's own Chat mode (`Widget.js`'s `MODES.chat`,
+built the day before as merge 10) was really just autosend switched off, reached by a two-button
+Dictate | Chat switch nowhere else on the site had. The owner's own words: "maybe that was a
+mistake to separate those into two different modes," and "auto send after a pause of a
+reasonable amount." Merge 11 ("one widget") deleted the `chat` row from `MODES`, the switch
+from `ux/Dictate/page.js`, and "manual" from the gear's own send-mode choices
+(`ext/Chat/Mic.js`'s `settings_panel()`) — autosend after a pause is the only behaviour left,
+everywhere, and typing still sends on Enter or the Send button exactly as before. A saved
+`send_mode: "manual"` from the old gear choice is migrated back to `"pause"` the moment
+settings load, the same way a stale `pause_send_ms` default already was — otherwise a reader
+who had once picked "manual" would have autosend silently off for good, with no UI left that
+could turn it back on. Full task: `ai/sessions/2026/09/30/one-dictation/one-dictation/minion-onewidget/task.jsonl`.
+
+## Why the phone repeated every sentence and beeped after every pause (2026-10-01)
+
+On the phone, the page's 800 ms check for whisper timed out, so the mic quietly used
+Chrome's own recognizer instead. On Android that recognizer sends the whole phrase again
+in every result ("so", "so tell", "so tell me"), so each one was written after the last:
+"so so tell so tell me…". It also ends itself after every pause, which plays Android's own
+beep twice and often reports "aborted", and that error stopped the mic and pushed an error
+line into the layout. Three fixes in `Dictate.js`:
+- `browser_fresh()` keeps only the words after the last result, when a result repeats it;
+- "aborted" and "no-speech" no longer stop the mic, because the recognizer restarts by itself;
+- the whisper check waits 2.5 s, so a phone waking its Wi-Fi still finds whisper.
+
+Android's own restart beep can't be silenced from a page. With whisper found, the
+recognizer isn't used, so the beeps go too.
+Proof: `ai/sessions/2026/09/30/one-dictation/one-dictation/fix-android/`.
+
+## Four owner-visible fixes, nothing else (2026-10-04)
+
+The owner, on the phone (the mobile AI rail button) and on this page: the same bubble
+repeated four times, "a microphone abort error, and then it went into the browser's
+default transcribe mode" with beeping, a dictated line taking "a minute" to show instead
+of instantly, and a landed task mastermind still pinned, huge, in the rail. All four,
+proven headless: `ai/sessions/2026/10/05/dictate-fixes/dictate-fixes/task.jsonl`.
+
+- **Never the browser's recognizer automatically, once whisper has worked.**
+  `detect_engine()` used to pick Chrome's recognizer the instant whisper's health check
+  failed, for ANY reason — including a one-off timing blip right after a reload. That
+  silent swap is this bug, not a new one: the error message, the beeping, all of it was
+  the recognizer the owner never asked for. Now: one retry (400ms) absorbs a reload race,
+  and a `whisper_seen` flag (localStorage) means a browser that has used whisper before
+  never drops to Chrome's own recognizer again — it shows one clear line instead
+  ("whisper has gone quiet…") and starts nothing. A machine that has NEVER seen whisper
+  (no install, Firefox) keeps the old quiet fallback, unchanged. An always-visible
+  mic/socket/whisper status line, and `console.log("[dictate] …")` on every stage, so a
+  stuck reload can be read instead of guessed.
+- **The same words, sent more than once.** Several legitimate, separately-triggered paths
+  (a pause send and the safety chunk-cut noticing the same held text a tick apart; a late
+  Whisper final landing right after its own guess already went out) could each post the
+  SAME utterance. `ComposerMic.post_held()` (`ext/Chat/Mic.js`) now drops a send whose
+  words match the last thing this mic sent within 4 seconds — a real repeat (said again
+  later, or a genuinely different sentence) still goes through.
+- **Instant feedback, not a wait for the clean-up.** `send_screen()`/`flush_held()` used to
+  await the fast assistant's clean-up (up to 5s) BEFORE the box cleared or anything
+  reached the chat log. `on_send_start(raw_text)` now fires first, reusing `Chat.js`'s own
+  fading "sent" bubble (the same one the open-mic stream already uses) — the clean-up wait
+  itself, and the real post, are untouched.
+- **A landed task never stays pinned.** `ai2/live.js`'s Live card read a task's state only
+  from the Dispatcher's own (never date-scoped) `prompts` log — a task that lands by
+  writing its own `task.jsonl` directly, without also telling the Dispatcher, stayed
+  "working" there forever. It now also checks `tasks.json`'s own `landed` fact (the one
+  Servex already computes from each task's real `task.jsonl`) and hides anything that
+  says landed, no matter what the Dispatcher's log still thinks.
+
+## Round 2: the reload race, the pause beeps, the growing box, the stale error (2026-10-04)
+
+The owner, on the phone again, right after round 1 landed: still beeping ("turning off
+and then turning back on after every pause"), the box growing to five or six lines while
+dictating, an old error never clearing, and — on a reload — "connecting" for 4-5 seconds
+then a fresh abort. All four, proven headless (a real Playwright browser against the
+worktree's own server, never the `mcp__playwright` tool): `ai/sessions/2026/10/05/dictate-fixes-2/dictate-fixes-2/task.jsonl`.
+
+- **The reload race is a MICROPHONE race, not a whisper-reachability race.** Round 1's
+  retry lived in `detect_engine()` — it answers "is whisper-server reachable", and never
+  touched the microphone itself. The owner's new report ("connecting… then abort") is
+  `getUserMedia()` itself failing: the PREVIOUS page's mic is released by the browser the
+  instant that page's JS is torn down, but the OS-level hand-off of the physical device
+  is not guaranteed to finish in that same instant, and Chrome's answer to asking for a
+  device still mid-release is a slow `AbortError`. `Dictate.open_engine()` (new) retries
+  once, after a short pause, specifically on `AbortError` — proven by forcing
+  `getUserMedia()` to throw `AbortError` exactly once, then succeed: `open_engine()`
+  reaches `"listening"` after exactly one retry.
+- **The beeps were a silent revival dressed as a real stop+start.** `ext/Chat/Mic.js`'s
+  `watch_capture()` answers a dead microphone TRACK (`ended`) by reopening it — but the
+  old code did that by running a FULL `this.stop()` then, 400ms later, a full
+  `this.start()`, each one playing its own chime. On a phone, a quiet stretch in speech is
+  also when mobile Chrome/Android is most likely to recycle the mic track to save power —
+  so this fired on ordinary PAUSES, almost never on a real disconnect, and "stop then
+  start" is exactly "turning off and then turning back on." Fixed: the revival now opens a
+  fresh `Capture` and swaps it in directly, with `this.state` left at `"listening"`
+  throughout — no state transition, so neither `on_listening()`'s start chime nor
+  `set_error()`'s stop chime ever fires. Proven headless: dispatching a synthetic `ended`
+  event on the real (fake-device) audio track, `mic.state` reads `"listening"` before and
+  after, and `AudioContext.createOscillator` (the chime) is never called. A revival that
+  genuinely fails still calls `set_error()`, which DOES beep — a real failure stays
+  audible.
+- **The box is capped at 2-3 lines, not 7.** `ext/Chat/Mic.js`'s `SETTINGS.box_lines`
+  (7 → 3) and `Chat.css`'s `.chatbox-compose-input` `max-height` (`7lh` → `3lh`) are the
+  one place this was set; `dress()` already kept them in sync live. Scrolling inside is
+  unchanged (`overflow-y: auto`).
+- **One status line replaces the error rows that never cleared.** `ux/Dictate`'s own
+  mic/connection/whisper line (`$diag` — `"mic: X · socket: Y · whisper: Z"`, already kept
+  live by every `log_step()` call) used to be buried inside the hidden full-screen
+  dictation-settings menu; the only thing visible on the main screen when something broke
+  was `Composer.js`'s separate `note()` row, which — bug — only ever reverted the input's
+  PLACEHOLDER after 4s, never its own text, so an error (or a stray "sending…") could sit
+  there forever. Fixed two ways: `$diag` is pulled out of the hidden menu and shown as the
+  one always-visible line (mic errors route through `log_step()`, which already feeds it,
+  and are no longer ALSO pushed into `note()`), and `note()` itself now reverts its own
+  text after 4s, not just the placeholder. `$diag` is self-clearing by construction — the
+  next real stage change overwrites whatever it said before, so a fixed problem clears
+  itself the moment the stage actually recovers, never on a timer guessing that it has.
+  Proven headless: `log_step("mic","refused: …")` shows in `$diag`; the next
+  `log_step("mic","ok")` replaces it completely. Review finding 1 (round 2's own
+  `review.mjs` pass): three `set_error()` call sites — the insecure-context check, a
+  mid-segment Whisper failure, and the browser-engine's 6s silence watchdog — did not
+  call `log_step()` first, so `$diag` never updated for them (the insecure-context one
+  is exactly the owner's own LAN/http setup). All three now do, same pattern as the
+  two sites that already did.
+
+⚠ `note()`'s own 4s revert (just above) is a TIMER, not a true "the stage recovered"
+check — review finding 3. Harmless today (nothing in this codebase's `deliver()` path
+takes anywhere near 4s), but a future caller with a slower `deliver()` could have its
+real "sending…"/failure note silently replaced by the idle hint a moment before the
+real result would have overwritten it anyway. Revisit if that ever shows up.
+
+**One engine per tab, not one per mic button** (dictate-one-engine, 2026-10-04). A headless
+load of this page logged "[dictate] socket: connected" / "whisper: checking…" /
+"whisper: answering" SIX times: every `Dictate` built on a page (the page's own demo, the
+exhibit box, the ✦ sheet, the ☰ drawer's AI tab, push-to-talk's hidden mount, …) ran its OWN
+whisper health check at construction time, and ran it again every time ITS OWN mic started —
+never shared, so six engines meant six fetches and six console trails from one page view. Two
+fixes, both in `Dictate.js`, nothing else: `shared_detect_engine()` is a module-level
+singleton — the FIRST `Dictate` to ask (from `init()` at build time, or `start()` on a press)
+runs the real check and logs it; any other one asking while that is still in flight gets the
+SAME answer, quietly, and the singleton clears itself the instant it resolves, so a later,
+separate press still gets its own fresh check. Separately, "ONE MICROPHONE AT A TIME" — which
+used to live only in `ext/Chat/Mic.js`'s `ComposerMic.start()`, and so only stopped one
+ComposerMic for another — moved up into the base `Dictate.start()`, using the `LIVE` set
+(above) that already tracks every engine of every kind with its mic open: starting any one of
+them now stops every other, a bare demo box and the push-to-talk mount included. Proof:
+`check_page` on this page shows each of the three lines at `count: 1`; a headless click on the
+✦ rail's mic (`node Server/Browser.mjs`, 390×844 viewport) shows the same, once, not twice.
+`Server/smoke.mjs` now fails any page whose raw console carries more than one `[dictate]
+socket: …` line, so a second engine can never reach `michael/dev` again unnoticed.
+
+Deliberately left as a known, documented limitation: Android's own OS-level restart
+beep when the browser's `SpeechRecognition` (not whisper) ends and restarts itself after
+every pause "can't be silenced from a page" (see "Why the phone repeated every sentence…"
+above) — out of scope here since whisper, once reachable, is never the engine that hits
+that path; round 2's fix is for whisper's own `Capture`/`AudioContext` revival, which is
+what this freeze's reports actually traced to.
+
+**Duplicate chat bubbles: a stale Whisper answer, not a text bug** (2026-10-05). The owner's
+phone turned one spoken sentence into TWO chat lines — the full sentence, then an OLDER, SHORTER
+guess of it landing about four seconds later (`ux/Dictate/ai/v-g2roikw.jsonl`, lines 16-17 and
+four more repeats of the same pair).
+
+The cause: `close_segment()` can run twice for the same dictation — once from the heartbeat's own
+pause detection, once from the owner pressing stop. If a PRIOR partial resend was still in
+flight, both calls `await` that SAME shared promise before sending their own request.
+
+Both then resume together. Both set `this.inflight` to their own fresh `transcribe()` call (the
+second overwrites the first's reference). Both go on to `commit()` independently once their own
+answer lands — two real chat lines from one sentence, whichever request answers slower landing
+SECOND, however stale its words by then.
+
+The fix is two tickets, not a lock. Every request gets a strictly increasing `req_seq`, and its
+answer is only ever shown or committed if its segment has not since closed again
+(`epoch === this.segment_epoch`) and no newer answer has already been applied
+(`seq > this.applied_seq`). `partial_tick()` and `close_segment()` both check both. A request
+that fails the network check while already stale is dropped quietly, rather than ending the
+whole dictation over an answer nobody needed anymore.
+
+Proved against the REAL recorded sentence (same two texts, same race shape) with a headless
+harness that calls the real `Dictate.prototype.close_segment` twice back-to-back, exactly as the
+pause/stop race does: the unfixed code commits twice (`"...for your country."` then the stale
+`"...can"`); the fixed code commits once. `ai/sessions/2026/10/05/voice-pipeline/voice-pipeline/` keeps the harness.
+
+**"Connecting…" now shows its own timing** (2026-10-05). The owner: `'connecting…' stays too
+long when the AI button opens the mic, even if it actually connected`. The word itself never
+changed while the engine health check ran, then while the permission prompt and device open ran
+— several real steps, one frozen label.
+
+Three checkpoints, each stamped with milliseconds since the press (`connect_started_at`): mic
+open (`log_step("mic", "ok")`), first real audio (`on_level()`'s first call, `"hearing audio"`),
+first Whisper answer (`transcribe()`'s first successful reply, `"first answer"`). Only the first
+two can ever reach the BIG status line — `log_step()` writes there while `state === "connecting"`,
+and by the time Whisper answers the mic is already `"listening"`. So the owner sees
+`requesting… (380ms)` become `ok (512ms)` live, never a static word; the Whisper checkpoint
+still lands on the small diagnostic strip and `this.stage_log`, for the status tray below.
+
+The last 12 stamped steps are kept on `this.stage_log` for that tray (queued, not built here —
+see this task's own log at `ai/sessions/2026/10/05/voice-pipeline/voice-pipeline/`).

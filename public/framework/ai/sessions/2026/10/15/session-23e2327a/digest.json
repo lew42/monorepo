@@ -1,0 +1,36 @@
+{
+ "id": "23e2327a-835b-4edd-bd52-588e397b39f8",
+ "first": "2026-10-15T22:52:55.659Z",
+ "last": "2026-10-15T22:52:57.382Z",
+ "models": {
+  "claude-haiku-5-5": 1
+ },
+ "sizes": {
+  "raw": 17173,
+  "content": 74,
+  "stripped": 74,
+  "owner_only": 39
+ },
+ "usd": 0.017388,
+ "usd_main": 0.017388,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 2,
+  "output": 46,
+  "cache_read": 0,
+  "cache_write": 8578,
+  "w5": 0,
+  "w1": 8578
+ },
+ "messages": 1,
+ "subagent_files": 0,
+ "prompts": [
+  {
+   "at": "2026-10-15T22:52:55.679Z",
+   "t": "Before: The way these sticky things are working is definitely a little bit broken.\nSENTENCE: I'm not sure what..."
+  }
+ ],
+ "result": "{\"clarity\": 0.2, \"why\": \"Sentence is cut off mid-thought; the object of 'not sure what' is missing.\"}",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.189Z"
+}

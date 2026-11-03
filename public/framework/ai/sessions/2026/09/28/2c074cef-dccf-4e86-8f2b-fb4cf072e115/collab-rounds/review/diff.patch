@@ -1,0 +1,2921 @@
+diff --git a/.claude/hooks/ledger.mjs b/.claude/hooks/ledger.mjs
+index dc619bd9..ef8ba6c9 100644
+--- a/.claude/hooks/ledger.mjs
++++ b/.claude/hooks/ledger.mjs
+@@ -174,6 +174,7 @@ const run = async () => {
+ 		await guard("syntax-guard", async () => (await import("./syntax-guard.mjs")).default(file));
+ 		await guard("health-guard", async () => (await import("./health-guard.mjs")).default(file, agent));
+ 		await guard("hold-guard",   async () => (await import("./hold-guard.mjs")).default(file, agent));
++		await guard("naming-guard", async () => (await import("./naming-guard.mjs")).default(file, agent));
+ 		const r = file && rel(file);
+ 		if (!r) return;
+ 		const by_path = find_task_by_path(file);
+diff --git a/.claude/hooks/naming-guard.mjs b/.claude/hooks/naming-guard.mjs
+new file mode 100644
+index 00000000..0867553f
+--- /dev/null
++++ b/.claude/hooks/naming-guard.mjs
+@@ -0,0 +1,108 @@
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++import { spawnSync } from "node:child_process";
++
++// ⚠ Same override as ledger.mjs: a worktree session's task.jsonl usually lives in the
++// MAIN tree (minion briefs say so explicitly), not the worktree this hook script runs
++// in — LEDGER_ROOT is how ledger.mjs already points itself back there, and naming-guard
++// has to agree or every path/pin check below silently misses.
++const root = path.resolve(process.env.LEDGER_ROOT || path.join(fileURLToPath(import.meta.url), "../../.."));
++
++/* THE NAMING NAG (2026-09-28) — the owner's own worry (file-explorer-fs/owner-words.md):
++ * "we either need the AI to remember to wire up every decision that was made… I'm not
++ * sure if it could happen in more of a systematic way." This is the systematic half for
++ * CLASSES: after any Edit/Write of a `.js` file under `public/` that ADDS a `class X`
++ * declaration — new in THIS write, checked against the file's last commit, not a class
++ * that was already there — look for a `named` line in the shared decisions.jsonl saying
++ * some collaboration actually decided that name. None found? One `log` line in the
++ * CURRENT TASK's own task.jsonl (found the way ledger.mjs finds it: walk up from the
++ * edited file for the nearest task.jsonl). Never a block, never a console line — a
++ * missing decision record is a thing to notice later, not a thing to stop for.
++ *
++ * Same shape as syntax-guard.mjs: its own file, imported inside a try by ledger.mjs, so a
++ * mistake here can never take the ledger hook down with it. Never throws. */
++const CLASS_RE = /\bclass\s+([A-Za-z_$][\w$]*)/g;
++const classNames = src => new Set([...src.matchAll(CLASS_RE)].map(m => m[1]));
++
++// "public/framework/ext/Source/Source.js" -> "ext/Source" — the same framework-relative
++// module path Server/collab.mjs's `target.module` and ext/Doc's own `module()` use.
++const moduleOf = rel => rel.match(/^public\/framework\/(.+)\/[^/]+$/)?.[1] ?? null;
++
++const now = () => {
++	const d = new Date(), o = -d.getTimezoneOffset(), pad = n => String(Math.floor(Math.abs(n))).padStart(2, "0");
++	return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}${o < 0 ? "-" : "+"}${pad(o / 60)}:${pad(o % 60)}`;
++};
++
++function find_task_by_path(file){
++	let dir = path.dirname(path.resolve(file));
++	while (dir === root || dir.startsWith(root + path.sep)) {
++		const candidate = path.join(dir, "task.jsonl");
++		if (fs.existsSync(candidate)) return candidate;
++		if (path.dirname(dir) === dir) return null;
++		dir = path.dirname(dir);
++	}
++	return null;
++}
++
++// A code file is almost never inside its own task's directory (task dirs live under
++// public/framework/ai/<date>/<slug>/, code lives under public/framework/<module>/), so
++// find_task_by_path() above misses nearly every real edit — same as it does for
++// ledger.mjs itself. ledger.mjs's OWN fix is a pin: the first time an agent writes
++// something inside its own task dir, it caches agent id -> task.jsonl in the temp dir
++// (`agent_cache`, ledger.mjs). This reads that SAME cache file, so naming-guard finds
++// whatever task ledger.mjs already pinned this agent to.
++function pinned_task(agent){
++	if (!agent) return null;
++	try {
++		const hit = fs.readFileSync(path.join(os.tmpdir(), `claude-ledger-agent-${String(agent).replace(/[^\w-]/g, "_")}.txt`), "utf8").trim();
++		return hit.startsWith(root) && fs.existsSync(hit) ? hit : null;
++	} catch { return null; }
++}
++
++function namedSet(){
++	const decisions = path.join(root, "public/framework/ai/collab/decisions.jsonl");
++	const out = new Set();
++	try {
++		for (const line of fs.readFileSync(decisions, "utf8").split(/\r?\n/)) {
++			if (!line.trim()) continue;
++			try {
++				const n = JSON.parse(line).named;
++				if (n?.kind === "class" && n.module && n.member) out.add(n.module + "\u0000" + n.member);
++			} catch {}
++		}
++	} catch {}
++	return out;
++}
++
++export default function naming_guard(file, agent){
++	try {
++		if (!file || !/\.js$/.test(file) || !fs.existsSync(file)) return;
++		const abs = path.resolve(file);
++		if (!abs.toLowerCase().startsWith(root.toLowerCase() + path.sep)) return;
++		const rel = path.relative(root, abs).split(path.sep).join("/");
++		if (!rel.startsWith("public/")) return;
++		const module = moduleOf(rel);
++		if (!module) return;
++
++		const now_src = fs.readFileSync(abs, "utf8");
++		const before = spawnSync("git", ["show", `HEAD:${rel}`], { cwd: root, encoding: "utf8", windowsHide: true });
++		const old_names = before.status === 0 ? classNames(before.stdout) : new Set();
++		const added = [...classNames(now_src)].filter(n => !old_names.has(n));
++		if (!added.length) return;
++
++		const named = namedSet();
++		const missing = added.filter(cls => !named.has(module + "\u0000" + cls));
++		if (!missing.length) return;
++
++		const task = find_task_by_path(abs) || pinned_task(agent);
++		if (!task) return;
++		for (const cls of missing) {
++			let lead = "";
++			try { const b = fs.readFileSync(task); if (b.length && b.at(-1) !== 10) lead = "\n"; } catch {}
++			fs.appendFileSync(task, lead + JSON.stringify({ log: { at: now(),
++				msg: `naming: class ${cls} in ${module} has no decision record — run a design collab with target, or add a named line with decision: "owner"` } }) + "\n");
++		}
++	} catch {}
++}
+diff --git a/Server/collab.mjs b/Server/collab.mjs
+new file mode 100644
+index 00000000..4313bb76
+--- /dev/null
++++ b/Server/collab.mjs
+@@ -0,0 +1,420 @@
++/* `node Server/collab.mjs <taskdir> [--mock]`
++ * Runs one collaboration: a spec at `<taskdir>/collab.json` names a question, a kind (research |
++ * design) and a list of members. Each member is one Servex agent that lives for the whole run.
++ * Phases run strictly in order — every member finishes a phase before the next phase starts — but
++ * the members WITHIN a phase run in parallel. Every step appends one line to `<taskdir>/collab.jsonl`
++ * (the contract both this runner and the live page share: `collab-format.md` beside this doc).
++ *
++ * research: brief (answer + rough web search, sources listed) -> read-peers (read 1-2 peers' briefs)
++ * -> revise (rewrite your own) -> vote.
++ * design: names (class, properties, methods+args) -> vote (on names) -> implement (everyone builds
++ * the WINNING names) -> cross-review (read peers' code) -> vote (on implementations).
++ *
++ * Members are Servex agents, spawned with `role: "minion"` — a worker may only spawn a minion or a
++ * helper (`spawn_agent` refuses `role: "member"`, proven live before writing this). One `spawn_agent`
++ * per member (phase 1), then `send_to_agent` + `wait_for_agent` for every later phase, `stop_agent`
++ * at the end — always, even on error, so a run never leaves an agent running.
++ *
++ * Cost: `wait_for_agent`'s answer carries a `cost` field, but it is CUMULATIVE for that agent's whole
++ * life, so a phase's own cost is this wait's cost minus the member's cost after the previous phase
++ * (proven with a one-line Haiku probe before writing this: first turn cost 0.0427685, same after
++ * stop — a single number that only grows).
++ *
++ * `--mock`: no Servex calls at all — canned files and votes, so the phases, the tally rules and the
++ * page reading collab.jsonl can all be proven for $0.
++ *
++ * A `decision` line's `counts` always lists every option, zero included — never only the ones that
++ * got a vote (Added 14:25). With `target: {module, class}` in `collab.json`, the design names phase
++ * also asks for a sidecar `<n>-names.json`; once the names vote is decided, one `named` line per
++ * class/property/method of the WINNING set goes to `public/framework/ai/collab/decisions.jsonl`.
++ *
++ * Every Node spawn sets `windowsHide: true` (matches the rest of Server/, even though this file's
++ * only child process is `git rev-parse`, used once to find the repo root). Never throws: a member
++ * that errors is logged `status: "error"` and the run carries on without it. */
++import fs from "node:fs";
++import path from "node:path";
++import { spawnSync } from "node:child_process";
++import { fileURLToPath } from "node:url";
++
++const MCP = "http://127.0.0.1:8090/mcp";
++const DEFAULT_TIMEOUT_S = 600; // 10 minutes per member per phase
++
++const DEFAULT_PHASES = {
++	research: [{ n: 1, kind: "brief" }, { n: 2, kind: "read-peers" }, { n: 3, kind: "revise" }, { n: 4, kind: "vote" }],
++	design: [{ n: 1, kind: "names" }, { n: 2, kind: "vote" }, { n: 3, kind: "implement" }, { n: 4, kind: "cross-review" }, { n: 5, kind: "vote" }],
++};
++
++const now = () => { const d = new Date(), o = -d.getTimezoneOffset(), p = n => String(Math.floor(Math.abs(n))).padStart(2, "0"); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}${o < 0 ? "-" : "+"}${p(o / 60)}:${p(o % 60)}`; };
++function appendJSON(file, obj) {
++	let lead = ""; try { const b = fs.readFileSync(file); if (b.length && b.at(-1) !== 10) lead = "\n"; } catch {}
++	fs.appendFileSync(file, lead + JSON.stringify(obj) + "\n");
++}
++const rel = (root, p) => path.relative(root, p).replaceAll("\\", "/");
++
++async function mcp(name, args, ms = 30000) {
++	const r = await fetch(MCP, { method: "POST", headers: { "content-type": "application/json", accept: "application/json, text/event-stream" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name, arguments: args } }), signal: AbortSignal.timeout(ms) });
++	const j = await r.json();
++	const text = j.result?.content?.[0]?.text ?? j.error?.message ?? "";
++	try { return JSON.parse(text); } catch { return { raw: text }; }
++}
++
++// 1-2 peers, round-robin after this member, never itself.
++function peersFor(ids, i) {
++	const count = Math.min(2, ids.length - 1);
++	const out = [];
++	for (let k = 1; k <= count; k++) out.push(ids[(i + k) % ids.length]);
++	return out;
++}
++
++const fileFor = (taskDir, id, phase) => path.join(taskDir, "collab", id, `${phase.n}-${phase.kind}.${phase.kind === "vote" ? "json" : "md"}`);
++// Added 14:25: with collab.json's `target`, the names phase also asks for a sidecar names.json.
++const namesJsonFor = (taskDir, id, phase) => path.join(taskDir, "collab", id, `${phase.n}-names.json`);
++
++// Everything every prompt repeats: the question, the context, the member's own write-only dir.
++function header(spec, root, taskDir, member) {
++	const ctx = (spec.context || []).map(f => rel(root, path.join(root, f)));
++	const dir = rel(root, path.join(taskDir, "collab", member.id));
++	return `You are "${member.id}", one member of a collaboration. Repo root: ${root.replaceAll("\\", "/")}.\n`
++		+ `Question: ${spec.question}\n`
++		+(ctx.length ? `Context to read first: ${ctx.join(", ")}\n` : "")
++		+ `Write ONLY inside your own directory, ${dir}/ — never anywhere else, and never write to `
++		+ `collab.jsonl yourself: the runner is its only writer, and a stray line from you corrupts `
++		+ `the whole run's log for every reader.\n\n`;
++}
++
++function promptFor(spec, root, taskDir, member, phase, ids, lastContentPhase, namesWinner) {
++	const h = header(spec, root, taskDir, member);
++	const out = rel(root, fileFor(taskDir, member.id, phase));
++	const peers = peersFor(ids, ids.indexOf(member.id)).map(p => rel(root, fileFor(taskDir, p, lastContentPhase)));
++	switch (phase.kind) {
++		case "brief":
++			return h + `Answer the question with a rough web search (WebSearch/WebFetch) — a few searches, not exhaustive. Write ${out}: your answer, then a short "Sources" list of the pages you used.`;
++		case "read-peers":
++			return h + `Read these peers' briefs: ${peers.join(", ")}. Write ${out}: one or two plain sentences per peer on what they found that you missed, or "nothing new" if so.`;
++		case "revise":
++			return h + `Using what you read from peers, rewrite your own answer. Write ${out}: the improved answer.`;
++		case "names":
++			return h + `Propose an object-oriented design for this: the class name, its properties, its methods and each method's arguments — no implementation yet. Write ${out}.`
++				+ (spec.target ? ` Also write ${rel(root, namesJsonFor(taskDir, member.id, phase))} as JSON, matching your prose exactly: {"class": "<class name>", "properties": ["<name>", ...], "methods": [{"name": "<name>", "args": ["<arg>", ...]}, ...]}.` : "");
++		case "implement":
++			return h + (namesWinner ? `The group voted on names; the winner is ${namesWinner.id}'s proposal:\n\n${namesWinner.text}\n\nImplement exactly these names (JS).` : `Implement your own names proposal (JS).`) + ` Write ${out} as a fenced code block plus one sentence on any judgment call you made.`;
++		case "cross-review":
++			return h + `Read these peers' implementations: ${peers.join(", ")}. Write ${out}: for each, is it functionally the same as yours? What is better about it, if anything?`;
++		case "vote": {
++			const candidates = ids.filter(id => id !== member.id);
++			const files = candidates.map(id => rel(root, fileFor(taskDir, id, lastContentPhase)));
++			return h + `Read the ${lastContentPhase.kind} files of: ${candidates.map((id, i) => `${id} (${files[i]})`).join(", ")}. Pick the one you think is best — never yourself. Write ${out} as JSON: {"pick": "<member id>", "caveat": "<the one improvement you would make, or empty string if none>"}.`;
++		}
++	}
++}
++
++// counts, winner, and which tie-break rule fired.
++function tallyVotes(votes, costs) {
++	const counts = {};
++	for (const v of votes) counts[v.pick] = (counts[v.pick] || 0) + 1;
++	const max = Math.max(0, ...Object.values(counts));
++	let tied = Object.keys(counts).filter(id => counts[id] === max);
++	let rule = "most votes";
++	if (tied.length > 1) {
++		const free = id => votes.filter(v => v.pick === id && !(v.caveat || "").trim()).length;
++		const fmax = Math.max(...tied.map(free));
++		const tied2 = tied.filter(id => free(id) === fmax);
++		rule = "tie: more caveat-free votes";
++		if (tied2.length > 1) { tied2.sort((a, b) => (costs[a] ?? 0) - (costs[b] ?? 0)); rule = "tie: cheaper member"; tied = [tied2[0]]; }
++		else tied = tied2;
++	}
++	return { counts, winner: tied[0], rule };
++}
++
++function mockContent(phase, member) {
++	if (phase.kind === "vote") return null; // votes are computed separately below
++	return `# ${member.id} — phase ${phase.n} (${phase.kind})\n\nMock content, no agent ran.\n`;
++}
++
++/* Added 14:15 (collab-format.md): every vote phase is one decision — written "open" (itemizing the
++ * previous phase's outputs as options), then rewritten "decided" (same id, later line wins) — plus
++ * a scoreboard line per option in a shared, append-only file, so a model that never wins can be
++ * spotted and (with `auto_retire`) swapped out automatically. */
++const scoreboardPath = root => path.join(root, "public/framework/ai/collab/scoreboard.jsonl");
++const collabRelId = (root, taskDir) => path.relative(path.join(root, "public/framework/ai"), taskDir).replaceAll("\\", "/");
++function readScoreboard(root) {
++	try { return fs.readFileSync(scoreboardPath(root), "utf8").split(/\r?\n/).filter(Boolean).map(l => { try { return JSON.parse(l).score; } catch { return null; } }).filter(Boolean); }
++	catch { return []; }
++}
++// per model: decisions entered, wins, cost, from non-overrule score lines only.
++function scoreAgg(root) {
++	const agg = {};
++	for (const r of readScoreboard(root)) { if (r.overrule) continue; const m = agg[r.model] ||= { decisions: 0, wins: 0, cost: 0 }; m.decisions++; if (r.won) m.wins++; m.cost += r.cost || 0; }
++	return agg;
++}
++// >=5 decisions, win rate under 15%, cost/decision above the median of models with >=5 decisions.
++function retiredModels(root) {
++	const agg = scoreAgg(root);
++	const withN = Object.entries(agg).filter(([, v]) => v.decisions >= 5);
++	if (!withN.length) return { retired: new Set(), agg };
++	const perDecision = withN.map(([, v]) => v.cost / v.decisions).sort((a, b) => a - b);
++	const median = perDecision[Math.floor(perDecision.length / 2)];
++	return { retired: new Set(withN.filter(([, v]) => v.wins / v.decisions < 0.15 && v.cost / v.decisions > median).map(([m]) => m)), agg };
++}
++// itemize the last content phase's outputs as Decision options (ux/Content shape: key, say, caveat).
++function decisionOptions(root, taskDir, ids, errored, lastContentPhase) {
++	return ids.filter(id => !errored.has(id)).map(id => {
++		const f = fileFor(taskDir, id, lastContentPhase);
++		let say = id;
++		try { const line = (fs.readFileSync(f, "utf8").split(/\r?\n/).find(l => l.trim()) || "").trim().slice(0, 140); say = `${id}: ${line}`; } catch {}
++		return { key: id, say, caveat: "", file: rel(root, f) };
++	});
++}
++function decisionConfig(spec, phase, isNamesVote) {
++	const cfg = (spec.decisions || []).find(d => d.phase === phase.n) || {};
++	return { ask: cfg.ask || (isNamesVote ? "Which names set wins?" : `Which ${spec.kind === "design" ? "implementation" : "draft"} wins?`), package: cfg.package !== undefined ? cfg.package : isNamesVote, parent: cfg.parent || null };
++}
++function runnerUp(counts, winner) {
++	const rest = Object.entries(counts).filter(([id]) => id !== winner).sort((a, b) => b[1] - a[1]);
++	return rest.length ? rest[0][0] : null;
++}
++
++/* Added 14:25 (collab-format.md): a design `collab.json` may carry `target: {module, class}`. The
++ * names phase then also asks for `<n>-names.json`; once the names vote (a package decision) is
++ * decided, one `named` line per class/property/method of the WINNING set goes to the shared,
++ * append-only `public/framework/ai/collab/decisions.jsonl`, so ext/Doc can link a ⋯ after any name
++ * it finds there without an AI having to remember to wire the link. A missing or malformed
++ * names.json is logged and skipped — never thrown. */
++const decisionsPath = root => path.join(root, "public/framework/ai/collab/decisions.jsonl");
++// `decPath` is the shared file on a real run, or a copy inside the run's own taskdir under
++// `--mock` (deliverable 1c) — appendNamed never knows or cares which.
++function appendNamed(decPath, target, data, collab, decisionId) {
++	if (!target?.module || !data?.class) throw new Error("names.json has no class, or collab.json's target has no module");
++	const rows = [{ kind: "class", member: data.class }, ...(data.properties || []).map(p => ({ kind: "property", member: p })), ...(data.methods || []).map(m => ({ kind: "method", member: m?.name }))];
++	for (const r of rows) if (r.member) appendJSON(decPath, { named: { at: now(), module: target.module, class: data.class, member: r.member, kind: r.kind, collab, decision: decisionId } });
++}
++
++/* `spawn_agent` can come back `{"id": null, "queued": true, "reason": "only … MB free…"}`
++ * when the host is low on memory (Servex's own admission gate, Global.js) — that is a
++ * WAIT, never an error. The queued agent's id is deterministic (`Agents.name()`:
++ * `${role}-${name}`, lowercased), so poll `list_agents` for that id up to the phase
++ * timeout rather than treating "no id yet" as a failure. */
++async function spawnMember(name, model, prompt, root, timeoutS) {
++	const spawned = await mcp("spawn_agent", { role: "minion", name, model, prompt, effort: "low", permission_mode: "bypassPermissions", cwd: root });
++	if (spawned.id) return spawned.id;
++	if (!spawned.queued) throw new Error(spawned.why || spawned.raw || "spawn_agent gave no id");
++	const expected = `minion-${name}`.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
++	const deadline = Date.now() + timeoutS * 1000;
++	while (Date.now() < deadline) {
++		await new Promise(res => setTimeout(res, 5000));
++		const list = await mcp("list_agents", {}, 15000);
++		const row = (list.agents ?? (Array.isArray(list) ? list : [])).find(a => a.id === expected);
++		if (row && row.state && row.state !== "queued" && row.state !== "gone") return row.id;
++	}
++	throw new Error(`spawn_agent: "${name}" still queued after ${timeoutS}s (${spawned.reason || "no memory"})`);
++}
++
++async function runPhase(spec, root, taskDir, taskJsonl, members, phase, ids, lastContentPhase, namesWinner, agents, memberCost, errored, mock, timeoutS) {
++	appendJSON(taskJsonl, { phase: { at: now(), n: phase.n, kind: phase.kind, status: "start" } });
++	const active = members.filter(m => !errored.has(m.id));
++	const results = await Promise.all(active.map(async member => {
++		const file = fileFor(taskDir, member.id, phase);
++		fs.mkdirSync(path.dirname(file), { recursive: true });
++		if (mock) {
++			if (phase.kind === "vote") {
++				const candidates = ids.filter(id => id !== member.id && !errored.has(id));
++				const pick = candidates[(ids.indexOf(member.id) + 1) % candidates.length] || candidates[0];
++				fs.writeFileSync(file, JSON.stringify({ pick, caveat: "mock: no real caveat" }));
++			} else {
++				fs.writeFileSync(file, mockContent(phase, member));
++				if (phase.kind === "names" && spec.target) fs.writeFileSync(namesJsonFor(taskDir, member.id, phase), JSON.stringify({ class: spec.target.class, properties: ["value"], methods: [{ name: "get", args: [] }] }));
++			}
++			return { id: member.id, status: "done", file: rel(root, file), cost: 0, agent: "mock" };
++		}
++		try {
++			const prompt = promptFor(spec, root, taskDir, member, phase, ids, lastContentPhase, namesWinner);
++			if (!agents[member.id]) {
++				agents[member.id] = await spawnMember(`collab-${spec.id}-${member.id}`, member.model, prompt, root, timeoutS);
++			} else {
++				await mcp("send_to_agent", { id: agents[member.id], text: prompt });
++			}
++			const waited = await mcp("wait_for_agent", { id: agents[member.id], timeout_s: timeoutS }, (timeoutS + 10) * 1000);
++			let cum = waited.cost ?? memberCost[member.id] ?? 0;
++			// Deliverable 1d, found live 2026-09-28: `wait_for_agent` can return before the
++			// turn's own cost has landed in Servex's registry (a real vote came back costed
++			// $0) — one short re-check against `list_agents` before trusting a flat number.
++			if (fs.existsSync(file) && cum <= (memberCost[member.id] ?? 0)) {
++				await new Promise(res => setTimeout(res, 2000));
++				try {
++					const list = await mcp("list_agents", {}, 15000);
++					const row = (list.agents ?? (Array.isArray(list) ? list : [])).find(a => a.id === agents[member.id]);
++					if (row && typeof row.cost === "number" && row.cost > cum) cum = row.cost;
++				} catch {}
++			}
++			const phaseCost = Math.max(0, cum - (memberCost[member.id] ?? 0));
++			memberCost[member.id] = cum;
++			if (waited.timed_out) { errored.add(member.id); return { id: member.id, status: "error", why: "timed out", cost: phaseCost, agent: agents[member.id] }; }
++			if (!fs.existsSync(file)) { errored.add(member.id); return { id: member.id, status: "error", why: "no file written", cost: phaseCost, agent: agents[member.id] }; }
++			return { id: member.id, status: "done", file: rel(root, file), cost: phaseCost, agent: agents[member.id] };
++		} catch (e) {
++			errored.add(member.id);
++			return { id: member.id, status: "error", why: String(e?.message || e).slice(0, 200), cost: 0, agent: agents[member.id] || null };
++		}
++	}));
++	for (const r of results) appendJSON(taskJsonl, { member: { at: now(), id: r.id, phase: phase.n, status: r.status, ...(r.why ? { why: r.why } : {}), ...(r.file ? { file: r.file } : {}), cost: r.cost, agent: r.agent } });
++	const phaseCost = results.reduce((s, r) => s + r.cost, 0);
++	appendJSON(taskJsonl, { phase: { at: now(), n: phase.n, kind: phase.kind, status: "done", cost: Number(phaseCost.toFixed(6)) } });
++
++	if (phase.kind === "vote") {
++		// Deliverable 1f, found live 2026-09-28: haiku-c's vote file existed on disk even
++		// though the runner had already marked it errored on an EARLIER phase (so it never
++		// ran this one) — a 1-1 tie was announced as a 1-0 win. The vote file on disk is
++		// the ground truth, checked for every spec member, not just the ones this phase
++		// actually ran. No file (never ran, or never wrote one) = abstained, not silently
++		// dropped, and a vote where fewer than half the members voted is flagged `thin`.
++		const votes = [], abstained = [];
++		for (const id of ids) {
++			try {
++				const v = JSON.parse(fs.readFileSync(fileFor(taskDir, id, phase), "utf8"));
++				if (v.pick && v.pick !== id) { votes.push({ member: id, pick: v.pick, caveat: v.caveat || "" }); appendJSON(taskJsonl, { vote: { at: now(), phase: phase.n, member: id, pick: v.pick, caveat: v.caveat || "" } }); }
++				else abstained.push(id);
++			} catch { abstained.push(id); }
++		}
++		const t = tallyVotes(votes, memberCost);
++		const thin = votes.length < ids.length / 2;
++		appendJSON(taskJsonl, { tally: { at: now(), phase: phase.n, counts: t.counts, winner: t.winner, caveats: votes.map(v => v.caveat).filter(Boolean), rule: t.rule, abstained, thin } });
++		return { results, vote: { votes, abstained, thin, ...t } };
++	}
++	return { results };
++}
++
++// `node Server/collab.mjs --score <taskdir>`: turn owner `{"chose":…}` overrules into overrule
++// score lines, once each (checked against the scoreboard's own `overrule` rows).
++function scoreOverrules(root, taskDir) {
++	const spec = JSON.parse(fs.readFileSync(path.join(taskDir, "collab.json"), "utf8"));
++	const modelOf = Object.fromEntries(spec.members.map(m => [m.id, m.model]));
++	const rows = fs.readFileSync(path.join(taskDir, "collab.jsonl"), "utf8").split(/\r?\n/).filter(Boolean).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
++	const decisions = {}; for (const l of rows) if (l.decision?.status === "decided") decisions[l.decision.id] = l.decision;
++	const already = new Set(readScoreboard(root).filter(s => s.overrule).map(s => s.decision));
++	const collab = collabRelId(root, taskDir);
++	let n = 0;
++	for (const l of rows) {
++		if (!l.chose || already.has(l.chose.decision)) continue;
++		const d = decisions[l.chose.decision];
++		const picked = d?.options?.find(o => o.say === l.chose.option);
++		if (!d || !picked || picked.key === d.chosen) continue; // not a real overrule
++		for (const [member, won] of [[picked.key, true], [d.chosen, false]])
++			appendJSON(scoreboardPath(root), { score: { at: now(), collab, decision: d.id, member, model: modelOf[member], votes: d.counts?.[member] || 0, won, cost: 0, overrule: true } });
++		n++;
++	}
++	console.log(`collab.mjs --score: ${n} overrule(s) scored for ${collab}`);
++}
++
++async function main() {
++	const argv = process.argv.slice(2);
++	const root0 = spawnSync("git", ["rev-parse", "--show-toplevel"], { cwd: process.cwd(), encoding: "utf8", windowsHide: true }).stdout.trim() || process.cwd();
++	if (argv[0] === "--score") { scoreOverrules(root0, path.resolve(argv[1])); return; }
++	const mock = argv.includes("--mock");
++	const taskDirArg = argv.find(a => !a.startsWith("--"));
++	if (!taskDirArg) { console.error("usage: node Server/collab.mjs <taskdir> [--mock] | node Server/collab.mjs --score <taskdir>"); process.exit(1); }
++	const taskDir = path.resolve(taskDirArg);
++	const root = root0;
++	const spec = JSON.parse(fs.readFileSync(path.join(taskDir, "collab.json"), "utf8"));
++	spec.id = spec.id || path.basename(taskDir);
++	const members = spec.members;
++	const ids = members.map(m => m.id);
++	const phases = spec.phases || DEFAULT_PHASES[spec.kind];
++	if (!phases) { console.error(`unknown kind "${spec.kind}" and no phases given`); process.exit(1); }
++	const timeoutS = spec.timeout_s || DEFAULT_TIMEOUT_S;
++
++	// warn on (and, if asked, swap out) a model the scoreboard says is retired
++	const { retired, agg } = retiredModels(root);
++	for (const m of members) {
++		if (!retired.has(m.model)) continue;
++		console.warn(`collab.mjs: model "${m.model}" is retired (low win rate, above-median cost) — member ${m.id}`);
++		if (spec.auto_retire) {
++			const alt = Object.entries(agg).filter(([mo]) => !retired.has(mo)).sort((a, b) => a[1].cost / a[1].decisions - b[1].cost / b[1].decisions)[0];
++			if (alt) { console.warn(`collab.mjs: auto_retire swapped ${m.id}: ${m.model} -> ${alt[0]}`); m.model = alt[0]; }
++		}
++	}
++
++	fs.mkdirSync(path.join(taskDir, "collab"), { recursive: true });
++	// Deliverable 1c: `--mock` writes NOTHING to the shared scoreboard/decisions files —
++	// its own copies live inside its own taskdir, so a $0 test run never skews the real
++	// model scoreboard or puts a ⋯ link on a class that doesn't exist.
++	const sbPath = mock ? path.join(taskDir, "collab", "scoreboard.jsonl") : scoreboardPath(root);
++	const decPath = mock ? path.join(taskDir, "collab", "decisions.jsonl") : decisionsPath(root);
++	fs.mkdirSync(path.dirname(sbPath), { recursive: true });
++	fs.mkdirSync(path.dirname(decPath), { recursive: true });
++	const taskJsonl = path.join(taskDir, "collab.jsonl");
++	appendJSON(taskJsonl, { collab: { at: now(), id: spec.id, question: spec.question, kind: spec.kind, members, phases } });
++
++	const agents = {}, memberCost = {}, errored = new Set(), costByPhase = {};
++	let lastContentPhase = phases[0], namesWinner = null, finalVote = null, decisionN = 0, failReason = null;
++	try {
++		for (const phase of phases) {
++			// Deliverable 1b: never march on with nobody left to run a phase.
++			if (!members.some(m => !errored.has(m.id))) { failReason = `every member had already errored before phase ${phase.n} (${phase.kind})`; break; }
++			let decisionId = null, options = null, isNamesVote = false;
++			if (phase.kind === "vote") {
++				isNamesVote = lastContentPhase.kind === "names";
++				const cfg = decisionConfig(spec, phase, isNamesVote);
++				decisionId = `d-${++decisionN}`;
++				options = decisionOptions(root, taskDir, ids, errored, lastContentPhase);
++				appendJSON(taskJsonl, { decision: { at: now(), id: decisionId, phase: phase.n, parent: cfg.parent, ask: cfg.ask, package: cfg.package, options, status: "open" } });
++			}
++			const votedOnPhase = lastContentPhase; // the phase whose files this vote (if any) is about
++			const r = await runPhase(spec, root, taskDir, taskJsonl, members, phase, ids, lastContentPhase, namesWinner, agents, memberCost, errored, mock, timeoutS);
++			costByPhase[phase.n] = Object.fromEntries(r.results.map(x => [x.id, x.cost]));
++			// Deliverable 1b: every member of THIS phase erroring is a stop, not a shrug —
++			// a vote phase where nobody produced anything is not a vote, it is a failure.
++			if (!r.results.some(x => x.status === "done")) { failReason = `every member errored in phase ${phase.n} (${phase.kind})`; break; }
++			if (phase.kind !== "vote") lastContentPhase = phase;
++			if (phase.kind === "vote") {
++				finalVote = r.vote;
++				const t = r.vote;
++				// Added 14:25: every option keeps its count, zero included — never only the ones that got a vote.
++				const counts = Object.fromEntries(options.map(o => [o.key, t.counts[o.key] || 0]));
++				const up = runnerUp(counts, t.winner);
++				appendJSON(taskJsonl, { decision: { at: now(), id: decisionId, phase: phase.n, status: "decided", counts, chosen: t.winner, runner_up: up, caveats: t.votes.map(v => v.caveat).filter(Boolean), tie_rule: t.rule === "most votes" ? null : t.rule, abstained: t.abstained, thin: t.thin } });
++				const phaseCosts = costByPhase[votedOnPhase.n] || {};
++				for (const opt of options) appendJSON(sbPath, { score: { at: now(), collab: collabRelId(root, taskDir), decision: decisionId, member: opt.key, model: (members.find(m => m.id === opt.key) || {}).model, votes: counts[opt.key], won: opt.key === t.winner, cost: phaseCosts[opt.key] || 0 } });
++				// design's first vote (on names) feeds the winning proposal into "implement", and (with a
++				// `target`) indexes the winning names into the shared decisions.jsonl.
++				if (isNamesVote && t.winner) {
++					try { namesWinner = { id: t.winner, text: fs.readFileSync(fileFor(taskDir, t.winner, votedOnPhase), "utf8") }; } catch {}
++					if (spec.target) {
++						try { appendNamed(decPath, spec.target, JSON.parse(fs.readFileSync(namesJsonFor(taskDir, t.winner, votedOnPhase), "utf8")), collabRelId(root, taskDir), decisionId); }
++						catch (e) { console.warn(`collab.mjs: no usable names.json from winner "${t.winner}" — ${String(e?.message || e).slice(0, 150)}; no decisions.jsonl lines written`); }
++					}
++				}
++			}
++		}
++	} finally {
++		if (!mock) for (const id of Object.values(agents)) { try { await mcp("stop_agent", { id }, 20000); } catch {} }
++	}
++
++	// Deliverable 1b: a failed run writes its own `winner` line (status "failed") and exits
++	// non-zero — never a normal tally.md pretending the run reached a real conclusion.
++	if (failReason) {
++		appendJSON(taskJsonl, { winner: { at: now(), pick: null, status: "failed", why: failReason } });
++		fs.writeFileSync(path.join(taskDir, "collab", "tally.md"), `# ${spec.question}\n\n**Run failed:** ${failReason}\n`);
++		console.error(`collab.mjs: ${spec.kind} "${spec.id}" — FAILED: ${failReason}`);
++		process.exitCode = 1;
++		return;
++	}
++
++	const runCost = Object.values(memberCost).reduce((s, c) => s + c, 0);
++	const winnerId = finalVote?.winner;
++	// Deliverable 1g: the winner's FILE is its own artifact, never a phase where it wrote
++	// about someone else's — "cross-review" and "read-peers" are commentary on peers, not a
++	// draft of the member's own. Skip those; the artifact phases in order are brief/names
++	// (research/design's first output) and implement (design's own code).
++	const REVIEW_KINDS = ["read-peers", "cross-review"];
++	const artifactPhases = phases.filter(p => p.kind !== "vote" && !REVIEW_KINDS.includes(p.kind));
++	const winnerPhase = artifactPhases.at(-1) ?? phases.filter(p => p.kind !== "vote").at(-1);
++	const winnerFile = winnerId ? rel(root, fileFor(taskDir, winnerId, winnerPhase)) : null;
++	if (finalVote) appendJSON(taskJsonl, { winner: { at: now(), pick: winnerId, file: winnerFile, caveats: finalVote.votes.map(v => v.caveat).filter(Boolean), cost: Number(runCost.toFixed(6)) } });
++
++	const md = [`# ${spec.question}`, "", `**Winner:** ${winnerId || "(no vote reached)"}${winnerFile ? ` — \`${winnerFile}\`` : ""}`, `**Rule:** ${finalVote?.rule || "n/a"}`, finalVote?.thin ? "**⚠ thin: fewer than half the members voted**" : null, `**Run cost:** $${runCost.toFixed(4)}`, "", "## Votes", ...(finalVote ? Object.entries(finalVote.counts).map(([id, n]) => `- ${id}: ${n} vote(s), $${(memberCost[id] || 0).toFixed(4)}`) : ["(none)"]), ...(finalVote?.abstained?.length ? ["", "## Abstained (no vote file)", ...finalVote.abstained.map(id => `- ${id}`)] : []), "", "## Caveats", ...(finalVote?.votes.filter(v => v.caveat).map(v => `- ${v.member}: ${v.caveat}`) || ["(none)"])].filter(l => l !== null).join("\n") + "\n";
++	fs.writeFileSync(path.join(taskDir, "collab", "tally.md"), md);
++	console.log(`collab.mjs: ${spec.kind} "${spec.id}" — winner ${winnerId || "none"}, $${runCost.toFixed(4)}`);
++}
++
++const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
++if (isMain) main().catch(e => { console.error(String(e?.stack || e)); process.exitCode = 1; });
+diff --git a/Server/doc/collab.md b/Server/doc/collab.md
+new file mode 100644
+index 00000000..1efa3c82
+--- /dev/null
++++ b/Server/doc/collab.md
+@@ -0,0 +1,107 @@
++# collab — a few agents work the same question, then vote
++
++`Server/collab.mjs` runs one **collaboration**: several Servex agents (the **members**) go through
++the same numbered steps (the **phases**), one phase at a time — everyone finishes phase 1 before
++anyone starts phase 2 — and end by voting on the best draft. It is the runner for the shape both
++this doc and the live page agree on: `public/framework/ai/2026-09-28/collab-rounds/collab-format.md`.
++
++## Write a `collab.json`
++
++Put this next to where you want the run's files (`<taskdir>/collab.json`):
++
++```json
++{
++  "question": "What is the boiling point of water at sea level, in Celsius?",
++  "kind": "research",
++  "members": [
++    {"id": "haiku-a", "model": "claude-haiku-4-5-20251001"},
++    {"id": "sonnet-b", "model": "claude-sonnet-5"}
++  ],
++  "context": ["public/framework/ai/2026-09-28/collab-rounds/some-background.md"]
++}
++```
++
++- `kind: "research"` — brief (answer + a rough web search, sources listed) → read-peers → revise →
++  vote. `kind: "design"` — names (the class, its properties, its methods and their arguments) →
++  vote (on names) → implement (everyone builds the WINNING names) → cross-review → vote.
++- `context` is optional: files every member reads before its first phase.
++- `members[].model` is a plain string, so a Haiku/Sonnet mix, or later an OpenRouter id, all work.
++- `decisions` (optional): `[{"phase": 2, "ask": "...", "package": true, "parent": "d-1"}]` to name a
++  vote's question or mark it a **package deal** (the options are whole signatures, voted as one — the
++  design's names vote is a package by default) or to chain it under an earlier decision (`parent`).
++- `auto_retire: true` swaps out any member whose model the scoreboard (below) says is retired.
++- `target` (optional, design only): `{"module": "ext/Source", "class": "Source"}`. It asks each
++  member for a sidecar `<n>-names.json` beside its prose names file — `{"class": "Source",
++  "properties": ["url", "kind"], "methods": [{"name": "save", "args": ["dir"]}]}` — so the WINNING
++  set can be indexed by name once the names vote is decided (see decisions.jsonl below). Skip it and
++  you just get the prose file; nothing else changes.
++
++## Run it
++
++```
++node Server/collab.mjs <taskdir>            the real run — spawns real Servex agents, costs real $
++node Server/collab.mjs <taskdir> --mock     no agents, canned files and votes, $0 — proves the flow
++node Server/collab.mjs --score <taskdir>    turn the owner's overrule clicks into scoreboard lines
++```
++
++Run it from the repo root. Every member is one Servex agent, alive for the whole run (`spawn_agent`
++once, `send_to_agent` for each later phase), and every one is stopped at the end — even if a phase
++errors. A member that times out (10 minutes by default; `timeout_s` in `collab.json` to change it)
++is marked `error` in `collab.jsonl` and the run carries on without it.
++
++## Read the result
++
++`<taskdir>/collab/tally.md` is the one screen: the winner, its file, which tie-break rule fired (if
++any), the vote counts with each member's cost, and every caveat a voter left. The full trace — every
++phase, every member's file and cost, every vote, and a `decision` line per vote (opened with the
++options, then rewritten "decided" with the counts — **every option, zero votes included** — and the
++runner-up) — is `<taskdir>/collab.jsonl`, one JSON object per line, append-only; the contract above
++names every verb.
++
++A model's track record across every run lives in one shared file,
++`public/framework/ai/collab/scoreboard.jsonl` (append-only, never rewritten): one line per member
++per decision — did it win, how many votes, what it cost. A model with 5+ decisions, a win rate under
++15% and an above-median cost prints a warning next run (and gets swapped out if `auto_retire` is on).
++
++With a `target`, once the names vote is decided, one line per class/property/method of the winning
++set goes into another shared file, `public/framework/ai/collab/decisions.jsonl` (also append-only):
++`{"named": {"module": "ext/Source", "class": "Source", "member": "save", "kind": "method", "collab":
++"<taskdir relative to ai/>", "decision": "d-1"}}`. ext/Doc reads this once and draws a ⋯ after any
++name it finds there, linking to `/framework/ext/Collab/?src=/framework/ai/<collab>/collab.jsonl#d-1`
++— so a class page can point back to the vote that named it, without an AI remembering to wire the
++link by hand. A missing or malformed `names.json` from the winner is logged to the console and
++skipped: no `decisions.jsonl` lines, nothing else stops.
++
++## Watch out
++
++- `wait_for_agent`'s `cost` is **cumulative for that agent's whole life**, not per phase — the
++  runner subtracts the member's cost after the previous phase to get each phase's own number
++  (proven with a one-line Haiku probe before this was built: same total before and after `stop_agent`).
++  It can also read BEFORE the turn's own cost has landed in Servex's registry — a real vote came back
++  costed $0 once — so the runner re-checks `list_agents` once, a couple seconds later, before trusting
++  a flat number.
++- A worker (a minion) may only `spawn_agent` with `role: "minion"` — `role: "member"` is refused.
++  Members show up in `list_agents` as `minion-collab-<run>-<member id>`.
++- `spawn_agent` can answer `{"id": null, "queued": true, "reason": "…"}` when the host is low on
++  memory (Servex's own admission gate) — that is a WAIT, not a failure. The runner polls
++  `list_agents` for the member's own (deterministic) id until it starts, up to the phase timeout.
++- **Every member's `<n>-vote.json` is read from disk**, even one whose wait timed out or errored —
++  a real vote file turned up on disk from a member the runner had already marked errored on an
++  EARLIER phase, and a 1-1 tie was misreported as a 1-0 win before this was fixed. No file = listed
++  `abstained` in the decision, never silently dropped; a vote where fewer than half the members
++  voted is flagged `thin: true` in both the decision line and `tally.md`.
++- **If every member of a phase errors, the run stops** — it writes one `winner` line with
++  `status: "failed"` and a `why`, writes a short `tally.md` saying so, and exits non-zero. It never
++  marches on to announce a winner from zero real votes.
++- The winner's own `file` always points at what it actually WROTE (`brief`/`revise` for research,
++  `implement` for design) — never a phase where it wrote about a PEER's work (`read-peers`,
++  `cross-review`), even when that review phase happens to run right before the final vote.
++- **`--mock` never touches the shared files.** `public/framework/ai/collab/scoreboard.jsonl` and
++  `decisions.jsonl` are for real runs only; a `--mock` run writes its own copies inside
++  `<taskdir>/collab/`, so a $0 test can never skew the model scoreboard or put a ⋯ link on a class
++  that does not exist.
++- Every member's prompt says plainly: write ONLY inside your own `collab/<id>/` directory, never
++  `collab.jsonl` — the runner is its only writer. A member that ignores this corrupts the log for
++  every reader (stray lines were found in a real run before this line was added).
++- The contract's `Vote` shape (`member`, `pick`, `caveat`) is shared with the check-consensus task —
++  do not rename those three fields.
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab.json b/public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab.json
+new file mode 100644
+index 00000000..64cedfab
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab.json
+@@ -0,0 +1,8 @@
++{
++  "question": "Design a small Stopwatch class: start, stop, reset, elapsed time.",
++  "kind": "design",
++  "members": [
++    {"id": "haiku-a", "model": "claude-haiku-4-5-20251001"},
++    {"id": "sonnet-b", "model": "claude-sonnet-5"}
++  ]
++}
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab.jsonl b/public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab.jsonl
+new file mode 100644
+index 00000000..be5a003c
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab.jsonl
+@@ -0,0 +1,32 @@
++{"collab":{"at":"2026-09-28T13:59:51-05:00","id":"test-mock-design","question":"Design a small Stopwatch class: start, stop, reset, elapsed time.","kind":"design","members":[{"id":"haiku-a","model":"claude-haiku-4-5-20251001"},{"id":"sonnet-b","model":"claude-sonnet-5"}],"phases":[{"n":1,"kind":"names"},{"n":2,"kind":"vote"},{"n":3,"kind":"implement"},{"n":4,"kind":"cross-review"},{"n":5,"kind":"vote"}]}}
++{"phase":{"at":"2026-09-28T13:59:51-05:00","n":1,"kind":"names","status":"start"}}
++{"member":{"at":"2026-09-28T13:59:51-05:00","id":"haiku-a","phase":1,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab/haiku-a/1-names.md","cost":0,"agent":"mock"}}
++{"member":{"at":"2026-09-28T13:59:51-05:00","id":"sonnet-b","phase":1,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab/sonnet-b/1-names.md","cost":0,"agent":"mock"}}
++{"phase":{"at":"2026-09-28T13:59:51-05:00","n":1,"kind":"names","status":"done","cost":0}}
++{"decision":{"at":"2026-09-28T13:59:51-05:00","id":"d-1","phase":2,"parent":null,"ask":"Which names set wins?","package":true,"options":[{"key":"haiku-a","say":"haiku-a: # haiku-a — phase 1 (names)","caveat":"","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab/haiku-a/1-names.md"},{"key":"sonnet-b","say":"sonnet-b: # sonnet-b — phase 1 (names)","caveat":"","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab/sonnet-b/1-names.md"}],"status":"open"}}
++{"phase":{"at":"2026-09-28T13:59:51-05:00","n":2,"kind":"vote","status":"start"}}
++{"member":{"at":"2026-09-28T13:59:51-05:00","id":"haiku-a","phase":2,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab/haiku-a/2-vote.json","cost":0,"agent":"mock"}}
++{"member":{"at":"2026-09-28T13:59:51-05:00","id":"sonnet-b","phase":2,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab/sonnet-b/2-vote.json","cost":0,"agent":"mock"}}
++{"phase":{"at":"2026-09-28T13:59:51-05:00","n":2,"kind":"vote","status":"done","cost":0}}
++{"vote":{"at":"2026-09-28T13:59:51-05:00","phase":2,"member":"haiku-a","pick":"sonnet-b","caveat":"mock: no real caveat"}}
++{"vote":{"at":"2026-09-28T13:59:51-05:00","phase":2,"member":"sonnet-b","pick":"haiku-a","caveat":"mock: no real caveat"}}
++{"tally":{"at":"2026-09-28T13:59:51-05:00","phase":2,"counts":{"sonnet-b":1,"haiku-a":1},"winner":"sonnet-b","caveats":["mock: no real caveat","mock: no real caveat"],"rule":"tie: cheaper member"}}
++{"decision":{"at":"2026-09-28T13:59:51-05:00","id":"d-1","phase":2,"status":"decided","counts":{"sonnet-b":1,"haiku-a":1},"chosen":"sonnet-b","runner_up":"haiku-a","caveats":["mock: no real caveat","mock: no real caveat"],"tie_rule":"tie: cheaper member"}}
++{"phase":{"at":"2026-09-28T13:59:51-05:00","n":3,"kind":"implement","status":"start"}}
++{"member":{"at":"2026-09-28T13:59:51-05:00","id":"haiku-a","phase":3,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab/haiku-a/3-implement.md","cost":0,"agent":"mock"}}
++{"member":{"at":"2026-09-28T13:59:51-05:00","id":"sonnet-b","phase":3,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab/sonnet-b/3-implement.md","cost":0,"agent":"mock"}}
++{"phase":{"at":"2026-09-28T13:59:51-05:00","n":3,"kind":"implement","status":"done","cost":0}}
++{"phase":{"at":"2026-09-28T13:59:51-05:00","n":4,"kind":"cross-review","status":"start"}}
++{"member":{"at":"2026-09-28T13:59:51-05:00","id":"haiku-a","phase":4,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab/haiku-a/4-cross-review.md","cost":0,"agent":"mock"}}
++{"member":{"at":"2026-09-28T13:59:51-05:00","id":"sonnet-b","phase":4,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab/sonnet-b/4-cross-review.md","cost":0,"agent":"mock"}}
++{"phase":{"at":"2026-09-28T13:59:51-05:00","n":4,"kind":"cross-review","status":"done","cost":0}}
++{"decision":{"at":"2026-09-28T13:59:51-05:00","id":"d-2","phase":5,"parent":null,"ask":"Which implementation wins?","package":false,"options":[{"key":"haiku-a","say":"haiku-a: # haiku-a — phase 4 (cross-review)","caveat":"","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab/haiku-a/4-cross-review.md"},{"key":"sonnet-b","say":"sonnet-b: # sonnet-b — phase 4 (cross-review)","caveat":"","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab/sonnet-b/4-cross-review.md"}],"status":"open"}}
++{"phase":{"at":"2026-09-28T13:59:51-05:00","n":5,"kind":"vote","status":"start"}}
++{"member":{"at":"2026-09-28T13:59:51-05:00","id":"haiku-a","phase":5,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab/haiku-a/5-vote.json","cost":0,"agent":"mock"}}
++{"member":{"at":"2026-09-28T13:59:51-05:00","id":"sonnet-b","phase":5,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab/sonnet-b/5-vote.json","cost":0,"agent":"mock"}}
++{"phase":{"at":"2026-09-28T13:59:51-05:00","n":5,"kind":"vote","status":"done","cost":0}}
++{"vote":{"at":"2026-09-28T13:59:51-05:00","phase":5,"member":"haiku-a","pick":"sonnet-b","caveat":"mock: no real caveat"}}
++{"vote":{"at":"2026-09-28T13:59:51-05:00","phase":5,"member":"sonnet-b","pick":"haiku-a","caveat":"mock: no real caveat"}}
++{"tally":{"at":"2026-09-28T13:59:51-05:00","phase":5,"counts":{"sonnet-b":1,"haiku-a":1},"winner":"sonnet-b","caveats":["mock: no real caveat","mock: no real caveat"],"rule":"tie: cheaper member"}}
++{"decision":{"at":"2026-09-28T13:59:51-05:00","id":"d-2","phase":5,"status":"decided","counts":{"sonnet-b":1,"haiku-a":1},"chosen":"sonnet-b","runner_up":"haiku-a","caveats":["mock: no real caveat","mock: no real caveat"],"tie_rule":"tie: cheaper member"}}
++{"winner":{"at":"2026-09-28T13:59:51-05:00","pick":"sonnet-b","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab/sonnet-b/4-cross-review.md","caveats":["mock: no real caveat","mock: no real caveat"],"cost":0}}
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab/haiku-a/1-names.md b/public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab/haiku-a/1-names.md
+new file mode 100644
+index 00000000..9b24f777
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab/haiku-a/1-names.md
+@@ -0,0 +1,3 @@
++# haiku-a — phase 1 (names)
++
++Mock content, no agent ran.
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab/haiku-a/2-vote.json b/public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab/haiku-a/2-vote.json
+new file mode 100644
+index 00000000..0396bf55
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab/haiku-a/2-vote.json
+@@ -0,0 +1 @@
++{"pick":"sonnet-b","caveat":"mock: no real caveat"}
+\ No newline at end of file
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab/haiku-a/3-implement.md b/public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab/haiku-a/3-implement.md
+new file mode 100644
+index 00000000..43a7fb67
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab/haiku-a/3-implement.md
+@@ -0,0 +1,3 @@
++# haiku-a — phase 3 (implement)
++
++Mock content, no agent ran.
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab/haiku-a/4-cross-review.md b/public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab/haiku-a/4-cross-review.md
+new file mode 100644
+index 00000000..5b3564df
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab/haiku-a/4-cross-review.md
+@@ -0,0 +1,3 @@
++# haiku-a — phase 4 (cross-review)
++
++Mock content, no agent ran.
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab/haiku-a/5-vote.json b/public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab/haiku-a/5-vote.json
+new file mode 100644
+index 00000000..0396bf55
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab/haiku-a/5-vote.json
+@@ -0,0 +1 @@
++{"pick":"sonnet-b","caveat":"mock: no real caveat"}
+\ No newline at end of file
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab/sonnet-b/1-names.md b/public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab/sonnet-b/1-names.md
+new file mode 100644
+index 00000000..d8bdf81d
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab/sonnet-b/1-names.md
+@@ -0,0 +1,3 @@
++# sonnet-b — phase 1 (names)
++
++Mock content, no agent ran.
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab/sonnet-b/2-vote.json b/public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab/sonnet-b/2-vote.json
+new file mode 100644
+index 00000000..f78d71cf
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab/sonnet-b/2-vote.json
+@@ -0,0 +1 @@
++{"pick":"haiku-a","caveat":"mock: no real caveat"}
+\ No newline at end of file
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab/sonnet-b/3-implement.md b/public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab/sonnet-b/3-implement.md
+new file mode 100644
+index 00000000..5522d616
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab/sonnet-b/3-implement.md
+@@ -0,0 +1,3 @@
++# sonnet-b — phase 3 (implement)
++
++Mock content, no agent ran.
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab/sonnet-b/4-cross-review.md b/public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab/sonnet-b/4-cross-review.md
+new file mode 100644
+index 00000000..1ecf0395
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab/sonnet-b/4-cross-review.md
+@@ -0,0 +1,3 @@
++# sonnet-b — phase 4 (cross-review)
++
++Mock content, no agent ran.
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab/sonnet-b/5-vote.json b/public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab/sonnet-b/5-vote.json
+new file mode 100644
+index 00000000..f78d71cf
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab/sonnet-b/5-vote.json
+@@ -0,0 +1 @@
++{"pick":"haiku-a","caveat":"mock: no real caveat"}
+\ No newline at end of file
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab/tally.md b/public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab/tally.md
+new file mode 100644
+index 00000000..918c796f
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab/tally.md
+@@ -0,0 +1,13 @@
++# Design a small Stopwatch class: start, stop, reset, elapsed time.
++
++**Winner:** sonnet-b — `public/framework/ai/2026-09-28/collab-rounds/test-mock-design/collab/sonnet-b/4-cross-review.md`
++**Rule:** tie: cheaper member
++**Run cost:** $0.0000
++
++## Votes
++- sonnet-b: 1 vote(s), $0.0000
++- haiku-a: 1 vote(s), $0.0000
++
++## Caveats
++- haiku-a: mock: no real caveat
++- sonnet-b: mock: no real caveat
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab.json b/public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab.json
+new file mode 100644
+index 00000000..32c6a0cf
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab.json
+@@ -0,0 +1,9 @@
++{
++  "question": "Design a small Gizmo class: on, off, state.",
++  "kind": "design",
++  "target": {"module": "ext/Gizmo", "class": "Gizmo"},
++  "members": [
++    {"id": "haiku-a", "model": "claude-haiku-4-5-20251001"},
++    {"id": "sonnet-b", "model": "claude-sonnet-5"}
++  ]
++}
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab.jsonl b/public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab.jsonl
+new file mode 100644
+index 00000000..5bdf6402
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab.jsonl
+@@ -0,0 +1,32 @@
++{"collab":{"at":"2026-09-28T14:16:32-05:00","id":"test-mock-doclink","question":"Design a small Gizmo class: on, off, state.","kind":"design","members":[{"id":"haiku-a","model":"claude-haiku-4-5-20251001"},{"id":"sonnet-b","model":"claude-sonnet-5"}],"phases":[{"n":1,"kind":"names"},{"n":2,"kind":"vote"},{"n":3,"kind":"implement"},{"n":4,"kind":"cross-review"},{"n":5,"kind":"vote"}]}}
++{"phase":{"at":"2026-09-28T14:16:32-05:00","n":1,"kind":"names","status":"start"}}
++{"member":{"at":"2026-09-28T14:16:32-05:00","id":"haiku-a","phase":1,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/haiku-a/1-names.md","cost":0,"agent":"mock"}}
++{"member":{"at":"2026-09-28T14:16:32-05:00","id":"sonnet-b","phase":1,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/sonnet-b/1-names.md","cost":0,"agent":"mock"}}
++{"phase":{"at":"2026-09-28T14:16:32-05:00","n":1,"kind":"names","status":"done","cost":0}}
++{"decision":{"at":"2026-09-28T14:16:32-05:00","id":"d-1","phase":2,"parent":null,"ask":"Which names set wins?","package":true,"options":[{"key":"haiku-a","say":"haiku-a: # haiku-a — phase 1 (names)","caveat":"","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/haiku-a/1-names.md"},{"key":"sonnet-b","say":"sonnet-b: # sonnet-b — phase 1 (names)","caveat":"","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/sonnet-b/1-names.md"}],"status":"open"}}
++{"phase":{"at":"2026-09-28T14:16:32-05:00","n":2,"kind":"vote","status":"start"}}
++{"member":{"at":"2026-09-28T14:16:32-05:00","id":"haiku-a","phase":2,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/haiku-a/2-vote.json","cost":0,"agent":"mock"}}
++{"member":{"at":"2026-09-28T14:16:32-05:00","id":"sonnet-b","phase":2,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/sonnet-b/2-vote.json","cost":0,"agent":"mock"}}
++{"phase":{"at":"2026-09-28T14:16:32-05:00","n":2,"kind":"vote","status":"done","cost":0}}
++{"vote":{"at":"2026-09-28T14:16:32-05:00","phase":2,"member":"haiku-a","pick":"sonnet-b","caveat":"mock: no real caveat"}}
++{"vote":{"at":"2026-09-28T14:16:32-05:00","phase":2,"member":"sonnet-b","pick":"haiku-a","caveat":"mock: no real caveat"}}
++{"tally":{"at":"2026-09-28T14:16:32-05:00","phase":2,"counts":{"sonnet-b":1,"haiku-a":1},"winner":"sonnet-b","caveats":["mock: no real caveat","mock: no real caveat"],"rule":"tie: cheaper member","abstained":[],"thin":false}}
++{"decision":{"at":"2026-09-28T14:16:32-05:00","id":"d-1","phase":2,"status":"decided","counts":{"haiku-a":1,"sonnet-b":1},"chosen":"sonnet-b","runner_up":"haiku-a","caveats":["mock: no real caveat","mock: no real caveat"],"tie_rule":"tie: cheaper member","abstained":[],"thin":false}}
++{"phase":{"at":"2026-09-28T14:16:32-05:00","n":3,"kind":"implement","status":"start"}}
++{"member":{"at":"2026-09-28T14:16:32-05:00","id":"haiku-a","phase":3,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/haiku-a/3-implement.md","cost":0,"agent":"mock"}}
++{"member":{"at":"2026-09-28T14:16:32-05:00","id":"sonnet-b","phase":3,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/sonnet-b/3-implement.md","cost":0,"agent":"mock"}}
++{"phase":{"at":"2026-09-28T14:16:32-05:00","n":3,"kind":"implement","status":"done","cost":0}}
++{"phase":{"at":"2026-09-28T14:16:32-05:00","n":4,"kind":"cross-review","status":"start"}}
++{"member":{"at":"2026-09-28T14:16:32-05:00","id":"haiku-a","phase":4,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/haiku-a/4-cross-review.md","cost":0,"agent":"mock"}}
++{"member":{"at":"2026-09-28T14:16:32-05:00","id":"sonnet-b","phase":4,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/sonnet-b/4-cross-review.md","cost":0,"agent":"mock"}}
++{"phase":{"at":"2026-09-28T14:16:32-05:00","n":4,"kind":"cross-review","status":"done","cost":0}}
++{"decision":{"at":"2026-09-28T14:16:32-05:00","id":"d-2","phase":5,"parent":null,"ask":"Which implementation wins?","package":false,"options":[{"key":"haiku-a","say":"haiku-a: # haiku-a — phase 4 (cross-review)","caveat":"","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/haiku-a/4-cross-review.md"},{"key":"sonnet-b","say":"sonnet-b: # sonnet-b — phase 4 (cross-review)","caveat":"","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/sonnet-b/4-cross-review.md"}],"status":"open"}}
++{"phase":{"at":"2026-09-28T14:16:32-05:00","n":5,"kind":"vote","status":"start"}}
++{"member":{"at":"2026-09-28T14:16:32-05:00","id":"haiku-a","phase":5,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/haiku-a/5-vote.json","cost":0,"agent":"mock"}}
++{"member":{"at":"2026-09-28T14:16:32-05:00","id":"sonnet-b","phase":5,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/sonnet-b/5-vote.json","cost":0,"agent":"mock"}}
++{"phase":{"at":"2026-09-28T14:16:32-05:00","n":5,"kind":"vote","status":"done","cost":0}}
++{"vote":{"at":"2026-09-28T14:16:32-05:00","phase":5,"member":"haiku-a","pick":"sonnet-b","caveat":"mock: no real caveat"}}
++{"vote":{"at":"2026-09-28T14:16:32-05:00","phase":5,"member":"sonnet-b","pick":"haiku-a","caveat":"mock: no real caveat"}}
++{"tally":{"at":"2026-09-28T14:16:32-05:00","phase":5,"counts":{"sonnet-b":1,"haiku-a":1},"winner":"sonnet-b","caveats":["mock: no real caveat","mock: no real caveat"],"rule":"tie: cheaper member","abstained":[],"thin":false}}
++{"decision":{"at":"2026-09-28T14:16:32-05:00","id":"d-2","phase":5,"status":"decided","counts":{"haiku-a":1,"sonnet-b":1},"chosen":"sonnet-b","runner_up":"haiku-a","caveats":["mock: no real caveat","mock: no real caveat"],"tie_rule":"tie: cheaper member","abstained":[],"thin":false}}
++{"winner":{"at":"2026-09-28T14:16:32-05:00","pick":"sonnet-b","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/sonnet-b/3-implement.md","caveats":["mock: no real caveat","mock: no real caveat"],"cost":0}}
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/decisions.jsonl b/public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/decisions.jsonl
+new file mode 100644
+index 00000000..0a871ed8
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/decisions.jsonl
+@@ -0,0 +1,3 @@
++{"named":{"at":"2026-09-28T14:16:32-05:00","module":"ext/Gizmo","class":"Gizmo","member":"Gizmo","kind":"class","collab":"2026-09-28/collab-rounds/test-mock-doclink","decision":"d-1"}}
++{"named":{"at":"2026-09-28T14:16:32-05:00","module":"ext/Gizmo","class":"Gizmo","member":"value","kind":"property","collab":"2026-09-28/collab-rounds/test-mock-doclink","decision":"d-1"}}
++{"named":{"at":"2026-09-28T14:16:32-05:00","module":"ext/Gizmo","class":"Gizmo","member":"get","kind":"method","collab":"2026-09-28/collab-rounds/test-mock-doclink","decision":"d-1"}}
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/haiku-a/1-names.json b/public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/haiku-a/1-names.json
+new file mode 100644
+index 00000000..44f42c90
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/haiku-a/1-names.json
+@@ -0,0 +1 @@
++{"class":"Gizmo","properties":["value"],"methods":[{"name":"get","args":[]}]}
+\ No newline at end of file
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/haiku-a/1-names.md b/public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/haiku-a/1-names.md
+new file mode 100644
+index 00000000..9b24f777
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/haiku-a/1-names.md
+@@ -0,0 +1,3 @@
++# haiku-a — phase 1 (names)
++
++Mock content, no agent ran.
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/haiku-a/2-vote.json b/public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/haiku-a/2-vote.json
+new file mode 100644
+index 00000000..0396bf55
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/haiku-a/2-vote.json
+@@ -0,0 +1 @@
++{"pick":"sonnet-b","caveat":"mock: no real caveat"}
+\ No newline at end of file
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/haiku-a/3-implement.md b/public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/haiku-a/3-implement.md
+new file mode 100644
+index 00000000..43a7fb67
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/haiku-a/3-implement.md
+@@ -0,0 +1,3 @@
++# haiku-a — phase 3 (implement)
++
++Mock content, no agent ran.
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/haiku-a/4-cross-review.md b/public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/haiku-a/4-cross-review.md
+new file mode 100644
+index 00000000..5b3564df
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/haiku-a/4-cross-review.md
+@@ -0,0 +1,3 @@
++# haiku-a — phase 4 (cross-review)
++
++Mock content, no agent ran.
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/haiku-a/5-vote.json b/public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/haiku-a/5-vote.json
+new file mode 100644
+index 00000000..0396bf55
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/haiku-a/5-vote.json
+@@ -0,0 +1 @@
++{"pick":"sonnet-b","caveat":"mock: no real caveat"}
+\ No newline at end of file
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/scoreboard.jsonl b/public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/scoreboard.jsonl
+new file mode 100644
+index 00000000..80eeb655
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/scoreboard.jsonl
+@@ -0,0 +1,4 @@
++{"score":{"at":"2026-09-28T14:16:32-05:00","collab":"2026-09-28/collab-rounds/test-mock-doclink","decision":"d-1","member":"haiku-a","model":"claude-haiku-4-5-20251001","votes":1,"won":false,"cost":0}}
++{"score":{"at":"2026-09-28T14:16:32-05:00","collab":"2026-09-28/collab-rounds/test-mock-doclink","decision":"d-1","member":"sonnet-b","model":"claude-sonnet-5","votes":1,"won":true,"cost":0}}
++{"score":{"at":"2026-09-28T14:16:32-05:00","collab":"2026-09-28/collab-rounds/test-mock-doclink","decision":"d-2","member":"haiku-a","model":"claude-haiku-4-5-20251001","votes":1,"won":false,"cost":0}}
++{"score":{"at":"2026-09-28T14:16:32-05:00","collab":"2026-09-28/collab-rounds/test-mock-doclink","decision":"d-2","member":"sonnet-b","model":"claude-sonnet-5","votes":1,"won":true,"cost":0}}
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/sonnet-b/1-names.json b/public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/sonnet-b/1-names.json
+new file mode 100644
+index 00000000..44f42c90
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/sonnet-b/1-names.json
+@@ -0,0 +1 @@
++{"class":"Gizmo","properties":["value"],"methods":[{"name":"get","args":[]}]}
+\ No newline at end of file
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/sonnet-b/1-names.md b/public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/sonnet-b/1-names.md
+new file mode 100644
+index 00000000..d8bdf81d
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/sonnet-b/1-names.md
+@@ -0,0 +1,3 @@
++# sonnet-b — phase 1 (names)
++
++Mock content, no agent ran.
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/sonnet-b/2-vote.json b/public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/sonnet-b/2-vote.json
+new file mode 100644
+index 00000000..f78d71cf
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/sonnet-b/2-vote.json
+@@ -0,0 +1 @@
++{"pick":"haiku-a","caveat":"mock: no real caveat"}
+\ No newline at end of file
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/sonnet-b/3-implement.md b/public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/sonnet-b/3-implement.md
+new file mode 100644
+index 00000000..5522d616
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/sonnet-b/3-implement.md
+@@ -0,0 +1,3 @@
++# sonnet-b — phase 3 (implement)
++
++Mock content, no agent ran.
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/sonnet-b/4-cross-review.md b/public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/sonnet-b/4-cross-review.md
+new file mode 100644
+index 00000000..1ecf0395
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/sonnet-b/4-cross-review.md
+@@ -0,0 +1,3 @@
++# sonnet-b — phase 4 (cross-review)
++
++Mock content, no agent ran.
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/sonnet-b/5-vote.json b/public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/sonnet-b/5-vote.json
+new file mode 100644
+index 00000000..f78d71cf
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/sonnet-b/5-vote.json
+@@ -0,0 +1 @@
++{"pick":"haiku-a","caveat":"mock: no real caveat"}
+\ No newline at end of file
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/tally.md b/public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/tally.md
+new file mode 100644
+index 00000000..3db5fbb5
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/tally.md
+@@ -0,0 +1,13 @@
++# Design a small Gizmo class: on, off, state.
++
++**Winner:** sonnet-b — `public/framework/ai/2026-09-28/collab-rounds/test-mock-doclink/collab/sonnet-b/3-implement.md`
++**Rule:** tie: cheaper member
++**Run cost:** $0.0000
++
++## Votes
++- sonnet-b: 1 vote(s), $0.0000
++- haiku-a: 1 vote(s), $0.0000
++
++## Caveats
++- haiku-a: mock: no real caveat
++- sonnet-b: mock: no real caveat
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab.json b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab.json
+new file mode 100644
+index 00000000..792aee22
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab.json
+@@ -0,0 +1,9 @@
++{
++  "question": "What is the boiling point of water at sea level, in Celsius?",
++  "kind": "research",
++  "members": [
++    {"id": "haiku-a", "model": "claude-haiku-4-5-20251001"},
++    {"id": "sonnet-b", "model": "claude-sonnet-5"},
++    {"id": "haiku-c", "model": "claude-haiku-4-5-20251001"}
++  ]
++}
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab.jsonl b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab.jsonl
+new file mode 100644
+index 00000000..52edc7d0
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab.jsonl
+@@ -0,0 +1,56 @@
++{"collab":{"at":"2026-09-28T13:59:49-05:00","id":"test-mock-research","question":"What is the boiling point of water at sea level, in Celsius?","kind":"research","members":[{"id":"haiku-a","model":"claude-haiku-4-5-20251001"},{"id":"sonnet-b","model":"claude-sonnet-5"},{"id":"haiku-c","model":"claude-haiku-4-5-20251001"}],"phases":[{"n":1,"kind":"brief"},{"n":2,"kind":"read-peers"},{"n":3,"kind":"revise"},{"n":4,"kind":"vote"}]}}
++{"phase":{"at":"2026-09-28T13:59:49-05:00","n":1,"kind":"brief","status":"start"}}
++{"member":{"at":"2026-09-28T13:59:49-05:00","id":"haiku-a","phase":1,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/haiku-a/1-brief.md","cost":0,"agent":"mock"}}
++{"member":{"at":"2026-09-28T13:59:49-05:00","id":"sonnet-b","phase":1,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/sonnet-b/1-brief.md","cost":0,"agent":"mock"}}
++{"member":{"at":"2026-09-28T13:59:49-05:00","id":"haiku-c","phase":1,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/haiku-c/1-brief.md","cost":0,"agent":"mock"}}
++{"phase":{"at":"2026-09-28T13:59:49-05:00","n":1,"kind":"brief","status":"done","cost":0}}
++{"phase":{"at":"2026-09-28T13:59:49-05:00","n":2,"kind":"read-peers","status":"start"}}
++{"member":{"at":"2026-09-28T13:59:49-05:00","id":"haiku-a","phase":2,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/haiku-a/2-read-peers.md","cost":0,"agent":"mock"}}
++{"member":{"at":"2026-09-28T13:59:49-05:00","id":"sonnet-b","phase":2,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/sonnet-b/2-read-peers.md","cost":0,"agent":"mock"}}
++{"member":{"at":"2026-09-28T13:59:49-05:00","id":"haiku-c","phase":2,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/haiku-c/2-read-peers.md","cost":0,"agent":"mock"}}
++{"phase":{"at":"2026-09-28T13:59:49-05:00","n":2,"kind":"read-peers","status":"done","cost":0}}
++{"phase":{"at":"2026-09-28T13:59:49-05:00","n":3,"kind":"revise","status":"start"}}
++{"member":{"at":"2026-09-28T13:59:49-05:00","id":"haiku-a","phase":3,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/haiku-a/3-revise.md","cost":0,"agent":"mock"}}
++{"member":{"at":"2026-09-28T13:59:49-05:00","id":"sonnet-b","phase":3,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/sonnet-b/3-revise.md","cost":0,"agent":"mock"}}
++{"member":{"at":"2026-09-28T13:59:49-05:00","id":"haiku-c","phase":3,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/haiku-c/3-revise.md","cost":0,"agent":"mock"}}
++{"phase":{"at":"2026-09-28T13:59:49-05:00","n":3,"kind":"revise","status":"done","cost":0}}
++{"decision":{"at":"2026-09-28T13:59:49-05:00","id":"d-1","phase":4,"parent":null,"ask":"Which draft wins?","package":false,"options":[{"key":"haiku-a","say":"haiku-a: # haiku-a — phase 3 (revise)","caveat":"","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/haiku-a/3-revise.md"},{"key":"sonnet-b","say":"sonnet-b: # sonnet-b — phase 3 (revise)","caveat":"","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/sonnet-b/3-revise.md"},{"key":"haiku-c","say":"haiku-c: # haiku-c — phase 3 (revise)","caveat":"","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/haiku-c/3-revise.md"}],"status":"open"}}
++{"phase":{"at":"2026-09-28T13:59:49-05:00","n":4,"kind":"vote","status":"start"}}
++{"member":{"at":"2026-09-28T13:59:49-05:00","id":"haiku-a","phase":4,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/haiku-a/4-vote.json","cost":0,"agent":"mock"}}
++{"member":{"at":"2026-09-28T13:59:49-05:00","id":"sonnet-b","phase":4,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/sonnet-b/4-vote.json","cost":0,"agent":"mock"}}
++{"member":{"at":"2026-09-28T13:59:49-05:00","id":"haiku-c","phase":4,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/haiku-c/4-vote.json","cost":0,"agent":"mock"}}
++{"phase":{"at":"2026-09-28T13:59:49-05:00","n":4,"kind":"vote","status":"done","cost":0}}
++{"vote":{"at":"2026-09-28T13:59:49-05:00","phase":4,"member":"haiku-a","pick":"haiku-c","caveat":"mock: no real caveat"}}
++{"vote":{"at":"2026-09-28T13:59:49-05:00","phase":4,"member":"sonnet-b","pick":"haiku-a","caveat":"mock: no real caveat"}}
++{"vote":{"at":"2026-09-28T13:59:49-05:00","phase":4,"member":"haiku-c","pick":"sonnet-b","caveat":"mock: no real caveat"}}
++{"tally":{"at":"2026-09-28T13:59:49-05:00","phase":4,"counts":{"haiku-c":1,"haiku-a":1,"sonnet-b":1},"winner":"haiku-c","caveats":["mock: no real caveat","mock: no real caveat","mock: no real caveat"],"rule":"tie: cheaper member"}}
++{"decision":{"at":"2026-09-28T13:59:49-05:00","id":"d-1","phase":4,"status":"decided","counts":{"haiku-c":1,"haiku-a":1,"sonnet-b":1},"chosen":"haiku-c","runner_up":"haiku-a","caveats":["mock: no real caveat","mock: no real caveat","mock: no real caveat"],"tie_rule":"tie: cheaper member"}}
++{"winner":{"at":"2026-09-28T13:59:49-05:00","pick":"haiku-c","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/haiku-c/3-revise.md","caveats":["mock: no real caveat","mock: no real caveat","mock: no real caveat"],"cost":0}}
++{"collab":{"at":"2026-09-28T14:05:37-05:00","id":"test-mock-research","question":"What is the boiling point of water at sea level, in Celsius?","kind":"research","members":[{"id":"haiku-a","model":"claude-haiku-4-5-20251001"},{"id":"sonnet-b","model":"claude-sonnet-5"},{"id":"haiku-c","model":"claude-haiku-4-5-20251001"}],"phases":[{"n":1,"kind":"brief"},{"n":2,"kind":"read-peers"},{"n":3,"kind":"revise"},{"n":4,"kind":"vote"}]}}
++{"phase":{"at":"2026-09-28T14:05:37-05:00","n":1,"kind":"brief","status":"start"}}
++{"member":{"at":"2026-09-28T14:05:37-05:00","id":"haiku-a","phase":1,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/haiku-a/1-brief.md","cost":0,"agent":"mock"}}
++{"member":{"at":"2026-09-28T14:05:37-05:00","id":"sonnet-b","phase":1,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/sonnet-b/1-brief.md","cost":0,"agent":"mock"}}
++{"member":{"at":"2026-09-28T14:05:37-05:00","id":"haiku-c","phase":1,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/haiku-c/1-brief.md","cost":0,"agent":"mock"}}
++{"phase":{"at":"2026-09-28T14:05:37-05:00","n":1,"kind":"brief","status":"done","cost":0}}
++{"phase":{"at":"2026-09-28T14:05:37-05:00","n":2,"kind":"read-peers","status":"start"}}
++{"member":{"at":"2026-09-28T14:05:37-05:00","id":"haiku-a","phase":2,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/haiku-a/2-read-peers.md","cost":0,"agent":"mock"}}
++{"member":{"at":"2026-09-28T14:05:37-05:00","id":"sonnet-b","phase":2,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/sonnet-b/2-read-peers.md","cost":0,"agent":"mock"}}
++{"member":{"at":"2026-09-28T14:05:37-05:00","id":"haiku-c","phase":2,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/haiku-c/2-read-peers.md","cost":0,"agent":"mock"}}
++{"phase":{"at":"2026-09-28T14:05:37-05:00","n":2,"kind":"read-peers","status":"done","cost":0}}
++{"phase":{"at":"2026-09-28T14:05:37-05:00","n":3,"kind":"revise","status":"start"}}
++{"member":{"at":"2026-09-28T14:05:37-05:00","id":"haiku-a","phase":3,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/haiku-a/3-revise.md","cost":0,"agent":"mock"}}
++{"member":{"at":"2026-09-28T14:05:37-05:00","id":"sonnet-b","phase":3,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/sonnet-b/3-revise.md","cost":0,"agent":"mock"}}
++{"member":{"at":"2026-09-28T14:05:37-05:00","id":"haiku-c","phase":3,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/haiku-c/3-revise.md","cost":0,"agent":"mock"}}
++{"phase":{"at":"2026-09-28T14:05:37-05:00","n":3,"kind":"revise","status":"done","cost":0}}
++{"decision":{"at":"2026-09-28T14:05:37-05:00","id":"d-1","phase":4,"parent":null,"ask":"Which draft wins?","package":false,"options":[{"key":"haiku-a","say":"haiku-a: # haiku-a — phase 3 (revise)","caveat":"","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/haiku-a/3-revise.md"},{"key":"sonnet-b","say":"sonnet-b: # sonnet-b — phase 3 (revise)","caveat":"","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/sonnet-b/3-revise.md"},{"key":"haiku-c","say":"haiku-c: # haiku-c — phase 3 (revise)","caveat":"","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/haiku-c/3-revise.md"}],"status":"open"}}
++{"phase":{"at":"2026-09-28T14:05:37-05:00","n":4,"kind":"vote","status":"start"}}
++{"member":{"at":"2026-09-28T14:05:37-05:00","id":"haiku-a","phase":4,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/haiku-a/4-vote.json","cost":0,"agent":"mock"}}
++{"member":{"at":"2026-09-28T14:05:37-05:00","id":"sonnet-b","phase":4,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/sonnet-b/4-vote.json","cost":0,"agent":"mock"}}
++{"member":{"at":"2026-09-28T14:05:37-05:00","id":"haiku-c","phase":4,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/haiku-c/4-vote.json","cost":0,"agent":"mock"}}
++{"phase":{"at":"2026-09-28T14:05:37-05:00","n":4,"kind":"vote","status":"done","cost":0}}
++{"vote":{"at":"2026-09-28T14:05:37-05:00","phase":4,"member":"haiku-a","pick":"haiku-c","caveat":"mock: no real caveat"}}
++{"vote":{"at":"2026-09-28T14:05:37-05:00","phase":4,"member":"sonnet-b","pick":"haiku-a","caveat":"mock: no real caveat"}}
++{"vote":{"at":"2026-09-28T14:05:37-05:00","phase":4,"member":"haiku-c","pick":"sonnet-b","caveat":"mock: no real caveat"}}
++{"tally":{"at":"2026-09-28T14:05:37-05:00","phase":4,"counts":{"haiku-c":1,"haiku-a":1,"sonnet-b":1},"winner":"haiku-c","caveats":["mock: no real caveat","mock: no real caveat","mock: no real caveat"],"rule":"tie: cheaper member"}}
++{"decision":{"at":"2026-09-28T14:05:37-05:00","id":"d-1","phase":4,"status":"decided","counts":{"haiku-a":1,"sonnet-b":1,"haiku-c":1},"chosen":"haiku-c","runner_up":"haiku-a","caveats":["mock: no real caveat","mock: no real caveat","mock: no real caveat"],"tie_rule":"tie: cheaper member"}}
++{"winner":{"at":"2026-09-28T14:05:37-05:00","pick":"haiku-c","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/haiku-c/3-revise.md","caveats":["mock: no real caveat","mock: no real caveat","mock: no real caveat"],"cost":0}}
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/haiku-a/1-brief.md b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/haiku-a/1-brief.md
+new file mode 100644
+index 00000000..de639495
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/haiku-a/1-brief.md
+@@ -0,0 +1,3 @@
++# haiku-a — phase 1 (brief)
++
++Mock content, no agent ran.
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/haiku-a/2-read-peers.md b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/haiku-a/2-read-peers.md
+new file mode 100644
+index 00000000..3479cffa
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/haiku-a/2-read-peers.md
+@@ -0,0 +1,3 @@
++# haiku-a — phase 2 (read-peers)
++
++Mock content, no agent ran.
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/haiku-a/3-revise.md b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/haiku-a/3-revise.md
+new file mode 100644
+index 00000000..2b7bf56d
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/haiku-a/3-revise.md
+@@ -0,0 +1,3 @@
++# haiku-a — phase 3 (revise)
++
++Mock content, no agent ran.
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/haiku-a/4-vote.json b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/haiku-a/4-vote.json
+new file mode 100644
+index 00000000..37917e65
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/haiku-a/4-vote.json
+@@ -0,0 +1 @@
++{"pick":"haiku-c","caveat":"mock: no real caveat"}
+\ No newline at end of file
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/haiku-c/1-brief.md b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/haiku-c/1-brief.md
+new file mode 100644
+index 00000000..180a5981
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/haiku-c/1-brief.md
+@@ -0,0 +1,3 @@
++# haiku-c — phase 1 (brief)
++
++Mock content, no agent ran.
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/haiku-c/2-read-peers.md b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/haiku-c/2-read-peers.md
+new file mode 100644
+index 00000000..8ec1ab9f
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/haiku-c/2-read-peers.md
+@@ -0,0 +1,3 @@
++# haiku-c — phase 2 (read-peers)
++
++Mock content, no agent ran.
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/haiku-c/3-revise.md b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/haiku-c/3-revise.md
+new file mode 100644
+index 00000000..3a570034
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/haiku-c/3-revise.md
+@@ -0,0 +1,3 @@
++# haiku-c — phase 3 (revise)
++
++Mock content, no agent ran.
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/haiku-c/4-vote.json b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/haiku-c/4-vote.json
+new file mode 100644
+index 00000000..0396bf55
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/haiku-c/4-vote.json
+@@ -0,0 +1 @@
++{"pick":"sonnet-b","caveat":"mock: no real caveat"}
+\ No newline at end of file
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/sonnet-b/1-brief.md b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/sonnet-b/1-brief.md
+new file mode 100644
+index 00000000..5cfd638f
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/sonnet-b/1-brief.md
+@@ -0,0 +1,3 @@
++# sonnet-b — phase 1 (brief)
++
++Mock content, no agent ran.
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/sonnet-b/2-read-peers.md b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/sonnet-b/2-read-peers.md
+new file mode 100644
+index 00000000..84666cc2
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/sonnet-b/2-read-peers.md
+@@ -0,0 +1,3 @@
++# sonnet-b — phase 2 (read-peers)
++
++Mock content, no agent ran.
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/sonnet-b/3-revise.md b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/sonnet-b/3-revise.md
+new file mode 100644
+index 00000000..1d258a22
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/sonnet-b/3-revise.md
+@@ -0,0 +1,3 @@
++# sonnet-b — phase 3 (revise)
++
++Mock content, no agent ran.
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/sonnet-b/4-vote.json b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/sonnet-b/4-vote.json
+new file mode 100644
+index 00000000..f78d71cf
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/sonnet-b/4-vote.json
+@@ -0,0 +1 @@
++{"pick":"haiku-a","caveat":"mock: no real caveat"}
+\ No newline at end of file
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/tally.md b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/tally.md
+new file mode 100644
+index 00000000..dad2ba54
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/tally.md
+@@ -0,0 +1,15 @@
++# What is the boiling point of water at sea level, in Celsius?
++
++**Winner:** haiku-c — `public/framework/ai/2026-09-28/collab-rounds/test-mock-research/collab/haiku-c/3-revise.md`
++**Rule:** tie: cheaper member
++**Run cost:** $0.0000
++
++## Votes
++- haiku-c: 1 vote(s), $0.0000
++- haiku-a: 1 vote(s), $0.0000
++- sonnet-b: 1 vote(s), $0.0000
++
++## Caveats
++- haiku-a: mock: no real caveat
++- sonnet-b: mock: no real caveat
++- haiku-c: mock: no real caveat
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab.json b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab.json
+new file mode 100644
+index 00000000..1778a9d4
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab.json
+@@ -0,0 +1,9 @@
++{
++  "question": "Trivial research question for a mock run.",
++  "kind": "research",
++  "members": [
++    {"id": "haiku-a", "model": "claude-haiku-4-5-20251001"},
++    {"id": "sonnet-b", "model": "claude-sonnet-5"},
++    {"id": "haiku-c", "model": "claude-haiku-4-5-20251001"}
++  ]
++}
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab.jsonl b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab.jsonl
+new file mode 100644
+index 00000000..40fdcb91
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab.jsonl
+@@ -0,0 +1,28 @@
++{"collab":{"at":"2026-09-28T14:16:40-05:00","id":"test-mock-research2","question":"Trivial research question for a mock run.","kind":"research","members":[{"id":"haiku-a","model":"claude-haiku-4-5-20251001"},{"id":"sonnet-b","model":"claude-sonnet-5"},{"id":"haiku-c","model":"claude-haiku-4-5-20251001"}],"phases":[{"n":1,"kind":"brief"},{"n":2,"kind":"read-peers"},{"n":3,"kind":"revise"},{"n":4,"kind":"vote"}]}}
++{"phase":{"at":"2026-09-28T14:16:40-05:00","n":1,"kind":"brief","status":"start"}}
++{"member":{"at":"2026-09-28T14:16:40-05:00","id":"haiku-a","phase":1,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/haiku-a/1-brief.md","cost":0,"agent":"mock"}}
++{"member":{"at":"2026-09-28T14:16:40-05:00","id":"sonnet-b","phase":1,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/sonnet-b/1-brief.md","cost":0,"agent":"mock"}}
++{"member":{"at":"2026-09-28T14:16:40-05:00","id":"haiku-c","phase":1,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/haiku-c/1-brief.md","cost":0,"agent":"mock"}}
++{"phase":{"at":"2026-09-28T14:16:40-05:00","n":1,"kind":"brief","status":"done","cost":0}}
++{"phase":{"at":"2026-09-28T14:16:40-05:00","n":2,"kind":"read-peers","status":"start"}}
++{"member":{"at":"2026-09-28T14:16:40-05:00","id":"haiku-a","phase":2,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/haiku-a/2-read-peers.md","cost":0,"agent":"mock"}}
++{"member":{"at":"2026-09-28T14:16:40-05:00","id":"sonnet-b","phase":2,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/sonnet-b/2-read-peers.md","cost":0,"agent":"mock"}}
++{"member":{"at":"2026-09-28T14:16:40-05:00","id":"haiku-c","phase":2,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/haiku-c/2-read-peers.md","cost":0,"agent":"mock"}}
++{"phase":{"at":"2026-09-28T14:16:40-05:00","n":2,"kind":"read-peers","status":"done","cost":0}}
++{"phase":{"at":"2026-09-28T14:16:40-05:00","n":3,"kind":"revise","status":"start"}}
++{"member":{"at":"2026-09-28T14:16:40-05:00","id":"haiku-a","phase":3,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/haiku-a/3-revise.md","cost":0,"agent":"mock"}}
++{"member":{"at":"2026-09-28T14:16:40-05:00","id":"sonnet-b","phase":3,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/sonnet-b/3-revise.md","cost":0,"agent":"mock"}}
++{"member":{"at":"2026-09-28T14:16:40-05:00","id":"haiku-c","phase":3,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/haiku-c/3-revise.md","cost":0,"agent":"mock"}}
++{"phase":{"at":"2026-09-28T14:16:40-05:00","n":3,"kind":"revise","status":"done","cost":0}}
++{"decision":{"at":"2026-09-28T14:16:40-05:00","id":"d-1","phase":4,"parent":null,"ask":"Which draft wins?","package":false,"options":[{"key":"haiku-a","say":"haiku-a: # haiku-a — phase 3 (revise)","caveat":"","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/haiku-a/3-revise.md"},{"key":"sonnet-b","say":"sonnet-b: # sonnet-b — phase 3 (revise)","caveat":"","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/sonnet-b/3-revise.md"},{"key":"haiku-c","say":"haiku-c: # haiku-c — phase 3 (revise)","caveat":"","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/haiku-c/3-revise.md"}],"status":"open"}}
++{"phase":{"at":"2026-09-28T14:16:40-05:00","n":4,"kind":"vote","status":"start"}}
++{"member":{"at":"2026-09-28T14:16:40-05:00","id":"haiku-a","phase":4,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/haiku-a/4-vote.json","cost":0,"agent":"mock"}}
++{"member":{"at":"2026-09-28T14:16:40-05:00","id":"sonnet-b","phase":4,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/sonnet-b/4-vote.json","cost":0,"agent":"mock"}}
++{"member":{"at":"2026-09-28T14:16:40-05:00","id":"haiku-c","phase":4,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/haiku-c/4-vote.json","cost":0,"agent":"mock"}}
++{"phase":{"at":"2026-09-28T14:16:40-05:00","n":4,"kind":"vote","status":"done","cost":0}}
++{"vote":{"at":"2026-09-28T14:16:40-05:00","phase":4,"member":"haiku-a","pick":"haiku-c","caveat":"mock: no real caveat"}}
++{"vote":{"at":"2026-09-28T14:16:40-05:00","phase":4,"member":"sonnet-b","pick":"haiku-a","caveat":"mock: no real caveat"}}
++{"vote":{"at":"2026-09-28T14:16:40-05:00","phase":4,"member":"haiku-c","pick":"sonnet-b","caveat":"mock: no real caveat"}}
++{"tally":{"at":"2026-09-28T14:16:40-05:00","phase":4,"counts":{"haiku-c":1,"haiku-a":1,"sonnet-b":1},"winner":"haiku-c","caveats":["mock: no real caveat","mock: no real caveat","mock: no real caveat"],"rule":"tie: cheaper member","abstained":[],"thin":false}}
++{"decision":{"at":"2026-09-28T14:16:40-05:00","id":"d-1","phase":4,"status":"decided","counts":{"haiku-a":1,"sonnet-b":1,"haiku-c":1},"chosen":"haiku-c","runner_up":"haiku-a","caveats":["mock: no real caveat","mock: no real caveat","mock: no real caveat"],"tie_rule":"tie: cheaper member","abstained":[],"thin":false}}
++{"winner":{"at":"2026-09-28T14:16:40-05:00","pick":"haiku-c","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/haiku-c/3-revise.md","caveats":["mock: no real caveat","mock: no real caveat","mock: no real caveat"],"cost":0}}
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/haiku-a/1-brief.md b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/haiku-a/1-brief.md
+new file mode 100644
+index 00000000..de639495
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/haiku-a/1-brief.md
+@@ -0,0 +1,3 @@
++# haiku-a — phase 1 (brief)
++
++Mock content, no agent ran.
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/haiku-a/2-read-peers.md b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/haiku-a/2-read-peers.md
+new file mode 100644
+index 00000000..3479cffa
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/haiku-a/2-read-peers.md
+@@ -0,0 +1,3 @@
++# haiku-a — phase 2 (read-peers)
++
++Mock content, no agent ran.
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/haiku-a/3-revise.md b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/haiku-a/3-revise.md
+new file mode 100644
+index 00000000..2b7bf56d
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/haiku-a/3-revise.md
+@@ -0,0 +1,3 @@
++# haiku-a — phase 3 (revise)
++
++Mock content, no agent ran.
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/haiku-a/4-vote.json b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/haiku-a/4-vote.json
+new file mode 100644
+index 00000000..37917e65
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/haiku-a/4-vote.json
+@@ -0,0 +1 @@
++{"pick":"haiku-c","caveat":"mock: no real caveat"}
+\ No newline at end of file
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/haiku-c/1-brief.md b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/haiku-c/1-brief.md
+new file mode 100644
+index 00000000..180a5981
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/haiku-c/1-brief.md
+@@ -0,0 +1,3 @@
++# haiku-c — phase 1 (brief)
++
++Mock content, no agent ran.
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/haiku-c/2-read-peers.md b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/haiku-c/2-read-peers.md
+new file mode 100644
+index 00000000..8ec1ab9f
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/haiku-c/2-read-peers.md
+@@ -0,0 +1,3 @@
++# haiku-c — phase 2 (read-peers)
++
++Mock content, no agent ran.
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/haiku-c/3-revise.md b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/haiku-c/3-revise.md
+new file mode 100644
+index 00000000..3a570034
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/haiku-c/3-revise.md
+@@ -0,0 +1,3 @@
++# haiku-c — phase 3 (revise)
++
++Mock content, no agent ran.
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/haiku-c/4-vote.json b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/haiku-c/4-vote.json
+new file mode 100644
+index 00000000..0396bf55
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/haiku-c/4-vote.json
+@@ -0,0 +1 @@
++{"pick":"sonnet-b","caveat":"mock: no real caveat"}
+\ No newline at end of file
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/scoreboard.jsonl b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/scoreboard.jsonl
+new file mode 100644
+index 00000000..bf6e52d4
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/scoreboard.jsonl
+@@ -0,0 +1,3 @@
++{"score":{"at":"2026-09-28T14:16:40-05:00","collab":"2026-09-28/collab-rounds/test-mock-research2","decision":"d-1","member":"haiku-a","model":"claude-haiku-4-5-20251001","votes":1,"won":false,"cost":0}}
++{"score":{"at":"2026-09-28T14:16:40-05:00","collab":"2026-09-28/collab-rounds/test-mock-research2","decision":"d-1","member":"sonnet-b","model":"claude-sonnet-5","votes":1,"won":false,"cost":0}}
++{"score":{"at":"2026-09-28T14:16:40-05:00","collab":"2026-09-28/collab-rounds/test-mock-research2","decision":"d-1","member":"haiku-c","model":"claude-haiku-4-5-20251001","votes":1,"won":true,"cost":0}}
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/sonnet-b/1-brief.md b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/sonnet-b/1-brief.md
+new file mode 100644
+index 00000000..5cfd638f
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/sonnet-b/1-brief.md
+@@ -0,0 +1,3 @@
++# sonnet-b — phase 1 (brief)
++
++Mock content, no agent ran.
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/sonnet-b/2-read-peers.md b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/sonnet-b/2-read-peers.md
+new file mode 100644
+index 00000000..84666cc2
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/sonnet-b/2-read-peers.md
+@@ -0,0 +1,3 @@
++# sonnet-b — phase 2 (read-peers)
++
++Mock content, no agent ran.
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/sonnet-b/3-revise.md b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/sonnet-b/3-revise.md
+new file mode 100644
+index 00000000..1d258a22
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/sonnet-b/3-revise.md
+@@ -0,0 +1,3 @@
++# sonnet-b — phase 3 (revise)
++
++Mock content, no agent ran.
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/sonnet-b/4-vote.json b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/sonnet-b/4-vote.json
+new file mode 100644
+index 00000000..f78d71cf
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/sonnet-b/4-vote.json
+@@ -0,0 +1 @@
++{"pick":"haiku-a","caveat":"mock: no real caveat"}
+\ No newline at end of file
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/tally.md b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/tally.md
+new file mode 100644
+index 00000000..8e5e22c7
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/tally.md
+@@ -0,0 +1,15 @@
++# Trivial research question for a mock run.
++
++**Winner:** haiku-c — `public/framework/ai/2026-09-28/collab-rounds/test-mock-research2/collab/haiku-c/3-revise.md`
++**Rule:** tie: cheaper member
++**Run cost:** $0.0000
++
++## Votes
++- haiku-c: 1 vote(s), $0.0000
++- haiku-a: 1 vote(s), $0.0000
++- sonnet-b: 1 vote(s), $0.0000
++
++## Caveats
++- haiku-a: mock: no real caveat
++- sonnet-b: mock: no real caveat
++- haiku-c: mock: no real caveat
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab.json b/public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab.json
+new file mode 100644
+index 00000000..1a8a6c5a
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab.json
+@@ -0,0 +1,9 @@
++{
++  "question": "Design a small Stopwatch class: start, stop, reset, elapsed time.",
++  "kind": "design",
++  "target": {"module": "ext/Stopwatch", "class": "Stopwatch"},
++  "members": [
++    {"id": "haiku-a", "model": "claude-haiku-4-5-20251001"},
++    {"id": "sonnet-b", "model": "claude-sonnet-5"}
++  ]
++}
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab.jsonl b/public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab.jsonl
+new file mode 100644
+index 00000000..099e0131
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab.jsonl
+@@ -0,0 +1,32 @@
++{"collab":{"at":"2026-09-28T14:05:31-05:00","id":"test-mock-target","question":"Design a small Stopwatch class: start, stop, reset, elapsed time.","kind":"design","members":[{"id":"haiku-a","model":"claude-haiku-4-5-20251001"},{"id":"sonnet-b","model":"claude-sonnet-5"}],"phases":[{"n":1,"kind":"names"},{"n":2,"kind":"vote"},{"n":3,"kind":"implement"},{"n":4,"kind":"cross-review"},{"n":5,"kind":"vote"}]}}
++{"phase":{"at":"2026-09-28T14:05:31-05:00","n":1,"kind":"names","status":"start"}}
++{"member":{"at":"2026-09-28T14:05:31-05:00","id":"haiku-a","phase":1,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/haiku-a/1-names.md","cost":0,"agent":"mock"}}
++{"member":{"at":"2026-09-28T14:05:31-05:00","id":"sonnet-b","phase":1,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/sonnet-b/1-names.md","cost":0,"agent":"mock"}}
++{"phase":{"at":"2026-09-28T14:05:31-05:00","n":1,"kind":"names","status":"done","cost":0}}
++{"decision":{"at":"2026-09-28T14:05:31-05:00","id":"d-1","phase":2,"parent":null,"ask":"Which names set wins?","package":true,"options":[{"key":"haiku-a","say":"haiku-a: # haiku-a — phase 1 (names)","caveat":"","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/haiku-a/1-names.md"},{"key":"sonnet-b","say":"sonnet-b: # sonnet-b — phase 1 (names)","caveat":"","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/sonnet-b/1-names.md"}],"status":"open"}}
++{"phase":{"at":"2026-09-28T14:05:31-05:00","n":2,"kind":"vote","status":"start"}}
++{"member":{"at":"2026-09-28T14:05:31-05:00","id":"haiku-a","phase":2,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/haiku-a/2-vote.json","cost":0,"agent":"mock"}}
++{"member":{"at":"2026-09-28T14:05:31-05:00","id":"sonnet-b","phase":2,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/sonnet-b/2-vote.json","cost":0,"agent":"mock"}}
++{"phase":{"at":"2026-09-28T14:05:31-05:00","n":2,"kind":"vote","status":"done","cost":0}}
++{"vote":{"at":"2026-09-28T14:05:31-05:00","phase":2,"member":"haiku-a","pick":"sonnet-b","caveat":"mock: no real caveat"}}
++{"vote":{"at":"2026-09-28T14:05:31-05:00","phase":2,"member":"sonnet-b","pick":"haiku-a","caveat":"mock: no real caveat"}}
++{"tally":{"at":"2026-09-28T14:05:31-05:00","phase":2,"counts":{"sonnet-b":1,"haiku-a":1},"winner":"sonnet-b","caveats":["mock: no real caveat","mock: no real caveat"],"rule":"tie: cheaper member"}}
++{"decision":{"at":"2026-09-28T14:05:31-05:00","id":"d-1","phase":2,"status":"decided","counts":{"haiku-a":1,"sonnet-b":1},"chosen":"sonnet-b","runner_up":"haiku-a","caveats":["mock: no real caveat","mock: no real caveat"],"tie_rule":"tie: cheaper member"}}
++{"phase":{"at":"2026-09-28T14:05:31-05:00","n":3,"kind":"implement","status":"start"}}
++{"member":{"at":"2026-09-28T14:05:31-05:00","id":"haiku-a","phase":3,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/haiku-a/3-implement.md","cost":0,"agent":"mock"}}
++{"member":{"at":"2026-09-28T14:05:31-05:00","id":"sonnet-b","phase":3,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/sonnet-b/3-implement.md","cost":0,"agent":"mock"}}
++{"phase":{"at":"2026-09-28T14:05:31-05:00","n":3,"kind":"implement","status":"done","cost":0}}
++{"phase":{"at":"2026-09-28T14:05:31-05:00","n":4,"kind":"cross-review","status":"start"}}
++{"member":{"at":"2026-09-28T14:05:31-05:00","id":"haiku-a","phase":4,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/haiku-a/4-cross-review.md","cost":0,"agent":"mock"}}
++{"member":{"at":"2026-09-28T14:05:31-05:00","id":"sonnet-b","phase":4,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/sonnet-b/4-cross-review.md","cost":0,"agent":"mock"}}
++{"phase":{"at":"2026-09-28T14:05:31-05:00","n":4,"kind":"cross-review","status":"done","cost":0}}
++{"decision":{"at":"2026-09-28T14:05:31-05:00","id":"d-2","phase":5,"parent":null,"ask":"Which implementation wins?","package":false,"options":[{"key":"haiku-a","say":"haiku-a: # haiku-a — phase 4 (cross-review)","caveat":"","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/haiku-a/4-cross-review.md"},{"key":"sonnet-b","say":"sonnet-b: # sonnet-b — phase 4 (cross-review)","caveat":"","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/sonnet-b/4-cross-review.md"}],"status":"open"}}
++{"phase":{"at":"2026-09-28T14:05:31-05:00","n":5,"kind":"vote","status":"start"}}
++{"member":{"at":"2026-09-28T14:05:31-05:00","id":"haiku-a","phase":5,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/haiku-a/5-vote.json","cost":0,"agent":"mock"}}
++{"member":{"at":"2026-09-28T14:05:31-05:00","id":"sonnet-b","phase":5,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/sonnet-b/5-vote.json","cost":0,"agent":"mock"}}
++{"phase":{"at":"2026-09-28T14:05:31-05:00","n":5,"kind":"vote","status":"done","cost":0}}
++{"vote":{"at":"2026-09-28T14:05:31-05:00","phase":5,"member":"haiku-a","pick":"sonnet-b","caveat":"mock: no real caveat"}}
++{"vote":{"at":"2026-09-28T14:05:31-05:00","phase":5,"member":"sonnet-b","pick":"haiku-a","caveat":"mock: no real caveat"}}
++{"tally":{"at":"2026-09-28T14:05:31-05:00","phase":5,"counts":{"sonnet-b":1,"haiku-a":1},"winner":"sonnet-b","caveats":["mock: no real caveat","mock: no real caveat"],"rule":"tie: cheaper member"}}
++{"decision":{"at":"2026-09-28T14:05:31-05:00","id":"d-2","phase":5,"status":"decided","counts":{"haiku-a":1,"sonnet-b":1},"chosen":"sonnet-b","runner_up":"haiku-a","caveats":["mock: no real caveat","mock: no real caveat"],"tie_rule":"tie: cheaper member"}}
++{"winner":{"at":"2026-09-28T14:05:31-05:00","pick":"sonnet-b","file":"public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/sonnet-b/4-cross-review.md","caveats":["mock: no real caveat","mock: no real caveat"],"cost":0}}
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/haiku-a/1-names.json b/public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/haiku-a/1-names.json
+new file mode 100644
+index 00000000..39467f98
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/haiku-a/1-names.json
+@@ -0,0 +1 @@
++{"class":"Stopwatch","properties":["value"],"methods":[{"name":"get","args":[]}]}
+\ No newline at end of file
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/haiku-a/1-names.md b/public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/haiku-a/1-names.md
+new file mode 100644
+index 00000000..9b24f777
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/haiku-a/1-names.md
+@@ -0,0 +1,3 @@
++# haiku-a — phase 1 (names)
++
++Mock content, no agent ran.
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/haiku-a/2-vote.json b/public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/haiku-a/2-vote.json
+new file mode 100644
+index 00000000..0396bf55
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/haiku-a/2-vote.json
+@@ -0,0 +1 @@
++{"pick":"sonnet-b","caveat":"mock: no real caveat"}
+\ No newline at end of file
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/haiku-a/3-implement.md b/public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/haiku-a/3-implement.md
+new file mode 100644
+index 00000000..43a7fb67
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/haiku-a/3-implement.md
+@@ -0,0 +1,3 @@
++# haiku-a — phase 3 (implement)
++
++Mock content, no agent ran.
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/haiku-a/4-cross-review.md b/public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/haiku-a/4-cross-review.md
+new file mode 100644
+index 00000000..5b3564df
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/haiku-a/4-cross-review.md
+@@ -0,0 +1,3 @@
++# haiku-a — phase 4 (cross-review)
++
++Mock content, no agent ran.
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/haiku-a/5-vote.json b/public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/haiku-a/5-vote.json
+new file mode 100644
+index 00000000..0396bf55
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/haiku-a/5-vote.json
+@@ -0,0 +1 @@
++{"pick":"sonnet-b","caveat":"mock: no real caveat"}
+\ No newline at end of file
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/sonnet-b/1-names.json b/public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/sonnet-b/1-names.json
+new file mode 100644
+index 00000000..39467f98
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/sonnet-b/1-names.json
+@@ -0,0 +1 @@
++{"class":"Stopwatch","properties":["value"],"methods":[{"name":"get","args":[]}]}
+\ No newline at end of file
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/sonnet-b/1-names.md b/public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/sonnet-b/1-names.md
+new file mode 100644
+index 00000000..d8bdf81d
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/sonnet-b/1-names.md
+@@ -0,0 +1,3 @@
++# sonnet-b — phase 1 (names)
++
++Mock content, no agent ran.
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/sonnet-b/2-vote.json b/public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/sonnet-b/2-vote.json
+new file mode 100644
+index 00000000..f78d71cf
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/sonnet-b/2-vote.json
+@@ -0,0 +1 @@
++{"pick":"haiku-a","caveat":"mock: no real caveat"}
+\ No newline at end of file
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/sonnet-b/3-implement.md b/public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/sonnet-b/3-implement.md
+new file mode 100644
+index 00000000..5522d616
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/sonnet-b/3-implement.md
+@@ -0,0 +1,3 @@
++# sonnet-b — phase 3 (implement)
++
++Mock content, no agent ran.
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/sonnet-b/4-cross-review.md b/public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/sonnet-b/4-cross-review.md
+new file mode 100644
+index 00000000..1ecf0395
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/sonnet-b/4-cross-review.md
+@@ -0,0 +1,3 @@
++# sonnet-b — phase 4 (cross-review)
++
++Mock content, no agent ran.
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/sonnet-b/5-vote.json b/public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/sonnet-b/5-vote.json
+new file mode 100644
+index 00000000..f78d71cf
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/sonnet-b/5-vote.json
+@@ -0,0 +1 @@
++{"pick":"haiku-a","caveat":"mock: no real caveat"}
+\ No newline at end of file
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/tally.md b/public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/tally.md
+new file mode 100644
+index 00000000..16b1225a
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/tally.md
+@@ -0,0 +1,13 @@
++# Design a small Stopwatch class: start, stop, reset, elapsed time.
++
++**Winner:** sonnet-b — `public/framework/ai/2026-09-28/collab-rounds/test-mock-target/collab/sonnet-b/4-cross-review.md`
++**Rule:** tie: cheaper member
++**Run cost:** $0.0000
++
++## Votes
++- sonnet-b: 1 vote(s), $0.0000
++- haiku-a: 1 vote(s), $0.0000
++
++## Caveats
++- haiku-a: mock: no real caveat
++- sonnet-b: mock: no real caveat
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-real/collab.json b/public/framework/ai/2026-09-28/collab-rounds/test-real/collab.json
+new file mode 100644
+index 00000000..6fc2fdf8
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-real/collab.json
+@@ -0,0 +1,8 @@
++{
++  "question": "In one or two sentences, what does the word 'idempotent' mean in software?",
++  "kind": "research",
++  "members": [
++    {"id": "haiku-a", "model": "claude-haiku-4-5-20251001"},
++    {"id": "haiku-b", "model": "claude-haiku-4-5-20251001"}
++  ]
++}
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-real/collab.jsonl b/public/framework/ai/2026-09-28/collab-rounds/test-real/collab.jsonl
+new file mode 100644
+index 00000000..a4eb97b9
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-real/collab.jsonl
+@@ -0,0 +1,23 @@
++{"collab":{"at":"2026-09-28T13:59:58-05:00","id":"test-real","question":"In one or two sentences, what does the word 'idempotent' mean in software?","kind":"research","members":[{"id":"haiku-a","model":"claude-haiku-4-5-20251001"},{"id":"haiku-b","model":"claude-haiku-4-5-20251001"}],"phases":[{"n":1,"kind":"brief"},{"n":2,"kind":"read-peers"},{"n":3,"kind":"revise"},{"n":4,"kind":"vote"}]}}
++{"phase":{"at":"2026-09-28T13:59:58-05:00","n":1,"kind":"brief","status":"start"}}
++{"member":{"at":"2026-09-28T14:00:24-05:00","id":"haiku-a","phase":1,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-real/collab/haiku-a/1-brief.md","cost":0.10960265000000001,"agent":"minion-collab-test-real-haiku-a"}}
++{"member":{"at":"2026-09-28T14:00:24-05:00","id":"haiku-b","phase":1,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-real/collab/haiku-b/1-brief.md","cost":0.0897681,"agent":"minion-collab-test-real-haiku-b"}}
++{"phase":{"at":"2026-09-28T14:00:24-05:00","n":1,"kind":"brief","status":"done","cost":0.199371}}
++{"phase":{"at":"2026-09-28T14:00:24-05:00","n":2,"kind":"read-peers","status":"start"}}
++{"member":{"at":"2026-09-28T14:00:35-05:00","id":"haiku-a","phase":2,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-real/collab/haiku-a/2-read-peers.md","cost":0.021138400000000016,"agent":"minion-collab-test-real-haiku-a"}}
++{"member":{"at":"2026-09-28T14:00:35-05:00","id":"haiku-b","phase":2,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-real/collab/haiku-b/2-read-peers.md","cost":0.021462600000000012,"agent":"minion-collab-test-real-haiku-b"}}
++{"phase":{"at":"2026-09-28T14:00:35-05:00","n":2,"kind":"read-peers","status":"done","cost":0.042601}}
++{"phase":{"at":"2026-09-28T14:00:35-05:00","n":3,"kind":"revise","status":"start"}}
++{"member":{"at":"2026-09-28T14:00:42-05:00","id":"haiku-a","phase":3,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-real/collab/haiku-a/3-revise.md","cost":0.013519699999999996,"agent":"minion-collab-test-real-haiku-a"}}
++{"member":{"at":"2026-09-28T14:00:42-05:00","id":"haiku-b","phase":3,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-real/collab/haiku-b/3-revise.md","cost":0.01403850000000001,"agent":"minion-collab-test-real-haiku-b"}}
++{"phase":{"at":"2026-09-28T14:00:42-05:00","n":3,"kind":"revise","status":"done","cost":0.027558}}
++{"decision":{"at":"2026-09-28T14:00:42-05:00","id":"d-1","phase":4,"parent":null,"ask":"Which draft wins?","package":false,"options":[{"key":"haiku-a","say":"haiku-a: # Revised Answer: Idempotent","caveat":"","file":"public/framework/ai/2026-09-28/collab-rounds/test-real/collab/haiku-a/3-revise.md"},{"key":"haiku-b","say":"haiku-b: # Revised Answer: Idempotent","caveat":"","file":"public/framework/ai/2026-09-28/collab-rounds/test-real/collab/haiku-b/3-revise.md"}],"status":"open"}}
++{"phase":{"at":"2026-09-28T14:00:42-05:00","n":4,"kind":"vote","status":"start"}}
++{"member":{"at":"2026-09-28T14:00:56-05:00","id":"haiku-a","phase":4,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-real/collab/haiku-a/4-vote.json","cost":0.022923,"agent":"minion-collab-test-real-haiku-a"}}
++{"member":{"at":"2026-09-28T14:00:56-05:00","id":"haiku-b","phase":4,"status":"done","file":"public/framework/ai/2026-09-28/collab-rounds/test-real/collab/haiku-b/4-vote.json","cost":0.023744199999999993,"agent":"minion-collab-test-real-haiku-b"}}
++{"phase":{"at":"2026-09-28T14:00:56-05:00","n":4,"kind":"vote","status":"done","cost":0.046667}}
++{"vote":{"at":"2026-09-28T14:00:56-05:00","phase":4,"member":"haiku-a","pick":"haiku-b","caveat":"Add a concrete example (like a payment button) to make it more accessible to newcomers who may not be familiar with distributed systems terminology."}}
++{"vote":{"at":"2026-09-28T14:00:56-05:00","phase":4,"member":"haiku-b","pick":"haiku-a","caveat":""}}
++{"tally":{"at":"2026-09-28T14:00:56-05:00","phase":4,"counts":{"haiku-b":1,"haiku-a":1},"winner":"haiku-a","caveats":["Add a concrete example (like a payment button) to make it more accessible to newcomers who may not be familiar with distributed systems terminology."],"rule":"tie: more caveat-free votes"}}
++{"decision":{"at":"2026-09-28T14:00:56-05:00","id":"d-1","phase":4,"status":"decided","counts":{"haiku-b":1,"haiku-a":1},"chosen":"haiku-a","runner_up":"haiku-b","caveats":["Add a concrete example (like a payment button) to make it more accessible to newcomers who may not be familiar with distributed systems terminology."],"tie_rule":"tie: more caveat-free votes"}}
++{"winner":{"at":"2026-09-28T14:00:56-05:00","pick":"haiku-a","file":"public/framework/ai/2026-09-28/collab-rounds/test-real/collab/haiku-a/3-revise.md","caveats":["Add a concrete example (like a payment button) to make it more accessible to newcomers who may not be familiar with distributed systems terminology."],"cost":0.316197}}
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-real/collab/haiku-a/1-brief.md b/public/framework/ai/2026-09-28/collab-rounds/test-real/collab/haiku-a/1-brief.md
+new file mode 100644
+index 00000000..c358ae9e
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-real/collab/haiku-a/1-brief.md
+@@ -0,0 +1,10 @@
++# Idempotent
++
++An idempotent operation is one that produces the same result whether you run it once or multiple times—calling it five times has the same effect as calling it once. This is crucial in distributed systems where network failures might cause the same request to arrive more than once, because idempotent operations prevent unintended side effects like duplicate charges or duplicate records.
++
++## Sources
++
++- [What does idempotent mean in software systems? • Particular Software](https://particular.net/blog/what-does-idempotent-mean)
++- [The Idempotence Principle in Software Architecture | HackerNoon](https://hackernoon.com/the-idempotence-principle-in-software-architecture)
++- [What is Idempotency? A guide to API reliability | Google Cloud](https://cloud.google.com/discover/idempotency)
++- [What Is an Idempotent Operation? | Baeldung on Computer Science](https://www.baeldung.com/cs/idempotent-operations)
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-real/collab/haiku-a/2-read-peers.md b/public/framework/ai/2026-09-28/collab-rounds/test-real/collab/haiku-a/2-read-peers.md
+new file mode 100644
+index 00000000..89ecb947
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-real/collab/haiku-a/2-read-peers.md
+@@ -0,0 +1,5 @@
++# Read Peers
++
++## haiku-b
++
++Haiku-b's concrete example of a payment button that only charges once—no matter how many clicks—is clearer and more relatable than my abstract "duplicate charges" phrasing. They also found different sources (Medium and DEV Community articles) that give the concept a slightly different angle on reliability.
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-real/collab/haiku-a/3-revise.md b/public/framework/ai/2026-09-28/collab-rounds/test-real/collab/haiku-a/3-revise.md
+new file mode 100644
+index 00000000..09df12eb
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-real/collab/haiku-a/3-revise.md
+@@ -0,0 +1,3 @@
++# Revised Answer: Idempotent
++
++An idempotent operation produces the same result whether you run it once or a hundred times—like a payment button that charges your card only once no matter how many times you click it. This matters in distributed systems where network failures might cause the same request to reach the server multiple times, so idempotent design prevents accidental duplicate charges or records.
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-real/collab/haiku-a/4-vote.json b/public/framework/ai/2026-09-28/collab-rounds/test-real/collab/haiku-a/4-vote.json
+new file mode 100644
+index 00000000..02d40692
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-real/collab/haiku-a/4-vote.json
+@@ -0,0 +1 @@
++{"pick": "haiku-b", "caveat": "Add a concrete example (like a payment button) to make it more accessible to newcomers who may not be familiar with distributed systems terminology."}
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-real/collab/haiku-b/1-brief.md b/public/framework/ai/2026-09-28/collab-rounds/test-real/collab/haiku-b/1-brief.md
+new file mode 100644
+index 00000000..14a5ae51
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-real/collab/haiku-b/1-brief.md
+@@ -0,0 +1,10 @@
++# Idempotent in Software
++
++An idempotent operation is one that produces the same result when executed multiple times as it does when executed once, regardless of how many times it is called. This property is critical for building reliable systems—for example, if a payment button is idempotent, clicking it repeatedly still charges the card only once.
++
++## Sources
++
++- [Understanding Idempotency: A Guide to Reliable System Design | Medium](https://leapcell.medium.com/understanding-idempotency-a-guide-to-reliable-system-design-d4c9ad8c19b8)
++- [Understanding Idempotency in Software Development | DEV Community](https://dev.to/_hm/understanding-idempotency-in-software-development-4kgo)
++- [What does idempotent mean in software systems? | Particular Software](https://particular.net/blog/what-does-idempotent-mean)
++- [What is Idempotency? A guide to API reliability | Google Cloud](https://cloud.google.com/discover/idempotency)
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-real/collab/haiku-b/2-read-peers.md b/public/framework/ai/2026-09-28/collab-rounds/test-real/collab/haiku-b/2-read-peers.md
+new file mode 100644
+index 00000000..5b53a72f
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-real/collab/haiku-b/2-read-peers.md
+@@ -0,0 +1,5 @@
++# What Peers Found
++
++## haiku-a
++
++haiku-a highlighted the **distributed systems context** where idempotency becomes critical—specifically, how network failures can cause duplicate requests to arrive, which idempotent operations handle safely. They also expanded the consequence beyond duplicate charges to include **duplicate records**, giving a broader sense of why side effects matter across different types of operations.
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-real/collab/haiku-b/3-revise.md b/public/framework/ai/2026-09-28/collab-rounds/test-real/collab/haiku-b/3-revise.md
+new file mode 100644
+index 00000000..c7a5308e
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-real/collab/haiku-b/3-revise.md
+@@ -0,0 +1,3 @@
++# Revised Answer: Idempotent
++
++An idempotent operation produces the same result whether you run it once or multiple times—crucial in distributed systems where network failures cause requests to arrive more than once. Idempotent operations prevent unintended side effects like duplicate charges or duplicate records, making them essential for reliability when retries are inevitable.
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-real/collab/haiku-b/4-vote.json b/public/framework/ai/2026-09-28/collab-rounds/test-real/collab/haiku-b/4-vote.json
+new file mode 100644
+index 00000000..696a797c
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-real/collab/haiku-b/4-vote.json
+@@ -0,0 +1 @@
++{"pick": "haiku-a", "caveat": ""}
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/test-real/collab/tally.md b/public/framework/ai/2026-09-28/collab-rounds/test-real/collab/tally.md
+new file mode 100644
+index 00000000..3978f2d7
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/collab-rounds/test-real/collab/tally.md
+@@ -0,0 +1,12 @@
++# In one or two sentences, what does the word 'idempotent' mean in software?
++
++**Winner:** haiku-a — `public/framework/ai/2026-09-28/collab-rounds/test-real/collab/haiku-a/3-revise.md`
++**Rule:** tie: more caveat-free votes
++**Run cost:** $0.3162
++
++## Votes
++- haiku-b: 1 vote(s), $0.1490
++- haiku-a: 1 vote(s), $0.1672
++
++## Caveats
++- haiku-a: Add a concrete example (like a payment button) to make it more accessible to newcomers who may not be familiar with distributed systems terminology.
+diff --git a/public/framework/ai/collab/decisions.jsonl b/public/framework/ai/collab/decisions.jsonl
+new file mode 100644
+index 00000000..e69de29b
+diff --git a/public/framework/ai/collab/scoreboard.jsonl b/public/framework/ai/collab/scoreboard.jsonl
+new file mode 100644
+index 00000000..e69fdc42
+--- /dev/null
++++ b/public/framework/ai/collab/scoreboard.jsonl
+@@ -0,0 +1,9 @@
++{"score":{"at":"2026-09-28T14:00:56-05:00","collab":"2026-09-28/collab-rounds/test-real","decision":"d-1","member":"haiku-a","model":"claude-haiku-4-5-20251001","votes":1,"won":true,"cost":0.013519699999999996}}
++{"score":{"at":"2026-09-28T14:00:56-05:00","collab":"2026-09-28/collab-rounds/test-real","decision":"d-1","member":"haiku-b","model":"claude-haiku-4-5-20251001","votes":1,"won":false,"cost":0.01403850000000001}}
++{"score":{"at":"2026-09-28T14:05:11-05:00","collab":"2026-09-28/collab-rounds/design","decision":"d-1","member":"haiku-a","model":"claude-haiku-4-5-20251001","votes":1,"won":false,"cost":0.173449}}
++{"score":{"at":"2026-09-28T14:05:11-05:00","collab":"2026-09-28/collab-rounds/design","decision":"d-1","member":"sonnet-b","model":"claude-sonnet-5","votes":2,"won":true,"cost":0.2746212}}
++{"score":{"at":"2026-09-28T14:05:11-05:00","collab":"2026-09-28/collab-rounds/design","decision":"d-1","member":"haiku-c","model":"claude-haiku-4-5-20251001","votes":0,"won":false,"cost":0.29462330000000003}}
++{"score":{"at":"2026-09-28T14:07:46-05:00","collab":"2026-09-28/collab-rounds/research","decision":"d-1","member":"haiku-a","model":"claude-haiku-4-5-20251001","votes":0,"won":false,"cost":0.1129561}}
++{"score":{"at":"2026-09-28T14:07:46-05:00","collab":"2026-09-28/collab-rounds/research","decision":"d-1","member":"sonnet-b","model":"claude-sonnet-5","votes":1,"won":false,"cost":0.0680576}}
++{"score":{"at":"2026-09-28T14:07:46-05:00","collab":"2026-09-28/collab-rounds/research","decision":"d-1","member":"haiku-c","model":"claude-haiku-4-5-20251001","votes":1,"won":true,"cost":0.06220629999999999}}
++{"score":{"at":"2026-09-28T14:08:55-05:00","collab":"2026-09-28/collab-rounds/design","decision":"d-2","member":"haiku-a","model":"claude-haiku-4-5-20251001","votes":0,"won":false,"cost":0.06462290000000004}}
+diff --git a/public/framework/ext/Collab/Collab.js b/public/framework/ext/Collab/Collab.js
+new file mode 100644
+index 00000000..351baedf
+--- /dev/null
++++ b/public/framework/ext/Collab/Collab.js
+@@ -0,0 +1,237 @@
++import { JSONL } from "../JSONL/JSONL.js";
++
++/**
++ * One collaboration run — a mastermind's members through ordered phases to a
++ * vote (and, since 2026-09-28, a decision tree the owner can overrule) —
++ * replayed from a `collab.jsonl` log. One line, one verb; `live()` streams it
++ * exactly like any other JSONL. Contract:
++ * `public/framework/ai/2026-09-28/collab-rounds/collab-format.md`.
++ *
++ *     const collab = await new Collab({ url: "…/collab.jsonl" }).live(redraw);
++ *     collab.members             // Collab.Member[], each with its phase files, cost, status
++ *     collab.phases              // Collab.Phase[], in order, each with its votes
++ *     collab.tally(4)            // {"sonnet-b": 2, "haiku-a": 1} — phase 4's vote count
++ *     collab.decisions           // Collab.Decision[] — the ask, the options, who actually won
++ *     collab.winner              // {pick, file, caveats, cost} — the run's own conclusion
++ */
++export class Collab extends JSONL {
++	static verbs = ["collab", "phase", "member", "vote", "tally", "winner", "decision", "chose"];
++
++	// One entry per verb above, in the SAME order — apply() below reads this
++	// instead of calling `this[verb]` the way JSONL.apply() does, because the
++	// obvious lookup names (`member(id)`, `phase(n)`) would otherwise collide
++	// with the verb handlers that share their name.
++	static handlers = {
++		collab: "start", phase: "on_phase", member: "on_member", vote: "on_vote",
++		tally: "on_tally", winner: "on_winner", decision: "on_decision", chose: "on_chose",
++	};
++
++	members = [];
++	phases = [];
++	votes = [];
++	decisions = [];
++	tallies = {};
++	cost = 0;
++
++	apply(entry){
++		for (const verb of Object.keys(entry))
++			this.constructor.verbs.includes(verb) ? this[this.constructor.handlers[verb]](entry[verb]) : this.skip(verb, entry);
++		return this;
++	}
++
++	// {question, kind, id, members: [{id, model}], phases: [{n, kind}]} — the run's own header line.
++	start(v){
++		Object.assign(this, v);
++		this.members = (v.members ?? []).map(m => new this.constructor.Member(m));
++		this.phases = (v.phases ?? []).map(p => new this.constructor.Phase(p));
++	}
++
++	// {n, kind, status, cost?} — merges onto the phase `start` already declared, or
++	// appends one a short `collab` line never listed.
++	on_phase(v){
++		const p = this.phase(v.n) ?? this.phases[this.phases.push(new this.constructor.Phase(v)) - 1];
++		Object.assign(p, v);
++		if (v.status === "done" && v.cost) this.cost += v.cost;
++	}
++
++	// {id, phase, status, file, cost, agent, why?} — one member's own file for one phase.
++	on_member(v){
++		const m = this.member(v.id) ?? this.members[this.members.push(new this.constructor.Member({ id: v.id })) - 1];
++		m.apply(v);
++	}
++
++	// {phase, member, pick, caveat} — a member never votes for itself (collab-format.md).
++	on_vote(v){
++		const vote = new this.constructor.Vote(v);
++		this.votes.push(vote);
++		this.phase(v.phase)?.votes.push(vote);
++	}
++
++	// {phase, counts, winner, caveats} — the mastermind's own read of one phase's votes.
++	on_tally(v){ this.tallies[v.phase] = v; }
++
++	// {pick, file, caveats, cost} — the run's own conclusion, once.
++	on_winner(v){ this.winner = v; }
++
++	// {id, phase, parent, ask, package, options, status, counts, chosen, runner_up, caveats}
++	// — appended open, then rewritten decided: same id, later line wins (TaskJSONL's own rule).
++	on_decision(v){
++		const d = this.decision(v.id) ?? this.decisions[this.decisions.push(new this.constructor.Decision({ id: v.id })) - 1];
++		d.apply(v);
++	}
++
++	// {decision, option, at, by} — the owner clicked a different option in the Decision
++	// widget than the vote's own winner. See Collab.Decision.override().
++	on_chose(v){ this.decision(v.decision)?.override(v); }
++
++	/** The vote counts a `tally` line gave phase `n` — `{}` before one has arrived. */
++	tally(n){ return this.tallies[n]?.counts ?? {}; }
++
++	member(id){ return this.members.find(m => m.id === id); }
++	phase(n){ return this.phases.find(p => p.n === n); }
++	decision(id){ return this.decisions.find(d => d.id === id); }
++
++	/** Decisions with no `parent` — the roots of the decision tree the view nests under. */
++	root_decisions(){ return this.decisions.filter(d => !d.parent); }
++
++	/** A decision's own children — `parent` naming its id (collab-format.md's "package deals"). */
++	children_of(id){ return this.decisions.filter(d => d.parent === id); }
++}
++
++/** One member of a run: its id and model, its files and cost per phase, its live status. */
++Collab.Member = class Member {
++	files = {};
++	cost = 0;
++
++	constructor(...args){ this.assign(...args); }
++	assign(...args){ return Object.assign(this, ...args); }
++
++	// One `member` line for one phase: keep the file, add its cost, remember the status.
++	apply(v){
++		this.status = v.status;
++		if (v.why) this.why = v.why;
++		if (v.phase != null) this.files[v.phase] = { file: v.file, cost: v.cost, status: v.status, agent: v.agent };
++		if (v.cost) this.cost += v.cost;
++	}
++};
++
++/** One phase, in order: its kind, its status, its cost, the votes cast in it. */
++Collab.Phase = class Phase {
++	votes = [];
++	constructor(...args){ this.assign(...args); }
++	assign(...args){ return Object.assign(this, ...args); }
++};
++
++/** One member's pick for one phase, plus the one improvement it would add. */
++Collab.Vote = class Vote {
++	constructor(...args){ this.assign(...args); }
++	assign(...args){ return Object.assign(this, ...args); }
++};
++
++/**
++ * One decision the runner itemized from a vote phase — the ask, the options in
++ * ux/Content's own `{key, say, caveat}` shape (so `ux/Content/Decision/Decision.js`
++ * draws it directly), the vote's own pick (`chosen`, `counts`, `runner_up`), and —
++ * once the owner has clicked a different option in that widget — `final` and
++ * `overruled`. `package: true` means the options are whole signature sets voted
++ * as one; `parent` names the decision this one is nested under.
++ */
++Collab.Decision = class Decision {
++	options = [];
++	overruled = false;
++
++	constructor(...args){ this.assign(...args); }
++	assign(...args){ return Object.assign(this, ...args); }
++
++	// {id, phase, parent, ask, package, options, status, counts, chosen, runner_up, caveats}
++	apply(v){ Object.assign(this, v); }
++
++	// The owner's own `chose` line: `option` is the option's SAY text (Decision.js writes
++	// what it clicked, not the key), so it is matched back to `chosen`'s key here.
++	override(v){
++		const say = this.options.find(o => o.key === this.chosen)?.say;
++		this.overruled = v.option !== say;
++		this.final = this.options.find(o => o.say === v.option)?.key ?? v.option;
++		this.by = v.by;
++	}
++
++	/** What actually stands: the owner's pick once there is one, else the vote's own winner. */
++	winner(){ return this.final ?? this.chosen; }
++};
++
++/**
++ * The shared model scoreboard — `public/framework/ai/collab/scoreboard.jsonl`,
++ * one `score` line per member per decision, appended by the runner and corrected
++ * (never replaced — same rule as everywhere else in this file) whenever the owner
++ * overrules a vote. `models()` is the table the page draws; `retire()` is the
++ * owner's own rule for phasing a model out (owner-words-3.md, collab-format.md
++ * "Added 14:15"): at least 5 decisions, under 15% wins, cost above the median.
++ */
++Collab.Scoreboard = class Scoreboard extends JSONL {
++	static verbs = ["score"];
++
++	rows = [];
++
++	apply(entry){
++		if (!entry.score) return this.skip(Object.keys(entry)[0], entry);
++		// ⚠ Keyed by collab + decision + member, not decision + member alone — the
++		// same decision id ("d-1") is reused by every run, so a key without `collab`
++		// collapsed six different runs' rows for one member into one (2026-09-28).
++		const v = entry.score;
++		const row = this.rows.find(r => r.collab === v.collab && r.decision === v.decision && r.member === v.member);
++		row ? Object.assign(row, v) : this.rows.push({ ...v });
++		return this;
++	}
++
++	/** Per model: decisions entered, wins, win rate, votes received, cost, cost per win. */
++	models(){
++		const by = new Map();
++		for (const r of this.rows){
++			const m = by.get(r.model) ?? by.set(r.model, { model: r.model, decisions: 0, wins: 0, votes: 0, cost: 0 }).get(r.model);
++			m.decisions++;
++			if (r.won) m.wins++;
++			m.votes += r.votes ?? 0;
++			m.cost += r.cost ?? 0;
++		}
++		return [...by.values()].map(m => ({
++			...m,
++			win_rate: m.decisions ? m.wins / m.decisions : 0,
++			cost_per_win: m.wins ? m.cost / m.wins : null,
++			cost_per_decision: m.decisions ? m.cost / m.decisions : 0,
++		}));
++	}
++
++	/** Model ids that have earned enough decisions to judge and are underperforming on both counts. */
++	retire(){
++		const rows = this.models().filter(m => m.decisions >= 5);
++		if (!rows.length) return [];
++		const costs = rows.map(m => m.cost_per_decision).sort((a, b) => a - b);
++		const median = costs.length % 2 ? costs[costs.length >> 1] : (costs[costs.length / 2 - 1] + costs[costs.length / 2]) / 2;
++		return rows.filter(m => m.win_rate < 0.15 && m.cost_per_decision > median).map(m => m.model);
++	}
++};
++
++/**
++ * The shared name index — `public/framework/ai/collab/decisions.jsonl`, one
++ * `named` line per class/property/method a WINNING design package decided
++ * (collab-format.md "Added 14:25"). `for(module, member)` is the one static
++ * method `ext/Doc` calls to draw its own ⋯ menu after a name it finds there —
++ * nothing else in `ext/Doc` needs to know this module exists.
++ */
++Collab.Decisions = class Decisions extends JSONL {
++	static verbs = ["named"];
++
++	rows = [];
++	named(v){ this.rows.push(v); }
++
++	/** The live page's own link for the decision that named `member` on `module`,
++	 *  or `undefined` when nothing has. Reads the shared file once per page load. */
++	static async for(module, member){
++		this.cached ??= new this({ url: "/framework/ai/collab/decisions.jsonl" }).load();
++		const rows = (await this.cached).rows;
++		const row = rows.find(r => r.module === module && r.member === member);
++		return row && `/framework/ext/Collab/?src=/framework/ai/${row.collab}/collab.jsonl#${row.decision}`;
++	}
++};
++
++export default Collab;
+diff --git a/public/framework/ext/Collab/collab.css b/public/framework/ext/Collab/collab.css
+new file mode 100644
+index 00000000..cd712a50
+--- /dev/null
++++ b/public/framework/ext/Collab/collab.css
+@@ -0,0 +1,51 @@
++/* ext/Collab's own look — everything framework.css doesn't already give the
++   utility classes used in view.js (flex, gap, wrap, split, v-baseline, v-center,
++   muted, card, grid, flow). See css skill: status colour comes from the same
++   token ramp the usage rail uses (--ok → --warn → --error), never a hand-picked one. */
++@layer theme {
++
++	.collab-phase {
++		display: flex; align-items: baseline; gap: .35em;
++		padding: .3em .7em; border-radius: 999px; border: 1px solid var(--line);
++	}
++	.collab-phase.done { border-color: var(--ok); color: var(--ok); }
++	.collab-phase.now { border-color: var(--warn); color: var(--warn); }
++	.collab-phase-n { font-weight: 600; }
++
++	.collab-dot { width: .7em; height: .7em; border-radius: 50%; background: var(--line); }
++	.collab-dot.done { background: var(--ok); }
++	.collab-dot.start, .collab-dot.running { background: var(--warn); }
++	.collab-dot.error { background: var(--error); }
++
++	.collab-member-files { display: flex; flex-direction: column; gap: .2em; }
++	.collab-member-cost { font-weight: 600; }
++
++	.collab-vote { padding-block: .15em; }
++	.collab-vote-who, .collab-vote-pick { font-weight: 600; }
++	.collab-member-vote { font-weight: 600; }
++
++	/* The vote count and the winner, at a glance — right on the decision card, not
++	   hidden behind the "every option, by votes" disclosure below it. */
++	.collab-decision-badges { margin-block-start: .4em; }
++	.collab-decision-badge {
++		padding: .15em .6em; border-radius: 999px; border: 1px solid var(--line); font-size: .9em;
++	}
++	.collab-decision-badge.winner { border-color: var(--ok); color: var(--ok); font-weight: 600; }
++
++	.collab-decision-id { font-family: var(--mono, monospace); }
++	.collab-decision-alts { margin-block-start: .4em; }
++	.collab-decision-alt { padding-block: .1em; }
++	.collab-decision-children { margin-inline-start: var(--gap); border-inline-start: 2px solid var(--line); padding-inline-start: var(--gap); }
++	.collab-overruled { color: var(--warn); font-weight: 600; }
++
++	/* ?src=…#d-1 scrolls here — a brief ring, not a permanent mark, so the anchor
++	   reads as "you arrived" rather than "this one is special forever." */
++	.collab-highlight { outline: 2px solid var(--warn); outline-offset: 2px; }
++
++	.collab-winner { --card-edge: var(--ok); }
++	.collab-winner-title { color: var(--ok); }
++
++	.collab-score-table { display: grid; grid-template-columns: 2fr repeat(5, 1fr); gap: .3em .8em; }
++	.collab-score-row { display: contents; }
++	.collab-score-row.retired { color: var(--error); }
++}
+diff --git a/public/framework/ext/Collab/demo/collab.jsonl b/public/framework/ext/Collab/demo/collab.jsonl
+new file mode 100644
+index 00000000..ec6674d4
+--- /dev/null
++++ b/public/framework/ext/Collab/demo/collab.jsonl
+@@ -0,0 +1,29 @@
++{"collab": {"at": "2026-09-28T14:00:00-05:00", "id": "demo-research-1", "question": "Which consensus method works best for cheap fan-out agents?", "kind": "research", "members": [{"id": "haiku-a", "model": "claude-haiku-4-5-20251001"}, {"id": "sonnet-b", "model": "claude-sonnet-5"}, {"id": "haiku-c", "model": "claude-haiku-4-5-20251001"}], "phases": [{"n": 1, "kind": "brief"}, {"n": 2, "kind": "read-peers"}, {"n": 3, "kind": "revise"}, {"n": 4, "kind": "vote"}]}}
++{"phase": {"at": "2026-09-28T14:00:05-05:00", "n": 1, "kind": "brief", "status": "start"}}
++{"member": {"at": "2026-09-28T14:01:10-05:00", "id": "haiku-a", "phase": 1, "status": "done", "file": "collab/haiku-a/1-brief.md", "cost": 0.010}}
++{"member": {"at": "2026-09-28T14:01:22-05:00", "id": "sonnet-b", "phase": 1, "status": "done", "file": "collab/sonnet-b/1-brief.md", "cost": 0.030}}
++{"member": {"at": "2026-09-28T14:01:15-05:00", "id": "haiku-c", "phase": 1, "status": "done", "file": "collab/haiku-c/1-brief.md", "cost": 0.010}}
++{"phase": {"at": "2026-09-28T14:01:25-05:00", "n": 1, "kind": "brief", "status": "done", "cost": 0.050}}
++{"phase": {"at": "2026-09-28T14:01:30-05:00", "n": 2, "kind": "read-peers", "status": "start"}}
++{"member": {"at": "2026-09-28T14:02:05-05:00", "id": "haiku-a", "phase": 2, "status": "done", "file": "collab/haiku-a/2-read-peers.md", "cost": 0.008}}
++{"member": {"at": "2026-09-28T14:02:18-05:00", "id": "sonnet-b", "phase": 2, "status": "done", "file": "collab/sonnet-b/2-read-peers.md", "cost": 0.020}}
++{"member": {"at": "2026-09-28T14:02:10-05:00", "id": "haiku-c", "phase": 2, "status": "done", "file": "collab/haiku-c/2-read-peers.md", "cost": 0.008}}
++{"phase": {"at": "2026-09-28T14:02:20-05:00", "n": 2, "kind": "read-peers", "status": "done", "cost": 0.036}}
++{"phase": {"at": "2026-09-28T14:02:25-05:00", "n": 3, "kind": "revise", "status": "start"}}
++{"member": {"at": "2026-09-28T14:03:05-05:00", "id": "haiku-a", "phase": 3, "status": "done", "file": "collab/haiku-a/3-revise.md", "cost": 0.010}}
++{"member": {"at": "2026-09-28T14:03:20-05:00", "id": "sonnet-b", "phase": 3, "status": "done", "file": "collab/sonnet-b/3-revise.md", "cost": 0.030}}
++{"member": {"at": "2026-09-28T14:03:12-05:00", "id": "haiku-c", "phase": 3, "status": "done", "file": "collab/haiku-c/3-revise.md", "cost": 0.010}}
++{"phase": {"at": "2026-09-28T14:03:22-05:00", "n": 3, "kind": "revise", "status": "done", "cost": 0.050}}
++{"phase": {"at": "2026-09-28T14:03:25-05:00", "n": 4, "kind": "vote", "status": "start"}}
++{"vote": {"at": "2026-09-28T14:03:40-05:00", "phase": 4, "member": "haiku-a", "pick": "sonnet-b", "caveat": "add a cost-per-round note, not just cost-per-method"}}
++{"vote": {"at": "2026-09-28T14:03:42-05:00", "phase": 4, "member": "haiku-c", "pick": "sonnet-b", "caveat": "cite the primary source, not just the general claim"}}
++{"vote": {"at": "2026-09-28T14:03:44-05:00", "phase": 4, "member": "sonnet-b", "pick": "haiku-a", "caveat": "shorter would read faster"}}
++{"decision": {"at": "2026-09-28T14:03:45-05:00", "id": "d-1", "phase": 4, "parent": null, "ask": "Which revised brief should the mastermind read as the answer?", "package": false, "options": [{"key": "haiku-a", "say": "haiku-a: read-peers fixes correlated errors, one extra read step", "caveat": "", "file": "collab/haiku-a/3-revise.md"}, {"key": "sonnet-b", "say": "sonnet-b: four methods ranked by cost vs. correlated-error resistance", "caveat": "", "file": "collab/sonnet-b/3-revise.md"}, {"key": "haiku-c", "say": "haiku-c: four methods, peer-rounds is the best cheap trade", "caveat": "", "file": "collab/haiku-c/3-revise.md"}], "status": "open"}}
++{"tally": {"at": "2026-09-28T14:03:46-05:00", "phase": 4, "counts": {"sonnet-b": 2, "haiku-a": 1}, "winner": "sonnet-b", "caveats": ["add a cost-per-round note, not just cost-per-method", "cite the primary source, not just the general claim"]}}
++{"decision": {"at": "2026-09-28T14:03:46-05:00", "id": "d-1", "phase": 4, "status": "decided", "counts": {"sonnet-b": 2, "haiku-a": 1}, "chosen": "sonnet-b", "runner_up": "haiku-a", "caveats": ["add a cost-per-round note, not just cost-per-method", "cite the primary source, not just the general claim"], "tie_rule": null}}
++{"decision": {"at": "2026-09-28T14:03:50-05:00", "id": "d-2", "phase": 4, "parent": "d-1", "ask": "Keep sonnet-b's full structure, or trim it to haiku-c's length?", "package": true, "options": [{"key": "as-is", "say": "as-is: keep sonnet-b's full four-method comparison", "caveat": ""}, {"key": "trim", "say": "trim: sonnet-b's content, cut to haiku-c's length", "caveat": "reads faster on a card"}], "status": "open"}}
++{"tally": {"at": "2026-09-28T14:03:51-05:00", "phase": 4, "counts": {"trim": 2, "as-is": 1}, "winner": "trim", "caveats": ["reads faster on a card"]}}
++{"decision": {"at": "2026-09-28T14:03:51-05:00", "id": "d-2", "phase": 4, "status": "decided", "counts": {"trim": 2, "as-is": 1}, "chosen": "trim", "runner_up": "as-is", "caveats": ["reads faster on a card"], "tie_rule": null}}
++{"chose": {"decision": "d-2", "option": "as-is: keep sonnet-b's full four-method comparison", "at": "2026-09-28T14:10:00-05:00", "by": "owner"}}
++{"phase": {"at": "2026-09-28T14:03:52-05:00", "n": 4, "kind": "vote", "status": "done", "cost": 0.010}}
++{"winner": {"at": "2026-09-28T14:03:55-05:00", "pick": "sonnet-b", "file": "collab/sonnet-b/3-revise.md", "caveats": ["add a cost-per-round note, not just cost-per-method", "cite the primary source, not just the general claim"], "cost": 0.146}}
+diff --git a/public/framework/ext/Collab/demo/collab/haiku-a/1-brief.md b/public/framework/ext/Collab/demo/collab/haiku-a/1-brief.md
+new file mode 100644
+index 00000000..726d4172
+--- /dev/null
++++ b/public/framework/ext/Collab/demo/collab/haiku-a/1-brief.md
+@@ -0,0 +1,7 @@
++# Brief — which consensus method works best for cheap fan-out agents?
++
++Plain majority vote is the cheapest: every member drafts once, votes once, done.
++It breaks down once members read exactly the same prompt and reason the same
++way, since then a "majority" is really one opinion counted three times.
++
++Sources: a couple of blog posts on multi-agent debate, skimmed, not saved.
+diff --git a/public/framework/ext/Collab/demo/collab/haiku-a/2-read-peers.md b/public/framework/ext/Collab/demo/collab/haiku-a/2-read-peers.md
+new file mode 100644
+index 00000000..ddc8d69e
+--- /dev/null
++++ b/public/framework/ext/Collab/demo/collab/haiku-a/2-read-peers.md
+@@ -0,0 +1,5 @@
++# Read peers — sonnet-b, haiku-c
++
++sonnet-b's brief names the actual failure mode I only gestured at: correlated
++errors, not just "same opinion." haiku-c's brief is shorter than mine and still
++covers the same ground — I should trim the throat-clearing.
+diff --git a/public/framework/ext/Collab/demo/collab/haiku-a/3-revise.md b/public/framework/ext/Collab/demo/collab/haiku-a/3-revise.md
+new file mode 100644
+index 00000000..1ca286e9
+--- /dev/null
++++ b/public/framework/ext/Collab/demo/collab/haiku-a/3-revise.md
+@@ -0,0 +1,8 @@
++# Revised — which consensus method works best for cheap fan-out agents?
++
++Plain majority vote is cheapest but breaks on correlated errors — members given
++the same prompt tend to make the same mistake, so three votes for one wrong
++answer look like consensus. A cheap fix: read 1–2 peers before voting, so each
++vote reflects more than one member's blind spot.
++
++Sources: skimmed, not saved — this run predates the source library.
+diff --git a/public/framework/ext/Collab/demo/collab/haiku-c/1-brief.md b/public/framework/ext/Collab/demo/collab/haiku-c/1-brief.md
+new file mode 100644
+index 00000000..88465110
+--- /dev/null
++++ b/public/framework/ext/Collab/demo/collab/haiku-c/1-brief.md
+@@ -0,0 +1,7 @@
++# Brief — which consensus method works best for cheap fan-out agents?
++
++Two options for cheap agents: vote (fast, cheap) or debate (slower, needs a
++judge). Vote wins on cost. Debate wins on quality when the question is
++genuinely contested rather than a matter of fact.
++
++Sources: none fetched — general knowledge only.
+diff --git a/public/framework/ext/Collab/demo/collab/haiku-c/2-read-peers.md b/public/framework/ext/Collab/demo/collab/haiku-c/2-read-peers.md
+new file mode 100644
+index 00000000..6fefbda9
+--- /dev/null
++++ b/public/framework/ext/Collab/demo/collab/haiku-c/2-read-peers.md
+@@ -0,0 +1,4 @@
++# Read peers — haiku-a, sonnet-b
++
++Both peers found a third method I missed: peer-rounds (read-then-vote), and
++sonnet-b found a fourth (Delphi). My two-option brief was too short a list.
+diff --git a/public/framework/ext/Collab/demo/collab/haiku-c/3-revise.md b/public/framework/ext/Collab/demo/collab/haiku-c/3-revise.md
+new file mode 100644
+index 00000000..3b756add
+--- /dev/null
++++ b/public/framework/ext/Collab/demo/collab/haiku-c/3-revise.md
+@@ -0,0 +1,8 @@
++# Revised — which consensus method works best for cheap fan-out agents?
++
++Four real methods, not two: vote, debate, peer-rounds, Delphi. For cheap
++fan-out, peer-rounds is the best trade — one extra read step catches the
++correlated-error problem plain voting has, without the cost of a full debate
++or Delphi round.
++
++Sources: none fetched — general knowledge only.
+diff --git a/public/framework/ext/Collab/demo/collab/sonnet-b/1-brief.md b/public/framework/ext/Collab/demo/collab/sonnet-b/1-brief.md
+new file mode 100644
+index 00000000..82a20ab4
+--- /dev/null
++++ b/public/framework/ext/Collab/demo/collab/sonnet-b/1-brief.md
+@@ -0,0 +1,13 @@
++# Brief — which consensus method works best for cheap fan-out agents?
++
++Four methods are in real use: plain vote (cheap, weak against correlated
++errors), debate (two members argue, a third judges — better, costs 2-3x),
++Delphi (anonymous rounds, each member sees the group's summary and revises —
++strong, needs 2+ rounds), and peer-rounds (read-a-few, revise, vote — the
++middle ground: most of Delphi's benefit for one extra read step).
++
++For cheap fan-out specifically, peer-rounds wins: it adds one read step, not a
++whole extra round, and the read step is what breaks the correlated-error
++problem plain voting has.
++
++Sources: general multi-agent literature, not fetched live for this demo.
+diff --git a/public/framework/ext/Collab/demo/collab/sonnet-b/2-read-peers.md b/public/framework/ext/Collab/demo/collab/sonnet-b/2-read-peers.md
+new file mode 100644
+index 00000000..831f2a19
+--- /dev/null
++++ b/public/framework/ext/Collab/demo/collab/sonnet-b/2-read-peers.md
+@@ -0,0 +1,6 @@
++# Read peers — haiku-a, haiku-c
++
++Both peers land on the same conclusion (read-then-vote beats plain vote) from
++a narrower survey. Neither named Delphi as a fallback for when peer-rounds
++still disagrees — worth adding: a second read-and-revise round, only when the
++first vote doesn't clear a majority.
+diff --git a/public/framework/ext/Collab/demo/collab/sonnet-b/3-revise.md b/public/framework/ext/Collab/demo/collab/sonnet-b/3-revise.md
+new file mode 100644
+index 00000000..26cadad5
+--- /dev/null
++++ b/public/framework/ext/Collab/demo/collab/sonnet-b/3-revise.md
+@@ -0,0 +1,13 @@
++# Revised — which consensus method works best for cheap fan-out agents?
++
++Four methods, ranked by cost against how well they survive correlated errors:
++plain vote (cheapest, weakest), debate (2-3x cost, one judge), peer-rounds
++(one extra read-and-revise step, strong middle ground), Delphi (multiple
++rounds, strongest, most expensive).
++
++**For cheap fan-out: peer-rounds by default, with a Delphi-style second round
++only when the first vote doesn't clear a majority.** That is exactly the shape
++this run itself used — brief, read 1-2 peers, revise, vote — and it is the
++shape `ext/Collab`'s `phases` already default to for `kind: "research"`.
++
++Sources: general multi-agent literature, not fetched live for this demo.
+diff --git a/public/framework/ext/Collab/demo/scoreboard.jsonl b/public/framework/ext/Collab/demo/scoreboard.jsonl
+new file mode 100644
+index 00000000..0340c397
+--- /dev/null
++++ b/public/framework/ext/Collab/demo/scoreboard.jsonl
+@@ -0,0 +1,12 @@
++{"score": {"at": "2026-09-28T13:00:00-05:00", "collab": "demo-research-1", "decision": "d-1", "member": "haiku-a", "model": "claude-haiku-4-5-20251001", "votes": 1, "won": false, "cost": 0.040}}
++{"score": {"at": "2026-09-28T13:00:00-05:00", "collab": "demo-research-1", "decision": "d-1", "member": "sonnet-b", "model": "claude-sonnet-5", "votes": 2, "won": true, "cost": 0.030}}
++{"score": {"at": "2026-09-28T13:05:00-05:00", "collab": "demo-research-2", "decision": "d-1", "member": "haiku-c", "model": "claude-haiku-4-5-20251001", "votes": 0, "won": false, "cost": 0.040}}
++{"score": {"at": "2026-09-28T13:05:00-05:00", "collab": "demo-research-2", "decision": "d-1", "member": "sonnet-b", "model": "claude-sonnet-5", "votes": 2, "won": true, "cost": 0.030}}
++{"score": {"at": "2026-09-28T13:10:00-05:00", "collab": "demo-research-3", "decision": "d-1", "member": "haiku-a", "model": "claude-haiku-4-5-20251001", "votes": 0, "won": false, "cost": 0.040}}
++{"score": {"at": "2026-09-28T13:10:00-05:00", "collab": "demo-research-3", "decision": "d-1", "member": "sonnet-b", "model": "claude-sonnet-5", "votes": 3, "won": true, "cost": 0.030}}
++{"score": {"at": "2026-09-28T13:15:00-05:00", "collab": "demo-research-4", "decision": "d-1", "member": "haiku-c", "model": "claude-haiku-4-5-20251001", "votes": 1, "won": false, "cost": 0.040}}
++{"score": {"at": "2026-09-28T13:15:00-05:00", "collab": "demo-research-4", "decision": "d-1", "member": "sonnet-b", "model": "claude-sonnet-5", "votes": 2, "won": true, "cost": 0.030}}
++{"score": {"at": "2026-09-28T13:20:00-05:00", "collab": "demo-research-5", "decision": "d-1", "member": "haiku-a", "model": "claude-haiku-4-5-20251001", "votes": 0, "won": false, "cost": 0.040}}
++{"score": {"at": "2026-09-28T13:20:00-05:00", "collab": "demo-research-5", "decision": "d-1", "member": "sonnet-b", "model": "claude-sonnet-5", "votes": 2, "won": true, "cost": 0.030}}
++{"score": {"at": "2026-09-28T13:25:00-05:00", "collab": "demo-research-6", "decision": "d-1", "member": "haiku-c", "model": "claude-haiku-4-5-20251001", "votes": 1, "won": false, "cost": 0.040}}
++{"score": {"at": "2026-09-28T13:25:00-05:00", "collab": "demo-research-6", "decision": "d-1", "member": "sonnet-b", "model": "claude-sonnet-5", "votes": 2, "won": true, "cost": 0.030}}
+diff --git a/public/framework/ext/Collab/doc/collab.md b/public/framework/ext/Collab/doc/collab.md
+new file mode 100644
+index 00000000..c4e0a3fa
+--- /dev/null
++++ b/public/framework/ext/Collab/doc/collab.md
+@@ -0,0 +1,66 @@
++# The objects, and the two phase lists
++
++## The shape
++```
++Collab              one run: question, kind, cost, winner
++  .members[]        Collab.Member — id, model, files{phase → {file, cost, status}}, cost, status
++  .phases[]         Collab.Phase — n, kind, status, cost, votes[]
++  .votes[]          Collab.Vote — phase, member, pick, caveat
++  .decisions[]       Collab.Decision — id, phase, parent, ask, package, options[], counts,
++                     chosen (the vote's own winner), runner_up, overruled, final (owner's pick)
++Collab.Scoreboard    the shared public/framework/ai/collab/scoreboard.jsonl — per-model
++                     decisions/wins/win_rate/cost/cost_per_win, and retire()
++```
++
++Every field above comes straight off a `collab.jsonl` line — see the contract
++(`/framework/ai/2026-09-28/collab-rounds/collab-format.md`) for the wire shape. `Collab`
++replays it exactly the way `JSONL`/`TaskJSONL` always have: one line, one verb, later lines for
++the same id merge onto the earlier one instead of replacing the object.
++
++## The two phase lists
++- **research** (the default `kind`): `brief` → `read-peers` → `revise` → `vote`. Everyone
++  answers, reads 1–2 peers, rewrites their own, votes with a caveat.
++- **design**: `names` → `vote` → `implement` → `cross-review` → `vote`. Names first (so the
++  class, its properties and methods are agreed before anyone writes code), then everyone
++  implements the winning names, reads a couple of peers' code, and votes again on the
++  implementation.
++
++## The decision tree
++Every vote phase produces exactly one `decision` — the runner itemizes each member's output as
++an option, appends it `open`, runs the vote, then rewrites the SAME id `decided` (later line,
++same id, wins — the same merge rule `ask`/`decision` already use in `TaskJSONL`). A `package:
++true` decision is a whole signature set voted as one (the owner: "one method name affects
++another … so that's kind of where the mastermind might need to coordinate the whole decision
++tree"); a later decision can name `parent: "<id>"` to vote on a detail inside the winning
++package, and `Collab.children_of(id)` is how the view finds it to nest.
++
++**The owner overrules by clicking a different option in the `Decision` widget** — that write
++lands as `collab.jsonl`'s own `chose` line, `{decision, option, at, by}`, where `option` is the
++clicked option's `say` text (what `ux/Content/Decision.js` writes when clicked), not its `key`.
++`Collab.Decision.override()` resolves that text back to a key and sets `overruled` and `final`;
++`winner()` returns `final` once there is one, else the vote's own `chosen`. The vote's winner is
++never erased — `chosen` still reads what the vote actually decided, and `overruled` is how a
++reader tells the two apart.
++
++**Every alternative stays visible, ranked by its own votes, zeros included** — the view never
++shows only the winner and the runner-up. The winner is trusted by default and leads; the rest
++sit one click down in a `<details>`.
++
++## Addressable, and linked from where a name shows up
++Every decision's own card carries `id="<its own id>"`, so `/framework/ext/Collab/?src=<a
++collab.jsonl>#d-1` both loads that run and scrolls straight to decision `d-1`, opening its
++alternatives. That is the exact link `Collab.Decisions.for(module, member)` builds, reading the
++shared `public/framework/ai/collab/decisions.jsonl` — one `named` line per class, property or
++method a WINNING `package` decision settled (the runner writes it, once, when that decision is
++decided). `ext/Doc` is meant to call `for()` once per page load and draw a ⋯ after any member
++name it finds there; this task does not touch `ext/Doc` itself.
++
++## The scoreboard
++`Collab.Scoreboard` is its own small `JSONL` subclass reading a file OUTSIDE any one run —
++`public/framework/ai/collab/scoreboard.jsonl` — because the whole point is comparing models
++ACROSS runs. Each row is one member's participation in one decision; `models()` aggregates by
++`model` (two members can share a model id), and `retire()` is the owner's own rule
++(owner-words-3.md): once a model has at least 5 decisions to judge it by, a win rate under 15%
++and a cost per decision above the median of the models being compared, it is a candidate to
++retire. The runner decides what to DO with that (warn, or swap the model out under
++`collab.json`'s `"auto_retire": true`) — this module only computes the number.
+diff --git a/public/framework/ext/Collab/doc/method/Scoreboard.models.md b/public/framework/ext/Collab/doc/method/Scoreboard.models.md
+new file mode 100644
+index 00000000..9001f6b7
+--- /dev/null
++++ b/public/framework/ext/Collab/doc/method/Scoreboard.models.md
+@@ -0,0 +1 @@
++`models()` — one row per model: decisions entered, wins, win rate, votes received, total cost, cost per win.
+diff --git a/public/framework/ext/Collab/doc/method/Scoreboard.retire.md b/public/framework/ext/Collab/doc/method/Scoreboard.retire.md
+new file mode 100644
+index 00000000..d82aaee8
+--- /dev/null
++++ b/public/framework/ext/Collab/doc/method/Scoreboard.retire.md
+@@ -0,0 +1 @@
++`retire()` — model ids with 5+ decisions, a win rate under 15%, and a cost per decision above the median (the owner's own rule).
+diff --git a/public/framework/ext/Collab/doc/method/children_of.md b/public/framework/ext/Collab/doc/method/children_of.md
+new file mode 100644
+index 00000000..c2e3306a
+--- /dev/null
++++ b/public/framework/ext/Collab/doc/method/children_of.md
+@@ -0,0 +1 @@
++`children_of(id)` — a decision's own children, found by matching their `parent` to `id` (collab-format.md's "package deals").
+diff --git a/public/framework/ext/Collab/doc/method/decision.md b/public/framework/ext/Collab/doc/method/decision.md
+new file mode 100644
+index 00000000..c309a5db
+--- /dev/null
++++ b/public/framework/ext/Collab/doc/method/decision.md
+@@ -0,0 +1 @@
++`decision(id)` — the `Collab.Decision` with that id ("d-1"), or `undefined` if the log has no such line yet.
+diff --git a/public/framework/ext/Collab/doc/method/member.md b/public/framework/ext/Collab/doc/method/member.md
+new file mode 100644
+index 00000000..dff54ccc
+--- /dev/null
++++ b/public/framework/ext/Collab/doc/method/member.md
+@@ -0,0 +1 @@
++`member(id)` — the `Collab.Member` with that id, or `undefined` before its first line has arrived.
+diff --git a/public/framework/ext/Collab/doc/method/phase.md b/public/framework/ext/Collab/doc/method/phase.md
+new file mode 100644
+index 00000000..19ca9647
+--- /dev/null
++++ b/public/framework/ext/Collab/doc/method/phase.md
+@@ -0,0 +1 @@
++`phase(n)` — the `Collab.Phase` numbered `n`, or `undefined` before it starts.
+diff --git a/public/framework/ext/Collab/doc/method/root_decisions.md b/public/framework/ext/Collab/doc/method/root_decisions.md
+new file mode 100644
+index 00000000..437a4373
+--- /dev/null
++++ b/public/framework/ext/Collab/doc/method/root_decisions.md
+@@ -0,0 +1 @@
++`root_decisions()` — every decision with no `parent`: the top of the decision tree the view nests everything else under.
+diff --git a/public/framework/ext/Collab/doc/method/tally.md b/public/framework/ext/Collab/doc/method/tally.md
+new file mode 100644
+index 00000000..b68bfc97
+--- /dev/null
++++ b/public/framework/ext/Collab/doc/method/tally.md
+@@ -0,0 +1 @@
++`tally(n)` — the vote counts a `tally` line gave phase `n`, or `{}` before one has arrived.
+diff --git a/public/framework/ext/Collab/doc/property/Scoreboard.rows.md b/public/framework/ext/Collab/doc/property/Scoreboard.rows.md
+new file mode 100644
+index 00000000..5a2aae28
+--- /dev/null
++++ b/public/framework/ext/Collab/doc/property/Scoreboard.rows.md
+@@ -0,0 +1 @@
++Every `score` line from `scoreboard.jsonl`, one row per member per decision, keyed by collab+decision+member so no two runs' rows collide.
+diff --git a/public/framework/ext/Collab/doc/property/cost.md b/public/framework/ext/Collab/doc/property/cost.md
+new file mode 100644
+index 00000000..f263af70
+--- /dev/null
++++ b/public/framework/ext/Collab/doc/property/cost.md
+@@ -0,0 +1 @@
++The run's total cost so far, summed from every phase's own `cost` as the log streams in.
+diff --git a/public/framework/ext/Collab/doc/property/decisions.md b/public/framework/ext/Collab/doc/property/decisions.md
+new file mode 100644
+index 00000000..55afce3d
+--- /dev/null
++++ b/public/framework/ext/Collab/doc/property/decisions.md
+@@ -0,0 +1 @@
++Every decision the runner itemized from a vote phase — a `Collab.Decision` per id, nested by `parent` for a package deal's own detail votes.
+diff --git a/public/framework/ext/Collab/doc/property/members.md b/public/framework/ext/Collab/doc/property/members.md
+new file mode 100644
+index 00000000..a0ba1e7f
+--- /dev/null
++++ b/public/framework/ext/Collab/doc/property/members.md
+@@ -0,0 +1 @@
++Every member of the run, replayed from `collab.jsonl` — a `Collab.Member` per id, with its files, cost and status per phase.
+diff --git a/public/framework/ext/Collab/doc/property/phases.md b/public/framework/ext/Collab/doc/property/phases.md
+new file mode 100644
+index 00000000..fe8d9b34
+--- /dev/null
++++ b/public/framework/ext/Collab/doc/property/phases.md
+@@ -0,0 +1 @@
++The run's phases in order — a `Collab.Phase` per one, each carrying its own status, cost and the votes cast in it.
+diff --git a/public/framework/ext/Collab/doc/property/tallies.md b/public/framework/ext/Collab/doc/property/tallies.md
+new file mode 100644
+index 00000000..8eb97859
+--- /dev/null
++++ b/public/framework/ext/Collab/doc/property/tallies.md
+@@ -0,0 +1 @@
++The vote counts a `tally` line gave each phase, keyed by phase number — read through `tally(n)` rather than this directly.
+diff --git a/public/framework/ext/Collab/doc/property/votes.md b/public/framework/ext/Collab/doc/property/votes.md
+new file mode 100644
+index 00000000..b3387d26
+--- /dev/null
++++ b/public/framework/ext/Collab/doc/property/votes.md
+@@ -0,0 +1 @@
++Every vote cast in the whole run, in the order the log recorded it — `{member, pick, caveat}` (collab-format.md's own shape).
+diff --git a/public/framework/ext/Collab/doc/property/winner.md b/public/framework/ext/Collab/doc/property/winner.md
+new file mode 100644
+index 00000000..211e519a
+--- /dev/null
++++ b/public/framework/ext/Collab/doc/property/winner.md
+@@ -0,0 +1 @@
++The run's own conclusion — `{pick, file, caveats, cost}` — set once, from the log's final `winner` line.
+diff --git a/public/framework/ext/Collab/page.js b/public/framework/ext/Collab/page.js
+new file mode 100644
+index 00000000..9028fd2f
+--- /dev/null
++++ b/public/framework/ext/Collab/page.js
+@@ -0,0 +1,72 @@
++import { Doc, View, div, p } from "/app.js";
++import { Collab } from "./Collab.js";
++import { view } from "./view.js";
++
++View.stylesheet(import.meta, "collab.css");
++
++const DEMO = new URL("demo/collab.jsonl", import.meta.url).pathname;
++const DEMO_SCORE = new URL("demo/scoreboard.jsonl", import.meta.url).pathname;
++const SCOREBOARD = "/framework/ai/collab/scoreboard.jsonl";
++
++/* Every decision is addressable — `?src=…#d-1` (collab-format.md "Added
++   14:25"): the runner and ext/Doc build exactly that url. Each decision's own
++   card carries `id="d-1"`, so this is a plain anchor scroll plus opening its
++   "every option" disclosure — nothing decision-specific to look up. */
++function open_hash(){
++	const id = decodeURIComponent(location.hash.slice(1));
++	const el = id && document.getElementById(id);
++	if (!el) return;
++	el.querySelector("details")?.setAttribute("open", "");
++	el.scrollIntoView({ block: "center" });
++	el.classList.add("collab-highlight");
++}
++
++// A Doc page: the live run stays the Overview (content(), below — unchanged from before
++// this was a Doc), and the API tab lists `Collab`'s own members PLUS `Collab.Scoreboard`'s
++// (the "Scoreboard." prefix, same pattern ext/Saver's readme shows for a second class) —
++// so a reader can see `Collab.tally()` or `Scoreboard.retire()` the same way they would any
++// other class's methods, instead of only ever meeting them live inside a run.
++export default new Doc({
++	meta: import.meta,
++	title: "Collab",
++	label: "Collab",
++	description: "One collaboration run, live: members through phases to a vote, every decision the owner can overrule, and the model scoreboard.",
++	icon: "forum",
++
++	subject: Collab,
++	properties: "members phases votes decisions tallies cost winner",
++	methods:    "tally member phase decision root_decisions children_of",
++	files:      "Collab.js view.js page.js collab.css",
++
++	// ⚠ `api` here is an ASSIGNED instance member (Object.assign construction, not a
++	// class body), so it has no real [[HomeObject]] — `super.api()` throws "not a
++	// function". `Doc.prototype.api.call(this, section)` is the actual base behavior.
++	api(section){
++		Doc.prototype.api.call(this, section);
++		this.members(section, Collab.Scoreboard, { properties: "rows", methods: "models retire", prefix: "Scoreboard." });
++	},
++
++	/* A sample run by default (`ext/Collab/demo/`); `?src=<url of a real
++	   collab.jsonl>` draws that one instead, so the mastermind can link a live
++	   run straight from a task's own page. Streams either way — `Collab.live()`
++	   redraws in place as the run's own log grows. */
++	content(){
++		const src = new URLSearchParams(location.search).get("src");
++		const demo = !src;
++
++		div.c("collab-page flow wide", async $page => {
++			const collab = new Collab({ url: src || DEMO });
++			const scoreboard = new Collab.Scoreboard({ url: demo ? DEMO_SCORE : SCOREBOARD });
++
++			const draw = () => $page.empty(() => {
++				if (demo) p.c("muted", "A sample run below — add ?src=<url of a real collab.jsonl> to draw that run instead.");
++				if (!collab.loaded) return p.c("muted", "collab.jsonl not found at " + collab.url);
++				view(collab, scoreboard.loaded ? scoreboard : null);
++			});
++
++			await Promise.all([collab.live(draw), scoreboard.live(draw)]);
++			draw();
++			open_hash();
++		});
++	},
++});
+diff --git a/public/framework/ext/Collab/readme.md b/public/framework/ext/Collab/readme.md
+new file mode 100644
+index 00000000..e5f10bfb
+--- /dev/null
++++ b/public/framework/ext/Collab/readme.md
+@@ -0,0 +1,67 @@
++# Collab — a mastermind's members through phases to a vote, live, as one object
++
++## What
++One collaboration run — a mastermind fans a question out to a few cheap members, they work
++through ordered phases (brief, read peers, revise, vote — or names, vote, implement,
++cross-review, vote for an object-oriented design), and the run ends in a winner with the
++caveats it should absorb. `Collab` replays the run's own `collab.jsonl` into plain objects —
++`members[]`, `phases[]`, `votes[]`, `decisions[]`, `winner` — the way the owner asked for
++("almost everything should just be an object with properties and methods … the more of the
++internal structure we can see via UI"). `view.js` draws one run whole; `page.js` is the live
++page. The runner that actually spawns the members and writes the log is a sibling task
++(`Server/collab.mjs`) — this module only reads and draws what it writes.
++
++## Use
++```js
++import { Collab } from "/framework/ext/Collab/Collab.js";
++import { view } from "/framework/ext/Collab/view.js";
++
++const collab = new Collab({ url: "…/collab.jsonl" });
++await collab.live(redraw);       // resolves like load(), then calls redraw() per appended line
++view(collab);                     // draws the whole run into the current captor
++```
++`/framework/ext/Collab/?src=<url of a real collab.jsonl>` draws any run, not just the sample
++in `demo/` — a mastermind links a live run straight from its own task page this way. Add
++`#d-1` (a decision's own id) to scroll straight to that decision and open its alternatives.
++
++`Collab.Decisions.for("ext/Source", "save")` is the one static method `ext/Doc` calls to find
++the link for a name a design run actually decided — it reads the shared
++`public/framework/ai/collab/decisions.jsonl` once and resolves to that exact `?src=…#d-1` url,
++or `undefined` when nothing named it yet.
++
++## Watch out
++- The wire verbs (`collab phase member vote tally winner decision chose`) are a contract shared
++  with the runner minion — don't change the shape without saying so in both tasks' logs. The
++  contract itself: `/framework/ai/2026-09-28/collab-rounds/collab-format.md`.
++- `member(id)` and `phase(n)` are LOOKUP methods, not the wire verbs of the same name — `apply()`
++  routes verbs through `static handlers` instead of calling `this[verb]` the way plain `JSONL`
++  does, exactly to avoid that collision. [doc/collab.md](./doc/collab.md)
++- A `decision` line's `options[]` is ux/Content's own `{key, say, caveat}` shape on purpose —
++  `new Decision({ id, ask, options, log: collab.url })` draws it with no translation, and the
++  owner's click on another option writes straight back to the same `collab.jsonl` as a `chose`
++  line. [doc/collab.md](./doc/collab.md)
++- `chose.option` is the option's `say` TEXT (what `Decision.js` writes), while `decision.chosen`
++  is the option's `key` — `Collab.Decision.override()` resolves one to the other so `overruled`
++  and `winner()` both work in key form. Mixing the two up reads every real overrule as "not
++  overruled." [doc/collab.md](./doc/collab.md)
++- `Collab.Scoreboard` keys its rows by `collab + decision + member`, not `decision + member`
++  alone — a decision id like `"d-1"` is reused by every run, and a key without `collab` collapses
++  six different runs' rows for one member into one.
++- Every option of a decision stays visible with its own vote count, zeros included, ranked —
++  `runner_up` is shown too but is never the only alternative. The winner leads (seeded onto the
++  `Decision` widget as its own `chose` prop so it doesn't wait on the widget's separate read of
++  the log); the rest sit one click down, in a `<details>`.
++- The vote count and the winner are readable at a glance — a small badge per option sits right on
++  the decision card (`vote_badges()`), never only inside the "every option, by votes" `<details>`.
++  Each member's own card shows who it picked ("→ sonnet-b") on the vote-phase row, not a bare "—".
++- `page.js` is a `Doc`, not a plain `Page`: the live run stays the Overview, and the API tab lists
++  `Collab`'s own members plus `Collab.Scoreboard`'s (prefix `Scoreboard.`) the same way any other
++  class's methods and properties show up. ⚠ `api(section){ … }` passed into `new Doc({…})` is an
++  ASSIGNED instance member, not a class-body method — it has no real `[[HomeObject]]`, so
++  `super.api(section)` throws "not a function"; call `Doc.prototype.api.call(this, section)` instead.
++
++## More
++- [The live page](/framework/ext/Collab/) · [doc/collab.md](./doc/collab.md) — the objects, the phase lists, the decision tree
++- Files: `Collab.js` (the objects), `view.js` (draws one run), `collab.css`, `page.js`, `demo/` (a sample research run, a sample scoreboard)
++- The contract: `/framework/ai/2026-09-28/collab-rounds/collab-format.md` · the design: `/framework/ai/2026/09/28/agent-work-on-every-page-sanity-checks-c/design.md`
++- Consumers: the runner writes what this reads; a task page can embed `view(collab)` for its own run
+diff --git a/public/framework/ext/Collab/view.js b/public/framework/ext/Collab/view.js
+new file mode 100644
+index 00000000..4f036a1a
+--- /dev/null
++++ b/public/framework/ext/Collab/view.js
+@@ -0,0 +1,187 @@
++import { div, span, a, h3, h4, p, details, summary } from "../../core/View/View.js";
++import Decision from "../../ux/Content/Decision/Decision.js";
++
++/* One live run, drawn whole: the question, members as columns (their files and
++   cost per phase), the phase track, every decision (the ask, the options, who
++   actually won — nested under its parent for a package deal), every vote, the
++   winner, and — when a scoreboard is given — the model table. Show it, don't
++   tell it: this is what a reader who never saw the run looks at. */
++
++const money = n => n == null ? "—" : "$" + Number(n).toFixed(3).replace(/0+$/, "").replace(/\.$/, "");
++const base = url => (url ?? "").replace(/[^/]*$/, "");
++
++/** Draw `collab` (a Collab, already loaded or `live()`-streaming) into the current
++ *  captor. `scoreboard`, when given, is a Collab.Scoreboard — the model table. */
++export function view(collab, scoreboard){
++	const files = base(collab.url);
++
++	div.c("collab", () => {
++		head(collab);
++		phase_track(collab);
++		div.c("collab-members grid auto", () => collab.members.forEach(m => member_col(m, collab.phases, collab.votes, files)));
++		decision_wall(collab);
++		vote_list(collab);
++		winner_card(collab, files);
++		if (scoreboard) scoreboard_table(scoreboard);
++	});
++}
++
++function head(collab){
++	div.c("collab-head flex split v-baseline", () => {
++		h3(collab.question ?? "Collaboration run");
++		span.c("muted", [collab.kind, money(collab.cost)].filter(Boolean).join(" · "));
++	});
++}
++
++function phase_track(collab){
++	if (!collab.phases.length) return;
++	div.c("collab-phases flex gap wrap", () => collab.phases.forEach(ph => {
++		div.c("collab-phase").ac(ph.status === "done" ? "done" : ph.status === "start" ? "now" : "pending")
++			.append(() => {
++				span.c("collab-phase-n", "· " + ph.n + " ");
++				span(ph.kind);
++				if (ph.cost) span.c("muted", " " + money(ph.cost));
++			});
++	}));
++}
++
++// `votes`, when given (view() passes `collab.votes`), lets a vote-phase row show WHO this
++// member picked ("→ sonnet-b") instead of a bare "—" — the owner asked to see the vote
++// itself at a glance, not just a link to the raw vote.json.
++function member_col(m, phases, votes, files){
++	div.c("collab-member card", () => {
++		div.c("collab-member-head flex split v-baseline", () => {
++			span.c("collab-member-id", m.id);
++			span.c("collab-dot").ac(m.status ?? "pending");
++		});
++		span.c("muted", m.model ?? "");
++		div.c("collab-member-files", () => phases.forEach(ph => {
++			const f = m.files[ph.n];
++			const vote = ph.kind === "vote" && votes?.find(v => v.member === m.id && v.phase === ph.n);
++			div.c("collab-member-file flex gap v-center", () => {
++				span.c("muted", ph.kind);
++				if (vote) span.c("collab-member-vote", "→ " + vote.pick);
++				else if (f?.file) a.c("collab-file-link", "file").href(files + f.file);
++				else span.c("muted", "—");
++			});
++		}));
++		if (m.why) p.c("collab-member-why muted", m.why);
++		span.c("collab-member-cost", money(m.cost));
++	});
++}
++
++function vote_list(collab){
++	if (!collab.votes.length) return;
++	div.c("collab-votes flow", () => {
++		h4("Votes");
++		collab.votes.forEach(v => div.c("collab-vote flex gap v-center", () => {
++			span.c("collab-vote-who", v.member);
++			span.c("muted", "→");
++			span.c("collab-vote-pick", v.pick);
++			if (v.caveat) span.c("collab-vote-caveat muted", v.caveat);
++		}));
++	});
++}
++
++function decision_wall(collab){
++	const roots = collab.root_decisions();
++	if (!roots.length) return;
++	div.c("collab-decisions flow", () => {
++		h4("Decisions");
++		roots.forEach(d => decision_node(collab, d));
++	});
++}
++
++// A decision draws as ux/Content's own Decision widget, anchored by its own id
++// (`?src=…#d-1` scrolls a reader straight to it) — the owner's click on another
++// option IS the overrule, appended straight to collab.jsonl.
++function decision_node(collab, d){
++	const winner_say = d.options.find(o => o.key === d.winner())?.say;
++
++	div.c("collab-decision card").attr("id", d.id).append(() => {
++		div.c("collab-decision-head flex split v-baseline", () => {
++			span.c("collab-decision-id muted", "#" + d.id);
++			if (d.package) span.c("collab-decision-package muted", "package deal");
++		});
++		// The winner is trusted by default: seed the widget with the vote's own
++		// pick (or the owner's later override — Collab.Decision.winner() already
++		// resolved which), so it leads without waiting on the widget's own
++		// separate, async re-read of the same log.
++		new Decision({ id: d.id, ask: d.ask, options: d.options, chose: winner_say, log: collab.url });
++		vote_badges(d);
++		alternatives(d);
++		if (d.overruled) span.c("collab-overruled", "owner overruled → " + d.final);
++
++		const kids = collab.children_of(d.id);
++		if (kids.length) div.c("collab-decision-children", () => kids.forEach(k => decision_node(collab, k)));
++	});
++}
++
++// The number of votes and the winner, AT A GLANCE — the owner's own words. Every option
++// gets its own badge right on the decision card, never only inside the "every option, by
++// votes" disclosure below (which stays, for the file link each option carries).
++function vote_badges(d){
++	if (!d.options.length) return;
++	const counts = d.counts ?? {};
++	const ranked = [...d.options].sort((a, b) => (counts[b.key] ?? 0) - (counts[a.key] ?? 0));
++	div.c("collab-decision-badges flex gap wrap", () => ranked.forEach(o => {
++		const n = counts[o.key] ?? 0;
++		span.c("collab-decision-badge").ac(o.key === d.winner() && "winner")
++			.append(`${o.key} — ${n} vote${n === 1 ? "" : "s"}`);
++	}));
++}
++
++// Every option stays visible, ranked by its own votes, zeros included — the
++// runner-up is a convenience, never the only alternative shown
++// (collab-format.md "Added 14:25"). One click down: the winner already leads
++// in the widget above, so this is only for "what else was on the table".
++function alternatives(d){
++	if (!d.options.length) return;
++	const counts = d.counts ?? {};
++	const ranked = [...d.options].sort((a, b) => (counts[b.key] ?? 0) - (counts[a.key] ?? 0));
++
++	details.c("collab-decision-alts", () => {
++		summary.c("muted", "every option, by votes");
++		ranked.forEach(o => div.c("collab-decision-alt flex split v-baseline", () => {
++			span(o.say);
++			span.c("muted", String(counts[o.key] ?? 0));
++		}));
++	});
++}
++
++function winner_card(collab, files){
++	if (!collab.winner) return;
++	div.c("collab-winner card", () => {
++		h4.c("collab-winner-title", "Winner — " + collab.winner.pick);
++		if (collab.winner.file) a.c("collab-winner-file", collab.winner.file).href(files + collab.winner.file);
++		(collab.winner.caveats ?? []).forEach(c => p.c("muted", c));
++		span.c("muted", money(collab.winner.cost));
++	});
++}
++
++// The owner's own rule (owner-words-3.md): phase a model out once it has earned
++// enough decisions to judge and still isn't winning or isn't cheap.
++function scoreboard_table(sb){
++	const models = sb.models();
++	if (!models.length) return;
++	const retired = new Set(sb.retire());
++
++	div.c("collab-scoreboard flow", () => {
++		h4("Model scoreboard");
++		div.c("collab-score-table", () => {
++			div.c("collab-score-row collab-score-head", () =>
++				["model", "decisions", "wins", "win rate", "cost", "$/win"].forEach(t => span.c("muted", t)));
++
++			models.forEach(m => div.c("collab-score-row").ac(retired.has(m.model) && "retired").append(() => {
++				span(m.model + (retired.has(m.model) ? " — retire" : ""));
++				span(String(m.decisions));
++				span(String(m.wins));
++				span(Math.round(m.win_rate * 100) + "%");
++				span(money(m.cost));
++				span(money(m.cost_per_win));
++			}));
++		});
++	});
++}
++
++export default view;
+diff --git a/public/framework/ext/Doc/Doc.css b/public/framework/ext/Doc/Doc.css
+index ad65e708..7b5f03eb 100644
+--- a/public/framework/ext/Doc/Doc.css
++++ b/public/framework/ext/Doc/Doc.css
+@@ -89,4 +89,14 @@
+ 	   ⚠ `min-height: 0` on the flex child, or the <pre> inside refuses to scroll. */
+ 	.doc-files { display: flex; padding-block: 1em; }
+ 	.doc-files > .files { flex: 1 1 auto; min-height: 0; --panel-height: min(74vh, 42em); }
++
++	/* The ⋯ that shows up only when a design collab named this member (ext/Doc/decisions.js).
++	   `.doc-decision-wrap` is the FIRST thing content() draws, right after the page's own
++	   `h1.page-title` (core/Page's default render) — as close to "right after the name" as
++	   this module can reach without editing core. */
++	.doc-decision-wrap { display: block; margin-block-end: 1em; }
++	.doc-decision-btn { cursor: pointer; display: inline-block; opacity: 0.6; }
++	.doc-decision-btn:hover { opacity: 1; }
++	.doc-decision-pop { max-width: 32em; padding-block-start: 0.5em; }
++	.doc-decision-link { display: inline-block; }
+ }
+diff --git a/public/framework/ext/Doc/Doc.js b/public/framework/ext/Doc/Doc.js
+index fb2a3f0b..8c1ac53c 100644
+--- a/public/framework/ext/Doc/Doc.js
++++ b/public/framework/ext/Doc/Doc.js
+@@ -1,14 +1,15 @@
+-import { View, div, h1, code } from "../../core/View/View.js";
++import { View, div, h1, code, span } from "../../core/View/View.js";
+ import { Page } from "../../core/Page/Page.class.js";
+ import { member, patched, dedent } from "../../util/source/source.js";
+ import md from "../markdown/md.js";
+ import files from "../files/files.js";
++import { decision_menu } from "./decisions.js";
+ import "../tabs/tabs.js";      // this.tabs() — ext leaning on ext, the allowed direction
+ import "../catalog/catalog.js";   // this.catalog() — the Overview section is one
+ 
+-/* css: .doc-page, .doc-well, .doc-title, .doc-section — all emitted below.
+-   Also .tab-bar (../tabs), .files (../files) and .page-catalog-pages / .page--intro /
+-   .page-title (../catalog and core/Page) — every emitter is imported above. */
++/* css: .doc-page, .doc-well, .doc-title, .doc-section, .doc-decision(-wrap|-btn|-pop|-link)
++   — all emitted below. Also .tab-bar (../tabs), .files (../files) and .page-catalog-pages /
++   .page--intro / .page-title (../catalog and core/Page) — every emitter is imported above. */
+ View.stylesheet(import.meta, "Doc.css");
+ 
+ /**
+@@ -122,7 +123,7 @@ export class Doc extends Page {
+ 		const doc = this;
+ 		const names = this.member_index?.get(kind) ?? new Map();
+ 
+-		return { title: `${this.title} ${kind}s`, route(name){ return names.has(name) && doc.member_page_config(name, names.get(name)); } };
++		return { title: `${this.title} ${kind}s`, route(name){ return names.has(name) && doc.member_page_config(name, names.get(name), kind); } };
+ 	}
+ 
+ 	// One view, not a rail — so it declares its own render rather than taking section()'s.
+@@ -209,9 +210,14 @@ export class Doc extends Page {
+ 	// above. A note (docs(), no kind) keeps its one address, `doc/<name>/`.
+ 	member_page(section, name, config, kind){
+ 		if (kind) this.remember_member(kind, name, config);
+-		return section.add(name, this.member_page_config(name, config));
++		return section.add(name, this.member_page_config(name, config, kind));
+ 	}
+ 
++	// Framework-relative module path this page documents — "ext/Saver" for a page whose
++	// `this.url` is "/framework/ext/Saver/" — matched against the shared decisions.jsonl's
++	// own `module` field (Server/collab.mjs's `target.module`, a collab.json's own words).
++	module(){ return this.url?.replace(/^\/framework\//, "").replace(/\/$/, ""); }
++
+ 	remember_member(kind, name, config){
+ 		this.member_index ??= new Map();
+ 		if (!this.member_index.has(kind)) this.member_index.set(kind, new Map());
+@@ -220,12 +226,20 @@ export class Doc extends Page {
+ 
+ 	// Pulled out of member_page() so member_group() can build the SAME page a second
+ 	// time, at a second address, without member_page() growing a second job.
+-	member_page_config(name, { title = name, source, subject, call, banner, file }){
++	// `kind` ("method" | "property") is also what turns on the ⋯ menu below — a note
++	// (docs(), no kind) never gets one, because nothing wires a collab decision to a name
++	// that isn't a real class member.
++	member_page_config(name, { title = name, source, subject, call, banner, file }, kind){
+ 		const doc = this;
+ 
+ 		return {
+ 			title,
+ 			content(){
++				// The owner's want (file-explorer-fs/owner-words.md, first half): a method's own
++				// page shows the ⋯ the moment a design collab named it, with no AI having to
++				// remember to wire the link. decision_menu() is a promise: append() places it
++				// once Collab.Decisions.for() resolves, and does nothing when it resolves empty.
++				if (kind && doc.module()) span.c("doc-decision-wrap").append(decision_menu(doc.module(), name));
+ 				if (banner) md(banner);
+ 				if (source) (code.js ?? code)(source);   // highlighted if ext/highlight is loaded
+ 				if (call) doc.overrides(subject, name, call);
+diff --git a/public/framework/ext/Doc/decisions.js b/public/framework/ext/Doc/decisions.js
+new file mode 100644
+index 00000000..04f34a34
+--- /dev/null
++++ b/public/framework/ext/Doc/decisions.js
+@@ -0,0 +1,38 @@
++import { div, p, a, details, summary } from "../../core/View/View.js";
++import Collab from "../Collab/Collab.js";
++
++/* The ⋯ after a member's name on its own page (ext/Doc's API tab): shown only
++ * when a design collab named it — `Collab.Decisions.for()` is the shared,
++ * cached fetch of `decisions.jsonl`, so a Doc page with no records pays
++ * nothing. Opening the popover is the SECOND fetch — that one run's own
++ * `collab.jsonl`, for the ask, the winner and the vote count — and it only
++ * happens once, the first time someone actually opens it. Contract:
++ * public/framework/ai/2026-09-28/collab-rounds/collab-format.md. */
++export function decision_menu(module, name){
++	return Collab.Decisions.for(module, name).then(href => {
++		if (!href) return;
++		let $body, loaded = false;
++		const $menu = details.c("doc-decision", () => {
++			summary.c("doc-decision-btn", "⋯");
++			$body = div.c("doc-decision-pop flow", () => p.c("muted", "…"));
++		});
++		$menu.on("toggle", async () => {
++			if (loaded || !$menu.el.open) return;
++			loaded = true;
++			const src = new URL(href, location.origin);
++			const run = await new Collab({ url: src.searchParams.get("src") }).load();
++			const d = run.decision(src.hash.slice(1));
++			if (!d) return $body.empty(() => p.c("muted", "decision not found"));
++			const votes = (d.counts ?? {})[d.winner()] ?? 0;
++			const winner = d.options.find(o => o.key === d.winner())?.say ?? d.winner();
++			$body.empty(() => {
++				p(d.ask);
++				p(`Winner: ${winner} — ${votes} vote${votes === 1 ? "" : "s"}`);
++				a.c("doc-decision-link", "full decision →").href(href);
++			});
++		});
++		return $menu;
++	});
++}
++
++export default decision_menu;
+diff --git a/public/framework/ext/Doc/readme.md b/public/framework/ext/Doc/readme.md
+index 2800a927..184c6d99 100644
+--- a/public/framework/ext/Doc/readme.md
++++ b/public/framework/ext/Doc/readme.md
+@@ -29,8 +29,9 @@ Empty section, no tab. Nothing at the call site says "tab" — a different shape
+ - No class fields in `Doc.js`; a name dropped from `bar()` also loses its mount region and renders over the page: [doc/decisions.md](./doc/decisions.md)
+ - `subject.prototype[name]` executes a getter; `/app.js`'s default export is an instance, so member pages come up empty: [doc/decisions.md](./doc/decisions.md)
+ - A member page has two addresses — `/api/<name>/` (the tab) and `/doc/method|property/<name>/` (where the `.md` sits) — cold-loading either used to only work for the first, since nothing ever registered the second: [doc/decisions.md](./doc/decisions.md)
++- A method or property page shows a small **⋯** right after its own title, but only when a design collaboration actually named it — `decisions.js`'s `decision_menu(module, name)` checks the shared `public/framework/ai/collab/decisions.jsonl` (one cached fetch per page load, nothing at all when it finds no record) and, opened, fetches that ONE run's own `collab.jsonl` for the ask, the winner and its vote count. `module()` reads the module path straight off `this.url`, so nothing at the call site has to name it. Contract: `/framework/ai/2026-09-28/collab-rounds/collab-format.md`.
+ 
+ ## More
+ - [Overview](/framework/ext/Doc/) · [`doc/decisions.md`](./doc/decisions.md) the record — verdicts, traps, open items · [`doc/rail.md`](./doc/rail.md) why the Overview is a catalog · [`doc/reflection.md`](./doc/reflection.md) why the lists are hand-typed · [`doc/files.md`](./doc/files.md) why files are declared
+ - `doc/method/`, `doc/property/`, `doc/file/` — one prose file per listed member or file. The page is at `/api/<name>/` (the tab) and, since this fix, also cold-loads at `/doc/method/<name>/` or `/doc/property/<name>/` — the same address the `.md` file itself sits at. A note (`doc/<name>.md`) has just the one address, `/doc/<name>/`. A file's is `/files/`.
+-- Files that matter: `Doc.js` (the class, every seam), `Doc.css` (well, panel height), `page.js` (Doc documenting Doc)
++- Files that matter: `Doc.js` (the class, every seam), `Doc.css` (well, panel height), `page.js` (Doc documenting Doc), `decisions.js` (the ⋯ menu, above)
+diff --git a/public/framework/ext/page.js b/public/framework/ext/page.js
+index b2ba057e..dd3e21cd 100644
+--- a/public/framework/ext/page.js
++++ b/public/framework/ext/page.js
+@@ -6,7 +6,7 @@ export default new Page({
+ 	label: "Extensions",
+ 	description: "Opt-in addons. They may extend core; core never depends on them.",
+ 	icon: "extension",
+-	children: "markdown demo highlight files toc Doc tabs catalog layout drawer grip Dropdown Omnibox depth DesignTool Saver Draggable editor Panel Timeline AITask JSONL Research Ask",
++	children: "markdown demo highlight files toc Doc tabs catalog layout drawer grip Dropdown Omnibox depth DesignTool Saver Draggable editor Panel Timeline AITask JSONL Research Ask Collab",
+ 
+ 	content(){
+ 
+diff --git a/public/framework/styles/css-scopes.txt b/public/framework/styles/css-scopes.txt
+index f97be4fa..5dc77153 100644
+--- a/public/framework/styles/css-scopes.txt
++++ b/public/framework/styles/css-scopes.txt
+@@ -79,6 +79,7 @@ looks-       core/Page/overview/columns/examples/looks
+ 
+ # ext
+ ai-          ext/AITask
++collab-      ext/Collab
+ cssdoc-      ext/CSSDoc
+ demo-        ext/demo
+ doc-         ext/Doc

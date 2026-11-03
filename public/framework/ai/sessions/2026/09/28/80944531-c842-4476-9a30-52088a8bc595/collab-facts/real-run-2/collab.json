@@ -1,0 +1,11 @@
+{
+  "id": "collab-facts-real-2",
+  "question": "In this repo's sub-mastermind process, is it a hard rule or just a strong convention that: (a) card_reply must always be two or three plain sentences, (b) a task mastermind may never spawn a second task mastermind, and (c) every merge must go through Server/merge.mjs rather than a plain git merge? Where do real edge cases make one of these bend?",
+  "kind": "research",
+  "members": [
+    {"id": "haiku-x", "model": "claude-haiku-4-5-20251001"},
+    {"id": "haiku-y", "model": "claude-haiku-4-5-20251001"},
+    {"id": "sonnet-z", "model": "claude-sonnet-5"}
+  ],
+  "context": [".claude/skills/sub-mastermind/SKILL.md", "Server/doc/review.md"]
+}

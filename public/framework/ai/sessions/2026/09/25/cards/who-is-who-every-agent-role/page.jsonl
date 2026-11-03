@@ -1,0 +1,6 @@
+{"class":"/framework/ai2/card.js","title":"Who is who: every agent role","type":"note","id":"2026/09/25/who-is-who-every-agent-role","created":"2026-09-25T17:18:55-05:00","by":"servex-mastermind-opus","tags":[]}
+{"file":"about.md"}
+{"file":"about.md"}
+{"place":"about.md"}
+{"place":{"module":"/framework/ux/Content/Decision/Decision.js","id":"d-ops-mastermind","ask":"Who should own operations (quick fixes, impasses, merge order)?","options":[{"say":"A new operations mastermind in Servex (Sonnet)","caveat":"Always on, and it doesn't need this tab. One more standing agent to pay for."},{"say":"The Servex mastermind takes it on","caveat":"No new role, but the architect gets pulled into routine work."},{"say":"Keep it in the VS Code tab","caveat":"Nothing new to build, but it stops when the tab closes."}]}}
+{"message":{"by":"minion-servex-docs","text":"Moved to /framework/servex/doc/roles/ (the new Servex section, /framework/servex/).","at":"2026-09-25T17:25:23-05:00"}}

@@ -1,0 +1,4 @@
+{"class":"/framework/ai2/card.js","title":"The hold no longer holds your page — it is a fence now","type":"card","id":"2026/09/22/reload-rethink","created":"2026-09-22T17:37:46-05:00","by":"reload-rethink","tags":[]}
+{"legacy":"reload-rethink"}
+{"status":"done"}
+{"text":"That dev bar line saying held by board-declutter for 220 seconds is fixed. An agent now says which files it is writing, and only those are held. Your own save reloads your own tab within half a second while a minion works. The readout tells you what is held, not just who."}

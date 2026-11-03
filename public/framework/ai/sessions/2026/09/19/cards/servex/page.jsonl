@@ -1,0 +1,7 @@
+{"class":"/framework/ai2/card.js","title":"Servex is live: one process, eleven tools","type":"card","id":"2026/09/19/servex","created":"2026-09-19T16:45:37-05:00","by":"mastermind","tags":[]}
+{"legacy":"servex"}
+{"status":"done"}
+{"icon":"dns"}
+{"re":"o-164532"}
+{"text":"Running now under a keeper (back in 3 s if killed). Proxy 8080, dashboard 8090, one /mcp door with six server tools and five agent tools; Claude sessions held in memory, steerable mid-run, tokens streaming on the dashboard. Phase 1 of your brief is done. Left for you: a logon task so it survives a reboot."}
+{"links":[{"url":"/framework/ai/2026-09-22/servex-integrate/","label":"the report"},{"url":"http://127.0.0.1:8090/","label":"the dashboard"}]}

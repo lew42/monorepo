@@ -1,0 +1,805 @@
+diff --git a/.claude/hooks/syntax-guard.mjs b/.claude/hooks/syntax-guard.mjs
+index 4c2ef412..ea2319db 100644
+--- a/.claude/hooks/syntax-guard.mjs
++++ b/.claude/hooks/syntax-guard.mjs
+@@ -53,9 +53,25 @@ function call_span(src, openParen){
+ 	}
+ 	return src.slice(openParen, Math.min(src.length, openParen + 400));
+ }
++// Blanks out every block (`/* */`) and line (`//`) comment's own TEXT while
++// keeping every character position — including newlines — identical to the
++// original, so a line number computed from the blanked copy still matches
++// the real file exactly. Needed because this codebase's own house style is
++// heavy prose comments that constantly spell out real call syntax to explain
++// it ("A FRESH spawn (never a resume...)", `` `spawn({task: {...}})` ``) —
++// without this, that PROSE reads as an unguarded child_process call (found
++// live, 2026-10-03: Agents.js's own doc comments about its `spawn`/`fork`
++// class methods were flagged this way).
++function blank_comments(src){
++	return src
++		.replace(/\/\*[\s\S]*?\*\//g, m => m.replace(/[^\n]/g, " "))
++		.replace(/\/\/[^\n]*/g, m => " ".repeat(m.length));
++}
++
+ function hidden_guard(file){
+-	const src = fs.readFileSync(file, "utf8");
+-	if (!/child_process/.test(src)) return;
++	const raw = fs.readFileSync(file, "utf8");
++	if (!/child_process/.test(raw)) return;
++	const src = blank_comments(raw);
+ 	const CALL = /([.\w$])?\b(spawn|spawnSync|execFile|execFileSync|fork)\s*(\(|Sync\()|(^|[^.\w$])exec\s*\(/g;
+ 	const bad = [];
+ 	let m;
+@@ -65,6 +81,17 @@ function hidden_guard(file){
+ 		const call = call_span(src, openParen);
+ 		if (m[1] === ".") continue;                        // this.spawn(...) — a method call, not child_process's export
+ 		if (!call.slice(1, -1).trim()) continue;            // spawn(){ — a method DEFINITION, never a real call
++		// spawn(spec){ / async fork({ a, b }){ — a method DEFINITION whose own
++		// parameter LIST happens to be non-empty (a class with a method literally
++		// named spawn/fork/exec, unrelated to child_process). The empty-parens
++		// check above only catches `spawn(){`; this catches every other shape of
++		// definition by looking at what follows the call's own closing paren — a
++		// real call is followed by `;`, `,`, `)`, a newline, etc.; a definition's
++		// closing paren is followed directly by its body's `{` (found live,
++		// 2026-10-03 — Agents.js's own `spawn(spec){`/`async fork({...}){`
++		// methods were flagged as unguarded child_process calls).
++		const after = src.slice(openParen + call.length).match(/^\s*(\S)/)?.[1];
++		if (after === "{") continue;
+ 		const name = m[2] || "exec";
+ 		const line = src.slice(0, m.index).split("\n").length;
+ 		const hidden = /windowsHide\s*:\s*true/.test(call);
+diff --git a/Servex/agents/Agents.js b/Servex/agents/Agents.js
+index 73746d8f..994f1901 100644
+--- a/Servex/agents/Agents.js
++++ b/Servex/agents/Agents.js
+@@ -1165,9 +1165,9 @@ Agents.Agent = class Agent {
+ 	}
+ 
+ 	card(){
+-		const { id, role, model, state, visibility, started_at, turns, session_id, cost, parent,
++		const { id, role, model, state, visibility, started_at, stopped_at, turns, session_id, cost, parent,
+ 			forked_from, resumed_from } = this;
+-		return { id, role, model, state, visibility, started_at, turns, session_id, cost, parent: parent ?? null,
++		return { id, role, model, state, visibility, started_at, stopped_at: stopped_at ?? null, turns, session_id, cost, parent: parent ?? null,
+ 			revivable: this.revivable(), forked_from: forked_from ?? null, resumed_from: resumed_from ?? null,
+ 			context: this.context ?? null };
+ 	}
+diff --git a/public/framework/ai/2026-10-02/panel2-sessions/sessions.mjs b/public/framework/ai/2026-10-02/panel2-sessions/sessions.mjs
+index a091ad7d..b671cabd 100644
+--- a/public/framework/ai/2026-10-02/panel2-sessions/sessions.mjs
++++ b/public/framework/ai/2026-10-02/panel2-sessions/sessions.mjs
+@@ -16,11 +16,21 @@
+ // doc/decisions.md (sessions/) for the fuller record and what a real route
+ // would fix.
+ //
++// NO DUPLICATE DATA (2026-10-03, sessions-date-homes — the owner's own
++// decision): this script used to ALSO write a full copy of every VS Code/CLI
++// session's prompts to `transcripts/<id>.json` (110 files, 2.5 MB). It no
++// longer does — the Sessions tab's detail page now reads a session's own
++// prompts LIVE, through `/ai-logs/<id>` (`Server/plugins/AILogs.js`, a
++// loopback-guarded dev-server route that streams the real file straight from
++// `~/.claude/projects/...`, already built and already used by
++// `ext/AITask/replay.js`). This script still READS every session file in
++// place, same as before — it has to, to compute `started_at`/`last_activity`/
++// `model`/the one-line preview below — it just never COPIES the prompt text
++// anywhere else now.
++//
+ // WHAT IT WRITES:
+-//   public/framework/ai/sessions/sessions.json          — one row per session (the list)
+-//   public/framework/ai/sessions/transcripts/<id>.json  — one VS Code/CLI session's
+-//     own prompts, in order (Servex rows get no transcript file yet — see above;
+-//     the route this asked for would carry it instead of a second file).
++//   public/framework/ai/sessions/sessions.json — one row per session (the list),
++//     a COMPUTED CACHE only — the owner's own words — never the record itself.
+ //
+ // THE VS CODE VS CLI HEURISTIC: every session's own user-type lines carry a
+ // `turnOrigin` field — "human" when a person typed it (a real interactive
+@@ -32,7 +42,7 @@
+ // before writing this (a known interactive VS Code tab vs. a known
+ // Servex-spawned agent's own session file) — see doc/decisions.md.
+ 
+-import { readdirSync, statSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
++import { readdirSync, statSync, readFileSync, writeFileSync, mkdirSync, rmSync } from "node:fs";
+ import { homedir } from "node:os";
+ import { join, dirname } from "node:path";
+ import { fileURLToPath } from "node:url";
+@@ -77,18 +87,22 @@ function user_text(message){
+ 	return null;
+ }
+ 
+-// One session file, read once, kept to what this page needs: every real
+-// (non-sidechain) user prompt, the last model identity seen, and the cwd —
+-// never the sub-agent/tool-result noise, which is most of a big file.
++// One session file, read once, kept to what this page needs: when it
++// started (the FIRST timestamp seen — requirement 3, 2026-10-03: "show the
++// start time... on every row"), the last activity, every real (non-sidechain)
++// user prompt's own one-line preview, the last model identity seen, and the
++// cwd — never the sub-agent/tool-result noise, which is most of a big file,
++// and never kept beyond this one pass (no copy written — see the header
++// comment, "NO DUPLICATE DATA").
+ function scan_session_file(path){
+ 	const text = readFileSync(path, "utf8");
+ 	const prompts = [];
+-	let last_activity = null, model = null, cwd = null;
++	let started_at = null, last_activity = null, model = null, cwd = null;
+ 	for (const line of text.split("\n")){
+ 		if (!line) continue;
+ 		let obj;
+ 		try { obj = JSON.parse(line); } catch { continue; }
+-		if (obj.timestamp) last_activity = obj.timestamp;
++		if (obj.timestamp){ started_at ??= obj.timestamp; last_activity = obj.timestamp; }
+ 		if (obj.cwd) cwd = obj.cwd;
+ 		// ⚠ `turnOrigin: "task_notification"` is the harness telling ITSELF a
+ 		// background task finished — it carries real text (so `user_text()`
+@@ -105,14 +119,13 @@ function scan_session_file(path){
+ 			model = obj.attachment.identity?.modelId ?? model;
+ 		}
+ 	}
+-	return { last_activity, model, cwd, prompts: prompts.slice(-MAX_PROMPTS) };
++	return { started_at, last_activity, model, cwd, prompts: prompts.slice(-MAX_PROMPTS) };
+ }
+ 
+ function vscode_or_cli_rows(known_ids, cutoff){
+ 	let names;
+ 	try { names = readdirSync(PROJECT_DIR); } catch { return []; }
+ 	const rows = [];
+-	mkdirSync(TRANSCRIPTS_DIR, { recursive: true });
+ 
+ 	for (const name of names){
+ 		if (!name.endsWith(".jsonl")) continue;
+@@ -128,6 +141,12 @@ function vscode_or_cli_rows(known_ids, cutoff){
+ 		if (!info.last_activity || !info.prompts.length) continue;   // nothing a reader could open
+ 
+ 		const last = info.prompts.at(-1);
++		// A plain transcript file has no formal "the session stopped" event (a
++		// VS Code tab can always resume) — the honest, computed stand-in is
++		// "its last known activity, once it has gone quiet for a while" (same
++		// 5-minute idle floor `state` already uses); still going shows `null`,
++		// never a guessed timestamp.
++		const idle = (Date.now() - Date.parse(info.last_activity)) >= 5 * 60 * 1000;
+ 		rows.push({
+ 			id,
+ 			source: last.turn_origin === "human" ? "vscode" : "cli",
+@@ -136,14 +155,13 @@ function vscode_or_cli_rows(known_ids, cutoff){
+ 			// name is the closest real stand-in (readme.md names this limitation).
+ 			tab_title: info.cwd ? info.cwd.split(/[\\/]/).filter(Boolean).pop() : null,
+ 			model: info.model,
+-			state: (Date.now() - Date.parse(info.last_activity)) < 5 * 60 * 1000 ? "active" : "idle",
++			state: idle ? "idle" : "active",
+ 			last_prompt_first_line: first_line(last.text),
++			started_at: info.started_at,
++			stopped_at: idle ? info.last_activity : null,
+ 			last_activity: info.last_activity,
+ 			cost: null,   // not in a plain transcript file — Servex rows carry it instead
+ 		});
+-
+-		writeFileSync(join(TRANSCRIPTS_DIR, id + ".json"),
+-			JSON.stringify({ session_id: id, cwd: info.cwd, prompts: info.prompts.map(p => ({ at: p.at, text: p.text })) }, null, 2));
+ 	}
+ 	return rows;
+ }
+@@ -161,6 +179,10 @@ const servex_rows = agents.filter(a => a.session_id).map(a => ({
+ 	// `GET /api/agents` carries no transcript — this is the field the Servex
+ 	// route this task asked for (doc/decisions.md) would fill in.
+ 	last_prompt_first_line: null,
++	started_at: a.started_at ?? null,
++	// `stopped_at` (2026-10-03, sessions-date-homes): now exposed by
++	// `Agents.js`'s `card()` — null while the agent is still live/working.
++	stopped_at: a.stopped_at ?? null,
+ 	last_activity: a.started_at ?? null,
+ 	cost: typeof a.cost === "number" ? a.cost : null,
+ }));
+@@ -172,4 +194,10 @@ const rows = [...servex_rows, ...vscode_or_cli_rows(known_ids, cutoff)]
+ mkdirSync(SESSIONS_DIR, { recursive: true });
+ writeFileSync(OUT_FILE, JSON.stringify({ generated_at: new Date().toISOString(), hours: HOURS, rows }, null, 2));
+ 
++// The old transcripts/ copy folder (pre-2026-10-03): delete it once it's
++// found, so a machine that last ran the old version of this script doesn't
++// keep 110 stale copied files around forever just because nothing removes
++// them on its own.
++try { rmSync(TRANSCRIPTS_DIR, { recursive: true, force: true }); } catch {}
++
+ console.log(`wrote ${rows.length} rows (${servex_rows.length} servex, ${rows.length - servex_rows.length} vscode/cli) to ${OUT_FILE}`);
+diff --git a/public/framework/ai/2026-10-03/sessions-date-homes/files.jsonl b/public/framework/ai/2026-10-03/sessions-date-homes/files.jsonl
+new file mode 100644
+index 00000000..a1221d4e
+--- /dev/null
++++ b/public/framework/ai/2026-10-03/sessions-date-homes/files.jsonl
+@@ -0,0 +1,2 @@
++{"file":"requirements.md"}
++{"file":"task.jsonl"}
+diff --git a/public/framework/ai/2026-10-03/sessions-date-homes/requirements.md b/public/framework/ai/2026-10-03/sessions-date-homes/requirements.md
+new file mode 100644
+index 00000000..72f52926
+--- /dev/null
++++ b/public/framework/ai/2026-10-03/sessions-date-homes/requirements.md
+@@ -0,0 +1,38 @@
++# Sessions: reconcile with the owner's decisions
++
++The owner's own words (relayed via vscode-mastermind, 2026-10-03), reconciling the landed Sessions
++tab (`sessions-grid-v2`, commits f5103369/6123a53c) with decisions made since:
++
++1. **No duplicate data:** `ai/sessions/transcripts/` holds 110 copied transcripts (2.5 MB,
++   git-ignored). Read transcripts in place through a dev-server route instead, and delete the copy
++   folder once the route works.
++2. **A session's home is its date path:** `ai/YYYY/MM/DD/<slug>-<uuid8>/page.jsonl` (see "A session
++   is a page" in page-item-design.md), written by `@task-mastermind-prompt-refine`'s hooks. The
++   Sessions tab lists from those pages (the day indexes) as they appear, and keeps `sessions.json`
++   only as a computed cache for Servex agents that have no page yet. A click opens the session's
++   date path.
++3. Show the start time, stop time, duration and cost on every row.
++
++"Don't wait on the owner."
++
++## State checked before building (2026-10-03)
++
++- No `<slug>-<uuid8>` session folders exist anywhere under `ai/<Y>/<M>/<D>/` yet — grepped the
++  whole tree. `task-mastermind-prompt-refine`'s hooks that would write them haven't landed. So
++  requirement 2's "list from day pages" has nothing real to list from today; built as a seam that
++  activates itself the moment those pages start appearing (see decisions.md), not chased further.
++- `public/framework/ext/AITask/replay.js` already fetches a session's raw transcript **in place**
++  from `/ai-logs/<id>` (a loopback-guarded dev-server route, `Server/plugins/AILogs.js`) — this is
++  the existing mechanism requirement 1 asks for; reused rather than building a second one.
++- `find_session_page_dir(id)` already exists in `sessions/page.js` (built by a later session-costs
++  task) — walks `directory.json` for a `<slug>-<id8>` folder. Reused/refactored into a cached index
++  rather than duplicated.
++- `GET /api/agents` (`Servex/agents/Agents.js` `card()`) does not expose `stopped_at`, though the
++  live Agent object already carries it once stopped (`Agents.js:542`). One-line additive fix, not
++  "major surgery" (no rename, no moved responsibility, every existing caller unaffected).
++
++## Scope
++
++In: the three items above, for the Sessions tab (`ai/sessions/`) and its Dashboard tile
++(`ai/dashboard/`). Out: the Role/Cost/RAM/trace-chart/waste-flags system another task already
++built on this page — untouched except where Stop/Duration columns need to sit beside it.
+diff --git a/public/framework/ai/2026-10-03/sessions-date-homes/task.jsonl b/public/framework/ai/2026-10-03/sessions-date-homes/task.jsonl
+new file mode 100644
+index 00000000..a82f4d9c
+--- /dev/null
++++ b/public/framework/ai/2026-10-03/sessions-date-homes/task.jsonl
+@@ -0,0 +1,5 @@
++{"assign":{"session_id":"87a85cd1-7999-4860-b1b8-107baa982b20","tab":"sessions-date-homes","group":"sessions","request":"Reconcile the Sessions tab you landed (f5103369, 6123a53c) with the owner's decisions: 1) no duplicate data — read transcripts in place, delete the copy folder; 2) a session's home is its date path, list from day pages, click opens the date path; 3) show start, stop, duration and cost on every row. Don't wait on the owner.","requested_at":"2026-10-03T14:36:03-05:00","model":"claude-sonnet-5","window":{"before":0.25},"now":"scoping — read page-item-design.md, confirmed no session date-path pages exist yet, found ext/AITask/replay.js already reads transcripts in place via /ai-logs/<id>","steps":["confirm current state (date-path pages, existing in-place transcript route)","expose stopped_at from GET /api/agents (Agents.js card())","sessions.mjs: track started_at per row, stop writing transcripts/ copy files","page.js: read transcripts live via /ai-logs/<id> (reuse ext/AITask/replay.js), drop transcripts/<id>.json dependency","page.js: cache a directory.json-based page-dir index, link rows to a session's date path when one exists","page.js + sessions.css: add Stop and Duration columns","delete ai/sessions/transcripts/ once verified","documentation pass","review + land"],"step":1}}
++{"action":{"at":"2026-10-03T14:36:37-05:00","did":"edit","files":["Servex/agents/Agents.js"]}}
++{"action":{"at":"2026-10-03T14:37:35-05:00","did":"edit","files":[".claude/hooks/syntax-guard.mjs"]}}
++{"log":{"at":"2026-10-03T14:40:41-05:00","msg":"Found the shared main checkout (C:/Code/lew42/monorepo) had drifted to branch michael/subcard-columns (not michael/dev) between this session's earlier commits and now — another concurrent agent's doing, not mine. A commit I made there picked up unrelated staged files from that other work (ext/Mention/MentionSync, benign/legitimate content, not garbage). Fixed for my own purposes by creating a dedicated worktree, C:/Code/lew42/worktrees/sessions-date-homes (branch sessions-date-homes, off michael/dev), and cherry-picking only the 2 files I actually touched (syntax-guard.mjs, Agents.js) into a clean commit there. All further work on this task happens in that worktree, not the shared main checkout, to avoid this collision again."}}
++{"assign":{"worktree":"C:\\Code\\lew42\\worktrees\\sessions-date-homes","branch":"worktree/sessions-date-homes"}}
+diff --git a/public/framework/ai/sessions/doc/decisions.md b/public/framework/ai/sessions/doc/decisions.md
+index c159723f..0b166e23 100644
+--- a/public/framework/ai/sessions/doc/decisions.md
++++ b/public/framework/ai/sessions/doc/decisions.md
+@@ -1,5 +1,65 @@
+ # Sessions — decisions
+ 
++## 2026-10-03 (sessions-date-homes) — reconciling with decisions made after the grid shipped
++
++The owner (via vscode-mastermind) sent three follow-up corrections against the landed grid:
++no duplicate transcript data, a session's home is its date path (not this tab's own route), and
++Start/Stop/Duration alongside Cost on every row. Full brief:
++[`/framework/ai/2026-10-03/sessions-date-homes/requirements.md`](/framework/ai/2026-10-03/sessions-date-homes/requirements.md).
++
++**No duplicate data — reused, not rebuilt.** `ai/sessions/transcripts/<id>.json` (110 files,
++2.5 MB) is gone; `sessions.mjs` no longer writes it, and `ext/AITask/replay.js`'s own `load()`
++(exported, reused as-is — law 6) already fetched a session's transcript LIVE through
++`/ai-logs/<id>`, a loopback-guarded dev-server route (`Server/plugins/AILogs.js`) that reads
++straight from `~/.claude/projects/...`. `load_transcript()` (`page.js`) now calls that instead of
++reading a copy, and filters for real prompts the same way `sessions.mjs` already does server-side
++— a second, small implementation of that filter was accepted rather than threading one shared
++function across the node/browser boundary (the same tradeoff `session_page_dir_index()`'s own
++directory.json walk already made, noted below it).
++
++**A session's home is its date path — built as a seam, because nothing to list exists yet.**
++Checked live, 2026-10-03: no `ai/<Y>/<M>/<D>/<slug>-<uuid8>/` folder exists anywhere on this
++machine — `task-mastermind-prompt-refine`'s hooks that would write one haven't landed, and its own
++plan for the exact path shape changed three times while this task alone was open (see the FYIs
++logged in `task.jsonl`, 2026-10-02/03). Chasing a moving, not-yet-real target would be guessing,
++not computing (CLAUDE.md law 7) — so this task built the LOOKUP instead of the DATA:
++`session_page_dir_index()` walks `/framework/directory.json` once per grid load for any
++`<slug>-<id8>` folder, keyed by id8, and every row's own `href` prefers that date path when found,
++falling back to this tab's own `/sessions/<id>/` view otherwise. Today every row falls back — the
++index is always empty — and the day a real page appears, the very same code links to it, with
++nothing here to change. The detail page's existing `find_session_page_dir(id)` (built by the
++session-costs minion-build, 2026-10-02, for cost/trace lookups) was folded into this same index
++function rather than kept as a second directory.json walk.
++
++**Found and fixed in passing: a Servex row's `id` is not its `session_id`.** The detail page's
++dir/transcript lookups used the url's own `id` directly — correct for a VS Code/CLI row (where the
++two are the same string) but wrong for a Servex row, whose url `id` is the AGENT's id (e.g.
++`"clarity-weight-badges"`), a different string from its real Claude `session_id`. Latent since the
++Role/Cost build added Servex rows to this page; fixed here since this task was already rewiring the
++same lookups for the date-path reconciliation — `load_row()` now resolves first, and
++`row.session_id ?? id` is what every lookup after it uses.
++
++**Start / Stop / Duration.** `sessions.mjs` now tracks a VS Code/CLI row's own `started_at` (the
++file's first timestamp — it already tracked `last_activity`, the last one) and a best-available
++`stopped_at`: null while the row reads "active" (the same 5-minute idle floor `state` already
++used), its last activity once idle — a plain transcript has no formal "stopped" event, so this is
++a computed stand-in, not a fabricated one, and is openly described that way in the row itself
++("ongoing" in the Stop column, never a guessed clock time). A Servex row's `stopped_at` needed one
++small addition: `GET /api/agents` (`Agents.js` `card()`) didn't expose it, though the live Agent
++object already carried it once stopped (`Agents.js:542`) — a one-line additive fix (no rename, no
++moved responsibility, every existing caller unaffected), not the "major surgery" CLAUDE.md asks
++first about. Duration reuses `dur(elapsed(...))` from `ext/AITask/stats.js` (already used by
++`replay.js`'s own header) rather than writing a third time-formatter.
++
++**Also fixed while here:** `.claude/hooks/syntax-guard.mjs`'s `hidden_guard()` false-flagged
++`Agents.js`'s own `spawn(spec){`/`async fork({...}){` class methods, and two doc comments that
++spell out real call syntax in prose, as unguarded `child_process` calls. Fixed at the hook (a
++method definition's closing paren is followed by `{`, never what a real call's is; comment text is
++blanked before scanning, keeping every line number correct) rather than renaming either method —
++`spawn`/`fork` are called in a dozen places across Servex as `agent.spawn(...)`. Unrelated to
++Sessions, found only because touching `Agents.js` tripped it; worth fixing immediately since it
++would otherwise block every future edit to that file.
++
+ ## 2026-10-02 (sessions-grid-v2) — a CSS grid, `columns()`, and `ext/grip`, not three new things
+ 
+ The owner's follow-up ask added three requirements on top of the shipped preview-card list:
+@@ -190,6 +250,15 @@ as a ROW in this grid until `sessions.mjs` gets the same fix.
+ left as a known gap rather than guessed at, since nobody has asked for worktree sessions to show
+ here yet.
+ 
++**Same gap, found again in `/ai-logs/`, 2026-10-03.** `Server/plugins/AILogs.js` computes its own
++project directory from `process.cwd()` at the moment the dev server boots — so a worktree's own
++preview server (`worktree-up.mjs`) looks for session files under ITS OWN cwd's project folder, not
++the main checkout's. Verified live building this task: a real session id's transcript answered
++correctly via `curl` against the main site, but 404'd (as "no transcript") through a worktree
++preview of this very task's own branch. Not a regression this task caused or fixed — the same
++one-project limitation above, just hit from a second angle; noted rather than patched for the same
++reason: nobody has asked for it.
++
+ ## 2026-10-03 (session-trace) — the cost-over-time chart + "what was it doing" table
+ 
+ The owner's own words, said while looking at the vscode-mastermind session: "The data is already
+diff --git a/public/framework/ai/sessions/page.js b/public/framework/ai/sessions/page.js
+index e4a6cffb..d5e88c42 100644
+--- a/public/framework/ai/sessions/page.js
++++ b/public/framework/ai/sessions/page.js
+@@ -2,6 +2,8 @@ import { Page, div, a, span, small, p, label, input, View } from "/app.js";
+ import Panel2 from "/framework/ext/panel2/Panel2.js";
+ import { age } from "/framework/core/Page/ext/Inbox/Inbox.js";
+ import { grip } from "/framework/ext/grip/grip.js";
++import { load as raw_transcript_lines } from "/framework/ext/AITask/replay.js";
++import { dur, elapsed } from "/framework/ext/AITask/stats.js";
+ 
+ View.stylesheet(import.meta, "sessions.css");
+ 
+@@ -44,12 +46,25 @@ View.stylesheet(import.meta, "sessions.css");
+  * this shape and three other pages on the site already use it this way
+  * (`core/Page/overview/columns/uses/inbox/`).
+  *
+- * ⚠ THE PROMPT-LOADING SEAM: `/framework/ai/2026-10-02/sessions-grid-v2`'s own
+- * requirements.md records a note from `task-mastermind-prompt-refine` — this
+- * route is meant to end up a FILTER over `.claude/prompts/<date>.jsonl`'s
+- * `refined` lines, not today's `transcripts/<id>.json` snapshot. That data
+- * isn't landed yet, so `load_transcript()` below is the one function that
+- * reads it today — swapping the source later is a one-function change.
++ * ⚠ 2026-10-03 (sessions-date-homes) reconciled three things with decisions
++ * made since the grid shipped — the full record is doc/decisions.md, this is
++ * the one-paragraph version:
++ *   1. NO DUPLICATE DATA — a session's prompts used to be copied into
++ *      `transcripts/<id>.json` (110 files, 2.5 MB). They aren't copied
++ *      anywhere now: `load_transcript()` below fetches them LIVE, through
++ *      `/ai-logs/<id>` (`Server/plugins/AILogs.js`), the same in-place route
++ *      `ext/AITask/replay.js` already used — reused, not rebuilt.
++ *   2. A SESSION'S HOME IS ITS DATE PATH — `ai/<Y>/<M>/<D>/<slug>-<id8>/`, once
++ *      `task-mastermind-prompt-refine`'s hooks start writing one there
++ *      (page-item-design.md). None exist yet (checked live, 2026-10-03), so
++ *      `session_page_dir_index()` below — which looks one up — finds nothing
++ *      today and every row still opens its existing `/sessions/<id>/` view;
++ *      the moment a real one appears, that SAME lookup links to it instead,
++ *      with no further code change.
++ *   3. START / STOP / DURATION / COST on every row — `sessions.mjs` now
++ *      tracks a row's own `started_at` (the file's first timestamp) and
++ *      `stopped_at` (null while still going; Servex now exposes this too,
++ *      `Agents.js` `card()`).
+  */
+ 
+ // Exported too: the Dashboard tab's own Sessions tile (dashboard/page.js) shows
+@@ -74,14 +89,19 @@ const WORKING_STATES = new Set(["working", "active"]);
+ // column; the grid enforces it either way, this just keeps the drag's own
+ // pill from visually overshooting it.
+ export const COLUMNS = [
+-	{ key: "time",   label: "Start",  min: 112 },
+-	{ key: "source", label: "Source", min: 88 },
+-	{ key: "role",   label: "Role",   min: 110 },
+-	{ key: "name",   label: "Name",   min: 160 },
+-	{ key: "model",  label: "Model",  min: 88 },
+-	{ key: "state",  label: "State",  min: 80 },
+-	{ key: "ram",    label: "RAM",    min: 64 },
+-	{ key: "cost",   label: "Cost",   min: 64 },
++	{ key: "time",     label: "Start",    min: 112 },
++	// Stop/Duration (2026-10-03, sessions-date-homes — the owner's own ask: "show
++	// the start time, stop time, duration and cost on every row"), right beside
++	// Start since all three describe the same span.
++	{ key: "stop",     label: "Stop",     min: 112 },
++	{ key: "duration", label: "Duration", min: 84 },
++	{ key: "source",   label: "Source",   min: 88 },
++	{ key: "role",     label: "Role",     min: 110 },
++	{ key: "name",     label: "Name",     min: 160 },
++	{ key: "model",    label: "Model",    min: 88 },
++	{ key: "state",    label: "State",    min: 80 },
++	{ key: "ram",      label: "RAM",      min: 64 },
++	{ key: "cost",     label: "Cost",     min: 64 },
+ ];
+ 
+ // The Cost header is also a sort toggle: default (newest-activity-first) →
+@@ -184,6 +204,12 @@ export function merge(snapshot_rows, agents){
+ 			// (doc/decisions.md: open dependency, never a fabricated number).
+ 			ram_mb: typeof a.ram_mb === "number" ? a.ram_mb : (had?.ram_mb ?? null),
+ 			ram_sample_age_ms: typeof a.ram_sample_age_ms === "number" ? a.ram_sample_age_ms : (had?.ram_sample_age_ms ?? null),
++			// Start/Stop (2026-10-03): `GET /api/agents` now carries `stopped_at`
++			// (null while the agent is still live) alongside `started_at`, which
++			// it always had — both pass straight through, same fallback shape
++			// every other optional field here already uses.
++			started_at: a.started_at ?? had?.started_at ?? null,
++			stopped_at: a.stopped_at ?? had?.stopped_at ?? null,
+ 			last_activity: a.started_at ?? had?.last_activity ?? null,
+ 			// The live route carries no transcript (sessions.mjs's own note) — a
+ 			// snapshot row for this SAME id would be a coincidence, not real data.
+@@ -193,7 +219,8 @@ export function merge(snapshot_rows, agents){
+ 	return [...by_id.values()]
+ 		.map(r => ({
+ 			role: role_of(r), cost_claude_usd: null, cost_openrouter_usd: null, ram_mb: null, ram_sample_age_ms: null,
+-			...r, // a real value already on the row (set above for a Servex row) always wins these defaults
++			started_at: null, stopped_at: null,
++			...r, // a real value already on the row (set above for a Servex row, or already on a snapshot row) always wins these defaults
+ 		}))
+ 		.sort((x, y) => Date.parse(y.last_activity ?? 0) - Date.parse(x.last_activity ?? 0));
+ }
+@@ -211,15 +238,32 @@ export function sort_by_cost(rows, direction){
+ 
+ const WORKING_STATE_ATTR = state => WORKING_STATES.has(state) ? "working" : "idle";
+ 
+-// Six cells, same order as COLUMNS — one `<div class="sessions-cell">` per
+-// column, so a cell's position in the DOM is what lines it up under its own
+-// header, not a class naming the column (sessions.css's grid tracks are
+-// positional, same as a `<table>`'s cells always were — the one thing this
+-// grid still borrows from that idea, without the element).
+-export function row_view(r, url){
++// One `<div class="sessions-cell">` per COLUMNS entry, in the same order —
++// a cell's position in the DOM is what lines it up under its own header, not
++// a class naming the column (sessions.css's grid tracks are positional, same
++// as a `<table>`'s cells always were — the one thing this grid still borrows
++// from that idea, without the element).
++//
++// `page_dirs` (2026-10-03, sessions-date-homes) is the optional id8 → date-path
++// index from `session_page_dir_index()` below — when a row's session already
++// has a real page at its date path, the row opens THAT url (the owner's own
++// decision: "a session's home is its date path"); otherwise it falls back to
++// this tab's own `/sessions/<id>/` view, same as before this task. Omitted
++// entirely (the Dashboard tile's own call) just means every row falls back,
++// which is harmless and correct — no session has a date-path page yet.
++export function row_view(r, url, page_dirs){
+ 	const src = SOURCE[r.source] ?? { label: r.source, icon: "help" };
+-	return a.c("sessions-row").href(url + r.id + "/").append(() => {
+-		div.c("sessions-cell", () => small.c("muted").text(r.last_activity ? age(r.last_activity) : "—").attr("title", r.last_activity ?? ""));
++	const dated = page_dirs?.get((r.session_id || r.id || "").slice(0, 8));
++	const href = dated ?? (url + r.id + "/");
++	return a.c("sessions-row").href(href).append(() => {
++		// Start / Stop / Duration (the owner's own ask, requirement 3): a plain
++		// transcript has no formal "stopped" event, so `stopped_at` is null —
++		// not guessed — while a session is still active; Duration then runs
++		// start→now instead of start→stop, same `dur(elapsed(...))` helper
++		// `ext/AITask/replay.js`'s own header already uses (law 6).
++		div.c("sessions-cell", () => small.c("muted").text(r.started_at ? age(r.started_at) : "—").attr("title", r.started_at ?? ""));
++		div.c("sessions-cell", () => small.c("muted").text(r.stopped_at ? age(r.stopped_at) : (WORKING_STATES.has(r.state) ? "ongoing" : "—")).attr("title", r.stopped_at ?? ""));
++		div.c("sessions-cell", () => small.c("muted", dur(elapsed(r.started_at, r.stopped_at ?? new Date().toISOString()))));
+ 		div.c("sessions-cell", () => span.c("sessions-tag sessions-tag-" + r.source, src.label));
+ 		div.c("sessions-cell", () => { if (r.role) small.c("muted", r.role); });
+ 		div.c("sessions-cell", () => div.c("sessions-name-stack", () => {
+@@ -350,6 +394,9 @@ export default new Page({
+ 
+ 	// Builds the role-filter checkboxes the first time real rows arrive (so
+ 	// the list is never a guess at what roles exist), then redraws the grid.
++	// This still only ever runs once `this.last_rows` holds real data — see
++	// the guard on `session_page_dir_index()`'s own call to `render_rows()`
++	// in `activated()`, which exists specifically to keep that true.
+ 	render_controls(){
+ 		if (this.role_filter === null){
+ 			this.role_filter = new Set(this.last_rows.map(r => r.role || "(unknown)"));
+@@ -400,7 +447,7 @@ export default new Page({
+ 
+ 		this.$rows.empty(() => {
+ 			if (!sorted.length) return void p.c("muted").style({ gridColumn: "1 / -1" }).text("No sessions with an id yet.");
+-			sorted.forEach(r => row_view(r, this.url));
++			sorted.forEach(r => row_view(r, this.url, this.page_dirs));
+ 		});
+ 
+ 		const claude_total = filtered.reduce((n, r) => n + claude_usd_of(r), 0);
+@@ -444,6 +491,24 @@ export default new Page({
+ 			if (this.polling) poll();
+ 		});
+ 
++		// The date-path index (2026-10-03) — fetched ONCE per activation, not
++		// per row: every row's `href` wants the same answer to "does this
++		// session already have a page at its date path", so one directory.json
++		// walk serves the whole grid instead of one per row.
++		// ⚠ Only call `render_rows()` here if real rows are ALREADY on screen
++		// (found live: this fetch can resolve before `sessions.json`/`GET
++		// /api/agents` do, and `render_rows()` on an empty `last_rows` locks
++		// `render_controls()`'s role filter to an empty Set forever — it only
++		// ever runs once, the first time `$summary` gets set). When this
++		// resolves first, it just sets `this.page_dirs` quietly; the real
++		// `draw()` below reads it the moment actual rows arrive. When it
++		// resolves after, THIS re-render is what upgrades already-drawn rows
++		// to their date-path links.
++		session_page_dir_index().then(index => {
++			this.page_dirs = index;
++			if (this.last_rows.length) this.render_rows();
++		});
++
+ 		// `week.json` (Server/week-cost.mjs) — a manual, point-in-time snapshot,
+ 		// not live; degrades silently (no line shown) on a 404, i.e. the script
+ 		// hasn't been run yet on this machine.
+@@ -467,51 +532,84 @@ export default new Page({
+ 	},
+ });
+ 
+-// THE ONE SEAM for where a session's prompts come from. Today: this task's
+-// own `sessions.json` snapshot + a `transcripts/<id>.json` file written
+-// beside it. Tomorrow, once `task-mastermind-prompt-refine` lands: filter
+-// `.claude/prompts/<date>.jsonl`'s `refined` lines by `session_id`. Every
+-// caller of this function is unaffected by that swap — only this body changes.
+-async function load_transcript(root_url, id){
+-	const [snap, transcript] = await Promise.all([
+-		get_json(root_url + "sessions.json"),
+-		get_json(root_url + "transcripts/" + id + ".json"),
+-	]);
+-	const row = snap?.rows?.find(r => r.id === id || r.session_id === id);
+-	const prompts = transcript?.prompts ?? null;
+-	return { row, prompts };
++// This session's own row (tab_title, model, source...) from the snapshot —
++// `sessions.json` is a COMPUTED CACHE, the owner's own words, never the
++// record itself; a Servex row with a real date-path page (none yet — see
++// `session_page_dir_index()` below) will stop needing this once one exists.
++async function load_row(root_url, id){
++	const snap = await get_json(root_url + "sessions.json");
++	return snap?.rows?.find(r => r.id === id || r.session_id === id) ?? null;
++}
++
++// THE SEAM for where a session's own PROMPTS come from (2026-10-03,
++// sessions-date-homes — "no duplicate data"): fetched LIVE, through
++// `/ai-logs/<session_id>`, the loopback-guarded dev-server route that reads
++// straight from `~/.claude/projects/...` — nothing is copied anywhere.
++// `raw_transcript_lines` (`ext/AITask/replay.js`'s own `load()`, exported and
++// reused — law 6) does the fetch-and-parse; the filter below picks out real,
++// human-or-agent-typed prompts the same way `sessions.mjs` already does
++// server-side (a parallel, not a shared function, across the node/browser
++// boundary — the same split that file's own header comment already notes for
++// `session_page_dir_index()`'s directory.json walk, below). Once
++// `task-mastermind-prompt-refine` lands a real source (page-item-design.md),
++// this is the one function whose body changes — every caller is unaffected.
++async function load_transcript(session_id){
++	const lines = await raw_transcript_lines(session_id);
++	if (!lines) return null;
++	const prompts = lines
++		.filter(l => l.type === "user" && !l.isMeta && !l.isSidechain && l.turnOrigin !== "task_notification")
++		.map(l => {
++			const c = l.message?.content;
++			const text = typeof c === "string" ? c : Array.isArray(c) ? c.find(b => b?.type === "text")?.text : null;
++			return text ? { at: l.timestamp, text } : null;
++		})
++		.filter(Boolean);
++	return prompts.length ? prompts.slice(-50) : null;
+ }
+ 
+-// Finds the dated `.../<slug>-<id8>/` folder a `page.jsonl` (if any) lives in
+-// for this session, by walking `/framework/directory.json` (the same listing
+-// `ai/v/2/page.js` and `ai2/groups.js` already read client-side — a browser
+-// page has no filesystem access, so this is the one way to find a folder
+-// whose exact name it doesn't know in full). `Server/week-cost.mjs` does the
+-// equivalent walk server-side, over the real filesystem instead of this JSON
+-// listing — two different environments, the same one-line glob, duplicated
+-// rather than shared across the server/browser boundary (this is a static site).
+-async function find_session_page_dir(id){
+-	const id8 = id.slice(0, 8);
++// Every `.../<slug>-<id8>/` folder that already holds a `page.jsonl`, keyed by
++// its session's own id8 — one walk of `/framework/directory.json` (the same
++// listing `ai/v/2/page.js` and `ai2/groups.js` already read client-side — a
++// browser page has no filesystem access, so this is the one way to find a
++// folder whose exact name it doesn't know in full), shared by the grid (every
++// row's own `href`, fetched once per activation) and the detail page (its
++// cost/trace lookups) instead of walking the tree once per caller.
++// `Server/week-cost.mjs` does the equivalent walk server-side, over the real
++// filesystem instead of this JSON listing — two different environments, the
++// same one-line glob, duplicated rather than shared across the server/browser
++// boundary (this is a static site).
++async function session_page_dir_index(){
+ 	const dir = await get_json("/framework/directory.json");
+ 	const ai = dir?.files?.find(f => f.name === "ai")?.children ?? [];
++	const index = new Map();
+ 	for (const y of ai){
+ 		if (y.type !== "dir" || !/^\d{4}$/.test(y.name)) continue;
+ 		for (const m of y.children ?? []){
+ 			if (m.type !== "dir" || !/^\d{2}$/.test(m.name)) continue;
+ 			for (const d of m.children ?? []){
+ 				if (d.type !== "dir" || !/^\d{2}$/.test(d.name)) continue;
+-				const hit = (d.children ?? []).find(s => s.type === "dir" && s.name.endsWith("-" + id8));
+-				if (hit) return `/framework/ai/${y.name}/${m.name}/${d.name}/${hit.name}/`;
++				for (const s of d.children ?? []){
++					if (s.type !== "dir") continue;
++					const hit = /-([0-9a-f]{8})$/.exec(s.name);
++					if (hit) index.set(hit[1], `/framework/ai/${y.name}/${m.name}/${d.name}/${s.name}/`);
++				}
+ 			}
+ 		}
+ 	}
+-	return null;
++	return index;
++}
++
++// One session's own dir, from an already-fetched index — the detail page
++// resolves the index itself (it only ever needs one id, so there is no
++// shared-across-rows cost to pay for).
++function session_page_dir(index, id){
++	return index.get((id || "").slice(0, 8)) ?? null;
+ }
+ 
+ // This session's own logged cost lines, oldest first — `null` when there is no
+ // `page.jsonl` for it yet, or it has no `cost` line (either is normal: most
+ // sessions predate this task, or haven't had a Stop hook fire yet). Takes the
+-// already-resolved `dir` (from `find_session_page_dir()`), not the id — the
++// already-resolved `dir` (from `session_page_dir()`), not the id — the
+ // caller resolves that glob ONCE and passes the same dir in here and to
+ // `load_trace()` below, rather than every loader re-walking directory.json
+ // for itself.
+@@ -791,12 +889,21 @@ function session_page(root, id){
+ 			const $costs = div.c("flow");
+ 			const $trace = div.c("flow");   // the cost-over-time chart + "what was it doing" table, BELOW $costs (2026-10-03 brief)
+ 
+-			Promise.all([load_transcript(root.url, id), find_session_page_dir(id)]).then(async ([{ row, prompts }, dir]) => {
+-				// `dir` is resolved ONCE here and handed to both loaders below —
+-				// `find_session_page_dir()` walks the whole directory.json tree, so
+-				// calling it twice (once per loader) would be the same glob done
+-				// twice for nothing.
+-				const [costs, trace] = await Promise.all([load_cost_log(dir), load_trace(dir)]);
++			// `row` first, on its own — everything else needs its `session_id`.
++			// For a VS Code/CLI row the url's own `id` already IS the session id;
++			// for a Servex row `id` is the AGENT's id (e.g. "clarity-weight-badges"),
++			// a different string from its `session_id` — using `id` for the
++			// transcript fetch and the date-path lookup would ask `/ai-logs/` for
++			// the wrong file and glob for the wrong folder (latent since the Role/
++			// Cost build added Servex rows to this page; fixed here while touching
++			// this same lookup for the date-path reconciliation).
++			load_row(root.url, id).then(async row => {
++				const session_id = row?.session_id ?? id;
++				const dir_index = await session_page_dir_index();
++				const dir = session_page_dir(dir_index, session_id);
++				const [costs, trace, prompts] = await Promise.all([
++					load_cost_log(dir), load_trace(dir), load_transcript(session_id),
++				]);
+ 
+ 				$costs.empty(() => {
+ 					if (!costs) return;
+@@ -826,10 +933,9 @@ function session_page(root, id){
+ 							});
+ 						}));
+ 					} else if (!costs) {
+-						p.c("muted", "No transcript for this session yet. Servex-sourced sessions don't carry one over "
+-							+ "today's GET /api/agents — a GET /api/sessions route (asked for, see this task's "
+-							+ "doc/decisions.md) would add it. A VS Code or CLI session whose file sessions.mjs "
+-							+ "hasn't scanned yet needs that script re-run.");
++						p.c("muted", "No transcript for this session — either /ai-logs/ (the dev-server-only "
++							+ "route this reads it through) isn't running, or this session's own file has no "
++							+ "real prompt in it yet.");
+ 					}
+ 				});
+ 
+diff --git a/public/framework/ai/sessions/readme.md b/public/framework/ai/sessions/readme.md
+index a0f62f83..e5206123 100644
+--- a/public/framework/ai/sessions/readme.md
++++ b/public/framework/ai/sessions/readme.md
+@@ -9,12 +9,17 @@ opens as a side peek beside the grid instead of replacing it.
+ 
+ ## Use
+ 
+-Visit [`/framework/ai/sessions/`](/framework/ai/sessions/). Eight columns, newest activity first:
+-Start, Source (a coloured tag), Role, Name, Model, State, RAM, Cost. Drag a column header's own
+-right edge to resize just that column — each one is a single `--col-<name>` CSS custom property,
+-with its own minimum width so a column never collapses to nothing. It's a CSS grid, not a
+-`<table>`: `doc/decisions.md` says why, and what that bought (one token per column) that a table
+-couldn't.
++Visit [`/framework/ai/sessions/`](/framework/ai/sessions/). Ten columns, newest activity first:
++Start, Stop, Duration, Source (a coloured tag), Role, Name, Model, State, RAM, Cost. Drag a column
++header's own right edge to resize just that column — each one is a single `--col-<name>` CSS
++custom property, with its own minimum width so a column never collapses to nothing. It's a CSS
++grid, not a `<table>`: `doc/decisions.md` says why, and what that bought (one token per column)
++that a table couldn't.
++
++**Start / Stop / Duration (2026-10-03):** Start and Stop are both real timestamps where known;
++Stop reads "ongoing" while a session is still active rather than guessing when it ended — a plain
++transcript file has no formal "stopped" event. Duration is Stop minus Start (or "now" minus Start
++while ongoing).
+ 
+ **What's new (session-costs minion-build, 2026-10-02) — real per-session dollars, not just the one
+ older `cost` figure:**
+@@ -81,11 +86,14 @@ merge.
+   built; this task's own fence is `public/framework/ai/` only, so it cannot add a route under
+   `Server/` itself. The full reasoning, and what a real route would fix, is in
+   [`doc/decisions.md`](./doc/decisions.md).
+-- **`sessions.json` and every file under `transcripts/` are gitignored**, the same way
+-  `ai/usage.json` already is — machine state written by a script, not a record to keep, and in
+-  this case also the owner's own dictated prompt text, which has no business in `public/`, the
+-  folder this site deploys statically. Running `sessions.mjs` regenerates both locally; neither is
+-  ever committed.
++- **`sessions.json` is gitignored**, the same way `ai/usage.json` already is — machine state
++  written by a script, a COMPUTED CACHE never the record itself (the owner's own words). Running
++  `sessions.mjs` regenerates it locally; it is never committed.
++- **No duplicate data (2026-10-03):** a session's own prompts are never copied anywhere — the old
++  `transcripts/<id>.json` snapshot (110 files, 2.5 MB) is gone. The detail page reads a session's
++  real prompts LIVE, through `/ai-logs/<id>` (`Server/plugins/AILogs.js`, dev-server only, the same
++  route [`ext/AITask/replay.js`](/framework/ext/AITask/) already used) — the owner's own dictated
++  text never sits in `public/`, the folder this site deploys statically, even transiently.
+ 
+ ## Watch out
+ 
+@@ -98,15 +106,16 @@ merge.
+   the data this reads.
+ - A Servex-sourced session's own page has no transcript yet (`GET /api/agents` carries no prompt
+   text) — its detail page says so, with a link to why.
+-- **The detail route is a known future seam, and the real shape is still moving.**
+-  `task-mastermind-prompt-refine` is building the eventual real source for this page's transcript;
+-  its own plan changed twice while this tab was being built (first "filter the daily prompt log",
+-  then "one `page.jsonl` per session", then "filed under the day it started:
+-  `ai/<date>/sessions/<slug>-<uuid8>/page.jsonl`", read with `page_read`) — so don't trust this
+-  bullet's own specifics, check `task-mastermind-prompt-refine`'s current state instead.
+-  `load_transcript()` (`page.js`) is the one function that reads today's stand-in
+-  (`sessions.json` + `transcripts/<id>.json`); swapping sources, whatever they turn out to be, is a
+-  one-function change, not a rewrite. See [`/framework/ai/2026-10-02/sessions-grid-v2/`](/framework/ai/2026-10-02/sessions-grid-v2/).
++- **A session's home is its date path, once one exists — and none do yet.**
++  `task-mastermind-prompt-refine`'s hooks are meant to write a real
++  `ai/<Y>/<M>/<D>/<slug>-<uuid8>/page.jsonl` per session (page-item-design.md); checked live,
++  2026-10-03, and no such folder exists on this machine yet. `session_page_dir_index()` (`page.js`)
++  walks for one on every grid load regardless — the moment a session has one, its row's own link
++  points there instead of this tab's `/sessions/<id>/` view, with no further code change. Its own
++  plan has changed three times already while this task was being built, so don't trust any more
++  specifics than that here — check `task-mastermind-prompt-refine`'s current state instead.
++  `load_transcript()` (`page.js`) is still the one function whose body changes once a real prompt
++  source lands; today it reads a session's transcript live (see above), not a copy.
+ 
+ ## More
+ 
+diff --git a/public/framework/ai/sessions/sessions.css b/public/framework/ai/sessions/sessions.css
+index 1a746e66..3653ab7b 100644
+--- a/public/framework/ai/sessions/sessions.css
++++ b/public/framework/ai/sessions/sessions.css
+@@ -26,13 +26,18 @@
+ 	   smaller value, so "no column collapses into tall, empty rows" (the
+ 	   owner's own words) holds even if the JS clamp in page.js is skipped.
+ 	   Role and RAM (session-costs minion-build, 2026-10-02) added between
+-	   Source/Name and State/Cost — same mechanism, two more tokens. */
++	   Source/Name and State/Cost; Stop and Duration (sessions-date-homes,
++	   2026-10-03 — "show the start time, stop time, duration and cost on
++	   every row") added right after Start — same mechanism, more tokens. */
+ 	.sessions-grid {
+-		--col-time: 8rem; --col-source: 6rem; --col-role: 7rem; --col-name: 16rem;
++		--col-time: 8rem; --col-stop: 8rem; --col-duration: 6rem;
++		--col-source: 6rem; --col-role: 7rem; --col-name: 16rem;
+ 		--col-model: 8rem; --col-state: 5.5rem; --col-ram: 4.5rem; --col-cost: 5rem;
+ 		display: grid;
+ 		grid-template-columns:
+ 			minmax(7rem, var(--col-time))
++			minmax(7rem, var(--col-stop))
++			minmax(5.25rem, var(--col-duration))
+ 			minmax(5.5rem, var(--col-source))
+ 			minmax(6rem, var(--col-role))
+ 			minmax(10rem, var(--col-name))
+diff --git a/public/framework/ext/AITask/replay.js b/public/framework/ext/AITask/replay.js
+index aac4d704..ec4d1eb5 100644
+--- a/public/framework/ext/AITask/replay.js
++++ b/public/framework/ext/AITask/replay.js
+@@ -27,7 +27,14 @@ export function replay(session_id, label = "session"){
+ 	});
+ }
+ 
+-async function load(id){
++// Exported (2026-10-03, sessions-date-homes): the Sessions tab's own detail
++// page reuses this exact fetch-and-parse — it reads a session's real
++// transcript IN PLACE the same way `replay()` above does, through the same
++// `/ai-logs/<id>` route, rather than keeping its own second copy of a
++// session's prompts on disk (the owner's own "no duplicate data" decision;
++// see `ai/sessions/doc/decisions.md`). One network/parse function, two
++// different renderings of the same raw lines (law 6).
++export async function load(id){
+ 	const res = await fetch("/ai-logs/" + id).catch(() => null);
+ 	// The SPA fallback answers unknown paths with index.html and a 200 — a miss, not a hit.
+ 	if (!res?.ok || (res.headers.get("content-type") ?? "").includes("html")) return null;

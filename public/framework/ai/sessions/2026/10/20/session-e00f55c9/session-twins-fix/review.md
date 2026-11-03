@@ -1,0 +1,23 @@
+verdict: fix
+1. [fix] The task folder points at the wrong branch. `session.jsonl` ("TO LAND") says to merge `worktree/session-twins-fix` (tip 3484124b8), but this diff is `worktree/mb-twins` (tip 9fa967bbc: a merge of the fix into current dev, plus the `Server/readme.md` line and the removal of ChildLinks' unused `UUID`). No file in the task folder mentions `mb-twins`, and the last line is a `stop` ("dropped: owner dormant"). A fresh agent would merge the older branch and lose the readme line. Add a log line that names `worktree/mb-twins` as the branch to merge, says who made it, and repeats the three landing steps.
+2. [fix] The finder's temp file will wake the dev watcher. `SessionFolders.save()` (diff.patch:992) writes `session-folders.json.<pid>.tmp`. `Server/watch.js:56` skips only names that end in `.json` or contain `.tmp-`, so this name gets through. The map is saved on every refresh that sees a change, which means every new session or task folder in any process, so each one sends a stray event (and maybe a reload) through the one public/ watcher. Use `Runtime.safe_write` (its `.tmp-` sibling is already ignored), or name the file `session-folders.tmp-<pid>.json`. Also drop the `.gitignore` line at diff.patch:13 to match.
+3. [note] `session-folders.json` holds every day's folder names (about 13.5k entries). It is rewritten whole on each change, by every process that runs the finder (Servex, the dev server, every hook and `TaskDirs --new` run). That is correct, because it is only a cache and the rename is atomic, but it costs a lot of writes. Worth measuring the file's size, and how often it is written, once this is live.
+4. [note] `AskIndex.session_dir` (diff.patch:44) no longer remembers a lookup, so every ask asks `SessionFolders.of()`. The fast path makes that cheap (under 2 ms, one-folder.md (diff.patch:791)), so this is fine; the comment says it is on purpose.
+5. [note] The first review's findings are all answered in this diff: `task-loop.md (diff.patch:664)` lists `twins_daily`; the first run posts one "started" note instead of a false alarm (`SessionConsolidate.check`, diff.patch:408–417; TaskLoop.js, diff.patch:648); ChildLinks says which 69 ids it dropped (diff.patch:79–81); one-folder.md (diff.patch:791) says what happens to old flat folders now; the AskIndex-tasks failure was filed as a todo (commit 921e7cd23).
+
+## Requirements
+- 1 "find the session by id in any existing folder … before making a new one" — yes — `DatedFiles.session_dir` → `SessionFolders.home` (diff.patch:135–158); test `session-twins.test.mjs` case 1 failed before the fix (test-before-fix.txt)
+- 2 "if the cached folder is gone, locate the session again; never recreate a vanished cached path" — yes — `AISessionIndex.dir_of` asks the finder on every write (diff.patch:719–726); `Session.locate` no longer trusts `days`/`slugs` (diff.patch:859–865); tests 2a and 2b
+- 3 "One folder-finder … Delete the duplicates" — yes — `core/Session/SessionFolders.mjs`; the scans in AskIndex, ChildLinks, SessionIdentity, AISessionIndex.session_dirs and Session.scan are gone, `DatedFiles.owner` is now a one-line alias; TaskDirs and TaskMove reach it through `session_dir` and `Session.scan`. Grep of mb-twins: no other writer builds a `session-<id8>` path by hand
+- 4 "SessionConsolidate: slug folders, the batch logic from move-ai2.mjs, a check run from an existing health check" — yes — `--all` / `--check`, the REGEN freshness rule (diff.patch:232, 264–296); runs in `DatedFiles.check_sessions` (diff.patch:120) and daily in `TaskLoop.twins_daily`; fold-proof.json shows 1,408 twins → 0 with 0 lines lost
+- 5 "Write it down … in the sessions readme" — yes — `ai/sessions/readme.md` links `doc/one-folder.md`; identity.md and core/Session/readme.md are updated, and the old ⬜ is ticked
+- Fence "Land: the merge command, the tests, can it happen again" — no — all three are in session.jsonl, but for the wrong branch (finding 1)
+- Class shows its live instances — n/a — SessionFolders is a node-only finder and holds no state the owner would watch; [note] only
+
+## Words
+- Comments and docs are in plain sentences, with dates and a reason for each change — yes — one-folder.md, the header of SessionFolders.mjs
+- one-folder.md says what it is in its first paragraph — yes — one-folder.md (diff.patch:744)
+- Numbers are given, not adjectives — yes — one-folder.md (diff.patch:791) (speeds), diff.patch:797 (1,408 twins, 16,445 lines)
+- Nothing stale in the docs it touches — yes — diff.patch:516 (dated-files.md), :529 (Server/readme.md) and :1108 (identity.md) now name SessionFolders
+
+No page changed, so only Requirements and Words are answered; there were no shots.

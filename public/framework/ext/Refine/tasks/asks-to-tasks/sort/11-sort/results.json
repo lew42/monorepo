@@ -1,0 +1,202 @@
+[
+ {
+  "id": "cccd7dbf99",
+  "sort": "note",
+  "module": "design/color",
+  "title": "",
+  "note": "The primary background is for rare moments, never the background of every screen or many cards.",
+  "evidence": "Standing colour rule from the owner; nothing to build."
+ },
+ {
+  "id": "1a21501506",
+  "sort": "note",
+  "module": "design/color",
+  "title": "",
+  "note": "Keep colour minimal: the primary is a bold accent, not a fill.",
+  "evidence": "Standing colour rule from the owner; nothing to build."
+ },
+ {
+  "id": "5a9bcb68c3",
+  "sort": "note",
+  "module": "design/color",
+  "title": "",
+  "note": "Use the orange-red primary sparingly, for example on progress bars, since it can read as an error colour.",
+  "evidence": "Standing colour rule; the full ask is in ext/Refine/queue/asks.jsonl (a5)."
+ },
+ {
+  "id": "948f5708f1",
+  "sort": "note",
+  "module": "design/color",
+  "title": "",
+  "note": "Stick to the one primary hue and add no other colours.",
+  "evidence": "Standing colour rule from the owner; nothing to build."
+ },
+ {
+  "id": "a2153bd6be",
+  "sort": "done",
+  "module": "",
+  "title": "",
+  "note": "",
+  "evidence": "public/framework/styles/system/studies/color/sections/sections.js:262 - `The ${flips} that flip the ink from dark to light read as two pages`"
+ },
+ {
+  "id": "2e33cfe3be",
+  "sort": "done",
+  "module": "",
+  "title": "",
+  "note": "",
+  "evidence": "public/framework/styles/system/studies/color/study.js:17 - `/** Five grounds, light to dark. Literal colours on purpose: the question is what a step does`"
+ },
+ {
+  "id": "581d70a126",
+  "sort": "done",
+  "module": "",
+  "title": "",
+  "note": "",
+  "evidence": "public/framework/ui/readme.md:1 - `# UI — the template tier: twenty components in four bands, one page each.`"
+ },
+ {
+  "id": "bc9fece0a1",
+  "sort": "note",
+  "module": "ui",
+  "title": "",
+  "note": "Components are presented as a polished UI kit with minimal labels.",
+  "evidence": "Standing presentation preference; the ui index is the kit it describes."
+ },
+ {
+  "id": "b7638f7e28",
+  "sort": "task",
+  "module": "ui",
+  "title": "Give button and other component types a click-through page",
+  "note": "",
+  "evidence": "public/framework/ui/readme.md:5 - `Only table, kbd and timeline are functions; the rest are markup you copy`. A grep for click-through under ui/ found nothing."
+ },
+ {
+  "id": "f133c7c3ab",
+  "sort": "task",
+  "module": "ui",
+  "title": "Show ui components working in place, not only as static markup",
+  "note": "",
+  "evidence": "public/framework/ui/readme.md:5 - `the rest are markup you copy`; the ui pages show static markup with no live behaviour."
+ },
+ {
+  "id": "6d57289ebf",
+  "sort": "done",
+  "module": "",
+  "title": "",
+  "note": "",
+  "evidence": "public/framework/styles/elements/readme.md:1 - `# Elements — the reference for every element framework.css styles`; ui/readme.md:1 and styles/sections/readme.md:1 give the other two tiers"
+ },
+ {
+  "id": "3918a078d7",
+  "sort": "done",
+  "module": "",
+  "title": "",
+  "note": "",
+  "evidence": "public/framework/styles/layouts/400/readme.md:1 - `# 400 — five class strings, one column at 400, unstacking on their own past it`"
+ },
+ {
+  "id": "0776a9e50f",
+  "sort": "note",
+  "module": "ai/usage",
+  "title": "",
+  "note": "Work on its own while keeping an eye on usage pace as it goes.",
+  "evidence": "Standing working preference; ai/usage is where pace is shown."
+ },
+ {
+  "id": "557871dbca",
+  "sort": "note",
+  "module": "code/dos-and-donts",
+  "title": "",
+  "note": "Never break or overwrite anything on the site that already works.",
+  "evidence": "Standing rule from the owner; it applies to every change."
+ },
+ {
+  "id": "a4df95a04b",
+  "sort": "done",
+  "module": "",
+  "title": "",
+  "note": "",
+  "evidence": "public/framework/ai/audits/index.jsonl:11 - `css, launch, site, taste, layout, ui-behaviors audits (Aug-Sep)`"
+ },
+ {
+  "id": "b3e145d3a4",
+  "sort": "note",
+  "module": "styles",
+  "title": "",
+  "note": "A version two that starts over and restyles is built beside the current site, not on top of it.",
+  "evidence": "An idea the owner raised; no build is due yet."
+ },
+ {
+  "id": "276abaec0f",
+  "sort": "obsolete",
+  "module": "",
+  "title": "",
+  "note": "",
+  "evidence": "A question; the migrate-one-usage-at-a-time plan in ask 18 and the build-beside note in ask 16 answer it."
+ },
+ {
+  "id": "e6f8f0b992",
+  "sort": "task",
+  "module": "styles",
+  "title": "Migrate CSS usages one at a time to a simpler component set",
+  "note": "",
+  "evidence": "No migration record under styles/ or ux/doc/; the old token set is still declared at public/framework/framework.css:263 - `--pad: calc(clamp(1em, 2.6% - 1.1em, 4em) * var(--size));`"
+ },
+ {
+  "id": "343c2a63b8",
+  "sort": "note",
+  "module": "styles",
+  "title": "",
+  "note": "Keep the token set minimal and reuse the same tokens everywhere rather than adding new ones.",
+  "evidence": "Standing token rule; ux/doc/decisions.md:66 states the bar for a new token."
+ },
+ {
+  "id": "8f5e724928",
+  "sort": "done",
+  "module": "",
+  "title": "",
+  "note": "",
+  "evidence": "public/framework/framework.css:911 - `.pad { padding: var(--pad); }`"
+ },
+ {
+  "id": "7cb2f6c1ce",
+  "sort": "done",
+  "module": "",
+  "title": "",
+  "note": "",
+  "evidence": "public/framework/framework.css:911 - `.pad { padding: var(--pad); }`; the same opt-in class goes on a section"
+ },
+ {
+  "id": "5d43efd78a",
+  "sort": "done",
+  "module": "",
+  "title": "",
+  "note": "",
+  "evidence": "public/framework/framework.css:313 - `--pad-card: calc(clamp(1rem, 2.6%, 2em) * var(--size));`"
+ },
+ {
+  "id": "8894809c84",
+  "sort": "done",
+  "module": "",
+  "title": "",
+  "note": "",
+  "evidence": "public/framework/framework.css:263 - `--pad: calc(clamp(1em, 2.6% - 1.1em, 4em) * var(--size));`; the 1em floor is for mobile and the 4em cap for mega"
+ },
+ {
+  "id": "4b420fc9a1",
+  "sort": "done",
+  "module": "",
+  "title": "",
+  "note": "",
+  "evidence": "public/framework/framework.css:263 - `--pad: calc(clamp(1em, 2.6% - 1.1em, 4em) * var(--size));`"
+ },
+ {
+  "id": "092896af44",
+  "sort": "note",
+  "module": "styles",
+  "title": "",
+  "note": "Unifying and simplifying the CSS is the top priority.",
+  "evidence": "Standing priority from the owner; it guides every styles change."
+ }
+]

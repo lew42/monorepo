@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ai2/ai2.css",
+ "widths": {
+  "1280": {
+   "empty": 0.611,
+   "widest_text": 636,
+   "widest_text_sample": "@layer theme {\n\n\t/* The rail head's gap ",
+   "overflow_x": false,
+   "items": 0,
+   "narrow_share": 0
+  },
+  "1920": {
+   "empty": 0.737,
+   "widest_text": 636,
+   "widest_text_sample": "@layer theme {\n\n\t/* The rail head's gap ",
+   "overflow_x": false,
+   "items": 0,
+   "narrow_share": 0
+  },
+  "2560": {
+   "empty": 0.8,
+   "widest_text": 636,
+   "widest_text_sample": "@layer theme {\n\n\t/* The rail head's gap ",
+   "overflow_x": false,
+   "items": 0,
+   "narrow_share": 0
+  },
+  "3440": {
+   "empty": 0.85,
+   "widest_text": 636,
+   "widest_text_sample": "@layer theme {\n\n\t/* The rail head's gap ",
+   "overflow_x": false,
+   "items": 0,
+   "narrow_share": 0
+  }
+ },
+ "errors": []
+}

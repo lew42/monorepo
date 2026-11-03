@@ -1,0 +1,429 @@
+/* The Sessions tab — a CSS-GRID data grid, one row per Claude session, newest
+   activity first. `sessions-` is a brand new prefix (confirmed free,
+   2026-10-02 — see doc/decisions.md for the census and the css-scopes.txt
+   reservation note).
+
+   WHY A GRID, NOT A `<table>` (sessions-grid-v2, 2026-10-02, the owner's own
+   words): "each column's width is one token (`--col-<name>`)... resizing a
+   column changes the one token." A `<table>`'s columns are a product of every
+   cell's content; there is no single number to point a resize at. A CSS grid
+   with one `grid-template-columns` track per `--col-*` token gives exactly
+   one knob per column — `ext/grip` (the same drag the Page columns system and
+   Panel2.split already use, law 6: one resize mechanism, not a third) writes
+   it.
+
+   THE MECHANISM: `.sessions-grid` is the one real grid container. Every row
+   — the header and each data row — is `display: contents`: it disappears
+   from layout, so its own cells become direct items of `.sessions-grid`
+   itself and line up in its columns. This nested-`display:contents` idiom is
+   not new here either — it is the exact trick `core/Page`'s own `columns()`
+   uses to let a tree of pages read as a row (doc/columns.md, "Peers on
+   screen, a tree in the DOM"). */
+@layer theme {
+
+	/* One token per column, each with its own floor via `minmax()` — the grid
+	   itself refuses to go under the minimum even if a bug ever wrote a
+	   smaller value, so "no column collapses into tall, empty rows" (the
+	   owner's own words) holds even if the JS clamp in page.js is skipped.
+	   Role and RAM (session-costs minion-build, 2026-10-02) added between
+	   Source/Name and State/Cost; Stop and Duration (sessions-date-homes,
+	   2026-10-03 — "show the start time, stop time, duration and cost on
+	   every row") added right after Start — same mechanism, more tokens. */
+	.sessions-filters { column-gap: 2rem; row-gap: .5rem; }
+	.sessions-sort-label { cursor: pointer; }
+	.sessions-sort-label:hover { text-decoration: underline; }
+	.sessions-controls { display: flex; flex-direction: column; gap: .5rem; margin-block-end: 1rem; }
+	.sessions-controls > * { margin: 0; }
+	.sessions-kinds { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem .5rem; }
+	.sessions-kinds:empty { display: none; }
+	.sessions-filters .sessions-search { inline-size: 18em; max-inline-size: 100%; }
+	.sessions-chiprow { display: flex; flex-wrap: wrap; gap: .4rem .5rem; }
+	.sessions-chips { display: contents; }
+	.sessions-summary { flex-wrap: wrap; }
+	/* The list is ext/DataGrid (columns and widths: AISessionsPage.WIDTHS). One scroller: the page column scrolls,
+	   the grid grows with its rows and its header row sticks to the column's top (3440 bug, 2026-10-12: a grid that
+	   scrolled inside the scrolling column showed a third of the screen). */
+	.sessions-page .datagrid:not(.datagrid-rail) { --datagrid-height: none; overflow: visible; justify-content: start; }   /* no width cap: the name column (1fr) takes the spare room at 3440, 2026-10-12 */
+	.sessions-page:not(:has(.datagrid-view-rail)) :is(.panel2-body, .panel2-main) { overflow: visible; }   /* any box that clips becomes the sticky header's scroller */
+	.sessions-page .datagrid-count { display: none; }
+	.sessions-page .datagrid-head-cell .grip, .sessions-page .datagrid-grip { opacity: .35; }
+	.sessions-page .datagrid-more { grid-column: 1 / -1; }
+	/* Rail view: the list is flush with the left nav, full height, no padding of its own; each card is padded. */
+	.sessions-page .datagrid-view-rail { block-size: calc(100dvh - 12rem); }
+	.sessions-page .datagrid-view-rail .datagrid-rail { max-block-size: none; }
+	.sessions-page:has(.datagrid-view-rail) .sessions-stats, .sessions-page:has(.datagrid-view-rail) .sessions-chiprow, .sessions-page:has(.datagrid-view-rail) .sessions-summary { display: none; }
+	.sessions-page:has(.datagrid-view-rail) .sessions-kinds .sessions-chip { font-size: .8em; padding: .05em .55em; }    /* the rail keeps the routine chips, small */
+	.sessions-card { display: flex; flex-direction: column; gap: 0; padding: .3em var(--gap-50); min-width: 0; }
+	.sessions-page .datagrid-view-rail .datagrid-card { padding: 0; gap: 0; line-height: 1.25; }
+	.sessions-card-line { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gap-35); min-width: 0; }
+	.sessions-card .sessions-row-title { flex: 1 1 8em; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }   /* a card title is one line, ellipsis */
+
+
+	.sessions-row { display: contents; }
+
+	.sessions-cell {
+		display: flex; align-items: center; min-width: 0;
+		padding-block: var(--gap-50);
+		border-block-end: 1px solid var(--line);
+	}
+	/* The LAST row's cells still get a rule-off against the next sibling
+	   below them in DOM order (there usually isn't one) — harmless; a border
+	   nobody sees costs nothing, and `:last-child` can't target "the whole
+	   bottom row" once every row is unwrapped into flat grid items. */
+
+	.sessions-page .datagrid-head-cell { padding-block: var(--gap-50); }
+
+	/* A row is one `<a>`, `display: contents`, so it paints nothing of its
+	   own — the hover/focus wash has to land on each of ITS cells instead.
+	   `:hover`/`:focus-within` still track correctly on a boxless element
+	   (contents removes the box, not the element), so this is the ordinary
+	   row-hover rule, just aimed one level down. */
+	.sessions-row:hover > .sessions-cell,
+	.sessions-row:focus-within > .sessions-cell { background: var(--tint); }
+	.sessions-row { text-decoration: none; color: inherit; }
+
+	/* The name cell's two lines (title, then the last-prompt preview) stack
+	   vertically — `.sessions-cell` itself is a ROW flex container (it has
+	   five other, single-line cells to vertically centre), so a cell with two
+	   lines needs its own column flex box, one level in, or the title and the
+	   preview sat side by side on one line instead of stacking (found live,
+	   sessions-grid-v2 2026-10-02 — a session's own tab_title ran straight
+	   into its prompt preview with no break: "monorepoSo how would you…"). */
+	.sessions-name-stack { display: flex; flex-direction: column; gap: var(--gap-35); min-width: 0; }
+	.sessions-row-title { font-weight: 600; }
+	.sessions-flight { margin-block-end: 1.5em; }
+	.sessions-flight-head { margin-block: 0 var(--gap-50); }
+	.sessions-doclink { margin-inline-end: 1em; font-size: .9em; }
+	.sessions-fold { cursor: pointer; margin-inline-end: .4em; color: var(--prim-ink); font-weight: 400; }
+	.sessions-page .datagrid:not(.datagrid-rail) .sessions-cell:nth-child(6) { flex-wrap: wrap; gap: .25em .5em; }   /* role text, tier tag and mastermind tag wrap inside their column instead of running over the next one */
+	.sessions-page:not(:has(.datagrid-view-rail)) .sessions-frame { block-size: auto; flex: none; min-block-size: max-content; }   /* the frame grows with the rows, so the status footer ends the panel instead of sitting on a row */
+	.sessions-page .datagrid:not(.datagrid-rail) .sessions-row-title { white-space: normal; overflow-wrap: anywhere; }   /* the table lets a name wrap to a second line rather than cut it with an ellipsis */
+	.sessions-page:not(:has(.datagrid-view-rail)) { padding-block-start: 0; }   /* the page itself scrolls, and a sticky header stops at the scroller's top padding (core/Page/Page.css `.page`), so scrolled rows showed in that strip above it; the space moves to a margin that scrolls away */
+	.sessions-page:not(:has(.datagrid-view-rail)) > .sessions-frame { margin-block-start: var(--pad-y) !important; }   /* !important: the util layer's `:first-child { margin-top: 0 }` outranks every theme-layer margin (code/css/doc/caveats.md) */
+	.sessions-row-prompt { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+	/* Compact cards below 78em of the panel (this em is the panel's 13.3px: about 1040px, just over the grid's true minimum of about 1030px with the 2026-10-23 widths (name 12rem min); 1920 with the chat open has a 1058px panel, which now gets the table. Was 88em, about 1090px; 56em let it scroll sideways at 1100 and 1400). Before: below `ext/panel2`'s own 30em container floor, a 6-column grid has
+	   nowhere left to shrink to — the owner's narrow-screen answer elsewhere
+	   on the site is always "one column at a time" (`core/Page`'s own < 32em
+	   phone regime), so the grid becomes a plain stacked card per row instead
+	   of fighting for six columns in no room. */
+	/* Master-detail, like the Inbox (Addendum 9): with a session open the list holds
+	   exactly half the row and the detail FILLS the other half. Core hands a yielding
+	   `fill` page its third; this puts it back to a half. */
+	.sessions-page.active-ancestor > .page-column-body.page-column-fill { --page-column-flex: 0 0 50%; --page-column-min: 16em; --page-column-max: 50%; }
+	/* Rail view: a session card needs about 24em (name, cost, role on three short lines); core's `small` gives 14em at 1920. */
+	.sessions-page > .page-columns-row > .page-column-body.page-column-small { --page-column-w: clamp(18em, 22cqi, 28em); }
+
+	@container (width < 78em) {
+		.sessions-page .datagrid:not(.datagrid-rail) { display: flex; flex-direction: column; width: auto; max-width: 100%; }
+		.sessions-page .datagrid-head { display: none; }
+		.sessions-row { display: flex; flex-wrap: wrap; gap: var(--gap-50); padding-block: var(--gap-50); border-block-end: 1px solid var(--line); }
+		.sessions-cell { padding-block: 0; border-block-end: none; }
+		.sessions-row > .sessions-cell:nth-child(2) { order: -1; flex: 1 1 100%; min-width: 0; }
+		.sessions-row > .sessions-cell:not(:nth-child(2)) { flex: 0 0 auto; max-width: 100%; }
+	}
+
+	/* One colour per source, so "what kind of session is this" reads before the
+	   words do — the owner's own ask ("a tag that says VS Code on it").
+	   Bordered outline on `--surface`, not a tinted wash: a 20% wash of a hue
+	   under that SAME hue's own text measured under 3:1 (review finding,
+	   2026-10-02 — `--prim` on its own wash is 2.25:1 against white, the exact
+	   trap framework.css's own button rule already names and works around
+	   with a shadow this tag has no room for). Checked against WCAG's formula:
+	   `--prim-ink` (the token framework.css ships FOR TEXT, not `--prim`
+	   itself) is 5.19:1 on white; the vscode blue is 5.19:1; `--ink` is
+	   always highest-contrast by definition. */
+	.sessions-tag {
+		flex: none; font-size: 0.75em; font-weight: 600; text-transform: uppercase;
+		padding-inline: 0.5em; padding-block: 0.2em; border-radius: var(--radius);
+		letter-spacing: 0.02em;
+		background: var(--surface);
+		border: 1px solid var(--sessions-tag-color, var(--ink));
+		color: var(--sessions-tag-color, var(--ink));
+	}
+	.sessions-tag-servex { --sessions-tag-color: var(--prim-ink); }
+	/* ⚠ Open: this blue has no dark-mode variant (doc/decisions.md) — unlike
+	   `--prim-ink`, which is `light-dark()`-aware, a static hex stays exactly
+	   this blue on a dark surface too; not re-measured there yet. */
+	.sessions-tag-vscode { --sessions-tag-color: #0072B2; }
+	.sessions-tag-cli    { --sessions-tag-color: var(--ink); }
+	/* A row synthesized purely from a date-path folder's name (2026-10-03,
+	   sessions-date-homes, with_date_path_rows()) — `--subtle`, the same
+	   contrast-safe non-prim token the OpenRouter tag already uses, since this
+	   is explicitly a THIN row (no model/state/cost known yet), not a fourth
+	   full-weight source. */
+	.sessions-tag-page   { --sessions-tag-color: var(--subtle); }
+
+	/* The state cell (session-costs minion-build, 2026-10-02): a ▶ that
+	   blinks while a row is in flight ("working"/"active"), a plain quiet dot
+	   otherwise. The owner's own words: a ✓ for "done" belongs only on the
+	   detail page, never this grid. `steps(2, start)` just flips visible/dim,
+	   no fade — a blink, not a pulse; `prefers-reduced-motion` turns the
+	   animation off and keeps the icon static, same way framework.css already
+	   silences motion everywhere else. */
+	.sessions-state-dot { font-size: 0.9em; line-height: 1; }
+	.sessions-state-dot-working { color: var(--prim); animation: sessions-blink 1.2s steps(2, start) infinite; }
+	.sessions-state-dot-ready { color: var(--prim); }
+	.sessions-state-dot-idle { color: var(--subtle); }
+	@keyframes sessions-blink { 50% { opacity: 0.2; } }
+	@media (prefers-reduced-motion: reduce) {
+		.sessions-state-dot-working { animation: none; }
+	}
+
+	/* The Cost header doubles as a sort toggle (session-costs minion-build,
+	   2026-10-02) — a plain inline click target, not a button: it sits inside
+	   a header cell that also carries the column's resize grip, and a button's
+	   own focus ring/padding would fight that grip for space. */
+	.sessions-sort-label { cursor: pointer; }
+	.sessions-sort-label:hover { text-decoration: underline; }
+
+	/* The OpenRouter half of the Cost cell: real money, a different colour
+	   from Claude $ (which stays the plain `.muted` text every other cell
+	   uses) so the two currencies never blur into one number at a glance (the
+	   owner's own words: "differentiate Claude dollars from OpenRouter
+	   dollars"). `--subtle` is the only OTHER light-dark()-aware text token
+	   this theme ships besides `--ink`/`--prim-ink` (checked against
+	   lew42.css, 2026-10-02 — no `--warn-ink`/`--ok-ink` exist here yet), so
+	   it is the contrast-safe, non-invented choice: visually distinct from
+	   `--prim-ink` (used by the Servex tag) and >4.5:1 in both themes. */
+	.sessions-tag-or { --sessions-tag-color: var(--subtle); font-size: 0.7em; }
+
+	.sessions-prompt, .sessions-cost-row { padding: var(--gap-50); }
+
+	/* The detail is one panel at a time under a tab strip (AISessionDetail.content): each panel is its own section, full width, so a table is never squeezed. */
+	.sessions-tabs { padding-block: var(--gap-35); border-block-end: 1px solid var(--line); }
+	.sessions-panel { padding: var(--gap-50); background: var(--tint); border-radius: var(--radius); }
+	.sessions-panel { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--gap-50); align-content: start; }   /* minmax(0,…): a wide child (the Tasks grid) scrolls in its own box instead of stretching the column at 390 */
+	.sessions-panel > * { margin: 0; }
+	.sessions-panel > :not(:has(*:not(:empty))) { display: none; }   /* a slot with nothing in it (no voice stages, no spawn) takes no space: no blank band above the chat */
+	.sessions-panel[hidden] { display: none; }
+	.sessions-summary-cost { font-weight: 600; white-space: nowrap; }
+	.sessions-cost-line { display: grid; grid-template-columns: minmax(8em, 1.4fr) repeat(5, minmax(4.5em, 1fr)); gap: var(--gap-50); padding-block: var(--gap-35); border-block-end: 1px solid var(--line); align-items: baseline; }
+	.sessions-cost-line > * { text-align: end; overflow-wrap: anywhere; }
+	.sessions-cost-line > :first-child { text-align: start; }
+	.sessions-cost-headline { font-weight: 600; border-block-end-width: 2px; }
+	.sessions-purpose-row { display: grid; grid-template-columns: minmax(10em, 16em) minmax(6em, 1fr) minmax(12em, 18em); gap: var(--gap-50); align-items: center; }
+	.sessions-conv .chatbox-log { height: max(22em, calc(100dvh - 20em)); max-height: none; overflow-y: auto; }   /* the chat fills the view and scrolls inside itself, so the other tabs never push it away; ext/Chat keeps the newest in view */
+
+	/* The two empty gray bands above the white card (the owner's own words,
+	   2026-10-03, sessions-tab-polish: "two faint gray lines between the top
+	   tabs and the white card could just disappear" — measured live, headless,
+	   at 3440: a 51px `.page-column-head` with nothing in it (this page's own
+	   title is blank on purpose — the AI icon heading above the tabs already
+	   says where you are) plus a 25px `padding-block-start` on
+	   `.page-column-prose`, the generic "a column's content is a note" inset
+	   `core/Page/Page.css` gives EVERY column (right for a short reading page,
+	   wrong for a page whose own content IS a full-width card). Both belong to
+	   `core/Page`, outside this task's fence, so the fix lives here instead,
+	   scoped tight enough to touch only THIS page and only the column that can
+	   never be closed (the root grid — `:not(:has(.page-column-close))`, since
+	   only an OPENED detail column ever gets a close button): an opened
+	   session's own detail column keeps its real head/title, its close button
+	   and its normal inset, untouched. `doc/decisions.md` has the measurements. */
+	.page--sessions .page-column-head:not(:has(.page-column-close)) { display: none; }
+	.page--sessions .page-column-body:has(> .page-column-head:not(:has(.page-column-close))) > .page-column-prose {
+		padding-block-start: 0;
+	}
+
+	/* The stat-card row (sessions-tab-polish, 2026-10-03) — the `ui/stats`
+	   tile pattern (`grid gap auto` + `surface pad flex v gap` + `h4 muted` /
+	   `h2`), reused with no new class of its own; `.sessions-stats` only sets
+	   the gap before the controls below it, same job `.sessions-controls`
+	   already does. `.sessions-stat-cents` is the one truly new rule: the
+	   owner's own words, "maybe the cents smaller than the dollars" — a plain
+	   size/weight/colour step down from the `h2` it sits inside, not a new
+	   type-scale step (the type scale itself is untouched). */
+	.sessions-stats { margin-block-end: var(--gap); display: flex; flex-wrap: wrap; gap: .5em 2em; align-items: center; }
+	/* Compact header (Figma "Sessions · data grid"): the stats lines on the left, the three meters in one row on the right. */
+	.sessions-stats-text { flex: 1 1 30em; order: 1; display: flex; flex-direction: column; gap: .25em; min-width: 0; }
+	.sessions-page .sessions-stats, .sessions-page .sessions-controls { margin-block-end: var(--gap-50); }
+	.sessions-page .datagrid-ext { gap: var(--gap-50); }
+	.sessions-by-role:empty { display: none; }
+	.sessions-stats .ai-usage { flex: 0 1 48em; order: 2; margin-inline-start: auto; grid-template-columns: repeat(auto-fit, minmax(min(12em, 100%), 1fr)); gap: var(--gap-50) var(--gap); }
+	.sessions-stat-cents { font-size: 0.55em; font-weight: 400; color: var(--subtle); }
+
+	/* Filters, the summary line and "cost by role" (session-costs
+	   minion-build, 2026-10-02) — plain controls above the grid, reusing the
+	   same `.muted`/`.card` vocabulary as every row, not a second style
+	   system. A `<label><input type=checkbox>` row: nothing reusable for a
+	   bare multi-select turned up quickly (doc/decisions.md), and this is
+	   "fastest version that works" territory (CLAUDE.md law 1). */
+	.sessions-controls { margin-block-end: var(--gap); }
+	.sessions-role-filter label { cursor: pointer; }
+	.sessions-by-role-row { padding-block: var(--gap-35); border-block-end: 1px solid var(--line); }
+	.sessions-by-role-name { font-weight: 600; min-width: 8em; }
+
+	/* Date inputs, shrunk to their own content (the owner's own words,
+	   2026-10-03: "the date pickers are so wide and don't need to be").
+	   `framework.css`'s base-layer rule gives every text-shaped input
+	   `width: 100%` by default (a `date` input isn't in that rule's own
+	   exclusion list) — inside this row's `flex` container that meant both
+	   boxes fought each other for the whole row's width, one winning far more
+	   of it than the other (the "lopsided" look, measured: the CARD's own
+	   padding is equal on both sides already, doc/decisions.md — this row was
+	   the real asymmetry). `width: auto` lets the input fall back to its own
+	   natural size; `flex: none` stops it from being stretched by the row. */
+	.sessions-daterange input[type="date"] { width: auto; flex: none; }
+
+	/* The cost-over-time chart (2026-10-03, session-trace) — plain inline SVG,
+	   same house style as `ux/Content/Spend.js`'s own $-over-time bars: a
+	   gridline/label class ("g"/"t"), a total-$ label class, plus two new ones
+	   this chart alone needs — "line" (the cumulative $ step line) and "tick"
+	   (one short mark per tool call, dataviz skill: thin marks, 2px lines).
+	   Text stays in a neutral ink token even though the line itself carries a
+	   hue (dataviz rule: text never wears the series colour) — `--prim-ink` is
+	   `light-dark()`-aware, unlike `Spend.js`'s own static hex fallback, so
+	   this chart's line doesn't need a separate dark-mode fix later. */
+	.sessions-trace-chart { display: block; width: 100%; min-width: 0; margin-block: var(--gap-50); }
+	.sessions-trace-chart svg { display: block; width: 100%; height: auto; }
+	.sessions-trace-chart .g { stroke: var(--line); }
+	.sessions-trace-chart .t { fill: var(--subtle); font-size: 11px; }
+	.sessions-trace-chart .total { fill: var(--ink); font-size: 13px; font-weight: 600; }
+	.sessions-trace-chart .line { stroke: var(--prim-ink); stroke-width: 2px; }
+	.sessions-trace-chart .tick { stroke: var(--subtle); stroke-width: 1px; }
+
+	/* The "what was it doing" table — one row per tool, four columns (name,
+	   count, $, share). A plain CSS grid, same reasoning as `.sessions-grid`
+	   itself (one token per column would be overkill here — nothing resizes
+	   this one, it's four fixed-width tracks), not an HTML `<table>`. */
+	.sessions-trace-table { display: grid; grid-template-columns: 1fr 4em 5em 4em; gap: var(--gap-35) var(--gap-50); margin-block-end: var(--gap-50); }
+	.sessions-trace-row { display: grid; grid-column: 1 / -1; grid-template-columns: 1fr 4em 5em 4em; gap: var(--gap-50); padding-block: var(--gap-35); border-block-end: 1px solid var(--line); }
+	.sessions-trace-head { font-weight: 600; border-block-end-width: 2px; }
+	.sessions-trace-row small { text-align: end; }
+	.sessions-trace-head small { text-align: end; }
+
+	/* A waste flag — one plain sentence, not a scary red banner (the owner's
+	   own words: "a reader skims it"). A left rule in the same subtle grey as
+	   everything else on this page, not a warning colour — a flag is a fact,
+	   not an alarm. */
+	.sessions-trace-flag { padding-inline-start: var(--gap-50); border-inline-start: 2px solid var(--line); }
+
+	/* The Session class (SessionView.js): the cost cell's lines, the defect flag, the tree, the purpose bars and the audit button. */
+	.sessions-cost-main { font-weight: 600; white-space: nowrap; }
+	.sessions-cost-ask { cursor: pointer; text-decoration: underline dotted; text-underline-offset: .2em; }   /* asks Servex for this one row's total (AISessionView.cost_lines) */
+	.sessions-chip { font: inherit; padding: .15em .7em; border: 1px solid var(--line); border-radius: 2em; background: transparent; color: inherit; cursor: pointer; }
+	.sessions-chip:hover { background: var(--tint); }
+	.sessions-chip-on { background: var(--tint); border-color: var(--prim-ink); font-weight: 600; }
+	.sessions-cache-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(22rem, 1fr)); gap: var(--gap-50); }
+	.sessions-flag { color: var(--ink); border-inline-start: 2px solid var(--prim-ink); padding-inline-start: var(--gap-35); }
+	.sessions-tree-row { padding-block: var(--gap-35); border-block-end: 1px solid var(--line); }
+	.sessions-tree-usd { margin-inline-start: auto; font-variant-numeric: tabular-nums; }
+		.sessions-purpose-bar { height: 0.6em; min-width: 0; border-radius: 0.3em; background: linear-gradient(to right, var(--prim-ink) var(--pct, 0%), var(--line) var(--pct, 0%)); }
+	.sessions-method { max-width: 70ch; }
+	.sessions-audit-btn { cursor: pointer; padding: var(--gap-35) var(--gap-50); border: 1px solid var(--line); border-radius: 0.4em; user-select: none; }
+	.sessions-audit-btn:hover { border-color: var(--prim-ink); }
+
+	/* Red flags (AISessionFlags): small red tags inline after the name, so a row never changes height; --prim-ink would read as a normal tag, these must stand out. */
+	.sessions-redflag { display: inline-block; margin-inline-start: var(--gap-35); font-size: 0.7em; font-weight: 700; padding: 0.1em 0.45em; border-radius: var(--radius); color: #fff; background: #b3261e; white-space: nowrap; vertical-align: middle; }
+	.sessions-redflag-counts { color: #b3261e; font-weight: 600; }
+	.sessions-tier { margin-inline-start: var(--gap-35); }
+	.sessions-tier-warm { --sessions-tag-color: #2e7d32; }
+	.sessions-tier-cold { --sessions-tag-color: #1565c0; }
+	.sessions-tier-fresh { --sessions-tag-color: #6b6b6b; }
+	.sessions-tag-mm { --sessions-tag-color: #7b3fa0; margin-inline-start: var(--gap-35); }
+	.sessions-chip-head { align-self: center; }
+	/* A one-line name and fixed-height cells in the In flight strip: it redraws on every agent event, and rows that grew or shrank made it jump. */
+	.sessions-row-title { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	.sessions-flight-grid .sessions-cell { block-size: 3em; overflow: hidden; }
+}
+
+/* THE SESSIONS LAYOUT (2026-10-13): a left rail, a one-line scope trail, compact controls, a one-line status footer.
+   Why: the first grid row sat 48% down at 1200 and a 200 px footer cut the grid to a third (doc/ui/compact-layout.md). */
+@layer site {
+	.sessions-body { display: grid; grid-template-columns: 9.5rem minmax(0, 1fr); gap: 0 var(--gap-50, .5rem); align-items: start; }
+	.sessions-main { position: relative; min-width: 0; display: flex; flex-direction: column; gap: var(--gap-25, .25rem); }
+	.sessions-nav { display: flex; flex-direction: column; gap: .1rem; position: sticky; top: .5rem; padding-block: .25rem; border-inline-end: 1px solid var(--line); padding-inline-end: .35rem; }
+	.sessions-nav-item { display: flex; align-items: center; gap: .4rem; padding: .25rem .4rem; border-radius: var(--radius); text-decoration: none; color: inherit; font-size: .9em; }
+	.sessions-nav-item:hover { background: var(--tint); }
+	.sessions-nav-on { font-weight: 600; background: var(--tint); }
+	.sessions-nav .icon { font-size: 1.1em; }
+	@container (width < 40em) {
+		.sessions-body { grid-template-columns: minmax(0, 1fr); }
+		.sessions-nav { position: static; flex-direction: row; flex-wrap: wrap; border-inline-end: none; }
+	}
+
+	.sessions-scope { font-size: .9em; }
+	.sessions-crumb { text-decoration: none; }
+	.sessions-crumb-on { font-weight: 700; }
+	.sessions-crumb-step { border: 1px solid var(--line); background: none; border-radius: var(--radius); padding: 0 .5em; cursor: pointer; color: inherit; font-size: .9em; }
+	.sessions-crumb-step:first-of-type { margin-inline-start: .5rem; }
+
+	.sessions-controls { flex-direction: row; flex-wrap: wrap; align-items: center; column-gap: 1rem; row-gap: .25rem; margin-block-end: .25rem; }
+	.sessions-controls .sessions-filters { gap: .5rem 1rem; }
+	.sessions-controls .sessions-search { inline-size: 11em; padding-block: .1em; }
+	.sessions-controls .sessions-filters label { font-size: .75em; }
+	.sessions-page .sessions-chip { font-size: .75em; padding: .05em .55em; }
+	.sessions-page .sessions-chip-head { font-size: .75em; }
+	.sessions-page .datagrid { position: static; }
+	.sessions-page .datagrid-bar { position: absolute; inset-block-start: 0; inset-inline-end: 0; margin: 0; }   /* the Table / Rail toggle rides on the scope line */
+	.sessions-page .datagrid-toggle-btn { padding: .1em .6em; font-size: .85em; }
+	.sessions-page .sessions-kinds .sessions-chip { font-size: .8em; padding: .05em .6em; }
+
+	.sessions-status { position: sticky; inset-block-end: 0; z-index: 2; display: flex; flex-wrap: wrap; align-items: center; gap: .25rem 1rem; padding: .25rem .5rem; margin-block-start: .5rem; background: var(--surface); border-block-start: 1px solid var(--line); font-size: .8em; }
+	.sessions-status .sessions-stats, .sessions-status .sessions-stats-text, .sessions-status .ai-usage { display: contents; }   /* counts, meters and the open-tasks chip all flow in the status line itself */
+	.sessions-status .sessions-counts { margin: 0; }
+	.sessions-status .sessions-counts + .sessions-counts { display: none; }   /* the OpenRouter dollars: Readme, "Where the real dollars come from" */
+	.sessions-status .ai-meter, .sessions-status .ai-meter * { white-space: nowrap; }
+	.sessions-status .ai-meter { flex-direction: row; align-items: center; gap: .4rem; }
+	.sessions-status .ai-meter .flex { gap: .4rem; }
+	.sessions-status .ai-gauge { inline-size: 4rem; }
+	.sessions-status .ai-note { display: none; }
+	.sessions-page:not(:has(.datagrid-view-rail)) .sessions-status { position: static; }   /* the table panel grows to its rows, so the status line ends it instead of floating over them */
+	.sessions-status-open { margin-inline-start: auto; position: relative; }
+	.sessions-status-open .page-open-line { padding: .05em .6em; }
+	.sessions-status-open .page-open-rows { position: absolute; inset-block-end: 100%; inset-inline-end: 0; min-inline-size: 22em; padding: .5rem; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: 0 .25rem 1rem rgb(0 0 0 / .15); }
+	/* Review 2026-10-13 (review-ai-pages/review.md): the panel's own "Sessions" header repeated the tab and the rail's first
+	   item, and cost 70-120 px above the grid; its "updated" time now sits in the status line. Rows lose half their padding. */
+	.sessions-frame > .panel2-body > .panel2-main { padding-block-start: var(--gap-50, .5rem); }
+	.sessions-page .datagrid-cell { padding-block: .3em; }
+	.sessions-status .sessions-asof { margin-inline-start: auto; }
+	.sessions-status .sessions-asof + .sessions-status-open { margin-inline-start: 0; }
+	@container (width < 40em) {
+		.sessions-page .datagrid-bar { position: static; justify-content: flex-end; margin-block-end: .5rem; }   /* on a phone the Table / Rail toggle is its own line, not on top of the chips */
+		.sessions-status .ai-meter { display: none; }   /* a phone keeps the counts and the open-tasks chip; the meters are on the Inbox */
+		.sessions-page :is(.sessions-kinds, .sessions-chiprow) { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }   /* each chip row is one swipeable line on a phone, not three */
+		.sessions-page :is(.sessions-kinds, .sessions-chiprow) > *, .sessions-page .sessions-chips > .sessions-chip { flex: none; white-space: nowrap; }
+	}
+
+
+	/* THE SLIM HEADER (2026-10-24): one opaque sticky row (range menu, search, Filters menu) above the list; everything else is in the Filters popover (ux/Popover, top layer). */
+	.sessions-header { --sessions-header-h: 3.25rem; box-sizing: border-box; block-size: var(--sessions-header-h); position: sticky; inset-block-start: var(--sessions-header-top, 0); z-index: 5; display: flex; align-items: center; gap: .5rem; padding: .4rem .5rem; background: var(--surface); border-block-end: 1px solid var(--line); }
+	.sessions-main:has(> .sessions-header) > .pn { display: none; }   /* one row of buttons at every width: the page links (Ready to merge, Variants…) are in the Filters menu */
+	.sessions-page:has(.sessions-header) .datagrid-head { inset-block-start: calc(var(--sessions-header-top, 0px) + 3.25rem); }   /* the table's column heads stick under the slim header, not behind it (both share one scroller; 3.25rem = the header's fixed block-size) */
+	.sessions-header .sessions-search { flex: 1 1 5em; min-inline-size: 0; max-inline-size: 24em; inline-size: auto; padding-block: .15em; }
+	.sessions-hbtn { flex: none; font: inherit; padding: .2em .7em; border: 1px solid var(--line); border-radius: var(--radius); background: transparent; color: inherit; cursor: pointer; white-space: nowrap; }
+	.sessions-hbtn:hover { background: var(--tint); }
+	.ux-popover.sessions-pop { max-inline-size: min(44rem, calc(100vw - 1rem)); max-block-size: 80dvh; padding: .5rem; }
+	.sessions-pop-range { min-inline-size: 11rem; }
+	.sessions-range-list { display: flex; flex-direction: column; }
+	.sessions-pop .sessions-daterange { padding: .5rem .25rem 0; flex-wrap: wrap; }
+	.sessions-pop-filters { display: flex; flex-direction: column; gap: .5rem; }
+	.sessions-pop-filters:not(:popover-open) { display: none; }
+	.sessions-pop-filters .sessions-filters label { font-size: .85em; }
+	.sessions-pop-filters .sessions-stats { margin: 0; }
+	.sessions-pop-filters .ai-meter { min-inline-size: 0; }
+	@media (max-width: 40rem) {
+		.sessions-page, .browse-detail:has(> .sessions-page) { overflow: visible; }   /* on a phone the outer page scrolls; a clipping ancestor would be the header's scroller and it would never stick */
+		.sessions-page .sessions-nav { display: none; }   /* the phone's first screen is the list; these links are in the Filters menu */
+		.ux-popover.sessions-pop { position-area: none; inset-inline: .5rem; inset-block-start: calc(anchor(bottom) + 6px); inline-size: auto; max-inline-size: none; }
+	}
+}
+
+/* The Coverage tab as a chat: a bubble per prompt, a card per part (module on the left, the part and its outcome on the right). */
+@layer components {
+	.session-bubble { border: 1px solid var(--line, #8883); border-radius: .75rem; padding: .5rem .75rem; container-type: inline-size; }
+	.session-words { color: var(--muted, inherit); font-style: italic; margin: 0; }
+	.session-card { display: grid; grid-template-columns: minmax(7rem, 10rem) 1fr; gap: .5rem .75rem; padding: .5rem 0; border-top: 1px solid var(--line, #8883); }
+	.session-card-mod { display: flex; gap: .4rem; align-items: flex-start; }
+	.session-card-mod > span { display: grid; }
+	.session-raw:empty { display: none; }
+	@container (width < 40em) { .session-card { grid-template-columns: 1fr; } }
+}
+
+/* Hides, in util so they beat `.flex`: the cache link and the date pickers (the scope trail replaces them); the ancestor
+   page's footer chips (open tasks, "Inbox · 1, 1 new", AI cost) go: the open tasks return as a chip in the status line. */
+@layer util {
+	.sessions-controls .sessions-summary, .sessions-controls .sessions-daterange { display: none; }
+	.page:has(.sessions-page) > :is(.page-open, .page-inbox-chip, .page-ai-cost) { display: none; }
+	.sessions-frame > .panel2-header { display: none; }
+}

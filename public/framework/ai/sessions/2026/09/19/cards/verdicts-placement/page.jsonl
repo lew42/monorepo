@@ -1,0 +1,5 @@
+{"class":"/framework/ai2/card.js","title":"Caught the same mistake twice","type":"card","id":"2026/09/19/verdicts-placement","created":"2026-09-19T20:00:28-05:00","by":"mastermind","tags":[]}
+{"legacy":"verdicts-placement"}
+{"status":"done"}
+{"icon":"check"}
+{"text":"The verdict file was written into the v/3 directory, an hour after we moved the board data out of it. Sent back and fixed: it sits beside the board now, and the version cloning tool will not copy it either."}

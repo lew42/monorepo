@@ -1,0 +1,15 @@
+verdict: pass
+1. [note] `node Servex/Pool.test.mjs` passes in the worktree (C:/Code/lew42/worktrees/pool-reclaim at 84edbb9a9). It covers all three slots the brief asked for (clean-stopped and merged-by-diff are freed, unmerged is kept with its branch named) plus the stale hold. `node --check Servex/pool-status.mjs` is ok.
+2. [note] The ask to "run reclaim on the live pool" was not met literally. The task log explains exactly why: the running Servex owns the pool file. The dry run with pool-status shows qf-8 would go FREE, and qf-4 and qf-7 stay KEPT because their holder is dormant. So 0 slots are ready until the restart, and 1 after. That meets the brief's "or say exactly why not" clause.
+3. [note] Servex/Pool.js:575: `landed()` now falls back to `on_base()`, which also changes `give_back()` for live callers (`return_worktree`). That is intended and it is conservative: a file that changed again on the base afterwards keeps the slot. Pool.js:604 `lines_on_base` compares a trimmed added line against base lines that are not trimmed. That is harmless, but only one of the two `has()` checks is needed.
+4. [note] Servex/Pool.js:620: `verdict()` copies the rules in `reclaim()` and does not call them, so pool-status could drift from what the sweep actually does. A simpler option is for `reclaim()` to branch on `verdict()` itself. The author weighed this and left it, and the test guards against drift.
+5. [note] Servex/Pool.js:287: the stale-`held_by` rule (a hold is released 12 h after its holder stopped or went) was not in the brief. The measurement shows it is the real fix for qf-8, though. It fails safe: a timestamp that does not parse gives NaN, so the slot stays held.
+6. [note] Servex/Pool.js:206: the work survives on `landed/<slot>-<date>-<sha>` instead of the slot's own branch, because worktree-down deletes that branch. This honours the brief's rule that nothing is discarded. pool.md documents it, and the brief's other wording ("the branch stays") is only met in spirit.
+
+## Requirements
+- 1 "node Servex/pool-status.mjs … one line per slot … Run it now and put the output in your task log" — yes — Servex/pool-status.mjs (class PoolStatus); its before and after output are logged in task.jsonl
+- 2 "Reclaim frees a slot whose work is already landed … unmerged stays held … its line says so with the branch name … nothing is ever discarded" — yes — give_back → landed() → on_base(); kept reasons add "(branch …)"; the work is kept on a landed/ branch
+- 3 "Test … three slots … reclaim frees two and keeps one. Then run reclaim on the live pool" — yes, with the documented exception — Pool.test.mjs passes; the live run was replaced by a dry run, with the reason logged
+- 4 "Docs … When a slot is freed … readme line … needs_restart … ai/todo.md one line" — yes — doc/pool.md section, Servex/readme.md:58, the needs_restart log line, todo.md:225
+## Words
+- content — yes — the pool.md section is plain sentences: the look-first command, two bullet rules, and the case that still keeps a slot; the todo line links the doc

@@ -1,0 +1,7 @@
+ok   /framework/
+ok   /framework/ai2/
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:65447/framework/ai/usage.json)
+  warn console: Access to fetch at 'http://127.0.0.1:8090/api/worktrees' from origin 'http://127.0.0.1:65447' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.  (http://127.0.0.1:65447/framework/ai2/)
+  warn request failed: http://127.0.0.1:8090/api/worktrees  (net::ERR_FAILED)
+  warn console: Failed to load resource: net::ERR_FAILED  (http://127.0.0.1:8090/api/worktrees)
+exit 0

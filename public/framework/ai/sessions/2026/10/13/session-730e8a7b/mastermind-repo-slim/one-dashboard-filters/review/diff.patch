@@ -1,0 +1,498 @@
+diff --git a/public/framework/ai/asks/undone/UndoneAsksPage.js b/public/framework/ai/asks/undone/UndoneAsksPage.js
+index dd8b9bcf0..2173602f5 100644
+--- a/public/framework/ai/asks/undone/UndoneAsksPage.js
++++ b/public/framework/ai/asks/undone/UndoneAsksPage.js
+@@ -49,6 +49,7 @@ export default class UndoneAsksPage extends Page {
+ 				const asks = d.modules.flatMap(m => m.asks), v = k => asks.filter(x => KIND(x) === k).length;
+ 				if (v("found") + v("undone") + v("unclear")) span.c("muted").text(`checked against the repo: ${v("undone")} verified undone · ${v("found")} found already built · ${v("retired")} not work · ${v("needs-owner")} need you · ${v("unclear")} unclear · ${v("unchecked")} not checked yet`);
+ 				a.c("page-link").href("/framework/ai/doc/undone-asks-2026-10-17.md").text("what this means");
++					a.c("page-link").href("/framework/ai/?kind=ask").attr("title", "the asks Servex routed (asks.jsonl), in the Inbox").text("routed asks in the Inbox");
+ 			}));
+ 		});
+ 		this.browse = new UndoneModules({ page: this }).mount();
+diff --git a/public/framework/ai/doc/one-dashboard.md b/public/framework/ai/doc/one-dashboard.md
+index acbdc09a8..b3b093e2d 100644
+--- a/public/framework/ai/doc/one-dashboard.md
++++ b/public/framework/ai/doc/one-dashboard.md
+@@ -42,4 +42,4 @@ Yes to the shape above, or amend it (which chips, which page is the one). Then t
+ 
+ ## Built
+ 
+-**Built: steps 1 and 2 (2026-10-19, last code commit 7e0c5a2b5).** `State` folds cards and asks, each counted two ways ([Server/doc/state.md](/Server/doc/state.md)); the Inbox list in `/framework/ai/` reads `state.json` through the one stream, with the chips as urls (`?live&new`, `?recent=today`, `?older=month`, `?needs`, `kind=task,card`) and the red check line under them. A landing reaches the list in under a second with no agent writing anything. Step 3, the other pages as saved filters, is next. Plan and proof shots: [one-dashboard task](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/one-dashboard/plan.md).
++**Built: steps 1, 2 and 3 (2026-10-19, last code commit 38628861d).** `State` folds cards and asks, each counted two ways ([Server/doc/state.md](/Server/doc/state.md)); the Inbox list in `/framework/ai/` reads `state.json` through the one stream, with the chips as urls (`?live&new`, `?recent=today`, `?older=month`, `?needs`, `kind=task,card`) and the red check line under them. A landing reaches the list in under a second with no agent writing anything. Step 3: `/framework/ai/tasks/` and `/tasks/` forward to the Inbox with their chips on (`DashChips.SAVED`, `tasks/SavedFilter.js`); Lanes reads the same state; `TasksPage.js` is gone. `/framework/ai/asks/undone/` keeps its module view (it reads `undone.json`, 1167 asks, which `state.json` does not fold yet) and links to `?kind=ask`; `/live/` is left for the owner. Plan and proof shots: [one-dashboard task](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/one-dashboard/plan.md).
+diff --git a/public/framework/ai/rail/DashChips.js b/public/framework/ai/rail/DashChips.js
+index 69839c883..54e81d530 100644
+--- a/public/framework/ai/rail/DashChips.js
++++ b/public/framework/ai/rail/DashChips.js
+@@ -1,8 +1,8 @@
+-import { div, span, small } from "/framework/core/View/View.js";
+-import TasksPage from "../tasks/TasksPage.js";
++import { div, span, button } from "/framework/core/View/View.js";
+ 
+ /** DashChips — the Inbox's filter chips over the one row (DashRow). Every state is a url: `?live&new&recent=today&kind=task,card`.
+- *  Chips of the When group (live, new, recent, older) add up; across groups (When, Needs you, Kind) every one must hold. Doc: ai/doc/one-dashboard.md */
++ *  Chips of the When group (live, new, recent, older) add up; across groups (When, Needs you, Kind, Home) every one must hold.
++ *  The old task pages are saved filters of these (`DashChips.SAVED`). Doc: ai/doc/one-dashboard.md */
+ export default class DashChips {
+ 	static WHEN = [["live", "Live"], ["new", "New"], ["recent", "Recent"], ["older", "Older"]];
+ 	static RECENT = [["today", "Today"], ["yesterday", "Yesterday"], ["week", "This week"]];
+@@ -10,34 +10,47 @@ export default class DashChips {
+ 	static KINDS = ["task", "card", "session", "ask"];
+ 	static LIVE_MIN = 10;      // a row changed this recently counts as live
+ 	static NEWEST = 150;       // with no chip on, this many rows
++	static AI = "/framework/ai/";
+ 
+-	live = false; fresh = false; recent = null; older = null; needs = false; kinds = new Set();
++	/** The old pages as filters: each keeps its url and forwards here with these chips on (ai/tasks/SavedFilter.js). */
++	static SAVED = {
++		tasks: "?live&recent=today&kind=task",           // /framework/ai/tasks/: in flight (Live) and landed today (Recent); Queued is the New chip, left off: it also holds 289 idle module tasks
++		"all-tasks": "?kind=task&home",                   // /tasks/: every task a module keeps in its own tasks/ folder
++	};
++
++	/** The url a saved filter forwards to; the tasks page's old `?landed=yesterday|week` becomes `recent=`. */
++	static saved(name, search = ""){
++		const landed = new URLSearchParams(search).get("landed"), base = DashChips.SAVED[name];
++		return DashChips.AI + (name === "tasks" && DashChips.RECENT.some(([w]) => w === landed) ? base.replace("recent=today", "recent=" + landed) : base);
++	}
++
++	live = false; fresh = false; recent = null; older = null; needs = false; home = false; kinds = new Set();
+ 
+ 	constructor(owner){ this.owner = owner; this.read(location.search); }
+ 
+ 	/** The chips a url names; `?live&new` has no values, `recent=` and `older=` default to their first window. */
+ 	read(search){
+ 		const q = new URLSearchParams(search), pick = (k, list) => q.has(k) ? (list.find(([w]) => w === q.get(k)) ?? list[0])[0] : null;
+-		this.live = q.has("live"); this.fresh = q.has("new"); this.needs = q.has("needs");
++		this.live = q.has("live"); this.fresh = q.has("new"); this.needs = q.has("needs"); this.home = q.has("home");
+ 		this.recent = pick("recent", DashChips.RECENT); this.older = pick("older", DashChips.OLDER);
+ 		this.kinds = new Set((q.get("kind") ?? "").split(",").filter(k => DashChips.KINDS.includes(k)));
+ 	}
+ 
+ 	/** `?live&new`, or "" with no chip on. */
+ 	query(){
+-		const parts = [this.live && "live", this.fresh && "new", this.recent && "recent=" + this.recent, this.older && "older=" + this.older, this.needs && "needs",
++		const parts = [this.live && "live", this.fresh && "new", this.recent && "recent=" + this.recent, this.older && "older=" + this.older, this.needs && "needs", this.home && "home",
+ 			this.kinds.size && "kind=" + [...this.kinds].join(",")].filter(Boolean);
+ 		return parts.length ? "?" + parts.join("&") : "";
+ 	}
+ 	/** The url now: our chips replace ours, anything else in the query (a search, a floor) stays. */
+ 	write(){
+ 		const rest = new URLSearchParams(location.search);
+-		["live", "new", "recent", "older", "needs", "kind"].forEach(k => rest.delete(k));
++		["live", "new", "recent", "older", "needs", "home", "kind"].forEach(k => rest.delete(k));
+ 		const keep = rest.toString(), mine = this.query().slice(1);
+ 		const search = [mine, keep].filter(Boolean).join("&");
+ 		history.replaceState(history.state, "", location.pathname + (search ? "?" + search : "") + location.hash);
+ 	}
+-	any(){ return this.live || this.fresh || this.recent || this.older || this.needs || this.kinds.size > 0; }
++	any(){ return this.live || this.fresh || this.recent || this.older || this.needs || this.home || this.kinds.size > 0; }
+ 
+ 	/* ── the rules: one place says what each chip selects ── */
+ 
+@@ -52,24 +65,30 @@ export default class DashChips {
+ 	static in_recent(r, s, w){ const n = DashChips.age(r, s); return DashChips.finished(r) && n != null && n >= 0 && (w === "today" ? n === 0 : w === "yesterday" ? n === 1 : n <= 7); }
+ 	static in_older(r, s, w){ const n = DashChips.age(r, s); return (DashChips.finished(r) || r.bucket === "idle") && n != null && (w === "week" ? n >= 8 && n <= 34 : n >= 35); }
+ 
++	/** The groups that hold side by side with When: Needs you, Home, Kind. `skip` leaves one out (a chip's own count ignores its own group). */
++	others(r, skip){
++		return (skip === "needs" || !this.needs || r.needs) && (skip === "home" || !this.home || r.home != null) && (skip === "kind" || !this.kinds.size || this.kinds.has(r.kind));
++	}
++
+ 	/** Does this row pass the chips that are on? */
+ 	match(r, s){
+ 		const when = [this.live && DashChips.is_live(r, s), this.fresh && DashChips.is_new(r, s), this.recent && DashChips.in_recent(r, s, this.recent), this.older && DashChips.in_older(r, s, this.older)];
+ 		const on = [this.live, this.fresh, this.recent, this.older].some(Boolean);
+ 		if (on && !when.some(Boolean)) return false;
+-		if (this.needs && !r.needs) return false;
+-		return !this.kinds.size || this.kinds.has(r.kind);
++		return this.others(r);
+ 	}
+ 
+-	/** The count each chip would show on its own, over all rows. */
++	/** The count each chip shows: the rows it would add, with the other groups' chips applied (Today under Kind task counts tasks only). */
+ 	counts(rows, s){
+-		const n = { live: 0, new: 0, recent: 0, older: 0, needs: 0, all: rows.length, today: 0, yesterday: 0, week: 0, older_week: 0, older_month: 0 };
++		const n = { live: 0, new: 0, recent: 0, older: 0, needs: 0, home: 0, all: rows.length, today: 0, yesterday: 0, week: 0, older_week: 0, older_month: 0 };
+ 		DashChips.KINDS.forEach(k => { n[k] = 0; });
+ 		rows.forEach(r => {
+-			n[r.kind]++;
++			if (this.others(r, "kind")) n[r.kind]++;
++			if (this.others(r, "needs") && r.needs) n.needs++;
++			if (this.others(r, "home") && r.home != null) n.home++;
++			if (!this.others(r)) return;
+ 			if (DashChips.is_live(r, s)) n.live++;
+ 			if (DashChips.is_new(r, s)) n.new++;
+-			if (r.needs) n.needs++;
+ 			DashChips.RECENT.forEach(([w]) => { if (DashChips.in_recent(r, s, w)) n[w]++; });
+ 			if (DashChips.in_recent(r, s, "week")) n.recent++;
+ 			if (DashChips.in_older(r, s, "week")) n.older_week++;
+@@ -86,14 +105,29 @@ export default class DashChips {
+ 
+ 	toggle(fn){ fn(); this.write(); this.owner.relist(); this.owner.paint_soon(); }
+ 
++	/** One filter chip (the Lanes page's tabs and the Inbox's chips are drawn with this). */
++	static chip(label, on, click){ return button.c("sessions-chip" + (on ? " sessions-chip-on" : ""), label).on("click", click); }
++
++	/** The red line of a failed self-check: always this one, so a wrong count is never quiet. */
++	static note_bad(text){ return div.c("tasks-note tasks-check-bad", () => span(text)).el.style.color = "#c62828"; }
++
++	/** The sentence naming every count that differs: landed today, tasks, cards, asks, sessions. */
++	static why(c){
++		const l = c.landed_today ?? {}, ids = [...(l.only_state ?? []), ...(l.only_walk ?? [])], two = (k, x) => x && x.ok === false ? `${k}: ${x.rows} rows, ${x.sum} in buckets, ${x.ids} found by a text scan` : null;
++		const parts = [l.state !== l.walk || ids.length ? `landed today is ${l.state} by the task rules but ${l.walk} by a plain walk${ids.length ? " (" + ids.join(", ") + ")" : ""}` : null,
++			c.total !== c.sum ? `${c.total} tasks, ${c.sum} in buckets` : null, two("cards", c.cards), two("asks", c.asks),
++			c.sessions?.ok === false ? `sessions: ${c.sessions.in_sessions} tasks in sessions, ${c.sessions.with_session} task rows with a session` : null].filter(Boolean);
++		return "Counts disagree: " + (parts.length ? parts.join("; ") : `${c.total} tasks, ${c.sum} in buckets`) + ".";
++	}
++
+ 	/** Redraw from the rows and the state; `matched` rows pass the chips, `shown` of them are drawn (the cap). */
+ 	update(rows, s, matched, shown){
+ 		if (!this.$box) return;
+ 		const n = this.counts(rows, s), c = s.check ?? {};
+-		const sig = JSON.stringify([n, this.query(), matched, shown, this.owner.search_q, c.ok === false ? TasksPage.why(c) : c.ok]);
++		const sig = JSON.stringify([n, this.query(), matched, shown, this.owner.search_q, c.ok === false ? DashChips.why(c) : c.ok]);
+ 		if (sig === this.sig) return;
+ 		this.sig = sig;
+-		const chip = (label, count, on, click) => TasksPage.chip(count == null ? label : label + " " + count, on, () => this.toggle(click));
++		const chip = (label, count, on, click) => DashChips.chip(count == null ? label : label + " " + count, on, () => this.toggle(click));
+ 		this.$box.empty(() => {
+ 			div.c("dash-chip-row", () => {
+ 				chip("Live", n.live, this.live, () => { this.live = !this.live; });
+@@ -107,9 +141,10 @@ export default class DashChips {
+ 			div.c("dash-chip-row", () => {
+ 				span.c("dash-chip-head muted").text("Kind");
+ 				DashChips.KINDS.forEach(k => chip(k, n[k], this.kinds.has(k), () => { this.kinds.has(k) ? this.kinds.delete(k) : this.kinds.add(k); }));
++				chip("in a module's tasks/", n.home, this.home, () => { this.home = !this.home; });
+ 			});
+ 			div.c("dash-total muted", () => span(matched > shown ? `newest ${shown} of ${matched}` : `${matched} of ${n.all}`));
+-			if (c.ok === false) TasksPage.note_bad(TasksPage.why(c));
++			if (c.ok === false) DashChips.note_bad(DashChips.why(c));
+ 		});
+ 	}
+ }
+diff --git a/public/framework/ai/rail/rail.js b/public/framework/ai/rail/rail.js
+index 0eb7f0165..4f54bfe0e 100644
+--- a/public/framework/ai/rail/rail.js
++++ b/public/framework/ai/rail/rail.js
+@@ -123,6 +123,7 @@ export default class AIRail extends Inbox.Rail {
+ 
+ 	foot_words(){
+ 		a.c("inbox-word page-link").href(this.url + "view/today/").attr("title", "today, open, all, or a tag").text("views");
++		a.c("inbox-word page-link").href(this.url + "tasks/lanes/").attr("title", "today in three columns: in flight, queued, landed").text("lanes");
+ 	}
+ 
+ 	shell_extra(){
+diff --git a/public/framework/ai/readme.md b/public/framework/ai/readme.md
+index 8cf90af53..d19335291 100644
+--- a/public/framework/ai/readme.md
++++ b/public/framework/ai/readme.md
+@@ -16,7 +16,7 @@ The AI system: Servex runs the agents, the readme chain is their memory, each ta
+ 
+ Accounting first. Each link is that system's own short readme; follow it to go one level deeper.
+ 
+-- **Tasks** (in flight, queued, landed today, live): [tasks/readme.md](tasks/readme.md) · [/framework/ai/tasks/](/framework/ai/tasks/)
++- **Tasks** (a saved filter of the Inbox, plus the Lanes view): [tasks/readme.md](tasks/readme.md) · [/framework/ai/tasks/](/framework/ai/tasks/)
+ - **Accounting**: [token accounting](doc/tokens/tokens.md) · [spend per session](sessions/readme.md) · [budgets](/framework/servex/doc/budget.md) · agent logs: `%LOCALAPPDATA%/lew42/servex/logs/agent-<id>.jsonl`, one per Servex agent, with a `turn_cost` line per turn since 2026-10-13 ([what is in them](sessions/2026/10/16/voice-20261016/accounting/answers.md))
+ - **Cloudflare** (what we would use, what it costs, the token you give us, the runaway guard): [doc/cloudflare.md](doc/cloudflare.md)
+ - **Skills proposals** (what to add or retire, 2026-10-13): [doc/skills-proposals-2026-10-13.md](doc/skills-proposals-2026-10-13.md)
+@@ -28,7 +28,7 @@ Accounting first. Each link is that system's own short readme; follow it to go o
+ - **Usage pace** (how fast the week's limits are being spent against the clock, three meter variants beside today's): [usage/](usage/readme.md) · `node Server/usage-now.mjs`
+ - **Undone asks** (every ask with no landed task or card, by module, computed daily): [asks/undone](/framework/ai/asks/undone/) · [verdict](doc/undone-asks-2026-10-17.md) · `node Server/UndoneAsks.mjs`
+ - **One state** (every task in both stores, one bucket each, with a self-check; every count reads it): `state.json` here, written by [Server/State.mjs](/Server/State.mjs) · [design](/Server/doc/state.md) · [why](doc/one-state.md) · the dashboard [tasks/](tasks/readme.md) shows its check in red when it fails
+-- **One dashboard** (the Inbox is the one list over `state.json`: Live / New / Recent / Older / Needs-you chips and a Kind row, every state a url; the other pages become saved filters next): [doc/one-dashboard.md](doc/one-dashboard.md) · **Built: steps 1 and 2 (2026-10-19, last code commit 7e0c5a2b5)**, [the plan](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/one-dashboard/plan.md)
++- **One dashboard** (the Inbox is the one list over `state.json`: Live / New / Recent / Older / Needs-you chips and a Kind row, every state a url; `/framework/ai/tasks/` and `/tasks/` are saved filters of it): [doc/one-dashboard.md](doc/one-dashboard.md) · **Built: steps 1, 2 and 3 (2026-10-19, last code commit 38628861d)**, [the plan](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/one-dashboard/plan.md)
+ - **What happened 10-17 to 10-19** (your asks in order, what landed each day, what waits on you, the usage numbers explained): [doc/overview-2026-10-17-to-19.md](doc/overview-2026-10-17-to-19.md)
+ - **Asks tally** (every ask you typed since 09-15, counted by feature, with what landed and what never did): [doc/asks-outcomes.md](doc/asks-outcomes.md) · `node Server/AskTally.mjs page`
+ - **Follow-up** (what fell through the cracks, computed; plus unused-file census): [doc/follow-up.md](doc/follow-up.md) · [doc/unreferenced.md](doc/unreferenced.md) · `node Server/FollowUp.mjs --write`
+diff --git a/public/framework/ai/tasks/SavedFilter.js b/public/framework/ai/tasks/SavedFilter.js
+new file mode 100644
+index 000000000..de2581e4f
+--- /dev/null
++++ b/public/framework/ai/tasks/SavedFilter.js
+@@ -0,0 +1,13 @@
++import { Page, p, a } from "/app.js";
++import DashChips from "/framework/ai/rail/DashChips.js";
++
++/** An old dashboard url kept alive as a saved filter of the Inbox: it forwards to `/framework/ai/` with the chips named by `preset`
++ *  (a key of DashChips.SAVED), the rest of its url (hash, extra query) kept. Doc: ai/doc/one-dashboard.md */
++export default class SavedFilter extends Page {
++	content(){
++		if (location.pathname !== this.url) return;     // a routed child (Lanes, Architecture, a task) draws its own page
++		const to = DashChips.saved(this.preset ?? "tasks", location.search);
++		p(() => a().href(to).text("This list is now a filter of the Inbox: " + to));
++		location.replace(to + location.hash);
++	}
++}
+diff --git a/public/framework/ai/tasks/TaskLanes.js b/public/framework/ai/tasks/TaskLanes.js
+index ef4927f32..5db38e4bc 100644
+--- a/public/framework/ai/tasks/TaskLanes.js
++++ b/public/framework/ai/tasks/TaskLanes.js
+@@ -1,29 +1,52 @@
+-import { View, div, a, span, small, h2 } from "/framework/core/View/View.js";
+-import TaskStateLog from "./TaskStateLog.js";
+-import TasksPage from "./TasksPage.js";
++import { View, div, a, span, small, h1, h2 } from "/framework/core/View/View.js";
++import DashState from "../rail/DashState.js";
++import DashChips from "../rail/DashChips.js";
+ 
+-/** The alternate view of the same state: three columns side by side, so all of today reads at one glance. */
++View.stylesheet({ url: import.meta.url }, "tasks.css");
++
++/** The Lanes view: today's three columns (in flight, queued, landed today) over the same state.json the Inbox reads (DashState). Doc: doc/architecture.md */
+ export default class TaskLanes {
+-	log = new TaskStateLog();
++	static LANES = [
++		{ key: "in_flight", title: "In flight", empty: "Nothing is working right now." },
++		{ key: "queued", title: "Queued", empty: "Nothing is waiting." },
++		{ key: "landed", title: "Landed today", empty: "Nothing has landed today." },
++	];
++	dash = new DashState();
+ 	constructor(...args){ Object.assign(this, ...args); }
+ 
++	static when(iso){ return iso ? new Date(iso).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : ""; }
++	static quiet(r){ return r.quiet_min == null ? "" : r.quiet_min < 1 ? "just now" : r.quiet_min + " min ago"; }
++
++	/** The way between the three task views: the list is the Inbox with the `tasks` chips (DashChips.SAVED). */
++	static tabs(url, here){
++		div.c("inbox-head", () => {
++			div.c("doc-well", () => h1.c("doc-title h2", "Tasks"));
++			div.c("tabs block", () => div.c("tab-bar", () => {
++				a.c("tab").href(DashChips.saved("tasks")).text("List");
++				a.c("tab" + (here === "lanes" ? " tab-default" : "")).href(url + "lanes/").text("Lanes");
++				a.c("tab" + (here === "architecture" ? " tab-default" : "")).href(url + "architecture/").text("Architecture");
++			}));
++		});
++	}
++
+ 	mount(){
+ 		this.$box = div.c("tasks-lanes");
+-		this.log.live(() => this.draw()).then(() => this.draw());
++		this.dash.on(() => this.draw());
++		this.dash.start();
+ 		return this;
+ 	}
+ 
+ 	draw(){
+-		const s = this.log.state;
++		const s = this.dash.full;
+ 		this.$box.empty(() => {
+-			if (!s) return div.c("tasks-note muted", () => span("No live task state yet (node Server/TaskState.mjs --watch)."));
+-			TasksPage.GROUPS.forEach(g => div.c("tasks-lane", () => {
+-				const rows = g.key === "landed" ? (s.landed ?? []).filter(r => !r.day || r.day === s.today) : (s[g.key] ?? []);   // the lanes show today only
+-				h2.c("tasks-group-head", () => { span(g.key === "landed" ? "Landed today" : g.title); small.c("inbox-badge").text(String(rows.length)); });
++			if (!s) return div.c("tasks-note muted", () => span("No task state yet: this page reads ai/state.json (node Server/TaskState.mjs --watch writes it)."));
++			TaskLanes.LANES.forEach(g => div.c("tasks-lane", () => {
++				const rows = g.key === "landed" ? (s.landed ?? []).filter(r => !r.day || r.day === s.today) : (s[g.key] ?? []);
++				h2.c("tasks-group-head", () => { span(g.title); small.c("inbox-badge").text(String(rows.length)); });
+ 				if (!rows.length) small.c("tasks-empty muted", g.empty);
+ 				rows.forEach(r => a.c("tasks-card" + (r.quiet ? " tasks-quiet" : "")).href(this.base + r.id + "/").append(() => {
+ 					span.c("tasks-card-title").text((r.quiet ? "⚠ " : "") + r.title);
+-					small.c("muted").text(g.key === "landed" ? `${TasksPage.when(r.landed_at)} · ${r.line}` : g.key === "in_flight" ? TasksPage.quiet(r) : r.agent);
++					small.c("muted").text(g.key === "landed" ? `${TaskLanes.when(r.landed_at)} · ${r.line}` : g.key === "in_flight" ? TaskLanes.quiet(r) : r.agent);
+ 				}));
+ 			}));
+ 		});
+diff --git a/public/framework/ai/tasks/TasksPage.js b/public/framework/ai/tasks/TasksPage.js
+deleted file mode 100644
+index e268b6af8..000000000
+--- a/public/framework/ai/tasks/TasksPage.js
++++ /dev/null
+@@ -1,96 +0,0 @@
+-import { View, div, a, span, small, h2, button } from "/framework/core/View/View.js";
+-
+-/** Local YYYY-MM-DD of a time, the same rule Server/TaskState.mjs uses for each row's `day`. */
+-const local_day = t => { const d = new Date(t), p2 = n => String(n).padStart(2, "0"); return `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}`; };
+-import Browse from "/framework/ux/Browse/Browse.js";
+-import TaskStateLog from "./TaskStateLog.js";
+-
+-View.stylesheet({ url: import.meta.url }, "tasks.css");
+-
+-/** TasksPage's list: In flight, Queued, Landed today, from Server/TaskState.mjs, tailed live. Doc: doc/architecture.md */
+-export default class TasksPage extends Browse {
+-	key = "tasks";
+-	log = new TaskStateLog();
+-
+-	static GROUPS = [
+-		{ key: "in_flight", title: "In flight", empty: "Nothing is working right now." },
+-		{ key: "queued", title: "Queued", empty: "Nothing is waiting." },
+-		{ key: "landed", title: "Landed", empty: "Nothing has landed in this window." },
+-	];
+-	/** The landed group's window chips; the state carries seven days, each row with its local `day`. */
+-	static WINDOWS = [["today", "Today"], ["yesterday", "Yesterday"], ["week", "This week"]];
+-	window = new URLSearchParams(location.search).get("landed") ?? "today";
+-
+-	/** The rows of a group under the current window (only the landed group is filtered). */
+-	rows(s, key){
+-		if (key !== "landed") return s[key] ?? [];
+-		const day = back => local_day(Date.parse(s.today + "T12:00:00") - back * 864e5);
+-		return (s.landed ?? []).filter(r => this.window === "week" || r.day === day(this.window === "yesterday" ? 1 : 0));
+-	}
+-
+-	static when(iso){ return iso ? new Date(iso).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : ""; }
+-	static age_min(s){ return Math.round((Date.now() - Date.parse(s.at)) / 60000); }
+-	static quiet(r){ return r.quiet_min == null ? "" : r.quiet_min < 1 ? "just now" : r.quiet_min + " min ago"; }
+-
+-	draw_list(){
+-		this.$rows = div.c("inbox-rows tasks-rows");
+-		this.draw();
+-	}
+-
+-	start(){ this.log.live(() => this.draw()).then(() => this.draw());
+-		setInterval(() => this.draw(), 60000);   // only re-checks the age of the last line; the data itself is the stream
+-	}
+-
+-	draw(){
+-		if (!this.$rows) return;
+-		const s = this.log.state;
+-		this.$rows.empty(() => {
+-			if (s && TasksPage.age_min(s) >= 3) div.c("tasks-note tasks-stale", () => span(`Not live: the last update was ${TasksPage.age_min(s)} min ago. Start node Server/TaskState.mjs --watch.`));
+-			if (s?.check?.ok === false) TasksPage.bad(s.check);
+-			if (!s) return div.c("tasks-note muted", () => span("No live task state yet: this page tails ai/tasks/state.jsonl, written while the dev server runs (node Server/TaskState.mjs --watch)."));
+-			TasksPage.GROUPS.forEach(g => this.group(g, this.rows(s, g.key)));
+-		});
+-		this.router?.mark_links?.();
+-	}
+-
+-	group(g, rows){
+-		div.c("tasks-group", () => {
+-			h2.c("tasks-group-head", () => { span(g.title); small.c("inbox-badge").text(String(rows.length)).el.hidden = !rows.length; });
+-			if (g.key === "landed") div.c("sessions-tabs flex gap-50 wrap", () => TasksPage.WINDOWS.forEach(([k, label]) =>
+-				TasksPage.chip(label, this.window === k, () => { this.window = k; history.replaceState(null, "", k === "today" ? location.pathname : "?landed=" + k); this.draw(); })));
+-			if (!rows.length) return small.c("tasks-empty muted", g.empty);
+-			rows.forEach(r => this.row(g.key, r));
+-		});
+-	}
+-
+-	/** One filter chip; the Inbox (ai/rail/DashChips.js) draws its chips with this too. */
+-	static chip(label, on, click){ return button.c("sessions-chip" + (on ? " sessions-chip-on" : ""), label).on("click", click); }
+-
+-	/** The red line of a failed self-check: always this one, so a wrong count is never quiet. */
+-	static note_bad(text){ return div.c("tasks-note tasks-check-bad", () => span(text)).el.style.color = "#c62828"; }
+-
+-	/** State's self-check failed (Server/doc/state.md): the two numbers in red, never a quiet wrong count. */
+-	static bad(c){ TasksPage.note_bad(TasksPage.why(c)); }
+-
+-	/** The sentence naming every count that differs: landed today, tasks, cards, asks, sessions. */
+-	static why(c){
+-		const l = c.landed_today ?? {}, ids = [...(l.only_state ?? []), ...(l.only_walk ?? [])], two = (k, x) => x && x.ok === false ? `${k}: ${x.rows} rows, ${x.sum} in buckets, ${x.ids} found by a text scan` : null;
+-		const parts = [l.state !== l.walk || ids.length ? `landed today is ${l.state} by the task rules but ${l.walk} by a plain walk${ids.length ? " (" + ids.join(", ") + ")" : ""}` : null,
+-			c.total !== c.sum ? `${c.total} tasks, ${c.sum} in buckets` : null, two("cards", c.cards), two("asks", c.asks),
+-			c.sessions?.ok === false ? `sessions: ${c.sessions.in_sessions} tasks in sessions, ${c.sessions.with_session} task rows with a session` : null].filter(Boolean);
+-		return "Counts disagree: " + (parts.length ? parts.join("; ") : `${c.total} tasks, ${c.sum} in buckets`) + ".";
+-	}
+-
+-	row(kind, r){
+-		const href = r.home === "module" ? r.url : r.id && r.url ? this.url + r.id + "/" : null;   // a module task opens its own page
+-		(href ? a.c("inbox-row tasks-row").href(href) : div.c("inbox-row tasks-row")).append(() => {
+-			div.c("inbox-row-head flex gap-25", () => {
+-				if (r.quiet) span.c("tasks-warn").attr("title", `quiet for ${r.quiet_min} min`).text("⚠");
+-				span.c("inbox-row-title").text(r.title);
+-				small.c("inbox-row-when muted").text(kind === "landed" ? (this.window === "today" ? "" : r.day + " ") + TasksPage.when(r.landed_at) : kind === "in_flight" ? TasksPage.quiet(r) : "");
+-			});
+-			const line = kind === "landed" ? r.line : [r.model, r.cost ? "$" + r.cost.toFixed(2) : null].filter(Boolean).join(" · ");
+-			if (line) div.c("inbox-row-foot", () => small.c("inbox-row-line muted").text(line));
+-		});
+-	}
+-}
+diff --git a/public/framework/ai/tasks/doc/architecture.md b/public/framework/ai/tasks/doc/architecture.md
+index bfc24e227..e6ff45fdc 100644
+--- a/public/framework/ai/tasks/doc/architecture.md
++++ b/public/framework/ai/tasks/doc/architecture.md
+@@ -4,12 +4,13 @@
+ Server/TaskState.mjs   class TaskState          computes the picture, appends it to state.jsonl
+ ai/tasks/state.jsonl                              one line per change (machine state)
+ ai/tasks/TaskStateLog.js  class TaskStateLog extends JSONL    the browser's tail; .state = the last line
+-ai/tasks/TasksPage.js     class TasksPage extends Browse      List: the three groups; a row opens the task card in the detail pane
+-ai/tasks/TaskLanes.js     class TaskLanes                     Lanes: the same state as three columns
++ai/tasks/SavedFilter.js   class SavedFilter extends Page       the list: forwards to the Inbox with DashChips.SAVED chips on (rail/DashChips.js)
++ai/tasks/TaskLanes.js     class TaskLanes                     Lanes: today as three columns, read from ai/state.json through rail/DashState.js
+ ai/tasks/page.js                                              tabs + routes (a row id is the task's folder below sessions/, "/" as "~")
+ ```
+ 
+ - **`TaskState`** is the only place that counts. In flight = registry state `working`; quiet minutes = now minus the newest of the registry's `last_at` and the task's last log line; queued = registry state `queued`; landed today = a `task.jsonl` under today's and yesterday's session folders (a session may start a day before its tasks land) with a `landed_at` after local midnight.
+-- **Reuse:** the detail pane is `AITask`, the same card as everywhere; the shell is `Browse`; the stream is `JSONL`.
++- **Reuse:** the list is the Inbox (`AIRail`, `DashState`, `DashChips`, `DashRow`); the detail pane is `AITask`; the stream is `JSONL`. Step 3 of [one-dashboard](../../doc/one-dashboard.md) deleted `TasksPage` (a second reader and row component).
++- **Decision (2026-10-19):** redirect, not mount. Mounting `AIRail` under another url needs its detail pane to work with this page's routes; a redirect keeps one list and every old url still lands on the same rows. `TaskState --watch` keeps writing `state.jsonl`: `DashState` tails it as its pulse.
+ - **Decision:** the registry has no push, so `TaskState --watch` polls it (5 s) and the file is what streams to the browser. A Servex hook that calls `TaskState.write()` on each registry change would remove the poll.
+ - **Decision:** the second view is its own three-column board, not `AITask`'s `Lanes`: that one draws a task's subtask nesting, not today's state.
+diff --git a/public/framework/ai/tasks/page.js b/public/framework/ai/tasks/page.js
+index 06442713d..d3d538595 100644
+--- a/public/framework/ai/tasks/page.js
++++ b/public/framework/ai/tasks/page.js
+@@ -1,35 +1,23 @@
+-import { Page, div, h1, a, md } from "/app.js";
+-import TasksPage from "./TasksPage.js";
++import { Page, div, md } from "/app.js";
++import SavedFilter from "./SavedFilter.js";
+ import TaskLanes from "./TaskLanes.js";
+ import { AITask } from "/framework/ai/AITask/AITask.js";
+ 
+-const bar = (url, here) => div.c("inbox-head", () => {
+-	div.c("doc-well", () => h1.c("doc-title h2", "Tasks"));
+-	div.c("tabs block", () => div.c("tab-bar", () => {
+-		a.c("tab tab-default").href(url).text("List");
+-		a.c("tab").href(url + "lanes/").text("Lanes");
+-		a.c("tab").href(url + "architecture/").text("Architecture");
+-	}));
+-});
+-
+-export default new Page({
++// The list is the Inbox with the `tasks` chips (SavedFilter forwards there); Lanes and Architecture stay here. Doc: doc/architecture.md
++export default new SavedFilter({
+ 	meta: import.meta,
+ 	title: "Tasks",
+ 	icon: "task_alt",
+-	description: "What is in flight, queued and landed today, from the real state, live.",
++	description: "What is in flight, queued and landed today: the Inbox with its Tasks chips on.",
+ 	classes: "full fill",
+ 	leaf: true,
+-
+-	content(){
+-		bar(this.url);
+-		this.browse = new TasksPage({ page: this }).mount();
+-	},
++	preset: "tasks",
+ 
+ 	route(id){
+ 		if (id === "lanes") return new Page({ title: "Lanes", url: this.url + "lanes/", classes: "inbox-takeover inbox-tab",
+-			content(){ new TaskLanes({ page: this, base: this.url.replace(/lanes\/$/, "") }).mount(); } });
++			content(){ TaskLanes.tabs(this.url.replace(/lanes\/$/, ""), "lanes"); new TaskLanes({ page: this, base: this.url.replace(/lanes\/$/, "") }).mount(); } });
+ 		if (id === "architecture") return new Page({ title: "Architecture", url: this.url + "architecture/", classes: "inbox-takeover inbox-tab",
+-			content(){ div.c("flow").append(md.file({ url: import.meta.url }, "doc/architecture.md")); div.c("flow").append(md.file({ url: import.meta.url }, "readme.md", { h1: false })); } });
++			content(){ TaskLanes.tabs(this.url.replace(/architecture\/$/, ""), "architecture"); div.c("flow").append(md.file({ url: import.meta.url }, "doc/architecture.md")); div.c("flow").append(md.file({ url: import.meta.url }, "readme.md", { h1: false })); } });
+ 		if (/^\d{4}~/.test(id)) return new AITask({ title: id.split("~").at(-1), icon: "receipt_long", url: this.url + id + "/",
+ 			src: "/framework/ai/sessions/" + id.replaceAll("~", "/") + "/session.json" });
+ 	},
+diff --git a/public/framework/ai/tasks/readme.md b/public/framework/ai/tasks/readme.md
+index 8ccf41f55..2617f4368 100644
+--- a/public/framework/ai/tasks/readme.md
++++ b/public/framework/ai/tasks/readme.md
+@@ -1,17 +1,16 @@
+ # Tasks — what is in flight, queued and landed, live
+ 
+-See it: **[/framework/ai/tasks/](/framework/ai/tasks/)**. One list, three groups: **In flight** (a ⚠ when an agent has been quiet over 5 minutes), **Queued**, **Landed** (its landing line's first sentence; chips switch the window: Today, Yesterday, This week; the state carries seven days). Click a row and its task card opens beside the list.
++See it: **[/framework/ai/tasks/](/framework/ai/tasks/)**. It is no list of its own: it opens the Inbox ([/framework/ai/](/framework/ai/)) with the **Live**, **Recent: Today** and **Kind: task** chips on (`?live&recent=today&kind=task`: in flight, plus landed today; `?landed=yesterday|week` becomes `recent=`). [/tasks/](/tasks/) is the same Inbox with `?kind=task&home` (every task a module keeps in its own `tasks/` folder). What stays here is what the Inbox has no view for: **[Lanes](/framework/ai/tasks/lanes/)** (in flight, queued and landed today as three columns) and **[Architecture](/framework/ai/tasks/architecture/)**.
+ 
+ - **Where the numbers come from:** `Server/TaskState.mjs` reads Servex's agent registry and every `task.jsonl`, and appends one line to `state.jsonl` when the picture changes. The page tails that file; nothing is counted by hand or by timer in the browser.
+ - **Run it:** `node Server/TaskState.mjs --watch` (nothing starts it yet: run it beside the dev server; a Servex hook is the next step); `--print` shows one snapshot.
+-- **Two views, same state:** the [List](/framework/ai/tasks/) (a `Browse`) and the [Lanes](/framework/ai/tasks/lanes/) (three columns side by side).
+-- **I recommend the List.** It keeps the detail beside you and reads in time order; Lanes is better only on a very wide screen, where all three groups fit at once.
++- **One reader:** the Inbox and Lanes both read `ai/state.json` through `rail/DashState.js`; `DashChips.SAVED` holds the saved filters. Doc: [../doc/one-dashboard.md](../doc/one-dashboard.md).
+ 
+ ## Watch out
+ 
+ - Until 10-17 the landed group walked only today's and yesterday's date folders and read only `assign.landed_at`: a task landed today in a session started days ago, or ended with a `finish` line, was invisible (0 of 27 showed). It now walks the whole sessions store, inside the window, and counts finish/complete lines; module `tasks/` homes are still not read here (`ai/doc/one-state.md`).
+ 
+-- `state.jsonl` is machine state (gitignored); if the last line is over 3 minutes old the page says it is not live instead of showing stale counts; the watcher writes at least one line a minute.
++- `state.jsonl` is machine state (gitignored): `DashState` tails it as its pulse and refetches `state.json` on each line, so `TaskState.mjs --watch` must keep writing it (at least one line a minute).
+ - The registry has no push, so `--watch` re-checks it every 5 seconds and writes only on a change.
+ 
+ ## More
+diff --git a/public/tasks/page.jsonl b/public/tasks/page.jsonl
+index 801cdd142..2935c071e 100644
+--- a/public/tasks/page.jsonl
++++ b/public/tasks/page.jsonl
+@@ -1,2 +1,2 @@
+-{"title":"Tasks","icon":"task_alt","description":"Every task home on the site, grouped by module, ranked.","class":"/framework/core/Task/TasksPage.js"}
++{"title":"Tasks","icon":"task_alt","description":"Every task a module keeps in its own tasks/ folder: the Inbox with its Tasks and Home chips on.","class":"/framework/ai/tasks/SavedFilter.js","preset":"all-tasks"}
+ {"file":"task.jsonl"}

@@ -1,0 +1,136 @@
+diff --git a/public/framework/core/Page/ext/Inbox/Timeline.js b/public/framework/core/Page/ext/Inbox/Timeline.js
+index a5936e3ee..ebde310fc 100644
+--- a/public/framework/core/Page/ext/Inbox/Timeline.js
++++ b/public/framework/core/Page/ext/Inbox/Timeline.js
+@@ -1,5 +1,6 @@
+ import JSONL from "/framework/ext/JSONL/JSONL.js";
+ import { Inbox } from "./Inbox.js";
++import PagePrefs from "../../Prefs.js";
+ 
+ /** Timeline — the inbox as one ranked list: every landed task, every owner note, every open needs-you card.
+  *  Two streamed indexes in, rows out; each row says which file it came from and its score. Doc: doc/inbox-data.md. */
+@@ -23,16 +24,34 @@ export default class Timeline {
+ 	start(){ return Promise.all([this.landed.live(() => this.changed()), this.cards.live(() => this.changed())]).then(() => this.changed()); }
+ 	stop(){ this.landed.unsubscribe(); this.cards.unsubscribe(); }
+ 
+-	/** Every row, highest rank first (ties: newest first). `big` keeps landed tasks with a page or a card, and every card row. */
+-	rows({ big = false, now = Date.now() } = {}){
++	/** Every row, highest rank first (ties: newest first). `big` keeps landed tasks with a page or a card, and every card row;
++	 *  `seen: false` drops the rows you have seen (`keep` stays, so the open row never jumps out); `day` ("YYYY-MM-DD") scopes to one local day. */
++	rows({ big = false, seen = true, day = null, keep = null, now = Date.now() } = {}){
+ 		const all = this._rows ??= [
+ 			...this.landed.rows.map((r, n) => Timeline.from_landing(r, n)),
+ 			...[...this.cards.by_id.values()].map(Timeline.from_card).filter(Boolean),
+ 		].map(r => Object.assign(r, { score: Math.round(Inbox.rank(r, now) * 10) / 10 }))
+ 			.sort((a, b) => b.score - a.score || Date.parse(b.at) - Date.parse(a.at));
+-		return big ? all.filter(r => r.big) : all;
++		return all.filter(r => (!big || r.big) && (!day || Timeline.day_of(r.at) === day)
++			&& (seen || r.row_key === keep || !this.seen.has(r)));
+ 	}
+ 
++	get seen(){ return this._seen ??= new Timeline.Seen(); }
++
++	/** "2026-10-13" for an instant, in this browser's own time zone. */
++	static day_of(at, d = new Date(at)){ const p = n => String(n).padStart(2, "0"); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`; }
++
++	/** SEEN — "once I've seen it, we get rid of it" (the owner, 2026-10-13): out of the default view, never deleted.
++	 *  Per browser, like the AI rail's read flag: everything up to `cleared` is seen, plus the keys opened since. */
++	static Seen = class Seen {
++		constructor(){ this.prefs = new PagePrefs({ id: "inbox-timeline-seen" }); }
++		get state(){ return this.prefs.get({ cleared: null, keys: [] }); }
++		has(r){ const s = this.state; return (s.cleared && Date.parse(r.at) <= Date.parse(s.cleared)) || s.keys.includes(r.row_key); }
++		mark(r){ const s = this.state; if (!this.has(r)) this.prefs.patch({ keys: [...s.keys, r.row_key] }); }
++		clear_all(at = new Date().toISOString()){ this.prefs.set({ cleared: at, keys: [] }); }
++		count(rows){ return rows.filter(r => this.has(r)).length; }
++	};
++
+ 	row(row_key){ return this.rows().find(r => r.row_key === row_key) ?? null; }
+ 
+ 	/** A landing line → a row. `row_key` is its line number in landings.jsonl: append-only, so it never moves. */
+diff --git a/public/framework/core/Page/ext/Inbox/doc/inbox-data.md b/public/framework/core/Page/ext/Inbox/doc/inbox-data.md
+index a1593b876..457fc40ef 100644
+--- a/public/framework/core/Page/ext/Inbox/doc/inbox-data.md
++++ b/public/framework/core/Page/ext/Inbox/doc/inbox-data.md
+@@ -45,6 +45,8 @@ Counted by `node InboxSources.mjs` on 2026-10-13 22:01 UTC.
+ | `TimelinePage extends Page` | `timeline/TimelinePage.js` | The rail is one `ext/DataGrid` in rail view, and `columns()` opens a row beside it. `TimelinePage.Detail` is one row's page: the full outcome and links, read from the task's own log. |
+ | `TimelineTalk` | `timeline/TimelineTalk.js` | The card's chat beside the detail. It streams the card's `page.jsonl` (`prompt` and `message` lines) into the same `CardChat` log and `Compose` box the card page uses. |
+ 
++**Seen and the day (2026-10-13, the owner: "once I've seen it, we get rid of it"; "filtering the inbox by date"):** opening a row marks it seen, and seen rows leave the default view. They are never deleted: the **Seen too** chip (`?seen`) brings them back, and **Mark all seen** clears everything up to now. Seen is kept per browser (`PagePrefs`, `Timeline.Seen`), like the AI rail's read flag. The **Today** and **Yesterday** chips (`?day=today`, `?day=yesterday`, or `?day=2026-10-12`) scope the rows to one local day. Browsing *sessions* by date belongs to the [Sessions](/framework/ai/sessions/) page.
++
+ **Rows:** a landing has a page or a card → "big". An owner note, or a card with status `needs-you`/`blocked`, is always shown. The "Big things only" chip is on by default (`?all` turns it off).
+ 
+ ## Edits outside this module (not made here; exact text)
+diff --git a/public/framework/core/Page/ext/Inbox/timeline/TimelinePage.js b/public/framework/core/Page/ext/Inbox/timeline/TimelinePage.js
+index a1463d260..1e84cae17 100644
+--- a/public/framework/core/Page/ext/Inbox/timeline/TimelinePage.js
++++ b/public/framework/core/Page/ext/Inbox/timeline/TimelinePage.js
+@@ -26,9 +26,9 @@ export default class TimelinePage extends Page {
+ 
+ 	/** The two switches live in the url, so a reload keeps them: `?all` shows every landing, `?debug` shows sources and scores. */
+ 	flag(name){ return new URLSearchParams(location.search).has(name); }
+-	flip(name){
++	flip(name, value = ""){
+ 		const url = new URL(location.href);
+-		url.searchParams.has(name) ? url.searchParams.delete(name) : url.searchParams.set(name, "");
++		url.searchParams.get(name) === value ? url.searchParams.delete(name) : url.searchParams.set(name, value);
+ 		history.replaceState(history.state, "", url.pathname + url.search.replace(/=(?=&|$)/g, "") + url.hash);
+ 		this.refill();
+ 	}
+@@ -50,16 +50,35 @@ export default class TimelinePage extends Page {
+ 
+ 	deactivated(){ this.off?.(); this.off = null; }
+ 
++	/** `?day=today`, `?day=yesterday` or `?day=2026-10-12` → the local day it means (a word stays a word, so a reload tomorrow still says "today"). */
++	day(){
++		const word = new URLSearchParams(location.search).get("day");
++		if (!word) return null;
++		const d = new Date();
++		if (word === "yesterday") d.setDate(d.getDate() - 1);
++		return word === "today" || word === "yesterday" ? Timeline.day_of(d) : word;
++	}
++
+ 	refill(){
+ 		if (!this.grid) return;
+-		const all = this.timeline.rows(), big = !this.flag("all"), rows = big ? all.filter(r => r.big) : all, debug = this.flag("debug");
++		const big = !this.flag("all"), seen = this.flag("seen"), day = this.day(), debug = this.flag("debug"), word = new URLSearchParams(location.search).get("day");
++		const scoped = this.timeline.rows({ big, day });
++		const rows = seen ? scoped : this.timeline.rows({ big, day, seen: false, keep: this.open_key });
+ 		this.grid.set_rows(rows);
+ 		this.$head.empty(() => {
+-			const landed = rows.filter(r => r.kind === "landed").length;
+-			p.c("timeline-count", `${landed} built · ${rows.length - landed} for you`);
++			const landed = rows.filter(r => r.kind === "landed").length, hidden = scoped.length - rows.length;
++			p.c("timeline-count", `${landed} built · ${rows.length - landed} for you` + (hidden ? ` · ${hidden} seen` : ""));
++			if (!rows.length && hidden) p.c("timeline-zero muted", "Inbox zero: everything here is seen. Seen too brings it back.");
+ 			div.c("timeline-chips", () => {
+-				button.c("timeline-chip" + (big ? " timeline-chip-on" : ""), "Big things only").attr("aria-pressed", String(big)).click(() => this.flip("all"));
+-				button.c("timeline-chip" + (debug ? " timeline-chip-on" : ""), "Sources and scores").attr("aria-pressed", String(debug)).click(() => this.flip("debug"));
++				const chip = (label, on, go) => button.c("timeline-chip" + (on ? " timeline-chip-on" : ""), label).attr("aria-pressed", String(on)).click(go);
++				chip("Big things only", big, () => this.flip("all"));
++				chip("Today", word === "today", () => this.flip("day", "today"));
++				chip("Yesterday", word === "yesterday", () => this.flip("day", "yesterday"));
++				if (word && word !== "today" && word !== "yesterday") chip(word, true, () => this.flip("day", word));
++				chip("Seen too", seen, () => this.flip("seen"));
++				chip("Sources and scores", debug, () => this.flip("debug"));
++				if (rows.length && !seen) button.c("timeline-chip timeline-chip-clear", "Mark all seen").attr("title", "Everything up to now leaves this view; Seen too brings it back")
++					.click(() => { this.timeline.seen.clear_all(); this.refill(); });
+ 			});
+ 			if (debug) small.c("muted timeline-sources", TimelinePage.sources(all));
+ 		});
+@@ -102,6 +121,7 @@ export default class TimelinePage extends Page {
+ 				if (r && r.row_key === this.shown?.row_key) return;   // a stream batch keeps the open row and its chat as they are
+ 				this.talk?.stop();
+ 				this.shown = r;
++				if (r){ this.home.timeline.seen.mark(r); this.home.open_key = r.row_key; this.home.refill(); }   // seen once opened; it stays in the rail while open
+ 				$box.empty(() => r ? this.detail_of(r) : p.c("muted", "Loading…"));
+ 			};
+ 			this.off = this.home.timeline.on(draw);
+@@ -109,7 +129,7 @@ export default class TimelinePage extends Page {
+ 			draw();
+ 		}
+ 
+-		deactivated(){ this.off?.(); this.talk?.stop(); this.shown = null; }
++		deactivated(){ this.off?.(); this.talk?.stop(); this.shown = null; this.home.open_key = null; this.home.refill(); }
+ 
+ 		/** The row on the left; its card's chat on the right (stacked on a narrow screen). */
+ 		detail_of(r){

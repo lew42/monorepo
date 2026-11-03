@@ -1,0 +1,1808 @@
+import fs from "fs";
+import os from "os";
+import net from "net";
+import path from "path";
+import express from "express";
+import { fileURLToPath } from "url";
+import { spawn, execFile } from "child_process";
+import Server from "../Server/Server.js";
+import Events from "../Server/Events.js";
+import Log from "./Log.js";
+import TunnelKeeper from "./ext/remote/TunnelKeeper.js";
+import Monitor from "./Monitor.js";
+import Processes from "./Processes.js";
+import Games from "./Games.js";
+import Worktrees from "./Worktrees.js";
+import TaskLoop from "./TaskLoop.js";
+import { hooks as page_tool_hooks, serve_item } from "./agents/page_tools.js";
+import ProcessRunner from "./ProcessRunner.js";
+import Respawn from "./agents/Respawn.js";
+import Wakeups from "./agents/Wakeups.js";
+import PromptTasks from "./agents/PromptTasks.js";
+import { check_page, cap } from "../Server/BrowserCheck.mjs";
+import { pid as browser_pid } from "../Server/Browser.mjs";
+import Heartbeat from "./Heartbeat.js";
+import LogSweeper from "./LogSweeper.js";
+import Usage from "./Usage.js";
+import Pool from "./Pool.js";
+import Lifecycle from "./Lifecycle.js";
+import Follow from "./Follow.js";
+import MCP, { loopback } from "./MCP.js";
+import RemoteMCP from "./ext/remote/RemoteMCP.js";
+import PortRegistry from "./PortRegistry.js";
+import Process from "./Process.js";
+import { recite_runner } from "./ext/recite/recite.js";
+import Project from "./Project.js";
+import ReverseProxy from "./ReverseProxy.js";
+import { launch as launch_gate } from "./gate.mjs";
+import { place, stamp } from "./home.js";
+import Stream from "./Stream.js";
+import { Agents } from "./agents/Agents.js";
+import Assistant from "./agents/Assistant.js";
+import Echo from "./agents/Echo.js";
+import Fixer from "./agents/Fixer.js";
+import Dispatcher from "./agents/Dispatcher.js";
+import Cards from "./cards/Cards.js";
+import Asks from "./asks/Asks.js";
+import Layers from "./agents/Layers.js";
+import Sessions from "./agents/Sessions.js";
+import Global, { claude_processes } from "./agents/Global.js";
+import { alive } from "./agents/Registry.js";
+import External from "./agents/External.js";
+import agent_tools from "./agents/tools.js";
+import { directory_tools } from "./agents/directory.js";
+import tidy from "./agents/tidy.js";
+import { run_clean, model_choices, list_examples, save_example } from "./ext/clean-test/run.js";
+import { run_refine } from "./ext/refine/run.js";
+import VoicePage from "./ext/refine/VoicePage.js";
+import CardAsk from "./ext/refine/CardAsk.js";
+import LiveRefine from "./ext/refine/LiveRefine.js";
+import Hitl from "./agents/Hitl.js";
+import Inbox from "./agents/inbox.js";
+import { docs_list, docs_read_file } from "./pages.js";
+import { warm_guard } from "./ext/openrouter/provider.js";
+import { LLAMA_EXE, LLAMA_PORT, LOCAL_PROXY_PORT } from "./ext/local/provider.js";
+import { LocalProxy } from "./ext/local/llama.js";
+import { local_chat, local_model_slugs } from "./ext/local/chat.js";
+import DatedFiles from "../Server/DatedFiles.mjs";
+
+const HERE = path.dirname(fileURLToPath(import.meta.url));
+const REPO = path.resolve(HERE, "..");
+const SKIP = new Set(["node_modules", "dist", "build", "coverage"]);
+
+const INSTRUCTIONS = `Servex is the always-on process on this machine. It supervises dev servers`
+    + ` (and whisper-server), owns every log file as the single writer, and answers here.`
+    + ` Claude sessions do NOT start dev servers themselves — call start_server / restart_server /`
+    + ` stop_server and read server_logs. A project is any directory under the scan root with a`
+    + ` package.json; each one keeps a fixed port forever and is reachable through the proxy at`
+    + ` <name>.localhost:<proxy port>, which auto-starts it on the first request. append_log writes`
+    + ` one JSON line into a named log through Servex, so two writers can never tear a line.`;
+
+/* SERVEX — the one process that stays up.
+ *
+ * Five parts, all in one process because there is nothing to gain from more:
+ *
+ *   dashboard  a Server (the same class every project here uses) serving
+ *              Servex/public/ on 127.0.0.1:8090, and carrying /mcp and the
+ *              /log routes on its router.
+ *   proxy      127.0.0.1:80 — <name>.localhost reaches the project's
+ *              own port, and auto-starts it if it is not running. Port 80
+ *              itself is held by gate.mjs, a separate process that outlives
+ *              Servex and passes bytes on to the proxy on 8079.
+ *   ports      name -> port, remembered in %LOCALAPPDATA%/lew42/servex/ports.json.
+ *   processes  one supervised child per running server, plus whisper.
+ *   agents     every live Claude session, held in memory and steerable over MCP.
+ *
+ * Start it with `node Servex/index.js` from the repo root. Read
+ * Servex/readme.md first — it is one screen. */
+export default class Servex extends Events {
+
+    /* ONE SERVEX PER HOME AND PORT (2026-10-18): called by index.js BEFORE `new Servex()`. The constructor writes the shared
+     * registry and sweeps its agents (`revive()`) long before `listen()` finds the port taken, so a second process used to damage
+     * the first one's agents and then die on EADDRINUSE with a stack trace. Resolves to the port when it is free; otherwise
+     * prints one line and exits 1. Doc: doc/restart.md. */
+    static async only_one(port = Number(process.env.SERVEX_PORT) || 8090){
+        const taken = await new Promise(done => {
+            const probe = net.createServer().once("error", e => done(e.code === "EADDRINUSE")).once("listening", () => probe.close(() => done(false)));
+            probe.listen(port, "127.0.0.1");
+        });
+        if (!taken) return port;
+        console.error(`Servex is already running on 127.0.0.1:${port} — not starting a second one (node Servex/sustain.mjs --status; --restart to reload it).`);
+        process.exit(1);
+    }
+
+
+    initialize(){
+        /* ⚠ Servex died with 0xC0000409 (a native fast-fail) on 2026-09-23, twice,
+         * and on 2026-09-24, and left no trace at all. Next time Node writes a report here. */
+        process.report.directory = path.dirname(place("logs", "reports", "report.json"));
+        process.report.reportOnFatalError = true;
+        process.report.reportOnUncaughtException = true;
+
+        this.root ??= "C:/Code";
+        this.depth ??= 2;                 // C:/Code/<project> and C:/Code/<org>/<project>
+        this.dashboard_port ??= Number(process.env.SERVEX_PORT) || 8090;
+        this.proxy_port ??= Number(process.env.SERVEX_PROXY_PORT) || 80;        // what visitors use — the gate's port
+        this.proxy_internal ??= Number(process.env.SERVEX_PROXY_INTERNAL) || 8079;  // where the proxy itself listens
+        this.gated ??= !process.env.SERVEX_NO_GATE;   // SERVEX_NO_GATE=1: the proxy binds proxy_port itself, as before
+        this.bare ??= "servex";           // a nameless `localhost` is the dashboard (the owner, 2026-09-23) — ReverseProxy.name()
+
+        this.projects = [];
+        this.processes = new Map();
+
+        this.log = new this.constructor.Log();
+        /* THE CREATION LOG AND THE REAPER (lifecycle, 2026-09-29): Agents and Pool call its hooks,
+         * the heartbeat's tick runs its sweep (below). Servex/Lifecycle.js, Servex/doc/lifecycle.md. */
+        this.lifecycle = new this.constructor.Lifecycle({ servex: this });
+        this.ports = new PortRegistry({ reserved: [80, this.dashboard_port, this.proxy_port, this.proxy_internal] });
+        this.ports.pin("servex", this.dashboard_port);
+
+        this.dashboard = new this.constructor.Dashboard({ port: this.dashboard_port, servex: this });
+        this.mcp = new MCP({ router: this.dashboard.router, instructions: INSTRUCTIONS });
+
+        /* `guard()` has to be the FIRST thing registered on the router — Express
+         * walks a router's middleware/routes in REGISTRATION order, and a plain SSE
+         * handler (Stream's own `GET /api/stream`, below) never calls `next()`. The
+         * loopback check used to be registered in `initialize()`'s own call order,
+         * after this point, so a request for `/api/stream` matched the CORS route
+         * and then Stream's handler and finished before ever reaching it — the one
+         * route that answered a non-loopback caller (board-from-events, 2026-09-22).
+         * Calling it here, before anything else touches the router, closes that. */
+        this.guard();
+
+        /* CORS for the live event stream (board-from-events, 2026-09-22) — a browser
+         * tab on the site's own origin (the AI board) opens `EventSource("/api/
+         * stream")` cross-origin, same as `ux/Dictate`'s POST to `/log/:name` already
+         * does. Registered on the router BEFORE `Stream`'s own `GET /api/stream`
+         * handler below, on purpose: Express walks a router's middleware/routes in
+         * REGISTRATION order, and a plain SSE handler never calls `next()` — a CORS
+         * middleware added after it would simply never run for this path. This one
+         * only sets the header and falls through. */
+        this.dashboard.router.get("/api/stream", (req, res, next) => {
+            res.set("Access-Control-Allow-Origin", "*");
+            next();
+        });
+        this.stream = new Stream({ router: this.dashboard.router });
+
+        /* The prompt log goes out on that same wire (prompt-lifecycle,
+         * 2026-09-22): the owner speaks, the line lands, the fast assistant
+         * answers with three more lines, and an open board draws the whole
+         * thread without ever asking again. `Stream.follow()` says why it is a
+         * named list and not every log on the machine.
+         *
+         * ⚠ `cards/<slug>` joins it too (card-storage, ai2-nested) — but there is
+         * no fixed list of every card's name to write out by hand, so this hands
+         * `follow()` an object with an `includes()` of its own instead of a plain
+         * array. `follow()` only ever calls `names.includes(name)`, and nothing
+         * about that call cares whether `names` is really an Array — so one small
+         * object, matched against the same `cards/` prefix `Log.js`'s own
+         * `CARD_NAME` checks, is Stream.js's own seam used exactly as written,
+         * not a second one grown beside it. */
+        this.stream.follow(this.log, { includes: name => name === "prompts" || name.startsWith("cards/") });
+
+        /* The Claude sessions live here, in this process, holding the same `Log`
+         * everything else writes through. That is the whole integration: a tool
+         * call arriving at /mcp reaches a session already running in memory.
+         *
+         * `mcp_url` is what makes an agent able to build a team of its own — every
+         * agent Servex spawns gets this same door in its own tool list, so it can
+         * call `spawn_agent` exactly as the session that spawned it did. */
+        this.agents = new this.constructor.Agents({
+            log: this.log, servex: this,
+            mcp_url: `http://127.0.0.1:${this.dashboard_port}/mcp`
+        });
+        // Wake-ups node keeps across restarts (the wake_me tool); armed after revive() below. doc/restart.md.
+        this.wakeups = this.agents.wakeups = new Wakeups({ agents: this.agents });
+
+        /* WARM THE OPENROUTER SPEND GUARD (openrouter/provider.js, review follow-up):
+         * its 30s cache starts empty, and an empty cache fails every spawn closed —
+         * right once something has actually gone wrong, needlessly so right after a
+         * plain restart. One read here, before anything could possibly spawn yet,
+         * so the cache is already warm. A no-op (and no network call at all) on a
+         * worktree with no real OpenRouter key; any other failure just leaves the
+         * cache empty, same as today, and the first real spawn attempt fails closed
+         * with a "retry in a few seconds" reason. Never blocks boot. */
+        warm_guard().catch(() => {});
+
+        /* CARD FOLDERS — one folder per card under ai/, written only by Cards. */
+        this.cards = new this.constructor.Cards({ agents: this.agents, log: this.log });
+
+        /* FOLLOW(PATH) (voice-sessions, 2026-09-29): an agent cannot watch a file
+         * itself, so Servex watches and tells subscribed agents what changed, one
+         * message per burst, through `this.agents.send()` — the same queue
+         * `send_to_agent` uses. Servex/Follow.js, Servex/doc/follow.md. */
+        this.follow = new this.constructor.Follow({ agents: this.agents }).start();
+
+        /* A VS CODE TAB IS AN AGENT YOU CAN MESSAGE (External.js) — `register_session`
+         * lets any Claude session outside this process become addressable: listed,
+         * messageable, and forwarded the owner's words on any card it creates. */
+        this.external = new this.constructor.External({ servex: this }).install();
+
+        /* THE FAST ASSISTANT — one Sonnet session, always up, whose only job is
+         * to turn each sentence the owner speaks into a name, a card and a
+         * refined reading within seconds. `install()` puts its tool on /mcp and
+         * its two routes on the dashboard; `start()` actually spawns it, which
+         * costs a few cents an hour of nothing and answers in about ten seconds
+         * when something is said. `SERVEX_NO_ASSISTANT=1` boots without it —
+         * that is the switch for a proof run, or for a machine nobody is
+         * dictating on. */
+        this.assistant = new this.constructor.Assistant({ servex: this }).install();
+        if (!process.env.SERVEX_NO_ASSISTANT) setImmediate(() => {
+            try { this.assistant.start(); }
+            catch (e){ this.say(`assistant did not start: ${e.message || e}`); }
+        });
+
+        /* THE ECHO ASSISTANT (minion-echo, 2026-10-02) — a SIBLING of the fast assistant
+         * above, not a second copy of it: same one-door, one-system-prompt, one-log shape, but
+         * ONE session PER owner interactive session (never a minion or mastermind's), started
+         * lazily the moment `.claude/hooks/prompt-relay.mjs` tells it, over `POST /log/echo`,
+         * that a prompt landed. Nothing to `start()` eagerly here — there is no fixed single
+         * session to warm up, only `install()`'s tool and listener. `SERVEX_NO_ECHO=1` boots
+         * without it, same escape hatch as `SERVEX_NO_ASSISTANT`. */
+        this.echo = new this.constructor.Echo({ servex: this }).install();
+
+        /* THE DISPATCHER — watches the same `prompts` log for a `task` line
+         * the assistant appended (`state: "queued"`) and spawns a task
+         * mastermind to build it, at most two at once. No LLM of its own, so
+         * nothing here costs anything until a task actually queues. */
+        this.dispatcher = new this.constructor.Dispatcher({ servex: this }).install();
+
+        /* THE MACHINE MONITOR and THE SPAWN GATE (servex-monitor, 2026-09-24).
+         * The monitor samples CPU, RAM, the top processes, the GPU and the live
+         * agents every 5 s (Monitor.js says how, cheaply); while its flag is up,
+         * `admission()` queues new agents instead of starting them, and every
+         * tick tries the queue again. `SERVEX_NO_MONITOR=1` boots without it. */
+        this.admission();
+        if (!process.env.SERVEX_NO_MONITOR){
+            this.monitor = new this.constructor.Monitor({ servex: this }).start();
+            this.checks.push(spec => this.monitor.flag ? this.monitor.flag.reason : null);
+            this.monitor.on("tick", () => this.drain());
+        }
+        /* THE PROCESS MONITOR (process-monitor, 2026-09-30): every process, ours vs.
+         * everything else, RAM and CPU per task, orphans reaped. Processes.js says how. */
+        /* THE LOG SWEEPER (session-housekeeping, 2026-10-12): every 30 min commits the machine-written
+         * logs (allowlist only, "servex: log sweep"). SERVEX_NO_SWEEP=1 boots without it, SERVEX_SWEEP_DRY=1
+         * only reports. LogSweeper.js says what it never touches. */
+        if (!process.env.SERVEX_NO_SWEEP) this.sweeper = new this.constructor.LogSweeper({ servex: this, root: REPO }).start();
+        if (!process.env.SERVEX_NO_PROCESSES) this.procmon = new this.constructor.Processes({ servex: this }).start();
+        /* GAMES (same task, ask 4): close StarCraft (and similar) only when the PC has
+         * been idle past SERVEX_GAME_IDLE_MIN AND RAM is tight — never while playing.
+         * Games.js says the rule; it reads idle time and RAM off `this.procmon`, so it
+         * starts after it, same as Worktrees below. */
+        if (!process.env.SERVEX_NO_GAMES) this.games = new this.constructor.Games({ servex: this }).start();
+        /* WORKTREE CLEAN-UP (same task): a finished worktree is removed, its branch kept,
+         * and Servex forgets its project, port and subdomain. Worktrees.js says when. */
+        if (!process.env.SERVEX_NO_WORKTREES) this.worktrees = new this.constructor.Worktrees({ servex: this }).start();
+
+        /* THE TASK LOOP (task-loop, 2026-09-28): every SERVEX_TASKLOOP_EVERY_MIN
+         * minutes, chase an open task quiet past SERVEX_TASKLOOP_QUIET_MIN, or whose
+         * owning agent stopped or is gone; escalate to its card after 2 chases
+         * SERVEX_TASKLOOP_GAP_MIN apart. `root: REPO`, not process.cwd(), so a
+         * worktree's Servex chases the worktree's own tasks, never the live site's.
+         * Built always (close_task and task_loop_status stay callable either way);
+         * `SERVEX_NO_TASKLOOP=1` only skips the ticking. Doc: Servex/doc/task-loop.md. */
+        this.task_loop = new this.constructor.TaskLoop({ servex: this, root: REPO });
+        if (!process.env.SERVEX_NO_TASKLOOP) this.task_loop.start();
+        page_tool_hooks.approved = file => this.task_loop.launch(file);   // an approve line starts a templated task's agent (doc/templates.md)
+        /* THE PROCESS RUNNER (process-system, 2026-10-22): a process's steps run in order because node runs them. Woken by
+         * any item-tool write to a process, by an agent's turn end, and by the TaskLoop tick (resume after a restart).
+         * Doc: public/framework/core/Task/doc/process.md. */
+        this.process_runner = new ProcessRunner({ servex: this, root: REPO });
+        page_tool_hooks.changed = file => this.process_runner.step(file);
+        /* FRESH ONCE A DAY (the owner, 2026-10-22): the standing system architect gets a new session when its own is a day old and
+         * it is not busy; same id, one respawn line in its task log. SERVEX_NO_RESPAWN=1 turns it off. Doc: agents/doc/lifecycle.md. */
+        if (!process.env.SERVEX_NO_RESPAWN) this.respawn = new Respawn({ servex: this, root: REPO });
+        if (!process.env.SERVEX_NO_TASKLOOP) setImmediate(() => this.process_runner.tick().catch(() => {}));
+        /* REQUESTS ARE LOGGED ITEMS (the owner, 2026-10-22: logs over chat): a task added to another agent's task is a request; its
+         * receiver hears once, and the asker hears the outcome when it completes. Doc: Servex/agents/doc/messaging.md. */
+        const notice = (to, text, from) => { if (!to || to === "owner") return; try { this.agents.send(to, text, { from: from ?? "servex" }); } catch {} };
+        page_tool_hooks.requested = r => notice(r.to, `Request from ${r.from}: "${r.title}", logged at ${r.path}. Answer on the item when it is done: item({path: "${r.path}", delta: ${r.own_folder ? `{"complete": {"outcome": "…", "evidence": ["…"]}}` : `{"${r.id}": {"complete": {"outcome": "…", "evidence": ["…"]}}}`}}). ${r.from} hears the outcome then.`, r.from);
+        page_tool_hooks.answered = r => notice(r.to, `${r.by} answered your request "${r.title}" (${r.path}): ${r.outcome ?? "done, no outcome given"}`, r.by);
+        // Owner prompts become proposed tasks on their session (Servex/agents/PromptTasks.js; one Haiku call per prompt).
+        if (!process.env.SERVEX_NO_PROMPT_TASKS){ this.prompt_tasks = new PromptTasks({ say: t => this.say?.(t) }); page_tool_hooks.prompted = p => this.prompt_tasks.prompted(p); }
+
+        /* THE ASKS LEDGER (asks-ledger, 2026-09-30): notices when a routed ask's owner agent
+         * stops, goes quiet, or lands its task, and marks public/framework/ai/asks.jsonl so
+         * nothing sits silently in limbo (the owner, 2026-09-30). `SERVEX_NO_ASKS=1` skips it —
+         * same pattern as every other optional piece above. Servex/asks/readme.md. */
+        if (!process.env.SERVEX_NO_ASKS) this.asks = new this.constructor.Asks({ servex: this });
+
+        /* THE HEARTBEAT (task-loop/heartbeat, 2026-09-29): a task owner silent
+         * SERVEX_HEARTBEAT_SILENT_MIN (5) gets a neutral status check; one that died
+         * is triaged and revived; the card hears only when that fails. A minion stuck
+         * at the spawn gate wakes its parent. `SERVEX_NO_HEARTBEAT=1` skips it. */
+        this.heartbeat = new this.constructor.Heartbeat({ servex: this });
+        if (!process.env.SERVEX_NO_HEARTBEAT) this.heartbeat.start();
+        this.reaper();
+        /* The usage bars: claude-usage.py every 15 min, hidden (Usage.js). */
+        if (!process.env.SERVEX_NO_USAGE) this.usage = new Usage({ repo: path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..") }).start();
+
+        /* THE ASSISTANT LAYERS (ai/sessions/2026/09/24/assistant-layers/assistant-layers): an assistant and a
+         * manager on every card, and the master assistant + mastermind-servex across
+         * them all. `SERVEX_NO_LAYERS=1` boots without them. */
+        this.inbox = new Inbox({ servex: this });   // every page's inbox: agents/inbox.js, doc/inbox.md
+        if (!process.env.SERVEX_NO_LAYERS){
+            this.layers = new this.constructor.Layers({ servex: this }).install();
+            this.global = new this.constructor.Global({ servex: this }).install();
+            this.sessions = new this.constructor.Sessions({ servex: this }).install();   // one ✦ press = one voice session (agents/Sessions.js)
+        }
+
+        /* THE WORKTREE POOL (quickfix-worktrees, 2026-09-25): one warm worktree any agent
+         * takes with take_worktree. Pool.js and doc/pool.md. `SERVEX_NO_POOL=1` boots without it. */
+        if (!process.env.SERVEX_NO_POOL) this.pool = new this.constructor.Pool({ servex: this }).start();
+
+        /* THE FIXER (quick-fix-path, 2026-10-01): one standing quick-fix worker, warm for as
+         * long as Servex runs, holding one pool worktree for its whole life (never a
+         * take/return per fix — see Fixer.js's own comment on why). The `quick_fix` tool
+         * (Sessions.js + tools.js) is the door a voice session's smart assistant sends a small,
+         * concrete page change through. Needs `this.pool`, so it boots right after it.
+         * `SERVEX_NO_FIXER=1` boots without it, same pattern as every other optional piece here. */
+        this.fixer = new this.constructor.Fixer({ servex: this });
+        if (!process.env.SERVEX_NO_FIXER && this.pool) setImmediate(() => this.fixer.start());
+
+        this.agents.revive();   // agents alive at the last boot come back (resume, same id); the rest are marked gone
+        if (!process.env.SERVEX_NO_WAKEUPS) this.wakeups.start();   // every pending wake-up armed again; one already due fires now
+        this.routes();
+        this.remote = new RemoteMCP({ servex: this, root: REPO, router: this.dashboard.router });   // /mcp/remote, bearer token (voice-bridge.md)
+        this.tools();
+
+        /* Servex is the first project in its own list — it eats its own cooking,
+         * and `servex.localhost:<proxy>` reaches this dashboard like any other.
+         * Listing itself FIRST also claims the name: C:/Code/servex is the old,
+         * retired repo, and letting the scan claim `servex` would point the name
+         * at a second copy trying to bind this very port. */
+        this.projects.push(new Project({ dir: HERE.split(path.sep).join("/"), name: "servex", port: this.dashboard_port, self: true }));
+        this.scan(this.root);
+        this.adopt();
+
+        this.proxy = new ReverseProxy({
+            port: this.gated ? this.proxy_internal : this.proxy_port,
+            bare: this.bare,
+            site: "monorepo",
+            ports: this.ports.ports,
+            dashboard: `http://127.0.0.1:${this.dashboard_port}/`,
+            missing: name => this.autostart(name),
+            starting: name => ["launching", "restarting"].includes(this.processes.get(name)?.status)
+        });
+        this.proxy.on("proxy_error", e => this.say(`proxy error ${e.code} — ${e.method} ${e.host}${e.path}`, { event: "proxy_error", ...e }));
+
+        this.gate();
+        this.whisper();
+        this.recite();
+        this.llama();
+        if (!process.env.NO_TUNNEL) this.tunnel_keeper = new TunnelKeeper({ say: (m, x) => this.say(m, x), cards: this.cards }).start();
+        this.shutdown();
+
+        this.say(`Servex up — dashboard http://127.0.0.1:${this.dashboard_port}/ · proxy http://127.0.0.1:${this.proxy_port}/${this.gated ? ` (gate -> :${this.proxy_internal})` : ""} · ${this.projects.length} projects under ${this.root}`);
+        console.log(`Servex dashboard  http://127.0.0.1:${this.dashboard_port}/`);
+        console.log(`Servex proxy      http://<name>.localhost${this.proxy_port === 80 ? "" : `:${this.proxy_port}`}/`);
+        console.log(`Servex mcp        http://127.0.0.1:${this.dashboard_port}/mcp`);
+    }
+
+    /* ── finding projects ─────────────────────────────────────────────── */
+
+    scan(dir, depth = this.depth){
+        let entries = [];
+        try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
+
+        for (const entry of entries){
+            if (!entry.isDirectory() || entry.name.startsWith(".") || SKIP.has(entry.name)) continue;
+            const child = path.join(dir, entry.name);
+
+            if (fs.existsSync(path.join(child, "package.json"))) this.add(child);
+            else if (depth > 1) this.scan(child, depth - 1);
+        }
+    }
+
+    /* First one wins: two directories can share a basename, and a stable name is
+     * worth more than completeness — the name is the URL. */
+    add(dir){
+        const project = new Project({ dir: dir.split(path.sep).join("/") });
+        if (this.projects.some(p => p.name === project.name)) return;
+
+        project.port = this.ports.port(project.name);
+        this.projects.push(project);
+        return project;
+    }
+
+    project(name){
+        return this.projects.find(p => p.name === name);
+    }
+
+    /* ── running them ─────────────────────────────────────────────────── */
+
+    /* The supervised child for a project, built the first time it is asked for.
+     * `NO_WHISPER=1` because Servex owns whisper now — a dev server started from
+     * here must not start a second one. (A dev server you start by hand still
+     * brings up its own, exactly as before: nothing was removed from
+     * Server/plugins/Whisper.js.) */
+    runner(name){
+        if (this.processes.has(name)) return this.processes.get(name);
+
+        const project = this.project(name);
+        if (project?.self || project?.external) return null;   // Servex does not start a second copy of itself, or of a project it did not spawn
+        const start = project?.start_command();
+        if (!start) return null;
+
+        const runner = new Process({
+            name, log: this.log, port: project.port, cwd: project.dir,
+            command: start.command, args: start.args, shell: start.shell,
+            // NO_PAGEFILES on worktree servers: a worktree's files.jsonl listings are the main
+            // tree's to keep; catching them up there made 74-101 tracked edits that blocked merge and removal.
+            env: { NO_WHISPER: "1", HOST: this.host(name), ...(name === "monorepo" ? {} : { NO_PAGEFILES: "1" }) },
+            detach: true                  // outlives Servex; the next Servex adopts it — Process.js
+        });
+        this.processes.set(name, runner);
+        return runner;
+    }
+
+    /* Which address a project's dev server binds. The main site answers the home Wi-Fi too, so the
+     * desktop and the phone reach ONE server (http://10.0.0.135:3104/); the owner approved this
+     * 2026-10-04. A worktree waiting for its merge whose task asked for a preview does too
+     * (Worktrees.serve_previews keeps the list and restarts the server; build F, 2026-10-28).
+     * Every other worktree stays loopback. Exec/write routes keep their own loopback guards, and a
+     * LAN socket is push-only (public/framework/dev/Socket/doc/lan.md). */
+    host(name){
+        return name === "monorepo" || this.worktrees?.lan?.has(name) ? "0.0.0.0" : "127.0.0.1";
+    }
+
+    async command(name, verb){
+        const runner = this.runner(name);
+        if (!runner) throw new Error(`No project called "${name}" that Servex knows how to start.`
+            + ` Startable: ${this.projects.filter(p => p.start_command()).map(p => p.name).join(", ")}`);
+
+        await runner[verb]();
+        return JSON.stringify({ ...runner.toJSON(), url: this.url(name) }, null, 2);
+    }
+
+    /* The proxy calls this when a project's port refuses a connection. It must
+     * answer synchronously — true means "a Starting… page is the right reply". */
+    autostart(name){
+        const runner = this.runner(name);
+        if (!runner) return false;
+        if (runner.status === "launching" || runner.status === "restarting") return true;
+        if (runner.status === "errored") return false;
+
+        runner.start();
+        return true;
+    }
+
+    url(name){
+        return `http://${name}.localhost:${this.proxy_port}/`;
+    }
+
+    list(){
+        return this.projects.map(p => ({
+            ...p.toJSON(),
+            url: this.url(p.name),
+            ...(p.self
+                ? { status: "online", pid: process.pid, said: "this dashboard" }
+                : this.processes.get(p.name)?.toJSON() ?? { status: "stopped", pid: null })
+        }));
+    }
+
+    /* Every dev server the LAST Servex started and that is still running is
+     * picked back up — the same pid, no restart (Process.adopt). Its record in
+     * procs/<name>.json is what makes it ours. */
+    adopt(){
+        let names = [];
+        try { names = fs.readdirSync(path.dirname(place("procs", "x.json"))).filter(f => f.endsWith(".json")).map(f => f.slice(0, -5)); } catch {}
+        for (const name of names) this.runner(name)?.adopt().catch(e => this.say(`adopt ${name} failed: ${e.message}`));
+    }
+
+    /* Whisper is one of these too — same supervision, same log file, four boot
+     * cases in Process.Whisper. */
+    whisper(){
+        const home = process.env.WHISPER_HOME || path.join(process.env.LOCALAPPDATA || "", "lew42", "whisper");
+        const port = Number(process.env.WHISPER_PORT) || 8178;
+        const model = path.join(home, "models", "ggml-large-v3-turbo.bin");
+
+        const runner = new Process.Whisper({
+            name: "whisper", log: this.log, model, port,
+            command: path.join(home, "bin", "whisper-server.exe"),
+            args: ["-m", model, "--host", "127.0.0.1", "--port", String(port),
+                "--vad", "--vad-model", path.join(home, "models", "ggml-silero-v5.1.2.bin"),
+                // -mc 0 (--max-context): no conditioning on the previous reply's text, so Whisper has nothing of its
+                // own earlier guesses to echo into a hallucination; --suppress-nst: drop non-speech tokens. Both
+                // confirmed supported by this binary's --help (2026-11-03, phantom-gate task). This process is
+                // detached and outlives Servex — a Servex restart ADOPTS it with its old args (Process.js adopt()),
+                // so the flags only take effect once whisper-server itself is stopped and started again
+                // (stop_server/start_server "whisper").
+                "-mc", "0", "--suppress-nst"],
+            detach: true   // outlives Servex like the dev servers: a restart no longer kills it and reloads the model (~14 s, every open Dictate fails) — Process.Whisper adopts it
+        });
+
+        this.processes.set("whisper", runner);
+        runner.start();
+        return runner;
+    }
+
+    /* recite-server (text to speech, Kokoro on the CPU), supervised the same way
+     * as whisper-server: the four boot cases are in Process.Recite
+     * (Servex/ext/recite/recite.js). Detached, so a restart keeps it. */
+    recite(){
+        const runner = recite_runner(this.log);
+        this.processes.set("recite", runner);
+        runner.start();
+        return runner;
+    }
+
+    /* llama-server, supervised the same way whisper() supervises whisper-server —
+     * `Process.Llama` (Servex/ext/local/llama.js) adds swap-on-demand and idle
+     * unload on top of the same restart/backoff machinery. Nothing is spawned
+     * at boot: `ensure(slug)` starts llama-server the first time a `local/...`
+     * agent actually sends a request, and the idle timer stops it again once
+     * nothing has asked for a while — the GPU sits empty until someone wants
+     * it. The small proxy in front of it (what `ANTHROPIC_BASE_URL` for a local
+     * agent actually points at) DOES start right away — it's just an HTTP
+     * listener, no GPU, no process. */
+    llama(){
+        const runner = new Process.Llama({
+            name: "llama", log: this.log, port: LLAMA_PORT,
+            command: LLAMA_EXE, args: []
+        }).start_idle_watch();
+
+        this.processes.set("llama", runner);
+        this.local_proxy = new LocalProxy({ llama: runner, port: LOCAL_PROXY_PORT }).start();
+        return runner;
+    }
+
+    /* ── the door ─────────────────────────────────────────────────────── */
+
+    /* Everything binds 127.0.0.1 already; this is the second lock on the same
+     * door, because these routes start processes and write files. */
+    guard(){
+        this.dashboard.router.use((req, res, next) => loopback(req.socket.remoteAddress)
+            ? next()
+            : res.status(403).json({ error: "Servex answers loopback only." }));
+    }
+
+    routes(){
+        const router = this.dashboard.router;
+
+        router.get("/api/projects", (req, res) => res.json(this.list()));
+
+        /* A worktree already runs its own server — this just teaches the proxy
+         * where it is. `external: true` stops `runner()` from ever trying to
+         * start a second copy on the port this one already holds. */
+        router.post("/api/projects", express.json({ limit: "1mb" }), (req, res) => {
+            const { name, path: dir, port } = req.body ?? {};
+            if (!name || !dir) return res.status(400).json({ error: "name and path are required" });
+            if (this.project(name)) return res.status(400).json({ error: `"${name}" is already registered` });
+
+            const project = new Project({ dir: String(dir).split(path.sep).join("/"), name, external: true });
+            project.port = port ? this.ports.pin(name, Number(port)) : this.ports.port(name);
+            this.projects.push(project);
+
+            this.say(`project registered: ${name} -> :${project.port}`, { event: "project", action: "register", name, port: project.port });
+            res.json(project.toJSON());
+        });
+
+        router.delete("/api/projects/:name", (req, res) => {
+            const project = this.project(req.params.name);
+            if (!project) return res.status(404).json({ error: `no project called "${req.params.name}"` });
+
+            this.projects = this.projects.filter(p => p !== project);
+            this.processes.delete(project.name);
+            delete this.ports.ports[project.name];
+            this.ports.save();
+
+            this.say(`project unregistered: ${project.name}`, { event: "project", action: "unregister", name: project.name });
+            res.json({ ok: true });
+        });
+
+        router.post("/api/projects/:name/:verb", async (req, res) => {
+            const { name, verb } = req.params;
+            if (!["start", "stop", "restart"].includes(verb)) return res.status(400).json({ error: "start, stop or restart" });
+            try { res.json(JSON.parse(await this.command(name, verb))); }
+            catch (e){ res.status(400).json({ error: String(e.message || e) }); }
+        });
+
+        /* THE ONLY WAY ANOTHER PROCESS WRITES A LOG. Nobody opens these files
+         * but Log.js — see its comment for why.
+         *
+         * A BROWSER TAB reads and writes here too, which is why these routes answer
+         * CORS: `ux/Dictate` posts every dictated sentence from the site's origin to
+         * this one, and a browser calls that cross-origin and sends a preflight
+         * `OPTIONS` first. With nothing answering the preflight the fetch never
+         * leaves the tab at all — measured 15:17 by the whisper-servex task, which
+         * saw `POST /log/prompts` succeed from curl and fail from a page, and fell
+         * back to the dev server. `GET /agents`, below, reuses this same middleware
+         * for the same reason, from the other direction: the AI board's Agents
+         * strip (board-from-events, 2026-09-22) reads it from the site's origin.
+         *
+         * `*` is safe here and nowhere else would it be: `guard()` has already
+         * refused every non-loopback caller two lines up the router, so `*` can
+         * only ever mean "any page on this machine". */
+        const cors = (req, res, next) => {
+            res.set({
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Headers": "content-type",
+                "Access-Control-Max-Age": "600"
+            });
+            next();
+        };
+
+        /* /card/append answers only a localhost origin (localhost, 127.0.0.1, *.localhost): the origin is echoed
+         * back, so a worktree page on localhost:5xxxx can read the answer (todo 177). */
+        const local_cors = (req, res, next) => {
+            const origin = req.get("origin");
+            if (this.local_origin(origin)) res.set({ "Access-Control-Allow-Origin": origin, "Access-Control-Allow-Headers": "content-type", "Access-Control-Max-Age": "600", "Vary": "Origin" });
+            next();
+        };
+
+        router.options("/log/:name", cors, (req, res) => res.status(204).end());
+
+        /* The naming rules live in `Log.append()` itself (see its own comment) —
+         * this route only turns its answer into the right HTTP status. `ok`
+         * covers both a plain write and one the appender rewrote (`became`);
+         * only an outright refusal answers 409. */
+        router.post("/log/:name", cors, express.json({ limit: "1mb" }), async (req, res) => {
+            try {
+                const outcome = await this.log.append(req.params.name, this.stamp_via(req));
+                res.status(outcome.ok ? 200 : 409).json(outcome);
+            } catch (e){ res.status(400).json({ error: String(e.message || e) }); }
+        });
+
+        router.get("/log/:name", cors, async (req, res) => {
+            try { res.json(await this.log.tail(req.params.name, Number(req.query.n) || 50)); }
+            catch (e){ res.status(400).json({ error: String(e.message || e) }); }
+        });
+
+        /* THE CARDS SUB-PATH (decision `card-storage`, ai2-nested). One card's
+         * own append-only stream — `cards/<slug>` — a name `:name` above cannot
+         * spell, because an Express route param never matches a `/`. Same body,
+         * same `cors`, same 409-on-refusal; the only difference is the name
+         * `Log.append()`/`Log.tail()` are handed, which is why this is three
+         * lines beside the routes above rather than a second router. */
+        router.options("/log/cards/:slug", cors, (req, res) => res.status(204).end());
+
+        router.post("/log/cards/:slug", cors, express.json({ limit: "1mb" }), async (req, res) => {
+            try {
+                const via = this.via(req);   // a card log line wakes listeners beyond the assistant: a worktree page's is stubbed, like /card
+                if (via) return res.json({ ok: true, stubbed: true, via, note: "a worktree page's card line: written nowhere, nobody woken" });
+                const outcome = await this.log.append(`cards/${req.params.slug}`, req.body ?? {});
+                res.status(outcome.ok ? 200 : 409).json(outcome);
+            } catch (e){ res.status(400).json({ error: String(e.message || e) }); }
+        });
+
+        router.get("/log/cards/:slug", cors, async (req, res) => {
+            try { res.json(await this.log.tail(`cards/${req.params.slug}`, Number(req.query.n) || 200)); }
+            catch (e){ res.status(400).json({ error: String(e.message || e) }); }
+        });
+
+        /* A worktree page's card post (answer, append, create) would wake agents as if the owner
+         * spoke: answered as a stub instead, written nowhere (via:worktree, 2026-09-30). */
+        router.use("/card", (req, res, next) => {
+            const via = req.method === "POST" && this.via(req);
+            if (!via) return next();
+            local_cors(req, res, () => res.json({ ok: true, stubbed: true, via, note: "a worktree page's post: nothing written to the main tree's cards, nobody woken" }));
+        });
+        this.cards.routes(router, cors, local_cors);
+        this.inbox.routes(router, cors, express.json({ limit: "64kb" }));   // POST /api/inbox/drop|clear, GET /api/inbox
+
+        /* THE FAST TIDY CALL (dictation-playground, 2026-09-28) — one no-tools
+         * model call that cleans up a chunk of dictated text near-verbatim
+         * (typos, capitalization, punctuation, fillers only — never a
+         * rewrite). See Servex/agents/tidy.js for the prompt and options. */
+        router.options("/api/tidy", cors, (req, res) => res.status(204).end());
+
+        router.post("/api/tidy", cors, express.json({ limit: "64kb" }), async (req, res) => {
+            const body = req.body ?? {};
+            if (typeof body.text !== "string") return res.status(400).json({ ok: false, why: "text must be a string" });
+            res.json(await tidy(body));
+        });
+
+        /* THE ITEM TOOL FOR THE BROWSER (ui-actions-as-deltas, 2026-10-22) — a button's verb
+         * ({"start":{}}) goes through the same writer an agent's `item` call uses: validated,
+         * stamped by/ts, the hooks fire. Body {path, target?, delta}. It writes files, so
+         * loopback only; a worktree page's post is stubbed, never written to the main tree. */
+        router.options("/api/item", cors, (req, res) => res.status(204).end());
+
+        router.post("/api/item", cors, express.json({ limit: "64kb" }), async (req, res) => {
+            const ip = req.socket.remoteAddress;
+            if (ip !== "127.0.0.1" && ip !== "::1" && ip !== "::ffff:127.0.0.1") return res.status(403).json({ ok: false, why: "loopback only" });
+            const via = this.via(req);
+            if (via) return res.json({ ok: true, stubbed: true, via });
+            // ONE WRITER (data-shapes 1d): {path, delta} is a verb, {path, lines} raw lines from a hook, LogLine or a page; both end in
+            // record_lines' apply-then-append (page_tools.js serve_item). The caller's side is core/Item/RecordWriter.js.
+            const answer = await serve_item(req.body ?? {});
+            res.status(answer.ok === false && /^body must/.test(answer.why ?? "") ? 400 : 200).json(answer);
+        });
+
+        /* THE MERGE BUTTON (merge-approvals, 2026-10-23) — the branches agents marked `ready:` and the
+         * one button that lands them. All the logic is Server/ReadyToMerge.mjs; the button only ever
+         * runs Server/merge.mjs. Loopback only; a worktree page's post is stubbed; one merge at a time. */
+        const local_only = (req, res) => {
+            const ip = req.socket.remoteAddress;
+            if (ip === "127.0.0.1" || ip === "::1" || ip === "::ffff:127.0.0.1") return true;
+            res.status(403).json({ ok: false, why: "loopback only" }); return false;
+        };
+        router.options("/api/ready-to-merge", cors, (req, res) => res.status(204).end());
+        router.get("/api/ready-to-merge", cors, async (req, res) => {
+            if (!local_only(req, res)) return;
+            /* readyRows() runs a blocking `git merge-base` per branch: in Servex's own process that froze every route and
+             * timed out agents' prompt hooks (2026-10-23, 19-75 s gaps in crumbs.log). So it runs as a child (its --json
+             * mode), shared by every caller within 10 s. */
+            try {
+                const hot = this.ready_rows;
+                if (!hot || Date.now() - hot.at > 10000) {
+                    const run = new Promise((ok, no) => execFile(process.execPath, [fileURLToPath(new URL("../Server/ReadyToMerge.mjs", import.meta.url)), "--json"],
+                        { cwd: process.cwd(), windowsHide: true, maxBuffer: 64 << 20, timeout: 120000 }, (err, out) => err ? no(err) : ok(JSON.parse(out))));
+                    this.ready_rows = { at: Date.now(), run };
+                    run.catch(() => { if (this.ready_rows?.run === run) this.ready_rows = null; });
+                }
+                res.json(await this.ready_rows.run);
+            }
+            catch (e) { res.status(500).json({ ok: false, why: String(e?.message || e) }); }
+        });
+        router.options("/api/merge", cors, (req, res) => res.status(204).end());
+        router.post("/api/merge", cors, express.json({ limit: "4kb" }), async (req, res) => {
+            if (!local_only(req, res)) return;
+            const via = this.via(req);
+            if (via) return res.json({ ok: true, stubbed: true, via });
+            const branch = req.body?.branch;
+            if (typeof branch !== "string" || !branch) return res.status(400).json({ ok: false, why: "body must be {branch, head?}" });
+            if (this.merging) return res.json({ ok: false, why: "another merge is running; try again in a minute" });
+            this.merging = true;
+            try { res.json(await (await import("../Server/ReadyToMerge.mjs")).mergeBranch(branch, { head: typeof req.body?.head === "string" ? req.body.head : undefined })); }
+            catch (e) { res.status(500).json({ ok: false, why: String(e?.message || e) }); }
+            finally { this.merging = false; }
+        });
+
+        /* THE HIT-API CHAT CALLS (chat-hitl, 2026-09-29) — two small no-tools
+         * model calls the human-in-the-loop chat uses: `marks` (per-sentence
+         * purpose + ambiguity flag) and `rename` (five title alternatives).
+         * See Servex/agents/Hitl.js. Named ops only — an unknown `op`, or a
+         * caller-supplied `system`/`model`, is refused: this route (reachable
+         * from the LAN via `/servex`) never runs an arbitrary prompt. */
+        router.options("/api/hitl", cors, (req, res) => res.status(204).end());
+
+        router.post("/api/hitl", cors, express.json({ limit: "64kb" }), async (req, res) => {
+            const body = req.body ?? {};
+            if (body.system !== undefined || body.model !== undefined)
+                return res.status(400).json({ ok: false, why: "system and model are not accepted here" });
+            if (body.op !== "marks" && body.op !== "rename")
+                return res.status(400).json({ ok: false, why: `unknown op "${body.op}"` });
+            res.json(await Hitl.run(body));
+        });
+
+        /* THE LOCAL-MODELS CHAT PAGE'S OWN CALLS (public/framework/ai/local/,
+         * requirements.md Phase 2 ask 2) — one GET (the dropdown's own list,
+         * whatever gguf files actually exist right now) and one POST (a
+         * one-shot "ask it something", the exact same no-tools `query()` shape
+         * `/api/tidy` already uses, just pointed at the local provider instead
+         * of straight at Claude — Servex/ext/local/chat.js). CORS, same as
+         * `/api/tidy`/`/api/hitl`: a browser page posts here cross-origin from
+         * its own `<name>.localhost` origin. */
+        router.options("/api/local-chat", cors, (req, res) => res.status(204).end());
+
+        router.get("/api/local-chat", cors, (req, res) => res.json({ models: local_model_slugs() }));
+
+        router.post("/api/local-chat", cors, express.json({ limit: "64kb" }), async (req, res) => {
+            const body = req.body ?? {};
+            if (typeof body.text !== "string") return res.status(400).json({ ok: false, why: "text must be a string" });
+            res.json(await local_chat(body));
+        });
+
+        /* THE "TRY IT" TAB (public/framework/ext/Refine/try/, requirements.md
+         * 2026-10-04/clean-test-page) — run the SAME `clean()` Echo runs against
+         * whichever model the dropdown picked (a local gguf file, a cheap OpenRouter
+         * model, or Haiku — Servex/ext/clean-test/run.js). GET answers the dropdown's
+         * own list and the saved example set; the two POSTs run one clean and save
+         * one example. CORS, same as `/api/tidy`/`/api/local-chat`: a browser page
+         * posts here cross-origin from its own `<name>.localhost` origin. */
+        router.options("/api/clean-test", cors, (req, res) => res.status(204).end());
+        router.options("/api/clean-test/examples", cors, (req, res) => res.status(204).end());
+
+        router.get("/api/clean-test", cors, (req, res) => res.json({ models: model_choices() }));
+
+        router.post("/api/clean-test", cors, express.json({ limit: "64kb" }), async (req, res) => {
+            res.json(await run_clean(req.body ?? {}));
+        });
+
+        router.get("/api/clean-test/examples", cors, (req, res) => res.json({ examples: list_examples() }));
+
+        router.post("/api/clean-test/examples", cors, express.json({ limit: "64kb" }), (req, res) => {
+            res.json(save_example(req.body ?? {}));
+        });
+
+        /* THE LIVE DEMO ON ext/Refine (ai/sessions/2026/10/09/refine-demo/refine-demo) — one prompt in, the same
+         * clean() + structure() Echo runs out (Servex/ext/refine/run.js). */
+        router.options("/api/refine", cors, (req, res) => res.status(204).end());
+
+        router.post("/api/refine", cors, express.json({ limit: "64kb" }), async (req, res) => {
+            res.json(await run_refine({ ...(req.body ?? {}), inbox: this.inbox }));
+        });
+
+        /* LIVE REFINE (ai/sessions/2026/10/12/session-cca8d997/refine-haiku-live/live-server): the outline grows while you talk — each
+         * finished sentence placed within a few seconds, instead of one big refine on demand. One LiveRefine
+         * per prompt (Servex/ext/refine/LiveRefine.js); design: public/framework/ext/Refine/doc/live-refine-2026-10-12.md. */
+        router.options("/api/refine/live", cors, (req, res) => res.status(204).end());
+
+        router.post("/api/refine/live", cors, express.json({ limit: "64kb" }), async (req, res) => {
+            const { prompt, session = "", text, final = false, source = "dictated" } = req.body ?? {};
+            if (!/^[\w-]{4,60}$/.test(prompt ?? "") || typeof text !== "string" || !text.trim()) return res.json({ ok: false, why: "needs prompt (id) and text" });
+            if (session && !/^[0-9a-f-]{36}$/.test(session)) return res.json({ ok: false, why: "session must be a uuid" });
+            try {
+                const key = session ? `${session}/${prompt}` : prompt;
+                const out = await LiveRefine.get(key).step({ text: text.slice(0, 20000), final: !!final, source, session, prompt });
+                res.json({ ok: true, prompt, ...out });
+            } catch (e){ res.json({ ok: false, why: String(e?.message ?? e) }); }
+        });
+
+        /* VOICE TO THE SESSION PAGE (ai/sessions/2026/10/12/session-0e99727c/voice-to-session-page): while someone talks, the browser
+         * posts the words so far and each one lands on the session's page as a page-tool delta
+         * (Servex/ext/refine/VoicePage.js). `final: true` closes the raw stage; /api/refine writes the rest. */
+        router.options("/api/voice", cors, (req, res) => res.status(204).end());
+
+        router.post("/api/voice", cors, express.json({ limit: "64kb" }), async (req, res) => {
+            const { session, prompt, text, final = false, source } = req.body ?? {};
+            if (!/^[0-9a-f-]{36}$/.test(session ?? "") || !/^[\w-]{4,60}$/.test(prompt ?? "") || typeof text !== "string" || !text.trim()) return res.status(400).json({ ok: false, why: "needs session (uuid), prompt (id) and text" });
+            try { await VoicePage.get(session, prompt).raw(text.slice(0, 20000), { final: !!final, source }); res.json({ ok: true }); }
+            catch (e){ res.json({ ok: false, why: String(e?.message ?? e) }); }
+        });
+
+        /* ONE CARD OF A REFINED PROMPT -> a board card + an asks.jsonl line (Servex/ext/refine/CardAsk.js). Same card twice: the first answer again. */
+        router.options("/api/voice/card", cors, (req, res) => res.status(204).end());
+
+        router.post("/api/voice/card", cors, express.json({ limit: "64kb" }), async (req, res) => {
+            try { res.json(await new CardAsk({ cards: this.cards, asks: this.asks }).make(req.body ?? {})); }
+            catch (e){ res.json({ ok: false, why: String(e?.message ?? e) }); }
+        });
+
+        /* The same voice lines as a read-only stream (SSE), for a phone: the dev socket is localhost-only, so a LAN page cannot tail page.jsonl and follows this instead. */
+        router.get("/api/voice/stream", cors, (req, res) => {
+            const session = String(req.query.session ?? "");
+            if (!/^[0-9a-f-]{36}$/.test(session)) return res.status(400).json({ ok: false, why: "needs session (uuid)" });
+            res.set({ "content-type": "text/event-stream", "cache-control": "no-cache, no-transform", connection: "keep-alive", "x-accel-buffering": "no" });
+            res.flushHeaders?.();
+            const send = line => res.write("data: " + JSON.stringify(line) + "\n\n");
+            for (const line of VoicePage.lines(session)) send(line);
+            const fn = (s, line) => { if (s === session) send(line); };
+            VoicePage.listeners.add(fn);
+            const beat = setInterval(() => res.write(": ok\n\n"), 20000);
+            req.on("close", () => { clearInterval(beat); VoicePage.listeners.delete(fn); });
+        });
+
+        /* Whisper in one plain line for a page (ux/Dictate): is it up, and did Servex have to restart it? */
+        const whisper_line = () => {
+            const w = this.processes.get("whisper")?.toJSON?.() ?? null;
+            return { ok: true, status: w?.status ?? "unknown", port: w?.port ?? null, crashes: w?.crashes ?? 0, last_crash: w?.last_crash ?? null, said: w?.said ?? "" };
+        };
+        router.get("/api/whisper", cors, (req, res) => res.json(whisper_line()));
+
+        /* The same answer pushed (SSE) the moment Whisper's status changes (stopped, restarting, online), so a page shows a restart as it happens and never polls (Process.js emits "status"). */
+        router.get("/api/whisper/stream", cors, (req, res) => {
+            res.set({ "content-type": "text/event-stream", "cache-control": "no-cache, no-transform", connection: "keep-alive", "x-accel-buffering": "no" });
+            res.flushHeaders?.();
+            const send = () => res.write("data: " + JSON.stringify(whisper_line()) + "\n\n");
+            const proc = this.processes.get("whisper");
+            send();
+            proc?.on?.("status", send);
+            const beat = setInterval(() => res.write(": ok\n\n"), 20000);
+            req.on("close", () => { clearInterval(beat); proc?.off?.("status", send); });
+        });
+
+        router.get("/api/logs", (req, res) => res.json(this.log.names()));
+
+        /* The dashboard's first paint. After this it hears about every change on
+         * the live stream (`GET /api/stream`) instead of asking again. */
+        // `cors` since 2026-09-23: AI 2's Live card reads who is running NOW
+        // (this live map), not the registry below, whose rows outlive a restart.
+        router.get("/api/agents", cors, (req, res) => res.json(this.agents.list()));
+
+        /* BEFORE A RESTART (restarts that lose nothing, 2026-10-22): sustain.mjs --restart posts here before it kills anything.
+         * Writes the list of live agents and pending wake-ups (Agents.snapshot) that the next boot's revive() resumes. Loopback only. */
+        router.post("/api/before-restart", express.json({ limit: "8kb" }), (req, res) => {
+            if (!loopback(req.socket.remoteAddress)) return res.status(403).json({ ok: false, why: "loopback only" });
+            res.json({ ok: true, ...this.agents.snapshot({ by: typeof req.body?.by === "string" ? req.body.by : null }) });
+        });
+
+        /* SAY SOMETHING TO ONE RUNNING AGENT (agent-chat, 2026-09-24) — the Live
+         * card's inline chat posts here. `send()` queues it behind the agent's
+         * current turn, so a busy agent answers when it is free. Unknown id 404,
+         * stopped 409, no text 400 — each with the plain sentence as `error`.
+         * ⚠ The Dispatcher sits in the same live map as a FAKE agent whose
+         * `send()` means "a child woke me" — so only a real Claude session
+         * (`Agents.Agent`) is accepted; anything else is a 409. */
+        router.options("/api/agents/:id/message", cors, (req, res) => res.status(204).end());
+
+        router.post("/api/agents/:id/message", cors, express.json({ limit: "64kb" }), (req, res) => {
+            const text = String(req.body?.text ?? "").trim();
+            if (!text) return res.status(400).json({ error: "text is required" });
+            const via = this.via(req);
+            if (via) return res.json({ ok: true, stubbed: true, via, note: "a worktree page's message: not delivered, nobody woken" });
+            let agent;
+            try { agent = this.agents.get(req.params.id); }
+            catch (e){ return res.status(404).json({ error: String(e.message || e) }); }
+            if (!(agent instanceof this.constructor.Agents.Agent))
+                return res.status(409).json({ error: `"${agent.id}" is not a Claude session — it cannot take a message.` });
+            try { res.json(agent.send(text, { from: "owner" }).card()); }
+            catch (e){ res.status(409).json({ error: String(e.message || e) }); }
+        });
+
+        /* The registry — every agent ever spawned, surviving a Servex restart the
+         * `live` Map above does not. What `list_agents` and `say.mjs state`'s
+         * `MASTERMINDS` block read from outside this process — and, since
+         * board-from-events (2026-09-22), the AI board's own Agents strip, reading
+         * this cross-origin from the site, hence `cors` (the same star-origin
+         * middleware `/log/:name` already uses, safe for the same reason: `guard()`
+         * above has already refused every non-loopback caller). */
+        router.get("/agents", cors, (req, res) => res.json(this.agents.registry_list()));
+
+        /* The machine monitor's latest sample, verdict, flag and spawn queue. */
+        router.get("/api/system", cors, (req, res) => res.json(this.health()));
+
+        /* The process monitor: the latest snapshot and an hour of 10-second points
+         * (`?history=0` leaves them out). The Live card draws its graph from it. */
+        router.get("/api/processes", cors, (req, res) => res.json(this.procmon
+            ? this.procmon.summary({ history: req.query.history !== "0" }) : { off: "SERVEX_NO_PROCESSES=1" }));
+
+        /* The worktree pool: { K, N_hours, slots: [...] } — the Live card reads it. */
+        router.get("/api/worktrees", cors, (req, res) => res.json(this.pool ? this.pool.list() : { K: 0, N_hours: 0, slots: [] }));
+
+        /* A clean-up pass now, not in up to 10 minutes: on-landing.mjs posts it when a task that asked for a
+         * preview lands, so its worktree's dev server is on the LAN before the owner taps the link. Answers the
+         * pass's summary (Worktrees.summary: `waiting`, `lan`). The router is loopback only. */
+        router.post("/api/worktrees/tick", async (req, res) => {
+            if (!this.worktrees) return res.json({ ok: false, why: "SERVEX_NO_WORKTREES is set" });
+            try { await this.worktrees.tick(); res.json({ ok: true, ...this.worktrees.summary() }); }
+            catch (e) { res.status(500).json({ ok: false, why: String(e?.message || e) }); }
+        });
+
+        /* SERVER OBJECTS (Cards that show the thing, 2026-09-25) — walks Servex instance two levels deep.
+         * Returns names, counts, and states only, never sensitive values. */
+        router.get("/api/objects", cors, (req, res) => {
+            try {
+                const walk = (target, depth = 0, seen = new WeakSet()) => {
+                    if (!target || typeof target !== "object" || depth >= 2) return null;
+                    if (seen.has(target)) return { circular: true };
+                    seen.add(target);
+                    const out = {};
+                    for (const key of Object.keys(target)){
+                        if (key.startsWith("_")) continue;
+                        const val = target[key];
+                        if (val === undefined || typeof val === "function") continue;
+                        if (val instanceof Map || val instanceof Set){
+                            out[key] = {
+                                type: val.constructor.name,
+                                count: val.size,
+                                items: depth < 1 ? [...val.keys ? val.keys() : val].slice(0, 20).map(String) : undefined
+                            };
+                        } else if (Array.isArray(val)){
+                            out[key] = {
+                                type: "Array",
+                                count: val.length
+                            };
+                        } else if (val && typeof val === "object"){
+                            const cname = val.constructor?.name ?? "Object";
+                            const state = typeof val.state === "string" ? val.state : (val.running ? "running" : undefined);
+                            out[key] = {
+                                type: cname,
+                                state,
+                                count: Object.keys(val).length,
+                                children: depth < 1 ? walk(val, depth + 1, seen) : undefined
+                            };
+                        } else {
+                            // Primitives
+                            out[key] = { type: typeof val, value: String(val).slice(0, 40) };
+                        }
+                    }
+                    return out;
+                };
+                res.json({
+                    type: "Servex",
+                    state: "running",
+                    objects: walk(this)
+                });
+            } catch (e){
+                res.status(500).json({ error: String(e.message || e) });
+            }
+        });
+
+        /* THE DOCS TAB (servex-docs-tab, 2026-09-29) — read-only, loopback-only
+         * (guard() above already refuses non-loopback callers). `/api/docs` lists
+         * every module under Servex/ or Server/ with its own readme.md;
+         * `/api/docs/file` reads one file out of one module. All the validation
+         * (path shape, no `..`, resolved-path-stays-inside-root) lives in
+         * `docs_read_file()` in pages.js, which throws `.status` 400 or 404. */
+        router.get("/api/docs", (req, res) => {
+            try { res.json(docs_list()); }
+            catch (e){ res.status(500).json({ error: String(e.message || e) }); }
+        });
+
+        router.get("/api/docs/file", (req, res) => {
+            try {
+                const text = docs_read_file(req.query.path, req.query.file);
+                res.type(req.query.file === "demo.js" ? "text/javascript" : "text/plain").send(text);
+            } catch (e){ res.status(e.status || 400).json({ error: String(e.message || e) }); }
+        });
+    }
+
+    tools(){
+        const name = { type: "string", description: "The project's name, as `list_servers` reports it." };
+        const one = { type: "object", required: ["name"], properties: { name } };
+
+        this.mcp
+            .tool("list_servers", { description: "Every project Servex found, with its port, its URL through the proxy, whether it is running, and the last line it printed." },
+                () => JSON.stringify(this.list(), null, 2))
+
+            .tool("start_server", { description: "Start a project's dev server under Servex, with its own PORT in the environment. Already running is not an error.", inputSchema: one },
+                a => this.command(a.name, "start"))
+
+            /* THE WARM SHARED BROWSER (2026-10-03): `check_page` is the one way to see what a
+             * developer tools console would show for a URL, without opening a tab yourself — the
+             * owner's own ask: "if I say 'this page isn't loading,' you can load it and see what
+             * the network is saying, or the console." It reuses `Server/Browser.mjs`'s one
+             * shared Chromium (Servex is a long-running process, so that's already "started
+             * lazily, stays warm"); after every call its RSS is checked and it's closed (the
+             * next call relaunches fresh) once it's grown past 600 MB or sat idle 30 minutes —
+             * both logged to the `browser-check` log, never silently. */
+            .tool("check_page", { description: "Navigate the one warm shared headless Chromium to a URL and report what a developer tools console would show: console lines (errors/warns/logs, deduped with counts), failed requests, HTTP 4xx/5xx responses, page errors (uncaught JS exceptions), and load time. Waits for load plus 2s so late console lines land too. Starts the shared browser on first call (a few hundred MB); closes the tab when done, never the owner's own browser — this is its own private Chromium (Server/Browser.mjs).",
+                inputSchema: { type: "object", required: ["url"], properties: {
+                    url: { type: "string", description: "The page to load." },
+                    shot: { type: "boolean", description: "Also take a screenshot; the response names its saved path." } } } },
+                async a => {
+                    const report = await check_page(a.url, { shot: a.shot });
+                    const pid_now = browser_pid();
+                    const capped = await cap().catch(() => null);   // may close the shared browser — read its pid first
+                    this.log.append("browser-check", { type: "check_page", url: a.url, load_ms: report.load_ms,
+                        console: report.console.length, failed: report.failed.length, http_errors: report.http_errors.length,
+                        page_errors: report.page_errors.length, pid: pid_now, rss_mb: capped?.rss_mb ?? null, closed: capped?.closed ?? false,
+                        closed_why: capped?.why ?? null }).catch(() => {});
+                    return JSON.stringify({ ...report, browser_pid: pid_now, browser_rss_mb: capped?.rss_mb ?? null, browser_closed: capped?.closed ?? false });
+                })
+
+            .tool("restart_server", { description: "Stop a project's dev server and start it again. Safe when it is already dead.", inputSchema: one },
+                a => this.command(a.name, "restart"))
+
+            .tool("stop_server", { description: "Stop a project's dev server and leave it stopped.", inputSchema: one },
+                a => this.command(a.name, "stop"))
+
+            .tool("server_logs", { description: "The last lines of a log, newest last. Any log name works, not just a server's — `list_servers` and the dashboard name the ones that exist.",
+                inputSchema: { type: "object", required: ["name"], properties: { name,
+                    n: { type: "number", description: "How many lines. Default 50." } } } },
+                async a => JSON.stringify(await this.log.tail(a.name, a.n || 50), null, 2))
+
+            /* VALIDATED FIRST (2026-09-30): the entry is judged by .claude/hooks/jsonl-schema.mjs's
+             * check_event() before Log.append() sees it — an entry with no string `type`, or a
+             * task.jsonl-shaped line sent here by mistake, is refused as `{ok:false, why}` and nothing
+             * is written. Only this TOOL is judged; Servex's own internal writers call Log.append()
+             * directly and are untouched. The schema is loaded lazily and fails OPEN: a missing or
+             * broken schema file must never stop Servex booting or refuse a write. */
+            .tool("append_log", { description: "Append one event to one of Servex's own named logs (never a repo file — a task.jsonl line goes through `node .claude/hooks/append.mjs`). The entry is validated first: it needs a string `type`, like {\"type\":\"focus\",\"ref\":\"<card id>\"}; a refusal comes back as {ok:false, why} and nothing is written. Servex stamps `at` and is the only writer, so two callers can never tear a line.",
+                inputSchema: { type: "object", required: ["name", "entry"], properties: {
+                    name: { type: "string", description: "Which log. Letters, digits, dot, dash, underscore; it becomes a filename." },
+                    entry: { type: "object", description: "The event: one flat object with a string `type`; `at` is added for you." } } } },
+                async a => {
+                    const schema = await import("../.claude/hooks/jsonl-schema.mjs").catch(() => null);
+                    const why = schema?.check_event?.(a.name, a.entry);
+                    if (why) return JSON.stringify({ ok: false, why });
+                    return JSON.stringify(await this.log.append(a.name, a.entry ?? {}));
+                });
+
+        /* And the agent host's five, through the very same seam — `spawn_agent`,
+         * `send_to_agent`, `interrupt_agent`, `list_agents`, `stop_agent`. Ten
+         * tools on one door; nothing about them is special-cased here. */
+        for (const tool of agent_tools(this.agents)) this.mcp.tool(tool);
+        for (const tool of directory_tools(this.agents)) this.mcp.tool(tool);   // ask_directory: agents/directory.js
+        for (const tool of this.cards.tools()) this.mcp.tool(tool);
+        for (const tool of this.pool?.tools() ?? []) this.mcp.tool(tool);   // take_worktree, return_worktree
+        try { this.dated_watch = DatedFiles.sessions.watch(); } catch (e) { console.error("DatedFiles.watch:", e.message); }   // the index row of any new session folder (a Servex restart starts it)
+        for (const t of DatedFiles.tools()) this.mcp.tool(t);   // move_project, dated_create, dated_query: Server/DatedFiles.mjs
+        for (const tool of this.follow.tools()) this.mcp.tool(tool);   // follow, unfollow, list_follows
+        for (const tool of this.inbox.tools()) this.mcp.tool(tool);   // drop, clear, inbox
+
+
+        this.mcp.tool("system_health", {
+            description: "Is this machine under strain? The latest sample from Servex's monitor (every 5 s): total CPU %, free RAM,"
+                + " the top 5 processes by CPU, claude/node/chrome counts, live agents (working, and idle ones still holding a"
+                + " claude process), GPU load/temperature/fan, and a one-line verdict. While the flag is up, new agents are"
+                + " queued instead of started — `queue` lists them. The three optional numbers change the flag's thresholds"
+                + " for this Servex until it restarts. `processes` is the process monitor (this.procmon): RAM and CPU that are ours vs. everything"
+                + " else, per task, and orphaned processes (Servex/doc/processes.md).",
+            inputSchema: { type: "object", properties: {
+                hot_cpu: { type: "number", description: "Flag when total CPU % stays at or above this. Default 90." },
+                hot_seconds: { type: "number", description: "…for this many seconds. Default 60." },
+                low_ram_gb: { type: "number", description: "Flag when free RAM falls under this many GB. Default 1.5." }
+            } }
+        }, args => {
+            this.monitor?.set(args ?? {});
+            const health = this.health();
+            return `${health.verdict}\n\n${JSON.stringify(health, null, 2)}`;
+        });
+
+        this.mcp.tool("check_usage", {
+            description: "Claude subscription usage, from public/framework/ai/usage.json (refreshed every 15 min): the weekly limit and the"
+                + " 5-hour session window, each as % used, % of the window gone, and % of pace (used ÷ gone; 100 is the line). `over_pace`"
+                + " true means no new spawns. Same numbers as `node Server/usage-now.mjs`; no endpoint call happens here."
+        }, () => JSON.stringify(Usage.status(), null, 1));
+
+        /* The task loop's own two tools (Servex/doc/task-loop.md). */
+        this.mcp.tool("close_task", {
+            description: "The only way a task leaves the task loop besides landing. Appends {closed_by: \"owner\","
+                + " closed_at, closed_why} to its task.jsonl; the loop then never chases or escalates it again.",
+            inputSchema: { type: "object", required: ["dir"], properties: {
+                dir: { type: "string", description: "The task's directory, e.g. `public/framework/ai/2026-09-28/my-task` — repo-relative or absolute." },
+                why: { type: "string", description: "One line: why it is being closed without landing." }
+            } }
+        }, async args => JSON.stringify(await this.task_loop.close_task(args)));
+
+        this.mcp.tool("task_loop_status", {
+            description: "The task loop's latest tick: how many tasks are open today, how many are quiet, and running"
+                + " totals chased/escalated since this Servex started."
+        }, () => JSON.stringify(this.task_loop.status()));
+
+        this.mcp.tool("heartbeat_status", {
+            description: "The heartbeat: every watched task owner, how long it has been silent, whether a status check is"
+                + " waiting on an answer or it is mid-tool; minions held at the spawn gate; revives queued."
+        }, () => JSON.stringify(this.heartbeat.status(), null, 1));
+    }
+
+    health(){
+        const processes = this.procmon ? { line: this.procmon.line(), ...this.procmon.summary({ history: false }) } : null;
+        if (!this.monitor) return { verdict: "The monitor is off (SERVEX_NO_MONITOR=1).", processes, queue: this.queued() };
+        const h = this.monitor.health();
+        return { ...h, verdict: processes ? `${h.verdict} ${processes.line}` : h.verdict, processes, queue: this.queued() };
+    }
+
+    /* ── the spawn gate ───────────────────────────────────────────────── */
+
+    /* THE GATE ON NEW AGENTS. `checks` is a list of functions; each is called
+     * as `check(spec)` and returns a reason string to hold that spawn, or null.
+     * `admit(spec)` answers null (start it now) or the first reason. The
+     * monitor's flag is one check; `agents/Global.js` pushes an agent cap onto
+     * the same list. Keep this exact shape — both sides agreed it.
+     *
+     * `agents.spawn` is wrapped on the INSTANCE, so every caller goes through
+     * it: the MCP tool, the Dispatcher, a resume (a spec with `resume` set). A held
+     * spec is queued and the caller gets a stand-in whose `card()` says so; the
+     * monitor's tick drains the queue once `admit()` says yes again.
+     *
+     * Some spawns skip the gate, because their callers use the returned agent
+     * for more than `.card()` and a stand-in would break them:
+     *   - `urgent: true` in the spec — the caller's own say-so;
+     *   - role `assistant` / `master-assistant` — Assistant.start() calls
+     *     `.send()` on what it gets back, and these are the owner's front desk;
+     *   - role `helper` — Assistant.help() rebinds `agent.result` at once;
+     *   - a task mastermind whose parent is the Dispatcher — the Dispatcher keys
+     *     its slots on `agent.id`, so it is gated one step earlier instead: its
+     *     `pump()` waits while `admit()` says no, and the tick calls it again. */
+    admission(){
+        this.checks = [];
+        this.queue = [];
+        this.queue_file ??= place("spawn-queue.json");
+        // Named `do_spawn`, not `spawn` (2026-10-03): the file-wide hidden-window guard flags any
+        // bare call to something named spawn as an unhidden child_process spawn, with no way to
+        // tell this is really `this.agents.spawn` rebound under a shadowing local name.
+        const do_spawn = this.agents.spawn.bind(this.agents);
+        this.agents.spawn_now = do_spawn;
+        this.agents.spawn = spec => {
+            const broke = process.env.SERVEX_NO_BUDGET ? null : this.heartbeat?.budgets?.().refuse(spec);   // over its task's budget: refused, never queued (Budget.js)
+            if (broke){ this.log.append("system", { type: "gate", state: "refused", parent: spec.parent, name: spec.name ?? null, why: broke }).catch(() => {}); throw new Error(broke); }
+            const same = this.same_as(spec);   // one session, one process; one queued entry per id, name or session
+            if (same) return same;
+            const reason = this.bypass(spec) ? null : this.admit(spec);
+            return reason ? this.hold(spec, reason) : do_spawn(spec);
+        };
+        this.restore();
+        setTimeout(() => this.drain(), 5000).unref?.();   // restored entries start even with no monitor ticking
+        /* A queued id is addressable: a message is held in its entry, a stop takes it out of the queue. */
+        this.agents.queued_entry = id => this.queue.find(e => e.spec.id === id)?.stand_in ?? null;
+        this.agents.unqueue = id => {
+            const i = this.queue.findIndex(e => e.spec.id === id);
+            if (i < 0) return false;
+            this.queue.splice(i, 1); this.save_queue();
+            this.log.append("system", { type: "gate", state: "removed", id }).catch(() => {});
+            return true;
+        };
+        /* wait_for_agent on a QUEUED id waits for it to start, then for its turn. */
+        this.agents.when_started = (id, timeout_s) => !this.queue.some(e => e.spec.id === id) ? null : new Promise(resolve => {
+            const on = (spec, agent) => { if (agent?.id === id){ this.off("admitted", on); clearTimeout(t); resolve(agent); } };
+            const t = setTimeout(() => { this.off("admitted", on); resolve(null); }, timeout_s * 1000);
+            this.on("admitted", on);
+        });
+
+        const pump = this.dispatcher.pump.bind(this.dispatcher);
+        this.dispatcher.pump = () => {
+            const reason = this.dispatcher.queue.length ? this.admit({ role: "task-mastermind", parent: this.dispatcher.id }) : null;
+            if (reason){
+                if (this.dispatch_held !== reason) this.log.append("system", { type: "gate", state: "held", what: "dispatcher",
+                    waiting: this.dispatcher.queue.length, reason }).catch(() => {});
+                this.dispatch_held = reason;
+                return;
+            }
+            this.dispatch_held = null;
+            pump();
+        };
+    }
+
+    bypass(spec = {}){
+        return !!spec.urgent
+            || ["assistant", "master-assistant", "helper"].includes(spec.role)
+            || (["task-mastermind", "page-mastermind"].includes(spec.role) && !!spec.parent && spec.parent === this.dispatcher?.id);
+    }
+
+    /* FINISHING ROLES FIRST (node-reliability, 2026-09-29). A reviewer, clarity
+     * or checker is what lets finished work merge and release its agents and
+     * servers; holding it under the 4 GB floor was a priority inversion
+     * (mobile-nav, 17:50). It goes through with SERVEX_FINISH_FLOOR_MB (1024)
+     * free, whatever the other checks say, and drains ahead of everything else. */
+    /* VIA:WORKTREE (node-reliability, 2026-09-30; brief 21:40). A page served by a worktree's dev
+     * server posts to this same Servex; its chat and prompt lines landed in the MAIN tree's live
+     * logs as the owner's words and woke paid assistants (chat-hitl, 21:33-21:36). A request whose
+     * Origin (or Referer) is a worktree's port or `<name>.localhost` — or that says so itself with
+     * `x-servex-via` — is `worktree:<name>`: log lines are stamped with it, and nothing wakes for them. */
+    via(req){
+        const said = req.get?.("x-servex-via");
+        if (said) return String(said).slice(0, 80);
+        let u; try { u = new URL(req.get?.("origin") || req.get?.("referer") || ""); } catch { return null; }
+        let reg = {}; try { reg = JSON.parse(fs.readFileSync(path.resolve(HERE, "..", ".worktrees.json"), "utf8")); } catch {}
+        const hit = Object.values(reg).find(e => (u.port && String(e.port) === u.port) || u.hostname === `${e.name}.localhost`);
+        return hit ? `worktree:${hit.name}` : null;
+    }
+    local_origin(origin){
+        try { const u = new URL(origin); return /^https?:$/.test(u.protocol) && (u.hostname === "localhost" || u.hostname === "127.0.0.1" || u.hostname.endsWith(".localhost")); }
+        catch { return false; }
+    }
+    stamp_via(req){
+        const body = req.body ?? {}, via = this.via(req);
+        return via && body && typeof body === "object" && !Array.isArray(body) ? { ...body, via } : body;
+    }
+
+    finishing(spec = {}){ return ["reviewer", "clarity", "checker"].includes(spec.role); }
+
+    admit(spec){
+        if (this.finishing(spec) && os.freemem() / 1048576 >= (Number(process.env.SERVEX_FINISH_FLOOR_MB) || 1024)) return null;
+        for (const check of this.checks){
+            const reason = check(spec);
+            if (reason) return reason;
+        }
+        return null;
+    }
+
+    /* THE SAME SPAWN TWICE (node-reliability, 2026-09-29). Returns what a new
+     * spawn should become instead of a second process or a second queue entry:
+     *   - a resume of a session a live agent already holds → that agent
+     *     (lifecycle's session ran as five processes, 18:15);
+     *   - an id, a session, or a fresh role+name already queued → that entry's
+     *     stand-in, so a message is held in its inbox (mobile-nav's queue held
+     *     7 reviewers, 18:00). */
+    same_as(spec = {}){
+        if (spec.resume && !spec.fork){
+            const live = [...this.agents.live.values()].find(a => a.state !== "stopped" && a.session_id === spec.resume);
+            if (live){
+                this.log.append("system", { type: "gate", state: "deduped", into: live.id, session: spec.resume }).catch(() => {});
+                if (spec.prompt) live.send(spec.prompt, { from: "servex" });
+                return live;
+            }
+        }
+        const entry = this.queue.find(e =>
+            (spec.id && e.spec.id === spec.id)
+            || (spec.resume && !spec.fork && e.spec.resume === spec.resume)
+            // a fresh spawn is the SAME only when it asks the same thing of the same place for the same parent (a retry)
+            || (!spec.resume && !e.spec.resume && spec.name && e.spec.name === spec.name && e.spec.role === spec.role
+                && e.spec.prompt === spec.prompt && (e.spec.parent ?? null) === (spec.parent ?? null) && (e.spec.cwd ?? null) === (spec.cwd ?? null)));
+        if (!entry) return null;
+        this.log.append("system", { type: "gate", state: "deduped", into: entry.spec.id, role: spec.role ?? null, name: spec.name ?? null }).catch(() => {});
+        if (spec.prompt && spec.prompt !== entry.spec.prompt && spec.resume) entry.inbox.push([spec.prompt, { from: "servex" }]);
+        this.save_queue();
+        return entry.stand_in;
+    }
+
+    hold(spec, reason){
+        /* The id is fixed NOW, so the caller can wait_for_agent on it (review.mjs
+         * and clarity.mjs treated a queued spawn as a failure, 19:20). */
+        spec.id ??= this.reserve(spec);
+        const entry = { spec, reason, at: stamp(), inbox: [] };
+        this.queue.push(entry);
+        this.log.append("system", { type: "gate", state: "queued", id: spec.id, role: spec.role ?? null, name: spec.name ?? null,
+            reason, position: this.queue.length }).catch(() => {});
+        const note = `Not started: ${reason}. Servex will start it as soon as that clears, under this id; wait_for_agent on it works now. Its parent is woken as usual once it runs.`;
+
+        /* `send()` on the stand-in HOLDS the message. Agents.send() wakes a stopped
+         * agent through spawn and then sends to whatever comes back, so a held
+         * resume must not lose the message that woke it (found by assistant-layers,
+         * 2026-09-24). drain() delivers the inbox the moment the agent really runs. */
+        const stand_in = {
+            id: spec.id, queued: true, spec,
+            send: (text, extra) => { entry.inbox.push([text, extra]); this.save_queue(); return stand_in; },
+            card: () => ({ id: spec.id, state: "queued", queued: true, position: this.queue.indexOf(entry) + 1,
+                reason, note, held_messages: entry.inbox.length })
+        };
+        Object.defineProperty(entry, "stand_in", { value: stand_in, enumerable: false });
+        this.save_queue();
+        return stand_in;
+    }
+
+    /* An id no live agent and no queued entry has: `<role>-<name>`, then -2, -3… */
+    reserve(spec){
+        const base = this.agents.name({ role: spec.role, name: spec.name });
+        const stem = base.replace(/-\d+$/, "");
+        const taken = id => (this.agents.live.has(id) && this.agents.live.get(id).state !== "stopped") || this.queue.some(e => e.spec.id === id);
+        if (!taken(base)) return base;
+        let n = 2;
+        while (taken(`${stem}-${n}`)) n++;
+        return `${stem}-${n}`;
+    }
+
+    /* THE QUEUE SURVIVES A RESTART (node-reliability, 2026-09-29): it is written
+     * to spawn-queue.json beside the registry on every change, and read back at
+     * boot. Before, a restart dropped every held spawn, prompt included (six at
+     * 19:35). A spec carrying code (`sdk`, `mcp_servers`, `system`) cannot be
+     * written down; its owner spawns it again, and the drop is logged. */
+    save_queue(){
+        const keep = this.queue.filter(e => !unsavable(e.spec)).map(({ spec, reason, at, inbox }) => ({ spec, reason, at, inbox }));
+        try { fs.writeFileSync(this.queue_file, JSON.stringify(keep, null, 1)); }
+        catch (e){ this.say(`spawn queue not saved: ${e.message || e}`); }
+    }
+
+    /* A held spec that must not start any more: its cwd is gone, it was stopped on
+     * purpose, or its task landed while it waited — the revive guard, asked of a spec. */
+    stale(spec){
+        const no = this.agents.blocked?.({ id: spec.id, cwd: spec.cwd, task_dir: spec.task?.dir && path.resolve(spec.task.dir),
+            ...(spec.resume ? { stopped_by: this.agents.reg().read()[spec.id]?.stopped_by } : {}) },
+            { landed: !spec.resume && !!spec.task?.dir });   // landed counts only against the task dir the spec names: a held RESUME or a fresh spawn by id (ai-system-mastermind, 2026-10-25) must not be matched to an OLD landed task of the same name
+        if (no){
+            this.log.append("system", { type: "gate", state: "dropped", id: spec.id ?? null, why: no.text }).catch(() => {});
+            if (spec.parent) try { this.agents.send(spec.parent, `${spec.id ?? spec.name ?? spec.role ?? "a queued spawn"} was dropped from the spawn queue and will not start: ${no.text}. Spawn it again if you still want it.`, { from: "servex" }); } catch {}
+        }
+        return !!no;
+    }
+
+    restore(){
+        let saved = [];
+        try { saved = JSON.parse(fs.readFileSync(this.queue_file, "utf8")); } catch { return; }
+        for (const { spec, reason, at, inbox } of saved){
+            if (!spec || this.same_as(spec) || this.stale(spec)) continue;
+            this.hold(spec, reason ?? "restored after a Servex restart");
+            const entry = this.queue.at(-1);
+            entry.at = at ?? entry.at;
+            entry.inbox.push(...(inbox ?? []));
+        }
+        this.save_queue();
+        if (saved.length) this.log.append("system", { type: "gate", state: "restored", count: this.queue.length }).catch(() => {});
+    }
+
+    queued(){
+        return this.queue.map((entry, i) => ({ position: i + 1, id: entry.spec.id ?? null, role: entry.spec.role ?? null, name: entry.spec.name ?? null,
+            reason: entry.reason, since: entry.at }));
+    }
+
+    /* Every monitor tick: start what the gate now admits, oldest first. `retried` (item 7) keeps
+     * a spec this SAME tick just put back at the head from being picked up again before the
+     * pool has had any real chance to change — without it, a cold pool would spin this loop
+     * forever on one spec instead of giving every other queued entry its turn too. */
+    drain(){
+        const retried = new Set();
+        for (;;){
+            const i = this.next_ready(retried);
+            if (i < 0) break;
+            const [{ spec, at, inbox }] = this.queue.splice(i, 1);
+            this.save_queue();
+            if (this.stale(spec)) continue;
+            try {
+                const agent = this.agents.spawn_now(spec);
+                this.log.append("system", { type: "gate", state: "started", id: agent.id, queued_at: at, held_messages: inbox.length }).catch(() => {});
+                for (const [text, extra] of inbox) agent.send(text, extra);   // what arrived while it was held
+                /* NEVER-LOSE-A-WAKE item 3: a `starting` agent the reconcile re-queued (below)
+                 * carries whatever it had not yet delivered as raw, already-wrapped turns — push
+                 * them straight onto the fresh agent's own queue instead of `send()`, which would
+                 * wrap them in a SECOND envelope. */
+                for (const item of spec._held_turns ?? []) agent.queue?.push(item);
+                this.emit("admitted", spec, agent);   // a caller holding the queued stand-in learns the real agent here
+            } catch (e){
+                const msg = String(e.message || e);
+                /* NEVER-LOSE-A-WAKE item 7 (2026-10-01, 22:35, widened 22:56): the gate had
+                 * already let this spec through once — `admit()` said the cap and the budget
+                 * were fine — and it still failed, inside `Agents.spawn()` itself, for a reason
+                 * that is really just "not yet", not "no". The old code dropped the spec right
+                 * here and never told anyone (minion-never-lose-a-wake, minion-fixer and
+                 * minion-quick-merge all vanished this way at 20:38 when the POOL had no slot;
+                 * minion-lf-deepseek the same way at 22:56 when the OPENROUTER PACE GUARD refused
+                 * it after 19 minutes already queued for RAM — same failure shape, different
+                 * refuser). `WAIT_REFUSALS` below is every refuser inside `spawn()` known to be
+                 * transient — it will say yes later, not never — so its spec goes straight back
+                 * to the HEAD of the queue, never dropped; `retried` stops THIS tick from
+                 * spinning on it while the reason is still true. A refusal NOT on this list (a
+                 * genuinely broken spec, a programming error) is logged and dropped as before —
+                 * retrying that forever would never succeed and would only spin the gate. */
+                const wait = WAIT_REFUSALS.find(w => w.test.test(msg));
+                this.log.append("system", { type: "gate", state: "failed", id: spec.id ?? null, role: spec.role ?? null, name: spec.name ?? null,
+                    error: msg, requeued: !!wait || undefined }).catch(() => {});
+                if (wait){
+                    retried.add(spec);
+                    this.queue.unshift({ spec, reason: wait.reason, at, inbox });
+                    this.save_queue();
+                    if (wait.top_up) try { this.pool?.top_up?.(); } catch {}
+                }
+                /* A SPAWN'S FAILURE OF ANY KIND TELLS ITS PARENT, once — the second half of item 7.
+                 * Never only the system log, which nobody but an operator reads. */
+                if (spec.parent && !spec._told_spawn_failed){
+                    spec._told_spawn_failed = true;
+                    const text = wait
+                        ? `${spec.id ?? spec.name ?? spec.role ?? "a spawn"} ${wait.reason}; Servex will retry it automatically.`
+                        : `${spec.id ?? spec.name ?? spec.role ?? "a spawn"} failed to start: ${msg}`;
+                    try { this.agents.send(spec.parent, text, { from: "servex" }); } catch {}
+                }
+            }
+        }
+        if (this.dispatcher.queue.length) this.dispatcher.pump();
+    }
+
+    /* Finishing roles first, then oldest first; -1 when the gate admits none. `exclude` (item 7)
+     * is the set of specs this very `drain()` call already put back without being able to start
+     * — skipped for the REST of this call, so the loop above cannot spin on one cold entry while
+     * other, unrelated ones wait their turn; a fresh call (the next tick) tries it again. */
+    next_ready(exclude){
+        const order = this.queue.map((e, i) => i).filter(i => !exclude?.has(this.queue[i].spec))
+            .sort((a, b) => this.finishing(this.queue[b].spec) - this.finishing(this.queue[a].spec) || a - b);
+        return order.find(i => !this.admit(this.queue[i].spec)) ?? -1;
+    }
+
+    say(msg, extra){
+        this.log.append("servex", { msg, ...extra }).catch(() => {});
+    }
+
+    /* THE RECONCILE (never-lose-a-wake, items 3 and 6, 2026-10-01). Called once a minute —
+     * `Global.sweep()` calls this at the end of its own, already-running one-minute tick, so
+     * this never starts a second timer of its own. It walks every registry row and fixes the
+     * two things nothing moment-to-moment ever catches:
+     *
+     *   1. (item 3) A `starting` agent whose claude.exe never showed up at all, 60 s on — not
+     *      the ordinary "no pid yet" a fresh spawn passes through for a few ms (that is
+     *      `Agents.working()`'s own, much shorter grace window, item 2), but a spawn that is
+     *      simply never going to begin. It is stopped, and its ORIGINAL spec — role, name, cwd,
+     *      the works, straight off the live agent, since a `starting` row that never got a real
+     *      session has nothing on disk worth resuming — goes back to the HEAD of the spawn gate's
+     *      own queue, with anything already sent to it while it waited (`_held_turns`, replayed
+     *      by `drain()` once the retry actually starts). Never dropped.
+     *
+     *   2. (item 6) A live claude.exe whose OWN registry row says `dormant` or `stopped` — a
+     *      stray process Servex's own bookkeeping has lost track of, found by the session id on
+     *      its command line (the same trick `Global.measure()` already uses for memory). The
+     *      safe side is chosen: when the row still carries a `spec` (so it can be opened exactly
+     *      as `wake()` would), it is ADOPTED — the stray is stopped FIRST (never two processes
+     *      on one session at once — fresh-eyes review finding 1: an earlier version of this
+     *      spawned the resume before killing the stray, which is the unsafe order it claimed not
+     *      to be), then resumed in place under its own id; a row with nothing to resume it from
+     *      is simply STOPPED outright, since an unmanaged process costs RAM for nothing and
+     *      nothing is lost closing one no spec exists to resume.
+     *
+     * One summary line only when something actually changed — a quiet machine stays quiet. */
+    async reconcile(){
+        const out = { starting_stuck: 0, adopted: 0, stopped_stray: 0 };
+        const now = Date.now();
+
+        for (const agent of [...this.agents.live.values()]){
+            if (!(agent instanceof this.agents.constructor.Agent) || agent.state !== "starting") continue;
+            if (agent.claude_pid && alive(agent.claude_pid)) continue;
+            const age = now - (Date.parse(agent.started_at) || now);
+            if (age < 60000) continue;
+            this.requeue_stuck_start(agent);
+            out.starting_stuck++;
+        }
+
+        const procs = await claude_processes().catch(() => []);
+        const rows = this.agents.reg().read();
+        for (const p of procs){
+            const m = String(p.cmd ?? "").match(/--(?:resume|session-id)[= ]"?([0-9a-f-]{36})/i);
+            if (!m) continue;
+            const sid = m[1];
+            if ([...this.agents.live.values()].some(a => a.session_id === sid && a.state !== "stopped")) continue;   // already ours, live
+            const row = Object.values(rows).find(r => r.session_id === sid);
+            if (!row || !["dormant", "stopped"].includes(row.state)) continue;
+            // the stray always stops first — a resume on the SAME session while it is still
+            // running would be two processes writing one session, which is the actual unsafe side
+            let stopped = false;
+            try { process.kill(p.pid); stopped = true; } catch (e){ this.log.append("system", { type: "reconcile", why: "stray-stop-failed", id: row.id, pid: p.pid, error: String(e.message || e) }).catch(() => {}); }
+            if (row.spec && stopped){
+                try {
+                    this.agents.spawn({ ...row.spec, id: row.id, resume: sid, cwd: row.cwd ?? row.spec.cwd });
+                    out.adopted++;
+                    this.log.append("system", { type: "reconcile", why: "adopted", id: row.id, pid: p.pid }).catch(() => {});
+                    continue;
+                } catch (e){ this.log.append("system", { type: "reconcile", why: "adopt-failed", id: row.id, error: String(e.message || e) }).catch(() => {}); }
+            }
+            if (stopped){ out.stopped_stray++; this.log.append("system", { type: "reconcile", why: "stopped-stray", id: row.id, pid: p.pid }).catch(() => {}); }
+        }
+
+        if (out.starting_stuck || out.adopted || out.stopped_stray)
+            this.log.append("system", { type: "reconcile", ...out }).catch(() => {});
+        return out;
+    }
+
+    /* A `starting` agent that never began at all: stopped, and its own spec — plus anything
+     * already waiting in its queue, unconsumed — put back at the head of the spawn gate's queue. */
+    requeue_stuck_start(agent){
+        // `_held_turns` is plain data — `{type, message:{role, content}, parent_tool_use_id, priority?}`,
+        // the exact shape `Agent.turn()` builds — so `save_queue()`'s own `JSON.stringify` round-trips it
+        // whole (fresh-eyes review finding 5; proved by `awaken-race.test.mjs`'s own JSON round-trip check).
+        const held = agent.queue?.items?.splice(0) ?? [];
+        // `raw_prompt` (Agents.js spawn(), item 3): the caller's own prompt, before the skill-load
+        // preamble and readme chain were baked in — spawning again with THAT, never `agent.prompt`
+        // itself, or the retry would wrap the preamble a second time.
+        const spec = { ...agent.recipe(), id: agent.id, prompt: agent.raw_prompt ?? null, parent: agent.parent ?? null, _held_turns: held };
+        /* `agent.stop()` itself can throw partway through — a live example (2026-10-01, 22:40):
+         * an OpenRouter run's id was long enough that `agent-<id>` failed `Log.js`'s own 64-char
+         * name check, and `stop()`'s `this.emit({type:"result",...})` throws SYNCHRONOUSLY out of
+         * `Log.file()` before `stop()` reaches its own `this.host.register(this)` call — so the
+         * in-memory `state` is already "stopped" (set on the line just before emit() in `stop()`),
+         * but the REGISTRY never heard about it. This method must clear the row regardless, so
+         * `state` and a registry write are forced here too, never left to `stop()` alone. */
+        try { agent.stop(); } catch {}
+        agent.state = "stopped";
+        try { this.agents.register?.(agent); } catch {}
+        this.queue.unshift({ spec, reason: "a start that never began within 60 s was reset and re-queued", at: stamp(), inbox: [] });
+        this.save_queue();
+        this.log.append("system", { type: "reconcile", why: "starting-stuck", id: agent.id, held: held.length }).catch(() => {});
+    }
+
+    /* THE GATE (gate.mjs) holds proxy_port and hands every visitor on to the
+     * proxy, so a Servex restart is a slow page, not an error page.
+     * Servex keeps the gate alive: it launches it at boot and relaunches it
+     * within 5 s if port 80 stops answering; the keeper keeps Servex alive, so
+     * the chain is keeper → Servex → gate. A second gate finds the port taken
+     * and exits, so launching too often costs nothing. */
+    gate(){
+        if (!this.gated) return;
+        const check = () => {
+            const socket = net.connect(this.proxy_port, "127.0.0.1");
+            socket.once("connect", () => socket.destroy());
+            socket.once("error", () => { socket.destroy(); this.say(`gate: ${this.proxy_port} refused — launching it`); launch_gate(this.proxy_port, this.proxy_internal); });
+        };
+        launch_gate(this.proxy_port, this.proxy_internal);
+        setInterval(check, 5000).unref();
+    }
+
+    /* Every attached child Servex started dies with it; the detached dev
+     * servers do not — the next Servex adopts them. `terminate()` is
+     * synchronous on purpose — `process.on("exit")` is the only hook Node
+     * guarantees, and it cannot await. A whisper-server that was ALREADY
+     * running when Servex started has no child here, so it is never touched. */
+    /* THE REAPER'S SWEEP rides the heartbeat's tick — wrapped on the instance, Heartbeat.js
+     * itself unchanged — at most once every 5 minutes (a sweep reads the process list: about
+     * 1 s of PowerShell). With the heartbeat off, the same sweep runs on its own minute timer.
+     * `SERVEX_NO_REAPER=1` boots without it; `SERVEX_REAPER_DRY=1` only says what it would close. */
+    reaper(){
+        if (process.env.SERVEX_NO_REAPER) return;
+        let last = 0;
+        const sweep = () => {
+            if (this.reaping && Date.now() - last > 3 * 60000) this.reaping = null;   // a wedged sweep must not stop every later one
+            if (this.reaping || Date.now() - last < 5 * 60000) return;
+            last = Date.now();
+            const dry = !!process.env.SERVEX_REAPER_DRY;
+            const mine = this.reaping = this.lifecycle.sweep({ dry })
+                .then(({ close, gone }) => (close.length || gone.length) && this.say(`lifecycle${dry ? " (dry)" : ""}: ${dry ? "would close" : "closed"} ${close.map(r => `${r.kind} ${r.id} (${r.why})`).join("; ") || "nothing"}; ${gone.length} dead log line(s) ended`))
+                .catch(e => this.say(`lifecycle: sweep failed: ${e.message || e}`))
+                .finally(() => { if (this.reaping === mine) this.reaping = null; });
+        };
+        if (process.env.SERVEX_NO_HEARTBEAT){ this.reaper_timer = setInterval(sweep, 60000); this.reaper_timer.unref(); return; }
+        const beat = this.heartbeat, tick = beat.tick.bind(beat);
+        beat.tick = async (...args) => { try { return await tick(...args); } finally { sweep(); } };
+    }
+
+    shutdown(){
+        let went = false;
+        const down = how => {
+            if (went) return; went = true;
+            /* Write who is alive BEFORE the stops below: they turn every live row into "stopped", and the next boot's revive() skips
+             * a stopped row. This snapshot is how an exit that did run the handler (an uncaught exception, 2026-11-02 00:31) still
+             * brings everyone back. `how` tells the agents what happened. */
+            try { this.agents.snapshot({ by: "shutdown", how: typeof how === "string" ? how : "crash" }); } catch {}
+            this.agents.closing = true;   // wake_parent writes the inbox but revives nobody while everything stops
+            try { this.monitor?.stop(); } catch {}
+            try { this.procmon?.stop(); } catch {}
+            try { this.games?.stop(); } catch {}
+            try { this.worktrees?.stop(); } catch {}
+            try { this.task_loop?.stop(); } catch {}
+            try { this.heartbeat?.stop(); } catch {}
+            try { this.local_proxy?.stop(); } catch {}   // the local-models HTTP proxy (Servex/ext/local/llama.js) — not a Process, stopped on its own
+            for (const agent of this.agents.live.values()) try { agent.stop(); } catch {}
+            for (const runner of this.processes.values()) runner.detach ? runner.release() : runner.terminate();   // a detached dev server outlives Servex on purpose
+            this.log.close();
+        };
+        process.on("SIGINT", () => { down("signal"); process.exit(0); });
+        process.on("SIGTERM", () => { down("signal"); process.exit(0); });
+        process.on("exit", code => down(code ? "crash" : "exit"));
+        /* A promise nobody held rejecting is a bug in ONE feature, not a reason to end every agent: log it (stack in servex.jsonl)
+         * and keep running. An uncaught exception is still fatal: its state is unknown. doc/restart.md "Crash". */
+        process.on("unhandledRejection", e => { try { this.say(`unhandled rejection (Servex kept running): ${e?.stack ?? e}`, { event: "unhandled_rejection" }); } catch {} });
+    }
+}
+
+/* SERVEX'S OWN DASHBOARD — the same Server class every project here runs, with
+ * the two things that are wrong for Servex overridden.
+ *
+ * Server serves `public/` relative to the working directory and falls back to
+ * its OWN package's index.html; run from the repo root that would serve the
+ * lew42 site, not Servex. Two static roots fix it: Servex/public first, then the
+ * monorepo's public/, so the dashboard page can `import` the real framework
+ * (`/framework/core/View/View.js`) instead of a copy of it.
+ *
+ * And it binds 127.0.0.1, not 0.0.0.0. */
+Servex.Dashboard = class Dashboard extends Server {
+
+    initialize_express(){
+        this.express = express;
+        this.app = express();
+        this.router = express.Router();
+
+        /* A slow answer leaves a breadcrumb in crumbs.log (Crumbs.js, only when installed): a POST is marked as it starts and any answer over
+         * 1 s as it ends, so a gap in the 5 s heartbeat names the request that held the event loop (75 s gaps every few minutes, 2026-10-24). */
+        this.app.use((req, res, next) => {
+            const crumbs = globalThis.__crumbs; if (!crumbs?.drop) return next();
+            const t = Date.now(), what = `${req.method} ${req.url.slice(0, 100)}`;
+            if (req.method !== "GET" || req.path.startsWith("/api/")) crumbs.drop(`req> ${what}`);   // static files are left out: they never compute
+            res.on("close", () => { const ms = Date.now() - t; if (ms > 1000) crumbs.drop(`req< ${ms}ms ${what}`); });   // close, not finish: a client that gave up still ends it
+            next();
+        });
+
+        this.app.use(express.static(path.join(HERE, "public"), { redirect: false }));
+        this.app.use(express.static(path.join(HERE, "..", "public"), { redirect: false }));
+        this.app.use(this.router);
+
+        this.app.use((req, res) => {
+            if (/.+\.[a-zA-Z0-9]+$/.test(req.path)) return res.status(404).end();
+            res.sendFile(path.join(HERE, "public", "index.html"));
+        });
+    }
+
+    listen(port = this.port, host = "127.0.0.1"){
+        super.listen(port, host);
+    }
+};
+
+/* SERVEX'S AGENT HOST — `Servex/agents/Agents.js` with one method overridden.
+ *
+ * `watch()` is the host's own seam: every typed event from every live agent
+ * passes through it on its way to the log. Here it also goes out on the live
+ * stream, so the dashboard shows a token as the agent thinks it rather than
+ * a second and a half later. The agent's card rides along on every event, which
+ * is what lets one frame update the row (state, turns, cost) and its open
+ * transcript at the same time. */
+Servex.Agents = class ServexAgents extends Agents {
+
+    watch(event, agent){
+        this.servex.stream.send("agent", { ...event, card: agent.card() });
+        this.moment(event, agent);
+        if (event.type === "result") this.cost(agent.id);
+    }
+
+    /* WHAT A TASK COST — after an agent ends a turn, re-add its task's dollars
+     * (`Server/task-cost.mjs`, which walks up to the root itself). A burst of
+     * results is one run: 5s trailing, per agent. The run is detached and never
+     * throws into `watch()` — a failure is one line in the servex log. */
+    cost(id){
+        clearTimeout((this.cost_timers ??= new Map()).get(id));
+        this.cost_timers.set(id, setTimeout(() => {
+            this.cost_timers.delete(id);
+            try {
+                spawn(process.execPath, [path.join(REPO, "Server", "task-cost.mjs"), "--agent", id],
+                    { cwd: REPO, detached: true, windowsHide: true, stdio: "ignore" })
+                    .on("error", e => console.error(`task-cost ${id}: ${e.message}`)).unref();
+            } catch (e) { console.error(`task-cost ${id}: ${e.message}`); }
+        }, 5000));
+    }
+
+    /* THE LIVE CARD'S UPDATES (AI 2's `/framework/ai2/live/`) — an agent
+     * starting, ending a turn, stopping or failing is one line on `cards/live`,
+     * the card's own chat. Tokens and tool calls are not moments, and the two
+     * always-on assistants are skipped: they end a turn on every sentence. */
+    moment(event, agent){
+        if (["assistant-fast", "master-assistant-master"].includes(agent.id)) return;
+        const text = event.type === "agent_msg" && event.first ? "started"
+            : event.type === "result" ? (event.stopped ? "stopped" : "finished a turn")
+            : event.type === "error" ? "hit an error: " + String(event.text ?? "").slice(0, 120)
+            : null;
+        if (text) this.servex.log.append("cards/live", { type: "update", ref: agent.id, text: `${agent.id} ${text}` }).catch(() => {});
+    }
+};
+
+/* SERVEX'S SINGLE WRITER — `Log` with two things added that only a long-lived
+ * process can do (prompt-lifecycle, 2026-09-22).
+ *
+ * 1. IT ANNOUNCES. `append()` emits `("append", <log name>, <the line written>)`
+ *    the instant a line is actually on disk. That one seam is what the live
+ *    wire (`Stream.follow()`) and the fast assistant (`Assistant.listen()`) both
+ *    hang off, and neither of them has to poll a file or be wired in by hand.
+ *    Nothing is emitted for a refusal — a line that was not written did not
+ *    happen.
+ *
+ * 2. IT FINISHES A PROMPT. `ux/Dictate` posts `{type: "prompt", text}` and
+ *    nothing else: no id, no sentences. Both have to exist before anything can
+ *    point at that prompt, and both have to be decided ONCE, by the writer, and
+ *    frozen — an id so a rename never breaks a link, a sentence array so a
+ *    citation like "sentences 0 and 2" can never drift (log-model/events.md
+ *    argues that one out in full). `p-1`, `p-2`, … counting from whatever is
+ *    already in the file, so the ids a person reads on screen are the ones they
+ *    would count themselves.
+ *
+ * ⚠ This second job really belongs in `Log.js`, beside the naming checks that
+ * are already there for the same reason. It is here because the task that wrote
+ * it was fenced out of that file; move it down when `Log.js` is next open, and
+ * nothing above needs to change. */
+Servex.Log = class ServexLog extends Log {
+
+    initialize(){
+        super.initialize();
+        this.counts = new Map();
+    }
+
+    append(name, entry){
+        const line = entry?.type === "prompt" ? this.prompt(name, entry) : entry;
+        return super.append(name, line).then(out => {
+            if (out.ok) this.emit("append", name, out.entry);
+            return out;
+        });
+    }
+
+    prompt(name, entry){
+        const sentences = entry.sentences ?? this.sentences(entry.text ?? "");
+        return { ...entry, sentences, id: entry.id ?? `p-${this.count(name)}` };
+    }
+
+    /* Seeded from the file itself, once, so a Servex restart carries on counting
+     * instead of minting a `p-1` that already exists. */
+    count(name){
+        if (!this.counts.has(name)){
+            let text = "";
+            try { text = fs.readFileSync(this.file(name).path, "utf8"); } catch {}
+            this.counts.set(name, (text.match(/"type":"prompt"/g) ?? []).length);
+        }
+        const next = this.counts.get(name) + 1;
+        this.counts.set(name, next);
+        return next;
+    }
+
+    /* Deliberately blunt: a sentence ends at `.`, `?` or `!` followed by a
+     * space. Dictated speech has no other punctuation to go on, and a split that
+     * is occasionally coarse is far better than one that is clever, because
+     * whatever it decides is frozen on the line forever. */
+    sentences(text){
+        return String(text).split(/(?<=[.?!])\s+/).map(s => s.trim()).filter(Boolean);
+    }
+};
+
+Servex.Assistant = Assistant;
+Servex.Echo = Echo;
+Servex.Fixer = Fixer;
+Servex.Dispatcher = Dispatcher;
+Servex.Cards = Cards;
+Servex.Asks = Asks;
+Servex.Layers = Layers;
+Servex.Sessions = Sessions;
+Servex.Global = Global;
+Servex.External = External;
+Servex.MCP = MCP;
+Servex.Monitor = Monitor;
+Servex.Processes = Processes;
+Servex.Games = Games;
+Servex.Worktrees = Worktrees;
+Servex.TaskLoop = TaskLoop;
+Servex.Heartbeat = Heartbeat;
+Servex.LogSweeper = LogSweeper;
+Servex.Pool = Pool;
+Servex.Lifecycle = Lifecycle;
+Servex.Follow = Follow;
+Servex.PortRegistry = PortRegistry;
+Servex.Process = Process;
+Servex.Project = Project;
+Servex.ReverseProxy = ReverseProxy;
+Servex.Stream = Stream;
+
+/* A spawn spec that holds code, not data — it cannot be written to the queue file. */
+function unsavable(spec = {}){ return !!(spec.sdk || spec.mcp_servers || spec.system || spec.one_shot); }
+
+/* NEVER-LOSE-A-WAKE item 7: every refusal `Agents.spawn()` can throw that is TRANSIENT — it
+ * will say yes later on its own, given nothing but time — rather than a genuine failure retrying
+ * would never fix. `drain()`'s catch above matches the thrown message's own wording against
+ * this list; new ones are prefixes, not whole sentences, to survive the exact numbers inside a
+ * message changing. `top_up` additionally poking the worktree pool is the one extra step the
+ * pool's own refusal gets; nothing else needs an extra nudge — it clears on its own clock. */
+const WAIT_REFUSALS = [
+    { test: /^No pool worktree is ready/, reason: "waits for a pool worktree", top_up: true },
+    { test: /^openrouter spawn refused:/, reason: "waits for the OpenRouter pace guard to clear", top_up: false }
+];
+

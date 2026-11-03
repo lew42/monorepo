@@ -1,0 +1,4 @@
+[
+  {"log":{"at":"NOW","msg":"minion skill loaded; brief read (worktree copy of this task dir doesn't exist yet -- it's uncommitted in main tree -- so logging here, the main-tree path, since that's what review/merge gates read)."}},
+  {"assign":{"steps":["read ui/table, ext/grip, ext/panel2, sessions page+css (read-only, never edit)","ui/datagrid/datagrid.js: markup-only CSS-grid component","ext/DataGrid/DataGrid.js: resize (1 listener pair, delegated) + sort + auto filters + windowing","perf.mjs with Server/browser.mjs CDP tracing: drag 300px on 2000 rows, report fps/CPU","ext/DataGrid/page.js demo + doc/perf.md","wire ui/ui.js, ui/page.js, ui/readme.md (index line + UI/UX one-liner)","commit as I go, report to task-mastermind-data-grid"],"step":1,"now":"reading what exists"}}
+]

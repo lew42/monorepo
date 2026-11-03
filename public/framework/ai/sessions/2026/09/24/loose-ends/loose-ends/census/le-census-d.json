@@ -1,0 +1,773 @@
+[
+ {
+  "task": "ask-tab-binding",
+  "date": "2026-08-18",
+  "link": "/framework/ai/2026-08-18/ask-tab-binding/",
+  "title": "The DevBar's AI needs a reliable way to connect (via mcp or otherwise) to that specific tab, so that if you ask it to do something, it doesn",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Headless at 1600: /framework/ext/Ask/, its decisions doc, /framework/dev/Socket/ + doc/wire/, /framework/dev/DevBar/ + doc/threads/, /framework/dev/Claim/ and this task page all load with 0 console errors and 0 .md-error; the dev rail's ai tab still renders.",
+   "One tab connected: path, or nothing, still works.",
+   "Server plugins are not hot-reloaded, so the live half still runs against the pre-binding build; pages returned two rows identical but for connected_since, which is the defect verbatim."
+  ]
+ },
+ {
+  "task": "browser-driving",
+  "date": "2026-08-18",
+  "link": "/framework/ai/2026-08-18/browser-driving/",
+  "title": "See what minions are able to test, from a UI/UX standpoint, by driving the browser (mcp or playwright or both). Write a report about what MC",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "site eval, on my own socket-connected tab (no-saver demo panels only): dispatchEvent bypasses hit-testing entirely — edge stayed pointer-events:none (no real :hover) but a direct click dispatch on it still fired split.js and committed.",
+   "Left undone: CSS.forcePseudoState, and a from-scratch hidden-tab reproduction (Playwright headless multi-page didn't toggle visibilityState — a tool quirk, not new evidence against the standing hidden-tab verdict)."
+  ]
+ },
+ {
+  "task": "code-hairline",
+  "date": "2026-08-18",
+  "link": "/framework/ai/2026-08-18/code-hairline/",
+  "title": "Undo the ugly white border the code box-shadow draws inside every dark pre box (framework.css:274); say who/when/where/why.",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "It is six bordered pills per paragraph on /framework/ext/tabs/ — worth a look; awaiting the owner's call."
+  ]
+ },
+ {
+  "task": "css-audit",
+  "date": "2026-08-18",
+  "link": "/framework/ai/2026-08-18/css-audit/",
+  "title": "Also, we should do a CSS audit. Spawn an agent, and read all the css across the whole site. Consider how to simplify, reduce, reuse, etc. We",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Left: nothing under public/ was changed — the brief was read-only, so audit.md is not yet linked from styles/readme.md."
+  ]
+ },
+ {
+  "task": "cssdoc",
+  "date": "2026-08-18",
+  "link": "/framework/ai/2026-08-18/cssdoc/",
+  "title": "Design a CSSDoc system: metadata per CSS selector/rule, with the live rule pulled from the stylesheet and parsed by the browser.",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "One-argument fix, 34 caller files — the owner's call, and the recommendation is to do nothing yet."
+  ],
+  "left_open": [
+   "Left as a proposal with a recommendation to do nothing for now.",
+   "Tonight's defect was the case where the second number is still one — so the page that now exists would have shown it at a glance.",
+   "Left, deliberately: cssdoc(target) does not generalise — both specimens are always a real <code>, so cssdoc(\"blockquote\") would silently document code."
+  ]
+ },
+ {
+  "task": "devbar-drawer-naming",
+  "date": "2026-08-18",
+  "link": "/framework/ai/2026-08-18/devbar-drawer-naming/",
+  "title": "Set DevBar's nav label to \"DevBar\" (it reads \"Dev rail\"), and add a note in both dev/DevBar/readme.md and ext/drawer/readme.md about the oth",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "found stale while linking: DevBar/doc/docking.md still credited ext/layout for the drawer (it moved to ext/drawer 2026-08-16).",
+   "ext/layout/readme.md line 1 still claims the drawer in its own headline: NOT touched, out of scope",
+   "Fixed while linking: [DevBar/doc/docking.md](/framework/dev/DevBar/doc/docking/) still credited ext/layout for the drawer in both of its mentions — the rail moved to ext/drawer on 2026-08-16.",
+   "Left alone: ext/layout/readme.md line 1 still claims \"a right-hand drawer\" in its own headline."
+  ]
+ },
+ {
+  "task": "drawer-dock",
+  "date": "2026-08-18",
+  "link": "/framework/ai/2026-08-18/drawer-dock/",
+  "title": "1) selecting an element/panel no longer opens the drawer, only fills it if already open; the Panel workspace pages open it once at load; onl",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "panel-unfocus (what Escape triggers internally in ext/Panel/focus.js, with no such rescue) reproduces cleanly: propsTag stays 'panel' with the OLD panel's fields still drawn."
+  ]
+ },
+ {
+  "task": "drawer-resize",
+  "date": "2026-08-18",
+  "link": "/framework/ai/2026-08-18/drawer-resize/",
+  "title": "the ext/drawer needs resizing, use devbar's setup (it has to be offset to the right, so it doesn't linger when closed.",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "LEFT: ext/grip has no page.js — /framework/ext/grip/ 404s until ext/page.js names it in children:, and ext/page.js was outside this task fence.",
+   "Shut with the dev rail OPEN, the drawer's grip lands exactly over the dev rail's own — and loses: .dev-bar is z-index: 50, .drawer is 40, and the dev rail still dragged 120px through it with the drawer staying shut.",
+   "Left: ext/grip has no page.js, so /framework/ext/grip/ 404s — it needs a page plus one word in ext/page.js's children:, and that file was outside this task's fence.",
+   "The strip still has no grab offset (inherited from DevBar: grabbing at its far side lands up to 12px narrow)."
+  ]
+ },
+ {
+  "task": "element-provenance",
+  "date": "2026-08-18",
+  "link": "/framework/ai/2026-08-18/element-provenance/",
+  "title": "We need a way to link to each element's HTML/JS/CSS definitions. I'm not sure if this should be for EVERY element, or for each panel, or for",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Left deliberately: the usage census (two numbers that can never agree), the unlock toggle, any CSS write-back."
+  ]
+ },
+ {
+  "task": "fans",
+  "date": "2026-08-18",
+  "link": "/framework/ai/2026-08-18/fans/",
+  "title": "might we have a fan problem? is this still documented somewhere? … per the documentation skill, let's reference a Server/doc/janitor.md or w",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Left: the actual cause — nobody has profiled a spinning server yet; next time the skill does it before the kill.",
+   "Server/README.md is still ~110 lines (readme-shape says ≤30) — untouched, not this task."
+  ]
+ },
+ {
+  "task": "figma",
+  "date": "2026-08-18",
+  "link": "/framework/ai/2026-08-18/figma/",
+  "title": "19 Figma designs to mock up in the framework. Hire minions; reuse existing styles; converge on padding/spacing; log design dilemmas; ask que",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "CONSOLIDATION: folded the tier-level verdicts into styles/layouts/doc/decisions.md, as Minion G asked — reuse won 3 of 9 outright, the fill rule, the two framework.css words, the four traps that never throw, and the three items still open for the owner."
+  ],
+  "left_open": [
+   "Left deliberately: framework.css untouched (both gaps are proposals in questions.md, 7 open); 400/entry.js imported rather than promoted; six of the eight already exist as real layouts, so this is one Reference page and not eight sibling dirs.",
+   "FOLLOW-UP QUEUED (not now — Minion C is live in that area): layouts/shell/ and layouts/sidebar/ predate --grow and still use the older basis-rail + inline-flex idiom.",
+   "Left: eight designs, mostly the oversized 163-61x tail."
+  ]
+ },
+ {
+  "task": "figma-apidoc",
+  "date": "2026-08-18",
+  "link": "/framework/ai/2026-08-18/figma-apidoc/",
+  "title": "Figma wave 4, minion G — node 109-369 ('some of my favs'): separate the design into smaller pieces, build the pieces, reassemble into the wh",
+  "status": "landed"
+ },
+ {
+  "task": "figma-home",
+  "date": "2026-08-18",
+  "link": "/framework/ai/2026-08-18/figma-home/",
+  "title": "Build the owner's homepage from Figma (23-181 desktop + 23-1144 mobile) as ONE responsive implementation. Prove or refute: '.flex.auto etc m",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "framework.css untouched: every fix above is one line the owner should approve, not a minion."
+  ],
+  "left_open": [
+   "Left, deliberately. The desktop's second Services-Section (32:1277) — the same three cards again; its class string is recorded instead of a duplicate band.",
+   "Left: the duplicate Services-Section (string recorded, not built), placeholders for pictures and social marks, and three mobile-only moves that ship as the desktop reading rather than adding the page's first @media."
+  ]
+ },
+ {
+  "task": "figma-minion-e",
+  "date": "2026-08-18",
+  "link": "/framework/ai/2026-08-18/figma-minion-e/",
+  "title": "Wave 3, Minion E: node 181-1456 — a set of screens matching the color scheme; rewrite copy to be true about the framework",
+  "status": "landed"
+ },
+ {
+  "task": "figma-spec-sheet",
+  "date": "2026-08-18",
+  "link": "/framework/ai/2026-08-18/figma-spec-sheet/",
+  "title": "Figma wave 5, minion I. Node 80-2916 — the owner: 'this one is rather massive: you could instruct an opus minion to work on that one, and ha",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "- Left: the hamburger — ours wraps, the Figma overlays (core/Sidebar is the overlay answer); no entry in layouts/doc/decisions.md (outside the fence, agents live); the fan-out the owner suggested was not run, and that call is reversible."
+  ]
+ },
+ {
+  "task": "flex-guide",
+  "date": "2026-08-18",
+  "link": "/framework/ai/2026-08-18/flex-guide/",
+  "title": "extend public/framework/styles/layouts/flex/page.js in place with five missing steps (grow weights, min-width:0/why text refuses to shrink, ",
+  "status": "landed"
+ },
+ {
+  "task": "grid-guide",
+  "date": "2026-08-18",
+  "link": "/framework/ai/2026-08-18/grid-guide/",
+  "title": "extend public/framework/styles/layouts/grid/page.js in place with the missing beginner steps (track, fr vs fixed, move auto-fit/auto-fill up",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Left alone: word.js, framework.css, the flex guide (owned elsewhere) — untouched per fence."
+  ]
+ },
+ {
+  "task": "launch-audit",
+  "date": "2026-08-18",
+  "link": "/framework/ai/2026-08-18/launch-audit/",
+  "title": "Audit what breaks when lew42.com is served static (no Server/, no socket, no /data writes, no /mcp), what is in the git tree that should not",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Left for a follow-up: actually moving/ignoring the ai/ tree and shipping the usage script."
+  ]
+ },
+ {
+  "task": "layout-anatomy",
+  "date": "2026-08-18",
+  "link": "/framework/ai/2026-08-18/layout-anatomy/",
+  "title": "Minion B, Figma wave 1: node 181-1457 (Burger/Columns anatomy) — build the seven children, not the wrapper; check the 28 existing layouts fi",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Left: no new directories, no framework.css edits, no CSS file in the new dir (matches the tier's own rule)."
+  ]
+ },
+ {
+  "task": "layout-toc-studio",
+  "date": "2026-08-18",
+  "link": "/framework/ai/2026-08-18/layout-toc-studio/",
+  "title": "Minion D, Figma wave 2: node 163-615 (tabbed-toc, one screen at 3440/1920/400) — ext/tabs and ext/toc already exist; compose them into a dem",
+  "status": "landed"
+ },
+ {
+  "task": "livereload-research",
+  "date": "2026-08-18",
+  "link": "/framework/ai/2026-08-18/livereload-research/",
+  "title": "Using ext/Research, write the LiveReload report: .js updates, css updates, .json and .jsonl updates, parallel work sessions, chokidar, the f",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Left: Server/README.md:17 says one watcher — fix it with the shared watcher, not before; the fans diagnostic is proposed, not built."
+  ]
+ },
+ {
+  "task": "mastermind-night",
+  "date": "2026-08-18",
+  "link": "/framework/ai/2026-08-18/mastermind-night/",
+  "title": "Be the mastermind overnight: design + build CSSDoc, make a skill-improvement skill, add the fail-safe clause to mastermind. Figma designs in",
+  "status": "landed"
+ },
+ {
+  "task": "mastermind-run-3",
+  "date": "2026-08-18",
+  "link": "/framework/ai/2026-08-18/mastermind-run-3/",
+  "title": "Ok, mastermind, I'm going for a run. Work autonomously, spawn minions to help, get shit done. (Active tasks that failed · DevBar AI tab bind",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "The owner cannot see replies that end in a wakeup call and is tired of the tool noise: from now on minimal inline work, plain-text answers with no trailing tool call.",
+   "Proposal on the table: a Workspace root class (fill|document, shell, full-screen, zoom, canvas) — awaiting the owner's go.",
+   "Owner approved the Workspace design pass (avoid container queries); new day 2026-08-19 opened on the board; workspace-design brief written at ai/2026-08-19/workspace-design/ including the split-vs-add verbs the owner just named."
+  ],
+  "left_open": [
+   "Wave 2 dispatched: panel-words (Opus) + panel-flow (Opus), fenced by file; ask-tab-binding + element-provenance still in flight.",
+   "Layout-clarity questions (flex 0 0 auto as default; panel vs root element; will panel CSS need to transfer to sections?) deferred by the owner to after MVP.",
+   "B, panel-demos, panel-groups are now unblocked and building; /framework/ext/Panel/demo/ already routes (flows still being recorded — one 404 mid-build, expected).",
+   "Still the owner's: the park/delete list (now folded into the design's sweep), the CSS audit's five, the push blockers."
+  ]
+ },
+ {
+  "task": "mcp-tab-awareness",
+  "date": "2026-08-18",
+  "link": "/framework/ai/2026-08-18/mcp-tab-awareness/",
+  "title": "when mcp -> server -> socket -> browser eval(), why can't the client just say response.visibilityState = document.visibilityState — report t",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "NOT YET VERIFIED — the dev server is still the 1:07 PM process; restart it and reload a tab, then eval once in front and once clicked-away and watch visibility flip."
+  ]
+ },
+ {
+  "task": "md-routes",
+  "date": "2026-08-18",
+  "link": "/framework/ai/2026-08-18/md-routes/",
+  "title": "can we get all these AITask page .md links to render as md()? linking to them just pulls them up as a raw .md text file in the browser. We c",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "One .md link in the outcome before, one route after, and 0 of the 36 markdown anchors on that page still end in .md.",
+   "Left, both outside the fence (one line each): ext/AITask/card.js:39 builds the links: pills as plain anchors, so 128 pill hrefs across the day board still point at raw .md — route them there, or write task links as .../audit/."
+  ]
+ },
+ {
+  "task": "name-scrub",
+  "date": "2026-08-18",
+  "link": "/framework/ai/2026-08-18/name-scrub/",
+  "title": "make a global claude.md rule to stop calling me Mike everywhere … I don't really want my name littered throughout … go",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "- Voice: dated attributions and third person → the owner ((the owner, 2026-08-16), the owner's call); readme lines addressed to a reader → you; council-era \"Master Mike\" → the owner; three stray he/his → they/their."
+  ],
+  "left_open": [
+   "Left, deliberately: public/framework/ai/ (246 files) — dated task records, not rewritten."
+  ]
+ },
+ {
+  "task": "page-columns",
+  "date": "2026-08-18",
+  "link": "/framework/ai/2026-08-18/page-columns/",
+  "title": "do we have any multi-column nested page layouts? they're basically like vertical tabs, or the page.catalog, but more like, equal column, wit",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Left for the owner: graduate .page.columns/.page.column + the walk into Page.css / Page.prototype.columns()?"
+  ]
+ },
+ {
+  "task": "panel-complexity",
+  "date": "2026-08-18",
+  "link": "/framework/ai/2026-08-18/panel-complexity/",
+  "title": "I feel like the ext/Panel might have sprawled in complexity. Spawn a minion to analyze it's complexity, propose simplifying measures, etc. F",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Left deliberately: no code changed (read-only judge task)."
+  ]
+ },
+ {
+  "task": "panel-document",
+  "date": "2026-08-18",
+  "link": "/framework/ai/2026-08-18/panel-document/",
+  "title": "how do we get a full-screen Panel? How do I add sections to it? It seems when I add a row, it splits the thing, and doesn't make the area gr",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Default untouched: a fresh /full/ split is still 1 recorder step."
+  ]
+ },
+ {
+  "task": "panel-flex",
+  "date": "2026-08-18",
+  "link": "/framework/ai/2026-08-18/panel-flex/",
+  "title": "test-drive every flex feature of ext/Panel (split into columns, add a column, drag a seam, display:flex on a leaf, fill vs hug, three-deep n",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Left for the strategy minion: toolbar Display/Template/Width popovers driven via page.evaluate rather than real hover+click (logged per scenario); a second seam-reachability pass with an actual click-drag at 400px."
+  ]
+ },
+ {
+  "task": "panel-flow",
+  "date": "2026-08-18",
+  "link": "/framework/ai/2026-08-18/panel-flow/",
+  "title": "Build the panel-flow recorder: a recorded progression of panel steps you can replay and step through. The owner, verbatim: \"A panel flow is ",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "step-6 snapshot 1513 chars sha256 4c87985879a8968f == live root.toJSON() 1513 chars sha256 4c87985879a8968f (EQUAL true); still 6 steps after the replay, so a replayed step does not record itself.",
+   "Left: nothing writes a flow to disk (flow.save() hands back the array — a file format and a \"play the tour\" button are the next question); no reset() verb, so a driver re-baselines by hand; the flex/grid guides are not rebuilt as flows yet."
+  ]
+ },
+ {
+  "task": "panel-grid",
+  "date": "2026-08-18",
+  "link": "/framework/ai/2026-08-18/panel-grid/",
+  "title": "test-drive the GRID features of ext/Panel with headless Playwright at 400/800/1280/1920, log every scenario as a step list + expected vs see",
+  "status": "landed"
+ },
+ {
+  "task": "panel-words",
+  "date": "2026-08-18",
+  "link": "/framework/ai/2026-08-18/panel-words/",
+  "title": "Give ext/Panel its flex and grid words (dir, gap, wrap, justify, items · cols, gap, dense) as panel keys landing as CSS custom properties on",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "No regression: a panel that chose nothing still computes gap 7.52px (0.5em) in flex and five 122px auto-fit tracks in grid — exactly the two lines that were hardcoded.",
+   "Left deliberately",
+   "- The 15 section adapters are still one-child bodies — only cells and a call site's own drawing give the words real children.",
+   "- The bar's dice still cannot offer a preset: its sow hook lives in workspace.js (another task's file this round)."
+  ]
+ },
+ {
+  "task": "provenance-followups",
+  "date": "2026-08-18",
+  "link": "/framework/ai/2026-08-18/provenance-followups/",
+  "title": "Four small edits from the element-provenance proposal: (1) inline styles row in body.js defined(); (2) both panes of the two-up selectable v",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Left, on purpose: pane 0 of the two-up ends up region'd twice (bar + forEach) — harmless, noted as a Watch-out; lew42's link verified via cssdoc.rules() on a live h1 (same code path as framework, not re-screenshotted)."
+  ]
+ },
+ {
+  "task": "readme-length",
+  "date": "2026-08-18",
+  "link": "/framework/ai/2026-08-18/readme-length/",
+  "title": "Soften the readme 30-line cap to: try to keep them as short and simple as possible (law #1).",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Left deliberately: no readme was rewritten — this changes the rule, not the docs written under it."
+  ]
+ },
+ {
+  "task": "research-mastermind",
+  "date": "2026-08-18",
+  "link": "/framework/ai/2026-08-18/research-mastermind/",
+  "title": "You are a mastermind, work autonomously, watch tokens; another mastermind is running, stay in your dir. Create ext/Research: a decision-maki",
+  "status": "landed"
+ },
+ {
+  "task": "research-system",
+  "date": "2026-08-18",
+  "link": "/framework/ai/2026-08-18/research-system/",
+  "title": "Build ext/Research — data core (verbs, validation, append-only jsonl), a Node CLI + MCP tools that write it, and the live page that renders ",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Verified on throwaway PORT=8090 (killed): tools/list shows 12, research_say wrote a node, bad kind refused with isError, unknown tool still -32602.",
+   "The live :80 server still runs the OLD MCP.js — the tools appear there only after the owner restarts it.",
+   "The live :80 server still lists 5 tools — the research_ tools appear only after the owner restarts it.",
+   "Left: no research_open tool (opening is the orchestrator’s CLI call); log.msg uncapped."
+  ]
+ },
+ {
+  "task": "research-ui",
+  "date": "2026-08-18",
+  "link": "/framework/ai/2026-08-18/research-ui/",
+  "title": "Build the ext/Research live page: header + minions strip, conclusions first, ranked claim cards with big icons, endless native-details drill",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Left: owner input box parked (the only browser write RPC rewrites whole files — a safe append needs a Server verb); no doc/file/.md; 292/96 lines against ≲200/≲80 (196/66 are code)."
+  ]
+ },
+ {
+  "task": "subclassing",
+  "date": "2026-08-18",
+  "link": "/framework/ai/2026-08-18/subclassing/",
+  "title": "Soften the 100-line file rule to a try; add parts-as-classes and the static-nested Subclassing pattern (List.View / Sortable.List.View / new",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Left deliberately: no existing module was restructured — this is the convention, not a refactor."
+  ]
+ },
+ {
+  "task": "draggable-layer-fix",
+  "date": "2026-08-19",
+  "link": "/framework/ai/2026-08-19/draggable-layer-fix/",
+  "title": "the dragged card never hides: .drag-source (@layer theme, display:none) loses to util .flex (@layer util, display:flex) — set the source's i",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Left: nothing — brief fully closed."
+  ]
+ },
+ {
+  "task": "mastermind-run-4",
+  "date": "2026-08-19",
+  "link": "/framework/ai/2026-08-19/mastermind-run-4/",
+  "title": "The Workspace build, from the approved design (ai/2026-08-19/workspace-design/design.md): A sizing without containers (landed) → B Workspace",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "Note: four other nested Docs (core/new/0,1,starter; DesignTool/taste) still draw the double band — a Doc-wide rule (nested Doc = section with a left rail) is the owner's call",
+   "Waiting on the owner: ext/layout rail ownership, nested-Doc rail rule, run 3 lists, the two self rows, sections as groups by default."
+  ],
+  "left_open": [
+   "Demo tab: bleed + visible tones landed; panes still ~200px (the Doc's inner nav narrows the track) — sent back once more: flex gap auto with --column 24em so the panes wrap to two rows at 1280."
+  ]
+ },
+ {
+  "task": "page-docs-box",
+  "date": "2026-08-19",
+  "link": "/framework/ai/2026-08-19/page-docs-box/",
+  "title": "Five live cards that show a page's box — shell, measure, inset, region, full — under core/Page/overview/, reading computed truth so they sta",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Two regions ask for --measure: none and every page still reports 40em; --page-pad from the same rule arrives every time.",
+   "Left deliberately: the module's own docs (core/Page/readme.md, doc/layout.md) — outside this task's fences."
+  ]
+ },
+ {
+  "task": "page-docs-mastermind",
+  "date": "2026-08-19",
+  "link": "/framework/ai/2026-08-19/page-docs-mastermind/",
+  "title": "Page docs + layout: audit every page-layout property site-wide, restructure core/Page (old tab, left rail, 4th-level tabs experiment), renam",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "After this wave: stop and report — the opt-in grid verdict is the owner's and gates the rest."
+  ],
+  "left_open": [
+   "Wave 2b dispatched: wall (Sonnet) + box (Opus), disjoint fences under core/Page/overview/; expected ~2.5-3 pts; preview deck still in flight.",
+   "Panel stamp follow-up NOT applied: panel-flow-sizing (run-4) still live."
+  ]
+ },
+ {
+  "task": "page-docs-restructure",
+  "date": "2026-08-19",
+  "link": "/framework/ai/2026-08-19/page-docs-restructure/",
+  "title": "core/Page: move overview/nav/children/previews/shell/flow under a new Old top tab with a .tabs.vertical left rail; Overview loses the 15 dem",
+  "status": "landed"
+ },
+ {
+  "task": "page-docs-wall",
+  "date": "2026-08-19",
+  "link": "/framework/ai/2026-08-19/page-docs-wall/",
+  "title": "core/Page Overview becomes a browse() wall in four bands (pages are navigation / the box / recipes / JS last); copy the 12 keeper demos, bui",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Verified headless 3x: 0 stray .page-preview-thumb .page.active-page site-wide, mounts/replace/render cards individually 0, render page still shows Correct vs Broken with the doubled-padding tell intact.",
+   "[/framework/core/Page/overview/render/](/framework/core/Page/overview/render/) still reads correctly — Correct vs Broken, doubled-padding tell intact."
+  ]
+ },
+ {
+  "task": "page-layout-audit",
+  "date": "2026-08-19",
+  "link": "/framework/ai/2026-08-19/page-layout-audit/",
+  "title": "Audit every page-layout property site-wide (containers, shell variants, --measure/--page-pad/--gutter-x, full and the replaceable regions), ",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "The owner's sketch is one word away: move .page { to .page.standard { (5 rules), add standard to the 7 call sites that opted out and still want it, and change every --measure: none to 100% so min() stays valid and a region's measure finally reaches its pages."
+  ],
+  "left_open": [
+   "Left deliberately: read-only task — Page.css untouched, no migration applied; the 15 old/overview/ demos are triaged (12 keep, shapes rewritten into 5 box cards, add/deep deleted) but not moved; doc/layout.md still says the question is open."
+  ]
+ },
+ {
+  "task": "page-simplify-preview",
+  "date": "2026-08-19",
+  "link": "/framework/ai/2026-08-19/page-simplify-preview/",
+  "title": "Preview the opt-in grid proposal (page-layout-audit §5) as six before/after headless screenshot pairs by CSS injection, plus the exact patch",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Left: page-layout-audit/page.js's \"Read on\" list doesn't link this preview yet — out of this task's edit scope (task-dir-only), for a follow-up pass."
+  ]
+ },
+ {
+  "task": "page-stamp-rename",
+  "date": "2026-08-19",
+  "link": "/framework/ai/2026-08-19/page-stamp-rename/",
+  "title": "Rename the per-page class stamp page-<name> to page--<name> site-wide (Page.class.js, Doc.js, every selector that targets a stamp), so compo",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "follow-up NOT done (fenced): ext/Panel/demo/page.js:108 and ext/Panel/Workspace/page.js:55 both still stamp page-+this.name -- another session owns Panel, left untouched",
+   "Left undone: ext/Panel/demo/page.js:108 and ext/Panel/Workspace/page.js:55 still stamp single-dash page- -- fenced off, another session owns Panel today."
+  ]
+ },
+ {
+  "task": "panel-bar-sweep",
+  "date": "2026-08-19",
+  "link": "/framework/ai/2026-08-19/panel-bar-sweep/",
+  "title": "Sweep the popover menus — many clip, and there are too many little icons nobody can remember. Wrap should be one toggle with an active state",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "properties() has a change listener; fields() drawn by tools.js has none, so every control rendered its lit state once - pick cells and the trigger still said toc, pick grid and the grid rows never appeared.",
+   "The drawer rail never redrew itself — pick cells and the trigger still said toc; pick grid and the grid rows never appeared.",
+   "Left deliberately. The live duplicate lost its only button (alt-drop still makes one)."
+  ]
+ },
+ {
+  "task": "panel-demos",
+  "date": "2026-08-19",
+  "link": "/framework/ai/2026-08-19/panel-demos/",
+  "title": "add a new Panel page tab (demo). use the classdoc style inner left nav for each demo. for each demo, add a starting panel, and a description",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "One signature a future Workspace class can call too, per the owner's ask mid-task."
+  ],
+  "left_open": [
+   "Worked around in demo/page.js by stashing the flow straight on its own element (.el.flow), independent of the array; Flow.mounted itself is unchanged and still the documented door for everything else.",
+   "Left: demo 7's screenshot shows mostly the RIGHT pane clearly — the LEFT's document-mode content is real (3 panels, confirmed via DOM) but scrolls past the 20em pane at this screenshot's scroll position, a cosmetic gap not a functional one.",
+   "Left short of target, reported honestly: each pane measures roughly 190 to 220px at 1280, not the requested 480px or more.",
+   "Still one row as asked, reported as measured rather than assumed."
+  ]
+ },
+ {
+  "task": "panel-flow-sizing",
+  "date": "2026-08-19",
+  "link": "/framework/ai/2026-08-19/panel-flow-sizing/",
+  "title": "these root demo panels, they don't have resize grips on the root panel? i'm thinking: panels should probably default to default \"div\" behavi",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "ROOTS UNMOVED after the default flipped to h:hug: editor 965x662 before and after, Workspace 571x241, playground 747x862, files 589x451; nested editor regions still divide (146/585/234 across 587, the nested column 333+253=586).",
+   "CLICK still splits (ghost true, 2 children).",
+   "add still 200/200/200.",
+   "The bar's + is add, not a split, and still reads 200/200/200."
+  ]
+ },
+ {
+  "task": "panel-groups",
+  "date": "2026-08-19",
+  "link": "/framework/ai/2026-08-19/panel-groups/",
+  "title": "panel-groups: Figma-style group selection in ext/Panel as a RULE (a group word on splits, on by default for a document root's sections, off ",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Left: the group toggle is rail-only (no bar popover — toolbar.js was outside the fence); --panel-pad has no CSS consumer yet (panel-pad-gap's job)."
+  ]
+ },
+ {
+  "task": "panel-insight",
+  "date": "2026-08-19",
+  "link": "/framework/ai/2026-08-19/panel-insight/",
+  "title": "Read ext/Panel (read-only) and report what to carry and what to avoid, as insight.md (<=110 lines) for the sibling designing ext/Playground.",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Left: no documentation pass — read-only task, nothing under public/ outside this dir was touched, ext/Panel/ never opened for writing."
+  ]
+ },
+ {
+  "task": "panel-items",
+  "date": "2026-08-19",
+  "link": "/framework/ai/2026-08-19/panel-items/",
+  "title": "click a cell inside a flex/grid leaf and the rail shows that item's own words; the words persist on the panel and land as CSS on the item; p",
+  "status": "landed"
+ },
+ {
+  "task": "panel-pad-gap",
+  "date": "2026-08-19",
+  "link": "/framework/ai/2026-08-19/panel-pad-gap/",
+  "title": "pad (new) and gap (always live) as panel words with a knob, not just buttons — two words on every panel body, each a row in the rail (and th",
+  "status": "landed"
+ },
+ {
+  "task": "panel-selection",
+  "date": "2026-08-19",
+  "link": "/framework/ai/2026-08-19/panel-selection/",
+  "title": "one selection, always truthful: the ring, the rail and the hover agree, across every workspace on the page. The + on repeating runs shows on",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Left, deliberately: ext/layout's refresh() still has no ownership test (announcing every landing compensates; the cure is in that module).",
+   "The .panel.focus ring rule still lives in panel.css — it belongs beside its hover twin in focus.css and should move once the flow-sizing fence opens.",
+   "workspace.js's focus(item, $panel) still passes a second argument nothing reads."
+  ]
+ },
+ {
+  "task": "playground-1-mvp",
+  "date": "2026-08-19",
+  "link": "/framework/ai/2026-08-19/playground-1-mvp/",
+  "title": "Build ext/Playground task 1 (MVP that opens): shell, grips, tree, document, Flex/Box, add/remove, save. Per playground-design/design.md + pl",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Left for later tasks: properties.js + the change event path (task 2) — the properties column is a stub; Grid + toolbar.js (task 3); documents UI + layout library + viewport presets (task 4); doc/schema.md + doc/decisions.md + the 4-width pass (task 5)."
+  ]
+ },
+ {
+  "task": "playground-2-properties",
+  "date": "2026-08-19",
+  "link": "/framework/ai/2026-08-19/playground-2-properties/",
+  "title": "Build ext/Playground properties.js: static fields tables in items.js, three controls (seg/text/num), the change path in Playground.js (no re",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Fixed by toggling .pg-seg-active on the matching field's existing buttons inside apply_change() (classList only, no node created/destroyed — still “no repaint”)."
+  ]
+ },
+ {
+  "task": "playground-3-grid-toolbar",
+  "date": "2026-08-19",
+  "link": "/framework/ai/2026-08-19/playground-3-grid-toolbar/",
+  "title": "Build ext/Playground task 3 (Grid + the toolbar): Grid item type, toolbar.js row (+flex/+grid/+box, duplicate, remove, copy/paste), Playgrou",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Single line, 54px, page scrollWidth still 1280 — and it scales for task 4's document-dropdown and viewport-preset buttons still to land in the row's slots.",
+   "Left for later tasks: readme.md/doc/ stay stale (task 2's own precedent — design §10 row 5 assigns docs to task 5, and my fence doesn't list them)."
+  ]
+ },
+ {
+  "task": "playground-4-documents-layouts",
+  "date": "2026-08-19",
+  "link": "/framework/ai/2026-08-19/playground-4-documents-layouts/",
+  "title": "Build ext/Playground task 4 (documents UI + layout library + viewport presets) per playground-design/design.md §2,§6,§7,§10 row4 and this di",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Left for later tasks: readme.md/doc//the 4-width pass (task 5, per design §10's own build order — outside my fence; readme.md is now stale on two more fronts: properties since task 2, documents/layouts/presets now)."
+  ]
+ },
+ {
+  "task": "playground-5-docs",
+  "date": "2026-08-19",
+  "link": "/framework/ai/2026-08-19/playground-5-docs/",
+  "title": "Two structural fixes (toolbar spans shell, canvas.js split) then docs (readme/schema/decisions/page.js) then the 4-width pass, per requireme",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "page.js → Doc (notes: schema decisions, files: the 8-file map); render() still owns the shell (zero regression, proved at 1280/1600).",
+   "Left: the 400px container-query overlay system (above)."
+  ]
+ },
+ {
+  "task": "playground-design",
+  "date": "2026-08-19",
+  "link": "/framework/ai/2026-08-19/playground-design/",
+  "title": "Design ext/Playground — a simpler Panel, fresh eyes (no Panel source read). Documents (figma-like, one tree each) on Item/List, tree|workspa",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Left: no code (design-only brief), and ../panel-insight/insight.md did not exist at landing (sibling at step 2/8), so the §Borrowed/Avoided section says so — a follow-up can add ten lines."
+  ]
+ },
+ {
+  "task": "playground-mastermind",
+  "date": "2026-08-19",
+  "link": "/framework/ai/2026-08-19/playground-mastermind/",
+  "title": "Mastermind run 5: a simpler Panel — ext/Playground. Opus minions read ext/Panel for insight (never modify it); fresh minions design the new ",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "Waiting on the owner: ui/tree drag-reorder (the layers-panel ask), the 400px overlay rails, x-ray/copy-as-CSS, the core Doc-tabs gap, and Panel's park-or-retire call."
+  ]
+ },
+ {
+  "task": "server-spin-profiled",
+  "date": "2026-08-19",
+  "link": "/framework/ai/2026-08-19/server-spin-profiled/",
+  "title": "fans are spinning / fans again? / what caused it? did you fix it?",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "- Left: the sustained source (unnamed); a sibling session relaunches the server hidden via nohup within 90 s of a kill — owner's call; mitigations (one watcher, DisableLastAccess) not applied"
+  ],
+  "left_open": [
+   "What sustains the flood is still unnamed — it died with the process; next time watchspy.mjs names the paths before the kill."
+  ]
+ },
+ {
+  "task": "ui-test-skill",
+  "date": "2026-08-19",
+  "link": "/framework/ai/2026-08-19/ui-test-skill/",
+  "title": "Try to make a ui-test skill, for things like drag and drop interactions. The basic gist is, get a minion to launch the page, give them the i",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Todo column [Hold, Filter, Box] -> [Filter, Hold, Box]; mid-drag eval showed 1 ghost + 1 placeholder.",
+   "Draggable sortable ([plan](plan-sort.json) · [steps](sort-steps.json) · [png](sort-drag.png)) — Todo column [Hold, Filter, Box] → [Filter, Hold, Box]; 1 ghost + 1 placeholder alive mid-drag.",
+   "Left: overlap is not auto-flagged (a child overlaps its parent by design — eval the two rects); no assert verb, the plan records and you read steps.json; chromium only."
+  ]
+ },
+ {
+  "task": "ui-tree",
+  "date": "2026-08-19",
+  "link": "/framework/ai/2026-08-19/ui-tree/",
+  "title": "ui/tree: icon + text rows, one indent per nesting level; sidebar-for-layers-and-nav component",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Left: keyboard (arrow-key roving tabindex) and drag-reorder — both listed under readme's ## Left, per the brief."
+  ]
+ },
+ {
+  "task": "workspace-a-sizing",
+  "date": "2026-08-19",
+  "link": "/framework/ai/2026-08-19/workspace-a-sizing/",
+  "title": "workspace-a-sizing — task A of the Workspace build: remove container-type/cq* from ext/Panel's sizing path so hug measures its content (flex",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "The cells demo still shows three 83.17px tracks.",
+   "Left, named: furniture in a narrow generated rail clips instead of shrinking — fitting a drawing to its slot is zoom's job (task C)."
+  ]
+ },
+ {
+  "task": "workspace-b-module",
+  "date": "2026-08-19",
+  "link": "/framework/ai/2026-08-19/workspace-b-module/",
+  "title": "workspace-b-module — task B of the Workspace build: build ext/Panel/Workspace/ — a Workspace class that HOLDS a Panel root (never extends), ",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Left, named: this page isn't in ext/Panel/page.js's children: yet (fence allowed only the /full/ edit there — task C wires the playground nav).",
+   "The rail's own mode picker still duplicates the bar's (design §8 deletes it after task C)."
+  ]
+ },
+ {
+  "task": "workspace-c-playground",
+  "date": "2026-08-19",
+  "link": "/framework/ai/2026-08-19/workspace-c-playground/",
+  "title": "task C: playground page + viewport set (fill/one/all/twin, Fit/100%/zoom) on top of Workspace (task B)",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "- --rail-push — the drawer readme's \"proposed, not applied\" token now exists (drawer.css, on .app) and .layout-full reads it instead of restating the push formula.",
+   "Left, named: one always shows desktop — no device picker yet.",
+   "The manual zoom dial is a no-op in all/twin (no single box to drag) — still drawn, for a steady bar.",
+   "framework.css's own .app padding-inline-end still restates the --rail-push formula directly rather than reading the token (out of this task's fence)."
+  ]
+ },
+ {
+  "task": "workspace-d-verbs",
+  "date": "2026-08-19",
+  "link": "/framework/ai/2026-08-19/workspace-d-verbs/",
+  "title": "Panel.restyle(from); split verb on edge click; add verb on Workspace bar +; insert.js seam + stops covering the grip; group toggle on the ba",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "page.js's methods: list was not extended for restyle() (page.js is out of this task's fences) — left open, noted in the landing report.",
+   "- Left open: page.js's methods: list wasn't extended for restyle() (page.js is out of this task's fences), so it won't get its own doc/method/ page yet."
+  ]
+ },
+ {
+  "task": "workspace-design",
+  "date": "2026-08-19",
+  "link": "/framework/ai/2026-08-19/workspace-design/",
+  "title": "Design pass (read-only) for the Workspace — parent of a Panel tree owning mode, saver, zoom + px readout, the viewport set (one/all/twin), a",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Left deliberately: rename-a-document (a file move — delete is free, rename is not); in-page workspaces; infinite canvas."
+  ]
+ },
+ {
+  "skipped": [
+   "2026-08-18/day.jsonl",
+   "2026-08-18/page.js",
+   "2026-08-19/day.jsonl",
+   "2026-08-19/page.js"
+  ]
+ }
+]

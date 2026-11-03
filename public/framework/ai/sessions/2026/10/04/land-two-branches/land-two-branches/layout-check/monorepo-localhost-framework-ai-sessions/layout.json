@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/sessions/",
+ "widths": {
+  "1280": {
+   "empty": 0.564,
+   "widest_text": 341,
+   "widest_text_sample": "Claude $ logged by role (largest first, ",
+   "overflow_x": false,
+   "items": 2053,
+   "narrow_share": 0.89
+  },
+  "1920": {
+   "empty": 0.721,
+   "widest_text": 362,
+   "widest_text_sample": "Claude $ logged by role (largest first, ",
+   "overflow_x": false,
+   "items": 2053,
+   "narrow_share": 0.995
+  },
+  "2560": {
+   "empty": 0.762,
+   "widest_text": 408,
+   "widest_text_sample": "Claude $ logged by role (largest first, ",
+   "overflow_x": false,
+   "items": 2053,
+   "narrow_share": 0.995
+  },
+  "3440": {
+   "empty": 0.832,
+   "widest_text": 408,
+   "widest_text_sample": "Claude $ logged by role (largest first, ",
+   "overflow_x": false,
+   "items": 2053,
+   "narrow_share": 0.995
+  }
+ },
+ "errors": []
+}

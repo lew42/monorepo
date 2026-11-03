@@ -1,10 +1,30 @@
-import { Page, md, demo, h2, p, div, pre, code, toc } from "/app.js";
+import { Doc, md, demo, h2, p, div, code, toc, files } from "/app.js";
+import { sample } from "./sample.js";
 
-export default new Page({
+/* Patches demo.steps() on — a page-local side effect, the way this file's own
+   door pages already patch each other. */
+import "./steps.js";
+
+const hero = () => {
+	div.c("wash pad flex v gap v-center", () => {
+		p.c("h2", "Ship it");
+		p("A band, and the whole of a leaf page.");
+	}).style("--pad", "3em");
+};
+
+export default new Doc({
 	meta: import.meta,
 	title: "Demo",
-	description: "Show the code, then run it — from one source.",
+	description: "Show the code, then run it — from one source. Four doors.",
 	icon: "play_circle",
+
+	children: "shell",
+
+	subject: demo,
+	methods: "stage exhibit page tree layout app source steps",
+	notes:   "architecture record decisions",
+	files:   "app.css app.js demo.css demo.js exhibit.css exhibit.js layout.js mini.css mini.js page.js pane.js readme.md sample.js shell.css shell.js stage.css stage.js steps.css steps.js",
+
 	content(){
 
 		toc();
@@ -16,7 +36,24 @@ export default new Page({
 			});
 		}, "The code above **is** the code that rendered the box. There's no second copy, so an example can't drift out of date.");
 
-		h2("Usage");
+		md("It reads `fn.toString()`, drops the wrapper, dedents — then runs the function with the result box as captor. Examples are written exactly like real page code, because they *are* real page code.");
+
+		h2("Four doors");
+
+		md(`| | |
+|---|---|
+| \`demo(fn)\` | a quoted example inside a page about something else |
+| \`page.demo()\` | a whole demo PAGE: path, stage, layout bar, source column — [Shell](/framework/ext/demo/shell/) |
+| \`demo.stage(fn)\` | the render on its own — the site's one resizable viewport |
+| \`demo.app(tree)\` | a Page tree playing App and Router in a box |
+
+Everything else is one of those four with its config filled in. \`demo.exhibit()\`,
+\`demo.page()\`, \`demo.tree()\` and \`demo.layout()\` are page SHAPES over
+\`page.demo()\` — \`children:\` factories, not four more ways to draw a demo — and
+\`demo.source()\` is the shell's own code block, on its own. The
+[API](/framework/ext/demo/api/) tab has each with its real source.`);
+
+		h2("demo() — a quoted box");
 
 		code.js(`import { demo } from "/app.js";
 
@@ -25,28 +62,12 @@ demo(() => {
 });
 
 demo("Label above", () => { … });
-demo(() => { … }, "Caption below the result.");`);
+demo(() => { … }, "Caption below the result.");
+demo(() => { … }, { html: true });   // the HTML pane open from the start
+demo(() => { … }).ac("stack");       // never split, however wide the box
+demo(() => { … }).ac("quoted");      // an aside — stay on the reading measure`);
 
-		md("It reads `fn.toString()`, drops the wrapper, dedents — then runs the function with the result box as captor. Examples are written exactly like real page code, because they *are* real page code.");
-
-		h2("The toolbar");
-
-		md("Every control that changes what you're looking at is in one strip at the top:");
-
-		md(`| | |
-|---|---|
-| **zoom** | CSS \`zoom\` on the render, so the example really re-lays-out |
-| **\`<>\`** | the HTML this built, as a second column |
-| **⤢** | fill the window |
-
-And on the right edge of the render, a **drag handle** — pull it to test how the
-example holds up narrow. **Right-click it to go back** to whatever fits.`);
-
-		md("The width under the box is the width the example is *laid out* at, which is not the width you see once the zoom is off 100%. That gap is why both controls exist: zoom out to 50% and a demo lays out at twice the room it's drawn in.");
-
-		md("**A `@media` query inside an example will not respond to the handle.** The stage is a `div`, so everything intrinsic reacts — `auto-fit`, `%`, `flex-wrap`, container queries — but a media query asks the *browser* viewport, and that hasn't moved. Simulating a viewport properly needs an iframe; the design record says what that would cost.");
-
-		h2("The html pane");
+		md("A box carries `wide`, because a demo is something you **look at** and the measure is for reading. `quoted` is the opt-out.");
 
 		demo(() => {
 			div.c("card", () => {
@@ -55,14 +76,119 @@ example holds up narrow. **Right-click it to go back** to whatever fits.`);
 			});
 		}, { html: true }, "Click `<>` to put this away. It's the real DOM, read back — so you can see exactly what `div.c(\"card\", …)` produced.");
 
-		code.js(`demo(() => { … }, { html: true })   // open from the start
-demo(() => { … }).ac("stack")       // never split, however wide the box`);
+		md("The **HTML pane** is hidden by default, because the answer to *\"what does this render\"* is the render. It's read on **show**, not up front: a demo whose content arrives from a promise hasn't finished building when `demo()` returns, and a click is always later than that.");
 
-		md("Hidden by default, because the answer to *\"what does this render\"* is the render — the HTML is the follow-up question. It's read on **show**, not up front: a demo whose content arrives from a promise hasn't finished building when `demo()` returns, and a click is always later than that.");
+		md("It sits **beside** the code when the box is wide enough for two columns and **under** it when it isn't — `flex-wrap` and a `22em` basis, no media query. It serializes the live DOM via [markup()](/framework/util/markup/), so it can't drift from the box above it. One honest consequence: a class something *else* added shows up too — an `<a>` carries `.in-path` when the current url sits under its `href`, because [Router](/framework/core/Router/) really did put it there.");
 
-		md("It sits **beside** the code when the box is wide enough for two columns and **under** it when it isn't — `flex-wrap` and a `22em` basis, no media query and no breakpoint. Narrow this window and watch the pane above move.");
+		h2("demo.stage() — the render, bare");
 
-		md("It serializes the live DOM via [markup()](/framework/util/markup/), so it can't drift from the box above it. One honest consequence: a class something *else* added shows up too — an `<a>` will carry `.in-path` when the current url sits under its `href`, because [Router](/framework/core/Router/) really did put it there.");
+		// ⚠ `toc-skip`, or the rail reads "Ship it" — the band's `.h2` is the
+		// example's own title, not a section of this page.
+		demo.stage(hero).ac("toc-skip");
+
+		code.js(`demo.stage(hero);               // the strip, the box, the handle — no code
+demo.stage(hero).ac("bleed");   // a leaf page: edge to edge, no inset`);
+
+		md("**The resizable box on its own** — no code pane, no border, and the same strip every stage has. Drag the right edge; press a width; drag the magnifier. That strip plus the readout is the whole chrome, which is what makes the stage usable as a *page* and not just as the inside of a box.");
+
+		md(`| | |
+|---|---|
+| **mobile · tablet · desktop · mega** | lay the render out at 390 / 810 / 1440 / 3440 and draw it at the \`zoom\` that fits. Press the pressed one to let go |
+| **🔍** | **drag it** to zoom continuously; click it to see the whole thing again |
+| **zoom** | the same thing in steps, on top of any simulated width |
+| **⤢** | fill the window — the one fullscreen on the site |
+| **the handle** | drag the right edge; **right-click to go back** to whatever fits |`);
+
+		md("The width under the box is the width the example is *laid out* at, which is not the width you see once the zoom is off 100%. **The handle only shrinks a stage — a width is how you go bigger**, and then you zoom *on top of* that width to lean into the layout.");
+
+		md("**A `@media` query inside an example will not respond to any of it.** The stage is a `div`, so everything intrinsic reacts — `auto-fit`, `%`, `flex-wrap`, container queries — but a media query asks the *browser* viewport, and that hasn't moved. Simulating a viewport properly needs an iframe; the design record says what that would cost.");
+
+		h2("demo.exhibit() — the detail page");
+
+		code.js(`demo.exhibit({
+    page: this,                                    // its children become Variants
+    stage: steer => demo.stage(hero, steer).ac("bleed"),
+    def: hero,                                     // the definition, stringified
+    file: "/framework/styles/sections/hero.js",    // the whole file, one click away
+    note: "A caption, under the source.",
+});`);
+
+		md("**Every detail page on the site is this one assembly** — and the assembly is `page.demo()` now, with the specimen's own stage handed in as `run:`. Four things, in this order: the path, the thing running on a stage you can drag, a [layout bar](/framework/ext/layout/) wired to it, and **the definition** — stringified, so the reader gets the lesson and not the imports around it.");
+
+		md("**The band is the shell's, and it lays itself out.** Render and definition are two columns of one `bleed` block — stacked at every laptop width, side by side from ~1440 up, and edge-to-edge on a phone, where a 2em gutter is 16% of the screen. No option and no media query on the split: `flex-wrap` and a basis, because the width that varies is the band's.");
+
+		md("**Hand it the page and its children become variants** — a `Variants` heading and `previews()`, the same cards a rail is made of, so a demo can be the category for the complex ones without a second preview mechanism. [Form field](/framework/ui/field/) is three of them.");
+
+		h2("Three sugars over it");
+
+		code.js(`demo.page("range", ranges, { note: "…" })   // a FUNCTION as a demo page
+demo.tree({ meta: import.meta, tree: shop })  // a site TREE as one
+demo.layout({ meta: import.meta, twin: true, parts: "header rail footer",
+              layout(){ return div.c("page full fill flex v", …); } })`);
+
+		md("Each is a config factory returning a page — `preview()` plus a `content()` that calls the exhibit — so a demo is a real child page with a real url and a card in its parent's rail. They are page **shapes**, not four more ways to draw a demo: every one of them renders through `page.demo()`. What differs is only what the specimen **is**: a function, a tree, or a whole page.");
+
+		md("**The card is the render at half size, drawn fresh per call** (a cached one would be stolen from the page). `twin: true` says the specimen is a whole screen, so it paints its own ground; `parts:` turns the layout's regions into checkboxes in the panel's right drawer, so an app shell with everything unchecked becomes the document layout, live.");
+
+		md("[Layouts](/framework/styles/layouts/), [Sections](/framework/styles/sections/), [Components](/framework/ui/) and the [Page overview](/framework/core/Page/) are all this — one rail of cards, one exhibit behind each.");
+
+		h2("demo.source() — the one code surface");
+
+		demo.source(hero);
+
+		code.js(`demo.source(hero);                          // the header reads "Source"
+demo.source(hero, "The whole band");        // your own header
+demo.source(template, "Source");            // a STRING, already built
+demo.source.file(import.meta, "hero.js");   // a file — the header is its name`);
+
+		md("**It is not a `<details>` any more.** It was one for a year, and every caller that mattered wrote `.attr(\"open\", \"\")` straight after — a disclosure nobody ever wanted disclosed. Code beside a render is half the lesson; an aside is what a caption is for. `page.demo()`'s peer column is this same block, so the shell's code and a leaf page's code cannot drift apart. Same source as the code pane (`fn.toString()`, so it can't drift), the same soft dependency on [Highlight](/framework/ext/highlight/), and a copy button in the header.");
+
+		h2("demo.app() — a tree in a box");
+
+		demo.stage(() => demo.app(sample(), { nav: true }).style("height", "20em")).ac("toc-skip");
+
+		code.js(`import { demo } from "/app.js";
+import { sample } from "/framework/ext/demo/sample.js";
+
+demo.app(sample())                  // opens at the root — an in-memory tree, no dead hrefs
+demo.app(laces, { nav: true })      // opens deep, with a rail
+demo.app(page, { scope: page, urls: true })   // scope is a REAL page — keep real hrefs`);
+
+		md("`demo.app()` plays **App and Router for one tree**: a url strip that is also a breadcrumb, an optional rail, and the region the pages mount in. The pages inside are ordinary `Page`s doing their own `render()` and `previews()`, and the clicks never reach the real Router — the url in your address bar stays put. The [Page demos](/framework/core/Page/) are fourteen of these. ⚠ A title is address enough (`Web` → `/web/`) — and object children only; a name string probes the server for a `page.js`. ⚠ Those derived urls are NAMES, not addresses, and by default the box emits `data-demo-url` instead of an `href` that 404s on middle-click; pass `urls: true` only when `scope:` is a real page.");
+
+		md("`sample()` is the shared sample tree — nine children, three of them a level deeper — so a demo that needs *a tree* takes this one and overrides the root. What changes between demos is then exactly the thing each demo teaches: [Navigation](/framework/core/Page/old/nav/) shows the same nine children as a wall, a rail, a sidebar and a set of crumbs, one `sample()` each.");
+
+		h2("demo.steps() — a demo beside its own steps");
+
+		demo.steps({
+			steps: [
+				{ say: "Read this step" },
+				{ say: "Read this one too" },
+				{ say: "Now click the box" },
+			],
+			stage: () => demo.stage(hero),
+		}).ac("toc-skip");
+
+		code.js(`demo.steps({
+    steps: [
+        { say: "Expand a branch", when: "expand" },
+        { say: "Drag Jackets into Shoes", when: "move" },
+        { say: "Turn on Adapt", when: "adapt" },
+    ],
+    stage: () => demo.stage(tree),
+});`);
+
+		md("**The shape a title and an intro paragraph used to be, replaced.** A numbered list of minimal steps — a verb phrase each, eight at most — beside whatever `stage:` builds. The reader does step one *in the demo*, right there, and the checkmark lands on its own: a step with `when` finishes itself the moment the demo fires that event anywhere inside itself (`$tree.el.dispatchEvent(new CustomEvent(\"move\", { bubbles: true }))` is the whole wiring on the demo's side); a step with none — like the three above, which have nothing to listen for — finishes on a click, same as every step can. The one above you has no events wired at all: click each line to see it happen.");
+
+		md("**The collapse at a narrow width is the `.rail` word's, not a new one** — the steps column already knows how to stack itself to a full-width top strip below 38em, reordering itself first, so `demo.steps()` writes zero new breakpoints. `side: \"left\"`/`\"right\"` only changes which one is built first; the [full record](/framework/ext/demo/api/steps/) has the why, the one-cue rule for the current step, and where a task hit a wall trying to wrap a page's OWN fixed-height layout in this.");
+
+		h2("The code beside the render");
+
+		code.js(`files(import.meta, "readme.md demo.js stage.js exhibit.js")`);
+
+		files(import.meta, "readme.md demo.js stage.js exhibit.js").ac("wide");
+
+		md("A demo shows the result; `files()` shows the **files behind it** — the real ones, on disk. It's a two-column view: a file tree on the left, folders opening and closing on click, and the picked file's source on the right, with the seam between them ([`ext/grip`](/framework/ext/grip/)) draggable to resize. The chosen files live in the url, so a reload or the back button lands here again. [Files](/framework/ext/files/) has the rest.");
 
 		h2("Why");
 
@@ -72,6 +198,6 @@ demo(() => { … }).ac("stack")       // never split, however wide the box`);
 
 		md("Next: [Highlight](/framework/ext/highlight/) — which is what makes those code blocks readable.");
 
-		md.details(import.meta, "readme.md", "Design record — the html pane, the three-box stage, and why a div is not a viewport");
+		md.details(import.meta, "readme.md", "Readme");
 	}
 });

@@ -1,0 +1,4 @@
+{"class":"/framework/ai2/card.js","title":"Yes, that streaming log exists, and this message just used it","type":"card","id":"2026/09/19/streaming","created":"2026-09-19T15:18:31-05:00","by":"","tags":[]}
+{"legacy":"streaming"}
+{"status":"done"}
+{"text":"This card reached your dev bar through it: I append one line to a jsonl file, the dev server tails the file and pushes the line over the socket, and the page draws it. No reload, and Block does not stop it.\nThe slow part was not the stream. It was me spending four minutes building the dev bar section the first time. That is built now, so from here a message from me takes a few seconds: one line appended, and it is on your screen."}

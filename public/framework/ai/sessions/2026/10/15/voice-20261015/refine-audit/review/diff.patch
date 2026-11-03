@@ -1,0 +1,977 @@
+diff --git a/public/framework/ext/Refine/Cleaner.js b/public/framework/ext/Refine/Cleaner.js
+new file mode 100644
+index 000000000..c52fe707c
+--- /dev/null
++++ b/public/framework/ext/Refine/Cleaner.js
+@@ -0,0 +1,319 @@
++// class Cleaner: raw dictation in, near-verbatim sentences out (instant plain function, or the model). Design: doc/cleaner.md, history: doc/notes.md
++// Browser-safe AND Node-safe: no top-level node:* imports. engine.js re-exports the old function names as aliases.
++
++const isNode = typeof window === "undefined";
++
++// Glossary built by hand from CLAUDE.md + module names; see doc/notes.md
++const GLOSSARY = [
++	// public/framework/*/*/readme.md module & class names (regenerated 2026-10-02, see above)
++	"AITask", "App", "Ask", "Auth", "CSSDoc", "Card", "Chat", "Claim", "Classify", "Collab",
++	"Content", "Course", "DesignTool", "DevBar", "DevShell", "Dictate", "Doc", "Draggable",
++	"Dropdown", "Events", "Filter", "Inbox", "Item", "JSONL", "Layout", "List", "Mention",
++	"Menu", "MicStream", "Omnibox", "Page", "Pagination", "Panel", "Popover", "Recorder",
++	"Refine", "Rename", "Research", "Revise", "Router", "Saver", "Search", "Section",
++	"Session", "Shell", "Sidebar", "Socket", "Tags", "Timeline", "Transcriber", "Tree",
++	"Understand", "View", "Wizard",
++	// CLAUDE.md / system proper nouns, added by hand
++	"Servex", "Lew42", "CLAUDE.md", "Cloudflare", "Whisper", "Dispatcher", "Playground",
++	"Haiku", "Sonnet", "Opus", "Fable",
++];
++
++// Word-matching helpers: copy of Server/refine.mjs logic (can't import due to node:*)
++
++const wordsOf = s => (String(s).toLowerCase().match(/[a-z0-9']+/g) || []);
++const STOP = new Set(["the", "a", "an", "and", "or", "but", "to", "of", "in", "on", "for", "is",
++	"are", "was", "were", "be", "been", "it", "that", "this", "i", "you", "we", "they", "he",
++	"she", "with", "as", "at", "by", "from", "so", "if", "then", "than", "not", "no", "do",
++	"does", "did", "have", "has", "had", "my", "your", "our", "their", "his", "her", "its",
++	"um", "uh", "like", "going", "gonna", "just", "really", "kind", "sort"]);
++const contentWords = s => wordsOf(s).filter(w => w.length >= 4 && !STOP.has(w));
++const STEM_SUFFIXES = ["'s", "n't", "ing", "ed", "es", "s"];
++function crudeStem(w){
++	const s = w.toLowerCase();
++	for (const suf of STEM_SUFFIXES) if (s.endsWith(suf) && s.length - suf.length >= 3) return s.slice(0, -suf.length);
++	return s;
++}
++function stemsMatch(a, b){
++	if (a === b) return true;
++	const [shorter, longer] = a.length <= b.length ? [a, b] : [b, a];
++	return shorter.length >= 4 && longer.startsWith(shorter);
++}
++
++// Plain Levenshtein edit distance — "closest-word-by-edit-distance against the glossary
++// list is enough" (the brief, deliverable 2b). No npm dependency, ~12 lines.
++function editDistance(a, b){
++	a = a.toLowerCase(); b = b.toLowerCase();
++	const dp = [];
++	for (let i = 0; i <= a.length; i++) dp.push([i, ...Array(b.length).fill(0)]);
++	for (let j = 0; j <= b.length; j++) dp[0][j] = j;
++	for (let i = 1; i <= a.length; i++)
++		for (let j = 1; j <= b.length; j++)
++			dp[i][j] = a[i - 1] === b[j - 1] ? dp[i - 1][j - 1] : 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
++	return dp[a.length][b.length];
++}
++
++// Glossary threshold: ~30% of word length, at least 1 (4-letter needs near-exact; 10-letter allows ±3)
++const glossaryThreshold = w => Math.max(1, Math.round(w.length * 0.3));
++
++function closestGlossaryMatch(word){
++	let best = null;
++	for (const name of GLOSSARY){
++		const d = editDistance(word, name);
++		if (!best || d < best.distance) best = { name, distance: d };
++	}
++	return best;
++}
++
++// Best-effort nearest raw word (closest by edit distance); not a precise citation
++function nearestRawWord(name, rawWords){
++	let best = null;
++	for (const w of rawWords){
++		const d = editDistance(name, w);
++		if (!best || d < best.distance) best = { word: w, distance: d };
++	}
++	return best?.word ?? name;
++}
++
++// Strike detection: looks for correction markers ("no wait", "actually", etc.) in RAW text
++const CORRECTION_MARKERS = /\b(no,?\s+wait|wait,?\s+no|actually|scratch that|i meant|i mean|not that)\b/i;
++
++function splitClauses(text){
++	return text.replace(/\s+/g, " ").trim().split(/(?<=[.!?,;])\s+/).filter(Boolean);
++}
++
++// Best-match sentence by word overlap (same idea as raw-match.md, reused for two jobs)
++function bestMatchSentence(text, sentences){
++	const words = new Set(contentWords(text));
++	if (!words.size || !sentences.length) return sentences[0]?.n ?? 1;
++	let best = sentences[0], bestScore = -1;
++	for (const s of sentences){
++		const sWords = contentWords(s.text);
++		const score = sWords.filter(w => words.has(w)).length;
++		if (score > bestScore){ bestScore = score; best = s; }
++	}
++	return best.n;
++}
++
++function detectStrikes(rawText, sentences){
++	const clauses = splitClauses(rawText);
++	const strikes = [];
++	for (let i = 1; i < clauses.length; i++){
++		if (CORRECTION_MARKERS.test(clauses[i]) && !CORRECTION_MARKERS.test(clauses[i - 1])){
++			const struck = clauses[i - 1].replace(/[,.;]$/, "").trim();
++			const kept = (clauses[i].replace(CORRECTION_MARKERS, "").replace(/^[,:\s]+/, "").trim()) || (clauses[i + 1] || "").trim();
++			if (struck && kept) strikes.push({ sentence_n: bestMatchSentence(kept, sentences), struck_text: struck });
++		}
++	}
++	return strikes;
++}
++
++// Parse model's numbered reply (matches Servex/agents/tidy.js contract)
++function parseModelReply(answerText){
++	const sentences = [];
++	const modelFlags = [];
++	for (const line of String(answerText || "").split(/\r?\n/)){
++		const m = /^S(\d+)([.?])\s*(.*)$/.exec(line.trim());
++		if (!m) continue;
++		const n = Number(m[1]);
++		let body = m[3].trim();
++		if (m[2] === "?"){
++			const uq = /^(.*?),\s*unclear:\s*(.+)$/i.exec(body);
++			const question = uq ? uq[2].trim() : "This part was unclear — please confirm what was meant.";
++			body = uq ? uq[1].trim() : body;
++			modelFlags.push({ sentence_n: n, question, confidence: 0.3, source: "model" });
++		}
++		sentences.push({ n, text: body });
++	}
++	return { sentences, modelFlags };
++}
++
++// Fallback for model ignoring numbered format (same as Server/refine.mjs)
++function mechanicalSplit(text){
++	return text.replace(/\s+/g, " ").trim().split(/(?<=[.!?])\s+/).filter(Boolean);
++}
++
++// Faithfulness check: global vocabulary (prev + text); doc/notes.md
++function applyFaithfulnessCheck(rawForCheck, rawTextThisCall, sentences, strikes){
++	const rawStems = [...new Set(contentWords(rawForCheck))].map(crudeStem);
++	const rawWords = [...new Set(contentWords(rawForCheck))];
++	const struckSentenceNs = new Set(strikes.map(s => s.sentence_n));
++	const fallbackSentences = mechanicalSplit(rawTextThisCall);
++
++	const misheard = [];
++	const mechanicalFlags = [];
++	const finalSentences = sentences.map((s, idx) => {
++		const words = [...new Set(contentWords(s.text))];
++		const bad = [];
++		for (const w of words){
++			const stem = crudeStem(w);
++			if (rawStems.some(rs => stemsMatch(stem, rs))) continue;       // said somewhere already — fine
++			// Glossary check BEFORE the strike check, on purpose: a self-correction sentence
++			// can still contain a genuine glossary fix ("no wait, I meant the Servex
++			// dashboard" — both the correction AND the misheard "Servex" are real), and
++			// `misheard` should record that either way, not just the strikes entry.
++			const g = closestGlossaryMatch(w);
++			if (g && g.distance <= glossaryThreshold(w)){
++				misheard.push({ sentence_n: s.n, from: nearestRawWord(g.name, rawWords), to: g.name });
++				continue;                                                   // a confident glossary fix — allowed
++			}
++			if (struckSentenceNs.has(s.n)) continue;                       // this sentence is a self-correction — the model's wording is trusted
++			bad.push(w);
++		}
++		if (bad.length){
++			mechanicalFlags.push({
++				sentence_n: s.n,
++				question: `The cleaned text adds or changes "${bad.join('", "')}", which isn't anywhere in what was actually said — is this right, or should it be reverted?`,
++				confidence: 0.5,
++				source: "mechanical",
++			});
++			// Reject -> fall back to the raw text for this sentence (best-effort positional
++			// match: clean sentences are usually produced in the same order as raw ones).
++			const fallback = fallbackSentences[idx] ?? s.text;
++			return { n: s.n, text: fallback };
++		}
++		return { n: s.n, text: s.text };
++	});
++
++	return { sentences: finalSentences, misheard, mechanicalFlags };
++}
++
++// Node vs. browser split: nodeCall dynamic imports, browserCall hits /api/tidy
++
++async function nodeCall(text, prev, model, cwd, call){
++	// ⚠ Dynamic imports (not static) to avoid node:* builtins in browser
++	const [{ askOnce }, { LEVELS, bodyFor }] = await Promise.all([
++		import("../../../../Server/AskEach.mjs"),
++		import("../../../../Servex/agents/tidy.js"),
++	]);
++	const theCall = call || askOnce; // same (prompt, {model, cwd}) -> {answer, cost_usd} shape
++	const prompt = `${LEVELS.clean.prompt}\n\n${bodyFor({ text, before: prev })}`;
++	const r = await theCall(prompt, { model: model || LEVELS.clean.model, cwd: cwd || process.cwd() });
++	return r.answer ?? "";
++}
++
++async function browserCall(text, prev, model){
++	const { servex_url } = await import("/framework/dev/servex_url.js");
++	const res = await fetch(servex_url("/api/tidy"), {
++		method: "POST", headers: { "Content-Type": "application/json" },
++		body: JSON.stringify({ text, before: prev, level: "clean", model }),
++	});
++	if (!res.ok) throw new Error(`clean(): Servex answered ${res.status}`);
++	const out = await res.json();
++	if (!out?.ok) throw new Error(`clean(): Servex refused (${out?.why ?? "unknown"})`);
++	return out.text ?? "";
++}
++
++// The model clean (Cleaner#clean and the old clean() alias)
++async function clean_text(text, { prev = "", onFlag, call, cwd, model } = {}){
++	if (typeof text !== "string" || !text.trim()) return { text: "", sentences: [], strikes: [], misheard: [], flags: [] };
++
++	const answerText = isNode ? await nodeCall(text, prev, model, cwd, call) : await browserCall(text, prev, model);
++
++	let { sentences, modelFlags } = parseModelReply(answerText);
++	if (!sentences.length) sentences = mechanicalSplit(text).map((t, i) => ({ n: i + 1, text: t }));
++
++	const strikes = detectStrikes(text, sentences);
++	const rawForCheck = prev ? `${prev} ${text}` : text;
++	const { sentences: finalSentences, misheard, mechanicalFlags } = applyFaithfulnessCheck(rawForCheck, text, sentences, strikes);
++
++	// Fire onFlag in order found (model flags first, then mechanical)
++	const flags = [...modelFlags, ...mechanicalFlags];
++	if (typeof onFlag === "function") for (const f of flags) onFlag(f);
++
++	return {
++		text: finalSentences.map(s => s.text).join(" "),
++		sentences: finalSentences,
++		strikes,
++		misheard,
++		flags,
++	};
++}
++
++// Instant clean (no model): drop fillers + stutters, capitalise, add punctuation
++function quick_clean_text(text){
++	const t = String(text ?? "").replace(/\s+/g, " ").trim();
++	if (!t) return [];
++	const cleaned = t
++		.replace(/\b(?:um+|uh+|ah+|er+|erm|hmm+)\b[,.]?\s*/gi, "")
++		.replace(/\byou know,?\s*/gi, "")
++		.replace(/\blike,\s*/gi, "")
++		.replace(/\b(\w+)(?:,?\s+\1\b)+/gi, "$1")
++		.replace(/\s+([,.!?;:])/g, "$1")
++		.replace(/\s+/g, " ").trim();
++	return mechanicalSplit(cleaned).map((s, i) => {
++		let x = s.replace(/^[\s,;:-]+/, "");
++		x = x.charAt(0).toUpperCase() + x.slice(1);
++		if (!/[.!?]$/.test(x)) x += /^(who|what|when|where|why|how|is|are|do|does|can|could|should|would)\b/i.test(x) ? "?" : ".";
++		return { n: i + 1, text: x };
++	}).filter(s => s.text.length > 1);
++}
++
++// Word overlap score: Dice coefficient over 3+ letter words (law 6: one place)
++function word_overlap_score(a, b){
++	const words = s => new Set((String(s ?? "").toLowerCase().match(/[a-z0-9']+/g) ?? []).filter(w => w.length >= 3));
++	const wa = words(a), wb = words(b);
++	if (!wa.size && !wb.size) return 1;
++	if (!wa.size || !wb.size) return 0;
++	let shared = 0;
++	for (const w of wa) if (wb.has(w)) shared++;
++	return (2 * shared) / (wa.size + wb.size);
++}
++
++/**
++ * class Cleaner: one dictated chunk in, numbered near-verbatim sentences out.
++ *
++ *     const c = new Cleaner({ model: "" });
++ *     c.quick_clean("um can you hear me");    // instant, no model -> [{n, text}]; also c.sentences
++ *     await c.clean("um can you hear me");    // the model, with the faithfulness check -> {text, sentences, strikes, misheard, flags}
++ *
++ * The instance remembers its last run (raw, sentences, mode, ms, flags) so a page can show it live.
++ * Static Cleaner.quick_clean / Cleaner.clean are the stateless forms; engine.js keeps them as clean() / quick_clean().
++ */
++export default class Cleaner {
++	static icon = "cleaning_services";
++	static GLOSSARY = GLOSSARY;
++	static word_overlap_score = word_overlap_score;
++
++	/** Stateless instant clean. */
++	static quick_clean(text){ return quick_clean_text(text); }
++	/** Stateless model clean. */
++	static clean(text, opts){ return clean_text(text, opts); }
++
++	raw = "";          // the text of the last run
++	sentences = [];    // [{n, text}] of the last run
++	mode = "idle";     // "idle" | "quick" (no model) | "model"
++	status = "idle";   // "idle" | "working" | "done" | "error"
++	ms = 0;            // how long the last run took
++	text = "";         // sentences joined
++	strikes = [];      // spoken corrections found ("no, wait")
++	misheard = [];     // words the model changed that the glossary explains
++	flags = [];        // sentences worth a second look
++	error = "";
++
++	/** opts: { model, prev, cwd, call, onFlag } become defaults for every clean() on this instance. */
++	constructor(opts = {}){ this.opts = opts; }
++
++	quick_clean(text){
++		const t0 = Date.now();
++		this.raw = String(text ?? "");
++		this.sentences = quick_clean_text(this.raw);
++		this.text = this.sentences.map(s => s.text).join(" ");
++		this.mode = "quick"; this.status = "done"; this.ms = Date.now() - t0;
++		this.strikes = []; this.misheard = []; this.flags = []; this.error = "";
++		return this.sentences;
++	}
++
++	async clean(text, opts = {}){
++		const t0 = Date.now();
++		this.raw = String(text ?? ""); this.status = "working"; this.error = "";
++		try {
++			const out = await clean_text(this.raw, { ...this.opts, ...opts });
++			Object.assign(this, { sentences: out.sentences, text: out.text, strikes: out.strikes, misheard: out.misheard, flags: out.flags });
++			this.mode = "model"; this.status = "done"; this.ms = Date.now() - t0;
++			return out;
++		} catch (e){
++			this.status = "error"; this.error = e?.message ?? String(e); this.ms = Date.now() - t0;
++			throw e;
++		}
++	}
++}
+diff --git a/public/framework/ext/Refine/Prompt.css b/public/framework/ext/Refine/Prompt.css
+index b90bb3a5a..f650b2937 100644
+--- a/public/framework/ext/Refine/Prompt.css
++++ b/public/framework/ext/Refine/Prompt.css
+@@ -42,7 +42,6 @@
+ @layer site {
+ 	/* One workspace: sticky bar on top, stages side by side, sticky footer (the owner, 2026-10-09). */
+ 	.refine-toolbar { position: sticky; top: 0; z-index: 5; display: grid; gap: .4em; padding-block: .5em; background: var(--paper, #fff); border-block-end: 1px solid color-mix(in srgb, currentColor 18%, transparent); }
+-	.refine-toolbar textarea { min-height: 3.2em; max-height: 6em; }
+ 	.refine-said { display: flex; flex-wrap: wrap; gap: .3em 1em; align-items: baseline; }
+ 	.refine-said-label { font-weight: 600; }
+ 	.refine-go { font-weight: 700; }
+@@ -56,7 +55,6 @@
+ 	.refine-toolbar { gap: .2em; }
+ 	.refine-toolbar .voice-strip-guess { min-block-size: 0; }
+ 	.refine-toolbar .voice-conn { max-block-size: none; }
+-	.refine-toolbar textarea { min-height: 0; block-size: 3.4em; }
+ 	.refine-toolbar .voice-strip { gap: .2em; }
+ }
+ 
+diff --git a/public/framework/ext/Refine/Prompt.js b/public/framework/ext/Refine/Prompt.js
+index 7b951992e..2a9144116 100644
+--- a/public/framework/ext/Refine/Prompt.js
++++ b/public/framework/ext/Refine/Prompt.js
+@@ -127,7 +127,7 @@ Prompt.View = class extends View {
+ 	/** Each stage names itself: a number, a plain title, what it is in one line, and the class that makes it. */
+ 	static STAGES = {
+ 		said:    { title: "1 · Said",    what: "Exactly what Whisper heard. Type here too.", by: "Dictate", href: "/framework/ux/Dictate/" },
+-		clean:   { title: "2 · Cleaned", what: "Your words, fixed: fillers out, sentences numbered. Nothing reworded.", by: "Cleaner", href: "/framework/ext/Refine/md/doc/refine-engine/" },
++		clean:   { title: "2 · Cleaned", what: "Your words, fixed: fillers out, sentences numbered. Nothing reworded.", by: "Cleaner", href: "/framework/ext/Refine/cleaner/" },
+ 		refined: { title: "3 · Outline", what: "The same ideas as a short outline. Click an S1 chip to jump to its sentence.", by: "Structurer", href: "/framework/ext/Refine/structure.js" },
+ 		scores:  { title: "4 · Scores",  what: "How clear each sentence is (1 = clear). ⚑ marks a sentence worth a second look.", by: "ClarityScorer", href: "/framework/ext/Refine/md/doc/prompt/" },
+ 	};
+diff --git a/public/framework/ext/Refine/RefineSystem.js b/public/framework/ext/Refine/RefineSystem.js
+index 754e7048f..82812e65f 100644
+--- a/public/framework/ext/Refine/RefineSystem.js
++++ b/public/framework/ext/Refine/RefineSystem.js
+@@ -48,7 +48,7 @@ export default class RefineSystem {
+ 		{ name: "Prompt", job: "in-memory prompt: raw, clean sentences, refined cards, scores, flags", relation: "data; has Prompt.View", href: "/framework/ext/Refine/md/doc/prompt/" },
+ 		{ name: "Prompt.View", job: "draws a Prompt: raw, clean with ⚑ flags, cards with S# links", relation: "extends View", href: "/framework/ext/Refine/Prompt.js" },
+ 		{ name: "Scorer", job: "rules that give each sentence clarity, weight and flags", relation: "used by Prompt.load()", href: "/framework/ext/Refine/Scorer.js" },
+-		{ name: "Cleaner", job: "raw → numbered near-verbatim sentences (engine.js clean())", relation: "step; runs in Servex", href: "/framework/ext/Refine/md/doc/refine-engine/" },
++		{ name: "Cleaner", job: "raw → numbered near-verbatim sentences (Cleaner.js)", relation: "step; runs in Servex", href: "/framework/ext/Refine/cleaner/" },
+ 		{ name: "Structurer", job: "sentences → outline of cards citing them (structure.js)", relation: "step; runs in Servex", href: "/framework/ext/Refine/structure.js" },
+ 		{ name: "DictationSource", job: "where words come from: mic (ux/Dictate) or the text box", relation: "wraps Dictate", href: "/framework/ux/Dictate/" },
+ 		{ name: "Echo", job: "the same steps on every VS Code prompt", relation: "second caller of the steps", href: "/framework/servex/" },
+diff --git a/public/framework/ext/Refine/cleaner/page.js b/public/framework/ext/Refine/cleaner/page.js
+new file mode 100644
+index 000000000..e3bd27c21
+--- /dev/null
++++ b/public/framework/ext/Refine/cleaner/page.js
+@@ -0,0 +1,55 @@
++import { Page, p, div, h2, h3, md, span, a, button, textarea } from "/app.js";
++import Cleaner from "../Cleaner.js";
++import Objects from "/framework/ux/Objects/Objects.js";
++
++/* Class page for Cleaner (ext/Refine/Cleaner.js): the API first, then a live demo.
++ * Left: raw text in, cleaned sentences out. Right: the live Cleaner instance, redrawn after every run. */
++const SAMPLE = "um can you hear me, the the mic is on. you know i think it works so lets try a longer one";
++
++export default new Page({
++	meta: import.meta,
++	title: "Cleaner",
++	description: "class Cleaner: raw dictation in, near-verbatim numbered sentences out. Instant plain function or the model.",
++	icon: Cleaner.icon,
++
++	content(){
++		md("**`class Cleaner`** (`ext/Refine/Cleaner.js`) turns one dictated chunk into numbered sentences that stay as close to what was said as possible: capitals, punctuation and filler words are fixed, nothing else is removed.");
++		md("```js\nconst c = new Cleaner({ model: \"\" });\nc.quick_clean(raw);   // instant, no model\nawait c.clean(raw);   // the model + check\nc.sentences           // [{ n, text }]\nc.mode  c.status  c.ms  c.flags\n```");
++		p(() => { span("Callers: "); a("RefineSystem").href("/framework/ext/Refine/RefineSystem.js"); span(" (instant text on every chunk), "); a("Revise").href("/framework/ux/Revise/"); span(" and Servex's Echo (the model). The old function names live on in "); a("engine.js").href("/framework/ext/Refine/engine.js"); span("."); });
++
++		const cleaner = new Cleaner();
++		const grid = div().style({ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 22em), 1fr))", gap: "var(--gap)", alignItems: "start" });
++		let $out, $obj, $in;
++		grid.append(() => {
++			div(() => {
++				h3("Raw in, sentences out");
++				$in = textarea().attr("rows", 4).style({ width: "100%", font: "inherit" });
++				$in.el.value = SAMPLE;
++				div(() => {
++					button("Quick clean").click(() => run(false));
++					button("Model clean").click(() => run(true));
++				}).style({ display: "flex", gap: "0.5em", flexWrap: "wrap" });
++				$out = div();
++			});
++			div(() => { h3("The live instance"); $obj = div(); });
++		});
++
++		const draw = () => {
++			$out.empty(() => {
++				if (cleaner.status === "error") p("Could not clean: " + cleaner.error);
++				cleaner.sentences.forEach(s => div(() => { span("S" + s.n + " ").style({ opacity: "0.6" }); span(s.text); }));
++				if (cleaner.status === "done") p(`${cleaner.mode === "quick" ? "instant, no model" : "by the model"}, ${cleaner.ms} ms`).style({ opacity: "0.7", fontSize: "0.9em" });
++				if (cleaner.status === "working") p("Cleaning with the model…");
++			});
++			$obj.empty(() => { div.c("card", () => { Objects.of(cleaner); }); });
++		};
++		const run = async model => {
++			const raw = $in.el.value;
++			if (!model){ cleaner.quick_clean(raw); return draw(); }
++			const pending = cleaner.clean(raw).catch(() => {});
++			cleaner.status = "working"; draw();
++			await pending; draw();
++		};
++		run(false);
++	},
++});
+diff --git a/public/framework/ext/Refine/doc/audit-2026-10-15.md b/public/framework/ext/Refine/doc/audit-2026-10-15.md
+index ad41b99cf..7207a29d3 100644
+--- a/public/framework/ext/Refine/doc/audit-2026-10-15.md
++++ b/public/framework/ext/Refine/doc/audit-2026-10-15.md
+@@ -13,12 +13,12 @@ Asked by the owner's voice session 6e9eb755 (brief: `ai/sessions/2026/10/15/voic
+ 
+ | Rule | Verdict | Where, in one sentence |
+ |---|---|---|
+-| Clean is near-verbatim: capitalize, drop fillers, upgrade references only when sure, nothing else removed | **present** | The model prompt says "Stay as close to verbatim as possible… Fix ONLY" typos when certain, capitals, punctuation, fillers and stutters (`Servex/agents/tidy.js:23-33`); a faithfulness check throws away any sentence that adds words not in the raw (`engine.js:136-178`); the instant clean does the same with a plain filler list (`engine.js:233-249`). |
++| Clean is near-verbatim: capitalize, drop fillers, upgrade references only when sure, nothing else removed | **partial** (the model path is verbatim; `quick_clean` collapses real repeats such as "had had" and turns a whole chunk into a question, see section 3b) | The model prompt says "Stay as close to verbatim as possible… Fix ONLY" typos when certain, capitals, punctuation, fillers and stutters (`Servex/agents/tidy.js:23-33`); a faithfulness check throws away any sentence that adds words not in the raw (`Cleaner.js:136-178`, moved from `engine.js` the same day); the instant clean does the same with a plain filler list (`Cleaner.js:233-249`). |
+ | Chunks go to the model a sentence (or clause) at a time, never word by word, because Whisper amends itself | **partial** | Whisper only sends a *finished* segment (a 700 ms pause, `Dictate.js:751`) to the clean step; the growing guess is shown but never cleaned (`Dictate.js:466-468`), and live refine waits for finished sentences, holding the last one back (`LiveRefine.js` `finished = … parsed.length - 1`). But the clean call is per *segment* (a pause), not per sentence, and the real per-sentence clean (`LiveClean.js`) is **opt-in and unused by default**. |
+ | The flow is raw, then clean, then refined | **present, hidden in the demo** | The stages exist and are logged in that order per prompt (`prompts.jsonl`: `raw`, `clean`, `refined`, `notes`). But the Refine page draws `Prompt.View` with `show_raw: false` (`RefineDemo.js:151`), so the "1 · Said" stage is only the text box; the owner never sees three stages side by side. |
+ | Chunking is configurable with a good default | **partial** | The mic knobs live in `SETTINGS` and a gear panel (`ext/Chat/Mic.js:9-22`: send mode, pause lengths, safety chunk) with defaults. The refine side is hard-coded constants (`MIN_BATCH 3`, `MAX_WAIT_MS 6000`, `MAX_BATCH 12`, `LiveRefine.js:31-33`), not tunable from the page. |
+-| Mentions: a control character (`@`, `/`, `!`) plus a path becomes a linked block; cleaning may convert text into those | **missing** | `ext/Mention` only turns `#Page` and `@owner` into a link, from two name maps, at render time (`ext/Mention/readme.md`); it knows no `/path` or `!` form. Neither clean step (`engine.js`, `tidy.js`, `LiveRefine.js`) calls it or produces a mention; the only trace is the word "Mention" in the spelling glossary (`engine.js:11`). |
+-| Is "clean" a model or a plain function? The page said "no model" | **both, and the label is right** | The words "instant, N ms, no model" come from `Prompt.View` (`Prompt.js:161`) and describe `quick_clean()`, a plain function with a filler list (`engine.js:237-241`) that fills the Cleaned column on every keystroke or chunk (`RefineSystem.quick`, `RefineSystem.js:105`). The model clean (Sonnet by default, `tidy.js:21`) runs separately: once per dictated chunk in the chat box (`Revise.run`), and once over the whole prompt on Refine (`engine.js:207`, Haiku). |
++| Mentions: a control character (`@`, `/`, `!`) plus a path becomes a linked block; cleaning may convert text into those | **missing** | `ext/Mention` only turns `#Page` and `@owner` into a link, from two name maps, at render time (`ext/Mention/readme.md`); it knows no `/path` or `!` form. Neither clean step (`Cleaner.js`, `tidy.js`, `LiveRefine.js`) calls it or produces a mention; the only trace is the word "Mention" in the spelling glossary (`Cleaner.js:11`). |
++| Is "clean" a model or a plain function? The page said "no model" | **both, and the label is right** | The words "instant, N ms, no model" come from `Prompt.View` (`Prompt.js:161`) and describe `quick_clean()`, a plain function with a filler list (`Cleaner.js:237-241`) that fills the Cleaned column on every keystroke or chunk (`RefineSystem.quick`, `RefineSystem.js:105`). The model clean (Sonnet by default, `tidy.js:21`) runs separately: once per dictated chunk in the chat box (`Revise.run`), and once over the whole prompt on Refine (`Cleaner.js:207`, Haiku). |
+ 
+ ---
+ 
+@@ -57,13 +57,54 @@ Asked by the owner's voice session 6e9eb755 (brief: `ai/sessions/2026/10/15/voic
+ |---|---|---|---|
+ | **Mic** | `Capture` (`ux/Dictate/capture.js:18`) opens the mic at 16 kHz, cuts WAV chunks; `Dictate` (`ux/Dictate/Dictate.js`) runs the state machine; `ComposerMic extends Dictate` (`ext/Chat/Mic.js:108`) puts words in a box and sends them | `ux/Dictate/doc/architecture.md`, `ext/Chat/doc/mic-notes.md` | One page that shows the whole mic chain as one picture, and the live instance |
+ | **Local Whisper, incl. the dropped connection** | `Whisper` (`audio/Whisper/Whisper.js:19`), `WhisperSession` (`WhisperSession.js:24`), `Connection` (`ux/Dictate/Connection.js:22`) and `VoiceStrip` draw its health; `shared_detect_engine` (`Dictate.js:75`) | `ux/Dictate/doc/whisper.md`, `whisper-log.md`, [how-it-works.md §4](how-it-works.md) | A **segment lost to a dropped connection is not retried** and nothing says so (`Dictate.js:489-499`); the error text says "press 🎤 again" |
+-| **Cleaning** | `quick_clean()` and `clean()` (`engine.js`), `Revise` (`ux/Revise/Revise.js:76`) for the chat box, `tidy()` (`Servex/agents/tidy.js:76`) behind `POST /api/tidy`, `LiveClean`, `LiveRefine` (Servex) | `doc/refine-engine.md`, `doc/live-refine-2026-10-12.md` | The two clean paths (chat box per chunk, Refine whole prompt) are not told apart anywhere; the `S1.` contract between `tidy.js` and its callers is undocumented (that is the bug above) |
+-| **Refinement** | `structure()` (`structure.js`), `Outline`, `Prompt`, `Scorer`, `RefineSystem`, `LiveRefine` | `doc/architecture.md`, `doc/prompt.md`, [how-it-works.md](how-it-works.md) | Not classes: `Cleaner` and `Structurer` exist only as names in the design note. **Mentions are not wired in at all** |
++| **Cleaning** | `Cleaner` (`Cleaner.js`; `engine.js` keeps the old `quick_clean()` / `clean()` names), `Revise` (`ux/Revise/Revise.js:76`) for the chat box, `tidy()` (`Servex/agents/tidy.js:76`) behind `POST /api/tidy`, `LiveClean`, `LiveRefine` (Servex) | `doc/refine-engine.md`, `doc/live-refine-2026-10-12.md` | The two clean paths (chat box per chunk, Refine whole prompt) are not told apart anywhere; the `S1.` contract between `tidy.js` and its callers is undocumented (that is the bug above) |
++| **Refinement** | `structure()` (`structure.js`), `Outline`, `Prompt`, `Scorer`, `RefineSystem`, `LiveRefine` | `doc/architecture.md`, `doc/prompt.md`, [how-it-works.md](how-it-works.md) | `Cleaner` is now a class (`Cleaner.js`, class page [cleaner/](/framework/ext/Refine/cleaner/)); `Structurer` is still only a name in the design note, `structure()` a function. **Mentions are not wired in at all** |
+ 
+ Smallest gap to close: a mention rule for cleaned text (the owner's `@` `/` `!` rule). It is listed in [redesign.md](redesign.md) as a later step, not built.
+ 
+ ---
+ 
++## 3b. Answers to the second batch of owner notes (voice a7df214f, 29c40ff7)
++
++**More on the dropped first sentence, now reproduced in code.** `strip_words(text, sent)` (`ext/Chat/Mic.js:77-104`) removes the words of already-sent text from the front of a new segment, and it matches fuzzily: all of `text` against the front of `sent` counts too. Run in node: `strip_words("Can you hear me?", "Testing, can you hear me?")` returns `""`, and so does a plain repeat of the same sentence. `commit()` then returns early (`Mic.js:147-152`) and nothing is added. The second branch (`else if (this.dropped)`, `Mic.js:149`) has no check that `dropped` belongs to this segment, unlike the other uses (`:132`, `:166`), so a `dropped` left over from an earlier send can swallow a later, different segment. Not fixed here: the dedupe is what stops a sent guess being posted twice, and loosening it needs a live-mic test.
++
++**What triggers Refine now.** Two things start it, and no model decides when:
++- The **Refine** button (`RefineDemo.js:46`, `go()` at `:128`): stops the mic, takes the box text, runs `system.go()` (clean, then outline, then scores).
++- The mic's **auto-send** after a 700 ms pause (`RefineDemo.js:71-77`) calls the same `go()`.
++- While you talk, `ComposerMic` also posts the growing text to the live refine (`Mic.js:223`, `:236`, `RefineSystem.post_live`). The server decides when to call the model by a plain rule: wait for 3 new sentences or 6 s, never more than 12 per call (`LiveRefine.js:31-33`). So auto-refine exists, paced by counts and time; an "LLM decides when" trigger does not.
++
++**Plain terms.**
++| Name | What it is | AI? |
++|---|---|---|
++| `structure()` (`structure.js:58`) | asks a model to group the clean sentences into an outline, each card citing its sentences (`[S1, S3]`) | **yes**, a model call |
++| `Outline` (`Outline.js`) | reads that outline text into nested cards | no, a plain parser |
++| `Scorer` (`Scorer.js:6`) | gives each sentence a clarity and weight from fixed rules (starts at 0.5, moves on evidence) | no, rules only |
++| `Cleaner` | clean the words: `quick_clean` is a plain function, `clean` is a model call plus a plain check | both |
++
++**Default page padding.** Set once, in `core/Page/Page.css`: `padding: var(--page-pad, var(--pad-y) var(--gutter-x))` (`:186`), where `--gutter-x: clamp(2em, 4%, 5em)` (`:173`, the sides) and `--pad-y: clamp(1.5em, 4%, 3em)` (`:178`, top and bottom). A page opts out with `--page-pad` (for example `0`). The three spacing tokens `--pad`, `--gap`, `--flow` are separate (`framework.css:263-265`) and are for inside boxes, not the page edge. **Proposal, not applied** (it moves every page): make the page edge a single token from the same family, `--page-pad: var(--pad)` on all sides, `--pad = clamp(1em, 2.6% - 1.1em, 4em)`. That is about 16 px on a phone and 40 px on a desktop, one value that scales from a card to a page, instead of two different clamps (32 px sides and 24 px top at 400 wide). The Refine page already opts out (`.ac("wide")`) and would go edge to edge in [redesign.md](redesign.md).
++
++**The "cleaner" link.** It was `/framework/ext/Refine/md/doc/refine-engine/`, the markdown child of the module, which opens a doc page and not the cleaner. `Cleaner` is now a real class, so the link is the new class page [`/framework/ext/Refine/cleaner/`](/framework/ext/Refine/cleaner/) (`Prompt.js` stage list, `RefineSystem.js` parts table).
++
++**Cleaner as a class** (`ext/Refine/Cleaner.js`, one class per file). The code moved from `engine.js` by script, not retyped. `Cleaner` has `quick_clean(text)` and `async clean(text, opts)` as methods that remember their last run (`raw`, `sentences`, `mode`, `status`, `ms`, `flags`), plus static stateless forms. `engine.js` is now six lines of aliases (`clean`, `quick_clean`, `GLOSSARY`, `word_overlap_score`), so the roughly fifteen callers (Servex `run.js`, `LiveRefine`, `Echo`, the browser's `RefineSystem`) still import what they did. Two near-verbatim cautions seen while moving it: `quick_clean` collapses *any* immediate repeat (`"had had"`, `"very very"`), and it ends a chunk with `?` if the first word is a question word, so `"Can you hear me the mic is on"` becomes one question. Both are on the list in [redesign.md](redesign.md) as rules to tighten, not changed here.
++
++---
++
+ ## 4. Mobile screenshots (400 px wide)
+ 
+-See the section at the foot of this file once the screenshots are saved beside it.
++**Refine, before the fixes** (taken from the main site before the merge; the textarea placeholder is cut off, and raw is not shown):
++
++![Refine at 400 wide](img/refine-400-before.png)
++
++**/live/** at 400 wide:
++
++![Live at 400 wide](img/live-400.png)
++
++**Refine, after the fix** (the registered worktree, same width): the placeholder now wraps in full and the box grows with its text instead of being cut at 3.4em. The long-text state is the same CSS rule (`Chat.css:102`), not separate evidence.
++
++![Refine at 400 wide, after](img/refine-400-after.png)
++
++**The new Cleaner class page** at 400 wide; the live instance at the bottom is the Objects tree. Finding it empty led to a third fix: `ux/Objects/Objects.js` overrode `initialize()` without calling `super`, so `render()` never ran and **every** `Objects.of()` tree was blank, on its own page too. One line restores it, and a second wraps the tree's string icons in `icon()` so they draw as icons, not as the words "label" and "list".
++
++![Cleaner at 400 wide](img/cleaner-400.png)
++
++The compact page these lead to is proposed in [redesign.md](redesign.md).
+diff --git a/public/framework/ext/Refine/doc/img/cleaner-400.png b/public/framework/ext/Refine/doc/img/cleaner-400.png
+new file mode 100644
+index 000000000..b715b3a21
+Binary files /dev/null and b/public/framework/ext/Refine/doc/img/cleaner-400.png differ
+diff --git a/public/framework/ext/Refine/doc/img/live-400.png b/public/framework/ext/Refine/doc/img/live-400.png
+new file mode 100644
+index 000000000..8fe61b0e5
+Binary files /dev/null and b/public/framework/ext/Refine/doc/img/live-400.png differ
+diff --git a/public/framework/ext/Refine/doc/img/refine-400-after.png b/public/framework/ext/Refine/doc/img/refine-400-after.png
+new file mode 100644
+index 000000000..a15c00062
+Binary files /dev/null and b/public/framework/ext/Refine/doc/img/refine-400-after.png differ
+diff --git a/public/framework/ext/Refine/doc/img/refine-400-before.png b/public/framework/ext/Refine/doc/img/refine-400-before.png
+new file mode 100644
+index 000000000..0adb890dd
+Binary files /dev/null and b/public/framework/ext/Refine/doc/img/refine-400-before.png differ
+diff --git a/public/framework/ext/Refine/doc/redesign.md b/public/framework/ext/Refine/doc/redesign.md
+new file mode 100644
+index 000000000..d15cf0f23
+--- /dev/null
++++ b/public/framework/ext/Refine/doc/redesign.md
+@@ -0,0 +1,70 @@
++# Refine redesign: one compact page, raw then clean then refined (proposal, not built)
++
++Asked by the owner's voice sessions 6e9eb755, a7df214f and 29c40ff7. Facts behind it: [audit-2026-10-15.md](audit-2026-10-15.md). What the page looks like today at phone width (400 px):
++
++![Refine at 400 wide, before](img/refine-400-before.png)
++
++**What is wrong in that picture.** The page title and the toolbar take the first screen. The Said stage is a wordy caption ("speak, or type or paste here, the same input as everywhere else") over a box that clips its own placeholder. The raw text is not shown at all, so you cannot watch Whisper. Each stage carries a grey explanation and a class link. It reads like a custom template, not like the rest of the site.
++
++---
++
++## The one compact page
++
++Mobile first, full width, edge to edge. Nothing explains itself; the stage name is the only label.
++
++```
+++--------------------------------------------------+
++| Refine   [mic] [Refine] [New]        model  $0.02 |  toolbar: edge to edge, sticky, one row
+++--------------------------------------------------+
++| RAW (live, from Whisper)                          |  small, muted, grows as you speak
++| um can you hear me the the mic is on              |
+++--------------------------------------------------+
++| CLEAN                                             |  one line per sentence, S1 S2 ...
++| S1 Can you hear me?   S2 The mic is on.           |
+++--------------------------------------------------+
++| REFINED                                           |  cards; S-chips jump to a clean sentence
++| > Mic check   [S1 S2]                             |
+++--------------------------------------------------+
++| mic: listening - whisper: connected               |  sticky footer, one line
+++--------------------------------------------------+
++```
++
++At 1200 px and wider the three stages sit side by side with the same labels. The top row is the sticky mic card the owner already likes; only its words go.
++
++**Rules for the page (from the owner's notes):**
++- One small title inside the toolbar, not an `h1` above it (no wasted first screen).
++- Toolbar and footer run edge to edge (`bleed`, `core/Page/Page.css`), so the page padding does not apply to them.
++- The sticky mic card stays. Its caption line "speak, or type or paste here, the same input as everywhere else" goes, and so does every other explanatory sentence on the page. A stage keeps its label and nothing else.
++- **Raw stays visible and live**, so you watch Whisper amend itself. It is the same Whisper text the box already holds; it just gets a visible, muted band.
++- Clean is condensed: sentences only, flags as a small marker, the timing as one grey figure.
++- The same three bands everywhere (the page, the chat, the session page), because they are one component.
++
++---
++
++## What changes, class by class
++
++One of everything: nothing new is built from scratch. Each row is an existing class.
++
++| Class | Change |
++|---|---|
++| `RefineDemo` (`RefineDemo.js:34`) | draw `Prompt.View` with `show_raw: true`; drop the "1 · Said" caption and the session-page link text (an icon instead); add `bleed` to the toolbar and footer |
++| `Prompt.View` (`Prompt.js:125`) | a `compact` flag: stage title only, no `what` line, no class link; same view on every surface, so one flag fixes all of them |
++| `Cleaner` (`Cleaner.js`) | no change to the page; its instance is what the band reads. Tighten two rules separately: stutter collapse should not remove real repeats ("had had"), and `quick_clean` should not turn a whole chunk into a question |
++| `RefineSystem` (`RefineSystem.js`) | keep **one transcript** that gains a sentence per utterance, instead of one `Prompt` overwritten by each auto-send (the dropped-first-sentence cause in the audit). A finished `go()` result is merged in by sentence number, never replacing |
++| `ComposerMic` (`ext/Chat/Mic.js`) | unchanged; its `strip_words` dedupe needs a live-mic test before it is touched |
++| `Page` (`core/Page/Page.css:186`) | proposal only, see below |
++
++**Page padding, one value.** Today the page edge is two clamps (`--gutter-x` for the sides, `--pad-y` for top and bottom, `Page.css:173,178`) while everything inside a box uses `--pad`. Proposal: the page edge becomes `--pad`, so a small card and a full page scale from the same one knob. This changes every page and is **not applied**; it needs your yes.
++
++---
++
++## The smallest slice
++
++Each step is one commit, and each can be viewed alone.
++
++1. `show_raw: true` and a `compact` flag on `Prompt.View` (drops stage captions). One page, two small edits.
++2. Remove the Said caption line and the "Watch it on the session page" sentence in `RefineDemo.js`; keep an icon link.
++3. Toolbar and footer `bleed`; the title moves into the toolbar row.
++4. Accumulate utterances in `RefineSystem` (the fix for the vanishing first sentence). This is the only step with risk; it comes last and gets a live-mic test.
++
++**Not in the slice:** mentions (`@`, `/`, `!` plus a path becoming a linked block; today nothing produces them, see the audit), a per-sentence clean call, and the page padding change.
+diff --git a/public/framework/ext/Refine/engine.js b/public/framework/ext/Refine/engine.js
+index 0ccd471b0..cc4a4c777 100644
+--- a/public/framework/ext/Refine/engine.js
++++ b/public/framework/ext/Refine/engine.js
+@@ -1,262 +1,9 @@
+-// History, design, and API: doc/notes.md
+-// Browser-safe AND Node-safe: no top-level node:* imports
+-
+-const isNode = typeof window === "undefined";
+-
+-// Glossary built by hand from CLAUDE.md + module names; see doc/notes.md
+-export const GLOSSARY = [
+-	// public/framework/*/*/readme.md module & class names (regenerated 2026-10-02, see above)
+-	"AITask", "App", "Ask", "Auth", "CSSDoc", "Card", "Chat", "Claim", "Classify", "Collab",
+-	"Content", "Course", "DesignTool", "DevBar", "DevShell", "Dictate", "Doc", "Draggable",
+-	"Dropdown", "Events", "Filter", "Inbox", "Item", "JSONL", "Layout", "List", "Mention",
+-	"Menu", "MicStream", "Omnibox", "Page", "Pagination", "Panel", "Popover", "Recorder",
+-	"Refine", "Rename", "Research", "Revise", "Router", "Saver", "Search", "Section",
+-	"Session", "Shell", "Sidebar", "Socket", "Tags", "Timeline", "Transcriber", "Tree",
+-	"Understand", "View", "Wizard",
+-	// CLAUDE.md / system proper nouns, added by hand
+-	"Servex", "Lew42", "CLAUDE.md", "Cloudflare", "Whisper", "Dispatcher", "Playground",
+-	"Haiku", "Sonnet", "Opus", "Fable",
+-];
+-
+-// Word-matching helpers: copy of Server/refine.mjs logic (can't import due to node:*)
+-
+-const wordsOf = s => (String(s).toLowerCase().match(/[a-z0-9']+/g) || []);
+-const STOP = new Set(["the", "a", "an", "and", "or", "but", "to", "of", "in", "on", "for", "is",
+-	"are", "was", "were", "be", "been", "it", "that", "this", "i", "you", "we", "they", "he",
+-	"she", "with", "as", "at", "by", "from", "so", "if", "then", "than", "not", "no", "do",
+-	"does", "did", "have", "has", "had", "my", "your", "our", "their", "his", "her", "its",
+-	"um", "uh", "like", "going", "gonna", "just", "really", "kind", "sort"]);
+-const contentWords = s => wordsOf(s).filter(w => w.length >= 4 && !STOP.has(w));
+-const STEM_SUFFIXES = ["'s", "n't", "ing", "ed", "es", "s"];
+-function crudeStem(w){
+-	const s = w.toLowerCase();
+-	for (const suf of STEM_SUFFIXES) if (s.endsWith(suf) && s.length - suf.length >= 3) return s.slice(0, -suf.length);
+-	return s;
+-}
+-function stemsMatch(a, b){
+-	if (a === b) return true;
+-	const [shorter, longer] = a.length <= b.length ? [a, b] : [b, a];
+-	return shorter.length >= 4 && longer.startsWith(shorter);
+-}
+-
+-// Plain Levenshtein edit distance — "closest-word-by-edit-distance against the glossary
+-// list is enough" (the brief, deliverable 2b). No npm dependency, ~12 lines.
+-function editDistance(a, b){
+-	a = a.toLowerCase(); b = b.toLowerCase();
+-	const dp = [];
+-	for (let i = 0; i <= a.length; i++) dp.push([i, ...Array(b.length).fill(0)]);
+-	for (let j = 0; j <= b.length; j++) dp[0][j] = j;
+-	for (let i = 1; i <= a.length; i++)
+-		for (let j = 1; j <= b.length; j++)
+-			dp[i][j] = a[i - 1] === b[j - 1] ? dp[i - 1][j - 1] : 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+-	return dp[a.length][b.length];
+-}
+-
+-// Glossary threshold: ~30% of word length, at least 1 (4-letter needs near-exact; 10-letter allows ±3)
+-const glossaryThreshold = w => Math.max(1, Math.round(w.length * 0.3));
+-
+-function closestGlossaryMatch(word){
+-	let best = null;
+-	for (const name of GLOSSARY){
+-		const d = editDistance(word, name);
+-		if (!best || d < best.distance) best = { name, distance: d };
+-	}
+-	return best;
+-}
+-
+-// Best-effort nearest raw word (closest by edit distance); not a precise citation
+-function nearestRawWord(name, rawWords){
+-	let best = null;
+-	for (const w of rawWords){
+-		const d = editDistance(name, w);
+-		if (!best || d < best.distance) best = { word: w, distance: d };
+-	}
+-	return best?.word ?? name;
+-}
+-
+-// Strike detection: looks for correction markers ("no wait", "actually", etc.) in RAW text
+-const CORRECTION_MARKERS = /\b(no,?\s+wait|wait,?\s+no|actually|scratch that|i meant|i mean|not that)\b/i;
+-
+-function splitClauses(text){
+-	return text.replace(/\s+/g, " ").trim().split(/(?<=[.!?,;])\s+/).filter(Boolean);
+-}
+-
+-// Best-match sentence by word overlap (same idea as raw-match.md, reused for two jobs)
+-function bestMatchSentence(text, sentences){
+-	const words = new Set(contentWords(text));
+-	if (!words.size || !sentences.length) return sentences[0]?.n ?? 1;
+-	let best = sentences[0], bestScore = -1;
+-	for (const s of sentences){
+-		const sWords = contentWords(s.text);
+-		const score = sWords.filter(w => words.has(w)).length;
+-		if (score > bestScore){ bestScore = score; best = s; }
+-	}
+-	return best.n;
+-}
+-
+-function detectStrikes(rawText, sentences){
+-	const clauses = splitClauses(rawText);
+-	const strikes = [];
+-	for (let i = 1; i < clauses.length; i++){
+-		if (CORRECTION_MARKERS.test(clauses[i]) && !CORRECTION_MARKERS.test(clauses[i - 1])){
+-			const struck = clauses[i - 1].replace(/[,.;]$/, "").trim();
+-			const kept = (clauses[i].replace(CORRECTION_MARKERS, "").replace(/^[,:\s]+/, "").trim()) || (clauses[i + 1] || "").trim();
+-			if (struck && kept) strikes.push({ sentence_n: bestMatchSentence(kept, sentences), struck_text: struck });
+-		}
+-	}
+-	return strikes;
+-}
+-
+-// Parse model's numbered reply (matches Servex/agents/tidy.js contract)
+-function parseModelReply(answerText){
+-	const sentences = [];
+-	const modelFlags = [];
+-	for (const line of String(answerText || "").split(/\r?\n/)){
+-		const m = /^S(\d+)([.?])\s*(.*)$/.exec(line.trim());
+-		if (!m) continue;
+-		const n = Number(m[1]);
+-		let body = m[3].trim();
+-		if (m[2] === "?"){
+-			const uq = /^(.*?),\s*unclear:\s*(.+)$/i.exec(body);
+-			const question = uq ? uq[2].trim() : "This part was unclear — please confirm what was meant.";
+-			body = uq ? uq[1].trim() : body;
+-			modelFlags.push({ sentence_n: n, question, confidence: 0.3, source: "model" });
+-		}
+-		sentences.push({ n, text: body });
+-	}
+-	return { sentences, modelFlags };
+-}
+-
+-// Fallback for model ignoring numbered format (same as Server/refine.mjs)
+-function mechanicalSplit(text){
+-	return text.replace(/\s+/g, " ").trim().split(/(?<=[.!?])\s+/).filter(Boolean);
+-}
+-
+-// Faithfulness check: global vocabulary (prev + text); doc/notes.md
+-function applyFaithfulnessCheck(rawForCheck, rawTextThisCall, sentences, strikes){
+-	const rawStems = [...new Set(contentWords(rawForCheck))].map(crudeStem);
+-	const rawWords = [...new Set(contentWords(rawForCheck))];
+-	const struckSentenceNs = new Set(strikes.map(s => s.sentence_n));
+-	const fallbackSentences = mechanicalSplit(rawTextThisCall);
+-
+-	const misheard = [];
+-	const mechanicalFlags = [];
+-	const finalSentences = sentences.map((s, idx) => {
+-		const words = [...new Set(contentWords(s.text))];
+-		const bad = [];
+-		for (const w of words){
+-			const stem = crudeStem(w);
+-			if (rawStems.some(rs => stemsMatch(stem, rs))) continue;       // said somewhere already — fine
+-			// Glossary check BEFORE the strike check, on purpose: a self-correction sentence
+-			// can still contain a genuine glossary fix ("no wait, I meant the Servex
+-			// dashboard" — both the correction AND the misheard "Servex" are real), and
+-			// `misheard` should record that either way, not just the strikes entry.
+-			const g = closestGlossaryMatch(w);
+-			if (g && g.distance <= glossaryThreshold(w)){
+-				misheard.push({ sentence_n: s.n, from: nearestRawWord(g.name, rawWords), to: g.name });
+-				continue;                                                   // a confident glossary fix — allowed
+-			}
+-			if (struckSentenceNs.has(s.n)) continue;                       // this sentence is a self-correction — the model's wording is trusted
+-			bad.push(w);
+-		}
+-		if (bad.length){
+-			mechanicalFlags.push({
+-				sentence_n: s.n,
+-				question: `The cleaned text adds or changes "${bad.join('", "')}", which isn't anywhere in what was actually said — is this right, or should it be reverted?`,
+-				confidence: 0.5,
+-				source: "mechanical",
+-			});
+-			// Reject -> fall back to the raw text for this sentence (best-effort positional
+-			// match: clean sentences are usually produced in the same order as raw ones).
+-			const fallback = fallbackSentences[idx] ?? s.text;
+-			return { n: s.n, text: fallback };
+-		}
+-		return { n: s.n, text: s.text };
+-	});
+-
+-	return { sentences: finalSentences, misheard, mechanicalFlags };
+-}
+-
+-// Node vs. browser split: nodeCall dynamic imports, browserCall hits /api/tidy
+-
+-async function nodeCall(text, prev, model, cwd, call){
+-	// ⚠ Dynamic imports (not static) to avoid node:* builtins in browser
+-	const [{ askOnce }, { LEVELS, bodyFor }] = await Promise.all([
+-		import("../../../../Server/AskEach.mjs"),
+-		import("../../../../Servex/agents/tidy.js"),
+-	]);
+-	const theCall = call || askOnce; // same (prompt, {model, cwd}) -> {answer, cost_usd} shape
+-	const prompt = `${LEVELS.clean.prompt}\n\n${bodyFor({ text, before: prev })}`;
+-	const r = await theCall(prompt, { model: model || LEVELS.clean.model, cwd: cwd || process.cwd() });
+-	return r.answer ?? "";
+-}
+-
+-async function browserCall(text, prev, model){
+-	const { servex_url } = await import("/framework/dev/servex_url.js");
+-	const res = await fetch(servex_url("/api/tidy"), {
+-		method: "POST", headers: { "Content-Type": "application/json" },
+-		body: JSON.stringify({ text, before: prev, level: "clean", model }),
+-	});
+-	if (!res.ok) throw new Error(`clean(): Servex answered ${res.status}`);
+-	const out = await res.json();
+-	if (!out?.ok) throw new Error(`clean(): Servex refused (${out?.why ?? "unknown"})`);
+-	return out.text ?? "";
+-}
+-
+-// Public clean() function
+-export async function clean(text, { prev = "", onFlag, call, cwd, model } = {}){
+-	if (typeof text !== "string" || !text.trim()) return { text: "", sentences: [], strikes: [], misheard: [], flags: [] };
+-
+-	const answerText = isNode ? await nodeCall(text, prev, model, cwd, call) : await browserCall(text, prev, model);
+-
+-	let { sentences, modelFlags } = parseModelReply(answerText);
+-	if (!sentences.length) sentences = mechanicalSplit(text).map((t, i) => ({ n: i + 1, text: t }));
+-
+-	const strikes = detectStrikes(text, sentences);
+-	const rawForCheck = prev ? `${prev} ${text}` : text;
+-	const { sentences: finalSentences, misheard, mechanicalFlags } = applyFaithfulnessCheck(rawForCheck, text, sentences, strikes);
+-
+-	// Fire onFlag in order found (model flags first, then mechanical)
+-	const flags = [...modelFlags, ...mechanicalFlags];
+-	if (typeof onFlag === "function") for (const f of flags) onFlag(f);
+-
+-	return {
+-		text: finalSentences.map(s => s.text).join(" "),
+-		sentences: finalSentences,
+-		strikes,
+-		misheard,
+-		flags,
+-	};
+-}
+-
+-// Instant clean (no model): drop fillers + stutters, capitalise, add punctuation
+-export function quick_clean(text){
+-	const t = String(text ?? "").replace(/\s+/g, " ").trim();
+-	if (!t) return [];
+-	const cleaned = t
+-		.replace(/\b(?:um+|uh+|ah+|er+|erm|hmm+)\b[,.]?\s*/gi, "")
+-		.replace(/\byou know,?\s*/gi, "")
+-		.replace(/\blike,\s*/gi, "")
+-		.replace(/\b(\w+)(?:,?\s+\1\b)+/gi, "$1")
+-		.replace(/\s+([,.!?;:])/g, "$1")
+-		.replace(/\s+/g, " ").trim();
+-	return mechanicalSplit(cleaned).map((s, i) => {
+-		let x = s.replace(/^[\s,;:-]+/, "");
+-		x = x.charAt(0).toUpperCase() + x.slice(1);
+-		if (!/[.!?]$/.test(x)) x += /^(who|what|when|where|why|how|is|are|do|does|can|could|should|would)\b/i.test(x) ? "?" : ".";
+-		return { n: i + 1, text: x };
+-	}).filter(s => s.text.length > 1);
+-}
+-
+-// Word overlap score: Dice coefficient over 3+ letter words (law 6: one place)
+-export function word_overlap_score(a, b){
+-	const words = s => new Set((String(s ?? "").toLowerCase().match(/[a-z0-9']+/g) ?? []).filter(w => w.length >= 3));
+-	const wa = words(a), wb = words(b);
+-	if (!wa.size && !wb.size) return 1;
+-	if (!wa.size || !wb.size) return 0;
+-	let shared = 0;
+-	for (const w of wa) if (wb.has(w)) shared++;
+-	return (2 * shared) / (wa.size + wb.size);
+-}
+-
++// The cleaner now lives in the class: Cleaner.js. These are the old function names, kept so no caller breaks.
++// Browser-safe AND Node-safe (Cleaner.js has no top-level node:* imports). History and design: doc/notes.md, doc/cleaner.md
++import Cleaner from "./Cleaner.js";
++
++export const GLOSSARY = Cleaner.GLOSSARY;
++export const clean = (text, opts) => Cleaner.clean(text, opts);
++export const quick_clean = text => Cleaner.quick_clean(text);
++export const word_overlap_score = (a, b) => Cleaner.word_overlap_score(a, b);
+ export default clean;
+diff --git a/public/framework/ext/Refine/page.js b/public/framework/ext/Refine/page.js
+index e1a742408..fe0fbf6af 100644
+--- a/public/framework/ext/Refine/page.js
++++ b/public/framework/ext/Refine/page.js
+@@ -11,7 +11,7 @@ export default new Page({
+ 	title: "Refine",
+ 	description: "Speak one prompt: see it cleaned instantly, then refined into an outline with a clarity score per sentence.",
+ 	icon: "fact_check",
+-	children: "try ladder runs",
++	children: "try ladder runs cleaner",
+ 
+ 	content(){
+ 		new RefineDemo().ac("wide");
+diff --git a/public/framework/ext/Refine/readme.md b/public/framework/ext/Refine/readme.md
+index 2403e013b..87e99b272 100644
+--- a/public/framework/ext/Refine/readme.md
++++ b/public/framework/ext/Refine/readme.md
+@@ -50,6 +50,8 @@ pulling a sample straight from a recent voice session — no index of raw dictat
+ today, so paste is the stand-in; see the page's own doc comment (`try/page.js`) for why.
+ 
+ ## More
++- [Audit 2026-10-15](doc/audit-2026-10-15.md) — the owner's rules checked against the code (present / partial / missing), why a first sentence vanished, the S1. leak and the clipped box, 400 px screenshots; and [the redesign proposal](doc/redesign.md): one compact page, raw then clean then refined (`doc/audit-2026-10-15.md`, `doc/redesign.md`)
++- [Cleaner](/framework/ext/Refine/cleaner/) — the class that cleans a chunk (`Cleaner.js`): instant `quick_clean`, model `clean`, live demo with its instance; `engine.js` keeps the old function names
+ - [How it works](doc/how-it-works.md) — the classes, the two steps (clean, then refine), how Dictate feeds it, and what is known broken
+ - [Voice to refine (proposal)](doc/voice-to-refine.md) — a long dictated prompt through the voice tunnel, refined onto `/live/`; a proposal, nothing built
+ - [Refined asks](doc/asks.md) — each refined ask becomes a line in its session's `asks.jsonl`, a per-module `doc/refined-asks.md`, and (if not done) a module inbox line (`Server/AskIndex.mjs`)
+diff --git a/public/framework/ux/Objects/Objects.js b/public/framework/ux/Objects/Objects.js
+index 48627e7c2..cc3f1a377 100644
+--- a/public/framework/ux/Objects/Objects.js
++++ b/public/framework/ux/Objects/Objects.js
+@@ -16,7 +16,14 @@ View.stylesheet(import.meta, "Objects.css");
+ export default class Objects extends Tree {
+ 
+ 	initialize(){
+-		this.classes ??= "ux-objects";
++		this.ac("ux-objects");   // classify() already ran, so a `classes` field is too late
++		super.initialize();   // View.initialize runs render(); without it the tree never draws
++	}
++
++	// Tree draws a bare string icon as plain text; a Material Icons ligature needs icon().
++	item(node, up){
++		if (typeof node.icon === "string"){ const name = node.icon; node.icon = () => icon(name); }
++		return super.item(node, up);
+ 	}
+ 
+ 	/**
+@@ -65,7 +72,7 @@ export default class Objects extends Tree {
+ 					icon: val.type === "Array" ? "list" : (val.type === "Map" || val.type === "Set") ? "folder" : "category",
+ 					className: val.type !== "Object" && val.type !== "Array" && val.type !== "Map" && val.type !== "Set" ? val.type : null,
+ 					children: (val.items || val.children) ? () => {
+-						if (Array.isArray(val.items)) return val.items.map(it => ({ text: String(it), icon: "data_object" }));
++						if (Array.isArray(val.items)) return val.items.map(it => ({ text: String(it), icon: "label" }));
+ 						if (val.children) return Objects.walk(val.children, opts, depth + 1, seen);
+ 						return [];
+ 					} : undefined
+@@ -141,7 +148,7 @@ export default class Objects extends Tree {
+ 			// Primitive property
+ 			nodes.push({
+ 				text: `${key}: ${String(val)}`,
+-				icon: "data_object"
++				icon: "label"
+ 			});
+ 		}
+ 
+@@ -157,7 +164,7 @@ export default class Objects extends Tree {
+ 
+ 	static icon_of(val){
+ 		if (val == null) return "code";
+-		if (typeof val !== "object") return "data_object";
++		if (typeof val !== "object") return "label";
+ 		if (val.constructor?.name && val.constructor.name !== "Object") return "category";
+ 		return "folder";
+ 	}
+diff --git a/public/framework/ux/Revise/Revise.js b/public/framework/ux/Revise/Revise.js
+index e4c1362d0..18d01de10 100644
+--- a/public/framework/ux/Revise/Revise.js
++++ b/public/framework/ux/Revise/Revise.js
+@@ -97,7 +97,8 @@ export default class Revise {
+ 			clearTimeout(timer);
+ 			if (!r.ok) return { ok: false, why: "Servex answered " + r.status };
+ 			const out = await r.json();
+-			return out?.ok ? out : { ok: false, why: out?.why ?? "Servex refused" };
++			if (!out?.ok) return { ok: false, why: out?.why ?? "Servex refused" };
++			return { ...out, text: Revise.plain(out.text) };
+ 		} catch (e){
+ 			return { ok: false, why: "Servex isn't answering (" + (e?.message ?? e) + ")" };
+ 		}
+@@ -106,6 +107,12 @@ export default class Revise {
+ 
+ Revise.LEVELS = LEVELS;
+ 
++/** The clean level answers as numbered lines ("S1. Can you hear me?", "S2? …, unclear: why?") so Refine can cite
++ *  sentences. A chat box wants plain text: drop the "S<n>." markers and the ", unclear:" note, join with spaces. */
++Revise.plain = text => typeof text !== "string" ? text : text.split(/\r?\n/)
++	.map(line => line.replace(/^\s*S\d+[.?]\s*/, "").replace(/,\s*unclear:.*$/i, "").trim())
++	.filter(Boolean).join(" ");
++
+ /* A sample rambling paragraph for each of the two uses this page claims — a spoken
+  * PROMPT, and rambling notes meant to become WRITING — so the page's own claim
+  * ("usable for prompts AND for writing") is something you can press a button and

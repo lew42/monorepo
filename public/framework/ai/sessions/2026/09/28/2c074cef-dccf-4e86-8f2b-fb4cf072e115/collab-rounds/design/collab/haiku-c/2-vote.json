@@ -1,0 +1,4 @@
+{
+  "pick": "sonnet-b",
+  "caveat": "Authority as 0–1 scale is powerful but ambiguous without defaults; clarify what 0.5 means (neutral? medium? 50% trustworthy?) so all agents interpret it the same way."
+}

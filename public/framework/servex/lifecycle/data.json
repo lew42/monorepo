@@ -1,0 +1,1611 @@
+{
+  "generated_at": "2026-09-29T22:56:00.518Z",
+  "counts": {
+    "tasks_unlanded": 29,
+    "tasks_total": 531,
+    "servers_running": 35,
+    "servers_total_mb": 3629,
+    "servers_matched_to_worktree": 7,
+    "servers_not_listening": 21,
+    "worktrees_orphaned": 40,
+    "worktrees_total": 70,
+    "agents_idle": 16,
+    "agents_total": 958
+  },
+  "tasks_by_day": {
+    "2026-09-01": {
+      "total": 13,
+      "landed": 13,
+      "unlanded": 0
+    },
+    "2026-09-04": {
+      "total": 47,
+      "landed": 47,
+      "unlanded": 0
+    },
+    "2026-09-05": {
+      "total": 69,
+      "landed": 69,
+      "unlanded": 0
+    },
+    "2026-09-06": {
+      "total": 34,
+      "landed": 34,
+      "unlanded": 0
+    },
+    "2026-09-08": {
+      "total": 26,
+      "landed": 26,
+      "unlanded": 0
+    },
+    "2026-09-13": {
+      "total": 13,
+      "landed": 13,
+      "unlanded": 0
+    },
+    "2026-09-14": {
+      "total": 1,
+      "landed": 1,
+      "unlanded": 0
+    },
+    "2026-09-17": {
+      "total": 31,
+      "landed": 31,
+      "unlanded": 0
+    },
+    "2026-09-18": {
+      "total": 27,
+      "landed": 27,
+      "unlanded": 0
+    },
+    "2026-09-19": {
+      "total": 47,
+      "landed": 47,
+      "unlanded": 0
+    },
+    "2026-09-20": {
+      "total": 7,
+      "landed": 7,
+      "unlanded": 0
+    },
+    "2026-09-21": {
+      "total": 8,
+      "landed": 8,
+      "unlanded": 0
+    },
+    "2026-09-22": {
+      "total": 40,
+      "landed": 40,
+      "unlanded": 0
+    },
+    "2026-09-23": {
+      "total": 4,
+      "landed": 4,
+      "unlanded": 0
+    },
+    "2026-09-24": {
+      "total": 36,
+      "landed": 35,
+      "unlanded": 1
+    },
+    "2026-09-25": {
+      "total": 24,
+      "landed": 22,
+      "unlanded": 2
+    },
+    "2026-09-28": {
+      "total": 61,
+      "landed": 49,
+      "unlanded": 12
+    },
+    "2026-09-29": {
+      "total": 43,
+      "landed": 29,
+      "unlanded": 14
+    }
+  },
+  "unlanded_tasks": [
+    {
+      "task": "public/framework/ai/2026-09-24/chat-ext-extract",
+      "day": "2026-09-24",
+      "agent": null,
+      "requested_at": "2026-09-24T21:48:09-05:00",
+      "lines": 4
+    },
+    {
+      "task": "public/framework/ai/2026-09-25/quickfix-worktrees/smoke",
+      "day": "2026-09-25",
+      "agent": null,
+      "requested_at": null,
+      "lines": 2
+    },
+    {
+      "task": "public/framework/ai/2026-09-25/recursive-pairs/merge",
+      "day": "2026-09-25",
+      "agent": null,
+      "requested_at": "2026-09-29T16:46:36-05:00",
+      "lines": 11
+    },
+    {
+      "task": "public/framework/ai/2026-09-28/check-consensus",
+      "day": "2026-09-28",
+      "agent": null,
+      "requested_at": null,
+      "lines": 8
+    },
+    {
+      "task": "public/framework/ai/2026-09-28/collab-rounds/scoreboard-design",
+      "day": "2026-09-28",
+      "agent": null,
+      "requested_at": "2026-09-28T14:31:03-05:00",
+      "lines": 30
+    },
+    {
+      "task": "public/framework/ai/2026-09-28/dictation-playground/tidy",
+      "day": "2026-09-28",
+      "agent": null,
+      "requested_at": null,
+      "lines": 3
+    },
+    {
+      "task": "public/framework/ai/2026-09-28/file-explorer-fs/minion-b",
+      "day": "2026-09-28",
+      "agent": null,
+      "requested_at": "2026-09-28T14:16:38-05:00",
+      "lines": 12
+    },
+    {
+      "task": "public/framework/ai/2026-09-28/file-explorer-fs/minion-c",
+      "day": "2026-09-28",
+      "agent": null,
+      "requested_at": "2026-09-29T13:00:00-05:00",
+      "lines": 20
+    },
+    {
+      "task": "public/framework/ai/2026-09-28/fresh-eyes-review/proof/full-task-cost",
+      "day": "2026-09-28",
+      "agent": null,
+      "requested_at": null,
+      "lines": 4
+    },
+    {
+      "task": "public/framework/ai/2026-09-28/fresh-eyes-review/proof/gate-proof",
+      "day": "2026-09-28",
+      "agent": null,
+      "requested_at": null,
+      "lines": 1
+    },
+    {
+      "task": "public/framework/ai/2026-09-28/fresh-eyes-review/proof/light-task-page-fix",
+      "day": "2026-09-28",
+      "agent": null,
+      "requested_at": null,
+      "lines": 1
+    },
+    {
+      "task": "public/framework/ai/2026-09-28/fresh-eyes-review/proof/none-ai2-dashboard",
+      "day": "2026-09-28",
+      "agent": null,
+      "requested_at": null,
+      "lines": 1
+    },
+    {
+      "task": "public/framework/ai/2026-09-28/organization/card",
+      "day": "2026-09-28",
+      "agent": null,
+      "requested_at": "2026-09-28T13:28:56-05:00",
+      "lines": 8
+    },
+    {
+      "task": "public/framework/ai/2026-09-28/review-turns/proof",
+      "day": "2026-09-28",
+      "agent": null,
+      "requested_at": null,
+      "lines": 5
+    },
+    {
+      "task": "public/framework/ai/2026-09-28/source-library/sources-lib",
+      "day": "2026-09-28",
+      "agent": null,
+      "requested_at": "2026-09-28T19:12:35Z",
+      "lines": 7
+    },
+    {
+      "task": "public/framework/ai/2026-09-29/file-system",
+      "day": "2026-09-29",
+      "agent": null,
+      "requested_at": "2026-09-29T16:25:17-05:00",
+      "lines": 70
+    },
+    {
+      "task": "public/framework/ai/2026-09-29/item-ui/a-item",
+      "day": "2026-09-29",
+      "agent": "minion-item-ui-a",
+      "requested_at": "2026-09-29T16:02:25-05:00",
+      "lines": 40
+    },
+    {
+      "task": "public/framework/ai/2026-09-29/lifecycle/build",
+      "day": "2026-09-29",
+      "agent": "minion-lifecycle-build",
+      "requested_at": "2026-09-29T17:40:09-05:00",
+      "lines": 8
+    },
+    {
+      "task": "public/framework/ai/2026-09-29/lifecycle/study",
+      "day": "2026-09-29",
+      "agent": "minion-lifecycle-study",
+      "requested_at": "2026-09-29T17:40:12-05:00",
+      "lines": 7
+    },
+    {
+      "task": "public/framework/ai/2026-09-29/lifecycle",
+      "day": "2026-09-29",
+      "agent": "task-mastermind-lifecycle",
+      "requested_at": "2026-09-29T17:38:21-05:00",
+      "lines": 12
+    },
+    {
+      "task": "public/framework/ai/2026-09-29/nested-tasks/minion-view",
+      "day": "2026-09-29",
+      "agent": "minion-nested-view",
+      "requested_at": "2026-09-29T17:45:35-05:00",
+      "lines": 8
+    },
+    {
+      "task": "public/framework/ai/2026-09-29/nested-tasks",
+      "day": "2026-09-29",
+      "agent": "task-mastermind-nested-tasks",
+      "requested_at": "2026-09-29T17:42:35-05:00",
+      "lines": 16
+    },
+    {
+      "task": "public/framework/ai/2026-09-29/page-files-log/measure",
+      "day": "2026-09-29",
+      "agent": "minion-pf-measure",
+      "requested_at": "2026-09-29T17:08:31-05:00",
+      "lines": 26
+    },
+    {
+      "task": "public/framework/ai/2026-09-29/page-files-log/merge-union",
+      "day": "2026-09-29",
+      "agent": "minion-pf-merge-union",
+      "requested_at": "2026-09-29T17:53:45-05:00",
+      "lines": 1
+    },
+    {
+      "task": "public/framework/ai/2026-09-29/page-files-log",
+      "day": "2026-09-29",
+      "agent": null,
+      "requested_at": "2026-09-29T17:02:10-05:00",
+      "lines": 75
+    },
+    {
+      "task": "public/framework/ai/2026-09-29/page-system",
+      "day": "2026-09-29",
+      "agent": "task-mastermind-page-system",
+      "requested_at": "2026-09-29T15:51:07-05:00",
+      "lines": 225
+    },
+    {
+      "task": "public/framework/ai/2026-09-29/servex-docs-tab/minion-a-routes",
+      "day": "2026-09-29",
+      "agent": null,
+      "requested_at": "2026-09-29T00:00:00-05:00",
+      "lines": 3
+    },
+    {
+      "task": "public/framework/ai/2026-09-29/servex-docs-tab/minion-b-ui",
+      "day": "2026-09-29",
+      "agent": null,
+      "requested_at": "2026-09-29T13:34:00-05:00",
+      "lines": 22
+    },
+    {
+      "task": "public/framework/ai/2026-09-29/servex-mastermind",
+      "day": "2026-09-29",
+      "agent": null,
+      "requested_at": "2026-09-29T08:00:00-05:00",
+      "lines": 132
+    }
+  ],
+  "servers": [
+    {
+      "pid": 36312,
+      "ppid": 55604,
+      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\" server.js",
+      "mb": 49.6,
+      "port": null,
+      "worktree": null,
+      "listening": false
+    },
+    {
+      "pid": 31188,
+      "ppid": 50884,
+      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\"  server.js",
+      "mb": 58.7,
+      "port": null,
+      "worktree": null,
+      "listening": false
+    },
+    {
+      "pid": 49268,
+      "ppid": 33436,
+      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\" server.js",
+      "mb": 59.2,
+      "port": null,
+      "worktree": null,
+      "listening": false
+    },
+    {
+      "pid": 40548,
+      "ppid": 48064,
+      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\" server.js",
+      "mb": 49.3,
+      "port": null,
+      "worktree": null,
+      "listening": false
+    },
+    {
+      "pid": 30432,
+      "ppid": 7376,
+      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\" server.js",
+      "mb": 49.9,
+      "port": null,
+      "worktree": null,
+      "listening": false
+    },
+    {
+      "pid": 14368,
+      "ppid": 35412,
+      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\" server.js",
+      "mb": 50,
+      "port": null,
+      "worktree": null,
+      "listening": false
+    },
+    {
+      "pid": 43836,
+      "ppid": 51520,
+      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\"  server.js",
+      "mb": 64.3,
+      "port": null,
+      "worktree": null,
+      "listening": false
+    },
+    {
+      "pid": 39060,
+      "ppid": 37432,
+      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\"  server.js",
+      "mb": 49.9,
+      "port": null,
+      "worktree": null,
+      "listening": false
+    },
+    {
+      "pid": 31800,
+      "ppid": 39060,
+      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\" C:\\Code\\lew42\\worktrees\\qf-3\\Server\\run.js",
+      "mb": 94.8,
+      "port": "62967",
+      "worktree": null,
+      "listening": true
+    },
+    {
+      "pid": 47824,
+      "ppid": 54696,
+      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\"  server.js",
+      "mb": 63.4,
+      "port": null,
+      "worktree": null,
+      "listening": false
+    },
+    {
+      "pid": 51912,
+      "ppid": 32004,
+      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\"  server.js",
+      "mb": 49.1,
+      "port": null,
+      "worktree": null,
+      "listening": false
+    },
+    {
+      "pid": 24200,
+      "ppid": 27548,
+      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\"  server.js",
+      "mb": 49.3,
+      "port": null,
+      "worktree": null,
+      "listening": false
+    },
+    {
+      "pid": 36116,
+      "ppid": 24200,
+      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\" C:\\Code\\lew42\\worktrees\\waiting-on-you\\Server\\run.js",
+      "mb": 59.6,
+      "port": "59512",
+      "worktree": null,
+      "listening": true
+    },
+    {
+      "pid": 35464,
+      "ppid": 54924,
+      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\"  server.js",
+      "mb": 49.7,
+      "port": null,
+      "worktree": null,
+      "listening": false
+    },
+    {
+      "pid": 19888,
+      "ppid": 35048,
+      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\"  server.js",
+      "mb": 50.2,
+      "port": null,
+      "worktree": null,
+      "listening": false
+    },
+    {
+      "pid": 47336,
+      "ppid": 19888,
+      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\" C:\\Code\\lew42\\worktrees\\qf-4\\Server\\run.js",
+      "mb": 93.8,
+      "port": "60064",
+      "worktree": "qf-4",
+      "listening": true
+    },
+    {
+      "pid": 18960,
+      "ppid": 45988,
+      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\" server.js",
+      "mb": 49.6,
+      "port": null,
+      "worktree": null,
+      "listening": false
+    },
+    {
+      "pid": 53752,
+      "ppid": 43836,
+      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\" C:\\Code\\lew42\\worktrees\\qf-2\\Server\\run.js",
+      "mb": 123.1,
+      "port": "60969",
+      "worktree": null,
+      "listening": true
+    },
+    {
+      "pid": 9836,
+      "ppid": 49216,
+      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\"  server.js",
+      "mb": 69.3,
+      "port": null,
+      "worktree": null,
+      "listening": false
+    },
+    {
+      "pid": 5996,
+      "ppid": 1736,
+      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\"  server.js",
+      "mb": 69.5,
+      "port": null,
+      "worktree": null,
+      "listening": false
+    },
+    {
+      "pid": 42480,
+      "ppid": 5996,
+      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\" C:\\Code\\lew42\\worktrees\\page-system-929\\Server\\run.js",
+      "mb": 225.6,
+      "port": "51061",
+      "worktree": "page-system-929",
+      "listening": true
+    },
+    {
+      "pid": 31900,
+      "ppid": 30220,
+      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\"  server.js",
+      "mb": 70.9,
+      "port": null,
+      "worktree": null,
+      "listening": false
+    },
+    {
+      "pid": 20292,
+      "ppid": 9836,
+      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\" C:\\Code\\lew42\\worktrees\\needs-you\\Server\\run.js",
+      "mb": 226.5,
+      "port": "53478",
+      "worktree": "needs-you",
+      "listening": true
+    },
+    {
+      "pid": 10552,
+      "ppid": 47824,
+      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\" C:\\Code\\lew42\\worktrees\\recursive-pairs\\Server\\run.js",
+      "mb": 212.9,
+      "port": "61452",
+      "worktree": null,
+      "listening": true
+    },
+    {
+      "pid": 47860,
+      "ppid": 44852,
+      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\"  server.js",
+      "mb": 71.8,
+      "port": null,
+      "worktree": null,
+      "listening": false
+    },
+    {
+      "pid": 50832,
+      "ppid": 49268,
+      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\" C:\\Code\\lew42\\monorepo\\Server\\run.js",
+      "mb": 231.7,
+      "port": "8137",
+      "worktree": null,
+      "listening": true
+    },
+    {
+      "pid": 49316,
+      "ppid": 31188,
+      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\" C:\\Code\\lew42\\monorepo\\Server\\run.js",
+      "mb": 408,
+      "port": "3104",
+      "worktree": null,
+      "listening": true
+    },
+    {
+      "pid": 41980,
+      "ppid": 51504,
+      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\"  server.js",
+      "mb": 60.9,
+      "port": null,
+      "worktree": null,
+      "listening": false
+    },
+    {
+      "pid": 34228,
+      "ppid": 41980,
+      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\" C:\\Code\\lew42\\worktrees\\page-switcher\\Server\\run.js",
+      "mb": 214.8,
+      "port": "59934",
+      "worktree": "page-switcher",
+      "listening": true
+    },
+    {
+      "pid": 34152,
+      "ppid": 31900,
+      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\" C:\\Code\\lew42\\worktrees\\file-system\\Server\\run.js",
+      "mb": 228.2,
+      "port": "55895",
+      "worktree": "file-system",
+      "listening": true
+    },
+    {
+      "pid": 45020,
+      "ppid": 47860,
+      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\" C:\\Code\\lew42\\worktrees\\page-files-log\\Server\\run.js",
+      "mb": 151.5,
+      "port": "53780",
+      "worktree": "page-files-log",
+      "listening": true
+    },
+    {
+      "pid": 33040,
+      "ppid": 23684,
+      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\" server.js",
+      "mb": 60.7,
+      "port": null,
+      "worktree": null,
+      "listening": false
+    },
+    {
+      "pid": 30704,
+      "ppid": 33040,
+      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\" C:\\Code\\lew42\\worktrees\\mobile-nav\\Server\\run.js",
+      "mb": 81.3,
+      "port": "59637",
+      "worktree": null,
+      "listening": true
+    },
+    {
+      "pid": 9860,
+      "ppid": 42032,
+      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\"  server.js",
+      "mb": 60.3,
+      "port": null,
+      "worktree": null,
+      "listening": false
+    },
+    {
+      "pid": 33612,
+      "ppid": 9860,
+      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\" C:\\Code\\lew42\\worktrees\\lifecycle\\Server\\run.js",
+      "mb": 72,
+      "port": "54967",
+      "worktree": "lifecycle",
+      "listening": true
+    }
+  ],
+  "worktrees": [
+    {
+      "name": "agent-chat",
+      "branch": "worktree/agent-chat",
+      "merged": true,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": true,
+      "mb": 521.3
+    },
+    {
+      "name": "ai2-cost-fill",
+      "branch": "worktree/ai2-cost-fill",
+      "merged": true,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": true,
+      "mb": 269.1
+    },
+    {
+      "name": "ai2-dashboard",
+      "branch": "worktree/ai2-dashboard",
+      "merged": true,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": true,
+      "mb": 264.9
+    },
+    {
+      "name": "ai2-groups",
+      "branch": "worktree/ai2-groups",
+      "merged": true,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": true,
+      "mb": 266.9
+    },
+    {
+      "name": "ai2-overview",
+      "branch": "worktree/ai2-overview",
+      "merged": true,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": true,
+      "mb": 328
+    },
+    {
+      "name": "ai2-real-pages",
+      "branch": "worktree/ai2-real-pages",
+      "merged": false,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": false,
+      "mb": 0
+    },
+    {
+      "name": "ai2-resurface",
+      "branch": "worktree/ai2-resurface",
+      "merged": false,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": false,
+      "mb": 294.4
+    },
+    {
+      "name": "ai2-rhythm",
+      "branch": "worktree/ai2-rhythm",
+      "merged": false,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": false,
+      "mb": 329.3
+    },
+    {
+      "name": "ai2-row-vanish",
+      "branch": "worktree/ai2-row-vanish",
+      "merged": false,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": false,
+      "mb": 0
+    },
+    {
+      "name": "ai2-static",
+      "branch": "worktree/ai2-static",
+      "merged": false,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": false,
+      "mb": 269.1
+    },
+    {
+      "name": "ai2-workspace",
+      "branch": "worktree/ai2-workspace",
+      "merged": false,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": false,
+      "mb": 310.8
+    },
+    {
+      "name": "assistant-layers",
+      "branch": "worktree/assistant-layers",
+      "merged": true,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": true,
+      "mb": 267.4
+    },
+    {
+      "name": "check-consensus",
+      "branch": "worktree/check-consensus",
+      "merged": false,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": false,
+      "mb": 270.1
+    },
+    {
+      "name": "chip-fix",
+      "branch": "worktree/chip-fix",
+      "merged": true,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": true,
+      "mb": 332.6
+    },
+    {
+      "name": "collab-rounds",
+      "branch": "worktree/collab-rounds",
+      "merged": false,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": false,
+      "mb": 270.9
+    },
+    {
+      "name": "concurrency",
+      "branch": "worktree/concurrency",
+      "merged": true,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": true,
+      "mb": 264.1
+    },
+    {
+      "name": "core-columns",
+      "branch": "worktree/core-columns",
+      "merged": true,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": true,
+      "mb": 0
+    },
+    {
+      "name": "file-explorer-fs",
+      "branch": "worktree/file-explorer-fs",
+      "merged": true,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": true,
+      "mb": 331.8
+    },
+    {
+      "name": "file-system",
+      "branch": "worktree/file-system",
+      "merged": false,
+      "stillServing": true,
+      "port": 55895,
+      "created_at": "2026-09-29T21:24:47.612Z",
+      "orphaned": false,
+      "mb": 338.9
+    },
+    {
+      "name": "fresh-eyes-review",
+      "branch": "worktree/fresh-eyes-review",
+      "merged": false,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": false,
+      "mb": 270
+    },
+    {
+      "name": "helper-fixes",
+      "branch": "worktree/helper-fixes",
+      "merged": true,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": true,
+      "mb": 264
+    },
+    {
+      "name": "item-ui",
+      "branch": "worktree/item-ui",
+      "merged": true,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": true,
+      "mb": 336.5
+    },
+    {
+      "name": "layout-check",
+      "branch": "worktree/layout-check",
+      "merged": true,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": true,
+      "mb": 269
+    },
+    {
+      "name": "layout-explorer",
+      "branch": "worktree/layout-explorer",
+      "merged": true,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": true,
+      "mb": 332.6
+    },
+    {
+      "name": "layout-names",
+      "branch": "worktree/layout-names",
+      "merged": true,
+      "stillServing": false,
+      "port": 52651,
+      "created_at": "2026-09-24T22:56:57.158Z",
+      "orphaned": true,
+      "mb": 264
+    },
+    {
+      "name": "layout-system",
+      "branch": "worktree/layout-system",
+      "merged": true,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": true,
+      "mb": 328.7
+    },
+    {
+      "name": "lifecycle",
+      "branch": "worktree/lifecycle",
+      "merged": true,
+      "stillServing": true,
+      "port": 54967,
+      "created_at": "2026-09-29T22:39:21.486Z",
+      "orphaned": true,
+      "mb": 596.6
+    },
+    {
+      "name": "live-card",
+      "branch": "worktree/live-card",
+      "merged": true,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": true,
+      "mb": 264
+    },
+    {
+      "name": "live-card-wide",
+      "branch": "worktree/live-card-wide",
+      "merged": true,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": true,
+      "mb": 262.5
+    },
+    {
+      "name": "live-preview",
+      "branch": "worktree/live-preview",
+      "merged": true,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": true,
+      "mb": 264.5
+    },
+    {
+      "name": "live-reply",
+      "branch": "worktree/live-reply",
+      "merged": true,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": true,
+      "mb": 264
+    },
+    {
+      "name": "loose-ends",
+      "branch": "worktree/loose-ends",
+      "merged": true,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": true,
+      "mb": 264.1
+    },
+    {
+      "name": "md-pages",
+      "branch": "worktree/md-pages",
+      "merged": true,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": true,
+      "mb": 264.1
+    },
+    {
+      "name": "mobile-nav",
+      "branch": "worktree/mobile-nav",
+      "merged": false,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": false,
+      "mb": 338.8
+    },
+    {
+      "name": "mobile-nav-live",
+      "branch": "worktree/mobile-nav-live",
+      "merged": false,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": false,
+      "mb": 338.7
+    },
+    {
+      "name": "module-experts",
+      "branch": "worktree/module-experts",
+      "merged": true,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": true,
+      "mb": 592.7
+    },
+    {
+      "name": "needs-you",
+      "branch": "worktree/needs-you",
+      "merged": true,
+      "stillServing": true,
+      "port": 53478,
+      "created_at": "2026-09-29T18:25:16.658Z",
+      "orphaned": true,
+      "mb": 596.1
+    },
+    {
+      "name": "node-modules-guard",
+      "branch": "worktree/node-modules-guard",
+      "merged": true,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": true,
+      "mb": 338.7
+    },
+    {
+      "name": "padding-system",
+      "branch": "worktree/padding-system",
+      "merged": true,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": true,
+      "mb": 270
+    },
+    {
+      "name": "page-cards",
+      "branch": "worktree/page-cards",
+      "merged": true,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": true,
+      "mb": 266.3
+    },
+    {
+      "name": "page-drawer",
+      "branch": "worktree/page-drawer",
+      "merged": false,
+      "stillServing": false,
+      "port": 62178,
+      "created_at": "2026-09-28T19:24:28.601Z",
+      "orphaned": false,
+      "mb": 276.5
+    },
+    {
+      "name": "page-files-log",
+      "branch": "worktree/page-files-log",
+      "merged": false,
+      "stillServing": true,
+      "port": 53780,
+      "created_at": "2026-09-29T22:02:30.499Z",
+      "orphaned": false,
+      "mb": 340
+    },
+    {
+      "name": "page-switcher",
+      "branch": "worktree/page-switcher",
+      "merged": false,
+      "stillServing": true,
+      "port": 59934,
+      "created_at": "2026-09-29T22:10:31.707Z",
+      "orphaned": false,
+      "mb": 338.8
+    },
+    {
+      "name": "page-system",
+      "branch": "worktree/page-system",
+      "merged": false,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": false,
+      "mb": 270.3
+    },
+    {
+      "name": "page-system-929",
+      "branch": "worktree/page-system-929",
+      "merged": false,
+      "stillServing": true,
+      "port": 51061,
+      "created_at": "2026-09-29T20:55:33.642Z",
+      "orphaned": false,
+      "mb": 340.6
+    },
+    {
+      "name": "prompt-refine",
+      "branch": "worktree/prompt-refine",
+      "merged": true,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": true,
+      "mb": 590.3
+    },
+    {
+      "name": "qf-1",
+      "branch": "worktree/qf-1",
+      "merged": false,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": false,
+      "mb": 270.3
+    },
+    {
+      "name": "qf-2",
+      "branch": "worktree/qf-2",
+      "merged": false,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": false,
+      "mb": 339.3
+    },
+    {
+      "name": "qf-3",
+      "branch": "worktree/qf-3",
+      "merged": false,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": false,
+      "mb": 527.5
+    },
+    {
+      "name": "qf-4",
+      "branch": "worktree/qf-4",
+      "merged": false,
+      "stillServing": true,
+      "port": 60064,
+      "created_at": "2026-09-28T19:38:55.505Z",
+      "orphaned": false,
+      "mb": 338.4
+    },
+    {
+      "name": "qf-5",
+      "branch": "worktree/qf-5",
+      "merged": false,
+      "stillServing": false,
+      "port": 52847,
+      "created_at": "2026-09-29T22:44:12.051Z",
+      "orphaned": false,
+      "mb": 339.4
+    },
+    {
+      "name": "quickfix-worktrees",
+      "branch": "worktree/quickfix-worktrees",
+      "merged": false,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": false,
+      "mb": 527.5
+    },
+    {
+      "name": "recipe-a",
+      "branch": "worktree/recipe-a",
+      "merged": true,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": true,
+      "mb": 265.4
+    },
+    {
+      "name": "recipe-b",
+      "branch": "worktree/recipe-b",
+      "merged": true,
+      "stillServing": false,
+      "port": 61142,
+      "created_at": "2026-09-28T19:19:26.290Z",
+      "orphaned": true,
+      "mb": 270
+    },
+    {
+      "name": "recipe-c",
+      "branch": "worktree/recipe-c",
+      "merged": true,
+      "stillServing": false,
+      "port": 51615,
+      "created_at": "2026-09-28T19:19:32.330Z",
+      "orphaned": true,
+      "mb": 270
+    },
+    {
+      "name": "recursive-pairs",
+      "branch": "worktree/recursive-pairs",
+      "merged": true,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": true,
+      "mb": 596
+    },
+    {
+      "name": "restart-outside-tree",
+      "branch": "worktree/restart-outside-tree",
+      "merged": false,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": false,
+      "mb": 0
+    },
+    {
+      "name": "review-turns",
+      "branch": "worktree/review-turns",
+      "merged": false,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": false,
+      "mb": 4.8
+    },
+    {
+      "name": "section-variants",
+      "branch": "worktree/section-variants",
+      "merged": true,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": true,
+      "mb": 330.2
+    },
+    {
+      "name": "servex-crash",
+      "branch": "worktree/servex-crash",
+      "merged": true,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": true,
+      "mb": 264.9
+    },
+    {
+      "name": "servex-docs-tab",
+      "branch": "worktree/servex-docs-tab",
+      "merged": false,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": false,
+      "mb": 0
+    },
+    {
+      "name": "servex-monitor",
+      "branch": "worktree/servex-monitor",
+      "merged": true,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": true,
+      "mb": 261
+    },
+    {
+      "name": "slow-card-fix",
+      "branch": "worktree/slow-card-fix",
+      "merged": false,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": false,
+      "mb": 338.8
+    },
+    {
+      "name": "smoke-proof",
+      "branch": "worktree/smoke-proof",
+      "merged": true,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": true,
+      "mb": 270
+    },
+    {
+      "name": "source-library",
+      "branch": "worktree/source-library",
+      "merged": false,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": false,
+      "mb": 4.8
+    },
+    {
+      "name": "task-cost",
+      "branch": "worktree/task-cost",
+      "merged": true,
+      "stillServing": false,
+      "port": 62634,
+      "created_at": "2026-09-28T19:19:18.556Z",
+      "orphaned": true,
+      "mb": 266.3
+    },
+    {
+      "name": "task-loop",
+      "branch": "worktree/task-loop",
+      "merged": true,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": true,
+      "mb": 331.3
+    },
+    {
+      "name": "waiting-on-you",
+      "branch": "worktree/waiting-on-you",
+      "merged": false,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": false,
+      "mb": 527.4
+    },
+    {
+      "name": "worktree-watch",
+      "branch": "worktree/worktree-watch",
+      "merged": true,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": true,
+      "mb": 265.6
+    },
+    {
+      "name": "worktrees",
+      "branch": "worktree/worktrees",
+      "merged": false,
+      "stillServing": false,
+      "port": null,
+      "created_at": null,
+      "orphaned": false,
+      "mb": 0
+    }
+  ],
+  "idle_agents": [
+    {
+      "id": "assistant-fast",
+      "role": "assistant",
+      "name": "fast",
+      "parent": null,
+      "started_at": "2026-09-29T22:34:46.441Z",
+      "page": null
+    },
+    {
+      "id": "dispatcher",
+      "role": "dispatcher",
+      "name": null,
+      "parent": null,
+      "started_at": "2026-09-29T22:34:44.471Z",
+      "page": null
+    },
+    {
+      "id": "master-assistant",
+      "role": "master-assistant",
+      "name": "",
+      "parent": null,
+      "started_at": "2026-09-29T22:34:46.788Z",
+      "page": null
+    },
+    {
+      "id": "task-mastermind-mobile-nav",
+      "role": "task-mastermind",
+      "name": "mobile-nav",
+      "parent": null,
+      "started_at": "2026-09-29T20:02:26.960Z",
+      "page": null
+    },
+    {
+      "id": "reviewer-reply-mobile-nav",
+      "role": "reviewer",
+      "name": "reply-mobile-nav",
+      "parent": null,
+      "started_at": "2026-09-29T22:33:20.941Z",
+      "page": null
+    },
+    {
+      "id": "task-mastermind-file-system",
+      "role": "task-mastermind",
+      "name": "file-system",
+      "parent": null,
+      "started_at": "2026-09-29T21:23:46.308Z",
+      "page": null
+    },
+    {
+      "id": "mastermind-servex-5",
+      "role": "mastermind",
+      "name": "servex-5",
+      "parent": null,
+      "started_at": "2026-09-29T21:24:02.957Z",
+      "page": null
+    },
+    {
+      "id": "task-mastermind-page-files-log",
+      "role": "task-mastermind",
+      "name": "page-files-log",
+      "parent": null,
+      "started_at": "2026-09-29T22:00:34.176Z",
+      "page": null
+    },
+    {
+      "id": "task-mastermind-page-system-2",
+      "role": "task-mastermind",
+      "name": "page-system-2",
+      "parent": null,
+      "started_at": "2026-09-29T22:00:50.620Z",
+      "page": null
+    },
+    {
+      "id": "minion-pf-measure",
+      "role": "minion",
+      "name": "pf-measure",
+      "parent": "task-mastermind-page-files-log",
+      "started_at": "2026-09-29T22:08:31.010Z",
+      "page": null
+    },
+    {
+      "id": "minion-lan-guard",
+      "role": "minion",
+      "name": "lan-guard",
+      "parent": "task-mastermind-mobile-nav",
+      "started_at": "2026-09-29T22:26:00.486Z",
+      "page": null
+    },
+    {
+      "id": "reviewer-writer",
+      "role": "reviewer",
+      "name": "writer",
+      "parent": null,
+      "started_at": "2026-09-29T22:33:20.993Z",
+      "page": null
+    },
+    {
+      "id": "reviewer-writer-2",
+      "role": "reviewer",
+      "name": "writer",
+      "parent": null,
+      "started_at": "2026-09-29T22:34:25.978Z",
+      "page": null
+    },
+    {
+      "id": "reviewer-reply-writer",
+      "role": "reviewer",
+      "name": "reply-writer",
+      "parent": null,
+      "started_at": "2026-09-29T22:34:25.992Z",
+      "page": null
+    },
+    {
+      "id": "task-mastermind-lifecycle",
+      "role": "task-mastermind",
+      "name": "lifecycle",
+      "parent": "mastermind-servex-5",
+      "started_at": "2026-09-29T22:38:21.778Z",
+      "page": null
+    },
+    {
+      "id": "reviewer-file-system",
+      "role": "reviewer",
+      "name": "file-system",
+      "parent": null,
+      "started_at": "2026-09-29T22:39:04.897Z",
+      "page": null
+    }
+  ],
+  "quickfix_worktrees_blocked": [
+    {
+      "worktree": "qf-2",
+      "holder": null,
+      "state": "unknown"
+    },
+    {
+      "worktree": "qf-3",
+      "holder": null,
+      "state": "unknown"
+    },
+    {
+      "worktree": "qf-4",
+      "holder": null,
+      "state": "unknown"
+    }
+  ],
+  "worst_ten": [
+    {
+      "kind": "worktree",
+      "name": "lifecycle",
+      "mb": 596.6,
+      "age_days": 0,
+      "owner_task": "lifecycle",
+      "why": "branch merged, dir not removed; server still running"
+    },
+    {
+      "kind": "worktree",
+      "name": "needs-you",
+      "mb": 596.1,
+      "age_days": 0,
+      "owner_task": "needs-you",
+      "why": "branch merged, dir not removed; server still running"
+    },
+    {
+      "kind": "worktree",
+      "name": "recursive-pairs",
+      "mb": 596,
+      "age_days": null,
+      "owner_task": "recursive-pairs",
+      "why": "branch merged, dir not removed"
+    },
+    {
+      "kind": "worktree",
+      "name": "module-experts",
+      "mb": 592.7,
+      "age_days": null,
+      "owner_task": "module-experts",
+      "why": "branch merged, dir not removed"
+    },
+    {
+      "kind": "worktree",
+      "name": "prompt-refine",
+      "mb": 590.3,
+      "age_days": null,
+      "owner_task": "prompt-refine",
+      "why": "branch merged, dir not removed"
+    },
+    {
+      "kind": "worktree",
+      "name": "agent-chat",
+      "mb": 521.3,
+      "age_days": null,
+      "owner_task": "agent-chat",
+      "why": "branch merged, dir not removed"
+    },
+    {
+      "kind": "server",
+      "name": "unassigned server.js (pid 49316)",
+      "mb": 408,
+      "age_days": null,
+      "owner_task": null,
+      "why": "no matching worktree port — main server or hand-started"
+    },
+    {
+      "kind": "worktree",
+      "name": "node-modules-guard",
+      "mb": 338.7,
+      "age_days": null,
+      "owner_task": "node-modules-guard",
+      "why": "branch merged, dir not removed"
+    },
+    {
+      "kind": "worktree",
+      "name": "item-ui",
+      "mb": 336.5,
+      "age_days": null,
+      "owner_task": "item-ui",
+      "why": "branch merged, dir not removed"
+    },
+    {
+      "kind": "worktree",
+      "name": "chip-fix",
+      "mb": 332.6,
+      "age_days": null,
+      "owner_task": "chip-fix",
+      "why": "branch merged, dir not removed"
+    }
+  ],
+  "by_kind_mb": {
+    "servers": 3629,
+    "worktrees_disk": 12865,
+    "agents": 4800
+  },
+  "salvage": {
+    "slots": [
+      {
+        "slot": "qf-2",
+        "branch": "salvage/qf-2-2026-09-29",
+        "files": [
+          "public/framework/ai/2026/09/25/cards-that-show-the-thing/page.jsonl    | 1 +",
+          ".../framework/ai/2026/09/25/why-padding-keeps-going-missing/page.jsonl | 1 +",
+          "public/framework/ai/2026/09/28/figma-sept-2026/1-typography/page.jsonl | 3 +++",
+          "public/framework/core/Page/jsonl/page.jsonl                            | 1 +"
+        ],
+        "only_page_jsonl": true
+      },
+      {
+        "slot": "qf-3",
+        "branch": "salvage/qf-3-2026-09-29",
+        "files": [
+          "public/framework/ai/2026/09/page.jsonl      | 1 +",
+          "public/framework/ai/board.jsonl             | 2 ++",
+          "public/framework/core/Page/jsonl/page.jsonl | 1 +"
+        ],
+        "only_page_jsonl": false
+      },
+      {
+        "slot": "qf-4",
+        "branch": "salvage/qf-4-2026-09-29",
+        "files": [
+          "public/framework/ai/2026/09/page.jsonl      |  1 +",
+          "public/framework/ai/board.jsonl             | 10 ++++++++++",
+          "public/framework/core/Page/jsonl/page.jsonl |  1 +"
+        ],
+        "only_page_jsonl": false
+      }
+    ],
+    "cause": "Server/plugins/PageFiles.js watches every folder with a page.jsonl and appends a line the moment a file appears, disappears or changes underneath it, for as long as that worktree's own dev server (server.js) is running. Each qf-N's server is still up, so its page.jsonl keeps changing after the salvage commit, git status --porcelain sees a real diff every time, and Servex/Pool.js's dirt() check (git status --porcelain, called from reclaim() -> give_back()) refuses the slot again. The server, not the agent, is the one re-dirtying the tree.",
+    "writer": {
+      "file": "Server/plugins/PageFiles.js",
+      "class_method": "PageFiles.event() -> PageFiles.sync() -> PageFiles.append()/write to page.jsonl",
+      "when": "on every fs.watch change under public/, while a server.js process is running and has this plugin loaded (continuous, not on a schedule)"
+    },
+    "fix_options": {
+      "picked": "a",
+      "a": "Servex/Pool.js dirt() ignores files named page.jsonl when it walks git status --porcelain. page.jsonl is checked into git as real site content (confirmed: not in .gitignore, has its own commit history), so it cannot simply stop being tracked without risking the static build losing it. Excluding it from the DIRT CHECK (not from git) fixes the false refusal without touching what ships.",
+      "b": "page.jsonl leaves git's tracking (adds it to .gitignore, git rm --cached). Rejected as the pick because page.jsonl is real, committed site data today (core/Page/jsonl/page.jsonl has prior commits from real page-system work), and untracking it repo-wide is a bigger, riskier change than the reclaim bug needs — and it is the owner's data to decide on, not a minion's."
+    }
+  }
+}

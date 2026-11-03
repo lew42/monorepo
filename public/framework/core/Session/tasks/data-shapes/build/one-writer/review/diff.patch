@@ -1,0 +1,789 @@
+diff --git a/.claude/hooks/append.mjs b/.claude/hooks/append.mjs
+index f33bfdfe6..2e7225144 100644
+--- a/.claude/hooks/append.mjs
++++ b/.claude/hooks/append.mjs
+@@ -1,13 +1,23 @@
+ // append.mjs — CLI over Server/LogLine.mjs (all the rules live there; doc: Server/doc/log-line.md).
+ // usage: node .claude/hooks/append.mjs <target.jsonl> <lines.json>   exit 2 usage, 3 refused, 1 bad line
++// A record file (task/session/page/improvements.jsonl) goes through the one writer (core/Item/RecordWriter.js): posted to the entry
++// point, which applies each line to the file's live root and appends it; only when it is down is the file appended here, once.
+ import { readFileSync } from "node:fs";
+ import LogLine from "../../Server/LogLine.mjs";
++import RecordWriter from "../../public/framework/core/Item/RecordWriter.js";
+ 
+ const [target, source] = process.argv.slice(2);
+ if (!target || !source){ console.error("usage: node append.mjs <target.jsonl> <lines.json>"); process.exit(2); }
+ const items = JSON.parse(readFileSync(source, "utf8").replace(/^﻿/, ""));
+ let r;
+-try { r = LogLine.append(target, items, { source }); }
++try {
++	const p = LogLine.prepare(target, items, { source });
++	if (RecordWriter.is_record(p.target)){
++		const w = await RecordWriter.write(p.target, p.filled, { by: "append.mjs" });
++		if (w.refused?.length) throw Object.assign(new Error(w.refused.map(x => `REFUSED: ${x.why}`).join("\n") + `\nNot written to ${p.target}.`), { code: 3, notes: p.notes });
++	} else LogLine.write(p);
++	r = LogLine.report(p);
++}
+ catch (e){ for (const n of e.notes ?? []) console.error(n); console.error(e.message); process.exit(e.code === 3 ? 3 : 1); }
+ for (const n of r.notes) console.error(n);
+ console.log(`${r.file}: appended ${r.appended} at ${r.at}; ${r.total} lines total, ${r.bad} bad`);
+diff --git a/.claude/hooks/ledger.mjs b/.claude/hooks/ledger.mjs
+index 17b1eac09..bcf8f8b9d 100644
+--- a/.claude/hooks/ledger.mjs
++++ b/.claude/hooks/ledger.mjs
+@@ -4,6 +4,7 @@ import os from "node:os";
+ import path from "node:path";
+ import { fileURLToPath } from "node:url";
+ import { spawn } from "node:child_process";
++import RecordWriter from "../../public/framework/core/Item/RecordWriter.js";
+ 
+ // A review (2026-10-02) caught this: a STATIC `import { check } from "./jsonl-schema.mjs"`
+ // means that if jsonl-schema.mjs ever fails to load (a syntax slip, a bad merge), ledger.mjs
+@@ -38,10 +39,17 @@ const lines = file => fs.readFileSync(file, "utf8").split("\n").flatMap(l => {
+ //     so a reader can see the line never passed and why, instead of losing it.
+ //   - check() itself throws (its own bug) → write the line unchanged, exactly as before this
+ //     existed — a broken checker must never make the ledger go silent.
++//
++// ONE WRITER (data-shapes 1d): a record file under public/ (task/session/page/improvements.jsonl) is posted to the entry point
++// (core/Item/RecordWriter.js), which applies the line to the file's live root and appends it, so the next item() call does not
++// replay the whole file. It is queued here and awaited before the hook exits (`pending`); when Servex is down, RecordWriter
++// appends it once itself. Any other file is appended right here, as before.
++export const pending = [];
+ export const append_checked = (file, entry) => {
+ 	let bad = null;
+ 	try { bad = check(file, entry); } catch { bad = null; }
+ 	const out = bad ? { ...entry, unchecked: bad } : entry;
++	if (/[\\/]public[\\/]/.test(file) && RecordWriter.is_record(file)) return void pending.push(RecordWriter.write(file, out, { by: "ledger" }).catch(() => {}));
+ 	let lead = "";
+ 	try { const b = fs.readFileSync(file); if (b.length && b.at(-1) !== 10) lead = "\n"; } catch {}
+ 	fs.appendFileSync(file, lead + JSON.stringify(out) + "\n");
+@@ -295,5 +303,6 @@ const run = async () => {
+ const is_main = () => /ledger\.mjs$/i.test(process.argv[1] ?? "");
+ if (is_main()) {
+ 	try { await run(); } catch {}
++	await Promise.allSettled(pending);
+ 	process.exit(0);
+ }
+diff --git a/.claude/hooks/naming-guard.mjs b/.claude/hooks/naming-guard.mjs
+index d28c2dddc..e2c7ba4f9 100644
+--- a/.claude/hooks/naming-guard.mjs
++++ b/.claude/hooks/naming-guard.mjs
+@@ -4,6 +4,7 @@ import path from "node:path";
+ import { fileURLToPath } from "node:url";
+ import SessionRecord from "../../Server/SessionRecord.mjs";
+ import { spawnSync } from "node:child_process";
++import RecordWriter from "../../public/framework/core/Item/RecordWriter.js";
+ 
+ // ⚠ Same override as ledger.mjs: a worktree session's task.jsonl usually lives in the
+ // MAIN tree (minion briefs say so explicitly), not the worktree this hook script runs
+@@ -99,11 +100,8 @@ export default function naming_guard(file, agent){
+ 
+ 		const task = find_task_by_path(abs) || pinned_task(agent);
+ 		if (!task) return;
+-		for (const cls of missing) {
+-			let lead = "";
+-			try { const b = fs.readFileSync(task); if (b.length && b.at(-1) !== 10) lead = "\n"; } catch {}
+-			fs.appendFileSync(task, lead + JSON.stringify({ log: { at: now(),
+-				msg: `naming: class ${cls} in ${module} has no decision record — run a design collab with target, or add a named line with decision: "owner"` } }) + "\n");
+-		}
++		// The one writer (core/Item/RecordWriter.js): posted to the entry point; RecordWriter appends it once itself only when that is down.
++		return RecordWriter.write(task, missing.map(cls => ({ log: { at: now(),
++			msg: `naming: class ${cls} in ${module} has no decision record — run a design collab with target, or add a named line with decision: "owner"` } })), { by: "naming-guard" }).catch(() => {});
+ 	} catch {}
+ }
+diff --git a/.claude/hooks/readme.md b/.claude/hooks/readme.md
+index 04cd9bfbb..a841597c2 100644
+--- a/.claude/hooks/readme.md
++++ b/.claude/hooks/readme.md
+@@ -45,6 +45,11 @@ Old lines are never judged; the logs are append-only. Design and proof:
+ have to remember. Judgment lines — `log` findings, `now`, `outcome`, `steps` —
+ stay hand-written by the session. Node built-ins only, no deps.
+ 
++Its lines to a record file under `public/` (and `naming-guard.mjs`'s) go through the one writer: `RecordWriter.write`
++posts them to Servex's `/api/item`, which applies each to the file's live root and appends it; only when Servex
++is down does RecordWriter append, once ([one-writer.md](/framework/core/Item/doc/one-writer.md)). The posts are
++collected in `pending` and awaited before the hook exits.
++
+ Every event first resolves *this session's task*: the `task.jsonl` under
+ `public/` whose **first `assign`** carries the stdin `session_id`. Both shapes
+ are found — `public/framework/ai/<date>/<slug>/` and `<page>/ai/<slug>/` — by
+diff --git a/Server/LogLine.mjs b/Server/LogLine.mjs
+index 7bae440ab..2fada3fb7 100644
+--- a/Server/LogLine.mjs
++++ b/Server/LogLine.mjs
+@@ -17,6 +17,10 @@ BEFORE THIS TASK CLOSES (CLAUDE.md law 9), answer both:
+ (A readme states what the thing is, its on-disk structure, which tool writes it and which class reads it: no history.)`;
+ 	/** Keys a writer may put beside a line's verb (string values only: `session` as an OBJECT is a verb). */
+ 	static META = ["by", "session", "origin"];
++	/** The one writer of record files (data-shapes 1d): in Servex, page_tools.js sets it to record_lines (applies each line to the
++	 *  file's live root, then appends). Elsewhere it is null and `append` writes the file itself; append.mjs posts instead (`prepare`). */
++	static writer = null;
++	static RECORD = /[\\/](task|session|page|improvements)\.jsonl$/;
+ 
+ 	static now(){
+ 		const d = new Date(), off = -d.getTimezoneOffset(), a = Math.abs(off);
+@@ -39,7 +43,16 @@ BEFORE THIS TASK CLOSES (CLAUDE.md law 9), answer both:
+ 
+ 	/** Append `lines` (one object or an array) to `target`. Returns {file, appended, at, bad, total, notes, landing}.
+ 	 *  Throws Error with .code 3 and the schema's reason on a refusal (nothing written). `by`/`session`/`origin` land beside each line's verb. */
+-	static append(target, lines, { by, session, origin, source = "the lines" } = {}){
++	static append(target, lines, opts = {}){
++		const p = this.prepare(target, lines, opts);
++		const via = this.writer && this.RECORD.test(p.target) ? this.writer(p.target, p.filled) : null;
++		if (via?.ok === false) throw Object.assign(new Error(via.refused.map(r => `REFUSED line ${r.i + 1}: ${r.why}`).join("\n") + `\nNothing was written to ${p.target}.`), { code: 3, notes: p.notes });
++		if (!via) this.write(p);
++		return this.report(p);
++	}
++
++	/** Everything before the write: the path followed, the lines filled and stamped, the schema checked (throws code 3, nothing written). */
++	static prepare(target, lines, { by, session, origin, source = "the lines" } = {}){
+ 		const notes = [], t = this.now();
+ 		const abs = resolve_path(target);
+ 		const m = /[\\/]public[\\/]framework[\\/]ai[\\/](\d{4}-\d{2}-\d{2})[\\/]day\.jsonl$/.exec(abs);
+@@ -80,6 +93,11 @@ BEFORE THIS TASK CLOSES (CLAUDE.md law 9), answer both:
+ 			throw Object.assign(new Error(msg + `\nNothing was written to ${target}.`), { code: 3, notes });
+ 		}
+ 
++		return { target, list, filled, notes, t };
++	}
++
++	/** The raw append, newline-safe: used where no one writer is wired, and by append.mjs as the fallback when the entry point is down. */
++	static write({ target, filled }){
+ 		let out = filled.map(o => JSON.stringify(o)).join("\n") + "\n";
+ 		if (existsSync(target) && statSync(target).size > 0){
+ 			const size = statSync(target).size, fd = openSync(target, "r"), buf = Buffer.alloc(1);
+@@ -87,6 +105,10 @@ BEFORE THIS TASK CLOSES (CLAUDE.md law 9), answer both:
+ 			if (buf[0] !== 0x0a) out = "\n" + out;
+ 		}
+ 		appendFileSync(target, out, "utf8");
++	}
++
++	/** What `append` answers, read back from the file: lines appended, the file's total, any unparsed line, a landing. */
++	static report({ target, list, filled, notes, t }){
+ 		const all = readFileSync(target, "utf8").split(/\r?\n/).filter(l => l.trim());
+ 		let bad = 0;
+ 		all.forEach((l, i) => { try { JSON.parse(l); } catch { bad++; notes.push(`BAD line ${i + 1}: ${l.slice(0, 100)}`); } });
+diff --git a/Server/doc/log-line.md b/Server/doc/log-line.md
+index a3f797789..eddf33059 100644
+--- a/Server/doc/log-line.md
++++ b/Server/doc/log-line.md
+@@ -7,6 +7,8 @@ LogLine.append("<session folder>/session.jsonl", { task: { title: "build it", st
+ // -> {"task":{"at":"…","title":"build it","state":"open"},"by":"minion-x","session":"<uuid>","origin":"/framework/ai/..."}
+ ```
+ 
++**A record file is not appended here directly** (data-shapes 1d, [one-writer.md](/framework/core/Item/doc/one-writer.md)). `append` is `prepare` (path, fill, schema check), then the write, then `report`. In Servex, `LogLine.writer` is `record_lines`, so a `session`, `task`, `page` or `improvements.jsonl` line is applied to the file's live root, then appended. `append.mjs` runs `prepare` and posts the lines through `RecordWriter.write`; only when Servex is down does it append, once. Other files, and a process with no writer set, use `LogLine.write`.
++
+ `by`, `session` and `origin` (strings) land beside the verb. The schema ignores string-valued `by`/`session`/`origin` keys; `session` as an object is still a verb.
+ 
+ ## The three doors
+diff --git a/Server/plugins/SocketServer/Append.js b/Server/plugins/SocketServer/Append.js
+index e9c0695d9..5be94a58d 100644
+--- a/Server/plugins/SocketServer/Append.js
++++ b/Server/plugins/SocketServer/Append.js
+@@ -1,5 +1,6 @@
+ import fs from "fs";
+ import path from "path";
++import RecordWriter from "../../../public/framework/core/Item/RecordWriter.js";
+ 
+ // A dynamic import with a safe fallback, not a static one — a review (2026-10-02) pointed
+ // out that a static import ties the WHOLE dev server's boot to jsonl-schema.mjs loading
+@@ -79,8 +80,14 @@ export default class Append {
+ 			if (why) return this.answer(index, `append refused: ${why}`);
+ 		}
+ 
++		// THE FALLBACK OF THE ONE WRITER (core/Item/RecordWriter.js): a tab sends a record's lines here only when the entry point did
++		// not take them. A line whose `by` and `ts` are already in the file's tail was written by the entry point after all (it
++		// answered late), so it is not written twice.
++		const fresh = RecordWriter.fresh(RecordWriter.tail_sync(fs, full), lines);
++		if (!fresh.length) return this.answer(index, "append successful");
++
+ 		// JSON.stringify never emits a raw newline, so each object is exactly one line.
+-		const text = lines.map(line => JSON.stringify(line) + "\n").join("");
++		const text = fresh.map(line => JSON.stringify(line) + "\n").join("");
+ 
+ 		try {
+ 			fs.mkdirSync(path.dirname(full), { recursive: true });
+diff --git a/Servex/Servex.js b/Servex/Servex.js
+index 62238f56a..5fb94fc44 100644
+--- a/Servex/Servex.js
++++ b/Servex/Servex.js
+@@ -14,7 +14,7 @@ import Processes from "./Processes.js";
+ import Games from "./Games.js";
+ import Worktrees from "./Worktrees.js";
+ import TaskLoop from "./TaskLoop.js";
+-import { hooks as page_tool_hooks, run_item } from "./agents/page_tools.js";
++import { hooks as page_tool_hooks, serve_item } from "./agents/page_tools.js";
+ import ProcessRunner from "./ProcessRunner.js";
+ import Respawn from "./agents/Respawn.js";
+ import Wakeups from "./agents/Wakeups.js";
+@@ -678,9 +678,10 @@ export default class Servex extends Events {
+             if (ip !== "127.0.0.1" && ip !== "::1" && ip !== "::ffff:127.0.0.1") return res.status(403).json({ ok: false, why: "loopback only" });
+             const via = this.via(req);
+             if (via) return res.json({ ok: true, stubbed: true, via });
+-            const { path: url, target, delta } = req.body ?? {};
+-            if (typeof url !== "string" || !delta || typeof delta !== "object") return res.status(400).json({ ok: false, why: "body must be {path, target?, delta}" });
+-            res.json(await run_item({ path: url, target, delta }, { caller: "owner" }));
++            // ONE WRITER (data-shapes 1d): {path, delta} is a verb, {path, lines} raw lines from a hook, LogLine or a page; both end in
++            // record_lines' apply-then-append (page_tools.js serve_item). The caller's side is core/Item/RecordWriter.js.
++            const answer = await serve_item(req.body ?? {});
++            res.status(answer.ok === false && /^body must/.test(answer.why ?? "") ? 400 : 200).json(answer);
+         });
+ 
+         /* THE MERGE BUTTON (merge-approvals, 2026-10-23) — the branches agents marked `ready:` and the
+diff --git a/Servex/agents/one-writer.test.mjs b/Servex/agents/one-writer.test.mjs
+new file mode 100644
+index 000000000..69ce9fc63
+--- /dev/null
++++ b/Servex/agents/one-writer.test.mjs
+@@ -0,0 +1,127 @@
++// One writer (data-shapes plan step 1d): every write to a record goes through record_lines / run_item behind POST /api/item, and the
++// raw append is only the fallback, checked against the file's tail. `node Servex/agents/one-writer.test.mjs`
++// Scratch tree in the OS temp folder (SERVEX_PUBLIC; the entry point is a local http server running this checkout's serve_item, named
++// by RECORD_ENTRY): nothing under the live public/ and nothing in the live Servex is touched.
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import http from "node:http";
++import Test from "../../public/framework/core/Test/Test.js";
++
++const ROOT = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "one-writer-")));
++process.env.SERVEX_PUBLIC = path.join(ROOT, "public");
++process.env.LEDGER_ROOT = ROOT;
++
++const { run_item, serve_item } = await import("./page_tools.js");
++const { default: RecordWriter } = await import("../../public/framework/core/Item/RecordWriter.js");
++const { default: Session } = await import("../../public/framework/core/Session/Session.js");
++const { default: LogLine } = await import("../../Server/LogLine.mjs");
++const ledger = await import("../../.claude/hooks/ledger.mjs");
++const t = new Test("one-writer");
++
++// The entry point, as Servex serves it; `mode` makes it slow (writes at once, answers late) or stubbed.
++let mode = "ok";
++const server = http.createServer((req, res) => {
++	let body = "";
++	req.on("data", d => body += d);
++	req.on("end", async () => {
++		if (mode === "stubbed") return res.end(JSON.stringify({ ok: true, stubbed: true }));
++		const answer = await serve_item(JSON.parse(body));
++		if (mode === "slow") await new Promise(r => setTimeout(r, 800));
++		res.setHeader("content-type", "application/json"); res.end(JSON.stringify(answer));
++	});
++});
++await new Promise(r => server.listen(0, "127.0.0.1", r));
++process.env.RECORD_ENTRY = `http://127.0.0.1:${server.address().port}/api/item`;
++
++const REL = "framework/ai/sessions/2026/10/28/onewriter", DIR = path.join(ROOT, "public", REL), URL = `/${REL}/`, FILE = path.join(DIR, "session.jsonl");
++const lines = () => fs.readFileSync(FILE, "utf8").split("\n").filter(Boolean).map(l => JSON.parse(l));
++let replays = 0;
++const real = Session.replay;
++Session.replay = function (...a){ replays++; return real.apply(this, a); };
++
++fs.mkdirSync(DIR, { recursive: true });
++fs.writeFileSync(FILE, JSON.stringify({ session: { id: "1a1a1a1a-aaaa-4bbb-8ccc-0000000000aa", kind: "vscode-tab", at: "2026-10-28T10:00:00.000Z" } }) + "\n"
++	+ Array.from({ length: 3000 }, (_, i) => JSON.stringify({ log: { text: `old line ${i}` }, by: "seed", ts: new Date(Date.parse("2026-10-28T10:00:00Z") + i).toISOString() })).join("\n") + "\n");
++
++try {
++	// 1. Two writers at once on one file: a tab (RecordWriter.post, the call Item.Store.flush makes) and an agent (run_item).
++	await run_item({ path: URL }, { caller: "agent-t" });
++	const tab = RecordWriter.post(`${URL}session.jsonl`, { deltas: Array.from({ length: 20 }, (_, i) => ({ tasks: { add: { title: `tab task ${i}` } } })), by: "owner" });
++	const agent = Promise.all(Array.from({ length: 20 }, (_, i) => run_item({ path: URL, delta: { tasks: { add: { title: `agent task ${i}` } } } }, { caller: "agent-t" })));
++	const [posted] = await Promise.all([tab, agent]);
++	t.eq(posted.rest.length, 0, "1. the tab's 20 lines were all taken by the entry point (no fallback)");
++	const adds = lines().filter(l => l.tasks?.add).map(l => l.tasks.add.title);
++	t.eq(adds.length, 40, "1. 40 adds in the file: none lost");
++	t.eq(new Set(adds).size, 40, "1. no twin: 40 different titles");
++	const pairs = lines().filter(l => l.ts).map(l => `${l.by}|${l.ts}`);
++	t.eq(new Set(pairs).size, pairs.length, "1. every line's by|ts is unique");
++	const live = (await run_item({ path: URL, delta: { progress: {} } }, { caller: "agent-t" })).answer.progress;
++	t.eq(live.total, Session.replay(lines()).progress().total, "1. the live root and a fresh replay of the file agree");
++
++	// 2. A hook write no longer makes the next item() call replay the whole file.
++	const write = async () => { const b = replays, at = performance.now(); await run_item({ path: URL, delta: { log: { text: "agent" } } }, { caller: "agent-t" }); return { replays: replays - b, ms: performance.now() - at }; };
++	await write();   // warm
++	fs.appendFileSync(FILE, JSON.stringify({ log: { at: LogLine.now(), msg: "old-style raw hook append" } }) + "\n");
++	const before = await write();
++	t.eq(before.replays, 1, `2. before: a raw hook append makes the next tool call replay the whole file (${before.ms.toFixed(1)} ms)`);
++	const hook = await RecordWriter.write(FILE, { log: { at: LogLine.now(), msg: "hook via the one writer" } }, { by: "ledger" });
++	t.eq(hook.via, "entry", "2. a hook line goes to the entry point");
++	const after = await write();
++	t.eq(after.replays, 0, `2. after: the next tool call replays nothing (${after.ms.toFixed(1)} ms, was ${before.ms.toFixed(1)} ms)`);
++	ledger.append_checked(FILE, { log: { at: LogLine.now(), msg: "ledger.mjs's own write path" } });
++	await Promise.allSettled(ledger.pending);
++	t.eq((await write()).replays, 0, "2. ledger.mjs's append_checked: no full replay after it");
++	LogLine.append(FILE, { log: { msg: "LogLine in-process (the log tool, dir_log)" } }, { by: "agent-t" });
++	t.eq((await write()).replays, 0, "2. LogLine.append in Servex (writer wired to record_lines): no full replay after it");
++	t.ok(lines().some(l => l.log?.msg === "ledger.mjs's own write path") && lines().some(l => l.log?.msg === "LogLine in-process (the log tool, dir_log)"), "2. both lines are in the file");
++	console.log(`   measured: next item() after a raw append ${before.ms.toFixed(1)} ms (1 full replay of ${lines().length} lines); after a one-writer append ${after.ms.toFixed(1)} ms (0)`);
++
++	// 3. The fallback writes once.
++	const count = msg => lines().filter(l => l.log?.msg === msg).length;
++	const real_entry = process.env.RECORD_ENTRY;
++	process.env.RECORD_ENTRY = "http://127.0.0.1:9/api/item";   // nothing listens: the entry point is down
++	const down = await RecordWriter.write(FILE, { log: { at: LogLine.now(), msg: "down" } }, { by: "ledger" });
++	t.eq([down.via, count("down")], ["fallback", 1], "3. entry point down: the fallback writes the line once");
++	process.env.RECORD_ENTRY = real_entry;
++
++	mode = "slow";   // the entry point writes at once but answers after 800 ms; the caller gives up at 200 ms
++	const slow = await RecordWriter.write(FILE, { log: { at: LogLine.now(), msg: "slow" } }, { by: "ledger", timeout: 200 });
++	await new Promise(r => setTimeout(r, 900));
++	t.eq([slow.via, slow.written, count("slow")], ["fallback", 0, 1], "3. entry point slow: the fallback finds the line in the tail and writes nothing (no twin)");
++	mode = "ok";
++
++	// The other order: the fallback wrote first, then the late post reaches the entry point. Raw lines and a tab's verb.
++	const first = { log: { at: LogLine.now(), msg: "fallback first" }, by: "ledger", ts: RecordWriter.stamp() };
++	await RecordWriter.append_once(FILE, [first]);
++	const late = await serve_item({ path: `${URL}session.jsonl`, lines: [first] });
++	t.eq([late.written, late.skipped, count("fallback first")], [0, 1, 1], "3. the late raw post is skipped: one line");
++	const ts = RecordWriter.stamp();
++	await RecordWriter.append_once(FILE, [{ tasks: { add: { title: "tab fallback" } }, by: "owner", ts }]);
++	const late_verb = await serve_item({ path: `${URL}session.jsonl`, delta: { tasks: { add: { title: "tab fallback" } } }, ts });
++	t.eq([late_verb.already, lines().filter(l => l.tasks?.add?.title === "tab fallback").length], [true, 1], "3. the late verb is answered `already`: one line");
++
++	mode = "stubbed";   // a worktree page or another checkout: the caller appends to its own file, once
++	const stub = await RecordWriter.write(FILE, { log: { at: LogLine.now(), msg: "stubbed" } }, { by: "ledger" });
++	t.eq([stub.via, count("stubbed")], ["fallback", 1], "3. stubbed: the caller's own append, once");
++	mode = "ok";
++
++	const other = await serve_item({ path: `${URL}session.jsonl`, lines: [{ log: { msg: "x" } }], root: path.join(ROOT, "elsewhere") });
++	t.eq(other.stubbed, true, "another checkout's post is stubbed, never written into this tree");
++
++	// The dev server's fallback (Append.js, what a tab's FsFile.send reaches): a line already in the tail is not written again.
++	process.chdir(ROOT);   // Append resolves public/ from the cwd
++	const { default: Append } = await import("../../Server/plugins/SocketServer/Append.js");
++	const said = [], appender = new Append({ on(){}, send: m => said.push(m.response) });
++	const tabline = { title: "card", by: "owner", ts: RecordWriter.stamp() }, PAGE = path.join(DIR, "page.jsonl");
++	await serve_item({ path: `${URL}page.jsonl`, lines: [tabline] });   // the entry point took it, but answered too late
++	appender.append(`/${REL}/page.jsonl`, [tabline], 1);
++	appender.append(`/${REL}/page.jsonl`, [{ title: "other", by: "owner", ts: RecordWriter.stamp() }], 2);
++	const page = fs.readFileSync(PAGE, "utf8").split("\n").filter(Boolean).map(l => JSON.parse(l));
++	t.eq([said, page.map(l => l.title)], [["append successful", "append successful"], ["card", "other"]], "3. Append.js: the line the entry point wrote is not written twice; a new one is");
++} finally {
++	server.close();
++	process.chdir(os.tmpdir());
++	fs.rmSync(ROOT, { recursive: true, force: true });
++}
++t.done();
+diff --git a/Servex/agents/page_tools.js b/Servex/agents/page_tools.js
+index 2505c8e2c..f0480c531 100644
+--- a/Servex/agents/page_tools.js
++++ b/Servex/agents/page_tools.js
+@@ -6,6 +6,8 @@ import Subpages from "./Subpages.js";
+ import Promote from "./Promote.js";
+ import TaskHomes from "../../Server/TaskHomes.mjs";
+ import Task from "../../public/framework/core/Task/Task.js";
++import RecordWriter from "../../public/framework/core/Item/RecordWriter.js";
++import LogLine from "../../Server/LogLine.mjs";
+ 
+ const HERE = path.dirname(fileURLToPath(import.meta.url));
+ const ROOT = path.resolve(HERE, "..", "..");
+@@ -1030,6 +1032,51 @@ export const hooks = {
+ 	prompted: null,   // Servex: an owner Prompt landed on a session page -> PromptTasks files its asks (Servex/agents/PromptTasks.js)
+ };
+ 
++/* THE ONE ENTRY POINT for a raw line (data-shapes plan step 1d; core/Item/RecordWriter.js is the caller's side). Every line bound for a
++ * record file that is not an item-tool verb ends here: a hook's, LogLine's (append.mjs, the `log` tool, dir_log), a browser tab's
++ * page.jsonl line. Each line is applied to the file's live root first, when one is warm, then appended, and the root's signature is
++ * moved past it, so the next item() call does not replay the whole file. A cold file is only appended: its first read replays it.
++ * Skipped: a line already in the tail under its `by` and `ts` (the caller's fallback won the race). Refused, nothing written: a
++ * line that would not replay (it would make the log unreadable), and a page line its schema refuses (what Append.js refused).
++ * Answers {ok, written, skipped, refused: [{i, why}]}. F1 moves this function, unchanged, to the project's dev server. */
++export function record_lines(file, lines){
++	const out = { ok: true, written: 0, skipped: 0, refused: [] };
++	const fresh = new Set(RecordWriter.fresh(RecordWriter.tail_sync(fs, file), lines, { strict: true }));
++	const store = Task.Store.instances?.get("/" + path.relative(PUBLIC, file).split(path.sep).join("/"));   // live_root's own map: warm only if an item() call read it
++	for (const [i, line] of lines.entries()){   // `i` names the caller's own line in a refusal
++		if (!fresh.has(line)){ out.skipped++; continue; }
++		if (!is_plain(line)){ out.refused.push({ i, why: "a line is one object" }); continue; }
++		if (path.basename(file) === "page.jsonl"){ let why = null; try { why = check(file, line); } catch {} if (why){ out.refused.push({ i, why }); continue; } }
++		const warm = store?.host && store.sig === sig(file) && store.deps.every(([f, s]) => sig(f) === s) ? store.host : null;
++		if (warm) try { try_line(warm, line); } catch (e) { out.refused.push({ i, why: e.message }); continue; }
++		write_line(file, line, true);
++		if (warm) warm.store.sig = sig(file);
++		out.written++;
++	}
++	if (out.refused.length) out.ok = out.written > 0 || out.skipped > 0 ? "partly" : false;
++	return out;
++}
++
++// In Servex every LogLine write to a record file goes through record_lines (the `log` tool, dir_log), synchronously, as before.
++LogLine.writer ??= (file, lines) => record_lines(file, lines);
++
++/* THE DOOR, POST /api/item (Servex.js), and the shape F1 keeps: {path, delta, target?, ts?} is one item-tool verb (a tab's button);
++ * {path, lines} is raw lines for record_lines. `root` (node callers send theirs) must be this checkout's: another checkout's post is
++ * answered {stubbed}, so its caller appends to its own file and nothing lands in this tree. */
++export async function serve_item(body = {}, ctx = {}){
++	const { path: url, target, delta, lines, ts, root } = body;
++	if (root && path.resolve(root, "public").toLowerCase() !== PUBLIC.toLowerCase()) return { ok: true, stubbed: true, via: "another checkout" };
++	if (typeof url !== "string") return { ok: false, why: "body must be {path, delta} or {path, lines}" };
++	if (Array.isArray(lines)){
++		const at = await resolve(url, [], true);
++		if (!at || at.why) return { ok: false, why: at?.why ?? `"${url}" is not a file under public/` };
++		if (!RecordWriter.is_record(at.file)) return { ok: false, why: `${path.basename(at.file)} is not a record file` };
++		return record_lines(at.file, lines);
++	}
++	if (!delta || typeof delta !== "object") return { ok: false, why: "body must be {path, delta} or {path, lines}" };
++	return run_item({ path: url, target, delta }, { caller: "owner", ...ctx, ...(typeof ts === "string" ? { ts } : {}) });
++}
++
+ export async function run_item(args = {}, ctx = {}, alias = false){
+ 	// A breadcrumb before each call and after a slow one (crumbs.log, only when Servex installed Crumbs): an agent's tool call never passes an
+ 	// HTTP route, so this is what names an item call that held the event loop.
+@@ -1106,6 +1153,12 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
+ 		if (why) return { ok: false, why };
+ 	}
+ 
++	// ONE WRITER, NO TWIN (RecordWriter.js): a post that brought its own `ts` is written once. If the caller's fallback already
++	// appended it (this answer came too late), the line is in the file's tail under that `by` and `ts`: nothing more is written.
++	const stamp = () => ctx.ts ?? now();
++	if (ctx.ts && await RecordWriter.tail(at.file).then(tail => !RecordWriter.fresh(tail, [{ by: ctx.caller ?? "agent", ts: ctx.ts }]).length))
++		return { ok: true, ids: [], line: null, already: true };
++
+ 	// `pages` and `folder` are the keys the tool handles itself: a folder is made on disk (Subpages.js, give_folder).
+ 	const { pages, folder, ...rest } = flat;
+ 	const made = pages === undefined ? null : apply_pages(at, pages, url);
+@@ -1147,7 +1200,7 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
+ 				const h = home.process ? make_process(path.dirname(at.file), a, ctx, home) : make_child(path.dirname(at.file), a, ctx, home);
+ 				homes.push(h); ids.push(h.id);
+ 				if (asker) requests.push({ to: owner_agent, from: asker, id: h.id, title: a.title ?? h.id, path: h.path, own_folder: true });
+-				put({ task: h.path, by, ts: now() });
++				put({ task: h.path, by, ts: stamp() });
+ 				await record_new_folder(path.dirname(home.dir), home.slug);
+ 				// Step 16: the caller's own log gets the same reference (never the parent twice, never an error).
+ 				if (caller_log && path.resolve(caller_log) !== path.resolve(at.file)) try { write_line(caller_log, line, true); } catch {}
+@@ -1156,7 +1209,7 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
+ 				const { type: _t, data, ...fields } = a;
+ 				ids.push(id);
+ 				if (asker) requests.push({ to: owner_agent, from: asker, id, title: a.title ?? id, path: app_path(path.dirname(at.file)) });
+-				put({ tasks: { add: { type: task_type(a), ...data, ...stamp_ids(fields, ids), id } }, by, ts: now() });
++				put({ tasks: { add: { type: task_type(a), ...data, ...stamp_ids(fields, ids), id } }, by, ts: stamp() });
+ 			}
+ 		}
+ 		const { tasks: _t, ...more } = body;
+@@ -1177,7 +1230,7 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
+ 		// A fingerprint without costs: the full picture (task_state) reads every agent's spend, twice per write.
+ 		const print = t => ({ state: t.state, completion: t.completion, data: t.data, kids: every_task(t._tasks).map(k => [k.id, k.state, k.data]) });
+ 		const was = verb ? steady(print(root())) : null;
+-		put(nest(at.target, { ...stamp_ids(body, ids), by, ts: now() }), !!Class?.replay);
++		put(nest(at.target, { ...stamp_ids(body, ids), by, ts: stamp() }), !!Class?.replay);
+ 		if (verb && steady(print(root())) === was) unchanged = `"${verb}" was written but changed nothing: the task (or the child it names) is in a state that refuses it, or no child has that id`;
+ 	} else if (size === undefined) size = size_of(at.file);
+ 	// An approve line starts a templated task's agent (TaskLoop.launch); never awaited into the answer, a failure never reaches the tool.
+@@ -1190,7 +1243,7 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
+ 	// Node records who worked on the task: one appended line carrying the full list, only when the caller is new to it.
+ 	if (Class?.replay && Class.FIELDS?.includes("sessions") && ctx.caller && ctx.caller !== "owner") try {
+ 		const live = root(), list = live.sessions;
+-		if (!list.some(s => s?.id === ctx.caller)) { const keep = line; put({ sessions: [...list, { id: ctx.caller, task: live.get_one("path") ?? app_path(path.dirname(at.file)) }], by, ts: now() }); line = keep; }
++		if (!list.some(s => s?.id === ctx.caller)) { const keep = line; put({ sessions: [...list, { id: ctx.caller, task: live.get_one("path") ?? app_path(path.dirname(at.file)) }], by, ts: stamp() }); line = keep; }
+ 	} catch {}
+ 	// A write to a task or session answers with what was written, never the whole picture (session-is-a-task item 12): a session's picture
+ 	// walks every task's cost and every child agent, which made each write 20 s on a 140 KB record, past the browser Store's 5 s timeout
+diff --git a/public/framework/core/Item/RecordWriter.js b/public/framework/core/Item/RecordWriter.js
+new file mode 100644
+index 000000000..022da63a7
+--- /dev/null
++++ b/public/framework/core/Item/RecordWriter.js
+@@ -0,0 +1,112 @@
++/* ONE WRITER for the record files (data-shapes plan step 1d; the owner, ask 41: "one data path, whether it's AI driven or UI
++   driven… that needs to be our data backbone"). Every line bound for a `session.jsonl`, `task.jsonl`, `page.jsonl` or
++   `improvements.jsonl` is posted to ONE entry point, `record_lines` behind `POST /api/item` (Servex/agents/page_tools.js), which
++   applies it to the file's live root and then appends it. This class is the caller's side, the same for the browser
++   (`Item.Store.flush`) and for node (the hooks, `append.mjs`):
++
++     const { rest, ts } = await RecordWriter.post("/framework/x/page.jsonl", { lines: [{ title: "Hi" }], by: "owner" });
++     // rest = the lines the entry point could not be asked (it is down, or refused where they came from): append those yourself
++     await RecordWriter.write("C:/…/public/framework/x/task.jsonl", [{ log: { msg: "hi" } }], { by: "ledger" });   // node: post, else append once
++
++   NO TWIN, EITHER ORDER. Each posted line carries its own `ts`, made here and unique per writer. The entry point skips a line
++   whose `ts` and `by` are already in the file's tail, and so does the raw fallback (`fresh`, used by `append_once` here and by
++   the dev server's `Append.js`). So a slow entry point that finally writes after the caller gave up, and a fallback that wrote
++   first, still leave one line. Before 2026-10-28 the browser gave up after 5 s and appended blind: the twin lines.
++
++   F1 (ask first): moving the entry point to each project's dev server is `entry()` below, one line; no caller changes. */
++export class RecordWriter {
++
++	static RECORD = /(^|\/)(task|session|page|improvements)\.jsonl$/;
++	static TAIL = 64 * 1024;   // the bytes of a file's end a twin check reads: far more than one flush or one hook burst writes
++	static SLOW = 15000;       // a busy entry point is waited on this long; then the fallback, which checks the tail first
++
++	static is_record(path){ return this.RECORD.test(String(path ?? "").replace(/\\/g, "/")); }
++
++	// Where the entry point answers. Browser: Servex via servex_url (the phone goes through its dev server's proxy). Node: Servex's
++	// loopback port; RECORD_ENTRY points a test at its own server.
++	static async entry(){
++		if (globalThis.location) return (await import("../../dev/servex_url.js")).servex_url("/api/item");
++		const env = globalThis.process?.env ?? {};
++		return env.RECORD_ENTRY || `http://127.0.0.1:${env.SERVEX_PORT || 8090}/api/item`;
++	}
++
++	// A `ts` no other line from this writer has: an ISO time, bumped one millisecond past the last one given out.
++	static stamp(){
++		const t = Math.max(Date.now(), (this.last_ts ?? 0) + 1);
++		this.last_ts = t;
++		return new Date(t).toISOString();
++	}
++
++	/* Posts each line in order. `{lines}`: raw lines, written as given plus `by`/`ts` (hooks, LogLine, page files). `{deltas}`:
++	   item-tool verbs (`{"start":{}}`), validated and stamped by the tool (the browser's task and session files).
++	   Answers `{rest, ts, refused}`: `rest` are the lines (stamped) never taken, to append with `append_once`/`Append`. */
++	static async post(path, { lines, deltas, by = "owner", root, timeout = this.SLOW } = {}){
++		const raw = !!lines, list = (lines ?? deltas ?? []).map(l => ({ ...l, by: l.by ?? by, ts: l.ts ?? this.stamp() }));
++		const url = await this.entry(), refused = [];
++		// Raw lines go in one request (record_lines takes the batch and names each refusal by index); a verb goes one per request.
++		const batches = raw ? (list.length ? [list.map((l, i) => i)] : []) : list.map((l, i) => [i]);
++		for (const idx of batches){
++			const { by: b, ts, ...bare } = list[idx[0]];
++			const body = raw ? { path, lines: idx.map(i => list[i]), ...(root ? { root } : {}) } : { path, delta: bare, by: b, ts, ...(root ? { root } : {}) };
++			let res, answer;
++			try {
++				res = await fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body), signal: AbortSignal.timeout(timeout) });
++				answer = await res.json().catch(() => null);
++			} catch { return { rest: list.slice(idx[0]), ts: list.map(l => l.ts), refused, down: true }; }   // down, or slower than `timeout`
++			// Not refused for its content but for where it came from (a phone: 403; a worktree's page or another checkout: stubbed), or
++			// an entry point that cannot take this shape (an older Servex answers raw lines with 400): the caller's own append, once.
++			// A refusal of the line itself is a 200 with ok: false.
++			if (!res.ok || answer?.stubbed || !answer) return { rest: list.slice(idx[0]), ts: list.map(l => l.ts), refused, down: !answer?.stubbed, stubbed: !!answer?.stubbed };
++			if (raw) for (const r of answer.refused ?? []) refused.push({ line: list[idx[r.i]], why: r.why });
++			else if (answer.ok === false) refused.push({ line: list[idx[0]], why: answer.why });
++		}
++		return { rest: [], ts: list.map(l => l.ts), refused };
++	}
++
++	/* The lines of `want` not already in `tail` (parsed lines of the file's end). A line is there when a tail line has its `by` and
++	   its `ts`, a millisecond stamp (stamp() or the item tool's), so that pair names one post; `strict` (raw lines, written as given)
++	   also needs the whole line to match. A line with no such `ts` (LogLine stamps a page line to the second) is always written. */
++	static MS = /\.\d{3}Z$/;
++	static fresh(tail, want, { strict = false } = {}){
++		const key = l => strict ? JSON.stringify(l) : `${l.by}|${l.ts}`;
++		const seen = new Set(tail.filter(l => this.MS.test(l?.ts ?? "")).map(key));
++		return want.filter(l => !this.MS.test(l?.ts ?? "") || !seen.has(key(l)));
++	}
++
++	// The parsed lines in the last TAIL bytes of `file` (node). A torn first line is skipped. `tail_sync` takes node's fs.
++	static async tail(file){ return this.tail_sync(await import("node:fs"), file); }
++	static tail_sync(fs, file){
++		let fd;
++		try {
++			const size = fs.statSync(file).size, len = Math.min(size, this.TAIL), buf = Buffer.alloc(len);
++			fd = fs.openSync(file, "r"); fs.readSync(fd, buf, 0, len, size - len);
++			return buf.toString("utf8").split("\n").flatMap(l => { try { return l.trim() ? [JSON.parse(l)] : []; } catch { return []; } });
++		} catch { return []; }
++		finally { if (fd !== undefined) fs.closeSync(fd); }
++	}
++
++	// The fallback, node only: append the lines the file does not already hold, newline-safe. Answers how many were written.
++	static async append_once(file, lines){
++		const fs = await import("node:fs"), path = await import("node:path");
++		const out = this.fresh(await this.tail(file), lines, { strict: true });
++		if (!out.length) return 0;
++		fs.mkdirSync(path.dirname(file), { recursive: true });
++		let lead = "";
++		try { const size = fs.statSync(file).size; if (size){ const b = Buffer.alloc(1), fd = fs.openSync(file, "r"); fs.readSync(fd, b, 0, 1, size - 1); fs.closeSync(fd); if (b[0] !== 10) lead = "\n"; } } catch {}
++		fs.appendFileSync(file, lead + out.map(l => JSON.stringify(l)).join("\n") + "\n");
++		return out.length;
++	}
++
++	/* Node's one call (hooks, append.mjs): a record file's lines go to the entry point, raw; when it is down, `append_once`. A file
++	   that is not a record, or not under a `public/` folder, is appended directly (nothing keeps a live root of it). Never throws. */
++	static async write(file, lines, { by = "node", timeout = 3000 } = {}){
++		const list = [lines].flat(), m = /^(.*?)[\\/]public[\\/](.+)$/.exec(String(file));
++		if (!m || !this.is_record(file)) return { written: await this.append_once(file, list), via: "file" };
++		const url = "/" + m[2].replace(/\\/g, "/");
++		const { rest, refused } = await this.post(url, { lines: list, by, root: m[1], timeout });
++		if (!rest.length) return { written: list.length - refused.length, via: "entry", refused };
++		return { written: await this.append_once(file, rest), via: "fallback", refused };
++	}
++}
++
++export default RecordWriter;
+diff --git a/public/framework/core/Item/RecordWriter.test.mjs b/public/framework/core/Item/RecordWriter.test.mjs
+new file mode 100644
+index 000000000..dad7e7bb0
+--- /dev/null
++++ b/public/framework/core/Item/RecordWriter.test.mjs
+@@ -0,0 +1,29 @@
++// RecordWriter, the caller's side of the one writer: stamps, the twin check, the fallback append. `node RecordWriter.test.mjs`
++// The entry point itself (two writers at once, the hook measure, a slow and a down entry point): Servex/agents/one-writer.test.mjs.
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import Test from "../Test/Test.js";
++import RecordWriter from "./RecordWriter.js";
++
++const t = new Test("RecordWriter");
++const dir = fs.mkdtempSync(path.join(os.tmpdir(), "record-writer-")), file = path.join(dir, "public", "x", "task.jsonl");
++try {
++	t.ok(RecordWriter.is_record("C:\\a\\public\\x\\session.jsonl") && RecordWriter.is_record("/x/page.jsonl") && !RecordWriter.is_record("/x/log.jsonl"), "record files: session, page (either slash); not log.jsonl");
++	const a = RecordWriter.stamp(), b = RecordWriter.stamp();
++	t.ok(a < b, "two stamps in one millisecond still differ, in order");
++
++	const line = { log: { msg: "hi" }, by: "t", ts: a };
++	t.eq(RecordWriter.fresh([line], [line, { ...line, ts: b }, { log: { msg: "no ts" } }]).length, 2, "fresh: a line whose by|ts is in the tail is dropped; a new ts and a line with no ts stay");
++	t.eq(RecordWriter.fresh([{ ...line, by: "other" }], [line]).length, 1, "fresh: same ts from another writer is a different line");
++	const coarse = { title: "x", by: "append.mjs", ts: "2026-10-28T18:31:27-05:00" };   // LogLine stamps a page line to the second
++	t.eq(RecordWriter.fresh([coarse], [{ ...coarse, title: "y" }]).length, 1, "fresh: a seconds-only ts never makes a twin");
++	t.eq(RecordWriter.fresh([line], [{ ...line, log: { msg: "other" } }], { strict: true }).length, 1, "fresh strict: same by|ts but a different line is written");
++
++	t.eq(await RecordWriter.append_once(file, [line]), 1, "append_once writes a new line (and makes the folder)");
++	t.eq(await RecordWriter.append_once(file, [line]), 0, "append_once again: already in the tail, nothing written");
++	fs.appendFileSync(file, JSON.stringify({ log: { msg: "no newline" } }));
++	await RecordWriter.append_once(file, [{ ...line, ts: b }]);
++	t.eq(fs.readFileSync(file, "utf8").trim().split("\n").length, 3, "a file ending without a newline gets one before the next line");
++} finally { fs.rmSync(dir, { recursive: true, force: true }); }
++t.done();
+diff --git a/public/framework/core/Item/Store.js b/public/framework/core/Item/Store.js
+index f91b4da8a..04d995fa5 100644
+--- a/public/framework/core/Item/Store.js
++++ b/public/framework/core/Item/Store.js
+@@ -4,6 +4,8 @@
+ // itself avoids (see List.js's own header comment): `class List extends Item`
+ // needs Item fully defined, and Item.js's own import of Store.js runs before
+ // Item's class body does, so List.js would hit the TDZ instead.
++import RecordWriter from "./RecordWriter.js";
++
+ const is_list = node => !!node && Array.isArray(node.items) && typeof node.find === "function";
+ 
+ /* ONE .jsonl file = one object's history. `item.store` loads it, replays each line
+@@ -181,46 +183,29 @@ export class Store {
+ 
+ 		lines.forEach(one => (this.sent ??= []).push(JSON.stringify(one)));
+ 
+-		// A task's log goes through the item tool's own writer (Servex POST /api/item): validated, stamped by/ts, hooks fire.
+-		// Only when Servex does not answer does it fall back to the plain file append (below). Other logs (pages) keep the plain append.
+-		const rest = this.via_tool ? await this.post_to_tool(lines) : lines;
+-		if (!rest.length) return;
+-
+ 		// The ONE file API: the file itself sends the lines (ext/filesystem/FsFile.js).
+ 		// Imported here, not at the top — FsFile imports Item, which imports this file.
+ 		const path = new URL(this.url, "http://localhost").pathname;
+-		const { default: FsFile } = await import("../../ext/filesystem/FsFile.js");
+-		await new FsFile({ path }).send(rest);
+-	}
+-
+-	get via_tool(){ return /(^|\/)(task|session|improvements)\.jsonl$/.test(this.url); }
+-
+-	// Posts each line, in order, as one delta. Returns the lines Servex could not be asked (it did not answer): those fall back.
+-	// A line Servex answered but refused is dropped with a warning (that is the validation), and its echo entry forgotten.
+-	async post_to_tool(lines){
+-		const { servex_url } = await import("../../dev/servex_url.js");
+-		const path = new URL(this.url, "http://localhost").pathname;
+-		for (let i = 0; i < lines.length; i++){
+-			let answer;
+-			try {
+-				const res = await fetch(servex_url("/api/item"), { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ path, delta: lines[i] }), signal: AbortSignal.timeout(5000) });
+-				answer = await res.json();
+-				// Not refused for its content but for where it came from (a phone on the LAN: 403; a worktree page: stubbed):
+-				// the plain file append still saves it, so the click is never lost.
+-				if (res.status === 403 || answer?.stubbed) return lines.slice(i);
+-			} catch {
+-				if (!Store.warned_no_servex){ Store.warned_no_servex = true; console.warn("Item.Store — Servex did not answer /api/item: writing the file directly (no by/ts, no hooks)."); }
+-				return lines.slice(i);
+-			}
+-			if (answer?.ok === false){
+-				const j = (this.sent ?? []).indexOf(JSON.stringify(lines[i]));
+-				if (j !== -1) this.sent.splice(j, 1);
+-				console.warn(`Item.Store — the item tool refused ${JSON.stringify(lines[i])}: ${answer.why}`);
+-			}
++		const send = async rest => { const { default: FsFile } = await import("../../ext/filesystem/FsFile.js"); await new FsFile({ path }).send(rest); };
++		if (!this.via_tool) return send(lines);
++
++		// ONE WRITER (data-shapes 1d): a record's lines go to the one entry point (RecordWriter.js), which applies each to the file's
++		// live root and appends it. A page's lines go raw; a task's or session's are item-tool verbs (validated, stamped, hooks fire).
++		// Only lines it could not be asked (Servex down, a phone, a worktree page) are appended here, and the dev server's Append
++		// skips any it already holds under their by/ts, so a slow answer and the fallback never make a twin.
++		const { rest, refused, down } = await RecordWriter.post(path, /(^|\/)page\.jsonl$/.test(path) ? { lines } : { deltas: lines });
++		for (const { line, why } of refused){
++			const { by, ts, ...bare } = line, j = (this.sent ?? []).indexOf(JSON.stringify(bare));
++			if (j !== -1) this.sent.splice(j, 1);
++			console.warn(`Item.Store — the entry point refused ${JSON.stringify(bare)}: ${why}`);
+ 		}
+-		return [];
++		if (!rest.length) return;
++		if (down && !Store.warned_no_servex){ Store.warned_no_servex = true; console.warn("Item.Store — the entry point (Servex /api/item) did not take the lines: appending them through the dev server, once."); }
++		await send(rest);
+ 	}
+ 
++	get via_tool(){ return RecordWriter.is_record(this.url); }
++
+ 	get writable(){
+ 		const host = globalThis.location?.hostname;
+ 		return host === "localhost" || host === "127.0.0.1" || !!host?.endsWith(".localhost");
+diff --git a/public/framework/core/Item/doc/one-writer.md b/public/framework/core/Item/doc/one-writer.md
+new file mode 100644
+index 000000000..ebf21c767
+--- /dev/null
++++ b/public/framework/core/Item/doc/one-writer.md
+@@ -0,0 +1,60 @@
++# One writer: every record line goes through one entry point
++
++**What it is.** Every line written to a record file (`session.jsonl`, `task.jsonl`, `page.jsonl`, `improvements.jsonl`) goes through one function, `record_lines` (raw lines) or `run_item` (item-tool verbs), both in `Servex/agents/page_tools.js`. It applies the line to the file's live root first, then appends it. So the live root never goes stale, and the next `item()` call replays nothing. Asked by the owner (ask 41): "one data path, whether it's AI driven or UI driven… that needs to be our data backbone." Plan step 1d of [data-shapes](/framework/core/Session/tasks/data-shapes/plan.md).
++
++## Who writes, and how
++
++| Writer | Today | Its fallback when the entry point is down |
++|---|---|---|
++| A tab (`Item.Store.flush`) | `RecordWriter.post`: a page's lines raw, a task's or session's as verbs | `FsFile.send` to the dev server's `Append.js`, which skips a line already in the file |
++| An agent (`item`, `page_set`…) | `run_item` in Servex (in-process) | none needed |
++| `LogLine` in Servex (the `log` tool, `dir_log`) | `LogLine.writer` = `record_lines`, synchronous | none needed |
++| `append.mjs` (CLI) | `LogLine.prepare`, then `RecordWriter.write` | `RecordWriter.append_once` |
++| Hooks `ledger.mjs`, `naming-guard.mjs` | `RecordWriter.write` (ledger awaits `pending` before it exits) | `RecordWriter.append_once` |
++
++- **The door:** `POST /api/item` on Servex (`Servex.js` → `serve_item`). The body is `{path, delta, ts?}` (one verb) or `{path, lines}` (raw lines). Loopback only.
++- **The caller's side:** [`RecordWriter.js`](../RecordWriter.js), one class for the browser and node.
++- **Not routed:** a hook's line 1 that creates a new session record (`session-page.mjs`, `prompt-relay.mjs`): no live root exists yet. Files that are not records (`inbox.jsonl`, `board.jsonl`, `day.jsonl`) still append directly.
++
++## No twin, in either order
++
++Each line carries its own `ts`, made by the caller (`RecordWriter.stamp()`, unique per writer). A line whose `by` and `ts` are already in the file's last 64 KB is not written again. The entry point checks this, and so does every fallback.
++
++- A slow entry point is waited on (15 s for a tab, 3 s for a hook). The browser no longer appends blind after 5 s.
++- If the entry point writes after the caller gave up, the fallback finds the line and writes nothing.
++- If the fallback wrote first, the late post is answered `{already: true}` (a verb) or counted as `skipped` (raw lines).
++- One limit remains: two writers using the same `by` and the same millisecond `ts` would look like one line. `stamp()` prevents that within one writer; across two tabs it needs the same millisecond and a fallback.
++
++## Refused, skipped, stubbed
++
++- `record_lines` refuses a line that would not replay on the warm root (it would make the log unreadable), and a page line its schema refuses (what `Append.js` always refused). The caller gets `ok: false` and nothing is written.
++- **Stubbed:** a worktree page's post, or a node caller whose `root` is another checkout. The caller then appends to its own file, once. Nothing lands in the wrong tree.
++- An older Servex answers raw lines with 400. Any non-2xx answer counts as "cannot take it", so the caller falls back.
++
++## Moving it to the dev server (F1, ask first)
++
++The [F1 study](/framework/core/Session/tasks/data-shapes/build/backbone/f1-live-instance.md) recommends that each project's dev server own the live root. The move keeps every caller as it is:
++
++1. Lift `record_lines`, `serve_item`, `run_item` and `live_root` into a module the dev server also imports (a `Server/plugins/Item.js` that serves `POST /api/item`).
++2. Change `RecordWriter.entry()`, one line: the page's own origin in the browser, and the project's port in node.
++
++`LogLine.writer` is set by whichever process holds the live roots.
++
++## Measured (2026-10-28)
++
++The next `item()` call after a hook's write, on copies of real records (median of 5):
++
++| Record | Lines | After a raw append (today) | After a one-writer append |
++|---|---|---|---|
++| voice session `v-sq8y7db` | 8,383 | 164 ms (replays the whole file) | 16.5 ms |
++| `session-e00f55c9` | 1,099 | 69 ms | 25 ms |
++
++The script: [measure-real.mjs](/framework/core/Session/tasks/data-shapes/build/one-writer/proof/measure-real.mjs).
++
++## Tests
++
++- `node Servex/agents/one-writer.test.mjs` (18 checks):
++  - two writers at once (a tab's 20 posts and an agent's 20 calls on one file): 40 lines, no twin, live root = fresh replay;
++  - a hook write: 1 full replay before, 0 after, through `RecordWriter.write`, `ledger.append_checked` and `LogLine.append`;
++  - the fallback writes once: down, slow, stubbed, late post in either order, and `Append.js`.
++- `node public/framework/core/Item/RecordWriter.test.mjs` (7 checks): stamps, the twin check, `append_once`.
+diff --git a/public/framework/core/Item/readme.md b/public/framework/core/Item/readme.md
+index c08da9c96..372f4f652 100644
+--- a/public/framework/core/Item/readme.md
++++ b/public/framework/core/Item/readme.md
+@@ -116,7 +116,8 @@ A testing system is a need, not now (2026-10-20). Tests today are plain node fil
+ - [doc/envelope.md](./doc/envelope.md) — the envelope, unknown types, what is deliberately excluded.
+ - [doc/decisions.md](./doc/decisions.md) — the council ruling, verdicts, traps in full, who uses Item.
+ - `doc/method/*.md`, `doc/property/*.md` — one note per verb and field, each with its trap. The [Methods tab](/framework/core/Item/methods/) shows three of them (`set`, `get`, `toJSON`); the rest are read here, and many predate `set()` as a delta.
+-- Files that matter: `Item.js` (the class), `Store.js` (persistence, one per file), `page.js` (live assertions), `../List/List.js` (the ordered, announcing collection), `../Page/` (the one Item subclass with a URL).
++- [doc/one-writer.md](./doc/one-writer.md) — every line to a `session`, `task`, `page` or `improvements.jsonl` goes through one entry point (`record_lines` / `run_item` behind `POST /api/item`), which applies it to the live root and then appends it; `RecordWriter.js` is the caller's side, and its fallback never writes a twin.
++- Files that matter: `Item.js` (the class), `Store.js` (persistence, one per file), `RecordWriter.js` (posts a record's lines to the one entry point; the fallback append), `page.js` (live assertions), `../List/List.js` (the ordered, announcing collection), `../Page/` (the one Item subclass with a URL).
+ - [doc/map.md](./doc/map.md) — every class, store, tool and writer that makes or saves items.
+ - [doc/one-stream.md](./doc/one-stream.md) — one stream for the UI, node and agents: a file's appends advance its live instance, and subscribers hear item changes (a design, not built).
+ - [Design decisions 2026-10-27](/framework/ai/design-decisions-2026-10-27.md) — adopt-or-ref ownership, first delta at adopt time, snapshots as compaction (decided or leaning; not built; also what works today and the gap).

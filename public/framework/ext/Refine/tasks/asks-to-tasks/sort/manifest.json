@@ -1,0 +1,140 @@
+[
+ {
+  "batch": "01-sort",
+  "kind": "sort",
+  "asks": 25,
+  "brief": "public/framework/ext/Refine/tasks/asks-to-tasks/sort/01-sort/brief.md"
+ },
+ {
+  "batch": "02-sort",
+  "kind": "sort",
+  "asks": 25,
+  "brief": "public/framework/ext/Refine/tasks/asks-to-tasks/sort/02-sort/brief.md"
+ },
+ {
+  "batch": "03-sort",
+  "kind": "sort",
+  "asks": 25,
+  "brief": "public/framework/ext/Refine/tasks/asks-to-tasks/sort/03-sort/brief.md"
+ },
+ {
+  "batch": "04-sort",
+  "kind": "sort",
+  "asks": 25,
+  "brief": "public/framework/ext/Refine/tasks/asks-to-tasks/sort/04-sort/brief.md"
+ },
+ {
+  "batch": "05-sort",
+  "kind": "sort",
+  "asks": 25,
+  "brief": "public/framework/ext/Refine/tasks/asks-to-tasks/sort/05-sort/brief.md"
+ },
+ {
+  "batch": "06-sort",
+  "kind": "sort",
+  "asks": 25,
+  "brief": "public/framework/ext/Refine/tasks/asks-to-tasks/sort/06-sort/brief.md"
+ },
+ {
+  "batch": "07-sort",
+  "kind": "sort",
+  "asks": 25,
+  "brief": "public/framework/ext/Refine/tasks/asks-to-tasks/sort/07-sort/brief.md"
+ },
+ {
+  "batch": "08-sort",
+  "kind": "sort",
+  "asks": 25,
+  "brief": "public/framework/ext/Refine/tasks/asks-to-tasks/sort/08-sort/brief.md"
+ },
+ {
+  "batch": "09-sort",
+  "kind": "sort",
+  "asks": 25,
+  "brief": "public/framework/ext/Refine/tasks/asks-to-tasks/sort/09-sort/brief.md"
+ },
+ {
+  "batch": "10-sort",
+  "kind": "sort",
+  "asks": 25,
+  "brief": "public/framework/ext/Refine/tasks/asks-to-tasks/sort/10-sort/brief.md"
+ },
+ {
+  "batch": "11-sort",
+  "kind": "sort",
+  "asks": 25,
+  "brief": "public/framework/ext/Refine/tasks/asks-to-tasks/sort/11-sort/brief.md"
+ },
+ {
+  "batch": "12-sort",
+  "kind": "sort",
+  "asks": 25,
+  "brief": "public/framework/ext/Refine/tasks/asks-to-tasks/sort/12-sort/brief.md"
+ },
+ {
+  "batch": "13-sort",
+  "kind": "sort",
+  "asks": 25,
+  "brief": "public/framework/ext/Refine/tasks/asks-to-tasks/sort/13-sort/brief.md"
+ },
+ {
+  "batch": "14-sort",
+  "kind": "sort",
+  "asks": 25,
+  "brief": "public/framework/ext/Refine/tasks/asks-to-tasks/sort/14-sort/brief.md"
+ },
+ {
+  "batch": "15-sort",
+  "kind": "sort",
+  "asks": 25,
+  "brief": "public/framework/ext/Refine/tasks/asks-to-tasks/sort/15-sort/brief.md"
+ },
+ {
+  "batch": "16-sort",
+  "kind": "sort",
+  "asks": 25,
+  "brief": "public/framework/ext/Refine/tasks/asks-to-tasks/sort/16-sort/brief.md"
+ },
+ {
+  "batch": "17-sort",
+  "kind": "sort",
+  "asks": 25,
+  "brief": "public/framework/ext/Refine/tasks/asks-to-tasks/sort/17-sort/brief.md"
+ },
+ {
+  "batch": "18-sort",
+  "kind": "sort",
+  "asks": 25,
+  "brief": "public/framework/ext/Refine/tasks/asks-to-tasks/sort/18-sort/brief.md"
+ },
+ {
+  "batch": "19-sort",
+  "kind": "sort",
+  "asks": 25,
+  "brief": "public/framework/ext/Refine/tasks/asks-to-tasks/sort/19-sort/brief.md"
+ },
+ {
+  "batch": "20-sort",
+  "kind": "sort",
+  "asks": 25,
+  "brief": "public/framework/ext/Refine/tasks/asks-to-tasks/sort/20-sort/brief.md"
+ },
+ {
+  "batch": "21-sort",
+  "kind": "sort",
+  "asks": 17,
+  "brief": "public/framework/ext/Refine/tasks/asks-to-tasks/sort/21-sort/brief.md"
+ },
+ {
+  "batch": "22-sort",
+  "kind": "sort",
+  "asks": 3,
+  "brief": "../../monorepo/public/framework/ext/Refine/tasks/asks-to-tasks/sort/22-sort/brief.md"
+ },
+ {
+  "batch": "23-sort",
+  "kind": "sort",
+  "asks": 2,
+  "brief": "../../monorepo/public/framework/ext/Refine/tasks/asks-to-tasks/sort/23-sort/brief.md"
+ }
+]

@@ -1,0 +1,61 @@
+diff --git a/public/framework/ai/AIDashboard/AIDashboard.js b/public/framework/ai/AIDashboard/AIDashboard.js
+index b71d218b6..d86b0ae72 100644
+--- a/public/framework/ai/AIDashboard/AIDashboard.js
++++ b/public/framework/ai/AIDashboard/AIDashboard.js
+@@ -20,7 +20,7 @@ export default class AIDashboard extends View {
+ 		{ href: "/framework/ai/now/", label: "Now", title: "Every session active in the last hour" },
+ 		{ href: "/framework/ai/tasks/", label: "Tasks", title: "The task log and board" },
+ 		{ href: "/framework/ai/queue/", label: "Queue", title: "Every accepted task, ranked: what it is, why, its cost and its priority" },
+-		{ href: "/framework/ai/sessions/", label: "All sessions", title: "Every session, newest first, with filters" },
++		{ href: "/framework/ai/sessions/", label: "Sessions", title: "Every session, newest first, with filters" },
+ 		{ href: "/framework/ai/asks/", label: "Asks", title: "Every ask, who owns it, whether it landed" },
+ 		{ href: "/framework/ai/review/", label: "Review", title: "Review pages" },
+ 		{ href: "/framework/ai/readmes/", label: "Readmes", title: "What an agent in each folder is given to read" },
+diff --git a/public/framework/ai/AISession/AISessionsPage.js b/public/framework/ai/AISession/AISessionsPage.js
+index cdb4aadc6..6effc4bee 100644
+--- a/public/framework/ai/AISession/AISessionsPage.js
++++ b/public/framework/ai/AISession/AISessionsPage.js
+@@ -116,7 +116,7 @@ export default class AISessionsPage extends Page {
+ 
+ 	static MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+ 
+-	/** One clickable trail: All sessions / 2026 / October / 13, the last part current; the arrows step the level (newer/older). */
++	/** One clickable trail: Sessions / 2026 / October / 13, the last part current; the arrows step the level (newer/older). */
+ 	render_scope(){
+ 		const parts = this.scope.split("-"), pad = AISessionsPage.pad;
+ 		const step = dir => {
+@@ -646,7 +646,7 @@ export default class AISessionsPage extends Page {
+ 			title: id === "readme" ? "Sessions readme" : "Sessions docs",
+ 			url: home.url + id + "/",
+ 			content(){
+-				a.c("page-link", "← all sessions").href(home.url);
++				a.c("page-link", "← Sessions").href(home.url);
+ 				div.c("flow").append(md.file(sessions_dir, file));
+ 			},
+ 		});
+diff --git a/public/framework/ai/now/AINow.js b/public/framework/ai/now/AINow.js
+index 15482dc9a..4eee4bc3a 100644
+--- a/public/framework/ai/now/AINow.js
++++ b/public/framework/ai/now/AINow.js
+@@ -28,7 +28,7 @@ export default class AINow extends View {
+ 		this.$list = div.c("an-list");
+ 		div.c("an-foot", () => {
+ 			a.c("an-link").href("/framework/ai/").attr("target", "_self").text("Today's sessions");
+-			a.c("an-link").href("/framework/ai/sessions/").text("All sessions");
++			a.c("an-link").href("/framework/ai/sessions/").text("Sessions");
+ 		});
+ 		this.paint();
+ 		this.ask();
+diff --git a/public/framework/ai/sessions/v/mobile/MobileSession.js b/public/framework/ai/sessions/v/mobile/MobileSession.js
+index f22c00dec..ab9d21a32 100644
+--- a/public/framework/ai/sessions/v/mobile/MobileSession.js
++++ b/public/framework/ai/sessions/v/mobile/MobileSession.js
+@@ -28,7 +28,7 @@ export default class MobileSession extends AISessionDetail {
+ 	content(){
+ 		const root = div.c("mob-session");
+ 		const top = div.c("mob-title");
+-		const bar = div.c("mob-bar-wrap", () => div.c("mob-bar", () => { a.c("mob-back", icon("arrow_back")).href(MobileData.HOME).attr("title", "all sessions"); this.$bar_title = strong.c("mob-bar-title", this.title); this.head_tools(); }));
++		const bar = div.c("mob-bar-wrap", () => div.c("mob-bar", () => { a.c("mob-back", icon("arrow_back")).href(MobileData.HOME).attr("title", "Sessions"); this.$bar_title = strong.c("mob-bar-title", this.title); this.head_tools(); }));
+ 		this.tabs = new SwipeTabs({ tabs: [["overview", "Overview"], ["tasks", "Tasks"], ["chat", "Chat"]] });
+ 		new IntersectionObserver(([e]) => bar.el.classList.toggle("is-on", !e.isIntersecting)).observe(top.el);
+ 		this.fill(top);

@@ -1,0 +1,254 @@
+#1 | delivered | State landed; page.jsonl + files + 3 commits; outline.js live
+#2 | not found | State starting; zero files, zero commits, only skill name logged
+#3 | partial | State starting; screenshots + requirements present; 4 commits but incomplete
+#4 | partial | State reading vocabulary; 5 screenshots + files; still gathering research
+#5 | partial | State before screenshots; spend tracking; 3 commits but work incomplete
+#6 | delivered | State landed; Smart scroll in Chat.js + readme + demo
+#7 | delivered | State landed; refine/fill functions implemented + requirements documented
+#8 | delivered | Has proof + report.md files; 2 commits indicate completed work
+#9 | not found | State reading; no commits; requirements only, no evidence of work
+#10 | not found | State scoping; no commits; requirements and review only, no work
+#11 | partial | Session ended without landing; minions waiting to wake task.
+#12 | partial | Work in Sonnet builder pool worktree qf-4; no completion log.
+#13 | not found | No start date, state, or log; only requirements and review setup.
+#14 | delivered | Phase 5 complete; haiku-a best with production-ready consensus vote.
+#15 | not found | No start date or state; only requirements brief present.
+#16 | partial | Review found 8 issues; 7 sections judged, 6 minions done.
+#17 | partial | Session ended without landing; has notes and screenshot files.
+#18 | partial | Session ended without landing; three minions queued, parked in Servex.
+#19 | not found | No start date or state; only requirements and proof files.
+#20 | not found scratch | Explicit throwaway proof; torn down at end, never landed.
+#21 | delivered | Review files present; commit 2026-09-28 confirms quick fix landed.
+#22 | partial | Requirements and review written; mastermind spawned but no completion signal.
+#23 | partial | Card PNG and organization.js built; state landed contradicts log session ended without landing.
+#24 | not found scratch | Proof test directory; trivial held-decline diff for Server/review.mjs validation.
+#25 | partial | Browser launcher task ongoing; state scoping with 5 commits through 2026-10-06; not completed.
+#26 | partial | State building the source library; minimal files; 1 commit; work in progress.
+#27 | partial | Three Sonnet minions spawned; landing check building; not finished.
+#28 | partial | Task-placement proposal accepted; state queued; 6 commits but work pending dispatch.
+#29 | partial | Tooling gaps identified (done-event, merge smoke test); state queued; work not started.
+#30 | partial | Minions B and C dispatched; minion-B wrote test asks; memory-gate queue incomplete.
+#31 | partial | state starting; minion agent not running; revive queued awaiting restart
+#32 | partial | actively running compare-structured.mjs; work in progress, no completion signal
+#33 | partial | state queued; has review.md and shots but task not started
+#34 | delivered | task-loop escalated ok:true with ask ID d-muohn7slgf; handed off
+#35 | delivered | reviewer found 1 regression + 2 notes; all fixed and completed
+#36 | partial | review findings sent to minion-grip-axis for fixes; awaiting build completion
+#37 | delivered | state: deliverable committed; heartbeat log: delivered and replied to mastermind
+#38 | partial | Page.listing() written; still switching readers; state indicates ongoing work
+#39 | partial | session ended (other) without landing; crawl launched but incomplete
+#40 | partial | batch driver running (PID 41372); only 2/41 dictation jobs completed
+#41 | delivered | state done, session ended before landing uncommitted work
+#42 | partial | diagnosing with 4 checkpoints and commits, work ongoing
+#43 | delivered | checks passed and committed; review files present
+#44 | partial | documentation pass needed before landing; proof exists
+#45 | delivered | all 6 deliverables built and proofread but uncommitted
+#46 | not found | state starting; only requirements.md; no work begun
+#47 | not found | state starting, empty log; file structure but no progress
+#48 | not found | state starting; only requirements.md present
+#49 | partial | building state escalated with error no card live
+#50 | not found | state starting; only requirements.md; no work initiated
+#51 | partial | Starting state, left to heartbeat, result.md exists but incomplete
+#52 | partial | Building escalated with error: no card live available
+#53 | partial | Starting state, left to heartbeat, audit facts incomplete
+#54 | partial | No state recorded, fingerprint before/after but no completion marker
+#55 | partial | Starting state, left to heartbeat, minimal progress
+#56 | partial | Starting state, review exists but task not completed
+#57 | partial | Queued state, has plan but not progressing
+#58 | partial | Starting state, left to heartbeat, minimal files
+#59 | delivered | Has proof.mjs, report.md, review artifacts and shots
+#60 | partial | Session ended without landing explicitly stated in log
+#61 | partial | review.jsonl exists, committed 2026-10-05, state starting incomplete
+#62 | partial | proof-results.json exists, task-loop left to heartbeat, waiting completion
+#63 | not found | only requirements.md, no code, no result files, no work evident
+#64 | not found | only requirements.md, one commit, no evidence of execution
+#65 | delivered | refine.test.mjs, review files, mastermind landing branch, merge running
+#66 | not found | requirements.md only, eight commits 2026-10-01, blocked by OpenRouter cap
+#67 | delivered | log says built line-filter page, result.md, shots present
+#68 | delivered | state landed, result.md, shots present, agent stopped post-completion
+#69 | partial | result.md, review.jsonl, shots, task-loop left to heartbeat
+#70 | partial | state writing result.md, result.md, shots exist, task-loop waiting
+#71 | not found scratch | Minion stopped by owner 2026-09-30, not revived; test harness
+#72 | not found scratch | Task escalation failed: no card live; test infrastructure error
+#73 | not found scratch | Minion stopped by owner 2026-09-30, not revived; test harness
+#74 | not found scratch | Minion stopped by owner 2026-09-30, not revived; test harness
+#75 | partial scratch | Minion stopped but files created: locked.txt notes.txt present
+#76 | not found scratch | Minion stopped by owner 2026-09-30, not revived; test harness
+#77 | not found scratch | Minion stopped by owner 2026-10-01, not revived; test harness
+#78 | not found scratch | Minion stopped by owner 2026-10-01, not revived; test harness
+#79 | not found scratch | Minion stopped by owner 2026-09-30, not revived; test harness
+#80 | not found scratch | Minion stopped by owner 2026-09-30, not revived; test harness
+#81 | partial | Agent stopped by owner; 4 commits made to directory
+#82 | partial | Agent stopped by owner; 4 commits made to directory
+#83 | partial | Agent stopped by owner; 4 commits made to directory
+#84 | not found scratch | Scratch file only; agent stopped by owner on purpose
+#85 | not found scratch | Scratch file only; agent stopped by owner on purpose
+#86 | partial | Agent stopped by owner; 5 commits made to directory
+#87 | partial | Agent stopped by owner; 4 commits made to directory
+#88 | not found scratch | Scratch file only; agent stopped by owner on purpose
+#89 | partial | Agent stopped by owner; 4 commits made to directory
+#90 | partial | Agent stopped by owner; 4 commits made to directory
+#91 | partial | Agent stopped on purpose by owner; no output files
+#92 | partial | Agent stopped on purpose; produced append.json
+#93 | partial | Agent stopped on purpose; produced lines.json
+#94 | partial | Agent stopped on purpose by owner; no output files
+#95 | partial | Agent stopped on purpose by owner; no output files
+#96 | partial | Agent stopped on purpose by owner; no output files
+#97 | partial | Agent stopped on purpose; produced lines.json
+#98 | partial | Agent stopped on purpose by owner; no output files
+#99 | partial | Agent stopped on purpose by owner; no output files
+#100 | partial | Agent stopped on purpose by owner; no output files
+#101 | partial | Agent stopped by owner 2026-09-30T23:59:26, not revived, state starting
+#102 | partial | Agent stopped by owner 2026-10-01T00:05:19, not revived, state starting
+#103 | partial | Agent stopped by owner 2026-09-30T23:57:00, not revived, state starting
+#104 | partial | Agent stopped by owner 2026-09-30T23:57:00, not revived, state starting
+#105 | partial | Agent stopped by owner 2026-09-30T23:59:10, has locked.txt/notes.txt
+#106 | partial | Agent stopped by owner 2026-10-01T00:08:16, has locked.txt/notes.txt
+#107 | partial | Agent stopped by owner 2026-09-30T23:59:10, has locked.txt/notes.txt
+#108 | partial | Agent stopped by owner 2026-09-30T23:59:10, has locked.txt/notes.txt
+#109 | partial | Agent stopped by owner 2026-10-01T00:23:23, has locked.txt/notes.txt
+#110 | partial | Agent stopped by owner 2026-10-01T00:14:01, has locked.txt/notes.txt
+#111 | not found scratch | Agent stopped on purpose by owner; test harness run, never revived
+#112 | not found scratch | Agent stopped on purpose by owner; test harness run, never revived
+#113 | not found scratch | Agent stopped on purpose by owner; test harness run, never revived
+#114 | not found scratch | Agent stopped on purpose by owner; test harness run, never revived
+#115 | not found scratch | Agent stopped on purpose by owner; test harness run, never revived
+#116 | not found scratch | Agent stopped on purpose by owner; test harness run, no files
+#117 | not found scratch | Agent stopped on purpose by owner; test harness run, no files
+#118 | not found scratch | Agent stopped on purpose by owner; test harness run, no files
+#119 | not found scratch | Agent stopped on purpose by owner; test harness run, no files
+#120 | not found scratch | Agent stopped on purpose by owner; test harness run, no files
+#121 | partial | Stopped by owner mid-run, has lines.json file and four git commits recorded.
+#122 | partial | Owner stopped; no output files but git commits show some work attempted.
+#123 | partial | Started then stopped by owner; git commits present, no output files.
+#124 | partial | Stopped mid-operation; git commits present but no deliverable files exist.
+#125 | partial | Owner halted during startup; git record shows some work initiated.
+#126 | partial | Intentionally stopped; no output files but five git commits recorded.
+#127 | partial | Owner stopped minion; git commits present but no resulting files.
+#128 | partial | Stopped during startup; git work recorded but no output files.
+#129 | partial | Owner halted at startup; git commits present but no output files.
+#130 | partial | Stopped mid-run; git commits present but no files generated.
+#131 | not found | Agent stopped by owner 2026-09-30; no deliverables generated.
+#132 | not found | Agent stopped by owner 2026-10-01; files: none generated.
+#133 | not found | Agent stopped by owner 2026-10-01; no files created.
+#134 | not found | Agent stopped by owner 2026-10-01; no files recorded.
+#135 | not found | Agent stopped by owner 2026-10-01; no files generated.
+#136 | not found | Agent stopped by owner 2026-10-01; files: none.
+#137 | not found | Agent stopped by owner 2026-09-30; no files created.
+#138 | not found | Agent stopped by owner 2026-09-30; files: none.
+#139 | partial | Session ended without landing; files created but incomplete.
+#140 | delivered | Multiple files, 49 commits, Servex restarted with cost fix.
+#141 | partial | Opened test case; files created/modified; agent stopped by owner, not revived
+#142 | not found | State starting; agent stopped by owner at 2026-10-01, not revived
+#143 | not found | State starting; agent stopped by owner at 2026-10-01, not revived
+#144 | partial | Findings.md present; state starting; agent stopped, not revived
+#145 | not found | State starting; agent stopped by owner at 2026-10-01, not revived
+#146 | not found | State starting; agent stopped by owner at 2026-10-01, not revived
+#147 | partial | Opened task and loaded minion skill; agent stopped by owner, not revived
+#148 | not found | State starting; agent stopped by owner at 2026-10-01, not revived
+#149 | not found | State starting; agent stopped by owner at 2026-10-01, not revived
+#150 | not found | State starting; status check error bad log name; git commit present
+#151 | partial | Agent stopped on purpose; files created, 3 commits made to run directory.
+#152 | partial | Loaded minion skill then stopped by owner; 3 commits despite early termination.
+#153 | partial | Never progressed from starting state; 4 commits made before stopped.
+#154 | partial | Agent stopped by owner before starting; 3 commits exist in directory.
+#155 | partial | Stuck in starting state; agent stopped by owner; 3 commits made.
+#156 | not found | Revive failed with bad log name; only 1 commit, no progress.
+#157 | not found | Status check failed with bad log name error; 1 commit only.
+#158 | not found | Revive failed; only 1 commit; technical failure at startup attempted.
+#159 | partial | Stopped by task-mastermind; 3 commits, 3 files created in run dir.
+#160 | not found scratch | Task loop escalated no card live error; only 1 commit.
+#161 | not found | Agent stopped by owner 2026-10-01; state still starting, no progress.
+#162 | not found | Agent stopped by owner 2026-10-01; state still starting, no files created.
+#163 | not found | Agent stopped by owner 2026-10-01; state still starting, no files created.
+#164 | not found | Agent stopped by owner 2026-10-01; state still starting, no files created.
+#165 | not found | Agent stopped by owner 2026-10-01; state still starting, no files created.
+#166 | not found | Agent stopped by owner 2026-10-01; state still starting, no files created.
+#167 | partial | Identified keys to success but agent stopped before completing; no files delivered.
+#168 | partial | Created architecture.md and view-readme.md before agent was stopped.
+#169 | partial | Created decisions.jsonl and view-readme.md before agent was stopped.
+#170 | delivered | Built five fixtures, test.json, verified headless; 14 commits, complete file set.
+#171 | partial | Agent stopped on purpose by parent task; commits exist but work unfinished.
+#172 | partial | Crash occurred, needs relaunch; crawl.mjs and summary.json created.
+#173 | partial | Findings.md written; planning 3 fixes still required per state.
+#174 | delivered | Built and committed (a9980070), report with screenshots complete.
+#175 | delivered | All three asks committed (4dfc0718), report written, five commits.
+#176 | delivered | Committed (9cf84e2e) and ready to merge per state.
+#177 | not found | Agent stopped on purpose, never revived; only requirements.md.
+#178 | not found scratch | Proof run directory only; explicitly throwaway test folder.
+#179 | not found | Agent stopped on purpose, not revived; only requirements.md exists.
+#180 | delivered | Docs check completed with five gaps found and all fixed.
+#181 | partial | Agent stopped on purpose by mastermind; no files generated.
+#182 | partial | Agent stopped; report.md exists but audit incomplete.
+#183 | delivered | 77 commits, checkpoints 8-12, handover written for replacement.
+#184 | delivered | State: landed (terminal); requirements.md filed; 4 commits.
+#185 | partial | Review files and shots exist; state empty, work incomplete.
+#186 | partial | 1 commit; state session; no deliverable files.
+#187 | partial | Work reported to task-mastermind; shots, requirements exist; ongoing.
+#188 | partial | Session ended without landing; inbox.jsonl and review.jsonl present.
+#189 | not found | State: queued; only planning docs, work never started.
+#190 | not found scratch | Only files.jsonl and owner-words.md; placeholder voice-session dir.
+#191 | delivered | Code + docs done in ext/Chat/Chat.js, Chat.css, ux/Dictate; 1 commit.
+#192 | partial | State starting, stopped early, 1 commit, not finished.
+#193 | partial | State starting, agent stopped, revive failed, 1 commit.
+#194 | partial | Stopped mid-research reading readmes/chat systems, 1 commit.
+#195 | partial | State starting, never actually started, 1 commit.
+#196 | partial | 1920 screenshot analysis, tab strip bug found, 3 commits, incomplete.
+#197 | delivered | Task complete landed e74f4d8a, review files, 5 commits, reported.
+#198 | not found scratch | State queued, no work started, 0 commits, no last log.
+#199 | partial | Fix 41518975 done, regression test, review files, 1 commit.
+#200 | delivered | Four review rounds done, verified, committed 7e387f89, reported.
+#201 | not found | Queued state, no commits, empty last log.
+#202 | partial | Starting state, 1 commit 2026-10-03, not landed.
+#203 | partial | 2 commits, task escalated with card error.
+#204 | delivered | Landed committed e756032e 2026-10-07, docs-check passed.
+#205 | partial | 6 commits 2026-10-07, minion crashed before report-back.
+#206 | partial | 1 commit, checked not counted as findings.
+#207 | partial | 0 commits, applied multiple .mjs tools, not merged.
+#208 | not found | Session ended without landing, 0 commits.
+#209 | partial | 1 commit, card error escalation, minion queued.
+#210 | not found | Queued state, 0 commits, no activity.
+#211 | not found scratch | Queued but never activated; zero commits, empty logs, no activity.
+#212 | delivered | State done, 5 audits written; 1 commit; token-efficiency findings logged.
+#213 | partial | State: restarting Servex; 3 commits; review files present.
+#214 | partial | Agent intentionally stopped; commit from 2026-10-05; review files exist.
+#215 | partial | Log contains substantive answer; no commits; requirements-only files.
+#216 | partial | Log shows layout class analysis findings; no commits recorded.
+#217 | partial | Log proves layout-labels via 1920px screenshot; work shown, uncommitted.
+#218 | partial | Agent stopped by owner; commit 2026-10-05; spend.json present.
+#219 | partial | Agent stopped; 1 commit 2026-10-05; review and shots files.
+#220 | not found scratch | Queued state; no commits, empty logs, no work activity.
+#221 | not found | Queued, 0 git commits, never touched.
+#222 | partial | Started, 1 commit (2026-10-05), agent stopped before landing.
+#223 | partial | Built refined-block.js shared component, 1 commit, stopped mid-work.
+#224 | partial | Parent task, 2 commits, child minions did work, parent not running.
+#225 | partial | 9 commits, eval results for Gemini/Groq/Sonnet, agent stopped by owner.
+#226 | not found | Queued, 0 git commits, never touched.
+#227 | not found | Queued, 0 git commits, never touched.
+#228 | not found | Queued, 0 git commits, never touched.
+#229 | not found | Queued, 0 git commits, never touched.
+#230 | not found | Queued, 0 git commits, never touched.
+#231 | delivered | Multiple PNG screenshots present, 2 commits landed, agent stopped by owner.
+#232 | delivered | Dictate.toggle added per ask, files present, 2 commits landed.
+#233 | partial | State starting, 3 commits, multiple files but task not progressed beyond start.
+#234 | not found scratch | State queued, no commits, no files modified, no work started.
+#235 | partial | One merge landed (nav entry dropped), but escalation error blocks progress.
+#236 | not found scratch | State queued, no commits, no files modified, no work started.
+#237 | not found scratch | State queued, no commits, no files modified, no work started.
+#238 | not found scratch | State queued, no commits, no files modified, no work started.
+#239 | not found scratch | State queued, no commits, no files modified, no work started.
+#240 | partial | 4 commits landed, but worktree directory deleted, work interrupted.
+#241 | not found | State queued, zero commits, never started work.
+#242 | partial | Agent stopped mid-work; has review files and two commits.
+#243 | partial | Agent stopped on purpose; two commits but incomplete.
+#244 | partial | Root cause identified, one commit, not fully delivered.
+#245 | partial | Review files, four commits, proof-dup-fix.mjs exists.
+#246 | partial | Two commits, revived multiple times; work in progress.
+#247 | partial | Four commits through 2026-10-07; agent stopped by owner.
+#248 | partial | Words collected, votes/asks extracted; blocked on card error.
+#249 | partial | Five checker dirs created; blocked on missing live card.
+#250 | partial | Audit complete with report.md and review files.
+#251 | delivered | Finished, committed 63c3e364 on qf-6, awaiting merge
+#252 | partial | Findings.md exists, budget hit; review + merge remain for mastermind
+#253 | not found | Empty last log; only initialization files (requirements.md, files.jsonl)
+#254 | partial | Scripts exist (evidence.mjs, scan-tasks.mjs); log incomplete, task ongoing

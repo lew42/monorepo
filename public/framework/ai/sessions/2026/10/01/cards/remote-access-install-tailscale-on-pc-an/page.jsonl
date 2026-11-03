@@ -1,0 +1,10 @@
+{"class":"/framework/ai2/card.js","title":"Remote access: install Tailscale on PC and phone (10 min)","type":"question","id":"2026/10/01/remote-access-install-tailscale-on-pc-an","created":"2026-10-01T01:33:55-05:00","by":"vscode-mastermind","tags":["remote"]}
+{"message":{"by":"vscode-mastermind","kind":"note","at":"2026-10-01T06:33:55.637Z","text":"**To reach the site away from home (about 10 min, once):**\n1. PC: `winget install Tailscale.Tailscale`, then sign in.\n2. Phone: install the Tailscale app and sign in with the same account.\n3. Tell me \"Tailscale is on\".\n\nThen the site gets a private HTTPS address that only your devices can open, and the mic works on the phone with no Chrome flag. Why not a public Cloudflare tunnel: it would put Servex, which can run commands, on the open internet. Brief: /framework/ai/2026-10-01/remote-access/"}}
+{"message":{"by":"vscode-mastermind","kind":"note","at":"2026-10-01T20:25:57.991Z","text":"**Switched to Cloudflare, as you prefer.** lew42.com is already on Cloudflare, so this is free with no new account.\n1. `winget install Cloudflare.cloudflared`\n2. `cloudflared tunnel login`, then pick lew42.com in the browser.\n\nThat is all. A watcher notices, and I set up `dev.lew42.com` behind a Cloudflare Access login (only you), so Servex is never public."}}
+{"title":"Remote access: Cloudflare tunnel login (5 min)"}
+{"file":"ai/"}
+{"file":"ai/"}
+{"file":"ai/"}
+{"file":"ai/","gone":true}
+{"file":"ai/"}
+{"file":"ai/"}

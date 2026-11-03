@@ -1,0 +1,76 @@
+{
+  "at": "2026-09-29T15:26:22-05:00",
+  "input": "C:/Users/mike/AppData/Local/Temp/claude/C--Code-lew42-monorepo/a918d03d-6afe-4958-b425-20e9eba998ef/scratchpad/pr-c-raw.txt",
+  "out": "public/framework/ai/2026-09-29/prompt-refine/runs/c",
+  "models": {
+    "clean": "claude-haiku-4-5-20251001",
+    "structured": [
+      "claude-haiku-4-5-20251001",
+      "claude-sonnet-5"
+    ],
+    "pick": "claude-haiku-4-5-20251001",
+    "brief": "claude-sonnet-5",
+    "coverage": "claude-sonnet-5"
+  },
+  "collab": false,
+  "mock": false,
+  "structured_winner": "haiku",
+  "cost_usd": {
+    "clean": 0.16332570000000002,
+    "structured": {
+      "haiku": 0.0476997,
+      "sonnet": 0.1408002
+    },
+    "pick": 0.04829170000000001,
+    "brief": 0.1719212,
+    "coverage": 0.1315382,
+    "total": 0.960213,
+    "repair": 0.256636
+  },
+  "word_counts": {
+    "raw": 2356,
+    "clean": 2116,
+    "structured": 703,
+    "brief": 781
+  },
+  "clean_overlap_ratio": 0.978,
+  "coverage": {
+    "sentences": 121,
+    "cited": 106,
+    "context_only": 14,
+    "dropped": 1,
+    "unclassified": 0,
+    "flags": 33,
+    "thin_citations": 5
+  },
+  "repair": {
+    "rounds_run": 1,
+    "cost_usd": 0.256636,
+    "dropped_before": 8,
+    "thin_before": 24,
+    "dropped_after": 1,
+    "thin_after": 5,
+    "notes": [
+      "round 1: new ask #36",
+      "round 1: amended ask #9",
+      "round 1: new ask #37",
+      "round 1: amended ask #10",
+      "round 1: new ask #38",
+      "round 1: new ask #39",
+      "round 1: amended ask #20",
+      "round 1: new ask #40",
+      "round 1: new ask #41",
+      "round 1: new ask #42",
+      "round 1: new ask #43",
+      "round 1: amended ask #24",
+      "round 1: amended ask #27",
+      "round 1: amended ask #28",
+      "round 1: new ask #44",
+      "round 1: amended ask #31",
+      "round 1: amended ask #32",
+      "round 1: amended ask #33",
+      "round 1: amended ask #34"
+    ]
+  },
+  "repair_only_rerun_at": "2026-09-29T15:38:07-05:00"
+}

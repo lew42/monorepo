@@ -1,0 +1,22 @@
+{"phase":{"at":"2026-09-29T18:01:02-05:00","n":1,"kind":"findings","status":"start"}}
+{"finding":{"at":"2026-09-29T18:01:02-05:00","n":1,"kind":"fix","text":"reviewer failed to run: spawn_agent did not return an id"}}
+{"phase":{"at":"2026-09-29T18:01:02-05:00","n":1,"kind":"findings","status":"done","verdict":"fix","cost":0,"model":"claude-opus-5-5"}}
+{"phase":{"at":"2026-09-29T18:04:02-05:00","n":1,"kind":"findings","status":"start"}}
+{"finding":{"at":"2026-09-29T18:04:02-05:00","n":1,"kind":"fix","text":"reviewer failed to run: spawn_agent did not return an id"}}
+{"phase":{"at":"2026-09-29T18:04:02-05:00","n":1,"kind":"findings","status":"done","verdict":"fix","cost":0,"model":"claude-opus-5-5"}}
+{"phase":{"at":"2026-09-29T18:14:04-05:00","n":2,"kind":"answers","status":"start"}}
+{"answer":{"at":"2026-09-29T18:14:04-05:00","n":2,"reply":"fixed: 86556054, stale text replaced, links Servex/doc/lifecycle.md"}}
+{"answer":{"at":"2026-09-29T18:14:04-05:00","n":3,"reply":"fixed: 86556054, before→after row from the 18:03 real sweep; the landing proof follows this merge"}}
+{"answer":{"at":"2026-09-29T18:14:04-05:00","n":4,"reply":"fixed: 86556054, pool section cut to two lines"}}
+{"answer":{"at":"2026-09-29T18:14:04-05:00","n":5,"reply":"fixed: chart is memory only, disk left off"}}
+{"answer":{"at":"2026-09-29T18:14:04-05:00","n":6,"reply":"fixed: servers and agents are shown as of those running now"}}
+{"answer":{"at":"2026-09-29T18:14:04-05:00","n":7,"reply":"fixed: Monitor imports ONE_PASS"}}
+{"answer":{"at":"2026-09-29T18:14:04-05:00","n":8,"reply":"fixed: main-checkout blanket keep removed; :3104 kept by the keep list"}}
+{"answer":{"at":"2026-09-29T18:14:04-05:00","n":9,"reply":"noted: relayed to node-reliability via mastermind-servex-6; Heartbeat.js is outside this fence"}}
+{"answer":{"at":"2026-09-29T18:14:04-05:00","n":10,"reply":"fixed: numbers and chart side by side above the fold at 1920"}}
+{"answer":{"at":"2026-09-29T18:14:04-05:00","n":11,"reply":"noted: the Servex heading is the tab design shared by every Servex tab; sidebar duplicate is core nav, not this page"}}
+{"answer":{"at":"2026-09-29T18:14:04-05:00","n":12,"reply":"fixed: servex/page.js bottom section replaced by one bullet"}}
+{"phase":{"at":"2026-09-29T18:14:04-05:00","n":2,"kind":"answers","status":"done"}}
+{"phase":{"at":"2026-09-29T18:14:13-05:00","n":2,"kind":"answers","status":"start"}}
+{"answer":{"at":"2026-09-29T18:14:13-05:00","n":1,"reply":"fixed: fcc33934, only paths under C:/Code/lew42 or logged rows are reaped; an unknown path is kept"}}
+{"phase":{"at":"2026-09-29T18:14:13-05:00","n":2,"kind":"answers","status":"done"}}

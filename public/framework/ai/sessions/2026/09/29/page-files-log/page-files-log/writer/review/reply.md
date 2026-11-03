@@ -1,0 +1,1 @@
+1. [accept] Infrastructure failing twice (spawn_agent returning no id, tied to a mid-session Servex restart) isn't a code defect the author can fix from inside a minion session, and flagging it upward with substantial manual verification in its place is the right call.

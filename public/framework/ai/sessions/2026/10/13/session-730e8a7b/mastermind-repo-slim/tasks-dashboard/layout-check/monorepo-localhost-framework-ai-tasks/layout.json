@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/tasks/",
+ "widths": {
+  "1280": {
+   "empty": 0.661,
+   "widest_text": 387,
+   "widest_text_sample": "Navigation: one model, shown (page); rev",
+   "overflow_x": false,
+   "items": 46,
+   "narrow_share": 0.196
+  },
+  "1920": {
+   "empty": 0.74,
+   "widest_text": 601,
+   "widest_text_sample": "Cloudflare.mjs and ArchiveCopy.mjs built",
+   "overflow_x": false,
+   "items": 46,
+   "narrow_share": 0.674
+  },
+  "2560": {
+   "empty": 0.788,
+   "widest_text": 804,
+   "widest_text_sample": "AskEach, Browser, Collab, Decide are cla",
+   "overflow_x": false,
+   "items": 46,
+   "narrow_share": 0.674
+  },
+  "3440": {
+   "empty": 0.804,
+   "widest_text": 609,
+   "widest_text_sample": "AskEach, Browser, Collab, Decide are cla",
+   "overflow_x": false,
+   "items": 46,
+   "narrow_share": 0.674
+  }
+ },
+ "errors": []
+}

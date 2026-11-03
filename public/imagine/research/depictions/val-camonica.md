@@ -1,0 +1,11 @@
+# Val Camonica — the "astronauts"
+
+**The artifact.** Val Camonica (Lombardy, Italy) holds one of the [largest collections of prehistoric rock art in the world](https://en.wikipedia.org/wiki/Rock_Drawings_in_Valcamonica) — over 140,000 catalogued petroglyphs (some counts run to 300,000), carved from roughly 8,000 BCE through the 19th century, and Italy's first UNESCO World Heritage Site (1979). A handful of Iron Age panels (~1st millennium BCE) show humanoid figures with rounded, halo-like heads and radiating lines that modern viewers nicknamed "the astronauts." *(established)*
+
+**What the culture's own context says.** Archaeologist Emmanuel Anati, who led the site's defining survey, reads these figures — and the related spiral "[Camunian rose](https://en.wikipedia.org/wiki/Camunian_rose)" motif (nine cupmarks inside a meandering line) — as solar and religious ideograms belonging to Camunni Iron Age ritual life, continuous with the site's other hunting, farming, and dancing scenes. *(established)*
+
+**The alien interpretation.** Ancient-astronaut writers, following the genre [Erich von Daniken](https://hangar1publishing.com/blogs/ufos-uaps-and-aliens/ancient-cave-paintings-of-ufos) popularized, read the rounded outlines as helmets and the radiating lines as antennae or exhaust, grouping Val Camonica with Nazca and Palenque as physical evidence of prehistoric contact. *(fringe)*
+
+**What a fair reader keeps.** The helmet-like outlines are real, and across 10,000+ years of continuous carving a few panels are genuinely harder to read at a glance than the rest — that's a fact about style and preservation, not evidence for the alien reading. The "astronaut" panels sit among ordinary Iron Age ceremonial scenes, not apart from them. [World History Encyclopedia](https://www.worldhistory.org/article/1526/rock-drawings-of-valcamonica/) *(speculation on how much weight the ambiguity deserves)*
+
+**What would settle it.** A published contextual survey mapping every "astronaut" panel against its immediate neighbors — weapons, plowing, dance scenes — would show directly whether they cluster with mundane Iron Age ritual imagery (they appear to) or stand genuinely apart. [Ancient Origins](https://www.ancient-origins.net/ancient-writings-ancient-places-europe/valcamonica-rock-art-0021655)

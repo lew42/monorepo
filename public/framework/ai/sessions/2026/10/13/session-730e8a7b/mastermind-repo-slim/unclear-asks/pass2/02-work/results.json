@@ -1,0 +1,20 @@
+[
+{"id":"38aa2fe214","work":"no","reason":"A decision on how to handle session data; only the owner can make it."},
+{"id":"610571a5ea","work":"no","reason":"A request for a status report."},
+{"id":"83b2c033e1","work":"yes","reason":"Pick one name for the sessions tab and write it in the sidebar and phone labels plus doc/ui/views.md."},
+{"id":"66c9f1efbe","work":"no","reason":"A question: should the list live-update or hold still; the owner's choice."},
+{"id":"ab949615c7","work":"no","reason":"A design rule (dev-side only); a rule about how to work, not a build."},
+{"id":"29beb2654d","work":"yes","reason":"Investigate and record whether AISessionFollow.js (lines 64-65) can coalesce updates into one paint; may change that file."},
+{"id":"50895c9f4a","work":"yes","reason":"Decide and, if adopted, add an independent right-sidebar scroll rule in sessions.css."},
+{"id":"d41d9ea683","work":"no","reason":"A rule for assistant reply length; a rule about how to work, not a repo file."},
+{"id":"57433b31d9","work":"no","reason":"A question asking for an explanation of chat bubble storage; a chat answer."},
+{"id":"afdc30ec2b","work":"yes","reason":"Check the Haiku refine link on the chat bubble (AISessionDetail.js, around line 145) and fix it if malformed."},
+{"id":"91797d8544","work":"no","reason":"An opinion on whether session tab names are worth keeping; a judgment call."},
+{"id":"fffc8104c7","work":"yes","reason":"Check the session indexing code and record the result, fixing it if wrong."},
+{"id":"a9e07c29e8","work":"yes","reason":"Check the sessions cost breakdown against the real data and fix the file that computes it if stale."},
+{"id":"c0e403144f","work":"no","reason":"A build constraint: do not add a database; a rule, not a feature."},
+{"id":"2002d0e09b","work":"no","reason":"A question: is the footer needed, and what 'one below' means; a chat answer."},
+{"id":"f34fd2237d","work":"yes","reason":"Check the footer live refresh and the stalled flag (AISessionFlags.js:19,46) and fix the stale logic if wrong."},
+{"id":"490dcdffcb","work":"no","reason":"An action outside the repo (find and talk to another session); no file changes."},
+{"id":"36de0de1d6","work":"yes","reason":"Rework the sessions tab hierarchy and text placement in sessions.css (around lines 186-189 and 297)."}
+]

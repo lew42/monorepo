@@ -1,0 +1,1 @@
+The class. `Task extends Item`: id, title, a state (`idle`, `running`, `paused`, `waiting`, `stopped`, `complete`), timestamps, a computed duration, and a `tasks` List of subtasks whose finish gates the parent. It has no DOM import, so node scripts (`Server/AIIndex.mjs`, `Servex/TaskLoop.js`) replay a `task.jsonl` through `Task.replay` with the same code the browser uses.

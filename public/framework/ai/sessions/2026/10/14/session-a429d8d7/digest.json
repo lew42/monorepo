@@ -1,0 +1,35 @@
+{
+ "id": "a429d8d7-c1a7-4535-ba23-0691872e73dd",
+ "first": "2026-10-14T01:01:42.400Z",
+ "last": "2026-10-14T01:06:57.774Z",
+ "task": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/unreferenced-verdicts",
+ "models": {
+  "claude-sonnet-5-5": 26,
+  "claude-haiku-4-5": 97
+ },
+ "sizes": {
+  "raw": 226868,
+  "content": 33706,
+  "stripped": 10384,
+  "owner_only": 0
+ },
+ "usd": 2.173009,
+ "usd_main": 0.891557,
+ "usd_sub": 1.281452,
+ "tokens": {
+  "input": 840,
+  "output": 84636,
+  "cache_read": 7244933,
+  "cache_write": 417388,
+  "w5": 341412,
+  "w1": 75976
+ },
+ "messages": 123,
+ "subagent_files": 6,
+ "prompts": [],
+ "result": "None of the 167 unreferenced files are dead, so nothing is up for retirement and nothing was moved or deleted. 76 are loaded in ways the census can't see, and 91 are notes worth keeping where they are.\n\nThe verdict table is in [unreferenced-verdicts.md](/framework/ai/doc/unreferenced-verdicts.md), linked from `unreferenced.md`. I re-ran the census, which now finds 167 files instead of 126; I didn't isolate why. Haiku gave verdicts in six batches.\n\nHaiku called 4 files dead, and I overturned all 4 when I read them:\n- `card.css` is loaded by `core/Page/card/page.js`.\n- The two card docs are listed in the card module's `doc/files.jsonl` and cited by code.\n- `ext/Ask/mic.js` is kept on purpose, according to its own header.\n\nI spot-checked 15 verdicts: 11 agreed and 4 changed, all of them those dead calls. The other 8 \"runtime-loaded\" calls I checked held up.\n\nThe census misses these loads because it only counts a bare file name when no other file shares it. So `card.css`, `shell.css` and `clean.md` look unreferenced even when code loads them. Changing the census to count a quoted name in the same folder's `.js` is the fix; I left `Server/Unreferenced.mjs` alone because it was re-run only in my fence.\n\nI wrote `Server/retire-files.mjs` with `--plan`, `--apply` and `--undo`, and `--plan` runs, listing 0 files. I didn't try `--apply` or `--undo` since there's nothing to move. No misplaced files turned up, so I made no moves. I posted the owner note and the landing line checks out wi …",
+ "edited": [
+  "Server/retire-files.mjs"
+ ],
+ "digested_at": "2026-10-16T06:28:10.268Z"
+}

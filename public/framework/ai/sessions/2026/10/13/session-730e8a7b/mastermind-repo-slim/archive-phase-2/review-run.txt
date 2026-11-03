@@ -1,0 +1,2 @@
+review.mjs: one file API check — pass (only FsFile calls the socket's write/append)
+review.mjs: size full — 5a9f5261fbc2cc49431508d43e6450964b27848b — pass, 7 finding(s), $0.77643

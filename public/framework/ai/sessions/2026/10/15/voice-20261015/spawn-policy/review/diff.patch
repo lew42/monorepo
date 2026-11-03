@@ -1,0 +1,55 @@
+diff --git a/Servex/agents/doc/architecture.md b/Servex/agents/doc/architecture.md
+index 69aa27103..bfa27a949 100644
+--- a/Servex/agents/doc/architecture.md
++++ b/Servex/agents/doc/architecture.md
+@@ -122,6 +122,12 @@ session_id, started_at, parent}` to `registry.json` next to the logs — `GET /a
+ still sees an agent after Servex restarts and its in-memory `live` Map is empty again — and
+ appends the same row to `servex.jsonl`.
+ 
++### A mastermind may spawn masterminds (owner, 2026-10-15)
++
++`policy.js` `spawn()` lets any mastermind (`mastermind-*`, `task-mastermind-*`) spawn a `mastermind`, a minion or a helper, with no special grant; other workers still spawn only minions and helpers, and assistants stay denied. The owner's reasoning, quoted from [the brief](/framework/ai/sessions/2026/10/15/voice-20261015/ask-00dc4855.md):
++
++> The mastermind role adds little power, mostly the ability and instructions to spawn minions. That's right for large tasks and whole systems (Page, AI) where a coordinator holds context and uses minions to read code, because a mastermind reading all code itself is slow, token-heavy and can't answer quickly. Not every task needs one; it's for big scopes.
++
+ ## The assistant layers — every card has its own agents
+ 
+ Each card gets its own **assistant** (`assistant-<card>`, answers in seconds) and its own
+diff --git a/Servex/agents/policy.js b/Servex/agents/policy.js
+index a6c12e5b3..11d0c6f0c 100644
+--- a/Servex/agents/policy.js
++++ b/Servex/agents/policy.js
+@@ -145,6 +145,8 @@ ${text}` };
+ 		if(f === "external") return deny(`spawn agents: an external id (a registered tab) may message anyone, but not spawn. Spawn from the tab itself with no id (as the owner), or ask mastermind-servex.`);
+ 		if(f === "assistant" || f === "master") return deny(`spawn agents: ${f === "master" ? "the master assistant" : "an assistant"} has its own tools for that.`);
+ 		if(f === "smart") return ["master-assistant", "assistant", "mastermind", "page-assistant"].includes(role) ? deny(`spawn a ${role}: the smart assistant may spawn task masterminds, managers, minions and helpers.`) : { ok: true };
++		/* A mastermind (voice or task) may spawn masterminds (owner, 2026-10-15): ask-00dc4855.md. */
++		if(this.is_mastermind(caller) && role === "mastermind") return { ok: true };
+ 		if(f === "worker") return ["minion", "helper"].includes(role) ? { ok: true } : deny(`spawn a ${role}: a worker may spawn only a minion or a helper.`);
+ 		return NO_SPAWN.includes(role) ? deny(`spawn a ${role}: only mastermind-servex may.`) : { ok: true };
+ 	}
+@@ -162,8 +164,9 @@ ${text}` };
+ 		{ from: "assistant-X", may: "message manager-X, master-assistant, mastermind-servex; spawn nothing" },
+ 		{ from: "manager-X", may: "message assistant-X, mastermind-servex; spawn anything except task-mastermind, manager, mastermind, master-assistant, assistant, page-mastermind, page-assistant" },
+ 		{ from: "master-assistant", may: "message any assistant, mastermind-servex; spawn nothing" },
+-		{ from: "task-mastermind-*", may: "message mastermind-servex(-N) and another task mastermind (its parent gets a copy); spawn like a manager" },
++		{ from: "task-mastermind-*", may: "message mastermind-servex(-N) and another task mastermind (its parent gets a copy); spawn like a manager, and also a mastermind" },
+ 		{ from: "session-smart-*", may: "spawn task-mastermind, manager, minion, helper and the rest, except assistants and mastermind" },
++		{ from: "mastermind-X", may: "spawn mastermind, minion and helper" },
+ 		{ from: "worker", may: "spawn only minion and helper" }
+ 	]; }
+ }
+diff --git a/Servex/agents/policy.test.mjs b/Servex/agents/policy.test.mjs
+index 27fcad9cb..2598f5e54 100644
+--- a/Servex/agents/policy.test.mjs
++++ b/Servex/agents/policy.test.mjs
+@@ -91,7 +91,8 @@ t(p.spawn(null, "manager").ok && p.spawn("mastermind-servex", "assistant").ok &&
+ t(!p.spawn("assistant-a", "minion").ok && !p.spawn("master-assistant", "minion").ok, "assistant/master spawn nothing");
+ t(p.spawn("manager-a", "minion").ok && p.spawn("task-mastermind-x", "helper").ok, "manager spawns workers");
+ for(const r of ["task-mastermind", "manager", "mastermind", "master-assistant", "assistant", "page-mastermind", "page-assistant"])
+-	t(!p.spawn("manager-a", r).ok && !p.spawn("task-mastermind-x", r).ok, "no " + r);
++	t(!p.spawn("manager-a", r).ok && (r === "mastermind" || !p.spawn("task-mastermind-x", r).ok), "no " + r);
++t(p.spawn("mastermind-voice-1", "mastermind").ok && p.spawn("task-mastermind-x", "mastermind").ok && p.spawn("mastermind-voice-1", "minion").ok && !p.spawn("mastermind-voice-1", "assistant").ok && !p.spawn("mastermind-voice-1", "master-assistant").ok, "a mastermind may spawn a mastermind");
+ t(p.spawn("minion-a", "minion").ok && p.spawn("minion-a", "helper").ok && !p.spawn("minion-a", "mastermind").ok, "worker spawn");
+ // bookkeeping
+ t(p.refused.length > 0 && p.refused.length <= 50, "refusals kept");

@@ -1,0 +1,102 @@
+{"id":"process-system-tasks-that-run-themselves","verb":"complete","text":"branch task/process-system merged into michael/dev; /framework/core/Task/doc/resolution.md"}
+{"id":"figma-mobile-cards-for-sessions-projects","verb":"complete","text":"worktree/mobile-picks merged (6593e474c); phone pages /framework/ai/sessions/v/mobile/"}
+{"id":"owner-prompts-become-tasks-on-the-sessio","verb":"assign","text":"splitter one-writer fix in progress in /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/session-closeout/ (priority 1); the first version merged (core/Session/doc/prompt-tasks.md)"}
+{"id":"item-system-ui-actions-save-as-deltas-to","verb":"complete","text":"worktree/item-tool, item-local, item-move, item-replay merged; core/Item/act.test.mjs, Item.test.mjs"}
+{"id":"prompts-as-records-each-owner-prompt-bro","verb":"complete","text":"task/prompt-records merged; Server/PromptRecords.mjs; 43ffe5c2b"}
+{"id":"test-system-a-small-test-helper-and-runn","verb":"complete","text":"task/test-system merged; /framework/core/Test/readme.md"}
+{"id":"task-resolution-what-is-a-task-how-tasks","verb":"complete","text":"same work as process-system; /framework/core/Task/doc/resolution.md"}
+{"id":"build-a-system-architect-into-projects-a","verb":"complete","text":"skill .claude/skills/system-architect and sessions-and-tasks/system-architect/"}
+{"id":"have-one-assistant-instead-of-a-fast-ass","verb":"complete","text":"d20996944 one root assistant; 02d4d6a27 voice-assistant-plan brief"}
+{"id":"build-a-decent-session-manager-for-voice","verb":"assign","text":"ce4084018 recorded the direction; the build is the queued voice-pipeline brief (87c74f95f), lane of mastermind-dictation-debug"}
+{"id":"let-the-voice-agent-edit-the-page-in-rea","verb":"complete","text":"the cloud voice agent edits /live/ with page_set/page_add: Servex/ext/remote/doc/cloud-voice-agent.md"}
+{"id":"let-the-voice-assistant-take-long-dictat","verb":"complete","text":"ask_mastermind relays dictation, ext/Refine refines it: Servex/ext/remote/doc/cloud-voice-agent.md, ext/Refine/readme.md"}
+{"id":"make-column-paging-work-switching-left-m","verb":"stop","text":"superseded by the owner's call: previews plus full detail views (b26b8eaa9, 73a214261)"}
+{"id":"any-session-should-have-a-proper-session","verb":"assign","text":"needs the session mic UX: voice-pipeline brief (87c74f95f) and dictation-debug"}
+{"id":"look-at-our-usage-then-spawn-a-readme-au","verb":"complete","text":"readme audit run: 328c8364d (Haiku judgments for 166 readmes), /framework/ai/readmes/"}
+{"id":"record-ai-probe-results-e-g-sdk-web-sear","verb":"assign","text":"not built; queued for ai-system-mastermind (records home under Servex or framework ai)"}
+{"id":"an-overview-of-the-state-of-the-whole-js","verb":"assign","text":"not built; queued for core-page-mastermind (ext/JSONL overview)"}
+{"id":"answer-the-framework-ai-sessions-page-is","verb":"complete","text":"answered in public/framework/ai/sessions/readme.md, How data is read (AISessionsPage over ext/DataGrid, 6123a53c4)"}
+{"id":"answer-we-re-supposed-to-have-a-content","verb":"complete","text":"answered: content cards are registered Items (7949c52ea)"}
+{"id":"build-stuff-i-can-show-me-now-since-some","verb":"stop","text":"a standing instruction, not a deliverable: every agent logs show: lines (task-buckets.md, task-mastermind role)"}
+{"id":"work-autonomously-and-in-parallel-by-fir","verb":"complete","text":"standing rule in Servex/agents/roles/task-mastermind.md (parallel minions, never block)"}
+{"id":"automate-the-dictation-to-brief-relay-so","verb":"complete","text":"prompt-relay.mjs logs every tab prompt verbatim, Server/refine.mjs builds coverage (aac22e0dc)"}
+{"id":"the-review-page-should-be-an-existing-pa","verb":"complete","text":"the review lives in the session page (Report tab, Review.state(), 5dc90be62, 5a7b2fc29), no new page"}
+{"id":"use-the-sub-navigation-on-the-ai-session","verb":"complete","text":"/framework/ai/sessions/v/<name>/ variants, documented in sessions/readme.md; v/mobile/"}
+{"id":"auto-compaction-should-trigger-when-a-lo","verb":"complete","text":"worktree/compact-before-sleep merged (c63aef26d); ai/doc/compaction.md"}
+{"id":"upgrade-the-non-object-oriented-cervex-r","verb":"complete","text":"core/Role: roles as objects (864650b4a)"}
+{"id":"create-a-task-queue-that-prioritizes-wor","verb":"complete","text":"/framework/ai/queue/, ai/doc/task-queue.md, TaskQueue.js"}
+{"id":"build-views-so-the-owner-can-see-object","verb":"complete","text":"live class cards at /framework/ai/classes/ and the catalog (ai/readme.md)"}
+{"id":"page-mastermind-look-at-the-different-wa","verb":"complete","text":"core-page-mastermind role (Servex/agents/roles/core-page-mastermind.md); page-mastermind plan 7d152bd70"}
+{"id":"prioritize-the-page-system-have-the-page","verb":"complete","text":"core-page-mastermind role and its plan (7d152bd70)"}
+{"id":"we-need-automated-tests-for-the-core-sys","verb":"assign","text":"test-basics is building the basic test per class: /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/test-basics/"}
+{"id":"page-mastermind-should-propose-tasks-and","verb":"complete","text":"core-page-mastermind proposals (page-mastermind commits 039628c5a, 4cab09ee3)"}
+{"id":"keep-one-singleton-persistent-ai-system","verb":"complete","text":"Servex/agents/roles/ai-system-mastermind.md (one role, id ai-system-mastermind)"}
+{"id":"the-session-detail-view-should-be-the-ho","verb":"assign","text":"session-is-a-task (Work tab exists; tasks as buckets in progress)"}
+{"id":"any-agent-can-pass-feedback-to-the-ai-sy","verb":"complete","text":"module_inbox tool, ai/readme.md"}
+{"id":"perfect-the-data-structures-we-already-h","verb":"complete","text":"Item/Store/Dated stack merged with tests (core/Item); same as the Item system task"}
+{"id":"build-a-prioritized-task-queue-for-each","verb":"complete","text":"/framework/ai/queue/, TaskQueue.js, ai/doc/task-queue.md"}
+{"id":"add-a-planning-stage-where-masterminds-i","verb":"complete","text":"process-system/task-queue-plan and core/Task/doc/resolution.md"}
+{"id":"create-a-robust-item-system-that-streams","verb":"complete","text":"same as the Item system task: core/Item merged with Item.test.mjs and Store.test.mjs"}
+{"id":"keep-an-always-available-ai-system-maste","verb":"complete","text":"ai-system-mastermind plus module_inbox (ai/readme.md)"}
+{"id":"the-ai-mastermind-manages-its-own-priori","verb":"complete","text":"TaskLoop and /framework/ai/queue/ (ai/doc/task-queue.md)"}
+{"id":"a-long-lived-session-refreshes-itself-wi","verb":"complete","text":"same as auto-compaction: compact-before-sleep merged, ai/doc/compaction.md"}
+{"id":"do-not-move-the-ai-session-class-now-wri","verb":"complete","text":"note is in core/Session/readme.md line 5"}
+{"id":"we-should-have-an-automatic-completion-s","verb":"complete","text":"honest-completion merged (80a87c752); Session.completion"}
+{"id":"design-task-creation-for-the-ai-system-m","verb":"complete","text":"core/Task/doc/resolution.md (1-3 asks per prompt, linked to the raw prompt)"}
+{"id":"have-the-system-architect-assess-whether","verb":"complete","text":"prompt-audit run and doc: ai/doc/prompt-audit.md"}
+{"id":"when-a-plan-is-created-the-mastermind-sh","verb":"complete","text":"process-system/task-queue-plan; TaskLoop starts top tasks (ai/doc/task-queue.md)"}
+{"id":"create-a-referenceable-task-for-example","verb":"complete","text":"a task has a path and the item tool takes it (resolution.md)"}
+{"id":"the-system-architect-should-write-down-t","verb":"assign","text":"no doc found for the file-system vs instantiation decision: queued for ai-system-mastermind to write beside core/Item/doc"}
+{"id":"write-down-as-an-intention-a-fairly-high","verb":"complete","text":"the item tool exists (mcp item) and is documented in core/Item/readme.md"}
+{"id":"get-the-item-tool-to-handle-programmatic","verb":"complete","text":"the item tool, core/Item/readme.md"}
+{"id":"parent-session-plans-and-refines-a-task","verb":"assign","text":"plan-in-session.jsonl approval flow: part of session-is-a-task (priority 1)"}
+{"id":"use-the-servex-mcp-directly-as-a-local-a","verb":"complete","text":"3b47f5159: page tools in-process as mcp__local__*"}
+{"id":"session-data-must-be-robust-100-frank-cl","verb":"assign","text":"session-is-a-task (one truth, live numbers) and the tracking monitor /framework/ai/tracking/"}
+{"id":"stop-writing-to-framework-ai2-we-shouldn","verb":"complete","text":"nothing has written under public/framework/ai2 since 2026-10-16 (git log)"}
+{"id":"smoke-test-our-pages-the-deputy-roles-pa","verb":"complete","text":"a84e1bfff TaskPage opens the record its folder lists; ca6274373"}
+{"id":"move-away-from-the-complex-miller-column","verb":"complete","text":"Miller columns dropped (b26b8eaa9, 73a214261)"}
+{"id":"screenshot-the-pages-at-framework-ai-ses","verb":"complete","text":"sessions-and-tasks/sessions-shots/"}
+{"id":"write-down-that-http-monorepo-localhost","verb":"complete","text":"ai/merge is linked from the AI readme and rail; ai/merge/readme.md"}
+{"id":"fix-the-page-http-monorepo-localhost-fra","verb":"complete","text":"ai/merge page working: 5dc90be62, 9021b1136; ai/merge/readme.md"}
+{"id":"the-ai-queue-page-has-0-tasks-queued-loo","verb":"complete","text":"queue page fixed 5d3b9a177, 92e5e0657, linked 209aceb14, d7252fc1e"}
+{"id":"keep-the-agent-busy-use-haiku-past-the-1","verb":"complete","text":"ai/doc/parallel-haiku.md"}
+{"id":"write-down-context-window-knowledge-in-a","verb":"complete","text":"ai/doc/context.md"}
+{"id":"use-haiku-over-100k-for-a-deep-readme-di","verb":"complete","text":"ai/doc/parallel-haiku.md, ai/doc/module-audit.md (plan)"}
+{"id":"a-mastermind-manages-a-module-audit-proc","verb":"assign","text":"module-audit.md is a plan, not built: ai-system-mastermind queue"}
+{"id":"spawn-agents-in-phases-the-first-reads-t","verb":"assign","text":"module-audit.md plan, phase 1 not built: ai-system-mastermind queue"}
+{"id":"fix-the-css-so-the-top-tabs-on-the-frame","verb":"complete","text":"4bde28a29 quick fix: header tabs side-scroll"}
+{"id":"make-roles-object-oriented-a-role-bundle","verb":"complete","text":"core/Role: roles as objects (864650b4a), roles page"}
+{"id":"document-ai-models-and-their-costs-in-th","verb":"complete","text":"ai/doc/models.md"}
+{"id":"session-and-task-pages-i-should-be-able","verb":"assign","text":"session-is-a-task (Work tab exists; tasks as buckets in progress)"}
+{"id":"make-the-top-tabs-one-line-that-side-scr","verb":"complete","text":"4bde28a29, 8abde71b5"}
+{"id":"make-the-top-tabs-a-sticky-header-that-s","verb":"assign","text":"brief top-tabs-one-row-sticky-slimmer-on-phone (2e5ed2792), minion-top-tabs"}
+{"id":"slim-the-tab-padding-especially-the-left","verb":"assign","text":"brief top-tabs-one-row-sticky-slimmer-on-phone (2e5ed2792), minion-top-tabs"}
+{"id":"look-into-the-session-detail-page-and-fi","verb":"complete","text":"cause was missing task links; --links backfill 691997e5f; session-is-a-task finishes the model"}
+{"id":"agents-spawned-from-this-session-should","verb":"assign","text":"session-is-a-task (children linked); 163 of 163 link problems listed at /framework/ai/tracking/"}
+{"id":"the-session-page-s-rendered-view-should","verb":"assign","text":"session-is-a-task (numbers computed live, aggregates)"}
+{"id":"session-content-should-be-a-list-of-all","verb":"assign","text":"session-is-a-task (reverse chronological list) and sessions-list-slim"}
+{"id":"ai-tab-bar-heading-and-tabs-on-one-row-t","verb":"complete","text":"quick fix landed: 8abde71b5, merged 6d997d69f"}
+{"id":"put-the-top-tabs-on-the-same-line-as-the","verb":"complete","text":"8abde71b5 header icon and swipeable tabs share one row"}
+{"id":"make-the-tab-area-swipeable","verb":"complete","text":"8abde71b5, 4bde28a29"}
+{"id":"build-the-task-system-into-the-framework","verb":"complete","text":"ai/doc/task-buckets.md, /framework/ai/tracking/ monitor"}
+{"id":"compute-values-in-real-time-loading-a-se","verb":"assign","text":"session-is-a-task part 3 (cached live sessions)"}
+{"id":"when-a-new-task-is-created-on-a-session","verb":"complete","text":"AIIndexStream: sessions-and-tasks/index-stream (every change appends to the day index)"}
+{"id":"send-this-spec-to-whoever-needs-it-make","verb":"complete","text":"briefs written, priority 1: session-is-a-task/requirements.md"}
+{"id":"make-the-ai-sessions-page-header-a-stick","verb":"assign","text":"sessions-list-slim (agent running)"}
+{"id":"make-sure-every-session-is-properly-pare","verb":"assign","text":"session-is-a-task (children linked); tracking monitor lists 163 unlinked"}
+{"id":"make-sure-agents-use-the-task-system-pro","verb":"complete","text":"ai/doc/task-buckets.md (when to open a task)"}
+{"id":"document-investigation-in-tasks-record-d","verb":"assign","text":"task-notes-proposal.md is a proposal, not built: session-is-a-task"}
+{"id":"make-session-extend-task-so-it-has-the-s","verb":"stop","text":"same as session-is-a-task-tasks-as-buckets-child (Session is a Task)"}
+{"id":"write-automated-tests-so-that-manipulati","verb":"assign","text":"test-basics: /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/test-basics/"}
+{"id":"retroactively-account-for-all-subsession","verb":"complete","text":"SessionRecord --links backfill 691997e5f; tracking monitor"}
+{"id":"when-i-dictate-prompts-and-tasks-get-cre","verb":"complete","text":"prompt-tasks: tasks appear live on the session page (core/Session/doc/prompt-tasks.md)"}
+{"id":"we-absolutely-need-a-better-debug-ui-wit","verb":"stop","text":"same as dictation-a-debug-tab-that-shows-each-la (mastermind-dictation-debug, running)"}
+{"id":"investigate-why-loading-the-3-mb-agent-r","verb":"assign","text":"session-is-a-task part 3 (the 60s write: measure, cached live sessions)"}
+{"id":"build-the-sessions-index-as-per-scope-fi","verb":"assign","text":"session-is-a-task part 3 (per-scope indexes)"}
+{"id":"instantiating-a-session-reads-only-its-o","verb":"assign","text":"session-is-a-task part 3 (a session reads only its own record)"}
+{"id":"build-automated-tests-for-all-the-classe","verb":"assign","text":"task-mastermind-test-basics has just started it: /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/test-basics/"}
+{"id":"run-the-tests-automatically-in-real-time","verb":"assign","text":"part of test-basics: /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/test-basics/"}
+{"id":"deliver-real-time-test-failures-to-the-b","verb":"assign","text":"part of test-basics (debounced failure reports): /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/test-basics/"}
+{"id":"get-basic-accounting-for-these-requests","verb":"assign","text":"session-is-a-task (live numbers); monitor /framework/ai/tracking/"}
+{"id":"tail-child-sessions-when-spawning-child","verb":"assign","text":"session-is-a-task (children linked live)"}
+{"id":"make-sure-that-s-noted","verb":"stop","text":"filler sentence, not an ask; the content it refers to is filed as its own tasks"}

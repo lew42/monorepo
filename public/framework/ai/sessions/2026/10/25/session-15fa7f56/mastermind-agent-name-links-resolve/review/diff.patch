@@ -1,0 +1,248 @@
+diff --git a/public/framework/ai/AISession/AISessionDetail.js b/public/framework/ai/AISession/AISessionDetail.js
+index 45c35aef6..c16bfdd73 100644
+--- a/public/framework/ai/AISession/AISessionDetail.js
++++ b/public/framework/ai/AISession/AISessionDetail.js
+@@ -79,6 +79,13 @@ export default class AISessionDetail extends Page {
+ 		return url && await AISessionDetail.id_of_folder(root_url, url) ? url : null;
+ 	}
+ 
++	/** Whether `/sessions/<name>/` names anything: a row (sessions.json, the live agent list or the index), an agent folder, a uuid or short id (a new session the index has not met yet), or a voice record (`v-…`, `cloud-voice-…`, found by its dated folder). Only a bare name that is none of these is "not found". */
++	static async known(root_url, name){
++		if (/^[0-9a-f]{8}(-|$)/.test(name) || /^(v|cloud-voice)-/.test(name)) return true;
++		if (await AISessionDetail.load_row(root_url, name)) return true;
++		return name in ((await AISessionRows.load_index(root_url))?.rows ?? {});
++	}
++
+ 	/** The name from rows AISessionsPage.child() preloaded, so the first paint already shows it; the id only when there is no row. */
+ 	static first_title(home, id){
+ 		const row = AISessionRows.snapshot?.rows?.find(r => r.id === id || r.session_id === id);
+@@ -471,7 +478,14 @@ export default class AISessionDetail extends Page {
+ 	/** This session's row (tab_title, model, source...) from sessions.json, which is a computed cache and never the record. */
+ 	static async load_row(root_url, id){
+ 		const snap = await AISessionRows.get_json(root_url + "sessions.json");
+-		return snap?.rows?.find(r => r.id === id || r.session_id === id) ?? await AISessionDetail.agent_row(id);
++		return snap?.rows?.find(r => r.id === id || r.session_id === id) ?? await AISessionDetail.agent_row(id) ?? await AISessionDetail.tree_row(root_url, id);
++	}
++
++	/** A stopped agent the live list no longer holds but session-tree.json (uuid -> { agent, role }) still names: its uuid finds the dated folder. */
++	static async tree_row(root_url, id){
++		if (/^[0-9a-f]{8}-/.test(id)) return null;
++		const tree = await AISessionRows.load_tree(root_url), hit = Object.entries(tree ?? {}).find(([, n]) => n?.agent === id);
++		return hit ? { id, session_id: hit[0], source: "servex", role: hit[1].role, tab_title: id } : null;
+ 	}
+ 
+ 	/** A named Servex agent (`reviewer-x`, `minion-y`) is a grid row before sessions.json knows it: its uuid comes from the live agent list, else null (a name is never a transcript id). */
+diff --git a/public/framework/ai/AISession/AISessionsPage.js b/public/framework/ai/AISession/AISessionsPage.js
+index 34f7c787f..403488d55 100644
+--- a/public/framework/ai/AISession/AISessionsPage.js
++++ b/public/framework/ai/AISession/AISessionsPage.js
+@@ -12,6 +12,7 @@ import AISessionBuckets from "./AISessionBuckets.js";
+ import AISessionLive from "./AISessionLive.js";
+ import AISession from "./AISession.js";
+ import AISessionDetail from "./AISessionDetail.js";
++import AgentUrl from "./AgentUrl.js";
+ import AISessionFlags from "./AISessionFlags.js";
+ import StoreFolder from "./StoreFolder.js";
+ AISessionFlags.usd_of = r => AISessionRows.claude_usd_of(r);   // flags_of reads the row's Claude $ from the session index here
+@@ -733,7 +734,10 @@ export default class AISessionsPage extends Page {
+ 		if (name && !name.includes(".") && !/^\d{4}$/.test(name) && name !== "doc" && name !== "readme"){
+ 			const full = await AISessionDetail.expand(this.url, name);   // an 8-character short id names the full session: both urls are one page
+ 			if (full !== name){ (this.folders ??= new Map()).set(name, this.url + full + "/"); return super.child(name, levels); }
++			const agent = !/^[0-9a-f]{8}(-|$)/.test(name) && await AgentUrl.find(name);   // an agent's name: its task folder in the dated store (ai/index.json)
++			if (agent){ (this.folders ??= new Map()).set(name, agent); return super.child(name, levels); }
+ 			await AISessionDetail.preload(this.url, name);
++			if (!await AISessionDetail.known(this.url, name)){ (this.missing ??= new Set()).add(name); return super.child(name, levels); }
+ 			(this.folders ??= new Map()).set(name, await AISessionDetail.folder_for(this.url, name));   // route() cannot wait: the session's dated folder is looked up here
+ 		}
+ 		return super.child(name, levels);
+@@ -746,10 +750,20 @@ export default class AISessionsPage extends Page {
+ 		if (id === "v") return;   // variants: sessions/v/page.js (e.g. v/mobile/), a folder and not a session id
+ 		if (/^\d{4}$/.test(id)) return new StoreFolder({ home: this, segs: [id] });   // the store by path: YYYY/MM/DD/<session>/<task>/ (ai/doc/task-folders.md)
+ 		const folder = this.folders?.get(id);
+-		if (folder) return StoreFolder.redirect(this.url + id + "/", folder);   // one session, one url: the dated folder (a session with no folder yet keeps this page)
++		if (folder) return StoreFolder.redirect(this.url + id + "/", folder);
++		if (this.missing?.has(id)) return this.not_found(id);   // one session, one url: the dated folder (a session with no folder yet keeps this page)
+ 		return new AISessionDetail({ home: this, id });
+ 	}
+ 
++	/** A name that is no session, no agent and no folder: say so, instead of a page that reads a record that is not there. */
++	not_found(id){
++		const home = this;
++		return new Page({ title: "Session not found", icon: "search_off", url: home.url + id + "/", content(){
++			p("No session or agent is named “" + id + "”: no folder in the session store and no row in the index.");
++			a().href(home.url).text("← All sessions");
++		} });
++	}
++
+ 	/** "readme" is the readme, "doc" is the docs index (doc/readme.md). */
+ 	docs_page(id){
+ 		const file = id === "readme" ? "readme.md" : "doc/readme.md", home = this;   // the docs index (priorities.md was archived to doc/archive/ in the 10-12 consolidation)
+diff --git a/public/framework/ai/AISession/AgentUrl.js b/public/framework/ai/AISession/AgentUrl.js
+new file mode 100644
+index 000000000..c1b899a8e
+--- /dev/null
++++ b/public/framework/ai/AISession/AgentUrl.js
+@@ -0,0 +1,49 @@
++/**
++ * AgentUrl — a Servex agent's name (`mastermind-tasks-completion`) to the url of its real page, the task folder in the dated store.
++ * One lookup for every surface that links an agent by name (ext/Mention, the /sessions/<name>/ redirect).
++ * It reads ai/index.json (Server/AIIndex.mjs, the same file the Inbox reads) once per page load:
++ *   1. a task whose folder is named for the agent, 2. the agent's own `task_dir`, 3. the shallowest task the agent ran (`agent`).
++ * A name with none of these (a proof agent that never opened a folder) has no page: `of()` and `find()` answer null.
++ */
++export default class AgentUrl {
++	static URL = "/framework/ai/index.json";
++	static urls = null;     // Map name -> url, once loaded
++	static pending = null;
++
++	/** Resolves once the lookup is built (also when the file is missing: the map is then empty and every name is "no page"). */
++	static load(){
++		return AgentUrl.pending ??= fetch(AgentUrl.URL).then(r => r.ok && !(r.headers.get("content-type") ?? "").includes("html") ? r.json() : null).catch(() => null)
++			.then(index => AgentUrl.urls = AgentUrl.build(index));
++	}
++
++	static build(index){
++		const urls = new Map(), depth = u => u.split("/").length, last = u => u.replace(/\/$/, "").split("/").pop();
++		const agents = new Map((index?.agents ?? []).map(a => [a.id, a]));
++		const ran = new Map();   // agent -> its shallowest task url
++		for (const t of index?.tasks ?? []){
++			if (!t.url) continue;
++			const own = agents.has(last(t.url)) ? last(t.url) : null;
++			if (own && !urls.has(own)) urls.set(own, t.url);
++			if (t.agent && agents.has(t.agent) && (!ran.has(t.agent) || depth(t.url) < depth(ran.get(t.agent)))) ran.set(t.agent, t.url);
++		}
++		for (const [name, a] of agents){
++			if (urls.has(name)) continue;
++			const dir = a.task_dir && AgentUrl.site_path(a.task_dir);
++			if (dir) urls.set(name, dir);
++			else if (ran.has(name)) urls.set(name, ran.get(name));
++		}
++		return urls;
++	}
++
++	/** `C:\...\monorepo\public\framework\ai\sessions\...` to `/framework/ai/sessions/.../`, or null when it is not under public/. */
++	static site_path(dir){
++		const m = /[\\/]public[\\/](.+)$/.exec(String(dir));
++		return m ? "/" + m[1].replace(/\\/g, "/").replace(/\/?$/, "/") : null;
++	}
++
++	/** The url if the lookup has loaded and knows the name, else null (it does not fetch). */
++	static of(name){ return AgentUrl.urls?.get(name) ?? null; }
++
++	/** The url once the lookup has loaded, else null. */
++	static async find(name){ return (await AgentUrl.load()).get(name) ?? null; }
++}
+diff --git a/public/framework/ai/AISession/readme.md b/public/framework/ai/AISession/readme.md
+index 8ad07c567..5e495016b 100644
+--- a/public/framework/ai/AISession/readme.md
++++ b/public/framework/ai/AISession/readme.md
+@@ -17,6 +17,7 @@
+ - A session folder's one record is `session.jsonl`; a task folder keeps `task.jsonl`: [../sessions/doc/session-record.md](../sessions/doc/session-record.md).
+ - Decisions: [doc/accounting-decision.md](doc/accounting-decision.md) — the session-folder shape is folded into the task system; each ask's verdict.
+ - `PromptLog.js` · `StoreFolder.js` — prompts of a session, and the folder one lives in.
++- `AgentUrl.js` — an agent's name (`mastermind-…`, `minion-…`) to the url of its task folder, read once from `ai/index.json`; ext/Mention links through it and `AISessionsPage.child()` redirects `/sessions/<name>/` by it. A bare name with no agent, row or voice record gets `AISessionsPage.not_found` ("Session not found") instead of a page that reads forever.
+ 
+ **Which URL a session lives at.** A session's page is at its folder's path, `/framework/ai/sessions/YYYY/MM/DD/<folder>/`, the same path where its `session.jsonl`, `page.jsonl` and task folders are saved, so the address bar and the disk agree. The folder name comes from the index (`session-<id8>`, or a Servex agent's own name), so it is unique and never changes when the session is renamed; the page shows the readable title. `StoreFolder.child()` reads line 1 of the folder's `session.jsonl` (`session` or `assign`), learns the id, and draws `AISessionDetail` there; real subfolders (task folders, a project folder such as `sessions-and-tasks/`) still route below it through `StoreFolder.route()`. The id URL `/framework/ai/sessions/<id>/` (uuid or agent id) is only a way in: `AISessionsPage.child()` looks up the folder (`AISessionDetail.folder_for`) and `route()` redirects there with `location.replace`, keeping `?search` and `#hash`. A session with no folder yet keeps its page at the id URL (no redirect, so no loop). Every link the site builds to a session goes through `AISession.page_url(id, fallback)`, which answers the folder path once the index has named the folder, else the fallback; the phone pages under `v/mobile/` keep their own routes.
+ 
+diff --git a/public/framework/ai/sessions/readme.md b/public/framework/ai/sessions/readme.md
+index b7665f8e4..c7ef6cab4 100644
+--- a/public/framework/ai/sessions/readme.md
++++ b/public/framework/ai/sessions/readme.md
+@@ -55,7 +55,7 @@ A session folder is one of three kinds:
+ 
+ - **The page**: `page.js` builds `AISessionsPage` (`ai/AISession/`), a table or rail of cards over [ext/DataGrid](/framework/ext/DataGrid/). Rows are `AISessionView`, order and nesting `AISessionsPage.arrange()`, built from `session-tree.json` plus the live `index.json` snapshots pushed over the page's socket.
+ - **A year, month or day folder** (`/framework/ai/sessions/2026/10/`): `StoreFolder.sessions` (`ai/AISession/StoreFolder.js`). A year lists its months and a month its days, each with its session count and cost from the rolled-up `index.json`; a day lists its sessions. A folder with no rolled-up `index.json` says so in words (it is asked for only when the folder listing shows one).
+-- **One session**: its dated folder, `/framework/ai/sessions/YYYY/MM/DD/<folder>/` → `AISessionDetail` (drawn there by `StoreFolder.child()`; `/framework/ai/sessions/<id>/` only redirects to it, and stays the page for a session with no folder yet; links use `AISession.page_url()`; [core/Session/doc/identity.md](/framework/core/Session/doc/identity.md), "One session, one folder, one URL"): a sticky stats bar, then the tabs Overview (the session's work grouped by child session, each child's name linking to its own page, then the session's own work grouped by prompt: `SessionOutlineView`) · Timeline (every prompt and record line in time order, newest last, Filters ▾: `SessionTimeline`) · Board (the four cards: open, project, done, dropped) · Tasks · Chat (the Work view is the Tasks tab; `?tab=work` and `?tab=conversation` still map), then Coverage, Cost and the rest. The stats bar reads `SessionWork`'s task tree; files `SessionOverview`, `SessionStats`, `SessionTaskRow` are in [AISession](/framework/ai/AISession/readme.md). Coverage tab: [ext/Refine/doc/refine-queue.md](/framework/ext/Refine/doc/refine-queue.md).
++- **One session**: its dated folder, `/framework/ai/sessions/YYYY/MM/DD/<folder>/` → `AISessionDetail` (drawn there by `StoreFolder.child()`; `/framework/ai/sessions/<id>/` only redirects to it, and stays the page for a session with no folder yet; `/framework/ai/sessions/<agent-name>/` (`mastermind-…`, `minion-…`) redirects to that agent's task folder through `AgentUrl` (`ai/AISession/AgentUrl.js`, built from `ai/index.json`), and a bare name that is no session, no agent and no voice record shows "Session not found" (`AISessionsPage.not_found`); links use `AISession.page_url()`; [core/Session/doc/identity.md](/framework/core/Session/doc/identity.md), "One session, one folder, one URL"): a sticky stats bar, then the tabs Overview (the session's work grouped by child session, each child's name linking to its own page, then the session's own work grouped by prompt: `SessionOutlineView`) · Timeline (every prompt and record line in time order, newest last, Filters ▾: `SessionTimeline`) · Board (the four cards: open, project, done, dropped) · Tasks · Chat (the Work view is the Tasks tab; `?tab=work` and `?tab=conversation` still map), then Coverage, Cost and the rest. The stats bar reads `SessionWork`'s task tree; files `SessionOverview`, `SessionStats`, `SessionTaskRow` are in [AISession](/framework/ai/AISession/readme.md). Coverage tab: [ext/Refine/doc/refine-queue.md](/framework/ext/Refine/doc/refine-queue.md).
+ - **The header**: the list has one sticky header (a Today/Yesterday/7-day/month/custom range menu, the search box, and a Filters menu holding the Table/Rail toggle, chips, page links and counts); [v/classic/](/framework/ai/sessions/v/classic/) is the old all-controls-in-rows layout.
+ - **The cards**: the Rail view draws one short card per root session (`AISessionView` with `card: true`): the title on one line, the cost line from `AICost.cost_line`, then its state with "N child sessions · M in all". A session whose parent is in the list shows only in that parent's count (`AISessionsPage.roots_for_cards`); the Table view keeps the nesting.
+ - **The class**: `class AISession extends Session` (`AISession.js`): totals, `apply_line()` per transcript line, `AISession.of(id)`, `AISession.log()`, `AISession.record(id)`. Classes of the detail page: [doc/ui/classes.md](doc/ui/classes.md).
+diff --git a/public/framework/ext/Mention/Mention.js b/public/framework/ext/Mention/Mention.js
+index 17da9cb82..afa4bd194 100644
+--- a/public/framework/ext/Mention/Mention.js
++++ b/public/framework/ext/Mention/Mention.js
+@@ -4,6 +4,7 @@ import item from "../../ui/item/item.js";
+ import { css } from "../../ui/parts.js";
+ import refs from "./maps/refs.js";
+ import people from "./maps/people.js";
++import AgentUrl from "../../ai/AISession/AgentUrl.js";
+ 
+ // CSS specificity dance and dark mention styling: doc/Mention-notes.md
+ css(`@layer theme {
+@@ -103,9 +104,19 @@ function find(map, name){
+ // Live agent ids: doc/Mention-notes.md
+ const AGENT_KIND = [[/^task-mastermind-/, "psychology"], [/^mastermind-/, "psychology"],
+ 	[/^minion-/, "smart_toy"], [/^manager-/, "support_agent"], [/^assistant/, "bolt"]];
++// The agent's real page is its task folder in the dated store (ai/AISession/AgentUrl.js reads it from ai/index.json). Until that has
++// loaded a link points at /framework/ai/sessions/<name>/, which redirects there; `data-agent` lets retarget() swap the href in place.
+ function agent_entry(name){
+ 	const icon = AGENT_KIND.find(([re]) => re.test(name))?.[1];
+-	return icon ? { key: name, icon, url: `/framework/ai/sessions/${name}/` } : null;   // that page opens a Servex agent by its id
++	if (!icon) return null;
++	if (!AgentUrl.pending) AgentUrl.load().then(retarget);
++	return { key: name, icon, agent: name, url: AgentUrl.of(name) ?? `/framework/ai/sessions/${name}/` };
++}
++function retarget(){
++	for (const el of document.querySelectorAll("a[data-agent]")){
++		const url = AgentUrl.of(el.dataset.agent);
++		if (url) el.setAttribute("href", url);
++	}
+ }
+ 
+ // Path lookup: doc/Mention-notes.md
+@@ -119,7 +130,7 @@ function lookup_cached(m, sigil, raw){
+ 	if (!hit) return null;
+ 	if (!rest.length) return { name: hit.key, ...hit };
+ 	const url = hit.url ? hit.url.replace(/\/?$/, "/") + rest.join("/") + "/" : undefined;
+-	return { ...hit, name: [hit.key, ...rest].join("/"), url };
++	return { ...hit, agent: undefined, name: [hit.key, ...rest].join("/"), url };
+ }
+ 
+ // Live instances vs. cache: doc/Mention-notes.md
+@@ -160,8 +171,10 @@ export function build_row(name, entry, extra = "inline mention"){
+ 	const saved = View.captor;
+ 	View.captor = null;
+ 	try {
+-		return item(entry.url ? { icon: entry.icon, name, href: entry.url } : { icon: entry.icon, name })
++		const row = item(entry.url ? { icon: entry.icon, name, href: entry.url } : { icon: entry.icon, name })
+ 			.ac(extra).ac(kind_class(entry)).ac(entry.class_card && "page-surface-dark").el;
++		if (entry.agent) row.dataset.agent = entry.agent;
++		return row;
+ 	} finally {
+ 		View.captor = saved;
+ 	}
+@@ -249,7 +262,7 @@ export function mention_html(str, m = maps){
+ 
+ 		const entry = as_kind(sigil, found), name = shown(sigil, raw, found);
+ 		const tag = entry.url ? "a" : "span";
+-		const href = entry.url ? ` href="${entry.url.replaceAll('"', "&quot;")}"` : "";
++		const href = entry.url ? ` href="${entry.url.replaceAll('"', "&quot;")}"` + (entry.agent ? ` data-agent="${entry.agent}"` : "") : "";
+ 		const dark = entry.class_card ? " page-surface-dark" : "";
+ 		return `<${tag} class="item inline mention ${kind_class(entry)}${dark}"${href}>`
+ 			+ `<span class="material-icons icon item-icon">${entry.icon}</span>`
+diff --git a/public/framework/ext/Mention/doc/Mention-notes.md b/public/framework/ext/Mention/doc/Mention-notes.md
+index c5f1937e2..420674518 100644
+--- a/public/framework/ext/Mention/doc/Mention-notes.md
++++ b/public/framework/ext/Mention/doc/Mention-notes.md
+@@ -28,7 +28,7 @@ A page nobody has loaded yet has no live instance to ask, so the cache is still
+ 
+ ## Live agent ids
+ 
+-A live agent's own id is never in `people.js` — Servex mints one per task (`task-mastermind-inbox-cards-work`, `minion-card`, …), unbounded. There is no roster to keep in sync the way `refs.js`'s fixed pages are (bug, 2026-10-03: a card's own text named `@task-mastermind-…` and it stayed plain words). It links to `/framework/ai/sessions/<id>/`, which opens a Servex agent by its id (`AISessionDetail.agent_row`), and reads as a small icon mention by its own shape, using the four kinds `activity.js`'s `who_word()` already names in plain sentences.
++A live agent's own id is never in `people.js` — Servex mints one per task (`task-mastermind-inbox-cards-work`, `minion-card`, …), unbounded. There is no roster to keep in sync the way `refs.js`'s fixed pages are (bug, 2026-10-03: a card's own text named `@task-mastermind-…` and it stayed plain words). It links to `/framework/ai/sessions/<id>/`, which `AISessionsPage.child()` redirects to the agent's task folder (`AgentUrl`; an unknown name shows "Session not found"). `Mention.js` builds the link synchronously with that fallback url and `retarget()` swaps in the real folder url (via `data-agent`) once `AgentUrl.load()` resolves, so a link never waits on the fetch. It reads as a small icon mention by its own shape, using the four kinds `activity.js`'s `who_word()` already names in plain sentences.
+ 
+ ## Path as parent/child lookup
+ 
+diff --git a/public/framework/ext/Mention/readme.md b/public/framework/ext/Mention/readme.md
+index 20ec030a0..8bf3fff04 100644
+--- a/public/framework/ext/Mention/readme.md
++++ b/public/framework/ext/Mention/readme.md
+@@ -22,7 +22,7 @@ Adding a name: open [`maps/refs.js`](maps/refs.js) (things — `#`) or
+ `Name: { url, icon }`. `icon` is a [Material Symbols](https://fonts.google.com/icons) name, the
+ same ones `ui.item` takes.
+ 
+-- **Agent ids and inline code (2026-10-25):** `@mastermind-x` (or a bare `mastermind-x` alone in backticks) links to `/framework/ai/sessions/<id>/`, which opens that agent. An inline code span holding only one reference (`/framework/ai/`, `@owner`, an agent id) becomes the link; longer code and code blocks stay code. See [`doc/Mention-notes.md`](doc/Mention-notes.md).
++- **Agent ids and inline code (2026-10-25):** `@mastermind-x` (or a bare `mastermind-x` alone in backticks) links to the agent's real page, its task folder in the dated store: `AgentUrl` ([ai/AISession/AgentUrl.js](/framework/ai/AISession/AgentUrl.js), one lookup built from `ai/index.json`) retargets each `a[data-agent]` once it loads; until then, and for a name with no folder, the href is `/framework/ai/sessions/<id>/`, which redirects or says "Session not found". An inline code span holding only one reference (`/framework/ai/`, `@owner`, an agent id) becomes the link; longer code and code blocks stay code. See [`doc/Mention-notes.md`](doc/Mention-notes.md).
+ - **Three command characters (2026-10-19):** `/path` is a real site path (checked against the folder listings, no map), `@` an actor, `#` a class or concept, each with its own icon and colour; see [`doc/architecture.md`](doc/architecture.md) and the [demo](/framework/ext/Mention/).
+ 
+ ## Watch out

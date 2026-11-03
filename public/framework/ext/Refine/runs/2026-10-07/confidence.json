@@ -1,0 +1,743 @@
+{
+ "day": "2026-10-07",
+ "scale": 2,
+ "truncated": true,
+ "sources": [
+  "sessions/2026/10/07/feedback-council/checker-1/requirements.md",
+  "sessions/2026/10/07/feedback-council/checker-2/requirements.md",
+  "sessions/2026/10/07/feedback-council/checker-3/requirements.md",
+  "sessions/2026/10/07/feedback-council/checker-4/requirements.md",
+  "sessions/2026/10/07/feedback-council/checker-5/requirements.md",
+  "sessions/2026/10/07/feedback-council/requirements.md"
+ ],
+ "asks": [
+  {
+   "n": 1,
+   "kind": "command",
+   "ask": "Five checkers verify their own asks on monorepo.localhost, never localhost",
+   "quote": "The live site: http://monorepo.localhost (never http://localhost/)",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Raw names the host, forbids localhost, and lists five checker files"
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Each checker writes votes/checker-N.json covering its ids"
+   }
+  },
+  {
+   "n": 2,
+   "kind": "command",
+   "ask": "Checkers read the card, ask history and run folder first",
+   "quote": "No new words landed today (`words.jsonl` is empty)",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Read-first list of three locations is explicit in each file"
+   },
+   "outcome_clear": {
+    "p": 0.5,
+    "evidence": "Reading leaves no visible artifact; only its effect shows in votes"
+   }
+  },
+  {
+   "n": 3,
+   "kind": "directive",
+   "ask": "Each checker verifies its own asks; prior verdicts are only pointers",
+   "quote": "prior verdict/evidence shown is NOT truth, just a pointer",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Raw says prior verdicts are not truth, only pointers, in every file"
+   },
+   "outcome_clear": {
+    "p": 0.6,
+    "evidence": "Votes must reflect fresh checks, not copied prior verdicts"
+   }
+  },
+  {
+   "n": 4,
+   "kind": "command",
+   "ask": "Give every ask one verdict with evidence; search the repo before 'missing'",
+   "quote": "Prove before you call something missing",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Four verdict labels and the search-first rule are stated explicitly"
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Votes hold one verdict and evidence per id, checkable by file"
+   }
+  },
+  {
+   "n": 5,
+   "kind": "command",
+   "ask": "Verify visuals headless at 1920 and 3440; time Live load; measure overflow",
+   "quote": "headless Playwright at 1920 and 3440",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Viewports, headless browser, timing and overflow measures are all named"
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Timed load and overflow numbers recorded per named URL"
+   }
+  },
+  {
+   "n": 6,
+   "kind": "directive",
+   "ask": "Checkers edit no repo file; scratch stays private, at most 12 shots",
+   "quote": "Do NOT edit any repo file. Scratch goes in your scratchpad",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Explicit prohibition, scratch location and shot cap are written"
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Git shows no repo edits; shots folder holds 12 or fewer"
+   }
+  },
+  {
+   "n": 7,
+   "kind": "command",
+   "ask": "About page back-button icon is aligned",
+   "quote": "Back-button icon on the about page is aligned",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Specific element and page named; alignment is a checkable property"
+   },
+   "outcome_clear": {
+    "p": 0.6,
+    "evidence": "Brief marks done, but the checker had not looked at it"
+   }
+  },
+  {
+   "n": 8,
+   "kind": "command",
+   "ask": "Fix Live card preview showing [object Object] so it reads at a glance",
+   "quote": "Card content is clear at a glance",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Bug symptom named: the [object Object] preview line"
+   },
+   "outcome_clear": {
+    "p": 0.6,
+    "evidence": "'Reads at a glance' is a judgment with no measured threshold"
+   }
+  },
+  {
+   "n": 9,
+   "kind": "command",
+   "ask": "Live card must load fast or be removed; time the cold load",
+   "quote": "Live card loads fast, or is removed",
+   "ask_clear": {
+    "p": 0.6,
+    "evidence": "Decision is required, but 'fast' has no number attached"
+   },
+   "outcome_clear": {
+    "p": 0.45,
+    "evidence": "'Fast' undefined; removal is the other branch, so end state varies"
+   }
+  },
+  {
+   "n": 10,
+   "kind": "question",
+   "ask": "Decide whether Live working without Servex is acceptable",
+   "quote": "AI 2 works without Servex (last verdict: partly",
+   "ask_clear": {
+    "p": 0.6,
+    "evidence": "Question is clear, but 'acceptable' is left to the agent"
+   },
+   "outcome_clear": {
+    "p": 0.4,
+    "evidence": "Only end state is a recorded decision plus a no-Servex test"
+   }
+  },
+  {
+   "n": 11,
+   "kind": "command",
+   "ask": "Clicking a Live agent opens a top-aligned column, not a tab",
+   "quote": "Clicking a Live agent opens a top-aligned column",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Click behaviour and column alignment named exactly, versus a tab"
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Click yields a top-aligned column, checkable on a screenshot"
+   }
+  },
+  {
+   "n": 12,
+   "kind": "command",
+   "ask": "Finished cards need not stay in the Cards list",
+   "quote": "Finished cards need not stay in the list",
+   "ask_clear": {
+    "p": 0.65,
+    "evidence": "Intent clear, but hidden versus archived is not settled"
+   },
+   "outcome_clear": {
+    "p": 0.65,
+    "evidence": "Finished cards gone from list; archive-versus-hide choice open"
+   }
+  },
+  {
+   "n": 13,
+   "kind": "command",
+   "ask": "Rail rows get gaps and rounded corners per card",
+   "quote": "a gap between cards, or rounding only on the whole stack",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Both fixes named; per-card rounding is stated explicitly"
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Gap and radius visible on each rail row, checkable on screenshot"
+   }
+  },
+  {
+   "n": 14,
+   "kind": "directive",
+   "ask": "Cards lead with the picture; words come after",
+   "quote": "Show, don't tell; words after the picture",
+   "ask_clear": {
+    "p": 0.55,
+    "evidence": "Principle clear, but which cards to change is open"
+   },
+   "outcome_clear": {
+    "p": 0.35,
+    "evidence": "'Show not tell' is a judgment with no pass-fail check"
+   }
+  },
+  {
+   "n": 15,
+   "kind": "command",
+   "ask": "Card list is time-based: newest on top, timestamps back",
+   "quote": "The list is time-based, newest card on top, timestamps back",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Order and timestamps stated plainly in the ask"
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Newest-first order and timestamps visible on every card"
+   }
+  },
+  {
+   "n": 16,
+   "kind": "command",
+   "ask": "Any agent can add a card to the top of the list instantly",
+   "quote": "Any agent can add a card to the top of the list",
+   "ask_clear": {
+    "p": 0.75,
+    "evidence": "Who and where are clear; 'at once' is loose wording"
+   },
+   "outcome_clear": {
+    "p": 0.6,
+    "evidence": "Top insertion checkable live; 'at once' needs a timing test"
+   }
+  },
+  {
+   "n": 17,
+   "kind": "command",
+   "ask": "Cards update by themselves, without flashing",
+   "quote": "Cards update programmatically (last verdict: partly",
+   "ask_clear": {
+    "p": 0.6,
+    "evidence": "Live updating is clear; the flashing defect is vague"
+   },
+   "outcome_clear": {
+    "p": 0.45,
+    "evidence": "'Flashing' has no defined test; behaviour not yet seen"
+   }
+  },
+  {
+   "n": 18,
+   "kind": "command",
+   "ask": "Segmented bar: N equal segments turn green as steps finish",
+   "quote": "N equal segments turn green as steps finish",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Segment count rule and green-on-finish colour stated exactly"
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Segments equal steps and turn green as each finishes, checkable"
+   }
+  },
+  {
+   "n": 19,
+   "kind": "command",
+   "ask": "Tasks nest under their parent card with a recognizable icon",
+   "quote": "every task/card should visibly nest under its parent card",
+   "ask_clear": {
+    "p": 0.7,
+    "evidence": "Nesting is clear; 'recognizable icon' is undefined"
+   },
+   "outcome_clear": {
+    "p": 0.55,
+    "evidence": "Child under parent with an icon checkable; icon choice open"
+   }
+  },
+  {
+   "n": 20,
+   "kind": "command",
+   "ask": "Layouts work at 3440, not a stretched mobile layout",
+   "quote": "Layouts work at 3440, not a mobile layout stretched",
+   "ask_clear": {
+    "p": 0.7,
+    "evidence": "Target width and failure mode named; no threshold given"
+   },
+   "outcome_clear": {
+    "p": 0.55,
+    "evidence": "No large empty area at 3440; threshold not measured yet"
+   }
+  },
+  {
+   "n": 21,
+   "kind": "command",
+   "ask": "Page padding keeps content inset from the rail",
+   "quote": "Both shots show content inset from the rail",
+   "ask_clear": {
+    "p": 0.65,
+    "evidence": "Inset goal clear; what counts as right is open"
+   },
+   "outcome_clear": {
+    "p": 0.5,
+    "evidence": "ai-dashboard route still unverified; no overflow measure yet"
+   }
+  },
+  {
+   "n": 22,
+   "kind": "command",
+   "ask": "Padding becomes opt-in: add a .pad class where needed",
+   "quote": "Padding should be opt-in, not default: add a .pad class",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Class name and opt-in rule given explicitly in the ask"
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": ".pad exists and default page padding removed; checkable in CSS"
+   }
+  },
+  {
+   "n": 23,
+   "kind": "command",
+   "ask": "Detail pages must scroll; prove it with a real overflow measure",
+   "quote": "Detail pages scroll (last verdict: partly",
+   "ask_clear": {
+    "p": 0.7,
+    "evidence": "Scroll requirement clear; which pages count is named loosely"
+   },
+   "outcome_clear": {
+    "p": 0.6,
+    "evidence": "Overflow measure shows scrolling on named detail URLs"
+   }
+  },
+  {
+   "n": 24,
+   "kind": "command",
+   "ask": "Build a standing, browsable catalog of layout and nav patterns",
+   "quote": "Build a standing, browsable catalog of the layout and navigation patterns",
+   "ask_clear": {
+    "p": 0.7,
+    "evidence": "Standing and browsable named; scope not defined"
+   },
+   "outcome_clear": {
+    "p": 0.5,
+    "evidence": "What the catalog lists and where it lives is left open"
+   }
+  },
+  {
+   "n": 25,
+   "kind": "command",
+   "ask": "Three-column layout explorer with categories in the left column",
+   "quote": "Build a three-column layout explorer: left = layout categories",
+   "ask_clear": {
+    "p": 0.75,
+    "evidence": "Three columns and left-column categories named explicitly"
+   },
+   "outcome_clear": {
+    "p": 0.35,
+    "evidence": "Transcript cut off; rest of the design is open"
+   }
+  },
+  {
+   "n": 26,
+   "kind": "command",
+   "ask": "Chat uses a comfortable reading width, no narrow scroll boxes",
+   "quote": "uses a comfortable reading width; no independently scrolling narrow areas",
+   "ask_clear": {
+    "p": 0.75,
+    "evidence": "Reading width and no-narrow-scroll rule stated; width unmeasured"
+   },
+   "outcome_clear": {
+    "p": 0.55,
+    "evidence": "'Comfortable' has no pixel target to check against"
+   }
+  },
+  {
+   "n": 27,
+   "kind": "command",
+   "ask": "Fix duplicate assistant replies and owner transcriptions in chat",
+   "quote": "assistant replies (and sometimes the owner's own transcriptions) are appearing twice",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Duplicate symptom and affected message types named exactly"
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Each message appears once in chat and card, checkable"
+   }
+  },
+  {
+   "n": 28,
+   "kind": "command",
+   "ask": "Chat auto-scrolls to newest; stops on scroll-up; jump button returns",
+   "quote": "Chat should auto-scroll to the newest message by default",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Three scroll behaviours spelled out in the ask"
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Scroll stops on scroll-up and jump-to-bottom returns, checkable"
+   }
+  },
+  {
+   "n": 29,
+   "kind": "command",
+   "ask": "Card or task mentions in replies become real clickable links",
+   "quote": "a real clickable hyperlink, not plain text the owner has to copy",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Real hyperlink requirement stated explicitly versus plain text"
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Mention renders as anchor and click navigates, checkable"
+   }
+  },
+  {
+   "n": 30,
+   "kind": "command",
+   "ask": "Wire element-picker selection into the assistant's prompt",
+   "quote": "wire the selection through to the prompt",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Pill shows but prompt lacks selection; the fix is named"
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Assistant's received prompt includes the selected element, checkable"
+   }
+  },
+  {
+   "n": 31,
+   "kind": "command",
+   "ask": "Fast and Smart each get an icon that doubles as avatar and name",
+   "quote": "Give the fast and smart assistants each a chosen icon",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Arrows and brain icons and inline placement named in the ask"
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Icons render inline with each message, visible in a screenshot"
+   }
+  },
+  {
+   "n": 32,
+   "kind": "command",
+   "ask": "Fast sends quick emoji reactions; falls back to a sentence if slow",
+   "quote": "Add lightweight reactions to chat: the fast assistant",
+   "ask_clear": {
+    "p": 0.75,
+    "evidence": "Emoji examples and fallback rule clear; timeout not given"
+   },
+   "outcome_clear": {
+    "p": 0.5,
+    "evidence": "Fallback wait time unset, so 'in time' is untestable"
+   }
+  },
+  {
+   "n": 33,
+   "kind": "command",
+   "ask": "Named things stay visible in chat as context cards with icon and name",
+   "quote": "keep it visible as a context card",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Context card with icon and name on top is stated clearly"
+   },
+   "outcome_clear": {
+    "p": 0.65,
+    "evidence": "Card appears in chat when a thing is named; checkable"
+   }
+  },
+  {
+   "n": 34,
+   "kind": "command",
+   "ask": "Chat replies can attach to one specific card or comment",
+   "quote": "Support threaded replies to one specific card or comment",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Threaded replies to one card or comment named explicitly"
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Reply shows attached to its target, not the main stream"
+   }
+  },
+  {
+   "n": 35,
+   "kind": "command",
+   "ask": "Compact dictation header; drop back button; merge gear and more",
+   "quote": "drop the redundant back button (keep the X)",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Each header change is listed as a separate item"
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Header shows X plus one merged menu, checkable on screenshot"
+   }
+  },
+  {
+   "n": 36,
+   "kind": "command",
+   "ask": "Restore the microphone start and stop sound cue",
+   "quote": "Restore the microphone start/stop sound cue; it stopped playing",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Restore the start and stop cue, both named explicitly"
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Cue plays on start and stop; audio is hard to verify headless"
+   }
+  },
+  {
+   "n": 37,
+   "kind": "command",
+   "ask": "Mic keeps listening after sheet closes; opening can auto-start it",
+   "quote": "Closing the dictation sheet should not stop the microphone from listening",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Sheet and mic independence and auto-start stated explicitly"
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Mic state holds after close and auto-starts on open, checkable"
+   }
+  },
+  {
+   "n": 38,
+   "kind": "command",
+   "ask": "Clean transcribe mode sends speech straight into chat; consider default",
+   "quote": "mode toggle that sends dictation straight into the chat",
+   "ask_clear": {
+    "p": 0.75,
+    "evidence": "Mode is clear; 'consider default' leaves the choice open"
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Speech lands in chat with no text area in that mode"
+   }
+  },
+  {
+   "n": 39,
+   "kind": "command",
+   "ask": "Audio bar becomes a pulsing dot that floats and reopens the sheet",
+   "quote": "Replace the fixed-height audio level bar with a small pulsing dot",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Dot, volume growth, floating and tap-to-reopen all named"
+   },
+   "outcome_clear": {
+    "p": 0.75,
+    "evidence": "Dot grows with volume and reopens the sheet on tap, checkable"
+   }
+  },
+  {
+   "n": 40,
+   "kind": "command",
+   "ask": "Speed up transcription-to-text and the assistant reply, both",
+   "quote": "The dictation-to-chat pipeline is too slow",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Both delays named, with measured seconds in the ask"
+   },
+   "outcome_clear": {
+    "p": 0.4,
+    "evidence": "No target seconds set; 'speed up' has no finish line"
+   }
+  },
+  {
+   "n": 41,
+   "kind": "command",
+   "ask": "Now card top tabs become real routed pages, not hash identifiers",
+   "quote": "The Now card's tiny top tabs should be real routed pages",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Routed pages versus hash identifiers stated explicitly"
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Each tab has its own URL; reload and back land in place"
+   }
+  },
+  {
+   "n": 42,
+   "kind": "command",
+   "ask": "Chat stays a persistent right sidebar; top tabs omit chat",
+   "quote": "chat stays a persistent right sidebar",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Sidebar placement and tab exclusion both stated explicitly"
+   },
+   "outcome_clear": {
+    "p": 0.8,
+    "evidence": "Chat appears in sidebar only and is absent from top tabs"
+   }
+  },
+  {
+   "n": 43,
+   "kind": "directive",
+   "ask": "Skills are instructive: could or should, not have to, unless a law",
+   "quote": "Skills still contain 'must' or 'have to'",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Rule and the law exception are stated; violations are listed"
+   },
+   "outcome_clear": {
+    "p": 0.7,
+    "evidence": "Grep finds no have-to or must outside laws, checkable"
+   }
+  },
+  {
+   "n": 44,
+   "kind": "directive",
+   "ask": "Layout/padding skill runs on every layout; maybe folded into paging",
+   "quote": "invoked every time any layout is designed",
+   "ask_clear": {
+    "p": 0.7,
+    "evidence": "Invoke-every-time rule is clear; folding is optional"
+   },
+   "outcome_clear": {
+    "p": 0.5,
+    "evidence": "Folding decision is open; no record of invocation yet"
+   }
+  },
+  {
+   "n": 45,
+   "kind": "command",
+   "ask": "Page MCP changes layouts, adds content, creates pages and sub-pages",
+   "quote": "Page MCP: change layouts, add content, create pages and sub-pages",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Four capabilities named; the MCP server is the surface"
+   },
+   "outcome_clear": {
+    "p": 0.65,
+    "evidence": "Each tool call succeeds on a test page, checkable"
+   }
+  },
+  {
+   "n": 46,
+   "kind": "command",
+   "ask": "Simplify page system, document live JSONL pages, trim core docs",
+   "quote": "Page system upgrade: simpler, live JSONL pages documented",
+   "ask_clear": {
+    "p": 0.55,
+    "evidence": "'Simpler' has no concrete target; docs trim is vague"
+   },
+   "outcome_clear": {
+    "p": 0.4,
+    "evidence": "JSONL docs exist and shorter; size and simplicity undefined"
+   }
+  },
+  {
+   "n": 47,
+   "kind": "command",
+   "ask": "CSS audit by directory: tree view with proposals to cut",
+   "quote": "CSS audit by directory with a tree view of CSS amounts",
+   "ask_clear": {
+    "p": 0.7,
+    "evidence": "Tree view and cut proposals named; token and query use too"
+   },
+   "outcome_clear": {
+    "p": 0.55,
+    "evidence": "Tree and ranked cuts checkable; cut quality not measured"
+   }
+  },
+  {
+   "n": 48,
+   "kind": "command",
+   "ask": "One short readme per module replaces old bloated agents",
+   "quote": "Ready agent per module (short readme as the way in",
+   "ask_clear": {
+    "p": 0.6,
+    "evidence": "'Ready agent' concept is vague beyond the readme itself"
+   },
+   "outcome_clear": {
+    "p": 0.45,
+    "evidence": "Old agents removed and one short entry per module; checkable"
+   }
+  },
+  {
+   "n": 49,
+   "kind": "command",
+   "ask": "One minion per prompt audits the week's unfinished and half-done tasks",
+   "quote": "Audit of the week's tasks: a minion per prompt",
+   "ask_clear": {
+    "p": 0.75,
+    "evidence": "Minion-per-prompt shape named; output format is loose"
+   },
+   "outcome_clear": {
+    "p": 0.6,
+    "evidence": "Each task gets an unfinished or half-finished verdict, checkable"
+   }
+  },
+  {
+   "n": 50,
+   "kind": "command",
+   "ask": "Monitor console errors per worktree; screenshot layout check before commit",
+   "quote": "Monitor: watcher of console errors per worktree, layout check",
+   "ask_clear": {
+    "p": 0.75,
+    "evidence": "Both monitors named; per-worktree watcher scope is clear"
+   },
+   "outcome_clear": {
+    "p": 0.55,
+    "evidence": "Per-worktree watcher known not to run; that gap remains open"
+   }
+  },
+  {
+   "n": 51,
+   "kind": "command",
+   "ask": "Build a text-to-speech Voice class that pairs with Whisper dictation",
+   "quote": "pairing with the existing Whisper dictation, with streaming output",
+   "ask_clear": {
+    "p": 0.8,
+    "evidence": "Streaming, switchable voices and timing rules are all named"
+   },
+   "outcome_clear": {
+    "p": 0.45,
+    "evidence": "Timing rules and full voice-chat scope are not defined"
+   }
+  },
+  {
+   "n": 52,
+   "kind": "command",
+   "ask": "Phone access via Cloudflare Tunnel instead of the local Wi-Fi IP",
+   "quote": "preferred over Tailscale or a new paid service",
+   "ask_clear": {
+    "p": 0.85,
+    "evidence": "Tunnel choice and replacement of the Wi-Fi IP are explicit"
+   },
+   "outcome_clear": {
+    "p": 0.65,
+    "evidence": "Phone reaches site via tunnel; needs an owner-side Cloudflare login"
+   }
+  }
+ ]
+}

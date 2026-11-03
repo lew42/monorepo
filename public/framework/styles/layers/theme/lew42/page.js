@@ -1,6 +1,12 @@
-import { Page, View, Sidebar, md, demo, div, p, button, pre, span, icon } from "/app.js";
+import { Doc, Sidebar, md, demo, div, p, button, pre, span, icon } from "/app.js";
 
-View.stylesheet(import.meta, "lew42.css");
+/* css: .theme-lew42 — and the IMPORT is the loading edge, not the annotation.
+ * This page used to call `View.stylesheet(import.meta, "lew42.css")` itself,
+ * which `lew42.js` already does at module scope. `View.stylesheet()` does not
+ * dedupe — it appends a <link> per call — so the site got two identical <link>s
+ * and boot awaited two promises for one file. Importing the module that owns the
+ * CSS is the rule everywhere else; it applies here too. */
+import "./lew42.js";
 
 /* One block of markup, rendered under the theme and under nothing. Same DOM,
  * same classes, no theme-aware code — which is the claim, so it had better be
@@ -36,11 +42,13 @@ const sidebar = () => new Sidebar({
 	],
 });
 
-export default new Page({
+export default new Doc({
 	meta: import.meta,
 	title: "lew42",
 	description: "The house theme — Montserrat, one orange, and a sidebar that reads its ink from a token.",
-	icon: "auto_awesome",
+	icon: "brush",
+	files: "page.js lew42.css lew42.js readme.md",
+	notes: "decisions",
 	content(){
 
 		/* No font call here any more. It used to live on this page, because 166KB
@@ -54,17 +62,20 @@ export default new Page({
 
 		md("## The sidebar, from two tokens");
 
+		/* `.cols.main-aside` (framework.css) — DOM is main-then-sidebar (the rule's own
+		   order); `order: -1` puts the sidebar back on the left. `--cols-aside` reads
+		   the same `--sidebar` token the panel already sizes itself from. */
 		demo(() => {
-			div.c("theme-lew42 flex gap", () => {
-				sidebar().style({ flex: "0 0 var(--sidebar)" });
+			div.c("theme-lew42 cols main-aside", () => {
 				div.c("pad flex-1", sample);
+				sidebar().style({ order: "-1", "--cols-aside": "var(--sidebar)" });
 			});
 		}, "Core's `Sidebar`, unmodified. The comp's white panel is `--sidebar-bg` and `--sidebar-ink`; every other colour in it — the group title, the icons, the hover fill, the active row — is a `color-mix` off that one ink.");
 
 		demo(() => {
-			div.c("theme-lew42 flex gap", () => {
-				sidebar().style({ flex: "0 0 var(--sidebar)" });
+			div.c("theme-lew42 cols main-aside", () => {
 				div.c("pad flex-1", sample);
+				sidebar().style({ order: "-1", "--cols-aside": "var(--sidebar)" });
 			}).style({ "--sidebar-bg": "#1f1f1f", "--sidebar-ink": "#e6e6e6" });
 		}, "The comp's other sidebar. **Two token values, no second design** — and nothing in `lew42.css` mentions `.sidebar`, because a theme that names a component class is a component missing a token.");
 
@@ -95,6 +106,6 @@ export default new Page({
 
 		md("Next: [util](/framework/styles/layers/util/) — the opt-in classes that mean you rarely write CSS at all.");
 
-		md.details(import.meta, "readme.md", "Design record — the Figma port, and what didn't fit");
+		md.details(import.meta, "readme.md", "Readme");
 	}
 });

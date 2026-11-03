@@ -1,0 +1,5 @@
+# codrops — round 2 (Sonnet)
+
+Same rules as `requirements.md` in this dir (read it), plus `public/imagine/codrops/readme.md` — round 1's porting rules and its table. Task dir: `../codrops-2/` (create its `task.jsonl` there with `new-task`, group `codrops`).
+
+Port **three more** demos into `public/imagine/codrops/<slug>/`, adding a row to the table and a card on the hub (edit `codrops/page.js`'s `DEMOS` and `children:`). Prefer this round: one page-transition or reveal effect (the realm's own `swap`/`launch` vocabulary from `/imagine/paging/` — say which mechanism the demo is), one scroll-driven layout (sticky/parallax sections), one typography/text effect. Same licence discipline (read the LICENSE file; a readme that forbids redistribution is a no), same substitutions (framework words first), same proofs (ui-test before/after, four widths, reduced-motion). Log which demos you rejected and why. Budget ~250k tokens. Report in ≤ 10 lines: the three new urls with originals and licences, what was rejected, tokens.

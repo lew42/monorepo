@@ -1,0 +1,29 @@
+kind	file	line	text
+compat	public/framework/core/Item/Item.js	128	// ⚠ compat only, one release (2026-10-03 fold-away) — never WRITE this form
+compat	public/framework/core/Item/Item.js	190	/* ⚠ Compat only (2026-10-03) — the OLD `/`-separated multi-hop path `at` used
+compat	public/framework/core/Item/Item.js	347	// (its legacy line shapes) and `replay_end` (anything inferred once all lines are in).
+compat	public/framework/core/Item/live/page.js	8	⚠ `render_content(){…}` here, NOT `content(){…}`. `content` is the legacy render
+compat	public/framework/core/Item/Store.js	236	/* ⚠ Compat only (2026-10-03) — the OLD `/`-separated path, kept ONLY to spell a
+compat	public/framework/core/List/List.js	67	// Back-compat aliases for the pre-rename names — several callers outside this
+compat	public/framework/core/Page/ai/page.js	24	{ name: "Manager / mastermind", icon: "engineering", href: "doc/manager/", blurb: "the bigger session, kept for a card's whole life, that does the wor
+compat	public/framework/core/Page/doc/comment-blocks.mjs	13	else if (/compat only|one release|drop the special|remove (me|after)/i.test(t)) { cls = "obsolete? check callers, then drop"; dest = "decisions.md (hi
+compat	public/framework/core/Page/doc/comment-move.mjs	15	102: ["jsonl.md", "// Item.apply() routing, plus: an array of lines, every line kept for late listeners, one `line` event each, lazy content."],
+compat	public/framework/core/Page/ext/Inbox/Inbox.js	66	// never empty just because Servex is down). Kept for one release; see this folder's doc.
+compat	public/framework/core/Page/ext/Inbox/Inbox.js	260	// One release of back-compat: every existing import of the old names keeps working
+compat	public/framework/core/Page/tools/links.mjs	59	const SKIP_PREFIXES = ["framework/ai", "framework/core/new", "framework/core/legacy"];
+compat	public/framework/core/Page/words.js	9	width        how much of the region the page takes   (`room` is the old name)
+compat	public/framework/core/Session/Session.js	88	// The record has no legacy fields to infer a state from (Task.replay_end would read it as running): its state is its own lines'.
+compat	public/framework/core/Task/Task.js	27	// Plain fields a top-level line may set (the item tool's {"expected":"…"}); legacy lines keep them under `assign`.
+compat	public/framework/core/Task/Task.js	442	// Old name, kept for old callers and old logs; nothing new writes it.
+compat	public/framework/core/Task/Task.js	445	// ---- Replay: Item.replay / Item.Store.read drive these; only the legacy mapping lives here ----
+compat	public/framework/core/Task/Task.js	605	else if (!partial) this.set({ state: "running" });   // before an explicit line, an open legacy task stays idle so `start` is legal
+compat	public/framework/core/Task/Task.test.mjs	117	check("replay: legacy landed file is finished; session_id maps to session", () => {
+compat	public/framework/core/Task/Task.test.mjs	136	check("replay: legacy closed file is stopped", () => Task.replay([A, { assign: { closed_by: "owner", closed_at: "2026-10-16T12:00:00Z" } }]).state ===
+compat	public/framework/core/Task/Task.test.mjs	137	check("replay: legacy open file is running", () => Task.replay([A, { log: { at: "2026-10-16T10:05:00Z", msg: "x" } }]).state === "running");
+compat	public/framework/core/Task/Task.test.mjs	145	check("replay: wait after legacy lines overrides them, even a later legacy landing only adds data", () => {
+compat	public/framework/core/Task/Task.test.mjs	185	check("complete: legacy steps, step is the current one", () => {
+compat	public/framework/core/Task/Task.test.mjs	194	check("replay: commit lines on a legacy open file stay running", () => {
+compat	public/framework/ext/JSONL/JSONL.js	82	// See doc/JSONL-notes.md (apply() handles verb/stray/legacy line formats).
+compat	public/framework/ext/JSONL/JSONL.js	174	// See doc/JSONL-notes.md (decision merged by id; handle legacy string format).
+compat	public/framework/ext/JSONL/JSONL.js	176	// Handle legacy string format (don't Object.assign onto string).
+compat	public/framework/ext/JSONL/page.js	125	- \`ai/<date>/<task>/task.jsonl\` — the task manifest as a log (**TaskJSONL**, in the rail beside this text). The [day dashboard](/framework/ai/) read

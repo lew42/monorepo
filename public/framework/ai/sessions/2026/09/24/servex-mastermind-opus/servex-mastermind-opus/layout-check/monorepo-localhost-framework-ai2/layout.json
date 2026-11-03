@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ai2/",
+ "widths": {
+  "1280": {
+   "empty": 0.723,
+   "widest_text": 346,
+   "widest_text_sample": "It opens here and stays here while the l",
+   "overflow_x": false,
+   "items": 361,
+   "narrow_share": 0.011
+  },
+  "1920": {
+   "empty": 0.809,
+   "widest_text": 368,
+   "widest_text_sample": "It opens here and stays here while the l",
+   "overflow_x": false,
+   "items": 361,
+   "narrow_share": 0.047
+  },
+  "2560": {
+   "empty": 0.82,
+   "widest_text": 414,
+   "widest_text_sample": "It opens here and stays here while the l",
+   "overflow_x": false,
+   "items": 361,
+   "narrow_share": 0.047
+  },
+  "3440": {
+   "empty": 0.878,
+   "widest_text": 414,
+   "widest_text_sample": "It opens here and stays here while the l",
+   "overflow_x": false,
+   "items": 361,
+   "narrow_share": 1
+  }
+ },
+ "errors": []
+}

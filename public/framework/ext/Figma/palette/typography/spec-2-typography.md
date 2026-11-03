@@ -1,0 +1,17 @@
+# Spec 2 · Typography (Figma node 115:2388, Page 7, The Palette)
+
+Build `palette/typography/page.js` + `palette/typography/typography.css`. Copy the pattern of `../page.js` and `../palette.css` (section 1, already working): Page class, `View.stylesheet(import.meta, "typography.css")`, CSS inside `@layer theme` (restate `@layer base, theme, site, util;` on top), classes prefixed `typ-`.
+
+**Framework facts you must follow (section 1 broke on these):**
+- Factories: `p.c("cls", "text")`, `div.c("cls", () => {...})`. To set an inline style chain `.style("color", value)` AFTER the call; NEVER pass an object `{style:...}` (it prints as text).
+- Page config needs `width: "full"`, and the outer card needs CSS `grid-column: 1 / -1; max-width: none` or it stays 640px wide.
+- Put `align-items: start` on the row of columns (Figma aligns to the top; default stretch looks wrong).
+- Data-driven: one array, one render loop. Text colours go via CSS custom property or `.style`.
+
+Section: white card, radius 16, padding 120px 48px, flex column, gap 32, items start. Header (centered, gap 8): h1 "TYPOGRAPHY" Montserrat 900 48px colour `rgba(0,0,0,.8)`; "All six styles. Three bases. No exceptions." 16px/500, line-height 1.8.
+Row of three equal columns (flex 1 0 0, min-width 0, gap 16, align start), each radius 12, padding 28, flex column gap 16:
+1. **White**: bg `#fff`, 1px border `rgba(0,0,0,.1)`. Chip (padding 6px 12px, radius 4, bg `rgba(0,0,0,.1)` over white) with label "WHITE" (14px bold uppercase letter-spacing .07em, colour `rgba(0,0,0,.8)`). Then in order, colour `rgba(0,0,0,.8)` unless noted: "Heading One" 48px/900 line-height normal; "Heading Two" 36px/700 lh 1.5; "Heading Three" 24px/600 lh 1.4; "HEADING FOUR" 14px/700 uppercase ls .07em lh 1.4; body 16px/500 lh 1.8 "Body text uses the scheme's primary text token. Adapts automatically to each approved base."; same body muted (`rgba(0,0,0,.55)`) "Muted body text for secondary information and supporting copy."; "PRIME ACCENT TEXT" as the h4 style in `#72c4ff`; then a row (gap 16, centered) of links "Learn more", "Documentation", "Get started": 16px/500 `rgba(0,0,0,.8)` each with a 2px underline bar below it (radius 1, colour `#72c4ff` darkened 25% = background `linear-gradient(rgba(0,0,0,.25),rgba(0,0,0,.25)), #72c4ff`).
+2. **Prime**: bg `linear-gradient(rgba(0,0,0,.25),rgba(0,0,0,.25)), #72c4ff`, all text `#fff`. Chip bg the same prime with another 25% black (stacked) label "PRIME". Same four headings (text identical). Body "Body text on prime blue. One approved text role on this base." Then an inset (padding 16, radius 8, gap 16, bg prime + 25% black, as above): label "25% INSET" (h4 style) and body "Primary only inside the 25% black inset on prime." (No links on this column.)
+3. **Dark**: bg `#675f56`, text `#fff`, muted `rgba(255,255,255,.7)`. Chip bg `rgba(255,255,255,.1)` over `#675f56` with label "DARK" in `#72c4ff`. Same four headings white. Body "Primary body on dark brown."; muted body "Muted / secondary body on dark brown."; "PRIME ACCENT ON DARK" (h4 style, `#72c4ff`); links row "Learn more", "Documentation" in white with the same prime 25% underline bars.
+
+Page: `new Page({meta: import.meta, title: "Typography", icon: "text_fields", width: "full", description: "The six type styles on the three approved bases.", content(){...}})`. Touch only `palette/typography/`. No commit. Report in 5 lines: what you built, what you were unsure of.

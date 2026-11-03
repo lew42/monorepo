@@ -1,0 +1,43 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/live/",
+ "widths": {
+  "1280": {
+   "empty": 0.411,
+   "widest_text": 3602,
+   "widest_text_sample": "Deferred from the card-size/badge follow",
+   "overflow_x": false,
+   "items": 61,
+   "narrow_share": 0.148
+  },
+  "1920": {
+   "empty": 0.429,
+   "widest_text": 3833,
+   "widest_text_sample": "Deferred from the card-size/badge follow",
+   "overflow_x": false,
+   "items": 61,
+   "narrow_share": 0.459
+  },
+  "2560": {
+   "empty": 0.467,
+   "widest_text": 4313,
+   "widest_text_sample": "Deferred from the card-size/badge follow",
+   "overflow_x": false,
+   "items": 60,
+   "narrow_share": 0.467
+  },
+  "3440": {
+   "empty": 0.614,
+   "widest_text": 4313,
+   "widest_text_sample": "Deferred from the card-size/badge follow",
+   "overflow_x": false,
+   "items": 61,
+   "narrow_share": 0.656
+  }
+ },
+ "errors": [
+  "2560: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1280: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "3440: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1920: Failed to load resource: the server responded with a status of 404 (Not Found)"
+ ]
+}

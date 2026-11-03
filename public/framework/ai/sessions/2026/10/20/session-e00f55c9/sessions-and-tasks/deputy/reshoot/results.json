@@ -1,0 +1,509 @@
+[
+ {
+  "p": "/framework/ai/sessions/",
+  "w": 400,
+  "file": "shots/root-400.png",
+  "nav": "ok",
+  "errs": 0,
+  "bad": 0
+ },
+ {
+  "p": "/framework/ai/sessions/",
+  "w": 1200,
+  "file": "shots/root-1200.png",
+  "nav": "ok",
+  "errs": 0,
+  "bad": 0
+ },
+ {
+  "p": "/framework/ai/sessions/",
+  "w": 1920,
+  "file": "shots/root-1920.png",
+  "nav": "ok",
+  "errs": 0,
+  "bad": 0
+ },
+ {
+  "p": "/framework/ai/sessions/",
+  "w": 3440,
+  "file": "shots/root-3440.png",
+  "nav": "ok",
+  "errs": 0,
+  "bad": 0
+ },
+ {
+  "p": "/framework/ai/sessions/2026/",
+  "w": 400,
+  "file": "shots/2026-400.png",
+  "nav": "ok",
+  "errs": 0,
+  "bad": 0
+ },
+ {
+  "p": "/framework/ai/sessions/2026/",
+  "w": 1200,
+  "file": "shots/2026-1200.png",
+  "nav": "ok",
+  "errs": 0,
+  "bad": 0
+ },
+ {
+  "p": "/framework/ai/sessions/2026/",
+  "w": 1920,
+  "file": "shots/2026-1920.png",
+  "nav": "ok",
+  "errs": 0,
+  "bad": 0
+ },
+ {
+  "p": "/framework/ai/sessions/2026/",
+  "w": 3440,
+  "file": "shots/2026-3440.png",
+  "nav": "ok",
+  "errs": 0,
+  "bad": 0
+ },
+ {
+  "p": "/framework/ai/sessions/2026/10/",
+  "w": 400,
+  "file": "shots/2026_10-400.png",
+  "nav": "ok",
+  "errs": 0,
+  "bad": 0
+ },
+ {
+  "p": "/framework/ai/sessions/2026/10/",
+  "w": 1200,
+  "file": "shots/2026_10-1200.png",
+  "nav": "ok",
+  "errs": 0,
+  "bad": 0
+ },
+ {
+  "p": "/framework/ai/sessions/2026/10/",
+  "w": 1920,
+  "file": "shots/2026_10-1920.png",
+  "nav": "ok",
+  "errs": 6,
+  "err1": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "bad": 12,
+  "bad1": "404 /framework/ai/sessions/2026/files.jsonl"
+ },
+ {
+  "p": "/framework/ai/sessions/2026/10/",
+  "w": 3440,
+  "file": "shots/2026_10-3440.png",
+  "nav": "ok",
+  "errs": 6,
+  "err1": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "bad": 12,
+  "bad1": "404 /framework/ai/sessions/2026/files.jsonl"
+ },
+ {
+  "p": "/framework/ai/sessions/2026/10/20/",
+  "w": 400,
+  "file": "shots/2026_10_20-400.png",
+  "nav": "ok",
+  "errs": 0,
+  "bad": 0
+ },
+ {
+  "p": "/framework/ai/sessions/2026/10/20/",
+  "w": 1200,
+  "file": "shots/2026_10_20-1200.png",
+  "nav": "ok",
+  "errs": 0,
+  "bad": 0
+ },
+ {
+  "p": "/framework/ai/sessions/2026/10/20/",
+  "w": 1920,
+  "file": "shots/2026_10_20-1920.png",
+  "nav": "ok",
+  "errs": 6,
+  "err1": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "bad": 12,
+  "bad1": "404 /framework/ai/sessions/2026/10/files.jsonl"
+ },
+ {
+  "p": "/framework/ai/sessions/2026/10/20/",
+  "w": 3440,
+  "file": "shots/2026_10_20-3440.png",
+  "nav": "ok",
+  "errs": 6,
+  "err1": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "bad": 12,
+  "bad1": "404 /framework/ai/sessions/2026/10/files.jsonl"
+ },
+ {
+  "p": "/framework/ai/sessions/2026/10/20/session-e00f55c9/",
+  "w": 400,
+  "file": "shots/2026_10_20_session-e00f55c9-400.png",
+  "nav": "page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://mon",
+  "errs": 0,
+  "bad": 0
+ },
+ {
+  "p": "/framework/ai/sessions/2026/10/20/session-e00f55c9/",
+  "w": 1200,
+  "file": "shots/2026_10_20_session-e00f55c9-1200.png",
+  "nav": "page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://mon",
+  "errs": 0,
+  "bad": 0
+ },
+ {
+  "p": "/framework/ai/sessions/2026/10/20/session-e00f55c9/",
+  "w": 1920,
+  "file": "shots/2026_10_20_session-e00f55c9-1920.png",
+  "nav": "ok",
+  "errs": 6,
+  "err1": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "bad": 30,
+  "bad1": "404 /framework/ai/sessions/2026/10/20/files.jsonl"
+ },
+ {
+  "p": "/framework/ai/sessions/2026/10/20/session-e00f55c9/",
+  "w": 3440,
+  "file": "shots/2026_10_20_session-e00f55c9-3440.png",
+  "nav": "ok",
+  "errs": 6,
+  "err1": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "bad": 30,
+  "bad1": "404 /framework/ai/sessions/2026/10/20/files.jsonl"
+ },
+ {
+  "p": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/",
+  "w": 400,
+  "file": "shots/2026_10_20_session-e00f55c9_sessions-and-tasks-400.png",
+  "nav": "ok",
+  "errs": 0,
+  "bad": 36,
+  "bad1": "FAILED /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/task.jsonl"
+ },
+ {
+  "p": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/",
+  "w": 1200,
+  "file": "shots/2026_10_20_session-e00f55c9_sessions-and-tasks-1200.png",
+  "nav": "ok",
+  "errs": 0,
+  "bad": 36,
+  "bad1": "FAILED /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/task.jsonl"
+ },
+ {
+  "p": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/",
+  "w": 1920,
+  "file": "shots/2026_10_20_session-e00f55c9_sessions-and-tasks-1920.png",
+  "nav": "ok",
+  "errs": 2,
+  "err1": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "bad": 40,
+  "bad1": "404 /framework/ai/sessions/2026/10/20/session-e00f55c9/files.jsonl"
+ },
+ {
+  "p": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/",
+  "w": 3440,
+  "file": "shots/2026_10_20_session-e00f55c9_sessions-and-tasks-3440.png",
+  "nav": "ok",
+  "errs": 2,
+  "err1": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "bad": 40,
+  "bad1": "404 /framework/ai/sessions/2026/10/20/session-e00f55c9/files.jsonl"
+ },
+ {
+  "p": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/",
+  "w": 400,
+  "file": "shots/2026_10_20_session-e00f55c9_sessions-and-tasks_deputy-400.png",
+  "nav": "ok",
+  "errs": 0,
+  "bad": 36,
+  "bad1": "FAILED /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/task.jsonl"
+ },
+ {
+  "p": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/",
+  "w": 1200,
+  "file": "shots/2026_10_20_session-e00f55c9_sessions-and-tasks_deputy-1200.png",
+  "nav": "ok",
+  "errs": 0,
+  "bad": 36,
+  "bad1": "FAILED /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/task.jsonl"
+ },
+ {
+  "p": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/",
+  "w": 1920,
+  "file": "shots/2026_10_20_session-e00f55c9_sessions-and-tasks_deputy-1920.png",
+  "nav": "ok",
+  "errs": 1,
+  "err1": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "bad": 38,
+  "bad1": "404 /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/files.jsonl"
+ },
+ {
+  "p": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/",
+  "w": 3440,
+  "file": "shots/2026_10_20_session-e00f55c9_sessions-and-tasks_deputy-3440.png",
+  "nav": "ok",
+  "errs": 1,
+  "err1": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "bad": 38,
+  "bad1": "404 /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/files.jsonl"
+ },
+ {
+  "p": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/",
+  "w": 400,
+  "file": "shots/2026_10_20_session-e00f55c9_sessions-and-tasks_process-system-400.png",
+  "nav": "ok",
+  "errs": 0,
+  "bad": 44,
+  "bad1": "FAILED /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/task.jsonl"
+ },
+ {
+  "p": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/",
+  "w": 1200,
+  "file": "shots/2026_10_20_session-e00f55c9_sessions-and-tasks_process-system-1200.png",
+  "nav": "ok",
+  "errs": 0,
+  "bad": 44,
+  "bad1": "FAILED /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/task.jsonl"
+ },
+ {
+  "p": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/",
+  "w": 1920,
+  "file": "shots/2026_10_20_session-e00f55c9_sessions-and-tasks_process-system-1920.png",
+  "nav": "ok",
+  "errs": 1,
+  "err1": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "bad": 46,
+  "bad1": "404 /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/files.jsonl"
+ },
+ {
+  "p": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/",
+  "w": 3440,
+  "file": "shots/2026_10_20_session-e00f55c9_sessions-and-tasks_process-system-3440.png",
+  "nav": "ok",
+  "errs": 1,
+  "err1": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "bad": 46,
+  "bad1": "404 /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/files.jsonl"
+ },
+ {
+  "p": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/roles/",
+  "w": 400,
+  "file": "shots/2026_10_20_session-e00f55c9_sessions-and-tasks_deputy_roles-400.png",
+  "nav": "ok",
+  "errs": 0,
+  "bad": 36,
+  "bad1": "FAILED /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/task.jsonl"
+ },
+ {
+  "p": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/roles/",
+  "w": 1200,
+  "file": "shots/2026_10_20_session-e00f55c9_sessions-and-tasks_deputy_roles-1200.png",
+  "nav": "ok",
+  "errs": 0,
+  "bad": 36,
+  "bad1": "FAILED /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/task.jsonl"
+ },
+ {
+  "p": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/roles/",
+  "w": 1920,
+  "file": "shots/2026_10_20_session-e00f55c9_sessions-and-tasks_deputy_roles-1920.png",
+  "nav": "ok",
+  "errs": 6,
+  "err1": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "bad": 48,
+  "bad1": "404 /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/files.jsonl"
+ },
+ {
+  "p": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/roles/",
+  "w": 3440,
+  "file": "shots/2026_10_20_session-e00f55c9_sessions-and-tasks_deputy_roles-3440.png",
+  "nav": "ok",
+  "errs": 6,
+  "err1": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "bad": 14,
+  "bad1": "404 /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/files.jsonl"
+ },
+ {
+  "p": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/review-page/",
+  "w": 400,
+  "file": "shots/2026_10_20_session-e00f55c9_sessions-and-tasks_deputy_review-page-400.png",
+  "nav": "page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://mon · no shot: page.screenshot: Timeout 20000ms exceede",
+  "errs": 0,
+  "bad": 0
+ },
+ {
+  "p": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/review-page/",
+  "w": 1200,
+  "file": "shots/2026_10_20_session-e00f55c9_sessions-and-tasks_deputy_review-page-1200.png",
+  "nav": "ok",
+  "errs": 0,
+  "bad": 36,
+  "bad1": "FAILED /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/task.jsonl"
+ },
+ {
+  "p": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/review-page/",
+  "w": 1920,
+  "file": "shots/2026_10_20_session-e00f55c9_sessions-and-tasks_deputy_review-page-1920.png",
+  "nav": "ok",
+  "errs": 6,
+  "err1": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "bad": 48,
+  "bad1": "404 /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/files.jsonl"
+ },
+ {
+  "p": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/review-page/",
+  "w": 3440,
+  "file": "shots/2026_10_20_session-e00f55c9_sessions-and-tasks_deputy_review-page-3440.png",
+  "nav": "ok",
+  "errs": 6,
+  "err1": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "bad": 48,
+  "bad1": "404 /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/files.jsonl"
+ },
+ {
+  "p": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/session-record/",
+  "w": 400,
+  "file": "shots/2026_10_20_session-e00f55c9_sessions-and-tasks_session-record-400.png",
+  "nav": "ok",
+  "errs": 0,
+  "bad": 37,
+  "bad1": "FAILED /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/task.jsonl"
+ },
+ {
+  "p": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/session-record/",
+  "w": 1200,
+  "file": "shots/2026_10_20_session-e00f55c9_sessions-and-tasks_session-record-1200.png",
+  "nav": "ok",
+  "errs": 0,
+  "bad": 37,
+  "bad1": "FAILED /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/task.jsonl"
+ },
+ {
+  "p": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/session-record/",
+  "w": 1920,
+  "file": "shots/2026_10_20_session-e00f55c9_sessions-and-tasks_session-record-1920.png",
+  "nav": "ok",
+  "errs": 1,
+  "err1": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "bad": 39,
+  "bad1": "404 /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/files.jsonl"
+ },
+ {
+  "p": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/session-record/",
+  "w": 3440,
+  "file": "shots/2026_10_20_session-e00f55c9_sessions-and-tasks_session-record-3440.png",
+  "nav": "ok",
+  "errs": 1,
+  "err1": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "bad": 39,
+  "bad1": "404 /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/files.jsonl"
+ },
+ {
+  "p": "/framework/ai/sessions/2026/10/20/session-00324b25/",
+  "w": 400,
+  "file": "shots/2026_10_20_session-00324b25-400.png",
+  "nav": "ok",
+  "errs": 0,
+  "bad": 0
+ },
+ {
+  "p": "/framework/ai/sessions/2026/10/20/session-00324b25/",
+  "w": 1200,
+  "file": "shots/2026_10_20_session-00324b25-1200.png",
+  "nav": "ok",
+  "errs": 0,
+  "bad": 0
+ },
+ {
+  "p": "/framework/ai/sessions/2026/10/20/session-00324b25/",
+  "w": 1920,
+  "file": "shots/2026_10_20_session-00324b25-1920.png",
+  "nav": "ok",
+  "errs": 6,
+  "err1": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "bad": 12,
+  "bad1": "404 /framework/ai/sessions/2026/10/20/files.jsonl"
+ },
+ {
+  "p": "/framework/ai/sessions/2026/10/20/session-00324b25/",
+  "w": 3440,
+  "file": "shots/2026_10_20_session-00324b25-3440.png",
+  "nav": "ok",
+  "errs": 6,
+  "err1": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "bad": 12,
+  "bad1": "404 /framework/ai/sessions/2026/10/20/files.jsonl"
+ },
+ {
+  "p": "/framework/ai/sessions/2026/10/20/voice-20261020/",
+  "w": 400,
+  "file": "shots/2026_10_20_voice-20261020-400.png",
+  "nav": "ok",
+  "errs": 0,
+  "bad": 0
+ },
+ {
+  "p": "/framework/ai/sessions/2026/10/20/voice-20261020/",
+  "w": 1200,
+  "file": "shots/2026_10_20_voice-20261020-1200.png",
+  "nav": "ok",
+  "errs": 0,
+  "bad": 0
+ },
+ {
+  "p": "/framework/ai/sessions/2026/10/20/voice-20261020/",
+  "w": 1920,
+  "file": "shots/2026_10_20_voice-20261020-1920.png",
+  "nav": "ok",
+  "errs": 6,
+  "err1": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "bad": 12,
+  "bad1": "404 /framework/ai/sessions/2026/10/20/files.jsonl"
+ },
+ {
+  "p": "/framework/ai/sessions/2026/10/20/voice-20261020/",
+  "w": 3440,
+  "file": "shots/2026_10_20_voice-20261020-3440.png",
+  "nav": "ok",
+  "errs": 6,
+  "err1": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "bad": 12,
+  "bad1": "404 /framework/ai/sessions/2026/10/20/files.jsonl"
+ },
+ {
+  "p": "/framework/ai/sessions/2026/10/20/cloud-voice-task-system-and-voice-agent-exploration/",
+  "w": 400,
+  "file": "shots/2026_10_20_cloud-voice-task-system-and-voice-agent-exploration-400.png",
+  "nav": "ok",
+  "errs": 0,
+  "bad": 0
+ },
+ {
+  "p": "/framework/ai/sessions/2026/10/20/cloud-voice-task-system-and-voice-agent-exploration/",
+  "w": 1200,
+  "file": "shots/2026_10_20_cloud-voice-task-system-and-voice-agent-exploration-1200.png",
+  "nav": "ok",
+  "errs": 0,
+  "bad": 0
+ },
+ {
+  "p": "/framework/ai/sessions/2026/10/20/cloud-voice-task-system-and-voice-agent-exploration/",
+  "w": 1920,
+  "file": "shots/2026_10_20_cloud-voice-task-system-and-voice-agent-exploration-1920.png",
+  "nav": "ok",
+  "errs": 6,
+  "err1": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "bad": 12,
+  "bad1": "404 /framework/ai/sessions/2026/10/20/files.jsonl"
+ },
+ {
+  "p": "/framework/ai/sessions/2026/10/20/cloud-voice-task-system-and-voice-agent-exploration/",
+  "w": 3440,
+  "file": "shots/2026_10_20_cloud-voice-task-system-and-voice-agent-exploration-3440.png",
+  "nav": "ok",
+  "errs": 6,
+  "err1": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "bad": 12,
+  "bad1": "404 /framework/ai/sessions/2026/10/20/files.jsonl"
+ }
+]

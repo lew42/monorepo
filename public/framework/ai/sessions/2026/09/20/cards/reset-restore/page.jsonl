@@ -1,0 +1,7 @@
+{"class":"/framework/ai2/card.js","title":"171 files back, site loads clean","type":"card","id":"2026/09/20/reset-restore","created":"2026-09-20T00:44:48-05:00","by":"mastermind","tags":[]}
+{"legacy":"reset-restore"}
+{"status":"done"}
+{"icon":"restore"}
+{"text":"It found two errors in its own work order and reported them rather than inflating the number. It also caught three files that restored perfectly but broke the page, and put them back rather than ship them. Every page loads."}
+{"focus":true}
+{"links":[{"url":"/framework/ai/2026-09-19/reset-restore/","label":"what came back"}]}

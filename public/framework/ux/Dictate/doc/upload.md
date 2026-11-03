@@ -1,0 +1,57 @@
+# Whisper upload: why raw text got slow on the phone, and the fix (2026-11-01)
+
+On a slow uplink the upload is the delay, not Whisper. Every guess re-sends the whole growing segment (6 s of audio is about 190 KB as 16-bit WAV), so the page now sends **half the bytes**. It also **drops a guess still in flight** when the segment ends, so the final no longer waits behind it.
+
+## What was measured
+
+Scripts, rerunnable on the real logs: [measure.mjs](/framework/ai/sessions/2026/10/20/session-e00f55c9/whisper-path/measure.mjs) (each hop, per 10 minutes) and the per-run fit in the [task log](/framework/ai/sessions/2026/10/20/session-e00f55c9/whisper-path/).
+
+| | before 18:12 | from 18:12 |
+|---|---|---|
+| Whisper round trip from the phone, median | 0.28–0.34 s | 2.2–2.6 s |
+| Upload cost per 100 KB (fit of `ms` against `bytes`, per page run) | 40–110 ms | 860–970 ms |
+| Fixed part (fit intercept) | ~170 ms | ~300 ms |
+| whisper-server, the same clip, called directly | 0.12 s | 0.12 s |
+
+- **The time is spent before the request reaches whisper-server.** Pairing each page request with whisper-server's own "processing" line (same sample count) puts the extra 1.2–1.5 s between "sent" and "received".
+- **The cause is the link, not the code.** Request counts were unchanged, and Kokoro (Recite) running at the same time adds nothing (measured).
+
+## Each hop, before and after
+
+| Hop | Before | After |
+|---|---|---|
+| 1. Whisper answer in the page (`ai/whisper/bucket.jsonl` `ms`) | 0.3 s, then 2.2–2.6 s on the slow uplink | half the bytes; a final no longer waits behind a guess (0.33 s, not 3.15 s, with a 3 s guess in flight) |
+| 2. Final to the `{chat}` line in `session.jsonl` (`Sessions.say`) | p50 0.5–4 s | unchanged: the composer sends on a pause, by design (`Mic.js` `auto_check`) |
+| 3. Line to screen in V1, V2, V3 | not timed per view; all three draw from a live tail | the problem here was ink, not time: the guess read at 2.1:1 (V1) and 2.9:1 (V3), now 6.4:1 |
+
+## The fix
+
+| Change | Where | Effect |
+|---|---|---|
+| WAV as 8-bit mu-law (WAVE format 7), not 16-bit PCM | `Capture.wav()`, [capture.js](../capture.js); `Capture.prototype.encoding = "pcm16"` switches back | 16 KB a second of audio, not 32; same text on three clips, including a quiet, hissy copy |
+| A guess in flight is aborted when the segment closes | `Dictate.close_segment()` / `transcribe()`, [Dictate.js](../Dictate.js) | a final behind a 3 s guess answers in 0.33 s, not 3.15 s |
+
+**V1** (`variants/v1/Dictate.js`) sends through the same `Capture.wav()`, so it gets the smaller bytes too, but not the dropped guess; V1 is kept as it was.
+
+Proof: `node public/framework/ai/sessions/2026/10/20/session-e00f55c9/whisper-path/check-fix.mjs <base url>` (PASS on the branch, FAIL on the old code).
+
+## Alternatives, and when they would win
+
+- **4-bit IMA ADPCM** (a quarter of the bytes): tested, and it garbled quiet speech ("Festing, festing"). Not used.
+- **Opus** (about a tenth of the bytes): needs whisper-server's `--convert` (ffmpeg on the PC) and an Ogg writer in the page. Worth doing if the phone is often on mobile data.
+- **Send only the new audio for guesses**: the bytes no longer grow with the segment, but the guess text then has to be stitched together. A bigger change.
+
+## A sentence goes out when it ends, not when you pause
+
+Whisper closes a segment only on a pause, so a long run of speech used to leave as one line, after the pause. Now (2026-11-02):
+
+- **From the live guess.** Each guess re-hears the growing segment. When it holds a finished sentence (ends in `.` `?` `!`, with more words after it), `ComposerMic.early_from_guess()` (`ext/Chat/Mic.js`) sends that sentence at once, one line each, in order. `SETTINGS.early_sentences = false` turns it off.
+- **The final loses what was sent.** `drop_early()` removes those sentences from the segment's final, so there is never a second copy. If the final heard an early sentence differently, the early wording stays (no server-side in-place correction exists) and the difference is logged as a `sentence` health event.
+- **A final or a pause-send with several sentences** leaves as several lines, in order (`send_screen()` splits it; `send_sentences()` runs again for words that arrived while it was busy), with `raw` on the first.
+- **Correction in place: the display can, the writer is not built.** A `chat.fix` line with the same `at` already patches a drawn piece in place (`ext/Chat/Chat.js` `fix_index`, `ux/Dictate/Widget.js`). What is missing is a Servex verb that writes such a line for an owner sentence and fixes its text in the session file. So a final that hears an early sentence with other words keeps the early wording (V1 shows what was sent), the difference is logged, and new words after it still go out (cut by words, not by sentence marks).
+- A split send (several lines) skips the paragraph clean-up (`refine_final`); a single line still gets it.
+- The draft shows only the unsent rest of the guess, so a slow final can never make the pause send repeat a sentence.
+- It only runs when nothing else is held, nothing is sending and the typed `base` is empty, so ordering is never at risk.
+- **The mic light.** Stop (or pause) ends every `MediaStreamTrack` at once, not after the final upload, and a stop that lands while `getUserMedia` is still opening releases the late stream (`capture.js`, `Dictate.stop()`).
+
+Tests: `test/mic-release.mjs`, `test/sentences.mjs`.

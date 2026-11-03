@@ -1,0 +1,7 @@
+verdict: pass
+1. [note] report.md does not mention restore.mjs or restore-manifest.jsonl (43 rows: 11 restore, 32 skip), so a reader of the report cannot tell the follow-up step exists; add one line linking them (law 9, index everything).
+2. [note] restore.mjs --apply writes outside the folder the requirements.md fence allows, and requirements.md never asked for a restore step; it is safe by design (dry run by default, writes only to a given worktree, restores only when dev is unchanged, a prefix of the branch, or absent and not deleted), but the deputy should treat the 11 restored files as a new decision, not part of this brief.
+3. [note] Restored review.jsonl in the diff (ai-system-docs/review.jsonl, last two lines) adds an empty "findings start/done verdict pass cost 0 model null" pair, which is log noise rather than work; harmless but not worth landing alone.
+4. [note] Restoring a nested review/diff.patch (dictate-next-4, ai-dashboard) adds about 100 KB of patch text to the repo for records nobody links; consider skipping *.patch like the shots rounds.
+5. [note] report.md says each unique file "exists only on its branch", but restore-manifest.jsonl shows many are "both sides changed" (e.g. refine-audit's four files, readmeaudit task.jsonl); the wording should say "differs from michael/dev".
+6. [note] Counts agree (20 branches from unlanded.mjs, 20 rows in verdicts.jsonl and the table); restore.mjs's reading of moved task folders via task-moves.jsonl looks correct and simple enough.
